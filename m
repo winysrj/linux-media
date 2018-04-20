@@ -1,207 +1,628 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:26594 "EHLO
-        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751067AbeDNL7E (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:58395 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755660AbeDTPsX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 07:59:04 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v14 03/33] rcar-vin: add Gen3 devicetree bindings documentation
-Date: Sat, 14 Apr 2018 13:56:56 +0200
-Message-Id: <20180414115726.5075-4-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 20 Apr 2018 11:48:23 -0400
+Subject: Re: [PATCH v3 5/7] drm/i2c: tda9950: add CEC driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org
+References: <20180409121529.GA31403@n2100.armlinux.org.uk>
+ <E1f5Viq-0002Lj-Ru@rmk-PC.armlinux.org.uk>
+ <20180420153137.GZ16141@n2100.armlinux.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bd644882-50b3-3022-de21-1f0b7fe008b7@xs4all.nl>
+Date: Fri, 20 Apr 2018 17:48:12 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180420153137.GZ16141@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the devicetree bindings for the CSI-2 inputs available on Gen3.
+On 04/20/2018 05:31 PM, Russell King - ARM Linux wrote:
+> Hi Hans,
+> 
+> Any comments?
 
-There is a need to add a custom property 'renesas,id' and to define
-which CSI-2 input is described in which endpoint under the port@1 node.
-This information is needed since there are a set of predefined routes
-between each VIN and CSI-2 block. This routing table will be kept
-inside the driver but in order for it to act on it it must know which
-VIN and CSI-2 is which.
+I have been traveling and haven't had time to look at this. Next week will
+be busy as well, but I expect to be able to look at it the week after that.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Acked-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- .../devicetree/bindings/media/rcar_vin.txt         | 118 ++++++++++++++++++---
- 1 file changed, 106 insertions(+), 12 deletions(-)
+I remember from the previous series that I couldn't test it with my BeagleBone
+Black board (the calibration gpio had to switch from in to out but it wasn't allowed
+since it had an associated irq). That's still a problem?
 
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index 4c76d82905c9d3b8..ba31431d4b1fbdbb 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -2,8 +2,12 @@ Renesas R-Car Video Input driver (rcar_vin)
- -------------------------------------------
- 
- The rcar_vin device provides video input capabilities for the Renesas R-Car
--family of devices. The current blocks are always slaves and suppot one input
--channel which can be either RGB, YUYV or BT656.
-+family of devices.
-+
-+Each VIN instance has a single parallel input that supports RGB and YUV video,
-+with both external synchronization and BT.656 synchronization for the latter.
-+Depending on the instance the VIN input is connected to external SoC pins, or
-+on Gen3 platforms to a CSI-2 receiver.
- 
-  - compatible: Must be one or more of the following
-    - "renesas,vin-r8a7743" for the R8A7743 device
-@@ -16,6 +20,8 @@ channel which can be either RGB, YUYV or BT656.
-    - "renesas,vin-r8a7793" for the R8A7793 device
-    - "renesas,vin-r8a7794" for the R8A7794 device
-    - "renesas,vin-r8a7795" for the R8A7795 device
-+   - "renesas,vin-r8a7796" for the R8A7796 device
-+   - "renesas,vin-r8a77970" for the R8A77970 device
-    - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
-      device.
-    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
-@@ -31,21 +37,38 @@ channel which can be either RGB, YUYV or BT656.
- Additionally, an alias named vinX will need to be created to specify
- which video input device this is.
- 
--The per-board settings:
-+The per-board settings Gen2 platforms:
-  - port sub-node describing a single endpoint connected to the vin
-    as described in video-interfaces.txt[1]. Only the first one will
-    be considered as each vin interface has one input port.
- 
--   These settings are used to work out video input format and widths
--   into the system.
-+The per-board settings Gen3 platforms:
- 
-+Gen3 platforms can support both a single connected parallel input source
-+from external SoC pins (port0) and/or multiple parallel input sources
-+from local SoC CSI-2 receivers (port1) depending on SoC.
- 
--Device node example
---------------------
-+- renesas,id - ID number of the VIN, VINx in the documentation.
-+- ports
-+    - port 0 - sub-node describing a single endpoint connected to the VIN
-+      from external SoC pins described in video-interfaces.txt[1].
-+      Describing more then one endpoint in port 0 is invalid. Only VIN
-+      instances that are connected to external pins should have port 0.
-+    - port 1 - sub-nodes describing one or more endpoints connected to
-+      the VIN from local SoC CSI-2 receivers. The endpoint numbers must
-+      use the following schema.
- 
--	aliases {
--	       vin0 = &vin0;
--	};
-+        - Endpoint 0 - sub-node describing the endpoint connected to CSI20
-+        - Endpoint 1 - sub-node describing the endpoint connected to CSI21
-+        - Endpoint 2 - sub-node describing the endpoint connected to CSI40
-+        - Endpoint 3 - sub-node describing the endpoint connected to CSI41
-+
-+Device node example for Gen2 platforms
-+--------------------------------------
-+
-+        aliases {
-+                vin0 = &vin0;
-+        };
- 
-         vin0: vin@e6ef0000 {
-                 compatible = "renesas,vin-r8a7790", "renesas,rcar-gen2-vin";
-@@ -55,8 +78,8 @@ Device node example
-                 status = "disabled";
-         };
- 
--Board setup example (vin1 composite video input)
--------------------------------------------------
-+Board setup example for Gen2 platforms (vin1 composite video input)
-+-------------------------------------------------------------------
- 
- &i2c2   {
-         status = "okay";
-@@ -95,6 +118,77 @@ Board setup example (vin1 composite video input)
-         };
- };
- 
-+Device node example for Gen3 platforms
-+--------------------------------------
- 
-+        vin0: video@e6ef0000 {
-+                compatible = "renesas,vin-r8a7795";
-+                reg = <0 0xe6ef0000 0 0x1000>;
-+                interrupts = <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
-+                clocks = <&cpg CPG_MOD 811>;
-+                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+                resets = <&cpg 811>;
-+                renesas,id = <0>;
-+
-+                ports {
-+                        #address-cells = <1>;
-+                        #size-cells = <0>;
-+
-+                        port@1 {
-+                                #address-cells = <1>;
-+                                #size-cells = <0>;
-+
-+                                reg = <1>;
-+
-+                                vin0csi20: endpoint@0 {
-+                                        reg = <0>;
-+                                        remote-endpoint= <&csi20vin0>;
-+                                };
-+                                vin0csi21: endpoint@1 {
-+                                        reg = <1>;
-+                                        remote-endpoint= <&csi21vin0>;
-+                                };
-+                                vin0csi40: endpoint@2 {
-+                                        reg = <2>;
-+                                        remote-endpoint= <&csi40vin0>;
-+                                };
-+                        };
-+                };
-+        };
-+
-+        csi20: csi2@fea80000 {
-+                compatible = "renesas,r8a7795-csi2";
-+                reg = <0 0xfea80000 0 0x10000>;
-+                interrupts = <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
-+                clocks = <&cpg CPG_MOD 714>;
-+                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+                resets = <&cpg 714>;
-+
-+                ports {
-+                        #address-cells = <1>;
-+                        #size-cells = <0>;
-+
-+                        port@0 {
-+                                reg = <0>;
-+                                csi20_in: endpoint {
-+                                        clock-lanes = <0>;
-+                                        data-lanes = <1>;
-+                                        remote-endpoint = <&adv7482_txb>;
-+                                };
-+                        };
-+
-+                        port@1 {
-+                                #address-cells = <1>;
-+                                #size-cells = <0>;
-+
-+                                reg = <1>;
-+
-+                                csi20vin0: endpoint@0 {
-+                                        reg = <0>;
-+                                        remote-endpoint = <&vin0csi20>;
-+                                };
-+                        };
-+                };
-+        };
- 
- [1] video-interfaces.txt common video media interface
--- 
-2.16.2
+I didn't see any changes in that area when I did a quick scan.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks.
+> 
+> On Mon, Apr 09, 2018 at 01:16:32PM +0100, Russell King wrote:
+>> Add a CEC driver for the TDA9950, which is a stand-alone I2C CEC device,
+>> but is also integrated into HDMI transceivers such as the TDA9989 and
+>> TDA19989.
+>>
+>> The TDA9950 contains a command processor which handles retransmissions
+>> and the low level bus protocol.  The driver just has to read and write
+>> the messages, and handle error conditions.
+>>
+>> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+>> ---
+>>  drivers/gpu/drm/i2c/Kconfig           |   5 +
+>>  drivers/gpu/drm/i2c/Makefile          |   1 +
+>>  drivers/gpu/drm/i2c/tda9950.c         | 509 ++++++++++++++++++++++++++++++++++
+>>  include/linux/platform_data/tda9950.h |  16 ++
+>>  4 files changed, 531 insertions(+)
+>>  create mode 100644 drivers/gpu/drm/i2c/tda9950.c
+>>  create mode 100644 include/linux/platform_data/tda9950.h
+>>
+>> diff --git a/drivers/gpu/drm/i2c/Kconfig b/drivers/gpu/drm/i2c/Kconfig
+>> index a6c92beb410a..3a232f5ff0a1 100644
+>> --- a/drivers/gpu/drm/i2c/Kconfig
+>> +++ b/drivers/gpu/drm/i2c/Kconfig
+>> @@ -26,4 +26,9 @@ config DRM_I2C_NXP_TDA998X
+>>  	help
+>>  	  Support for NXP Semiconductors TDA998X HDMI encoders.
+>>  
+>> +config DRM_I2C_NXP_TDA9950
+>> +	tristate "NXP Semiconductors TDA9950/TDA998X HDMI CEC"
+>> +	select CEC_NOTIFIER
+>> +	select CEC_CORE
+>> +
+>>  endmenu
+>> diff --git a/drivers/gpu/drm/i2c/Makefile b/drivers/gpu/drm/i2c/Makefile
+>> index b20100c18ffb..a962f6f08568 100644
+>> --- a/drivers/gpu/drm/i2c/Makefile
+>> +++ b/drivers/gpu/drm/i2c/Makefile
+>> @@ -7,3 +7,4 @@ obj-$(CONFIG_DRM_I2C_SIL164) += sil164.o
+>>  
+>>  tda998x-y := tda998x_drv.o
+>>  obj-$(CONFIG_DRM_I2C_NXP_TDA998X) += tda998x.o
+>> +obj-$(CONFIG_DRM_I2C_NXP_TDA9950) += tda9950.o
+>> diff --git a/drivers/gpu/drm/i2c/tda9950.c b/drivers/gpu/drm/i2c/tda9950.c
+>> new file mode 100644
+>> index 000000000000..3f7396caad48
+>> --- /dev/null
+>> +++ b/drivers/gpu/drm/i2c/tda9950.c
+>> @@ -0,0 +1,509 @@
+>> +/*
+>> + *  TDA9950 Consumer Electronics Control driver
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + *
+>> + * The NXP TDA9950 implements the HDMI Consumer Electronics Control
+>> + * interface.  The host interface is similar to a mailbox: the data
+>> + * registers starting at REG_CDR0 are written to send a command to the
+>> + * internal CPU, and replies are read from these registers.
+>> + *
+>> + * As the data registers represent a mailbox, they must be accessed
+>> + * as a single I2C transaction.  See the TDA9950 data sheet for details.
+>> + */
+>> +#include <linux/delay.h>
+>> +#include <linux/i2c.h>
+>> +#include <linux/interrupt.h>
+>> +#include <linux/module.h>
+>> +#include <linux/platform_data/tda9950.h>
+>> +#include <linux/slab.h>
+>> +#include <drm/drm_edid.h>
+>> +#include <media/cec.h>
+>> +#include <media/cec-notifier.h>
+>> +
+>> +enum {
+>> +	REG_CSR = 0x00,
+>> +	CSR_BUSY = BIT(7),
+>> +	CSR_INT  = BIT(6),
+>> +	CSR_ERR  = BIT(5),
+>> +
+>> +	REG_CER = 0x01,
+>> +
+>> +	REG_CVR = 0x02,
+>> +
+>> +	REG_CCR = 0x03,
+>> +	CCR_RESET = BIT(7),
+>> +	CCR_ON    = BIT(6),
+>> +
+>> +	REG_ACKH = 0x04,
+>> +	REG_ACKL = 0x05,
+>> +
+>> +	REG_CCONR = 0x06,
+>> +	CCONR_ENABLE_ERROR = BIT(4),
+>> +	CCONR_RETRY_MASK = 7,
+>> +
+>> +	REG_CDR0 = 0x07,
+>> +
+>> +	CDR1_REQ = 0x00,
+>> +	CDR1_CNF = 0x01,
+>> +	CDR1_IND = 0x81,
+>> +	CDR1_ERR = 0x82,
+>> +	CDR1_IER = 0x83,
+>> +
+>> +	CDR2_CNF_SUCCESS    = 0x00,
+>> +	CDR2_CNF_OFF_STATE  = 0x80,
+>> +	CDR2_CNF_BAD_REQ    = 0x81,
+>> +	CDR2_CNF_CEC_ACCESS = 0x82,
+>> +	CDR2_CNF_ARB_ERROR  = 0x83,
+>> +	CDR2_CNF_BAD_TIMING = 0x84,
+>> +	CDR2_CNF_NACK_ADDR  = 0x85,
+>> +	CDR2_CNF_NACK_DATA  = 0x86,
+>> +};
+>> +
+>> +struct tda9950_priv {
+>> +	struct i2c_client *client;
+>> +	struct device *hdmi;
+>> +	struct cec_adapter *adap;
+>> +	struct tda9950_glue *glue;
+>> +	u16 addresses;
+>> +	struct cec_msg rx_msg;
+>> +	struct cec_notifier *notify;
+>> +	bool open;
+>> +};
+>> +
+>> +static int tda9950_write_range(struct i2c_client *client, u8 addr, u8 *p, int cnt)
+>> +{
+>> +	struct i2c_msg msg;
+>> +	u8 buf[cnt + 1];
+>> +	int ret;
+>> +
+>> +	buf[0] = addr;
+>> +	memcpy(buf + 1, p, cnt);
+>> +
+>> +	msg.addr = client->addr;
+>> +	msg.flags = 0;
+>> +	msg.len = cnt + 1;
+>> +	msg.buf = buf;
+>> +
+>> +	dev_dbg(&client->dev, "wr 0x%02x: %*ph\n", addr, cnt, p);
+>> +
+>> +	ret = i2c_transfer(client->adapter, &msg, 1);
+>> +	if (ret < 0)
+>> +		dev_err(&client->dev, "Error %d writing to cec:0x%x\n", ret, addr);
+>> +	return ret < 0 ? ret : 0;
+>> +}
+>> +
+>> +static void tda9950_write(struct i2c_client *client, u8 addr, u8 val)
+>> +{
+>> +	tda9950_write_range(client, addr, &val, 1);
+>> +}
+>> +
+>> +static int tda9950_read_range(struct i2c_client *client, u8 addr, u8 *p, int cnt)
+>> +{
+>> +	struct i2c_msg msg[2];
+>> +	int ret;
+>> +
+>> +	msg[0].addr = client->addr;
+>> +	msg[0].flags = 0;
+>> +	msg[0].len = 1;
+>> +	msg[0].buf = &addr;
+>> +	msg[1].addr = client->addr;
+>> +	msg[1].flags = I2C_M_RD;
+>> +	msg[1].len = cnt;
+>> +	msg[1].buf = p;
+>> +
+>> +	ret = i2c_transfer(client->adapter, msg, 2);
+>> +	if (ret < 0)
+>> +		dev_err(&client->dev, "Error %d reading from cec:0x%x\n", ret, addr);
+>> +
+>> +	dev_dbg(&client->dev, "rd 0x%02x: %*ph\n", addr, cnt, p);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static u8 tda9950_read(struct i2c_client *client, u8 addr)
+>> +{
+>> +	int ret;
+>> +	u8 val;
+>> +
+>> +	ret = tda9950_read_range(client, addr, &val, 1);
+>> +	if (ret < 0)
+>> +		val = 0;
+>> +
+>> +	return val;
+>> +}
+>> +
+>> +static irqreturn_t tda9950_irq(int irq, void *data)
+>> +{
+>> +	struct tda9950_priv *priv = data;
+>> +	unsigned int tx_status;
+>> +	u8 csr, cconr, buf[19];
+>> +	u8 arb_lost_cnt, nack_cnt, err_cnt;
+>> +
+>> +	if (!priv->open)
+>> +		return IRQ_NONE;
+>> +
+>> +	csr = tda9950_read(priv->client, REG_CSR);
+>> +	if (!(csr & CSR_INT))
+>> +		return IRQ_NONE;
+>> +
+>> +	cconr = tda9950_read(priv->client, REG_CCONR) & CCONR_RETRY_MASK;
+>> +
+>> +	tda9950_read_range(priv->client, REG_CDR0, buf, sizeof(buf));
+>> +
+>> +	/*
+>> +	 * This should never happen: the data sheet says that there will
+>> +	 * always be a valid message if the interrupt line is asserted.
+>> +	 */
+>> +	if (buf[0] == 0) {
+>> +		dev_warn(&priv->client->dev, "interrupt pending, but no message?\n");
+>> +		return IRQ_NONE;
+>> +	}
+>> +
+>> +	switch (buf[1]) {
+>> +	case CDR1_CNF: /* transmit result */
+>> +		arb_lost_cnt = nack_cnt = err_cnt = 0;
+>> +		switch (buf[2]) {
+>> +		case CDR2_CNF_SUCCESS:
+>> +			tx_status = CEC_TX_STATUS_OK;
+>> +			break;
+>> +
+>> +		case CDR2_CNF_ARB_ERROR:
+>> +			tx_status = CEC_TX_STATUS_ARB_LOST;
+>> +			arb_lost_cnt = cconr;
+>> +			break;
+>> +
+>> +		case CDR2_CNF_NACK_ADDR:
+>> +			tx_status = CEC_TX_STATUS_NACK;
+>> +			nack_cnt = cconr;
+>> +			break;
+>> +
+>> +		default: /* some other error, refer to TDA9950 docs */
+>> +			dev_err(&priv->client->dev, "CNF reply error 0x%02x\n",
+>> +				buf[2]);
+>> +			tx_status = CEC_TX_STATUS_ERROR;
+>> +			err_cnt = cconr;
+>> +			break;
+>> +		}
+>> +		/* TDA9950 executes all retries for us */
+>> +		tx_status |= CEC_TX_STATUS_MAX_RETRIES;
+>> +		cec_transmit_done(priv->adap, tx_status, arb_lost_cnt,
+>> +				  nack_cnt, 0, err_cnt);
+>> +		break;
+>> +
+>> +	case CDR1_IND:
+>> +		priv->rx_msg.len = buf[0] - 2;
+>> +		if (priv->rx_msg.len > CEC_MAX_MSG_SIZE)
+>> +			priv->rx_msg.len = CEC_MAX_MSG_SIZE;
+>> +
+>> +		memcpy(priv->rx_msg.msg, buf + 2, priv->rx_msg.len);
+>> +		cec_received_msg(priv->adap, &priv->rx_msg);
+>> +		break;
+>> +
+>> +	default: /* unknown */
+>> +		dev_err(&priv->client->dev, "unknown service id 0x%02x\n",
+>> +			buf[1]);
+>> +		break;
+>> +	}
+>> +
+>> +	return IRQ_HANDLED;
+>> +}
+>> +
+>> +static int tda9950_cec_transmit(struct cec_adapter *adap, u8 attempts,
+>> +				u32 signal_free_time, struct cec_msg *msg)
+>> +{
+>> +	struct tda9950_priv *priv = adap->priv;
+>> +	u8 buf[CEC_MAX_MSG_SIZE + 2];
+>> +
+>> +	buf[0] = 2 + msg->len;
+>> +	buf[1] = CDR1_REQ;
+>> +	memcpy(buf + 2, msg->msg, msg->len);
+>> +
+>> +	if (attempts > 5)
+>> +		attempts = 5;
+>> +
+>> +	tda9950_write(priv->client, REG_CCONR, attempts);
+>> +
+>> +	return tda9950_write_range(priv->client, REG_CDR0, buf, 2 + msg->len);
+>> +}
+>> +
+>> +static int tda9950_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
+>> +{
+>> +	struct tda9950_priv *priv = adap->priv;
+>> +	u16 addresses;
+>> +	u8 buf[2];
+>> +
+>> +	if (addr == CEC_LOG_ADDR_INVALID)
+>> +		addresses = priv->addresses = 0;
+>> +	else
+>> +		addresses = priv->addresses |= BIT(addr);
+>> +
+>> +	/* TDA9950 doesn't want address 15 set */
+>> +	addresses &= 0x7fff;
+>> +	buf[0] = addresses >> 8;
+>> +	buf[1] = addresses;
+>> +
+>> +	return tda9950_write_range(priv->client, REG_ACKH, buf, 2);
+>> +}
+>> +
+>> +/*
+>> + * When operating as part of the TDA998x, we need additional handling
+>> + * to initialise and shut down the TDA9950 part of the device.  These
+>> + * two hooks are provided to allow the TDA998x code to perform those
+>> + * activities.
+>> + */
+>> +static int tda9950_glue_open(struct tda9950_priv *priv)
+>> +{
+>> +	int ret = 0;
+>> +
+>> +	if (priv->glue && priv->glue->open)
+>> +		ret = priv->glue->open(priv->glue->data);
+>> +
+>> +	priv->open = true;
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static void tda9950_glue_release(struct tda9950_priv *priv)
+>> +{
+>> +	priv->open = false;
+>> +
+>> +	if (priv->glue && priv->glue->release)
+>> +		priv->glue->release(priv->glue->data);
+>> +}
+>> +
+>> +static int tda9950_open(struct tda9950_priv *priv)
+>> +{
+>> +	struct i2c_client *client = priv->client;
+>> +	int ret;
+>> +
+>> +	ret = tda9950_glue_open(priv);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	/* Reset the TDA9950, and wait 250ms for it to recover */
+>> +	tda9950_write(client, REG_CCR, CCR_RESET);
+>> +	msleep(250);
+>> +
+>> +	tda9950_cec_adap_log_addr(priv->adap, CEC_LOG_ADDR_INVALID);
+>> +
+>> +	/* Start the command processor */
+>> +	tda9950_write(client, REG_CCR, CCR_ON);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static void tda9950_release(struct tda9950_priv *priv)
+>> +{
+>> +	struct i2c_client *client = priv->client;
+>> +	int timeout = 50;
+>> +	u8 csr;
+>> +
+>> +	/* Stop the command processor */
+>> +	tda9950_write(client, REG_CCR, 0);
+>> +
+>> +	/* Wait up to .5s for it to signal non-busy */
+>> +	do {
+>> +		csr = tda9950_read(client, REG_CSR);
+>> +		if (!(csr & CSR_BUSY) || --timeout)
+>> +			break;
+>> +		msleep(10);
+>> +	} while (1);
+>> +
+>> +	/* Warn the user that their IRQ may die if it's shared. */
+>> +	if (csr & CSR_BUSY)
+>> +		dev_warn(&client->dev, "command processor failed to stop, irq%d may die (csr=0x%02x)\n",
+>> +			 client->irq, csr);
+>> +
+>> +	tda9950_glue_release(priv);
+>> +}
+>> +
+>> +static int tda9950_cec_adap_enable(struct cec_adapter *adap, bool enable)
+>> +{
+>> +	struct tda9950_priv *priv = adap->priv;
+>> +
+>> +	if (!enable) {
+>> +		tda9950_release(priv);
+>> +		return 0;
+>> +	} else {
+>> +		return tda9950_open(priv);
+>> +	}
+>> +}
+>> +
+>> +static const struct cec_adap_ops tda9950_cec_ops = {
+>> +	.adap_enable = tda9950_cec_adap_enable,
+>> +	.adap_log_addr = tda9950_cec_adap_log_addr,
+>> +	.adap_transmit = tda9950_cec_transmit,
+>> +};
+>> +
+>> +/*
+>> + * When operating as part of the TDA998x, we need to claim additional
+>> + * resources.  These two hooks permit the management of those resources.
+>> + */
+>> +static void tda9950_devm_glue_exit(void *data)
+>> +{
+>> +	struct tda9950_glue *glue = data;
+>> +
+>> +	if (glue && glue->exit)
+>> +		glue->exit(glue->data);
+>> +}
+>> +
+>> +static int tda9950_devm_glue_init(struct device *dev, struct tda9950_glue *glue)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (glue && glue->init) {
+>> +		ret = glue->init(glue->data);
+>> +		if (ret)
+>> +			return ret;
+>> +	}
+>> +
+>> +	ret = devm_add_action(dev, tda9950_devm_glue_exit, glue);
+>> +	if (ret)
+>> +		tda9950_devm_glue_exit(glue);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static void tda9950_cec_del(void *data)
+>> +{
+>> +	struct tda9950_priv *priv = data;
+>> +
+>> +	cec_delete_adapter(priv->adap);
+>> +}
+>> +
+>> +static int tda9950_probe(struct i2c_client *client,
+>> +			 const struct i2c_device_id *id)
+>> +{
+>> +	struct tda9950_glue *glue = client->dev.platform_data;
+>> +	struct device *dev = &client->dev;
+>> +	struct tda9950_priv *priv;
+>> +	unsigned long irqflags;
+>> +	int ret;
+>> +	u8 cvr;
+>> +
+>> +	/*
+>> +	 * We must have I2C functionality: our multi-byte accesses
+>> +	 * must be performed as a single contiguous transaction.
+>> +	 */
+>> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+>> +		dev_err(&client->dev,
+>> +			"adapter does not support I2C functionality\n");
+>> +		return -ENXIO;
+>> +	}
+>> +
+>> +	/* We must have an interrupt to be functional. */
+>> +	if (client->irq <= 0) {
+>> +		dev_err(&client->dev, "driver requires an interrupt\n");
+>> +		return -ENXIO;
+>> +	}
+>> +
+>> +	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+>> +	if (!priv)
+>> +		return -ENOMEM;
+>> +
+>> +	priv->client = client;
+>> +	priv->glue = glue;
+>> +
+>> +	i2c_set_clientdata(client, priv);
+>> +
+>> +	/*
+>> +	 * If we're part of a TDA998x, we want the class devices to be
+>> +	 * associated with the HDMI Tx so we have a tight relationship
+>> +	 * between the HDMI interface and the CEC interface.
+>> +	 */
+>> +	priv->hdmi = dev;
+>> +	if (glue && glue->parent)
+>> +		priv->hdmi = glue->parent;
+>> +
+>> +	priv->adap = cec_allocate_adapter(&tda9950_cec_ops, priv, "tda9950",
+>> +					  CEC_CAP_DEFAULTS,
+>> +					  CEC_MAX_LOG_ADDRS);
+>> +	if (IS_ERR(priv->adap))
+>> +		return PTR_ERR(priv->adap);
+>> +
+>> +	ret = devm_add_action(dev, tda9950_cec_del, priv);
+>> +	if (ret) {
+>> +		cec_delete_adapter(priv->adap);
+>> +		return ret;
+>> +	}
+>> +
+>> +	ret = tda9950_devm_glue_init(dev, glue);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	ret = tda9950_glue_open(priv);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	cvr = tda9950_read(client, REG_CVR);
+>> +
+>> +	dev_info(&client->dev,
+>> +		 "TDA9950 CEC interface, hardware version %u.%u\n",
+>> +		 cvr >> 4, cvr & 15);
+>> +
+>> +	tda9950_glue_release(priv);
+>> +
+>> +	irqflags = IRQF_TRIGGER_FALLING;
+>> +	if (glue)
+>> +		irqflags = glue->irq_flags;
+>> +
+>> +	ret = devm_request_threaded_irq(dev, client->irq, NULL, tda9950_irq,
+>> +					irqflags | IRQF_SHARED | IRQF_ONESHOT,
+>> +					dev_name(&client->dev), priv);
+>> +	if (ret < 0)
+>> +		return ret;
+>> +
+>> +	priv->notify = cec_notifier_get(priv->hdmi);
+>> +	if (!priv->notify)
+>> +		return -ENOMEM;
+>> +
+>> +	ret = cec_register_adapter(priv->adap, priv->hdmi);
+>> +	if (ret < 0) {
+>> +		cec_notifier_put(priv->notify);
+>> +		return ret;
+>> +	}
+>> +
+>> +	/*
+>> +	 * CEC documentation says we must not call cec_delete_adapter
+>> +	 * after a successful call to cec_register_adapter().
+>> +	 */
+>> +	devm_remove_action(dev, tda9950_cec_del, priv);
+>> +
+>> +	cec_register_cec_notifier(priv->adap, priv->notify);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int tda9950_remove(struct i2c_client *client)
+>> +{
+>> +	struct tda9950_priv *priv = i2c_get_clientdata(client);
+>> +
+>> +	cec_unregister_adapter(priv->adap);
+>> +	cec_notifier_put(priv->notify);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static struct i2c_device_id tda9950_ids[] = {
+>> +	{ "tda9950", 0 },
+>> +	{ },
+>> +};
+>> +MODULE_DEVICE_TABLE(i2c, tda9950_ids);
+>> +
+>> +static struct i2c_driver tda9950_driver = {
+>> +	.probe = tda9950_probe,
+>> +	.remove = tda9950_remove,
+>> +	.driver = {
+>> +		.name = "tda9950",
+>> +	},
+>> +	.id_table = tda9950_ids,
+>> +};
+>> +
+>> +module_i2c_driver(tda9950_driver);
+>> +
+>> +MODULE_AUTHOR("Russell King <rmk+kernel@armlinux.org.uk>");
+>> +MODULE_DESCRIPTION("TDA9950/TDA998x Consumer Electronics Control Driver");
+>> +MODULE_LICENSE("GPL v2");
+>> diff --git a/include/linux/platform_data/tda9950.h b/include/linux/platform_data/tda9950.h
+>> new file mode 100644
+>> index 000000000000..c65efd461102
+>> --- /dev/null
+>> +++ b/include/linux/platform_data/tda9950.h
+>> @@ -0,0 +1,16 @@
+>> +#ifndef LINUX_PLATFORM_DATA_TDA9950_H
+>> +#define LINUX_PLATFORM_DATA_TDA9950_H
+>> +
+>> +struct device;
+>> +
+>> +struct tda9950_glue {
+>> +	struct device *parent;
+>> +	unsigned long irq_flags;
+>> +	void *data;
+>> +	int (*init)(void *);
+>> +	void (*exit)(void *);
+>> +	int (*open)(void *);
+>> +	void (*release)(void *);
+>> +};
+>> +
+>> +#endif
+>> -- 
+>> 2.7.4
+>>
+> 
