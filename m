@@ -1,98 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:35094 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751350AbeDYFtA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 01:49:00 -0400
-Date: Tue, 24 Apr 2018 22:48:55 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Christoph Hellwig <hch@infradead.org>,
-        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Jerome Glisse <jglisse@redhat.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
-Message-ID: <20180425054855.GA17038@infradead.org>
-References: <CAKMK7uEFVOh-R2_4vs1M22_wDau0oNTgmCcTWDE+ScxL=92+2g@mail.gmail.com>
- <20180419081657.GA16735@infradead.org>
- <20180420071312.GF31310@phenom.ffwll.local>
- <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com>
- <20180420101755.GA11400@infradead.org>
- <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
- <20180420124625.GA31078@infradead.org>
- <20180420152111.GR31310@phenom.ffwll.local>
- <20180424184847.GA3247@infradead.org>
- <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+Received: from mail.bootlin.com ([62.4.15.54]:49303 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750818AbeDTTEW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 15:04:22 -0400
+Date: Fri, 20 Apr 2018 21:04:10 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: Re: [PATCH v2 02/12] media: ov5640: Add light frequency control
+Message-ID: <20180420190410.v34fjtmcs57otbcg@flea>
+References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
+ <20180416123701.15901-3-maxime.ripard@bootlin.com>
+ <1757295.VWosiQ25QR@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1757295.VWosiQ25QR@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 24, 2018 at 09:32:20PM +0200, Daniel Vetter wrote:
-> Out of curiosity, how much virtual flushing stuff is there still out
-> there? At least in drm we've pretty much ignore this, and seem to be
-> getting away without a huge uproar (at least from driver developers
-> and users, core folks are less amused about that).
+Hi Laurent,
 
-As I've just been wading through the code, the following architectures
-have non-coherent dma that flushes by virtual address for at least some
-platforms:
-
- - arm [1], arm64, hexagon, nds32, nios2, parisc, sh, xtensa, mips,
-   powerpc
-
-These have non-coherent dma ops that flush by physical address:
-
- - arc, arm [1], c6x, m68k, microblaze, openrisc, sparc
-
-And these do not have non-coherent dma ops at all:
-
- - alpha, h8300, riscv, unicore32, x86
-
-[1] arm Ñ•eems to do both virtually and physically based ops, further
-audit needed.
-
-Note that using virtual addresses in the cache flushing interface
-doesn't mean that the cache actually is virtually indexed, but it at
-least allows for the possibility.
-
-> > I think the most important thing about such a buffer object is that
-> > it can distinguish the underlying mapping types.  While
-> > dma_alloc_coherent, dma_alloc_attrs with DMA_ATTR_NON_CONSISTENT,
-> > dma_map_page/dma_map_single/dma_map_sg and dma_map_resource all give
-> > back a dma_addr_t they are in now way interchangable.  And trying to
-> > stuff them all into a structure like struct scatterlist that has
-> > no indication what kind of mapping you are dealing with is just
-> > asking for trouble.
+On Thu, Apr 19, 2018 at 12:44:18PM +0300, Laurent Pinchart wrote:
+> On Monday, 16 April 2018 15:36:51 EEST Maxime Ripard wrote:
+> > From: Mylène Josserand <mylene.josserand@bootlin.com>
+> > 
+> > Add the light frequency control to be able to set the frequency
+> > to manual (50Hz or 60Hz) or auto.
+> > 
+> > Signed-off-by: Mylène Josserand <mylene.josserand@bootlin.com>
+> > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > ---
+> >  drivers/media/i2c/ov5640.c | 24 ++++++++++++++++++++++++
+> >  1 file changed, 24 insertions(+)
+> > 
+> > diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> > index a33e45f8e2b0..28122341fc35 100644
+> > --- a/drivers/media/i2c/ov5640.c
+> > +++ b/drivers/media/i2c/ov5640.c
+> > @@ -189,6 +189,7 @@ struct ov5640_ctrls {
+> >  	};
+> >  	struct v4l2_ctrl *auto_focus;
+> >  	struct v4l2_ctrl *brightness;
+> > +	struct v4l2_ctrl *light_freq;
+> >  	struct v4l2_ctrl *saturation;
+> >  	struct v4l2_ctrl *contrast;
+> >  	struct v4l2_ctrl *hue;
+> > @@ -2163,6 +2164,21 @@ static int ov5640_set_ctrl_focus(struct ov5640_dev
+> > *sensor, int value) BIT(1), value ? BIT(1) : 0);
+> >  }
+> > 
+> > +static int ov5640_set_ctl_light_freq(struct ov5640_dev *sensor, int value)
 > 
-> Well the idea was to have 1 interface to allow all drivers to share
-> buffers with anything else, no matter how exactly they're allocated.
+> To stay consistent with the other functions, I propose calling this 
+> ov5640_set_ctrl_light_freq().
+> 
+> Apart from that,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Isn't that interface supposed to be dmabuf?  Currently dma_map leaks
-a scatterlist through the sg_table in dma_buf_map_attachment /
-->map_dma_buf, but looking at a few of the callers it seems like they
-really do not even want a scatterlist to start with, but check that
-is contains a physically contiguous range first.  So kicking the
-scatterlist our there will probably improve the interface in general.
+Consider it fixed in the next iteration, thanks!
+Maxime
 
-> dma-buf has all the functions for flushing, so you can have coherent
-> mappings, non-coherent mappings and pretty much anything else. Or well
-> could, because in practice people hack up layering violations until it
-> works for the 2-3 drivers they care about. On top of that there's the
-> small issue that x86 insists that dma is coherent (and that's true for
-> most devices, including v4l drivers you might want to share stuff
-> with), and gpus really, really really do want to make almost
-> everything incoherent.
-
-How do discrete GPUs manage to be incoherent when attached over PCIe?
+-- 
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
