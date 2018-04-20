@@ -1,65 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:50623 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750983AbeDRESj (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:52615 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754705AbeDTM2T (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 00:18:39 -0400
-Received: from mail-pl0-f72.google.com ([209.85.160.72])
-        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
-        (Exim 4.76)
-        (envelope-from <kai.heng.feng@canonical.com>)
-        id 1f8eYI-0000c0-4n
-        for linux-media@vger.kernel.org; Wed, 18 Apr 2018 04:18:38 +0000
-Received: by mail-pl0-f72.google.com with SMTP id h32-v6so320036pld.15
-        for <linux-media@vger.kernel.org>; Tue, 17 Apr 2018 21:18:38 -0700 (PDT)
-From: Kai Heng Feng <kai.heng.feng@canonical.com>
-Content-Type: text/plain;
-        charset=us-ascii;
-        delsp=yes;
-        format=flowed
+        Fri, 20 Apr 2018 08:28:19 -0400
+Subject: Re: [PATCH v3 06/13] media: platform: video-mux: Register a subdev
+ notifier
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+ <1521592649-7264-7-git-send-email-steve_longerbeam@mentor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9d85012a-bd0d-6676-9918-7c9804d9a040@xs4all.nl>
+Date: Fri, 20 Apr 2018 14:28:14 +0200
+MIME-Version: 1.0
+In-Reply-To: <1521592649-7264-7-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
-Subject: UVC1.5 webcam does not work on XPS 9370
-Message-Id: <0FC16BF5-9F8C-4076-8AC6-3BA1060A0995@canonical.com>
-Date: Wed, 18 Apr 2018 12:18:32 +0800
-Cc: walter.garcia@upf.edu,
-        Mario Limonciello <mario.limonciello@dell.com>
-To: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 03/21/18 01:37, Steve Longerbeam wrote:
+> Parse neighbor remote devices on the video muxes input ports, add them to a
+> subdev notifier, and register the subdev notifier for the video mux, by
+> calling v4l2_async_register_fwnode_subdev().
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+> Changes since v2:
+> - none
+> Changes since v1:
+> - add #include <linux/slab.h> for kcalloc() declaration.
+> ---
+>  drivers/media/platform/video-mux.c | 36 +++++++++++++++++++++++++++++++++++-
+>  1 file changed, 35 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+> index ee89ad7..b93b0af 100644
+> --- a/drivers/media/platform/video-mux.c
+> +++ b/drivers/media/platform/video-mux.c
+> @@ -21,8 +21,10 @@
+>  #include <linux/of.h>
+>  #include <linux/of_graph.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/slab.h>
+>  #include <media/v4l2-async.h>
+>  #include <media/v4l2-device.h>
+> +#include <media/v4l2-fwnode.h>
+>  #include <media/v4l2-subdev.h>
+>  
+>  struct video_mux {
+> @@ -193,6 +195,38 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
+>  	.video = &video_mux_subdev_video_ops,
+>  };
+>  
+> +static int video_mux_parse_endpoint(struct device *dev,
+> +				    struct v4l2_fwnode_endpoint *vep,
+> +				    struct v4l2_async_subdev *asd)
+> +{
+> +	/*
+> +	 * it's not an error if remote is missing on a video-mux
+> +	 * input port, return -ENOTCONN to skip this endpoint with
+> +	 * no error.
+> +	 */
+> +	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
+> +}
+> +
+> +static int video_mux_async_register(struct video_mux *vmux,
+> +				    unsigned int num_pads)
+> +{
+> +	unsigned int i, *ports;
+> +	int ret;
+> +
+> +	ports = kcalloc(num_pads - 1, sizeof(*ports), GFP_KERNEL);
+> +	if (!ports)
+> +		return -ENOMEM;
+> +	for (i = 0; i < num_pads - 1; i++)
+> +		ports[i] = i;
+> +
+> +	ret = v4l2_async_register_fwnode_subdev(
+> +		&vmux->subdev, sizeof(struct v4l2_async_subdev),
+> +		ports, num_pads - 1, video_mux_parse_endpoint);
+> +
+> +	kfree(ports);
+> +	return ret;
+> +}
+> +
+>  static int video_mux_probe(struct platform_device *pdev)
+>  {
+>  	struct device_node *np = pdev->dev.of_node;
+> @@ -258,7 +292,7 @@ static int video_mux_probe(struct platform_device *pdev)
+>  
+>  	vmux->subdev.entity.ops = &video_mux_ops;
+>  
+> -	return v4l2_async_register_subdev(&vmux->subdev);
+> +	return video_mux_async_register(vmux, num_pads);
 
-The Realtek 0bda:58f4 webcam which XPS 9370 uses doesn't work [1], not sure  
-if it's because Linux doesn't support UVC1.5:
+I would prefer to change the last argument to 'num_pads - 1' and drop the ' - 1'
+part in the video_mux_async_register() function. Perhaps renaming the num_pads
+argument there to num_input_pads.
 
-[    2.174138] Linux video capture interface: v2.00
-[    2.182580] usbcore: registered new interface driver btusb
-[    2.188376] uvcvideo: Found UVC 1.50 device Integrated_Webcam_HD  
-(0bda:58f4)
-[    2.189001] uvcvideo: UVC non compliance - GET_DEF(PROBE) not supported.  
-Enabling workaround.
-[    2.189426] uvcvideo: Failed to query (129) UVC probe control : -75  
-(exp. 34).
-[    2.189429] uvcvideo: Failed to initialize the device (-5).
-[    2.190336] uvcvideo: Unknown video format  
-00000032-0002-0010-8000-00aa00389b71
-[    2.190341] uvcvideo: Found UVC 1.50 device Integrated_Webcam_HD  
-(0bda:58f4)
-[    2.190925] uvcvideo: UVC non compliance - GET_DEF(PROBE) not supported.  
-Enabling workaround.
-[    2.191183] uvcvideo: Failed to query (129) UVC probe control : -75  
-(exp. 34).
-[    2.191186] uvcvideo: Failed to initialize the device (-5).
-[    2.191214] usbcore: registered new interface driver uvcvideo
-[    2.191214] USB Video Class driver (1.1.1)
+Regards,
 
-The Realtek webcam (0bda:58f4) has another firmware that supports UVC1.0,  
-so the current solution is swapping the entire screen for the laptop.
+	Hans
 
-Eventually UVC1.5 will be supported by Linux, so I am wondering if this is  
-really because UVC1.5?
-
-Kai-Heng
-
-[1] https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1763748
+>  }
+>  
+>  static int video_mux_remove(struct platform_device *pdev)
+> 
