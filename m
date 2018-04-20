@@ -1,176 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35891 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751842AbeDFUCZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 16:02:25 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2.1 09/15] v4l: vsp1: Move DRM pipeline output setup code to a function
-Date: Fri,  6 Apr 2018 23:00:55 +0300
-Message-Id: <20180406200055.12280-1-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180405091840.30728-10-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180405091840.30728-10-laurent.pinchart+renesas@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.133]:50082 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754686AbeDTMq3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 08:46:29 -0400
+Date: Fri, 20 Apr 2018 05:46:25 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
+Cc: Christoph Hellwig <hch@infradead.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 4/8] dma-buf: add peer2peer flag
+Message-ID: <20180420124625.GA31078@infradead.org>
+References: <20180403090909.GN3881@phenom.ffwll.local>
+ <20180403170645.GB5935@redhat.com>
+ <20180403180832.GZ3881@phenom.ffwll.local>
+ <20180416123937.GA9073@infradead.org>
+ <CAKMK7uEFVOh-R2_4vs1M22_wDau0oNTgmCcTWDE+ScxL=92+2g@mail.gmail.com>
+ <20180419081657.GA16735@infradead.org>
+ <20180420071312.GF31310@phenom.ffwll.local>
+ <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com>
+ <20180420101755.GA11400@infradead.org>
+ <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to make the vsp1_du_setup_lif() easier to read, and for
-symmetry with the DRM pipeline input setup, move the pipeline output
-setup code to a separate function.
+On Fri, Apr 20, 2018 at 12:44:01PM +0200, Christian König wrote:
+> > > What we need is an sg_alloc_table_from_resources(dev, resources,
+> > > num_resources) which does the handling common to all drivers.
+> > A structure that contains
+> > 
+> > {page,offset,len} + {dma_addr+dma_len}
+> > 
+> > is not a good container for storing
+> > 
+> > {virt addr, dma_addr, len}
+> > 
+> > no matter what interface you build arond it.
+> 
+> Why not? I mean at least for my use case we actually don't need the virtual
+> address.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
---
-Changes since v2:
+If you don't need the virtual address you need scatterlist even list.
 
-- Moved vsp1_du_pipeline_setup_input() rename to earlier patch
+> What we need is {dma_addr+dma_len} in a consistent interface which can come
+> from both {page,offset,len} as well as {resource, len}.
 
-Changes since v1:
+Ok.
 
-- Rename vsp1_du_pipeline_setup_input() to
-  vsp1_du_pipeline_setup_inputs()
-- Initialize format local variable to 0 in
-  vsp1_du_pipeline_setup_output()
----
- drivers/media/platform/vsp1/vsp1_drm.c | 106 +++++++++++++++++++--------------
- 1 file changed, 60 insertions(+), 46 deletions(-)
+> What I actually don't need is separate handling for system memory and
+> resources, but that would we get exactly when we don't use sg_table.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 4a628bbf7e47..a7cccc9b05ef 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -276,6 +276,65 @@ static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
- 	return 0;
- }
- 
-+/* Setup the output side of the pipeline (WPF and LIF). */
-+static int vsp1_du_pipeline_setup_output(struct vsp1_device *vsp1,
-+					 struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
-+	struct v4l2_subdev_format format = { 0, };
-+	int ret;
-+
-+	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	format.pad = RWPF_PAD_SINK;
-+	format.format.width = drm_pipe->width;
-+	format.format.height = drm_pipe->height;
-+	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
-+	format.format.field = V4L2_FIELD_NONE;
-+
-+	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
-+			       &format);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
-+		__func__, format.format.width, format.format.height,
-+		format.format.code, pipe->output->entity.index);
-+
-+	format.pad = RWPF_PAD_SOURCE;
-+	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, NULL,
-+			       &format);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
-+		__func__, format.format.width, format.format.height,
-+		format.format.code, pipe->output->entity.index);
-+
-+	format.pad = LIF_PAD_SINK;
-+	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
-+			       &format);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
-+		__func__, format.format.width, format.format.height,
-+		format.format.code, pipe->lif->index);
-+
-+	/*
-+	 * Verify that the format at the output of the pipeline matches the
-+	 * requested frame size and media bus code.
-+	 */
-+	if (format.format.width != drm_pipe->width ||
-+	    format.format.height != drm_pipe->height ||
-+	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
-+		dev_dbg(vsp1->dev, "%s: format mismatch on LIF%u\n", __func__,
-+			pipe->lif->index);
-+		return -EPIPE;
-+	}
-+
-+	return 0;
-+}
-+
- /* Configure all entities in the pipeline. */
- static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
- {
-@@ -356,7 +415,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 	struct vsp1_drm_pipeline *drm_pipe;
- 	struct vsp1_pipeline *pipe;
- 	struct vsp1_bru *bru;
--	struct v4l2_subdev_format format;
- 	unsigned long flags;
- 	unsigned int i;
- 	int ret;
-@@ -417,54 +475,10 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 	if (ret < 0)
- 		return ret;
- 
--	memset(&format, 0, sizeof(format));
--	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--	format.pad = RWPF_PAD_SINK;
--	format.format.width = cfg->width;
--	format.format.height = cfg->height;
--	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
--	format.format.field = V4L2_FIELD_NONE;
--
--	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
--			       &format);
--	if (ret < 0)
--		return ret;
--
--	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
--		__func__, format.format.width, format.format.height,
--		format.format.code, pipe->output->entity.index);
--
--	format.pad = RWPF_PAD_SOURCE;
--	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, NULL,
--			       &format);
--	if (ret < 0)
--		return ret;
--
--	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
--		__func__, format.format.width, format.format.height,
--		format.format.code, pipe->output->entity.index);
--
--	format.pad = LIF_PAD_SINK;
--	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
--			       &format);
-+	ret = vsp1_du_pipeline_setup_output(vsp1, pipe);
- 	if (ret < 0)
- 		return ret;
- 
--	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
--		__func__, format.format.width, format.format.height,
--		format.format.code, pipe_index);
--
--	/*
--	 * Verify that the format at the output of the pipeline matches the
--	 * requested frame size and media bus code.
--	 */
--	if (format.format.width != cfg->width ||
--	    format.format.height != cfg->height ||
--	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
--		dev_dbg(vsp1->dev, "%s: format mismatch\n", __func__);
--		return -EPIPE;
--	}
--
- 	/* Enable the VSP1. */
- 	ret = vsp1_device_get(vsp1);
- 	if (ret < 0)
--- 
-Regards,
-
-Laurent Pinchart
+At the very lowest level they will need to be handled differently for
+many architectures, the questions is at what point we'll do the
+branching out.
