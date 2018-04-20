@@ -1,65 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f170.google.com ([209.85.217.170]:45057 "EHLO
-        mail-ua0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751049AbeDLINY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 04:13:24 -0400
-Received: by mail-ua0-f170.google.com with SMTP id j18so2910665uae.12
-        for <linux-media@vger.kernel.org>; Thu, 12 Apr 2018 01:13:24 -0700 (PDT)
-Received: from mail-ua0-f175.google.com (mail-ua0-f175.google.com. [209.85.217.175])
-        by smtp.gmail.com with ESMTPSA id r35sm699410uai.0.2018.04.12.01.13.22
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 12 Apr 2018 01:13:22 -0700 (PDT)
-Received: by mail-ua0-f175.google.com with SMTP id l21so2923526uak.1
-        for <linux-media@vger.kernel.org>; Thu, 12 Apr 2018 01:13:22 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180409142026.19369-1-hverkuil@xs4all.nl> <20180409142026.19369-20-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-20-hverkuil@xs4all.nl>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 12 Apr 2018 08:13:11 +0000
-Message-ID: <CAAFQd5B2Xs1Jc=DJsTYVTPC6GwMoyEdRHayVuWZQYTDStv1+Qg@mail.gmail.com>
-Subject: Re: [RFCv11 PATCH 19/29] videobuf2-core: integrate with media requests
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from osg.samsung.com ([64.30.133.232]:39344 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753336AbeDTRm7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 13:42:59 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 4/7] media: ipu3: allow building it with COMPILE_TEST on non-x86 archs
+Date: Fri, 20 Apr 2018 13:42:50 -0400
+Message-Id: <07d3ab8b8c86a41488d22410968bec96714792f4.1524245455.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Despite depending on ACPI, this driver builds fine on non-x86
+archtecture with COMPILE_TEST, as it doesn't depend on
+ACPI-specific functions/structs.
 
-On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/intel/ipu3/Kconfig | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-
-> Buffers can now be prepared or queued for a request.
-
-> A buffer is unbound from the request at vb2_buffer_done time or
-> when the queue is cancelled.
-
-Please see my comments inline.
-
-[snip]
-> -int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void
-*pb)
-> +static int vb2_req_prepare(struct media_request_object *obj)
->   {
-> -       struct vb2_buffer *vb;
-> +       struct vb2_buffer *vb = container_of(obj, struct vb2_buffer,
-req_obj);
->          int ret;
-
-> +       if (WARN_ON(vb->state != VB2_BUF_STATE_IN_REQUEST))
-> +               return -EINVAL;
-> +
-> +       ret = __buf_prepare(vb, NULL);
-> +       if (ret)
-> +               vb->state = VB2_BUF_STATE_IN_REQUEST;
-
-Hmm, I suppose this is here because __buf_prepare() changes the state to
-VB2_BUF_STATE_DEQUEUED on error (other than q->error)? I guess it's
-harmless, but perhaps we could have a comment explaining this?
-
-Best regards,
-Tomasz
+diff --git a/drivers/media/pci/intel/ipu3/Kconfig b/drivers/media/pci/intel/ipu3/Kconfig
+index a82d3fe277d2..45cf99a512e4 100644
+--- a/drivers/media/pci/intel/ipu3/Kconfig
++++ b/drivers/media/pci/intel/ipu3/Kconfig
+@@ -2,10 +2,9 @@ config VIDEO_IPU3_CIO2
+ 	tristate "Intel ipu3-cio2 driver"
+ 	depends on VIDEO_V4L2 && PCI
+ 	depends on VIDEO_V4L2_SUBDEV_API
+-	depends on X86 || COMPILE_TEST
++	depends on (X86 && ACPI) || COMPILE_TEST
+ 	depends on MEDIA_CONTROLLER
+ 	depends on HAS_DMA
+-	depends on ACPI
+ 	select V4L2_FWNODE
+ 	select VIDEOBUF2_DMA_SG
+ 
+-- 
+2.14.3
