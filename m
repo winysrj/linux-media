@@ -1,52 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:42767 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753254AbeDMOIK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Apr 2018 10:08:10 -0400
-Date: Fri, 13 Apr 2018 11:08:03 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sean Young <sean@mess.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Patrice Chotard <patrice.chotard@st.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler
- forever
-Message-ID: <20180413110803.0599eb2a@vento.lan>
-In-Reply-To: <20180413132052.37fudkaxltvwc46v@gofer.mess.org>
-References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-        <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
-        <20180412222132.z7g5enhin2uodbk7@gofer.mess.org>
-        <20180413060646.25b8a19d@vento.lan>
-        <20180413094005.wudyd2y5efaeimg3@gofer.mess.org>
-        <20180413070050.10d0de84@vento.lan>
-        <20180413132052.37fudkaxltvwc46v@gofer.mess.org>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:58603 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754591AbeDTMte (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 08:49:34 -0400
+Subject: Re: [PATCH v8 2/2] media: video-i2c: add video-i2c driver
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Matt Ranostay <matt.ranostay@konsulko.com>
+Cc: linux-media@vger.kernel.org
+References: <20180406225231.13831-1-matt.ranostay@konsulko.com>
+ <20180406225231.13831-3-matt.ranostay@konsulko.com>
+ <20180418080355.7lla2nzododk74bv@valkosipuli.retiisi.org.uk>
+ <CAJCx=gnhTi2jOakbnw5DKoeRc=MnOGt1Es2JiBX44FxfGEnffA@mail.gmail.com>
+ <20180418103030.pp5vgmg5npc6buxl@valkosipuli.retiisi.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5ad38de4-8778-adac-316a-d276ff189172@xs4all.nl>
+Date: Fri, 20 Apr 2018 14:49:29 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20180418103030.pp5vgmg5npc6buxl@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 13 Apr 2018 14:20:52 +0100
-Sean Young <sean@mess.org> escreveu:
-
-> On Fri, Apr 13, 2018 at 07:00:50AM -0300, Mauro Carvalho Chehab wrote:
-> > Yeah, we could limit it to run only 512 times (or some other reasonable
-> > quantity), but in order to do that, we need to be sure that, on each read(),
-> > the FIFO will shift - e. g. no risk of needing to do more than one read
-> > to get the next element. That would work if the FIFO is implemented via
-> > flip-flops. But if it is implemented via some slow memory, or if the
-> > shift logic is implemented via some software on a micro-controller, it
-> > may need a few interactions to get the next value.
-> > 
-> > Without knowing about the hardware implementation, I'd say that setting
-> > a max time for the whole FIFO interaction is safer.  
+On 04/18/18 12:30, Sakari Ailus wrote:
+> On Wed, Apr 18, 2018 at 01:46:08AM -0700, Matt Ranostay wrote:
 > 
-> Ok. If the 10ms timeout is reached, there really is a problem; should we
-> report an error in this case?
+> ...
+> 
+>> On Wed, Apr 18, 2018 at 1:03 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>>>> +             if (vid_cap_buf) {
+>>>> +                     struct vb2_buffer *vb2_buf = &vid_cap_buf->vb.vb2_buf;
+>>>> +                     void *vbuf = vb2_plane_vaddr(vb2_buf, 0);
+>>>> +                     int ret = data->chip->xfer(data, vbuf);
+>>>
+>>> As the assignment in variable declaration does more than just initialise a
+>>> variable, it'd be nice to make the assignment separately from the variable
+>>> declaration.
+>>
+>> Guessing you mean it is that initialization here is getting pushed and
+>> popped off the stack if the data isn't in a register?
+> 
+> No, just that functionality is placed where variables are declared. The
+> code is easier to read if you separate the two. I.e.
+> 
+> int ret;
+> 
+> ret = ...->xfer();
 
-Maybe, but then it should likely warn only once.
+Matt, I'm making a pull request for this v8. I've split up this line myself,
+so no need to post a v9.
 
+Regards,
 
-Thanks,
-Mauro
+	Hans
+
+> 
+>>
+>>>
+>>>> +
+>>>> +                     vb2_buf->timestamp = ktime_get_ns();
+>>>> +                     vid_cap_buf->vb.sequence = data->sequence++;
+>>>> +                     vb2_buffer_done(vb2_buf, ret ?
+>>>> +                             VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+>>>> +             }
+>>>> +
+>>>> +             schedule_delay = delay - (jiffies - start_jiffies);
+>>>> +
+>>>> +             if (time_after(jiffies, start_jiffies + delay))
+>>>> +                     schedule_delay = delay;
+>>>> +
+>>>> +             schedule_timeout_interruptible(schedule_delay);
+>>>> +     } while (!kthread_should_stop());
+>>>> +
+>>>> +     return 0;
+>>>> +}
+> 
