@@ -1,70 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:62600 "EHLO mga01.intel.com"
+Received: from osg.samsung.com ([64.30.133.232]:42773 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751038AbeDEK7L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 06:59:11 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: tfiga@google.com, hverkuil@xs4all.nl
-Subject: [v4l-utils RFC 0/6] Mediatext test program for request API tests
-Date: Thu,  5 Apr 2018 13:58:13 +0300
-Message-Id: <1522925899-14073-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S1753494AbeDTRnB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 13:43:01 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        mjpeg-users@lists.sourceforge.net, linux-arch@vger.kernel.org
+Subject: [PATCH 1/7] asm-generic, media: allow COMPILE_TEST with virt_to_bus
+Date: Fri, 20 Apr 2018 13:42:47 -0400
+Message-Id: <d8bdf4a080d4655d20b532a37ae22ca7e3483cc4.1524245455.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks,
+The virt_to_bus/bus_to_virt macros are arch-specific. Some
+archs don't support it. Yet, as it is interesting to allow
+doing compilation tests on non-ia32/ia64 archs, provide a
+fallback for such archs.
 
-Here's a refreshed RFC set to add the mediatext test program. It is well
-suited for testing requests, as it can work with multiple devices
-simultaneously as well as is easy to control through a bash script.
+While here, enable COMPILE_TEST for two media drivers that
+depends on it.
 
-Only buffers are supported with requests, controls are not yet; still
-adding support for controls wouldn't be much of work. I'm posting this as
-RFC as the API coverage isn't great. What works now (as in this test
-program) is requests with vim2m --- two bash scripts are included in the
-last patch for that. The request API set v9 requires some adjusting, I
-haven't tested v10 yet.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/sta2x11/Kconfig | 4 ++--
+ drivers/media/pci/zoran/Kconfig   | 3 ++-
+ include/asm-generic/io.h          | 2 +-
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-I'd say this is much closer being a meaningful part of v4l-utils, assuming
-more test programs are seen to fit there.
-
-Comments would be welcome.
-
-Sakari Ailus (6):
-  Linux kernel header update
-  Make v4l-utils compile with request-related changes
-  libmediactl: Add open, close and fd to public API
-  mediatext: Extract list of V4L2 pixel format strings and 4cc codes
-  mediatext: Add library
-  mediatext: Add vivid tests
-
- include/linux/cec-funcs.h                    |  300 ++--
- include/linux/cec.h                          |   40 +-
- include/linux/media.h                        |    8 +
- include/linux/v4l2-dv-timings.h              |  979 ++++++++++++
- include/linux/videodev2.h                    |   14 +-
- lib/libv4l2/libv4l2.c                        |    4 +-
- libmediatext.pc.in                           |   10 +
- utils/media-ctl/Makefile.am                  |   18 +-
- utils/media-ctl/libmediactl.c                |    9 +-
- utils/media-ctl/libmediatext.pc.in           |   10 +
- utils/media-ctl/mediactl.h                   |    4 +
- utils/media-ctl/mediatext-test.c             |  127 ++
- utils/media-ctl/mediatext.c                  | 2176 ++++++++++++++++++++++++++
- utils/media-ctl/mediatext.h                  |   33 +
- utils/media-ctl/tests/test-vivid-mc.bash     |   86 +
- utils/media-ctl/tests/test-vivid.bash        |   59 +
- utils/v4l2-compliance/v4l2-test-buffers.cpp  |    2 +-
- utils/v4l2-compliance/v4l2-test-controls.cpp |    4 -
- 18 files changed, 3699 insertions(+), 184 deletions(-)
- create mode 100644 include/linux/v4l2-dv-timings.h
- create mode 100644 libmediatext.pc.in
- create mode 100644 utils/media-ctl/libmediatext.pc.in
- create mode 100644 utils/media-ctl/mediatext-test.c
- create mode 100644 utils/media-ctl/mediatext.c
- create mode 100644 utils/media-ctl/mediatext.h
- create mode 100755 utils/media-ctl/tests/test-vivid-mc.bash
- create mode 100755 utils/media-ctl/tests/test-vivid.bash
-
+diff --git a/drivers/media/pci/sta2x11/Kconfig b/drivers/media/pci/sta2x11/Kconfig
+index 7af3f1cbcea8..fb4b4c8ac430 100644
+--- a/drivers/media/pci/sta2x11/Kconfig
++++ b/drivers/media/pci/sta2x11/Kconfig
+@@ -1,10 +1,10 @@
+ config STA2X11_VIP
+ 	tristate "STA2X11 VIP Video For Linux"
+-	depends on STA2X11 || COMPILE_TEST
++	depends on (STA2X11 && VIRT_TO_BUS) || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	select VIDEO_ADV7180 if MEDIA_SUBDRV_AUTOSELECT
+ 	select VIDEOBUF2_DMA_CONTIG
+-	depends on PCI && VIDEO_V4L2 && VIRT_TO_BUS
++	depends on PCI && VIDEO_V4L2
+ 	depends on VIDEO_V4L2_SUBDEV_API
+ 	depends on I2C
+ 	help
+diff --git a/drivers/media/pci/zoran/Kconfig b/drivers/media/pci/zoran/Kconfig
+index 39ec35bd21a5..5d2678a9e310 100644
+--- a/drivers/media/pci/zoran/Kconfig
++++ b/drivers/media/pci/zoran/Kconfig
+@@ -1,6 +1,7 @@
+ config VIDEO_ZORAN
+ 	tristate "Zoran ZR36057/36067 Video For Linux"
+-	depends on PCI && I2C_ALGOBIT && VIDEO_V4L2 && VIRT_TO_BUS
++	depends on PCI && I2C_ALGOBIT && VIDEO_V4L2
++	depends on VIRT_TO_BUS || COMPILE_TEST
+ 	depends on !ALPHA
+ 	help
+ 	  Say Y for support for MJPEG capture cards based on the Zoran
+diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
+index 66d1d45fa2e1..f448129ad15c 100644
+--- a/include/asm-generic/io.h
++++ b/include/asm-generic/io.h
+@@ -1068,7 +1068,7 @@ static inline void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
+ }
+ #endif
+ 
+-#ifdef CONFIG_VIRT_TO_BUS
++#if defined(CONFIG_VIRT_TO_BUS) || defined(CONFIG_COMPILE_TEST)
+ #ifndef virt_to_bus
+ static inline unsigned long virt_to_bus(void *address)
+ {
 -- 
-2.7.4
+2.14.3
