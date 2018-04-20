@@ -1,109 +1,464 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:52962 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753269AbeDPJyW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 05:54:22 -0400
-Date: Mon, 16 Apr 2018 06:54:15 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Jasmin J." <jasmin@anw.at>
-Cc: linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH] media: Revert cleanup ktime_set() usage
-Message-ID: <20180416065415.38f5ef37@vento.lan>
-In-Reply-To: <1523662294-17971-1-git-send-email-jasmin@anw.at>
-References: <1523662294-17971-1-git-send-email-jasmin@anw.at>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:38266 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752530AbeDTRMj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 13:12:39 -0400
+Received: by mail-pf0-f193.google.com with SMTP id y69so4574238pfb.5
+        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 10:12:39 -0700 (PDT)
+Subject: Re: [PATCH v3 03/13] media: v4l2: async: Add
+ v4l2_async_notifier_add_subdev
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Yong Zhi <yong.zhi@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org
+References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+ <1521592649-7264-4-git-send-email-steve_longerbeam@mentor.com>
+ <20180420122450.j3wkyoardgpyzbh2@paasikivi.fi.intel.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <854dab64-caf7-be8e-e5b6-10ff78aa811a@gmail.com>
+Date: Fri, 20 Apr 2018 10:12:33 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20180420122450.j3wkyoardgpyzbh2@paasikivi.fi.intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 14 Apr 2018 01:31:34 +0200
-"Jasmin J." <jasmin@anw.at> escreveu:
-
-> From: Jasmin Jessich <jasmin@anw.at>
-> 
-> This reverts 8b0e195314fa, because this will not compile for Kernels
-> older than 4.10.
-
-This patch looks fine, but not for the above-mentioned.
-
-The thing is that it is not consistent to have some places with
-things like:
-	timeout = ktime_set(1, ir->polling * 1000000);
-
-and others with:
-	timeout = ir->polling * 1000000;
-
-We should either use ktime_set() everywhere or remove it as a whole.
-My preference is to keep using it, as it makes it better documented.
-In any case, gcc should be smart enough to discard multiply by a
-zero constant when evaluating ktime_set() macro (if not, it is a gcc
-issue).
-
-The fact that it makes maintainership of the media_build backport
-tree easier is just a plus, but it makes no sense upstream.
-
-> 
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Signed-off-by: Jasmin Jessich <jasmin@anw.at>
-> ---
->  drivers/media/dvb-core/dmxdev.c     | 2 +-
->  drivers/media/pci/cx88/cx88-input.c | 6 ++++--
->  drivers/media/pci/pt3/pt3.c         | 2 +-
->  3 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-> index 61a750f..cb078d6 100644
-> --- a/drivers/media/dvb-core/dmxdev.c
-> +++ b/drivers/media/dvb-core/dmxdev.c
-> @@ -622,7 +622,7 @@ static int dvb_dmxdev_start_feed(struct dmxdev *dmxdev,
->  				 struct dmxdev_filter *filter,
->  				 struct dmxdev_feed *feed)
->  {
-> -	ktime_t timeout = 0;
-> +	ktime_t timeout = ktime_set(0, 0);
->  	struct dmx_pes_filter_params *para = &filter->params.pes;
->  	enum dmx_output otype;
->  	int ret;
-> diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
-> index 6f4e692..b13243d 100644
-> --- a/drivers/media/pci/cx88/cx88-input.c
-> +++ b/drivers/media/pci/cx88/cx88-input.c
-> @@ -180,7 +180,8 @@ static enum hrtimer_restart cx88_ir_work(struct hrtimer *timer)
->  	struct cx88_IR *ir = container_of(timer, struct cx88_IR, timer);
->  
->  	cx88_ir_handle_key(ir);
-> -	missed = hrtimer_forward_now(&ir->timer, ir->polling * 1000000LL);
-> +	missed = hrtimer_forward_now(&ir->timer,
-> +				     ktime_set(0, ir->polling * 1000000));
->  	if (missed > 1)
->  		ir_dprintk("Missed ticks %ld\n", missed - 1);
->  
-> @@ -200,7 +201,8 @@ static int __cx88_ir_start(void *priv)
->  	if (ir->polling) {
->  		hrtimer_init(&ir->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
->  		ir->timer.function = cx88_ir_work;
-> -		hrtimer_start(&ir->timer, ir->polling * 1000000LL,
-> +		hrtimer_start(&ir->timer,
-> +			      ktime_set(0, ir->polling * 1000000),
->  			      HRTIMER_MODE_REL);
->  	}
->  	if (ir->sampling) {
-> diff --git a/drivers/media/pci/pt3/pt3.c b/drivers/media/pci/pt3/pt3.c
-> index da74828..8ced807 100644
-> --- a/drivers/media/pci/pt3/pt3.c
-> +++ b/drivers/media/pci/pt3/pt3.c
-> @@ -464,7 +464,7 @@ static int pt3_fetch_thread(void *data)
->  
->  		pt3_proc_dma(adap);
->  
-> -		delay = PT3_FETCH_DELAY * NSEC_PER_MSEC;
-> +		delay = ktime_set(0, PT3_FETCH_DELAY * NSEC_PER_MSEC);
->  		set_current_state(TASK_UNINTERRUPTIBLE);
->  		freezable_schedule_hrtimeout_range(&delay,
->  					PT3_FETCH_DELAY_DELTA * NSEC_PER_MSEC,
+Hi Sakari,
 
 
+On 04/20/2018 05:24 AM, Sakari Ailus wrote:
+> Hi Steve,
+>
+> Thanks for the patchset.
+>
+> On Tue, Mar 20, 2018 at 05:37:19PM -0700, Steve Longerbeam wrote:
+>> v4l2_async_notifier_add_subdev() adds an asd to the notifier. It checks
+>> that the asd's match_type is valid and that no other equivalent asd's
+>> have already been added to this notifier's asd list, or to other
+>> registered notifier's waiting or done lists, and increments num_subdevs.
+>>
+>> v4l2_async_notifier_add_subdev() does not make use of the notifier subdevs
+>> array, otherwise it would have to re-allocate the array every time the
+>> function was called. In place of the subdevs array, the function adds
+>> the asd to a new master asd_list. The function will return error with a
+>> WARN() if it is ever called with the subdevs array allocated.
+>>
+>> In v4l2_async_notifier_has_async_subdev(), __v4l2_async_notifier_register(),
+>> and v4l2_async_notifier_cleanup(), alternatively operate on the subdevs
+>> array or a non-empty notifier->asd_list.
+> I do agree with the approach, but this patch leaves the remaining users of
+> the subdevs array in the notifier intact. Could you rework them to use the
+> v4l2_async_notifier_add_subdev() as well?
+>
+> There seem to be just a few of them --- exynos4-is and rcar_drif.
 
-Thanks,
-Mauro
+I count more than a few :)
+
+% cd drivers/media && grep -l -r --include "*.[ch]" 
+'notifier[\.\-]>*subdevs[   ]*='
+v4l2-core/v4l2-async.c
+platform/pxa_camera.c
+platform/ti-vpe/cal.c
+platform/exynos4-is/media-dev.c
+platform/qcom/camss-8x16/camss.c
+platform/soc_camera/soc_camera.c
+platform/atmel/atmel-isi.c
+platform/atmel/atmel-isc.c
+platform/stm32/stm32-dcmi.c
+platform/davinci/vpif_capture.c
+platform/davinci/vpif_display.c
+platform/renesas-ceu.c
+platform/am437x/am437x-vpfe.c
+platform/xilinx/xilinx-vipp.c
+platform/rcar_drif.c
+
+
+So not including v4l2-core, the list is:
+
+pxa_camera
+ti-vpe
+exynos4-is
+qcom
+soc_camera
+atmel
+stm32
+davinci
+renesas-ceu
+am437x
+xilinx
+rcar_drif
+
+
+Given such a large list of the users of the notifier->subdevs array,
+I think this should be done is two steps: submit this patchset first,
+that keeps the backward compatibility, and then a subsequent patchset
+that converts all drivers to use v4l2_async_notifier_add_subdev(), at
+which point the subdevs array can be removed from struct 
+v4l2_async_notifier.
+
+Or, do you still think this should be done all at once? I could add a
+large patch to this patchset that does the conversion and removes
+the subdevs array.
+
+Steve
+
+
+>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>> ---
+>> Changes since v2:
+>> - add a NULL asd pointer check to v4l2_async_notifier_asd_valid().
+>> Changes since v1:
+>> - none
+>> ---
+>>   drivers/media/v4l2-core/v4l2-async.c | 206 +++++++++++++++++++++++++++--------
+>>   include/media/v4l2-async.h           |  22 ++++
+>>   2 files changed, 184 insertions(+), 44 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+>> index b59bbac..7b7f7e2 100644
+>> --- a/drivers/media/v4l2-core/v4l2-async.c
+>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+>> @@ -366,16 +366,26 @@ static bool v4l2_async_notifier_has_async_subdev(
+>>   	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd,
+>>   	unsigned int this_index)
+>>   {
+>> +	struct v4l2_async_subdev *asd_y;
+>>   	unsigned int j;
+>>   
+>>   	lockdep_assert_held(&list_lock);
+>>   
+>>   	/* Check that an asd is not being added more than once. */
+>> -	for (j = 0; j < this_index; j++) {
+>> -		struct v4l2_async_subdev *asd_y = notifier->subdevs[j];
+>> -
+>> -		if (asd_equal(asd, asd_y))
+>> -			return true;
+>> +	if (notifier->subdevs) {
+>> +		for (j = 0; j < this_index; j++) {
+>> +			asd_y = notifier->subdevs[j];
+>> +			if (asd_equal(asd, asd_y))
+>> +				return true;
+>> +		}
+>> +	} else {
+>> +		j = 0;
+>> +		list_for_each_entry(asd_y, &notifier->asd_list, asd_list) {
+>> +			if (j++ >= this_index)
+>> +				break;
+>> +			if (asd_equal(asd, asd_y))
+>> +				return true;
+>> +		}
+>>   	}
+>>   
+>>   	/* Check that an asd does not exist in other notifiers. */
+>> @@ -386,10 +396,46 @@ static bool v4l2_async_notifier_has_async_subdev(
+>>   	return false;
+>>   }
+>>   
+>> -static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>> +static int v4l2_async_notifier_asd_valid(struct v4l2_async_notifier *notifier,
+>> +					 struct v4l2_async_subdev *asd,
+>> +					 unsigned int this_index)
+>>   {
+>>   	struct device *dev =
+>>   		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
+>> +
+>> +	if (!asd)
+>> +		return -EINVAL;
+>> +
+>> +	switch (asd->match_type) {
+>> +	case V4L2_ASYNC_MATCH_CUSTOM:
+>> +	case V4L2_ASYNC_MATCH_DEVNAME:
+>> +	case V4L2_ASYNC_MATCH_I2C:
+>> +	case V4L2_ASYNC_MATCH_FWNODE:
+>> +		if (v4l2_async_notifier_has_async_subdev(notifier, asd,
+>> +							 this_index))
+>> +			return -EEXIST;
+>> +		break;
+>> +	default:
+>> +		dev_err(dev, "Invalid match type %u on %p\n",
+>> +			asd->match_type, asd);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static void __v4l2_async_notifier_init(struct v4l2_async_notifier *notifier)
+>> +{
+>> +	lockdep_assert_held(&list_lock);
+>> +
+>> +	INIT_LIST_HEAD(&notifier->asd_list);
+>> +	INIT_LIST_HEAD(&notifier->waiting);
+>> +	INIT_LIST_HEAD(&notifier->done);
+>> +	notifier->lists_initialized = true;
+>> +}
+>> +
+>> +static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>> +{
+>>   	struct v4l2_async_subdev *asd;
+>>   	int ret;
+>>   	int i;
+>> @@ -397,34 +443,40 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>>   	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+>>   		return -EINVAL;
+>>   
+>> -	INIT_LIST_HEAD(&notifier->waiting);
+>> -	INIT_LIST_HEAD(&notifier->done);
+>> -
+>>   	mutex_lock(&list_lock);
+>>   
+>> -	for (i = 0; i < notifier->num_subdevs; i++) {
+>> -		asd = notifier->subdevs[i];
+>> +	if (!notifier->lists_initialized)
+>> +		__v4l2_async_notifier_init(notifier);
+>>   
+>> -		switch (asd->match_type) {
+>> -		case V4L2_ASYNC_MATCH_CUSTOM:
+>> -		case V4L2_ASYNC_MATCH_DEVNAME:
+>> -		case V4L2_ASYNC_MATCH_I2C:
+>> -		case V4L2_ASYNC_MATCH_FWNODE:
+>> -			if (v4l2_async_notifier_has_async_subdev(
+>> -				    notifier, asd, i)) {
+>> -				dev_err(dev,
+>> -					"asd has already been registered or in notifier's subdev list\n");
+>> -				ret = -EEXIST;
+>> -				goto err_unlock;
+>> -			}
+>> -			break;
+>> -		default:
+>> -			dev_err(dev, "Invalid match type %u on %p\n",
+>> -				asd->match_type, asd);
+>> +	if (!list_empty(&notifier->asd_list)) {
+>> +		/*
+>> +		 * Caller must have either used v4l2_async_notifier_add_subdev
+>> +		 * to add asd's to notifier->asd_list, or provided the
+>> +		 * notifier->subdevs array, but not both.
+>> +		 */
+>> +		if (WARN_ON(notifier->subdevs)) {
+>>   			ret = -EINVAL;
+>>   			goto err_unlock;
+>>   		}
+>> -		list_add_tail(&asd->list, &notifier->waiting);
+>> +
+>> +		i = 0;
+>> +		list_for_each_entry(asd, &notifier->asd_list, asd_list) {
+>> +			ret = v4l2_async_notifier_asd_valid(notifier, asd, i++);
+>> +			if (ret)
+>> +				goto err_unlock;
+>> +
+>> +			list_add_tail(&asd->list, &notifier->waiting);
+>> +		}
+>> +	} else if (notifier->subdevs) {
+>> +		for (i = 0; i < notifier->num_subdevs; i++) {
+>> +			asd = notifier->subdevs[i];
+>> +
+>> +			ret = v4l2_async_notifier_asd_valid(notifier, asd, i);
+>> +			if (ret)
+>> +				goto err_unlock;
+>> +
+>> +			list_add_tail(&asd->list, &notifier->waiting);
+>> +		}
+>>   	}
+>>   
+>>   	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+>> @@ -514,36 +566,102 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>>   }
+>>   EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+>>   
+>> -void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
+>> +static void __v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
+>>   {
+>> +	struct v4l2_async_subdev *asd, *tmp;
+>>   	unsigned int i;
+>>   
+>> -	if (!notifier || !notifier->max_subdevs)
+>> +	if (!notifier)
+>>   		return;
+>>   
+>> -	for (i = 0; i < notifier->num_subdevs; i++) {
+>> -		struct v4l2_async_subdev *asd = notifier->subdevs[i];
+>> +	if (notifier->subdevs) {
+>> +		if (!notifier->max_subdevs)
+>> +			return;
+>>   
+>> -		switch (asd->match_type) {
+>> -		case V4L2_ASYNC_MATCH_FWNODE:
+>> -			fwnode_handle_put(asd->match.fwnode);
+>> -			break;
+>> -		default:
+>> -			WARN_ON_ONCE(true);
+>> -			break;
+>> +		for (i = 0; i < notifier->num_subdevs; i++) {
+>> +			asd = notifier->subdevs[i];
+>> +
+>> +			switch (asd->match_type) {
+>> +			case V4L2_ASYNC_MATCH_FWNODE:
+>> +				fwnode_handle_put(asd->match.fwnode);
+>> +				break;
+>> +			default:
+>> +				break;
+>> +			}
+>> +
+>> +			kfree(asd);
+>>   		}
+>>   
+>> -		kfree(asd);
+>> +		notifier->max_subdevs = 0;
+>> +		kvfree(notifier->subdevs);
+>> +		notifier->subdevs = NULL;
+>> +	} else if (notifier->lists_initialized) {
+>> +		list_for_each_entry_safe(asd, tmp,
+>> +					 &notifier->asd_list, asd_list) {
+>> +			switch (asd->match_type) {
+>> +			case V4L2_ASYNC_MATCH_FWNODE:
+>> +				fwnode_handle_put(asd->match.fwnode);
+>> +				break;
+>> +			default:
+>> +				break;
+>> +			}
+>> +
+>> +			list_del(&asd->asd_list);
+>> +			kfree(asd);
+>> +		}
+>>   	}
+>>   
+>> -	notifier->max_subdevs = 0;
+>>   	notifier->num_subdevs = 0;
+>> +}
+>>   
+>> -	kvfree(notifier->subdevs);
+>> -	notifier->subdevs = NULL;
+>> +void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
+>> +{
+>> +	mutex_lock(&list_lock);
+>> +
+>> +	__v4l2_async_notifier_cleanup(notifier);
+>> +
+>> +	mutex_unlock(&list_lock);
+>>   }
+>>   EXPORT_SYMBOL_GPL(v4l2_async_notifier_cleanup);
+>>   
+>> +int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
+>> +				   struct v4l2_async_subdev *asd)
+>> +{
+>> +	int ret = 0;
+>> +
+>> +	mutex_lock(&list_lock);
+>> +
+>> +	if (notifier->num_subdevs >= V4L2_MAX_SUBDEVS) {
+>> +		ret = -EINVAL;
+>> +		goto unlock;
+>> +	}
+>> +
+>> +	if (!notifier->lists_initialized)
+>> +		__v4l2_async_notifier_init(notifier);
+>> +
+>> +	/*
+>> +	 * If caller uses this function, it cannot also allocate and
+>> +	 * place asd's in the notifier->subdevs array.
+>> +	 */
+>> +	if (WARN_ON(notifier->subdevs)) {
+>> +		ret = -EINVAL;
+>> +		goto unlock;
+>> +	}
+>> +
+>> +	ret = v4l2_async_notifier_asd_valid(notifier, asd,
+>> +					    notifier->num_subdevs);
+>> +	if (ret)
+>> +		goto unlock;
+>> +
+>> +	list_add_tail(&asd->asd_list, &notifier->asd_list);
+>> +	notifier->num_subdevs++;
+>> +
+>> +unlock:
+>> +	mutex_unlock(&list_lock);
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_subdev);
+>> +
+>>   int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>>   {
+>>   	struct v4l2_async_notifier *subdev_notifier;
+>> @@ -617,7 +735,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+>>   	mutex_lock(&list_lock);
+>>   
+>>   	__v4l2_async_notifier_unregister(sd->subdev_notifier);
+>> -	v4l2_async_notifier_cleanup(sd->subdev_notifier);
+>> +	__v4l2_async_notifier_cleanup(sd->subdev_notifier);
+>>   	kfree(sd->subdev_notifier);
+>>   	sd->subdev_notifier = NULL;
+>>   
+>> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+>> index 1592d32..fa05905 100644
+>> --- a/include/media/v4l2-async.h
+>> +++ b/include/media/v4l2-async.h
+>> @@ -73,6 +73,8 @@ enum v4l2_async_match_type {
+>>    * @match.custom.priv:
+>>    *		Driver-specific private struct with match parameters
+>>    *		to be used if %V4L2_ASYNC_MATCH_CUSTOM.
+>> + * @asd_list:	used to add struct v4l2_async_subdev objects to the
+>> + *		master notifier->asd_list
+>>    * @list:	used to link struct v4l2_async_subdev objects, waiting to be
+>>    *		probed, to a notifier->waiting list
+>>    *
+>> @@ -98,6 +100,7 @@ struct v4l2_async_subdev {
+>>   
+>>   	/* v4l2-async core private: not to be used by drivers */
+>>   	struct list_head list;
+>> +	struct list_head asd_list;
+>>   };
+>>   
+>>   /**
+>> @@ -127,9 +130,11 @@ struct v4l2_async_notifier_operations {
+>>    * @v4l2_dev:	v4l2_device of the root notifier, NULL otherwise
+>>    * @sd:		sub-device that registered the notifier, NULL otherwise
+>>    * @parent:	parent notifier
+>> + * @asd_list:	master list of struct v4l2_async_subdev, replaces @subdevs
+>>    * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+>>    * @done:	list of struct v4l2_subdev, already probed
+>>    * @list:	member in a global list of notifiers
+>> + * @lists_initialized: list_head's have been initialized
+>>    */
+>>   struct v4l2_async_notifier {
+>>   	const struct v4l2_async_notifier_operations *ops;
+>> @@ -139,12 +144,29 @@ struct v4l2_async_notifier {
+>>   	struct v4l2_device *v4l2_dev;
+>>   	struct v4l2_subdev *sd;
+>>   	struct v4l2_async_notifier *parent;
+>> +	struct list_head asd_list;
+>>   	struct list_head waiting;
+>>   	struct list_head done;
+>>   	struct list_head list;
+>> +	bool lists_initialized;
+>>   };
+>>   
+>>   /**
+>> + * v4l2_async_notifier_add_subdev - Add an async subdev to the
+>> + *				notifier's master asd_list.
+>> + *
+>> + * @notifier: pointer to &struct v4l2_async_notifier
+>> + * @asd: pointer to &struct v4l2_async_subdev
+>> + *
+>> + * This can be used before registering a notifier to add an
+>> + * asd to the notifiers master asd_list. If the caller uses
+>> + * this method to compose an asd list, it must never allocate
+>> + * or place asd's in the @subdevs array.
+>> + */
+>> +int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
+>> +				   struct v4l2_async_subdev *asd);
+>> +
+>> +/**
+>>    * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
+>>    *
+>>    * @v4l2_dev: pointer to &struct v4l2_device
+>> -- 
+>> 2.7.4
+>>
