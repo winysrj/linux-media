@@ -1,121 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:37448 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751579AbeDGPsm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2018 11:48:42 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from osg.samsung.com ([64.30.133.232]:61924 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750927AbeDTTD3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 15:03:29 -0400
+Date: Fri, 20 Apr 2018 16:03:21 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
         Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 1/6] media: ov772x: allow i2c controllers without I2C_FUNC_PROTOCOL_MANGLING
-Date: Sun,  8 Apr 2018 00:48:05 +0900
-Message-Id: <1523116090-13101-2-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
-References: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, linux-fbdev@vger.kernel.org
+Subject: [PATCH v2 7/7] media: via-camera: allow build on non-x86 archs with
+ COMPILE_TEST
+Message-ID: <20180420160321.4ecefa00@vento.lan>
+In-Reply-To: <396bfb33e763c31ead093ac1035b2ecf7311b5bc.1524245455.git.mchehab@s-opensource.com>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+        <396bfb33e763c31ead093ac1035b2ecf7311b5bc.1524245455.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov772x driver only works when the i2c controller have
-I2C_FUNC_PROTOCOL_MANGLING.  However, many i2c controller drivers don't
-support it.
+This driver depends on FB_VIA for lots of things. Provide stubs
+for the functions it needs, in order to allow building it with
+COMPILE_TEST outside x86 architecture.
 
-The reason that the ov772x requires I2C_FUNC_PROTOCOL_MANGLING is that
-it doesn't support repeated starts.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-This change adds an alternative method for reading from ov772x register
-which uses two separated i2c messages for the i2c controllers without
-I2C_FUNC_PROTOCOL_MANGLING.
-
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
- drivers/media/i2c/ov772x.c | 42 +++++++++++++++++++++++++++++++++---------
- 1 file changed, 33 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index b62860c..283ae2c 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -424,6 +424,7 @@ struct ov772x_priv {
- 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
- 	unsigned short                    band_filter;
- 	unsigned int			  fps;
-+	int (*reg_read)(struct i2c_client *client, u8 addr);
- };
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index e3229f7baed1..abaaed98a044 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -15,7 +15,7 @@ source "drivers/media/platform/marvell-ccic/Kconfig"
  
- /*
-@@ -542,11 +543,34 @@ static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
- 	return container_of(sd, struct ov772x_priv, subdev);
- }
+ config VIDEO_VIA_CAMERA
+ 	tristate "VIAFB camera controller support"
+-	depends on FB_VIA
++	depends on FB_VIA || COMPILE_TEST
+ 	select VIDEOBUF_DMA_SG
+ 	select VIDEO_OV7670
+ 	help
+diff --git a/drivers/media/platform/via-camera.c b/drivers/media/platform/via-camera.c
+index e9a02639554b..4ab1695b33af 100644
+--- a/drivers/media/platform/via-camera.c
++++ b/drivers/media/platform/via-camera.c
+@@ -27,7 +27,10 @@
+ #include <linux/via-core.h>
+ #include <linux/via-gpio.h>
+ #include <linux/via_i2c.h>
++
++#ifdef CONFIG_FB_VIA
+ #include <asm/olpc.h>
++#endif
  
--static inline int ov772x_read(struct i2c_client *client, u8 addr)
-+static int ov772x_read(struct i2c_client *client, u8 addr)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct ov772x_priv *priv = to_ov772x(sd);
-+
-+	return priv->reg_read(client, addr);
-+}
-+
-+static int ov772x_reg_read(struct i2c_client *client, u8 addr)
- {
- 	return i2c_smbus_read_byte_data(client, addr);
- }
+ #include "via-camera.h"
  
-+static int ov772x_reg_read_fallback(struct i2c_client *client, u8 addr)
-+{
-+	int ret;
-+	u8 val;
+@@ -1283,6 +1286,11 @@ static bool viacam_serial_is_enabled(void)
+ 	struct pci_bus *pbus = pci_find_bus(0, 0);
+ 	u8 cbyte;
+ 
++#ifdef CONFIG_FB_VIA
++	if (!machine_is_olpc())
++		return false;
++#endif
 +
-+	ret = i2c_master_send(client, &addr, 1);
-+	if (ret < 0)
-+		return ret;
-+	ret = i2c_master_recv(client, &val, 1);
-+	if (ret < 0)
-+		return ret;
-+
-+	return val;
-+}
-+
- static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 value)
- {
- 	return i2c_smbus_write_byte_data(client, addr, value);
-@@ -1255,20 +1279,20 @@ static int ov772x_probe(struct i2c_client *client,
- 		return -EINVAL;
+ 	if (!pbus)
+ 		return false;
+ 	pci_bus_read_config_byte(pbus, VIACAM_SERIAL_DEVFN,
+@@ -1343,7 +1351,7 @@ static int viacam_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
  	}
  
--	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
--					      I2C_FUNC_PROTOCOL_MANGLING)) {
--		dev_err(&adapter->dev,
--			"I2C-Adapter doesn't support SMBUS_BYTE_DATA or PROTOCOL_MANGLING\n");
--		return -EIO;
--	}
--	client->flags |= I2C_CLIENT_SCCB;
--
- 	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
- 	if (!priv)
- 		return -ENOMEM;
+-	if (machine_is_olpc() && viacam_serial_is_enabled())
++	if (viacam_serial_is_enabled())
+ 		return -EBUSY;
  
- 	priv->info = client->dev.platform_data;
+ 	/*
+diff --git a/include/linux/via-core.h b/include/linux/via-core.h
+index 9c21cdf3e3b3..ced4419baef8 100644
+--- a/include/linux/via-core.h
++++ b/include/linux/via-core.h
+@@ -70,8 +70,12 @@ struct viafb_pm_hooks {
+ 	void *private;
+ };
  
-+	if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
-+					     I2C_FUNC_PROTOCOL_MANGLING))
-+		priv->reg_read = ov772x_reg_read;
-+	else
-+		priv->reg_read = ov772x_reg_read_fallback;
-+
-+	client->flags |= I2C_CLIENT_SCCB;
-+
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 3);
- 	v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
--- 
-2.7.4
++#ifdef CONFIG_FB_VIA
+ void viafb_pm_register(struct viafb_pm_hooks *hooks);
+ void viafb_pm_unregister(struct viafb_pm_hooks *hooks);
++#else
++static inline void viafb_pm_register(struct viafb_pm_hooks *hooks) {}
++#endif /* CONFIG_FB_VIA */
+ #endif /* CONFIG_PM */
+ 
+ /*
+@@ -113,8 +117,13 @@ struct viafb_dev {
+  * Interrupt management.
+  */
+ 
++#ifdef CONFIG_FB_VIA
+ void viafb_irq_enable(u32 mask);
+ void viafb_irq_disable(u32 mask);
++#else
++static inline void viafb_irq_enable(u32 mask) {}
++static inline void viafb_irq_disable(u32 mask) {}
++#endif
+ 
+ /*
+  * The global interrupt control register and its bits.
+@@ -157,10 +166,18 @@ void viafb_irq_disable(u32 mask);
+ /*
+  * DMA management.
+  */
++#ifdef CONFIG_FB_VIA
+ int viafb_request_dma(void);
+ void viafb_release_dma(void);
+ /* void viafb_dma_copy_out(unsigned int offset, dma_addr_t paddr, int len); */
+ int viafb_dma_copy_out_sg(unsigned int offset, struct scatterlist *sg, int nsg);
++#else
++static inline int viafb_request_dma(void) { return 0; }
++static inline void viafb_release_dma(void) {}
++static inline int viafb_dma_copy_out_sg(unsigned int offset,
++					struct scatterlist *sg, int nsg)
++{ return 0; }
++#endif
+ 
+ /*
+  * DMA Controller registers.
+diff --git a/include/linux/via-gpio.h b/include/linux/via-gpio.h
+index 8281aea3dd6d..b5a96cf7a874 100644
+--- a/include/linux/via-gpio.h
++++ b/include/linux/via-gpio.h
+@@ -8,7 +8,11 @@
+ #ifndef __VIA_GPIO_H__
+ #define __VIA_GPIO_H__
+ 
++#ifdef CONFIG_FB_VIA
+ extern int viafb_gpio_lookup(const char *name);
+ extern int viafb_gpio_init(void);
+ extern void viafb_gpio_exit(void);
++#else
++static inline int viafb_gpio_lookup(const char *name) { return 0; }
++#endif
+ #endif
+diff --git a/include/linux/via_i2c.h b/include/linux/via_i2c.h
+index 44532e468c05..209bff950e22 100644
+--- a/include/linux/via_i2c.h
++++ b/include/linux/via_i2c.h
+@@ -32,6 +32,7 @@ struct via_i2c_stuff {
+ };
+ 
+ 
++#ifdef CONFIG_FB_VIA
+ int viafb_i2c_readbyte(u8 adap, u8 slave_addr, u8 index, u8 *pdata);
+ int viafb_i2c_writebyte(u8 adap, u8 slave_addr, u8 index, u8 data);
+ int viafb_i2c_readbytes(u8 adap, u8 slave_addr, u8 index, u8 *buff, int buff_len);
+@@ -39,4 +40,9 @@ struct i2c_adapter *viafb_find_i2c_adapter(enum viafb_i2c_adap which);
+ 
+ extern int viafb_i2c_init(void);
+ extern void viafb_i2c_exit(void);
++#else
++static inline
++struct i2c_adapter *viafb_find_i2c_adapter(enum viafb_i2c_adap which)
++{ return NULL; }
++#endif
+ #endif /* __VIA_I2C_H__ */
