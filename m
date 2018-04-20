@@ -1,74 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vl18780.dinaserver.com ([82.98.188.50]:42762 "EHLO
-        vl18780.dinaserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754437AbeDWJ3b (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:55838 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754469AbeDTKR6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 05:29:31 -0400
-Subject: Re: [DE] Re: [CN] Re: [DE] Re: coda: i.MX6 decoding performance
- issues for multi-streaming
-From: Javier Martin <javiermartin@by.com.es>
-To: linux-media <linux-media@vger.kernel.org>
-References: <c18549be-d55e-54d2-1524-1c51d05807ec@by.com.es>
- <1520940054.3965.10.camel@pengutronix.de>
- <dfd0fe98-4e5e-bc28-c325-6c52f1964a03@by.com.es>
- <1521035853.4490.7.camel@pengutronix.de>
- <2df2ad29-6173-08ea-e0d1-bf54c93ee456@by.com.es>
- <1521040308.4490.10.camel@pengutronix.de>
- <69970910-28ae-91a8-a7e8-04f0e6a397b1@by.com.es>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>
-Message-ID: <f62b540f-35d2-2d8d-e290-03540b6baf3e@by.com.es>
-Date: Mon, 23 Apr 2018 11:29:22 +0200
+        Fri, 20 Apr 2018 06:17:58 -0400
+Date: Fri, 20 Apr 2018 03:17:55 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: christian.koenig@amd.com
+Cc: Christoph Hellwig <hch@infradead.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 4/8] dma-buf: add peer2peer flag
+Message-ID: <20180420101755.GA11400@infradead.org>
+References: <20180329065753.GD3881@phenom.ffwll.local>
+ <8b823458-8bdc-3217-572b-509a28aae742@gmail.com>
+ <20180403090909.GN3881@phenom.ffwll.local>
+ <20180403170645.GB5935@redhat.com>
+ <20180403180832.GZ3881@phenom.ffwll.local>
+ <20180416123937.GA9073@infradead.org>
+ <CAKMK7uEFVOh-R2_4vs1M22_wDau0oNTgmCcTWDE+ScxL=92+2g@mail.gmail.com>
+ <20180419081657.GA16735@infradead.org>
+ <20180420071312.GF31310@phenom.ffwll.local>
+ <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <69970910-28ae-91a8-a7e8-04f0e6a397b1@by.com.es>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Sorry for resurrecting this thread but I'm still quite interested on 
-making this scenario work:
+On Fri, Apr 20, 2018 at 10:58:50AM +0200, Christian König wrote:
+> > Yes there's a bit a layering violation insofar that drivers really
+> > shouldn't each have their own copy of "how do I convert a piece of dma
+> > memory into  dma-buf", but that doesn't render the interface a bad idea.
+> 
+> Completely agree on that.
+> 
+> What we need is an sg_alloc_table_from_resources(dev, resources,
+> num_resources) which does the handling common to all drivers.
 
- > OK, I've performed some tests with several resolutions and gop sizes, 
-here is the table with the results:
- >
- > Always playing 3 streams
- >
- > | Resolution   |  QP   | GopSize   |  Kind of content |  Result 
-                 |
- > | 640x368      |  25   |    16     |   Waving hands   |   time 
-shifts, no DEC_PIC_SUCCESS       |
- > | 640x368      |  25   |    0      |   Waving hands   |   time 
-shifts, no DEC_PIC_SUCCESS    |
- > | 320x192      |  25   |    0      |   Waving hands   |   time 
-shifts, no DEC_PIC_SUCCESS     |
- > | 320x192      |  25   |    16     |   Waving hands   |   time 
-shifts, no DEC_PIC_SUCCESS     |
- > | 1280x720     |  25   |    16     |   Waving hands   |   macroblock 
-artifacts and lots of DEC_PIC_SUCCESS messages |
- > | 1280x720     |  25   |    0      |   Waving hands   | 
-Surprisingly smooth, no artifacts, time shifts nor DEC_PIC_SUCCESS|
- >
- > * The issues always happens in the first stream, the other 2 streams 
-are fine.
- > * With GopSize = 0 I can even decode 4 720p streams with no artifacts
- >
- > It looks like for small resolutions it suffers from time shifts when 
-multi-streaming, always affecting the first stream for some reason. In 
-this case gop size doesn't seem to make any difference.
- >
- > For higher resolutions like 720p using GopSize = 0 seems to improve 
-things a lot.
- >
+A structure that contains
 
+{page,offset,len} + {dma_addr+dma_len}
 
-Philipp, you mentioned some possible issue with context switches in a 
-previous e-mail:
- > I fear this may be some interaction between coda context switches and
- > bitstream reader unit state.
+is not a good container for storing
 
-Philipp, do these results confirm your theory? Are there any more tests 
-I could prepare to help get to the bottom of this or this is something 
-that belongs entirely to the coda firmware domain? Does anyone know if 
-the official BSP from NXP is able to decode 4 flows without issues?
+{virt addr, dma_addr, len}
+
+no matter what interface you build arond it.  And that is discounting
+all the problems around mapping coherent allocations for other devices,
+or the iommu merging problem we are having another thread on.
+
+So let's come up with a better high level interface first, and then
+worrty about how to implement it in the low-level dma-mapping interface
+second.  Especially given that my consolidation of the dma_map_ops
+implementation is in full stream and there shoudn't be all that many
+to bother with.
+
+So first question:  Do you actually care about having multiple
+pairs of the above, or instead of all chunks just deal with a single
+of the above?  In that case we really should not need that many
+new interfaces as dma_map_resource will be all you need anyway.
+
+> 
+> Christian.
+> 
+> > -Daniel
+> 
+---end quoted text---
