@@ -1,85 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35939 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752710AbeDSOC0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 10:02:26 -0400
-Received: by mail-wr0-f196.google.com with SMTP id q13-v6so14400898wre.3
-        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 07:02:25 -0700 (PDT)
-References: <20180419101812.30688-1-rui.silva@linaro.org> <20180419101812.30688-2-rui.silva@linaro.org> <20180419120606.p32pl5at7wky7u3y@mwanda>
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
+Received: from osg.samsung.com ([64.30.133.232]:51855 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753502AbeDTRnA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 13:43:00 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        dri-devel@lists.freedesktop.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        linux-arch@vger.kernel.org, Sean Young <sean@mess.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Mattia Dongili <malattia@linux.it>,
+        mjpeg-users@lists.sourceforge.net,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        platform-driver-x86@vger.kernel.org,
+        Stephen Hemminger <stephen@networkplumber.org>,
+        linux-fbdev@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>, devel@driverdev.osuosl.org,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Shawn Guo <shawnguo@kernel.org>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 01/15] media: staging/imx: add support to media dev for no IPU systems
-In-reply-to: <20180419120606.p32pl5at7wky7u3y@mwanda>
-Date: Thu, 19 Apr 2018 15:02:21 +0100
-Message-ID: <m3k1t39tw2.fsf@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+        Shawn Guo <shawn.guo@linaro.org>,
+        Mans Rullgard <mans@mansr.com>,
+        Andi Kleen <ak@linux.intel.com>, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH 0/7] Enable most media drivers to build on ARM
+Date: Fri, 20 Apr 2018 13:42:46 -0400
+Message-Id: <cover.1524245455.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
-Thanks for this and the other reviews.
+Right now, all media drivers build successfully with COMPILE_TEST on x86,
+on both i386 and x86_64. Yet, several drivers there don't build on other
+archs.
 
-On Thu 19 Apr 2018 at 12:06, Dan Carpenter wrote:
-> On Thu, Apr 19, 2018 at 11:17:58AM +0100, Rui Miguel Silva 
-> wrote:
->> Some i.MX SoC do not have IPU, like the i.MX7, add to the the 
->> media device
->> infrastructure support to be used in this type of systems that 
->> do not have
->> internal subdevices besides the CSI.
->> 
->> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
->> ---
->>  drivers/staging/media/imx/imx-media-dev.c        | 16 
->>  +++++++++++-----
->>  .../staging/media/imx/imx-media-internal-sd.c    |  3 +++
->>  drivers/staging/media/imx/imx-media.h            |  3 +++
->>  3 files changed, 17 insertions(+), 5 deletions(-)
->> 
->> diff --git a/drivers/staging/media/imx/imx-media-dev.c 
->> b/drivers/staging/media/imx/imx-media-dev.c
->> index f67ec8e27093..a8afe0ec4134 100644
->> --- a/drivers/staging/media/imx/imx-media-dev.c
->> +++ b/drivers/staging/media/imx/imx-media-dev.c
->> @@ -92,6 +92,9 @@ static int imx_media_get_ipu(struct 
->> imx_media_dev *imxmd,
->>  	struct ipu_soc *ipu;
->>  	int ipu_id;
->>  
->> +	if (imxmd->no_ipu_present)
->
-> It's sort of nicer if variables don't have a negative built in 
-> because
-> otherwise you get confusing double negatives like "if (!no_ipu) 
-> {".
-> It's not hard to invert the varible in this case, because the 
-> only thing
-> we need to change is imx_media_probe() to set:
->
-> +	imxmd->ipu_present = true;
+I don't need myself to build all drivers outside x86, but others could
+find it useful. It also relps spreading COMPILE_TEST builds, with sounds
+a good idea, as more developers may be seeing issues and submiting 
+us patches.
 
-Yeah, my code was like this till last minute, and I also dislike 
-the
-double negatives... but since the logic that reset the variable 
-would
-only be done in a later patch I switched the logic.
+So, this patch series makes most of them to be built elsewhere (tested
+only with ARM with allyesconfig). The only two media drivers that don't build 
+on such conditions are:
 
-But You are right I could just had the initialization here to 
-true.
-Will take this in account in v2.
+1) media/staging/atomisp: it uses several ACPI bits that no other media
+driver requires (including Intel IPU3);
 
----
-Cheers,
-	Rui
+2) radio-miropcm20: This device depnds on ISA_DMA_API, with is available only
+for a few non-Intel architectures.
+
+In other words, the following symbols aren't enabled with allyesconfig:
+
+	INTEL_ATOMISP VIDEO_ATOMISP
+	VIDEO_ATOMISP_MSRLIST_HELPER VIDEO_ATOMISP_MT9M114
+	VIDEO_ATOMISP_GC0310  VIDEO_ATOMISP_GC2235 
+	VIDEO_ATOMISP_OV2722 VIDEO_ATOMISP_OV5693
+	VIDEO_ATOMISP_OV2680 VIDEO_ATOMISP_LM3554
+	RADIO_MIROPCM20
+
+All patches in this series are available at:
+
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=compile_test_v7
+
+Mauro Carvalho Chehab (7):
+  asm-generic, media: allow COMPILE_TEST with virt_to_bus
+  media: meye: allow building it with COMPILE_TEST on non-x86
+  media: rc: allow build pnp-dependent drivers with COMPILE_TEST
+  media: ipu3: allow building it with COMPILE_TEST on non-x86 archs
+  omapfb: omapfb_dss.h: add stubs to build with COMPILE_TEST && DRM_OMAP
+  media: omap2: allow building it with COMPILE_TEST && DRM_OMAP
+  media: via-camera: allow build on non-x86 archs with COMPILE_TEST
+
+ drivers/media/pci/intel/ipu3/Kconfig |  3 +-
+ drivers/media/pci/meye/Kconfig       |  3 +-
+ drivers/media/pci/sta2x11/Kconfig    |  4 +--
+ drivers/media/pci/zoran/Kconfig      |  3 +-
+ drivers/media/platform/Kconfig       |  2 +-
+ drivers/media/platform/omap/Kconfig  |  3 +-
+ drivers/media/platform/via-camera.c  | 10 ++++++-
+ drivers/media/rc/Kconfig             | 10 +++----
+ include/asm-generic/io.h             |  2 +-
+ include/linux/sony-laptop.h          |  4 +++
+ include/linux/via-core.h             | 17 ++++++++++++
+ include/linux/via-gpio.h             |  4 +++
+ include/linux/via_i2c.h              |  5 ++++
+ include/video/omapfb_dss.h           | 54 ++++++++++++++++++++++++++++++++++--
+ 14 files changed, 107 insertions(+), 17 deletions(-)
+
+-- 
+2.14.3
