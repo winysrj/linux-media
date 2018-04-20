@@ -1,105 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:47010 "EHLO
-        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756075AbeDXHdt (ORCPT
+Received: from mail-ua0-f195.google.com ([209.85.217.195]:44902 "EHLO
+        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754537AbeDTJ7R (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 03:33:49 -0400
+        Fri, 20 Apr 2018 05:59:17 -0400
+Received: by mail-ua0-f195.google.com with SMTP id r10so265612uak.11
+        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 02:59:17 -0700 (PDT)
+Received: from mail-vk0-f47.google.com (mail-vk0-f47.google.com. [209.85.213.47])
+        by smtp.gmail.com with ESMTPSA id c187sm1734194vkf.46.2018.04.20.02.59.15
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 20 Apr 2018 02:59:16 -0700 (PDT)
+Received: by mail-vk0-f47.google.com with SMTP id 203so4902455vka.12
+        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 02:59:15 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <d8bdf4a080d4655d20b532a37ae22ca7e3483cc4.1524245455.git.mchehab@s-opensource.com>
-References: <cover.1524245455.git.mchehab@s-opensource.com> <d8bdf4a080d4655d20b532a37ae22ca7e3483cc4.1524245455.git.mchehab@s-opensource.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 24 Apr 2018 09:33:48 +0200
-Message-ID: <CAMuHMdWnhtqSKabk5S8iHWri9JsuVgLVFa6FgyDHJBDg6da9Lg@mail.gmail.com>
-Subject: Re: [PATCH 1/7] asm-generic, media: allow COMPILE_TEST with virt_to_bus
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com> <20180419154536.17846-1-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180419154536.17846-1-paul.kocialkowski@bootlin.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 20 Apr 2018 09:51:49 +0000
+Message-ID: <CAAFQd5Dq4OeshtFaoxFK2357+-_=hzh0C7W=zksTWtaDuDCiGg@mail.gmail.com>
+Subject: Re: [PATCH v2 05/10] media: v4l: Add definitions for MPEG2 frame
+ format and header metadata
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        devicetree@vger.kernel.org,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-sunxi@googlegroups.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>, wens@csie.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
         Arnd Bergmann <arnd@arndb.de>,
-        mjpeg-users@lists.sourceforge.net,
-        Linux-Arch <linux-arch@vger.kernel.org>
+        Alexandre Courbot <acourbot@chromium.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Paul,
 
-On Fri, Apr 20, 2018 at 7:42 PM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> The virt_to_bus/bus_to_virt macros are arch-specific. Some
-> archs don't support it. Yet, as it is interesting to allow
-> doing compilation tests on non-ia32/ia64 archs, provide a
-> fallback for such archs.
->
-> While here, enable COMPILE_TEST for two media drivers that
-> depends on it.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+On Fri, Apr 20, 2018 at 12:46 AM Paul Kocialkowski <
+paul.kocialkowski@bootlin.com> wrote:
+[snip]
+> +struct v4l2_ctrl_mpeg2_frame_hdr {
+> +       __u32 slice_len;
+> +       __u32 slice_pos;
+> +       enum { MPEG1, MPEG2 } type;
 
-Thanks for your patch!
+Is enum suitable for UAPI?
 
-I guess this will cause the kernel to crash if I insert an STA2X11 or Zoran PCI
-card in a non-VIRT_TO_BUS machine and boot an all{mod,yes}config kernel?
+> +
+> +       __u16 width;
+> +       __u16 height;
+> +
+> +       enum { PCT_I = 1, PCT_P, PCT_B, PCT_D } picture_coding_type;
 
-IMHO dummies are fine if they return error codes, not it they can cause
-crashes.
+Ditto.
 
-> ---
->  drivers/media/pci/sta2x11/Kconfig | 4 ++--
->  drivers/media/pci/zoran/Kconfig   | 3 ++-
->  include/asm-generic/io.h          | 2 +-
->  3 files changed, 5 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/pci/sta2x11/Kconfig b/drivers/media/pci/sta2x11/Kconfig
-> index 7af3f1cbcea8..fb4b4c8ac430 100644
-> --- a/drivers/media/pci/sta2x11/Kconfig
-> +++ b/drivers/media/pci/sta2x11/Kconfig
-> @@ -1,10 +1,10 @@
->  config STA2X11_VIP
->         tristate "STA2X11 VIP Video For Linux"
-> -       depends on STA2X11 || COMPILE_TEST
-> +       depends on (STA2X11 && VIRT_TO_BUS) || COMPILE_TEST
->         depends on HAS_DMA
->         select VIDEO_ADV7180 if MEDIA_SUBDRV_AUTOSELECT
->         select VIDEOBUF2_DMA_CONTIG
-> -       depends on PCI && VIDEO_V4L2 && VIRT_TO_BUS
-> +       depends on PCI && VIDEO_V4L2
->         depends on VIDEO_V4L2_SUBDEV_API
->         depends on I2C
->         help
-> diff --git a/drivers/media/pci/zoran/Kconfig b/drivers/media/pci/zoran/Kconfig
-> index 39ec35bd21a5..5d2678a9e310 100644
-> --- a/drivers/media/pci/zoran/Kconfig
-> +++ b/drivers/media/pci/zoran/Kconfig
-> @@ -1,6 +1,7 @@
->  config VIDEO_ZORAN
->         tristate "Zoran ZR36057/36067 Video For Linux"
-> -       depends on PCI && I2C_ALGOBIT && VIDEO_V4L2 && VIRT_TO_BUS
-> +       depends on PCI && I2C_ALGOBIT && VIDEO_V4L2
-> +       depends on VIRT_TO_BUS || COMPILE_TEST
->         depends on !ALPHA
->         help
->           Say Y for support for MJPEG capture cards based on the Zoran
-> diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
-> index 66d1d45fa2e1..f448129ad15c 100644
-> --- a/include/asm-generic/io.h
-> +++ b/include/asm-generic/io.h
-> @@ -1068,7 +1068,7 @@ static inline void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
->  }
->  #endif
->
-> -#ifdef CONFIG_VIRT_TO_BUS
-> +#if defined(CONFIG_VIRT_TO_BUS) || defined(CONFIG_COMPILE_TEST)
->  #ifndef virt_to_bus
->  static inline unsigned long virt_to_bus(void *address)
->  {
+> +       __u8 f_code[2][2];
+> +
+> +       __u8 intra_dc_precision;
+> +       __u8 picture_structure;
+> +       __u8 top_field_first;
+> +       __u8 frame_pred_frame_dct;
+> +       __u8 concealment_motion_vectors;
+> +       __u8 q_scale_type;
+> +       __u8 intra_vlc_format;
+> +       __u8 alternate_scan;
+> +
+> +       __u8 backward_ref_index;
+> +       __u8 forward_ref_index;
+> +};
+> +
+>   #endif
+> diff --git a/include/uapi/linux/videodev2.h
+b/include/uapi/linux/videodev2.h
+> index 31b5728b56e9..4b8336f7bcf0 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -635,6 +635,7 @@ struct v4l2_pix_format {
+>   #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /*
+SMPTE 421M Annex L compliant stream */
+>   #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
+>   #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
+> +#define V4L2_PIX_FMT_MPEG2_FRAME v4l2_fourcc('M', 'G', '2', 'F') /*
+MPEG2 frame */
 
-Gr{oetje,eeting}s,
+>   /*  Vendor-specific formats   */
+>   #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1
+YUV */
+> @@ -1586,6 +1587,7 @@ struct v4l2_ext_control {
+>                  __u8 __user *p_u8;
+>                  __u16 __user *p_u16;
+>                  __u32 __user *p_u32;
+> +               struct v4l2_ctrl_mpeg2_frame_hdr __user
+*p_mpeg2_frame_hdr;
+>                  void __user *ptr;
+>          };
+>   } __attribute__ ((packed));
+> @@ -1631,6 +1633,7 @@ enum v4l2_ctrl_type {
+>          V4L2_CTRL_TYPE_U8            = 0x0100,
+>          V4L2_CTRL_TYPE_U16           = 0x0101,
+>          V4L2_CTRL_TYPE_U32           = 0x0102,
+> +       V4L2_CTRL_TYPE_MPEG2_FRAME_HDR = 0x0109,
 
-                        Geert
+Why 0x0109?
 
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Best regards,
+Tomasz
