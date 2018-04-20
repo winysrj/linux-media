@@ -1,77 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:41185 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751002AbeDPQhS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 12:37:18 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+Received: from xavier.telenet-ops.be ([195.130.132.52]:50222 "EHLO
+        xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755023AbeDTN27 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 09:28:59 -0400
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+To: Simon Horman <horms@verge.net.au>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        "David S . Miller" <davem@davemloft.net>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Luis Oliveira <Luis.Oliveira@synopsys.com>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH 6/9] media: atomisp: ov2680: don't declare unused vars
-Date: Mon, 16 Apr 2018 12:37:09 -0400
-Message-Id: <f0f1de54f94a059e1ebe863a5c9e830b658905ab.1523896259.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523896259.git.mchehab@s-opensource.com>
-References: <cover.1523896259.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523896259.git.mchehab@s-opensource.com>
-References: <cover.1523896259.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH/RFC 8/8] arm64: renesas: Remove the ARCH_SHMOBILE Kconfig symbol
+Date: Fri, 20 Apr 2018 15:28:34 +0200
+Message-Id: <1524230914-10175-9-git-send-email-geert+renesas@glider.be>
+In-Reply-To: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
+References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/staging/media/atomisp/i2c/atomisp-ov2680.c: In function ‘__ov2680_set_exposure’:
-drivers/staging/media/atomisp/i2c/atomisp-ov2680.c:400:10: warning: variable ‘hts’ set but not used [-Wunused-but-set-variable]
-  u16 vts,hts;
-          ^~~
-drivers/staging/media/atomisp/i2c/atomisp-ov2680.c: In function ‘ov2680_detect’:
-drivers/staging/media/atomisp/i2c/atomisp-ov2680.c:1164:5: warning: variable ‘revision’ set but not used [-Wunused-but-set-variable]
-  u8 revision;
-     ^~~~~~~~
+The Kconfig symbol for Renesas 64-bit ARM SoCs has always been
+ARCH_RENESAS, with ARCH_SHMOBILE being selected to reuse drivers shared
+with Renesas 32-bit ARM and/or Renesas SuperH SH-Mobile SoCs.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Commit 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS")
+started the conversion from ARCH_SHMOBILE to ARCH_RENESAS for Renesas
+32-bit SoCs.  Now all drivers for Renesas ARM SoCs have gained proper
+ARCH_RENESAS platform dependencies, there is no longer a need to select
+ARCH_SHMOBILE.
+
+With ARCH_SHMOBILE gone, move the ARCH_RENESAS section up, to restore
+alphabetical sort order.
+
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 ---
- drivers/staging/media/atomisp/i2c/atomisp-ov2680.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+This depends on the driver patches in this series, hence the RFC.
 
-diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
-index c0849299d592..bba3d1745908 100644
---- a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
-+++ b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
-@@ -397,14 +397,13 @@ static long __ov2680_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ov2680_device *dev = to_ov2680_sensor(sd);
--	u16 vts,hts;
-+	u16 vts;
- 	int ret,exp_val;
+JFTR, after this, the following symbols for drivers supporting only
+Renesas SuperH "SH-Mobile" SoCs can no longer be selected:
+  - CONFIG_KEYBOARD_SH_KEYSC,
+  - CONFIG_VIDEO_SH_VOU,
+  - CONFIG_VIDEO_RENESAS_CEU,
+  - CONFIG_FB_SH_MOBILE_MERAM.
+(changes for a renesas_defconfig .config)
+---
+ arch/arm64/Kconfig.platforms | 42 +++++++++++++++++++-----------------------
+ 1 file changed, 19 insertions(+), 23 deletions(-)
+
+diff --git a/arch/arm64/Kconfig.platforms b/arch/arm64/Kconfig.platforms
+index d5aeac351fc3a776..49d8ed1ab84766dd 100644
+--- a/arch/arm64/Kconfig.platforms
++++ b/arch/arm64/Kconfig.platforms
+@@ -145,31 +145,8 @@ config ARCH_REALTEK
+ 	  This enables support for the ARMv8 based Realtek chipsets,
+ 	  like the RTD1295.
  
- 	dev_dbg(&client->dev,
- 		"+++++++__ov2680_set_exposure coarse_itg %d, gain %d, digitgain %d++\n",
- 		coarse_itg, gain, digitgain);
+-config ARCH_ROCKCHIP
+-	bool "Rockchip Platforms"
+-	select ARCH_HAS_RESET_CONTROLLER
+-	select GPIOLIB
+-	select PINCTRL
+-	select PINCTRL_ROCKCHIP
+-	select ROCKCHIP_TIMER
+-	help
+-	  This enables support for the ARMv8 based Rockchip chipsets,
+-	  like the RK3368.
+-
+-config ARCH_SEATTLE
+-	bool "AMD Seattle SoC Family"
+-	help
+-	  This enables support for AMD Seattle SOC Family
+-
+-config ARCH_SHMOBILE
+-	bool
+-
+-config ARCH_SYNQUACER
+-	bool "Socionext SynQuacer SoC Family"
+-
+ config ARCH_RENESAS
+ 	bool "Renesas SoC Platforms"
+-	select ARCH_SHMOBILE
+ 	select PINCTRL
+ 	select PM
+ 	select PM_GENERIC_DOMAINS
+@@ -220,6 +197,25 @@ config ARCH_R8A77995
+ 	help
+ 	  This enables support for the Renesas R-Car D3 SoC.
  
--	hts = ov2680_res[dev->fmt_idx].pixels_per_line;
- 	vts = ov2680_res[dev->fmt_idx].lines_per_frame;
- 
- 	/* group hold */
-@@ -1185,7 +1184,8 @@ static int ov2680_detect(struct i2c_client *client)
- 					OV2680_SC_CMMN_SUB_ID, &high);
- 	revision = (u8) high & 0x0f;
- 
--	dev_info(&client->dev, "sensor_revision id = 0x%x\n", id);
-+	dev_info(&client->dev, "sensor_revision id = 0x%x, rev= %d\n",
-+		 id, revision);
- 
- 	return 0;
- }
++config ARCH_ROCKCHIP
++	bool "Rockchip Platforms"
++	select ARCH_HAS_RESET_CONTROLLER
++	select GPIOLIB
++	select PINCTRL
++	select PINCTRL_ROCKCHIP
++	select ROCKCHIP_TIMER
++	help
++	  This enables support for the ARMv8 based Rockchip chipsets,
++	  like the RK3368.
++
++config ARCH_SEATTLE
++	bool "AMD Seattle SoC Family"
++	help
++	  This enables support for AMD Seattle SOC Family
++
++config ARCH_SYNQUACER
++	bool "Socionext SynQuacer SoC Family"
++
+ config ARCH_STRATIX10
+ 	bool "Altera's Stratix 10 SoCFPGA Family"
+ 	help
 -- 
-2.14.3
+2.7.4
