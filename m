@@ -1,127 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:4441 "EHLO
-        hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750882AbeDYH4u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 03:56:50 -0400
-Date: Wed, 25 Apr 2018 09:56:43 +0200
-From: Thierry Reding <treding@nvidia.com>
-To: Christoph Hellwig <hch@infradead.org>,
-        Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Jerome Glisse <jglisse@redhat.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
-Message-ID: <20180425075643.GC2271@ulmo>
-References: <20180420152111.GR31310@phenom.ffwll.local>
- <20180424184847.GA3247@infradead.org>
- <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
- <20180425054855.GA17038@infradead.org>
- <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
- <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
- <20180425064335.GB28100@infradead.org>
- <CAKMK7uGF7p5ko=i6zL4dn0qR-5TVRKMi6xaCGSao_vyfJU+dWQ@mail.gmail.com>
- <20180425070905.GA24827@infradead.org>
- <20180425073039.GO25142@phenom.ffwll.local>
+Received: from osg.samsung.com ([64.30.133.232]:53796 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754936AbeDTNJL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 09:09:11 -0400
+Date: Fri, 20 Apr 2018 10:09:05 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: <alsa-devel@alsa-project.org>,
+        "Mauro Carvalho Chehab" <mchehab@infradead.org>,
+        "Jaroslav Kysela" <perex@perex.cz>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 3/4] sound, media: allow building ISA drivers it with
+ COMPILE_TEST
+Message-ID: <20180420100905.51e04e82@vento.lan>
+In-Reply-To: <s5h36zqvxug.wl-tiwai@suse.de>
+References: <cover.1524227382.git.mchehab@s-opensource.com>
+        <3f4d8ae83a91c765581d9cbbd1e436b6871368fa.1524227382.git.mchehab@s-opensource.com>
+        <s5h7ep2vysl.wl-tiwai@suse.de>
+        <20180420095129.2b7d004d@vento.lan>
+        <s5h36zqvxug.wl-tiwai@suse.de>
 MIME-Version: 1.0
-In-Reply-To: <20180425073039.GO25142@phenom.ffwll.local>
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="FsscpQKzF/jJk6ya"
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---FsscpQKzF/jJk6ya
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Em Fri, 20 Apr 2018 14:58:15 +0200
+Takashi Iwai <tiwai@suse.de> escreveu:
 
-On Wed, Apr 25, 2018 at 09:30:39AM +0200, Daniel Vetter wrote:
-> On Wed, Apr 25, 2018 at 12:09:05AM -0700, Christoph Hellwig wrote:
-> > On Wed, Apr 25, 2018 at 09:02:17AM +0200, Daniel Vetter wrote:
-> > > Can we please not nack everything right away? Doesn't really motivate
-> > > me to show you all the various things we're doing in gpu to make the
-> > > dma layer work for us. That kind of noodling around in lower levels to
-> > > get them to do what we want is absolutely par-for-course for gpu
-> > > drivers. If you just nack everything I point you at for illustrative
-> > > purposes, then I can't show you stuff anymore.
-> >=20
-> > No, it's not.  No driver (and that includes the magic GPUs) has
-> > any business messing with dma ops directly.
-> >=20
-> > A GPU driver imght have a very valid reason to disable the IOMMU,
-> > but the code to do so needs to be at least in the arch code, maybe
-> > in the dma-mapping/iommu code, not in the driver.
-> >=20
-> > As a first step to get the discussion started we'll simply need
-> > to move the code Thierry wrote into a helper in arch/arm and that
-> > alone would be a massive improvement.  I'm not even talking about
-> > minor details like actually using arm_get_dma_map_ops instead
-> > of duplicating it.
-> >=20
-> > And doing this basic trivial work really helps to get this whole
-> > mess under control.
->=20
-> Ah ok. It did sound a bit like a much more cathegorical NAK than an "ack
-> in principle, but we need to shuffle the implementation into the right
-> place first". In the past we generally got a principled NAK on anything
-> funny we've been doing with the dma api, and the dma api maintainer
-> steaming off telling us we're incompetent idiots. I guess I've been
-> branded a bit on this topic :-/
->=20
-> Really great that this is changing now.
->=20
-> On the patch itself: It might not be the right thing in all cases, since
-> for certain compression formats the nv gpu wants larger pages (easy to
-> allocate from vram, not so easy from main memory), so might need the iommu
-> still. But currently that's not implemented:
->=20
-> https://www.spinics.net/lists/dri-devel/msg173932.html
+> On Fri, 20 Apr 2018 14:51:29 +0200,
+> Mauro Carvalho Chehab wrote:
+> > 
+> > Em Fri, 20 Apr 2018 14:37:46 +0200
+> > Takashi Iwai <tiwai@suse.de> escreveu:
+> >   
+> > > On Fri, 20 Apr 2018 14:32:15 +0200,
+> > > Mauro Carvalho Chehab wrote:  
+> > > > 
+> > > > All sound drivers that don't depend on PNP can be safelly
+> > > > build with COMPILE_TEST, as ISA provides function stubs to
+> > > > be used for such purposes.
+> > > > 
+> > > > As a side effect, with this change, the radio-miropcm20
+> > > > can now be built outside i386 with COMPILE_TEST.
+> > > > 
+> > > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > > > ---
+> > > >  drivers/media/radio/Kconfig | 3 ++-
+> > > >  sound/isa/Kconfig           | 9 +++++----
+> > > >  2 files changed, 7 insertions(+), 5 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+> > > > index d363726e9eb1..8fa403c7149e 100644
+> > > > --- a/drivers/media/radio/Kconfig
+> > > > +++ b/drivers/media/radio/Kconfig
+> > > > @@ -372,7 +372,8 @@ config RADIO_GEMTEK_PROBE
+> > > >  
+> > > >  config RADIO_MIROPCM20
+> > > >  	tristate "miroSOUND PCM20 radio"
+> > > > -	depends on ISA && ISA_DMA_API && VIDEO_V4L2 && SND
+> > > > +	depends on ISA || COMPILE_TEST
+> > > > +	depends on ISA_DMA_API && VIDEO_V4L2 && SND
+> > > >  	select SND_ISA
+> > > >  	select SND_MIRO
+> > > >  	---help---
+> > > > diff --git a/sound/isa/Kconfig b/sound/isa/Kconfig
+> > > > index cb54d9c0a77f..d2a6cdd0395c 100644
+> > > > --- a/sound/isa/Kconfig
+> > > > +++ b/sound/isa/Kconfig
+> > > > @@ -20,7 +20,8 @@ config SND_SB16_DSP
+> > > >  
+> > > >  menuconfig SND_ISA
+> > > >  	bool "ISA sound devices"
+> > > > -	depends on ISA && ISA_DMA_API
+> > > > +	depends on ISA || COMPILE_TEST
+> > > > +	depends on ISA_DMA_API
+> > > >  	default y
+> > > >  	help
+> > > >  	  Support for sound devices connected via the ISA bus.
+> > > > @@ -38,7 +39,7 @@ config SND_ADLIB
+> > > >  
+> > > >  config SND_AD1816A
+> > > >  	tristate "Analog Devices SoundPort AD1816A"
+> > > > -	depends on PNP
+> > > > +	depends on PNP && ISA
+> > > >  	select ISAPNP
+> > > >  	select SND_OPL3_LIB
+> > > >  	select SND_MPU401_UART    
+> > > 
+> > > Just from curiosity: what's the reason for this explicit CONFIG_ISA
+> > > dependency?  What error did you get?  
+> > 
+> > Kconfig complains with "select ISAPNP":
+> > 
+> > WARNING: unmet direct dependencies detected for ISAPNP
+> >   Depends on [n]: PNP [=y] && ISA [=n]
+> >   Selected by [y]:
+> >   - SND_AD1816A [=y] && SOUND [=y] && !UML && SND [=y] && SND_ISA [=y] && PNP [=y]
+> > 
+> > Because it is declared as:
+> > 
+> > config ISAPNP
+> > 	bool "ISA Plug and Play support"
+> >         depends on ISA  
+> 
+> I see.  Then it'd be better to put this explanations in the changelog
+> as well.
 
-To clarify: we do want to use the IOMMU, but we want to use it
-explicitly via the IOMMU API rather than hiding it behind the DMA API.
-We do the same thing in Tegra DRM where we don't want to use the DMA API
-because it doesn't allow us to share the same mapping between multiple
-display controllers in the same way the IOMMU API does. We've also been
-thinking about using the IOMMU API directly in order to support process
-isolation for devices that accept command streams from userspace.
+Added. See enclosed.
 
-Fortunately the issue I'm seeing with Nouveau doesn't happen with Tegra
-DRM, which seems to be because we have an IOMMU group with multiple
-devices and that prevents the DMA API from "hijacking" the IOMMU domain
-for the group.
+> 
+> > I could have tried to change ISAPNP to depends on ISA || COMPILE_TEST,
+> > but I suspect that would touch on yet another subsystem and has
+> > the potential to point to other things that need changes, as
+> > a lot more drivers will be selected.
+> > 
+> > Anyway, after a quick look at include/linux/isapnp.h, I suspect
+> > that this can work.
+> > 
+> > I'll run some tests here.  
+> 
+> At least a dumb stub is there, so let's hope we can widen the test
+> coverage :)
 
-And to add to the confusion, none of this seems to be an issue on 64-bit
-ARM where the generic DMA/IOMMU code from drivers/iommu/dma-iommu.c is
-used.
+Yes, that's the idea :-)
 
-Thierry
+Right now, for every patch I receive, I build media drivers for i386
+(I just made all of them build on i386), but I'm considering doing such
+builds on x86_64 instead, as it also enables compat32 code.
 
---FsscpQKzF/jJk6ya
-Content-Type: application/pgp-signature; name="signature.asc"
+Thanks,
+Mauro
 
------BEGIN PGP SIGNATURE-----
+[PATCH v2] sound, media: allow building ISA drivers it with COMPILE_TEST
 
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlrgNLkACgkQ3SOs138+
-s6FElA//Y4UG8175+Ww3Twe0Ng/0nU5D/3QkBRvSl+IZ1fTkAGn3XUtQVX4Ll8Wb
-GbFn/WLFr87S4+E+LMBIJ526piuRzgXbLqL3X7Q8IOvx7JRWtux9iSlxznCr+hDe
-L6u+d8oKoXjGotnmC9bZTWRRGkijAYojYYBkMWCrOS1TkMCgkiKc0g5kb1KisTaK
-ttVUVendpNQsHMWZzPTXhVPfkBMdVvcbHdgaim1VD+NTRJaJ70S0Q0jhIgxqa18L
-thYrCuJkYweE/yjlHezXo2BMGEeNTBp0khA1lXeCOp5dfv6W8Z/BcGS15OZQ+Ufg
-Dl1Dwfq7WPOB7YB/KQdW4V7FI/h8gSzY4c0+oPMNvESrlqmoSGUHIHp7XV/ngL+T
-Bq/pN7eKUImjMXa/wTzEUzjglRMxFpg6WEwV/7q1QDxgyoKWPKp5a3fa4qXonGIB
-Qf43OcYWBqLAlpFpY03u/UUbdjwwOglZRM7Jo2p70sN90ISu6QpV/RNo26KylJJN
-xEjE4CtIDRD/qHUegL6juDcC8tgCO7EPV/pqsvp6R6UmpguH0HT+TkG7TteR7lkh
-CZm6xle9cx/2g7C4QMxgOHXGgFhxYQdJvwzKfm/UzFbBEs4iLk4iClYctRdnJRAz
-3iWTou/HjHB3lArCebHYBEAxXMIUrUGwbFZdF+gm3BeP97e2x5o=
-=M8KY
------END PGP SIGNATURE-----
+All sound drivers that don't depend on PNP can be safelly
+build with COMPILE_TEST, as ISA provides function stubs to
+be used for such purposes.
 
---FsscpQKzF/jJk6ya--
+As a side effect, with this change, the radio-miropcm20
+can now be built outside i386 with COMPILE_TEST.
+
+It should be noticed that ISAPNP currently depends on ISA.
+So, on drivers that depend on it, we need to add an
+explicit dependency on ISA, at least until another patch
+removes it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+---
+
+v2: only patch description changed, with the addition of a note
+about ISA explicit dependency on 3 drivers.
+
+
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index d363726e9eb1..8fa403c7149e 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -372,7 +372,8 @@ config RADIO_GEMTEK_PROBE
+ 
+ config RADIO_MIROPCM20
+ 	tristate "miroSOUND PCM20 radio"
+-	depends on ISA && ISA_DMA_API && VIDEO_V4L2 && SND
++	depends on ISA || COMPILE_TEST
++	depends on ISA_DMA_API && VIDEO_V4L2 && SND
+ 	select SND_ISA
+ 	select SND_MIRO
+ 	---help---
+diff --git a/sound/isa/Kconfig b/sound/isa/Kconfig
+index cb54d9c0a77f..d2a6cdd0395c 100644
+--- a/sound/isa/Kconfig
++++ b/sound/isa/Kconfig
+@@ -20,7 +20,8 @@ config SND_SB16_DSP
+ 
+ menuconfig SND_ISA
+ 	bool "ISA sound devices"
+-	depends on ISA && ISA_DMA_API
++	depends on ISA || COMPILE_TEST
++	depends on ISA_DMA_API
+ 	default y
+ 	help
+ 	  Support for sound devices connected via the ISA bus.
+@@ -38,7 +39,7 @@ config SND_ADLIB
+ 
+ config SND_AD1816A
+ 	tristate "Analog Devices SoundPort AD1816A"
+-	depends on PNP
++	depends on PNP && ISA
+ 	select ISAPNP
+ 	select SND_OPL3_LIB
+ 	select SND_MPU401_UART
+@@ -66,7 +67,7 @@ config SND_AD1848
+ 
+ config SND_ALS100
+ 	tristate "Diamond Tech. DT-019x and Avance Logic ALSxxx"
+-	depends on PNP
++	depends on PNP && ISA
+ 	select ISAPNP
+ 	select SND_OPL3_LIB
+ 	select SND_MPU401_UART
+@@ -107,7 +108,7 @@ config SND_AZT2316
+ 
+ config SND_AZT2320
+ 	tristate "Aztech Systems AZT2320"
+-	depends on PNP
++	depends on PNP && ISA
+ 	select ISAPNP
+ 	select SND_OPL3_LIB
+ 	select SND_MPU401_UART
