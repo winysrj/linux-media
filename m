@@ -1,51 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:49174 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755118AbeDPNV2 (ORCPT
+Received: from 06d01.mspz3.gob.ec ([186.46.60.180]:40742 "EHLO
+        06d01.mspz3.gob.ec" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751836AbeDTWx7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 09:21:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 7/9] media-ioc-g-topology.rst: document new 'index' field
-Date: Mon, 16 Apr 2018 15:21:19 +0200
-Message-Id: <20180416132121.46205-8-hverkuil@xs4all.nl>
-In-Reply-To: <20180416132121.46205-1-hverkuil@xs4all.nl>
-References: <20180416132121.46205-1-hverkuil@xs4all.nl>
+        Fri, 20 Apr 2018 18:53:59 -0400
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Re: Representative Needed.
+To: Recipients <maria.barba@06d01.mspz3.gob.ec>
+From: PPMC OFFSHORE <maria.barba@06d01.mspz3.gob.ec>
+Date: Fri, 20 Apr 2018 18:25:35 -0400
+Reply-To: okingsley_rep@protonmail.ch
+Message-Id: <20180420223713.91B7923850C6@06d01.mspz3.gob.ec>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Good day,
 
-Document the new struct media_v2_pad 'index' field.
+  I am seeking your concept with great gratitude to present you as a representative to carry out business transactions with a reasonable share upon your interest and cooperation to work with us in trust. If interested please get back.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Regards
+Kingsley
+
 ---
- Documentation/media/uapi/mediactl/media-ioc-g-topology.rst | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-index c4055ddf070a..459818c3490c 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-@@ -334,7 +334,17 @@ desired arrays with the media graph elements.
- 
-        -  __u32
- 
--       -  ``reserved``\ [5]
-+       -  ``index``
-+
-+       -  0-based pad index. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
-+          returns true. The ``media_version`` is defined in struct
-+	  :c:type:`media_device_info`.
-+
-+    -  .. row 5
-+
-+       -  __u32
-+
-+       -  ``reserved``\ [4]
- 
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
--- 
-2.15.1
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
