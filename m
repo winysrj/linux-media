@@ -1,151 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:17563 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751275AbeDEJ0X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 05:26:23 -0400
-Date: Thu, 5 Apr 2018 12:25:54 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Rob Herring <robh@kernel.org>, "Yeh, Andy" <andy.yeh@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org, Alan Chiang <alanx.chiang@intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [v5 2/2] media: dt-bindings: Add bindings for Dongwoon DW9807
- voice coil
-Message-ID: <20180405092554.dqviv5efq2nio6sd@paasikivi.fi.intel.com>
-References: <1519402422-9595-1-git-send-email-andy.yeh@intel.com>
- <1519402422-9595-3-git-send-email-andy.yeh@intel.com>
- <CAL_JsqKd8dxF1eSkST1GyKCS_bkzALv2aGHC9TXHWfnrxx33SQ@mail.gmail.com>
- <20180228133126.cusxnid64xd5uawu@paasikivi.fi.intel.com>
- <20180302185900.cj4hpt5qqinhyvnt@rob-hp-laptop>
- <20180302201457.ia6egjlxa5zmuwmd@kekkonen.localdomain>
- <CAAFQd5AcWpkemhXDwqjvhAxKdBxK1B_XuNZmzDJvpAY_TtNuPw@mail.gmail.com>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:41230 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754549AbeDTLCY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 07:02:24 -0400
+Subject: Re: [PATCH v2 1/4] media: v4l2-compat-ioctl32: fix several __user
+ annotations
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Daniel Mentz <danielmentz@google.com>
+References: <cover.1524155425.git.mchehab@s-opensource.com>
+ <308d97a3110beb5b7efea2b6eb9a271db3a1ef6c.1524155425.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <46e36ad5-d1c1-ed30-d3fe-fb8c10c7ba0f@xs4all.nl>
+Date: Fri, 20 Apr 2018 13:02:19 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5AcWpkemhXDwqjvhAxKdBxK1B_XuNZmzDJvpAY_TtNuPw@mail.gmail.com>
+In-Reply-To: <308d97a3110beb5b7efea2b6eb9a271db3a1ef6c.1524155425.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+On 04/19/18 18:33, Mauro Carvalho Chehab wrote:
+> Smatch report several issues with bad __user annotations:
+> 
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21: warning: incorrect type in argument 1 (different address spaces)
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21:    expected void [noderef] <asn:1>*uptr
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21:    got void *<noident>
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21: warning: incorrect type in argument 1 (different address spaces)
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21:    expected void const volatile [noderef] <asn:1>*<noident>
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21:    got struct v4l2_plane [noderef] <asn:1>**<noident>
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13: warning: incorrect type in argument 1 (different address spaces)
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13:    expected void [noderef] <asn:1>*uptr
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13:    got void *[assigned] base
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13: warning: incorrect type in assignment (different address spaces)
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13:    expected struct v4l2_ext_control [noderef] <asn:1>*kcontrols
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13:    got struct v4l2_ext_control *<noident>
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13: warning: incorrect type in assignment (different address spaces)
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13:    expected unsigned char [usertype] *__pu_val
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13:    got void [noderef] <asn:1>*
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13: warning: incorrect type in argument 1 (different address spaces)
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13:    expected void [noderef] <asn:1>*uptr
+>   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13:    got void *[assigned] edid
+> 
+> Fix them.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-On Thu, Apr 05, 2018 at 08:21:56AM +0000, Tomasz Figa wrote:
-> On Sat, Mar 3, 2018 at 5:15 AM Sakari Ailus <sakari.ailus@linux.intel.com>
-> wrote:
-> 
-> > On Fri, Mar 02, 2018 at 12:59:00PM -0600, Rob Herring wrote:
-> > > On Wed, Feb 28, 2018 at 03:31:26PM +0200, Sakari Ailus wrote:
-> > > > Hi Rob,
-> > > >
-> > > > Thanks for the review.
-> > > >
-> > > > On Tue, Feb 27, 2018 at 04:10:31PM -0600, Rob Herring wrote:
-> > > > > On Fri, Feb 23, 2018 at 10:13 AM, Andy Yeh <andy.yeh@intel.com>
-> wrote:
-> > > > > > From: Alan Chiang <alanx.chiang@intel.com>
-> > > > > >
-> > > > > > Dongwoon DW9807 is a voice coil lens driver.
-> > > > > >
-> > > > > > Also add a vendor prefix for Dongwoon for one did not exist
-> previously.
-> > > > >
-> > > > > Where's that?
-> > > >
-> > > > Added by aece98a912d92444ea9da03b04269407d1308f1f . So that line isn't
-> > > > relevant indeed and should be removed.
-> > > >
-> > > > >
-> > > > > >
-> > > > > > Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-> > > > > > ---
-> > > > > >  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-> | 9 +++++++++
-> > > > >
-> > > > > DACs generally go in bindings/iio/dac/
-> > > >
-> > > > We have quite a few lens voice coil drivers under bindings/media/i2c
-> now. I
-> > > > don't really object to putting this one to bindings/iio/dac but then
-> the
-> > > > rest should be moved as well.
-> > > >
-> > > > The camera LED flash drivers are under bindings/leds so this would
-> actually
-> > > > be analoguous to that. The lens voice coil drivers are perhaps still
-> a bit
-> > > > more bound to the domain (camera) than the LED flash drivers.
-> > >
-> > > The h/w is bound to that function or just the s/w?
-> 
-> > The hardware. I guess in principle you could use them for other purposes
-> > --- most devices seem to be current sinks with configurable current ---
-> but
-> > I've never seen that.
-> 
-> > The datasheet (dw9714) is here:
-> 
-> > <URL:http://www.datasheetspdf.com/datasheet/download.php?id=840322>
-> 
-> > >
-> > > > I can send a patch if you think the existing bindings should be
-> moved; let
-> > > > me know.
-> > >
-> > > I'm okay if they are separate as long as we're not going to see the
-> > > same device show up in both places. However, "i2c" is not the best
-> 
-> > Ack. I wouldn't expect that. The datasheets of such devices clearly label
-> > the devices voice coil module drivers.
-> 
-> > > directory choice. It should be by function, so we can find common
-> > > properties.
-> 
-> > I2c devices in the media subsystem tend to be peripherals that are always
-> > used with another device with access to some system bus. Camera sensors,
-> lens
-> > devices and tuners can be found there currently. I don't know the original
-> > reasoning but it most likely is related to that.
-> 
-> > In terms of different kinds of devices we have currently at least the
-> > following:
-> 
-> >          Camera ISPs and CSI-2 receivers
-> >          Video muxes
-> >          Video codecs
-> >          Camera sensors
-> >          Camera lens drivers (right now only voice coil modules?)
-> >          Tuners (DVB, radio, analogue TV, whatever)
-> >          Radio transmitters
-> >          HDMI CEC
-> >          Remote controllers
-> >          JPEG codecs
-> 
-> > Cc Hans, too.
-> 
-> Any updates here?
-> 
-> To be honest, I'm not sure there is too much to be thinking about here.
-> This particular hardware block is a lens driver, specifically designed to
-> be used with cameras. Quoting maker's website [1]:
-> 
->    "Driver ICs for automatically focus on images of mobile cameras.
->     Dongwoon Anatech's AF driver ICs are optimized mobile cameras
->     with low power, low noise, smallest package, as well as include
->     various lens position control methodology."
-> 
-> IMHO putting its bindings under the more general purpose iio/ directory
-> doesn't make much sense and would be actually confusing.
-> 
-> [1] http://www.dwanatech.com/eng/sub/sub02_01.php?cat_no=6
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Rob has acked v6 Andy sent some time ago while the driver patch has
-unaddressed comments from Jacopo. I think Andy (unintentionally) missed
-you from cc list:
-
-<URL:https://www.spinics.net/lists/linux-media/msg130709.html>
-
--- 
 Regards,
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+	Hans
+
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 51 ++++++++++++++++++---------
+>  1 file changed, 35 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index d03a44d89649..51c7c5ab15ef 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -443,8 +443,8 @@ static int put_v4l2_plane32(struct v4l2_plane __user *up,
+>  			return -EFAULT;
+>  		break;
+>  	case V4L2_MEMORY_USERPTR:
+> -		if (get_user(p, &up->m.userptr) ||
+> -		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
+> +		if (get_user(p, &up->m.userptr)||
+> +		    put_user((compat_ulong_t)ptr_to_compat((void __user *)p),
+>  			     &up32->m.userptr))
+>  			return -EFAULT;
+>  		break;
+> @@ -587,7 +587,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
+>  	u32 length;
+>  	enum v4l2_memory memory;
+>  	struct v4l2_plane32 __user *uplane32;
+> -	struct v4l2_plane __user *uplane;
+> +	struct v4l2_plane *uplane;
+>  	compat_caddr_t p;
+>  	int ret;
+>  
+> @@ -617,15 +617,22 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
+>  
+>  		if (num_planes == 0)
+>  			return 0;
+> -
+> -		if (get_user(uplane, ((__force struct v4l2_plane __user **)&kp->m.planes)))
+> +		/* We need to define uplane without __user, even though
+> +		 * it does point to data in userspace here. The reason is
+> +		 * that v4l2-ioctl.c copies it from userspace to kernelspace,
+> +		 * so its definition in videodev2.h doesn't have a
+> +		 * __user markup. Defining uplane with __user causes
+> +		 * smatch warnings, so instead declare it without __user
+> +		 * and cast it as a userspace pointer to put_v4l2_plane32().
+> +		 */
+> +		if (get_user(uplane, &kp->m.planes))
+>  			return -EFAULT;
+>  		if (get_user(p, &up->m.planes))
+>  			return -EFAULT;
+>  		uplane32 = compat_ptr(p);
+>  
+>  		while (num_planes--) {
+> -			ret = put_v4l2_plane32(uplane, uplane32, memory);
+> +			ret = put_v4l2_plane32((void __user *)uplane, uplane32, memory);
+>  			if (ret)
+>  				return ret;
+>  			++uplane;
+> @@ -675,7 +682,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer __user *kp,
+>  
+>  	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+>  	    get_user(tmp, &up->base) ||
+> -	    put_user((__force void *)compat_ptr(tmp), &kp->base) ||
+> +	    put_user((void __force *)compat_ptr(tmp), &kp->base) ||
+>  	    assign_in_user(&kp->capability, &up->capability) ||
+>  	    assign_in_user(&kp->flags, &up->flags) ||
+>  	    copy_in_user(&kp->fmt, &up->fmt, sizeof(kp->fmt)))
+> @@ -690,7 +697,7 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer __user *kp,
+>  
+>  	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
+>  	    get_user(base, &kp->base) ||
+> -	    put_user(ptr_to_compat(base), &up->base) ||
+> +	    put_user(ptr_to_compat((void __user *)base), &up->base) ||
+>  	    assign_in_user(&up->capability, &kp->capability) ||
+>  	    assign_in_user(&up->flags, &kp->flags) ||
+>  	    copy_in_user(&up->fmt, &kp->fmt, sizeof(kp->fmt)))
+> @@ -857,11 +864,19 @@ static int put_v4l2_ext_controls32(struct file *file,
+>  				   struct v4l2_ext_controls32 __user *up)
+>  {
+>  	struct v4l2_ext_control32 __user *ucontrols;
+> -	struct v4l2_ext_control __user *kcontrols;
+> +	struct v4l2_ext_control *kcontrols;
+>  	u32 count;
+>  	u32 n;
+>  	compat_caddr_t p;
+>  
+> +	/*
+> +	 * We need to define kcontrols without __user, even though it does
+> +	 * point to data in userspace here. The reason is that v4l2-ioctl.c
+> +	 * copies it from userspace to kernelspace, so its definition in
+> +	 * videodev2.h doesn't have a __user markup. Defining kcontrols
+> +	 * with __user causes smatch warnings, so instead declare it
+> +	 * without __user and cast it as a userspace pointer where needed.
+> +	 */
+>  	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
+>  	    assign_in_user(&up->which, &kp->which) ||
+>  	    get_user(count, &kp->count) ||
+> @@ -883,10 +898,12 @@ static int put_v4l2_ext_controls32(struct file *file,
+>  		unsigned int size = sizeof(*ucontrols);
+>  		u32 id;
+>  
+> -		if (get_user(id, &kcontrols->id) ||
+> +		if (get_user(id, (unsigned int __user *)&kcontrols->id) ||
+>  		    put_user(id, &ucontrols->id) ||
+> -		    assign_in_user(&ucontrols->size, &kcontrols->size) ||
+> -		    copy_in_user(&ucontrols->reserved2, &kcontrols->reserved2,
+> +		    assign_in_user(&ucontrols->size,
+> +				   (unsigned int __user *)&kcontrols->size) ||
+> +		    copy_in_user(&ucontrols->reserved2,
+> +				 (void __user *)&kcontrols->reserved2,
+>  				 sizeof(ucontrols->reserved2)))
+>  			return -EFAULT;
+>  
+> @@ -898,7 +915,8 @@ static int put_v4l2_ext_controls32(struct file *file,
+>  		if (ctrl_is_pointer(file, id))
+>  			size -= sizeof(ucontrols->value64);
+>  
+> -		if (copy_in_user(ucontrols, kcontrols, size))
+> +		if (copy_in_user(ucontrols,
+> +			         (void __user *)kcontrols, size))
+>  			return -EFAULT;
+>  
+>  		ucontrols++;
+> @@ -952,9 +970,10 @@ static int get_v4l2_edid32(struct v4l2_edid __user *kp,
+>  	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+>  	    assign_in_user(&kp->pad, &up->pad) ||
+>  	    assign_in_user(&kp->start_block, &up->start_block) ||
+> -	    assign_in_user(&kp->blocks, &up->blocks) ||
+> +	    assign_in_user(&kp->blocks,
+> +			   (u32 __user *)&up->blocks) ||
+>  	    get_user(tmp, &up->edid) ||
+> -	    put_user(compat_ptr(tmp), &kp->edid) ||
+> +	    put_user((void __force *)compat_ptr(tmp), &kp->edid) ||
+>  	    copy_in_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
+>  		return -EFAULT;
+>  	return 0;
+> @@ -970,7 +989,7 @@ static int put_v4l2_edid32(struct v4l2_edid __user *kp,
+>  	    assign_in_user(&up->start_block, &kp->start_block) ||
+>  	    assign_in_user(&up->blocks, &kp->blocks) ||
+>  	    get_user(edid, &kp->edid) ||
+> -	    put_user(ptr_to_compat(edid), &up->edid) ||
+> +	    put_user(ptr_to_compat((void __user *)edid), &up->edid) ||
+>  	    copy_in_user(up->reserved, kp->reserved, sizeof(up->reserved)))
+>  		return -EFAULT;
+>  	return 0;
+> 
