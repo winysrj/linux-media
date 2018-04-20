@@ -1,101 +1,313 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:41223 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752941AbeDPInr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 04:43:47 -0400
-Date: Mon, 16 Apr 2018 09:43:45 +0100
-From: Sean Young <sean@mess.org>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, Warren Sturm <warren.sturm@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org
-Subject: Re: [PATCH stable v4.15 1/3] media: staging: lirc_zilog: broken
- reference counting
-Message-ID: <20180416084344.k4e3tx4jd5lswfh3@gofer.mess.org>
-References: <cover.1523785117.git.sean@mess.org>
- <2bd4184fbea37ecdfcb0a334c6bef45786feb486.1523785117.git.sean@mess.org>
- <20180416075228.GB2121@kroah.com>
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:61416 "EHLO
+        aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754605AbeDTLuE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 07:50:04 -0400
+Subject: Re: [PATCH v2] media: v4l2-compat-ioctl32: better document the code
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Daniel Mentz <danielmentz@google.com>
+References: <e205ad55-feee-f532-58cb-fde56e59aad9@xs4all.nl>
+ <3669995510390091ef07287ff313974c15b141b2.1524224727.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <6d1283ad-72be-df24-9945-0fc32379f35f@cisco.com>
+Date: Fri, 20 Apr 2018 13:49:59 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180416075228.GB2121@kroah.com>
+In-Reply-To: <3669995510390091ef07287ff313974c15b141b2.1524224727.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 16, 2018 at 09:52:28AM +0200, Greg KH wrote:
-> On Sun, Apr 15, 2018 at 10:54:20AM +0100, Sean Young wrote:
-> > commit 615cd3fe6ccc ("[media] media: lirc_dev: make better use of
-> > file->private_data") removed the reference get from open, so on the first
-> > close the reference count hits zero and the lirc device is freed.
-> > 
-> > BUG: unable to handle kernel NULL pointer dereference at 0000000000000040
-> > IP: lirc_thread+0x94/0x520 [lirc_zilog]
-> > PGD 22d69c067 P4D 22d69c067 PUD 22d69d067 PMD 0
-> > Oops: 0000 [#1] SMP NOPTI
-> > CPU: 2 PID: 701 Comm: zilog-rx-i2c-7 Tainted: P         C OE    4.15.14-300.fc27.x86_64 #1
-> > Hardware name: Gigabyte Technology Co., Ltd. GA-MA790FXT-UD5P/GA-MA790FXT-UD5P, BIOS F6 08/06/2009
-> > RIP: 0010:lirc_thread+0x94/0x520 [lirc_zilog]
-> > RSP: 0018:ffffb482c131be98 EFLAGS: 00010246
-> > RAX: 0000000000000000 RBX: ffff8fdabf056000 RCX: 0000000000000000
-> > RDX: 0000000000000000 RSI: 0000000000000246 RDI: 0000000000000246
-> > RBP: ffff8fdab740af00 R08: ffff8fdacfd214a0 R09: 0000000000000000
-> > R10: 0000000000000000 R11: 0000000000000040 R12: ffffb482c10dba48
-> > R13: ffff8fdabea89e00 R14: ffff8fdab740af00 R15: ffffffffc0b5e500
-> > FS:  0000000000000000(0000) GS:ffff8fdacfd00000(0000) knlGS:0000000000000000
-> > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > CR2: 0000000000000040 CR3: 00000002124c0000 CR4: 00000000000006e0
-> > Call Trace:
-> >  ? __schedule+0x247/0x880
-> >  ? get_ir_tx+0x40/0x40 [lirc_zilog]
-> >  kthread+0x113/0x130
-> >  ? kthread_create_worker_on_cpu+0x70/0x70
-> >  ? do_syscall_64+0x74/0x180
-> >  ? SyS_exit_group+0x10/0x10
-> >  ret_from_fork+0x22/0x40
-> > Code: 20 8b 85 80 00 00 00 85 c0 0f 84 a6 00 00 00 bf 04 01 00 00 e8 ee 34 d4 d7 e8 69 88 56 d7 84 c0 75 69 48 8b 45 18 c6 44 24 37 00 <48> 8b 58 40 4c 8d 6b 18 4c 89 ef e8 fc 4d d4 d7 4c 89 ef 48 89
-> > RIP: lirc_thread+0x94/0x520 [lirc_zilog] RSP: ffffb482c131be98
-> > CR2: 0000000000000040
-> > This code has been replaced completely in kernel v4.16 by a new driver,
-> > see commit acaa34bf06e9 ("media: rc: implement zilog transmitter"), and
-> > commit f95367a7b758 ("media: staging: remove lirc_zilog driver").
-> > 
-> > Fixes: 615cd3fe6ccc ("[media] media: lirc_dev: make better use of file->private_data")
-> > 
-> > Cc: stable@vger.kernel.org # v4.15
-> > Reported-by: Warren Sturm <warren.sturm@gmail.com>
-> > Tested-by: Warren Sturm <warren.sturm@gmail.com>
-> > Signed-off-by: Sean Young <sean@mess.org>
-> > ---
-> >  drivers/staging/media/lirc/lirc_zilog.c | 1 +
-> >  1 file changed, 1 insertion(+)
-> > 
-> > diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-> > index 6bd0717bf76e..bf6869e48a0f 100644
-> > --- a/drivers/staging/media/lirc/lirc_zilog.c
-> > +++ b/drivers/staging/media/lirc/lirc_zilog.c
-> > @@ -1291,6 +1291,7 @@ static int open(struct inode *node, struct file *filep)
-> >  
-> >  	lirc_init_pdata(node, filep);
-> >  	ir = lirc_get_pdata(filep);
-> > +	get_ir_device(ir, false);
-> >  
-> >  	atomic_inc(&ir->open_count);
-> >  
-> > -- 
-> > 2.14.3
+On 04/20/18 13:45, Mauro Carvalho Chehab wrote:
+> This file does a lot of non-trivial struff. Document it using
+> kernel-doc markups where needed and improve the comments inside
+> do_video_ioctl().
 > 
-> What is the git commit id of this patch, and the other patches in this
-> series and the 4.14 patch series that you sent out?
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-lirc_zilog was dropped in v4.16, so this can't be patched upstream.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Please read:
->     https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
-> for how to do this in a way that I can pick them up.
+Regards,
 
-These patches have been tested with different types of hardware. Is there
-anything else I can do to get these patches included?
+	Hans
 
-Thanks,
-
-Sean
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 165 +++++++++++++++++++++++++-
+>  1 file changed, 159 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index d2f0268427c2..9611c3aae8ca 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -22,7 +22,18 @@
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-ioctl.h>
+>  
+> -/* Use the same argument order as copy_in_user */
+> +/**
+> + * assign_in_user() - Copy from one __user var to another one
+> + *
+> + * @to: __user var where data will be stored
+> + * @from: __user var where data will be retrieved.
+> + *
+> + * As this code very often needs to allocate userspace memory, it is easier
+> + * to have a macro that will do both get_user() and put_user() at once.
+> + *
+> + * This function complements the macros defined at asm-generic/uaccess.h.
+> + * It uses the same argument order as copy_in_user()
+> + */
+>  #define assign_in_user(to, from)					\
+>  ({									\
+>  	typeof(*from) __assign_tmp;					\
+> @@ -30,16 +41,56 @@
+>  	get_user(__assign_tmp, from) || put_user(__assign_tmp, to);	\
+>  })
+>  
+> +/**
+> + * get_user_cast() - Stores at a kernelspace local var the contents from a
+> + *		pointer with userspace data that is not tagged with __user.
+> + *
+> + * @__x: var where data will be stored
+> + * @__ptr: var where data will be retrieved.
+> + *
+> + * Sometimes we need to declare a pointer without __user because it
+> + * comes from a pointer struct field that will be retrieved from userspace
+> + * by the 64-bit native ioctl handler. This function ensures that the
+> + * @__ptr will be cast to __user before calling get_user() in order to
+> + * avoid warnings with static code analyzers like smatch.
+> + */
+>  #define get_user_cast(__x, __ptr)					\
+>  ({									\
+>  	get_user(__x, (typeof(*__ptr) __user *)(__ptr));		\
+>  })
+>  
+> +/**
+> + * put_user_force() - Stores the contents of a kernelspace local var
+> + *		      into an userspace pointer, removing any __user cast.
+> + *
+> + * @__x: var where data will be stored
+> + * @__ptr: var where data will be retrieved.
+> + *
+> + * Sometimes we need to remove the __user attribute from some data,
+> + * by passing the __force macro. This function ensures that the
+> + * @__ptr will be cast with __force before calling put_user(), in order to
+> + * avoid warnings with static code analyzers like smatch.
+> + */
+>  #define put_user_force(__x, __ptr)					\
+>  ({									\
+>  	put_user((typeof(*__x) __force *)(__x), __ptr);			\
+>  })
+>  
+> +/**
+> + * assign_in_user_cast() - Copy from one __user var to another one
+> + *
+> + * @to: __user var where data will be stored
+> + * @from: var where data will be retrieved that needs to be cast to __user.
+> + *
+> + * As this code very often needs to allocate userspace memory, it is easier
+> + * to have a macro that will do both get_user_cast() and put_user() at once.
+> + *
+> + * This function should be used instead of assign_in_user() when the @from
+> + * variable was not declared as __user. See get_user_cast() for more details.
+> + *
+> + * This function complements the macros defined at asm-generic/uaccess.h.
+> + * It uses the same argument order as copy_in_user()
+> + */
+>  #define assign_in_user_cast(to, from)					\
+>  ({									\
+>  	typeof(*from) __assign_tmp;					\
+> @@ -47,7 +98,16 @@
+>  	get_user_cast(__assign_tmp, from) || put_user(__assign_tmp, to);\
+>  })
+>  
+> -
+> +/**
+> + * native_ioctl - Ancillary function that calls the native 64 bits ioctl
+> + * handler.
+> + *
+> + * @file: pointer to &struct file with the file handler
+> + * @cmd: ioctl to be called
+> + * @arg: arguments passed from/to the ioctl handler
+> + *
+> + * This function calls the native ioctl handler at v4l2-dev, e. g. v4l2_ioctl()
+> + */
+>  static long native_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+>  {
+>  	long ret = -ENOIOCTLCMD;
+> @@ -59,6 +119,21 @@ static long native_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+>  }
+>  
+>  
+> +/*
+> + * Per-ioctl data copy handlers.
+> + *
+> + * Those come in pairs, with a get_v4l2_foo() and a put_v4l2_foo() routine,
+> + * where "v4l2_foo" is the name of the V4L2 struct.
+> + *
+> + * They basically get two __user pointers, one with a 32-bits struct that
+> + * came from the userspace call and a 64-bits struct, also allocated as
+> + * userspace, but filled internally by do_video_ioctl().
+> + *
+> + * For ioctls that have pointers inside it, the functions will also
+> + * receive an ancillary buffer with extra space, used to pass extra
+> + * data to the routine.
+> + */
+> +
+>  struct v4l2_clip32 {
+>  	struct v4l2_rect        c;
+>  	compat_caddr_t		next;
+> @@ -1009,6 +1084,13 @@ static int put_v4l2_edid32(struct v4l2_edid __user *p64,
+>  	return 0;
+>  }
+>  
+> +/*
+> + * List of ioctls that require 32-bits/64-bits conversion
+> + *
+> + * The V4L2 ioctls that aren't listed there don't have pointer arguments
+> + * and the struct size is identical for both 32 and 64 bits versions, so
+> + * they don't need translations.
+> + */
+>  
+>  #define VIDIOC_G_FMT32		_IOWR('V',  4, struct v4l2_format32)
+>  #define VIDIOC_S_FMT32		_IOWR('V',  5, struct v4l2_format32)
+> @@ -1037,6 +1119,21 @@ static int put_v4l2_edid32(struct v4l2_edid __user *p64,
+>  #define VIDIOC_G_OUTPUT32	_IOR ('V', 46, s32)
+>  #define VIDIOC_S_OUTPUT32	_IOWR('V', 47, s32)
+>  
+> +/**
+> + * alloc_userspace() - Allocates a 64-bits userspace pointer compatible
+> + *	for calling the native 64-bits version of an ioctl.
+> + *
+> + * @size:	size of the structure itself to be allocated.
+> + * @aux_space:	extra size needed to store "extra" data, e.g. space for
+> + *		other __user data that is pointed to fields inside the
+> + *		structure.
+> + * @new_p64:	pointer to a pointer to be filled with the allocated struct.
+> + *
+> + * Return:
+> + *
+> + * if it can't allocate memory, either -ENOMEM or -EFAULT will be returned.
+> + * Zero otherwise.
+> + */
+>  static int alloc_userspace(unsigned int size, u32 aux_space,
+>  			   void __user **new_p64)
+>  {
+> @@ -1048,6 +1145,23 @@ static int alloc_userspace(unsigned int size, u32 aux_space,
+>  	return 0;
+>  }
+>  
+> +/**
+> + * do_video_ioctl() - Ancillary function with handles a compat32 ioctl call
+> + *
+> + * @file: pointer to &struct file with the file handler
+> + * @cmd: ioctl to be called
+> + * @arg: arguments passed from/to the ioctl handler
+> + *
+> + * This function is called when a 32 bits application calls a V4L2 ioctl
+> + * and the Kernel is compiled with 64 bits.
+> + *
+> + * This function is called by v4l2_compat_ioctl32() when the function is
+> + * not private to some specific driver.
+> + *
+> + * It converts a 32-bits struct into a 64 bits one, calls the native 64-bits
+> + * ioctl handler and fills back the 32-bits struct with the results of the
+> + * native call.
+> + */
+>  static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+>  {
+>  	void __user *p32 = compat_ptr(arg);
+> @@ -1057,7 +1171,9 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>  	int compatible_arg = 1;
+>  	long err = 0;
+>  
+> -	/* First, convert the command. */
+> +	/*
+> +	 * 1. When struct size is different, converts the command.
+> +	 */
+>  	switch (cmd) {
+>  	case VIDIOC_G_FMT32: cmd = VIDIOC_G_FMT; break;
+>  	case VIDIOC_S_FMT32: cmd = VIDIOC_S_FMT; break;
+> @@ -1086,6 +1202,11 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>  	case VIDIOC_S_EDID32: cmd = VIDIOC_S_EDID; break;
+>  	}
+>  
+> +	/*
+> +	 * 2. Allocates a 64-bits userspace pointer to store the
+> +	 * values of the ioctl and copy data from the 32-bits __user
+> +	 * argument into it.
+> +	 */
+>  	switch (cmd) {
+>  	case VIDIOC_OVERLAY:
+>  	case VIDIOC_STREAMON:
+> @@ -1208,6 +1329,15 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>  	if (err)
+>  		return err;
+>  
+> +	/*
+> +	 * 3. Calls the native 64-bits ioctl handler.
+> +	 *
+> +	 * For the functions where a conversion was not needed,
+> +	 * compatible_arg is true, and it will call it with the arguments
+> +	 * provided by userspace and stored at @p32 var.
+> +	 *
+> +	 * Otherwise, it will pass the newly allocated @new_p64 argument.
+> +	 */
+>  	if (compatible_arg)
+>  		err = native_ioctl(file, cmd, (unsigned long)p32);
+>  	else
+> @@ -1217,9 +1347,14 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>  		return err;
+>  
+>  	/*
+> -	 * Special case: even after an error we need to put the
+> -	 * results back for these ioctls since the error_idx will
+> -	 * contain information on which control failed.
+> +	 * 4. Special case: even after an error we need to put the
+> +	 * results back for some ioctls.
+> +	 *
+> +	 * In the case of EXT_CTRLS, the error_idx will contain information
+> +	 * on which control failed.
+> +	 *
+> +	 * In the case of S_EDID, the driver can return E2BIG and set
+> +	 * the blocks to maximum allowed value.
+>  	 */
+>  	switch (cmd) {
+>  	case VIDIOC_G_EXT_CTRLS:
+> @@ -1236,6 +1371,10 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>  	if (err)
+>  		return err;
+>  
+> +	/*
+> +	 * 5. Copy the data returned at the 64 bits userspace pointer to
+> +	 * the original 32 bits structure.
+> +	 */
+>  	switch (cmd) {
+>  	case VIDIOC_S_INPUT:
+>  	case VIDIOC_S_OUTPUT:
+> @@ -1286,6 +1425,20 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>  	return err;
+>  }
+>  
+> +/**
+> + * v4l2_compat_ioctl32() - Handles a compat32 ioctl call
+> + *
+> + * @file: pointer to &struct file with the file handler
+> + * @cmd: ioctl to be called
+> + * @arg: arguments passed from/to the ioctl handler
+> + *
+> + * This function is meant to be used as .compat_ioctl fops at v4l2-dev.c
+> + * in order to deal with 32-bit calls on a 64-bits Kernel.
+> + *
+> + * This function calls do_video_ioctl() for non-private V4L2 ioctls.
+> + * If the function is a private one it calls vdev->fops->compat_ioctl32
+> + * instead.
+> + */
+>  long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+> 
