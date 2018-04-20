@@ -1,168 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:20398 "EHLO
-        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751075AbeDNMAH (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:50108 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755978AbeDTQHk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 08:00:07 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v14 12/33] rcar-vin: fix handling of single field frames (top, bottom and alternate fields)
-Date: Sat, 14 Apr 2018 13:57:05 +0200
-Message-Id: <20180414115726.5075-13-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 20 Apr 2018 12:07:40 -0400
+Date: Fri, 20 Apr 2018 17:07:31 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 5/7] drm/i2c: tda9950: add CEC driver
+Message-ID: <20180420160731.GA16141@n2100.armlinux.org.uk>
+References: <20180409121529.GA31403@n2100.armlinux.org.uk>
+ <E1f5Viq-0002Lj-Ru@rmk-PC.armlinux.org.uk>
+ <20180420153137.GZ16141@n2100.armlinux.org.uk>
+ <bd644882-50b3-3022-de21-1f0b7fe008b7@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <bd644882-50b3-3022-de21-1f0b7fe008b7@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was never proper support in the VIN driver to deliver ALTERNATING
-field format to user-space, remove this field option. The problem is
-that ALTERNATING field order requires the sequence numbers of buffers
-returned to userspace to reflect if fields were dropped or not,
-something which is not possible with the VIN drivers capture logic.
+On Fri, Apr 20, 2018 at 05:48:12PM +0200, Hans Verkuil wrote:
+> On 04/20/2018 05:31 PM, Russell King - ARM Linux wrote:
+> > Hi Hans,
+> > 
+> > Any comments?
+> 
+> I have been traveling and haven't had time to look at this. Next week will
+> be busy as well, but I expect to be able to look at it the week after that.
 
-The VIN driver can still capture from a video source which delivers
-frames in ALTERNATING field order, but needs to combine them using the
-VIN hardware into INTERLACED field order. Before this change if a source
-was delivering fields using ALTERNATE the driver would default to
-combining them using this hardware feature. Only if the user explicitly
-requested ALTERNATE field order would incorrect frames be delivered.
+Well, that doesn't work because I won't be reading mail that week,
+and I'll probably simply ignore the excessive backlog when I do
+start reading mail again.
 
-The height should not be cut in half for the format for TOP or BOTTOM
-fields settings. This was a mistake and it was made visible by the
-scaling refactoring. Correct behavior is that the user should request a
-frame size that fits the half height frame reflected in the field
-setting. If not the VIN will do its best to scale the top or bottom to
-the requested format and cropping and scaling do not work as expected.
+> I remember from the previous series that I couldn't test it with my BeagleBone
+> Black board (the calibration gpio had to switch from in to out but it wasn't allowed
+> since it had an associated irq). That's still a problem?
+> 
+> I didn't see any changes in that area when I did a quick scan.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Correct, and unless you wish me to do the work for you (in which case
+you can pay me) nothing is going to change on that front!  Seriously,
+please do not expect me to add support for platforms I don't have
+access to.  I'm just a volunteer for this, probably the same as you.
 
----
+I don't think we ended up with an answer for that problem.  I don't
+see that dropping the requested interrupt, using the GPIO, and then
+re-requesting the interrupt is an option - how do we handle a failure
+to re-request the interrupt?  Do we just ignore the error, or let DRM
+stop working properly?
 
-* Changes since v13
-- Spelling dose -> does
-- Add review tag from Laurent
+In any case, I don't have a working HDMI CEC-compliant setup anymore,
+(no TV, just a HDMI monitor now) so I would rather _not_ change the
+driver from its known-to-be-working state.
 
-* Changes since v12
-- Spelling where -> were.
-- Add review tag from Hans.
----
- drivers/media/platform/rcar-vin/rcar-dma.c  | 15 +----------
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 40 +++++++----------------------
- 2 files changed, 10 insertions(+), 45 deletions(-)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 4f48575f2008fe34..9233924e5b52de5f 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -617,7 +617,6 @@ static int rvin_setup(struct rvin_dev *vin)
- 	case V4L2_FIELD_INTERLACED_BT:
- 		vnmc = VNMC_IM_FULL | VNMC_FOC;
- 		break;
--	case V4L2_FIELD_ALTERNATE:
- 	case V4L2_FIELD_NONE:
- 		vnmc = VNMC_IM_ODD_EVEN;
- 		progressive = true;
-@@ -745,18 +744,6 @@ static bool rvin_capture_active(struct rvin_dev *vin)
- 	return rvin_read(vin, VNMS_REG) & VNMS_CA;
- }
- 
--static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
--{
--	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
--		/* If FS is set it's a Even field */
--		if (vnms & VNMS_FS)
--			return V4L2_FIELD_BOTTOM;
--		return V4L2_FIELD_TOP;
--	}
--
--	return vin->format.field;
--}
--
- static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
- {
- 	const struct rvin_video_format *fmt;
-@@ -892,7 +879,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
- 
- 	/* Capture frame */
- 	if (vin->queue_buf[slot]) {
--		vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
-+		vin->queue_buf[slot]->field = vin->format.field;
- 		vin->queue_buf[slot]->sequence = vin->sequence;
- 		vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
- 		vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf,
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 16e895657c3f51c5..81a9aec96e8e664a 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -121,33 +121,6 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 	vin->format.colorspace	= mf->colorspace;
- 	vin->format.field	= mf->field;
- 
--	/*
--	 * If the subdevice uses ALTERNATE field mode and G_STD is
--	 * implemented use the VIN HW to combine the two fields to
--	 * one INTERLACED frame. The ALTERNATE field mode can still
--	 * be requested in S_FMT and be respected, this is just the
--	 * default which is applied at probing or when S_STD is called.
--	 */
--	if (vin->format.field == V4L2_FIELD_ALTERNATE &&
--	    v4l2_subdev_has_op(vin_to_source(vin), video, g_std))
--		vin->format.field = V4L2_FIELD_INTERLACED;
--
--	switch (vin->format.field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_ALTERNATE:
--		vin->format.height /= 2;
--		break;
--	case V4L2_FIELD_NONE:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--	case V4L2_FIELD_INTERLACED:
--		break;
--	default:
--		vin->format.field = RVIN_DEFAULT_FIELD;
--		break;
--	}
--
- 	rvin_reset_crop_compose(vin);
- 
- 	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
-@@ -235,15 +208,20 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	switch (pix->field) {
- 	case V4L2_FIELD_TOP:
- 	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_ALTERNATE:
--		pix->height /= 2;
--		source->height /= 2;
--		break;
- 	case V4L2_FIELD_NONE:
- 	case V4L2_FIELD_INTERLACED_TB:
- 	case V4L2_FIELD_INTERLACED_BT:
- 	case V4L2_FIELD_INTERLACED:
- 		break;
-+	case V4L2_FIELD_ALTERNATE:
-+		/*
-+		 * Driver does not (yet) support outputting ALTERNATE to a
-+		 * userspace. It does support outputting INTERLACED so use
-+		 * the VIN hardware to combine the two fields.
-+		 */
-+		pix->field = V4L2_FIELD_INTERLACED;
-+		pix->height *= 2;
-+		break;
- 	default:
- 		pix->field = RVIN_DEFAULT_FIELD;
- 		break;
 -- 
-2.16.2
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
