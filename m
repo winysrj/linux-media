@@ -1,45 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:53084 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757992AbeDXNTV (ORCPT
+Received: from userp2120.oracle.com ([156.151.31.85]:57276 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754360AbeDTKOD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 09:19:21 -0400
-From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
-        Jemma Denson <jdenson@gmail.com>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH] media: cx24120: fix cx24120_get_algo()'s return type
-Date: Tue, 24 Apr 2018 15:19:18 +0200
-Message-Id: <20180424131918.5969-1-luc.vanoostenryck@gmail.com>
+        Fri, 20 Apr 2018 06:14:03 -0400
+Date: Fri, 20 Apr 2018 13:13:52 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH] media: vpbe_venc: potential uninitialized variable in
+ ven_sub_dev_init()
+Message-ID: <20180420101352.GA30373@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The method dvb_frontend_ops::get_frontend_algo() is defined as
-returning an 'enum dvbfe_algo', but the implementation in this
-driver returns an 'int'.
+Smatch complains that "venc" could be unintialized.  There a couple
+error paths where it looks like maybe that could happen.  I don't know
+if it's really a bug, but it's reasonable to set "venc" to NULL and
+silence the warning.
 
-Fix this by returning 'enum dvbfe_algo' in this driver too.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
----
- drivers/media/dvb-frontends/cx24120.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/dvb-frontends/cx24120.c b/drivers/media/dvb-frontends/cx24120.c
-index 810f68acd..ccbabdae6 100644
---- a/drivers/media/dvb-frontends/cx24120.c
-+++ b/drivers/media/dvb-frontends/cx24120.c
-@@ -1491,7 +1491,7 @@ static int cx24120_tune(struct dvb_frontend *fe, bool re_tune,
- 	return cx24120_read_status(fe, status);
- }
- 
--static int cx24120_get_algo(struct dvb_frontend *fe)
-+static enum dvbfe_algo cx24120_get_algo(struct dvb_frontend *fe)
+diff --git a/drivers/media/platform/davinci/vpbe_venc.c b/drivers/media/platform/davinci/vpbe_venc.c
+index 5c255de3b3f8..ba157827192c 100644
+--- a/drivers/media/platform/davinci/vpbe_venc.c
++++ b/drivers/media/platform/davinci/vpbe_venc.c
+@@ -606,7 +606,7 @@ static int venc_device_get(struct device *dev, void *data)
+ struct v4l2_subdev *venc_sub_dev_init(struct v4l2_device *v4l2_dev,
+ 		const char *venc_name)
  {
- 	return DVBFE_ALGO_HW;
- }
--- 
-2.17.0
+-	struct venc_state *venc;
++	struct venc_state *venc = NULL;
+ 
+ 	bus_for_each_dev(&platform_bus_type, NULL, &venc,
+ 			venc_device_get);
