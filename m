@@ -1,57 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:49024 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750841AbeDYGlU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 02:41:20 -0400
-Date: Tue, 24 Apr 2018 23:41:18 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Alex Deucher <alexdeucher@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-        Christoph Hellwig <hch@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        Jerome Glisse <jglisse@redhat.com>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
-Message-ID: <20180425064118.GA28100@infradead.org>
-References: <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com>
- <20180420101755.GA11400@infradead.org>
- <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
- <20180420124625.GA31078@infradead.org>
- <20180420152111.GR31310@phenom.ffwll.local>
- <20180424184847.GA3247@infradead.org>
- <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
- <20180425054855.GA17038@infradead.org>
- <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
- <CADnq5_P3bT0TStSXpKh11ydifv=KwKtRj-7tDS=GQXey+8tBPw@mail.gmail.com>
+Received: from mail.bootlin.com ([62.4.15.54]:41587 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754987AbeDTOHa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 10:07:30 -0400
+Date: Fri, 20 Apr 2018 16:07:18 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Daniel Mack <daniel@zonque.org>
+Cc: linux-media@vger.kernel.org, slongerbeam@gmail.com,
+        mchehab@kernel.org
+Subject: Re: [PATCH 3/3] media: ov5640: add support for xclk frequency control
+Message-ID: <20180420140718.glvufiaau75oumgp@flea>
+References: <20180420094419.11267-1-daniel@zonque.org>
+ <20180420094419.11267-3-daniel@zonque.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="aw6w4me2pmlkl3d6"
 Content-Disposition: inline
-In-Reply-To: <CADnq5_P3bT0TStSXpKh11ydifv=KwKtRj-7tDS=GQXey+8tBPw@mail.gmail.com>
+In-Reply-To: <20180420094419.11267-3-daniel@zonque.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 25, 2018 at 02:24:36AM -0400, Alex Deucher wrote:
-> > It has a non-coherent transaction mode (which the chipset can opt to
-> > not implement and still flush), to make sure the AGP horror show
-> > doesn't happen again and GPU folks are happy with PCIe. That's at
-> > least my understanding from digging around in amd the last time we had
-> > coherency issues between intel and amd gpus. GPUs have some bits
-> > somewhere (in the pagetables, or in the buffer object description
-> > table created by userspace) to control that stuff.
-> 
-> Right.  We have a bit in the GPU page table entries that determines
-> whether we snoop the CPU's cache or not.
 
-I can see how that works with the GPU on the same SOC or SOC set as the
-CPU.  But how is that going to work for a GPU that is a plain old PCIe
-card?  The cache snooping in that case is happening in the PCIe root
-complex.
+--aw6w4me2pmlkl3d6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Fri, Apr 20, 2018 at 11:44:19AM +0200, Daniel Mack wrote:
+> Allow setting the xclk rate via an optional 'clock-frequency' property in
+> the device tree node.
+>=20
+> Signed-off-by: Daniel Mack <daniel@zonque.org>
+> ---
+>  Documentation/devicetree/bindings/media/i2c/ov5640.txt |  2 ++
+>  drivers/media/i2c/ov5640.c                             | 10 ++++++++++
+>  2 files changed, 12 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Doc=
+umentation/devicetree/bindings/media/i2c/ov5640.txt
+> index 8e36da0d8406..584bbc944978 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> @@ -13,6 +13,8 @@ Optional Properties:
+>  	       This is an active low signal to the OV5640.
+>  - powerdown-gpios: reference to the GPIO connected to the powerdown pin,
+>  		   if any. This is an active high signal to the OV5640.
+> +- clock-frequency: frequency to set on the xclk input clock. The clock
+> +		   is left untouched if this property is missing.
+
+This can be done through assigned-clocks, right?
+
+>  The device node must contain one 'port' child node for its digital output
+>  video port, in accordance with the video interface bindings defined in
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index 78669ed386cd..2d94d6dbda5d 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -2685,6 +2685,7 @@ static int ov5640_probe(struct i2c_client *client,
+>  	struct fwnode_handle *endpoint;
+>  	struct ov5640_dev *sensor;
+>  	struct v4l2_mbus_framefmt *fmt;
+> +	u32 freq;
+>  	int ret;
+> =20
+>  	sensor =3D devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
+> @@ -2731,6 +2732,15 @@ static int ov5640_probe(struct i2c_client *client,
+>  		return PTR_ERR(sensor->xclk);
+>  	}
+> =20
+> +	ret =3D of_property_read_u32(dev->of_node, "clock-frequency", &freq);
+> +	if (ret =3D=3D 0) {
+> +		ret =3D clk_set_rate(sensor->xclk, freq);
+> +		if (ret) {
+> +			dev_err(dev, "could not set xclk frequency\n");
+> +			return ret;
+> +		}
+> +	}
+> +
+
+I'm wondering what the use case for that would be. The clock rate is
+subject to various changes depending on the resolution and framerate
+used, so that's very likely to change. Wouldn't we be better off to
+simply try to change the rate at runtime, depending on those factors?
+
+Maxime
+
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--aw6w4me2pmlkl3d6
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrZ9BUACgkQ0rTAlCFN
+r3Tb/g/8DQDJFvW9FZQotExe0fdSyTV0tNMFZc+CaVARKahlC+1YcTzlW+/HX582
+QTnR4bTiT2uuPtgLCDRb9Ulkq5GBYRcjsnoLt0A401nlkrhZcP+L+XU+V7etiBeg
+C+kVZoZ9qCXy07GaiMnrL83rDk1ws4ftUOuZQVdPwBZE2lvQyv5sl7aVJd/pZYMt
+tDjuAVX59eGg+DCJ9Fc9HUyzT+gTrl33aU4VzpS/JnuRFFGPoBl56Kc1COcXxcJs
+PlOhxnqPh0S9XCgUFmGJu5Mub47SRNBf7pUajo2FBKxARo3eT+VUIH9sNeUgGS7+
+H2MF/Ta0eA9AxrJYA9Vj17gZnk598AJjtM+sGB5wHqwZOgzPy1VcvGKrDV28EBcu
+fu+Jb8w4HvLpCL4U9cnzdZsHCsPNgKdZfYM8WpBZwuStf5dDsnT7/ZvnClDB/5ka
+OWfO1luMBO8o/yqcEdWVsKYmBzvlXC853F0/LuoTnP3Na4CLadvs0JBNhDW6ZKX4
+cOne4PCNR9xJPKssUccVh6/z7WgaNr+P8sblKpR1pnbILdYc0nSvU+WPnfmUuWge
+VWEtcdCPh3iqopZalOAfA0AWJn544QjivK49Hyxd3HU39N9JD9A3+zspxPRW9RzR
+J/DE3z0D7ClVkp/AnB4KIBmICBFZ1HdetgP1I2Zplhl1Bp25eJI=
+=VvQH
+-----END PGP SIGNATURE-----
+
+--aw6w4me2pmlkl3d6--
