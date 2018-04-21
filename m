@@ -1,140 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54170 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751612AbeDVK2r (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 06:28:47 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH 3/3] v4l: rcar_fdp1: Fix indentation oddities
-Date: Sun, 22 Apr 2018 13:28:49 +0300
-Message-Id: <20180422102849.2481-4-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180422102849.2481-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180422102849.2481-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from gofer.mess.org ([88.97.38.141]:56589 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752478AbeDUK1d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 21 Apr 2018 06:27:33 -0400
+Date: Sat, 21 Apr 2018 11:27:32 +0100
+From: Sean Young <sean@mess.org>
+To: Vladislav Zhurba <vzhurba@nvidia.com>
+Cc: linux-kernel@vger.kernel.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org, Daniel Fu <danifu@nvidia.com>
+Subject: Re: [PATCH 1/1] media: nec-decoder: remove trailer_space state
+Message-ID: <20180421102732.5sbi6nzfu33b435m@gofer.mess.org>
+References: <20180420185139.29238-1-vzhurba@nvidia.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180420185139.29238-1-vzhurba@nvidia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Indentation is odd in several places, especially when printing messages
-to the kernel log. Fix it to match the usual coding style.
+On Fri, Apr 20, 2018 at 11:51:39AM -0700, Vladislav Zhurba wrote:
+> From: Daniel Fu <danifu@nvidia.com>
+> 
+> Remove STATE_TRAILER_SPACE from state machine.
+> Causing 2 issue:
+> - can not decode the keycode, if it didn't following with
+>   another keycode/repeat code
+> - will generate one more code in current logic.
+>   i.e. key_right + repeat code + key_left + repeat code.
+>   expect: key_right, key_left.
+>   Result: key_right, key_right, key_right.
+>   Reason: when receive repeat code of key_right, state machine will
+>   stay in STATE_TRAILER_SPACE state, then wait for a new interrupt,
+>   if an interrupt came after keyup_timer, then will generate another
+>   fake key.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/rcar_fdp1.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+This behaviour is symptomatic of rc driver which does not generate
+ir timeouts. If an rc driver does not do this, then it won't be just the
+nec protocol which is not parsed correctly. For example, rc-6 in mode 6a
+can have 16, 24 or 32 bits and we rely on the ir timeout to demarcate the
+end of the IR message -- else we are stuck with the behaviour as you
+describe above.
 
-diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
-index b13dec3081e5..81e8a761b924 100644
---- a/drivers/media/platform/rcar_fdp1.c
-+++ b/drivers/media/platform/rcar_fdp1.c
-@@ -949,7 +949,7 @@ static void fdp1_configure_wpf(struct fdp1_ctx *ctx,
- 	u32 rndctl;
- 
- 	pstride = q_data->format.plane_fmt[0].bytesperline
--			<< FD1_WPF_PSTRIDE_Y_SHIFT;
-+		<< FD1_WPF_PSTRIDE_Y_SHIFT;
- 
- 	if (q_data->format.num_planes > 1)
- 		pstride |= q_data->format.plane_fmt[1].bytesperline
-@@ -1143,8 +1143,8 @@ static int fdp1_m2m_job_ready(void *priv)
- 	int dstbufs = 1;
- 
- 	dprintk(ctx->fdp1, "+ Src: %d : Dst: %d\n",
--			v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx),
--			v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx));
-+		v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx),
-+		v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx));
- 
- 	/* One output buffer is required for each field */
- 	if (V4L2_FIELD_HAS_BOTH(src_q_data->format.field))
-@@ -1282,7 +1282,7 @@ static void fdp1_m2m_device_run(void *priv)
- 
- 		fdp1_queue_field(ctx, fbuf);
- 		dprintk(fdp1, "Queued Buffer [%d] last_field:%d\n",
--				i, fbuf->last_field);
-+			i, fbuf->last_field);
- 	}
- 
- 	/* Queue as many jobs as our data provides for */
-@@ -1341,7 +1341,7 @@ static void device_frame_end(struct fdp1_dev *fdp1,
- 	fdp1_job_free(fdp1, job);
- 
- 	dprintk(fdp1, "curr_ctx->num_processed %d curr_ctx->translen %d\n",
--			ctx->num_processed, ctx->translen);
-+		ctx->num_processed, ctx->translen);
- 
- 	if (ctx->num_processed == ctx->translen ||
- 			ctx->aborting) {
-@@ -1366,7 +1366,7 @@ static int fdp1_vidioc_querycap(struct file *file, void *priv,
- 	strlcpy(cap->driver, DRIVER_NAME, sizeof(cap->driver));
- 	strlcpy(cap->card, DRIVER_NAME, sizeof(cap->card));
- 	snprintf(cap->bus_info, sizeof(cap->bus_info),
--			"platform:%s", DRIVER_NAME);
-+		 "platform:%s", DRIVER_NAME);
- 	return 0;
- }
- 
-@@ -1997,13 +1997,13 @@ static void fdp1_stop_streaming(struct vb2_queue *q)
- 		/* Free smsk_data */
- 		if (ctx->smsk_cpu) {
- 			dma_free_coherent(ctx->fdp1->dev, ctx->smsk_size,
--					ctx->smsk_cpu, ctx->smsk_addr[0]);
-+					  ctx->smsk_cpu, ctx->smsk_addr[0]);
- 			ctx->smsk_addr[0] = ctx->smsk_addr[1] = 0;
- 			ctx->smsk_cpu = NULL;
- 		}
- 
- 		WARN(!list_empty(&ctx->fields_queue),
--				"Buffer queue not empty");
-+		     "Buffer queue not empty");
- 	} else {
- 		/* Empty Capture queues (Jobs) */
- 		struct fdp1_job *job;
-@@ -2025,10 +2025,10 @@ static void fdp1_stop_streaming(struct vb2_queue *q)
- 		fdp1_field_complete(ctx, ctx->previous);
- 
- 		WARN(!list_empty(&ctx->fdp1->queued_job_list),
--				"Queued Job List not empty");
-+		     "Queued Job List not empty");
- 
- 		WARN(!list_empty(&ctx->fdp1->hw_job_list),
--				"HW Job list not empty");
-+		     "HW Job list not empty");
- 	}
- }
- 
-@@ -2114,7 +2114,7 @@ static int fdp1_open(struct file *file)
- 				     fdp1_ctrl_deint_menu);
- 
- 	ctrl = v4l2_ctrl_new_std(&ctx->hdl, &fdp1_ctrl_ops,
--			V4L2_CID_MIN_BUFFERS_FOR_CAPTURE, 1, 2, 1, 1);
-+				 V4L2_CID_MIN_BUFFERS_FOR_CAPTURE, 1, 2, 1, 1);
- 	if (ctrl)
- 		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
- 
-@@ -2351,8 +2351,8 @@ static int fdp1_probe(struct platform_device *pdev)
- 		goto release_m2m;
- 	}
- 
--	v4l2_info(&fdp1->v4l2_dev,
--			"Device registered as /dev/video%d\n", vfd->num);
-+	v4l2_info(&fdp1->v4l2_dev, "Device registered as /dev/video%d\n",
-+		  vfd->num);
- 
- 	/* Power up the cells to read HW */
- 	pm_runtime_enable(&pdev->dev);
-@@ -2371,7 +2371,7 @@ static int fdp1_probe(struct platform_device *pdev)
- 		break;
- 	default:
- 		dev_err(fdp1->dev, "FDP1 Unidentifiable (0x%08x)\n",
--				hw_version);
-+			hw_version);
- 	}
- 
- 	/* Allow the hw to sleep until an open call puts it to use */
--- 
-Regards,
+> According to the NEC protocol, it don't need a trailer space. Remove it.
 
-Laurent Pinchart
+This isn't the right solution, so NAK I'm afraid. 
+
+Please let us know what rc driver you are using, I'm happy to help fix it.
+
+
+Sean
+
+> 
+> Signed-off-by: Daniel Fu <danifu@nvidia.com>
+> Signed-off-by: Vladislav Zhurba <vzhurba@nvidia.com>
+> ---
+>  drivers/media/rc/ir-nec-decoder.c | 10 ----------
+>  1 file changed, 10 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+> index 21647b809e6f..760b66affd1a 100644
+> --- a/drivers/media/rc/ir-nec-decoder.c
+> +++ b/drivers/media/rc/ir-nec-decoder.c
+> @@ -128,16 +128,6 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+>  		if (!eq_margin(ev.duration, NEC_TRAILER_PULSE, NEC_UNIT / 2))
+>  			break;
+>  
+> -		data->state = STATE_TRAILER_SPACE;
+> -		return 0;
+> -
+> -	case STATE_TRAILER_SPACE:
+> -		if (ev.pulse)
+> -			break;
+> -
+> -		if (!geq_margin(ev.duration, NEC_TRAILER_SPACE, NEC_UNIT / 2))
+> -			break;
+> -
+>  		if (data->count == NEC_NBITS) {
+>  			address     = bitrev8((data->bits >> 24) & 0xff);
+>  			not_address = bitrev8((data->bits >> 16) & 0xff);
+> -- 
+> 2.16.2
