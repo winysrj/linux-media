@@ -1,72 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:52804 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755112AbeDWNaU (ORCPT
+Received: from mail-ua0-f173.google.com ([209.85.217.173]:39748 "EHLO
+        mail-ua0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752911AbeDUR5o (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 09:30:20 -0400
-Subject: Re: [RFCv11 PATCH 27/29] vim2m: support requests
-To: Tomasz Figa <tfiga@google.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-28-hverkuil@xs4all.nl>
- <CAAFQd5DsctmO4WNq+WWWK82+1nbwcnFk6aC6g9D0R4o0f4LbAw@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <97a0c925-5435-a221-67b1-1c13346c505a@xs4all.nl>
-Date: Mon, 23 Apr 2018 15:30:13 +0200
+        Sat, 21 Apr 2018 13:57:44 -0400
+Received: by mail-ua0-f173.google.com with SMTP id g10so7663025ual.6
+        for <linux-media@vger.kernel.org>; Sat, 21 Apr 2018 10:57:43 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5DsctmO4WNq+WWWK82+1nbwcnFk6aC6g9D0R4o0f4LbAw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20180420215432.GA3747@minime.bse>
+References: <CAGoCfiw_oD6PLOoot55zkNBVaujeG7ReNQORiqUbLuh-=iwcyw@mail.gmail.com>
+ <20180417045300.GA7723@minime.bse> <CAGoCfiwwCtp0entUfK74PhJDAubxAQeuAYgf6Jotw_EOT7+hSw@mail.gmail.com>
+ <CAGoCfizXy6j5rgzDghT3Lo3ZKvoUjLt7P3k7qo5wnX+xEE7m-g@mail.gmail.com>
+ <20180418182959.GA19152@minime.bse> <20180420215432.GA3747@minime.bse>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Sat, 21 Apr 2018 13:57:42 -0400
+Message-ID: <CAGoCfiyTpHauT1abn8XsGV=uzrJcm4-Qg=SfGz2LY+_YKQeuKw@mail.gmail.com>
+Subject: Re: cx88 invalid video opcodes when VBI enabled
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/12/2018 11:15 AM, Tomasz Figa wrote:
-> Hi Hans,
-> 
-> On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
->> Add support for requests to vim2m.
-> 
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/media/platform/vim2m.c | 25 +++++++++++++++++++++++++
->>   1 file changed, 25 insertions(+)
-> 
->> diff --git a/drivers/media/platform/vim2m.c
-> b/drivers/media/platform/vim2m.c
->> index 9b18b32c255d..2dcf0ea85705 100644
->> --- a/drivers/media/platform/vim2m.c
->> +++ b/drivers/media/platform/vim2m.c
->> @@ -387,8 +387,26 @@ static void device_run(void *priv)
->>          src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
->>          dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-> 
->> +       /* Apply request if needed */
->> +       if (src_buf->vb2_buf.req_obj.req)
->> +               v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
->> +                                       &ctx->hdl);
->> +       if (dst_buf->vb2_buf.req_obj.req &&
->> +           dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
->> +               v4l2_ctrl_request_setup(dst_buf->vb2_buf.req_obj.req,
->> +                                       &ctx->hdl);
-> 
-> I'm not sure I understand what's going on here. How is it possible that we
-> have 2 different requests?
+Hi Daniel,
 
-You can have one request with buffers for both queues, or two requests, one
-for each queue. Or a request for just one of the queues and the other without
-any requests.
+My apologies for the delayed replies; been out of town for the last
+couple of days.
 
-So you can have 0, 1 or 2 requests associated with these two queues.
+On Fri, Apr 20, 2018 at 5:54 PM, Daniel Gl=C3=B6ckner <daniel-gl@gmx.net> w=
+rote:
+> for some reason I feel like buffer_queue in cx88-vbi.c should not be
+> calling cx8800_start_vbi_dma as it is also called a few lines further
+> down in start_streaming.
+>
+> Devin, can you check if it helps to remove that line and if VBI still
+> works afterwards?
 
-But you don't want to call v4l2_ctrl_request_setup twice if the same request
-is associated with both queues. (Well, you can call it twice and the second
-call would not do anything, but that's a waste of CPU cycles)
+So I've commented out that line in buffer_queue, and so far haven't
+been able to reproduce the issue, and it does look like VBI is working
+as expected (captions are being rendered in VLC).  This doesn't
+suggest I've done exhaustive testing by any means, but it's certainly
+a good sign.
 
-Regards,
+I've seen drivers in the past which start the main data pump when
+buffer_queue() or buffer_prepare() is called (whether it be to start a
+DMA engine in the case of PCI or start URB submission in the case of
+USB devices).  However it's not clear that's required, in particular
+with VB2 which will automatically call start_streaming() in the case
+where read() is used.  If I had to guess, I suspect the origin of
+starting DMA that early was probably oriented around users who wanted
+to simply run "cat /dev/video0 > out.mpeg" without having to
+explicitly issue a bunch of V4L ioctl() calls beforehand.
 
-	Hans
+It's worth noting that we're also doing it in the buffer_queue()
+routine for video and not just VBI.  Presumably we would want to drop
+both cases.
+
+Hans, you did the VB2 conversion and have obviously been through this
+exercise with a number of other drivers.  Any thoughts on whether we
+can drop the starting of DMA engine in buffer_queue()?
+
+On a related note, a quick review of the start/stop logic for DMA in
+that driver suggests the calls might not be properly balanced.  Looks
+like portions of the core logic are also duplicated between
+stop_streaming() and stop_video_dma() (which is only ever used if
+CONFIG_PM is defined).  It feels like it could probably use some
+review/cleanup, although I'm loathed to touch such a mature driver for
+fear of breaking something subtle.
+
+Thanks,
+
+Devin
+
+--=20
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
