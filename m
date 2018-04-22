@@ -1,128 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:43260 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751432AbeDCPTG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 11:19:06 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        IDE-ML <linux-ide@vger.kernel.org>, dmaengine@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mmc <linux-mmc@vger.kernel.org>,
-        linux-mtd <linux-mtd@lists.infradead.org>,
-        Networking <netdev@vger.kernel.org>, devel@driverdev.osuosl.org,
-        alsa-devel@alsa-project.org
-Subject: Re: [PATCH 02/15] ARM: pxa: add dma slave map
-References: <20180402142656.26815-1-robert.jarzmik@free.fr>
-        <20180402142656.26815-3-robert.jarzmik@free.fr>
-        <CAK8P3a3pSitVqfiF2LK0cMrAKLOeCWXXJBLeVc5f_Tg=vALkUA@mail.gmail.com>
-Date: Tue, 03 Apr 2018 17:18:49 +0200
-In-Reply-To: <CAK8P3a3pSitVqfiF2LK0cMrAKLOeCWXXJBLeVc5f_Tg=vALkUA@mail.gmail.com>
-        (Arnd Bergmann's message of "Tue, 3 Apr 2018 08:51:37 +0200")
-Message-ID: <87tvss48ti.fsf@belgarion.home>
+Received: from mail-db5eur01on0115.outbound.protection.outlook.com ([104.47.2.115]:21920
+        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753495AbeDVUI3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Apr 2018 16:08:29 -0400
+Subject: Re: [PATCH 6/8] drm: rcar-du: rcar-lvds: Add bridge format support
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>, architt@codeaurora.org,
+        a.hajda@samsung.com, Laurent.pinchart@ideasonboard.com,
+        airlied@linux.ie
+Cc: daniel@ffwll.ch, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1524130269-32688-7-git-send-email-jacopo+renesas@jmondi.org>
+From: Peter Rosin <peda@axentia.se>
+Message-ID: <11e82e23-4ab0-7441-1798-1eeb4fb96995@axentia.se>
+Date: Sun, 22 Apr 2018 22:08:21 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1524130269-32688-7-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Arnd Bergmann <arnd@arndb.de> writes:
+On 2018-04-19 11:31, Jacopo Mondi wrote:
+> With the introduction of static input image format enumeration in DRM
+> bridges, add support to retrieve the format in rcar-lvds LVDS encoder
+> from both panel or bridge, to set the desired LVDS mode.
+> 
+> Do not rely on 'DRM_BUS_FLAG_DATA_LSB_TO_MSB' flag to mirror the LVDS
+> format, as it is only defined for drm connectors, but use the newly
+> introduced _LE version of LVDS mbus image formats.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/gpu/drm/rcar-du/rcar_lvds.c | 64 +++++++++++++++++++++++++------------
+>  1 file changed, 44 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_lvds.c b/drivers/gpu/drm/rcar-du/rcar_lvds.c
+> index 3d2d3bb..2fa875f 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_lvds.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_lvds.c
+> @@ -280,41 +280,65 @@ static bool rcar_lvds_mode_fixup(struct drm_bridge *bridge,
+>  	return true;
+>  }
+>  
+> -static void rcar_lvds_get_lvds_mode(struct rcar_lvds *lvds)
+> +static int rcar_lvds_get_lvds_mode_from_connector(struct rcar_lvds *lvds,
+> +						  unsigned int *bus_fmt)
+>  {
+>  	struct drm_display_info *info = &lvds->connector.display_info;
+> -	enum rcar_lvds_mode mode;
+> -
+> -	/*
+> -	 * There is no API yet to retrieve LVDS mode from a bridge, only panels
+> -	 * are supported.
+> -	 */
+> -	if (!lvds->panel)
+> -		return;
+>  
+>  	if (!info->num_bus_formats || !info->bus_formats) {
+>  		dev_err(lvds->dev, "no LVDS bus format reported\n");
+> -		return;
+> +		return -EINVAL;
+> +	}
+> +
+> +	*bus_fmt = info->bus_formats[0];
+> +
+> +	return 0;
+> +}
+> +
+> +static int rcar_lvds_get_lvds_mode_from_bridge(struct rcar_lvds *lvds,
+> +					       unsigned int *bus_fmt)
+> +{
+> +	if (!lvds->next_bridge->num_bus_formats ||
+> +	    !lvds->next_bridge->bus_formats) {
+> +		dev_err(lvds->dev, "no LVDS bus format reported\n");
+> +		return -EINVAL;
+>  	}
+>  
+> -	switch (info->bus_formats[0]) {
+> +	*bus_fmt = lvds->next_bridge->bus_formats[0];
 
->> +       { "smc911x.0", "rx", PDMA_FILTER_PARAM(LOWEST, -1) },
->> +       { "smc911x.0", "tx", PDMA_FILTER_PARAM(LOWEST, -1) },
->> +       { "smc91x.0", "data", PDMA_FILTER_PARAM(LOWEST, -1) },
->
-> This one is interesting, as you are dealing with an off-chip device,
-> and the channel number is '-'1. How does this even work? Does it
-> mean
+What makes the first reported format the best choice?
 
-This relies on pxa_dma, in which the "-1" for a requestor line means "no
-requestor" or said in another way "always requesting". As a consequence, as soon
-as the DMA descriptors are queued, the transfer begins, and it is supposed
-implicitely that the FIFO output availability is at least as quick as the system
-bus and the DMA size is perfectly fit for the FIFO available bytes.
+> +
+> +	return 0;
+> +}
+> +
+> +static void rcar_lvds_get_lvds_mode(struct rcar_lvds *lvds)
+> +{
+> +	unsigned int bus_fmt;
+> +	int ret;
+> +
+> +	if (lvds->panel)
+> +		ret = rcar_lvds_get_lvds_mode_from_connector(lvds, &bus_fmt);
+> +	else
+> +		ret = rcar_lvds_get_lvds_mode_from_bridge(lvds, &bus_fmt);
 
-This is what has been the underlying of DMA transfers of smc91x(x) on the PXA
-platforms, where the smc91x(s) are directly wired on the system bus (the same
-bus having DRAM, SRAM, IO-mapped devices).
+What if no bridge reports any format, shouldn't the connector be examined
+then?
 
->
->> +       /* PXA25x specific map */
->> +       { "pxa25x-ssp.0", "rx", PDMA_FILTER_PARAM(LOWEST, 13) },
->> +       { "pxa25x-ssp.0", "tx", PDMA_FILTER_PARAM(LOWEST, 14) },
->> +       { "pxa25x-nssp.1", "rx", PDMA_FILTER_PARAM(LOWEST, 15) },
->> +       { "pxa25x-nssp.1", "tx", PDMA_FILTER_PARAM(LOWEST, 16) },
->> +       { "pxa25x-nssp.2", "rx", PDMA_FILTER_PARAM(LOWEST, 23) },
->> +       { "pxa25x-nssp.2", "tx", PDMA_FILTER_PARAM(LOWEST, 24) },
->> +       { "pxa-pcm-audio", "nssp2_rx", PDMA_FILTER_PARAM(LOWEST, 15) },
->> +       { "pxa-pcm-audio", "nssp2_tx", PDMA_FILTER_PARAM(LOWEST, 16) },
->> +       { "pxa-pcm-audio", "nssp3_rx", PDMA_FILTER_PARAM(LOWEST, 23) },
->> +       { "pxa-pcm-audio", "nssp3_tx", PDMA_FILTER_PARAM(LOWEST, 24) },
->> +
->> +       /* PXA27x specific map */
->> +       { "pxa-pcm-audio", "ssp3_rx", PDMA_FILTER_PARAM(LOWEST, 66) },
->> +       { "pxa-pcm-audio", "ssp3_tx", PDMA_FILTER_PARAM(LOWEST, 67) },
->> +       { "pxa27x-camera.0", "CI_Y", PDMA_FILTER_PARAM(HIGHEST, 68) },
->> +       { "pxa27x-camera.0", "CI_U", PDMA_FILTER_PARAM(HIGHEST, 69) },
->> +       { "pxa27x-camera.0", "CI_V", PDMA_FILTER_PARAM(HIGHEST, 70) },
->> +
->> +       /* PXA3xx specific map */
->> +       { "pxa-pcm-audio", "ssp4_rx", PDMA_FILTER_PARAM(LOWEST, 2) },
->> +       { "pxa-pcm-audio", "ssp4_tx", PDMA_FILTER_PARAM(LOWEST, 3) },
->> +       { "pxa2xx-mci.1", "rx", PDMA_FILTER_PARAM(LOWEST, 93) },
->> +       { "pxa2xx-mci.1", "tx", PDMA_FILTER_PARAM(LOWEST, 94) },
->> +       { "pxa3xx-nand", "data", PDMA_FILTER_PARAM(LOWEST, 97) },
->> +       { "pxa2xx-mci.2", "rx", PDMA_FILTER_PARAM(LOWEST, 100) },
->> +       { "pxa2xx-mci.2", "tx", PDMA_FILTER_PARAM(LOWEST, 101) },
->> +};
->
-> Since more than half the entries in here are chip specific, maybe it would be
-> better to split that table into three and have a copy for each one in
-> arch/arm/mach-pxa/pxa{25x.27x.3xx}.c?
-Mmmh, today the split is :
- - 16 common entries
- - 10 pxa25x specific entries
- - 5 pxa27x specific entries
- - 7 pxa3xx specific entries
- => total of 38 lines
+> +	if (ret)
+> +		return;
+> +
+> +	switch (bus_fmt) {
+> +	case MEDIA_BUS_FMT_RGB666_1X7X3_SPWG_LE:
+> +	case MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA_LE:
+> +		lvds->mode |= RCAR_LVDS_MODE_MIRROR;
+>  	case MEDIA_BUS_FMT_RGB666_1X7X3_SPWG:
+>  	case MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA:
+> -		mode = RCAR_LVDS_MODE_JEIDA;
+> +		lvds->mode = RCAR_LVDS_MODE_JEIDA;
 
-After the split we'll have :
- - 26 pxa25x specific entries
- - 21 pxa27x specific entries
- - 23 pxa3xx specific entries
- => total of 70 lines
+This is b0rken, first the mirror bit is ORed into some unknown preexisting
+value, then the code falls through (without any fall through comment, btw)
+and forcibly sets the mode, thus discarding the mirror bit which was
+carefully ORed in.
 
-That doubles the number of lines, not counting the declarations, and amending of
-pxa2xx_set_dmac_info().
+>  		break;
+> +
+> +	case MEDIA_BUS_FMT_RGB888_1X7X4_SPWG_LE:
+> +		lvds->mode |= RCAR_LVDS_MODE_MIRROR;
+>  	case MEDIA_BUS_FMT_RGB888_1X7X4_SPWG:
+> -		mode = RCAR_LVDS_MODE_VESA;
+> +		lvds->mode = RCAR_LVDS_MODE_VESA;
 
-If you think it's worth it, what is the driving benefit behind ?
+Dito.
 
-> Does that mean it's actually a memory-to-memory transfer with a device being
-> on the external SRAM interface?
-I'm taking this is the follow up to the "-1" question :0
+Cheers,
+Peter
 
-Cheers.
-
--- 
-Robert
+>  		break;
+>  	default:
+>  		dev_err(lvds->dev, "unsupported LVDS bus format 0x%04x\n",
+> -			info->bus_formats[0]);
+> -		return;
+> +			bus_fmt);
+>  	}
+> -
+> -	if (info->bus_flags & DRM_BUS_FLAG_DATA_LSB_TO_MSB)
+> -		mode |= RCAR_LVDS_MODE_MIRROR;
+> -
+> -	lvds->mode = mode;
+>  }
+>  
+>  static void rcar_lvds_mode_set(struct drm_bridge *bridge,
+> 
