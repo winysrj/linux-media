@@ -1,371 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:42920 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752561AbeDHRkX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 13:40:23 -0400
-Received: by mail-pf0-f195.google.com with SMTP id o16so4327116pfk.9
-        for <linux-media@vger.kernel.org>; Sun, 08 Apr 2018 10:40:23 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
-        hiranotaka@zng.info
-Subject: [PATCH v3 2/5] tuners: add new i2c driver for Sharp qm1d1b0004 ISDB-S tuner
-Date: Mon,  9 Apr 2018 02:39:50 +0900
-Message-Id: <20180408173953.11076-3-tskd08@gmail.com>
-In-Reply-To: <20180408173953.11076-1-tskd08@gmail.com>
-References: <20180408173953.11076-1-tskd08@gmail.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:46458 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753700AbeDVWeZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Apr 2018 18:34:25 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v2 0/8] R-Car DU: Support CRC calculation
+Date: Mon, 23 Apr 2018 01:34:22 +0300
+Message-Id: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Hello,
 
-The tuner is used in Earthsoft PT1/PT2 DVB boards,
-and  the driver was extraced from (the former) va1j5jf8007s.c of PT1.
-it might contain PT1 specific configs.
+This patch series adds support for CRC calculation to the rcar-du-drm driver.
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
-Changes since v2:
-- none
+CRC calculation is supported starting at the Renesas R-Car Gen3 SoCs, as
+earlier versions don't have the necessary hardware. On Gen3 SoCs, the CRC is
+computed by the DISCOM module part of the VSP-D and VSP-DL.
 
-Changes since v1:
-- none
+The DISCOM is interfaced to the VSP through the UIF glue and appears as a VSP
+entity with a sink pad and a source pad.
 
- drivers/media/tuners/Kconfig      |   7 +
- drivers/media/tuners/Makefile     |   1 +
- drivers/media/tuners/qm1d1b0004.c | 264 ++++++++++++++++++++++++++++++
- drivers/media/tuners/qm1d1b0004.h |  24 +++
- 4 files changed, 296 insertions(+)
- create mode 100644 drivers/media/tuners/qm1d1b0004.c
- create mode 100644 drivers/media/tuners/qm1d1b0004.h
+The series starts with a switch to SPDX license headers in patch 1/8, prompted
+by a checkpatch.pl warning for a later patch that complained about missing
+SPDX license headers. It then continues with cleanup and refactoring. Patches
+2/8 and 3/8 prepare for DISCOM and UIF support by extending generic code to
+make it usable for the UIF. Patch 4/8 documents a structure that will receive
+new fields.
 
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index 6687514df97..147f3cd0bb9 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -284,4 +284,11 @@ config MEDIA_TUNER_QM1D1C0042
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Sharp QM1D1C0042 trellis coded 8PSK tuner driver.
-+
-+config MEDIA_TUNER_QM1D1B0004
-+	tristate "Sharp QM1D1B0004 tuner"
-+	depends on MEDIA_SUPPORT && I2C
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  Sharp QM1D1B0004 ISDB-S tuner driver.
- endmenu
-diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
-index 0ff21f1c7ee..7b4f8423501 100644
---- a/drivers/media/tuners/Makefile
-+++ b/drivers/media/tuners/Makefile
-@@ -41,6 +41,7 @@ obj-$(CONFIG_MEDIA_TUNER_IT913X) += it913x.o
- obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t.o
- obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
- obj-$(CONFIG_MEDIA_TUNER_QM1D1C0042) += qm1d1c0042.o
-+obj-$(CONFIG_MEDIA_TUNER_QM1D1B0004) += qm1d1b0004.o
- obj-$(CONFIG_MEDIA_TUNER_M88RS6000T) += m88rs6000t.o
- obj-$(CONFIG_MEDIA_TUNER_TDA18250) += tda18250.o
- 
-diff --git a/drivers/media/tuners/qm1d1b0004.c b/drivers/media/tuners/qm1d1b0004.c
-new file mode 100644
-index 00000000000..9dac1b875c1
---- /dev/null
-+++ b/drivers/media/tuners/qm1d1b0004.c
-@@ -0,0 +1,264 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Sharp QM1D1B0004 satellite tuner
-+ *
-+ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-+ *
-+ * based on (former) drivers/media/pci/pt1/va1j5jf8007s.c.
-+ */
-+
-+/*
-+ * Note:
-+ * Since the data-sheet of this tuner chip is not available,
-+ * this driver lacks some tuner_ops and config options.
-+ * In addition, the implementation might be dependent on the specific use
-+ * in the FE module: VA1J5JF8007S and/or in the product: Earthsoft PT1/PT2.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <media/dvb_frontend.h>
-+#include "qm1d1b0004.h"
-+
-+/*
-+ * Tuner I/F (copied from the former va1j5jf8007s.c)
-+ * b[0] I2C addr
-+ * b[1] "0":1, BG:2, divider_quotient[7:3]:5
-+ * b[2] divider_quotient[2:0]:3, divider_remainder:5
-+ * b[3] "111":3, LPF[3:2]:2, TM:1, "0":1, REF:1
-+ * b[4] BANDX, PSC:1, LPF[1:0]:2, DIV:1, "0":1
-+ *
-+ * PLL frequency step :=
-+ *    REF == 0 -> PLL XTL frequency(4MHz) / 8
-+ *    REF == 1 -> PLL XTL frequency(4MHz) / 4
-+ *
-+ * PreScaler :=
-+ *    PSC == 0 -> x32
-+ *    PSC == 1 -> x16
-+ *
-+ * divider_quotient := (frequency / PLL frequency step) / PreScaler
-+ * divider_remainder := (frequency / PLL frequency step) % PreScaler
-+ *
-+ * LPF := LPF Frequency / 1000 / 2 - 2
-+ * LPF Frequency @ baudrate=28.86Mbps = 30000
-+ *
-+ * band (1..9)
-+ *   band 1 (freq <  986000) -> DIV:1, BANDX:5, PSC:1
-+ *   band 2 (freq < 1072000) -> DIV:1, BANDX:6, PSC:1
-+ *   band 3 (freq < 1154000) -> DIV:1, BANDX:7, PSC:0
-+ *   band 4 (freq < 1291000) -> DIV:0, BANDX:1, PSC:0
-+ *   band 5 (freq < 1447000) -> DIV:0, BANDX:2, PSC:0
-+ *   band 6 (freq < 1615000) -> DIV:0, BANDX:3, PSC:0
-+ *   band 7 (freq < 1791000) -> DIV:0, BANDX:4, PSC:0
-+ *   band 8 (freq < 1972000) -> DIV:0, BANDX:5, PSC:0
-+ *   band 9 (freq < 2150000) -> DIV:0, BANDX:6, PSC:0
-+ */
-+
-+#define QM1D1B0004_PSC_MASK (1 << 4)
-+
-+#define QM1D1B0004_XTL_FREQ 4000
-+#define QM1D1B0004_LPF_FALLBACK 30000
-+
-+static const struct qm1d1b0004_config default_cfg = {
-+	.lpf_freq = QM1D1B0004_CFG_LPF_DFLT,
-+	.half_step = false,
-+};
-+
-+struct qm1d1b0004_state {
-+	struct qm1d1b0004_config cfg;
-+	struct i2c_client *i2c;
-+};
-+
-+
-+struct qm1d1b0004_cb_map {
-+	u32 frequency;
-+	u8 cb;
-+};
-+
-+static const struct qm1d1b0004_cb_map cb_maps[] = {
-+	{  986000, 0xb2 },
-+	{ 1072000, 0xd2 },
-+	{ 1154000, 0xe2 },
-+	{ 1291000, 0x20 },
-+	{ 1447000, 0x40 },
-+	{ 1615000, 0x60 },
-+	{ 1791000, 0x80 },
-+	{ 1972000, 0xa0 },
-+};
-+
-+static u8 lookup_cb(u32 frequency)
-+{
-+	int i;
-+	const struct qm1d1b0004_cb_map *map;
-+
-+	for (i = 0; i < ARRAY_SIZE(cb_maps); i++) {
-+		map = &cb_maps[i];
-+		if (frequency < map->frequency)
-+			return map->cb;
-+	}
-+	return 0xc0;
-+}
-+
-+static int qm1d1b0004_set_params(struct dvb_frontend *fe)
-+{
-+	struct qm1d1b0004_state *state;
-+	u32 frequency, pll, lpf_freq;
-+	u16 word;
-+	u8 buf[4], cb, lpf;
-+	int ret;
-+
-+	state = fe->tuner_priv;
-+	frequency = fe->dtv_property_cache.frequency;
-+
-+	pll = QM1D1B0004_XTL_FREQ / 4;
-+	if (state->cfg.half_step)
-+		pll /= 2;
-+	word = DIV_ROUND_CLOSEST(frequency, pll);
-+	cb = lookup_cb(frequency);
-+	if (cb & QM1D1B0004_PSC_MASK)
-+		word = (word << 1 & ~0x1f) | (word & 0x0f);
-+
-+	/* step.1: set frequency with BG:2, TM:0(4MHZ), LPF:4MHz */
-+	buf[0] = 0x40 | word >> 8;
-+	buf[1] = word;
-+	/* inconsisnten with the above I/F doc. maybe the doc is wrong */
-+	buf[2] = 0xe0 | state->cfg.half_step;
-+	buf[3] = cb;
-+	ret = i2c_master_send(state->i2c, buf, 4);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* step.2: set TM:1 */
-+	buf[0] = 0xe4 | state->cfg.half_step;
-+	ret = i2c_master_send(state->i2c, buf, 1);
-+	if (ret < 0)
-+		return ret;
-+	msleep(20);
-+
-+	/* step.3: set LPF */
-+	lpf_freq = state->cfg.lpf_freq;
-+	if (lpf_freq == QM1D1B0004_CFG_LPF_DFLT)
-+		lpf_freq = fe->dtv_property_cache.symbol_rate / 1000;
-+	if (lpf_freq == 0)
-+		lpf_freq = QM1D1B0004_LPF_FALLBACK;
-+	lpf = DIV_ROUND_UP(lpf_freq, 2000) - 2;
-+	buf[0] = 0xe4 | ((lpf & 0x0c) << 1) | state->cfg.half_step;
-+	buf[1] = cb | ((lpf & 0x03) << 2);
-+	ret = i2c_master_send(state->i2c, buf, 2);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* step.4: read PLL lock? */
-+	buf[0] = 0;
-+	ret = i2c_master_recv(state->i2c, buf, 1);
-+	if (ret < 0)
-+		return ret;
-+	return 0;
-+}
-+
-+
-+static int qm1d1b0004_set_config(struct dvb_frontend *fe, void *priv_cfg)
-+{
-+	struct qm1d1b0004_state *state;
-+
-+	state = fe->tuner_priv;
-+	memcpy(&state->cfg, priv_cfg, sizeof(state->cfg));
-+	return 0;
-+}
-+
-+
-+static int qm1d1b0004_init(struct dvb_frontend *fe)
-+{
-+	struct qm1d1b0004_state *state;
-+	u8 buf[2] = {0xf8, 0x04};
-+
-+	state = fe->tuner_priv;
-+	if (state->cfg.half_step)
-+		buf[0] |= 0x01;
-+
-+	return i2c_master_send(state->i2c, buf, 2);
-+}
-+
-+
-+static const struct dvb_tuner_ops qm1d1b0004_ops = {
-+	.info = {
-+		.name = "Sharp qm1d1b0004",
-+
-+		.frequency_min =  950000,
-+		.frequency_max = 2150000,
-+	},
-+
-+	.init = qm1d1b0004_init,
-+
-+	.set_params = qm1d1b0004_set_params,
-+	.set_config = qm1d1b0004_set_config,
-+};
-+
-+static int
-+qm1d1b0004_probe(struct i2c_client *client, const struct i2c_device_id *id)
-+{
-+	struct dvb_frontend *fe;
-+	struct qm1d1b0004_config *cfg;
-+	struct qm1d1b0004_state *state;
-+	int ret;
-+
-+	cfg = client->dev.platform_data;
-+	fe = cfg->fe;
-+	i2c_set_clientdata(client, fe);
-+
-+	fe->tuner_priv = kzalloc(sizeof(struct qm1d1b0004_state), GFP_KERNEL);
-+	if (!fe->tuner_priv) {
-+		ret = -ENOMEM;
-+		goto err_mem;
-+	}
-+
-+	memcpy(&fe->ops.tuner_ops, &qm1d1b0004_ops, sizeof(fe->ops.tuner_ops));
-+
-+	state = fe->tuner_priv;
-+	state->i2c = client;
-+	ret = qm1d1b0004_set_config(fe, cfg);
-+	if (ret != 0)
-+		goto err_priv;
-+
-+	dev_info(&client->dev, "Sharp QM1D1B0004 attached.\n");
-+	return 0;
-+
-+err_priv:
-+	kfree(fe->tuner_priv);
-+err_mem:
-+	fe->tuner_priv = NULL;
-+	return ret;
-+}
-+
-+static int qm1d1b0004_remove(struct i2c_client *client)
-+{
-+	struct dvb_frontend *fe;
-+
-+	fe = i2c_get_clientdata(client);
-+	kfree(fe->tuner_priv);
-+	fe->tuner_priv = NULL;
-+	return 0;
-+}
-+
-+
-+static const struct i2c_device_id qm1d1b0004_id[] = {
-+	{"qm1d1b0004", 0},
-+	{}
-+};
-+
-+MODULE_DEVICE_TABLE(i2c, qm1d1b0004_id);
-+
-+static struct i2c_driver qm1d1b0004_driver = {
-+	.driver = {
-+		.name = "qm1d1b0004",
-+	},
-+	.probe    = qm1d1b0004_probe,
-+	.remove   = qm1d1b0004_remove,
-+	.id_table = qm1d1b0004_id,
-+};
-+
-+module_i2c_driver(qm1d1b0004_driver);
-+
-+MODULE_DESCRIPTION("Sharp QM1D1B0004");
-+MODULE_AUTHOR("Akihiro Tsukada");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/tuners/qm1d1b0004.h b/drivers/media/tuners/qm1d1b0004.h
-new file mode 100644
-index 00000000000..7734ed109a2
---- /dev/null
-+++ b/drivers/media/tuners/qm1d1b0004.h
-@@ -0,0 +1,24 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Sharp QM1D1B0004 satellite tuner
-+ *
-+ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-+ */
-+
-+#ifndef QM1D1B0004_H
-+#define QM1D1B0004_H
-+
-+#include <media/dvb_frontend.h>
-+
-+struct qm1d1b0004_config {
-+	struct dvb_frontend *fe;
-+
-+	u32 lpf_freq;   /* LPF frequency[kHz]. Default: symbol rate */
-+	bool half_step; /* use PLL frequency step of 500Hz istead of 1000Hz */
-+};
-+
-+/* special values indicating to use the default in qm1d1b0004_config */
-+#define QM1D1B0004_CFG_PLL_DFLT 0
-+#define QM1D1B0004_CFG_LPF_DFLT 0
-+
-+#endif
+Patch 5/8 then extends the API exposed by the VSP driver to the DU driver to
+support CRC computation configuration and reporting. The patch unfortunately
+needs to touch both the VSP and DU drivers, so the whole series will need to
+be merged through a single tree.
+
+Patch 5/8 adds support for the DISCOM and UIF in the VSP driver, patch 7/8
+integrates it in the DRM pipeline, and patch 8/8 finally implements the CRC
+API in the DU driver to expose CRC computation to userspace.
+
+The hardware supports computing the CRC at any arbitrary point in the
+pipeline on a configurable window of the frame. This patch series supports CRC
+computation on input planes or pipeline output, but on the full frame only.
+Support for CRC window configuration can be added later if needed but will
+require extending the userspace API, as the DRM/KMS CRC API doesn't support
+this feature.
+
+Compared to v1, the CRC source names for plane inputs are now constructed from
+plane IDs instead of plane indices. This allows userspace to match CRC sources
+with planes.
+
+Note that exposing the DISCOM and UIF though the V4L2 API isn't supported as
+the module is only found in VSP-D and VSP-DL instances that are not exposed
+through V4L2. It is possible to expose those instances through V4L2 with a
+small modification to the driver for testing purpose. If the need arises to
+test DISCOM and UIF with such an out-of-tree patch, support for CRC reporting
+through a V4L2 control can be added later without affecting how CRC is exposed
+through the DRM/KMS API.
+
+The patches are based on top of the "[PATCH v2 00/15] R-Car VSP1: Dynamically
+assign blend units to display pipelines" patch series, itself based on top of
+the Linux media master branch and scheduled for merge in v4.18. The new base
+caused heavy conflicts, requiring this series to be merged through the V4L2
+tree. Once the patches receive the necessary review I will ask Dave to ack the
+merge plan.
+
+For convenience the patches are available at
+
+        git://linuxtv.org/pinchartl/media.git vsp1-discom-v2-20180423
+
+The code has been tested through the kms-test-crc.py script part of the DU
+test suite available at
+
+        git://git.ideasonboard.com/renesas/kms-tests.git discom
+
+Laurent Pinchart (8):
+  v4l: vsp1: Use SPDX license headers
+  v4l: vsp1: Share the CLU, LIF and LUT set_fmt pad operation code
+  v4l: vsp1: Reset the crop and compose rectangles in the set_fmt helper
+  v4l: vsp1: Document the vsp1_du_atomic_config structure
+  v4l: vsp1: Extend the DU API to support CRC computation
+  v4l: vsp1: Add support for the DISCOM entity
+  v4l: vsp1: Integrate DISCOM in display pipeline
+  drm: rcar-du: Add support for CRC computation
+
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c    | 156 ++++++++++++++++-
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.h    |  19 +++
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c     |  13 +-
+ drivers/media/platform/vsp1/Makefile      |   2 +-
+ drivers/media/platform/vsp1/vsp1.h        |  10 +-
+ drivers/media/platform/vsp1/vsp1_brx.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_brx.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_clu.c    |  71 ++------
+ drivers/media/platform/vsp1/vsp1_clu.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_dl.c     |   8 +-
+ drivers/media/platform/vsp1/vsp1_dl.h     |   6 +-
+ drivers/media/platform/vsp1/vsp1_drm.c    | 127 ++++++++++++--
+ drivers/media/platform/vsp1/vsp1_drm.h    |  20 ++-
+ drivers/media/platform/vsp1/vsp1_drv.c    |  26 ++-
+ drivers/media/platform/vsp1/vsp1_entity.c | 103 +++++++++++-
+ drivers/media/platform/vsp1/vsp1_entity.h |  13 +-
+ drivers/media/platform/vsp1/vsp1_hgo.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_hgo.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_hgt.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_hgt.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_histo.c  |  65 +------
+ drivers/media/platform/vsp1/vsp1_histo.h  |   6 +-
+ drivers/media/platform/vsp1/vsp1_hsit.c   |   6 +-
+ drivers/media/platform/vsp1/vsp1_hsit.h   |   6 +-
+ drivers/media/platform/vsp1/vsp1_lif.c    |  71 ++------
+ drivers/media/platform/vsp1/vsp1_lif.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_lut.c    |  71 ++------
+ drivers/media/platform/vsp1/vsp1_lut.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c   |   6 +-
+ drivers/media/platform/vsp1/vsp1_pipe.h   |   6 +-
+ drivers/media/platform/vsp1/vsp1_regs.h   |  46 ++++-
+ drivers/media/platform/vsp1/vsp1_rpf.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_rwpf.c   |   6 +-
+ drivers/media/platform/vsp1/vsp1_rwpf.h   |   6 +-
+ drivers/media/platform/vsp1/vsp1_sru.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_sru.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_uds.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_uds.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_uif.c    | 271 ++++++++++++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_uif.h    |  32 ++++
+ drivers/media/platform/vsp1/vsp1_video.c  |   6 +-
+ drivers/media/platform/vsp1/vsp1_video.h  |   6 +-
+ drivers/media/platform/vsp1/vsp1_wpf.c    |   6 +-
+ include/media/vsp1.h                      |  39 ++++-
+ 44 files changed, 896 insertions(+), 417 deletions(-)
+ create mode 100644 drivers/media/platform/vsp1/vsp1_uif.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_uif.h
+
 -- 
-2.17.0
+Regards,
+
+Laurent Pinchart
