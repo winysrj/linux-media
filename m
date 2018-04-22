@@ -1,411 +1,398 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f176.google.com ([209.85.217.176]:33549 "EHLO
-        mail-ua0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750763AbeDLIvX (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:46480 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753782AbeDVWe0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 04:51:23 -0400
-Received: by mail-ua0-f176.google.com with SMTP id q26so2976345uab.0
-        for <linux-media@vger.kernel.org>; Thu, 12 Apr 2018 01:51:23 -0700 (PDT)
-Received: from mail-vk0-f53.google.com (mail-vk0-f53.google.com. [209.85.213.53])
-        by smtp.gmail.com with ESMTPSA id r35sm736172uai.0.2018.04.12.01.51.21
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 12 Apr 2018 01:51:21 -0700 (PDT)
-Received: by mail-vk0-f53.google.com with SMTP id q198so2783927vke.3
-        for <linux-media@vger.kernel.org>; Thu, 12 Apr 2018 01:51:21 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180409142026.19369-1-hverkuil@xs4all.nl> <20180409142026.19369-25-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-25-hverkuil@xs4all.nl>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 12 Apr 2018 08:51:10 +0000
-Message-ID: <CAAFQd5CgD18irnZJ9xA6wOVYoNOWZX9hXXhJ+eP+Fqe2-ajyCA@mail.gmail.com>
-Subject: Re: [RFCv11 PATCH 24/29] Documentation: v4l: document request API
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
+        Sun, 22 Apr 2018 18:34:26 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v2 2/8] v4l: vsp1: Share the CLU, LIF and LUT set_fmt pad operation code
+Date: Mon, 23 Apr 2018 01:34:24 +0300
+Message-Id: <20180422223430.16407-3-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The implementation of the set_fmt pad operation is identical in the
+three modules. Move it to a generic helper function.
 
-On Mon, Apr 9, 2018 at 11:21 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-[snip]
-> @@ -514,6 +517,11 @@ Buffer Flags
->          streaming may continue as normal and the buffer may be reused
->          normally. Drivers set this flag when the ``VIDIOC_DQBUF`` ioctl is
->          called.
-> +    * .. _`V4L2-BUF-FLAG-IN-REQUEST`:
-> +
-> +      - ``V4L2_BUF_FLAG_IN_REQUEST``
-> +      - 0x00000080
-> +      - This buffer is part of a request the hasn't been queued yet.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_clu.c    | 65 +++++----------------------
+ drivers/media/platform/vsp1/vsp1_entity.c | 75 +++++++++++++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_entity.h |  6 +++
+ drivers/media/platform/vsp1/vsp1_lif.c    | 65 +++++----------------------
+ drivers/media/platform/vsp1/vsp1_lut.c    | 65 +++++----------------------
+ 5 files changed, 116 insertions(+), 160 deletions(-)
 
-typo: s/the hasn't/that hasn't/
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
+index 9626b6308585..96a448e1504c 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.c
++++ b/drivers/media/platform/vsp1/vsp1_clu.c
+@@ -114,18 +114,18 @@ static const struct v4l2_ctrl_config clu_mode_control = {
+  * V4L2 Subdevice Pad Operations
+  */
+ 
++static const unsigned int clu_codes[] = {
++	MEDIA_BUS_FMT_ARGB8888_1X32,
++	MEDIA_BUS_FMT_AHSV8888_1X32,
++	MEDIA_BUS_FMT_AYUV8_1X32,
++};
++
+ static int clu_enum_mbus_code(struct v4l2_subdev *subdev,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	static const unsigned int codes[] = {
+-		MEDIA_BUS_FMT_ARGB8888_1X32,
+-		MEDIA_BUS_FMT_AHSV8888_1X32,
+-		MEDIA_BUS_FMT_AYUV8_1X32,
+-	};
+-
+-	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
+-					  ARRAY_SIZE(codes));
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, clu_codes,
++					  ARRAY_SIZE(clu_codes));
+ }
+ 
+ static int clu_enum_frame_size(struct v4l2_subdev *subdev,
+@@ -141,51 +141,10 @@ static int clu_set_format(struct v4l2_subdev *subdev,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+-	struct vsp1_clu *clu = to_clu(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-	struct v4l2_mbus_framefmt *format;
+-	int ret = 0;
+-
+-	mutex_lock(&clu->entity.lock);
+-
+-	config = vsp1_entity_get_pad_config(&clu->entity, cfg, fmt->which);
+-	if (!config) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
+-
+-	/* Default to YUV if the requested format is not supported. */
+-	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
+-	    fmt->format.code != MEDIA_BUS_FMT_AHSV8888_1X32 &&
+-	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
+-		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
+-
+-	format = vsp1_entity_get_pad_format(&clu->entity, config, fmt->pad);
+-
+-	if (fmt->pad == CLU_PAD_SOURCE) {
+-		/* The CLU output format can't be modified. */
+-		fmt->format = *format;
+-		goto done;
+-	}
+-
+-	format->code = fmt->format.code;
+-	format->width = clamp_t(unsigned int, fmt->format.width,
+-				CLU_MIN_SIZE, CLU_MAX_SIZE);
+-	format->height = clamp_t(unsigned int, fmt->format.height,
+-				 CLU_MIN_SIZE, CLU_MAX_SIZE);
+-	format->field = V4L2_FIELD_NONE;
+-	format->colorspace = V4L2_COLORSPACE_SRGB;
+-
+-	fmt->format = *format;
+-
+-	/* Propagate the format to the source pad. */
+-	format = vsp1_entity_get_pad_format(&clu->entity, config,
+-					    CLU_PAD_SOURCE);
+-	*format = fmt->format;
+-
+-done:
+-	mutex_unlock(&clu->entity.lock);
+-	return ret;
++	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, clu_codes,
++					  ARRAY_SIZE(clu_codes),
++					  CLU_MIN_SIZE, CLU_MIN_SIZE,
++					  CLU_MAX_SIZE, CLU_MAX_SIZE);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 72354caf5746..239df047efd0 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -307,6 +307,81 @@ int vsp1_subdev_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return ret;
+ }
+ 
++/*
++ * vsp1_subdev_set_pad_format - Subdev pad set_fmt handler
++ * @subdev: V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @fmt: V4L2 subdev format
++ * @codes: Array of supported media bus codes
++ * @ncodes: Number of supported media bus codes
++ * @min_width: Minimum image width
++ * @min_height: Minimum image height
++ * @max_width: Maximum image width
++ * @max_height: Maximum image height
++ *
++ * This function implements the subdev set_fmt pad operation for entities that
++ * do not support scaling or cropping. It defaults to the first supplied media
++ * bus code if the requested code isn't supported, clamps the size to the
++ * supplied minimum and maximum, and propagates the sink pad format to the
++ * source pad.
++ */
++int vsp1_subdev_set_pad_format(struct v4l2_subdev *subdev,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_format *fmt,
++			       const unsigned int *codes, unsigned int ncodes,
++			       unsigned int min_width, unsigned int min_height,
++			       unsigned int max_width, unsigned int max_height)
++{
++	struct vsp1_entity *entity = to_vsp1_entity(subdev);
++	struct v4l2_subdev_pad_config *config;
++	struct v4l2_mbus_framefmt *format;
++	unsigned int i;
++	int ret = 0;
++
++	mutex_lock(&entity->lock);
++
++	config = vsp1_entity_get_pad_config(entity, cfg, fmt->which);
++	if (!config) {
++		ret = -EINVAL;
++		goto done;
++	}
++
++	format = vsp1_entity_get_pad_format(entity, config, fmt->pad);
++
++	if (fmt->pad != 0) {
++		/* The output format can't be modified. */
++		fmt->format = *format;
++		goto done;
++	}
++
++	/*
++	 * Default to the first media bus code if the requested format is not
++	 * supported.
++	 */
++	for (i = 0; i < ncodes; ++i) {
++		if (fmt->format.code == codes[i])
++			break;
++	}
++
++	format->code = i < ncodes ? codes[i] : codes[0];
++	format->width = clamp_t(unsigned int, fmt->format.width,
++				min_width, max_width);
++	format->height = clamp_t(unsigned int, fmt->format.height,
++				 min_height, max_height);
++	format->field = V4L2_FIELD_NONE;
++	format->colorspace = V4L2_COLORSPACE_SRGB;
++
++	fmt->format = *format;
++
++	/* Propagate the format to the source pad. */
++	format = vsp1_entity_get_pad_format(entity, config, 1);
++	*format = fmt->format;
++
++done:
++	mutex_unlock(&entity->lock);
++	return ret;
++}
++
+ /* -----------------------------------------------------------------------------
+  * Media Operations
+  */
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index fb20a1578f3b..0839a62cfa71 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -160,6 +160,12 @@ struct media_pad *vsp1_entity_remote_pad(struct media_pad *pad);
+ int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
+ 			       struct v4l2_subdev_pad_config *cfg,
+ 			       struct v4l2_subdev_format *fmt);
++int vsp1_subdev_set_pad_format(struct v4l2_subdev *subdev,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_format *fmt,
++			       const unsigned int *codes, unsigned int ncodes,
++			       unsigned int min_width, unsigned int min_height,
++			       unsigned int max_width, unsigned int max_height);
+ int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
+ 			       struct v4l2_subdev_pad_config *cfg,
+ 			       struct v4l2_subdev_mbus_code_enum *code,
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index b20b842f06ba..fbdd5715f829 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -33,17 +33,17 @@ static inline void vsp1_lif_write(struct vsp1_lif *lif, struct vsp1_dl_list *dl,
+  * V4L2 Subdevice Operations
+  */
+ 
++static const unsigned int lif_codes[] = {
++	MEDIA_BUS_FMT_ARGB8888_1X32,
++	MEDIA_BUS_FMT_AYUV8_1X32,
++};
++
+ static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	static const unsigned int codes[] = {
+-		MEDIA_BUS_FMT_ARGB8888_1X32,
+-		MEDIA_BUS_FMT_AYUV8_1X32,
+-	};
+-
+-	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
+-					  ARRAY_SIZE(codes));
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, lif_codes,
++					  ARRAY_SIZE(lif_codes));
+ }
+ 
+ static int lif_enum_frame_size(struct v4l2_subdev *subdev,
+@@ -59,53 +59,10 @@ static int lif_set_format(struct v4l2_subdev *subdev,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+-	struct vsp1_lif *lif = to_lif(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-	struct v4l2_mbus_framefmt *format;
+-	int ret = 0;
+-
+-	mutex_lock(&lif->entity.lock);
+-
+-	config = vsp1_entity_get_pad_config(&lif->entity, cfg, fmt->which);
+-	if (!config) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
+-
+-	/* Default to YUV if the requested format is not supported. */
+-	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
+-	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
+-		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
+-
+-	format = vsp1_entity_get_pad_format(&lif->entity, config, fmt->pad);
+-
+-	if (fmt->pad == LIF_PAD_SOURCE) {
+-		/*
+-		 * The LIF source format is always identical to its sink
+-		 * format.
+-		 */
+-		fmt->format = *format;
+-		goto done;
+-	}
+-
+-	format->code = fmt->format.code;
+-	format->width = clamp_t(unsigned int, fmt->format.width,
+-				LIF_MIN_SIZE, LIF_MAX_SIZE);
+-	format->height = clamp_t(unsigned int, fmt->format.height,
+-				 LIF_MIN_SIZE, LIF_MAX_SIZE);
+-	format->field = V4L2_FIELD_NONE;
+-	format->colorspace = V4L2_COLORSPACE_SRGB;
+-
+-	fmt->format = *format;
+-
+-	/* Propagate the format to the source pad. */
+-	format = vsp1_entity_get_pad_format(&lif->entity, config,
+-					    LIF_PAD_SOURCE);
+-	*format = fmt->format;
+-
+-done:
+-	mutex_unlock(&lif->entity.lock);
+-	return ret;
++	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, lif_codes,
++					  ARRAY_SIZE(lif_codes),
++					  LIF_MIN_SIZE, LIF_MIN_SIZE,
++					  LIF_MAX_SIZE, LIF_MAX_SIZE);
+ }
+ 
+ static const struct v4l2_subdev_pad_ops lif_pad_ops = {
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 7bdabb311c6c..f2e48a02ca7d 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -90,18 +90,18 @@ static const struct v4l2_ctrl_config lut_table_control = {
+  * V4L2 Subdevice Pad Operations
+  */
+ 
++static const unsigned int lut_codes[] = {
++	MEDIA_BUS_FMT_ARGB8888_1X32,
++	MEDIA_BUS_FMT_AHSV8888_1X32,
++	MEDIA_BUS_FMT_AYUV8_1X32,
++};
++
+ static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	static const unsigned int codes[] = {
+-		MEDIA_BUS_FMT_ARGB8888_1X32,
+-		MEDIA_BUS_FMT_AHSV8888_1X32,
+-		MEDIA_BUS_FMT_AYUV8_1X32,
+-	};
+-
+-	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
+-					  ARRAY_SIZE(codes));
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, lut_codes,
++					  ARRAY_SIZE(lut_codes));
+ }
+ 
+ static int lut_enum_frame_size(struct v4l2_subdev *subdev,
+@@ -117,51 +117,10 @@ static int lut_set_format(struct v4l2_subdev *subdev,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+-	struct vsp1_lut *lut = to_lut(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-	struct v4l2_mbus_framefmt *format;
+-	int ret = 0;
+-
+-	mutex_lock(&lut->entity.lock);
+-
+-	config = vsp1_entity_get_pad_config(&lut->entity, cfg, fmt->which);
+-	if (!config) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
+-
+-	/* Default to YUV if the requested format is not supported. */
+-	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
+-	    fmt->format.code != MEDIA_BUS_FMT_AHSV8888_1X32 &&
+-	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
+-		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
+-
+-	format = vsp1_entity_get_pad_format(&lut->entity, config, fmt->pad);
+-
+-	if (fmt->pad == LUT_PAD_SOURCE) {
+-		/* The LUT output format can't be modified. */
+-		fmt->format = *format;
+-		goto done;
+-	}
+-
+-	format->code = fmt->format.code;
+-	format->width = clamp_t(unsigned int, fmt->format.width,
+-				LUT_MIN_SIZE, LUT_MAX_SIZE);
+-	format->height = clamp_t(unsigned int, fmt->format.height,
+-				 LUT_MIN_SIZE, LUT_MAX_SIZE);
+-	format->field = V4L2_FIELD_NONE;
+-	format->colorspace = V4L2_COLORSPACE_SRGB;
+-
+-	fmt->format = *format;
+-
+-	/* Propagate the format to the source pad. */
+-	format = vsp1_entity_get_pad_format(&lut->entity, config,
+-					    LUT_PAD_SOURCE);
+-	*format = fmt->format;
+-
+-done:
+-	mutex_unlock(&lut->entity.lock);
+-	return ret;
++	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, lut_codes,
++					  ARRAY_SIZE(lut_codes),
++					  LUT_MIN_SIZE, LUT_MIN_SIZE,
++					  LUT_MAX_SIZE, LUT_MAX_SIZE);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+-- 
+Regards,
 
-[snip]
-> +Usage
-> +=====
-> +
-> +The Request API is used on top of standard media controller and V4L2
-calls,
-> +which are augmented with an extra ``request_fd`` parameter. Request
-themselves
-> +are allocated from either a supporting V4L2 device node, or a supporting
-media
-> +controller node. The origin of requests determine their scope: requests
-> +allocated from a V4L2 device node can only act on that device, whereas
-requests
-> +allocated from a media controller node can control the whole pipeline of
-the
-> +controller.
-
-Current patch set doesn't support allocating requests from V4L2 device
-nodes.
-
-> +
-> +Request Allocation
-> +------------------
-> +
-> +User-space allocates requests using the ``VIDIOC_NEW_REQUEST`` (for V4L2
-device
-
-VIDIOC_NEW_REQUEST doesn't exist in current patch set. (We should add this
-bit to documentation, when we add respective functionality.)
-
-> +requests) or ``MEDIA_IOC_NEW_REQUEST`` (for media controller requests)
-on an
-
-s/MEDIA_IOC_NEW_REQUEST/MEDIA_IOC_REQUEST_ALLOC/
-
-> +opened device or media node. This returns a file descriptor representing
-the
-> +request. Typically, several such requests will be allocated.
-> +
-> +Request Preparation
-> +-------------------
-> +
-> +Standard V4L2 ioctls can then receive a request file descriptor to
-express the
-> +fact that the ioctl is part of said request, and is not to be applied
-> +immediately. V4L2 ioctls supporting this are
-:c:func:`VIDIOC_S_EXT_CTRLS` and
-> +:c:func:`VIDIOC_QBUF`. Controls set with a request parameter are stored
-instead
-> +of being immediately applied, and queued buffers not enter the regular
-buffer
-> +queue until the request is submitted. Only one buffer can be queued to a
-given
-> +queue for a given request.
-> +
-> +Request Submission
-> +------------------
-> +
-> +Once the parameters and buffers of the request are specified, it can be
-> +submitted by calling the ``MEDIA_REQUEST_IOC_SUBMIT`` ioctl on the
-request FD.
-
-s/MEDIA_REQUEST_IOC_SUBMIT/MEDIA_REQUEST_IOC_QUEUE/
-
-> +This will make the buffers associated to the request available to their
-driver,
-> +which can then apply the saved controls as buffers are processed. A
-submitted
-> +request cannot be modified anymore.
-> +
-> +If several devices are part of the request, individual drivers may
-synchronize
-> +so the requested pipeline's topology is applied before the buffers are
-> +processed. This is at the discretion of media controller drivers and is
-not a
-> +requirement.
-> +
-> +Buffers queued without an associated request after a request-bound
-buffer will
-> +be processed using the state of the hardware at the time of the request
-> +completion. All the same, controls set without a request are applied
-> +immediately, regardless of whether a request is in use or not.
-> +
-> +User-space can ``poll()`` a request FD in order to wait until the request
-> +completes. A request is considered complete once all its associated
-buffers are
-> +available for dequeing. Note that user-space does not need to wait for
-the
-> +request to complete to dequeue its buffers: buffers that are available
-halfway
-> +through a request can be dequeued independently of the request's state.
-> +
-> +A completed request includes the state of all devices that had queued
-buffers
-
-Why storing state is gated on queued buffers? Perhaps more like "all
-devices, which had their state affected by the request"?
-
-> +associated with it at the time of the request completion. User-space can
-query
-> +that state by calling :c:func:`VIDIOC_G_EXT_CTRLS` with the request FD.
-> +
-> +Recycling and Destruction
-> +-------------------------
-> +
-> +Finally, completed request can either be discarded or be reused. Calling
-> +``close()`` on a request FD will make that FD unusable, freeing the
-request if
-> +it is not referenced elsewhere. The ``MEDIA_REQUEST_IOC_SUBMIT`` ioctl
-will
-> +clear a request's state and make it available again. No state is
-retained by
-> +this operation: the request is as if it had just been allocated.
-> +
-> +Example for a M2M Device
-> +------------------------
-> +
-> +M2M devices are single-node V4L2 devices providing one OUTPUT queue (for
-> +user-space
-> +to provide input buffers) and one CAPTURE queue (to retrieve processed
-data).
-> +They are perfectly symetric, i.e. one buffer of input will produce one
-buffer of
-> +output. These devices are commonly used for frame processors or stateless
-> +codecs.
-> +
-> +In this use-case, the request API can be used to associate specific
-controls to
-> +be applied by the driver before processing an OUTPUT buffer, allowing
-user-space
-> +to queue many such buffers in advance. It can also take advantage of
-requests'
-> +ability to capture the state of controls when the request completes to
-read back
-> +information that may be subject to change.
-> +
-> +Put into code, after obtaining a request, user-space can assign controls
-and one
-> +OUTPUT buffer to it:
-> +
-> +       struct v4l2_buf buf;
-
-struct v4l2_buffer
-
-> +       struct v4l2_ext_controls ctrls;
-> +       struct media_request_new new = { 0 };
-
-struct media_request_alloc
-
-> +       int req_fd;
-> +       ...
-> +       ioctl(media_fd, VIDIOC_NEW_REQUEST, &new);
-
-s/VIDIOC_NEW_REQUEST/MEDIA_IOC_REQUEST_ALLOC/
-
-> +       req_fd = new.fd;
-> +       ...
-> +       ctrls.request_fd = req_fd;
-
-ctrls.which = V4L2_CTRL_WHICH_REQUEST;
-
-> +       ioctl(codec_fd, VIDIOC_S_EXT_CTRLS, &ctrls);
-> +       ...
-> +       buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-
-buf.flags |= V4L2_BUF_FLAG_REQUEST_FD;
-
-> +       buf.request_fd = req_fd;
-> +       ioctl(codec_fd, VIDIOC_QBUF, &buf);
-> +
-> +Note that request_fd does not need to be specified for CAPTURE buffers:
-since
-> +there is symetry between the OUTPUT and CAPTURE queues, and requests are
-> +processed in order of submission, we can know which CAPTURE buffer
-corresponds
-> +to which request.
-> +
-> +Once the request is fully prepared, it can be submitted to the driver:
-> +
-> +       ioctl(request_fd, MEDIA_REQUEST_IOC_SUBMIT, NULL);
-
-s/MEDIA_REQUEST_IOC_SUBMIT/MEDIA_REQUEST_IOC_QUEUE/
-
-> +
-> +User-space can then either wait for the request to complete by calling
-poll() on
-> +its file descriptor, or start dequeuing CAPTURE buffers. Most likely, it
-will
-> +want to get CAPTURE buffers as soon as possible and this can be done
-using a
-> +regular DQBUF:
-> +
-> +       struct v4l2_buf buf;
-
-struct v4l2_buffer
-
-> +
-> +       memset(&buf, 0, sizeof(buf));
-> +       buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +       ioctl(codec_fd, VIDIOC_DQBUF, &buf);
-> +
-> +We can then, after ensuring that the request is completed via polling the
-> +request FD, query control values at the time of its completion via an
-> +annotated call to G_EXT_CTRLS. This is particularly useful for volatile
-controls
-> +for which we want to query values as soon as the capture buffer is
-produced.
-> +
-> +       struct pollfd pfd = { .events = POLLIN, .fd = request_fd };
-> +       poll(&pfd, 1, -1);
-> +       ...
-> +       ctrls.request_fd = req_fd;
-
-ctrls.which = V4L2_CTRL_WHICH_REQUEST;
-
-> +       ioctl(codec_fd, VIDIOC_G_EXT_CTRLS, &ctrls);
-> +
-> +Once we don't need the request anymore, we can either recycle it for
-reuse with
-> +MEDIA_REQUEST_IOC_REINIT...
-> +
-> +       ioctl(request, MEDIA_REQUEST_IOC_REINIT, NULL);
-> +
-> +... or close its file descriptor to completely dispose of it.
-> +
-> +       close(request_fd);
-> +
-> +Example for a Simple Capture Device
-> +-----------------------------------
-> +
-> +With a simple capture device, requests can be used to specify controls
-to apply
-> +to a given CAPTURE buffer. The driver will apply these controls before
-producing
-> +the marked CAPTURE buffer.
-> +
-> +       struct v4l2_buf buf;
-
-struct v4l2_buffer
-
-> +       struct v4l2_ext_controls ctrls;
-> +       struct media_request_new new = { 0 };
-
-struct media_request_alloc
-
-> +       int req_fd;
-> +       ...
-> +       ioctl(camera_fd, VIDIOC_NEW_REQUEST, &new);
-> +       req_fd = new.fd;
-> +       ...
-> +       ctrls.request_fd = req_fd;
-> +       ioctl(camera_fd, VIDIOC_S_EXT_CTRLS, &ctrls);
-> +       ...
-> +       buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +       buf.request_fd = req_fd;
-
-buf.flags |= V4L2_BUF_FLAG_REQUEST_FD;
-
-> +       ioctl(camera_fd, VIDIOC_QBUF, &buf);
-> +
-> +Once the request is fully prepared, it can be submitted to the driver:
-> +
-> +       ioctl(req_fd, MEDIA_REQUEST_IOC_SUBMIT, &cmd);
-
-s/MEDIA_REQUEST_IOC_SUBMIT/MEDIA_REQUEST_IOC_QUEUE/
-
-> +
-> +User-space can then dequeue buffers, wait for the request completion,
-query
-> +controls and recycle the request as in the M2M example above.
-> diff --git a/Documentation/media/uapi/v4l/user-func.rst
-b/Documentation/media/uapi/v4l/user-func.rst
-> index 3e0413b83a33..2c8238a2b188 100644
-> --- a/Documentation/media/uapi/v4l/user-func.rst
-> +++ b/Documentation/media/uapi/v4l/user-func.rst
-> @@ -53,6 +53,7 @@ Function Reference
->       vidioc-g-std
->       vidioc-g-tuner
->       vidioc-log-status
-> +    vidioc-new-request
->       vidioc-overlay
->       vidioc-prepare-buf
->       vidioc-qbuf
-> diff --git a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-> index 2011c2b2ee67..d31ef86c7caa 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-> @@ -95,6 +95,17 @@ appropriate. In the first case the new value is set in
-struct
->   is inappropriate (e.g. the given menu index is not supported by the menu
->   control), then this will also result in an ``EINVAL`` error code error.
-
-> +If ``request_fd`` is set to a not-submitted request file descriptor,
-then the
-
-...and ``which`` is set to V4L2_CTRL_WHICH_REQUEST
-
-> +controls are not applied immediately when calling
-> +:ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, but instead are applied
-right
-> +before the driver starts processing a buffer associated to the same
-request.
-> +
-> +If ``request_fd`` is specified during a call to
-> +:ref:`VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, then the returned values
-will
-
-...and ``which`` is set to V4L2_CTRL_WHICH_REQUEST
-
-> +be the values currently set for the request (or the hardware value if
-none is
-> +set) if the request has not yet completed, or the values of the controls
-at the
-> +time of request completion if it has already completed.
-> +
->   The driver will only set/get these controls if all control values are
->   correct. This prevents the situation where only some of the controls
->   were set/get. Only low-level errors (e. g. a failed i2c command) can
-> @@ -209,8 +220,10 @@ still cause this situation.
->         - ``which``
->         - Which value of the control to get/set/try.
->          ``V4L2_CTRL_WHICH_CUR_VAL`` will return the current value of the
-> -       control and ``V4L2_CTRL_WHICH_DEF_VAL`` will return the default
-> -       value of the control.
-> +       control, ``V4L2_CTRL_WHICH_DEF_VAL`` will return the default
-> +       value of the control and ``V4L2_CTRL_WHICH_REQUEST`` indicates
-that
-> +       these controls have to be retrieved from a request or tried/set
-for
-> +       a request.
-
->          .. note::
-
-> @@ -272,8 +285,11 @@ still cause this situation.
->          then you can call :ref:`VIDIOC_TRY_EXT_CTRLS
-<VIDIOC_G_EXT_CTRLS>` to try to discover the
->          actual control that failed the validation step. Unfortunately,
->          there is no ``TRY`` equivalent for :ref:`VIDIOC_G_EXT_CTRLS
-<VIDIOC_G_EXT_CTRLS>`.
-> +    * - __s32
-> +      - ``request_fd``
-> +       File descriptor of the request to be used by this operation (0 if
-none).
-
--1 if none? Or maybe just say, valid only if ``which`` is
-V4L2_CTRL_WHICH_REQUEST?
-
->       * - __u32
-> -      - ``reserved``\ [2]
-> +      - ``reserved``\ [1]
->         - Reserved for future extensions.
-
->          Drivers and applications must set the array to zero.
-> diff --git a/Documentation/media/uapi/v4l/vidioc-new-request.rst
-b/Documentation/media/uapi/v4l/vidioc-new-request.rst
-> new file mode 100644
-> index 000000000000..0038287f7d16
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/vidioc-new-request.rst
-
-This whole file added here should probably be moved out to a separate patch
-that adds documentation after we add the functionality.
-
-Best regards,
-Tomasz
+Laurent Pinchart
