@@ -1,150 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db5eur01on0115.outbound.protection.outlook.com ([104.47.2.115]:21920
-        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753495AbeDVUI3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 16:08:29 -0400
-Subject: Re: [PATCH 6/8] drm: rcar-du: rcar-lvds: Add bridge format support
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>, architt@codeaurora.org,
-        a.hajda@samsung.com, Laurent.pinchart@ideasonboard.com,
-        airlied@linux.ie
-Cc: daniel@ffwll.ch, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
- <1524130269-32688-7-git-send-email-jacopo+renesas@jmondi.org>
-From: Peter Rosin <peda@axentia.se>
-Message-ID: <11e82e23-4ab0-7441-1798-1eeb4fb96995@axentia.se>
-Date: Sun, 22 Apr 2018 22:08:21 +0200
-MIME-Version: 1.0
-In-Reply-To: <1524130269-32688-7-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34481 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754201AbeDVP4l (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Apr 2018 11:56:41 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>
+Subject: [PATCH v3 01/11] media: dt-bindings: ov772x: add device tree binding
+Date: Mon, 23 Apr 2018 00:56:07 +0900
+Message-Id: <1524412577-14419-2-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
+References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-04-19 11:31, Jacopo Mondi wrote:
-> With the introduction of static input image format enumeration in DRM
-> bridges, add support to retrieve the format in rcar-lvds LVDS encoder
-> from both panel or bridge, to set the desired LVDS mode.
-> 
-> Do not rely on 'DRM_BUS_FLAG_DATA_LSB_TO_MSB' flag to mirror the LVDS
-> format, as it is only defined for drm connectors, but use the newly
-> introduced _LE version of LVDS mbus image formats.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/gpu/drm/rcar-du/rcar_lvds.c | 64 +++++++++++++++++++++++++------------
->  1 file changed, 44 insertions(+), 20 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_lvds.c b/drivers/gpu/drm/rcar-du/rcar_lvds.c
-> index 3d2d3bb..2fa875f 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_lvds.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_lvds.c
-> @@ -280,41 +280,65 @@ static bool rcar_lvds_mode_fixup(struct drm_bridge *bridge,
->  	return true;
->  }
->  
-> -static void rcar_lvds_get_lvds_mode(struct rcar_lvds *lvds)
-> +static int rcar_lvds_get_lvds_mode_from_connector(struct rcar_lvds *lvds,
-> +						  unsigned int *bus_fmt)
->  {
->  	struct drm_display_info *info = &lvds->connector.display_info;
-> -	enum rcar_lvds_mode mode;
-> -
-> -	/*
-> -	 * There is no API yet to retrieve LVDS mode from a bridge, only panels
-> -	 * are supported.
-> -	 */
-> -	if (!lvds->panel)
-> -		return;
->  
->  	if (!info->num_bus_formats || !info->bus_formats) {
->  		dev_err(lvds->dev, "no LVDS bus format reported\n");
-> -		return;
-> +		return -EINVAL;
-> +	}
-> +
-> +	*bus_fmt = info->bus_formats[0];
-> +
-> +	return 0;
-> +}
-> +
-> +static int rcar_lvds_get_lvds_mode_from_bridge(struct rcar_lvds *lvds,
-> +					       unsigned int *bus_fmt)
-> +{
-> +	if (!lvds->next_bridge->num_bus_formats ||
-> +	    !lvds->next_bridge->bus_formats) {
-> +		dev_err(lvds->dev, "no LVDS bus format reported\n");
-> +		return -EINVAL;
->  	}
->  
-> -	switch (info->bus_formats[0]) {
-> +	*bus_fmt = lvds->next_bridge->bus_formats[0];
+This adds a device tree binding documentation for OV7720/OV7725 sensor.
 
-What makes the first reported format the best choice?
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* v3
+- Add Reviewed-by: lines
 
-> +
-> +	return 0;
-> +}
-> +
-> +static void rcar_lvds_get_lvds_mode(struct rcar_lvds *lvds)
-> +{
-> +	unsigned int bus_fmt;
-> +	int ret;
-> +
-> +	if (lvds->panel)
-> +		ret = rcar_lvds_get_lvds_mode_from_connector(lvds, &bus_fmt);
-> +	else
-> +		ret = rcar_lvds_get_lvds_mode_from_bridge(lvds, &bus_fmt);
+ .../devicetree/bindings/media/i2c/ov772x.txt       | 42 ++++++++++++++++++++++
+ MAINTAINERS                                        |  1 +
+ 2 files changed, 43 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
 
-What if no bridge reports any format, shouldn't the connector be examined
-then?
-
-> +	if (ret)
-> +		return;
-> +
-> +	switch (bus_fmt) {
-> +	case MEDIA_BUS_FMT_RGB666_1X7X3_SPWG_LE:
-> +	case MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA_LE:
-> +		lvds->mode |= RCAR_LVDS_MODE_MIRROR;
->  	case MEDIA_BUS_FMT_RGB666_1X7X3_SPWG:
->  	case MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA:
-> -		mode = RCAR_LVDS_MODE_JEIDA;
-> +		lvds->mode = RCAR_LVDS_MODE_JEIDA;
-
-This is b0rken, first the mirror bit is ORed into some unknown preexisting
-value, then the code falls through (without any fall through comment, btw)
-and forcibly sets the mode, thus discarding the mirror bit which was
-carefully ORed in.
-
->  		break;
-> +
-> +	case MEDIA_BUS_FMT_RGB888_1X7X4_SPWG_LE:
-> +		lvds->mode |= RCAR_LVDS_MODE_MIRROR;
->  	case MEDIA_BUS_FMT_RGB888_1X7X4_SPWG:
-> -		mode = RCAR_LVDS_MODE_VESA;
-> +		lvds->mode = RCAR_LVDS_MODE_VESA;
-
-Dito.
-
-Cheers,
-Peter
-
->  		break;
->  	default:
->  		dev_err(lvds->dev, "unsupported LVDS bus format 0x%04x\n",
-> -			info->bus_formats[0]);
-> -		return;
-> +			bus_fmt);
->  	}
-> -
-> -	if (info->bus_flags & DRM_BUS_FLAG_DATA_LSB_TO_MSB)
-> -		mode |= RCAR_LVDS_MODE_MIRROR;
-> -
-> -	lvds->mode = mode;
->  }
->  
->  static void rcar_lvds_mode_set(struct drm_bridge *bridge,
-> 
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov772x.txt b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
+new file mode 100644
+index 0000000..b045503
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
+@@ -0,0 +1,42 @@
++* Omnivision OV7720/OV7725 CMOS sensor
++
++The Omnivision OV7720/OV7725 sensor supports multiple resolutions output,
++such as VGA, QVGA, and any size scaling down from CIF to 40x30. It also can
++support the YUV422, RGB565/555/444, GRB422 or raw RGB output formats.
++
++Required Properties:
++- compatible: shall be one of
++	"ovti,ov7720"
++	"ovti,ov7725"
++- clocks: reference to the xclk input clock.
++- clock-names: shall be "xclk".
++
++Optional Properties:
++- reset-gpios: reference to the GPIO connected to the RSTB pin which is
++  active low, if any.
++- powerdown-gpios: reference to the GPIO connected to the PWDN pin which is
++  active high, if any.
++
++The device node shall contain one 'port' child node with one child 'endpoint'
++subnode for its digital output video port, in accordance with the video
++interface bindings defined in Documentation/devicetree/bindings/media/
++video-interfaces.txt.
++
++Example:
++
++&i2c0 {
++	ov772x: camera@21 {
++		compatible = "ovti,ov7725";
++		reg = <0x21>;
++		reset-gpios = <&axi_gpio_0 0 GPIO_ACTIVE_LOW>;
++		powerdown-gpios = <&axi_gpio_0 1 GPIO_ACTIVE_LOW>;
++		clocks = <&xclk>;
++		clock-names = "xclk";
++
++		port {
++			ov772x_0: endpoint {
++				remote-endpoint = <&vcap1_in0>;
++			};
++		};
++	};
++};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 5ae51d0..1cc5fb1 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10353,6 +10353,7 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Odd fixes
+ F:	drivers/media/i2c/ov772x.c
+ F:	include/media/i2c/ov772x.h
++F:	Documentation/devicetree/bindings/media/i2c/ov772x.txt
+ 
+ OMNIVISION OV7740 SENSOR DRIVER
+ M:	Wenyou Yang <wenyou.yang@microchip.com>
+-- 
+2.7.4
