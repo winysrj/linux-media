@@ -1,54 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:45674 "EHLO osg.samsung.com"
+Received: from mga06.intel.com ([134.134.136.31]:56773 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751530AbeDEU3z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 16:29:55 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        id S1751683AbeDVSFJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Apr 2018 14:05:09 -0400
+Date: Mon, 23 Apr 2018 02:05:03 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: kbuild-all@01.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 16/19] media: omap: allow building it with COMPILE_TEST
-Date: Thu,  5 Apr 2018 16:29:43 -0400
-Message-Id: <01d225b90acc34463a59ad06e16461824e72e1dd.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org
+Subject: [RFC PATCH] sound, media: array_find() can be static
+Message-ID: <20180422180503.GA27818@lkp-sb04.lkp.intel.com>
+References: <3f4d8ae83a91c765581d9cbbd1e436b6871368fa.1524227382.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3f4d8ae83a91c765581d9cbbd1e436b6871368fa.1524227382.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we have stubs for omap FB driver, let it build with
-COMPILE_TEST.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Fixes: dbd775375e7d ("sound, media: allow building ISA drivers it with COMPILE_TEST")
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
 ---
- drivers/media/platform/omap/Kconfig | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ cmi8328.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/omap/Kconfig b/drivers/media/platform/omap/Kconfig
-index e8e2db181a7a..27343376f557 100644
---- a/drivers/media/platform/omap/Kconfig
-+++ b/drivers/media/platform/omap/Kconfig
-@@ -1,15 +1,15 @@
- config VIDEO_OMAP2_VOUT_VRFB
- 	bool
-+	default y
-+	depends on VIDEO_OMAP2_VOUT && (OMAP2_VRFB || COMPILE_TEST)
+diff --git a/sound/isa/cmi8328.c b/sound/isa/cmi8328.c
+index d09e456..de6ef1b 100644
+--- a/sound/isa/cmi8328.c
++++ b/sound/isa/cmi8328.c
+@@ -192,7 +192,7 @@ static int snd_cmi8328_mixer(struct snd_wss *chip)
+ }
  
- config VIDEO_OMAP2_VOUT
- 	tristate "OMAP2/OMAP3 V4L2-Display driver"
--	depends on MMU
--	depends on ARCH_OMAP2 || ARCH_OMAP3
--	depends on FB_OMAP2
-+	depends on MMU && FB_OMAP2
-+	depends on ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
- 	select VIDEOBUF_GEN
- 	select VIDEOBUF_DMA_CONTIG
- 	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
--	select VIDEO_OMAP2_VOUT_VRFB if VIDEO_OMAP2_VOUT && OMAP2_VRFB
- 	select FRAME_VECTOR
- 	default n
- 	---help---
--- 
-2.14.3
+ /* find index of an item in "-1"-ended array */
+-int array_find(int array[], int item)
++static int array_find(int array[], int item)
+ {
+ 	int i;
+ 
+@@ -203,7 +203,7 @@ int array_find(int array[], int item)
+ 	return -1;
+ }
+ /* the same for long */
+-int array_find_l(long array[], long item)
++static int array_find_l(long array[], long item)
+ {
+ 	int i;
+ 
