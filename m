@@ -1,108 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:48544 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752786AbeDPSKI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 14:10:08 -0400
-Date: Mon, 16 Apr 2018 15:09:56 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCHv2 6/9] media: add 'index' to struct media_v2_pad
-Message-ID: <20180416150956.22b5b021@vento.lan>
-In-Reply-To: <20180416150335.66f6ab12@vento.lan>
-References: <20180416132121.46205-1-hverkuil@xs4all.nl>
-        <20180416132121.46205-7-hverkuil@xs4all.nl>
-        <20180416150335.66f6ab12@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:40150 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754492AbeDVP5G (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Apr 2018 11:57:06 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v3 10/11] media: ov772x: make set_fmt() return -EBUSY while streaming
+Date: Mon, 23 Apr 2018 00:56:16 +0900
+Message-Id: <1524412577-14419-11-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
+References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 16 Apr 2018 15:03:35 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+The ov772x driver is going to offer a V4L2 sub-device interface, so
+changing the output data format on this sub-device can be made anytime.
+However, the request is preferred to fail while the video stream on the
+device is active.
 
-> Em Mon, 16 Apr 2018 15:21:18 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > From: Hans Verkuil <hansverk@cisco.com>
-> > 
-> > The v2 pad structure never exposed the pad index, which made it impossible
-> > to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
-> > 
-> > It is really trivial to just expose this information, so implement this.  
-> 
-> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* v3
+- New patch
 
-Err... I looked on it too fast... See my comments below.
+ drivers/media/i2c/ov772x.c | 35 ++++++++++++++++++++++++++---------
+ 1 file changed, 26 insertions(+), 9 deletions(-)
 
-The same applies to patch 8/9.
-
-> > 
-> > Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> > ---
-> >  drivers/media/media-device.c | 1 +
-> >  include/uapi/linux/media.h   | 7 ++++++-
-> >  2 files changed, 7 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index dca1e5a3e0f9..73ffea3e81c9 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev,
-> >  		kpad.id = pad->graph_obj.id;
-> >  		kpad.entity_id = pad->entity->graph_obj.id;
-> >  		kpad.flags = pad->flags;
-> > +		kpad.index = pad->index;
-> >  
-> >  		if (copy_to_user(upad, &kpad, sizeof(kpad)))
-> >  			ret = -EFAULT;
-> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> > index ac08acffdb65..15f7f432f808 100644
-> > --- a/include/uapi/linux/media.h
-> > +++ b/include/uapi/linux/media.h
-> > @@ -310,11 +310,16 @@ struct media_v2_interface {
-> >  	};
-> >  } __attribute__ ((packed));
-> >  
-> > +/* Appeared in 4.18.0 */
-> > +#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
-> > +	((media_version) >= 0x00041200)
-> > +
-
-I don't like this, for a couple of reasons:
-
-1) it has a magic number on it, with is actually a parsed
-   version of LINUX_VERSION() macro;
-
-2) it sounds really weird to ship a header file with a new
-   kernel version meant to provide backward compatibility with
-   older versions;
-
-3) this isn't any different than:
-
-	#define MEDIA_V2_PAD_HAS_INDEX -1
-
-I think we need to think a little bit more about that.
-
-
-> >  struct media_v2_pad {
-> >  	__u32 id;
-> >  	__u32 entity_id;
-> >  	__u32 flags;
-> > -	__u32 reserved[5];
-> > +	__u32 index;
-> > +	__u32 reserved[4];
-> >  } __attribute__ ((packed));
-> >  
-> >  struct media_v2_link {  
-> 
-> 
-> 
-> Thanks,
-> Mauro
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 96dd37a..c9fdc67 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -424,9 +424,10 @@ struct ov772x_priv {
+ 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
+ 	unsigned short                    band_filter;
+ 	unsigned int			  fps;
+-	/* lock to protect power_count */
++	/* lock to protect power_count and streaming */
+ 	struct mutex			  lock;
+ 	int				  power_count;
++	int				  streaming;
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_pad pad;
+ #endif
+@@ -603,18 +604,28 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ov772x_priv *priv = to_ov772x(sd);
++	int ret = 0;
+ 
+-	if (!enable) {
+-		ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, SOFT_SLEEP_MODE);
+-		return 0;
+-	}
++	mutex_lock(&priv->lock);
+ 
+-	ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, 0);
++	if (priv->streaming == enable)
++		goto done;
+ 
+-	dev_dbg(&client->dev, "format %d, win %s\n",
+-		priv->cfmt->code, priv->win->name);
++	ret = ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE,
++			      enable ? 0 : SOFT_SLEEP_MODE);
++	if (ret)
++		goto done;
+ 
+-	return 0;
++	if (enable) {
++		dev_dbg(&client->dev, "format %d, win %s\n",
++			priv->cfmt->code, priv->win->name);
++	}
++	priv->streaming = enable;
++
++done:
++	mutex_unlock(&priv->lock);
++
++	return ret;
+ }
+ 
+ static unsigned int ov772x_select_fps(struct ov772x_priv *priv,
+@@ -1223,6 +1234,12 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
+ 	}
+ 
+ 	mutex_lock(&priv->lock);
++
++	if (priv->streaming) {
++		ret = -EBUSY;
++		goto error;
++	}
++
+ 	/*
+ 	 * If the device is not powered up by the host driver do
+ 	 * not apply any changes to H/W at this time. Instead
+-- 
+2.7.4
