@@ -1,82 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:42773 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753494AbeDTRnB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 13:43:01 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        mjpeg-users@lists.sourceforge.net, linux-arch@vger.kernel.org
-Subject: [PATCH 1/7] asm-generic, media: allow COMPILE_TEST with virt_to_bus
-Date: Fri, 20 Apr 2018 13:42:47 -0400
-Message-Id: <d8bdf4a080d4655d20b532a37ae22ca7e3483cc4.1524245455.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
-References: <cover.1524245455.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
-References: <cover.1524245455.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:37415 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754451AbeDVP4x (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Apr 2018 11:56:53 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v3 05/11] media: ov772x: use generic names for reset and powerdown gpios
+Date: Mon, 23 Apr 2018 00:56:11 +0900
+Message-Id: <1524412577-14419-6-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
+References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The virt_to_bus/bus_to_virt macros are arch-specific. Some
-archs don't support it. Yet, as it is interesting to allow
-doing compilation tests on non-ia32/ia64 archs, provide a
-fallback for such archs.
+The ov772x driver uses "rstb-gpios" and "pwdn-gpios" for reset and
+powerdown pins.  However, using generic names for these gpios is
+preferred.  ("reset-gpios" and "powerdown-gpios" respectively)
 
-While here, enable COMPILE_TEST for two media drivers that
-depends on it.
+There is only one mainline user for these gpios, so rename to generic
+names.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/media/pci/sta2x11/Kconfig | 4 ++--
- drivers/media/pci/zoran/Kconfig   | 3 ++-
- include/asm-generic/io.h          | 2 +-
- 3 files changed, 5 insertions(+), 4 deletions(-)
+* v3
+- Fix typo in the commit log
+- Add a Reviewed-by: line
 
-diff --git a/drivers/media/pci/sta2x11/Kconfig b/drivers/media/pci/sta2x11/Kconfig
-index 7af3f1cbcea8..fb4b4c8ac430 100644
---- a/drivers/media/pci/sta2x11/Kconfig
-+++ b/drivers/media/pci/sta2x11/Kconfig
-@@ -1,10 +1,10 @@
- config STA2X11_VIP
- 	tristate "STA2X11 VIP Video For Linux"
--	depends on STA2X11 || COMPILE_TEST
-+	depends on (STA2X11 && VIRT_TO_BUS) || COMPILE_TEST
- 	depends on HAS_DMA
- 	select VIDEO_ADV7180 if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEOBUF2_DMA_CONTIG
--	depends on PCI && VIDEO_V4L2 && VIRT_TO_BUS
-+	depends on PCI && VIDEO_V4L2
- 	depends on VIDEO_V4L2_SUBDEV_API
- 	depends on I2C
- 	help
-diff --git a/drivers/media/pci/zoran/Kconfig b/drivers/media/pci/zoran/Kconfig
-index 39ec35bd21a5..5d2678a9e310 100644
---- a/drivers/media/pci/zoran/Kconfig
-+++ b/drivers/media/pci/zoran/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_ZORAN
- 	tristate "Zoran ZR36057/36067 Video For Linux"
--	depends on PCI && I2C_ALGOBIT && VIDEO_V4L2 && VIRT_TO_BUS
-+	depends on PCI && I2C_ALGOBIT && VIDEO_V4L2
-+	depends on VIRT_TO_BUS || COMPILE_TEST
- 	depends on !ALPHA
- 	help
- 	  Say Y for support for MJPEG capture cards based on the Zoran
-diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
-index 66d1d45fa2e1..f448129ad15c 100644
---- a/include/asm-generic/io.h
-+++ b/include/asm-generic/io.h
-@@ -1068,7 +1068,7 @@ static inline void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
- }
- #endif
+ arch/sh/boards/mach-migor/setup.c | 5 +++--
+ drivers/media/i2c/ov772x.c        | 8 ++++----
+ 2 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
+index 271dfc2..73b9ee4 100644
+--- a/arch/sh/boards/mach-migor/setup.c
++++ b/arch/sh/boards/mach-migor/setup.c
+@@ -351,8 +351,9 @@ static struct platform_device migor_ceu_device = {
+ static struct gpiod_lookup_table ov7725_gpios = {
+ 	.dev_id		= "0-0021",
+ 	.table		= {
+-		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "pwdn", GPIO_ACTIVE_HIGH),
+-		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_LOW),
++		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "powerdown",
++			    GPIO_ACTIVE_HIGH),
++		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "reset", GPIO_ACTIVE_LOW),
+ 	},
+ };
  
--#ifdef CONFIG_VIRT_TO_BUS
-+#if defined(CONFIG_VIRT_TO_BUS) || defined(CONFIG_COMPILE_TEST)
- #ifndef virt_to_bus
- static inline unsigned long virt_to_bus(void *address)
- {
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 18a5ed6..8cac206 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -837,10 +837,10 @@ static int ov772x_power_on(struct ov772x_priv *priv)
+ 	 * available to handle this cleanly, request the GPIO temporarily
+ 	 * to avoid conflicts.
+ 	 */
+-	priv->rstb_gpio = gpiod_get_optional(&client->dev, "rstb",
++	priv->rstb_gpio = gpiod_get_optional(&client->dev, "reset",
+ 					     GPIOD_OUT_LOW);
+ 	if (IS_ERR(priv->rstb_gpio)) {
+-		dev_info(&client->dev, "Unable to get GPIO \"rstb\"");
++		dev_info(&client->dev, "Unable to get GPIO \"reset\"");
+ 		return PTR_ERR(priv->rstb_gpio);
+ 	}
+ 
+@@ -1307,10 +1307,10 @@ static int ov772x_probe(struct i2c_client *client,
+ 		goto error_ctrl_free;
+ 	}
+ 
+-	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "pwdn",
++	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "powerdown",
+ 					     GPIOD_OUT_LOW);
+ 	if (IS_ERR(priv->pwdn_gpio)) {
+-		dev_info(&client->dev, "Unable to get GPIO \"pwdn\"");
++		dev_info(&client->dev, "Unable to get GPIO \"powerdown\"");
+ 		ret = PTR_ERR(priv->pwdn_gpio);
+ 		goto error_clk_put;
+ 	}
 -- 
-2.14.3
+2.7.4
