@@ -1,130 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:54939 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754074AbeDBDpE (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:40871 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754602AbeDVP4z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 1 Apr 2018 23:45:04 -0400
-Message-ID: <e9db3fa7b205c2e39bd0126e1b26a8d1@smtp-cloud7.xs4all.net>
-Date: Mon, 02 Apr 2018 05:45:02 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Sun, 22 Apr 2018 11:56:55 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v3 06/11] media: ov772x: support device tree probing
+Date: Mon, 23 Apr 2018 00:56:12 +0900
+Message-Id: <1524412577-14419-7-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
+References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The ov772x driver currently only supports legacy platform data probe.
+This change enables device tree probing.
 
-Results of the daily build of media_tree:
+Note that the platform data probe can select auto or manual edge control
+mode, but the device tree probling can only select auto edge control mode
+for now.
 
-date:			Mon Apr  2 05:00:11 CEST 2018
-media-tree git hash:	6ccd228e0cfce2a4f44558422d25c60fcb1a6710
-media_build git hash:	541653bb52fcf7c34b8b83a4c8cc66b09c68ac37
-v4l-utils git hash:	380fe7d4548a99bfcfc1594b6f0b3dd2369978f1
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* v3
+- Add a Reviewed-by: line
+- Return without resetting if ov772x_edgectrl() failed
+- Update the error message for missing platform data
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+ drivers/media/i2c/ov772x.c | 64 ++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 45 insertions(+), 19 deletions(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 8cac206..95c1c95d 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -749,13 +749,13 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_VFLIP:
+ 		val = ctrl->val ? VFLIP_IMG : 0x00;
+ 		priv->flag_vflip = ctrl->val;
+-		if (priv->info->flags & OV772X_FLAG_VFLIP)
++		if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
+ 			val ^= VFLIP_IMG;
+ 		return ov772x_mask_set(client, COM3, VFLIP_IMG, val);
+ 	case V4L2_CID_HFLIP:
+ 		val = ctrl->val ? HFLIP_IMG : 0x00;
+ 		priv->flag_hflip = ctrl->val;
+-		if (priv->info->flags & OV772X_FLAG_HFLIP)
++		if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+ 			val ^= HFLIP_IMG;
+ 		return ov772x_mask_set(client, COM3, HFLIP_IMG, val);
+ 	case V4L2_CID_BAND_STOP_FILTER:
+@@ -914,19 +914,14 @@ static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
+ 	*win = ov772x_select_win(mf->width, mf->height);
+ }
+ 
+-static int ov772x_set_params(struct ov772x_priv *priv,
+-			     const struct ov772x_color_format *cfmt,
+-			     const struct ov772x_win_size *win)
++static int ov772x_edgectrl(struct ov772x_priv *priv)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+-	struct v4l2_fract tpf;
+ 	int ret;
+-	u8  val;
+ 
+-	/* Reset hardware. */
+-	ov772x_reset(client);
++	if (!priv->info)
++		return 0;
+ 
+-	/* Edge Ctrl. */
+ 	if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
+ 		/*
+ 		 * Manual Edge Control Mode.
+@@ -937,19 +932,19 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 
+ 		ret = ov772x_mask_set(client, DSPAUTO, EDGE_ACTRL, 0x00);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_TRSHLD, OV772X_EDGE_THRESHOLD_MASK,
+ 				      priv->info->edgectrl.threshold);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_STRNGT, OV772X_EDGE_STRENGTH_MASK,
+ 				      priv->info->edgectrl.strength);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 	} else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
+ 		/*
+@@ -961,15 +956,35 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 				      EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
+ 				      priv->info->edgectrl.upper);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_LOWER, OV772X_EDGE_LOWER_MASK,
+ 				      priv->info->edgectrl.lower);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 	}
+ 
++	return 0;
++}
++
++static int ov772x_set_params(struct ov772x_priv *priv,
++			     const struct ov772x_color_format *cfmt,
++			     const struct ov772x_win_size *win)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
++	struct v4l2_fract tpf;
++	int ret;
++	u8  val;
++
++	/* Reset hardware. */
++	ov772x_reset(client);
++
++	/* Edge Ctrl. */
++	ret =  ov772x_edgectrl(priv);
++	if (ret < 0)
++		return ret;
++
+ 	/* Format and window size. */
+ 	ret = ov772x_write(client, HSTART, win->rect.left >> 2);
+ 	if (ret < 0)
+@@ -1020,9 +1035,9 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 
+ 	/* Set COM3. */
+ 	val = cfmt->com3;
+-	if (priv->info->flags & OV772X_FLAG_VFLIP)
++	if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
+ 		val |= VFLIP_IMG;
+-	if (priv->info->flags & OV772X_FLAG_HFLIP)
++	if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+ 		val |= HFLIP_IMG;
+ 	if (priv->flag_vflip)
+ 		val ^= VFLIP_IMG;
+@@ -1271,8 +1286,9 @@ static int ov772x_probe(struct i2c_client *client,
+ 	struct i2c_adapter	*adapter = client->adapter;
+ 	int			ret;
+ 
+-	if (!client->dev.platform_data) {
+-		dev_err(&client->dev, "Missing ov772x platform data\n");
++	if (!client->dev.of_node && !client->dev.platform_data) {
++		dev_err(&client->dev,
++			"Missing ov772x platform data for non-DT device\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1370,9 +1386,19 @@ static const struct i2c_device_id ov772x_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, ov772x_id);
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id ov772x_of_match[] = {
++	{ .compatible = "ovti,ov7725", },
++	{ .compatible = "ovti,ov7720", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, ov772x_of_match);
++#endif
++
+ static struct i2c_driver ov772x_i2c_driver = {
+ 	.driver = {
+ 		.name = "ov772x",
++		.of_match_table = of_match_ptr(ov772x_of_match),
+ 	},
+ 	.probe    = ov772x_probe,
+ 	.remove   = ov772x_remove,
+-- 
+2.7.4
