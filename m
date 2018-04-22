@@ -1,91 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:37801 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753333AbeDIQsC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:02 -0400
-Received: by mail-wm0-f66.google.com with SMTP id r131so18032868wmb.2
-        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:01 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH v2 06/19] [media] ddbridge: request/free_irq using pci_irq_vector, enable MSI-X
-Date: Mon,  9 Apr 2018 18:47:39 +0200
-Message-Id: <20180409164752.641-7-d.scheller.oss@gmail.com>
-In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
-References: <20180409164752.641-1-d.scheller.oss@gmail.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:54804 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751265AbeDVMn3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Apr 2018 08:43:29 -0400
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 611E51513
+        for <linux-media@vger.kernel.org>; Sun, 22 Apr 2018 14:43:27 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.18] R-Car VSP1 changes
+Date: Sun, 22 Apr 2018 15:43:40 +0300
+Message-ID: <2212695.T3LGG1uxco@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Mauro,
 
-Instead of trying to manage IRQ numbers on itself, utilise the
-pci_irq_vector() function to do this, which will take care of correct IRQ
-numbering for MSI and non-MSI IRQs. While at it, request and enable MSI-X
-interrupts for hardware (boards and cards) that support this.
+The following changes since commit 1d338b86e17d87215cf57b1ad1d13b2afe582d33:
 
-Picked up from the upstream dddvb-0.9.33 release.
+  media: v4l2-compat-ioctl32: better document the code (2018-04-20 08:24:13 
+-0400)
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-main.c | 24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+are available in the Git repository at:
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
-index 77089081db1f..008be9066814 100644
---- a/drivers/media/pci/ddbridge/ddbridge-main.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-@@ -77,8 +77,8 @@ static void ddb_irq_exit(struct ddb *dev)
- {
- 	ddb_irq_disable(dev);
- 	if (dev->msi == 2)
--		free_irq(dev->pdev->irq + 1, dev);
--	free_irq(dev->pdev->irq, dev);
-+		free_irq(pci_irq_vector(dev->pdev, 1), dev);
-+	free_irq(pci_irq_vector(dev->pdev, 0), dev);
- }
- 
- static void ddb_remove(struct pci_dev *pdev)
-@@ -105,7 +105,8 @@ static void ddb_irq_msi(struct ddb *dev, int nr)
- 	int stat;
- 
- 	if (msi && pci_msi_enabled()) {
--		stat = pci_alloc_irq_vectors(dev->pdev, 1, nr, PCI_IRQ_MSI);
-+		stat = pci_alloc_irq_vectors(dev->pdev, 1, nr,
-+					     PCI_IRQ_MSI | PCI_IRQ_MSIX);
- 		if (stat >= 1) {
- 			dev->msi = stat;
- 			dev_info(dev->dev, "using %d MSI interrupt(s)\n",
-@@ -137,21 +138,24 @@ static int ddb_irq_init(struct ddb *dev)
- 	if (dev->msi)
- 		irq_flag = 0;
- 	if (dev->msi == 2) {
--		stat = request_irq(dev->pdev->irq, ddb_irq_handler0,
--				   irq_flag, "ddbridge", (void *)dev);
-+		stat = request_irq(pci_irq_vector(dev->pdev, 0),
-+				   ddb_irq_handler0, irq_flag, "ddbridge",
-+				   (void *)dev);
- 		if (stat < 0)
- 			return stat;
--		stat = request_irq(dev->pdev->irq + 1, ddb_irq_handler1,
--				   irq_flag, "ddbridge", (void *)dev);
-+		stat = request_irq(pci_irq_vector(dev->pdev, 1),
-+				   ddb_irq_handler1, irq_flag, "ddbridge",
-+				   (void *)dev);
- 		if (stat < 0) {
--			free_irq(dev->pdev->irq, dev);
-+			free_irq(pci_irq_vector(dev->pdev, 0), dev);
- 			return stat;
- 		}
- 	} else
- #endif
- 	{
--		stat = request_irq(dev->pdev->irq, ddb_irq_handler,
--				   irq_flag, "ddbridge", (void *)dev);
-+		stat = request_irq(pci_irq_vector(dev->pdev, 0),
-+				   ddb_irq_handler, irq_flag, "ddbridge",
-+				   (void *)dev);
- 		if (stat < 0)
- 			return stat;
- 	}
+  git://linuxtv.org/pinchartl/media.git v4l2/vsp1/bru-brs
+
+for you to fetch changes up to 5c0a8b4dfadee010a68b88d82b28f09f373faf86:
+
+  v4l: vsp1: Rename BRU to BRx (2018-04-22 14:11:06 +0300)
+
+----------------------------------------------------------------
+Laurent Pinchart (15):
+      v4l: vsp1: Don't start/stop media pipeline for DRM
+      v4l: vsp1: Remove unused field from vsp1_drm_pipeline structure
+      v4l: vsp1: Store pipeline pointer in vsp1_entity
+      v4l: vsp1: Use vsp1_entity.pipe to check if entity belongs to a pipeline
+      v4l: vsp1: Share duplicated DRM pipeline configuration code
+      v4l: vsp1: Move DRM atomic commit pipeline setup to separate function
+      v4l: vsp1: Setup BRU at atomic commit time
+      v4l: vsp1: Replace manual DRM pipeline input setup in vsp1_du_setup_lif
+      v4l: vsp1: Move DRM pipeline output setup code to a function
+      v4l: vsp1: Turn frame end completion status into a bitfield
+      v4l: vsp1: Add per-display list internal completion notification support
+      v4l: vsp1: Generalize detection of entity removal from DRM pipeline
+      v4l: vsp1: Assign BRU and BRS to pipelines dynamically
+      v4l: vsp1: Add BRx dynamic assignment debugging messages
+      v4l: vsp1: Rename BRU to BRx
+
+ drivers/media/platform/vsp1/Makefile                   |   2 +-
+ drivers/media/platform/vsp1/vsp1.h                     |   6 +-
+ drivers/media/platform/vsp1/{vsp1_bru.c => vsp1_brx.c} | 202 +++---
+ drivers/media/platform/vsp1/{vsp1_bru.h => vsp1_brx.h} |  18 +-
+ drivers/media/platform/vsp1/vsp1_dl.c                  |  45 +-
+ drivers/media/platform/vsp1/vsp1_dl.h                  |   7 +-
+ drivers/media/platform/vsp1/vsp1_drm.c                 | 828 +++++++++------
+ drivers/media/platform/vsp1/vsp1_drm.h                 |  16 +-
+ drivers/media/platform/vsp1/vsp1_drv.c                 |   8 +-
+ drivers/media/platform/vsp1/vsp1_entity.h              |   2 +
+ drivers/media/platform/vsp1/vsp1_histo.c               |   2 +-
+ drivers/media/platform/vsp1/vsp1_histo.h               |   3 -
+ drivers/media/platform/vsp1/vsp1_pipe.c                |  53 +-
+ drivers/media/platform/vsp1/vsp1_pipe.h                |   6 +-
+ drivers/media/platform/vsp1/vsp1_rpf.c                 |  12 +-
+ drivers/media/platform/vsp1/vsp1_rwpf.h                |   4 +-
+ drivers/media/platform/vsp1/vsp1_video.c               |  39 +-
+ drivers/media/platform/vsp1/vsp1_wpf.c                 |   8 +-
+ 18 files changed, 718 insertions(+), 543 deletions(-)
+ rename drivers/media/platform/vsp1/{vsp1_bru.c => vsp1_brx.c} (63%)
+ rename drivers/media/platform/vsp1/{vsp1_bru.h => vsp1_brx.h} (66%)
+
 -- 
-2.16.1
+Regards,
+
+Laurent Pinchart
