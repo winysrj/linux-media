@@ -1,162 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:56806 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752743AbeDQMQb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 08:16:31 -0400
-Date: Tue, 17 Apr 2018 09:16:19 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCHv2 6/9] media: add 'index' to struct media_v2_pad
-Message-ID: <20180417091500.3f101620@vento.lan>
-In-Reply-To: <dca4777d-e8c8-8ea5-ea64-54120997158d@xs4all.nl>
-References: <20180416132121.46205-1-hverkuil@xs4all.nl>
-        <20180416132121.46205-7-hverkuil@xs4all.nl>
-        <20180416150335.66f6ab12@vento.lan>
-        <20180416150956.22b5b021@vento.lan>
-        <b04f9c6a-78ef-3e22-be01-fa757823c13e@xs4all.nl>
-        <a8a09731-76bb-8bd9-ad16-43640d3de8ed@xs4all.nl>
-        <20180417085554.067d9168@vento.lan>
-        <dca4777d-e8c8-8ea5-ea64-54120997158d@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:35310 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753929AbeDVQG4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Apr 2018 12:06:56 -0400
+Received: by mail-wr0-f193.google.com with SMTP id w3-v6so34725685wrg.2
+        for <linux-media@vger.kernel.org>; Sun, 22 Apr 2018 09:06:56 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 2/2] [media] ngene: fix ci_tsfix modparam description typo
+Date: Sun, 22 Apr 2018 18:06:52 +0200
+Message-Id: <20180422160652.20173-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20180422160652.20173-1-d.scheller.oss@gmail.com>
+References: <20180422160652.20173-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 17 Apr 2018 14:01:06 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-> On 04/17/18 13:55, Mauro Carvalho Chehab wrote:
-> > Em Tue, 17 Apr 2018 11:59:40 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> On 04/16/18 21:41, Hans Verkuil wrote:  
-> >>> On 04/16/2018 08:09 PM, Mauro Carvalho Chehab wrote:    
-> >>>> Em Mon, 16 Apr 2018 15:03:35 -0300
-> >>>> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
-> >>>>    
-> >>>>> Em Mon, 16 Apr 2018 15:21:18 +0200
-> >>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >>>>>    
-> >>>>>> From: Hans Verkuil <hansverk@cisco.com>
-> >>>>>>
-> >>>>>> The v2 pad structure never exposed the pad index, which made it impossible
-> >>>>>> to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
-> >>>>>>
-> >>>>>> It is really trivial to just expose this information, so implement this.      
-> >>>>>
-> >>>>> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>    
-> >>>>
-> >>>> Err... I looked on it too fast... See my comments below.
-> >>>>
-> >>>> The same applies to patch 8/9.
-> >>>>    
-> >>>>>>
-> >>>>>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> >>>>>> ---
-> >>>>>>  drivers/media/media-device.c | 1 +
-> >>>>>>  include/uapi/linux/media.h   | 7 ++++++-
-> >>>>>>  2 files changed, 7 insertions(+), 1 deletion(-)
-> >>>>>>
-> >>>>>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> >>>>>> index dca1e5a3e0f9..73ffea3e81c9 100644
-> >>>>>> --- a/drivers/media/media-device.c
-> >>>>>> +++ b/drivers/media/media-device.c
-> >>>>>> @@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev,
-> >>>>>>  		kpad.id = pad->graph_obj.id;
-> >>>>>>  		kpad.entity_id = pad->entity->graph_obj.id;
-> >>>>>>  		kpad.flags = pad->flags;
-> >>>>>> +		kpad.index = pad->index;
-> >>>>>>  
-> >>>>>>  		if (copy_to_user(upad, &kpad, sizeof(kpad)))
-> >>>>>>  			ret = -EFAULT;
-> >>>>>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> >>>>>> index ac08acffdb65..15f7f432f808 100644
-> >>>>>> --- a/include/uapi/linux/media.h
-> >>>>>> +++ b/include/uapi/linux/media.h
-> >>>>>> @@ -310,11 +310,16 @@ struct media_v2_interface {
-> >>>>>>  	};
-> >>>>>>  } __attribute__ ((packed));
-> >>>>>>  
-> >>>>>> +/* Appeared in 4.18.0 */
-> >>>>>> +#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
-> >>>>>> +	((media_version) >= 0x00041200)
-> >>>>>> +    
-> >>>>
-> >>>> I don't like this, for a couple of reasons:
-> >>>>
-> >>>> 1) it has a magic number on it, with is actually a parsed
-> >>>>    version of LINUX_VERSION() macro;    
-> >>>
-> >>> I can/should change that to KERNEL_VERSION().  
-> > 
-> > I don't think so. The macro is not there at include/uapi.
-> >   
-> >>>     
-> >>>>
-> >>>> 2) it sounds really weird to ship a header file with a new
-> >>>>    kernel version meant to provide backward compatibility with
-> >>>>    older versions;
-> >>>>
-> >>>> 3) this isn't any different than:
-> >>>>
-> >>>> 	#define MEDIA_V2_PAD_HAS_INDEX -1
-> >>>>
-> >>>> I think we need to think a little bit more about that.    
-> >>>
-> >>> What typically happens is that applications (like those in v4l-utils
-> >>> for example) copy the headers locally. So they are compiled with the headers
-> >>> of a specific kernel version, but they can run with very different kernels.
-> >>>
-> >>> This is normal for distros where you can install different kernel versions
-> >>> without needing to modify applications.
-> >>>
-> >>> In fact, we (Cisco) use the latest v4l-utils code on kernels ranging between
-> >>> 2.6.39 to 4.10 (I think that's the latest one in use).  
-> > 
-> > Well, if you use a macro, the "compat" code at v4l-utils (or whatever other
-> > app you use) will be assuming the specific Kernel version you used when you
-> > built it, with is probably not what you want.
-> > 
-> > The way of checking if a feature is there or not is, instead, to ask for
-> > the media version via MEDIA_IOC_DEVICE_INFO. It should provide the
-> > media API version.
-> > 
-> > This is already filled with:
-> > 	info->media_version = LINUX_VERSION_CODE;
-> > 
-> > So, all we need to do is to document that the new fields are available only
-> > for such version or above and add such check at v4l-utils.  
-> 
-> Yes, and that's what you stick in the macro argument:
-> 
-> 	ioctl(fd, MEDIA_IOC_DEVICE_INFO, &info);
-> 	if (MEDIA_V2_PAD_HAS_INDEX(info.media_version)) {
-> 		// I can use the index field
-> 	}
-> 
-> I think I did not document this clearly.
+s/shifs/shifts/
 
-Ok, makes sense. It should be better documented, IMO.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ngene/ngene-dvb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Still have an issue with KERNEL_VERSION: this macro doesn't exist
-anymore on any Kernel header files. It is produced dynamically
-at /Makefile:
-
-	define filechk_version.h
-		(echo \#define LINUX_VERSION_CODE $(shell                         \
-		expr $(VERSION) \* 65536 + 0$(PATCHLEVEL) \* 256 + 0$(SUBLEVEL)); \
-		echo '#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))';)
-	endef
-
-Btw, this likely means that this is already broken:
-
-include/uapi/linux/media.h:#define MEDIA_API_VERSION                    KERNEL_VERSION(0, 1, 0)
-
-as userspace won't be able to evaluate it.
-
-We could hardcode its value, as you proposed, but, IMHO, that sucks.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/pci/ngene/ngene-dvb.c b/drivers/media/pci/ngene/ngene-dvb.c
+index fee89b9ed9c1..5147e83397a1 100644
+--- a/drivers/media/pci/ngene/ngene-dvb.c
++++ b/drivers/media/pci/ngene/ngene-dvb.c
+@@ -40,7 +40,7 @@
+ 
+ static int ci_tsfix = 1;
+ module_param(ci_tsfix, int, 0444);
+-MODULE_PARM_DESC(ci_tsfix, "Detect and fix TS buffer offset shifs in conjunction with CI expansions (default: 1/enabled)");
++MODULE_PARM_DESC(ci_tsfix, "Detect and fix TS buffer offset shifts in conjunction with CI expansions (default: 1/enabled)");
+ 
+ /****************************************************************************/
+ /* COMMAND API interface ****************************************************/
+-- 
+2.16.1
