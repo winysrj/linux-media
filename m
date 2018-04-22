@@ -1,90 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f182.google.com ([209.85.217.182]:43914 "EHLO
-        mail-ua0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751946AbeDKEme (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:34933 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753025AbeDVDoW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 00:42:34 -0400
-Received: by mail-ua0-f182.google.com with SMTP id u4so321658uaf.10
-        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2018 21:42:33 -0700 (PDT)
-Received: from mail-ua0-f175.google.com (mail-ua0-f175.google.com. [209.85.217.175])
-        by smtp.gmail.com with ESMTPSA id c187sm247384vkf.46.2018.04.10.21.42.32
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 10 Apr 2018 21:42:32 -0700 (PDT)
-Received: by mail-ua0-f175.google.com with SMTP id q38so326171uad.5
-        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2018 21:42:32 -0700 (PDT)
-MIME-Version: 1.0
-References: <1523375324-27856-1-git-send-email-andy.yeh@intel.com>
- <1523375324-27856-3-git-send-email-andy.yeh@intel.com> <CAAFQd5ApQdHCFAmA1PjUOcDGa6VMbc=JJA1mLa8WH2PJJGD17g@mail.gmail.com>
-In-Reply-To: <CAAFQd5ApQdHCFAmA1PjUOcDGa6VMbc=JJA1mLa8WH2PJJGD17g@mail.gmail.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 11 Apr 2018 04:42:21 +0000
-Message-ID: <CAAFQd5DmQaNOpYiyg9WR+LVAWiMQ3o8e6V3ShVwhknUg51U61A@mail.gmail.com>
-Subject: Re: [RESEND PATCH v7 2/2] media: dw9807: Add dw9807 vcm driver
-To: "Yeh, Andy" <andy.yeh@intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        devicetree@vger.kernel.org, jacopo@jmondi.org,
-        Alan Chiang <alanx.chiang@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+        Sat, 21 Apr 2018 23:44:22 -0400
+Message-ID: <17091d3268afd823bd87364c58218d4c@smtp-cloud7.xs4all.net>
+Date: Sun, 22 Apr 2018 05:44:19 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 11, 2018 at 1:38 PM Tomasz Figa <tfiga@chromium.org> wrote:
-[snip]
-> > +static int dw9807_set_dac(struct i2c_client *client, u16 data)
-> > +{
-> > +       const char tx_data[3] = {
-> > +               DW9807_MSB_ADDR, ((data >> 8) & 0x03), (data & 0xff)
-> > +       };
-> > +       int ret, retry = 0;
-> > +
-> > +       /*
-> > +        * According to the datasheet, need to check the bus status
-> before we
-> > +        * write VCM position. This ensure that we really write the
-value
-> > +        * into the register
-> > +        */
-> > +       while ((ret = dw9807_i2c_check(client)) != 0) {
-> > +               if (ret < 0)
-> > +                       return ret;
-> > +
-> > +               if (MAX_RETRY == ++retry) {
-> > +                       dev_err(&client->dev,
-> > +                               "Cannot do the write operation because
-> VCM is busy\n");
-> > +                       return -EIO;
-> > +               }
-> > +               usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US
-+
-> 10);
-> > +       }
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> One could use readx_poll_timeout() here:
+Results of the daily build of media_tree:
 
-> int val;
+date:			Sun Apr 22 05:00:11 CEST 2018
+media-tree git hash:	1d338b86e17d87215cf57b1ad1d13b2afe582d33
+media_build git hash:	4fb7a3cc8d0f56c7cddc3b5b29e35aa1159bc8d9
+v4l-utils git hash:	9a4acdbe53884e5a433c1295eead61e45b0718e7
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		0.5.2-RC1
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.15.0-2-amd64
 
-> ret = readx_poll_timeout(dw9807_i2c_check, client, val, !val,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: WARNINGS: VIDEO_OMAP3 VIDEO_OMAP3_DEBUG
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.101-i686: ERRORS
+linux-3.0.101-x86_64: ERRORS
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: WARNINGS
+linux-3.10.108-x86_64: WARNINGS
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.14.31-i686: OK
+linux-4.14.31-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16-i686: OK
+linux-4.16-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-Actually, to handle errors, it should be
+Detailed results are available here:
 
-ret = readx_poll_timeout(dw9807_i2c_check, client, val, val <= 0,
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
->                            DW9807_CTRL_DELAY_US,
->                            MAX_RETRY * DW9807_CTRL_DELAY_US);
+Full logs are available here:
 
-> if (ret) {
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-if (ret || val < 0) {
+The Media Infrastructure API from this daily build is here:
 
->           dev_err(&client->dev,
->                   "Cannot do the write operation because VCM is busy\n");
->           return -EIO;
-
-return ret ? ret : val;
-
-Sorry for not spotting this earlier.
-
-Best regards,
-Tomasz
+http://www.xs4all.nl/~hverkuil/spec/index.html
