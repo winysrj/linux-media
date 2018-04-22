@@ -1,149 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54448 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751151AbeD1UuS (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:39617 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754289AbeDVP46 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Apr 2018 16:50:18 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Dave Airlie <airlied@gmail.com>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v3 0/8] R-Car DU: Support CRC calculation
-Date: Sat, 28 Apr 2018 23:50:19 +0300
-Message-Id: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
+        Sun, 22 Apr 2018 11:56:58 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v3 07/11] media: ov772x: handle nested s_power() calls
+Date: Mon, 23 Apr 2018 00:56:13 +0900
+Message-Id: <1524412577-14419-8-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
+References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Depending on the v4l2 driver, calling s_power() could be nested.  So the
+actual transitions between power saving mode and normal operation mode
+should only happen at the first power on and the last power off.
 
-(Dave, there's a request for you below)
+This adds an s_power() nesting counter and updates the power state if the
+counter is modified from 0 to != 0 or from != 0 to 0.
 
-This patch series adds support for CRC calculation to the rcar-du-drm driver.
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* v3
+- Rename mutex name from power_lock to lock
+- Add warning for duplicated s_power call
 
-CRC calculation is supported starting at the Renesas R-Car Gen3 SoCs, as
-earlier versions don't have the necessary hardware. On Gen3 SoCs, the CRC is
-computed by the DISCOM module part of the VSP-D and VSP-DL.
+ drivers/media/i2c/ov772x.c | 34 ++++++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
-The DISCOM is interfaced to the VSP through the UIF glue and appears as a VSP
-entity with a sink pad and a source pad.
-
-The series starts with a switch to SPDX license headers in patch 1/8, prompted
-by a checkpatch.pl warning for a later patch that complained about missing
-SPDX license headers. It then continues with cleanup and refactoring. Patches
-2/8 and 3/8 prepare for DISCOM and UIF support by extending generic code to
-make it usable for the UIF. Patch 4/8 documents a structure that will receive
-new fields.
-
-Patch 5/8 then extends the API exposed by the VSP driver to the DU driver to
-support CRC computation configuration and reporting. The patch unfortunately
-needs to touch both the VSP and DU drivers, so the whole series will need to
-be merged through a single tree.
-
-Patch 5/8 adds support for the DISCOM and UIF in the VSP driver, patch 7/8
-integrates it in the DRM pipeline, and patch 8/8 finally implements the CRC
-API in the DU driver to expose CRC computation to userspace.
-
-The hardware supports computing the CRC at any arbitrary point in the
-pipeline on a configurable window of the frame. This patch series supports CRC
-computation on input planes or pipeline output, but on the full frame only.
-Support for CRC window configuration can be added later if needed but will
-require extending the userspace API, as the DRM/KMS CRC API doesn't support
-this feature.
-
-Compared to v1, the CRC source names for plane inputs are now constructed from
-plane IDs instead of plane indices. This allows userspace to match CRC sources
-with planes.
-
-Compared to v2, various small issues reported by reviewers have been fixed. I
-believe the series to now be ready for upstream merge.
-
-Note that exposing the DISCOM and UIF though the V4L2 API isn't supported as
-the module is only found in VSP-D and VSP-DL instances that are not exposed
-through V4L2. It is possible to expose those instances through V4L2 with a
-small modification to the driver for testing purpose. If the need arises to
-test DISCOM and UIF with such an out-of-tree patch, support for CRC reporting
-through a V4L2 control can be added later without affecting how CRC is exposed
-through the DRM/KMS API.
-
-The patches are based on top of the "[PATCH v2 00/15] R-Car VSP1: Dynamically
-assign blend units to display pipelines" patch series, itself based on top of
-the Linux media master branch and scheduled for merge in v4.18. The new base
-caused heavy conflicts, requiring this series to be merged through the V4L2
-tree.
-
-Dave, I have verified that this series merges cleanly with your drm-next and
-drm-fixes branches, with the drm-misc-next and drm-misc-fixes branches, and
-with the R-Car DU patches I would like to get merged in v4.18 through your
-tree. Could I get your ack to merge this through the V4L2 tree ?
-
-For convenience the patches are available at
-
-        git://linuxtv.org/pinchartl/media.git vsp1-discom-v3-20180428
-
-The code has been tested through the kms-test-crc.py script part of the DU
-test suite available at
-
-        git://git.ideasonboard.com/renesas/kms-tests.git discom
-
-Laurent Pinchart (8):
-  v4l: vsp1: Use SPDX license headers
-  v4l: vsp1: Share the CLU, LIF and LUT set_fmt pad operation code
-  v4l: vsp1: Reset the crop and compose rectangles in the set_fmt helper
-  v4l: vsp1: Document the vsp1_du_atomic_config structure
-  v4l: vsp1: Extend the DU API to support CRC computation
-  v4l: vsp1: Add support for the DISCOM entity
-  v4l: vsp1: Integrate DISCOM in display pipeline
-  drm: rcar-du: Add support for CRC computation
-
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c    | 156 ++++++++++++++++-
- drivers/gpu/drm/rcar-du/rcar_du_crtc.h    |  15 ++
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c     |  12 +-
- drivers/media/platform/vsp1/Makefile      |   2 +-
- drivers/media/platform/vsp1/vsp1.h        |  10 +-
- drivers/media/platform/vsp1/vsp1_brx.c    |   6 +-
- drivers/media/platform/vsp1/vsp1_brx.h    |   6 +-
- drivers/media/platform/vsp1/vsp1_clu.c    |  71 ++------
- drivers/media/platform/vsp1/vsp1_clu.h    |   6 +-
- drivers/media/platform/vsp1/vsp1_dl.c     |   8 +-
- drivers/media/platform/vsp1/vsp1_dl.h     |   6 +-
- drivers/media/platform/vsp1/vsp1_drm.c    | 127 ++++++++++++--
- drivers/media/platform/vsp1/vsp1_drm.h    |  15 +-
- drivers/media/platform/vsp1/vsp1_drv.c    |  26 ++-
- drivers/media/platform/vsp1/vsp1_entity.c | 103 +++++++++++-
- drivers/media/platform/vsp1/vsp1_entity.h |  13 +-
- drivers/media/platform/vsp1/vsp1_hgo.c    |   6 +-
- drivers/media/platform/vsp1/vsp1_hgo.h    |   6 +-
- drivers/media/platform/vsp1/vsp1_hgt.c    |   6 +-
- drivers/media/platform/vsp1/vsp1_hgt.h    |   6 +-
- drivers/media/platform/vsp1/vsp1_histo.c  |  65 +------
- drivers/media/platform/vsp1/vsp1_histo.h  |   6 +-
- drivers/media/platform/vsp1/vsp1_hsit.c   |   6 +-
- drivers/media/platform/vsp1/vsp1_hsit.h   |   6 +-
- drivers/media/platform/vsp1/vsp1_lif.c    |  71 ++------
- drivers/media/platform/vsp1/vsp1_lif.h    |   6 +-
- drivers/media/platform/vsp1/vsp1_lut.c    |  71 ++------
- drivers/media/platform/vsp1/vsp1_lut.h    |   6 +-
- drivers/media/platform/vsp1/vsp1_pipe.c   |   6 +-
- drivers/media/platform/vsp1/vsp1_pipe.h   |   6 +-
- drivers/media/platform/vsp1/vsp1_regs.h   |  46 ++++-
- drivers/media/platform/vsp1/vsp1_rpf.c    |   6 +-
- drivers/media/platform/vsp1/vsp1_rwpf.c   |   6 +-
- drivers/media/platform/vsp1/vsp1_rwpf.h   |   6 +-
- drivers/media/platform/vsp1/vsp1_sru.c    |   6 +-
- drivers/media/platform/vsp1/vsp1_sru.h    |   6 +-
- drivers/media/platform/vsp1/vsp1_uds.c    |   6 +-
- drivers/media/platform/vsp1/vsp1_uds.h    |   6 +-
- drivers/media/platform/vsp1/vsp1_uif.c    | 271 ++++++++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_uif.h    |  32 ++++
- drivers/media/platform/vsp1/vsp1_video.c  |   6 +-
- drivers/media/platform/vsp1/vsp1_video.h  |   6 +-
- drivers/media/platform/vsp1/vsp1_wpf.c    |   6 +-
- include/media/vsp1.h                      |  45 ++++-
- 44 files changed, 892 insertions(+), 417 deletions(-)
- create mode 100644 drivers/media/platform/vsp1/vsp1_uif.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_uif.h
-
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 95c1c95d..8c0b850 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -424,6 +424,9 @@ struct ov772x_priv {
+ 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
+ 	unsigned short                    band_filter;
+ 	unsigned int			  fps;
++	/* lock to protect power_count */
++	struct mutex			  lock;
++	int				  power_count;
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_pad pad;
+ #endif
+@@ -871,9 +874,26 @@ static int ov772x_power_off(struct ov772x_priv *priv)
+ static int ov772x_s_power(struct v4l2_subdev *sd, int on)
+ {
+ 	struct ov772x_priv *priv = to_ov772x(sd);
++	int ret = 0;
++
++	mutex_lock(&priv->lock);
++
++	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
++	 * update the power state.
++	 */
++	if (priv->power_count == !on)
++		ret = on ? ov772x_power_on(priv) : ov772x_power_off(priv);
++
++	if (!ret) {
++		/* Update the power count. */
++		priv->power_count += on ? 1 : -1;
++		WARN(priv->power_count < 0, "Unbalanced power count\n");
++		WARN(priv->power_count > 1, "Duplicated s_power call\n");
++	}
++
++	mutex_unlock(&priv->lock);
+ 
+-	return on ? ov772x_power_on(priv) :
+-		    ov772x_power_off(priv);
++	return ret;
+ }
+ 
+ static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
+@@ -1303,6 +1323,7 @@ static int ov772x_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 
+ 	priv->info = client->dev.platform_data;
++	mutex_init(&priv->lock);
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
+ 	v4l2_ctrl_handler_init(&priv->hdl, 3);
+@@ -1313,8 +1334,10 @@ static int ov772x_probe(struct i2c_client *client,
+ 	v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
+ 			  V4L2_CID_BAND_STOP_FILTER, 0, 256, 1, 0);
+ 	priv->subdev.ctrl_handler = &priv->hdl;
+-	if (priv->hdl.error)
+-		return priv->hdl.error;
++	if (priv->hdl.error) {
++		ret = priv->hdl.error;
++		goto error_mutex_destroy;
++	}
+ 
+ 	priv->clk = clk_get(&client->dev, "xclk");
+ 	if (IS_ERR(priv->clk)) {
+@@ -1362,6 +1385,8 @@ static int ov772x_probe(struct i2c_client *client,
+ 	clk_put(priv->clk);
+ error_ctrl_free:
+ 	v4l2_ctrl_handler_free(&priv->hdl);
++error_mutex_destroy:
++	mutex_destroy(&priv->lock);
+ 
+ 	return ret;
+ }
+@@ -1376,6 +1401,7 @@ static int ov772x_remove(struct i2c_client *client)
+ 		gpiod_put(priv->pwdn_gpio);
+ 	v4l2_async_unregister_subdev(&priv->subdev);
+ 	v4l2_ctrl_handler_free(&priv->hdl);
++	mutex_destroy(&priv->lock);
+ 
+ 	return 0;
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
