@@ -1,91 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:59598 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753597AbeDLPYU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 11:24:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Jaedon Shin <jaedon.shin@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        stable@vger.kernel.org
-Subject: [PATCH 05/17] dvb_frontend: fix locking issues at dvb_frontend_get_event()
-Date: Thu, 12 Apr 2018 11:23:57 -0400
-Message-Id: <1eeff5a276fec1b5eab19baa184f5a3e96b7b2cc.1523546545.git.mchehab@s-opensource.com>
-In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from perceval.ideasonboard.com ([213.167.242.64]:46482 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753816AbeDVWe2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Apr 2018 18:34:28 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v2 5/8] v4l: vsp1: Extend the DU API to support CRC computation
+Date: Mon, 23 Apr 2018 01:34:27 +0300
+Message-Id: <20180422223430.16407-6-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As warned by smatch:
-	drivers/media/dvb-core/dvb_frontend.c:314 dvb_frontend_get_event() warn: inconsistent returns 'sem:&fepriv->sem'.
-	  Locked on:   line 288
-	               line 295
-	               line 306
-	               line 314
-	  Unlocked on: line 303
+Add a parameter (in the form of a structure to ease future API
+extensions) to the VSP atomic flush handler to pass CRC source
+configuration, and pass the CRC value to the completion callback.
 
-The lock implementation for get event is wrong, as, if an
-interrupt occurs, down_interruptible() will fail, and the
-routine will call up() twice when userspace calls the ioctl
-again.
-
-The bad code is there since when Linux migrated to git, in
-2005.
-
-Cc: stable@vger.kernel.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c  |  6 ++++--
+ drivers/media/platform/vsp1/vsp1_drm.c |  6 ++++--
+ drivers/media/platform/vsp1/vsp1_drm.h |  2 +-
+ include/media/vsp1.h                   | 29 +++++++++++++++++++++++++++--
+ 4 files changed, 36 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index e33414975065..a4ada1ccf0df 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -275,8 +275,20 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe,
- 	wake_up_interruptible (&events->wait_queue);
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+index 2c260c33840b..bdcec201591f 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+@@ -31,7 +31,7 @@
+ #include "rcar_du_kms.h"
+ #include "rcar_du_vsp.h"
+ 
+-static void rcar_du_vsp_complete(void *private, bool completed)
++static void rcar_du_vsp_complete(void *private, bool completed, u32 crc)
+ {
+ 	struct rcar_du_crtc *crtc = private;
+ 
+@@ -102,7 +102,9 @@ void rcar_du_vsp_atomic_begin(struct rcar_du_crtc *crtc)
+ 
+ void rcar_du_vsp_atomic_flush(struct rcar_du_crtc *crtc)
+ {
+-	vsp1_du_atomic_flush(crtc->vsp->vsp, crtc->vsp_pipe);
++	struct vsp1_du_atomic_pipe_config cfg = { { 0, } };
++
++	vsp1_du_atomic_flush(crtc->vsp->vsp, crtc->vsp_pipe, &cfg);
  }
  
-+static int dvb_frontend_test_event(struct dvb_frontend_private *fepriv,
-+				   struct dvb_fe_events *events)
-+{
-+	int ret;
-+
-+	up(&fepriv->sem);
-+	ret = events->eventw != events->eventr;
-+	down(&fepriv->sem);
-+
-+	return ret;
-+}
-+
- static int dvb_frontend_get_event(struct dvb_frontend *fe,
--			    struct dvb_frontend_event *event, int flags)
-+			          struct dvb_frontend_event *event, int flags)
+ /* Keep the two tables in sync. */
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 2b29a83dceb9..5fc31578f9b0 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -36,7 +36,7 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
+ 	bool complete = completion == VSP1_DL_FRAME_END_COMPLETED;
+ 
+ 	if (drm_pipe->du_complete)
+-		drm_pipe->du_complete(drm_pipe->du_private, complete);
++		drm_pipe->du_complete(drm_pipe->du_private, complete, 0);
+ 
+ 	if (completion & VSP1_DL_FRAME_END_INTERNAL) {
+ 		drm_pipe->force_brx_release = false;
+@@ -739,8 +739,10 @@ EXPORT_SYMBOL_GPL(vsp1_du_atomic_update);
+  * vsp1_du_atomic_flush - Commit an atomic update
+  * @dev: the VSP device
+  * @pipe_index: the DRM pipeline index
++ * @cfg: atomic pipe configuration
+  */
+-void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
++void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
++			  const struct vsp1_du_atomic_pipe_config *cfg)
  {
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	struct dvb_fe_events *events = &fepriv->events;
-@@ -294,13 +306,8 @@ static int dvb_frontend_get_event(struct dvb_frontend *fe,
- 		if (flags & O_NONBLOCK)
- 			return -EWOULDBLOCK;
+ 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+ 	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+index f4af1b2b12d6..e5b88b28806c 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.h
++++ b/drivers/media/platform/vsp1/vsp1_drm.h
+@@ -35,7 +35,7 @@ struct vsp1_drm_pipeline {
+ 	wait_queue_head_t wait_queue;
  
--		up(&fepriv->sem);
--
--		ret = wait_event_interruptible (events->wait_queue,
--						events->eventw != events->eventr);
--
--		if (down_interruptible (&fepriv->sem))
--			return -ERESTARTSYS;
-+		ret = wait_event_interruptible(events->wait_queue,
-+					       dvb_frontend_test_event(fepriv, events));
+ 	/* Frame synchronisation */
+-	void (*du_complete)(void *, bool);
++	void (*du_complete)(void *data, bool completed, u32 crc);
+ 	void *du_private;
+ };
  
- 		if (ret < 0)
- 			return ret;
+diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+index ff7ef894465d..ac63a9928a79 100644
+--- a/include/media/vsp1.h
++++ b/include/media/vsp1.h
+@@ -34,7 +34,7 @@ struct vsp1_du_lif_config {
+ 	unsigned int width;
+ 	unsigned int height;
+ 
+-	void (*callback)(void *, bool);
++	void (*callback)(void *data, bool completed, u32 crc);
+ 	void *callback_data;
+ };
+ 
+@@ -61,11 +61,36 @@ struct vsp1_du_atomic_config {
+ 	unsigned int zpos;
+ };
+ 
++/**
++ * enum vsp1_du_crc_source - Source used for CRC calculation
++ * @VSP1_DU_CRC_NONE: CRC calculation disabled
++ * @VSP_DU_CRC_PLANE: Perform CRC calculation on an input plane
++ * @VSP_DU_CRC_OUTPUT: Perform CRC calculation on the composed output
++ */
++enum vsp1_du_crc_source {
++	VSP1_DU_CRC_NONE,
++	VSP1_DU_CRC_PLANE,
++	VSP1_DU_CRC_OUTPUT,
++};
++
++/**
++ * struct vsp1_du_atomic_pipe_config - VSP atomic pipe configuration parameters
++ * @crc.source: source for CRC calculation
++ * @crc.index: index of the CRC source plane (when crc.source is set to plane)
++ */
++struct vsp1_du_atomic_pipe_config {
++	struct  {
++		enum vsp1_du_crc_source source;
++		unsigned int index;
++	} crc;
++};
++
+ void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index);
+ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
+ 			  unsigned int rpf,
+ 			  const struct vsp1_du_atomic_config *cfg);
+-void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index);
++void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
++			  const struct vsp1_du_atomic_pipe_config *cfg);
+ int vsp1_du_map_sg(struct device *dev, struct sg_table *sgt);
+ void vsp1_du_unmap_sg(struct device *dev, struct sg_table *sgt);
+ 
 -- 
-2.14.3
+Regards,
+
+Laurent Pinchart
