@@ -1,131 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:58908 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751376AbeD3Drw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Apr 2018 23:47:52 -0400
-Message-ID: <0acef8b7e90d1537e87d14223230b1f8@smtp-cloud9.xs4all.net>
-Date: Mon, 30 Apr 2018 05:47:50 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mail-eopbgr40099.outbound.protection.outlook.com ([40.107.4.99]:21248
+        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753438AbeDVUCb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Apr 2018 16:02:31 -0400
+Subject: Re: [PATCH 1/8] drm: bridge: Add support for static image formats
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>, architt@codeaurora.org,
+        a.hajda@samsung.com, Laurent.pinchart@ideasonboard.com,
+        airlied@linux.ie
+Cc: daniel@ffwll.ch, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1524130269-32688-2-git-send-email-jacopo+renesas@jmondi.org>
+From: Peter Rosin <peda@axentia.se>
+Message-ID: <10891e93-ede5-8c39-b53e-da892e163b52@axentia.se>
+Date: Sun, 22 Apr 2018 22:02:23 +0200
+MIME-Version: 1.0
+In-Reply-To: <1524130269-32688-2-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 2018-04-19 11:31, Jacopo Mondi wrote:
+> Add support for storing image format information in DRM bridges with
+> associated helper function.
+> 
+> This patch replicates for bridges what 'drm_display_info_set_bus_formats()'
+> is for connectors.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/gpu/drm/drm_bridge.c | 30 ++++++++++++++++++++++++++++++
+>  include/drm/drm_bridge.h     |  8 ++++++++
+>  2 files changed, 38 insertions(+)
+> 
+> diff --git a/drivers/gpu/drm/drm_bridge.c b/drivers/gpu/drm/drm_bridge.c
+> index 1638bfe..e2ad098 100644
+> --- a/drivers/gpu/drm/drm_bridge.c
+> +++ b/drivers/gpu/drm/drm_bridge.c
+> @@ -157,6 +157,36 @@ void drm_bridge_detach(struct drm_bridge *bridge)
+>  }
+>  
+>  /**
+> + * drm_bridge_set_bus_formats() - set bridge supported image formats
+> + * @bridge: the bridge to set image formats in
+> + * @formats: array of MEDIA_BUS_FMT\_ supported image formats
+> + * @num_formats: number of elements in the @formats array
+> + *
+> + * Store a list of supported image formats in a bridge.
+> + * See MEDIA_BUS_FMT_* definitions in include/uapi/linux/media-bus-format.h for
+> + * a full list of available formats.
+> + */
+> +int drm_bridge_set_bus_formats(struct drm_bridge *bridge, const u32 *formats,
+> +			       unsigned int num_formats)
+> +{
+> +	u32 *fmts;
+> +
+> +	if (!formats || !num_formats)
+> +		return -EINVAL;
 
-Results of the daily build of media_tree:
+I see no compelling reason to forbid restoring the number of reported
+input formats to zero? I can't think of a use right now of course, but it
+seems a bit odd all the same.
 
-date:			Mon Apr 30 05:00:20 CEST 2018
-media-tree git hash:	a2b2eff6ac2716f499defa590a6ec4ba379d765e
-media_build git hash:	2945d108c680b3c09c9843e001e84a9797d7f379
-v4l-utils git hash:	03e763fd4b361b2082019032fc315b7606669335
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
+Cheers,
+Peter
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> +
+> +	fmts = kmemdup(formats, sizeof(*formats) * num_formats, GFP_KERNEL);
+> +	if (!fmts)
+> +		return -ENOMEM;
+> +
+> +	kfree(bridge->bus_formats);
+> +	bridge->bus_formats = fmts;
+> +	bridge->num_bus_formats = num_formats;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(drm_bridge_set_bus_formats);
+> +
+> +/**
+>   * DOC: bridge callbacks
+>   *
+>   * The &drm_bridge_funcs ops are populated by the bridge driver. The DRM
+> diff --git a/include/drm/drm_bridge.h b/include/drm/drm_bridge.h
+> index 3270fec..6b3648c 100644
+> --- a/include/drm/drm_bridge.h
+> +++ b/include/drm/drm_bridge.h
+> @@ -258,6 +258,9 @@ struct drm_bridge_timings {
+>   * @encoder: encoder to which this bridge is connected
+>   * @next: the next bridge in the encoder chain
+>   * @of_node: device node pointer to the bridge
+> + * @bus_formats: wire image formats. Array of @num_bus_formats MEDIA_BUS_FMT\_
+> + * elements
+> + * @num_bus_formats: size of @bus_formats array
+>   * @list: to keep track of all added bridges
+>   * @timings: the timing specification for the bridge, if any (may
+>   * be NULL)
+> @@ -271,6 +274,9 @@ struct drm_bridge {
+>  #ifdef CONFIG_OF
+>  	struct device_node *of_node;
+>  #endif
+> +	const u32 *bus_formats;
+> +	unsigned int num_bus_formats;
+> +
+>  	struct list_head list;
+>  	const struct drm_bridge_timings *timings;
+>  
+> @@ -296,6 +302,8 @@ void drm_bridge_mode_set(struct drm_bridge *bridge,
+>  			struct drm_display_mode *adjusted_mode);
+>  void drm_bridge_pre_enable(struct drm_bridge *bridge);
+>  void drm_bridge_enable(struct drm_bridge *bridge);
+> +int drm_bridge_set_bus_formats(struct drm_bridge *bridge, const u32 *fmts,
+> +			       unsigned int num_fmts);
+>  
+>  #ifdef CONFIG_DRM_PANEL_BRIDGE
+>  struct drm_bridge *drm_panel_bridge_add(struct drm_panel *panel,
+> 
