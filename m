@@ -1,177 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:34313 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752688AbeDHRka (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 13:40:30 -0400
-Received: by mail-pl0-f67.google.com with SMTP id y12-v6so3625121plt.1
-        for <linux-media@vger.kernel.org>; Sun, 08 Apr 2018 10:40:29 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
-        hiranotaka@zng.info
-Subject: [PATCH v3 4/5] dvb: earth-pt1: add support for suspend/resume
-Date: Mon,  9 Apr 2018 02:39:52 +0900
-Message-Id: <20180408173953.11076-5-tskd08@gmail.com>
-In-Reply-To: <20180408173953.11076-1-tskd08@gmail.com>
-References: <20180408173953.11076-1-tskd08@gmail.com>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:42457 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754448AbeDVP5J (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Apr 2018 11:57:09 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v3 11/11] media: ov772x: create subdevice device node
+Date: Mon, 23 Apr 2018 00:56:17 +0900
+Message-Id: <1524412577-14419-12-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
+References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Set the V4L2_SUBDEV_FL_HAS_DEVNODE flag for the subdevice so that the
+subdevice device node is created.
 
-Without this patch, re-loading of the module was required after resume.
-
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
-Changes since v2:
-- none
+* v3
+- No changes
 
-Changes since v1:
-- none
+ drivers/media/i2c/ov772x.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- drivers/media/pci/pt1/pt1.c | 107 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 105 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/pci/pt1/pt1.c b/drivers/media/pci/pt1/pt1.c
-index 40b6c0ac342..b169175d85e 100644
---- a/drivers/media/pci/pt1/pt1.c
-+++ b/drivers/media/pci/pt1/pt1.c
-@@ -461,12 +461,18 @@ static int pt1_thread(void *data)
- {
- 	struct pt1 *pt1;
- 	struct pt1_buffer_page *page;
-+	bool was_frozen;
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index c9fdc67..a41c9d3 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -1404,6 +1404,7 @@ static int ov772x_probe(struct i2c_client *client,
+ 	mutex_init(&priv->lock);
  
- 	pt1 = data;
- 	set_freezable();
- 
--	while (!kthread_should_stop()) {
--		try_to_freeze();
-+	while (!kthread_freezable_should_stop(&was_frozen)) {
-+		if (was_frozen) {
-+			int i;
-+
-+			for (i = 0; i < PT1_NR_ADAPS; i++)
-+				pt1_set_stream(pt1, i, !!pt1->adaps[i]->users);
-+		}
- 
- 		page = pt1->tables[pt1->table_index].bufs[pt1->buf_index].page;
- 		if (!pt1_filter(pt1, page)) {
-@@ -1165,6 +1171,98 @@ static void pt1_i2c_init(struct pt1 *pt1)
- 		pt1_i2c_emit(pt1, i, 0, 0, 1, 1, 0);
- }
- 
-+#ifdef CONFIG_PM_SLEEP
-+
-+static int pt1_suspend(struct device *dev)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	struct pt1 *pt1 = pci_get_drvdata(pdev);
-+
-+	pt1_init_streams(pt1);
-+	pt1_disable_ram(pt1);
-+	pt1->power = 0;
-+	pt1->reset = 1;
-+	pt1_update_power(pt1);
-+	return 0;
-+}
-+
-+static int pt1_resume(struct device *dev)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	struct pt1 *pt1 = pci_get_drvdata(pdev);
-+	int ret;
-+	int i;
-+
-+	pt1->power = 0;
-+	pt1->reset = 1;
-+	pt1_update_power(pt1);
-+
-+	pt1_i2c_init(pt1);
-+	pt1_i2c_wait(pt1);
-+
-+	ret = pt1_sync(pt1);
-+	if (ret < 0)
-+		goto resume_err;
-+
-+	pt1_identify(pt1);
-+
-+	ret = pt1_unlock(pt1);
-+	if (ret < 0)
-+		goto resume_err;
-+
-+	ret = pt1_reset_pci(pt1);
-+	if (ret < 0)
-+		goto resume_err;
-+
-+	ret = pt1_reset_ram(pt1);
-+	if (ret < 0)
-+		goto resume_err;
-+
-+	ret = pt1_enable_ram(pt1);
-+	if (ret < 0)
-+		goto resume_err;
-+
-+	pt1_init_streams(pt1);
-+
-+	pt1->power = 1;
-+	pt1_update_power(pt1);
-+	msleep(20);
-+
-+	pt1->reset = 0;
-+	pt1_update_power(pt1);
-+	usleep_range(1000, 2000);
-+
-+	for (i = 0; i < PT1_NR_ADAPS; i++)
-+		dvb_frontend_reinitialise(pt1->adaps[i]->fe);
-+
-+	pt1_init_table_count(pt1);
-+	for (i = 0; i < pt1_nr_tables; i++) {
-+		int j;
-+
-+		for (j = 0; j < PT1_NR_BUFS; j++)
-+			pt1->tables[i].bufs[j].page->upackets[PT1_NR_UPACKETS-1]
-+				= 0;
-+		pt1_increment_table_count(pt1);
-+	}
-+	pt1_register_tables(pt1, pt1->tables[0].addr >> PT1_PAGE_SHIFT);
-+
-+	pt1->table_index = 0;
-+	pt1->buf_index = 0;
-+	for (i = 0; i < PT1_NR_ADAPS; i++) {
-+		pt1->adaps[i]->upacket_count = 0;
-+		pt1->adaps[i]->packet_count = 0;
-+		pt1->adaps[i]->st_count = -1;
-+	}
-+
-+	return 0;
-+
-+resume_err:
-+	dev_info(&pt1->pdev->dev, "failed to resume PT1/PT2.");
-+	return 0;	/* resume anyway */
-+}
-+
-+#endif /* CONFIG_PM_SLEEP */
-+
- static void pt1_remove(struct pci_dev *pdev)
- {
- 	struct pt1 *pt1;
-@@ -1325,11 +1423,16 @@ static const struct pci_device_id pt1_id_table[] = {
- };
- MODULE_DEVICE_TABLE(pci, pt1_id_table);
- 
-+static SIMPLE_DEV_PM_OPS(pt1_pm_ops, pt1_suspend, pt1_resume);
-+
- static struct pci_driver pt1_driver = {
- 	.name		= DRIVER_NAME,
- 	.probe		= pt1_probe,
- 	.remove		= pt1_remove,
- 	.id_table	= pt1_id_table,
-+#if CONFIG_PM_SLEEP
-+	.driver.pm	= &pt1_pm_ops,
-+#endif
- };
- 
- module_pci_driver(pt1_driver);
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
++	priv->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	v4l2_ctrl_handler_init(&priv->hdl, 3);
+ 	/* Use our mutex for the controls */
+ 	priv->hdl.lock = &priv->lock;
 -- 
-2.17.0
+2.7.4
