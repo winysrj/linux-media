@@ -1,380 +1,579 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:48079 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750932AbeDNL6q (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:46480 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753713AbeDVWea (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 07:58:46 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+        Sun, 22 Apr 2018 18:34:30 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
 Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v14 00/33] rcar-vin: Add Gen3 with media controller
-Date: Sat, 14 Apr 2018 13:56:53 +0200
-Message-Id: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v2 6/8] v4l: vsp1: Add support for the DISCOM entity
+Date: Mon, 23 Apr 2018 01:34:28 +0300
+Message-Id: <20180422223430.16407-7-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The DISCOM calculates a CRC on a configurable window of the frame. It
+interfaces to the VSP through the UIF glue, hence the name used in the
+code.
 
-This series adds Gen3 VIN support to rcar-vin driver for Renesas r8a7795,
-r8a7796 and r8a77970. It is based on the media-tree and depends on
-Fabrizio Castro patches as they touches the order of the compatible
-strings in the documentation to reduce merge conflicts. The dependencies
-are included in this series.
+The module supports configuration of the CRC window through the crop
+rectangle on the ink pad of the corresponding entity. However, unlike
+the traditional V4L2 subdevice model, the crop rectangle does not
+influence the format on the source pad.
 
-The driver is tested on Renesas H3 (r8a7795, ES2.0),
-M3-W (r8a7796) together with the rcar-csi2 driver (posted separately and
-not yet upstream) and the Salvator-X onboard ADV7482. It is also tested
-on the V3M (r8a77970) on the Eagle board together with its expansion
-board with a ADV7482 and out of tree patches for GMSL capture using the
-max9286 and rdacm20 drivers.
+Modeling the DISCOM as a sink-only entity would allow adhering to the
+V4L2 subdevice model at the expense of more complex code in the driver,
+as at the hardware level the UIF is handled as a sink+source entity. As
+the DISCOM is only present in R-Car Gen3 VSP-D and VSP-DL instances it
+is not exposed to userspace through V4L2 but controlled through the DU
+driver. We can thus change this model later if needed without fear of
+affecting userspace.
 
-It is possible to capture both CVBS and HDMI video streams,
-v4l2-compliance passes with no errors and media-ctl can be used to
-change the routing and formats for the different entities in the media
-graph.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+Changes since v1:
 
-Gen2 compatibility is verified on Koelsch and no problems where found,
-video can be captured just like before and v4l2-compliance passes
-without errors or warnings just like before this series.
+- Don't return uninitialized value from uif_set_selection()
+---
+ drivers/media/platform/vsp1/Makefile      |   2 +-
+ drivers/media/platform/vsp1/vsp1.h        |   4 +
+ drivers/media/platform/vsp1/vsp1_drv.c    |  20 +++
+ drivers/media/platform/vsp1/vsp1_entity.c |   6 +
+ drivers/media/platform/vsp1/vsp1_entity.h |   1 +
+ drivers/media/platform/vsp1/vsp1_regs.h   |  41 +++++
+ drivers/media/platform/vsp1/vsp1_uif.c    | 271 ++++++++++++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_uif.h    |  32 ++++
+ 8 files changed, 376 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/platform/vsp1/vsp1_uif.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_uif.h
 
-For convenience the series can be fetched from:
-
-  git://git.ragnatech.se/linux rcar/vin/mc-v14
-
-I have started on a very basic test suite for the VIN driver at:
-
-  https://git.ragnatech.se/vin-tests
-
-And as before the state of the driver and information about how to test
-it can be found on the elinux wiki:
-
-  http://elinux.org/R-Car/Tests:rcar-vin
-
-* Changes since v13
-- rvin_reset_format() always returns 0, make it a void function and
-  update all call-sites no to check the return value.
-- Simplify how the source, compose and crop geometry is reset in 
-  rvin_reset_format(), no change except making the code more readable, 
-  thanks Laurent for a good suggestion.
-- Split two single line declaration of multiple variables to multiple 
-  lines, removing constructs like 'crop->top = crop->left = 0;' into two 
-  separate statements.
-- Make crop and compose arguments to rvin_try_format() optional to avoid
-  having to declare local variables in rvin_try_fmt_vid_cap() which are
-  not used.
-- Remove VNCSI_IFMD_DES2 define as the later versions of the datasheet 
-  have been updated to remove the register as pointed out by Koji Matsuoka.
-- Do not set the VNCSI_IFMD_DES2 bit in the VNCSI_IFMD register as that 
-  bit have been removed from later versions of the datasheet.
-- Spelling dose -> does
-- Add review tag from Laurent, big thanks!
-
-* Changes from v12
-- Rebase to latest media-tree/master changed a 'return ret' to a 'goto
-  out' in rvin_start_streaming() to take recent changes to the VIN
-  driver into account.
-- Moved field != V4L2_FIELD_ANY in 'rcar-vin: set a default field to
-  fallback on' check from a later commit 'rcar-vin: simplify how formats
-  are set and reset' in the series. This is to avoid ignoring the field
-  returned from the sensor if FIELD_ANY was requested by the user. This
-  was only a problem between this change and a few patches later, but
-  better to fix it now. Reported by Hans, thanks for spotting this.
-- Fix spelling.
-- Add review tags from Hans.
-
-* Changes since v11
-- Rewrote commit message for '[PATCH v11 22/32] rcar-vin: force default
-  colorspace for media centric mode'. Also set fixed values for
-  xfer_func, quantization and ycbcr_enc.
-- Reorderd filed order in struct rvin_group_route.
-- Renamed chan to channel in struct rvin_group_route.
-- Rework 'rcar-vin: read subdevice format for crop only when
-  needed' into 'rcar-vin: simplify how formats are set and reset'.
-- Keep caching the source dimensions and drop all changes to
-  rvin_g_selection() and rvin_s_selection().
-- Inline rvin_get_vin_format_from_source() into rvin_reset_format()
-  which now is the only user left.
-- Add patch to cache the video standard instead of reading it at stream
-  on.
-- Fix error labels in rvin_mc_open().
-- Fixed spelling in commit messages and comment, thanks Laurent!
-- Added reviewed tags from Laurent, Thanks!
-
-* Changes since v10
-- Corrected spelling in comments and commit messages.
-- Reworked 'rcar-vin: read subdevice format for crop only when needed'
-  to only get the source format once per operation.
-- Moved some patches around to make it easier to review, moved:
-    - rcar-vin: set a default field to fallback on
-    - rcar-vin: fix handling of single field frames (top, bottom and alternate fields)
-    - rcar-vin: update bytesperline and sizeimage calculation
-    - rcar-vin: break out format alignment and checking
-    - rcar-vin: update pixelformat check for M1
-  Before:
-    - rcar-vin: read subdevice format for crop only when needed
-- Rename variable 'code' to 'mbus_code' in struct rvin_dev.
-- Add comment describing no locking is needed in
-  rvin_set_channel_routing().
-- Check return value of pm_runtime_get_sync() in
-  rvin_set_channel_routing().
-- Rework 'rcar-vin: add check for colorspace' to not try to check the
-  format, instead force a default format. This should be revisited once
-  either v4l2-compliance or v4l2 framework changes are worked out to
-  allow for MC centric drivers to validate user supplied colorspace.
-- Add error checking for pm_runtime_get_sync() and
-  v4l2_pipeline_pm_use().
-- Change mutex_lock() to mutex_lock_interruptible() in rvin_mc_open().
-- Rewrote documentation for struct rvin_group_route.
-- Rename rvin_mc_parse_v4l2() to rvin_mc_parse_of_endpoint().
-- Reword error messages in rvin_mc_parse_of_endpoint().
-- Removed unneeded loop in rvin_mc_parse_of_endpoint().
-- Remove check !is_media_entity_v4l2_subdev() in
-  rvin_group_entity_to_csi_id().
-- Add documentation for the algorithm used to figure out if a link can
-  be enabled or not in rvin_group_link_notify().
-- Break out format validation to rvin_mc_validate_format().
-- Include two DT documentation patches from Fabrizio Castro which
-  previously where mentioned as the only dependency for this series.
-- Added reviewed tags from Laurent, Thanks!
-
-* Changes since v9
-- Fixed mistakes in the device tree description pointed out by  Laurent.
-    - GenX -> GenX platforms
-    - portX -> port X
-    - Explicitly state the on Gen3 platforms port 0 can only describe
-      one endpoint and that only VIN instances connected to external
-      pins should have a port 0 node.
-    - s/which is/connected to/ in he endpoint description for Gen3
-      platforms.
-- Update some poorly written commit messages.
-- Moved the digital subdevice attach and detach code to two separate
-  functions to increase readability.
-- Rename the struct rvin_info member chip to model to better describe
-  its purpose.
-- Change the video name from "rcar_vin e6ef0000.video" to "VINx output"
-  where x is the VIN id.
-- Dropped patch 'rcar-vin: do not allow changing scaling and composing
-  while streaming' as it removed Gen2 functionality which is valid as
-  pointed out by Laurent.
-- Rename rvin_get_sd_format() to rvin_get_source_format() and change its
-  parameter from struct v4l2_pix_format* to struct v4l2_mbus_framefmt*.
-- Clarified commit message and add a few move comments to 'rcar-vin: fix
-  handling of single field frames (top, bottom and alternate fields'.
-- Update documentation for struct rvin_dev fields mbus_cfg and code.
-- Fix argument in VNCSI_IFMD_CSI_CHSEL macro.
-- Renamed rvin_set_chsel() to rvin_set_channel_routing().
-- Restore the VNMC register after changing CHSEL setting.
-- Broke patch 'rcar-vin: break out format alignment and checking' into
-  three parts to ease review.
-- Add new patch to introduce a default field.
-- Only include media/v4l2-mc.h in the .c files that needs it and not in
-  rcar-vin.h.
-- Rename rvin_group_allocate() rvin_group_get()
-- Rename rvin_group_delete() rvin_group_put()
-- Updated error message "VIN number %d already occupied\n" to "Duplicate
-  renesas,id property value %u\n".
-- Removed dev_dbg messages which only where useful during development.
-- Dropped patch '[PATCH v9 10/28] rcar-vin: do not reset crop and
-  compose when setting format' as it introduces a regression on Gen2.
-- Inline rvin_group_read_id() and rvin_group_add_vin() into
-  rvin_group_get().
-- Define static variables at the top of rcar-core.c.
-- Fix potential deadlock in rvin_group_get().
-- Set media device model name to the VIN module name.
-- Set media device model to matched complicity string.
-- Do not use a 2 dimensional sparse array for chsel values in struct
-  rvin_info, instead use a flat array and store VIN and CHSEL value
-  inside each array item.
-- Reworked DT parsing code to make use of the new
-  v4l2_async_notifier_parse_fwnode_endpoints_by_port() helper removing a
-  lot of iffy custom parsing code.
-- Rework how CHSEL value is calculated in the link notifier callback.
-  Using a bitmap of possible values instead of looping over an array
-  turned out great reducing both LoC and increasing readability of the
-  code which was a bit difficult before. It also reduced to memory
-  needed to contain the static routing information.
-- Verify the media bus pixel code when starting a stream.
-- Take the media device graph lock when figuring out and starting a
-  stream so not to race between simultaneous stream start from multiple
-  rcar-vin instances as they might share common subdevices.
-- Added review tags from Laurent.
-- Dropped tags from patches that where changed more then just correcting
-  spelling or other gramma errors.
-
-* Changes since v8
-- Fixed issue in rvin_group_init() where rvin_group_update_links() was
-  called, but after moving the video device registration to the
-  complete() callback this is now invalid.
-- Fixed spelling in commit messages.
-- Added review and acks from Hans, Kieran and Rob.
-
-* Changes since v7
-- Dropped '[PATCH v7 02/25] rcar-vin: register the video device at probe time'
-- Add patch which renames four badly name functions. Some of the
-  renaming was in v7 part of the dropped patch 02/25. Make it a own
-  patch and rename all badly named functions in one patch.
-- Add patch to replace part of the functionality of the dropped patch v7
-  02/25. The new patch keeps the subdevice (un)registration calls in the
-  async callbacks bind() and unbind() but moves the direct subdevice
-  initialization which only is used on Gen2 from the Gen2 and Gen3
-  shared rvin_v4l2_register().
-- Add patch to enable Renesas V3M (r8a77970)
-- Patch 'rcar-vin: parse Gen3 OF and setup media graph' have had code
-  additions since v7 since it now registers the video devices in the
-  async complete() callback instead of at probe time as an effect of
-  dropping v7 02/25.
-  - The complete() callback now register all video devices.
-  - The unbind() callback now unregister all video devices.
-  - A new member '*notifier' is added to struct rvin_group which keeps
-    track of which rcar-vin instance have registered its notifier on the
-    groups behalf.
-  For the reason above all Reviewed-by tags have been dropped for this
-  patch.
-- Replaced all kernel messages which used of_node_full_name() as now
-  only returns the basename and not till full path, thanks Geert.
-
-    printk("%s", of_node_full_name(ep)); -> printk("%pOF", ep);
-
-- Added Reviewed-by tags from Hans, big thanks!
-
-* Changes since v6
-- Rebase ontop of latest media-tree which brings in the use of the
-  fwnode async helpers for Gen2.
-- Updated DT binding documentation, thanks Laurent for very helpful
-  input!
-- Removed help text which where copied in from v4l2_ctrl_handler_init()
-  documentation when moving that code block, this was a residue from the
-  soc_camera conversion and should have been removed at that time.
-- Removed bad check of tvnorms which disables IOCTLs if it's not set,
-  this was a residue from soc_camera conversion and have use in the
-  current driver.
-- Moved all subdevice initialization from complete to bound handler
-  while improving the unbind handler. With this move all operations of
-  the ctrl_handler from the subdevice is handled in either bound or
-  unbind removing races pointed out by Laurent.
-- Renamed rvin_v4l2_probe() -> rvin_v4l2_register() and
-  rvin_v4l2_remove() -> rvin_v4l2_unregister().
-- Fold rvin_mbus_supported() into its only caller.
-- Sort compatible string entries in ascending order.
-- Improved documentation for struct rvin_group_chsel.
-- Clarify comment in rvin_group_csi_pad_to_chan().
-- Make use of of_device_get_match_data() as suggested by Geert.
-- Fixed spelling mistakes.
-- Added review tags from Hans.
-
-* Changes since v5
-- Extract and make use of common format checking for both Gen2 and Gen3.
-- Assign pad at declaration time in rvin_get_sd_format()
-- Always call pm_runtime_{get_sync,put}() and v4l2_pipeline_pm_use()
-  when opening/closing a video device, remove the check of
-  v4l2_fh_is_singular_file().
-- Make rvin_set_chsel() return void instead of int since it always
-  return 0.
-- Simplify the VIN group allocator functions.
-- Make the group notifier callbacks and setup more robust.
-- Moved the video device registration back to probe time.
-- Add H3 ES2.0 support.
-- Fix handling of single field formats (top, bottom, alternate) as this
-  was obviously wrong before but hidden by the Gen2 scaler support.
-- Added review tags from Kieran.
-
-* Changes since v4 (Not posted to ML)
-- Updated to the new fwnode functions.
-- Moved the registration of the video devices to the async notification
-  callback.
-
-* Changes since v3
-- Only add neighboring subdevices to the async notifier. Instead of
-  parsing the whole OF graph depend on incremental async subnotifier to
-  discover the whole pipeline. This is needed to support arbitrarily
-  long graphs and support the new ADV7482 prototype driver which Kieran
-  is working on.
-- Fix warning from lockdep, reported by Kieran.
-- Fix commit messages from feedback from Sergei, thanks.
-- Fix chip info an OF device ids sorting order, thanks Geert.
-- Use subdev->of_node instead of subdev->dev->of_node, thanks Kieran.
-
-* Changes since v2
-- Do not try to control the subdevices in the media graph from the rcar-vin
-  driver. Have user-space configure to format in the pipeline instead.
-- Add link validation before starting the stream.
-- Rework on how the subdevices are and the video node behave by defining
-  specific V4L2 operations for the MC mode of operation, this simplified
-  the driver quit a bit, thanks Laurent!
-- Add a new 'renesas,id' DT property which is needed to to be able to
-  keep the VIN to CSI-2 routing table inside the driver. Previously this
-  information was taken from the CSI-2 DT node which is obviously the
-  wrong way to do things. Thanks Laurent for pointing this out.
-- Fixed a memory leek in the group allocator function.
-- Return -EMLINK instead of -EBUSY if a MC link is not possible given
-  the current routing setup.
-- Add comments to clarify that the 4 channels from the CSI-2 node is not
-  directly related to CSI-2 virtual channels, the CSI-2 node can output
-  any VC on any of its output channels.
-
-* Changes since v1
-- Remove unneeded casts as pointed out by Geert.
-- Fix spelling and DT documentation as pointed out by Geert and Sergei,
-  thanks!
-- Refresh patch 2/32 with an updated version, thanks Sakari for pointing
-  this out.
-- Add Sakaris Ack to patch 1/32.
-- Rebase on top of v4.9-rc1 instead of v4.9-rc3 to ease integration
-  testing together with renesas-drivers tree.
-
-Fabrizio Castro (2):
-  dt-bindings: media: rcar_vin: Reverse SoC part number list
-  dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
-
-Niklas Söderlund (31):
-  rcar-vin: add Gen3 devicetree bindings documentation
-  rcar-vin: rename poorly named initialize and cleanup functions
-  rcar-vin: unregister video device on driver removal
-  rcar-vin: move subdevice handling to async callbacks
-  rcar-vin: move model information to own struct
-  rcar-vin: move max width and height information to chip information
-  rcar-vin: move functions regarding scaling
-  rcar-vin: all Gen2 boards can scale simplify logic
-  rcar-vin: set a default field to fallback on
-  rcar-vin: fix handling of single field frames (top, bottom and
-    alternate fields)
-  rcar-vin: update bytesperline and sizeimage calculation
-  rcar-vin: align pixelformat check
-  rcar-vin: break out format alignment and checking
-  rcar-vin: simplify how formats are set and reset
-  rcar-vin: cache video standard
-  rcar-vin: move media bus configuration to struct rvin_dev
-  rcar-vin: enable Gen3 hardware configuration
-  rcar-vin: add function to manipulate Gen3 chsel value
-  rcar-vin: add flag to switch to media controller mode
-  rcar-vin: use different v4l2 operations in media controller mode
-  rcar-vin: force default colorspace for media centric mode
-  rcar-vin: prepare for media controller mode initialization
-  rcar-vin: add group allocator functions
-  rcar-vin: change name of video device
-  rcar-vin: add chsel information to rvin_info
-  rcar-vin: parse Gen3 OF and setup media graph
-  rcar-vin: add link notify for Gen3
-  rcar-vin: extend {start,stop}_streaming to work with media controller
-  rcar-vin: enable support for r8a7795
-  rcar-vin: enable support for r8a7796
-  rcar-vin: enable support for r8a77970
-
- .../devicetree/bindings/media/rcar_vin.txt         | 137 ++-
- drivers/media/platform/rcar-vin/Kconfig            |   2 +-
- drivers/media/platform/rcar-vin/rcar-core.c        | 962 +++++++++++++++++++--
- drivers/media/platform/rcar-vin/rcar-dma.c         | 783 ++++++++++-------
- drivers/media/platform/rcar-vin/rcar-v4l2.c        | 484 ++++++-----
- drivers/media/platform/rcar-vin/rcar-vin.h         | 146 +++-
- 6 files changed, 1907 insertions(+), 607 deletions(-)
-
+diff --git a/drivers/media/platform/vsp1/Makefile b/drivers/media/platform/vsp1/Makefile
+index 596775f932c0..4bb4dcbef7b5 100644
+--- a/drivers/media/platform/vsp1/Makefile
++++ b/drivers/media/platform/vsp1/Makefile
+@@ -5,6 +5,6 @@ vsp1-y					+= vsp1_rpf.o vsp1_rwpf.o vsp1_wpf.o
+ vsp1-y					+= vsp1_clu.o vsp1_hsit.o vsp1_lut.o
+ vsp1-y					+= vsp1_brx.o vsp1_sru.o vsp1_uds.o
+ vsp1-y					+= vsp1_hgo.o vsp1_hgt.o vsp1_histo.o
+-vsp1-y					+= vsp1_lif.o
++vsp1-y					+= vsp1_lif.o vsp1_uif.o
+ 
+ obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1.o
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 9cf4e1c4b036..33f632331474 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -36,10 +36,12 @@ struct vsp1_lut;
+ struct vsp1_rwpf;
+ struct vsp1_sru;
+ struct vsp1_uds;
++struct vsp1_uif;
+ 
+ #define VSP1_MAX_LIF		2
+ #define VSP1_MAX_RPF		5
+ #define VSP1_MAX_UDS		3
++#define VSP1_MAX_UIF		2
+ #define VSP1_MAX_WPF		4
+ 
+ #define VSP1_HAS_LUT		(1 << 1)
+@@ -60,6 +62,7 @@ struct vsp1_device_info {
+ 	unsigned int lif_count;
+ 	unsigned int rpf_count;
+ 	unsigned int uds_count;
++	unsigned int uif_count;
+ 	unsigned int wpf_count;
+ 	unsigned int num_bru_inputs;
+ 	bool uapi;
+@@ -86,6 +89,7 @@ struct vsp1_device {
+ 	struct vsp1_rwpf *rpf[VSP1_MAX_RPF];
+ 	struct vsp1_sru *sru;
+ 	struct vsp1_uds *uds[VSP1_MAX_UDS];
++	struct vsp1_uif *uif[VSP1_MAX_UIF];
+ 	struct vsp1_rwpf *wpf[VSP1_MAX_WPF];
+ 
+ 	struct list_head entities;
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 331a2e0af0d3..d29f9c4baebe 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -35,6 +35,7 @@
+ #include "vsp1_rwpf.h"
+ #include "vsp1_sru.h"
+ #include "vsp1_uds.h"
++#include "vsp1_uif.h"
+ #include "vsp1_video.h"
+ 
+ /* -----------------------------------------------------------------------------
+@@ -409,6 +410,19 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 		list_add_tail(&uds->entity.list_dev, &vsp1->entities);
+ 	}
+ 
++	for (i = 0; i < vsp1->info->uif_count; ++i) {
++		struct vsp1_uif *uif;
++
++		uif = vsp1_uif_create(vsp1, i);
++		if (IS_ERR(uif)) {
++			ret = PTR_ERR(uif);
++			goto done;
++		}
++
++		vsp1->uif[i] = uif;
++		list_add_tail(&uif->entity.list_dev, &vsp1->entities);
++	}
++
+ 	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+ 		struct vsp1_rwpf *wpf;
+ 
+@@ -513,6 +527,9 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
+ 	for (i = 0; i < vsp1->info->uds_count; ++i)
+ 		vsp1_write(vsp1, VI6_DPR_UDS_ROUTE(i), VI6_DPR_NODE_UNUSED);
+ 
++	for (i = 0; i < vsp1->info->uif_count; ++i)
++		vsp1_write(vsp1, VI6_DPR_UIF_ROUTE(i), VI6_DPR_NODE_UNUSED);
++
+ 	vsp1_write(vsp1, VI6_DPR_SRU_ROUTE, VI6_DPR_NODE_UNUSED);
+ 	vsp1_write(vsp1, VI6_DPR_LUT_ROUTE, VI6_DPR_NODE_UNUSED);
+ 	vsp1_write(vsp1, VI6_DPR_CLU_ROUTE, VI6_DPR_NODE_UNUSED);
+@@ -740,6 +757,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.features = VSP1_HAS_BRU | VSP1_HAS_WPF_VFLIP,
+ 		.lif_count = 1,
+ 		.rpf_count = 5,
++		.uif_count = 1,
+ 		.wpf_count = 2,
+ 		.num_bru_inputs = 5,
+ 	}, {
+@@ -749,6 +767,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.features = VSP1_HAS_BRS | VSP1_HAS_BRU,
+ 		.lif_count = 1,
+ 		.rpf_count = 5,
++		.uif_count = 1,
+ 		.wpf_count = 1,
+ 		.num_bru_inputs = 5,
+ 	}, {
+@@ -758,6 +777,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.features = VSP1_HAS_BRS | VSP1_HAS_BRU,
+ 		.lif_count = 2,
+ 		.rpf_count = 5,
++		.uif_count = 2,
+ 		.wpf_count = 2,
+ 		.num_bru_inputs = 5,
+ 	},
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 181a583aecad..122e60eb1489 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -539,6 +539,10 @@ struct media_pad *vsp1_entity_remote_pad(struct media_pad *pad)
+ 	{ VSP1_ENTITY_UDS, idx, VI6_DPR_UDS_ROUTE(idx),			\
+ 	  { VI6_DPR_NODE_UDS(idx) }, VI6_DPR_NODE_UDS(idx) }
+ 
++#define VSP1_ENTITY_ROUTE_UIF(idx)					\
++	{ VSP1_ENTITY_UIF, idx, VI6_DPR_UIF_ROUTE(idx),			\
++	  { VI6_DPR_NODE_UIF(idx) }, VI6_DPR_NODE_UIF(idx) }
++
+ #define VSP1_ENTITY_ROUTE_WPF(idx)					\
+ 	{ VSP1_ENTITY_WPF, idx, 0,					\
+ 	  { VI6_DPR_NODE_WPF(idx) }, VI6_DPR_NODE_WPF(idx) }
+@@ -567,6 +571,8 @@ static const struct vsp1_route vsp1_routes[] = {
+ 	VSP1_ENTITY_ROUTE_UDS(0),
+ 	VSP1_ENTITY_ROUTE_UDS(1),
+ 	VSP1_ENTITY_ROUTE_UDS(2),
++	VSP1_ENTITY_ROUTE_UIF(0),	/* Named UIF4 in the documentation */
++	VSP1_ENTITY_ROUTE_UIF(1),	/* Named UIF5 in the documentation */
+ 	VSP1_ENTITY_ROUTE_WPF(0),
+ 	VSP1_ENTITY_ROUTE_WPF(1),
+ 	VSP1_ENTITY_ROUTE_WPF(2),
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index 0839a62cfa71..94490d697dcf 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -33,6 +33,7 @@ enum vsp1_entity_type {
+ 	VSP1_ENTITY_RPF,
+ 	VSP1_ENTITY_SRU,
+ 	VSP1_ENTITY_UDS,
++	VSP1_ENTITY_UIF,
+ 	VSP1_ENTITY_WPF,
+ };
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index 3201ad4b77d4..0d249ff9f564 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -307,6 +307,44 @@
+ #define VI6_WPF_WRBCK_CTRL		0x1034
+ #define VI6_WPF_WRBCK_CTRL_WBMD		(1 << 0)
+ 
++/* -----------------------------------------------------------------------------
++ * UIF Control Registers
++ */
++
++#define VI6_UIF_OFFSET			0x100
++
++#define VI6_UIF_DISCOM_DOCMCR		0x1c00
++#define VI6_UIF_DISCOM_DOCMCR_CMPRU	(1 << 16)
++#define VI6_UIF_DISCOM_DOCMCR_CMPR	(1 << 0)
++
++#define VI6_UIF_DISCOM_DOCMSTR		0x1c04
++#define VI6_UIF_DISCOM_DOCMSTR_CMPPRE	(1 << 1)
++#define VI6_UIF_DISCOM_DOCMSTR_CMPST	(1 << 0)
++
++#define VI6_UIF_DISCOM_DOCMCLSTR	0x1c08
++#define VI6_UIF_DISCOM_DOCMCLSTR_CMPCLPRE	(1 << 1)
++#define VI6_UIF_DISCOM_DOCMCLSTR_CMPCLST	(1 << 0)
++
++#define VI6_UIF_DISCOM_DOCMIENR		0x1c0c
++#define VI6_UIF_DISCOM_DOCMIENR_CMPPREIEN	(1 << 1)
++#define VI6_UIF_DISCOM_DOCMIENR_CMPIEN		(1 << 0)
++
++#define VI6_UIF_DISCOM_DOCMMDR		0x1c10
++#define VI6_UIF_DISCOM_DOCMMDR_INTHRH(n)	((n) << 16)
++
++#define VI6_UIF_DISCOM_DOCMPMR		0x1c14
++#define VI6_UIF_DISCOM_DOCMPMR_CMPDFF(n)	((n) << 17)
++#define VI6_UIF_DISCOM_DOCMPMR_CMPDFA(n)	((n) << 8)
++#define VI6_UIF_DISCOM_DOCMPMR_CMPDAUF		(1 << 7)
++#define VI6_UIF_DISCOM_DOCMPMR_SEL(n)		((n) << 0)
++
++#define VI6_UIF_DISCOM_DOCMECRCR	0x1c18
++#define VI6_UIF_DISCOM_DOCMCCRCR	0x1c1c
++#define VI6_UIF_DISCOM_DOCMSPXR		0x1c20
++#define VI6_UIF_DISCOM_DOCMSPYR		0x1c24
++#define VI6_UIF_DISCOM_DOCMSZXR		0x1c28
++#define VI6_UIF_DISCOM_DOCMSZYR		0x1c2c
++
+ /* -----------------------------------------------------------------------------
+  * DPR Control Registers
+  */
+@@ -339,7 +377,10 @@
+ #define VI6_DPR_SMPPT_PT_MASK		(0x3f << 0)
+ #define VI6_DPR_SMPPT_PT_SHIFT		0
+ 
++#define VI6_DPR_UIF_ROUTE(n)		(0x2074 + (n) * 4)
++
+ #define VI6_DPR_NODE_RPF(n)		(n)
++#define VI6_DPR_NODE_UIF(n)		(12 + (n))
+ #define VI6_DPR_NODE_SRU		16
+ #define VI6_DPR_NODE_UDS(n)		(17 + (n))
+ #define VI6_DPR_NODE_LUT		22
+diff --git a/drivers/media/platform/vsp1/vsp1_uif.c b/drivers/media/platform/vsp1/vsp1_uif.c
+new file mode 100644
+index 000000000000..6de7e9c801ae
+--- /dev/null
++++ b/drivers/media/platform/vsp1/vsp1_uif.c
+@@ -0,0 +1,271 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * vsp1_uif.c  --  R-Car VSP1 User Logic Interface
++ *
++ * Copyright (C) 2017-2018 Laurent Pinchart
++ *
++ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
++ */
++
++#include <linux/device.h>
++#include <linux/gfp.h>
++#include <linux/sys_soc.h>
++
++#include <media/media-entity.h>
++#include <media/v4l2-subdev.h>
++
++#include "vsp1.h"
++#include "vsp1_dl.h"
++#include "vsp1_entity.h"
++#include "vsp1_uif.h"
++
++#define UIF_MIN_SIZE				4U
++#define UIF_MAX_SIZE				8190U
++
++/* -----------------------------------------------------------------------------
++ * Device Access
++ */
++
++static inline u32 vsp1_uif_read(struct vsp1_uif *uif, u32 reg)
++{
++	return vsp1_read(uif->entity.vsp1,
++			 uif->entity.index * VI6_UIF_OFFSET + reg);
++}
++static inline void vsp1_uif_write(struct vsp1_uif *uif, struct vsp1_dl_list *dl,
++				  u32 reg, u32 data)
++{
++	vsp1_dl_list_write(dl, reg + uif->entity.index * VI6_UIF_OFFSET, data);
++}
++
++u32 vsp1_uif_get_crc(struct vsp1_uif *uif)
++{
++	return vsp1_uif_read(uif, VI6_UIF_DISCOM_DOCMCCRCR);
++}
++
++/* -----------------------------------------------------------------------------
++ * V4L2 Subdevice Pad Operations
++ */
++
++static const unsigned int uif_codes[] = {
++	MEDIA_BUS_FMT_ARGB8888_1X32,
++	MEDIA_BUS_FMT_AHSV8888_1X32,
++	MEDIA_BUS_FMT_AYUV8_1X32,
++};
++
++static int uif_enum_mbus_code(struct v4l2_subdev *subdev,
++			      struct v4l2_subdev_pad_config *cfg,
++			      struct v4l2_subdev_mbus_code_enum *code)
++{
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, uif_codes,
++					  ARRAY_SIZE(uif_codes));
++}
++
++static int uif_enum_frame_size(struct v4l2_subdev *subdev,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_frame_size_enum *fse)
++{
++	return vsp1_subdev_enum_frame_size(subdev, cfg, fse, UIF_MIN_SIZE,
++					   UIF_MIN_SIZE, UIF_MAX_SIZE,
++					   UIF_MAX_SIZE);
++}
++
++static int uif_set_format(struct v4l2_subdev *subdev,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_subdev_format *fmt)
++{
++	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, uif_codes,
++					  ARRAY_SIZE(uif_codes),
++					  UIF_MIN_SIZE, UIF_MIN_SIZE,
++					  UIF_MAX_SIZE, UIF_MAX_SIZE);
++}
++
++static int uif_get_selection(struct v4l2_subdev *subdev,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_selection *sel)
++{
++	struct vsp1_uif *uif = to_uif(subdev);
++	struct v4l2_subdev_pad_config *config;
++	struct v4l2_mbus_framefmt *format;
++	int ret = 0;
++
++	if (sel->pad != UIF_PAD_SINK)
++		return -EINVAL;
++
++	mutex_lock(&uif->entity.lock);
++
++	config = vsp1_entity_get_pad_config(&uif->entity, cfg, sel->which);
++	if (!config) {
++		ret = -EINVAL;
++		goto done;
++	}
++
++	switch (sel->target) {
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++		format = vsp1_entity_get_pad_format(&uif->entity, config,
++						    UIF_PAD_SINK);
++		sel->r.left = 0;
++		sel->r.top = 0;
++		sel->r.width = format->width;
++		sel->r.height = format->height;
++		break;
++
++	case V4L2_SEL_TGT_CROP:
++		sel->r = *vsp1_entity_get_pad_selection(&uif->entity, config,
++							sel->pad, sel->target);
++		break;
++
++	default:
++		ret = -EINVAL;
++		break;
++	}
++
++done:
++	mutex_unlock(&uif->entity.lock);
++	return ret;
++}
++
++static int uif_set_selection(struct v4l2_subdev *subdev,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_selection *sel)
++{
++	struct vsp1_uif *uif = to_uif(subdev);
++	struct v4l2_subdev_pad_config *config;
++	struct v4l2_mbus_framefmt *format;
++	struct v4l2_rect *selection;
++	int ret = 0;
++
++	if (sel->pad != UIF_PAD_SINK ||
++	    sel->target != V4L2_SEL_TGT_CROP)
++		return -EINVAL;
++
++	mutex_lock(&uif->entity.lock);
++
++	config = vsp1_entity_get_pad_config(&uif->entity, cfg, sel->which);
++	if (!config) {
++		ret = -EINVAL;
++		goto done;
++	}
++
++	/* The crop rectangle must be inside the input frame. */
++	format = vsp1_entity_get_pad_format(&uif->entity, config, UIF_PAD_SINK);
++
++	sel->r.left = clamp_t(unsigned int, sel->r.left, 0, format->width - 1);
++	sel->r.top = clamp_t(unsigned int, sel->r.top, 0, format->height - 1);
++	sel->r.width = clamp_t(unsigned int, sel->r.width, UIF_MIN_SIZE,
++			       format->width - sel->r.left);
++	sel->r.height = clamp_t(unsigned int, sel->r.height, UIF_MIN_SIZE,
++				format->height - sel->r.top);
++
++	/* Store the crop rectangle. */
++	selection = vsp1_entity_get_pad_selection(&uif->entity, config,
++						  sel->pad, V4L2_SEL_TGT_CROP);
++	*selection = sel->r;
++
++done:
++	mutex_unlock(&uif->entity.lock);
++	return ret;
++}
++
++/* -----------------------------------------------------------------------------
++ * V4L2 Subdevice Operations
++ */
++
++static const struct v4l2_subdev_pad_ops uif_pad_ops = {
++	.init_cfg = vsp1_entity_init_cfg,
++	.enum_mbus_code = uif_enum_mbus_code,
++	.enum_frame_size = uif_enum_frame_size,
++	.get_fmt = vsp1_subdev_get_pad_format,
++	.set_fmt = uif_set_format,
++	.get_selection = uif_get_selection,
++	.set_selection = uif_set_selection,
++};
++
++static const struct v4l2_subdev_ops uif_ops = {
++	.pad    = &uif_pad_ops,
++};
++
++/* -----------------------------------------------------------------------------
++ * VSP1 Entity Operations
++ */
++
++static void uif_configure(struct vsp1_entity *entity,
++			  struct vsp1_pipeline *pipe,
++			  struct vsp1_dl_list *dl,
++			  enum vsp1_entity_params params)
++{
++	struct vsp1_uif *uif = to_uif(&entity->subdev);
++	const struct v4l2_rect *crop;
++	unsigned int left;
++	unsigned int width;
++
++	/*
++	 * Per-partition configuration isn't needed as the DISCOM is used in
++	 * display pipelines only.
++	 */
++	if (params != VSP1_ENTITY_PARAMS_INIT)
++		return;
++
++	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMPMR,
++		       VI6_UIF_DISCOM_DOCMPMR_SEL(9));
++
++	crop = vsp1_entity_get_pad_selection(entity, entity->config,
++					     UIF_PAD_SINK, V4L2_SEL_TGT_CROP);
++
++	/* On M3-W the horizontal coordinates are twice the register value. */
++	if (uif->m3w_quirk) {
++		left = crop->left / 2;
++		width = crop->width / 2;
++	} else {
++		left = crop->left;
++		width = crop->width;
++	}
++
++	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMSPXR, left);
++	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMSPYR, crop->top);
++	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMSZXR, width);
++	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMSZYR, crop->height);
++
++	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMCR,
++		       VI6_UIF_DISCOM_DOCMCR_CMPR);
++}
++
++static const struct vsp1_entity_operations uif_entity_ops = {
++	.configure = uif_configure,
++};
++
++/* -----------------------------------------------------------------------------
++ * Initialization and Cleanup
++ */
++
++static const struct soc_device_attribute vsp1_r8a7796[] = {
++	{ .soc_id = "r8a7796" },
++	{ /* sentinel */ }
++};
++
++struct vsp1_uif *vsp1_uif_create(struct vsp1_device *vsp1, unsigned int index)
++{
++	struct vsp1_uif *uif;
++	char name[6];
++	int ret;
++
++	uif = devm_kzalloc(vsp1->dev, sizeof(*uif), GFP_KERNEL);
++	if (uif == NULL)
++		return ERR_PTR(-ENOMEM);
++
++	if (soc_device_match(vsp1_r8a7796))
++		uif->m3w_quirk = true;
++
++	uif->entity.ops = &uif_entity_ops;
++	uif->entity.type = VSP1_ENTITY_UIF;
++	uif->entity.index = index;
++
++	/* The datasheet names the two UIF instances UIF4 and UIF5. */
++	sprintf(name, "uif.%u", index + 4);
++	ret = vsp1_entity_init(vsp1, &uif->entity, name, 2, &uif_ops,
++			       MEDIA_ENT_F_PROC_VIDEO_STATISTICS);
++	if (ret < 0)
++		return ERR_PTR(ret);
++
++	return uif;
++}
+diff --git a/drivers/media/platform/vsp1/vsp1_uif.h b/drivers/media/platform/vsp1/vsp1_uif.h
+new file mode 100644
+index 000000000000..c71ab5f6a6f8
+--- /dev/null
++++ b/drivers/media/platform/vsp1/vsp1_uif.h
+@@ -0,0 +1,32 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++/*
++ * vsp1_uif.h  --  R-Car VSP1 User Logic Interface
++ *
++ * Copyright (C) 2017-2018 Laurent Pinchart
++ *
++ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
++ */
++#ifndef __VSP1_UIF_H__
++#define __VSP1_UIF_H__
++
++#include "vsp1_entity.h"
++
++struct vsp1_device;
++
++#define UIF_PAD_SINK				0
++#define UIF_PAD_SOURCE				1
++
++struct vsp1_uif {
++	struct vsp1_entity entity;
++	bool m3w_quirk;
++};
++
++static inline struct vsp1_uif *to_uif(struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct vsp1_uif, entity.subdev);
++}
++
++struct vsp1_uif *vsp1_uif_create(struct vsp1_device *vsp1, unsigned int index);
++u32 vsp1_uif_get_crc(struct vsp1_uif *uif);
++
++#endif /* __VSP1_UIF_H__ */
 -- 
-2.16.2
+Regards,
+
+Laurent Pinchart
