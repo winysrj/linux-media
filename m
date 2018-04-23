@@ -1,57 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39282 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753508AbeD3Q4d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Apr 2018 12:56:33 -0400
-From: Robin Murphy <robin.murphy@arm.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, iommu@lists.linux-foundation.org
-Subject: [PATCH] media: videobuf-dma-sg: Fix dma_{sync,unmap}_sg() calls
-Date: Mon, 30 Apr 2018 17:56:28 +0100
-Message-Id: <453f27adfa6563d43a17a57b37c9c7db36c2114b.1525107326.git.robin.murphy@arm.com>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:37354 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755363AbeDWNse (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 09:48:34 -0400
+Received: by mail-wr0-f193.google.com with SMTP id c14-v6so1375887wrd.4
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:48:34 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>,
+        linux-clk@vger.kernel.org
+Subject: [PATCH v2 03/15] clk: imx7d: fix mipi dphy div parent
+Date: Mon, 23 Apr 2018 14:47:38 +0100
+Message-Id: <20180423134750.30403-4-rui.silva@linaro.org>
+In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
+References: <20180423134750.30403-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit fc7f8fd42c2b934ac348995e0c530c917fc277d5.
+Fix the mipi dphy root divider to mipi_dphy_pre_div, this would remove a orphan
+clock and set the correct parent.
 
-Whilst the rationale for the above commit was in general correct, i.e.
-that users *consuming* the DMA addresses should rely on sglen rather
-than num_pages, it has always been the case that the DMA API itself
-still requires that dma_{sync,unmap}_sg() are called with the original
-number of entries as passed to dma_map_sg(), not the number of mapped
-entries it returned. Thus the particular changes made in that patch
-were erroneous.
+before:
+cat clk_orphan_summary
+                                 enable  prepare  protect
+   clock                          count    count    count        rate   accuracy   phase
+----------------------------------------------------------------------------------------
+ mipi_dphy_post_div                   1        1        0           0          0 0
+    mipi_dphy_root_clk                1        1        0           0          0 0
 
-At worst this might lead to data loss at the tail end of mapped buffers
-on non-coherent hardware, while at best it's an example of incorrect
-DMA API usage which has proven to mislead readers.
+cat clk_dump | grep mipi_dphy
+mipi_dphy_post_div                    1        1        0           0          0 0
+    mipi_dphy_root_clk                1        1        0           0          0 0
 
-Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+after:
+cat clk_dump | grep mipi_dphy
+   mipi_dphy_src                     1        1        0    24000000          0 0
+       mipi_dphy_cg                  1        1        0    24000000          0 0
+          mipi_dphy_pre_div          1        1        0    24000000          0 0
+             mipi_dphy_post_div      1        1        0    24000000          0 0
+                mipi_dphy_root_clk   1        1        0    24000000          0 0
+
+Cc: linux-clk@vger.kernel.org
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- drivers/media/v4l2-core/videobuf-dma-sg.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/clk/imx/clk-imx7d.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index add2edb23eac..37550f81cc29 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -334,7 +334,7 @@ int videobuf_dma_unmap(struct device *dev, struct videobuf_dmabuf *dma)
- 	if (!dma->sglen)
- 		return 0;
- 
--	dma_unmap_sg(dev, dma->sglist, dma->sglen, dma->direction);
-+	dma_unmap_sg(dev, dma->sglist, dma->nr_pages, dma->direction);
- 
- 	vfree(dma->sglist);
- 	dma->sglist = NULL;
-@@ -581,7 +581,7 @@ static int __videobuf_sync(struct videobuf_queue *q,
- 	MAGIC_CHECK(mem->dma.magic, MAGIC_DMABUF);
- 
- 	dma_sync_sg_for_cpu(q->dev, mem->dma.sglist,
--			    mem->dma.sglen, mem->dma.direction);
-+			    mem->dma.nr_pages, mem->dma.direction);
- 
- 	return 0;
- }
+diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
+index 975a20d3cc94..f7f4db2e6fa6 100644
+--- a/drivers/clk/imx/clk-imx7d.c
++++ b/drivers/clk/imx/clk-imx7d.c
+@@ -729,7 +729,7 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
+ 	clks[IMX7D_LCDIF_PIXEL_ROOT_DIV] = imx_clk_divider2("lcdif_pixel_post_div", "lcdif_pixel_pre_div", base + 0xa300, 0, 6);
+ 	clks[IMX7D_MIPI_DSI_ROOT_DIV] = imx_clk_divider2("mipi_dsi_post_div", "mipi_dsi_pre_div", base + 0xa380, 0, 6);
+ 	clks[IMX7D_MIPI_CSI_ROOT_DIV] = imx_clk_divider2("mipi_csi_post_div", "mipi_csi_pre_div", base + 0xa400, 0, 6);
+-	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_csi_dphy_div", base + 0xa480, 0, 6);
++	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_dphy_pre_div", base + 0xa480, 0, 6);
+ 	clks[IMX7D_SAI1_ROOT_DIV] = imx_clk_divider2("sai1_post_div", "sai1_pre_div", base + 0xa500, 0, 6);
+ 	clks[IMX7D_SAI2_ROOT_DIV] = imx_clk_divider2("sai2_post_div", "sai2_pre_div", base + 0xa580, 0, 6);
+ 	clks[IMX7D_SAI3_ROOT_DIV] = imx_clk_divider2("sai3_post_div", "sai3_pre_div", base + 0xa600, 0, 6);
 -- 
-2.17.0.dirty
+2.17.0
