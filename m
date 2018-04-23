@@ -1,97 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:40430 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751212AbeDYJZw (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46682 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755286AbeDWOJV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 05:25:52 -0400
-Date: Wed, 25 Apr 2018 10:25:33 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Thierry Reding <treding@nvidia.com>
-Cc: Christoph Hellwig <hch@infradead.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Jerome Glisse <jglisse@redhat.com>,
-        iommu@lists.linux-foundation.org,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-        linux-arm-kernel@lists.infradead.org,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: noveau vs arm dma ops
-Message-ID: <20180425092533.GO16141@n2100.armlinux.org.uk>
-References: <20180420124625.GA31078@infradead.org>
- <20180420152111.GR31310@phenom.ffwll.local>
- <20180424184847.GA3247@infradead.org>
- <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
- <20180425054855.GA17038@infradead.org>
- <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
- <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
- <20180425064335.GB28100@infradead.org>
- <20180425074151.GA2271@ulmo>
- <20180425085439.GA29996@infradead.org>
+        Mon, 23 Apr 2018 10:09:21 -0400
+Date: Mon, 23 Apr 2018 17:09:19 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] Remaining COMPILE_TEST and smatch cleanups
+Message-ID: <20180423140919.dhxowgrguwo4uofu@valkosipuli.retiisi.org.uk>
+References: <cover.1523960171.git.mchehab@s-opensource.com>
+ <20180418090414.6h5q3zfm3udzscd7@valkosipuli.retiisi.org.uk>
+ <20180419074228.3c642240@vento.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180425085439.GA29996@infradead.org>
+In-Reply-To: <20180419074228.3c642240@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 25, 2018 at 01:54:39AM -0700, Christoph Hellwig wrote:
-> [discussion about this patch, which should have been cced to the iommu
->  and linux-arm-kernel lists, but wasn't:
->  https://www.spinics.net/lists/dri-devel/msg173630.html]
+Hi Mauro,
+
+On Thu, Apr 19, 2018 at 07:42:28AM -0300, Mauro Carvalho Chehab wrote:
+> Em Wed, 18 Apr 2018 12:04:14 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 > 
-> On Wed, Apr 25, 2018 at 09:41:51AM +0200, Thierry Reding wrote:
-> > > API from the iommu/dma-mapping code.  Drivers have no business poking
-> > > into these details.
+> > On Tue, Apr 17, 2018 at 06:20:10AM -0400, Mauro Carvalho Chehab wrote:
+> > > There were several interactions at the COMPILE_TEST and smatch
+> > > patch series. While I applied most of them, there are 5 patches that
+> > > I kept out of it. The omap3 patch that were in my tree was the old
+> > > one. So, I'm re-posting it.
+> > > 
+> > > The ioctl32 patches are the latest version. Let's repost it to get some
+> > > acks, as this patch touches at V4L2 core, so a careful review is
+> > > always a good idea.
+> > > 
+> > > Arnd Bergmann (1):
+> > >   media: omap3isp: allow it to build with COMPILE_TEST
+> > > 
+> > > Laurent Pinchart (1):
+> > >   media: omap3isp: Enable driver compilation on ARM with COMPILE_TEST
+> > > 
+> > > Mauro Carvalho Chehab (3):
+> > >   omap: omap-iommu.h: allow building drivers with COMPILE_TEST
+> > >   media: v4l2-compat-ioctl32: fix several __user annotations
+> > >   media: v4l2-compat-ioctl32: better name userspace pointers
+> > > 
+> > >  drivers/media/platform/Kconfig                |   7 +-
+> > >  drivers/media/platform/omap3isp/isp.c         |   8 +
+> > >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 623 +++++++++++++-------------
+> > >  include/linux/omap-iommu.h                    |   5 +
+> > >  4 files changed, 338 insertions(+), 305 deletions(-)  
 > > 
-> > The interfaces that the above patch uses are all EXPORT_SYMBOL_GPL,
-> > which is rather misleading if they are not meant to be used by drivers
-> > directly.
+> > For patches 1 and 2:
+> > 
+> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> What about patch 3?
+> 
+> > 
+> > I'd like to see a new versions of patches 4 and 5; I agree on the naming
+> > change.
+> 
+> With what changes?
 
-EXPORT_SYMBOL* means nothing as far as whether a driver should
-be able to use the symbol or not - it merely means that the symbol is
-made available to a module.  Modules cover much more than just device
-drivers - we have library modules, filesystem modules, helper modules
-to name a few non-driver classes of modules.
+Hans had comments on patch 5 at least (moving changes to 3rd patch), that
+may affect 4th patch as well.
 
-We also have symbols that are exported as part of the architecture
-implementation detail of a public interface.  For example, the
-public interface "copy_from_user" is implemented as an inline
-function (actually several layers of inline functions) eventually
-calling into arm_copy_from_user().  arm_copy_from_user() is exported,
-but drivers (in fact no module) is allowed to make direct reference
-to arm_copy_from_user() - it'd fail when software PAN is enabled.
+> 
+> > Could you set the To: header to a valid value going forward? It's not a
+> > valid e-mail address but still contains "<" character which causes trouble
+> > when replying to the patches.
+> 
+> I've no idea how to fix it. When I submit patches, I don't add any To:
+> header (as the "to" is meant to be the one that will apply the patches...
+> sending an e-mail to myself seems too mad for my taste). Somewhere
+> between git-send-email, my SMTP local host or the SMTP smart gateway,
+> or something afterwards, a "fake" To: gets introduced.
 
-The whole idea that "if a symbol is exported, it's fine for a driver
-to use it" is a complete work of fiction, always has been, and always
-will be.
+To header isn't about who is going to apply the patches but who they
+concern the most. How about addressing the mail to the linux-media list?
+That's what everyone else does, unless they are sending the patches to
+certain recipients, which they could do for a number of reasons.
 
-We've had this with the architecture implementation details of the
-DMA API before, and with the architecture implementation details of
-the CPU cache flushing.  There's only so much commentry, or __
-prefixes you can add to a symbol before things get rediculous, and
-none of it stops people creating this abuse.  The only thing that
-seems to prevent it is to make life hard for folk wanting to use
-the symbols (eg, hiding the symbol prototype in a private header,
-etc.)
-
-Never, ever go under the covers of an interface.  If the interface
-doesn't do what you want, _discuss_ it, don't just think "oh, that
-architecture private facility looks like what I need, I'll use that
-directly."
-
-If you ever are on the side of trying to maintain those implementation
-details that are abused in this way, you'll soon understand why this
-behaviour by driver authors is soo annoying, and the maintainability
-problems it creates.
+The invalid To: header effectively leads to unintentional off-list
+discussion.
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
