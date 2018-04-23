@@ -1,49 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:39344 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753336AbeDTRm7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 13:42:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 4/7] media: ipu3: allow building it with COMPILE_TEST on non-x86 archs
-Date: Fri, 20 Apr 2018 13:42:50 -0400
-Message-Id: <07d3ab8b8c86a41488d22410968bec96714792f4.1524245455.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
-References: <cover.1524245455.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
-References: <cover.1524245455.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:46561 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755268AbeDWNtM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 09:49:12 -0400
+Received: by mail-wr0-f193.google.com with SMTP id d1-v6so41460286wrj.13
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:49:11 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v2 15/15] media: staging/imx: add i.MX7 entries to TODO file
+Date: Mon, 23 Apr 2018 14:47:50 +0100
+Message-Id: <20180423134750.30403-16-rui.silva@linaro.org>
+In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
+References: <20180423134750.30403-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Despite depending on ACPI, this driver builds fine on non-x86
-archtecture with COMPILE_TEST, as it doesn't depend on
-ACPI-specific functions/structs.
+Add some i.MX7 related entries to TODO file.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- drivers/media/pci/intel/ipu3/Kconfig | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/staging/media/imx/TODO | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/pci/intel/ipu3/Kconfig b/drivers/media/pci/intel/ipu3/Kconfig
-index a82d3fe277d2..45cf99a512e4 100644
---- a/drivers/media/pci/intel/ipu3/Kconfig
-+++ b/drivers/media/pci/intel/ipu3/Kconfig
-@@ -2,10 +2,9 @@ config VIDEO_IPU3_CIO2
- 	tristate "Intel ipu3-cio2 driver"
- 	depends on VIDEO_V4L2 && PCI
- 	depends on VIDEO_V4L2_SUBDEV_API
--	depends on X86 || COMPILE_TEST
-+	depends on (X86 && ACPI) || COMPILE_TEST
- 	depends on MEDIA_CONTROLLER
- 	depends on HAS_DMA
--	depends on ACPI
- 	select V4L2_FWNODE
- 	select VIDEOBUF2_DMA_SG
+diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
+index aeeb15494a49..6f29b5ca5324 100644
+--- a/drivers/staging/media/imx/TODO
++++ b/drivers/staging/media/imx/TODO
+@@ -45,3 +45,12 @@
  
+      Which means a port must not contain mixed-use endpoints, they
+      must all refer to media links between V4L2 subdevices.
++
++- i.MX7: all of the above, since it uses the imx media core
++
++- i.MX7: use Frame Interval Monitor
++
++- i.MX7: runtime testing with parallel sensor, links setup and streaming
++
++- i.MX7: runtime testing with different formats, for the time only 10-bit bayer
++  is tested
 -- 
-2.14.3
+2.17.0
