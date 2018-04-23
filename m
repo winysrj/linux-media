@@ -1,107 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:37168 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750766AbeDXX5M (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:39958 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932257AbeDWTry (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 19:57:12 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] rcar-vin: enable field toggle after a set number of lines for Gen3
-Date: Wed, 25 Apr 2018 01:56:52 +0200
-Message-Id: <20180424235652.24672-1-niklas.soderlund+renesas@ragnatech.se>
+        Mon, 23 Apr 2018 15:47:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with COMPILE_TEST && DRM_OMAP
+Date: Mon, 23 Apr 2018 22:48:06 +0300
+Message-ID: <2458408.nymfr4Soza@avalon>
+In-Reply-To: <20180423112227.61fbc02b@vento.lan>
+References: <cover.1524245455.git.mchehab@s-opensource.com> <5379683.QunLsIS18Z@amdc3058> <20180423112227.61fbc02b@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VIN Gen3 hardware don't have Line Post-Clip capabilities as VIN Gen2
-hardware have. To protect against writing outside the capture window
-enable field toggle after a set number of lines have been captured.
+Hi Mauro,
 
-Capturing outside the allocated capture buffer where observed on R-Car
-Gen3 Salvator-XS H3 from the CVBS input if the standard is
-misconfigured. That is if a PAL source is connected to the system but
-the adv748x standard is set to NTSC. In this case the format reported by
-the adv748x is 720x480 and that is what is used for the media pipeline.
-The PAL source generates frames in the format of 720x576 and the field
-is not toggled until the VSYNC is detected and at that time data have
-already been written outside the allocated capture buffer.
+On Monday, 23 April 2018 17:22:27 EEST Mauro Carvalho Chehab wrote:
+> Em Mon, 23 Apr 2018 15:56:53 +0200 Bartlomiej Zolnierkiewicz escreveu:
+> > On Monday, April 23, 2018 02:47:28 PM Bartlomiej Zolnierkiewicz wrote:
+> >> On Friday, April 20, 2018 01:42:51 PM Mauro Carvalho Chehab wrote:
+> >>> Add stubs for omapfb_dss.h, in the case it is included by
+> >>> some driver when CONFIG_FB_OMAP2 is not defined, with can
+> >>> happen on ARM when DRM_OMAP is not 'n'.
+> >>> 
+> >>> That allows building such driver(s) with COMPILE_TEST.
+> >>> 
+> >>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> >> 
+> >> This patch should be dropped (together with patch #6/7) as it was
+> >> superseded by a better solution suggested by Laurent:
+> >> 
+> >> https://patchwork.kernel.org/patch/10325193/
+> >> 
+> >> ACK-ed by Tomi:
+> >> 
+> >> https://www.spinics.net/lists/dri-devel/msg171918.html
+> >> 
+> >> and already merged by you (commit 7378f1149884 "media: omap2:
+> >> omapfb: allow building it with COMPILE_TEST")..
+> > 
+> > Hmm, I see now while this patch is still included:
+> > 
+> > menuconfig FB_OMAP2
+> >         tristate "OMAP2+ frame buffer support"
+> >         depends on FB
+> >         depends on DRM_OMAP = n
+> > 
+> > Ideally we should be able to build both drivers in the same kernel
+> > (especially as modules).
+> > 
+> > I was hoping that it could be fixed easily but then I discovered
+> > the root source of the problem:
+> > 
+> > drivers/gpu/drm/omapdrm/dss/display.o: In function
+> > `omapdss_unregister_display': display.c:(.text+0x2c): multiple definition
+> > of `omapdss_unregister_display'
+> > drivers/video/fbdev/omap2/omapfb/dss/display.o:display.c:(.text+0x198):
+> > first defined here ...
+> 
+> Yes, and declared on two different places:
+> 
+> drivers/gpu/drm/omapdrm/dss/omapdss.h:void omapdss_unregister_display(struct
+> omap_dss_device *dssdev); include/video/omapfb_dss.h:void
+> omapdss_unregister_display(struct omap_dss_device *dssdev);
+> 
+> one alternative would be to give different names to it, and a common
+> header for both.
+> 
+> At such header, it could be doing something like:
+> 
+> static inline void omapdss_unregister_display(struct omap_dss_device
+> *dssdev) {
+> #if enabled(CONFIG_DRM_OMAP)
+> 	omapdss_unregister_display_drm(struct omap_dss_device *dssdev);
+> #else
+> 	omapdss_unregister_display_fb(struct omap_dss_device *dssdev);
+> ##endif
+> }
+> 
+> Yet, after a very quick check, it seems that nowadays only the
+> media omap driver uses the symbols at FB_OMAP:
+> 
+> $ git grep omapfb_dss.h
+> drivers/media/platform/omap/omap_vout.c:#include <video/omapfb_dss.h>
+> drivers/media/platform/omap/omap_voutdef.h:#include <video/omapfb_dss.h>
+> drivers/media/platform/omap/omap_voutlib.c:#include <video/omapfb_dss.h>
+> 
+> So, perhaps just renaming the common symbols and changing FB_OMAP2 to:
+> 
+> 	menuconfig FB_OMAP2
+> 	         tristate "OMAP2+ frame buffer support"
+> 	         depends on FB
+> 	         depends on (DRM_OMAP = n) || COMPILE_TEST
+> 
+> would be enough to allow to build both on ARM.
 
-With this change the capture in the situation described above results in
-garbage frames but that is far better then writing outside the capture
-buffer.
+I don't think it's worth it renaming the common symbols. They will change over 
+time as omapdrm is under heavy rework, and it's painful enough without having 
+to handle cross-tree changes. Let's just live with the fact that both drivers 
+can't be compiled at the same time, given that omapfb is deprecated.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+> > I need some more time to think about this..
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index ac07f99e3516a620..b41ba9a4a2b3ac90 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -124,7 +124,9 @@
- #define VNDMR2_VPS		(1 << 30)
- #define VNDMR2_HPS		(1 << 29)
- #define VNDMR2_FTEV		(1 << 17)
-+#define VNDMR2_FTEH		(1 << 16)
- #define VNDMR2_VLV(n)		((n & 0xf) << 12)
-+#define VNDMR2_HLV(n)		((n) & 0xfff)
- 
- /* Video n CSI2 Interface Mode Register (Gen3) */
- #define VNCSI_IFMD_DES1		(1 << 26)
-@@ -612,8 +614,9 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
- 
- static int rvin_setup(struct rvin_dev *vin)
- {
--	u32 vnmc, dmr, dmr2, interrupts;
-+	u32 vnmc, dmr, dmr2, interrupts, lines;
- 	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
-+	bool halfsize = false;
- 
- 	switch (vin->format.field) {
- 	case V4L2_FIELD_TOP:
-@@ -628,12 +631,15 @@ static int rvin_setup(struct rvin_dev *vin)
- 		/* Use BT if video standard can be read and is 60 Hz format */
- 		if (!vin->info->use_mc && vin->std & V4L2_STD_525_60)
- 			vnmc = VNMC_IM_FULL | VNMC_FOC;
-+		halfsize = true;
- 		break;
- 	case V4L2_FIELD_INTERLACED_TB:
- 		vnmc = VNMC_IM_FULL;
-+		halfsize = true;
- 		break;
- 	case V4L2_FIELD_INTERLACED_BT:
- 		vnmc = VNMC_IM_FULL | VNMC_FOC;
-+		halfsize = true;
- 		break;
- 	case V4L2_FIELD_NONE:
- 		vnmc = VNMC_IM_ODD_EVEN;
-@@ -676,11 +682,15 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	}
- 
--	/* Enable VSYNC Field Toogle mode after one VSYNC input */
--	if (vin->info->model == RCAR_GEN3)
--		dmr2 = VNDMR2_FTEV;
--	else
-+	if (vin->info->model == RCAR_GEN3) {
-+		/* Enable HSYNC Field Toggle mode after height HSYNC inputs. */
-+		lines = vin->format.height / (halfsize ? 2 : 1);
-+		dmr2 = VNDMR2_FTEH | VNDMR2_HLV(lines);
-+		vin_dbg(vin, "Field Toogle after %u lines\n", lines);
-+	} else {
-+		/* Enable VSYNC Field Toogle mode after one VSYNC input. */
- 		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
-+	}
- 
- 	/* Hsync Signal Polarity Select */
- 	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
 -- 
-2.17.0
+Regards,
+
+Laurent Pinchart
