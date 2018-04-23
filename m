@@ -1,126 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:43976 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757860AbeDXMpa (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:48845 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751318AbeDWHfM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 08:45:30 -0400
-Received: by mail-wr0-f194.google.com with SMTP id v15-v6so31694094wrm.10
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:29 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 20/28] venus: helpers,vdec,venc: add helpers to set work mode and core usage
-Date: Tue, 24 Apr 2018 15:44:28 +0300
-Message-Id: <20180424124436.26955-21-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+        Mon, 23 Apr 2018 03:35:12 -0400
+Date: Mon, 23 Apr 2018 09:35:04 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Peter Rosin <peda@axentia.se>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, architt@codeaurora.org,
+        a.hajda@samsung.com, Laurent.pinchart@ideasonboard.com,
+        airlied@linux.ie, daniel@ffwll.ch,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/8] dt-bindings: display: bridge: thc63lvd1024: Add lvds
+ map property
+Message-ID: <20180423073504.GN4235@w540>
+References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1524130269-32688-3-git-send-email-jacopo+renesas@jmondi.org>
+ <17d6f6b0-e657-4a5f-63a6-572cdf062bd3@axentia.se>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="D6IIOQQv2Iwyp54J"
+Content-Disposition: inline
+In-Reply-To: <17d6f6b0-e657-4a5f-63a6-572cdf062bd3@axentia.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These are new properties applicable to Venus version 4xx. Add the
-helpers and call them from decoder and encoder drivers.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/helpers.c | 28 ++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/helpers.h |  2 ++
- drivers/media/platform/qcom/venus/vdec.c    |  8 ++++++++
- drivers/media/platform/qcom/venus/venc.c    |  8 ++++++++
- 4 files changed, 46 insertions(+)
+--D6IIOQQv2Iwyp54J
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index 0d55604f7484..adf8701a64bb 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -484,6 +484,34 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
- }
- EXPORT_SYMBOL_GPL(venus_helper_set_output_resolution);
- 
-+int venus_helper_set_work_mode(struct venus_inst *inst, u32 mode)
-+{
-+	u32 ptype = HFI_PROPERTY_PARAM_WORK_MODE;
-+	struct hfi_video_work_mode wm;
-+
-+	if (!IS_V4(inst->core))
-+		return 0;
-+
-+	wm.video_work_mode = mode;
-+
-+	return hfi_session_set_property(inst, ptype, &wm);
-+}
-+EXPORT_SYMBOL_GPL(venus_helper_set_work_mode);
-+
-+int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage)
-+{
-+	u32 ptype = HFI_PROPERTY_CONFIG_VIDEOCORES_USAGE;
-+	struct hfi_videocores_usage_type cu;
-+
-+	if (!IS_V4(inst->core))
-+		return 0;
-+
-+	cu.video_core_enable_mask = usage;
-+
-+	return hfi_session_set_property(inst, ptype, &cu);
-+}
-+EXPORT_SYMBOL_GPL(venus_helper_set_core_usage);
-+
- int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- 			      unsigned int output_bufs)
- {
-diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index 79af7845efbd..d5e727e1ecab 100644
---- a/drivers/media/platform/qcom/venus/helpers.h
-+++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -38,6 +38,8 @@ int venus_helper_set_input_resolution(struct venus_inst *inst,
- int venus_helper_set_output_resolution(struct venus_inst *inst,
- 				       unsigned int width, unsigned int height,
- 				       u32 buftype);
-+int venus_helper_set_work_mode(struct venus_inst *inst, u32 mode);
-+int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage);
- int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- 			      unsigned int output_bufs);
- int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index b43607dee4fe..ceaf1a338eb3 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -550,6 +550,14 @@ static int vdec_set_properties(struct venus_inst *inst)
- 	u32 ptype;
- 	int ret;
- 
-+	ret = venus_helper_set_work_mode(inst, VIDC_WORK_MODE_2);
-+	if (ret)
-+		return ret;
-+
-+	ret = venus_helper_set_core_usage(inst, VIDC_CORE_ID_1);
-+	if (ret)
-+		return ret;
-+
- 	if (core->res->hfi_version == HFI_VERSION_1XX) {
- 		ptype = HFI_PROPERTY_PARAM_VDEC_CONTINUE_DATA_TRANSFER;
- 		ret = hfi_session_set_property(inst, ptype, &en);
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 8970f14b3a82..3b3299bff1cd 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -643,6 +643,14 @@ static int venc_set_properties(struct venus_inst *inst)
- 	u32 ptype, rate_control, bitrate, profile = 0, level = 0;
- 	int ret;
- 
-+	ret = venus_helper_set_work_mode(inst, VIDC_WORK_MODE_2);
-+	if (ret)
-+		return ret;
-+
-+	ret = venus_helper_set_core_usage(inst, VIDC_CORE_ID_2);
-+	if (ret)
-+		return ret;
-+
- 	ptype = HFI_PROPERTY_CONFIG_FRAME_RATE;
- 	frate.buffer_type = HFI_BUFFER_OUTPUT;
- 	frate.framerate = inst->fps * (1 << 16);
--- 
-2.14.1
+Hi Peter,
+   thanks for commenting,
+
+On Sun, Apr 22, 2018 at 10:02:41PM +0200, Peter Rosin wrote:
+> On 2018-04-19 11:31, Jacopo Mondi wrote:
+> > The THC63LVD1024 LVDS to RGB bridge supports two different input mapping
+> > modes, selectable by means of an external pin.
+> >
+> > Describe the LVDS mode map through a newly defined mandatory property in
+> > device tree bindings.
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  .../devicetree/bindings/display/bridge/thine,thc63lvd1024.txt          | 3 +++
+> >  1 file changed, 3 insertions(+)
+> >
+> > diff --git a/Documentation/devicetree/bindings/display/bridge/thine,thc63lvd1024.txt b/Documentation/devicetree/bindings/display/bridge/thine,thc63lvd1024.txt
+> > index 37f0c04..0937595 100644
+> > --- a/Documentation/devicetree/bindings/display/bridge/thine,thc63lvd1024.txt
+> > +++ b/Documentation/devicetree/bindings/display/bridge/thine,thc63lvd1024.txt
+> > @@ -12,6 +12,8 @@ Required properties:
+> >  - compatible: Shall be "thine,thc63lvd1024"
+> >  - vcc-supply: Power supply for TTL output, TTL CLOCKOUT signal, LVDS input,
+> >    PPL and digital circuitry
+> > +- thine,map: LVDS mapping mode selection signal, pin name "MAP". Shall be <1>
+> > +  for mapping mode 1, <0> for mapping mode 2
+>
+> Since the MAP pin is an input pin, I would expect there to be an optional gpio
+> specifier like thine,map-gpios so that the driver can set it according to
+> the value given in thine,map in case the HW has a line from some gpio output
+> to the MAP pin (instead of hardwired hi/low which seem to be your thinking).
+
+I see... As the only use case I had has the pin tied to vcc, I
+thought about making it a binary property, and I wonder in how many
+cases the chip 'MAP' pin would actually be GPIO controlled input and
+not an hardwired one instead. I don't see the LVDS mapping mode to be
+changed at runtime, but you are right, who knows....
+
+Do you think we can add an options 'thine,map-gpios' property along
+to the proposed ones?
+
+thanks
+   j
+
+>
+> Cheers,
+> Peter
+>
+> >
+> >  Optional properties:
+> >  - powerdown-gpios: Power down GPIO signal, pin name "/PDWN". Active low
+> > @@ -36,6 +38,7 @@ Example:
+> >
+> >  		vcc-supply = <&reg_lvds_vcc>;
+> >  		powerdown-gpios = <&gpio4 15 GPIO_ACTIVE_LOW>;
+> > +		thine,map = <1>;
+> >
+> >  		ports {
+> >  			#address-cells = <1>;
+> >
+>
+
+--D6IIOQQv2Iwyp54J
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJa3YynAAoJEHI0Bo8WoVY8dl8P/i0yToIkzEvqWHs1+lqzgB8r
+9L5j9C4G+MvNIybk/J/edo0UIIXttc/GAtr5ESNw3zl8qj3fPwkZ4LHnDaVnow8U
+qbdrgBKV9d4OeOOttz7JoufVGg1CkdIry2oFQsqAgSOWUAda78XRxzXx0n2FGOJe
+tIja6IJkDSXuPrKc7p4GldZd/5ZUwY/0b/MVAbqq56XEwveX2deeW1lmt1lWEcmw
+TFH1jfigtjrnQBqh1WLalUDbmVnDk90ooGg10ooRb5SuLNdhBpDCMl5Kv43Wuuq3
+AAC/5gaTkXaLbeLxHkEa2PG113/sEXurAEOi1EiWHLvwA1fNYdV9Wr28/BF/kKI4
+Z9FiCfuW/lqdSFAxmtDrfHJYZhbEdAZmP4VFnSjOMd3pYiPffyW4Rl+f+cHykRu4
+DqTtvAELMAfbEv1GFsty/j+bfYV4PBssfCkYeMY1W8b/2xUBbhabyg3tuCNh8Q65
+ffHXiGB1qHtQL90F457beTu+ABix2lnSV46MiYQzyXbQYoO67hWWWC3nZFAHnueA
+2fyp8tGTluy5G61cp9Y3IcPp+Q0cxqyef8Pzk8KIj4yJSD7lxg/xzLNz4MAzuybG
+BbPmo0uUkZ16t0+t3AhCjsW/W/xyAfhXBwrRHzAXNgXqmqBfGFKtBZTUw/l8ckGZ
+PSlPzfBpb3uT7QZZk9vG
+=4Kpk
+-----END PGP SIGNATURE-----
+
+--D6IIOQQv2Iwyp54J--
