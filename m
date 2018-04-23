@@ -1,67 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:45074 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754759AbeDTN2J (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:44745 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754617AbeDWK3k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 09:28:09 -0400
-Subject: Re: [PATCH] media: cx231xx: Add support for AverMedia DVD EZMaker 7
-To: Kai Heng Feng <kai.heng.feng@canonical.com>, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20180326060616.5354-1-kai.heng.feng@canonical.com>
- <BC47F34C-7BF6-4A61-9EA0-BA8C24E71F6E@canonical.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <463bff2e-4217-0bd7-50b8-fe19de39b48d@xs4all.nl>
-Date: Fri, 20 Apr 2018 15:28:05 +0200
+        Mon, 23 Apr 2018 06:29:40 -0400
+Date: Mon, 23 Apr 2018 12:29:36 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: architt@codeaurora.org, a.hajda@samsung.com,
+        Laurent.pinchart@ideasonboard.com, airlied@linux.ie,
+        daniel@ffwll.ch, peda@axentia.se,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 4/8] arm64: dts: renesas: eagle: Add thc63 LVDS map
+Message-ID: <20180423102936.cdll63ivb7ww5b7r@verge.net.au>
+References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1524130269-32688-5-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-In-Reply-To: <BC47F34C-7BF6-4A61-9EA0-BA8C24E71F6E@canonical.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1524130269-32688-5-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/13/18 08:59, Kai Heng Feng wrote:
-> Hi,
+On Thu, Apr 19, 2018 at 11:31:05AM +0200, Jacopo Mondi wrote:
+> Add LVDS map mode description property to THC63LVD1024 LVDS decoder in
+> R-Car V3M-Eagle board device tree.
 > 
->> On Mar 26, 2018, at 2:06 PM, Kai-Heng Feng <kai.heng.feng@canonical.com>  
->> wrote:
->>
->> User reports AverMedia DVD EZMaker 7 can be driven by VIDEO_GRABBER.
->> Add the device to the id_table to make it work.
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
+Hi Jacopo,
+
+it looks like there has been a request to change this binding.
+So I have marked this as "Changes Requested". Please repost or otherwise
+ping me if that turns out not to be the case.
+
+> ---
+>  arch/arm64/boot/dts/renesas/r8a77970-eagle.dts | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> *Gentle ping*
-> I am hoping this patch can get merged in v4.17.
-
-I posted a pull request for 4.17 for this.
-
-Regards,
-
-	Hans
-
+> diff --git a/arch/arm64/boot/dts/renesas/r8a77970-eagle.dts b/arch/arm64/boot/dts/renesas/r8a77970-eagle.dts
+> index ebfbb51..2609fa3 100644
+> --- a/arch/arm64/boot/dts/renesas/r8a77970-eagle.dts
+> +++ b/arch/arm64/boot/dts/renesas/r8a77970-eagle.dts
+> @@ -56,6 +56,7 @@
+>  		compatible = "thine,thc63lvd1024";
+>  
+>  		vcc-supply = <&d3p3>;
+> +		thine,map = <1>;
+>  
+>  		ports {
+>  			#address-cells = <1>;
+> -- 
+> 2.7.4
 > 
-> Kai-Heng
-> 
->>
->> BugLink: https://bugs.launchpad.net/bugs/1620762
->> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
->> ---
->>  drivers/media/usb/cx231xx/cx231xx-cards.c | 3 +++
->>  1 file changed, 3 insertions(+)
->>
->> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c  
->> b/drivers/media/usb/cx231xx/cx231xx-cards.c
->> index f9ec7fedcd5b..da01c5125acb 100644
->> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
->> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
->> @@ -945,6 +945,9 @@ struct usb_device_id cx231xx_id_table[] = {
->>  	 .driver_info = CX231XX_BOARD_CNXT_RDE_250},
->>  	{USB_DEVICE(0x0572, 0x58A0),
->>  	 .driver_info = CX231XX_BOARD_CNXT_RDU_250},
->> +	/* AverMedia DVD EZMaker 7 */
->> +	{USB_DEVICE(0x07ca, 0xc039),
->> +	 .driver_info = CX231XX_BOARD_CNXT_VIDEO_GRABBER},
->>  	{USB_DEVICE(0x2040, 0xb110),
->>  	 .driver_info = CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL},
->>  	{USB_DEVICE(0x2040, 0xb111),
->> -- 
->> 2.15.1
