@@ -1,66 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:33054 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755109AbeDPNV2 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:44259 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754857AbeDWMrf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 09:21:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCHv2 6/9] media: add 'index' to struct media_v2_pad
-Date: Mon, 16 Apr 2018 15:21:18 +0200
-Message-Id: <20180416132121.46205-7-hverkuil@xs4all.nl>
-In-Reply-To: <20180416132121.46205-1-hverkuil@xs4all.nl>
-References: <20180416132121.46205-1-hverkuil@xs4all.nl>
+        Mon, 23 Apr 2018 08:47:35 -0400
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+        by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20180423124733euoutp01a1da1e47e1bc4adcb89f5da44b7e85d5~oEXGXFSFd1394213942euoutp01c
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 12:47:33 +0000 (GMT)
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with
+ COMPILE_TEST && DRM_OMAP
+Date: Mon, 23 Apr 2018 14:47:28 +0200
+Message-ID: <2542100.cElVns0SR0@amdc3058>
+In-Reply-To: <c6ef815da57085bf7e98753463e551905f5d2706.1524245455.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+        <CGME20180420174303epcas3p14e08a828d2547e3365085f43b165d34b@epcas3p1.samsung.com>
+        <c6ef815da57085bf7e98753463e551905f5d2706.1524245455.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+On Friday, April 20, 2018 01:42:51 PM Mauro Carvalho Chehab wrote:
+> Add stubs for omapfb_dss.h, in the case it is included by
+> some driver when CONFIG_FB_OMAP2 is not defined, with can
+> happen on ARM when DRM_OMAP is not 'n'.
+> 
+> That allows building such driver(s) with COMPILE_TEST.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-The v2 pad structure never exposed the pad index, which made it impossible
-to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
+This patch should be dropped (together with patch #6/7) as it was
+superseded by a better solution suggested by Laurent:
 
-It is really trivial to just expose this information, so implement this.
+https://patchwork.kernel.org/patch/10325193/
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/media-device.c | 1 +
- include/uapi/linux/media.h   | 7 ++++++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ACK-ed by Tomi:
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index dca1e5a3e0f9..73ffea3e81c9 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev,
- 		kpad.id = pad->graph_obj.id;
- 		kpad.entity_id = pad->entity->graph_obj.id;
- 		kpad.flags = pad->flags;
-+		kpad.index = pad->index;
- 
- 		if (copy_to_user(upad, &kpad, sizeof(kpad)))
- 			ret = -EFAULT;
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index ac08acffdb65..15f7f432f808 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -310,11 +310,16 @@ struct media_v2_interface {
- 	};
- } __attribute__ ((packed));
- 
-+/* Appeared in 4.18.0 */
-+#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
-+	((media_version) >= 0x00041200)
-+
- struct media_v2_pad {
- 	__u32 id;
- 	__u32 entity_id;
- 	__u32 flags;
--	__u32 reserved[5];
-+	__u32 index;
-+	__u32 reserved[4];
- } __attribute__ ((packed));
- 
- struct media_v2_link {
--- 
-2.15.1
+https://www.spinics.net/lists/dri-devel/msg171918.html
+
+and already merged by you (commit 7378f1149884 "media: omap2:
+omapfb: allow building it with COMPILE_TEST")..
+
+> ---
+>  include/video/omapfb_dss.h | 54 ++++++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 52 insertions(+), 2 deletions(-)
+
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
