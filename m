@@ -1,71 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:43136 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754930AbeDCI1F (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 3 Apr 2018 04:27:05 -0400
-Subject: Re: [PATCHv2 1/3] dt-bindings: display: dw_hdmi.txt: add cec-disable
- property
-To: Rob Herring <robh@kernel.org>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180323125915.13986-1-hverkuil@xs4all.nl>
- <20180323125915.13986-2-hverkuil@xs4all.nl>
- <20180326072830.iphtbw5mkeciv4kj@rob-hp-laptop>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <05e7ade1-89be-0f0f-18a5-88ff0310a70b@xs4all.nl>
-Date: Tue, 3 Apr 2018 10:27:01 +0200
+Received: from osg.samsung.com ([64.30.133.232]:56179 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755264AbeDWOH3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 10:07:29 -0400
+Date: Mon, 23 Apr 2018 11:07:22 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
+Message-ID: <20180423110722.793da375@vento.lan>
+In-Reply-To: <e5ef55bd-56fd-a1bb-3bb7-b745c8baca05@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+        <20180409142026.19369-5-hverkuil@xs4all.nl>
+        <20180410073206.12d4c67d@vento.lan>
+        <e5ef55bd-56fd-a1bb-3bb7-b745c8baca05@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20180326072830.iphtbw5mkeciv4kj@rob-hp-laptop>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27/03/18 00:25, Rob Herring wrote:
-> On Fri, Mar 23, 2018 at 01:59:13PM +0100, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Some boards have both a DesignWare and their own CEC controller.
->> The CEC pin is only hooked up to their own CEC controller and not
->> to the DW controller.
->>
->> Add the cec-disable property to disable the DW CEC controller.
->>
->> This particular situation happens on Amlogic boards that have their
->> own meson CEC controller.
+Em Mon, 23 Apr 2018 14:23:28 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> >> +	spin_lock_irqsave(&req->lock, flags);
+> >> +	state = req->state;
+> >> +	spin_unlock_irqrestore(&req->lock, flags);  
+> > 
+> > IMO, it would be better to use an atomic var for state, having a
+> > lockless access to it.  
 > 
-> Seems like we could avoid this by describing how the CEC line is hooked 
-> up which could be needed for other reasons.
+> In most cases I need to do more than just change the state. I don't see
+> enough benefits from using an atomic.
 
-So there are three situations:
+On several cases, it is doing this check without changing the state.
+Also, the IRQ logic seems to require changing the status, and it can't
+use a mutex_lock while there.
 
-1) The cec pin is connected to the DW HDMI TX. That's already supported.
-2) The cec pin is not connected at all, but the CEC IP is instantiated.
-   We need the cec-disable property for that. This simply states that the
-   CEC pin is not connected.
-3) The cec pin is connected to an HDMI RX. We do not support this at the
-   moment. If we want to support this, then we need a 'hdmi-rx' phandle
-   that points to the HDMI receiver that the CEC pin is associated with.
-   This will be similar to the already existing 'hdmi-phandle' property
-   used to associate a CEC driver with an HDMI transmitter. In hindsight
-   it would have been better if 'hdmi-phandle' was named 'hdmi-tx' :-(
+Anyway, I'll review the locking at the next version.
 
-I can make a binding proposal for 3, but I have no hardware to test it,
-so I think it is better to add this only when someone has hardware. It
-will require quite a few changes to the driver and likely also the CEC core.
-
-Regards,
-
-	Hans
-
+> >> +	get_task_comm(comm, current);
+> >> +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
+> >> +		 comm, fd);  
+> > 
+> > Not sure if it is a good idea to store the task that allocated
+> > the request. While it makes sense for the dev_dbg() below, it
+> > may not make sense anymore on other dev_dbg() you would be
+> > using it.  
 > 
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Acked-by: Neil Armstrong <narmstrong@baylibre.com>
->> ---
->>  Documentation/devicetree/bindings/display/bridge/dw_hdmi.txt | 3 +++
->>  1 file changed, 3 insertions(+)
+> This is actually copied from Laurent's code. I'm not sure either. I don't
+> have enough experience with this yet to tell whether or not this is useful.
+
+I remember a long time ago I considered using current task for
+debugging. I ended by giving up, as separate tasks/threads could
+be used internally by V4L2 apps. The same applies here. Also,
+it seems overkill to me to always call get_task_comm() here, just
+in case someone would ever enable a debug.
+
+If the user wants the task, he can just enable it in realtime via
+debugfs.
+
+> >> +#ifdef CONFIG_MEDIA_CONTROLLER
+> >> +static inline void media_request_object_get(struct media_request_object *obj)
+> >> +{
+> >> +	kref_get(&obj->kref);
+> >> +}  
+> > 
+> > Why do you need a function? Just use kref_get() were needed, instead of
+> > aliasing it for no good reason.  
+> 
+> Because that's what everyone does? That way you have nicely balanced
+> media_request_object_get/put functions. Easier to review.
+
+IMHO, having a kref_get()/kref_put() is a way easier to review, as
+I know exactly where objects can be freed, but I can live with that.
+
+Thanks,
+Mauro
