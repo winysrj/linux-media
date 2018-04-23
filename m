@@ -1,40 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:54808 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752804AbeDKP1e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 11:27:34 -0400
-Date: Wed, 11 Apr 2018 12:27:28 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, Jasmin Jessich <jasmin@anw.at>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Smatch and sparse errors
-Message-ID: <20180411122728.52e6fa9a@vento.lan>
+Received: from kirsty.vergenet.net ([202.4.237.240]:41732 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751216AbeDWHuJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 03:50:09 -0400
+Date: Mon, 23 Apr 2018 09:50:02 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/8] arm: shmobile: Change platform dependency to
+ ARCH_RENESAS
+Message-ID: <20180423075002.bca27fbpffl5sbnc@verge.net.au>
+References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
+ <1524230914-10175-2-git-send-email-geert+renesas@glider.be>
+ <44b6b9a3-5273-54f4-ee72-0d5fcc36348a@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <44b6b9a3-5273-54f4-ee72-0d5fcc36348a@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans/Jasmin,
+On Fri, Apr 20, 2018 at 05:53:18PM +0300, Sergei Shtylyov wrote:
+> On 04/20/2018 04:28 PM, Geert Uytterhoeven wrote:
+> 
+> > Since commit 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS")
+> > is ARCH_RENESAS a more appropriate platform dependency than the legacy
+> 
+>    "ARCH_RENESAS is", no?
 
-There is a regression with sparse and upstream Kernels, with also affect
-smatch. Due to that, both will produce hundreds of new errors on all places
-that directly or indirectly use min() or max().
+Thanks, applied with that corrected.
 
-Those were caused by those upstream patches:
-
-	3c8ba0d61d04 ("kernel.h: Retain constant expression output for max()/min()")
- 	e9092d0d9796 ("Fix subtle macro variable shadowing in min_not_zero()")
-
-There is already an upstream patch for hidding it:
-	https://patchwork.kernel.org/patch/10334353/
-
-While upstream doesn't fix it (either by applying this patch or with some
-other fixup patch), it should be applied on both sparse and smatch trees, 
-in order to get rid of those false positives.
-
-I suggest applying it to the logic with does daily compilations,
-in order to avoid generating useless reports for smatch/sparse.
-
-Thanks,
-Mauro
+> 
+> > ARCH_SHMOBILE, hence use the former.
+> > 
+> > This will allow to drop ARCH_SHMOBILE on ARM in the near future.
+> > 
+> > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> [...]
+> 
+> MBR, Sergei
+> 
