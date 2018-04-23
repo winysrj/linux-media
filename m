@@ -1,66 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:38502 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754090AbeDVQGz (ORCPT
+Received: from gateway24.websitewelcome.com ([192.185.51.172]:24276 "EHLO
+        gateway24.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932164AbeDWSKZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 12:06:55 -0400
-Received: by mail-wr0-f195.google.com with SMTP id h3-v6so34742703wrh.5
-        for <linux-media@vger.kernel.org>; Sun, 22 Apr 2018 09:06:55 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 1/2] [media] ngene: cleanup superfluous I2C adapter evaluation
-Date: Sun, 22 Apr 2018 18:06:51 +0200
-Message-Id: <20180422160652.20173-1-d.scheller.oss@gmail.com>
+        Mon, 23 Apr 2018 14:10:25 -0400
+Received: from cm11.websitewelcome.com (cm11.websitewelcome.com [100.42.49.5])
+        by gateway24.websitewelcome.com (Postfix) with ESMTP id 03D082E8E4
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 12:48:59 -0500 (CDT)
+Date: Mon, 23 Apr 2018 12:48:55 -0500
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH 08/11] sh_vou: fix potential Spectre variant 1
+Message-ID: <56615d4b6a9557645468873d60f5b0b5fcffcfc7.1524499368.git.gustavo@embeddedor.com>
+References: <cover.1524499368.git.gustavo@embeddedor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1524499368.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+fmt->index can be controlled by user-space, hence leading to
+a potential exploitation of the Spectre variant 1 vulnerability.
 
-Commit ee93340e98bc ("media: ngene: deduplicate I2C adapter evaluation")
-added a helper to evaluate the I2C adapter to be used for demod/tuner
-attachment based on the given ngene_channel, and that helper is used in
-many attach functions to initialise the i2c_adapter variable. However,
-for some reason in tuner_attach_stv6110() and demod_attach_stv0900(), the
-adapter evaluation wasn't removed as in all other functions. Fix (or
-finalize, even) the helper use by cleaning up the superfluous I2C adapter
-evaluation leftover in these two functions.
+Smatch warning:
+drivers/media/platform/sh_vou.c:407 sh_vou_enum_fmt_vid_out() warn: potential spectre issue 'vou_fmt'
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Fix this by sanitizing fmt->index before using it to index
+vou_fmt.
+
+Notice that given that speculation windows are large, the policy is
+to kill the speculation on the first load and not worry if it can be
+completed with a dependent load/store [1].
+
+[1] https://marc.info/?l=linux-kernel&m=152449131114778&w=2
+
+Cc: stable@vger.kernel.org
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- drivers/media/pci/ngene/ngene-cards.c | 13 -------------
- 1 file changed, 13 deletions(-)
+ drivers/media/platform/sh_vou.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index 65fc8f23ad86..caa5976055c4 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -137,11 +137,6 @@ static int tuner_attach_stv6110(struct ngene_channel *chan)
- 		chan->dev->card_info->tuner_config[chan->number];
- 	const struct stv6110x_devctl *ctl;
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index 4dccf29..58d8645 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -30,6 +30,8 @@
+ #include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
  
--	if (chan->number < 2)
--		i2c = &chan->dev->channel[0].i2c_adapter;
--	else
--		i2c = &chan->dev->channel[1].i2c_adapter;
--
- 	ctl = dvb_attach(stv6110x_attach, chan->fe, tunerconf, i2c);
- 	if (ctl == NULL) {
- 		dev_err(pdev, "No STV6110X found!\n");
-@@ -304,14 +299,6 @@ static int demod_attach_stv0900(struct ngene_channel *chan)
- 	struct stv090x_config *feconf = (struct stv090x_config *)
- 		chan->dev->card_info->fe_config[chan->number];
++#include <linux/nospec.h>
++
+ /* Mirror addresses are not available for all registers */
+ #define VOUER	0
+ #define VOUCR	4
+@@ -398,6 +400,7 @@ static int sh_vou_enum_fmt_vid_out(struct file *file, void  *priv,
  
--	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
--	/* Note: Both adapters share the same i2c bus, but the demod     */
--	/*       driver requires that each demod has its own i2c adapter */
--	if (chan->number < 2)
--		i2c = &chan->dev->channel[0].i2c_adapter;
--	else
--		i2c = &chan->dev->channel[1].i2c_adapter;
--
- 	chan->fe = dvb_attach(stv090x_attach, feconf, i2c,
- 			(chan->number & 1) == 0 ? STV090x_DEMODULATOR_0
- 						: STV090x_DEMODULATOR_1);
+ 	if (fmt->index >= ARRAY_SIZE(vou_fmt))
+ 		return -EINVAL;
++	fmt->index = array_index_nospec(fmt->index, ARRAY_SIZE(vou_fmt));
+ 
+ 	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
+ 
 -- 
-2.16.1
+2.7.4
