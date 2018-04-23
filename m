@@ -1,135 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:56593 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752027AbeDRLYb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 07:24:31 -0400
-Date: Wed, 18 Apr 2018 12:24:29 +0100
-From: Sean Young <sean@mess.org>
-To: Matthias Reichl <hias@horus.com>
-Cc: linux-media@vger.kernel.org, Carlo Caione <carlo@caione.org>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Alex Deryskyba <alex@codesnake.com>,
-        Jonas Karlman <jonas@kwiboo.se>,
-        linux-amlogic@lists.infradead.org
-Subject: Re: [PATCH v2 7/7] media: rc: mceusb: allow the timeout to be
- configurable
-Message-ID: <20180418112428.zk3lmdxoqv46weph@gofer.mess.org>
-References: <cover.1523221902.git.sean@mess.org>
- <02b5dac3b27169c6e6a4a070a2569b33fef47bbe.1523221902.git.sean@mess.org>
- <20180417191457.fhgsdega2kjqw3t2@camel2.lan>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:53796 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754802AbeDWNFu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 09:05:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: architt@codeaurora.org, a.hajda@samsung.com, airlied@linux.ie,
+        daniel@ffwll.ch, peda@axentia.se,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 5/8] media: Add LE version of RGB LVDS formats
+Date: Mon, 23 Apr 2018 16:06:01 +0300
+Message-ID: <1733883.PFymhGyeZa@avalon>
+In-Reply-To: <1524130269-32688-6-git-send-email-jacopo+renesas@jmondi.org>
+References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org> <1524130269-32688-6-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180417191457.fhgsdega2kjqw3t2@camel2.lan>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hias,
+Hi Jacopo,
 
-On Tue, Apr 17, 2018 at 09:14:57PM +0200, Matthias Reichl wrote:
-> On Sun, Apr 08, 2018 at 10:19:42PM +0100, Sean Young wrote:
-> > mceusb devices have a default timeout of 100ms, but this can be changed.
-> 
-> We finally added a backport of the v2 series (and also the mce_kbd
-> series) to LibreELEC yesterday and ratcher quickly received 2 bugreports
-> from users using mceusb receivers.
-> 
-> Local testing on RPi/gpio-ir and Intel NUC/ite-cir was fine, I've
-> been using the v2 series for over a week without issues on
-> LibreELEC (RPi with kernel 4.14).
-> 
-> Here are the links to the bugreports and logs:
-> https://forum.kodi.tv/showthread.php?tid=298461&pid=2726684#pid2726684
-> https://forum.kodi.tv/showthread.php?tid=298462&pid=2726690#pid2726690
-> 
-> Both users are using similar mceusb receivers:
-> 
-> Log 1:
-> [    6.418218] rc rc0: Media Center Ed. eHome Infrared Remote Transceiver (147a:e017) as /devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/1-1.3:1.0/rc/rc0
-> [    6.418358] input: Media Center Ed. eHome Infrared Remote Transceiver (147a:e017) as /devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/1-1.3:1.0/rc/rc0/input0
-> [    6.419443] rc rc0: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-> [    6.608114] mceusb 1-1.3:1.0: Registered Formosa21 SnowflakeEmulation with mce emulator interface version 1
-> [    6.608125] mceusb 1-1.3:1.0: 0 tx ports (0x0 cabled) and 1 rx sensors (0x1 active)
-> 
-> Log 2:
-> [    3.023361] rc rc0: Media Center Ed. eHome Infrared Remote Transceiver (147a:e03e) as /devices/pci0000:00/0000:00:14.0/usb1/1-10/1-10:1.0/rc/rc0
-> [    3.023393] input: Media Center Ed. eHome Infrared Remote Transceiver (147a:e03e) as /devices/pci0000:00/0000:00:14.0/usb1/1-10/1-10:1.0/rc/rc0/input11
-> [    3.023868] rc rc0: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-> [    3.119384] input: eventlircd as /devices/virtual/input/input21
-> [    3.138625] ip6_tables: (C) 2000-2006 Netfilter Core Team
-> [    3.196830] mceusb 1-10:1.0: Registered Formosa21 eHome Infrared Transceiver with mce emulator interface version 2
-> [    3.196836] mceusb 1-10:1.0: 0 tx ports (0x0 cabled) and 1 rx sensors (0x1 active)
-> 
-> In both cases ir-keytable doesn't report any scancodes and the
-> ir-ctl -r output contains very odd long space values where I'd expect
-> a short timeout instead:
-> 
-> gap between messages:
-> space 800
-> pulse 450
-> space 16777215
-> space 25400
-> pulse 2650
-> space 800
-> 
-> end of last message:
-> space 800
-> pulse 450
-> space 16777215
-> timeout 31750
-> 
-> This patch applied cleanly on 4.14 and the mceusb history from
-> 4.14 to media/master looked rather unsuspicious. I'm not 100% sure
-> if I might have missed a dependency when backporting the patch
-> or if this is indeed an issue of this patch on these particular
-> (or maybe some more) mceusb receivers.
+Thank you for the patch.
 
-Thanks again for a great bug report and analysis! So, it seems with the
-shorter timeout, some mceusb devices add a specific "timeout" code to
-the IR data stream (0x80) rather than a space. The current mceusb code
-resets the decoders in this case, causing the IR decoders to reset and
-lirc to report a space of 0xffffff.
+On Thursday, 19 April 2018 12:31:06 EEST Jacopo Mondi wrote:
+> Some LVDS controller can output swapped versions of LVDS RGB formats.
+> Define and document them in the list of supported media bus formats
 
-Turns out that one of my mceusb devices also suffers from this, I don't
-know how I missed this. Anyway hopefully this will solve the problem.
+I wouldn't introduce those new formats as we don't need them. As a general 
+rule we would like to have at least one user for any new format added to the 
+API.
 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  Documentation/media/uapi/v4l/subdev-formats.rst | 174 +++++++++++++++++++++
+>  include/uapi/linux/media-bus-format.h           |   5 +-
+>  2 files changed, 178 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst
+> b/Documentation/media/uapi/v4l/subdev-formats.rst index 9fcabe7..9a5263c
+> 100644
+> --- a/Documentation/media/uapi/v4l/subdev-formats.rst
+> +++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+> @@ -1669,6 +1669,64 @@ JEIDA defined bit mapping will be named
+>        - b\ :sub:`2`
+>        - g\ :sub:`1`
+>        - r\ :sub:`0`
+> +    * .. _MEDIA-BUS-FMT-RGB666-1X7X3-SPWG_LE:
+> +
+> +      - MEDIA_BUS_FMT_RGB666_1X7X3_SPWG_LE
+> +      - 0x101b
+> +      - 0
+> +      -
+> +      -
+> +      - b\ :sub:`2`
+> +      - g\ :sub:`1`
+> +      - r\ :sub:`0`
+> +    * -
+> +      -
+> +      - 1
+> +      -
+> +      -
+> +      - b\ :sub:`3`
+> +      - g\ :sub:`2`
+> +      - r\ :sub:`1`
+> +    * -
+> +      -
+> +      - 2
+> +      -
+> +      -
+> +      - b\ :sub:`4`
+> +      - g\ :sub:`3`
+> +      - r\ :sub:`2`
+> +    * -
+> +      -
+> +      - 3
+> +      -
+> +      -
+> +      - b\ :sub:`5`
+> +      - g\ :sub:`4`
+> +      - r\ :sub:`3`
+> +    * -
+> +      -
+> +      - 4
+> +      -
+> +      -
+> +      - d
+> +      - g\ :sub:`5`
+> +      - r\ :sub:`4`
+> +    * -
+> +      -
+> +      - 5
+> +      -
+> +      -
+> +      - d
+> +      - b\ :sub:`0`
+> +      - r\ :sub:`5`
+> +    * -
+> +      -
+> +      - 6
+> +      -
+> +      -
+> +      - d
+> +      - b\ :sub:`1`
+> +      - g\ :sub:`0`
+>      * .. _MEDIA-BUS-FMT-RGB888-1X7X4-SPWG:
+> 
+>        - MEDIA_BUS_FMT_RGB888_1X7X4_SPWG
+> @@ -1727,6 +1785,64 @@ JEIDA defined bit mapping will be named
+>        - b\ :sub:`2`
+>        - g\ :sub:`1`
+>        - r\ :sub:`0`
+> +    * .. _MEDIA-BUS-FMT-RGB888-1X7X4-SPWG_LE:
+> +
+> +      - MEDIA_BUS_FMT_RGB888_1X7X4_SPWG_LE
+> +      - 0x101c
+> +      - 0
+> +      -
+> +      - r\ :sub:`6`
+> +      - b\ :sub:`2`
+> +      - g\ :sub:`1`
+> +      - r\ :sub:`0`
+> +    * -
+> +      -
+> +      - 1
+> +      -
+> +      - r\ :sub:`7`
+> +      - b\ :sub:`3`
+> +      - g\ :sub:`2`
+> +      - r\ :sub:`1`
+> +    * -
+> +      -
+> +      - 2
+> +      -
+> +      - g\ :sub:`6`
+> +      - b\ :sub:`4`
+> +      - g\ :sub:`3`
+> +      - r\ :sub:`2`
+> +    * -
+> +      -
+> +      - 3
+> +      -
+> +      - g\ :sub:`7`
+> +      - b\ :sub:`5`
+> +      - g\ :sub:`4`
+> +      - r\ :sub:`3`
+> +    * -
+> +      -
+> +      - 4
+> +      -
+> +      - b\ :sub:`6`
+> +      - d
+> +      - g\ :sub:`5`
+> +      - r\ :sub:`4`
+> +    * -
+> +      -
+> +      - 5
+> +      -
+> +      - b\ :sub:`7`
+> +      - d
+> +      - b\ :sub:`0`
+> +      - r\ :sub:`5`
+> +    * -
+> +      -
+> +      - 6
+> +      -
+> +      - d
+> +      - d
+> +      - b\ :sub:`1`
+> +      - g\ :sub:`0`
+>      * .. _MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA:
+> 
+>        - MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA
+> @@ -1785,6 +1901,64 @@ JEIDA defined bit mapping will be named
+>        - b\ :sub:`4`
+>        - g\ :sub:`3`
+>        - r\ :sub:`2`
+> +    * .. _MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA_LE:
+> +
+> +      - MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA_LE
+> +      - 0x101d
+> +      - 0
+> +      -
+> +      - r\ :sub:`0`
+> +      - b\ :sub:`4`
+> +      - g\ :sub:`3`
+> +      - r\ :sub:`2`
+> +    * -
+> +      -
+> +      - 1
+> +      -
+> +      - r\ :sub:`1`
+> +      - b\ :sub:`5`
+> +      - g\ :sub:`4`
+> +      - r\ :sub:`3`
+> +    * -
+> +      -
+> +      - 2
+> +      -
+> +      - g\ :sub:`0`
+> +      - b\ :sub:`6`
+> +      - g\ :sub:`5`
+> +      - r\ :sub:`4`
+> +    * -
+> +      -
+> +      - 3
+> +      -
+> +      - g\ :sub:`1`
+> +      - b\ :sub:`7`
+> +      - g\ :sub:`6`
+> +      - r\ :sub:`5`
+> +    * -
+> +      -
+> +      - 4
+> +      -
+> +      - b\ :sub:`0`
+> +      - d
+> +      - g\ :sub:`7`
+> +      - r\ :sub:`6`
+> +    * -
+> +      -
+> +      - 5
+> +      -
+> +      - b\ :sub:`1`
+> +      - d
+> +      - b\ :sub:`2`
+> +      - r\ :sub:`7`
+> +    * -
+> +      -
+> +      - 6
+> +      -
+> +      - d
+> +      - d
+> +      - b\ :sub:`3`
+> +      - g\ :sub:`2`
+> 
+>  .. raw:: latex
+> 
+> diff --git a/include/uapi/linux/media-bus-format.h
+> b/include/uapi/linux/media-bus-format.h index 9e35117..5bea7c0 100644
+> --- a/include/uapi/linux/media-bus-format.h
+> +++ b/include/uapi/linux/media-bus-format.h
+> @@ -34,7 +34,7 @@
+> 
+>  #define MEDIA_BUS_FMT_FIXED			0x0001
+> 
+> -/* RGB - next is	0x101b */
+> +/* RGB - next is	0x101f */
+>  #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
+>  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+>  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+> @@ -49,13 +49,16 @@
+>  #define MEDIA_BUS_FMT_RBG888_1X24		0x100e
+>  #define MEDIA_BUS_FMT_RGB666_1X24_CPADHI	0x1015
+>  #define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG		0x1010
+> +#define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG_LE	0x101b
+>  #define MEDIA_BUS_FMT_BGR888_1X24		0x1013
+>  #define MEDIA_BUS_FMT_GBR888_1X24		0x1014
+>  #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
+>  #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
+>  #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
+>  #define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG		0x1011
+> +#define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG_LE	0x101c
+>  #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
+> +#define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA_LE	0x101d
+>  #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
+>  #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
+>  #define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
 
-Thanks
-
-Sean
-
->From 92d27b206e51993e927dc0b3aba210a621eef3d0 Mon Sep 17 00:00:00 2001
-From: Sean Young <sean@mess.org>
-Date: Wed, 18 Apr 2018 10:36:25 +0100
-Subject: [PATCH] media: rc: mceusb: IR of length 0 means IR timeout, not reset
-
-The last usb packet with IR data will end with 0x80 (MCE_IRDATA_TRAILER).
-If we reset the decoder state at this point, IR decoding can fail.
-
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/mceusb.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index c97cb2eb1c5f..5c0bf61fae26 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -1201,7 +1201,12 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 			if (ir->rem) {
- 				ir->parser_state = PARSE_IRDATA;
- 			} else {
--				ir_raw_event_reset(ir->rc);
-+				init_ir_raw_event(&rawir);
-+				rawir.timeout = 1;
-+				rawir.duration = ir->rc->timeout;
-+				if (ir_raw_event_store_with_filter(ir->rc,
-+								   &rawir))
-+					event = true;
- 				ir->pulse_tunit = 0;
- 				ir->pulse_count = 0;
- 			}
 -- 
-2.14.3
+Regards,
+
+Laurent Pinchart
