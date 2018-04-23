@@ -1,35 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:41254 "EHLO osg.samsung.com"
+Received: from gofer.mess.org ([88.97.38.141]:44609 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753479AbeDSQdh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 12:33:37 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 0/4] Improve v4l2-compat-ioctl32 handler getting rid of smatch warnings
-Date: Thu, 19 Apr 2018 12:33:28 -0400
-Message-Id: <cover.1524155425.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        id S1754209AbeDWJEW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 05:04:22 -0400
+Date: Mon, 23 Apr 2018 10:04:20 +0100
+From: Sean Young <sean@mess.org>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, Warren Sturm <warren.sturm@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org
+Subject: Re: [PATCH stable v4.15 1/3] media: staging: lirc_zilog: broken
+ reference counting
+Message-ID: <20180423090420.tvb6danodfbc55m2@gofer.mess.org>
+References: <cover.1523785117.git.sean@mess.org>
+ <2bd4184fbea37ecdfcb0a334c6bef45786feb486.1523785117.git.sean@mess.org>
+ <20180416075228.GB2121@kroah.com>
+ <20180416084344.k4e3tx4jd5lswfh3@gofer.mess.org>
+ <20180416085015.GA2598@kroah.com>
+ <20180416091527.ryx7vdekzjwcrpxo@gofer.mess.org>
+ <20180422094751.GC26895@kroah.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180422094751.GC26895@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series correspond to the last 3 patches of my previous patch series:
-	https://www.spinics.net/lists/linux-media/msg132453.html
+On Sun, Apr 22, 2018 at 11:47:51AM +0200, Greg KH wrote:
+> On Mon, Apr 16, 2018 at 10:15:28AM +0100, Sean Young wrote:
+> > On Mon, Apr 16, 2018 at 10:50:15AM +0200, Greg KH wrote:
+> > > On Mon, Apr 16, 2018 at 09:43:45AM +0100, Sean Young wrote:
+> > > > On Mon, Apr 16, 2018 at 09:52:28AM +0200, Greg KH wrote:
+> > > > > What is the git commit id of this patch, and the other patches in this
+> > > > > series and the 4.14 patch series that you sent out?
+> > > > 
+> > > > lirc_zilog was dropped in v4.16, so this can't be patched upstream.
+> > > 
+> > > Ah you are right, should we just ditch them here as well as they
+> > > obviously do not work? :)
+> > > 
+> > > > > Please read:
+> > > > >     https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
+> > > > > for how to do this in a way that I can pick them up.
+> > > > 
+> > > > These patches have been tested with different types of hardware. Is there
+> > > > anything else I can do to get these patches included?
+> > > 
+> > > When submitting patches to stable, you need to be explicit as to why
+> > > they are needed, and if they are not upstream, why not.
+> > > 
+> > > In this case, for obviously broken code that is not used anymore (as
+> > > it is gone in 4.16), why don't we just take the patch that removed the
+> > > driver to the stable trees as well?
+> > 
+> > Well in v4.16 the ir-kbd-i2c.c driver can do what the lirc_zilog does in
+> > v4.15 (and earlier), so it wasn't ditched as such. It's a case of replaced
+> > by mainline.
+> > 
+> > Since I was getting bug reports on it, there must be users of the lirc_zilog
+> > driver.
+> > 
+> > That being said, the old lirc_dev and lirc_zilog is pretty awful code.
+> 
+> Ok, I've queued these up for 4.14.y now.  4.15 is end-of-life, so I
+> can't apply these patches there, sorry.
 
-It contains the compat32 related bits.
+Ok, thanks.
 
-Version 2 addresses some comments from Hans.
-It adds a new patch better documenting it.
+I wonder why Ubuntu picked 4.15 as the kernel for their upcoming 18.04 LTS
+release.
 
-Mauro Carvalho Chehab (4):
-  media: v4l2-compat-ioctl32: fix several __user annotations
-  media: v4l2-compat-ioctl32: better name userspace pointers
-  media: v4l2-compat-ioctl32: simplify casts
-  media: v4l2-compat-ioctl32: better document the code
 
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 805 ++++++++++++++++----------
- 1 file changed, 496 insertions(+), 309 deletions(-)
-
--- 
-2.14.3
+Sean
