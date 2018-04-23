@@ -1,153 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0075.outbound.protection.outlook.com ([104.47.37.75]:18592
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753283AbeEABf0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Apr 2018 21:35:26 -0400
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-Subject: [PATCH v4 08/10] v4l: xilinx: dma: Update video format descriptor
-Date: Mon, 30 Apr 2018 18:35:11 -0700
-Message-ID: <7df8c3d2e8b7d1de140adb7879ea262f2ec9a340.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
-In-Reply-To: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
-References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:33097 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755372AbeDWNtE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 09:49:04 -0400
+Received: by mail-wr0-f194.google.com with SMTP id z73-v6so41512735wrb.0
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:49:03 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v2 12/15] ARM: dts: imx7s: add capture subsystem
+Date: Mon, 23 Apr 2018 14:47:47 +0100
+Message-Id: <20180423134750.30403-13-rui.silva@linaro.org>
+In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
+References: <20180423134750.30403-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch updates video format descriptor to help information
-viz., number of planes per color format and chroma sub sampling
-factors.
+Add media capture subsystem device to i.MX7 definitions.
 
-Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- drivers/media/platform/xilinx/xilinx-dma.c | 12 ++++++------
- drivers/media/platform/xilinx/xilinx-vip.c | 28 +++++++++++++++++++---------
- drivers/media/platform/xilinx/xilinx-vip.h |  8 +++++++-
- 3 files changed, 32 insertions(+), 16 deletions(-)
+ arch/arm/boot/dts/imx7s.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 16aeb46..658586e 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -366,7 +366,7 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
- 	}
- 
- 	dma->xt.frame_size = 1;
--	dma->sgl[0].size = dma->format.width * dma->fmtinfo->bpp;
-+	dma->sgl[0].size = dma->format.width * dma->fmtinfo->bpp[0];
- 	dma->sgl[0].icg = dma->format.bytesperline - dma->sgl[0].size;
- 	dma->xt.numf = dma->format.height;
- 
-@@ -569,12 +569,12 @@ __xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
- 	 * the minimum and maximum values, clamp the requested width and convert
- 	 * it back to pixels.
- 	 */
--	align = lcm(dma->align, info->bpp);
-+	align = lcm(dma->align, info->bpp[0]);
- 	min_width = roundup(XVIP_DMA_MIN_WIDTH, align);
- 	max_width = rounddown(XVIP_DMA_MAX_WIDTH, align);
--	width = rounddown(pix->width * info->bpp, align);
-+	width = rounddown(pix->width * info->bpp[0], align);
- 
--	pix->width = clamp(width, min_width, max_width) / info->bpp;
-+	pix->width = clamp(width, min_width, max_width) / info->bpp[0];
- 	pix->height = clamp(pix->height, XVIP_DMA_MIN_HEIGHT,
- 			    XVIP_DMA_MAX_HEIGHT);
- 
-@@ -582,7 +582,7 @@ __xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
- 	 * line value is zero, the module doesn't support user configurable line
- 	 * sizes. Override the requested value with the minimum in that case.
- 	 */
--	min_bpl = pix->width * info->bpp;
-+	min_bpl = pix->width * info->bpp[0];
- 	max_bpl = rounddown(XVIP_DMA_MAX_WIDTH, dma->align);
- 	bpl = rounddown(pix->bytesperline, dma->align);
- 
-@@ -676,7 +676,7 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
- 	dma->format.field = V4L2_FIELD_NONE;
- 	dma->format.width = XVIP_DMA_DEF_WIDTH;
- 	dma->format.height = XVIP_DMA_DEF_HEIGHT;
--	dma->format.bytesperline = dma->format.width * dma->fmtinfo->bpp;
-+	dma->format.bytesperline = dma->format.width * dma->fmtinfo->bpp[0];
- 	dma->format.sizeimage = dma->format.bytesperline * dma->format.height;
- 
- 	/* Initialize the media entity... */
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/platform/xilinx/xilinx-vip.c
-index 3112591..81cc0d2 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.c
-+++ b/drivers/media/platform/xilinx/xilinx-vip.c
-@@ -27,22 +27,32 @@
-  */
- 
- static const struct xvip_video_format xvip_video_formats[] = {
-+	{ XVIP_VF_YUV_420, 8, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
-+	  {1, 2, 0}, V4L2_PIX_FMT_NV12, 2, 2, 2, "4:2:0, semi-planar, YUV" },
-+	{ XVIP_VF_YUV_420, 10, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
-+	  {1, 2, 0}, V4L2_PIX_FMT_XV15, 2, 2, 2, "4:2:0, 10-bit 2-plane cont" },
- 	{ XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
--	  2, V4L2_PIX_FMT_YUYV, "4:2:2, packed, YUYV" },
--	{ XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
--	  3, V4L2_PIX_FMT_YUV444, "4:4:4, packed, YUYV" },
-+	  {2, 0, 0}, V4L2_PIX_FMT_YUYV, 1, 2, 1, "4:2:2, packed, YUYV" },
-+	{ XVIP_VF_VUY_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
-+	  {2, 0, 0}, V4L2_PIX_FMT_UYVY, 1, 2, 1, "4:2:2, packed, UYVY" },
-+	{ XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
-+	  {1, 2, 0}, V4L2_PIX_FMT_NV16, 2, 2, 1, "4:2:2, semi-planar, YUV" },
-+	{ XVIP_VF_YUV_422, 10, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
-+	  {1, 2, 0}, V4L2_PIX_FMT_XV20, 2, 2, 1, "4:2:2, 10-bit 2-plane cont" },
-+	{ XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
-+	  {3, 0, 0}, V4L2_PIX_FMT_BGR24, 1, 1, 1, "24-bit RGB" },
- 	{ XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
--	  3, 0, NULL },
-+	  {3, 0, 0}, V4L2_PIX_FMT_RGB24, 1, 1, 1, "24-bit RGB" },
- 	{ XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
--	  1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
-+	  {1, 0, 0}, V4L2_PIX_FMT_GREY, 1, 1, 1, "Greyscale 8-bit" },
- 	{ XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
--	  1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit RGGB" },
-+	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit RGGB" },
- 	{ XVIP_VF_MONO_SENSOR, 8, "grbg", MEDIA_BUS_FMT_SGRBG8_1X8,
--	  1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit GRBG" },
-+	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit GRBG" },
- 	{ XVIP_VF_MONO_SENSOR, 8, "gbrg", MEDIA_BUS_FMT_SGBRG8_1X8,
--	  1, V4L2_PIX_FMT_SGBRG8, "Bayer 8-bit GBRG" },
-+	  {1, 0, 0}, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, "Bayer 8-bit GBRG" },
- 	{ XVIP_VF_MONO_SENSOR, 8, "bggr", MEDIA_BUS_FMT_SBGGR8_1X8,
--	  1, V4L2_PIX_FMT_SBGGR8, "Bayer 8-bit BGGR" },
-+	  {1, 0, 0}, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, "Bayer 8-bit BGGR" },
+diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
+index 6b49b73053f9..333d9fe6b989 100644
+--- a/arch/arm/boot/dts/imx7s.dtsi
++++ b/arch/arm/boot/dts/imx7s.dtsi
+@@ -1189,4 +1189,9 @@
+ 			assigned-clock-parents = <&clks IMX7D_PLL_ENET_MAIN_500M_CLK>;
+ 		};
+ 	};
++
++	capture-subsystem {
++		compatible = "fsl,imx7-capture-subsystem";
++		ports = <&csi>;
++	};
  };
- 
- /**
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/platform/xilinx/xilinx-vip.h
-index 42fee20..5e7a978 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.h
-+++ b/drivers/media/platform/xilinx/xilinx-vip.h
-@@ -111,6 +111,9 @@ struct xvip_device {
-  * @code: media bus format code
-  * @bpp: bytes per pixel (when stored in memory)
-  * @fourcc: V4L2 pixel format FCC identifier
-+ * @num_planes: number of planes w.r.t. color format
-+ * @hsub: Horizontal sampling factor of Chroma
-+ * @vsub: Vertical sampling factor of Chroma
-  * @description: format description, suitable for userspace
-  */
- struct xvip_video_format {
-@@ -118,8 +121,11 @@ struct xvip_video_format {
- 	unsigned int width;
- 	const char *pattern;
- 	unsigned int code;
--	unsigned int bpp;
-+	unsigned int bpp[3];
- 	u32 fourcc;
-+	u8 num_planes;
-+	u8 hsub;
-+	u8 vsub;
- 	const char *description;
- };
- 
 -- 
-2.1.1
+2.17.0
