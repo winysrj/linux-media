@@ -1,139 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:62675 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751836AbeDQPil (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 11:38:41 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Daniel Mentz <danielmentz@google.com>
-Subject: [PATCH] media: v4l2-compat-ioctl32: simplify casts
-Date: Tue, 17 Apr 2018 10:25:37 -0400
-Message-Id: <fab4b7e40757bd966d5f94a6f1845897366fd048.1523975132.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:34601 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755423AbeDWPqk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 11:46:40 -0400
+Message-ID: <1524498393.3396.4.camel@pengutronix.de>
+Subject: Re: [PATCH v2 11/15] ARM: dts: imx7: Add video mux, csi and
+ mipi_csi and connections
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>
+Date: Mon, 23 Apr 2018 17:46:33 +0200
+In-Reply-To: <20180423134750.30403-12-rui.silva@linaro.org>
+References: <20180423134750.30403-1-rui.silva@linaro.org>
+         <20180423134750.30403-12-rui.silva@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Making the cast right for get_user/put_user is not trivial, as
-it needs to ensure that the types are the correct ones.
+On Mon, 2018-04-23 at 14:47 +0100, Rui Miguel Silva wrote:
+> This patch adds the device tree nodes for csi, video multiplexer and mipi-csi
+> besides the graph connecting the necessary endpoints to make the media capture
+> entities to work in imx7 Warp board.
+> 
+> Also add the pin control related with the mipi_csi in that board.
+> 
+> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+> ---
+>  arch/arm/boot/dts/imx7s-warp.dts | 80 ++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/imx7s.dtsi     | 27 +++++++++++
+>  2 files changed, 107 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
+> index 8a30b148534d..91d06adf7c24 100644
+> --- a/arch/arm/boot/dts/imx7s-warp.dts
+> +++ b/arch/arm/boot/dts/imx7s-warp.dts
+> @@ -310,6 +310,79 @@
+>  	status = "okay";
+>  };
+>  
+> +&gpr {
+> +	csi_mux {
+> +		compatible = "video-mux";
+> +		mux-controls = <&mux 0>;
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		port@0 {
+> +			reg = <0>;
+> +
+> +			csi_mux_from_parallel_sensor: endpoint {
+> +			};
+> +		};
+> +
+> +		port@1 {
+> +			reg = <1>;
+> +
+> +			csi_mux_from_mipi_vc0: endpoint {
+> +				remote-endpoint = <&mipi_vc0_to_csi_mux>;
+> +			};
+> +		};
+> +
+> +		port@2 {
+> +			reg = <2>;
+> +
+> +			csi_mux_to_csi: endpoint {
+> +				remote-endpoint = <&csi_from_csi_mux>;
+> +			};
+> +		};
+> +	};
+> +};
+> +
+> +&csi {
+> +	status = "okay";
+> +	#address-cells = <1>;
+> +	#size-cells = <0>;
+> +
+> +	port@0 {
+> +		reg = <0>;
+> +
+> +		csi_from_csi_mux: endpoint {
+> +			remote-endpoint = <&csi_mux_to_csi>;
+> +		};
+> +	};
+> +};
+> +
+> +&mipi_csi {
+> +	clock-frequency = <166000000>;
+> +	status = "okay";
+> +	#address-cells = <1>;
+> +	#size-cells = <0>;
+> +
+> +	port@0 {
+> +		reg = <0>;
+> +
+> +		mipi_from_sensor: endpoint {
+> +			remote-endpoint = <&ov2680_to_mipi>;
+> +			data-lanes = <1>;
+> +			csis-hs-settle = <3>;
+> +			csis-clk-settle = <0>;
+> +			csis-wclk;
 
-Improve it by using macros.
+Why is this an endpoint property? Under which condition would a board
+designer choose PCLK instead of WRAP_CLK as pixel clock source?
 
-Tested with vivid with:
-	$ sudo modprobe vivid no_error_inj=1
-	$ v4l2-compliance-32bits -a -s10 >32bits && v4l2-compliance-64bits -a -s10 > 64bits && diff -U0 32bits 64bits
-	--- 32bits	2018-04-17 11:18:29.141240772 -0300
-	+++ 64bits	2018-04-17 11:18:40.635282341 -0300
-	@@ -1 +1 @@
-	-v4l2-compliance SHA   : bc71e4a67c6fbc5940062843bc41e7c8679634ce, 32 bits
-	+v4l2-compliance SHA   : bc71e4a67c6fbc5940062843bc41e7c8679634ce, 64 bits
+I'd naively assume that the driver should set this bit automatically
+whenever a "wrap" clock is provided via device tree.
 
-Using the latest version of v4l-utils with this patch applied:
-	https://patchwork.linuxtv.org/patch/48746/
+> +		};
+> +	};
+> +
+> +	port@1 {
+> +		reg = <1>;
+> +
+> +		mipi_vc0_to_csi_mux: endpoint {
+> +			remote-endpoint = <&csi_mux_from_mipi_vc0>;
+> +		};
+> +	};
+> +};
+> +
+>  &wdog1 {
+>  	pinctrl-names = "default";
+>  	pinctrl-0 = <&pinctrl_wdog>;
+> @@ -357,6 +430,13 @@
+>  		>;
+>  	};
+>  
+> +	pinctrl_mipi_csi: mipi_csi {
+> +		fsl,pins = <
+> +			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
+> +			MX7D_PAD_ENET1_RGMII_TD0__GPIO7_IO6	0x14
+> +		>;
+> +	};
+> +
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 40 ++++++++++++++++++---------
- 1 file changed, 27 insertions(+), 13 deletions(-)
+Unrelated change?
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 8c05dd9660d3..d2f0268427c2 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -30,6 +30,24 @@
- 	get_user(__assign_tmp, from) || put_user(__assign_tmp, to);	\
- })
- 
-+#define get_user_cast(__x, __ptr)					\
-+({									\
-+	get_user(__x, (typeof(*__ptr) __user *)(__ptr));		\
-+})
-+
-+#define put_user_force(__x, __ptr)					\
-+({									\
-+	put_user((typeof(*__x) __force *)(__x), __ptr);			\
-+})
-+
-+#define assign_in_user_cast(to, from)					\
-+({									\
-+	typeof(*from) __assign_tmp;					\
-+									\
-+	get_user_cast(__assign_tmp, from) || put_user(__assign_tmp, to);\
-+})
-+
-+
- static long native_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	long ret = -ENOIOCTLCMD;
-@@ -543,8 +561,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *p64,
- 			return -EFAULT;
- 
- 		uplane = aux_buf;
--		if (put_user((__force struct v4l2_plane *)uplane,
--			     &p64->m.planes))
-+		if (put_user_force(uplane, &p64->m.planes))
- 			return -EFAULT;
- 
- 		while (num_planes--) {
-@@ -682,7 +699,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer __user *p64,
- 
- 	if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
- 	    get_user(tmp, &p32->base) ||
--	    put_user((void __force *)compat_ptr(tmp), &p64->base) ||
-+	    put_user_force(compat_ptr(tmp), &p64->base) ||
- 	    assign_in_user(&p64->capability, &p32->capability) ||
- 	    assign_in_user(&p64->flags, &p32->flags) ||
- 	    copy_in_user(&p64->fmt, &p32->fmt, sizeof(p64->fmt)))
-@@ -831,8 +848,7 @@ static int get_v4l2_ext_controls32(struct file *file,
- 	if (aux_space < count * sizeof(*kcontrols))
- 		return -EFAULT;
- 	kcontrols = aux_buf;
--	if (put_user((__force struct v4l2_ext_control *)kcontrols,
--		     &p64->controls))
-+	if (put_user_force(kcontrols, &p64->controls))
- 		return -EFAULT;
- 
- 	for (n = 0; n < count; n++) {
-@@ -898,12 +914,11 @@ static int put_v4l2_ext_controls32(struct file *file,
- 		unsigned int size = sizeof(*ucontrols);
- 		u32 id;
- 
--		if (get_user(id, (unsigned int __user *)&kcontrols->id) ||
-+		if (get_user_cast(id, &kcontrols->id) ||
- 		    put_user(id, &ucontrols->id) ||
--		    assign_in_user(&ucontrols->size,
--				   (unsigned int __user *)&kcontrols->size) ||
-+		    assign_in_user_cast(&ucontrols->size, &kcontrols->size) ||
- 		    copy_in_user(&ucontrols->reserved2,
--				 (unsigned int __user *)&kcontrols->reserved2,
-+				 (void __user *)&kcontrols->reserved2,
- 				 sizeof(ucontrols->reserved2)))
- 			return -EFAULT;
- 
-@@ -916,7 +931,7 @@ static int put_v4l2_ext_controls32(struct file *file,
- 			size -= sizeof(ucontrols->value64);
- 
- 		if (copy_in_user(ucontrols,
--			         (unsigned int __user *)kcontrols, size))
-+			         (void __user *)kcontrols, size))
- 			return -EFAULT;
- 
- 		ucontrols++;
-@@ -970,10 +985,9 @@ static int get_v4l2_edid32(struct v4l2_edid __user *p64,
- 	if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
- 	    assign_in_user(&p64->pad, &p32->pad) ||
- 	    assign_in_user(&p64->start_block, &p32->start_block) ||
--	    assign_in_user(&p64->blocks,
--			   (unsigned char __user *)&p32->blocks) ||
-+	    assign_in_user_cast(&p64->blocks, &p32->blocks) ||
- 	    get_user(tmp, &p32->edid) ||
--	    put_user((void __force *)compat_ptr(tmp), &p64->edid) ||
-+	    put_user_force(compat_ptr(tmp), &p64->edid) ||
- 	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
- 		return -EFAULT;
- 	return 0;
--- 
-2.14.3
+>  	pinctrl_sai1: sai1grp {
+>  		fsl,pins = <
+>  			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
+> diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
+> index 3027d6a62021..6b49b73053f9 100644
+> --- a/arch/arm/boot/dts/imx7s.dtsi
+> +++ b/arch/arm/boot/dts/imx7s.dtsi
+> @@ -46,6 +46,7 @@
+>  #include <dt-bindings/gpio/gpio.h>
+>  #include <dt-bindings/input/input.h>
+>  #include <dt-bindings/interrupt-controller/arm-gic.h>
+> +#include <dt-bindings/reset/imx7-reset.h>
+>  #include "imx7d-pinfunc.h"
+>  
+>  / {
+> @@ -753,6 +754,17 @@
+>  				status = "disabled";
+>  			};
+>  
+> +			csi: csi@30710000 {
+> +				compatible = "fsl,imx7-csi";
+> +				reg = <0x30710000 0x10000>;
+> +				interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
+> +				clocks = <&clks IMX7D_CLK_DUMMY>,
+> +						<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
+> +						<&clks IMX7D_CLK_DUMMY>;
+> +				clock-names = "axi", "mclk", "dcic";
+> +				status = "disabled";
+> +			};
+> +
+>  			lcdif: lcdif@30730000 {
+>  				compatible = "fsl,imx7d-lcdif", "fsl,imx28-lcdif";
+>  				reg = <0x30730000 0x10000>;
+> @@ -762,6 +774,21 @@
+>  				clock-names = "pix", "axi";
+>  				status = "disabled";
+>  			};
+> +
+> +			mipi_csi: mipi-csi@30750000 {
+> +				compatible = "fsl,imx7-mipi-csi2";
+> +				reg = <0x30750000 0x10000>;
+> +				interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
+> +				clocks = <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
+> +						<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
+> +				clock-names = "mipi", "phy";
+
+The i.MX7Dual and i.MX7Solo reference manuals mention three clock inputs
+to the MIPI CSI: mipi_csi.ipg_clk_s, mipi_csi.I_PCLK, and
+mipi.csi.I_WRAP_CLK (all three gated by CCGR100).
+The MIPI_CSI2 chapters mention I_PCLK and I_WRAP_CLK again. Shouldn't at
+least those two be used in place of just "mipi"?
+
+> +				power-domains = <&pgc_mipi_phy>;
+> +				phy-supply = <&reg_1p0d>;
+> +				resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
+> +				reset-names = "mrst";
+> +				bus-width = <4>;
+
+It looks to me like both i.MX7Dual and i.MX7Solo only have two data
+lanes connected.
+
+> +				status = "disabled";
+> +			};
+>  		};
+>  
+>  		aips3: aips-bus@30800000 {
+
+regards
+Philipp
