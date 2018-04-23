@@ -1,63 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:39573 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752921AbeDPJaW (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:46414 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932163AbeDWU7e (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 05:30:22 -0400
-Message-ID: <1523871020.5918.4.camel@pengutronix.de>
-Subject: Re: imx-media: MT9P031 Capture issues on IMX6
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Date: Mon, 16 Apr 2018 11:30:20 +0200
-In-Reply-To: <CAPQseg29hJ+vdWxU3RkXtaeJki9209OjqvGOQQ-U45Z_vvjnnw@mail.gmail.com>
-References: <CAPQseg2t1-LgmeuQBW2YXSwN26WKcJWakN2KCLfCjKZ_wJeWGw@mail.gmail.com>
-         <1523629085.3396.10.camel@pengutronix.de>
-         <CAPQseg29hJ+vdWxU3RkXtaeJki9209OjqvGOQQ-U45Z_vvjnnw@mail.gmail.com>
+        Mon, 23 Apr 2018 16:59:34 -0400
+Received: by mail-wr0-f194.google.com with SMTP id d1-v6so44895572wrj.13
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 13:59:33 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180423165213.GL19834@sirena.org.uk>
+References: <87in8ibrql.wl%kuninori.morimoto.gx@renesas.com>
+ <CAJ+vNU0mykhkMNNrN=Zsrj0_pv=XAkGiiQkXehQ4EWBkMDAv7w@mail.gmail.com> <20180423165213.GL19834@sirena.org.uk>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Mon, 23 Apr 2018 13:59:32 -0700
+Message-ID: <CAJ+vNU35TfSLRYnkEYMkMQVC9r+XHt_pa-=+s4Dro3b-VNGULA@mail.gmail.com>
+Subject: Re: [PATCH v3][RESEND] media: i2c: tda1997: replace codec to component
+To: Mark Brown <broonie@kernel.org>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux-ALSA <alsa-devel@alsa-project.org>,
+        linux-kernel@vger.kernel.org,
+        linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-04-16 at 09:54 +0200, Ibtsam Ul-Haq wrote:
-[...]
-> This indeed looks the case. But then, is 'GR16' the FourCC for 'SGRBG16'?
+On Mon, Apr 23, 2018 at 9:52 AM, Mark Brown <broonie@kernel.org> wrote:
+> On Mon, Apr 23, 2018 at 09:44:17AM -0700, Tim Harvey wrote:
+>
+>> Could you add some detail to the commit explaining why we need to
+>> replace codec to component? I don't really know what that means.
+>> Please refer to a commit if the ASoC API is changing in some way we
+>> need to catch up with.
+>
+> This is a big transition in the ASoC API which is nearing completion -
+> this driver is one of the last users of the CODEC struct, we've (well,
+> mainly Morimoto-san) been migrating things away from it to the more
+> general purpose component.  There's no one commit to point at really as
+> the two have coexisted for a while and we won't be able to finally
+> remove the CODEC struct until all the drivers have transitioned away.
 
-Yes, see Documentation/media/uapi/v4l/pixfmt-srggb16.rst:
-https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-srggb16.html
+Mark,
 
-> To be honest, I had not seen GR16 as FourCC before.
-> And the Gstreamer debug logs (I used GST_DEBUG=5) also say that they
-> do not know this FourCC:
-> v4l2 gstv4l2object.c:1541:gst_v4l2_object_v4l2fourcc_to_bare_struct: [00m
-> Unsupported fourcc 0x36315247 GR16
+Ok - thanks for the explanation!
 
-The GStreamer V4L2 elements currently only support 8-bit per component
-Bayer formats.
+Kuninori,
 
-> Is there a way we can get by this?
+Sorry this took so long to get to. Tested on a GW5404
 
-There's two ways to handle this correctly, IMHO. One would be adding
-SGRBG8_1X8 support to the mt9p031 driver. This is the correct way if the
-device tree is configured for 8-bit parallel and there are only 8 data
-lines connected between camera and SoC. As a quick hack, I think you
-could just:
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
 
-  sed "s/MEDIA_BUS_FMT_SGRBG12_1X12/MEDIA_BUS_FMT_SGRBG8_1X8/" -i drivers/media/i2c/mt9p031.c
+Regards,
 
-The other would be to connect all 12 data lines, configure the device
-tree with 12 bit data width, and extend the imx-media CSI subdevice
-driver to allow setting SGRBG12_1X12 on the sink pad and SGRBG8_1X8 on
-the source pad at the same time (and then just internally configuring
-the hardware to 8-bit, ignoring the 4 LSB). That would be a bit more
-involved.
-
-Another possiblity would be to replace v4l2_subdev_link_validate() in
-drivers/media/v4l2-core/v4l2-subdev.c with a variant that allows
-source_fmt->format.code != sink_fmt->format.code in case the source
-format can be turned into the sink format by just dropping LSB for one
-of the links.
-
-regards
-Philipp
+Tim
