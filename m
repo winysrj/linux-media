@@ -1,95 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:42954 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752634AbeDSPq6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 11:46:58 -0400
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Subject: [PATCH v2 09/10] ARM: dts: sun7i-a20: Add Video Engine and reserved memory nodes
-Date: Thu, 19 Apr 2018 17:45:35 +0200
-Message-Id: <20180419154536.17846-5-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
+Received: from gateway36.websitewelcome.com ([192.185.198.13]:35147 "EHLO
+        gateway36.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932508AbeDWRwj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 13:52:39 -0400
+Received: from cm10.websitewelcome.com (cm10.websitewelcome.com [100.42.49.4])
+        by gateway36.websitewelcome.com (Postfix) with ESMTP id 2FE9040E911E8
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 12:52:37 -0500 (CDT)
+Date: Mon, 23 Apr 2018 12:52:35 -0500
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 11/11] vsp1_rwpf: fix potential Spectre variant 1
+Message-ID: <54ddd5303a6964e1295a4f5d009e683810fc3c18.1524499368.git.gustavo@embeddedor.com>
+References: <cover.1524499368.git.gustavo@embeddedor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1524499368.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds nodes for the Video Engine and the associated reserved memory
-for the Allwinner A20. Up to 96 MiB of memory are dedicated to the VPU.
+code->index can be controlled by user-space, hence leading to
+a potential exploitation of the Spectre variant 1 vulnerability.
 
-The VPU can only map the first 256 MiB of DRAM, so the reserved memory
-pool has to be located in that area. Following Allwinner's decision in
-downstream software, the last 96 MiB of the first 256 MiB of RAM are
-reserved for this purpose.
+Smatch warning:
+drivers/media/platform/vsp1/vsp1_rwpf.c:47 vsp1_rwpf_enum_mbus_code() warn: potential spectre issue 'codes'
 
-Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Fix this by sanitizing code->index before using it to index
+codes.
+
+Notice that given that speculation windows are large, the policy is
+to kill the speculation on the first load and not worry if it can be
+completed with a dependent load/store [1].
+
+[1] https://marc.info/?l=linux-kernel&m=152449131114778&w=2
+
+Cc: stable@vger.kernel.org
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- arch/arm/boot/dts/sun7i-a20.dtsi | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ drivers/media/platform/vsp1/vsp1_rwpf.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
-index bd0cd3204273..cb6d82065dcf 100644
---- a/arch/arm/boot/dts/sun7i-a20.dtsi
-+++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-@@ -163,6 +163,20 @@
- 		reg = <0x40000000 0x80000000>;
- 	};
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
+index cfd8f19..6e887be 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
+@@ -13,6 +13,8 @@
  
-+	reserved-memory {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+
-+		/* Address must be kept in the lower 256 MiBs of DRAM for VE. */
-+		ve_memory: cma@4a000000 {
-+			compatible = "shared-dma-pool";
-+			reg = <0x4a000000 0x6000000>;
-+			no-map;
-+			linux,cma-default;
-+		};
-+	};
-+
- 	timer {
- 		compatible = "arm,armv7-timer";
- 		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
-@@ -451,6 +465,23 @@
- 			};
- 		};
+ #include <media/v4l2-subdev.h>
  
-+		ve: video-engine@1c0e000 {
-+			compatible = "allwinner,sun4i-a10-video-engine";
-+			reg = <0x01c0e000 0x1000>;
-+			memory-region = <&ve_memory>;
++#include <linux/nospec.h>
 +
-+			clocks = <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
-+				 <&ccu CLK_DRAM_VE>;
-+			clock-names = "ahb", "mod", "ram";
-+
-+			assigned-clocks = <&ccu CLK_VE>;
-+			assigned-clock-rates = <320000000>;
-+
-+			resets = <&ccu RST_VE>;
-+
-+			interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
-+		};
-+
- 		mmc0: mmc@1c0f000 {
- 			compatible = "allwinner,sun7i-a20-mmc";
- 			reg = <0x01c0f000 0x1000>;
+ #include "vsp1.h"
+ #include "vsp1_rwpf.h"
+ #include "vsp1_video.h"
+@@ -44,6 +46,7 @@ static int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+ 	if (code->index >= ARRAY_SIZE(codes))
+ 		return -EINVAL;
+ 
++	code->index = array_index_nospec(code->index, ARRAY_SIZE(codes));
+ 	code->code = codes[code->index];
+ 
+ 	return 0;
 -- 
-2.16.3
+2.7.4
