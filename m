@@ -1,114 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:37114 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750764AbeDQEhp (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:46461 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755398AbeDWNsx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 00:37:45 -0400
-Received: by mail-it0-f65.google.com with SMTP id 71-v6so14519309ith.2
-        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 21:37:45 -0700 (PDT)
-Received: from mail-it0-f50.google.com (mail-it0-f50.google.com. [209.85.214.50])
-        by smtp.gmail.com with ESMTPSA id t65sm3889369iof.88.2018.04.16.21.37.44
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 16 Apr 2018 21:37:44 -0700 (PDT)
-Received: by mail-it0-f50.google.com with SMTP id h143-v6so14256519ita.4
-        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 21:37:44 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180409142026.19369-1-hverkuil@xs4all.nl> <20180409142026.19369-28-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-28-hverkuil@xs4all.nl>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Tue, 17 Apr 2018 04:37:33 +0000
-Message-ID: <CAPBb6MXpLtTyr--_Vy3PYZJZYy--bxY87SNrAa+8f5=bA=qn9w@mail.gmail.com>
-Subject: Re: [RFCv11 PATCH 27/29] vim2m: support requests
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+        Mon, 23 Apr 2018 09:48:53 -0400
+Received: by mail-wr0-f193.google.com with SMTP id d1-v6so41457281wrj.13
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:48:52 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v2 08/15] media: dt-bindings: add bindings for i.MX7 media driver
+Date: Mon, 23 Apr 2018 14:47:43 +0100
+Message-Id: <20180423134750.30403-9-rui.silva@linaro.org>
+In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
+References: <20180423134750.30403-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Add bindings documentation for i.MX7 media drivers.
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ .../devicetree/bindings/media/imx7.txt        | 158 ++++++++++++++++++
+ 1 file changed, 158 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/imx7.txt
 
-> Add support for requests to vim2m.
-
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->   drivers/media/platform/vim2m.c | 25 +++++++++++++++++++++++++
->   1 file changed, 25 insertions(+)
-
-> diff --git a/drivers/media/platform/vim2m.c
-b/drivers/media/platform/vim2m.c
-> index 9b18b32c255d..2dcf0ea85705 100644
-> --- a/drivers/media/platform/vim2m.c
-> +++ b/drivers/media/platform/vim2m.c
-> @@ -387,8 +387,26 @@ static void device_run(void *priv)
->          src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
->          dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-
-> +       /* Apply request if needed */
-> +       if (src_buf->vb2_buf.req_obj.req)
-> +               v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
-> +                                       &ctx->hdl);
-> +       if (dst_buf->vb2_buf.req_obj.req &&
-> +           dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
-> +               v4l2_ctrl_request_setup(dst_buf->vb2_buf.req_obj.req,
-> +                                       &ctx->hdl);
-
-This implies that we can have two different requests active at the same time
-for the same device. Do we want to open that can of worms?
-
-Valid scenarios for requests should be clearly defined. In the case of a
-simple
-buffer processor like vim2m, something like "request required for source
-buffer,
-optional and must be same as source if specified for destination", looks
-simple
-and sane.
-
-> +
->          device_process(ctx, src_buf, dst_buf);
-
-> +       /* Complete request if needed */
-> +       if (src_buf->vb2_buf.req_obj.req)
-> +               v4l2_ctrl_request_complete(src_buf->vb2_buf.req_obj.req,
-> +                                       &ctx->hdl);
-> +       if (dst_buf->vb2_buf.req_obj.req &&
-> +           dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
-> +               v4l2_ctrl_request_complete(dst_buf->vb2_buf.req_obj.req,
-> +                                       &ctx->hdl);
-> +
->          /* Run a timer, which simulates a hardware irq  */
->          schedule_irq(dev, ctx->transtime);
->   }
-> @@ -823,6 +841,8 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
->                          vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
->                  if (vbuf == NULL)
->                          return;
-> +               v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
-> +                                          &ctx->hdl);
->                  spin_lock_irqsave(&ctx->dev->irqlock, flags);
->                  v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
->                  spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
-> @@ -1003,6 +1023,10 @@ static const struct v4l2_m2m_ops m2m_ops = {
->          .job_abort      = job_abort,
->   };
-
-> +static const struct media_device_ops m2m_media_ops = {
-> +       .req_queue = vb2_request_queue,
-> +};
-> +
->   static int vim2m_probe(struct platform_device *pdev)
->   {
->          struct vim2m_dev *dev;
-> @@ -1027,6 +1051,7 @@ static int vim2m_probe(struct platform_device *pdev)
->          dev->mdev.dev = &pdev->dev;
->          strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
->          media_device_init(&dev->mdev);
-> +       dev->mdev.ops = &m2m_media_ops;
->          dev->v4l2_dev.mdev = &dev->mdev;
->          dev->pad[0].flags = MEDIA_PAD_FL_SINK;
->          dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
-> --
-> 2.16.3
+diff --git a/Documentation/devicetree/bindings/media/imx7.txt b/Documentation/devicetree/bindings/media/imx7.txt
+new file mode 100644
+index 000000000000..7e058ea25102
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/imx7.txt
+@@ -0,0 +1,158 @@
++Freescale i.MX7 Media Video Device
++==================================
++
++Video Media Controller node
++---------------------------
++
++This is the media controller node for video capture support. It is a
++virtual device that lists the camera serial interface nodes that the
++media device will control.
++
++Required properties:
++- compatible : "fsl,imx7-capture-subsystem";
++- ports      : Should contain a list of phandles pointing to camera
++		sensor interface port of CSI
++
++example:
++
++capture-subsystem {
++	compatible = "fsl,imx7-capture-subsystem";
++	ports = <&csi>;
++};
++
++
++mipi_csi2 node
++--------------
++
++This is the device node for the MIPI CSI-2 receiver core in i.MX7 SoC. It is
++compatible with previous version of Samsung D-phy.
++
++Required properties:
++
++- compatible    : "fsl,imx7-mipi-csi2";
++- reg           : base address and length of the register set for the device;
++- interrupts    : should contain MIPI CSIS interrupt;
++- clocks        : list of clock specifiers, see
++        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
++- clock-names   : must contain "mipi" and "phy" entries, matching entries in the
++                  clock property;
++- power-domains : a phandle to the power domain, see
++          Documentation/devicetree/bindings/power/power_domain.txt for details.
++- reset-names   : should include following entry "mrst";
++- resets        : a list of phandle, should contain reset entry of
++                  reset-names;
++- phy-supply    : from the generic phy bindings, a phandle to a regulator that
++	          provides power to VBUS;
++- bus-width     : maximum number of data lanes supported (SoC specific);
++
++Optional properties:
++
++- clock-frequency : The IP's main (system bus) clock frequency in Hz, default
++		    value when this property is not specified is 166 MHz;
++
++port node
++---------
++
++- reg		  : (required) can take the values 0 or 1, where 0 is the
++                     related sink port and port 1 should be the source one;
++
++endpoint node
++-------------
++
++- data-lanes    : (required) an array specifying active physical MIPI-CSI2
++		    data input lanes and their mapping to logical lanes; the
++		    array's content is unused, only its length is meaningful;
++
++- csis-hs-settle : (optional) differential receiver (HS-RX) settle time;
++- csis-clk-settle : (optional) D-PHY control register;
++- csis-wclk     : CSI-2 wrapper clock selection. If this property is present
++		  external clock from CMU will be used, or the bus clock if
++		  if it's not specified.
++
++example:
++
++	mipi_csi: mipi-csi@30750000 {
++                clock-frequency = <166000000>;
++                status = "okay";
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++		compatible = "fsl,imx7-mipi-csi2";
++		reg = <0x30750000 0x10000>;
++		interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
++				<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
++		clock-names = "mipi", "phy";
++		power-domains = <&pgc_mipi_phy>;
++		phy-supply = <&reg_1p0d>;
++		resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
++		reset-names = "mrst";
++		bus-width = <4>;
++		status = "disabled";
++
++                port@0 {
++                        reg = <0>;
++
++                        mipi_from_sensor: endpoint {
++                                remote-endpoint = <&ov2680_to_mipi>;
++                                data-lanes = <1>;
++                                csis-hs-settle = <3>;
++                                csis-clk-settle = <0>;
++                                csis-wclk;
++                        };
++                };
++
++                port@1 {
++                        reg = <1>;
++
++                        mipi_vc0_to_csi_mux: endpoint {
++                                remote-endpoint = <&csi_mux_from_mipi_vc0>;
++                        };
++                };
++	};
++
++
++csi node
++--------
++
++This is device node for the CMOS Sensor Interface (CSI) which enables the chip
++to connect directly to external CMOS image sensors.
++
++Required properties:
++
++- compatible    : "fsl,imx7-csi";
++- reg           : base address and length of the register set for the device;
++- interrupts    : should contain CSI interrupt;
++- clocks        : list of clock specifiers, see
++        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
++- clock-names   : must contain "axi", "mclk" and "dcic" entries, matching
++                 entries in the clock property;
++
++port node
++---------
++
++- reg		  : (required) should be 0 for the sink port;
++
++example:
++
++		csi: csi@30710000 {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++			compatible = "fsl,imx7-csi";
++			reg = <0x30710000 0x10000>;
++			interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&clks IMX7D_CLK_DUMMY>,
++					<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
++					<&clks IMX7D_CLK_DUMMY>;
++			clock-names = "axi", "mclk", "dcic";
++			status = "disabled";
++
++                        port@0 {
++                                reg = <0>;
++
++                                csi_from_csi_mux: endpoint {
++                                        remote-endpoint = <&csi_mux_to_csi>;
++                                };
++                        };
++		};
+-- 
+2.17.0
