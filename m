@@ -1,36 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:11782 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752096AbeDRP1X (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:42000 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754152AbeDWH4c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 11:27:23 -0400
-Subject: Re: [PATCH] [media] include/media: fix missing | operator when
- setting cfg
-To: Colin Ian King <colin.king@canonical.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+        Mon, 23 Apr 2018 03:56:32 -0400
+Date: Mon, 23 Apr 2018 09:56:26 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Magnus Damm <magnus.damm@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vinod Koul <vinod.koul@intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
         linux-kernel@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <83b18f98-3a78-5264-25fb-9048f9a9bed2@samsung.com>
-Date: Wed, 18 Apr 2018 17:27:13 +0200
-MIME-version: 1.0
-In-reply-to: <c554a771-e9a9-fe1f-6792-e73f33b08838@canonical.com>
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <CGME20180418150622epcas4p4be934b89937c0e50a2f236116c02d7cb@epcas4p4.samsung.com>
-        <20180418150617.22489-1-colin.king@canonical.com>
-        <ebce8e36-9125-aecb-b0d1-87f068646e67@samsung.com>
-        <bafbcf6c-a08d-11ba-af25-655b7cc44e1c@samsung.com>
-        <c554a771-e9a9-fe1f-6792-e73f33b08838@canonical.com>
+Subject: Re: [PATCH 5/8] staging: emxx_udc: Change platform dependency to
+ ARCH_RENESAS
+Message-ID: <20180423075625.utzf6sgu4rlvb55r@verge.net.au>
+References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
+ <1524230914-10175-6-git-send-email-geert+renesas@glider.be>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1524230914-10175-6-git-send-email-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/18/2018 05:24 PM, Colin Ian King wrote:
-> Oops, shall I re-send?
+On Fri, Apr 20, 2018 at 03:28:31PM +0200, Geert Uytterhoeven wrote:
+> Emma Mobile is a Renesas ARM SoC.  Since commit 9b5ba0df4ea4f940 ("ARM:
+> shmobile: Introduce ARCH_RENESAS") is ARCH_RENESAS a more appropriate
+> platform dependency than the legacy ARCH_SHMOBILE, hence use the
+> former.
+> 
+> This will allow to drop ARCH_SHMOBILE on ARM in the near future.
+> 
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-There is no need to, thanks.
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
