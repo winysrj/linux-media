@@ -1,113 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35381 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753138AbeDBSYr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:47 -0400
-Received: by mail-wm0-f67.google.com with SMTP id r82so29280405wme.0
-        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:47 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 18/20] [media] ddbridge: add hardware defs and PCI IDs for MCI cards
-Date: Mon,  2 Apr 2018 20:24:25 +0200
-Message-Id: <20180402182427.20918-19-d.scheller.oss@gmail.com>
-In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
-References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:46555 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755110AbeDWOZ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 10:25:26 -0400
+Date: Mon, 23 Apr 2018 11:25:21 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-fbdev@vger.kernel.org>,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with
+ COMPILE_TEST && DRM_OMAP
+Message-ID: <20180423112521.52b2a230@vento.lan>
+In-Reply-To: <d155af94-539b-699a-73cc-7eae72bd9efa@ti.com>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+        <c6ef815da57085bf7e98753463e551905f5d2706.1524245455.git.mchehab@s-opensource.com>
+        <2542100.cElVns0SR0@amdc3058>
+        <CGME20180423135655eucas1p1a935ce9c167e52cf1e76adcc0b4486e4@eucas1p1.samsung.com>
+        <5379683.QunLsIS18Z@amdc3058>
+        <d155af94-539b-699a-73cc-7eae72bd9efa@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Em Mon, 23 Apr 2018 17:11:14 +0300
+Tomi Valkeinen <tomi.valkeinen@ti.com> escreveu:
 
-Add PCI IDs and ddb_info for the new MCI-based MaxSX8 cards. Also add
-needed defines so the cards can be hooked up into ddbridge's probe and
-attach handling.
+> On 23/04/18 16:56, Bartlomiej Zolnierkiewicz wrote:
+> 
+> > Ideally we should be able to build both drivers in the same kernel
+> > (especially as modules).
+> > 
+> > I was hoping that it could be fixed easily but then I discovered
+> > the root source of the problem:
+> > 
+> > drivers/gpu/drm/omapdrm/dss/display.o: In function `omapdss_unregister_display':
+> > display.c:(.text+0x2c): multiple definition of `omapdss_unregister_display'
+> > drivers/video/fbdev/omap2/omapfb/dss/display.o:display.c:(.text+0x198): first defined here  
+> 
+> The main problem is that omapdrm and omapfb are two different drivers
+> for the same HW. You need to pick one, even if we would change those
+> functions and fix the link issue.
+> 
+> At some point in time we could compile both as modules (but not
+> built-in), but the only use for that was development/testing and in the
+> end made our life more difficult. So, now you must fully disable one of
+> them to enable the other. And, actually, we even have boot-time code,
+> not included in the module itself, which gets enabled when omapdrm is
+> enabled.
+> 
+> While it's of course good to support COMPILE_TEST, if using COMPILE_TEST
+> with omapfb is problematic, I'm not sure if it's worth to spend time on
+> that. We should be moving away from omapfb to omapdrm.
 
-Picked up from the upstream dddvb-0.9.33 release.
+Yeah, moving away from omapfb sounds the best alternative. As it seems that
+there's just one driver currently depending on it, I guess it shouldn't be
+that hard to do such change from Kernel's view, but I may be wrong, as I've
+no clue what this would mean to userspace.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-hw.c   | 11 +++++++++++
- drivers/media/pci/ddbridge/ddbridge-main.c |  1 +
- drivers/media/pci/ddbridge/ddbridge.h      | 11 +++++++----
- 3 files changed, 19 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/pci/ddbridge/ddbridge-hw.c b/drivers/media/pci/ddbridge/ddbridge-hw.c
-index c6d14925e2fc..1d3ee6accdd5 100644
---- a/drivers/media/pci/ddbridge/ddbridge-hw.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-hw.c
-@@ -311,6 +311,16 @@ static const struct ddb_info ddb_s2_48 = {
- 	.tempmon_irq = 24,
- };
- 
-+static const struct ddb_info ddb_s2x_48 = {
-+	.type     = DDB_OCTOPUS_MCI,
-+	.name     = "Digital Devices MAX SX8",
-+	.regmap   = &octopus_map,
-+	.port_num = 4,
-+	.i2c_mask = 0x00,
-+	.tempmon_irq = 24,
-+	.mci      = 4
-+};
-+
- /****************************************************************************/
- /****************************************************************************/
- /****************************************************************************/
-@@ -346,6 +356,7 @@ static const struct ddb_device_id ddb_device_ids[] = {
- 	DDB_DEVID(0x0008, 0x0036, ddb_isdbt_8),
- 	DDB_DEVID(0x0008, 0x0037, ddb_c2t2i_v0_8),
- 	DDB_DEVID(0x0008, 0x0038, ddb_c2t2i_8),
-+	DDB_DEVID(0x0009, 0x0025, ddb_s2x_48),
- 	DDB_DEVID(0x0006, 0x0039, ddb_ctv7),
- 	DDB_DEVID(0x0011, 0x0040, ddb_ci),
- 	DDB_DEVID(0x0011, 0x0041, ddb_cis),
-diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
-index 6356b48b3874..f4748cfd904b 100644
---- a/drivers/media/pci/ddbridge/ddbridge-main.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-@@ -264,6 +264,7 @@ static const struct pci_device_id ddb_id_table[] = {
- 	DDB_DEVICE_ANY(0x0006),
- 	DDB_DEVICE_ANY(0x0007),
- 	DDB_DEVICE_ANY(0x0008),
-+	DDB_DEVICE_ANY(0x0009),
- 	DDB_DEVICE_ANY(0x0011),
- 	DDB_DEVICE_ANY(0x0012),
- 	DDB_DEVICE_ANY(0x0013),
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index cb69021a3443..72fe33cb72b9 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -112,11 +112,12 @@ struct ddb_ids {
- 
- struct ddb_info {
- 	int   type;
--#define DDB_NONE         0
--#define DDB_OCTOPUS      1
--#define DDB_OCTOPUS_CI   2
--#define DDB_OCTOPUS_MAX  5
-+#define DDB_NONE            0
-+#define DDB_OCTOPUS         1
-+#define DDB_OCTOPUS_CI      2
-+#define DDB_OCTOPUS_MAX     5
- #define DDB_OCTOPUS_MAX_CT  6
-+#define DDB_OCTOPUS_MCI     9
- 	char *name;
- 	u32   i2c_mask;
- 	u8    port_num;
-@@ -133,6 +134,7 @@ struct ddb_info {
- #define TS_QUIRK_REVERSED 2
- #define TS_QUIRK_ALT_OSC  8
- 	u32   tempmon_irq;
-+	u8    mci;
- 	const struct ddb_regmap *regmap;
- };
- 
-@@ -253,6 +255,7 @@ struct ddb_port {
- #define DDB_CI_EXTERNAL_XO2_B    13
- #define DDB_TUNER_DVBS_STV0910_PR 14
- #define DDB_TUNER_DVBC2T2I_SONY_P 15
-+#define DDB_TUNER_MCI            16
- 
- #define DDB_TUNER_XO2            32
- #define DDB_TUNER_DVBS_STV0910   (DDB_TUNER_XO2 + 0)
--- 
-2.16.1
+Thanks,
+Mauro
