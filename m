@@ -1,61 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:41385 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751211AbeDQKUZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 06:20:25 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:42123 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755381AbeDWNsi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 09:48:38 -0400
+Received: by mail-wr0-f195.google.com with SMTP id s18-v6so41472679wrg.9
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:48:38 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 2/5] media: omap3isp: Enable driver compilation on ARM with COMPILE_TEST
-Date: Tue, 17 Apr 2018 06:20:12 -0400
-Message-Id: <0439e38ed2046f219bf931fb05fde7da423b5cf6.1523960171.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523960171.git.mchehab@s-opensource.com>
-References: <cover.1523960171.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523960171.git.mchehab@s-opensource.com>
-References: <cover.1523960171.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>,
+        linux-clk@vger.kernel.org
+Subject: [PATCH v2 04/15] clk: imx7d: reset parent for mipi csi root
+Date: Mon, 23 Apr 2018 14:47:39 +0100
+Message-Id: <20180423134750.30403-5-rui.silva@linaro.org>
+In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
+References: <20180423134750.30403-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To guarantee that we do not get Overflow in image FIFO the outer bandwidth has
+to be faster than inputer bandwidth. For that it must be possible to set a
+faster frequency clock. So set new parent to sys_pfd3 clock for the mipi csi
+block.
 
-The omap3isp driver can't be compiled on non-ARM platforms but has no
-compile-time dependency on OMAP. It however requires common clock
-framework support, which isn't provided by all ARM platforms.
-
-Drop the OMAP dependency when COMPILE_TEST is set and add ARM and
-COMMON_CLK dependencies.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-clk@vger.kernel.org
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- drivers/media/platform/Kconfig | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/clk/imx/clk-imx7d.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 91b0c7324afb..1ee915b794c0 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -62,7 +62,10 @@ config VIDEO_MUX
+diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
+index f7f4db2e6fa6..9a1a18ceb132 100644
+--- a/drivers/clk/imx/clk-imx7d.c
++++ b/drivers/clk/imx/clk-imx7d.c
+@@ -891,6 +891,9 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
+ 	clk_set_parent(clks[IMX7D_PLL_AUDIO_MAIN_BYPASS], clks[IMX7D_PLL_AUDIO_MAIN]);
+ 	clk_set_parent(clks[IMX7D_PLL_VIDEO_MAIN_BYPASS], clks[IMX7D_PLL_VIDEO_MAIN]);
  
- config VIDEO_OMAP3
- 	tristate "OMAP 3 Camera support"
--	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-+	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-+	depends on ARCH_OMAP3 || COMPILE_TEST
-+	depends on ARM
-+	depends on COMMON_CLK
- 	depends on HAS_DMA && OF
- 	depends on OMAP_IOMMU
- 	select ARM_DMA_USE_IOMMU
++	clk_set_parent(clks[IMX7D_MIPI_CSI_ROOT_SRC],
++		       clks[IMX7D_PLL_SYS_PFD3_CLK]);
++
+ 	/* use old gpt clk setting, gpt1 root clk must be twice as gpt counter freq */
+ 	clk_set_parent(clks[IMX7D_GPT1_ROOT_SRC], clks[IMX7D_OSC_24M_CLK]);
+ 
 -- 
-2.14.3
+2.17.0
