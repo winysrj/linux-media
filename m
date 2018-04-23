@@ -1,143 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:37226 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755709AbeDZMkf (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:50346 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754078AbeDWI7J (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 08:40:35 -0400
-Received: by mail-wr0-f196.google.com with SMTP id c14-v6so16507651wrd.4
-        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 05:40:34 -0700 (PDT)
-Subject: Re: [PATCH v4 2/2] media: Add a driver for the ov7251 camera sensor
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: mchehab@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1524673246-14175-1-git-send-email-todor.tomov@linaro.org>
- <1524673246-14175-3-git-send-email-todor.tomov@linaro.org>
- <20180426065010.a67iqsaicpgu7m5b@valkosipuli.retiisi.org.uk>
- <c065854a-084d-8bc8-a76e-2988be8c3788@linaro.org>
- <20180426071656.wuq5f7prg6kig6oy@valkosipuli.retiisi.org.uk>
- <20180426120434.2k6kkwpchm5pnksz@valkosipuli.retiisi.org.uk>
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <704e6f56-75c5-487c-cdd3-e4a59e0d7176@linaro.org>
-Date: Thu, 26 Apr 2018 15:40:31 +0300
+        Mon, 23 Apr 2018 04:59:09 -0400
+Subject: Re: [PATCH] media: i2c: adv748x: Fix pixel rate values
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        linux-renesas-soc@vger.kernel.org
+References: <20180421124444.1652-1-laurent.pinchart+renesas@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+Message-ID: <e5490bf5-38a0-4536-ed2d-c2d63edb6c39@ideasonboard.com>
+Date: Mon, 23 Apr 2018 09:59:04 +0100
 MIME-Version: 1.0
-In-Reply-To: <20180426120434.2k6kkwpchm5pnksz@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20180421124444.1652-1-laurent.pinchart+renesas@ideasonboard.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26.04.2018 15:04, Sakari Ailus wrote:
-> On Thu, Apr 26, 2018 at 10:16:56AM +0300, Sakari Ailus wrote:
->> On Thu, Apr 26, 2018 at 10:04:25AM +0300, Todor Tomov wrote:
->>> Hi Sakari,
->>>
->>> On 26.04.2018 09:50, Sakari Ailus wrote:
->>>> Hi Todor,
->>>>
->>>> On Wed, Apr 25, 2018 at 07:20:46PM +0300, Todor Tomov wrote:
->>>> ...
->>>>> +static int ov7251_write_reg(struct ov7251 *ov7251, u16 reg, u8 val)
->>>>> +{
->>>>> +	u8 regbuf[3];
->>>>> +	int ret;
->>>>> +
->>>>> +	regbuf[0] = reg >> 8;
->>>>> +	regbuf[1] = reg & 0xff;
->>>>> +	regbuf[2] = val;
->>>>> +
->>>>> +	ret = i2c_master_send(ov7251->i2c_client, regbuf, 3);
->>>>> +	if (ret < 0) {
->>>>> +		dev_err(ov7251->dev, "%s: write reg error %d: reg=%x, val=%x\n",
->>>>> +			__func__, ret, reg, val);
->>>>> +		return ret;
->>>>> +	}
->>>>> +
->>>>> +	return 0;
->>>>
->>>> How about:
->>>>
->>>> 	return ov7251_write_seq_regs(ov7251, reg, &val, 1);
->>>>
->>>> And put the function below ov2751_write_seq_regs().
->>>
->>> I'm not sure... It will calculate message length each time and then check
->>> that it is not greater than 5, which it is. Seems redundant.
->>>
->>>>
->>>>> +}
->>>>> +
->>>>> +static int ov7251_write_seq_regs(struct ov7251 *ov7251, u16 reg, u8 *val,
->>>>> +				 u8 num)
->>>>> +{
->>>>> +	const u8 maxregbuf = 5;
->>>>> +	u8 regbuf[maxregbuf];
+Hi Laurent,
+
+On 21/04/18 13:44, Laurent Pinchart wrote:
+> The pixel rate, as reported by the V4L2_CID_PIXEL_RATE control, must
+> include both horizontal and vertical blanking. Both the AFE and HDMI
+> receiver program it incorrectly:
 > 
-> Apparently this leads to bad positive sparse warning. I'd fix it by:
+> - The HDMI receiver goes to the trouble of removing blanking to compute
+> the rate of active pixels. This is easy to fix by removing the
+> computation and returning the incoming pixel clock rate directly.
 > 
-> diff --git a/drivers/media/i2c/ov7251.c b/drivers/media/i2c/ov7251.c
-> index 3e2c0c03dfa9..d3ebb7529fca 100644
-> --- a/drivers/media/i2c/ov7251.c
-> +++ b/drivers/media/i2c/ov7251.c
-> @@ -643,12 +643,11 @@ static int ov7251_write_reg(struct ov7251 *ov7251, u16 reg, u8 val)
->  static int ov7251_write_seq_regs(struct ov7251 *ov7251, u16 reg, u8 *val,
->                                  u8 num)
+> - The AFE performs similar calculation, while it should simply return
+> the fixed pixel rate for analog sources, mandated by the ADV748x to be
+> 28.63636 MHz.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+
+This looks quite reasonable, and simplifies the code. Win win.
+
+I presume this will have implications on the pixel receiver side (VIN in our
+case)... are there changes required there, or was it 'just wrong' here.
+
+
+Either way,
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+
+
+> ---
+>  drivers/media/i2c/adv748x/adv748x-afe.c  | 11 +++++------
+>  drivers/media/i2c/adv748x/adv748x-hdmi.c |  8 +-------
+>  2 files changed, 6 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
+> index 61514bae7e5c..3e18d5ae813b 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
+> @@ -321,17 +321,16 @@ static const struct v4l2_subdev_video_ops adv748x_afe_video_ops = {
+>  static int adv748x_afe_propagate_pixelrate(struct adv748x_afe *afe)
 >  {
-> -       const u8 maxregbuf = 5;
-> -       u8 regbuf[maxregbuf];
-> +       u8 regbuf[5];
->         u8 nregbuf = sizeof(reg) + num * sizeof(*val);
->         int ret = 0;
+>  	struct v4l2_subdev *tx;
+> -	unsigned int width, height, fps;
 >  
-> -       if (nregbuf > maxregbuf)
-> +       if (nregbuf > sizeof(regbuf))
->                 return -EINVAL;
+>  	tx = adv748x_get_remote_sd(&afe->pads[ADV748X_AFE_SOURCE]);
+>  	if (!tx)
+>  		return -ENOLINK;
 >  
->         regbuf[0] = reg >> 8;
+> -	width = 720;
+> -	height = afe->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+> -	fps = afe->curr_norm & V4L2_STD_525_60 ? 30 : 25;
+> -
+> -	return adv748x_csi2_set_pixelrate(tx, width * height * fps);
+> +	/*
+> +	 * The ADV748x samples analog video signals using an externally supplied
+> +	 * clock whose frequency is required to be 28.63636 MHz.
+> +	 */
+> +	return adv748x_csi2_set_pixelrate(tx, 28636360);
+>  }
+>  
+>  static int adv748x_afe_enum_mbus_code(struct v4l2_subdev *sd,
+> diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> index 10d229a4f088..aecc2a84dfec 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> @@ -402,8 +402,6 @@ static int adv748x_hdmi_propagate_pixelrate(struct adv748x_hdmi *hdmi)
+>  {
+>  	struct v4l2_subdev *tx;
+>  	struct v4l2_dv_timings timings;
+> -	struct v4l2_bt_timings *bt = &timings.bt;
+> -	unsigned int fps;
+>  
+>  	tx = adv748x_get_remote_sd(&hdmi->pads[ADV748X_HDMI_SOURCE]);
+>  	if (!tx)
+> @@ -411,11 +409,7 @@ static int adv748x_hdmi_propagate_pixelrate(struct adv748x_hdmi *hdmi)
+>  
+>  	adv748x_hdmi_query_dv_timings(&hdmi->sd, &timings);
+>  
+> -	fps = DIV_ROUND_CLOSEST_ULL(bt->pixelclock,
+> -				    V4L2_DV_BT_FRAME_WIDTH(bt) *
+> -				    V4L2_DV_BT_FRAME_HEIGHT(bt));
+> -
+> -	return adv748x_csi2_set_pixelrate(tx, bt->width * bt->height * fps);
+> +	return adv748x_csi2_set_pixelrate(tx, timings.bt.pixelclock);
+>  }
+>  
+>  static int adv748x_hdmi_enum_mbus_code(struct v4l2_subdev *sd,
 > 
-> Let me know if you're happy with that; I can merge it to the original
-> patch.
-
-Yes, thanks.
-
-> 
->>>>> +	u8 nregbuf = sizeof(reg) + num * sizeof(*val);
->>>>> +	int ret = 0;
->>>>> +
->>>>> +	if (nregbuf > maxregbuf)
->>>>> +		return -EINVAL;
->>>>> +
->>>>> +	regbuf[0] = reg >> 8;
->>>>> +	regbuf[1] = reg & 0xff;
->>>>> +
->>>>> +	memcpy(regbuf + 2, val, num);
->>>>> +
->>>>> +	ret = i2c_master_send(ov7251->i2c_client, regbuf, nregbuf);
->>>>> +	if (ret < 0) {
->>>>> +		dev_err(ov7251->dev, "%s: write seq regs error %d: first reg=%x\n",
->>>>
->>>> This line is over 80... 
->>>
->>> Yes indeed. Somehow checkpatch does not report this line, I don't know why.
->>>
->>>>
->>>> If you're happy with these, I can make the changes, too; they're trivial.
->>>
->>> Only the second one? Thanks :)
->>
->> Works for me. I'd still think the overhead of managing the buffer is
->> irrelevant where to having an extra function to do essentially the same
->> thing is a source of maintenance and review work. Note that we're even now
->> spending time to discuss it. ;-)
->>
->> -- 
->> Kind regards,
->>
->> Sakari Ailus
->> e-mail: sakari.ailus@iki.fi
-> 
-
--- 
-Best regards,
-Todor Tomov
