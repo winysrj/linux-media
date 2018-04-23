@@ -1,85 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32745 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750936AbeDNMBl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 08:01:41 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v14 23/33] rcar-vin: force default colorspace for media centric mode
-Date: Sat, 14 Apr 2018 13:57:16 +0200
-Message-Id: <20180414115726.5075-24-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from osg.samsung.com ([64.30.133.232]:58921 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754949AbeDWNOf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 09:14:35 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Tomoki Sekiyama <tomoki.sekiyama@gmail.com>
+Subject: [PATCH] media: siano: be sure to not override devpath size
+Date: Mon, 23 Apr 2018 09:14:30 -0400
+Message-Id: <74e03b1c4caa132234039652646f8066fde865a5.1524489265.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2 specification clearly documents the colorspace fields as being
-set by drivers for capture devices. Using the values supplied by
-userspace thus wouldn't comply with the API. Until the API is updated to
-allow for userspace to set these Hans wants the fields to be set by the
-driver to fixed values.
+Right now, at siano driver, all places where devpath is
+defined has sizeof(devpath) == 32. So, there's no practical
+risc of going past devpath array anywhere.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Still, code changes might cause troubles. It also confuses
+Coverity:
+	CID 139059 (#1 of 1): Copy into fixed size buffer (STRING_OVERFLOW)
+	9. fixed_size_dest: You might overrun the 32-character
+	   fixed-size string entry->devpath by copying devpath
+	   without checking the length.
+	10. parameter_as_source: Note: This defect has an
+	    elevated risk because the source argument
+	    is a parameter of the current function.
+
+So, explicitly limit strcmp() and strcpy() to ensure that the
+devpath size (32) will be respected.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ drivers/media/common/siano/smscoreapi.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index f07cb4e6fbdec4eb..2c28daf1c725e64c 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -662,12 +662,30 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
-  * V4L2 Media Controller
-  */
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index b5dcc6d1fe90..1c93258a2d47 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -415,8 +415,8 @@ EXPORT_SYMBOL_GPL(smscore_get_board_id);
  
-+static void rvin_mc_try_format(struct rvin_dev *vin,
-+			       struct v4l2_pix_format *pix)
-+{
-+	/*
-+	 * The V4L2 specification clearly documents the colorspace fields
-+	 * as being set by drivers for capture devices. Using the values
-+	 * supplied by userspace thus wouldn't comply with the API. Until
-+	 * the API is updated force fixed vaules.
-+	 */
-+	pix->colorspace = RVIN_DEFAULT_COLORSPACE;
-+	pix->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(pix->colorspace);
-+	pix->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(pix->colorspace);
-+	pix->quantization = V4L2_MAP_QUANTIZATION_DEFAULT(true, pix->colorspace,
-+							  pix->ycbcr_enc);
-+
-+	rvin_format_align(vin, pix);
-+}
-+
- static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
- 				   struct v4l2_format *f)
- {
- 	struct rvin_dev *vin = video_drvdata(file);
+ struct smscore_registry_entry_t {
+ 	struct list_head entry;
+-	char			devpath[32];
+-	int				mode;
++	char devpath[32];
++	int mode;
+ 	enum sms_device_type_st	type;
+ };
  
--	rvin_format_align(vin, &f->fmt.pix);
-+	rvin_mc_try_format(vin, &f->fmt.pix);
+@@ -442,7 +442,7 @@ static struct smscore_registry_entry_t *smscore_find_registry(char *devpath)
+ 	     next != &g_smscore_registry;
+ 	     next = next->next) {
+ 		entry = (struct smscore_registry_entry_t *) next;
+-		if (!strcmp(entry->devpath, devpath)) {
++		if (!strncmp(entry->devpath, devpath, sizeof(entry->devpath))) {
+ 			kmutex_unlock(&g_smscore_registrylock);
+ 			return entry;
+ 		}
+@@ -450,7 +450,7 @@ static struct smscore_registry_entry_t *smscore_find_registry(char *devpath)
+ 	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
+ 	if (entry) {
+ 		entry->mode = default_mode;
+-		strcpy(entry->devpath, devpath);
++		strlcpy(entry->devpath, devpath, sizeof(entry->devpath));
+ 		list_add(&entry->entry, &g_smscore_registry);
+ 	} else
+ 		pr_err("failed to create smscore_registry.\n");
+@@ -733,7 +733,7 @@ int smscore_register_device(struct smsdevice_params_t *params,
+ 	dev->postload_handler = params->postload_handler;
  
- 	return 0;
- }
-@@ -680,7 +698,7 @@ static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
- 	if (vb2_is_busy(&vin->queue))
- 		return -EBUSY;
+ 	dev->device_flags = params->flags;
+-	strcpy(dev->devpath, params->devpath);
++	strlcpy(dev->devpath, params->devpath, sizeof(dev->devpath));
  
--	rvin_format_align(vin, &f->fmt.pix);
-+	rvin_mc_try_format(vin, &f->fmt.pix);
- 
- 	vin->format = f->fmt.pix;
+ 	smscore_registry_settype(dev->devpath, params->device_type);
  
 -- 
-2.16.2
+2.14.3
