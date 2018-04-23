@@ -1,114 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46018 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752941AbeDPIuf (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:50470 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754462AbeDWJQ6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 04:50:35 -0400
-Date: Mon, 16 Apr 2018 10:50:15 +0200
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, Warren Sturm <warren.sturm@gmail.com>,
+        Mon, 23 Apr 2018 05:16:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org
-Subject: Re: [PATCH stable v4.15 1/3] media: staging: lirc_zilog: broken
- reference counting
-Message-ID: <20180416085015.GA2598@kroah.com>
-References: <cover.1523785117.git.sean@mess.org>
- <2bd4184fbea37ecdfcb0a334c6bef45786feb486.1523785117.git.sean@mess.org>
- <20180416075228.GB2121@kroah.com>
- <20180416084344.k4e3tx4jd5lswfh3@gofer.mess.org>
+        Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCH v3 01/11] media: dt-bindings: ov772x: add device tree binding
+Date: Mon, 23 Apr 2018 12:17:09 +0300
+Message-ID: <6602935.FYsd3sRonc@avalon>
+In-Reply-To: <1524412577-14419-2-git-send-email-akinobu.mita@gmail.com>
+References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com> <1524412577-14419-2-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180416084344.k4e3tx4jd5lswfh3@gofer.mess.org>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 16, 2018 at 09:43:45AM +0100, Sean Young wrote:
-> On Mon, Apr 16, 2018 at 09:52:28AM +0200, Greg KH wrote:
-> > On Sun, Apr 15, 2018 at 10:54:20AM +0100, Sean Young wrote:
-> > > commit 615cd3fe6ccc ("[media] media: lirc_dev: make better use of
-> > > file->private_data") removed the reference get from open, so on the first
-> > > close the reference count hits zero and the lirc device is freed.
-> > > 
-> > > BUG: unable to handle kernel NULL pointer dereference at 0000000000000040
-> > > IP: lirc_thread+0x94/0x520 [lirc_zilog]
-> > > PGD 22d69c067 P4D 22d69c067 PUD 22d69d067 PMD 0
-> > > Oops: 0000 [#1] SMP NOPTI
-> > > CPU: 2 PID: 701 Comm: zilog-rx-i2c-7 Tainted: P         C OE    4.15.14-300.fc27.x86_64 #1
-> > > Hardware name: Gigabyte Technology Co., Ltd. GA-MA790FXT-UD5P/GA-MA790FXT-UD5P, BIOS F6 08/06/2009
-> > > RIP: 0010:lirc_thread+0x94/0x520 [lirc_zilog]
-> > > RSP: 0018:ffffb482c131be98 EFLAGS: 00010246
-> > > RAX: 0000000000000000 RBX: ffff8fdabf056000 RCX: 0000000000000000
-> > > RDX: 0000000000000000 RSI: 0000000000000246 RDI: 0000000000000246
-> > > RBP: ffff8fdab740af00 R08: ffff8fdacfd214a0 R09: 0000000000000000
-> > > R10: 0000000000000000 R11: 0000000000000040 R12: ffffb482c10dba48
-> > > R13: ffff8fdabea89e00 R14: ffff8fdab740af00 R15: ffffffffc0b5e500
-> > > FS:  0000000000000000(0000) GS:ffff8fdacfd00000(0000) knlGS:0000000000000000
-> > > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > > CR2: 0000000000000040 CR3: 00000002124c0000 CR4: 00000000000006e0
-> > > Call Trace:
-> > >  ? __schedule+0x247/0x880
-> > >  ? get_ir_tx+0x40/0x40 [lirc_zilog]
-> > >  kthread+0x113/0x130
-> > >  ? kthread_create_worker_on_cpu+0x70/0x70
-> > >  ? do_syscall_64+0x74/0x180
-> > >  ? SyS_exit_group+0x10/0x10
-> > >  ret_from_fork+0x22/0x40
-> > > Code: 20 8b 85 80 00 00 00 85 c0 0f 84 a6 00 00 00 bf 04 01 00 00 e8 ee 34 d4 d7 e8 69 88 56 d7 84 c0 75 69 48 8b 45 18 c6 44 24 37 00 <48> 8b 58 40 4c 8d 6b 18 4c 89 ef e8 fc 4d d4 d7 4c 89 ef 48 89
-> > > RIP: lirc_thread+0x94/0x520 [lirc_zilog] RSP: ffffb482c131be98
-> > > CR2: 0000000000000040
-> > > This code has been replaced completely in kernel v4.16 by a new driver,
-> > > see commit acaa34bf06e9 ("media: rc: implement zilog transmitter"), and
-> > > commit f95367a7b758 ("media: staging: remove lirc_zilog driver").
-> > > 
-> > > Fixes: 615cd3fe6ccc ("[media] media: lirc_dev: make better use of file->private_data")
-> > > 
-> > > Cc: stable@vger.kernel.org # v4.15
-> > > Reported-by: Warren Sturm <warren.sturm@gmail.com>
-> > > Tested-by: Warren Sturm <warren.sturm@gmail.com>
-> > > Signed-off-by: Sean Young <sean@mess.org>
-> > > ---
-> > >  drivers/staging/media/lirc/lirc_zilog.c | 1 +
-> > >  1 file changed, 1 insertion(+)
-> > > 
-> > > diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-> > > index 6bd0717bf76e..bf6869e48a0f 100644
-> > > --- a/drivers/staging/media/lirc/lirc_zilog.c
-> > > +++ b/drivers/staging/media/lirc/lirc_zilog.c
-> > > @@ -1291,6 +1291,7 @@ static int open(struct inode *node, struct file *filep)
-> > >  
-> > >  	lirc_init_pdata(node, filep);
-> > >  	ir = lirc_get_pdata(filep);
-> > > +	get_ir_device(ir, false);
-> > >  
-> > >  	atomic_inc(&ir->open_count);
-> > >  
-> > > -- 
-> > > 2.14.3
-> > 
-> > What is the git commit id of this patch, and the other patches in this
-> > series and the 4.14 patch series that you sent out?
+Hi Mita-san,
+
+On Sunday, 22 April 2018 18:56:07 EEST Akinobu Mita wrote:
+> This adds a device tree binding documentation for OV7720/OV7725 sensor.
 > 
-> lirc_zilog was dropped in v4.16, so this can't be patched upstream.
-
-Ah you are right, should we just ditch them here as well as they
-obviously do not work? :)
-
-> > Please read:
-> >     https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
-> > for how to do this in a way that I can pick them up.
+> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
+> * v3
+> - Add Reviewed-by: lines
 > 
-> These patches have been tested with different types of hardware. Is there
-> anything else I can do to get these patches included?
+>  .../devicetree/bindings/media/i2c/ov772x.txt       | 42 +++++++++++++++++++
+>  MAINTAINERS                                        |  1 +
+>  2 files changed, 43 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov772x.txt
+> b/Documentation/devicetree/bindings/media/i2c/ov772x.txt new file mode
+> 100644
+> index 0000000..b045503
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
+> @@ -0,0 +1,42 @@
+> +* Omnivision OV7720/OV7725 CMOS sensor
+> +
+> +The Omnivision OV7720/OV7725 sensor supports multiple resolutions output,
+> +such as VGA, QVGA, and any size scaling down from CIF to 40x30. It also can
+> +support the YUV422, RGB565/555/444, GRB422 or raw RGB output formats.
+> +
+> +Required Properties:
+> +- compatible: shall be one of
+> +	"ovti,ov7720"
+> +	"ovti,ov7725"
+> +- clocks: reference to the xclk input clock.
+> +- clock-names: shall be "xclk".
 
-When submitting patches to stable, you need to be explicit as to why
-they are needed, and if they are not upstream, why not.
+As there's a single clock we could omit clock-names, couldn't we ?
 
-In this case, for obviously broken code that is not used anymore (as
-it is gone in 4.16), why don't we just take the patch that removed the
-driver to the stable trees as well?
+The rest of the patch looks good to me.
 
-thanks,
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-greg k-h
+> +Optional Properties:
+> +- reset-gpios: reference to the GPIO connected to the RSTB pin which is
+> +  active low, if any.
+> +- powerdown-gpios: reference to the GPIO connected to the PWDN pin which is
+> +  active high, if any.
+> +
+> +The device node shall contain one 'port' child node with one child
+> 'endpoint'
+> +subnode for its digital output video port, in accordance with the video
+> +interface bindings defined in Documentation/devicetree/bindings/media/
+> +video-interfaces.txt.
+> +
+> +Example:
+> +
+> +&i2c0 {
+> +	ov772x: camera@21 {
+> +		compatible = "ovti,ov7725";
+> +		reg = <0x21>;
+> +		reset-gpios = <&axi_gpio_0 0 GPIO_ACTIVE_LOW>;
+> +		powerdown-gpios = <&axi_gpio_0 1 GPIO_ACTIVE_LOW>;
+> +		clocks = <&xclk>;
+> +		clock-names = "xclk";
+> +
+> +		port {
+> +			ov772x_0: endpoint {
+> +				remote-endpoint = <&vcap1_in0>;
+> +			};
+> +		};
+> +	};
+> +};
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 5ae51d0..1cc5fb1 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -10353,6 +10353,7 @@ T:	git git://linuxtv.org/media_tree.git
+>  S:	Odd fixes
+>  F:	drivers/media/i2c/ov772x.c
+>  F:	include/media/i2c/ov772x.h
+> +F:	Documentation/devicetree/bindings/media/i2c/ov772x.txt
+> 
+>  OMNIVISION OV7740 SENSOR DRIVER
+>  M:	Wenyou Yang <wenyou.yang@microchip.com>
+
+-- 
+Regards,
+
+Laurent Pinchart
