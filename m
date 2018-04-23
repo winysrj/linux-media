@@ -1,83 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:33460 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932116AbeDXMpX (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:36086 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755207AbeDWNsS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 08:45:23 -0400
-Received: by mail-wr0-f194.google.com with SMTP id z73-v6so49826444wrb.0
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:22 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 14/28] venus: helpers: rename a helper function and use buffer mode from caps
-Date: Tue, 24 Apr 2018 15:44:22 +0300
-Message-Id: <20180424124436.26955-15-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+        Mon, 23 Apr 2018 09:48:18 -0400
+Received: by mail-wr0-f195.google.com with SMTP id u18-v6so14226388wrg.3
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:48:18 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v2 01/15] media: staging/imx: add support to media dev for no IPU systems
+Date: Mon, 23 Apr 2018 14:47:36 +0100
+Message-Id: <20180423134750.30403-2-rui.silva@linaro.org>
+In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
+References: <20180423134750.30403-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename is_reg_unreg_needed() to better name is_dynamic_bufmode() and
-use buffer mode from enumerated per codec capabilities.
+Some i.MX SoC do not have IPU, like the i.MX7, add to the the media device
+infrastructure support to be used in this type of systems that do not have
+internal subdevices besides the CSI.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- drivers/media/platform/qcom/venus/helpers.c | 21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ drivers/staging/media/imx/imx-media-dev.c      | 18 +++++++++++++-----
+ .../staging/media/imx/imx-media-internal-sd.c  |  3 +++
+ drivers/staging/media/imx/imx-media.h          |  3 +++
+ 3 files changed, 19 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index 2b21f6ed7502..1eda19adbf28 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -354,18 +354,19 @@ session_process_buf(struct venus_inst *inst, struct vb2_v4l2_buffer *vbuf)
- 	return 0;
- }
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index f67ec8e27093..c0f277adeebe 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -92,6 +92,9 @@ static int imx_media_get_ipu(struct imx_media_dev *imxmd,
+ 	struct ipu_soc *ipu;
+ 	int ipu_id;
  
--static inline int is_reg_unreg_needed(struct venus_inst *inst)
-+static inline int is_dynamic_bufmode(struct venus_inst *inst)
- {
--	if (inst->session_type == VIDC_SESSION_TYPE_DEC &&
--	    inst->core->res->hfi_version == HFI_VERSION_3XX)
--		return 0;
-+	struct venus_core *core = inst->core;
-+	struct venus_caps *caps;
- 
--	if (inst->session_type == VIDC_SESSION_TYPE_DEC &&
--	    inst->cap_bufs_mode_dynamic &&
--	    inst->core->res->hfi_version == HFI_VERSION_1XX)
-+	caps = venus_caps_by_codec(core, inst->hfi_codec, inst->session_type);
-+	if (!caps)
- 		return 0;
- 
--	return 1;
-+	if (caps->cap_bufs_mode_dynamic)
-+		return 1;
++	if (!imxmd->ipu_present)
++		return 0;
 +
-+	return 0;
- }
+ 	ipu = dev_get_drvdata(csi_sd->dev->parent);
+ 	if (!ipu) {
+ 		v4l2_err(&imxmd->v4l2_dev,
+@@ -481,16 +484,21 @@ static int imx_media_probe(struct platform_device *pdev)
+ 		goto notifier_cleanup;
+ 	}
  
- static int session_unregister_bufs(struct venus_inst *inst)
-@@ -374,7 +375,7 @@ static int session_unregister_bufs(struct venus_inst *inst)
- 	struct hfi_buffer_desc bd;
- 	int ret = 0;
+-	ret = imx_media_add_internal_subdevs(imxmd);
+-	if (ret) {
+-		v4l2_err(&imxmd->v4l2_dev,
+-			 "add_internal_subdevs failed with %d\n", ret);
+-		goto notifier_cleanup;
++	imxmd->ipu_present = true;
++
++	if (imxmd->ipu_present) {
++		ret = imx_media_add_internal_subdevs(imxmd);
++		if (ret) {
++			v4l2_err(&imxmd->v4l2_dev,
++				 "add_internal_subdevs failed with %d\n", ret);
++			goto notifier_cleanup;
++		}
+ 	}
  
--	if (!is_reg_unreg_needed(inst))
-+	if (is_dynamic_bufmode(inst))
- 		return 0;
+ 	/* no subdevs? just bail */
+ 	if (imxmd->notifier.num_subdevs == 0) {
+ 		ret = -ENODEV;
++		v4l2_err(&imxmd->v4l2_dev, "no subdevs\n");
+ 		goto notifier_cleanup;
+ 	}
  
- 	list_for_each_entry_safe(buf, n, &inst->registeredbufs, reg_list) {
-@@ -394,7 +395,7 @@ static int session_register_bufs(struct venus_inst *inst)
- 	struct venus_buffer *buf;
- 	int ret = 0;
+diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
+index 0fdc45dbfb76..2bcdc232369a 100644
+--- a/drivers/staging/media/imx/imx-media-internal-sd.c
++++ b/drivers/staging/media/imx/imx-media-internal-sd.c
+@@ -238,6 +238,9 @@ int imx_media_create_internal_links(struct imx_media_dev *imxmd,
+ 	struct media_pad *pad;
+ 	int i, j, ret;
  
--	if (!is_reg_unreg_needed(inst))
-+	if (is_dynamic_bufmode(inst))
- 		return 0;
++	if (!imxmd->ipu_present)
++		return 0;
++
+ 	intsd = find_intsd_by_grp_id(sd->grp_id);
+ 	if (!intsd)
+ 		return -ENODEV;
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index 44532cd5b812..d40538ecf176 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -147,6 +147,9 @@ struct imx_media_dev {
  
- 	list_for_each_entry(buf, &inst->registeredbufs, reg_list) {
+ 	/* for async subdev registration */
+ 	struct v4l2_async_notifier notifier;
++
++	/* indicator to if the system has IPU */
++	bool ipu_present;
+ };
+ 
+ enum codespace_sel {
 -- 
-2.14.1
+2.17.0
