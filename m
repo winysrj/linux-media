@@ -1,113 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:51048 "EHLO
-        homiemail-a48.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753775AbeDQQkY (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:42042 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754339AbeDWH4t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 12:40:24 -0400
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 2/9] cx231xx: Use board profile values for addresses
-Date: Tue, 17 Apr 2018 11:39:48 -0500
-Message-Id: <1523983195-28691-3-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1523983195-28691-1-git-send-email-brad@nextdimension.cc>
-References: <1523983195-28691-1-git-send-email-brad@nextdimension.cc>
+        Mon, 23 Apr 2018 03:56:49 -0400
+Date: Mon, 23 Apr 2018 09:56:43 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Magnus Damm <magnus.damm@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 6/8] ASoC: sh: Update menu title and platform dependency
+Message-ID: <20180423075642.avhihfr44se7dfz6@verge.net.au>
+References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
+ <1524230914-10175-7-git-send-email-geert+renesas@glider.be>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1524230914-10175-7-git-send-email-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace all usage of hard coded values with
-the proper field from the board profile.
+On Fri, Apr 20, 2018 at 03:28:32PM +0200, Geert Uytterhoeven wrote:
+> Change the menu title to refer to "Renesas SoCs" instead of "SuperH", as
+> both SuperH and ARM SoCs are supported.
+> 
+> Since commit 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS")
+> is ARCH_RENESAS a more appropriate platform dependency for Renesas ARM
+> SoCs than the legacy ARCH_SHMOBILE, hence use the former.
+> Renesas SuperH SH-Mobile SoCs are still covered by the SUPERH
+> dependency.
+> 
+> This will allow to drop ARCH_SHMOBILE on ARM and ARM64 in the near
+> future.
+> 
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/usb/cx231xx/cx231xx-dvb.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 67ed667..99f1a77 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -728,7 +728,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
- 
- 		if (!dvb_attach(tda18271_attach, dev->dvb->frontend[0],
--			       0x60, tuner_i2c,
-+			       dev->board.tuner_addr, tuner_i2c,
- 			       &cnxt_rde253s_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
-@@ -752,7 +752,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
- 
- 		if (!dvb_attach(tda18271_attach, dev->dvb->frontend[0],
--			       0x60, tuner_i2c,
-+			       dev->board.tuner_addr, tuner_i2c,
- 			       &cnxt_rde253s_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
-@@ -779,7 +779,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
- 
- 		dvb_attach(tda18271_attach, dev->dvb->frontend[0],
--			   0x60, tuner_i2c,
-+			   dev->board.tuner_addr, tuner_i2c,
- 			   &hcw_tda18271_config);
- 		break;
- 
-@@ -797,7 +797,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
--		info.addr = 0x64;
-+		info.addr = dev->board.demod_addr;
- 		info.platform_data = &si2165_pdata;
- 		request_module(info.type);
- 		client = i2c_new_device(demod_i2c, &info);
-@@ -822,8 +822,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
- 
- 		dvb_attach(tda18271_attach, dev->dvb->frontend[0],
--			0x60,
--			tuner_i2c,
-+			dev->board.tuner_addr, tuner_i2c,
- 			&hcw_tda18271_config);
- 
- 		dev->cx231xx_reset_analog_tuner = NULL;
-@@ -844,7 +843,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
--		info.addr = 0x64;
-+		info.addr = dev->board.demod_addr;
- 		info.platform_data = &si2165_pdata;
- 		request_module(info.type);
- 		client = i2c_new_device(demod_i2c, &info);
-@@ -879,7 +878,7 @@ static int dvb_init(struct cx231xx *dev)
- 		si2157_config.if_port = 1;
- 		si2157_config.inversion = true;
- 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
--		info.addr = 0x60;
-+		info.addr = dev->board.tuner_addr;
- 		info.platform_data = &si2157_config;
- 		request_module("si2157");
- 
-@@ -938,7 +937,7 @@ static int dvb_init(struct cx231xx *dev)
- 		si2157_config.if_port = 1;
- 		si2157_config.inversion = true;
- 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
--		info.addr = 0x60;
-+		info.addr = dev->board.tuner_addr;
- 		info.platform_data = &si2157_config;
- 		request_module("si2157");
- 
-@@ -985,7 +984,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
- 
- 		dvb_attach(tda18271_attach, dev->dvb->frontend[0],
--			   0x60, tuner_i2c,
-+			   dev->board.tuner_addr, tuner_i2c,
- 			   &pv_tda18271_config);
- 		break;
- 
--- 
-2.7.4
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
