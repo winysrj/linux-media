@@ -1,81 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59500 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752478AbeDUIHC (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43650 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754324AbeDWIG6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 21 Apr 2018 04:07:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Simon Horman <horms@verge.net.au>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        linux-renesas-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 3/8] [media] v4l: rcar_fdp1: Change platform dependency to ARCH_RENESAS
-Date: Sat, 21 Apr 2018 11:07:11 +0300
-Message-ID: <3039853.rivznOVBTv@avalon>
-In-Reply-To: <1524230914-10175-4-git-send-email-geert+renesas@glider.be>
-References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be> <1524230914-10175-4-git-send-email-geert+renesas@glider.be>
+        Mon, 23 Apr 2018 04:06:58 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 90DA6634C57
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 11:06:56 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1fAWUy-0000zN-BL
+        for linux-media@vger.kernel.org; Mon, 23 Apr 2018 11:06:56 +0300
+Date: Mon, 23 Apr 2018 11:06:56 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.18] ov7740 driver and tda1997x fixes, cleanups
+ elsewhere
+Message-ID: <20180423080656.k3jcbk5qp5xyerpo@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+Hi Mauro,
 
-Thank you for the patch.
+Here are fixes for the ov7740 and tda1997x drivers as well as a few
+cleanups to the omap3isp (making things const) and the fwnode framework
+(spelling).
 
-On Friday, 20 April 2018 16:28:29 EEST Geert Uytterhoeven wrote:
-> The Renesas Fine Display Processor driver is used on Renesas R-Car SoCs
-> only.  Since commit 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce
-> ARCH_RENESAS") is ARCH_RENESAS a more appropriate platform dependency
-> than the legacy ARCH_SHMOBILE, hence use the former.
-> 
-> This will allow to drop ARCH_SHMOBILE on ARM and ARM64 in the near
-> future.
-> 
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Please pull.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-How would you like to get this merged ?
+The following changes since commit 1d338b86e17d87215cf57b1ad1d13b2afe582d33:
 
-> ---
->  drivers/media/platform/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index f9235e8f8e962d2e..7ad4725f9d1f9627 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -396,7 +396,7 @@ config VIDEO_SH_VEU
->  config VIDEO_RENESAS_FDP1
->  	tristate "Renesas Fine Display Processor"
->  	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
-> -	depends on ARCH_SHMOBILE || COMPILE_TEST
-> +	depends on ARCH_RENESAS || COMPILE_TEST
->  	depends on (!ARCH_RENESAS && !VIDEO_RENESAS_FCP) || VIDEO_RENESAS_FCP
->  	select VIDEOBUF2_DMA_CONTIG
->  	select V4L2_MEM2MEM_DEV
+  media: v4l2-compat-ioctl32: better document the code (2018-04-20 08:24:13 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.18-1
+
+for you to fetch changes up to 94927e3d6358d0012a6f3b0ae23a8811ee7353d8:
+
+  media: v4l: fwnode: Fix comment incorrectly mentioning v4l2_fwnode_parse_endpoint (2018-04-23 10:54:49 +0300)
+
+----------------------------------------------------------------
+Bhumika Goyal (2):
+      v4l: omap3isp: make v4l2_file_operations const
+      omap3isp: make omap3isp_prev_csc and omap3isp_prev_rgbtorgb const
+
+Leonard Crestez (1):
+      media: v4l: fwnode: Fix comment incorrectly mentioning v4l2_fwnode_parse_endpoint
+
+Sakari Ailus (5):
+      ov7740: Fix number of controls hint
+      ov7740: Check for possible NULL return value in control creation
+      ov7740: Fix control handler error at the end of control init
+      ov7740: Set subdev HAS_EVENT flag
+      tda1997x: Use bitwise or for setting subdev flags
+
+ drivers/media/i2c/ov7740.c                   | 22 +++++++++++++++++-----
+ drivers/media/i2c/tda1997x.c                 |  2 +-
+ drivers/media/platform/omap3isp/isppreview.c |  4 ++--
+ drivers/media/platform/omap3isp/ispvideo.c   |  2 +-
+ include/media/v4l2-fwnode.h                  |  2 +-
+ 5 files changed, 22 insertions(+), 10 deletions(-)
 
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
