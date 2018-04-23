@@ -1,55 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:42277 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752103AbeDKDYa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 23:24:30 -0400
-From: Jia-Ju Bai <baijiaju1990@gmail.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jia-Ju Bai <baijiaju1990@gmail.com>
-Subject: [PATCH 3/3] media: dvb-usb: Replace GFP_ATOMIC with GFP_KERNEL in usb_isoc_urb_init
-Date: Wed, 11 Apr 2018 11:24:18 +0800
-Message-Id: <1523417058-3161-1-git-send-email-baijiaju1990@gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:63856 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932306AbeDWUKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 16:10:06 -0400
+Date: Mon, 23 Apr 2018 17:09:55 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with
+ COMPILE_TEST && DRM_OMAP
+Message-ID: <20180423170955.13421017@vento.lan>
+In-Reply-To: <2458408.nymfr4Soza@avalon>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+        <5379683.QunLsIS18Z@amdc3058>
+        <20180423112227.61fbc02b@vento.lan>
+        <2458408.nymfr4Soza@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-usb_isoc_urb_init() is never called in atomic context.
+Em Mon, 23 Apr 2018 22:48:06 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-The call chains ending up at usb_isoc_urb_init() are:
-[1] usb_isoc_urb_init() <- usb_urb_init()
-	<- dvb_usb_adapter_stream_init() <- dvb_usb_adapter_init 
-	<- dvb_usb_init() <- dvb_usb_device_init() <- xxx_probe()
-xxx_probe including ttusb2_probe, vp7045_usb_probe, a800_probe, and so on.
-These xxx_probe() functions are set as ".probe" in struct usb_driver.
-And these functions are not called in atomic context.
+> Hi Mauro,
+> 
+> On Monday, 23 April 2018 17:22:27 EEST Mauro Carvalho Chehab wrote:
+> > Em Mon, 23 Apr 2018 15:56:53 +0200 Bartlomiej Zolnierkiewicz escreveu:  
+> > > On Monday, April 23, 2018 02:47:28 PM Bartlomiej Zolnierkiewicz wrote:  
+> > >> On Friday, April 20, 2018 01:42:51 PM Mauro Carvalho Chehab wrote:  
+> > >>> Add stubs for omapfb_dss.h, in the case it is included by
+> > >>> some driver when CONFIG_FB_OMAP2 is not defined, with can
+> > >>> happen on ARM when DRM_OMAP is not 'n'.
+> > >>> 
+> > >>> That allows building such driver(s) with COMPILE_TEST.
+> > >>> 
+> > >>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
+> > >> 
+> > >> This patch should be dropped (together with patch #6/7) as it was
+> > >> superseded by a better solution suggested by Laurent:
+> > >> 
+> > >> https://patchwork.kernel.org/patch/10325193/
+> > >> 
+> > >> ACK-ed by Tomi:
+> > >> 
+> > >> https://www.spinics.net/lists/dri-devel/msg171918.html
+> > >> 
+> > >> and already merged by you (commit 7378f1149884 "media: omap2:
+> > >> omapfb: allow building it with COMPILE_TEST")..  
+> > > 
+> > > Hmm, I see now while this patch is still included:
+> > > 
+> > > menuconfig FB_OMAP2
+> > >         tristate "OMAP2+ frame buffer support"
+> > >         depends on FB
+> > >         depends on DRM_OMAP = n
+> > > 
+> > > Ideally we should be able to build both drivers in the same kernel
+> > > (especially as modules).
+> > > 
+> > > I was hoping that it could be fixed easily but then I discovered
+> > > the root source of the problem:
+> > > 
+> > > drivers/gpu/drm/omapdrm/dss/display.o: In function
+> > > `omapdss_unregister_display': display.c:(.text+0x2c): multiple definition
+> > > of `omapdss_unregister_display'
+> > > drivers/video/fbdev/omap2/omapfb/dss/display.o:display.c:(.text+0x198):
+> > > first defined here ...  
+> > 
+> > Yes, and declared on two different places:
+> > 
+> > drivers/gpu/drm/omapdrm/dss/omapdss.h:void omapdss_unregister_display(struct
+> > omap_dss_device *dssdev); include/video/omapfb_dss.h:void
+> > omapdss_unregister_display(struct omap_dss_device *dssdev);
+> > 
+> > one alternative would be to give different names to it, and a common
+> > header for both.
+> > 
+> > At such header, it could be doing something like:
+> > 
+> > static inline void omapdss_unregister_display(struct omap_dss_device
+> > *dssdev) {
+> > #if enabled(CONFIG_DRM_OMAP)
+> > 	omapdss_unregister_display_drm(struct omap_dss_device *dssdev);
+> > #else
+> > 	omapdss_unregister_display_fb(struct omap_dss_device *dssdev);
+> > ##endif
+> > }
+> > 
+> > Yet, after a very quick check, it seems that nowadays only the
+> > media omap driver uses the symbols at FB_OMAP:
+> > 
+> > $ git grep omapfb_dss.h
+> > drivers/media/platform/omap/omap_vout.c:#include <video/omapfb_dss.h>
+> > drivers/media/platform/omap/omap_voutdef.h:#include <video/omapfb_dss.h>
+> > drivers/media/platform/omap/omap_voutlib.c:#include <video/omapfb_dss.h>
+> > 
+> > So, perhaps just renaming the common symbols and changing FB_OMAP2 to:
+> > 
+> > 	menuconfig FB_OMAP2
+> > 	         tristate "OMAP2+ frame buffer support"
+> > 	         depends on FB
+> > 	         depends on (DRM_OMAP = n) || COMPILE_TEST
+> > 
+> > would be enough to allow to build both on ARM.  
+> 
+> I don't think it's worth it renaming the common symbols. They will change over 
+> time as omapdrm is under heavy rework, and it's painful enough without having 
+> to handle cross-tree changes.
 
-Despite never getting called from atomic context,
-usb_isoc_urb_init() calls usb_alloc_urb() with GFP_ATOMIC,
-which does not sleep for allocation.
-GFP_ATOMIC is not necessary and can be replaced with GFP_KERNEL,
-which can sleep and improve the possibility of sucessful allocation.
+It could just rename the namespace-conflicting FB_OMAP2 functions,
+keeping the DRM ones as-is.
 
-This is found by a static analysis tool named DCNS written by myself.
-And I also manually check it.
+> Let's just live with the fact that both drivers 
+> can't be compiled at the same time, given that omapfb is deprecated.
 
-Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
----
- drivers/media/usb/dvb-usb/usb-urb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+IMO, a driver that it is deprecated, being in a state where it
+conflicts with a non-deprecated driver that is under heavy rework
+is a very good candidate to go to drivers/staging or even to /dev/null.
 
-diff --git a/drivers/media/usb/dvb-usb/usb-urb.c b/drivers/media/usb/dvb-usb/usb-urb.c
-index 8917360..1efa4bd5 100644
---- a/drivers/media/usb/dvb-usb/usb-urb.c
-+++ b/drivers/media/usb/dvb-usb/usb-urb.c
-@@ -177,7 +177,7 @@ static int usb_isoc_urb_init(struct usb_data_stream *stream)
- 		struct urb *urb;
- 		int frame_offset = 0;
- 
--		stream->urb_list[i] = usb_alloc_urb(stream->props.u.isoc.framesperurb, GFP_ATOMIC);
-+		stream->urb_list[i] = usb_alloc_urb(stream->props.u.isoc.framesperurb, GFP_KERNEL);
- 		if (!stream->urb_list[i]) {
- 			deb_mem("not enough memory for urb_alloc_urb!\n");
- 			for (j = 0; j < i; j++)
--- 
-1.9.1
+Thanks,
+Mauro
