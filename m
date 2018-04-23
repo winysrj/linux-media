@@ -1,71 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:42476 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752995AbeDSPnv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 11:43:51 -0400
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Subject: [PATCH v2 01/10] media: v4l2-ctrls: Add missing v4l2 ctrl unlock
-Date: Thu, 19 Apr 2018 17:41:15 +0200
-Message-Id: <20180419154124.17512-2-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:39565 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754832AbeDWMk7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 08:40:59 -0400
+Subject: Re: [RFCv11 PATCH 05/29] media-request: add request ioctls
+To: Sakari Ailus <sakari.ailus@iki.fi>, Tomasz Figa <tfiga@google.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+ <20180409142026.19369-6-hverkuil@xs4all.nl>
+ <CAAFQd5ABOWjj9esLBxrOV_b8edv5_-VSCZNp6iZYTbUVeP9Xqw@mail.gmail.com>
+ <20180412073504.5mggdps4os3vqv6r@valkosipuli.retiisi.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <fff637a0-1b20-7dfe-023f-f2a81774182a@xs4all.nl>
+Date: Mon, 23 Apr 2018 14:40:52 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180412073504.5mggdps4os3vqv6r@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds a missing v4l2_ctrl_unlock call that is required to avoid
-deadlocks.
+On 04/12/2018 09:35 AM, Sakari Ailus wrote:
+> Hi Tomasz,
+> 
+> On Tue, Apr 10, 2018 at 08:59:23AM +0000, Tomasz Figa wrote:
+>> Hi Hans,
+>>
+>> On Mon, Apr 9, 2018 at 11:21 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>>> Implement the MEDIA_REQUEST_IOC_QUEUE and MEDIA_REQUEST_IOC_REINIT
+>>> ioctls.
+>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>>   drivers/media/media-request.c | 80
+>> +++++++++++++++++++++++++++++++++++++++++--
+>>>   1 file changed, 78 insertions(+), 2 deletions(-)
+>>
+>>> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+>>> index dffc290e4ada..27739ff7cb09 100644
+>>> --- a/drivers/media/media-request.c
+>>> +++ b/drivers/media/media-request.c
+>>> @@ -118,10 +118,86 @@ static unsigned int media_request_poll(struct file
+>> *filp,
+>>>          return 0;
+>>>   }
+>>
+>>> +static long media_request_ioctl_queue(struct media_request *req)
+>>> +{
+>>> +       struct media_device *mdev = req->mdev;
+>>> +       unsigned long flags;
+>>> +       int ret = 0;
+>>> +
+>>> +       dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
+>>> +
+>>> +       spin_lock_irqsave(&req->lock, flags);
+>>> +       if (req->state != MEDIA_REQUEST_STATE_IDLE) {
+>>> +               dev_dbg(mdev->dev,
+>>> +                       "request: unable to queue %s, request in state
+>> %s\n",
+>>> +                       req->debug_str,
+>> media_request_state_str(req->state));
+>>> +               spin_unlock_irqrestore(&req->lock, flags);
+>>> +               return -EINVAL;
+>>
+>> nit: Perhaps -EBUSY? (vb2 returns -EINVAL, though, but IMHO it doesn't
+>> really represent the real error too closely.)
+>>
+>>> +       }
+>>> +       req->state = MEDIA_REQUEST_STATE_QUEUEING;
+>>> +
+>>> +       spin_unlock_irqrestore(&req->lock, flags);
+>>> +
+>>> +       /*
+>>> +        * Ensure the request that is validated will be the one that gets
+>> queued
+>>> +        * next by serialising the queueing process.
+>>> +        */
+>>> +       mutex_lock(&mdev->req_queue_mutex);
+>>> +
+>>> +       ret = mdev->ops->req_queue(req);
+>>> +       spin_lock_irqsave(&req->lock, flags);
+>>> +       req->state = ret ? MEDIA_REQUEST_STATE_IDLE :
+>> MEDIA_REQUEST_STATE_QUEUED;
+>>> +       spin_unlock_irqrestore(&req->lock, flags);
+>>> +       mutex_unlock(&mdev->req_queue_mutex);
+>>> +
+>>> +       if (ret) {
+>>> +               dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
+>>> +                       req->debug_str, ret);
+>>> +       } else {
+>>> +               media_request_get(req);
+>>
+>> I'm not convinced that this is the right place to take a reference. IMHO
+>> whoever saves a pointer to the request in its own internal data (the
+>> ->req_queue() callback?), should also grab a reference before doing so. Not
+>> a strong objection, though, if we clearly document this, so that whoever
+>> implements ->req_queue() callback can do the right thing.
+> 
+> The framework will also release that reference once the request is
+> complete. In my opinion it's perfectly reasonable to do this in the
+> framework; moving things to frameworks that do not need to be done in
+> drivers generally reduces bugs and makes drivers more maintainable. Albeit
+> this is a minor matter in this respect.
+> 
+> Hans: the reference must be taken before the request is queued: otherwise
+> it is possible that the driver completes the request before the reference
+> is taken here. That would mean the request might have been already released
+> by the time of getting a refenrece to it.
 
-Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Actually, it can't. As long as userspace has the request fd open there is always
+at least one reference. And since we're in an ioctl (thus using the fd) it can't
+be closed yet.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index f67e9f5531fa..ba05a8b9a095 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -3614,10 +3614,12 @@ void v4l2_ctrl_request_complete(struct media_request *req,
- 			continue;
- 
- 		v4l2_ctrl_lock(ctrl);
-+
- 		if (ref->req)
- 			ptr_to_ptr(ctrl, ref->req->p_req, ref->p_req);
- 		else
- 			ptr_to_ptr(ctrl, ctrl->p_cur, ref->p_req);
-+
- 		v4l2_ctrl_unlock(ctrl);
- 	}
- 
-@@ -3677,8 +3679,11 @@ void v4l2_ctrl_request_setup(struct media_request *req,
- 				}
- 			}
- 		}
--		if (!have_new_data)
-+
-+		if (!have_new_data) {
-+			v4l2_ctrl_unlock(master);
- 			continue;
-+		}
- 
- 		for (i = 0; i < master->ncontrols; i++) {
- 			if (master->cluster[i]) {
--- 
-2.16.3
+Regards,
+
+	Hans
+
+> 
+>>
+>>> +       }
+>>> +
+>>> +       return ret;
+>>> +}
+>>> +
+>>> +static long media_request_ioctl_reinit(struct media_request *req)
+>>> +{
+>>> +       struct media_device *mdev = req->mdev;
+>>> +       unsigned long flags;
+>>> +
+>>> +       spin_lock_irqsave(&req->lock, flags);
+>>> +       if (req->state != MEDIA_REQUEST_STATE_IDLE &&
+>>> +           req->state != MEDIA_REQUEST_STATE_COMPLETE) {
+>>> +               dev_dbg(mdev->dev,
+>>> +                       "request: %s not in idle or complete state,
+>> cannot reinit\n",
+>>> +                       req->debug_str);
+>>> +               spin_unlock_irqrestore(&req->lock, flags);
+>>> +               return -EINVAL;
+>>
+>> nit: Perhaps -EBUSY? (Again vb2 would return -EINVAL...)
+> 
+> I agree on both return values.
+> 
