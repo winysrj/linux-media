@@ -1,91 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:44194 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752630AbeDPCw1 (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:41909 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755275AbeDWNtJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Apr 2018 22:52:27 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v2 05/10] media: ov772x: use generic names for reset and powerdown gpios
-Date: Mon, 16 Apr 2018 11:51:46 +0900
-Message-Id: <1523847111-12986-6-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
-References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
+        Mon, 23 Apr 2018 09:49:09 -0400
+Received: by mail-wr0-f196.google.com with SMTP id g21-v6so14023272wrb.8
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:49:09 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v2 14/15] media: imx7.rst: add documentation for i.MX7 media driver
+Date: Mon, 23 Apr 2018 14:47:49 +0100
+Message-Id: <20180423134750.30403-15-rui.silva@linaro.org>
+In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
+References: <20180423134750.30403-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov772x driver uses "rstb-gpios" and "pwdn-gpios" for reset and
-powerdown pins.  However, using generic names for thse gpios is preferred.
-("reset-gpios" and "powerdown-gpios" respectively)
+Add rst document to describe the i.MX7 media driver and also a working example
+from the Warp7 board usage with a OV2680 sensor.
 
-There is only one mainline user for these gpios, so rename to generic
-names.
-
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
-* v2
-- New patch
+ Documentation/media/v4l-drivers/imx7.rst  | 157 ++++++++++++++++++++++
+ Documentation/media/v4l-drivers/index.rst |   1 +
+ 2 files changed, 158 insertions(+)
+ create mode 100644 Documentation/media/v4l-drivers/imx7.rst
 
- arch/sh/boards/mach-migor/setup.c | 5 +++--
- drivers/media/i2c/ov772x.c        | 8 ++++----
- 2 files changed, 7 insertions(+), 6 deletions(-)
-
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index 271dfc2..73b9ee4 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -351,8 +351,9 @@ static struct platform_device migor_ceu_device = {
- static struct gpiod_lookup_table ov7725_gpios = {
- 	.dev_id		= "0-0021",
- 	.table		= {
--		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "pwdn", GPIO_ACTIVE_HIGH),
--		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_LOW),
-+		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "powerdown",
-+			    GPIO_ACTIVE_HIGH),
-+		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "reset", GPIO_ACTIVE_LOW),
- 	},
- };
- 
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index 0ae2a4f..88d1418a 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -837,10 +837,10 @@ static int ov772x_power_on(struct ov772x_priv *priv)
- 	 * available to handle this cleanly, request the GPIO temporarily
- 	 * to avoid conflicts.
- 	 */
--	priv->rstb_gpio = gpiod_get_optional(&client->dev, "rstb",
-+	priv->rstb_gpio = gpiod_get_optional(&client->dev, "reset",
- 					     GPIOD_OUT_LOW);
- 	if (IS_ERR(priv->rstb_gpio)) {
--		dev_info(&client->dev, "Unable to get GPIO \"rstb\"");
-+		dev_info(&client->dev, "Unable to get GPIO \"reset\"");
- 		return PTR_ERR(priv->rstb_gpio);
- 	}
- 
-@@ -1309,10 +1309,10 @@ static int ov772x_probe(struct i2c_client *client,
- 		goto error_ctrl_free;
- 	}
- 
--	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "pwdn",
-+	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "powerdown",
- 					     GPIOD_OUT_LOW);
- 	if (IS_ERR(priv->pwdn_gpio)) {
--		dev_info(&client->dev, "Unable to get GPIO \"pwdn\"");
-+		dev_info(&client->dev, "Unable to get GPIO \"powerdown\"");
- 		ret = PTR_ERR(priv->pwdn_gpio);
- 		goto error_clk_put;
- 	}
+diff --git a/Documentation/media/v4l-drivers/imx7.rst b/Documentation/media/v4l-drivers/imx7.rst
+new file mode 100644
+index 000000000000..64b97b442277
+--- /dev/null
++++ b/Documentation/media/v4l-drivers/imx7.rst
+@@ -0,0 +1,157 @@
++i.MX7 Video Capture Driver
++==========================
++
++Introduction
++------------
++
++The i.MX7 contrary to the i.MX5/6 family does not contain an Image Processing
++Unit (IPU), because of that the capabilities to perform operations or
++manipulation of the capture frames is less feature rich.
++
++For image capture the i.MX7 have three units:
++- CMOS Sensor Interface (CSI)
++- Video Multiplexer
++- MIPI CSI-2 Receiver
++
++::
++                                           |\
++   MIPI Camera Input ---> MIPI CSI-2 --- > | \
++                                           |  \
++                                           | M |
++                                           | U | ------>  CSI ---> Capture
++                                           | X |
++                                           |  /
++   Parallel Camera Input ----------------> | /
++                                           |/
++
++For additional information, please refer to the latest versions of the i.MX7
++reference manual [#f1]_.
++
++Entities
++--------
++
++imx7-mipi-csi2
++--------------
++
++This is the MIPI CSI-2 recevier entity. It has one sink pad to receive the pixel
++data from MIPI CSI-2 camera sensor. It has one source pad, corresponding to the
++virtual channel 0. This module is compliant to previous version of Samsung
++D-phy, and support two D-PHY Rx Data lanes.
++
++csi_mux
++-------
++
++This is the video multiplexer. It has two sink pads to select from either camera
++sensors with a parallel interface or from MIPI CSI-2 virtual channel 0.  It has
++a single source pad that routes to the CSI.
++
++csi
++---
++
++The CSI enables the chip to connect directly to external CMOS image sensor. CSI
++can interfaces directly with Parallel and MIPI CSI-2 buses. It has 256 x 64 FIFO
++to store received image pixel data and embedded DMA controllers to transfer data
++from the FIFO through AHB bus.
++
++This entity has one sink pad that receive from the csi_mux entity and a single
++source pad that route video frames directly to memory buffers, this pad is
++routed to a capture device node.
++
++Usage Notes
++-----------
++
++To aid in configuration and for backward compatibility with V4L2 applications
++that access controls only from video device nodes, the capture device interfaces
++inherit controls from the active entities in the current pipeline, so controls
++can be accessed either directly from the subdev or from the active capture
++device interface. For example, the sensor controls are available either from the
++sensor subdevs or from the active capture device.
++
++Warp7 with OV2680
++-----------------
++
++On this platform an OV2680 MIPI CSI-2 module is connected to the internal MIPI
++CSI-2 receiver. The following example configures a video capture pipeline with
++an output of 800x600, and BGGR 10 bit bayer format:
++
++.. code-block:: none
++   # Setup links
++   media-ctl -l "'ov2680 1-0036':0 -> 'imx7-mipi-csis.0':0[1]"
++   media-ctl -l "'imx7-mipi-csis.0':1 -> 'csi_mux':1[1]"
++   media-ctl -l "'csi_mux':2 -> 'csi':0[1]"
++   media-ctl -l "'csi':1 -> 'csi capture':0[1]"
++
++   # Configure pads for pipeline
++   media-ctl -V "'ov2680 1-0036':0 [fmt:SBGGR10_1X10/800x600 field:none]"
++   media-ctl -V "'csi_mux':1 [fmt:SBGGR10_1X10/800x600 field:none]"
++   media-ctl -V "'csi_mux':2 [fmt:SBGGR10_1X10/800x600 field:none]"
++   media-ctl -V "'imx7-mipi-csis.0':0 [fmt:SBGGR10_1X10/800x600 field:none]"
++   media-ctl -V "'csi':0 [fmt:SBGGR10_1X10/800x600 field:none]"
++
++After this streaming can start, the v4l2-ctl tool can be used to select any of
++the resolutions supported by the sensor.
++
++.. code-block:: none
++    root@imx7s-warp:~# media-ctl -p
++    Media controller API version 4.17.0
++
++    Media device information
++    ------------------------
++    driver          imx-media
++    model           imx-media
++    serial
++    bus info
++    hw revision     0x0
++    driver version  4.17.0
++
++    Device topology
++    - entity 1: csi (2 pads, 2 links)
++		type V4L2 subdev subtype Unknown flags 0
++		device node name /dev/v4l-subdev0
++	    pad0: Sink
++		    [fmt:SBGGR10_1X10/800x600 field:none]
++		    <- "csi_mux":2 [ENABLED]
++	    pad1: Source
++		    [fmt:SBGGR10_1X10/800x600 field:none]
++		    -> "csi capture":0 [ENABLED]
++
++    - entity 4: csi capture (1 pad, 1 link)
++		type Node subtype V4L flags 0
++		device node name /dev/video0
++	    pad0: Sink
++		    <- "csi":1 [ENABLED]
++
++    - entity 10: csi_mux (3 pads, 2 links)
++		type V4L2 subdev subtype Unknown flags 0
++		device node name /dev/v4l-subdev1
++	    pad0: Sink
++		    [fmt:unknown/0x0]
++	    pad1: Sink
++		    [fmt:unknown/800x600 field:none]
++		    <- "imx7-mipi-csis.0":1 [ENABLED]
++	    pad2: Source
++		    [fmt:unknown/800x600 field:none]
++		    -> "csi":0 [ENABLED]
++
++    - entity 14: imx7-mipi-csis.0 (2 pads, 2 links)
++		type V4L2 subdev subtype Unknown flags 0
++		device node name /dev/v4l-subdev2
++	    pad0: Sink
++		    [fmt:SBGGR10_1X10/800x600 field:none]
++		    <- "ov2680 1-0036":0 [ENABLED]
++	    pad1: Source
++		    [fmt:SBGGR10_1X10/800x600 field:none]
++		    -> "csi_mux":1 [ENABLED]
++
++    - entity 17: ov2680 1-0036 (1 pad, 1 link)
++		type V4L2 subdev subtype Sensor flags 0
++		device node name /dev/v4l-subdev3
++	    pad0: Source
++		    [fmt:SBGGR10_1X10/800x600 field:none]
++		    -> "imx7-mipi-csis.0":0 [ENABLED]
++
++
++References
++----------
++
++.. [#f1] https://www.nxp.com/docs/en/reference-manual/IMX7SRM.pdf
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index 679238e786a7..693295bbc53f 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -44,6 +44,7 @@ For more details see the file COPYING in the source distribution of Linux.
+ 	davinci-vpbe
+ 	fimc
+ 	imx
++	imx7
+ 	ivtv
+ 	max2175
+ 	meye
 -- 
-2.7.4
+2.17.0
