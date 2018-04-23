@@ -1,119 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:33955 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758271AbeD0RQK (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:49226 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754513AbeDWJq1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Apr 2018 13:16:10 -0400
+        Mon, 23 Apr 2018 05:46:27 -0400
+Subject: Re: [RFCv11 PATCH 03/29] media-request: allocate media requests
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+ <20180409142026.19369-4-hverkuil@xs4all.nl>
+ <20180410065239.7e1036d0@vento.lan>
+ <20180410111430.iuacaxpleiwfpzok@valkosipuli.retiisi.org.uk>
+ <20180411071315.0c21c4f8@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e21fc99c-f6b5-b8ad-7317-412a941cd849@xs4all.nl>
+Date: Mon, 23 Apr 2018 11:46:21 +0200
 MIME-Version: 1.0
-In-Reply-To: <2634517.9A5lBSedep@avalon>
-References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
- <2085532.oxbmo4GB4v@avalon> <CAC5umyhR=VKxhtQwegceczvQyjpV5zaJ-E8+RscTuveS=9Em+g@mail.gmail.com>
- <2634517.9A5lBSedep@avalon>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Sat, 28 Apr 2018 02:15:49 +0900
-Message-ID: <CAC5umyi0Z-CtcpP9Td=yfOqMkQm+SJLD9taJ6Ma5y+9f5JK8UQ@mail.gmail.com>
-Subject: Re: [PATCH v3 01/11] media: dt-bindings: ov772x: add device tree binding
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20180411071315.0c21c4f8@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-04-27 6:34 GMT+09:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Mita-san,
->
-> On Thursday, 26 April 2018 19:17:55 EEST Akinobu Mita wrote:
->> 2018-04-26 7:40 GMT+09:00 Laurent Pinchart:
->> > On Wednesday, 25 April 2018 19:19:11 EEST Akinobu Mita wrote:
->> >> 2018-04-24 0:54 GMT+09:00 Akinobu Mita <akinobu.mita@gmail.com>:
->> >> > 2018-04-23 18:17 GMT+09:00 Laurent Pinchart:
->> >> >> On Sunday, 22 April 2018 18:56:07 EEST Akinobu Mita wrote:
->> >> >>> This adds a device tree binding documentation for OV7720/OV7725
->> >> >>> sensor.
->> >> >>>
->> >> >>> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
->> >> >>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> >> >>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> >> >>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
->> >> >>> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->> >> >>> Cc: Rob Herring <robh+dt@kernel.org>
->> >> >>> Reviewed-by: Rob Herring <robh@kernel.org>
->> >> >>> Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
->> >> >>> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
->> >> >>> ---
->> >> >>> * v3
->> >> >>> - Add Reviewed-by: lines
->> >> >>>
->> >> >>>  .../devicetree/bindings/media/i2c/ov772x.txt       | 42
->> >> >>>  +++++++++++++++
->> >> >>>  MAINTAINERS                                        |  1 +
->> >> >>>  2 files changed, 43 insertions(+)
->> >> >>>  create mode 100644
->> >> >>>  Documentation/devicetree/bindings/media/i2c/ov772x.txt
->> >> >>>
->> >> >>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov772x.txt
->> >> >>> b/Documentation/devicetree/bindings/media/i2c/ov772x.txt new file
->> >> >>> mode
->> >> >>> 100644
->> >> >>> index 0000000..b045503
->> >> >>> --- /dev/null
->> >> >>> +++ b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
->> >> >>> @@ -0,0 +1,42 @@
->> >> >>> +* Omnivision OV7720/OV7725 CMOS sensor
->> >> >>> +
->> >> >>> +The Omnivision OV7720/OV7725 sensor supports multiple resolutions
->> >> >>> output,
->> >> >>> +such as VGA, QVGA, and any size scaling down from CIF to 40x30. It
->> >> >>> also
->> >> >>> can +support the YUV422, RGB565/555/444, GRB422 or raw RGB output
->> >> >>> formats. +
->> >> >>> +Required Properties:
->> >> >>> +- compatible: shall be one of
->> >> >>> +     "ovti,ov7720"
->> >> >>> +     "ovti,ov7725"
->> >> >>> +- clocks: reference to the xclk input clock.
->> >> >>> +- clock-names: shall be "xclk".
->> >> >>
->> >> >> As there's a single clock we could omit clock-names, couldn't we ?
->> >> >
->> >> > Sounds good.
->> >> >
->> >> > I'll prepare another patch that replaces the clock consumer ID argument
->> >> > of clk_get() from "xclk" to NULL, and remove the above line in this
->> >> > bindings.
->> >>
->> >> I thought it's easy to do.  However, there is a non-DT user
->> >> (arch/sh/boards/mach-migor/setup.c) that defines a clock with "xclk" ID.
->> >>
->> >> This can be resolved by retrying clk_get() with NULL if no entry
->> >> with "xclk".  But should we do so or leave as is?
->> >
->> > How about patching the board code to register the clock alias with
->> >
->> >         clk_add_alias(NULL, "0-0021", "video_clk", NULL);
+On 04/11/2018 12:13 PM, Mauro Carvalho Chehab wrote:
+> Em Tue, 10 Apr 2018 14:14:30 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+>>>>  /**
+>>>> @@ -88,6 +96,8 @@ struct media_device_ops {
+>>>>   * @disable_source: Disable Source Handler function pointer
+>>>>   *
+>>>>   * @ops:	Operation handler callbacks
+>>>> + * @req_lock:	Serialise access to requests
+>>>> + * @req_queue_mutex: Serialise validating and queueing requests  
+>>>
+>>> IMHO, this would better describe it:
+>>> 	Serialise validate and queue requests
+>>>
+>>> Yet, IMO, it doesn't let it clear when the spin lock should be
+>>> used and when the mutex should be used.
+>>>
+>>> I mean, what of them protect what variable?  
 >>
->> Sounds good.
+>> It might not be obvious, but the purpose of this mutex is to prevent
+>> queueing multiple requests simultaneously in order to serialise access to
+>> the top of the queue.
+> 
+> It is not obvious at all. The purpose of a lock is to prevent
+> multiple acesses to the content of a data structure.
+> 
+> From what I see, here we have a single structure with two locks.
+> To make it worse, you're introducing first the lock and then,
+> on patch 04/29, the actual structs to be protected.
+> 
+> Well, a house with two doors is only closed if both doors are
+> closed. The same happens with a data structure protected by
+> two locks. It is only locked if both locks are locked.
+> 
+> So, every time I see two locks meant to protect the same struct, it
+> sounds poorly designed or wrong. 
+> 
+> There's one exception, though: if you have an independent
+> guest house and a main house, you could have two locks at the
+> same place, one for the main house and another one for the
+> guest house, but in this case, you should clearly tag with lock
+> protects each house.
+> 
+> So, in this case, two new locks that are being proposed to be added
+> at for struct media_device. So, I would be expecting a comment
+> like:
+> 
+> 	@req_lock: serialize access to &struct media_request 
+
+Urgh. This req_lock is a left-over from some older code. It's never
+used and I've now deleted it. That explains the confusion. I thought you
+were talking about the spinlock in struct media_request.
+
+The req_queue_mutex is there to serialize queueing of requests, it
+doesn't protect any data structures, it just ensures you can't queue
+two requests in parallel for the same media device.
+
+Regards,
+
+	Hans
+
+
+> 	@req_queue_mutex: serialize access to &struct media_request_object
+> 
+> Clearly stating what data structures each lock protects.
+> 
+> That was my concern when I pointed it. After looking at the entire
+> patchset, what I saw was a non-consistent locking model.
+> 
+> It sounded to me that the original design to be:
+> 
+> 1) req_queue_mutex was designed to protect struct media_request
+>    instances;
+> 
+> 2) req_lock was designed to protect just one field inside
+>    struct media_request (the state field).
+> 
+> There is a big issue on that:
+> 
+> As state is part of media_request, assuming that the data struct
+> won't disappear while in use (with is warranted by kref), before
+> changing its value and touching other fields at req, the code should 
+> be locking both req_queue_mutex and req_lock, but I didn't see that
+> behavior on several places.
+> 
+> Also, I noticed several locking inconsistencies, as, on several places,
+> the content of a media_request instance and/or its state was 
+> accessed/altered without either locks.
+> 
+>> How about this instead:
 >>
->> But I'm a bit worried about whether clk_add_alias() can be called with
->> alias == NULL.  I couldn't find such use case.
->
-> There aren't many occurrences, but
->
-> $ find . -type f -exec grep -l 'clk_add_alias(NULL' {} \;
-> /drivers/clk/ti/clk.c
-> /drivers/clk/ti/fixed-factor.c
-> /drivers/clk/ti/clk-dra7-atl.c
-> /drivers/clk/ti/composite.c
->
-> A quick code analysis also shows me that this should be supported.
-
-This hits ti_clk_add_alias() only.  The function name is very similar,
-but the first argument is struct device *.
-
-Anyway, I'll add the change you suggested as Jacopo tested it.
+>> 	Serialise access to accessing device state on the tail of the
+>> 	request queue.
+> 
+> It still doesn't mention what struct each of the new locks protect.
+> IMHO, this patch should either be bound with patch 04/29 or come after
+> that, and explicitly mention what data is protected by each lock.
+> 
+> Thanks,
+> Mauro
+> 
