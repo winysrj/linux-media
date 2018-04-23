@@ -1,64 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:46018 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751623AbeDEU35 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 16:29:57 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org
-Subject: [PATCH v2 07/19] media: exymos4-is: allow compile test for EXYNOS FIMC-LITE
-Date: Thu,  5 Apr 2018 16:29:34 -0400
-Message-Id: <fb51c9ebb76438c554855cc6543651a8c1cb7aa6.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39848 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754374AbeDWJxn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 05:53:43 -0400
+Subject: Re: [RFCv11 PATCH 17/29] vb2: store userspace data in vb2_v4l2_buffer
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+ <20180409142026.19369-18-hverkuil@xs4all.nl>
+ <4f390d7d-c185-9775-b5f4-dedf40cdf92c@ideasonboard.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <94b55991-5a29-42dc-db14-f8809418a389@xs4all.nl>
+Date: Mon, 23 Apr 2018 11:53:38 +0200
+MIME-Version: 1.0
+In-Reply-To: <4f390d7d-c185-9775-b5f4-dedf40cdf92c@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's nothing that prevents building this driver with
-COMPILE_TEST. So, enable it.
+On 04/09/2018 05:11 PM, Kieran Bingham wrote:
+> Hi Hans,
+> 
+> Thank you for the patch series !
+> 
+> I'm looking forwards to finding some time to try out this work.
+> 
+> Just briefly scanning through the series, and I saw the minor issue below.
+> 
+> Regards
+> 
+> Kieran
+> 
+> 
+> On 09/04/18 15:20, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The userspace-provided plane data needs to be stored in
+>> vb2_v4l2_buffer. Currently this information is applied by
+>> __fill_vb2_buffer() which is called by the core prepare_buf
+>> and qbuf functions, but when using requests these functions
+>> aren't called yet since the buffer won't be prepared until
+>> the media request is actually queued.
+>>
+>> In the meantime this information has to be stored somewhere
+>> and vb2_v4l2_buffer is a good place for it.
+>>
+>> The __fill_vb2_buffer callback now just copies the relevant
+>> information from vb2_v4l2_buffer into the planes array.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/common/videobuf2/videobuf2-core.c |  25 +-
+>>  drivers/media/common/videobuf2/videobuf2-v4l2.c | 324 +++++++++++++-----------
+>>  drivers/media/dvb-core/dvb_vb2.c                |   3 +-
+>>  include/media/videobuf2-core.h                  |   3 +-
+>>  include/media/videobuf2-v4l2.h                  |   2 +
+>>  5 files changed, 197 insertions(+), 160 deletions(-)
+>>
+>> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+>> index d3f7bb33a54d..3d436ccb61f8 100644
+>> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+>> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+>> @@ -968,9 +968,8 @@ static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
+> 
+> Now that pb is unused here, should it be removed from the function arguments ?
 
-While here, make the Kconfig dependency cleaner by removing
-the unneeded if block.
+Correct. Dropped here and elsewhere.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/exynos4-is/Kconfig | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-index 7b2c49e5a592..c8e5ad8f8294 100644
---- a/drivers/media/platform/exynos4-is/Kconfig
-+++ b/drivers/media/platform/exynos4-is/Kconfig
-@@ -41,11 +41,10 @@ config VIDEO_S5P_MIPI_CSIS
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called s5p-csis.
- 
--if SOC_EXYNOS4412 || SOC_EXYNOS5250
--
- config VIDEO_EXYNOS_FIMC_LITE
- 	tristate "EXYNOS FIMC-LITE camera interface driver"
- 	depends on I2C
-+	depends on SOC_EXYNOS4412 || SOC_EXYNOS5250 || COMPILE_TEST
- 	depends on HAS_DMA
- 	select VIDEOBUF2_DMA_CONTIG
- 	select VIDEO_EXYNOS4_IS_COMMON
-@@ -55,7 +54,6 @@ config VIDEO_EXYNOS_FIMC_LITE
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called exynos-fimc-lite.
--endif
- 
- config VIDEO_EXYNOS4_FIMC_IS
- 	tristate "EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver"
--- 
-2.14.3
+	Hans
