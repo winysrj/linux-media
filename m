@@ -1,264 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47888 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753064AbeDKNVT (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:32823 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755433AbeDWPG2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 09:21:19 -0400
-Date: Wed, 11 Apr 2018 16:21:16 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Mon, 23 Apr 2018 11:06:28 -0400
+Subject: Re: [RFCv11 PATCH 27/29] vim2m: support requests
+To: Alexandre Courbot <acourbot@chromium.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
-Message-ID: <20180411132116.lmirivlarpy5lcv4@valkosipuli.retiisi.org.uk>
 References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-5-hverkuil@xs4all.nl>
- <20180410073206.12d4c67d@vento.lan>
- <20180410123234.ifo6v23wztsslmdp@valkosipuli.retiisi.org.uk>
- <20180410115143.41178f68@vento.lan>
+ <20180409142026.19369-28-hverkuil@xs4all.nl>
+ <CAPBb6MXpLtTyr--_Vy3PYZJZYy--bxY87SNrAa+8f5=bA=qn9w@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <49fddbc3-4608-c96d-9df7-f5599e24ee03@xs4all.nl>
+Date: Mon, 23 Apr 2018 17:06:24 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180410115143.41178f68@vento.lan>
+In-Reply-To: <CAPBb6MXpLtTyr--_Vy3PYZJZYy--bxY87SNrAa+8f5=bA=qn9w@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 04/17/2018 06:37 AM, Alexandre Courbot wrote:
+> On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+>> Add support for requests to vim2m.
+> 
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>   drivers/media/platform/vim2m.c | 25 +++++++++++++++++++++++++
+>>   1 file changed, 25 insertions(+)
+> 
+>> diff --git a/drivers/media/platform/vim2m.c
+> b/drivers/media/platform/vim2m.c
+>> index 9b18b32c255d..2dcf0ea85705 100644
+>> --- a/drivers/media/platform/vim2m.c
+>> +++ b/drivers/media/platform/vim2m.c
+>> @@ -387,8 +387,26 @@ static void device_run(void *priv)
+>>          src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+>>          dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+> 
+>> +       /* Apply request if needed */
+>> +       if (src_buf->vb2_buf.req_obj.req)
+>> +               v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
+>> +                                       &ctx->hdl);
+>> +       if (dst_buf->vb2_buf.req_obj.req &&
+>> +           dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
+>> +               v4l2_ctrl_request_setup(dst_buf->vb2_buf.req_obj.req,
+>> +                                       &ctx->hdl);
+> 
+> This implies that we can have two different requests active at the same time
+> for the same device. Do we want to open that can of worms?
+> 
+> Valid scenarios for requests should be clearly defined. In the case of a
+> simple
+> buffer processor like vim2m, something like "request required for source
+> buffer,
+> optional and must be same as source if specified for destination", looks
+> simple
+> and sane.
 
-On Tue, Apr 10, 2018 at 11:51:43AM -0300, Mauro Carvalho Chehab wrote:
-> Em Tue, 10 Apr 2018 15:32:34 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Hi Mauro and Hans,
-> > 
-> > On Tue, Apr 10, 2018 at 07:32:06AM -0300, Mauro Carvalho Chehab wrote:
-> > ...
-> > > > +static void media_request_release(struct kref *kref)
-> > > > +{
-> > > > +	struct media_request *req =
-> > > > +		container_of(kref, struct media_request, kref);
-> > > > +	struct media_device *mdev = req->mdev;
-> > > > +	unsigned long flags;
-> > > > +
-> > > > +	dev_dbg(mdev->dev, "request: release %s\n", req->debug_str);
-> > > > +
-> > > > +	spin_lock_irqsave(&req->lock, flags);
-> > > > +	req->state = MEDIA_REQUEST_STATE_CLEANING;
-> > > > +	spin_unlock_irqrestore(&req->lock, flags);
-> > > > +
-> > > > +	media_request_clean(req);
-> > > > +
-> > > > +	if (mdev->ops->req_free)
-> > > > +		mdev->ops->req_free(req);
-> > > > +	else
-> > > > +		kfree(req);  
-> > > 
-> > > Without looking at req_free() implementation, I would actually prefer
-> > > to always do a kfree(req) here. So, a req_free() function would only
-> > > free "extra" allocations, and not the request itself. e. g.:
-> > > 
-> > > ...
-> > > 	if (mdev->ops->req_free)
-> > > 		mdev->ops->req_free(req);
-> > > 
-> > > 	kfree(req);
-> > > }  
-> > 
-> > The idea is that you can embed the request object in a driver specific
-> > struct. The drivers can store information related to that request rather
-> > easily that way, without requiring to be aware of two objects with
-> > references pointing to each other. I rather prefer the current
-> > implementation. It same pattern is actually used on videobuf2 buffers.
-> 
-> Ok, then document it so.
-> 
-> Btw, one of the things it is missing is a kAPI documentation patch,
-> describing things like that.
+Is it? It is sane for this specific use-case, but for other m2m devices you
+might require the request for the sink buffer instead of the source buffer.
+Or both. So for one driver you would have one set of rules, and for another
+driver another set of rules.
 
-I agree. Documentation will need to be added and improved.
+That said, this probably requires some more discussion. I went with the generic
+case here, and it was really very little code to make that happen. And it
+avoids creating ad-hoc 'rules'.
 
-> 
-> > 
-> > ...
-> > 
-> > > > +static unsigned int media_request_poll(struct file *filp,
-> > > > +				       struct poll_table_struct *wait)
-> > > > +{
-> > > > +	struct media_request *req = filp->private_data;
-> > > > +	unsigned long flags;
-> > > > +	enum media_request_state state;
-> > > > +
-> > > > +	if (!(poll_requested_events(wait) & POLLPRI))
-> > > > +		return 0;
-> > > > +
-> > > > +	spin_lock_irqsave(&req->lock, flags);
-> > > > +	state = req->state;
-> > > > +	spin_unlock_irqrestore(&req->lock, flags);  
-> > > 
-> > > IMO, it would be better to use an atomic var for state, having a
-> > > lockless access to it.  
-> > 
-> > The lock serialises access to the whole request, not just to its state.
-> 
-> From what I understood at the code is that the spin lock
-> is used *sometimes* to protect just the state. I didn't
-> see it used to protect the hole data struct.
-> 
-> Instead, the mutex is used for that purpose, but, again,
-> it is *sometimes* used, but on several parts, neither the
-> spin lock nor the mutex is used.
-> 
-> It should be noticed that the data, itself, should be protected
-> by *either* mutex or spin lock.
-> 
-> > While it doesn't matter here as you're just reading the state, writing it
-> > would still require taking the lock. Using atomic_t might suggest
-> > otherwise, and could end up being a source of bugs.
-> 
-> There are already a lot of bugs at the locking, from what I noticed.
-> 
-> We should do it right: it should use *just one* kind of memory
-> protection for struct media_request. On the places where it is
-> safe to just read the status without locking, atomic_t() should
-> be used. Where it doesn't, probably the entire code should be
-> protected by the lock.
-
-If done that way, it needs to be documented because it isn't obvious.
-Keeping the code simple helps a lot; I don't see the core code growing a
-lot so this looks good.
-
-> 
-> > >   
-> > > > +
-> > > > +	if (state == MEDIA_REQUEST_STATE_COMPLETE)
-> > > > +		return POLLPRI;
-> > > > +	if (state == MEDIA_REQUEST_STATE_IDLE)
-> > > > +		return POLLERR;
-> > > > +
-> > > > +	poll_wait(filp, &req->poll_wait, wait);
-> > > > +	return 0;
-> > > > +}
-> > > > +
-> > > > +static long media_request_ioctl(struct file *filp, unsigned int cmd,
-> > > > +				unsigned long __arg)
-> > > > +{
-> > > > +	return -ENOIOCTLCMD;
-> > > > +}
-> > > > +
-> > > > +static const struct file_operations request_fops = {
-> > > > +	.owner = THIS_MODULE,
-> > > > +	.poll = media_request_poll,
-> > > > +	.unlocked_ioctl = media_request_ioctl,
-> > > > +	.release = media_request_close,
-> > > > +};
-> > > > +
-> > > >  int media_request_alloc(struct media_device *mdev,
-> > > >  			struct media_request_alloc *alloc)
-> > > >  {
-> > > > -	return -ENOMEM;
-> > > > +	struct media_request *req;
-> > > > +	struct file *filp;
-> > > > +	char comm[TASK_COMM_LEN];
-> > > > +	int fd;
-> > > > +	int ret;
-> > > > +
-> > > > +	fd = get_unused_fd_flags(O_CLOEXEC);
-> > > > +	if (fd < 0)
-> > > > +		return fd;
-> > > > +
-> > > > +	filp = anon_inode_getfile("request", &request_fops, NULL, O_CLOEXEC);
-> > > > +	if (IS_ERR(filp)) {
-> > > > +		ret = PTR_ERR(filp);
-> > > > +		goto err_put_fd;
-> > > > +	}
-> > > > +
-> > > > +	if (mdev->ops->req_alloc)
-> > > > +		req = mdev->ops->req_alloc(mdev);
-> > > > +	else
-> > > > +		req = kzalloc(sizeof(*req), GFP_KERNEL);
-> > > > +	if (!req) {
-> > > > +		ret = -ENOMEM;
-> > > > +		goto err_fput;
-> > > > +	}
-> > > > +
-> > > > +	filp->private_data = req;
-> > > > +	req->mdev = mdev;
-> > > > +	req->state = MEDIA_REQUEST_STATE_IDLE;
-> > > > +	req->num_incomplete_objects = 0;
-> > > > +	kref_init(&req->kref);
-> > > > +	INIT_LIST_HEAD(&req->objects);
-> > > > +	spin_lock_init(&req->lock);
-> > > > +	init_waitqueue_head(&req->poll_wait);
-> > > > +
-> > > > +	alloc->fd = fd;  
-> > > 
-> > > Btw, this is a very good reason why you should define the ioctl to
-> > > have an integer argument instead of a struct with a __s32 field
-> > > on it, as per my comment to patch 02/29:
-> > > 
-> > > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
-> > > 
-> > > At 64 bit architectures, you're truncating the file descriptor!  
-> > 
-> > I'm not quite sure what do you mean. int is 32 bits on 64-bit systems as
-> > well.
-> 
-> Hmm.. you're right. I was thinking that it could be 64 bits on some
-> archs like sparc64 (Tru64 C compiler declares it with 64 bits), but,
-> according with:
-> 
-> 	https://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html
-> 
-> This is not the case on gcc.
-
-Ok. The reasoning back then was that what "int" means varies across
-compilers and languages. And the intent was to codify this to __s32 which
-is what the kernel effectively uses.
-
-The rest of the kernel uses int rather liberally in the uAPI so I'm not
-sure in the end whether something desirable was achieved. Perhaps it'd be
-good to go back to the original discussion to find out for sure.
-
-Still binaries compiled with Tru64 C compiler wouldn't work on Linux anyway
-due to that difference.
-
-Well, I stop here for this begins to be off-topic. :-)
-
-> 
-> > We actually replaced int by __s32 or __u32 everywhere in uAPI (apart from
-> > one particular struct; time to send a patch) about five years ago.
-> > 
-> > >   
-> > > > +	get_task_comm(comm, current);
-> > > > +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
-> > > > +		 comm, fd);  
-> > > 
-> > > Not sure if it is a good idea to store the task that allocated
-> > > the request. While it makes sense for the dev_dbg() below, it
-> > > may not make sense anymore on other dev_dbg() you would be
-> > > using it.  
-> > 
-> > The lifetime of the file handle roughly matches that of the request. It's
-> > for debug only anyway.
-> > 
-> > Better proposals are always welcome of course. But I think we should have
-> > something here that helps debugging by meaningfully making the requests
-> > identifiable from logs.
-> 
-> What I meant to say is that one PID could be allocating the
-> request, while some other one could be actually doing Q/DQ_BUF.
-> On such scenario, the debug string could provide mislead prints.
-
-Um, yes, indeed it would no longer match the process. But the request is
-still the same. That's actually a positive thing since it allows you to
-identify the request.
-
-With a global ID space this was trivial; you could just print the request
-ID and that was all that was ever needed. (I'm not proposing to consider
-that though.)
-
--- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+	Hans
+
+> 
+>> +
+>>          device_process(ctx, src_buf, dst_buf);
+> 
+>> +       /* Complete request if needed */
+>> +       if (src_buf->vb2_buf.req_obj.req)
+>> +               v4l2_ctrl_request_complete(src_buf->vb2_buf.req_obj.req,
+>> +                                       &ctx->hdl);
+>> +       if (dst_buf->vb2_buf.req_obj.req &&
+>> +           dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
+>> +               v4l2_ctrl_request_complete(dst_buf->vb2_buf.req_obj.req,
+>> +                                       &ctx->hdl);
+>> +
+>>          /* Run a timer, which simulates a hardware irq  */
+>>          schedule_irq(dev, ctx->transtime);
+>>   }
+>> @@ -823,6 +841,8 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+>>                          vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+>>                  if (vbuf == NULL)
+>>                          return;
+>> +               v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
+>> +                                          &ctx->hdl);
+>>                  spin_lock_irqsave(&ctx->dev->irqlock, flags);
+>>                  v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+>>                  spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
+>> @@ -1003,6 +1023,10 @@ static const struct v4l2_m2m_ops m2m_ops = {
+>>          .job_abort      = job_abort,
+>>   };
+> 
+>> +static const struct media_device_ops m2m_media_ops = {
+>> +       .req_queue = vb2_request_queue,
+>> +};
+>> +
+>>   static int vim2m_probe(struct platform_device *pdev)
+>>   {
+>>          struct vim2m_dev *dev;
+>> @@ -1027,6 +1051,7 @@ static int vim2m_probe(struct platform_device *pdev)
+>>          dev->mdev.dev = &pdev->dev;
+>>          strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
+>>          media_device_init(&dev->mdev);
+>> +       dev->mdev.ops = &m2m_media_ops;
+>>          dev->v4l2_dev.mdev = &dev->mdev;
+>>          dev->pad[0].flags = MEDIA_PAD_FL_SINK;
+>>          dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
+>> --
+>> 2.16.3
