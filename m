@@ -1,300 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55362 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932197AbeDXKWY (ORCPT
+Received: from gateway34.websitewelcome.com ([192.185.148.212]:39310 "EHLO
+        gateway34.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932109AbeDWSNK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 06:22:24 -0400
-Date: Tue, 24 Apr 2018 13:22:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Daniel Mack <daniel@zonque.org>
-Cc: linux-media@vger.kernel.org, slongerbeam@gmail.com,
-        mchehab@kernel.org
-Subject: Re: [PATCH 2/3] media: ov5640: add PIXEL_RATE and LINK_FREQ controls
-Message-ID: <20180424102222.ipzz754gou6kbdmk@valkosipuli.retiisi.org.uk>
-References: <20180420094419.11267-1-daniel@zonque.org>
- <20180420094419.11267-2-daniel@zonque.org>
+        Mon, 23 Apr 2018 14:13:10 -0400
+Received: from cm10.websitewelcome.com (cm10.websitewelcome.com [100.42.49.4])
+        by gateway34.websitewelcome.com (Postfix) with ESMTP id 5C1657F7EB
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 12:51:26 -0500 (CDT)
+Date: Mon, 23 Apr 2018 12:51:23 -0500
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 10/11] vivid-sdr-cap: fix potential Spectre variant 1
+Message-ID: <586469aa63a9579ecdeb8ffa4fb31d441564c622.1524499368.git.gustavo@embeddedor.com>
+References: <cover.1524499368.git.gustavo@embeddedor.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180420094419.11267-2-daniel@zonque.org>
+In-Reply-To: <cover.1524499368.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+band->index can be controlled by user-space, hence leading to
+a potential exploitation of the Spectre variant 1 vulnerability.
 
-On Fri, Apr 20, 2018 at 11:44:18AM +0200, Daniel Mack wrote:
-> Add v4l2 controls to report the pixel and MIPI link rates of each mode.
-> The camss camera subsystem needs them to set up the correct hardware
-> clocks.
-> 
-> Tested on msm8016 based hardware.
-> 
-> Signed-off-by: Daniel Mack <daniel@zonque.org>
+Smatch warning:
+drivers/media/platform/vivid/vivid-sdr-cap.c:323 vivid_sdr_enum_freq_bands() warn: potential spectre issue 'bands_adc'
 
-Maxime has written a number of patches against the driver that seem very
-much related; could you rebase these on his set (v2)?
+Fix this by sanitizing band->index before using it to index
+bands_adc and bands_fm.
 
-<URL:https://patchwork.linuxtv.org/project/linux-media/list/?submitter=Maxime+Ripard&state=*&q=ov5640>
+Notice that given that speculation windows are large, the policy is
+to kill the speculation on the first load and not worry if it can be
+completed with a dependent load/store [1].
 
-> ---
->  drivers/media/i2c/ov5640.c | 77 ++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 77 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 96f1564abdf5..78669ed386cd 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -91,6 +91,20 @@
->  #define OV5640_REG_SDE_CTRL5		0x5585
->  #define OV5640_REG_AVG_READOUT		0x56a1
->  
-> +#define OV5640_LINK_FREQ_111	0
-> +#define OV5640_LINK_FREQ_166	1
-> +#define OV5640_LINK_FREQ_222	2
-> +#define OV5640_LINK_FREQ_333	3
-> +#define OV5640_LINK_FREQ_666	4
-> +
-> +static const s64 link_freq_menu_items[] = {
-> +	111066666,
-> +	166600000,
-> +	222133333,
-> +	332200000,
-> +	666400000,
-> +};
-> +
->  enum ov5640_mode_id {
->  	OV5640_MODE_QCIF_176_144 = 0,
->  	OV5640_MODE_QVGA_320_240,
-> @@ -167,12 +181,18 @@ struct ov5640_mode_info {
->  	enum ov5640_downsize_mode dn_mode;
->  	u32 width;
->  	u32 height;
-> +	u32 pixel_rate;
-> +	u32 link_freq_idx;
->  	const struct reg_value *reg_data;
->  	u32 reg_data_size;
->  };
->  
->  struct ov5640_ctrls {
->  	struct v4l2_ctrl_handler handler;
-> +	struct {
-> +		struct v4l2_ctrl *link_freq;
-> +		struct v4l2_ctrl *pixel_rate;
-> +	};
->  	struct {
->  		struct v4l2_ctrl *auto_exp;
->  		struct v4l2_ctrl *exposure;
-> @@ -732,6 +752,8 @@ static const struct ov5640_mode_info ov5640_mode_init_data = {
->  	.dn_mode	= SUBSAMPLING,
->  	.width		= 640,
->  	.height		= 480,
-> +	.pixel_rate	= 27766666,
-> +	.link_freq_idx	= OV5640_LINK_FREQ_111,
->  	.reg_data	= ov5640_init_setting_30fps_VGA,
->  	.reg_data_size	= ARRAY_SIZE(ov5640_init_setting_30fps_VGA),
->  };
-> @@ -744,6 +766,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 176,
->  		.height		= 144,
-> +		.pixel_rate	= 27766666,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
->  		.reg_data	= ov5640_setting_15fps_QCIF_176_144,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_QCIF_176_144),
->  	},
-> @@ -752,6 +776,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 320,
->  		.height		= 240,
-> +		.pixel_rate	= 27766666,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
->  		.reg_data	= ov5640_setting_15fps_QVGA_320_240,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_QVGA_320_240),
->  	},
-> @@ -760,6 +786,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 640,
->  		.height		= 480,
-> +		.pixel_rate	= 27766666,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
->  		.reg_data	= ov5640_setting_15fps_VGA_640_480,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_VGA_640_480)
->  	},
-> @@ -768,6 +796,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 720,
->  		.height		= 480,
-> +		.pixel_rate	= 27766666,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
->  		.reg_data	= ov5640_setting_15fps_NTSC_720_480,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_NTSC_720_480),
->  	},
-> @@ -776,6 +806,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 720,
->  		.height		= 576,
-> +		.pixel_rate	= 27766666,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
->  		.reg_data	= ov5640_setting_15fps_PAL_720_576,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_PAL_720_576),
->  	},
-> @@ -784,6 +816,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 1024,
->  		.height		= 768,
-> +		.pixel_rate	= 27766666,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
->  		.reg_data	= ov5640_setting_15fps_XGA_1024_768,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_XGA_1024_768),
->  	},
-> @@ -792,6 +826,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 1280,
->  		.height		= 720,
-> +		.pixel_rate	= 41650000,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_166,
->  		.reg_data	= ov5640_setting_15fps_720P_1280_720,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_720P_1280_720),
->  	},
-> @@ -800,6 +836,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SCALING,
->  		.width		= 1920,
->  		.height		= 1080,
-> +		.pixel_rate	= 83300000,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_333,
->  		.reg_data	= ov5640_setting_15fps_1080P_1920_1080,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_1080P_1920_1080),
->  	},
-> @@ -808,6 +846,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SCALING,
->  		.width		= 2592,
->  		.height		= 1944,
-> +		.pixel_rate	= 83300000,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_333,
->  		.reg_data	= ov5640_setting_15fps_QSXGA_2592_1944,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_QSXGA_2592_1944),
->  	},
-> @@ -818,6 +858,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 176,
->  		.height		= 144,
-> +		.pixel_rate	= 27766666,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
->  		.reg_data	= ov5640_setting_30fps_QCIF_176_144,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_QCIF_176_144),
->  	},
-> @@ -826,6 +868,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 320,
->  		.height		= 240,
-> +		.pixel_rate	= 27766666,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
->  		.reg_data	= ov5640_setting_30fps_QVGA_320_240,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_QVGA_320_240),
->  	},
-> @@ -834,6 +878,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 640,
->  		.height		= 480,
-> +		.pixel_rate	= 27766666,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
->  		.reg_data	= ov5640_setting_30fps_VGA_640_480,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_VGA_640_480),
->  	},
-> @@ -842,6 +888,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 720,
->  		.height		= 480,
-> +		.pixel_rate	= 55533333,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_222,
->  		.reg_data	= ov5640_setting_30fps_NTSC_720_480,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_NTSC_720_480),
->  	},
-> @@ -850,6 +898,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 720,
->  		.height		= 576,
-> +		.pixel_rate	= 55533333,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_222,
->  		.reg_data	= ov5640_setting_30fps_PAL_720_576,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_PAL_720_576),
->  	},
-> @@ -858,6 +908,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 1024,
->  		.height		= 768,
-> +		.pixel_rate	= 55533333,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_222,
->  		.reg_data	= ov5640_setting_30fps_XGA_1024_768,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_XGA_1024_768),
->  	},
-> @@ -866,6 +918,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SUBSAMPLING,
->  		.width		= 1280,
->  		.height		= 720,
-> +		.pixel_rate	= 83300000,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_333,
->  		.reg_data	= ov5640_setting_30fps_720P_1280_720,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_720P_1280_720),
->  	},
-> @@ -874,6 +928,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= SCALING,
->  		.width		= 1920,
->  		.height		= 1080,
-> +		.pixel_rate	= 166600000,
-> +		.link_freq_idx	= OV5640_LINK_FREQ_666,
->  		.reg_data	= ov5640_setting_30fps_1080P_1920_1080,
->  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_1080P_1920_1080),
->  	},
-> @@ -882,6 +938,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
->  		.dn_mode	= -1,
->  		.width		= 0,
->  		.height		= 0,
-> +		.pixel_rate	= 0,
-> +		.link_freq_idx	= 0,
->  		.reg_data	= NULL,
->  		.reg_data_size	= 0,
->  	}
-> @@ -2024,6 +2082,11 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
->  	sensor->current_mode = new_mode;
->  	sensor->fmt = *mbus_fmt;
->  	sensor->pending_mode_change = true;
-> +
-> +	__v4l2_ctrl_s_ctrl(sensor->ctrls.link_freq, new_mode->link_freq_idx);
-> +	__v4l2_ctrl_s_ctrl_int64(sensor->ctrls.pixel_rate,
-> +				 new_mode->pixel_rate);
-> +
->  out:
->  	mutex_unlock(&sensor->lock);
->  	return ret;
-> @@ -2350,6 +2413,20 @@ static int ov5640_init_controls(struct ov5640_dev *sensor)
->  	/* we can use our own mutex for the ctrl lock */
->  	hdl->lock = &sensor->lock;
->  
-> +	/* Clock related controls */
-> +	ctrls->link_freq =
-> +		v4l2_ctrl_new_int_menu(hdl, ops,
-> +				       V4L2_CID_LINK_FREQ,
-> +				       ARRAY_SIZE(link_freq_menu_items) - 1,
-> +				       0, link_freq_menu_items);
-> +	ctrls->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+[1] https://marc.info/?l=linux-kernel&m=152449131114778&w=2
 
-Do make sure creating the control succeeds, i.e. check that
-ctrls->link_freq is non-NULL before referencing it. Same below.
+Cc: stable@vger.kernel.org
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+ drivers/media/platform/vivid/vivid-sdr-cap.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-> +
-> +	ctrls->pixel_rate =
-> +		v4l2_ctrl_new_std(hdl, ops,
-> +				  V4L2_CID_PIXEL_RATE, 0, INT_MAX, 1,
-> +				  ov5640_mode_init_data.pixel_rate);
-> +	ctrls->pixel_rate->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> +
->  	/* Auto/manual white balance */
->  	ctrls->auto_wb = v4l2_ctrl_new_std(hdl, ops,
->  					   V4L2_CID_AUTO_WHITE_BALANCE,
-
+diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
+index cfb7cb4..684d8a2 100644
+--- a/drivers/media/platform/vivid/vivid-sdr-cap.c
++++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
+@@ -22,6 +22,8 @@
+ #include "vivid-ctrls.h"
+ #include "vivid-sdr-cap.h"
+ 
++#include <linux/nospec.h>
++
+ /* stream formats */
+ struct vivid_format {
+ 	u32	pixelformat;
+@@ -320,11 +322,15 @@ int vivid_sdr_enum_freq_bands(struct file *file, void *fh,
+ 	case 0:
+ 		if (band->index >= ARRAY_SIZE(bands_adc))
+ 			return -EINVAL;
++		band->index = array_index_nospec(band->index,
++						 ARRAY_SIZE(bands_adc));
+ 		*band = bands_adc[band->index];
+ 		return 0;
+ 	case 1:
+ 		if (band->index >= ARRAY_SIZE(bands_fm))
+ 			return -EINVAL;
++		band->index = array_index_nospec(band->index,
++						 ARRAY_SIZE(bands_fm));
+ 		*band = bands_fm[band->index];
+ 		return 0;
+ 	default:
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
