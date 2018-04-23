@@ -1,69 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:65128 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752274AbeDJJjC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 05:39:02 -0400
-Date: Tue, 10 Apr 2018 06:38:56 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 02/29] uapi/linux/media.h: add request API
-Message-ID: <20180410063856.32e44ce9@vento.lan>
-In-Reply-To: <20180409142026.19369-3-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-3-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:49237 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754943AbeDWNNu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 09:13:50 -0400
+Message-ID: <1524489222.3396.1.camel@pengutronix.de>
+Subject: Re: [PATCH v2] media: imx-media-csi: Fix inconsistent IS_ERR and
+ PTR_ERR
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Fabio Estevam <festevam@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>
+Date: Mon, 23 Apr 2018 15:13:42 +0200
+In-Reply-To: <CAOMZO5AfQY+W-64uL-pn=9BwDZLZaO=3T6F-_=zHGYvZGUd-cg@mail.gmail.com>
+References: <1523899736-31360-1-git-send-email-festevam@gmail.com>
+         <CAOMZO5AfQY+W-64uL-pn=9BwDZLZaO=3T6F-_=zHGYvZGUd-cg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  9 Apr 2018 16:19:59 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, 2018-04-23 at 08:55 -0300, Fabio Estevam wrote:
+> Hi Hans,
 > 
-> Define the public request API.
+> Unfortunately this one missed to be applied into 4.17-rc and now the
+> imx-media-csi driver does not probe.
 > 
-> This adds the new MEDIA_IOC_REQUEST_ALLOC ioctl to allocate a request
-> and two ioctls that operate on a request in order to queue the
-> contents of the request to the driver and to re-initialize the
-> request.
+> Please consider applying it for 4.17-rc3 to avoid the regression.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/uapi/linux/media.h | 8 ++++++++
->  1 file changed, 8 insertions(+)
+> Thanks
 > 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index c7e9a5cba24e..f8769e74f847 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -342,11 +342,19 @@ struct media_v2_topology {
->  
->  /* ioctls */
->  
-> +struct __attribute__ ((packed)) media_request_alloc {
-> +	__s32 fd;
-> +};
-> +
->  #define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
->  #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
->  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
->  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
->  #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
-> +#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, struct media_request_alloc)
-> +
+> On Mon, Apr 16, 2018 at 2:28 PM, Fabio Estevam <festevam@gmail.com> wrote:
+> > From: From: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> > 
+> > Fix inconsistent IS_ERR and PTR_ERR in imx_csi_probe.
+> > The proper pointer to be passed as argument is pinctrl
+> > instead of priv->vdev.
+> > 
+> > This issue was detected with the help of Coccinelle.
+> > 
+> > Fixes: 52e17089d185 ("media: imx: Don't initialize vars that won't be used")
+> > Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> > Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+> > Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Why use a struct here? Just declare it as:
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
-
-> +#define MEDIA_REQUEST_IOC_QUEUE		_IO('|',  0x80)
-> +#define MEDIA_REQUEST_IOC_REINIT	_IO('|',  0x81)
->  
->  #if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
->  
-
-Thanks,
-Mauro
+regards
+Philipp
