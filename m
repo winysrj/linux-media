@@ -1,85 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:35236 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753051AbeDLPYW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 11:24:22 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:53568 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755417AbeDWN5A (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Apr 2018 09:57:00 -0400
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20180423135657euoutp02b88108adf78ba79a313d8c154d8e03ea~oFTs5YghW0275902759euoutp02N
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 13:56:57 +0000 (GMT)
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Aishwarya Pant <aishpant@gmail.com>,
-        Guru Das Srinagesh <gurooodas@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH 04/17] media: staging: atomisp: fix string comparation logic
-Date: Thu, 12 Apr 2018 11:23:56 -0400
-Message-Id: <78c5c0b0c408206ee964a99557baec5c56c3dd60.1523546545.git.mchehab@s-opensource.com>
-In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with
+ COMPILE_TEST && DRM_OMAP
+Date: Mon, 23 Apr 2018 15:56:53 +0200
+Message-ID: <5379683.QunLsIS18Z@amdc3058>
+In-Reply-To: <2542100.cElVns0SR0@amdc3058>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+        <c6ef815da57085bf7e98753463e551905f5d2706.1524245455.git.mchehab@s-opensource.com>
+        <2542100.cElVns0SR0@amdc3058>
+        <CGME20180423135655eucas1p1a935ce9c167e52cf1e76adcc0b4486e4@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-it makes no sense to use strncmp() with a size with is
-bigger than the string we're comparing with.
+On Monday, April 23, 2018 02:47:28 PM Bartlomiej Zolnierkiewicz wrote:
+> On Friday, April 20, 2018 01:42:51 PM Mauro Carvalho Chehab wrote:
+> > Add stubs for omapfb_dss.h, in the case it is included by
+> > some driver when CONFIG_FB_OMAP2 is not defined, with can
+> > happen on ARM when DRM_OMAP is not 'n'.
+> > 
+> > That allows building such driver(s) with COMPILE_TEST.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> 
+> This patch should be dropped (together with patch #6/7) as it was
+> superseded by a better solution suggested by Laurent:
+> 
+> https://patchwork.kernel.org/patch/10325193/
+> 
+> ACK-ed by Tomi:
+> 
+> https://www.spinics.net/lists/dri-devel/msg171918.html
+> 
+> and already merged by you (commit 7378f1149884 "media: omap2:
+> omapfb: allow building it with COMPILE_TEST")..
 
-Fix those warnings:
+Hmm, I see now while this patch is still included:
 
-    drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c:776 atomisp_open() error: strncmp() '"ATOMISP ISP ACC"' too small (16 vs 32)
-    drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c:913 atomisp_release() error: strncmp() '"ATOMISP ISP ACC"' too small (16 vs 32)
-    drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c:2751 atomisp_vidioc_default() error: strncmp() '"ATOMISP ISP ACC"' too small (16 vs 32)
+menuconfig FB_OMAP2
+        tristate "OMAP2+ frame buffer support"
+        depends on FB
+        depends on DRM_OMAP = n
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c  | 6 ++----
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c | 3 +--
- 2 files changed, 3 insertions(+), 6 deletions(-)
+Ideally we should be able to build both drivers in the same kernel
+(especially as modules).
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-index 709137f25700..693b905547e4 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-@@ -773,8 +773,7 @@ static int atomisp_open(struct file *file)
- 
- 	rt_mutex_lock(&isp->mutex);
- 
--	acc_node = !strncmp(vdev->name, "ATOMISP ISP ACC",
--			sizeof(vdev->name));
-+	acc_node = !strcmp(vdev->name, "ATOMISP ISP ACC");
- 	if (acc_node) {
- 		acc_pipe = atomisp_to_acc_pipe(vdev);
- 		asd = acc_pipe->asd;
-@@ -910,8 +909,7 @@ static int atomisp_release(struct file *file)
- 	rt_mutex_lock(&isp->mutex);
- 
- 	dev_dbg(isp->dev, "release device %s\n", vdev->name);
--	acc_node = !strncmp(vdev->name, "ATOMISP ISP ACC",
--			sizeof(vdev->name));
-+	acc_node = !strcmp(vdev->name, "ATOMISP ISP ACC");
- 	if (acc_node) {
- 		acc_pipe = atomisp_to_acc_pipe(vdev);
- 		asd = acc_pipe->asd;
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
-index 6e7231243891..8c67aea67b6b 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
-@@ -2748,8 +2748,7 @@ static long atomisp_vidioc_default(struct file *file, void *fh,
- 	bool acc_node;
- 	int err;
- 
--	acc_node = !strncmp(vdev->name, "ATOMISP ISP ACC",
--			sizeof(vdev->name));
-+	acc_node = !strcmp(vdev->name, "ATOMISP ISP ACC");
- 	if (acc_node)
- 		asd = atomisp_to_acc_pipe(vdev)->asd;
- 	else
--- 
-2.14.3
+I was hoping that it could be fixed easily but then I discovered
+the root source of the problem:
+
+drivers/gpu/drm/omapdrm/dss/display.o: In function `omapdss_unregister_display':
+display.c:(.text+0x2c): multiple definition of `omapdss_unregister_display'
+drivers/video/fbdev/omap2/omapfb/dss/display.o:display.c:(.text+0x198): first defined here
+...
+
+I need some more time to think about this..
+
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
