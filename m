@@ -1,86 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:52839 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752624AbeDRNew (ORCPT
+Received: from gateway34.websitewelcome.com ([192.185.148.212]:18265 "EHLO
+        gateway34.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932164AbeDWSKg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 09:34:52 -0400
-Date: Wed, 18 Apr 2018 15:34:47 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH v2 10/10] media: ov772x: avoid accessing registers under
- power saving mode
-Message-ID: <20180418133447.GD3999@w540>
-References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
- <1523847111-12986-11-git-send-email-akinobu.mita@gmail.com>
- <20180418125536.GB3999@w540>
- <20180418131702.rgxtqct6htzt3rnq@paasikivi.fi.intel.com>
+        Mon, 23 Apr 2018 14:10:36 -0400
+Received: from cm11.websitewelcome.com (cm11.websitewelcome.com [100.42.49.5])
+        by gateway34.websitewelcome.com (Postfix) with ESMTP id 6339716ADD
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 12:47:21 -0500 (CDT)
+Date: Mon, 23 Apr 2018 12:47:20 -0500
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 06/11] rcar-v4l2: fix potential Spectre variant 1
+Message-ID: <45621d4cd0639906cf16c4b4d666e8cd0e1c3694.1524499368.git.gustavo@embeddedor.com>
+References: <cover.1524499368.git.gustavo@embeddedor.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="h56sxpGKRmy85csR"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180418131702.rgxtqct6htzt3rnq@paasikivi.fi.intel.com>
+In-Reply-To: <cover.1524499368.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+f->index can be controlled by user-space, hence leading to
+a potential exploitation of the Spectre variant 1 vulnerability.
 
---h56sxpGKRmy85csR
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Smatch warning:
+drivers/media/platform/rcar-vin/rcar-v4l2.c:344 rvin_enum_fmt_vid_cap() warn: potential spectre issue 'rvin_formats'
 
-Hi Sakari,
+Fix this by sanitizing f->index before using it to index
+rvin_formats.
 
-On Wed, Apr 18, 2018 at 04:17:02PM +0300, Sakari Ailus wrote:
-> On Wed, Apr 18, 2018 at 02:55:36PM +0200, jacopo mondi wrote:
-> > Hi Akinobu,
-> >
-> > On Mon, Apr 16, 2018 at 11:51:51AM +0900, Akinobu Mita wrote:
-> > > The set_fmt() in subdev pad ops, the s_ctrl() for subdev control handler,
-> > > and the s_frame_interval() in subdev video ops could be called when the
-> > > device is under power saving mode.  These callbacks for ov772x driver
-> > > cause updating H/W registers that will fail under power saving mode.
-> > >
-> >
-> > I might be wrong, but if the sensor is powered off, you should not
-> > receive any subdev_pad_ops function call if sensor is powered off.
->
-> This happens (now that the driver supports sub-device uAPI) if the user
-> opens a sub-device node but the main driver has not powered the sensor on.
+Notice that given that speculation windows are large, the policy is
+to kill the speculation on the first load and not worry if it can be
+completed with a dependent load/store [1].
 
-Indeed. Sorry for the noise. Could you please check my reply to [08/10] as well?
+[1] https://marc.info/?l=linux-kernel&m=152449131114778&w=2
 
-Thanks
-   j
+Cc: stable@vger.kernel.org
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
->
-> --
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
-
---h56sxpGKRmy85csR
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJa10l3AAoJEHI0Bo8WoVY8quQQAIzRq0JRlk2/VwIbPgVCe4bF
-rHKAc/8kWxD9EbxJW4cU6GCjDohaj2CkeolmwBMDVg4nvo/Iy52MUo1v8WVAt78F
-g8KbB/V+rbybFA1pp999GQtQhpPEXUC4BAId5DoOWkAzbnKXV8DlF1NKpPgij0CH
-VlkTlZPHGcgGib8Cs1jPS3r7rHAaFb6Yx6jHR2gthF3tKHDKft9t7lQrqYH79G+h
-okomFbP+pLaYbMNgpdlw7l7webM0LoxQdVRA04WgCfd3MjP3CZNUP9WmJNkrbckN
-554BHiPGmtL8wOSLcVj8ImRdWV1OcX5VbIbXDfZCj41+yOS21f58PLM8jKm03ClG
-9keSkU0cGRgmezcNIQx6yaDSnAhOsoMdzmxH6UUiyK0g0LsRdP4/sSdNeQIoERJC
-eKP10LzfGrOm2qZRIQbjt6yipvD9/XWgcoML2JqgweCGbmY3ljgpoyXHoAuoZknG
-5UF8w+ugQH2XWbMpcZX8o/UlticvSy7T6EMWueEvXQL8pmWZ4+hPebcUoCT0GNeY
-4J0r9OHvJ1wl+pcyJLnmA7Bt4fQfC3iNN3Q2DwWRGymR3IRfVXFBTuBXQUDe+3R6
-teIDKuVPqZmQHhaH3Nb/oPkP247yUFRWy5wzi5M2rLwID+Jl5F1T/l3cEzDCyXxy
-sQyAem8HGJFuBxnOKJ2E
-=KqNl
------END PGP SIGNATURE-----
-
---h56sxpGKRmy85csR--
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index b479b88..bbfc3b8 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -22,6 +22,8 @@
+ 
+ #include "rcar-vin.h"
+ 
++#include <linux/nospec.h>
++
+ #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
+ #define RVIN_MAX_WIDTH		2048
+ #define RVIN_MAX_HEIGHT		2048
+@@ -340,7 +342,7 @@ static int rvin_enum_fmt_vid_cap(struct file *file, void *priv,
+ {
+ 	if (f->index >= ARRAY_SIZE(rvin_formats))
+ 		return -EINVAL;
+-
++	f->index = array_index_nospec(f->index, ARRAY_SIZE(rvin_formats));
+ 	f->pixelformat = rvin_formats[f->index].fourcc;
+ 
+ 	return 0;
+-- 
+2.7.4
