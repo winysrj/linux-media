@@ -1,69 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:53126 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751908AbeDPMhP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 08:37:15 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v2 00/12] media: ov5640: Misc cleanup and improvements
-Date: Mon, 16 Apr 2018 14:36:49 +0200
-Message-Id: <20180416123701.15901-1-maxime.ripard@bootlin.com>
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:60223 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751255AbeDXXrE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 19:47:04 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] rcar-vin: add support for MEDIA_BUS_FMT_UYVY8_1X16
+Date: Wed, 25 Apr 2018 01:46:07 +0200
+Message-Id: <20180424234607.22867-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+By setting VNMC_YCAL rcar-vin can support input video in
+MEDIA_BUS_FMT_UYVY8_1X16 format.
 
-Here is a "small" series that mostly cleans up the ov5640 driver code,
-slowly getting rid of the big data array for more understandable code
-(hopefully).
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 1 +
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 5 +++++
+ 2 files changed, 6 insertions(+)
 
-The biggest addition would be the clock rate computation at runtime,
-instead of relying on those arrays to setup the clock tree
-properly. As a side effect, it fixes the framerate that was off by
-around 10% on the smaller resolutions, and we now support 60fps.
-
-This also introduces a bunch of new features.
-
-Let me know what you think,
-Maxime
-
-Changes from v1:
-  - Integrated Hugues' suggestions to fix v4l2-compliance
-  - Fixed the bus width with JPEG
-  - Dropped the clock rate calculation loops for something simpler as
-    suggested by Sakari
-  - Cache the exposure value instead of using the control value
-  - Rebased on top of 4.17
-
-Maxime Ripard (10):
-  media: ov5640: Don't force the auto exposure state at start time
-  media: ov5640: Init properly the SCLK dividers
-  media: ov5640: Change horizontal and vertical resolutions name
-  media: ov5640: Add horizontal and vertical totals
-  media: ov5640: Program the visible resolution
-  media: ov5640: Adjust the clock based on the expected rate
-  media: ov5640: Compute the clock rate at runtime
-  media: ov5640: Enhance FPS handling
-  media: ov5640: Add 60 fps support
-  media: ov5640: Remove duplicate auto-exposure setup
-
-Mylène Josserand (2):
-  media: ov5640: Add auto-focus feature
-  media: ov5640: Add light frequency control
-
- drivers/media/i2c/ov5640.c | 752 +++++++++++++++++++++----------------
- 1 file changed, 422 insertions(+), 330 deletions(-)
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 55b745ac86a5884d..7bc2774a11232362 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -404,6 +404,7 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
+ 		code.index++;
+ 		switch (code.code) {
+ 		case MEDIA_BUS_FMT_YUYV8_1X16:
++		case MEDIA_BUS_FMT_UYVY8_1X16:
+ 		case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		case MEDIA_BUS_FMT_RGB888_1X24:
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 4a3a195e7f59047c..ac07f99e3516a620 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -653,6 +653,10 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		vnmc |= VNMC_INF_YUV16;
+ 		input_is_yuv = true;
+ 		break;
++	case MEDIA_BUS_FMT_UYVY8_1X16:
++		vnmc |= VNMC_INF_YUV16 | VNMC_YCAL;
++		input_is_yuv = true;
++		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+ 		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+@@ -1009,6 +1013,7 @@ static int rvin_mc_validate_format(struct rvin_dev *vin, struct v4l2_subdev *sd,
+ 
+ 	switch (fmt.format.code) {
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
++	case MEDIA_BUS_FMT_UYVY8_1X16:
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 	case MEDIA_BUS_FMT_UYVY10_2X10:
+ 	case MEDIA_BUS_FMT_RGB888_1X24:
 -- 
 2.17.0
