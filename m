@@ -1,73 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:46467 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754902AbeDWMtb (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55362 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932197AbeDXKWY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 08:49:31 -0400
-Subject: Re: [RFCv11 PATCH 19/29] videobuf2-core: integrate with media
- requests
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-20-hverkuil@xs4all.nl>
- <CAAFQd5B2Xs1Jc=DJsTYVTPC6GwMoyEdRHayVuWZQYTDStv1+Qg@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <522675c0-a4f7-6e7f-f6a8-270fb9b98277@xs4all.nl>
-Date: Mon, 23 Apr 2018 14:49:25 +0200
+        Tue, 24 Apr 2018 06:22:24 -0400
+Date: Tue, 24 Apr 2018 13:22:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Daniel Mack <daniel@zonque.org>
+Cc: linux-media@vger.kernel.org, slongerbeam@gmail.com,
+        mchehab@kernel.org
+Subject: Re: [PATCH 2/3] media: ov5640: add PIXEL_RATE and LINK_FREQ controls
+Message-ID: <20180424102222.ipzz754gou6kbdmk@valkosipuli.retiisi.org.uk>
+References: <20180420094419.11267-1-daniel@zonque.org>
+ <20180420094419.11267-2-daniel@zonque.org>
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5B2Xs1Jc=DJsTYVTPC6GwMoyEdRHayVuWZQYTDStv1+Qg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180420094419.11267-2-daniel@zonque.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/12/2018 10:13 AM, Tomasz Figa wrote:
-> Hi Hans,
-> 
-> On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
->> Buffers can now be prepared or queued for a request.
-> 
->> A buffer is unbound from the request at vb2_buffer_done time or
->> when the queue is cancelled.
-> 
-> Please see my comments inline.
-> 
-> [snip]
->> -int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void
-> *pb)
->> +static int vb2_req_prepare(struct media_request_object *obj)
->>   {
->> -       struct vb2_buffer *vb;
->> +       struct vb2_buffer *vb = container_of(obj, struct vb2_buffer,
-> req_obj);
->>          int ret;
-> 
->> +       if (WARN_ON(vb->state != VB2_BUF_STATE_IN_REQUEST))
->> +               return -EINVAL;
->> +
->> +       ret = __buf_prepare(vb, NULL);
->> +       if (ret)
->> +               vb->state = VB2_BUF_STATE_IN_REQUEST;
-> 
-> Hmm, I suppose this is here because __buf_prepare() changes the state to
-> VB2_BUF_STATE_DEQUEUED on error (other than q->error)? I guess it's
-> harmless, but perhaps we could have a comment explaining this?
+Hi Daniel,
 
-Yes, that's the reason. But it is really ugly, so I changed __buf_prepare
-instead: it now remembers the original state and restores it on error.
-
-Much cleaner.
-
-Regards,
-
-	Hans
-
+On Fri, Apr 20, 2018 at 11:44:18AM +0200, Daniel Mack wrote:
+> Add v4l2 controls to report the pixel and MIPI link rates of each mode.
+> The camss camera subsystem needs them to set up the correct hardware
+> clocks.
 > 
-> Best regards,
-> Tomasz
+> Tested on msm8016 based hardware.
 > 
+> Signed-off-by: Daniel Mack <daniel@zonque.org>
+
+Maxime has written a number of patches against the driver that seem very
+much related; could you rebase these on his set (v2)?
+
+<URL:https://patchwork.linuxtv.org/project/linux-media/list/?submitter=Maxime+Ripard&state=*&q=ov5640>
+
+> ---
+>  drivers/media/i2c/ov5640.c | 77 ++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 77 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index 96f1564abdf5..78669ed386cd 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -91,6 +91,20 @@
+>  #define OV5640_REG_SDE_CTRL5		0x5585
+>  #define OV5640_REG_AVG_READOUT		0x56a1
+>  
+> +#define OV5640_LINK_FREQ_111	0
+> +#define OV5640_LINK_FREQ_166	1
+> +#define OV5640_LINK_FREQ_222	2
+> +#define OV5640_LINK_FREQ_333	3
+> +#define OV5640_LINK_FREQ_666	4
+> +
+> +static const s64 link_freq_menu_items[] = {
+> +	111066666,
+> +	166600000,
+> +	222133333,
+> +	332200000,
+> +	666400000,
+> +};
+> +
+>  enum ov5640_mode_id {
+>  	OV5640_MODE_QCIF_176_144 = 0,
+>  	OV5640_MODE_QVGA_320_240,
+> @@ -167,12 +181,18 @@ struct ov5640_mode_info {
+>  	enum ov5640_downsize_mode dn_mode;
+>  	u32 width;
+>  	u32 height;
+> +	u32 pixel_rate;
+> +	u32 link_freq_idx;
+>  	const struct reg_value *reg_data;
+>  	u32 reg_data_size;
+>  };
+>  
+>  struct ov5640_ctrls {
+>  	struct v4l2_ctrl_handler handler;
+> +	struct {
+> +		struct v4l2_ctrl *link_freq;
+> +		struct v4l2_ctrl *pixel_rate;
+> +	};
+>  	struct {
+>  		struct v4l2_ctrl *auto_exp;
+>  		struct v4l2_ctrl *exposure;
+> @@ -732,6 +752,8 @@ static const struct ov5640_mode_info ov5640_mode_init_data = {
+>  	.dn_mode	= SUBSAMPLING,
+>  	.width		= 640,
+>  	.height		= 480,
+> +	.pixel_rate	= 27766666,
+> +	.link_freq_idx	= OV5640_LINK_FREQ_111,
+>  	.reg_data	= ov5640_init_setting_30fps_VGA,
+>  	.reg_data_size	= ARRAY_SIZE(ov5640_init_setting_30fps_VGA),
+>  };
+> @@ -744,6 +766,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 176,
+>  		.height		= 144,
+> +		.pixel_rate	= 27766666,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
+>  		.reg_data	= ov5640_setting_15fps_QCIF_176_144,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_QCIF_176_144),
+>  	},
+> @@ -752,6 +776,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 320,
+>  		.height		= 240,
+> +		.pixel_rate	= 27766666,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
+>  		.reg_data	= ov5640_setting_15fps_QVGA_320_240,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_QVGA_320_240),
+>  	},
+> @@ -760,6 +786,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 640,
+>  		.height		= 480,
+> +		.pixel_rate	= 27766666,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
+>  		.reg_data	= ov5640_setting_15fps_VGA_640_480,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_VGA_640_480)
+>  	},
+> @@ -768,6 +796,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 720,
+>  		.height		= 480,
+> +		.pixel_rate	= 27766666,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
+>  		.reg_data	= ov5640_setting_15fps_NTSC_720_480,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_NTSC_720_480),
+>  	},
+> @@ -776,6 +806,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 720,
+>  		.height		= 576,
+> +		.pixel_rate	= 27766666,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
+>  		.reg_data	= ov5640_setting_15fps_PAL_720_576,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_PAL_720_576),
+>  	},
+> @@ -784,6 +816,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 1024,
+>  		.height		= 768,
+> +		.pixel_rate	= 27766666,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
+>  		.reg_data	= ov5640_setting_15fps_XGA_1024_768,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_XGA_1024_768),
+>  	},
+> @@ -792,6 +826,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 1280,
+>  		.height		= 720,
+> +		.pixel_rate	= 41650000,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_166,
+>  		.reg_data	= ov5640_setting_15fps_720P_1280_720,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_720P_1280_720),
+>  	},
+> @@ -800,6 +836,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SCALING,
+>  		.width		= 1920,
+>  		.height		= 1080,
+> +		.pixel_rate	= 83300000,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_333,
+>  		.reg_data	= ov5640_setting_15fps_1080P_1920_1080,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_1080P_1920_1080),
+>  	},
+> @@ -808,6 +846,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SCALING,
+>  		.width		= 2592,
+>  		.height		= 1944,
+> +		.pixel_rate	= 83300000,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_333,
+>  		.reg_data	= ov5640_setting_15fps_QSXGA_2592_1944,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_15fps_QSXGA_2592_1944),
+>  	},
+> @@ -818,6 +858,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 176,
+>  		.height		= 144,
+> +		.pixel_rate	= 27766666,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
+>  		.reg_data	= ov5640_setting_30fps_QCIF_176_144,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_QCIF_176_144),
+>  	},
+> @@ -826,6 +868,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 320,
+>  		.height		= 240,
+> +		.pixel_rate	= 27766666,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
+>  		.reg_data	= ov5640_setting_30fps_QVGA_320_240,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_QVGA_320_240),
+>  	},
+> @@ -834,6 +878,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 640,
+>  		.height		= 480,
+> +		.pixel_rate	= 27766666,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_111,
+>  		.reg_data	= ov5640_setting_30fps_VGA_640_480,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_VGA_640_480),
+>  	},
+> @@ -842,6 +888,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 720,
+>  		.height		= 480,
+> +		.pixel_rate	= 55533333,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_222,
+>  		.reg_data	= ov5640_setting_30fps_NTSC_720_480,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_NTSC_720_480),
+>  	},
+> @@ -850,6 +898,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 720,
+>  		.height		= 576,
+> +		.pixel_rate	= 55533333,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_222,
+>  		.reg_data	= ov5640_setting_30fps_PAL_720_576,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_PAL_720_576),
+>  	},
+> @@ -858,6 +908,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 1024,
+>  		.height		= 768,
+> +		.pixel_rate	= 55533333,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_222,
+>  		.reg_data	= ov5640_setting_30fps_XGA_1024_768,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_XGA_1024_768),
+>  	},
+> @@ -866,6 +918,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SUBSAMPLING,
+>  		.width		= 1280,
+>  		.height		= 720,
+> +		.pixel_rate	= 83300000,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_333,
+>  		.reg_data	= ov5640_setting_30fps_720P_1280_720,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_720P_1280_720),
+>  	},
+> @@ -874,6 +928,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= SCALING,
+>  		.width		= 1920,
+>  		.height		= 1080,
+> +		.pixel_rate	= 166600000,
+> +		.link_freq_idx	= OV5640_LINK_FREQ_666,
+>  		.reg_data	= ov5640_setting_30fps_1080P_1920_1080,
+>  		.reg_data_size	= ARRAY_SIZE(ov5640_setting_30fps_1080P_1920_1080),
+>  	},
+> @@ -882,6 +938,8 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+>  		.dn_mode	= -1,
+>  		.width		= 0,
+>  		.height		= 0,
+> +		.pixel_rate	= 0,
+> +		.link_freq_idx	= 0,
+>  		.reg_data	= NULL,
+>  		.reg_data_size	= 0,
+>  	}
+> @@ -2024,6 +2082,11 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+>  	sensor->current_mode = new_mode;
+>  	sensor->fmt = *mbus_fmt;
+>  	sensor->pending_mode_change = true;
+> +
+> +	__v4l2_ctrl_s_ctrl(sensor->ctrls.link_freq, new_mode->link_freq_idx);
+> +	__v4l2_ctrl_s_ctrl_int64(sensor->ctrls.pixel_rate,
+> +				 new_mode->pixel_rate);
+> +
+>  out:
+>  	mutex_unlock(&sensor->lock);
+>  	return ret;
+> @@ -2350,6 +2413,20 @@ static int ov5640_init_controls(struct ov5640_dev *sensor)
+>  	/* we can use our own mutex for the ctrl lock */
+>  	hdl->lock = &sensor->lock;
+>  
+> +	/* Clock related controls */
+> +	ctrls->link_freq =
+> +		v4l2_ctrl_new_int_menu(hdl, ops,
+> +				       V4L2_CID_LINK_FREQ,
+> +				       ARRAY_SIZE(link_freq_menu_items) - 1,
+> +				       0, link_freq_menu_items);
+> +	ctrls->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+
+Do make sure creating the control succeeds, i.e. check that
+ctrls->link_freq is non-NULL before referencing it. Same below.
+
+> +
+> +	ctrls->pixel_rate =
+> +		v4l2_ctrl_new_std(hdl, ops,
+> +				  V4L2_CID_PIXEL_RATE, 0, INT_MAX, 1,
+> +				  ov5640_mode_init_data.pixel_rate);
+> +	ctrls->pixel_rate->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+> +
+>  	/* Auto/manual white balance */
+>  	ctrls->auto_wb = v4l2_ctrl_new_std(hdl, ops,
+>  					   V4L2_CID_AUTO_WHITE_BALANCE,
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
