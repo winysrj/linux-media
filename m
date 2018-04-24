@@ -1,78 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from baptiste.telenet-ops.be ([195.130.132.51]:56234 "EHLO
-        baptiste.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755074AbeDTN3B (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 09:29:01 -0400
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-To: Simon Horman <horms@verge.net.au>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH 1/8] arm: shmobile: Change platform dependency to ARCH_RENESAS
-Date: Fri, 20 Apr 2018 15:28:27 +0200
-Message-Id: <1524230914-10175-2-git-send-email-geert+renesas@glider.be>
-In-Reply-To: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
-References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
+Received: from mail.bugwerft.de ([46.23.86.59]:59418 "EHLO mail.bugwerft.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751279AbeDXMDX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 08:03:23 -0400
+Subject: Re: [PATCH 2/3] media: ov5640: add PIXEL_RATE and LINK_FREQ controls
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, slongerbeam@gmail.com,
+        mchehab@kernel.org
+References: <20180420094419.11267-1-daniel@zonque.org>
+ <20180420094419.11267-2-daniel@zonque.org>
+ <20180424102222.ipzz754gou6kbdmk@valkosipuli.retiisi.org.uk>
+From: Daniel Mack <daniel@zonque.org>
+Message-ID: <abb6fbed-c325-7ca5-09f0-74b3a989c3f1@zonque.org>
+Date: Tue, 24 Apr 2018 14:03:22 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180424102222.ipzz754gou6kbdmk@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS")
-is ARCH_RENESAS a more appropriate platform dependency than the legacy
-ARCH_SHMOBILE, hence use the former.
+Hi,
 
-This will allow to drop ARCH_SHMOBILE on ARM in the near future.
+On Tuesday, April 24, 2018 12:22 PM, Sakari Ailus wrote:
+> On Fri, Apr 20, 2018 at 11:44:18AM +0200, Daniel Mack wrote:
+>> Add v4l2 controls to report the pixel and MIPI link rates of each mode.
+>> The camss camera subsystem needs them to set up the correct hardware
+>> clocks.
+>>
+>> Tested on msm8016 based hardware.
+>>
+>> Signed-off-by: Daniel Mack <daniel@zonque.org>
+> 
+> Maxime has written a number of patches against the driver that seem very
+> much related; could you rebase these on his set (v2)?
+> 
+> <URL:https://patchwork.linuxtv.org/project/linux-media/list/?submitter=Maxime+Ripard&state=*&q=ov5640>
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
- arch/arm/Kconfig  | 2 +-
- arch/arm/Makefile | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+I didn't know about the ongoing work in this area, so I think both this
+and 3/3 are not needed. If you want, you can still pick the 1st patch in
+this series, but that's just a cosmetic cleanup.
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index a7f8e7f4b88fdd03..2d34c0a44877e85b 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1467,7 +1467,7 @@ config ARM_PSCI
- config ARCH_NR_GPIO
- 	int
- 	default 2048 if ARCH_SOCFPGA
--	default 1024 if ARCH_BRCMSTB || ARCH_SHMOBILE || ARCH_TEGRA || \
-+	default 1024 if ARCH_BRCMSTB || ARCH_RENESAS || ARCH_TEGRA || \
- 		ARCH_ZYNQ
- 	default 512 if ARCH_EXYNOS || ARCH_KEYSTONE || SOC_OMAP5 || \
- 		SOC_DRA7XX || ARCH_S3C24XX || ARCH_S3C64XX || ARCH_S5PV210
-diff --git a/arch/arm/Makefile b/arch/arm/Makefile
-index e4e537f27339f7a1..a92f5a876d96839d 100644
---- a/arch/arm/Makefile
-+++ b/arch/arm/Makefile
-@@ -212,7 +212,7 @@ machine-$(CONFIG_ARCH_S3C24XX)		+= s3c24xx
- machine-$(CONFIG_ARCH_S3C64XX)		+= s3c64xx
- machine-$(CONFIG_ARCH_S5PV210)		+= s5pv210
- machine-$(CONFIG_ARCH_SA1100)		+= sa1100
--machine-$(CONFIG_ARCH_SHMOBILE) 	+= shmobile
-+machine-$(CONFIG_ARCH_RENESAS)	 	+= shmobile
- machine-$(CONFIG_ARCH_SIRF)		+= prima2
- machine-$(CONFIG_ARCH_SOCFPGA)		+= socfpga
- machine-$(CONFIG_ARCH_STI)		+= sti
--- 
-2.7.4
+
+Thanks,
+Daniel
