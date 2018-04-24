@@ -1,55 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:45221 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752103AbeDKDYL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 23:24:11 -0400
-From: Jia-Ju Bai <baijiaju1990@gmail.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jia-Ju Bai <baijiaju1990@gmail.com>
-Subject: [PATCH 2/3] media: dvb-usb: Replace GFP_ATOMIC with GFP_KERNEL in usb_bulk_urb_init
-Date: Wed, 11 Apr 2018 11:24:04 +0800
-Message-Id: <1523417044-3115-1-git-send-email-baijiaju1990@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:44640 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932875AbeDXIeH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 04:34:07 -0400
+Subject: Re: [PATCH] sound, isapnp: allow building more drivers with
+ COMPILE_TEST
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org
+References: <082977bdb133dc0570f690d3f3a120207f1d63f1.1524229123.git.mchehab@s-opensource.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Message-ID: <d6007528-98a3-492a-e1d3-d43c23bf3a09@intel.com>
+Date: Tue, 24 Apr 2018 10:34:04 +0200
+MIME-Version: 1.0
+In-Reply-To: <082977bdb133dc0570f690d3f3a120207f1d63f1.1524229123.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-usb_bulk_urb_init() is never called in atomic context.
+On 4/20/2018 2:58 PM, Mauro Carvalho Chehab wrote:
+> Drivers that depend on ISAPNP currently can't be built with
+> COMPILE_TEST. However, looking at isapnp.h, there are already
+> stubs there to allow drivers to include it even when isa
+> PNP is not supported.
+>
+> So, remove such dependencies when COMPILE_TEST.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>   drivers/pnp/isapnp/Kconfig | 2 +-
+>   sound/isa/Kconfig          | 6 +++---
+>   2 files changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/pnp/isapnp/Kconfig b/drivers/pnp/isapnp/Kconfig
+> index f1ef36673ad4..a1af146d2d90 100644
+> --- a/drivers/pnp/isapnp/Kconfig
+> +++ b/drivers/pnp/isapnp/Kconfig
+> @@ -3,7 +3,7 @@
+>   #
+>   config ISAPNP
+>   	bool "ISA Plug and Play support"
+> -	depends on ISA
+> +	depends on ISA || COMPILE_TEST
+>   	help
+>   	  Say Y here if you would like support for ISA Plug and Play devices.
+>   	  Some information is in <file:Documentation/isapnp.txt>.
+> diff --git a/sound/isa/Kconfig b/sound/isa/Kconfig
+> index d2a6cdd0395c..43b35a873d78 100644
+> --- a/sound/isa/Kconfig
+> +++ b/sound/isa/Kconfig
+> @@ -39,7 +39,7 @@ config SND_ADLIB
+>   
+>   config SND_AD1816A
+>   	tristate "Analog Devices SoundPort AD1816A"
+> -	depends on PNP && ISA
+> +	depends on PNP
+>   	select ISAPNP
+>   	select SND_OPL3_LIB
+>   	select SND_MPU401_UART
+> @@ -67,7 +67,7 @@ config SND_AD1848
+>   
+>   config SND_ALS100
+>   	tristate "Diamond Tech. DT-019x and Avance Logic ALSxxx"
+> -	depends on PNP && ISA
+> +	depends on PNP
+>   	select ISAPNP
+>   	select SND_OPL3_LIB
+>   	select SND_MPU401_UART
+> @@ -108,7 +108,7 @@ config SND_AZT2316
+>   
+>   config SND_AZT2320
+>   	tristate "Aztech Systems AZT2320"
+> -	depends on PNP && ISA
+> +	depends on PNP
+>   	select ISAPNP
+>   	select SND_OPL3_LIB
+>   	select SND_MPU401_UART
 
-The call chains ending up at usb_bulk_urb_init() are:
-[1] usb_bulk_urb_init() <- usb_urb_init()
-	<- dvb_usb_adapter_stream_init() <- dvb_usb_adapter_init 
-	<- dvb_usb_init() <- dvb_usb_device_init() <- xxx_probe()
-xxx_probe including ttusb2_probe, vp7045_usb_probe, a800_probe, and so on.
-These xxx_probe() functions are set as ".probe" in struct usb_driver.
-And these functions are not called in atomic context.
 
-Despite never getting called from atomic context,
-usb_bulk_urb_init() calls usb_alloc_urb() with GFP_ATOMIC,
-which does not sleep for allocation.
-GFP_ATOMIC is not necessary and can be replaced with GFP_KERNEL,
-which can sleep and improve the possibility of sucessful allocation.
-
-This is found by a static analysis tool named DCNS written by myself.
-And I also manually check it.
-
-Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
----
- drivers/media/usb/dvb-usb/usb-urb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/dvb-usb/usb-urb.c b/drivers/media/usb/dvb-usb/usb-urb.c
-index 8917360..d6d62e8 100644
---- a/drivers/media/usb/dvb-usb/usb-urb.c
-+++ b/drivers/media/usb/dvb-usb/usb-urb.c
-@@ -144,7 +144,7 @@ static int usb_bulk_urb_init(struct usb_data_stream *stream)
- 
- 	/* allocate the URBs */
- 	for (i = 0; i < stream->props.count; i++) {
--		stream->urb_list[i] = usb_alloc_urb(0, GFP_ATOMIC);
-+		stream->urb_list[i] = usb_alloc_urb(0, GFP_KERNEL);
- 		if (!stream->urb_list[i]) {
- 			deb_mem("not enough memory for urb_alloc_urb!.\n");
- 			for (j = 0; j < i; j++)
--- 
-1.9.1
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
