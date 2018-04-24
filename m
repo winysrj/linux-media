@@ -1,587 +1,1269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:55871 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755365AbeDWOx3 (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:32777 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757846AbeDXMpV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 10:53:29 -0400
-Subject: Re: [RFCv11 PATCH 20/29] videobuf2-v4l2: integrate with media
- requests
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-21-hverkuil@xs4all.nl>
- <CAPBb6MX0hVJfwDnQNZ_Zrb2uvuOE-6-v5pzR=ML0N3cwo7wBdw@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <af25cc4c-f5d5-e6a5-8193-80c1ec18c45f@xs4all.nl>
-Date: Mon, 23 Apr 2018 16:53:23 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAPBb6MX0hVJfwDnQNZ_Zrb2uvuOE-6-v5pzR=ML0N3cwo7wBdw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 24 Apr 2018 08:45:21 -0400
+Received: by mail-wm0-f68.google.com with SMTP id x12so388008wmc.0
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:20 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 11/28] venus: add common capability parser
+Date: Tue, 24 Apr 2018 15:44:19 +0300
+Message-Id: <20180424124436.26955-12-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/17/2018 06:36 AM, Alexandre Courbot wrote:
-> On Mon, Apr 9, 2018 at 11:21 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
->> This implements the V4L2 part of the request support. The main
->> change is that vb2_qbuf and vb2_prepare_buf now have a new
->> media_device pointer. This required changes to several drivers
->> that did not use the vb2_ioctl_qbuf/prepare_buf helper functions.
-> 
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/media/common/videobuf2/videobuf2-v4l2.c  | 84
-> ++++++++++++++++++++----
->>   drivers/media/platform/omap3isp/ispvideo.c       |  2 +-
->>   drivers/media/platform/s3c-camif/camif-capture.c |  4 +-
->>   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c     |  4 +-
->>   drivers/media/platform/s5p-mfc/s5p_mfc_enc.c     |  4 +-
->>   drivers/media/platform/soc_camera/soc_camera.c   |  4 +-
->>   drivers/media/usb/uvc/uvc_queue.c                |  5 +-
->>   drivers/media/usb/uvc/uvc_v4l2.c                 |  3 +-
->>   drivers/media/usb/uvc/uvcvideo.h                 |  1 +
->>   drivers/media/v4l2-core/v4l2-mem2mem.c           |  7 +-
->>   drivers/staging/media/davinci_vpfe/vpfe_video.c  |  3 +-
->>   drivers/staging/media/omap4iss/iss_video.c       |  3 +-
->>   drivers/usb/gadget/function/uvc_queue.c          |  2 +-
->>   include/media/videobuf2-v4l2.h                   | 12 +++-
->>   14 files changed, 106 insertions(+), 32 deletions(-)
-> 
->> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> index b8d370b97cca..73c1fd4da58a 100644
->> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> @@ -25,6 +25,7 @@
->>   #include <linux/kthread.h>
-> 
->>   #include <media/v4l2-dev.h>
->> +#include <media/v4l2-device.h>
->>   #include <media/v4l2-fh.h>
->>   #include <media/v4l2-event.h>
->>   #include <media/v4l2-common.h>
->> @@ -40,10 +41,12 @@ module_param(debug, int, 0644);
->>                          pr_info("vb2-v4l2: %s: " fmt, __func__, ## arg); \
->>          } while (0)
-> 
->> -/* Flags that are set by the vb2 core */
->> +/* Flags that are set by us */
->>   #define V4L2_BUFFER_MASK_FLAGS (V4L2_BUF_FLAG_MAPPED |
-> V4L2_BUF_FLAG_QUEUED | \
->>                                   V4L2_BUF_FLAG_DONE | V4L2_BUF_FLAG_ERROR
-> | \
->>                                   V4L2_BUF_FLAG_PREPARED | \
->> +                                V4L2_BUF_FLAG_IN_REQUEST | \
->> +                                V4L2_BUF_FLAG_REQUEST_FD | \
->>                                   V4L2_BUF_FLAG_TIMESTAMP_MASK)
->>   /* Output buffer flags that should be passed on to the driver */
->>   #define V4L2_BUFFER_OUT_FLAGS  (V4L2_BUF_FLAG_PFRAME |
-> V4L2_BUF_FLAG_BFRAME | \
->> @@ -318,13 +321,17 @@ static int vb2_fill_vb2_v4l2_buffer(struct
-> vb2_buffer *vb, struct v4l2_buffer *b
->>          return 0;
->>   }
-> 
->> -static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct
-> v4l2_buffer *b,
->> -                                   const char *opname)
->> +static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct
-> media_device *mdev,
->> +                                   struct v4l2_buffer *b,
->> +                                   const char *opname,
->> +                                   struct media_request **p_req)
->>   {
->> +       struct media_request *req;
->>          struct vb2_v4l2_buffer *vbuf;
->>          struct vb2_buffer *vb;
->>          int ret;
-> 
->> +       *p_req = NULL;
->>          if (b->type != q->type) {
->>                  dprintk(1, "%s: invalid buffer type\n", opname);
->>                  return -EINVAL;
->> @@ -354,7 +361,38 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue
-> *q, struct v4l2_buffer *b,
-> 
->>          /* Copy relevant information provided by the userspace */
->>          memset(vbuf->planes, 0, sizeof(vbuf->planes[0]) * vb->num_planes);
->> -       return vb2_fill_vb2_v4l2_buffer(vb, b);
->> +       ret = vb2_fill_vb2_v4l2_buffer(vb, b);
->> +       if (ret)
->> +               return ret;
->> +
->> +       if (!(b->flags & V4L2_BUF_FLAG_REQUEST_FD))
->> +               return 0;
->> +
->> +       if (vb->state != VB2_BUF_STATE_DEQUEUED) {
->> +               dprintk(1, "%s: buffer is not in dequeued state\n",
-> opname);
->> +               return -EINVAL;
->> +       }
->> +
->> +       if (b->request_fd < 0) {
->> +               dprintk(1, "%s: request_fd < 0\n", opname);
->> +               return -EINVAL;
->> +       }
->> +
->> +       req = media_request_find(mdev, b->request_fd);
->> +       if (IS_ERR(req)) {
->> +               dprintk(1, "%s: invalid request_fd\n", opname);
->> +               return PTR_ERR(req);
->> +       }
->> +
->> +       if (req->state != MEDIA_REQUEST_STATE_IDLE) {
->> +               dprintk(1, "%s: request is not idle\n", opname);
->> +               media_request_put(req);
->> +               return -EBUSY;
->> +       }
->> +
->> +       *p_req = req;
->> +
->> +       return 0;
->>   }
-> 
->>   /*
->> @@ -437,6 +475,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb,
-> void *pb)
->>          case VB2_BUF_STATE_ACTIVE:
->>                  b->flags |= V4L2_BUF_FLAG_QUEUED;
->>                  break;
->> +       case VB2_BUF_STATE_IN_REQUEST:
->> +               b->flags |= V4L2_BUF_FLAG_IN_REQUEST;
->> +               break;
->>          case VB2_BUF_STATE_ERROR:
->>                  b->flags |= V4L2_BUF_FLAG_ERROR;
->>                  /* fall through */
->> @@ -455,6 +496,10 @@ static void __fill_v4l2_buffer(struct vb2_buffer
-> *vb, void *pb)
-> 
->>          if (vb2_buffer_in_use(q, vb))
->>                  b->flags |= V4L2_BUF_FLAG_MAPPED;
->> +       if (vb->req_obj.req) {
->> +               b->flags |= V4L2_BUF_FLAG_REQUEST_FD;
->> +               b->request_fd = -1;
->> +       }
-> 
->>          if (!q->is_output &&
->>                  b->flags & V4L2_BUF_FLAG_DONE &&
->> @@ -533,8 +578,10 @@ int vb2_reqbufs(struct vb2_queue *q, struct
-> v4l2_requestbuffers *req)
->>   }
->>   EXPORT_SYMBOL_GPL(vb2_reqbufs);
-> 
->> -int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
->> +int vb2_prepare_buf(struct vb2_queue *q, struct media_device *mdev,
->> +                   struct v4l2_buffer *b)
->>   {
->> +       struct media_request *req;
->>          int ret;
-> 
->>          if (vb2_fileio_is_active(q)) {
->> @@ -542,9 +589,13 @@ int vb2_prepare_buf(struct vb2_queue *q, struct
-> v4l2_buffer *b)
->>                  return -EBUSY;
->>          }
-> 
->> -       ret = vb2_queue_or_prepare_buf(q, b, "prepare_buf");
->> -
->> -       return ret ? ret : vb2_core_prepare_buf(q, b->index, b, NULL);
->> +       ret = vb2_queue_or_prepare_buf(q, mdev, b, "prepare_buf", &req);
->> +       if (ret)
->> +               return ret;
->> +       ret = vb2_core_prepare_buf(q, b->index, b, req);
->> +       if (req)
->> +               media_request_put(req);
->> +       return ret;
->>   }
->>   EXPORT_SYMBOL_GPL(vb2_prepare_buf);
-> 
->> @@ -602,8 +653,10 @@ int vb2_create_bufs(struct vb2_queue *q, struct
-> v4l2_create_buffers *create)
->>   }
->>   EXPORT_SYMBOL_GPL(vb2_create_bufs);
-> 
->> -int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->> +int vb2_qbuf(struct vb2_queue *q, struct media_device *mdev,
->> +            struct v4l2_buffer *b)
-> 
-> That extra mdev argument is request-specific and not very nice to have here.
-> Isn't it possible instead to obtain the media_device by looking up through
-> the
-> queue, or at least to cache a pointer to the media_device inside vb2_queue
-> when
-> requests are in use? After all a queue can only be used with one
-> media_device.
+This adds common capability parser for all supported Venus
+versions. Having it will help to enumerate better the supported
+raw formars and codecs and also the capabilities for every
+codec like max/min width/height, framerate, bitrate and so on.
 
-The media_device is only needed in videobuf2-v4l2.c. Adding it to vb2_queue
-means that it is added to videobuf2-core.h, but not actually used in
-videobuf2-core.c and I'm not keen on that.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/Makefile     |   3 +-
+ drivers/media/platform/qcom/venus/core.c       |  80 ++++++
+ drivers/media/platform/qcom/venus/core.h       |  68 +++--
+ drivers/media/platform/qcom/venus/hfi.c        |   5 +-
+ drivers/media/platform/qcom/venus/hfi_helper.h |  28 +-
+ drivers/media/platform/qcom/venus/hfi_msgs.c   | 348 ++-----------------------
+ drivers/media/platform/qcom/venus/hfi_parser.c | 294 +++++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_parser.h |  45 ++++
+ drivers/media/platform/qcom/venus/vdec.c       |  38 +--
+ drivers/media/platform/qcom/venus/venc.c       |  52 ++--
+ 10 files changed, 524 insertions(+), 437 deletions(-)
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.h
 
-Also, only qbuf and prepare_buf need the media_device, so keeping it local
-to those functions seems reasonable.
-
-Regards,
-
-	Hans
-
-> 
-> Btw, that's also one of the reasons why I used to put request management
-> data
-> into its own structure instead of having it directly in media_device.
-> Non-request users would wonder what is a media_device doing here. With a
-> dedicated struct to manage requests, the intent is at least clear. Even if
-> we
-> mandate the use of media_device, it's never a bad idea to clearly sort your
-> data members by purpose.
-> 
->>   {
->> +       struct media_request *req;
->>          int ret;
-> 
->>          if (vb2_fileio_is_active(q)) {
->> @@ -611,8 +664,13 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer
-> *b)
->>                  return -EBUSY;
->>          }
-> 
->> -       ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
->> -       return ret ? ret : vb2_core_qbuf(q, b->index, b, NULL);
->> +       ret = vb2_queue_or_prepare_buf(q, mdev, b, "qbuf", &req);
->> +       if (ret)
->> +               return ret;
->> +       ret = vb2_core_qbuf(q, b->index, b, req);
->> +       if (req)
->> +               media_request_put(req);
->> +       return ret;
->>   }
->>   EXPORT_SYMBOL_GPL(vb2_qbuf);
-> 
->> @@ -802,7 +860,7 @@ int vb2_ioctl_prepare_buf(struct file *file, void
-> *priv,
-> 
->>          if (vb2_queue_is_busy(vdev, file))
->>                  return -EBUSY;
->> -       return vb2_prepare_buf(vdev->queue, p);
->> +       return vb2_prepare_buf(vdev->queue, vdev->v4l2_dev->mdev, p);
->>   }
->>   EXPORT_SYMBOL_GPL(vb2_ioctl_prepare_buf);
-> 
->> @@ -821,7 +879,7 @@ int vb2_ioctl_qbuf(struct file *file, void *priv,
-> struct v4l2_buffer *p)
-> 
->>          if (vb2_queue_is_busy(vdev, file))
->>                  return -EBUSY;
->> -       return vb2_qbuf(vdev->queue, p);
->> +       return vb2_qbuf(vdev->queue, vdev->v4l2_dev->mdev, p);
->>   }
->>   EXPORT_SYMBOL_GPL(vb2_ioctl_qbuf);
-> 
->> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> b/drivers/media/platform/omap3isp/ispvideo.c
->> index bd564c2e767f..9fecbd8c6edd 100644
->> --- a/drivers/media/platform/omap3isp/ispvideo.c
->> +++ b/drivers/media/platform/omap3isp/ispvideo.c
->> @@ -940,7 +940,7 @@ isp_video_qbuf(struct file *file, void *fh, struct
-> v4l2_buffer *b)
->>          int ret;
-> 
->>          mutex_lock(&video->queue_lock);
->> -       ret = vb2_qbuf(&vfh->queue, b);
->> +       ret = vb2_qbuf(&vfh->queue, video->video.v4l2_dev->mdev, b);
->>          mutex_unlock(&video->queue_lock);
-> 
->>          return ret;
->> diff --git a/drivers/media/platform/s3c-camif/camif-capture.c
-> b/drivers/media/platform/s3c-camif/camif-capture.c
->> index 9ab8e7ee2e1e..fafb6da3e804 100644
->> --- a/drivers/media/platform/s3c-camif/camif-capture.c
->> +++ b/drivers/media/platform/s3c-camif/camif-capture.c
->> @@ -941,7 +941,7 @@ static int s3c_camif_qbuf(struct file *file, void
-> *priv,
->>          if (vp->owner && vp->owner != priv)
->>                  return -EBUSY;
-> 
->> -       return vb2_qbuf(&vp->vb_queue, buf);
->> +       return vb2_qbuf(&vp->vb_queue, vp->vdev.v4l2_dev->mdev, buf);
->>   }
-> 
->>   static int s3c_camif_dqbuf(struct file *file, void *priv,
->> @@ -979,7 +979,7 @@ static int s3c_camif_prepare_buf(struct file *file,
-> void *priv,
->>                                   struct v4l2_buffer *b)
->>   {
->>          struct camif_vp *vp = video_drvdata(file);
->> -       return vb2_prepare_buf(&vp->vb_queue, b);
->> +       return vb2_prepare_buf(&vp->vb_queue, vp->vdev.v4l2_dev->mdev, b);
->>   }
-> 
->>   static int s3c_camif_g_selection(struct file *file, void *priv,
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->> index 5cf4d9921264..3d863e3f5798 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->> @@ -632,9 +632,9 @@ static int vidioc_qbuf(struct file *file, void *priv,
-> struct v4l2_buffer *buf)
->>                  return -EIO;
->>          }
->>          if (buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
->> -               return vb2_qbuf(&ctx->vq_src, buf);
->> +               return vb2_qbuf(&ctx->vq_src, NULL, buf);
->>          else if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
->> -               return vb2_qbuf(&ctx->vq_dst, buf);
->> +               return vb2_qbuf(&ctx->vq_dst, NULL, buf);
->>          return -EINVAL;
->>   }
-> 
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->> index 5c0462ca9993..ed12d5d062e8 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->> @@ -1621,9 +1621,9 @@ static int vidioc_qbuf(struct file *file, void
-> *priv, struct v4l2_buffer *buf)
->>                          mfc_err("Call on QBUF after EOS command\n");
->>                          return -EIO;
->>                  }
->> -               return vb2_qbuf(&ctx->vq_src, buf);
->> +               return vb2_qbuf(&ctx->vq_src, NULL, buf);
->>          } else if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
->> -               return vb2_qbuf(&ctx->vq_dst, buf);
->> +               return vb2_qbuf(&ctx->vq_dst, NULL, buf);
->>          }
->>          return -EINVAL;
->>   }
->> diff --git a/drivers/media/platform/soc_camera/soc_camera.c
-> b/drivers/media/platform/soc_camera/soc_camera.c
->> index e6787abc34ae..08adf9a79420 100644
->> --- a/drivers/media/platform/soc_camera/soc_camera.c
->> +++ b/drivers/media/platform/soc_camera/soc_camera.c
->> @@ -394,7 +394,7 @@ static int soc_camera_qbuf(struct file *file, void
-> *priv,
->>          if (icd->streamer != file)
->>                  return -EBUSY;
-> 
->> -       return vb2_qbuf(&icd->vb2_vidq, p);
->> +       return vb2_qbuf(&icd->vb2_vidq, NULL, p);
->>   }
-> 
->>   static int soc_camera_dqbuf(struct file *file, void *priv,
->> @@ -430,7 +430,7 @@ static int soc_camera_prepare_buf(struct file *file,
-> void *priv,
->>   {
->>          struct soc_camera_device *icd = file->private_data;
-> 
->> -       return vb2_prepare_buf(&icd->vb2_vidq, b);
->> +       return vb2_prepare_buf(&icd->vb2_vidq, NULL, b);
->>   }
-> 
->>   static int soc_camera_expbuf(struct file *file, void *priv,
->> diff --git a/drivers/media/usb/uvc/uvc_queue.c
-> b/drivers/media/usb/uvc/uvc_queue.c
->> index fecccb5e7628..8964e16f2b22 100644
->> --- a/drivers/media/usb/uvc/uvc_queue.c
->> +++ b/drivers/media/usb/uvc/uvc_queue.c
->> @@ -300,12 +300,13 @@ int uvc_create_buffers(struct uvc_video_queue
-> *queue,
->>          return ret;
->>   }
-> 
->> -int uvc_queue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer
-> *buf)
->> +int uvc_queue_buffer(struct uvc_video_queue *queue,
->> +                    struct media_device *mdev, struct v4l2_buffer *buf)
->>   {
->>          int ret;
-> 
->>          mutex_lock(&queue->mutex);
->> -       ret = vb2_qbuf(&queue->queue, buf);
->> +       ret = vb2_qbuf(&queue->queue, mdev, buf);
->>          mutex_unlock(&queue->mutex);
-> 
->>          return ret;
->> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c
->> index bd32914259ae..3da5fdc002ac 100644
->> --- a/drivers/media/usb/uvc/uvc_v4l2.c
->> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
->> @@ -751,7 +751,8 @@ static int uvc_ioctl_qbuf(struct file *file, void
-> *fh, struct v4l2_buffer *buf)
->>          if (!uvc_has_privileges(handle))
->>                  return -EBUSY;
-> 
->> -       return uvc_queue_buffer(&stream->queue, buf);
->> +       return uvc_queue_buffer(&stream->queue,
->> +                               stream->vdev.v4l2_dev->mdev, buf);
->>   }
-> 
->>   static int uvc_ioctl_expbuf(struct file *file, void *fh,
->> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h
->> index be5cf179228b..bc9ed18f043c 100644
->> --- a/drivers/media/usb/uvc/uvcvideo.h
->> +++ b/drivers/media/usb/uvc/uvcvideo.h
->> @@ -680,6 +680,7 @@ int uvc_query_buffer(struct uvc_video_queue *queue,
->>   int uvc_create_buffers(struct uvc_video_queue *queue,
->>                         struct v4l2_create_buffers *v4l2_cb);
->>   int uvc_queue_buffer(struct uvc_video_queue *queue,
->> +                    struct media_device *mdev,
->>                       struct v4l2_buffer *v4l2_buf);
->>   int uvc_export_buffer(struct uvc_video_queue *queue,
->>                        struct v4l2_exportbuffer *exp);
->> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> b/drivers/media/v4l2-core/v4l2-mem2mem.c
->> index c4f963d96a79..438f1b869319 100644
->> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
->> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
->> @@ -20,6 +20,7 @@
->>   #include <media/videobuf2-v4l2.h>
->>   #include <media/v4l2-mem2mem.h>
->>   #include <media/v4l2-dev.h>
->> +#include <media/v4l2-device.h>
->>   #include <media/v4l2-fh.h>
->>   #include <media/v4l2-event.h>
-> 
->> @@ -388,11 +389,12 @@ EXPORT_SYMBOL_GPL(v4l2_m2m_querybuf);
->>   int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
->>                    struct v4l2_buffer *buf)
->>   {
->> +       struct video_device *vdev = video_devdata(file);
->>          struct vb2_queue *vq;
->>          int ret;
-> 
->>          vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
->> -       ret = vb2_qbuf(vq, buf);
->> +       ret = vb2_qbuf(vq, vdev->v4l2_dev->mdev, buf);
->>          if (!ret)
->>                  v4l2_m2m_try_schedule(m2m_ctx);
-> 
->> @@ -413,11 +415,12 @@ EXPORT_SYMBOL_GPL(v4l2_m2m_dqbuf);
->>   int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
->>                           struct v4l2_buffer *buf)
->>   {
->> +       struct video_device *vdev = video_devdata(file);
->>          struct vb2_queue *vq;
->>          int ret;
-> 
->>          vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
->> -       ret = vb2_prepare_buf(vq, buf);
->> +       ret = vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
->>          if (!ret)
->>                  v4l2_m2m_try_schedule(m2m_ctx);
-> 
->> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> b/drivers/staging/media/davinci_vpfe/vpfe_video.c
->> index 588743a6fd8a..00bf28e830d4 100644
->> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
->> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
->> @@ -1426,7 +1426,8 @@ static int vpfe_qbuf(struct file *file, void *priv,
->>                  return -EACCES;
->>          }
-> 
->> -       return vb2_qbuf(&video->buffer_queue, p);
->> +       return vb2_qbuf(&video->buffer_queue,
->> +                       video->video_dev.v4l2_dev->mdev, p);
->>   }
-> 
->>   /*
->> diff --git a/drivers/staging/media/omap4iss/iss_video.c
-> b/drivers/staging/media/omap4iss/iss_video.c
->> index a3a83424a926..a35d1004b522 100644
->> --- a/drivers/staging/media/omap4iss/iss_video.c
->> +++ b/drivers/staging/media/omap4iss/iss_video.c
->> @@ -805,9 +805,10 @@ iss_video_querybuf(struct file *file, void *fh,
-> struct v4l2_buffer *b)
->>   static int
->>   iss_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
->>   {
->> +       struct iss_video *video = video_drvdata(file);
->>          struct iss_video_fh *vfh = to_iss_video_fh(fh);
-> 
->> -       return vb2_qbuf(&vfh->queue, b);
->> +       return vb2_qbuf(&vfh->queue, video->video.v4l2_dev->mdev, b);
->>   }
-> 
->>   static int
->> diff --git a/drivers/usb/gadget/function/uvc_queue.c
-> b/drivers/usb/gadget/function/uvc_queue.c
->> index 9e33d5206d54..f2497cb96abb 100644
->> --- a/drivers/usb/gadget/function/uvc_queue.c
->> +++ b/drivers/usb/gadget/function/uvc_queue.c
->> @@ -166,7 +166,7 @@ int uvcg_queue_buffer(struct uvc_video_queue *queue,
-> struct v4l2_buffer *buf)
->>          unsigned long flags;
->>          int ret;
-> 
->> -       ret = vb2_qbuf(&queue->queue, buf);
->> +       ret = vb2_qbuf(&queue->queue, NULL, buf);
->>          if (ret < 0)
->>                  return ret;
-> 
->> diff --git a/include/media/videobuf2-v4l2.h
-> b/include/media/videobuf2-v4l2.h
->> index 097bf3e6951d..cf312ab4e7e8 100644
->> --- a/include/media/videobuf2-v4l2.h
->> +++ b/include/media/videobuf2-v4l2.h
->> @@ -79,6 +79,7 @@ int vb2_create_bufs(struct vb2_queue *q, struct
-> v4l2_create_buffers *create);
->>    * vb2_prepare_buf() - Pass ownership of a buffer from userspace to the
-> kernel
->>    *
->>    * @q:         pointer to &struct vb2_queue with videobuf2 queue.
->> + * @mdev:      pointer to &struct media_device, may be NULL.
->>    * @b:         buffer structure passed from userspace to
->>    *             &v4l2_ioctl_ops->vidioc_prepare_buf handler in driver
->>    *
->> @@ -90,15 +91,19 @@ int vb2_create_bufs(struct vb2_queue *q, struct
-> v4l2_create_buffers *create);
->>    * #) verifies the passed buffer,
->>    * #) calls &vb2_ops->buf_prepare callback in the driver (if provided),
->>    *    in which driver-specific buffer initialization can be performed.
->> + * #) if @b->request_fd is non-zero and @mdev->ops->req_queue is set,
->> + *    then bind the prepared buffer to the request.
->>    *
->>    * The return values from this function are intended to be directly
-> returned
->>    * from &v4l2_ioctl_ops->vidioc_prepare_buf handler in driver.
->>    */
->> -int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
->> +int vb2_prepare_buf(struct vb2_queue *q, struct media_device *mdev,
->> +                   struct v4l2_buffer *b);
-> 
->>   /**
->>    * vb2_qbuf() - Queue a buffer from userspace
->>    * @q:         pointer to &struct vb2_queue with videobuf2 queue.
->> + * @mdev:      pointer to &struct media_device, may be NULL.
->>    * @b:         buffer structure passed from userspace to
->>    *             &v4l2_ioctl_ops->vidioc_qbuf handler in driver
->>    *
->> @@ -107,6 +112,8 @@ int vb2_prepare_buf(struct vb2_queue *q, struct
-> v4l2_buffer *b);
->>    * This function:
->>    *
->>    * #) verifies the passed buffer;
->> + * #) if @b->request_fd is non-zero and @mdev->ops->req_queue is set,
->> + *    then bind the buffer to the request.
->>    * #) if necessary, calls &vb2_ops->buf_prepare callback in the driver
->>    *    (if provided), in which driver-specific buffer initialization can
->>    *    be performed;
->> @@ -116,7 +123,8 @@ int vb2_prepare_buf(struct vb2_queue *q, struct
-> v4l2_buffer *b);
->>    * The return values from this function are intended to be directly
-> returned
->>    * from &v4l2_ioctl_ops->vidioc_qbuf handler in driver.
->>    */
->> -int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
->> +int vb2_qbuf(struct vb2_queue *q, struct media_device *mdev,
->> +            struct v4l2_buffer *b);
-> 
->>   /**
->>    * vb2_expbuf() - Export a buffer as a file descriptor
->> --
->> 2.16.3
+diff --git a/drivers/media/platform/qcom/venus/Makefile b/drivers/media/platform/qcom/venus/Makefile
+index bfd4edf7c83f..b44b11b03e12 100644
+--- a/drivers/media/platform/qcom/venus/Makefile
++++ b/drivers/media/platform/qcom/venus/Makefile
+@@ -2,7 +2,8 @@
+ # Makefile for Qualcomm Venus driver
+ 
+ venus-core-objs += core.o helpers.o firmware.o \
+-		   hfi_venus.o hfi_msgs.o hfi_cmds.o hfi.o
++		   hfi_venus.o hfi_msgs.o hfi_cmds.o hfi.o \
++		   hfi_parser.o
+ 
+ venus-dec-objs += vdec.o vdec_ctrls.o
+ venus-enc-objs += venc.o venc_ctrls.o
+diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+index 41eef376eb2d..1b72bfbb6297 100644
+--- a/drivers/media/platform/qcom/venus/core.c
++++ b/drivers/media/platform/qcom/venus/core.c
+@@ -152,6 +152,78 @@ static void venus_clks_disable(struct venus_core *core)
+ 		clk_disable_unprepare(core->clks[i]);
+ }
+ 
++static u32 to_v4l2_codec_type(u32 codec)
++{
++	switch (codec) {
++	case HFI_VIDEO_CODEC_H264:
++		return V4L2_PIX_FMT_H264;
++	case HFI_VIDEO_CODEC_H263:
++		return V4L2_PIX_FMT_H263;
++	case HFI_VIDEO_CODEC_MPEG1:
++		return V4L2_PIX_FMT_MPEG1;
++	case HFI_VIDEO_CODEC_MPEG2:
++		return V4L2_PIX_FMT_MPEG2;
++	case HFI_VIDEO_CODEC_MPEG4:
++		return V4L2_PIX_FMT_MPEG4;
++	case HFI_VIDEO_CODEC_VC1:
++		return V4L2_PIX_FMT_VC1_ANNEX_G;
++	case HFI_VIDEO_CODEC_VP8:
++		return V4L2_PIX_FMT_VP8;
++	case HFI_VIDEO_CODEC_VP9:
++		return V4L2_PIX_FMT_VP9;
++	case HFI_VIDEO_CODEC_DIVX:
++	case HFI_VIDEO_CODEC_DIVX_311:
++		return V4L2_PIX_FMT_XVID;
++	default:
++		return 0;
++	}
++}
++
++static int venus_enumerate_codecs(struct venus_core *core, u32 type)
++{
++	const struct hfi_inst_ops dummy_ops = {};
++	struct venus_inst inst;
++	unsigned int i;
++	u32 codec, codecs;
++	int ret;
++
++	if (core->res->hfi_version != HFI_VERSION_1XX)
++		return 0;
++
++	memset(&inst, 0, sizeof(inst));
++	mutex_init(&inst.lock);
++	inst.core = core;
++	inst.session_type = type;
++	if (type == VIDC_SESSION_TYPE_DEC)
++		codecs = core->dec_codecs;
++	else
++		codecs = core->enc_codecs;
++
++	ret = hfi_session_create(&inst, &dummy_ops);
++	if (ret)
++		return ret;
++
++	for (i = 0; i < MAX_CODEC_NUM; i++) {
++		codec = (1 << i) & codecs;
++		if (!codec)
++			continue;
++
++		ret = hfi_session_init(&inst, to_v4l2_codec_type(codec));
++		if (ret)
++			goto done;
++
++		ret = hfi_session_deinit(&inst);
++		if (ret)
++			goto done;
++	}
++
++done:
++	hfi_session_destroy(&inst);
++	mutex_destroy(&inst.lock);
++
++	return ret;
++}
++
+ static int venus_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -219,6 +291,14 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto err_venus_shutdown;
+ 
++	ret = venus_enumerate_codecs(core, VIDC_SESSION_TYPE_DEC);
++	if (ret)
++		goto err_venus_shutdown;
++
++	ret = venus_enumerate_codecs(core, VIDC_SESSION_TYPE_ENC);
++	if (ret)
++		goto err_venus_shutdown;
++
+ 	ret = v4l2_device_register(dev, &core->v4l2_dev);
+ 	if (ret)
+ 		goto err_core_deinit;
+diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+index b5b9a84e9155..fe2d2b9e8af8 100644
+--- a/drivers/media/platform/qcom/venus/core.h
++++ b/drivers/media/platform/qcom/venus/core.h
+@@ -57,6 +57,29 @@ struct venus_format {
+ 	u32 type;
+ };
+ 
++#define MAX_PLANES		4
++#define MAX_FMT_ENTRIES		32
++#define MAX_CAP_ENTRIES		32
++#define MAX_CODEC_NUM		32
++
++struct raw_formats {
++	u32 buftype;
++	u32 fmt;
++};
++
++struct venus_caps {
++	u32 codec;
++	u32 domain;
++	bool cap_bufs_mode_dynamic;
++	unsigned int num_caps;
++	struct hfi_capability caps[MAX_CAP_ENTRIES];
++	unsigned int num_pl;
++	struct hfi_profile_level pl[HFI_MAX_PROFILE_COUNT];
++	unsigned int num_fmts;
++	struct raw_formats fmts[MAX_FMT_ENTRIES];
++	bool valid;
++};
++
+ /**
+  * struct venus_core - holds core parameters valid for all instances
+  *
+@@ -120,6 +143,8 @@ struct venus_core {
+ 	void *priv;
+ 	const struct hfi_ops *ops;
+ 	struct delayed_work work;
++	struct venus_caps caps[MAX_CODEC_NUM];
++	unsigned int codecs_count;
+ };
+ 
+ struct vdec_controls {
+@@ -224,22 +249,8 @@ struct venus_buffer {
+  * @priv:	a private for HFI operations callbacks
+  * @session_type:	the type of the session (decoder or encoder)
+  * @hprop:	a union used as a holder by get property
+- * @cap_width:	width capability
+- * @cap_height:	height capability
+- * @cap_mbs_per_frame:	macroblocks per frame capability
+- * @cap_mbs_per_sec:	macroblocks per second capability
+- * @cap_framerate:	framerate capability
+- * @cap_scale_x:		horizontal scaling capability
+- * @cap_scale_y:		vertical scaling capability
+- * @cap_bitrate:		bitrate capability
+- * @cap_hier_p:		hier capability
+- * @cap_ltr_count:	LTR count capability
+- * @cap_secure_output2_threshold: secure OUTPUT2 threshold capability
+  * @cap_bufs_mode_static:	buffers allocation mode capability
+  * @cap_bufs_mode_dynamic:	buffers allocation mode capability
+- * @pl_count:	count of supported profiles/levels
+- * @pl:		supported profiles/levels
+- * @bufreq:	holds buffer requirements
+  */
+ struct venus_inst {
+ 	struct list_head list;
+@@ -276,6 +287,7 @@ struct venus_inst {
+ 	bool reconfig;
+ 	u32 reconfig_width;
+ 	u32 reconfig_height;
++	u32 hfi_codec;
+ 	u32 sequence_cap;
+ 	u32 sequence_out;
+ 	struct v4l2_m2m_dev *m2m_dev;
+@@ -287,22 +299,8 @@ struct venus_inst {
+ 	const struct hfi_inst_ops *ops;
+ 	u32 session_type;
+ 	union hfi_get_property hprop;
+-	struct hfi_capability cap_width;
+-	struct hfi_capability cap_height;
+-	struct hfi_capability cap_mbs_per_frame;
+-	struct hfi_capability cap_mbs_per_sec;
+-	struct hfi_capability cap_framerate;
+-	struct hfi_capability cap_scale_x;
+-	struct hfi_capability cap_scale_y;
+-	struct hfi_capability cap_bitrate;
+-	struct hfi_capability cap_hier_p;
+-	struct hfi_capability cap_ltr_count;
+-	struct hfi_capability cap_secure_output2_threshold;
+ 	bool cap_bufs_mode_static;
+ 	bool cap_bufs_mode_dynamic;
+-	unsigned int pl_count;
+-	struct hfi_profile_level pl[HFI_MAX_PROFILE_COUNT];
+-	struct hfi_buffer_requirements bufreq[HFI_BUFFER_TYPE_MAX];
+ };
+ 
+ #define IS_V1(core)	((core)->res->hfi_version == HFI_VERSION_1XX)
+@@ -322,4 +320,18 @@ static inline void *to_hfi_priv(struct venus_core *core)
+ 	return core->priv;
+ }
+ 
++static inline struct venus_caps *
++venus_caps_by_codec(struct venus_core *core, u32 codec, u32 domain)
++{
++	unsigned int c;
++
++	for (c = 0; c < MAX_CODEC_NUM; c++) {
++		if (core->caps[c].codec == codec &&
++		    core->caps[c].domain == domain)
++			return &core->caps[c];
++	}
++
++	return NULL;
++}
++
+ #endif
+diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
+index a570fdad0de0..94ca27b0bb99 100644
+--- a/drivers/media/platform/qcom/venus/hfi.c
++++ b/drivers/media/platform/qcom/venus/hfi.c
+@@ -203,13 +203,12 @@ int hfi_session_init(struct venus_inst *inst, u32 pixfmt)
+ {
+ 	struct venus_core *core = inst->core;
+ 	const struct hfi_ops *ops = core->ops;
+-	u32 codec;
+ 	int ret;
+ 
+-	codec = to_codec_type(pixfmt);
++	inst->hfi_codec = to_codec_type(pixfmt);
+ 	reinit_completion(&inst->done);
+ 
+-	ret = ops->session_init(inst, inst->session_type, codec);
++	ret = ops->session_init(inst, inst->session_type, inst->hfi_codec);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/drivers/media/platform/qcom/venus/hfi_helper.h b/drivers/media/platform/qcom/venus/hfi_helper.h
+index 1bc5aab1ce6b..64cc2bc946ee 100644
+--- a/drivers/media/platform/qcom/venus/hfi_helper.h
++++ b/drivers/media/platform/qcom/venus/hfi_helper.h
+@@ -858,10 +858,23 @@ struct hfi_uncompressed_format_select {
+ 	u32 format;
+ };
+ 
++struct hfi_uncompressed_plane_constraints {
++	u32 stride_multiples;
++	u32 max_stride;
++	u32 min_plane_buffer_height_multiple;
++	u32 buffer_alignment;
++};
++
++struct hfi_uncompressed_plane_info {
++	u32 format;
++	u32 num_planes;
++	struct hfi_uncompressed_plane_constraints plane_format[1];
++};
++
+ struct hfi_uncompressed_format_supported {
+ 	u32 buffer_type;
+ 	u32 format_entries;
+-	u32 format_info[1];
++	struct hfi_uncompressed_plane_info format_info[1];
+ };
+ 
+ struct hfi_uncompressed_plane_actual {
+@@ -875,19 +888,6 @@ struct hfi_uncompressed_plane_actual_info {
+ 	struct hfi_uncompressed_plane_actual plane_format[1];
+ };
+ 
+-struct hfi_uncompressed_plane_constraints {
+-	u32 stride_multiples;
+-	u32 max_stride;
+-	u32 min_plane_buffer_height_multiple;
+-	u32 buffer_alignment;
+-};
+-
+-struct hfi_uncompressed_plane_info {
+-	u32 format;
+-	u32 num_planes;
+-	struct hfi_uncompressed_plane_constraints plane_format[1];
+-};
+-
+ struct hfi_uncompressed_plane_actual_constraints_info {
+ 	u32 buffer_type;
+ 	u32 num_planes;
+diff --git a/drivers/media/platform/qcom/venus/hfi_msgs.c b/drivers/media/platform/qcom/venus/hfi_msgs.c
+index 023802e62833..8a943f53a12b 100644
+--- a/drivers/media/platform/qcom/venus/hfi_msgs.c
++++ b/drivers/media/platform/qcom/venus/hfi_msgs.c
+@@ -21,6 +21,7 @@
+ #include "hfi.h"
+ #include "hfi_helper.h"
+ #include "hfi_msgs.h"
++#include "hfi_parser.h"
+ 
+ static void event_seq_changed(struct venus_core *core, struct venus_inst *inst,
+ 			      struct hfi_msg_event_notify_pkt *pkt)
+@@ -219,81 +220,30 @@ static void hfi_sys_init_done(struct venus_core *core, struct venus_inst *inst,
+ 			      void *packet)
+ {
+ 	struct hfi_msg_sys_init_done_pkt *pkt = packet;
+-	u32 rem_bytes, read_bytes = 0, num_properties;
+-	u32 error, ptype;
+-	u8 *data;
++	u32 rem_bytes, num_properties, error;
+ 
+ 	error = pkt->error_type;
+ 	if (error != HFI_ERR_NONE)
+-		goto err_no_prop;
++		goto done;
+ 
+ 	num_properties = pkt->num_properties;
+ 
+ 	if (!num_properties) {
+ 		error = HFI_ERR_SYS_INVALID_PARAMETER;
+-		goto err_no_prop;
++		goto done;
+ 	}
+ 
+ 	rem_bytes = pkt->hdr.size - sizeof(*pkt) + sizeof(u32);
+-
+ 	if (!rem_bytes) {
+ 		/* missing property data */
+ 		error = HFI_ERR_SYS_INSUFFICIENT_RESOURCES;
+-		goto err_no_prop;
++		goto done;
+ 	}
+ 
+-	data = (u8 *)&pkt->data[0];
+-
+-	if (core->res->hfi_version == HFI_VERSION_3XX)
+-		goto err_no_prop;
+-
+-	while (num_properties && rem_bytes >= sizeof(u32)) {
+-		ptype = *((u32 *)data);
+-		data += sizeof(u32);
+-
+-		switch (ptype) {
+-		case HFI_PROPERTY_PARAM_CODEC_SUPPORTED: {
+-			struct hfi_codec_supported *prop;
+-
+-			prop = (struct hfi_codec_supported *)data;
+-
+-			if (rem_bytes < sizeof(*prop)) {
+-				error = HFI_ERR_SYS_INSUFFICIENT_RESOURCES;
+-				break;
+-			}
+-
+-			read_bytes += sizeof(*prop) + sizeof(u32);
+-			core->dec_codecs = prop->dec_codecs;
+-			core->enc_codecs = prop->enc_codecs;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_MAX_SESSIONS_SUPPORTED: {
+-			struct hfi_max_sessions_supported *prop;
+-
+-			if (rem_bytes < sizeof(*prop)) {
+-				error = HFI_ERR_SYS_INSUFFICIENT_RESOURCES;
+-				break;
+-			}
+-
+-			prop = (struct hfi_max_sessions_supported *)data;
+-			read_bytes += sizeof(*prop) + sizeof(u32);
+-			core->max_sessions_supported = prop->max_sessions;
+-			break;
+-		}
+-		default:
+-			error = HFI_ERR_SYS_INVALID_PARAMETER;
+-			break;
+-		}
+-
+-		if (error)
+-			break;
+-
+-		rem_bytes -= read_bytes;
+-		data += read_bytes;
+-		num_properties--;
+-	}
++	error = hfi_parser(core, inst, num_properties, &pkt->data[0],
++			   rem_bytes);
+ 
+-err_no_prop:
++done:
+ 	core->error = error;
+ 	complete(&core->done);
+ }
+@@ -371,51 +321,6 @@ static void hfi_sys_pc_prepare_done(struct venus_core *core,
+ 	dev_dbg(core->dev, "pc prepare done (error %x)\n", pkt->error_type);
+ }
+ 
+-static void
+-hfi_copy_cap_prop(struct hfi_capability *in, struct venus_inst *inst)
+-{
+-	if (!in || !inst)
+-		return;
+-
+-	switch (in->capability_type) {
+-	case HFI_CAPABILITY_FRAME_WIDTH:
+-		inst->cap_width = *in;
+-		break;
+-	case HFI_CAPABILITY_FRAME_HEIGHT:
+-		inst->cap_height = *in;
+-		break;
+-	case HFI_CAPABILITY_MBS_PER_FRAME:
+-		inst->cap_mbs_per_frame = *in;
+-		break;
+-	case HFI_CAPABILITY_MBS_PER_SECOND:
+-		inst->cap_mbs_per_sec = *in;
+-		break;
+-	case HFI_CAPABILITY_FRAMERATE:
+-		inst->cap_framerate = *in;
+-		break;
+-	case HFI_CAPABILITY_SCALE_X:
+-		inst->cap_scale_x = *in;
+-		break;
+-	case HFI_CAPABILITY_SCALE_Y:
+-		inst->cap_scale_y = *in;
+-		break;
+-	case HFI_CAPABILITY_BITRATE:
+-		inst->cap_bitrate = *in;
+-		break;
+-	case HFI_CAPABILITY_HIER_P_NUM_ENH_LAYERS:
+-		inst->cap_hier_p = *in;
+-		break;
+-	case HFI_CAPABILITY_ENC_LTR_COUNT:
+-		inst->cap_ltr_count = *in;
+-		break;
+-	case HFI_CAPABILITY_CP_OUTPUT2_THRESH:
+-		inst->cap_secure_output2_threshold = *in;
+-		break;
+-	default:
+-		break;
+-	}
+-}
+-
+ static unsigned int
+ session_get_prop_profile_level(struct hfi_msg_session_property_info_pkt *pkt,
+ 			       struct hfi_profile_level *profile_level)
+@@ -505,238 +410,11 @@ static void hfi_session_prop_info(struct venus_core *core,
+ 	complete(&inst->done);
+ }
+ 
+-static u32 init_done_read_prop(struct venus_core *core, struct venus_inst *inst,
+-			       struct hfi_msg_session_init_done_pkt *pkt)
+-{
+-	struct device *dev = core->dev;
+-	u32 rem_bytes, num_props;
+-	u32 ptype, next_offset = 0;
+-	u32 err;
+-	u8 *data;
+-
+-	rem_bytes = pkt->shdr.hdr.size - sizeof(*pkt) + sizeof(u32);
+-	if (!rem_bytes) {
+-		dev_err(dev, "%s: missing property info\n", __func__);
+-		return HFI_ERR_SESSION_INSUFFICIENT_RESOURCES;
+-	}
+-
+-	err = pkt->error_type;
+-	if (err)
+-		return err;
+-
+-	data = (u8 *)&pkt->data[0];
+-	num_props = pkt->num_properties;
+-
+-	while (err == HFI_ERR_NONE && num_props && rem_bytes >= sizeof(u32)) {
+-		ptype = *((u32 *)data);
+-		next_offset = sizeof(u32);
+-
+-		switch (ptype) {
+-		case HFI_PROPERTY_PARAM_CODEC_MASK_SUPPORTED: {
+-			struct hfi_codec_mask_supported *masks =
+-				(struct hfi_codec_mask_supported *)
+-				(data + next_offset);
+-
+-			next_offset += sizeof(*masks);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_CAPABILITY_SUPPORTED: {
+-			struct hfi_capabilities *caps;
+-			struct hfi_capability *cap;
+-			u32 num_caps;
+-
+-			if ((rem_bytes - next_offset) < sizeof(*cap)) {
+-				err = HFI_ERR_SESSION_INVALID_PARAMETER;
+-				break;
+-			}
+-
+-			caps = (struct hfi_capabilities *)(data + next_offset);
+-
+-			num_caps = caps->num_capabilities;
+-			cap = &caps->data[0];
+-			next_offset += sizeof(u32);
+-
+-			while (num_caps &&
+-			       (rem_bytes - next_offset) >= sizeof(u32)) {
+-				hfi_copy_cap_prop(cap, inst);
+-				cap++;
+-				next_offset += sizeof(*cap);
+-				num_caps--;
+-			}
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_UNCOMPRESSED_FORMAT_SUPPORTED: {
+-			struct hfi_uncompressed_format_supported *prop =
+-				(struct hfi_uncompressed_format_supported *)
+-				(data + next_offset);
+-			u32 num_fmt_entries;
+-			u8 *fmt;
+-			struct hfi_uncompressed_plane_info *inf;
+-
+-			if ((rem_bytes - next_offset) < sizeof(*prop)) {
+-				err = HFI_ERR_SESSION_INVALID_PARAMETER;
+-				break;
+-			}
+-
+-			num_fmt_entries = prop->format_entries;
+-			next_offset = sizeof(*prop) - sizeof(u32);
+-			fmt = (u8 *)&prop->format_info[0];
+-
+-			dev_dbg(dev, "uncomm format support num entries:%u\n",
+-				num_fmt_entries);
+-
+-			while (num_fmt_entries) {
+-				struct hfi_uncompressed_plane_constraints *cnts;
+-				u32 bytes_to_skip;
+-
+-				inf = (struct hfi_uncompressed_plane_info *)fmt;
+-
+-				if ((rem_bytes - next_offset) < sizeof(*inf)) {
+-					err = HFI_ERR_SESSION_INVALID_PARAMETER;
+-					break;
+-				}
+-
+-				dev_dbg(dev, "plane info: fmt:%x, planes:%x\n",
+-					inf->format, inf->num_planes);
+-
+-				cnts = &inf->plane_format[0];
+-				dev_dbg(dev, "%u %u %u %u\n",
+-					cnts->stride_multiples,
+-					cnts->max_stride,
+-					cnts->min_plane_buffer_height_multiple,
+-					cnts->buffer_alignment);
+-
+-				bytes_to_skip = sizeof(*inf) - sizeof(*cnts) +
+-						inf->num_planes * sizeof(*cnts);
+-
+-				fmt += bytes_to_skip;
+-				next_offset += bytes_to_skip;
+-				num_fmt_entries--;
+-			}
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_PROPERTIES_SUPPORTED: {
+-			struct hfi_properties_supported *prop =
+-				(struct hfi_properties_supported *)
+-				(data + next_offset);
+-
+-			next_offset += sizeof(*prop) - sizeof(u32)
+-					+ prop->num_properties * sizeof(u32);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_PROFILE_LEVEL_SUPPORTED: {
+-			struct hfi_profile_level_supported *prop =
+-				(struct hfi_profile_level_supported *)
+-				(data + next_offset);
+-			struct hfi_profile_level *pl;
+-			unsigned int prop_count = 0;
+-			unsigned int count = 0;
+-			u8 *ptr;
+-
+-			ptr = (u8 *)&prop->profile_level[0];
+-			prop_count = prop->profile_count;
+-
+-			if (prop_count > HFI_MAX_PROFILE_COUNT)
+-				prop_count = HFI_MAX_PROFILE_COUNT;
+-
+-			while (prop_count) {
+-				ptr++;
+-				pl = (struct hfi_profile_level *)ptr;
+-
+-				inst->pl[count].profile = pl->profile;
+-				inst->pl[count].level = pl->level;
+-				prop_count--;
+-				count++;
+-				ptr += sizeof(*pl) / sizeof(u32);
+-			}
+-
+-			inst->pl_count = count;
+-			next_offset += sizeof(*prop) - sizeof(*pl) +
+-				       prop->profile_count * sizeof(*pl);
+-
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_INTERLACE_FORMAT_SUPPORTED: {
+-			next_offset +=
+-				sizeof(struct hfi_interlace_format_supported);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_NAL_STREAM_FORMAT_SUPPORTED: {
+-			struct hfi_nal_stream_format *nal =
+-				(struct hfi_nal_stream_format *)
+-				(data + next_offset);
+-			dev_dbg(dev, "NAL format: %x\n", nal->format);
+-			next_offset += sizeof(*nal);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_NAL_STREAM_FORMAT_SELECT: {
+-			next_offset += sizeof(u32);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_MAX_SEQUENCE_HEADER_SIZE: {
+-			u32 *max_seq_sz = (u32 *)(data + next_offset);
+-
+-			dev_dbg(dev, "max seq header sz: %x\n", *max_seq_sz);
+-			next_offset += sizeof(u32);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_VENC_INTRA_REFRESH: {
+-			next_offset += sizeof(struct hfi_intra_refresh);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE_SUPPORTED: {
+-			struct hfi_buffer_alloc_mode_supported *prop =
+-				(struct hfi_buffer_alloc_mode_supported *)
+-				(data + next_offset);
+-			unsigned int i;
+-
+-			for (i = 0; i < prop->num_entries; i++) {
+-				if (prop->buffer_type == HFI_BUFFER_OUTPUT ||
+-				    prop->buffer_type == HFI_BUFFER_OUTPUT2) {
+-					switch (prop->data[i]) {
+-					case HFI_BUFFER_MODE_STATIC:
+-						inst->cap_bufs_mode_static = true;
+-						break;
+-					case HFI_BUFFER_MODE_DYNAMIC:
+-						inst->cap_bufs_mode_dynamic = true;
+-						break;
+-					default:
+-						break;
+-					}
+-				}
+-			}
+-			next_offset += sizeof(*prop) -
+-				sizeof(u32) + prop->num_entries * sizeof(u32);
+-			num_props--;
+-			break;
+-		}
+-		default:
+-			dev_dbg(dev, "%s: default case %#x\n", __func__, ptype);
+-			break;
+-		}
+-
+-		rem_bytes -= next_offset;
+-		data += next_offset;
+-	}
+-
+-	return err;
+-}
+-
+ static void hfi_session_init_done(struct venus_core *core,
+ 				  struct venus_inst *inst, void *packet)
+ {
+ 	struct hfi_msg_session_init_done_pkt *pkt = packet;
+-	unsigned int error;
++	u32 rem_bytes, error;
+ 
+ 	error = pkt->error_type;
+ 	if (error != HFI_ERR_NONE)
+@@ -745,8 +423,14 @@ static void hfi_session_init_done(struct venus_core *core,
+ 	if (core->res->hfi_version != HFI_VERSION_1XX)
+ 		goto done;
+ 
+-	error = init_done_read_prop(core, inst, pkt);
++	rem_bytes = pkt->shdr.hdr.size - sizeof(*pkt) + sizeof(u32);
++	if (!rem_bytes) {
++		error = HFI_ERR_SESSION_INSUFFICIENT_RESOURCES;
++		goto done;
++	}
+ 
++	error = hfi_parser(core, inst, pkt->num_properties, &pkt->data[0],
++			   rem_bytes);
+ done:
+ 	inst->error = error;
+ 	complete(&inst->done);
+diff --git a/drivers/media/platform/qcom/venus/hfi_parser.c b/drivers/media/platform/qcom/venus/hfi_parser.c
+new file mode 100644
+index 000000000000..4b155997abbb
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/hfi_parser.c
+@@ -0,0 +1,294 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2018 Linaro Ltd.
++ *
++ * Author: Stanimir Varbanov <stanimir.varbanov@linaro.org>
++ */
++#include <linux/kernel.h>
++
++#include "core.h"
++#include "hfi_helper.h"
++
++typedef void (*func)(struct venus_caps *cap, void *data, unsigned int size);
++
++static void init_codecs_vcaps(struct venus_core *core)
++{
++	struct venus_caps *caps = core->caps;
++	struct venus_caps *cap;
++	unsigned int i;
++
++	for (i = 0; i < 8 * sizeof(core->dec_codecs); i++) {
++		if ((1 << i) & core->dec_codecs) {
++			cap = &caps[core->codecs_count++];
++			cap->codec = (1 << i) & core->dec_codecs;
++			cap->domain = VIDC_SESSION_TYPE_DEC;
++			cap->valid = false;
++		}
++	}
++
++	for (i = 0; i < 8 * sizeof(core->enc_codecs); i++) {
++		if ((1 << i) & core->enc_codecs) {
++			cap = &caps[core->codecs_count++];
++			cap->codec = (1 << i) & core->enc_codecs;
++			cap->domain = VIDC_SESSION_TYPE_ENC;
++			cap->valid = false;
++		}
++	}
++}
++
++static void for_each_codec(struct venus_caps *caps, unsigned int caps_num,
++			   u32 codecs, u32 domain, func cb, void *data,
++			   unsigned int size)
++{
++	struct venus_caps *cap;
++	unsigned int i;
++
++	for (i = 0; i < caps_num; i++) {
++		cap = &caps[i];
++		if (cap->valid && cap->domain == domain)
++			continue;
++		if (cap->codec & codecs && cap->domain == domain)
++			cb(cap, data, size);
++	}
++}
++
++static void fill_buf_mode(struct venus_caps *cap, void *data, unsigned int num)
++{
++	u32 *type = data;
++
++	if (*type == HFI_BUFFER_MODE_DYNAMIC)
++		cap->cap_bufs_mode_dynamic = true;
++}
++
++static void parse_alloc_mode(struct venus_core *core, struct venus_inst *inst,
++			     u32 codecs, u32 domain, void *data)
++{
++	struct hfi_buffer_alloc_mode_supported *mode = data;
++	u32 num_entries = mode->num_entries;
++	u32 *type;
++
++	if (num_entries > 16)
++		return;
++
++	type = mode->data;
++
++	while (num_entries--) {
++		if (mode->buffer_type == HFI_BUFFER_OUTPUT ||
++		    mode->buffer_type == HFI_BUFFER_OUTPUT2) {
++			if (*type == HFI_BUFFER_MODE_DYNAMIC && inst)
++				inst->cap_bufs_mode_dynamic = true;
++
++			for_each_codec(core->caps, ARRAY_SIZE(core->caps),
++				       codecs, domain, fill_buf_mode, type, 1);
++		}
++
++		type++;
++	}
++}
++
++static void parse_profile_level(u32 codecs, u32 domain, void *data)
++{
++	struct hfi_profile_level_supported *pl = data;
++	struct hfi_profile_level *proflevel = pl->profile_level;
++	u32 count = pl->profile_count;
++
++	if (count > HFI_MAX_PROFILE_COUNT)
++		return;
++
++	while (count) {
++		proflevel = (void *)proflevel + sizeof(*proflevel);
++		count--;
++	}
++}
++
++static void fill_caps(struct venus_caps *cap, void *data, unsigned int num)
++{
++	struct hfi_capability *caps = data;
++	unsigned int i;
++
++	for (i = 0; i < num; i++)
++		cap->caps[cap->num_caps++] = caps[i];
++}
++
++static void parse_caps(struct venus_core *core, struct venus_inst *inst,
++		       u32 codecs, u32 domain, void *data)
++{
++	struct hfi_capabilities *caps = data;
++	struct hfi_capability *cap = caps->data;
++	u32 num_caps = caps->num_capabilities;
++	struct hfi_capability caps_arr[MAX_CAP_ENTRIES] = {};
++	unsigned int i = 0;
++
++	if (num_caps > MAX_CAP_ENTRIES)
++		return;
++
++	while (num_caps) {
++		caps_arr[i++] = *cap;
++		cap = (void *)cap + sizeof(*cap);
++		num_caps--;
++	}
++
++	for_each_codec(core->caps, ARRAY_SIZE(core->caps), codecs, domain,
++		       fill_caps, caps_arr, i);
++}
++
++static void fill_raw_fmts(struct venus_caps *cap, void *fmts,
++			  unsigned int num_fmts)
++{
++	struct raw_formats *formats = fmts;
++	unsigned int i;
++
++	for (i = 0; i < num_fmts; i++)
++		cap->fmts[cap->num_fmts++] = formats[i];
++}
++
++static void parse_raw_formats(struct venus_core *core, struct venus_inst *inst,
++			      u32 codecs, u32 domain, void *data)
++{
++	struct hfi_uncompressed_format_supported *fmt = data;
++	struct hfi_uncompressed_plane_info *pinfo = fmt->format_info;
++	struct hfi_uncompressed_plane_constraints *constr;
++	u32 entries = fmt->format_entries;
++	u32 num_planes;
++	struct raw_formats rfmts[MAX_FMT_ENTRIES] = {};
++	unsigned int i = 0;
++
++	while (entries) {
++		num_planes = pinfo->num_planes;
++
++		rfmts[i].fmt = pinfo->format;
++		rfmts[i].buftype = fmt->buffer_type;
++		i++;
++
++		if (pinfo->num_planes > MAX_PLANES)
++			break;
++
++		constr = pinfo->plane_format;
++
++		while (pinfo->num_planes) {
++			constr = (void *)constr + sizeof(*constr);
++			pinfo->num_planes--;
++		}
++
++		pinfo = (void *)pinfo + sizeof(*constr) * num_planes +
++			2 * sizeof(u32);
++		entries--;
++	}
++
++	for_each_codec(core->caps, ARRAY_SIZE(core->caps), codecs, domain,
++		       fill_raw_fmts, rfmts, i);
++}
++
++static void parse_codecs(struct venus_core *core, void *data)
++{
++	struct hfi_codec_supported *codecs = data;
++
++	core->dec_codecs = codecs->dec_codecs;
++	core->enc_codecs = codecs->enc_codecs;
++
++	if (core->res->hfi_version == HFI_VERSION_1XX) {
++		core->dec_codecs &= ~HFI_VIDEO_CODEC_HEVC;
++		core->dec_codecs &= ~HFI_VIDEO_CODEC_SPARK;
++	}
++}
++
++static void parse_max_sessions(struct venus_core *core, void *data)
++{
++	struct hfi_max_sessions_supported *sessions = data;
++
++	core->max_sessions_supported = sessions->max_sessions;
++}
++
++static void parse_codecs_mask(u32 *codecs, u32 *domain, void *data)
++{
++	struct hfi_codec_mask_supported *mask = data;
++
++	*codecs = mask->codecs;
++	*domain = mask->video_domains;
++}
++
++static void parser_init(struct venus_core *core, struct venus_inst *inst,
++			u32 *codecs, u32 *domain)
++{
++	if (core->res->hfi_version != HFI_VERSION_1XX)
++		return;
++
++	if (!inst)
++		return;
++
++	*codecs = inst->hfi_codec;
++	*domain = inst->session_type;
++}
++
++static void parser_fini(struct venus_core *core, struct venus_inst *inst,
++			u32 codecs, u32 domain)
++{
++	struct venus_caps *caps = core->caps;
++	struct venus_caps *cap;
++	u32 dom;
++	unsigned int i;
++
++	if (core->res->hfi_version != HFI_VERSION_1XX)
++		return;
++
++	if (!inst)
++		return;
++
++	dom = inst->session_type;
++
++	for (i = 0; i < MAX_CODEC_NUM; i++) {
++		cap = &caps[i];
++		if (cap->codec & codecs && cap->domain == dom)
++			cap->valid = true;
++	}
++}
++
++u32 hfi_parser(struct venus_core *core, struct venus_inst *inst,
++	       u32 num_properties, void *buf, u32 size)
++{
++	unsigned int words_count = size >> 2;
++	u32 *word = buf, *data, codecs = 0, domain = 0;
++
++	if (size % 4)
++		return HFI_ERR_SYS_INSUFFICIENT_RESOURCES;
++
++	parser_init(core, inst, &codecs, &domain);
++
++	while (words_count) {
++		data = word + 1;
++
++		switch (*word) {
++		case HFI_PROPERTY_PARAM_CODEC_SUPPORTED:
++			parse_codecs(core, data);
++			init_codecs_vcaps(core);
++			break;
++		case HFI_PROPERTY_PARAM_MAX_SESSIONS_SUPPORTED:
++			parse_max_sessions(core, data);
++			break;
++		case HFI_PROPERTY_PARAM_CODEC_MASK_SUPPORTED:
++			parse_codecs_mask(&codecs, &domain, data);
++			break;
++		case HFI_PROPERTY_PARAM_UNCOMPRESSED_FORMAT_SUPPORTED:
++			parse_raw_formats(core, inst, codecs, domain, data);
++			break;
++		case HFI_PROPERTY_PARAM_CAPABILITY_SUPPORTED:
++			parse_caps(core, inst, codecs, domain, data);
++			break;
++		case HFI_PROPERTY_PARAM_PROFILE_LEVEL_SUPPORTED:
++			parse_profile_level(codecs, domain, data);
++			break;
++		case HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE_SUPPORTED:
++			parse_alloc_mode(core, inst, codecs, domain, data);
++			break;
++		default:
++			break;
++		}
++
++		word++;
++		words_count--;
++	}
++
++	parser_fini(core, inst, codecs, domain);
++
++	return HFI_ERR_NONE;
++}
+diff --git a/drivers/media/platform/qcom/venus/hfi_parser.h b/drivers/media/platform/qcom/venus/hfi_parser.h
+new file mode 100644
+index 000000000000..c484ac91a8e2
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/hfi_parser.h
+@@ -0,0 +1,45 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2018 Linaro Ltd. */
++#ifndef __VENUS_HFI_PARSER_H__
++#define __VENUS_HFI_PARSER_H__
++
++#include "core.h"
++
++u32 hfi_parser(struct venus_core *core, struct venus_inst *inst,
++	       u32 num_properties, void *buf, u32 size);
++
++static inline struct hfi_capability *get_cap(struct venus_inst *inst, u32 type)
++{
++	struct venus_core *core = inst->core;
++	struct venus_caps *caps;
++	unsigned int i;
++
++	caps = venus_caps_by_codec(core, inst->hfi_codec, inst->session_type);
++	if (!caps)
++		return ERR_PTR(-EINVAL);
++
++	for (i = 0; i < MAX_CAP_ENTRIES; i++) {
++		if (caps->caps[i].capability_type == type)
++			return &caps->caps[i];
++	}
++
++	return ERR_PTR(-EINVAL);
++}
++
++#define CAP_MIN(inst, type)	((get_cap(inst, type))->min)
++#define CAP_MAX(inst, type)	((get_cap(inst, type))->max)
++#define CAP_STEP(inst, type)	((get_cap(inst, type))->step_size)
++
++#define FRAME_WIDTH_MIN(inst)	CAP_MIN(inst, HFI_CAPABILITY_FRAME_WIDTH)
++#define FRAME_WIDTH_MAX(inst)	CAP_MAX(inst, HFI_CAPABILITY_FRAME_WIDTH)
++#define FRAME_WIDTH_STEP(inst)	CAP_STEP(inst, HFI_CAPABILITY_FRAME_WIDTH)
++
++#define FRAME_HEIGHT_MIN(inst)	CAP_MIN(inst, HFI_CAPABILITY_FRAME_HEIGHT)
++#define FRAME_HEIGHT_MAX(inst)	CAP_MAX(inst, HFI_CAPABILITY_FRAME_HEIGHT)
++#define FRAME_HEIGHT_STEP(inst)	CAP_STEP(inst, HFI_CAPABILITY_FRAME_HEIGHT)
++
++#define FRATE_MIN(inst)		CAP_MIN(inst, HFI_CAPABILITY_FRAMERATE)
++#define FRATE_MAX(inst)		CAP_MAX(inst, HFI_CAPABILITY_FRAMERATE)
++#define FRATE_STEP(inst)	CAP_STEP(inst, HFI_CAPABILITY_FRAMERATE)
++
++#endif
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 91c7384ff9c8..cd278a695899 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -24,6 +24,7 @@
+ #include <media/videobuf2-dma-sg.h>
+ 
+ #include "hfi_venus_io.h"
++#include "hfi_parser.h"
+ #include "core.h"
+ #include "helpers.h"
+ #include "vdec.h"
+@@ -177,10 +178,10 @@ vdec_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+ 		pixmp->height = 720;
+ 	}
+ 
+-	pixmp->width = clamp(pixmp->width, inst->cap_width.min,
+-			     inst->cap_width.max);
+-	pixmp->height = clamp(pixmp->height, inst->cap_height.min,
+-			      inst->cap_height.max);
++	pixmp->width = clamp(pixmp->width, FRAME_WIDTH_MIN(inst),
++			     FRAME_WIDTH_MAX(inst));
++	pixmp->height = clamp(pixmp->height, FRAME_HEIGHT_MIN(inst),
++			      FRAME_HEIGHT_MAX(inst));
+ 
+ 	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+ 		pixmp->height = ALIGN(pixmp->height, 32);
+@@ -442,12 +443,12 @@ static int vdec_enum_framesizes(struct file *file, void *fh,
+ 
+ 	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
+ 
+-	fsize->stepwise.min_width = inst->cap_width.min;
+-	fsize->stepwise.max_width = inst->cap_width.max;
+-	fsize->stepwise.step_width = inst->cap_width.step_size;
+-	fsize->stepwise.min_height = inst->cap_height.min;
+-	fsize->stepwise.max_height = inst->cap_height.max;
+-	fsize->stepwise.step_height = inst->cap_height.step_size;
++	fsize->stepwise.min_width = FRAME_WIDTH_MIN(inst);
++	fsize->stepwise.max_width = FRAME_WIDTH_MAX(inst);
++	fsize->stepwise.step_width = FRAME_WIDTH_STEP(inst);
++	fsize->stepwise.min_height = FRAME_HEIGHT_MIN(inst);
++	fsize->stepwise.max_height = FRAME_HEIGHT_MAX(inst);
++	fsize->stepwise.step_height = FRAME_HEIGHT_STEP(inst);
+ 
+ 	return 0;
+ }
+@@ -910,22 +911,7 @@ static void vdec_inst_init(struct venus_inst *inst)
+ 	inst->fps = 30;
+ 	inst->timeperframe.numerator = 1;
+ 	inst->timeperframe.denominator = 30;
+-
+-	inst->cap_width.min = 64;
+-	inst->cap_width.max = 1920;
+-	if (inst->core->res->hfi_version == HFI_VERSION_3XX)
+-		inst->cap_width.max = 3840;
+-	inst->cap_width.step_size = 1;
+-	inst->cap_height.min = 64;
+-	inst->cap_height.max = ALIGN(1080, 32);
+-	if (inst->core->res->hfi_version == HFI_VERSION_3XX)
+-		inst->cap_height.max = ALIGN(2160, 32);
+-	inst->cap_height.step_size = 1;
+-	inst->cap_framerate.min = 1;
+-	inst->cap_framerate.max = 30;
+-	inst->cap_framerate.step_size = 1;
+-	inst->cap_mbs_per_frame.min = 16;
+-	inst->cap_mbs_per_frame.max = 8160;
++	inst->hfi_codec = HFI_VIDEO_CODEC_H264;
+ }
+ 
+ static const struct v4l2_m2m_ops vdec_m2m_ops = {
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index bc8c2e7a8d2c..be8ea3326386 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -24,6 +24,7 @@
+ #include <media/v4l2-ctrls.h>
+ 
+ #include "hfi_venus_io.h"
++#include "hfi_parser.h"
+ #include "core.h"
+ #include "helpers.h"
+ #include "venc.h"
+@@ -301,10 +302,10 @@ venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+ 		pixmp->height = 720;
+ 	}
+ 
+-	pixmp->width = clamp(pixmp->width, inst->cap_width.min,
+-			     inst->cap_width.max);
+-	pixmp->height = clamp(pixmp->height, inst->cap_height.min,
+-			      inst->cap_height.max);
++	pixmp->width = clamp(pixmp->width, FRAME_WIDTH_MIN(inst),
++			     FRAME_WIDTH_MAX(inst));
++	pixmp->height = clamp(pixmp->height, FRAME_HEIGHT_MIN(inst),
++			      FRAME_HEIGHT_MAX(inst));
+ 
+ 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+ 		pixmp->height = ALIGN(pixmp->height, 32);
+@@ -553,12 +554,12 @@ static int venc_enum_framesizes(struct file *file, void *fh,
+ 	if (fsize->index)
+ 		return -EINVAL;
+ 
+-	fsize->stepwise.min_width = inst->cap_width.min;
+-	fsize->stepwise.max_width = inst->cap_width.max;
+-	fsize->stepwise.step_width = inst->cap_width.step_size;
+-	fsize->stepwise.min_height = inst->cap_height.min;
+-	fsize->stepwise.max_height = inst->cap_height.max;
+-	fsize->stepwise.step_height = inst->cap_height.step_size;
++	fsize->stepwise.min_width = FRAME_WIDTH_MIN(inst);
++	fsize->stepwise.max_width = FRAME_WIDTH_MAX(inst);
++	fsize->stepwise.step_width = FRAME_WIDTH_STEP(inst);
++	fsize->stepwise.min_height = FRAME_HEIGHT_MIN(inst);
++	fsize->stepwise.max_height = FRAME_HEIGHT_MAX(inst);
++	fsize->stepwise.step_height = FRAME_HEIGHT_STEP(inst);
+ 
+ 	return 0;
+ }
+@@ -586,18 +587,18 @@ static int venc_enum_frameintervals(struct file *file, void *fh,
+ 	if (!fival->width || !fival->height)
+ 		return -EINVAL;
+ 
+-	if (fival->width > inst->cap_width.max ||
+-	    fival->width < inst->cap_width.min ||
+-	    fival->height > inst->cap_height.max ||
+-	    fival->height < inst->cap_height.min)
++	if (fival->width > FRAME_WIDTH_MAX(inst) ||
++	    fival->width < FRAME_WIDTH_MIN(inst) ||
++	    fival->height > FRAME_HEIGHT_MAX(inst) ||
++	    fival->height < FRAME_HEIGHT_MIN(inst))
+ 		return -EINVAL;
+ 
+ 	fival->stepwise.min.numerator = 1;
+-	fival->stepwise.min.denominator = inst->cap_framerate.max;
++	fival->stepwise.min.denominator = FRATE_MAX(inst);
+ 	fival->stepwise.max.numerator = 1;
+-	fival->stepwise.max.denominator = inst->cap_framerate.min;
++	fival->stepwise.max.denominator = FRATE_MIN(inst);
+ 	fival->stepwise.step.numerator = 1;
+-	fival->stepwise.step.denominator = inst->cap_framerate.max;
++	fival->stepwise.step.denominator = FRATE_MAX(inst);
+ 
+ 	return 0;
+ }
+@@ -1091,22 +1092,7 @@ static void venc_inst_init(struct venus_inst *inst)
+ 	inst->fps = 15;
+ 	inst->timeperframe.numerator = 1;
+ 	inst->timeperframe.denominator = 15;
+-
+-	inst->cap_width.min = 96;
+-	inst->cap_width.max = 1920;
+-	if (inst->core->res->hfi_version == HFI_VERSION_3XX)
+-		inst->cap_width.max = 3840;
+-	inst->cap_width.step_size = 2;
+-	inst->cap_height.min = 64;
+-	inst->cap_height.max = ALIGN(1080, 32);
+-	if (inst->core->res->hfi_version == HFI_VERSION_3XX)
+-		inst->cap_height.max = ALIGN(2160, 32);
+-	inst->cap_height.step_size = 2;
+-	inst->cap_framerate.min = 1;
+-	inst->cap_framerate.max = 30;
+-	inst->cap_framerate.step_size = 1;
+-	inst->cap_mbs_per_frame.min = 24;
+-	inst->cap_mbs_per_frame.max = 8160;
++	inst->hfi_codec = HFI_VIDEO_CODEC_H264;
+ }
+ 
+ static int venc_open(struct file *file)
+-- 
+2.14.1
