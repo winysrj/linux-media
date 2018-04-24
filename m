@@ -1,86 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:43368 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753504AbeDTRnA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 13:43:00 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Shawn Guo <shawn.guo@linaro.org>,
-        Ladislav Michl <ladis@linux-mips.org>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        Andi Kleen <ak@linux.intel.com>, Mans Rullgard <mans@mansr.com>
-Subject: [PATCH 3/7] media: rc: allow build pnp-dependent drivers with COMPILE_TEST
-Date: Fri, 20 Apr 2018 13:42:49 -0400
-Message-Id: <48bdabe5761d9b86b79b715be81686cee47d25dd.1524245455.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
-References: <cover.1524245455.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
-References: <cover.1524245455.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:55599 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933026AbeDXMpi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 08:45:38 -0400
+Received: by mail-wm0-f67.google.com with SMTP id a8so695476wmg.5
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:38 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 28/28] venus: add HEVC codec support
+Date: Tue, 24 Apr 2018 15:44:36 +0300
+Message-Id: <20180424124436.26955-29-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pnp header already provide enough stub to build those
-drivers with COMPILE_TEST on non-x86 archs.
+This add HEVC codec support for venus versions 3xx and 4xx.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/rc/Kconfig | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/media/platform/qcom/venus/helpers.c | 3 +++
+ drivers/media/platform/qcom/venus/hfi.c     | 2 ++
+ drivers/media/platform/qcom/venus/vdec.c    | 4 ++++
+ drivers/media/platform/qcom/venus/venc.c    | 4 ++++
+ 4 files changed, 13 insertions(+)
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index eb2c3b6eca7f..9a3b66c6700c 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -149,7 +149,7 @@ config RC_ATI_REMOTE
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index 87dcf9973e6f..fecadba039cf 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -71,6 +71,9 @@ bool venus_helper_check_codec(struct venus_inst *inst, u32 v4l2_pixfmt)
+ 	case V4L2_PIX_FMT_XVID:
+ 		codec = HFI_VIDEO_CODEC_DIVX;
+ 		break;
++	case V4L2_PIX_FMT_HEVC:
++		codec = HFI_VIDEO_CODEC_HEVC;
++		break;
+ 	default:
+ 		return false;
+ 	}
+diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
+index 94ca27b0bb99..24207829982f 100644
+--- a/drivers/media/platform/qcom/venus/hfi.c
++++ b/drivers/media/platform/qcom/venus/hfi.c
+@@ -49,6 +49,8 @@ static u32 to_codec_type(u32 pixfmt)
+ 		return HFI_VIDEO_CODEC_VP9;
+ 	case V4L2_PIX_FMT_XVID:
+ 		return HFI_VIDEO_CODEC_DIVX;
++	case V4L2_PIX_FMT_HEVC:
++		return HFI_VIDEO_CODEC_HEVC;
+ 	default:
+ 		return 0;
+ 	}
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 7deee104ac56..a114f421edad 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -77,6 +77,10 @@ static const struct venus_format vdec_formats[] = {
+ 		.pixfmt = V4L2_PIX_FMT_XVID,
+ 		.num_planes = 1,
+ 		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_HEVC,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+ 	},
+ };
  
- config IR_ENE
- 	tristate "ENE eHome Receiver/Transceiver (pnp id: ENE0100/ENE02xxx)"
--	depends on PNP
-+	depends on PNP || COMPILE_TEST
- 	depends on RC_CORE
- 	---help---
- 	   Say Y here to enable support for integrated infrared receiver
-@@ -210,7 +210,7 @@ config IR_MCEUSB
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index a703bce78abc..fdb76b69786f 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -59,6 +59,10 @@ static const struct venus_format venc_formats[] = {
+ 		.pixfmt = V4L2_PIX_FMT_VP8,
+ 		.num_planes = 1,
+ 		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_HEVC,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+ 	},
+ };
  
- config IR_ITE_CIR
- 	tristate "ITE Tech Inc. IT8712/IT8512 Consumer Infrared Transceiver"
--	depends on PNP
-+	depends on PNP || COMPILE_TEST
- 	depends on RC_CORE
- 	---help---
- 	   Say Y here to enable support for integrated infrared receivers
-@@ -223,7 +223,7 @@ config IR_ITE_CIR
- 
- config IR_FINTEK
- 	tristate "Fintek Consumer Infrared Transceiver"
--	depends on PNP
-+	depends on PNP || COMPILE_TEST
- 	depends on RC_CORE
- 	---help---
- 	   Say Y here to enable support for integrated infrared receiver
-@@ -257,7 +257,7 @@ config IR_MTK
- 
- config IR_NUVOTON
- 	tristate "Nuvoton w836x7hg Consumer Infrared Transceiver"
--	depends on PNP
-+	depends on PNP || COMPILE_TEST
- 	depends on RC_CORE
- 	---help---
- 	   Say Y here to enable support for integrated infrared receiver
-@@ -305,7 +305,7 @@ config IR_STREAMZAP
- 
- config IR_WINBOND_CIR
- 	tristate "Winbond IR remote control"
--	depends on X86 && PNP
-+	depends on (X86 && PNP) || COMPILE_TEST
- 	depends on RC_CORE
- 	select NEW_LEDS
- 	select LEDS_CLASS
 -- 
-2.14.3
+2.14.1
