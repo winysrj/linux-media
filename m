@@ -1,300 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f178.google.com ([209.85.220.178]:46065 "EHLO
-        mail-qk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751483AbeDEMCZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 08:02:25 -0400
-Received: by mail-qk0-f178.google.com with SMTP id s9so25936909qke.12
-        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 05:02:24 -0700 (PDT)
-Subject: Re: Fw: [PATCH v2] media: v4l2-core: fix size of devnode_nums[]
- bitarray
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Jaak Ristioja <jaak@ristioja.ee>,
-        =?UTF-8?Q?Micha=c5=82_Siemek?= <mihau69@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20180405080933.6ffb86ba@vento.lan>
-From: Peter Geis <pgwipeout@gmail.com>
-Message-ID: <730dd9ea-299b-7465-0ab5-ac24da7306ab@gmail.com>
-Date: Thu, 5 Apr 2018 08:02:20 -0400
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:52674 "EHLO
+        mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757207AbeDXMtV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 08:49:21 -0400
+Received: by mail-wm0-f53.google.com with SMTP id w195so716921wmw.2
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:49:20 -0700 (PDT)
+Subject: Re: [PATCH v2 2/2] media: Add a driver for the ov7251 camera sensor
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: mchehab@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1521778460-8717-1-git-send-email-todor.tomov@linaro.org>
+ <1521778460-8717-3-git-send-email-todor.tomov@linaro.org>
+ <20180329115147.nai3dgverqpjympu@paasikivi.fi.intel.com>
+ <3b45d013-d9e7-04bf-22a3-06b858c2c7bd@linaro.org>
+ <20180417201021.q6t4imtoaeh5vtsi@kekkonen.localdomain>
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <b84b4f78-8085-b536-7113-f0a257d3359e@linaro.org>
+Date: Tue, 24 Apr 2018 15:49:18 +0300
 MIME-Version: 1.0
-In-Reply-To: <20180405080933.6ffb86ba@vento.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <20180417201021.q6t4imtoaeh5vtsi@kekkonen.localdomain>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Good Morning,
+Hi Sakari,
 
-Great Success!
-After several reboots and power-off cycles, the issue appears to have 
-been solved by this patch.
+On 17.04.2018 23:10, Sakari Ailus wrote:
+> Hi Todor,
+> 
+> On Tue, Apr 17, 2018 at 06:32:07PM +0300, Todor Tomov wrote:
+> ...
+>>>> +static int ov7251_regulators_enable(struct ov7251 *ov7251)
+>>>> +{
+>>>> +	int ret;
+>>>> +
+>>>> +	ret = regulator_enable(ov7251->io_regulator);
+>>>
+>>> How about regulator_bulk_enable() here, and bulk_disable below?
+>>
+>> I'm not using the bulk API because usually there is a power up
+>> sequence and intervals that must be followed. For this sensor
+>> the only constraint is that core regulator must be enabled
+>> after io regulator. But the bulk API doesn't guarantee the
+>> order.
+> 
+> Could you add a comment explaining this? Otherwise it won't take long until
+> someone "fixes" the code.
 
-Excellent work!
+Sure :D
+I'm adding a comment.
 
-Thanks,
-Peter Geis
+> 
+> ...
+> 
+>>>> +static int ov7251_read_reg(struct ov7251 *ov7251, u16 reg, u8 *val)
+>>>> +{
+>>>> +	u8 regbuf[2];
+>>>> +	int ret;
+>>>> +
+>>>> +	regbuf[0] = reg >> 8;
+>>>> +	regbuf[1] = reg & 0xff;
+>>>> +
+>>>> +	ret = i2c_master_send(ov7251->i2c_client, regbuf, 2);
+>>>> +	if (ret < 0) {
+>>>> +		dev_err(ov7251->dev, "%s: write reg error %d: reg=%x\n",
+>>>> +			__func__, ret, reg);
+>>>> +		return ret;
+>>>> +	}
+>>>> +
+>>>> +	ret = i2c_master_recv(ov7251->i2c_client, val, 1);
+>>>> +	if (ret < 0) {
+>>>> +		dev_err(ov7251->dev, "%s: read reg error %d: reg=%x\n",
+>>>> +			__func__, ret, reg);
+>>>> +		return ret;
+>>>> +	}
+>>>> +
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>> +static int ov7251_set_exposure(struct ov7251 *ov7251, s32 exposure)
+>>>> +{
+>>>> +	int ret;
+>>>> +
+>>>> +	ret = ov7251_write_reg(ov7251, OV7251_AEC_EXPO_0,
+>>>> +			       (exposure & 0xf000) >> 12);
+>>>> +	if (ret < 0)
+>>>> +		return ret;
+>>>> +
+>>>> +	ret = ov7251_write_reg(ov7251, OV7251_AEC_EXPO_1,
+>>>> +			       (exposure & 0x0ff0) >> 4);
+>>>> +	if (ret < 0)
+>>>> +		return ret;
+>>>> +
+>>>> +	return ov7251_write_reg(ov7251, OV7251_AEC_EXPO_2,
+>>>> +				(exposure & 0x000f) << 4);
+>>>
+>>> It's not a good idea to access multi-octet registers separately. Depending
+>>> on the hardware implementation, the hardware could latch the value in the
+>>> middle of an update. This is only an issue during streaming in practice
+>>> though.
+>>
+>> Good point. The sensor has a group write functionality which can be used
+>> to solve this but in general is intended
+>> to apply a group of exposure and gain settings in the same frame. However
+>> it seems to me that is not possible to use this functionality efficiently
+>> with the currently available user controls. The group write is configured
+>> using an id for a group of commands. So if we configure exposure and gain
+>> separately (a group for each):
+>> - if the driver uses same group id for exposure and gain, if both controls
+>>   are received in one frame the second will overwrite the first (the
+>>   first will not be applied);
+>> - if the driver uses different group id for exposure and gain, it will not
+>>   be possible for the user to change exposure and gain in the same frame
+>>   (as some exposure algorithms do) and it will lead again to frames with
+>>   "incorrect" brightness.
+>>
+>> To do this correctly we will have to extend the API to be able to apply
+>> exposure and gain "atomically":
+>> - a single user control which will set both exposure and gain and it will
+>>   guarantee that they will be applied in the same frame;
+>> - some kind of: begin, set exposure, set gain, end, launch -API
+>>
+>> What do you think?
+>>
+>> Actually, I'm a little bit surprised that I didn't find anything
+>> like this already. And there are already a number of sensor drivers
+>> which update more than one register to set exposure.
+> 
+> The latter of the two would be preferred as it isn't limited to exposure
+> and gain only. Still, you could address the problem for this driver by
+> simply writing the register in a single transaction.
 
-On 04/05/2018 07:09 AM, Mauro Carvalho Chehab wrote:
-> Please test if this patch solves the issues for you.
-> 
-> Regards,
-> Mauro
-> 
-> Forwarded message:
-> 
-> Date: Thu,  5 Apr 2018 07:13:41 -0300
-> From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> To: Linux Media Mailing List <linux-media@vger.kernel.org>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Al Viro <viro@zeniv.linux.org.uk>, Hans Verkuil <hans.verkuil@cisco.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, stable@vger.kernel.org
-> Subject: [PATCH v2] media: v4l2-core: fix size of devnode_nums[] bitarray
-> 
-> 
-> The size of devnode_nums[] bit array is too short to store information
-> for VFL_TYPE_TOUCH. That causes it to override other memory regions.
-> 
-> Thankfully, on recent reports, it is overriding video_device[] array,
-> trigging a WARN_ON(). Yet, it just warns about the problem, but let
-> the code excecuting, with generates an OOPS:
-> 
-> [   43.177394] WARNING: CPU: 1 PID: 711 at drivers/media/v4l2-core/v4l2-dev.c:945 __video_register_device+0xc99/0x1090 [videodev]
-> [   43.177396] Modules linked in: hid_sensor_custom hid_sensor_als hid_sensor_incl_3d hid_sensor_rotation hid_sensor_magn_3d hid_sensor_accel_3d hid_sensor_gyro_3d hid_sensor_trigger industrialio_triggered_buffer kfifo_buf joydev hid_sensor_iio_common hid_rmi(+) rmi_core industrialio videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_common videodev hid_multitouch media hid_sensor_hub binfmt_misc nls_iso8859_1 snd_hda_codec_hdmi arc4 snd_soc_skl snd_soc_skl_ipc snd_hda_ext_core snd_soc_sst_dsp snd_soc_sst_ipc snd_hda_codec_realtek snd_soc_acpi snd_hda_codec_generic snd_soc_core snd_compress ac97_bus snd_pcm_dmaengine snd_hda_intel snd_hda_codec intel_rapl snd_hda_core x86_pkg_temp_thermal snd_hwdep intel_powerclamp coretemp snd_pcm kvm_intel snd_seq_midi snd_seq_midi_event snd_rawmidi crct10dif_pclmul
-> [   43.177426]  crc32_pclmul ghash_clmulni_intel iwlmvm pcbc mac80211 snd_seq aesni_intel iwlwifi aes_x86_64 snd_seq_device crypto_simd glue_helper cryptd snd_timer intel_cstate intel_rapl_perf input_leds serio_raw intel_wmi_thunderbolt snd wmi_bmof cfg80211 soundcore ideapad_laptop sparse_keymap idma64 virt_dma tpm_crb acpi_pad int3400_thermal acpi_thermal_rel intel_pch_thermal processor_thermal_device mac_hid int340x_thermal_zone mei_me intel_soc_dts_iosf mei intel_lpss_pci shpchp intel_lpss sch_fq_codel vfio_pci nfsd vfio_virqfd parport_pc ppdev auth_rpcgss nfs_acl lockd grace lp parport sunrpc ip_tables x_tables autofs4 hid_logitech_hidpp hid_logitech_dj hid_generic usbhid kvmgt vfio_mdev mdev vfio_iommu_type1 vfio kvm irqbypass i915 i2c_algo_bit drm_kms_helper syscopyarea sdhci_pci sysfillrect
-> [   43.177466]  sysimgblt cqhci fb_sys_fops sdhci drm i2c_hid wmi hid video pinctrl_sunrisepoint pinctrl_intel
-> [   43.177474] CPU: 1 PID: 711 Comm: systemd-udevd Not tainted 4.16.0 #1
-> [   43.177475] Hardware name: LENOVO 80UE/VIUU4, BIOS 2UCN10T 10/14/2016
-> [   43.177481] RIP: 0010:__video_register_device+0xc99/0x1090 [videodev]
-> [   43.177482] RSP: 0000:ffffa5c5c231b420 EFLAGS: 00010202
-> [   43.177484] RAX: 0000000000000000 RBX: 0000000000000005 RCX: 0000000000000000
-> [   43.177485] RDX: ffffffffc0c44cc0 RSI: ffffffffffffffff RDI: ffffffffc0c44cc0
-> [   43.177486] RBP: ffffa5c5c231b478 R08: ffffffffc0c96900 R09: ffff8eda1a51f018
-> [   43.177487] R10: 0000000000000600 R11: 00000000000003b6 R12: 0000000000000000
-> [   43.177488] R13: 0000000000000005 R14: ffffffffc0c96900 R15: ffff8eda1d6d91c0
-> [   43.177489] FS:  00007fd2d8ef2480(0000) GS:ffff8eda33480000(0000) knlGS:0000000000000000
-> [   43.177490] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [   43.177491] CR2: 00007ffe0a6ad01c CR3: 0000000456ae2004 CR4: 00000000003606e0
-> [   43.177492] Call Trace:
-> [   43.177498]  ? devres_add+0x5f/0x70
-> [   43.177502]  rmi_f54_probe+0x437/0x470 [rmi_core]
-> [   43.177505]  rmi_function_probe+0x25/0x30 [rmi_core]
-> [   43.177507]  driver_probe_device+0x310/0x480
-> [   43.177509]  __device_attach_driver+0x86/0x100
-> [   43.177511]  ? __driver_attach+0xf0/0xf0
-> [   43.177512]  bus_for_each_drv+0x6b/0xb0
-> [   43.177514]  __device_attach+0xdd/0x160
-> [   43.177516]  device_initial_probe+0x13/0x20
-> [   43.177518]  bus_probe_device+0x95/0xa0
-> [   43.177519]  device_add+0x44b/0x680
-> [   43.177522]  rmi_register_function+0x62/0xd0 [rmi_core]
-> [   43.177525]  rmi_create_function+0x112/0x1a0 [rmi_core]
-> [   43.177527]  ? rmi_driver_clear_irq_bits+0xc0/0xc0 [rmi_core]
-> [   43.177530]  rmi_scan_pdt+0xca/0x1a0 [rmi_core]
-> [   43.177535]  rmi_init_functions+0x5b/0x120 [rmi_core]
-> [   43.177537]  rmi_driver_probe+0x152/0x3c0 [rmi_core]
-> [   43.177547]  ? sysfs_create_link+0x25/0x40
-> [   43.177549]  driver_probe_device+0x310/0x480
-> [   43.177551]  __device_attach_driver+0x86/0x100
-> [   43.177553]  ? __driver_attach+0xf0/0xf0
-> [   43.177554]  bus_for_each_drv+0x6b/0xb0
-> [   43.177556]  __device_attach+0xdd/0x160
-> [   43.177558]  device_initial_probe+0x13/0x20
-> [   43.177560]  bus_probe_device+0x95/0xa0
-> [   43.177561]  device_add+0x44b/0x680
-> [   43.177564]  rmi_register_transport_device+0x84/0x100 [rmi_core]
-> [   43.177568]  rmi_input_configured+0xbf/0x1a0 [hid_rmi]
-> [   43.177571]  ? input_allocate_device+0xdf/0xf0
-> [   43.177574]  hidinput_connect+0x4a9/0x37a0 [hid]
-> [   43.177578]  hid_connect+0x326/0x3d0 [hid]
-> [   43.177581]  hid_hw_start+0x42/0x70 [hid]
-> [   43.177583]  rmi_probe+0x115/0x510 [hid_rmi]
-> [   43.177586]  hid_device_probe+0xd3/0x150 [hid]
-> [   43.177588]  ? sysfs_create_link+0x25/0x40
-> [   43.177590]  driver_probe_device+0x310/0x480
-> [   43.177592]  __driver_attach+0xbf/0xf0
-> [   43.177593]  ? driver_probe_device+0x480/0x480
-> [   43.177595]  bus_for_each_dev+0x74/0xb0
-> [   43.177597]  ? kmem_cache_alloc_trace+0x1a6/0x1c0
-> [   43.177599]  driver_attach+0x1e/0x20
-> [   43.177600]  bus_add_driver+0x167/0x260
-> [   43.177602]  ? 0xffffffffc0cbc000
-> [   43.177604]  driver_register+0x60/0xe0
-> [   43.177605]  ? 0xffffffffc0cbc000
-> [   43.177607]  __hid_register_driver+0x63/0x70 [hid]
-> [   43.177610]  rmi_driver_init+0x23/0x1000 [hid_rmi]
-> [   43.177612]  do_one_initcall+0x52/0x191
-> [   43.177615]  ? _cond_resched+0x19/0x40
-> [   43.177617]  ? kmem_cache_alloc_trace+0xa2/0x1c0
-> [   43.177619]  ? do_init_module+0x27/0x209
-> [   43.177621]  do_init_module+0x5f/0x209
-> [   43.177623]  load_module+0x1987/0x1f10
-> [   43.177626]  ? ima_post_read_file+0x96/0xa0
-> [   43.177629]  SYSC_finit_module+0xfc/0x120
-> [   43.177630]  ? SYSC_finit_module+0xfc/0x120
-> [   43.177632]  SyS_finit_module+0xe/0x10
-> [   43.177634]  do_syscall_64+0x73/0x130
-> [   43.177637]  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
-> [   43.177638] RIP: 0033:0x7fd2d880b839
-> [   43.177639] RSP: 002b:00007ffe0a6b2368 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
-> [   43.177641] RAX: ffffffffffffffda RBX: 000055cdd86542e0 RCX: 00007fd2d880b839
-> [   43.177641] RDX: 0000000000000000 RSI: 00007fd2d84ea0e5 RDI: 0000000000000016
-> [   43.177642] RBP: 00007fd2d84ea0e5 R08: 0000000000000000 R09: 00007ffe0a6b2480
-> [   43.177643] R10: 0000000000000016 R11: 0000000000000246 R12: 0000000000000000
-> [   43.177644] R13: 000055cdd8688930 R14: 0000000000020000 R15: 000055cdd86542e0
-> [   43.177645] Code: 48 c7 c7 54 b4 c3 c0 e8 96 9d ec dd e9 d4 fb ff ff 0f 0b 41 be ea ff ff ff e9 c7 fb ff ff 0f 0b 41 be ea ff ff ff e9 ba fb ff ff <0f> 0b e9 d8 f4 ff ff 83 fa 01 0f 84 c4 02 00 00 48 83 78 68 00
-> [   43.177675] ---[ end trace d44d9bc41477c2dd ]---
-> [   43.177679] BUG: unable to handle kernel NULL pointer dereference at 0000000000000499
-> [   43.177723] IP: __video_register_device+0x1cc/0x1090 [videodev]
-> [   43.177749] PGD 0 P4D 0
-> [   43.177764] Oops: 0000 [#1] SMP PTI
-> [   43.177780] Modules linked in: hid_sensor_custom hid_sensor_als hid_sensor_incl_3d hid_sensor_rotation hid_sensor_magn_3d hid_sensor_accel_3d hid_sensor_gyro_3d hid_sensor_trigger industrialio_triggered_buffer kfifo_buf joydev hid_sensor_iio_common hid_rmi(+) rmi_core industrialio videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_common videodev hid_multitouch media hid_sensor_hub binfmt_misc nls_iso8859_1 snd_hda_codec_hdmi arc4 snd_soc_skl snd_soc_skl_ipc snd_hda_ext_core snd_soc_sst_dsp snd_soc_sst_ipc snd_hda_codec_realtek snd_soc_acpi snd_hda_codec_generic snd_soc_core snd_compress ac97_bus snd_pcm_dmaengine snd_hda_intel snd_hda_codec intel_rapl snd_hda_core x86_pkg_temp_thermal snd_hwdep intel_powerclamp coretemp snd_pcm kvm_intel snd_seq_midi snd_seq_midi_event snd_rawmidi crct10dif_pclmul
-> [   43.178055]  crc32_pclmul ghash_clmulni_intel iwlmvm pcbc mac80211 snd_seq aesni_intel iwlwifi aes_x86_64 snd_seq_device crypto_simd glue_helper cryptd snd_timer intel_cstate intel_rapl_perf input_leds serio_raw intel_wmi_thunderbolt snd wmi_bmof cfg80211 soundcore ideapad_laptop sparse_keymap idma64 virt_dma tpm_crb acpi_pad int3400_thermal acpi_thermal_rel intel_pch_thermal processor_thermal_device mac_hid int340x_thermal_zone mei_me intel_soc_dts_iosf mei intel_lpss_pci shpchp intel_lpss sch_fq_codel vfio_pci nfsd vfio_virqfd parport_pc ppdev auth_rpcgss nfs_acl lockd grace lp parport sunrpc ip_tables x_tables autofs4 hid_logitech_hidpp hid_logitech_dj hid_generic usbhid kvmgt vfio_mdev mdev vfio_iommu_type1 vfio kvm irqbypass i915 i2c_algo_bit drm_kms_helper syscopyarea sdhci_pci sysfillrect
-> [   43.178337]  sysimgblt cqhci fb_sys_fops sdhci drm i2c_hid wmi hid video pinctrl_sunrisepoint pinctrl_intel
-> [   43.178380] CPU: 1 PID: 711 Comm: systemd-udevd Tainted: G        W        4.16.0 #1
-> [   43.178411] Hardware name: LENOVO 80UE/VIUU4, BIOS 2UCN10T 10/14/2016
-> [   43.178441] RIP: 0010:__video_register_device+0x1cc/0x1090 [videodev]
-> [   43.178467] RSP: 0000:ffffa5c5c231b420 EFLAGS: 00010202
-> [   43.178490] RAX: ffffffffc0c44cc0 RBX: 0000000000000005 RCX: ffffffffc0c454c0
-> [   43.178519] RDX: 0000000000000001 RSI: ffff8eda1d6d9118 RDI: ffffffffc0c44cc0
-> [   43.178549] RBP: ffffa5c5c231b478 R08: ffffffffc0c96900 R09: ffff8eda1a51f018
-> [   43.178579] R10: 0000000000000600 R11: 00000000000003b6 R12: 0000000000000000
-> [   43.178608] R13: 0000000000000005 R14: ffffffffc0c96900 R15: ffff8eda1d6d91c0
-> [   43.178636] FS:  00007fd2d8ef2480(0000) GS:ffff8eda33480000(0000) knlGS:0000000000000000
-> [   43.178669] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [   43.178693] CR2: 0000000000000499 CR3: 0000000456ae2004 CR4: 00000000003606e0
-> [   43.178721] Call Trace:
-> [   43.178736]  ? devres_add+0x5f/0x70
-> [   43.178755]  rmi_f54_probe+0x437/0x470 [rmi_core]
-> [   43.178779]  rmi_function_probe+0x25/0x30 [rmi_core]
-> [   43.178805]  driver_probe_device+0x310/0x480
-> [   43.178828]  __device_attach_driver+0x86/0x100
-> [   43.178851]  ? __driver_attach+0xf0/0xf0
-> [   43.178884]  bus_for_each_drv+0x6b/0xb0
-> [   43.178904]  __device_attach+0xdd/0x160
-> [   43.178925]  device_initial_probe+0x13/0x20
-> [   43.178948]  bus_probe_device+0x95/0xa0
-> [   43.178968]  device_add+0x44b/0x680
-> [   43.178987]  rmi_register_function+0x62/0xd0 [rmi_core]
-> [   43.181747]  rmi_create_function+0x112/0x1a0 [rmi_core]
-> [   43.184677]  ? rmi_driver_clear_irq_bits+0xc0/0xc0 [rmi_core]
-> [   43.187505]  rmi_scan_pdt+0xca/0x1a0 [rmi_core]
-> [   43.190171]  rmi_init_functions+0x5b/0x120 [rmi_core]
-> [   43.192809]  rmi_driver_probe+0x152/0x3c0 [rmi_core]
-> [   43.195403]  ? sysfs_create_link+0x25/0x40
-> [   43.198253]  driver_probe_device+0x310/0x480
-> [   43.201083]  __device_attach_driver+0x86/0x100
-> [   43.203800]  ? __driver_attach+0xf0/0xf0
-> [   43.206503]  bus_for_each_drv+0x6b/0xb0
-> [   43.209291]  __device_attach+0xdd/0x160
-> [   43.212207]  device_initial_probe+0x13/0x20
-> [   43.215146]  bus_probe_device+0x95/0xa0
-> [   43.217885]  device_add+0x44b/0x680
-> [   43.220597]  rmi_register_transport_device+0x84/0x100 [rmi_core]
-> [   43.223321]  rmi_input_configured+0xbf/0x1a0 [hid_rmi]
-> [   43.226051]  ? input_allocate_device+0xdf/0xf0
-> [   43.228814]  hidinput_connect+0x4a9/0x37a0 [hid]
-> [   43.231701]  hid_connect+0x326/0x3d0 [hid]
-> [   43.234548]  hid_hw_start+0x42/0x70 [hid]
-> [   43.237302]  rmi_probe+0x115/0x510 [hid_rmi]
-> [   43.239862]  hid_device_probe+0xd3/0x150 [hid]
-> [   43.242558]  ? sysfs_create_link+0x25/0x40
-> [   43.242828] audit: type=1400 audit(1522795151.600:4): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/core/4206/usr/lib/snapd/snap-confine" pid=1151 comm="apparmor_parser"
-> [   43.244859]  driver_probe_device+0x310/0x480
-> [   43.244862]  __driver_attach+0xbf/0xf0
-> [   43.246982] audit: type=1400 audit(1522795151.600:5): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/core/4206/usr/lib/snapd/snap-confine//mount-namespace-capture-helper" pid=1151 comm="apparmor_parser"
-> [   43.249403]  ? driver_probe_device+0x480/0x480
-> [   43.249405]  bus_for_each_dev+0x74/0xb0
-> [   43.253200] audit: type=1400 audit(1522795151.600:6): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/core/4206/usr/lib/snapd/snap-confine//snap_update_ns" pid=1151 comm="apparmor_parser"
-> [   43.254055]  ? kmem_cache_alloc_trace+0x1a6/0x1c0
-> [   43.256282] audit: type=1400 audit(1522795151.604:7): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/sbin/dhclient" pid=1152 comm="apparmor_parser"
-> [   43.258436]  driver_attach+0x1e/0x20
-> [   43.260875] audit: type=1400 audit(1522795151.604:8): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/lib/NetworkManager/nm-dhcp-client.action" pid=1152 comm="apparmor_parser"
-> [   43.263118]  bus_add_driver+0x167/0x260
-> [   43.267676] audit: type=1400 audit(1522795151.604:9): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/lib/NetworkManager/nm-dhcp-helper" pid=1152 comm="apparmor_parser"
-> [   43.268807]  ? 0xffffffffc0cbc000
-> [   43.268812]  driver_register+0x60/0xe0
-> [   43.271184] audit: type=1400 audit(1522795151.604:10): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/lib/connman/scripts/dhclient-script" pid=1152 comm="apparmor_parser"
-> [   43.274081]  ? 0xffffffffc0cbc000
-> [   43.274086]  __hid_register_driver+0x63/0x70 [hid]
-> [   43.288367]  rmi_driver_init+0x23/0x1000 [hid_rmi]
-> [   43.291501]  do_one_initcall+0x52/0x191
-> [   43.292348] audit: type=1400 audit(1522795151.652:11): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/bin/man" pid=1242 comm="apparmor_parser"
-> [   43.294212]  ? _cond_resched+0x19/0x40
-> [   43.300028]  ? kmem_cache_alloc_trace+0xa2/0x1c0
-> [   43.303475]  ? do_init_module+0x27/0x209
-> [   43.306842]  do_init_module+0x5f/0x209
-> [   43.310269]  load_module+0x1987/0x1f10
-> [   43.313704]  ? ima_post_read_file+0x96/0xa0
-> [   43.317174]  SYSC_finit_module+0xfc/0x120
-> [   43.320754]  ? SYSC_finit_module+0xfc/0x120
-> [   43.324065]  SyS_finit_module+0xe/0x10
-> [   43.327387]  do_syscall_64+0x73/0x130
-> [   43.330909]  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
-> [   43.334305] RIP: 0033:0x7fd2d880b839
-> [   43.337810] RSP: 002b:00007ffe0a6b2368 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
-> [   43.341259] RAX: ffffffffffffffda RBX: 000055cdd86542e0 RCX: 00007fd2d880b839
-> [   43.344613] RDX: 0000000000000000 RSI: 00007fd2d84ea0e5 RDI: 0000000000000016
-> [   43.347962] RBP: 00007fd2d84ea0e5 R08: 0000000000000000 R09: 00007ffe0a6b2480
-> [   43.351456] R10: 0000000000000016 R11: 0000000000000246 R12: 0000000000000000
-> [   43.354845] R13: 000055cdd8688930 R14: 0000000000020000 R15: 000055cdd86542e0
-> [   43.358224] Code: c7 05 ad 12 02 00 00 00 00 00 48 8d 88 00 08 00 00 eb 09 48 83 c0 08 48 39 c1 74 31 48 8b 10 48 85 d2 74 ef 49 8b b7 98 04 00 00 <48> 39 b2 98 04 00 00 75 df 48 63 92 f8 04 00 00 f0 48 0f ab 15
-> [   43.361764] RIP: __video_register_device+0x1cc/0x1090 [videodev] RSP: ffffa5c5c231b420
-> [   43.365281] CR2: 0000000000000499
-> 
-> This patch fixes the array size and changes the WARN_ON() to return an error,
-> instead of letting the Kernel to proceed with registering.
-> 
-> Cc: stable@vger.kernel.org
-> Reported-by: Peter Geis <pgwipeout@gmail.com>
-> Reported-by: Jaak Ristioja <jaak@ristioja.ee>
-> Reported-by: Michał Siemek <mihau69@gmail.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->   drivers/media/v4l2-core/v4l2-dev.c |  8 ++++++--
->   include/media/v4l2-dev.h           | 12 ++++++------
->   2 files changed, 12 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index 0301fe426a43..1d0b2208e8fb 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -939,10 +939,14 @@ int __video_register_device(struct video_device *vdev,
->   #endif
->   	vdev->minor = i + minor_offset;
->   	vdev->num = nr;
-> -	devnode_set(vdev);
->   
->   	/* Should not happen since we thought this minor was free */
-> -	WARN_ON(video_device[vdev->minor] != NULL);
-> +	if (WARN_ON(video_device[vdev->minor])) {
-> +		mutex_unlock(&videodev_lock);
-> +		printk(KERN_ERR "video_device not empty!\n");
-> +		return -ENFILE;
-> +	}
-> +	devnode_set(vdev);
->   	vdev->index = get_index(vdev);
->   	video_device[vdev->minor] = vdev;
->   	mutex_unlock(&videodev_lock);
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index 27634e8d2585..e59742e47501 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -33,13 +33,13 @@
->    */
->   enum vfl_devnode_type {
->   	VFL_TYPE_GRABBER	= 0,
-> -	VFL_TYPE_VBI		= 1,
-> -	VFL_TYPE_RADIO		= 2,
-> -	VFL_TYPE_SUBDEV		= 3,
-> -	VFL_TYPE_SDR		= 4,
-> -	VFL_TYPE_TOUCH		= 5,
-> +	VFL_TYPE_VBI,
-> +	VFL_TYPE_RADIO,
-> +	VFL_TYPE_SUBDEV,
-> +	VFL_TYPE_SDR,
-> +	VFL_TYPE_TOUCH,
-> +	VFL_TYPE_MAX /* Should be the last one */
->   };
-> -#define VFL_TYPE_MAX VFL_TYPE_TOUCH
->   
->   /**
->    * enum  vfl_direction - Identifies if a &struct video_device corresponds
-> 
+Thanks for suggestion. I've tried the single transaction, I will send the
+next version of the driver shortly.
+
+-- 
+Best regards,
+Todor Tomov
