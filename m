@@ -1,1209 +1,1587 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:35240 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751882AbeDSKSq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 06:18:46 -0400
-Received: by mail-wr0-f195.google.com with SMTP id w3-v6so12519845wrg.2
-        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 03:18:45 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH 05/15] media: staging/imx7: add MIPI CSI-2 receiver subdev for i.MX7
-Date: Thu, 19 Apr 2018 11:18:02 +0100
-Message-Id: <20180419101812.30688-6-rui.silva@linaro.org>
-In-Reply-To: <20180419101812.30688-1-rui.silva@linaro.org>
-References: <20180419101812.30688-1-rui.silva@linaro.org>
+Received: from ns.mm-sol.com ([37.157.136.199]:48534 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751439AbeDXPBZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 11:01:25 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hverkuil@xs4all.nl, sakari.ailus@iki.fi,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v3 2/2] media: Add a driver for the ov7251 camera sensor
+Date: Tue, 24 Apr 2018 18:01:07 +0300
+Message-Id: <1524582067-28585-3-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1524582067-28585-1-git-send-email-todor.tomov@linaro.org>
+References: <1524582067-28585-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds MIPI CSI-2 subdev for i.MX7 to connect with sensors with a MIPI CSI-2
-interface.
+The ov7251 sensor is a 1/7.5-Inch B&W VGA (640x480) CMOS Digital Image
+Sensor from Omnivision.
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+The driver supports the following modes:
+- 640x480 30fps
+- 640x480 60fps
+- 640x480 90fps
+
+Output format is 10bit B&W RAW - MEDIA_BUS_FMT_Y10_1X10.
+
+The driver supports configuration via user controls for:
+- exposure and gain;
+- horizontal and vertical flip;
+- test pattern.
+
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
 ---
- drivers/staging/media/imx/Makefile         |    1 +
- drivers/staging/media/imx/imx7-mipi-csis.c | 1154 ++++++++++++++++++++
- 2 files changed, 1155 insertions(+)
- create mode 100644 drivers/staging/media/imx/imx7-mipi-csis.c
+ drivers/media/i2c/Kconfig  |   13 +
+ drivers/media/i2c/Makefile |    1 +
+ drivers/media/i2c/ov7251.c | 1501 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1515 insertions(+)
+ create mode 100644 drivers/media/i2c/ov7251.c
 
-diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
-index 771846717146..c11d51259af1 100644
---- a/drivers/staging/media/imx/Makefile
-+++ b/drivers/staging/media/imx/Makefile
-@@ -13,3 +13,4 @@ obj-$(CONFIG_VIDEO_IMX_CSI) += imx-media-csi.o
- obj-$(CONFIG_VIDEO_IMX_CSI) += imx6-mipi-csi2.o
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 541f0d28..1ff7aaf 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -688,6 +688,19 @@ config VIDEO_OV5695
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ov5695.
  
- obj-$(CONFIG_VIDEO_IMX7_CSI) += imx7-media-csi.o
-+obj-$(CONFIG_VIDEO_IMX7_CSI) += imx7-mipi-csis.o
-diff --git a/drivers/staging/media/imx/imx7-mipi-csis.c b/drivers/staging/media/imx/imx7-mipi-csis.c
++config VIDEO_OV7251
++	tristate "OmniVision OV7251 sensor support"
++	depends on OF
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_CAMERA_SUPPORT
++	select V4L2_FWNODE
++	help
++	  This is a Video4Linux2 sensor-level driver for the OmniVision
++	  OV7251 camera.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called ov7251.
++
+ config VIDEO_OV772X
+ 	tristate "OmniVision OV772x sensor support"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index ea34aee..c8585b1 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -70,6 +70,7 @@ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
+ obj-$(CONFIG_VIDEO_OV5670) += ov5670.o
+ obj-$(CONFIG_VIDEO_OV5695) += ov5695.o
+ obj-$(CONFIG_VIDEO_OV6650) += ov6650.o
++obj-$(CONFIG_VIDEO_OV7251) += ov7251.o
+ obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+ obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+ obj-$(CONFIG_VIDEO_OV772X) += ov772x.o
+diff --git a/drivers/media/i2c/ov7251.c b/drivers/media/i2c/ov7251.c
 new file mode 100644
-index 000000000000..45c5f442ac8e
+index 0000000..69e70a0
 --- /dev/null
-+++ b/drivers/staging/media/imx/imx7-mipi-csis.c
-@@ -0,0 +1,1154 @@
-+// SPDX-License-Identifier: GPL
++++ b/drivers/media/i2c/ov7251.c
+@@ -0,0 +1,1501 @@
++// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * Freescale i.MX7 SoC series MIPI-CSI V3.3 receiver driver
++ * Driver for the OV7251 camera sensor.
 + *
-+ * Copyright (C) 2018 Linaro Ltd
-+ * Copyright (C) 2015-2016 Freescale Semiconductor, Inc. All Rights Reserved.
-+ * Copyright (C) 2011 - 2013 Samsung Electronics Co., Ltd.
-+ *
++ * Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2017-2018, Linaro Ltd.
 + */
 +
++#include <linux/bitops.h>
 +#include <linux/clk.h>
 +#include <linux/delay.h>
-+#include <linux/errno.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/irq.h>
-+#include <linux/kernel.h>
-+#include <linux/mfd/syscon.h>
++#include <linux/device.h>
++#include <linux/gpio/consumer.h>
++#include <linux/i2c.h>
++#include <linux/init.h>
 +#include <linux/module.h>
-+#include <linux/of_graph.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/reset.h>
 +#include <linux/regulator/consumer.h>
-+#include <linux/spinlock.h>
-+
-+#include <media/v4l2-device.h>
++#include <linux/slab.h>
++#include <linux/types.h>
++#include <media/v4l2-ctrls.h>
 +#include <media/v4l2-fwnode.h>
 +#include <media/v4l2-subdev.h>
 +
-+#include "imx-media.h"
++#define OV7251_SC_MODE_SELECT		0x0100
++#define OV7251_SC_MODE_SELECT_SW_STANDBY	0x0
++#define OV7251_SC_MODE_SELECT_STREAMING		0x1
 +
-+static int debug;
-+module_param(debug, int, 0644);
-+MODULE_PARM_DESC(debug, "Debug level (0-2)");
++#define OV7251_CHIP_ID_HIGH		0x300a
++#define OV7251_CHIP_ID_HIGH_BYTE	0x77
++#define OV7251_CHIP_ID_LOW		0x300b
++#define OV7251_CHIP_ID_LOW_BYTE		0x50
++#define OV7251_SC_GP_IO_IN1		0x3029
++#define OV7251_AEC_EXPO_0		0x3500
++#define OV7251_AEC_EXPO_1		0x3501
++#define OV7251_AEC_EXPO_2		0x3502
++#define OV7251_AEC_AGC_ADJ_0		0x350a
++#define OV7251_AEC_AGC_ADJ_1		0x350b
++#define OV7251_TIMING_FORMAT1		0x3820
++#define OV7251_TIMING_FORMAT1_VFLIP	BIT(2)
++#define OV7251_TIMING_FORMAT2		0x3821
++#define OV7251_TIMING_FORMAT2_MIRROR	BIT(2)
++#define OV7251_PRE_ISP_00		0x5e00
++#define OV7251_PRE_ISP_00_TEST_PATTERN	BIT(7)
 +
-+#define CSIS_DRIVER_NAME	"imx7-mipi-csis"
-+#define CSIS_SUBDEV_NAME	CSIS_DRIVER_NAME
-+
-+#define CSIS_PAD_SINK		0
-+#define CSIS_PAD_SOURCE		1
-+#define CSIS_PADS_NUM		2
-+
-+#define MIPI_CSIS_DEF_PIX_WIDTH		640
-+#define MIPI_CSIS_DEF_PIX_HEIGHT	480
-+
-+/* Register map definition */
-+
-+/* CSIS common control */
-+#define MIPI_CSIS_CMN_CTRL			0x04
-+#define MIPI_CSIS_CMN_CTRL_UPDATE_SHADOW	BIT(16)
-+#define MIPI_CSIS_CMN_CTRL_INTER_MODE		BIT(10)
-+#define MIPI_CSIS_CMN_CTRL_UPDATE_SHADOW_CTRL	BIT(2)
-+#define MIPI_CSIS_CMN_CTRL_RESET		BIT(1)
-+#define MIPI_CSIS_CMN_CTRL_ENABLE		BIT(0)
-+
-+#define MIPI_CSIS_CMN_CTRL_LANE_NR_OFFSET	8
-+#define MIPI_CSIS_CMN_CTRL_LANE_NR_MASK		(3 << 8)
-+
-+/* CSIS clock control */
-+#define MIPI_CSIS_CLK_CTRL			0x08
-+#define MIPI_CSIS_CLK_CTRL_CLKGATE_TRAIL_CH3(x)	(x << 28)
-+#define MIPI_CSIS_CLK_CTRL_CLKGATE_TRAIL_CH2(x)	(x << 24)
-+#define MIPI_CSIS_CLK_CTRL_CLKGATE_TRAIL_CH1(x)	(x << 20)
-+#define MIPI_CSIS_CLK_CTRL_CLKGATE_TRAIL_CH0(x)	(x << 16)
-+#define MIPI_CSIS_CLK_CTRL_CLKGATE_EN_MSK	(0xf << 4)
-+#define MIPI_CSIS_CLK_CTRL_WCLK_SRC		BIT(0)
-+
-+/* CSIS Interrupt mask */
-+#define MIPI_CSIS_INTMSK		0x10
-+#define MIPI_CSIS_INTMSK_EVEN_BEFORE	BIT(31)
-+#define MIPI_CSIS_INTMSK_EVEN_AFTER	BIT(30)
-+#define MIPI_CSIS_INTMSK_ODD_BEFORE	BIT(29)
-+#define MIPI_CSIS_INTMSK_ODD_AFTER	BIT(28)
-+#define MIPI_CSIS_INTMSK_FRAME_START	BIT(24)
-+#define MIPI_CSIS_INTMSK_FRAME_END	BIT(20)
-+#define MIPI_CSIS_INTMSK_ERR_SOT_HS	BIT(16)
-+#define MIPI_CSIS_INTMSK_ERR_LOST_FS	BIT(12)
-+#define MIPI_CSIS_INTMSK_ERR_LOST_FE	BIT(8)
-+#define MIPI_CSIS_INTMSK_ERR_OVER	BIT(4)
-+#define MIPI_CSIS_INTMSK_ERR_WRONG_CFG	BIT(3)
-+#define MIPI_CSIS_INTMSK_ERR_ECC	BIT(2)
-+#define MIPI_CSIS_INTMSK_ERR_CRC	BIT(1)
-+#define MIPI_CSIS_INTMSK_ERR_UNKNOWN	BIT(0)
-+
-+/* CSIS Interrupt source */
-+#define MIPI_CSIS_INTSRC		0x14
-+#define MIPI_CSIS_INTSRC_EVEN_BEFORE	BIT(31)
-+#define MIPI_CSIS_INTSRC_EVEN_AFTER	BIT(30)
-+#define MIPI_CSIS_INTSRC_EVEN		BIT(30)
-+#define MIPI_CSIS_INTSRC_ODD_BEFORE	BIT(29)
-+#define MIPI_CSIS_INTSRC_ODD_AFTER	BIT(28)
-+#define MIPI_CSIS_INTSRC_ODD		(0x3 << 28)
-+#define MIPI_CSIS_INTSRC_NON_IMAGE_DATA	(0xf << 28)
-+#define MIPI_CSIS_INTSRC_FRAME_START	BIT(24)
-+#define MIPI_CSIS_INTSRC_FRAME_END	BIT(20)
-+#define MIPI_CSIS_INTSRC_ERR_SOT_HS	BIT(16)
-+#define MIPI_CSIS_INTSRC_ERR_LOST_FS	BIT(12)
-+#define MIPI_CSIS_INTSRC_ERR_LOST_FE	BIT(8)
-+#define MIPI_CSIS_INTSRC_ERR_OVER	BIT(4)
-+#define MIPI_CSIS_INTSRC_ERR_WRONG_CFG	BIT(3)
-+#define MIPI_CSIS_INTSRC_ERR_ECC	BIT(2)
-+#define MIPI_CSIS_INTSRC_ERR_CRC	BIT(1)
-+#define MIPI_CSIS_INTSRC_ERR_UNKNOWN	BIT(0)
-+#define MIPI_CSIS_INTSRC_ERRORS		0xfffff
-+
-+/* D-PHY status control */
-+#define MIPI_CSIS_DPHYSTATUS			0x20
-+#define MIPI_CSIS_DPHYSTATUS_ULPS_DAT		BIT(8)
-+#define MIPI_CSIS_DPHYSTATUS_STOPSTATE_DAT	BIT(4)
-+#define MIPI_CSIS_DPHYSTATUS_ULPS_CLK		BIT(1)
-+#define MIPI_CSIS_DPHYSTATUS_STOPSTATE_CLK	BIT(0)
-+
-+/* D-PHY common control */
-+#define MIPI_CSIS_DPHYCTRL			0x24
-+#define MIPI_CSIS_DPHYCTRL_HSS_MASK		(0xff << 24)
-+#define MIPI_CSIS_DPHYCTRL_HSS_OFFSET		24
-+#define MIPI_CSIS_DPHYCTRL_SCLKS_MASK		(0x3 << 22)
-+#define MIPI_CSIS_DPHYCTRL_SCLKS_OFFSET		22
-+#define MIPI_CSIS_DPHYCTRL_DPDN_SWAP_CLK	BIT(6)
-+#define MIPI_CSIS_DPHYCTRL_DPDN_SWAP_DAT	BIT(5)
-+#define MIPI_CSIS_DPHYCTRL_ENABLE_DAT		BIT(1)
-+#define MIPI_CSIS_DPHYCTRL_ENABLE_CLK		BIT(0)
-+#define MIPI_CSIS_DPHYCTRL_ENABLE		(0x1f << 0)
-+
-+/* D-PHY Master and Slave Control register Low */
-+#define MIPI_CSIS_DPHYBCTRL_L		0x30
-+/* D-PHY Master and Slave Control register High */
-+#define MIPI_CSIS_DPHYBCTRL_H		0x34
-+/* D-PHY Slave Control register Low */
-+#define MIPI_CSIS_DPHYSCTRL_L		0x38
-+/* D-PHY Slave Control register High */
-+#define MIPI_CSIS_DPHYSCTRL_H		0x3c
-+
-+/* ISP Configuration register */
-+#define MIPI_CSIS_ISPCONFIG_CH0		0x40
-+#define MIPI_CSIS_ISPCONFIG_CH1		0x50
-+#define MIPI_CSIS_ISPCONFIG_CH2		0x60
-+#define MIPI_CSIS_ISPCONFIG_CH3		0x70
-+
-+#define MIPI_CSIS_ISPCFG_MEM_FULL_GAP_MSK	(0xff << 24)
-+#define MIPI_CSIS_ISPCFG_MEM_FULL_GAP(x)	(x << 24)
-+#define MIPI_CSIS_ISPCFG_DOUBLE_CMPNT		BIT(12)
-+#define MIPI_CSIS_ISPCFG_ALIGN_32BIT		BIT(11)
-+#define MIPI_CSIS_ISPCFG_FMT_YCBCR422_8BIT	(0x1e << 2)
-+#define MIPI_CSIS_ISPCFG_FMT_RAW8		(0x2a << 2)
-+#define MIPI_CSIS_ISPCFG_FMT_RAW10		(0x2b << 2)
-+#define MIPI_CSIS_ISPCFG_FMT_RAW12		(0x2c << 2)
-+
-+/* User defined formats, x = 1...4 */
-+#define MIPI_CSIS_ISPCFG_FMT_USER(x)	((0x30 + x - 1) << 2)
-+#define MIPI_CSIS_ISPCFG_FMT_MASK	(0x3f << 2)
-+
-+/* ISP Image Resolution register */
-+#define MIPI_CSIS_ISPRESOL_CH0		0x44
-+#define MIPI_CSIS_ISPRESOL_CH1		0x54
-+#define MIPI_CSIS_ISPRESOL_CH2		0x64
-+#define MIPI_CSIS_ISPRESOL_CH3		0x74
-+#define CSIS_MAX_PIX_WIDTH		0xffff
-+#define CSIS_MAX_PIX_HEIGHT		0xffff
-+
-+/* ISP SYNC register */
-+#define MIPI_CSIS_ISPSYNC_CH0		0x48
-+#define MIPI_CSIS_ISPSYNC_CH1		0x58
-+#define MIPI_CSIS_ISPSYNC_CH2		0x68
-+#define MIPI_CSIS_ISPSYNC_CH3		0x78
-+
-+#define MIPI_CSIS_ISPSYNC_HSYNC_LINTV_OFFSET	18
-+#define MIPI_CSIS_ISPSYNC_VSYNC_SINTV_OFFSET	12
-+#define MIPI_CSIS_ISPSYNC_VSYNC_EINTV_OFFSET	0
-+
-+/* Non-image packet data buffers */
-+#define MIPI_CSIS_PKTDATA_ODD		0x2000
-+#define MIPI_CSIS_PKTDATA_EVEN		0x3000
-+#define MIPI_CSIS_PKTDATA_SIZE		SZ_4K
-+
-+#define DEFAULT_SCLK_CSIS_FREQ		166000000UL
-+
-+enum {
-+	ST_POWERED	= 1,
-+	ST_STREAMING	= 2,
-+	ST_SUSPENDED	= 4,
++struct reg_value {
++	u16 reg;
++	u8 val;
 +};
 +
-+struct mipi_csis_event {
-+	u32 mask;
-+	const char * const name;
-+	unsigned int counter;
++struct ov7251_mode_info {
++	u32 width;
++	u32 height;
++	const struct reg_value *data;
++	u32 data_size;
++	u32 pixel_clock;
++	u32 link_freq;
++	u16 exposure_max;
++	u16 exposure_def;
++	struct v4l2_fract timeperframe;
 +};
 +
-+static const struct mipi_csis_event mipi_csis_events[] = {
-+	/* Errors */
-+	{ MIPI_CSIS_INTSRC_ERR_SOT_HS,	"SOT Error" },
-+	{ MIPI_CSIS_INTSRC_ERR_LOST_FS,	"Lost Frame Start Error" },
-+	{ MIPI_CSIS_INTSRC_ERR_LOST_FE,	"Lost Frame End Error" },
-+	{ MIPI_CSIS_INTSRC_ERR_OVER,	"FIFO Overflow Error" },
-+	{ MIPI_CSIS_INTSRC_ERR_WRONG_CFG, "Wrong Configuration Error" },
-+	{ MIPI_CSIS_INTSRC_ERR_ECC,	"ECC Error" },
-+	{ MIPI_CSIS_INTSRC_ERR_CRC,	"CRC Error" },
-+	{ MIPI_CSIS_INTSRC_ERR_UNKNOWN,	"Unknown Error" },
-+	/* Non-image data receive events */
-+	{ MIPI_CSIS_INTSRC_EVEN_BEFORE,	"Non-image data before even frame" },
-+	{ MIPI_CSIS_INTSRC_EVEN_AFTER,	"Non-image data after even frame" },
-+	{ MIPI_CSIS_INTSRC_ODD_BEFORE,	"Non-image data before odd frame" },
-+	{ MIPI_CSIS_INTSRC_ODD_AFTER,	"Non-image data after odd frame" },
-+	/* Frame start/end */
-+	{ MIPI_CSIS_INTSRC_FRAME_START,	"Frame Start" },
-+	{ MIPI_CSIS_INTSRC_FRAME_END,	"Frame End" },
-+};
-+
-+#define MIPI_CSIS_NUM_EVENTS ARRAY_SIZE(mipi_csis_events)
-+
-+struct csis_hw_reset {
-+	struct regmap *src;
-+	u8 req_src;
-+	u8 rst_bit;
-+};
-+
-+struct csi_state {
-+	struct mutex lock;
-+	spinlock_t slock;
++struct ov7251 {
++	struct i2c_client *i2c_client;
 +	struct device *dev;
-+	struct media_pad pads[CSIS_PADS_NUM];
-+	struct v4l2_subdev mipi_sd;
-+	struct v4l2_subdev *src_sd;
++	struct v4l2_subdev sd;
++	struct media_pad pad;
++	struct v4l2_fwnode_endpoint ep;
++	struct v4l2_mbus_framefmt fmt;
++	struct v4l2_rect crop;
++	struct clk *xclk;
++	u32 xclk_freq;
 +
-+	u8 index;
-+	struct platform_device *pdev;
-+	struct phy *phy;
-+	void __iomem *regs;
-+	struct clk *mipi_clk;
-+	struct clk *phy_clk;
-+	int irq;
-+	u32 flags;
++	struct regulator *io_regulator;
++	struct regulator *core_regulator;
++	struct regulator *analog_regulator;
 +
-+	u32 clk_frequency;
-+	u32 hs_settle;
-+	u32 clk_settle;
-+	u32 num_lanes;
-+	u32 max_num_lanes;
-+	u8 wclk_ext;
++	const struct ov7251_mode_info *current_mode;
 +
-+	struct reset_control *mrst;
++	struct v4l2_ctrl_handler ctrls;
++	struct v4l2_ctrl *pixel_clock;
++	struct v4l2_ctrl *link_freq;
++	struct v4l2_ctrl *exposure;
++	struct v4l2_ctrl *gain;
 +
-+	const struct csis_pix_format *csis_fmt;
-+	struct v4l2_mbus_framefmt format_mbus;
++	/* Cached register values */
++	u8 aec_pk_manual;
++	u8 pre_isp_00;
++	u8 timing_format1;
++	u8 timing_format2;
 +
-+	struct v4l2_fwnode_bus_mipi_csi2 bus;
++	struct mutex lock; /* lock to protect power state, ctrls and mode */
++	bool power_on;
 +
-+	struct mipi_csis_event events[MIPI_CSIS_NUM_EVENTS];
-+
-+	struct v4l2_async_notifier subdev_notifier;
-+
-+	struct csis_hw_reset hw_reset;
-+	struct regulator *mipi_phy_regulator;
-+	bool sink_linked;
++	struct gpio_desc *enable_gpio;
 +};
 +
-+struct csis_pix_format {
-+	unsigned int pix_width_alignment;
-+	u32 code;
-+	u32 fmt_reg;
-+	u8 data_alignment;
++static inline struct ov7251 *to_ov7251(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct ov7251, sd);
++}
++
++static const struct reg_value ov7251_global_init_setting[] = {
++	{ 0x0103, 0x01 },
++	{ 0x303b, 0x02 },
 +};
 +
-+static const struct csis_pix_format mipi_csis_formats[] = {
++static const struct reg_value ov7251_setting_vga_30fps[] = {
++	{ 0x3005, 0x00 },
++	{ 0x3012, 0xc0 },
++	{ 0x3013, 0xd2 },
++	{ 0x3014, 0x04 },
++	{ 0x3016, 0xf0 },
++	{ 0x3017, 0xf0 },
++	{ 0x3018, 0xf0 },
++	{ 0x301a, 0xf0 },
++	{ 0x301b, 0xf0 },
++	{ 0x301c, 0xf0 },
++	{ 0x3023, 0x05 },
++	{ 0x3037, 0xf0 },
++	{ 0x3098, 0x04 }, /* pll2 pre divider */
++	{ 0x3099, 0x28 }, /* pll2 multiplier */
++	{ 0x309a, 0x05 }, /* pll2 sys divider */
++	{ 0x309b, 0x04 }, /* pll2 adc divider */
++	{ 0x309d, 0x00 }, /* pll2 divider */
++	{ 0x30b0, 0x0a }, /* pll1 pix divider */
++	{ 0x30b1, 0x01 }, /* pll1 divider */
++	{ 0x30b3, 0x64 }, /* pll1 multiplier */
++	{ 0x30b4, 0x03 }, /* pll1 pre divider */
++	{ 0x30b5, 0x05 }, /* pll1 mipi divider */
++	{ 0x3106, 0xda },
++	{ 0x3503, 0x07 },
++	{ 0x3509, 0x10 },
++	{ 0x3600, 0x1c },
++	{ 0x3602, 0x62 },
++	{ 0x3620, 0xb7 },
++	{ 0x3622, 0x04 },
++	{ 0x3626, 0x21 },
++	{ 0x3627, 0x30 },
++	{ 0x3630, 0x44 },
++	{ 0x3631, 0x35 },
++	{ 0x3634, 0x60 },
++	{ 0x3636, 0x00 },
++	{ 0x3662, 0x01 },
++	{ 0x3663, 0x70 },
++	{ 0x3664, 0x50 },
++	{ 0x3666, 0x0a },
++	{ 0x3669, 0x1a },
++	{ 0x366a, 0x00 },
++	{ 0x366b, 0x50 },
++	{ 0x3673, 0x01 },
++	{ 0x3674, 0xff },
++	{ 0x3675, 0x03 },
++	{ 0x3705, 0xc1 },
++	{ 0x3709, 0x40 },
++	{ 0x373c, 0x08 },
++	{ 0x3742, 0x00 },
++	{ 0x3757, 0xb3 },
++	{ 0x3788, 0x00 },
++	{ 0x37a8, 0x01 },
++	{ 0x37a9, 0xc0 },
++	{ 0x3800, 0x00 },
++	{ 0x3801, 0x04 },
++	{ 0x3802, 0x00 },
++	{ 0x3803, 0x04 },
++	{ 0x3804, 0x02 },
++	{ 0x3805, 0x8b },
++	{ 0x3806, 0x01 },
++	{ 0x3807, 0xeb },
++	{ 0x3808, 0x02 }, /* width high */
++	{ 0x3809, 0x80 }, /* width low */
++	{ 0x380a, 0x01 }, /* height high */
++	{ 0x380b, 0xe0 }, /* height low */
++	{ 0x380c, 0x03 }, /* total horiz timing high */
++	{ 0x380d, 0xa0 }, /* total horiz timing low */
++	{ 0x380e, 0x06 }, /* total vertical timing high */
++	{ 0x380f, 0xbc }, /* total vertical timing low */
++	{ 0x3810, 0x00 },
++	{ 0x3811, 0x04 },
++	{ 0x3812, 0x00 },
++	{ 0x3813, 0x05 },
++	{ 0x3814, 0x11 },
++	{ 0x3815, 0x11 },
++	{ 0x3820, 0x40 },
++	{ 0x3821, 0x00 },
++	{ 0x382f, 0x0e },
++	{ 0x3832, 0x00 },
++	{ 0x3833, 0x05 },
++	{ 0x3834, 0x00 },
++	{ 0x3835, 0x0c },
++	{ 0x3837, 0x00 },
++	{ 0x3b80, 0x00 },
++	{ 0x3b81, 0xa5 },
++	{ 0x3b82, 0x10 },
++	{ 0x3b83, 0x00 },
++	{ 0x3b84, 0x08 },
++	{ 0x3b85, 0x00 },
++	{ 0x3b86, 0x01 },
++	{ 0x3b87, 0x00 },
++	{ 0x3b88, 0x00 },
++	{ 0x3b89, 0x00 },
++	{ 0x3b8a, 0x00 },
++	{ 0x3b8b, 0x05 },
++	{ 0x3b8c, 0x00 },
++	{ 0x3b8d, 0x00 },
++	{ 0x3b8e, 0x00 },
++	{ 0x3b8f, 0x1a },
++	{ 0x3b94, 0x05 },
++	{ 0x3b95, 0xf2 },
++	{ 0x3b96, 0x40 },
++	{ 0x3c00, 0x89 },
++	{ 0x3c01, 0x63 },
++	{ 0x3c02, 0x01 },
++	{ 0x3c03, 0x00 },
++	{ 0x3c04, 0x00 },
++	{ 0x3c05, 0x03 },
++	{ 0x3c06, 0x00 },
++	{ 0x3c07, 0x06 },
++	{ 0x3c0c, 0x01 },
++	{ 0x3c0d, 0xd0 },
++	{ 0x3c0e, 0x02 },
++	{ 0x3c0f, 0x0a },
++	{ 0x4001, 0x42 },
++	{ 0x4004, 0x04 },
++	{ 0x4005, 0x00 },
++	{ 0x404e, 0x01 },
++	{ 0x4300, 0xff },
++	{ 0x4301, 0x00 },
++	{ 0x4315, 0x00 },
++	{ 0x4501, 0x48 },
++	{ 0x4600, 0x00 },
++	{ 0x4601, 0x4e },
++	{ 0x4801, 0x0f },
++	{ 0x4806, 0x0f },
++	{ 0x4819, 0xaa },
++	{ 0x4823, 0x3e },
++	{ 0x4837, 0x19 },
++	{ 0x4a0d, 0x00 },
++	{ 0x4a47, 0x7f },
++	{ 0x4a49, 0xf0 },
++	{ 0x4a4b, 0x30 },
++	{ 0x5000, 0x85 },
++	{ 0x5001, 0x80 },
++};
++
++static const struct reg_value ov7251_setting_vga_60fps[] = {
++	{ 0x3005, 0x00 },
++	{ 0x3012, 0xc0 },
++	{ 0x3013, 0xd2 },
++	{ 0x3014, 0x04 },
++	{ 0x3016, 0x10 },
++	{ 0x3017, 0x00 },
++	{ 0x3018, 0x00 },
++	{ 0x301a, 0x00 },
++	{ 0x301b, 0x00 },
++	{ 0x301c, 0x00 },
++	{ 0x3023, 0x05 },
++	{ 0x3037, 0xf0 },
++	{ 0x3098, 0x04 }, /* pll2 pre divider */
++	{ 0x3099, 0x28 }, /* pll2 multiplier */
++	{ 0x309a, 0x05 }, /* pll2 sys divider */
++	{ 0x309b, 0x04 }, /* pll2 adc divider */
++	{ 0x309d, 0x00 }, /* pll2 divider */
++	{ 0x30b0, 0x0a }, /* pll1 pix divider */
++	{ 0x30b1, 0x01 }, /* pll1 divider */
++	{ 0x30b3, 0x64 }, /* pll1 multiplier */
++	{ 0x30b4, 0x03 }, /* pll1 pre divider */
++	{ 0x30b5, 0x05 }, /* pll1 mipi divider */
++	{ 0x3106, 0xda },
++	{ 0x3503, 0x07 },
++	{ 0x3509, 0x10 },
++	{ 0x3600, 0x1c },
++	{ 0x3602, 0x62 },
++	{ 0x3620, 0xb7 },
++	{ 0x3622, 0x04 },
++	{ 0x3626, 0x21 },
++	{ 0x3627, 0x30 },
++	{ 0x3630, 0x44 },
++	{ 0x3631, 0x35 },
++	{ 0x3634, 0x60 },
++	{ 0x3636, 0x00 },
++	{ 0x3662, 0x01 },
++	{ 0x3663, 0x70 },
++	{ 0x3664, 0x50 },
++	{ 0x3666, 0x0a },
++	{ 0x3669, 0x1a },
++	{ 0x366a, 0x00 },
++	{ 0x366b, 0x50 },
++	{ 0x3673, 0x01 },
++	{ 0x3674, 0xff },
++	{ 0x3675, 0x03 },
++	{ 0x3705, 0xc1 },
++	{ 0x3709, 0x40 },
++	{ 0x373c, 0x08 },
++	{ 0x3742, 0x00 },
++	{ 0x3757, 0xb3 },
++	{ 0x3788, 0x00 },
++	{ 0x37a8, 0x01 },
++	{ 0x37a9, 0xc0 },
++	{ 0x3800, 0x00 },
++	{ 0x3801, 0x04 },
++	{ 0x3802, 0x00 },
++	{ 0x3803, 0x04 },
++	{ 0x3804, 0x02 },
++	{ 0x3805, 0x8b },
++	{ 0x3806, 0x01 },
++	{ 0x3807, 0xeb },
++	{ 0x3808, 0x02 }, /* width high */
++	{ 0x3809, 0x80 }, /* width low */
++	{ 0x380a, 0x01 }, /* height high */
++	{ 0x380b, 0xe0 }, /* height low */
++	{ 0x380c, 0x03 }, /* total horiz timing high */
++	{ 0x380d, 0xa0 }, /* total horiz timing low */
++	{ 0x380e, 0x03 }, /* total vertical timing high */
++	{ 0x380f, 0x5c }, /* total vertical timing low */
++	{ 0x3810, 0x00 },
++	{ 0x3811, 0x04 },
++	{ 0x3812, 0x00 },
++	{ 0x3813, 0x05 },
++	{ 0x3814, 0x11 },
++	{ 0x3815, 0x11 },
++	{ 0x3820, 0x40 },
++	{ 0x3821, 0x00 },
++	{ 0x382f, 0x0e },
++	{ 0x3832, 0x00 },
++	{ 0x3833, 0x05 },
++	{ 0x3834, 0x00 },
++	{ 0x3835, 0x0c },
++	{ 0x3837, 0x00 },
++	{ 0x3b80, 0x00 },
++	{ 0x3b81, 0xa5 },
++	{ 0x3b82, 0x10 },
++	{ 0x3b83, 0x00 },
++	{ 0x3b84, 0x08 },
++	{ 0x3b85, 0x00 },
++	{ 0x3b86, 0x01 },
++	{ 0x3b87, 0x00 },
++	{ 0x3b88, 0x00 },
++	{ 0x3b89, 0x00 },
++	{ 0x3b8a, 0x00 },
++	{ 0x3b8b, 0x05 },
++	{ 0x3b8c, 0x00 },
++	{ 0x3b8d, 0x00 },
++	{ 0x3b8e, 0x00 },
++	{ 0x3b8f, 0x1a },
++	{ 0x3b94, 0x05 },
++	{ 0x3b95, 0xf2 },
++	{ 0x3b96, 0x40 },
++	{ 0x3c00, 0x89 },
++	{ 0x3c01, 0x63 },
++	{ 0x3c02, 0x01 },
++	{ 0x3c03, 0x00 },
++	{ 0x3c04, 0x00 },
++	{ 0x3c05, 0x03 },
++	{ 0x3c06, 0x00 },
++	{ 0x3c07, 0x06 },
++	{ 0x3c0c, 0x01 },
++	{ 0x3c0d, 0xd0 },
++	{ 0x3c0e, 0x02 },
++	{ 0x3c0f, 0x0a },
++	{ 0x4001, 0x42 },
++	{ 0x4004, 0x04 },
++	{ 0x4005, 0x00 },
++	{ 0x404e, 0x01 },
++	{ 0x4300, 0xff },
++	{ 0x4301, 0x00 },
++	{ 0x4315, 0x00 },
++	{ 0x4501, 0x48 },
++	{ 0x4600, 0x00 },
++	{ 0x4601, 0x4e },
++	{ 0x4801, 0x0f },
++	{ 0x4806, 0x0f },
++	{ 0x4819, 0xaa },
++	{ 0x4823, 0x3e },
++	{ 0x4837, 0x19 },
++	{ 0x4a0d, 0x00 },
++	{ 0x4a47, 0x7f },
++	{ 0x4a49, 0xf0 },
++	{ 0x4a4b, 0x30 },
++	{ 0x5000, 0x85 },
++	{ 0x5001, 0x80 },
++};
++
++static const struct reg_value ov7251_setting_vga_90fps[] = {
++	{ 0x3005, 0x00 },
++	{ 0x3012, 0xc0 },
++	{ 0x3013, 0xd2 },
++	{ 0x3014, 0x04 },
++	{ 0x3016, 0x10 },
++	{ 0x3017, 0x00 },
++	{ 0x3018, 0x00 },
++	{ 0x301a, 0x00 },
++	{ 0x301b, 0x00 },
++	{ 0x301c, 0x00 },
++	{ 0x3023, 0x05 },
++	{ 0x3037, 0xf0 },
++	{ 0x3098, 0x04 }, /* pll2 pre divider */
++	{ 0x3099, 0x28 }, /* pll2 multiplier */
++	{ 0x309a, 0x05 }, /* pll2 sys divider */
++	{ 0x309b, 0x04 }, /* pll2 adc divider */
++	{ 0x309d, 0x00 }, /* pll2 divider */
++	{ 0x30b0, 0x0a }, /* pll1 pix divider */
++	{ 0x30b1, 0x01 }, /* pll1 divider */
++	{ 0x30b3, 0x64 }, /* pll1 multiplier */
++	{ 0x30b4, 0x03 }, /* pll1 pre divider */
++	{ 0x30b5, 0x05 }, /* pll1 mipi divider */
++	{ 0x3106, 0xda },
++	{ 0x3503, 0x07 },
++	{ 0x3509, 0x10 },
++	{ 0x3600, 0x1c },
++	{ 0x3602, 0x62 },
++	{ 0x3620, 0xb7 },
++	{ 0x3622, 0x04 },
++	{ 0x3626, 0x21 },
++	{ 0x3627, 0x30 },
++	{ 0x3630, 0x44 },
++	{ 0x3631, 0x35 },
++	{ 0x3634, 0x60 },
++	{ 0x3636, 0x00 },
++	{ 0x3662, 0x01 },
++	{ 0x3663, 0x70 },
++	{ 0x3664, 0x50 },
++	{ 0x3666, 0x0a },
++	{ 0x3669, 0x1a },
++	{ 0x366a, 0x00 },
++	{ 0x366b, 0x50 },
++	{ 0x3673, 0x01 },
++	{ 0x3674, 0xff },
++	{ 0x3675, 0x03 },
++	{ 0x3705, 0xc1 },
++	{ 0x3709, 0x40 },
++	{ 0x373c, 0x08 },
++	{ 0x3742, 0x00 },
++	{ 0x3757, 0xb3 },
++	{ 0x3788, 0x00 },
++	{ 0x37a8, 0x01 },
++	{ 0x37a9, 0xc0 },
++	{ 0x3800, 0x00 },
++	{ 0x3801, 0x04 },
++	{ 0x3802, 0x00 },
++	{ 0x3803, 0x04 },
++	{ 0x3804, 0x02 },
++	{ 0x3805, 0x8b },
++	{ 0x3806, 0x01 },
++	{ 0x3807, 0xeb },
++	{ 0x3808, 0x02 }, /* width high */
++	{ 0x3809, 0x80 }, /* width low */
++	{ 0x380a, 0x01 }, /* height high */
++	{ 0x380b, 0xe0 }, /* height low */
++	{ 0x380c, 0x03 }, /* total horiz timing high */
++	{ 0x380d, 0xa0 }, /* total horiz timing low */
++	{ 0x380e, 0x02 }, /* total vertical timing high */
++	{ 0x380f, 0x3c }, /* total vertical timing low */
++	{ 0x3810, 0x00 },
++	{ 0x3811, 0x04 },
++	{ 0x3812, 0x00 },
++	{ 0x3813, 0x05 },
++	{ 0x3814, 0x11 },
++	{ 0x3815, 0x11 },
++	{ 0x3820, 0x40 },
++	{ 0x3821, 0x00 },
++	{ 0x382f, 0x0e },
++	{ 0x3832, 0x00 },
++	{ 0x3833, 0x05 },
++	{ 0x3834, 0x00 },
++	{ 0x3835, 0x0c },
++	{ 0x3837, 0x00 },
++	{ 0x3b80, 0x00 },
++	{ 0x3b81, 0xa5 },
++	{ 0x3b82, 0x10 },
++	{ 0x3b83, 0x00 },
++	{ 0x3b84, 0x08 },
++	{ 0x3b85, 0x00 },
++	{ 0x3b86, 0x01 },
++	{ 0x3b87, 0x00 },
++	{ 0x3b88, 0x00 },
++	{ 0x3b89, 0x00 },
++	{ 0x3b8a, 0x00 },
++	{ 0x3b8b, 0x05 },
++	{ 0x3b8c, 0x00 },
++	{ 0x3b8d, 0x00 },
++	{ 0x3b8e, 0x00 },
++	{ 0x3b8f, 0x1a },
++	{ 0x3b94, 0x05 },
++	{ 0x3b95, 0xf2 },
++	{ 0x3b96, 0x40 },
++	{ 0x3c00, 0x89 },
++	{ 0x3c01, 0x63 },
++	{ 0x3c02, 0x01 },
++	{ 0x3c03, 0x00 },
++	{ 0x3c04, 0x00 },
++	{ 0x3c05, 0x03 },
++	{ 0x3c06, 0x00 },
++	{ 0x3c07, 0x06 },
++	{ 0x3c0c, 0x01 },
++	{ 0x3c0d, 0xd0 },
++	{ 0x3c0e, 0x02 },
++	{ 0x3c0f, 0x0a },
++	{ 0x4001, 0x42 },
++	{ 0x4004, 0x04 },
++	{ 0x4005, 0x00 },
++	{ 0x404e, 0x01 },
++	{ 0x4300, 0xff },
++	{ 0x4301, 0x00 },
++	{ 0x4315, 0x00 },
++	{ 0x4501, 0x48 },
++	{ 0x4600, 0x00 },
++	{ 0x4601, 0x4e },
++	{ 0x4801, 0x0f },
++	{ 0x4806, 0x0f },
++	{ 0x4819, 0xaa },
++	{ 0x4823, 0x3e },
++	{ 0x4837, 0x19 },
++	{ 0x4a0d, 0x00 },
++	{ 0x4a47, 0x7f },
++	{ 0x4a49, 0xf0 },
++	{ 0x4a4b, 0x30 },
++	{ 0x5000, 0x85 },
++	{ 0x5001, 0x80 },
++};
++
++static const s64 link_freq[] = {
++	240000000,
++};
++
++static const struct ov7251_mode_info ov7251_mode_info_data[] = {
 +	{
-+		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
-+		.fmt_reg = MIPI_CSIS_ISPCFG_FMT_RAW10,
-+		.data_alignment = 16,
-+	}, {
-+		.code = MEDIA_BUS_FMT_VYUY8_2X8,
-+		.fmt_reg = MIPI_CSIS_ISPCFG_FMT_YCBCR422_8BIT,
-+		.data_alignment = 16,
-+	}, {
-+		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
-+		.fmt_reg = MIPI_CSIS_ISPCFG_FMT_RAW8,
-+		.data_alignment = 8,
-+	}, {
-+		.code = MEDIA_BUS_FMT_YUYV8_2X8,
-+		.fmt_reg = MIPI_CSIS_ISPCFG_FMT_YCBCR422_8BIT,
-+		.data_alignment = 16,
-+	}
-+};
-+
-+#define mipi_csis_write(__csis, __r, __v) writel(__v, __csis->regs + __r)
-+#define mipi_csis_read(__csis, __r) readl(__csis->regs + __r)
-+
-+static void dump_regs(struct csi_state *state, const char *label)
-+{
-+	u32 cfg;
-+	u32 i;
-+	struct {
-+		u32 offset;
-+		const char * const name;
-+	} registers[] = {
-+		{ 0x04, "CTRL" },
-+		{ 0x24, "DPHYCTRL" },
-+		{ 0x08, "CLKCTRL" },
-+		{ 0x20, "DPHYSTS" },
-+		{ 0x10, "INTMSK" },
-+		{ 0x40, "CONFIG_CH0" },
-+		{ 0xC0, "DBG_CONFIG" },
-+		{ 0x38, "DPHYSLAVE_L" },
-+		{ 0x3C, "DPHYSLAVE_H" },
-+	};
-+
-+	v4l2_info(&state->mipi_sd, "--- %s ---\n", label);
-+
-+	for (i = 0; i < ARRAY_SIZE(registers); i++) {
-+		cfg = mipi_csis_read(state, registers[i].offset);
-+		v4l2_info(&state->mipi_sd, "%12s: 0x%08x 0x%p\n",
-+			  registers[i].name, cfg, state->regs);
-+	}
-+}
-+
-+static struct csi_state *mipi_sd_to_csis_state(struct v4l2_subdev *sdev)
-+{
-+	return container_of(sdev, struct csi_state, mipi_sd);
-+}
-+
-+static const struct csis_pix_format *find_csis_format(u32 code)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(mipi_csis_formats); i++)
-+		if (code == mipi_csis_formats[i].code)
-+			return &mipi_csis_formats[i];
-+	return NULL;
-+}
-+
-+static void mipi_csis_enable_interrupts(struct csi_state *state, bool on)
-+{
-+	u32 val = mipi_csis_read(state, MIPI_CSIS_INTMSK);
-+
-+	if (on)
-+		val |= 0xffffffff;
-+	else
-+		val &= ~0xffffffff;
-+	mipi_csis_write(state, MIPI_CSIS_INTMSK, val);
-+}
-+
-+static void mipi_csis_sw_reset(struct csi_state *state)
-+{
-+	u32 val = mipi_csis_read(state, MIPI_CSIS_CMN_CTRL);
-+
-+	mipi_csis_write(state, MIPI_CSIS_CMN_CTRL,
-+			val | MIPI_CSIS_CMN_CTRL_RESET);
-+	usleep_range(10, 20);
-+}
-+
-+static int mipi_csis_phy_init(struct csi_state *state)
-+{
-+	state->mipi_phy_regulator = devm_regulator_get(state->dev, "mipi-phy");
-+
-+	return regulator_set_voltage(state->mipi_phy_regulator, 1000000,
-+				     1000000);
-+}
-+
-+static void mipi_csis_phy_reset(struct csi_state *state)
-+{
-+	reset_control_assert(state->mrst);
-+
-+	msleep(20);
-+
-+	reset_control_deassert(state->mrst);
-+}
-+
-+static void mipi_csis_system_enable(struct csi_state *state, int on)
-+{
-+	u32 val, mask;
-+
-+	val = mipi_csis_read(state, MIPI_CSIS_CMN_CTRL);
-+	if (on)
-+		val |= MIPI_CSIS_CMN_CTRL_ENABLE;
-+	else
-+		val &= ~MIPI_CSIS_CMN_CTRL_ENABLE;
-+	mipi_csis_write(state, MIPI_CSIS_CMN_CTRL, val);
-+
-+	val = mipi_csis_read(state, MIPI_CSIS_DPHYCTRL);
-+	val &= ~MIPI_CSIS_DPHYCTRL_ENABLE;
-+	if (on) {
-+		mask = (1 << (state->num_lanes + 1)) - 1;
-+		val |= (mask & MIPI_CSIS_DPHYCTRL_ENABLE);
-+	}
-+	mipi_csis_write(state, MIPI_CSIS_DPHYCTRL, val);
-+}
-+
-+/* Called with the state.lock mutex held */
-+static void __mipi_csis_set_format(struct csi_state *state)
-+{
-+	struct v4l2_mbus_framefmt *mf = &state->format_mbus;
-+	u32 val;
-+
-+	/* Color format */
-+	val = mipi_csis_read(state, MIPI_CSIS_ISPCONFIG_CH0);
-+	val = (val & ~MIPI_CSIS_ISPCFG_FMT_MASK) | state->csis_fmt->fmt_reg;
-+	mipi_csis_write(state, MIPI_CSIS_ISPCONFIG_CH0, val);
-+
-+	/* Pixel resolution */
-+	val = mf->width | (mf->height << 16);
-+	mipi_csis_write(state, MIPI_CSIS_ISPRESOL_CH0, val);
-+}
-+
-+static void mipi_csis_set_hsync_settle(struct csi_state *state, int hs_settle,
-+				       int clk_settle)
-+{
-+	u32 val = mipi_csis_read(state, MIPI_CSIS_DPHYCTRL);
-+
-+	val = (val & ~MIPI_CSIS_DPHYCTRL_HSS_MASK) | (hs_settle << 24) |
-+		(clk_settle << 22);
-+
-+	mipi_csis_write(state, MIPI_CSIS_DPHYCTRL, val);
-+}
-+
-+static void mipi_csis_set_params(struct csi_state *state)
-+{
-+	u32 val;
-+
-+	val = mipi_csis_read(state, MIPI_CSIS_CMN_CTRL);
-+	val &= ~MIPI_CSIS_CMN_CTRL_LANE_NR_MASK;
-+	val |= (state->num_lanes - 1) << MIPI_CSIS_CMN_CTRL_LANE_NR_OFFSET;
-+	mipi_csis_write(state, MIPI_CSIS_CMN_CTRL, val);
-+
-+	__mipi_csis_set_format(state);
-+
-+	mipi_csis_set_hsync_settle(state, state->hs_settle, state->clk_settle);
-+
-+	val = mipi_csis_read(state, MIPI_CSIS_ISPCONFIG_CH0);
-+	if (state->csis_fmt->data_alignment == 32)
-+		val |= MIPI_CSIS_ISPCFG_ALIGN_32BIT;
-+	else
-+		val &= ~MIPI_CSIS_ISPCFG_ALIGN_32BIT;
-+	mipi_csis_write(state, MIPI_CSIS_ISPCONFIG_CH0, val);
-+
-+	val = (0 << MIPI_CSIS_ISPSYNC_HSYNC_LINTV_OFFSET) |
-+		(0 << MIPI_CSIS_ISPSYNC_VSYNC_SINTV_OFFSET) |
-+		(0 << MIPI_CSIS_ISPSYNC_VSYNC_EINTV_OFFSET);
-+	mipi_csis_write(state, MIPI_CSIS_ISPSYNC_CH0, val);
-+
-+	val = mipi_csis_read(state, MIPI_CSIS_CLK_CTRL);
-+	val &= ~MIPI_CSIS_CLK_CTRL_WCLK_SRC;
-+	if (state->wclk_ext)
-+		val |= MIPI_CSIS_CLK_CTRL_WCLK_SRC;
-+	val |= MIPI_CSIS_CLK_CTRL_CLKGATE_TRAIL_CH0(15);
-+	val &= ~MIPI_CSIS_CLK_CTRL_CLKGATE_EN_MSK;
-+	mipi_csis_write(state, MIPI_CSIS_CLK_CTRL, val);
-+
-+	mipi_csis_write(state, MIPI_CSIS_DPHYBCTRL_L, 0x1f4);
-+	mipi_csis_write(state, MIPI_CSIS_DPHYBCTRL_H, 0);
-+
-+	/* Update the shadow register. */
-+	val = mipi_csis_read(state, MIPI_CSIS_CMN_CTRL);
-+	mipi_csis_write(state, MIPI_CSIS_CMN_CTRL,
-+			val | MIPI_CSIS_CMN_CTRL_UPDATE_SHADOW |
-+			MIPI_CSIS_CMN_CTRL_UPDATE_SHADOW_CTRL);
-+}
-+
-+static void mipi_csis_clk_enable(struct csi_state *state)
-+{
-+	clk_prepare_enable(state->mipi_clk);
-+	clk_prepare_enable(state->phy_clk);
-+}
-+
-+static void mipi_csis_clk_disable(struct csi_state *state)
-+{
-+	clk_disable_unprepare(state->mipi_clk);
-+	clk_disable_unprepare(state->phy_clk);
-+}
-+
-+static int mipi_csis_clk_get(struct csi_state *state)
-+{
-+	struct device *dev = &state->pdev->dev;
-+	int ret = true;
-+
-+	state->mipi_clk = devm_clk_get(dev, "mipi");
-+	if (IS_ERR(state->mipi_clk)) {
-+		dev_err(dev, "Could not get mipi csi clock\n");
-+		return -ENODEV;
-+	}
-+
-+	state->phy_clk = devm_clk_get(dev, "phy");
-+	if (IS_ERR(state->phy_clk)) {
-+		dev_err(dev, "Could not get mipi phy clock\n");
-+		return -ENODEV;
-+	}
-+
-+	/* Set clock rate */
-+	if (state->clk_frequency)
-+		ret = clk_set_rate(state->mipi_clk, state->clk_frequency);
-+	else
-+		dev_warn(dev, "No clock frequency specified!\n");
-+	if (ret < 0) {
-+		dev_err(dev, "set rate=%d failed: %d\n", state->clk_frequency,
-+			ret);
-+		return -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static void mipi_csis_start_stream(struct csi_state *state)
-+{
-+	mipi_csis_sw_reset(state);
-+	mipi_csis_set_params(state);
-+	mipi_csis_system_enable(state, true);
-+	mipi_csis_enable_interrupts(state, true);
-+}
-+
-+static void mipi_csis_stop_stream(struct csi_state *state)
-+{
-+	mipi_csis_enable_interrupts(state, false);
-+	mipi_csis_system_enable(state, false);
-+}
-+
-+static void mipi_csis_clear_counters(struct csi_state *state)
-+{
-+	unsigned long flags;
-+	int i;
-+
-+	spin_lock_irqsave(&state->slock, flags);
-+	for (i = 0; i < MIPI_CSIS_NUM_EVENTS; i++)
-+		state->events[i].counter = 0;
-+	spin_unlock_irqrestore(&state->slock, flags);
-+}
-+
-+static void mipi_csis_log_counters(struct csi_state *state, bool non_errors)
-+{
-+	int i = non_errors ? MIPI_CSIS_NUM_EVENTS : MIPI_CSIS_NUM_EVENTS - 4;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&state->slock, flags);
-+
-+	for (i--; i >= 0; i--) {
-+		if (state->events[i].counter > 0 || debug)
-+			v4l2_info(&state->mipi_sd, "%s events: %d\n",
-+				  state->events[i].name,
-+				  state->events[i].counter);
-+	}
-+	spin_unlock_irqrestore(&state->slock, flags);
-+}
-+
-+/*
-+ * V4L2 subdev operations
-+ */
-+static int mipi_csis_s_power(struct v4l2_subdev *mipi_sd, int on)
-+{
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+	struct device *dev = &state->pdev->dev;
-+
-+	v4l2_subdev_call(state->src_sd, core, s_power, on);
-+
-+	if (on)
-+		return pm_runtime_get_sync(dev);
-+
-+	return pm_runtime_put_sync(dev);
-+}
-+
-+static int mipi_csis_s_stream(struct v4l2_subdev *mipi_sd, int enable)
-+{
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+	int ret = 0;
-+
-+	if (enable) {
-+		mipi_csis_clear_counters(state);
-+		ret = pm_runtime_get_sync(&state->pdev->dev);
-+		if (ret && ret != 1)
-+			return ret;
-+	}
-+
-+	mutex_lock(&state->lock);
-+	if (enable) {
-+		if (state->flags & ST_SUSPENDED) {
-+			ret = -EBUSY;
-+			goto unlock;
++		.width = 640,
++		.height = 480,
++		.data = ov7251_setting_vga_30fps,
++		.data_size = ARRAY_SIZE(ov7251_setting_vga_30fps),
++		.pixel_clock = 48000000,
++		.link_freq = 0, /* an index in link_freq[] */
++		.exposure_max = 1704,
++		.exposure_def = 504,
++		.timeperframe = {
++			.numerator = 100,
++			.denominator = 3000
 +		}
-+
-+		mipi_csis_start_stream(state);
-+		ret = v4l2_subdev_call(state->src_sd, video, s_stream, 1);
-+		if (ret < 0)
-+			goto unlock;
-+
-+		mipi_csis_log_counters(state, true);
-+
-+		state->flags |= ST_STREAMING;
-+	} else {
-+		v4l2_subdev_call(state->src_sd, video, s_stream, 0);
-+		mipi_csis_stop_stream(state);
-+		state->flags &= ~ST_STREAMING;
-+		if (debug > 0)
-+			mipi_csis_log_counters(state, true);
-+	}
-+
-+unlock:
-+	mutex_unlock(&state->lock);
-+	if (!enable)
-+		pm_runtime_put(&state->pdev->dev);
-+
-+	return ret;
-+}
-+
-+static int mipi_csis_link_setup(struct media_entity *entity,
-+				const struct media_pad *local_pad,
-+				const struct media_pad *remote_pad, u32 flags)
-+{
-+	struct v4l2_subdev *mipi_sd = media_entity_to_v4l2_subdev(entity);
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+	struct v4l2_subdev *remote_sd;
-+	int ret = 0;
-+
-+	dev_dbg(state->dev, "link setup %s -> %s", remote_pad->entity->name,
-+		local_pad->entity->name);
-+
-+	remote_sd = media_entity_to_v4l2_subdev(remote_pad->entity);
-+
-+	mutex_lock(&state->lock);
-+
-+	if (local_pad->flags & MEDIA_PAD_FL_SOURCE) {
-+		if (flags & MEDIA_LNK_FL_ENABLED) {
-+			if (state->sink_linked) {
-+				ret = -EBUSY;
-+				goto out;
-+			}
-+			state->sink_linked = true;
-+		} else {
-+			state->sink_linked = false;
++	},
++	{
++		.width = 640,
++		.height = 480,
++		.data = ov7251_setting_vga_60fps,
++		.data_size = ARRAY_SIZE(ov7251_setting_vga_60fps),
++		.pixel_clock = 48000000,
++		.link_freq = 0, /* an index in link_freq[] */
++		.exposure_max = 840,
++		.exposure_def = 504,
++		.timeperframe = {
++			.numerator = 100,
++			.denominator = 6014
 +		}
-+	} else {
-+		if (flags & MEDIA_LNK_FL_ENABLED) {
-+			if (state->src_sd) {
-+				ret = -EBUSY;
-+				goto out;
-+			}
-+			state->src_sd = remote_sd;
-+		} else {
-+			state->src_sd = NULL;
++	},
++	{
++		.width = 640,
++		.height = 480,
++		.data = ov7251_setting_vga_90fps,
++		.data_size = ARRAY_SIZE(ov7251_setting_vga_90fps),
++		.pixel_clock = 48000000,
++		.link_freq = 0, /* an index in link_freq[] */
++		.exposure_max = 552,
++		.exposure_def = 504,
++		.timeperframe = {
++			.numerator = 100,
++			.denominator = 9043
 +		}
-+	}
-+
-+out:
-+	mutex_unlock(&state->lock);
-+	return ret;
-+}
-+
-+static int mipi_csis_init_cfg(struct v4l2_subdev *mipi_sd,
-+			      struct v4l2_subdev_pad_config *cfg)
-+{
-+	struct v4l2_mbus_framefmt *mf;
-+	int ret;
-+	int i;
-+
-+	for (i = 0; i < CSIS_PADS_NUM; i++) {
-+		mf = v4l2_subdev_get_try_format(mipi_sd, cfg, i);
-+
-+		ret = imx_media_init_mbus_fmt(mf, MIPI_CSIS_DEF_PIX_HEIGHT,
-+					      MIPI_CSIS_DEF_PIX_WIDTH, 0,
-+					      V4L2_FIELD_NONE, NULL);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct csis_pix_format const *mipi_csis_try_format(
-+						struct v4l2_subdev *mipi_sd,
-+						struct v4l2_mbus_framefmt *mf)
-+{
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+	struct csis_pix_format const *csis_fmt;
-+
-+	csis_fmt = find_csis_format(mf->code);
-+	if (!csis_fmt)
-+		csis_fmt = &mipi_csis_formats[0];
-+
-+	v4l_bound_align_image(&mf->width, 1, CSIS_MAX_PIX_WIDTH,
-+			      csis_fmt->pix_width_alignment,
-+			      &mf->height, 1, CSIS_MAX_PIX_HEIGHT, 1,
-+			      0);
-+
-+	state->format_mbus.code = csis_fmt->code;
-+	state->format_mbus.width = mf->width;
-+	state->format_mbus.height = mf->height;
-+
-+	return csis_fmt;
-+}
-+
-+static struct v4l2_mbus_framefmt *mipi_csis_get_format(struct csi_state *state,
-+					struct v4l2_subdev_pad_config *cfg,
-+					enum v4l2_subdev_format_whence which,
-+					unsigned int pad)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_format(&state->mipi_sd, cfg, pad);
-+
-+	return &state->format_mbus;
-+}
-+
-+static int mipi_csis_set_fmt(struct v4l2_subdev *mipi_sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_format *sdformat)
-+{
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+	struct csis_pix_format const *csis_fmt;
-+	struct v4l2_mbus_framefmt *fmt;
-+
-+	if (sdformat->pad >= CSIS_PADS_NUM)
-+		return -EINVAL;
-+
-+	fmt = mipi_csis_get_format(state, cfg, sdformat->which, sdformat->pad);
-+
-+	mutex_lock(&state->lock);
-+	if (fmt && sdformat->pad == CSIS_PAD_SOURCE) {
-+		sdformat->format = *fmt;
-+		goto unlock;
-+	}
-+
-+	csis_fmt = mipi_csis_try_format(mipi_sd, &sdformat->format);
-+
-+	sdformat->format = *fmt;
-+
-+	if (csis_fmt && sdformat->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+		state->csis_fmt = csis_fmt;
-+	else
-+		cfg->try_fmt = sdformat->format;
-+
-+unlock:
-+	mutex_unlock(&state->lock);
-+
-+	return 0;
-+}
-+
-+static int mipi_csis_get_fmt(struct v4l2_subdev *mipi_sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_format *sdformat)
-+{
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+	struct v4l2_mbus_framefmt *fmt;
-+
-+	mutex_lock(&state->lock);
-+
-+	fmt = mipi_csis_get_format(state, cfg, sdformat->which, sdformat->pad);
-+
-+	sdformat->format = *fmt;
-+
-+	mutex_unlock(&state->lock);
-+
-+	return 0;
-+}
-+
-+static int mipi_csis_log_status(struct v4l2_subdev *mipi_sd)
-+{
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+
-+	mutex_lock(&state->lock);
-+	mipi_csis_log_counters(state, true);
-+	if (debug && (state->flags & ST_POWERED))
-+		dump_regs(state, __func__);
-+	mutex_unlock(&state->lock);
-+
-+	return 0;
-+}
-+
-+static irqreturn_t mipi_csis_irq_handler(int irq, void *dev_id)
-+{
-+	struct csi_state *state = dev_id;
-+	unsigned long flags;
-+	u32 status;
-+	int i;
-+
-+	status = mipi_csis_read(state, MIPI_CSIS_INTSRC);
-+
-+	spin_lock_irqsave(&state->slock, flags);
-+
-+	/* Update the event/error counters */
-+	if ((status & MIPI_CSIS_INTSRC_ERRORS) || 1) {
-+		for (i = 0; i < MIPI_CSIS_NUM_EVENTS; i++) {
-+			if (!(status & state->events[i].mask))
-+				continue;
-+			state->events[i].counter++;
-+		}
-+	}
-+	spin_unlock_irqrestore(&state->slock, flags);
-+
-+	mipi_csis_write(state, MIPI_CSIS_INTSRC, status);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int mipi_csi_registered(struct v4l2_subdev *mipi_sd)
-+{
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+	int i, ret;
-+
-+	for (i = 0; i < CSIS_PADS_NUM; i++) {
-+		state->pads[i].flags = (i == CSIS_PAD_SINK) ?
-+			MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
-+	}
-+
-+	/* set a default mbus format  */
-+	ret = imx_media_init_mbus_fmt(&state->format_mbus,
-+				      MIPI_CSIS_DEF_PIX_HEIGHT,
-+				      MIPI_CSIS_DEF_PIX_WIDTH, 0,
-+				      V4L2_FIELD_NONE, NULL);
-+	if (ret)
-+		return ret;
-+
-+	return media_entity_pads_init(&mipi_sd->entity, CSIS_PADS_NUM,
-+				      state->pads);
-+}
-+
-+static struct v4l2_subdev_core_ops mipi_csis_core_ops = {
-+	.s_power	= mipi_csis_s_power,
-+	.log_status	= mipi_csis_log_status,
-+};
-+
-+static const struct media_entity_operations mipi_csis_entity_ops = {
-+	.link_setup	= mipi_csis_link_setup,
-+	.link_validate	= v4l2_subdev_link_validate,
-+};
-+
-+static struct v4l2_subdev_video_ops mipi_csis_video_ops = {
-+	.s_stream	= mipi_csis_s_stream,
-+};
-+
-+static const struct v4l2_subdev_pad_ops mipi_csis_pad_ops = {
-+	.init_cfg		= mipi_csis_init_cfg,
-+	.get_fmt		= mipi_csis_get_fmt,
-+	.set_fmt		= mipi_csis_set_fmt,
-+};
-+
-+static struct v4l2_subdev_ops mipi_csis_subdev_ops = {
-+	.core	= &mipi_csis_core_ops,
-+	.video	= &mipi_csis_video_ops,
-+	.pad	= &mipi_csis_pad_ops,
-+};
-+
-+static const struct v4l2_subdev_internal_ops mipi_csis_internal_ops = {
-+	.registered = mipi_csi_registered,
-+};
-+
-+static int mipi_csis_parse_dt(struct platform_device *pdev,
-+			      struct csi_state *state)
-+{
-+	struct device_node *node = pdev->dev.of_node;
-+
-+	if (of_property_read_u32(node, "clock-frequency",
-+				 &state->clk_frequency))
-+		state->clk_frequency = DEFAULT_SCLK_CSIS_FREQ;
-+
-+	if (of_property_read_u32(node, "bus-width", &state->max_num_lanes))
-+		return -EINVAL;
-+
-+	node = of_graph_get_next_endpoint(node, NULL);
-+	if (!node) {
-+		dev_err(&pdev->dev, "No port node at %s\n",
-+			pdev->dev.of_node->full_name);
-+		return -EINVAL;
-+	}
-+
-+	/* Get MIPI PHY resets */
-+	state->mrst = devm_reset_control_get_exclusive(&pdev->dev, "mrst");
-+	if (IS_ERR(state->mrst))
-+		return PTR_ERR(state->mrst);
-+
-+	/* Get MIPI CSI-2 bus configration from the endpoint node. */
-+	of_property_read_u32(node, "csis-hs-settle", &state->hs_settle);
-+
-+	of_property_read_u32(node, "csis-clk-settle", &state->clk_settle);
-+	state->wclk_ext = of_property_read_bool(node, "csis-wclk");
-+
-+	of_property_read_u32(node, "data-lanes", &state->num_lanes);
-+	of_node_put(node);
-+
-+	if (state->num_lanes == 0 || state->num_lanes > state->max_num_lanes) {
-+		dev_err(&pdev->dev, "Unsupported number of data lanes: %d (max. %d)\n",
-+			state->num_lanes, state->max_num_lanes);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int mipi_csis_pm_resume(struct device *dev, bool runtime);
-+
-+static int mipi_csis_parse_endpoint(struct device *dev,
-+				    struct v4l2_fwnode_endpoint *ep,
-+				    struct v4l2_async_subdev *asd)
-+{
-+	struct v4l2_subdev *mipi_sd = dev_get_drvdata(dev);
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+
-+	if (!fwnode_device_is_available(asd->match.fwnode)) {
-+		v4l2_err(mipi_sd, "remote is not available\n");
-+		return -EINVAL;
-+	}
-+
-+	if (ep->bus_type != V4L2_MBUS_CSI2)
-+		v4l2_err(mipi_sd, "invalid bus type, must be MIPI CSI2\n");
-+
-+	state->bus = ep->bus.mipi_csi2;
-+
-+	dev_dbg(state->dev, "data lanes: %d\n", state->bus.num_data_lanes);
-+	dev_dbg(state->dev, "flags: 0x%08x\n", state->bus.flags);
-+
-+	return 0;
-+}
-+
-+static int mipi_csis_subdev_init(struct v4l2_subdev *mipi_sd,
-+				 struct platform_device *pdev,
-+				 const struct v4l2_subdev_ops *ops)
-+{
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+	unsigned int sink_port = 0;
-+	int ret;
-+
-+	v4l2_subdev_init(mipi_sd, ops);
-+	mipi_sd->owner = THIS_MODULE;
-+	snprintf(mipi_sd->name, sizeof(mipi_sd->name), "%s.%d",
-+		 CSIS_SUBDEV_NAME, state->index);
-+
-+	mipi_sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	mipi_sd->ctrl_handler = NULL;
-+
-+	mipi_sd->entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
-+	mipi_sd->entity.ops = &mipi_csis_entity_ops;
-+
-+	mipi_sd->dev = &pdev->dev;
-+
-+	state->csis_fmt = &mipi_csis_formats[0];
-+	state->format_mbus.code = mipi_csis_formats[0].code;
-+	state->format_mbus.width = MIPI_CSIS_DEF_PIX_WIDTH;
-+	state->format_mbus.height = MIPI_CSIS_DEF_PIX_HEIGHT;
-+	state->format_mbus.field = V4L2_FIELD_NONE;
-+
-+	v4l2_set_subdevdata(mipi_sd, &pdev->dev);
-+
-+	ret = v4l2_async_register_fwnode_subdev(mipi_sd,
-+				sizeof(struct v4l2_async_subdev), &sink_port, 1,
-+				mipi_csis_parse_endpoint);
-+	if (ret < 0)
-+		dev_err(&pdev->dev, "async fwnode register failed: %d\n", ret);
-+
-+	return ret;
-+}
-+
-+static int mipi_csis_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct resource *mem_res;
-+	struct csi_state *state;
-+	int ret = -ENOMEM;
-+
-+	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return -ENOMEM;
-+
-+	mutex_init(&state->lock);
-+	spin_lock_init(&state->slock);
-+
-+	state->pdev = pdev;
-+	state->dev = dev;
-+
-+	ret = mipi_csis_parse_dt(pdev, state);
-+	if (ret < 0) {
-+		dev_err(dev, "Failed to parse device tree: %d\n", ret);
-+		return ret;
-+	}
-+
-+	mipi_csis_phy_init(state);
-+	mipi_csis_phy_reset(state);
-+
-+	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	state->regs = devm_ioremap_resource(dev, mem_res);
-+	if (IS_ERR(state->regs))
-+		return PTR_ERR(state->regs);
-+
-+	state->irq = platform_get_irq(pdev, 0);
-+	if (state->irq < 0) {
-+		dev_err(dev, "Failed to get irq\n");
-+		return state->irq;
-+	}
-+
-+	ret = mipi_csis_clk_get(state);
-+	if (ret < 0)
-+		return ret;
-+
-+	mipi_csis_clk_enable(state);
-+
-+	ret = devm_request_irq(dev, state->irq, mipi_csis_irq_handler,
-+			       0, dev_name(dev), state);
-+	if (ret) {
-+		dev_err(dev, "Interrupt request failed\n");
-+		goto disable_clock;
-+	}
-+
-+	platform_set_drvdata(pdev, &state->mipi_sd);
-+
-+	ret = mipi_csis_subdev_init(&state->mipi_sd, pdev,
-+				    &mipi_csis_subdev_ops);
-+	if (ret < 0)
-+		goto disable_clock;
-+
-+	state->pads[CSIS_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
-+	state->pads[CSIS_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_pads_init(&state->mipi_sd.entity, CSIS_PADS_NUM,
-+				     state->pads);
-+	if (ret < 0)
-+		goto unregister_subdev;
-+
-+	memcpy(state->events, mipi_csis_events, sizeof(state->events));
-+
-+	pm_runtime_enable(dev);
-+	if (!pm_runtime_enabled(dev)) {
-+		ret = mipi_csis_pm_resume(dev, true);
-+		if (ret < 0)
-+			goto unregister_all;
-+	}
-+
-+	dev_info(&pdev->dev, "lanes: %d, hs_settle: %d, clk_settle: %d, wclk: %d, freq: %u\n",
-+		 state->num_lanes, state->hs_settle, state->clk_settle,
-+		 state->wclk_ext, state->clk_frequency);
-+	return 0;
-+
-+unregister_all:
-+	media_entity_cleanup(&state->mipi_sd.entity);
-+unregister_subdev:
-+	v4l2_async_unregister_subdev(&state->mipi_sd);
-+disable_clock:
-+	mipi_csis_clk_disable(state);
-+
-+	return ret;
-+}
-+
-+static int mipi_csis_pm_suspend(struct device *dev, bool runtime)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct v4l2_subdev *mipi_sd = platform_get_drvdata(pdev);
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+	int ret = 0;
-+
-+	mutex_lock(&state->lock);
-+	if (state->flags & ST_POWERED) {
-+		mipi_csis_stop_stream(state);
-+		ret = regulator_disable(state->mipi_phy_regulator);
-+		if (ret)
-+			goto unlock;
-+		mipi_csis_clk_disable(state);
-+		state->flags &= ~ST_POWERED;
-+		if (!runtime)
-+			state->flags |= ST_SUSPENDED;
-+	}
-+
-+ unlock:
-+	mutex_unlock(&state->lock);
-+
-+	return ret ? -EAGAIN : 0;
-+}
-+
-+static int mipi_csis_pm_resume(struct device *dev, bool runtime)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct v4l2_subdev *mipi_sd = platform_get_drvdata(pdev);
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+	int ret = 0;
-+
-+	mutex_lock(&state->lock);
-+	if (!runtime && !(state->flags & ST_SUSPENDED))
-+		goto unlock;
-+
-+	if (!(state->flags & ST_POWERED)) {
-+		ret = regulator_enable(state->mipi_phy_regulator);
-+		if (ret)
-+			goto unlock;
-+
-+		state->flags |= ST_POWERED;
-+		mipi_csis_clk_enable(state);
-+	}
-+	if (state->flags & ST_STREAMING)
-+		mipi_csis_start_stream(state);
-+
-+	state->flags &= ~ST_SUSPENDED;
-+
-+ unlock:
-+	mutex_unlock(&state->lock);
-+
-+	return ret ? -EAGAIN : 0;
-+}
-+
-+static int mipi_csis_suspend(struct device *dev)
-+{
-+	return mipi_csis_pm_suspend(dev, false);
-+}
-+
-+static int mipi_csis_resume(struct device *dev)
-+{
-+	return mipi_csis_pm_resume(dev, false);
-+}
-+
-+static int mipi_csis_runtime_suspend(struct device *dev)
-+{
-+	return mipi_csis_pm_suspend(dev, true);
-+}
-+
-+static int mipi_csis_runtime_resume(struct device *dev)
-+{
-+	return mipi_csis_pm_resume(dev, true);
-+}
-+
-+static int mipi_csis_remove(struct platform_device *pdev)
-+{
-+	struct v4l2_subdev *mipi_sd = platform_get_drvdata(pdev);
-+	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
-+
-+	v4l2_async_unregister_subdev(&state->mipi_sd);
-+	v4l2_async_notifier_unregister(&state->subdev_notifier);
-+
-+	pm_runtime_disable(&pdev->dev);
-+	mipi_csis_pm_suspend(&pdev->dev, true);
-+	mipi_csis_clk_disable(state);
-+	media_entity_cleanup(&state->mipi_sd.entity);
-+	pm_runtime_set_suspended(&pdev->dev);
-+
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops mipi_csis_pm_ops = {
-+	SET_RUNTIME_PM_OPS(mipi_csis_runtime_suspend, mipi_csis_runtime_resume,
-+			   NULL)
-+	SET_SYSTEM_SLEEP_PM_OPS(mipi_csis_suspend, mipi_csis_resume)
-+};
-+
-+static const struct of_device_id mipi_csis_of_match[] = {
-+	{ .compatible = "fsl,imx7-mipi-csi2", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, mipi_csis_of_match);
-+
-+static struct platform_driver mipi_csis_driver = {
-+	.probe		= mipi_csis_probe,
-+	.remove		= mipi_csis_remove,
-+	.driver		= {
-+		.of_match_table = mipi_csis_of_match,
-+		.name		= CSIS_DRIVER_NAME,
-+		.owner		= THIS_MODULE,
-+		.pm		= &mipi_csis_pm_ops,
 +	},
 +};
 +
-+module_platform_driver(mipi_csis_driver);
++static int ov7251_regulators_enable(struct ov7251 *ov7251)
++{
++	int ret;
 +
-+MODULE_DESCRIPTION("i.MX7 MIPI CSI-2 Receiver driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:imx7-mipi-csi2");
++	/* OV7251 power up sequence requires core regulator
++	 * to be enabled not earlier than io regulator
++	 */
++
++	ret = regulator_enable(ov7251->io_regulator);
++	if (ret < 0) {
++		dev_err(ov7251->dev, "set io voltage failed\n");
++		return ret;
++	}
++
++	ret = regulator_enable(ov7251->analog_regulator);
++	if (ret) {
++		dev_err(ov7251->dev, "set analog voltage failed\n");
++		goto err_disable_io;
++	}
++
++	ret = regulator_enable(ov7251->core_regulator);
++	if (ret) {
++		dev_err(ov7251->dev, "set core voltage failed\n");
++		goto err_disable_analog;
++	}
++
++	return 0;
++
++err_disable_analog:
++	regulator_disable(ov7251->analog_regulator);
++err_disable_io:
++	regulator_disable(ov7251->io_regulator);
++
++	return ret;
++}
++
++static void ov7251_regulators_disable(struct ov7251 *ov7251)
++{
++	int ret;
++
++	ret = regulator_disable(ov7251->core_regulator);
++	if (ret < 0)
++		dev_err(ov7251->dev, "core regulator disable failed\n");
++
++	ret = regulator_disable(ov7251->analog_regulator);
++	if (ret < 0)
++		dev_err(ov7251->dev, "analog regulator disable failed\n");
++
++	ret = regulator_disable(ov7251->io_regulator);
++	if (ret < 0)
++		dev_err(ov7251->dev, "io regulator disable failed\n");
++}
++
++static int ov7251_write_reg(struct ov7251 *ov7251, u16 reg, u8 val)
++{
++	u8 regbuf[3];
++	int ret;
++
++	regbuf[0] = reg >> 8;
++	regbuf[1] = reg & 0xff;
++	regbuf[2] = val;
++
++	ret = i2c_master_send(ov7251->i2c_client, regbuf, 3);
++	if (ret < 0) {
++		dev_err(ov7251->dev, "%s: write reg error %d: reg=%x, val=%x\n",
++			__func__, ret, reg, val);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int ov7251_write_seq_regs(struct ov7251 *ov7251, u16 reg, u8 *val,
++				 u8 num)
++{
++	u8 *regbuf;
++	u8 nregbuf = sizeof(reg) + num * sizeof(*val);
++	int ret = 0;
++	int i;
++
++	regbuf = kzalloc(nregbuf, GFP_KERNEL);
++	if (!regbuf)
++		return -ENOMEM;
++
++	regbuf[0] = reg >> 8;
++	regbuf[1] = reg & 0xff;
++
++	for (i = 0; i < num; i++)
++		regbuf[2 + i] = val[i];
++
++	ret = i2c_master_send(ov7251->i2c_client, regbuf, nregbuf);
++	kfree(regbuf);
++	if (ret < 0) {
++		dev_err(ov7251->dev, "%s: write seq regs error %d: first reg=%x\n",
++			__func__, ret, reg);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int ov7251_read_reg(struct ov7251 *ov7251, u16 reg, u8 *val)
++{
++	u8 regbuf[2];
++	int ret;
++
++	regbuf[0] = reg >> 8;
++	regbuf[1] = reg & 0xff;
++
++	ret = i2c_master_send(ov7251->i2c_client, regbuf, 2);
++	if (ret < 0) {
++		dev_err(ov7251->dev, "%s: write reg error %d: reg=%x\n",
++			__func__, ret, reg);
++		return ret;
++	}
++
++	ret = i2c_master_recv(ov7251->i2c_client, val, 1);
++	if (ret < 0) {
++		dev_err(ov7251->dev, "%s: read reg error %d: reg=%x\n",
++			__func__, ret, reg);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int ov7251_set_exposure(struct ov7251 *ov7251, s32 exposure)
++{
++	u16 reg;
++	u8 val[3];
++
++	reg = OV7251_AEC_EXPO_0;
++	val[0] = (exposure & 0xf000) >> 12; /* goes to OV7251_AEC_EXPO_0 */
++	val[1] = (exposure & 0x0ff0) >> 4;  /* goes to OV7251_AEC_EXPO_1 */
++	val[2] = (exposure & 0x000f) << 4;  /* goes to OV7251_AEC_EXPO_2 */
++
++	return ov7251_write_seq_regs(ov7251, reg, val, 3);
++}
++
++static int ov7251_set_gain(struct ov7251 *ov7251, s32 gain)
++{
++	u16 reg;
++	u8 val[2];
++
++	reg = OV7251_AEC_AGC_ADJ_0;
++	val[0] = (gain & 0x0300) >> 8; /* goes to OV7251_AEC_AGC_ADJ_0 */
++	val[1] = gain & 0xff;          /* goes to OV7251_AEC_AGC_ADJ_1 */
++
++	return ov7251_write_seq_regs(ov7251, reg, val, 2);
++}
++
++static int ov7251_set_register_array(struct ov7251 *ov7251,
++				     const struct reg_value *settings,
++				     unsigned int num_settings)
++{
++	unsigned int i;
++	int ret;
++
++	for (i = 0; i < num_settings; ++i, ++settings) {
++		ret = ov7251_write_reg(ov7251, settings->reg, settings->val);
++		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int ov7251_set_power_on(struct ov7251 *ov7251)
++{
++	int ret;
++	u32 wait_us;
++
++	ret = ov7251_regulators_enable(ov7251);
++	if (ret < 0)
++		return ret;
++
++	ret = clk_prepare_enable(ov7251->xclk);
++	if (ret < 0) {
++		dev_err(ov7251->dev, "clk prepare enable failed\n");
++		ov7251_regulators_disable(ov7251);
++		return ret;
++	}
++
++	gpiod_set_value_cansleep(ov7251->enable_gpio, 1);
++
++	/* wait at least 65536 external clock cycles */
++	wait_us = (65536 * 1000) / (ov7251->xclk_freq / 1000);
++	usleep_range(wait_us, wait_us + 1000);
++
++	return 0;
++}
++
++static void ov7251_set_power_off(struct ov7251 *ov7251)
++{
++	clk_disable_unprepare(ov7251->xclk);
++	gpiod_set_value_cansleep(ov7251->enable_gpio, 0);
++	ov7251_regulators_disable(ov7251);
++}
++
++static int ov7251_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct ov7251 *ov7251 = to_ov7251(sd);
++	int ret = 0;
++
++	mutex_lock(&ov7251->lock);
++
++	/* If the power state is not modified - no work to do. */
++	if (ov7251->power_on == !!on)
++		goto exit;
++
++	if (on) {
++		ret = ov7251_set_power_on(ov7251);
++		if (ret < 0)
++			goto exit;
++
++		ret = ov7251_set_register_array(ov7251,
++					ov7251_global_init_setting,
++					ARRAY_SIZE(ov7251_global_init_setting));
++		if (ret < 0) {
++			dev_err(ov7251->dev, "could not set init registers\n");
++			ov7251_set_power_off(ov7251);
++			goto exit;
++		}
++
++		ov7251->power_on = true;
++	} else {
++		ov7251_set_power_off(ov7251);
++		ov7251->power_on = false;
++	}
++
++exit:
++	mutex_unlock(&ov7251->lock);
++
++	return ret;
++}
++
++static int ov7251_set_hflip(struct ov7251 *ov7251, s32 value)
++{
++	u8 val = ov7251->timing_format2;
++	int ret;
++
++	if (value)
++		val |= OV7251_TIMING_FORMAT2_MIRROR;
++	else
++		val &= ~OV7251_TIMING_FORMAT2_MIRROR;
++
++	ret = ov7251_write_reg(ov7251, OV7251_TIMING_FORMAT2, val);
++	if (!ret)
++		ov7251->timing_format2 = val;
++
++	return ret;
++}
++
++static int ov7251_set_vflip(struct ov7251 *ov7251, s32 value)
++{
++	u8 val = ov7251->timing_format1;
++	int ret;
++
++	if (value)
++		val |= OV7251_TIMING_FORMAT1_VFLIP;
++	else
++		val &= ~OV7251_TIMING_FORMAT1_VFLIP;
++
++	ret = ov7251_write_reg(ov7251, OV7251_TIMING_FORMAT1, val);
++	if (!ret)
++		ov7251->timing_format1 = val;
++
++	return ret;
++}
++
++static int ov7251_set_test_pattern(struct ov7251 *ov7251, s32 value)
++{
++	u8 val = ov7251->pre_isp_00;
++	int ret;
++
++	if (value)
++		val |= OV7251_PRE_ISP_00_TEST_PATTERN;
++	else
++		val &= ~OV7251_PRE_ISP_00_TEST_PATTERN;
++
++	ret = ov7251_write_reg(ov7251, OV7251_PRE_ISP_00, val);
++	if (!ret)
++		ov7251->pre_isp_00 = val;
++
++	return ret;
++}
++
++static const char * const ov7251_test_pattern_menu[] = {
++	"Disabled",
++	"Vertical Pattern Bars",
++};
++
++static int ov7251_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct ov7251 *ov7251 = container_of(ctrl->handler,
++					     struct ov7251, ctrls);
++	int ret;
++
++	/* v4l2_ctrl_lock() locks our mutex */
++
++	if (!ov7251->power_on)
++		return 0;
++
++	switch (ctrl->id) {
++	case V4L2_CID_EXPOSURE:
++		ret = ov7251_set_exposure(ov7251, ctrl->val);
++		break;
++	case V4L2_CID_GAIN:
++		ret = ov7251_set_gain(ov7251, ctrl->val);
++		break;
++	case V4L2_CID_TEST_PATTERN:
++		ret = ov7251_set_test_pattern(ov7251, ctrl->val);
++		break;
++	case V4L2_CID_HFLIP:
++		ret = ov7251_set_hflip(ov7251, ctrl->val);
++		break;
++	case V4L2_CID_VFLIP:
++		ret = ov7251_set_vflip(ov7251, ctrl->val);
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops ov7251_ctrl_ops = {
++	.s_ctrl = ov7251_s_ctrl,
++};
++
++static int ov7251_enum_mbus_code(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_mbus_code_enum *code)
++{
++	if (code->index > 0)
++		return -EINVAL;
++
++	code->code = MEDIA_BUS_FMT_Y10_1X10;
++
++	return 0;
++}
++
++static int ov7251_enum_frame_size(struct v4l2_subdev *subdev,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_frame_size_enum *fse)
++{
++	if (fse->code != MEDIA_BUS_FMT_Y10_1X10)
++		return -EINVAL;
++
++	if (fse->index >= ARRAY_SIZE(ov7251_mode_info_data))
++		return -EINVAL;
++
++	fse->min_width = ov7251_mode_info_data[fse->index].width;
++	fse->max_width = ov7251_mode_info_data[fse->index].width;
++	fse->min_height = ov7251_mode_info_data[fse->index].height;
++	fse->max_height = ov7251_mode_info_data[fse->index].height;
++
++	return 0;
++}
++
++static int ov7251_enum_frame_ival(struct v4l2_subdev *subdev,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_frame_interval_enum *fie)
++{
++	int index = fie->index;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(ov7251_mode_info_data); i++) {
++		if (fie->width != ov7251_mode_info_data[i].width ||
++		    fie->height != ov7251_mode_info_data[i].height)
++			continue;
++
++		if (index-- == 0) {
++			fie->interval = ov7251_mode_info_data[i].timeperframe;
++			return 0;
++		}
++	}
++
++	return -EINVAL;
++}
++
++static struct v4l2_mbus_framefmt *
++__ov7251_get_pad_format(struct ov7251 *ov7251,
++			struct v4l2_subdev_pad_config *cfg,
++			unsigned int pad,
++			enum v4l2_subdev_format_whence which)
++{
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_format(&ov7251->sd, cfg, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &ov7251->fmt;
++	default:
++		return NULL;
++	}
++}
++
++static int ov7251_get_format(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_format *format)
++{
++	struct ov7251 *ov7251 = to_ov7251(sd);
++
++	mutex_lock(&ov7251->lock);
++	format->format = *__ov7251_get_pad_format(ov7251, cfg, format->pad,
++						  format->which);
++	mutex_unlock(&ov7251->lock);
++
++	return 0;
++}
++
++static struct v4l2_rect *
++__ov7251_get_pad_crop(struct ov7251 *ov7251, struct v4l2_subdev_pad_config *cfg,
++		      unsigned int pad, enum v4l2_subdev_format_whence which)
++{
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_crop(&ov7251->sd, cfg, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &ov7251->crop;
++	default:
++		return NULL;
++	}
++}
++
++static inline u32 avg_fps(const struct v4l2_fract *t)
++{
++	return (t->denominator + (t->numerator >> 1)) / t->numerator;
++}
++
++static const struct ov7251_mode_info *
++ov7251_find_mode_by_ival(struct ov7251 *ov7251, struct v4l2_fract *timeperframe)
++{
++	const struct ov7251_mode_info *mode = ov7251->current_mode;
++	int fps_req = avg_fps(timeperframe);
++	unsigned int max_dist_match = (unsigned int) -1;
++	int i, n = 0;
++
++	for (i = 0; i < ARRAY_SIZE(ov7251_mode_info_data); i++) {
++		unsigned int dist;
++		int fps_tmp;
++
++		if (mode->width != ov7251_mode_info_data[i].width ||
++		    mode->height != ov7251_mode_info_data[i].height)
++			continue;
++
++		fps_tmp = avg_fps(&ov7251_mode_info_data[i].timeperframe);
++
++		dist = abs(fps_req - fps_tmp);
++
++		if (dist < max_dist_match) {
++			n = i;
++			max_dist_match = dist;
++		}
++	}
++
++	return &ov7251_mode_info_data[n];
++}
++
++static int ov7251_set_format(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_format *format)
++{
++	struct ov7251 *ov7251 = to_ov7251(sd);
++	struct v4l2_mbus_framefmt *__format;
++	struct v4l2_rect *__crop;
++	const struct ov7251_mode_info *new_mode;
++	int ret = 0;
++
++	mutex_lock(&ov7251->lock);
++
++	__crop = __ov7251_get_pad_crop(ov7251, cfg, format->pad, format->which);
++
++	new_mode = v4l2_find_nearest_size(ov7251_mode_info_data,
++				ARRAY_SIZE(ov7251_mode_info_data),
++				width, height,
++				format->format.width, format->format.height);
++
++	__crop->width = new_mode->width;
++	__crop->height = new_mode->height;
++
++	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		ret = __v4l2_ctrl_s_ctrl_int64(ov7251->pixel_clock,
++					       new_mode->pixel_clock);
++		if (ret < 0)
++			goto exit;
++
++		ret = __v4l2_ctrl_s_ctrl(ov7251->link_freq,
++					 new_mode->link_freq);
++		if (ret < 0)
++			goto exit;
++
++		ret = __v4l2_ctrl_modify_range(ov7251->exposure,
++					       1, new_mode->exposure_max,
++					       1, new_mode->exposure_def);
++		if (ret < 0)
++			goto exit;
++
++		ret = __v4l2_ctrl_s_ctrl(ov7251->exposure,
++					 new_mode->exposure_def);
++		if (ret < 0)
++			goto exit;
++
++		ret = __v4l2_ctrl_s_ctrl(ov7251->gain, 16);
++		if (ret < 0)
++			goto exit;
++
++		ov7251->current_mode = new_mode;
++	}
++
++	__format = __ov7251_get_pad_format(ov7251, cfg, format->pad,
++					   format->which);
++	__format->width = __crop->width;
++	__format->height = __crop->height;
++	__format->code = MEDIA_BUS_FMT_Y10_1X10;
++	__format->field = V4L2_FIELD_NONE;
++	__format->colorspace = V4L2_COLORSPACE_SRGB;
++	__format->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(__format->colorspace);
++	__format->quantization = V4L2_MAP_QUANTIZATION_DEFAULT(true,
++				__format->colorspace, __format->ycbcr_enc);
++	__format->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(__format->colorspace);
++
++	format->format = *__format;
++
++exit:
++	mutex_unlock(&ov7251->lock);
++
++	return ret;
++}
++
++static int ov7251_entity_init_cfg(struct v4l2_subdev *subdev,
++				  struct v4l2_subdev_pad_config *cfg)
++{
++	struct v4l2_subdev_format fmt = { 0 };
++
++	fmt.which = cfg ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
++	fmt.format.width = 640;
++	fmt.format.height = 480;
++
++	ov7251_set_format(subdev, cfg, &fmt);
++
++	return 0;
++}
++
++static int ov7251_get_selection(struct v4l2_subdev *sd,
++				struct v4l2_subdev_pad_config *cfg,
++				struct v4l2_subdev_selection *sel)
++{
++	struct ov7251 *ov7251 = to_ov7251(sd);
++
++	if (sel->target != V4L2_SEL_TGT_CROP)
++		return -EINVAL;
++
++	mutex_lock(&ov7251->lock);
++	sel->r = *__ov7251_get_pad_crop(ov7251, cfg, sel->pad,
++					sel->which);
++	mutex_unlock(&ov7251->lock);
++
++	return 0;
++}
++
++static int ov7251_s_stream(struct v4l2_subdev *subdev, int enable)
++{
++	struct ov7251 *ov7251 = to_ov7251(subdev);
++	int ret;
++
++	mutex_lock(&ov7251->lock);
++
++	if (enable) {
++		ret = ov7251_set_register_array(ov7251,
++					ov7251->current_mode->data,
++					ov7251->current_mode->data_size);
++		if (ret < 0) {
++			dev_err(ov7251->dev, "could not set mode %dx%d\n",
++				ov7251->current_mode->width,
++				ov7251->current_mode->height);
++			goto exit;
++		}
++		ret = __v4l2_ctrl_handler_setup(&ov7251->ctrls);
++		if (ret < 0) {
++			dev_err(ov7251->dev, "could not sync v4l2 controls\n");
++			goto exit;
++		}
++		ret = ov7251_write_reg(ov7251, OV7251_SC_MODE_SELECT,
++				       OV7251_SC_MODE_SELECT_STREAMING);
++	} else {
++		ret = ov7251_write_reg(ov7251, OV7251_SC_MODE_SELECT,
++				       OV7251_SC_MODE_SELECT_SW_STANDBY);
++	}
++
++exit:
++	mutex_unlock(&ov7251->lock);
++
++	return ret;
++}
++
++static int ov7251_get_frame_interval(struct v4l2_subdev *subdev,
++				     struct v4l2_subdev_frame_interval *fi)
++{
++	struct ov7251 *ov7251 = to_ov7251(subdev);
++
++	mutex_lock(&ov7251->lock);
++	fi->interval = ov7251->current_mode->timeperframe;
++	mutex_unlock(&ov7251->lock);
++
++	return 0;
++}
++
++static int ov7251_set_frame_interval(struct v4l2_subdev *subdev,
++				     struct v4l2_subdev_frame_interval *fi)
++{
++	struct ov7251 *ov7251 = to_ov7251(subdev);
++	const struct ov7251_mode_info *new_mode;
++	int ret = 0;
++
++	mutex_lock(&ov7251->lock);
++	new_mode = ov7251_find_mode_by_ival(ov7251, &fi->interval);
++
++	if (new_mode != ov7251->current_mode) {
++		ret = __v4l2_ctrl_s_ctrl_int64(ov7251->pixel_clock,
++					       new_mode->pixel_clock);
++		if (ret < 0)
++			goto exit;
++
++		ret = __v4l2_ctrl_s_ctrl(ov7251->link_freq,
++					 new_mode->link_freq);
++		if (ret < 0)
++			goto exit;
++
++		ret = __v4l2_ctrl_modify_range(ov7251->exposure,
++					       1, new_mode->exposure_max,
++					       1, new_mode->exposure_def);
++		if (ret < 0)
++			goto exit;
++
++		ret = __v4l2_ctrl_s_ctrl(ov7251->exposure,
++					 new_mode->exposure_def);
++		if (ret < 0)
++			goto exit;
++
++		ret = __v4l2_ctrl_s_ctrl(ov7251->gain, 16);
++		if (ret < 0)
++			goto exit;
++
++		ov7251->current_mode = new_mode;
++	}
++
++	fi->interval = ov7251->current_mode->timeperframe;
++
++exit:
++	mutex_unlock(&ov7251->lock);
++
++	return ret;
++}
++
++static const struct v4l2_subdev_core_ops ov7251_core_ops = {
++	.s_power = ov7251_s_power,
++};
++
++static const struct v4l2_subdev_video_ops ov7251_video_ops = {
++	.s_stream = ov7251_s_stream,
++	.g_frame_interval = ov7251_get_frame_interval,
++	.s_frame_interval = ov7251_set_frame_interval,
++};
++
++static const struct v4l2_subdev_pad_ops ov7251_subdev_pad_ops = {
++	.init_cfg = ov7251_entity_init_cfg,
++	.enum_mbus_code = ov7251_enum_mbus_code,
++	.enum_frame_size = ov7251_enum_frame_size,
++	.enum_frame_interval = ov7251_enum_frame_ival,
++	.get_fmt = ov7251_get_format,
++	.set_fmt = ov7251_set_format,
++	.get_selection = ov7251_get_selection,
++};
++
++static const struct v4l2_subdev_ops ov7251_subdev_ops = {
++	.core = &ov7251_core_ops,
++	.video = &ov7251_video_ops,
++	.pad = &ov7251_subdev_pad_ops,
++};
++
++static int ov7251_probe(struct i2c_client *client)
++{
++	struct device *dev = &client->dev;
++	struct fwnode_handle *endpoint;
++	struct ov7251 *ov7251;
++	u8 chip_id_high, chip_id_low, chip_rev;
++	int ret;
++
++	ov7251 = devm_kzalloc(dev, sizeof(struct ov7251), GFP_KERNEL);
++	if (!ov7251)
++		return -ENOMEM;
++
++	ov7251->i2c_client = client;
++	ov7251->dev = dev;
++
++	endpoint = fwnode_graph_get_next_endpoint(dev_fwnode(dev), NULL);
++	if (!endpoint) {
++		dev_err(dev, "endpoint node not found\n");
++		return -EINVAL;
++	}
++
++	ret = v4l2_fwnode_endpoint_parse(endpoint, &ov7251->ep);
++	fwnode_handle_put(endpoint);
++	if (ret < 0) {
++		dev_err(dev, "parsing endpoint node failed\n");
++		return ret;
++	}
++
++	if (ov7251->ep.bus_type != V4L2_MBUS_CSI2) {
++		dev_err(dev, "invalid bus type (%u), must be CSI2 (%u)\n",
++			ov7251->ep.bus_type, V4L2_MBUS_CSI2);
++		return -EINVAL;
++	}
++
++	/* get system clock (xclk) */
++	ov7251->xclk = devm_clk_get(dev, "xclk");
++	if (IS_ERR(ov7251->xclk)) {
++		dev_err(dev, "could not get xclk");
++		return PTR_ERR(ov7251->xclk);
++	}
++
++	ret = fwnode_property_read_u32(dev_fwnode(dev), "clock-frequency",
++				       &ov7251->xclk_freq);
++	if (ret) {
++		dev_err(dev, "could not get xclk frequency\n");
++		return ret;
++	}
++
++	/* external clock must be 24MHz, allow 1% tolerance */
++	if (ov7251->xclk_freq < 23760000 || ov7251->xclk_freq > 24240000) {
++		dev_err(dev, "external clock frequency %u is not supported\n",
++			ov7251->xclk_freq);
++		return -EINVAL;
++	}
++
++	ret = clk_set_rate(ov7251->xclk, ov7251->xclk_freq);
++	if (ret) {
++		dev_err(dev, "could not set xclk frequency\n");
++		return ret;
++	}
++
++	ov7251->io_regulator = devm_regulator_get(dev, "vdddo");
++	if (IS_ERR(ov7251->io_regulator)) {
++		dev_err(dev, "cannot get io regulator\n");
++		return PTR_ERR(ov7251->io_regulator);
++	}
++
++	ov7251->core_regulator = devm_regulator_get(dev, "vddd");
++	if (IS_ERR(ov7251->core_regulator)) {
++		dev_err(dev, "cannot get core regulator\n");
++		return PTR_ERR(ov7251->core_regulator);
++	}
++
++	ov7251->analog_regulator = devm_regulator_get(dev, "vdda");
++	if (IS_ERR(ov7251->analog_regulator)) {
++		dev_err(dev, "cannot get analog regulator\n");
++		return PTR_ERR(ov7251->analog_regulator);
++	}
++
++	ov7251->enable_gpio = devm_gpiod_get(dev, "enable", GPIOD_OUT_HIGH);
++	if (IS_ERR(ov7251->enable_gpio)) {
++		dev_err(dev, "cannot get enable gpio\n");
++		return PTR_ERR(ov7251->enable_gpio);
++	}
++
++	mutex_init(&ov7251->lock);
++
++	v4l2_ctrl_handler_init(&ov7251->ctrls, 7);
++	ov7251->ctrls.lock = &ov7251->lock;
++
++	v4l2_ctrl_new_std(&ov7251->ctrls, &ov7251_ctrl_ops,
++			  V4L2_CID_HFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_new_std(&ov7251->ctrls, &ov7251_ctrl_ops,
++			  V4L2_CID_VFLIP, 0, 1, 1, 0);
++	ov7251->exposure = v4l2_ctrl_new_std(&ov7251->ctrls, &ov7251_ctrl_ops,
++					     V4L2_CID_EXPOSURE, 1, 32, 1, 32);
++	ov7251->gain = v4l2_ctrl_new_std(&ov7251->ctrls, &ov7251_ctrl_ops,
++					 V4L2_CID_GAIN, 16, 1023, 1, 16);
++	v4l2_ctrl_new_std_menu_items(&ov7251->ctrls, &ov7251_ctrl_ops,
++				     V4L2_CID_TEST_PATTERN,
++				     ARRAY_SIZE(ov7251_test_pattern_menu) - 1,
++				     0, 0, ov7251_test_pattern_menu);
++	ov7251->pixel_clock = v4l2_ctrl_new_std(&ov7251->ctrls,
++						&ov7251_ctrl_ops,
++						V4L2_CID_PIXEL_RATE,
++						1, INT_MAX, 1, 1);
++	ov7251->link_freq = v4l2_ctrl_new_int_menu(&ov7251->ctrls,
++						   &ov7251_ctrl_ops,
++						   V4L2_CID_LINK_FREQ,
++						   ARRAY_SIZE(link_freq) - 1,
++						   0, link_freq);
++	if (ov7251->link_freq)
++		ov7251->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++
++	ov7251->sd.ctrl_handler = &ov7251->ctrls;
++
++	if (ov7251->ctrls.error) {
++		dev_err(dev, "%s: control initialization error %d\n",
++			__func__, ov7251->ctrls.error);
++		ret = ov7251->ctrls.error;
++		goto free_ctrl;
++	}
++
++	v4l2_i2c_subdev_init(&ov7251->sd, client, &ov7251_subdev_ops);
++	ov7251->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	ov7251->pad.flags = MEDIA_PAD_FL_SOURCE;
++	ov7251->sd.dev = &client->dev;
++	ov7251->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++
++	ret = media_entity_pads_init(&ov7251->sd.entity, 1, &ov7251->pad);
++	if (ret < 0) {
++		dev_err(dev, "could not register media entity\n");
++		goto free_ctrl;
++	}
++
++	ret = ov7251_s_power(&ov7251->sd, true);
++	if (ret < 0) {
++		dev_err(dev, "could not power up OV7251\n");
++		goto free_entity;
++	}
++
++	ret = ov7251_read_reg(ov7251, OV7251_CHIP_ID_HIGH, &chip_id_high);
++	if (ret < 0 || chip_id_high != OV7251_CHIP_ID_HIGH_BYTE) {
++		dev_err(dev, "could not read ID high\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++	ret = ov7251_read_reg(ov7251, OV7251_CHIP_ID_LOW, &chip_id_low);
++	if (ret < 0 || chip_id_low != OV7251_CHIP_ID_LOW_BYTE) {
++		dev_err(dev, "could not read ID low\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++
++	ret = ov7251_read_reg(ov7251, OV7251_SC_GP_IO_IN1, &chip_rev);
++	if (ret < 0) {
++		dev_err(dev, "could not read revision\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++	chip_rev >>= 4;
++
++	dev_info(dev, "OV7251 revision %x (%s) detected at address 0x%02x\n",
++		 chip_rev,
++		 chip_rev == 0x4 ? "1A / 1B" :
++		 chip_rev == 0x5 ? "1C / 1D" :
++		 chip_rev == 0x6 ? "1E" :
++		 chip_rev == 0x7 ? "1F" : "unknown",
++		 client->addr);
++
++	ret = ov7251_read_reg(ov7251, OV7251_PRE_ISP_00,
++			      &ov7251->pre_isp_00);
++	if (ret < 0) {
++		dev_err(dev, "could not read test pattern value\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++
++	ret = ov7251_read_reg(ov7251, OV7251_TIMING_FORMAT1,
++			      &ov7251->timing_format1);
++	if (ret < 0) {
++		dev_err(dev, "could not read vflip value\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++
++	ret = ov7251_read_reg(ov7251, OV7251_TIMING_FORMAT2,
++			      &ov7251->timing_format2);
++	if (ret < 0) {
++		dev_err(dev, "could not read hflip value\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++
++	ov7251_s_power(&ov7251->sd, false);
++
++	ret = v4l2_async_register_subdev(&ov7251->sd);
++	if (ret < 0) {
++		dev_err(dev, "could not register v4l2 device\n");
++		goto free_entity;
++	}
++
++	ov7251_entity_init_cfg(&ov7251->sd, NULL);
++
++	return 0;
++
++power_down:
++	ov7251_s_power(&ov7251->sd, false);
++free_entity:
++	media_entity_cleanup(&ov7251->sd.entity);
++free_ctrl:
++	v4l2_ctrl_handler_free(&ov7251->ctrls);
++	mutex_destroy(&ov7251->lock);
++
++	return ret;
++}
++
++static int ov7251_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov7251 *ov7251 = to_ov7251(sd);
++
++	v4l2_async_unregister_subdev(&ov7251->sd);
++	media_entity_cleanup(&ov7251->sd.entity);
++	v4l2_ctrl_handler_free(&ov7251->ctrls);
++	mutex_destroy(&ov7251->lock);
++
++	return 0;
++}
++
++static const struct of_device_id ov7251_of_match[] = {
++	{ .compatible = "ovti,ov7251" },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, ov7251_of_match);
++
++static struct i2c_driver ov7251_i2c_driver = {
++	.driver = {
++		.of_match_table = ov7251_of_match,
++		.name  = "ov7251",
++	},
++	.probe_new  = ov7251_probe,
++	.remove = ov7251_remove,
++};
++
++module_i2c_driver(ov7251_i2c_driver);
++
++MODULE_DESCRIPTION("Omnivision OV7251 Camera Driver");
++MODULE_AUTHOR("Todor Tomov <todor.tomov@linaro.org>");
++MODULE_LICENSE("GPL v2");
 -- 
-2.17.0
+2.7.4
