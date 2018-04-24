@@ -1,95 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:33719 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751200AbeDQIwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 04:52:21 -0400
-Date: Tue, 17 Apr 2018 05:52:15 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 01/16] omap: omap-iommu.h: allow building drivers with
- COMPILE_TEST
-Message-ID: <20180417055215.084ec137@vento.lan>
-In-Reply-To: <d732ddf4-db42-3549-15d1-90bfc8546a48@gentoo.org>
-References: <cover.1522949748.git.mchehab@s-opensource.com>
-        <6741dd205de1e7d4e80a93386095db2a0c604bb5.1522949748.git.mchehab@s-opensource.com>
-        <d732ddf4-db42-3549-15d1-90bfc8546a48@gentoo.org>
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:11936 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933839AbeDXNSU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 09:18:20 -0400
+Date: Tue, 24 Apr 2018 08:18:03 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>, <nm@ti.com>,
+        Simon Hatliff <hatliff@cadence.com>
+Subject: Re: [PATCH v11 3/4] dt-bindings: media: Add Cadence MIPI-CSI2 TX
+ Device Tree bindings
+Message-ID: <20180424131802.GH3629@ti.com>
+References: <20180424122700.5387-1-maxime.ripard@bootlin.com>
+ <20180424122700.5387-4-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180424122700.5387-4-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 8 Apr 2018 12:12:17 +0200
-Matthias Schwarzott <zzam@gentoo.org> escreveu:
+Acked-by: Benoit Parrot <bparrot@ti.com>
 
-> Am 05.04.2018 um 19:54 schrieb Mauro Carvalho Chehab:
-> > Drivers that depend on omap-iommu.h (currently, just omap3isp)
-> > need a stub implementation in order to be built with COMPILE_TEST.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  include/linux/omap-iommu.h | 5 +++++
-> >  1 file changed, 5 insertions(+)
-> > 
-> > diff --git a/include/linux/omap-iommu.h b/include/linux/omap-iommu.h
-> > index c1aede46718b..0c21fc5b002e 100644
-> > --- a/include/linux/omap-iommu.h
-> > +++ b/include/linux/omap-iommu.h
-> > @@ -13,7 +13,12 @@
-> >  #ifndef _OMAP_IOMMU_H_
-> >  #define _OMAP_IOMMU_H_
-> >  
-> > +#ifdef CONFIG_OMAP_IOMMU
-> >  extern void omap_iommu_save_ctx(struct device *dev);
-> >  extern void omap_iommu_restore_ctx(struct device *dev);
-> > +#else
-> > +static inline void omap_iommu_save_ctx(struct device *dev) {};
-> > +static inline void omap_iommu_restore_ctx(struct device *dev) {};  
+Maxime Ripard <maxime.ripard@bootlin.com> wrote on Tue [2018-Apr-24 14:26:59 +0200]:
+> The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
+> video streams and can output on up to 4 CSI-2 lanes, depending on the
+> hardware implementation.
 > 
-> The semicolons at end of line are unnecessary.
+> It can operate with an external D-PHY, an internal one or no D-PHY at all
+> in some configurations.
 > 
-> > +#endif
-> >  
-> >  #endif
-> >   
-
-Hi Matthias,
-
-Somehow, I missed your comment.
-
-New version enclosed.
-
-
-Thanks,
-Mauro
-
-
-[PATCH v3] omap: omap-iommu.h: allow building drivers with COMPILE_TEST
-
-Drivers that depend on omap-iommu.h (currently, just omap3isp)
-need a stub implementation in order to be built with COMPILE_TEST.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/linux/omap-iommu.h | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/include/linux/omap-iommu.h b/include/linux/omap-iommu.h
-index c1aede46718b..0c21fc5b002e 100644
---- a/include/linux/omap-iommu.h
-+++ b/include/linux/omap-iommu.h
-@@ -13,7 +13,12 @@
- #ifndef _OMAP_IOMMU_H_
- #define _OMAP_IOMMU_H_
- 
-+#ifdef CONFIG_OMAP_IOMMU
- extern void omap_iommu_save_ctx(struct device *dev);
- extern void omap_iommu_restore_ctx(struct device *dev);
-+#else
-+static inline void omap_iommu_save_ctx(struct device *dev) {} 
-+static inline void omap_iommu_restore_ctx(struct device *dev) {} 
-+#endif
- 
- #endif
+> Acked-by: Rob Herring <robh@kernel.org>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> ---
+>  .../devicetree/bindings/media/cdns,csi2tx.txt | 98 +++++++++++++++++++
+>  1 file changed, 98 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+> new file mode 100644
+> index 000000000000..459c6e332f52
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+> @@ -0,0 +1,98 @@
+> +Cadence MIPI-CSI2 TX controller
+> +===============================
+> +
+> +The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
+> +4 CSI lanes in output, and up to 4 different pixel streams in input.
+> +
+> +Required properties:
+> +  - compatible: must be set to "cdns,csi2tx"
+> +  - reg: base address and size of the memory mapped region
+> +  - clocks: phandles to the clocks driving the controller
+> +  - clock-names: must contain:
+> +    * esc_clk: escape mode clock
+> +    * p_clk: register bank clock
+> +    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
+> +                         implemented in hardware, between 0 and 3
+> +
+> +Optional properties
+> +  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
+> +  - phy-names: must contain "dphy"
+> +
+> +Required subnodes:
+> +  - ports: A ports node with one port child node per device input and output
+> +           port, in accordance with the video interface bindings defined in
+> +           Documentation/devicetree/bindings/media/video-interfaces.txt. The
+> +           port nodes are numbered as follows.
+> +
+> +           Port Description
+> +           -----------------------------
+> +           0    CSI-2 output
+> +           1    Stream 0 input
+> +           2    Stream 1 input
+> +           3    Stream 2 input
+> +           4    Stream 3 input
+> +
+> +           The stream input port nodes are optional if they are not
+> +           connected to anything at the hardware level or implemented
+> +           in the design. Since there is only one endpoint per port,
+> +           the endpoints are not numbered.
+> +
+> +Example:
+> +
+> +csi2tx: csi-bridge@0d0e1000 {
+> +	compatible = "cdns,csi2tx";
+> +	reg = <0x0d0e1000 0x1000>;
+> +	clocks = <&byteclock>, <&byteclock>,
+> +		 <&coreclock>, <&coreclock>,
+> +		 <&coreclock>, <&coreclock>;
+> +	clock-names = "p_clk", "esc_clk",
+> +		      "pixel_if0_clk", "pixel_if1_clk",
+> +		      "pixel_if2_clk", "pixel_if3_clk";
+> +
+> +	ports {
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		port@0 {
+> +			reg = <0>;
+> +
+> +			csi2tx_out: endpoint {
+> +				remote-endpoint = <&remote_in>;
+> +				clock-lanes = <0>;
+> +				data-lanes = <1 2>;
+> +			};
+> +		};
+> +
+> +		port@1 {
+> +			reg = <1>;
+> +
+> +			csi2tx_in_stream0: endpoint {
+> +				remote-endpoint = <&stream0_out>;
+> +			};
+> +		};
+> +
+> +		port@2 {
+> +			reg = <2>;
+> +
+> +			csi2tx_in_stream1: endpoint {
+> +				remote-endpoint = <&stream1_out>;
+> +			};
+> +		};
+> +
+> +		port@3 {
+> +			reg = <3>;
+> +
+> +			csi2tx_in_stream2: endpoint {
+> +				remote-endpoint = <&stream2_out>;
+> +			};
+> +		};
+> +
+> +		port@4 {
+> +			reg = <4>;
+> +
+> +			csi2tx_in_stream3: endpoint {
+> +				remote-endpoint = <&stream3_out>;
+> +			};
+> +		};
+> +	};
+> +};
+> -- 
+> 2.17.0
+> 
