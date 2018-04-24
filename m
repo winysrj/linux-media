@@ -1,91 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f194.google.com ([209.85.217.194]:33267 "EHLO
-        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750734AbeDKEUs (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36565 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757890AbeDXMph (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 00:20:48 -0400
-Received: by mail-ua0-f194.google.com with SMTP id q26so308563uab.0
-        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2018 21:20:48 -0700 (PDT)
-Received: from mail-ua0-f174.google.com (mail-ua0-f174.google.com. [209.85.217.174])
-        by smtp.gmail.com with ESMTPSA id b21sm177606uaa.39.2018.04.10.21.20.46
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 10 Apr 2018 21:20:46 -0700 (PDT)
-Received: by mail-ua0-f174.google.com with SMTP id o34so298948uae.9
-        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2018 21:20:46 -0700 (PDT)
-MIME-Version: 1.0
-References: <1521219926-15329-1-git-send-email-andy.yeh@intel.com>
- <1521219926-15329-3-git-send-email-andy.yeh@intel.com> <20180320102817.GB5372@w540>
- <8E0971CCB6EA9D41AF58191A2D3978B61D5681E4@PGSMSX111.gar.corp.intel.com>
-In-Reply-To: <8E0971CCB6EA9D41AF58191A2D3978B61D5681E4@PGSMSX111.gar.corp.intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 11 Apr 2018 04:20:35 +0000
-Message-ID: <CAAFQd5DZCN2f=dpaAbWGRb70zPXY3_Hc1g8ecmRcp1ty6yQDSg@mail.gmail.com>
-Subject: Re: RESEND[PATCH v6 2/2] media: dw9807: Add dw9807 vcm driver
-To: "Yeh, Andy" <andy.yeh@intel.com>
-Cc: jacopo@jmondi.org, Alan Chiang <alanx.chiang@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Tue, 24 Apr 2018 08:45:37 -0400
+Received: by mail-wm0-f66.google.com with SMTP id n10so610540wmc.1
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:37 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
         devicetree@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH 27/28] venus: add sdm845 compatible and resource data
+Date: Tue, 24 Apr 2018 15:44:35 +0300
+Message-Id: <20180424124436.26955-28-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+This adds sdm845 DT compatible string with it's resource
+data table.
 
-On Wed, Apr 11, 2018 at 12:54 AM Yeh, Andy <andy.yeh@intel.com> wrote:
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ .../devicetree/bindings/media/qcom,venus.txt       |  1 +
+ drivers/media/platform/qcom/venus/core.c           | 22 ++++++++++++++++++++++
+ 2 files changed, 23 insertions(+)
 
-> Hi Jacopo,
-
-> Excuse for late reply, we were busy in past weeks for major milestone.
-Please kindly check the revised V7 which has been uploaded.
-> https://patchwork.linuxtv.org/patch/48589/
-
-> Responded to your comments as below.
-
-> Cc in Tomasz for unintentionally missed.
-
-> Regards, Andy
-[snip]
-> > +static int dw9807_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh
-> > +*fh) {
-> > +     int rval;
-> > +
-> > +     rval = pm_runtime_get_sync(sd->dev);
-> > +     if (rval < 0) {
-> > +             pm_runtime_put_noidle(sd->dev);
-
-> > If you fail to get pm context, no need to put it back (I presume)
-
-> According to Sakari Ailus's comment on LinuxTV.
-> (pm_runtime_get() must be followed by pm_runtime_put() whether the former
-> succeeds or not.)
-> So it is no need to modify.
-
-Andy is right. pm_runtime_get() always acquires a PM runtime count, even in
-case of error.
-
-[snip]
-> > +static const struct of_device_id dw9807_of_table[] = {
-> > +     { .compatible = "dongwoon,dw9807" },
-> > +     { { 0 } }
-
-> > { } is enough.
-> According to Sakari Ailus's comment on LinuxTV.
-> { } is GCC specific while { { 0 } } isn't.
-> And if I remove it, compile error will occur.
-
-Hmm, we're in the heavy nitpicking territory here, but
-
-{ },
-
-is the typical pattern used throughout the kernel. I personally actually
-put a comment inside:
-
-{ /* sentinel */ },
-
-Just my opinion. I'm fine with keeping it either way, if no need to re-spin
-for other changes.
-
-Best regards,
-Tomasz
+diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
+index 2693449daf73..00d0d1bf7647 100644
+--- a/Documentation/devicetree/bindings/media/qcom,venus.txt
++++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+@@ -6,6 +6,7 @@
+ 	Definition: Value should contain one of:
+ 		- "qcom,msm8916-venus"
+ 		- "qcom,msm8996-venus"
++		- "qcom,sdm845-venus"
+ - reg:
+ 	Usage: required
+ 	Value type: <prop-encoded-array>
+diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+index 1b72bfbb6297..13084880cc42 100644
+--- a/drivers/media/platform/qcom/venus/core.c
++++ b/drivers/media/platform/qcom/venus/core.c
+@@ -445,9 +445,31 @@ static const struct venus_resources msm8996_res = {
+ 	.fwname = "qcom/venus-4.2/venus.mdt",
+ };
+ 
++static const struct freq_tbl sdm845_freq_table[] = {
++	{ 1944000, 380000000 },	/* 4k UHD @ 60 */
++	{  972000, 320000000 },	/* 4k UHD @ 30 */
++	{  489600, 200000000 },	/* 1080p @ 60 */
++	{  244800, 100000000 },	/* 1080p @ 30 */
++};
++
++static const struct venus_resources sdm845_res = {
++	.freq_tbl = sdm845_freq_table,
++	.freq_tbl_size = ARRAY_SIZE(sdm845_freq_table),
++	.clks = {"core", "iface", "bus" },
++	.clks_num = 3,
++	.max_load = 2563200,
++	.hfi_version = HFI_VERSION_4XX,
++	.vmem_id = VIDC_RESOURCE_NONE,
++	.vmem_size = 0,
++	.vmem_addr = 0,
++	.dma_mask = 0xe0000000 - 1,
++	.fwname = "qcom/venus-5.2/venus.mdt",
++};
++
+ static const struct of_device_id venus_dt_match[] = {
+ 	{ .compatible = "qcom,msm8916-venus", .data = &msm8916_res, },
+ 	{ .compatible = "qcom,msm8996-venus", .data = &msm8996_res, },
++	{ .compatible = "qcom,sdm845-venus", .data = &sdm845_res, },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(of, venus_dt_match);
+-- 
+2.14.1
