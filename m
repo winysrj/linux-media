@@ -1,73 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:55343 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755085AbeDPNV1 (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:41548 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751401AbeDXQL3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 09:21:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCHv2 4/9] media: add function field to struct media_entity_desc
-Date: Mon, 16 Apr 2018 15:21:16 +0200
-Message-Id: <20180416132121.46205-5-hverkuil@xs4all.nl>
-In-Reply-To: <20180416132121.46205-1-hverkuil@xs4all.nl>
-References: <20180416132121.46205-1-hverkuil@xs4all.nl>
+        Tue, 24 Apr 2018 12:11:29 -0400
+Received: by mail-wr0-f194.google.com with SMTP id g21-v6so23056126wrb.8
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 09:11:28 -0700 (PDT)
+References: <20180419110056.10342-1-rui.silva@linaro.org> <20180419110056.10342-2-rui.silva@linaro.org> <CAOMZO5CHOcjctMDcbPBU1-1JkcxbL+JWrgfDtnt8dXLtMFCZBg@mail.gmail.com>
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Rui Miguel Silva <rui.silva@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        "open list\:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v5 1/2] media: ov2680: dt: Add bindings for OV2680
+In-reply-to: <CAOMZO5CHOcjctMDcbPBU1-1JkcxbL+JWrgfDtnt8dXLtMFCZBg@mail.gmail.com>
+Date: Tue, 24 Apr 2018 17:11:26 +0100
+Message-ID: <m3po2oeg9d.fsf@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Hi Fabio,
+On Tue 24 Apr 2018 at 15:53, Fabio Estevam wrote:
+> Hi Rui,
+>
+> On Thu, Apr 19, 2018 at 8:00 AM, Rui Miguel Silva 
+> <rui.silva@linaro.org> wrote:
+>> Add device tree binding documentation for the OV2680 camera 
+>> sensor.
+>>
+>> Reviewed-by: Rob Herring <robh@kernel.org>
+>> CC: devicetree@vger.kernel.org
+>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>> ---
+>>  .../devicetree/bindings/media/i2c/ov2680.txt  | 40 
+>>  +++++++++++++++++++
+>>  1 file changed, 40 insertions(+)
+>>  create mode 100644 
+>>  Documentation/devicetree/bindings/media/i2c/ov2680.txt
+>>
+>> diff --git 
+>> a/Documentation/devicetree/bindings/media/i2c/ov2680.txt 
+>> b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+>> new file mode 100644
+>> index 000000000000..0e29f1a113c0
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+>> @@ -0,0 +1,40 @@
+>> +* Omnivision OV2680 MIPI CSI-2 sensor
+>> +
+>> +Required Properties:
+>> +- compatible: should be "ovti,ov2680".
+>> +- clocks: reference to the xvclk input clock.
+>> +- clock-names: should be "xvclk".
+>
+> You missed to pass the camera power supplies as required 
+> properties:
 
-This adds support for 'proper' functions to the existing API.
-This information was before only available through the new v2
-API, with this change it's available to both.
+Urgh, yes, you are right, I will add this.
 
-Yes, the plan is to allow entities to expose multiple functions for
-multi-function devices, but we do not support it anywhere so this
-is still vaporware.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- drivers/media/media-device.c | 1 +
- include/uapi/linux/media.h   | 7 ++++++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+Cheers,
+	Rui
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 7c3ab37c258a..dca1e5a3e0f9 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -115,6 +115,7 @@ static long media_device_enum_entities(struct media_device *mdev,
- 	if (ent->name)
- 		strlcpy(entd->name, ent->name, sizeof(entd->name));
- 	entd->type = ent->function;
-+	entd->function = ent->function;
- 	entd->revision = 0;		/* Unused */
- 	entd->flags = ent->flags;
- 	entd->group_id = 0;		/* Unused */
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 86c7dcc9cba3..ac08acffdb65 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -146,6 +146,10 @@ struct media_device_info {
- /* OR with the entity id value to find the next entity */
- #define MEDIA_ENT_ID_FLAG_NEXT			(1 << 31)
- 
-+/* Appeared in 4.18.0 */
-+#define MEDIA_ENTITY_DESC_HAS_FUNCTION(media_version) \
-+	((media_version) >= 0x00041200)
-+
- struct media_entity_desc {
- 	__u32 id;
- 	char name[32];
-@@ -155,8 +159,9 @@ struct media_entity_desc {
- 	__u32 group_id;
- 	__u16 pads;
- 	__u16 links;
-+	__u32 function;
- 
--	__u32 reserved[4];
-+	__u32 reserved[3];
- 
- 	union {
- 		/* Node specifications */
--- 
-2.15.1
+>
+> DOVDD-supply
+> AVDD-supply
+> DVDD-supply
