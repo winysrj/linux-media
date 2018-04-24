@@ -1,185 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:62600 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751178AbeDEK7O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 06:59:14 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: tfiga@google.com, hverkuil@xs4all.nl
-Subject: [v4l-utils RFC 6/6] mediatext: Add vivid tests
-Date: Thu,  5 Apr 2018 13:58:19 +0300
-Message-Id: <1522925899-14073-7-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1522925899-14073-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1522925899-14073-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:43793 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932837AbeDXIbS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 04:31:18 -0400
+Date: Tue, 24 Apr 2018 10:31:11 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Simon Horman <horms@verge.net.au>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v10 04/10] ARM: dts: r7s72100: Add Capture Engine Unit
+ (CEU)
+Message-ID: <20180424083111.GG17088@w540>
+References: <1519235284-32286-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1519235284-32286-5-git-send-email-jacopo+renesas@jmondi.org>
+ <20180221182918.fbxnhdl4r4y3ejfj@verge.net.au>
+ <20180423152143.GH3999@w540>
+ <20180424082355.y2cnfkqa7bj4fpy4@verge.net.au>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="O8XZ+2Hy8Kj8wLPZ"
+Content-Disposition: inline
+In-Reply-To: <20180424082355.y2cnfkqa7bj4fpy4@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add two scripts for vivid tests, with and without using requests.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- utils/media-ctl/tests/test-vivid-mc.bash | 86 ++++++++++++++++++++++++++++++++
- utils/media-ctl/tests/test-vivid.bash    | 59 ++++++++++++++++++++++
- 2 files changed, 145 insertions(+)
- create mode 100755 utils/media-ctl/tests/test-vivid-mc.bash
- create mode 100755 utils/media-ctl/tests/test-vivid.bash
+--O8XZ+2Hy8Kj8wLPZ
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-diff --git a/utils/media-ctl/tests/test-vivid-mc.bash b/utils/media-ctl/tests/test-vivid-mc.bash
-new file mode 100755
-index 0000000..40c2e7d
---- /dev/null
-+++ b/utils/media-ctl/tests/test-vivid-mc.bash
-@@ -0,0 +1,86 @@
-+#!/bin/bash
-+
-+coproc mediatext -c 2>&1
-+
-+# read initialisation
-+read -ru ${COPROC[0]}; eval $REPLY
-+
-+cat <<EOF >&${COPROC[1]}
-+verbose true
-+
-+v4l open entity="vim2m" name=vim
-+v4l fmt vdev=vim type=VIDEO_OUTPUT width=480 height=320 \
-+	pixelformat=RGB565X bytesperline=0 num_planes=1
-+v4l reqbufs vdev=vim type=VIDEO_OUTPUT count=3 memory=MMAP
-+v4l fmt vdev=vim type=VIDEO_CAPTURE width=480 height=320 \
-+	pixelformat=RGB565X bytesperline=0 num_planes=1
-+v4l reqbufs vdev=vim type=VIDEO_CAPTURE count=3 memory=MMAP
-+
-+media req-create req=foo
-+media req-create req=foo1
-+media req-create req=foo2
-+
-+v4l io vdev=vim type=VIDEO_OUTPUT fname=/bin/bash
-+v4l io vdev=vim type=VIDEO_OUTPUT fname=/bin/systemctl
-+v4l io vdev=vim type=VIDEO_OUTPUT fname=/vmlinuz
-+
-+v4l qbuf vdev=vim type=VIDEO_OUTPUT req=foo
-+v4l qbuf vdev=vim type=VIDEO_OUTPUT req=foo1
-+v4l qbuf vdev=vim type=VIDEO_CAPTURE req=foo1
-+v4l qbuf vdev=vim type=VIDEO_CAPTURE req=foo
-+
-+media req-queue req=foo
-+
-+v4l qbuf vdev=vim type=VIDEO_OUTPUT req=foo2
-+v4l qbuf vdev=vim type=VIDEO_CAPTURE req=foo2
-+
-+v4l streamon vdev=vim type=VIDEO_CAPTURE
-+v4l streamon vdev=vim type=VIDEO_OUTPUT
-+
-+media req-queue req=foo2
-+media req-queue req=foo1
-+
-+EOF
-+
-+queued=3
-+finished=0
-+
-+while IFS= read -ru ${COPROC[0]}; do
-+	unset p; declare -A p
-+	eval eval_line $REPLY
-+	echo $REPLY
-+	#echo ${p[event]}
-+	case ${p[event]} in
-+	dqbuf)
-+		#echo seq ${p[seq]}
-+		if [ ${p[type]} == VIDEO_CAPTURE ]; then
-+			echo v4l io vdev=vim type=VIDEO_CAPTURE \
-+				sequence=${p[seq]} >&${COPROC[1]}
-+		fi
-+	;;
-+	request-complete)
-+		finished=$(($finished+1));
-+		if (($queued < 10)); then
-+			queued=$(($queued + 1))
-+			cat <<EOF >&${COPROC[1]}
-+				media req-create req=${p[req]}
-+				v4l io vdev=vim type=VIDEO_OUTPUT fname=/bin/tar
-+				v4l qbuf vdev=vim type=VIDEO_OUTPUT req=${p[req]}
-+				v4l qbuf vdev=vim type=VIDEO_CAPTURE req=${p[req]}
-+				media req-queue req=${p[req]}
-+EOF
-+		fi
-+		echo $queued requests queued, $finished finished
-+		if (($finished == 10)); then
-+			cat <<EOF >&${COPROC[1]}
-+				v4l streamoff vdev=vim type=VIDEO_CAPTURE
-+				v4l streamoff vdev=vim type=VIDEO_OUTPUT
-+				v4l reqbufs vdev=vim type=VIDEO_CAPTURE count=0 memory=MMAP
-+				v4l reqbufs vdev=vim type=VIDEO_OUTPUT count=0 memory=MMAP
-+				quit
-+EOF
-+		exit 0
-+		fi
-+	;;
-+	esac;
-+done
-diff --git a/utils/media-ctl/tests/test-vivid.bash b/utils/media-ctl/tests/test-vivid.bash
-new file mode 100755
-index 0000000..3c9b2f4
---- /dev/null
-+++ b/utils/media-ctl/tests/test-vivid.bash
-@@ -0,0 +1,59 @@
-+#!/bin/bash
-+
-+coproc mediatext -c 2>&1
-+
-+# read initialisation
-+read -ru ${COPROC[0]}; eval $REPLY
-+
-+cat <<EOF >&${COPROC[1]}
-+verbose true
-+
-+v4l open entity="vim2m" name=vim
-+v4l fmt vdev=vim type=VIDEO_OUTPUT width=480 height=320 \
-+	pixelformat=RGB565X bytesperline=0 num_planes=1
-+v4l reqbufs vdev=vim type=VIDEO_OUTPUT count=3 memory=MMAP
-+v4l fmt vdev=vim type=VIDEO_CAPTURE width=480 height=320 \
-+	pixelformat=RGB565X bytesperline=0 num_planes=1
-+v4l reqbufs vdev=vim type=VIDEO_CAPTURE count=3 memory=MMAP
-+
-+v4l io vdev=vim type=VIDEO_OUTPUT fname=/bin/bash
-+v4l io vdev=vim type=VIDEO_OUTPUT fname=/bin/systemctl
-+v4l io vdev=vim type=VIDEO_OUTPUT fname=/vmlinuz
-+v4l qbuf vdev=vim type=VIDEO_OUTPUT
-+v4l qbuf vdev=vim type=VIDEO_OUTPUT
-+v4l qbuf vdev=vim type=VIDEO_CAPTURE
-+v4l qbuf vdev=vim type=VIDEO_CAPTURE
-+
-+v4l streamon vdev=vim type=VIDEO_CAPTURE
-+v4l streamon vdev=vim type=VIDEO_OUTPUT
-+EOF
-+
-+while IFS= read -ru ${COPROC[0]} line; do
-+	unset p; declare -A p
-+	eval eval_line $line
-+	echo $line
-+	#echo ${p[event]}
-+	case ${p[event]} in
-+	dqbuf)
-+		#echo seq ${p[seq]}
-+		if [ ${p[type]} == VIDEO_CAPTURE ]; then
-+			echo v4l io vdev=vim type=VIDEO_CAPTURE \
-+				sequence=${p[seq]} >&${COPROC[1]}
-+			echo v4l io vdev=vim type=VIDEO_OUTPUT \
-+				fname=/bin/tar >&${COPROC[1]}
-+			echo v4l qbuf vdev=vim type=VIDEO_OUTPUT >&${COPROC[1]}
-+			echo v4l qbuf vdev=vim type=VIDEO_CAPTURE >&${COPROC[1]}
-+			if ((${p[seq]} == 5)); then
-+				echo <<EOF >&${COPROC[1]}
-+				v4l streamoff vdev=vim type=VIDEO_CAPTURE
-+				v4l streamoff vdev=vim type=VIDEO_OUTPUT
-+				v4l reqbufs vdev=vim type=VIDEO_OUTPUT count=0
-+				v4l reqbufs vdev=vim type=VIDEO_CAPTURE count=0
-+				quit
-+EOF
-+				exit 0
-+			fi
-+		fi
-+	;;
-+	esac;
-+done
--- 
-2.7.4
+Hi Simon,
+
+On Tue, Apr 24, 2018 at 10:23:56AM +0200, Simon Horman wrote:
+> On Mon, Apr 23, 2018 at 05:21:43PM +0200, jacopo mondi wrote:
+> > Hi Simon,
+> >
+> > On Wed, Feb 21, 2018 at 07:29:18PM +0100, Simon Horman wrote:
+> > > On Wed, Feb 21, 2018 at 06:47:58PM +0100, Jacopo Mondi wrote:
+> > > > Add Capture Engine Unit (CEU) node to device tree.
+> > > >
+> > > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > > > Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> > > > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >
+> > > This patch depends on the binding for "renesas,r7s72100-ceu".
+> > > Please repost or otherwise ping me once that dependency has been accepted.
+> >
+> > Bindings for the CEU interface went in v4.17-rc1.
+> >
+> > Could you please resurect this patch?
+>
+> Sure, I took the liberty of "rebasing" it to preserve the new node-order
+> of r7s72100.dtsi. The result is as follows:
+
+That's even better.
+
+Thanks
+   j
+
+>
+> From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Subject: [PATCH] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
+>
+> Add Capture Engine Unit (CEU) node to device tree.
+>
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> [simon: rebased]
+> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+> ---
+>  arch/arm/boot/dts/r7s72100.dtsi | 15 ++++++++++++---
+>  1 file changed, 12 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/r7s72100.dtsi b/arch/arm/boot/dts/r7s72100.dtsi
+> index ecf9516bcda8..4a1aade0e751 100644
+> --- a/arch/arm/boot/dts/r7s72100.dtsi
+> +++ b/arch/arm/boot/dts/r7s72100.dtsi
+> @@ -375,6 +375,15 @@
+>  			status = "disabled";
+>  		};
+>
+> +		ceu: camera@e8210000 {
+> +			reg = <0xe8210000 0x3000>;
+> +			compatible = "renesas,r7s72100-ceu";
+> +			interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
+> +			clocks = <&mstp6_clks R7S72100_CLK_CEU>;
+> +			power-domains = <&cpg_clocks>;
+> +			status = "disabled";
+> +		};
+> +
+>  		wdt: watchdog@fcfe0000 {
+>  			compatible = "renesas,r7s72100-wdt", "renesas,rza-wdt";
+>  			reg = <0xfcfe0000 0x6>;
+> @@ -429,9 +438,9 @@
+>  			#clock-cells = <1>;
+>  			compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-clocks";
+>  			reg = <0xfcfe042c 4>;
+> -			clocks = <&p0_clk>;
+> -			clock-indices = <R7S72100_CLK_RTC>;
+> -			clock-output-names = "rtc";
+> +			clocks = <&b_clk>, <&p0_clk>;
+> +			clock-indices = <R7S72100_CLK_CEU R7S72100_CLK_RTC>;
+> +			clock-output-names = "ceu", "rtc";
+>  		};
+>
+>  		mstp7_clks: mstp7_clks@fcfe0430 {
+> --
+> 2.11.0
+>
+>
+
+--O8XZ+2Hy8Kj8wLPZ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJa3utPAAoJEHI0Bo8WoVY83SwQAMcRemJH4whTol5SgaUhhiwt
+7vPzUri9leP+smhF8kzP/cmWuGEHIyQKHzqSivVBZrtRHyk2JZCGNMdp0M1lloCv
+SCVfyv6R/nnPVKdTqJNZYrTN1yJOcGXle271QLEEZUXkL1aDxy5K5Xb5qpSuwu89
+qH1mKj9K39/B/0lmlrn+ENWlVvzewAaZB+WZfFVU89i+4NncFLhx+6gOMceSF8oy
+I4PyfNOIEXXGmKiv7v8H0uHJf0yUTK0NgFLLnFrIwueogXuQTitV2dIdjDuF99SR
+yOR2XPE+h+Ws1BeqnWX81AdSbAeDj6uC+3VVkjiQ6uwXq6BsCmkyqRvY04xmOgNl
+JDwHUYlW/d3D/xs8zYVJ9GxRywKDW48t5kc6MFWxWEPg2DUYV2LrFiwjBGzkcJIv
+wctnUSf3/rh2nNAzeeESbgGvdqSM2iZuCA7PElFZZpudj+F6wcQtLZWoaLrzkdiN
+3pwLo63R67nRzGIvR2DA3xz3Y9rB58kCFHaOrebBSI//wWRBQgXaaruCm1ebYtXt
+3DkKM3uddKTWAkKcEtH8USq1GReGOwZ1CE9vP8zkgKNjoLjEFYHgdRWYKnn5/Fu1
+gDMKw6mStzZHNK/phxoDl1xUehaqH3eMp34fUN4dW6NTnxVYuWdYVx3TINacajjm
+UT3EmMoeafGOJen5gXDI
+=8F7o
+-----END PGP SIGNATURE-----
+
+--O8XZ+2Hy8Kj8wLPZ--
