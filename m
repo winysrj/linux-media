@@ -1,171 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:59935 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753957AbeDLPYc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 11:24:32 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Daniel Mentz <danielmentz@google.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH 17/17] media: v4l2-compat-ioctl32: fix several __user annotations
-Date: Thu, 12 Apr 2018 11:24:09 -0400
-Message-Id: <55ced09a79ad9947c73187bfbcf85fac220a6d27.1523546545.git.mchehab@s-opensource.com>
-In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:55501 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932216AbeDXMpL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 08:45:11 -0400
+Received: by mail-wm0-f67.google.com with SMTP id a8so692833wmg.5
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:10 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 04/28] venus: hfi_cmds: add set_properties for 4xx version
+Date: Tue, 24 Apr 2018 15:44:12 +0300
+Message-Id: <20180424124436.26955-5-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Smatch report several issues with bad __user annotations:
+Adds set_properties method to handle newer 4xx properties and
+fall-back to 3xx for the rest.
 
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21: warning: incorrect type in argument 1 (different address spaces)
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21:    expected void [noderef] <asn:1>*uptr
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21:    got void *<noident>
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21: warning: incorrect type in argument 1 (different address spaces)
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21:    expected void const volatile [noderef] <asn:1>*<noident>
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21:    got struct v4l2_plane [noderef] <asn:1>**<noident>
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13: warning: incorrect type in argument 1 (different address spaces)
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13:    expected void [noderef] <asn:1>*uptr
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13:    got void *[assigned] base
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13: warning: incorrect type in assignment (different address spaces)
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13:    expected struct v4l2_ext_control [noderef] <asn:1>*kcontrols
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13:    got struct v4l2_ext_control *<noident>
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13: warning: incorrect type in assignment (different address spaces)
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13:    expected unsigned char [usertype] *__pu_val
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13:    got void [noderef] <asn:1>*
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13: warning: incorrect type in argument 1 (different address spaces)
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13:    expected void [noderef] <asn:1>*uptr
-  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13:    got void *[assigned] edid
-
-Fix them.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 35 +++++++++++++++------------
- 1 file changed, 19 insertions(+), 16 deletions(-)
+ drivers/media/platform/qcom/venus/hfi_cmds.c | 64 +++++++++++++++++++++++++++-
+ 1 file changed, 63 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index d03a44d89649..1057ab8ce2b6 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -443,8 +443,8 @@ static int put_v4l2_plane32(struct v4l2_plane __user *up,
- 			return -EFAULT;
- 		break;
- 	case V4L2_MEMORY_USERPTR:
--		if (get_user(p, &up->m.userptr) ||
--		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
-+		if (get_user(p, &up->m.userptr)||
-+		    put_user((compat_ulong_t)ptr_to_compat((void __user *)p),
- 			     &up32->m.userptr))
- 			return -EFAULT;
- 		break;
-@@ -587,7 +587,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
- 	u32 length;
- 	enum v4l2_memory memory;
- 	struct v4l2_plane32 __user *uplane32;
--	struct v4l2_plane __user *uplane;
-+	struct v4l2_plane *uplane;
- 	compat_caddr_t p;
- 	int ret;
+diff --git a/drivers/media/platform/qcom/venus/hfi_cmds.c b/drivers/media/platform/qcom/venus/hfi_cmds.c
+index 1cfeb7743041..6bd287154796 100644
+--- a/drivers/media/platform/qcom/venus/hfi_cmds.c
++++ b/drivers/media/platform/qcom/venus/hfi_cmds.c
+@@ -1166,6 +1166,65 @@ pkt_session_set_property_3xx(struct hfi_session_set_property_pkt *pkt,
+ 	return ret;
+ }
  
-@@ -617,15 +617,14 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
- 
- 		if (num_planes == 0)
- 			return 0;
--
--		if (get_user(uplane, ((__force struct v4l2_plane __user **)&kp->m.planes)))
-+		if (get_user(uplane, &kp->m.planes))
- 			return -EFAULT;
- 		if (get_user(p, &up->m.planes))
- 			return -EFAULT;
- 		uplane32 = compat_ptr(p);
- 
- 		while (num_planes--) {
--			ret = put_v4l2_plane32(uplane, uplane32, memory);
-+			ret = put_v4l2_plane32((void __user *)uplane, uplane32, memory);
- 			if (ret)
- 				return ret;
- 			++uplane;
-@@ -675,7 +674,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer __user *kp,
- 
- 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(tmp, &up->base) ||
--	    put_user((__force void *)compat_ptr(tmp), &kp->base) ||
-+	    put_user((void __force *)compat_ptr(tmp), &kp->base) ||
- 	    assign_in_user(&kp->capability, &up->capability) ||
- 	    assign_in_user(&kp->flags, &up->flags) ||
- 	    copy_in_user(&kp->fmt, &up->fmt, sizeof(kp->fmt)))
-@@ -690,7 +689,7 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer __user *kp,
- 
- 	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    get_user(base, &kp->base) ||
--	    put_user(ptr_to_compat(base), &up->base) ||
-+	    put_user(ptr_to_compat((void __user *)base), &up->base) ||
- 	    assign_in_user(&up->capability, &kp->capability) ||
- 	    assign_in_user(&up->flags, &kp->flags) ||
- 	    copy_in_user(&up->fmt, &kp->fmt, sizeof(kp->fmt)))
-@@ -857,7 +856,7 @@ static int put_v4l2_ext_controls32(struct file *file,
- 				   struct v4l2_ext_controls32 __user *up)
++static int
++pkt_session_set_property_4xx(struct hfi_session_set_property_pkt *pkt,
++			     void *cookie, u32 ptype, void *pdata)
++{
++	void *prop_data;
++	int ret = 0;
++
++	if (!pkt || !cookie || !pdata)
++		return -EINVAL;
++
++	prop_data = &pkt->data[1];
++
++	pkt->shdr.hdr.size = sizeof(*pkt);
++	pkt->shdr.hdr.pkt_type = HFI_CMD_SESSION_SET_PROPERTY;
++	pkt->shdr.session_id = hash32_ptr(cookie);
++	pkt->num_properties = 1;
++	pkt->data[0] = ptype;
++
++	/*
++	 * Any session set property which is different in 3XX packetization
++	 * should be added as a new case below. All unchanged session set
++	 * properties will be handled in the default case.
++	 */
++	switch (ptype) {
++	case HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL: {
++		struct hfi_buffer_count_actual *in = pdata;
++		struct hfi_buffer_count_actual_4xx *count = prop_data;
++
++		count->count_actual = in->count_actual;
++		count->type = in->type;
++		count->count_min_host = in->count_actual;
++		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*count);
++		break;
++	}
++	case HFI_PROPERTY_PARAM_WORK_MODE: {
++		struct hfi_video_work_mode *in = pdata, *wm = prop_data;
++
++		wm->video_work_mode = in->video_work_mode;
++		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*wm);
++		break;
++	}
++	case HFI_PROPERTY_CONFIG_VIDEOCORES_USAGE: {
++		struct hfi_videocores_usage_type *in = pdata, *cu = prop_data;
++
++		cu->video_core_enable_mask = in->video_core_enable_mask;
++		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*cu);
++		break;
++	}
++	case HFI_PROPERTY_CONFIG_VENC_MAX_BITRATE:
++		/* not implemented on Venus 4xx */
++		break;
++	default:
++		ret = pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
++		break;
++	}
++
++	return ret;
++}
++
+ int pkt_session_get_property(struct hfi_session_get_property_pkt *pkt,
+ 			     void *cookie, u32 ptype)
  {
- 	struct v4l2_ext_control32 __user *ucontrols;
--	struct v4l2_ext_control __user *kcontrols;
-+	struct v4l2_ext_control *kcontrols;
- 	u32 count;
- 	u32 n;
- 	compat_caddr_t p;
-@@ -883,10 +882,12 @@ static int put_v4l2_ext_controls32(struct file *file,
- 		unsigned int size = sizeof(*ucontrols);
- 		u32 id;
+@@ -1181,7 +1240,10 @@ int pkt_session_set_property(struct hfi_session_set_property_pkt *pkt,
+ 	if (hfi_ver == HFI_VERSION_1XX)
+ 		return pkt_session_set_property_1x(pkt, cookie, ptype, pdata);
  
--		if (get_user(id, &kcontrols->id) ||
-+		if (get_user(id, (unsigned int __user *)&kcontrols->id) ||
- 		    put_user(id, &ucontrols->id) ||
--		    assign_in_user(&ucontrols->size, &kcontrols->size) ||
--		    copy_in_user(&ucontrols->reserved2, &kcontrols->reserved2,
-+		    assign_in_user(&ucontrols->size,
-+				   (unsigned int __user *)&kcontrols->size) ||
-+		    copy_in_user(&ucontrols->reserved2,
-+				 (unsigned int __user *)&kcontrols->reserved2,
- 				 sizeof(ucontrols->reserved2)))
- 			return -EFAULT;
+-	return pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
++	if (hfi_ver == HFI_VERSION_3XX)
++		return pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
++
++	return pkt_session_set_property_4xx(pkt, cookie, ptype, pdata);
+ }
  
-@@ -898,7 +899,8 @@ static int put_v4l2_ext_controls32(struct file *file,
- 		if (ctrl_is_pointer(file, id))
- 			size -= sizeof(ucontrols->value64);
- 
--		if (copy_in_user(ucontrols, kcontrols, size))
-+		if (copy_in_user(ucontrols,
-+			         (unsigned int __user *)kcontrols, size))
- 			return -EFAULT;
- 
- 		ucontrols++;
-@@ -952,9 +954,10 @@ static int get_v4l2_edid32(struct v4l2_edid __user *kp,
- 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    assign_in_user(&kp->pad, &up->pad) ||
- 	    assign_in_user(&kp->start_block, &up->start_block) ||
--	    assign_in_user(&kp->blocks, &up->blocks) ||
-+	    assign_in_user(&kp->blocks,
-+			   (unsigned char __user *)&up->blocks) ||
- 	    get_user(tmp, &up->edid) ||
--	    put_user(compat_ptr(tmp), &kp->edid) ||
-+	    put_user((void __force *)compat_ptr(tmp), &kp->edid) ||
- 	    copy_in_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
- 	return 0;
-@@ -970,7 +973,7 @@ static int put_v4l2_edid32(struct v4l2_edid __user *kp,
- 	    assign_in_user(&up->start_block, &kp->start_block) ||
- 	    assign_in_user(&up->blocks, &kp->blocks) ||
- 	    get_user(edid, &kp->edid) ||
--	    put_user(ptr_to_compat(edid), &up->edid) ||
-+	    put_user(ptr_to_compat((void __user *)edid), &up->edid) ||
- 	    copy_in_user(up->reserved, kp->reserved, sizeof(up->reserved)))
- 		return -EFAULT;
- 	return 0;
+ void pkt_set_version(enum hfi_version version)
 -- 
-2.14.3
+2.14.1
