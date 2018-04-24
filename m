@@ -1,156 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:46626 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751245AbeDDMUk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Apr 2018 08:20:40 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v8 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
-Date: Wed,  4 Apr 2018 14:20:24 +0200
-Message-Id: <20180404122025.8726-2-maxime.ripard@bootlin.com>
-In-Reply-To: <20180404122025.8726-1-maxime.ripard@bootlin.com>
-References: <20180404122025.8726-1-maxime.ripard@bootlin.com>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:46722 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750779AbeDXXgp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 19:36:45 -0400
+Received: by mail-lf0-f68.google.com with SMTP id v85-v6so1233488lfa.13
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 16:36:44 -0700 (PDT)
+Date: Wed, 25 Apr 2018 01:36:42 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: i2c: adv748x: Fix pixel rate values
+Message-ID: <20180424233642.GB3315@bigcity.dyn.berto.se>
+References: <20180421124444.1652-1-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180421124444.1652-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
-video streams and can output on up to 4 CSI-2 lanes, depending on the
-hardware implementation.
+Hi Laurent,
 
-It can operate with an external D-PHY, an internal one or no D-PHY at all
-in some configurations.
+Thanks for your patch.
 
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
----
- .../devicetree/bindings/media/cdns,csi2tx.txt      | 98 ++++++++++++++++++++++
- 1 file changed, 98 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+On 2018-04-21 15:44:44 +0300, Laurent Pinchart wrote:
+> The pixel rate, as reported by the V4L2_CID_PIXEL_RATE control, must
+> include both horizontal and vertical blanking. Both the AFE and HDMI
+> receiver program it incorrectly:
+> 
+> - The HDMI receiver goes to the trouble of removing blanking to compute
+> the rate of active pixels. This is easy to fix by removing the
+> computation and returning the incoming pixel clock rate directly.
+> 
+> - The AFE performs similar calculation, while it should simply return
+> the fixed pixel rate for analog sources, mandated by the ADV748x to be
+> 28.63636 MHz.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
-new file mode 100644
-index 000000000000..459c6e332f52
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
-@@ -0,0 +1,98 @@
-+Cadence MIPI-CSI2 TX controller
-+===============================
-+
-+The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
-+4 CSI lanes in output, and up to 4 different pixel streams in input.
-+
-+Required properties:
-+  - compatible: must be set to "cdns,csi2tx"
-+  - reg: base address and size of the memory mapped region
-+  - clocks: phandles to the clocks driving the controller
-+  - clock-names: must contain:
-+    * esc_clk: escape mode clock
-+    * p_clk: register bank clock
-+    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
-+                         implemented in hardware, between 0 and 3
-+
-+Optional properties
-+  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
-+  - phy-names: must contain "dphy"
-+
-+Required subnodes:
-+  - ports: A ports node with one port child node per device input and output
-+           port, in accordance with the video interface bindings defined in
-+           Documentation/devicetree/bindings/media/video-interfaces.txt. The
-+           port nodes are numbered as follows.
-+
-+           Port Description
-+           -----------------------------
-+           0    CSI-2 output
-+           1    Stream 0 input
-+           2    Stream 1 input
-+           3    Stream 2 input
-+           4    Stream 3 input
-+
-+           The stream input port nodes are optional if they are not
-+           connected to anything at the hardware level or implemented
-+           in the design. Since there is only one endpoint per port,
-+           the endpoints are not numbered.
-+
-+Example:
-+
-+csi2tx: csi-bridge@0d0e1000 {
-+	compatible = "cdns,csi2tx";
-+	reg = <0x0d0e1000 0x1000>;
-+	clocks = <&byteclock>, <&byteclock>,
-+		 <&coreclock>, <&coreclock>,
-+		 <&coreclock>, <&coreclock>;
-+	clock-names = "p_clk", "esc_clk",
-+		      "pixel_if0_clk", "pixel_if1_clk",
-+		      "pixel_if2_clk", "pixel_if3_clk";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi2tx_out: endpoint {
-+				remote-endpoint = <&remote_in>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			csi2tx_in_stream0: endpoint {
-+				remote-endpoint = <&stream0_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			csi2tx_in_stream1: endpoint {
-+				remote-endpoint = <&stream1_out>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			csi2tx_in_stream2: endpoint {
-+				remote-endpoint = <&stream2_out>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			csi2tx_in_stream3: endpoint {
-+				remote-endpoint = <&stream3_out>;
-+			};
-+		};
-+	};
-+};
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+This patch uncovered a calculation error in rcar-csi2 which compensated 
+for the removing of the blanking in the adv748x, thanks for that! Good 
+thing that it's not merged yet, will include the fix in the next version 
+of the CSI-2 driver.
+
+> ---
+>  drivers/media/i2c/adv748x/adv748x-afe.c  | 11 +++++------
+>  drivers/media/i2c/adv748x/adv748x-hdmi.c |  8 +-------
+>  2 files changed, 6 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
+> index 61514bae7e5c..3e18d5ae813b 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
+> @@ -321,17 +321,16 @@ static const struct v4l2_subdev_video_ops adv748x_afe_video_ops = {
+>  static int adv748x_afe_propagate_pixelrate(struct adv748x_afe *afe)
+>  {
+>  	struct v4l2_subdev *tx;
+> -	unsigned int width, height, fps;
+>  
+>  	tx = adv748x_get_remote_sd(&afe->pads[ADV748X_AFE_SOURCE]);
+>  	if (!tx)
+>  		return -ENOLINK;
+>  
+> -	width = 720;
+> -	height = afe->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+> -	fps = afe->curr_norm & V4L2_STD_525_60 ? 30 : 25;
+> -
+> -	return adv748x_csi2_set_pixelrate(tx, width * height * fps);
+> +	/*
+> +	 * The ADV748x samples analog video signals using an externally supplied
+> +	 * clock whose frequency is required to be 28.63636 MHz.
+> +	 */
+> +	return adv748x_csi2_set_pixelrate(tx, 28636360);
+>  }
+>  
+>  static int adv748x_afe_enum_mbus_code(struct v4l2_subdev *sd,
+> diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> index 10d229a4f088..aecc2a84dfec 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> @@ -402,8 +402,6 @@ static int adv748x_hdmi_propagate_pixelrate(struct adv748x_hdmi *hdmi)
+>  {
+>  	struct v4l2_subdev *tx;
+>  	struct v4l2_dv_timings timings;
+> -	struct v4l2_bt_timings *bt = &timings.bt;
+> -	unsigned int fps;
+>  
+>  	tx = adv748x_get_remote_sd(&hdmi->pads[ADV748X_HDMI_SOURCE]);
+>  	if (!tx)
+> @@ -411,11 +409,7 @@ static int adv748x_hdmi_propagate_pixelrate(struct adv748x_hdmi *hdmi)
+>  
+>  	adv748x_hdmi_query_dv_timings(&hdmi->sd, &timings);
+>  
+> -	fps = DIV_ROUND_CLOSEST_ULL(bt->pixelclock,
+> -				    V4L2_DV_BT_FRAME_WIDTH(bt) *
+> -				    V4L2_DV_BT_FRAME_HEIGHT(bt));
+> -
+> -	return adv748x_csi2_set_pixelrate(tx, bt->width * bt->height * fps);
+> +	return adv748x_csi2_set_pixelrate(tx, timings.bt.pixelclock);
+>  }
+>  
+>  static int adv748x_hdmi_enum_mbus_code(struct v4l2_subdev *sd,
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+
 -- 
-2.14.3
+Regards,
+Niklas Söderlund
