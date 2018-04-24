@@ -1,66 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:50368 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753099AbeDQNfb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 09:35:31 -0400
-Date: Tue, 17 Apr 2018 10:35:21 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Daniel Mentz <danielmentz@google.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 4/5] media: v4l2-compat-ioctl32: fix several __user
- annotations
-Message-ID: <20180417103521.28e5e120@vento.lan>
-In-Reply-To: <e514a081-e70a-a6fb-d083-a5cc9e985f4f@cisco.com>
-References: <cover.1523960171.git.mchehab@s-opensource.com>
-        <510d0652872c612db21be8b846755f80e3cc4588.1523960171.git.mchehab@s-opensource.com>
-        <a150928f-c236-4751-b704-7ce71fd56bc2@cisco.com>
-        <20180417075358.61a878c8@vento.lan>
-        <b3ed6478-9cf5-478d-067b-5d325dfeaadd@cisco.com>
-        <20180417100131.3add7f67@vento.lan>
-        <e514a081-e70a-a6fb-d083-a5cc9e985f4f@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35601 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932866AbeDXMpY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 08:45:24 -0400
+Received: by mail-wm0-f68.google.com with SMTP id o78so611837wmg.0
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:23 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 15/28] venus: add a helper function to set dynamic buffer mode
+Date: Tue, 24 Apr 2018 15:44:23 +0300
+Message-Id: <20180424124436.26955-16-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 17 Apr 2018 15:11:10 +0200
-Hans Verkuil <hansverk@cisco.com> escreveu:
+Adds a new helper function to set dymaic buffer mode if it is
+supported by current HFI version.
 
-> >> Be aware that the unsigned char * cast is actually a bug: it will clamp the
-> >> u32 'blocks' value to a u8.
-> >>
-> >> Regards,
-> >>
-> >> 	Hans  
-> > 
-> > What about this approach (code untested)?  
-> 
-> I prefer the explicit casts. These are special situations and hiding it in
-> defines makes it actually harder to follow.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/helpers.c | 22 ++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/helpers.h |  1 +
+ drivers/media/platform/qcom/venus/vdec.c    | 15 +++------------
+ 3 files changed, 26 insertions(+), 12 deletions(-)
 
-There are just one special case there: USERPTR, where we force a cast
-to unsigned long:
-
-drivers/media/v4l2-core/v4l2-compat-ioctl32.c:              put_user((unsigned long)compat_ptr(p), &p64->m.userptr))
-...
-drivers/media/v4l2-core/v4l2-compat-ioctl32.c:                      put_user((unsigned long)compat_ptr(userptr),
-drivers/media/v4l2-core/v4l2-compat-ioctl32.c-                               &p64->m.userptr))
-
-I kept it out of the macros.
-
-IMO, maintaining the code with the type_of() is more error-prune, as
-the cast will be done the way it should. The cases where some other
-cast like is needed - with is what it was done for USERPTR should
-be explicit (and, btw, they should be properly documented why doing
-that).
-
-I don't remember anymore why it is casting to unsigned long,
-but, based on v4l2-compliance tests, it seems that such cast works.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index 1eda19adbf28..824ad4d2d064 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -522,6 +522,28 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
+ }
+ EXPORT_SYMBOL_GPL(venus_helper_set_color_format);
+ 
++int venus_helper_set_dyn_bufmode(struct venus_inst *inst)
++{
++	u32 ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
++	struct hfi_buffer_alloc_mode mode;
++	int ret;
++
++	if (!is_dynamic_bufmode(inst))
++		return 0;
++
++	mode.type = HFI_BUFFER_OUTPUT;
++	mode.mode = HFI_BUFFER_MODE_DYNAMIC;
++
++	ret = hfi_session_set_property(inst, ptype, &mode);
++	if (ret)
++		return ret;
++
++	mode.type = HFI_BUFFER_OUTPUT2;
++
++	return hfi_session_set_property(inst, ptype, &mode);
++}
++EXPORT_SYMBOL_GPL(venus_helper_set_dyn_bufmode);
++
+ static void delayed_process_buf_func(struct work_struct *work)
+ {
+ 	struct venus_buffer *buf, *n;
+diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+index 0e64aa95624a..52b961ed491e 100644
+--- a/drivers/media/platform/qcom/venus/helpers.h
++++ b/drivers/media/platform/qcom/venus/helpers.h
+@@ -40,6 +40,7 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
+ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+ 			      unsigned int output_bufs);
+ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
++int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
+ void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+ void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
+ void venus_helper_init_instance(struct venus_inst *inst);
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 0ddc2c4df934..1de9cc64cf2f 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -557,18 +557,9 @@ static int vdec_set_properties(struct venus_inst *inst)
+ 			return ret;
+ 	}
+ 
+-	if (core->res->hfi_version == HFI_VERSION_3XX ||
+-	    inst->cap_bufs_mode_dynamic) {
+-		struct hfi_buffer_alloc_mode mode;
+-
+-		ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
+-		mode.type = HFI_BUFFER_OUTPUT;
+-		mode.mode = HFI_BUFFER_MODE_DYNAMIC;
+-
+-		ret = hfi_session_set_property(inst, ptype, &mode);
+-		if (ret)
+-			return ret;
+-	}
++	ret = venus_helper_set_dyn_bufmode(inst);
++	if (ret)
++		return ret;
+ 
+ 	if (ctr->post_loop_deb_mode) {
+ 		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
+-- 
+2.14.1
