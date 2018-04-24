@@ -1,73 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34061 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751271AbeDSKSh (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:55913 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933202AbeDXNLj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 06:18:37 -0400
-Received: by mail-wr0-f193.google.com with SMTP id d19-v6so12536896wre.1
-        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 03:18:37 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH 03/15] clk: imx7d: fix mipi dphy div parent
-Date: Thu, 19 Apr 2018 11:18:00 +0100
-Message-Id: <20180419101812.30688-4-rui.silva@linaro.org>
-In-Reply-To: <20180419101812.30688-1-rui.silva@linaro.org>
-References: <20180419101812.30688-1-rui.silva@linaro.org>
+        Tue, 24 Apr 2018 09:11:39 -0400
+Received: by mail-wm0-f66.google.com with SMTP id a8so868804wmg.5
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 06:11:39 -0700 (PDT)
+Received: from toshiba (541B3FFD.cm-5-4a.dynamic.ziggo.nl. [84.27.63.253])
+        by smtp.gmail.com with ESMTPSA id y29sm9126984edl.6.2018.04.24.06.11.37
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 24 Apr 2018 06:11:38 -0700 (PDT)
+Message-ID: <5adf2d0a.ddf1500a.f24fc.61a0@mx.google.com>
+Date: Tue, 24 Apr 2018 15:11:35 +0200
+From: mjs <mjstork@gmail.com>
+To: "3 linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] remove 2 excess lines in driver module em28xx
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the mipi dphy root divider to mipi_dphy_pre_div, this would remove a orphan
-clock and set the correct parent.
+=46rom 5103cc546075de0eb800f5a76f3212a3e342b833 Mon Sep 17 00:00:00 2001
+From: Marcel Stork <mjstork@gmail.com>
+Date: Tue, 24 Apr 2018 14:43:01 +0200
+Subject: [PATCH] remove 2 excess lines in driver module em28xx
 
-before:
-cat clk_orphan_summary
-                                 enable  prepare  protect
-   clock                          count    count    count        rate   accuracy   phase
-----------------------------------------------------------------------------------------
- mipi_dphy_post_div                   1        1        0           0          0 0
-    mipi_dphy_root_clk                1        1        0           0          0 0
-
-cat clk_dump | grep mipi_dphy
-mipi_dphy_post_div                    1        1        0           0          0 0
-    mipi_dphy_root_clk                1        1        0           0          0 0
-
-after:
-cat clk_dump | grep mipi_dphy
-   mipi_dphy_src                     1        1        0    24000000          0 0
-       mipi_dphy_cg                  1        1        0    24000000          0 0
-          mipi_dphy_pre_div          1        1        0    24000000          0 0
-             mipi_dphy_post_div      1        1        0    24000000          0 0
-                mipi_dphy_root_clk   1        1        0    24000000          0 0
-
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
-
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+A cosmetic change by combining two sets of boards into one set because havi=
+ng the same arguments.
+=20
+ Changes to be committed:
+	modified:   em28xx-cards.c
 ---
- drivers/clk/imx/clk-imx7d.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ em28xx-cards.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
-index 975a20d3cc94..f7f4db2e6fa6 100644
---- a/drivers/clk/imx/clk-imx7d.c
-+++ b/drivers/clk/imx/clk-imx7d.c
-@@ -729,7 +729,7 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
- 	clks[IMX7D_LCDIF_PIXEL_ROOT_DIV] = imx_clk_divider2("lcdif_pixel_post_div", "lcdif_pixel_pre_div", base + 0xa300, 0, 6);
- 	clks[IMX7D_MIPI_DSI_ROOT_DIV] = imx_clk_divider2("mipi_dsi_post_div", "mipi_dsi_pre_div", base + 0xa380, 0, 6);
- 	clks[IMX7D_MIPI_CSI_ROOT_DIV] = imx_clk_divider2("mipi_csi_post_div", "mipi_csi_pre_div", base + 0xa400, 0, 6);
--	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_csi_dphy_div", base + 0xa480, 0, 6);
-+	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_dphy_pre_div", base + 0xa480, 0, 6);
- 	clks[IMX7D_SAI1_ROOT_DIV] = imx_clk_divider2("sai1_post_div", "sai1_pre_div", base + 0xa500, 0, 6);
- 	clks[IMX7D_SAI2_ROOT_DIV] = imx_clk_divider2("sai2_post_div", "sai2_pre_div", base + 0xa580, 0, 6);
- 	clks[IMX7D_SAI3_ROOT_DIV] = imx_clk_divider2("sai3_post_div", "sai3_pre_div", base + 0xa600, 0, 6);
--- 
-2.17.0
+diff --git a/em28xx-cards.c b/em28xx-cards.c
+index 6e0e67d..7fa9a00 100644
+--- a/em28xx-cards.c
++++ b/em28xx-cards.c
+@@ -3182,8 +3182,6 @@ void em28xx_setup_xc3028(struct em28xx *dev, struct x=
+c2028_ctrl *ctl)
+ 	case EM2880_BOARD_EMPIRE_DUAL_TV:
+ 	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
+ 	case EM2882_BOARD_TERRATEC_HYBRID_XS:
+-		ctl->demod =3D XC3028_FE_ZARLINK456;
+-		break;
+ 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
+ 	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+ 	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+--=20
+2.11.0
