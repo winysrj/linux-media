@@ -1,175 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:35532 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751444AbeDREtl (ORCPT
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:52995 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756641AbeDXIYf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 00:49:41 -0400
-Received: by mail-qt0-f195.google.com with SMTP id s2-v6so499942qti.2
-        for <linux-media@vger.kernel.org>; Tue, 17 Apr 2018 21:49:40 -0700 (PDT)
-Received: from mail-qk0-f170.google.com (mail-qk0-f170.google.com. [209.85.220.170])
-        by smtp.gmail.com with ESMTPSA id x203sm289910qka.77.2018.04.17.21.49.39
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 17 Apr 2018 21:49:39 -0700 (PDT)
-Received: by mail-qk0-f170.google.com with SMTP id c136so473567qkb.12
-        for <linux-media@vger.kernel.org>; Tue, 17 Apr 2018 21:49:39 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180409091441.GX4043@hirez.programming.kicks-ass.net>
-References: <CAAZRmGz8iTDSZ6S=05V0JKDXBnS47e43MBBSvnGtrVv-QioirA@mail.gmail.com>
- <20180409091441.GX4043@hirez.programming.kicks-ass.net>
-From: Olli Salonen <olli.salonen@iki.fi>
-Date: Wed, 18 Apr 2018 06:49:38 +0200
-Message-ID: <CAAZRmGw9DTHX65cYch6ozjGejMnDNQx_aNF-RYPRo+E4COEoRA@mail.gmail.com>
-Subject: Re: Regression: DVBSky S960 USB tuner doesn't work in 4.10 or newer
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Nibble Max <nibble.max@gmail.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        wsa@the-dreams.de
-Content-Type: text/plain; charset="UTF-8"
+        Tue, 24 Apr 2018 04:24:35 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Luca Ceresoli <luca@lucaceresoli.net>,
+        Leon Luo <leonl@leopardimaging.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2 08/13] media: imx274: consolidate per-mode data in imx274_frmfmt
+Date: Tue, 24 Apr 2018 10:24:13 +0200
+Message-Id: <1524558258-530-9-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1524558258-530-1-git-send-email-luca@lucaceresoli.net>
+References: <1524558258-530-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you for your response Peter!
+Data about the implemented readout modes is partially stored in
+imx274_formats[], the rest is scattered in several arrays. The latter
+are then accessed using the mode index, e.g.:
 
-Indeed, it seems strange. dvbsky.c driver seems to use mutex_lock in
-very much the same way as many other drivers. I've now confirmed that
-I can get a 4.10 kernel with working DVBSky S960 by reverting the
-following 4 patches:
+  min_frame_len[priv->mode_index]
 
-549bdd3 Revert "locking/mutex: Add lock handoff to avoid starvation"
-3210f31 Revert "locking/mutex: Restructure wait loop"
-418a170 Revert "locking/mutex: Simplify some ww_mutex code in
-__mutex_lock_common()"
-0b1fb8f Revert "locking/mutex: Enable optimistic spinning of woken waiter"
-c470abd Linux 4.10
+Consolidate all these data in imx274_formats[], and store a pointer to
+the selected mode (i.e. imx274_formats[priv->mode_index]) in the main
+device struct. This way code to use these data becomes more readable,
+e.g.:
 
-The other 3 three I need to revert to be able to revert 9d659ae.
+  priv->mode->min_frame_len
 
-I added some more debugging into the DVBsky driver to better
-understand what's happening.
+This removes lots of scaffolding code and keeps data about each mode
+in a unique place.
 
-After the point when the fault starts any I2C read from the m88ds3103
-demodulator provides answer "07 ff 49 00" or a subset of it. Before
-13:59:42 there are no I2C reads returning an answer starting with 07.
+Also remove a parameter to imx274_mode_regs() that is now unused.
 
-Apr 10 13:59:42 nucserver kernel: [ 4744.048206]
-dvb_usb_dvbsky:dvbsky_rc_query: usb 1-1:
-Apr 10 13:59:42 nucserver kernel: [ 4744.048319]
-dvb_usb_dvbsky:dvbsky_usb_generic_rw: usb 1-1: write: 10, read: ff ff
-Apr 10 13:59:42 nucserver kernel: [ 4744.080229]
-dvb_usb_dvbsky:dvbsky_usb_read_status: usb 1-1:
-Apr 10 13:59:42 nucserver kernel: [ 4744.080245]
-dvb_usb_dvbsky:dvbsky_i2c_xfer: usb 1-1: num: 2
-Apr 10 13:59:42 nucserver kernel: [ 4744.080915]
-dvb_usb_dvbsky:dvbsky_usb_generic_rw: usb 1-1: write: 09 01 01 68 0d,
-read: 08 01
-Apr 10 13:59:42 nucserver kernel: [ 4744.080931]
-m88ds3103:m88ds3103_read_status: m88ds3103 4-0068: lock=01 status=00
-Apr 10 13:59:42 nucserver kernel: [ 4744.080943]
-m88ds3103:m88ds3103_set_frontend: m88ds3103 4-0068: delivery_system=6
-modulation=9 frequency=1097000 symbol_rate=23000000 inversion=2
-pilot=2 rolloff=0
-Apr 10 13:59:42 nucserver kernel: [ 4744.080953]
-dvb_usb_dvbsky:dvbsky_i2c_xfer: usb 1-1: num: 1
-Apr 10 13:59:42 nucserver kernel: [ 4744.081452]
-dvb_usb_dvbsky:dvbsky_usb_generic_rw: usb 1-1: write: 08 68 02 07 80,
-read: 08
-Apr 10 13:59:42 nucserver kernel: [ 4744.081562]
-dvb_usb_dvbsky:dvbsky_i2c_xfer: usb 1-1: num: 2
-Apr 10 13:59:42 nucserver kernel: [ 4744.082263]
-dvb_usb_dvbsky:dvbsky_usb_generic_rw: usb 1-1: write: 09 01 01 68 3f,
-read: 08 ff
-Apr 10 13:59:42 nucserver kernel: [ 4744.082287]
-dvb_usb_dvbsky:dvbsky_i2c_xfer: usb 1-1: num: 1
-Apr 10 13:59:42 nucserver kernel: [ 4744.082706]
-dvb_usb_dvbsky:dvbsky_usb_generic_rw: usb 1-1: write: 08 68 02 03 11,
-read: 07
-Apr 10 13:59:42 nucserver kernel: [ 4744.082715]
-dvb_usb_dvbsky:dvbsky_i2c_xfer: usb 1-1: num: 2
-Apr 10 13:59:42 nucserver kernel: [ 4744.083119]
-dvb_usb_dvbsky:dvbsky_usb_generic_rw: usb 1-1: write: 09 01 01 60 3d,
-read: 07 ff
-Apr 10 13:59:42 nucserver kernel: [ 4744.083230]
-dvb_usb_dvbsky:dvbsky_i2c_xfer: usb 1-1: num: 1
-Apr 10 13:59:42 nucserver kernel: [ 4744.083645]
-dvb_usb_dvbsky:dvbsky_usb_generic_rw: usb 1-1: write: 08 68 02 07 00,
-read: 07
-Apr 10 13:59:42 nucserver kernel: [ 4744.083752]
-dvb_usb_dvbsky:dvbsky_i2c_xfer: usb 1-1: num: 1
-Apr 10 13:59:42 nucserver kernel: [ 4744.084114]
-dvb_usb_dvbsky:dvbsky_usb_generic_rw: usb 1-1: write: 08 68 02 03 11,
-read: 07
-Apr 10 13:59:42 nucserver kernel: [ 4744.084130]
-dvb_usb_dvbsky:dvbsky_i2c_xfer: usb 1-1: num: 2
-Apr 10 13:59:42 nucserver kernel: [ 4744.084484]
-dvb_usb_dvbsky:dvbsky_usb_generic_rw: usb 1-1: write: 09 01 01 60 21,
-read: 07 ff
+While this adds the mode pointer to the device struct, it does not
+remove the mode_index from it because mode_index is still used in two
+dev_dbg() calls.  This will be handled in a follow-up commit.
 
-I really cannot see any obvious link between the mutexes and the I2C
-operations starting to fail, but indeed the device starts to work as
-normal if I revert that patch.
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
 
-Cheers,
--olli
+---
+Changed v1 -> v2:
+ - add "media: " prefix to commit message
+---
+ drivers/media/i2c/imx274.c | 139 +++++++++++++++++++++------------------------
+ 1 file changed, 66 insertions(+), 73 deletions(-)
 
-
-On 9 April 2018 at 11:14, Peter Zijlstra <peterz@infradead.org> wrote:
-> On Wed, Apr 04, 2018 at 02:41:51PM +0300, Olli Salonen wrote:
->> Hello Peter and Max,
->>
->> I noticed that when using kernel 4.10 or newer my DVBSky S960 and
->> S960CI satellite USB TV tuners stopped working properly. Basically,
->> they will fail at one point when tuning to a channel. This typically
->> takes less than 100 tuning attempts. For perspective, when performing
->> a full channel scan on my system, the tuner tunes at least 500 times.
->> After the tuner fails, I need to reboot the PC (probably unloading the
->> driver and loading it again would do).
->>
->> 2018-04-04 10:17:36.756 [   INFO] mpegts: 12149H in 4.8E - tuning on
->> Montage Technology M88DS3103 : DVB-S #0
->> 2018-04-04 10:17:37.159 [  ERROR] diseqc: failed to send diseqc cmd
->> (e=Connection timed out)
->> 2018-04-04 10:17:37.160 [   INFO] mpegts: 12265H in 4.8E - tuning on
->> Montage Technology M88DS3103 : DVB-S #0
->> 2018-04-04 10:17:37.535 [  ERROR] diseqc: failed to send diseqc cmd
->> (e=Connection timed out)
->>
->> I did a kernel bisect between 4.9 and 4.10. It seems the commit that
->> breaks my tuner is the following one:
->>
->> 9d659ae14b545c4296e812c70493bfdc999b5c1c is the first bad commit
->> commit 9d659ae14b545c4296e812c70493bfdc999b5c1c
->> Author: Peter Zijlstra <peterz@infradead.org>
->> Date:   Tue Aug 23 14:40:16 2016 +0200
->>
->>     locking/mutex: Add lock handoff to avoid starvation
->>
->> I couldn't easily revert that commit only. I can see that the
->> drivers/media/usb/dvb-usb-v2/dvbsky.c driver does use mutex_lock() and
->> mutex_lock_interruptible() in a few places.
->>
->> Do you guys see anything that's obviously wrong in the way the mutexes
->> are used in dvbsky.c or anything in that particular patch that could
->> cause this issue?
->
-> Nothing, sorry.. really weird. That driver looks fairly straight forward
-> with respect to mutex usage (although obviously I have less than 0 clue
-> on the whole usb media thing).
->
-> That it breaks that driver would suggest something funny with it though;
-> because the kernel has loads and loads of mutexes in and they all appear
-> to work well with that patch -- in fact, it fixed a reported starvation
-> case.
->
-> The only way for that patch to affect things is if there is contention
-> on the mutex though; so who or what is also trying to acquire the mutex?
->
-> The reported error is a timeout, suggesting that whoever is contending
-> on the lock is keeping it held too long? I do notice that
-> dvbsky_stream_ctrl() has an msleep() while holding a mutex.
->
-> Do you have any idea which of the 3 (afaict) mutexes in that driver is
-> failing? Going by the fact that it's failing to send, I'd hazard a guess
-> it's the i2c mutex, but again, I have less than 0 clues about i2c.
->
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index 8a8a11b8d75d..2ec31ae4e60d 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -147,10 +147,28 @@ enum imx274_mode {
+ };
+ 
+ /*
+- * imx274 format related structure
++ * Parameters for each imx274 readout mode.
++ *
++ * These are the values to configure the sensor in one of the
++ * implemented modes.
++ *
++ * @size: recommended recording pixels
++ * @init_regs: registers to initialize the mode
++ * @min_frame_len: Minimum frame length for each mode (see "Frame Rate
++ *                 Adjustment (CSI-2)" in the datasheet)
++ * @min_SHR: Minimum SHR register value (see "Shutter Setting (CSI-2)" in the
++ *           datasheet)
++ * @max_fps: Maximum frames per second
++ * @nocpiop: Number of clocks per internal offset period (see "Integration Time
++ *           in Each Readout Drive Mode (CSI-2)" in the datasheet)
+  */
+ struct imx274_frmfmt {
+ 	struct v4l2_frmsize_discrete size;
++	const struct reg_8 *init_regs;
++	int min_frame_len;
++	int min_SHR;
++	int max_fps;
++	int nocpiop;
+ };
+ 
+ /*
+@@ -476,58 +494,35 @@ static const struct reg_8 imx274_tp_regs[] = {
+ 	{IMX274_TABLE_END, 0x00}
+ };
+ 
+-static const struct reg_8 *mode_table[] = {
+-	[IMX274_MODE_3840X2160]		= imx274_mode1_3840x2160_raw10,
+-	[IMX274_MODE_1920X1080]		= imx274_mode3_1920x1080_raw10,
+-	[IMX274_MODE_1280X720]		= imx274_mode5_1280x720_raw10,
+-};
+-
+-/*
+- * imx274 format related structure
+- */
++/* nocpiop happens to be the same number for the implemented modes */
+ static const struct imx274_frmfmt imx274_formats[] = {
+-	{ {3840, 2160} },
+-	{ {1920, 1080} },
+-	{ {1280,  720} },
+-};
+-
+-/*
+- * minimal frame length for each mode
+- * refer to datasheet section "Frame Rate Adjustment (CSI-2)"
+- */
+-static const int min_frame_len[] = {
+-	4550, /* mode 1, 4K */
+-	2310, /* mode 3, 1080p */
+-	2310 /* mode 5, 720p */
+-};
+-
+-/*
+- * minimal numbers of SHR register
+- * refer to datasheet table "Shutter Setting (CSI-2)"
+- */
+-static const int min_SHR[] = {
+-	12, /* mode 1, 4K */
+-	8, /* mode 3, 1080p */
+-	8 /* mode 5, 720p */
+-};
+-
+-static const int max_frame_rate[] = {
+-	60, /* mode 1 , 4K */
+-	120, /* mode 3, 1080p */
+-	120 /* mode 5, 720p */
+-};
+-
+-/*
+- * Number of clocks per internal offset period
+- * a constant based on mode
+- * refer to section "Integration Time in Each Readout Drive Mode (CSI-2)"
+- * in the datasheet
+- * for the implemented 3 modes, it happens to be the same number
+- */
+-static const int nocpiop[] = {
+-	112, /* mode 1 , 4K */
+-	112, /* mode 3, 1080p */
+-	112 /* mode 5, 720p */
++	{
++		/* mode 1, 4K */
++		.size = {3840, 2160},
++		.init_regs = imx274_mode1_3840x2160_raw10,
++		.min_frame_len = 4550,
++		.min_SHR = 12,
++		.max_fps = 60,
++		.nocpiop = 112,
++	},
++	{
++		/* mode 3, 1080p */
++		.size = {1920, 1080},
++		.init_regs = imx274_mode3_1920x1080_raw10,
++		.min_frame_len = 2310,
++		.min_SHR = 8,
++		.max_fps = 120,
++		.nocpiop = 112,
++	},
++	{
++		/* mode 5, 720p */
++		.size = {1280, 720},
++		.init_regs = imx274_mode5_1280x720_raw10,
++		.min_frame_len = 2310,
++		.min_SHR = 8,
++		.max_fps = 120,
++		.nocpiop = 112,
++	},
+ };
+ 
+ /*
+@@ -557,6 +552,8 @@ struct imx274_ctrls {
+  * @regmap: Pointer to regmap structure
+  * @reset_gpio: Pointer to reset gpio
+  * @lock: Mutex structure
++ * @mode: Parameters for the selected readout mode
++ *        (points to imx274_formats[mode_index])
+  * @mode_index: Resolution mode index
+  */
+ struct stimx274 {
+@@ -569,6 +566,7 @@ struct stimx274 {
+ 	struct regmap *regmap;
+ 	struct gpio_desc *reset_gpio;
+ 	struct mutex lock; /* mutex lock for operations */
++	const struct imx274_frmfmt *mode;
+ 	u32 mode_index;
+ };
+ 
+@@ -704,18 +702,12 @@ static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
+ }
+ 
+ /*
+- * imx274_mode_regs - Function for set mode registers per mode index
++ * Set mode registers to start stream.
+  * @priv: Pointer to device structure
+- * @mode: Mode index value
+- *
+- * This is used to start steam per mode index.
+- * mode = 0, start stream for sensor Mode 1: 4K/raw10
+- * mode = 1, start stream for sensor Mode 3: 1080p/raw10
+- * mode = 2, start stream for sensor Mode 5: 720p/raw10
+  *
+  * Return: 0 on success, errors otherwise
+  */
+-static int imx274_mode_regs(struct stimx274 *priv, int mode)
++static int imx274_mode_regs(struct stimx274 *priv)
+ {
+ 	int err = 0;
+ 
+@@ -727,7 +719,7 @@ static int imx274_mode_regs(struct stimx274 *priv, int mode)
+ 	if (err)
+ 		return err;
+ 
+-	err = imx274_write_table(priv, mode_table[mode]);
++	err = imx274_write_table(priv, priv->mode->init_regs);
+ 
+ 	return err;
+ }
+@@ -889,6 +881,7 @@ static int imx274_set_fmt(struct v4l2_subdev *sd,
+ 	}
+ 
+ 	imx274->mode_index = index;
++	imx274->mode = &imx274_formats[index];
+ 
+ 	if (fmt->width > IMX274_MAX_WIDTH)
+ 		fmt->width = IMX274_MAX_WIDTH;
+@@ -1042,7 +1035,7 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
+ 
+ 	if (on) {
+ 		/* load mode registers */
+-		ret = imx274_mode_regs(imx274, imx274->mode_index);
++		ret = imx274_mode_regs(imx274);
+ 		if (ret)
+ 			goto fail;
+ 
+@@ -1146,14 +1139,14 @@ static int imx274_clamp_coarse_time(struct stimx274 *priv, u32 *val,
+ 	if (err)
+ 		return err;
+ 
+-	if (*frame_length < min_frame_len[priv->mode_index])
+-		*frame_length = min_frame_len[priv->mode_index];
++	if (*frame_length < priv->mode->min_frame_len)
++		*frame_length =  priv->mode->min_frame_len;
+ 
+ 	*val = *frame_length - *val; /* convert to raw shr */
+ 	if (*val > *frame_length - IMX274_SHR_LIMIT_CONST)
+ 		*val = *frame_length - IMX274_SHR_LIMIT_CONST;
+-	else if (*val < min_SHR[priv->mode_index])
+-		*val = min_SHR[priv->mode_index];
++	else if (*val < priv->mode->min_SHR)
++		*val = priv->mode->min_SHR;
+ 
+ 	return 0;
+ }
+@@ -1365,7 +1358,7 @@ static int imx274_set_exposure(struct stimx274 *priv, int val)
+ 	}
+ 
+ 	coarse_time = (IMX274_PIXCLK_CONST1 / IMX274_PIXCLK_CONST2 * val
+-			- nocpiop[priv->mode_index]) / hmax;
++			- priv->mode->nocpiop) / hmax;
+ 
+ 	/* step 2: convert exposure_time into SHR value */
+ 
+@@ -1375,7 +1368,7 @@ static int imx274_set_exposure(struct stimx274 *priv, int val)
+ 		goto fail;
+ 
+ 	priv->ctrls.exposure->val =
+-			(coarse_time * hmax + nocpiop[priv->mode_index])
++			(coarse_time * hmax + priv->mode->nocpiop)
+ 			/ (IMX274_PIXCLK_CONST1 / IMX274_PIXCLK_CONST2);
+ 
+ 	dev_dbg(&priv->client->dev,
+@@ -1529,10 +1522,9 @@ static int imx274_set_frame_interval(struct stimx274 *priv,
+ 				/ frame_interval.numerator);
+ 
+ 	/* boundary check */
+-	if (req_frame_rate > max_frame_rate[priv->mode_index]) {
++	if (req_frame_rate > priv->mode->max_fps) {
+ 		frame_interval.numerator = 1;
+-		frame_interval.denominator =
+-					max_frame_rate[priv->mode_index];
++		frame_interval.denominator = priv->mode->max_fps;
+ 	} else if (req_frame_rate < IMX274_MIN_FRAME_RATE) {
+ 		frame_interval.numerator = 1;
+ 		frame_interval.denominator = IMX274_MIN_FRAME_RATE;
+@@ -1634,8 +1626,9 @@ static int imx274_probe(struct i2c_client *client,
+ 
+ 	/* initialize format */
+ 	imx274->mode_index = IMX274_MODE_3840X2160;
+-	imx274->format.width = imx274_formats[0].size.width;
+-	imx274->format.height = imx274_formats[0].size.height;
++	imx274->mode = &imx274_formats[imx274->mode_index];
++	imx274->format.width = imx274->mode->size.width;
++	imx274->format.height = imx274->mode->size.height;
+ 	imx274->format.field = V4L2_FIELD_NONE;
+ 	imx274->format.code = MEDIA_BUS_FMT_SRGGB10_1X10;
+ 	imx274->format.colorspace = V4L2_COLORSPACE_SRGB;
+-- 
+2.7.4
