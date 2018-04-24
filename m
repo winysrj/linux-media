@@ -1,87 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55390 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932417AbeDXKZB (ORCPT
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:53485 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756637AbeDXIYe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 06:25:01 -0400
-Date: Tue, 24 Apr 2018 13:24:59 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Daniel Mack <daniel@zonque.org>
-Cc: linux-media@vger.kernel.org, slongerbeam@gmail.com,
-        mchehab@kernel.org
-Subject: Re: [PATCH 3/3] media: ov5640: add support for xclk frequency control
-Message-ID: <20180424102459.pgibl76nj66vj4ki@valkosipuli.retiisi.org.uk>
-References: <20180420094419.11267-1-daniel@zonque.org>
- <20180420094419.11267-3-daniel@zonque.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180420094419.11267-3-daniel@zonque.org>
+        Tue, 24 Apr 2018 04:24:34 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Luca Ceresoli <luca@lucaceresoli.net>,
+        Leon Luo <leonl@leopardimaging.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2 04/13] media: imx274: remove unused data from struct imx274_frmfmt
+Date: Tue, 24 Apr 2018 10:24:09 +0200
+Message-Id: <1524558258-530-5-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1524558258-530-1-git-send-email-luca@lucaceresoli.net>
+References: <1524558258-530-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 20, 2018 at 11:44:19AM +0200, Daniel Mack wrote:
-> Allow setting the xclk rate via an optional 'clock-frequency' property in
-> the device tree node.
-> 
-> Signed-off-by: Daniel Mack <daniel@zonque.org>
-> ---
->  Documentation/devicetree/bindings/media/i2c/ov5640.txt |  2 ++
->  drivers/media/i2c/ov5640.c                             | 10 ++++++++++
->  2 files changed, 12 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-> index 8e36da0d8406..584bbc944978 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-> @@ -13,6 +13,8 @@ Optional Properties:
->  	       This is an active low signal to the OV5640.
->  - powerdown-gpios: reference to the GPIO connected to the powerdown pin,
->  		   if any. This is an active high signal to the OV5640.
-> +- clock-frequency: frequency to set on the xclk input clock. The clock
-> +		   is left untouched if this property is missing.
->  
->  The device node must contain one 'port' child node for its digital output
->  video port, in accordance with the video interface bindings defined in
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 78669ed386cd..2d94d6dbda5d 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -2685,6 +2685,7 @@ static int ov5640_probe(struct i2c_client *client,
->  	struct fwnode_handle *endpoint;
->  	struct ov5640_dev *sensor;
->  	struct v4l2_mbus_framefmt *fmt;
-> +	u32 freq;
->  	int ret;
->  
->  	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
-> @@ -2731,6 +2732,15 @@ static int ov5640_probe(struct i2c_client *client,
->  		return PTR_ERR(sensor->xclk);
->  	}
->  
-> +	ret = of_property_read_u32(dev->of_node, "clock-frequency", &freq);
+struct imx274_frmfmt is instantiated only in the imx274_formats[]
+array, where imx274_formats[N].mode always equals N (via enum
+imx274_mode).  So .mode carries no information, and unsurprisingly it
+is never used.
 
-Please use
+mbus_code is never used because the 12 bit modes are not implemented.
 
-	ret = fwnode_property_read_u32(dev_fwnode(dev), ...);
+The colorspace member is also never used, which is normal since the
+imx274 sensor can output only one colorspace.
 
-Thanks.
+Let's get rid of all of them.
 
-> +	if (ret == 0) {
-> +		ret = clk_set_rate(sensor->xclk, freq);
-> +		if (ret) {
-> +			dev_err(dev, "could not set xclk frequency\n");
-> +			return ret;
-> +		}
-> +	}
-> +
->  	sensor->xclk_freq = clk_get_rate(sensor->xclk);
->  	if (sensor->xclk_freq < OV5640_XCLK_MIN ||
->  	    sensor->xclk_freq > OV5640_XCLK_MAX) {
-> -- 
-> 2.14.3
-> 
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
 
+---
+Changed v1 -> v2:
+ - add "media: " prefix to commit message
+---
+ drivers/media/i2c/imx274.c | 17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index c5d00ade4d64..9203d377cfe2 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -156,10 +156,7 @@ enum imx274_mode {
+  * imx274 format related structure
+  */
+ struct imx274_frmfmt {
+-	u32 mbus_code;
+-	enum v4l2_colorspace colorspace;
+ 	struct v4l2_frmsize_discrete size;
+-	enum imx274_mode mode;
+ };
+ 
+ /*
+@@ -501,12 +498,9 @@ static const struct reg_8 *mode_table[] = {
+  * imx274 format related structure
+  */
+ static const struct imx274_frmfmt imx274_formats[] = {
+-	{MEDIA_BUS_FMT_SRGGB10_1X10, V4L2_COLORSPACE_SRGB, {3840, 2160},
+-		IMX274_MODE_3840X2160},
+-	{MEDIA_BUS_FMT_SRGGB10_1X10, V4L2_COLORSPACE_SRGB, {1920, 1080},
+-		IMX274_MODE_1920X1080},
+-	{MEDIA_BUS_FMT_SRGGB10_1X10, V4L2_COLORSPACE_SRGB, {1280, 720},
+-		IMX274_MODE_1280X720},
++	{ {3840, 2160} },
++	{ {1920, 1080} },
++	{ {1280,  720} },
+ };
+ 
+ /*
+@@ -890,9 +884,8 @@ static int imx274_set_fmt(struct v4l2_subdev *sd,
+ 	int index;
+ 
+ 	dev_dbg(&client->dev,
+-		"%s: width = %d height = %d code = %d mbus_code = %d\n",
+-		__func__, fmt->width, fmt->height, fmt->code,
+-		imx274_formats[imx274->mode_index].mbus_code);
++		"%s: width = %d height = %d code = %d\n",
++		__func__, fmt->width, fmt->height, fmt->code);
+ 
+ 	mutex_lock(&imx274->lock);
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
