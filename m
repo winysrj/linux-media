@@ -1,95 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f51.google.com ([209.85.215.51]:33792 "EHLO
-        mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752021AbeDFMgH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 08:36:07 -0400
-Subject: Re: [RfC PATCH] Add udmabuf misc device
-To: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>,
-        Dongwon Kim <dongwon.kim@intel.com>,
-        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        David Airlie <airlied@linux.ie>,
-        open list <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        qemu-devel@nongnu.org,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        Matt Roper <matthew.d.roper@intel.com>
-References: <20180313154826.20436-1-kraxel@redhat.com>
- <20180313161035.GL4788@phenom.ffwll.local>
- <20180314080301.366zycak3whqvvqx@sirius.home.kraxel.org>
- <CAKMK7uGG6Z6XLc6GuKv7-3grCNg+EK2Lh6XWpavjsbZWF_L5Wg@mail.gmail.com>
- <20180406001117.GD31612@mdroper-desk.amr.corp.intel.com>
- <2411d2c1-33c0-2ba5-67ea-3bb9af5d5ec9@epam.com>
- <20180406090747.gwiegu22z4noj23i@sirius.home.kraxel.org>
- <9a085854-3758-1500-9971-806c611cb54f@gmail.com>
- <20180406115730.jtwcbz5okrphlxli@sirius.home.kraxel.org>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <7ef89a29-6584-d23c-efd1-f30d9b767a24@gmail.com>
-Date: Fri, 6 Apr 2018 15:36:03 +0300
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:60385 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755830AbeDXHWj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 03:22:39 -0400
+Date: Tue, 24 Apr 2018 09:22:33 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, architt@codeaurora.org,
+        a.hajda@samsung.com, airlied@linux.ie, daniel@ffwll.ch,
+        peda@axentia.se, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 8/8] drm: connector: Remove DRM_BUS_FLAG_DATA_* flags
+Message-ID: <20180424072233.GF17088@w540>
+References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1524130269-32688-9-git-send-email-jacopo+renesas@jmondi.org>
+ <5371494.OmLzBJ8YyX@avalon>
 MIME-Version: 1.0
-In-Reply-To: <20180406115730.jtwcbz5okrphlxli@sirius.home.kraxel.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="OzxllxdKGCiKxUZM"
+Content-Disposition: inline
+In-Reply-To: <5371494.OmLzBJ8YyX@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/06/2018 02:57 PM, Gerd Hoffmann wrote:
->    Hi,
+
+--OzxllxdKGCiKxUZM
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Hi Laurent,
+
+On Tue, Apr 24, 2018 at 12:03:04AM +0300, Laurent Pinchart wrote:
+> Hi Jacopo,
 >
->>> I fail to see any common ground for xen-zcopy and udmabuf ...
->> Does the above mean you can assume that xen-zcopy and udmabuf
->> can co-exist as two different solutions?
-> Well, udmabuf route isn't fully clear yet, but yes.
+> Thank you for the patch.
 >
-> See also gvt (intel vgpu), where the hypervisor interface is abstracted
-> away into a separate kernel modules even though most of the actual vgpu
-> emulation code is common.
-Thank you for your input, I'm just trying to figure out
-which of the three z-copy solutions intersect and how much
->> And what about hyper-dmabuf?
-> No idea, didn't look at it in detail.
+> On Thursday, 19 April 2018 12:31:09 EEST Jacopo Mondi wrote:
+> > DRM_BUS_FLAG_DATA_* flags, defined in drm_connector.h header file are
+> > used to swap ordering of LVDS RGB format to accommodate DRM objects
+> > that need to handle LVDS components ordering.
+> >
+> > Now that the only 2 users of DRM_BUS_FLAG_DATA_* flags have been ported
+> > to use the newly introduced MEDIA_BUS_FMT_RGB888_1X7X*_LE media bus
+> > formats, remove them.
 >
-> Looks pretty complex from a distant view.  Maybe because it tries to
-> build a communication framework using dma-bufs instead of a simple
-> dma-buf passing mechanism.
-Yes, I am looking at it now, trying to figure out the full story
-and its implementation. BTW, Intel guys were about to share some
-test application for hyper-dmabuf, maybe I have missed one.
-It could probably better explain the use-cases and the complexity
-they have in hyper-dmabuf.
->
-> Like xen-zcopy it seems to depend on the idea that the hypervisor
-> manages all memory it is easy for guests to share pages with the help of
-> the hypervisor.
-So, for xen-zcopy we were not trying to make it generic,
-it just solves display (dumb) zero-copying use-cases for Xen.
-We implemented it as a DRM helper driver because we can't see any
-other use-cases as of now.
-For example, we also have Xen para-virtualized sound driver, but
-its buffer memory usage is not comparable to what display wants
-and it works somewhat differently (e.g. there is no "frame done"
-event, so one can't tell when the sound buffer can be "flipped").
-At the same time, we do not use virtio-gpu, so this could probably
-be one more candidate for shared dma-bufs some day.
->    Which simply isn't the case on kvm.
->
-> hyper-dmabuf and xen-zcopy could maybe share code, or hyper-dmabuf build
-> on top of xen-zcopy.
-Hm, I can imagine that: xen-zcopy could be a library code for hyper-dmabuf
-in terms of implementing all that page sharing fun in multiple directions,
-e.g. Host->Guest, Guest->Host, Guest<->Guest.
-But I'll let Matt and Dongwon to comment on that.
+> I'm not opposed to this (despite my review of patch 5/8), but I think the _LE
+> suffix isn't the right name for the new formats. _BE and _LE relate to byte
+> swapping, while here you really need to describe full mirroring. Maybe a
+> _MIRROR variant would be more appropriate ?
+
+As I anticipated in the cover letter, I agree the BE/LE distinction
+does not apply well for LVDS formats. I chose to use _LE anyhow as
+there are no other format variants defined in media-bus-format.h
+
+I'm open to use either of those suffixes btw, what presses me is to
+get rid of those flags only defined in drm_connector.h
+
+thanks
+   j
 
 >
-> cheers,
->    Gerd
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  include/drm/drm_connector.h | 4 ----
+> >  1 file changed, 4 deletions(-)
+> >
+> > diff --git a/include/drm/drm_connector.h b/include/drm/drm_connector.h
+> > index 675cc3f..9e0d6d5 100644
+> > --- a/include/drm/drm_connector.h
+> > +++ b/include/drm/drm_connector.h
+> > @@ -286,10 +286,6 @@ struct drm_display_info {
+> >  #define DRM_BUS_FLAG_PIXDATA_POSEDGE	(1<<2)
+> >  /* drive data on neg. edge */
+> >  #define DRM_BUS_FLAG_PIXDATA_NEGEDGE	(1<<3)
+> > -/* data is transmitted MSB to LSB on the bus */
+> > -#define DRM_BUS_FLAG_DATA_MSB_TO_LSB	(1<<4)
+> > -/* data is transmitted LSB to MSB on the bus */
+> > -#define DRM_BUS_FLAG_DATA_LSB_TO_MSB	(1<<5)
+> >
+> >  	/**
+> >  	 * @bus_flags: Additional information (like pixel signal polarity) for
 >
-Thank you,
-Oleksandr
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+>
+>
 
-P.S. Sorry for making your original mail thread to discuss things much
-broader than your RFC...
+--OzxllxdKGCiKxUZM
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJa3ts5AAoJEHI0Bo8WoVY8e6wP/i3mBdoLOwLGpDd7AVbkXrVD
+HUOOShP69QB+Gy409hFucRoVkICR08o5FPiXn1EvcgCjaEuxDBG1q1dOl/BQz5QD
+7GwZs3jTKhg+kaZjM+vUE3KnX6ZcXQsjLE5v0SBs1W314dzx/CIE9lGk3S/GycfP
+4d0Yp2cv0fXJdwc0CeUlRjjmQuhShO4weztnkk78PpFo+dcxMpRSedjSLzfLasoV
+/+94eh+6tmKu7jUE0LbWIGI6qh6vUEXBCZmY7alxlQrDZtQq9+WLTRyeLPQEdEiM
+EjNA1454FSvxSL5oniOH5WRIL9otFjtxcCH8wpgH5NxKGeiUKy589POhpBpv+wBw
+/r0r8WilKEmkxwRkq/WDcnyUMdeIo0FlUni1hM6uCrvn+OjrODQ1lAjhHj+iH/Q6
+ROgoRYsa6VwE7ImPr2MS0qB1V+hnCOxgzbhdgMD/KvfBffKlJPUlGSXhaChITPXg
+va9alUyeG5lh1kXeoOgEiVI89ytRTi17I3Kks728tjuuBhap25SE20jUJk0qS8IO
+W7x4Y+Ds/rfSV9aENRiJqkA+bNL1kZyJ2cfKek5hBRG/ceyyiyPCoM4ra6eYDgNS
+3zBhoEPpyhs5aXRpAzyuiFPap5JYEteg7UIj+3/zQ4oHQV3RpL1X/3Ly7ZiJD+aH
+ilMDR29l1OSllarOxXQm
+=gMHJ
+-----END PGP SIGNATURE-----
+
+--OzxllxdKGCiKxUZM--
