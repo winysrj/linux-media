@@ -1,48 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:50265 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751571AbeDEU3z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 16:29:55 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v2 06/19] media: cec_gpio: allow building CEC_GPIO with COMPILE_TEST
-Date: Thu,  5 Apr 2018 16:29:33 -0400
-Message-Id: <c7025817c6811efc74b771115eadb4de2a8e377d.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:55928 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757963AbeDXNTK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 09:19:10 -0400
+From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Brad Love <brad@nextdimension.cc>,
+        Michael Ira Krufky <mkrufky@linuxtv.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Thomas Meyer <thomas@m3y3r.de>, linux-media@vger.kernel.org
+Subject: [PATCH] media: lgdt3306a: fix lgdt3306a_search()'s return type
+Date: Tue, 24 Apr 2018 15:19:04 +0200
+Message-Id: <20180424131907.5817-1-luc.vanoostenryck@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At least on i386, building with allyesconfig doesn't enable
-PREEMPT, causing cec_gpio to not build.
+The method dvb_frontend_ops::search() is defined as
+returning an 'enum dvbfe_search', but the implementation in this
+driver returns an 'int'.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Fix this by returning 'enum dvbfe_search' in this driver too.
+
+Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
 ---
- drivers/media/platform/Kconfig | 2 +-
+ drivers/media/dvb-frontends/lgdt3306a.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index e6eb1eb776e1..e8d8bbc976af 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -558,7 +558,7 @@ config VIDEO_MESON_AO_CEC
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 7eb4e1469..32de82447 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -1784,7 +1784,7 @@ static int lgdt3306a_get_tune_settings(struct dvb_frontend *fe,
+ 	return 0;
+ }
  
- config CEC_GPIO
- 	tristate "Generic GPIO-based CEC driver"
--	depends on PREEMPT
-+	depends on PREEMPT || COMPILE_TEST
- 	select CEC_CORE
- 	select CEC_PIN
- 	select GPIOLIB
+-static int lgdt3306a_search(struct dvb_frontend *fe)
++static enum dvbfe_search lgdt3306a_search(struct dvb_frontend *fe)
+ {
+ 	enum fe_status status = 0;
+ 	int ret;
 -- 
-2.14.3
+2.17.0
