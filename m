@@ -1,168 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p01-ob.smtp.rzone.de ([81.169.146.164]:23954 "EHLO
-        mo4-p01-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932238AbeDKTRw (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:36596 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757875AbeDXMpe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 15:17:52 -0400
-From: Ralph Metzler <rjkm@metzlerbros.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-ID: <23246.24049.973442.655668@morden.metzler>
-Date: Wed, 11 Apr 2018 21:11:45 +0200
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Daniel Scheller <d.scheller.oss@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Ralph Metzler <rjkm@metzlerbros.de>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] media: ddbridge: better handle optional spin locks at
- the code
-In-Reply-To: <20180411133302.4382174d@vento.lan>
-References: <5156a3b987ae3698ff4c650a6395997f93ba093e.1523448215.git.mchehab@s-opensource.com>
-        <20180411180315.74c3a1bd@perian.wuest.de>
-        <20180411133302.4382174d@vento.lan>
+        Tue, 24 Apr 2018 08:45:34 -0400
+Received: by mail-wr0-f193.google.com with SMTP id u18-v6so22545274wrg.3
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:33 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 24/28] venus: vdec: new function for output configuration
+Date: Tue, 24 Apr 2018 15:44:32 +0300
+Message-Id: <20180424124436.26955-25-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab writes:
- > Em Wed, 11 Apr 2018 18:03:15 +0200
- > Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
- > 
- > > Am Wed, 11 Apr 2018 08:03:37 -0400
- > > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
- > > 
- > > > Currently, ddbridge produces 4 warnings on sparse:
- > > > 	drivers/media/pci/ddbridge/ddbridge-core.c:495:9: warning: context imbalance in 'ddb_output_start' - different lock contexts for basic block
- > > > 	drivers/media/pci/ddbridge/ddbridge-core.c:510:9: warning: context imbalance in 'ddb_output_stop' - different lock contexts for basic block
- > > > 	drivers/media/pci/ddbridge/ddbridge-core.c:525:9: warning: context imbalance in 'ddb_input_stop' - different lock contexts for basic block
- > > > 	drivers/media/pci/ddbridge/ddbridge-core.c:560:9: warning: context imbalance in 'ddb_input_start' - different lock contexts for basic block
- > > > 
- > > > Those are all false positives, but they result from the fact that
- > > > there could potentially have some troubles at the locking schema,
- > > > because the lock depends on a var (output->dma).
- > > > 
+Make a new function vdec_output_conf() for decoder output
+configuration. vdec_output_conf() will set properties via
+HFI interface related to the output configuration, and
+keep vdec_set_properties() which will set properties
+related to decoding parameters.
 
-Yeah, there were false positives on other parts of the driver where it was obvious to anybody
-that the bad case cannot happen ...
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/vdec.c | 35 ++++++++++++++++++--------------
+ 1 file changed, 20 insertions(+), 15 deletions(-)
 
-
- > > > I discussed that in priv with Sparse author and with the current
- > > > maintainer. Both believe that sparse is doing the right thing, and
- > > > that the proper fix would be to change the code to make it clearer
- > > > that, when spin_lock_irq() is called, spin_unlock_irq() will be
- > > > also called.
- > > > 
- > > > That help not only static analyzers to better understand the code,
- > > > but also humans that could need to take a look at the code.
- > > > 
- > > > It was also pointed that gcc would likely be smart enough to
- > > > optimize the code and produce the same result. I double
- > > > checked: indeed, the size of the driver didn't change after
- > > > this patch.
- > > > 
- > > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
- > > > ---
- > > >  drivers/media/pci/ddbridge/ddbridge-core.c | 43 ++++++++++++++++++++----------
- > > >  1 file changed, 29 insertions(+), 14 deletions(-)
- > > > 
- > > > diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
- > > > index 4a2819d3e225..080e2189ca7f 100644
- > > > --- a/drivers/media/pci/ddbridge/ddbridge-core.c
- > > > +++ b/drivers/media/pci/ddbridge/ddbridge-core.c
- > > > @@ -458,13 +458,12 @@ static void calc_con(struct ddb_output *output, u32 *con, u32 *con2, u32 flags)
- > > >  	*con2 = (nco << 16) | gap;
- > > >  }
- > > >  
- > > > -static void ddb_output_start(struct ddb_output *output)
- > > > +static void __ddb_output_start(struct ddb_output *output)
- > > >  {
- > > >  	struct ddb *dev = output->port->dev;
- > > >  	u32 con = 0x11c, con2 = 0;
- > > >  
- > > >  	if (output->dma) {
- > > > -		spin_lock_irq(&output->dma->lock);
- > > >  		output->dma->cbuf = 0;
- > > >  		output->dma->coff = 0;
- > > >  		output->dma->stat = 0;
- > > > @@ -492,9 +491,18 @@ static void ddb_output_start(struct ddb_output *output)
- > > >  
- > > >  	ddbwritel(dev, con | 1, TS_CONTROL(output));
- > > >  
- > > > -	if (output->dma) {
- > > > +	if (output->dma)
- > > >  		output->dma->running = 1;
- > > > +}
- > > > +
- > > > +static void ddb_output_start(struct ddb_output *output)
- > > > +{
- > > > +	if (output->dma) {
- > > > +		spin_lock_irq(&output->dma->lock);
- > > > +		__ddb_output_start(output);
- > > >  		spin_unlock_irq(&output->dma->lock);
- > > > +	} else {
- > > > +		__ddb_output_start(output);
- > > >  	}
- > > >  }  
-
-What does it say if you do:
-
-struct ddb_dma *dma = output->dma;
-
-if (dma) 
-     lock;
-
-...
-
-if (dma)
-     unlock;
-
-?
-
-If that does not work, what if you make dma const?
-
- > > 
- > > This makes things look rather strange (at least to my eyes), especially
- > > when simply trying to satisfy automated checkers, which in this case is
- > > useless since both lock and unlock will always happen based on the same
- > > condition ([input|output]->dma != NULL). Though I agree having the
- > > locking inside a condition in it's current form isn't optimal, too, and
- > > I also already thought about this in the past.
- > > 
- > > I'd rather try to fix this by checking for the dma ptrs at the
- > > beginning of the four functions and immediately return if the ptr is
- > > invalid. Though I don't know if this may cause side effects as there's
- > > data written to the regs pointed by the TS_CONTROL() macros even if
- > > there's no dma ptr present.
-
-TS_CONTROL only controls the output itself and does not need to have DMA.
-
-
- > > 
- > > I'd like to hear Ralph's opinion on this, and also like to have this
- > > changed (in whatever way) in the upstream (dddvb) repository, too.
- > > 
- > > Please refrain from applying this patch until we agreed on a proper
- > > solution that works for everyone.
- > 
- > Yeah, sure. 
- > 
- > Btw, does ddbridge driver works without DMA? On a quick look, it
- > seems that it is enabled all the times.
- > 
-
-DMA is not used with the OctopusNet and only partially on the OctopusNetPro.
-Both are ARM based network streaming devices.
-
-The OctopusNet has no DMA at all and can only stream directly to CI or network.
-The Pro version has DMA and will support streaming and/or DMA on the each 
-channel. DMA channel assignment was at one point planned to be done dynamically.
-It also is PCIe based. So, this is part of ddbridge-main.c and not octonet-main.c.
-
-But support for those devices and some PCIe cards is not part of the kernel driver
-anyway. So, you could of course through all of this DMA checking out of the
-kernel version. It might have to be added back in for future/other cards. But that
-problems already exists with other features.
-
-
-Regards,
-Ralph
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 6ed9b7c4bd6e..ced3330c396a 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -545,6 +545,23 @@ static const struct v4l2_ioctl_ops vdec_ioctl_ops = {
+ static int vdec_set_properties(struct venus_inst *inst)
+ {
+ 	struct vdec_controls *ctr = &inst->controls.dec;
++	struct hfi_enable en = { .enable = 1 };
++	u32 ptype;
++	int ret;
++
++	if (ctr->post_loop_deb_mode) {
++		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
++		en.enable = 1;
++		ret = hfi_session_set_property(inst, ptype, &en);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int vdec_output_conf(struct venus_inst *inst)
++{
+ 	struct venus_core *core = inst->core;
+ 	struct hfi_enable en = { .enable = 1 };
+ 	u32 ptype;
+@@ -569,14 +586,6 @@ static int vdec_set_properties(struct venus_inst *inst)
+ 	if (ret)
+ 		return ret;
+ 
+-	if (ctr->post_loop_deb_mode) {
+-		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
+-		en.enable = 1;
+-		ret = hfi_session_set_property(inst, ptype, &en);
+-		if (ret)
+-			return ret;
+-	}
+-
+ 	return 0;
+ }
+ 
+@@ -724,7 +733,6 @@ static int vdec_verify_conf(struct venus_inst *inst)
+ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+ {
+ 	struct venus_inst *inst = vb2_get_drv_priv(q);
+-	struct venus_core *core = inst->core;
+ 	int ret;
+ 
+ 	mutex_lock(&inst->lock);
+@@ -753,12 +761,9 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	if (ret)
+ 		goto deinit_sess;
+ 
+-	if (core->res->hfi_version == HFI_VERSION_3XX) {
+-		ret = venus_helper_set_bufsize(inst, inst->output_buf_size,
+-					       HFI_BUFFER_OUTPUT);
+-		if (ret)
+-			goto deinit_sess;
+-	}
++	ret = vdec_output_conf(inst);
++	if (ret)
++		goto deinit_sess;
+ 
+ 	ret = vdec_verify_conf(inst);
+ 	if (ret)
+-- 
+2.14.1
