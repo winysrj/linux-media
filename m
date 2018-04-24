@@ -1,259 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:39850 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751809AbeDELwN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 07:52:13 -0400
-Date: Thu, 5 Apr 2018 08:52:02 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH] media: v4l2-dev: use pr_foo() for printing messages
-Message-ID: <20180405085202.0fd39f0b@vento.lan>
-In-Reply-To: <20180405111210.5jh77oke35uyg3yj@valkosipuli.retiisi.org.uk>
-References: <3cead57d0a484bf589f4da3b86f4470cde6a1480.1522924475.git.mchehab@s-opensource.com>
-        <20180405111210.5jh77oke35uyg3yj@valkosipuli.retiisi.org.uk>
+Received: from mail-ot0-f182.google.com ([74.125.82.182]:37249 "EHLO
+        mail-ot0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756834AbeDXLKB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 07:10:01 -0400
+Received: by mail-ot0-f182.google.com with SMTP id 77-v6so14672430otd.4
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 04:10:01 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20180424103303.rrgv2d33stnll2cx@valkosipuli.retiisi.org.uk>
+References: <1522335300-13467-1-git-send-email-manivannan.sadhasivam@linaro.org>
+ <1522335300-13467-2-git-send-email-manivannan.sadhasivam@linaro.org>
+ <CAMZdPi-VCsct6S4cYCvN_XniFB9=pJqC8hnTdQnvL5H_CU2a8Q@mail.gmail.com> <20180424103303.rrgv2d33stnll2cx@valkosipuli.retiisi.org.uk>
+From: Loic Poulain <loic.poulain@linaro.org>
+Date: Tue, 24 Apr 2018 13:09:20 +0200
+Message-ID: <CAMZdPi_kaMp_gqoKOiRvkB2kmk0hDtLBZP66DvjOXKU_Xnuk6w@mail.gmail.com>
+Subject: Re: [RESEND PATCH] media: i2c: ov5640: Add pixel clock support
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>,
+        slongerbeam@gmail.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Nicolas Dechesne <nicolas.dechesne@linaro.org>,
+        dragonboard@lists.96boards.org,
+        Daniel Thompson <daniel.thompson@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 5 Apr 2018 14:12:10 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Hi Sakari,
 
-> Hi Mauro,
-> 
-> On Thu, Apr 05, 2018 at 07:34:39AM -0300, Mauro Carvalho Chehab wrote:
-> > Instead of using printk() directly, use the pr_foo()
-> > macros.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-dev.c | 45 ++++++++++++++++++++++----------------
-> >  1 file changed, 26 insertions(+), 19 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> > index 1d0b2208e8fb..530db8e482fb 100644
-> > --- a/drivers/media/v4l2-core/v4l2-dev.c
-> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> > @@ -16,6 +16,8 @@
-> >   *		- Added procfs support
-> >   */
-> >  
-> > +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> > +
-> >  #include <linux/module.h>
-> >  #include <linux/types.h>
-> >  #include <linux/kernel.h>
-> > @@ -34,6 +36,12 @@
-> >  #define VIDEO_NUM_DEVICES	256
-> >  #define VIDEO_NAME              "video4linux"
-> >  
-> > +#define dprintk(fmt, arg...) do {					\
-> > +		printk(KERN_DEBUG pr_fmt("%s: " fmt),			\
-> > +		       __func__, ##arg);				\
-> > +} while (0)  
-> 
-> Any particular reason for introducing a new macro rather than using
-> pr_debug()? I know it's adding the name of the function without requiring
-> to explicitly add that below, but pr_debug("%s: ...", __func__); would be
-> easier to read IMO.
+>> Any comments on this change?
+>
+> <URL:https://patchwork.linuxtv.org/project/linux-media/list/?submitter=Maxime+Ripard&state=*&q=ov5640>
+>
+> There's also another set that adds PIXEL_CLOCK (as well as LINK_FREQ)
+> support to the driver, that seems more complete than this patch but
+> requires a rebase on Maxime's patches:
+>
+> <URL:https://patchwork.linuxtv.org/project/linux-media/list/?submitter=7218&state=*&q=ov5640>
 
-Yes, there is. Nowadays, most systems are built with CONFIG_DYNAMIC_DEBUG,
-as it is default on most distros.
+Thanks, I've just see this patch series. Indeed, patch will need a
+rework/rebase.
 
-It means that, in order to enable a debug message, one has to
-explicitly enable the debug messages via /sys/kernel/debug/dynamic_debug.
-
-In the case of videodev core, the debug messages are enabled, instead,
-via vdev->dev_debug. It is really messy to have both mechanisms at the
-same time to enable a debug message. We need to use either one or the
-other.
-
-Also, a change from vdev->dev_debug approach to dynamic_debug approach
-is something that should happen at the entire subsystem.
-
-Even if this is a good idea (I'm not convinced), this should be
-done on a separate patch series.
-
-So, this patch basically preserves the "vdev->dev_debug" debugging
-mechanism without regressions.
-
-> 
-> > +
-> > +
-> >  /*
-> >   *	sysfs stuff
-> >   */
-> > @@ -309,7 +317,7 @@ static ssize_t v4l2_read(struct file *filp, char __user *buf,
-> >  		ret = vdev->fops->read(filp, buf, sz, off);
-> >  	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
-> >  	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
-> > -		printk(KERN_DEBUG "%s: read: %zd (%d)\n",
-> > +		dprintk("%s: read: %zd (%d)\n",
-> >  			video_device_node_name(vdev), sz, ret);
-> >  	return ret;
-> >  }
-> > @@ -326,7 +334,7 @@ static ssize_t v4l2_write(struct file *filp, const char __user *buf,
-> >  		ret = vdev->fops->write(filp, buf, sz, off);
-> >  	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
-> >  	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
-> > -		printk(KERN_DEBUG "%s: write: %zd (%d)\n",
-> > +		dprintk("%s: write: %zd (%d)\n",
-> >  			video_device_node_name(vdev), sz, ret);
-> >  	return ret;
-> >  }
-> > @@ -341,7 +349,7 @@ static __poll_t v4l2_poll(struct file *filp, struct poll_table_struct *poll)
-> >  	if (video_is_registered(vdev))
-> >  		res = vdev->fops->poll(filp, poll);
-> >  	if (vdev->dev_debug & V4L2_DEV_DEBUG_POLL)
-> > -		printk(KERN_DEBUG "%s: poll: %08x\n",
-> > +		dprintk("%s: poll: %08x\n",
-> >  			video_device_node_name(vdev), res);
-> >  	return res;
-> >  }
-> > @@ -382,7 +390,7 @@ static unsigned long v4l2_get_unmapped_area(struct file *filp,
-> >  		return -ENODEV;
-> >  	ret = vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
-> >  	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-> > -		printk(KERN_DEBUG "%s: get_unmapped_area (%d)\n",
-> > +		dprintk("%s: get_unmapped_area (%d)\n",
-> >  			video_device_node_name(vdev), ret);
-> >  	return ret;
-> >  }
-> > @@ -398,7 +406,7 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
-> >  	if (video_is_registered(vdev))
-> >  		ret = vdev->fops->mmap(filp, vm);
-> >  	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-> > -		printk(KERN_DEBUG "%s: mmap (%d)\n",
-> > +		dprintk("%s: mmap (%d)\n",
-> >  			video_device_node_name(vdev), ret);
-> >  	return ret;
-> >  }
-> > @@ -428,7 +436,7 @@ static int v4l2_open(struct inode *inode, struct file *filp)
-> >  	}
-> >  
-> >  	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-> > -		printk(KERN_DEBUG "%s: open (%d)\n",
-> > +		dprintk("%s: open (%d)\n",
-> >  			video_device_node_name(vdev), ret);
-> >  	/* decrease the refcount in case of an error */
-> >  	if (ret)
-> > @@ -445,7 +453,7 @@ static int v4l2_release(struct inode *inode, struct file *filp)
-> >  	if (vdev->fops->release)
-> >  		ret = vdev->fops->release(filp);
-> >  	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-> > -		printk(KERN_DEBUG "%s: release\n",
-> > +		dprintk("%s: release\n",
-> >  			video_device_node_name(vdev));
-> >  
-> >  	/* decrease the refcount unconditionally since the release()
-> > @@ -786,8 +794,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
-> >  		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
-> >  						   &vdev->entity);
-> >  		if (ret < 0) {
-> > -			printk(KERN_WARNING
-> > -				"%s: media_device_register_entity failed\n",
-> > +			pr_warn("%s: media_device_register_entity failed\n",
-> >  				__func__);
-> >  			return ret;
-> >  		}
-> > @@ -869,7 +876,7 @@ int __video_register_device(struct video_device *vdev,
-> >  		name_base = "v4l-touch";
-> >  		break;
-> >  	default:
-> > -		printk(KERN_ERR "%s called with unknown type: %d\n",
-> > +		pr_err("%s called with unknown type: %d\n",
-> >  		       __func__, type);
-> >  		return -EINVAL;
-> >  	}
-> > @@ -918,7 +925,7 @@ int __video_register_device(struct video_device *vdev,
-> >  	if (nr == minor_cnt)
-> >  		nr = devnode_find(vdev, 0, minor_cnt);
-> >  	if (nr == minor_cnt) {
-> > -		printk(KERN_ERR "could not get a free device node number\n");
-> > +		pr_err("could not get a free device node number\n");
-> >  		mutex_unlock(&videodev_lock);
-> >  		return -ENFILE;
-> >  	}
-> > @@ -933,7 +940,7 @@ int __video_register_device(struct video_device *vdev,
-> >  			break;
-> >  	if (i == VIDEO_NUM_DEVICES) {
-> >  		mutex_unlock(&videodev_lock);
-> > -		printk(KERN_ERR "could not get a free minor\n");
-> > +		pr_err("could not get a free minor\n");
-> >  		return -ENFILE;
-> >  	}
-> >  #endif
-> > @@ -943,7 +950,7 @@ int __video_register_device(struct video_device *vdev,
-> >  	/* Should not happen since we thought this minor was free */
-> >  	if (WARN_ON(video_device[vdev->minor])) {
-> >  		mutex_unlock(&videodev_lock);
-> > -		printk(KERN_ERR "video_device not empty!\n");
-> > +		pr_err("video_device not empty!\n");
-> >  		return -ENFILE;
-> >  	}
-> >  	devnode_set(vdev);
-> > @@ -964,7 +971,7 @@ int __video_register_device(struct video_device *vdev,
-> >  	vdev->cdev->owner = owner;
-> >  	ret = cdev_add(vdev->cdev, MKDEV(VIDEO_MAJOR, vdev->minor), 1);
-> >  	if (ret < 0) {
-> > -		printk(KERN_ERR "%s: cdev_add failed\n", __func__);
-> > +		pr_err("%s: cdev_add failed\n", __func__);
-> >  		kfree(vdev->cdev);
-> >  		vdev->cdev = NULL;
-> >  		goto cleanup;
-> > @@ -977,7 +984,7 @@ int __video_register_device(struct video_device *vdev,
-> >  	dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
-> >  	ret = device_register(&vdev->dev);
-> >  	if (ret < 0) {
-> > -		printk(KERN_ERR "%s: device_register failed\n", __func__);
-> > +		pr_err("%s: device_register failed\n", __func__);
-> >  		goto cleanup;
-> >  	}
-> >  	/* Register the release callback that will be called when the last
-> > @@ -985,7 +992,7 @@ int __video_register_device(struct video_device *vdev,
-> >  	vdev->dev.release = v4l2_device_release;
-> >  
-> >  	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
-> > -		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
-> > +		pr_warn("%s: requested %s%d, got %s\n", __func__,
-> >  			name_base, nr, video_device_node_name(vdev));
-> >  
-> >  	/* Increase v4l2_device refcount */
-> > @@ -1043,10 +1050,10 @@ static int __init videodev_init(void)
-> >  	dev_t dev = MKDEV(VIDEO_MAJOR, 0);
-> >  	int ret;
-> >  
-> > -	printk(KERN_INFO "Linux video capture interface: v2.00\n");
-> > +	pr_info("Linux video capture interface: v2.00\n");
-> >  	ret = register_chrdev_region(dev, VIDEO_NUM_DEVICES, VIDEO_NAME);
-> >  	if (ret < 0) {
-> > -		printk(KERN_WARNING "videodev: unable to get major %d\n",
-> > +		pr_warn("videodev: unable to get major %d\n",
-> >  				VIDEO_MAJOR);
-> >  		return ret;
-> >  	}
-> > @@ -1054,7 +1061,7 @@ static int __init videodev_init(void)
-> >  	ret = class_register(&video_class);
-> >  	if (ret < 0) {
-> >  		unregister_chrdev_region(dev, VIDEO_NUM_DEVICES);
-> > -		printk(KERN_WARNING "video_dev: class_register failed\n");
-> > +		pr_warn("video_dev: class_register failed\n");
-> >  		return -EIO;
-> >  	}
-> >  
-> > -- 
-> > 2.14.3
-> >   
-> 
-
-
-
-Thanks,
-Mauro
+Regards,
+Loic
