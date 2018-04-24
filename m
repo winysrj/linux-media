@@ -1,90 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:61720 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754442AbeDWKec (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 06:34:32 -0400
-Date: Mon, 23 Apr 2018 07:34:22 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sean Young <sean@mess.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>, linux-media@vger.kernel.org,
-        Warren Sturm <warren.sturm@gmail.com>,
-        Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org
-Subject: Re: [PATCH stable v4.15 1/3] media: staging: lirc_zilog: broken
- reference counting
-Message-ID: <20180423073422.05014710@vento.lan>
-In-Reply-To: <20180423090420.tvb6danodfbc55m2@gofer.mess.org>
-References: <cover.1523785117.git.sean@mess.org>
-        <2bd4184fbea37ecdfcb0a334c6bef45786feb486.1523785117.git.sean@mess.org>
-        <20180416075228.GB2121@kroah.com>
-        <20180416084344.k4e3tx4jd5lswfh3@gofer.mess.org>
-        <20180416085015.GA2598@kroah.com>
-        <20180416091527.ryx7vdekzjwcrpxo@gofer.mess.org>
-        <20180422094751.GC26895@kroah.com>
-        <20180423090420.tvb6danodfbc55m2@gofer.mess.org>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:38487 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751575AbeDXIuG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 04:50:06 -0400
+Received: by mail-wr0-f194.google.com with SMTP id h3-v6so48427896wrh.5
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 01:50:06 -0700 (PDT)
+References: <20180423134750.30403-1-rui.silva@linaro.org> <20180423134750.30403-12-rui.silva@linaro.org> <1524498393.3396.4.camel@pengutronix.de>
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>
+Subject: Re: [PATCH v2 11/15] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
+In-reply-to: <1524498393.3396.4.camel@pengutronix.de>
+Date: Tue, 24 Apr 2018 09:50:02 +0100
+Message-ID: <m3sh7ldm4l.fsf@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Apr 2018 10:04:20 +0100
-Sean Young <sean@mess.org> escreveu:
+Hi Philipp,
+On Mon 23 Apr 2018 at 15:46, Philipp Zabel wrote:
+> On Mon, 2018-04-23 at 14:47 +0100, Rui Miguel Silva wrote:
+>> This patch adds the device tree nodes for csi, video 
+>> multiplexer and mipi-csi
+>> besides the graph connecting the necessary endpoints to make 
+>> the media capture
+>> entities to work in imx7 Warp board.
+>> 
+>> Also add the pin control related with the mipi_csi in that 
+>> board.
+>> 
+>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>> ---
+>>  arch/arm/boot/dts/imx7s-warp.dts | 80 
+>>  ++++++++++++++++++++++++++++++++
+>>  arch/arm/boot/dts/imx7s.dtsi     | 27 +++++++++++
+>>  2 files changed, 107 insertions(+)
+>> 
+>> diff --git a/arch/arm/boot/dts/imx7s-warp.dts 
+>> b/arch/arm/boot/dts/imx7s-warp.dts
+>> index 8a30b148534d..91d06adf7c24 100644
+>> --- a/arch/arm/boot/dts/imx7s-warp.dts
+>> +++ b/arch/arm/boot/dts/imx7s-warp.dts
+>> @@ -310,6 +310,79 @@
+>>  	status = "okay";
+>>  };
+>>  
+>> +&gpr {
+>> +	csi_mux {
+>> +		compatible = "video-mux";
+>> +		mux-controls = <&mux 0>;
+>> +		#address-cells = <1>;
+>> +		#size-cells = <0>;
+>> +
+>> +		port@0 {
+>> +			reg = <0>;
+>> +
+>> +			csi_mux_from_parallel_sensor: endpoint {
+>> +			};
+>> +		};
+>> +
+>> +		port@1 {
+>> +			reg = <1>;
+>> +
+>> +			csi_mux_from_mipi_vc0: endpoint {
+>> +				remote-endpoint = 
+>> <&mipi_vc0_to_csi_mux>;
+>> +			};
+>> +		};
+>> +
+>> +		port@2 {
+>> +			reg = <2>;
+>> +
+>> +			csi_mux_to_csi: endpoint {
+>> +				remote-endpoint = 
+>> <&csi_from_csi_mux>;
+>> +			};
+>> +		};
+>> +	};
+>> +};
+>> +
+>> +&csi {
+>> +	status = "okay";
+>> +	#address-cells = <1>;
+>> +	#size-cells = <0>;
+>> +
+>> +	port@0 {
+>> +		reg = <0>;
+>> +
+>> +		csi_from_csi_mux: endpoint {
+>> +			remote-endpoint = <&csi_mux_to_csi>;
+>> +		};
+>> +	};
+>> +};
+>> +
+>> +&mipi_csi {
+>> +	clock-frequency = <166000000>;
+>> +	status = "okay";
+>> +	#address-cells = <1>;
+>> +	#size-cells = <0>;
+>> +
+>> +	port@0 {
+>> +		reg = <0>;
+>> +
+>> +		mipi_from_sensor: endpoint {
+>> +			remote-endpoint = <&ov2680_to_mipi>;
+>> +			data-lanes = <1>;
+>> +			csis-hs-settle = <3>;
+>> +			csis-clk-settle = <0>;
+>> +			csis-wclk;
+>
+> Why is this an endpoint property? Under which condition would a 
+> board
+> designer choose PCLK instead of WRAP_CLK as pixel clock source?
+>
+> I'd naively assume that the driver should set this bit 
+> automatically
+> whenever a "wrap" clock is provided via device tree.
+>
+>> +		};
+>> +	};
+>> +
+>> +	port@1 {
+>> +		reg = <1>;
+>> +
+>> +		mipi_vc0_to_csi_mux: endpoint {
+>> +			remote-endpoint = 
+>> <&csi_mux_from_mipi_vc0>;
+>> +		};
+>> +	};
+>> +};
+>> +
+>>  &wdog1 {
+>>  	pinctrl-names = "default";
+>>  	pinctrl-0 = <&pinctrl_wdog>;
+>> @@ -357,6 +430,13 @@
+>>  		>;
+>>  	};
+>>  
+>> +	pinctrl_mipi_csi: mipi_csi {
+>> +		fsl,pins = <
+>> +			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3 
+>> 0x14
+>> +			MX7D_PAD_ENET1_RGMII_TD0__GPIO7_IO6 
+>> 0x14
+>> +		>;
+>> +	};
+>> +
+>
+> Unrelated change?
 
-> On Sun, Apr 22, 2018 at 11:47:51AM +0200, Greg KH wrote:
-> > On Mon, Apr 16, 2018 at 10:15:28AM +0100, Sean Young wrote:  
-> > > On Mon, Apr 16, 2018 at 10:50:15AM +0200, Greg KH wrote:  
-> > > > On Mon, Apr 16, 2018 at 09:43:45AM +0100, Sean Young wrote:  
-> > > > > On Mon, Apr 16, 2018 at 09:52:28AM +0200, Greg KH wrote:  
-> > > > > > What is the git commit id of this patch, and the other patches in this
-> > > > > > series and the 4.14 patch series that you sent out?  
-> > > > > 
-> > > > > lirc_zilog was dropped in v4.16, so this can't be patched upstream.  
-> > > > 
-> > > > Ah you are right, should we just ditch them here as well as they
-> > > > obviously do not work? :)
-> > > >   
-> > > > > > Please read:
-> > > > > >     https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
-> > > > > > for how to do this in a way that I can pick them up.  
-> > > > > 
-> > > > > These patches have been tested with different types of hardware. Is there
-> > > > > anything else I can do to get these patches included?  
-> > > > 
-> > > > When submitting patches to stable, you need to be explicit as to why
-> > > > they are needed, and if they are not upstream, why not.
-> > > > 
-> > > > In this case, for obviously broken code that is not used anymore (as
-> > > > it is gone in 4.16), why don't we just take the patch that removed the
-> > > > driver to the stable trees as well?  
-> > > 
-> > > Well in v4.16 the ir-kbd-i2c.c driver can do what the lirc_zilog does in
-> > > v4.15 (and earlier), so it wasn't ditched as such. It's a case of replaced
-> > > by mainline.
-> > > 
-> > > Since I was getting bug reports on it, there must be users of the lirc_zilog
-> > > driver.
-> > > 
-> > > That being said, the old lirc_dev and lirc_zilog is pretty awful code.  
-> > 
-> > Ok, I've queued these up for 4.14.y now.  4.15 is end-of-life, so I
-> > can't apply these patches there, sorry.  
-> 
-> Ok, thanks.
-> 
-> I wonder why Ubuntu picked 4.15 as the kernel for their upcoming 18.04 LTS
-> release.
+Yes, I will split this.
 
-I've no idea. Maybe it might be due to spectre/meltdown? Anyway, they'll
-need to maintain it for a long time. So, I won't be surprised if they
-decide to take over LTS maintainership upstream. In the mean time, if the
-bug is seriously enough, you may consider sending them fixup patches
-directly, although I guess that they use a bugzilla instead for patches
-to the distro, with makes harder/painful to send them fixups.
+>
+>>  	pinctrl_sai1: sai1grp {
+>>  		fsl,pins = <
+>>  			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0 
+>>  0x1f
+>> diff --git a/arch/arm/boot/dts/imx7s.dtsi 
+>> b/arch/arm/boot/dts/imx7s.dtsi
+>> index 3027d6a62021..6b49b73053f9 100644
+>> --- a/arch/arm/boot/dts/imx7s.dtsi
+>> +++ b/arch/arm/boot/dts/imx7s.dtsi
+>> @@ -46,6 +46,7 @@
+>>  #include <dt-bindings/gpio/gpio.h>
+>>  #include <dt-bindings/input/input.h>
+>>  #include <dt-bindings/interrupt-controller/arm-gic.h>
+>> +#include <dt-bindings/reset/imx7-reset.h>
+>>  #include "imx7d-pinfunc.h"
+>>  
+>>  / {
+>> @@ -753,6 +754,17 @@
+>>  				status = "disabled";
+>>  			};
+>>  
+>> +			csi: csi@30710000 {
+>> +				compatible = "fsl,imx7-csi";
+>> +				reg = <0x30710000 0x10000>;
+>> +				interrupts = <GIC_SPI 7 
+>> IRQ_TYPE_LEVEL_HIGH>;
+>> +				clocks = <&clks IMX7D_CLK_DUMMY>,
+>> +						<&clks 
+>> IMX7D_CSI_MCLK_ROOT_CLK>,
+>> +						<&clks 
+>> IMX7D_CLK_DUMMY>;
+>> +				clock-names = "axi", "mclk", 
+>> "dcic";
+>> +				status = "disabled";
+>> +			};
+>> +
+>>  			lcdif: lcdif@30730000 {
+>>  				compatible = "fsl,imx7d-lcdif", 
+>>  "fsl,imx28-lcdif";
+>>  				reg = <0x30730000 0x10000>;
+>> @@ -762,6 +774,21 @@
+>>  				clock-names = "pix", "axi";
+>>  				status = "disabled";
+>>  			};
+>> +
+>> +			mipi_csi: mipi-csi@30750000 {
+>> +				compatible = "fsl,imx7-mipi-csi2";
+>> +				reg = <0x30750000 0x10000>;
+>> +				interrupts = <GIC_SPI 25 
+>> IRQ_TYPE_LEVEL_HIGH>;
+>> +				clocks = <&clks 
+>> IMX7D_MIPI_CSI_ROOT_CLK>,
+>> +						<&clks 
+>> IMX7D_MIPI_DPHY_ROOT_CLK>;
+>> +				clock-names = "mipi", "phy";
+>
+> The i.MX7Dual and i.MX7Solo reference manuals mention three 
+> clock inputs
+> to the MIPI CSI: mipi_csi.ipg_clk_s, mipi_csi.I_PCLK, and
+> mipi.csi.I_WRAP_CLK (all three gated by CCGR100).
+> The MIPI_CSI2 chapters mention I_PCLK and I_WRAP_CLK again. 
+> Shouldn't at
+> least those two be used in place of just "mipi"?
 
-The Ubuntu FAQ (https://wiki.ubuntu.com/Kernel/FAQ) points to an IRC
-freenode channel (#ubuntu-kernel). Perhaps you could ping them there
-and ask them about that.
-
+Make sense, It wwill be in v3.
 
 Thanks,
-Mauro
+---
+Cheers,
+	Rui
+
+>
+>> +				power-domains = <&pgc_mipi_phy>;
+>> +				phy-supply = <&reg_1p0d>;
+>> +				resets = <&src 
+>> IMX7_RESET_MIPI_PHY_MRST>;
+>> +				reset-names = "mrst";
+>> +				bus-width = <4>;
+>
+> It looks to me like both i.MX7Dual and i.MX7Solo only have two 
+> data
+> lanes connected.
+>
+>> +				status = "disabled";
+>> +			};
+>>  		};
+>>  
+>>  		aips3: aips-bus@30800000 {
+>
+> regards
+> Philipp
