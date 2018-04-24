@@ -1,63 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:41732 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751216AbeDWHuJ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55390 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932417AbeDXKZB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 03:50:09 -0400
-Date: Mon, 23 Apr 2018 09:50:02 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/8] arm: shmobile: Change platform dependency to
- ARCH_RENESAS
-Message-ID: <20180423075002.bca27fbpffl5sbnc@verge.net.au>
-References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
- <1524230914-10175-2-git-send-email-geert+renesas@glider.be>
- <44b6b9a3-5273-54f4-ee72-0d5fcc36348a@cogentembedded.com>
+        Tue, 24 Apr 2018 06:25:01 -0400
+Date: Tue, 24 Apr 2018 13:24:59 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Daniel Mack <daniel@zonque.org>
+Cc: linux-media@vger.kernel.org, slongerbeam@gmail.com,
+        mchehab@kernel.org
+Subject: Re: [PATCH 3/3] media: ov5640: add support for xclk frequency control
+Message-ID: <20180424102459.pgibl76nj66vj4ki@valkosipuli.retiisi.org.uk>
+References: <20180420094419.11267-1-daniel@zonque.org>
+ <20180420094419.11267-3-daniel@zonque.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <44b6b9a3-5273-54f4-ee72-0d5fcc36348a@cogentembedded.com>
+In-Reply-To: <20180420094419.11267-3-daniel@zonque.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 20, 2018 at 05:53:18PM +0300, Sergei Shtylyov wrote:
-> On 04/20/2018 04:28 PM, Geert Uytterhoeven wrote:
+On Fri, Apr 20, 2018 at 11:44:19AM +0200, Daniel Mack wrote:
+> Allow setting the xclk rate via an optional 'clock-frequency' property in
+> the device tree node.
 > 
-> > Since commit 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS")
-> > is ARCH_RENESAS a more appropriate platform dependency than the legacy
+> Signed-off-by: Daniel Mack <daniel@zonque.org>
+> ---
+>  Documentation/devicetree/bindings/media/i2c/ov5640.txt |  2 ++
+>  drivers/media/i2c/ov5640.c                             | 10 ++++++++++
+>  2 files changed, 12 insertions(+)
 > 
->    "ARCH_RENESAS is", no?
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> index 8e36da0d8406..584bbc944978 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> @@ -13,6 +13,8 @@ Optional Properties:
+>  	       This is an active low signal to the OV5640.
+>  - powerdown-gpios: reference to the GPIO connected to the powerdown pin,
+>  		   if any. This is an active high signal to the OV5640.
+> +- clock-frequency: frequency to set on the xclk input clock. The clock
+> +		   is left untouched if this property is missing.
+>  
+>  The device node must contain one 'port' child node for its digital output
+>  video port, in accordance with the video interface bindings defined in
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index 78669ed386cd..2d94d6dbda5d 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -2685,6 +2685,7 @@ static int ov5640_probe(struct i2c_client *client,
+>  	struct fwnode_handle *endpoint;
+>  	struct ov5640_dev *sensor;
+>  	struct v4l2_mbus_framefmt *fmt;
+> +	u32 freq;
+>  	int ret;
+>  
+>  	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
+> @@ -2731,6 +2732,15 @@ static int ov5640_probe(struct i2c_client *client,
+>  		return PTR_ERR(sensor->xclk);
+>  	}
+>  
+> +	ret = of_property_read_u32(dev->of_node, "clock-frequency", &freq);
 
-Thanks, applied with that corrected.
+Please use
 
+	ret = fwnode_property_read_u32(dev_fwnode(dev), ...);
+
+Thanks.
+
+> +	if (ret == 0) {
+> +		ret = clk_set_rate(sensor->xclk, freq);
+> +		if (ret) {
+> +			dev_err(dev, "could not set xclk frequency\n");
+> +			return ret;
+> +		}
+> +	}
+> +
+>  	sensor->xclk_freq = clk_get_rate(sensor->xclk);
+>  	if (sensor->xclk_freq < OV5640_XCLK_MIN ||
+>  	    sensor->xclk_freq > OV5640_XCLK_MAX) {
+> -- 
+> 2.14.3
 > 
-> > ARCH_SHMOBILE, hence use the former.
-> > 
-> > This will allow to drop ARCH_SHMOBILE on ARM in the near future.
-> > 
-> > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> [...]
-> 
-> MBR, Sergei
-> 
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
