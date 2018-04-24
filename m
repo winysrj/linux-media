@@ -1,99 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:64520 "EHLO osg.samsung.com"
+Received: from mail.bootlin.com ([62.4.15.54]:44538 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753585AbeDJN5R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 09:57:17 -0400
-Date: Tue, 10 Apr 2018 10:57:11 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Tomasz Figa <tfiga@google.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 12/29] v4l2-ctrls: alloc memory for p_req
-Message-ID: <20180410105711.29fcb1ad@vento.lan>
-In-Reply-To: <CAAFQd5BxsS4S_6sCKp=0hMvgrezVX80OJS9Bp+O+-i66GBDaAQ@mail.gmail.com>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-13-hverkuil@xs4all.nl>
-        <CAAFQd5BxsS4S_6sCKp=0hMvgrezVX80OJS9Bp+O+-i66GBDaAQ@mail.gmail.com>
+        id S1752949AbeDXLvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 07:51:00 -0400
+Date: Tue, 24 Apr 2018 13:50:49 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, slongerbeam@gmail.com
+Subject: Re: [RESEND PATCH 1/1] ov5640: Use dev_fwnode() to obtain device's
+ fwnode
+Message-ID: <20180424115049.rn5o3jqiigfbjtfo@flea>
+References: <20180424111029.18751-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ie5anjnyxup3fnup"
+Content-Disposition: inline
+In-Reply-To: <20180424111029.18751-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 10 Apr 2018 09:32:00 +0000
-Tomasz Figa <tfiga@google.com> escreveu:
 
-> Hi Hans,
-> 
-> On Mon, Apr 9, 2018 at 11:21 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
-> > From: Hans Verkuil <hans.verkuil@cisco.com>  
-> 
-> > To store request data the handler_new_ref() allocates memory
-> > for it if needed.  
-> 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >   drivers/media/v4l2-core/v4l2-ctrls.c | 20 ++++++++++++++++----
-> >   1 file changed, 16 insertions(+), 4 deletions(-)  
-> 
-> > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c  
-> b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > index d09f49530d9e..3c1b00baa8d0 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > @@ -1997,13 +1997,18 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
-> >   /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
-> >   static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
-> >                             struct v4l2_ctrl *ctrl,
-> > -                          bool from_other_dev)
-> > +                          struct v4l2_ctrl_ref **ctrl_ref,
-> > +                          bool from_other_dev, bool allocate_req)
-> >   {
-> >          struct v4l2_ctrl_ref *ref;
-> >          struct v4l2_ctrl_ref *new_ref;
-> >          u32 id = ctrl->id;
-> >          u32 class_ctrl = V4L2_CTRL_ID2WHICH(id) | 1;
-> >          int bucket = id % hdl->nr_of_buckets;   /* which bucket to use */
-> > +       unsigned int sz_extra = 0;
-> > +
-> > +       if (ctrl_ref)
-> > +               *ctrl_ref = NULL;  
-> 
-> >          /*
-> >           * Automatically add the control class if it is not yet present  
-> and
-> > @@ -2017,11 +2022,16 @@ static int handler_new_ref(struct  
-> v4l2_ctrl_handler *hdl,
-> >          if (hdl->error)
-> >                  return hdl->error;  
-> 
-> > -       new_ref = kzalloc(sizeof(*new_ref), GFP_KERNEL);
-> > +       if (allocate_req)
+--ie5anjnyxup3fnup
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You don't need a flag here. Instead, it could simply be:
+On Tue, Apr 24, 2018 at 02:10:29PM +0300, Sakari Ailus wrote:
+> Use dev_fwnode() on the device instead of getting an fwnode handle of the
+> device's OF node. The result is the same on OF-based systems and looks
+> better, too.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-	if (ctrl_ref)
+Reviewed-by: Maxime Ripard <maxime.ripard@bootlin.com>
 
+Maxime
 
-> > +               sz_extra = ctrl->elems * ctrl->elem_size;
-> > +       new_ref = kzalloc(sizeof(*new_ref) + sz_extra, GFP_KERNEL);  
-> 
-> I think we might want to use kvzalloc() here to cover allocation of big
-> elements and/or large arrays, without order>0 allocations killing the
-> systems.
-> 
-> I'm actually also wondering if it wouldn't be cleaner to just allocate the
-> extra data separately, since we store a pointer in new_ref->p_req.p anyway.
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
-Yeah, me too.
+--ie5anjnyxup3fnup
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> 
-> Best regards,
-> Tomasz
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrfGhgACgkQ0rTAlCFN
+r3QfkQ//eClthhCgouqTmRRkuS4ajFTzS2RpiMJJGpMPgXpMWLF/MqBsme6BS3uL
+Eov45Gy1OMUELKYiZk9lKQcWZA2T9QTQI1M9ZOfZ7nZPhs1gdYc8PixMLWOC8C2W
+K8D/8BCBkMtYFVJOQz+5dJiIF78PuA9hdDeRL2LbY69kS5QHuJL6hiW4BdMhiQ7D
+BqPDJmsTs+2xJfqksfcDniJ3IjPdFC0wqbtnK6AyJ/J2UhRffa16kkJ4MQcUakX1
+CDINQj3h9XvZ+5KZ8E6+J+/v4ThJ5kZ3L6GJ7SlGxlSh8cotXw0Npaa0UMle77QC
+Hv82WQ9mBEL7HhUEr5+uPu3cb2EVeGLSwV5iCdGh885IweZEpFMfYirul31xAGhV
+NxmdMlQfzsOo+SfIPCgShEKO/SK0lQ+JApykhpwEyRdyXHbCLHKI4YXds13NxZL1
+dbsgF2yHGsQJeGwyTVxZ9Fo5g4VRcvDoy7S1tAcIOmhES5H/TasDF76lD3sPoTyA
+ZUDA2HXRvUAJqmnu+MIu7igi+1LgCbIRt1ZBRllqp02qf4M6vAk5KOZUw49btmXb
+UCZc7l+fVpwNWzrkRpGnBHyoKE0n7WdAMzVeIc3CxkbGe9rG08/WZwpYjKf+EEkJ
+mjsE2TXNoGC074j2m4oAsFHBATz/eIMkfVKPfw9cR2XWKza0nU4=
+=OWt9
+-----END PGP SIGNATURE-----
 
-
-Thanks,
-Mauro
+--ie5anjnyxup3fnup--
