@@ -1,69 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:41341 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755981AbeDWPs3 (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:51876 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751575AbeDXNGf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 11:48:29 -0400
-Message-ID: <1524498503.3396.5.camel@pengutronix.de>
-Subject: Re: [PATCH v2 06/15] media: staging/imx: add imx7 capture subsystem
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>
-Date: Mon, 23 Apr 2018 17:48:23 +0200
-In-Reply-To: <20180423134750.30403-7-rui.silva@linaro.org>
-References: <20180423134750.30403-1-rui.silva@linaro.org>
-         <20180423134750.30403-7-rui.silva@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Tue, 24 Apr 2018 09:06:35 -0400
+From: Colin King <colin.king@canonical.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH][next] media: ispstat: don't dereference user_cfg before a null check
+Date: Tue, 24 Apr 2018 14:06:18 +0100
+Message-Id: <20180424130618.18211-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-04-23 at 14:47 +0100, Rui Miguel Silva wrote:
-> Add imx7 capture subsystem to imx-media core to allow the use some of the
-> existing modules for i.MX5/6 with i.MX7 SoC.
-> 
-> Since i.MX7 does not have an IPU unset the ipu_present flag to differentiate
-> some runtime behaviors.
-> 
-> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
-> ---
->  drivers/staging/media/imx/imx-media-dev.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-> index c0f277adeebe..be68235c4caa 100644
-> --- a/drivers/staging/media/imx/imx-media-dev.c
-> +++ b/drivers/staging/media/imx/imx-media-dev.c
-> @@ -486,6 +486,9 @@ static int imx_media_probe(struct platform_device *pdev)
->  
->  	imxmd->ipu_present = true;
->  
-> +	if (of_device_is_compatible(node, "fsl,imx7-capture-subsystem"))
-> +		imxmd->ipu_present = false;
-> +
+From: Colin Ian King <colin.king@canonical.com>
 
-Is this something of_match_device should be used for?
+The pointer user_cfg (a copy of new_conf) is dereference before
+new_conf is null checked, hence we may have a null pointer dereference
+on user_cfg when assigning buf_size from user_cfg->buf_size. Ensure
+this does not occur by moving the assignment of buf_size after the
+null check.
 
->  	if (imxmd->ipu_present) {
->  		ret = imx_media_add_internal_subdevs(imxmd);
->  		if (ret) {
-> @@ -543,6 +546,7 @@ static int imx_media_remove(struct platform_device *pdev)
->  
->  static const struct of_device_id imx_media_dt_ids[] = {
->  	{ .compatible = "fsl,imx-capture-subsystem" },
-> +	{ .compatible = "fsl,imx7-capture-subsystem" },
->  	{ /* sentinel */ }
->  };
->  MODULE_DEVICE_TABLE(of, imx_media_dt_ids);
+Detected by CoverityScan, CID#1468386 ("Dereference before null check")
 
-regards
-Philipp
+Fixes: 68e342b3068c ("[media] omap3isp: Statistics")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/platform/omap3isp/ispstat.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index 0b31f6c5791f..38cb1b2cc672 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -523,7 +523,7 @@ int omap3isp_stat_config(struct ispstat *stat, void *new_conf)
+ 	int ret;
+ 	unsigned long irqflags;
+ 	struct ispstat_generic_config *user_cfg = new_conf;
+-	u32 buf_size = user_cfg->buf_size;
++	u32 buf_size;
+ 
+ 	if (!new_conf) {
+ 		dev_dbg(stat->isp->dev, "%s: configuration is NULL\n",
+@@ -532,6 +532,7 @@ int omap3isp_stat_config(struct ispstat *stat, void *new_conf)
+ 	}
+ 
+ 	mutex_lock(&stat->ioctl_lock);
++	buf_size = user_cfg->buf_size;
+ 
+ 	dev_dbg(stat->isp->dev,
+ 		"%s: configuring module with buffer size=0x%08lx\n",
+-- 
+2.17.0
