@@ -1,109 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:55805 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751047AbeDSJb1 (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:44219 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757861AbeDXMpb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 05:31:27 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: architt@codeaurora.org, a.hajda@samsung.com,
-        Laurent.pinchart@ideasonboard.com, airlied@linux.ie
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, daniel@ffwll.ch,
-        peda@axentia.se, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/8] drm: bridge: Add support for static image formats
-Date: Thu, 19 Apr 2018 11:31:02 +0200
-Message-Id: <1524130269-32688-2-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
+        Tue, 24 Apr 2018 08:45:31 -0400
+Received: by mail-wr0-f193.google.com with SMTP id o15-v6so49796301wro.11
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:30 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 21/28] venus: helpers: extend set_num_bufs helper with one more argument
+Date: Tue, 24 Apr 2018 15:44:29 +0300
+Message-Id: <20180424124436.26955-22-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for storing image format information in DRM bridges with
-associated helper function.
+Extend venus_helper_set_num_bufs() helper function with one more
+argument to set number of output buffers for the secondary decoder
+output.
 
-This patch replicates for bridges what 'drm_display_info_set_bus_formats()'
-is for connectors.
-
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/gpu/drm/drm_bridge.c | 30 ++++++++++++++++++++++++++++++
- include/drm/drm_bridge.h     |  8 ++++++++
- 2 files changed, 38 insertions(+)
+ drivers/media/platform/qcom/venus/helpers.c | 16 ++++++++++++++--
+ drivers/media/platform/qcom/venus/helpers.h |  3 ++-
+ drivers/media/platform/qcom/venus/vdec.c    |  2 +-
+ drivers/media/platform/qcom/venus/venc.c    |  2 +-
+ 4 files changed, 18 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_bridge.c b/drivers/gpu/drm/drm_bridge.c
-index 1638bfe..e2ad098 100644
---- a/drivers/gpu/drm/drm_bridge.c
-+++ b/drivers/gpu/drm/drm_bridge.c
-@@ -157,6 +157,36 @@ void drm_bridge_detach(struct drm_bridge *bridge)
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index adf8701a64bb..f04d16953b3a 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -513,7 +513,8 @@ int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage)
+ EXPORT_SYMBOL_GPL(venus_helper_set_core_usage);
+ 
+ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+-			      unsigned int output_bufs)
++			      unsigned int output_bufs,
++			      unsigned int output2_bufs)
+ {
+ 	u32 ptype = HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL;
+ 	struct hfi_buffer_count_actual buf_count;
+@@ -529,7 +530,18 @@ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+ 	buf_count.type = HFI_BUFFER_OUTPUT;
+ 	buf_count.count_actual = output_bufs;
+ 
+-	return hfi_session_set_property(inst, ptype, &buf_count);
++	ret = hfi_session_set_property(inst, ptype, &buf_count);
++	if (ret)
++		return ret;
++
++	if (output2_bufs) {
++		buf_count.type = HFI_BUFFER_OUTPUT2;
++		buf_count.count_actual = output2_bufs;
++
++		ret = hfi_session_set_property(inst, ptype, &buf_count);
++	}
++
++	return ret;
  }
+ EXPORT_SYMBOL_GPL(venus_helper_set_num_bufs);
  
- /**
-+ * drm_bridge_set_bus_formats() - set bridge supported image formats
-+ * @bridge: the bridge to set image formats in
-+ * @formats: array of MEDIA_BUS_FMT\_ supported image formats
-+ * @num_formats: number of elements in the @formats array
-+ *
-+ * Store a list of supported image formats in a bridge.
-+ * See MEDIA_BUS_FMT_* definitions in include/uapi/linux/media-bus-format.h for
-+ * a full list of available formats.
-+ */
-+int drm_bridge_set_bus_formats(struct drm_bridge *bridge, const u32 *formats,
-+			       unsigned int num_formats)
-+{
-+	u32 *fmts;
-+
-+	if (!formats || !num_formats)
-+		return -EINVAL;
-+
-+	fmts = kmemdup(formats, sizeof(*formats) * num_formats, GFP_KERNEL);
-+	if (!fmts)
-+		return -ENOMEM;
-+
-+	kfree(bridge->bus_formats);
-+	bridge->bus_formats = fmts;
-+	bridge->num_bus_formats = num_formats;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(drm_bridge_set_bus_formats);
-+
-+/**
-  * DOC: bridge callbacks
-  *
-  * The &drm_bridge_funcs ops are populated by the bridge driver. The DRM
-diff --git a/include/drm/drm_bridge.h b/include/drm/drm_bridge.h
-index 3270fec..6b3648c 100644
---- a/include/drm/drm_bridge.h
-+++ b/include/drm/drm_bridge.h
-@@ -258,6 +258,9 @@ struct drm_bridge_timings {
-  * @encoder: encoder to which this bridge is connected
-  * @next: the next bridge in the encoder chain
-  * @of_node: device node pointer to the bridge
-+ * @bus_formats: wire image formats. Array of @num_bus_formats MEDIA_BUS_FMT\_
-+ * elements
-+ * @num_bus_formats: size of @bus_formats array
-  * @list: to keep track of all added bridges
-  * @timings: the timing specification for the bridge, if any (may
-  * be NULL)
-@@ -271,6 +274,9 @@ struct drm_bridge {
- #ifdef CONFIG_OF
- 	struct device_node *of_node;
- #endif
-+	const u32 *bus_formats;
-+	unsigned int num_bus_formats;
-+
- 	struct list_head list;
- 	const struct drm_bridge_timings *timings;
+diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+index d5e727e1ecab..8ff4bd3ef958 100644
+--- a/drivers/media/platform/qcom/venus/helpers.h
++++ b/drivers/media/platform/qcom/venus/helpers.h
+@@ -41,7 +41,8 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
+ int venus_helper_set_work_mode(struct venus_inst *inst, u32 mode);
+ int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage);
+ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+-			      unsigned int output_bufs);
++			      unsigned int output_bufs,
++			      unsigned int output2_bufs);
+ int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
+ 				u32 buftype);
+ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index ceaf1a338eb3..8d188b11b85a 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -758,7 +758,7 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		goto deinit_sess;
  
-@@ -296,6 +302,8 @@ void drm_bridge_mode_set(struct drm_bridge *bridge,
- 			struct drm_display_mode *adjusted_mode);
- void drm_bridge_pre_enable(struct drm_bridge *bridge);
- void drm_bridge_enable(struct drm_bridge *bridge);
-+int drm_bridge_set_bus_formats(struct drm_bridge *bridge, const u32 *fmts,
-+			       unsigned int num_fmts);
+ 	ret = venus_helper_set_num_bufs(inst, inst->num_input_bufs,
+-					VB2_MAX_FRAME);
++					VB2_MAX_FRAME, VB2_MAX_FRAME);
+ 	if (ret)
+ 		goto deinit_sess;
  
- #ifdef CONFIG_DRM_PANEL_BRIDGE
- struct drm_bridge *drm_panel_bridge_add(struct drm_panel *panel,
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index 3b3299bff1cd..c9c40d1ce7c6 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -963,7 +963,7 @@ static int venc_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		goto deinit_sess;
+ 
+ 	ret = venus_helper_set_num_bufs(inst, inst->num_input_bufs,
+-					inst->num_output_bufs);
++					inst->num_output_bufs, 0);
+ 	if (ret)
+ 		goto deinit_sess;
+ 
 -- 
-2.7.4
+2.14.1
