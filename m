@@ -1,77 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:59660 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755073AbeDPNV1 (ORCPT
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:60910 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756552AbeDXIYh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 09:21:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Tue, 24 Apr 2018 04:24:37 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCHv2 3/9] media.h: remove __NEED_MEDIA_LEGACY_API
-Date: Mon, 16 Apr 2018 15:21:15 +0200
-Message-Id: <20180416132121.46205-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180416132121.46205-1-hverkuil@xs4all.nl>
-References: <20180416132121.46205-1-hverkuil@xs4all.nl>
+Cc: Luca Ceresoli <luca@lucaceresoli.net>,
+        Leon Luo <leonl@leopardimaging.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2 07/13] media: imx274: initialize format before v4l2 controls
+Date: Tue, 24 Apr 2018 10:24:12 +0200
+Message-Id: <1524558258-530-8-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1524558258-530-1-git-send-email-luca@lucaceresoli.net>
+References: <1524558258-530-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+The current probe function calls v4l2_ctrl_handler_setup() before
+initializing the format info. This triggers call paths such as:
+imx274_probe -> v4l2_ctrl_handler_setup -> imx274_s_ctrl ->
+imx274_set_exposure, where priv->mode_index is accessed before being
+assigned.
 
-The __NEED_MEDIA_LEGACY_API define is 1) ugly and 2) dangerous
-since it is all too easy for drivers to define it to get hold of
-legacy defines. Instead just define what we need in media-device.c
-which is the only place where we need the legacy define
-(MEDIA_ENT_T_DEVNODE_UNKNOWN).
+This is wrong but does not trigger a visible bug because priv is
+zero-initialized and 0 is the default value for priv->mode_index. But
+this would become a crash in follow-up commits when mode_index is
+replaced by a pointer that must always be valid.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Fix the bug before it shows up by initializing struct members early.
+
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+
 ---
- drivers/media/media-device.c | 13 ++++++++++---
- include/uapi/linux/media.h   |  2 +-
- 2 files changed, 11 insertions(+), 4 deletions(-)
+Changed v1 -> v2:
+ - add "media: " prefix to commit message
+---
+ drivers/media/i2c/imx274.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 35e81f7c0d2f..7c3ab37c258a 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -16,9 +16,6 @@
-  * GNU General Public License for more details.
-  */
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index 63fb94e7da37..8a8a11b8d75d 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -1632,6 +1632,16 @@ static int imx274_probe(struct i2c_client *client,
  
--/* We need to access legacy defines from linux/media.h */
--#define __NEED_MEDIA_LEGACY_API
--
- #include <linux/compat.h>
- #include <linux/export.h>
- #include <linux/idr.h>
-@@ -35,6 +32,16 @@
+ 	mutex_init(&imx274->lock);
  
- #ifdef CONFIG_MEDIA_CONTROLLER
- 
-+/*
-+ * Legacy defines from linux/media.h. This is the only place we need this
-+ * so we just define it here. The media.h header doesn't expose it to the
-+ * kernel to prevent it from being used by drivers, but here (and only here!)
-+ * we need it to handle the legacy behavior.
-+ */
-+#define MEDIA_ENT_SUBTYPE_MASK			0x0000ffff
-+#define MEDIA_ENT_T_DEVNODE_UNKNOWN		(MEDIA_ENT_F_OLD_BASE | \
-+						 MEDIA_ENT_SUBTYPE_MASK)
++	/* initialize format */
++	imx274->mode_index = IMX274_MODE_3840X2160;
++	imx274->format.width = imx274_formats[0].size.width;
++	imx274->format.height = imx274_formats[0].size.height;
++	imx274->format.field = V4L2_FIELD_NONE;
++	imx274->format.code = MEDIA_BUS_FMT_SRGGB10_1X10;
++	imx274->format.colorspace = V4L2_COLORSPACE_SRGB;
++	imx274->frame_interval.numerator = 1;
++	imx274->frame_interval.denominator = IMX274_DEF_FRAME_RATE;
 +
- /* -----------------------------------------------------------------------------
-  * Userspace API
-  */
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index c7e9a5cba24e..86c7dcc9cba3 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -348,7 +348,7 @@ struct media_v2_topology {
- #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
- #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
+ 	/* initialize regmap */
+ 	imx274->regmap = devm_regmap_init_i2c(client, &imx274_regmap_config);
+ 	if (IS_ERR(imx274->regmap)) {
+@@ -1720,16 +1730,6 @@ static int imx274_probe(struct i2c_client *client,
+ 		goto err_ctrls;
+ 	}
  
--#if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
-+#ifndef __KERNEL__
- 
- /*
-  * Legacy symbols used to avoid userspace compilation breakages.
+-	/* initialize format */
+-	imx274->mode_index = IMX274_MODE_3840X2160;
+-	imx274->format.width = imx274_formats[0].size.width;
+-	imx274->format.height = imx274_formats[0].size.height;
+-	imx274->format.field = V4L2_FIELD_NONE;
+-	imx274->format.code = MEDIA_BUS_FMT_SRGGB10_1X10;
+-	imx274->format.colorspace = V4L2_COLORSPACE_SRGB;
+-	imx274->frame_interval.numerator = 1;
+-	imx274->frame_interval.denominator = IMX274_DEF_FRAME_RATE;
+-
+ 	/* load default control values */
+ 	ret = imx274_load_default(imx274);
+ 	if (ret) {
 -- 
-2.15.1
+2.7.4
