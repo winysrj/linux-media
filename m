@@ -1,147 +1,362 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:60153 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751141AbeDNMA1 (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36598 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757881AbeDXMpf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 08:00:27 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v14 15/33] rcar-vin: break out format alignment and checking
-Date: Sat, 14 Apr 2018 13:57:08 +0200
-Message-Id: <20180414115726.5075-16-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Tue, 24 Apr 2018 08:45:35 -0400
+Received: by mail-wr0-f194.google.com with SMTP id u18-v6so22545334wrg.3
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:34 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 25/28] venus: move frame size calculations in common place
+Date: Tue, 24 Apr 2018 15:44:33 +0300
+Message-Id: <20180424124436.26955-26-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Part of the format alignment and checking can be shared with the Gen3
-format handling. Break that part out to a separate function.
+move calculations of raw and compressed in a common helper
+and make it identical for encoder and decoder.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 85 ++++++++++++++++-------------
- 1 file changed, 48 insertions(+), 37 deletions(-)
+ drivers/media/platform/qcom/venus/helpers.c | 98 +++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/helpers.h |  2 +
+ drivers/media/platform/qcom/venus/vdec.c    | 54 ++++------------
+ drivers/media/platform/qcom/venus/venc.c    | 56 ++++-------------
+ 4 files changed, 126 insertions(+), 84 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index d9231a074aa2c29d..f3a0310c43a9877f 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -87,6 +87,53 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
- 	return pix->bytesperline * pix->height;
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index f0a0fca60c76..ed569705ecac 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -455,6 +455,104 @@ int venus_helper_get_bufreq(struct venus_inst *inst, u32 type,
  }
+ EXPORT_SYMBOL_GPL(venus_helper_get_bufreq);
  
-+static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
++static u32 get_framesize_raw_nv12(u32 width, u32 height)
 +{
-+	u32 walign;
++	u32 y_stride, uv_stride, y_plane;
++	u32 y_sclines, uv_sclines, uv_plane;
++	u32 size;
 +
-+	if (!rvin_format_from_pixel(pix->pixelformat) ||
-+	    (vin->info->model == RCAR_M1 &&
-+	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
-+		pix->pixelformat = RVIN_DEFAULT_FORMAT;
++	y_stride = ALIGN(width, 128);
++	uv_stride = ALIGN(width, 128);
++	y_sclines = ALIGN(height, 32);
++	uv_sclines = ALIGN(((height + 1) >> 1), 16);
 +
-+	switch (pix->field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+		/*
-+		 * Driver does not (yet) support outputting ALTERNATE to a
-+		 * userspace. It does support outputting INTERLACED so use
-+		 * the VIN hardware to combine the two fields.
-+		 */
-+		pix->field = V4L2_FIELD_INTERLACED;
-+		pix->height *= 2;
++	y_plane = y_stride * y_sclines;
++	uv_plane = uv_stride * uv_sclines + SZ_4K;
++	size = y_plane + uv_plane + SZ_8K;
++
++	return ALIGN(size, SZ_4K);
++}
++
++static u32 get_framesize_raw_nv12_ubwc(u32 width, u32 height)
++{
++	u32 y_meta_stride, y_meta_plane;
++	u32 y_stride, y_plane;
++	u32 uv_meta_stride, uv_meta_plane;
++	u32 uv_stride, uv_plane;
++	u32 extradata = SZ_16K;
++
++	y_meta_stride = ALIGN(DIV_ROUND_UP(width, 32), 64);
++	y_meta_plane = y_meta_stride * ALIGN(DIV_ROUND_UP(height, 8), 16);
++	y_meta_plane = ALIGN(y_meta_plane, SZ_4K);
++
++	y_stride = ALIGN(width, 128);
++	y_plane = ALIGN(y_stride * ALIGN(height, 32), SZ_4K);
++
++	uv_meta_stride = ALIGN(DIV_ROUND_UP(width / 2, 16), 64);
++	uv_meta_plane = uv_meta_stride * ALIGN(DIV_ROUND_UP(height / 2, 8), 16);
++	uv_meta_plane = ALIGN(uv_meta_plane, SZ_4K);
++
++	uv_stride = ALIGN(width, 128);
++	uv_plane = ALIGN(uv_stride * ALIGN(height / 2, 32), SZ_4K);
++
++	return ALIGN(y_meta_plane + y_plane + uv_meta_plane + uv_plane +
++		     max(extradata, y_stride * 48), SZ_4K);
++}
++
++u32 venus_helper_get_framesz_raw(u32 hfi_fmt, u32 width, u32 height)
++{
++	switch (hfi_fmt) {
++	case HFI_COLOR_FORMAT_NV12:
++	case HFI_COLOR_FORMAT_NV21:
++		return get_framesize_raw_nv12(width, height);
++	case HFI_COLOR_FORMAT_NV12_UBWC:
++		return get_framesize_raw_nv12_ubwc(width, height);
++	default:
++		return 0;
++	}
++}
++EXPORT_SYMBOL_GPL(venus_helper_get_framesz_raw);
++
++u32 venus_helper_get_framesz(u32 v4l2_fmt, u32 width, u32 height)
++{
++	u32 hfi_fmt, sz;
++	bool compressed;
++
++	switch (v4l2_fmt) {
++	case V4L2_PIX_FMT_MPEG:
++	case V4L2_PIX_FMT_H264:
++	case V4L2_PIX_FMT_H264_NO_SC:
++	case V4L2_PIX_FMT_H264_MVC:
++	case V4L2_PIX_FMT_H263:
++	case V4L2_PIX_FMT_MPEG1:
++	case V4L2_PIX_FMT_MPEG2:
++	case V4L2_PIX_FMT_MPEG4:
++	case V4L2_PIX_FMT_XVID:
++	case V4L2_PIX_FMT_VC1_ANNEX_G:
++	case V4L2_PIX_FMT_VC1_ANNEX_L:
++	case V4L2_PIX_FMT_VP8:
++	case V4L2_PIX_FMT_VP9:
++	case V4L2_PIX_FMT_HEVC:
++		compressed = true;
 +		break;
 +	default:
-+		pix->field = RVIN_DEFAULT_FIELD;
++		compressed = false;
 +		break;
 +	}
 +
-+	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-+	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
++	if (compressed) {
++		sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2 / 2;
++		return ALIGN(sz, SZ_4K);
++	}
 +
-+	/* Limit to VIN capabilities */
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
++	hfi_fmt = to_hfi_raw_fmt(v4l2_fmt);
++	if (!hfi_fmt)
++		return 0;
 +
-+	pix->bytesperline = rvin_format_bytesperline(pix);
-+	pix->sizeimage = rvin_format_sizeimage(pix);
-+
-+	vin_dbg(vin, "Format %ux%u bpl: %u size: %u\n",
-+		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-+
-+	return 0;
++	return venus_helper_get_framesz_raw(hfi_fmt, width, height);
 +}
++EXPORT_SYMBOL_GPL(venus_helper_get_framesz);
 +
- /* -----------------------------------------------------------------------------
-  * V4L2
-  */
-@@ -186,7 +233,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 			     struct v4l2_pix_format *pix,
- 			     struct rvin_source_fmt *source)
+ int venus_helper_set_input_resolution(struct venus_inst *inst,
+ 				      unsigned int width, unsigned int height)
  {
--	u32 walign;
- 	int ret;
+diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+index 92be45894a69..92b167a47166 100644
+--- a/drivers/media/platform/qcom/venus/helpers.h
++++ b/drivers/media/platform/qcom/venus/helpers.h
+@@ -33,6 +33,8 @@ void venus_helper_m2m_device_run(void *priv);
+ void venus_helper_m2m_job_abort(void *priv);
+ int venus_helper_get_bufreq(struct venus_inst *inst, u32 type,
+ 			    struct hfi_buffer_requirements *req);
++u32 venus_helper_get_framesz_raw(u32 hfi_fmt, u32 width, u32 height);
++u32 venus_helper_get_framesz(u32 v4l2_fmt, u32 width, u32 height);
+ int venus_helper_set_input_resolution(struct venus_inst *inst,
+ 				      unsigned int width, unsigned int height);
+ int venus_helper_set_output_resolution(struct venus_inst *inst,
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index ced3330c396a..589fc13b84bc 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -29,29 +29,6 @@
+ #include "helpers.h"
+ #include "vdec.h"
  
- 	if (!rvin_format_from_pixel(pix->pixelformat) ||
-@@ -199,42 +245,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	if (ret)
- 		return ret;
+-static u32 get_framesize_uncompressed(unsigned int plane, u32 width, u32 height)
+-{
+-	u32 y_stride, uv_stride, y_plane;
+-	u32 y_sclines, uv_sclines, uv_plane;
+-	u32 size;
+-
+-	y_stride = ALIGN(width, 128);
+-	uv_stride = ALIGN(width, 128);
+-	y_sclines = ALIGN(height, 32);
+-	uv_sclines = ALIGN(((height + 1) >> 1), 16);
+-
+-	y_plane = y_stride * y_sclines;
+-	uv_plane = uv_stride * uv_sclines + SZ_4K;
+-	size = y_plane + uv_plane + SZ_8K;
+-
+-	return ALIGN(size, SZ_4K);
+-}
+-
+-static u32 get_framesize_compressed(unsigned int width, unsigned int height)
+-{
+-	return ((width * height * 3 / 2) / 2) + 128;
+-}
+-
+ /*
+  * Three resons to keep MPLANE formats (despite that the number of planes
+  * currently is one):
+@@ -160,7 +137,6 @@ vdec_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+ 	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
+ 	struct v4l2_plane_pix_format *pfmt = pixmp->plane_fmt;
+ 	const struct venus_format *fmt;
+-	unsigned int p;
  
--	switch (pix->field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_NONE:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--	case V4L2_FIELD_INTERLACED:
--		break;
--	case V4L2_FIELD_ALTERNATE:
--		/*
--		 * Driver does not (yet) support outputting ALTERNATE to a
--		 * userspace. It does support outputting INTERLACED so use
--		 * the VIN hardware to combine the two fields.
--		 */
--		pix->field = V4L2_FIELD_INTERLACED;
--		pix->height *= 2;
--		break;
--	default:
--		pix->field = RVIN_DEFAULT_FIELD;
--		break;
+ 	memset(pfmt[0].reserved, 0, sizeof(pfmt[0].reserved));
+ 	memset(pixmp->reserved, 0, sizeof(pixmp->reserved));
+@@ -191,18 +167,14 @@ vdec_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+ 	pixmp->num_planes = fmt->num_planes;
+ 	pixmp->flags = 0;
+ 
+-	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+-		for (p = 0; p < pixmp->num_planes; p++) {
+-			pfmt[p].sizeimage =
+-				get_framesize_uncompressed(p, pixmp->width,
+-							   pixmp->height);
+-			pfmt[p].bytesperline = ALIGN(pixmp->width, 128);
+-		}
+-	} else {
+-		pfmt[0].sizeimage = get_framesize_compressed(pixmp->width,
+-							     pixmp->height);
++	pfmt[0].sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
++						     pixmp->width,
++						     pixmp->height);
++
++	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		pfmt[0].bytesperline = ALIGN(pixmp->width, 128);
++	else
+ 		pfmt[0].bytesperline = 0;
 -	}
--
--	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
--	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
--
--	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
--			      &pix->height, 4, vin->info->max_height, 2, 0);
--
--	pix->bytesperline = rvin_format_bytesperline(pix);
--	pix->sizeimage = rvin_format_sizeimage(pix);
--
--	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
--		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
--
--	return 0;
-+	return rvin_format_align(vin, pix);
- }
  
- static int rvin_querycap(struct file *file, void *priv,
+ 	return fmt;
+ }
+@@ -648,7 +620,7 @@ static int vdec_queue_setup(struct vb2_queue *q,
+ 			    unsigned int sizes[], struct device *alloc_devs[])
+ {
+ 	struct venus_inst *inst = vb2_get_drv_priv(q);
+-	unsigned int p, in_num, out_num;
++	unsigned int in_num, out_num;
+ 	int ret = 0;
+ 
+ 	if (*num_planes) {
+@@ -678,7 +650,8 @@ static int vdec_queue_setup(struct vb2_queue *q,
+ 	switch (q->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+ 		*num_planes = inst->fmt_out->num_planes;
+-		sizes[0] = get_framesize_compressed(inst->out_width,
++		sizes[0] = venus_helper_get_framesz(inst->fmt_out->pixfmt,
++						    inst->out_width,
+ 						    inst->out_height);
+ 		inst->input_buf_size = sizes[0];
+ 		*num_buffers = max(*num_buffers, in_num);
+@@ -687,10 +660,9 @@ static int vdec_queue_setup(struct vb2_queue *q,
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 		*num_planes = inst->fmt_cap->num_planes;
+-
+-		for (p = 0; p < *num_planes; p++)
+-			sizes[p] = get_framesize_uncompressed(p, inst->width,
+-							      inst->height);
++		sizes[0] = venus_helper_get_framesz(inst->fmt_cap->pixfmt,
++						    inst->width,
++						    inst->height);
+ 		inst->output_buf_size = sizes[0];
+ 		*num_buffers = max(*num_buffers, out_num);
+ 		inst->num_output_bufs = *num_buffers;
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index c9c40d1ce7c6..54f253b98b24 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -31,32 +31,6 @@
+ 
+ #define NUM_B_FRAMES_MAX	4
+ 
+-static u32 get_framesize_uncompressed(unsigned int plane, u32 width, u32 height)
+-{
+-	u32 y_stride, uv_stride, y_plane;
+-	u32 y_sclines, uv_sclines, uv_plane;
+-	u32 size;
+-
+-	y_stride = ALIGN(width, 128);
+-	uv_stride = ALIGN(width, 128);
+-	y_sclines = ALIGN(height, 32);
+-	uv_sclines = ALIGN(((height + 1) >> 1), 16);
+-
+-	y_plane = y_stride * y_sclines;
+-	uv_plane = uv_stride * uv_sclines + SZ_4K;
+-	size = y_plane + uv_plane + SZ_8K;
+-	size = ALIGN(size, SZ_4K);
+-
+-	return size;
+-}
+-
+-static u32 get_framesize_compressed(u32 width, u32 height)
+-{
+-	u32 sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2 / 2;
+-
+-	return ALIGN(sz, SZ_4K);
+-}
+-
+ /*
+  * Three resons to keep MPLANE formats (despite that the number of planes
+  * currently is one):
+@@ -284,7 +258,6 @@ venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+ 	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
+ 	struct v4l2_plane_pix_format *pfmt = pixmp->plane_fmt;
+ 	const struct venus_format *fmt;
+-	unsigned int p;
+ 
+ 	memset(pfmt[0].reserved, 0, sizeof(pfmt[0].reserved));
+ 	memset(pixmp->reserved, 0, sizeof(pixmp->reserved));
+@@ -318,19 +291,14 @@ venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+ 	pixmp->num_planes = fmt->num_planes;
+ 	pixmp->flags = 0;
+ 
+-	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+-		for (p = 0; p < pixmp->num_planes; p++) {
+-			pfmt[p].sizeimage =
+-				get_framesize_uncompressed(p, pixmp->width,
+-							   pixmp->height);
++	pfmt[0].sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
++						     pixmp->width,
++						     pixmp->height);
+ 
+-			pfmt[p].bytesperline = ALIGN(pixmp->width, 128);
+-		}
+-	} else {
+-		pfmt[0].sizeimage = get_framesize_compressed(pixmp->width,
+-							     pixmp->height);
++	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		pfmt[0].bytesperline = ALIGN(pixmp->width, 128);
++	else
+ 		pfmt[0].bytesperline = 0;
+-	}
+ 
+ 	return fmt;
+ }
+@@ -845,7 +813,7 @@ static int venc_queue_setup(struct vb2_queue *q,
+ 			    unsigned int sizes[], struct device *alloc_devs[])
+ {
+ 	struct venus_inst *inst = vb2_get_drv_priv(q);
+-	unsigned int p, num, min = 4;
++	unsigned int num, min = 4;
+ 	int ret = 0;
+ 
+ 	if (*num_planes) {
+@@ -880,16 +848,18 @@ static int venc_queue_setup(struct vb2_queue *q,
+ 		*num_buffers = max(*num_buffers, num);
+ 		inst->num_input_bufs = *num_buffers;
+ 
+-		for (p = 0; p < *num_planes; ++p)
+-			sizes[p] = get_framesize_uncompressed(p, inst->width,
+-							      inst->height);
++		sizes[0] = venus_helper_get_framesz(inst->fmt_out->pixfmt,
++						    inst->width,
++						    inst->height);
+ 		inst->input_buf_size = sizes[0];
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 		*num_planes = inst->fmt_cap->num_planes;
+ 		*num_buffers = max(*num_buffers, min);
+ 		inst->num_output_bufs = *num_buffers;
+-		sizes[0] = get_framesize_compressed(inst->width, inst->height);
++		sizes[0] = venus_helper_get_framesz(inst->fmt_cap->pixfmt,
++						    inst->width,
++						    inst->height);
+ 		inst->output_buf_size = sizes[0];
+ 		break;
+ 	default:
 -- 
-2.16.2
+2.14.1
