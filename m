@@ -1,164 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:51196 "EHLO
-        homiemail-a124.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932157AbeDWRvB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 13:51:01 -0400
-Subject: Re: [PATCH 2/9] cx231xx: Use board profile values for addresses
-To: Matthias Schwarzott <zzam@gentoo.org>,
-        Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org,
-        mchehab@s-opensource.com
-References: <1523983195-28691-1-git-send-email-brad@nextdimension.cc>
- <1523983195-28691-3-git-send-email-brad@nextdimension.cc>
- <00cb50ca-b467-2f0f-fbdc-92b8b9faad3b@gentoo.org>
-From: Brad Love <brad@nextdimension.cc>
-Message-ID: <a70a711a-8d9f-ccd9-aadb-fc31dd74bfa4@nextdimension.cc>
-Date: Mon, 23 Apr 2018 11:50:59 -0600
+Received: from mga01.intel.com ([192.55.52.88]:52735 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756662AbeDXLzi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 07:55:38 -0400
+Date: Tue, 24 Apr 2018 14:55:34 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: Re: [PATCH v2 02/12] media: ov5640: Add light frequency control
+Message-ID: <20180424115534.ycu5zxkxftgfpkph@paasikivi.fi.intel.com>
+References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
+ <20180416123701.15901-3-maxime.ripard@bootlin.com>
+ <1757295.VWosiQ25QR@avalon>
+ <20180420190410.v34fjtmcs57otbcg@flea>
 MIME-Version: 1.0
-In-Reply-To: <00cb50ca-b467-2f0f-fbdc-92b8b9faad3b@gentoo.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Content-Language: en-GB
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180420190410.v34fjtmcs57otbcg@flea>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matthias,
+On Fri, Apr 20, 2018 at 09:04:10PM +0200, Maxime Ripard wrote:
+> Hi Laurent,
+> 
+> On Thu, Apr 19, 2018 at 12:44:18PM +0300, Laurent Pinchart wrote:
+> > On Monday, 16 April 2018 15:36:51 EEST Maxime Ripard wrote:
+> > > From: Mylène Josserand <mylene.josserand@bootlin.com>
+> > > 
+> > > Add the light frequency control to be able to set the frequency
+> > > to manual (50Hz or 60Hz) or auto.
+> > > 
+> > > Signed-off-by: Mylène Josserand <mylene.josserand@bootlin.com>
+> > > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > > ---
+> > >  drivers/media/i2c/ov5640.c | 24 ++++++++++++++++++++++++
+> > >  1 file changed, 24 insertions(+)
+> > > 
+> > > diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> > > index a33e45f8e2b0..28122341fc35 100644
+> > > --- a/drivers/media/i2c/ov5640.c
+> > > +++ b/drivers/media/i2c/ov5640.c
+> > > @@ -189,6 +189,7 @@ struct ov5640_ctrls {
+> > >  	};
+> > >  	struct v4l2_ctrl *auto_focus;
+> > >  	struct v4l2_ctrl *brightness;
+> > > +	struct v4l2_ctrl *light_freq;
+> > >  	struct v4l2_ctrl *saturation;
+> > >  	struct v4l2_ctrl *contrast;
+> > >  	struct v4l2_ctrl *hue;
+> > > @@ -2163,6 +2164,21 @@ static int ov5640_set_ctrl_focus(struct ov5640_dev
+> > > *sensor, int value) BIT(1), value ? BIT(1) : 0);
+> > >  }
+> > > 
+> > > +static int ov5640_set_ctl_light_freq(struct ov5640_dev *sensor, int value)
+> > 
+> > To stay consistent with the other functions, I propose calling this 
+> > ov5640_set_ctrl_light_freq().
+> > 
+> > Apart from that,
+> > 
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Consider it fixed in the next iteration, thanks!
+> Maxime
 
+Applied patches 2--7 with the following diff to the first applied patch,
+i.e. this one:
 
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index dc3950c20c62..e480e53b369b 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -2178,7 +2178,7 @@ static int ov5640_set_ctrl_test_pattern(struct ov5640_dev *sensor, int value)
+ 			      0xa4, value ? 0xa4 : 0);
+ }
+ 
+-static int ov5640_set_ctl_light_freq(struct ov5640_dev *sensor, int value)
++static int ov5640_set_ctrl_light_freq(struct ov5640_dev *sensor, int value)
+ {
+ 	int ret;
+ 
+@@ -2262,7 +2262,7 @@ static int ov5640_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		ret = ov5640_set_ctrl_test_pattern(sensor, ctrl->val);
+ 		break;
+ 	case V4L2_CID_POWER_LINE_FREQUENCY:
+-		ret = ov5640_set_ctl_light_freq(sensor, ctrl->val);
++		ret = ov5640_set_ctrl_light_freq(sensor, ctrl->val);
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
 
-On 2018-04-19 12:10, Matthias Schwarzott wrote:
-> Am 17.04.2018 um 18:39 schrieb Brad Love:
->> Replace all usage of hard coded values with
->> the proper field from the board profile.
->>
-> Hi Brad,
->
-> will there be any interference with the usage to configure the analog
-> tuner via the fields tuner_addr and tuner_type?
->
-> Regards
-> Matthias
+Thanks!
 
-
-I expanded the patch and reviewed each change.
-
-- CX231XX_BOARD_CNXT_RDE_253S : constant equals tuner_addr
-- CX231XX_BOARD_CNXT_RDU_253S : constant equals tuner_addr
-- CX231XX_BOARD_KWORLD_UB445_USB_HYBRID : constant equals tuner_addr
-- CX231XX_BOARD_HAUPPAUGE_EXETER : constant equals tuner_addr
-- CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx : constant equals tuner_addr
-- CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx : constant equals tuner_addr
-- CX231XX_BOARD_HAUPPAUGE_955Q : constant equals tuner_addr
-- CX231XX_BOARD_PV_PLAYTV_USB_HYBRID : constant equals tuner_addr
-- CX231XX_BOARD_KWORLD_UB430_USB_HYBRID : constant equals tuner_addr
-
-
-In all cases above I believe there should be no change in value used or
-behaviour, since the values are equal.
-
-I have tested the 955Q (no tuner_type analog though) well with this set.
-I will ask if someone in the main office can test one of these two:
-- CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx
-- CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx
-
-to verify everything is still fine with the analog tuner_type setup on
-them after these changes.
-
-Cheers,
-
-Brad
-
-
->> Signed-off-by: Brad Love <brad@nextdimension.cc>
->> ---
->>  drivers/media/usb/cx231xx/cx231xx-dvb.c | 19 +++++++++----------
->>  1 file changed, 9 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/u=
-sb/cx231xx/cx231xx-dvb.c
->> index 67ed667..99f1a77 100644
->> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
->> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
->> @@ -728,7 +728,7 @@ static int dvb_init(struct cx231xx *dev)
->>  		dvb->frontend[0]->callback =3D cx231xx_tuner_callback;
->> =20
->>  		if (!dvb_attach(tda18271_attach, dev->dvb->frontend[0],
->> -			       0x60, tuner_i2c,
->> +			       dev->board.tuner_addr, tuner_i2c,
->>  			       &cnxt_rde253s_tunerconfig)) {
->>  			result =3D -EINVAL;
->>  			goto out_free;
->> @@ -752,7 +752,7 @@ static int dvb_init(struct cx231xx *dev)
->>  		dvb->frontend[0]->callback =3D cx231xx_tuner_callback;
->> =20
->>  		if (!dvb_attach(tda18271_attach, dev->dvb->frontend[0],
->> -			       0x60, tuner_i2c,
->> +			       dev->board.tuner_addr, tuner_i2c,
->>  			       &cnxt_rde253s_tunerconfig)) {
->>  			result =3D -EINVAL;
->>  			goto out_free;
->> @@ -779,7 +779,7 @@ static int dvb_init(struct cx231xx *dev)
->>  		dvb->frontend[0]->callback =3D cx231xx_tuner_callback;
->> =20
->>  		dvb_attach(tda18271_attach, dev->dvb->frontend[0],
->> -			   0x60, tuner_i2c,
->> +			   dev->board.tuner_addr, tuner_i2c,
->>  			   &hcw_tda18271_config);
->>  		break;
->> =20
->> @@ -797,7 +797,7 @@ static int dvb_init(struct cx231xx *dev)
->> =20
->>  		memset(&info, 0, sizeof(struct i2c_board_info));
->>  		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
->> -		info.addr =3D 0x64;
->> +		info.addr =3D dev->board.demod_addr;
->>  		info.platform_data =3D &si2165_pdata;
->>  		request_module(info.type);
->>  		client =3D i2c_new_device(demod_i2c, &info);
->> @@ -822,8 +822,7 @@ static int dvb_init(struct cx231xx *dev)
->>  		dvb->frontend[0]->callback =3D cx231xx_tuner_callback;
->> =20
->>  		dvb_attach(tda18271_attach, dev->dvb->frontend[0],
->> -			0x60,
->> -			tuner_i2c,
->> +			dev->board.tuner_addr, tuner_i2c,
->>  			&hcw_tda18271_config);
->> =20
->>  		dev->cx231xx_reset_analog_tuner =3D NULL;
->> @@ -844,7 +843,7 @@ static int dvb_init(struct cx231xx *dev)
->> =20
->>  		memset(&info, 0, sizeof(struct i2c_board_info));
->>  		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
->> -		info.addr =3D 0x64;
->> +		info.addr =3D dev->board.demod_addr;
->>  		info.platform_data =3D &si2165_pdata;
->>  		request_module(info.type);
->>  		client =3D i2c_new_device(demod_i2c, &info);
->> @@ -879,7 +878,7 @@ static int dvb_init(struct cx231xx *dev)
->>  		si2157_config.if_port =3D 1;
->>  		si2157_config.inversion =3D true;
->>  		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
->> -		info.addr =3D 0x60;
->> +		info.addr =3D dev->board.tuner_addr;
->>  		info.platform_data =3D &si2157_config;
->>  		request_module("si2157");
->> =20
->> @@ -938,7 +937,7 @@ static int dvb_init(struct cx231xx *dev)
->>  		si2157_config.if_port =3D 1;
->>  		si2157_config.inversion =3D true;
->>  		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
->> -		info.addr =3D 0x60;
->> +		info.addr =3D dev->board.tuner_addr;
->>  		info.platform_data =3D &si2157_config;
->>  		request_module("si2157");
->> =20
->> @@ -985,7 +984,7 @@ static int dvb_init(struct cx231xx *dev)
->>  		dvb->frontend[0]->callback =3D cx231xx_tuner_callback;
->> =20
->>  		dvb_attach(tda18271_attach, dev->dvb->frontend[0],
->> -			   0x60, tuner_i2c,
->> +			   dev->board.tuner_addr, tuner_i2c,
->>  			   &pv_tda18271_config);
->>  		break;
->> =20
->>
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
