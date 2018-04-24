@@ -1,403 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54472 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751475AbeD1UuT (ORCPT
+Received: from mail-it0-f65.google.com ([209.85.214.65]:39027 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750791AbeDXWLU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Apr 2018 16:50:19 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Dave Airlie <airlied@gmail.com>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v3 2/8] v4l: vsp1: Share the CLU, LIF and LUT set_fmt pad operation code
-Date: Sat, 28 Apr 2018 23:50:21 +0300
-Message-Id: <20180428205027.18025-3-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
+        Tue, 24 Apr 2018 18:11:20 -0400
+Received: by mail-it0-f65.google.com with SMTP id c3-v6so2983538itj.4
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 15:11:20 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180419123244.tujbrkpazbdyows6@flea>
+References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
+ <CAFwsNOF6t-AAXr8gEBLnCx2OF-PjAWALhsJRVYHSdnaP9hswWA@mail.gmail.com>
+ <20180417160122.rfdlbdafmivgi5cd@flea> <CAFwsNOE3aockxFDbPP4B6LDckGrvM5grqcov5wui0aCyuQs4Tw@mail.gmail.com>
+ <20180419123244.tujbrkpazbdyows6@flea>
+From: Sam Bobrowicz <sam@elite-embedded.com>
+Date: Tue, 24 Apr 2018 15:11:19 -0700
+Message-ID: <CAFwsNOEV0Q2HjmaoT-m-znD-+0VSfE4tJ2vCPuNpUe2M72ErAA@mail.gmail.com>
+Subject: Re: [PATCH v2 00/12] media: ov5640: Misc cleanup and improvements
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The implementation of the set_fmt pad operation is identical in the
-three modules. Move it to a generic helper function.
+FYI, still hard at work on this. Did some more experiments last week
+that seemed to corroborate the clock tree in the spreadsheet. It also
+seems that the output of the P divider cell, SCLK cell and MIPI Rate
+cell in the spreadsheet must have a ratio of 2x:1x:8x (respectively)
+in order for the sensor to work properly on my platform, and that the
+SCLK value must be close to the "rate" variable that you calculate and
+pass to set_mipi_pclk. Unfortunately, I've only got the sensor working
+well for 1080p@15Hz and 720p@30Hz, both with a SCLK of 42MHz (aka
+84:42:336). I'm running experiments now trying to adjust the htot and
+vtot values to create different required rates, and also to try to get
+faster Mipi rates working. Any information you have on the
+requirements of the htot and vtot values with respect to vact and hact
+values would likely be helpful.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
-Changes since v2:
+I'm also keeping an eye on the scaler clock, which I think may be
+affecting certain resolutions, but haven't been able to see it make a
+difference yet (see register 0x3824 and 0x460c)
 
-- Use entity->source_pad instead of hardcoding pad numbers
----
- drivers/media/platform/vsp1/vsp1_clu.c    | 65 +++++----------------------
- drivers/media/platform/vsp1/vsp1_entity.c | 75 +++++++++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_entity.h |  6 +++
- drivers/media/platform/vsp1/vsp1_lif.c    | 65 +++++----------------------
- drivers/media/platform/vsp1/vsp1_lut.c    | 65 +++++----------------------
- 5 files changed, 116 insertions(+), 160 deletions(-)
+I plan on pushing a set of patches once I get this figured out, we can
+discuss what I should base them on when I get closer to that point.
+I'm new to this process :)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
-index 9626b6308585..96a448e1504c 100644
---- a/drivers/media/platform/vsp1/vsp1_clu.c
-+++ b/drivers/media/platform/vsp1/vsp1_clu.c
-@@ -114,18 +114,18 @@ static const struct v4l2_ctrl_config clu_mode_control = {
-  * V4L2 Subdevice Pad Operations
-  */
- 
-+static const unsigned int clu_codes[] = {
-+	MEDIA_BUS_FMT_ARGB8888_1X32,
-+	MEDIA_BUS_FMT_AHSV8888_1X32,
-+	MEDIA_BUS_FMT_AYUV8_1X32,
-+};
-+
- static int clu_enum_mbus_code(struct v4l2_subdev *subdev,
- 			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_mbus_code_enum *code)
- {
--	static const unsigned int codes[] = {
--		MEDIA_BUS_FMT_ARGB8888_1X32,
--		MEDIA_BUS_FMT_AHSV8888_1X32,
--		MEDIA_BUS_FMT_AYUV8_1X32,
--	};
--
--	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
--					  ARRAY_SIZE(codes));
-+	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, clu_codes,
-+					  ARRAY_SIZE(clu_codes));
- }
- 
- static int clu_enum_frame_size(struct v4l2_subdev *subdev,
-@@ -141,51 +141,10 @@ static int clu_set_format(struct v4l2_subdev *subdev,
- 			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
--	struct vsp1_clu *clu = to_clu(subdev);
--	struct v4l2_subdev_pad_config *config;
--	struct v4l2_mbus_framefmt *format;
--	int ret = 0;
--
--	mutex_lock(&clu->entity.lock);
--
--	config = vsp1_entity_get_pad_config(&clu->entity, cfg, fmt->which);
--	if (!config) {
--		ret = -EINVAL;
--		goto done;
--	}
--
--	/* Default to YUV if the requested format is not supported. */
--	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
--	    fmt->format.code != MEDIA_BUS_FMT_AHSV8888_1X32 &&
--	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
--		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
--
--	format = vsp1_entity_get_pad_format(&clu->entity, config, fmt->pad);
--
--	if (fmt->pad == CLU_PAD_SOURCE) {
--		/* The CLU output format can't be modified. */
--		fmt->format = *format;
--		goto done;
--	}
--
--	format->code = fmt->format.code;
--	format->width = clamp_t(unsigned int, fmt->format.width,
--				CLU_MIN_SIZE, CLU_MAX_SIZE);
--	format->height = clamp_t(unsigned int, fmt->format.height,
--				 CLU_MIN_SIZE, CLU_MAX_SIZE);
--	format->field = V4L2_FIELD_NONE;
--	format->colorspace = V4L2_COLORSPACE_SRGB;
--
--	fmt->format = *format;
--
--	/* Propagate the format to the source pad. */
--	format = vsp1_entity_get_pad_format(&clu->entity, config,
--					    CLU_PAD_SOURCE);
--	*format = fmt->format;
--
--done:
--	mutex_unlock(&clu->entity.lock);
--	return ret;
-+	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, clu_codes,
-+					  ARRAY_SIZE(clu_codes),
-+					  CLU_MIN_SIZE, CLU_MIN_SIZE,
-+					  CLU_MAX_SIZE, CLU_MAX_SIZE);
- }
- 
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 72354caf5746..9195a0eca467 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -307,6 +307,81 @@ int vsp1_subdev_enum_frame_size(struct v4l2_subdev *subdev,
- 	return ret;
- }
- 
-+/*
-+ * vsp1_subdev_set_pad_format - Subdev pad set_fmt handler
-+ * @subdev: V4L2 subdevice
-+ * @cfg: V4L2 subdev pad configuration
-+ * @fmt: V4L2 subdev format
-+ * @codes: Array of supported media bus codes
-+ * @ncodes: Number of supported media bus codes
-+ * @min_width: Minimum image width
-+ * @min_height: Minimum image height
-+ * @max_width: Maximum image width
-+ * @max_height: Maximum image height
-+ *
-+ * This function implements the subdev set_fmt pad operation for entities that
-+ * do not support scaling or cropping. It defaults to the first supplied media
-+ * bus code if the requested code isn't supported, clamps the size to the
-+ * supplied minimum and maximum, and propagates the sink pad format to the
-+ * source pad.
-+ */
-+int vsp1_subdev_set_pad_format(struct v4l2_subdev *subdev,
-+			       struct v4l2_subdev_pad_config *cfg,
-+			       struct v4l2_subdev_format *fmt,
-+			       const unsigned int *codes, unsigned int ncodes,
-+			       unsigned int min_width, unsigned int min_height,
-+			       unsigned int max_width, unsigned int max_height)
-+{
-+	struct vsp1_entity *entity = to_vsp1_entity(subdev);
-+	struct v4l2_subdev_pad_config *config;
-+	struct v4l2_mbus_framefmt *format;
-+	unsigned int i;
-+	int ret = 0;
-+
-+	mutex_lock(&entity->lock);
-+
-+	config = vsp1_entity_get_pad_config(entity, cfg, fmt->which);
-+	if (!config) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	format = vsp1_entity_get_pad_format(entity, config, fmt->pad);
-+
-+	if (fmt->pad == entity->source_pad) {
-+		/* The output format can't be modified. */
-+		fmt->format = *format;
-+		goto done;
-+	}
-+
-+	/*
-+	 * Default to the first media bus code if the requested format is not
-+	 * supported.
-+	 */
-+	for (i = 0; i < ncodes; ++i) {
-+		if (fmt->format.code == codes[i])
-+			break;
-+	}
-+
-+	format->code = i < ncodes ? codes[i] : codes[0];
-+	format->width = clamp_t(unsigned int, fmt->format.width,
-+				min_width, max_width);
-+	format->height = clamp_t(unsigned int, fmt->format.height,
-+				 min_height, max_height);
-+	format->field = V4L2_FIELD_NONE;
-+	format->colorspace = V4L2_COLORSPACE_SRGB;
-+
-+	fmt->format = *format;
-+
-+	/* Propagate the format to the source pad. */
-+	format = vsp1_entity_get_pad_format(entity, config, entity->source_pad);
-+	*format = fmt->format;
-+
-+done:
-+	mutex_unlock(&entity->lock);
-+	return ret;
-+}
-+
- /* -----------------------------------------------------------------------------
-  * Media Operations
-  */
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index fb20a1578f3b..0839a62cfa71 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -160,6 +160,12 @@ struct media_pad *vsp1_entity_remote_pad(struct media_pad *pad);
- int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
- 			       struct v4l2_subdev_pad_config *cfg,
- 			       struct v4l2_subdev_format *fmt);
-+int vsp1_subdev_set_pad_format(struct v4l2_subdev *subdev,
-+			       struct v4l2_subdev_pad_config *cfg,
-+			       struct v4l2_subdev_format *fmt,
-+			       const unsigned int *codes, unsigned int ncodes,
-+			       unsigned int min_width, unsigned int min_height,
-+			       unsigned int max_width, unsigned int max_height);
- int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
- 			       struct v4l2_subdev_pad_config *cfg,
- 			       struct v4l2_subdev_mbus_code_enum *code,
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index b20b842f06ba..fbdd5715f829 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -33,17 +33,17 @@ static inline void vsp1_lif_write(struct vsp1_lif *lif, struct vsp1_dl_list *dl,
-  * V4L2 Subdevice Operations
-  */
- 
-+static const unsigned int lif_codes[] = {
-+	MEDIA_BUS_FMT_ARGB8888_1X32,
-+	MEDIA_BUS_FMT_AYUV8_1X32,
-+};
-+
- static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
- 			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_mbus_code_enum *code)
- {
--	static const unsigned int codes[] = {
--		MEDIA_BUS_FMT_ARGB8888_1X32,
--		MEDIA_BUS_FMT_AYUV8_1X32,
--	};
--
--	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
--					  ARRAY_SIZE(codes));
-+	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, lif_codes,
-+					  ARRAY_SIZE(lif_codes));
- }
- 
- static int lif_enum_frame_size(struct v4l2_subdev *subdev,
-@@ -59,53 +59,10 @@ static int lif_set_format(struct v4l2_subdev *subdev,
- 			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
--	struct vsp1_lif *lif = to_lif(subdev);
--	struct v4l2_subdev_pad_config *config;
--	struct v4l2_mbus_framefmt *format;
--	int ret = 0;
--
--	mutex_lock(&lif->entity.lock);
--
--	config = vsp1_entity_get_pad_config(&lif->entity, cfg, fmt->which);
--	if (!config) {
--		ret = -EINVAL;
--		goto done;
--	}
--
--	/* Default to YUV if the requested format is not supported. */
--	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
--	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
--		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
--
--	format = vsp1_entity_get_pad_format(&lif->entity, config, fmt->pad);
--
--	if (fmt->pad == LIF_PAD_SOURCE) {
--		/*
--		 * The LIF source format is always identical to its sink
--		 * format.
--		 */
--		fmt->format = *format;
--		goto done;
--	}
--
--	format->code = fmt->format.code;
--	format->width = clamp_t(unsigned int, fmt->format.width,
--				LIF_MIN_SIZE, LIF_MAX_SIZE);
--	format->height = clamp_t(unsigned int, fmt->format.height,
--				 LIF_MIN_SIZE, LIF_MAX_SIZE);
--	format->field = V4L2_FIELD_NONE;
--	format->colorspace = V4L2_COLORSPACE_SRGB;
--
--	fmt->format = *format;
--
--	/* Propagate the format to the source pad. */
--	format = vsp1_entity_get_pad_format(&lif->entity, config,
--					    LIF_PAD_SOURCE);
--	*format = fmt->format;
--
--done:
--	mutex_unlock(&lif->entity.lock);
--	return ret;
-+	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, lif_codes,
-+					  ARRAY_SIZE(lif_codes),
-+					  LIF_MIN_SIZE, LIF_MIN_SIZE,
-+					  LIF_MAX_SIZE, LIF_MAX_SIZE);
- }
- 
- static const struct v4l2_subdev_pad_ops lif_pad_ops = {
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 7bdabb311c6c..f2e48a02ca7d 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -90,18 +90,18 @@ static const struct v4l2_ctrl_config lut_table_control = {
-  * V4L2 Subdevice Pad Operations
-  */
- 
-+static const unsigned int lut_codes[] = {
-+	MEDIA_BUS_FMT_ARGB8888_1X32,
-+	MEDIA_BUS_FMT_AHSV8888_1X32,
-+	MEDIA_BUS_FMT_AYUV8_1X32,
-+};
-+
- static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
- 			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_mbus_code_enum *code)
- {
--	static const unsigned int codes[] = {
--		MEDIA_BUS_FMT_ARGB8888_1X32,
--		MEDIA_BUS_FMT_AHSV8888_1X32,
--		MEDIA_BUS_FMT_AYUV8_1X32,
--	};
--
--	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
--					  ARRAY_SIZE(codes));
-+	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, lut_codes,
-+					  ARRAY_SIZE(lut_codes));
- }
- 
- static int lut_enum_frame_size(struct v4l2_subdev *subdev,
-@@ -117,51 +117,10 @@ static int lut_set_format(struct v4l2_subdev *subdev,
- 			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
--	struct vsp1_lut *lut = to_lut(subdev);
--	struct v4l2_subdev_pad_config *config;
--	struct v4l2_mbus_framefmt *format;
--	int ret = 0;
--
--	mutex_lock(&lut->entity.lock);
--
--	config = vsp1_entity_get_pad_config(&lut->entity, cfg, fmt->which);
--	if (!config) {
--		ret = -EINVAL;
--		goto done;
--	}
--
--	/* Default to YUV if the requested format is not supported. */
--	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
--	    fmt->format.code != MEDIA_BUS_FMT_AHSV8888_1X32 &&
--	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
--		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
--
--	format = vsp1_entity_get_pad_format(&lut->entity, config, fmt->pad);
--
--	if (fmt->pad == LUT_PAD_SOURCE) {
--		/* The LUT output format can't be modified. */
--		fmt->format = *format;
--		goto done;
--	}
--
--	format->code = fmt->format.code;
--	format->width = clamp_t(unsigned int, fmt->format.width,
--				LUT_MIN_SIZE, LUT_MAX_SIZE);
--	format->height = clamp_t(unsigned int, fmt->format.height,
--				 LUT_MIN_SIZE, LUT_MAX_SIZE);
--	format->field = V4L2_FIELD_NONE;
--	format->colorspace = V4L2_COLORSPACE_SRGB;
--
--	fmt->format = *format;
--
--	/* Propagate the format to the source pad. */
--	format = vsp1_entity_get_pad_format(&lut->entity, config,
--					    LUT_PAD_SOURCE);
--	*format = fmt->format;
--
--done:
--	mutex_unlock(&lut->entity.lock);
--	return ret;
-+	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, lut_codes,
-+					  ARRAY_SIZE(lut_codes),
-+					  LUT_MIN_SIZE, LUT_MIN_SIZE,
-+					  LUT_MAX_SIZE, LUT_MAX_SIZE);
- }
- 
- /* -----------------------------------------------------------------------------
--- 
-Regards,
+--Sam
+-----------------------
+Sam Bobrowicz
+Elite Embedded Consulting LLC
+elite-embedded.com
 
-Laurent Pinchart
+
+On Thu, Apr 19, 2018 at 5:32 AM, Maxime Ripard
+<maxime.ripard@bootlin.com> wrote:
+> Hi Samuel,
+>
+> On Wed, Apr 18, 2018 at 04:39:06PM -0700, Samuel Bobrowicz wrote:
+>> I applied your patches, and they are a big improvement for what I am
+>> trying to do, but things still aren't working right on my platform.
+>>
+>> How confident are you that the MIPI mode will work with this version
+>> of the driver?
+>
+> Not too confident. Like I said, I did all my tests on a parallel
+> camera with a scope, so I'm pretty confident for the parallel bus. But
+> I haven't been able to test the MIPI-CSI side of things and tried to
+> deduce it from the datasheet.
+>
+> tl; dr: I might very well be wrong.
+>
+>> I am having issues that I believe are due to incorrect clock
+>> generation. Our engineers did some reverse engineering of the clock
+>> tree themselves, and came up with a slightly different model.  I've
+>> captured their model in a spreadsheet here:
+>> https://tinyurl.com/pll-calc . Just modify the register and xclk
+>> values to see the clocks change. Do your tests disagree with this
+>> potential model?
+>
+> At least on the parallel side, it looks fairly similar, so I guess we
+> can come to an agreement :)
+>
+> There's just the SCLK2x divider that is no longer in the path to PCLK
+> but has been replaced with BIT Divider that has the same value, so it
+> should work as well.
+>
+>> I'm not sure which model is more correct, but my tests suggest the
+>> high speed MIPI clock is generated directly off the PLL. This means
+>> the PLL multiplier you are generating in your algorithm is not high
+>> enough to satisfy the bandwidth. If this is the case, MIPI mode will
+>> require a different set of parameters that enable some of the
+>> downstream dividers, so that the PLL multiplier can be higher while
+>> the PCLK value still matches the needed rate calculated from the
+>> resolution.
+>>
+>> Any thoughts on this before I dive in and start tweaking the algorithm
+>> in mipi mode?
+>
+> Like I said, I did that analysis by plugging the camera to a scope and
+> look at the PCLK generated for various combinations. Your analysis
+> seems not too far off for the setup I've tested, so I guess this makes
+> sense. And let me know how it works for MIPI-CSI2 so that I can update
+> the patches :)
+>
+> Maxime
+>
+> --
+> Maxime Ripard, Bootlin (formerly Free Electrons)
+> Embedded Linux and Kernel engineering
+> https://bootlin.com
