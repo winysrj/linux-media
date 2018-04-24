@@ -1,103 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:38791 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751927AbeDQIeu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 04:34:50 -0400
-Message-ID: <1523954089.3612.1.camel@pengutronix.de>
-Subject: Re: imx-media: MT9P031 Capture issues on IMX6
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Date: Tue, 17 Apr 2018 10:34:49 +0200
-In-Reply-To: <CAPQseg3qXkgU=1yvUXdh73XnGT-kcFWsBF6nDx6AMa+OV7w3nQ@mail.gmail.com>
-References: <CAPQseg2t1-LgmeuQBW2YXSwN26WKcJWakN2KCLfCjKZ_wJeWGw@mail.gmail.com>
-         <1523629085.3396.10.camel@pengutronix.de>
-         <CAPQseg29hJ+vdWxU3RkXtaeJki9209OjqvGOQQ-U45Z_vvjnnw@mail.gmail.com>
-         <1523871020.5918.4.camel@pengutronix.de>
-         <CAPQseg3qXkgU=1yvUXdh73XnGT-kcFWsBF6nDx6AMa+OV7w3nQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mail.bootlin.com ([62.4.15.54]:46144 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752789AbeDXM1N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 08:27:13 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v11 1/4] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+Date: Tue, 24 Apr 2018 14:26:57 +0200
+Message-Id: <20180424122700.5387-2-maxime.ripard@bootlin.com>
+In-Reply-To: <20180424122700.5387-1-maxime.ripard@bootlin.com>
+References: <20180424122700.5387-1-maxime.ripard@bootlin.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ibtsam,
+The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up to
+4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
+the hardware implementation.
 
-On Tue, 2018-04-17 at 09:26 +0200, Ibtsam Ul-Haq wrote:
-> On Mon, Apr 16, 2018 at 11:30 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > On Mon, 2018-04-16 at 09:54 +0200, Ibtsam Ul-Haq wrote:
-> > [...]
-> > > This indeed looks the case. But then, is 'GR16' the FourCC for 'SGRBG16'?
-> > 
-> > Yes, see Documentation/media/uapi/v4l/pixfmt-srggb16.rst:
-> > https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-srggb16.html
-> > 
-> > > To be honest, I had not seen GR16 as FourCC before.
-> > > And the Gstreamer debug logs (I used GST_DEBUG=5) also say that they
-> > > do not know this FourCC:
-> > > v4l2 gstv4l2object.c:1541:gst_v4l2_object_v4l2fourcc_to_bare_struct: [00m
-> > > Unsupported fourcc 0x36315247 GR16
-> > 
-> > The GStreamer V4L2 elements currently only support 8-bit per component
-> > Bayer formats.
-> > 
-> > > Is there a way we can get by this?
-> > 
-> > There's two ways to handle this correctly, IMHO. One would be adding
-> > SGRBG8_1X8 support to the mt9p031 driver. This is the correct way if the
-> > device tree is configured for 8-bit parallel and there are only 8 data
-> > lines connected between camera and SoC. As a quick hack, I think you
-> > could just:
-> > 
-> >   sed "s/MEDIA_BUS_FMT_SGRBG12_1X12/MEDIA_BUS_FMT_SGRBG8_1X8/" -i drivers/media/i2c/mt9p031.c
-> > 
-> 
-> 
-> I tried that and it works well for my case. All pads in the pipeline
-> now report their format as SGRBG8_1X8.
->
-> However, now I am getting a Broken Pipe error from STREAMON when I try
-> to run the pipeline:
-> v4l2bufferpool gstv4l2bufferpool.c:677:gst_v4l2_buffer_pool_streamon:<v4l2src0:pool:src>
-> [00m
-> error with STREAMON 32 (Broken pipe)
+It can operate with an external D-PHY, an internal one or no D-PHY at all
+in some configurations.
 
-What about format width and height, are they the same throughout the
-pipeline? It didn't look that way in your last mail.
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ .../devicetree/bindings/media/cdns,csi2rx.txt | 100 ++++++++++++++++++
+ 1 file changed, 100 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
 
-> 
-> I also get a corresponding error on the dmesg:
-> [ 1398.723524] ipu1_csi0: pipeline start failed with -32
-
-That is the same issue. I assume link validation fails with -EPIPE
-because frame dimensions differ between some connected source and sink
-pad. If you have dynamic debug enabled, you can verify this by enabling
-the relevant debug printks in drivers/media:
-
-  echo "func __media_pipeline_start +p" > /sys/kernel/debug/dynamic_debug/control
-
-This will show exactly which link causes the failure:
-
-  imx-media capture-subsystem: link validation failed for 'ipu1_csi0_mux':2 -> 'ipu1_csi0':0, error -32
-  ipu1_csi0: pipeline start failed with -32
-
-Here width and height were different between connected source and sink
-pad:
-
-  media-ctl --get-v4l2 "'ipu1_csi0_mux':2"
-		[fmt:UYVY8_1X16/640x480 field:none colorspace:srgb xfer:srgb ycbcr:601 quantization:lim-range]
-
-  media-ctl --get-v4l2 "'ipu1_csi0':0"
-		[fmt:UYVY8_1X16/1920x1080@1/60 field:none colorspace:rec709 xfer:709 ycbcr:709 quantization:lim-range
-		 crop.bounds:(0,0)/1920x1080
-		 crop:(0,0)/1920x1080
-		 compose.bounds:(0,0)/1920x1080
-		 compose:(0,0)/1920x1080]
-
-If you look at v4l2_subdev_link_validate_default in 
-drivers/media/v4l2-core/v4l2-subdev.c, you can see that besides the
-format code, it also checks width, height, and field setting.
-
-regards
-Philipp
+diff --git a/Documentation/devicetree/bindings/media/cdns,csi2rx.txt b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+new file mode 100644
+index 000000000000..6b02a0657ad9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+@@ -0,0 +1,100 @@
++Cadence MIPI-CSI2 RX controller
++===============================
++
++The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting up to 4 CSI
++lanes in input, and 4 different pixel streams in output.
++
++Required properties:
++  - compatible: must be set to "cdns,csi2rx" and an SoC-specific compatible
++  - reg: base address and size of the memory mapped region
++  - clocks: phandles to the clocks driving the controller
++  - clock-names: must contain:
++    * sys_clk: main clock
++    * p_clk: register bank clock
++    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
++                         implemented in hardware, between 0 and 3
++
++Optional properties:
++  - phys: phandle to the external D-PHY, phy-names must be provided
++  - phy-names: must contain "dphy", if the implementation uses an
++               external D-PHY
++
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++           port, in accordance with the video interface bindings defined in
++           Documentation/devicetree/bindings/media/video-interfaces.txt. The
++           port nodes are numbered as follows:
++
++           Port Description
++           -----------------------------
++           0    CSI-2 input
++           1    Stream 0 output
++           2    Stream 1 output
++           3    Stream 2 output
++           4    Stream 3 output
++
++           The stream output port nodes are optional if they are not
++           connected to anything at the hardware level or implemented
++           in the design.Since there is only one endpoint per port,
++           the endpoints are not numbered.
++
++
++Example:
++
++csi2rx: csi-bridge@0d060000 {
++	compatible = "cdns,csi2rx";
++	reg = <0x0d060000 0x1000>;
++	clocks = <&byteclock>, <&byteclock>
++		 <&coreclock>, <&coreclock>,
++		 <&coreclock>, <&coreclock>;
++	clock-names = "sys_clk", "p_clk",
++		      "pixel_if0_clk", "pixel_if1_clk",
++		      "pixel_if2_clk", "pixel_if3_clk";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi2rx_in_sensor: endpoint {
++				remote-endpoint = <&sensor_out_csi2rx>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			csi2rx_out_grabber0: endpoint {
++				remote-endpoint = <&grabber0_in_csi2rx>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi2rx_out_grabber1: endpoint {
++				remote-endpoint = <&grabber1_in_csi2rx>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			csi2rx_out_grabber2: endpoint {
++				remote-endpoint = <&grabber2_in_csi2rx>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			csi2rx_out_grabber3: endpoint {
++				remote-endpoint = <&grabber3_in_csi2rx>;
++			};
++		};
++	};
++};
+-- 
+2.17.0
