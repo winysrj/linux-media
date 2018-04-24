@@ -1,830 +1,398 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:60829 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751406AbeDEJKH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 05:10:07 -0400
-Date: Thu, 5 Apr 2018 11:10:01 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Niklas =?utf-8?Q?S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v13 2/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver
- driver
-Message-ID: <20180405091001.GI20945@w540>
-References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se>
- <20180212230132.5402-3-niklas.soderlund+renesas@ragnatech.se>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:60485 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751097AbeDXJ11 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 05:27:27 -0400
+Subject: Re: [PATCH v3 6/7] drm/i2c: tda998x: add CEC support
+To: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org
+References: <20180409121529.GA31403@n2100.armlinux.org.uk>
+ <E1f5Viw-0002Lq-6r@rmk-PC.armlinux.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <da8dc179-cdb8-6ca5-666a-5683172499ec@xs4all.nl>
+Date: Tue, 24 Apr 2018 11:27:23 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="CgTrtGVSVGoxAIFj"
-Content-Disposition: inline
-In-Reply-To: <20180212230132.5402-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <E1f5Viw-0002Lq-6r@rmk-PC.armlinux.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 04/09/18 14:16, Russell King wrote:
+> The TDA998x is a HDMI transmitter with a TDA9950 CEC engine integrated
+> onto the same die.  Add support for the TDA9950 CEC engine to the
+> TDA998x driver.
+> 
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 
---CgTrtGVSVGoxAIFj
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hi Niklas,
-        thanks for the VIN and CSI-2 effort!
+Regards,
 
-On Tue, Feb 13, 2018 at 12:01:32AM +0100, Niklas S=C3=B6derlund wrote:
-> A V4L2 driver for Renesas R-Car MIPI CSI-2 receiver. The driver
-> supports the R-Car Gen3 SoCs where separate CSI-2 hardware blocks are
-> connected between the video sources and the video grabbers (VIN).
->
-> Driver is based on a prototype by Koji Matsuoka in the Renesas BSP.
->
-> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
-se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+	Hans
+
 > ---
->  drivers/media/platform/rcar-vin/Kconfig     |  12 +
->  drivers/media/platform/rcar-vin/Makefile    |   1 +
->  drivers/media/platform/rcar-vin/rcar-csi2.c | 884 ++++++++++++++++++++++=
-++++++
->  3 files changed, 897 insertions(+)
->  create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
->
-
-[snip]
-
+>  drivers/gpu/drm/i2c/Kconfig       |   1 +
+>  drivers/gpu/drm/i2c/tda998x_drv.c | 195 ++++++++++++++++++++++++++++++++++++--
+>  2 files changed, 187 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/i2c/Kconfig b/drivers/gpu/drm/i2c/Kconfig
+> index 3a232f5ff0a1..65d3acb61c03 100644
+> --- a/drivers/gpu/drm/i2c/Kconfig
+> +++ b/drivers/gpu/drm/i2c/Kconfig
+> @@ -22,6 +22,7 @@ config DRM_I2C_SIL164
+>  config DRM_I2C_NXP_TDA998X
+>  	tristate "NXP Semiconductors TDA998X HDMI encoder"
+>  	default m if DRM_TILCDC
+> +	select CEC_CORE if CEC_NOTIFIER
+>  	select SND_SOC_HDMI_CODEC if SND_SOC
+>  	help
+>  	  Support for NXP Semiconductors TDA998X HDMI encoders.
+> diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
+> index 16e0439cad44..eb9916bd84a4 100644
+> --- a/drivers/gpu/drm/i2c/tda998x_drv.c
+> +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
+> @@ -16,8 +16,10 @@
+>   */
+>  
+>  #include <linux/component.h>
+> +#include <linux/gpio/consumer.h>
+>  #include <linux/hdmi.h>
+>  #include <linux/module.h>
+> +#include <linux/platform_data/tda9950.h>
+>  #include <linux/irq.h>
+>  #include <sound/asoundef.h>
+>  #include <sound/hdmi-codec.h>
+> @@ -29,6 +31,8 @@
+>  #include <drm/drm_of.h>
+>  #include <drm/i2c/tda998x.h>
+>  
+> +#include <media/cec-notifier.h>
 > +
-> +static const struct rcar_csi2_format rcar_csi2_formats[] =3D {
-> +	{ .code =3D MEDIA_BUS_FMT_RGB888_1X24,	.datatype =3D 0x24, .bpp =3D 24 =
-},
-> +	{ .code =3D MEDIA_BUS_FMT_UYVY8_1X16,	.datatype =3D 0x1e, .bpp =3D 16 },
-> +	{ .code =3D MEDIA_BUS_FMT_UYVY8_2X8,	.datatype =3D 0x1e, .bpp =3D 16 },
-> +	{ .code =3D MEDIA_BUS_FMT_YUYV10_2X10,	.datatype =3D 0x1e, .bpp =3D 16 =
-},
-
-Shouldn't YUYV10_2X10 format have 20 bits per pixel?
-
-> +};
-> +
-> +static const struct rcar_csi2_format *rcar_csi2_code_to_fmt(unsigned int=
- code)
+>  #define DBG(fmt, ...) DRM_DEBUG(fmt"\n", ##__VA_ARGS__)
+>  
+>  struct tda998x_audio_port {
+> @@ -55,6 +59,7 @@ struct tda998x_priv {
+>  	struct platform_device *audio_pdev;
+>  	struct mutex audio_mutex;
+>  
+> +	struct mutex edid_mutex;
+>  	wait_queue_head_t wq_edid;
+>  	volatile int wq_edid_wait;
+>  
+> @@ -67,6 +72,9 @@ struct tda998x_priv {
+>  	struct drm_connector connector;
+>  
+>  	struct tda998x_audio_port audio_port[2];
+> +	struct tda9950_glue cec_glue;
+> +	struct gpio_desc *calib;
+> +	struct cec_notifier *cec_notify;
+>  };
+>  
+>  #define conn_to_tda998x_priv(x) \
+> @@ -345,6 +353,12 @@ struct tda998x_priv {
+>  #define REG_CEC_INTSTATUS	  0xee		      /* read */
+>  # define CEC_INTSTATUS_CEC	  (1 << 0)
+>  # define CEC_INTSTATUS_HDMI	  (1 << 1)
+> +#define REG_CEC_CAL_XOSC_CTRL1    0xf2
+> +# define CEC_CAL_XOSC_CTRL1_ENA_CAL	BIT(0)
+> +#define REG_CEC_DES_FREQ2         0xf5
+> +# define CEC_DES_FREQ2_DIS_AUTOCAL BIT(7)
+> +#define REG_CEC_CLK               0xf6
+> +# define CEC_CLK_FRO              0x11
+>  #define REG_CEC_FRO_IM_CLK_CTRL   0xfb                /* read/write */
+>  # define CEC_FRO_IM_CLK_CTRL_GHOST_DIS (1 << 7)
+>  # define CEC_FRO_IM_CLK_CTRL_ENA_OTP   (1 << 6)
+> @@ -359,6 +373,7 @@ struct tda998x_priv {
+>  # define CEC_RXSHPDLEV_HPD        (1 << 1)
+>  
+>  #define REG_CEC_ENAMODS           0xff                /* read/write */
+> +# define CEC_ENAMODS_EN_CEC_CLK   (1 << 7)
+>  # define CEC_ENAMODS_DIS_FRO      (1 << 6)
+>  # define CEC_ENAMODS_DIS_CCLK     (1 << 5)
+>  # define CEC_ENAMODS_EN_RXSENS    (1 << 2)
+> @@ -417,6 +432,114 @@ cec_read(struct tda998x_priv *priv, u8 addr)
+>  	return val;
+>  }
+>  
+> +static void cec_enamods(struct tda998x_priv *priv, u8 mods, bool enable)
 > +{
-> +	unsigned int i;
+> +	int val = cec_read(priv, REG_CEC_ENAMODS);
 > +
-> +	for (i =3D 0; i < ARRAY_SIZE(rcar_csi2_formats); i++)
-> +		if (rcar_csi2_formats[i].code =3D=3D code)
-> +			return rcar_csi2_formats + i;
+> +	if (val < 0)
+> +		return;
 > +
-> +	return NULL;
+> +	if (enable)
+> +		val |= mods;
+> +	else
+> +		val &= ~mods;
+> +
+> +	cec_write(priv, REG_CEC_ENAMODS, val);
 > +}
 > +
-> +enum rcar_csi2_pads {
-> +	RCAR_CSI2_SINK,
-> +	RCAR_CSI2_SOURCE_VC0,
-> +	RCAR_CSI2_SOURCE_VC1,
-> +	RCAR_CSI2_SOURCE_VC2,
-> +	RCAR_CSI2_SOURCE_VC3,
-> +	NR_OF_RCAR_CSI2_PAD,
-> +};
-> +
-> +struct rcar_csi2_info {
-> +	const struct phypll_hsfreqrange *hsfreqrange;
-> +	unsigned int csi0clkfreqrange;
-> +	bool clear_ulps;
-> +	bool init_phtw;
-> +};
-> +
-> +struct rcar_csi2 {
-> +	struct device *dev;
-> +	void __iomem *base;
-> +	const struct rcar_csi2_info *info;
-> +
-> +	struct v4l2_subdev subdev;
-> +	struct media_pad pads[NR_OF_RCAR_CSI2_PAD];
-> +
-> +	struct v4l2_async_notifier notifier;
-> +	struct v4l2_async_subdev asd;
-> +	struct v4l2_subdev *remote;
-> +
-> +	struct v4l2_mbus_framefmt mf;
-> +
-> +	struct mutex lock;
-> +	int stream_count;
-> +
-> +	unsigned short lanes;
-> +	unsigned char lane_swap[4];
-> +};
-> +
-> +static inline struct rcar_csi2 *sd_to_csi2(struct v4l2_subdev *sd)
+> +static void tda998x_cec_set_calibration(struct tda998x_priv *priv, bool enable)
 > +{
-> +	return container_of(sd, struct rcar_csi2, subdev);
+> +	if (enable) {
+> +		u8 val;
+> +
+> +		cec_write(priv, 0xf3, 0xc0);
+> +		cec_write(priv, 0xf4, 0xd4);
+> +
+> +		/* Enable automatic calibration mode */
+> +		val = cec_read(priv, REG_CEC_DES_FREQ2);
+> +		val &= ~CEC_DES_FREQ2_DIS_AUTOCAL;
+> +		cec_write(priv, REG_CEC_DES_FREQ2, val);
+> +
+> +		/* Enable free running oscillator */
+> +		cec_write(priv, REG_CEC_CLK, CEC_CLK_FRO);
+> +		cec_enamods(priv, CEC_ENAMODS_DIS_FRO, false);
+> +
+> +		cec_write(priv, REG_CEC_CAL_XOSC_CTRL1,
+> +			  CEC_CAL_XOSC_CTRL1_ENA_CAL);
+> +	} else {
+> +		cec_write(priv, REG_CEC_CAL_XOSC_CTRL1, 0);
+> +	}
 > +}
 > +
-> +static inline struct rcar_csi2 *notifier_to_csi2(struct v4l2_async_notif=
-ier *n)
+> +/*
+> + * Calibration for the internal oscillator: we need to set calibration mode,
+> + * and then pulse the IRQ line low for a 10ms ± 1% period.
+> + */
+> +static void tda998x_cec_calibration(struct tda998x_priv *priv)
 > +{
-> +	return container_of(n, struct rcar_csi2, notifier);
+> +	struct gpio_desc *calib = priv->calib;
+> +
+> +	mutex_lock(&priv->edid_mutex);
+> +	if (priv->hdmi->irq > 0)
+> +		disable_irq(priv->hdmi->irq);
+> +	gpiod_direction_output(calib, 1);
+> +	tda998x_cec_set_calibration(priv, true);
+> +
+> +	local_irq_disable();
+> +	gpiod_set_value(calib, 0);
+> +	mdelay(10);
+> +	gpiod_set_value(calib, 1);
+> +	local_irq_enable();
+> +
+> +	tda998x_cec_set_calibration(priv, false);
+> +	gpiod_direction_input(calib);
+> +	if (priv->hdmi->irq > 0)
+> +		enable_irq(priv->hdmi->irq);
+> +	mutex_unlock(&priv->edid_mutex);
 > +}
 > +
-> +static u32 rcar_csi2_read(struct rcar_csi2 *priv, unsigned int reg)
+> +static int tda998x_cec_hook_init(void *data)
 > +{
-> +	return ioread32(priv->base + reg);
-> +}
+> +	struct tda998x_priv *priv = data;
+> +	struct gpio_desc *calib;
 > +
-> +static void rcar_csi2_write(struct rcar_csi2 *priv, unsigned int reg, u3=
-2 data)
-> +{
-> +	iowrite32(data, priv->base + reg);
-> +}
-> +
-> +static void rcar_csi2_reset(struct rcar_csi2 *priv)
-> +{
-> +	rcar_csi2_write(priv, SRST_REG, SRST_SRST);
-> +	usleep_range(100, 150);
-> +	rcar_csi2_write(priv, SRST_REG, 0);
-> +}
-> +
-> +static int rcar_csi2_wait_phy_start(struct rcar_csi2 *priv)
-> +{
-> +	int timeout;
-> +
-> +	/* Wait for the clock and data lanes to enter LP-11 state. */
-> +	for (timeout =3D 100; timeout > 0; timeout--) {
-> +		const u32 lane_mask =3D (1 << priv->lanes) - 1;
-> +
-> +		if ((rcar_csi2_read(priv, PHCLM_REG) & 1) =3D=3D 1 &&
-
-Nitpicking:
-		if ((rcar_csi2_read(priv, PHCLM_REG) & 0x01) &&
-
-Don't you prefer to provide defines also for bit fields instead of
-using magic values? In this case something like
-PHCLM_REG_STOPSTATE_CLK would do.
-
-Also, from tables 25.[17-20] it seems to me that for H3 and V3 you
-have to set INSTATE to an hardcoded value after having validated PHDLM.
-Maybe it is not necessary, just pointing it out.
-
-> +		    (rcar_csi2_read(priv, PHDLM_REG) & lane_mask) =3D=3D lane_mask)
-> +			return 0;
-> +
-> +		msleep(20);
+> +	calib = gpiod_get(&priv->hdmi->dev, "nxp,calib", GPIOD_ASIS);
+> +	if (IS_ERR(calib)) {
+> +		dev_warn(&priv->hdmi->dev, "failed to get calibration gpio: %ld\n",
+> +			 PTR_ERR(calib));
+> +		return PTR_ERR(calib);
 > +	}
 > +
-> +	dev_err(priv->dev, "Timeout waiting for LP-11 state\n");
-> +
-> +	return -ETIMEDOUT;
-> +}
-> +
-> +static int rcar_csi2_calc_phypll(struct rcar_csi2 *priv, unsigned int bp=
-p,
-> +				 u32 *phypll)
-> +{
-> +	const struct phypll_hsfreqrange *hsfreq;
-> +	struct v4l2_subdev *source;
-> +	struct v4l2_ctrl *ctrl;
-> +	u64 mbps;
-> +
-> +	if (!priv->remote)
-> +		return -ENODEV;
-> +
-> +	source =3D priv->remote;
-> +
-> +	/* Read the pixel rate control from remote */
-> +	ctrl =3D v4l2_ctrl_find(source->ctrl_handler, V4L2_CID_PIXEL_RATE);
-> +	if (!ctrl) {
-> +		dev_err(priv->dev, "no pixel rate control in subdev %s\n",
-> +			source->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* Calculate the phypll */
-> +	mbps =3D v4l2_ctrl_g_ctrl_int64(ctrl) * bpp;
-> +	do_div(mbps, priv->lanes * 1000000);
-> +
-> +	for (hsfreq =3D priv->info->hsfreqrange; hsfreq->mbps !=3D 0; hsfreq++)
-> +		if (hsfreq->mbps >=3D mbps)
-> +			break;
-> +
-> +	if (!hsfreq->mbps) {
-> +		dev_err(priv->dev, "Unsupported PHY speed (%llu Mbps)", mbps);
-> +		return -ERANGE;
-> +	}
-> +
-> +	dev_dbg(priv->dev, "PHY HSFREQRANGE requested %llu got %u Mbps\n", mbps,
-> +		hsfreq->mbps);
-> +
-> +	*phypll =3D PHYPLL_HSFREQRANGE(hsfreq->reg);
+> +	priv->calib = calib;
 > +
 > +	return 0;
 > +}
 > +
-> +static int rcar_csi2_start(struct rcar_csi2 *priv)
+> +static void tda998x_cec_hook_exit(void *data)
 > +{
-> +	const struct rcar_csi2_format *format;
-> +	u32 phycnt, phypll, vcdt =3D 0, vcdt2 =3D 0;
-> +	unsigned int i;
-> +	int ret;
+> +	struct tda998x_priv *priv = data;
 > +
-> +	dev_dbg(priv->dev, "Input size (%ux%u%c)\n",
-> +		priv->mf.width, priv->mf.height,
-> +		priv->mf.field =3D=3D V4L2_FIELD_NONE ? 'p' : 'i');
+> +	gpiod_put(priv->calib);
+> +	priv->calib = NULL;
+> +}
 > +
-> +	/* Code is validated in set_fmt */
-> +	format =3D rcar_csi2_code_to_fmt(priv->mf.code);
+> +static int tda998x_cec_hook_open(void *data)
+> +{
+> +	struct tda998x_priv *priv = data;
+> +
+> +	cec_enamods(priv, CEC_ENAMODS_EN_CEC_CLK | CEC_ENAMODS_EN_CEC, true);
+> +	tda998x_cec_calibration(priv);
+> +
+> +	return 0;
+> +}
+> +
+> +static void tda998x_cec_hook_release(void *data)
+> +{
+> +	struct tda998x_priv *priv = data;
+> +
+> +	cec_enamods(priv, CEC_ENAMODS_EN_CEC_CLK | CEC_ENAMODS_EN_CEC, false);
+> +}
+> +
+>  static int
+>  set_page(struct tda998x_priv *priv, u16 reg)
+>  {
+> @@ -657,10 +780,13 @@ static irqreturn_t tda998x_irq_thread(int irq, void *data)
+>  			sta, cec, lvl, flag0, flag1, flag2);
+>  
+>  		if (cec & CEC_RXSHPDINT_HPD) {
+> -			if (lvl & CEC_RXSHPDLEV_HPD)
+> +			if (lvl & CEC_RXSHPDLEV_HPD) {
+>  				tda998x_edid_delay_start(priv);
+> -			else
+> +			} else {
+>  				schedule_work(&priv->detect_work);
+> +				cec_notifier_set_phys_addr(priv->cec_notify,
+> +						   CEC_PHYS_ADDR_INVALID);
+> +			}
+>  
+>  			handled = true;
+>  		}
+> @@ -981,6 +1107,8 @@ static int tda998x_connector_fill_modes(struct drm_connector *connector,
+>  	if (connector->edid_blob_ptr) {
+>  		struct edid *edid = (void *)connector->edid_blob_ptr->data;
+>  
+> +		cec_notifier_set_phys_addr_from_edid(priv->cec_notify, edid);
+> +
+>  		priv->sink_has_audio = drm_detect_monitor_audio(edid);
+>  	} else {
+>  		priv->sink_has_audio = false;
+> @@ -1024,6 +1152,8 @@ static int read_edid_block(void *data, u8 *buf, unsigned int blk, size_t length)
+>  	offset = (blk & 1) ? 128 : 0;
+>  	segptr = blk / 2;
+>  
+> +	mutex_lock(&priv->edid_mutex);
+> +
+>  	reg_write(priv, REG_DDC_ADDR, 0xa0);
+>  	reg_write(priv, REG_DDC_OFFS, offset);
+>  	reg_write(priv, REG_DDC_SEGM_ADDR, 0x60);
+> @@ -1043,14 +1173,15 @@ static int read_edid_block(void *data, u8 *buf, unsigned int blk, size_t length)
+>  					msecs_to_jiffies(100));
+>  		if (i < 0) {
+>  			dev_err(&priv->hdmi->dev, "read edid wait err %d\n", i);
+> -			return i;
+> +			ret = i;
+> +			goto failed;
+>  		}
+>  	} else {
+>  		for (i = 100; i > 0; i--) {
+>  			msleep(1);
+>  			ret = reg_read(priv, REG_INT_FLAGS_2);
+>  			if (ret < 0)
+> -				return ret;
+> +				goto failed;
+>  			if (ret & INT_FLAGS_2_EDID_BLK_RD)
+>  				break;
+>  		}
+> @@ -1058,17 +1189,22 @@ static int read_edid_block(void *data, u8 *buf, unsigned int blk, size_t length)
+>  
+>  	if (i == 0) {
+>  		dev_err(&priv->hdmi->dev, "read edid timeout\n");
+> -		return -ETIMEDOUT;
+> +		ret = -ETIMEDOUT;
+> +		goto failed;
+>  	}
+>  
+>  	ret = reg_read_range(priv, REG_EDID_DATA_0, buf, length);
+>  	if (ret != length) {
+>  		dev_err(&priv->hdmi->dev, "failed to read edid block %d: %d\n",
+>  			blk, ret);
+> -		return ret;
+> +		goto failed;
+>  	}
+>  
+> -	return 0;
+> +	ret = 0;
+> +
+> + failed:
+> +	mutex_unlock(&priv->edid_mutex);
+> +	return ret;
+>  }
+>  
+>  static int tda998x_connector_get_modes(struct drm_connector *connector)
+> @@ -1423,6 +1559,9 @@ static void tda998x_destroy(struct tda998x_priv *priv)
+>  	cancel_work_sync(&priv->detect_work);
+>  
+>  	i2c_unregister_device(priv->cec);
+> +
+> +	if (priv->cec_notify)
+> +		cec_notifier_put(priv->cec_notify);
+>  }
+>  
+>  /* I2C driver functions */
+> @@ -1472,11 +1611,13 @@ static int tda998x_get_audio_ports(struct tda998x_priv *priv,
+>  static int tda998x_create(struct i2c_client *client, struct tda998x_priv *priv)
+>  {
+>  	struct device_node *np = client->dev.of_node;
+> +	struct i2c_board_info cec_info;
+>  	u32 video;
+>  	int rev_lo, rev_hi, ret;
+>  
+>  	mutex_init(&priv->mutex);	/* protect the page access */
+>  	mutex_init(&priv->audio_mutex); /* protect access from audio thread */
+> +	mutex_init(&priv->edid_mutex);
+>  	init_waitqueue_head(&priv->edid_delay_waitq);
+>  	timer_setup(&priv->edid_delay_timer, tda998x_edid_delay_done, 0);
+>  	INIT_WORK(&priv->detect_work, tda998x_detect_work);
+> @@ -1564,6 +1705,9 @@ static int tda998x_create(struct i2c_client *client, struct tda998x_priv *priv)
+>  
+>  		irq_flags =
+>  			irqd_get_trigger_type(irq_get_irq_data(client->irq));
+> +
+> +		priv->cec_glue.irq_flags = irq_flags;
+> +
+>  		irq_flags |= IRQF_SHARED | IRQF_ONESHOT;
+>  		ret = request_threaded_irq(client->irq, NULL,
+>  					   tda998x_irq_thread, irq_flags,
+> @@ -1579,7 +1723,34 @@ static int tda998x_create(struct i2c_client *client, struct tda998x_priv *priv)
+>  		cec_write(priv, REG_CEC_RXSHPDINTENA, CEC_RXSHPDLEV_HPD);
+>  	}
+>  
+> -	priv->cec = i2c_new_dummy(client->adapter, priv->cec_addr);
+> +	priv->cec_notify = cec_notifier_get(&client->dev);
+> +	if (!priv->cec_notify) {
+> +		ret = -ENOMEM;
+> +		goto fail;
+> +	}
+> +
+> +	priv->cec_glue.parent = &client->dev;
+> +	priv->cec_glue.data = priv;
+> +	priv->cec_glue.init = tda998x_cec_hook_init;
+> +	priv->cec_glue.exit = tda998x_cec_hook_exit;
+> +	priv->cec_glue.open = tda998x_cec_hook_open;
+> +	priv->cec_glue.release = tda998x_cec_hook_release;
 > +
 > +	/*
-> +	 * Enable all Virtual Channels
-> +	 *
-> +	 * NOTE: It's not possible to get individual datatype for each
-> +	 *       source virtual channel. Once this is possible in V4L2
-> +	 *       it should be used here.
+> +	 * Some TDA998x are actually two I2C devices merged onto one piece
+> +	 * of silicon: TDA9989 and TDA19989 combine the HDMI transmitter
+> +	 * with a slightly modified TDA9950 CEC device.  The CEC device
+> +	 * is at the TDA9950 address, with the address pins strapped across
+> +	 * to the TDA998x address pins.  Hence, it always has the same
+> +	 * offset.
 > +	 */
-> +	for (i =3D 0; i < 4; i++) {
-> +		u32 vcdt_part;
-> +
-> +		vcdt_part =3D VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
-> +			VCDT_SEL_DT(format->datatype);
-> +
-> +		/* Store in correct reg and offset */
-> +		if (i < 2)
-> +			vcdt |=3D vcdt_part << ((i % 2) * 16);
-> +		else
-> +			vcdt2 |=3D vcdt_part << ((i % 2) * 16);
-> +	}
-> +
-> +	switch (priv->lanes) {
-> +	case 1:
-> +		phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
-> +		break;
-> +	case 2:
-> +		phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
-> +		break;
-> +	case 4:
-> +		phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_3 | PHYCNT_ENABLE_2 |
-> +			PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
-> +		break;
-
-Even simpler this could be written as
-
-                phycnt =3D PHYCNT_ENABLECLK | (1 << priv->lanes) - 1;
-
-> +	default:
-> +		return -EINVAL;
-
-Can this happen? You have validated priv->lanes already when parsing
-DT
-
-> +	}
-> +
-> +	ret =3D rcar_csi2_calc_phypll(priv, format->bpp, &phypll);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* Clear Ultra Low Power interrupt */
-> +	if (priv->info->clear_ulps)
-> +		rcar_csi2_write(priv, INTSTATE_REG,
-> +				INTSTATE_INT_ULPS_START |
-> +				INTSTATE_INT_ULPS_END);
-> +
-> +	/* Init */
-> +	rcar_csi2_write(priv, TREF_REG, TREF_TREF);
-> +	rcar_csi2_reset(priv);
-> +	rcar_csi2_write(priv, PHTC_REG, 0);
-> +
-> +	/* Configure */
-> +	rcar_csi2_write(priv, FLD_REG, FLD_FLD_NUM(2) | FLD_FLD_EN4 |
-> +			FLD_FLD_EN3 | FLD_FLD_EN2 | FLD_FLD_EN);
-
-On the FLD_FLD_NUM(2) mask. Why 2?
-I read on the datasheet "the register must not be changed from default
-value" and I read defaul to be 0x0000
-
-Also, please consider a make as all other fields are enabled
-unconditionally.
-
-> +	rcar_csi2_write(priv, VCDT_REG, vcdt);
-> +	rcar_csi2_write(priv, VCDT2_REG, vcdt2);
-> +	/* Lanes are zero indexed */
-> +	rcar_csi2_write(priv, LSWAP_REG,
-> +			LSWAP_L0SEL(priv->lane_swap[0] - 1) |
-> +			LSWAP_L1SEL(priv->lane_swap[1] - 1) |
-> +			LSWAP_L2SEL(priv->lane_swap[2] - 1) |
-> +			LSWAP_L3SEL(priv->lane_swap[3] - 1));
-
-EDIT:
-(This comment is way too long for the real value it has, but since I
-already wrote it, and my initial doubt clarified while I was writing,
-resulting in a much less serious issues, I'm gonna keep it all anyway.
-Sorry about this :)
-
-Why - 1 ?
-Is this because it is assumed clock lane is in position 0? Is this
-fixed by design?
-
-What I read in datasheet for LSWAP_REG is:
-L[0-3]SEL       0 =3D Use PHY lane 0
-                1 =3D Use PHY lane 1
-                2 =3D Use PHY lane 2
-                3 =3D Use PHY lane 3
-
-priv->lane_swap[i] is collected parsing 'data_lanes' property and
-should reflect the actual physical lane value assigned to logical lane
-numbers. If 'data_lanes' is, say <1 2> I expect
-
-priv->lane_swap[0] =3D 1;
-priv->lane_swap[1] =3D 2;
-priv->lane_swap[1] =3D 3; //assigned by your parsing routine
-priv->lane_swap[1] =3D 4; //assigned by your parsing routine
-
-And I understand LSWAP counts instead from [0-3] so, ok, I get why you
-subtract one. But now I wonder what happens if instead, lane position
-is specified counting from 0 in DT. Ah, I see you refuse lane_swap
-values < 1! So It should be assumed clock is by HW design on lane 0,
-so wouldn't you need to mention in DT bindings that the HW has clock
-lanes fixed in position 0 and the accepted values for the 'data_lanes'
-property ranges in the [1-4] interval?
-
-> +
-> +	if (priv->info->init_phtw) {
-> +		/*
-> +		 * This is for H3 ES2.0
-> +		 *
-> +		 * NOTE: Additional logic is needed here when
-> +		 * support for V3H and/or M3-N is added
-> +		 */
-> +		rcar_csi2_write(priv, PHTW_REG, 0x01cc01e2);
-> +		rcar_csi2_write(priv, PHTW_REG, 0x010101e3);
-> +		rcar_csi2_write(priv, PHTW_REG, 0x010101e4);
-> +		rcar_csi2_write(priv, PHTW_REG, 0x01100104);
-> +		rcar_csi2_write(priv, PHTW_REG, 0x01030100);
-> +		rcar_csi2_write(priv, PHTW_REG, 0x01800100);
-> +	}
-> +
-> +	/* Start */
-> +	rcar_csi2_write(priv, PHYPLL_REG, phypll);
-> +
-> +	/* Set frequency range if we have it */
-> +	if (priv->info->csi0clkfreqrange)
-> +		rcar_csi2_write(priv, CSI0CLKFCPR_REG,
-> +				CSI0CLKFREQRANGE(priv->info->csi0clkfreqrange));
-> +
-> +	rcar_csi2_write(priv, PHYCNT_REG, phycnt);
-> +	rcar_csi2_write(priv, LINKCNT_REG, LINKCNT_MONITOR_EN |
-> +			LINKCNT_REG_MONI_PACT_EN | LINKCNT_ICLK_NONSTOP);
-> +	rcar_csi2_write(priv, PHYCNT_REG, phycnt | PHYCNT_SHUTDOWNZ);
-> +	rcar_csi2_write(priv, PHYCNT_REG, phycnt | PHYCNT_SHUTDOWNZ |
-> +			PHYCNT_RSTZ);
-
-Nit: from tables 25.[17-20] it seems to me you do not have to re-issue
-PHYCNT_SHUTDOWNZ when writing PHYCNT_RSTZ to PHYCNT_REG.
-
-> +
-> +	return rcar_csi2_wait_phy_start(priv);
-> +}
-> +
-> +static void rcar_csi2_stop(struct rcar_csi2 *priv)
-> +{
-> +	rcar_csi2_write(priv, PHYCNT_REG, 0);
-> +
-> +	rcar_csi2_reset(priv);
-> +}
-> +
-> +static int rcar_csi2_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct rcar_csi2 *priv =3D sd_to_csi2(sd);
-> +	struct v4l2_subdev *nextsd;
-> +	int ret =3D 0;
-> +
-> +	mutex_lock(&priv->lock);
-> +
-> +	if (!priv->remote) {
-> +		ret =3D -ENODEV;
-> +		goto out;
-> +	}
-
-Can this happen?
-
-The 'bind' callback sets priv->remote and it gets assigned back to
-NULL only on 'unbind'. Wouldn't it be better to remove the link in the
-media graph and let the system return an EPIPE before calling this?
-
-> +
-> +	nextsd =3D priv->remote;
-> +
-> +	if (enable && priv->stream_count =3D=3D 0) {
-> +		pm_runtime_get_sync(priv->dev);
-> +
-> +		ret =3D rcar_csi2_start(priv);
-> +		if (ret) {
-> +			pm_runtime_put(priv->dev);
-> +			goto out;
-> +		}
-> +
-> +		ret =3D v4l2_subdev_call(nextsd, video, s_stream, 1);
-> +		if (ret) {
-> +			rcar_csi2_stop(priv);
-> +			pm_runtime_put(priv->dev);
-> +			goto out;
-> +		}
-> +	} else if (!enable && priv->stream_count =3D=3D 1) {
-> +		rcar_csi2_stop(priv);
-> +		v4l2_subdev_call(nextsd, video, s_stream, 0);
-> +		pm_runtime_put(priv->dev);
-> +	}
-> +
-> +	priv->stream_count +=3D enable ? 1 : -1;
-> +out:
-> +	mutex_unlock(&priv->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static int rcar_csi2_set_pad_format(struct v4l2_subdev *sd,
-> +				    struct v4l2_subdev_pad_config *cfg,
-> +				    struct v4l2_subdev_format *format)
-> +{
-> +	struct rcar_csi2 *priv =3D sd_to_csi2(sd);
-> +	struct v4l2_mbus_framefmt *framefmt;
-> +
-> +	if (!rcar_csi2_code_to_fmt(format->format.code))
-> +		return -EINVAL;
-> +
-> +	if (format->which =3D=3D V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +		priv->mf =3D format->format;
-> +	} else {
-> +		framefmt =3D v4l2_subdev_get_try_format(sd, cfg, 0);
-> +		*framefmt =3D format->format;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int rcar_csi2_get_pad_format(struct v4l2_subdev *sd,
-> +				    struct v4l2_subdev_pad_config *cfg,
-> +				    struct v4l2_subdev_format *format)
-> +{
-> +	struct rcar_csi2 *priv =3D sd_to_csi2(sd);
-> +
-> +	if (format->which =3D=3D V4L2_SUBDEV_FORMAT_ACTIVE)
-> +		format->format =3D priv->mf;
-> +	else
-> +		format->format =3D *v4l2_subdev_get_try_format(sd, cfg, 0);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_video_ops rcar_csi2_video_ops =3D {
-> +	.s_stream =3D rcar_csi2_s_stream,
-> +};
-> +
-> +static const struct v4l2_subdev_pad_ops rcar_csi2_pad_ops =3D {
-> +	.set_fmt =3D rcar_csi2_set_pad_format,
-> +	.get_fmt =3D rcar_csi2_get_pad_format,
-> +};
-> +
-> +static const struct v4l2_subdev_ops rcar_csi2_subdev_ops =3D {
-> +	.video	=3D &rcar_csi2_video_ops,
-> +	.pad	=3D &rcar_csi2_pad_ops,
-> +};
-> +
-> +/* ---------------------------------------------------------------------=
---------
-> + * Async and registered of subdevices and links
-> + */
-> +
-> +static int rcar_csi2_notify_bound(struct v4l2_async_notifier *notifier,
-> +				   struct v4l2_subdev *subdev,
-> +				   struct v4l2_async_subdev *asd)
-> +{
-> +	struct rcar_csi2 *priv =3D notifier_to_csi2(notifier);
-> +	int pad;
-> +
-> +	pad =3D media_entity_get_fwnode_pad(&subdev->entity, asd->match.fwnode,
-> +					  MEDIA_PAD_FL_SOURCE);
-> +	if (pad < 0) {
-> +		dev_err(priv->dev, "Failed to find pad for %s\n", subdev->name);
-> +		return pad;
-> +	}
-> +
-> +	priv->remote =3D subdev;
-> +
-> +	dev_dbg(priv->dev, "Bound %s pad: %d\n", subdev->name, pad);
-> +
-> +	return media_create_pad_link(&subdev->entity, pad,
-> +				     &priv->subdev.entity, 0,
-> +				     MEDIA_LNK_FL_ENABLED |
-> +				     MEDIA_LNK_FL_IMMUTABLE);
-> +}
-> +
-> +static void rcar_csi2_notify_unbind(struct v4l2_async_notifier *notifier,
-> +				       struct v4l2_subdev *subdev,
-> +				       struct v4l2_async_subdev *asd)
-> +{
-> +	struct rcar_csi2 *priv =3D notifier_to_csi2(notifier);
-> +
-> +	priv->remote =3D NULL;
-> +
-> +	dev_dbg(priv->dev, "Unbind %s\n", subdev->name);
-> +}
-> +
-> +static const struct v4l2_async_notifier_operations rcar_csi2_notify_ops =
-=3D {
-> +	.bound =3D rcar_csi2_notify_bound,
-> +	.unbind =3D rcar_csi2_notify_unbind,
-> +};
-> +
-> +static int rcar_csi2_parse_v4l2(struct rcar_csi2 *priv,
-> +				struct v4l2_fwnode_endpoint *vep)
-> +{
-> +	unsigned int i;
-> +
-> +	/* Only port 0 endpoint 0 is valid */
-> +	if (vep->base.port || vep->base.id)
-> +		return -ENOTCONN;
-> +
-> +	if (vep->bus_type !=3D V4L2_MBUS_CSI2) {
-> +		dev_err(priv->dev, "Unsupported bus: 0x%x\n", vep->bus_type);
-> +		return -EINVAL;
-> +	}
-> +
-> +	priv->lanes =3D vep->bus.mipi_csi2.num_data_lanes;
-> +	if (priv->lanes !=3D 1 && priv->lanes !=3D 2 && priv->lanes !=3D 4) {
-
-Is this an HW limitation? Like the 'data_lanes' comment, if it is,
-shouldn't you mention in bindings that the accepted lane numbers is
-limited to the [1,2,4] values.
-
-> +		dev_err(priv->dev, "Unsupported number of data-lanes: %u\n",
-> +			priv->lanes);
-> +		return -EINVAL;
-> +	}
-> +
-> +	for (i =3D 0; i < ARRAY_SIZE(priv->lane_swap); i++) {
-> +		priv->lane_swap[i] =3D i < priv->lanes ?
-> +			vep->bus.mipi_csi2.data_lanes[i] : i;
-> +
-> +		/* Check for valid lane number */
-> +		if (priv->lane_swap[i] < 1 || priv->lane_swap[i] > 4) {
-> +			dev_err(priv->dev, "data-lanes must be in 1-4 range\n");
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int rcar_csi2_parse_dt(struct rcar_csi2 *priv)
-> +{
-> +	struct device_node *ep;
-> +	struct v4l2_fwnode_endpoint v4l2_ep;
-> +	int ret;
-> +
-> +	ep =3D of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
-> +	if (!ep) {
-> +		dev_err(priv->dev, "Not connected to subdevice\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret =3D v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
-> +	if (ret) {
-> +		dev_err(priv->dev, "Could not parse v4l2 endpoint\n");
-> +		of_node_put(ep);
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret =3D rcar_csi2_parse_v4l2(priv, &v4l2_ep);
-> +	if (ret) {
-> +		of_node_put(ep);
-> +		return ret;
-> +	}
-> +
-> +	priv->asd.match.fwnode =3D
-> +		fwnode_graph_get_remote_endpoint(of_fwnode_handle(ep));
-> +	priv->asd.match_type =3D V4L2_ASYNC_MATCH_FWNODE;
-> +
-> +	of_node_put(ep);
-> +
-> +	priv->notifier.subdevs =3D devm_kzalloc(priv->dev,
-> +					      sizeof(*priv->notifier.subdevs),
-> +					      GFP_KERNEL);
-> +	if (priv->notifier.subdevs =3D=3D NULL)
-
-Nit:
-you can use ! for NULL comparison. I think checkpatch --strict
-complains for this.
-
-> +		return -ENOMEM;
-> +
-> +	priv->notifier.num_subdevs =3D 1;
-> +	priv->notifier.subdevs[0] =3D &priv->asd;
-> +	priv->notifier.ops =3D &rcar_csi2_notify_ops;
-> +
-> +	dev_dbg(priv->dev, "Found '%pOF'\n",
-> +		to_of_node(priv->asd.match.fwnode));
-> +
-> +	return v4l2_async_subdev_notifier_register(&priv->subdev,
-> +						   &priv->notifier);
-> +}
-> +
-> +/* ---------------------------------------------------------------------=
---------
-> + * Platform Device Driver
-> + */
-> +
-> +static const struct media_entity_operations rcar_csi2_entity_ops =3D {
-> +	.link_validate =3D v4l2_subdev_link_validate,
-> +};
-> +
-> +static int rcar_csi2_probe_resources(struct rcar_csi2 *priv,
-> +				     struct platform_device *pdev)
-> +{
-> +	struct resource *res;
-> +	int irq;
-> +
-> +	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	priv->base =3D devm_ioremap_resource(&pdev->dev, res);
-> +	if (IS_ERR(priv->base))
-> +		return PTR_ERR(priv->base);
-> +
-> +	irq =3D platform_get_irq(pdev, 0);
-> +	if (irq < 0)
-> +		return irq;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct rcar_csi2_info rcar_csi2_info_r8a7795 =3D {
-> +	.hsfreqrange =3D hsfreqrange_h3_v3h_m3n,
-> +	.clear_ulps =3D true,
-> +	.init_phtw =3D true,
-> +	.csi0clkfreqrange =3D 0x20,
-> +};
-> +
-> +static const struct rcar_csi2_info rcar_csi2_info_r8a7795es1 =3D {
-> +	.hsfreqrange =3D hsfreqrange_m3w_h3es1,
-> +};
-> +
-> +static const struct rcar_csi2_info rcar_csi2_info_r8a7796 =3D {
-> +	.hsfreqrange =3D hsfreqrange_m3w_h3es1,
-> +};
-> +
-> +static const struct of_device_id rcar_csi2_of_table[] =3D {
-> +	{
-> +		.compatible =3D "renesas,r8a7795-csi2",
-> +		.data =3D &rcar_csi2_info_r8a7795,
-> +	},
-> +	{
-> +		.compatible =3D "renesas,r8a7796-csi2",
-> +		.data =3D &rcar_csi2_info_r8a7796,
-> +	},
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(of, rcar_csi2_of_table);
-> +
-> +static const struct soc_device_attribute r8a7795es1[] =3D {
-> +	{
-> +		.soc_id =3D "r8a7795", .revision =3D "ES1.*",
-> +		.data =3D &rcar_csi2_info_r8a7795es1,
-> +	},
-> +	{ /* sentinel */}
-> +};
-> +
-> +static int rcar_csi2_probe(struct platform_device *pdev)
-> +{
-> +	const struct soc_device_attribute *attr;
-> +	struct rcar_csi2 *priv;
-> +	unsigned int i;
-> +	int ret;
-> +
-> +	priv =3D devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-> +	if (!priv)
-> +		return -ENOMEM;
-> +
-> +	priv->info =3D of_device_get_match_data(&pdev->dev);
-> +
-> +	/* r8a7795 ES1.x behaves different then ES2.0+ but no own compat */
-> +	attr =3D soc_device_match(r8a7795es1);
-> +	if (attr)
-> +		priv->info =3D attr->data;
-> +
-> +	priv->dev =3D &pdev->dev;
-> +
-> +	mutex_init(&priv->lock);
-> +	priv->stream_count =3D 0;
-> +
-> +	ret =3D rcar_csi2_probe_resources(priv, pdev);
-> +	if (ret) {
-> +		dev_err(priv->dev, "Failed to get resources\n");
-> +		return ret;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, priv);
-> +
-> +	ret =3D rcar_csi2_parse_dt(priv);
-> +	if (ret)
-> +		return ret;
-> +
-> +	priv->subdev.owner =3D THIS_MODULE;
-> +	priv->subdev.dev =3D &pdev->dev;
-> +	v4l2_subdev_init(&priv->subdev, &rcar_csi2_subdev_ops);
-> +	v4l2_set_subdevdata(&priv->subdev, &pdev->dev);
-> +	snprintf(priv->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s %s",
-> +		 KBUILD_MODNAME, dev_name(&pdev->dev));
-> +	priv->subdev.flags =3D V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +
-> +	priv->subdev.entity.function =3D MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
-> +	priv->subdev.entity.ops =3D &rcar_csi2_entity_ops;
-> +
-> +	priv->pads[RCAR_CSI2_SINK].flags =3D MEDIA_PAD_FL_SINK;
-> +	for (i =3D RCAR_CSI2_SOURCE_VC0; i < NR_OF_RCAR_CSI2_PAD; i++)
-> +		priv->pads[i].flags =3D MEDIA_PAD_FL_SOURCE;
-> +
-> +	ret =3D media_entity_pads_init(&priv->subdev.entity, NR_OF_RCAR_CSI2_PA=
-D,
-> +				     priv->pads);
-> +	if (ret)
-> +		goto error;
-> +
-> +	pm_runtime_enable(&pdev->dev);
-> +
-> +	ret =3D v4l2_async_register_subdev(&priv->subdev);
-> +	if (ret < 0)
-> +		goto error;
-> +
-> +	dev_info(priv->dev, "%d lanes found\n", priv->lanes);
-> +
-> +	return 0;
-> +
-> +error:
-> +	v4l2_async_notifier_unregister(&priv->notifier);
-> +	v4l2_async_notifier_cleanup(&priv->notifier);
-> +
-> +	return ret;
-> +}
-> +
-> +static int rcar_csi2_remove(struct platform_device *pdev)
-> +{
-> +	struct rcar_csi2 *priv =3D platform_get_drvdata(pdev);
-> +
-> +	v4l2_async_notifier_unregister(&priv->notifier);
-> +	v4l2_async_notifier_cleanup(&priv->notifier);
-> +	v4l2_async_unregister_subdev(&priv->subdev);
-> +
-> +	pm_runtime_disable(&pdev->dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver __refdata rcar_csi2_pdrv =3D {
-> +	.remove	=3D rcar_csi2_remove,
-> +	.probe	=3D rcar_csi2_probe,
-> +	.driver	=3D {
-> +		.name	=3D "rcar-csi2",
-> +		.of_match_table	=3D rcar_csi2_of_table,
-> +	},
-> +};
-> +
-> +module_platform_driver(rcar_csi2_pdrv);
-> +
-> +MODULE_AUTHOR("Niklas S=C3=B6derlund <niklas.soderlund@ragnatech.se>");
-> +MODULE_DESCRIPTION("Renesas R-Car MIPI CSI-2 receiver");
-> +MODULE_LICENSE("GPL");
-
-"GPL v2" ?
-
-No serious issues though. So when fixed/clarified feel free to append my
-Reviewed-by tag, if relevant at all.
-
-Thanks
-   j
-
-> --
-> 2.16.1
->
-
---CgTrtGVSVGoxAIFj
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJaxefpAAoJEHI0Bo8WoVY8W4oP/RS3yCPLueLF25q20LpUseH/
-O7Hmps2YQM/CzKHIMM/8BjUqcVfY23bvk4Ef+ZbYmD8VTgtchC4IBaAZUUEnajRF
-Y6ydCgwNFhJLIHqzbcqvE8kG8E6P8QjuZy379vtijPOLxPcrZPGVrBLS7itJ5mhw
-z+WHIQKWs9I9NAlIZJImhG7mlLShL1EggCHWs97EtMEcOKsoWHyu40bbYoGYGUO6
-E6NUKNmj+z+d+haEBTsFv0gAUYKK4yDADvkx07tciGUpgeu/d8MHXzIQXhzaILIQ
-MaXb6C6HCIxVzIHcnOF3gPimlpdlBXy7H4JgY0q6PEbC7wKFAA5nk2mWfFN3Lslb
-p3LK6fIlbLC9Ba87RcQCBj7bYPjQpjGGUoHplJjrDaWgjfeiI+Uy8ZOFydndLwlT
-XjfobVjXY5vEQ8s5dJwDJmGrTRZuVapovylTWAI9HkHTlF3wXxTHgv9A0UYJ0wwC
-tKhnxEURTwmKj0mHeZHsJmD1e6BWbAo9zN4/fX/M3Jcb3X8BNg3PL4pB1bM6p0rO
-I3o/M94xZEio/CdAsmCmuYs6kkxgB4+H1CC7sc5PKtibtMkln/xltFkUM8wM9R3S
-aHBNfzBTrwKbRFISB7expbviSRTGxLy7s/eWuvpJUufdLKJ89RVzIgJKOdmQKWv/
-C1iovC31YueaGEdmhOcN
-=0I1T
------END PGP SIGNATURE-----
-
---CgTrtGVSVGoxAIFj--
+> +	memset(&cec_info, 0, sizeof(cec_info));
+> +	strlcpy(cec_info.type, "tda9950", sizeof(cec_info.type));
+> +	cec_info.addr = priv->cec_addr;
+> +	cec_info.platform_data = &priv->cec_glue;
+> +	cec_info.irq = client->irq;
+> +
+> +	priv->cec = i2c_new_device(client->adapter, &cec_info);
+>  	if (!priv->cec) {
+>  		ret = -ENODEV;
+>  		goto fail;
+> @@ -1609,10 +1780,16 @@ static int tda998x_create(struct i2c_client *client, struct tda998x_priv *priv)
+>  	return 0;
+>  
+>  fail:
+> +	/* if encoder_init fails, the encoder slave is never registered,
+> +	 * so cleanup here:
+> +	 */
+> +	if (priv->cec)
+> +		i2c_unregister_device(priv->cec);
+> +	if (priv->cec_notify)
+> +		cec_notifier_put(priv->cec_notify);
+>  	if (client->irq)
+>  		free_irq(client->irq, priv);
+>  err_irq:
+> -	i2c_unregister_device(priv->cec);
+>  	return ret;
+>  }
+>  
+> 
