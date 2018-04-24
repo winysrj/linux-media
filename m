@@ -1,126 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:41733 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754033AbeD2RN7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Apr 2018 13:13:59 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v4 09/14] media: ov772x: handle nested s_power() calls
-Date: Mon, 30 Apr 2018 02:13:08 +0900
-Message-Id: <1525021993-17789-10-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+Received: from ns.mm-sol.com ([37.157.136.199]:48529 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751417AbeDXPBZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 11:01:25 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hverkuil@xs4all.nl, sakari.ailus@iki.fi,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v3 0/2] Add support for ov7251 camera sensor
+Date: Tue, 24 Apr 2018 18:01:05 +0300
+Message-Id: <1524582067-28585-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Depending on the v4l2 driver, calling s_power() could be nested.  So the
-actual transitions between power saving mode and normal operation mode
-should only happen at the first power on and the last power off.
+The ov7251 sensor is a 1/7.5-Inch B&W VGA (640x480) CMOS Digital Image
+Sensor from Omnivision.
 
-This adds an s_power() nesting counter and updates the power state if the
-counter is modified from 0 to != 0 or from != 0 to 0.
+--------------------------------------------------------------------------
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* v4
-- Add Reviewed-by: line
+Version 3:
+- DT binding: added that there shall be a single endpoint node in the port node;
+- added a comment for regulator enable order;
+- set exposure and gain with a single i2c transaction;
+- caclulate sleep after gpio config from external clock frequency;
+- use MEDIA_BUS_FMT_Y10_1X10 format code;
+- lock for power state, controls, mode and start streaming;
+- remove regulator_set_voltage();
+- use probe_new();
+- remove i2c_device_id table;
+- change of_property_read_u32 to fwnode_property_read_u32;
+- few corrections from checkpatch --strict.
 
- drivers/media/i2c/ov772x.c | 34 ++++++++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
+--------------------------------------------------------------------------
 
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index 621149a..edc013d 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -424,6 +424,9 @@ struct ov772x_priv {
- 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
- 	unsigned short                    band_filter;
- 	unsigned int			  fps;
-+	/* lock to protect power_count */
-+	struct mutex			  lock;
-+	int				  power_count;
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_pad pad;
- #endif
-@@ -871,9 +874,26 @@ static int ov772x_power_off(struct ov772x_priv *priv)
- static int ov772x_s_power(struct v4l2_subdev *sd, int on)
- {
- 	struct ov772x_priv *priv = to_ov772x(sd);
-+	int ret = 0;
-+
-+	mutex_lock(&priv->lock);
-+
-+	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
-+	 * update the power state.
-+	 */
-+	if (priv->power_count == !on)
-+		ret = on ? ov772x_power_on(priv) : ov772x_power_off(priv);
-+
-+	if (!ret) {
-+		/* Update the power count. */
-+		priv->power_count += on ? 1 : -1;
-+		WARN(priv->power_count < 0, "Unbalanced power count\n");
-+		WARN(priv->power_count > 1, "Duplicated s_power call\n");
-+	}
-+
-+	mutex_unlock(&priv->lock);
- 
--	return on ? ov772x_power_on(priv) :
--		    ov772x_power_off(priv);
-+	return ret;
- }
- 
- static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
-@@ -1303,6 +1323,7 @@ static int ov772x_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 
- 	priv->info = client->dev.platform_data;
-+	mutex_init(&priv->lock);
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 3);
-@@ -1313,8 +1334,10 @@ static int ov772x_probe(struct i2c_client *client,
- 	v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
- 			  V4L2_CID_BAND_STOP_FILTER, 0, 256, 1, 0);
- 	priv->subdev.ctrl_handler = &priv->hdl;
--	if (priv->hdl.error)
--		return priv->hdl.error;
-+	if (priv->hdl.error) {
-+		ret = priv->hdl.error;
-+		goto error_mutex_destroy;
-+	}
- 
- 	priv->clk = clk_get(&client->dev, NULL);
- 	if (IS_ERR(priv->clk)) {
-@@ -1362,6 +1385,8 @@ static int ov772x_probe(struct i2c_client *client,
- 	clk_put(priv->clk);
- error_ctrl_free:
- 	v4l2_ctrl_handler_free(&priv->hdl);
-+error_mutex_destroy:
-+	mutex_destroy(&priv->lock);
- 
- 	return ret;
- }
-@@ -1376,6 +1401,7 @@ static int ov772x_remove(struct i2c_client *client)
- 		gpiod_put(priv->pwdn_gpio);
- 	v4l2_async_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
-+	mutex_destroy(&priv->lock);
- 
- 	return 0;
- }
+Version 2:
+- changed ov7251 node's name in DT binding example;
+- SPDX licence identifier;
+- better names for register value defines;
+- remove power reference counting and leave a power state only;
+- use v4l2_find_nearest_size() to find sensor mode by requested size;
+- set ycbcr_enc, quantization and xfer_func in set_fmt;
+- use struct fwnode_handle instead of struct device_node;
+- add comment in driver about external clock value.
+
+--------------------------------------------------------------------------
+
+Todor Tomov (2):
+  dt-bindings: media: Binding document for OV7251 camera sensor
+  media: Add a driver for the ov7251 camera sensor
+
+ .../devicetree/bindings/media/i2c/ov7251.txt       |   52 +
+ drivers/media/i2c/Kconfig                          |   13 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov7251.c                         | 1501 ++++++++++++++++++++
+ 4 files changed, 1567 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7251.txt
+ create mode 100644 drivers/media/i2c/ov7251.c
+
 -- 
 2.7.4
