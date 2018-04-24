@@ -1,115 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:50418 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751882AbeDSL1J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 07:27:09 -0400
-Subject: Re: [PATCH RESEND 3/6] media: omap3isp: Allow it to build with
- COMPILE_TEST
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+Received: from mail.bootlin.com ([62.4.15.54]:46127 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752276AbeDXM1N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 08:27:13 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Jacob Chen <jacob-chen@iotwrt.com>
-References: <cover.1524136402.git.mchehab@s-opensource.com>
- <4a5990042cb951771498bdbb79e9e6ca4114942d.1524136402.git.mchehab@s-opensource.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6e4606da-d111-bb0c-9f9f-229088916cec@xs4all.nl>
-Date: Thu, 19 Apr 2018 13:27:04 +0200
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v11 0/4] media: v4l: Add support for the Cadence MIPI-CSI2 TX controller
+Date: Tue, 24 Apr 2018 14:26:56 +0200
+Message-Id: <20180424122700.5387-1-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
-In-Reply-To: <4a5990042cb951771498bdbb79e9e6ca4114942d.1524136402.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/19/18 13:15, Mauro Carvalho Chehab wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
-> 
-> There aren't much things required for it to build with COMPILE_TEST.
-> It just needs to not compile the code that depends on arm-specific
-> iommu implementation.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Co-developed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Hi,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Here is a hopefully final attempt at supporting the MIPI-CSI2 RX and
+TX blocks from Cadence.
 
-Regards,
+This is a merged serie of the CSI2-RX and CSI2-TX series I've been
+sending for a while now and gathered a significant amount of
+Reviewed-by/Acked-by. The merge has been done thanks to Sakari's
+suggestion to ease the merge and the dependency between the two
+drivers on the MAINTAINERS/Kconfig/Makefile sides.
 
-	Hans
+The CSI2-RX has not received any comment on its previous iteration,
+and CSI2-TX received some minor comments from Sakari that have been
+fixed in this series. You can have a look at the Changelog below if
+needed.
 
-> ---
->  drivers/media/platform/Kconfig        | 6 ++----
->  drivers/media/platform/omap3isp/isp.c | 8 ++++++++
->  2 files changed, 10 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 1ee915b794c0..e3229f7baed1 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -63,12 +63,10 @@ config VIDEO_MUX
->  config VIDEO_OMAP3
->  	tristate "OMAP 3 Camera support"
->  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-> -	depends on ARCH_OMAP3 || COMPILE_TEST
-> -	depends on ARM
-> +	depends on (ARCH_OMAP3 && OMAP_IOMMU) || COMPILE_TEST
->  	depends on COMMON_CLK
->  	depends on HAS_DMA && OF
-> -	depends on OMAP_IOMMU
-> -	select ARM_DMA_USE_IOMMU
-> +	select ARM_DMA_USE_IOMMU if OMAP_IOMMU
->  	select VIDEOBUF2_DMA_CONTIG
->  	select MFD_SYSCON
->  	select V4L2_FWNODE
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> index 16c50099cccd..b8c8761a76b6 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -61,7 +61,9 @@
->  #include <linux/sched.h>
->  #include <linux/vmalloc.h>
->  
-> +#ifdef CONFIG_ARM_DMA_USE_IOMMU
->  #include <asm/dma-iommu.h>
-> +#endif
->  
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-fwnode.h>
-> @@ -1938,12 +1940,15 @@ static int isp_initialize_modules(struct isp_device *isp)
->  
->  static void isp_detach_iommu(struct isp_device *isp)
->  {
-> +#ifdef CONFIG_ARM_DMA_USE_IOMMU
->  	arm_iommu_release_mapping(isp->mapping);
->  	isp->mapping = NULL;
-> +#endif
->  }
->  
->  static int isp_attach_iommu(struct isp_device *isp)
->  {
-> +#ifdef CONFIG_ARM_DMA_USE_IOMMU
->  	struct dma_iommu_mapping *mapping;
->  	int ret;
->  
-> @@ -1972,6 +1977,9 @@ static int isp_attach_iommu(struct isp_device *isp)
->  error:
->  	isp_detach_iommu(isp);
->  	return ret;
-> +#else
-> +	return -ENODEV;
-> +#endif
->  }
->  
->  /*
-> 
+The TX controller is able to receive 4 video streams and stream them over a
+MIPI-CSI2 link using up to 4 lanes. Those streams are basically the
+interfaces to controllers generating some video signals, like a camera
+or a pattern generator.
+
+The RX controller is able to receive CSI data over up to 4 lanes, and
+split it to over 4 streams. Those streams are basically the interfaces
+to the video grabbers that will perform the capture.
+
+TX is then able to map input streams to CSI2 virtual channels and
+datatypes dynamically. The streaming devices choose their virtual
+channels through an additional signal that is transparent to the
+CSI2-TX. The datatypes however are yet another additional input
+signal, and can be mapped to any CSI2 datatypes. RX can do the
+opposite, being able to take virtual channel / datatypes and route
+them to proper pixel interfaces on demand.
+
+Since v4l2 doesn't really allow for that setup at the moment, this
+preliminary version is a rather dumb one in order to start the
+discussion on how to address this properly.
+
+Let me know what you think!
+Maxime
+
+Changes from CSI2-TX v10:
+  - Reword the source pad exception comment
+  - Handle the V4L2_SUBDEV_FORMAT_TRY case for get_fmt / set_fmt
+
+Maxime Ripard (4):
+  dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+  v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+  dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
+  v4l: cadence: Add Cadence MIPI-CSI2 TX driver
+
+ .../devicetree/bindings/media/cdns,csi2rx.txt | 100 ++++
+ .../devicetree/bindings/media/cdns,csi2tx.txt |  98 +++
+ MAINTAINERS                                   |   7 +
+ drivers/media/platform/Kconfig                |   1 +
+ drivers/media/platform/Makefile               |   1 +
+ drivers/media/platform/cadence/Kconfig        |  34 ++
+ drivers/media/platform/cadence/Makefile       |   2 +
+ drivers/media/platform/cadence/cdns-csi2rx.c  | 500 ++++++++++++++++
+ drivers/media/platform/cadence/cdns-csi2tx.c  | 563 ++++++++++++++++++
+ 9 files changed, 1306 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+ create mode 100644 drivers/media/platform/cadence/Kconfig
+ create mode 100644 drivers/media/platform/cadence/Makefile
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
+
+-- 
+2.17.0
