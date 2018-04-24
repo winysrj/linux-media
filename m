@@ -1,94 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46682 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755286AbeDWOJV (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:33460 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932116AbeDXMpX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 10:09:21 -0400
-Date: Mon, 23 Apr 2018 17:09:19 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Remaining COMPILE_TEST and smatch cleanups
-Message-ID: <20180423140919.dhxowgrguwo4uofu@valkosipuli.retiisi.org.uk>
-References: <cover.1523960171.git.mchehab@s-opensource.com>
- <20180418090414.6h5q3zfm3udzscd7@valkosipuli.retiisi.org.uk>
- <20180419074228.3c642240@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180419074228.3c642240@vento.lan>
+        Tue, 24 Apr 2018 08:45:23 -0400
+Received: by mail-wr0-f194.google.com with SMTP id z73-v6so49826444wrb.0
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:22 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 14/28] venus: helpers: rename a helper function and use buffer mode from caps
+Date: Tue, 24 Apr 2018 15:44:22 +0300
+Message-Id: <20180424124436.26955-15-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Rename is_reg_unreg_needed() to better name is_dynamic_bufmode() and
+use buffer mode from enumerated per codec capabilities.
 
-On Thu, Apr 19, 2018 at 07:42:28AM -0300, Mauro Carvalho Chehab wrote:
-> Em Wed, 18 Apr 2018 12:04:14 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > On Tue, Apr 17, 2018 at 06:20:10AM -0400, Mauro Carvalho Chehab wrote:
-> > > There were several interactions at the COMPILE_TEST and smatch
-> > > patch series. While I applied most of them, there are 5 patches that
-> > > I kept out of it. The omap3 patch that were in my tree was the old
-> > > one. So, I'm re-posting it.
-> > > 
-> > > The ioctl32 patches are the latest version. Let's repost it to get some
-> > > acks, as this patch touches at V4L2 core, so a careful review is
-> > > always a good idea.
-> > > 
-> > > Arnd Bergmann (1):
-> > >   media: omap3isp: allow it to build with COMPILE_TEST
-> > > 
-> > > Laurent Pinchart (1):
-> > >   media: omap3isp: Enable driver compilation on ARM with COMPILE_TEST
-> > > 
-> > > Mauro Carvalho Chehab (3):
-> > >   omap: omap-iommu.h: allow building drivers with COMPILE_TEST
-> > >   media: v4l2-compat-ioctl32: fix several __user annotations
-> > >   media: v4l2-compat-ioctl32: better name userspace pointers
-> > > 
-> > >  drivers/media/platform/Kconfig                |   7 +-
-> > >  drivers/media/platform/omap3isp/isp.c         |   8 +
-> > >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 623 +++++++++++++-------------
-> > >  include/linux/omap-iommu.h                    |   5 +
-> > >  4 files changed, 338 insertions(+), 305 deletions(-)  
-> > 
-> > For patches 1 and 2:
-> > 
-> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> What about patch 3?
-> 
-> > 
-> > I'd like to see a new versions of patches 4 and 5; I agree on the naming
-> > change.
-> 
-> With what changes?
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/helpers.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-Hans had comments on patch 5 at least (moving changes to 3rd patch), that
-may affect 4th patch as well.
-
-> 
-> > Could you set the To: header to a valid value going forward? It's not a
-> > valid e-mail address but still contains "<" character which causes trouble
-> > when replying to the patches.
-> 
-> I've no idea how to fix it. When I submit patches, I don't add any To:
-> header (as the "to" is meant to be the one that will apply the patches...
-> sending an e-mail to myself seems too mad for my taste). Somewhere
-> between git-send-email, my SMTP local host or the SMTP smart gateway,
-> or something afterwards, a "fake" To: gets introduced.
-
-To header isn't about who is going to apply the patches but who they
-concern the most. How about addressing the mail to the linux-media list?
-That's what everyone else does, unless they are sending the patches to
-certain recipients, which they could do for a number of reasons.
-
-The invalid To: header effectively leads to unintentional off-list
-discussion.
-
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index 2b21f6ed7502..1eda19adbf28 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -354,18 +354,19 @@ session_process_buf(struct venus_inst *inst, struct vb2_v4l2_buffer *vbuf)
+ 	return 0;
+ }
+ 
+-static inline int is_reg_unreg_needed(struct venus_inst *inst)
++static inline int is_dynamic_bufmode(struct venus_inst *inst)
+ {
+-	if (inst->session_type == VIDC_SESSION_TYPE_DEC &&
+-	    inst->core->res->hfi_version == HFI_VERSION_3XX)
+-		return 0;
++	struct venus_core *core = inst->core;
++	struct venus_caps *caps;
+ 
+-	if (inst->session_type == VIDC_SESSION_TYPE_DEC &&
+-	    inst->cap_bufs_mode_dynamic &&
+-	    inst->core->res->hfi_version == HFI_VERSION_1XX)
++	caps = venus_caps_by_codec(core, inst->hfi_codec, inst->session_type);
++	if (!caps)
+ 		return 0;
+ 
+-	return 1;
++	if (caps->cap_bufs_mode_dynamic)
++		return 1;
++
++	return 0;
+ }
+ 
+ static int session_unregister_bufs(struct venus_inst *inst)
+@@ -374,7 +375,7 @@ static int session_unregister_bufs(struct venus_inst *inst)
+ 	struct hfi_buffer_desc bd;
+ 	int ret = 0;
+ 
+-	if (!is_reg_unreg_needed(inst))
++	if (is_dynamic_bufmode(inst))
+ 		return 0;
+ 
+ 	list_for_each_entry_safe(buf, n, &inst->registeredbufs, reg_list) {
+@@ -394,7 +395,7 @@ static int session_register_bufs(struct venus_inst *inst)
+ 	struct venus_buffer *buf;
+ 	int ret = 0;
+ 
+-	if (!is_reg_unreg_needed(inst))
++	if (is_dynamic_bufmode(inst))
+ 		return 0;
+ 
+ 	list_for_each_entry(buf, &inst->registeredbufs, reg_list) {
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
