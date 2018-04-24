@@ -1,95 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:34978 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753476AbeDCVQA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 17:16:00 -0400
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Luca Ceresoli <luca@lucaceresoli.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 4/5] media: docs: selection: improve formatting
-Date: Tue,  3 Apr 2018 23:15:45 +0200
-Message-Id: <1522790146-16061-4-git-send-email-luca@lucaceresoli.net>
-In-Reply-To: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
-References: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
+Received: from bombadil.infradead.org ([198.137.202.133]:50128 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751938AbeDXSst (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 14:48:49 -0400
+Date: Tue, 24 Apr 2018 20:48:43 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
+Message-ID: <20180424184843.GX4043@hirez.programming.kicks-ass.net>
+References: <cover.1524499368.git.gustavo@embeddedor.com>
+ <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
+ <20180423152455.363d285c@vento.lan>
+ <20180424093500.xvpcm3ibcu7adke2@mwanda>
+ <20180424103609.GD4064@hirez.programming.kicks-ass.net>
+ <20180424144755.1c2e2478@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180424144755.1c2e2478@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Split section "Comparison with old cropping API" in paragraphs for
-easier reading and improve visible links text.
+On Tue, Apr 24, 2018 at 02:47:55PM -0300, Mauro Carvalho Chehab wrote:
+> So, I'm wondering if are there any way to mitigate it inside the 
+> core itself, instead of doing it on every driver, e. g. changing
+> v4l_enum_fmt() implementation at v4l2-ioctl.
+> 
+> Ok, a "poor man" approach would be to pass the array directly to
+> the core and let the implementation there to implement the array
+> fetch logic, calling array_index_nospec() there, but I wonder if
+> are there any other way that won't require too much code churn.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
----
- .../media/uapi/v4l/selection-api-vs-crop-api.rst   | 55 ++++++++++++----------
- 1 file changed, 29 insertions(+), 26 deletions(-)
+Sadly no; the whole crux is the array bound check itself. You could
+maybe pass around the array size to the core code and then do something
+like:
 
-diff --git a/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst b/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
-index 2ad30a49184f..ba1064a244a0 100644
---- a/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
-+++ b/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
-@@ -6,31 +6,34 @@
- Comparison with old cropping API
- ********************************
- 
--The selection API was introduced to cope with deficiencies of previous
--:ref:`API <crop>`, that was designed to control simple capture
--devices. Later the cropping API was adopted by video output drivers. The
--ioctls are used to select a part of the display were the video signal is
--inserted. It should be considered as an API abuse because the described
--operation is actually the composing. The selection API makes a clear
--distinction between composing and cropping operations by setting the
--appropriate targets. The V4L2 API lacks any support for composing to and
--cropping from an image inside a memory buffer. The application could
--configure a capture device to fill only a part of an image by abusing
--V4L2 API. Cropping a smaller image from a larger one is achieved by
--setting the field ``bytesperline`` at struct
--:c:type:`v4l2_pix_format`.
--Introducing an image offsets could be done by modifying field ``m_userptr``
--at struct
--:c:type:`v4l2_buffer` before calling
--:ref:`VIDIOC_QBUF`. Those operations should be avoided because they are not
--portable (endianness), and do not work for macroblock and Bayer formats
--and mmap buffers. The selection API deals with configuration of buffer
-+The selection API was introduced to cope with deficiencies of the
-+older :ref:`CROP API <crop>`, that was designed to control simple
-+capture devices. Later the cropping API was adopted by video output
-+drivers. The ioctls are used to select a part of the display were the
-+video signal is inserted. It should be considered as an API abuse
-+because the described operation is actually the composing. The
-+selection API makes a clear distinction between composing and cropping
-+operations by setting the appropriate targets.
-+
-+The V4L2 API lacks any support for composing to and cropping from an
-+image inside a memory buffer. The application could configure a
-+capture device to fill only a part of an image by abusing V4L2
-+API. Cropping a smaller image from a larger one is achieved by setting
-+the field ``bytesperline`` at struct :c:type:`v4l2_pix_format`.
-+Introducing an image offsets could be done by modifying field
-+``m_userptr`` at struct :c:type:`v4l2_buffer` before calling
-+:ref:`VIDIOC_QBUF <VIDIOC_QBUF>`. Those operations should be avoided
-+because they are not portable (endianness), and do not work for
-+macroblock and Bayer formats and mmap buffers.
-+
-+The selection API deals with configuration of buffer
- cropping/composing in a clear, intuitive and portable way. Next, with
- the selection API the concepts of the padded target and constraints
--flags are introduced. Finally, struct :c:type:`v4l2_crop`
--and struct :c:type:`v4l2_cropcap` have no reserved
--fields. Therefore there is no way to extend their functionality. The new
--struct :c:type:`v4l2_selection` provides a lot of place
--for future extensions. Driver developers are encouraged to implement
--only selection API. The former cropping API would be simulated using the
--new one.
-+flags are introduced. Finally, struct :c:type:`v4l2_crop` and struct
-+:c:type:`v4l2_cropcap` have no reserved fields. Therefore there is no
-+way to extend their functionality. The new struct
-+:c:type:`v4l2_selection` provides a lot of place for future
-+extensions.
-+
-+Driver developers are encouraged to implement only selection API. The
-+former cropping API would be simulated using the new one.
--- 
-2.7.4
+	if (f->index >= f->array_size)
+		return -EINVAL;
+
+	f->index = nospec_array_index(f->index, f->array_size);
+
+in generic code, and have all the drivers use f->index as usual, but
+even that would be quite a bit of code churn I guess.
