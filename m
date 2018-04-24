@@ -1,87 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:57233 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752376AbeDIOUi (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35617 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757854AbeDXMp3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Apr 2018 10:20:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv11 PATCH 27/29] vim2m: support requests
-Date: Mon,  9 Apr 2018 16:20:24 +0200
-Message-Id: <20180409142026.19369-28-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+        Tue, 24 Apr 2018 08:45:29 -0400
+Received: by mail-wm0-f68.google.com with SMTP id o78so612277wmg.0
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:28 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 19/28] venus: helpers: add a new helper to set raw format
+Date: Tue, 24 Apr 2018 15:44:27 +0300
+Message-Id: <20180424124436.26955-20-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The new helper will has one more argument for buffer type, that
+way the decoder can configure the format on it's secondary
+output.
 
-Add support for requests to vim2m.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/platform/vim2m.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ drivers/media/platform/qcom/venus/helpers.c | 52 ++++++++++++++++++-----------
+ drivers/media/platform/qcom/venus/helpers.h |  2 ++
+ 2 files changed, 35 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 9b18b32c255d..2dcf0ea85705 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -387,8 +387,26 @@ static void device_run(void *priv)
- 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
- 
-+	/* Apply request if needed */
-+	if (src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+	if (dst_buf->vb2_buf.req_obj.req &&
-+	    dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_setup(dst_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+
- 	device_process(ctx, src_buf, dst_buf);
- 
-+	/* Complete request if needed */
-+	if (src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_complete(src_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+	if (dst_buf->vb2_buf.req_obj.req &&
-+	    dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_complete(dst_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+
- 	/* Run a timer, which simulates a hardware irq  */
- 	schedule_irq(dev, ctx->transtime);
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index 5512fbfdebb9..0d55604f7484 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -410,6 +410,20 @@ static int session_register_bufs(struct venus_inst *inst)
+ 	return ret;
  }
-@@ -823,6 +841,8 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
- 			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
- 		if (vbuf == NULL)
- 			return;
-+		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
-+					   &ctx->hdl);
- 		spin_lock_irqsave(&ctx->dev->irqlock, flags);
- 		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
- 		spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
-@@ -1003,6 +1023,10 @@ static const struct v4l2_m2m_ops m2m_ops = {
- 	.job_abort	= job_abort,
- };
  
-+static const struct media_device_ops m2m_media_ops = {
-+	.req_queue = vb2_request_queue,
-+};
++static u32 to_hfi_raw_fmt(u32 v4l2_fmt)
++{
++	switch (v4l2_fmt) {
++	case V4L2_PIX_FMT_NV12:
++		return HFI_COLOR_FORMAT_NV12;
++	case V4L2_PIX_FMT_NV21:
++		return HFI_COLOR_FORMAT_NV21;
++	default:
++		break;
++	}
 +
- static int vim2m_probe(struct platform_device *pdev)
++	return 0;
++}
++
+ int venus_helper_get_bufreq(struct venus_inst *inst, u32 type,
+ 			    struct hfi_buffer_requirements *req)
  {
- 	struct vim2m_dev *dev;
-@@ -1027,6 +1051,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	dev->mdev.dev = &pdev->dev;
- 	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
- 	media_device_init(&dev->mdev);
-+	dev->mdev.ops = &m2m_media_ops;
- 	dev->v4l2_dev.mdev = &dev->mdev;
- 	dev->pad[0].flags = MEDIA_PAD_FL_SINK;
- 	dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
+@@ -491,35 +505,35 @@ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+ }
+ EXPORT_SYMBOL_GPL(venus_helper_set_num_bufs);
+ 
+-int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
++int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
++				u32 buftype)
+ {
+-	struct hfi_uncompressed_format_select fmt;
+ 	u32 ptype = HFI_PROPERTY_PARAM_UNCOMPRESSED_FORMAT_SELECT;
+-	int ret;
++	struct hfi_uncompressed_format_select fmt;
++
++	fmt.buffer_type = buftype;
++	fmt.format = hfi_format;
++
++	return hfi_session_set_property(inst, ptype, &fmt);
++}
++EXPORT_SYMBOL_GPL(venus_helper_set_raw_format);
++
++int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
++{
++	u32 hfi_format, buftype;
+ 
+ 	if (inst->session_type == VIDC_SESSION_TYPE_DEC)
+-		fmt.buffer_type = HFI_BUFFER_OUTPUT;
++		buftype = HFI_BUFFER_OUTPUT;
+ 	else if (inst->session_type == VIDC_SESSION_TYPE_ENC)
+-		fmt.buffer_type = HFI_BUFFER_INPUT;
++		buftype = HFI_BUFFER_INPUT;
+ 	else
+ 		return -EINVAL;
+ 
+-	switch (pixfmt) {
+-	case V4L2_PIX_FMT_NV12:
+-		fmt.format = HFI_COLOR_FORMAT_NV12;
+-		break;
+-	case V4L2_PIX_FMT_NV21:
+-		fmt.format = HFI_COLOR_FORMAT_NV21;
+-		break;
+-	default:
++	hfi_format = to_hfi_raw_fmt(pixfmt);
++	if (!hfi_format)
+ 		return -EINVAL;
+-	}
+ 
+-	ret = hfi_session_set_property(inst, ptype, &fmt);
+-	if (ret)
+-		return ret;
+-
+-	return 0;
++	return venus_helper_set_raw_format(inst, hfi_format, buftype);
+ }
+ EXPORT_SYMBOL_GPL(venus_helper_set_color_format);
+ 
+diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+index 0de9989adcdb..79af7845efbd 100644
+--- a/drivers/media/platform/qcom/venus/helpers.h
++++ b/drivers/media/platform/qcom/venus/helpers.h
+@@ -40,6 +40,8 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
+ 				       u32 buftype);
+ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+ 			      unsigned int output_bufs);
++int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
++				u32 buftype);
+ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
+ int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
+ int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype);
 -- 
-2.16.3
+2.14.1
