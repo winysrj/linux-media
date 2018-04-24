@@ -1,154 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:41191 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755110AbeDWOcf (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:37722 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757851AbeDXMpV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 10:32:35 -0400
-Subject: Re: [RFCv11 PATCH 07/29] media-request: add media_request_object_find
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-8-hverkuil@xs4all.nl>
- <CAPBb6MXY7uTx4QH0cRmdRNAHaU9+20QE6A9PzKNxrKBHtkkb6w@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3da09c9f-6fbb-9089-083e-7d69559ce25c@xs4all.nl>
-Date: Mon, 23 Apr 2018 16:32:31 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAPBb6MXY7uTx4QH0cRmdRNAHaU9+20QE6A9PzKNxrKBHtkkb6w@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 24 Apr 2018 08:45:21 -0400
+Received: by mail-wm0-f65.google.com with SMTP id l16so615242wmh.2
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:20 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 12/28] venus: helpers: make a commmon function for power_enable
+Date: Tue, 24 Apr 2018 15:44:20 +0300
+Message-Id: <20180424124436.26955-13-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/17/2018 06:36 AM, Alexandre Courbot wrote:
-> On Mon, Apr 9, 2018 at 11:21 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
->> Add media_request_object_find to find a request object inside a
->> request based on ops and/or priv values.
-> 
->> Objects of the same type (vb2 buffer, control handler) will have
->> the same ops value. And objects that refer to the same 'parent'
->> object (e.g. the v4l2_ctrl_handler that has the current driver
->> state) will have the same priv value.
-> 
->> The caller has to call media_request_object_put() for the returned
->> object since this function increments the refcount.
-> 
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/media/media-request.c | 26 ++++++++++++++++++++++++++
->>   include/media/media-request.h | 25 +++++++++++++++++++++++++
->>   2 files changed, 51 insertions(+)
-> 
->> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
->> index 02b620c81de5..415f7e31019d 100644
->> --- a/drivers/media/media-request.c
->> +++ b/drivers/media/media-request.c
->> @@ -322,6 +322,32 @@ static void media_request_object_release(struct kref
-> *kref)
->>          obj->ops->release(obj);
->>   }
-> 
->> +struct media_request_object *
->> +media_request_object_find(struct media_request *req,
->> +                         const struct media_request_object_ops *ops,
->> +                         void *priv)
->> +{
->> +       struct media_request_object *obj;
->> +       struct media_request_object *found = NULL;
->> +       unsigned long flags;
->> +
->> +       if (!ops && !priv)
->> +               return NULL;
->> +
->> +       spin_lock_irqsave(&req->lock, flags);
->> +       list_for_each_entry(obj, &req->objects, list) {
->> +               if ((!ops || obj->ops == ops) &&
->> +                   (!priv || obj->priv == priv)) {
->> +                       media_request_object_get(obj);
->> +                       found = obj;
->> +                       break;
->> +               }
->> +       }
->> +       spin_unlock_irqrestore(&req->lock, flags);
->> +       return found;
->> +}
->> +EXPORT_SYMBOL_GPL(media_request_object_find);
->> +
->>   void media_request_object_put(struct media_request_object *obj)
->>   {
->>          kref_put(&obj->kref, media_request_object_release);
->> diff --git a/include/media/media-request.h b/include/media/media-request.h
->> index 033697d493cd..ea990c8f76bc 100644
->> --- a/include/media/media-request.h
->> +++ b/include/media/media-request.h
->> @@ -130,6 +130,23 @@ static inline void media_request_object_get(struct
-> media_request_object *obj)
->>    */
->>   void media_request_object_put(struct media_request_object *obj);
-> 
->> +/**
->> + * media_request_object_find - Find an object in a request
->> + *
->> + * @ops: Find an object with this ops value, may be NULL.
->> + * @priv: Find an object with this priv value, may be NULL.
->> + *
->> + * At least one of @ops and @priv must be non-NULL. If one of
->> + * these is NULL, then skip checking for that field.
->> + *
->> + * Returns NULL if not found or the object (the refcount is increased
->> + * in that case).
->> + */
->> +struct media_request_object *
->> +media_request_object_find(struct media_request *req,
->> +                         const struct media_request_object_ops *ops,
->> +                         void *priv);
-> 
-> Mm, that signature is weird. I don't yet know how this function is going to
-> be
-> called, but wouldn't priv be enough? If we look for ops, this means we are
-> looking for the first object of a given class (IIUC the class/objects
-> mechanism
-> here), and I cannot see where we would want to do that.
+Make common function which will enable power when enabling/disabling
+clocks and also covers Venus 3xx/4xx versions.
 
-This allows you to associate objects of different types with the same
-priv pointer. E.g. right now only buffers objects are associated with
-a vb2_queue. But what if you want to associate other objects with the vb2_queue
-as well? That's what the ops is for.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/helpers.c | 51 +++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/helpers.h |  2 ++
+ drivers/media/platform/qcom/venus/vdec.c    | 25 ++++----------
+ drivers/media/platform/qcom/venus/venc.c    | 25 ++++----------
+ 4 files changed, 67 insertions(+), 36 deletions(-)
 
-This will almost certainly be needed for complex video pipelines.
-
-If I am wrong, then this can be removed in the future.
-
-Regards,
-
-	Hans
-
-> 
->> +
->>   /**
->>    * media_request_object_init - Initialise a media request object
->>    *
->> @@ -162,6 +179,14 @@ static inline void media_request_object_put(struct
-> media_request_object *obj)
->>   {
->>   }
-> 
->> +static inline struct media_request_object *
->> +media_request_object_find(struct media_request *req,
->> +                         const struct media_request_object_ops *ops,
->> +                         void *priv)
->> +{
->> +       return NULL;
->> +}
->> +
->>   static inline void media_request_object_init(struct media_request_object
-> *obj)
->>   {
->>          obj->ops = NULL;
->> --
->> 2.16.3
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index d9065cc8a7d3..2b21f6ed7502 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -13,6 +13,7 @@
+  *
+  */
+ #include <linux/clk.h>
++#include <linux/iopoll.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/pm_runtime.h>
+@@ -24,6 +25,7 @@
+ #include "core.h"
+ #include "helpers.h"
+ #include "hfi_helper.h"
++#include "hfi_venus_io.h"
+ 
+ struct intbuf {
+ 	struct list_head list;
+@@ -781,3 +783,52 @@ void venus_helper_init_instance(struct venus_inst *inst)
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(venus_helper_init_instance);
++
++int venus_helper_power_enable(struct venus_core *core, u32 session_type,
++			      bool enable)
++{
++	void __iomem *ctrl, *stat;
++	u32 val;
++	int ret;
++
++	if (!IS_V3(core) && !IS_V4(core))
++		return -EINVAL;
++
++	if (IS_V3(core)) {
++		if (session_type == VIDC_SESSION_TYPE_DEC)
++			ctrl = core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL;
++		else
++			ctrl = core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL;
++		if (enable)
++			writel(0, ctrl);
++		else
++			writel(1, ctrl);
++
++		return 0;
++	}
++
++	if (session_type == VIDC_SESSION_TYPE_DEC) {
++		ctrl = core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL;
++		stat = core->base + WRAPPER_VCODEC0_MMCC_POWER_STATUS;
++	} else {
++		ctrl = core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL;
++		stat = core->base + WRAPPER_VCODEC1_MMCC_POWER_STATUS;
++	}
++
++	if (enable) {
++		writel(0, ctrl);
++
++		ret = readl_poll_timeout(stat, val, val & BIT(1), 1, 100);
++		if (ret)
++			return ret;
++	} else {
++		writel(1, ctrl);
++
++		ret = readl_poll_timeout(stat, val, !(val & BIT(1)), 1, 100);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(venus_helper_power_enable);
+diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+index 971392be5df5..0e64aa95624a 100644
+--- a/drivers/media/platform/qcom/venus/helpers.h
++++ b/drivers/media/platform/qcom/venus/helpers.h
+@@ -43,4 +43,6 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
+ void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+ void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
+ void venus_helper_init_instance(struct venus_inst *inst);
++int venus_helper_power_enable(struct venus_core *core, u32 session_type,
++			      bool enable);
+ #endif
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index cd278a695899..0ddc2c4df934 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -1131,26 +1131,21 @@ static int vdec_remove(struct platform_device *pdev)
+ static __maybe_unused int vdec_runtime_suspend(struct device *dev)
+ {
+ 	struct venus_core *core = dev_get_drvdata(dev);
++	int ret;
+ 
+ 	if (IS_V1(core))
+ 		return 0;
+ 
+-	if (IS_V3(core))
+-		writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(0, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
++	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, true);
+ 
+ 	if (IS_V4(core))
+ 		clk_disable_unprepare(core->core0_bus_clk);
+ 
+ 	clk_disable_unprepare(core->core0_clk);
+ 
+-	if (IS_V3(core))
+-		writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(1, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
++	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static __maybe_unused int vdec_runtime_resume(struct device *dev)
+@@ -1161,20 +1156,14 @@ static __maybe_unused int vdec_runtime_resume(struct device *dev)
+ 	if (IS_V1(core))
+ 		return 0;
+ 
+-	if (IS_V3(core))
+-		writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(0, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
++	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, true);
+ 
+-	ret = clk_prepare_enable(core->core0_clk);
++	ret |= clk_prepare_enable(core->core0_clk);
+ 
+ 	if (IS_V4(core))
+ 		ret |= clk_prepare_enable(core->core0_bus_clk);
+ 
+-	if (IS_V3(core))
+-		writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(1, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
++	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index be8ea3326386..f87d891325ea 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -1267,26 +1267,21 @@ static int venc_remove(struct platform_device *pdev)
+ static __maybe_unused int venc_runtime_suspend(struct device *dev)
+ {
+ 	struct venus_core *core = dev_get_drvdata(dev);
++	int ret;
+ 
+ 	if (IS_V1(core))
+ 		return 0;
+ 
+-	if (IS_V3(core))
+-		writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(0, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
++	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, true);
+ 
+ 	if (IS_V4(core))
+ 		clk_disable_unprepare(core->core1_bus_clk);
+ 
+ 	clk_disable_unprepare(core->core1_clk);
+ 
+-	if (IS_V3(core))
+-		writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(1, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
++	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, false);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static __maybe_unused int venc_runtime_resume(struct device *dev)
+@@ -1297,20 +1292,14 @@ static __maybe_unused int venc_runtime_resume(struct device *dev)
+ 	if (IS_V1(core))
+ 		return 0;
+ 
+-	if (IS_V3(core))
+-		writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(0, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
++	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, true);
+ 
+-	ret = clk_prepare_enable(core->core1_clk);
++	ret |= clk_prepare_enable(core->core1_clk);
+ 
+ 	if (IS_V4(core))
+ 		ret |= clk_prepare_enable(core->core1_bus_clk);
+ 
+-	if (IS_V3(core))
+-		writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(1, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
++	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, false);
+ 
+ 	return ret;
+ }
+-- 
+2.14.1
