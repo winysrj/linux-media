@@ -1,113 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:34864 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:37866 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751184AbeDSKgb (ORCPT
+        with ESMTP id S1751575AbeDYJDI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 06:36:31 -0400
+        Wed, 25 Apr 2018 05:03:08 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: Re: [PATCH v2 01/12] media: ov5640: Add auto-focus feature
-Date: Thu, 19 Apr 2018 13:36:39 +0300
-Message-ID: <1761345.E0v0rRdO8P@avalon>
-In-Reply-To: <20180416123701.15901-2-maxime.ripard@bootlin.com>
-References: <20180416123701.15901-1-maxime.ripard@bootlin.com> <20180416123701.15901-2-maxime.ripard@bootlin.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
+Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with COMPILE_TEST && DRM_OMAP
+Date: Wed, 25 Apr 2018 12:03:22 +0300
+Message-ID: <1818588.4EAHIaV2gL@avalon>
+In-Reply-To: <70b5e60f-346e-4b34-8235-ce62de720a99@ti.com>
+References: <cover.1524245455.git.mchehab@s-opensource.com> <20180423170955.13421017@vento.lan> <70b5e60f-346e-4b34-8235-ce62de720a99@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Hi Tomi,
 
-Thank you for the patch.
+On Wednesday, 25 April 2018 09:24:14 EEST Tomi Valkeinen wrote:
+> On 23/04/18 23:09, Mauro Carvalho Chehab wrote:
+> >> I don't think it's worth it renaming the common symbols. They will change
+> >> over time as omapdrm is under heavy rework, and it's painful enough
+> >> without having to handle cross-tree changes.
+> > 
+> > It could just rename the namespace-conflicting FB_OMAP2 functions,
+> > keeping the DRM ones as-is.
+> 
+> Yes, I'm fine with renaming omapfb functions if that helps. But still,
+> if omapdrm is enabled in the kernel as module or built-in, omapfb will
+> not work. So even if we get them to compile and link, it'll break at
+> runtime one way or another.
+> 
+> >> Let's just live with the fact that both drivers
+> >> can't be compiled at the same time, given that omapfb is deprecated.
+> > 
+> > IMO, a driver that it is deprecated, being in a state where it
+> > conflicts with a non-deprecated driver that is under heavy rework
+> > is a very good candidate to go to drivers/staging or even to /dev/null.
+> 
+> The problem is that it supports old devices which are not supported by
+> omapdrm. But both omapfb and omapdrm support many of the same devices.
 
-On Monday, 16 April 2018 15:36:50 EEST Maxime Ripard wrote:
-> From: Myl=E8ne Josserand <mylene.josserand@bootlin.com>
->=20
-> Add the auto-focus ENABLE/DISABLE feature as V4L2 control.
-> Disabled by default.
->=20
-> Signed-off-by: Myl=E8ne Josserand <mylene.josserand@bootlin.com>
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->  drivers/media/i2c/ov5640.c | 16 +++++++++++++++-
->  1 file changed, 15 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 852026baa2e7..a33e45f8e2b0 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -82,8 +82,9 @@
->  #define OV5640_REG_POLARITY_CTRL00	0x4740
->  #define OV5640_REG_MIPI_CTRL00		0x4800
->  #define OV5640_REG_DEBUG_MODE		0x4814
-> -#define OV5640_REG_ISP_FORMAT_MUX_CTRL	0x501f
-> +#define OV5640_REG_ISP_CTRL03		0x5003
->  #define OV5640_REG_PRE_ISP_TEST_SET1	0x503d
-> +#define OV5640_REG_ISP_FORMAT_MUX_CTRL	0x501f
->  #define OV5640_REG_SDE_CTRL0		0x5580
->  #define OV5640_REG_SDE_CTRL1		0x5581
->  #define OV5640_REG_SDE_CTRL3		0x5583
-> @@ -186,6 +187,7 @@ struct ov5640_ctrls {
->  		struct v4l2_ctrl *auto_gain;
->  		struct v4l2_ctrl *gain;
->  	};
-> +	struct v4l2_ctrl *auto_focus;
->  	struct v4l2_ctrl *brightness;
->  	struct v4l2_ctrl *saturation;
->  	struct v4l2_ctrl *contrast;
-> @@ -2155,6 +2157,12 @@ static int ov5640_set_ctrl_test_pattern(struct
-> ov5640_dev *sensor, int value) 0xa4, value ? 0xa4 : 0);
->  }
->=20
-> +static int ov5640_set_ctrl_focus(struct ov5640_dev *sensor, int value)
-> +{
-> +	return ov5640_mod_reg(sensor, OV5640_REG_ISP_CTRL03,
-> +			      BIT(1), value ? BIT(1) : 0);
+Could we trim down omapfb to remove support for the devices supported by 
+omapdrm ?
 
-According to the datasheet, bit 1 in register 0x5003 is "Draw window for AF=
-C=20
-enable". The draw window module is further documented as being "used to=20
-display a window on top of live video. It is usually used by autofocus to=20
-display a focus window". Are you sure the bit controls the autofocus itself=
- ?
-
-=46urthermore, do all 0V5640 camera modules include a VCM ?
-
-> +}
-> +
->  static int ov5640_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
->  {
->  	struct v4l2_subdev *sd =3D ctrl_to_sd(ctrl);
-> @@ -2223,6 +2231,9 @@ static int ov5640_s_ctrl(struct v4l2_ctrl *ctrl)
->  	case V4L2_CID_TEST_PATTERN:
->  		ret =3D ov5640_set_ctrl_test_pattern(sensor, ctrl->val);
->  		break;
-> +	case V4L2_CID_FOCUS_AUTO:
-> +		ret =3D ov5640_set_ctrl_focus(sensor, ctrl->val);
-> +		break;
->  	default:
->  		ret =3D -EINVAL;
->  		break;
-> @@ -2285,6 +2296,9 @@ static int ov5640_init_controls(struct ov5640_dev
-> *sensor) ARRAY_SIZE(test_pattern_menu) - 1,
->  					     0, 0, test_pattern_menu);
->=20
-> +	ctrls->auto_focus =3D v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_AUTO,
-> +					      0, 1, 1, 0);
-> +
->  	if (hdl->error) {
->  		ret =3D hdl->error;
->  		goto free_ctrls;
-
-=2D-=20
+-- 
 Regards,
 
 Laurent Pinchart
