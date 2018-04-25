@@ -1,52 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:34133 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751204AbeDRPGX (ORCPT
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:56741 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751353AbeDYKLJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 11:06:23 -0400
-From: Colin King <colin.king@canonical.com>
-To: Kyungmin Park <kyungmin.park@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] include/media: fix missing | operator when setting cfg
-Date: Wed, 18 Apr 2018 16:06:17 +0100
-Message-Id: <20180418150617.22489-1-colin.king@canonical.com>
+        Wed, 25 Apr 2018 06:11:09 -0400
+Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with
+ COMPILE_TEST && DRM_OMAP
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-fbdev@vger.kernel.org>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+ <1818588.4EAHIaV2gL@avalon> <dce06ad8-0035-81e6-9ec9-15009d13e374@ti.com>
+ <10529104.rM2F4eJv5O@avalon>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Message-ID: <7644bb92-e7b2-db27-061b-e0808c7264cd@ti.com>
+Date: Wed, 25 Apr 2018 13:10:43 +0300
 MIME-Version: 1.0
+In-Reply-To: <10529104.rM2F4eJv5O@avalon>
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+On 25/04/18 13:02, Laurent Pinchart wrote:
+> Hi Tomi,
+> 
+> On Wednesday, 25 April 2018 12:33:53 EEST Tomi Valkeinen wrote:
+>> On 25/04/18 12:03, Laurent Pinchart wrote:
+>>> Could we trim down omapfb to remove support for the devices supported by
+>>> omapdrm ?
+>>
+>> I was thinking about just that. But, of course, it's not quite
+>> straightforward either.
+>>
+>> We've got DSI manual update functionality in OMAP3-OMAP5 SoCs, which
+>> covers a lot of devices.
+> 
+> Sebastian is working on getting that feature in omapdrm, isn't he ?
 
-The value from a readl is being masked with ITE_REG_CIOCAN_MASK however
-this is not being used and cfg is being re-assigned.  I believe the
-assignment operator should actually be instead the |= operator.
+Yes, and I keep pushing it forward because of the restructuring you're
+doing =) (feel free to comment on that thread). But agreed, it's getting
+better. When we have manual update support, I think the biggest missing
+feature is then in omapdrm.
 
-Detected by CoverityScan, CID#1467987 ("Unused value")
+>> And VRFB on OMAP2/3.
+> 
+> And that's something I'd really like to have in omapdrm too.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/platform/exynos4-is/fimc-lite-reg.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Considering how much headache TILER has given, I'm not exactly looking
+forward to it ;).
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite-reg.c b/drivers/media/platform/exynos4-is/fimc-lite-reg.c
-index f0acc550d065..16565a0b4bf1 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite-reg.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite-reg.c
-@@ -254,7 +254,7 @@ void flite_hw_set_dma_window(struct fimc_lite *dev, struct flite_frame *f)
- 	/* Maximum output pixel size */
- 	cfg = readl(dev->regs + FLITE_REG_CIOCAN);
- 	cfg &= ~FLITE_REG_CIOCAN_MASK;
--	cfg = (f->f_height << 16) | f->f_width;
-+	cfg |= (f->f_height << 16) | f->f_width;
- 	writel(cfg, dev->regs + FLITE_REG_CIOCAN);
- 
- 	/* DMA offsets */
+If we get manual update and VRFB, I think we are more or less covered on
+the supported HW features. It'll still break userspace apps which use
+omapfb, though. Unless we also port the omapfb specific IOCTLs and the
+sysfs files, which I believe we should not.
+
+ Tomi
+
 -- 
-2.17.0
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
