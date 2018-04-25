@@ -1,41 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54148 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751234AbeDVK2o (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:43500 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750949AbeDYHQN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 06:28:44 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH 0/3] R-Car Gen2 support for FDP1
-Date: Sun, 22 Apr 2018 13:28:46 +0300
-Message-Id: <20180422102849.2481-1-laurent.pinchart+renesas@ideasonboard.com>
+        Wed, 25 Apr 2018 03:16:13 -0400
+Subject: Re: [PATCH v4 2/5] dt-bindings: adv7511: Extend bindings to allow
+ specifying slave map addresses
+To: Kieran Bingham <kbingham@kernel.org>, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+References: <1518544137-2742-1-git-send-email-kbingham@kernel.org>
+ <1518544137-2742-3-git-send-email-kbingham@kernel.org>
+From: Archit Taneja <architt@codeaurora.org>
+Message-ID: <aeef36f9-cd59-2b83-829e-8b0c3127b838@codeaurora.org>
+Date: Wed, 25 Apr 2018 12:46:04 +0530
+MIME-Version: 1.0
+In-Reply-To: <1518544137-2742-3-git-send-email-kbingham@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
 
-This small patch series improves support of the FDP1 on R-Car Gen2 platforms
-by enabling compilation without requiring the Gen3-only FCP dependency.
 
-As the Kconfig change (2/3) conflicts with a patch recently posted by Geert I
-have included it in the series as 1/3. Patch 3/3 fixes indentation oddities I
-have run across during development.
+On Tuesday 13 February 2018 11:18 PM, Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> The ADV7511 has four 256-byte maps that can be accessed via the main I2C
+> ports. Each map has it own I2C address and acts as a standard slave
+> device on the I2C bus.
+> 
+> Extend the device tree node bindings to be able to override the default
+> addresses so that address conflicts with other devices on the same bus
+> may be resolved at the board description level.
+> 
 
-Geert Uytterhoeven (1):
-  v4l: rcar_fdp1: Change platform dependency to ARCH_RENESAS
+Queued to drm-misc-next
 
-Laurent Pinchart (2):
-  v4l: rcar_fdp1: Enable compilation on Gen2 platforms
-  v4l: rcar_fdp1: Fix indentation oddities
-
- drivers/media/platform/Kconfig     |  4 ++--
- drivers/media/platform/rcar_fdp1.c | 28 ++++++++++++++--------------
- 2 files changed, 16 insertions(+), 16 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+> v2:
+>   - Fixed up reg: property description to account for multiple optional
+>     addresses.
+>   - Minor reword to commit message to account for DT only change
+>   - Collected Robs RB tag
+> 
+> v3:
+>   - Split map register addresses into individual declarations.
+> 
+> v4:
+>   - Update commit title
+>   - Collect Laurent's RB tag
+>   - Fix nitpickings
+>   - Normalise I2C usage (I²C is harder to grep for)
+> 
+>   .../devicetree/bindings/display/bridge/adi,adv7511.txt | 18 ++++++++++++++++--
+>   1 file changed, 16 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> index 0047b1394c70..2c887536258c 100644
+> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> @@ -14,7 +14,13 @@ Required properties:
+>   		"adi,adv7513"
+>   		"adi,adv7533"
+>   
+> -- reg: I2C slave address
+> +- reg: I2C slave addresses
+> +  The ADV7511 internal registers are split into four pages exposed through
+> +  different I2C addresses, creating four register maps. Each map has it own
+> +  I2C address and acts as a standard slave device on the I2C bus. The main
+> +  address is mandatory, others are optional and revert to defaults if not
+> +  specified.
+> +
+>   
+>   The ADV7511 supports a large number of input data formats that differ by their
+>   color depth, color format, clock mode, bit justification and random
+> @@ -70,6 +76,9 @@ Optional properties:
+>     rather than generate its own timings for HDMI output.
+>   - clocks: from common clock binding: reference to the CEC clock.
+>   - clock-names: from common clock binding: must be "cec".
+> +- reg-names : Names of maps with programmable addresses.
+> +	It can contain any map needing a non-default address.
+> +	Possible maps names are : "main", "edid", "cec", "packet"
+>   
+>   Required nodes:
+>   
+> @@ -88,7 +97,12 @@ Example
+>   
+>   	adv7511w: hdmi@39 {
+>   		compatible = "adi,adv7511w";
+> -		reg = <39>;
+> +		/*
+> +		 * The EDID page will be accessible on address 0x66 on the I2C
+> +		 * bus. All other maps continue to use their default addresses.
+> +		 */
+> +		reg = <0x39>, <0x66>;
+> +		reg-names = "main", "edid";
+>   		interrupt-parent = <&gpio3>;
+>   		interrupts = <29 IRQ_TYPE_EDGE_FALLING>;
+>   		clocks = <&cec_clock>;
+> 
