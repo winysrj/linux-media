@@ -1,87 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:35092 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753198AbeDIQr5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:47:57 -0400
-Received: by mail-wr0-f193.google.com with SMTP id 80so10263139wrb.2
-        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:47:56 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH v2 00/19] dddvb/ddbridge-0.9.33
-Date: Mon,  9 Apr 2018 18:47:33 +0200
-Message-Id: <20180409164752.641-1-d.scheller.oss@gmail.com>
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:55859 "EHLO
+        mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754654AbeDYRof (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 13:44:35 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180425064118.GA28100@infradead.org>
+References: <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com>
+ <20180420101755.GA11400@infradead.org> <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
+ <20180420124625.GA31078@infradead.org> <20180420152111.GR31310@phenom.ffwll.local>
+ <20180424184847.GA3247@infradead.org> <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+ <20180425054855.GA17038@infradead.org> <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+ <CADnq5_P3bT0TStSXpKh11ydifv=KwKtRj-7tDS=GQXey+8tBPw@mail.gmail.com> <20180425064118.GA28100@infradead.org>
+From: Alex Deucher <alexdeucher@gmail.com>
+Date: Wed, 25 Apr 2018 13:44:33 -0400
+Message-ID: <CADnq5_O5t8aSJE6SFzyjw-6Pmba7B2aYMztVMOOQCF3drBHR5Q@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On Wed, Apr 25, 2018 at 2:41 AM, Christoph Hellwig <hch@infradead.org> wrote:
+> On Wed, Apr 25, 2018 at 02:24:36AM -0400, Alex Deucher wrote:
+>> > It has a non-coherent transaction mode (which the chipset can opt to
+>> > not implement and still flush), to make sure the AGP horror show
+>> > doesn't happen again and GPU folks are happy with PCIe. That's at
+>> > least my understanding from digging around in amd the last time we had
+>> > coherency issues between intel and amd gpus. GPUs have some bits
+>> > somewhere (in the pagetables, or in the buffer object description
+>> > table created by userspace) to control that stuff.
+>>
+>> Right.  We have a bit in the GPU page table entries that determines
+>> whether we snoop the CPU's cache or not.
+>
+> I can see how that works with the GPU on the same SOC or SOC set as the
+> CPU.  But how is that going to work for a GPU that is a plain old PCIe
+> card?  The cache snooping in that case is happening in the PCIe root
+> complex.
 
-This series brings all relevant changes from the upstream dddvb-0.9.33
-driver package to the in-kernel ddbridge and stv0910, though a few changes
-were picked up and merged previously already.
+I'm not a pci expert, but as far as I know, the device sends either a
+snooped or non-snooped transaction on the bus.  I think the
+transaction descriptor supports a no snoop attribute.  Our GPUs have
+supported this feature for probably 20 years if not more, going back
+to PCI.  Using non-snooped transactions have lower latency and faster
+throughput compared to snooped transactions.
 
-Summary of changes:
-* stv0910: initialisation fixes and fixed CNR reporting (uvalue vs.
-  svalue)
-* ddbridge: general code move, cleanups and fixups
-* ddbridge: fixes and improvements to the IRQ setup and handling, and
-  MSI-X support
-* ddbridge: configurable DMA buffers (via modparam)
-* ddbridge: dummy tuner option, useful for debugging and stress testing
-  purposes
-* ddbridge: support for the new MCI card types, and namely the new MaxSX8
-  cards
-
-Patches were build-tested in their order and are bisect safe. Besides the
-modparam move, everything is picked up from dddvb-0.9.33.
-
-The series adds the new ddbridge-mci.[c|h] files. Here, SPDX headers were
-already put in place, but until things have been fully sorted out, the
-original GPL boiler plate is kept in place for now.
-
-Changes since v1:
-* The "stv0910: increase parallel TS output speed" commit was deleted,
-  as it causes non-working cineS2V7 cards with older card/FPGA firmware.
-
-Please pick up and merge.
-
-Daniel Scheller (19):
-  [media] dvb-frontends/stv0910: add init values for TSINSDELM/L
-  [media] dvb-frontends/stv0910: fix CNR reporting in read_snr()
-  [media] ddbridge: move modparams to ddbridge-core.c
-  [media] ddbridge: move ddb_wq and the wq+class initialisation to -core
-  [media] ddbridge: move MSI IRQ cleanup to a helper function
-  [media] ddbridge: request/free_irq using pci_irq_vector, enable MSI-X
-  [media] ddbridge: add helper for IRQ handler setup
-  [media] ddbridge: add macros to handle IRQs in nibble and byte blocks
-  [media] ddbridge: improve separated MSI IRQ handling
-  [media] ddbridge: use spin_lock_irqsave() in output_work()
-  [media] ddbridge: fix output buffer check
-  [media] ddbridge: set devid entry for link 0
-  [media] ddbridge: make DMA buffer count and size modparam-configurable
-  [media] ddbridge: support dummy tuners with 125MByte/s dummy data
-    stream
-  [media] ddbridge: initial support for MCI-based MaxSX8 cards
-  [media] ddbridge/max: implement MCI/MaxSX8 attach function
-  [media] ddbridge: add hardware defs and PCI IDs for MCI cards
-  [media] ddbridge: recognize and attach the MaxSX8 cards
-  [media] ddbridge: set driver version to 0.9.33-integrated
-
- drivers/media/dvb-frontends/stv0910.c      |   8 +-
- drivers/media/pci/ddbridge/Kconfig         |   1 +
- drivers/media/pci/ddbridge/Makefile        |   2 +-
- drivers/media/pci/ddbridge/ddbridge-core.c | 299 +++++++++++-----
- drivers/media/pci/ddbridge/ddbridge-hw.c   |  11 +
- drivers/media/pci/ddbridge/ddbridge-i2c.c  |   5 +-
- drivers/media/pci/ddbridge/ddbridge-main.c |  91 ++---
- drivers/media/pci/ddbridge/ddbridge-max.c  |  42 +++
- drivers/media/pci/ddbridge/ddbridge-max.h  |   1 +
- drivers/media/pci/ddbridge/ddbridge-mci.c  | 550 +++++++++++++++++++++++++++++
- drivers/media/pci/ddbridge/ddbridge-mci.h  | 152 ++++++++
- drivers/media/pci/ddbridge/ddbridge.h      |  50 +--
- 12 files changed, 1029 insertions(+), 183 deletions(-)
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-mci.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-mci.h
-
--- 
-2.16.1
+Alex
