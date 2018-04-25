@@ -1,36 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:46047 "EHLO
-        homiemail-a125.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751383AbeDRQML (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 12:12:11 -0400
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 0/5] media_build: Backport fixes and patches
-Date: Wed, 18 Apr 2018 11:12:02 -0500
-Message-Id: <1524067927-12113-1-git-send-email-brad@nextdimension.cc>
+Received: from mga01.intel.com ([192.55.52.88]:34121 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751027AbeDYCbb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 22:31:31 -0400
+From: "Yeh, Andy" <andy.yeh@intel.com>
+To: Rob Herring <robh@kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "jacopo@jmondi.org" <jacopo@jmondi.org>,
+        "Chiang, AlanX" <alanx.chiang@intel.com>
+Subject: RE: [RESEND PATCH v7 1/2] media: dt-bindings: Add bindings for
+ Dongwoon DW9807 voice coil
+Date: Wed, 25 Apr 2018 02:31:26 +0000
+Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D572C15@PGSMSX111.gar.corp.intel.com>
+References: <1523375324-27856-1-git-send-email-andy.yeh@intel.com>
+ <1523375324-27856-2-git-send-email-andy.yeh@intel.com>
+ <20180413151042.lqovgxupubjbgrey@rob-hp-laptop>
+In-Reply-To: <20180413151042.lqovgxupubjbgrey@rob-hp-laptop>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set provides lgdt3306a backports for
-v3.4, v3.6, and v4.6. The v4l/versions.txt file
-is also fixed up for a couple drivers with
-included backports.
+Hi Rob,
 
+Apologize missed your comment before sent out v8. I will definitely add acks/reviewed-bys in next version.
 
-Brad Love (5):
-  Enable two drivers with backports
-  lgdt3306a v3.4 i2c mux backport
-  lgdt3306a v3.6 i2c mux backport
-  lgdt3306a v4.6 i2c mux backport
-  Remove lgdt3306a v4.7 limitation
+Regards, Andy
 
- backports/v3.4_i2c_add_mux_adapter.patch |  14 ++
- backports/v3.6_i2c_add_mux_adapter.patch |  12 ++
- backports/v4.6_i2c_mux.patch             | 213 +++++++++++++++++++++++++++++++
- v4l/versions.txt                         |   3 -
- 4 files changed, 239 insertions(+), 3 deletions(-)
+-----Original Message-----
+From: Rob Herring [mailto:robh@kernel.org] 
+Sent: Friday, April 13, 2018 11:11 PM
+To: Yeh, Andy <andy.yeh@intel.com>
+Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; devicetree@vger.kernel.org; tfiga@chromium.org; jacopo@jmondi.org; Chiang, AlanX <alanx.chiang@intel.com>
+Subject: Re: [RESEND PATCH v7 1/2] media: dt-bindings: Add bindings for Dongwoon DW9807 voice coil
 
--- 
-2.7.4
+On Tue, Apr 10, 2018 at 11:48:43PM +0800, Andy Yeh wrote:
+> From: Alan Chiang <alanx.chiang@intel.com>
+> 
+> Dongwoon DW9807 is a voice coil lens driver.
+> 
+> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+> ---
+>  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+
+Please add acks/reviewed-bys when posting new versions.
+
+Rob
