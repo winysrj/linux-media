@@ -1,113 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34048 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753437AbeDIQsM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:12 -0400
-Received: by mail-wr0-f195.google.com with SMTP id d19so6348771wre.1
-        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:11 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH v2 17/19] [media] ddbridge: add hardware defs and PCI IDs for MCI cards
-Date: Mon,  9 Apr 2018 18:47:50 +0200
-Message-Id: <20180409164752.641-18-d.scheller.oss@gmail.com>
-In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
-References: <20180409164752.641-1-d.scheller.oss@gmail.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:55275 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755145AbeDYS6a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 14:58:30 -0400
+Received: by mail-wm0-f66.google.com with SMTP id f6so8908696wmc.4
+        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2018 11:58:30 -0700 (PDT)
+Received: from toshiba (90-145-46-101.wxdsl.nl. [90.145.46.101])
+        by smtp.gmail.com with ESMTPSA id g15sm11702300edb.69.2018.04.25.11.58.28
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 25 Apr 2018 11:58:29 -0700 (PDT)
+Message-ID: <5ae0cfd5.0f98500a.620a6.4a7c@mx.google.com>
+Date: Wed, 25 Apr 2018 20:58:28 +0200
+From: mjs <mjstork@gmail.com>
+To: "3 linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] [2] Remove 2 excess lines in driver module em28xx
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+=46rom c5007d7596dd755fb5d95664d9eda9733d7df461 Mon Sep 17 00:00:00 2001
+From: Marcel Stork <mjstork@gmail.com>
+Date: Wed, 25 Apr 2018 19:34:20 +0200
+Subject: [PATCH] Remove 2 excess lines in driver module em28xx
 
-Add PCI IDs and ddb_info for the new MCI-based MaxSX8 cards. Also add
-needed defines so the cards can be hooked up into ddbridge's probe and
-attach handling.
+A cosmetic change by combining two sets of boards into one set because havi=
+ng the same arguments.
+=20
+Changes to be committed:
+	modified: drivers/media/usb/em28xx/em28xx-cards.c
 
-Picked up from the upstream dddvb-0.9.33 release.
+Signed-off-by: Marcel Stork <mjstork@gmail.com>
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/pci/ddbridge/ddbridge-hw.c   | 11 +++++++++++
- drivers/media/pci/ddbridge/ddbridge-main.c |  1 +
- drivers/media/pci/ddbridge/ddbridge.h      | 11 +++++++----
- 3 files changed, 19 insertions(+), 4 deletions(-)
+ drivers/media/usb/em28xx/em28xx-cards.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-hw.c b/drivers/media/pci/ddbridge/ddbridge-hw.c
-index c6d14925e2fc..1d3ee6accdd5 100644
---- a/drivers/media/pci/ddbridge/ddbridge-hw.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-hw.c
-@@ -311,6 +311,16 @@ static const struct ddb_info ddb_s2_48 = {
- 	.tempmon_irq = 24,
- };
- 
-+static const struct ddb_info ddb_s2x_48 = {
-+	.type     = DDB_OCTOPUS_MCI,
-+	.name     = "Digital Devices MAX SX8",
-+	.regmap   = &octopus_map,
-+	.port_num = 4,
-+	.i2c_mask = 0x00,
-+	.tempmon_irq = 24,
-+	.mci      = 4
-+};
-+
- /****************************************************************************/
- /****************************************************************************/
- /****************************************************************************/
-@@ -346,6 +356,7 @@ static const struct ddb_device_id ddb_device_ids[] = {
- 	DDB_DEVID(0x0008, 0x0036, ddb_isdbt_8),
- 	DDB_DEVID(0x0008, 0x0037, ddb_c2t2i_v0_8),
- 	DDB_DEVID(0x0008, 0x0038, ddb_c2t2i_8),
-+	DDB_DEVID(0x0009, 0x0025, ddb_s2x_48),
- 	DDB_DEVID(0x0006, 0x0039, ddb_ctv7),
- 	DDB_DEVID(0x0011, 0x0040, ddb_ci),
- 	DDB_DEVID(0x0011, 0x0041, ddb_cis),
-diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
-index 6356b48b3874..f4748cfd904b 100644
---- a/drivers/media/pci/ddbridge/ddbridge-main.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-@@ -264,6 +264,7 @@ static const struct pci_device_id ddb_id_table[] = {
- 	DDB_DEVICE_ANY(0x0006),
- 	DDB_DEVICE_ANY(0x0007),
- 	DDB_DEVICE_ANY(0x0008),
-+	DDB_DEVICE_ANY(0x0009),
- 	DDB_DEVICE_ANY(0x0011),
- 	DDB_DEVICE_ANY(0x0012),
- 	DDB_DEVICE_ANY(0x0013),
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index cb69021a3443..72fe33cb72b9 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -112,11 +112,12 @@ struct ddb_ids {
- 
- struct ddb_info {
- 	int   type;
--#define DDB_NONE         0
--#define DDB_OCTOPUS      1
--#define DDB_OCTOPUS_CI   2
--#define DDB_OCTOPUS_MAX  5
-+#define DDB_NONE            0
-+#define DDB_OCTOPUS         1
-+#define DDB_OCTOPUS_CI      2
-+#define DDB_OCTOPUS_MAX     5
- #define DDB_OCTOPUS_MAX_CT  6
-+#define DDB_OCTOPUS_MCI     9
- 	char *name;
- 	u32   i2c_mask;
- 	u8    port_num;
-@@ -133,6 +134,7 @@ struct ddb_info {
- #define TS_QUIRK_REVERSED 2
- #define TS_QUIRK_ALT_OSC  8
- 	u32   tempmon_irq;
-+	u8    mci;
- 	const struct ddb_regmap *regmap;
- };
- 
-@@ -253,6 +255,7 @@ struct ddb_port {
- #define DDB_CI_EXTERNAL_XO2_B    13
- #define DDB_TUNER_DVBS_STV0910_PR 14
- #define DDB_TUNER_DVBC2T2I_SONY_P 15
-+#define DDB_TUNER_MCI            16
- 
- #define DDB_TUNER_XO2            32
- #define DDB_TUNER_DVBS_STV0910   (DDB_TUNER_XO2 + 0)
--- 
-2.16.1
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em=
+28xx/em28xx-cards.c
+index 6e0e67d2..7fa9a00e 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3182,8 +3182,6 @@ void em28xx_setup_xc3028(struct em28xx *dev, struct x=
+c2028_ctrl *ctl)
+ 	case EM2880_BOARD_EMPIRE_DUAL_TV:
+ 	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
+ 	case EM2882_BOARD_TERRATEC_HYBRID_XS:
+-		ctl->demod =3D XC3028_FE_ZARLINK456;
+-		break;
+ 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
+ 	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+ 	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+--=20
+2.11.0
