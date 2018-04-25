@@ -1,112 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:53163 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751730AbeDBO1T (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:27:19 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
-Subject: [PATCH 00/15] ARM: pxa: switch to DMA slave maps
-Date: Mon,  2 Apr 2018 16:26:41 +0200
-Message-Id: <20180402142656.26815-1-robert.jarzmik@free.fr>
+Received: from bombadil.infradead.org ([198.137.202.133]:54060 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750941AbeDYHJH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 03:09:07 -0400
+Date: Wed, 25 Apr 2018 00:09:05 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Christoph Hellwig <hch@infradead.org>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>, Thierry Reding <treding@nvidia.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
+Message-ID: <20180425070905.GA24827@infradead.org>
+References: <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
+ <20180420124625.GA31078@infradead.org>
+ <20180420152111.GR31310@phenom.ffwll.local>
+ <20180424184847.GA3247@infradead.org>
+ <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+ <20180425054855.GA17038@infradead.org>
+ <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+ <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
+ <20180425064335.GB28100@infradead.org>
+ <CAKMK7uGF7p5ko=i6zL4dn0qR-5TVRKMi6xaCGSao_vyfJU+dWQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAKMK7uGF7p5ko=i6zL4dn0qR-5TVRKMi6xaCGSao_vyfJU+dWQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, Apr 25, 2018 at 09:02:17AM +0200, Daniel Vetter wrote:
+> Can we please not nack everything right away? Doesn't really motivate
+> me to show you all the various things we're doing in gpu to make the
+> dma layer work for us. That kind of noodling around in lower levels to
+> get them to do what we want is absolutely par-for-course for gpu
+> drivers. If you just nack everything I point you at for illustrative
+> purposes, then I can't show you stuff anymore.
 
-This serie is aimed at removing the dmaengine slave compat use, and transfer
-knowledge of the DMA requestors into architecture code.
+No, it's not.  No driver (and that includes the magic GPUs) has
+any business messing with dma ops directly.
 
-This was discussed/advised by Arnd a couple of years back, it's almost time.
+A GPU driver imght have a very valid reason to disable the IOMMU,
+but the code to do so needs to be at least in the arch code, maybe
+in the dma-mapping/iommu code, not in the driver.
 
-The serie is divided in 3 phasees :
- - phase 1 : patch 1/15 and patch 2/15
-   => this is the preparation work
- - phase 2 : patches 3/15 .. 10/15
-   => this is the switch of all the drivers
-   => this one will require either an Ack of the maintainers or be taken by them
-      once phase 1 is merged
- - phase 3 : patches 11/15
-   => this is the last part, cleanup and removal of export of the DMA filter
-      function
+As a first step to get the discussion started we'll simply need
+to move the code Thierry wrote into a helper in arch/arm and that
+alone would be a massive improvement.  I'm not even talking about
+minor details like actually using arm_get_dma_map_ops instead
+of duplicating it.
 
-As this looks like a patch bomb, each maintainer expressing for his tree either
-an Ack or "I want to take through my tree" will be spared in the next iterations
-of this serie.
-
-Several of these changes have been tested on actual hardware, including :
- - pxamci
- - pxa_camera
- - smc*
- - ASoC and SSP
-
-Happy review.
-
-Robert Jarzmik (15):
-  dmaengine: pxa: use a dma slave map
-  ARM: pxa: add dma slave map
-  mmc: pxamci: remove the dmaengine compat need
-  media: pxa_camera: remove the dmaengine compat need
-  mtd: nand: pxa3xx: remove the dmaengine compat need
-  net: smc911x: remove the dmaengine compat need
-  net: smc91x: remove the dmaengine compat need
-  ASoC: pxa: remove the dmaengine compat need
-  net: irda: pxaficp_ir: remove the dmaengine compat need
-  ata: pata_pxa: remove the dmaengine compat need
-  dmaengine: pxa: document pxad_param
-  dmaengine: pxa: make the filter function internal
-  ARM: pxa: remove the DMA IO resources
-  ARM: pxa: change SSP devices allocation
-  ARM: pxa: change SSP DMA channels allocation
-
- arch/arm/mach-pxa/devices.c               | 269 ++++++++++++++----------------
- arch/arm/mach-pxa/devices.h               |  14 +-
- arch/arm/mach-pxa/include/mach/audio.h    |  12 ++
- arch/arm/mach-pxa/pxa25x.c                |   4 +-
- arch/arm/mach-pxa/pxa27x.c                |   4 +-
- arch/arm/mach-pxa/pxa3xx.c                |   5 +-
- arch/arm/plat-pxa/ssp.c                   |  50 +-----
- drivers/ata/pata_pxa.c                    |  10 +-
- drivers/dma/pxa_dma.c                     |  13 +-
- drivers/media/platform/pxa_camera.c       |  22 +--
- drivers/mmc/host/pxamci.c                 |  29 +---
- drivers/mtd/nand/pxa3xx_nand.c            |  10 +-
- drivers/net/ethernet/smsc/smc911x.c       |  16 +-
- drivers/net/ethernet/smsc/smc91x.c        |  12 +-
- drivers/net/ethernet/smsc/smc91x.h        |   1 -
- drivers/staging/irda/drivers/pxaficp_ir.c |  14 +-
- include/linux/dma/pxa-dma.h               |  20 +--
- include/linux/platform_data/mmp_dma.h     |   4 +
- include/linux/pxa2xx_ssp.h                |   4 +-
- sound/arm/pxa2xx-ac97.c                   |  14 +-
- sound/arm/pxa2xx-pcm-lib.c                |   6 +-
- sound/soc/pxa/pxa-ssp.c                   |   5 +-
- sound/soc/pxa/pxa2xx-ac97.c               |  32 +---
- 23 files changed, 196 insertions(+), 374 deletions(-)
-
--- 
-2.11.0
+And doing this basic trivial work really helps to get this whole
+mess under control.
