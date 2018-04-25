@@ -1,57 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55454 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756653AbeDXKdF (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:49995 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751150AbeDYDoM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 06:33:05 -0400
-Date: Tue, 24 Apr 2018 13:33:03 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Loic Poulain <loic.poulain@linaro.org>
-Cc: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>,
-        slongerbeam@gmail.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Nicolas Dechesne <nicolas.dechesne@linaro.org>,
-        dragonboard@lists.96boards.org,
-        Daniel Thompson <daniel.thompson@linaro.org>
-Subject: Re: [RESEND PATCH] media: i2c: ov5640: Add pixel clock support
-Message-ID: <20180424103303.rrgv2d33stnll2cx@valkosipuli.retiisi.org.uk>
-References: <1522335300-13467-1-git-send-email-manivannan.sadhasivam@linaro.org>
- <1522335300-13467-2-git-send-email-manivannan.sadhasivam@linaro.org>
- <CAMZdPi-VCsct6S4cYCvN_XniFB9=pJqC8hnTdQnvL5H_CU2a8Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMZdPi-VCsct6S4cYCvN_XniFB9=pJqC8hnTdQnvL5H_CU2a8Q@mail.gmail.com>
+        Tue, 24 Apr 2018 23:44:12 -0400
+Message-ID: <717196d43f13125446853e26ad81119e@smtp-cloud7.xs4all.net>
+Date: Wed, 25 Apr 2018 05:44:10 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 24, 2018 at 11:01:18AM +0200, Loic Poulain wrote:
-> On 29 March 2018 at 16:55, Manivannan Sadhasivam
-> <manivannan.sadhasivam@linaro.org> wrote:
-> > Some of the camera subsystems like camss in Qualcommm MSM chipsets
-> > require pixel clock support in camera sensor drivers. So, this commit
-> > adds a default pixel clock rate of 96MHz to OV5640 camera sensor driver.
-> >
-> > According to the datasheet, 96MHz can be used as a pixel clock rate for
-> > most of the modes.
-> >
-> > Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-> 
-> Tested-by: Loic Poulain <loic.poulain@linaro.org>
-> 
-> It works for me on Dragonboard 410c + D3 camera mezzanine (ov5640) .
-> 
-> Any comments on this change?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-<URL:https://patchwork.linuxtv.org/project/linux-media/list/?submitter=Maxime+Ripard&state=*&q=ov5640>
+Results of the daily build of media_tree:
 
-There's also another set that adds PIXEL_CLOCK (as well as LINK_FREQ)
-support to the driver, that seems more complete than this patch but
-requires a rebase on Maxime's patches:
+date:			Wed Apr 25 05:00:10 CEST 2018
+media-tree git hash:	a2b2eff6ac2716f499defa590a6ec4ba379d765e
+media_build git hash:	4fb7a3cc8d0f56c7cddc3b5b29e35aa1159bc8d9
+v4l-utils git hash:	4b93ba494c108a1ab73c261bb22e25d72750b09d
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		0.5.2-RC1
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.15.0-2-amd64
 
-<URL:https://patchwork.linuxtv.org/project/linux-media/list/?submitter=7218&state=*&q=ov5640>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.101-i686: ERRORS
+linux-3.0.101-x86_64: ERRORS
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: WARNINGS
+linux-3.10.108-x86_64: WARNINGS
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.14.31-i686: OK
+linux-4.14.31-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16-i686: OK
+linux-4.16-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
