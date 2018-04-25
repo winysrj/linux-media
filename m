@@ -1,71 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41399 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752211AbeDKQRu (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:36624 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752630AbeDZGMu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 12:17:50 -0400
-Subject: Re: a 4.16 kernel with Debian 9.4 "stretch" causes a log explosion
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Edgar Thier <info@edgarthier.net>
-References: <alpine.DEB.2.20.1804110911021.18053@axis700.grange>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <e79738af-8d6d-a6b1-2539-d2dbdb07bb53@ideasonboard.com>
-Date: Wed, 11 Apr 2018 17:17:45 +0100
+        Thu, 26 Apr 2018 02:12:50 -0400
+Date: Wed, 25 Apr 2018 09:18:51 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] rcar-vin: fix null pointer dereference in
+ rvin_group_get()
+Message-ID: <20180425071851.tcytzfkpofsbkxgm@verge.net.au>
+References: <20180424234506.22630-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.20.1804110911021.18053@axis700.grange>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180424234506.22630-1-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Wed, Apr 25, 2018 at 01:45:06AM +0200, Niklas Söderlund wrote:
+> Store the group pointer before disassociating the VIN from the group.
+> 
+> Fixes: 3bb4c3bc85bf77a7 ("media: rcar-vin: add group allocator functions")
+> Reported-by: Colin Ian King <colin.king@canonical.com>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 12 +++++++-----
+>  1 file changed, 7 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 7bc2774a11232362..d3072e166a1ca24f 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -338,19 +338,21 @@ static int rvin_group_get(struct rvin_dev *vin)
+>  
+>  static void rvin_group_put(struct rvin_dev *vin)
+>  {
+> -	mutex_lock(&vin->group->lock);
+> +	struct rvin_group *group = vin->group;
+> +
+> +	mutex_lock(&group->lock);
 
-On 11/04/18 10:56, Guennadi Liakhovetski wrote:
-> Hi Laurent,
-> 
-> Not sure whether that's a kernel or a user-space problem, but UVC related 
-> anyway. I've got a UVC 1.5 (!) Logitech camera, that used to work fine 
-> with earlier kernels. I now installed "media 4.16" and saw, that the 
-> kernel log was filling with messages like
-> 
-> uvcvideo: Failed to query (GET_MIN) UVC control 2 on unit 1: -32 (exp. 1).
-> 
-> The expected /dev/video[01] nodes were not created correctly, and the 
-> hard-drive was getting full very quickly. The latter was happening because 
-> the the /var/log/uvcdynctrl-udev.log file was growing. A truncated sample 
-> is attached. At its bottom you see messages
-> 
-> [libwebcam] Warning: The driver behind device video0 has a slightly buggy implementation
->   of the V4L2_CTRL_FLAG_NEXT_CTRL flag. It does not return the next higher
->   control ID if a control query fails. A workaround has been enabled.
-> 
-> repeating, which continues even if the camera is unplugged. The kernel is 
-> the head of the master branch of git://linuxtv.org/media_tree.git
-> 
-> Just figured out this commit
-> 
-> From: Edgar Thier <info@edgarthier.net>
-> Date: Thu, 12 Oct 2017 03:54:17 -0400
-> Subject: [PATCH] media: uvcvideo: Apply flags from device to actual properties
-> 
-> as the culprit. Without it everything is back to normal.
+Hi Niklas, its not clear to me why moving the lock is safe.
+Could you explain the locking scheme a little?
 
-I've already investigated and fixed this:
-
-Please apply:
-	https://patchwork.kernel.org/patch/10299735/
-
-You stated that this is showing up on a v4.16 kernel ... but as far as I'm aware
-- this feature shouldn't make it in until v4.17. Are you using linux-next or a
-media/master or such ?
-
-Regards
-
-Kieran
-
-> Thanks
-> Guennadi
+>  
+>  	vin->group = NULL;
+>  	vin->v4l2_dev.mdev = NULL;
+>  
+> -	if (WARN_ON(vin->group->vin[vin->id] != vin))
+> +	if (WARN_ON(group->vin[vin->id] != vin))
+>  		goto out;
+>  
+> -	vin->group->vin[vin->id] = NULL;
+> +	group->vin[vin->id] = NULL;
+>  out:
+> -	mutex_unlock(&vin->group->lock);
+> +	mutex_unlock(&group->lock);
+>  
+> -	kref_put(&vin->group->refcount, rvin_group_release);
+> +	kref_put(&group->refcount, rvin_group_release);
+>  }
+>  
+>  /* -----------------------------------------------------------------------------
+> -- 
+> 2.17.0
 > 
