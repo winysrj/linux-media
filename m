@@ -1,103 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:56057 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753194AbeDBSYq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:46 -0400
-Received: by mail-wm0-f67.google.com with SMTP id b127so26677655wmf.5
-        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:46 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 17/20] [media] ddbridge/max: implement MCI/MaxSX8 attach function
-Date: Mon,  2 Apr 2018 20:24:24 +0200
-Message-Id: <20180402182427.20918-18-d.scheller.oss@gmail.com>
-In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
-References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:7604 "EHLO
+        hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750962AbeDYHl6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 03:41:58 -0400
+Date: Wed, 25 Apr 2018 09:41:51 +0200
+From: Thierry Reding <treding@nvidia.com>
+To: Christoph Hellwig <hch@infradead.org>
+CC: Daniel Vetter <daniel@ffwll.ch>,
+        Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
+Message-ID: <20180425074151.GA2271@ulmo>
+References: <20180420101755.GA11400@infradead.org>
+ <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
+ <20180420124625.GA31078@infradead.org>
+ <20180420152111.GR31310@phenom.ffwll.local>
+ <20180424184847.GA3247@infradead.org>
+ <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+ <20180425054855.GA17038@infradead.org>
+ <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+ <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
+ <20180425064335.GB28100@infradead.org>
+MIME-Version: 1.0
+In-Reply-To: <20180425064335.GB28100@infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="3MwIy2ne0vdjdPXF"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+--3MwIy2ne0vdjdPXF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Implement frontend attachment as ddb_fe_attach_mci() into the
-ddbridge-max module. The MaxSX8 MCI cards are part of the Max card series
-and make use of the LNB controller driven by the already existing lnb
-functionality, so here's where this code belongs to.
+On Tue, Apr 24, 2018 at 11:43:35PM -0700, Christoph Hellwig wrote:
+> On Wed, Apr 25, 2018 at 08:23:15AM +0200, Daniel Vetter wrote:
+> > For more fun:
+> >=20
+> > https://www.spinics.net/lists/dri-devel/msg173630.html
+> >=20
+> > Yeah, sometimes we want to disable the iommu because the on-gpu
+> > pagetables are faster ...
+>=20
+> I am not on this list, but remote NAK from here.  This needs an
+> API from the iommu/dma-mapping code.  Drivers have no business poking
+> into these details.
 
-Picked up from the upstream dddvb-0.9.33 release.
+The interfaces that the above patch uses are all EXPORT_SYMBOL_GPL,
+which is rather misleading if they are not meant to be used by drivers
+directly.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-max.c | 42 +++++++++++++++++++++++++++++++
- drivers/media/pci/ddbridge/ddbridge-max.h |  1 +
- 2 files changed, 43 insertions(+)
+> Thierry, please resend this with at least the iommu list and
+> linux-arm-kernel in Cc to have a proper discussion on the right API.
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-max.c b/drivers/media/pci/ddbridge/ddbridge-max.c
-index dc6b81488746..739e4b444cf4 100644
---- a/drivers/media/pci/ddbridge/ddbridge-max.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-max.c
-@@ -33,6 +33,7 @@
- #include "ddbridge.h"
- #include "ddbridge-regs.h"
- #include "ddbridge-io.h"
-+#include "ddbridge-mci.h"
- 
- #include "ddbridge-max.h"
- #include "mxl5xx.h"
-@@ -452,3 +453,44 @@ int ddb_fe_attach_mxl5xx(struct ddb_input *input)
- 	dvb->input = tuner;
- 	return 0;
- }
-+
-+/******************************************************************************/
-+/* MAX MCI related functions */
-+
-+int ddb_fe_attach_mci(struct ddb_input *input)
-+{
-+	struct ddb *dev = input->port->dev;
-+	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
-+	struct ddb_port *port = input->port;
-+	struct ddb_link *link = &dev->link[port->lnr];
-+	int demod, tuner;
-+
-+	demod = input->nr;
-+	tuner = demod & 3;
-+	if (fmode == 3)
-+		tuner = 0;
-+	dvb->fe = ddb_mci_attach(input, 0, demod, &dvb->set_input);
-+	if (!dvb->fe) {
-+		dev_err(dev->dev, "No MAXSX8 found!\n");
-+		return -ENODEV;
-+	}
-+	if (!dvb->set_input) {
-+		dev_err(dev->dev, "No MCI set_input function pointer!\n");
-+		return -ENODEV;
-+	}
-+	if (input->nr < 4) {
-+		lnb_command(dev, port->lnr, input->nr, LNB_CMD_INIT);
-+		lnb_set_voltage(dev, port->lnr, input->nr, SEC_VOLTAGE_OFF);
-+	}
-+	ddb_lnb_init_fmode(dev, link, fmode);
-+
-+	dvb->fe->ops.set_voltage = max_set_voltage;
-+	dvb->fe->ops.enable_high_lnb_voltage = max_enable_high_lnb_voltage;
-+	dvb->fe->ops.set_tone = max_set_tone;
-+	dvb->diseqc_send_master_cmd = dvb->fe->ops.diseqc_send_master_cmd;
-+	dvb->fe->ops.diseqc_send_master_cmd = max_send_master_cmd;
-+	dvb->fe->ops.diseqc_send_burst = max_send_burst;
-+	dvb->fe->sec_priv = input;
-+	dvb->input = tuner;
-+	return 0;
-+}
-diff --git a/drivers/media/pci/ddbridge/ddbridge-max.h b/drivers/media/pci/ddbridge/ddbridge-max.h
-index bf8bf38739f6..82efc53baa94 100644
---- a/drivers/media/pci/ddbridge/ddbridge-max.h
-+++ b/drivers/media/pci/ddbridge/ddbridge-max.h
-@@ -25,5 +25,6 @@
- 
- int ddb_lnb_init_fmode(struct ddb *dev, struct ddb_link *link, u32 fm);
- int ddb_fe_attach_mxl5xx(struct ddb_input *input);
-+int ddb_fe_attach_mci(struct ddb_input *input);
- 
- #endif /* _DDBRIDGE_MAX_H */
--- 
-2.16.1
+I'm certainly open to help with finding a correct solution, but the
+patch above was purposefully terse because this is something that I
+hope we can get backported to v4.16 to unbreak Nouveau. Coordinating
+such a backport between ARM and DRM trees does not sound like something
+that would help getting this fixed in v4.16.
+
+The fundamental issue here is that the DMA/IOMMU integration is
+something that has caused a number of surprising regressions in the past
+because it tends to sneak in unexpectedly. For example the current
+regression shows up only if CONFIG_ARM_DMA_USE_IOMMU=3Dy because the DMA
+API will then transparently create a second mapping and mess things up.
+Everything works fine if that option is disabled. This is ultimately why
+we didn't notice, since we don't enable that option by default. I do
+have a patch that I plan to apply to the Tegra tree that will always
+enable CONFIG_ARM_DMA_USE_IOMMU=3Dy on Tegra to avoid any such surprises
+in the future, but I can obviously only apply that once the above patch
+is applied to Nouveau, otherwise we'll break Nouveau unconditionally.
+
+Granted, this issue could've been caught with a little more testing, but
+in retrospect I think it would've been a lot better if ARM_DMA_USE_IOMMU
+was just enabled unconditionally if it has side-effects that platforms
+don't opt in to but have to explicitly opt out of.
+
+Thierry
+
+--3MwIy2ne0vdjdPXF
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlrgMTwACgkQ3SOs138+
+s6FhzxAAhAWFPLKYY1teMqCaHfPUBIUiOMRZJU7ufMMjY28rJFHHZGQoa0Tj3WzZ
+2msD0RZKxdnYuRAs90G3XHtYYULICSYi3XJ31V9pLHHmptLNHmeAbzQ39lLue19L
+Cc+1LozOpc99zmDTW94SdXzzoIqHzaPA0Pm+020+np6ASBxfn5jnkVTbB48Wm4WF
+ug5gt+6n7jCX3jXOomaHJVeZKSCj57SIKb9YxJ7kconRU6J3zgVSaprku2yxKpeV
+/ii6IdAMlb1vpFi126ssD81aJ72e2yWBwegLkn2m+exnz7BzkL2qs82ERiTYJZ8x
+IeKoC8tNQcA1Ev6v8MpeUjpaGJuiTQjXXUvrBj3xh5hG+5yt8gFcRE1h4/hFHz2O
+/GJwPNfWZsESd82c/uOAEGhuYiRkh85mP3JqRZOXt3xryf9tdpqGf6YI0dpE6Yle
+Xc1hNRdDOKPswQxdSKoI75yRWD42fWEr2g3nY2KQO/FMZqPMq8Sp/vGzoBI1ZALH
+W3f6ACLxBzrmUtLcBWWX20FoQ+wwrQefezXXljVIU8i/ZPh1Pcn9u9PCAW3FgGV6
+lSdzTjsupvbC5rFvH/JL0vKcBf1UAZdctbV5preQOGBOv0qyy/mSPDUJCRhZc3M5
+A5Y0hGYKZPw4EyGyA/YzsqcOFj5EmdXS5DQVoeYk/8ENbm+WEHI=
+=wFUj
+-----END PGP SIGNATURE-----
+
+--3MwIy2ne0vdjdPXF--
