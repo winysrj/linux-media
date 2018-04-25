@@ -1,146 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42757 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753824AbeDCWLd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 18:11:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v13 17/33] rcar-vin: cache video standard
-Date: Wed, 04 Apr 2018 01:11:41 +0300
-Message-ID: <2169799.4QuVgQcVPN@avalon>
-In-Reply-To: <20180326214456.6655-18-niklas.soderlund+renesas@ragnatech.se>
-References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se> <20180326214456.6655-18-niklas.soderlund+renesas@ragnatech.se>
+Received: from mga07.intel.com ([134.134.136.100]:29925 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751274AbeDYJOY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 05:14:24 -0400
+Date: Wed, 25 Apr 2018 14:48:58 +0530
+From: Vinod Koul <vinod.koul@intel.com>
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Simon Horman <horms@verge.net.au>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/8] dmaengine: shdmac: Change platform check to
+ CONFIG_ARCH_RENESAS
+Message-ID: <20180425091858.GN6014@localhost>
+References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
+ <1524230914-10175-3-git-send-email-geert+renesas@glider.be>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1524230914-10175-3-git-send-email-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On Fri, Apr 20, 2018 at 03:28:28PM +0200, Geert Uytterhoeven wrote:
+> Since commit 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS")
+> is CONFIG_ARCH_RENESAS a more appropriate platform check than the legacy
+> CONFIG_ARCH_SHMOBILE, hence use the former.
+> 
+> Renesas SuperH SH-Mobile SoCs are still covered by the CONFIG_CPU_SH4
+> check, just like before support for Renesas ARM SoCs was added.
+> 
+> Instead of blindly changing all the #ifdefs, switch the main code block
+> in sh_dmae_probe() to IS_ENABLED(), as this allows to remove all the
+> remaining #ifdefs.
+> 
+> This will allow to drop ARCH_SHMOBILE on ARM in the near future.
 
-Thank you for the patch.
+Applied, thanks
 
-On Tuesday, 27 March 2018 00:44:40 EEST Niklas S=F6derlund wrote:
-> At stream on time the driver should not query the subdevice for which
-> standard are used. Instead it should be cached when userspace sets the
-> standard and used at stream on time.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c |  6 ++++++
->  drivers/media/platform/rcar-vin/rcar-dma.c  |  7 ++-----
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 10 ++++++++--
->  drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
->  4 files changed, 18 insertions(+), 7 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index
-> be49d8968f0a0cef..8c251687e81b345b 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -96,6 +96,12 @@ static int rvin_digital_subdevice_attach(struct rvin_d=
-ev
-> *vin, if (ret < 0 && ret !=3D -ENOIOCTLCMD && ret !=3D -ENODEV)
->  		return ret;
->=20
-> +	/* Read standard */
-> +	vin->std =3D V4L2_STD_UNKNOWN;
-> +	ret =3D v4l2_subdev_call(subdev, video, g_std, &vin->std);
-> +	if (ret < 0 && ret !=3D -ENOIOCTLCMD)
-> +		return ret;
-> +
->  	/* Add the controls */
->  	ret =3D v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
->  	if (ret < 0)
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
-> b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> 9233924e5b52de5f..79f4074b931b5aeb 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -592,7 +592,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
->  static int rvin_setup(struct rvin_dev *vin)
->  {
->  	u32 vnmc, dmr, dmr2, interrupts;
-> -	v4l2_std_id std;
->  	bool progressive =3D false, output_is_yuv =3D false, input_is_yuv =3D f=
-alse;
->=20
->  	switch (vin->format.field) {
-> @@ -606,10 +605,8 @@ static int rvin_setup(struct rvin_dev *vin)
->  		/* Default to TB */
->  		vnmc =3D VNMC_IM_FULL;
->  		/* Use BT if video standard can be read and is 60 Hz format */
-> -		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
-> -			if (std & V4L2_STD_525_60)
-> -				vnmc =3D VNMC_IM_FULL | VNMC_FOC;
-> -		}
-> +		if (vin->std & V4L2_STD_525_60)
-> +			vnmc =3D VNMC_IM_FULL | VNMC_FOC;
->  		break;
->  	case V4L2_FIELD_INTERLACED_TB:
->  		vnmc =3D VNMC_IM_FULL;
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> c4be0bcb8b16f941..43370c57d4b6239a 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -477,6 +477,8 @@ static int rvin_s_std(struct file *file, void *priv,
-> v4l2_std_id a) if (ret < 0)
->  		return ret;
->=20
-> +	vin->std =3D a;
-> +
->  	/* Changing the standard will change the width/height */
->  	return rvin_reset_format(vin);
->  }
-> @@ -484,9 +486,13 @@ static int rvin_s_std(struct file *file, void *priv,
-> v4l2_std_id a) static int rvin_g_std(struct file *file, void *priv,
-> v4l2_std_id *a) {
->  	struct rvin_dev *vin =3D video_drvdata(file);
-> -	struct v4l2_subdev *sd =3D vin_to_source(vin);
->=20
-> -	return v4l2_subdev_call(sd, video, g_std, a);
-> +	if (v4l2_subdev_has_op(vin_to_source(vin), pad, dv_timings_cap))
-> +		return -ENOIOCTLCMD;
-> +
-> +	*a =3D vin->std;
-> +
-> +	return 0;
->  }
->=20
->  static int rvin_subscribe_event(struct v4l2_fh *fh,
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> e940366d7e8d0e76..06cec4f8e5ffaf2b 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -118,6 +118,7 @@ struct rvin_info {
->   * @crop:		active cropping
->   * @compose:		active composing
->   * @source:		active size of the video source
-> + * @std:		active video standard of the video source
->   */
->  struct rvin_dev {
->  	struct device *dev;
-> @@ -146,6 +147,7 @@ struct rvin_dev {
->  	struct v4l2_rect crop;
->  	struct v4l2_rect compose;
->  	struct v4l2_rect source;
-> +	v4l2_std_id std;
->  };
->=20
->  #define vin_to_source(vin)		((vin)->digital->subdev)
-
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+-- 
+~Vinod
