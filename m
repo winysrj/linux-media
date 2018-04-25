@@ -1,43 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:50880 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758020AbeDXNTj (ORCPT
+Received: from relay11.mail.gandi.net ([217.70.178.231]:48849 "EHLO
+        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752807AbeDYLAY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 09:19:39 -0400
-From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH] media: s921: fix s921_get_algo()'s return type
-Date: Tue, 24 Apr 2018 15:19:34 +0200
-Message-Id: <20180424131936.6220-1-luc.vanoostenryck@gmail.com>
+        Wed, 25 Apr 2018 07:00:24 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: hans.verkuil@cisco.com, mchehab@kernel.org, robh+dt@kernel.org
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 0/2] media: i2c: mt9t112: Add OF tree support
+Date: Wed, 25 Apr 2018 13:00:12 +0200
+Message-Id: <1524654014-17852-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The method dvb_frontend_ops::get_frontend_algo() is defined as
-returning an 'enum dvbfe_algo', but the implementation in this
-driver returns an 'int'.
+Hello,
 
-Fix this by returning 'enum dvbfe_algo' in this driver too.
+    this small series add device tree support for the MT9T112 image
+sensor.
 
-Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
----
- drivers/media/dvb-frontends/s921.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+As in the device tree bindings I used 'semi-standard' name for the
+'powerdown' GPIO, I have changed that for all other users of the mt9t112
+driver (SH Ecovec only).
 
-diff --git a/drivers/media/dvb-frontends/s921.c b/drivers/media/dvb-frontends/s921.c
-index 2d75ede77..6c9015236 100644
---- a/drivers/media/dvb-frontends/s921.c
-+++ b/drivers/media/dvb-frontends/s921.c
-@@ -464,7 +464,7 @@ static int s921_tune(struct dvb_frontend *fe,
- 	return rc;
- }
- 
--static int s921_get_algo(struct dvb_frontend *fe)
-+static enum dvbfe_algo s921_get_algo(struct dvb_frontend *fe)
- {
- 	return DVBFE_ALGO_HW;
- }
--- 
-2.17.0
+A note on clock: as the mt9t112 driver expects to receive the PPL parameter
+configuration from platform data (I know...), new OF users are only supported
+with an external clock frequency of 24MHz.
+
+Thanks
+   j
+
+Jacopo Mondi (2):
+  dt-bindings: media: i2c: Add mt9t111 image sensor
+  media: i2c: mt9t112: Add device tree support
+
+ Documentation/devicetree/bindings/mt9t112.txt | 41 +++++++++++++
+ arch/sh/boards/mach-ecovec24/setup.c          |  4 +-
+ drivers/media/i2c/mt9t112.c                   | 87 +++++++++++++++++++++++----
+ 3 files changed, 118 insertions(+), 14 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mt9t112.txt
+
+--
+2.7.4
