@@ -1,151 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:36001 "EHLO mail.horus.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751692AbeDRRmc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 13:42:32 -0400
-Date: Wed, 18 Apr 2018 19:42:29 +0200
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, Carlo Caione <carlo@caione.org>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Alex Deryskyba <alex@codesnake.com>,
-        Jonas Karlman <jonas@kwiboo.se>,
-        linux-amlogic@lists.infradead.org
-Subject: Re: [PATCH v2 7/7] media: rc: mceusb: allow the timeout to be
- configurable
-Message-ID: <20180418174229.jurjnyqbtkyctjvb@camel2.lan>
-References: <cover.1523221902.git.sean@mess.org>
- <02b5dac3b27169c6e6a4a070a2569b33fef47bbe.1523221902.git.sean@mess.org>
- <20180417191457.fhgsdega2kjqw3t2@camel2.lan>
- <20180418112428.zk3lmdxoqv46weph@gofer.mess.org>
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:40366 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750929AbeDYGYi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 02:24:38 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180418112428.zk3lmdxoqv46weph@gofer.mess.org>
+In-Reply-To: <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+References: <CAKMK7uEFVOh-R2_4vs1M22_wDau0oNTgmCcTWDE+ScxL=92+2g@mail.gmail.com>
+ <20180419081657.GA16735@infradead.org> <20180420071312.GF31310@phenom.ffwll.local>
+ <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com> <20180420101755.GA11400@infradead.org>
+ <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com> <20180420124625.GA31078@infradead.org>
+ <20180420152111.GR31310@phenom.ffwll.local> <20180424184847.GA3247@infradead.org>
+ <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+ <20180425054855.GA17038@infradead.org> <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+From: Alex Deucher <alexdeucher@gmail.com>
+Date: Wed, 25 Apr 2018 02:24:36 -0400
+Message-ID: <CADnq5_P3bT0TStSXpKh11ydifv=KwKtRj-7tDS=GQXey+8tBPw@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Christoph Hellwig <hch@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+On Wed, Apr 25, 2018 at 2:13 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Wed, Apr 25, 2018 at 7:48 AM, Christoph Hellwig <hch@infradead.org> wr=
+ote:
+>> On Tue, Apr 24, 2018 at 09:32:20PM +0200, Daniel Vetter wrote:
+>>> Out of curiosity, how much virtual flushing stuff is there still out
+>>> there? At least in drm we've pretty much ignore this, and seem to be
+>>> getting away without a huge uproar (at least from driver developers
+>>> and users, core folks are less amused about that).
+>>
+>> As I've just been wading through the code, the following architectures
+>> have non-coherent dma that flushes by virtual address for at least some
+>> platforms:
+>>
+>>  - arm [1], arm64, hexagon, nds32, nios2, parisc, sh, xtensa, mips,
+>>    powerpc
+>>
+>> These have non-coherent dma ops that flush by physical address:
+>>
+>>  - arc, arm [1], c6x, m68k, microblaze, openrisc, sparc
+>>
+>> And these do not have non-coherent dma ops at all:
+>>
+>>  - alpha, h8300, riscv, unicore32, x86
+>>
+>> [1] arm =D1=95eems to do both virtually and physically based ops, furthe=
+r
+>> audit needed.
+>>
+>> Note that using virtual addresses in the cache flushing interface
+>> doesn't mean that the cache actually is virtually indexed, but it at
+>> least allows for the possibility.
+>>
+>>> > I think the most important thing about such a buffer object is that
+>>> > it can distinguish the underlying mapping types.  While
+>>> > dma_alloc_coherent, dma_alloc_attrs with DMA_ATTR_NON_CONSISTENT,
+>>> > dma_map_page/dma_map_single/dma_map_sg and dma_map_resource all give
+>>> > back a dma_addr_t they are in now way interchangable.  And trying to
+>>> > stuff them all into a structure like struct scatterlist that has
+>>> > no indication what kind of mapping you are dealing with is just
+>>> > asking for trouble.
+>>>
+>>> Well the idea was to have 1 interface to allow all drivers to share
+>>> buffers with anything else, no matter how exactly they're allocated.
+>>
+>> Isn't that interface supposed to be dmabuf?  Currently dma_map leaks
+>> a scatterlist through the sg_table in dma_buf_map_attachment /
+>> ->map_dma_buf, but looking at a few of the callers it seems like they
+>> really do not even want a scatterlist to start with, but check that
+>> is contains a physically contiguous range first.  So kicking the
+>> scatterlist our there will probably improve the interface in general.
+>
+> I think by number most drm drivers require contiguous memory (or an
+> iommu that makes it look contiguous). But there's plenty others who
+> have another set of pagetables on the gpu itself and can
+> scatter-gather. Usually it's the former for display/video blocks, and
+> the latter for rendering.
+>
+>>> dma-buf has all the functions for flushing, so you can have coherent
+>>> mappings, non-coherent mappings and pretty much anything else. Or well
+>>> could, because in practice people hack up layering violations until it
+>>> works for the 2-3 drivers they care about. On top of that there's the
+>>> small issue that x86 insists that dma is coherent (and that's true for
+>>> most devices, including v4l drivers you might want to share stuff
+>>> with), and gpus really, really really do want to make almost
+>>> everything incoherent.
+>>
+>> How do discrete GPUs manage to be incoherent when attached over PCIe?
+>
+> It has a non-coherent transaction mode (which the chipset can opt to
+> not implement and still flush), to make sure the AGP horror show
+> doesn't happen again and GPU folks are happy with PCIe. That's at
+> least my understanding from digging around in amd the last time we had
+> coherency issues between intel and amd gpus. GPUs have some bits
+> somewhere (in the pagetables, or in the buffer object description
+> table created by userspace) to control that stuff.
 
-On Wed, Apr 18, 2018 at 12:24:29PM +0100, Sean Young wrote:
-> Hello Hias,
-> 
-> On Tue, Apr 17, 2018 at 09:14:57PM +0200, Matthias Reichl wrote:
-> > On Sun, Apr 08, 2018 at 10:19:42PM +0100, Sean Young wrote:
-> > > mceusb devices have a default timeout of 100ms, but this can be changed.
-> > 
-> > We finally added a backport of the v2 series (and also the mce_kbd
-> > series) to LibreELEC yesterday and ratcher quickly received 2 bugreports
-> > from users using mceusb receivers.
-> > 
-> > Local testing on RPi/gpio-ir and Intel NUC/ite-cir was fine, I've
-> > been using the v2 series for over a week without issues on
-> > LibreELEC (RPi with kernel 4.14).
-> > 
-> > Here are the links to the bugreports and logs:
-> > https://forum.kodi.tv/showthread.php?tid=298461&pid=2726684#pid2726684
-> > https://forum.kodi.tv/showthread.php?tid=298462&pid=2726690#pid2726690
-> > 
-> > Both users are using similar mceusb receivers:
-> > 
-> > Log 1:
-> > [    6.418218] rc rc0: Media Center Ed. eHome Infrared Remote Transceiver (147a:e017) as /devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/1-1.3:1.0/rc/rc0
-> > [    6.418358] input: Media Center Ed. eHome Infrared Remote Transceiver (147a:e017) as /devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/1-1.3:1.0/rc/rc0/input0
-> > [    6.419443] rc rc0: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-> > [    6.608114] mceusb 1-1.3:1.0: Registered Formosa21 SnowflakeEmulation with mce emulator interface version 1
-> > [    6.608125] mceusb 1-1.3:1.0: 0 tx ports (0x0 cabled) and 1 rx sensors (0x1 active)
-> > 
-> > Log 2:
-> > [    3.023361] rc rc0: Media Center Ed. eHome Infrared Remote Transceiver (147a:e03e) as /devices/pci0000:00/0000:00:14.0/usb1/1-10/1-10:1.0/rc/rc0
-> > [    3.023393] input: Media Center Ed. eHome Infrared Remote Transceiver (147a:e03e) as /devices/pci0000:00/0000:00:14.0/usb1/1-10/1-10:1.0/rc/rc0/input11
-> > [    3.023868] rc rc0: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-> > [    3.119384] input: eventlircd as /devices/virtual/input/input21
-> > [    3.138625] ip6_tables: (C) 2000-2006 Netfilter Core Team
-> > [    3.196830] mceusb 1-10:1.0: Registered Formosa21 eHome Infrared Transceiver with mce emulator interface version 2
-> > [    3.196836] mceusb 1-10:1.0: 0 tx ports (0x0 cabled) and 1 rx sensors (0x1 active)
-> > 
-> > In both cases ir-keytable doesn't report any scancodes and the
-> > ir-ctl -r output contains very odd long space values where I'd expect
-> > a short timeout instead:
-> > 
-> > gap between messages:
-> > space 800
-> > pulse 450
-> > space 16777215
-> > space 25400
-> > pulse 2650
-> > space 800
-> > 
-> > end of last message:
-> > space 800
-> > pulse 450
-> > space 16777215
-> > timeout 31750
-> > 
-> > This patch applied cleanly on 4.14 and the mceusb history from
-> > 4.14 to media/master looked rather unsuspicious. I'm not 100% sure
-> > if I might have missed a dependency when backporting the patch
-> > or if this is indeed an issue of this patch on these particular
-> > (or maybe some more) mceusb receivers.
-> 
-> Thanks again for a great bug report and analysis! So, it seems with the
-> shorter timeout, some mceusb devices add a specific "timeout" code to
-> the IR data stream (0x80) rather than a space. The current mceusb code
-> resets the decoders in this case, causing the IR decoders to reset and
-> lirc to report a space of 0xffffff.
-> 
-> Turns out that one of my mceusb devices also suffers from this, I don't
-> know how I missed this. Anyway hopefully this will solve the problem.
+Right.  We have a bit in the GPU page table entries that determines
+whether we snoop the CPU's cache or not.
 
-Thanks a lot for the quick fix!
+Alex
 
-I can't test myself as I don't have the hardware, but we will
-include the patch in tonight's LibreELEC build and I asked the
-users to test it. I'll keep you posted about the outcome.
-
-so long,
-
-Hias
-
-> 
-> 
-> Thanks
-> 
-> Sean
-> 
-> >>From 92d27b206e51993e927dc0b3aba210a621eef3d0 Mon Sep 17 00:00:00 2001
-> From: Sean Young <sean@mess.org>
-> Date: Wed, 18 Apr 2018 10:36:25 +0100
-> Subject: [PATCH] media: rc: mceusb: IR of length 0 means IR timeout, not reset
-> 
-> The last usb packet with IR data will end with 0x80 (MCE_IRDATA_TRAILER).
-> If we reset the decoder state at this point, IR decoding can fail.
-> 
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/rc/mceusb.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-> index c97cb2eb1c5f..5c0bf61fae26 100644
-> --- a/drivers/media/rc/mceusb.c
-> +++ b/drivers/media/rc/mceusb.c
-> @@ -1201,7 +1201,12 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
->  			if (ir->rem) {
->  				ir->parser_state = PARSE_IRDATA;
->  			} else {
-> -				ir_raw_event_reset(ir->rc);
-> +				init_ir_raw_event(&rawir);
-> +				rawir.timeout = 1;
-> +				rawir.duration = ir->rc->timeout;
-> +				if (ir_raw_event_store_with_filter(ir->rc,
-> +								   &rawir))
-> +					event = true;
->  				ir->pulse_tunit = 0;
->  				ir->pulse_count = 0;
->  			}
-> -- 
-> 2.14.3
-> 
+>
+> For anything on the SoC it's presented as pci device, but that's
+> extremely fake, and we can definitely do non-snooped transactions on
+> drm/i915. Again, controlled by a mix of pagetables and
+> userspace-provided buffer object description tables.
+> -Daniel
+> --
+> Daniel Vetter
+> Software Engineer, Intel Corporation
+> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
+> _______________________________________________
+> amd-gfx mailing list
+> amd-gfx@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/amd-gfx
