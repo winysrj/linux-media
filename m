@@ -1,131 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:41914 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751550AbeD2DsD (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:54270 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753986AbeDYLNX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Apr 2018 23:48:03 -0400
-Message-ID: <91c9c5c4f250c9eeddc429ea375975de@smtp-cloud8.xs4all.net>
-Date: Sun, 29 Apr 2018 05:47:58 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Wed, 25 Apr 2018 07:13:23 -0400
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+        by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20180425111321euoutp017d2e1ffa4b1b60f4a4225dcb9911131d~oqXbUxMRf2715127151euoutp01i
+        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2018 11:13:21 +0000 (GMT)
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with
+ COMPILE_TEST && DRM_OMAP
+Date: Wed, 25 Apr 2018 13:13:18 +0200
+Message-ID: <2150137.NOxbZFYopW@amdc3058>
+In-Reply-To: <d155af94-539b-699a-73cc-7eae72bd9efa@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+        <5379683.QunLsIS18Z@amdc3058> <d155af94-539b-699a-73cc-7eae72bd9efa@ti.com>
+        <CGME20180425111319eucas1p163fa4f5f7f51bc854763ba3c3c87b605@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+On Monday, April 23, 2018 05:11:14 PM Tomi Valkeinen wrote:
+> On 23/04/18 16:56, Bartlomiej Zolnierkiewicz wrote:
+> 
+> > Ideally we should be able to build both drivers in the same kernel
+> > (especially as modules).
+> > 
+> > I was hoping that it could be fixed easily but then I discovered
+> > the root source of the problem:
+> > 
+> > drivers/gpu/drm/omapdrm/dss/display.o: In function `omapdss_unregister_display':
+> > display.c:(.text+0x2c): multiple definition of `omapdss_unregister_display'
+> > drivers/video/fbdev/omap2/omapfb/dss/display.o:display.c:(.text+0x198): first defined here
+> 
+> The main problem is that omapdrm and omapfb are two different drivers
+> for the same HW. You need to pick one, even if we would change those
+> functions and fix the link issue.
 
-date:			Sun Apr 29 05:00:10 CEST 2018
-media-tree git hash:	a2b2eff6ac2716f499defa590a6ec4ba379d765e
-media_build git hash:	2945d108c680b3c09c9843e001e84a9797d7f379
-v4l-utils git hash:	03e763fd4b361b2082019032fc315b7606669335
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
+With proper resource allocation in both drivers this shouldn't be
+a problem - the one which allocates resources first will be used
+(+ we can initialize omapdrm first in case it is built-in). This is
+how similar situations are handled in other kernel subsystems.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+It seems that the real root problem is commit f76ee892a99e ("omapfb:
+copy omapdss & displays for omapfb") from Dec 2015 which resulted in
+duplication of ~30 KLOC of code. The code in question seems to be
+both fbdev & drm independent:
 
-Detailed results are available here:
+"
+    * omapdss, located in drivers/video/fbdev/omap2/dss/. This is a driver for the
+      display subsystem IPs used on OMAP (and related) SoCs. It offers only a
+      kernel internal API, and does not implement anything for fbdev or drm.
+    
+    * omapdss panels and encoders, located in
+      drivers/video/fbdev/omap2/displays-new/. These are panel and external encoder
+      drivers, which use APIs offered by omapdss driver. These also don't implement
+      anything for fbdev or drm.
+"
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+While I understand some motives behind this change I'm not overall
+happy with it..
 
-Full logs are available here:
+> At some point in time we could compile both as modules (but not
+> built-in), but the only use for that was development/testing and in the
+> end made our life more difficult. So, now you must fully disable one of
+> them to enable the other. And, actually, we even have boot-time code,
+> not included in the module itself, which gets enabled when omapdrm is
+> enabled.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Do you mean some code in arch/arm/mach-omap2/ or something else?
 
-The Media Infrastructure API from this daily build is here:
+> While it's of course good to support COMPILE_TEST, if using COMPILE_TEST
+> with omapfb is problematic, I'm not sure if it's worth to spend time on
+> that. We should be moving away from omapfb to omapdrm.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Is there some approximate schedule for omapfb removal available?
+
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
