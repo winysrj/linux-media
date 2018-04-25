@@ -1,41 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55412 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755273AbeDXK2t (ORCPT
+Received: from lelnx193.ext.ti.com ([198.47.27.77]:62396 "EHLO
+        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752114AbeDYJeR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 06:28:49 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: maxime.ripard@bootlin.org, slongerbeam@gmail.com
-Subject: [PATCH 1/1] ov5640: Use dev_fwnode() to obtain device's fwnode
-Date: Tue, 24 Apr 2018 13:28:47 +0300
-Message-Id: <20180424102847.16396-1-sakari.ailus@linux.intel.com>
+        Wed, 25 Apr 2018 05:34:17 -0400
+Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with
+ COMPILE_TEST && DRM_OMAP
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-fbdev@vger.kernel.org>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+ <20180423170955.13421017@vento.lan>
+ <70b5e60f-346e-4b34-8235-ce62de720a99@ti.com> <1818588.4EAHIaV2gL@avalon>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Message-ID: <dce06ad8-0035-81e6-9ec9-15009d13e374@ti.com>
+Date: Wed, 25 Apr 2018 12:33:53 +0300
+MIME-Version: 1.0
+In-Reply-To: <1818588.4EAHIaV2gL@avalon>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use dev_fwnode() on the device instead of getting an fwnode handle of the
-device's OF node. The result is the same on OF-based systems and looks
-better, too.
+On 25/04/18 12:03, Laurent Pinchart wrote:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/ov5640.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> Could we trim down omapfb to remove support for the devices supported by 
+> omapdrm ?
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 852026baa2e7..7acd3b44d194 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -2536,8 +2536,8 @@ static int ov5640_probe(struct i2c_client *client,
- 
- 	sensor->ae_target = 52;
- 
--	endpoint = fwnode_graph_get_next_endpoint(
--		of_fwnode_handle(client->dev.of_node), NULL);
-+	endpoint = fwnode_graph_get_next_endpoint(dev_fwnode(&client->dev),
-+						  NULL);
- 	if (!endpoint) {
- 		dev_err(dev, "endpoint node not found\n");
- 		return -EINVAL;
+I was thinking about just that. But, of course, it's not quite
+straightforward either.
+
+We've got DSI manual update functionality in OMAP3-OMAP5 SoCs, which
+covers a lot of devices. And VRFB on OMAP2/3. Those need omapfb.
+
+ Tomi
+
 -- 
-2.11.0
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
