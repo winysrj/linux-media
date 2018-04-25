@@ -1,67 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:51659 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756552AbeDXIYd (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:52463 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754320AbeDYP0S (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 04:24:33 -0400
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: Luca Ceresoli <luca@lucaceresoli.net>,
-        Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2 00/13] media: imx274: cleanups, improvements and SELECTION API support
-Date: Tue, 24 Apr 2018 10:24:05 +0200
-Message-Id: <1524558258-530-1-git-send-email-luca@lucaceresoli.net>
+        Wed, 25 Apr 2018 11:26:18 -0400
+Received: by mail-wm0-f68.google.com with SMTP id w195so7879610wmw.2
+        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2018 08:26:18 -0700 (PDT)
+Message-ID: <5ae09e19.21a8500a.e5c88.dcfa@mx.google.com>
+Date: Wed, 25 Apr 2018 17:26:16 +0200
+From: mjs <mjstork@gmail.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add new dvb-t board ":Zolid Hybrid Tv Stick"
+In-Reply-To: <20180425114505.5f34ca05@vento.lan>
+References: <5ae045df.ddf5500a.22ca5.10bb@mx.google.com>
+        <20180425061620.19037894@vento.lan>
+        <5ae0543f.cebe500a.d570c.a01a@mx.google.com>
+        <20180425081855.5ba4fc79@vento.lan>
+        <5ae0736a.46a7500a.f10d6.eeaf@mx.google.com>
+        <20180425114505.5f34ca05@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Op Wed, 25 Apr 2018 11:45:05 -0300
+Mauro Carvalho Chehab <mchehab+samsung@kernel.org> schreef:
 
-this patchset introduces cropping support for the Sony IMX274 sensor
-using the SELECTION API.
+> Em Wed, 25 Apr 2018 14:24:09 +0200
+> mjs <mjstork@gmail.com> escreveu:
+> 
+> > Op Wed, 25 Apr 2018 08:18:55 -0300
+> > Mauro Carvalho Chehab <mchehab+samsung@kernel.org> schreef:
+> >   
+> > > Em Wed, 25 Apr 2018 12:11:10 +0200
+> > > mjs <mjstork@gmail.com> escreveu:
+> > >     
+> > > > Op Wed, 25 Apr 2018 06:16:20 -0300
+> > > > Mauro Carvalho Chehab <mchehab+samsung@kernel.org> schreef:
+> > > >       
+> > > > > Em Wed, 25 Apr 2018 11:09:50 +0200
+> > > > > mjs <mjstork@gmail.com> escreveu:
+> > > > >         
+> > > > > > From 0a3355b47dc465c6372d30fa4a36d1c5db6c0fe2 Mon Sep 17 00:00:00 2001
+> > > > > > From: Marcel Stork <mjstork@gmail.com>
+> > > > > > Date: Wed, 25 Apr 2018 10:53:34 +0200
+> > > > > > Subject: [PATCH] Add new dvb-t board ":Zolid Hybrid Tv Stick".
+> > > > > > 
+> > > > > > Extra code to be able to use this stick, only digital, not analog nor remote-control.
+> > > > > > 
+> > > > > > Changes to be committed:
+> > > > > > 	modified:   em28xx-cards.c
+> > > > > > 	modified:   em28xx-dvb.c
+> > > > > > 	modified:   em28xx.h          
+> > > > > 
+> > > > > You forgot to add your Signed-off-by. That's mandatory for patches to
+> > > > > be acepted.        
+> > > > 
+> > > > Ok, still learning
+> > > >       
+> > > > >         
+> > > > > > 
+> > > > > > ---
+> > > > > >  em28xx-cards.c | 30 +++++++++++++++++++++++++++++-
+> > > > > >  em28xx-dvb.c   |  1 +
+> > > > > >  em28xx.h       |  1 +
+> > > > > >  3 files changed, 31 insertions(+), 1 deletion(-)          
+> > > > > 
+> > > > > 
+> > > > > use git diff against upstream tree. This should be using
+> > > > > a different paths there, e.g. drivers/media/usb/em28xx/...        
+> > > > 
+> > > > This is actually against the upstream tree, in line with your advice in a previous mail.
+> > > > After git clone... and ./build, I did not do "make install" but copy-paste out of the /media_build/linux/drivers/media/usb/em28xx
+> > > > Reason, I do not have an experimental pc and some parts are experimental.
+> > > > I did not want to take the risk to crash my working pc at this moment in time.
+> > > > 
+> > > > I will try to work around this problem.      
+> > > 
+> > > Upstream is actually this tree:
+> > > 
+> > > 	https://git.linuxtv.org/media_tree.git/
+> > > 
+> > > The media_build tree is what we call a "backport tree" :-)    
+> > 
+> > I started with "https://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches" in line with your advice in a previous mail.  
+> 
+> The first line there at "Patch preparation" says:
+> 
+> 	"For Kernel media patches, they should be created against the Linux Kernel master linux_media git tree[1]"
+> 
+> [1] With links to: http://git.linuxtv.org/media_tree.git
+> 
+> > Followed the text to "https://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device Drivers" basic approach.  
+> 
+> I see... here, information were indeed incomplete.
+> 
+> I just updated it.
+> 
+> 
+> > Also to "https://git.linuxtv.org/media_build.git/about/"
+> > I have used "git clone --depth=1 git://linuxtv.org/media_build.git" followed by ./build and copy/paste files mentioned above.
+> > This is not the required upstream tree ?  
+> 
+> There's a similar instruction at media_tree.git/about, with is the one you
+> would be using instead.
+> 
+> > 
+> > Work around:
+> > Added the path to all files manually.
+> > This is acceptable ?  
+> 
+> An acceptable workaround would be to create another tree at the place
+> it untars the driver's tarball (under linux dir), and do the
+> diffs there.
+> 
+> The ./build script actually does something similar to that, if used
+> with the --main-git option, but, if you're willing to use it, be
+> careful to do on a separate clone, as otherwise it may destroy your
+> work, as it will setup a different environment, and you'll lose
+> any changes you've made inside that media_build cloned tree.
 
-With respect to v1 this patchset adds the "media: " prefix to commits
-and fixes a warning in patch 9.
+Oke, this time it will work.
+Two new patches coming up soon.
 
-Patches 1-6 clean up and restructure code in various places and are
-pretty much independent from the cropping feature.
-
-Patches 7-11 are further restructuring which are mostly useful to
-implement cropping API in a cleaner way.
-
-Patch 12 introduces a helper to allow setting many registers computed
-at runtime in a straightforward way. This would not have been very
-useful before because all long register write sequences came from
-const tables, but it's definitely a must for the cropping code.
-
-Patch 13 implements cropping in the set_selection pad operation. On
-the v4l2 side there is nothing special. The most tricky part was
-respecting all the device constraints on the horizontal crop.
-
-Regards,
-Luca
-
-Luca Ceresoli (13):
-  media: imx274: document reset delays more clearly
-  media: imx274: fix typo in comment
-  media: imx274: slightly simplify code
-  media: imx274: remove unused data from struct imx274_frmfmt
-  media: imx274: rename and reorder register address definitions
-  media: imx274: remove non-indexed pointers from mode_table
-  media: imx274: initialize format before v4l2 controls
-  media: imx274: consolidate per-mode data in imx274_frmfmt
-  media: imx274: get rid of mode_index
-  media: imx274: actually use IMX274_DEFAULT_MODE
-  media: imx274: simplify imx274_write_table()
-  media: imx274: add helper function to fill a reg_8 table chunk
-  media: imx274: add SELECTION support for cropping
-
- drivers/media/i2c/imx274.c | 598 ++++++++++++++++++++++++++-------------------
- 1 file changed, 348 insertions(+), 250 deletions(-)
-
--- 
-2.7.4
+Thanks,
+  Marcel
