@@ -1,93 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:42498 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753002AbeDSPnw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 11:43:52 -0400
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Subject: [PATCH v2 02/10] media-request: Add a request complete operation to allow m2m scheduling
-Date: Thu, 19 Apr 2018 17:41:16 +0200
-Message-Id: <20180419154124.17512-3-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:38758 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751451AbeDYK2X (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 06:28:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
+Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with COMPILE_TEST && DRM_OMAP
+Date: Wed, 25 Apr 2018 13:28:37 +0300
+Message-ID: <4069198.SojKMEipNL@avalon>
+In-Reply-To: <7644bb92-e7b2-db27-061b-e0808c7264cd@ti.com>
+References: <cover.1524245455.git.mchehab@s-opensource.com> <10529104.rM2F4eJv5O@avalon> <7644bb92-e7b2-db27-061b-e0808c7264cd@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When using the request API in the context of a m2m driver, the
-operations that come with a m2m run scheduling call in their
-(m2m-specific) ioctl handler are delayed until the request is queued
-(for instance, this includes queuing buffers and streamon).
+Hi Tomi,
 
-Thus, the m2m run scheduling calls are not called in due time since the
-request AP's internal plumbing will (rightfully) use the relevant core
-functions directly instead of the ioctl handler.
+On Wednesday, 25 April 2018 13:10:43 EEST Tomi Valkeinen wrote:
+> On 25/04/18 13:02, Laurent Pinchart wrote:
+> > On Wednesday, 25 April 2018 12:33:53 EEST Tomi Valkeinen wrote:
+> >> On 25/04/18 12:03, Laurent Pinchart wrote:
+> >>> Could we trim down omapfb to remove support for the devices supported by
+> >>> omapdrm ?
+> >> 
+> >> I was thinking about just that. But, of course, it's not quite
+> >> straightforward either.
+> >> 
+> >> We've got DSI manual update functionality in OMAP3-OMAP5 SoCs, which
+> >> covers a lot of devices.
+> > 
+> > Sebastian is working on getting that feature in omapdrm, isn't he ?
+> 
+> Yes, and I keep pushing it forward because of the restructuring you're
+> doing =) (feel free to comment on that thread). But agreed, it's getting
+> better. When we have manual update support, I think the biggest missing
+> feature is then in omapdrm.
+> 
+> >> And VRFB on OMAP2/3.
+> > 
+> > And that's something I'd really like to have in omapdrm too.
+> 
+> Considering how much headache TILER has given, I'm not exactly looking
+> forward to it ;).
+> 
+> If we get manual update and VRFB, I think we are more or less covered on
+> the supported HW features. It'll still break userspace apps which use
+> omapfb, though. Unless we also port the omapfb specific IOCTLs and the
+> sysfs files, which I believe we should not.
 
-This ends up in a situation where nothing happens if there is no
-run-scheduling ioctl called after queuing the request.
+I agree with you, we shouldn't. We'll need a grace period before removing 
+omapfb, if we ever do so.
 
-In order to circumvent the issue, a new media operation is introduced,
-called at the time of handling the media request queue ioctl. It gives
-m2m drivers a chance to schedule a m2m device run at that time.
-
-The existing req_queue operation cannot be used for this purpose, since
-it is called with the request queue mutex held, that is eventually needed
-in the device_run call to apply relevant controls.
-
-Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
----
- drivers/media/media-request.c | 3 +++
- include/media/media-device.h  | 2 ++
- 2 files changed, 5 insertions(+)
-
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index 415f7e31019d..28ac5ccfe6a2 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -157,6 +157,9 @@ static long media_request_ioctl_queue(struct media_request *req)
- 		media_request_get(req);
- 	}
- 
-+	if (mdev->ops->req_complete)
-+		mdev->ops->req_complete(req);
-+
- 	return ret;
- }
- 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 07e323c57202..c7dcf2079cc9 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -55,6 +55,7 @@ struct media_entity_notify {
-  * @req_alloc: Allocate a request
-  * @req_free: Free a request
-  * @req_queue: Queue a request
-+ * @req_complete: Complete a request
-  */
- struct media_device_ops {
- 	int (*link_notify)(struct media_link *link, u32 flags,
-@@ -62,6 +63,7 @@ struct media_device_ops {
- 	struct media_request *(*req_alloc)(struct media_device *mdev);
- 	void (*req_free)(struct media_request *req);
- 	int (*req_queue)(struct media_request *req);
-+	void (*req_complete)(struct media_request *req);
- };
- 
- /**
 -- 
-2.16.3
+Regards,
+
+Laurent Pinchart
