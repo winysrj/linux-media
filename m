@@ -1,255 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:38487 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751575AbeDXIuG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 04:50:06 -0400
-Received: by mail-wr0-f194.google.com with SMTP id h3-v6so48427896wrh.5
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 01:50:06 -0700 (PDT)
-References: <20180423134750.30403-1-rui.silva@linaro.org> <20180423134750.30403-12-rui.silva@linaro.org> <1524498393.3396.4.camel@pengutronix.de>
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>
-Subject: Re: [PATCH v2 11/15] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
-In-reply-to: <1524498393.3396.4.camel@pengutronix.de>
-Date: Tue, 24 Apr 2018 09:50:02 +0100
-Message-ID: <m3sh7ldm4l.fsf@linaro.org>
+Received: from mail-by2nam01on0102.outbound.protection.outlook.com ([104.47.34.102]:52497
+        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756048AbeDYRnz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 13:43:55 -0400
+From: Trent Piepho <tpiepho@impinj.com>
+To: "mchehab+samsung@kernel.org" <mchehab+samsung@kernel.org>,
+        "arnd@arndb.de" <arnd@arndb.de>
+CC: "hch@infradead.org" <hch@infradead.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "arvind.yadav.cs@gmail.com" <arvind.yadav.cs@gmail.com>,
+        "mjpeg-users@lists.sourceforge.net"
+        <mjpeg-users@lists.sourceforge.net>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media: zoran: move to dma-mapping interface
+Date: Wed, 25 Apr 2018 17:43:53 +0000
+Message-ID: <1524678233.31312.5.camel@impinj.com>
+References: <20180424204158.2764095-1-arnd@arndb.de>
+         <20180425061537.GA23383@infradead.org>
+         <CAK8P3a06ragAPWpHGm-bGoZ8t6QyAttWJfD0jU_wcGy7FqLb5w@mail.gmail.com>
+         <20180425072138.GA16375@infradead.org>
+         <CAK8P3a1cs_SPesadAQhV3QU97WjNE8bLPSQCfaMQRU7zr_oh3w@mail.gmail.com>
+         <20180425152636.GC27076@infradead.org>
+         <CAK8P3a0CHSC7yP3x8xDJgcg5xMzD1-sC-rmBJECtYvGFmyG4vQ@mail.gmail.com>
+         <20180425142229.25d756ed@vento.lan>
+In-Reply-To: <20180425142229.25d756ed@vento.lan>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <B9FF15A57AA26B49B71F9C46AE3F6C5F@namprd06.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
-On Mon 23 Apr 2018 at 15:46, Philipp Zabel wrote:
-> On Mon, 2018-04-23 at 14:47 +0100, Rui Miguel Silva wrote:
->> This patch adds the device tree nodes for csi, video 
->> multiplexer and mipi-csi
->> besides the graph connecting the necessary endpoints to make 
->> the media capture
->> entities to work in imx7 Warp board.
->> 
->> Also add the pin control related with the mipi_csi in that 
->> board.
->> 
->> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
->> ---
->>  arch/arm/boot/dts/imx7s-warp.dts | 80 
->>  ++++++++++++++++++++++++++++++++
->>  arch/arm/boot/dts/imx7s.dtsi     | 27 +++++++++++
->>  2 files changed, 107 insertions(+)
->> 
->> diff --git a/arch/arm/boot/dts/imx7s-warp.dts 
->> b/arch/arm/boot/dts/imx7s-warp.dts
->> index 8a30b148534d..91d06adf7c24 100644
->> --- a/arch/arm/boot/dts/imx7s-warp.dts
->> +++ b/arch/arm/boot/dts/imx7s-warp.dts
->> @@ -310,6 +310,79 @@
->>  	status = "okay";
->>  };
->>  
->> +&gpr {
->> +	csi_mux {
->> +		compatible = "video-mux";
->> +		mux-controls = <&mux 0>;
->> +		#address-cells = <1>;
->> +		#size-cells = <0>;
->> +
->> +		port@0 {
->> +			reg = <0>;
->> +
->> +			csi_mux_from_parallel_sensor: endpoint {
->> +			};
->> +		};
->> +
->> +		port@1 {
->> +			reg = <1>;
->> +
->> +			csi_mux_from_mipi_vc0: endpoint {
->> +				remote-endpoint = 
->> <&mipi_vc0_to_csi_mux>;
->> +			};
->> +		};
->> +
->> +		port@2 {
->> +			reg = <2>;
->> +
->> +			csi_mux_to_csi: endpoint {
->> +				remote-endpoint = 
->> <&csi_from_csi_mux>;
->> +			};
->> +		};
->> +	};
->> +};
->> +
->> +&csi {
->> +	status = "okay";
->> +	#address-cells = <1>;
->> +	#size-cells = <0>;
->> +
->> +	port@0 {
->> +		reg = <0>;
->> +
->> +		csi_from_csi_mux: endpoint {
->> +			remote-endpoint = <&csi_mux_to_csi>;
->> +		};
->> +	};
->> +};
->> +
->> +&mipi_csi {
->> +	clock-frequency = <166000000>;
->> +	status = "okay";
->> +	#address-cells = <1>;
->> +	#size-cells = <0>;
->> +
->> +	port@0 {
->> +		reg = <0>;
->> +
->> +		mipi_from_sensor: endpoint {
->> +			remote-endpoint = <&ov2680_to_mipi>;
->> +			data-lanes = <1>;
->> +			csis-hs-settle = <3>;
->> +			csis-clk-settle = <0>;
->> +			csis-wclk;
->
-> Why is this an endpoint property? Under which condition would a 
-> board
-> designer choose PCLK instead of WRAP_CLK as pixel clock source?
->
-> I'd naively assume that the driver should set this bit 
-> automatically
-> whenever a "wrap" clock is provided via device tree.
->
->> +		};
->> +	};
->> +
->> +	port@1 {
->> +		reg = <1>;
->> +
->> +		mipi_vc0_to_csi_mux: endpoint {
->> +			remote-endpoint = 
->> <&csi_mux_from_mipi_vc0>;
->> +		};
->> +	};
->> +};
->> +
->>  &wdog1 {
->>  	pinctrl-names = "default";
->>  	pinctrl-0 = <&pinctrl_wdog>;
->> @@ -357,6 +430,13 @@
->>  		>;
->>  	};
->>  
->> +	pinctrl_mipi_csi: mipi_csi {
->> +		fsl,pins = <
->> +			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3 
->> 0x14
->> +			MX7D_PAD_ENET1_RGMII_TD0__GPIO7_IO6 
->> 0x14
->> +		>;
->> +	};
->> +
->
-> Unrelated change?
-
-Yes, I will split this.
-
->
->>  	pinctrl_sai1: sai1grp {
->>  		fsl,pins = <
->>  			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0 
->>  0x1f
->> diff --git a/arch/arm/boot/dts/imx7s.dtsi 
->> b/arch/arm/boot/dts/imx7s.dtsi
->> index 3027d6a62021..6b49b73053f9 100644
->> --- a/arch/arm/boot/dts/imx7s.dtsi
->> +++ b/arch/arm/boot/dts/imx7s.dtsi
->> @@ -46,6 +46,7 @@
->>  #include <dt-bindings/gpio/gpio.h>
->>  #include <dt-bindings/input/input.h>
->>  #include <dt-bindings/interrupt-controller/arm-gic.h>
->> +#include <dt-bindings/reset/imx7-reset.h>
->>  #include "imx7d-pinfunc.h"
->>  
->>  / {
->> @@ -753,6 +754,17 @@
->>  				status = "disabled";
->>  			};
->>  
->> +			csi: csi@30710000 {
->> +				compatible = "fsl,imx7-csi";
->> +				reg = <0x30710000 0x10000>;
->> +				interrupts = <GIC_SPI 7 
->> IRQ_TYPE_LEVEL_HIGH>;
->> +				clocks = <&clks IMX7D_CLK_DUMMY>,
->> +						<&clks 
->> IMX7D_CSI_MCLK_ROOT_CLK>,
->> +						<&clks 
->> IMX7D_CLK_DUMMY>;
->> +				clock-names = "axi", "mclk", 
->> "dcic";
->> +				status = "disabled";
->> +			};
->> +
->>  			lcdif: lcdif@30730000 {
->>  				compatible = "fsl,imx7d-lcdif", 
->>  "fsl,imx28-lcdif";
->>  				reg = <0x30730000 0x10000>;
->> @@ -762,6 +774,21 @@
->>  				clock-names = "pix", "axi";
->>  				status = "disabled";
->>  			};
->> +
->> +			mipi_csi: mipi-csi@30750000 {
->> +				compatible = "fsl,imx7-mipi-csi2";
->> +				reg = <0x30750000 0x10000>;
->> +				interrupts = <GIC_SPI 25 
->> IRQ_TYPE_LEVEL_HIGH>;
->> +				clocks = <&clks 
->> IMX7D_MIPI_CSI_ROOT_CLK>,
->> +						<&clks 
->> IMX7D_MIPI_DPHY_ROOT_CLK>;
->> +				clock-names = "mipi", "phy";
->
-> The i.MX7Dual and i.MX7Solo reference manuals mention three 
-> clock inputs
-> to the MIPI CSI: mipi_csi.ipg_clk_s, mipi_csi.I_PCLK, and
-> mipi.csi.I_WRAP_CLK (all three gated by CCGR100).
-> The MIPI_CSI2 chapters mention I_PCLK and I_WRAP_CLK again. 
-> Shouldn't at
-> least those two be used in place of just "mipi"?
-
-Make sense, It wwill be in v3.
-
-Thanks,
----
-Cheers,
-	Rui
-
->
->> +				power-domains = <&pgc_mipi_phy>;
->> +				phy-supply = <&reg_1p0d>;
->> +				resets = <&src 
->> IMX7_RESET_MIPI_PHY_MRST>;
->> +				reset-names = "mrst";
->> +				bus-width = <4>;
->
-> It looks to me like both i.MX7Dual and i.MX7Solo only have two 
-> data
-> lanes connected.
->
->> +				status = "disabled";
->> +			};
->>  		};
->>  
->>  		aips3: aips-bus@30800000 {
->
-> regards
-> Philipp
+T24gV2VkLCAyMDE4LTA0LTI1IGF0IDE0OjIyIC0wMzAwLCBNYXVybyBDYXJ2YWxobyBDaGVoYWIg
+d3JvdGU6DQo+IEVtIFdlZCwgMjUgQXByIDIwMTggMTc6NTg6MjUgKzAyMDANCj4gQXJuZCBCZXJn
+bWFubiA8YXJuZEBhcm5kYi5kZT4gZXNjcmV2ZXU6DQo+IA0KPiA+IE9uIFdlZCwgQXByIDI1LCAy
+MDE4IGF0IDU6MjYgUE0sIENocmlzdG9waCBIZWxsd2lnIDxoY2hAaW5mcmFkZWFkLm8NCj4gPiBy
+Zz4gd3JvdGU6DQo+ID4gPiBPbiBXZWQsIEFwciAyNSwgMjAxOCBhdCAwMToxNToxOFBNICswMjAw
+LCBBcm5kIEJlcmdtYW5uIHdyb3RlOiAgDQo+ID4gPiA+IFRoYXQgdGhvdWdodCBoYWQgb2NjdXJy
+ZWQgdG8gbWUgYXMgd2VsbC4gSSByZW1vdmVkIHRoZSBvbGRlc3QgSVNETg0KPiA+ID4gPiBkcml2
+ZXJzIGFscmVhZHkgc29tZSB5ZWFycyBhZ28sIGFuZCB0aGUgT1NTIHNvdW5kIGRyaXZlcnMNCj4g
+PiA+ID4gZ290IHJlbW92ZWQgYXMgd2VsbCwgYW5kIGNvbWVkaSBnb3QgY29udmVydGVkIHRvIHRo
+ZSBkbWEtbWFwcGluZw0KPiA+ID4gPiBpbnRlcmZhY2VzLCBzbyB0aGVyZSBpc24ndCBtdWNoIGxl
+ZnQgYXQgYWxsIG5vdy4gVGhpcyBpcyB3aGF0IHdlDQo+ID4gPiA+IGhhdmUgYXMgb2YgdjQuMTct
+cmMxOiAgDQo+ID4gPiANCj4gPiA+IFllcywgSSd2ZSBiZWVuIGxvb2tpbmcgYXQgdmFyaW91cyBn
+cm90dHkgb2xkIGJpdHMgdG8gcHVyZ2UuICBVc3VhbGx5DQo+ID4gPiBJJ3ZlIGJlZW4gbG9va2lu
+ZyBmb3Igc29tZSBub24tdHJlZSB3aWRlIHBhdGNoZXMgYW5kIENDZWQgdGhlIGxhc3QNCj4gPiA+
+IGFjdGl2ZSBwZW9wbGUgdG8gc2VlIGlmIHRoZXkgY2FyZS4gIEluIGEgZmV3IGNhc2VzIHBlb3Bs
+ZSBkbywgYnV0DQo+ID4gPiBtb3N0IG9mdGVuIG5vIG9uZSBkb2VzLiAgDQo+ID4gDQo+ID4gTGV0
+J3Mgc3RhcnQgd2l0aCB0aGlzIG9uZSAoem9yYW4pIHRoZW4sIGFzIE1hdXJvIGlzIGtlZW4gb24g
+aGF2aW5nDQo+ID4gYWxsIG1lZGlhIGRyaXZlcnMgY29tcGlsZS10ZXN0YWJsZSBvbiB4ODYtNjQg
+YW5kIGFybS4NCj4gPiANCj4gPiBUcmVudCBQaWVwaG8gYW5kIEhhbnMgVmVya3VpbCBib3RoIHdv
+cmtlZCBvbiB0aGlzIGRyaXZlciBpbiB0aGUNCj4gPiAyMDA4LzIwMDkgdGltZWZyYW1lIGFuZCB0
+aG9zZSB3ZXJlIHRoZSBsYXN0IGNvbW1pdHMgZnJvbSBhbnlvbmUNCj4gPiB3aG8gYXBwZWFycyB0
+byBoYXZlIHRlc3RlZCB0aGVpciBwYXRjaGVzIG9uIGFjdHVhbCBoYXJkd2FyZS4NCj4gDQo+IFpv
+cmFuIGlzIGEgZHJpdmVyIGZvciBvbGQgaGFyZHdhcmUuIEkgZG9uJ3QgZG91YnQgdGhhdCBhcmUg
+cGVvcGxlDQo+IG91dCB0aGVyZSBzdGlsbCB1c2luZyBpdCwgYnV0IHdobyBrbm93cz8NCj4gDQo+
+IEkgaGF2ZSBhIGZldyB0aG9zZSBib2FyZHMgcGFja2VkIHNvbWV3aGVyZS4gSSBoYXZlbid0IHdv
+cmsgd2l0aCBQQ0kNCj4gaGFyZHdhcmUgZm9yIGEgd2hpbGUuIElmIG5lZWRlZCwgSSBjYW4gdHJ5
+IHRvIHNlZWsgZm9yIHRoZW0gYW5kDQo+IGRvIHNvbWUgdGVzdHMuIEkgbmVlZCBmaXJzdCB0byB1
+bnBhY2sgYSBtYWNoaW5lIHdpdGggUENJIHNsb3RzLi4uDQo+IHRoZSBOVUNzIEkgZ2VuZXJhbGx5
+IHVzZSBmb3IgZGV2ZWxvcG1lbnQgZG9uJ3QgaGF2ZSBhbnkgOi0pDQo+IA0KPiBBbnl3YXksIGV4
+Y2VwdCBmb3IgdmlydF90b19idXMoKSBhbmQgcmVsYXRlZCBzdHVmZiwgSSB0aGluayB0aGF0IHRo
+aXMNCj4gZHJpdmVyIGlzIGluIGdvb2Qgc2hhcGUsIGFzIEhhbnMgZGlkIGEgbG90IG9mIHdvcmsg
+aW4gdGhlIHBhc3QgdG8NCj4gbWFrZSBpdCB0byB1c2UgdGhlIGN1cnJlbnQgbWVkaWEgZnJhbWV3
+b3JrLg0KDQpJIHN0aWxsIGhhdmUgYSB6b3JhbiBib2FyZC4gIEFuZCBteSByZWNlbnRseSBwdXJj
+aGFzZWQgcnl6ZW4gc3lzdGVtIGhhcw0KUENJIHNsb3RzLiAgVG8gbXkgc3VycHJpc2UgdGhleSBh
+cmUgbm90IHVuY29tbW9uIG9uIG5ldyBzb2NrZXQgQU00DQpib2FyZHMuICBIb3dldmVyLCBJIHRo
+aW5rIHRoZSB6b3JhbiBib2FyZCBJIGhhdmUgaXMgNVYgUENJIGFuZCB0aGF0IGlzDQpyYXRoZXIg
+dW5jb21tb24uICBBbHNvIGJlY29taW5nIHVuY29tbW9uIGlzIGFuYWxvZyBOVFNDL1BBTCB2aWRl
+byB0aGF0DQp0aGlzIGNoaXAgaXMgZGVzaWduZWQgZm9yIQ0KDQpJZiBhbnlvbmUgaXMgdXNpbmcg
+dGhlc2Ugc3RpbGwsIHRoZXkgd291bGQgYmUgaW4gbGVnYWN5IHN5c3RlbXMgZm9yDQp0aGVzZSBs
+ZWdhY3kgdmlkZW8gZm9ybWF0cy4NCg==
