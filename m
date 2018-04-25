@@ -1,53 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f169.google.com ([209.85.192.169]:35653 "EHLO
-        mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753077AbeDPSo2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 14:44:28 -0400
-Received: by mail-pf0-f169.google.com with SMTP id j5so1422594pfh.2
-        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 11:44:27 -0700 (PDT)
-Subject: Re: OV5640 with 12MHz xclk
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        linux-media@vger.kernel.org
-References: <CAFwsNOEF0rK+SeHQ618Rnuj2ZWaGZG2WY4keWmavqG_agSi+dw@mail.gmail.com>
- <4d87c28b-4adb-86d6-986b-e1ffdceb3138@xs4all.nl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <9b255c35-f163-7db9-a7a8-88c1ac2ceeb1@gmail.com>
-Date: Mon, 16 Apr 2018 11:44:20 -0700
-MIME-Version: 1.0
-In-Reply-To: <4d87c28b-4adb-86d6-986b-e1ffdceb3138@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from mga02.intel.com ([134.134.136.20]:37696 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750841AbeDYCET (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Apr 2018 22:04:19 -0400
+From: Andy Yeh <andy.yeh@intel.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, andy.yeh@intel.com,
+        devicetree@vger.kernel.org, tfiga@chromium.org, jacopo@jmondi.org,
+        Alan Chiang <alanx.chiang@intel.com>
+Subject: [RESEND PATCH v8 1/2] media: dt-bindings: Add bindings for Dongwoon DW9807 voice coil
+Date: Wed, 25 Apr 2018 10:12:07 +0800
+Message-Id: <1524622328-30493-2-git-send-email-andy.yeh@intel.com>
+In-Reply-To: <1524622328-30493-1-git-send-email-andy.yeh@intel.com>
+References: <1524622328-30493-1-git-send-email-andy.yeh@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sam,
+From: Alan Chiang <alanx.chiang@intel.com>
 
-On 04/16/2018 05:26 AM, Hans Verkuil wrote:
-> On 04/16/2018 03:39 AM, Samuel Bobrowicz wrote:
->> Can anyone verify if the OV5640 driver works with input clocks other
->> than the typical 24MHz? The driver suggests anything from 6MHz-24MHz
->> is acceptable, but I am running into issues while bringing up a module
->> that uses a 12MHz oscillator. I'd expect that different xclk's would
->> necessitate different register settings for the various resolutions
->> (PLL settings, PCLK width, etc.), however the driver does not seem to
->> modify nearly enough based on the frequency of xclk.
->>
->> Sam
->>
-> I'm pretty sure it has never been tested with 12 MHz. The i.MX SabreLite
-> seems to use 22 MHz, and I can't tell from the code what the SabreSD uses
-> (probably 22 or 24 MHz). Steve will probably know.
+Dongwoon DW9807 is a voice coil lens driver.
 
-On i.MX6, the sabrelite uses the PWM3 clock at 22MHz for the OV5640 xclk.
-The SabreSD uses the i.MX6 CKO clock, which is default sourced from the
-24 MHz oscillator.
+Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+---
+ Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
 
-I wouldn't be surprised that there are issues with a 12MHz xclk in the
-ov5640 driver. There's probably some assumptions made about the
-xclk range in the hardcoded values in those huge register tables. Sorry
-I don't have the time to look into it more.
-
-Steve
+diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+new file mode 100644
+index 0000000..0a1a860
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+@@ -0,0 +1,9 @@
++Dongwoon Anatech DW9807 voice coil lens driver
++
++DW9807 is a 10-bit DAC with current sink capability. It is intended for
++controlling voice coil lenses.
++
++Mandatory properties:
++
++- compatible: "dongwoon,dw9807"
++- reg: I2C slave address
+-- 
+2.7.4
