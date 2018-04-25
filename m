@@ -1,132 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:40366 "EHLO
-        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750929AbeDYGYi (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:40430 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751212AbeDYJZw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 02:24:38 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
-References: <CAKMK7uEFVOh-R2_4vs1M22_wDau0oNTgmCcTWDE+ScxL=92+2g@mail.gmail.com>
- <20180419081657.GA16735@infradead.org> <20180420071312.GF31310@phenom.ffwll.local>
- <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com> <20180420101755.GA11400@infradead.org>
- <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com> <20180420124625.GA31078@infradead.org>
- <20180420152111.GR31310@phenom.ffwll.local> <20180424184847.GA3247@infradead.org>
- <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
- <20180425054855.GA17038@infradead.org> <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
-From: Alex Deucher <alexdeucher@gmail.com>
-Date: Wed, 25 Apr 2018 02:24:36 -0400
-Message-ID: <CADnq5_P3bT0TStSXpKh11ydifv=KwKtRj-7tDS=GQXey+8tBPw@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
-To: Daniel Vetter <daniel@ffwll.ch>
+        Wed, 25 Apr 2018 05:25:52 -0400
+Date: Wed, 25 Apr 2018 10:25:33 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Thierry Reding <treding@nvidia.com>
 Cc: Christoph Hellwig <hch@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
         "moderated list:DMA BUFFER SHARING FRAMEWORK"
         <linaro-mm-sig@lists.linaro.org>,
-        Jerome Glisse <jglisse@redhat.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        iommu@lists.linux-foundation.org,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Daniel Vetter <daniel@ffwll.ch>,
         Dan Williams <dan.j.williams@intel.com>,
         Logan Gunthorpe <logang@deltatee.com>,
-        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        linux-arm-kernel@lists.infradead.org,
         "open list:DMA BUFFER SHARING FRAMEWORK"
         <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Subject: Re: noveau vs arm dma ops
+Message-ID: <20180425092533.GO16141@n2100.armlinux.org.uk>
+References: <20180420124625.GA31078@infradead.org>
+ <20180420152111.GR31310@phenom.ffwll.local>
+ <20180424184847.GA3247@infradead.org>
+ <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+ <20180425054855.GA17038@infradead.org>
+ <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+ <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
+ <20180425064335.GB28100@infradead.org>
+ <20180425074151.GA2271@ulmo>
+ <20180425085439.GA29996@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180425085439.GA29996@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 25, 2018 at 2:13 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Wed, Apr 25, 2018 at 7:48 AM, Christoph Hellwig <hch@infradead.org> wr=
-ote:
->> On Tue, Apr 24, 2018 at 09:32:20PM +0200, Daniel Vetter wrote:
->>> Out of curiosity, how much virtual flushing stuff is there still out
->>> there? At least in drm we've pretty much ignore this, and seem to be
->>> getting away without a huge uproar (at least from driver developers
->>> and users, core folks are less amused about that).
->>
->> As I've just been wading through the code, the following architectures
->> have non-coherent dma that flushes by virtual address for at least some
->> platforms:
->>
->>  - arm [1], arm64, hexagon, nds32, nios2, parisc, sh, xtensa, mips,
->>    powerpc
->>
->> These have non-coherent dma ops that flush by physical address:
->>
->>  - arc, arm [1], c6x, m68k, microblaze, openrisc, sparc
->>
->> And these do not have non-coherent dma ops at all:
->>
->>  - alpha, h8300, riscv, unicore32, x86
->>
->> [1] arm =D1=95eems to do both virtually and physically based ops, furthe=
-r
->> audit needed.
->>
->> Note that using virtual addresses in the cache flushing interface
->> doesn't mean that the cache actually is virtually indexed, but it at
->> least allows for the possibility.
->>
->>> > I think the most important thing about such a buffer object is that
->>> > it can distinguish the underlying mapping types.  While
->>> > dma_alloc_coherent, dma_alloc_attrs with DMA_ATTR_NON_CONSISTENT,
->>> > dma_map_page/dma_map_single/dma_map_sg and dma_map_resource all give
->>> > back a dma_addr_t they are in now way interchangable.  And trying to
->>> > stuff them all into a structure like struct scatterlist that has
->>> > no indication what kind of mapping you are dealing with is just
->>> > asking for trouble.
->>>
->>> Well the idea was to have 1 interface to allow all drivers to share
->>> buffers with anything else, no matter how exactly they're allocated.
->>
->> Isn't that interface supposed to be dmabuf?  Currently dma_map leaks
->> a scatterlist through the sg_table in dma_buf_map_attachment /
->> ->map_dma_buf, but looking at a few of the callers it seems like they
->> really do not even want a scatterlist to start with, but check that
->> is contains a physically contiguous range first.  So kicking the
->> scatterlist our there will probably improve the interface in general.
->
-> I think by number most drm drivers require contiguous memory (or an
-> iommu that makes it look contiguous). But there's plenty others who
-> have another set of pagetables on the gpu itself and can
-> scatter-gather. Usually it's the former for display/video blocks, and
-> the latter for rendering.
->
->>> dma-buf has all the functions for flushing, so you can have coherent
->>> mappings, non-coherent mappings and pretty much anything else. Or well
->>> could, because in practice people hack up layering violations until it
->>> works for the 2-3 drivers they care about. On top of that there's the
->>> small issue that x86 insists that dma is coherent (and that's true for
->>> most devices, including v4l drivers you might want to share stuff
->>> with), and gpus really, really really do want to make almost
->>> everything incoherent.
->>
->> How do discrete GPUs manage to be incoherent when attached over PCIe?
->
-> It has a non-coherent transaction mode (which the chipset can opt to
-> not implement and still flush), to make sure the AGP horror show
-> doesn't happen again and GPU folks are happy with PCIe. That's at
-> least my understanding from digging around in amd the last time we had
-> coherency issues between intel and amd gpus. GPUs have some bits
-> somewhere (in the pagetables, or in the buffer object description
-> table created by userspace) to control that stuff.
+On Wed, Apr 25, 2018 at 01:54:39AM -0700, Christoph Hellwig wrote:
+> [discussion about this patch, which should have been cced to the iommu
+>  and linux-arm-kernel lists, but wasn't:
+>  https://www.spinics.net/lists/dri-devel/msg173630.html]
+> 
+> On Wed, Apr 25, 2018 at 09:41:51AM +0200, Thierry Reding wrote:
+> > > API from the iommu/dma-mapping code.  Drivers have no business poking
+> > > into these details.
+> > 
+> > The interfaces that the above patch uses are all EXPORT_SYMBOL_GPL,
+> > which is rather misleading if they are not meant to be used by drivers
+> > directly.
 
-Right.  We have a bit in the GPU page table entries that determines
-whether we snoop the CPU's cache or not.
+EXPORT_SYMBOL* means nothing as far as whether a driver should
+be able to use the symbol or not - it merely means that the symbol is
+made available to a module.  Modules cover much more than just device
+drivers - we have library modules, filesystem modules, helper modules
+to name a few non-driver classes of modules.
 
-Alex
+We also have symbols that are exported as part of the architecture
+implementation detail of a public interface.  For example, the
+public interface "copy_from_user" is implemented as an inline
+function (actually several layers of inline functions) eventually
+calling into arm_copy_from_user().  arm_copy_from_user() is exported,
+but drivers (in fact no module) is allowed to make direct reference
+to arm_copy_from_user() - it'd fail when software PAN is enabled.
 
->
-> For anything on the SoC it's presented as pci device, but that's
-> extremely fake, and we can definitely do non-snooped transactions on
-> drm/i915. Again, controlled by a mix of pagetables and
-> userspace-provided buffer object description tables.
-> -Daniel
-> --
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
-> _______________________________________________
-> amd-gfx mailing list
-> amd-gfx@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/amd-gfx
+The whole idea that "if a symbol is exported, it's fine for a driver
+to use it" is a complete work of fiction, always has been, and always
+will be.
+
+We've had this with the architecture implementation details of the
+DMA API before, and with the architecture implementation details of
+the CPU cache flushing.  There's only so much commentry, or __
+prefixes you can add to a symbol before things get rediculous, and
+none of it stops people creating this abuse.  The only thing that
+seems to prevent it is to make life hard for folk wanting to use
+the symbols (eg, hiding the symbol prototype in a private header,
+etc.)
+
+Never, ever go under the covers of an interface.  If the interface
+doesn't do what you want, _discuss_ it, don't just think "oh, that
+architecture private facility looks like what I need, I'll use that
+directly."
+
+If you ever are on the side of trying to maintain those implementation
+details that are abused in this way, you'll soon understand why this
+behaviour by driver authors is soo annoying, and the maintainability
+problems it creates.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
