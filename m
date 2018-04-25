@@ -1,98 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:51305 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751270AbeDIOUe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Apr 2018 10:20:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv11 PATCH 12/29] v4l2-ctrls: alloc memory for p_req
-Date: Mon,  9 Apr 2018 16:20:09 +0200
-Message-Id: <20180409142026.19369-13-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+Received: from ns.mm-sol.com ([37.157.136.199]:53211 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755728AbeDYQVJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 12:21:09 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hverkuil@xs4all.nl, sakari.ailus@iki.fi,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>,
+        Rob Herring <robh@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
+Subject: [PATCH v4 1/2] dt-bindings: media: Binding document for OV7251 camera sensor
+Date: Wed, 25 Apr 2018 19:20:45 +0300
+Message-Id: <1524673246-14175-2-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1524673246-14175-1-git-send-email-todor.tomov@linaro.org>
+References: <1524673246-14175-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add the document for ov7251 device tree binding.
 
-To store request data the handler_new_ref() allocates memory
-for it if needed.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+CC: Rob Herring <robh@kernel.org>
+CC: Mark Rutland <mark.rutland@arm.com>
+CC: devicetree@vger.kernel.org
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ .../devicetree/bindings/media/i2c/ov7251.txt       | 52 ++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7251.txt
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index d09f49530d9e..3c1b00baa8d0 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1997,13 +1997,18 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
- /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
- static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 			   struct v4l2_ctrl *ctrl,
--			   bool from_other_dev)
-+			   struct v4l2_ctrl_ref **ctrl_ref,
-+			   bool from_other_dev, bool allocate_req)
- {
- 	struct v4l2_ctrl_ref *ref;
- 	struct v4l2_ctrl_ref *new_ref;
- 	u32 id = ctrl->id;
- 	u32 class_ctrl = V4L2_CTRL_ID2WHICH(id) | 1;
- 	int bucket = id % hdl->nr_of_buckets;	/* which bucket to use */
-+	unsigned int sz_extra = 0;
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov7251.txt b/Documentation/devicetree/bindings/media/i2c/ov7251.txt
+new file mode 100644
+index 0000000..8281151
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov7251.txt
+@@ -0,0 +1,52 @@
++* Omnivision 1/7.5-Inch B&W VGA CMOS Digital Image Sensor
 +
-+	if (ctrl_ref)
-+		*ctrl_ref = NULL;
- 
- 	/*
- 	 * Automatically add the control class if it is not yet present and
-@@ -2017,11 +2022,16 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 	if (hdl->error)
- 		return hdl->error;
- 
--	new_ref = kzalloc(sizeof(*new_ref), GFP_KERNEL);
-+	if (allocate_req)
-+		sz_extra = ctrl->elems * ctrl->elem_size;
-+	new_ref = kzalloc(sizeof(*new_ref) + sz_extra, GFP_KERNEL);
- 	if (!new_ref)
- 		return handler_set_err(hdl, -ENOMEM);
- 	new_ref->ctrl = ctrl;
- 	new_ref->from_other_dev = from_other_dev;
-+	if (sz_extra)
-+		new_ref->p_req.p = &new_ref[1];
++The Omnivision OV7251 is a 1/7.5-Inch CMOS active pixel digital image sensor
++with an active array size of 640H x 480V. It is programmable through a serial
++I2C interface.
 +
- 	if (ctrl->handler == hdl) {
- 		/* By default each control starts in a cluster of its own.
- 		   new_ref->ctrl is basically a cluster array with one
-@@ -2061,6 +2071,8 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 	/* Insert the control node in the hash */
- 	new_ref->next = hdl->buckets[bucket];
- 	hdl->buckets[bucket] = new_ref;
-+	if (ctrl_ref)
-+		*ctrl_ref = new_ref;
- 
- unlock:
- 	mutex_unlock(hdl->lock);
-@@ -2202,7 +2214,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
- 	}
- 
--	if (handler_new_ref(hdl, ctrl, false)) {
-+	if (handler_new_ref(hdl, ctrl, NULL, false, false)) {
- 		kvfree(ctrl);
- 		return NULL;
- 	}
-@@ -2395,7 +2407,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 		/* Filter any unwanted controls */
- 		if (filter && !filter(ctrl))
- 			continue;
--		ret = handler_new_ref(hdl, ctrl, from_other_dev);
-+		ret = handler_new_ref(hdl, ctrl, NULL, from_other_dev, false);
- 		if (ret)
- 			break;
- 	}
++Required Properties:
++- compatible: Value should be "ovti,ov7251".
++- clocks: Reference to the xclk clock.
++- clock-names: Should be "xclk".
++- clock-frequency: Frequency of the xclk clock.
++- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH. This corresponds
++  to the hardware pin XSHUTDOWN which is physically active low.
++- vdddo-supply: Chip digital IO regulator.
++- vdda-supply: Chip analog regulator.
++- vddd-supply: Chip digital core regulator.
++
++The device node shall contain one 'port' child node with a single 'endpoint'
++subnode for its digital output video port, in accordance with the video
++interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	&i2c1 {
++		...
++
++		ov7251: camera-sensor@60 {
++			compatible = "ovti,ov7251";
++			reg = <0x60>;
++
++			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&camera_bw_default>;
++
++			clocks = <&clks 200>;
++			clock-names = "xclk";
++			clock-frequency = <24000000>;
++
++			vdddo-supply = <&camera_dovdd_1v8>;
++			vdda-supply = <&camera_avdd_2v8>;
++			vddd-supply = <&camera_dvdd_1v2>;
++
++			port {
++				ov7251_ep: endpoint {
++					clock-lanes = <1>;
++					data-lanes = <0>;
++					remote-endpoint = <&csi0_ep>;
++				};
++			};
++		};
++	};
 -- 
-2.16.3
+2.7.4
