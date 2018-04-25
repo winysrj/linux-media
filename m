@@ -1,49 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga06-in.huawei.com ([45.249.212.32]:58588 "EHLO huawei.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750855AbeDUJXv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 21 Apr 2018 05:23:51 -0400
-From: YueHaibing <yuehaibing@huawei.com>
-To: <mchehab@kernel.org>, <sakari.ailus@linux.intel.com>
-CC: <linux-media@vger.kernel.org>, <hans.verkuil@cisco.com>
-Subject: [PATCH] media: staging: atomisp: Using module_pci_driver.
-Date: Sat, 21 Apr 2018 17:23:43 +0800
-Message-ID: <20180421092343.18848-1-yuehaibing@huawei.com>
+Received: from bombadil.infradead.org ([198.137.202.133]:58654 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750969AbeDYIyn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 04:54:43 -0400
+Date: Wed, 25 Apr 2018 01:54:39 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Thierry Reding <treding@nvidia.com>
+Cc: Christoph Hellwig <hch@infradead.org>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>, iommu@lists.linux-foundation.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: noveau vs arm dma ops
+Message-ID: <20180425085439.GA29996@infradead.org>
+References: <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
+ <20180420124625.GA31078@infradead.org>
+ <20180420152111.GR31310@phenom.ffwll.local>
+ <20180424184847.GA3247@infradead.org>
+ <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+ <20180425054855.GA17038@infradead.org>
+ <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+ <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
+ <20180425064335.GB28100@infradead.org>
+ <20180425074151.GA2271@ulmo>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180425074151.GA2271@ulmo>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove boilerplate code by using macro module_pci_driver.
+[discussion about this patch, which should have been cced to the iommu
+ and linux-arm-kernel lists, but wasn't:
+ https://www.spinics.net/lists/dri-devel/msg173630.html]
 
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+On Wed, Apr 25, 2018 at 09:41:51AM +0200, Thierry Reding wrote:
+> > API from the iommu/dma-mapping code.  Drivers have no business poking
+> > into these details.
+> 
+> The interfaces that the above patch uses are all EXPORT_SYMBOL_GPL,
+> which is rather misleading if they are not meant to be used by drivers
+> directly.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-index 548e00e..f95a5d0 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-@@ -1555,18 +1555,7 @@ static struct pci_driver atomisp_pci_driver = {
- 	.remove = atomisp_pci_remove,
- };
- 
--static int __init atomisp_init(void)
--{
--	return pci_register_driver(&atomisp_pci_driver);
--}
--
--static void __exit atomisp_exit(void)
--{
--	pci_unregister_driver(&atomisp_pci_driver);
--}
--
--module_init(atomisp_init);
--module_exit(atomisp_exit);
-+module_pci_driver(atomisp_pci_driver);
- 
- MODULE_AUTHOR("Wen Wang <wen.w.wang@intel.com>");
- MODULE_AUTHOR("Xiaolin Zhang <xiaolin.zhang@intel.com>");
--- 
-2.7.0
+The only reason the DMA ops are exported is because get_arch_dma_ops
+references (or in case of the coherent ones used to reference).  We
+don't let drivers assign random dma ops.
+
+> 
+> > Thierry, please resend this with at least the iommu list and
+> > linux-arm-kernel in Cc to have a proper discussion on the right API.
+> 
+> I'm certainly open to help with finding a correct solution, but the
+> patch above was purposefully terse because this is something that I
+> hope we can get backported to v4.16 to unbreak Nouveau. Coordinating
+> such a backport between ARM and DRM trees does not sound like something
+> that would help getting this fixed in v4.16.
+
+Coordinating the backport of a trivial helper in the arm tree is not
+the end of the world.  Really, this cowboy attitude is a good reason
+why graphics folks have such a bad rep.  You keep poking into random
+kernel internals, don't talk to anoyone and then complain if people
+are upset.  This shouldn't be surprising.
+
+> Granted, this issue could've been caught with a little more testing, but
+> in retrospect I think it would've been a lot better if ARM_DMA_USE_IOMMU
+> was just enabled unconditionally if it has side-effects that platforms
+> don't opt in to but have to explicitly opt out of.
+
+Agreed on that count.  Please send a patch.
