@@ -1,78 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:56589 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752302AbeDOJyj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Apr 2018 05:54:39 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, Warren Sturm <warren.sturm@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org,
-        #@mess.org
-Subject: [PATCH stable v4.15 3/3] media: staging: lirc_zilog: incorrect reference counting
-Date: Sun, 15 Apr 2018 10:54:22 +0100
-Message-Id: <c67bdbce646f1d2aba24d62c365b99f43c3cd077.1523785117.git.sean@mess.org>
-In-Reply-To: <cover.1523785117.git.sean@mess.org>
-References: <cover.1523785117.git.sean@mess.org>
-In-Reply-To: <cover.1523785117.git.sean@mess.org>
-References: <cover.1523785117.git.sean@mess.org>
+Received: from hqemgate14.nvidia.com ([216.228.121.143]:7435 "EHLO
+        hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750941AbeDYHnp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 03:43:45 -0400
+Date: Wed, 25 Apr 2018 09:43:38 +0200
+From: Thierry Reding <treding@nvidia.com>
+To: Christoph Hellwig <hch@infradead.org>
+CC: Daniel Vetter <daniel@ffwll.ch>,
+        Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
+Message-ID: <20180425074338.GB2271@ulmo>
+References: <20180420124625.GA31078@infradead.org>
+ <20180420152111.GR31310@phenom.ffwll.local>
+ <20180424184847.GA3247@infradead.org>
+ <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+ <20180425054855.GA17038@infradead.org>
+ <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+ <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
+ <20180425064335.GB28100@infradead.org>
+ <CAKMK7uGF7p5ko=i6zL4dn0qR-5TVRKMi6xaCGSao_vyfJU+dWQ@mail.gmail.com>
+ <20180425070905.GA24827@infradead.org>
+MIME-Version: 1.0
+In-Reply-To: <20180425070905.GA24827@infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="tsOsTdHNUZQcU9Ye"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Whenever poll is called, the reference count is increased but never
-decreased. This means that on rmmod, the lirc_thread is not stopped,
-and will trample over freed memory.
+--tsOsTdHNUZQcU9Ye
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Zilog/Hauppauge IR driver unloaded
-BUG: unable to handle kernel paging request at ffffffffc17ba640
-Oops: 0010 [#1] SMP
-CPU: 1 PID: 667 Comm: zilog-rx-i2c-1 Tainted: P         C OE   4.13.16-302.fc27.x86_64 #1
-Hardware name: Gigabyte Technology Co., Ltd. GA-MA790FXT-UD5P/GA-MA790FXT-UD5P, BIOS F6 08/06/2009
-task: ffff964eb452ca00 task.stack: ffffb254414dc000
-RIP: 0010:0xffffffffc17ba640
-RSP: 0018:ffffb254414dfe78 EFLAGS: 00010286
-RAX: 0000000000000000 RBX: ffff964ec1b35890 RCX: 0000000000000000
-RDX: 0000000000000000 RSI: 0000000000000246 RDI: 0000000000000246
-RBP: ffffb254414dff00 R08: 000000000000036e R09: ffff964ecfc8dfd0
-R10: ffffb254414dfe78 R11: 00000000000f4240 R12: ffff964ec2bf28a0
-R13: ffff964ec1b358a8 R14: ffff964ec1b358d0 R15: ffff964ec1b35800
-FS:  0000000000000000(0000) GS:ffff964ecfc80000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: ffffffffc17ba640 CR3: 000000023058c000 CR4: 00000000000006e0
-Call Trace:
- kthread+0x125/0x140
- ? kthread_park+0x60/0x60
- ? do_syscall_64+0x67/0x140
- ret_from_fork+0x25/0x30
-Code:  Bad RIP value.
-RIP: 0xffffffffc17ba640 RSP: ffffb254414dfe78
-CR2: ffffffffc17ba640
+On Wed, Apr 25, 2018 at 12:09:05AM -0700, Christoph Hellwig wrote:
+> On Wed, Apr 25, 2018 at 09:02:17AM +0200, Daniel Vetter wrote:
+> > Can we please not nack everything right away? Doesn't really motivate
+> > me to show you all the various things we're doing in gpu to make the
+> > dma layer work for us. That kind of noodling around in lower levels to
+> > get them to do what we want is absolutely par-for-course for gpu
+> > drivers. If you just nack everything I point you at for illustrative
+> > purposes, then I can't show you stuff anymore.
+>=20
+> No, it's not.  No driver (and that includes the magic GPUs) has
+> any business messing with dma ops directly.
+>=20
+> A GPU driver imght have a very valid reason to disable the IOMMU,
+> but the code to do so needs to be at least in the arch code, maybe
+> in the dma-mapping/iommu code, not in the driver.
+>=20
+> As a first step to get the discussion started we'll simply need
+> to move the code Thierry wrote into a helper in arch/arm and that
+> alone would be a massive improvement.  I'm not even talking about
+> minor details like actually using arm_get_dma_map_ops instead
+> of duplicating it.
+>=20
+> And doing this basic trivial work really helps to get this whole
+> mess under control.
 
-Note that zilog-rx-i2c-1 should have exited by now, but hasn't due to
-the missing put in poll().
+That's a good idea and I can prepare patches for this, but I'd like to
+make those changes on top of the fix to keep the option of getting this
+into v4.16 if at all possible.
 
-This code has been replaced completely in kernel v4.16 by a new driver,
-see commit acaa34bf06e9 ("media: rc: implement zilog transmitter"), and
-commit f95367a7b758 ("media: staging: remove lirc_zilog driver").
+Thierry
 
-Cc: stable@vger.kernel.org # v4.15- (all up to and including v4.15)
-Reported-by: Warren Sturm <warren.sturm@gmail.com>
-Tested-by: Warren Sturm <warren.sturm@gmail.com>
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/staging/media/lirc/lirc_zilog.c | 1 +
- 1 file changed, 1 insertion(+)
+--tsOsTdHNUZQcU9Ye
+Content-Type: application/pgp-signature; name="signature.asc"
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index e8d6c1abc6d8..022720210f70 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -1227,6 +1227,7 @@ static unsigned int poll(struct file *filep, poll_table *wait)
- 
- 	dev_dbg(ir->dev, "%s result = %s\n", __func__,
- 		ret ? "POLLIN|POLLRDNORM" : "none");
-+	put_ir_rx(rx, false);
- 	return ret;
- }
- 
--- 
-2.14.3
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlrgMaoACgkQ3SOs138+
+s6ErIw/9HFD80SMNmmYDdnDExj7GI+wX3JQtrnVIcvE0xhgwvEGghdvwuIitFnhe
+0sSTzNFY1R3uZp+csLeMOjb7aBqI+txD+aX+KmGcdNLT015nMt/gOUjv/msbzuyN
+y6gUXvEqqvByVOTuM/nrjPZhA+8PCB0n2UVfx9V7Z5FkraLvQnCiGxd+ds+tujvy
+WhYItT846t9fgeiuSm2pmN/I7b8pBBMoQrA2y4h8zhuK6DI6hEC5xrd1Ebv2eMNq
+yLPpWYqWokPvvlzcDbVTxQZEAY7PyAjB22DKMnQN5pgh9lrczDSVq89wmzsO4VKz
+ajcglwDU7Z1of7HM1PbmgKGKwaB7zC6d0XD7wF0oUDtMYrnXbRUcAS9Lra2a39xf
+u5I/8ehFct/uEkaDqgguMZDPKBEfeDEZ70DGHuSuebonUyYTupQZCCP4pSw+gPQi
+7zlcoxbfO5Tp44mioLGgoMmwVfb6oIIvPLx5SueBOonSV172x2TqCYM4odsL8B7b
+vYBMQgrcS95kar3smWMRf9VBT7n0EGW8G/3XgJM3hL5j/mMIJca7xXdKjuuc38Fn
+wRIYQ/4znL5J8DQ7mkP2Ujv74O4Qq9nunVm+WL10JEKxbmqExGYwTH8dV/kYqPJy
+Z9O+6FYV7u9PxvUDNIW0Hm/ruE+DqaTg/Vn4Hhd/8lnCmwWrcPo=
+=PmGP
+-----END PGP SIGNATURE-----
+
+--tsOsTdHNUZQcU9Ye--
