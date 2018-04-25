@@ -1,233 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35688 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751038AbeDELMN (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:49878 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752661AbeDYWzN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 07:12:13 -0400
-Date: Thu, 5 Apr 2018 14:12:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH] media: v4l2-dev: use pr_foo() for printing messages
-Message-ID: <20180405111210.5jh77oke35uyg3yj@valkosipuli.retiisi.org.uk>
-References: <3cead57d0a484bf589f4da3b86f4470cde6a1480.1522924475.git.mchehab@s-opensource.com>
+        Wed, 25 Apr 2018 18:55:13 -0400
+Date: Wed, 25 Apr 2018 23:54:43 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Thierry Reding <treding@nvidia.com>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>, iommu@lists.linux-foundation.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: noveau vs arm dma ops
+Message-ID: <20180425225443.GQ16141@n2100.armlinux.org.uk>
+References: <20180424184847.GA3247@infradead.org>
+ <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+ <20180425054855.GA17038@infradead.org>
+ <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+ <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
+ <20180425064335.GB28100@infradead.org>
+ <20180425074151.GA2271@ulmo>
+ <20180425085439.GA29996@infradead.org>
+ <20180425100429.GR25142@phenom.ffwll.local>
+ <20180425153312.GD27076@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <3cead57d0a484bf589f4da3b86f4470cde6a1480.1522924475.git.mchehab@s-opensource.com>
+In-Reply-To: <20180425153312.GD27076@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Thu, Apr 05, 2018 at 07:34:39AM -0300, Mauro Carvalho Chehab wrote:
-> Instead of using printk() directly, use the pr_foo()
-> macros.
+On Wed, Apr 25, 2018 at 08:33:12AM -0700, Christoph Hellwig wrote:
+> On Wed, Apr 25, 2018 at 12:04:29PM +0200, Daniel Vetter wrote:
+> > - dma api hides the cache flushing requirements from us. GPUs love
+> >   non-snooped access, and worse give userspace control over that. We want
+> >   a strict separation between mapping stuff and flushing stuff. With the
+> >   IOMMU api we mostly have the former, but for the later arch maintainers
+> >   regularly tells they won't allow that. So we have drm_clflush.c.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/v4l2-core/v4l2-dev.c | 45 ++++++++++++++++++++++----------------
->  1 file changed, 26 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index 1d0b2208e8fb..530db8e482fb 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -16,6 +16,8 @@
->   *		- Added procfs support
->   */
->  
-> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> +
->  #include <linux/module.h>
->  #include <linux/types.h>
->  #include <linux/kernel.h>
-> @@ -34,6 +36,12 @@
->  #define VIDEO_NUM_DEVICES	256
->  #define VIDEO_NAME              "video4linux"
->  
-> +#define dprintk(fmt, arg...) do {					\
-> +		printk(KERN_DEBUG pr_fmt("%s: " fmt),			\
-> +		       __func__, ##arg);				\
-> +} while (0)
+> The problem is that a cache flushing API entirely separate is hard. That
+> being said if you look at my generic dma-noncoherent API series it tries
+> to move that way.  So far it is in early stages and apparently rather
+> buggy unfortunately.
 
-Any particular reason for introducing a new macro rather than using
-pr_debug()? I know it's adding the name of the function without requiring
-to explicitly add that below, but pr_debug("%s: ...", __func__); would be
-easier to read IMO.
+And if folk want a cacheable mapping with explicit cache flushing, the
+cache flushing must not be defined in terms of "this is what CPU seems
+to need" but from the point of view of a CPU with infinite prefetching,
+infinite caching and infinite capacity to perform writebacks of dirty
+cache lines at unexpected moments when the memory is mapped in a
+cacheable mapping.
 
-> +
-> +
->  /*
->   *	sysfs stuff
->   */
-> @@ -309,7 +317,7 @@ static ssize_t v4l2_read(struct file *filp, char __user *buf,
->  		ret = vdev->fops->read(filp, buf, sz, off);
->  	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
->  	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
-> -		printk(KERN_DEBUG "%s: read: %zd (%d)\n",
-> +		dprintk("%s: read: %zd (%d)\n",
->  			video_device_node_name(vdev), sz, ret);
->  	return ret;
->  }
-> @@ -326,7 +334,7 @@ static ssize_t v4l2_write(struct file *filp, const char __user *buf,
->  		ret = vdev->fops->write(filp, buf, sz, off);
->  	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
->  	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
-> -		printk(KERN_DEBUG "%s: write: %zd (%d)\n",
-> +		dprintk("%s: write: %zd (%d)\n",
->  			video_device_node_name(vdev), sz, ret);
->  	return ret;
->  }
-> @@ -341,7 +349,7 @@ static __poll_t v4l2_poll(struct file *filp, struct poll_table_struct *poll)
->  	if (video_is_registered(vdev))
->  		res = vdev->fops->poll(filp, poll);
->  	if (vdev->dev_debug & V4L2_DEV_DEBUG_POLL)
-> -		printk(KERN_DEBUG "%s: poll: %08x\n",
-> +		dprintk("%s: poll: %08x\n",
->  			video_device_node_name(vdev), res);
->  	return res;
->  }
-> @@ -382,7 +390,7 @@ static unsigned long v4l2_get_unmapped_area(struct file *filp,
->  		return -ENODEV;
->  	ret = vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
->  	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-> -		printk(KERN_DEBUG "%s: get_unmapped_area (%d)\n",
-> +		dprintk("%s: get_unmapped_area (%d)\n",
->  			video_device_node_name(vdev), ret);
->  	return ret;
->  }
-> @@ -398,7 +406,7 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
->  	if (video_is_registered(vdev))
->  		ret = vdev->fops->mmap(filp, vm);
->  	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-> -		printk(KERN_DEBUG "%s: mmap (%d)\n",
-> +		dprintk("%s: mmap (%d)\n",
->  			video_device_node_name(vdev), ret);
->  	return ret;
->  }
-> @@ -428,7 +436,7 @@ static int v4l2_open(struct inode *inode, struct file *filp)
->  	}
->  
->  	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-> -		printk(KERN_DEBUG "%s: open (%d)\n",
-> +		dprintk("%s: open (%d)\n",
->  			video_device_node_name(vdev), ret);
->  	/* decrease the refcount in case of an error */
->  	if (ret)
-> @@ -445,7 +453,7 @@ static int v4l2_release(struct inode *inode, struct file *filp)
->  	if (vdev->fops->release)
->  		ret = vdev->fops->release(filp);
->  	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-> -		printk(KERN_DEBUG "%s: release\n",
-> +		dprintk("%s: release\n",
->  			video_device_node_name(vdev));
->  
->  	/* decrease the refcount unconditionally since the release()
-> @@ -786,8 +794,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
->  		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
->  						   &vdev->entity);
->  		if (ret < 0) {
-> -			printk(KERN_WARNING
-> -				"%s: media_device_register_entity failed\n",
-> +			pr_warn("%s: media_device_register_entity failed\n",
->  				__func__);
->  			return ret;
->  		}
-> @@ -869,7 +876,7 @@ int __video_register_device(struct video_device *vdev,
->  		name_base = "v4l-touch";
->  		break;
->  	default:
-> -		printk(KERN_ERR "%s called with unknown type: %d\n",
-> +		pr_err("%s called with unknown type: %d\n",
->  		       __func__, type);
->  		return -EINVAL;
->  	}
-> @@ -918,7 +925,7 @@ int __video_register_device(struct video_device *vdev,
->  	if (nr == minor_cnt)
->  		nr = devnode_find(vdev, 0, minor_cnt);
->  	if (nr == minor_cnt) {
-> -		printk(KERN_ERR "could not get a free device node number\n");
-> +		pr_err("could not get a free device node number\n");
->  		mutex_unlock(&videodev_lock);
->  		return -ENFILE;
->  	}
-> @@ -933,7 +940,7 @@ int __video_register_device(struct video_device *vdev,
->  			break;
->  	if (i == VIDEO_NUM_DEVICES) {
->  		mutex_unlock(&videodev_lock);
-> -		printk(KERN_ERR "could not get a free minor\n");
-> +		pr_err("could not get a free minor\n");
->  		return -ENFILE;
->  	}
->  #endif
-> @@ -943,7 +950,7 @@ int __video_register_device(struct video_device *vdev,
->  	/* Should not happen since we thought this minor was free */
->  	if (WARN_ON(video_device[vdev->minor])) {
->  		mutex_unlock(&videodev_lock);
-> -		printk(KERN_ERR "video_device not empty!\n");
-> +		pr_err("video_device not empty!\n");
->  		return -ENFILE;
->  	}
->  	devnode_set(vdev);
-> @@ -964,7 +971,7 @@ int __video_register_device(struct video_device *vdev,
->  	vdev->cdev->owner = owner;
->  	ret = cdev_add(vdev->cdev, MKDEV(VIDEO_MAJOR, vdev->minor), 1);
->  	if (ret < 0) {
-> -		printk(KERN_ERR "%s: cdev_add failed\n", __func__);
-> +		pr_err("%s: cdev_add failed\n", __func__);
->  		kfree(vdev->cdev);
->  		vdev->cdev = NULL;
->  		goto cleanup;
-> @@ -977,7 +984,7 @@ int __video_register_device(struct video_device *vdev,
->  	dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
->  	ret = device_register(&vdev->dev);
->  	if (ret < 0) {
-> -		printk(KERN_ERR "%s: device_register failed\n", __func__);
-> +		pr_err("%s: device_register failed\n", __func__);
->  		goto cleanup;
->  	}
->  	/* Register the release callback that will be called when the last
-> @@ -985,7 +992,7 @@ int __video_register_device(struct video_device *vdev,
->  	vdev->dev.release = v4l2_device_release;
->  
->  	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
-> -		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
-> +		pr_warn("%s: requested %s%d, got %s\n", __func__,
->  			name_base, nr, video_device_node_name(vdev));
->  
->  	/* Increase v4l2_device refcount */
-> @@ -1043,10 +1050,10 @@ static int __init videodev_init(void)
->  	dev_t dev = MKDEV(VIDEO_MAJOR, 0);
->  	int ret;
->  
-> -	printk(KERN_INFO "Linux video capture interface: v2.00\n");
-> +	pr_info("Linux video capture interface: v2.00\n");
->  	ret = register_chrdev_region(dev, VIDEO_NUM_DEVICES, VIDEO_NAME);
->  	if (ret < 0) {
-> -		printk(KERN_WARNING "videodev: unable to get major %d\n",
-> +		pr_warn("videodev: unable to get major %d\n",
->  				VIDEO_MAJOR);
->  		return ret;
->  	}
-> @@ -1054,7 +1061,7 @@ static int __init videodev_init(void)
->  	ret = class_register(&video_class);
->  	if (ret < 0) {
->  		unregister_chrdev_region(dev, VIDEO_NUM_DEVICES);
-> -		printk(KERN_WARNING "video_dev: class_register failed\n");
-> +		pr_warn("video_dev: class_register failed\n");
->  		return -EIO;
->  	}
->  
-> -- 
-> 2.14.3
-> 
+(The reason for that is you're operating in a non-CPU specific space,
+so you can't make any guarantees as to how much caching or prefetching
+will occur by the CPU - different CPUs will do different amounts.)
+
+So, for example, the sequence:
+
+GPU writes to memory
+			CPU reads from cacheable memory
+
+if the memory was previously dirty (iow, CPU has written), you need to
+flush the dirty cache lines _before_ the GPU writes happen, but you
+don't know whether the CPU has speculatively prefetched, so you need
+to flush any prefetched cache lines before reading from the cacheable
+memory _after_ the GPU has finished writing.
+
+Also note that "flush" there can be "clean the cache", "clean and
+invalidate the cache" or "invalidate the cache" as appropriate - some
+CPUs are able to perform those three operations, and the appropriate
+one depends on not only where in the above sequence it's being used,
+but also on what the operations are.
+
+So, the above sequence could be:
+
+			CPU invalidates cache for memory
+				(due to possible dirty cache lines)
+GPU writes to memory
+			CPU invalidates cache for memory
+				(to get rid of any speculatively prefetched
+				 lines)
+			CPU reads from cacheable memory
+
+Yes, in the above case, _two_ cache operations are required to ensure
+correct behaviour.  However, if you know for certain that the memory was
+previously clean, then the first cache operation can be skipped.
+
+What I'm pointing out is there's much more than just "I want to flush
+the cache" here, which is currently what DRM seems to assume at the
+moment with the code in drm_cache.c.
+
+If we can agree a set of interfaces that allows _proper_ use of these
+facilities, one which can be used appropriately, then there shouldn't
+be a problem.  The DMA API does that via it's ideas about who owns a
+particular buffer (because of the above problem) and that's something
+which would need to be carried over to such a cache flushing API (it
+should be pretty obvious that having a GPU read or write memory while
+the cache for that memory is being cleaned will lead to unexpected
+results.)
+
+Also note that things get even more interesting in a SMP environment
+if cache operations aren't broadcasted across the SMP cluster (which
+means cache operations have to be IPI'd to other CPUs.)
+
+The next issue, which I've brought up before, is that exposing cache
+flushing to userspace on architectures where it isn't already exposed
+comes.  As has been shown by Google Project Zero, this risks exposing
+those architectures to Spectre and Meltdown exploits where they weren't
+at such a risk before.  (I've pretty much shown here that you _do_
+need to control which cache lines get flushed to make these exploits
+work, and flushing the cache by reading lots of data in liu of having
+the ability to explicitly flush bits of cache makes it very difficult
+to impossible for them to work.)
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
