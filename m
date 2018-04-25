@@ -1,48 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsmx012.vodafonemail.xion.oxcs.net ([153.92.174.90]:61755 "EHLO
-        vsmx012.vodafonemail.xion.oxcs.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756345AbeDKUAn (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:35278 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754847AbeDYRWj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 16:00:43 -0400
-Received: from vsmx004.vodafonemail.xion.oxcs.net (unknown [192.168.75.198])
-        by mta-8-out.mta.xion.oxcs.net (Postfix) with ESMTP id 8E5618CE1AA
-        for <linux-media@vger.kernel.org>; Wed, 11 Apr 2018 19:51:05 +0000 (UTC)
-Received: from [192.168.0.1] (unknown [91.10.43.10])
-        by mta-8-out.mta.xion.oxcs.net (Postfix) with ESMTPA id 69385CDF82
-        for <linux-media@vger.kernel.org>; Wed, 11 Apr 2018 19:51:03 +0000 (UTC)
-To: linux-media@vger.kernel.org
-From: Ochi <ochi@arcor.de>
-Subject: Emulated formats do not allow to use highest FPS of some cameras
-Message-ID: <920ff2ce-4c2b-4e76-4ff4-865b73be2003@arcor.de>
-Date: Wed, 11 Apr 2018 21:51:02 +0200
+        Wed, 25 Apr 2018 13:22:39 -0400
+Date: Wed, 25 Apr 2018 14:22:29 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        mjpeg-users@lists.sourceforge.net,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Trent Piepho <tpiepho@impinj.com>
+Subject: Re: [PATCH] media: zoran: move to dma-mapping interface
+Message-ID: <20180425142229.25d756ed@vento.lan>
+In-Reply-To: <CAK8P3a0CHSC7yP3x8xDJgcg5xMzD1-sC-rmBJECtYvGFmyG4vQ@mail.gmail.com>
+References: <20180424204158.2764095-1-arnd@arndb.de>
+        <20180425061537.GA23383@infradead.org>
+        <CAK8P3a06ragAPWpHGm-bGoZ8t6QyAttWJfD0jU_wcGy7FqLb5w@mail.gmail.com>
+        <20180425072138.GA16375@infradead.org>
+        <CAK8P3a1cs_SPesadAQhV3QU97WjNE8bLPSQCfaMQRU7zr_oh3w@mail.gmail.com>
+        <20180425152636.GC27076@infradead.org>
+        <CAK8P3a0CHSC7yP3x8xDJgcg5xMzD1-sC-rmBJECtYvGFmyG4vQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Em Wed, 25 Apr 2018 17:58:25 +0200
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-I'm using a Logitech Brio webcam which is able to capture video at 60+ 
-FPS when using MJPEG input format at e.g. 1280x720 pixels, but only up 
-to 30 FPS when using other formats such as YUYV.
+> On Wed, Apr 25, 2018 at 5:26 PM, Christoph Hellwig <hch@infradead.org> wrote:
+> > On Wed, Apr 25, 2018 at 01:15:18PM +0200, Arnd Bergmann wrote:  
+> >> That thought had occurred to me as well. I removed the oldest ISDN
+> >> drivers already some years ago, and the OSS sound drivers
+> >> got removed as well, and comedi got converted to the dma-mapping
+> >> interfaces, so there isn't much left at all now. This is what we
+> >> have as of v4.17-rc1:  
+> >
+> > Yes, I've been looking at various grotty old bits to purge.  Usually
+> > I've been looking for some non-tree wide patches and CCed the last
+> > active people to see if they care.  In a few cases people do, but
+> > most often no one does.  
+> 
+> Let's start with this one (zoran) then, as Mauro is keen on having
+> all media drivers compile-testable on x86-64 and arm.
+> 
+> Trent Piepho and Hans Verkuil both worked on this driver in the
+> 2008/2009 timeframe and those were the last commits from anyone
+> who appears to have tested their patches on actual hardware.
 
-When using the cam with OBS Studio, the MJPEG input format is not 
-currently supported by OBS so that I tried to choose one of the emulated 
-formats. However, when using e.g. emulated YU12 or YV12 input formats, I 
-can only choose up to 30 FPS.
+Zoran is a driver for old hardware. I don't doubt that are people
+out there still using it, but who knows?
 
-I think that the reason for this is that the automatic ranking of 
-available input formats by the function "v4lconvert_get_rank" in 
-"libv4lconvert.c" uses a heuristic to rank formats which disregards 
-characteristics of a format such as the maximum available FPS. Indeed, 
-if I lower the rank (in this case lower == better) manually for MJPEG in 
-said function, I can choose 60 or even 90 FPS in OBS when using one of 
-the emulated formats.
+I have a few those boards packed somewhere. I haven't work with PCI
+hardware for a while. If needed, I can try to seek for them and
+do some tests. I need first to unpack a machine with PCI slots...
+the NUCs I generally use for development don't have any :-)
 
-Do you think a change of the heuristic used in "v4lconvert_get_rank" 
-would be in order here, or do you have any other advice?
+Anyway, except for virt_to_bus() and related stuff, I think that this
+driver is in good shape, as Hans did a lot of work in the past to
+make it to use the current media framework.
 
-Best Regards
-Sebastian
+> 
+> Trent, Hans: do you have reason to believe that there might still
+> be users out there?
+> 
+>        Arnd
+
+
+
+Thanks,
+Mauro
