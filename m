@@ -1,404 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54335 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751933AbeDEJSk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 05:18:40 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2 06/15] v4l: vsp1: Move DRM atomic commit pipeline setup to separate function
-Date: Thu,  5 Apr 2018 12:18:31 +0300
-Message-Id: <20180405091840.30728-7-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:37841 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751497AbeDYSiE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 14:38:04 -0400
+Received: by mail-oi0-f42.google.com with SMTP id f63-v6so21800160oic.4
+        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2018 11:38:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CADnq5_O5t8aSJE6SFzyjw-6Pmba7B2aYMztVMOOQCF3drBHR5Q@mail.gmail.com>
+References: <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com>
+ <20180420101755.GA11400@infradead.org> <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
+ <20180420124625.GA31078@infradead.org> <20180420152111.GR31310@phenom.ffwll.local>
+ <20180424184847.GA3247@infradead.org> <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+ <20180425054855.GA17038@infradead.org> <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+ <CADnq5_P3bT0TStSXpKh11ydifv=KwKtRj-7tDS=GQXey+8tBPw@mail.gmail.com>
+ <20180425064118.GA28100@infradead.org> <CADnq5_O5t8aSJE6SFzyjw-6Pmba7B2aYMztVMOOQCF3drBHR5Q@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 25 Apr 2018 11:38:03 -0700
+Message-ID: <CAPcyv4gvz8hWLiz3wSitoh3546WV7d=LRYzu5nd9MpKKH7C=mg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
+To: Alex Deucher <alexdeucher@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DRM pipeline setup code used at atomic commit time is similar to the
-setup code used when enabling the pipeline. Move it to a separate
-function in order to share it.
+On Wed, Apr 25, 2018 at 10:44 AM, Alex Deucher <alexdeucher@gmail.com> wrote:
+> On Wed, Apr 25, 2018 at 2:41 AM, Christoph Hellwig <hch@infradead.org> wrote:
+>> On Wed, Apr 25, 2018 at 02:24:36AM -0400, Alex Deucher wrote:
+>>> > It has a non-coherent transaction mode (which the chipset can opt to
+>>> > not implement and still flush), to make sure the AGP horror show
+>>> > doesn't happen again and GPU folks are happy with PCIe. That's at
+>>> > least my understanding from digging around in amd the last time we had
+>>> > coherency issues between intel and amd gpus. GPUs have some bits
+>>> > somewhere (in the pagetables, or in the buffer object description
+>>> > table created by userspace) to control that stuff.
+>>>
+>>> Right.  We have a bit in the GPU page table entries that determines
+>>> whether we snoop the CPU's cache or not.
+>>
+>> I can see how that works with the GPU on the same SOC or SOC set as the
+>> CPU.  But how is that going to work for a GPU that is a plain old PCIe
+>> card?  The cache snooping in that case is happening in the PCIe root
+>> complex.
+>
+> I'm not a pci expert, but as far as I know, the device sends either a
+> snooped or non-snooped transaction on the bus.  I think the
+> transaction descriptor supports a no snoop attribute.  Our GPUs have
+> supported this feature for probably 20 years if not more, going back
+> to PCI.  Using non-snooped transactions have lower latency and faster
+> throughput compared to snooped transactions.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drm.c | 347 +++++++++++++++++----------------
- 1 file changed, 180 insertions(+), 167 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 9a043a915c0b..7bf697ba7969 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -46,6 +46,185 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
-  * Pipeline Configuration
-  */
- 
-+/* Setup one RPF and the connected BRU sink pad. */
-+static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
-+				      struct vsp1_pipeline *pipe,
-+				      struct vsp1_rwpf *rpf,
-+				      unsigned int bru_input)
-+{
-+	struct v4l2_subdev_selection sel;
-+	struct v4l2_subdev_format format;
-+	const struct v4l2_rect *crop;
-+	int ret;
-+
-+	/*
-+	 * Configure the format on the RPF sink pad and propagate it up to the
-+	 * BRU sink pad.
-+	 */
-+	crop = &vsp1->drm->inputs[rpf->entity.index].crop;
-+
-+	memset(&format, 0, sizeof(format));
-+	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	format.pad = RWPF_PAD_SINK;
-+	format.format.width = crop->width + crop->left;
-+	format.format.height = crop->height + crop->top;
-+	format.format.code = rpf->fmtinfo->mbus;
-+	format.format.field = V4L2_FIELD_NONE;
-+
-+	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
-+			       &format);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(vsp1->dev,
-+		"%s: set format %ux%u (%x) on RPF%u sink\n",
-+		__func__, format.format.width, format.format.height,
-+		format.format.code, rpf->entity.index);
-+
-+	memset(&sel, 0, sizeof(sel));
-+	sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	sel.pad = RWPF_PAD_SINK;
-+	sel.target = V4L2_SEL_TGT_CROP;
-+	sel.r = *crop;
-+
-+	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_selection, NULL,
-+			       &sel);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(vsp1->dev,
-+		"%s: set selection (%u,%u)/%ux%u on RPF%u sink\n",
-+		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
-+		rpf->entity.index);
-+
-+	/*
-+	 * RPF source, hardcode the format to ARGB8888 to turn on format
-+	 * conversion if needed.
-+	 */
-+	format.pad = RWPF_PAD_SOURCE;
-+
-+	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, get_fmt, NULL,
-+			       &format);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(vsp1->dev,
-+		"%s: got format %ux%u (%x) on RPF%u source\n",
-+		__func__, format.format.width, format.format.height,
-+		format.format.code, rpf->entity.index);
-+
-+	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
-+
-+	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
-+			       &format);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* BRU sink, propagate the format from the RPF source. */
-+	format.pad = bru_input;
-+
-+	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_fmt, NULL,
-+			       &format);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
-+		__func__, format.format.width, format.format.height,
-+		format.format.code, BRU_NAME(pipe->bru), format.pad);
-+
-+	sel.pad = bru_input;
-+	sel.target = V4L2_SEL_TGT_COMPOSE;
-+	sel.r = vsp1->drm->inputs[rpf->entity.index].compose;
-+
-+	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_selection, NULL,
-+			       &sel);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(vsp1->dev, "%s: set selection (%u,%u)/%ux%u on %s pad %u\n",
-+		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
-+		BRU_NAME(pipe->bru), sel.pad);
-+
-+	return 0;
-+}
-+
-+static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
-+{
-+	return vsp1->drm->inputs[rpf->entity.index].zpos;
-+}
-+
-+/* Setup the input side of the pipeline (RPFs and BRU sink pads). */
-+static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
-+					struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
-+	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
-+	unsigned int i;
-+	int ret;
-+
-+	/* Count the number of enabled inputs and sort them by Z-order. */
-+	pipe->num_inputs = 0;
-+
-+	for (i = 0; i < vsp1->info->rpf_count; ++i) {
-+		struct vsp1_rwpf *rpf = vsp1->rpf[i];
-+		unsigned int j;
-+
-+		/*
-+		 * Make sure we don't accept more inputs than the hardware can
-+		 * handle. This is a temporary fix to avoid display stall, we
-+		 * need to instead allocate the BRU or BRS to display pipelines
-+		 * dynamically based on the number of planes they each use.
-+		 */
-+		if (pipe->num_inputs >= pipe->bru->source_pad)
-+			pipe->inputs[i] = NULL;
-+
-+		if (!pipe->inputs[i])
-+			continue;
-+
-+		/* Insert the RPF in the sorted RPFs array. */
-+		for (j = pipe->num_inputs++; j > 0; --j) {
-+			if (rpf_zpos(vsp1, inputs[j-1]) <= rpf_zpos(vsp1, rpf))
-+				break;
-+			inputs[j] = inputs[j-1];
-+		}
-+
-+		inputs[j] = rpf;
-+	}
-+
-+	/* Setup the RPF input pipeline for every enabled input. */
-+	for (i = 0; i < pipe->bru->source_pad; ++i) {
-+		struct vsp1_rwpf *rpf = inputs[i];
-+
-+		if (!rpf) {
-+			bru->inputs[i].rpf = NULL;
-+			continue;
-+		}
-+
-+		if (!rpf->entity.pipe) {
-+			rpf->entity.pipe = pipe;
-+			list_add_tail(&rpf->entity.list_pipe, &pipe->entities);
-+		}
-+
-+		bru->inputs[i].rpf = rpf;
-+		rpf->bru_input = i;
-+		rpf->entity.sink = pipe->bru;
-+		rpf->entity.sink_pad = i;
-+
-+		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
-+			__func__, rpf->entity.index, BRU_NAME(pipe->bru), i);
-+
-+		ret = vsp1_du_pipeline_setup_rpf(vsp1, pipe, rpf, i);
-+		if (ret < 0) {
-+			dev_err(vsp1->dev,
-+				"%s: failed to setup RPF.%u\n",
-+				__func__, rpf->entity.index);
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- /* Configure all entities in the pipeline. */
- static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
- {
-@@ -396,111 +575,6 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
- }
- EXPORT_SYMBOL_GPL(vsp1_du_atomic_update);
- 
--static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
--				  struct vsp1_pipeline *pipe,
--				  struct vsp1_rwpf *rpf, unsigned int bru_input)
--{
--	struct v4l2_subdev_selection sel;
--	struct v4l2_subdev_format format;
--	const struct v4l2_rect *crop;
--	int ret;
--
--	/*
--	 * Configure the format on the RPF sink pad and propagate it up to the
--	 * BRU sink pad.
--	 */
--	crop = &vsp1->drm->inputs[rpf->entity.index].crop;
--
--	memset(&format, 0, sizeof(format));
--	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--	format.pad = RWPF_PAD_SINK;
--	format.format.width = crop->width + crop->left;
--	format.format.height = crop->height + crop->top;
--	format.format.code = rpf->fmtinfo->mbus;
--	format.format.field = V4L2_FIELD_NONE;
--
--	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
--			       &format);
--	if (ret < 0)
--		return ret;
--
--	dev_dbg(vsp1->dev,
--		"%s: set format %ux%u (%x) on RPF%u sink\n",
--		__func__, format.format.width, format.format.height,
--		format.format.code, rpf->entity.index);
--
--	memset(&sel, 0, sizeof(sel));
--	sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--	sel.pad = RWPF_PAD_SINK;
--	sel.target = V4L2_SEL_TGT_CROP;
--	sel.r = *crop;
--
--	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_selection, NULL,
--			       &sel);
--	if (ret < 0)
--		return ret;
--
--	dev_dbg(vsp1->dev,
--		"%s: set selection (%u,%u)/%ux%u on RPF%u sink\n",
--		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
--		rpf->entity.index);
--
--	/*
--	 * RPF source, hardcode the format to ARGB8888 to turn on format
--	 * conversion if needed.
--	 */
--	format.pad = RWPF_PAD_SOURCE;
--
--	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, get_fmt, NULL,
--			       &format);
--	if (ret < 0)
--		return ret;
--
--	dev_dbg(vsp1->dev,
--		"%s: got format %ux%u (%x) on RPF%u source\n",
--		__func__, format.format.width, format.format.height,
--		format.format.code, rpf->entity.index);
--
--	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
--
--	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
--			       &format);
--	if (ret < 0)
--		return ret;
--
--	/* BRU sink, propagate the format from the RPF source. */
--	format.pad = bru_input;
--
--	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_fmt, NULL,
--			       &format);
--	if (ret < 0)
--		return ret;
--
--	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
--		__func__, format.format.width, format.format.height,
--		format.format.code, BRU_NAME(pipe->bru), format.pad);
--
--	sel.pad = bru_input;
--	sel.target = V4L2_SEL_TGT_COMPOSE;
--	sel.r = vsp1->drm->inputs[rpf->entity.index].compose;
--
--	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_selection, NULL,
--			       &sel);
--	if (ret < 0)
--		return ret;
--
--	dev_dbg(vsp1->dev, "%s: set selection (%u,%u)/%ux%u on %s pad %u\n",
--		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
--		BRU_NAME(pipe->bru), sel.pad);
--
--	return 0;
--}
--
--static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
--{
--	return vsp1->drm->inputs[rpf->entity.index].zpos;
--}
--
- /**
-  * vsp1_du_atomic_flush - Commit an atomic update
-  * @dev: the VSP device
-@@ -511,69 +585,8 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
- 	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
--	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
--	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
--	unsigned int i;
--	int ret;
--
--	/* Count the number of enabled inputs and sort them by Z-order. */
--	pipe->num_inputs = 0;
--
--	for (i = 0; i < vsp1->info->rpf_count; ++i) {
--		struct vsp1_rwpf *rpf = vsp1->rpf[i];
--		unsigned int j;
--
--		/*
--		 * Make sure we don't accept more inputs than the hardware can
--		 * handle. This is a temporary fix to avoid display stall, we
--		 * need to instead allocate the BRU or BRS to display pipelines
--		 * dynamically based on the number of planes they each use.
--		 */
--		if (pipe->num_inputs >= pipe->bru->source_pad)
--			pipe->inputs[i] = NULL;
--
--		if (!pipe->inputs[i])
--			continue;
--
--		/* Insert the RPF in the sorted RPFs array. */
--		for (j = pipe->num_inputs++; j > 0; --j) {
--			if (rpf_zpos(vsp1, inputs[j-1]) <= rpf_zpos(vsp1, rpf))
--				break;
--			inputs[j] = inputs[j-1];
--		}
--
--		inputs[j] = rpf;
--	}
--
--	/* Setup the RPF input pipeline for every enabled input. */
--	for (i = 0; i < pipe->bru->source_pad; ++i) {
--		struct vsp1_rwpf *rpf = inputs[i];
--
--		if (!rpf) {
--			bru->inputs[i].rpf = NULL;
--			continue;
--		}
--
--		if (!rpf->entity.pipe) {
--			rpf->entity.pipe = pipe;
--			list_add_tail(&rpf->entity.list_pipe, &pipe->entities);
--		}
--
--		bru->inputs[i].rpf = rpf;
--		rpf->bru_input = i;
--		rpf->entity.sink = pipe->bru;
--		rpf->entity.sink_pad = i;
--
--		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
--			__func__, rpf->entity.index, BRU_NAME(pipe->bru), i);
--
--		ret = vsp1_du_setup_rpf_pipe(vsp1, pipe, rpf, i);
--		if (ret < 0)
--			dev_err(vsp1->dev,
--				"%s: failed to setup RPF.%u\n",
--				__func__, rpf->entity.index);
--	}
- 
-+	vsp1_du_pipeline_setup_input(vsp1, pipe);
- 	vsp1_du_pipeline_configure(pipe);
- }
- EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
--- 
-Regards,
-
-Laurent Pinchart
+Right, 'no snoop' and 'relaxed ordering' have been part of the PCI
+spec since forever. With a plain old PCI-E card the root complex
+indeed arranges for caches to be snooped. Although it's not always
+faster depending on the platform. 'No snoop' traffic may be relegated
+to less bus resources relative to the much more common snooped
+traffic.
