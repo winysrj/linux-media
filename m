@@ -1,621 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:46636 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751231AbeDDMUl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Apr 2018 08:20:41 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v8 2/2] v4l: cadence: Add Cadence MIPI-CSI2 TX driver
-Date: Wed,  4 Apr 2018 14:20:25 +0200
-Message-Id: <20180404122025.8726-3-maxime.ripard@bootlin.com>
-In-Reply-To: <20180404122025.8726-1-maxime.ripard@bootlin.com>
-References: <20180404122025.8726-1-maxime.ripard@bootlin.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:51168 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755371AbeDYS7s (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 14:59:48 -0400
+Received: by mail-wm0-f66.google.com with SMTP id t11so2022573wmt.0
+        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2018 11:59:47 -0700 (PDT)
+Received: from toshiba (90-145-46-101.wxdsl.nl. [90.145.46.101])
+        by smtp.gmail.com with ESMTPSA id b43sm11279431edc.34.2018.04.25.11.59.46
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 25 Apr 2018 11:59:46 -0700 (PDT)
+Message-ID: <5ae0d022.eea5500a.1d4ec.2415@mx.google.com>
+Date: Wed, 25 Apr 2018 20:59:46 +0200
+From: mjs <mjstork@gmail.com>
+To: "3 linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] [2] Add new dvb-t board ":Zolid Hybrid Tv Stick"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cadence MIPI-CSI2 TX controller is an hardware block meant to be used
-as a bridge between pixel interfaces and a CSI-2 bus.
+=46rom 911e4ce75588f23ead083fd520a45af5336ee761 Mon Sep 17 00:00:00 2001
+From: Marcel Stork <mjstork@gmail.com>
+Date: Wed, 25 Apr 2018 19:49:07 +0200
+Subject: [PATCH] Add new dvb-t board ":Zolid Hybrid Tv Stick".
 
-It supports operating with an internal or external D-PHY, with up to 4
-lanes, or without any D-PHY. The current code only supports the latter
-case.
+Extra code to be able to use this stick, only digital, not analog nor remot=
+e-control.
 
-While the virtual channel input on the pixel interface can be directly
-mapped to CSI2, the datatype input is actually a selection signal (3-bits)
-mapping to a table of up to 8 preconfigured datatypes/formats (programmed
-at start-up)
+Changes to be committed:
+	modified: drivers/media/usb/em28xx/em28xx-cards.c
+	modified: drivers/media/usb/em28xx/em28xx-dvb.c
+	modified: drivers/media/usb/em28xx/em28xx.h
 
-The block supports up to 8 input datatypes.
+Signed-off-by: Marcel Stork <mjstork@gmail.com>
 
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/media/platform/cadence/Kconfig       |  11 +
- drivers/media/platform/cadence/Makefile      |   1 +
- drivers/media/platform/cadence/cdns-csi2tx.c | 529 +++++++++++++++++++++++++++
- 3 files changed, 541 insertions(+)
- create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
+ drivers/media/usb/em28xx/em28xx-cards.c | 30 +++++++++++++++++++++++++++++-
+ drivers/media/usb/em28xx/em28xx-dvb.c   |  1 +
+ drivers/media/usb/em28xx/em28xx.h       |  1 +
+ 3 files changed, 31 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/cadence/Kconfig b/drivers/media/platform/cadence/Kconfig
-index 70c95d79c8f7..3bf0f2454384 100644
---- a/drivers/media/platform/cadence/Kconfig
-+++ b/drivers/media/platform/cadence/Kconfig
-@@ -20,4 +20,15 @@ config VIDEO_CADENCE_CSI2RX
- 	  To compile this driver as a module, choose M here: the module will be
- 	  called cdns-csi2rx.
- 
-+config VIDEO_CADENCE_CSI2TX
-+	tristate "Cadence MIPI-CSI2 TX Controller"
-+	depends on MEDIA_CONTROLLER
-+	depends on VIDEO_V4L2_SUBDEV_API
-+	select V4L2_FWNODE
-+	help
-+	  Support for the Cadence MIPI CSI2 Transceiver controller.
-+
-+	  To compile this driver as a module, choose M here: the module will be
-+	  called cdns-csi2tx.
-+
- endif
-diff --git a/drivers/media/platform/cadence/Makefile b/drivers/media/platform/cadence/Makefile
-index 99a4086b7448..7fe992273162 100644
---- a/drivers/media/platform/cadence/Makefile
-+++ b/drivers/media/platform/cadence/Makefile
-@@ -1 +1,2 @@
- obj-$(CONFIG_VIDEO_CADENCE_CSI2RX)	+= cdns-csi2rx.o
-+obj-$(CONFIG_VIDEO_CADENCE_CSI2TX)	+= cdns-csi2tx.o
-diff --git a/drivers/media/platform/cadence/cdns-csi2tx.c b/drivers/media/platform/cadence/cdns-csi2tx.c
-new file mode 100644
-index 000000000000..4495044e9f99
---- /dev/null
-+++ b/drivers/media/platform/cadence/cdns-csi2tx.c
-@@ -0,0 +1,529 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * Driver for Cadence MIPI-CSI2 TX Controller
-+ *
-+ * Copyright (C) 2017 Cadence Design Systems Inc.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/of.h>
-+#include <linux/of_graph.h>
-+#include <linux/platform_device.h>
-+
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
-+#include <media/v4l2-subdev.h>
-+
-+#define CSI2TX_DEVICE_CONFIG_REG	0x00
-+
-+#define CSI2TX_CONFIG_REG		0x20
-+#define CSI2TX_CONFIG_CFG_REQ			BIT(2)
-+#define CSI2TX_CONFIG_SRST_REQ			BIT(1)
-+
-+#define CSI2TX_DPHY_CFG_REG		0x28
-+#define CSI2TX_DPHY_CFG_CLK_RESET		BIT(16)
-+#define CSI2TX_DPHY_CFG_LANE_RESET(n)		BIT((n) + 12)
-+#define CSI2TX_DPHY_CFG_MODE_MASK		GENMASK(9, 8)
-+#define CSI2TX_DPHY_CFG_MODE_LPDT		(2 << 8)
-+#define CSI2TX_DPHY_CFG_MODE_HS			(1 << 8)
-+#define CSI2TX_DPHY_CFG_MODE_ULPS		(0 << 8)
-+#define CSI2TX_DPHY_CFG_CLK_ENABLE		BIT(4)
-+#define CSI2TX_DPHY_CFG_LANE_ENABLE(n)		BIT(n)
-+
-+#define CSI2TX_DPHY_CLK_WAKEUP_REG	0x2c
-+#define CSI2TX_DPHY_CLK_WAKEUP_ULPS_CYCLES(n)	((n) & 0xffff)
-+
-+#define CSI2TX_DT_CFG_REG(n)		(0x80 + (n) * 8)
-+#define CSI2TX_DT_CFG_DT(n)			(((n) & 0x3f) << 2)
-+
-+#define CSI2TX_DT_FORMAT_REG(n)		(0x84 + (n) * 8)
-+#define CSI2TX_DT_FORMAT_BYTES_PER_LINE(n)	(((n) & 0xffff) << 16)
-+#define CSI2TX_DT_FORMAT_MAX_LINE_NUM(n)	((n) & 0xffff)
-+
-+#define CSI2TX_STREAM_IF_CFG_REG(n)	(0x100 + (n) * 4)
-+#define CSI2TX_STREAM_IF_CFG_FILL_LEVEL(n)	((n) & 0x1f)
-+
-+#define CSI2TX_LANES_MAX	4
-+#define CSI2TX_STREAMS_MAX	4
-+
-+enum csi2tx_pads {
-+	CSI2TX_PAD_SOURCE,
-+	CSI2TX_PAD_SINK_STREAM0,
-+	CSI2TX_PAD_SINK_STREAM1,
-+	CSI2TX_PAD_SINK_STREAM2,
-+	CSI2TX_PAD_SINK_STREAM3,
-+	CSI2TX_PAD_MAX,
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em=
+28xx/em28xx-cards.c
+index 6e0e67d2..bc8b099f 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -87,6 +87,21 @@ static const struct em28xx_reg_seq default_digital[] =3D=
+ {
+ 	{	-1,		-1,	-1,		-1},
+ };
+=20
++/* Board :Zolid Hybrid Tv Stick */
++static struct em28xx_reg_seq zolid_tuner[] =3D {
++	{EM2820_R08_GPIO_CTRL,		0xfd,		0xff,	100},
++	{EM2820_R08_GPIO_CTRL,		0xfe,		0xff,	100},
++	{		-1,					-1,			-1,		 -1},
 +};
 +
-+struct csi2tx_fmt {
-+	u32	mbus;
-+	u32	dt;
-+	u32	bpp;
++static struct em28xx_reg_seq zolid_digital[] =3D {
++	{EM2820_R08_GPIO_CTRL,		0x6a,		0xff,	100},
++	{EM2820_R08_GPIO_CTRL,		0x7a,		0xff,	100},
++	{EM2880_R04_GPO,			0x04,		0xff,	100},
++	{EM2880_R04_GPO,			0x0c,		0xff,	100},
++	{	-1,						-1,			-1,		 -1},
 +};
 +
-+struct csi2tx_priv {
-+	struct device			*dev;
-+	unsigned int			count;
-+
-+	/*
-+	 * Used to prevent race conditions between multiple,
-+	 * concurrent calls to start and stop.
-+	 */
-+	struct mutex			lock;
-+
-+	void __iomem			*base;
-+
-+	struct clk			*esc_clk;
-+	struct clk			*p_clk;
-+	struct clk			*pixel_clk[CSI2TX_STREAMS_MAX];
-+
-+	struct v4l2_subdev		subdev;
-+	struct media_pad		pads[CSI2TX_PAD_MAX];
-+	struct v4l2_mbus_framefmt	pad_fmts[CSI2TX_PAD_MAX];
-+
-+	bool				has_internal_dphy;
-+	u8				lanes[CSI2TX_LANES_MAX];
-+	unsigned int			num_lanes;
-+	unsigned int			max_lanes;
-+	unsigned int			max_streams;
-+};
-+
-+static const struct csi2tx_fmt csi2tx_formats[] = {
-+	{
-+		.mbus	= MEDIA_BUS_FMT_UYVY8_1X16,
-+		.bpp	= 2,
-+		.dt	= 0x1e,
+ /* Board Hauppauge WinTV HVR 900 analog */
+ static const struct em28xx_reg_seq hauppauge_wintv_hvr_900_analog[] =3D {
+ 	{EM2820_R08_GPIO_CTRL,	0x2d,	~EM_GPIO_4,	10},
+@@ -666,6 +681,16 @@ const struct em28xx_board em28xx_boards[] =3D {
+ 		.tuner_type    =3D TUNER_ABSENT,
+ 		.is_webcam     =3D 1,	/* To enable sensor probe */
+ 	},
++	[EM2882_BOARD_ZOLID_HYBRID_TV_STICK] =3D {
++		.name			=3D ":ZOLID HYBRID TV STICK",
++		.tuner_type		=3D TUNER_XC2028,
++		.tuner_gpio		=3D zolid_tuner,
++		.decoder		=3D EM28XX_TVP5150,
++		.xclk			=3D EM28XX_XCLK_FREQUENCY_12MHZ,
++		.mts_firmware	=3D 1,
++		.has_dvb		=3D 1,
++		.dvb_gpio		=3D zolid_digital,
 +	},
-+	{
-+		.mbus	= MEDIA_BUS_FMT_RGB888_1X24,
-+		.bpp	= 3,
-+		.dt	= 0x24,
-+	},
-+};
-+
-+static const struct v4l2_mbus_framefmt fmt_default = {
-+	.width		= 1280,
-+	.height		= 720,
-+	.code		= MEDIA_BUS_FMT_RGB888_1X24,
-+	.field		= V4L2_FIELD_NONE,
-+	.colorspace	= V4L2_COLORSPACE_DEFAULT,
-+};
-+
-+static inline
-+struct csi2tx_priv *v4l2_subdev_to_csi2tx(struct v4l2_subdev *subdev)
-+{
-+	return container_of(subdev, struct csi2tx_priv, subdev);
-+}
-+
-+static const struct csi2tx_fmt *csi2tx_get_fmt_from_mbus(struct v4l2_mbus_framefmt *mfmt)
-+{
-+	unsigned int i;
-+
-+	if (!mfmt)
-+		return NULL;
-+
-+	for (i = 0; i < ARRAY_SIZE(csi2tx_formats); i++)
-+		if (csi2tx_formats[i].mbus == mfmt->code)
-+			return &csi2tx_formats[i];
-+
-+	return NULL;
-+}
-+
-+static int csi2tx_enum_mbus_code(struct v4l2_subdev *subdev,
-+				 struct v4l2_subdev_pad_config *cfg,
-+				 struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	if (code->pad || code->index >= ARRAY_SIZE(csi2tx_formats))
-+		return -EINVAL;
-+
-+	code->code = csi2tx_formats[code->index].mbus;
-+
-+	return 0;
-+}
-+
-+static int csi2tx_get_pad_format(struct v4l2_subdev *subdev,
-+				 struct v4l2_subdev_pad_config *cfg,
-+				 struct v4l2_subdev_format *fmt)
-+{
-+	struct csi2tx_priv *csi2tx = v4l2_subdev_to_csi2tx(subdev);
-+
-+	if (fmt->pad >= CSI2TX_PAD_MAX)
-+		return -EINVAL;
-+
-+	fmt->format = csi2tx->pad_fmts[fmt->pad];
-+
-+	return 0;
-+}
-+
-+static int csi2tx_set_pad_format(struct v4l2_subdev *subdev,
-+				 struct v4l2_subdev_pad_config *cfg,
-+				 struct v4l2_subdev_format *fmt)
-+{
-+	struct csi2tx_priv *csi2tx = v4l2_subdev_to_csi2tx(subdev);
-+
-+	if (fmt->pad >= CSI2TX_PAD_MAX)
-+		return -EINVAL;
-+
-+	csi2tx->pad_fmts[fmt->pad] = fmt->format;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_pad_ops csi2tx_pad_ops = {
-+	.enum_mbus_code	= csi2tx_enum_mbus_code,
-+	.get_fmt	= csi2tx_get_pad_format,
-+	.set_fmt	= csi2tx_set_pad_format,
-+};
-+
-+static void csi2tx_reset(struct csi2tx_priv *csi2tx)
-+{
-+	writel(CSI2TX_CONFIG_SRST_REQ, csi2tx->base + CSI2TX_CONFIG_REG);
-+
-+	udelay(10);
-+}
-+
-+static int csi2tx_start(struct csi2tx_priv *csi2tx)
-+{
-+	struct media_entity *entity = &csi2tx->subdev.entity;
-+	struct media_link *link;
-+	unsigned int i;
-+	u32 reg;
-+
-+	csi2tx_reset(csi2tx);
-+
-+	writel(CSI2TX_CONFIG_CFG_REQ, csi2tx->base + CSI2TX_CONFIG_REG);
-+
-+	udelay(10);
-+
-+	/* Configure our PPI interface with the D-PHY */
-+	writel(CSI2TX_DPHY_CLK_WAKEUP_ULPS_CYCLES(32),
-+	       csi2tx->base + CSI2TX_DPHY_CLK_WAKEUP_REG);
-+
-+	/* Put our lanes (clock and data) out of reset */
-+	reg = CSI2TX_DPHY_CFG_CLK_RESET | CSI2TX_DPHY_CFG_MODE_LPDT;
-+	for (i = 0; i < csi2tx->num_lanes; i++)
-+		reg |= CSI2TX_DPHY_CFG_LANE_RESET(csi2tx->lanes[i]);
-+	writel(reg, csi2tx->base + CSI2TX_DPHY_CFG_REG);
-+
-+	udelay(10);
-+
-+	/* Enable our (clock and data) lanes */
-+	reg |= CSI2TX_DPHY_CFG_CLK_ENABLE;
-+	for (i = 0; i < csi2tx->num_lanes; i++)
-+		reg |= CSI2TX_DPHY_CFG_LANE_ENABLE(csi2tx->lanes[i]);
-+	writel(reg, csi2tx->base + CSI2TX_DPHY_CFG_REG);
-+
-+	udelay(10);
-+
-+	/* Switch to HS mode */
-+	reg &= ~CSI2TX_DPHY_CFG_MODE_MASK;
-+	writel(reg | CSI2TX_DPHY_CFG_MODE_HS,
-+	       csi2tx->base + CSI2TX_DPHY_CFG_REG);
-+
-+	udelay(10);
-+
-+	/*
-+	 * Create a static mapping between the CSI virtual channels
-+	 * and the input streams.
-+	 *
-+	 * This should be enhanced, but v4l2 lacks the support for
-+	 * changing that mapping dynamically at the moment.
-+	 *
-+	 * We're protected from the userspace setting up links at the
-+	 * same time by the upper layer having called
-+	 * media_pipeline_start().
-+	 */
-+	list_for_each_entry(link, &entity->links, list) {
-+		struct v4l2_mbus_framefmt *mfmt;
-+		const struct csi2tx_fmt *fmt;
-+		unsigned int stream;
-+		int pad_idx = -1;
-+
-+		/* Only consider our enabled input pads */
-+		for (i = CSI2TX_PAD_SINK_STREAM0; i < CSI2TX_PAD_MAX; i++) {
-+			struct media_pad *pad = &csi2tx->pads[i];
-+
-+			if ((pad == link->sink) &&
-+			    (link->flags & MEDIA_LNK_FL_ENABLED)) {
-+				pad_idx = i;
-+				break;
-+			}
-+		}
-+
-+		if (pad_idx < 0)
-+			continue;
-+
-+		mfmt = &csi2tx->pad_fmts[pad_idx];
-+		fmt = csitx_get_fmt_from_mbus(mfmt);
-+		if (!fmt)
-+			continue;
-+
-+		stream = pad_idx - CSI2TX_PAD_SINK_STREAM0;
-+
-+		/*
-+		 * We use the stream ID there, but it's wrong.
-+		 *
-+		 * A stream could very well send a data type that is
-+		 * not equal to its stream ID. We need to find a
-+		 * proper way to address it.
-+		 */
-+		writel(CSI2TX_DT_CFG_DT(fmt->dt),
-+		       csi2tx->base + CSI2TX_DT_CFG_REG(stream));
-+
-+		writel(CSI2TX_DT_FORMAT_BYTES_PER_LINE(mfmt->width * fmt->bpp) |
-+		       CSI2TX_DT_FORMAT_MAX_LINE_NUM(mfmt->height + 1),
-+		       csi2tx->base + CSI2TX_DT_FORMAT_REG(stream));
-+
-+		/*
-+		 * TODO: This needs to be calculated based on the
-+		 * output CSI2 clock rate.
-+		 */
-+		writel(CSI2TX_STREAM_IF_CFG_FILL_LEVEL(4),
-+		       csi2tx->base + CSI2TX_STREAM_IF_CFG_REG(stream));
-+	}
-+
-+	/* Disable the configuration mode */
-+	writel(0, csi2tx->base + CSI2TX_CONFIG_REG);
-+
-+	return 0;
-+}
-+
-+static void csi2tx_stop(struct csi2tx_priv *csi2tx)
-+{
-+	writel(CSI2TX_CONFIG_CFG_REQ | CSI2TX_CONFIG_SRST_REQ,
-+	       csi2tx->base + CSI2TX_CONFIG_REG);
-+}
-+
-+static int csi2tx_s_stream(struct v4l2_subdev *subdev, int enable)
-+{
-+	struct csi2tx_priv *csi2tx = v4l2_subdev_to_csi2tx(subdev);
-+	int ret = 0;
-+
-+	mutex_lock(&csi2tx->lock);
-+
-+	if (enable) {
-+		/*
-+		 * If we're not the first users, there's no need to
-+		 * enable the whole controller.
-+		 */
-+		if (!csi2tx->count) {
-+			ret = csi2tx_start(csi2tx);
-+			if (ret)
-+				goto out;
-+		}
-+
-+		csi2tx->count++;
-+	} else {
-+		csi2tx->count--;
-+
-+		/*
-+		 * Let the last user turn off the lights.
-+		 */
-+		if (!csi2tx->count)
-+			csi2tx_stop(csi2tx);
-+	}
-+
-+out:
-+	mutex_unlock(&csi2tx->lock);
-+	return ret;
-+}
-+
-+static const struct v4l2_subdev_video_ops csi2tx_video_ops = {
-+	.s_stream	= csi2tx_s_stream,
-+};
-+
-+static const struct v4l2_subdev_ops csi2tx_subdev_ops = {
-+	.pad		= &csi2tx_pad_ops,
-+	.video		= &csi2tx_video_ops,
-+};
-+
-+static int csi2tx_get_resources(struct csi2tx_priv *csi2tx,
-+				struct platform_device *pdev)
-+{
-+	struct resource *res;
-+	unsigned int i;
-+	u32 dev_cfg;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	csi2tx->base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(csi2tx->base))
-+		return PTR_ERR(csi2tx->base);
-+
-+	csi2tx->p_clk = devm_clk_get(&pdev->dev, "p_clk");
-+	if (IS_ERR(csi2tx->p_clk)) {
-+		dev_err(&pdev->dev, "Couldn't get p_clk\n");
-+		return PTR_ERR(csi2tx->p_clk);
-+	}
-+
-+	csi2tx->esc_clk = devm_clk_get(&pdev->dev, "esc_clk");
-+	if (IS_ERR(csi2tx->esc_clk)) {
-+		dev_err(&pdev->dev, "Couldn't get the esc_clk\n");
-+		return PTR_ERR(csi2tx->esc_clk);
-+	}
-+
-+	clk_prepare_enable(csi2tx->p_clk);
-+	dev_cfg = readl(csi2tx->base + CSI2TX_DEVICE_CONFIG_REG);
-+	clk_disable_unprepare(csi2tx->p_clk);
-+
-+	csi2tx->max_lanes = dev_cfg & 7;
-+	if (csi2tx->max_lanes > CSI2TX_LANES_MAX) {
-+		dev_err(&pdev->dev, "Invalid number of lanes: %u\n",
-+			csi2tx->max_lanes);
-+		return -EINVAL;
-+	}
-+
-+	csi2tx->max_streams = (dev_cfg >> 4) & 7;
-+	if (csi2tx->max_streams > CSI2TX_STREAMS_MAX) {
-+		dev_err(&pdev->dev, "Invalid number of streams: %u\n",
-+			csi2tx->max_streams);
-+		return -EINVAL;
-+	}
-+
-+	csi2tx->has_internal_dphy = (dev_cfg & BIT(3)) ? true : false;
-+
-+	for (i = 0; i < csi2tx->max_streams; i++) {
-+		char clk_name[16];
-+
-+		snprintf(clk_name, sizeof(clk_name), "pixel_if%u_clk", i);
-+		csi2tx->pixel_clk[i] = devm_clk_get(&pdev->dev, clk_name);
-+		if (IS_ERR(csi2tx->pixel_clk[i])) {
-+			dev_err(&pdev->dev, "Couldn't get clock %s\n",
-+				clk_name);
-+			return PTR_ERR(csi2tx->pixel_clk[i]);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int csi2tx_check_lanes(struct csi2tx_priv *csi2tx)
-+{
-+	struct v4l2_fwnode_endpoint v4l2_ep;
-+	struct device_node *ep;
-+	int ret;
-+
-+	ep = of_graph_get_endpoint_by_regs(csi2tx->dev->of_node, 0, 0);
-+	if (!ep)
-+		return -EINVAL;
-+
-+	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
-+	if (ret) {
-+		dev_err(csi2tx->dev, "Could not parse v4l2 endpoint\n");
-+		goto out;
-+	}
-+
-+	if (v4l2_ep.bus_type != V4L2_MBUS_CSI2) {
-+		dev_err(csi2tx->dev, "Unsupported media bus type: 0x%x\n",
-+			v4l2_ep.bus_type);
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	csi2tx->num_lanes = v4l2_ep.bus.mipi_csi2.num_data_lanes;
-+	if (csi2tx->num_lanes > csi2tx->max_lanes) {
-+		dev_err(csi2tx->dev,
-+			"Current configuration uses more lanes than supported\n");
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	memcpy(csi2tx->lanes, v4l2_ep.bus.mipi_csi2.data_lanes,
-+	       sizeof(csi2tx->lanes));
-+
-+out:
-+	of_node_put(ep);
-+	return ret;
-+}
-+
-+static int csi2tx_probe(struct platform_device *pdev)
-+{
-+	struct csi2tx_priv *csi2tx;
-+	unsigned int i;
-+	int ret;
-+
-+	csi2tx = kzalloc(sizeof(*csi2tx), GFP_KERNEL);
-+	if (!csi2tx)
-+		return -ENOMEM;
-+	platform_set_drvdata(pdev, csi2tx);
-+	mutex_init(&csi2tx->lock);
-+	csi2tx->dev = &pdev->dev;
-+
-+	ret = csi2tx_get_resources(csi2tx, pdev);
-+	if (ret)
-+		goto err_free_priv;
-+
-+	v4l2_subdev_init(&csi2tx->subdev, &csi2tx_subdev_ops);
-+	csi2tx->subdev.owner = THIS_MODULE;
-+	csi2tx->subdev.dev = &pdev->dev;
-+	csi2tx->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	snprintf(csi2tx->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s.%s",
-+		 KBUILD_MODNAME, dev_name(&pdev->dev));
-+
-+	ret = csi2tx_check_lanes(csi2tx);
-+	if (ret)
-+		goto err_free_priv;
-+
-+	/* Create our media pads */
-+	csi2tx->subdev.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
-+	csi2tx->pads[CSI2TX_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
-+	for (i = CSI2TX_PAD_SINK_STREAM0; i < CSI2TX_PAD_MAX; i++)
-+		csi2tx->pads[i].flags = MEDIA_PAD_FL_SINK;
-+
-+	for (i = 0; i < CSI2TX_PAD_MAX; i++)
-+		csi2tx->pad_fmts[i] = fmt_default;
-+
-+	ret = media_entity_pads_init(&csi2tx->subdev.entity, CSI2TX_PAD_MAX,
-+				     csi2tx->pads);
-+	if (ret)
-+		goto err_free_priv;
-+
-+	ret = v4l2_async_register_subdev(&csi2tx->subdev);
-+	if (ret < 0)
-+		goto err_free_priv;
-+
-+	dev_info(&pdev->dev,
-+		 "Probed CSI2TX with %u/%u lanes, %u streams, %s D-PHY\n",
-+		 csi2tx->num_lanes, csi2tx->max_lanes, csi2tx->max_streams,
-+		 csi2tx->has_internal_dphy ? "internal" : "no");
-+
-+	return 0;
-+
-+err_free_priv:
-+	kfree(csi2tx);
-+	return ret;
-+}
-+
-+static int csi2tx_remove(struct platform_device *pdev)
-+{
-+	struct csi2tx_priv *csi2tx = platform_get_drvdata(pdev);
-+
-+	v4l2_async_unregister_subdev(&csi2tx->subdev);
-+	kfree(csi2tx);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id csi2tx_of_table[] = {
-+	{ .compatible = "cdns,csi2tx" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, csi2tx_of_table);
-+
-+static struct platform_driver csi2tx_driver = {
-+	.probe	= csi2tx_probe,
-+	.remove	= csi2tx_remove,
-+
-+	.driver	= {
-+		.name		= "cdns-csi2tx",
-+		.of_match_table	= csi2tx_of_table,
-+	},
-+};
-+module_platform_driver(csi2tx_driver);
-+MODULE_AUTHOR("Maxime Ripard <maxime.ripard@bootlin.com>");
-+MODULE_DESCRIPTION("Cadence CSI2-TX controller");
-+MODULE_LICENSE("GPL");
--- 
-2.14.3
+ 	[EM2750_BOARD_DLCW_130] =3D {
+ 		/* Beijing Huaqi Information Digital Technology Co., Ltd */
+ 		.name          =3D "Huaqi DLCW-130",
+@@ -2487,7 +2512,7 @@ struct usb_device_id em28xx_id_table[] =3D {
+ 			.driver_info =3D EM2820_BOARD_UNKNOWN },
+ 	{ USB_DEVICE(0xeb1a, 0x2862),
+ 			.driver_info =3D EM2820_BOARD_UNKNOWN },
+-	{ USB_DEVICE(0xeb1a, 0x2863),
++	{ USB_DEVICE(0xeb1a, 0x2863), /* used by :zolid hybrid tv stick */
+ 			.driver_info =3D EM2820_BOARD_UNKNOWN },
+ 	{ USB_DEVICE(0xeb1a, 0x2870),
+ 			.driver_info =3D EM2820_BOARD_UNKNOWN },
+@@ -2688,6 +2713,7 @@ static const struct em28xx_hash_table em28xx_eeprom_h=
+ash[] =3D {
+ 	{0xb8846b20, EM2881_BOARD_PINNACLE_HYBRID_PRO, TUNER_XC2028},
+ 	{0x63f653bd, EM2870_BOARD_REDDO_DVB_C_USB_BOX, TUNER_ABSENT},
+ 	{0x4e913442, EM2882_BOARD_DIKOM_DK300, TUNER_XC2028},
++	{0x85dd871e, EM2882_BOARD_ZOLID_HYBRID_TV_STICK, TUNER_XC2028},
+ };
+=20
+ /* I2C devicelist hash table for devices with generic USB IDs */
+@@ -2699,6 +2725,7 @@ static const struct em28xx_hash_table em28xx_i2c_hash=
+[] =3D {
+ 	{0xc51200e3, EM2820_BOARD_GADMEI_TVR200, TUNER_LG_PAL_NEW_TAPC},
+ 	{0x4ba50080, EM2861_BOARD_GADMEI_UTV330PLUS, TUNER_TNF_5335MF},
+ 	{0x6b800080, EM2874_BOARD_LEADERSHIP_ISDBT, TUNER_ABSENT},
++	{0x27e10080, EM2882_BOARD_ZOLID_HYBRID_TV_STICK, TUNER_XC2028},
+ };
+=20
+ /* NOTE: introduce a separate hash table for devices with 16 bit eeproms */
+@@ -3187,6 +3214,7 @@ void em28xx_setup_xc3028(struct em28xx *dev, struct x=
+c2028_ctrl *ctl)
+ 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
+ 	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+ 	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
++	case EM2882_BOARD_ZOLID_HYBRID_TV_STICK:
+ 		ctl->demod =3D XC3028_FE_ZARLINK456;
+ 		break;
+ 	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900_R2:
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28=
+xx/em28xx-dvb.c
+index a54cb8dc..67b16036 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1488,6 +1488,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
+ 	case EM2882_BOARD_TERRATEC_HYBRID_XS:
+ 	case EM2880_BOARD_EMPIRE_DUAL_TV:
++	case EM2882_BOARD_ZOLID_HYBRID_TV_STICK:
+ 		dvb->fe[0] =3D dvb_attach(zl10353_attach,
+ 					&em28xx_zl10353_xc3028_no_i2c_gate,
+ 					&dev->i2c_adap[dev->def_i2c_bus]);
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/e=
+m28xx.h
+index 63c7c612..6e44edd2 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -148,6 +148,7 @@
+ #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB  99
+ #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 100
+ #define EM2884_BOARD_TERRATEC_H6		  101
++#define EM2882_BOARD_ZOLID_HYBRID_TV_STICK		102
+=20
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
+--=20
+2.11.0
