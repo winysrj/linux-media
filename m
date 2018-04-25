@@ -1,45 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35510 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754221AbeDTIOB (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:52488 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750779AbeDYAgq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 04:14:01 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Henrik Mau <Henrik.Mau@linn.co.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec-gpio: use GPIOD_OUT_HIGH_OPEN_DRAIN
-Message-ID: <ab9afd71-41a5-520b-399a-8cbacda56223@xs4all.nl>
-Date: Fri, 20 Apr 2018 10:13:53 +0200
+        Tue, 24 Apr 2018 20:36:46 -0400
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0F5C05172
+        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2018 02:36:44 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT FIXES FOR v4.17] UVC fixes
+Date: Wed, 25 Apr 2018 03:37:00 +0300
+Message-ID: <2618618.x2Pkc03X4B@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver needs a pull up output GPIO, but devm_gpiod_get() is called
-with GPIOD_IN. This apparently works fine for the RPi3 where the DT
-correctly specifies a pull up GPIO, but on the i.MX6 it also needs to
-be specified with devm_gpiod_get().
+Hi Mauro,
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-Reported-by: Henrik Mau <Henrik.Mau@linn.co.uk>
----
- drivers/media/platform/cec-gpio/cec-gpio.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The following changes since commit 60cc43fc888428bb2f18f08997432d426a243338:                                                                                                                              
+                                                                                                                                                                                                          
+  Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)                                                                                                                                                              
+                                                                                                                                                                                                          
+are available in the Git repository at:                                                                                                                                                                   
+                                                                                                                                                                                                          
+  git://linuxtv.org/pinchartl/media.git uvc/fixes                                                                                                                                                         
+                                                                                                                                                                                                          
+for you to fetch changes up to 3f22b63e8a488156467da43cdf9a3a7bd683f161:                                                                                                                                  
+                                                                                                                                                                                                          
+  media: uvcvideo: Prevent setting unavailable flags (2018-04-25 03:16:42 
++0300)                                                                                                                          
+                                                                                                                                                                                                          
+----------------------------------------------------------------                                                                                                                                          
+Kieran Bingham (1):                                                                                                                                                                                       
+      media: uvcvideo: Prevent setting unavailable flags                                                                                                                                                  
+                                                                                                                                                                                                          
+ drivers/media/usb/uvc/uvc_ctrl.c | 17 +++++++++--------                                                                                                                                                  
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/cec-gpio/cec-gpio.c b/drivers/media/platform/cec-gpio/cec-gpio.c
-index f1f28cf5c751..69f8242209c2 100644
---- a/drivers/media/platform/cec-gpio/cec-gpio.c
-+++ b/drivers/media/platform/cec-gpio/cec-gpio.c
-@@ -158,7 +158,7 @@ static int cec_gpio_probe(struct platform_device *pdev)
-
- 	cec->dev = dev;
-
--	cec->cec_gpio = devm_gpiod_get(dev, "cec", GPIOD_IN);
-+	cec->cec_gpio = devm_gpiod_get(dev, "cec", GPIOD_OUT_HIGH_OPEN_DRAIN);
- 	if (IS_ERR(cec->cec_gpio))
- 		return PTR_ERR(cec->cec_gpio);
- 	cec->cec_irq = gpiod_to_irq(cec->cec_gpio);
 -- 
-2.14.1
+Regards,
+
+Laurent Pinchart
