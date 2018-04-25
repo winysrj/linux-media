@@ -1,76 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38952 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751878AbeDRKl4 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:51198 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750882AbeDYGnh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 06:41:56 -0400
-Date: Wed, 18 Apr 2018 13:41:54 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH v2 01/10] media: ov772x: allow i2c controllers without
- I2C_FUNC_PROTOCOL_MANGLING
-Message-ID: <20180418104154.lyqj4qipa3d44jb4@valkosipuli.retiisi.org.uk>
-References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
- <1523847111-12986-2-git-send-email-akinobu.mita@gmail.com>
- <20180418100549.GA17088@w540>
+        Wed, 25 Apr 2018 02:43:37 -0400
+Date: Tue, 24 Apr 2018 23:43:35 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Christoph Hellwig <hch@infradead.org>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>, Thierry Reding <treding@nvidia.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
+Message-ID: <20180425064335.GB28100@infradead.org>
+References: <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com>
+ <20180420101755.GA11400@infradead.org>
+ <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
+ <20180420124625.GA31078@infradead.org>
+ <20180420152111.GR31310@phenom.ffwll.local>
+ <20180424184847.GA3247@infradead.org>
+ <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
+ <20180425054855.GA17038@infradead.org>
+ <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+ <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180418100549.GA17088@w540>
+In-Reply-To: <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 18, 2018 at 12:05:49PM +0200, jacopo mondi wrote:
-> Hi Akinobu,
+On Wed, Apr 25, 2018 at 08:23:15AM +0200, Daniel Vetter wrote:
+> For more fun:
 > 
-> On Mon, Apr 16, 2018 at 11:51:42AM +0900, Akinobu Mita wrote:
-> > The ov772x driver only works when the i2c controller have
-> > I2C_FUNC_PROTOCOL_MANGLING.  However, many i2c controller drivers don't
-> > support it.
-> >
-> > The reason that the ov772x requires I2C_FUNC_PROTOCOL_MANGLING is that
-> > it doesn't support repeated starts.
-> >
-> > This changes the reading ov772x register method so that it doesn't
-> > require I2C_FUNC_PROTOCOL_MANGLING by calling two separated i2c messages.
-> >
-> > Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> > ---
-> > * v2
-> > - Replace the implementation of ov772x_read() instead of adding an
-> >   alternative method
+> https://www.spinics.net/lists/dri-devel/msg173630.html
 > 
-> I now wonder if my initial reply to this patch was wrong, and where
-> possible we should try to use smbus operations...
-> 
-> From Documentation/i2c/smbus-protocol
-> "If you write a driver for some I2C device, please try to use the SMBus
-> commands if at all possible... " and that's because, according to
-> documentation, most I2c adapters support smbus protocol but may not
-> support the full i2c command set.
-> 
-> The fact this driver then restricts the supported adapters to the ones
-> that support protocol mangling makes me think your change is fine,
-> but as it often happens, I would scale this to more knowledgable
-> people...
+> Yeah, sometimes we want to disable the iommu because the on-gpu
+> pagetables are faster ...
 
-Do you actually need to use this on SMBus adapters? A lot of sensor drivers
-just use I²C; if SMBus support is really needed it can be always added back
-later on...
+I am not on this list, but remote NAK from here.  This needs an
+API from the iommu/dma-mapping code.  Drivers have no business poking
+into these details.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Thierry, please resend this with at least the iommu list and
+linux-arm-kernel in Cc to have a proper discussion on the right API.
