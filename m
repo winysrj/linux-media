@@ -1,239 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35082 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753197AbeDKNkD (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:37002 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751995AbeDYKLN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 09:40:03 -0400
-Received: by mail-wm0-f65.google.com with SMTP id r82so3940285wme.0
-        for <linux-media@vger.kernel.org>; Wed, 11 Apr 2018 06:40:03 -0700 (PDT)
-From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
-        <ckoenig.leichtzumerken@gmail.com>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-Subject: [PATCH 2/5] dma-buf: add optional invalidate_mappings callback v3
-Date: Wed, 11 Apr 2018 15:39:56 +0200
-Message-Id: <20180411133959.4257-2-christian.koenig@amd.com>
-In-Reply-To: <20180411133959.4257-1-christian.koenig@amd.com>
-References: <20180411133959.4257-1-christian.koenig@amd.com>
+        Wed, 25 Apr 2018 06:11:13 -0400
+Received: by mail-wm0-f66.google.com with SMTP id l16so5817570wmh.2
+        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2018 03:11:12 -0700 (PDT)
+Message-ID: <5ae0543f.cebe500a.d570c.a01a@mx.google.com>
+Date: Wed, 25 Apr 2018 12:11:10 +0200
+From: mjs <mjstork@gmail.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: "3 linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add new dvb-t board ":Zolid Hybrid Tv Stick"
+In-Reply-To: <20180425061620.19037894@vento.lan>
+References: <5ae045df.ddf5500a.22ca5.10bb@mx.google.com>
+        <20180425061620.19037894@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each importer can now provide an invalidate_mappings callback.
+Op Wed, 25 Apr 2018 06:16:20 -0300
+Mauro Carvalho Chehab <mchehab+samsung@kernel.org> schreef:
 
-This allows the exporter to provide the mappings without the need to pin
-the backing store.
+> Em Wed, 25 Apr 2018 11:09:50 +0200
+> mjs <mjstork@gmail.com> escreveu:
+> 
+> > From 0a3355b47dc465c6372d30fa4a36d1c5db6c0fe2 Mon Sep 17 00:00:00 2001
+> > From: Marcel Stork <mjstork@gmail.com>
+> > Date: Wed, 25 Apr 2018 10:53:34 +0200
+> > Subject: [PATCH] Add new dvb-t board ":Zolid Hybrid Tv Stick".
+> > 
+> > Extra code to be able to use this stick, only digital, not analog nor remote-control.
+> > 
+> > Changes to be committed:
+> > 	modified:   em28xx-cards.c
+> > 	modified:   em28xx-dvb.c
+> > 	modified:   em28xx.h  
+> 
+> You forgot to add your Signed-off-by. That's mandatory for patches to
+> be acepted.
 
-v2: don't try to invalidate mappings when the callback is NULL,
-    lock the reservation obj while using the attachments,
-    add helper to set the callback
-v3: move flag for invalidation support into the DMA-buf,
-    use new attach_info structure to set the callback
-v4: use importer_priv field instead of mangling exporter priv.
+Ok, still learning
 
-Signed-off-by: Christian König <christian.koenig@amd.com>
----
- drivers/dma-buf/dma-buf.c | 44 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h   | 36 ++++++++++++++++++++++++++++++++++--
- 2 files changed, 78 insertions(+), 2 deletions(-)
+> 
+> > 
+> > ---
+> >  em28xx-cards.c | 30 +++++++++++++++++++++++++++++-
+> >  em28xx-dvb.c   |  1 +
+> >  em28xx.h       |  1 +
+> >  3 files changed, 31 insertions(+), 1 deletion(-)  
+> 
+> 
+> use git diff against upstream tree. This should be using
+> a different paths there, e.g. drivers/media/usb/em28xx/...
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index 4b46982c6d9c..ffdaab10e2f2 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -565,6 +565,8 @@ struct dma_buf_attachment *dma_buf_attach(const struct dma_buf_attach_info *info
+This is actually against the upstream tree, in line with your advice in a previous mail.
+After git clone... and ./build, I did not do "make install" but copy-paste out of the /media_build/linux/drivers/media/usb/em28xx
+Reason, I do not have an experimental pc and some parts are experimental.
+I did not want to take the risk to crash my working pc at this moment in time.
+
+I will try to work around this problem.
  
- 	attach->dev = info->dev;
- 	attach->dmabuf = dmabuf;
-+	attach->importer_priv = info->importer_priv;
-+	attach->invalidate = info->invalidate;
- 
- 	mutex_lock(&dmabuf->lock);
- 
-@@ -573,7 +575,9 @@ struct dma_buf_attachment *dma_buf_attach(const struct dma_buf_attach_info *info
- 		if (ret)
- 			goto err_attach;
- 	}
-+	reservation_object_lock(dmabuf->resv, NULL);
- 	list_add(&attach->node, &dmabuf->attachments);
-+	reservation_object_unlock(dmabuf->resv);
- 
- 	mutex_unlock(&dmabuf->lock);
- 	return attach;
-@@ -599,7 +603,9 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
- 		return;
- 
- 	mutex_lock(&dmabuf->lock);
-+	reservation_object_lock(dmabuf->resv, NULL);
- 	list_del(&attach->node);
-+	reservation_object_unlock(dmabuf->resv);
- 	if (dmabuf->ops->detach)
- 		dmabuf->ops->detach(dmabuf, attach);
- 
-@@ -633,10 +639,23 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
- 	if (WARN_ON(!attach || !attach->dmabuf))
- 		return ERR_PTR(-EINVAL);
- 
-+	/*
-+	 * Mapping a DMA-buf can trigger its invalidation, prevent sending this
-+	 * event to the caller by temporary removing this attachment from the
-+	 * list.
-+	 */
-+	if (attach->invalidate) {
-+		reservation_object_assert_held(attach->dmabuf->resv);
-+		list_del(&attach->node);
-+	}
-+
- 	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
- 	if (!sg_table)
- 		sg_table = ERR_PTR(-ENOMEM);
- 
-+	if (attach->invalidate)
-+		list_add(&attach->node, &attach->dmabuf->attachments);
-+
- 	return sg_table;
- }
- EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
-@@ -657,6 +676,9 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- {
- 	might_sleep();
- 
-+	if (attach->invalidate)
-+		reservation_object_assert_held(attach->dmabuf->resv);
-+
- 	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
- 		return;
- 
-@@ -665,6 +687,26 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- }
- EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
- 
-+/**
-+ * dma_buf_invalidate_mappings - invalidate all mappings of this dma_buf
-+ *
-+ * @dmabuf:	[in]	buffer which mappings should be invalidated
-+ *
-+ * Informs all attachmenst that they need to destroy and recreated all their
-+ * mappings.
-+ */
-+void dma_buf_invalidate_mappings(struct dma_buf *dmabuf)
-+{
-+	struct dma_buf_attachment *attach;
-+
-+	reservation_object_assert_held(dmabuf->resv);
-+
-+	list_for_each_entry(attach, &dmabuf->attachments, node)
-+		if (attach->invalidate)
-+			attach->invalidate(attach);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_invalidate_mappings);
-+
- /**
-  * DOC: cpu access
-  *
-@@ -1122,10 +1164,12 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
- 		seq_puts(s, "\tAttached Devices:\n");
- 		attach_count = 0;
- 
-+		reservation_object_lock(buf_obj->resv, NULL);
- 		list_for_each_entry(attach_obj, &buf_obj->attachments, node) {
- 			seq_printf(s, "\t%s\n", dev_name(attach_obj->dev));
- 			attach_count++;
- 		}
-+		reservation_object_unlock(buf_obj->resv);
- 
- 		seq_printf(s, "Total %d devices attached\n\n",
- 				attach_count);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 414b4dde5eb7..566503dd2b4f 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -270,6 +270,8 @@ struct dma_buf_ops {
-  * @poll: for userspace poll support
-  * @cb_excl: for userspace poll support
-  * @cb_shared: for userspace poll support
-+ * @invalidation_supported: True when the exporter supports unpinned operation
-+ *                          using the reservation lock.
-  *
-  * This represents a shared buffer, created by calling dma_buf_export(). The
-  * userspace representation is a normal file descriptor, which can be created by
-@@ -293,6 +295,7 @@ struct dma_buf {
- 	struct list_head list_node;
- 	void *priv;
- 	struct reservation_object *resv;
-+	bool invalidation_supported;
- 
- 	/* poll support */
- 	wait_queue_head_t poll;
-@@ -311,6 +314,7 @@ struct dma_buf {
-  * @dev: device attached to the buffer.
-  * @node: list of dma_buf_attachment.
-  * @priv: exporter specific attachment data.
-+ * @importer_priv: importer specific attachment data.
-  *
-  * This structure holds the attachment information between the dma_buf buffer
-  * and its user device(s). The list contains one attachment struct per device
-@@ -326,6 +330,29 @@ struct dma_buf_attachment {
- 	struct device *dev;
- 	struct list_head node;
- 	void *priv;
-+	void *importer_priv;
-+
-+	/**
-+	 * @invalidate:
-+	 *
-+	 * Optional callback provided by the importer of the dma-buf.
-+	 *
-+	 * If provided the exporter can avoid pinning the backing store while
-+	 * mappings exists.
-+	 *
-+	 * The function is called with the lock of the reservation object
-+	 * associated with the dma_buf held and the mapping function must be
-+	 * called with this lock held as well. This makes sure that no mapping
-+	 * is created concurrently with an ongoing invalidation.
-+	 *
-+	 * After the callback all existing mappings are still valid until all
-+	 * fences in the dma_bufs reservation object are signaled, but should be
-+	 * destroyed by the importer as soon as possible.
-+	 *
-+	 * New mappings can be created immediately, but can't be used before the
-+	 * exclusive fence in the dma_bufs reservation object is signaled.
-+	 */
-+	void (*invalidate)(struct dma_buf_attachment *attach);
- };
- 
- /**
-@@ -364,8 +391,10 @@ struct dma_buf_export_info {
- 
- /**
-  * struct dma_buf_attach_info - holds information needed to attach to a dma_buf
-- * @dmabuf:	the exported dma_buf
-- * @dev:	the device which wants to import the attachment
-+ * @dmabuf:		the exported dma_buf
-+ * @dev:		the device which wants to import the attachment
-+ * @importer_priv:	private data of importer to this attachment
-+ * @invalidate:		callback to use for invalidating mappings
-  *
-  * This structure holds the information required to attach to a buffer. Used
-  * with dma_buf_attach() only.
-@@ -373,6 +402,8 @@ struct dma_buf_export_info {
- struct dma_buf_attach_info {
- 	struct dma_buf *dmabuf;
- 	struct device *dev;
-+	void *importer_priv;
-+	void (*invalidate)(struct dma_buf_attachment *attach);
- };
- 
- /**
-@@ -404,6 +435,7 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
- 					enum dma_data_direction);
- void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
- 				enum dma_data_direction);
-+void dma_buf_invalidate_mappings(struct dma_buf *dma_buf);
- int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
- 			     enum dma_data_direction dir);
- int dma_buf_end_cpu_access(struct dma_buf *dma_buf,
--- 
-2.14.1
+> 
+> > 
+> > diff --git a/em28xx-cards.c b/em28xx-cards.c
+> > index 6e0e67d..01b38a4 100644
+> > --- a/em28xx-cards.c
+> > +++ b/em28xx-cards.c
+> > @@ -87,6 +87,21 @@ static const struct em28xx_reg_seq default_digital[] = {
+> >  	{	-1,		-1,	-1,		-1},
+> >  };
+> >  
+> > +/* Board Zolid Hybrid Tv Stick */
+> > +static struct em28xx_reg_seq zolid_tuner[] = {
+> > +	{EM2820_R08_GPIO_CTRL,		0xfd,		0xff,	100},
+> > +	{EM2820_R08_GPIO_CTRL,		0xfe,		0xff,	100},
+> > +	{		-1,					-1,			-1,		 -1},
+> > +};
+> > +
+> > +static struct em28xx_reg_seq zolid_digital[] = {
+> > +	{EM2820_R08_GPIO_CTRL,		0x6a,		0xff,	100},
+> > +	{EM2820_R08_GPIO_CTRL,		0x7a,		0xff,	100},
+> > +	{EM2880_R04_GPO,			0x04,		0xff,	100},
+> > +	{EM2880_R04_GPO,			0x0c,		0xff,	100},
+> > +	{	-1,						-1,			-1,		 -1},
+> > +};
+> > +
+> >  /* Board Hauppauge WinTV HVR 900 analog */
+> >  static const struct em28xx_reg_seq hauppauge_wintv_hvr_900_analog[] = {
+> >  	{EM2820_R08_GPIO_CTRL,	0x2d,	~EM_GPIO_4,	10},
+> > @@ -679,6 +694,16 @@ const struct em28xx_board em28xx_boards[] = {
+> >  			.amux     = EM28XX_AMUX_VIDEO,
+> >  		} },
+> >  	},
+> > +	[EM2882_BOARD_ZOLID_HYBRID_TV_STICK] = {
+> > +		.name			= ":ZOLID HYBRID TV STICK",
+> > +		.tuner_type		= TUNER_XC2028,
+> > +		.tuner_gpio		= zolid_tuner,
+> > +		.decoder		= EM28XX_TVP5150,
+> > +		.xclk			= EM28XX_XCLK_FREQUENCY_12MHZ,
+> > +		.mts_firmware	= 1,
+> > +		.has_dvb		= 1,
+> > +		.dvb_gpio		= zolid_digital,
+> > +	},
+> >  	[EM2820_BOARD_KWORLD_PVRTV2800RF] = {
+> >  		.name         = "Kworld PVR TV 2800 RF",
+> >  		.tuner_type   = TUNER_TEMIC_PAL,
+> > @@ -2493,7 +2518,7 @@ struct usb_device_id em28xx_id_table[] = {
+> >  			.driver_info = EM2820_BOARD_UNKNOWN },
+> >  	{ USB_DEVICE(0xeb1a, 0x2881),
+> >  			.driver_info = EM2820_BOARD_UNKNOWN },
+> > -	{ USB_DEVICE(0xeb1a, 0x2883),
+> > +	{ USB_DEVICE(0xeb1a, 0x2883), /* used by zolid hybrid tv stick */
+> >  			.driver_info = EM2820_BOARD_UNKNOWN },
+> >  	{ USB_DEVICE(0xeb1a, 0x2868),
+> >  			.driver_info = EM2820_BOARD_UNKNOWN },
+> > @@ -2688,6 +2713,7 @@ static const struct em28xx_hash_table em28xx_eeprom_hash[] = {
+> >  	{0xb8846b20, EM2881_BOARD_PINNACLE_HYBRID_PRO, TUNER_XC2028},
+> >  	{0x63f653bd, EM2870_BOARD_REDDO_DVB_C_USB_BOX, TUNER_ABSENT},
+> >  	{0x4e913442, EM2882_BOARD_DIKOM_DK300, TUNER_XC2028},
+> > +	{0x85dd871e, EM2882_BOARD_ZOLID_HYBRID_TV_STICK, TUNER_XC2028},
+> >  };
+> >  
+> >  /* I2C devicelist hash table for devices with generic USB IDs */
+> > @@ -2699,6 +2725,7 @@ static const struct em28xx_hash_table em28xx_i2c_hash[] = {
+> >  	{0xc51200e3, EM2820_BOARD_GADMEI_TVR200, TUNER_LG_PAL_NEW_TAPC},
+> >  	{0x4ba50080, EM2861_BOARD_GADMEI_UTV330PLUS, TUNER_TNF_5335MF},
+> >  	{0x6b800080, EM2874_BOARD_LEADERSHIP_ISDBT, TUNER_ABSENT},
+> > +	{0x27e10080, EM2882_BOARD_ZOLID_HYBRID_TV_STICK, TUNER_XC2028},
+> >  };
+> >  
+> >  /* NOTE: introduce a separate hash table for devices with 16 bit eeproms */
+> > @@ -3187,6 +3214,7 @@ void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl)
+> >  	case EM2880_BOARD_TERRATEC_HYBRID_XS:
+> >  	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+> >  	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+> > +	case EM2882_BOARD_ZOLID_HYBRID_TV_STICK:
+> >  		ctl->demod = XC3028_FE_ZARLINK456;
+> >  		break;
+> >  	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900_R2:
+> > diff --git a/em28xx-dvb.c b/em28xx-dvb.c
+> > index ebe62ff..640eafe 100644
+> > --- a/em28xx-dvb.c
+> > +++ b/em28xx-dvb.c
+> > @@ -1488,6 +1488,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+> >  	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
+> >  	case EM2882_BOARD_TERRATEC_HYBRID_XS:
+> >  	case EM2880_BOARD_EMPIRE_DUAL_TV:
+> > +	case EM2882_BOARD_ZOLID_HYBRID_TV_STICK:
+> >  		dvb->fe[0] = dvb_attach(zl10353_attach,
+> >  					&em28xx_zl10353_xc3028_no_i2c_gate,
+> >  					&dev->i2c_adap[dev->def_i2c_bus]);
+> > diff --git a/em28xx.h b/em28xx.h
+> > index 5fc70d9..37bb696 100644
+> > --- a/em28xx.h
+> > +++ b/em28xx.h
+> > @@ -146,6 +146,7 @@
+> >  #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB  99
+> >  #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 100
+> >  #define EM2884_BOARD_TERRATEC_H6		  101
+> > +#define EM2882_BOARD_ZOLID_HYBRID_TV_STICK		102
+> >  
+> >  /* Limits minimum and default number of buffers */
+> >  #define EM28XX_MIN_BUF 4  
+> 
+> 
+> 
+ Thanks,
+   Marcel
