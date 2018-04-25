@@ -1,47 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:49436 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751447AbeDERyY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 13:54:24 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 01/16] omap: omap-iommu.h: allow building drivers with COMPILE_TEST
-Date: Thu,  5 Apr 2018 13:54:01 -0400
-Message-Id: <6741dd205de1e7d4e80a93386095db2a0c604bb5.1522949748.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
-References: <cover.1522949748.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
-References: <cover.1522949748.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-vk0-f68.google.com ([209.85.213.68]:45990 "EHLO
+        mail-vk0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751602AbeDYJMH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Apr 2018 05:12:07 -0400
+Received: by mail-vk0-f68.google.com with SMTP id 203so13386439vka.12
+        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2018 02:12:06 -0700 (PDT)
+Received: from mail-vk0-f53.google.com (mail-vk0-f53.google.com. [209.85.213.53])
+        by smtp.gmail.com with ESMTPSA id 52sm206908uat.28.2018.04.25.02.12.04
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 25 Apr 2018 02:12:05 -0700 (PDT)
+Received: by mail-vk0-f53.google.com with SMTP id q189so13399672vkb.0
+        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2018 02:12:04 -0700 (PDT)
+MIME-Version: 1.0
+References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com> <1522376100-22098-8-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1522376100-22098-8-git-send-email-yong.zhi@intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 25 Apr 2018 09:11:53 +0000
+Message-ID: <CAAFQd5DL06QZc+fkN1uqcUNWjTf-miK_Do6cCybusdkm6pZqmg@mail.gmail.com>
+Subject: Re: [PATCH v6 07/12] intel-ipu3: css: Add static settings for image pipeline
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Drivers that depend on omap-iommu.h (currently, just omap3isp)
-need a stub implementation in order to be built with COMPILE_TEST.
+Hi Yong,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/linux/omap-iommu.h | 5 +++++
- 1 file changed, 5 insertions(+)
+On Fri, Mar 30, 2018 at 11:15 AM Yong Zhi <yong.zhi@intel.com> wrote:
 
-diff --git a/include/linux/omap-iommu.h b/include/linux/omap-iommu.h
-index c1aede46718b..0c21fc5b002e 100644
---- a/include/linux/omap-iommu.h
-+++ b/include/linux/omap-iommu.h
-@@ -13,7 +13,12 @@
- #ifndef _OMAP_IOMMU_H_
- #define _OMAP_IOMMU_H_
- 
-+#ifdef CONFIG_OMAP_IOMMU
- extern void omap_iommu_save_ctx(struct device *dev);
- extern void omap_iommu_restore_ctx(struct device *dev);
-+#else
-+static inline void omap_iommu_save_ctx(struct device *dev) {};
-+static inline void omap_iommu_restore_ctx(struct device *dev) {};
-+#endif
- 
- #endif
--- 
-2.14.3
+> This adds coeff, config parameters etc const definitions for
+> IPU3 programming.
+
+> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> ---
+>   drivers/media/pci/intel/ipu3/ipu3-tables.c | 9609
+++++++++++++++++++++++++++++
+>   drivers/media/pci/intel/ipu3/ipu3-tables.h |   66 +
+>   2 files changed, 9675 insertions(+)
+>   create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.c
+>   create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.h
+
+I believe none of the 6 revisions of this patch actually reached the
+mailing lists. It's too big. Could we do something about it? Splitting into
+smaller patches might help, but we should provide a link in cover letter to
+a public git branch where the whole series can be found applied to current
+Linux.
+
+Best regards,
+Tomasz
