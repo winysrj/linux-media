@@ -1,75 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:40927 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757457AbeD0QTa (ORCPT
+Received: from mail-ua0-f172.google.com ([209.85.217.172]:41651 "EHLO
+        mail-ua0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753957AbeDZHM1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Apr 2018 12:19:30 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Tomasz Figa <tfiga@google.com>,
-        Ian Arkver <ian.arkver.dev@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 3/3] media: coda: set colorimetry on coded queue
-Date: Fri, 27 Apr 2018 18:19:17 +0200
-Message-Id: <20180427161917.18398-3-p.zabel@pengutronix.de>
-In-Reply-To: <20180427161917.18398-1-p.zabel@pengutronix.de>
-References: <20180427161917.18398-1-p.zabel@pengutronix.de>
+        Thu, 26 Apr 2018 03:12:27 -0400
+Received: by mail-ua0-f172.google.com with SMTP id a3so173532uad.8
+        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 00:12:27 -0700 (PDT)
+Received: from mail-ua0-f170.google.com (mail-ua0-f170.google.com. [209.85.217.170])
+        by smtp.gmail.com with ESMTPSA id q186sm5424844vka.15.2018.04.26.00.12.25
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 26 Apr 2018 00:12:25 -0700 (PDT)
+Received: by mail-ua0-f170.google.com with SMTP id c3so16567727uae.2
+        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 00:12:25 -0700 (PDT)
+MIME-Version: 1.0
+References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com> <1522376100-22098-11-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1522376100-22098-11-git-send-email-yong.zhi@intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 26 Apr 2018 07:12:14 +0000
+Message-ID: <CAAFQd5CGjFsc1Py78_Lmbav0rPqgQOuN-7KXhQB2_MJKAkX55A@mail.gmail.com>
+Subject: Re: [PATCH v6 10/12] intel-ipu3: Add css pipeline programming
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do not set context colorimetry on the raw (OUTPUT) queue for encoders.
-Always set colorimetry on the coded queue (CAPTURE for encoders, OUTPUT
-for decoders).
-This also skips propagation of capture queue format and selection
-rectangle on S_FMT(OUTPUT) to the CAPTURE queue for encoders.
+Hi Yong,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Added patch since v1 [1]:
- - remove automatic format propagation on S_FMT(OUT) for encoders
- - adding S_FMT(CAP) propagation from capture to output queue for
-   encoders is left for a later time, this isn't even documented yet.
+On Fri, Mar 30, 2018 at 11:15 AM Yong Zhi <yong.zhi@intel.com> wrote:
+[snip]
+> +int ipu3_css_init(struct device *dev, struct ipu3_css *css,
+> +                 void __iomem *base, int length)
+> +{
+> +       int r, p, q, i;
+> +
+> +       /* Initialize main data structure */
+> +       css->dev = dev;
+> +       css->base = base;
+> +       css->iomem_length = length;
+> +       css->current_binary = IPU3_CSS_DEFAULT_BINARY;
+> +       css->pipe_id = IPU3_CSS_PIPE_ID_NUM;
+> +       css->vf_output_en = IPU3_NODE_VF_DISABLED;
+> +       spin_lock_init(&css->qlock);
+> +
+> +       for (q = 0; q < IPU3_CSS_QUEUES; q++) {
+> +               r = ipu3_css_queue_init(&css->queue[q], NULL, 0);
+> +               if (r)
+> +                       return r;
+> +       }
+> +
+> +       r = ipu3_css_fw_init(css);
+> +       if (r)
+> +               return r;
+> +
+> +       /* Allocate and map common structures with imgu hardware */
+> +
+> +       for (p = 0; p < IPU3_CSS_PIPE_ID_NUM; p++)
+> +               for (i = 0; i < IMGU_ABI_MAX_STAGES; i++) {
+> +                       if (!ipu3_dmamap_alloc(dev,
+> +
+  &css->xmem_sp_stage_ptrs[p][i],
+> +                                              sizeof(struct
+imgu_abi_sp_stage)))
 
-[1] https://patchwork.linuxtv.org/patch/48266/
----
+checkpatch reports line over 80 characters here.
 
- drivers/media/platform/coda/coda-common.c | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+> +                               goto error_no_memory;
+> +                       if (!ipu3_dmamap_alloc(dev,
+> +
+  &css->xmem_isp_stage_ptrs[p][i],
+> +                                              sizeof(struct
+imgu_abi_isp_stage)))
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index d3e22c14fad4..c7631e117dd3 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -779,7 +779,19 @@ static int coda_s_fmt_vid_cap(struct file *file, void *priv,
- 	r.width = q_data_src->width;
- 	r.height = q_data_src->height;
- 
--	return coda_s_fmt(ctx, f, &r);
-+	ret = coda_s_fmt(ctx, f, &r);
-+	if (ret)
-+		return ret;
-+
-+	if (ctx->inst_type != CODA_INST_ENCODER)
-+		return 0;
-+
-+	ctx->colorspace = f->fmt.pix.colorspace;
-+	ctx->xfer_func = f->fmt.pix.xfer_func;
-+	ctx->ycbcr_enc = f->fmt.pix.ycbcr_enc;
-+	ctx->quantization = f->fmt.pix.quantization;
-+
-+	return 0;
- }
- 
- static int coda_s_fmt_vid_out(struct file *file, void *priv,
-@@ -798,6 +810,9 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
- 	if (ret)
- 		return ret;
- 
-+	if (ctx->inst_type != CODA_INST_DECODER)
-+		return 0;
-+
- 	ctx->colorspace = f->fmt.pix.colorspace;
- 	ctx->xfer_func = f->fmt.pix.xfer_func;
- 	ctx->ycbcr_enc = f->fmt.pix.ycbcr_enc;
--- 
-2.17.0
+Ditto.
+
+> +                               goto error_no_memory;
+> +               }
+
+Best regards,
+Tomasz
