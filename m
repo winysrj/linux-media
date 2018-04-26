@@ -1,102 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46636 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752148AbeDZHQ6 (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:34882 "EHLO
+        homiemail-a80.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756858AbeDZR1g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 03:16:58 -0400
-Date: Thu, 26 Apr 2018 10:16:56 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 2/2] media: Add a driver for the ov7251 camera sensor
-Message-ID: <20180426071656.wuq5f7prg6kig6oy@valkosipuli.retiisi.org.uk>
-References: <1524673246-14175-1-git-send-email-todor.tomov@linaro.org>
- <1524673246-14175-3-git-send-email-todor.tomov@linaro.org>
- <20180426065010.a67iqsaicpgu7m5b@valkosipuli.retiisi.org.uk>
- <c065854a-084d-8bc8-a76e-2988be8c3788@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c065854a-084d-8bc8-a76e-2988be8c3788@linaro.org>
+        Thu, 26 Apr 2018 13:27:36 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 1/7] Disable VIDEO_ADV748X for kernels older than 4.8
+Date: Thu, 26 Apr 2018 12:19:16 -0500
+Message-Id: <1524763162-4865-2-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
+References: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 26, 2018 at 10:04:25AM +0300, Todor Tomov wrote:
-> Hi Sakari,
-> 
-> On 26.04.2018 09:50, Sakari Ailus wrote:
-> > Hi Todor,
-> > 
-> > On Wed, Apr 25, 2018 at 07:20:46PM +0300, Todor Tomov wrote:
-> > ...
-> >> +static int ov7251_write_reg(struct ov7251 *ov7251, u16 reg, u8 val)
-> >> +{
-> >> +	u8 regbuf[3];
-> >> +	int ret;
-> >> +
-> >> +	regbuf[0] = reg >> 8;
-> >> +	regbuf[1] = reg & 0xff;
-> >> +	regbuf[2] = val;
-> >> +
-> >> +	ret = i2c_master_send(ov7251->i2c_client, regbuf, 3);
-> >> +	if (ret < 0) {
-> >> +		dev_err(ov7251->dev, "%s: write reg error %d: reg=%x, val=%x\n",
-> >> +			__func__, ret, reg, val);
-> >> +		return ret;
-> >> +	}
-> >> +
-> >> +	return 0;
-> > 
-> > How about:
-> > 
-> > 	return ov7251_write_seq_regs(ov7251, reg, &val, 1);
-> > 
-> > And put the function below ov2751_write_seq_regs().
-> 
-> I'm not sure... It will calculate message length each time and then check
-> that it is not greater than 5, which it is. Seems redundant.
-> 
-> > 
-> >> +}
-> >> +
-> >> +static int ov7251_write_seq_regs(struct ov7251 *ov7251, u16 reg, u8 *val,
-> >> +				 u8 num)
-> >> +{
-> >> +	const u8 maxregbuf = 5;
-> >> +	u8 regbuf[maxregbuf];
-> >> +	u8 nregbuf = sizeof(reg) + num * sizeof(*val);
-> >> +	int ret = 0;
-> >> +
-> >> +	if (nregbuf > maxregbuf)
-> >> +		return -EINVAL;
-> >> +
-> >> +	regbuf[0] = reg >> 8;
-> >> +	regbuf[1] = reg & 0xff;
-> >> +
-> >> +	memcpy(regbuf + 2, val, num);
-> >> +
-> >> +	ret = i2c_master_send(ov7251->i2c_client, regbuf, nregbuf);
-> >> +	if (ret < 0) {
-> >> +		dev_err(ov7251->dev, "%s: write seq regs error %d: first reg=%x\n",
-> > 
-> > This line is over 80... 
-> 
-> Yes indeed. Somehow checkpatch does not report this line, I don't know why.
-> 
-> > 
-> > If you're happy with these, I can make the changes, too; they're trivial.
-> 
-> Only the second one? Thanks :)
+Needs i2c_new_secondary_device
 
-Works for me. I'd still think the overhead of managing the buffer is
-irrelevant where to having an extra function to do essentially the same
-thing is a source of maintenance and review work. Note that we're even now
-spending time to discuss it. ;-)
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ v4l/versions.txt | 4 ++++
+ 1 file changed, 4 insertions(+)
 
+diff --git a/v4l/versions.txt b/v4l/versions.txt
+index 6220485..ae0731d 100644
+--- a/v4l/versions.txt
++++ b/v4l/versions.txt
+@@ -13,6 +13,10 @@ RADIO_WL128X
+ # needs *probe_new in struct i2c_driver
+ VIDEO_OV5670
+ 
++[4.8.0]
++# needs i2c_new_secondary_device
++VIDEO_ADV748X
++
+ [4.7.0]
+ # needs i2c_mux_alloc
+ DVB_RTL2830
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
