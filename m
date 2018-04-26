@@ -1,130 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45046 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753599AbeDIVN1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 17:13:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Simon Que <sque@chromium.org>
-Cc: mchehab@kernel.org, viro@zeniv.linux.org.uk,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
-        laurent.pinchart+renesas@ideasonboard.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] v4l2-core: Rename array 'video_driver' to 'video_drivers'
-Date: Tue, 10 Apr 2018 00:13:29 +0300
-Message-ID: <3074650.Mf9NpMS9vO@avalon>
-In-Reply-To: <20180409194738.186758-1-sque@chromium.org>
-References: <20180409194738.186758-1-sque@chromium.org>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:35445 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756434AbeDZPVw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Apr 2018 11:21:52 -0400
+Received: by mail-lf0-f67.google.com with SMTP id r125-v6so31334282lfe.2
+        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 08:21:51 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Thu, 26 Apr 2018 17:21:49 +0200
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [PATCH] rcar-vin: fix null pointer dereference in
+ rvin_group_get()
+Message-ID: <20180426152149.GF3315@bigcity.dyn.berto.se>
+References: <20180424234506.22630-1-niklas.soderlund+renesas@ragnatech.se>
+ <CAMuHMdWqW7FGxA8akfS6X2C-3Hm7126+9E7xCpezXfUEwwFWUQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMuHMdWqW7FGxA8akfS6X2C-3Hm7126+9E7xCpezXfUEwwFWUQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Simon,
+Hi Geert,
 
-Thank you for the patch.
+Thanks for your feedback.
 
-On Monday, 9 April 2018 22:47:38 EEST Simon Que wrote:
-> Improves code clarity in two ways:
-> 1. The plural name makes it more clear that it is an array.
-> 2. The name of the array is now no longer identical to the struct type
-> name, so it is easier to find in the code.
+On 2018-04-25 09:25:56 +0200, Geert Uytterhoeven wrote:
+> On Wed, Apr 25, 2018 at 1:45 AM, Niklas Söderlund
+> <niklas.soderlund+renesas@ragnatech.se> wrote:
+> > Store the group pointer before disassociating the VIN from the group.
 > 
-> Signed-off-by: Simon Que <sque@chromium.org>
+> s/get/put/ in one-line summary?
 
-I like this and agree with the two reasons you have given.
+Yes, silly copy paste error, must have copied function name from the @@ 
+context line and not from the diff itself. Thanks for noticing.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Will send a v2 after I have checked with Simon that the is happy with 
+the change itself.
 
-> ---
->  drivers/media/v4l2-core/v4l2-dev.c | 22 +++++++++++-----------
->  1 file changed, 11 insertions(+), 11 deletions(-)
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c
-> b/drivers/media/v4l2-core/v4l2-dev.c index 0301fe426a43..8d5f7cfe1695
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -91,7 +91,7 @@ ATTRIBUTE_GROUPS(video_device);
->  /*
->   *	Active devices
->   */
-> -static struct video_device *video_device[VIDEO_NUM_DEVICES];
-> +static struct video_device *video_devices[VIDEO_NUM_DEVICES];
->  static DEFINE_MUTEX(videodev_lock);
->  static DECLARE_BITMAP(devnode_nums[VFL_TYPE_MAX], VIDEO_NUM_DEVICES);
+> > Fixes: 3bb4c3bc85bf77a7 ("media: rcar-vin: add group allocator functions")
+> > Reported-by: Colin Ian King <colin.king@canonical.com>
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  drivers/media/platform/rcar-vin/rcar-core.c | 12 +++++++-----
+> >  1 file changed, 7 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> > index 7bc2774a11232362..d3072e166a1ca24f 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> > @@ -338,19 +338,21 @@ static int rvin_group_get(struct rvin_dev *vin)
+> >
+> >  static void rvin_group_put(struct rvin_dev *vin)
+> >  {
+> > -       mutex_lock(&vin->group->lock);
+> > +       struct rvin_group *group = vin->group;
 > 
-> @@ -173,14 +173,14 @@ static void v4l2_device_release(struct device *cd)
->  	struct v4l2_device *v4l2_dev = vdev->v4l2_dev;
+> Gr{oetje,eeting}s,
 > 
->  	mutex_lock(&videodev_lock);
-> -	if (WARN_ON(video_device[vdev->minor] != vdev)) {
-> +	if (WARN_ON(video_devices[vdev->minor] != vdev)) {
->  		/* should not happen */
->  		mutex_unlock(&videodev_lock);
->  		return;
->  	}
+>                         Geert
 > 
->  	/* Free up this device for reuse */
-> -	video_device[vdev->minor] = NULL;
-> +	video_devices[vdev->minor] = NULL;
+> -- 
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 > 
->  	/* Delete the cdev on this minor as well */
->  	cdev_del(vdev->cdev);
-> @@ -229,7 +229,7 @@ static struct class video_class = {
-> 
->  struct video_device *video_devdata(struct file *file)
->  {
-> -	return video_device[iminor(file_inode(file))];
-> +	return video_devices[iminor(file_inode(file))];
->  }
->  EXPORT_SYMBOL(video_devdata);
-> 
-> @@ -493,9 +493,9 @@ static int get_index(struct video_device *vdev)
->  	bitmap_zero(used, VIDEO_NUM_DEVICES);
-> 
->  	for (i = 0; i < VIDEO_NUM_DEVICES; i++) {
-> -		if (video_device[i] != NULL &&
-> -		    video_device[i]->v4l2_dev == vdev->v4l2_dev) {
-> -			set_bit(video_device[i]->index, used);
-> +		if (video_devices[i] != NULL &&
-> +		    video_devices[i]->v4l2_dev == vdev->v4l2_dev) {
-> +			set_bit(video_devices[i]->index, used);
->  		}
->  	}
-> 
-> @@ -929,7 +929,7 @@ int __video_register_device(struct video_device *vdev,
->  	/* The device node number and minor numbers are independent, so
->  	   we just find the first free minor number. */
->  	for (i = 0; i < VIDEO_NUM_DEVICES; i++)
-> -		if (video_device[i] == NULL)
-> +		if (video_devices[i] == NULL)
->  			break;
->  	if (i == VIDEO_NUM_DEVICES) {
->  		mutex_unlock(&videodev_lock);
-> @@ -942,9 +942,9 @@ int __video_register_device(struct video_device *vdev,
->  	devnode_set(vdev);
-> 
->  	/* Should not happen since we thought this minor was free */
-> -	WARN_ON(video_device[vdev->minor] != NULL);
-> +	WARN_ON(video_devices[vdev->minor] != NULL);
->  	vdev->index = get_index(vdev);
-> -	video_device[vdev->minor] = vdev;
-> +	video_devices[vdev->minor] = vdev;
->  	mutex_unlock(&videodev_lock);
-> 
->  	if (vdev->ioctl_ops)
-> @@ -999,7 +999,7 @@ int __video_register_device(struct video_device *vdev,
->  	mutex_lock(&videodev_lock);
->  	if (vdev->cdev)
->  		cdev_del(vdev->cdev);
-> -	video_device[vdev->minor] = NULL;
-> +	video_devices[vdev->minor] = NULL;
->  	devnode_clear(vdev);
->  	mutex_unlock(&videodev_lock);
->  	/* Mark this video device as never having been registered. */
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
 
 -- 
 Regards,
-
-Laurent Pinchart
+Niklas Söderlund
