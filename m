@@ -1,69 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:48051 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752058AbeDPQhT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 12:37:19 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        "Guillermo O. Freschi" <kedrot@gmail.com>,
-        Aishwarya Pant <aishpant@gmail.com>, devel@driverdev.osuosl.org
-Subject: [PATCH 4/9] media: staging: atomisp-gc2235: don't fill an unused var
-Date: Mon, 16 Apr 2018 12:37:07 -0400
-Message-Id: <3adf2de3ce8958229a1322c01e180351086d06b1.1523896259.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523896259.git.mchehab@s-opensource.com>
-References: <cover.1523896259.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523896259.git.mchehab@s-opensource.com>
-References: <cover.1523896259.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from perceval.ideasonboard.com ([213.167.242.64]:33034 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752991AbeDZXJL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Apr 2018 19:09:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] rcar-vin: remove generic gen3 compatible string
+Date: Fri, 27 Apr 2018 02:09:24 +0300
+Message-ID: <2062313.TSG5ePb3Hm@avalon>
+In-Reply-To: <20180424234321.22367-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180424234321.22367-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code with uses the dummy var is commented out. So,
-coment out its definition/initialization.
+Hi Niklas,
 
-Fix this warning:
+Thank you for the patch.
 
-  drivers/staging/media/atomisp/i2c/atomisp-gc2235.c: In function 'gc2235_get_intg_factor':
-  drivers/staging/media/atomisp/i2c/atomisp-gc2235.c:249:26: warning: variable 'dummy' set but not used [-Wunused-but-set-variable]
-    u16 reg_val, reg_val_h, dummy;
-                            ^~~~~
+On Wednesday, 25 April 2018 02:43:21 EEST Niklas S=F6derlund wrote:
+> The compatible string "renesas,rcar-gen3-vin" was added before the
+> Gen3 driver code was added but it's not possible to use. Each SoC in the
+> Gen3 series require SoC specific knowledge in the driver to function.
+> Remove it before it is added to any device tree descriptions.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/staging/media/atomisp/i2c/atomisp-gc2235.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
-index 93f9c618f3d8..4b6b6568b3cf 100644
---- a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
-+++ b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
-@@ -246,7 +246,7 @@ static int gc2235_get_intg_factor(struct i2c_client *client,
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
- 	struct atomisp_sensor_mode_data *buf = &info->data;
--	u16 reg_val, reg_val_h, dummy;
-+	u16 reg_val, reg_val_h;
- 	int ret;
- 
- 	if (!info)
-@@ -316,7 +316,9 @@ static int gc2235_get_intg_factor(struct i2c_client *client,
- 	if (ret)
- 		return ret;
- 
--	dummy = (reg_val_h << 8) | reg_val;
-+#if 0
-+	u16 dummy = (reg_val_h << 8) | reg_val;
-+#endif
- 
- 	ret = gc2235_read_reg(client, GC2235_8BIT,
- 					GC2235_SH_DELAY_H, &reg_val_h);
--- 
-2.14.3
+> ---
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 1 -
+>  1 file changed, 1 deletion(-)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> b/Documentation/devicetree/bindings/media/rcar_vin.txt index
+> ba31431d4b1fbdbb..a19517e1c669eb35 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -24,7 +24,6 @@ on Gen3 platforms to a CSI-2 receiver.
+>     - "renesas,vin-r8a77970" for the R8A77970 device
+>     - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
+>       device.
+> -   - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+>=20
+>     When compatible with the generic version nodes must list the
+>     SoC-specific version corresponding to the platform first
+
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
