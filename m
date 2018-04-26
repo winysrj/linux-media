@@ -1,104 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:39254 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752419AbeDZIxF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 04:53:05 -0400
-Date: Thu, 26 Apr 2018 10:53:00 +0200
-From: Simon Horman <horms@verge.net.au>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, geert@linux-m68k.org,
-        robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] ARM: dts: r8a7740: Enable CEU0
-Message-ID: <20180426085259.lqxr4emk75oz7vug@verge.net.au>
-References: <1524654920-18749-1-git-send-email-jacopo+renesas@jmondi.org>
- <1524654920-18749-3-git-send-email-jacopo+renesas@jmondi.org>
- <20180426061124.hvgl3ijf6ulrdkmn@verge.net.au>
- <20180426072609.GH17088@w540>
+Received: from mga03.intel.com ([134.134.136.65]:7964 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757099AbeDZQzq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Apr 2018 12:55:46 -0400
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+Subject: RE: [PATCH v6 10/12] intel-ipu3: Add css pipeline programming
+Date: Thu, 26 Apr 2018 16:55:41 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D34183CD4@ORSMSX106.amr.corp.intel.com>
+References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
+ <1522376100-22098-11-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5CGjFsc1Py78_Lmbav0rPqgQOuN-7KXhQB2_MJKAkX55A@mail.gmail.com>
+In-Reply-To: <CAAFQd5CGjFsc1Py78_Lmbav0rPqgQOuN-7KXhQB2_MJKAkX55A@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180426072609.GH17088@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 26, 2018 at 09:26:09AM +0200, jacopo mondi wrote:
-> Hi Simon,
-> 
-> On Thu, Apr 26, 2018 at 08:11:30AM +0200, Simon Horman wrote:
-> > Thanks Jacopo,
-> >
-> > I'm very pleased to see this series.
-> 
-> Credits to Geert that pointed out to me R-Mobile A1 comes with a CEU.
-> I should mention him in next iteration actually, sorry about that.
-> 
-> >
-> > On Wed, Apr 25, 2018 at 01:15:20PM +0200, Jacopo Mondi wrote:
-> > > Enable CEU0 peripheral for Renesas R-Mobile A1 R8A7740.
-> >
-> > Given 'status = "disabled"' below I think you
-> > are describing but not enabling CEU0. Also in the subject.
-> 
-> Right.
-> 
-> >
-> > Should we also describe CEU1?
-> 
-> Armadillo board file only describe CEU0. If there are R-Mobile A1
-> board files where I can steal informations from I can do that. If
-> there's a public datasheet, that would be even better.
-
-I have the datasheet, so perhaps I can add CEU1 after you have added CEU0.
-
-> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > > ---
-> > >  arch/arm/boot/dts/r8a7740.dtsi | 10 ++++++++++
-> > >  1 file changed, 10 insertions(+)
-> > >
-> > > diff --git a/arch/arm/boot/dts/r8a7740.dtsi b/arch/arm/boot/dts/r8a7740.dtsi
-> > > index afd3bc5..05ec41e 100644
-> > > --- a/arch/arm/boot/dts/r8a7740.dtsi
-> > > +++ b/arch/arm/boot/dts/r8a7740.dtsi
-> > > @@ -67,6 +67,16 @@
-> > >  		power-domains = <&pd_d4>;
-> > >  	};
-> > >
-> > > +	ceu0: ceu@fe910000 {
-> > > +		reg = <0xfe910000 0x100>;
-> >
-> > Should the size of the range be 0x3000 ?
-> > That would seem to match my reading of table 32.3
-> > and also be consistent with r7s72100.dtsi.
-> 
-> I got this from
-> 
-> static struct resource ceu0_resources[] = {
-> 	[0] = {
-> 		.name	= "CEU",
-> 		.start	= 0xfe910000,
-> 		.end	= 0xfe91009f,
-> 		.flags	= IORESOURCE_MEM,
-> 	},
-> but I also noticed the r7s72100 one was bigger.
-> I'm fine enlarging this, if that's what the manual reports too.
-
-I think that would be best.
-
-> > > +		compatible = "renesas,r8a7740-ceu";
-> > > +		interrupts = <GIC_SPI 160 IRQ_TYPE_LEVEL_HIGH>;
-> > > +		clocks = <&mstp1_clks R8A7740_CLK_CEU20>;
-> > > +		clock-names = "ceu20";
-> > > +		power-domains = <&pd_a4mp>;
-> >
-> > My reading of table 1.7 is that the power domain should be A4R (&pd_a4r).
-> 
-> Ah yes, my bad.
-> 
-> The long time goal would be describe the camera module (mt9t112) which
-> is installed on armadillo. Unfortunately that would probably require
-> some more work on the CEU side.
-
-Thanks, understood.
+SGksIFRvbWFzeiwNCg0KVGhhbmtzIGZvciB0aGUgY29kZSByZXZpZXcuDQoNCj4gLS0tLS1Pcmln
+aW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVG9tYXN6IEZpZ2EgW21haWx0bzp0ZmlnYUBjaHJv
+bWl1bS5vcmddDQo+IFNlbnQ6IFRodXJzZGF5LCBBcHJpbCAyNiwgMjAxOCAxMjoxMiBBTQ0KPiBU
+bzogWmhpLCBZb25nIDx5b25nLnpoaUBpbnRlbC5jb20+DQo+IENjOiBMaW51eCBNZWRpYSBNYWls
+aW5nIExpc3QgPGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZz47IFNha2FyaSBBaWx1cw0KPiA8
+c2FrYXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbT47IE1hbmksIFJham1vaGFuDQo+IDxyYWptb2hh
+bi5tYW5pQGludGVsLmNvbT47IFRvaXZvbmVuLCBUdXVra2ENCj4gPHR1dWtrYS50b2l2b25lbkBp
+bnRlbC5jb20+OyBIdSwgSmVycnkgVyA8amVycnkudy5odUBpbnRlbC5jb20+OyBaaGVuZywNCj4g
+SmlhbiBYdSA8amlhbi54dS56aGVuZ0BpbnRlbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0gg
+djYgMTAvMTJdIGludGVsLWlwdTM6IEFkZCBjc3MgcGlwZWxpbmUgcHJvZ3JhbW1pbmcNCj4gDQo+
+IEhpIFlvbmcsDQo+IA0KPiBPbiBGcmksIE1hciAzMCwgMjAxOCBhdCAxMToxNSBBTSBZb25nIFpo
+aSA8eW9uZy56aGlAaW50ZWwuY29tPiB3cm90ZToNCj4gW3NuaXBdDQo+ID4gK2ludCBpcHUzX2Nz
+c19pbml0KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGlwdTNfY3NzICpjc3MsDQo+ID4gKyAg
+ICAgICAgICAgICAgICAgdm9pZCBfX2lvbWVtICpiYXNlLCBpbnQgbGVuZ3RoKSB7DQo+ID4gKyAg
+ICAgICBpbnQgciwgcCwgcSwgaTsNCj4gPiArDQo+ID4gKyAgICAgICAvKiBJbml0aWFsaXplIG1h
+aW4gZGF0YSBzdHJ1Y3R1cmUgKi8NCj4gPiArICAgICAgIGNzcy0+ZGV2ID0gZGV2Ow0KPiA+ICsg
+ICAgICAgY3NzLT5iYXNlID0gYmFzZTsNCj4gPiArICAgICAgIGNzcy0+aW9tZW1fbGVuZ3RoID0g
+bGVuZ3RoOw0KPiA+ICsgICAgICAgY3NzLT5jdXJyZW50X2JpbmFyeSA9IElQVTNfQ1NTX0RFRkFV
+TFRfQklOQVJZOw0KPiA+ICsgICAgICAgY3NzLT5waXBlX2lkID0gSVBVM19DU1NfUElQRV9JRF9O
+VU07DQo+ID4gKyAgICAgICBjc3MtPnZmX291dHB1dF9lbiA9IElQVTNfTk9ERV9WRl9ESVNBQkxF
+RDsNCj4gPiArICAgICAgIHNwaW5fbG9ja19pbml0KCZjc3MtPnFsb2NrKTsNCj4gPiArDQo+ID4g
+KyAgICAgICBmb3IgKHEgPSAwOyBxIDwgSVBVM19DU1NfUVVFVUVTOyBxKyspIHsNCj4gPiArICAg
+ICAgICAgICAgICAgciA9IGlwdTNfY3NzX3F1ZXVlX2luaXQoJmNzcy0+cXVldWVbcV0sIE5VTEws
+IDApOw0KPiA+ICsgICAgICAgICAgICAgICBpZiAocikNCj4gPiArICAgICAgICAgICAgICAgICAg
+ICAgICByZXR1cm4gcjsNCj4gPiArICAgICAgIH0NCj4gPiArDQo+ID4gKyAgICAgICByID0gaXB1
+M19jc3NfZndfaW5pdChjc3MpOw0KPiA+ICsgICAgICAgaWYgKHIpDQo+ID4gKyAgICAgICAgICAg
+ICAgIHJldHVybiByOw0KPiA+ICsNCj4gPiArICAgICAgIC8qIEFsbG9jYXRlIGFuZCBtYXAgY29t
+bW9uIHN0cnVjdHVyZXMgd2l0aCBpbWd1IGhhcmR3YXJlICovDQo+ID4gKw0KPiA+ICsgICAgICAg
+Zm9yIChwID0gMDsgcCA8IElQVTNfQ1NTX1BJUEVfSURfTlVNOyBwKyspDQo+ID4gKyAgICAgICAg
+ICAgICAgIGZvciAoaSA9IDA7IGkgPCBJTUdVX0FCSV9NQVhfU1RBR0VTOyBpKyspIHsNCj4gPiAr
+ICAgICAgICAgICAgICAgICAgICAgICBpZiAoIWlwdTNfZG1hbWFwX2FsbG9jKGRldiwNCj4gPiAr
+DQo+ICAgJmNzcy0+eG1lbV9zcF9zdGFnZV9wdHJzW3BdW2ldLA0KPiA+ICsgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2l6ZW9mKHN0cnVjdA0KPiBpbWd1X2Fi
+aV9zcF9zdGFnZSkpKQ0KPiANCj4gY2hlY2twYXRjaCByZXBvcnRzIGxpbmUgb3ZlciA4MCBjaGFy
+YWN0ZXJzIGhlcmUuDQoNCkFjaywgSSBvcHRlZCBmb3IgYWxpZ25tZW50IG92ZXIgbGluZSBsaW1p
+dCBoZXJlICwgd2lsbCBmaXggaW4gdjcuDQo+IA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgZ290byBlcnJvcl9ub19tZW1vcnk7DQo+ID4gKyAgICAgICAgICAgICAgICAgICAg
+ICAgaWYgKCFpcHUzX2RtYW1hcF9hbGxvYyhkZXYsDQo+ID4gKw0KPiAgICZjc3MtPnhtZW1faXNw
+X3N0YWdlX3B0cnNbcF1baV0sDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICBzaXplb2Yoc3RydWN0DQo+IGltZ3VfYWJpX2lzcF9zdGFnZSkpKQ0KPiAN
+Cj4gRGl0dG8uDQoNClN1cmUsIHRoYW5rcyEhDQo+IA0KPiA+ICsgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgZ290byBlcnJvcl9ub19tZW1vcnk7DQo+ID4gKyAgICAgICAgICAgICAgIH0N
+Cj4gDQo+IEJlc3QgcmVnYXJkcywNCj4gVG9tYXN6DQo=
