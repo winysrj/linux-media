@@ -1,45 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:42549 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751178AbeDEK7M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 06:59:12 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:34878 "EHLO
+        homiemail-a80.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756715AbeDZR1g (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Apr 2018 13:27:36 -0400
+From: Brad Love <brad@nextdimension.cc>
 To: linux-media@vger.kernel.org
-Cc: tfiga@google.com, hverkuil@xs4all.nl
-Subject: [v4l-utils RFC 4/6] mediatext: Extract list of V4L2 pixel format strings and 4cc codes
-Date: Thu,  5 Apr 2018 13:58:17 +0300
-Message-Id: <1522925899-14073-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1522925899-14073-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1522925899-14073-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 0/7] media_build: various kernel version fixes
+Date: Thu, 26 Apr 2018 12:19:15 -0500
+Message-Id: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extract the list of V4L2 pixel format strings and 4cc codes from
-videodev2.h for use in mediatext in order to convert user given format
-names to 4cc codes that IOCTLs use.
+This first four patches in this set disables drivers which cannot
+be compiled before a specific kernel revision.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- utils/media-ctl/Makefile.am | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+To fix of_find_i2c_device_by_node|of_find_i2c_adapter_by_node in
+kernels 3.5 to 3.11.x the correct header is included.
 
-diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
-index ee7dcc9..8fe653d 100644
---- a/utils/media-ctl/Makefile.am
-+++ b/utils/media-ctl/Makefile.am
-@@ -12,7 +12,12 @@ media-bus-format-codes.h: ../../include/linux/media-bus-format.h
- 	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*#define //; /FIXED/ d; s/\t.*//; s/.*/ &,/;' \
- 	< $< > $@
- 
--BUILT_SOURCES = media-bus-format-names.h media-bus-format-codes.h
-+v4l2-pix-formats.h: ../../include/linux/videodev2.h
-+	sed -e '/#define V4L2_PIX_FMT_/ ! d; s/.*FMT_//; s/[\t ].*//; s/.*/{ \"&\", V4L2_PIX_FMT_& },/;' \
-+	< $< > $@
-+
-+BUILT_SOURCES = media-bus-format-names.h media-bus-format-codes.h \
-+	v4l2-pix-formats.h
- CLEANFILES = $(BUILT_SOURCES)
- 
- nodist_libv4l2subdev_la_SOURCES = $(BUILT_SOURCES)
+The frame_vector.c wildcard check also appears to be broken for me.
+The check is changed from using relative patch to absolute path,
+and verifying frame_vector.c is in the build dir (v4l/) instead
+of in the linux/ directory.
+
+Lastly, I have one new addition to contemplate. I maintain driver
+packages for a lot of different kernel revisions on a lot of different
+architectures and some times make_config_compat.pl incorrectly
+enables backport options which cause build failure. Instead of
+making the config check more complicated I propose creation and
+inclusion of an empty config-mycompat.h, after config-compat.h is included
+in compat.h, which would allow for overriding any options necessary
+due to symbols/macros/etc already existing in the target kernel.
+config-mycompat.h would be touched before make_config_compat.h is
+called and deleted during distclean, allowing a builder to copy any
+overrides into the header before starting the compilation process.
+This would allow usage of the media_build system without having to
+supply out of tree patches to correct the 'bad' options. If I
+somehow missed this functionality a pointer to it would be lovely.
+
+
+Brad Love (7):
+  Disable VIDEO_ADV748X for kernels older than 4.8
+  Disable additional drivers requiring gpio/consumer.h
+  Disable DVBC8SECTPFE for kernels older than 3.5
+  Disable SOC_CAMERA for kernels older than 3.5
+  Header location fix for 3.5.0 to 3.11.x
+  Fix frame vector wildcard file check
+  Add config-compat.h override config-mycompat.h
+
+ v4l/Makefile     |  5 +++--
+ v4l/compat.h     | 14 ++++++++++++++
+ v4l/versions.txt | 18 ++++++++++++++++--
+ 3 files changed, 33 insertions(+), 4 deletions(-)
+
 -- 
 2.7.4
