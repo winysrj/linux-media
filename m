@@ -1,328 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay12.mail.gandi.net ([217.70.178.232]:46017 "EHLO
-        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751089AbeDXHQ2 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:36624 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751508AbeDZGMx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 03:16:28 -0400
-Date: Tue, 24 Apr 2018 09:16:22 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, architt@codeaurora.org,
-        a.hajda@samsung.com, airlied@linux.ie, daniel@ffwll.ch,
-        peda@axentia.se, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 5/8] media: Add LE version of RGB LVDS formats
-Message-ID: <20180424071622.GE17088@w540>
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
- <1524130269-32688-6-git-send-email-jacopo+renesas@jmondi.org>
- <1733883.PFymhGyeZa@avalon>
+        Thu, 26 Apr 2018 02:12:53 -0400
+Date: Thu, 26 Apr 2018 08:11:30 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: geert@linux-m68k.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] ARM: dts: r8a7740: Enable CEU0
+Message-ID: <20180426061124.hvgl3ijf6ulrdkmn@verge.net.au>
+References: <1524654920-18749-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1524654920-18749-3-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Lb0e7rgc7IsuDeGj"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1733883.PFymhGyeZa@avalon>
+In-Reply-To: <1524654920-18749-3-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Thanks Jacopo,
 
---Lb0e7rgc7IsuDeGj
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+I'm very pleased to see this series.
 
-HI Laurent,
+On Wed, Apr 25, 2018 at 01:15:20PM +0200, Jacopo Mondi wrote:
+> Enable CEU0 peripheral for Renesas R-Mobile A1 R8A7740.
 
-On Mon, Apr 23, 2018 at 04:06:01PM +0300, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> Thank you for the patch.
->
-> On Thursday, 19 April 2018 12:31:06 EEST Jacopo Mondi wrote:
-> > Some LVDS controller can output swapped versions of LVDS RGB formats.
-> > Define and document them in the list of supported media bus formats
->
-> I wouldn't introduce those new formats as we don't need them. As a general
-> rule we would like to have at least one user for any new format added to the
-> API.
+Given 'status = "disabled"' below I think you
+are describing but not enabling CEU0. Also in the subject.
 
-I was about to point you to patch [8/8], as the newly introduced
-formats allow replacing the DRM_BUS_FLAG_DATA_ flags, defined in
-drm_connector.h and which I struggled to find a more appropiate place
-where to move them. Or I either duplicate them for bridges, but I
-prefer not to, or we remove them, and defining some dedicated formats,
-seems more natural to me...
+Should we also describe CEU1?
 
-I'll reply to your comment on [8/8] on the format names and other
-details.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  arch/arm/boot/dts/r8a7740.dtsi | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/r8a7740.dtsi b/arch/arm/boot/dts/r8a7740.dtsi
+> index afd3bc5..05ec41e 100644
+> --- a/arch/arm/boot/dts/r8a7740.dtsi
+> +++ b/arch/arm/boot/dts/r8a7740.dtsi
+> @@ -67,6 +67,16 @@
+>  		power-domains = <&pd_d4>;
+>  	};
+>  
+> +	ceu0: ceu@fe910000 {
+> +		reg = <0xfe910000 0x100>;
 
-Thanks
-   j
+Should the size of the range be 0x3000 ?
+That would seem to match my reading of table 32.3
+and also be consistent with r7s72100.dtsi.
 
->
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  Documentation/media/uapi/v4l/subdev-formats.rst | 174 +++++++++++++++++++++
-> >  include/uapi/linux/media-bus-format.h           |   5 +-
-> >  2 files changed, 178 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst
-> > b/Documentation/media/uapi/v4l/subdev-formats.rst index 9fcabe7..9a5263c
-> > 100644
-> > --- a/Documentation/media/uapi/v4l/subdev-formats.rst
-> > +++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-> > @@ -1669,6 +1669,64 @@ JEIDA defined bit mapping will be named
-> >        - b\ :sub:`2`
-> >        - g\ :sub:`1`
-> >        - r\ :sub:`0`
-> > +    * .. _MEDIA-BUS-FMT-RGB666-1X7X3-SPWG_LE:
-> > +
-> > +      - MEDIA_BUS_FMT_RGB666_1X7X3_SPWG_LE
-> > +      - 0x101b
-> > +      - 0
-> > +      -
-> > +      -
-> > +      - b\ :sub:`2`
-> > +      - g\ :sub:`1`
-> > +      - r\ :sub:`0`
-> > +    * -
-> > +      -
-> > +      - 1
-> > +      -
-> > +      -
-> > +      - b\ :sub:`3`
-> > +      - g\ :sub:`2`
-> > +      - r\ :sub:`1`
-> > +    * -
-> > +      -
-> > +      - 2
-> > +      -
-> > +      -
-> > +      - b\ :sub:`4`
-> > +      - g\ :sub:`3`
-> > +      - r\ :sub:`2`
-> > +    * -
-> > +      -
-> > +      - 3
-> > +      -
-> > +      -
-> > +      - b\ :sub:`5`
-> > +      - g\ :sub:`4`
-> > +      - r\ :sub:`3`
-> > +    * -
-> > +      -
-> > +      - 4
-> > +      -
-> > +      -
-> > +      - d
-> > +      - g\ :sub:`5`
-> > +      - r\ :sub:`4`
-> > +    * -
-> > +      -
-> > +      - 5
-> > +      -
-> > +      -
-> > +      - d
-> > +      - b\ :sub:`0`
-> > +      - r\ :sub:`5`
-> > +    * -
-> > +      -
-> > +      - 6
-> > +      -
-> > +      -
-> > +      - d
-> > +      - b\ :sub:`1`
-> > +      - g\ :sub:`0`
-> >      * .. _MEDIA-BUS-FMT-RGB888-1X7X4-SPWG:
-> >
-> >        - MEDIA_BUS_FMT_RGB888_1X7X4_SPWG
-> > @@ -1727,6 +1785,64 @@ JEIDA defined bit mapping will be named
-> >        - b\ :sub:`2`
-> >        - g\ :sub:`1`
-> >        - r\ :sub:`0`
-> > +    * .. _MEDIA-BUS-FMT-RGB888-1X7X4-SPWG_LE:
-> > +
-> > +      - MEDIA_BUS_FMT_RGB888_1X7X4_SPWG_LE
-> > +      - 0x101c
-> > +      - 0
-> > +      -
-> > +      - r\ :sub:`6`
-> > +      - b\ :sub:`2`
-> > +      - g\ :sub:`1`
-> > +      - r\ :sub:`0`
-> > +    * -
-> > +      -
-> > +      - 1
-> > +      -
-> > +      - r\ :sub:`7`
-> > +      - b\ :sub:`3`
-> > +      - g\ :sub:`2`
-> > +      - r\ :sub:`1`
-> > +    * -
-> > +      -
-> > +      - 2
-> > +      -
-> > +      - g\ :sub:`6`
-> > +      - b\ :sub:`4`
-> > +      - g\ :sub:`3`
-> > +      - r\ :sub:`2`
-> > +    * -
-> > +      -
-> > +      - 3
-> > +      -
-> > +      - g\ :sub:`7`
-> > +      - b\ :sub:`5`
-> > +      - g\ :sub:`4`
-> > +      - r\ :sub:`3`
-> > +    * -
-> > +      -
-> > +      - 4
-> > +      -
-> > +      - b\ :sub:`6`
-> > +      - d
-> > +      - g\ :sub:`5`
-> > +      - r\ :sub:`4`
-> > +    * -
-> > +      -
-> > +      - 5
-> > +      -
-> > +      - b\ :sub:`7`
-> > +      - d
-> > +      - b\ :sub:`0`
-> > +      - r\ :sub:`5`
-> > +    * -
-> > +      -
-> > +      - 6
-> > +      -
-> > +      - d
-> > +      - d
-> > +      - b\ :sub:`1`
-> > +      - g\ :sub:`0`
-> >      * .. _MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA:
-> >
-> >        - MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA
-> > @@ -1785,6 +1901,64 @@ JEIDA defined bit mapping will be named
-> >        - b\ :sub:`4`
-> >        - g\ :sub:`3`
-> >        - r\ :sub:`2`
-> > +    * .. _MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA_LE:
-> > +
-> > +      - MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA_LE
-> > +      - 0x101d
-> > +      - 0
-> > +      -
-> > +      - r\ :sub:`0`
-> > +      - b\ :sub:`4`
-> > +      - g\ :sub:`3`
-> > +      - r\ :sub:`2`
-> > +    * -
-> > +      -
-> > +      - 1
-> > +      -
-> > +      - r\ :sub:`1`
-> > +      - b\ :sub:`5`
-> > +      - g\ :sub:`4`
-> > +      - r\ :sub:`3`
-> > +    * -
-> > +      -
-> > +      - 2
-> > +      -
-> > +      - g\ :sub:`0`
-> > +      - b\ :sub:`6`
-> > +      - g\ :sub:`5`
-> > +      - r\ :sub:`4`
-> > +    * -
-> > +      -
-> > +      - 3
-> > +      -
-> > +      - g\ :sub:`1`
-> > +      - b\ :sub:`7`
-> > +      - g\ :sub:`6`
-> > +      - r\ :sub:`5`
-> > +    * -
-> > +      -
-> > +      - 4
-> > +      -
-> > +      - b\ :sub:`0`
-> > +      - d
-> > +      - g\ :sub:`7`
-> > +      - r\ :sub:`6`
-> > +    * -
-> > +      -
-> > +      - 5
-> > +      -
-> > +      - b\ :sub:`1`
-> > +      - d
-> > +      - b\ :sub:`2`
-> > +      - r\ :sub:`7`
-> > +    * -
-> > +      -
-> > +      - 6
-> > +      -
-> > +      - d
-> > +      - d
-> > +      - b\ :sub:`3`
-> > +      - g\ :sub:`2`
-> >
-> >  .. raw:: latex
-> >
-> > diff --git a/include/uapi/linux/media-bus-format.h
-> > b/include/uapi/linux/media-bus-format.h index 9e35117..5bea7c0 100644
-> > --- a/include/uapi/linux/media-bus-format.h
-> > +++ b/include/uapi/linux/media-bus-format.h
-> > @@ -34,7 +34,7 @@
-> >
-> >  #define MEDIA_BUS_FMT_FIXED			0x0001
-> >
-> > -/* RGB - next is	0x101b */
-> > +/* RGB - next is	0x101f */
-> >  #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
-> >  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
-> >  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-> > @@ -49,13 +49,16 @@
-> >  #define MEDIA_BUS_FMT_RBG888_1X24		0x100e
-> >  #define MEDIA_BUS_FMT_RGB666_1X24_CPADHI	0x1015
-> >  #define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG		0x1010
-> > +#define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG_LE	0x101b
-> >  #define MEDIA_BUS_FMT_BGR888_1X24		0x1013
-> >  #define MEDIA_BUS_FMT_GBR888_1X24		0x1014
-> >  #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
-> >  #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
-> >  #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
-> >  #define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG		0x1011
-> > +#define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG_LE	0x101c
-> >  #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
-> > +#define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA_LE	0x101d
-> >  #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
-> >  #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
-> >  #define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
->
->
+> +		compatible = "renesas,r8a7740-ceu";
+> +		interrupts = <GIC_SPI 160 IRQ_TYPE_LEVEL_HIGH>;
+> +		clocks = <&mstp1_clks R8A7740_CLK_CEU20>;
+> +		clock-names = "ceu20";
+> +		power-domains = <&pd_a4mp>;
 
---Lb0e7rgc7IsuDeGj
-Content-Type: application/pgp-signature; name="signature.asc"
+My reading of table 1.7 is that the power domain should be A4R (&pd_a4r).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJa3tnGAAoJEHI0Bo8WoVY8NkUP/jbr7QVwPmgIzNo86QV+ptKD
-NvhDLZpNQSlbEYtUSPr0Eb67cF26O1U21Ezf2c0oEQc1QsrGtF5KgBqQHrlL87Yn
-ksAvgT9wZbwwR0L+MP4KO/nP+s/adiCf7/f79Okz0xWYivJ7uJv63+XImKtEW85K
-OUP7WKfnw8CjKVSwbIRmWthVl2K3NNZvrZzjfGFYwGWr9U8RmYTmRaP86Cku1UbA
-P/vCNm9fzECJXLzNsycIfLaeJ9nCtKn4wleI0+X+CXNq5LPZS8JLPnHqFzjE7eLb
-2GNNce01ZICrBn5SyjLJptk1rAq9ht7CIclkqoi7wuQKSirohyZCCtP768vh0njd
-CXDXYaPu80ZRUB0fcFcGZ6pKPMWXFnUqRvQyC3FAlXiShkX4qBNl6ghU5qI4YLk5
-4KtuDw3jALjKLiTf9wZ57Sxm0SekvjJBgzHse0++BrtkxWpgmkE+RfJBXOBC5npi
-1sU8SkZFIK1DzuMBZ/vR5MANME27p4RKn7+CTsSEEnlv4l309vzfcv86eCwS9F+a
-Xrba5tRfh+FwixDXcOxy0IDIfMCpCQBO+tYOgjEvcQW4kD/UwOLHZEHAdnZSMl8G
-ouanzzBuYhFL7Fdeq0wCsqQT45G8j6NsubR7bSAJsSC225OSVJtKPCLjTE/a9woz
-nN0j14ay7AszUdBYFUms
-=ToEU
------END PGP SIGNATURE-----
-
---Lb0e7rgc7IsuDeGj--
+> +		status = "disabled";
+> +	};
+> +
+>  	cmt1: timer@e6138000 {
+>  		compatible = "renesas,cmt-48-r8a7740", "renesas,cmt-48";
+>  		reg = <0xe6138000 0x170>;
+> -- 
+> 2.7.4
+> 
