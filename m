@@ -1,62 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:34977 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753014AbeDHVTs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 8 Apr 2018 17:19:48 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, Matthias Reichl <hias@horus.com>
-Cc: Carlo Caione <carlo@caione.org>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Alex Deryskyba <alex@codesnake.com>,
-        Jonas Karlman <jonas@kwiboo.se>,
-        linux-amlogic@lists.infradead.org
-Subject: [PATCH v2 4/7] media: rc: mce_kbd decoder: low timeout values cause double keydowns
-Date: Sun,  8 Apr 2018 22:19:39 +0100
-Message-Id: <e5bf02f1961fc60e84b74a76a0a7472f4029db26.1523221902.git.sean@mess.org>
-In-Reply-To: <cover.1523221902.git.sean@mess.org>
-References: <cover.1523221902.git.sean@mess.org>
-In-Reply-To: <cover.1523221902.git.sean@mess.org>
-References: <cover.1523221902.git.sean@mess.org>
+Received: from bombadil.infradead.org ([198.137.202.133]:58940 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753403AbeDZJYY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Apr 2018 05:24:24 -0400
+Date: Thu, 26 Apr 2018 02:24:22 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Christoph Hellwig <hch@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        iommu@lists.linux-foundation.org,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Thierry Reding <treding@nvidia.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] noveau vs arm dma ops
+Message-ID: <20180426092422.GA26825@infradead.org>
+References: <20180425054855.GA17038@infradead.org>
+ <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+ <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
+ <20180425064335.GB28100@infradead.org>
+ <20180425074151.GA2271@ulmo>
+ <20180425085439.GA29996@infradead.org>
+ <20180425100429.GR25142@phenom.ffwll.local>
+ <20180425153312.GD27076@infradead.org>
+ <20180425225443.GQ16141@n2100.armlinux.org.uk>
+ <CAKMK7uG9R6paoP4BmvqDVUP_4Db4Dz8MSXeLwUBMYaORa5-kVw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAKMK7uG9R6paoP4BmvqDVUP_4Db4Dz8MSXeLwUBMYaORa5-kVw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mce keyboard repeats pressed keys every 100ms. If the IR timeout
-is set to less than that, we send key up events before the repeat
-arrives, so we have key up/key down for each IR repeat.
+On Thu, Apr 26, 2018 at 11:20:44AM +0200, Daniel Vetter wrote:
+> The above is already what we're implementing in i915, at least
+> conceptually (it all boils down to clflush instructions because those
+> both invalidate and flush).
 
-The keyboard ends any sequence with a 0 scancode, in which case all keys
-are cleared so there is no need to run the timeout timer: it only exists
-for the case that the final 0 was not received.
+The clwb instruction that just writes back dirty cache lines might
+be very interesting for the x86 non-coherent dma case.  A lot of
+architectures use their equivalent to prepare to to device transfers.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-mce_kbd-decoder.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+> One architectural guarantee we're exploiting is that prefetched (and
+> hence non-dirty) cachelines will never get written back, but dropped
+> instead.
 
-diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
-index ae4b980c4a16..230b9397aa11 100644
---- a/drivers/media/rc/ir-mce_kbd-decoder.c
-+++ b/drivers/media/rc/ir-mce_kbd-decoder.c
-@@ -322,11 +322,13 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			scancode = data->body & 0xffff;
- 			dev_dbg(&dev->dev, "keyboard data 0x%08x\n",
- 				data->body);
--			if (dev->timeout)
--				delay = usecs_to_jiffies(dev->timeout / 1000);
--			else
--				delay = msecs_to_jiffies(100);
--			mod_timer(&data->rx_timeout, jiffies + delay);
-+			if (scancode) {
-+				delay = nsecs_to_jiffies(dev->timeout) +
-+					msecs_to_jiffies(100);
-+				mod_timer(&data->rx_timeout, jiffies + delay);
-+			} else {
-+				del_timer(&data->rx_timeout);
-+			}
- 			/* Pass data to keyboard buffer parser */
- 			ir_mce_kbd_process_keyboard_data(dev, scancode);
- 			lsc.rc_proto = RC_PROTO_MCIR2_KBD;
--- 
-2.14.3
+And to make this work you'll need exactly this guarantee.
