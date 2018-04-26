@@ -1,168 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:22808 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752327AbeDQUKZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 16:10:25 -0400
-Date: Tue, 17 Apr 2018 23:10:21 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 2/2] media: Add a driver for the ov7251 camera sensor
-Message-ID: <20180417201021.q6t4imtoaeh5vtsi@kekkonen.localdomain>
-References: <1521778460-8717-1-git-send-email-todor.tomov@linaro.org>
- <1521778460-8717-3-git-send-email-todor.tomov@linaro.org>
- <20180329115147.nai3dgverqpjympu@paasikivi.fi.intel.com>
- <3b45d013-d9e7-04bf-22a3-06b858c2c7bd@linaro.org>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:33594 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752991AbeDZXOr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Apr 2018 19:14:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] rcar-vin: enable field toggle after a set number of lines for Gen3
+Date: Fri, 27 Apr 2018 02:15:01 +0300
+Message-ID: <11739225.3l7zkTrcbQ@avalon>
+In-Reply-To: <20180424235652.24672-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180424235652.24672-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3b45d013-d9e7-04bf-22a3-06b858c2c7bd@linaro.org>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
+Hi Niklas,
 
-On Tue, Apr 17, 2018 at 06:32:07PM +0300, Todor Tomov wrote:
-...
-> >> +static int ov7251_regulators_enable(struct ov7251 *ov7251)
-> >> +{
-> >> +	int ret;
-> >> +
-> >> +	ret = regulator_enable(ov7251->io_regulator);
-> > 
-> > How about regulator_bulk_enable() here, and bulk_disable below?
-> 
-> I'm not using the bulk API because usually there is a power up
-> sequence and intervals that must be followed. For this sensor
-> the only constraint is that core regulator must be enabled
-> after io regulator. But the bulk API doesn't guarantee the
-> order.
+Thank you for the patch.
 
-Could you add a comment explaining this? Otherwise it won't take long until
-someone "fixes" the code.
+On Wednesday, 25 April 2018 02:56:52 EEST Niklas S=F6derlund wrote:
+> The VIN Gen3 hardware don't have Line Post-Clip capabilities as VIN Gen2
+> hardware have. To protect against writing outside the capture window
+> enable field toggle after a set number of lines have been captured.
+>=20
+> Capturing outside the allocated capture buffer where observed on R-Car
 
-...
+s/Capturing/Capture/
+s/where/has been/
 
-> >> +static int ov7251_read_reg(struct ov7251 *ov7251, u16 reg, u8 *val)
-> >> +{
-> >> +	u8 regbuf[2];
-> >> +	int ret;
-> >> +
-> >> +	regbuf[0] = reg >> 8;
-> >> +	regbuf[1] = reg & 0xff;
-> >> +
-> >> +	ret = i2c_master_send(ov7251->i2c_client, regbuf, 2);
-> >> +	if (ret < 0) {
-> >> +		dev_err(ov7251->dev, "%s: write reg error %d: reg=%x\n",
-> >> +			__func__, ret, reg);
-> >> +		return ret;
-> >> +	}
-> >> +
-> >> +	ret = i2c_master_recv(ov7251->i2c_client, val, 1);
-> >> +	if (ret < 0) {
-> >> +		dev_err(ov7251->dev, "%s: read reg error %d: reg=%x\n",
-> >> +			__func__, ret, reg);
-> >> +		return ret;
-> >> +	}
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int ov7251_set_exposure(struct ov7251 *ov7251, s32 exposure)
-> >> +{
-> >> +	int ret;
-> >> +
-> >> +	ret = ov7251_write_reg(ov7251, OV7251_AEC_EXPO_0,
-> >> +			       (exposure & 0xf000) >> 12);
-> >> +	if (ret < 0)
-> >> +		return ret;
-> >> +
-> >> +	ret = ov7251_write_reg(ov7251, OV7251_AEC_EXPO_1,
-> >> +			       (exposure & 0x0ff0) >> 4);
-> >> +	if (ret < 0)
-> >> +		return ret;
-> >> +
-> >> +	return ov7251_write_reg(ov7251, OV7251_AEC_EXPO_2,
-> >> +				(exposure & 0x000f) << 4);
-> > 
-> > It's not a good idea to access multi-octet registers separately. Depending
-> > on the hardware implementation, the hardware could latch the value in the
-> > middle of an update. This is only an issue during streaming in practice
-> > though.
-> 
-> Good point. The sensor has a group write functionality which can be used
-> to solve this but in general is intended
-> to apply a group of exposure and gain settings in the same frame. However
-> it seems to me that is not possible to use this functionality efficiently
-> with the currently available user controls. The group write is configured
-> using an id for a group of commands. So if we configure exposure and gain
-> separately (a group for each):
-> - if the driver uses same group id for exposure and gain, if both controls
->   are received in one frame the second will overwrite the first (the
->   first will not be applied);
-> - if the driver uses different group id for exposure and gain, it will not
->   be possible for the user to change exposure and gain in the same frame
->   (as some exposure algorithms do) and it will lead again to frames with
->   "incorrect" brightness.
-> 
-> To do this correctly we will have to extend the API to be able to apply
-> exposure and gain "atomically":
-> - a single user control which will set both exposure and gain and it will
->   guarantee that they will be applied in the same frame;
-> - some kind of: begin, set exposure, set gain, end, launch -API
-> 
-> What do you think?
-> 
-> Actually, I'm a little bit surprised that I didn't find anything
-> like this already. And there are already a number of sensor drivers
-> which update more than one register to set exposure.
+> Gen3 Salvator-XS H3 from the CVBS input if the standard is
+> misconfigured. That is if a PAL source is connected to the system but
+> the adv748x standard is set to NTSC. In this case the format reported by
+> the adv748x is 720x480 and that is what is used for the media pipeline.
+> The PAL source generates frames in the format of 720x576 and the field
+> is not toggled until the VSYNC is detected and at that time data have
+> already been written outside the allocated capture buffer.
+>=20
+> With this change the capture in the situation described above results in
+> garbage frames but that is far better then writing outside the capture
 
-The latter of the two would be preferred as it isn't limited to exposure
-and gain only. Still, you could address the problem for this driver by
-simply writing the register in a single transaction.
+s/then/than/
 
-...
+> buffer.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
 
-> >> +static int ov7251_enum_mbus_code(struct v4l2_subdev *sd,
-> >> +				 struct v4l2_subdev_pad_config *cfg,
-> >> +				 struct v4l2_subdev_mbus_code_enum *code)
-> >> +{
-> >> +	if (code->index > 0)
-> >> +		return -EINVAL;
-> >> +
-> >> +	code->code = MEDIA_BUS_FMT_SBGGR10_1X10;
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int ov7251_enum_frame_size(struct v4l2_subdev *subdev,
-> >> +				  struct v4l2_subdev_pad_config *cfg,
-> >> +				  struct v4l2_subdev_frame_size_enum *fse)
-> >> +{
-> >> +	if (fse->code != MEDIA_BUS_FMT_SBGGR10_1X10)
-> > 
-> > Can the flip controls affect the media bus code? Either take this into
-> > account or remove flip controls.
-> 
-> This sensor is black and white (monochrome). I have used BGGR because I
-> didn't find any monochrome format amongst the Bayer formats. Looking
-> again at it now, probably we have to use MEDIA_BUS_FMT_Y10_1X10?
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-:-) Yes, that's the right media bus code AFAICT.
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 20 +++++++++++++++-----
+>  1 file changed, 15 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> ac07f99e3516a620..b41ba9a4a2b3ac90 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -124,7 +124,9 @@
+>  #define VNDMR2_VPS		(1 << 30)
+>  #define VNDMR2_HPS		(1 << 29)
+>  #define VNDMR2_FTEV		(1 << 17)
+> +#define VNDMR2_FTEH		(1 << 16)
+>  #define VNDMR2_VLV(n)		((n & 0xf) << 12)
+> +#define VNDMR2_HLV(n)		((n) & 0xfff)
+>=20
+>  /* Video n CSI2 Interface Mode Register (Gen3) */
+>  #define VNCSI_IFMD_DES1		(1 << 26)
+> @@ -612,8 +614,9 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+>=20
+>  static int rvin_setup(struct rvin_dev *vin)
+>  {
+> -	u32 vnmc, dmr, dmr2, interrupts;
+> +	u32 vnmc, dmr, dmr2, interrupts, lines;
+>  	bool progressive =3D false, output_is_yuv =3D false, input_is_yuv =3D f=
+alse;
+> +	bool halfsize =3D false;
+>=20
+>  	switch (vin->format.field) {
+>  	case V4L2_FIELD_TOP:
+> @@ -628,12 +631,15 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		/* Use BT if video standard can be read and is 60 Hz format */
+>  		if (!vin->info->use_mc && vin->std & V4L2_STD_525_60)
+>  			vnmc =3D VNMC_IM_FULL | VNMC_FOC;
+> +		halfsize =3D true;
+>  		break;
+>  	case V4L2_FIELD_INTERLACED_TB:
+>  		vnmc =3D VNMC_IM_FULL;
+> +		halfsize =3D true;
+>  		break;
+>  	case V4L2_FIELD_INTERLACED_BT:
+>  		vnmc =3D VNMC_IM_FULL | VNMC_FOC;
+> +		halfsize =3D true;
+>  		break;
+>  	case V4L2_FIELD_NONE:
+>  		vnmc =3D VNMC_IM_ODD_EVEN;
+> @@ -676,11 +682,15 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		break;
+>  	}
+>=20
+> -	/* Enable VSYNC Field Toogle mode after one VSYNC input */
+> -	if (vin->info->model =3D=3D RCAR_GEN3)
+> -		dmr2 =3D VNDMR2_FTEV;
+> -	else
+> +	if (vin->info->model =3D=3D RCAR_GEN3) {
+> +		/* Enable HSYNC Field Toggle mode after height HSYNC inputs. */
+> +		lines =3D vin->format.height / (halfsize ? 2 : 1);
+> +		dmr2 =3D VNDMR2_FTEH | VNDMR2_HLV(lines);
+> +		vin_dbg(vin, "Field Toogle after %u lines\n", lines);
+> +	} else {
+> +		/* Enable VSYNC Field Toogle mode after one VSYNC input. */
+>  		dmr2 =3D VNDMR2_FTEV | VNDMR2_VLV(1);
+> +	}
+>=20
+>  	/* Hsync Signal Polarity Select */
+>  	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
 
-> 
-> However I cannot find a suitable pixel format too (to be used by the
-> platform driver) as the output is MIPI10 (same encoding as
-> V4L2_PIX_FMT_SBGGR10P but monochrome) and V4L2_PIX_FMT_Y10BPACK has
-> different encoding. So it seems to me that I will have to add another
-> pixel format, right?
+=2D-=20
+Regards,
 
-Yes, please.
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Laurent Pinchart
