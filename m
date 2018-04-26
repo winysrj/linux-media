@@ -1,86 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50584 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753239AbeDPJa2 (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:55504 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753487AbeDZKDC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 05:30:28 -0400
-Date: Mon, 16 Apr 2018 12:30:23 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v13 2/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver
- driver
-Message-ID: <20180416093023.dqadxxa3dm72s24w@valkosipuli.retiisi.org.uk>
-References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se>
- <20180212230132.5402-3-niklas.soderlund+renesas@ragnatech.se>
- <20180329113039.4v5whquyrtgf5yaa@flea>
- <20180404201357.kx7e4dbqurn5zx2r@valkosipuli.retiisi.org.uk>
- <20180415204737.GF20093@bigcity.dyn.berto.se>
+        Thu, 26 Apr 2018 06:03:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Colin King <colin.king@canonical.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH][next] media: ispstat: don't dereference user_cfg before a null check
+Date: Thu, 26 Apr 2018 13:03:15 +0300
+Message-ID: <2302951.d1m0yxIoYN@avalon>
+In-Reply-To: <20180426083731.72bmygsp2waf3eeu@valkosipuli.retiisi.org.uk>
+References: <20180424130618.18211-1-colin.king@canonical.com> <20180426083731.72bmygsp2waf3eeu@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180415204737.GF20093@bigcity.dyn.berto.se>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Sakari,
 
-On Sun, Apr 15, 2018 at 10:47:37PM +0200, Niklas Söderlund wrote:
-> Hi Sakari,
-> 
-> Thanks for your feedback.
-> 
-> On 2018-04-04 23:13:57 +0300, Sakari Ailus wrote:
-> 
-> [snip]
-> 
-> > > > +	pm_runtime_enable(&pdev->dev);
-> > > 
-> > > Is CONFIG_PM mandatory on Renesas SoCs? If not, you end up with the
-> > > device uninitialised at probe, and pm_runtime_get_sync will not
-> > > initialise it either if CONFIG_PM is not enabled. I guess you could
-> > > call your runtime_resume function unconditionally, and mark the device
-> > > as active in runtime_pm using pm_runtime_set_active.
+On Thursday, 26 April 2018 11:37:31 EEST Sakari Ailus wrote:
+> On Tue, Apr 24, 2018 at 02:06:18PM +0100, Colin King wrote:
+> > From: Colin Ian King <colin.king@canonical.com>
 > > 
-> > There doesn't seem to be any runtime_resume function. Was there supposed
-> > to be one?
-> 
-> No there is not suppose to be one.
-
-Ok.
-
-> 
+> > The pointer user_cfg (a copy of new_conf) is dereference before
+> > new_conf is null checked, hence we may have a null pointer dereference
+> > on user_cfg when assigning buf_size from user_cfg->buf_size. Ensure
+> > this does not occur by moving the assignment of buf_size after the
+> > null check.
 > > 
-> > Assuming runtime PM would actually do something here, you might add
-> > pm_runtime_idle() to power the device off after probing.
+> > Detected by CoverityScan, CID#1468386 ("Dereference before null check")
 > > 
-> > I guess pm_runtime_set_active() should precede pm_runtime_enable().
+> > Fixes: 68e342b3068c ("[media] omap3isp: Statistics")
+> > Signed-off-by: Colin Ian King <colin.king@canonical.com>
 > 
-> The CSI-2 is in the always on power domain so the calls to 
-> pm_runtime_get_sync() and pm_runtime_put() are there in the s_stream() 
-> callback to enable and disable the module clock. I'm no expert on PM but 
-> in my testing the pm_ calls in this driver seems to be correct.
+> Thanks for the patch.
 > 
-> 1. In probe I call pm_runtime_enable(). And rudimentary tests shows the 
->    clock is off (but I might miss something) as I wish it to be until 
->    stream on time.
-> 2. In s_stream() I call pm_runtime_get_sync() before writing any 
->    register when starting a stream. And likewise I call pm_runtime_put() 
->    when stopping and I no longer need to write to a register.
-> 3. In remove() I call pm_runtime_disable().
-> 
-> Am I missing something obvious here?
+> Gustavo sent effectively the same patch a moment earlier, and that patch
+> got applied instead.
 
-Looking at the code again, it seems fine in this respect.
+Isn't there a guarantee that new_buf won't be NULL ? The new_buf pointer comes 
+from the parg variable in video_usercopy(), which should always point to a 
+valid buffer given that the ioctl number specifies a non-zero size.
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Regards,
+
+Laurent Pinchart
