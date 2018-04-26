@@ -1,207 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38694 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752669AbeDJMch (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:58524 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754277AbeDZLNB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 08:32:37 -0400
-Date: Tue, 10 Apr 2018 15:32:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
-Message-ID: <20180410123234.ifo6v23wztsslmdp@valkosipuli.retiisi.org.uk>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-5-hverkuil@xs4all.nl>
- <20180410073206.12d4c67d@vento.lan>
+        Thu, 26 Apr 2018 07:13:01 -0400
+Date: Thu, 26 Apr 2018 12:12:41 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        iommu@lists.linux-foundation.org,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Thierry Reding <treding@nvidia.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Subject: Re: noveau vs arm dma ops
+Message-ID: <20180426111240.GS16141@n2100.armlinux.org.uk>
+References: <20180425054855.GA17038@infradead.org>
+ <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
+ <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
+ <20180425064335.GB28100@infradead.org>
+ <20180425074151.GA2271@ulmo>
+ <20180425085439.GA29996@infradead.org>
+ <20180425100429.GR25142@phenom.ffwll.local>
+ <20180425153312.GD27076@infradead.org>
+ <CAKMK7uH14qupTYDa1pr8UC434Vs+97eUXj+fYi=+2uijCLayMA@mail.gmail.com>
+ <20180426090942.GA18811@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180410073206.12d4c67d@vento.lan>
+In-Reply-To: <20180426090942.GA18811@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro and Hans,
+(While there's a rain shower...)
 
-On Tue, Apr 10, 2018 at 07:32:06AM -0300, Mauro Carvalho Chehab wrote:
-...
-> > +static void media_request_release(struct kref *kref)
-> > +{
-> > +	struct media_request *req =
-> > +		container_of(kref, struct media_request, kref);
-> > +	struct media_device *mdev = req->mdev;
-> > +	unsigned long flags;
-> > +
-> > +	dev_dbg(mdev->dev, "request: release %s\n", req->debug_str);
-> > +
-> > +	spin_lock_irqsave(&req->lock, flags);
-> > +	req->state = MEDIA_REQUEST_STATE_CLEANING;
-> > +	spin_unlock_irqrestore(&req->lock, flags);
-> > +
-> > +	media_request_clean(req);
-> > +
-> > +	if (mdev->ops->req_free)
-> > +		mdev->ops->req_free(req);
-> > +	else
-> > +		kfree(req);
+On Thu, Apr 26, 2018 at 02:09:42AM -0700, Christoph Hellwig wrote:
+> synopsis:
 > 
-> Without looking at req_free() implementation, I would actually prefer
-> to always do a kfree(req) here. So, a req_free() function would only
-> free "extra" allocations, and not the request itself. e. g.:
-> 
-> ...
-> 	if (mdev->ops->req_free)
-> 		mdev->ops->req_free(req);
-> 
-> 	kfree(req);
-> }
+> drivers/gpu/drm/bridge/synopsys/dw-hdmi-i2s-audio.c:    pdevinfo.dma_mask       = DMA_BIT_MASK(32);
+> drivers/gpu/drm/bridge/synopsys/dw-hdmi.c:              pdevinfo.dma_mask = DMA_BIT_MASK(32);
 
-The idea is that you can embed the request object in a driver specific
-struct. The drivers can store information related to that request rather
-easily that way, without requiring to be aware of two objects with
-references pointing to each other. I rather prefer the current
-implementation. It same pattern is actually used on videobuf2 buffers.
+This is for the AHB audio driver, and is a correct default on two counts:
 
-...
+1. It is historically usual to initialise DMA masks to 32-bit, and leave
+   it to the device drivers to negotiate via the DMA mask functions if
+   they wish to use higher orders of bits.
 
-> > +static unsigned int media_request_poll(struct file *filp,
-> > +				       struct poll_table_struct *wait)
-> > +{
-> > +	struct media_request *req = filp->private_data;
-> > +	unsigned long flags;
-> > +	enum media_request_state state;
-> > +
-> > +	if (!(poll_requested_events(wait) & POLLPRI))
-> > +		return 0;
-> > +
-> > +	spin_lock_irqsave(&req->lock, flags);
-> > +	state = req->state;
-> > +	spin_unlock_irqrestore(&req->lock, flags);
-> 
-> IMO, it would be better to use an atomic var for state, having a
-> lockless access to it.
+2. The AHB audio hardware in the HDMI block only supports 32-bit addresses.
 
-The lock serialises access to the whole request, not just to its state.
-While it doesn't matter here as you're just reading the state, writing it
-would still require taking the lock. Using atomic_t might suggest
-otherwise, and could end up being a source of bugs.
+What I've missed from the AHB audio driver is calling the DMA mask
+functions... oops.  Patch below.
 
-> 
-> > +
-> > +	if (state == MEDIA_REQUEST_STATE_COMPLETE)
-> > +		return POLLPRI;
-> > +	if (state == MEDIA_REQUEST_STATE_IDLE)
-> > +		return POLLERR;
-> > +
-> > +	poll_wait(filp, &req->poll_wait, wait);
-> > +	return 0;
-> > +}
-> > +
-> > +static long media_request_ioctl(struct file *filp, unsigned int cmd,
-> > +				unsigned long __arg)
-> > +{
-> > +	return -ENOIOCTLCMD;
-> > +}
-> > +
-> > +static const struct file_operations request_fops = {
-> > +	.owner = THIS_MODULE,
-> > +	.poll = media_request_poll,
-> > +	.unlocked_ioctl = media_request_ioctl,
-> > +	.release = media_request_close,
-> > +};
-> > +
-> >  int media_request_alloc(struct media_device *mdev,
-> >  			struct media_request_alloc *alloc)
-> >  {
-> > -	return -ENOMEM;
-> > +	struct media_request *req;
-> > +	struct file *filp;
-> > +	char comm[TASK_COMM_LEN];
-> > +	int fd;
-> > +	int ret;
-> > +
-> > +	fd = get_unused_fd_flags(O_CLOEXEC);
-> > +	if (fd < 0)
-> > +		return fd;
-> > +
-> > +	filp = anon_inode_getfile("request", &request_fops, NULL, O_CLOEXEC);
-> > +	if (IS_ERR(filp)) {
-> > +		ret = PTR_ERR(filp);
-> > +		goto err_put_fd;
-> > +	}
-> > +
-> > +	if (mdev->ops->req_alloc)
-> > +		req = mdev->ops->req_alloc(mdev);
-> > +	else
-> > +		req = kzalloc(sizeof(*req), GFP_KERNEL);
-> > +	if (!req) {
-> > +		ret = -ENOMEM;
-> > +		goto err_fput;
-> > +	}
-> > +
-> > +	filp->private_data = req;
-> > +	req->mdev = mdev;
-> > +	req->state = MEDIA_REQUEST_STATE_IDLE;
-> > +	req->num_incomplete_objects = 0;
-> > +	kref_init(&req->kref);
-> > +	INIT_LIST_HEAD(&req->objects);
-> > +	spin_lock_init(&req->lock);
-> > +	init_waitqueue_head(&req->poll_wait);
-> > +
-> > +	alloc->fd = fd;
-> 
-> Btw, this is a very good reason why you should define the ioctl to
-> have an integer argument instead of a struct with a __s32 field
-> on it, as per my comment to patch 02/29:
-> 
-> 	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
-> 
-> At 64 bit architectures, you're truncating the file descriptor!
+> drivers/gpu/drm/bridge/synopsys/dw-hdmi.c:              pdevinfo.dma_mask = DMA_BIT_MASK(32);
 
-I'm not quite sure what do you mean. int is 32 bits on 64-bit systems as
-well.
+This is for the I2S audio driver, and I suspect is wrong - I doubt
+that the I2S sub-device itself does any DMA what so ever.
 
-We actually replaced int by __s32 or __u32 everywhere in uAPI (apart from
-one particular struct; time to send a patch) about five years ago.
+8<===
+From: Russell King <rmk+kernel@armlinux.org.uk>
+Subject: drm: bridge: dw-hdmi: Negotiate dma mask with DMA API
 
-> 
-> > +	get_task_comm(comm, current);
-> > +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
-> > +		 comm, fd);
-> 
-> Not sure if it is a good idea to store the task that allocated
-> the request. While it makes sense for the dev_dbg() below, it
-> may not make sense anymore on other dev_dbg() you would be
-> using it.
+DMA drivers are supposed to negotiate the DMA mask with the DMA API,
+but this was missing from the AHB audio driver.  Add the necessary
+call.
 
-The lifetime of the file handle roughly matches that of the request. It's
-for debug only anyway.
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+---
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi-ahb-audio.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Better proposals are always welcome of course. But I think we should have
-something here that helps debugging by meaningfully making the requests
-identifiable from logs.
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-ahb-audio.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-ahb-audio.c
+index cf3f0caf9c63..16c45b6cd6af 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-ahb-audio.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-ahb-audio.c
+@@ -539,6 +539,10 @@ static int snd_dw_hdmi_probe(struct platform_device *pdev)
+ 	unsigned revision;
+ 	int ret;
+ 
++	ret = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32));
++	if (ret)
++		return ret;
++
+ 	writeb_relaxed(HDMI_IH_MUTE_AHBDMAAUD_STAT0_ALL,
+ 		       data->base + HDMI_IH_MUTE_AHBDMAAUD_STAT0);
+ 	revision = readb_relaxed(data->base + HDMI_REVISION_ID);
 
-...
-
-> > +#ifdef CONFIG_MEDIA_CONTROLLER
-> > +static inline void media_request_object_get(struct media_request_object *obj)
-> > +{
-> > +	kref_get(&obj->kref);
-> > +}
-> 
-> Why do you need a function? Just use kref_get() were needed, instead of
-> aliasing it for no good reason.
-
-We have similar functions for get and put in many places in the kernel. If
-this were a static function only used in a single .c file, I'd most likely
-agree. Here it avoids having to know the internals of request objects
-elsewhere.
-
-I wonder if this could be moved to the .c file actually; I haven't looked
-at the other patches.
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
