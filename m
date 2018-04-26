@@ -1,60 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:33034 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752991AbeDZXJL (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:34491 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932150AbeDZPUI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 19:09:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Rob Herring <robh+dt@kernel.org>,
+        Thu, 26 Apr 2018 11:20:08 -0400
+Received: by mail-lf0-f65.google.com with SMTP id h4-v6so4544054lfc.1
+        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 08:20:07 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Thu, 26 Apr 2018 17:20:05 +0200
+To: Simon Horman <horms@verge.net.au>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] rcar-vin: remove generic gen3 compatible string
-Date: Fri, 27 Apr 2018 02:09:24 +0300
-Message-ID: <2062313.TSG5ePb3Hm@avalon>
-In-Reply-To: <20180424234321.22367-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180424234321.22367-1-niklas.soderlund+renesas@ragnatech.se>
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] rcar-vin: fix null pointer dereference in
+ rvin_group_get()
+Message-ID: <20180426152005.GE3315@bigcity.dyn.berto.se>
+References: <20180424234506.22630-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180425071851.tcytzfkpofsbkxgm@verge.net.au>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180425071851.tcytzfkpofsbkxgm@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Simon,
 
-Thank you for the patch.
+Thanks for your feedback.
 
-On Wednesday, 25 April 2018 02:43:21 EEST Niklas S=F6derlund wrote:
-> The compatible string "renesas,rcar-gen3-vin" was added before the
-> Gen3 driver code was added but it's not possible to use. Each SoC in the
-> Gen3 series require SoC specific knowledge in the driver to function.
-> Remove it before it is added to any device tree descriptions.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+On 2018-04-25 09:18:51 +0200, Simon Horman wrote:
+> On Wed, Apr 25, 2018 at 01:45:06AM +0200, Niklas Söderlund wrote:
+> > Store the group pointer before disassociating the VIN from the group.
+> > 
+> > Fixes: 3bb4c3bc85bf77a7 ("media: rcar-vin: add group allocator functions")
+> > Reported-by: Colin Ian King <colin.king@canonical.com>
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  drivers/media/platform/rcar-vin/rcar-core.c | 12 +++++++-----
+> >  1 file changed, 7 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> > index 7bc2774a11232362..d3072e166a1ca24f 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> > @@ -338,19 +338,21 @@ static int rvin_group_get(struct rvin_dev *vin)
+> >  
+> >  static void rvin_group_put(struct rvin_dev *vin)
+> >  {
+> > -	mutex_lock(&vin->group->lock);
+> > +	struct rvin_group *group = vin->group;
+> > +
+> > +	mutex_lock(&group->lock);
+> 
+> Hi Niklas, its not clear to me why moving the lock is safe.
+> Could you explain the locking scheme a little?
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The lock here protects the members of the group struct and not any of 
+the members of the vin struct. The intent of the rvin_group_put() 
+function is:
 
-> ---
->  Documentation/devicetree/bindings/media/rcar_vin.txt | 1 -
->  1 file changed, 1 deletion(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> b/Documentation/devicetree/bindings/media/rcar_vin.txt index
-> ba31431d4b1fbdbb..a19517e1c669eb35 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -24,7 +24,6 @@ on Gen3 platforms to a CSI-2 receiver.
->     - "renesas,vin-r8a77970" for the R8A77970 device
->     - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
->       device.
-> -   - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
->=20
->     When compatible with the generic version nodes must list the
->     SoC-specific version corresponding to the platform first
+1. Disassociate the vin struct from the group struct. This is done by 
+   removing the pointer to the vin from the group->vin array and 
+   removing the pointer from vin->group to the group struct. Here the 
+   lock is needed to protect access to the group->vin array.
 
+2. Decrease the refcount of the struct group and if we are the last one 
+   out release the group.
 
-=2D-=20
+The problem with the original code is that I first disassociate group 
+from the vin 'vin->group = NULL' but still use the pointer stored in the 
+vin struct when I try to disassociate the vin from the group 
+'vin->group->vin[vin->id]'.
+
+AFIK can tell the locking here is fine, the problem was that I pulled 
+the rug from under my own feet in how I access the lock in order to not 
+having to declare a variable to store the pointer in ;-)
+
+Do this explanation help put you at ease?
+
+> 
+> >  
+> >  	vin->group = NULL;
+> >  	vin->v4l2_dev.mdev = NULL;
+> >  
+> > -	if (WARN_ON(vin->group->vin[vin->id] != vin))
+> > +	if (WARN_ON(group->vin[vin->id] != vin))
+> >  		goto out;
+> >  
+> > -	vin->group->vin[vin->id] = NULL;
+> > +	group->vin[vin->id] = NULL;
+> >  out:
+> > -	mutex_unlock(&vin->group->lock);
+> > +	mutex_unlock(&group->lock);
+> >  
+> > -	kref_put(&vin->group->refcount, rvin_group_release);
+> > +	kref_put(&group->refcount, rvin_group_release);
+> >  }
+> >  
+> >  /* -----------------------------------------------------------------------------
+> > -- 
+> > 2.17.0
+> > 
+
+-- 
 Regards,
-
-Laurent Pinchart
+Niklas Söderlund
