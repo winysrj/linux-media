@@ -1,60 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58284 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750726AbeDEU7X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 16:59:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH v2 17/19] media: omap4iss: make it build with COMPILE_TEST
-Date: Thu, 05 Apr 2018 23:59:21 +0300
-Message-ID: <2089683.SxzjDIYJiK@avalon>
-In-Reply-To: <f6b45300aebbfc67100b000a91cbe80056bef306.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com> <f6b45300aebbfc67100b000a91cbe80056bef306.1522959716.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mslow2.mail.gandi.net ([217.70.178.242]:53446 "EHLO
+        slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751647AbeDZTFQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Apr 2018 15:05:16 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: geert@linux-m68k.org, horms@verge.net.au, robh+dt@kernel.org,
+        mark.rutland@arm.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 2/2] ARM: dts: r8a7740: Add CEU0
+Date: Thu, 26 Apr 2018 20:24:43 +0200
+Message-Id: <1524767083-19862-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1524767083-19862-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1524767083-19862-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Describe CEU0 peripheral for Renesas R-Mobile A1 R8A7740 Soc.
 
-Thank you for the patch.
+Reported-by: Geert Uytterhoeven <geert@glider.be>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ arch/arm/boot/dts/r8a7740.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-On Thursday, 5 April 2018 23:29:44 EEST Mauro Carvalho Chehab wrote:
-> This driver compile as-is with COMPILE_TEST.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I don't have patches pending for the omap4iss driver, could you merge this 
-patch as part of the whole series ?
-
-> ---
->  drivers/staging/media/omap4iss/Kconfig | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/omap4iss/Kconfig
-> b/drivers/staging/media/omap4iss/Kconfig index 46183464ee79..192ba0829128
-> 100644
-> --- a/drivers/staging/media/omap4iss/Kconfig
-> +++ b/drivers/staging/media/omap4iss/Kconfig
-> @@ -1,6 +1,7 @@
->  config VIDEO_OMAP4
->  	tristate "OMAP 4 Camera support"
-> -	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
-> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C
-> +	depends on ARCH_OMAP4 || COMPILE_TEST
->  	depends on HAS_DMA
->  	select MFD_SYSCON
->  	select VIDEOBUF2_DMA_CONTIG
-
-
+diff --git a/arch/arm/boot/dts/r8a7740.dtsi b/arch/arm/boot/dts/r8a7740.dtsi
+index afd3bc5..508d934 100644
+--- a/arch/arm/boot/dts/r8a7740.dtsi
++++ b/arch/arm/boot/dts/r8a7740.dtsi
+@@ -67,6 +67,16 @@
+ 		power-domains = <&pd_d4>;
+ 	};
+ 
++	ceu0: ceu@fe910000 {
++		reg = <0xfe910000 0x3000>;
++		compatible = "renesas,r8a7740-ceu";
++		interrupts = <GIC_SPI 160 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&mstp1_clks R8A7740_CLK_CEU20>;
++		clock-names = "ceu20";
++		power-domains = <&pd_a4r>;
++		status = "disabled";
++	};
++
+ 	cmt1: timer@e6138000 {
+ 		compatible = "renesas,cmt-48-r8a7740", "renesas,cmt-48";
+ 		reg = <0xe6138000 0x170>;
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
