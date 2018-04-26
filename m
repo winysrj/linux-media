@@ -1,61 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f195.google.com ([74.125.82.195]:37840 "EHLO
-        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751179AbeDENzU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 09:55:20 -0400
-Received: by mail-ot0-f195.google.com with SMTP id y46-v6so27277327otd.4
-        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 06:55:20 -0700 (PDT)
+Received: from mout.gmx.net ([212.227.15.18]:57575 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753677AbeDZJ2q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Apr 2018 05:28:46 -0400
+Date: Thu, 26 Apr 2018 11:28:42 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v7 1/2] uvcvideo: send a control event when a Control
+ Change interrupt arrives
+In-Reply-To: <alpine.DEB.2.20.1804100848040.29394@axis700.grange>
+Message-ID: <alpine.DEB.2.20.1804261124480.13154@axis700.grange>
+References: <20180323092401.12162-1-laurent.pinchart@ideasonboard.com> <20180323092401.12162-2-laurent.pinchart@ideasonboard.com> <2079648.niC1Apbgeu@avalon> <alpine.DEB.2.20.1804100848040.29394@axis700.grange>
 MIME-Version: 1.0
-From: "Mr.Sawadogo Ahmed" <desmursalima@gmail.com>
-Date: Thu, 5 Apr 2018 13:55:19 +0000
-Message-ID: <CA+-0UagZjonSJDbX7qF+xj8HqHjmEqm28izNy2S7iAjAugtS8A@mail.gmail.com>
-Subject: Dear Good Friend
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear friend,
+Hi Laurent,
 
+On Tue, 10 Apr 2018, Guennadi Liakhovetski wrote:
 
-I am using this opportunity to inform you that this
-multi-million-dollar business has been concluded with the assistance
-of another partner from China who financed the transaction to a
-logical conclusion.
+[snip]
 
-I thank you for your great effort to our unfinished transfer of fund
-into your account due to one reason or the other best known to you.
-But I want to inform you that I have successfully transferred the fund
-out of my bank to my new partner's account in china that was capable
-of assisting me in this great venture and I have sent several massages
-to you concerning this issue.
+> > > @@ -1488,6 +1591,25 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+> > >  		return -EINVAL;
+> > >  	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
+> > >  		return -EACCES;
+> > > +	if (ctrl->info.flags & UVC_CTRL_FLAG_ASYNCHRONOUS) {
+> > > +		if (ctrl->handle)
+> > > +			/*
+> > > +			 * We have already sent this control to the camera
+> > > +			 * recently and are currently waiting for a completion
+> > > +			 * notification. The camera might already have completed
+> > > +			 * its processing and is ready to accept a new control
+> > > +			 * or it's still busy processing. If we send a new
+> > > +			 * instance of this control now, in the former case the
+> > > +			 * camera will process this one too and we'll get
+> > > +			 * completions for both, but we will only deliver an
+> > > +			 * event for one of them back to the user. In the latter
+> > > +			 * case the camera will reply with a STALL. It's easier
+> > > +			 * and more reliable to return an error now and let the
+> > > +			 * user retry.
+> > > +			 */
+> > > +			return -EBUSY;
+> > > +		ctrl->handle = handle;
+> > 
+> > This part worries me. If the control change event isn't received for any 
+> > reason (such as a buggy device for instance, or uvc_ctrl_status_event() being 
+> > called with the previous event not processed yet), the control will stay busy 
+> > forever.
+> > 
+> > I see two approaches to fix this. One would be to forward all received control 
+> > change events to all file handles unconditionally and remove the handle field 
+> > from the uvc_control structure.
+> 
+> How is this a solution? A case of senging a repeated control to the camera 
+> and causing a STALL would still be possible. If you prefer STALLs, you 
+> could just remove this check here.
+> 
+> > Another one would be to add a timeout, storing 
+> > the time at which the control has been set in the uvc_control structure, and 
+> > checking whether the time difference exceeds a fixed timeout here. We could 
+> > also combine the two, replacing the handle field with a timestamp field.
+> 
+> Don't think you can remove the handle field, there are a couple of things, 
+> that need it, also you'll have to send events to all listeners, including 
+> the thread, that has sent the control, which contradicts the API? Assuming 
+> it hasn't set the V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK flag.
+> 
+> I can add a timeout, even though that doesn't seem to be very clean to me. 
+> According to the UVC standard some controls can take a while to complete, 
+> possibly seconds. How long would you propose that timeout to be?
 
-Due to your effort, sincerity, courage and trust worthiness you showed
-during the transaction. I want to compensate you and show my gratitude
-to you with the sum of $950,000.00, But I have not heard from you ever
-since and I hope you will reply this last notice. This is to notify
-you that I have deposited the sum of $950,000.00, for your
-compensation with agent of western union to be transfer or send to
-you.
+How about just not checking when setting control and letting the camera 
+decide? That's what the STALL mechanism is there for. The only advantage 
+of using this is to provide a short-cut when we're "sure," that the 
+hardware isn't ready to take a new request yet, but if implementing such a 
+shortcut becomes too cumbersome, we can give control back to the hardware.
 
-You were meant to be receiving $10,000.00USD daily until it completes
-the correct amount of $950,000.00USD for better understanding of what
-I mean, you can visit any western union transfer agent nearest to you
-and confirm the following information.
-
-(1) Sender's Name: Vick Omo
-MTCN ; 468 851 1169
-Amount: ----- USD $5,000
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-They told me that they will be sending the sum of $10,000.00 to you
-everyday until the total sum is completed ($950,000.00).
-
-Once, you pick it you should try to let them know so that they can
-send you another payment.
-
-Contact the western union agent Burkina Faso office below on; Name; Mr. Vick Omo
-(Foreign Operation Manager) Email: (westerunionagentmoneytransfer@bk.ru)
-
-Thanks,
-Mr.Ahmed Sawadogo
+Thanks
+Guennadi
