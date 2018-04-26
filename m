@@ -1,129 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:50572 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754518AbeDWJ12 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:39254 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752419AbeDZIxF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 05:27:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: architt@codeaurora.org, a.hajda@samsung.com, airlied@linux.ie,
-        daniel@ffwll.ch, peda@axentia.se,
+        Thu, 26 Apr 2018 04:53:05 -0400
+Date: Thu, 26 Apr 2018 10:53:00 +0200
+From: Simon Horman <horms@verge.net.au>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, geert@linux-m68k.org,
+        robh+dt@kernel.org, mark.rutland@arm.com,
         linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/8] drm: bridge: Add support for static image formats
-Date: Mon, 23 Apr 2018 12:27:39 +0300
-Message-ID: <3108314.q4SV6s3NXE@avalon>
-In-Reply-To: <1524130269-32688-2-git-send-email-jacopo+renesas@jmondi.org>
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org> <1524130269-32688-2-git-send-email-jacopo+renesas@jmondi.org>
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] ARM: dts: r8a7740: Enable CEU0
+Message-ID: <20180426085259.lqxr4emk75oz7vug@verge.net.au>
+References: <1524654920-18749-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1524654920-18749-3-git-send-email-jacopo+renesas@jmondi.org>
+ <20180426061124.hvgl3ijf6ulrdkmn@verge.net.au>
+ <20180426072609.GH17088@w540>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180426072609.GH17088@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
-
-Thank you for the patch.
-
-On Thursday, 19 April 2018 12:31:02 EEST Jacopo Mondi wrote:
-> Add support for storing image format information in DRM bridges with
-> associated helper function.
+On Thu, Apr 26, 2018 at 09:26:09AM +0200, jacopo mondi wrote:
+> Hi Simon,
 > 
-> This patch replicates for bridges what 'drm_display_info_set_bus_formats()'
-> is for connectors.
+> On Thu, Apr 26, 2018 at 08:11:30AM +0200, Simon Horman wrote:
+> > Thanks Jacopo,
+> >
+> > I'm very pleased to see this series.
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/gpu/drm/drm_bridge.c | 30 ++++++++++++++++++++++++++++++
->  include/drm/drm_bridge.h     |  8 ++++++++
->  2 files changed, 38 insertions(+)
+> Credits to Geert that pointed out to me R-Mobile A1 comes with a CEU.
+> I should mention him in next iteration actually, sorry about that.
 > 
-> diff --git a/drivers/gpu/drm/drm_bridge.c b/drivers/gpu/drm/drm_bridge.c
-> index 1638bfe..e2ad098 100644
-> --- a/drivers/gpu/drm/drm_bridge.c
-> +++ b/drivers/gpu/drm/drm_bridge.c
-> @@ -157,6 +157,36 @@ void drm_bridge_detach(struct drm_bridge *bridge)
->  }
+> >
+> > On Wed, Apr 25, 2018 at 01:15:20PM +0200, Jacopo Mondi wrote:
+> > > Enable CEU0 peripheral for Renesas R-Mobile A1 R8A7740.
+> >
+> > Given 'status = "disabled"' below I think you
+> > are describing but not enabling CEU0. Also in the subject.
 > 
->  /**
-> + * drm_bridge_set_bus_formats() - set bridge supported image formats
-> + * @bridge: the bridge to set image formats in
-> + * @formats: array of MEDIA_BUS_FMT\_ supported image formats
-
-Why the \ (here and below) ?
-
-> + * @num_formats: number of elements in the @formats array
-> + *
-> + * Store a list of supported image formats in a bridge.
-> + * See MEDIA_BUS_FMT_* definitions in include/uapi/linux/media-bus-format.h
-> for
-> + * a full list of available formats.
-> + */
-> +int drm_bridge_set_bus_formats(struct drm_bridge *bridge, const u32
-> *formats,
-> +			       unsigned int num_formats)
-> +{
-> +	u32 *fmts;
-> +
-> +	if (!formats || !num_formats)
-> +		return -EINVAL;
-> +
-> +	fmts = kmemdup(formats, sizeof(*formats) * num_formats, GFP_KERNEL);
-
-This memory will be leaked when the bridge is destroyed.
-
-> +	if (!fmts)
-> +		return -ENOMEM;
-> +
-> +	kfree(bridge->bus_formats);
-> +	bridge->bus_formats = fmts;
-> +	bridge->num_bus_formats = num_formats;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(drm_bridge_set_bus_formats);
-> +
-> +/**
->   * DOC: bridge callbacks
->   *
->   * The &drm_bridge_funcs ops are populated by the bridge driver. The DRM
-> diff --git a/include/drm/drm_bridge.h b/include/drm/drm_bridge.h
-> index 3270fec..6b3648c 100644
-> --- a/include/drm/drm_bridge.h
-> +++ b/include/drm/drm_bridge.h
-> @@ -258,6 +258,9 @@ struct drm_bridge_timings {
->   * @encoder: encoder to which this bridge is connected
->   * @next: the next bridge in the encoder chain
->   * @of_node: device node pointer to the bridge
-> + * @bus_formats: wire image formats. Array of @num_bus_formats
-> MEDIA_BUS_FMT\_
-> + * elements
-> + * @num_bus_formats: size of @bus_formats array
->   * @list: to keep track of all added bridges
->   * @timings: the timing specification for the bridge, if any (may
->   * be NULL)
-> @@ -271,6 +274,9 @@ struct drm_bridge {
->  #ifdef CONFIG_OF
->  	struct device_node *of_node;
->  #endif
-> +	const u32 *bus_formats;
-> +	unsigned int num_bus_formats;
-> +
->  	struct list_head list;
->  	const struct drm_bridge_timings *timings;
+> Right.
 > 
-> @@ -296,6 +302,8 @@ void drm_bridge_mode_set(struct drm_bridge *bridge,
->  			struct drm_display_mode *adjusted_mode);
->  void drm_bridge_pre_enable(struct drm_bridge *bridge);
->  void drm_bridge_enable(struct drm_bridge *bridge);
-> +int drm_bridge_set_bus_formats(struct drm_bridge *bridge, const u32 *fmts,
-> +			       unsigned int num_fmts);
+> >
+> > Should we also describe CEU1?
 > 
->  #ifdef CONFIG_DRM_PANEL_BRIDGE
->  struct drm_bridge *drm_panel_bridge_add(struct drm_panel *panel,
+> Armadillo board file only describe CEU0. If there are R-Mobile A1
+> board files where I can steal informations from I can do that. If
+> there's a public datasheet, that would be even better.
 
--- 
-Regards,
+I have the datasheet, so perhaps I can add CEU1 after you have added CEU0.
 
-Laurent Pinchart
+> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > > ---
+> > >  arch/arm/boot/dts/r8a7740.dtsi | 10 ++++++++++
+> > >  1 file changed, 10 insertions(+)
+> > >
+> > > diff --git a/arch/arm/boot/dts/r8a7740.dtsi b/arch/arm/boot/dts/r8a7740.dtsi
+> > > index afd3bc5..05ec41e 100644
+> > > --- a/arch/arm/boot/dts/r8a7740.dtsi
+> > > +++ b/arch/arm/boot/dts/r8a7740.dtsi
+> > > @@ -67,6 +67,16 @@
+> > >  		power-domains = <&pd_d4>;
+> > >  	};
+> > >
+> > > +	ceu0: ceu@fe910000 {
+> > > +		reg = <0xfe910000 0x100>;
+> >
+> > Should the size of the range be 0x3000 ?
+> > That would seem to match my reading of table 32.3
+> > and also be consistent with r7s72100.dtsi.
+> 
+> I got this from
+> 
+> static struct resource ceu0_resources[] = {
+> 	[0] = {
+> 		.name	= "CEU",
+> 		.start	= 0xfe910000,
+> 		.end	= 0xfe91009f,
+> 		.flags	= IORESOURCE_MEM,
+> 	},
+> but I also noticed the r7s72100 one was bigger.
+> I'm fine enlarging this, if that's what the manual reports too.
+
+I think that would be best.
+
+> > > +		compatible = "renesas,r8a7740-ceu";
+> > > +		interrupts = <GIC_SPI 160 IRQ_TYPE_LEVEL_HIGH>;
+> > > +		clocks = <&mstp1_clks R8A7740_CLK_CEU20>;
+> > > +		clock-names = "ceu20";
+> > > +		power-domains = <&pd_a4mp>;
+> >
+> > My reading of table 1.7 is that the power domain should be A4R (&pd_a4r).
+> 
+> Ah yes, my bad.
+> 
+> The long time goal would be describe the camera module (mt9t112) which
+> is installed on armadillo. Unfortunately that would probably require
+> some more work on the CEU side.
+
+Thanks, understood.
