@@ -1,77 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f68.google.com ([209.85.213.68]:33183 "EHLO
-        mail-vk0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756905AbeDXJvJ (ORCPT
+Received: from mail-wr0-f169.google.com ([209.85.128.169]:33710 "EHLO
+        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753670AbeDZHE2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 05:51:09 -0400
+        Thu, 26 Apr 2018 03:04:28 -0400
+Received: by mail-wr0-f169.google.com with SMTP id o4-v6so5297856wrm.0
+        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 00:04:27 -0700 (PDT)
+Subject: Re: [PATCH v4 2/2] media: Add a driver for the ov7251 camera sensor
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: mchehab@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1524673246-14175-1-git-send-email-todor.tomov@linaro.org>
+ <1524673246-14175-3-git-send-email-todor.tomov@linaro.org>
+ <20180426065010.a67iqsaicpgu7m5b@valkosipuli.retiisi.org.uk>
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <c065854a-084d-8bc8-a76e-2988be8c3788@linaro.org>
+Date: Thu, 26 Apr 2018 10:04:25 +0300
 MIME-Version: 1.0
-In-Reply-To: <1524230914-10175-8-git-send-email-geert+renesas@glider.be>
-References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be> <1524230914-10175-8-git-send-email-geert+renesas@glider.be>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 24 Apr 2018 11:51:07 +0200
-Message-ID: <CAMuHMdXyEGY71v6EFDjBhFva_VRtO4p2BdG=HC5zfrwBXLXK0g@mail.gmail.com>
-Subject: Re: [PATCH/RFC 7/8] ARM: shmobile: Remove the ARCH_SHMOBILE Kconfig symbol
-To: Simon Horman <horms@verge.net.au>,
-        Magnus Damm <magnus.damm@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20180426065010.a67iqsaicpgu7m5b@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Reducing/enhancing CC list)
+Hi Sakari,
 
-On Fri, Apr 20, 2018 at 3:28 PM, Geert Uytterhoeven
-<geert+renesas@glider.be> wrote:
-> All drivers for Renesas ARM SoCs have gained proper ARCH_RENESAS
-> platform dependencies.  Hence finish the conversion from ARCH_SHMOBILE
-> to ARCH_RENESAS for Renesas 32-bit ARM SoCs, as started by commit
-> 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS").
->
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> ---
-> This depends on the previous patches in this series, hence the RFC.
->
-> JFTR, after this, the following symbols for drivers supporting only
-> Renesas SuperH "SH-Mobile" SoCs can no longer be selected:
->   - CONFIG_KEYBOARD_SH_KEYSC,
->   - CONFIG_VIDEO_SH_VOU,
->   - CONFIG_VIDEO_SH_MOBILE_CEU,
->   - CONFIG_DRM_SHMOBILE[*],
->   - CONFIG_FB_SH_MOBILE_MERAM.
-> (changes for a shmobile_defconfig .config)
+On 26.04.2018 09:50, Sakari Ailus wrote:
+> Hi Todor,
+> 
+> On Wed, Apr 25, 2018 at 07:20:46PM +0300, Todor Tomov wrote:
+> ...
+>> +static int ov7251_write_reg(struct ov7251 *ov7251, u16 reg, u8 val)
+>> +{
+>> +	u8 regbuf[3];
+>> +	int ret;
+>> +
+>> +	regbuf[0] = reg >> 8;
+>> +	regbuf[1] = reg & 0xff;
+>> +	regbuf[2] = val;
+>> +
+>> +	ret = i2c_master_send(ov7251->i2c_client, regbuf, 3);
+>> +	if (ret < 0) {
+>> +		dev_err(ov7251->dev, "%s: write reg error %d: reg=%x, val=%x\n",
+>> +			__func__, ret, reg, val);
+>> +		return ret;
+>> +	}
+>> +
+>> +	return 0;
+> 
+> How about:
+> 
+> 	return ov7251_write_seq_regs(ov7251, reg, &val, 1);
+> 
+> And put the function below ov2751_write_seq_regs().
 
-Apparently CONFIG_VIDEO_SH_MOBILE_CEU was set in the old
-armadillo800eva_defconfig, and used by the old board code.
+I'm not sure... It will calculate message length each time and then check
+that it is not greater than 5, which it is. Seems redundant.
 
-While DT bindings do exist [1], some DT support has been added to the
-driver [2], and this even ended up as the example in [3], this was never
-enabled in the corresponding board DTS.
+> 
+>> +}
+>> +
+>> +static int ov7251_write_seq_regs(struct ov7251 *ov7251, u16 reg, u8 *val,
+>> +				 u8 num)
+>> +{
+>> +	const u8 maxregbuf = 5;
+>> +	u8 regbuf[maxregbuf];
+>> +	u8 nregbuf = sizeof(reg) + num * sizeof(*val);
+>> +	int ret = 0;
+>> +
+>> +	if (nregbuf > maxregbuf)
+>> +		return -EINVAL;
+>> +
+>> +	regbuf[0] = reg >> 8;
+>> +	regbuf[1] = reg & 0xff;
+>> +
+>> +	memcpy(regbuf + 2, val, num);
+>> +
+>> +	ret = i2c_master_send(ov7251->i2c_client, regbuf, nregbuf);
+>> +	if (ret < 0) {
+>> +		dev_err(ov7251->dev, "%s: write seq regs error %d: first reg=%x\n",
+> 
+> This line is over 80... 
 
-Nevertheless, I understand that soc_camera-based driver is obsolete, and
-has been replaced by [4], but bindings for r8a7740 are lacking [5].
+Yes indeed. Somehow checkpatch does not report this line, I don't know why.
 
-[1] Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
-[2] drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-[3] Documentation/devicetree/bindings/media/video-interfaces.txt
-[4] drivers/media/platform/renesas-ceu.c
-[5] Documentation/devicetree/bindings/media/renesas,ceu.txt
+> 
+> If you're happy with these, I can make the changes, too; they're trivial.
 
-Gr{oetje,eeting}s,
+Only the second one? Thanks :)
 
-                        Geert
+> 
+>> +			__func__, ret, reg);
+>> +		return ret;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+> 
 
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Best regards,
+Todor Tomov
