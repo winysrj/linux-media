@@ -1,157 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f171.google.com ([209.85.220.171]:38628 "EHLO
-        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752915AbeDPHyz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49542 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755468AbeDZMEg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 03:54:55 -0400
-Received: by mail-qk0-f171.google.com with SMTP id b39so10445767qkb.5
-        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 00:54:54 -0700 (PDT)
+        Thu, 26 Apr 2018 08:04:36 -0400
+Date: Thu, 26 Apr 2018 15:04:34 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4 2/2] media: Add a driver for the ov7251 camera sensor
+Message-ID: <20180426120434.2k6kkwpchm5pnksz@valkosipuli.retiisi.org.uk>
+References: <1524673246-14175-1-git-send-email-todor.tomov@linaro.org>
+ <1524673246-14175-3-git-send-email-todor.tomov@linaro.org>
+ <20180426065010.a67iqsaicpgu7m5b@valkosipuli.retiisi.org.uk>
+ <c065854a-084d-8bc8-a76e-2988be8c3788@linaro.org>
+ <20180426071656.wuq5f7prg6kig6oy@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1523629085.3396.10.camel@pengutronix.de>
-References: <CAPQseg2t1-LgmeuQBW2YXSwN26WKcJWakN2KCLfCjKZ_wJeWGw@mail.gmail.com>
- <1523629085.3396.10.camel@pengutronix.de>
-From: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>
-Date: Mon, 16 Apr 2018 09:54:53 +0200
-Message-ID: <CAPQseg29hJ+vdWxU3RkXtaeJki9209OjqvGOQQ-U45Z_vvjnnw@mail.gmail.com>
-Subject: Re: imx-media: MT9P031 Capture issues on IMX6
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180426071656.wuq5f7prg6kig6oy@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+On Thu, Apr 26, 2018 at 10:16:56AM +0300, Sakari Ailus wrote:
+> On Thu, Apr 26, 2018 at 10:04:25AM +0300, Todor Tomov wrote:
+> > Hi Sakari,
+> > 
+> > On 26.04.2018 09:50, Sakari Ailus wrote:
+> > > Hi Todor,
+> > > 
+> > > On Wed, Apr 25, 2018 at 07:20:46PM +0300, Todor Tomov wrote:
+> > > ...
+> > >> +static int ov7251_write_reg(struct ov7251 *ov7251, u16 reg, u8 val)
+> > >> +{
+> > >> +	u8 regbuf[3];
+> > >> +	int ret;
+> > >> +
+> > >> +	regbuf[0] = reg >> 8;
+> > >> +	regbuf[1] = reg & 0xff;
+> > >> +	regbuf[2] = val;
+> > >> +
+> > >> +	ret = i2c_master_send(ov7251->i2c_client, regbuf, 3);
+> > >> +	if (ret < 0) {
+> > >> +		dev_err(ov7251->dev, "%s: write reg error %d: reg=%x, val=%x\n",
+> > >> +			__func__, ret, reg, val);
+> > >> +		return ret;
+> > >> +	}
+> > >> +
+> > >> +	return 0;
+> > > 
+> > > How about:
+> > > 
+> > > 	return ov7251_write_seq_regs(ov7251, reg, &val, 1);
+> > > 
+> > > And put the function below ov2751_write_seq_regs().
+> > 
+> > I'm not sure... It will calculate message length each time and then check
+> > that it is not greater than 5, which it is. Seems redundant.
+> > 
+> > > 
+> > >> +}
+> > >> +
+> > >> +static int ov7251_write_seq_regs(struct ov7251 *ov7251, u16 reg, u8 *val,
+> > >> +				 u8 num)
+> > >> +{
+> > >> +	const u8 maxregbuf = 5;
+> > >> +	u8 regbuf[maxregbuf];
 
-Thanks a lot for your response.
+Apparently this leads to bad positive sparse warning. I'd fix it by:
 
-On Fri, Apr 13, 2018 at 4:18 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Hi Ibtsam,
->
-> On Thu, 2018-04-12 at 16:00 +0200, Ibtsam Ul-Haq wrote:
->> Greetings everyone,
->> I am using Linux 4.14.31 on an IMX6 platform, with an MT9P031 sensor
->> attached to the ipu1_csi0 (parallel).
->> My Gstreamer version is 1.14.0 and v4l-utils version is 1.14.2.
->> The problem is that I am unable to set up a capture pipeline.
->>
->> Even the simplest capture pipeline such as:
->>
->> gst-launch-1.0 v4l2src device=/dev/video4 ! fakesink
->>
->> returns the following error:
->> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
->> Internal data stream error.
->> Additional debug info:
->> ../../../../gstreamer-1.14.0/libs/gst/base/gstbasesrc.c(3055):
->> gst_base_src_loop (): /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
->> streaming stopped, reason not-negotiated (-4)
->> ERROR: pipeline doesn't want to preroll.
->>
->> I get the same error on any pipeline involving v4l2src.
->>
->> I have set up the media entity links using:
->> media-ctl -l "'mt9p031 0-0048':0 -> 'ipu1_csi0_mux':1[1]"
->> media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
->> media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
->>
->> And I configure the pads using:
->> media-ctl -V "'mt9p031 0-0048':0 [fmt:SGRBG8/640x480 field:none]"
->> media-ctl -V "'ipu1_csi0_mux':2 [fmt:SGRBG8/640x480 field:none]"
->> media-ctl -V "'ipu1_csi0':2 [fmt:SGRBG8/640x480 field:none]"
->
-> What is the actual format that all pads are configured to? I found it
-> helpful to double check the whole pipeline after configuring pads (or
-> use media-ctl -v):
->
-> media-ctl --get-v4l2 "'mt9p031 0-0048':0"
-> media-ctl --get-v4l2 "'ipu1_csi0_mux':1"
-> media-ctl --get-v4l2 "'ipu1_csi0_mux':2"
-> media-ctl --get-v4l2 "'ipu1_csi0':0"
-> media-ctl --get-v4l2 "'ipu1_csi0':2"
->
+diff --git a/drivers/media/i2c/ov7251.c b/drivers/media/i2c/ov7251.c
+index 3e2c0c03dfa9..d3ebb7529fca 100644
+--- a/drivers/media/i2c/ov7251.c
++++ b/drivers/media/i2c/ov7251.c
+@@ -643,12 +643,11 @@ static int ov7251_write_reg(struct ov7251 *ov7251, u16 reg, u8 val)
+ static int ov7251_write_seq_regs(struct ov7251 *ov7251, u16 reg, u8 *val,
+                                 u8 num)
+ {
+-       const u8 maxregbuf = 5;
+-       u8 regbuf[maxregbuf];
++       u8 regbuf[5];
+        u8 nregbuf = sizeof(reg) + num * sizeof(*val);
+        int ret = 0;
+ 
+-       if (nregbuf > maxregbuf)
++       if (nregbuf > sizeof(regbuf))
+                return -EINVAL;
+ 
+        regbuf[0] = reg >> 8;
 
+Let me know if you're happy with that; I can merge it to the original
+patch.
 
-Here is what I get after I have executed the commands to configure all
-the pads to SGRBG8/640x480:
+> > >> +	u8 nregbuf = sizeof(reg) + num * sizeof(*val);
+> > >> +	int ret = 0;
+> > >> +
+> > >> +	if (nregbuf > maxregbuf)
+> > >> +		return -EINVAL;
+> > >> +
+> > >> +	regbuf[0] = reg >> 8;
+> > >> +	regbuf[1] = reg & 0xff;
+> > >> +
+> > >> +	memcpy(regbuf + 2, val, num);
+> > >> +
+> > >> +	ret = i2c_master_send(ov7251->i2c_client, regbuf, nregbuf);
+> > >> +	if (ret < 0) {
+> > >> +		dev_err(ov7251->dev, "%s: write seq regs error %d: first reg=%x\n",
+> > > 
+> > > This line is over 80... 
+> > 
+> > Yes indeed. Somehow checkpatch does not report this line, I don't know why.
+> > 
+> > > 
+> > > If you're happy with these, I can make the changes, too; they're trivial.
+> > 
+> > Only the second one? Thanks :)
+> 
+> Works for me. I'd still think the overhead of managing the buffer is
+> irrelevant where to having an extra function to do essentially the same
+> thing is a source of maintenance and review work. Note that we're even now
+> spending time to discuss it. ;-)
+> 
+> -- 
+> Kind regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
 
-:~# media-ctl --get-v4l2 "'mt9p031 0-0048':0"
-[fmt:SGRBG12_1X12/648x486 field:none colorspace:srgb
-
-:~# media-ctl --get-v4l2 "'ipu1_csi0_mux':1"
-[fmt:SGRBG12_1X12/648x486 field:none colorspace:srgb]
-
-:~# media-ctl --get-v4l2 "'ipu1_csi0_mux':2"
-[fmt:SGRBG12_1X12/648x486 field:none colorspace:srgb]
-
-:~# media-ctl --get-v4l2 "'ipu1_csi0':0"
-[fmt:SGRBG12_1X12/656x486@1/30 field:none colorspace:srgb xfer:srgb
-ycbcr:601 quantization:full-range
-crop.bounds:(0,0)/656x486
-crop:(0,0)/656x486
-compose.bounds:(0,0)/656x486
-compose:(0,0)/656x486]
-
-:~# media-ctl --get-v4l2 "'ipu1_csi0':2"
-[fmt:SGRBG12_1X12/656x486@1/30 field:none colorspace:srgb xfer:srgb
-ycbcr:601 quantization:full-range]
-
-
-> I assume that because mt9p031 only supports SGRBG12_1X12, that's what
-> will be propagated down the pipeline to the CSI, which will then expand
-> it to SGRBG16.
->
-
-
-This indeed looks the case. But then, is 'GR16' the FourCC for 'SGRBG16'?
-To be honest, I had not seen GR16 as FourCC before.
-And the Gstreamer debug logs (I used GST_DEBUG=5) also say that they
-do not know this FourCC:
-v4l2 gstv4l2object.c:1541:gst_v4l2_object_v4l2fourcc_to_bare_struct: [00m
-Unsupported fourcc 0x36315247 GR16
-
-Is there a way we can get by this?
-
-
-> I suppose we should allow, at least for parallel input, to let the CSI
-> 'convert' 12-bit input formats to 8-bit output formats by just ignoring
-> the LSBs.
-> Another possibility would be to just allow SGRBG12_1X12 -> SGRBG8_1X8
-> mbus codes in link_validate. Actually, does your hardware have 12 data
-> lines connected between sensor and i.MX6, or just 8 ?
->
-
-Currently we have 8. Although we can populate extra resistors to
-connect the remaining 4.
-The device tree is set for 8 lines currently.
-
-
->> And I do not get any errors from these commands.
->
-> That's because of the way the V4L2 API works, unsupported formats are
-> adjusted by the drivers:
->
-> https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/vidioc-subdev-g-fmt.html#description
->
-> [...]
->> What confuses me here is that the Pixel Format shown by v4l2-ctl is
->> 'GR16', which is not what I expected. And it seems like the media-ctl
->> pad configuration commands are unable to change the Pixel Format, even
->> though they do not return any errors.
->
-> Whenever you media-ctl -V on a source pad, it will also try to set the
-> connected sink pad to the same format. And for subdevices with sink and
-> source pads, the source pads usually mirror (or somehow depend on) the
-> format of the sink pad. Due to the way the V4L2 APIs correct your input
-> to possible values, calling media-ctl -V on all source pads of the
-> pipeline in downstream direction essentially propagates the sensor
-> source pad format.
->
-
-Thanks for the nice explanation. This is valuable learning for me as I
-am just a beginner in this stuff.
-
-> regards
-> Philipp
-
-Best regards,
-Ibtsam Haq
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
