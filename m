@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:51867 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757992AbeDXNTc (ORCPT
+Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:41548 "EHLO
+        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754582AbeDZQZQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 09:19:32 -0400
-From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        linux-media@vger.kernel.org
-Subject: [PATCH] media: mb86a20s: fix mb86a20s_get_frontend_algo()'s return type
-Date: Tue, 24 Apr 2018 15:19:27 +0200
-Message-Id: <20180424131929.6119-1-luc.vanoostenryck@gmail.com>
+        Thu, 26 Apr 2018 12:25:16 -0400
+Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
+        by mx08-00252a01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id w3QGLEYI007290
+        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 17:25:15 +0100
+Received: from mail-pg0-f72.google.com (mail-pg0-f72.google.com [74.125.83.72])
+        by mx08-00252a01.pphosted.com with ESMTP id 2hg236jrf3-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 17:25:15 +0100
+Received: by mail-pg0-f72.google.com with SMTP id x205so7293136pgx.19
+        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 09:25:14 -0700 (PDT)
+MIME-Version: 1.0
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Thu, 26 Apr 2018 17:25:12 +0100
+Message-ID: <CAAoAYcNiAMafVk+-JasZZso7JwEN79FQPpBuGmbQZRhdSuQEqw@mail.gmail.com>
+Subject: Compressed formats - framed or unframed?
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The method dvb_frontend_ops::get_frontend_algo() is defined as
-returning an 'enum dvbfe_algo', but the implementation in this
-driver returns an 'int'.
+Hi All.
 
-Fix this by returning 'enum dvbfe_algo' in this driver too.
+I'm trying to get a V4L2 M2M driver sorted for the Raspberry Pi to
+allow access to the video codecs. Much of it is working fine.
 
-Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+One thing that isn't clear relates to video decode. Do the compressed
+formats (eg V4L2_PIX_FMT_H264) have to be framed into one frame per
+V4L2 buffer, or is providing unframed chunks of an elementary stream
+permitted. The docs only say "H264 video elementary stream with start
+codes.". Admittedly timestamps are nearly meaningless if you feed in
+unframed data, but could potentially be interpolated.
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 36e95196d..c3b1b88e2 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -2055,7 +2055,7 @@ static void mb86a20s_release(struct dvb_frontend *fe)
- 	kfree(state);
- }
- 
--static int mb86a20s_get_frontend_algo(struct dvb_frontend *fe)
-+static enum dvbfe_algo mb86a20s_get_frontend_algo(struct dvb_frontend *fe)
- {
- 	return DVBFE_ALGO_HW;
- }
--- 
-2.17.0
+What does other hardware support?
+
+I could handle it either way, but there are some performance tweaks I
+can do if I know the data must be framed.
+
+Thanks in advance.
+  Dave
