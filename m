@@ -1,104 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:51915 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755698AbeDFOsK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Apr 2018 10:48:10 -0400
-Date: Fri, 6 Apr 2018 11:47:58 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        Geliang Tang <geliangtang@gmail.com>
-Subject: Re: [PATCH 05/16] media: fsl-viu: allow building it with
- COMPILE_TEST
-Message-ID: <20180406114758.7d765ebe@vento.lan>
-In-Reply-To: <CAK8P3a2hehE7iPwF_ps8LYk+zRUmdm+1Oqci7PazQnE_HfmkyA@mail.gmail.com>
-References: <cover.1522949748.git.mchehab@s-opensource.com>
-        <24a526280e4eb319147908ccab786e2ebc8f8076.1522949748.git.mchehab@s-opensource.com>
-        <CAK8P3a1a7r1FNhpRHJfyzRNHgNHOzcK1wkerYb+BR_RjWNkOUQ@mail.gmail.com>
-        <20180406064718.2cdb69ea@vento.lan>
-        <CAK8P3a2FQapAqxOMJNe9oBs8kBXsd7TCdsNon5Gvab3Y8LLKSA@mail.gmail.com>
-        <20180406111537.04375bdf@vento.lan>
-        <CAK8P3a1aO99P7RWErJRS22QQdJ6wJNgZptHOaTFx7_2NvQ1vvA@mail.gmail.com>
-        <20180406112640.1441ca9f@vento.lan>
-        <CAK8P3a2hehE7iPwF_ps8LYk+zRUmdm+1Oqci7PazQnE_HfmkyA@mail.gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.133]:34644 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751405AbeDZXm4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Apr 2018 19:42:56 -0400
+Date: Thu, 26 Apr 2018 20:42:41 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
+Message-ID: <20180426204241.03a42996@vento.lan>
+In-Reply-To: <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
+References: <cover.1524499368.git.gustavo@embeddedor.com>
+        <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
+        <20180423152455.363d285c@vento.lan>
+        <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
+        <20180423161742.66f939ba@vento.lan>
+        <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 6 Apr 2018 16:37:15 +0200
-Arnd Bergmann <arnd@arndb.de> escreveu:
+Em Thu, 26 Apr 2018 16:41:56 -0500
+"Gustavo A. R. Silva" <gustavo@embeddedor.com> escreveu:
 
-> On Fri, Apr 6, 2018 at 4:26 PM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
-> > Em Fri, 6 Apr 2018 16:16:46 +0200
-> > Arnd Bergmann <arnd@arndb.de> escreveu:
-> >  
-> >> On Fri, Apr 6, 2018 at 4:15 PM, Mauro Carvalho Chehab
-> >> <mchehab@s-opensource.com> wrote:  
-> >> > Em Fri, 6 Apr 2018 11:51:16 +0200
-> >> > Arnd Bergmann <arnd@arndb.de> escreveu:
-> >> >  
-> >> >> On Fri, Apr 6, 2018 at 11:47 AM, Mauro Carvalho Chehab
-> >> >> <mchehab@s-opensource.com> wrote:
-> >> >>  
-> >> >> > [PATCH] media: fsl-viu: allow building it with COMPILE_TEST
-> >> >> >
-> >> >> > There aren't many things that would be needed to allow it
-> >> >> > to build with compile test.
-> >> >> >
-> >> >> > Add the needed bits.
-> >> >> >
-> >> >> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
-> >> >>
-> >> >> Reviewed-by: Arnd Bergmann <arnd@arndb.de>  
-> >> >
-> >> > Actually, in order to avoid warnings with smatch, the COMPILE_TEST
-> >> > macros should be declared as:
-> >> >
-> >> > +#define out_be32(v, a) iowrite32be(a, (void __iomem *)v)
-> >> > +#define in_be32(a)     ioread32be((void __iomem *)a)  
-> >>
-> >> I would just add the correct annotations, I think they've always been missing.
-> >> 2 patches coming in a few minutes.  
-> >
-> > I corrected the annotations too. Now, it gives the same results
-> > building for both arm and x86.
-> >
-> > If you want to double check, the full tree is at:
-> >
-> >         https://git.linuxtv.org/mchehab/experimental.git/log/?h=compile_test  
+> Hi Mauro,
 > 
-> The __iomem annotations look good, my other patch is still needed to
-> get a clean build with "make C=1" but doesn't apply cleanly on top of your
-> version. I assume you'll just fix it up accordingly.
+> On 04/23/2018 02:17 PM, Mauro Carvalho Chehab wrote:
+> > Em Mon, 23 Apr 2018 14:11:02 -0500
+> > 
+> > Thanks, I 'll mark this series as rejected at patchwork.linuxtv.org.
+> > Please feel free to resubmit any patch if they represent a real
+> > threat, adding a corresponding description about the threat scenario
+> > at the body of the e-mail.
+> > 
+> >> Sorry for the noise and thanks for the feedback.
+> > 
+> > Anytime.
+> > 
+> 
+> I noticed you changed the status of this series from rejected to new.
 
-Heh, another duplicated patch:
+Yes.
 
-	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=compile_test&id=687520dc31a88c82c694492423c5d9c503cbdebb
+> Also, there are other similar issues in media/pci/
 
-That's why it didn't apply cleanly:
+Well, the issues will be there everywhere on all media drivers.
 
-$ patch -p1 -i /tmp/media\:\ platform\:\ fsl-viu\:\ mark\ local\ functions\ \'static\'.patch --merge
-patching file drivers/media/platform/fsl-viu.c
-Hunk #1 already applied at 238.
-Hunk #2 already applied at 251.
-Hunk #3 already applied at 262.
-Hunk #4 already applied at 806.
-Hunk #5 already applied at 817.
-Hunk #6 already applied at 1305.
+I marked your patches because I need to study it carefully, after
+Peter's explanations. My plan is to do it next week. Still not
+sure if the approach you took is the best one or not.
 
-Great minds think alike :-)
+As I said, one possibility is to change the way v4l2-core handles 
+VIDIOC_ENUM_foo ioctls, but that would be make harder to -stable
+backports.
+
+I need a weekend to sleep on it.
+
+> 
+> I can write proper patches for all of them if you agree those are not 
+> False Positives:
+> 
+> diff --git a/drivers/media/pci/cx18/cx18-ioctl.c 
+> b/drivers/media/pci/cx18/cx18-ioctl.c
+> index 80b902b..63f4388 100644
+> --- a/drivers/media/pci/cx18/cx18-ioctl.c
+> +++ b/drivers/media/pci/cx18/cx18-ioctl.c
+> @@ -36,6 +36,8 @@
+>   #include <media/tveeprom.h>
+>   #include <media/v4l2-event.h>
+> 
+> +#include <linux/nospec.h>
+> +
+>   u16 cx18_service2vbi(int type)
+>   {
+>          switch (type) {
+> @@ -488,8 +490,9 @@ static int cx18_enum_fmt_vid_cap(struct file *file, 
+> void *fh,
+>                  },
+>          };
+> 
+> -       if (fmt->index > ARRAY_SIZE(formats) - 1)
+> +       if (fmt->index >= ARRAY_SIZE(formats))
+>                  return -EINVAL;
+> +       fmt->index = array_index_nospec(fmt->index, ARRAY_SIZE(formats));
+>          *fmt = formats[fmt->index];
+>          return 0;
+>   }
+> diff --git a/drivers/media/pci/saa7134/saa7134-video.c 
+> b/drivers/media/pci/saa7134/saa7134-video.c
+> index 1a50ec9..d93cf09 100644
+> --- a/drivers/media/pci/saa7134/saa7134-video.c
+> +++ b/drivers/media/pci/saa7134/saa7134-video.c
+> @@ -30,6 +30,8 @@
+>   #include <media/v4l2-event.h>
+>   #include <media/i2c/saa6588.h>
+> 
+> +#include <linux/nospec.h>
+> +
+>   /* ------------------------------------------------------------------ */
+> 
+>   unsigned int video_debug;
+> @@ -1819,6 +1821,8 @@ static int saa7134_enum_fmt_vid_cap(struct file 
+> *file, void  *priv,
+>          if (f->index >= FORMATS)
+>                  return -EINVAL;
+> 
+> +       f->index = array_index_nospec(f->index, FORMATS);
+> +
+>          strlcpy(f->description, formats[f->index].name,
+>                  sizeof(f->description));
+> 
+> diff --git a/drivers/media/pci/tw68/tw68-video.c 
+> b/drivers/media/pci/tw68/tw68-video.c
+> index 8c1f4a0..a6cfb4b 100644
+> --- a/drivers/media/pci/tw68/tw68-video.c
+>   #include <media/v4l2-event.h>
+>   #include <media/videobuf2-dma-sg.h>
+> 
+> +#include <linux/nospec.h>
+> +
+>   #include "tw68.h"
+>   #include "tw68-reg.h"
+> 
+> @@ -789,6 +791,8 @@ static int tw68_enum_fmt_vid_cap(struct file *file, 
+> void  *priv,
+>          if (f->index >= FORMATS)
+>                  return -EINVAL;
+> 
+> +       f->index = array_index_nospec(f->index, FORMATS);
+> +
+>          strlcpy(f->description, formats[f->index].name,
+>                  sizeof(f->description));
+> 
+> diff --git a/drivers/media/pci/tw686x/tw686x-video.c 
+> b/drivers/media/pci/tw686x/tw686x-video.c
+> index c3fafa9..281d722 100644
+> --- a/drivers/media/pci/tw686x/tw686x-video.c
+> +++ b/drivers/media/pci/tw686x/tw686x-video.c
+> @@ -25,6 +25,8 @@
+>   #include "tw686x.h"
+>   #include "tw686x-regs.h"
+> 
+> +#include <linux/nospec.h>
+> +
+>   #define TW686X_INPUTS_PER_CH           4
+>   #define TW686X_VIDEO_WIDTH             720
+>   #define TW686X_VIDEO_HEIGHT(id)                ((id & V4L2_STD_525_60) 
+> ? 480 : 576)
+> @@ -981,6 +983,7 @@ static int tw686x_enum_fmt_vid_cap(struct file 
+> *file, void *priv,
+>   {
+>          if (f->index >= ARRAY_SIZE(formats))
+>                  return -EINVAL;
+> +       f->index = array_index_nospec(f->index, ARRAY_SIZE(formats));
+>          f->pixelformat = formats[f->index].fourcc;
+>          return 0;
+>   }
+> 
+> 
+> Thanks
+> --
+> Gustavo
+
+
 
 Thanks,
 Mauro
