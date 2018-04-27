@@ -1,68 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp05.smtpout.orange.fr ([80.12.242.127]:46725 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751419AbeDDTtf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 15:49:35 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        "linux-mmc\@vger.kernel.org" <linux-mmc@vger.kernel.org>,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        driverdevel <devel@driverdev.osuosl.org>,
-        alsa-devel@alsa-project.org
-Subject: Re: [PATCH 00/15] ARM: pxa: switch to DMA slave maps
-References: <20180402142656.26815-1-robert.jarzmik@free.fr>
-        <CAPDyKFot9dAST2jQL5s8E4U=bCHxkio=uwpqPd6S0N4FWJRB-w@mail.gmail.com>
-Date: Wed, 04 Apr 2018 21:49:26 +0200
-In-Reply-To: <CAPDyKFot9dAST2jQL5s8E4U=bCHxkio=uwpqPd6S0N4FWJRB-w@mail.gmail.com>
-        (Ulf Hansson's message of "Tue, 3 Apr 2018 17:08:42 +0200")
-Message-ID: <874lkq4urd.fsf@belgarion.home>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from ns.mm-sol.com ([37.157.136.199]:58144 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757437AbeD0Llb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Apr 2018 07:41:31 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hverkuil@xs4all.nl, sakari.ailus@iki.fi,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH 2/2] media: v4l: Add new 10-bit packed grayscale format
+Date: Fri, 27 Apr 2018 14:40:39 +0300
+Message-Id: <1524829239-4664-3-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1524829239-4664-1-git-send-email-todor.tomov@linaro.org>
+References: <1524829239-4664-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ulf Hansson <ulf.hansson@linaro.org> writes:
+The new format will be called V4L2_PIX_FMT_Y10P.
+It is similar to the V4L2_PIX_FMT_SBGGR10P family formats
+but V4L2_PIX_FMT_Y10P is a grayscale format.
 
-> On 2 April 2018 at 16:26, Robert Jarzmik <robert.jarzmik@free.fr> wrote:
->> Hi,
->>
->> This serie is aimed at removing the dmaengine slave compat use, and transfer
->> knowledge of the DMA requestors into architecture code.
->> As this looks like a patch bomb, each maintainer expressing for his tree either
->> an Ack or "I want to take through my tree" will be spared in the next iterations
->> of this serie.
->
-> Perhaps an option is to send this hole series as PR for 3.17 rc1, that
-> would removed some churns and make this faster/easier? Well, if you
-> receive the needed acks of course.
-For 3.17-rc1 it looks a bit optimistic with the review time ... If I have all
-acks, I'll queue it into my pxa tree. If at least one maintainer withholds his
-ack, the end of the serie (phase 3) won't be applied until it is sorted out.
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ Documentation/media/uapi/v4l/pixfmt-y10p.rst | 31 ++++++++++++++++++++++++++++
+ Documentation/media/uapi/v4l/yuv-formats.rst |  1 +
+ drivers/media/v4l2-core/v4l2-ioctl.c         |  1 +
+ include/uapi/linux/videodev2.h               |  1 +
+ 4 files changed, 34 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-y10p.rst
 
-Cheers.
-
---
-Robert
+diff --git a/Documentation/media/uapi/v4l/pixfmt-y10p.rst b/Documentation/media/uapi/v4l/pixfmt-y10p.rst
+new file mode 100644
+index 0000000..0018fe7
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-y10p.rst
+@@ -0,0 +1,31 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-PIX-FMT-Y10P:
++
++******************************
++V4L2_PIX_FMT_Y10P ('Y10P')
++******************************
++
++Grey-scale image as a MIPI RAW10 packed array
++
++
++Description
++===========
++
++This is a packed grey-scale image format with a depth of 10 bits per
++pixel. Every four consecutive pixels are packed into 5 bytes. Each of
++the first 4 bytes contain the 8 high order bits of the pixels, and
++the 5th byte contains the 2 least significants bits of each pixel,
++in the same order.
++
++**Bit-packed representation.**
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++
++    * - Y'\ :sub:`00[9:2]`
++      - Y'\ :sub:`01[9:2]`
++      - Y'\ :sub:`02[9:2]`
++      - Y'\ :sub:`03[9:2]`
++      - Y'\ :sub:`03[1:0]`\ Y'\ :sub:`02[1:0]`\ Y'\ :sub:`01[1:0]`\ Y'\ :sub:`00[1:0]`
+diff --git a/Documentation/media/uapi/v4l/yuv-formats.rst b/Documentation/media/uapi/v4l/yuv-formats.rst
+index 3334ea4..9ab0592 100644
+--- a/Documentation/media/uapi/v4l/yuv-formats.rst
++++ b/Documentation/media/uapi/v4l/yuv-formats.rst
+@@ -29,6 +29,7 @@ to brightness information.
+     pixfmt-y10
+     pixfmt-y12
+     pixfmt-y10b
++    pixfmt-y10p
+     pixfmt-y16
+     pixfmt-y16-be
+     pixfmt-y8i
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index f48c505..bdf2399 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1147,6 +1147,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_Y16:		descr = "16-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Y16_BE:	descr = "16-bit Greyscale BE"; break;
+ 	case V4L2_PIX_FMT_Y10BPACK:	descr = "10-bit Greyscale (Packed)"; break;
++	case V4L2_PIX_FMT_Y10P:		descr = "10-bit Greyscale (MIPI Packed)"; break;
+ 	case V4L2_PIX_FMT_Y8I:		descr = "Interleaved 8-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 600877b..b24ab720 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -522,6 +522,7 @@ struct v4l2_pix_format {
+ 
+ /* Grey bit-packed formats */
+ #define V4L2_PIX_FMT_Y10BPACK    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
++#define V4L2_PIX_FMT_Y10P    v4l2_fourcc('Y', '1', '0', 'P') /* 10  Greyscale, MIPI RAW10 packed */
+ 
+ /* Palette formats */
+ #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
+-- 
+2.7.4
