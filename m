@@ -1,89 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54322 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751928AbeDEJSe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 05:18:34 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2 01/15] v4l: vsp1: Don't start/stop media pipeline for DRM
-Date: Thu,  5 Apr 2018 12:18:26 +0300
-Message-Id: <20180405091840.30728-2-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:41255 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932373AbeD0S7a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Apr 2018 14:59:30 -0400
+Received: by mail-pg0-f65.google.com with SMTP id m21-v6so2206004pgv.8
+        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2018 11:59:30 -0700 (PDT)
+From: Sami Tolvanen <samitolvanen@google.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Sami Tolvanen <samitolvanen@google.com>
+Subject: [PATCH] media: v4l2-ioctl: fix function types for IOCTL_INFO_STD
+Date: Fri, 27 Apr 2018 11:59:25 -0700
+Message-Id: <20180427185925.222682-1-samitolvanen@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DRM support code manages a pipeline of VSP entities, each backed by
-a media entity. When starting or stopping the pipeline, it starts and
-stops the media pipeline through the media API in order to store the
-pipeline pointer in every entity.
+This change fixes indirect call mismatches with Control-Flow Integrity
+checking, which are caused by calling standard ioctls using a function
+pointer that doesn't match the type of the actual function.
 
-The driver doesn't use the pipe pointer in media entities, neither does
-it rely on the other effects of the media_pipeline_start() and
-media_pipeline_stop() functions. Furthermore, as the media links for the
-DRM pipeline are never set up correctly, and as the pipeline can be
-modified dynamically when enabling or disabling planes, the current
-implementation is not correct. Remove the incorrect and unneeded code.
-
-While at it remove the outdated comment that states that entities are
-not started when the LIF is setup, as they now are.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
---
-Changes since v1:
-
-- Remove outdated comment
+Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
 ---
- drivers/media/platform/vsp1/vsp1_drm.c | 18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 72 ++++++++++++++++++----------
+ 1 file changed, 46 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index b8fee1834253..a1f2ba044092 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -109,8 +109,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 		if (ret == -ETIMEDOUT)
- 			dev_err(vsp1->dev, "DRM pipeline stop timeout\n");
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index f48c505550e0..d50a06ab3509 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2489,11 +2489,8 @@ struct v4l2_ioctl_info {
+ 	unsigned int ioctl;
+ 	u32 flags;
+ 	const char * const name;
+-	union {
+-		u32 offset;
+-		int (*func)(const struct v4l2_ioctl_ops *ops,
+-				struct file *file, void *fh, void *p);
+-	} u;
++	int (*func)(const struct v4l2_ioctl_ops *ops, struct file *file,
++		    void *fh, void *p);
+ 	void (*debug)(const void *arg, bool write_only);
+ };
  
--		media_pipeline_stop(&pipe->output->entity.subdev.entity);
--
- 		for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i) {
- 			struct vsp1_rwpf *rpf = pipe->inputs[i];
+@@ -2501,27 +2498,24 @@ struct v4l2_ioctl_info {
+ #define INFO_FL_PRIO		(1 << 0)
+ /* This control can be valid if the filehandle passes a control handler. */
+ #define INFO_FL_CTRL		(1 << 1)
+-/* This is a standard ioctl, no need for special code */
+-#define INFO_FL_STD		(1 << 2)
+ /* This is ioctl has its own function */
+-#define INFO_FL_FUNC		(1 << 3)
++#define INFO_FL_FUNC		(1 << 2)
+ /* Queuing ioctl */
+-#define INFO_FL_QUEUE		(1 << 4)
++#define INFO_FL_QUEUE		(1 << 3)
+ /* Always copy back result, even on error */
+-#define INFO_FL_ALWAYS_COPY	(1 << 5)
++#define INFO_FL_ALWAYS_COPY	(1 << 4)
+ /* Zero struct from after the field to the end */
+ #define INFO_FL_CLEAR(v4l2_struct, field)			\
+ 	((offsetof(struct v4l2_struct, field) +			\
+ 	  sizeof(((struct v4l2_struct *)0)->field)) << 16)
+ #define INFO_FL_CLEAR_MASK	(_IOC_SIZEMASK << 16)
  
-@@ -223,13 +221,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 		return -EPIPE;
+-#define IOCTL_INFO_STD(_ioctl, _vidioc, _debug, _flags)			\
+-	[_IOC_NR(_ioctl)] = {						\
+-		.ioctl = _ioctl,					\
+-		.flags = _flags | INFO_FL_STD,				\
+-		.name = #_ioctl,					\
+-		.u.offset = offsetof(struct v4l2_ioctl_ops, _vidioc),	\
+-		.debug = _debug,					\
++#define DEFINE_IOCTL_STD_FNC(_vidioc)				\
++	static int __v4l_ ## _vidioc ## _fnc(			\
++			const struct v4l2_ioctl_ops *ops,	\
++			struct file *file, void *fh, void *p)	\
++	{							\
++		return ops->_vidioc(file, fh, p);		\
  	}
  
--	/*
--	 * Mark the pipeline as streaming and enable the VSP1. This will store
--	 * the pipeline pointer in all entities, which the s_stream handlers
--	 * will need. We don't start the entities themselves right at this point
--	 * as there's no plane configured yet, so we can't start processing
--	 * buffers.
--	 */
-+	/* Enable the VSP1. */
- 	ret = vsp1_device_get(vsp1);
- 	if (ret < 0)
- 		return ret;
-@@ -241,14 +233,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 	drm_pipe->du_complete = cfg->callback;
- 	drm_pipe->du_private = cfg->callback_data;
+ #define IOCTL_INFO_FNC(_ioctl, _func, _debug, _flags)			\
+@@ -2529,10 +2523,42 @@ struct v4l2_ioctl_info {
+ 		.ioctl = _ioctl,					\
+ 		.flags = _flags | INFO_FL_FUNC,				\
+ 		.name = #_ioctl,					\
+-		.u.func = _func,					\
++		.func = _func,						\
+ 		.debug = _debug,					\
+ 	}
  
--	ret = media_pipeline_start(&pipe->output->entity.subdev.entity,
--					  &pipe->pipe);
--	if (ret < 0) {
--		dev_dbg(vsp1->dev, "%s: pipeline start failed\n", __func__);
--		vsp1_device_put(vsp1);
--		return ret;
--	}
++#define IOCTL_INFO_STD(_ioctl, _vidioc, _debug, _flags)	\
++	IOCTL_INFO_FNC(_ioctl, __v4l_ ## _vidioc ## _fnc, _debug, _flags)
++
++DEFINE_IOCTL_STD_FNC(vidioc_g_fbuf)
++DEFINE_IOCTL_STD_FNC(vidioc_s_fbuf)
++DEFINE_IOCTL_STD_FNC(vidioc_expbuf)
++DEFINE_IOCTL_STD_FNC(vidioc_g_std)
++DEFINE_IOCTL_STD_FNC(vidioc_g_audio)
++DEFINE_IOCTL_STD_FNC(vidioc_s_audio)
++DEFINE_IOCTL_STD_FNC(vidioc_g_input)
++DEFINE_IOCTL_STD_FNC(vidioc_g_edid)
++DEFINE_IOCTL_STD_FNC(vidioc_s_edid)
++DEFINE_IOCTL_STD_FNC(vidioc_g_output)
++DEFINE_IOCTL_STD_FNC(vidioc_g_audout)
++DEFINE_IOCTL_STD_FNC(vidioc_s_audout)
++DEFINE_IOCTL_STD_FNC(vidioc_g_jpegcomp)
++DEFINE_IOCTL_STD_FNC(vidioc_s_jpegcomp)
++DEFINE_IOCTL_STD_FNC(vidioc_enumaudio)
++DEFINE_IOCTL_STD_FNC(vidioc_enumaudout)
++DEFINE_IOCTL_STD_FNC(vidioc_enum_framesizes)
++DEFINE_IOCTL_STD_FNC(vidioc_enum_frameintervals)
++DEFINE_IOCTL_STD_FNC(vidioc_g_enc_index)
++DEFINE_IOCTL_STD_FNC(vidioc_encoder_cmd)
++DEFINE_IOCTL_STD_FNC(vidioc_try_encoder_cmd)
++DEFINE_IOCTL_STD_FNC(vidioc_decoder_cmd)
++DEFINE_IOCTL_STD_FNC(vidioc_try_decoder_cmd)
++DEFINE_IOCTL_STD_FNC(vidioc_s_dv_timings)
++DEFINE_IOCTL_STD_FNC(vidioc_g_dv_timings)
++DEFINE_IOCTL_STD_FNC(vidioc_enum_dv_timings)
++DEFINE_IOCTL_STD_FNC(vidioc_query_dv_timings)
++DEFINE_IOCTL_STD_FNC(vidioc_dv_timings_cap)
++
+ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_QUERYCAP, v4l_querycap, v4l_print_querycap, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUM_FMT, v4l_enum_fmt, v4l_print_fmtdesc, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
+@@ -2717,14 +2743,8 @@ static long __video_do_ioctl(struct file *file,
+ 	}
+ 
+ 	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
+-	if (info->flags & INFO_FL_STD) {
+-		typedef int (*vidioc_op)(struct file *file, void *fh, void *p);
+-		const void *p = vfd->ioctl_ops;
+-		const vidioc_op *vidioc = p + info->u.offset;
 -
- 	/* Disable the display interrupts. */
- 	vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
- 	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
+-		ret = (*vidioc)(file, fh, arg);
+-	} else if (info->flags & INFO_FL_FUNC) {
+-		ret = info->u.func(ops, file, fh, arg);
++	if (info->flags & INFO_FL_FUNC) {
++		ret = info->func(ops, file, fh, arg);
+ 	} else if (!ops->vidioc_default) {
+ 		ret = -ENOTTY;
+ 	} else {
 -- 
-Regards,
-
-Laurent Pinchart
+2.17.0.441.gb46fe60e1d-goog
