@@ -1,40 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56166 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752167AbeDLKVz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 06:21:55 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from gofer.mess.org ([88.97.38.141]:44391 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758477AbeD0NqL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Apr 2018 09:46:11 -0400
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH 4/4] ov7740: Set subdev HAS_EVENT flag
-Date: Thu, 12 Apr 2018 13:21:50 +0300
-Message-Id: <20180412102150.29997-5-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180412102150.29997-1-sakari.ailus@linux.intel.com>
-References: <20180412102150.29997-1-sakari.ailus@linux.intel.com>
+Subject: [PATCH] media: rc: probe zilog transmitter when zilog receiver is found
+Date: Fri, 27 Apr 2018 14:46:09 +0100
+Message-Id: <20180427134609.11855-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver has event support implemented but fails to set the flag
-enabling event support. Set the flag to enable control events.
+I found a Hauppauge WinTV 44981 (bt878) with a Zilog Z8F0811. The
+transmitter was not probed. Most likely there are others like this
+(e.g. HVR1110).
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/i2c/ov7740.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/ir-kbd-i2c.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
-index 0c15b67f3c34..7cba0208b6ee 100644
---- a/drivers/media/i2c/ov7740.c
-+++ b/drivers/media/i2c/ov7740.c
-@@ -1086,7 +1086,7 @@ static int ov7740_probe(struct i2c_client *client,
+diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+index a7e23bcf845c..a14a74e6b986 100644
+--- a/drivers/media/i2c/ir-kbd-i2c.c
++++ b/drivers/media/i2c/ir-kbd-i2c.c
+@@ -739,6 +739,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	struct rc_dev *rc = NULL;
+ 	struct i2c_adapter *adap = client->adapter;
+ 	unsigned short addr = client->addr;
++	bool probe_tx = (id->driver_data & FLAG_TX) != 0;
+ 	int err;
  
- #ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
- 	sd->internal_ops = &ov7740_subdev_internal_ops;
--	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
- #endif
+ 	if ((id->driver_data & FLAG_HDPVR) && !enable_hdpvr) {
+@@ -800,6 +801,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		rc_proto    = RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC6_MCE |
+ 							RC_PROTO_BIT_RC6_6A_32;
+ 		ir_codes    = RC_MAP_HAUPPAUGE;
++		probe_tx = true;
+ 		break;
+ 	}
  
- #if defined(CONFIG_MEDIA_CONTROLLER)
+@@ -892,7 +894,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 
+ 	INIT_DELAYED_WORK(&ir->work, ir_work);
+ 
+-	if (id->driver_data & FLAG_TX) {
++	if (probe_tx) {
+ 		ir->tx_c = i2c_new_dummy(client->adapter, 0x70);
+ 		if (!ir->tx_c) {
+ 			dev_err(&client->dev, "failed to setup tx i2c address");
 -- 
-2.11.0
+2.14.3
