@@ -1,131 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:54554 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752848AbeDETov (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 15:44:51 -0400
-Date: Thu, 5 Apr 2018 16:44:44 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: Re: [PATCH 02/16] media: omap3isp: allow it to build with
- COMPILE_TEST
-Message-ID: <20180405164444.441033be@vento.lan>
-In-Reply-To: <2233233.yQEdpcOfql@avalon>
-References: <cover.1522949748.git.mchehab@s-opensource.com>
-        <f618981fec34acc5eee211b34a0018752634af9c.1522949748.git.mchehab@s-opensource.com>
-        <2233233.yQEdpcOfql@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:55307 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751348AbeD0GRg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Apr 2018 02:17:36 -0400
+Received: by mail-wm0-f65.google.com with SMTP id a8so693606wmg.5
+        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 23:17:35 -0700 (PDT)
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: DRI Development <dri-devel@lists.freedesktop.org>
+Cc: Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Subject: [PATCH 05/17] dma-fence: Make ->wait callback optional
+Date: Fri, 27 Apr 2018 08:17:12 +0200
+Message-Id: <20180427061724.28497-6-daniel.vetter@ffwll.ch>
+In-Reply-To: <20180427061724.28497-1-daniel.vetter@ffwll.ch>
+References: <20180427061724.28497-1-daniel.vetter@ffwll.ch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 05 Apr 2018 21:30:27 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Almost everyone uses dma_fence_default_wait.
 
-> Hi Mauro,
-> 
-> Thank you for the patch.
-> 
-> On Thursday, 5 April 2018 20:54:02 EEST Mauro Carvalho Chehab wrote:
-> > There aren't much things required for it to build with COMPILE_TEST.
-> > It just needs to provide stub for an arm-dependent include.
-> > 
-> > Let's replicate the same solution used by ipmmu-vmsa, in order
-> > to allow building omap3 with COMPILE_TEST.
-> > 
-> > The actual logic here came from this driver:
-> > 
-> >    drivers/iommu/ipmmu-vmsa.c
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  drivers/media/platform/Kconfig        | 8 ++++----
-> >  drivers/media/platform/omap3isp/isp.c | 7 +++++++
-> >  2 files changed, 11 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> > index c7a1cf8a1b01..03c9dfeb7781 100644
-> > --- a/drivers/media/platform/Kconfig
-> > +++ b/drivers/media/platform/Kconfig
-> > @@ -62,12 +62,12 @@ config VIDEO_MUX
-> > 
-> >  config VIDEO_OMAP3
-> >  	tristate "OMAP 3 Camera support"
-> > -	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-> > +	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-> >  	depends on HAS_DMA && OF
-> > -	depends on OMAP_IOMMU
-> > -	select ARM_DMA_USE_IOMMU
-> > +	depends on ((ARCH_OMAP3 && OMAP_IOMMU) || COMPILE_TEST)
-> > +	select ARM_DMA_USE_IOMMU if OMAP_IOMMU
-> >  	select VIDEOBUF2_DMA_CONTIG
-> > -	select MFD_SYSCON
-> > +	select MFD_SYSCON if ARCH_OMAP3
-> >  	select V4L2_FWNODE
-> >  	---help---
-> >  	  Driver for an OMAP 3 camera controller.
-> > diff --git a/drivers/media/platform/omap3isp/isp.c
-> > b/drivers/media/platform/omap3isp/isp.c index 8eb000e3d8fd..2a11a709aa4f
-> > 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> > @@ -61,7 +61,14 @@
-> >  #include <linux/sched.h>
-> >  #include <linux/vmalloc.h>
-> > 
-> > +#if defined(CONFIG_ARM) && !defined(CONFIG_IOMMU_DMA)
-> >  #include <asm/dma-iommu.h>
-> > +#else
-> > +#define arm_iommu_create_mapping(...)	NULL
-> > +#define arm_iommu_attach_device(...)	-ENODEV
-> > +#define arm_iommu_release_mapping(...)	do {} while (0)
-> > +#define arm_iommu_detach_device(...)	do {} while (0)
-> > +#endif  
-> 
-> I don't think it's the job of a driver to define those stubs, sorry. Otherwise 
-> where do you stop ? If you have half of the code that is architecture-
-> dependent, would you stub it ? And what if the stubs you define here generate 
-> warnings in static analyzers ?
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org
+Cc: linaro-mm-sig@lists.linaro.org
+---
+ drivers/dma-buf/dma-fence-array.c |  1 -
+ drivers/dma-buf/dma-fence.c       |  5 ++++-
+ drivers/dma-buf/sw_sync.c         |  1 -
+ include/linux/dma-fence.h         | 13 ++++++++-----
+ 4 files changed, 12 insertions(+), 8 deletions(-)
 
-I agree that we should avoid doing that as a general case, but see
-below.
-
-> If you want to make drivers compile for all architectures, the APIs they use 
-> must be defined in linux/, not in asm/. They can be stubbed there when not 
-> implemented in a particular architecture, but not in the driver.
-
-In this specific case, the same approach taken here is already needed
-by the Renesas VMSA-compatible IPMMU driver, with, btw, is inside 
-drivers/iommu:
-
-	drivers/iommu/ipmmu-vmsa.c
-
-Also, this API is used only by 3 drivers [1]:
-
-	drivers/iommu/ipmmu-vmsa.c
-	drivers/iommu/mtk_iommu_v1.c
-	drivers/media/platform/omap3isp/isp.c
-
-[1] as blamed by 
-	git grep -l arm_iommu_create_mapping
-
-That hardly seems to be an arch-specific iommu solution, but, instead, some
-hack used by only three drivers or some legacy iommu binding.
-
-The omap3isp is, btw, the only driver outside drivers/iommu that needs it.
-
-So, it sounds that other driver uses some other approach, but hardly
-it would be worth to change this driver to use something else.
-
-So, better to stick with the same solution the Renesas driver used.
-
-Thanks,
-Mauro
+diff --git a/drivers/dma-buf/dma-fence-array.c b/drivers/dma-buf/dma-fence-array.c
+index dd1edfb27b61..a8c254497251 100644
+--- a/drivers/dma-buf/dma-fence-array.c
++++ b/drivers/dma-buf/dma-fence-array.c
+@@ -104,7 +104,6 @@ const struct dma_fence_ops dma_fence_array_ops = {
+ 	.get_timeline_name = dma_fence_array_get_timeline_name,
+ 	.enable_signaling = dma_fence_array_enable_signaling,
+ 	.signaled = dma_fence_array_signaled,
+-	.wait = dma_fence_default_wait,
+ 	.release = dma_fence_array_release,
+ };
+ EXPORT_SYMBOL(dma_fence_array_ops);
+diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-fence.c
+index 59049375bd19..30fcbe415ff4 100644
+--- a/drivers/dma-buf/dma-fence.c
++++ b/drivers/dma-buf/dma-fence.c
+@@ -158,7 +158,10 @@ dma_fence_wait_timeout(struct dma_fence *fence, bool intr, signed long timeout)
+ 		return -EINVAL;
+ 
+ 	trace_dma_fence_wait_start(fence);
+-	ret = fence->ops->wait(fence, intr, timeout);
++	if (fence->ops->wait)
++		ret = fence->ops->wait(fence, intr, timeout);
++	else
++		ret = dma_fence_default_wait(fence, intr, timeout);
+ 	trace_dma_fence_wait_end(fence);
+ 	return ret;
+ }
+diff --git a/drivers/dma-buf/sw_sync.c b/drivers/dma-buf/sw_sync.c
+index 3d78ca89a605..53c1d6d36a64 100644
+--- a/drivers/dma-buf/sw_sync.c
++++ b/drivers/dma-buf/sw_sync.c
+@@ -188,7 +188,6 @@ static const struct dma_fence_ops timeline_fence_ops = {
+ 	.get_timeline_name = timeline_fence_get_timeline_name,
+ 	.enable_signaling = timeline_fence_enable_signaling,
+ 	.signaled = timeline_fence_signaled,
+-	.wait = dma_fence_default_wait,
+ 	.release = timeline_fence_release,
+ 	.fence_value_str = timeline_fence_value_str,
+ 	.timeline_value_str = timeline_fence_timeline_value_str,
+diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
+index c730f569621a..d05496ff0d10 100644
+--- a/include/linux/dma-fence.h
++++ b/include/linux/dma-fence.h
+@@ -191,11 +191,14 @@ struct dma_fence_ops {
+ 	/**
+ 	 * @wait:
+ 	 *
+-	 * Custom wait implementation, or dma_fence_default_wait.
++	 * Custom wait implementation, defaults to dma_fence_default_wait() if
++	 * not set.
+ 	 *
+-	 * Must not be NULL, set to dma_fence_default_wait for default implementation.
+-	 * the dma_fence_default_wait implementation should work for any fence, as long
+-	 * as enable_signaling works correctly.
++	 * The dma_fence_default_wait implementation should work for any fence, as long
++	 * as @enable_signaling works correctly. This hook allows drivers to
++	 * have an optimized version for the case where a process context is
++	 * already available, e.g. if @enable_signaling for the general case
++	 * needs to set up a worker thread.
+ 	 *
+ 	 * Must return -ERESTARTSYS if the wait is intr = true and the wait was
+ 	 * interrupted, and remaining jiffies if fence has signaled, or 0 if wait
+@@ -203,7 +206,7 @@ struct dma_fence_ops {
+ 	 * which should be treated as if the fence is signaled. For example a hardware
+ 	 * lockup could be reported like that.
+ 	 *
+-	 * This callback is mandatory.
++	 * This callback is optional.
+ 	 */
+ 	signed long (*wait)(struct dma_fence *fence,
+ 			    bool intr, signed long timeout);
+-- 
+2.17.0
