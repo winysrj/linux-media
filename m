@@ -1,79 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:37005 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753695AbeDQQBY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 12:01:24 -0400
-Date: Tue, 17 Apr 2018 18:01:22 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Samuel Bobrowicz <sam@elite-embedded.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: Re: [PATCH v2 00/12] media: ov5640: Misc cleanup and improvements
-Message-ID: <20180417160122.rfdlbdafmivgi5cd@flea>
-References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
- <CAFwsNOF6t-AAXr8gEBLnCx2OF-PjAWALhsJRVYHSdnaP9hswWA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="nvduvdu2mhoyi34d"
-Content-Disposition: inline
-In-Reply-To: <CAFwsNOF6t-AAXr8gEBLnCx2OF-PjAWALhsJRVYHSdnaP9hswWA@mail.gmail.com>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:38222 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758984AbeD0Tyf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Apr 2018 15:54:35 -0400
+Received: by mail-pg0-f68.google.com with SMTP id n9-v6so2302082pgq.5
+        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2018 12:54:35 -0700 (PDT)
+From: Sami Tolvanen <samitolvanen@google.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Sami Tolvanen <samitolvanen@google.com>
+Subject: [PATCH] media: media-device: fix ioctl function types
+Date: Fri, 27 Apr 2018 12:54:30 -0700
+Message-Id: <20180427195430.237342-1-samitolvanen@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This change fixes function types for media device ioctls to avoid
+indirect call mismatches with Control-Flow Integrity checking.
 
---nvduvdu2mhoyi34d
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
+---
+ drivers/media/media-device.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-On Mon, Apr 16, 2018 at 04:22:39PM -0700, Samuel Bobrowicz wrote:
-> I've been digging around the ov5640.c code for a few weeks now, these
-> look like some solid improvements. I'll give them a shot and let you
-> know how they work.
-
-Great, thanks!
-
-> On that note, I'm bringing up a module that uses dual lane MIPI with a
-> 12MHz fixed oscillator for xclk (Digilent's Pcam 5c). The mainline
-> version of the driver seems to only support xclk of 22MHz (or maybe
-> 24MHz), despite allowing xclk values from 6-24MHz. Will any of these
-> patches add support for a 12MHz xclk while in MIPI mode?
-
-My setup has a 24MHz crystal, and work with a parallel bus so I
-haven't been able to test yours. However, yeah, I guess my patches
-will improve your situation a lot.
-
-Maxime
-
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---nvduvdu2mhoyi34d
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrWGlEACgkQ0rTAlCFN
-r3Qapg//QmxLVwelJnlnpxqagmS11IN5GYQH84f8j2+GFVhz7qefYF+BN2v+y3nl
-tA6wivM9b4fIHnxHTxJr+FoQzg3T4y+anBcZ/4OBT6HSH2IdFkMKTmZ0jWJhV2b8
-eH05rB3wJldB3mQLgR+xf+8c3nyhisfqRhAyIKAiF3w2GYjqAdQu7rPZRj/ccvPU
-B1nn7Myl3VSvfd0UKw+gzi6QEyb/FyTSQbjZltu37rri8GrXhY0H+izYXfLtl8bL
-2qixdCJEwIm5C92K+fnze5I8r1Ix3kZNw119zTEJVSAEwJA0iXkQ7Taouc9LxaMp
-8CScmrAaBdAfVVKZ4zbHv89Cq2S2XcDaHI8Ry/gDNyojd8t611bpXoI6LAPwIn2/
-38GpezU4LqhJxWGD9qrMl2Maiv7dzW3qijiNGQYUyxJPT+VYAWiG8vPYjaf06IF6
-OHjdqVCrxfGAkHtirdgI/RYe0uPluqF+C4JPaimJUbGmL2DSATgwW6eyJjop+Ik5
-XHHRQM76XbHGUqCd91w7/BTRusq0/wqrWI2FMV7L8TAX0utIH0HuH/Qe0jxXiATV
-eRwJYpgZBJxR/hTiyDC+XePnOr8XaUngxwL1u0bdsFygmU15ZYtwU+6qVsXOy4sH
-Poy9D5co4n6IbVjFFPCbCzH2dDmb5XZIV3gksOSrphsJCv1PnDk=
-=gata
------END PGP SIGNATURE-----
-
---nvduvdu2mhoyi34d--
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 35e81f7c0d2f..bc5c024906e6 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -54,9 +54,10 @@ static int media_device_close(struct file *filp)
+ 	return 0;
+ }
+ 
+-static int media_device_get_info(struct media_device *dev,
+-				 struct media_device_info *info)
++static long media_device_get_info(struct media_device *dev, void *arg)
+ {
++	struct media_device_info *info = (struct media_device_info *)arg;
++
+ 	memset(info, 0, sizeof(*info));
+ 
+ 	if (dev->driver_name[0])
+@@ -93,9 +94,9 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
+ 	return NULL;
+ }
+ 
+-static long media_device_enum_entities(struct media_device *mdev,
+-				       struct media_entity_desc *entd)
++static long media_device_enum_entities(struct media_device *mdev, void *arg)
+ {
++	struct media_entity_desc *entd = (struct media_entity_desc *)arg;
+ 	struct media_entity *ent;
+ 
+ 	ent = find_entity(mdev, entd->id);
+@@ -146,9 +147,9 @@ static void media_device_kpad_to_upad(const struct media_pad *kpad,
+ 	upad->flags = kpad->flags;
+ }
+ 
+-static long media_device_enum_links(struct media_device *mdev,
+-				    struct media_links_enum *links)
++static long media_device_enum_links(struct media_device *mdev, void *arg)
+ {
++	struct media_links_enum *links = (struct media_links_enum *)arg;
+ 	struct media_entity *entity;
+ 
+ 	entity = find_entity(mdev, links->entity);
+@@ -195,9 +196,9 @@ static long media_device_enum_links(struct media_device *mdev,
+ 	return 0;
+ }
+ 
+-static long media_device_setup_link(struct media_device *mdev,
+-				    struct media_link_desc *linkd)
++static long media_device_setup_link(struct media_device *mdev, void *arg)
+ {
++	struct media_link_desc *linkd = (struct media_link_desc *)arg;
+ 	struct media_link *link = NULL;
+ 	struct media_entity *source;
+ 	struct media_entity *sink;
+@@ -225,9 +226,9 @@ static long media_device_setup_link(struct media_device *mdev,
+ 	return __media_entity_setup_link(link, linkd->flags);
+ }
+ 
+-static long media_device_get_topology(struct media_device *mdev,
+-				      struct media_v2_topology *topo)
++static long media_device_get_topology(struct media_device *mdev, void *arg)
+ {
++	struct media_v2_topology *topo = (struct media_v2_topology *)arg;
+ 	struct media_entity *entity;
+ 	struct media_interface *intf;
+ 	struct media_pad *pad;
+-- 
+2.17.0.441.gb46fe60e1d-goog
