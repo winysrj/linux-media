@@ -1,146 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45420 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751485AbeDGL5A (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2018 07:57:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: Re: [PATCH 02/16] media: omap3isp: allow it to build with COMPILE_TEST
-Date: Sat, 07 Apr 2018 14:56:59 +0300
-Message-ID: <4086814.xXeFl5mgbc@avalon>
-In-Reply-To: <20180405164444.441033be@vento.lan>
-References: <cover.1522949748.git.mchehab@s-opensource.com> <2233233.yQEdpcOfql@avalon> <20180405164444.441033be@vento.lan>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58624 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752808AbeD0M1I (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Apr 2018 08:27:08 -0400
+Date: Fri, 27 Apr 2018 15:27:06 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Yong Zhi <yong.zhi@intel.com>,
+        linux-media@vger.kernel.org, jian.xu.zheng@intel.com,
+        tfiga@chromium.org, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, mchehab@s-opensource.com
+Subject: Re: [PATCH 04/12] intel-ipu3: Add user space ABI definitions
+Message-ID: <20180427122705.yq44kci54wgnjnls@valkosipuli.retiisi.org.uk>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <1496695157-19926-5-git-send-email-yong.zhi@intel.com>
+ <32e8b3e1-f5b2-5add-6060-928e2609b326@xs4all.nl>
+ <20170607222259.GB21034@kekkonen.localdomain>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170607222259.GB21034@kekkonen.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Thursday, 5 April 2018 22:44:44 EEST Mauro Carvalho Chehab wrote:
-> Em Thu, 05 Apr 2018 21:30:27 +0300 Laurent Pinchart escreveu:
-> > On Thursday, 5 April 2018 20:54:02 EEST Mauro Carvalho Chehab wrote:
-> > > There aren't much things required for it to build with COMPILE_TEST.
-> > > It just needs to provide stub for an arm-dependent include.
-> > > 
-> > > Let's replicate the same solution used by ipmmu-vmsa, in order
-> > > to allow building omap3 with COMPILE_TEST.
-> > > 
-> > > The actual logic here came from this driver:
-> > >    drivers/iommu/ipmmu-vmsa.c
-> > > 
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > > ---
-> > > 
-> > >  drivers/media/platform/Kconfig        | 8 ++++----
-> > >  drivers/media/platform/omap3isp/isp.c | 7 +++++++
-> > >  2 files changed, 11 insertions(+), 4 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/platform/Kconfig
-> > > b/drivers/media/platform/Kconfig index c7a1cf8a1b01..03c9dfeb7781
-> > > 100644
-> > > --- a/drivers/media/platform/Kconfig
-> > > +++ b/drivers/media/platform/Kconfig
-> > > @@ -62,12 +62,12 @@ config VIDEO_MUX
-> > > 
-> > >  config VIDEO_OMAP3
-> > >  	tristate "OMAP 3 Camera support"
-> > > -	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-> > > +	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-> > >  	depends on HAS_DMA && OF
-> > > -	depends on OMAP_IOMMU
-> > > -	select ARM_DMA_USE_IOMMU
-> > > +	depends on ((ARCH_OMAP3 && OMAP_IOMMU) || COMPILE_TEST)
-> > > +	select ARM_DMA_USE_IOMMU if OMAP_IOMMU
-> > >  	select VIDEOBUF2_DMA_CONTIG
-> > > -	select MFD_SYSCON
-> > > +	select MFD_SYSCON if ARCH_OMAP3
-> > >  	select V4L2_FWNODE
-> > >  	---help---
-> > >  	  Driver for an OMAP 3 camera controller.
-> > > diff --git a/drivers/media/platform/omap3isp/isp.c
-> > > b/drivers/media/platform/omap3isp/isp.c index 8eb000e3d8fd..2a11a709aa4f
-> > > 100644
-> > > --- a/drivers/media/platform/omap3isp/isp.c
-> > > +++ b/drivers/media/platform/omap3isp/isp.c
-> > > @@ -61,7 +61,14 @@
-> > >  #include <linux/sched.h>
-> > >  #include <linux/vmalloc.h>
-> > > 
-> > > +#if defined(CONFIG_ARM) && !defined(CONFIG_IOMMU_DMA)
-> > >  #include <asm/dma-iommu.h>
-> > > +#else
-> > > +#define arm_iommu_create_mapping(...)	NULL
-> > > +#define arm_iommu_attach_device(...)	-ENODEV
-> > > +#define arm_iommu_release_mapping(...)	do {} while (0)
-> > > +#define arm_iommu_detach_device(...)	do {} while (0)
-> > > +#endif
+On Thu, Jun 08, 2017 at 01:22:59AM +0300, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Tue, Jun 06, 2017 at 10:28:26AM +0200, Hans Verkuil wrote:
+> > On 05/06/17 22:39, Yong Zhi wrote:
 > > 
-> > I don't think it's the job of a driver to define those stubs, sorry.
-> > Otherwise where do you stop ? If you have half of the code that is
-> > architecture- dependent, would you stub it ? And what if the stubs you
-> > define here generate warnings in static analyzers ?
+> > Commit message missing.
+> > 
+> > > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > > ---
+> > >  include/uapi/linux/intel-ipu3.h | 2182 +++++++++++++++++++++++++++++++++++++++
+> > >  1 file changed, 2182 insertions(+)
+> > >  create mode 100644 include/uapi/linux/intel-ipu3.h
+> > > 
+> > > diff --git a/include/uapi/linux/intel-ipu3.h b/include/uapi/linux/intel-ipu3.h
+> > > new file mode 100644
+> > > index 0000000..9e90aec
+> > > --- /dev/null
+> > > +++ b/include/uapi/linux/intel-ipu3.h
+> > > @@ -0,0 +1,2182 @@
+> > > +/*
+> > > + * Copyright (c) 2017 Intel Corporation.
+> > > + *
+> > > + * This program is free software; you can redistribute it and/or
+> > > + * modify it under the terms of the GNU General Public License version
+> > > + * 2 as published by the Free Software Foundation.
+> > > + *
+> > > + * This program is distributed in the hope that it will be useful,
+> > > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > > + * GNU General Public License for more details.
+> > > + */
+> > > +
+> > > +#ifndef __IPU3_UAPI_H
+> > > +#define __IPU3_UAPI_H
+> > > +
+> > > +#include <linux/types.h>
+> > > +
+> > > +#define IPU3_UAPI_ISP_VEC_ELEMS				64
+> > > +
+> > > +#define IMGU_ABI_PAD	__aligned(IPU3_UAPI_ISP_WORD_BYTES)
+> > > +#define IPU3_ALIGN	__attribute__((aligned(IPU3_UAPI_ISP_WORD_BYTES)))
+> > > +
+> > > +#define IPU3_UAPI_ISP_WORD_BYTES			32
+> > > +#define IPU3_UAPI_MAX_STRIPES				2
+> > > +
+> > > +/******************* ipu3_uapi_stats_3a *******************/
+> > > +
+> > > +#define IPU3_UAPI_MAX_BUBBLE_SIZE			10
+> > > +
+> > > +#define IPU3_UAPI_AE_COLORS				4
+> > > +#define IPU3_UAPI_AE_BINS				256
+> > > +
+> > > +#define IPU3_UAPI_AWB_MD_ITEM_SIZE			8
+> > > +#define IPU3_UAPI_AWB_MAX_SETS				60
+> > > +#define IPU3_UAPI_AWB_SET_SIZE				0x500
+> > > +#define IPU3_UAPI_AWB_SPARE_FOR_BUBBLES \
+> > > +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> > > +		 IPU3_UAPI_AWB_MD_ITEM_SIZE)
+> > > +#define IPU3_UAPI_AWB_MAX_BUFFER_SIZE \
+> > > +		(IPU3_UAPI_AWB_MAX_SETS * \
+> > > +		 (IPU3_UAPI_AWB_SET_SIZE + IPU3_UAPI_AWB_SPARE_FOR_BUBBLES))
+> > > +
+> > > +#define IPU3_UAPI_AF_MAX_SETS				24
+> > > +#define IPU3_UAPI_AF_MD_ITEM_SIZE			4
+> > > +#define IPU3_UAPI_AF_SPARE_FOR_BUBBLES \
+> > > +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> > > +		 IPU3_UAPI_AF_MD_ITEM_SIZE)
+> > > +#define IPU3_UAPI_AF_Y_TABLE_SET_SIZE			0x80
+> > > +#define IPU3_UAPI_AF_Y_TABLE_MAX_SIZE \
+> > > +	(IPU3_UAPI_AF_MAX_SETS * \
+> > > +	 (IPU3_UAPI_AF_Y_TABLE_SET_SIZE + IPU3_UAPI_AF_SPARE_FOR_BUBBLES) * \
+> > > +	 IPU3_UAPI_MAX_STRIPES)
+> > > +
+> > > +#define IPU3_UAPI_AWB_FR_MAX_SETS			24
+> > > +#define IPU3_UAPI_AWB_FR_MD_ITEM_SIZE			8
+> > > +#define IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE			0x100
+> > > +#define IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES \
+> > > +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> > > +		IPU3_UAPI_AWB_FR_MD_ITEM_SIZE)
+> > > +#define IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE \
+> > > +	(IPU3_UAPI_AWB_FR_MAX_SETS * \
+> > > +	(IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE + \
+> > > +	 IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES) * \
+> > > +	IPU3_UAPI_MAX_STRIPES)
+> > > +
+> > > +struct ipu3_uapi_grid_config {
+> > > +	__u8 width;				/* 6 or 7 (rgbs_grd_cfg) bits */
+> > > +	__u8 height;
+> > > +	__u16 block_width_log2:3;
+> > > +	__u16 block_height_log2:3;
+> > > +	__u16 height_per_slice:8;			/* default value 1 */
+> > > +	__u16 x_start;					/* 12 bits */
+> > > +	__u16 y_start;
+> > > +#define IPU3_UAPI_GRID_START_MASK			((1 << 12) - 1)
+> > > +#define IPU3_UAPI_GRID_Y_START_EN			(1 << 15)
+> > > +	__u16 x_end;					/* 12 bits */
+> > > +	__u16 y_end;
+> > > +};
+> > 
+> > You can't use bitfields in a public API. It is up to the compiler to
+> > decide how to place bitfields, so this is not a stable API.
 > 
-> I agree that we should avoid doing that as a general case, but see
-> below.
+> We-ell --- it's ABI dependent, yes. The sheer number of structs with bit
+> fields in the header will make using the definitions rather cumbersome if
+> not unwieldy. Therefore it'd be very nice to continue using bit fields.
 > 
-> > If you want to make drivers compile for all architectures, the APIs they
-> > use must be defined in linux/, not in asm/. They can be stubbed there
-> > when not implemented in a particular architecture, but not in the driver.
+> There are certainly caveats with bit fields but using them in the user
+> space interface is certainly not unforeseen. Just grep under
+> /usr/include/linux .
 > 
-> In this specific case, the same approach taken here is already needed
-> by the Renesas VMSA-compatible IPMMU driver, with, btw, is inside
-> drivers/iommu:
-> 
-> 	drivers/iommu/ipmmu-vmsa.c
+> Endianness is a major factor here. That said, the Intel x86 / x86-64
+> systems this driver works with are almost as certainly little endian as
+> the world is round. It'd still be good to fail compilation if anyone
+> attempts using the header in a big endian system.
 
-The reason there is different, the driver is shared by ARM32 and ARM64 
-platforms. Furthermore, there's an effort (or at least there was) to move away 
-from those APIs in the driver, but I think it has stalled.
+Replying to myself:
 
-> Also, this API is used only by 3 drivers [1]:
-> 
-> 	drivers/iommu/ipmmu-vmsa.c
-> 	drivers/iommu/mtk_iommu_v1.c
-> 	drivers/media/platform/omap3isp/isp.c
-> 
-> [1] as blamed by
-> 	git grep -l arm_iommu_create_mapping
+<URL:https://github.com/hjl-tools/x86-psABI/wiki/x86-64-psABI-1.0.pdf>
 
-The exynos driver also uses it.
+Bit fields are described on pages 15 and 16. From what can I tell from
+this, the endianness is a major factor here but other than that, it seems
+to me that this is fixed in ABI. Even if you wouldn't be dealing with bit
+fields and you'd have this device on a BE machine, I expect you'd need to
+make changes: the firmware in the device is still little endian.
 
-> That hardly seems to be an arch-specific iommu solution, but, instead, some
-> hack used by only three drivers or some legacy iommu binding.
-
-It's more complex than that. There are multiple IOMMU-related APIs on ARM, so 
-more recent than others, with different feature sets. While I agree that 
-drivers should move away from arm_iommu_create_mapping(), doing so requires 
-coordination between the IOMMU driver and the bus master driver (for instance 
-the omap3isp driver). It's not a trivial matter, but I'd love if someone 
-submitted patches :-)
-
-> The omap3isp is, btw, the only driver outside drivers/iommu that needs it.
-> 
-> So, it sounds that other driver uses some other approach, but hardly
-> it would be worth to change this driver to use something else.
-> 
-> So, better to stick with the same solution the Renesas driver used.
-
-I'm not responsible for that solution and I didn't think it was a good one at 
-the time it was introduced, but in any case it is not meant at all to support 
-COMPILE_TEST. I still don't think the omap3isp driver should declare stubs for 
-these functions for the purpose of supporting compile-testing on x86.
+Cc Mauro, too.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
