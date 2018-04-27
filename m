@@ -1,116 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:20043 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752392AbeDBO1d (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:27:33 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
-Subject: [PATCH 03/15] mmc: pxamci: remove the dmaengine compat need
-Date: Mon,  2 Apr 2018 16:26:44 +0200
-Message-Id: <20180402142656.26815-4-robert.jarzmik@free.fr>
-In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
-References: <20180402142656.26815-1-robert.jarzmik@free.fr>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:37796 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759307AbeD0VsG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Apr 2018 17:48:06 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH] v4l: vsp1: Fix vsp1_regs.h license header
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+References: <20180427214647.892-1-laurent.pinchart+renesas@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <038b1c6d-6253-d8b5-80f9-2826ae59dcc0@ideasonboard.com>
+Date: Fri, 27 Apr 2018 22:48:01 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180427214647.892-1-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the pxa architecture switched towards the dmaengine slave map, the
-old compatibility mechanism to acquire the dma requestor line number and
-priority are not needed anymore.
+On 27/04/18 22:46, Laurent Pinchart wrote:
+> All source files of the vsp1 driver are licensed under the GPLv2+ except
+> for vsp1_regs.h which is licensed under GPLv2. This is caused by a bad
+> copy&paste that dates back from the initial version of the driver. Fix
+> it.
+> 
+> Cc: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
+> Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-This patch simplifies the dma resource acquisition, using the more
-generic function dma_request_slave_channel().
+Acked-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/mmc/host/pxamci.c | 29 +++--------------------------
- 1 file changed, 3 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/mmc/host/pxamci.c b/drivers/mmc/host/pxamci.c
-index c763b404510f..6c94474e36f4 100644
---- a/drivers/mmc/host/pxamci.c
-+++ b/drivers/mmc/host/pxamci.c
-@@ -24,7 +24,6 @@
- #include <linux/interrupt.h>
- #include <linux/dmaengine.h>
- #include <linux/dma-mapping.h>
--#include <linux/dma/pxa-dma.h>
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/mmc/host.h>
-@@ -637,10 +636,8 @@ static int pxamci_probe(struct platform_device *pdev)
- {
- 	struct mmc_host *mmc;
- 	struct pxamci_host *host = NULL;
--	struct resource *r, *dmarx, *dmatx;
--	struct pxad_param param_rx, param_tx;
-+	struct resource *r;
- 	int ret, irq, gpio_cd = -1, gpio_ro = -1, gpio_power = -1;
--	dma_cap_mask_t mask;
- 
- 	ret = pxamci_of_init(pdev);
- 	if (ret)
-@@ -739,34 +736,14 @@ static int pxamci_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, mmc);
- 
--	if (!pdev->dev.of_node) {
--		dmarx = platform_get_resource(pdev, IORESOURCE_DMA, 0);
--		dmatx = platform_get_resource(pdev, IORESOURCE_DMA, 1);
--		if (!dmarx || !dmatx) {
--			ret = -ENXIO;
--			goto out;
--		}
--		param_rx.prio = PXAD_PRIO_LOWEST;
--		param_rx.drcmr = dmarx->start;
--		param_tx.prio = PXAD_PRIO_LOWEST;
--		param_tx.drcmr = dmatx->start;
--	}
--
--	dma_cap_zero(mask);
--	dma_cap_set(DMA_SLAVE, mask);
--
--	host->dma_chan_rx =
--		dma_request_slave_channel_compat(mask, pxad_filter_fn,
--						 &param_rx, &pdev->dev, "rx");
-+	host->dma_chan_rx = dma_request_slave_channel(&pdev->dev, "rx");
- 	if (host->dma_chan_rx == NULL) {
- 		dev_err(&pdev->dev, "unable to request rx dma channel\n");
- 		ret = -ENODEV;
- 		goto out;
- 	}
- 
--	host->dma_chan_tx =
--		dma_request_slave_channel_compat(mask, pxad_filter_fn,
--						 &param_tx,  &pdev->dev, "tx");
-+	host->dma_chan_tx = dma_request_slave_channel(&pdev->dev, "tx");
- 	if (host->dma_chan_tx == NULL) {
- 		dev_err(&pdev->dev, "unable to request tx dma channel\n");
- 		ret = -ENODEV;
--- 
-2.11.0
+> ---
+> Iwamatsu-san, Kieran, Sergei, Niklas, Wolfram,
+> 
+> While working on the VSP1 driver I noticed that all source files are
+> licensed under the GPLv2+ except for vsp1_regs.h which is licensed under
+> GPLv2. I'd like to fix this inconsistency. As you have all contributed
+> to that file, could you please provide your explicit ack if you agree to
+> this change ?
+> ---
+>  drivers/media/platform/vsp1/vsp1_regs.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+> index 0d249ff9f564..e82661216c1d 100644
+> --- a/drivers/media/platform/vsp1/vsp1_regs.h
+> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
+> @@ -1,4 +1,4 @@
+> -/* SPDX-License-Identifier: GPL-2.0 */
+> +/* SPDX-License-Identifier: GPL-2.0+ */
+>  /*
+>   * vsp1_regs.h  --  R-Car VSP1 Registers Definitions
+>   *
+> 
