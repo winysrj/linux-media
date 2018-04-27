@@ -1,70 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:38493 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753963AbeD2RNx (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:34229 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935189AbeD0OZL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Apr 2018 13:13:53 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v4 07/14] media: ov772x: omit consumer ID when getting clock reference
-Date: Mon, 30 Apr 2018 02:13:06 +0900
-Message-Id: <1525021993-17789-8-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+        Fri, 27 Apr 2018 10:25:11 -0400
+Received: by mail-qt0-f195.google.com with SMTP id m5-v6so2474802qti.1
+        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2018 07:25:10 -0700 (PDT)
+Received: from mail-qk0-f170.google.com (mail-qk0-f170.google.com. [209.85.220.170])
+        by smtp.gmail.com with ESMTPSA id l1sm1083899qki.32.2018.04.27.07.25.09
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 27 Apr 2018 07:25:09 -0700 (PDT)
+Received: by mail-qk0-f170.google.com with SMTP id a202so1509448qkg.3
+        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2018 07:25:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <18b9e776-3558-30ed-f616-a0ba8e4d177d@iki.fi>
+References: <CAAZRmGz8iTDSZ6S=05V0JKDXBnS47e43MBBSvnGtrVv-QioirA@mail.gmail.com>
+ <20180409091441.GX4043@hirez.programming.kicks-ass.net> <CAAZRmGw9DTHX65cYch6ozjGejMnDNQx_aNF-RYPRo+E4COEoRA@mail.gmail.com>
+ <18b9e776-3558-30ed-f616-a0ba8e4d177d@iki.fi>
+From: Olli Salonen <olli.salonen@iki.fi>
+Date: Fri, 27 Apr 2018 16:25:08 +0200
+Message-ID: <CAAZRmGzvh_R_JPkD6sNC_qQddTrv0zCi3TEdGd-Si9qTc2HrLg@mail.gmail.com>
+Subject: Re: Regression: DVBSky S960 USB tuner doesn't work in 4.10 or newer
+To: Antti Palosaari <crope@iki.fi>
+Cc: Peter Zijlstra <peterz@infradead.org>,
+        Nibble Max <nibble.max@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        wsa@the-dreams.de
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the ov772x driver obtains a clock with a specific consumer ID.
-As there's a single clock for this driver, we could omit clock-names
-property in device tree by passing NULL as a consumer ID to clk_get().
+Thanks for the suggestion Antti.
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Tested-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* v4
-- New patch
+I've tried to add a delay in various places, but haven't seen any
+improvement. However, what I did saw was that if I added an msleep
+after the lock:
 
- arch/sh/boards/mach-migor/setup.c | 2 +-
- drivers/media/i2c/ov772x.c        | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+static int dvbsky_usb_generic_rw(struct dvb_usb_device *d,
+                u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
+{
+        int ret;
+        struct dvbsky_state *state = d_to_priv(d);
 
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index 73b9ee4..11f8001 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -593,7 +593,7 @@ static int __init migor_devices_setup(void)
- 	}
- 
- 	/* Add a clock alias for ov7725 xclk source. */
--	clk_add_alias("xclk", "0-0021", "video_clk", NULL);
-+	clk_add_alias(NULL, "0-0021", "video_clk", NULL);
- 
- 	/* Register GPIOs for video sources. */
- 	gpiod_add_lookup_table(&ov7725_gpios);
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index 97a65ce..f939e28 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -1300,7 +1300,7 @@ static int ov772x_probe(struct i2c_client *client,
- 	if (priv->hdl.error)
- 		return priv->hdl.error;
- 
--	priv->clk = clk_get(&client->dev, "xclk");
-+	priv->clk = clk_get(&client->dev, NULL);
- 	if (IS_ERR(priv->clk)) {
- 		dev_err(&client->dev, "Unable to get xclk clock\n");
- 		ret = PTR_ERR(priv->clk);
--- 
-2.7.4
+        mutex_lock(&d->usb_mutex);
+        msleep(20);
+
+The error was seen very within a minute. If I increased the msleep to
+50, it failed within seconds. This doesn't seem to make sense to me.
+This is the only function where usb_mutex is used. If the mutex is
+held for a longer time, the next attempt to lock the mutex should just
+be delayed a bit, no?
+
+Cheers,
+-olli
+
+On 18 April 2018 at 10:49, Antti Palosaari <crope@iki.fi> wrote:
+>
+> On 04/18/2018 07:49 AM, Olli Salonen wrote:
+>>
+>> Thank you for your response Peter!
+>>
+>> Indeed, it seems strange. dvbsky.c driver seems to use mutex_lock in
+>> very much the same way as many other drivers. I've now confirmed that
+>> I can get a 4.10 kernel with working DVBSky S960 by reverting the
+>> following 4 patches:
+>>
+>> 549bdd3 Revert "locking/mutex: Add lock handoff to avoid starvation"
+>> 3210f31 Revert "locking/mutex: Restructure wait loop"
+>> 418a170 Revert "locking/mutex: Simplify some ww_mutex code in
+>> __mutex_lock_common()"
+>> 0b1fb8f Revert "locking/mutex: Enable optimistic spinning of woken waiter"
+>> c470abd Linux 4.10
+>
+>
+> These kind of issues tend to be timing issues very often. Just add some
+> sleeps to i2c adapter algo / usb control messages and test.
+>
+> regards
+> Antti
+>
+>
+>
+>
+> --
+> http://palosaari.fi/
