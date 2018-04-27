@@ -1,114 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:32928 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752234AbeDIOUe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Apr 2018 10:20:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv11 PATCH 13/29] v4l2-ctrls: use ref in helper instead of ctrl
-Date: Mon,  9 Apr 2018 16:20:10 +0200
-Message-Id: <20180409142026.19369-14-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+Received: from ns.mm-sol.com ([37.157.136.199]:58139 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751566AbeD0Lla (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Apr 2018 07:41:30 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hverkuil@xs4all.nl, sakari.ailus@iki.fi,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH 1/2] media: v4l: Add new 2X8 10-bit grayscale media bus code
+Date: Fri, 27 Apr 2018 14:40:38 +0300
+Message-Id: <1524829239-4664-2-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1524829239-4664-1-git-send-email-todor.tomov@linaro.org>
+References: <1524829239-4664-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The code will be called MEDIA_BUS_FMT_Y10_2X8_PADHI_LE.
+It is similar to MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE
+but MEDIA_BUS_FMT_Y10_2X8_PADHI_LE describes grayscale
+data.
 
-The next patch needs the reference to a control instead of the
-control itself, so change struct v4l2_ctrl_helper accordingly.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ Documentation/media/uapi/v4l/subdev-formats.rst | 72 +++++++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h           |  3 +-
+ 2 files changed, 74 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 3c1b00baa8d0..da4cc1485dc4 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -37,8 +37,8 @@
- struct v4l2_ctrl_helper {
- 	/* Pointer to the control reference of the master control */
- 	struct v4l2_ctrl_ref *mref;
--	/* The control corresponding to the v4l2_ext_control ID field. */
--	struct v4l2_ctrl *ctrl;
-+	/* The control ref corresponding to the v4l2_ext_control ID field. */
-+	struct v4l2_ctrl_ref *ref;
- 	/* v4l2_ext_control index of the next control belonging to the
- 	   same cluster, or 0 if there isn't any. */
- 	u32 next;
-@@ -2887,6 +2887,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		ref = find_ref_lock(hdl, id);
- 		if (ref == NULL)
- 			return -EINVAL;
-+		h->ref = ref;
- 		ctrl = ref->ctrl;
- 		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
- 			return -EINVAL;
-@@ -2909,7 +2910,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		}
- 		/* Store the ref to the master control of the cluster */
- 		h->mref = ref;
--		h->ctrl = ctrl;
- 		/* Initially set next to 0, meaning that there is no other
- 		   control in this helper array belonging to the same
- 		   cluster */
-@@ -2994,7 +2994,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 	cs->error_idx = cs->count;
+diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+index 9fcabe7..c4fb0bf 100644
+--- a/Documentation/media/uapi/v4l/subdev-formats.rst
++++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+@@ -4315,6 +4315,78 @@ the following codes.
+       - y\ :sub:`2`
+       - y\ :sub:`1`
+       - y\ :sub:`0`
++    * .. _MEDIA-BUS-FMT-Y10-2X8-PADHI_LE:
++
++      - MEDIA_BUS_FMT_Y10_2X8_PADHI_LE
++      - 0x202c
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      - y\ :sub:`7`
++      - y\ :sub:`6`
++      - y\ :sub:`5`
++      - y\ :sub:`4`
++      - y\ :sub:`3`
++      - y\ :sub:`2`
++      - y\ :sub:`1`
++      - y\ :sub:`0`
++    * -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      - 0
++      - 0
++      - 0
++      - 0
++      - 0
++      - 0
++      - y\ :sub:`9`
++      - y\ :sub:`8`
+     * .. _MEDIA-BUS-FMT-UYVY10-2X10:
  
- 	for (i = 0; !ret && i < cs->count; i++)
--		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
-+		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
- 			ret = -EACCES;
+       - MEDIA_BUS_FMT_UYVY10_2X10
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 9e35117..d6a5a3b 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -62,7 +62,7 @@
+ #define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
+ #define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
  
- 	for (i = 0; !ret && i < cs->count; i++) {
-@@ -3029,7 +3029,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 
- 			do {
- 				ret = ctrl_to_user(cs->controls + idx,
--						   helpers[idx].ctrl);
-+						   helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
-@@ -3168,7 +3168,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
- 
- 	cs->error_idx = cs->count;
- 	for (i = 0; i < cs->count; i++) {
--		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
-+		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
- 		union v4l2_ctrl_ptr p_new;
- 
- 		cs->error_idx = i;
-@@ -3280,7 +3280,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 			do {
- 				/* Check if the auto control is part of the
- 				   list, and remember the new value. */
--				if (helpers[tmp_idx].ctrl == master)
-+				if (helpers[tmp_idx].ref->ctrl == master)
- 					new_auto_val = cs->controls[tmp_idx].value;
- 				tmp_idx = helpers[tmp_idx].next;
- 			} while (tmp_idx);
-@@ -3293,7 +3293,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		/* Copy the new caller-supplied control values.
- 		   user_to_new() sets 'is_new' to 1. */
- 		do {
--			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
-+			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
- 
- 			ret = user_to_new(cs->controls + idx, ctrl);
- 			if (!ret && ctrl->is_ptr)
-@@ -3309,7 +3309,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 			idx = i;
- 			do {
- 				ret = new_to_user(cs->controls + idx,
--						helpers[idx].ctrl);
-+						helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
+-/* YUV (including grey) - next is	0x202c */
++/* YUV (including grey) - next is	0x202d */
+ #define MEDIA_BUS_FMT_Y8_1X8			0x2001
+ #define MEDIA_BUS_FMT_UV8_1X8			0x2015
+ #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
+@@ -74,6 +74,7 @@
+ #define MEDIA_BUS_FMT_YUYV8_2X8			0x2008
+ #define MEDIA_BUS_FMT_YVYU8_2X8			0x2009
+ #define MEDIA_BUS_FMT_Y10_1X10			0x200a
++#define MEDIA_BUS_FMT_Y10_2X8_PADHI_LE		0x202c
+ #define MEDIA_BUS_FMT_UYVY10_2X10		0x2018
+ #define MEDIA_BUS_FMT_VYUY10_2X10		0x2019
+ #define MEDIA_BUS_FMT_YUYV10_2X10		0x200b
 -- 
-2.16.3
+2.7.4
