@@ -1,76 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway21.websitewelcome.com ([192.185.45.154]:37784 "EHLO
-        gateway21.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932079AbeDWRho (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:43604 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757562AbeD0QdV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 13:37:44 -0400
-Received: from cm17.websitewelcome.com (cm17.websitewelcome.com [100.42.49.20])
-        by gateway21.websitewelcome.com (Postfix) with ESMTP id 5BE22400D741A
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 12:37:44 -0500 (CDT)
-Date: Mon, 23 Apr 2018 12:37:41 -0500
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>, Jonathan Corbet <corbet@lwn.net>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org
-Subject: [PATCH 00/11] fix potential Spectre variant 1 issues
-Message-ID: <cover.1524499368.git.gustavo@embeddedor.com>
+        Fri, 27 Apr 2018 12:33:21 -0400
+Date: Fri, 27 Apr 2018 13:33:11 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Nibble Max <nibble.max@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>, wsa@the-dreams.de
+Subject: Re: Regression: DVBSky S960 USB tuner doesn't work in 4.10 or newer
+Message-ID: <20180427133311.5789da57@vento.lan>
+In-Reply-To: <CAAZRmGzvh_R_JPkD6sNC_qQddTrv0zCi3TEdGd-Si9qTc2HrLg@mail.gmail.com>
+References: <CAAZRmGz8iTDSZ6S=05V0JKDXBnS47e43MBBSvnGtrVv-QioirA@mail.gmail.com>
+        <20180409091441.GX4043@hirez.programming.kicks-ass.net>
+        <CAAZRmGw9DTHX65cYch6ozjGejMnDNQx_aNF-RYPRo+E4COEoRA@mail.gmail.com>
+        <18b9e776-3558-30ed-f616-a0ba8e4d177d@iki.fi>
+        <CAAZRmGzvh_R_JPkD6sNC_qQddTrv0zCi3TEdGd-Si9qTc2HrLg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset aims to fix various media platform and media usb
-cases where we have user controlled array dereferences that could
-be exploited due to the Spectre variant 1 vulnerability. All were
-reported by Dan Carpenter.
+Em Fri, 27 Apr 2018 16:25:08 +0200
+Olli Salonen <olli.salonen@iki.fi> escreveu:
 
-Notice that given that speculation windows are large, the policy is
-to kill the speculation on the first load and not worry if it can be
-completed with a dependent load/store [1].
+> Thanks for the suggestion Antti.
+> 
+> I've tried to add a delay in various places, but haven't seen any
+> improvement. However, what I did saw was that if I added an msleep
+> after the lock:
+> 
+> static int dvbsky_usb_generic_rw(struct dvb_usb_device *d,
+>                 u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
+> {
+>         int ret;
+>         struct dvbsky_state *state = d_to_priv(d);
+> 
+>         mutex_lock(&d->usb_mutex);
+>         msleep(20);
+> 
+> The error was seen very within a minute. If I increased the msleep to
+> 50, it failed within seconds. This doesn't seem to make sense to me.
+> This is the only function where usb_mutex is used. If the mutex is
+> held for a longer time, the next attempt to lock the mutex should just
+> be delayed a bit, no?
 
-[1] https://marc.info/?l=linux-kernel&m=152449131114778&w=2
+I don't like the idea of having two mutexes there to protect reading/writing
+to data one for "generic" r/w ops, and another one just for streaming
+control, with ends by calling the "generic" mutex.
 
-Thanks
+IMHO, I would get rid of one of the mutexes, e. g. something like the
+patch below (untested).
 
-Gustavo A. R. Silva (11):
-  media: tm6000: fix potential Spectre variant 1
-  exynos4-is: mipi-csis: fix potential Spectre variant 1
-  fsl-viu: fix potential Spectre variant 1
-  marvell-ccic: mcam-core: fix potential Spectre variant 1
-  omap_vout: fix potential Spectre variant 1
-  rcar-v4l2: fix potential Spectre variant 1
-  rcar_drif: fix potential Spectre variant 1
-  sh_vou: fix potential Spectre variant 1
-  vimc-debayer: fix potential Spectre variant 1
-  vivid-sdr-cap: fix potential Spectre variant 1
-  vsp1_rwpf: fix potential Spectre variant 1
+Regards,
+Mauro
 
- drivers/media/platform/exynos4-is/mipi-csis.c   | 5 ++++-
- drivers/media/platform/fsl-viu.c                | 8 ++++----
- drivers/media/platform/marvell-ccic/mcam-core.c | 3 +++
- drivers/media/platform/omap/omap_vout.c         | 3 +++
- drivers/media/platform/rcar-vin/rcar-v4l2.c     | 4 +++-
- drivers/media/platform/rcar_drif.c              | 4 +++-
- drivers/media/platform/sh_vou.c                 | 3 +++
- drivers/media/platform/vimc/vimc-debayer.c      | 5 ++++-
- drivers/media/platform/vivid/vivid-sdr-cap.c    | 6 ++++++
- drivers/media/platform/vsp1/vsp1_rwpf.c         | 3 +++
- drivers/media/usb/tm6000/tm6000-video.c         | 2 ++
- 11 files changed, 38 insertions(+), 8 deletions(-)
+media: dvbsky: use just one mutex for serializing device R/W ops
 
--- 
-2.7.4
+Right now, there are two mutexes serializing r/w ops: one "generic"
+and another one specifically for stream on/off.
+
+Clean it a little bit, getting rid of one of the mutexes.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+
+diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+index 43eb82884555..50553975c39d 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
++++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+@@ -31,7 +31,6 @@ MODULE_PARM_DESC(disable_rc, "Disable inbuilt IR receiver.");
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+ struct dvbsky_state {
+-	struct mutex stream_mutex;
+ 	u8 ibuf[DVBSKY_BUF_LEN];
+ 	u8 obuf[DVBSKY_BUF_LEN];
+ 	u8 last_lock;
+@@ -68,18 +67,17 @@ static int dvbsky_usb_generic_rw(struct dvb_usb_device *d,
+ 
+ static int dvbsky_stream_ctrl(struct dvb_usb_device *d, u8 onoff)
+ {
+-	struct dvbsky_state *state = d_to_priv(d);
+ 	int ret;
+-	u8 obuf_pre[3] = { 0x37, 0, 0 };
+-	u8 obuf_post[3] = { 0x36, 3, 0 };
++	static u8 obuf_pre[3] = { 0x37, 0, 0 };
++	static u8 obuf_post[3] = { 0x36, 3, 0 };
+ 
+-	mutex_lock(&state->stream_mutex);
+-	ret = dvbsky_usb_generic_rw(d, obuf_pre, 3, NULL, 0);
++	mutex_lock(&d->usb_mutex);
++	ret = dvb_usbv2_generic_rw_locked(d, obuf_pre, 3, NULL, 0);
+ 	if (!ret && onoff) {
+ 		msleep(20);
+-		ret = dvbsky_usb_generic_rw(d, obuf_post, 3, NULL, 0);
++		ret = dvb_usbv2_generic_rw_locked(d, obuf_post, 3, NULL, 0);
+ 	}
+-	mutex_unlock(&state->stream_mutex);
++	mutex_unlock(&d->usb_mutex);
+ 	return ret;
+ }
+ 
+@@ -744,8 +742,6 @@ static int dvbsky_init(struct dvb_usb_device *d)
+ 	if (ret)
+ 		return ret;
+ 	*/
+-	mutex_init(&state->stream_mutex);
+-
+ 	state->last_lock = 0;
+ 
+ 	return 0;
+
+
+
+Thanks,
+Mauro
