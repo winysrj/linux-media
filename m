@@ -1,97 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:19708 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752600AbeDBO2H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:28:07 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Robert Jarzmik <robert.jarzmik@renault.com>,
-        "yuval.shaia@oracle.com" <yuval.shaia@oracle.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
-Subject: [PATCH 07/15] net: smc91x: remove the dmaengine compat need
-Date: Mon,  2 Apr 2018 16:26:48 +0200
-Message-Id: <20180402142656.26815-8-robert.jarzmik@free.fr>
-In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
-References: <20180402142656.26815-1-robert.jarzmik@free.fr>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:37728 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759305AbeD0Vqh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Apr 2018 17:46:37 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: [PATCH] v4l: vsp1: Fix vsp1_regs.h license header
+Date: Sat, 28 Apr 2018 00:46:47 +0300
+Message-Id: <20180427214647.892-1-laurent.pinchart+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Robert Jarzmik <robert.jarzmik@renault.com>
+All source files of the vsp1 driver are licensed under the GPLv2+ except
+for vsp1_regs.h which is licensed under GPLv2. This is caused by a bad
+copy&paste that dates back from the initial version of the driver. Fix
+it.
 
-As the pxa architecture switched towards the dmaengine slave map, the
-old compatibility mechanism to acquire the dma requestor line number and
-priority are not needed anymore.
-
-This patch simplifies the dma resource acquisition, using the more
-generic function dma_request_slave_channel().
-
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/net/ethernet/smsc/smc91x.c | 12 +-----------
- drivers/net/ethernet/smsc/smc91x.h |  1 -
- 2 files changed, 1 insertion(+), 12 deletions(-)
+Iwamatsu-san, Kieran, Sergei, Niklas, Wolfram,
 
-diff --git a/drivers/net/ethernet/smsc/smc91x.c b/drivers/net/ethernet/smsc/smc91x.c
-index 080428762858..4c600f430f6d 100644
---- a/drivers/net/ethernet/smsc/smc91x.c
-+++ b/drivers/net/ethernet/smsc/smc91x.c
-@@ -2018,18 +2018,8 @@ static int smc_probe(struct net_device *dev, void __iomem *ioaddr,
- 	lp->cfg.flags |= SMC91X_USE_DMA;
- #  endif
- 	if (lp->cfg.flags & SMC91X_USE_DMA) {
--		dma_cap_mask_t mask;
--		struct pxad_param param;
--
--		dma_cap_zero(mask);
--		dma_cap_set(DMA_SLAVE, mask);
--		param.prio = PXAD_PRIO_LOWEST;
--		param.drcmr = -1UL;
--
- 		lp->dma_chan =
--			dma_request_slave_channel_compat(mask, pxad_filter_fn,
--							 &param, &dev->dev,
--							 "data");
-+			dma_request_slave_channel(lp->device, "data");
- 	}
- #endif
- 
-diff --git a/drivers/net/ethernet/smsc/smc91x.h b/drivers/net/ethernet/smsc/smc91x.h
-index 08b17adf0a65..e849b6c2fa60 100644
---- a/drivers/net/ethernet/smsc/smc91x.h
-+++ b/drivers/net/ethernet/smsc/smc91x.h
-@@ -327,7 +327,6 @@ struct smc_local {
-  * as RX which can overrun memory and lose packets.
-  */
- #include <linux/dma-mapping.h>
--#include <linux/dma/pxa-dma.h>
- 
- #ifdef SMC_insl
- #undef SMC_insl
+While working on the VSP1 driver I noticed that all source files are
+licensed under the GPLv2+ except for vsp1_regs.h which is licensed under
+GPLv2. I'd like to fix this inconsistency. As you have all contributed
+to that file, could you please provide your explicit ack if you agree to
+this change ?
+---
+ drivers/media/platform/vsp1/vsp1_regs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index 0d249ff9f564..e82661216c1d 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -1,4 +1,4 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
++/* SPDX-License-Identifier: GPL-2.0+ */
+ /*
+  * vsp1_regs.h  --  R-Car VSP1 Registers Definitions
+  *
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
