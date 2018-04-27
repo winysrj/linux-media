@@ -1,139 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:50448 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:37772 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753109AbeDWJQ2 (ORCPT
+        with ESMTP id S1759305AbeD0VrM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 05:16:28 -0400
-Subject: Re: [PATCH] media: i2c: adv748x: Fix pixel rate values
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+        Fri, 27 Apr 2018 17:47:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
 Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-renesas-soc@vger.kernel.org
-References: <20180421124444.1652-1-laurent.pinchart+renesas@ideasonboard.com>
- <e5490bf5-38a0-4536-ed2d-c2d63edb6c39@ideasonboard.com>
- <19059407.fUISklDEzf@avalon>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <4b71237d-b5d1-7eae-0541-cae9e68c0c83@ideasonboard.com>
-Date: Mon, 23 Apr 2018 10:16:23 +0100
+Subject: Re: [PATCH v2 1/8] v4l: vsp1: Use SPDX license headers
+Date: Sat, 28 Apr 2018 00:47:25 +0300
+Message-ID: <9975058.6n0K4TYcZK@avalon>
+In-Reply-To: <45a7f1d7-9802-9b3b-c964-2f37c113cc8e@ideasonboard.com>
+References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com> <20180422223430.16407-2-laurent.pinchart+renesas@ideasonboard.com> <45a7f1d7-9802-9b3b-c964-2f37c113cc8e@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <19059407.fUISklDEzf@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Kieran,
 
-On 23/04/18 10:08, Laurent Pinchart wrote:
-> Hi Kieran,
-> 
-> On Monday, 23 April 2018 11:59:04 EEST Kieran Bingham wrote:
->> On 21/04/18 13:44, Laurent Pinchart wrote:
->>> The pixel rate, as reported by the V4L2_CID_PIXEL_RATE control, must
->>> include both horizontal and vertical blanking. Both the AFE and HDMI
->>> receiver program it incorrectly:
->>>
->>> - The HDMI receiver goes to the trouble of removing blanking to compute
->>> the rate of active pixels. This is easy to fix by removing the
->>> computation and returning the incoming pixel clock rate directly.
->>>
->>> - The AFE performs similar calculation, while it should simply return
->>> the fixed pixel rate for analog sources, mandated by the ADV748x to be
->>> 28.63636 MHz.
->>>
->>> Signed-off-by: Laurent Pinchart
->>> <laurent.pinchart+renesas@ideasonboard.com>
->>
->> This looks quite reasonable, and simplifies the code. Win win.
->>
->> I presume this will have implications on the pixel receiver side (VIN in our
->> case)... are there changes required there, or was it 'just wrong' here.
-> 
-> No change should be required on the VIN side. This patch was prompted by a BSP 
-> patch for VIN that aimed at fixing the same issue, but in the wrong location. 
-> See message 2461975.rTQ0tvdgNJ@avalon in the "[periperi] 2018-04-05 Multimedia 
-> group chat report" thread (Date: Sat, 21 Apr 2018 15:49:49 +0300).
-> 
->> Either way,
->>
->> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> As you maintain the adv748x driver, could you make sure this patch gets 
-> upstream ? :-)
+On Saturday, 28 April 2018 00:25:51 EEST Kieran Bingham wrote:
+> Hi Laurent,
+>=20
+> Thank you for the patch, and going through the whole driver for this upda=
+te.
+> On 22/04/18 23:34, Laurent Pinchart wrote:
+> > Adopt the SPDX license identifier headers to ease license compliance
+> > management. All files in the driver are licensed under the GPLv2+ except
+> > for the vsp1_regs.h file which is licensed under the GPLv2. This is
+> > likely an oversight, but fixing this requires contacting the copyright
+> > owners and is out of scope for this patch.
+>=20
+> I agree that's out of scope for this patch, but it's not too exhaustive a
+> list to correct at a later date:
+>=20
+> git shortlog -e -n -s -- ./drivers/media/platform/vsp1/vsp1_regs.h
+>     19  Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+>      5  Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
+>      3  Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>      2  Geert Uytterhoeven <geert+renesas@glider.be>
+>      2  Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>      1  Linus Torvalds <torvalds@linux-foundation.org>
+>      1  Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+>      1  Wolfram Sang <wsa+renesas@sang-engineering.com>
+>=20
+> (Both Geert and Linus are merge commits there)
 
-Yes, that's fine.
-I'll collect the patch and test it the next time I spin up a Salvator-XS.
+I agree with you, I've sent a separate patch.
 
-Regards
+> > While at it fix the file descriptions to match file names where copy and
+> > paste error occurred.
+> >=20
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+>=20
+> It's crazy that we have two types of comment style for the SPDX identifie=
+r -
+> but that's not a fault in this patch, so:
+>=20
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>=20
+> > ---
+> >=20
+> >  drivers/media/platform/vsp1/vsp1.h        | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_brx.c    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_brx.h    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_clu.c    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_clu.h    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_dl.c     | 8 ++------
+> >  drivers/media/platform/vsp1/vsp1_dl.h     | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_drm.c    | 8 ++------
+> >  drivers/media/platform/vsp1/vsp1_drm.h    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_drv.c    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_entity.c | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_entity.h | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_hgo.c    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_hgo.h    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_hgt.c    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_hgt.h    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_histo.c  | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_histo.h  | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_hsit.c   | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_hsit.h   | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_lif.c    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_lif.h    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_lut.c    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_lut.h    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_pipe.c   | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_pipe.h   | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_regs.h   | 5 +----
+> >  drivers/media/platform/vsp1/vsp1_rpf.c    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_rwpf.c   | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_rwpf.h   | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_sru.c    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_sru.h    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_uds.c    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_uds.h    | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_video.c  | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_video.h  | 6 +-----
+> >  drivers/media/platform/vsp1/vsp1_wpf.c    | 6 +-----
+> >  37 files changed, 39 insertions(+), 186 deletions(-)
 
-Kieran
+=2D-=20
+Regards,
 
-
->>> ---
->>>
->>>  drivers/media/i2c/adv748x/adv748x-afe.c  | 11 +++++------
->>>  drivers/media/i2c/adv748x/adv748x-hdmi.c |  8 +-------
->>>  2 files changed, 6 insertions(+), 13 deletions(-)
->>>
->>> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c
->>> b/drivers/media/i2c/adv748x/adv748x-afe.c index
->>> 61514bae7e5c..3e18d5ae813b 100644
->>> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
->>> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
->>> @@ -321,17 +321,16 @@ static const struct v4l2_subdev_video_ops
->>> adv748x_afe_video_ops = {
->>>  static int adv748x_afe_propagate_pixelrate(struct adv748x_afe *afe)
->>>  {
->>>  	struct v4l2_subdev *tx;
->>> -	unsigned int width, height, fps;
->>>
->>>  	tx = adv748x_get_remote_sd(&afe->pads[ADV748X_AFE_SOURCE]);
->>>  	if (!tx)
->>>  		return -ENOLINK;
->>>
->>> -	width = 720;
->>> -	height = afe->curr_norm & V4L2_STD_525_60 ? 480 : 576;
->>> -	fps = afe->curr_norm & V4L2_STD_525_60 ? 30 : 25;
->>> -
->>> -	return adv748x_csi2_set_pixelrate(tx, width * height * fps);
->>> +	/*
->>> +	 * The ADV748x samples analog video signals using an externally 
-> supplied
->>> +	 * clock whose frequency is required to be 28.63636 MHz.
->>> +	 */
->>> +	return adv748x_csi2_set_pixelrate(tx, 28636360);
->>>  }
->>>  
->>>  static int adv748x_afe_enum_mbus_code(struct v4l2_subdev *sd,
->>> diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c
->>> b/drivers/media/i2c/adv748x/adv748x-hdmi.c index
->>> 10d229a4f088..aecc2a84dfec 100644
->>> --- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
->>> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
->>> @@ -402,8 +402,6 @@ static int adv748x_hdmi_propagate_pixelrate(struct
->>> adv748x_hdmi *hdmi)> 
->>>  {
->>>  	struct v4l2_subdev *tx;
->>>  	struct v4l2_dv_timings timings;
->>> -	struct v4l2_bt_timings *bt = &timings.bt;
->>> -	unsigned int fps;
->>>
->>>  	tx = adv748x_get_remote_sd(&hdmi->pads[ADV748X_HDMI_SOURCE]);
->>>  	if (!tx)
->>> @@ -411,11 +409,7 @@ static int adv748x_hdmi_propagate_pixelrate(struct
->>> adv748x_hdmi *hdmi)
->>>  	adv748x_hdmi_query_dv_timings(&hdmi->sd, &timings);
->>>
->>> -	fps = DIV_ROUND_CLOSEST_ULL(bt->pixelclock,
->>> -				    V4L2_DV_BT_FRAME_WIDTH(bt) *
->>> -				    V4L2_DV_BT_FRAME_HEIGHT(bt));
->>> -
->>> -	return adv748x_csi2_set_pixelrate(tx, bt->width * bt->height * fps);
->>> +	return adv748x_csi2_set_pixelrate(tx, timings.bt.pixelclock);
->>>  }
->>>  
->>>  static int adv748x_hdmi_enum_mbus_code(struct v4l2_subdev *sd,
-> 
+Laurent Pinchart
