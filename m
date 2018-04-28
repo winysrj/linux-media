@@ -1,77 +1,456 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0102.outbound.protection.outlook.com ([104.47.34.102]:52497
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1756048AbeDYRnz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 13:43:55 -0400
-From: Trent Piepho <tpiepho@impinj.com>
-To: "mchehab+samsung@kernel.org" <mchehab+samsung@kernel.org>,
-        "arnd@arndb.de" <arnd@arndb.de>
-CC: "hch@infradead.org" <hch@infradead.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "arvind.yadav.cs@gmail.com" <arvind.yadav.cs@gmail.com>,
-        "mjpeg-users@lists.sourceforge.net"
-        <mjpeg-users@lists.sourceforge.net>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: zoran: move to dma-mapping interface
-Date: Wed, 25 Apr 2018 17:43:53 +0000
-Message-ID: <1524678233.31312.5.camel@impinj.com>
-References: <20180424204158.2764095-1-arnd@arndb.de>
-         <20180425061537.GA23383@infradead.org>
-         <CAK8P3a06ragAPWpHGm-bGoZ8t6QyAttWJfD0jU_wcGy7FqLb5w@mail.gmail.com>
-         <20180425072138.GA16375@infradead.org>
-         <CAK8P3a1cs_SPesadAQhV3QU97WjNE8bLPSQCfaMQRU7zr_oh3w@mail.gmail.com>
-         <20180425152636.GC27076@infradead.org>
-         <CAK8P3a0CHSC7yP3x8xDJgcg5xMzD1-sC-rmBJECtYvGFmyG4vQ@mail.gmail.com>
-         <20180425142229.25d756ed@vento.lan>
-In-Reply-To: <20180425142229.25d756ed@vento.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <B9FF15A57AA26B49B71F9C46AE3F6C5F@namprd06.prod.outlook.com>
-Content-Transfer-Encoding: base64
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:58509 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759686AbeD1JvJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 28 Apr 2018 05:51:09 -0400
+Date: Sat, 28 Apr 2018 11:50:48 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v2 2/8] v4l: vsp1: Share the CLU, LIF and LUT set_fmt pad
+ operation code
+Message-ID: <20180428095048.GA18201@w540>
+References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20180422223430.16407-3-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="7JfCtLOvnd9MIVvH"
+Content-Disposition: inline
+In-Reply-To: <20180422223430.16407-3-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-T24gV2VkLCAyMDE4LTA0LTI1IGF0IDE0OjIyIC0wMzAwLCBNYXVybyBDYXJ2YWxobyBDaGVoYWIg
-d3JvdGU6DQo+IEVtIFdlZCwgMjUgQXByIDIwMTggMTc6NTg6MjUgKzAyMDANCj4gQXJuZCBCZXJn
-bWFubiA8YXJuZEBhcm5kYi5kZT4gZXNjcmV2ZXU6DQo+IA0KPiA+IE9uIFdlZCwgQXByIDI1LCAy
-MDE4IGF0IDU6MjYgUE0sIENocmlzdG9waCBIZWxsd2lnIDxoY2hAaW5mcmFkZWFkLm8NCj4gPiBy
-Zz4gd3JvdGU6DQo+ID4gPiBPbiBXZWQsIEFwciAyNSwgMjAxOCBhdCAwMToxNToxOFBNICswMjAw
-LCBBcm5kIEJlcmdtYW5uIHdyb3RlOiAgDQo+ID4gPiA+IFRoYXQgdGhvdWdodCBoYWQgb2NjdXJy
-ZWQgdG8gbWUgYXMgd2VsbC4gSSByZW1vdmVkIHRoZSBvbGRlc3QgSVNETg0KPiA+ID4gPiBkcml2
-ZXJzIGFscmVhZHkgc29tZSB5ZWFycyBhZ28sIGFuZCB0aGUgT1NTIHNvdW5kIGRyaXZlcnMNCj4g
-PiA+ID4gZ290IHJlbW92ZWQgYXMgd2VsbCwgYW5kIGNvbWVkaSBnb3QgY29udmVydGVkIHRvIHRo
-ZSBkbWEtbWFwcGluZw0KPiA+ID4gPiBpbnRlcmZhY2VzLCBzbyB0aGVyZSBpc24ndCBtdWNoIGxl
-ZnQgYXQgYWxsIG5vdy4gVGhpcyBpcyB3aGF0IHdlDQo+ID4gPiA+IGhhdmUgYXMgb2YgdjQuMTct
-cmMxOiAgDQo+ID4gPiANCj4gPiA+IFllcywgSSd2ZSBiZWVuIGxvb2tpbmcgYXQgdmFyaW91cyBn
-cm90dHkgb2xkIGJpdHMgdG8gcHVyZ2UuICBVc3VhbGx5DQo+ID4gPiBJJ3ZlIGJlZW4gbG9va2lu
-ZyBmb3Igc29tZSBub24tdHJlZSB3aWRlIHBhdGNoZXMgYW5kIENDZWQgdGhlIGxhc3QNCj4gPiA+
-IGFjdGl2ZSBwZW9wbGUgdG8gc2VlIGlmIHRoZXkgY2FyZS4gIEluIGEgZmV3IGNhc2VzIHBlb3Bs
-ZSBkbywgYnV0DQo+ID4gPiBtb3N0IG9mdGVuIG5vIG9uZSBkb2VzLiAgDQo+ID4gDQo+ID4gTGV0
-J3Mgc3RhcnQgd2l0aCB0aGlzIG9uZSAoem9yYW4pIHRoZW4sIGFzIE1hdXJvIGlzIGtlZW4gb24g
-aGF2aW5nDQo+ID4gYWxsIG1lZGlhIGRyaXZlcnMgY29tcGlsZS10ZXN0YWJsZSBvbiB4ODYtNjQg
-YW5kIGFybS4NCj4gPiANCj4gPiBUcmVudCBQaWVwaG8gYW5kIEhhbnMgVmVya3VpbCBib3RoIHdv
-cmtlZCBvbiB0aGlzIGRyaXZlciBpbiB0aGUNCj4gPiAyMDA4LzIwMDkgdGltZWZyYW1lIGFuZCB0
-aG9zZSB3ZXJlIHRoZSBsYXN0IGNvbW1pdHMgZnJvbSBhbnlvbmUNCj4gPiB3aG8gYXBwZWFycyB0
-byBoYXZlIHRlc3RlZCB0aGVpciBwYXRjaGVzIG9uIGFjdHVhbCBoYXJkd2FyZS4NCj4gDQo+IFpv
-cmFuIGlzIGEgZHJpdmVyIGZvciBvbGQgaGFyZHdhcmUuIEkgZG9uJ3QgZG91YnQgdGhhdCBhcmUg
-cGVvcGxlDQo+IG91dCB0aGVyZSBzdGlsbCB1c2luZyBpdCwgYnV0IHdobyBrbm93cz8NCj4gDQo+
-IEkgaGF2ZSBhIGZldyB0aG9zZSBib2FyZHMgcGFja2VkIHNvbWV3aGVyZS4gSSBoYXZlbid0IHdv
-cmsgd2l0aCBQQ0kNCj4gaGFyZHdhcmUgZm9yIGEgd2hpbGUuIElmIG5lZWRlZCwgSSBjYW4gdHJ5
-IHRvIHNlZWsgZm9yIHRoZW0gYW5kDQo+IGRvIHNvbWUgdGVzdHMuIEkgbmVlZCBmaXJzdCB0byB1
-bnBhY2sgYSBtYWNoaW5lIHdpdGggUENJIHNsb3RzLi4uDQo+IHRoZSBOVUNzIEkgZ2VuZXJhbGx5
-IHVzZSBmb3IgZGV2ZWxvcG1lbnQgZG9uJ3QgaGF2ZSBhbnkgOi0pDQo+IA0KPiBBbnl3YXksIGV4
-Y2VwdCBmb3IgdmlydF90b19idXMoKSBhbmQgcmVsYXRlZCBzdHVmZiwgSSB0aGluayB0aGF0IHRo
-aXMNCj4gZHJpdmVyIGlzIGluIGdvb2Qgc2hhcGUsIGFzIEhhbnMgZGlkIGEgbG90IG9mIHdvcmsg
-aW4gdGhlIHBhc3QgdG8NCj4gbWFrZSBpdCB0byB1c2UgdGhlIGN1cnJlbnQgbWVkaWEgZnJhbWV3
-b3JrLg0KDQpJIHN0aWxsIGhhdmUgYSB6b3JhbiBib2FyZC4gIEFuZCBteSByZWNlbnRseSBwdXJj
-aGFzZWQgcnl6ZW4gc3lzdGVtIGhhcw0KUENJIHNsb3RzLiAgVG8gbXkgc3VycHJpc2UgdGhleSBh
-cmUgbm90IHVuY29tbW9uIG9uIG5ldyBzb2NrZXQgQU00DQpib2FyZHMuICBIb3dldmVyLCBJIHRo
-aW5rIHRoZSB6b3JhbiBib2FyZCBJIGhhdmUgaXMgNVYgUENJIGFuZCB0aGF0IGlzDQpyYXRoZXIg
-dW5jb21tb24uICBBbHNvIGJlY29taW5nIHVuY29tbW9uIGlzIGFuYWxvZyBOVFNDL1BBTCB2aWRl
-byB0aGF0DQp0aGlzIGNoaXAgaXMgZGVzaWduZWQgZm9yIQ0KDQpJZiBhbnlvbmUgaXMgdXNpbmcg
-dGhlc2Ugc3RpbGwsIHRoZXkgd291bGQgYmUgaW4gbGVnYWN5IHN5c3RlbXMgZm9yDQp0aGVzZSBs
-ZWdhY3kgdmlkZW8gZm9ybWF0cy4NCg==
+
+--7JfCtLOvnd9MIVvH
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Hi Laurent,
+   very minor comments below
+
+On Mon, Apr 23, 2018 at 01:34:24AM +0300, Laurent Pinchart wrote:
+> The implementation of the set_fmt pad operation is identical in the
+> three modules. Move it to a generic helper function.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/vsp1/vsp1_clu.c    | 65 +++++----------------------
+>  drivers/media/platform/vsp1/vsp1_entity.c | 75 +++++++++++++++++++++++++++++++
+>  drivers/media/platform/vsp1/vsp1_entity.h |  6 +++
+>  drivers/media/platform/vsp1/vsp1_lif.c    | 65 +++++----------------------
+>  drivers/media/platform/vsp1/vsp1_lut.c    | 65 +++++----------------------
+>  5 files changed, 116 insertions(+), 160 deletions(-)
+>
+> diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
+> index 9626b6308585..96a448e1504c 100644
+> --- a/drivers/media/platform/vsp1/vsp1_clu.c
+> +++ b/drivers/media/platform/vsp1/vsp1_clu.c
+> @@ -114,18 +114,18 @@ static const struct v4l2_ctrl_config clu_mode_control = {
+>   * V4L2 Subdevice Pad Operations
+>   */
+>
+> +static const unsigned int clu_codes[] = {
+> +	MEDIA_BUS_FMT_ARGB8888_1X32,
+> +	MEDIA_BUS_FMT_AHSV8888_1X32,
+> +	MEDIA_BUS_FMT_AYUV8_1X32,
+> +};
+> +
+>  static int clu_enum_mbus_code(struct v4l2_subdev *subdev,
+>  			      struct v4l2_subdev_pad_config *cfg,
+>  			      struct v4l2_subdev_mbus_code_enum *code)
+>  {
+> -	static const unsigned int codes[] = {
+> -		MEDIA_BUS_FMT_ARGB8888_1X32,
+> -		MEDIA_BUS_FMT_AHSV8888_1X32,
+> -		MEDIA_BUS_FMT_AYUV8_1X32,
+> -	};
+> -
+> -	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
+> -					  ARRAY_SIZE(codes));
+> +	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, clu_codes,
+> +					  ARRAY_SIZE(clu_codes));
+>  }
+>
+>  static int clu_enum_frame_size(struct v4l2_subdev *subdev,
+> @@ -141,51 +141,10 @@ static int clu_set_format(struct v4l2_subdev *subdev,
+>  			  struct v4l2_subdev_pad_config *cfg,
+>  			  struct v4l2_subdev_format *fmt)
+>  {
+> -	struct vsp1_clu *clu = to_clu(subdev);
+> -	struct v4l2_subdev_pad_config *config;
+> -	struct v4l2_mbus_framefmt *format;
+> -	int ret = 0;
+> -
+> -	mutex_lock(&clu->entity.lock);
+> -
+> -	config = vsp1_entity_get_pad_config(&clu->entity, cfg, fmt->which);
+> -	if (!config) {
+> -		ret = -EINVAL;
+> -		goto done;
+> -	}
+> -
+> -	/* Default to YUV if the requested format is not supported. */
+> -	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
+> -	    fmt->format.code != MEDIA_BUS_FMT_AHSV8888_1X32 &&
+> -	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
+> -		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
+
+The newly implemented vsp1_subdev_set_pad_format defaults to the first
+clu_codes[] member (ARGB888_1x32), while here the code chose the AYUV8_1x32
+format. Is it ok? Should you revers the clu_codes[] order?
+
+> -
+> -	format = vsp1_entity_get_pad_format(&clu->entity, config, fmt->pad);
+> -
+> -	if (fmt->pad == CLU_PAD_SOURCE) {
+> -		/* The CLU output format can't be modified. */
+> -		fmt->format = *format;
+> -		goto done;
+> -	}
+> -
+> -	format->code = fmt->format.code;
+> -	format->width = clamp_t(unsigned int, fmt->format.width,
+> -				CLU_MIN_SIZE, CLU_MAX_SIZE);
+> -	format->height = clamp_t(unsigned int, fmt->format.height,
+> -				 CLU_MIN_SIZE, CLU_MAX_SIZE);
+> -	format->field = V4L2_FIELD_NONE;
+> -	format->colorspace = V4L2_COLORSPACE_SRGB;
+> -
+> -	fmt->format = *format;
+> -
+> -	/* Propagate the format to the source pad. */
+> -	format = vsp1_entity_get_pad_format(&clu->entity, config,
+> -					    CLU_PAD_SOURCE);
+> -	*format = fmt->format;
+> -
+> -done:
+> -	mutex_unlock(&clu->entity.lock);
+> -	return ret;
+> +	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, clu_codes,
+> +					  ARRAY_SIZE(clu_codes),
+> +					  CLU_MIN_SIZE, CLU_MIN_SIZE,
+> +					  CLU_MAX_SIZE, CLU_MAX_SIZE);
+>  }
+>
+>  /* -----------------------------------------------------------------------------
+> diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+> index 72354caf5746..239df047efd0 100644
+> --- a/drivers/media/platform/vsp1/vsp1_entity.c
+> +++ b/drivers/media/platform/vsp1/vsp1_entity.c
+> @@ -307,6 +307,81 @@ int vsp1_subdev_enum_frame_size(struct v4l2_subdev *subdev,
+>  	return ret;
+>  }
+>
+> +/*
+> + * vsp1_subdev_set_pad_format - Subdev pad set_fmt handler
+> + * @subdev: V4L2 subdevice
+> + * @cfg: V4L2 subdev pad configuration
+> + * @fmt: V4L2 subdev format
+> + * @codes: Array of supported media bus codes
+> + * @ncodes: Number of supported media bus codes
+> + * @min_width: Minimum image width
+> + * @min_height: Minimum image height
+> + * @max_width: Maximum image width
+> + * @max_height: Maximum image height
+> + *
+> + * This function implements the subdev set_fmt pad operation for entities that
+> + * do not support scaling or cropping. It defaults to the first supplied media
+> + * bus code if the requested code isn't supported, clamps the size to the
+> + * supplied minimum and maximum, and propagates the sink pad format to the
+> + * source pad.
+> + */
+> +int vsp1_subdev_set_pad_format(struct v4l2_subdev *subdev,
+> +			       struct v4l2_subdev_pad_config *cfg,
+> +			       struct v4l2_subdev_format *fmt,
+> +			       const unsigned int *codes, unsigned int ncodes,
+> +			       unsigned int min_width, unsigned int min_height,
+> +			       unsigned int max_width, unsigned int max_height)
+> +{
+> +	struct vsp1_entity *entity = to_vsp1_entity(subdev);
+> +	struct v4l2_subdev_pad_config *config;
+> +	struct v4l2_mbus_framefmt *format;
+> +	unsigned int i;
+> +	int ret = 0;
+> +
+> +	mutex_lock(&entity->lock);
+> +
+> +	config = vsp1_entity_get_pad_config(entity, cfg, fmt->which);
+> +	if (!config) {
+> +		ret = -EINVAL;
+> +		goto done;
+> +	}
+> +
+> +	format = vsp1_entity_get_pad_format(entity, config, fmt->pad);
+> +
+> +	if (fmt->pad != 0) {
+
+This assumes the SINK pad is always 0, which indeed is the case for
+CLU, LIF and LUT entities.
+
+> +		/* The output format can't be modified. */
+> +		fmt->format = *format;
+> +		goto done;
+> +	}
+> +
+> +	/*
+> +	 * Default to the first media bus code if the requested format is not
+> +	 * supported.
+> +	 */
+> +	for (i = 0; i < ncodes; ++i) {
+> +		if (fmt->format.code == codes[i])
+> +			break;
+> +	}
+
+Braces not needed?
+
+> +
+> +	format->code = i < ncodes ? codes[i] : codes[0];
+> +	format->width = clamp_t(unsigned int, fmt->format.width,
+> +				min_width, max_width);
+> +	format->height = clamp_t(unsigned int, fmt->format.height,
+> +				 min_height, max_height);
+> +	format->field = V4L2_FIELD_NONE;
+> +	format->colorspace = V4L2_COLORSPACE_SRGB;
+> +
+> +	fmt->format = *format;
+> +
+> +	/* Propagate the format to the source pad. */
+> +	format = vsp1_entity_get_pad_format(entity, config, 1);
+> +	*format = fmt->format;
+> +
+> +done:
+> +	mutex_unlock(&entity->lock);
+> +	return ret;
+> +}
+> +
+>  /* -----------------------------------------------------------------------------
+>   * Media Operations
+>   */
+> diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+> index fb20a1578f3b..0839a62cfa71 100644
+> --- a/drivers/media/platform/vsp1/vsp1_entity.h
+> +++ b/drivers/media/platform/vsp1/vsp1_entity.h
+> @@ -160,6 +160,12 @@ struct media_pad *vsp1_entity_remote_pad(struct media_pad *pad);
+>  int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
+>  			       struct v4l2_subdev_pad_config *cfg,
+>  			       struct v4l2_subdev_format *fmt);
+> +int vsp1_subdev_set_pad_format(struct v4l2_subdev *subdev,
+> +			       struct v4l2_subdev_pad_config *cfg,
+> +			       struct v4l2_subdev_format *fmt,
+> +			       const unsigned int *codes, unsigned int ncodes,
+> +			       unsigned int min_width, unsigned int min_height,
+> +			       unsigned int max_width, unsigned int max_height);
+>  int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
+>  			       struct v4l2_subdev_pad_config *cfg,
+>  			       struct v4l2_subdev_mbus_code_enum *code,
+> diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+> index b20b842f06ba..fbdd5715f829 100644
+> --- a/drivers/media/platform/vsp1/vsp1_lif.c
+> +++ b/drivers/media/platform/vsp1/vsp1_lif.c
+> @@ -33,17 +33,17 @@ static inline void vsp1_lif_write(struct vsp1_lif *lif, struct vsp1_dl_list *dl,
+>   * V4L2 Subdevice Operations
+>   */
+>
+> +static const unsigned int lif_codes[] = {
+> +	MEDIA_BUS_FMT_ARGB8888_1X32,
+> +	MEDIA_BUS_FMT_AYUV8_1X32,
+> +};
+> +
+>  static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
+>  			      struct v4l2_subdev_pad_config *cfg,
+>  			      struct v4l2_subdev_mbus_code_enum *code)
+>  {
+> -	static const unsigned int codes[] = {
+> -		MEDIA_BUS_FMT_ARGB8888_1X32,
+> -		MEDIA_BUS_FMT_AYUV8_1X32,
+> -	};
+> -
+> -	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
+> -					  ARRAY_SIZE(codes));
+> +	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, lif_codes,
+> +					  ARRAY_SIZE(lif_codes));
+>  }
+>
+>  static int lif_enum_frame_size(struct v4l2_subdev *subdev,
+> @@ -59,53 +59,10 @@ static int lif_set_format(struct v4l2_subdev *subdev,
+>  			  struct v4l2_subdev_pad_config *cfg,
+>  			  struct v4l2_subdev_format *fmt)
+>  {
+> -	struct vsp1_lif *lif = to_lif(subdev);
+> -	struct v4l2_subdev_pad_config *config;
+> -	struct v4l2_mbus_framefmt *format;
+> -	int ret = 0;
+> -
+> -	mutex_lock(&lif->entity.lock);
+> -
+> -	config = vsp1_entity_get_pad_config(&lif->entity, cfg, fmt->which);
+> -	if (!config) {
+> -		ret = -EINVAL;
+> -		goto done;
+> -	}
+> -
+> -	/* Default to YUV if the requested format is not supported. */
+> -	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
+> -	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
+> -		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
+
+Same here and below
+
+Thanks
+   j
+
+> -
+> -	format = vsp1_entity_get_pad_format(&lif->entity, config, fmt->pad);
+> -
+> -	if (fmt->pad == LIF_PAD_SOURCE) {
+> -		/*
+> -		 * The LIF source format is always identical to its sink
+> -		 * format.
+> -		 */
+> -		fmt->format = *format;
+> -		goto done;
+> -	}
+> -
+> -	format->code = fmt->format.code;
+> -	format->width = clamp_t(unsigned int, fmt->format.width,
+> -				LIF_MIN_SIZE, LIF_MAX_SIZE);
+> -	format->height = clamp_t(unsigned int, fmt->format.height,
+> -				 LIF_MIN_SIZE, LIF_MAX_SIZE);
+> -	format->field = V4L2_FIELD_NONE;
+> -	format->colorspace = V4L2_COLORSPACE_SRGB;
+> -
+> -	fmt->format = *format;
+> -
+> -	/* Propagate the format to the source pad. */
+> -	format = vsp1_entity_get_pad_format(&lif->entity, config,
+> -					    LIF_PAD_SOURCE);
+> -	*format = fmt->format;
+> -
+> -done:
+> -	mutex_unlock(&lif->entity.lock);
+> -	return ret;
+> +	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, lif_codes,
+> +					  ARRAY_SIZE(lif_codes),
+> +					  LIF_MIN_SIZE, LIF_MIN_SIZE,
+> +					  LIF_MAX_SIZE, LIF_MAX_SIZE);
+>  }
+>
+>  static const struct v4l2_subdev_pad_ops lif_pad_ops = {
+> diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+> index 7bdabb311c6c..f2e48a02ca7d 100644
+> --- a/drivers/media/platform/vsp1/vsp1_lut.c
+> +++ b/drivers/media/platform/vsp1/vsp1_lut.c
+> @@ -90,18 +90,18 @@ static const struct v4l2_ctrl_config lut_table_control = {
+>   * V4L2 Subdevice Pad Operations
+>   */
+>
+> +static const unsigned int lut_codes[] = {
+> +	MEDIA_BUS_FMT_ARGB8888_1X32,
+> +	MEDIA_BUS_FMT_AHSV8888_1X32,
+> +	MEDIA_BUS_FMT_AYUV8_1X32,
+> +};
+> +
+>  static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
+>  			      struct v4l2_subdev_pad_config *cfg,
+>  			      struct v4l2_subdev_mbus_code_enum *code)
+>  {
+> -	static const unsigned int codes[] = {
+> -		MEDIA_BUS_FMT_ARGB8888_1X32,
+> -		MEDIA_BUS_FMT_AHSV8888_1X32,
+> -		MEDIA_BUS_FMT_AYUV8_1X32,
+> -	};
+> -
+> -	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
+> -					  ARRAY_SIZE(codes));
+> +	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, lut_codes,
+> +					  ARRAY_SIZE(lut_codes));
+>  }
+>
+>  static int lut_enum_frame_size(struct v4l2_subdev *subdev,
+> @@ -117,51 +117,10 @@ static int lut_set_format(struct v4l2_subdev *subdev,
+>  			  struct v4l2_subdev_pad_config *cfg,
+>  			  struct v4l2_subdev_format *fmt)
+>  {
+> -	struct vsp1_lut *lut = to_lut(subdev);
+> -	struct v4l2_subdev_pad_config *config;
+> -	struct v4l2_mbus_framefmt *format;
+> -	int ret = 0;
+> -
+> -	mutex_lock(&lut->entity.lock);
+> -
+> -	config = vsp1_entity_get_pad_config(&lut->entity, cfg, fmt->which);
+> -	if (!config) {
+> -		ret = -EINVAL;
+> -		goto done;
+> -	}
+> -
+> -	/* Default to YUV if the requested format is not supported. */
+> -	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
+> -	    fmt->format.code != MEDIA_BUS_FMT_AHSV8888_1X32 &&
+> -	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
+> -		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
+> -
+> -	format = vsp1_entity_get_pad_format(&lut->entity, config, fmt->pad);
+> -
+> -	if (fmt->pad == LUT_PAD_SOURCE) {
+> -		/* The LUT output format can't be modified. */
+> -		fmt->format = *format;
+> -		goto done;
+> -	}
+> -
+> -	format->code = fmt->format.code;
+> -	format->width = clamp_t(unsigned int, fmt->format.width,
+> -				LUT_MIN_SIZE, LUT_MAX_SIZE);
+> -	format->height = clamp_t(unsigned int, fmt->format.height,
+> -				 LUT_MIN_SIZE, LUT_MAX_SIZE);
+> -	format->field = V4L2_FIELD_NONE;
+> -	format->colorspace = V4L2_COLORSPACE_SRGB;
+> -
+> -	fmt->format = *format;
+> -
+> -	/* Propagate the format to the source pad. */
+> -	format = vsp1_entity_get_pad_format(&lut->entity, config,
+> -					    LUT_PAD_SOURCE);
+> -	*format = fmt->format;
+> -
+> -done:
+> -	mutex_unlock(&lut->entity.lock);
+> -	return ret;
+> +	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, lut_codes,
+> +					  ARRAY_SIZE(lut_codes),
+> +					  LUT_MIN_SIZE, LUT_MIN_SIZE,
+> +					  LUT_MAX_SIZE, LUT_MAX_SIZE);
+>  }
+>
+>  /* -----------------------------------------------------------------------------
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+
+--7JfCtLOvnd9MIVvH
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJa5EP4AAoJEHI0Bo8WoVY8qR8P/iozKWvLMTm+HgscT0eaxhQi
+Yo2t9qs6tzK5KbX0WcQqpfouArNZTl9lbiDvbl9bpfWKn8bjBiW+sMMtmV+YhdNc
+PJPz240PPfXiFlk/x0RcBuziNXmn+fmkBzhwm2cnVCuOxV0JdOSaKAakkjgwX7l3
+Zic7ZHTTkuvR69lreqgHc+mRfiaWD3YvoacXX6gWKIGvcy3HgTK6sek21UTmCtPn
+BVjnSuO6s42DG40YCtQhtRrTEVK152OTtPxdOm9TAAz7Np3y9jEXP9zGCI8DpKte
++9nRGzdHTKgGUa5fKjrHVGMUxAuohbXTgO46zvwj4ODodMIODWEeIH7tik0NEiRG
+iQs3ALNrUxUvjfs4lfdMplM9edNEpbfdOvd+1z0HHmg87GzrRQU9m+TNKWTkhxit
+4nKAtwe6d8YDV1UdaPrreip3ORVAYoLL87Z3SOIOe+f6CaNYgQ02pEYJ+EwZ8qA4
+Nq0y1pZ3vZRY/FDSS9mc5yssgE49aVINN5GwngFguFjrSY7mSHQQSPQeeVxce6bd
+VS/RXBZ1UHP9fpjIkSORNF2vM0n2w+EgGNQKP146nxsBk/XAk7/u/lqRMYh5l7MP
+4JOo8MWLtzanw5aG+vmj1w7SJxDNIMvAyYyHfOv4WWHgtjGJoWg31DDr+Jf/Hn7O
+ZqzJwUzuLLdX7GnmpXUG
+=XXNg
+-----END PGP SIGNATURE-----
+
+--7JfCtLOvnd9MIVvH--
