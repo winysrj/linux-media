@@ -1,38 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:40088 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750928AbeDMPKp (ORCPT
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:42073 "EHLO
+        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759699AbeD1JgL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Apr 2018 11:10:45 -0400
-Date: Fri, 13 Apr 2018 10:10:42 -0500
-From: Rob Herring <robh@kernel.org>
-To: Andy Yeh <andy.yeh@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        devicetree@vger.kernel.org, tfiga@chromium.org, jacopo@jmondi.org,
-        Alan Chiang <alanx.chiang@intel.com>
-Subject: Re: [RESEND PATCH v7 1/2] media: dt-bindings: Add bindings for
- Dongwoon DW9807 voice coil
-Message-ID: <20180413151042.lqovgxupubjbgrey@rob-hp-laptop>
-References: <1523375324-27856-1-git-send-email-andy.yeh@intel.com>
- <1523375324-27856-2-git-send-email-andy.yeh@intel.com>
+        Sat, 28 Apr 2018 05:36:11 -0400
+Received: by mail-lf0-f50.google.com with SMTP id u21-v6so5996458lfu.9
+        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2018 02:36:11 -0700 (PDT)
+Subject: Re: [PATCH] v4l: vsp1: Fix vsp1_regs.h license header
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+References: <20180427214647.892-1-laurent.pinchart+renesas@ideasonboard.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <5a84b774-581c-77fe-085b-7e4d841daa97@cogentembedded.com>
+Date: Sat, 28 Apr 2018 12:36:09 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1523375324-27856-2-git-send-email-andy.yeh@intel.com>
+In-Reply-To: <20180427214647.892-1-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 10, 2018 at 11:48:43PM +0800, Andy Yeh wrote:
-> From: Alan Chiang <alanx.chiang@intel.com>
-> 
-> Dongwoon DW9807 is a voice coil lens driver.
-> 
-> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-> ---
->  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt | 9 +++++++++
->  1 file changed, 9 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+Hello!
 
-Please add acks/reviewed-bys when posting new versions.
+On 4/28/2018 12:46 AM, Laurent Pinchart wrote:
 
-Rob
+> All source files of the vsp1 driver are licensed under the GPLv2+ except
+> for vsp1_regs.h which is licensed under GPLv2. This is caused by a bad
+> copy&paste that dates back from the initial version of the driver. Fix
+> it.
+> 
+> Cc: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
+> Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+[...]
+
+Acked-by: Sergei Shtylyov<sergei.shtylyov@cogentembedded.com>
+
+MBR, Sergei
