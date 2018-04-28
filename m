@@ -1,122 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr40099.outbound.protection.outlook.com ([40.107.4.99]:21248
-        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753438AbeDVUCb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 16:02:31 -0400
-Subject: Re: [PATCH 1/8] drm: bridge: Add support for static image formats
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>, architt@codeaurora.org,
-        a.hajda@samsung.com, Laurent.pinchart@ideasonboard.com,
-        airlied@linux.ie
-Cc: daniel@ffwll.ch, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
- <1524130269-32688-2-git-send-email-jacopo+renesas@jmondi.org>
-From: Peter Rosin <peda@axentia.se>
-Message-ID: <10891e93-ede5-8c39-b53e-da892e163b52@axentia.se>
-Date: Sun, 22 Apr 2018 22:02:23 +0200
+Received: from perceval.ideasonboard.com ([213.167.242.64]:53844 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759064AbeD1RsX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 28 Apr 2018 13:48:23 -0400
+Subject: Re: [PATCH v2 5/8] v4l: vsp1: Extend the DU API to support CRC
+ computation
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org
+References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20180422223430.16407-6-laurent.pinchart+renesas@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <d1a22090-36e5-6e6e-a93d-c896422eef54@ideasonboard.com>
+Date: Sat, 28 Apr 2018 18:48:19 +0100
 MIME-Version: 1.0
-In-Reply-To: <1524130269-32688-2-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20180422223430.16407-6-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="P9nshyzlBkX8rW41ayXCYUPHjoL6v6BFD"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-04-19 11:31, Jacopo Mondi wrote:
-> Add support for storing image format information in DRM bridges with
-> associated helper function.
-> 
-> This patch replicates for bridges what 'drm_display_info_set_bus_formats()'
-> is for connectors.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--P9nshyzlBkX8rW41ayXCYUPHjoL6v6BFD
+Content-Type: multipart/mixed; boundary="0WfLbRnLP1jzrLRcg83XWXaP5n8a5vr0p";
+ protected-headers="v1"
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org
+Message-ID: <d1a22090-36e5-6e6e-a93d-c896422eef54@ideasonboard.com>
+Subject: Re: [PATCH v2 5/8] v4l: vsp1: Extend the DU API to support CRC
+ computation
+References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20180422223430.16407-6-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180422223430.16407-6-laurent.pinchart+renesas@ideasonboard.com>
+
+--0WfLbRnLP1jzrLRcg83XWXaP5n8a5vr0p
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
+
+Hi Laurent,
+
+On 22/04/18 23:34, Laurent Pinchart wrote:
+> Add a parameter (in the form of a structure to ease future API
+> extensions) to the VSP atomic flush handler to pass CRC source
+> configuration, and pass the CRC value to the completion callback.
+>=20
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.=
+com>
+
+Only a minor 'thought' below.
+(And Jacopo already caught the enum typos, so with those are fixed...)
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
 > ---
->  drivers/gpu/drm/drm_bridge.c | 30 ++++++++++++++++++++++++++++++
->  include/drm/drm_bridge.h     |  8 ++++++++
->  2 files changed, 38 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/drm_bridge.c b/drivers/gpu/drm/drm_bridge.c
-> index 1638bfe..e2ad098 100644
-> --- a/drivers/gpu/drm/drm_bridge.c
-> +++ b/drivers/gpu/drm/drm_bridge.c
-> @@ -157,6 +157,36 @@ void drm_bridge_detach(struct drm_bridge *bridge)
+>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  |  6 ++++--
+>  drivers/media/platform/vsp1/vsp1_drm.c |  6 ++++--
+>  drivers/media/platform/vsp1/vsp1_drm.h |  2 +-
+>  include/media/vsp1.h                   | 29 ++++++++++++++++++++++++++=
++--
+>  4 files changed, 36 insertions(+), 7 deletions(-)
+>=20
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rc=
+ar-du/rcar_du_vsp.c
+> index 2c260c33840b..bdcec201591f 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> @@ -31,7 +31,7 @@
+>  #include "rcar_du_kms.h"
+>  #include "rcar_du_vsp.h"
+> =20
+> -static void rcar_du_vsp_complete(void *private, bool completed)
+> +static void rcar_du_vsp_complete(void *private, bool completed, u32 cr=
+c)
+>  {
+>  	struct rcar_du_crtc *crtc =3D private;
+> =20
+> @@ -102,7 +102,9 @@ void rcar_du_vsp_atomic_begin(struct rcar_du_crtc *=
+crtc)
+> =20
+>  void rcar_du_vsp_atomic_flush(struct rcar_du_crtc *crtc)
+>  {
+> -	vsp1_du_atomic_flush(crtc->vsp->vsp, crtc->vsp_pipe);
+> +	struct vsp1_du_atomic_pipe_config cfg =3D { { 0, } }> +
+> +	vsp1_du_atomic_flush(crtc->vsp->vsp, crtc->vsp_pipe, &cfg);
 >  }
->  
->  /**
-> + * drm_bridge_set_bus_formats() - set bridge supported image formats
-> + * @bridge: the bridge to set image formats in
-> + * @formats: array of MEDIA_BUS_FMT\_ supported image formats
-> + * @num_formats: number of elements in the @formats array
-> + *
-> + * Store a list of supported image formats in a bridge.
-> + * See MEDIA_BUS_FMT_* definitions in include/uapi/linux/media-bus-format.h for
-> + * a full list of available formats.
+> =20
+>  /* Keep the two tables in sync. */
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/pla=
+tform/vsp1/vsp1_drm.c
+> index 2b29a83dceb9..5fc31578f9b0 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -36,7 +36,7 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pi=
+peline *pipe,
+>  	bool complete =3D completion =3D=3D VSP1_DL_FRAME_END_COMPLETED;
+> =20
+>  	if (drm_pipe->du_complete)
+> -		drm_pipe->du_complete(drm_pipe->du_private, complete);
+> +		drm_pipe->du_complete(drm_pipe->du_private, complete, 0);
+> =20
+>  	if (completion & VSP1_DL_FRAME_END_INTERNAL) {
+>  		drm_pipe->force_brx_release =3D false;
+> @@ -739,8 +739,10 @@ EXPORT_SYMBOL_GPL(vsp1_du_atomic_update);
+>   * vsp1_du_atomic_flush - Commit an atomic update
+>   * @dev: the VSP device
+>   * @pipe_index: the DRM pipeline index
+> + * @cfg: atomic pipe configuration
+>   */
+> -void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)=
+
+> +void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,=
+
+> +			  const struct vsp1_du_atomic_pipe_config *cfg)
+>  {
+>  	struct vsp1_device *vsp1 =3D dev_get_drvdata(dev);
+>  	struct vsp1_drm_pipeline *drm_pipe =3D &vsp1->drm->pipe[pipe_index];
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/pla=
+tform/vsp1/vsp1_drm.h
+> index f4af1b2b12d6..e5b88b28806c 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.h
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.h
+> @@ -35,7 +35,7 @@ struct vsp1_drm_pipeline {
+>  	wait_queue_head_t wait_queue;
+> =20
+>  	/* Frame synchronisation */
+> -	void (*du_complete)(void *, bool);
+> +	void (*du_complete)(void *data, bool completed, u32 crc);
+>  	void *du_private;
+>  };
+> =20
+> diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+> index ff7ef894465d..ac63a9928a79 100644
+> --- a/include/media/vsp1.h
+> +++ b/include/media/vsp1.h
+> @@ -34,7 +34,7 @@ struct vsp1_du_lif_config {
+>  	unsigned int width;
+>  	unsigned int height;
+> =20
+> -	void (*callback)(void *, bool);
+> +	void (*callback)(void *data, bool completed, u32 crc);
+
+Did we have to add parameters to this callback for the dynamic BRx work ?=
+
+
+</me struggles to remember correctly>. If so we might have to consider tu=
+rning
+it into a struct perhaps! - but for now or otherwise I think this will be=
+ OK.
+
+Ok - so I stopped being lazy and went to take a look. We turned completed=
+ into a
+bitfield - so I think actually that's enough to store any more flags we m=
+ight
+come up with, and the CRC doesn't fit in there :D
+
+So lets leave this as adding an extra parameter for now.
+
+>  	void *callback_data;
+>  };
+> =20
+> @@ -61,11 +61,36 @@ struct vsp1_du_atomic_config {
+>  	unsigned int zpos;
+>  };
+> =20
+> +/**
+> + * enum vsp1_du_crc_source - Source used for CRC calculation
+> + * @VSP1_DU_CRC_NONE: CRC calculation disabled
+> + * @VSP_DU_CRC_PLANE: Perform CRC calculation on an input plane
+> + * @VSP_DU_CRC_OUTPUT: Perform CRC calculation on the composed output
+
+I see Jacopo has already caught these ...
+
 > + */
-> +int drm_bridge_set_bus_formats(struct drm_bridge *bridge, const u32 *formats,
-> +			       unsigned int num_formats)
-> +{
-> +	u32 *fmts;
-> +
-> +	if (!formats || !num_formats)
-> +		return -EINVAL;
-
-I see no compelling reason to forbid restoring the number of reported
-input formats to zero? I can't think of a use right now of course, but it
-seems a bit odd all the same.
-
-Cheers,
-Peter
-
-> +
-> +	fmts = kmemdup(formats, sizeof(*formats) * num_formats, GFP_KERNEL);
-> +	if (!fmts)
-> +		return -ENOMEM;
-> +
-> +	kfree(bridge->bus_formats);
-> +	bridge->bus_formats = fmts;
-> +	bridge->num_bus_formats = num_formats;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(drm_bridge_set_bus_formats);
+> +enum vsp1_du_crc_source {
+> +	VSP1_DU_CRC_NONE,
+> +	VSP1_DU_CRC_PLANE,
+> +	VSP1_DU_CRC_OUTPUT,
+> +};
 > +
 > +/**
->   * DOC: bridge callbacks
->   *
->   * The &drm_bridge_funcs ops are populated by the bridge driver. The DRM
-> diff --git a/include/drm/drm_bridge.h b/include/drm/drm_bridge.h
-> index 3270fec..6b3648c 100644
-> --- a/include/drm/drm_bridge.h
-> +++ b/include/drm/drm_bridge.h
-> @@ -258,6 +258,9 @@ struct drm_bridge_timings {
->   * @encoder: encoder to which this bridge is connected
->   * @next: the next bridge in the encoder chain
->   * @of_node: device node pointer to the bridge
-> + * @bus_formats: wire image formats. Array of @num_bus_formats MEDIA_BUS_FMT\_
-> + * elements
-> + * @num_bus_formats: size of @bus_formats array
->   * @list: to keep track of all added bridges
->   * @timings: the timing specification for the bridge, if any (may
->   * be NULL)
-> @@ -271,6 +274,9 @@ struct drm_bridge {
->  #ifdef CONFIG_OF
->  	struct device_node *of_node;
->  #endif
-> +	const u32 *bus_formats;
-> +	unsigned int num_bus_formats;
+> + * struct vsp1_du_atomic_pipe_config - VSP atomic pipe configuration p=
+arameters
+> + * @crc.source: source for CRC calculation
+> + * @crc.index: index of the CRC source plane (when crc.source is set t=
+o plane)
+> + */
+> +struct vsp1_du_atomic_pipe_config {
+> +	struct  {
+> +		enum vsp1_du_crc_source source;
+> +		unsigned int index;
+> +	} crc;
+> +};
 > +
->  	struct list_head list;
->  	const struct drm_bridge_timings *timings;
->  
-> @@ -296,6 +302,8 @@ void drm_bridge_mode_set(struct drm_bridge *bridge,
->  			struct drm_display_mode *adjusted_mode);
->  void drm_bridge_pre_enable(struct drm_bridge *bridge);
->  void drm_bridge_enable(struct drm_bridge *bridge);
-> +int drm_bridge_set_bus_formats(struct drm_bridge *bridge, const u32 *fmts,
-> +			       unsigned int num_fmts);
->  
->  #ifdef CONFIG_DRM_PANEL_BRIDGE
->  struct drm_bridge *drm_panel_bridge_add(struct drm_panel *panel,
-> 
+>  void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index)=
+;
+>  int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,=
+
+>  			  unsigned int rpf,
+>  			  const struct vsp1_du_atomic_config *cfg);
+> -void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)=
+;
+> +void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,=
+
+> +			  const struct vsp1_du_atomic_pipe_config *cfg);
+>  int vsp1_du_map_sg(struct device *dev, struct sg_table *sgt);
+>  void vsp1_du_unmap_sg(struct device *dev, struct sg_table *sgt);
+> =20
+>=20
+
+
+--0WfLbRnLP1jzrLRcg83XWXaP5n8a5vr0p--
+
+--P9nshyzlBkX8rW41ayXCYUPHjoL6v6BFD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEkC3XmD+9KP3jctR6oR5GchCkYf0FAlrks+MACgkQoR5GchCk
+Yf1A3A//YTeIcY5J7K8mW+JAb+hdsvOVVZNcYE0P/fNAXTXKg/6lVqkh9t0ewfXl
+4CzqDKFjd6q5d1EA6WwQsP6JcdfQ7Z2eYm7pvG+ylEpuyTnhKqrG6rbyzLLHaSJq
+vulWY6KHTXPa+H9gqlfnHZPtIQRJkngvmUaf/SzNi4YeJPUfeJd3UZd42o1BqnSN
+CPcoz2xXK25UHr5xeOHmWBvNNWXzmXtWzPsfFb/Yu2oiHb7C6iKplkoUa9dzqJdX
+b3RbOZV7S019PORJD1dYGDL5fcIfyZq2jD5WQgx+1PUvcxiBh8TjSCcsnmb0mDLC
+1mX3TzcrxqiK6T3wTLdv+EjShPvrxDJUNxCBVDHUCqRq9Pps3WcGZQEfGW6vqH3R
+sDxhRx+eEw4/80wkoA0wUdCBAMEehvF2azoVWYTPsxjrQJiP1WL/QQKTJxdBiwZx
+Li3uoS9l2UplqVnD4ZbcAxOLqnWmQxiBGmH/y3IETFSk1rGBkO0tVuyTfOLzhxm0
+VHjCj0dPJ3WPqgbh9gkgNJP6kNq3Dx0qIHczRU0gmWINR5LdOojb4B6845ePGSJX
+qQc0HrfNd9iRkAjBg/+gwsJK+5BmxCZHdodW6foZ7Uk5pfynlZBq99M5XYf+DaS0
+Tues8ZdDhVOLbwY2nFcaBRXD/YqovKmyvWjnJID2YEMM49bU9fk=
+=spJi
+-----END PGP SIGNATURE-----
+
+--P9nshyzlBkX8rW41ayXCYUPHjoL6v6BFD--
