@@ -1,119 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:52615 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754705AbeDTM2T (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:54206 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751151AbeD1TPX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 08:28:19 -0400
-Subject: Re: [PATCH v3 06/13] media: platform: video-mux: Register a subdev
- notifier
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
- <1521592649-7264-7-git-send-email-steve_longerbeam@mentor.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <9d85012a-bd0d-6676-9918-7c9804d9a040@xs4all.nl>
-Date: Fri, 20 Apr 2018 14:28:14 +0200
+        Sat, 28 Apr 2018 15:15:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 7/8] v4l: vsp1: Integrate DISCOM in display pipeline
+Date: Sat, 28 Apr 2018 22:15:38 +0300
+Message-ID: <2726723.Sl6OlPdl7O@avalon>
+In-Reply-To: <759b7675-d0d5-4a31-0949-2affd4019f77@ideasonboard.com>
+References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com> <20180422223430.16407-8-laurent.pinchart+renesas@ideasonboard.com> <759b7675-d0d5-4a31-0949-2affd4019f77@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <1521592649-7264-7-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/21/18 01:37, Steve Longerbeam wrote:
-> Parse neighbor remote devices on the video muxes input ports, add them to a
-> subdev notifier, and register the subdev notifier for the video mux, by
-> calling v4l2_async_register_fwnode_subdev().
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
-> Changes since v2:
-> - none
-> Changes since v1:
-> - add #include <linux/slab.h> for kcalloc() declaration.
-> ---
->  drivers/media/platform/video-mux.c | 36 +++++++++++++++++++++++++++++++++++-
->  1 file changed, 35 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-> index ee89ad7..b93b0af 100644
-> --- a/drivers/media/platform/video-mux.c
-> +++ b/drivers/media/platform/video-mux.c
-> @@ -21,8 +21,10 @@
->  #include <linux/of.h>
->  #include <linux/of_graph.h>
->  #include <linux/platform_device.h>
-> +#include <linux/slab.h>
->  #include <media/v4l2-async.h>
->  #include <media/v4l2-device.h>
-> +#include <media/v4l2-fwnode.h>
->  #include <media/v4l2-subdev.h>
->  
->  struct video_mux {
-> @@ -193,6 +195,38 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
->  	.video = &video_mux_subdev_video_ops,
->  };
->  
-> +static int video_mux_parse_endpoint(struct device *dev,
-> +				    struct v4l2_fwnode_endpoint *vep,
-> +				    struct v4l2_async_subdev *asd)
-> +{
-> +	/*
-> +	 * it's not an error if remote is missing on a video-mux
-> +	 * input port, return -ENOTCONN to skip this endpoint with
-> +	 * no error.
-> +	 */
-> +	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
-> +}
-> +
-> +static int video_mux_async_register(struct video_mux *vmux,
-> +				    unsigned int num_pads)
-> +{
-> +	unsigned int i, *ports;
-> +	int ret;
-> +
-> +	ports = kcalloc(num_pads - 1, sizeof(*ports), GFP_KERNEL);
-> +	if (!ports)
-> +		return -ENOMEM;
-> +	for (i = 0; i < num_pads - 1; i++)
-> +		ports[i] = i;
-> +
-> +	ret = v4l2_async_register_fwnode_subdev(
-> +		&vmux->subdev, sizeof(struct v4l2_async_subdev),
-> +		ports, num_pads - 1, video_mux_parse_endpoint);
-> +
-> +	kfree(ports);
-> +	return ret;
-> +}
-> +
->  static int video_mux_probe(struct platform_device *pdev)
->  {
->  	struct device_node *np = pdev->dev.of_node;
-> @@ -258,7 +292,7 @@ static int video_mux_probe(struct platform_device *pdev)
->  
->  	vmux->subdev.entity.ops = &video_mux_ops;
->  
-> -	return v4l2_async_register_subdev(&vmux->subdev);
-> +	return video_mux_async_register(vmux, num_pads);
+Hi Kieran,
 
-I would prefer to change the last argument to 'num_pads - 1' and drop the ' - 1'
-part in the video_mux_async_register() function. Perhaps renaming the num_pads
-argument there to num_input_pads.
+On Saturday, 28 April 2018 21:58:53 EEST Kieran Bingham wrote:
+> On 22/04/18 23:34, Laurent Pinchart wrote:
+> > The DISCOM is used to compute CRCs on display frames. Integrate it in
+> > the display pipeline at the output of the blending unit to process
+> > output frames.
+> > 
+> > Computing CRCs on input frames is possible by positioning the DISCOM at
+> > a different point in the pipeline. This use case isn't supported at the
+> > moment and could be implemented by extending the API between the VSP1
+> > and DU drivers if needed.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> Only a couple of small questions - but nothing to block an RB tag.
+> 
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> > ---
+> > 
+> >  drivers/media/platform/vsp1/vsp1_drm.c | 115 +++++++++++++++++++++++++++-
+> >  drivers/media/platform/vsp1/vsp1_drm.h |  12 ++++
+> >  2 files changed, 124 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+> > b/drivers/media/platform/vsp1/vsp1_drm.c index 5fc31578f9b0..7864b43a90e1
+> > 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
 
+[snip]
+
+> > @@ -748,6 +847,9 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned
+> > int pipe_index,> 
+> >  	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
+> >  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
+> > 
+> > +	drm_pipe->crc.source = cfg->crc.source;
+> > +	drm_pipe->crc.index = cfg->crc.index;
+> 
+> I think this could be shortened to
+> 
+> 	drm_pipe->crc = cfg->crc;
+> 
+> Or is that a GCC extension. Either way, it's just a matter of taste, and you
+> might prefer to be more explicit.
+
+That's what I had written in the first place, only to have gcc throwing an 
+error because the crc fields are anonymous structures.
+
+> > +
+> >  	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
+> >  	vsp1_du_pipeline_configure(pipe);
+> >  	mutex_unlock(&vsp1->drm->lock);
+
+[snip]
+
+> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.h
+> > b/drivers/media/platform/vsp1/vsp1_drm.h index e5b88b28806c..1e7670955ef0
+> > 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_drm.h
+> > +++ b/drivers/media/platform/vsp1/vsp1_drm.h
+> > @@ -13,6 +13,8 @@
+> >  #include <linux/videodev2.h>
+> >  #include <linux/wait.h>
+> > 
+> > +#include <media/vsp1.h>
+> > +
+> >  #include "vsp1_pipe.h"
+> >  
+> >  /**
+> > @@ -22,6 +24,9 @@
+> >   * @height: output display height
+> >   * @force_brx_release: when set, release the BRx during the next
+> >   reconfiguration
+> >   * @wait_queue: wait queue to wait for BRx release completion
+> > + * @uif: UIF entity if available for the pipeline
+> > + * @crc.source: source for CRC calculation
+> > + * @crc.index: index of the CRC source plane (when crc.source is set to
+> > plane)
+> >   * @du_complete: frame completion callback for the DU driver (optional)
+> >   * @du_private: data to be passed to the du_complete callback
+> >   */
+> > @@ -34,6 +39,13 @@ struct vsp1_drm_pipeline {
+> >  	bool force_brx_release;
+> >  	wait_queue_head_t wait_queue;
+> > 
+> > +	struct vsp1_entity *uif;
+> > +
+> > +	struct {
+> > +		enum vsp1_du_crc_source source;
+> > +		unsigned int index;
+> > +	} crc;
+> 
+> Does this have to be duplicated ? Or can it be included from the API
+> header...
+
+It's a good point. I thought it might not be worth it just for two fields, but 
+I see no compelling reason against it. I'll introduce a new structure.
+
+> > +
+> >  	/* Frame synchronisation */
+> >  	void (*du_complete)(void *data, bool completed, u32 crc);
+> >  	void *du_private;
+
+-- 
 Regards,
 
-	Hans
-
->  }
->  
->  static int video_mux_remove(struct platform_device *pdev)
-> 
+Laurent Pinchart
