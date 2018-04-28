@@ -1,45 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay11.mail.gandi.net ([217.70.178.231]:48849 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752807AbeDYLAY (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:43478 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759658AbeD1Jbj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 07:00:24 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hans.verkuil@cisco.com, mchehab@kernel.org, robh+dt@kernel.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 0/2] media: i2c: mt9t112: Add OF tree support
-Date: Wed, 25 Apr 2018 13:00:12 +0200
-Message-Id: <1524654014-17852-1-git-send-email-jacopo+renesas@jmondi.org>
+        Sat, 28 Apr 2018 05:31:39 -0400
+Received: by mail-lf0-f66.google.com with SMTP id g12-v6so5982420lfb.10
+        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2018 02:31:38 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Sat, 28 Apr 2018 11:31:34 +0200
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: Re: [PATCH] v4l: vsp1: Fix vsp1_regs.h license header
+Message-ID: <20180428093134.GD14242@bigcity.dyn.berto.se>
+References: <20180427214647.892-1-laurent.pinchart+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180427214647.892-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Laurent,
 
-    this small series add device tree support for the MT9T112 image
-sensor.
+Thanks for your patch.
 
-As in the device tree bindings I used 'semi-standard' name for the
-'powerdown' GPIO, I have changed that for all other users of the mt9t112
-driver (SH Ecovec only).
+On 2018-04-28 00:46:47 +0300, Laurent Pinchart wrote:
+> All source files of the vsp1 driver are licensed under the GPLv2+ except
+> for vsp1_regs.h which is licensed under GPLv2. This is caused by a bad
+> copy&paste that dates back from the initial version of the driver. Fix
+> it.
+> 
+> Cc: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
+> Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-A note on clock: as the mt9t112 driver expects to receive the PPL parameter
-configuration from platform data (I know...), new OF users are only supported
-with an external clock frequency of 24MHz.
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Thanks
-   j
-
-Jacopo Mondi (2):
-  dt-bindings: media: i2c: Add mt9t111 image sensor
-  media: i2c: mt9t112: Add device tree support
-
- Documentation/devicetree/bindings/mt9t112.txt | 41 +++++++++++++
- arch/sh/boards/mach-ecovec24/setup.c          |  4 +-
- drivers/media/i2c/mt9t112.c                   | 87 +++++++++++++++++++++++----
- 3 files changed, 118 insertions(+), 14 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mt9t112.txt
-
---
-2.7.4
+-- 
+Regards,
+Niklas Söderlund
