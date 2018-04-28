@@ -1,206 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:50959 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757826AbeDXMpS (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:54448 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751151AbeD1UuS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 08:45:18 -0400
-Received: by mail-wm0-f67.google.com with SMTP id t67so690094wmt.0
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:17 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 09/28] venus: venc,vdec: adds clocks needed for venus 4xx
-Date: Tue, 24 Apr 2018 15:44:17 +0300
-Message-Id: <20180424124436.26955-10-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+        Sat, 28 Apr 2018 16:50:18 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Dave Airlie <airlied@gmail.com>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v3 0/8] R-Car DU: Support CRC calculation
+Date: Sat, 28 Apr 2018 23:50:19 +0300
+Message-Id: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This extends the clocks number to support suspend and resume
-on Venus version 4xx.
+Hello,
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/core.h |  4 +--
- drivers/media/platform/qcom/venus/vdec.c | 42 ++++++++++++++++++++++++++------
- drivers/media/platform/qcom/venus/venc.c | 42 ++++++++++++++++++++++++++------
- 3 files changed, 72 insertions(+), 16 deletions(-)
+(Dave, there's a request for you below)
 
-diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-index 8d3e150800c9..b5b9a84e9155 100644
---- a/drivers/media/platform/qcom/venus/core.h
-+++ b/drivers/media/platform/qcom/venus/core.h
-@@ -92,8 +92,8 @@ struct venus_core {
- 	void __iomem *base;
- 	int irq;
- 	struct clk *clks[VIDC_CLKS_NUM_MAX];
--	struct clk *core0_clk;
--	struct clk *core1_clk;
-+	struct clk *core0_clk, *core0_bus_clk;
-+	struct clk *core1_clk, *core1_bus_clk;
- 	struct video_device *vdev_dec;
- 	struct video_device *vdev_enc;
- 	struct v4l2_device v4l2_dev;
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index 261a51adeef2..c45452634e7e 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -1081,12 +1081,18 @@ static int vdec_probe(struct platform_device *pdev)
- 	if (!core)
- 		return -EPROBE_DEFER;
- 
--	if (core->res->hfi_version == HFI_VERSION_3XX) {
-+	if (IS_V3(core) || IS_V4(core)) {
- 		core->core0_clk = devm_clk_get(dev, "core");
- 		if (IS_ERR(core->core0_clk))
- 			return PTR_ERR(core->core0_clk);
- 	}
- 
-+	if (IS_V4(core)) {
-+		core->core0_bus_clk = devm_clk_get(dev, "bus");
-+		if (IS_ERR(core->core0_bus_clk))
-+			return PTR_ERR(core->core0_bus_clk);
-+	}
-+
- 	platform_set_drvdata(pdev, core);
- 
- 	vdev = video_device_alloc();
-@@ -1132,12 +1138,23 @@ static __maybe_unused int vdec_runtime_suspend(struct device *dev)
- {
- 	struct venus_core *core = dev_get_drvdata(dev);
- 
--	if (core->res->hfi_version == HFI_VERSION_1XX)
-+	if (IS_V1(core))
- 		return 0;
- 
--	writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
-+	if (IS_V3(core))
-+		writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
-+	else if (IS_V4(core))
-+		writel(0, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
-+
-+	if (IS_V4(core))
-+		clk_disable_unprepare(core->core0_bus_clk);
-+
- 	clk_disable_unprepare(core->core0_clk);
--	writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
-+
-+	if (IS_V3(core))
-+		writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
-+	else if (IS_V4(core))
-+		writel(1, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
- 
- 	return 0;
- }
-@@ -1147,12 +1164,23 @@ static __maybe_unused int vdec_runtime_resume(struct device *dev)
- 	struct venus_core *core = dev_get_drvdata(dev);
- 	int ret;
- 
--	if (core->res->hfi_version == HFI_VERSION_1XX)
-+	if (IS_V1(core))
- 		return 0;
- 
--	writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
-+	if (IS_V3(core))
-+		writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
-+	else if (IS_V4(core))
-+		writel(0, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
-+
- 	ret = clk_prepare_enable(core->core0_clk);
--	writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
-+
-+	if (IS_V4(core))
-+		ret |= clk_prepare_enable(core->core0_bus_clk);
-+
-+	if (IS_V3(core))
-+		writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
-+	else if (IS_V4(core))
-+		writel(1, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 947001170a77..bc8c2e7a8d2c 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -1225,12 +1225,18 @@ static int venc_probe(struct platform_device *pdev)
- 	if (!core)
- 		return -EPROBE_DEFER;
- 
--	if (core->res->hfi_version == HFI_VERSION_3XX) {
-+	if (IS_V3(core) || IS_V4(core)) {
- 		core->core1_clk = devm_clk_get(dev, "core");
- 		if (IS_ERR(core->core1_clk))
- 			return PTR_ERR(core->core1_clk);
- 	}
- 
-+	if (IS_V4(core)) {
-+		core->core1_bus_clk = devm_clk_get(dev, "bus");
-+		if (IS_ERR(core->core1_bus_clk))
-+			return PTR_ERR(core->core1_bus_clk);
-+	}
-+
- 	platform_set_drvdata(pdev, core);
- 
- 	vdev = video_device_alloc();
-@@ -1276,12 +1282,23 @@ static __maybe_unused int venc_runtime_suspend(struct device *dev)
- {
- 	struct venus_core *core = dev_get_drvdata(dev);
- 
--	if (core->res->hfi_version == HFI_VERSION_1XX)
-+	if (IS_V1(core))
- 		return 0;
- 
--	writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
-+	if (IS_V3(core))
-+		writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
-+	else if (IS_V4(core))
-+		writel(0, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
-+
-+	if (IS_V4(core))
-+		clk_disable_unprepare(core->core1_bus_clk);
-+
- 	clk_disable_unprepare(core->core1_clk);
--	writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
-+
-+	if (IS_V3(core))
-+		writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
-+	else if (IS_V4(core))
-+		writel(1, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
- 
- 	return 0;
- }
-@@ -1291,12 +1308,23 @@ static __maybe_unused int venc_runtime_resume(struct device *dev)
- 	struct venus_core *core = dev_get_drvdata(dev);
- 	int ret;
- 
--	if (core->res->hfi_version == HFI_VERSION_1XX)
-+	if (IS_V1(core))
- 		return 0;
- 
--	writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
-+	if (IS_V3(core))
-+		writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
-+	else if (IS_V4(core))
-+		writel(0, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
-+
- 	ret = clk_prepare_enable(core->core1_clk);
--	writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
-+
-+	if (IS_V4(core))
-+		ret |= clk_prepare_enable(core->core1_bus_clk);
-+
-+	if (IS_V3(core))
-+		writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
-+	else if (IS_V4(core))
-+		writel(1, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
- 
- 	return ret;
- }
+This patch series adds support for CRC calculation to the rcar-du-drm driver.
+
+CRC calculation is supported starting at the Renesas R-Car Gen3 SoCs, as
+earlier versions don't have the necessary hardware. On Gen3 SoCs, the CRC is
+computed by the DISCOM module part of the VSP-D and VSP-DL.
+
+The DISCOM is interfaced to the VSP through the UIF glue and appears as a VSP
+entity with a sink pad and a source pad.
+
+The series starts with a switch to SPDX license headers in patch 1/8, prompted
+by a checkpatch.pl warning for a later patch that complained about missing
+SPDX license headers. It then continues with cleanup and refactoring. Patches
+2/8 and 3/8 prepare for DISCOM and UIF support by extending generic code to
+make it usable for the UIF. Patch 4/8 documents a structure that will receive
+new fields.
+
+Patch 5/8 then extends the API exposed by the VSP driver to the DU driver to
+support CRC computation configuration and reporting. The patch unfortunately
+needs to touch both the VSP and DU drivers, so the whole series will need to
+be merged through a single tree.
+
+Patch 5/8 adds support for the DISCOM and UIF in the VSP driver, patch 7/8
+integrates it in the DRM pipeline, and patch 8/8 finally implements the CRC
+API in the DU driver to expose CRC computation to userspace.
+
+The hardware supports computing the CRC at any arbitrary point in the
+pipeline on a configurable window of the frame. This patch series supports CRC
+computation on input planes or pipeline output, but on the full frame only.
+Support for CRC window configuration can be added later if needed but will
+require extending the userspace API, as the DRM/KMS CRC API doesn't support
+this feature.
+
+Compared to v1, the CRC source names for plane inputs are now constructed from
+plane IDs instead of plane indices. This allows userspace to match CRC sources
+with planes.
+
+Compared to v2, various small issues reported by reviewers have been fixed. I
+believe the series to now be ready for upstream merge.
+
+Note that exposing the DISCOM and UIF though the V4L2 API isn't supported as
+the module is only found in VSP-D and VSP-DL instances that are not exposed
+through V4L2. It is possible to expose those instances through V4L2 with a
+small modification to the driver for testing purpose. If the need arises to
+test DISCOM and UIF with such an out-of-tree patch, support for CRC reporting
+through a V4L2 control can be added later without affecting how CRC is exposed
+through the DRM/KMS API.
+
+The patches are based on top of the "[PATCH v2 00/15] R-Car VSP1: Dynamically
+assign blend units to display pipelines" patch series, itself based on top of
+the Linux media master branch and scheduled for merge in v4.18. The new base
+caused heavy conflicts, requiring this series to be merged through the V4L2
+tree.
+
+Dave, I have verified that this series merges cleanly with your drm-next and
+drm-fixes branches, with the drm-misc-next and drm-misc-fixes branches, and
+with the R-Car DU patches I would like to get merged in v4.18 through your
+tree. Could I get your ack to merge this through the V4L2 tree ?
+
+For convenience the patches are available at
+
+        git://linuxtv.org/pinchartl/media.git vsp1-discom-v3-20180428
+
+The code has been tested through the kms-test-crc.py script part of the DU
+test suite available at
+
+        git://git.ideasonboard.com/renesas/kms-tests.git discom
+
+Laurent Pinchart (8):
+  v4l: vsp1: Use SPDX license headers
+  v4l: vsp1: Share the CLU, LIF and LUT set_fmt pad operation code
+  v4l: vsp1: Reset the crop and compose rectangles in the set_fmt helper
+  v4l: vsp1: Document the vsp1_du_atomic_config structure
+  v4l: vsp1: Extend the DU API to support CRC computation
+  v4l: vsp1: Add support for the DISCOM entity
+  v4l: vsp1: Integrate DISCOM in display pipeline
+  drm: rcar-du: Add support for CRC computation
+
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c    | 156 ++++++++++++++++-
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.h    |  15 ++
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c     |  12 +-
+ drivers/media/platform/vsp1/Makefile      |   2 +-
+ drivers/media/platform/vsp1/vsp1.h        |  10 +-
+ drivers/media/platform/vsp1/vsp1_brx.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_brx.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_clu.c    |  71 ++------
+ drivers/media/platform/vsp1/vsp1_clu.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_dl.c     |   8 +-
+ drivers/media/platform/vsp1/vsp1_dl.h     |   6 +-
+ drivers/media/platform/vsp1/vsp1_drm.c    | 127 ++++++++++++--
+ drivers/media/platform/vsp1/vsp1_drm.h    |  15 +-
+ drivers/media/platform/vsp1/vsp1_drv.c    |  26 ++-
+ drivers/media/platform/vsp1/vsp1_entity.c | 103 +++++++++++-
+ drivers/media/platform/vsp1/vsp1_entity.h |  13 +-
+ drivers/media/platform/vsp1/vsp1_hgo.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_hgo.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_hgt.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_hgt.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_histo.c  |  65 +------
+ drivers/media/platform/vsp1/vsp1_histo.h  |   6 +-
+ drivers/media/platform/vsp1/vsp1_hsit.c   |   6 +-
+ drivers/media/platform/vsp1/vsp1_hsit.h   |   6 +-
+ drivers/media/platform/vsp1/vsp1_lif.c    |  71 ++------
+ drivers/media/platform/vsp1/vsp1_lif.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_lut.c    |  71 ++------
+ drivers/media/platform/vsp1/vsp1_lut.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c   |   6 +-
+ drivers/media/platform/vsp1/vsp1_pipe.h   |   6 +-
+ drivers/media/platform/vsp1/vsp1_regs.h   |  46 ++++-
+ drivers/media/platform/vsp1/vsp1_rpf.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_rwpf.c   |   6 +-
+ drivers/media/platform/vsp1/vsp1_rwpf.h   |   6 +-
+ drivers/media/platform/vsp1/vsp1_sru.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_sru.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_uds.c    |   6 +-
+ drivers/media/platform/vsp1/vsp1_uds.h    |   6 +-
+ drivers/media/platform/vsp1/vsp1_uif.c    | 271 ++++++++++++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_uif.h    |  32 ++++
+ drivers/media/platform/vsp1/vsp1_video.c  |   6 +-
+ drivers/media/platform/vsp1/vsp1_video.h  |   6 +-
+ drivers/media/platform/vsp1/vsp1_wpf.c    |   6 +-
+ include/media/vsp1.h                      |  45 ++++-
+ 44 files changed, 892 insertions(+), 417 deletions(-)
+ create mode 100644 drivers/media/platform/vsp1/vsp1_uif.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_uif.h
+
 -- 
-2.14.1
+Regards,
+
+Laurent Pinchart
