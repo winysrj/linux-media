@@ -1,56 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33772 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753185AbeDKNkE (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:35861 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1759316AbeD1Dry (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 09:40:04 -0400
-Received: by mail-wm0-f68.google.com with SMTP id o23so25549974wmf.0
-        for <linux-media@vger.kernel.org>; Wed, 11 Apr 2018 06:40:04 -0700 (PDT)
-From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
-        <ckoenig.leichtzumerken@gmail.com>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-Subject: [PATCH 3/5] drm/ttm: remove the backing store if no placement is given
-Date: Wed, 11 Apr 2018 15:39:57 +0200
-Message-Id: <20180411133959.4257-3-christian.koenig@amd.com>
-In-Reply-To: <20180411133959.4257-1-christian.koenig@amd.com>
-References: <20180411133959.4257-1-christian.koenig@amd.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Fri, 27 Apr 2018 23:47:54 -0400
+Message-ID: <1e0bc5fa0e5e6ac3016cf885f3b255f5@smtp-cloud7.xs4all.net>
+Date: Sat, 28 Apr 2018 05:47:52 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pipeline removal of the BOs backing store when the placement is given
-during validation.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Christian König <christian.koenig@amd.com>
----
- drivers/gpu/drm/ttm/ttm_bo.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/gpu/drm/ttm/ttm_bo.c b/drivers/gpu/drm/ttm/ttm_bo.c
-index 98e06f8bf23b..17e821f01d0a 100644
---- a/drivers/gpu/drm/ttm/ttm_bo.c
-+++ b/drivers/gpu/drm/ttm/ttm_bo.c
-@@ -1078,6 +1078,18 @@ int ttm_bo_validate(struct ttm_buffer_object *bo,
- 	uint32_t new_flags;
- 
- 	reservation_object_assert_held(bo->resv);
-+
-+	/*
-+	 * Remove the backing store if no placement is given.
-+	 */
-+	if (!placement->num_placement && !placement->num_busy_placement) {
-+		ret = ttm_bo_pipeline_gutting(bo);
-+		if (ret)
-+			return ret;
-+
-+		return ttm_tt_create(bo, false);
-+	}
-+
- 	/*
- 	 * Check whether we need to move buffer.
- 	 */
--- 
-2.14.1
+date:			Sat Apr 28 05:00:11 CEST 2018
+media-tree git hash:	a2b2eff6ac2716f499defa590a6ec4ba379d765e
+media_build git hash:	2945d108c680b3c09c9843e001e84a9797d7f379
+v4l-utils git hash:	03e763fd4b361b2082019032fc315b7606669335
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		0.5.2-RC1
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.15.0-3-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.14.31-i686: OK
+linux-4.14.31-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16-i686: OK
+linux-4.16-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
