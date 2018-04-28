@@ -1,69 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:43013 "EHLO
-        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750942AbeDNL67 (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:50720 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757613AbeD1QTT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 07:58:59 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Subject: [PATCH v14 02/33] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
-Date: Sat, 14 Apr 2018 13:56:55 +0200
-Message-Id: <20180414115726.5075-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+        Sat, 28 Apr 2018 12:19:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v2 5/8] v4l: vsp1: Extend the DU API to support CRC computation
+Date: Sat, 28 Apr 2018 19:19:34 +0300
+Message-ID: <2143831.DOFRIRY06f@avalon>
+In-Reply-To: <20180428100316.GC18201@w540>
+References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com> <20180422223430.16407-6-laurent.pinchart+renesas@ideasonboard.com> <20180428100316.GC18201@w540>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Hi Jacopo,
 
-Add compatible strings for r8a7743 and r8a7745. No driver change
-is needed as "renesas,rcar-gen2-vin" will activate the right code.
-However, it is good practice to document compatible strings for the
-specific SoC as this allows SoC specific changes to the driver if
-needed, in addition to document SoC support and therefore allow
-checkpatch.pl to validate compatible string values.
+On Saturday, 28 April 2018 13:03:16 EEST jacopo mondi wrote:
+> Hi Laurent,
+>    just one minor comment below
+> 
+> On Mon, Apr 23, 2018 at 01:34:27AM +0300, Laurent Pinchart wrote:
+> > Add a parameter (in the form of a structure to ease future API
+> > extensions) to the VSP atomic flush handler to pass CRC source
+> > configuration, and pass the CRC value to the completion callback.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  |  6 ++++--
+> >  drivers/media/platform/vsp1/vsp1_drm.c |  6 ++++--
+> >  drivers/media/platform/vsp1/vsp1_drm.h |  2 +-
+> >  include/media/vsp1.h                   | 29 +++++++++++++++++++++++++++--
+> >  4 files changed, 36 insertions(+), 7 deletions(-)
 
-Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Reviewed-by: Biju Das <biju.das@bp.renesas.com>
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
-Acked-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+[snip]
 
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index d99b6f5dee418056..4c76d82905c9d3b8 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
- channel which can be either RGB, YUYV or BT656.
- 
-  - compatible: Must be one or more of the following
-+   - "renesas,vin-r8a7743" for the R8A7743 device
-+   - "renesas,vin-r8a7745" for the R8A7745 device
-    - "renesas,vin-r8a7778" for the R8A7778 device
-    - "renesas,vin-r8a7779" for the R8A7779 device
-    - "renesas,vin-r8a7790" for the R8A7790 device
-@@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
-    - "renesas,vin-r8a7793" for the R8A7793 device
-    - "renesas,vin-r8a7794" for the R8A7794 device
-    - "renesas,vin-r8a7795" for the R8A7795 device
--   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
-+   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
-+     device.
-    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
- 
-    When compatible with the generic version nodes must list the
+> > diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+> > index ff7ef894465d..ac63a9928a79 100644
+> > --- a/include/media/vsp1.h
+> > +++ b/include/media/vsp1.h
+
+[snip]
+
+> > @@ -61,11 +61,36 @@ struct vsp1_du_atomic_config {
+> >  	unsigned int zpos;
+> >  };
+> > 
+> > +/**
+> > + * enum vsp1_du_crc_source - Source used for CRC calculation
+> > + * @VSP1_DU_CRC_NONE: CRC calculation disabled
+> > + * @VSP_DU_CRC_PLANE: Perform CRC calculation on an input plane
+> > + * @VSP_DU_CRC_OUTPUT: Perform CRC calculation on the composed output
+> 
+> These two paramters are called VSP1_DU_CRC_* not VSP_DU_CRC_*
+
+My bad. I've fixed this in my tree but will wait for other review comments 
+before posting a v3.
+
+> > + */
+> > +enum vsp1_du_crc_source {
+> > +	VSP1_DU_CRC_NONE,
+> > +	VSP1_DU_CRC_PLANE,
+> > +	VSP1_DU_CRC_OUTPUT,
+> > +};
+
+[snip]
+
 -- 
-2.16.2
+Regards,
+
+Laurent Pinchart
