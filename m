@@ -1,199 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:29726 "EHLO
-        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750939AbeDNMAz (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:54480 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751475AbeD1UuW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 08:00:55 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v14 18/33] rcar-vin: move media bus configuration to struct rvin_dev
-Date: Sat, 14 Apr 2018 13:57:11 +0200
-Message-Id: <20180414115726.5075-19-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Sat, 28 Apr 2018 16:50:22 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Dave Airlie <airlied@gmail.com>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v3 7/8] v4l: vsp1: Integrate DISCOM in display pipeline
+Date: Sat, 28 Apr 2018 23:50:26 +0300
+Message-Id: <20180428205027.18025-8-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bus configuration will once the driver is extended to support Gen3
-contain information not specific to only the directly connected parallel
-subdevice. Move it to struct rvin_dev to show it's not always coupled
-to the parallel subdevice.
+The DISCOM is used to compute CRCs on display frames. Integrate it in
+the display pipeline at the output of the blending unit to process
+output frames.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Computing CRCs on input frames is possible by positioning the DISCOM at
+a different point in the pipeline. This use case isn't supported at the
+moment and could be implemented by extending the API between the VSP1
+and DU drivers if needed.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 18 +++++++++---------
- drivers/media/platform/rcar-vin/rcar-dma.c  | 10 +++++-----
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  2 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  9 ++++-----
- 4 files changed, 19 insertions(+), 20 deletions(-)
+Changes since v2:
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 8c251687e81b345b..07a04d4bcc91b18b 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -65,10 +65,10 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
- 	vin->digital->sink_pad = ret < 0 ? 0 : ret;
+- Reduce indentation in vsp1_du_insert_uif()
+- Use vsp1_du_crc_config structure in vsp1_drm_pipeline
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 115 ++++++++++++++++++++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_drm.h |   7 ++
+ 2 files changed, 119 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 5fc31578f9b0..08667e3640b2 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -22,6 +22,7 @@
+ #include "vsp1_lif.h"
+ #include "vsp1_pipe.h"
+ #include "vsp1_rwpf.h"
++#include "vsp1_uif.h"
  
- 	/* Find compatible subdevices mbus format */
--	vin->digital->code = 0;
-+	vin->mbus_code = 0;
- 	code.index = 0;
- 	code.pad = vin->digital->source_pad;
--	while (!vin->digital->code &&
-+	while (!vin->mbus_code &&
- 	       !v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
- 		code.index++;
- 		switch (code.code) {
-@@ -76,16 +76,16 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
- 		case MEDIA_BUS_FMT_UYVY8_2X8:
- 		case MEDIA_BUS_FMT_UYVY10_2X10:
- 		case MEDIA_BUS_FMT_RGB888_1X24:
--			vin->digital->code = code.code;
-+			vin->mbus_code = code.code;
- 			vin_dbg(vin, "Found media bus format for %s: %d\n",
--				subdev->name, vin->digital->code);
-+				subdev->name, vin->mbus_code);
- 			break;
- 		default:
- 			break;
+ #define BRX_NAME(e)	(e)->type == VSP1_ENTITY_BRU ? "BRU" : "BRS"
+ 
+@@ -35,8 +36,13 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
+ 	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
+ 	bool complete = completion == VSP1_DL_FRAME_END_COMPLETED;
+ 
+-	if (drm_pipe->du_complete)
+-		drm_pipe->du_complete(drm_pipe->du_private, complete, 0);
++	if (drm_pipe->du_complete) {
++		struct vsp1_entity *uif = drm_pipe->uif;
++		u32 crc;
++
++		crc = uif ? vsp1_uif_get_crc(to_uif(&uif->subdev)) : 0;
++		drm_pipe->du_complete(drm_pipe->du_private, complete, crc);
++	}
+ 
+ 	if (completion & VSP1_DL_FRAME_END_INTERNAL) {
+ 		drm_pipe->force_brx_release = false;
+@@ -48,10 +54,66 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
+  * Pipeline Configuration
+  */
+ 
++/*
++ * Insert the UIF in the pipeline between the prev and next entities. If no UIF
++ * is available connect the two entities directly.
++ */
++static int vsp1_du_insert_uif(struct vsp1_device *vsp1,
++			      struct vsp1_pipeline *pipe,
++			      struct vsp1_entity *uif,
++			      struct vsp1_entity *prev, unsigned int prev_pad,
++			      struct vsp1_entity *next, unsigned int next_pad)
++{
++	struct v4l2_subdev_format format;
++	int ret;
++
++	if (!uif) {
++		/*
++		 * If there's no UIF to bee inserted connected the previous and
++		 * next entities directly.
++		 */
++		prev->sink = next;
++		prev->sink_pad = next_pad;
++		return 0;
++	}
++
++	prev->sink = uif;
++	prev->sink_pad = UIF_PAD_SINK;
++
++	memset(&format, 0, sizeof(format));
++	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	format.pad = prev_pad;
++
++	ret = v4l2_subdev_call(&prev->subdev, pad, get_fmt, NULL, &format);
++	if (ret < 0)
++		return ret;
++
++	format.pad = UIF_PAD_SINK;
++
++	ret = v4l2_subdev_call(&uif->subdev, pad, set_fmt, NULL, &format);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on UIF sink\n",
++		__func__, format.format.width, format.format.height,
++		format.format.code);
++
++	/*
++	 * The UIF doesn't mangle the format between its sink and source pads,
++	 * so there is no need to retrieve the format on its source pad.
++	 */
++
++	uif->sink = next;
++	uif->sink_pad = next_pad;
++
++	return 0;
++}
++
+ /* Setup one RPF and the connected BRx sink pad. */
+ static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
+ 				      struct vsp1_pipeline *pipe,
+ 				      struct vsp1_rwpf *rpf,
++				      struct vsp1_entity *uif,
+ 				      unsigned int brx_input)
+ {
+ 	struct v4l2_subdev_selection sel;
+@@ -122,6 +184,12 @@ static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
+ 	if (ret < 0)
+ 		return ret;
+ 
++	/* Insert and configure the UIF if available. */
++	ret = vsp1_du_insert_uif(vsp1, pipe, uif, &rpf->entity, RWPF_PAD_SOURCE,
++				 pipe->brx, brx_input);
++	if (ret < 0)
++		return ret;
++
+ 	/* BRx sink, propagate the format from the RPF source. */
+ 	format.pad = brx_input;
+ 
+@@ -297,7 +365,10 @@ static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
+ static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
+ 					struct vsp1_pipeline *pipe)
+ {
++	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
+ 	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
++	struct vsp1_entity *uif;
++	bool use_uif = false;
+ 	struct vsp1_brx *brx;
+ 	unsigned int i;
+ 	int ret;
+@@ -358,7 +429,11 @@ static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
+ 		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
+ 			__func__, rpf->entity.index, BRX_NAME(pipe->brx), i);
+ 
+-		ret = vsp1_du_pipeline_setup_rpf(vsp1, pipe, rpf, i);
++		uif = drm_pipe->crc.source == VSP1_DU_CRC_PLANE &&
++		      drm_pipe->crc.index == i ? drm_pipe->uif : NULL;
++		if (uif)
++			use_uif = true;
++		ret = vsp1_du_pipeline_setup_rpf(vsp1, pipe, rpf, uif, i);
+ 		if (ret < 0) {
+ 			dev_err(vsp1->dev,
+ 				"%s: failed to setup RPF.%u\n",
+@@ -367,6 +442,31 @@ static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
  		}
  	}
  
--	if (!vin->digital->code) {
-+	if (!vin->mbus_code) {
- 		vin_err(vin, "Unsupported media bus format for %s\n",
- 			subdev->name);
- 		return -EINVAL;
-@@ -196,16 +196,16 @@ static int rvin_digital_parse_v4l2(struct device *dev,
- 	if (vep->base.port || vep->base.id)
- 		return -ENOTCONN;
++	/* Insert and configure the UIF at the BRx output if available. */
++	uif = drm_pipe->crc.source == VSP1_DU_CRC_OUTPUT ? drm_pipe->uif : NULL;
++	if (uif)
++		use_uif = true;
++	ret = vsp1_du_insert_uif(vsp1, pipe, uif,
++				 pipe->brx, pipe->brx->source_pad,
++				 &pipe->output->entity, 0);
++	if (ret < 0)
++		dev_err(vsp1->dev, "%s: failed to setup UIF after %s\n",
++			__func__, BRX_NAME(pipe->brx));
++
++	/*
++	 * If the UIF is not in use schedule it for removal by setting its pipe
++	 * pointer to NULL, vsp1_du_pipeline_configure() will remove it from the
++	 * hardware pipeline and from the pipeline's list of entities. Otherwise
++	 * make sure it is present in the pipeline's list of entities if it
++	 * wasn't already.
++	 */
++	if (!use_uif) {
++		drm_pipe->uif->pipe = NULL;
++	} else if (!drm_pipe->uif->pipe) {
++		drm_pipe->uif->pipe = pipe;
++		list_add_tail(&drm_pipe->uif->list_pipe, &pipe->entities);
++	}
++
+ 	return 0;
+ }
  
--	rvge->mbus_cfg.type = vep->bus_type;
-+	vin->mbus_cfg.type = vep->bus_type;
+@@ -748,6 +848,8 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
+ 	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
+ 	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
  
--	switch (rvge->mbus_cfg.type) {
-+	switch (vin->mbus_cfg.type) {
- 	case V4L2_MBUS_PARALLEL:
- 		vin_dbg(vin, "Found PARALLEL media bus\n");
--		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
-+		vin->mbus_cfg.flags = vep->bus.parallel.flags;
- 		break;
- 	case V4L2_MBUS_BT656:
- 		vin_dbg(vin, "Found BT656 media bus\n");
--		rvge->mbus_cfg.flags = 0;
-+		vin->mbus_cfg.flags = 0;
- 		break;
- 	default:
- 		vin_err(vin, "Unknown media bus type\n");
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 79f4074b931b5aeb..41907a200037d5d5 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -626,7 +626,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 	/*
- 	 * Input interface
- 	 */
--	switch (vin->digital->code) {
-+	switch (vin->mbus_code) {
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		/* BT.601/BT.1358 16bit YCbCr422 */
- 		vnmc |= VNMC_INF_YUV16;
-@@ -634,7 +634,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
--		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -643,7 +643,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
--		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -655,11 +655,11 @@ static int rvin_setup(struct rvin_dev *vin)
- 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
++	drm_pipe->crc = cfg->crc;
++
+ 	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
+ 	vsp1_du_pipeline_configure(pipe);
+ 	mutex_unlock(&vsp1->drm->lock);
+@@ -816,6 +918,13 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
  
- 	/* Hsync Signal Polarity Select */
--	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-+	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_HPS;
+ 		pipe->lif->pipe = pipe;
+ 		list_add_tail(&pipe->lif->list_pipe, &pipe->entities);
++
++		/*
++		 * CRC computation is initially disabled, don't add the UIF to
++		 * the pipeline.
++		 */
++		if (i < vsp1->info->uif_count)
++			drm_pipe->uif = &vsp1->uif[i]->entity;
+ 	}
  
- 	/* Vsync Signal Polarity Select */
--	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
-+	if (!(vin->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_VPS;
+ 	/* Disable all RPFs initially. */
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+index e5b88b28806c..8dfd274a59e2 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.h
++++ b/drivers/media/platform/vsp1/vsp1_drm.h
+@@ -13,6 +13,8 @@
+ #include <linux/videodev2.h>
+ #include <linux/wait.h>
  
- 	/*
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index ee8044992eca1a35..e4a99ef210044ab1 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -186,7 +186,7 @@ static int rvin_try_format(struct rvin_dev *vin, u32 which,
- 	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
- 		pix->pixelformat = RVIN_DEFAULT_FORMAT;
++#include <media/vsp1.h>
++
+ #include "vsp1_pipe.h"
  
--	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
-+	v4l2_fill_mbus_format(&format.format, pix, vin->mbus_code);
- 
- 	/* Allow the video device to override field and to scale */
- 	field = pix->field;
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 06cec4f8e5ffaf2b..952d57f32873388d 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -60,8 +60,6 @@ struct rvin_video_format {
-  * struct rvin_graph_entity - Video endpoint from async framework
-  * @asd:	sub-device descriptor for async framework
-  * @subdev:	subdevice matched using async framework
-- * @code:	Media bus format from source
-- * @mbus_cfg:	Media bus format from DT
-  * @source_pad:	source pad of remote subdevice
-  * @sink_pad:	sink pad of remote subdevice
+ /**
+@@ -22,6 +24,8 @@
+  * @height: output display height
+  * @force_brx_release: when set, release the BRx during the next reconfiguration
+  * @wait_queue: wait queue to wait for BRx release completion
++ * @uif: UIF entity if available for the pipeline
++ * @crc: CRC computation configuration
+  * @du_complete: frame completion callback for the DU driver (optional)
+  * @du_private: data to be passed to the du_complete callback
   */
-@@ -69,9 +67,6 @@ struct rvin_graph_entity {
- 	struct v4l2_async_subdev asd;
- 	struct v4l2_subdev *subdev;
+@@ -34,6 +38,9 @@ struct vsp1_drm_pipeline {
+ 	bool force_brx_release;
+ 	wait_queue_head_t wait_queue;
  
--	u32 code;
--	struct v4l2_mbus_config mbus_cfg;
--
- 	unsigned int source_pad;
- 	unsigned int sink_pad;
- };
-@@ -113,6 +108,8 @@ struct rvin_info {
-  * @sequence:		V4L2 buffers sequence number
-  * @state:		keeps track of operation state
-  *
-+ * @mbus_cfg:		media bus configuration from DT
-+ * @mbus_code:		media bus format code
-  * @format:		active V4L2 pixel format
-  *
-  * @crop:		active cropping
-@@ -142,6 +139,8 @@ struct rvin_dev {
- 	unsigned int sequence;
- 	enum rvin_dma_state state;
- 
-+	struct v4l2_mbus_config mbus_cfg;
-+	u32 mbus_code;
- 	struct v4l2_pix_format format;
- 
- 	struct v4l2_rect crop;
++	struct vsp1_entity *uif;
++	struct vsp1_du_crc_config crc;
++
+ 	/* Frame synchronisation */
+ 	void (*du_complete)(void *data, bool completed, u32 crc);
+ 	void *du_private;
 -- 
-2.16.2
+Regards,
+
+Laurent Pinchart
