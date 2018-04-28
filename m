@@ -1,43 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:46050 "EHLO
-        homiemail-a125.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751878AbeDRQML (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:46559 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751530AbeD1WLg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 12:12:11 -0400
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 1/5] Enable two drivers with backports
-Date: Wed, 18 Apr 2018 11:12:03 -0500
-Message-Id: <1524067927-12113-2-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1524067927-12113-1-git-send-email-brad@nextdimension.cc>
-References: <1524067927-12113-1-git-send-email-brad@nextdimension.cc>
+        Sat, 28 Apr 2018 18:11:36 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] media/usbvision: fix spelling mistake: "compresion" -> "compression"
+Date: Sat, 28 Apr 2018 23:11:34 +0100
+Message-Id: <20180428221134.19856-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-si2168 has i2c mux related backports to v3.4
-cx231xx has i2c mux related backports to v3.4
+From: Colin Ian King <colin.king@canonical.com>
 
-Both drivers are tested working in kernel v3.2
+Trivial fix to spelling mistake in proc text string
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- v4l/versions.txt | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/media/usb/usbvision/usbvision-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/v4l/versions.txt b/v4l/versions.txt
-index 4912fc2..6149f7a 100644
---- a/v4l/versions.txt
-+++ b/v4l/versions.txt
-@@ -15,9 +15,7 @@ VIDEO_OV5670
+diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
+index 3f87fbc80be2..7138c2b606cc 100644
+--- a/drivers/media/usb/usbvision/usbvision-core.c
++++ b/drivers/media/usb/usbvision/usbvision-core.c
+@@ -1857,7 +1857,7 @@ int usbvision_stream_interrupt(struct usb_usbvision *usbvision)
  
- [4.7.0]
- # needs i2c_mux_alloc
--VIDEO_CX231XX
- DVB_LGDT3306A
--DVB_SI2168
- DVB_RTL2830
- DVB_RTL2832
- DVB_M88DS3103
+ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
+ {
+-	static const char proc[] = "usbvision_set_compresion_params: ";
++	static const char proc[] = "usbvision_set_compression_params: ";
+ 	int rc;
+ 	unsigned char *value = usbvision->ctrl_urb_buffer;
+ 
 -- 
-2.7.4
+2.17.0
