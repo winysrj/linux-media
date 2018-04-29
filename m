@@ -1,90 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:33880 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752864AbeDYLPU (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33814 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753989AbeD2RN4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 07:15:20 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180425072138.GA16375@infradead.org>
-References: <20180424204158.2764095-1-arnd@arndb.de> <20180425061537.GA23383@infradead.org>
- <CAK8P3a06ragAPWpHGm-bGoZ8t6QyAttWJfD0jU_wcGy7FqLb5w@mail.gmail.com> <20180425072138.GA16375@infradead.org>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Wed, 25 Apr 2018 13:15:18 +0200
-Message-ID: <CAK8P3a1cs_SPesadAQhV3QU97WjNE8bLPSQCfaMQRU7zr_oh3w@mail.gmail.com>
-Subject: Re: [PATCH] media: zoran: move to dma-mapping interface
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sun, 29 Apr 2018 13:13:56 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        mjpeg-users@lists.sourceforge.net,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v4 08/14] media: ov772x: support device tree probing
+Date: Mon, 30 Apr 2018 02:13:07 +0900
+Message-Id: <1525021993-17789-9-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 25, 2018 at 9:21 AM, Christoph Hellwig <hch@infradead.org> wrote:
-> On Wed, Apr 25, 2018 at 09:08:13AM +0200, Arnd Bergmann wrote:
->> > That probably also means it can use dma_mmap_coherent instead of the
->> > handcrafted remap_pfn_range loop and the PageReserved abuse.
->>
->> I'd rather not touch that code. How about adding a comment about
->> the fact that it should use dma_mmap_coherent()?
->
-> Maybe the real question is if there is anyone that actually cares
-> for this driver, or if we are better off just removing it?
->
-> Same is true for various other virt_to_bus using drivers, e.g. the
-> grotty atm drivers.
+The ov772x driver currently only supports legacy platform data probe.
+This change enables device tree probing.
 
-That thought had occurred to me as well. I removed the oldest ISDN
-drivers already some years ago, and the OSS sound drivers
-got removed as well, and comedi got converted to the dma-mapping
-interfaces, so there isn't much left at all now. This is what we
-have as of v4.17-rc1:
+Note that the platform data probe can select auto or manual edge control
+mode, but the device tree probling can only select auto edge control mode
+for now.
 
-$ git grep -wl '\<bus_to_virt\|virt_to_bus\>' drivers/
-drivers/atm/ambassador.c
-drivers/atm/firestream.c
-drivers/atm/horizon.c
-drivers/atm/zatm.c
-drivers/block/swim3.c # power mac specific
-drivers/gpu/drm/mga/mga_dma.c # commented out
-drivers/infiniband/hw/nes/nes_verbs.c # commented out
-drivers/isdn/hisax/netjet.c
-drivers/net/appletalk/ltpc.c
-drivers/net/ethernet/amd/au1000_eth.c # mips specific
-drivers/net/ethernet/amd/ni65.c # only in comment
-drivers/net/ethernet/apple/bmac.c # power mac specific
-drivers/net/ethernet/apple/mace.c # power mac specific
-drivers/net/ethernet/dec/tulip/de4x5.c  # trivially fixable
-drivers/net/ethernet/i825xx/82596.c # m68k specific
-drivers/net/ethernet/i825xx/lasi_82596.c # parisc specific
-drivers/net/ethernet/i825xx/lib82596.c # only in comment
-drivers/net/ethernet/sgi/ioc3-eth.c # mips specific
-drivers/net/wan/cosa.c
-drivers/net/wan/lmc/lmc_main.c
-drivers/net/wan/z85230.c
-drivers/scsi/3w-xxxx.c # only in comment
-drivers/scsi/BusLogic.c
-drivers/scsi/a2091.c # m68k specific
-drivers/scsi/a3000.c # m68k specific
-drivers/scsi/dc395x.c # only in comment
-drivers/scsi/dpt_i2o.c
-drivers/scsi/gvp11.c # m68k specific
-drivers/scsi/mvme147.c # m68k specific
-drivers/scsi/qla1280.c # comment only
-drivers/staging/netlogic/xlr_net.c # mips specific
-drivers/tty/serial/cpm_uart/cpm_uart_cpm2.c # ppc32 specific
-drivers/vme/bridges/vme_ca91cx42.c
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* v4
+- No changes
 
-My feeling is that we want to keep most of the arch specific
-ones, in particular removing the m68k drivers would break
-a whole class of machines.
+ drivers/media/i2c/ov772x.c | 64 ++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 45 insertions(+), 19 deletions(-)
 
-For the ones that don't have a comment on them, they
-probably won't be missed much, but it's hard to know for
-sure. What we do know is that they never worked on
-x86_64, and most of them are for ISA cards.
-
-        Arnd
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index f939e28..621149a 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -749,13 +749,13 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_VFLIP:
+ 		val = ctrl->val ? VFLIP_IMG : 0x00;
+ 		priv->flag_vflip = ctrl->val;
+-		if (priv->info->flags & OV772X_FLAG_VFLIP)
++		if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
+ 			val ^= VFLIP_IMG;
+ 		return ov772x_mask_set(client, COM3, VFLIP_IMG, val);
+ 	case V4L2_CID_HFLIP:
+ 		val = ctrl->val ? HFLIP_IMG : 0x00;
+ 		priv->flag_hflip = ctrl->val;
+-		if (priv->info->flags & OV772X_FLAG_HFLIP)
++		if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+ 			val ^= HFLIP_IMG;
+ 		return ov772x_mask_set(client, COM3, HFLIP_IMG, val);
+ 	case V4L2_CID_BAND_STOP_FILTER:
+@@ -914,19 +914,14 @@ static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
+ 	*win = ov772x_select_win(mf->width, mf->height);
+ }
+ 
+-static int ov772x_set_params(struct ov772x_priv *priv,
+-			     const struct ov772x_color_format *cfmt,
+-			     const struct ov772x_win_size *win)
++static int ov772x_edgectrl(struct ov772x_priv *priv)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+-	struct v4l2_fract tpf;
+ 	int ret;
+-	u8  val;
+ 
+-	/* Reset hardware. */
+-	ov772x_reset(client);
++	if (!priv->info)
++		return 0;
+ 
+-	/* Edge Ctrl. */
+ 	if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
+ 		/*
+ 		 * Manual Edge Control Mode.
+@@ -937,19 +932,19 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 
+ 		ret = ov772x_mask_set(client, DSPAUTO, EDGE_ACTRL, 0x00);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_TRSHLD, OV772X_EDGE_THRESHOLD_MASK,
+ 				      priv->info->edgectrl.threshold);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_STRNGT, OV772X_EDGE_STRENGTH_MASK,
+ 				      priv->info->edgectrl.strength);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 	} else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
+ 		/*
+@@ -961,15 +956,35 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 				      EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
+ 				      priv->info->edgectrl.upper);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_LOWER, OV772X_EDGE_LOWER_MASK,
+ 				      priv->info->edgectrl.lower);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 	}
+ 
++	return 0;
++}
++
++static int ov772x_set_params(struct ov772x_priv *priv,
++			     const struct ov772x_color_format *cfmt,
++			     const struct ov772x_win_size *win)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
++	struct v4l2_fract tpf;
++	int ret;
++	u8  val;
++
++	/* Reset hardware. */
++	ov772x_reset(client);
++
++	/* Edge Ctrl. */
++	ret =  ov772x_edgectrl(priv);
++	if (ret < 0)
++		return ret;
++
+ 	/* Format and window size. */
+ 	ret = ov772x_write(client, HSTART, win->rect.left >> 2);
+ 	if (ret < 0)
+@@ -1020,9 +1035,9 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 
+ 	/* Set COM3. */
+ 	val = cfmt->com3;
+-	if (priv->info->flags & OV772X_FLAG_VFLIP)
++	if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
+ 		val |= VFLIP_IMG;
+-	if (priv->info->flags & OV772X_FLAG_HFLIP)
++	if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+ 		val |= HFLIP_IMG;
+ 	if (priv->flag_vflip)
+ 		val ^= VFLIP_IMG;
+@@ -1271,8 +1286,9 @@ static int ov772x_probe(struct i2c_client *client,
+ 	struct i2c_adapter	*adapter = client->adapter;
+ 	int			ret;
+ 
+-	if (!client->dev.platform_data) {
+-		dev_err(&client->dev, "Missing ov772x platform data\n");
++	if (!client->dev.of_node && !client->dev.platform_data) {
++		dev_err(&client->dev,
++			"Missing ov772x platform data for non-DT device\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1370,9 +1386,19 @@ static const struct i2c_device_id ov772x_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, ov772x_id);
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id ov772x_of_match[] = {
++	{ .compatible = "ovti,ov7725", },
++	{ .compatible = "ovti,ov7720", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, ov772x_of_match);
++#endif
++
+ static struct i2c_driver ov772x_i2c_driver = {
+ 	.driver = {
+ 		.name = "ov772x",
++		.of_match_table = of_match_ptr(ov772x_of_match),
+ 	},
+ 	.probe    = ov772x_probe,
+ 	.remove   = ov772x_remove,
+-- 
+2.7.4
