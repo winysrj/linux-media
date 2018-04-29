@@ -1,276 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:49135 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752830AbeDBO2b (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:28:31 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Russell King <linux@armlinux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
-Subject: [PATCH 13/15] ARM: pxa: remove the DMA IO resources
-Date: Mon,  2 Apr 2018 16:26:54 +0200
-Message-Id: <20180402142656.26815-14-robert.jarzmik@free.fr>
-In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
-References: <20180402142656.26815-1-robert.jarzmik@free.fr>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:42280 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753910AbeD2RNl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Apr 2018 13:13:41 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Wolfram Sang <wsa@the-dreams.de>
+Subject: [PATCH v4 03/14] media: ov772x: allow i2c controllers without I2C_FUNC_PROTOCOL_MANGLING
+Date: Mon, 30 Apr 2018 02:13:02 +0900
+Message-Id: <1525021993-17789-4-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the last driver using the former mechanism to acquire the DMA
-requestor line has be converted to the dma_slave_map, remove all these
-resources from the PXA devices.
+The ov772x driver only works when the i2c controller have
+I2C_FUNC_PROTOCOL_MANGLING.  However, many i2c controller drivers don't
+support it.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+The reason that the ov772x requires I2C_FUNC_PROTOCOL_MANGLING is that
+it doesn't support repeated starts.
+
+This changes the reading ov772x register method so that it doesn't
+require I2C_FUNC_PROTOCOL_MANGLING by calling two separated i2c messages.
+
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- arch/arm/mach-pxa/devices.c | 136 --------------------------------------------
- 1 file changed, 136 deletions(-)
+* v4
+- No changes
 
-diff --git a/arch/arm/mach-pxa/devices.c b/arch/arm/mach-pxa/devices.c
-index da67ebe9a7d5..c0b3c90fd67f 100644
---- a/arch/arm/mach-pxa/devices.c
-+++ b/arch/arm/mach-pxa/devices.c
-@@ -61,16 +61,6 @@ static struct resource pxamci_resources[] = {
- 		.end	= IRQ_MMC,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--	[2] = {
--		.start	= 21,
--		.end	= 21,
--		.flags	= IORESOURCE_DMA,
--	},
--	[3] = {
--		.start	= 22,
--		.end	= 22,
--		.flags	= IORESOURCE_DMA,
--	},
- };
+ drivers/media/i2c/ov772x.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index e255070..b6223bf 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -542,9 +542,19 @@ static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
+ 	return container_of(sd, struct ov772x_priv, subdev);
+ }
  
- static u64 pxamci_dmamask = 0xffffffffUL;
-@@ -408,16 +398,6 @@ static struct resource pxa_ir_resources[] = {
- 		.end	= 0x40700023,
- 		.flags  = IORESOURCE_MEM,
- 	},
--	[5] = {
--		.start  = 17,
--		.end	= 17,
--		.flags  = IORESOURCE_DMA,
--	},
--	[6] = {
--		.start  = 18,
--		.end	= 18,
--		.flags  = IORESOURCE_DMA,
--	},
- };
+-static inline int ov772x_read(struct i2c_client *client, u8 addr)
++static int ov772x_read(struct i2c_client *client, u8 addr)
+ {
+-	return i2c_smbus_read_byte_data(client, addr);
++	int ret;
++	u8 val;
++
++	ret = i2c_master_send(client, &addr, 1);
++	if (ret < 0)
++		return ret;
++	ret = i2c_master_recv(client, &val, 1);
++	if (ret < 0)
++		return ret;
++
++	return val;
+ }
  
- struct platform_device pxa_device_ficp = {
-@@ -546,18 +526,6 @@ static struct resource pxa25x_resource_ssp[] = {
- 		.end	= IRQ_SSP,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--	[2] = {
--		/* DRCMR for RX */
--		.start	= 13,
--		.end	= 13,
--		.flags	= IORESOURCE_DMA,
--	},
--	[3] = {
--		/* DRCMR for TX */
--		.start	= 14,
--		.end	= 14,
--		.flags	= IORESOURCE_DMA,
--	},
- };
+ static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 value)
+@@ -1255,13 +1265,11 @@ static int ov772x_probe(struct i2c_client *client,
+ 		return -EINVAL;
+ 	}
  
- struct platform_device pxa25x_device_ssp = {
-@@ -584,18 +552,6 @@ static struct resource pxa25x_resource_nssp[] = {
- 		.end	= IRQ_NSSP,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--	[2] = {
--		/* DRCMR for RX */
--		.start	= 15,
--		.end	= 15,
--		.flags	= IORESOURCE_DMA,
--	},
--	[3] = {
--		/* DRCMR for TX */
--		.start	= 16,
--		.end	= 16,
--		.flags	= IORESOURCE_DMA,
--	},
- };
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+-					      I2C_FUNC_PROTOCOL_MANGLING)) {
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+ 		dev_err(&adapter->dev,
+-			"I2C-Adapter doesn't support SMBUS_BYTE_DATA or PROTOCOL_MANGLING\n");
++			"I2C-Adapter doesn't support SMBUS_BYTE_DATA\n");
+ 		return -EIO;
+ 	}
+-	client->flags |= I2C_CLIENT_SCCB;
  
- struct platform_device pxa25x_device_nssp = {
-@@ -622,18 +578,6 @@ static struct resource pxa25x_resource_assp[] = {
- 		.end	= IRQ_ASSP,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--	[2] = {
--		/* DRCMR for RX */
--		.start	= 23,
--		.end	= 23,
--		.flags	= IORESOURCE_DMA,
--	},
--	[3] = {
--		/* DRCMR for TX */
--		.start	= 24,
--		.end	= 24,
--		.flags	= IORESOURCE_DMA,
--	},
- };
- 
- struct platform_device pxa25x_device_assp = {
-@@ -752,18 +696,6 @@ static struct resource pxa27x_resource_ssp1[] = {
- 		.end	= IRQ_SSP,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--	[2] = {
--		/* DRCMR for RX */
--		.start	= 13,
--		.end	= 13,
--		.flags	= IORESOURCE_DMA,
--	},
--	[3] = {
--		/* DRCMR for TX */
--		.start	= 14,
--		.end	= 14,
--		.flags	= IORESOURCE_DMA,
--	},
- };
- 
- struct platform_device pxa27x_device_ssp1 = {
-@@ -790,18 +722,6 @@ static struct resource pxa27x_resource_ssp2[] = {
- 		.end	= IRQ_SSP2,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--	[2] = {
--		/* DRCMR for RX */
--		.start	= 15,
--		.end	= 15,
--		.flags	= IORESOURCE_DMA,
--	},
--	[3] = {
--		/* DRCMR for TX */
--		.start	= 16,
--		.end	= 16,
--		.flags	= IORESOURCE_DMA,
--	},
- };
- 
- struct platform_device pxa27x_device_ssp2 = {
-@@ -828,18 +748,6 @@ static struct resource pxa27x_resource_ssp3[] = {
- 		.end	= IRQ_SSP3,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--	[2] = {
--		/* DRCMR for RX */
--		.start	= 66,
--		.end	= 66,
--		.flags	= IORESOURCE_DMA,
--	},
--	[3] = {
--		/* DRCMR for TX */
--		.start	= 67,
--		.end	= 67,
--		.flags	= IORESOURCE_DMA,
--	},
- };
- 
- struct platform_device pxa27x_device_ssp3 = {
-@@ -896,16 +804,6 @@ static struct resource pxa3xx_resources_mci2[] = {
- 		.end	= IRQ_MMC2,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--	[2] = {
--		.start	= 93,
--		.end	= 93,
--		.flags	= IORESOURCE_DMA,
--	},
--	[3] = {
--		.start	= 94,
--		.end	= 94,
--		.flags	= IORESOURCE_DMA,
--	},
- };
- 
- struct platform_device pxa3xx_device_mci2 = {
-@@ -935,16 +833,6 @@ static struct resource pxa3xx_resources_mci3[] = {
- 		.end	= IRQ_MMC3,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--	[2] = {
--		.start	= 100,
--		.end	= 100,
--		.flags	= IORESOURCE_DMA,
--	},
--	[3] = {
--		.start	= 101,
--		.end	= 101,
--		.flags	= IORESOURCE_DMA,
--	},
- };
- 
- struct platform_device pxa3xx_device_mci3 = {
-@@ -1022,18 +910,6 @@ static struct resource pxa3xx_resources_nand[] = {
- 		.end	= IRQ_NAND,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--	[2] = {
--		/* DRCMR for Data DMA */
--		.start	= 97,
--		.end	= 97,
--		.flags	= IORESOURCE_DMA,
--	},
--	[3] = {
--		/* DRCMR for Command DMA */
--		.start	= 99,
--		.end	= 99,
--		.flags	= IORESOURCE_DMA,
--	},
- };
- 
- static u64 pxa3xx_nand_dma_mask = DMA_BIT_MASK(32);
-@@ -1067,18 +943,6 @@ static struct resource pxa3xx_resource_ssp4[] = {
- 		.end	= IRQ_SSP4,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--	[2] = {
--		/* DRCMR for RX */
--		.start	= 2,
--		.end	= 2,
--		.flags	= IORESOURCE_DMA,
--	},
--	[3] = {
--		/* DRCMR for TX */
--		.start	= 3,
--		.end	= 3,
--		.flags	= IORESOURCE_DMA,
--	},
- };
- 
- /*
+ 	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
 -- 
-2.11.0
+2.7.4
