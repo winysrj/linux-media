@@ -1,61 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:54348 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757817AbeDXMpP (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:38493 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753963AbeD2RNx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 08:45:15 -0400
-Received: by mail-wm0-f65.google.com with SMTP id f6so687945wmc.4
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:15 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 07/28] venus: hfi_venus: add halt AXI support for Venus 4xx
-Date: Tue, 24 Apr 2018 15:44:15 +0300
-Message-Id: <20180424124436.26955-8-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+        Sun, 29 Apr 2018 13:13:53 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v4 07/14] media: ov772x: omit consumer ID when getting clock reference
+Date: Mon, 30 Apr 2018 02:13:06 +0900
+Message-Id: <1525021993-17789-8-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add AXI halt support for version 4xx by using venus wrapper
-registers.
+Currently the ov772x driver obtains a clock with a specific consumer ID.
+As there's a single clock for this driver, we could omit clock-names
+property in device tree by passing NULL as a consumer ID to clk_get().
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Tested-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/media/platform/qcom/venus/hfi_venus.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+* v4
+- New patch
 
-diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
-index 734ce11b0ed0..53546174aab8 100644
---- a/drivers/media/platform/qcom/venus/hfi_venus.c
-+++ b/drivers/media/platform/qcom/venus/hfi_venus.c
-@@ -532,6 +532,23 @@ static int venus_halt_axi(struct venus_hfi_device *hdev)
- 	u32 val;
- 	int ret;
+ arch/sh/boards/mach-migor/setup.c | 2 +-
+ drivers/media/i2c/ov772x.c        | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
+index 73b9ee4..11f8001 100644
+--- a/arch/sh/boards/mach-migor/setup.c
++++ b/arch/sh/boards/mach-migor/setup.c
+@@ -593,7 +593,7 @@ static int __init migor_devices_setup(void)
+ 	}
  
-+	if (hdev->core->res->hfi_version == HFI_VERSION_4XX) {
-+		val = venus_readl(hdev, WRAPPER_CPU_AXI_HALT);
-+		val |= BIT(16);
-+		venus_writel(hdev, WRAPPER_CPU_AXI_HALT, val);
-+
-+		ret = readl_poll_timeout(base + WRAPPER_CPU_AXI_HALT_STATUS,
-+					 val, val & BIT(24),
-+					 POLL_INTERVAL_US,
-+					 VBIF_AXI_HALT_ACK_TIMEOUT_US);
-+		if (ret) {
-+			dev_err(dev, "AXI bus port halt timeout\n");
-+			return ret;
-+		}
-+
-+		return 0;
-+	}
-+
- 	/* Halt AXI and AXI IMEM VBIF Access */
- 	val = venus_readl(hdev, VBIF_AXI_HALT_CTRL0);
- 	val |= VBIF_AXI_HALT_CTRL0_HALT_REQ;
+ 	/* Add a clock alias for ov7725 xclk source. */
+-	clk_add_alias("xclk", "0-0021", "video_clk", NULL);
++	clk_add_alias(NULL, "0-0021", "video_clk", NULL);
+ 
+ 	/* Register GPIOs for video sources. */
+ 	gpiod_add_lookup_table(&ov7725_gpios);
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 97a65ce..f939e28 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -1300,7 +1300,7 @@ static int ov772x_probe(struct i2c_client *client,
+ 	if (priv->hdl.error)
+ 		return priv->hdl.error;
+ 
+-	priv->clk = clk_get(&client->dev, "xclk");
++	priv->clk = clk_get(&client->dev, NULL);
+ 	if (IS_ERR(priv->clk)) {
+ 		dev_err(&client->dev, "Unable to get xclk clock\n");
+ 		ret = PTR_ERR(priv->clk);
 -- 
-2.14.1
+2.7.4
