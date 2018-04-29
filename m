@@ -1,84 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:60275 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750898AbeDNKvi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 06:51:38 -0400
-Date: Sat, 14 Apr 2018 07:51:27 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Jasmin J." <jasmin@anw.at>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        LMML <linux-media@vger.kernel.org>
-Subject: Re: Smatch and sparse errors
-Message-ID: <20180414075127.5b0d8909@vento.lan>
-In-Reply-To: <4ecc96e9-fb47-3365-cd33-c35febba801d@anw.at>
-References: <20180411122728.52e6fa9a@vento.lan>
-        <fc6e68a3-817b-8caf-ba4f-dd2ed76d2a52@anw.at>
-        <20180414064648.0ad264fa@vento.lan>
-        <4ecc96e9-fb47-3365-cd33-c35febba801d@anw.at>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:35051 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754033AbeD2ROF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Apr 2018 13:14:05 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v4 11/14] media: ov772x: use v4l2_ctrl to get current control value
+Date: Mon, 30 Apr 2018 02:13:10 +0900
+Message-Id: <1525021993-17789-12-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 14 Apr 2018 12:06:34 +0200
-"Jasmin J." <jasmin@anw.at> escreveu:
+The ov772x driver provides three V4L2 controls and the current value of
+each control is saved as a variable in the private data structure.
 
-> Hello Mauro/Hans!
-> 
-> > Then you're probably not using the right version  
-> Might be ...
-> The build script from Hans uses the Versions from here:
->    git://repo.or.cz/smatch.git
+We don't need to keep track of the current value by ourself, if we use
+v4l2_ctrl returned from v4l2_ctrl_new_std() instead.
 
-That's right. The last patch on this repo is:
+This is a preparatory change to avoid accessing registers under power
+saving mode.  This simplifies s_ctrl() by making it just return without
+saving the current control value in private area when it is called under
+power saving mode.
 
-	53b881888d7b (origin/master, origin/HEAD) check_or_vs_and: ignore the kernel's min/max macros
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* v4
+- New patch
 
-And the patch that adds -Wpointer-arith applies cleanly at the top of
-it.
+ drivers/media/i2c/ov772x.c | 34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
->    git://git.kernel.org/pub/scm/devel/sparse/sparse.git
-
-That's wrong.
-
-Sparse nowadays are getting updates on this dir:
-
-		url = git://git.kernel.org/pub/scm/devel/sparse/chrisl/sparse.git
-
-I still track the old repo. My config for it is:
-
-[core]
-	repositoryformatversion = 0
-	filemode = true
-	bare = false
-[remote "origin"]
-	url = git://git.kernel.org/pub/scm/devel/sparse/sparse.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
-	remote = origin
-	merge = refs/heads/master
-[remote "sparse-chris"]
-	url = git://git.kernel.org/pub/scm/devel/sparse/chrisl/sparse.git
-	fetch = +refs/heads/*:refs/remotes/sparse-chris/*
-
-> 
-> > Yesterday, I added both trees I'm using here at:
-> > 	https://git.linuxtv.org/mchehab/sparse.git/
-> > 	https://git.linuxtv.org/mchehab/smatch.git/  
-> Maybe we should use your version in the build script.
-> Hans?
-> 
-> > IMHO, all 4 patches are disabling false-positive only warnings,
-> > although the 4th patch might have something useful, if fixed to
-> > properly handle the 64-bit compat macros.  
-> Another good reason for using your version. Doing so, you can fix/extend
-> sparse/smatch and the daily build will automatically use that.
-> 
-> BR,
->    Jasmin
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 7ea157e..3e6ca98 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -419,10 +419,10 @@ struct ov772x_priv {
+ 	struct gpio_desc		 *rstb_gpio;
+ 	const struct ov772x_color_format *cfmt;
+ 	const struct ov772x_win_size     *win;
+-	unsigned short                    flag_vflip:1;
+-	unsigned short                    flag_hflip:1;
++	struct v4l2_ctrl		 *vflip_ctrl;
++	struct v4l2_ctrl		 *hflip_ctrl;
+ 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
+-	unsigned short                    band_filter;
++	struct v4l2_ctrl		 *band_filter_ctrl;
+ 	unsigned int			  fps;
+ 	/* lock to protect power_count */
+ 	struct mutex			  lock;
+@@ -768,13 +768,11 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_VFLIP:
+ 		val = ctrl->val ? VFLIP_IMG : 0x00;
+-		priv->flag_vflip = ctrl->val;
+ 		if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
+ 			val ^= VFLIP_IMG;
+ 		return ov772x_mask_set(client, COM3, VFLIP_IMG, val);
+ 	case V4L2_CID_HFLIP:
+ 		val = ctrl->val ? HFLIP_IMG : 0x00;
+-		priv->flag_hflip = ctrl->val;
+ 		if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+ 			val ^= HFLIP_IMG;
+ 		return ov772x_mask_set(client, COM3, HFLIP_IMG, val);
+@@ -794,8 +792,7 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+ 				ret = ov772x_mask_set(client, BDBASE,
+ 						      0xff, val);
+ 		}
+-		if (!ret)
+-			priv->band_filter = ctrl->val;
++
+ 		return ret;
+ 	}
+ 
+@@ -1075,9 +1072,9 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 		val |= VFLIP_IMG;
+ 	if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+ 		val |= HFLIP_IMG;
+-	if (priv->flag_vflip)
++	if (priv->vflip_ctrl->val)
+ 		val ^= VFLIP_IMG;
+-	if (priv->flag_hflip)
++	if (priv->hflip_ctrl->val)
+ 		val ^= HFLIP_IMG;
+ 
+ 	ret = ov772x_mask_set(client,
+@@ -1096,11 +1093,13 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 		goto ov772x_set_fmt_error;
+ 
+ 	/* Set COM8. */
+-	if (priv->band_filter) {
++	if (priv->band_filter_ctrl->val) {
++		unsigned short band_filter = priv->band_filter_ctrl->val;
++
+ 		ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, BNDF_ON_OFF);
+ 		if (!ret)
+ 			ret = ov772x_mask_set(client, BDBASE,
+-					      0xff, 256 - priv->band_filter);
++					      0xff, 256 - band_filter);
+ 		if (ret < 0)
+ 			goto ov772x_set_fmt_error;
+ 	}
+@@ -1341,12 +1340,13 @@ static int ov772x_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
+ 	v4l2_ctrl_handler_init(&priv->hdl, 3);
+-	v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
+-			  V4L2_CID_VFLIP, 0, 1, 1, 0);
+-	v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
+-			  V4L2_CID_HFLIP, 0, 1, 1, 0);
+-	v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
+-			  V4L2_CID_BAND_STOP_FILTER, 0, 256, 1, 0);
++	priv->vflip_ctrl = v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
++					     V4L2_CID_VFLIP, 0, 1, 1, 0);
++	priv->hflip_ctrl = v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
++					     V4L2_CID_HFLIP, 0, 1, 1, 0);
++	priv->band_filter_ctrl = v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
++						   V4L2_CID_BAND_STOP_FILTER,
++						   0, 256, 1, 0);
+ 	priv->subdev.ctrl_handler = &priv->hdl;
+ 	if (priv->hdl.error) {
+ 		ret = priv->hdl.error;
+-- 
+2.7.4
