@@ -1,108 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:53177 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753744AbeDPMhY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 08:37:24 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34332 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753559AbeD2RNg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Apr 2018 13:13:36 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v2 05/12] media: ov5640: Change horizontal and vertical resolutions name
-Date: Mon, 16 Apr 2018 14:36:54 +0200
-Message-Id: <20180416123701.15901-6-maxime.ripard@bootlin.com>
-In-Reply-To: <20180416123701.15901-1-maxime.ripard@bootlin.com>
-References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>
+Subject: [PATCH v4 01/14] media: dt-bindings: ov772x: add device tree binding
+Date: Mon, 30 Apr 2018 02:13:00 +0900
+Message-Id: <1525021993-17789-2-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current width and height parameters in the struct ov5640_mode_info are
-actually the active horizontal and vertical resolutions.
+This adds a device tree binding documentation for OV7720/OV7725 sensor.
 
-Since we're going to add a few other parameters, let's pick a better, more
-precise name for these values.
-
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/media/i2c/ov5640.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+* v4
+- Add Reviewed-by: line
+- Omit clock-names property
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 5b7995abc0e6..a8158ea9da67 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -169,8 +169,8 @@ struct reg_value {
- struct ov5640_mode_info {
- 	enum ov5640_mode_id id;
- 	enum ov5640_downsize_mode dn_mode;
--	u32 width;
--	u32 height;
-+	u32 hact;
-+	u32 vact;
- 	const struct reg_value *reg_data;
- 	u32 reg_data_size;
- };
-@@ -1396,10 +1396,10 @@ ov5640_find_mode(struct ov5640_dev *sensor, enum ov5640_frame_rate fr,
- 		if (!mode->reg_data)
- 			continue;
+ .../devicetree/bindings/media/i2c/ov772x.txt       | 40 ++++++++++++++++++++++
+ MAINTAINERS                                        |  1 +
+ 2 files changed, 41 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov772x.txt b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
+new file mode 100644
+index 0000000..0b3ede5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
+@@ -0,0 +1,40 @@
++* Omnivision OV7720/OV7725 CMOS sensor
++
++The Omnivision OV7720/OV7725 sensor supports multiple resolutions output,
++such as VGA, QVGA, and any size scaling down from CIF to 40x30. It also can
++support the YUV422, RGB565/555/444, GRB422 or raw RGB output formats.
++
++Required Properties:
++- compatible: shall be one of
++	"ovti,ov7720"
++	"ovti,ov7725"
++- clocks: reference to the xclk input clock.
++
++Optional Properties:
++- reset-gpios: reference to the GPIO connected to the RSTB pin which is
++  active low, if any.
++- powerdown-gpios: reference to the GPIO connected to the PWDN pin which is
++  active high, if any.
++
++The device node shall contain one 'port' child node with one child 'endpoint'
++subnode for its digital output video port, in accordance with the video
++interface bindings defined in Documentation/devicetree/bindings/media/
++video-interfaces.txt.
++
++Example:
++
++&i2c0 {
++	ov772x: camera@21 {
++		compatible = "ovti,ov7725";
++		reg = <0x21>;
++		reset-gpios = <&axi_gpio_0 0 GPIO_ACTIVE_LOW>;
++		powerdown-gpios = <&axi_gpio_0 1 GPIO_ACTIVE_LOW>;
++		clocks = <&xclk>;
++
++		port {
++			ov772x_0: endpoint {
++				remote-endpoint = <&vcap1_in0>;
++			};
++		};
++	};
++};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index db2bc3f..f39d78b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10363,6 +10363,7 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Odd fixes
+ F:	drivers/media/i2c/ov772x.c
+ F:	include/media/i2c/ov772x.h
++F:	Documentation/devicetree/bindings/media/i2c/ov772x.txt
  
--		if ((nearest && mode->width <= width &&
--		     mode->height <= height) ||
--		    (!nearest && mode->width == width &&
--		     mode->height == height))
-+		if ((nearest && mode->hact <= width &&
-+		     mode->vact <= height) ||
-+		    (!nearest && mode->hact == width &&
-+		     mode->vact == height))
- 			break;
- 	}
- 
-@@ -1888,8 +1888,8 @@ static int ov5640_try_fmt_internal(struct v4l2_subdev *sd,
- 	mode = ov5640_find_mode(sensor, fr, fmt->width, fmt->height, true);
- 	if (!mode)
- 		return -EINVAL;
--	fmt->width = mode->width;
--	fmt->height = mode->height;
-+	fmt->width = mode->hact;
-+	fmt->height = mode->vact;
- 
- 	if (new_mode)
- 		*new_mode = mode;
-@@ -2367,10 +2367,10 @@ static int ov5640_enum_frame_size(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 
- 	fse->min_width =
--		ov5640_mode_data[0][fse->index].width;
-+		ov5640_mode_data[0][fse->index].hact;
- 	fse->max_width = fse->min_width;
- 	fse->min_height =
--		ov5640_mode_data[0][fse->index].height;
-+		ov5640_mode_data[0][fse->index].vact;
- 	fse->max_height = fse->min_height;
- 
- 	return 0;
-@@ -2434,14 +2434,14 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
- 	mode = sensor->current_mode;
- 
- 	frame_rate = ov5640_try_frame_interval(sensor, &fi->interval,
--					       mode->width, mode->height);
-+					       mode->hact, mode->vact);
- 	if (frame_rate < 0)
- 		frame_rate = OV5640_15_FPS;
- 
- 	sensor->current_fr = frame_rate;
- 	sensor->frame_interval = fi->interval;
--	sensor->current_mode = ov5640_find_mode(sensor, frame_rate, mode->width,
--						mode->height, true);
-+	sensor->current_mode = ov5640_find_mode(sensor, frame_rate, mode->hact,
-+						mode->vact, true);
- 	sensor->pending_mode_change = true;
- out:
- 	mutex_unlock(&sensor->lock);
+ OMNIVISION OV7740 SENSOR DRIVER
+ M:	Wenyou Yang <wenyou.yang@microchip.com>
 -- 
-2.17.0
+2.7.4
