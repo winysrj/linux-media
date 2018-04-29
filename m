@@ -1,178 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from leibniz.telenet-ops.be ([195.130.137.77]:38824 "EHLO
-        leibniz.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752120AbeDQSAN (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:39550 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754033AbeD2ROI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 14:00:13 -0400
-Received: from albert.telenet-ops.be (albert.telenet-ops.be [IPv6:2a02:1800:110:4::f00:1a])
-        by leibniz.telenet-ops.be (Postfix) with ESMTPS id 40QY1l0R2gzMqjZD
-        for <linux-media@vger.kernel.org>; Tue, 17 Apr 2018 20:00:11 +0200 (CEST)
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mark Brown <broonie@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S . Miller" <davem@davemloft.net>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        Matias Bjorling <mb@lightnvm.io>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Richard Weinberger <richard@nod.at>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Ohad Ben-Cohen <ohad@wizery.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>
-Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
-        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
-        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
-        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH v3 03/20] crypto: Remove depends on HAS_DMA in case of platform dependency
-Date: Tue, 17 Apr 2018 19:49:03 +0200
-Message-Id: <1523987360-18760-4-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
-References: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+        Sun, 29 Apr 2018 13:14:08 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v4 12/14] media: ov772x: avoid accessing registers under power saving mode
+Date: Mon, 30 Apr 2018 02:13:11 +0900
+Message-Id: <1525021993-17789-13-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
-symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
-In most cases this other symbol is an architecture or platform specific
-symbol, or PCI.
+The set_fmt() in subdev pad ops, the s_ctrl() for subdev control handler,
+and the s_frame_interval() in subdev video ops could be called when the
+device is under power saving mode.  These callbacks for ov772x driver
+cause updating H/W registers that will fail under power saving mode.
 
-Generic symbols and drivers without platform dependencies keep their
-dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
-cannot work anyway.
+This avoids it by not apply any changes to H/W if the device is not powered
+up.  Instead the changes will be restored right after power-up.
 
-This simplifies the dependencies, and allows to improve compile-testing.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Acked-by: Robin Murphy <robin.murphy@arm.com>
-Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
-v3:
-  - Add Acked-by,
-  - Rebase to v4.17-rc1,
+* v4
+- No changes
 
-v2:
-  - Add Reviewed-by, Acked-by,
-  - Drop RFC state,
-  - Split per subsystem.
----
- drivers/crypto/Kconfig | 14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ drivers/media/i2c/ov772x.c | 79 +++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 64 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
-index d1ea1a07cecbb36c..3dbc47528667b77c 100644
---- a/drivers/crypto/Kconfig
-+++ b/drivers/crypto/Kconfig
-@@ -419,7 +419,7 @@ config CRYPTO_DEV_EXYNOS_RNG
- config CRYPTO_DEV_S5P
- 	tristate "Support for Samsung S5PV210/Exynos crypto accelerator"
- 	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
--	depends on HAS_IOMEM && HAS_DMA
-+	depends on HAS_IOMEM
- 	select CRYPTO_AES
- 	select CRYPTO_BLKCIPHER
- 	help
-@@ -466,7 +466,6 @@ endif # if CRYPTO_DEV_UX500
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 3e6ca98..bd37169 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -741,19 +741,30 @@ static int ov772x_s_frame_interval(struct v4l2_subdev *sd,
+ 	struct ov772x_priv *priv = to_ov772x(sd);
+ 	struct v4l2_fract *tpf = &ival->interval;
+ 	unsigned int fps;
+-	int ret;
++	int ret = 0;
  
- config CRYPTO_DEV_ATMEL_AUTHENC
- 	tristate "Support for Atmel IPSEC/SSL hw accelerator"
--	depends on HAS_DMA
- 	depends on ARCH_AT91 || COMPILE_TEST
- 	select CRYPTO_AUTHENC
- 	select CRYPTO_DEV_ATMEL_AES
-@@ -479,7 +478,6 @@ config CRYPTO_DEV_ATMEL_AUTHENC
+ 	fps = ov772x_select_fps(priv, tpf);
  
- config CRYPTO_DEV_ATMEL_AES
- 	tristate "Support for Atmel AES hw accelerator"
--	depends on HAS_DMA
- 	depends on ARCH_AT91 || COMPILE_TEST
- 	select CRYPTO_AES
- 	select CRYPTO_AEAD
-@@ -494,7 +492,6 @@ config CRYPTO_DEV_ATMEL_AES
+-	ret = ov772x_set_frame_rate(priv, fps, priv->cfmt, priv->win);
+-	if (ret)
+-		return ret;
++	mutex_lock(&priv->lock);
++	/*
++	 * If the device is not powered up by the host driver do
++	 * not apply any changes to H/W at this time. Instead
++	 * the frame rate will be restored right after power-up.
++	 */
++	if (priv->power_count > 0) {
++		ret = ov772x_set_frame_rate(priv, fps, priv->cfmt, priv->win);
++		if (ret)
++			goto error;
++	}
  
- config CRYPTO_DEV_ATMEL_TDES
- 	tristate "Support for Atmel DES/TDES hw accelerator"
--	depends on HAS_DMA
- 	depends on ARCH_AT91 || COMPILE_TEST
- 	select CRYPTO_DES
- 	select CRYPTO_BLKCIPHER
-@@ -508,7 +505,6 @@ config CRYPTO_DEV_ATMEL_TDES
+ 	tpf->numerator = 1;
+ 	tpf->denominator = fps;
+ 	priv->fps = fps;
  
- config CRYPTO_DEV_ATMEL_SHA
- 	tristate "Support for Atmel SHA hw accelerator"
--	depends on HAS_DMA
- 	depends on ARCH_AT91 || COMPILE_TEST
- 	select CRYPTO_HASH
- 	help
-@@ -574,7 +570,8 @@ config CRYPTO_DEV_CAVIUM_ZIP
+-	return 0;
++error:
++	mutex_unlock(&priv->lock);
++
++	return ret;
+ }
  
- config CRYPTO_DEV_QCE
- 	tristate "Qualcomm crypto engine accelerator"
--	depends on (ARCH_QCOM || COMPILE_TEST) && HAS_DMA && HAS_IOMEM
-+	depends on ARCH_QCOM || COMPILE_TEST
-+	depends on HAS_IOMEM
- 	select CRYPTO_AES
- 	select CRYPTO_DES
- 	select CRYPTO_ECB
-@@ -598,7 +595,6 @@ source "drivers/crypto/vmx/Kconfig"
- config CRYPTO_DEV_IMGTEC_HASH
- 	tristate "Imagination Technologies hardware hash accelerator"
- 	depends on MIPS || COMPILE_TEST
--	depends on HAS_DMA
- 	select CRYPTO_MD5
- 	select CRYPTO_SHA1
- 	select CRYPTO_SHA256
-@@ -650,7 +646,6 @@ config CRYPTO_DEV_ROCKCHIP
+ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+@@ -765,6 +776,16 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	int ret = 0;
+ 	u8 val;
  
- config CRYPTO_DEV_MEDIATEK
- 	tristate "MediaTek's EIP97 Cryptographic Engine driver"
--	depends on HAS_DMA
- 	depends on (ARM && ARCH_MEDIATEK) || COMPILE_TEST
- 	select CRYPTO_AES
- 	select CRYPTO_AEAD
-@@ -688,7 +683,7 @@ source "drivers/crypto/stm32/Kconfig"
++	/* v4l2_ctrl_lock() locks our own mutex */
++
++	/*
++	 * If the device is not powered up by the host driver do
++	 * not apply any controls to H/W at this time. Instead
++	 * the controls will be restored right after power-up.
++	 */
++	if (priv->power_count == 0)
++		return 0;
++
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_VFLIP:
+ 		val = ctrl->val ? VFLIP_IMG : 0x00;
+@@ -885,6 +906,10 @@ static int ov772x_power_off(struct ov772x_priv *priv)
+ 	return 0;
+ }
  
- config CRYPTO_DEV_SAFEXCEL
- 	tristate "Inside Secure's SafeXcel cryptographic engine driver"
--	depends on HAS_DMA && OF
-+	depends on OF
- 	depends on (ARM64 && ARCH_MVEBU) || (COMPILE_TEST && 64BIT)
- 	select CRYPTO_AES
- 	select CRYPTO_BLKCIPHER
-@@ -706,7 +701,6 @@ config CRYPTO_DEV_SAFEXCEL
- config CRYPTO_DEV_ARTPEC6
- 	tristate "Support for Axis ARTPEC-6/7 hardware crypto acceleration."
- 	depends on ARM && (ARCH_ARTPEC || COMPILE_TEST)
--	depends on HAS_DMA
- 	depends on OF
- 	select CRYPTO_AEAD
- 	select CRYPTO_AES
++static int ov772x_set_params(struct ov772x_priv *priv,
++			     const struct ov772x_color_format *cfmt,
++			     const struct ov772x_win_size *win);
++
+ static int ov772x_s_power(struct v4l2_subdev *sd, int on)
+ {
+ 	struct ov772x_priv *priv = to_ov772x(sd);
+@@ -895,8 +920,20 @@ static int ov772x_s_power(struct v4l2_subdev *sd, int on)
+ 	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
+ 	 * update the power state.
+ 	 */
+-	if (priv->power_count == !on)
+-		ret = on ? ov772x_power_on(priv) : ov772x_power_off(priv);
++	if (priv->power_count == !on) {
++		if (on) {
++			ret = ov772x_power_on(priv);
++			/*
++			 * Restore the format, the frame rate, and
++			 * the controls
++			 */
++			if (!ret)
++				ret = ov772x_set_params(priv, priv->cfmt,
++							priv->win);
++		} else {
++			ret = ov772x_power_off(priv);
++		}
++	}
+ 
+ 	if (!ret) {
+ 		/* Update the power count. */
+@@ -1163,7 +1200,7 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
+ 	struct v4l2_mbus_framefmt *mf = &format->format;
+ 	const struct ov772x_color_format *cfmt;
+ 	const struct ov772x_win_size *win;
+-	int ret;
++	int ret = 0;
+ 
+ 	if (format->pad)
+ 		return -EINVAL;
+@@ -1184,14 +1221,24 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
+ 		return 0;
+ 	}
+ 
+-	ret = ov772x_set_params(priv, cfmt, win);
+-	if (ret < 0)
+-		return ret;
+-
++	mutex_lock(&priv->lock);
++	/*
++	 * If the device is not powered up by the host driver do
++	 * not apply any changes to H/W at this time. Instead
++	 * the format will be restored right after power-up.
++	 */
++	if (priv->power_count > 0) {
++		ret = ov772x_set_params(priv, cfmt, win);
++		if (ret < 0)
++			goto error;
++	}
+ 	priv->win = win;
+ 	priv->cfmt = cfmt;
+ 
+-	return 0;
++error:
++	mutex_unlock(&priv->lock);
++
++	return ret;
+ }
+ 
+ static int ov772x_video_probe(struct ov772x_priv *priv)
+@@ -1201,7 +1248,7 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
+ 	const char         *devname;
+ 	int		    ret;
+ 
+-	ret = ov772x_s_power(&priv->subdev, 1);
++	ret = ov772x_power_on(priv);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1241,7 +1288,7 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
+ 	ret = v4l2_ctrl_handler_setup(&priv->hdl);
+ 
+ done:
+-	ov772x_s_power(&priv->subdev, 0);
++	ov772x_power_off(priv);
+ 
+ 	return ret;
+ }
+@@ -1340,6 +1387,8 @@ static int ov772x_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
+ 	v4l2_ctrl_handler_init(&priv->hdl, 3);
++	/* Use our mutex for the controls */
++	priv->hdl.lock = &priv->lock;
+ 	priv->vflip_ctrl = v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
+ 					     V4L2_CID_VFLIP, 0, 1, 1, 0);
+ 	priv->hflip_ctrl = v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
 -- 
 2.7.4
