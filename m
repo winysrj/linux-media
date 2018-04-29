@@ -1,45 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:58577 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750744AbeDQExD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 00:53:03 -0400
-Received: from minime.bse ([77.22.125.85]) by mail.gmx.com (mrgmx003
- [212.227.17.190]) with ESMTPSA (Nemesis) id 0LqzIJ-1eV67B09pL-00ecC4 for
- <linux-media@vger.kernel.org>; Tue, 17 Apr 2018 06:53:02 +0200
-Date: Tue, 17 Apr 2018 06:53:01 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: cx88 invalid video opcodes when VBI enabled
-Message-ID: <20180417045300.GA7723@minime.bse>
-References: <CAGoCfiw_oD6PLOoot55zkNBVaujeG7ReNQORiqUbLuh-=iwcyw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAGoCfiw_oD6PLOoot55zkNBVaujeG7ReNQORiqUbLuh-=iwcyw@mail.gmail.com>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:42375 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754033AbeD2ROC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Apr 2018 13:14:02 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v4 10/14] media: ov772x: reconstruct s_frame_interval()
+Date: Mon, 30 Apr 2018 02:13:09 +0900
+Message-Id: <1525021993-17789-11-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This splits the s_frame_interval() in subdev video ops into selecting the
+frame interval and setting up the registers.
 
-On Sun, Apr 15, 2018 at 01:37:50PM -0400, Devin Heitmueller wrote:
-> Any suggestions on the best way to debug this without having to learn
-> the intimate details of the RISC engine on the cx88?  From the state
-> of the RISC engine it looks like there is some issue with queuing the
-> opcodes/arguments (where in some cases arguments are interpreted as
-> opcodes), but this is certainly not my area of expertise.
+This is a preparatory change to avoid accessing registers under power
+saving mode.
 
-> [   54.427224] cx88[0]: irq vid [0x10088] vbi_risc1* vbi_risc2* opc_err*
-> [   54.427232] cx88[0]/0: video risc op code error
-> [   54.427238] cx88[0]: video y / packed - dma channel status dump
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* v4
+- No changes
 
-Since the video IRQ status register has vbi_risc2 set, which we never
-generate with our RISC programs, I assume it is the VBI RISC engine
-that is executing garbage. So the dump of the video y/packed RISC engine
-does not help us here. Can you add a call to cx88_sram_channel_dump for
-SRAM_CH24 next to the existing one in cx8800_vid_irq?
+ drivers/media/i2c/ov772x.c | 56 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 35 insertions(+), 21 deletions(-)
 
-Best regards,
-
-  Daniel
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index edc013d..7ea157e 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -617,25 +617,16 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
+ 	return 0;
+ }
+ 
+-static int ov772x_set_frame_rate(struct ov772x_priv *priv,
+-				 struct v4l2_fract *tpf,
+-				 const struct ov772x_color_format *cfmt,
+-				 const struct ov772x_win_size *win)
++static unsigned int ov772x_select_fps(struct ov772x_priv *priv,
++				 struct v4l2_fract *tpf)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+-	unsigned long fin = clk_get_rate(priv->clk);
+ 	unsigned int fps = tpf->numerator ?
+ 			   tpf->denominator / tpf->numerator :
+ 			   tpf->denominator;
+ 	unsigned int best_diff;
+-	unsigned int fsize;
+-	unsigned int pclk;
+ 	unsigned int diff;
+ 	unsigned int idx;
+ 	unsigned int i;
+-	u8 clkrc = 0;
+-	u8 com4 = 0;
+-	int ret;
+ 
+ 	/* Approximate to the closest supported frame interval. */
+ 	best_diff = ~0L;
+@@ -646,7 +637,25 @@ static int ov772x_set_frame_rate(struct ov772x_priv *priv,
+ 			best_diff = diff;
+ 		}
+ 	}
+-	fps = ov772x_frame_intervals[idx];
++
++	return ov772x_frame_intervals[idx];
++}
++
++static int ov772x_set_frame_rate(struct ov772x_priv *priv,
++				 unsigned int fps,
++				 const struct ov772x_color_format *cfmt,
++				 const struct ov772x_win_size *win)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
++	unsigned long fin = clk_get_rate(priv->clk);
++	unsigned int fsize;
++	unsigned int pclk;
++	unsigned int best_diff;
++	unsigned int diff;
++	unsigned int i;
++	u8 clkrc = 0;
++	u8 com4 = 0;
++	int ret;
+ 
+ 	/* Use image size (with blankings) to calculate desired pixel clock. */
+ 	switch (cfmt->com7 & OFMT_MASK) {
+@@ -711,10 +720,6 @@ static int ov772x_set_frame_rate(struct ov772x_priv *priv,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	tpf->numerator = 1;
+-	tpf->denominator = fps;
+-	priv->fps = tpf->denominator;
+-
+ 	return 0;
+ }
+ 
+@@ -735,8 +740,20 @@ static int ov772x_s_frame_interval(struct v4l2_subdev *sd,
+ {
+ 	struct ov772x_priv *priv = to_ov772x(sd);
+ 	struct v4l2_fract *tpf = &ival->interval;
++	unsigned int fps;
++	int ret;
++
++	fps = ov772x_select_fps(priv, tpf);
++
++	ret = ov772x_set_frame_rate(priv, fps, priv->cfmt, priv->win);
++	if (ret)
++		return ret;
+ 
+-	return ov772x_set_frame_rate(priv, tpf, priv->cfmt, priv->win);
++	tpf->numerator = 1;
++	tpf->denominator = fps;
++	priv->fps = fps;
++
++	return 0;
+ }
+ 
+ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+@@ -993,7 +1010,6 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 			     const struct ov772x_win_size *win)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+-	struct v4l2_fract tpf;
+ 	int ret;
+ 	u8  val;
+ 
+@@ -1075,9 +1091,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 		goto ov772x_set_fmt_error;
+ 
+ 	/* COM4, CLKRC: Set pixel clock and framerate. */
+-	tpf.numerator = 1;
+-	tpf.denominator = priv->fps;
+-	ret = ov772x_set_frame_rate(priv, &tpf, cfmt, win);
++	ret = ov772x_set_frame_rate(priv, priv->fps, cfmt, win);
+ 	if (ret < 0)
+ 		goto ov772x_set_fmt_error;
+ 
+-- 
+2.7.4
