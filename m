@@ -1,123 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:40844 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754591AbeDTNBk (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:40733 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753963AbeD2RNr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 09:01:40 -0400
-Date: Fri, 20 Apr 2018 10:01:22 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Takashi Iwai <tiwai@suse.de>
-Cc: <alsa-devel@alsa-project.org>, "Jaroslav Kysela" <perex@perex.cz>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 3/4] sound, media: allow building ISA drivers it with
- COMPILE_TEST
-Message-ID: <20180420100122.5c1dfc87@vento.lan>
-In-Reply-To: <20180420095129.2b7d004d@vento.lan>
-References: <cover.1524227382.git.mchehab@s-opensource.com>
-        <3f4d8ae83a91c765581d9cbbd1e436b6871368fa.1524227382.git.mchehab@s-opensource.com>
-        <s5h7ep2vysl.wl-tiwai@suse.de>
-        <20180420095129.2b7d004d@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Sun, 29 Apr 2018 13:13:47 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v4 05/14] media: ov772x: add media controller support
+Date: Mon, 30 Apr 2018 02:13:04 +0900
+Message-Id: <1525021993-17789-6-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 20 Apr 2018 09:51:29 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+Create a source pad and set the media controller type to the sensor.
 
-> Em Fri, 20 Apr 2018 14:37:46 +0200
-> Takashi Iwai <tiwai@suse.de> escreveu:
-> 
-> > On Fri, 20 Apr 2018 14:32:15 +0200,
-> > Mauro Carvalho Chehab wrote:  
-> > > 
-> > > All sound drivers that don't depend on PNP can be safelly
-> > > build with COMPILE_TEST, as ISA provides function stubs to
-> > > be used for such purposes.
-> > > 
-> > > As a side effect, with this change, the radio-miropcm20
-> > > can now be built outside i386 with COMPILE_TEST.
-> > > 
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > > ---
-> > >  drivers/media/radio/Kconfig | 3 ++-
-> > >  sound/isa/Kconfig           | 9 +++++----
-> > >  2 files changed, 7 insertions(+), 5 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-> > > index d363726e9eb1..8fa403c7149e 100644
-> > > --- a/drivers/media/radio/Kconfig
-> > > +++ b/drivers/media/radio/Kconfig
-> > > @@ -372,7 +372,8 @@ config RADIO_GEMTEK_PROBE
-> > >  
-> > >  config RADIO_MIROPCM20
-> > >  	tristate "miroSOUND PCM20 radio"
-> > > -	depends on ISA && ISA_DMA_API && VIDEO_V4L2 && SND
-> > > +	depends on ISA || COMPILE_TEST
-> > > +	depends on ISA_DMA_API && VIDEO_V4L2 && SND
-> > >  	select SND_ISA
-> > >  	select SND_MIRO
-> > >  	---help---
-> > > diff --git a/sound/isa/Kconfig b/sound/isa/Kconfig
-> > > index cb54d9c0a77f..d2a6cdd0395c 100644
-> > > --- a/sound/isa/Kconfig
-> > > +++ b/sound/isa/Kconfig
-> > > @@ -20,7 +20,8 @@ config SND_SB16_DSP
-> > >  
-> > >  menuconfig SND_ISA
-> > >  	bool "ISA sound devices"
-> > > -	depends on ISA && ISA_DMA_API
-> > > +	depends on ISA || COMPILE_TEST
-> > > +	depends on ISA_DMA_API
-> > >  	default y
-> > >  	help
-> > >  	  Support for sound devices connected via the ISA bus.
-> > > @@ -38,7 +39,7 @@ config SND_ADLIB
-> > >  
-> > >  config SND_AD1816A
-> > >  	tristate "Analog Devices SoundPort AD1816A"
-> > > -	depends on PNP
-> > > +	depends on PNP && ISA
-> > >  	select ISAPNP
-> > >  	select SND_OPL3_LIB
-> > >  	select SND_MPU401_UART    
-> > 
-> > Just from curiosity: what's the reason for this explicit CONFIG_ISA
-> > dependency?  What error did you get?  
-> 
-> Kconfig complains with "select ISAPNP":
-> 
-> WARNING: unmet direct dependencies detected for ISAPNP
->   Depends on [n]: PNP [=y] && ISA [=n]
->   Selected by [y]:
->   - SND_AD1816A [=y] && SOUND [=y] && !UML && SND [=y] && SND_ISA [=y] && PNP [=y]
-> 
-> Because it is declared as:
-> 
-> config ISAPNP
-> 	bool "ISA Plug and Play support"
->         depends on ISA
-> 
-> I could have tried to change ISAPNP to depends on ISA || COMPILE_TEST,
-> but I suspect that would touch on yet another subsystem and has
-> the potential to point to other things that need changes, as
-> a lot more drivers will be selected.
-> 
-> Anyway, after a quick look at include/linux/isapnp.h, I suspect
-> that this can work.
-> 
-> I'll run some tests here.
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* v4
+- No changes
 
-Yes, removing the ISAPNP dependency if COMPILE_TEST is trivial too.
+ drivers/media/i2c/ov772x.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-Just sent a separate patch to be applied after this one with such
-removal.
-
-I opted to make it as a separate patch as, if the drivers there
-fail to build on some weird architecture, we won't need to discard
-this one.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 3fdbe64..bb5327f 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -424,6 +424,9 @@ struct ov772x_priv {
+ 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
+ 	unsigned short                    band_filter;
+ 	unsigned int			  fps;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_pad pad;
++#endif
+ };
+ 
+ /*
+@@ -1316,16 +1319,26 @@ static int ov772x_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto error_gpio_put;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
++	priv->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&priv->subdev.entity, 1, &priv->pad);
++	if (ret < 0)
++		goto error_gpio_put;
++#endif
++
+ 	priv->cfmt = &ov772x_cfmts[0];
+ 	priv->win = &ov772x_win_sizes[0];
+ 	priv->fps = 15;
+ 
+ 	ret = v4l2_async_register_subdev(&priv->subdev);
+ 	if (ret)
+-		goto error_gpio_put;
++		goto error_entity_cleanup;
+ 
+ 	return 0;
+ 
++error_entity_cleanup:
++	media_entity_cleanup(&priv->subdev.entity);
+ error_gpio_put:
+ 	if (priv->pwdn_gpio)
+ 		gpiod_put(priv->pwdn_gpio);
+@@ -1341,6 +1354,7 @@ static int ov772x_remove(struct i2c_client *client)
+ {
+ 	struct ov772x_priv *priv = to_ov772x(i2c_get_clientdata(client));
+ 
++	media_entity_cleanup(&priv->subdev.entity);
+ 	clk_put(priv->clk);
+ 	if (priv->pwdn_gpio)
+ 		gpiod_put(priv->pwdn_gpio);
+-- 
+2.7.4
