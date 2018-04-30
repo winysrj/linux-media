@@ -1,141 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:41268 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754549AbeDTLDY (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:41703 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751744AbeD3HKo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 07:03:24 -0400
-Subject: Re: [PATCH v2 3/4] media: v4l2-compat-ioctl32: simplify casts
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Daniel Mentz <danielmentz@google.com>
-References: <cover.1524155425.git.mchehab@s-opensource.com>
- <eedc93e0f7b8a2bd6ec940a0057c5ef82820aea4.1524155425.git.mchehab@s-opensource.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5ff68c8c-b7b2-22f5-c0a0-53912336cf5c@xs4all.nl>
-Date: Fri, 20 Apr 2018 13:03:19 +0200
+        Mon, 30 Apr 2018 03:10:44 -0400
+Date: Mon, 30 Apr 2018 09:10:40 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] rcar-vin: fix null pointer dereference in
+ rvin_group_get()
+Message-ID: <20180430071039.stmiv2zjqckt6nwz@verge.net.au>
+References: <20180424234506.22630-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180425071851.tcytzfkpofsbkxgm@verge.net.au>
+ <20180426152005.GE3315@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-In-Reply-To: <eedc93e0f7b8a2bd6ec940a0057c5ef82820aea4.1524155425.git.mchehab@s-opensource.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180426152005.GE3315@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/19/18 18:33, Mauro Carvalho Chehab wrote:
-> Making the cast right for get_user/put_user is not trivial, as
-> it needs to ensure that the types are the correct ones.
+On Thu, Apr 26, 2018 at 05:20:05PM +0200, Niklas Söderlund wrote:
+> Hi Simon,
 > 
-> Improve it by using macros.
+> Thanks for your feedback.
 > 
-> Tested with vivid with:
-> 	$ sudo modprobe vivid no_error_inj=1
-> 	$ v4l2-compliance-32bits -a -s10 >32bits && v4l2-compliance-64bits -a -s10 > 64bits && diff -U0 32bits 64bits
-> 	--- 32bits	2018-04-17 11:18:29.141240772 -0300
-> 	+++ 64bits	2018-04-17 11:18:40.635282341 -0300
-> 	@@ -1 +1 @@
-> 	-v4l2-compliance SHA   : bc71e4a67c6fbc5940062843bc41e7c8679634ce, 32 bits
-> 	+v4l2-compliance SHA   : bc71e4a67c6fbc5940062843bc41e7c8679634ce, 64 bits
+> On 2018-04-25 09:18:51 +0200, Simon Horman wrote:
+> > On Wed, Apr 25, 2018 at 01:45:06AM +0200, Niklas Söderlund wrote:
+> > > Store the group pointer before disassociating the VIN from the group.
+> > > 
+> > > Fixes: 3bb4c3bc85bf77a7 ("media: rcar-vin: add group allocator functions")
+> > > Reported-by: Colin Ian King <colin.king@canonical.com>
+> > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > > ---
+> > >  drivers/media/platform/rcar-vin/rcar-core.c | 12 +++++++-----
+> > >  1 file changed, 7 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> > > index 7bc2774a11232362..d3072e166a1ca24f 100644
+> > > --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> > > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> > > @@ -338,19 +338,21 @@ static int rvin_group_get(struct rvin_dev *vin)
+> > >  
+> > >  static void rvin_group_put(struct rvin_dev *vin)
+> > >  {
+> > > -	mutex_lock(&vin->group->lock);
+> > > +	struct rvin_group *group = vin->group;
+> > > +
+> > > +	mutex_lock(&group->lock);
+> > 
+> > Hi Niklas, its not clear to me why moving the lock is safe.
+> > Could you explain the locking scheme a little?
 > 
-> Using the latest version of v4l-utils with this patch applied:
-> 	https://patchwork.linuxtv.org/patch/48746/
+> The lock here protects the members of the group struct and not any of 
+> the members of the vin struct. The intent of the rvin_group_put() 
+> function is:
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> 1. Disassociate the vin struct from the group struct. This is done by 
+>    removing the pointer to the vin from the group->vin array and 
+>    removing the pointer from vin->group to the group struct. Here the 
+>    lock is needed to protect access to the group->vin array.
+> 
+> 2. Decrease the refcount of the struct group and if we are the last one 
+>    out release the group.
+> 
+> The problem with the original code is that I first disassociate group 
+> from the vin 'vin->group = NULL' but still use the pointer stored in the 
+> vin struct when I try to disassociate the vin from the group 
+> 'vin->group->vin[vin->id]'.
+> 
+> AFIK can tell the locking here is fine, the problem was that I pulled 
+> the rug from under my own feet in how I access the lock in order to not 
+> having to declare a variable to store the pointer in ;-)
+> 
+> Do this explanation help put you at ease?
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks, I am completely relaxed now :)
 
-Regards,
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
 
-	Hans
-
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 36 +++++++++++++++++++--------
->  1 file changed, 25 insertions(+), 11 deletions(-)
+> > >  	vin->group = NULL;
+> > >  	vin->v4l2_dev.mdev = NULL;
+> > >  
+> > > -	if (WARN_ON(vin->group->vin[vin->id] != vin))
+> > > +	if (WARN_ON(group->vin[vin->id] != vin))
+> > >  		goto out;
+> > >  
+> > > -	vin->group->vin[vin->id] = NULL;
+> > > +	group->vin[vin->id] = NULL;
+> > >  out:
+> > > -	mutex_unlock(&vin->group->lock);
+> > > +	mutex_unlock(&group->lock);
+> > >  
+> > > -	kref_put(&vin->group->refcount, rvin_group_release);
+> > > +	kref_put(&group->refcount, rvin_group_release);
+> > >  }
+> > >  
+> > >  /* -----------------------------------------------------------------------------
+> > > -- 
+> > > 2.17.0
+> > > 
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 680b64c1d69a..d2f0268427c2 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -30,6 +30,24 @@
->  	get_user(__assign_tmp, from) || put_user(__assign_tmp, to);	\
->  })
->  
-> +#define get_user_cast(__x, __ptr)					\
-> +({									\
-> +	get_user(__x, (typeof(*__ptr) __user *)(__ptr));		\
-> +})
-> +
-> +#define put_user_force(__x, __ptr)					\
-> +({									\
-> +	put_user((typeof(*__x) __force *)(__x), __ptr);			\
-> +})
-> +
-> +#define assign_in_user_cast(to, from)					\
-> +({									\
-> +	typeof(*from) __assign_tmp;					\
-> +									\
-> +	get_user_cast(__assign_tmp, from) || put_user(__assign_tmp, to);\
-> +})
-> +
-> +
->  static long native_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
->  {
->  	long ret = -ENOIOCTLCMD;
-> @@ -543,8 +561,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *p64,
->  			return -EFAULT;
->  
->  		uplane = aux_buf;
-> -		if (put_user((__force struct v4l2_plane *)uplane,
-> -			     &p64->m.planes))
-> +		if (put_user_force(uplane, &p64->m.planes))
->  			return -EFAULT;
->  
->  		while (num_planes--) {
-> @@ -682,7 +699,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer __user *p64,
->  
->  	if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
->  	    get_user(tmp, &p32->base) ||
-> -	    put_user((void __force *)compat_ptr(tmp), &p64->base) ||
-> +	    put_user_force(compat_ptr(tmp), &p64->base) ||
->  	    assign_in_user(&p64->capability, &p32->capability) ||
->  	    assign_in_user(&p64->flags, &p32->flags) ||
->  	    copy_in_user(&p64->fmt, &p32->fmt, sizeof(p64->fmt)))
-> @@ -831,8 +848,7 @@ static int get_v4l2_ext_controls32(struct file *file,
->  	if (aux_space < count * sizeof(*kcontrols))
->  		return -EFAULT;
->  	kcontrols = aux_buf;
-> -	if (put_user((__force struct v4l2_ext_control *)kcontrols,
-> -		     &p64->controls))
-> +	if (put_user_force(kcontrols, &p64->controls))
->  		return -EFAULT;
->  
->  	for (n = 0; n < count; n++) {
-> @@ -898,10 +914,9 @@ static int put_v4l2_ext_controls32(struct file *file,
->  		unsigned int size = sizeof(*ucontrols);
->  		u32 id;
->  
-> -		if (get_user(id, (unsigned int __user *)&kcontrols->id) ||
-> +		if (get_user_cast(id, &kcontrols->id) ||
->  		    put_user(id, &ucontrols->id) ||
-> -		    assign_in_user(&ucontrols->size,
-> -				   (unsigned int __user *)&kcontrols->size) ||
-> +		    assign_in_user_cast(&ucontrols->size, &kcontrols->size) ||
->  		    copy_in_user(&ucontrols->reserved2,
->  				 (void __user *)&kcontrols->reserved2,
->  				 sizeof(ucontrols->reserved2)))
-> @@ -970,10 +985,9 @@ static int get_v4l2_edid32(struct v4l2_edid __user *p64,
->  	if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
->  	    assign_in_user(&p64->pad, &p32->pad) ||
->  	    assign_in_user(&p64->start_block, &p32->start_block) ||
-> -	    assign_in_user(&p64->blocks,
-> -			   (u32 __user *)&p32->blocks) ||
-> +	    assign_in_user_cast(&p64->blocks, &p32->blocks) ||
->  	    get_user(tmp, &p32->edid) ||
-> -	    put_user((void __force *)compat_ptr(tmp), &p64->edid) ||
-> +	    put_user_force(compat_ptr(tmp), &p64->edid) ||
->  	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
->  		return -EFAULT;
->  	return 0;
+> -- 
+> Regards,
+> Niklas Söderlund
 > 
