@@ -1,285 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:46480 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753843AbeDVWec (ORCPT
+Received: from mail-vk0-f65.google.com ([209.85.213.65]:39221 "EHLO
+        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754906AbeD3W6S (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 18:34:32 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2 8/8] drm: rcar-du: Add support for CRC computation
-Date: Mon, 23 Apr 2018 01:34:30 +0300
-Message-Id: <20180422223430.16407-9-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
+        Mon, 30 Apr 2018 18:58:18 -0400
+Received: by mail-vk0-f65.google.com with SMTP id g83-v6so6124615vkc.6
+        for <linux-media@vger.kernel.org>; Mon, 30 Apr 2018 15:58:18 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180427185925.222682-1-samitolvanen@google.com>
+References: <20180427185925.222682-1-samitolvanen@google.com>
+From: Kees Cook <keescook@chromium.org>
+Date: Mon, 30 Apr 2018 15:58:17 -0700
+Message-ID: <CAGXu5j+_uVdLM8gWPFB5pgHKWKGxSjasK9_wsqv+x6oLZsEh0A@mail.gmail.com>
+Subject: Re: [PATCH] media: v4l2-ioctl: fix function types for IOCTL_INFO_STD
+To: Sami Tolvanen <samitolvanen@google.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement CRC computation configuration and reporting through the DRM
-debugfs-based CRC API. The CRC source can be configured to any input
-plane or the pipeline output.
+On Fri, Apr 27, 2018 at 11:59 AM, Sami Tolvanen <samitolvanen@google.com> wrote:
+> This change fixes indirect call mismatches with Control-Flow Integrity
+> checking, which are caused by calling standard ioctls using a function
+> pointer that doesn't match the type of the actual function.
+>
+> Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
-Changes since v1:
+I think this actually makes things much more readable in the end. Thanks!
 
-- Format the source names using plane IDs instead of plane indices
----
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 156 +++++++++++++++++++++++++++++++--
- drivers/gpu/drm/rcar-du/rcar_du_crtc.h |  19 ++++
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c  |   7 ++
- 3 files changed, 176 insertions(+), 6 deletions(-)
+Reviewed-by: Kees Cook <keescook@chromium.org>
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-index c4420538ec85..d71d709fe3d9 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-@@ -691,6 +691,52 @@ static const struct drm_crtc_helper_funcs crtc_helper_funcs = {
- 	.atomic_disable = rcar_du_crtc_atomic_disable,
- };
- 
-+static struct drm_crtc_state *
-+rcar_du_crtc_atomic_duplicate_state(struct drm_crtc *crtc)
-+{
-+	struct rcar_du_crtc_state *state;
-+	struct rcar_du_crtc_state *copy;
-+
-+	if (WARN_ON(!crtc->state))
-+		return NULL;
-+
-+	state = to_rcar_crtc_state(crtc->state);
-+	copy = kmemdup(state, sizeof(*state), GFP_KERNEL);
-+	if (copy == NULL)
-+		return NULL;
-+
-+	__drm_atomic_helper_crtc_duplicate_state(crtc, &copy->state);
-+
-+	return &copy->state;
-+}
-+
-+static void rcar_du_crtc_atomic_destroy_state(struct drm_crtc *crtc,
-+					      struct drm_crtc_state *state)
-+{
-+	__drm_atomic_helper_crtc_destroy_state(state);
-+	kfree(to_rcar_crtc_state(state));
-+}
-+
-+static void rcar_du_crtc_reset(struct drm_crtc *crtc)
-+{
-+	struct rcar_du_crtc_state *state;
-+
-+	if (crtc->state) {
-+		rcar_du_crtc_atomic_destroy_state(crtc, crtc->state);
-+		crtc->state = NULL;
-+	}
-+
-+	state = kzalloc(sizeof(*state), GFP_KERNEL);
-+	if (state == NULL)
-+		return;
-+
-+	state->crc.source = VSP1_DU_CRC_NONE;
-+	state->crc.index = 0;
-+
-+	crtc->state = &state->state;
-+	crtc->state->crtc = crtc;
-+}
-+
- static int rcar_du_crtc_enable_vblank(struct drm_crtc *crtc)
- {
- 	struct rcar_du_crtc *rcrtc = to_rcar_crtc(crtc);
-@@ -710,15 +756,111 @@ static void rcar_du_crtc_disable_vblank(struct drm_crtc *crtc)
- 	rcrtc->vblank_enable = false;
- }
- 
--static const struct drm_crtc_funcs crtc_funcs = {
--	.reset = drm_atomic_helper_crtc_reset,
-+static int rcar_du_crtc_set_crc_source(struct drm_crtc *crtc,
-+				       const char *source_name,
-+				       size_t *values_cnt)
-+{
-+	struct rcar_du_crtc *rcrtc = to_rcar_crtc(crtc);
-+	struct drm_modeset_acquire_ctx ctx;
-+	struct drm_crtc_state *crtc_state;
-+	struct drm_atomic_state *state;
-+	enum vsp1_du_crc_source source;
-+	unsigned int index = 0;
-+	unsigned int i;
-+	int ret;
-+
-+	/*
-+	 * Parse the source name. Supported values are "plane%u" to compute the
-+	 * CRC on an input plane (%u is the plane ID), and "auto" to compute the
-+	 * CRC on the composer (VSP) output.
-+	 */
-+	if (!source_name) {
-+		source = VSP1_DU_CRC_NONE;
-+	} else if (!strcmp(source_name, "auto")) {
-+		source = VSP1_DU_CRC_OUTPUT;
-+	} else if (strstarts(source_name, "plane")) {
-+		source = VSP1_DU_CRC_PLANE;
-+
-+		ret = kstrtouint(source_name + strlen("plane"), 10, &index);
-+		if (ret < 0)
-+			return ret;
-+
-+		for (i = 0; i < rcrtc->vsp->num_planes; ++i) {
-+			if (index == rcrtc->vsp->planes[i].plane.base.id) {
-+				index = i;
-+				break;
-+			}
-+		}
-+
-+		if (i >= rcrtc->vsp->num_planes)
-+			return -EINVAL;
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	*values_cnt = 1;
-+
-+	/* Perform an atomic commit to set the CRC source. */
-+	drm_modeset_acquire_init(&ctx, 0);
-+
-+	state = drm_atomic_state_alloc(crtc->dev);
-+	if (!state) {
-+		ret = -ENOMEM;
-+		goto unlock;
-+	}
-+
-+	state->acquire_ctx = &ctx;
-+
-+retry:
-+	crtc_state = drm_atomic_get_crtc_state(state, crtc);
-+	if (!IS_ERR(crtc_state)) {
-+		struct rcar_du_crtc_state *rcrtc_state;
-+
-+		rcrtc_state = to_rcar_crtc_state(crtc_state);
-+		rcrtc_state->crc.source = source;
-+		rcrtc_state->crc.index = index;
-+
-+		ret = drm_atomic_commit(state);
-+	} else {
-+		ret = PTR_ERR(crtc_state);
-+	}
-+
-+	if (ret == -EDEADLK) {
-+		drm_atomic_state_clear(state);
-+		drm_modeset_backoff(&ctx);
-+		goto retry;
-+	}
-+
-+	drm_atomic_state_put(state);
-+
-+unlock:
-+	drm_modeset_drop_locks(&ctx);
-+	drm_modeset_acquire_fini(&ctx);
-+
-+	return 0;
-+}
-+
-+static const struct drm_crtc_funcs crtc_funcs_gen2 = {
-+	.reset = rcar_du_crtc_reset,
-+	.destroy = drm_crtc_cleanup,
-+	.set_config = drm_atomic_helper_set_config,
-+	.page_flip = drm_atomic_helper_page_flip,
-+	.atomic_duplicate_state = rcar_du_crtc_atomic_duplicate_state,
-+	.atomic_destroy_state = rcar_du_crtc_atomic_destroy_state,
-+	.enable_vblank = rcar_du_crtc_enable_vblank,
-+	.disable_vblank = rcar_du_crtc_disable_vblank,
-+};
-+
-+static const struct drm_crtc_funcs crtc_funcs_gen3 = {
-+	.reset = rcar_du_crtc_reset,
- 	.destroy = drm_crtc_cleanup,
- 	.set_config = drm_atomic_helper_set_config,
- 	.page_flip = drm_atomic_helper_page_flip,
--	.atomic_duplicate_state = drm_atomic_helper_crtc_duplicate_state,
--	.atomic_destroy_state = drm_atomic_helper_crtc_destroy_state,
-+	.atomic_duplicate_state = rcar_du_crtc_atomic_duplicate_state,
-+	.atomic_destroy_state = rcar_du_crtc_atomic_destroy_state,
- 	.enable_vblank = rcar_du_crtc_enable_vblank,
- 	.disable_vblank = rcar_du_crtc_disable_vblank,
-+	.set_crc_source = rcar_du_crtc_set_crc_source,
- };
- 
- /* -----------------------------------------------------------------------------
-@@ -821,8 +963,10 @@ int rcar_du_crtc_create(struct rcar_du_group *rgrp, unsigned int index)
- 	else
- 		primary = &rgrp->planes[index % 2].plane;
- 
--	ret = drm_crtc_init_with_planes(rcdu->ddev, crtc, primary,
--					NULL, &crtc_funcs, NULL);
-+	ret = drm_crtc_init_with_planes(rcdu->ddev, crtc, primary, NULL,
-+					rcdu->info->gen <= 2 ?
-+					&crtc_funcs_gen2 : &crtc_funcs_gen3,
-+					NULL);
- 	if (ret < 0)
- 		return ret;
- 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.h b/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
-index fdc2bf99bda1..518ee2c60eb8 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
-@@ -21,6 +21,8 @@
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
- 
-+#include <media/vsp1.h>
-+
- struct rcar_du_group;
- struct rcar_du_vsp;
- 
-@@ -69,6 +71,23 @@ struct rcar_du_crtc {
- 
- #define to_rcar_crtc(c)	container_of(c, struct rcar_du_crtc, crtc)
- 
-+/**
-+ * struct rcar_du_crtc_state - Driver-specific CRTC state
-+ * @state: base DRM CRTC state
-+ * @crc.source: source for CRC calculation
-+ * @crc.index: index of the CRC source plane (when crc.source is set to plane)
-+ */
-+struct rcar_du_crtc_state {
-+	struct drm_crtc_state state;
-+
-+	struct {
-+		enum vsp1_du_crc_source source;
-+		unsigned int index;
-+	} crc;
-+};
-+
-+#define to_rcar_crtc_state(s) container_of(s, struct rcar_du_crtc_state, state)
-+
- enum rcar_du_output {
- 	RCAR_DU_OUTPUT_DPAD0,
- 	RCAR_DU_OUTPUT_DPAD1,
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-index bdcec201591f..ce19b883ad16 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-@@ -40,6 +40,8 @@ static void rcar_du_vsp_complete(void *private, bool completed, u32 crc)
- 
- 	if (completed)
- 		rcar_du_crtc_finish_page_flip(crtc);
-+
-+	drm_crtc_add_crc_entry(&crtc->crtc, false, 0, &crc);
- }
- 
- void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
-@@ -103,6 +105,11 @@ void rcar_du_vsp_atomic_begin(struct rcar_du_crtc *crtc)
- void rcar_du_vsp_atomic_flush(struct rcar_du_crtc *crtc)
- {
- 	struct vsp1_du_atomic_pipe_config cfg = { { 0, } };
-+	struct rcar_du_crtc_state *state;
-+
-+	state = to_rcar_crtc_state(crtc->crtc.state);
-+	cfg.crc.source = state->crc.source;
-+	cfg.crc.index = state->crc.index;
- 
- 	vsp1_du_atomic_flush(crtc->vsp->vsp, crtc->vsp_pipe, &cfg);
- }
+-Kees
+
+
+> ---
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 72 ++++++++++++++++++----------
+>  1 file changed, 46 insertions(+), 26 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index f48c505550e0..d50a06ab3509 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -2489,11 +2489,8 @@ struct v4l2_ioctl_info {
+>         unsigned int ioctl;
+>         u32 flags;
+>         const char * const name;
+> -       union {
+> -               u32 offset;
+> -               int (*func)(const struct v4l2_ioctl_ops *ops,
+> -                               struct file *file, void *fh, void *p);
+> -       } u;
+> +       int (*func)(const struct v4l2_ioctl_ops *ops, struct file *file,
+> +                   void *fh, void *p);
+>         void (*debug)(const void *arg, bool write_only);
+>  };
+>
+> @@ -2501,27 +2498,24 @@ struct v4l2_ioctl_info {
+>  #define INFO_FL_PRIO           (1 << 0)
+>  /* This control can be valid if the filehandle passes a control handler. */
+>  #define INFO_FL_CTRL           (1 << 1)
+> -/* This is a standard ioctl, no need for special code */
+> -#define INFO_FL_STD            (1 << 2)
+>  /* This is ioctl has its own function */
+> -#define INFO_FL_FUNC           (1 << 3)
+> +#define INFO_FL_FUNC           (1 << 2)
+>  /* Queuing ioctl */
+> -#define INFO_FL_QUEUE          (1 << 4)
+> +#define INFO_FL_QUEUE          (1 << 3)
+>  /* Always copy back result, even on error */
+> -#define INFO_FL_ALWAYS_COPY    (1 << 5)
+> +#define INFO_FL_ALWAYS_COPY    (1 << 4)
+>  /* Zero struct from after the field to the end */
+>  #define INFO_FL_CLEAR(v4l2_struct, field)                      \
+>         ((offsetof(struct v4l2_struct, field) +                 \
+>           sizeof(((struct v4l2_struct *)0)->field)) << 16)
+>  #define INFO_FL_CLEAR_MASK     (_IOC_SIZEMASK << 16)
+>
+> -#define IOCTL_INFO_STD(_ioctl, _vidioc, _debug, _flags)                        \
+> -       [_IOC_NR(_ioctl)] = {                                           \
+> -               .ioctl = _ioctl,                                        \
+> -               .flags = _flags | INFO_FL_STD,                          \
+> -               .name = #_ioctl,                                        \
+> -               .u.offset = offsetof(struct v4l2_ioctl_ops, _vidioc),   \
+> -               .debug = _debug,                                        \
+> +#define DEFINE_IOCTL_STD_FNC(_vidioc)                          \
+> +       static int __v4l_ ## _vidioc ## _fnc(                   \
+> +                       const struct v4l2_ioctl_ops *ops,       \
+> +                       struct file *file, void *fh, void *p)   \
+> +       {                                                       \
+> +               return ops->_vidioc(file, fh, p);               \
+>         }
+>
+>  #define IOCTL_INFO_FNC(_ioctl, _func, _debug, _flags)                  \
+> @@ -2529,10 +2523,42 @@ struct v4l2_ioctl_info {
+>                 .ioctl = _ioctl,                                        \
+>                 .flags = _flags | INFO_FL_FUNC,                         \
+>                 .name = #_ioctl,                                        \
+> -               .u.func = _func,                                        \
+> +               .func = _func,                                          \
+>                 .debug = _debug,                                        \
+>         }
+>
+> +#define IOCTL_INFO_STD(_ioctl, _vidioc, _debug, _flags)        \
+> +       IOCTL_INFO_FNC(_ioctl, __v4l_ ## _vidioc ## _fnc, _debug, _flags)
+> +
+> +DEFINE_IOCTL_STD_FNC(vidioc_g_fbuf)
+> +DEFINE_IOCTL_STD_FNC(vidioc_s_fbuf)
+> +DEFINE_IOCTL_STD_FNC(vidioc_expbuf)
+> +DEFINE_IOCTL_STD_FNC(vidioc_g_std)
+> +DEFINE_IOCTL_STD_FNC(vidioc_g_audio)
+> +DEFINE_IOCTL_STD_FNC(vidioc_s_audio)
+> +DEFINE_IOCTL_STD_FNC(vidioc_g_input)
+> +DEFINE_IOCTL_STD_FNC(vidioc_g_edid)
+> +DEFINE_IOCTL_STD_FNC(vidioc_s_edid)
+> +DEFINE_IOCTL_STD_FNC(vidioc_g_output)
+> +DEFINE_IOCTL_STD_FNC(vidioc_g_audout)
+> +DEFINE_IOCTL_STD_FNC(vidioc_s_audout)
+> +DEFINE_IOCTL_STD_FNC(vidioc_g_jpegcomp)
+> +DEFINE_IOCTL_STD_FNC(vidioc_s_jpegcomp)
+> +DEFINE_IOCTL_STD_FNC(vidioc_enumaudio)
+> +DEFINE_IOCTL_STD_FNC(vidioc_enumaudout)
+> +DEFINE_IOCTL_STD_FNC(vidioc_enum_framesizes)
+> +DEFINE_IOCTL_STD_FNC(vidioc_enum_frameintervals)
+> +DEFINE_IOCTL_STD_FNC(vidioc_g_enc_index)
+> +DEFINE_IOCTL_STD_FNC(vidioc_encoder_cmd)
+> +DEFINE_IOCTL_STD_FNC(vidioc_try_encoder_cmd)
+> +DEFINE_IOCTL_STD_FNC(vidioc_decoder_cmd)
+> +DEFINE_IOCTL_STD_FNC(vidioc_try_decoder_cmd)
+> +DEFINE_IOCTL_STD_FNC(vidioc_s_dv_timings)
+> +DEFINE_IOCTL_STD_FNC(vidioc_g_dv_timings)
+> +DEFINE_IOCTL_STD_FNC(vidioc_enum_dv_timings)
+> +DEFINE_IOCTL_STD_FNC(vidioc_query_dv_timings)
+> +DEFINE_IOCTL_STD_FNC(vidioc_dv_timings_cap)
+> +
+>  static struct v4l2_ioctl_info v4l2_ioctls[] = {
+>         IOCTL_INFO_FNC(VIDIOC_QUERYCAP, v4l_querycap, v4l_print_querycap, 0),
+>         IOCTL_INFO_FNC(VIDIOC_ENUM_FMT, v4l_enum_fmt, v4l_print_fmtdesc, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
+> @@ -2717,14 +2743,8 @@ static long __video_do_ioctl(struct file *file,
+>         }
+>
+>         write_only = _IOC_DIR(cmd) == _IOC_WRITE;
+> -       if (info->flags & INFO_FL_STD) {
+> -               typedef int (*vidioc_op)(struct file *file, void *fh, void *p);
+> -               const void *p = vfd->ioctl_ops;
+> -               const vidioc_op *vidioc = p + info->u.offset;
+> -
+> -               ret = (*vidioc)(file, fh, arg);
+> -       } else if (info->flags & INFO_FL_FUNC) {
+> -               ret = info->u.func(ops, file, fh, arg);
+> +       if (info->flags & INFO_FL_FUNC) {
+> +               ret = info->func(ops, file, fh, arg);
+>         } else if (!ops->vidioc_default) {
+>                 ret = -ENOTTY;
+>         } else {
+> --
+> 2.17.0.441.gb46fe60e1d-goog
+>
+
+
+
 -- 
-Regards,
-
-Laurent Pinchart
+Kees Cook
+Pixel Security
