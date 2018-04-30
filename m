@@ -1,131 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:40438 "EHLO mail.bootlin.com"
+Received: from mga03.intel.com ([134.134.136.65]:13415 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752617AbeDSO5U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 10:57:20 -0400
-Message-ID: <e26c30b31aa8a5ae9692dc050b08d2bca85d4536.camel@bootlin.com>
-Subject: Re: [linux-sunxi] [PATCH 5/9] media: platform: Add Sunxi Cedrus
- decoder driver
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Joonas =?ISO-8859-1?Q?Kylm=E4l=E4?= <joonas.kylmala@iki.fi>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, Icenowy Zheng <icenowy@aosc.xyz>,
-        Florent Revest <revestflo@gmail.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Thomas van Kleef <thomas@vitsch.nl>,
-        "Signed-off-by : Bob Ham" <rah@settrans.net>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>
-Date: Thu, 19 Apr 2018 16:56:05 +0200
-In-Reply-To: <a9cc2e3b-585a-b238-4187-e3c874013d2a@iki.fi>
-References: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
-         <20180309101445.16190-3-paul.kocialkowski@bootlin.com>
-         <a9cc2e3b-585a-b238-4187-e3c874013d2a@iki.fi>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-g3Z6ANf+IGQOvuuMrD+p"
-Mime-Version: 1.0
+        id S1754309AbeD3Oaw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Apr 2018 10:30:52 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: tfiga@chromium.org, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Andy Yeh <andy.yeh@intel.com>, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH] media: intel-ipu3: cio2: Handle IRQs until INT_STS is cleared
+Date: Mon, 30 Apr 2018 09:30:40 -0500
+Message-Id: <1525098640-3165-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Bingbu Cao <bingbu.cao@intel.com>
 
---=-g3Z6ANf+IGQOvuuMrD+p
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Interrupt behavior shows that some time the frame end and frame start
+of next frame is unstable and can range from several to hundreds of micro-sec.
+In the case of ~10us, isr may not clear next sof interrupt status in
+single handling, which prevents new interrupts from coming.
 
-Hi,
+Fix this by handling all pending IRQs before exiting isr, so any abnormal
+behavior results from very short interrupt status changes is protected.
 
-On Mon, 2018-03-12 at 20:29 +0000, Joonas Kylm=C3=A4l=C3=A4 wrote:
-> Paul Kocialkowski:
-> > diff --git a/drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c
-> > b/drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c
-> > new file mode 100644
-> > index 000000000000..88624035e0e3
-> > --- /dev/null
-> > +++ b/drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c
-> > @@ -0,0 +1,313 @@
-> > +/*
-> > + * Sunxi Cedrus codec driver
-> > + *
-> > + * Copyright (C) 2016 Florent Revest
-> > + * Florent Revest <florent.revest@free-electrons.com>
-> > + *
-> > + * Based on vim2m
-> > + *
-> > + * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-> > + * Pawel Osciak, <pawel@osciak.com>
-> > + * Marek Szyprowski, <m.szyprowski@samsung.com>
-> > + *
-> > + * This software is licensed under the terms of the GNU General
-> > Public
-> > + * License version 2, as published by the Free Software Foundation,
-> > and
-> > + * may be copied, distributed, and modified under those terms.
-> > + *
-> > + * This program is distributed in the hope that it will be useful,
-> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> > + * GNU General Public License for more details.
-> > + */
-> > +
-> > +#include "sunxi_cedrus_common.h"
-> > +
-> > +#include <linux/clk.h>
-> > +#include <linux/module.h>
-> > +#include <linux/delay.h>
-> > +#include <linux/fs.h>
-> > +#include <linux/sched.h>
-> > +#include <linux/slab.h>
-> > +#include <linux/of.h>
-> > +
-> > +#include <linux/platform_device.h>
-> > +#include <linux/videodev2.h>
-> > +#include <media/v4l2-mem2mem.h>
-> > +#include <media/v4l2-device.h>
-> > +#include <media/v4l2-ioctl.h>
-> > +#include <media/v4l2-ctrls.h>
-> > +#include <media/v4l2-event.h>
-> > +#include <media/videobuf2-dma-contig.h>
->=20
-> I think that the definitions
->=20
-> #include <linux/clk.h>
-> #include <linux/delay.h>
-> #include <linux/fs.h>
-> #include <linux/sched.h>
-> #include <linux/slab.h>
-> #include <linux/videodev2.h>
->=20
-> are not used directly in the sunxi_cedrus.c file. Therefore they
-> should be removed.
+Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+---
+Hi, Sakari,
 
-Thanks for the review, this will be done in v2.
+Re-send with correct signed-off-by order.
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c | 32 ++++++++++++++++++++++----------
+ 1 file changed, 22 insertions(+), 10 deletions(-)
 
-Cheers,
-
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
---=-g3Z6ANf+IGQOvuuMrD+p
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrYrgUACgkQ3cLmz3+f
-v9E/2wf/YjU0oWpwWBmey5xWwP7D4QnN2xXU7lTHzGNrzNeVayz5oY+oyHO76Gxw
-No/1oYVhExYX5aD4D2MXx9leJuzulc2NpNF2J7dut/lRJgdUdeRqjJpd24MclL+T
-M126jX6i9SV7ImAzANajenJhQOe40DTLcWu5LL4L4zt6Djj+r1KRdztncTQEV55m
-2LYx6C3p1JW/qDYJaXhSRU09sKyB2f81+6GLO+yz4Cp4j1FYoy35tW7xRZYzPvZ/
-irJI67+ApZ7EUJ1Yx1Bf5Yt1nzGwWcXR3CSAS+ZK4KADdui4oalQbBS0OmEOnkG9
-Th93avgs532b7BYZhr9ZU5YSvmEL+g==
-=b9ts
------END PGP SIGNATURE-----
-
---=-g3Z6ANf+IGQOvuuMrD+p--
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+index 7d768ec0f824..29027159eced 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
++++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+@@ -640,18 +640,10 @@ static const char *const cio2_port_errs[] = {
+ 	"PKT2LONG",
+ };
+ 
+-static irqreturn_t cio2_irq(int irq, void *cio2_ptr)
++static void cio2_irq_handle_once(struct cio2_device *cio2, u32 int_status)
+ {
+-	struct cio2_device *cio2 = cio2_ptr;
+ 	void __iomem *const base = cio2->base;
+ 	struct device *dev = &cio2->pci_dev->dev;
+-	u32 int_status, int_clear;
+-
+-	int_status = readl(base + CIO2_REG_INT_STS);
+-	int_clear = int_status;
+-
+-	if (!int_status)
+-		return IRQ_NONE;
+ 
+ 	if (int_status & CIO2_INT_IOOE) {
+ 		/*
+@@ -770,9 +762,29 @@ static irqreturn_t cio2_irq(int irq, void *cio2_ptr)
+ 		int_status &= ~(CIO2_INT_IOIE | CIO2_INT_IOIRQ);
+ 	}
+ 
+-	writel(int_clear, base + CIO2_REG_INT_STS);
+ 	if (int_status)
+ 		dev_warn(dev, "unknown interrupt 0x%x on INT\n", int_status);
++}
++
++static irqreturn_t cio2_irq(int irq, void *cio2_ptr)
++{
++	struct cio2_device *cio2 = cio2_ptr;
++	void __iomem *const base = cio2->base;
++	struct device *dev = &cio2->pci_dev->dev;
++	u32 int_status;
++
++	int_status = readl(base + CIO2_REG_INT_STS);
++	dev_dbg(dev, "isr enter - interrupt status 0x%x\n", int_status);
++	if (!int_status)
++		return IRQ_NONE;
++
++	do {
++		writel(int_status, base + CIO2_REG_INT_STS);
++		cio2_irq_handle_once(cio2, int_status);
++		int_status = readl(base + CIO2_REG_INT_STS);
++		if (int_status)
++			dev_dbg(dev, "pending status 0x%x\n", int_status);
++	} while (int_status);
+ 
+ 	return IRQ_HANDLED;
+ }
+-- 
+2.7.4
