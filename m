@@ -1,87 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f172.google.com ([209.85.217.172]:41651 "EHLO
-        mail-ua0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753957AbeDZHM1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 03:12:27 -0400
-Received: by mail-ua0-f172.google.com with SMTP id a3so173532uad.8
-        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 00:12:27 -0700 (PDT)
-Received: from mail-ua0-f170.google.com (mail-ua0-f170.google.com. [209.85.217.170])
-        by smtp.gmail.com with ESMTPSA id q186sm5424844vka.15.2018.04.26.00.12.25
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 26 Apr 2018 00:12:25 -0700 (PDT)
-Received: by mail-ua0-f170.google.com with SMTP id c3so16567727uae.2
-        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2018 00:12:25 -0700 (PDT)
+Received: from anholt.net ([50.246.234.109]:38056 "EHLO anholt.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752255AbeD3RtC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Apr 2018 13:49:02 -0400
+From: Eric Anholt <eric@anholt.net>
+To: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        DRI Development <dri-devel@lists.freedesktop.org>
+Cc: linaro-mm-sig@lists.linaro.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        linux-media@vger.kernel.org
+Subject: Re: [Intel-gfx] [PATCH 01/17] dma-fence: Some kerneldoc polish for dma-fence.h
+In-Reply-To: <20180427061724.28497-2-daniel.vetter@ffwll.ch>
+References: <20180427061724.28497-1-daniel.vetter@ffwll.ch> <20180427061724.28497-2-daniel.vetter@ffwll.ch>
+Date: Mon, 30 Apr 2018 10:49:00 -0700
+Message-ID: <877eoozisz.fsf@anholt.net>
 MIME-Version: 1.0
-References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com> <1522376100-22098-11-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1522376100-22098-11-git-send-email-yong.zhi@intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 26 Apr 2018 07:12:14 +0000
-Message-ID: <CAAFQd5CGjFsc1Py78_Lmbav0rPqgQOuN-7KXhQB2_MJKAkX55A@mail.gmail.com>
-Subject: Re: [PATCH v6 10/12] intel-ipu3: Add css pipeline programming
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha512; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+--=-=-=
+Content-Type: text/plain
 
-On Fri, Mar 30, 2018 at 11:15 AM Yong Zhi <yong.zhi@intel.com> wrote:
-[snip]
-> +int ipu3_css_init(struct device *dev, struct ipu3_css *css,
-> +                 void __iomem *base, int length)
-> +{
-> +       int r, p, q, i;
-> +
-> +       /* Initialize main data structure */
-> +       css->dev = dev;
-> +       css->base = base;
-> +       css->iomem_length = length;
-> +       css->current_binary = IPU3_CSS_DEFAULT_BINARY;
-> +       css->pipe_id = IPU3_CSS_PIPE_ID_NUM;
-> +       css->vf_output_en = IPU3_NODE_VF_DISABLED;
-> +       spin_lock_init(&css->qlock);
-> +
-> +       for (q = 0; q < IPU3_CSS_QUEUES; q++) {
-> +               r = ipu3_css_queue_init(&css->queue[q], NULL, 0);
-> +               if (r)
-> +                       return r;
-> +       }
-> +
-> +       r = ipu3_css_fw_init(css);
-> +       if (r)
-> +               return r;
-> +
-> +       /* Allocate and map common structures with imgu hardware */
-> +
-> +       for (p = 0; p < IPU3_CSS_PIPE_ID_NUM; p++)
-> +               for (i = 0; i < IMGU_ABI_MAX_STAGES; i++) {
-> +                       if (!ipu3_dmamap_alloc(dev,
-> +
-  &css->xmem_sp_stage_ptrs[p][i],
-> +                                              sizeof(struct
-imgu_abi_sp_stage)))
+Daniel Vetter <daniel.vetter@ffwll.ch> writes:
+> +	/**
+> +	 * @fill_driver_data:
+> +	 *
+> +	 * Callback to fill in free-form debug info Returns amount of bytes
+> +	 * filled, or negative error on failure.
 
-checkpatch reports line over 80 characters here.
+Maybe this "Returns" should be on a new line?  Or at least a '.' in
+between.
 
-> +                               goto error_no_memory;
-> +                       if (!ipu3_dmamap_alloc(dev,
-> +
-  &css->xmem_isp_stage_ptrs[p][i],
-> +                                              sizeof(struct
-imgu_abi_isp_stage)))
+Other than that,
 
-Ditto.
+Reviewed-by: Eric Anholt <eric@anholt.net>
 
-> +                               goto error_no_memory;
-> +               }
+Thanks!
 
-Best regards,
-Tomasz
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE/JuuFDWp9/ZkuCBXtdYpNtH8nugFAlrnVwwACgkQtdYpNtH8
+nujHLQ/9GWSWC/uQFB5pmZxSPU0b2w4fJcjCTLCSTRAP9sNBXYTvbAVzPL2hsiJ8
+/e+yUJRs7UEPEmNe0eLcvuvL3H15B2gSTYPBjrT1tNl0I4bi+nJ1K1F1C2ogMqEg
+Dw2upTlnqxoy/weuBTKwlDA61S5NYveNfo9vZsHGU9Lm24tXiNXfCzA+XPh+XiIB
+6W1Tj7P2pEz21fFopCyXoneNVDoLxouYS0PaO4ViEws4O2OJPZRBOOYVR8uPE23A
+6H3kAVyoNtXGY3/irJMX/Dqge089dfZJvIWDE7Hm8C+1r5zIZomyBJt/8coxDEVc
+zTwOAZSSHNu+/PC098gdUiyRXovH6pXRoJtryaJ9Pboutk7X+00XxLSVLuvuewGe
+Er3WY37ZrPFCISlPepOaUPtMdbjhtHhZyIwyoARDwbXeFg/XjsrleoNZln5LVrtj
+3LHpN3NYmm89wOXFkQYwxN8+1jlakJPJ7RYd/8TuO55c0B2o3gfoBbDLE5jUzGwj
+UgvxTo/EymJBrWwAq9TYoZNKG2FI07abZeq/4Nz0puQdnY8E1xs4F6jGcrVpBSwm
+89YFjVC6fCadZbnFsg89zVQtOLkF2+nPGVSK/Uvnf9b+Ay7RaQWfeNhpnVcDtOtw
+5jf6Fb+lj0WyLWnlkVXsz7x1Q/BD9GOxCEpe/rlr2Lueo6oIkn8=
+=pKnJ
+-----END PGP SIGNATURE-----
+--=-=-=--
