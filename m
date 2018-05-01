@@ -1,79 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:39067 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751298AbeERKNK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 06:13:10 -0400
-Received: by mail-wm0-f67.google.com with SMTP id f8-v6so14168115wmc.4
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 03:13:10 -0700 (PDT)
-Subject: Re: [PATCH v3 2/2] bpf: add selftest for rawir_event type program
-To: Sean Young <sean@mess.org>, Y Song <ys114321@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        netdev <netdev@vger.kernel.org>,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-References: <cover.1526504511.git.sean@mess.org>
- <78945f2bf82e9f16695f72bed3930d1302d38e29.1526504511.git.sean@mess.org>
- <CAH3MdRUhrBzHXKgcu1htSHTqeKVWnci+ADrTriCqjXLHUezB+w@mail.gmail.com>
- <20180517210140.ck225yuckq6onheb@gofer.mess.org>
-From: Quentin Monnet <quentin.monnet@netronome.com>
-Message-ID: <86ffb16c-9b4e-c826-ecd2-82266e7b8c2e@netronome.com>
-Date: Fri, 18 May 2018 11:13:07 +0100
+Received: from mail-sn1nam02on0063.outbound.protection.outlook.com ([104.47.36.63]:22230
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751004AbeEAVWB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 May 2018 17:22:01 -0400
+Date: Tue, 1 May 2018 14:21:43 -0700
+From: Hyun Kwon <hyun.kwon@xilinx.com>
+To: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "michal.simek@xilinx.com" <michal.simek@xilinx.com>,
+        Hyun Kwon <hyunk@xilinx.com>,
+        Jeff Mouroux <jmouroux@xilinx.com>,
+        Satish Kumar Nagireddy <SATISHNA@xilinx.com>
+Subject: Re: [PATCH v4 05/10] uapi: media: New fourcc codes needed by Xilinx
+ Video IP
+Message-ID: <20180501212143.GB9872@smtp.xilinx.com>
+References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+ <2e6044636d652e5492f457123dadd29d61d460cb.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
 MIME-Version: 1.0
-In-Reply-To: <20180517210140.ck225yuckq6onheb@gofer.mess.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <2e6044636d652e5492f457123dadd29d61d460cb.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-05-17 22:01 UTC+0100 ~ Sean Young <sean@mess.org>
-> On Thu, May 17, 2018 at 10:17:59AM -0700, Y Song wrote:
->> On Wed, May 16, 2018 at 2:04 PM, Sean Young <sean@mess.org> wrote:
->>> This is simple test over rc-loopback.
->>>
->>> Signed-off-by: Sean Young <sean@mess.org>
->>> ---
->>>  tools/bpf/bpftool/prog.c                      |   1 +
->>>  tools/include/uapi/linux/bpf.h                |  57 +++++++-
->>>  tools/lib/bpf/libbpf.c                        |   1 +
->>>  tools/testing/selftests/bpf/Makefile          |   8 +-
->>>  tools/testing/selftests/bpf/bpf_helpers.h     |   6 +
->>>  tools/testing/selftests/bpf/test_rawir.sh     |  37 +++++
->>>  .../selftests/bpf/test_rawir_event_kern.c     |  26 ++++
->>>  .../selftests/bpf/test_rawir_event_user.c     | 130 ++++++++++++++++++
->>>  8 files changed, 261 insertions(+), 5 deletions(-)
->>>  create mode 100755 tools/testing/selftests/bpf/test_rawir.sh
->>>  create mode 100644 tools/testing/selftests/bpf/test_rawir_event_kern.c
->>>  create mode 100644 tools/testing/selftests/bpf/test_rawir_event_user.c
+Hi Satish,
 
-[...]
+Thanks for the patch.
 
->> Most people probably not really familiar with lircN device. It would be
->> good to provide more information about how to enable this, e.g.,
->>   CONFIG_RC_CORE=y
->>   CONFIG_BPF_RAWIR_EVENT=y
->>   CONFIG_RC_LOOPBACK=y
->>   ......
+On Mon, 2018-04-30 at 18:35:08 -0700, Satish Kumar Nagireddy wrote:
+> From: Jeffrey Mouroux <jmouroux@xilinx.com>
 > 
-> Good point. I'll add some words explaining what is and how to make it work.
+> The Xilinx Video Framebuffer DMA IP supports video memory formats
+> that are not represented in the current V4L2 fourcc library. This
+> patch adds those missing fourcc codes. This includes both new
+> 8-bit and 10-bit pixel formats.
 > 
-> Thanks
-> Sean
+> Signed-off-by: Jeffrey Mouroux <jmouroux@xilinx.com>
+> Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+> ---
+>  include/uapi/linux/videodev2.h | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 600877b..97b6633 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -510,6 +510,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R', 'G', 'B', '4') /* 32  RGB-8-8-8-8   */
+>  #define V4L2_PIX_FMT_ARGB32  v4l2_fourcc('B', 'A', '2', '4') /* 32  ARGB-8-8-8-8  */
+>  #define V4L2_PIX_FMT_XRGB32  v4l2_fourcc('B', 'X', '2', '4') /* 32  XRGB-8-8-8-8  */
+> +#define V4L2_PIX_FMT_BGRX32  v4l2_fourcc('X', 'B', 'G', 'R') /* 32  XBGR-8-8-8-8 */
+>  
+>  /* Grey formats */
+>  #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8  Greyscale     */
+> @@ -537,6 +538,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_VYUY    v4l2_fourcc('V', 'Y', 'U', 'Y') /* 16  YUV 4:2:2     */
+>  #define V4L2_PIX_FMT_Y41P    v4l2_fourcc('Y', '4', '1', 'P') /* 12  YUV 4:1:1     */
+>  #define V4L2_PIX_FMT_YUV444  v4l2_fourcc('Y', '4', '4', '4') /* 16  xxxxyyyy uuuuvvvv */
+> +#define V4L2_PIX_FMT_VUY24   v4l2_fourcc('V', 'U', '2', '4') /* 24  VUY 8:8:8 */
 
+This format needs documentation, and probably entries v4l_fill_fmtdesc()?
 
-By the way, shouldn't the two eBPF helpers bpf_rc_keydown() and
-bpf_rc_repeat() be compiled out in patch 1 if e.g.
-CONFIG_BPF_RAWIR_EVENT is not set? There are some other helpers that are
-compiled only if relevant config options are set (bpf_get_xfrm_state()
-for example).
+Then would it make sense to squash this into 4/10 which documents these?
+Or at least, this should come before documentation.
 
-(If you were to change that, please also update helper documentations to
-indicate what configuration options are required to be able to use the
-helpers.)
+Thanks,
+-hyun
 
-Best regards,
-Quentin
+>  #define V4L2_PIX_FMT_YUV555  v4l2_fourcc('Y', 'U', 'V', 'O') /* 16  YUV-5-5-5     */
+>  #define V4L2_PIX_FMT_YUV565  v4l2_fourcc('Y', 'U', 'V', 'P') /* 16  YUV-5-6-5     */
+>  #define V4L2_PIX_FMT_YUV32   v4l2_fourcc('Y', 'U', 'V', '4') /* 32  YUV-8-8-8-8   */
+> @@ -551,6 +553,8 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
+>  #define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
+>  #define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
+> +#define V4L2_PIX_FMT_XV20    v4l2_fourcc('X', 'V', '2', '0') /* 32  XY/UV 4:2:2 10-bit */
+> +#define V4L2_PIX_FMT_XV15    v4l2_fourcc('X', 'V', '1', '5') /* 32  XY/UV 4:2:0 10-bit */
+>  
+>  /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+>  #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
+> -- 
+> 2.1.1
+> 
