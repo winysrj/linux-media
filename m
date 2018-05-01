@@ -1,106 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:33376 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752724AbeDBO2P (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:28:15 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Pravin Shedge <pravin.shedge4linux@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
-Subject: [PATCH 09/15] net: irda: pxaficp_ir: remove the dmaengine compat need
-Date: Mon,  2 Apr 2018 16:26:50 +0200
-Message-Id: <20180402142656.26815-10-robert.jarzmik@free.fr>
-In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
-References: <20180402142656.26815-1-robert.jarzmik@free.fr>
+Received: from mail-by2nam01on0073.outbound.protection.outlook.com ([104.47.34.73]:60416
+        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752667AbeEABfh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Apr 2018 21:35:37 -0400
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Subject: [PATCH v4 10/10] v4l: xilinx: dma: Add support for 10 bit formats
+Date: Mon, 30 Apr 2018 18:35:13 -0700
+Message-ID: <2d13ab14f74ee92225e7073695abf7a9cbd45ecc.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+In-Reply-To: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the pxa architecture switched towards the dmaengine slave map, the
-old compatibility mechanism to acquire the dma requestor line number and
-priority are not needed anymore.
+This patch adds xvip_format_plane_width_bytes function to
+calculate number of bytes for a macropixel formats and also
+adds new 10 bit pixel formats to video descriptor table.
 
-This patch simplifies the dma resource acquisition, using the more
-generic function dma_request_slave_channel().
-
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
 ---
- drivers/staging/irda/drivers/pxaficp_ir.c | 14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ drivers/media/platform/xilinx/xilinx-dma.c |  5 ++--
+ drivers/media/platform/xilinx/xilinx-vip.c | 43 +++++++++++++++++++++---------
+ drivers/media/platform/xilinx/xilinx-vip.h |  5 ++++
+ 3 files changed, 38 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/staging/irda/drivers/pxaficp_ir.c b/drivers/staging/irda/drivers/pxaficp_ir.c
-index 2ea00a6531f9..9dd6e21dc11e 100644
---- a/drivers/staging/irda/drivers/pxaficp_ir.c
-+++ b/drivers/staging/irda/drivers/pxaficp_ir.c
-@@ -20,7 +20,6 @@
- #include <linux/clk.h>
- #include <linux/dmaengine.h>
- #include <linux/dma-mapping.h>
--#include <linux/dma/pxa-dma.h>
- #include <linux/gpio.h>
- #include <linux/slab.h>
- #include <linux/sched/clock.h>
-@@ -735,9 +734,7 @@ static void pxa_irda_shutdown(struct pxa_irda *si)
- static int pxa_irda_start(struct net_device *dev)
- {
- 	struct pxa_irda *si = netdev_priv(dev);
--	dma_cap_mask_t mask;
- 	struct dma_slave_config	config;
--	struct pxad_param param;
- 	int err;
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index a714057..b33e4b9 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -370,7 +370,8 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
+ 	}
  
- 	si->speed = 9600;
-@@ -757,9 +754,6 @@ static int pxa_irda_start(struct net_device *dev)
- 	disable_irq(si->icp_irq);
+ 	dma->xt.frame_size = dma->fmtinfo->num_planes;
+-	dma->sgl[0].size = pix_mp->width * dma->fmtinfo->bpp[0];
++	dma->sgl[0].size = xvip_fmt_plane_width_bytes(dma->fmtinfo,
++						      pix_mp->width);
+ 	dma->sgl[0].icg = pix_mp->plane_fmt[0].bytesperline - dma->sgl[0].size;
+ 	dma->xt.numf = pix_mp->height;
+ 	dma->sgl[0].dst_icg = 0;
+@@ -596,7 +597,7 @@ __xvip_dma_try_format(struct xvip_dma *dma,
+ 	 * with the minimum in that case.
+ 	 */
+ 	max_bpl = rounddown(XVIP_DMA_MAX_WIDTH, align);
+-	min_bpl = pix_mp->width * info->bpp[0];
++	min_bpl = xvip_fmt_plane_width_bytes(info, pix_mp->width);
+ 	min_bpl = roundup(min_bpl, align);
+ 	bpl = roundup(plane_fmt[0].bytesperline, align);
+ 	plane_fmt[0].bytesperline = clamp(bpl, min_bpl, max_bpl);
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/platform/xilinx/xilinx-vip.c
+index 81cc0d2..1825f5d 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.c
++++ b/drivers/media/platform/xilinx/xilinx-vip.c
+@@ -28,31 +28,31 @@
  
- 	err = -EBUSY;
--	dma_cap_zero(mask);
--	dma_cap_set(DMA_SLAVE, mask);
--	param.prio = PXAD_PRIO_LOWEST;
+ static const struct xvip_video_format xvip_video_formats[] = {
+ 	{ XVIP_VF_YUV_420, 8, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
+-	  {1, 2, 0}, V4L2_PIX_FMT_NV12, 2, 2, 2, "4:2:0, semi-planar, YUV" },
++	  {1, 2, 0}, V4L2_PIX_FMT_NV12, 2, 2, 2, 1, 1, "4:2:0, semi-planar, YUV" },
+ 	{ XVIP_VF_YUV_420, 10, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
+-	  {1, 2, 0}, V4L2_PIX_FMT_XV15, 2, 2, 2, "4:2:0, 10-bit 2-plane cont" },
++	  {1, 2, 0}, V4L2_PIX_FMT_XV15, 2, 2, 2, 4, 3, "4:2:0, 10-bit 2-plane cont" },
+ 	{ XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
+-	  {2, 0, 0}, V4L2_PIX_FMT_YUYV, 1, 2, 1, "4:2:2, packed, YUYV" },
++	  {2, 0, 0}, V4L2_PIX_FMT_YUYV, 1, 2, 1, 1, 1, "4:2:2, packed, YUYV" },
+ 	{ XVIP_VF_VUY_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
+-	  {2, 0, 0}, V4L2_PIX_FMT_UYVY, 1, 2, 1, "4:2:2, packed, UYVY" },
++	  {2, 0, 0}, V4L2_PIX_FMT_UYVY, 1, 2, 1, 1, 1, "4:2:2, packed, UYVY" },
+ 	{ XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
+-	  {1, 2, 0}, V4L2_PIX_FMT_NV16, 2, 2, 1, "4:2:2, semi-planar, YUV" },
++	  {1, 2, 0}, V4L2_PIX_FMT_NV16, 2, 2, 1, 1, 1, "4:2:2, semi-planar, YUV" },
+ 	{ XVIP_VF_YUV_422, 10, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
+-	  {1, 2, 0}, V4L2_PIX_FMT_XV20, 2, 2, 1, "4:2:2, 10-bit 2-plane cont" },
++	  {1, 2, 0}, V4L2_PIX_FMT_XV20, 2, 2, 1, 4, 3, "4:2:2, 10-bit 2-plane cont" },
+ 	{ XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
+-	  {3, 0, 0}, V4L2_PIX_FMT_BGR24, 1, 1, 1, "24-bit RGB" },
++	  {3, 0, 0}, V4L2_PIX_FMT_BGR24, 1, 1, 1, 1, 1, "24-bit RGB" },
+ 	{ XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
+-	  {3, 0, 0}, V4L2_PIX_FMT_RGB24, 1, 1, 1, "24-bit RGB" },
++	  {3, 0, 0}, V4L2_PIX_FMT_RGB24, 1, 1, 1, 1, 1, "24-bit RGB" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
+-	  {1, 0, 0}, V4L2_PIX_FMT_GREY, 1, 1, 1, "Greyscale 8-bit" },
++	  {1, 0, 0}, V4L2_PIX_FMT_GREY, 1, 1, 1, 1, 1, "Greyscale 8-bit" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
+-	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit RGGB" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, 1, "Bayer 8-bit RGGB" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "grbg", MEDIA_BUS_FMT_SGRBG8_1X8,
+-	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit GRBG" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, 1, "Bayer 8-bit GRBG" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "gbrg", MEDIA_BUS_FMT_SGBRG8_1X8,
+-	  {1, 0, 0}, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, "Bayer 8-bit GBRG" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, 1, 1, "Bayer 8-bit GBRG" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "bggr", MEDIA_BUS_FMT_SBGGR8_1X8,
+-	  {1, 0, 0}, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, "Bayer 8-bit BGGR" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, 1, 1, "Bayer 8-bit BGGR" },
+ };
  
- 	memset(&config, 0, sizeof(config));
- 	config.src_addr_width = DMA_SLAVE_BUSWIDTH_1_BYTE;
-@@ -769,15 +763,11 @@ static int pxa_irda_start(struct net_device *dev)
- 	config.src_maxburst = 32;
- 	config.dst_maxburst = 32;
+ /**
+@@ -102,6 +102,23 @@ const struct xvip_video_format *xvip_get_format_by_fourcc(u32 fourcc)
+ EXPORT_SYMBOL_GPL(xvip_get_format_by_fourcc);
  
--	param.drcmr = si->drcmr_rx;
--	si->rxdma = dma_request_slave_channel_compat(mask, pxad_filter_fn,
--						     &param, &dev->dev, "rx");
-+	si->rxdma = dma_request_slave_channel(&dev->dev, "rx");
- 	if (!si->rxdma)
- 		goto err_rx_dma;
+ /**
++ * xvip_fmt_plane_width_bytes - bytes of the given width of the plane
++ * @info: VIP format description
++ * @width: width
++ *
++ * Return: Returns the number of bytes for given @width
++ */
++int xvip_fmt_plane_width_bytes(const struct xvip_video_format *info, u32 width)
++{
++	if (!info)
++		return 0;
++
++	return DIV_ROUND_UP(width * info->bytes_per_macropixel * info->bpp[0],
++			    info->pixels_per_macropixel);
++}
++EXPORT_SYMBOL_GPL(xvip_fmt_plane_width_bytes);
++
++/**
+  * xvip_of_get_format - Parse a device tree node and return format information
+  * @node: the device tree node
+  *
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/platform/xilinx/xilinx-vip.h
+index 5e7a978..7c614d3 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.h
++++ b/drivers/media/platform/xilinx/xilinx-vip.h
+@@ -114,6 +114,8 @@ struct xvip_device {
+  * @num_planes: number of planes w.r.t. color format
+  * @hsub: Horizontal sampling factor of Chroma
+  * @vsub: Vertical sampling factor of Chroma
++ * @bytes_per_macropixel: Number of bytes per macro-pixel
++ * @pixels_per_macropixel: Number of pixels per macro-pixel
+  * @description: format description, suitable for userspace
+  */
+ struct xvip_video_format {
+@@ -126,12 +128,15 @@ struct xvip_video_format {
+ 	u8 num_planes;
+ 	u8 hsub;
+ 	u8 vsub;
++	u32 bytes_per_macropixel;
++	u32 pixels_per_macropixel;
+ 	const char *description;
+ };
  
--	param.drcmr = si->drcmr_tx;
--	si->txdma = dma_request_slave_channel_compat(mask, pxad_filter_fn,
--						     &param, &dev->dev, "tx");
-+	si->txdma = dma_request_slave_channel(&dev->dev, "tx");
- 	if (!si->txdma)
- 		goto err_tx_dma;
- 
+ const struct xvip_video_format *xvip_get_format_by_code(unsigned int code);
+ const struct xvip_video_format *xvip_get_format_by_fourcc(u32 fourcc);
+ const struct xvip_video_format *xvip_of_get_format(struct device_node *node);
++int xvip_fmt_plane_width_bytes(const struct xvip_video_format *info, u32 width);
+ void xvip_set_format_size(struct v4l2_mbus_framefmt *format,
+ 			  const struct v4l2_subdev_format *fmt);
+ int xvip_enum_mbus_code(struct v4l2_subdev *subdev,
 -- 
-2.11.0
+2.1.1
