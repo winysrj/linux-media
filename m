@@ -1,140 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36906 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750722AbeE3EAd (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:37856 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753406AbeEAJAz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 00:00:33 -0400
-Message-ID: <5229225cfc8db786de92cdcc6a6a5121@smtp-cloud9.xs4all.net>
-Date: Wed, 30 May 2018 06:00:30 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Tue, 1 May 2018 05:00:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv12 PATCH 06/29] media-request: add media_request_object_find
+Date: Tue,  1 May 2018 11:00:28 +0200
+Message-Id: <20180501090051.9321-7-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Add media_request_object_find to find a request object inside a
+request based on ops and/or priv values.
 
-date:			Wed May 30 05:00:15 CEST 2018
-media-tree git hash:	a00031c159748f322f771f3c1d5ed944cba4bd30
-media_build git hash:	b2f4db1adbe0cb2e42e875c16c009f1fa95d3325
-v4l-utils git hash:	2a12796b5c22cd1a549eb8fa25db873ced811ca5
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+Objects of the same type (vb2 buffer, control handler) will have
+the same ops value. And objects that refer to the same 'parent'
+object (e.g. the v4l2_ctrl_handler that has the current driver
+state) will have the same priv value.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-rc4-i686: OK
-linux-4.17-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+The caller has to call media_request_object_put() for the returned
+object since this function increments the refcount.
 
-Detailed results are available here:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/media-request.c | 25 +++++++++++++++++++++++++
+ include/media/media-request.h | 24 ++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+)
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+index a186db290d51..9815fb6445dc 100644
+--- a/drivers/media/media-request.c
++++ b/drivers/media/media-request.c
+@@ -350,6 +350,31 @@ static void media_request_object_release(struct kref *kref)
+ 	obj->ops->release(obj);
+ }
+ 
++struct media_request_object *
++media_request_object_find(struct media_request *req,
++			  const struct media_request_object_ops *ops,
++			  void *priv)
++{
++	struct media_request_object *obj;
++	struct media_request_object *found = NULL;
++	unsigned long flags;
++
++	if (WARN_ON(!ops || !priv))
++		return NULL;
++
++	spin_lock_irqsave(&req->lock, flags);
++	list_for_each_entry(obj, &req->objects, list) {
++		if (obj->ops == ops && obj->priv == priv) {
++			media_request_object_get(obj);
++			found = obj;
++			break;
++		}
++	}
++	spin_unlock_irqrestore(&req->lock, flags);
++	return found;
++}
++EXPORT_SYMBOL_GPL(media_request_object_find);
++
+ void media_request_object_put(struct media_request_object *obj)
+ {
+ 	kref_put(&obj->kref, media_request_object_release);
+diff --git a/include/media/media-request.h b/include/media/media-request.h
+index ce62fe74ebd6..6ecc89fcf4a2 100644
+--- a/include/media/media-request.h
++++ b/include/media/media-request.h
+@@ -144,6 +144,22 @@ static inline void media_request_object_get(struct media_request_object *obj)
+  */
+ void media_request_object_put(struct media_request_object *obj);
+ 
++/**
++ * media_request_object_find - Find an object in a request
++ *
++ * @ops: Find an object with this ops value
++ * @priv: Find an object with this priv value
++ *
++ * Both @ops and @priv must be non-NULL.
++ *
++ * Returns NULL if not found or the object pointer (the refcount is
++ * increased in that case).
++ */
++struct media_request_object *
++media_request_object_find(struct media_request *req,
++			  const struct media_request_object_ops *ops,
++			  void *priv);
++
+ /**
+  * media_request_object_init - Initialise a media request object
+  *
+@@ -176,6 +192,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
+ {
+ }
+ 
++static inline struct media_request_object *
++media_request_object_find(struct media_request *req,
++			  const struct media_request_object_ops *ops,
++			  void *priv)
++{
++	return NULL;
++}
++
+ static inline void media_request_object_init(struct media_request_object *obj)
+ {
+ 	obj->ops = NULL;
+-- 
+2.17.0
