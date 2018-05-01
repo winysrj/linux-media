@@ -1,98 +1,441 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:38091 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753545AbeEKLKk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 07:10:40 -0400
-Received: by mail-lf0-f66.google.com with SMTP id z142-v6so7361215lff.5
-        for <linux-media@vger.kernel.org>; Fri, 11 May 2018 04:10:39 -0700 (PDT)
-Date: Fri, 11 May 2018 13:10:37 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 4/5] media: rcar-vin: Do not use crop if not configured
-Message-ID: <20180511111037.GD18974@bigcity.dyn.berto.se>
-References: <1526032781-14319-1-git-send-email-jacopo+renesas@jmondi.org>
- <1526032781-14319-5-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-dm3nam03on0088.outbound.protection.outlook.com ([104.47.41.88]:44116
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751004AbeEAVZL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 May 2018 17:25:11 -0400
+Date: Tue, 1 May 2018 14:24:51 -0700
+From: Hyun Kwon <hyun.kwon@xilinx.com>
+To: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "michal.simek@xilinx.com" <michal.simek@xilinx.com>,
+        Hyun Kwon <hyunk@xilinx.com>,
+        Satish Kumar Nagireddy <SATISHNA@xilinx.com>
+Subject: Re: [PATCH v4 09/10] v4l: xilinx: dma: Add multi-planar support
+Message-ID: <20180501212450.GE9872@smtp.xilinx.com>
+References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+ <f34ba3d4f7f2863be496f10562ceac45c68e0ddb.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1526032781-14319-5-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <f34ba3d4f7f2863be496f10562ceac45c68e0ddb.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
-
-Thanks for your work.
-
-On 2018-05-11 11:59:40 +0200, Jacopo Mondi wrote:
-> The crop_scale routine uses the crop rectangle memebers to configure the
-> VIN clipping rectangle. When crop is not configured all its fields are
-> 0s, and setting the clipping rectangle vertical and horizontal extensions
-> to (0 - 1) causes the registers to be written with an incorrect
-> 0xffffffff value.
-
-This is an interesting find and a clear bug in my code. But I can't see 
-how crop ever could be 0. When s_fmt is called it always resets the crop 
-and compose width's to the requested format size.
-
-I'm curious how you found this bug, I tried to reproduce it but could 
-not. This is indeed something we should fix! But I think the proper fix 
-is not allowing crop to be 0 and not treating the symptom in 
-rvin_crop_scale_comp().
-
+On Mon, 2018-04-30 at 18:35:12 -0700, Satish Kumar Nagireddy wrote:
+> The current v4l driver supports single plane formats. This patch
+> adds support to handle multi-planar formats. Driver can handle
+> both single and multi-planar formats.
 > 
-> Fix this by using the actual format width and height when no crop
-> rectangle has been programmed.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
 > ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 15 +++++++++------
->  1 file changed, 9 insertions(+), 6 deletions(-)
+>  drivers/media/platform/xilinx/xilinx-dma.c  | 159 ++++++++++++++++++----------
+>  drivers/media/platform/xilinx/xilinx-dma.h  |   4 +-
+>  drivers/media/platform/xilinx/xilinx-vipp.c |  16 +--
+>  3 files changed, 111 insertions(+), 68 deletions(-)
 > 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index b41ba9a..ea7a120 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -579,22 +579,25 @@ static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
+> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+> index 658586e..a714057 100644
+> --- a/drivers/media/platform/xilinx/xilinx-dma.c
+> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
+> @@ -74,8 +74,8 @@ static int xvip_dma_verify_format(struct xvip_dma *dma)
+>  		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
 >  
->  void rvin_crop_scale_comp(struct rvin_dev *vin)
+>  	if (dma->fmtinfo->code != fmt.format.code ||
+> -	    dma->format.height != fmt.format.height ||
+> -	    dma->format.width != fmt.format.width)
+> +	    dma->format.fmt.pix_mp.width != fmt.format.width ||
+> +	    dma->format.fmt.pix_mp.height != fmt.format.height)
+>  		return -EINVAL;
+>  
+>  	return 0;
+> @@ -310,7 +310,8 @@ static void xvip_dma_complete(void *param)
+>  	buf->buf.field = V4L2_FIELD_NONE;
+>  	buf->buf.sequence = dma->sequence++;
+>  	buf->buf.vb2_buf.timestamp = ktime_get_ns();
+> -	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, dma->format.sizeimage);
+> +	vb2_set_plane_payload(&buf->buf.vb2_buf, 0,
+> +			      dma->format.fmt.pix_mp.plane_fmt[0].sizeimage);
+>  	vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_DONE);
+>  }
+>  
+> @@ -320,13 +321,15 @@ xvip_dma_queue_setup(struct vb2_queue *vq,
+>  		     unsigned int sizes[], struct device *alloc_devs[])
 >  {
-> -	/* Set Start/End Pixel/Line Pre-Clip */
-> +	u32 width = vin->crop.width ? vin->crop.left + vin->crop.width :
-> +				      vin->format.width;
-> +	u32 height = vin->crop.height ? vin->crop.top + vin->crop.height :
-> +					vin->format.height;
-> +
-> +	/* Set Start/End Pixel/Line Pre-Clip if crop is configured. */
->  	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
-> -	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
-> +	rvin_write(vin, width - 1, VNEPPRC_REG);
+>  	struct xvip_dma *dma = vb2_get_drv_priv(vq);
+> +	s32 sizeimage;
+
+u32?
+
 >  
->  	switch (vin->format.field) {
->  	case V4L2_FIELD_INTERLACED:
->  	case V4L2_FIELD_INTERLACED_TB:
->  	case V4L2_FIELD_INTERLACED_BT:
->  		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
-> -		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
-> -			   VNELPRC_REG);
-> +		rvin_write(vin, height / 2 - 1, VNELPRC_REG);
->  		break;
->  	default:
->  		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
-> -		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
-> -			   VNELPRC_REG);
-> +		rvin_write(vin, height - 1, VNELPRC_REG);
->  		break;
+>  	/* Make sure the image size is large enough. */
+> +	sizeimage = dma->format.fmt.pix_mp.plane_fmt[0].sizeimage;
+
+I'm a little confused again. :-) This doesn't seem handling nplanes > 1,
+while there are such formats in the format table. is my understanding
+correct?
+
+>  	if (*nplanes)
+> -		return sizes[0] < dma->format.sizeimage ? -EINVAL : 0;
+> +		return sizes[0] < sizeimage ? -EINVAL : 0;
+>  
+>  	*nplanes = 1;
+> -	sizes[0] = dma->format.sizeimage;
+> +	sizes[0] = sizeimage;
+>  
+>  	return 0;
+>  }
+> @@ -350,14 +353,15 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
+>  	struct dma_async_tx_descriptor *desc;
+>  	dma_addr_t addr = vb2_dma_contig_plane_dma_addr(vb, 0);
+>  	u32 flags;
+> +	struct v4l2_pix_format_mplane *pix_mp = &dma->format.fmt.pix_mp;
+>  
+> -	if (dma->queue.type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> +	if (dma->queue.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+>  		flags = DMA_PREP_INTERRUPT | DMA_CTRL_ACK;
+>  		dma->xt.dir = DMA_DEV_TO_MEM;
+>  		dma->xt.src_sgl = false;
+>  		dma->xt.dst_sgl = true;
+>  		dma->xt.dst_start = addr;
+> -	} else {
+> +	} else if (dma->queue.type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+
+I'd do 'else' even if any other value is not possible at this point.
+
+>  		flags = DMA_PREP_INTERRUPT | DMA_CTRL_ACK;
+>  		dma->xt.dir = DMA_MEM_TO_DEV;
+>  		dma->xt.src_sgl = true;
+> @@ -365,10 +369,11 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
+>  		dma->xt.src_start = addr;
 >  	}
 >  
-> -- 
-> 2.7.4
-> 
+> -	dma->xt.frame_size = 1;
+> -	dma->sgl[0].size = dma->format.width * dma->fmtinfo->bpp[0];
+> -	dma->sgl[0].icg = dma->format.bytesperline - dma->sgl[0].size;
+> -	dma->xt.numf = dma->format.height;
+> +	dma->xt.frame_size = dma->fmtinfo->num_planes;
+> +	dma->sgl[0].size = pix_mp->width * dma->fmtinfo->bpp[0];
+> +	dma->sgl[0].icg = pix_mp->plane_fmt[0].bytesperline - dma->sgl[0].size;
+> +	dma->xt.numf = pix_mp->height;
+> +	dma->sgl[0].dst_icg = 0;
+>  
+>  	desc = dmaengine_prep_interleaved_dma(dma->dma, &dma->xt, flags);
+>  	if (!desc) {
+> @@ -497,10 +502,15 @@ xvip_dma_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+>  	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
+>  			  | dma->xdev->v4l2_caps;
+>  
+> -	if (dma->queue.type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> -		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+> -	else
+> -		cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+> +	cap->device_caps = V4L2_CAP_STREAMING;
+> +	switch (dma->queue.type) {
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> +		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE_MPLANE;
+> +		break;
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> +		cap->device_caps |= V4L2_CAP_VIDEO_OUTPUT_MPLANE;
+> +		break;
+> +	}
 
--- 
-Regards,
-Niklas Söderlund
+I'd keep if - else rather than switch - case.
+
+>  
+>  	strlcpy(cap->driver, "xilinx-vipp", sizeof(cap->driver));
+>  	strlcpy(cap->card, dma->video.name, sizeof(cap->card));
+> @@ -524,7 +534,7 @@ xvip_dma_enum_format(struct file *file, void *fh, struct v4l2_fmtdesc *f)
+>  	if (f->index > 0)
+>  		return -EINVAL;
+>  
+> -	f->pixelformat = dma->format.pixelformat;
+> +	f->pixelformat = dma->format.fmt.pix_mp.pixelformat;
+>  	strlcpy(f->description, dma->fmtinfo->description,
+>  		sizeof(f->description));
+>  
+> @@ -537,13 +547,14 @@ xvip_dma_get_format(struct file *file, void *fh, struct v4l2_format *format)
+>  	struct v4l2_fh *vfh = file->private_data;
+>  	struct xvip_dma *dma = to_xvip_dma(vfh->vdev);
+>  
+> -	format->fmt.pix = dma->format;
+> +	format->fmt.pix_mp = dma->format.fmt.pix_mp;
+>  
+>  	return 0;
+>  }
+>  
+>  static void
+> -__xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
+> +__xvip_dma_try_format(struct xvip_dma *dma,
+> +		      struct v4l2_format *format,
+>  		      const struct xvip_video_format **fmtinfo)
+>  {
+>  	const struct xvip_video_format *info;
+> @@ -551,19 +562,21 @@ __xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
+>  	unsigned int max_width;
+>  	unsigned int min_bpl;
+>  	unsigned int max_bpl;
+> -	unsigned int width;
+> +	unsigned int width, height;
+>  	unsigned int align;
+>  	unsigned int bpl;
+> +	unsigned int i;
+> +	struct v4l2_pix_format_mplane *pix_mp = &format->fmt.pix_mp;
+> +	struct v4l2_plane_pix_format *plane_fmt = pix_mp->plane_fmt;
+>  
+>  	/* Retrieve format information and select the default format if the
+>  	 * requested format isn't supported.
+>  	 */
+> -	info = xvip_get_format_by_fourcc(pix->pixelformat);
+> +	info = xvip_get_format_by_fourcc(pix_mp->pixelformat);
+>  	if (IS_ERR(info))
+>  		info = xvip_get_format_by_fourcc(XVIP_DMA_DEF_FORMAT);
+>  
+> -	pix->pixelformat = info->fourcc;
+> -	pix->field = V4L2_FIELD_NONE;
+> +	pix_mp->field = V4L2_FIELD_NONE;
+>  
+>  	/* The transfer alignment requirements are expressed in bytes. Compute
+>  	 * the minimum and maximum values, clamp the requested width and convert
+> @@ -572,22 +585,38 @@ __xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
+>  	align = lcm(dma->align, info->bpp[0]);
+>  	min_width = roundup(XVIP_DMA_MIN_WIDTH, align);
+>  	max_width = rounddown(XVIP_DMA_MAX_WIDTH, align);
+> -	width = rounddown(pix->width * info->bpp[0], align);
+> -
+> -	pix->width = clamp(width, min_width, max_width) / info->bpp[0];
+> -	pix->height = clamp(pix->height, XVIP_DMA_MIN_HEIGHT,
+> -			    XVIP_DMA_MAX_HEIGHT);
+> +	pix_mp->width = clamp(pix_mp->width, min_width, max_width);
+> +	pix_mp->height = clamp(pix_mp->height, XVIP_DMA_MIN_HEIGHT,
+> +			       XVIP_DMA_MAX_HEIGHT);
+>  
+> -	/* Clamp the requested bytes per line value. If the maximum bytes per
+> -	 * line value is zero, the module doesn't support user configurable line
+> -	 * sizes. Override the requested value with the minimum in that case.
+> +	/*
+> +	 * Clamp the requested bytes per line value. If the maximum
+> +	 * bytes per line value is zero, the module doesn't support
+> +	 * user configurable line sizes. Override the requested value
+> +	 * with the minimum in that case.
+>  	 */
+> -	min_bpl = pix->width * info->bpp[0];
+> -	max_bpl = rounddown(XVIP_DMA_MAX_WIDTH, dma->align);
+> -	bpl = rounddown(pix->bytesperline, dma->align);
+> -
+> -	pix->bytesperline = clamp(bpl, min_bpl, max_bpl);
+> -	pix->sizeimage = pix->bytesperline * pix->height;
+> +	max_bpl = rounddown(XVIP_DMA_MAX_WIDTH, align);
+> +	min_bpl = pix_mp->width * info->bpp[0];
+> +	min_bpl = roundup(min_bpl, align);
+> +	bpl = roundup(plane_fmt[0].bytesperline, align);
+> +	plane_fmt[0].bytesperline = clamp(bpl, min_bpl, max_bpl);
+> +
+> +	if (info->num_planes == 1) {
+> +		/* Single plane formats */
+> +		plane_fmt[0].sizeimage = plane_fmt[0].bytesperline *
+> +					 pix_mp->height;
+> +	} else {
+> +		/* Supports Multi plane formats in a contiguous buffer,
+> +		 * so we need only one buffer
+> +		 */
+
+Please use multiline comment style.
+
+> +		plane_fmt[0].sizeimage = 0;
+
+You can declare 'i' here.
+
+> +		for (i = 0; i < info->num_planes; i++) {
+> +			width = plane_fmt[0].bytesperline /
+> +				(i ? info->hsub : 1);
+> +			height = pix_mp->height / (i ? info->vsub : 1);
+> +			plane_fmt[0].sizeimage += width * info->bpp[i] * height;
+
+Just to clarify, only contiguous formats are supported, which is aligned with
+the comment above on nplane > 1, correct?
+
+> +		}
+> +	}
+>  
+>  	if (fmtinfo)
+>  		*fmtinfo = info;
+> @@ -599,7 +628,7 @@ xvip_dma_try_format(struct file *file, void *fh, struct v4l2_format *format)
+>  	struct v4l2_fh *vfh = file->private_data;
+>  	struct xvip_dma *dma = to_xvip_dma(vfh->vdev);
+>  
+> -	__xvip_dma_try_format(dma, &format->fmt.pix, NULL);
+> +	__xvip_dma_try_format(dma, format, NULL);
+>  	return 0;
+>  }
+>  
+> @@ -610,12 +639,13 @@ xvip_dma_set_format(struct file *file, void *fh, struct v4l2_format *format)
+>  	struct xvip_dma *dma = to_xvip_dma(vfh->vdev);
+>  	const struct xvip_video_format *info;
+>  
+> -	__xvip_dma_try_format(dma, &format->fmt.pix, &info);
+> +	__xvip_dma_try_format(dma, format, &info);
+>  
+>  	if (vb2_is_busy(&dma->queue))
+>  		return -EBUSY;
+>  
+> -	dma->format = format->fmt.pix;
+> +	dma->format.fmt.pix_mp = format->fmt.pix_mp;
+> +
+>  	dma->fmtinfo = info;
+>  
+>  	return 0;
+> @@ -623,13 +653,14 @@ xvip_dma_set_format(struct file *file, void *fh, struct v4l2_format *format)
+>  
+>  static const struct v4l2_ioctl_ops xvip_dma_ioctl_ops = {
+>  	.vidioc_querycap		= xvip_dma_querycap,
+> -	.vidioc_enum_fmt_vid_cap	= xvip_dma_enum_format,
+> -	.vidioc_g_fmt_vid_cap		= xvip_dma_get_format,
+> -	.vidioc_g_fmt_vid_out		= xvip_dma_get_format,
+> -	.vidioc_s_fmt_vid_cap		= xvip_dma_set_format,
+> -	.vidioc_s_fmt_vid_out		= xvip_dma_set_format,
+> -	.vidioc_try_fmt_vid_cap		= xvip_dma_try_format,
+> -	.vidioc_try_fmt_vid_out		= xvip_dma_try_format,
+> +	.vidioc_enum_fmt_vid_cap_mplane	= xvip_dma_enum_format,
+> +	.vidioc_enum_fmt_vid_out_mplane	= xvip_dma_enum_format,
+> +	.vidioc_g_fmt_vid_cap_mplane	= xvip_dma_get_format,
+> +	.vidioc_g_fmt_vid_out_mplane	= xvip_dma_get_format,
+> +	.vidioc_s_fmt_vid_cap_mplane	= xvip_dma_set_format,
+> +	.vidioc_s_fmt_vid_out_mplane	= xvip_dma_set_format,
+> +	.vidioc_try_fmt_vid_cap_mplane	= xvip_dma_try_format,
+> +	.vidioc_try_fmt_vid_out_mplane	= xvip_dma_try_format,
+>  	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
+>  	.vidioc_querybuf		= vb2_ioctl_querybuf,
+>  	.vidioc_qbuf			= vb2_ioctl_qbuf,
+> @@ -662,6 +693,7 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+>  {
+>  	char name[16];
+>  	int ret;
+> +	struct v4l2_pix_format_mplane *pix_mp;
+>  
+>  	dma->xdev = xdev;
+>  	dma->port = port;
+> @@ -671,17 +703,23 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+>  	spin_lock_init(&dma->queued_lock);
+>  
+>  	dma->fmtinfo = xvip_get_format_by_fourcc(XVIP_DMA_DEF_FORMAT);
+> -	dma->format.pixelformat = dma->fmtinfo->fourcc;
+> -	dma->format.colorspace = V4L2_COLORSPACE_SRGB;
+> -	dma->format.field = V4L2_FIELD_NONE;
+> -	dma->format.width = XVIP_DMA_DEF_WIDTH;
+> -	dma->format.height = XVIP_DMA_DEF_HEIGHT;
+> -	dma->format.bytesperline = dma->format.width * dma->fmtinfo->bpp[0];
+> -	dma->format.sizeimage = dma->format.bytesperline * dma->format.height;
+> +	dma->format.type = type;
+> +
+> +	pix_mp = &dma->format.fmt.pix_mp;
+> +	pix_mp->pixelformat = dma->fmtinfo->fourcc;
+> +	pix_mp->colorspace = V4L2_COLORSPACE_SRGB;
+> +	pix_mp->field = V4L2_FIELD_NONE;
+> +	pix_mp->width = XVIP_DMA_DEF_WIDTH;
+> +	pix_mp->plane_fmt[0].bytesperline = pix_mp->width *
+> +					    dma->fmtinfo->bpp[0];
+> +	pix_mp->plane_fmt[0].sizeimage = pix_mp->plane_fmt[0].bytesperline *
+> +					 pix_mp->height;
+>  
+>  	/* Initialize the media entity... */
+> -	dma->pad.flags = type == V4L2_BUF_TYPE_VIDEO_CAPTURE
+> -		       ? MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
+> +	if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		dma->pad.flags = MEDIA_PAD_FL_SINK;
+> +	else if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		dma->pad.flags = MEDIA_PAD_FL_SOURCE;
+
+I'd use 'else' or stick to the previous line just changing to MPLANE.
+
+>  
+>  	ret = media_entity_pads_init(&dma->video.entity, 1, &dma->pad);
+>  	if (ret < 0)
+> @@ -693,11 +731,16 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+>  	dma->video.queue = &dma->queue;
+>  	snprintf(dma->video.name, sizeof(dma->video.name), "%s %s %u",
+>  		 xdev->dev->of_node->name,
+> -		 type == V4L2_BUF_TYPE_VIDEO_CAPTURE ? "output" : "input",
+> +		 type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+> +					? "output" : "input",
+>  		 port);
+> +
+>  	dma->video.vfl_type = VFL_TYPE_GRABBER;
+> -	dma->video.vfl_dir = type == V4L2_BUF_TYPE_VIDEO_CAPTURE
+> -			   ? VFL_DIR_RX : VFL_DIR_TX;
+> +	if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		dma->video.vfl_dir = VFL_DIR_RX;
+> +	else if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		dma->video.vfl_dir = VFL_DIR_TX;
+
+Ditto.
+
+Thanks,
+-hyun
+
+> +
+>  	dma->video.release = video_device_release_empty;
+>  	dma->video.ioctl_ops = &xvip_dma_ioctl_ops;
+>  	dma->video.lock = &dma->lock;
+> diff --git a/drivers/media/platform/xilinx/xilinx-dma.h b/drivers/media/platform/xilinx/xilinx-dma.h
+> index e95d136..96933ed 100644
+> --- a/drivers/media/platform/xilinx/xilinx-dma.h
+> +++ b/drivers/media/platform/xilinx/xilinx-dma.h
+> @@ -62,7 +62,7 @@ static inline struct xvip_pipeline *to_xvip_pipeline(struct media_entity *e)
+>   * @pipe: pipeline belonging to the DMA channel
+>   * @port: composite device DT node port number for the DMA channel
+>   * @lock: protects the @format, @fmtinfo and @queue fields
+> - * @format: active V4L2 pixel format
+> + * @format: V4L2 format
+>   * @fmtinfo: format information corresponding to the active @format
+>   * @queue: vb2 buffers queue
+>   * @sequence: V4L2 buffers sequence number
+> @@ -83,7 +83,7 @@ struct xvip_dma {
+>  	unsigned int port;
+>  
+>  	struct mutex lock;
+> -	struct v4l2_pix_format format;
+> +	struct v4l2_format format;
+>  	const struct xvip_video_format *fmtinfo;
+>  
+>  	struct vb2_queue queue;
+> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
+> index 6bb28cd..509b50f 100644
+> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
+> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+> @@ -433,12 +433,15 @@ static int xvip_graph_dma_init_one(struct xvip_composite_device *xdev,
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	if (strcmp(direction, "input") == 0)
+> -		type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> -	else if (strcmp(direction, "output") == 0)
+> -		type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> -	else
+> +	if (strcmp(direction, "input") == 0) {
+> +		type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> +		xdev->v4l2_caps |= V4L2_CAP_VIDEO_CAPTURE_MPLANE;
+> +	} else if (strcmp(direction, "output") == 0) {
+> +		type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+> +		xdev->v4l2_caps |= V4L2_CAP_VIDEO_OUTPUT_MPLANE;
+> +	} else {
+>  		return -EINVAL;
+> +	}
+>  
+>  	of_property_read_u32(node, "reg", &index);
+>  
+> @@ -454,9 +457,6 @@ static int xvip_graph_dma_init_one(struct xvip_composite_device *xdev,
+>  
+>  	list_add_tail(&dma->list, &xdev->dmas);
+>  
+> -	xdev->v4l2_caps |= type == V4L2_BUF_TYPE_VIDEO_CAPTURE
+> -			 ? V4L2_CAP_VIDEO_CAPTURE : V4L2_CAP_VIDEO_OUTPUT;
+> -
+>  	return 0;
+>  }
+>  
+> -- 
+> 2.1.1
+> 
