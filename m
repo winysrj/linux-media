@@ -1,125 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2120.oracle.com ([156.151.31.85]:48024 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752044AbeERWQC (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:44594 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753720AbeEAJA4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 18:16:02 -0400
-Subject: Re: [Xen-devel][RFC 2/3] xen/grant-table: Extend API to work with DMA
- buffers
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180517082604.14828-1-andr2000@gmail.com>
- <20180517082604.14828-3-andr2000@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <28532709-6c87-f048-be6a-3c4ba02ae56f@oracle.com>
-Date: Fri, 18 May 2018 18:19:02 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180517082604.14828-3-andr2000@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        Tue, 1 May 2018 05:00:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv12 PATCH 10/29] v4l2-ctrls: alloc memory for p_req
+Date: Tue,  1 May 2018 11:00:32 +0200
+Message-Id: <20180501090051.9321-11-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/17/2018 04:26 AM, Oleksandr Andrushchenko wrote:
-> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->
-> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-> ---
->  drivers/xen/grant-table.c | 49 +++++++++++++++++++++++++++++++++++++++
->  include/xen/grant_table.h |  7 ++++++
->  2 files changed, 56 insertions(+)
->
-> diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
-> index bb36b1e1dbcc..c27bcc420575 100644
-> --- a/drivers/xen/grant-table.c
-> +++ b/drivers/xen/grant-table.c
-> @@ -729,6 +729,55 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
->  }
->  EXPORT_SYMBOL(gnttab_free_pages);
->  
-> +int gnttab_dma_alloc_pages(struct device *dev, bool coherent,
-> +			   int nr_pages, struct page **pages,
-> +			   void **vaddr, dma_addr_t *dev_bus_addr)
-> +{
-> +	int i;
-> +	int ret;
-> +
-> +	ret = alloc_dma_xenballooned_pages(dev, coherent, nr_pages, pages,
-> +					   vaddr, dev_bus_addr);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	for (i = 0; i < nr_pages; i++) {
-> +#if BITS_PER_LONG < 64
-> +		struct xen_page_foreign *foreign;
-> +
-> +		foreign = kzalloc(sizeof(*foreign), GFP_KERNEL);
-> +		if (!foreign) {
-> +			gnttab_dma_free_pages(dev, flags, nr_pages, pages,
-> +					      *vaddr, *dev_bus_addr);
-> +			return -ENOMEM;
-> +		}
-> +		set_page_private(pages[i], (unsigned long)foreign);
-> +#endif
-> +		SetPagePrivate(pages[i]);
-> +	}
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(gnttab_dma_alloc_pages);
-> +
-> +void gnttab_dma_free_pages(struct device *dev, bool coherent,
-> +			   int nr_pages, struct page **pages,
-> +			   void *vaddr, dma_addr_t dev_bus_addr)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < nr_pages; i++) {
-> +		if (PagePrivate(pages[i])) {
-> +#if BITS_PER_LONG < 64
-> +			kfree((void *)page_private(pages[i]));
-> +#endif
-> +			ClearPagePrivate(pages[i]);
-> +		}
-> +	}
-> +	free_dma_xenballooned_pages(dev, coherent, nr_pages, pages,
-> +				    vaddr, dev_bus_addr);
-> +}
-> +EXPORT_SYMBOL(gnttab_dma_free_pages);
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+To store request data the handler_new_ref() allocates memory
+for it if needed.
 
-Given that these routines look almost exactly like their non-dma
-counterparts I wonder whether common code could be factored out.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
--boris
-
-
-
-
-> +
->  /* Handling of paged out grant targets (GNTST_eagain) */
->  #define MAX_DELAY 256
->  static inline void
-> diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
-> index 34b1379f9777..20ee2b5ba965 100644
-> --- a/include/xen/grant_table.h
-> +++ b/include/xen/grant_table.h
-> @@ -195,6 +195,13 @@ void gnttab_free_auto_xlat_frames(void);
->  int gnttab_alloc_pages(int nr_pages, struct page **pages);
->  void gnttab_free_pages(int nr_pages, struct page **pages);
->  
-> +int gnttab_dma_alloc_pages(struct device *dev, bool coherent,
-> +			   int nr_pages, struct page **pages,
-> +			   void **vaddr, dma_addr_t *dev_bus_addr);
-> +void gnttab_dma_free_pages(struct device *dev, bool coherent,
-> +			   int nr_pages, struct page **pages,
-> +			   void *vaddr, dma_addr_t dev_bus_addr);
-> +
->  int gnttab_map_refs(struct gnttab_map_grant_ref *map_ops,
->  		    struct gnttab_map_grant_ref *kmap_ops,
->  		    struct page **pages, unsigned int count);
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index d09f49530d9e..3c1b00baa8d0 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1997,13 +1997,18 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
+ /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
+ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 			   struct v4l2_ctrl *ctrl,
+-			   bool from_other_dev)
++			   struct v4l2_ctrl_ref **ctrl_ref,
++			   bool from_other_dev, bool allocate_req)
+ {
+ 	struct v4l2_ctrl_ref *ref;
+ 	struct v4l2_ctrl_ref *new_ref;
+ 	u32 id = ctrl->id;
+ 	u32 class_ctrl = V4L2_CTRL_ID2WHICH(id) | 1;
+ 	int bucket = id % hdl->nr_of_buckets;	/* which bucket to use */
++	unsigned int sz_extra = 0;
++
++	if (ctrl_ref)
++		*ctrl_ref = NULL;
+ 
+ 	/*
+ 	 * Automatically add the control class if it is not yet present and
+@@ -2017,11 +2022,16 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	if (hdl->error)
+ 		return hdl->error;
+ 
+-	new_ref = kzalloc(sizeof(*new_ref), GFP_KERNEL);
++	if (allocate_req)
++		sz_extra = ctrl->elems * ctrl->elem_size;
++	new_ref = kzalloc(sizeof(*new_ref) + sz_extra, GFP_KERNEL);
+ 	if (!new_ref)
+ 		return handler_set_err(hdl, -ENOMEM);
+ 	new_ref->ctrl = ctrl;
+ 	new_ref->from_other_dev = from_other_dev;
++	if (sz_extra)
++		new_ref->p_req.p = &new_ref[1];
++
+ 	if (ctrl->handler == hdl) {
+ 		/* By default each control starts in a cluster of its own.
+ 		   new_ref->ctrl is basically a cluster array with one
+@@ -2061,6 +2071,8 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	/* Insert the control node in the hash */
+ 	new_ref->next = hdl->buckets[bucket];
+ 	hdl->buckets[bucket] = new_ref;
++	if (ctrl_ref)
++		*ctrl_ref = new_ref;
+ 
+ unlock:
+ 	mutex_unlock(hdl->lock);
+@@ -2202,7 +2214,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
+ 	}
+ 
+-	if (handler_new_ref(hdl, ctrl, false)) {
++	if (handler_new_ref(hdl, ctrl, NULL, false, false)) {
+ 		kvfree(ctrl);
+ 		return NULL;
+ 	}
+@@ -2395,7 +2407,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 		/* Filter any unwanted controls */
+ 		if (filter && !filter(ctrl))
+ 			continue;
+-		ret = handler_new_ref(hdl, ctrl, from_other_dev);
++		ret = handler_new_ref(hdl, ctrl, NULL, from_other_dev, false);
+ 		if (ret)
+ 			break;
+ 	}
+-- 
+2.17.0
