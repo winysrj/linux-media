@@ -1,127 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:54187 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751118AbeEEQJv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 5 May 2018 12:09:51 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Tomoki Sekiyama <tomoki.sekiyama@gmail.com>,
-        "Luis R. Rodriguez" <mcgrof@kernel.org>, linux-mm@kvack.org
-Subject: [PATCH 1/2] media: siano: don't use GFP_DMA
-Date: Sat,  5 May 2018 12:09:45 -0400
-Message-Id: <dc56acf384130d9703684a239d8daa8748f63d8e.1525536580.git.mchehab+samsung@kernel.org>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:40174 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753444AbeEAJA4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 May 2018 05:00:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv12 PATCH 07/29] videodev2.h: add request_fd field to v4l2_ext_controls
+Date: Tue,  1 May 2018 11:00:29 +0200
+Message-Id: <20180501090051.9321-8-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I can't think on a single reason why this driver would be using
-GFP_DMA. The typical usage is as an USB driver. Any DMA restrictions
-should be handled inside the HCI driver, if any.
+From: Alexandre Courbot <acourbot@chromium.org>
 
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: linux-mm@kvack.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+If which is V4L2_CTRL_WHICH_REQUEST_VAL, then the request_fd field can be
+used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
+
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 ---
- drivers/media/common/siano/smscoreapi.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
+ include/uapi/linux/videodev2.h                | 4 +++-
+ 3 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
-index 1c93258a2d47..a5f0db0810d4 100644
---- a/drivers/media/common/siano/smscoreapi.c
-+++ b/drivers/media/common/siano/smscoreapi.c
-@@ -697,7 +697,7 @@ int smscore_register_device(struct smsdevice_params_t *params,
- 		buffer = dma_alloc_coherent(params->device,
- 					    dev->common_buffer_size,
- 					    &dev->common_buffer_phys,
--					    GFP_KERNEL | GFP_DMA);
-+					    GFP_KERNEL);
- 	if (!buffer) {
- 		smscore_unregister_device(dev);
- 		return -ENOMEM;
-@@ -792,7 +792,7 @@ static int smscore_init_ir(struct smscore_device_t *coredev)
- 		else {
- 			buffer = kmalloc(sizeof(struct sms_msg_data2) +
- 						SMS_DMA_ALIGNMENT,
--						GFP_KERNEL | GFP_DMA);
-+						GFP_KERNEL);
- 			if (buffer) {
- 				struct sms_msg_data2 *msg =
- 				(struct sms_msg_data2 *)
-@@ -933,7 +933,7 @@ static int smscore_load_firmware_family2(struct smscore_device_t *coredev,
- 	}
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 6481212fda77..dcce86c1fe40 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -834,7 +834,8 @@ struct v4l2_ext_controls32 {
+ 	__u32 which;
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
+ };
  
- 	/* PAGE_SIZE buffer shall be enough and dma aligned */
--	msg = kmalloc(PAGE_SIZE, GFP_KERNEL | GFP_DMA);
-+	msg = kmalloc(PAGE_SIZE, GFP_KERNEL);
- 	if (!msg)
- 		return -ENOMEM;
+@@ -909,6 +910,7 @@ static int get_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &p32->count) ||
+ 	    put_user(count, &p64->count) ||
+ 	    assign_in_user(&p64->error_idx, &p32->error_idx) ||
++	    assign_in_user(&p64->request_fd, &p32->request_fd) ||
+ 	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
+ 		return -EFAULT;
  
-@@ -1168,7 +1168,7 @@ static int smscore_load_firmware_from_file(struct smscore_device_t *coredev,
- 	}
- 	pr_debug("read fw %s, buffer size=0x%zx\n", fw_filename, fw->size);
- 	fw_buf = kmalloc(ALIGN(fw->size + sizeof(struct sms_firmware),
--			 SMS_ALLOC_ALIGNMENT), GFP_KERNEL | GFP_DMA);
-+			 SMS_ALLOC_ALIGNMENT), GFP_KERNEL);
- 	if (!fw_buf) {
- 		pr_err("failed to allocate firmware buffer\n");
- 		rc = -ENOMEM;
-@@ -1260,7 +1260,7 @@ EXPORT_SYMBOL_GPL(smscore_unregister_device);
- static int smscore_detect_mode(struct smscore_device_t *coredev)
- {
- 	void *buffer = kmalloc(sizeof(struct sms_msg_hdr) + SMS_DMA_ALIGNMENT,
--			       GFP_KERNEL | GFP_DMA);
-+			       GFP_KERNEL);
- 	struct sms_msg_hdr *msg =
- 		(struct sms_msg_hdr *) SMS_ALIGN_ADDRESS(buffer);
- 	int rc;
-@@ -1309,7 +1309,7 @@ static int smscore_init_device(struct smscore_device_t *coredev, int mode)
- 	int rc = 0;
+@@ -974,6 +976,7 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &p64->count) ||
+ 	    put_user(count, &p32->count) ||
+ 	    assign_in_user(&p32->error_idx, &p64->error_idx) ||
++	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
+ 	    copy_in_user(p32->reserved, p64->reserved, sizeof(p32->reserved)) ||
+ 	    get_user(kcontrols, &p64->controls))
+ 		return -EFAULT;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index f48c505550e0..9ce23e23c5bf 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -553,8 +553,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
+ 	const struct v4l2_ext_controls *p = arg;
+ 	int i;
  
- 	buffer = kmalloc(sizeof(struct sms_msg_data) +
--			SMS_DMA_ALIGNMENT, GFP_KERNEL | GFP_DMA);
-+			SMS_DMA_ALIGNMENT, GFP_KERNEL);
- 	if (!buffer)
- 		return -ENOMEM;
+-	pr_cont("which=0x%x, count=%d, error_idx=%d",
+-			p->which, p->count, p->error_idx);
++	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
++			p->which, p->count, p->error_idx, p->request_fd);
+ 	for (i = 0; i < p->count; i++) {
+ 		if (!p->controls[i].size)
+ 			pr_cont(", id/val=0x%x/0x%x",
+@@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+ 	__u32 i;
  
-@@ -1398,7 +1398,7 @@ int smscore_set_device_mode(struct smscore_device_t *coredev, int mode)
- 		coredev->device_flags &= ~SMS_DEVICE_NOT_READY;
+ 	/* zero the reserved fields */
+-	c->reserved[0] = c->reserved[1] = 0;
++	c->reserved[0] = 0;
+ 	for (i = 0; i < c->count; i++)
+ 		c->controls[i].reserved2[0] = 0;
  
- 		buffer = kmalloc(sizeof(struct sms_msg_data) +
--				 SMS_DMA_ALIGNMENT, GFP_KERNEL | GFP_DMA);
-+				 SMS_DMA_ALIGNMENT, GFP_KERNEL);
- 		if (buffer) {
- 			struct sms_msg_data *msg = (struct sms_msg_data *) SMS_ALIGN_ADDRESS(buffer);
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 600877be5c22..16b53b82496c 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1592,7 +1592,8 @@ struct v4l2_ext_controls {
+ 	};
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	struct v4l2_ext_control *controls;
+ };
  
-@@ -1971,7 +1971,7 @@ int smscore_gpio_configure(struct smscore_device_t *coredev, u8 pin_num,
- 	total_len = sizeof(struct sms_msg_hdr) + (sizeof(u32) * 6);
+@@ -1605,6 +1606,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_MAX_DIMS	  (4)
+ #define V4L2_CTRL_WHICH_CUR_VAL   0
+ #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
++#define V4L2_CTRL_WHICH_REQUEST_VAL 0x0f010000
  
- 	buffer = kmalloc(total_len + SMS_DMA_ALIGNMENT,
--			GFP_KERNEL | GFP_DMA);
-+			GFP_KERNEL);
- 	if (!buffer)
- 		return -ENOMEM;
- 
-@@ -2043,7 +2043,7 @@ int smscore_gpio_set_level(struct smscore_device_t *coredev, u8 pin_num,
- 			(3 * sizeof(u32)); /* keep it 3 ! */
- 
- 	buffer = kmalloc(total_len + SMS_DMA_ALIGNMENT,
--			GFP_KERNEL | GFP_DMA);
-+			GFP_KERNEL);
- 	if (!buffer)
- 		return -ENOMEM;
- 
-@@ -2091,7 +2091,7 @@ int smscore_gpio_get_level(struct smscore_device_t *coredev, u8 pin_num,
- 	total_len = sizeof(struct sms_msg_hdr) + (2 * sizeof(u32));
- 
- 	buffer = kmalloc(total_len + SMS_DMA_ALIGNMENT,
--			GFP_KERNEL | GFP_DMA);
-+			GFP_KERNEL);
- 	if (!buffer)
- 		return -ENOMEM;
- 
+ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_INTEGER	     = 1,
 -- 
 2.17.0
