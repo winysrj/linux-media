@@ -1,234 +1,395 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay11.mail.gandi.net ([217.70.178.231]:47937 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935163AbeEYHQV (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52235 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753851AbeEAJA5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 03:16:21 -0400
-Date: Fri, 25 May 2018 09:16:15 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v4 5/9] media: rcar-vin: Parse parallel input on Gen3
-Message-ID: <20180525071615.GJ18369@w540>
-References: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
- <1527199339-7724-6-git-send-email-jacopo+renesas@jmondi.org>
- <20180524222944.GI31036@bigcity.dyn.berto.se>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="yklP1rR72f9kjNtc"
-Content-Disposition: inline
-In-Reply-To: <20180524222944.GI31036@bigcity.dyn.berto.se>
+        Tue, 1 May 2018 05:00:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv12 PATCH 23/29] Documentation: v4l: document request API
+Date: Tue,  1 May 2018 11:00:45 +0200
+Message-Id: <20180501090051.9321-24-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Alexandre Courbot <acourbot@chromium.org>
 
---yklP1rR72f9kjNtc
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Document the request API for V4L2 devices, and amend the documentation
+of system calls influenced by it.
 
-Hi Niklas,
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ Documentation/media/uapi/v4l/buffer.rst       |  19 +-
+ Documentation/media/uapi/v4l/common.rst       |   1 +
+ Documentation/media/uapi/v4l/request-api.rst  | 218 ++++++++++++++++++
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst     |  25 +-
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst  |   8 +
+ .../media/videodev2.h.rst.exceptions          |   1 +
+ 6 files changed, 266 insertions(+), 6 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/request-api.rst
 
-On Fri, May 25, 2018 at 12:29:44AM +0200, Niklas S=C3=B6derlund wrote:
-> Hi Jacopo,
->
-> Thanks for your work.
->
-> I really like what you did with this patch in v4.
-
-Thanks for review and suggestions, what's there comes mostly from your
-comments and guidance.
-
->
-> On 2018-05-25 00:02:15 +0200, Jacopo Mondi wrote:
-> > The rcar-vin driver so far had a mutually exclusive code path for
-> > handling parallel and CSI-2 video input subdevices, with only the CSI-2
-> > use case supporting media-controller. As we add support for parallel
-> > inputs to Gen3 media-controller compliant code path now parse both port=
-@0
-> > and port@1, handling the media-controller use case in the parallel
-> > bound/unbind notifier operations.
-> >
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> >
-> > ---
-> > v3 -> v4:
-> > - Change the mc/parallel initialization order. Initialize mc first, then
-> >   parallel
-> > - As a consequence no need to delay parallel notifiers registration, the
-> >   media controller is set up already when parallel input got parsed,
-> >   this greatly simplify the group notifier complete callback.
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-core.c | 56 ++++++++++++++++++---=
---------
-> >  1 file changed, 35 insertions(+), 21 deletions(-)
-> >
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/medi=
-a/platform/rcar-vin/rcar-core.c
-> > index a799684..29619c2 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> > @@ -399,6 +399,11 @@ static int rvin_parallel_subdevice_attach(struct r=
-vin_dev *vin,
-> >  	ret =3D rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
-> >  	vin->parallel->sink_pad =3D ret < 0 ? 0 : ret;
-> >
-> > +	if (vin->info->use_mc) {
-> > +		vin->parallel->subdev =3D subdev;
-> > +		return 0;
-> > +	}
-> > +
-> >  	/* Find compatible subdevices mbus format */
-> >  	vin->mbus_code =3D 0;
-> >  	code.index =3D 0;
-> > @@ -460,10 +465,12 @@ static int rvin_parallel_subdevice_attach(struct =
-rvin_dev *vin,
-> >  static void rvin_parallel_subdevice_detach(struct rvin_dev *vin)
-> >  {
-> >  	rvin_v4l2_unregister(vin);
-> > -	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> > -
-> > -	vin->vdev.ctrl_handler =3D NULL;
-> >  	vin->parallel->subdev =3D NULL;
-> > +
-> > +	if (!vin->info->use_mc) {
-> > +		v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> > +		vin->vdev.ctrl_handler =3D NULL;
-> > +	}
-> >  }
-> >
-> >  static int rvin_parallel_notify_complete(struct v4l2_async_notifier *n=
-otifier)
-> > @@ -552,18 +559,18 @@ static int rvin_parallel_parse_v4l2(struct device=
- *dev,
-> >  	return 0;
-> >  }
-> >
-> > -static int rvin_parallel_graph_init(struct rvin_dev *vin)
-> > +static int rvin_parallel_init(struct rvin_dev *vin)
-> >  {
-> >  	int ret;
-> >
-> > -	ret =3D v4l2_async_notifier_parse_fwnode_endpoints(
-> > -		vin->dev, &vin->notifier,
-> > -		sizeof(struct rvin_parallel_entity), rvin_parallel_parse_v4l2);
-> > +	ret =3D v4l2_async_notifier_parse_fwnode_endpoints_by_port(
-> > +		vin->dev, &vin->notifier, sizeof(struct rvin_parallel_entity),
-> > +		0, rvin_parallel_parse_v4l2);
-> >  	if (ret)
-> >  		return ret;
-> >
-> >  	if (!vin->parallel)
-> > -		return -ENODEV;
-> > +		return -ENOTCONN;
->
-> I think you still should return -ENODEV here if !vin->info->use_mc to
-> preserve Gen2 which runs without media controller behavior. How about:
->
->     return vin->info->use_mc ? -ENOTCONN : -ENODEV;
-
-Right, I wish I had some gen2 board to test. I wonder if that's not
-better handled in probe though... I'll see how it looks like.
->
-> >
-> >  	vin_dbg(vin, "Found parallel subdevice %pOF\n",
-> >  		to_of_node(vin->parallel->asd.match.fwnode));
-> > @@ -784,14 +791,8 @@ static int rvin_mc_init(struct rvin_dev *vin)
-> >  {
-> >  	int ret;
-> >
-> > -	vin->pad.flags =3D MEDIA_PAD_FL_SINK;
-> > -	ret =3D media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
-> > -	if (ret)
-> > -		return ret;
-> > -
-> > -	ret =3D rvin_group_get(vin);
-> > -	if (ret)
-> > -		return ret;
-> > +	if (!vin->info->use_mc)
-> > +		return 0;
-> >
-> >  	ret =3D rvin_mc_parse_of_graph(vin);
-> >  	if (ret)
-> > @@ -1074,11 +1075,24 @@ static int rcar_vin_probe(struct platform_devic=
-e *pdev)
-> >  		return ret;
-> >
-> >  	platform_set_drvdata(pdev, vin);
-> > -	if (vin->info->use_mc)
-> > -		ret =3D rvin_mc_init(vin);
-> > -	else
-> > -		ret =3D rvin_parallel_graph_init(vin);
-> > -	if (ret < 0)
-> > +
-> > +	if (vin->info->use_mc) {
-> > +		vin->pad.flags =3D MEDIA_PAD_FL_SINK;
-> > +		ret =3D media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
-> > +		if (ret)
-> > +			return ret;
-> > +
-> > +		ret =3D rvin_group_get(vin);
-> > +		if (ret)
-> > +			return ret;
-> > +	}
->
-> I don't see why you need to move the media pad creation out of
-> rvin_mc_init(). With the reorder of the rvin_mc_init()
-> rvin_parallel_init() I would keep this in rvin_mc_init().
->
-
-Just because I've been lazy re-structuring that part of code I broke
-up in previous versions. I'll move that part back to mc_init() and
-possibly also remove the
-
-+	if (!vin->info->use_mc)
-+		return 0;
-
-in that function and handle this in probe().
-
-Thanks
-   j
-
-
-> > +
-> > +	ret =3D rvin_mc_init(vin);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	ret =3D rvin_parallel_init(vin);
-> > +	if (ret < 0 && ret !=3D -ENOTCONN)
-> >  		goto error;
-> >
-> >  	pm_suspend_ignore_children(&pdev->dev, true);
-> > --
-> > 2.7.4
-> >
->
-> --
-> Regards,
-> Niklas S=C3=B6derlund
-
---yklP1rR72f9kjNtc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbB7g/AAoJEHI0Bo8WoVY8H9sP/jLqdwWBXmOLiZJzrVaKVwsS
-WD+g30BByEOBcXRQ2gty34wl/ORXQiHTHW0kVnltl1KH/KzDRsi3p7FOQxJZ0bu7
-LtBpKMQzIY0sW3TFPKxxTIXUvgKNdbzflBb2swA6nsieNwnJwCHE7wugEd8eX3r9
-iLNEXSCX1fp6J8AtIT0iFMEwhCEDNndt6PESVE9HpImxNnejXQT37AXGBd8+Rmlf
-cj218kbnxrSW58Qt/NNeC2oj0nxlO9mR41I7oUflKjI+0BrWChLVFmOEah3Y7pFT
-bcUO6ab7trKwrlmIKSt0y6JFdqdqHIDz19MbVCvz7BP4qVhGvCmxzecvgFUsHCl/
-2XQgn8qnamA+JiuMwFQiJh+OtlYF/Zo7l9+JOmSxrL/Pc26tCJ6tPWZdlO1oiuRE
-kpP74iXqv/Ic8oCli1qhIfdXx5uySv0UTdbW1u0l3XFK1VPE1fRky+W2HwIbFfxQ
-NxVn5VjPefqTPtgg/I5CFZvxDqz73mAPrMOn8NtaF+Rg2c14ZHVUxY/9rf33TpDz
-/X5iyZ2FmWqDCWbMYuYdrW72B7QtHauRV8L4ImJh8Ed6ZQlIRitJ93CF1W/7XNz6
-btRPg5CIBdSDeXfx7VJ1RoiCp1dUkVpdoxYINncz+73dhNOqopnM2w4Xh9/UIuTe
-i9Vd1tZLJSao7okVkT0t
-=Idy5
------END PGP SIGNATURE-----
-
---yklP1rR72f9kjNtc--
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index e2c85ddc990b..5b312faf93b8 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -306,10 +306,13 @@ struct v4l2_buffer
+       - A place holder for future extensions. Drivers and applications
+ 	must set this to 0.
+     * - __u32
+-      - ``reserved``
++      - ``request_fd``
+       -
+-      - A place holder for future extensions. Drivers and applications
+-	must set this to 0.
++      - The file descriptor of the request to queue the buffer to. If specified
++        and flag ``V4L2_BUF_FLAG_REQUEST_FD`` is set, then the buffer will be
++	queued to that request. This is set by the user when calling
++	:ref:`VIDIOC_QBUF` and :ref:`VIDIOC_PREPARE_BUF` and ignored by other
++	ioctls.
+ 
+ 
+ 
+@@ -514,6 +517,11 @@ Buffer Flags
+ 	streaming may continue as normal and the buffer may be reused
+ 	normally. Drivers set this flag when the ``VIDIOC_DQBUF`` ioctl is
+ 	called.
++    * .. _`V4L2-BUF-FLAG-IN-REQUEST`:
++
++      - ``V4L2_BUF_FLAG_IN_REQUEST``
++      - 0x00000080
++      - This buffer is part of a request that hasn't been queued yet.
+     * .. _`V4L2-BUF-FLAG-KEYFRAME`:
+ 
+       - ``V4L2_BUF_FLAG_KEYFRAME``
+@@ -589,6 +597,11 @@ Buffer Flags
+ 	the format. Any Any subsequent call to the
+ 	:ref:`VIDIOC_DQBUF <VIDIOC_QBUF>` ioctl will not block anymore,
+ 	but return an ``EPIPE`` error code.
++    * .. _`V4L2-BUF-FLAG-REQUEST-FD`:
++
++      - ``V4L2_BUF_FLAG_REQUEST_FD``
++      - 0x00800000
++      - The ``request_fd`` field contains a valid file descriptor.
+     * .. _`V4L2-BUF-FLAG-TIMESTAMP-MASK`:
+ 
+       - ``V4L2_BUF_FLAG_TIMESTAMP_MASK``
+diff --git a/Documentation/media/uapi/v4l/common.rst b/Documentation/media/uapi/v4l/common.rst
+index 13f2ed3fc5a6..a4aa0059d45a 100644
+--- a/Documentation/media/uapi/v4l/common.rst
++++ b/Documentation/media/uapi/v4l/common.rst
+@@ -44,3 +44,4 @@ applicable to all devices.
+     crop
+     selection-api
+     streaming-par
++    request-api
+diff --git a/Documentation/media/uapi/v4l/request-api.rst b/Documentation/media/uapi/v4l/request-api.rst
+new file mode 100644
+index 000000000000..e9576ccb1111
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/request-api.rst
+@@ -0,0 +1,218 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _media-request-api:
++
++Request API
++===========
++
++The Request API has been designed to allow V4L2 to deal with requirements of
++modern devices (stateless codecs, MIPI cameras, ...) and APIs (Android Codec
++v2). One such requirement is the ability for devices belonging to the same
++pipeline to reconfigure and collaborate closely on a per-frame basis. Another is
++efficient support of stateless codecs, which need per-frame controls to be set
++asynchronously in order to be used efficiently.
++
++Supporting these features without the Request API is possible but terribly
++inefficient: user-space would have to flush all activity on the media pipeline,
++reconfigure it for the next frame, queue the buffers to be processed with that
++configuration, and wait until they are all available for dequeuing before
++considering the next frame. This defeats the purpose of having buffer queues
++since in practice only one buffer would be queued at a time.
++
++The Request API allows a specific configuration of the pipeline (media
++controller topology + controls for each device) to be associated with specific
++buffers. The parameters are applied by each participating device as buffers
++associated to a request flow in. This allows user-space to schedule several
++tasks ("requests") with different parameters in advance, knowing that the
++parameters will be applied when needed to get the expected result. Controls
++values at the time of request completion are also available for reading.
++
++Usage
++=====
++
++The Request API is used on top of standard media controller and V4L2 calls,
++which are augmented with an extra ``request_fd`` parameter. Request themselves
++are allocated from either a supporting V4L2 device node, or a supporting media
++controller node. The origin of requests determine their scope: requests
++allocated from a V4L2 device node can only act on that device, whereas requests
++allocated from a media controller node can control the whole pipeline of the
++controller.
++
++Request Allocation
++------------------
++
++User-space allocates requests using the ``MEDIA_IOC_REQUEST_ALLOC`` ioctl
++for the media device node. This returns a file descriptor representing the
++request. Typically, several such requests will be allocated.
++
++Request Preparation
++-------------------
++
++Standard V4L2 ioctls can then receive a request file descriptor to express the
++fact that the ioctl is part of said request, and is not to be applied
++immediately. V4L2 ioctls supporting this are :c:func:`VIDIOC_S_EXT_CTRLS` and
++:c:func:`VIDIOC_QBUF`. Controls set with a request parameter are stored instead
++of being immediately applied, and queued buffers not enter the regular buffer
++queue until the request is submitted. Only one buffer can be queued to a given
++queue for a given request.
++
++Request Submission
++------------------
++
++Once the parameters and buffers of the request are specified, it can be
++submitted by calling the ``MEDIA_REQUEST_IOC_QUEUE`` ioctl on the request FD.
++This will make the buffers associated to the request available to their driver,
++which can then apply the saved controls as buffers are processed. A submitted
++request cannot be modified anymore.
++
++If several devices are part of the request, individual drivers may synchronize
++so the requested pipeline's topology is applied before the buffers are
++processed. This is at the discretion of media controller drivers and is not a
++requirement.
++
++Buffers queued without an associated request after a request-bound buffer will
++be processed using the state of the hardware at the time of the request
++completion. All the same, controls set without a request are applied
++immediately, regardless of whether a request is in use or not.
++
++User-space can ``poll()`` a request FD in order to wait until the request
++completes. A request is considered complete once all its associated buffers are
++available for dequeuing. Note that user-space does not need to wait for the
++request to complete to dequeue its buffers: buffers that are available halfway
++through a request can be dequeued independently of the request's state.
++
++A completed request contains the state of the request at the time of the
++request completion. User-space can query that state by calling
++:c:func:`VIDIOC_G_EXT_CTRLS` with the request FD.
++
++Recycling and Destruction
++-------------------------
++
++Finally, completed request can either be discarded or be reused. Calling
++``close()`` on a request FD will make that FD unusable, freeing the request if
++it is not referenced elsewhere. The ``MEDIA_REQUEST_IOC_QUEUE`` ioctl will
++clear a request's state and make it available again. No state is retained by
++this operation: the request is as if it had just been allocated.
++
++Example for a M2M Device
++------------------------
++
++M2M devices are single-node V4L2 devices providing one OUTPUT queue (for
++user-space
++to provide input buffers) and one CAPTURE queue (to retrieve processed data).
++They are perfectly symetric, i.e. one buffer of input will produce one buffer of
++output. These devices are commonly used for frame processors or stateless
++codecs.
++
++In this use-case, the request API can be used to associate specific controls to
++be applied by the driver before processing an OUTPUT buffer, allowing user-space
++to queue many such buffers in advance. It can also take advantage of requests'
++ability to capture the state of controls when the request completes to read back
++information that may be subject to change.
++
++Put into code, after obtaining a request, user-space can assign controls and one
++OUTPUT buffer to it:
++
++.. code-block:: c
++
++	struct v4l2_buffer buf;
++	struct v4l2_ext_controls ctrls;
++	struct media_request_alloc alloc = { 0 };
++	int req_fd;
++	...
++	ioctl(media_fd, MEDIA_IOC_REQUEST_ALLOC, &alloc);
++	req_fd = alloc.fd;
++	...
++	ctrls.which = V4L2_CTRL_WHICH_REQUEST_VAL;
++	ctrls.request_fd = req_fd;
++	ioctl(codec_fd, VIDIOC_S_EXT_CTRLS, &ctrls);
++	...
++	buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	buf.flags |= V4L2_BUF_FLAG_REQUEST_FD;
++	buf.request_fd = req_fd;
++	ioctl(codec_fd, VIDIOC_QBUF, &buf);
++
++Note that request_fd does not need to be specified for CAPTURE buffers: since
++there is symetry between the OUTPUT and CAPTURE queues, and requests are
++processed in order of submission, we can know which CAPTURE buffer corresponds
++to which request.
++
++Once the request is fully prepared, it can be submitted to the driver:
++
++.. code-block:: c
++
++	ioctl(request_fd, MEDIA_REQUEST_IOC_QUEUE, NULL);
++
++User-space can then either wait for the request to complete by calling poll() on
++its file descriptor, or start dequeuing CAPTURE buffers. Most likely, it will
++want to get CAPTURE buffers as soon as possible and this can be done using a
++regular DQBUF:
++
++.. code-block:: c
++
++	struct v4l2_buffer buf;
++
++	memset(&buf, 0, sizeof(buf));
++	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	ioctl(codec_fd, VIDIOC_DQBUF, &buf);
++
++We can then, after ensuring that the request is completed via polling the
++request FD, query control values at the time of its completion via an
++annotated call to G_EXT_CTRLS. This is particularly useful for volatile controls
++for which we want to query values as soon as the capture buffer is produced.
++
++.. code-block:: c
++
++	struct pollfd pfd = { .events = POLLIN, .fd = request_fd };
++	poll(&pfd, 1, -1);
++	...
++	ctrls.request_fd = req_fd;
++	ioctl(codec_fd, VIDIOC_G_EXT_CTRLS, &ctrls);
++
++Once we don't need the request anymore, we can either recycle it for reuse with
++MEDIA_REQUEST_IOC_REINIT...
++
++.. code-block:: c
++
++	ioctl(request, MEDIA_REQUEST_IOC_REINIT, NULL);
++
++... or close its file descriptor to completely dispose of it.
++
++.. code-block:: c
++
++	close(request_fd);
++
++Example for a Simple Capture Device
++-----------------------------------
++
++With a simple capture device, requests can be used to specify controls to apply
++to a given CAPTURE buffer. The driver will apply these controls before producing
++the marked CAPTURE buffer.
++
++.. code-block:: c
++
++	struct v4l2_buffer buf;
++	struct v4l2_ext_controls ctrls;
++	struct media_request_alloc alloc = { 0 };
++	int req_fd;
++	...
++	ioctl(media_fd, MEDIA_IOC_REQUEST_ALLOC, &alloc);
++	req_fd = alloc.fd;
++	...
++	ctrls.which = V4L2_CTRL_WHICH_REQUEST_VAL;
++	ctrls.request_fd = req_fd;
++	ioctl(camera_fd, VIDIOC_S_EXT_CTRLS, &ctrls);
++	...
++	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	buf.flags |= V4L2_BUF_FLAG_REQUEST_FD;
++	buf.request_fd = req_fd;
++	ioctl(camera_fd, VIDIOC_QBUF, &buf);
++
++Once the request is fully prepared, it can be submitted to the driver:
++
++.. code-block:: c
++
++	ioctl(req_fd, MEDIA_REQUEST_IOC_QUEUE, &cmd);
++
++User-space can then dequeue buffers, wait for the request completion, query
++controls and recycle the request as in the M2M example above.
+diff --git a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+index 2011c2b2ee67..e463384f6f6c 100644
+--- a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
++++ b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+@@ -95,6 +95,19 @@ appropriate. In the first case the new value is set in struct
+ is inappropriate (e.g. the given menu index is not supported by the menu
+ control), then this will also result in an ``EINVAL`` error code error.
+ 
++If ``request_fd`` is set to a not-submitted request file descriptor and
++``which`` is set to V4L2_CTRL_WHICH_REQUEST_VAL, then the
++controls are not applied immediately when calling
++:ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, but instead are applied right
++before the driver starts processing a buffer associated to the same request.
++
++If ``request_fd`` is specified and ``which`` is set to V4L2_CTRL_WHICH_REQUEST_VAL
++during a call to :ref:`VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, then the
++returned values will be the values currently set for the request (or the
++hardware value if none is set) if the request has not yet completed, or the
++values of the controls at the time of request completion if it has already
++completed.
++
+ The driver will only set/get these controls if all control values are
+ correct. This prevents the situation where only some of the controls
+ were set/get. Only low-level errors (e. g. a failed i2c command) can
+@@ -209,8 +222,10 @@ still cause this situation.
+       - ``which``
+       - Which value of the control to get/set/try.
+ 	``V4L2_CTRL_WHICH_CUR_VAL`` will return the current value of the
+-	control and ``V4L2_CTRL_WHICH_DEF_VAL`` will return the default
+-	value of the control.
++	control, ``V4L2_CTRL_WHICH_DEF_VAL`` will return the default
++	value of the control and ``V4L2_CTRL_WHICH_REQUEST_VAL`` indicates that
++	these controls have to be retrieved from a request or tried/set for
++	a request.
+ 
+ 	.. note::
+ 
+@@ -272,8 +287,12 @@ still cause this situation.
+ 	then you can call :ref:`VIDIOC_TRY_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` to try to discover the
+ 	actual control that failed the validation step. Unfortunately,
+ 	there is no ``TRY`` equivalent for :ref:`VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`.
++    * - __s32
++      - ``request_fd``
++	File descriptor of the request to be used by this operation. Only
++	valid if ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``.
+     * - __u32
+-      - ``reserved``\ [2]
++      - ``reserved``\ [1]
+       - Reserved for future extensions.
+ 
+ 	Drivers and applications must set the array to zero.
+diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+index 9e448a4aa3aa..6246f1888583 100644
+--- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
++++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+@@ -98,6 +98,14 @@ dequeued, until the :ref:`VIDIOC_STREAMOFF <VIDIOC_STREAMON>` or
+ :ref:`VIDIOC_REQBUFS` ioctl is called, or until the
+ device is closed.
+ 
++The ``request_fd`` field can be used when queuing to specify the file
++descriptor of a request, if requests are in use. Setting it means that the
++buffer will not be passed to the driver until the request itself is submitted.
++Also, the driver will apply any setting associated with the request before
++processing the buffer. Only one buffer per queue can be assigned that way to
++a request. This field will be ignored unless the ``V4L2_BUF_FLAG_REQUEST_FD``
++flag is set.
++
+ Applications call the ``VIDIOC_DQBUF`` ioctl to dequeue a filled
+ (capturing) or displayed (output) buffer from the driver's outgoing
+ queue. They just set the ``type``, ``memory`` and ``reserved`` fields of
+diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+index a5cb0a8686ac..5a5a1c772053 100644
+--- a/Documentation/media/videodev2.h.rst.exceptions
++++ b/Documentation/media/videodev2.h.rst.exceptions
+@@ -514,6 +514,7 @@ ignore define V4L2_CTRL_DRIVER_PRIV
+ ignore define V4L2_CTRL_MAX_DIMS
+ ignore define V4L2_CTRL_WHICH_CUR_VAL
+ ignore define V4L2_CTRL_WHICH_DEF_VAL
++ignore define V4L2_CTRL_WHICH_REQUEST_VAL
+ ignore define V4L2_OUT_CAP_CUSTOM_TIMINGS
+ ignore define V4L2_CID_MAX_CTRLS
+ 
+-- 
+2.17.0
