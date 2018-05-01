@@ -1,208 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:45282 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750973AbeDSLc4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 07:32:56 -0400
-Subject: Re: [PATCH RESEND 4/6] media: v4l2-compat-ioctl32: fix several __user
- annotations
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Daniel Mentz <danielmentz@google.com>
-References: <cover.1524136402.git.mchehab@s-opensource.com>
- <26ee885cc6b9581e6d4433e4248f8611f4c007c4.1524136402.git.mchehab@s-opensource.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <33a8b6d5-5a24-c907-74b1-6907dc6852e9@xs4all.nl>
-Date: Thu, 19 Apr 2018 13:32:51 +0200
+Received: from mail-cys01nam02on0075.outbound.protection.outlook.com ([104.47.37.75]:18592
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753283AbeEABf0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Apr 2018 21:35:26 -0400
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Subject: [PATCH v4 08/10] v4l: xilinx: dma: Update video format descriptor
+Date: Mon, 30 Apr 2018 18:35:11 -0700
+Message-ID: <7df8c3d2e8b7d1de140adb7879ea262f2ec9a340.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+In-Reply-To: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
 MIME-Version: 1.0
-In-Reply-To: <26ee885cc6b9581e6d4433e4248f8611f4c007c4.1524136402.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/19/18 13:15, Mauro Carvalho Chehab wrote:
-> Smatch report several issues with bad __user annotations:
-> 
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21: warning: incorrect type in argument 1 (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21:    expected void [noderef] <asn:1>*uptr
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21:    got void *<noident>
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21: warning: incorrect type in argument 1 (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21:    expected void const volatile [noderef] <asn:1>*<noident>
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21:    got struct v4l2_plane [noderef] <asn:1>**<noident>
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13: warning: incorrect type in argument 1 (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13:    expected void [noderef] <asn:1>*uptr
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13:    got void *[assigned] base
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13: warning: incorrect type in assignment (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13:    expected struct v4l2_ext_control [noderef] <asn:1>*kcontrols
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13:    got struct v4l2_ext_control *<noident>
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13: warning: incorrect type in assignment (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13:    expected unsigned char [usertype] *__pu_val
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13:    got void [noderef] <asn:1>*
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13: warning: incorrect type in argument 1 (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13:    expected void [noderef] <asn:1>*uptr
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13:    got void *[assigned] edid
-> 
-> Fix them.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 51 ++++++++++++++++++---------
->  1 file changed, 35 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index d03a44d89649..c951ac3faf46 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -443,8 +443,8 @@ static int put_v4l2_plane32(struct v4l2_plane __user *up,
->  			return -EFAULT;
->  		break;
->  	case V4L2_MEMORY_USERPTR:
-> -		if (get_user(p, &up->m.userptr) ||
-> -		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
-> +		if (get_user(p, &up->m.userptr)||
-> +		    put_user((compat_ulong_t)ptr_to_compat((void __user *)p),
->  			     &up32->m.userptr))
->  			return -EFAULT;
->  		break;
-> @@ -587,7 +587,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
->  	u32 length;
->  	enum v4l2_memory memory;
->  	struct v4l2_plane32 __user *uplane32;
-> -	struct v4l2_plane __user *uplane;
-> +	struct v4l2_plane *uplane;
->  	compat_caddr_t p;
->  	int ret;
->  
-> @@ -617,15 +617,22 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
->  
->  		if (num_planes == 0)
->  			return 0;
-> -
-> -		if (get_user(uplane, ((__force struct v4l2_plane __user **)&kp->m.planes)))
-> +		/* We need to define uplane without __user, even though
-> +		 * it does point to data in userspace here. The reason is
-> +		 * that v4l2-ioctl.c copies it from userspace to kernelspace,
-> +		 * so its definition in videodev2.h doesn't have a
-> +		 * __user markup. Defining uplane with __user causes
-> +		 * smatch warnings, so instead declare it without __user
-> +		 * and cast it as a userspace pointer to put_v4l2_plane32().
-> +		 */
-> +		if (get_user(uplane, &kp->m.planes))
->  			return -EFAULT;
->  		if (get_user(p, &up->m.planes))
->  			return -EFAULT;
->  		uplane32 = compat_ptr(p);
->  
->  		while (num_planes--) {
-> -			ret = put_v4l2_plane32(uplane, uplane32, memory);
-> +			ret = put_v4l2_plane32((void __user *)uplane, uplane32, memory);
->  			if (ret)
->  				return ret;
->  			++uplane;
-> @@ -675,7 +682,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer __user *kp,
->  
->  	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
->  	    get_user(tmp, &up->base) ||
-> -	    put_user((__force void *)compat_ptr(tmp), &kp->base) ||
-> +	    put_user((void __force *)compat_ptr(tmp), &kp->base) ||
->  	    assign_in_user(&kp->capability, &up->capability) ||
->  	    assign_in_user(&kp->flags, &up->flags) ||
->  	    copy_in_user(&kp->fmt, &up->fmt, sizeof(kp->fmt)))
-> @@ -690,7 +697,7 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer __user *kp,
->  
->  	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
->  	    get_user(base, &kp->base) ||
-> -	    put_user(ptr_to_compat(base), &up->base) ||
-> +	    put_user(ptr_to_compat((void __user *)base), &up->base) ||
->  	    assign_in_user(&up->capability, &kp->capability) ||
->  	    assign_in_user(&up->flags, &kp->flags) ||
->  	    copy_in_user(&up->fmt, &kp->fmt, sizeof(kp->fmt)))
-> @@ -857,11 +864,19 @@ static int put_v4l2_ext_controls32(struct file *file,
->  				   struct v4l2_ext_controls32 __user *up)
->  {
->  	struct v4l2_ext_control32 __user *ucontrols;
-> -	struct v4l2_ext_control __user *kcontrols;
-> +	struct v4l2_ext_control *kcontrols;
->  	u32 count;
->  	u32 n;
->  	compat_caddr_t p;
->  
-> +	/*
-> +	 * We need to define kcontrols without __user, even though it does
-> +	 * point to data in userspace here. The reason is that v4l2-ioctl.c
-> +	 * copies it from userspace to kernelspace, so its definition in
-> +	 * videodev2.h doesn't have a __user markup. Defining kcontrols
-> +	 * with __user causes smatch warnings, so instead declare it
-> +	 * without __user and cast it as a userspace pointer where needed.
-> +	 */
->  	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
->  	    assign_in_user(&up->which, &kp->which) ||
->  	    get_user(count, &kp->count) ||
-> @@ -883,10 +898,12 @@ static int put_v4l2_ext_controls32(struct file *file,
->  		unsigned int size = sizeof(*ucontrols);
->  		u32 id;
->  
-> -		if (get_user(id, &kcontrols->id) ||
-> +		if (get_user(id, (unsigned int __user *)&kcontrols->id) ||
->  		    put_user(id, &ucontrols->id) ||
-> -		    assign_in_user(&ucontrols->size, &kcontrols->size) ||
-> -		    copy_in_user(&ucontrols->reserved2, &kcontrols->reserved2,
-> +		    assign_in_user(&ucontrols->size,
-> +				   (unsigned int __user *)&kcontrols->size) ||
-> +		    copy_in_user(&ucontrols->reserved2,
-> +				 (unsigned int __user *)&kcontrols->reserved2,
->  				 sizeof(ucontrols->reserved2)))
->  			return -EFAULT;
->  
-> @@ -898,7 +915,8 @@ static int put_v4l2_ext_controls32(struct file *file,
->  		if (ctrl_is_pointer(file, id))
->  			size -= sizeof(ucontrols->value64);
->  
-> -		if (copy_in_user(ucontrols, kcontrols, size))
-> +		if (copy_in_user(ucontrols,
-> +			         (unsigned int __user *)kcontrols, size))
->  			return -EFAULT;
->  
->  		ucontrols++;
-> @@ -952,9 +970,10 @@ static int get_v4l2_edid32(struct v4l2_edid __user *kp,
->  	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
->  	    assign_in_user(&kp->pad, &up->pad) ||
->  	    assign_in_user(&kp->start_block, &up->start_block) ||
-> -	    assign_in_user(&kp->blocks, &up->blocks) ||
-> +	    assign_in_user(&kp->blocks,
-> +			   (unsigned char __user *)&up->blocks) ||
+This patch updates video format descriptor to help information
+viz., number of planes per color format and chroma sub sampling
+factors.
 
-This must be a (u32 __user *) cast, otherwise this patch will break EDID
-handling on big-endian systems. I know this is corrected in patch 6, but
-in the meantime this can cause bisect issues. And besides, it's simply a
-bug :-)
+Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+---
+ drivers/media/platform/xilinx/xilinx-dma.c | 12 ++++++------
+ drivers/media/platform/xilinx/xilinx-vip.c | 28 +++++++++++++++++++---------
+ drivers/media/platform/xilinx/xilinx-vip.h |  8 +++++++-
+ 3 files changed, 32 insertions(+), 16 deletions(-)
 
-After changing this cast you can add my:
-
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
->  	    get_user(tmp, &up->edid) ||
-> -	    put_user(compat_ptr(tmp), &kp->edid) ||
-> +	    put_user((void __force *)compat_ptr(tmp), &kp->edid) ||
->  	    copy_in_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
->  		return -EFAULT;
->  	return 0;
-> @@ -970,7 +989,7 @@ static int put_v4l2_edid32(struct v4l2_edid __user *kp,
->  	    assign_in_user(&up->start_block, &kp->start_block) ||
->  	    assign_in_user(&up->blocks, &kp->blocks) ||
->  	    get_user(edid, &kp->edid) ||
-> -	    put_user(ptr_to_compat(edid), &up->edid) ||
-> +	    put_user(ptr_to_compat((void __user *)edid), &up->edid) ||
->  	    copy_in_user(up->reserved, kp->reserved, sizeof(up->reserved)))
->  		return -EFAULT;
->  	return 0;
-> 
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 16aeb46..658586e 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -366,7 +366,7 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
+ 	}
+ 
+ 	dma->xt.frame_size = 1;
+-	dma->sgl[0].size = dma->format.width * dma->fmtinfo->bpp;
++	dma->sgl[0].size = dma->format.width * dma->fmtinfo->bpp[0];
+ 	dma->sgl[0].icg = dma->format.bytesperline - dma->sgl[0].size;
+ 	dma->xt.numf = dma->format.height;
+ 
+@@ -569,12 +569,12 @@ __xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
+ 	 * the minimum and maximum values, clamp the requested width and convert
+ 	 * it back to pixels.
+ 	 */
+-	align = lcm(dma->align, info->bpp);
++	align = lcm(dma->align, info->bpp[0]);
+ 	min_width = roundup(XVIP_DMA_MIN_WIDTH, align);
+ 	max_width = rounddown(XVIP_DMA_MAX_WIDTH, align);
+-	width = rounddown(pix->width * info->bpp, align);
++	width = rounddown(pix->width * info->bpp[0], align);
+ 
+-	pix->width = clamp(width, min_width, max_width) / info->bpp;
++	pix->width = clamp(width, min_width, max_width) / info->bpp[0];
+ 	pix->height = clamp(pix->height, XVIP_DMA_MIN_HEIGHT,
+ 			    XVIP_DMA_MAX_HEIGHT);
+ 
+@@ -582,7 +582,7 @@ __xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
+ 	 * line value is zero, the module doesn't support user configurable line
+ 	 * sizes. Override the requested value with the minimum in that case.
+ 	 */
+-	min_bpl = pix->width * info->bpp;
++	min_bpl = pix->width * info->bpp[0];
+ 	max_bpl = rounddown(XVIP_DMA_MAX_WIDTH, dma->align);
+ 	bpl = rounddown(pix->bytesperline, dma->align);
+ 
+@@ -676,7 +676,7 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+ 	dma->format.field = V4L2_FIELD_NONE;
+ 	dma->format.width = XVIP_DMA_DEF_WIDTH;
+ 	dma->format.height = XVIP_DMA_DEF_HEIGHT;
+-	dma->format.bytesperline = dma->format.width * dma->fmtinfo->bpp;
++	dma->format.bytesperline = dma->format.width * dma->fmtinfo->bpp[0];
+ 	dma->format.sizeimage = dma->format.bytesperline * dma->format.height;
+ 
+ 	/* Initialize the media entity... */
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/platform/xilinx/xilinx-vip.c
+index 3112591..81cc0d2 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.c
++++ b/drivers/media/platform/xilinx/xilinx-vip.c
+@@ -27,22 +27,32 @@
+  */
+ 
+ static const struct xvip_video_format xvip_video_formats[] = {
++	{ XVIP_VF_YUV_420, 8, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
++	  {1, 2, 0}, V4L2_PIX_FMT_NV12, 2, 2, 2, "4:2:0, semi-planar, YUV" },
++	{ XVIP_VF_YUV_420, 10, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
++	  {1, 2, 0}, V4L2_PIX_FMT_XV15, 2, 2, 2, "4:2:0, 10-bit 2-plane cont" },
+ 	{ XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
+-	  2, V4L2_PIX_FMT_YUYV, "4:2:2, packed, YUYV" },
+-	{ XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
+-	  3, V4L2_PIX_FMT_YUV444, "4:4:4, packed, YUYV" },
++	  {2, 0, 0}, V4L2_PIX_FMT_YUYV, 1, 2, 1, "4:2:2, packed, YUYV" },
++	{ XVIP_VF_VUY_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
++	  {2, 0, 0}, V4L2_PIX_FMT_UYVY, 1, 2, 1, "4:2:2, packed, UYVY" },
++	{ XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
++	  {1, 2, 0}, V4L2_PIX_FMT_NV16, 2, 2, 1, "4:2:2, semi-planar, YUV" },
++	{ XVIP_VF_YUV_422, 10, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
++	  {1, 2, 0}, V4L2_PIX_FMT_XV20, 2, 2, 1, "4:2:2, 10-bit 2-plane cont" },
++	{ XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
++	  {3, 0, 0}, V4L2_PIX_FMT_BGR24, 1, 1, 1, "24-bit RGB" },
+ 	{ XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
+-	  3, 0, NULL },
++	  {3, 0, 0}, V4L2_PIX_FMT_RGB24, 1, 1, 1, "24-bit RGB" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
+-	  1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
++	  {1, 0, 0}, V4L2_PIX_FMT_GREY, 1, 1, 1, "Greyscale 8-bit" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
+-	  1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit RGGB" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit RGGB" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "grbg", MEDIA_BUS_FMT_SGRBG8_1X8,
+-	  1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit GRBG" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit GRBG" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "gbrg", MEDIA_BUS_FMT_SGBRG8_1X8,
+-	  1, V4L2_PIX_FMT_SGBRG8, "Bayer 8-bit GBRG" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, "Bayer 8-bit GBRG" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "bggr", MEDIA_BUS_FMT_SBGGR8_1X8,
+-	  1, V4L2_PIX_FMT_SBGGR8, "Bayer 8-bit BGGR" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, "Bayer 8-bit BGGR" },
+ };
+ 
+ /**
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/platform/xilinx/xilinx-vip.h
+index 42fee20..5e7a978 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.h
++++ b/drivers/media/platform/xilinx/xilinx-vip.h
+@@ -111,6 +111,9 @@ struct xvip_device {
+  * @code: media bus format code
+  * @bpp: bytes per pixel (when stored in memory)
+  * @fourcc: V4L2 pixel format FCC identifier
++ * @num_planes: number of planes w.r.t. color format
++ * @hsub: Horizontal sampling factor of Chroma
++ * @vsub: Vertical sampling factor of Chroma
+  * @description: format description, suitable for userspace
+  */
+ struct xvip_video_format {
+@@ -118,8 +121,11 @@ struct xvip_video_format {
+ 	unsigned int width;
+ 	const char *pattern;
+ 	unsigned int code;
+-	unsigned int bpp;
++	unsigned int bpp[3];
+ 	u32 fourcc;
++	u8 num_planes;
++	u8 hsub;
++	u8 vsub;
+ 	const char *description;
+ };
+ 
+-- 
+2.1.1
