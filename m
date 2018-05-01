@@ -1,58 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:55275 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755145AbeDYS6a (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 14:58:30 -0400
-Received: by mail-wm0-f66.google.com with SMTP id f6so8908696wmc.4
-        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2018 11:58:30 -0700 (PDT)
-Received: from toshiba (90-145-46-101.wxdsl.nl. [90.145.46.101])
-        by smtp.gmail.com with ESMTPSA id g15sm11702300edb.69.2018.04.25.11.58.28
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 25 Apr 2018 11:58:29 -0700 (PDT)
-Message-ID: <5ae0cfd5.0f98500a.620a6.4a7c@mx.google.com>
-Date: Wed, 25 Apr 2018 20:58:28 +0200
-From: mjs <mjstork@gmail.com>
-To: "3 linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH] [2] Remove 2 excess lines in driver module em28xx
+Received: from mail-bn3nam01on0056.outbound.protection.outlook.com ([104.47.33.56]:14968
+        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752673AbeEABfZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Apr 2018 21:35:25 -0400
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Subject: [PATCH v4 00/10] Add support for multi-planar formats and 10 bit formats 
+Date: Mon, 30 Apr 2018 18:35:03 -0700
+Message-ID: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-=46rom c5007d7596dd755fb5d95664d9eda9733d7df461 Mon Sep 17 00:00:00 2001
-From: Marcel Stork <mjstork@gmail.com>
-Date: Wed, 25 Apr 2018 19:34:20 +0200
-Subject: [PATCH] Remove 2 excess lines in driver module em28xx
+ The patches are for xilinx v4l. The patcheset enable support to handle multiplanar
+ formats and 10 bit formats. The implemenation has handling of single plane formats
+ too for backward compatibility of some existing applications.
 
-A cosmetic change by combining two sets of boards into one set because havi=
-ng the same arguments.
-=20
-Changes to be committed:
-	modified: drivers/media/usb/em28xx/em28xx-cards.c
+Changes in v4 (Thanks to Sakari Ailus, Hyun Kwon and Ian Arkver):
+ - rst documentation is moved to 24 bit yuv formats group
+ - Single plane implementation is removed as multi-plane supports both
+ - num_buffers and bpl_factor parameters are removed to have clean
+   implementation
+ - macropixel concept is used to calculate number of bytes in a row
+   for 10 bit formats
+ - Video format descriptor table updated with 10 bit format information
 
-Signed-off-by: Marcel Stork <mjstork@gmail.com>
+Changes in v3:
+ - Fixed table alignment issue in rst file. Ensured the output is proper uisng
+   'make pdfdocs'
 
----
- drivers/media/usb/em28xx/em28xx-cards.c | 2 --
- 1 file changed, 2 deletions(-)
+Changes in v2:
+ - Added rst documentation for MEDIA_BUS_FMT_VYYUYY8_1X24
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em=
-28xx/em28xx-cards.c
-index 6e0e67d2..7fa9a00e 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3182,8 +3182,6 @@ void em28xx_setup_xc3028(struct em28xx *dev, struct x=
-c2028_ctrl *ctl)
- 	case EM2880_BOARD_EMPIRE_DUAL_TV:
- 	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
- 	case EM2882_BOARD_TERRATEC_HYBRID_XS:
--		ctl->demod =3D XC3028_FE_ZARLINK456;
--		break;
- 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
- 	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
- 	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
---=20
-2.11.0
+Jeffrey Mouroux (2):
+  Documentation: uapi: media: v4l: New pixel format
+  uapi: media: New fourcc codes needed by Xilinx Video IP
+
+Laurent Pinchart (1):
+  xilinx: v4l: dma: Use the dmaengine_terminate_all() wrapper
+
+Radhey Shyam Pandey (1):
+  v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
+
+Rohit Athavale (2):
+  xilinx: v4l: dma: Update driver to allow for probe defer
+  media: Add new dt-bindings/vf_codes for supported formats
+
+Satish Kumar Nagireddy (4):
+  media-bus: uapi: Add YCrCb 420 media bus format
+  v4l: xilinx: dma: Update video format descriptor
+  v4l: xilinx: dma: Add multi-planar support
+  v4l: xilinx: dma: Add support for 10 bit formats
+
+ Documentation/media/uapi/v4l/pixfmt-xv15.rst    | 135 ++++++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt-xv20.rst    | 136 ++++++++++++++++++
+ Documentation/media/uapi/v4l/subdev-formats.rst |  38 ++++-
+ Documentation/media/uapi/v4l/yuv-formats.rst    |   2 +
+ drivers/media/platform/xilinx/xilinx-dma.c      | 177 +++++++++++++++---------
+ drivers/media/platform/xilinx/xilinx-dma.h      |   4 +-
+ drivers/media/platform/xilinx/xilinx-vip.c      |  45 ++++--
+ drivers/media/platform/xilinx/xilinx-vip.h      |  13 +-
+ drivers/media/platform/xilinx/xilinx-vipp.c     |  16 +--
+ include/dt-bindings/media/xilinx-vip.h          |   2 +
+ include/uapi/linux/media-bus-format.h           |   3 +-
+ include/uapi/linux/videodev2.h                  |   4 +
+ 12 files changed, 488 insertions(+), 87 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-xv15.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-xv20.rst
+
+-- 
+2.1.1
