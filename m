@@ -1,140 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44060 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1032558AbeE0DpS (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:57272 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753342AbeEAJAz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 May 2018 23:45:18 -0400
-Message-ID: <8f30fd1c17c71efc94fc1ec74a7c222e@smtp-cloud8.xs4all.net>
-Date: Sun, 27 May 2018 05:45:15 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Tue, 1 May 2018 05:00:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv12 PATCH 05/29] media-request: add media_request_find
+Date: Tue,  1 May 2018 11:00:27 +0200
+Message-Id: <20180501090051.9321-6-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Add media_request_find() to find a request based on the file
+descriptor.
 
-date:			Sun May 27 05:00:15 CEST 2018
-media-tree git hash:	e646e17713eeb3b6484b6d7a24ce34854123fa39
-media_build git hash:	6d20e27f483f005477fb480013c40df775483e42
-v4l-utils git hash:	2a12796b5c22cd1a549eb8fa25db873ced811ca5
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+The caller has to call media_request_put() for the returned
+request since this function increments the refcount.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-rc4-i686: OK
-linux-4.17-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/media-request.c | 44 +++++++++++++++++++++++++++++++++++
+ include/media/media-request.h | 10 ++++++++
+ 2 files changed, 54 insertions(+)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+index 22881d5700c8..a186db290d51 100644
+--- a/drivers/media/media-request.c
++++ b/drivers/media/media-request.c
+@@ -234,6 +234,50 @@ static const struct file_operations request_fops = {
+ 	.release = media_request_close,
+ };
+ 
++/**
++ * media_request_find - Find a request based on the file descriptor
++ * @mdev: The media device
++ * @request_fd: The request file handle
++ *
++ * Find and return the request associated with the given file descriptor, or
++ * an error if no such request exists.
++ *
++ * When the function returns a request it increases its reference count. The
++ * caller is responsible for releasing the reference by calling
++ * media_request_put() on the request.
++ */
++struct media_request *
++media_request_find(struct media_device *mdev, int request_fd)
++{
++	struct file *filp;
++	struct media_request *req;
++
++	if (!mdev || !mdev->ops ||
++	    !mdev->ops->req_validate || !mdev->ops->req_queue)
++		return ERR_PTR(-EPERM);
++
++	filp = fget(request_fd);
++	if (!filp)
++		return ERR_PTR(-ENOENT);
++
++	if (filp->f_op != &request_fops)
++		goto err_fput;
++	req = filp->private_data;
++	if (req->mdev != mdev)
++		goto err_fput;
++
++	media_request_get(req);
++	fput(filp);
++
++	return req;
++
++err_fput:
++	fput(filp);
++
++	return ERR_PTR(-ENOENT);
++}
++EXPORT_SYMBOL_GPL(media_request_find);
++
+ int media_request_alloc(struct media_device *mdev,
+ 			struct media_request_alloc *alloc)
+ {
+diff --git a/include/media/media-request.h b/include/media/media-request.h
+index 9051dfbc7d30..ce62fe74ebd6 100644
+--- a/include/media/media-request.h
++++ b/include/media/media-request.h
+@@ -70,6 +70,9 @@ static inline void media_request_get(struct media_request *req)
+ void media_request_put(struct media_request *req);
+ void media_request_cancel(struct media_request *req);
+ 
++struct media_request *
++media_request_find(struct media_device *mdev, int request_fd);
++
+ int media_request_alloc(struct media_device *mdev,
+ 			struct media_request_alloc *alloc);
+ #else
+@@ -85,6 +88,12 @@ static inline void media_request_cancel(struct media_request *req)
+ {
+ }
+ 
++static inline struct media_request *
++media_request_find(struct media_device *mdev, int request_fd)
++{
++	return ERR_PTR(-ENOENT);
++}
++
+ #endif
+ 
+ struct media_request_object_ops {
+@@ -188,6 +197,7 @@ static inline void media_request_object_unbind(struct media_request_object *obj)
+ static inline void media_request_object_complete(struct media_request_object *obj)
+ {
+ }
++
+ #endif
+ 
+ #endif
+-- 
+2.17.0
