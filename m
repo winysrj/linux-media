@@ -1,178 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0056.outbound.protection.outlook.com ([104.47.40.56]:50958
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751004AbeEAVZm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 17:25:42 -0400
-Date: Tue, 1 May 2018 14:25:23 -0700
-From: Hyun Kwon <hyun.kwon@xilinx.com>
-To: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "michal.simek@xilinx.com" <michal.simek@xilinx.com>,
-        Hyun Kwon <hyunk@xilinx.com>,
-        Satish Kumar Nagireddy <SATISHNA@xilinx.com>
-Subject: Re: [PATCH v4 10/10] v4l: xilinx: dma: Add support for 10 bit formats
-Message-ID: <20180501212522.GF9872@smtp.xilinx.com>
-References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
- <2d13ab14f74ee92225e7073695abf7a9cbd45ecc.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-In-Reply-To: <2d13ab14f74ee92225e7073695abf7a9cbd45ecc.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59868 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753878AbeEAJA5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 May 2018 05:00:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv12 PATCH 27/29] vivid: add mc
+Date: Tue,  1 May 2018 11:00:49 +0200
+Message-Id: <20180501090051.9321-28-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Satish,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks for that patch.
+Add support for the media_device to vivid. This is a prerequisite
+for request support.
 
-On Mon, 2018-04-30 at 18:35:13 -0700, Satish Kumar Nagireddy wrote:
-> This patch adds xvip_format_plane_width_bytes function to
-> calculate number of bytes for a macropixel formats and also
-> adds new 10 bit pixel formats to video descriptor table.
-> 
-> Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-> ---
->  drivers/media/platform/xilinx/xilinx-dma.c |  5 ++--
->  drivers/media/platform/xilinx/xilinx-vip.c | 43 +++++++++++++++++++++---------
->  drivers/media/platform/xilinx/xilinx-vip.h |  5 ++++
->  3 files changed, 38 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-> index a714057..b33e4b9 100644
-> --- a/drivers/media/platform/xilinx/xilinx-dma.c
-> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
-> @@ -370,7 +370,8 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
->  	}
->  
->  	dma->xt.frame_size = dma->fmtinfo->num_planes;
-> -	dma->sgl[0].size = pix_mp->width * dma->fmtinfo->bpp[0];
-> +	dma->sgl[0].size = xvip_fmt_plane_width_bytes(dma->fmtinfo,
-> +						      pix_mp->width);
->  	dma->sgl[0].icg = pix_mp->plane_fmt[0].bytesperline - dma->sgl[0].size;
->  	dma->xt.numf = pix_mp->height;
->  	dma->sgl[0].dst_icg = 0;
-> @@ -596,7 +597,7 @@ __xvip_dma_try_format(struct xvip_dma *dma,
->  	 * with the minimum in that case.
->  	 */
->  	max_bpl = rounddown(XVIP_DMA_MAX_WIDTH, align);
-> -	min_bpl = pix_mp->width * info->bpp[0];
-> +	min_bpl = xvip_fmt_plane_width_bytes(info, pix_mp->width);
->  	min_bpl = roundup(min_bpl, align);
->  	bpl = roundup(plane_fmt[0].bytesperline, align);
->  	plane_fmt[0].bytesperline = clamp(bpl, min_bpl, max_bpl);
-> diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/platform/xilinx/xilinx-vip.c
-> index 81cc0d2..1825f5d 100644
-> --- a/drivers/media/platform/xilinx/xilinx-vip.c
-> +++ b/drivers/media/platform/xilinx/xilinx-vip.c
-> @@ -28,31 +28,31 @@
->  
->  static const struct xvip_video_format xvip_video_formats[] = {
->  	{ XVIP_VF_YUV_420, 8, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
-> -	  {1, 2, 0}, V4L2_PIX_FMT_NV12, 2, 2, 2, "4:2:0, semi-planar, YUV" },
-> +	  {1, 2, 0}, V4L2_PIX_FMT_NV12, 2, 2, 2, 1, 1, "4:2:0, semi-planar, YUV" },
->  	{ XVIP_VF_YUV_420, 10, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
-> -	  {1, 2, 0}, V4L2_PIX_FMT_XV15, 2, 2, 2, "4:2:0, 10-bit 2-plane cont" },
-> +	  {1, 2, 0}, V4L2_PIX_FMT_XV15, 2, 2, 2, 4, 3, "4:2:0, 10-bit 2-plane cont" },
->  	{ XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
-> -	  {2, 0, 0}, V4L2_PIX_FMT_YUYV, 1, 2, 1, "4:2:2, packed, YUYV" },
-> +	  {2, 0, 0}, V4L2_PIX_FMT_YUYV, 1, 2, 1, 1, 1, "4:2:2, packed, YUYV" },
->  	{ XVIP_VF_VUY_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
-> -	  {2, 0, 0}, V4L2_PIX_FMT_UYVY, 1, 2, 1, "4:2:2, packed, UYVY" },
-> +	  {2, 0, 0}, V4L2_PIX_FMT_UYVY, 1, 2, 1, 1, 1, "4:2:2, packed, UYVY" },
->  	{ XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
-> -	  {1, 2, 0}, V4L2_PIX_FMT_NV16, 2, 2, 1, "4:2:2, semi-planar, YUV" },
-> +	  {1, 2, 0}, V4L2_PIX_FMT_NV16, 2, 2, 1, 1, 1, "4:2:2, semi-planar, YUV" },
->  	{ XVIP_VF_YUV_422, 10, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
-> -	  {1, 2, 0}, V4L2_PIX_FMT_XV20, 2, 2, 1, "4:2:2, 10-bit 2-plane cont" },
-> +	  {1, 2, 0}, V4L2_PIX_FMT_XV20, 2, 2, 1, 4, 3, "4:2:2, 10-bit 2-plane cont" },
->  	{ XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
-> -	  {3, 0, 0}, V4L2_PIX_FMT_BGR24, 1, 1, 1, "24-bit RGB" },
-> +	  {3, 0, 0}, V4L2_PIX_FMT_BGR24, 1, 1, 1, 1, 1, "24-bit RGB" },
->  	{ XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
-> -	  {3, 0, 0}, V4L2_PIX_FMT_RGB24, 1, 1, 1, "24-bit RGB" },
-> +	  {3, 0, 0}, V4L2_PIX_FMT_RGB24, 1, 1, 1, 1, 1, "24-bit RGB" },
->  	{ XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
-> -	  {1, 0, 0}, V4L2_PIX_FMT_GREY, 1, 1, 1, "Greyscale 8-bit" },
-> +	  {1, 0, 0}, V4L2_PIX_FMT_GREY, 1, 1, 1, 1, 1, "Greyscale 8-bit" },
->  	{ XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
-> -	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit RGGB" },
-> +	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, 1, "Bayer 8-bit RGGB" },
->  	{ XVIP_VF_MONO_SENSOR, 8, "grbg", MEDIA_BUS_FMT_SGRBG8_1X8,
-> -	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit GRBG" },
-> +	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, 1, "Bayer 8-bit GRBG" },
->  	{ XVIP_VF_MONO_SENSOR, 8, "gbrg", MEDIA_BUS_FMT_SGBRG8_1X8,
-> -	  {1, 0, 0}, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, "Bayer 8-bit GBRG" },
-> +	  {1, 0, 0}, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, 1, 1, "Bayer 8-bit GBRG" },
->  	{ XVIP_VF_MONO_SENSOR, 8, "bggr", MEDIA_BUS_FMT_SBGGR8_1X8,
-> -	  {1, 0, 0}, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, "Bayer 8-bit BGGR" },
-> +	  {1, 0, 0}, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, 1, 1, "Bayer 8-bit BGGR" },
->  };
->  
->  /**
-> @@ -102,6 +102,23 @@ const struct xvip_video_format *xvip_get_format_by_fourcc(u32 fourcc)
->  EXPORT_SYMBOL_GPL(xvip_get_format_by_fourcc);
->  
->  /**
-> + * xvip_fmt_plane_width_bytes - bytes of the given width of the plane
-> + * @info: VIP format description
-> + * @width: width
-> + *
-> + * Return: Returns the number of bytes for given @width
-> + */
-> +int xvip_fmt_plane_width_bytes(const struct xvip_video_format *info, u32 width)
-> +{
-> +	if (!info)
-> +		return 0;
-> +
-> +	return DIV_ROUND_UP(width * info->bytes_per_macropixel * info->bpp[0],
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-core.c | 61 +++++++++++++++++++++++
+ drivers/media/platform/vivid/vivid-core.h |  8 +++
+ 2 files changed, 69 insertions(+)
 
-I don't see any bpp other than bpp[0] is used, so it may not have to be an array.
-Then I am not sure how it models some formats with different bpp in other planes.
-I'll take another close look.
-
-Thanks,
--hyun
-
-> +			    info->pixels_per_macropixel);
-> +}
-> +EXPORT_SYMBOL_GPL(xvip_fmt_plane_width_bytes);
-> +
-> +/**
->   * xvip_of_get_format - Parse a device tree node and return format information
->   * @node: the device tree node
->   *
-> diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/platform/xilinx/xilinx-vip.h
-> index 5e7a978..7c614d3 100644
-> --- a/drivers/media/platform/xilinx/xilinx-vip.h
-> +++ b/drivers/media/platform/xilinx/xilinx-vip.h
-> @@ -114,6 +114,8 @@ struct xvip_device {
->   * @num_planes: number of planes w.r.t. color format
->   * @hsub: Horizontal sampling factor of Chroma
->   * @vsub: Vertical sampling factor of Chroma
-> + * @bytes_per_macropixel: Number of bytes per macro-pixel
-> + * @pixels_per_macropixel: Number of pixels per macro-pixel
->   * @description: format description, suitable for userspace
->   */
->  struct xvip_video_format {
-> @@ -126,12 +128,15 @@ struct xvip_video_format {
->  	u8 num_planes;
->  	u8 hsub;
->  	u8 vsub;
-> +	u32 bytes_per_macropixel;
-> +	u32 pixels_per_macropixel;
->  	const char *description;
->  };
->  
->  const struct xvip_video_format *xvip_get_format_by_code(unsigned int code);
->  const struct xvip_video_format *xvip_get_format_by_fourcc(u32 fourcc);
->  const struct xvip_video_format *xvip_of_get_format(struct device_node *node);
-> +int xvip_fmt_plane_width_bytes(const struct xvip_video_format *info, u32 width);
->  void xvip_set_format_size(struct v4l2_mbus_framefmt *format,
->  			  const struct v4l2_subdev_format *fmt);
->  int xvip_enum_mbus_code(struct v4l2_subdev *subdev,
-> -- 
-> 2.1.1
-> 
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 82ec216f2ad8..69386b26d5dd 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -657,6 +657,15 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 
+ 	dev->inst = inst;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	dev->v4l2_dev.mdev = &dev->mdev;
++
++	/* Initialize media device */
++	strlcpy(dev->mdev.model, VIVID_MODULE_NAME, sizeof(dev->mdev.model));
++	dev->mdev.dev = &pdev->dev;
++	media_device_init(&dev->mdev);
++#endif
++
+ 	/* register v4l2_device */
+ 	snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
+ 			"%s-%03d", VIVID_MODULE_NAME, inst);
+@@ -1173,6 +1182,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->lock = &dev->mutex;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vid_cap_pad.flags = MEDIA_PAD_FL_SINK;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_cap_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ #ifdef CONFIG_VIDEO_VIVID_CEC
+ 		if (in_type_counter[HDMI]) {
+ 			struct cec_adapter *adap;
+@@ -1225,6 +1241,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->lock = &dev->mutex;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vid_out_pad.flags = MEDIA_PAD_FL_SOURCE;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_out_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ #ifdef CONFIG_VIDEO_VIVID_CEC
+ 		for (i = 0; i < dev->num_outputs; i++) {
+ 			struct cec_adapter *adap;
+@@ -1274,6 +1297,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->tvnorms = tvnorms_cap;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vbi_cap_pad.flags = MEDIA_PAD_FL_SINK;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_cap_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ 		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_cap_nr[inst]);
+ 		if (ret < 0)
+ 			goto unreg_dev;
+@@ -1299,6 +1329,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->tvnorms = tvnorms_out;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vbi_out_pad.flags = MEDIA_PAD_FL_SOURCE;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_out_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ 		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_out_nr[inst]);
+ 		if (ret < 0)
+ 			goto unreg_dev;
+@@ -1322,6 +1359,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->lock = &dev->mutex;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->sdr_cap_pad.flags = MEDIA_PAD_FL_SINK;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->sdr_cap_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ 		ret = video_register_device(vfd, VFL_TYPE_SDR, sdr_cap_nr[inst]);
+ 		if (ret < 0)
+ 			goto unreg_dev;
+@@ -1368,12 +1412,25 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 					  video_device_node_name(vfd));
+ 	}
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	/* Register the media device */
++	ret = media_device_register(&dev->mdev);
++	if (ret) {
++		dev_err(dev->mdev.dev,
++			"media device register failed (err=%d)\n", ret);
++		goto unreg_dev;
++	}
++#endif
++
+ 	/* Now that everything is fine, let's add it to device list */
+ 	vivid_devs[inst] = dev;
+ 
+ 	return 0;
+ 
+ unreg_dev:
++#ifdef CONFIG_MEDIA_CONTROLLER
++	media_device_unregister(&dev->mdev);
++#endif
+ 	video_unregister_device(&dev->radio_tx_dev);
+ 	video_unregister_device(&dev->radio_rx_dev);
+ 	video_unregister_device(&dev->sdr_cap_dev);
+@@ -1444,6 +1501,10 @@ static int vivid_remove(struct platform_device *pdev)
+ 		if (!dev)
+ 			continue;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		media_device_unregister(&dev->mdev);
++#endif
++
+ 		if (dev->has_vid_cap) {
+ 			v4l2_info(&dev->v4l2_dev, "unregistering %s\n",
+ 				video_device_node_name(&dev->vid_cap_dev));
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 477c80a4d44c..6ccd1f5c1d91 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -136,6 +136,14 @@ struct vivid_cec_work {
+ struct vivid_dev {
+ 	unsigned			inst;
+ 	struct v4l2_device		v4l2_dev;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device		mdev;
++	struct media_pad		vid_cap_pad;
++	struct media_pad		vid_out_pad;
++	struct media_pad		vbi_cap_pad;
++	struct media_pad		vbi_out_pad;
++	struct media_pad		sdr_cap_pad;
++#endif
+ 	struct v4l2_ctrl_handler	ctrl_hdl_user_gen;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_user_vid;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_user_aud;
+-- 
+2.17.0
