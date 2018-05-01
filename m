@@ -1,220 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:50141 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750707AbeEDH63 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 03:58:29 -0400
-Message-ID: <ce85c790b639bf9101b8c33526bdf149070bcc03.camel@bootlin.com>
-Subject: Re: [PATCH v2 08/10] dt-bindings: media: Document bindings for the
- Sunxi-Cedrus VPU driver
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Rob Herring <robh@kernel.org>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg "
-         "Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-sunxi@googlegroups.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>, wens@csie.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Courbot <acourbot@chromium.org>
-Date: Fri, 04 May 2018 09:56:20 +0200
-In-Reply-To: <20180427030436.3ptrb2ldhtnssipj@rob-hp-laptop>
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
-         <20180419154536.17846-4-paul.kocialkowski@bootlin.com>
-         <1524153860.3416.9.camel@pengutronix.de>
-         <CAAFQd5DT_xjUbZzFOoKk7_duiSZ8Awb1J=0dPEhVTBk0P3gppA@mail.gmail.com>
-         <5fa80b1e88ad2a215f51ea3a2b9b62274fa9b1ec.camel@bootlin.com>
-         <20180427030436.3ptrb2ldhtnssipj@rob-hp-laptop>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-b/HxHQn6MyZGhNkytJKo"
-Mime-Version: 1.0
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:40322 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753909AbeEAJA5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 May 2018 05:00:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv12 PATCH 29/29] RFC: media-requests: add debugfs node
+Date: Tue,  1 May 2018 11:00:51 +0200
+Message-Id: <20180501090051.9321-30-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---=-b/HxHQn6MyZGhNkytJKo
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Keep track of the number of requests and request objects of a media
+device. Helps to verify that all request-related memory is freed.
 
-Hi,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/media-device.c  | 41 +++++++++++++++++++++++++++++++++++
+ drivers/media/media-devnode.c | 17 +++++++++++++++
+ drivers/media/media-request.c |  5 +++++
+ include/media/media-device.h  | 11 ++++++++++
+ include/media/media-devnode.h |  4 ++++
+ include/media/media-request.h |  1 +
+ 6 files changed, 79 insertions(+)
 
-On Thu, 2018-04-26 at 22:04 -0500, Rob Herring wrote:
-> On Fri, Apr 20, 2018 at 09:22:20AM +0200, Paul Kocialkowski wrote:
-> > Hi and thanks for the review,
-> >=20
-> > On Fri, 2018-04-20 at 01:31 +0000, Tomasz Figa wrote:
-> > > Hi Paul, Philipp,
-> > >=20
-> > > On Fri, Apr 20, 2018 at 1:04 AM Philipp Zabel <p.zabel@pengutronix
-> > > .de>
-> > > wrote:
-> > >=20
-> > > > Hi Paul,
-> > > > On Thu, 2018-04-19 at 17:45 +0200, Paul Kocialkowski wrote:
-> > > > > This adds a device-tree binding document that specifies the
-> > > > > properties
-> > > > > used by the Sunxi-Cedurs VPU driver, as well as examples.
-> > > > >=20
-> > > > > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.co
-> > > > > m>
-> > > > > ---
-> > > > >  .../devicetree/bindings/media/sunxi-cedrus.txt     | 50
-> > >=20
-> > > ++++++++++++++++++++++
-> > > > >  1 file changed, 50 insertions(+)
-> > > > >  create mode 100644
-> > >=20
-> > > Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> > > > >=20
-> > > > > diff --git a/Documentation/devicetree/bindings/media/sunxi-
-> > > > > cedrus.txt
-> > >=20
-> > > b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> > > > > new file mode 100644
-> > > > > index 000000000000..71ad3f9c3352
-> > > > > --- /dev/null
-> > > > > +++ b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> > > > > @@ -0,0 +1,50 @@
-> > > > > +Device-tree bindings for the VPU found in Allwinner SoCs,
-> > > > > referred to
-> > >=20
-> > > as the
-> > > > > +Video Engine (VE) in Allwinner literature.
-> > > > > +
-> > > > > +The VPU can only access the first 256 MiB of DRAM, that are
-> > > > > DMA-
-> > > > > mapped
-> > >=20
-> > > starting
-> > > > > +from the DRAM base. This requires specific memory allocation
-> > > > > and
-> > >=20
-> > > handling.
-> > >=20
-> > > And no IOMMU? Brings back memories.
-> >=20
-> > Exactly, no IOMMU so we don't have much choice but cope with that
-> > hardware limitation...
-> >=20
-> > > > > +
-> > > > > +Required properties:
-> > > > > +- compatible         : "allwinner,sun4i-a10-video-engine";
-> > > > > +- memory-region         : DMA pool for buffers allocation;
-> > > > > +- clocks             : list of clock specifiers,
-> > > > > corresponding to
-> > >=20
-> > > entries in
-> > > > > +                          the clock-names property;
-> > > > > +- clock-names                : should contain "ahb", "mod"
-> > > > > and
-> > > > > "ram"
-> > >=20
-> > > entries;
-> > > > > +- assigned-clocks       : list of clocks assigned to the VE;
-> > > > > +- assigned-clocks-rates : list of clock rates for the clocks
-> > > > > assigned
-> > >=20
-> > > to the VE;
-> > > > > +- resets             : phandle for reset;
-> > > > > +- interrupts         : should contain VE interrupt number;
-> > > > > +- reg                        : should contain register base
-> > > > > and
-> > > > > length
-> > >=20
-> > > of VE.
-> > > > > +
-> > > > > +Example:
-> > > > > +
-> > > > > +reserved-memory {
-> > > > > +     #address-cells =3D <1>;
-> > > > > +     #size-cells =3D <1>;
-> > > > > +     ranges;
-> > > > > +
-> > > > > +     /* Address must be kept in the lower 256 MiBs of DRAM
-> > > > > for
-> > > > > VE. */
-> > > > > +     ve_memory: cma@4a000000 {
-> > > > > +             compatible =3D "shared-dma-pool";
-> > > > > +             reg =3D <0x4a000000 0x6000000>;
-> > > > > +             no-map;
-> > > > > +             linux,cma-default;
-> > > > > +     };
-> > > > > +};
-> > > > > +
-> > > > > +video-engine@1c0e000 {
-> > > >=20
-> > > > This is not really required by any specification, and not as
-> > > > common
-> > > > as
-> > > > gpu@..., but could this reasonably be called "vpu@1c0e000" to
-> > > > follow
-> > > > somewhat-common practice?
-> > >=20
-> > > AFAIR the name is supposed to be somewhat readable for someone
-> > > that
-> > > doesn't know the hardware. To me, "video-engine" sounds more
-> > > obvious
-> > > than "vpu", but we actually use "codec" already, in case of MFC
-> > > and
-> > > JPEG codec on Exynos. If encode/decode is the only functionality
-> > > of
-> > > this block, I'd personally go with "codec". If it can do other
-> > > things,
-> > > e.g. scaling/rotation without encode/decode, I'd probably call it
-> > > "video-processor".
-> >=20
-> > I agree that the term VPU is more commonly associated with video
-> > decoding, while video engine could mean a number of things.
-> >=20
-> > The reason I went with "video-engine" here (while still presenting
-> > the
-> > driver as a VPU driver) is that Video Engine is the term used in
-> > Allwinner's litterature. Other nodes in Allwinner device-trees
-> > generally
-> > stick to these terms (for instance, we have "display-engine" nodes).
-> > This also makes it easier to find the matching parts in the
-> > documentation.
->=20
-> 'video-codec' is what is defined in the DT spec.
-
-Is that an actively-enforced guideline or a suggestion? I'd like to keep
-video-engine just to stick with the technical documentation wording and
-my personal taste is also to prefer vpu over video-codec (in terms of
-clarity/straightforwardness) as a second choice.
-
-Still, if the choice isn't up to me, we can go with video-codec (or
-vpu).
-
-Cheers,
-
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
---=-b/HxHQn6MyZGhNkytJKo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrsEiQACgkQ3cLmz3+f
-v9E79gf/TOaR+bQQFevAdm0ib4NhBuRzUx3VuTMs2eWeaxoSJ/6oHXfqmq2w8DOp
-lWW7dGt8q7/Q3yvx1MnoVBWJZFepwrJB9IPiZ05R/wkKCgkPaIkpE2Yc4C18ykby
-eX2gnwyfiMuVvMdAmDRYAoWV1VZHVlPbLyUtR2r8JMXxKIR6WYJDYeB2tnzlB3zD
-iq/n12jFw8o8tayGFDUgL0H6y9CL/5ZM77vI1MSM08uHrkvm3YhBCFKLdrCZLkei
-5+1CzRvzZdy252eTNAGVbg8O6FO4G6cAmT4C7haZFkVAEPCWKo4geZSTOqlio331
-6gvUMRKGbw8PhzOX7yJrW0FzW1n3+g==
-=x0aN
------END PGP SIGNATURE-----
-
---=-b/HxHQn6MyZGhNkytJKo--
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 25d7e2a3ee84..522bb5bfb75a 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -680,6 +680,23 @@ void media_device_unregister_entity(struct media_entity *entity)
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister_entity);
+ 
++#ifdef CONFIG_DEBUG_FS
++/*
++ * Log the state of media requests.
++ * Very useful for debugging.
++ */
++static int media_device_requests(struct seq_file *file, void *priv)
++{
++	struct media_device *dev = dev_get_drvdata(file->private);
++
++	seq_printf(file, "number of requests: %d\n",
++		   atomic_read(&dev->num_requests));
++	seq_printf(file, "number of request objects: %d\n",
++		   atomic_read(&dev->num_request_objects));
++	return 0;
++}
++#endif
++
+ /**
+  * media_device_init() - initialize a media device
+  * @mdev:	The media device
+@@ -702,6 +719,9 @@ void media_device_init(struct media_device *mdev)
+ 	mutex_init(&mdev->graph_mutex);
+ 	ida_init(&mdev->entity_internal_idx);
+ 
++	atomic_set(&mdev->num_requests, 0);
++	atomic_set(&mdev->num_request_objects, 0);
++
+ 	dev_dbg(mdev->dev, "Media device initialized\n");
+ }
+ EXPORT_SYMBOL_GPL(media_device_init);
+@@ -752,6 +772,26 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 
+ 	dev_dbg(mdev->dev, "Media device registered\n");
+ 
++#ifdef CONFIG_DEBUG_FS
++	if (!media_top_dir)
++		return 0;
++
++	mdev->media_dir = debugfs_create_dir(dev_name(&devnode->dev),
++					     media_top_dir);
++	if (IS_ERR_OR_NULL(mdev->media_dir)) {
++		dev_warn(mdev->dev, "Failed to create debugfs dir\n");
++		return 0;
++	}
++	mdev->requests_file = debugfs_create_devm_seqfile(&devnode->dev,
++		"requests", mdev->media_dir, media_device_requests);
++	if (IS_ERR_OR_NULL(mdev->requests_file)) {
++		dev_warn(mdev->dev, "Failed to create requests file\n");
++		debugfs_remove_recursive(mdev->media_dir);
++		mdev->media_dir = NULL;
++		return 0;
++	}
++#endif
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(__media_device_register);
+@@ -829,6 +869,7 @@ void media_device_unregister(struct media_device *mdev)
+ 
+ 	dev_dbg(mdev->dev, "Media device unregistered\n");
+ 
++	debugfs_remove_recursive(mdev->media_dir);
+ 	device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+ 	media_devnode_unregister(mdev->devnode);
+ 	/* devnode free is handled in media_devnode_*() */
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index 67ac51eff15c..2656c2d7a312 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -53,6 +53,12 @@ static dev_t media_dev_t;
+ static DEFINE_MUTEX(media_devnode_lock);
+ static DECLARE_BITMAP(media_devnode_nums, MEDIA_NUM_DEVICES);
+ 
++/*
++ * debugfs
++ */
++struct dentry *media_top_dir;
++
++
+ /* Called when the last user of the media device exits. */
+ static void media_devnode_release(struct device *cd)
+ {
+@@ -259,6 +265,8 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 		goto cdev_add_error;
+ 	}
+ 
++	dev_set_drvdata(&devnode->dev, mdev);
++
+ 	/* Part 4: Activate this minor. The char device can now be used. */
+ 	set_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+ 
+@@ -310,6 +318,14 @@ static int __init media_devnode_init(void)
+ 		return ret;
+ 	}
+ 
++#ifdef CONFIG_DEBUG_FS
++	media_top_dir = debugfs_create_dir("media", NULL);
++	if (IS_ERR_OR_NULL(media_top_dir)) {
++		pr_warn("Failed to create debugfs media dir\n");
++		media_top_dir = NULL;
++	}
++#endif
++
+ 	ret = bus_register(&media_bus_type);
+ 	if (ret < 0) {
+ 		unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
+@@ -322,6 +338,7 @@ static int __init media_devnode_init(void)
+ 
+ static void __exit media_devnode_exit(void)
+ {
++	debugfs_remove_recursive(media_top_dir);
+ 	bus_unregister(&media_bus_type);
+ 	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
+ }
+diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+index 9815fb6445dc..cc95c34e83dd 100644
+--- a/drivers/media/media-request.c
++++ b/drivers/media/media-request.c
+@@ -61,6 +61,7 @@ static void media_request_release(struct kref *kref)
+ 		mdev->ops->req_free(req);
+ 	else
+ 		kfree(req);
++	atomic_dec(&mdev->num_requests);
+ }
+ 
+ void media_request_put(struct media_request *req)
+@@ -324,6 +325,7 @@ int media_request_alloc(struct media_device *mdev,
+ 	get_task_comm(comm, current);
+ 	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
+ 		 comm, fd);
++	atomic_inc(&mdev->num_requests);
+ 	dev_dbg(mdev->dev, "request: allocated %s\n", req->debug_str);
+ 
+ 	fd_install(fd, filp);
+@@ -348,6 +350,7 @@ static void media_request_object_release(struct kref *kref)
+ 	if (req)
+ 		media_request_object_unbind(obj);
+ 	obj->ops->release(obj);
++	atomic_dec(&obj->mdev->num_request_objects);
+ }
+ 
+ struct media_request_object *
+@@ -406,12 +409,14 @@ int media_request_object_bind(struct media_request *req,
+ 	obj->req = req;
+ 	obj->ops = ops;
+ 	obj->priv = priv;
++	obj->mdev = req->mdev;
+ 	spin_lock_irqsave(&req->lock, flags);
+ 	if (WARN_ON(atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE))
+ 		goto unlock;
+ 	list_add_tail(&obj->list, &req->objects);
+ 	req->num_incomplete_objects++;
+ 	ret = 0;
++	atomic_inc(&obj->mdev->num_request_objects);
+ unlock:
+ 	spin_unlock_irqrestore(&req->lock, flags);
+ 	return ret;
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index ae846208be51..54b3cd346ea5 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -21,6 +21,7 @@
+ 
+ #include <linux/list.h>
+ #include <linux/mutex.h>
++#include <linux/atomic.h>
+ 
+ #include <media/media-devnode.h>
+ #include <media/media-entity.h>
+@@ -103,6 +104,10 @@ struct media_device_ops {
+  * @ops:	Operation handler callbacks
+  * @req_queue_mutex: Serialise the MEDIA_REQUEST_IOC_QUEUE ioctl w.r.t. this
+  *		     media device.
++ * @num_request:	number of associated requests
++ * @num_request_objects: number of associated request objects
++ * @media_dir:	DebugFS media directory
++ * @requests_file: DebugFS requests file
+  *
+  * This structure represents an abstract high-level media device. It allows easy
+  * access to entities and provides basic media device-level support. The
+@@ -175,6 +180,12 @@ struct media_device {
+ 	const struct media_device_ops *ops;
+ 
+ 	struct mutex req_queue_mutex;
++	atomic_t num_requests;
++	atomic_t num_request_objects;
++
++	/* debugfs */
++	struct dentry *media_dir;
++	struct dentry *requests_file;
+ };
+ 
+ /* We don't need to include pci.h or usb.h here */
+diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+index dc2f64e1b08f..984b62b634d3 100644
+--- a/include/media/media-devnode.h
++++ b/include/media/media-devnode.h
+@@ -28,9 +28,13 @@
+ #include <linux/fs.h>
+ #include <linux/device.h>
+ #include <linux/cdev.h>
++#include <linux/debugfs.h>
+ 
+ struct media_device;
+ 
++/* DebugFS top-level media directory */
++extern struct dentry *media_top_dir;
++
+ /*
+  * Flag to mark the media_devnode struct as registered. Drivers must not touch
+  * this flag directly, it will be set and cleared by media_devnode_register and
+diff --git a/include/media/media-request.h b/include/media/media-request.h
+index 6ecc89fcf4a2..0d446d00a092 100644
+--- a/include/media/media-request.h
++++ b/include/media/media-request.h
+@@ -120,6 +120,7 @@ struct media_request_object_ops {
+  * larger object data.
+  */
+ struct media_request_object {
++	struct media_device *mdev;
+ 	const struct media_request_object_ops *ops;
+ 	void *priv;
+ 	struct media_request *req;
+-- 
+2.17.0
