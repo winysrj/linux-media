@@ -1,82 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:46699 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936172AbeEYORB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 10:17:01 -0400
-Date: Fri, 25 May 2018 17:16:57 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>
-Subject: Re: RFC: Request API and memory-to-memory devices
-Message-ID: <20180525141655.ugmd7xki4nsqz2pg@kekkonen.localdomain>
-References: <157f4fc4-eebf-41ab-1e9c-93d7baefc612@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <157f4fc4-eebf-41ab-1e9c-93d7baefc612@xs4all.nl>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:52798 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753545AbeEAJA4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 May 2018 05:00:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv12 PATCH 09/29] v4l2-ctrls: prepare internal structs for request API
+Date: Tue,  1 May 2018 11:00:31 +0200
+Message-Id: <20180501090051.9321-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Thu, May 24, 2018 at 10:44:13AM +0200, Hans Verkuil wrote:
-> Memory-to-memory devices have one video node, one internal control handler
-> but two vb2_queues (DMA engines). While often there is one buffer produced
-> for every buffer consumed, but this is by no means standard. E.g. deinterlacers
-> will produce on buffer for every two buffers consumed. Codecs that receive
-> a bit stream and can parse it to discover the framing may have no relation
-> between the number of buffers consumed and the number of buffers produced.
+Embed and initialize a media_request_object in struct v4l2_ctrl_handler.
 
-Do you have examples of such devices? I presume they're not supported in
-the current m2m API either, are they?
+Add a p_req field to struct v4l2_ctrl_ref that will store the
+request value.
 
-> 
-> This poses a few problems for the Request API. Requiring that a request
-> contains the buffers for both output and capture queue will be difficult
-> to implement, especially in the latter case where there is no relationship
-> between the number of consumed and produced buffers.
-> 
-> In addition, userspace can make two requests: one for the capture queue,
-> one for the output queue, each with associated controls. But since the
-> controls are shared between capture and output there is an issue of
-> what to do when the same control is set in both requests.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 1 +
+ include/media/v4l2-ctrls.h           | 7 +++++++
+ 2 files changed, 8 insertions(+)
 
-As I commented on v13, the two requests need to be handled separately in
-this case. Mem-to-mem devices are rather special in this respect; there's
-an established practice of matching buffers in the order they arrive from
-the queues, but that's not how the request API is intended to work: the
-buffers are associated to the request, and a request is processed
-independently of other requests.
-
-While that approach might work for mem-to-mem devices at least in some use
-cases, it is not a feasible approach for other devices. As a consequence,
-will have different API semantics between mem2mem devices and the rest. I'd
-like to avoid that if possible: this will be similarly visible in the user
-applications as well.
-
-> 
-> I propose to restrict the usage of requests for m2m drivers to the output
-> queue only. This keeps things simple for both kernel and userspace and
-> avoids complex solutions.
-
-If there's a convincing reason to use different API semantics, such as the
-relationship between different buffers being unknown to the user, then
-there very likely is a need to associate non-request data with
-request-bound data in the driver. But it'd be better to limit it to where
-it's really needed.
-
-> 
-> Requests only make sense if there is actually configuration you can apply
-> for each buffer, and while that's true for the output queue, on the capture
-> queue you just capture the result of whatever the device delivers. I don't
-> believe there is much if anything you can or want to control per-buffer.
-
-May there be controls associated with the capture queue buffers?
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index aa1dd2015e84..d09f49530d9e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1880,6 +1880,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
+ 				      sizeof(hdl->buckets[0]),
+ 				      GFP_KERNEL | __GFP_ZERO);
+ 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
++	media_request_object_init(&hdl->req_obj);
+ 	return hdl->error;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index d26b8ddebb56..76352eb59f14 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -20,6 +20,7 @@
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
++#include <media/media-request.h>
+ 
+ /* forward references */
+ struct file;
+@@ -249,6 +250,8 @@ struct v4l2_ctrl {
+  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+  * @from_other_dev: If true, then @ctrl was defined in another
+  *		device than the &struct v4l2_ctrl_handler.
++ * @p_req:	The request value. Only used if the control handler
++ *		is bound to a media request.
+  *
+  * Each control handler has a list of these refs. The list_head is used to
+  * keep a sorted-by-control-ID list of all controls, while the next pointer
+@@ -260,6 +263,7 @@ struct v4l2_ctrl_ref {
+ 	struct v4l2_ctrl *ctrl;
+ 	struct v4l2_ctrl_helper *helper;
+ 	bool from_other_dev;
++	union v4l2_ctrl_ptr p_req;
+ };
+ 
+ /**
+@@ -283,6 +287,8 @@ struct v4l2_ctrl_ref {
+  * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
+  * @nr_of_buckets: Total number of buckets in the array.
+  * @error:	The error code of the first failed control addition.
++ * @req_obj:	The &struct media_request_object, used to link into a
++ *		&struct media_request.
+  */
+ struct v4l2_ctrl_handler {
+ 	struct mutex _lock;
+@@ -295,6 +301,7 @@ struct v4l2_ctrl_handler {
+ 	void *notify_priv;
+ 	u16 nr_of_buckets;
+ 	int error;
++	struct media_request_object req_obj;
+ };
+ 
+ /**
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.17.0
