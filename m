@@ -1,103 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:51529 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750740AbeELKzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 May 2018 06:55:33 -0400
-From: Sean Young <sean@mess.org>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:56625 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753749AbeEAJA4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 May 2018 05:00:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 2/3] media: rc: decoders do not need to check for transitions
-Date: Sat, 12 May 2018 11:55:30 +0100
-Message-Id: <20180512105531.30482-2-sean@mess.org>
-In-Reply-To: <20180512105531.30482-1-sean@mess.org>
-References: <20180512105531.30482-1-sean@mess.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv12 PATCH 13/29] v4l2-ctrls: support g/s_ext_ctrls for requests
+Date: Tue,  1 May 2018 11:00:35 +0200
+Message-Id: <20180501090051.9321-14-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Drivers should never produce consecutive pulse or space raw events. Should
-that occur, we would have bigger problems than this code is trying to
-guard against.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Note that we already log an error should a driver misbehave.
+The v4l2_g/s_ext_ctrls functions now support control handlers that
+represent requests.
 
-Signed-off-by: Sean Young <sean@mess.org>
+The v4l2_ctrls_find_req_obj() function is responsible for finding the
+request from the fd.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/rc/ir-mce_kbd-decoder.c |  6 ------
- drivers/media/rc/ir-rc5-decoder.c     |  3 ---
- drivers/media/rc/ir-rc6-decoder.c     | 10 ----------
- 3 files changed, 19 deletions(-)
+ drivers/media/platform/omap3isp/ispvideo.c |   2 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c       | 113 +++++++++++++++++++--
+ drivers/media/v4l2-core/v4l2-ioctl.c       |  12 +--
+ drivers/media/v4l2-core/v4l2-subdev.c      |   9 +-
+ include/media/v4l2-ctrls.h                 |   7 +-
+ 5 files changed, 124 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
-index 9574c3dd90f2..64ea42927669 100644
---- a/drivers/media/rc/ir-mce_kbd-decoder.c
-+++ b/drivers/media/rc/ir-mce_kbd-decoder.c
-@@ -274,9 +274,6 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index a751c89a3ea8..bd564c2e767f 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1028,7 +1028,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+ 	ctrls.count = 1;
+ 	ctrls.controls = &ctrl;
  
- 	case STATE_HEADER_BIT_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev))
--			break;
--
- 		decrease_duration(&ev, MCIR2_BIT_END);
+-	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
++	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, NULL, &ctrls);
+ 	if (ret < 0) {
+ 		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
+ 			 pipe->external->name);
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 27279cb19f61..ec15255dbc0e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -3134,7 +3134,8 @@ static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
+ }
  
- 		if (data->count != MCIR2_HEADER_NBITS) {
-@@ -313,9 +310,6 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
+ /* Get extended controls. Allocates the helpers array if needed. */
+-int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
++int __v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
++		       struct v4l2_ext_controls *cs)
+ {
+ 	struct v4l2_ctrl_helper helper[4];
+ 	struct v4l2_ctrl_helper *helpers = helper;
+@@ -3214,6 +3215,73 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 		kvfree(helpers);
+ 	return ret;
+ }
++
++static struct media_request_object *
++v4l2_ctrls_find_req_obj(struct v4l2_ctrl_handler *hdl,
++			struct media_device *mdev, s32 fd, bool set)
++{
++	struct media_request *req = media_request_find(mdev, fd);
++	struct media_request_object *obj;
++	struct v4l2_ctrl_handler *new_hdl;
++	int ret;
++
++	if (IS_ERR(req))
++		return ERR_CAST(req);
++
++	if (set && atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE) {
++		media_request_put(req);
++		return ERR_PTR(-EBUSY);
++	}
++
++	obj = media_request_object_find(req, &req_ops, hdl);
++	if (obj) {
++		media_request_put(req);
++		return obj;
++	}
++
++	new_hdl = kzalloc(sizeof(*new_hdl), GFP_KERNEL);
++	if (!new_hdl) {
++		ret = -ENOMEM;
++		goto put;
++	}
++	obj = &new_hdl->req_obj;
++	ret = v4l2_ctrl_handler_init(new_hdl, (hdl->nr_of_buckets - 1) * 8);
++	if (!ret)
++		ret = v4l2_ctrl_request_bind(req, new_hdl, hdl);
++	if (!ret) {
++		media_request_object_get(obj);
++		media_request_put(req);
++		return obj;
++	}
++	kfree(new_hdl);
++
++put:
++	media_request_put(req);
++	return ERR_PTR(ret);
++}
++
++int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
++		     struct v4l2_ext_controls *cs)
++{
++	struct media_request_object *obj = NULL;
++	int ret;
++
++	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
++		if (!mdev || cs->request_fd < 0)
++			return -EINVAL;
++		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, false);
++		if (IS_ERR(obj))
++			return PTR_ERR(obj);
++		hdl = container_of(obj, struct v4l2_ctrl_handler,
++				   req_obj);
++	}
++
++	ret = __v4l2_g_ext_ctrls(hdl, cs);
++
++	if (obj)
++		media_request_object_put(obj);
++	return ret;
++}
+ EXPORT_SYMBOL(v4l2_g_ext_ctrls);
  
- 	case STATE_BODY_BIT_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev))
--			break;
--
- 		if (data->count == data->wanted_bits)
- 			data->state = STATE_FINISHED;
- 		else
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index cbfaadbee8fa..63624654a71e 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -88,9 +88,6 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
+ /* Helper function to get a single control */
+@@ -3389,9 +3457,9 @@ static void update_from_auto_cluster(struct v4l2_ctrl *master)
+ }
  
- 	case STATE_BIT_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev))
--			break;
--
- 		if (data->count == CHECK_RC5X_NBITS)
- 			data->state = STATE_CHECK_RC5X;
- 		else
-diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
-index 66e07109f6fc..68487ce9f79b 100644
---- a/drivers/media/rc/ir-rc6-decoder.c
-+++ b/drivers/media/rc/ir-rc6-decoder.c
-@@ -145,9 +145,6 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
+ /* Try or try-and-set controls */
+-static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+-			     struct v4l2_ext_controls *cs,
+-			     bool set)
++static int __try_set_ext_ctrls(struct v4l2_fh *fh,
++			       struct v4l2_ctrl_handler *hdl,
++			       struct v4l2_ext_controls *cs, bool set)
+ {
+ 	struct v4l2_ctrl_helper helper[4];
+ 	struct v4l2_ctrl_helper *helpers = helper;
+@@ -3504,16 +3572,45 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 	return ret;
+ }
  
- 	case STATE_HEADER_BIT_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev))
--			break;
--
- 		if (data->count == RC6_HEADER_NBITS)
- 			data->state = STATE_TOGGLE_START;
- 		else
-@@ -165,10 +162,6 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
+-int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
++static int try_set_ext_ctrls(struct v4l2_fh *fh,
++			     struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
++			     struct v4l2_ext_controls *cs, bool set)
++{
++	struct media_request_object *obj = NULL;
++	int ret;
++
++	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
++		if (!mdev || cs->request_fd < 0)
++			return -EINVAL;
++		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, true);
++		if (IS_ERR(obj))
++			return PTR_ERR(obj);
++		if (atomic_read(&obj->req->state) != MEDIA_REQUEST_STATE_IDLE) {
++			media_request_object_put(obj);
++			return -EBUSY;
++		}
++		hdl = container_of(obj, struct v4l2_ctrl_handler,
++				   req_obj);
++	}
++
++	ret = __try_set_ext_ctrls(fh, hdl, cs, set);
++
++	if (obj)
++		media_request_object_put(obj);
++	return ret;
++}
++
++int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
++		       struct v4l2_ext_controls *cs)
+ {
+-	return try_set_ext_ctrls(NULL, hdl, cs, false);
++	return try_set_ext_ctrls(NULL, hdl, mdev, cs, false);
+ }
+ EXPORT_SYMBOL(v4l2_try_ext_ctrls);
  
- 	case STATE_TOGGLE_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev) ||
--		    !geq_margin(ev.duration, RC6_TOGGLE_END, RC6_UNIT / 2))
--			break;
--
- 		if (!(data->header & RC6_STARTBIT_MASK)) {
- 			dev_dbg(&dev->dev, "RC6 invalid start bit\n");
- 			break;
-@@ -210,9 +203,6 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		break;
+ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+-					struct v4l2_ext_controls *cs)
++		     struct media_device *mdev, struct v4l2_ext_controls *cs)
+ {
+-	return try_set_ext_ctrls(fh, hdl, cs, true);
++	return try_set_ext_ctrls(fh, hdl, mdev, cs, true);
+ }
+ EXPORT_SYMBOL(v4l2_s_ext_ctrls);
  
- 	case STATE_BODY_BIT_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev))
--			break;
--
- 		if (data->count == data->wanted_bits)
- 			data->state = STATE_FINISHED;
- 		else
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 9ce23e23c5bf..56741c4a48fc 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2079,9 +2079,9 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 
+ 	p->error_idx = p->count;
+ 	if (vfh && vfh->ctrl_handler)
+-		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
++		return v4l2_g_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (vfd->ctrl_handler)
+-		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
++		return v4l2_g_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (ops->vidioc_g_ext_ctrls == NULL)
+ 		return -ENOTTY;
+ 	return check_ext_ctrls(p, 0) ? ops->vidioc_g_ext_ctrls(file, fh, p) :
+@@ -2098,9 +2098,9 @@ static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 
+ 	p->error_idx = p->count;
+ 	if (vfh && vfh->ctrl_handler)
+-		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
++		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (vfd->ctrl_handler)
+-		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, p);
++		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (ops->vidioc_s_ext_ctrls == NULL)
+ 		return -ENOTTY;
+ 	return check_ext_ctrls(p, 0) ? ops->vidioc_s_ext_ctrls(file, fh, p) :
+@@ -2117,9 +2117,9 @@ static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 
+ 	p->error_idx = p->count;
+ 	if (vfh && vfh->ctrl_handler)
+-		return v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
++		return v4l2_try_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (vfd->ctrl_handler)
+-		return v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
++		return v4l2_try_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (ops->vidioc_try_ext_ctrls == NULL)
+ 		return -ENOTTY;
+ 	return check_ext_ctrls(p, 0) ? ops->vidioc_try_ext_ctrls(file, fh, p) :
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index f9eed938d348..ce8c133e0ccd 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -222,17 +222,20 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_G_EXT_CTRLS:
+ 		if (!vfh->ctrl_handler)
+ 			return -ENOTTY;
+-		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
++		return v4l2_g_ext_ctrls(vfh->ctrl_handler,
++					sd->v4l2_dev->mdev, arg);
+ 
+ 	case VIDIOC_S_EXT_CTRLS:
+ 		if (!vfh->ctrl_handler)
+ 			return -ENOTTY;
+-		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
++		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler,
++					sd->v4l2_dev->mdev, arg);
+ 
+ 	case VIDIOC_TRY_EXT_CTRLS:
+ 		if (!vfh->ctrl_handler)
+ 			return -ENOTTY;
+-		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
++		return v4l2_try_ext_ctrls(vfh->ctrl_handler,
++					  sd->v4l2_dev->mdev, arg);
+ 
+ 	case VIDIOC_DQEVENT:
+ 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index a0f7c38d1a90..963c37b02363 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -1148,11 +1148,12 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+  *	:ref:`VIDIOC_G_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
+  *
+  * @hdl: pointer to &struct v4l2_ctrl_handler
++ * @mdev: pointer to &struct media_device
+  * @c: pointer to &struct v4l2_ext_controls
+  *
+  * If hdl == NULL then they will all return -EINVAL.
+  */
+-int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
++int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
+ 		     struct v4l2_ext_controls *c);
+ 
+ /**
+@@ -1160,11 +1161,13 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+  *	:ref:`VIDIOC_TRY_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
+  *
+  * @hdl: pointer to &struct v4l2_ctrl_handler
++ * @mdev: pointer to &struct media_device
+  * @c: pointer to &struct v4l2_ext_controls
+  *
+  * If hdl == NULL then they will all return -EINVAL.
+  */
+ int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
++		       struct media_device *mdev,
+ 		       struct v4l2_ext_controls *c);
+ 
+ /**
+@@ -1173,11 +1176,13 @@ int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+  *
+  * @fh: pointer to &struct v4l2_fh
+  * @hdl: pointer to &struct v4l2_ctrl_handler
++ * @mdev: pointer to &struct media_device
+  * @c: pointer to &struct v4l2_ext_controls
+  *
+  * If hdl == NULL then they will all return -EINVAL.
+  */
+ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
++		     struct media_device *mdev,
+ 		     struct v4l2_ext_controls *c);
+ 
+ /**
 -- 
 2.17.0
