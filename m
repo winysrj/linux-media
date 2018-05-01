@@ -1,180 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:37997 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751547AbeE3P3m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 11:29:42 -0400
-Date: Wed, 30 May 2018 18:29:36 +0300
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com, sadolfsson@google.com,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, fparent@baylibre.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        linux-media@vger.kernel.org
-Subject: Re: [Intel-gfx] [PATCH v6 2/6] drm/i915: hdmi: add CEC notifier to
- intel_hdmi
-Message-ID: <20180530152936.GQ23723@intel.com>
-References: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
- <1527155841-28494-3-git-send-email-narmstrong@baylibre.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1527155841-28494-3-git-send-email-narmstrong@baylibre.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:48368 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755259AbeEAMtb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2018 08:49:31 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: mchehab@kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v8 5/8] media: vsp1: Use reference counting for bodies
+Date: Tue,  1 May 2018 13:49:17 +0100
+Message-Id: <2fedca817bfe96479bae9908cfde43a12d4f9648.1525178613.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.bc315239d58449d3e395904b87af6c747a9f612c.1525178613.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.bc315239d58449d3e395904b87af6c747a9f612c.1525178613.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.bc315239d58449d3e395904b87af6c747a9f612c.1525178613.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.bc315239d58449d3e395904b87af6c747a9f612c.1525178613.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 24, 2018 at 11:57:17AM +0200, Neil Armstrong wrote:
-> This patchs adds the cec_notifier feature to the intel_hdmi part
-> of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
-> between each HDMI ports.
-> The changes will allow the i915 HDMI code to notify EDID and HPD changes
-> to an eventual CEC adapter.
-> 
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/gpu/drm/i915/Kconfig         |  1 +
->  drivers/gpu/drm/i915/intel_display.h | 20 ++++++++++++++++++++
->  drivers/gpu/drm/i915/intel_drv.h     |  2 ++
->  drivers/gpu/drm/i915/intel_hdmi.c    | 13 +++++++++++++
->  4 files changed, 36 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
-> index dfd9588..2d65d56 100644
-> --- a/drivers/gpu/drm/i915/Kconfig
-> +++ b/drivers/gpu/drm/i915/Kconfig
-> @@ -23,6 +23,7 @@ config DRM_I915
->  	select SYNC_FILE
->  	select IOSF_MBI
->  	select CRC32
-> +	select CEC_CORE if CEC_NOTIFIER
->  	help
->  	  Choose this option if you have a system that has "Intel Graphics
->  	  Media Accelerator" or "HD Graphics" integrated graphics,
-> diff --git a/drivers/gpu/drm/i915/intel_display.h b/drivers/gpu/drm/i915/intel_display.h
-> index 4e7418b..c68d1c8 100644
-> --- a/drivers/gpu/drm/i915/intel_display.h
-> +++ b/drivers/gpu/drm/i915/intel_display.h
-> @@ -126,6 +126,26 @@ enum port {
->  
->  #define port_name(p) ((p) + 'A')
->  
-> +static inline const char *port_identifier(enum port port)
-> +{
-> +	switch (port) {
-> +	case PORT_A:
-> +		return "Port A";
-> +	case PORT_B:
-> +		return "Port B";
-> +	case PORT_C:
-> +		return "Port C";
-> +	case PORT_D:
-> +		return "Port D";
-> +	case PORT_E:
-> +		return "Port E";
-> +	case PORT_F:
-> +		return "Port F";
-> +	default:
-> +		return "<invalid>";
-> +	}
-> +}
+Extend the display list body with a reference count, allowing bodies to
+be kept as long as a reference is maintained. This provides the ability
+to keep a cached copy of bodies which will not change, so that they can
+be re-applied to multiple display lists.
 
-Could use a comment to make it clear that this identifier is
-expected to remain stable since it's referenced from other drivers.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+This could be squashed into the body update code, but it's not a
+straightforward squash as the refcounts will affect both:
+  v4l: vsp1: Provide a body pool
+and
+  v4l: vsp1: Convert display lists to use new body pool
+therefore, I have kept this separate to prevent breaking bisectability
+of the vsp-tests.
 
-> +
->  enum dpio_channel {
->  	DPIO_CH0,
->  	DPIO_CH1
-> diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
-> index d436858..b50e51b 100644
-> --- a/drivers/gpu/drm/i915/intel_drv.h
-> +++ b/drivers/gpu/drm/i915/intel_drv.h
-> @@ -39,6 +39,7 @@
->  #include <drm/drm_dp_mst_helper.h>
->  #include <drm/drm_rect.h>
->  #include <drm/drm_atomic.h>
-> +#include <media/cec-notifier.h>
->  
->  /**
->   * __wait_for - magic wait macro
-> @@ -1001,6 +1002,7 @@ struct intel_hdmi {
->  	bool has_audio;
->  	bool rgb_quant_range_selectable;
->  	struct intel_connector *attached_connector;
-> +	struct cec_notifier *notifier;
+v3:
+ - 's/fragment/body/'
 
-"notifier" seems a bit too generic a name. "cec_notifier" would be
-better.
+v4:
+ - Fix up reference handling comments.
 
-Apart from that this seems OK to me
-Reviewed-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Changes since v7:
 
->  };
->  
->  struct intel_dp_mst_encoder;
-> diff --git a/drivers/gpu/drm/i915/intel_hdmi.c b/drivers/gpu/drm/i915/intel_hdmi.c
-> index 1baef4a..d522b5b 100644
-> --- a/drivers/gpu/drm/i915/intel_hdmi.c
-> +++ b/drivers/gpu/drm/i915/intel_hdmi.c
-> @@ -1868,6 +1868,8 @@ intel_hdmi_set_edid(struct drm_connector *connector)
->  		connected = true;
->  	}
->  
-> +	cec_notifier_set_phys_addr_from_edid(intel_hdmi->notifier, edid);
-> +
->  	return connected;
->  }
->  
-> @@ -1876,6 +1878,7 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
->  {
->  	enum drm_connector_status status;
->  	struct drm_i915_private *dev_priv = to_i915(connector->dev);
-> +	struct intel_hdmi *intel_hdmi = intel_attached_hdmi(connector);
->  
->  	DRM_DEBUG_KMS("[CONNECTOR:%d:%s]\n",
->  		      connector->base.id, connector->name);
-> @@ -1891,6 +1894,9 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
->  
->  	intel_display_power_put(dev_priv, POWER_DOMAIN_GMBUS);
->  
-> +	if (status != connector_status_connected)
-> +		cec_notifier_phys_addr_invalidate(intel_hdmi->notifier);
-> +
->  	return status;
->  }
->  
-> @@ -2031,6 +2037,8 @@ static void chv_hdmi_pre_enable(struct intel_encoder *encoder,
->  
->  static void intel_hdmi_destroy(struct drm_connector *connector)
->  {
-> +	if (intel_attached_hdmi(connector)->notifier)
-> +		cec_notifier_put(intel_attached_hdmi(connector)->notifier);
->  	kfree(to_intel_connector(connector)->detect_edid);
->  	drm_connector_cleanup(connector);
->  	kfree(connector);
-> @@ -2358,6 +2366,11 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
->  		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
->  		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
->  	}
-> +
-> +	intel_hdmi->notifier = cec_notifier_get_conn(dev->dev,
-> +						     port_identifier(port));
-> +	if (!intel_hdmi->notifier)
-> +		DRM_DEBUG_KMS("CEC notifier get failed\n");
->  }
->  
->  void intel_hdmi_init(struct drm_i915_private *dev_priv,
-> -- 
-> 2.7.4
-> 
-> _______________________________________________
-> Intel-gfx mailing list
-> Intel-gfx@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
+- Fix comment style
 
+ drivers/media/platform/vsp1/vsp1_clu.c |  7 ++++++-
+ drivers/media/platform/vsp1/vsp1_dl.c  | 16 ++++++++++++++--
+ drivers/media/platform/vsp1/vsp1_lut.c |  7 ++++++-
+ 3 files changed, 26 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
+index 8efa12f5e53f..ea83f1b7d125 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.c
++++ b/drivers/media/platform/vsp1/vsp1_clu.c
+@@ -212,8 +212,13 @@ static void clu_configure(struct vsp1_entity *entity,
+ 		clu->clu = NULL;
+ 		spin_unlock_irqrestore(&clu->lock, flags);
+ 
+-		if (dlb)
++		if (dlb) {
+ 			vsp1_dl_list_add_body(dl, dlb);
++
++			/* Release our local reference. */
++			vsp1_dl_body_put(dlb);
++		}
++
+ 		break;
+ 	}
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 5074a83c0cf4..e07ed3a2acda 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -10,6 +10,7 @@
+ #include <linux/device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/gfp.h>
++#include <linux/refcount.h>
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
+ 
+@@ -54,6 +55,8 @@ struct vsp1_dl_body {
+ 	struct list_head list;
+ 	struct list_head free;
+ 
++	refcount_t refcnt;
++
+ 	struct vsp1_dl_body_pool *pool;
+ 	struct vsp1_device *vsp1;
+ 
+@@ -258,6 +261,7 @@ struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
+ 	if (!list_empty(&pool->free)) {
+ 		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
+ 		list_del(&dlb->free);
++		refcount_set(&dlb->refcnt, 1);
+ 	}
+ 
+ 	spin_unlock_irqrestore(&pool->lock, flags);
+@@ -278,6 +282,9 @@ void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
+ 	if (!dlb)
+ 		return;
+ 
++	if (!refcount_dec_and_test(&dlb->refcnt))
++		return;
++
+ 	dlb->num_entries = 0;
+ 
+ 	spin_lock_irqsave(&dlb->pool->lock, flags);
+@@ -463,8 +470,11 @@ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
+  * which bodies are added.
+  *
+  * Adding a body to a display list passes ownership of the body to the list. The
+- * caller must not touch the body after this call, and must not release it
+- * explicitly with vsp1_dl_body_put().
++ * caller retains its reference to the fragment when adding it to the display
++ * list, but is not allowed to add new entries to the body.
++ *
++ * The reference must be explicitly released by a call to vsp1_dl_body_put()
++ * when the body isn't needed anymore.
+  *
+  * Additional bodies are only usable for display lists in header mode.
+  * Attempting to add a body to a header-less display list will return an error.
+@@ -475,6 +485,8 @@ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb)
+ 	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
+ 		return -EINVAL;
+ 
++	refcount_inc(&dlb->refcnt);
++
+ 	list_add_tail(&dlb->list, &dl->bodies);
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 6b358617ce15..b3ea90172439 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -168,8 +168,13 @@ static void lut_configure(struct vsp1_entity *entity,
+ 		lut->lut = NULL;
+ 		spin_unlock_irqrestore(&lut->lock, flags);
+ 
+-		if (dlb)
++		if (dlb) {
+ 			vsp1_dl_list_add_body(dl, dlb);
++
++			/* Release our local reference. */
++			vsp1_dl_body_put(dlb);
++		}
++
+ 		break;
+ 	}
+ }
 -- 
-Ville Syrjälä
-Intel
+git-series 0.9.1
