@@ -1,46 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:58083 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751261AbeECQkw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 12:40:52 -0400
-Message-ID: <1525365651.3408.3.camel@pengutronix.de>
-Subject: Re: [PATCH] media: imx-csi: fix burst size for 16 bit
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Jan Luebbe <jlu@pengutronix.de>, linux-media@vger.kernel.org
-Cc: slongerbeam@gmail.com
-Date: Thu, 03 May 2018 18:40:51 +0200
-In-Reply-To: <20180503163200.12214-1-jlu@pengutronix.de>
-References: <20180503163200.12214-1-jlu@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:38520 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753843AbeEAJA5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 May 2018 05:00:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv12 PATCH 21/29] videobuf2-v4l2: export request_fd
+Date: Tue,  1 May 2018 11:00:43 +0200
+Message-Id: <20180501090051.9321-22-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-05-03 at 18:32 +0200, Jan Luebbe wrote:
-> A burst_size of 4 does not work for the 16 bit passthrough formats, so
-> we use 8 instead.
-> 
-> Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
-> ---
->  drivers/staging/media/imx/imx-media-csi.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index 1112d8f67a18..08b636084286 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -410,7 +410,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
->  	case V4L2_PIX_FMT_SGRBG16:
->  	case V4L2_PIX_FMT_SRGGB16:
->  	case V4L2_PIX_FMT_Y16:
-> -		burst_size = 4;
-> +		burst_size = 8;
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This seems to be the equivalent to commit 37ea9830139b3 ("media: imx-
-csi: fix burst size"), but for 16-bit formats.
+Requested by Sakari
 
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/common/videobuf2/videobuf2-v4l2.c | 6 ++++--
+ include/media/videobuf2-v4l2.h                  | 2 ++
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-regards
-Philipp
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 7fced0a503f4..b6142041418e 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -184,6 +184,7 @@ static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b
+ 		return -EINVAL;
+ 	}
+ 	vbuf->sequence = 0;
++	vbuf->request_fd = -1;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+ 		switch (b->memory) {
+@@ -399,6 +400,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
+ 	}
+ 
+ 	*p_req = req;
++	vbuf->request_fd = b->request_fd;
+ 
+ 	return 0;
+ }
+@@ -504,9 +506,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 
+ 	if (vb2_buffer_in_use(q, vb))
+ 		b->flags |= V4L2_BUF_FLAG_MAPPED;
+-	if (vb->req_obj.req) {
++	if (vbuf->request_fd >= 0) {
+ 		b->flags |= V4L2_BUF_FLAG_REQUEST_FD;
+-		b->request_fd = -1;
++		b->request_fd = vbuf->request_fd;
+ 	}
+ 
+ 	if (!q->is_output &&
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+index 33210221a621..727855463838 100644
+--- a/include/media/videobuf2-v4l2.h
++++ b/include/media/videobuf2-v4l2.h
+@@ -32,6 +32,7 @@
+  *		&enum v4l2_field.
+  * @timecode:	frame timecode.
+  * @sequence:	sequence count of this frame.
++ * @request_fd:	the request_fd associated with this buffer
+  * @planes:	plane information (userptr/fd, length, bytesused, data_offset).
+  *
+  * Should contain enough information to be able to cover all the fields
+@@ -44,6 +45,7 @@ struct vb2_v4l2_buffer {
+ 	__u32			field;
+ 	struct v4l2_timecode	timecode;
+ 	__u32			sequence;
++	__s32			request_fd;
+ 	struct vb2_plane	planes[VB2_MAX_PLANES];
+ };
+ 
+-- 
+2.17.0
