@@ -1,52 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:39341 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750756AbeDXXNG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 19:13:06 -0400
-Received: by mail-qt0-f193.google.com with SMTP id f1-v6so7336209qtj.6
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 16:13:06 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cx88: Get rid of spurious call to cx8800_start_vbi_dma()
-Date: Tue, 24 Apr 2018 19:12:52 -0400
-Message-Id: <1524611572-6075-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mail-by2nam01on0056.outbound.protection.outlook.com ([104.47.34.56]:43232
+        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752667AbeEABfZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Apr 2018 21:35:25 -0400
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>,
+        Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Subject: [PATCH v4 01/10] v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
+Date: Mon, 30 Apr 2018 18:35:04 -0700
+Message-ID: <3b02c211b800dd40bd6e34a193eca4a6842af950.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+In-Reply-To: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This was left over from the conversion to VB2, where the call was
-getting invoked both in buffer_queue and start_streaming, which
-was intermittently causing invalid opcodes on the VBI RISC queue.
+From: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
 
-This change effectively mirrors the exact same change Hans Verkuil
-made in cx88-video.c in 389208e1173e097590856ed24a505551510f78d4.
+In current implementation driver only checks the colorspace
+between the last subdev in the pipeline and the connected video node,
+the pipeline could be configured with wrong colorspace information
+until the very end. It thus makes little sense to check the
+colorspace only at the video node. So check can be dropped until
+we find a better solution to carry colorspace information
+through pipelines and to userspace.
 
-Thanks to Daniel Glöckner for spotting the actual bug after I spent
-several days trying to chase down the issue.
-
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-Thanks-to: Daniel Glöckner <daniel-gl@gmx.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
+Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
 ---
- drivers/media/pci/cx88/cx88-vbi.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/media/platform/xilinx/xilinx-dma.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/cx88/cx88-vbi.c b/drivers/media/pci/cx88/cx88-vbi.c
-index c637679..58489ea 100644
---- a/drivers/media/pci/cx88/cx88-vbi.c
-+++ b/drivers/media/pci/cx88/cx88-vbi.c
-@@ -178,7 +178,6 @@ static void buffer_queue(struct vb2_buffer *vb)
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 522cdfd..cb20ada 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -75,8 +75,7 @@ static int xvip_dma_verify_format(struct xvip_dma *dma)
  
- 	if (list_empty(&q->active)) {
- 		list_add_tail(&buf->list, &q->active);
--		cx8800_start_vbi_dma(dev, q, buf);
- 		dprintk(2, "[%p/%d] vbi_queue - first active\n",
- 			buf, buf->vb.vb2_buf.index);
+ 	if (dma->fmtinfo->code != fmt.format.code ||
+ 	    dma->format.height != fmt.format.height ||
+-	    dma->format.width != fmt.format.width ||
+-	    dma->format.colorspace != fmt.format.colorspace)
++	    dma->format.width != fmt.format.width)
+ 		return -EINVAL;
  
+ 	return 0;
 -- 
-1.9.1
+2.1.1
