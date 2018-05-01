@@ -1,59 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:29925 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751274AbeDYJOY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 05:14:24 -0400
-Date: Wed, 25 Apr 2018 14:48:58 +0530
-From: Vinod Koul <vinod.koul@intel.com>
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Simon Horman <horms@verge.net.au>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/8] dmaengine: shdmac: Change platform check to
- CONFIG_ARCH_RENESAS
-Message-ID: <20180425091858.GN6014@localhost>
-References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
- <1524230914-10175-3-git-send-email-geert+renesas@glider.be>
+Received: from mail-cys01nam02on0066.outbound.protection.outlook.com ([104.47.37.66]:59586
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752294AbeEABfY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Apr 2018 21:35:24 -0400
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Rohit Athavale <rathaval@xilinx.com>,
+        Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Subject: [PATCH v4 03/10] xilinx: v4l: dma: Update driver to allow for probe defer
+Date: Mon, 30 Apr 2018 18:35:06 -0700
+Message-ID: <6736d42d3e6b284188ebde3453050cd83cba090d.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+In-Reply-To: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1524230914-10175-3-git-send-email-geert+renesas@glider.be>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 20, 2018 at 03:28:28PM +0200, Geert Uytterhoeven wrote:
-> Since commit 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS")
-> is CONFIG_ARCH_RENESAS a more appropriate platform check than the legacy
-> CONFIG_ARCH_SHMOBILE, hence use the former.
-> 
-> Renesas SuperH SH-Mobile SoCs are still covered by the CONFIG_CPU_SH4
-> check, just like before support for Renesas ARM SoCs was added.
-> 
-> Instead of blindly changing all the #ifdefs, switch the main code block
-> in sh_dmae_probe() to IS_ENABLED(), as this allows to remove all the
-> remaining #ifdefs.
-> 
-> This will allow to drop ARCH_SHMOBILE on ARM in the near future.
+From: Rohit Athavale <rathaval@xilinx.com>
 
-Applied, thanks
+Update xvip_dma_init() to use dma_request_chan(), enabling probe
+deferral. Also update the cleanup routine to prevent dereferencing
+an ERR_PTR().
 
+Signed-off-by: Rohit Athavale <rathaval@xilinx.com>
+Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+---
+ drivers/media/platform/xilinx/xilinx-dma.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index a5bf345..16aeb46 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -730,10 +730,13 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+ 
+ 	/* ... and the DMA channel. */
+ 	snprintf(name, sizeof(name), "port%u", port);
+-	dma->dma = dma_request_slave_channel(dma->xdev->dev, name);
+-	if (dma->dma == NULL) {
+-		dev_err(dma->xdev->dev, "no VDMA channel found\n");
+-		ret = -ENODEV;
++	dma->dma = dma_request_chan(dma->xdev->dev, name);
++	if (IS_ERR(dma->dma)) {
++		ret = PTR_ERR(dma->dma);
++		if (ret != -EPROBE_DEFER)
++			dev_err(dma->xdev->dev,
++				"No Video DMA channel found");
++
+ 		goto error;
+ 	}
+ 
+@@ -757,7 +760,7 @@ void xvip_dma_cleanup(struct xvip_dma *dma)
+ 	if (video_is_registered(&dma->video))
+ 		video_unregister_device(&dma->video);
+ 
+-	if (dma->dma)
++	if (!IS_ERR(dma->dma))
+ 		dma_release_channel(dma->dma);
+ 
+ 	media_entity_cleanup(&dma->video.entity);
 -- 
-~Vinod
+2.1.1
