@@ -1,147 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:44334 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753082AbeEURBt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 13:01:49 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v10 05/16] vb2: move vb2_ops functions to videobuf2-core.[ch]
-Date: Mon, 21 May 2018 13:59:35 -0300
-Message-Id: <20180521165946.11778-6-ezequiel@collabora.com>
-In-Reply-To: <20180521165946.11778-1-ezequiel@collabora.com>
-References: <20180521165946.11778-1-ezequiel@collabora.com>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:43665 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755831AbeEAO2R (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2018 10:28:17 -0400
+Date: Tue, 1 May 2018 09:28:16 -0500
+From: Rob Herring <robh@kernel.org>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: hans.verkuil@cisco.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] dt-bindings: media: i2c: Add mt9t111 image sensor
+Message-ID: <20180501142816.GA15492@rob-hp-laptop>
+References: <1524654014-17852-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1524654014-17852-2-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1524654014-17852-2-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+On Wed, Apr 25, 2018 at 01:00:13PM +0200, Jacopo Mondi wrote:
+> Add device tree bindings documentation for Micron MT9T111/MT9T112 image
+> sensors.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  Documentation/devicetree/bindings/mt9t112.txt | 41 +++++++++++++++++++++++++++
+>  1 file changed, 41 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/mt9t112.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/mt9t112.txt b/Documentation/devicetree/bindings/mt9t112.txt
+> new file mode 100644
+> index 0000000..cbad475
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mt9t112.txt
+> @@ -0,0 +1,41 @@
+> +Micron 3.1Mp CMOS Digital Image Sensor
+> +--------------------------------------
+> +
+> +The Micron MT9T111 and MT9T112 are 1/4 inch 3.1Mp System-On-A-Chip (SOC) CMOS
+> +digital image sensors which support up to QXGA (2048x1536) image resolution in
+> +4/3 format.
+> +
+> +The sensors can be programmed through a two-wire serial interface and can
+> +work both in parallel data output mode as well as in MIPI CSI-2 mode.
+> +
+> +Required Properties:
+> +- compatible: shall be one of the following values
+> +  	"micron,mt9t111" for MT9T111 sensors
+> +	"micron,mt9t112" for MT9T112 sensors
+> +
+> +Optional properties:
+> +- powerdown-gpios: reference to powerdown input GPIO signal. Pin name "STANDBY".
+> +  Active level is high.
+> +
+> +The device node shall contain one 'port' sub-node with one 'endpoint' child
+> +node, modeled accordingly to bindings described in:
+> +Documentation/devicetree/bindings/media/video-interfaces.txt
+> +
+> +Example:
+> +--------
+> +
+> +	mt9t112@3d {
 
-vb2_ops_wait_prepare() and vb2_ops_wait_finish() were in the
-wrong file.
+camera-sensor@3d
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/common/videobuf2/videobuf2-core.c | 14 ++++++++++++++
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 14 --------------
- include/media/videobuf2-core.h                  | 18 ++++++++++++++++++
- include/media/videobuf2-v4l2.h                  | 18 ------------------
- 4 files changed, 32 insertions(+), 32 deletions(-)
+Otherwise,
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index f1feb45c1e37..61e7b6407586 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -677,6 +677,20 @@ int vb2_verify_memory_type(struct vb2_queue *q,
- }
- EXPORT_SYMBOL(vb2_verify_memory_type);
- 
-+/* vb2_ops helpers. Only use if vq->lock is non-NULL. */
-+
-+void vb2_ops_wait_prepare(struct vb2_queue *vq)
-+{
-+	mutex_unlock(vq->lock);
-+}
-+EXPORT_SYMBOL_GPL(vb2_ops_wait_prepare);
-+
-+void vb2_ops_wait_finish(struct vb2_queue *vq)
-+{
-+	mutex_lock(vq->lock);
-+}
-+EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
-+
- int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 		unsigned int *count)
- {
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 886a2d8d5c6c..64503615d00b 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -947,20 +947,6 @@ unsigned long vb2_fop_get_unmapped_area(struct file *file, unsigned long addr,
- EXPORT_SYMBOL_GPL(vb2_fop_get_unmapped_area);
- #endif
- 
--/* vb2_ops helpers. Only use if vq->lock is non-NULL. */
--
--void vb2_ops_wait_prepare(struct vb2_queue *vq)
--{
--	mutex_unlock(vq->lock);
--}
--EXPORT_SYMBOL_GPL(vb2_ops_wait_prepare);
--
--void vb2_ops_wait_finish(struct vb2_queue *vq)
--{
--	mutex_lock(vq->lock);
--}
--EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
--
- MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
- MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
- MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index baa4632c7e59..137f72702101 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -403,6 +403,24 @@ struct vb2_ops {
- 	void (*buf_queue)(struct vb2_buffer *vb);
- };
- 
-+/**
-+ * vb2_ops_wait_prepare - helper function to lock a struct &vb2_queue
-+ *
-+ * @vq: pointer to &struct vb2_queue
-+ *
-+ * ..note:: only use if vq->lock is non-NULL.
-+ */
-+void vb2_ops_wait_prepare(struct vb2_queue *vq);
-+
-+/**
-+ * vb2_ops_wait_finish - helper function to unlock a struct &vb2_queue
-+ *
-+ * @vq: pointer to &struct vb2_queue
-+ *
-+ * ..note:: only use if vq->lock is non-NULL.
-+ */
-+void vb2_ops_wait_finish(struct vb2_queue *vq);
-+
- /**
-  * struct vb2_buf_ops - driver-specific callbacks.
-  *
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 3d5e2d739f05..cf83b01dc44e 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -273,22 +273,4 @@ unsigned long vb2_fop_get_unmapped_area(struct file *file, unsigned long addr,
- 		unsigned long len, unsigned long pgoff, unsigned long flags);
- #endif
- 
--/**
-- * vb2_ops_wait_prepare - helper function to lock a struct &vb2_queue
-- *
-- * @vq: pointer to &struct vb2_queue
-- *
-- * ..note:: only use if vq->lock is non-NULL.
-- */
--void vb2_ops_wait_prepare(struct vb2_queue *vq);
--
--/**
-- * vb2_ops_wait_finish - helper function to unlock a struct &vb2_queue
-- *
-- * @vq: pointer to &struct vb2_queue
-- *
-- * ..note:: only use if vq->lock is non-NULL.
-- */
--void vb2_ops_wait_finish(struct vb2_queue *vq);
--
- #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
--- 
-2.16.3
+Reviewed-by: Rob Herring <robh@kernel.org>
+
+> +		compatible = "micron,mt9t112";
+> +		reg = <0x3d>;
+> +
+> +		powerdown-gpios = <&gpio4 2 GPIO_ACTIVE_HIGH>;
+> +
+> +		port {
+> +			mt9t112_out: endpoint {
+> +				pclk-sample = <1>;
+> +				remote-endpoint = <&ceu_in>;
+> +			};
+> +		};
+> +	};
+> +
+> +
+> -- 
+> 2.7.4
+> 
