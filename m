@@ -1,81 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52954 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S935967AbeEYNwn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 09:52:43 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, andy.yeh@intel.com,
-        sebastian.reichel@collabora.co.uk
-Subject: [PATCH v2.2 2/2] smiapp: Support the "rotation" property
-Date: Fri, 25 May 2018 16:52:35 +0300
-Message-Id: <20180525135235.12386-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180525134055.11121-1-sakari.ailus@linux.intel.com>
-References: <20180525134055.11121-1-sakari.ailus@linux.intel.com>
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:36317 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755828AbeEAOLc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2018 10:11:32 -0400
+Date: Tue, 1 May 2018 09:11:30 -0500
+From: Rob Herring <robh@kernel.org>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] rcar-vin: remove generic gen3 compatible string
+Message-ID: <20180501141130.GA29499@rob-hp-laptop>
+References: <20180424234321.22367-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180424234321.22367-1-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the "rotation" property to tell that the sensor is mounted upside
-down. This reverses the behaviour of the VFLIP and HFLIP controls as well
-as the pixel order.
+On Wed, Apr 25, 2018 at 01:43:21AM +0200, Niklas Söderlund wrote:
+> The compatible string "renesas,rcar-gen3-vin" was added before the
+> Gen3 driver code was added but it's not possible to use. Each SoC in the
+> Gen3 series require SoC specific knowledge in the driver to function.
+> Remove it before it is added to any device tree descriptions.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 1 -
+>  1 file changed, 1 deletion(-)
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-since v2.2:
-
-- Fix property name in code.
-
- .../devicetree/bindings/media/i2c/nokia,smia.txt         |  2 ++
- drivers/media/i2c/smiapp/smiapp-core.c                   | 16 ++++++++++++++++
- 2 files changed, 18 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-index 33f10a94c381..6f509657470e 100644
---- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-@@ -29,6 +29,8 @@ Optional properties
- - reset-gpios: XSHUTDOWN GPIO
- - flash-leds: See ../video-interfaces.txt
- - lens-focus: See ../video-interfaces.txt
-+- rotation: Integer property; valid values are 0 (sensor mounted upright)
-+	    and 180 (sensor mounted upside down).
- 
- 
- Endpoint node mandatory properties
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index e1f8208581aa..e9e0f21efc2a 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2764,6 +2764,7 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- 	struct v4l2_fwnode_endpoint *bus_cfg;
- 	struct fwnode_handle *ep;
- 	struct fwnode_handle *fwnode = dev_fwnode(dev);
-+	u32 rotation;
- 	int i;
- 	int rval;
- 
-@@ -2800,6 +2801,21 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- 
- 	dev_dbg(dev, "lanes %u\n", hwcfg->lanes);
- 
-+	rval = fwnode_property_read_u32(fwnode, "rotation", &rotation);
-+	if (!rval) {
-+		switch (rotation) {
-+		case 180:
-+			hwcfg->module_board_orient =
-+				SMIAPP_MODULE_BOARD_ORIENT_180;
-+			/* Fall through */
-+		case 0:
-+			break;
-+		default:
-+			dev_err(dev, "invalid rotation %u\n", rotation);
-+			goto out_err;
-+		}
-+	}
-+
- 	/* NVM size is not mandatory */
- 	fwnode_property_read_u32(fwnode, "nokia,nvm-size", &hwcfg->nvm_size);
- 
--- 
-2.11.0
+Reviewed-by: Rob Herring <robh@kernel.org>
