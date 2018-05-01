@@ -1,85 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44799 "EHLO
-        homiemail-a116.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755927AbeEHVU0 (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:58447 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753848AbeEAJA5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 May 2018 17:20:26 -0400
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mspieth@digivation.com.au
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 1/5] cx23885: Handle additional bufs on interrupt
-Date: Tue,  8 May 2018 16:20:16 -0500
-Message-Id: <1525814420-25243-2-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1525814420-25243-1-git-send-email-brad@nextdimension.cc>
-References: <1525814420-25243-1-git-send-email-brad@nextdimension.cc>
+        Tue, 1 May 2018 05:00:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv12 PATCH 22/29] v4l2-mem2mem: add vb2_m2m_request_queue
+Date: Tue,  1 May 2018 11:00:44 +0200
+Message-Id: <20180501090051.9321-23-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Ryzen systems interrupts are occasionally missed:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-cx23885: cx23885_wakeup: [ffff99b384b83c00/28] wakeup reg=5406 buf=5405
-cx23885: cx23885_wakeup: [ffff99b40bf79400/31] wakeup reg=9537 buf=9536
+For mem2mem devices we have to make sure that v4l2_m2m_try_schedule()
+is called whenever a request is queued.
 
-This patch loops up to five times on wakeup, marking any buffers
-found done.
+We do that by creating a vb2_m2m_request_queue() helper that should
+be used instead of the 'normal' vb2_request_queue() helper. The m2m
+helper function will call v4l2_m2m_try_schedule() as needed.
 
-Since the count register is u16, but the vb2 counter is u32, some modulo
-arithmetic is used to accommodate wraparound and ensure current active
-buffer is the buffer expected.
+In addition we also avoid calling v4l2_m2m_try_schedule() when preparing
+or queueing a buffer for a request since that is no longer needed.
+Instead this helper function will do that when the request is actually
+queued.
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/cx23885/cx23885-core.c | 37 +++++++++++++++++++++-----------
- 1 file changed, 24 insertions(+), 13 deletions(-)
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 33 ++++++++++++++++++++++++--
+ include/media/v4l2-mem2mem.h           |  4 ++++
+ 2 files changed, 35 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
-index 019fac4..b279758 100644
---- a/drivers/media/pci/cx23885/cx23885-core.c
-+++ b/drivers/media/pci/cx23885/cx23885-core.c
-@@ -422,19 +422,30 @@ static void cx23885_wakeup(struct cx23885_tsport *port,
- 			   struct cx23885_dmaqueue *q, u32 count)
- {
- 	struct cx23885_buffer *buf;
--
--	if (list_empty(&q->active))
--		return;
--	buf = list_entry(q->active.next,
--			 struct cx23885_buffer, queue);
--
--	buf->vb.vb2_buf.timestamp = ktime_get_ns();
--	buf->vb.sequence = q->count++;
--	dprintk(1, "[%p/%d] wakeup reg=%d buf=%d\n", buf,
--		buf->vb.vb2_buf.index,
--		count, q->count);
--	list_del(&buf->queue);
--	vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
-+	int count_delta;
-+	int max_buf_done = 5; /* service maximum five buffers */
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 438f1b869319..80233bf6523a 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -395,7 +395,7 @@ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+ 	ret = vb2_qbuf(vq, vdev->v4l2_dev->mdev, buf);
+-	if (!ret)
++	if (!ret && !(buf->flags & V4L2_BUF_FLAG_IN_REQUEST))
+ 		v4l2_m2m_try_schedule(m2m_ctx);
+ 
+ 	return ret;
+@@ -421,7 +421,7 @@ int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+ 	ret = vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
+-	if (!ret)
++	if (!ret && !(buf->flags & V4L2_BUF_FLAG_IN_REQUEST))
+ 		v4l2_m2m_try_schedule(m2m_ctx);
+ 
+ 	return ret;
+@@ -701,6 +701,35 @@ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_buf_queue);
+ 
++void vb2_m2m_request_queue(struct media_request *req)
++{
++	struct media_request_object *obj;
 +
-+	do {
-+		if (list_empty(&q->active))
-+			return;
-+		buf = list_entry(q->active.next,
-+				 struct cx23885_buffer, queue);
++	list_for_each_entry(obj, &req->objects, list) {
++		struct v4l2_m2m_ctx *m2m_ctx;
++		struct vb2_buffer *vb;
 +
-+		buf->vb.vb2_buf.timestamp = ktime_get_ns();
-+		buf->vb.sequence = q->count++;
-+		if (count != (q->count % 65536)) {
-+			dprintk(1, "[%p/%d] wakeup reg=%d buf=%d\n", buf,
-+				buf->vb.vb2_buf.index, count, q->count);
-+		} else {
-+			dprintk(7, "[%p/%d] wakeup reg=%d buf=%d\n", buf,
-+				buf->vb.vb2_buf.index, count, q->count);
-+		}
-+		list_del(&buf->queue);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
-+		max_buf_done--;
-+		/* count register is 16 bits so apply modulo appropriately */
-+		count_delta = ((int)count - (int)(q->count % 65536));
-+	} while ((count_delta > 0) && (max_buf_done > 0));
++		if (!obj->ops->queue)
++			continue;
++
++		obj->ops->queue(obj);
++		if (!vb2_request_object_is_buffer(obj))
++			continue;
++
++		vb = container_of(obj, struct vb2_buffer, req_obj);
++		if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type))
++			m2m_ctx = container_of(vb->vb2_queue,
++					       struct v4l2_m2m_ctx,
++					       out_q_ctx.q);
++		else
++			m2m_ctx = container_of(vb->vb2_queue,
++					       struct v4l2_m2m_ctx,
++					       cap_q_ctx.q);
++		v4l2_m2m_try_schedule(m2m_ctx);
++	}
++}
++EXPORT_SYMBOL_GPL(vb2_m2m_request_queue);
++
+ /* Videobuf2 ioctl helpers */
+ 
+ int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 3d07ba3a8262..f01b3fc13b0e 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -580,6 +580,10 @@ v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
+ 	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
  }
  
- int cx23885_sram_channel_setup(struct cx23885_dev *dev,
++/* v4l2 request helper */
++
++void vb2_m2m_request_queue(struct media_request *req);
++
+ /* v4l2 ioctl helpers */
+ 
+ int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
 -- 
-2.7.4
+2.17.0
