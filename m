@@ -1,76 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41978 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751025AbeEBG0U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2018 02:26:20 -0400
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Wed, 02 May 2018 11:56:19 +0530
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-media-owner@vger.kernel.org
-Subject: Re: [PATCH 10/28] venus: vdec: call session_continue in insufficient
- event
-In-Reply-To: <20180424124436.26955-11-stanimir.varbanov@linaro.org>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
- <20180424124436.26955-11-stanimir.varbanov@linaro.org>
-Message-ID: <85963ca3e12f4d71f2bc2db7d601d4b2@codeaurora.org>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:45975 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753425AbeEAJAz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 May 2018 05:00:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv12 PATCH 04/29] v4l2-dev: lock req_queue_mutex
+Date: Tue,  1 May 2018 11:00:26 +0200
+Message-Id: <20180501090051.9321-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Stanimir,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 2018-04-24 18:14, Stanimir Varbanov wrote:
-> Call session_continue for Venus 4xx version even when the event
-> says that the buffer resources are not sufficient. Leaving a
-> comment with more information about the workaround.
-> 
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
->  drivers/media/platform/qcom/venus/vdec.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/drivers/media/platform/qcom/venus/vdec.c
-> b/drivers/media/platform/qcom/venus/vdec.c
-> index c45452634e7e..91c7384ff9c8 100644
-> --- a/drivers/media/platform/qcom/venus/vdec.c
-> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> @@ -873,6 +873,14 @@ static void vdec_event_notify(struct venus_inst
-> *inst, u32 event,
-> 
->  			dev_dbg(dev, "event not sufficient resources (%ux%u)\n",
->  				data->width, data->height);
-> +			/*
-> +			 * Workaround: Even that the firmware send and event for
-> +			 * insufficient buffer resources it is safe to call
-> +			 * session_continue because actually the event says that
-> +			 * the number of capture buffers is lower.
-> +			 */
-> +			if (IS_V4(core))
-> +				hfi_session_continue(inst);
->  			break;
->  		case HFI_EVENT_RELEASE_BUFFER_REFERENCE:
->  			venus_helper_release_buf_ref(inst, data->tag);
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 37 +++++++++++++++++++++++++++++-
+ 1 file changed, 36 insertions(+), 1 deletion(-)
 
-Insufficient event from video firmware could be sent either,
-1. due to insufficient buffer resources
-2. due to lower capture buffers
-
-It cannot be assumed that the event received by the host is due to lower 
-capture
-buffers. Incase the buffer resource is insufficient, let say there is a 
-bitstream
-resolution switch from 720p to 1080p, capture buffers needs to be 
-reallocated.
-
-The driver should be sending the V4L2_EVENT_SOURCE_CHANGE to client 
-instead of ignoring
-the event from firmware.
-
-Thanks,
-Vikash
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 1d0b2208e8fb..3368bd5537a7 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -353,13 +353,36 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 
+ 	if (vdev->fops->unlocked_ioctl) {
+ 		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
++		struct mutex *queue_lock = NULL;
+ 
+-		if (lock && mutex_lock_interruptible(lock))
++		/*
++		 * We need to serialize streamon/off with queuing new requests.
++		 * These ioctls may trigger the cancellation of a streaming
++		 * operation, and that should not be mixed with queuing a new
++		 * request at the same time.
++		 *
++		 * Also TRY/S_EXT_CTRLS needs this lock to correctly serialize
++		 * with MEDIA_REQUEST_IOC_QUEUE.
++		 */
++		if (vdev->v4l2_dev->mdev &&
++		    (cmd == VIDIOC_STREAMON || cmd == VIDIOC_STREAMOFF ||
++		     cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_TRY_EXT_CTRLS))
++			queue_lock = &vdev->v4l2_dev->mdev->req_queue_mutex;
++
++		if (queue_lock && mutex_lock_interruptible(queue_lock))
++			return -ERESTARTSYS;
++
++		if (lock && mutex_lock_interruptible(lock)) {
++			if (queue_lock)
++				mutex_unlock(queue_lock);
+ 			return -ERESTARTSYS;
++		}
+ 		if (video_is_registered(vdev))
+ 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+ 		if (lock)
+ 			mutex_unlock(lock);
++		if (queue_lock)
++			mutex_unlock(queue_lock);
+ 	} else
+ 		ret = -ENOTTY;
+ 
+@@ -442,8 +465,20 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 	struct video_device *vdev = video_devdata(filp);
+ 	int ret = 0;
+ 
++	/*
++	 * We need to serialize the release() with queuing new requests.
++	 * The release() may trigger the cancellation of a streaming
++	 * operation, and that should not be mixed with queuing a new
++	 * request at the same time.
++	 */
++	if (vdev->v4l2_dev->mdev)
++		mutex_lock(&vdev->v4l2_dev->mdev->req_queue_mutex);
++
+ 	if (vdev->fops->release)
+ 		ret = vdev->fops->release(filp);
++
++	if (vdev->v4l2_dev->mdev)
++		mutex_unlock(&vdev->v4l2_dev->mdev->req_queue_mutex);
+ 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+ 		printk(KERN_DEBUG "%s: release\n",
+ 			video_device_node_name(vdev));
+-- 
+2.17.0
