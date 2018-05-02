@@ -1,180 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:48312 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750938AbeEQNDE (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:34832 "EHLO
+        homiemail-a80.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751747AbeEBXUE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 09:03:04 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v9 6/8] media: vsp1: Refactor display list configure
- operations
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-References: <cover.76b8251c2457cea047ecba892cf0d7a351644051.1525354160.git-series.kieran.bingham+renesas@ideasonboard.com>
- <3c526da2424dda10560a0d40dc258263b54e122f.1525354160.git-series.kieran.bingham+renesas@ideasonboard.com>
- <1699268.4rpuBZgWBW@avalon>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <1af25186-6e4d-4f6e-daeb-e77888c18dd0@ideasonboard.com>
-Date: Thu, 17 May 2018 14:02:59 +0100
-MIME-Version: 1.0
-In-Reply-To: <1699268.4rpuBZgWBW@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+        Wed, 2 May 2018 19:20:04 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 1/2] intel-ipu3: Kconfig coding style issue
+Date: Wed,  2 May 2018 18:19:29 -0500
+Message-Id: <1525303170-6303-2-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1525303170-6303-1-git-send-email-brad@nextdimension.cc>
+References: <1525303170-6303-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Kconfig Help statements are two-spaced after a single tab.
 
-Thanks for the review,
+The incorrect spacing breaks menuconfig on older kernels.
 
-On 17/05/18 10:41, Laurent Pinchart wrote:
-> Hi Kieran,
-> 
-> Thank you for the patch.
-> 
-> On Thursday, 3 May 2018 16:35:45 EEST Kieran Bingham wrote:
->> The entities provide a single .configure operation which configures the
->> object into the target display list, based on the vsp1_entity_params
->> selection.
->>
->> Split the configure function into three parts, '.configure_stream()',
->> '.configure_frame()', and '.configure_partition()' to facilitate
->> splitting the configuration of each parameter class into separate
->> display list bodies.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> ---
->> The checkpatch warning:
->>
->> WARNING: function definition argument 'struct vsp1_dl_list *' should
->> also have an identifier name
->>
->> has been ignored to match the existing code style.
->>
->> v8:
->>  - Add support for the UIF
->>  - Remove unrelated whitespace change
->>  - Fix comment location for clu_configure_stream()
->>  - Update configure documentations
->>  - Implement configure_partition separation.
->>
->> v7
->>  - Fix formatting and white space
->>  - s/prepare/configure_stream/
->>  - s/configure/configure_frame/
->> ---
->>  drivers/media/platform/vsp1/vsp1_brx.c    |  12 +-
->>  drivers/media/platform/vsp1/vsp1_clu.c    |  77 ++----
->>  drivers/media/platform/vsp1/vsp1_drm.c    |  12 +-
->>  drivers/media/platform/vsp1/vsp1_entity.c |  24 ++-
->>  drivers/media/platform/vsp1/vsp1_entity.h |  39 +--
->>  drivers/media/platform/vsp1/vsp1_hgo.c    |  12 +-
->>  drivers/media/platform/vsp1/vsp1_hgt.c    |  12 +-
->>  drivers/media/platform/vsp1/vsp1_hsit.c   |  12 +-
->>  drivers/media/platform/vsp1/vsp1_lif.c    |  12 +-
->>  drivers/media/platform/vsp1/vsp1_lut.c    |  47 +---
->>  drivers/media/platform/vsp1/vsp1_rpf.c    | 168 ++++++-------
->>  drivers/media/platform/vsp1/vsp1_sru.c    |  12 +-
->>  drivers/media/platform/vsp1/vsp1_uds.c    |  56 ++--
->>  drivers/media/platform/vsp1/vsp1_uif.c    |  16 +-
->>  drivers/media/platform/vsp1/vsp1_video.c  |  28 +--
->>  drivers/media/platform/vsp1/vsp1_wpf.c    | 303 ++++++++++++-----------
->>  16 files changed, 422 insertions(+), 420 deletions(-)
-> 
-> [snip]
-> 
->> diff --git a/drivers/media/platform/vsp1/vsp1_clu.c
->> b/drivers/media/platform/vsp1/vsp1_clu.c index ea83f1b7d125..0a978980d447
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_clu.c
->> +++ b/drivers/media/platform/vsp1/vsp1_clu.c
->> @@ -168,58 +168,50 @@ static const struct v4l2_subdev_ops clu_ops = {
->>  /* ------------------------------------------------------------------------
->>   * VSP1 Entity Operations
->>   */
->> +static void clu_configure_stream(struct vsp1_entity *entity,
->> +				 struct vsp1_pipeline *pipe,
->> +				 struct vsp1_dl_list *dl)
->> +{
->> +	struct vsp1_clu *clu = to_clu(&entity->subdev);
->> +	struct v4l2_mbus_framefmt *format;
->>
-> 
-> I would have kept this blank line before the function.
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/pci/intel/ipu3/Kconfig | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-I would have thought I would too :)
-
-> 
->> -static void clu_configure(struct vsp1_entity *entity,
->> -			  struct vsp1_pipeline *pipe,
->> -			  struct vsp1_dl_list *dl,
->> -			  enum vsp1_entity_params params)
->> +	/*
->> +	 * The yuv_mode can't be changed during streaming. Cache it internally
->> +	 * for future runtime configuration calls.
->> +	 */
->> +	format = vsp1_entity_get_pad_format(&clu->entity,
->> +					    clu->entity.config,
->> +					    CLU_PAD_SINK);
->> +	clu->yuv_mode = format->code == MEDIA_BUS_FMT_AYUV8_1X32;
->> +}
-> 
-> [snip]
-> 
->> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c
->> b/drivers/media/platform/vsp1/vsp1_wpf.c index 65ed2f849551..da287c27b324
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
->> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-> 
-> [snip]
-> 
->> +static void wpf_configure_frame(struct vsp1_entity *entity,
->> +				struct vsp1_pipeline *pipe,
->> +				struct vsp1_dl_list *dl)
->> +{
->> +	struct vsp1_rwpf *wpf = to_rwpf(&entity->subdev);
->> +	unsigned long flags;
->> +	u32 outfmt = 0;
-> 
-> No need to initialize outfmt to 0.
-
-Ah yes, indeed!.
-
->> +
-> 
-> This blank line isn't needed.
-> 
->> +	const unsigned int mask = BIT(WPF_CTRL_VFLIP)
->> +				| BIT(WPF_CTRL_HFLIP);
->> +
->> +	spin_lock_irqsave(&wpf->flip.lock, flags);
->> +	wpf->flip.active = (wpf->flip.active & ~mask)
->> +			 | (wpf->flip.pending & mask);
->> +	spin_unlock_irqrestore(&wpf->flip.lock, flags);
->> +
->> +	outfmt = (wpf->alpha << VI6_WPF_OUTFMT_PDV_SHIFT) | wpf->outfmt;
->> +
->> +	if (wpf->flip.active & BIT(WPF_CTRL_VFLIP))
->> +		outfmt |= VI6_WPF_OUTFMT_FLP;
->> +	if (wpf->flip.active & BIT(WPF_CTRL_HFLIP))
->> +		outfmt |= VI6_WPF_OUTFMT_HFLP;
->> +
->> +	vsp1_wpf_write(wpf, dl, VI6_WPF_OUTFMT, outfmt);
->> +}
-> 
-> [snip]
-> 
-> Apart from that,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> If you agree with those small changes there's no need to resubmit, I'll fix 
-> when applying.
-
-No objections to any white-space corrections you feel are necessary.
-
-Thanks.
-
-Kieran
+diff --git a/drivers/media/pci/intel/ipu3/Kconfig b/drivers/media/pci/intel/ipu3/Kconfig
+index a82d3fe..7f5b7a5 100644
+--- a/drivers/media/pci/intel/ipu3/Kconfig
++++ b/drivers/media/pci/intel/ipu3/Kconfig
+@@ -10,10 +10,10 @@ config VIDEO_IPU3_CIO2
+ 	select VIDEOBUF2_DMA_SG
+ 
+ 	---help---
+-	This is the Intel IPU3 CIO2 CSI-2 receiver unit, found in Intel
+-	Skylake and Kaby Lake SoCs and used for capturing images and
+-	video from a camera sensor.
++	  This is the Intel IPU3 CIO2 CSI-2 receiver unit, found in Intel
++	  Skylake and Kaby Lake SoCs and used for capturing images and
++	  video from a camera sensor.
+ 
+-	Say Y or M here if you have a Skylake/Kaby Lake SoC with MIPI CSI-2
+-	connected camera.
+-	The module will be called ipu3-cio2.
++	  Say Y or M here if you have a Skylake/Kaby Lake SoC with MIPI CSI-2
++	  connected camera.
++	  The module will be called ipu3-cio2.
+-- 
+2.7.4
