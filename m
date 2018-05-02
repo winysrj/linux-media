@@ -1,94 +1,306 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0065.outbound.protection.outlook.com ([104.47.42.65]:64173
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S934498AbeE3GWF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 02:22:05 -0400
-From: Vishal Sagar <vsagar@xilinx.com>
-To: Randy Dunlap <rdunlap@infradead.org>,
-        Vishal Sagar <vishal.sagar@xilinx.com>,
-        Hyun Kwon <hyunk@xilinx.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "michal.simek@xilinx.com" <michal.simek@xilinx.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-CC: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "robh+dt@kernel.org" <robh+dt@kernel.org>,
-        "mark.rutland@arm.com" <mark.rutland@arm.com>,
-        Dinesh Kumar <dineshk@xilinx.com>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH 2/2] media: v4l: xilinx: Add Xilinx MIPI CSI-2 Rx
- Subsystem driver
-Date: Wed, 30 May 2018 06:22:02 +0000
-Message-ID: <CY4PR02MB2709A481A94CB673DC8C87EBA76C0@CY4PR02MB2709.namprd02.prod.outlook.com>
-References: <1527620084-94864-1-git-send-email-vishal.sagar@xilinx.com>
- <1527620084-94864-3-git-send-email-vishal.sagar@xilinx.com>
- <5bf470c0-8737-273e-c138-58a05d7d9a30@infradead.org>
-In-Reply-To: <5bf470c0-8737-273e-c138-58a05d7d9a30@infradead.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from relay12.mail.gandi.net ([217.70.178.232]:44831 "EHLO
+        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751121AbeEBHW3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2018 03:22:29 -0400
+Date: Wed, 2 May 2018 09:22:24 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Dave Airlie <airlied@gmail.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v3 7/8] v4l: vsp1: Integrate DISCOM in display pipeline
+Message-ID: <20180502072224.GC17527@w540>
+References: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20180428205027.18025-8-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="t0UkRYy7tHLRMCai"
+Content-Disposition: inline
+In-Reply-To: <20180428205027.18025-8-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgUmFuZHksDQoNClRoYW5rcyBmb3IgcmV2aWV3aW5nLiANCg0KPiAtLS0tLU9yaWdpbmFsIE1l
-c3NhZ2UtLS0tLQ0KPiBGcm9tOiBSYW5keSBEdW5sYXAgW21haWx0bzpyZHVubGFwQGluZnJhZGVh
-ZC5vcmddDQo+IFNlbnQ6IFdlZG5lc2RheSwgTWF5IDMwLCAyMDE4IDE6MjkgQU0NCj4gVG86IFZp
-c2hhbCBTYWdhciA8dmlzaGFsLnNhZ2FyQHhpbGlueC5jb20+OyBIeXVuIEt3b24gPGh5dW5rQHhp
-bGlueC5jb20+Ow0KPiBsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb207IG1pY2hhbC5z
-aW1la0B4aWxpbnguY29tOyBsaW51eC0NCj4gbWVkaWFAdmdlci5rZXJuZWwub3JnOyBkZXZpY2V0
-cmVlQHZnZXIua2VybmVsLm9yZw0KPiBDYzogc2FrYXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbTsg
-aGFucy52ZXJrdWlsQGNpc2NvLmNvbTsNCj4gbWNoZWhhYkBrZXJuZWwub3JnOyByb2JoK2R0QGtl
-cm5lbC5vcmc7IG1hcmsucnV0bGFuZEBhcm0uY29tOyBEaW5lc2gNCj4gS3VtYXIgPGRpbmVzaGtA
-eGlsaW54LmNvbT47IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsgbGludXgt
-DQo+IGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSCAyLzJdIG1l
-ZGlhOiB2NGw6IHhpbGlueDogQWRkIFhpbGlueCBNSVBJIENTSS0yIFJ4IFN1YnN5c3RlbQ0KPiBk
-cml2ZXINCj4gDQo+IE9uIDA1LzI5LzIwMTggMTE6NTQgQU0sIFZpc2hhbCBTYWdhciB3cm90ZToN
-Cj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFZpc2hhbCBTYWdhciA8dmlzaGFsLnNhZ2FyQHhpbGlu
-eC5jb20+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0veGlsaW54L0tjb25m
-aWcgICAgICAgICAgIHwgICAxMiArDQo+ID4gIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0veGlsaW54
-L01ha2VmaWxlICAgICAgICAgIHwgICAgMSArDQo+ID4gIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0v
-eGlsaW54L3hpbGlueC1jc2kycnhzcy5jIHwgMTc1MQ0KPiArKysrKysrKysrKysrKysrKysrKysr
-Kw0KPiA+ICBpbmNsdWRlL3VhcGkvbGludXgveGlsaW54LWNzaTJyeHNzLmggICAgICAgICAgICB8
-ICAgMjUgKw0KPiA+ICBpbmNsdWRlL3VhcGkvbGludXgveGlsaW54LXY0bDItY29udHJvbHMuaCAg
-ICAgICB8ICAgMTQgKw0KPiA+ICA1IGZpbGVzIGNoYW5nZWQsIDE4MDMgaW5zZXJ0aW9ucygrKQ0K
-PiA+ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS94aWxpbngveGls
-aW54LWNzaTJyeHNzLmMNCj4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGluY2x1ZGUvdWFwaS9saW51
-eC94aWxpbngtY3NpMnJ4c3MuaA0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEv
-cGxhdGZvcm0veGlsaW54L0tjb25maWcNCj4gYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3hpbGlu
-eC9LY29uZmlnDQo+ID4gaW5kZXggYTVkMjFiNy4uMDZkNTk0NCAxMDA2NDQNCj4gPiAtLS0gYS9k
-cml2ZXJzL21lZGlhL3BsYXRmb3JtL3hpbGlueC9LY29uZmlnDQo+ID4gKysrIGIvZHJpdmVycy9t
-ZWRpYS9wbGF0Zm9ybS94aWxpbngvS2NvbmZpZw0KPiA+IEBAIC04LDYgKzgsMTggQEAgY29uZmln
-IFZJREVPX1hJTElOWA0KPiA+DQo+ID4gIGlmIFZJREVPX1hJTElOWA0KPiA+DQo+ID4gK2NvbmZp
-ZyBWSURFT19YSUxJTlhfQ1NJMlJYU1MNCj4gPiArICAgICAgIHRyaXN0YXRlICJYaWxpbnggQ1NJ
-MiBSeCBTdWJzeXN0ZW0iDQo+ID4gKyAgICAgICBkZXBlbmRzIG9uIFZJREVPX1hJTElOWA0KPiA+
-ICsgICAgICAgaGVscA0KPiA+ICsgICAgICAgICBEcml2ZXIgZm9yIFhpbGlueCBNSVBJIENTSTIg
-UnggU3Vic3lzdGVtLiBUaGlzIGlzIGEgVjRMIHN1Yi1kZXZpY2UNCj4gPiArICAgICAgICAgYmFz
-ZWQgZHJpdmVyIHRoYXQgdGFrZXMgaW5wdXQgZnJvbSBDU0kyIFR4IHNvdXJjZSBhbmQgY29udmVy
-dHMNCj4gPiArICAgICAgICAgaXQgaW50byBhbiBBWEk0LVN0cmVhbS4gSXQgaGFzIGEgRFBIWSAo
-d2hvc2UgcmVnaXN0ZXIgaW50ZXJmYWNlDQo+ID4gKyAgICAgICAgIGNhbiBiZSBlbmFibGVkLCBh
-biBvcHRpb25hbCBJMkMgY29udHJvbGxlciBhbmQgYW4gb3B0aW9uYWwgVmlkZW8NCj4gDQo+IAkg
-ICAgY2FuIGJlIGVuYWJsZWQpLA0KPiANCg0KTm90ZWQuIEkgd2lsbCB1cGRhdGUgaW4gbmV4dCBy
-ZXZpc2lvbiBvZiBwYXRjaC4NCg0KPiA+ICsgICAgICAgICBGb3JtYXQgQnJpZGdlIHdoaWNoIGNv
-bnZlcnRzIHRoZSBBWEk0LVN0cmVhbSBkYXRhIHRvIFhpbGlueCBWaWRlbw0KPiA+ICsgICAgICAg
-ICBCdXMgZm9ybWF0cyBiYXNlZCBvbiBVRzkzNC4gVGhlIGRyaXZlciBpcyB1c2VkIHRvIHNldCB0
-aGUgbnVtYmVyDQo+ID4gKyAgICAgICAgIG9mIGFjdGl2ZSBsYW5lcyBhbmQgZ2V0IHNob3J0IHBh
-Y2tldCBkYXRhLg0KPiA+ICsNCj4gPiAgY29uZmlnIFZJREVPX1hJTElOWF9UUEcNCj4gPiAgICAg
-ICAgIHRyaXN0YXRlICJYaWxpbnggVmlkZW8gVGVzdCBQYXR0ZXJuIEdlbmVyYXRvciINCj4gPiAg
-ICAgICAgIGRlcGVuZHMgb24gVklERU9fWElMSU5YDQo+IA0KPiANCj4gDQo+ID4gVGhpcyBlbWFp
-bCBhbmQgYW55IGF0dGFjaG1lbnRzIGFyZSBpbnRlbmRlZCBmb3IgdGhlIHNvbGUgdXNlIG9mIHRo
-ZSBuYW1lZA0KPiByZWNpcGllbnQocykgYW5kIGNvbnRhaW4ocykgY29uZmlkZW50aWFsIGluZm9y
-bWF0aW9uIHRoYXQgbWF5IGJlIHByb3ByaWV0YXJ5LA0KPiBwcml2aWxlZ2VkIG9yIGNvcHlyaWdo
-dGVkIHVuZGVyIGFwcGxpY2FibGUgbGF3LiBJZiB5b3UgYXJlIG5vdCB0aGUgaW50ZW5kZWQNCj4g
-cmVjaXBpZW50LCBkbyBub3QgcmVhZCwgY29weSwgb3IgZm9yd2FyZCB0aGlzIGVtYWlsIG1lc3Nh
-Z2Ugb3IgYW55IGF0dGFjaG1lbnRzLg0KPiBEZWxldGUgdGhpcyBlbWFpbCBtZXNzYWdlIGFuZCBh
-bnkgYXR0YWNobWVudHMgaW1tZWRpYXRlbHkuDQo+IA0KPiA6KA0KPiANCg0KU29ycnkgYWJvdXQg
-dGhhdC4NCkkgd2lsbCB3b3JrIHdpdGggSVQgb24gZ2V0dGluZyB0aGlzIHJlbW92ZWQgYmVmb3Jl
-IHNlbmRpbmcgdjIgZm9yIHRoZSBwYXRjaGVzLg0KDQotLSBWaXNoYWwgDQoNCj4gLS0NCj4gflJh
-bmR5DQo=
+
+--t0UkRYy7tHLRMCai
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Hi Laurent,
+    thanks for addressing comments on v2
+
+On Sat, Apr 28, 2018 at 11:50:26PM +0300, Laurent Pinchart wrote:
+> The DISCOM is used to compute CRCs on display frames. Integrate it in
+> the display pipeline at the output of the blending unit to process
+> output frames.
+>
+> Computing CRCs on input frames is possible by positioning the DISCOM at
+> a different point in the pipeline. This use case isn't supported at the
+> moment and could be implemented by extending the API between the VSP1
+> and DU drivers if needed.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
+Thanks
+   j
+
+> ---
+> Changes since v2:
+>
+> - Reduce indentation in vsp1_du_insert_uif()
+> - Use vsp1_du_crc_config structure in vsp1_drm_pipeline
+> ---
+>  drivers/media/platform/vsp1/vsp1_drm.c | 115 ++++++++++++++++++++++++++++++++-
+>  drivers/media/platform/vsp1/vsp1_drm.h |   7 ++
+>  2 files changed, 119 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index 5fc31578f9b0..08667e3640b2 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -22,6 +22,7 @@
+>  #include "vsp1_lif.h"
+>  #include "vsp1_pipe.h"
+>  #include "vsp1_rwpf.h"
+> +#include "vsp1_uif.h"
+>
+>  #define BRX_NAME(e)	(e)->type == VSP1_ENTITY_BRU ? "BRU" : "BRS"
+>
+> @@ -35,8 +36,13 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
+>  	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
+>  	bool complete = completion == VSP1_DL_FRAME_END_COMPLETED;
+>
+> -	if (drm_pipe->du_complete)
+> -		drm_pipe->du_complete(drm_pipe->du_private, complete, 0);
+> +	if (drm_pipe->du_complete) {
+> +		struct vsp1_entity *uif = drm_pipe->uif;
+> +		u32 crc;
+> +
+> +		crc = uif ? vsp1_uif_get_crc(to_uif(&uif->subdev)) : 0;
+> +		drm_pipe->du_complete(drm_pipe->du_private, complete, crc);
+> +	}
+>
+>  	if (completion & VSP1_DL_FRAME_END_INTERNAL) {
+>  		drm_pipe->force_brx_release = false;
+> @@ -48,10 +54,66 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
+>   * Pipeline Configuration
+>   */
+>
+> +/*
+> + * Insert the UIF in the pipeline between the prev and next entities. If no UIF
+> + * is available connect the two entities directly.
+> + */
+> +static int vsp1_du_insert_uif(struct vsp1_device *vsp1,
+> +			      struct vsp1_pipeline *pipe,
+> +			      struct vsp1_entity *uif,
+> +			      struct vsp1_entity *prev, unsigned int prev_pad,
+> +			      struct vsp1_entity *next, unsigned int next_pad)
+> +{
+> +	struct v4l2_subdev_format format;
+> +	int ret;
+> +
+> +	if (!uif) {
+> +		/*
+> +		 * If there's no UIF to bee inserted connected the previous and
+> +		 * next entities directly.
+> +		 */
+> +		prev->sink = next;
+> +		prev->sink_pad = next_pad;
+> +		return 0;
+> +	}
+> +
+> +	prev->sink = uif;
+> +	prev->sink_pad = UIF_PAD_SINK;
+> +
+> +	memset(&format, 0, sizeof(format));
+> +	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> +	format.pad = prev_pad;
+> +
+> +	ret = v4l2_subdev_call(&prev->subdev, pad, get_fmt, NULL, &format);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	format.pad = UIF_PAD_SINK;
+> +
+> +	ret = v4l2_subdev_call(&uif->subdev, pad, set_fmt, NULL, &format);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on UIF sink\n",
+> +		__func__, format.format.width, format.format.height,
+> +		format.format.code);
+> +
+> +	/*
+> +	 * The UIF doesn't mangle the format between its sink and source pads,
+> +	 * so there is no need to retrieve the format on its source pad.
+> +	 */
+> +
+> +	uif->sink = next;
+> +	uif->sink_pad = next_pad;
+> +
+> +	return 0;
+> +}
+> +
+>  /* Setup one RPF and the connected BRx sink pad. */
+>  static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
+>  				      struct vsp1_pipeline *pipe,
+>  				      struct vsp1_rwpf *rpf,
+> +				      struct vsp1_entity *uif,
+>  				      unsigned int brx_input)
+>  {
+>  	struct v4l2_subdev_selection sel;
+> @@ -122,6 +184,12 @@ static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
+>  	if (ret < 0)
+>  		return ret;
+>
+> +	/* Insert and configure the UIF if available. */
+> +	ret = vsp1_du_insert_uif(vsp1, pipe, uif, &rpf->entity, RWPF_PAD_SOURCE,
+> +				 pipe->brx, brx_input);
+> +	if (ret < 0)
+> +		return ret;
+> +
+>  	/* BRx sink, propagate the format from the RPF source. */
+>  	format.pad = brx_input;
+>
+> @@ -297,7 +365,10 @@ static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
+>  static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
+>  					struct vsp1_pipeline *pipe)
+>  {
+> +	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
+>  	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
+> +	struct vsp1_entity *uif;
+> +	bool use_uif = false;
+>  	struct vsp1_brx *brx;
+>  	unsigned int i;
+>  	int ret;
+> @@ -358,7 +429,11 @@ static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
+>  		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
+>  			__func__, rpf->entity.index, BRX_NAME(pipe->brx), i);
+>
+> -		ret = vsp1_du_pipeline_setup_rpf(vsp1, pipe, rpf, i);
+> +		uif = drm_pipe->crc.source == VSP1_DU_CRC_PLANE &&
+> +		      drm_pipe->crc.index == i ? drm_pipe->uif : NULL;
+> +		if (uif)
+> +			use_uif = true;
+> +		ret = vsp1_du_pipeline_setup_rpf(vsp1, pipe, rpf, uif, i);
+>  		if (ret < 0) {
+>  			dev_err(vsp1->dev,
+>  				"%s: failed to setup RPF.%u\n",
+> @@ -367,6 +442,31 @@ static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
+>  		}
+>  	}
+>
+> +	/* Insert and configure the UIF at the BRx output if available. */
+> +	uif = drm_pipe->crc.source == VSP1_DU_CRC_OUTPUT ? drm_pipe->uif : NULL;
+> +	if (uif)
+> +		use_uif = true;
+> +	ret = vsp1_du_insert_uif(vsp1, pipe, uif,
+> +				 pipe->brx, pipe->brx->source_pad,
+> +				 &pipe->output->entity, 0);
+> +	if (ret < 0)
+> +		dev_err(vsp1->dev, "%s: failed to setup UIF after %s\n",
+> +			__func__, BRX_NAME(pipe->brx));
+> +
+> +	/*
+> +	 * If the UIF is not in use schedule it for removal by setting its pipe
+> +	 * pointer to NULL, vsp1_du_pipeline_configure() will remove it from the
+> +	 * hardware pipeline and from the pipeline's list of entities. Otherwise
+> +	 * make sure it is present in the pipeline's list of entities if it
+> +	 * wasn't already.
+> +	 */
+> +	if (!use_uif) {
+> +		drm_pipe->uif->pipe = NULL;
+> +	} else if (!drm_pipe->uif->pipe) {
+> +		drm_pipe->uif->pipe = pipe;
+> +		list_add_tail(&drm_pipe->uif->list_pipe, &pipe->entities);
+> +	}
+> +
+>  	return 0;
+>  }
+>
+> @@ -748,6 +848,8 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
+>  	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
+>  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
+>
+> +	drm_pipe->crc = cfg->crc;
+> +
+>  	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
+>  	vsp1_du_pipeline_configure(pipe);
+>  	mutex_unlock(&vsp1->drm->lock);
+> @@ -816,6 +918,13 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
+>
+>  		pipe->lif->pipe = pipe;
+>  		list_add_tail(&pipe->lif->list_pipe, &pipe->entities);
+> +
+> +		/*
+> +		 * CRC computation is initially disabled, don't add the UIF to
+> +		 * the pipeline.
+> +		 */
+> +		if (i < vsp1->info->uif_count)
+> +			drm_pipe->uif = &vsp1->uif[i]->entity;
+>  	}
+>
+>  	/* Disable all RPFs initially. */
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+> index e5b88b28806c..8dfd274a59e2 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.h
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.h
+> @@ -13,6 +13,8 @@
+>  #include <linux/videodev2.h>
+>  #include <linux/wait.h>
+>
+> +#include <media/vsp1.h>
+> +
+>  #include "vsp1_pipe.h"
+>
+>  /**
+> @@ -22,6 +24,8 @@
+>   * @height: output display height
+>   * @force_brx_release: when set, release the BRx during the next reconfiguration
+>   * @wait_queue: wait queue to wait for BRx release completion
+> + * @uif: UIF entity if available for the pipeline
+> + * @crc: CRC computation configuration
+>   * @du_complete: frame completion callback for the DU driver (optional)
+>   * @du_private: data to be passed to the du_complete callback
+>   */
+> @@ -34,6 +38,9 @@ struct vsp1_drm_pipeline {
+>  	bool force_brx_release;
+>  	wait_queue_head_t wait_queue;
+>
+> +	struct vsp1_entity *uif;
+> +	struct vsp1_du_crc_config crc;
+> +
+>  	/* Frame synchronisation */
+>  	void (*du_complete)(void *data, bool completed, u32 crc);
+>  	void *du_private;
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+
+--t0UkRYy7tHLRMCai
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJa6WcwAAoJEHI0Bo8WoVY8/esP/38vUOYUHOusRNbxCHLKIq1I
+9sGGKK0fEOCSyjH15tG5LoUJAIVMSvMK1kGHRx2sIn5OeX9Z9GZ4VRHoJyqupw/D
+z5e4ffbXkyNlerXprVYhHFQ/ciDFJjKmjPxeRDuAA1FDB067jxAEBr7ij6gRILnj
++1lf3tQJ3JwkRd/C/HSKUdLrUJqeg42u8+xvwtNp3aTz38sfbmKmSc2AIydxTImq
+2YEIoZgcY3upZA6u/qOhIBlJAQDtIsv0oAk6s7PFEgzwu8Eygdy8mmZ/Ba/uWJy2
+zxL+d7aza19Q7kiP8Ij9wyPH0l3imySXcBjwdXF2O9sS/o7lOybWjqg1X5wZAda0
+fPp3v3Ovo5zLmsxXILRAAGdXoFAWHwHTXOrEZY1eUVbYBduxz1NM0tdi7FLSAFi5
+Eq56YeZVhP7y06KP0PaJwPqzwsMRi5PbrlSoPyEcFuEulCTmV8e1yUOcU/G5NfDM
+UvSshN+2VbU7bSTEEIE6+rWpkKMDxRH3i8jZt1n4VhPdJPoHOkoUztnJu4lxxBc/
+Zb6rr1CnOAPW25RN/TkKhI+KOmXHoE1M5ianTHwgmCXGgn2KFMKEX2WvXjRn2m5E
++n1nv+mJFS5jWCiwVOWRf1flN8o0B1PWHqnUv7XDxA5YzFp3mpHofZ8pTcX//Z8+
+IrNX+4SvUzggZfcDqs90
+=GcxM
+-----END PGP SIGNATURE-----
+
+--t0UkRYy7tHLRMCai--
