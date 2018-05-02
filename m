@@ -1,170 +1,587 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:40797 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751999AbeEROl1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 10:41:27 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 3/9] media: rcar-vin: Create a group notifier
-Date: Fri, 18 May 2018 16:40:39 +0200
-Message-Id: <1526654445-10702-4-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1526654445-10702-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1526654445-10702-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:34330 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750800AbeEBOE7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2018 10:04:59 -0400
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Wed, 02 May 2018 19:34:58 +0530
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-media-owner@vger.kernel.org
+Subject: Re: [PATCH 26/28] venus: implementing multi-stream support
+In-Reply-To: <427fce2a602af600a87434b8e70c4f6903708fb2.camel@ndufresne.ca>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+ <20180424124436.26955-27-stanimir.varbanov@linaro.org>
+ <d3611ce941e71fd901cce70da89f9ab4@codeaurora.org>
+ <427fce2a602af600a87434b8e70c4f6903708fb2.camel@ndufresne.ca>
+Message-ID: <923055039e9439d35fa6d303266d54d7@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As CSI-2 subdevices are shared between several VIN instances, a shared
-notifier to collect the CSI-2 async subdevices is required. So far, the
-rcar-vin driver used the notifier of the last VIN instance to probe but
-with the forth-coming introduction of parallel input subdevices support
-in mc-compliant code path, each VIN may register its own notifier if any
-parallel subdevice is connected there.
+On 2018-05-02 18:58, Nicolas Dufresne wrote:
+> Le mercredi 02 mai 2018 à 13:10 +0530, Vikash Garodia a écrit :
+>> Hello Stanimir,
+>> 
+>> On 2018-04-24 18:14, Stanimir Varbanov wrote:
+>> > This is implementing a multi-stream decoder support. The multi
+>> > stream gives an option to use the secondary decoder output
+>> > with different raw format (or the same in case of crop).
+>> >
+>> > Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> > ---
+>> >  drivers/media/platform/qcom/venus/core.h    |   1 +
+>> >  drivers/media/platform/qcom/venus/helpers.c | 204
+>> > +++++++++++++++++++++++++++-
+>> >  drivers/media/platform/qcom/venus/helpers.h |   6 +
+>> >  drivers/media/platform/qcom/venus/vdec.c    |  91 ++++++++++++-
+>> >  drivers/media/platform/qcom/venus/venc.c    |   1 +
+>> >  5 files changed, 299 insertions(+), 4 deletions(-)
+>> >
+>> > diff --git a/drivers/media/platform/qcom/venus/core.h
+>> > b/drivers/media/platform/qcom/venus/core.h
+>> > index 4d6c05f156c4..85e66e2dd672 100644
+>> > --- a/drivers/media/platform/qcom/venus/core.h
+>> > +++ b/drivers/media/platform/qcom/venus/core.h
+>> > @@ -259,6 +259,7 @@ struct venus_inst {
+>> >  	struct list_head list;
+>> >  	struct mutex lock;
+>> >  	struct venus_core *core;
+>> > +	struct list_head dpbbufs;
+>> >  	struct list_head internalbufs;
+>> >  	struct list_head registeredbufs;
+>> >  	struct list_head delayed_process;
+>> > diff --git a/drivers/media/platform/qcom/venus/helpers.c
+>> > b/drivers/media/platform/qcom/venus/helpers.c
+>> > index ed569705ecac..87dcf9973e6f 100644
+>> > --- a/drivers/media/platform/qcom/venus/helpers.c
+>> > +++ b/drivers/media/platform/qcom/venus/helpers.c
+>> > @@ -85,6 +85,112 @@ bool venus_helper_check_codec(struct venus_inst
+>> > *inst, u32 v4l2_pixfmt)
+>> >  }
+>> >  EXPORT_SYMBOL_GPL(venus_helper_check_codec);
+>> >
+>> > +static int venus_helper_queue_dpb_bufs(struct venus_inst *inst)
+>> > +{
+>> > +	struct intbuf *buf;
+>> > +	int ret = 0;
+>> > +
+>> > +	if (list_empty(&inst->dpbbufs))
+>> > +		return 0;
+>> > +
+>> > +	list_for_each_entry(buf, &inst->dpbbufs, list) {
+>> > +		struct hfi_frame_data fdata;
+>> > +
+>> > +		memset(&fdata, 0, sizeof(fdata));
+>> > +		fdata.alloc_len = buf->size;
+>> > +		fdata.device_addr = buf->da;
+>> > +		fdata.buffer_type = buf->type;
+>> > +
+>> > +		ret = hfi_session_process_buf(inst, &fdata);
+>> > +		if (ret)
+>> > +			goto fail;
+>> > +	}
+>> > +
+>> > +fail:
+>> > +	return ret;
+>> > +}
+>> > +
+>> > +int venus_helper_free_dpb_bufs(struct venus_inst *inst)
+>> > +{
+>> > +	struct intbuf *buf, *n;
+>> > +
+>> > +	if (list_empty(&inst->dpbbufs))
+>> > +		return 0;
+>> > +
+>> > +	list_for_each_entry_safe(buf, n, &inst->dpbbufs, list) {
+>> > +		list_del_init(&buf->list);
+>> > +		dma_free_attrs(inst->core->dev, buf->size, buf-
+>> > >va, buf->da,
+>> > +			       buf->attrs);
+>> > +		kfree(buf);
+>> > +	}
+>> > +
+>> > +	INIT_LIST_HEAD(&inst->dpbbufs);
+>> > +
+>> > +	return 0;
+>> > +}
+>> > +EXPORT_SYMBOL_GPL(venus_helper_free_dpb_bufs);
+>> > +
+>> > +int venus_helper_alloc_dpb_bufs(struct venus_inst *inst)
+>> > +{
+>> > +	struct venus_core *core = inst->core;
+>> > +	struct device *dev = core->dev;
+>> > +	enum hfi_version ver = core->res->hfi_version;
+>> > +	struct hfi_buffer_requirements bufreq;
+>> > +	u32 buftype = inst->dpb_buftype;
+>> > +	unsigned int dpb_size = 0;
+>> > +	struct intbuf *buf;
+>> > +	unsigned int i;
+>> > +	u32 count;
+>> > +	int ret;
+>> > +
+>> > +	/* no need to allocate dpb buffers */
+>> > +	if (!inst->dpb_fmt)
+>> > +		return 0;
+>> > +
+>> > +	if (inst->dpb_buftype == HFI_BUFFER_OUTPUT)
+>> > +		dpb_size = inst->output_buf_size;
+>> > +	else if (inst->dpb_buftype == HFI_BUFFER_OUTPUT2)
+>> > +		dpb_size = inst->output2_buf_size;
+>> > +
+>> > +	if (!dpb_size)
+>> > +		return 0;
+>> > +
+>> > +	ret = venus_helper_get_bufreq(inst, buftype, &bufreq);
+>> > +	if (ret)
+>> > +		return ret;
+>> > +
+>> > +	count = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
+>> > +
+>> > +	for (i = 0; i < count; i++) {
+>> > +		buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+>> > +		if (!buf) {
+>> > +			ret = -ENOMEM;
+>> > +			goto fail;
+>> > +		}
+>> > +
+>> > +		buf->type = buftype;
+>> > +		buf->size = dpb_size;
+>> > +		buf->attrs = DMA_ATTR_WRITE_COMBINE |
+>> > +			     DMA_ATTR_NO_KERNEL_MAPPING;
+>> > +		buf->va = dma_alloc_attrs(dev, buf->size, &buf-
+>> > >da, GFP_KERNEL,
+>> > +					  buf->attrs);
+>> > +		if (!buf->va) {
+>> > +			kfree(buf);
+>> > +			ret = -ENOMEM;
+>> > +			goto fail;
+>> > +		}
+>> > +
+>> > +		list_add_tail(&buf->list, &inst->dpbbufs);
+>> > +	}
+>> > +
+>> > +	return 0;
+>> > +
+>> > +fail:
+>> > +	venus_helper_free_dpb_bufs(inst);
+>> > +	return ret;
+>> > +}
+>> > +EXPORT_SYMBOL_GPL(venus_helper_alloc_dpb_bufs);
+>> > +
+>> >  static int intbufs_set_buffer(struct venus_inst *inst, u32 type)
+>> >  {
+>> >  	struct venus_core *core = inst->core;
+>> > @@ -342,7 +448,10 @@ session_process_buf(struct venus_inst *inst,
+>> > struct vb2_v4l2_buffer *vbuf)
+>> >  		if (vbuf->flags & V4L2_BUF_FLAG_LAST ||
+>> > !fdata.filled_len)
+>> >  			fdata.flags |= HFI_BUFFERFLAG_EOS;
+>> >  	} else if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+>> > -		fdata.buffer_type = HFI_BUFFER_OUTPUT;
+>> > +		if (inst->session_type == VIDC_SESSION_TYPE_ENC)
+>> > +			fdata.buffer_type = HFI_BUFFER_OUTPUT;
+>> > +		else
+>> > +			fdata.buffer_type = inst->opb_buftype;
+>> >  		fdata.filled_len = 0;
+>> >  		fdata.offset = 0;
+>> >  	}
+>> > @@ -675,6 +784,27 @@ int venus_helper_set_color_format(struct
+>> > venus_inst *inst, u32 pixfmt)
+>> >  }
+>> >  EXPORT_SYMBOL_GPL(venus_helper_set_color_format);
+>> >
+>> > +int venus_helper_set_multistream(struct venus_inst *inst, bool
+>> > out_en,
+>> > +				 bool out2_en)
+>> > +{
+>> > +	struct hfi_multi_stream multi = {0};
+>> > +	u32 ptype = HFI_PROPERTY_PARAM_VDEC_MULTI_STREAM;
+>> > +	int ret;
+>> > +
+>> > +	multi.buffer_type = HFI_BUFFER_OUTPUT;
+>> > +	multi.enable = out_en;
+>> > +
+>> > +	ret = hfi_session_set_property(inst, ptype, &multi);
+>> > +	if (ret)
+>> > +		return ret;
+>> > +
+>> > +	multi.buffer_type = HFI_BUFFER_OUTPUT2;
+>> > +	multi.enable = out2_en;
+>> > +
+>> > +	return hfi_session_set_property(inst, ptype, &multi);
+>> > +}
+>> > +EXPORT_SYMBOL_GPL(venus_helper_set_multistream);
+>> > +
+>> >  int venus_helper_set_dyn_bufmode(struct venus_inst *inst)
+>> >  {
+>> >  	u32 ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
+>> > @@ -822,9 +952,10 @@ EXPORT_SYMBOL_GPL(venus_helper_vb2_buf_init);
+>> >  int venus_helper_vb2_buf_prepare(struct vb2_buffer *vb)
+>> >  {
+>> >  	struct venus_inst *inst = vb2_get_drv_priv(vb->vb2_queue);
+>> > +	unsigned int out_buf_size =
+>> > venus_helper_get_opb_size(inst);
+>> >
+>> >  	if (vb->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
+>> > -	    vb2_plane_size(vb, 0) < inst->output_buf_size)
+>> > +	    vb2_plane_size(vb, 0) < out_buf_size)
+>> >  		return -EINVAL;
+>> >  	if (vb->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
+>> >  	    vb2_plane_size(vb, 0) < inst->input_buf_size)
+>> > @@ -894,6 +1025,8 @@ void venus_helper_vb2_stop_streaming(struct
+>> > vb2_queue *q)
+>> >  		if (ret)
+>> >  			hfi_session_abort(inst);
+>> >
+>> > +		venus_helper_free_dpb_bufs(inst);
+>> > +
+>> >  		load_scale_clocks(core);
+>> >  		INIT_LIST_HEAD(&inst->registeredbufs);
+>> >  	}
+>> > @@ -932,8 +1065,14 @@ int venus_helper_vb2_start_streaming(struct
+>> > venus_inst *inst)
+>> >  	if (ret)
+>> >  		goto err_unload_res;
+>> >
+>> > +	ret = venus_helper_queue_dpb_bufs(inst);
+>> > +	if (ret)
+>> > +		goto err_session_stop;
+>> > +
+>> >  	return 0;
+>> >
+>> > +err_session_stop:
+>> > +	hfi_session_stop(inst);
+>> >  err_unload_res:
+>> >  	hfi_session_unload_res(inst);
+>> >  err_unreg_bufs:
+>> > @@ -987,6 +1126,67 @@ void venus_helper_init_instance(struct
+>> > venus_inst
+>> > *inst)
+>> >  }
+>> >  EXPORT_SYMBOL_GPL(venus_helper_init_instance);
+>> >
+>> > +static bool find_fmt_from_caps(struct venus_caps *caps, u32
+>> > buftype,
+>> > u32 fmt)
+>> > +{
+>> > +	unsigned int i;
+>> > +
+>> > +	for (i = 0; i < caps->num_fmts; i++) {
+>> > +		if (caps->fmts[i].buftype == buftype &&
+>> > +		    caps->fmts[i].fmt == fmt)
+>> > +			return true;
+>> > +	}
+>> > +
+>> > +	return false;
+>> > +}
+>> > +
+>> > +int venus_helper_get_out_fmts(struct venus_inst *inst, u32
+>> > v4l2_fmt,
+>> > +			      u32 *out_fmt, u32 *out2_fmt, bool
+>> > ubwc)
+>> > +{
+>> > +	struct venus_core *core = inst->core;
+>> > +	struct venus_caps *caps;
+>> > +	u32 ubwc_fmt, fmt = to_hfi_raw_fmt(v4l2_fmt);
+>> > +	bool found, found_ubwc;
+>> > +
+>> > +	*out_fmt = *out2_fmt = 0;
+>> > +
+>> > +	if (!fmt)
+>> > +		return -EINVAL;
+>> > +
+>> > +	caps = venus_caps_by_codec(core, inst->hfi_codec,
+>> > inst->session_type);
+>> > +	if (!caps)
+>> > +		return -EINVAL;
+>> > +
+>> > +	if (ubwc) {
+>> > +		ubwc_fmt = fmt | HFI_COLOR_FORMAT_UBWC_BASE;
+>> > +		found_ubwc = find_fmt_from_caps(caps,
+>> > HFI_BUFFER_OUTPUT,
+>> > +						ubwc_fmt);
+>> > +		found = find_fmt_from_caps(caps,
+>> > HFI_BUFFER_OUTPUT2, fmt);
+>> > +
+>> > +		if (found_ubwc && found) {
+>> > +			*out_fmt = ubwc_fmt;
+>> > +			*out2_fmt = fmt;
+>> > +			return 0;
+>> > +		}
+>> > +	}
+>> > +
+>> > +	found = find_fmt_from_caps(caps, HFI_BUFFER_OUTPUT, fmt);
+>> > +	if (found) {
+>> > +		*out_fmt = fmt;
+>> > +		*out2_fmt = 0;
+>> > +		return 0;
+>> > +	}
+>> > +
+>> > +	found = find_fmt_from_caps(caps, HFI_BUFFER_OUTPUT2, fmt);
+>> > +	if (found) {
+>> > +		*out_fmt = 0;
+>> > +		*out2_fmt = fmt;
+>> > +		return 0;
+>> > +	}
+>> > +
+>> > +	return -EINVAL;
+>> > +}
+>> > +EXPORT_SYMBOL_GPL(venus_helper_get_out_fmts);
+>> > +
+>> >  int venus_helper_power_enable(struct venus_core *core, u32
+>> > session_type,
+>> >  			      bool enable)
+>> >  {
+>> > diff --git a/drivers/media/platform/qcom/venus/helpers.h
+>> > b/drivers/media/platform/qcom/venus/helpers.h
+>> > index 92b167a47166..2475f284f396 100644
+>> > --- a/drivers/media/platform/qcom/venus/helpers.h
+>> > +++ b/drivers/media/platform/qcom/venus/helpers.h
+>> > @@ -50,10 +50,16 @@ int venus_helper_set_raw_format(struct
+>> > venus_inst
+>> > *inst, u32 hfi_format,
+>> >  int venus_helper_set_color_format(struct venus_inst *inst, u32
+>> > fmt);
+>> >  int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
+>> >  int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize,
+>> > u32 buftype);
+>> > +int venus_helper_set_multistream(struct venus_inst *inst, bool
+>> > out_en,
+>> > +				 bool out2_en);
+>> >  unsigned int venus_helper_get_opb_size(struct venus_inst *inst);
+>> >  void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+>> >  void venus_helper_release_buf_ref(struct venus_inst *inst,
+>> > unsigned
+>> > int idx);
+>> >  void venus_helper_init_instance(struct venus_inst *inst);
+>> > +int venus_helper_get_out_fmts(struct venus_inst *inst, u32 fmt,
+>> > u32
+>> > *out_fmt,
+>> > +			      u32 *out2_fmt, bool ubwc);
+>> > +int venus_helper_alloc_dpb_bufs(struct venus_inst *inst);
+>> > +int venus_helper_free_dpb_bufs(struct venus_inst *inst);
+>> >  int venus_helper_power_enable(struct venus_core *core, u32
+>> > session_type,
+>> >  			      bool enable);
+>> >  #endif
+>> > diff --git a/drivers/media/platform/qcom/venus/vdec.c
+>> > b/drivers/media/platform/qcom/venus/vdec.c
+>> > index 589fc13b84bc..7deee104ac56 100644
+>> > --- a/drivers/media/platform/qcom/venus/vdec.c
+>> > +++ b/drivers/media/platform/qcom/venus/vdec.c
+>> > @@ -532,10 +532,16 @@ static int vdec_set_properties(struct
+>> > venus_inst
+>> > *inst)
+>> >  	return 0;
+>> >  }
+>> >
+>> > +#define is_ubwc_fmt(fmt) (!!((fmt) & HFI_COLOR_FORMAT_UBWC_BASE))
+>> > +
+>> >  static int vdec_output_conf(struct venus_inst *inst)
+>> >  {
+>> >  	struct venus_core *core = inst->core;
+>> >  	struct hfi_enable en = { .enable = 1 };
+>> > +	u32 width = inst->out_width;
+>> > +	u32 height = inst->out_height;
+>> > +	u32 out_fmt, out2_fmt;
+>> > +	bool ubwc = false;
+>> >  	u32 ptype;
+>> >  	int ret;
+>> >
+>> > @@ -554,6 +560,78 @@ static int vdec_output_conf(struct venus_inst
+>> > *inst)
+>> >  			return ret;
+>> >  	}
+>> >
+>> > +	if (width > 1920 && height > ALIGN(1080, 32))
+>> > +		ubwc = true;
+>> > +
+>> > +	if (IS_V4(core))
+>> > +		ubwc = true;
+>> > +
+>> > +	ret = venus_helper_get_out_fmts(inst, inst->fmt_cap-
+>> > >pixfmt,
+>> > &out_fmt,
+>> > +					&out2_fmt, ubwc);
+>> > +	if (ret)
+>> > +		return ret;
+>> > +
+>> > +	inst->output_buf_size =
+>> > +			venus_helper_get_framesz_raw(out_fmt,
+>> > width, height);
+>> > +	inst->output2_buf_size =
+>> > +			venus_helper_get_framesz_raw(out2_fmt,
+>> > width, height);
+>> > +
+>> > +	if (is_ubwc_fmt(out_fmt)) {
+>> > +		inst->opb_buftype = HFI_BUFFER_OUTPUT2;
+>> > +		inst->opb_fmt = out2_fmt;
+>> > +		inst->dpb_buftype = HFI_BUFFER_OUTPUT;
+>> > +		inst->dpb_fmt = out_fmt;
+>> > +	} else if (is_ubwc_fmt(out2_fmt)) {
+>> > +		inst->opb_buftype = HFI_BUFFER_OUTPUT;
+>> > +		inst->opb_fmt = out_fmt;
+>> > +		inst->dpb_buftype = HFI_BUFFER_OUTPUT2;
+>> > +		inst->dpb_fmt = out2_fmt;
+>> > +	} else {
+>> > +		inst->opb_buftype = HFI_BUFFER_OUTPUT;
+>> > +		inst->opb_fmt = out_fmt;
+>> > +		inst->dpb_buftype = 0;
+>> > +		inst->dpb_fmt = 0;
+>> > +	}
+>> > +
+>> > +	ret = venus_helper_set_raw_format(inst, inst->opb_fmt,
+>> > +					  inst->opb_buftype);
+>> > +	if (ret)
+>> > +		return ret;
+>> > +
+>> > +	if (inst->dpb_fmt) {
+>> > +		ret = venus_helper_set_multistream(inst, false,
+>> > true);
+>> > +		if (ret)
+>> > +			return ret;
+>> > +
+>> > +		ret = venus_helper_set_raw_format(inst, inst-
+>> > >dpb_fmt,
+>> > +						  inst-
+>> > >dpb_buftype);
+>> > +		if (ret)
+>> > +			return ret;
+>> > +
+>> > +		ret = venus_helper_set_output_resolution(inst,
+>> > width, height,
+>> > +							 HFI_BUFFE
+>> > R_OUTPUT2);
+>> > +		if (ret)
+>> > +			return ret;
+>> > +	}
+>> > +
+>> > +	if (IS_V3(core) || IS_V4(core)) {
+>> > +		if (inst->output2_buf_size) {
+>> > +			ret = venus_helper_set_bufsize(inst,
+>> > +						       inst-
+>> > >output2_buf_size,
+>> > +						       HFI_BUFFER_
+>> > OUTPUT2);
+>> > +			if (ret)
+>> > +				return ret;
+>> > +		}
+>> > +
+>> > +		if (inst->output_buf_size) {
+>> > +			ret = venus_helper_set_bufsize(inst,
+>> > +						       inst-
+>> > >output_buf_size,
+>> > +						       HFI_BUFFER_
+>> > OUTPUT);
+>> > +			if (ret)
+>> > +				return ret;
+>> > +		}
+>> > +	}
+>> > +
+>> >  	ret = venus_helper_set_dyn_bufmode(inst);
+>> >  	if (ret)
+>> >  		return ret;
+>> > @@ -624,6 +702,8 @@ static int vdec_queue_setup(struct vb2_queue
+>> > *q,
+>> >  	int ret = 0;
+>> >
+>> >  	if (*num_planes) {
+>> > +		unsigned int output_buf_size =
+>> > venus_helper_get_opb_size(inst);
+>> > +
+>> >  		if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
+>> > &&
+>> >  		    *num_planes != inst->fmt_out->num_planes)
+>> >  			return -EINVAL;
+>> > @@ -637,7 +717,7 @@ static int vdec_queue_setup(struct vb2_queue
+>> > *q,
+>> >  			return -EINVAL;
+>> >
+>> >  		if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+>> > &&
+>> > -		    sizes[0] < inst->output_buf_size)
+>> > +		    sizes[0] < output_buf_size)
+>> >  			return -EINVAL;
+>> >
+>> >  		return 0;
+>> > @@ -746,6 +826,10 @@ static int vdec_start_streaming(struct
+>> > vb2_queue
+>> > *q, unsigned int count)
+>> >  	if (ret)
+>> >  		goto deinit_sess;
+>> >
+>> > +	ret = venus_helper_alloc_dpb_bufs(inst);
+>> > +	if (ret)
+>> > +		goto deinit_sess;
+>> > +
+>> >  	ret = venus_helper_vb2_start_streaming(inst);
+>> >  	if (ret)
+>> >  		goto deinit_sess;
+>> > @@ -797,9 +881,11 @@ static void vdec_buf_done(struct venus_inst
+>> > *inst, unsigned int buf_type,
+>> >  	vbuf->field = V4L2_FIELD_NONE;
+>> >
+>> >  	if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+>> > +		unsigned int opb_sz =
+>> > venus_helper_get_opb_size(inst);
+>> > +
+>> >  		vb = &vbuf->vb2_buf;
+>> >  		vb->planes[0].bytesused =
+>> > -			max_t(unsigned int, inst->output_buf_size,
+>> > bytesused);
+>> > +			max_t(unsigned int, opb_sz, bytesused);
+>> >  		vb->planes[0].data_offset = data_offset;
+>> >  		vb->timestamp = timestamp_us * NSEC_PER_USEC;
+>> >  		vbuf->sequence = inst->sequence_cap++;
+>> > @@ -945,6 +1031,7 @@ static int vdec_open(struct file *file)
+>> >  	if (!inst)
+>> >  		return -ENOMEM;
+>> >
+>> > +	INIT_LIST_HEAD(&inst->dpbbufs);
+>> >  	INIT_LIST_HEAD(&inst->registeredbufs);
+>> >  	INIT_LIST_HEAD(&inst->internalbufs);
+>> >  	INIT_LIST_HEAD(&inst->list);
+>> > diff --git a/drivers/media/platform/qcom/venus/venc.c
+>> > b/drivers/media/platform/qcom/venus/venc.c
+>> > index 54f253b98b24..a703bce78abc 100644
+>> > --- a/drivers/media/platform/qcom/venus/venc.c
+>> > +++ b/drivers/media/platform/qcom/venus/venc.c
+>> > @@ -1084,6 +1084,7 @@ static int venc_open(struct file *file)
+>> >  	if (!inst)
+>> >  		return -ENOMEM;
+>> >
+>> > +	INIT_LIST_HEAD(&inst->dpbbufs);
+>> >  	INIT_LIST_HEAD(&inst->registeredbufs);
+>> >  	INIT_LIST_HEAD(&inst->internalbufs);
+>> >  	INIT_LIST_HEAD(&inst->list);
+>> 
+>> The dpb buffers queued to hardware will be returned back to host
+>> either
+>> during flush
+>> or when the session is stopped. Host should not send these buffers
+>> to
+>> client.
+>> vdec_buf_done should be handling in a way to drop dpb buffers from
+>> sending to client.
+> 
+> Are you sure ? In V4L2 the CODEC is only ever flushed or stopped
+> through userspace actions (STREAMOFF). In which case, userspace expects
+> all buffers to be dequeued by the driver. Userspace will requeue them
+> ignoring their content.
 
-To avoid registering a notifier twice (once for parallel subdev and one
-for the CSI-2 subdevs) create a group notifier, shared by all the VIN
-instances.
+DPB buffers, which i mentioned earlier, are managed 
+(allocated/queued/freed)
+internally in video driver. Client is nowhere aware of it and does not 
+expects
+the same to be dequeued/requeue.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 39 +++++++++++------------------
- drivers/media/platform/rcar-vin/rcar-vin.h  |  7 +++---
- 2 files changed, 18 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 1aadd90..c6e603f 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -583,7 +583,7 @@ static int rvin_parallel_graph_init(struct rvin_dev *vin)
- 
- static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
- {
--	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
- 	const struct rvin_group_route *route;
- 	unsigned int i;
- 	int ret;
-@@ -649,7 +649,7 @@ static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
- 				     struct v4l2_subdev *subdev,
- 				     struct v4l2_async_subdev *asd)
- {
--	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
- 	unsigned int i;
- 
- 	for (i = 0; i < RCAR_VIN_NUM; i++)
-@@ -673,7 +673,7 @@ static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
- 				   struct v4l2_subdev *subdev,
- 				   struct v4l2_async_subdev *asd)
- {
--	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
- 	unsigned int i;
- 
- 	mutex_lock(&vin->group->lock);
-@@ -734,12 +734,6 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
- 
- 	mutex_lock(&vin->group->lock);
- 
--	/* If there already is a notifier something has gone wrong, bail out. */
--	if (WARN_ON(vin->group->notifier)) {
--		mutex_unlock(&vin->group->lock);
--		return -EINVAL;
--	}
--
- 	/* If not all VIN's are registered don't register the notifier. */
- 	for (i = 0; i < RCAR_VIN_NUM; i++)
- 		if (vin->group->vin[i])
-@@ -751,19 +745,16 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
- 	}
- 
- 	/*
--	 * Have all VIN's look for subdevices. Some subdevices will overlap
--	 * but the parser function can handle it, so each subdevice will
--	 * only be registered once with the notifier.
-+	 * Have all VIN's look for CSI-2 subdevices. Some subdevices will
-+	 * overlap but the parser function can handle it, so each subdevice
-+	 * will only be registered once with the group notifier.
- 	 */
--
--	vin->group->notifier = &vin->notifier;
--
- 	for (i = 0; i < RCAR_VIN_NUM; i++) {
- 		if (!vin->group->vin[i])
- 			continue;
- 
- 		ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
--				vin->group->vin[i]->dev, vin->group->notifier,
-+				vin->group->vin[i]->dev, &vin->group->notifier,
- 				sizeof(struct v4l2_async_subdev), 1,
- 				rvin_mc_parse_of_endpoint);
- 		if (ret) {
-@@ -774,9 +765,12 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
- 
- 	mutex_unlock(&vin->group->lock);
- 
--	vin->group->notifier->ops = &rvin_group_notify_ops;
-+	if (!vin->group->notifier.num_subdevs)
-+		return 0;
- 
--	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
-+	vin->group->notifier.ops = &rvin_group_notify_ops;
-+	ret = v4l2_async_notifier_register(&vin->v4l2_dev,
-+					   &vin->group->notifier);
- 	if (ret < 0) {
- 		vin_err(vin, "Notifier registration failed\n");
- 		return ret;
-@@ -1112,15 +1106,10 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
--	if (vin->info->use_mc) {
--		mutex_lock(&vin->group->lock);
--		if (vin->group->notifier == &vin->notifier)
--			vin->group->notifier = NULL;
--		mutex_unlock(&vin->group->lock);
-+	if (vin->info->use_mc)
- 		rvin_group_put(vin);
--	} else {
-+	else
- 		v4l2_ctrl_handler_free(&vin->ctrl_handler);
--	}
- 
- 	rvin_dma_unregister(vin);
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 755ac3c..7d0ffe08 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -209,6 +209,8 @@ struct rvin_dev {
- 	v4l2_std_id std;
- };
- 
-+#define v4l2_dev_to_vin(d)	container_of(d, struct rvin_dev, v4l2_dev)
-+
- #define vin_to_source(vin)		((vin)->parallel->subdev)
- 
- /* Debug */
-@@ -225,8 +227,7 @@ struct rvin_dev {
-  *
-  * @lock:		protects the count, notifier, vin and csi members
-  * @count:		number of enabled VIN instances found in DT
-- * @notifier:		pointer to the notifier of a VIN which handles the
-- *			groups async sub-devices.
-+ * @notifier:		group notifier for CSI-2 async subdevices
-  * @vin:		VIN instances which are part of the group
-  * @csi:		array of pairs of fwnode and subdev pointers
-  *			to all CSI-2 subdevices.
-@@ -238,7 +239,7 @@ struct rvin_group {
- 
- 	struct mutex lock;
- 	unsigned int count;
--	struct v4l2_async_notifier *notifier;
-+	struct v4l2_async_notifier notifier;
- 	struct rvin_dev *vin[RCAR_VIN_NUM];
- 
- 	struct {
--- 
-2.7.4
+>> 
+>> Thanks,
+>> Vikash
