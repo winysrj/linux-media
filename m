@@ -1,195 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41602 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S966984AbeEXLi1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 07:38:27 -0400
-Date: Thu, 24 May 2018 14:38:24 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        kernel@pengutronix.de
-Subject: Re: [PATCH v2] media: video-mux: fix compliance failures
-Message-ID: <20180524113824.3znoltw3yfj2ngrd@valkosipuli.retiisi.org.uk>
-References: <20180523092423.4386-1-p.zabel@pengutronix.de>
+Received: from youngberry.canonical.com ([91.189.89.112]:47814 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750907AbeEBJRA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2018 05:17:00 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH][media-next] media: davinci_vpfe: fix memory leaks of params
+Date: Wed,  2 May 2018 10:16:58 +0100
+Message-Id: <20180502091658.17110-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180523092423.4386-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+From: Colin Ian King <colin.king@canonical.com>
 
-Thanks for the patch.
+There are memory leaks of params; when copy_to_user fails and also
+the exit via the label 'error'.  Fix this by kfree'ing params in
+error exit path and jumping to this on the copy_to_user failure path.
 
-On Wed, May 23, 2018 at 11:24:23AM +0200, Philipp Zabel wrote:
-> Limit frame sizes to the [1, 65536] interval, media bus formats to
-> the available list of formats, and initialize pad and try formats.
-> 
-> Reported-by: Rui Miguel Silva <rui.silva@linaro.org>
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> Changes since v1:
->  - Limit to [1, 65536] instead of [1, UINT_MAX - 1]
->  - Add missing break in default case
->  - Use .init_cfg pad op instead of .open internal op
-> ---
->  drivers/media/platform/video-mux.c | 108 +++++++++++++++++++++++++++++
->  1 file changed, 108 insertions(+)
-> 
-> diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-> index 1fb887293337..d27cb42ce6b1 100644
-> --- a/drivers/media/platform/video-mux.c
-> +++ b/drivers/media/platform/video-mux.c
-> @@ -180,6 +180,88 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
->  	if (!source_mbusformat)
->  		return -EINVAL;
->  
-> +	/* No size limitations except V4L2 compliance requirements */
-> +	v4l_bound_align_image(&sdformat->format.width, 1, 65536, 0,
-> +			      &sdformat->format.height, 1, 65536, 0, 0);
+Detected by CoverityScan, CID#1467966 ("Resource leak")
 
-Why 65536? And not e.g. U32_MAX?
+Fixes: da43b6ccadcf ("[media] davinci: vpfe: dm365: add IPIPE support for media controller driver")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-> +
-> +	/* All formats except LVDS and vendor specific formats are acceptable */
-> +	switch (sdformat->format.code) {
-> +	case MEDIA_BUS_FMT_RGB444_1X12:
-> +	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
-> +	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
-> +	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
-> +	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
-> +	case MEDIA_BUS_FMT_RGB565_1X16:
-> +	case MEDIA_BUS_FMT_BGR565_2X8_BE:
-> +	case MEDIA_BUS_FMT_BGR565_2X8_LE:
-> +	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-> +	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-> +	case MEDIA_BUS_FMT_RGB666_1X18:
-> +	case MEDIA_BUS_FMT_RBG888_1X24:
-> +	case MEDIA_BUS_FMT_RGB666_1X24_CPADHI:
-> +	case MEDIA_BUS_FMT_BGR888_1X24:
-> +	case MEDIA_BUS_FMT_GBR888_1X24:
-> +	case MEDIA_BUS_FMT_RGB888_1X24:
-> +	case MEDIA_BUS_FMT_RGB888_2X12_BE:
-> +	case MEDIA_BUS_FMT_RGB888_2X12_LE:
-> +	case MEDIA_BUS_FMT_ARGB8888_1X32:
-> +	case MEDIA_BUS_FMT_RGB888_1X32_PADHI:
-> +	case MEDIA_BUS_FMT_RGB101010_1X30:
-> +	case MEDIA_BUS_FMT_RGB121212_1X36:
-> +	case MEDIA_BUS_FMT_RGB161616_1X48:
-> +	case MEDIA_BUS_FMT_Y8_1X8:
-> +	case MEDIA_BUS_FMT_UV8_1X8:
-> +	case MEDIA_BUS_FMT_UYVY8_1_5X8:
-> +	case MEDIA_BUS_FMT_VYUY8_1_5X8:
-> +	case MEDIA_BUS_FMT_YUYV8_1_5X8:
-> +	case MEDIA_BUS_FMT_YVYU8_1_5X8:
-> +	case MEDIA_BUS_FMT_UYVY8_2X8:
-> +	case MEDIA_BUS_FMT_VYUY8_2X8:
-> +	case MEDIA_BUS_FMT_YUYV8_2X8:
-> +	case MEDIA_BUS_FMT_YVYU8_2X8:
-> +	case MEDIA_BUS_FMT_Y10_1X10:
-> +	case MEDIA_BUS_FMT_UYVY10_2X10:
-> +	case MEDIA_BUS_FMT_VYUY10_2X10:
-> +	case MEDIA_BUS_FMT_YUYV10_2X10:
-> +	case MEDIA_BUS_FMT_YVYU10_2X10:
-> +	case MEDIA_BUS_FMT_Y12_1X12:
-> +	case MEDIA_BUS_FMT_UYVY12_2X12:
-> +	case MEDIA_BUS_FMT_VYUY12_2X12:
-> +	case MEDIA_BUS_FMT_YUYV12_2X12:
-> +	case MEDIA_BUS_FMT_YVYU12_2X12:
-> +	case MEDIA_BUS_FMT_UYVY8_1X16:
-> +	case MEDIA_BUS_FMT_VYUY8_1X16:
-> +	case MEDIA_BUS_FMT_YUYV8_1X16:
-> +	case MEDIA_BUS_FMT_YVYU8_1X16:
-> +	case MEDIA_BUS_FMT_YDYUYDYV8_1X16:
-> +	case MEDIA_BUS_FMT_UYVY10_1X20:
-> +	case MEDIA_BUS_FMT_VYUY10_1X20:
-> +	case MEDIA_BUS_FMT_YUYV10_1X20:
-> +	case MEDIA_BUS_FMT_YVYU10_1X20:
-> +	case MEDIA_BUS_FMT_VUY8_1X24:
-> +	case MEDIA_BUS_FMT_YUV8_1X24:
-> +	case MEDIA_BUS_FMT_UYYVYY8_0_5X24:
-> +	case MEDIA_BUS_FMT_UYVY12_1X24:
-> +	case MEDIA_BUS_FMT_VYUY12_1X24:
-> +	case MEDIA_BUS_FMT_YUYV12_1X24:
-> +	case MEDIA_BUS_FMT_YVYU12_1X24:
-> +	case MEDIA_BUS_FMT_YUV10_1X30:
-> +	case MEDIA_BUS_FMT_UYYVYY10_0_5X30:
-> +	case MEDIA_BUS_FMT_AYUV8_1X32:
-> +	case MEDIA_BUS_FMT_UYYVYY12_0_5X36:
-> +	case MEDIA_BUS_FMT_YUV12_1X36:
-> +	case MEDIA_BUS_FMT_YUV16_1X48:
-> +	case MEDIA_BUS_FMT_UYYVYY16_0_5X48:
-> +	case MEDIA_BUS_FMT_JPEG_1X8:
-> +	case MEDIA_BUS_FMT_AHSV8888_1X32:
-> +		break;
-> +	default:
-> +		sdformat->format.code = MEDIA_BUS_FMT_Y8_1X8;
-> +		break;
-> +	}
-> +	if (sdformat->format.field == V4L2_FIELD_ANY)
-> +		sdformat->format.field = V4L2_FIELD_NONE;
-> +
->  	mutex_lock(&vmux->lock);
->  
->  	/* Source pad mirrors active sink pad, no limitations on sink pads */
-> @@ -197,7 +279,27 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
->  	return 0;
->  }
->  
-> +static int video_mux_init_cfg(struct v4l2_subdev *sd,
-> +			      struct v4l2_subdev_pad_config *cfg)
-> +{
-> +	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-> +	struct v4l2_mbus_framefmt *mbusformat;
-> +	int i;
-
-unsigned int i
-
-> +
-> +	mutex_lock(&vmux->lock);
-> +
-> +	for (i = 0; i < sd->entity.num_pads; i++) {
-> +		mbusformat = v4l2_subdev_get_try_format(sd, cfg, i);
-> +		*mbusformat = vmux->format_mbus[i];
-
-The initial format is the default one, not the current configured format.
-
-With these addressed,
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-> +	}
-> +
-> +	mutex_unlock(&vmux->lock);
-> +
-> +	return 0;
-> +}
-> +
->  static const struct v4l2_subdev_pad_ops video_mux_pad_ops = {
-> +	.init_cfg = video_mux_init_cfg,
->  	.get_fmt = video_mux_get_format,
->  	.set_fmt = video_mux_set_format,
->  };
-> @@ -263,6 +365,12 @@ static int video_mux_probe(struct platform_device *pdev)
->  	for (i = 0; i < num_pads - 1; i++)
->  		vmux->pads[i].flags = MEDIA_PAD_FL_SINK;
->  	vmux->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
-> +	for (i = 0; i < num_pads; i++) {
-> +		vmux->format_mbus[i].width = 1;
-> +		vmux->format_mbus[i].height = 1;
-> +		vmux->format_mbus[i].code = MEDIA_BUS_FMT_Y8_1X8;
-> +		vmux->format_mbus[i].field = V4L2_FIELD_NONE;
-> +	}
->  
->  	vmux->subdev.entity.function = MEDIA_ENT_F_VID_MUX;
->  	ret = media_entity_pads_init(&vmux->subdev.entity, num_pads,
-> -- 
-> 2.17.0
-> 
-
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+index 95942768639c..3e67ee6e92f9 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+@@ -1252,12 +1252,12 @@ static const struct ipipe_module_if ipipe_modules[VPFE_IPIPE_MAX_MODULES] = {
+ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
+ {
+ 	struct vpfe_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
++	struct ipipe_module_params *params;
+ 	unsigned int i;
+ 	int rval = 0;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(ipipe_modules); i++) {
+ 		const struct ipipe_module_if *module_if;
+-		struct ipipe_module_params *params;
+ 		void *from, *to;
+ 		size_t size;
+ 
+@@ -1275,7 +1275,7 @@ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
+ 		if (to && from && size) {
+ 			if (copy_from_user(to, (void __user *)from, size)) {
+ 				rval = -EFAULT;
+-				break;
++				goto error;
+ 			}
+ 			rval = module_if->set(ipipe, to);
+ 			if (rval)
+@@ -1287,7 +1287,9 @@ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
+ 		}
+ 		kfree(params);
+ 	}
++	return rval;
+ error:
++	kfree(params);
+ 	return rval;
+ }
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.17.0
