@@ -1,44 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47756 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S966158AbeEYK7r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 06:59:47 -0400
-Date: Fri, 25 May 2018 16:29:43 +0530
-From: Vinod <vkoul@kernel.org>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        alsa-devel@alsa-project.org
-Subject: Re: [PATCH v2 11/13] dmaengine: pxa: make the filter function
- internal
-Message-ID: <20180525105943.GP26663@vkoul-mobl>
-References: <20180524070703.11901-1-robert.jarzmik@free.fr>
- <20180524070703.11901-12-robert.jarzmik@free.fr>
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:51504 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751167AbeEBHic (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2018 03:38:32 -0400
+Received: by mail-wm0-f46.google.com with SMTP id j4so21041033wme.1
+        for <linux-media@vger.kernel.org>; Wed, 02 May 2018 00:38:31 -0700 (PDT)
+Date: Wed, 2 May 2018 09:38:27 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Eric Anholt <eric@anholt.net>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        linaro-mm-sig@lists.linaro.org,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        linux-media@vger.kernel.org
+Subject: Re: [Intel-gfx] [PATCH 01/17] dma-fence: Some kerneldoc polish for
+ dma-fence.h
+Message-ID: <20180502073827.GV12521@phenom.ffwll.local>
+References: <20180427061724.28497-1-daniel.vetter@ffwll.ch>
+ <20180427061724.28497-2-daniel.vetter@ffwll.ch>
+ <877eoozisz.fsf@anholt.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180524070703.11901-12-robert.jarzmik@free.fr>
+In-Reply-To: <877eoozisz.fsf@anholt.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 24-05-18, 09:07, Robert Jarzmik wrote:
-> As the pxa architecture and all its related drivers do not rely anymore
-> on the filter function, thanks to the slave map conversion, make
-> pxad_filter_fn() static, and remove it from the global namespace.
+On Mon, Apr 30, 2018 at 10:49:00AM -0700, Eric Anholt wrote:
+> Daniel Vetter <daniel.vetter@ffwll.ch> writes:
+> > +	/**
+> > +	 * @fill_driver_data:
+> > +	 *
+> > +	 * Callback to fill in free-form debug info Returns amount of bytes
+> > +	 * filled, or negative error on failure.
+> 
+> Maybe this "Returns" should be on a new line?  Or at least a '.' in
+> between.
 
-Acked-by: Vinod Koul <vkoul@kernel.org>
+Indeed I've missed this, thanks for spotting it. Done both&applied.
+
+Thanks, Daniel
+
+> 
+> Other than that,
+> 
+> Reviewed-by: Eric Anholt <eric@anholt.net>
+> 
+> Thanks!
+
+
 
 -- 
-~Vinod
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
