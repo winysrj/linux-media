@@ -1,87 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam02on0063.outbound.protection.outlook.com ([104.47.36.63]:22230
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751004AbeEAVWB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 17:22:01 -0400
-Date: Tue, 1 May 2018 14:21:43 -0700
-From: Hyun Kwon <hyun.kwon@xilinx.com>
-To: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "michal.simek@xilinx.com" <michal.simek@xilinx.com>,
-        Hyun Kwon <hyunk@xilinx.com>,
-        Jeff Mouroux <jmouroux@xilinx.com>,
-        Satish Kumar Nagireddy <SATISHNA@xilinx.com>
-Subject: Re: [PATCH v4 05/10] uapi: media: New fourcc codes needed by Xilinx
- Video IP
-Message-ID: <20180501212143.GB9872@smtp.xilinx.com>
-References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
- <2e6044636d652e5492f457123dadd29d61d460cb.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:34232 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751173AbeEBGHD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2018 02:07:03 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-In-Reply-To: <2e6044636d652e5492f457123dadd29d61d460cb.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Wed, 02 May 2018 11:37:02 +0530
+From: vgarodia@codeaurora.org
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH 08/28] venus: hfi_venus: add suspend function for 4xx
+ version
+In-Reply-To: <20180424124436.26955-9-stanimir.varbanov@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+ <20180424124436.26955-9-stanimir.varbanov@linaro.org>
+Message-ID: <8f26cd748f283043b32da05b39f29348@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Satish,
+Hello Stanimir,
 
-Thanks for the patch.
-
-On Mon, 2018-04-30 at 18:35:08 -0700, Satish Kumar Nagireddy wrote:
-> From: Jeffrey Mouroux <jmouroux@xilinx.com>
+On 2018-04-24 18:14, Stanimir Varbanov wrote:
+> This adds suspend (power collapse) function with slightly
+> different order of calls comparing with Venus 3xx.
 > 
-> The Xilinx Video Framebuffer DMA IP supports video memory formats
-> that are not represented in the current V4L2 fourcc library. This
-> patch adds those missing fourcc codes. This includes both new
-> 8-bit and 10-bit pixel formats.
-> 
-> Signed-off-by: Jeffrey Mouroux <jmouroux@xilinx.com>
-> Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 > ---
->  include/uapi/linux/videodev2.h | 4 ++++
->  1 file changed, 4 insertions(+)
+>  drivers/media/platform/qcom/venus/hfi_venus.c | 52 
+> +++++++++++++++++++++++++++
+>  1 file changed, 52 insertions(+)
 > 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 600877b..97b6633 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -510,6 +510,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R', 'G', 'B', '4') /* 32  RGB-8-8-8-8   */
->  #define V4L2_PIX_FMT_ARGB32  v4l2_fourcc('B', 'A', '2', '4') /* 32  ARGB-8-8-8-8  */
->  #define V4L2_PIX_FMT_XRGB32  v4l2_fourcc('B', 'X', '2', '4') /* 32  XRGB-8-8-8-8  */
-> +#define V4L2_PIX_FMT_BGRX32  v4l2_fourcc('X', 'B', 'G', 'R') /* 32  XBGR-8-8-8-8 */
->  
->  /* Grey formats */
->  #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8  Greyscale     */
-> @@ -537,6 +538,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_VYUY    v4l2_fourcc('V', 'Y', 'U', 'Y') /* 16  YUV 4:2:2     */
->  #define V4L2_PIX_FMT_Y41P    v4l2_fourcc('Y', '4', '1', 'P') /* 12  YUV 4:1:1     */
->  #define V4L2_PIX_FMT_YUV444  v4l2_fourcc('Y', '4', '4', '4') /* 16  xxxxyyyy uuuuvvvv */
-> +#define V4L2_PIX_FMT_VUY24   v4l2_fourcc('V', 'U', '2', '4') /* 24  VUY 8:8:8 */
-
-This format needs documentation, and probably entries v4l_fill_fmtdesc()?
-
-Then would it make sense to squash this into 4/10 which documents these?
-Or at least, this should come before documentation.
-
-Thanks,
--hyun
-
->  #define V4L2_PIX_FMT_YUV555  v4l2_fourcc('Y', 'U', 'V', 'O') /* 16  YUV-5-5-5     */
->  #define V4L2_PIX_FMT_YUV565  v4l2_fourcc('Y', 'U', 'V', 'P') /* 16  YUV-5-6-5     */
->  #define V4L2_PIX_FMT_YUV32   v4l2_fourcc('Y', 'U', 'V', '4') /* 32  YUV-8-8-8-8   */
-> @@ -551,6 +553,8 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
->  #define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
->  #define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
-> +#define V4L2_PIX_FMT_XV20    v4l2_fourcc('X', 'V', '2', '0') /* 32  XY/UV 4:2:2 10-bit */
-> +#define V4L2_PIX_FMT_XV15    v4l2_fourcc('X', 'V', '1', '5') /* 32  XY/UV 4:2:0 10-bit */
->  
->  /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
->  #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
-> -- 
-> 2.1.1
+> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c
+> b/drivers/media/platform/qcom/venus/hfi_venus.c
+> index 53546174aab8..f61d34bf61b4 100644
+> --- a/drivers/media/platform/qcom/venus/hfi_venus.c
+> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+> @@ -1443,6 +1443,55 @@ static int venus_suspend_1xx(struct venus_core 
+> *core)
+>  	return 0;
+>  }
 > 
+> +static int venus_suspend_4xx(struct venus_core *core)
+> +{
+> +	struct venus_hfi_device *hdev = to_hfi_priv(core);
+> +	struct device *dev = core->dev;
+> +	u32 val;
+> +	int ret;
+> +
+> +	if (!hdev->power_enabled || hdev->suspended)
+> +		return 0;
+> +
+> +	mutex_lock(&hdev->lock);
+> +	ret = venus_is_valid_state(hdev);
+> +	mutex_unlock(&hdev->lock);
+> +
+> +	if (!ret) {
+> +		dev_err(dev, "bad state, cannot suspend\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	ret = venus_prepare_power_collapse(hdev, false);
+> +	if (ret) {
+> +		dev_err(dev, "prepare for power collapse fail (%d)\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	ret = readl_poll_timeout(core->base + CPU_CS_SCIACMDARG0, val,
+> +				 val & CPU_CS_SCIACMDARG0_PC_READY,
+> +				 POLL_INTERVAL_US, 100000);
+> +	if (ret) {
+> +		dev_err(dev, "Polling power collapse ready timed out\n");
+> +		return ret;
+> +	}
+> +
+> +	mutex_lock(&hdev->lock);
+> +
+> +	ret = venus_power_off(hdev);
+> +	if (ret) {
+> +		dev_err(dev, "venus_power_off (%d)\n", ret);
+> +		mutex_unlock(&hdev->lock);
+> +		return ret;
+> +	}
+> +
+> +	hdev->suspended = true;
+> +
+> +	mutex_unlock(&hdev->lock);
+> +
+> +	return 0;
+> +}
+> +
+>  static int venus_suspend_3xx(struct venus_core *core)
+>  {
+>  	struct venus_hfi_device *hdev = to_hfi_priv(core);
+> @@ -1507,6 +1556,9 @@ static int venus_suspend(struct venus_core *core)
+>  	if (core->res->hfi_version == HFI_VERSION_3XX)
+>  		return venus_suspend_3xx(core);
+> 
+> +	if (core->res->hfi_version == HFI_VERSION_4XX)
+> +		return venus_suspend_4xx(core);
+> +
+>  	return venus_suspend_1xx(core);
+>  }
+
+Let me brief on the power collapse sequence for Venus_4xx
+1. Host checks for ARM9 and Video core to be idle.
+    This can be done by checking for WFI bit (bit 0) in CPU status 
+register for ARM9 and by checking bit 30 in Control status reg for video 
+core/s.
+2. Host then sends command to ARM9 to prepare for power collapse.
+3. Host then checks for WFI bit and PC_READY bit before withdrawing 
+going for power off.
+
+As per this patch, host is preparing for power collapse without checking 
+for #1.
+Update the code to handle #3.
+
+Thanks
+Vikash
