@@ -1,58 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:43153 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751735AbeEVOxT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 10:53:19 -0400
-Received: by mail-wr0-f195.google.com with SMTP id r13-v6so8390697wrj.10
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 07:53:19 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v6 08/13] ARM: dts: imx7s: add mipi phy power domain
-Date: Tue, 22 May 2018 15:52:40 +0100
-Message-Id: <20180522145245.3143-9-rui.silva@linaro.org>
-In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
-References: <20180522145245.3143-1-rui.silva@linaro.org>
+Received: from mga01.intel.com ([192.55.52.88]:24540 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751339AbeEBVgi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 May 2018 17:36:38 -0400
+Date: Thu, 3 May 2018 00:36:38 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Andy Yeh <andy.yeh@intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        tfiga@chromium.org, jacopo@jmondi.org,
+        Alan Chiang <alanx.chiang@intel.com>
+Subject: Re: [RESEND PATCH v9 1/2] media: dt-bindings: Add bindings for
+ Dongwoon DW9807 voice coil
+Message-ID: <20180502213637.ycvksj33edrkprpn@kekkonen.localdomain>
+References: <1525276428-17379-1-git-send-email-andy.yeh@intel.com>
+ <1525276428-17379-2-git-send-email-andy.yeh@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1525276428-17379-2-git-send-email-andy.yeh@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add power domain index 0 related with mipi-phy to imx7s.
+On Wed, May 02, 2018 at 11:53:47PM +0800, Andy Yeh wrote:
+> From: Alan Chiang <alanx.chiang@intel.com>
+> 
+> Dongwoon DW9807 is a voice coil lens driver.
+> 
+> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+> Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
 
-While at it rename pcie power-domain node to remove pgc prefix.
+I don't remember seeing these two on the first patch nor giving mine. For
+what it's worth, I've applied v8 to my tree here:
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- arch/arm/boot/dts/imx7s.dtsi | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=for-4.18-3>
 
-diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-index 4d42335c0dee..5e6d2063b143 100644
---- a/arch/arm/boot/dts/imx7s.dtsi
-+++ b/arch/arm/boot/dts/imx7s.dtsi
-@@ -636,7 +636,13 @@
- 					#address-cells = <1>;
- 					#size-cells = <0>;
- 
--					pgc_pcie_phy: pgc-power-domain@1 {
-+					pgc_mipi_phy: power-domain@0 {
-+						#power-domain-cells = <0>;
-+						reg = <0>;
-+						power-supply = <&reg_1p0d>;
-+					};
-+
-+					pgc_pcie_phy: power-domain@1 {
- 						#power-domain-cells = <0>;
- 						reg = <1>;
- 						power-supply = <&reg_1p0d>;
+I.e. there's no need to resend the same patch to just add the regular
+acked-by or reviewed-by tags. "RESEND" in the subject suggests you're
+sending exactly the same patch, and in that case the version would be
+unchanged as well.
+
+> Acked-by: Rob Herring <robh@kernel.org>
+> 
+> ---
+>  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+> new file mode 100644
+> index 0000000..0a1a860
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+> @@ -0,0 +1,9 @@
+> +Dongwoon Anatech DW9807 voice coil lens driver
+> +
+> +DW9807 is a 10-bit DAC with current sink capability. It is intended for
+> +controlling voice coil lenses.
+> +
+> +Mandatory properties:
+> +
+> +- compatible: "dongwoon,dw9807"
+> +- reg: I2C slave address
+
 -- 
-2.17.0
+Sakari Ailus
+sakari.ailus@linux.intel.com
