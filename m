@@ -1,91 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:36490 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753836AbeE3PRo (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:38732 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751533AbeECOx2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 11:17:44 -0400
-Subject: Re: [PATCH 3/8] xen/grant-table: Allow allocating buffers suitable
- for DMA
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
- <20180525153331.31188-4-andr2000@gmail.com>
- <94de6bd7-405c-c43f-0468-be71efff7552@oracle.com>
- <c2f9f6b4-03bd-225b-a42d-b071958dd899@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <ab1b28b8-02b1-3501-801c-d4f523ab829f@oracle.com>
-Date: Wed, 30 May 2018 11:20:41 -0400
-MIME-Version: 1.0
-In-Reply-To: <c2f9f6b4-03bd-225b-a42d-b071958dd899@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+        Thu, 3 May 2018 10:53:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv13 24/28] vim2m: use workqueue
+Date: Thu,  3 May 2018 16:53:14 +0200
+Message-Id: <20180503145318.128315-25-hverkuil@xs4all.nl>
+In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2018 02:34 AM, Oleksandr Andrushchenko wrote:
-> On 05/29/2018 10:10 PM, Boris Ostrovsky wrote:
->> On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
->> +/**
->> + * gnttab_dma_free_pages - free DMAable pages
->> + * @args: arguments to the function
->> + */
->> +int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args)
->> +{
->> +    xen_pfn_t *frames;
->> +    size_t size;
->> +    int i, ret;
->> +
->> +    gnttab_pages_clear_private(args->nr_pages, args->pages);
->> +
->> +    frames = kcalloc(args->nr_pages, sizeof(*frames), GFP_KERNEL);
->>
->> Any way you can do it without allocating memory? One possibility is to
->> keep allocated frames from gnttab_dma_alloc_pages(). (Not sure I like
->> that either but it's the only thing I can think of).
-> Yes, I was also thinking about storing the allocated frames array from
-> gnttab_dma_alloc_pages(), but that seemed not to be clear enough as
-> the caller of the gnttab_dma_alloc_pages will need to store those frames
-> in some context, so we can pass them on free. But the caller doesn't
-> really
-> need the frames which might confuse, so I decided to make those
-> allocations
-> on the fly.
-> But I can still rework that to store the frames if you insist: please
-> let me know.
+v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
+interrupt context. Switch to a workqueue instead.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vim2m.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-I would prefer not to allocate anything in the release path. Yes, I
-realize that dragging frames array around is not necessary but IMO it's
-better than potentially failing an allocation during a teardown. A
-comment in the struct definition could explain the reason for having
-this field.
-
-
->>
->>
->>> +    if (!frames)
->>> +        return -ENOMEM;
->>> +
->>> +    for (i = 0; i < args->nr_pages; i++)
->>> +        frames[i] = page_to_xen_pfn(args->pages[i]);
->>
->> Not xen_page_to_gfn()?
-> Well, according to [1] it should be :
->     /* XENMEM_populate_physmap requires a PFN based on Xen
->      * granularity.
->      */
->     frame_list[i] = page_to_xen_pfn(page);
-
-
-Ah, yes. I was looking at decrease_reservation and automatically assumed
-the same parameter type.
-
-
--boris
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 9be4da3b8577..a1b0bb08668d 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -150,6 +150,7 @@ struct vim2m_dev {
+ 	spinlock_t		irqlock;
+ 
+ 	struct timer_list	timer;
++	struct work_struct	work_run;
+ 
+ 	struct v4l2_m2m_dev	*m2m_dev;
+ };
+@@ -392,9 +393,10 @@ static void device_run(void *priv)
+ 	schedule_irq(dev, ctx->transtime);
+ }
+ 
+-static void device_isr(struct timer_list *t)
++static void device_work(struct work_struct *w)
+ {
+-	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
++	struct vim2m_dev *vim2m_dev =
++		container_of(w, struct vim2m_dev, work_run);
+ 	struct vim2m_ctx *curr_ctx;
+ 	struct vb2_v4l2_buffer *src_vb, *dst_vb;
+ 	unsigned long flags;
+@@ -426,6 +428,13 @@ static void device_isr(struct timer_list *t)
+ 	}
+ }
+ 
++static void device_isr(struct timer_list *t)
++{
++	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
++
++	schedule_work(&vim2m_dev->work_run);
++}
++
+ /*
+  * video ioctls
+  */
+@@ -806,6 +815,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+ 	struct vb2_v4l2_buffer *vbuf;
+ 	unsigned long flags;
+ 
++	flush_scheduled_work();
+ 	for (;;) {
+ 		if (V4L2_TYPE_IS_OUTPUT(q->type))
+ 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+@@ -1011,6 +1021,7 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	vfd = &dev->vfd;
+ 	vfd->lock = &dev->dev_mutex;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
++	INIT_WORK(&dev->work_run, device_work);
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	dev->mdev.dev = &pdev->dev;
+-- 
+2.17.0
