@@ -1,59 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:54292 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751276AbeEUIJ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:09:29 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Tim Harvey <tharvey@gateworks.com>
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-References: <m37eobudmo.fsf@t19.piap.pl>
-        <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
-        <m3tvresqfw.fsf@t19.piap.pl>
-        <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
-        <m3fu2oswjh.fsf@t19.piap.pl>
-Date: Mon, 21 May 2018 10:09:27 +0200
-In-Reply-To: <m3fu2oswjh.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
- \=\?utf-8\?Q\?a\=22's\?\= message of
-        "Fri, 18 May 2018 19:28:34 +0200")
-Message-ID: <m3603hsa4o.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:59286 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751476AbeECOx0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 May 2018 10:53:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv13 11/28] v4l2-ctrls: use ref in helper instead of ctrl
+Date: Thu,  3 May 2018 16:53:01 +0200
+Message-Id: <20180503145318.128315-12-hverkuil@xs4all.nl>
+In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tested with NTSC camera, it's the same as with PAL.
-The only case when IPU2_CSI1_SENS_CONF register is set to interlaced
-mode (PRCTL=3, CCIR interlaced mode (BT.656)) is when all parts of the
-pipeline are set to interlaced:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-"adv7180 2-0020":0 [fmt:UYVY2X8/720x576 field:interlaced]
-"ipu2_csi1_mux":1  [fmt:UYVY2X8/720x576 field:interlaced]
-"ipu2_csi1_mux":2  [fmt:UYVY2X8/720x576 field:interlaced]
-"ipu2_csi1":0      [fmt:UYVY2X8/720x576 field:interlaced]
-"ipu2_csi1":2      [fmt:AYUV32/720x576 field:interlaced]
+The next patch needs the reference to a control instead of the
+control itself, so change struct v4l2_ctrl_helper accordingly.
 
-The image is stable and in sync, the "only" problem is that I get two
-concatenated field images (in one V4L2 frame) instead of a normal
-interlaced frame (all lines in order - 0, 1, 2, 3, 4 etc).
-IOW I get V4L2_FIELD_ALTERNATE, V4L2_FIELD_SEQ_TB or V4L2_FIELD_SEQ_BT
-(the data format, I don't mean the pixel format.field) while I need to
-get V4L2_FIELD_INTERLACED, V4L2_FIELD_INTERLACED_TB or _BT.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-
-If I set "ipu2_csi1":2 to field:none, the IPU2_CSI1_SENS_CONF is set to
-progressive mode (PRCTL=2). It's the last element of the pipeline I can
-configure, it's connected straight to "ipu2_csi1 capture" aka
-/dev/videoX. I think CSI can't work with interlaced camera (and ADV7180)
-when set to progressive, can it?
-
-
-I wonder... perhaps to get an interlaced frame I need to route the data
-through VDIC (ipu2_vdic, the deinterlacer)?
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 3c1b00baa8d0..da4cc1485dc4 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -37,8 +37,8 @@
+ struct v4l2_ctrl_helper {
+ 	/* Pointer to the control reference of the master control */
+ 	struct v4l2_ctrl_ref *mref;
+-	/* The control corresponding to the v4l2_ext_control ID field. */
+-	struct v4l2_ctrl *ctrl;
++	/* The control ref corresponding to the v4l2_ext_control ID field. */
++	struct v4l2_ctrl_ref *ref;
+ 	/* v4l2_ext_control index of the next control belonging to the
+ 	   same cluster, or 0 if there isn't any. */
+ 	u32 next;
+@@ -2887,6 +2887,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 		ref = find_ref_lock(hdl, id);
+ 		if (ref == NULL)
+ 			return -EINVAL;
++		h->ref = ref;
+ 		ctrl = ref->ctrl;
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
+ 			return -EINVAL;
+@@ -2909,7 +2910,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 		}
+ 		/* Store the ref to the master control of the cluster */
+ 		h->mref = ref;
+-		h->ctrl = ctrl;
+ 		/* Initially set next to 0, meaning that there is no other
+ 		   control in this helper array belonging to the same
+ 		   cluster */
+@@ -2994,7 +2994,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 	cs->error_idx = cs->count;
+ 
+ 	for (i = 0; !ret && i < cs->count; i++)
+-		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
++		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
+ 			ret = -EACCES;
+ 
+ 	for (i = 0; !ret && i < cs->count; i++) {
+@@ -3029,7 +3029,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 
+ 			do {
+ 				ret = ctrl_to_user(cs->controls + idx,
+-						   helpers[idx].ctrl);
++						   helpers[idx].ref->ctrl);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
+@@ -3168,7 +3168,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
+ 
+ 	cs->error_idx = cs->count;
+ 	for (i = 0; i < cs->count; i++) {
+-		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
++		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
+ 		union v4l2_ctrl_ptr p_new;
+ 
+ 		cs->error_idx = i;
+@@ -3280,7 +3280,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			do {
+ 				/* Check if the auto control is part of the
+ 				   list, and remember the new value. */
+-				if (helpers[tmp_idx].ctrl == master)
++				if (helpers[tmp_idx].ref->ctrl == master)
+ 					new_auto_val = cs->controls[tmp_idx].value;
+ 				tmp_idx = helpers[tmp_idx].next;
+ 			} while (tmp_idx);
+@@ -3293,7 +3293,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 		/* Copy the new caller-supplied control values.
+ 		   user_to_new() sets 'is_new' to 1. */
+ 		do {
+-			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
++			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
+ 
+ 			ret = user_to_new(cs->controls + idx, ctrl);
+ 			if (!ret && ctrl->is_ptr)
+@@ -3309,7 +3309,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			idx = i;
+ 			do {
+ 				ret = new_to_user(cs->controls + idx,
+-						helpers[idx].ctrl);
++						helpers[idx].ref->ctrl);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
 -- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+2.17.0
