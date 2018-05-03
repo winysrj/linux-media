@@ -1,126 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f194.google.com ([209.85.217.194]:35575 "EHLO
-        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751135AbeEYEgB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 00:36:01 -0400
-Received: by mail-ua0-f194.google.com with SMTP id a2-v6so2630792uak.2
-        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 21:36:00 -0700 (PDT)
-Received: from mail-ua0-f182.google.com (mail-ua0-f182.google.com. [209.85.217.182])
-        by smtp.gmail.com with ESMTPSA id t43-v6sm9455772uah.42.2018.05.24.21.35.57
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 May 2018 21:35:58 -0700 (PDT)
-Received: by mail-ua0-f182.google.com with SMTP id j5-v6so2619668uak.12
-        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 21:35:57 -0700 (PDT)
+Received: from mail-yb0-f175.google.com ([209.85.213.175]:40601 "EHLO
+        mail-yb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751148AbeECOvW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 10:51:22 -0400
+Received: by mail-yb0-f175.google.com with SMTP id o80-v6so5258626ybc.7
+        for <linux-media@vger.kernel.org>; Thu, 03 May 2018 07:51:22 -0700 (PDT)
 MIME-Version: 1.0
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com> <20180308094807.9443-6-jacob-chen@iotwrt.com>
- <20180503090909.o3dyhukzs2y7em5z@tarshish> <CAAFQd5CvBv4hkE=PSHBJTYa9Lj0SyggxpMBEAYD=if0=T0uzHw@mail.gmail.com>
- <20180507063814.vweb4p3nfgnoc3td@tarshish> <CAAFQd5A7gAK4fXH9YVrobR5_QX_5f8xa272R_56v5YUghV6Sxw@mail.gmail.com>
- <20180524113012.mt5b2f2vrhfrn3d7@tarshish>
-In-Reply-To: <20180524113012.mt5b2f2vrhfrn3d7@tarshish>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 25 May 2018 13:35:45 +0900
-Message-ID: <CAAFQd5B8DbnmmkKRb-2M7PFHDAKRFOA1Bnk-si_AZLjfzXOgPg@mail.gmail.com>
-Subject: Re: [PATCH v6 05/17] media: rkisp1: add Rockchip ISP1 subdev driver
-To: baruch@tkos.co.il
-Cc: Jacob Chen <jacob-chen@iotwrt.com>,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
-        Eddie Cai <eddie.cai.linux@gmail.com>,
-        Jeffy <jeffy.chen@rock-chips.com>, devicetree@vger.kernel.org,
-        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
-        =?UTF-8?B?6ZmI5Z+O?= <cc@rock-chips.com>,
-        Allon Huang <allon.huang@rock-chips.com>
+In-Reply-To: <CAOMZO5BoaO5L6r4bjRoL6B1wiC+GG+JFXn9+4CZsAUN6Wkz9zA@mail.gmail.com>
+References: <CAPQseg2t1-LgmeuQBW2YXSwN26WKcJWakN2KCLfCjKZ_wJeWGw@mail.gmail.com>
+ <1523629085.3396.10.camel@pengutronix.de> <CAPQseg29hJ+vdWxU3RkXtaeJki9209OjqvGOQQ-U45Z_vvjnnw@mail.gmail.com>
+ <1523871020.5918.4.camel@pengutronix.de> <CAPQseg3qXkgU=1yvUXdh73XnGT-kcFWsBF6nDx6AMa+OV7w3nQ@mail.gmail.com>
+ <1523954089.3612.1.camel@pengutronix.de> <CAPQseg1dtXk94b=emhJJHPtNvmW4mkCRLq-UkMjSzpz-45Do_g@mail.gmail.com>
+ <1523968435.3612.8.camel@pengutronix.de> <CAPQseg3uECmWFnjpYW+=JYRHNxm70MA4f7=L3NSn1ZWYL83=nQ@mail.gmail.com>
+ <CAOMZO5BoaO5L6r4bjRoL6B1wiC+GG+JFXn9+4CZsAUN6Wkz9zA@mail.gmail.com>
+From: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>
+Date: Thu, 3 May 2018 16:51:21 +0200
+Message-ID: <CAPQseg0ky7y9Y1yaVSaOYDhkr8CQTkHvzf9v3BC+1Z_eiqpbWw@mail.gmail.com>
+Subject: Re: imx-media: MT9P031 Capture issues on IMX6
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 24, 2018 at 8:30 PM Baruch Siach <baruch@tkos.co.il> wrote:
+Hi Fabio,
 
-> Hi Tomasz,
+On Thu, Apr 19, 2018 at 7:08 PM, Fabio Estevam <festevam@gmail.com> wrote:
+> On Thu, Apr 19, 2018 at 1:55 PM, Ibtsam Ul-Haq
+> <ibtsam.haq.0x01@gmail.com> wrote:
+>
+>> I can see by using a logic analyzer that the PIXCLK does not look
+>> nice. It looks similar to the issue mentioned here:
+>> https://community.nxp.com/thread/454467
+>>
+>> except that in my case it looks pulled up instead of down.
+>> However I do not yet have a clue what causes this.
+>> VSYNC and HSYNC waveforms look ok, until the whole capture is stopped
+>> due to the error, after 14 frames.
+>> The relevant pinctrl settings in the dts are:
+>>
+>>     MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK    0x4001b0b0
+>>     MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC        0x4001b0b0
+>>     MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC        0x4001b0b0
+>
+> Not sure why you are setting the SION bit (bit 30) on the CSI pads.
+>
+> Does it work better if you do not set it?
+>
 
-> On Mon, May 07, 2018 at 06:41:50AM +0000, Tomasz Figa wrote:
-> > On Mon, May 7, 2018 at 3:38 PM Baruch Siach <baruch@tkos.co.il> wrote:
-> > > On Mon, May 07, 2018 at 06:13:27AM +0000, Tomasz Figa wrote:
-> > > > On Thu, May 3, 2018 at 6:09 PM Baruch Siach <baruch@tkos.co.il>
-wrote:
-> > > > > On Thu, Mar 08, 2018 at 05:47:55PM +0800, Jacob Chen wrote:
-> > > > > > +static int rkisp1_isp_sd_s_power(struct v4l2_subdev *sd, int
-on)
-> > > > > > +{
-> > > > > > +     struct rkisp1_device *isp_dev = sd_to_isp_dev(sd);
-> > > > > > +     int ret;
-> > > > > > +
-> > > > > > +     v4l2_dbg(1, rkisp1_debug, &isp_dev->v4l2_dev, "s_power:
-%d\n",
-> > > > on);
-> > > > > > +
-> > > > > > +     if (on) {
-> > > > > > +             ret = pm_runtime_get_sync(isp_dev->dev);
-> > > > > > +             if (ret < 0)
-> > > > > > +                     return ret;
-> > > > > > +
-> > > > > > +             rkisp1_config_clk(isp_dev);
-> > > > > > +     } else {
-> > > > > > +             ret = pm_runtime_put(isp_dev->dev);
-> > > >
-> > > > > I commented this line out to make more than one STREAMON work.
-> > Otherwise,
-> > > > > the second STREAMON hangs. I guess the bug is not this driver.
-> > Probably
-> > > > > something in drivers/soc/rockchip/pm_domains.c. Just noting that
-in
-> > case
-> > > > > you or someone on Cc would like to investigate it further.
-> > > > >
-> > > > > I tested v4.16-rc4 on the Tinkerboard.
-> > > >
-> > > > Looks like that version doesn't include the IOMMU PM and clock
-handling
-> > > > rework [1], which should fix a lot of runtime PM issues. FWIW,
-> > linux-next
-> > > > seems to already include it.
-> > > >
-> > > > [1] https://lkml.org/lkml/2018/3/23/44
-> >
-> > > Thanks for the reference.
-> >
-> > > It looks like the iommu driver part is in Linus' tree already. The DT
-> > part is
-> > > in the v4.18-armsoc/dts32 branch of Heiko's tree. Am I missing
-anything?
-> >
-> > You're right, most of the series made it in time for 4.17. However, the
-DT
-> > part (precisely, the clocks properties added to IOMMU nodes) is crucial
-for
-> > the fixes to be effective.
-> >
-> > > Anyway, I'll take a look.
-> >
-> > Thanks for testing. :) (Forgot to mention in my previous email...)
 
-> I finally got around to testing. Unfortunately, kernel v4.17-rc6 with
-> cherry-pick of commit c78751f91c0b (ARM: dts: rockchip: add clocks in
-iommu
-> nodes) from Heiko's tree still exhibit the same problem. STREAMON hangs on
-> second try. The same workaround "fixes" it.
+Thanks for your response.
+The SION bit was this way in the dts provided by the board manufacturer.
+But now I have tried it with the SION bit cleared, unfortunately it
+didn't make any difference.
+There is a new board revision coming soon with several layout changes.
+So currently I am waiting, in the hope that we don't waste time
+debugging it if it were a hardware problem.
 
-Thanks for testing. I'm out of ideas, since the same code seems to work
-fine for us in Chrome OS 4.4 kernel. Maybe we could have someone from RK
-take a look.
+
+> For your reference: this is what we do on imx6qdl-sabresd.dtsi:
+>
+> MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x1b0b0
+> MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x1b0b0
+> MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x1b0b0
+> MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x1b0b0
+> MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x1b0b0
+> MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x1b0b0
+> MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x1b0b0
+> MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x1b0b0
+> MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x1b0b0
+> MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x1b0b0
+> MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x1b0b0
 
 Best regards,
-Tomasz
+Ibtsam Haq
