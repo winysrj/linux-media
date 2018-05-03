@@ -1,56 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:60250 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750914AbeETHYS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 May 2018 03:24:18 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>,
-        Nobuhiro Iwamatsu <iwamatsu@debian.org>
-Subject: [PATCH v2] v4l: vsp1: Fix vsp1_regs.h license header
-Date: Sun, 20 May 2018 10:24:37 +0300
-Message-Id: <20180520072437.9686-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-co1nam03on0050.outbound.protection.outlook.com ([104.47.40.50]:13728
+        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751974AbeECCnP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 May 2018 22:43:15 -0400
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>,
+        Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Subject: [PATCH v5 1/8] v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
+Date: Wed, 2 May 2018 19:42:46 -0700
+Message-ID: <3b02c211b800dd40bd6e34a193eca4a6842af950.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+In-Reply-To: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+References: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All source files of the vsp1 driver are licensed under the GPLv2+ except
-for vsp1_regs.h which is licensed under GPLv2. This is caused by a bad
-copy&paste that dates back from the initial version of the driver. Fix
-it.
+From: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
 
-Cc: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
-Acked-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Acked-by: Sergei Shtylyov<sergei.shtylyov@cogentembedded.com>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Acked-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+In current implementation driver only checks the colorspace
+between the last subdev in the pipeline and the connected video node,
+the pipeline could be configured with wrong colorspace information
+until the very end. It thus makes little sense to check the
+colorspace only at the video node. So check can be dropped until
+we find a better solution to carry colorspace information
+through pipelines and to userspace.
+
+Signed-off-by: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
+Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
 ---
-Iwamatsu-san,
+ drivers/media/platform/xilinx/xilinx-dma.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-While working on the VSP1 driver I noticed that all source files are
-licensed under the GPLv2+ except for vsp1_regs.h which is licensed under
-GPLv2. I'd like to fix this inconsistency. As you have contributed to
-that file, could you please provide your explicit ack if you agree to
-this change ?
----
- drivers/media/platform/vsp1/vsp1_regs.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-index 0d249ff9f564..e82661216c1d 100644
---- a/drivers/media/platform/vsp1/vsp1_regs.h
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -1,4 +1,4 @@
--/* SPDX-License-Identifier: GPL-2.0 */
-+/* SPDX-License-Identifier: GPL-2.0+ */
- /*
-  * vsp1_regs.h  --  R-Car VSP1 Registers Definitions
-  *
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 522cdfd..cb20ada 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -75,8 +75,7 @@ static int xvip_dma_verify_format(struct xvip_dma *dma)
+ 
+ 	if (dma->fmtinfo->code != fmt.format.code ||
+ 	    dma->format.height != fmt.format.height ||
+-	    dma->format.width != fmt.format.width ||
+-	    dma->format.colorspace != fmt.format.colorspace)
++	    dma->format.width != fmt.format.width)
+ 		return -EINVAL;
+ 
+ 	return 0;
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
