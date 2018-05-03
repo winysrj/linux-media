@@ -1,67 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.socionext.com ([202.248.49.38]:41428 "EHLO mx.socionext.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753571AbeEWA14 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 20:27:56 -0400
-From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-To: Abylay Ospan <aospan@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>,
-        Jassi Brar <jaswinder.singh@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-Subject: [PATCH v3 2/2] media: helene: support IF frequency of ISDB-S
-Date: Wed, 23 May 2018 09:27:50 +0900
-Message-Id: <20180523002750.27136-2-suzuki.katsuhiro@socionext.com>
-In-Reply-To: <20180523002750.27136-1-suzuki.katsuhiro@socionext.com>
-References: <20180523002750.27136-1-suzuki.katsuhiro@socionext.com>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:51497 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751174AbeECOx0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 May 2018 10:53:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv13 07/28] videodev2.h: add request_fd field to v4l2_ext_controls
+Date: Thu,  3 May 2018 16:52:57 +0200
+Message-Id: <20180503145318.128315-8-hverkuil@xs4all.nl>
+In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances maximum IF frequency to 2.072GHz of this tuner
-for supporting ISDB-S in Japan.
+From: Alexandre Courbot <acourbot@chromium.org>
 
-Maimum RF center frequency of ISDB-S for right-handed circularly
-polarized.
-  BSAT
-    BS-23 12.14944GHz
-  N-SAT-110
-    ND-24 12.731GHz
+If 'which' is V4L2_CTRL_WHICH_REQUEST_VAL, then the 'request_fd' field
+can be used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
 
-Local frequency of BS/CS converter is typically 10.678GHz.
-
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
+ include/uapi/linux/videodev2.h                | 4 +++-
+ 3 files changed, 10 insertions(+), 5 deletions(-)
 
-Changes since v2:
-  - Newly added
-
-Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
----
- drivers/media/dvb-frontends/helene.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/helene.c b/drivers/media/dvb-frontends/helene.c
-index 04033f0c278b..7d02a9ea7d95 100644
---- a/drivers/media/dvb-frontends/helene.c
-+++ b/drivers/media/dvb-frontends/helene.c
-@@ -874,7 +874,7 @@ static const struct dvb_tuner_ops helene_tuner_ops_s = {
- 	.info = {
- 		.name = "Sony HELENE Sat tuner",
- 		.frequency_min = 500000,
--		.frequency_max = 2500000,
-+		.frequency_max = 2072000000,
- 		.frequency_step = 1000,
- 	},
- 	.init = helene_init,
-@@ -888,7 +888,7 @@ static const struct dvb_tuner_ops helene_tuner_ops = {
- 	.info = {
- 		.name = "Sony HELENE Sat/Ter tuner",
- 		.frequency_min = 500000,
--		.frequency_max = 1200000000,
-+		.frequency_max = 2072000000,
- 		.frequency_step = 1000,
- 	},
- 	.init = helene_init,
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 6481212fda77..dcce86c1fe40 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -834,7 +834,8 @@ struct v4l2_ext_controls32 {
+ 	__u32 which;
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
+ };
+ 
+@@ -909,6 +910,7 @@ static int get_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &p32->count) ||
+ 	    put_user(count, &p64->count) ||
+ 	    assign_in_user(&p64->error_idx, &p32->error_idx) ||
++	    assign_in_user(&p64->request_fd, &p32->request_fd) ||
+ 	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
+ 		return -EFAULT;
+ 
+@@ -974,6 +976,7 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &p64->count) ||
+ 	    put_user(count, &p32->count) ||
+ 	    assign_in_user(&p32->error_idx, &p64->error_idx) ||
++	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
+ 	    copy_in_user(p32->reserved, p64->reserved, sizeof(p32->reserved)) ||
+ 	    get_user(kcontrols, &p64->controls))
+ 		return -EFAULT;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index f48c505550e0..9ce23e23c5bf 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -553,8 +553,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
+ 	const struct v4l2_ext_controls *p = arg;
+ 	int i;
+ 
+-	pr_cont("which=0x%x, count=%d, error_idx=%d",
+-			p->which, p->count, p->error_idx);
++	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
++			p->which, p->count, p->error_idx, p->request_fd);
+ 	for (i = 0; i < p->count; i++) {
+ 		if (!p->controls[i].size)
+ 			pr_cont(", id/val=0x%x/0x%x",
+@@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+ 	__u32 i;
+ 
+ 	/* zero the reserved fields */
+-	c->reserved[0] = c->reserved[1] = 0;
++	c->reserved[0] = 0;
+ 	for (i = 0; i < c->count; i++)
+ 		c->controls[i].reserved2[0] = 0;
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 600877be5c22..16b53b82496c 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1592,7 +1592,8 @@ struct v4l2_ext_controls {
+ 	};
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	struct v4l2_ext_control *controls;
+ };
+ 
+@@ -1605,6 +1606,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_MAX_DIMS	  (4)
+ #define V4L2_CTRL_WHICH_CUR_VAL   0
+ #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
++#define V4L2_CTRL_WHICH_REQUEST_VAL 0x0f010000
+ 
+ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_INTEGER	     = 1,
 -- 
 2.17.0
