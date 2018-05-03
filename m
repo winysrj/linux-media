@@ -1,367 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:40090 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964823AbeEYPdr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 11:33:47 -0400
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Subject: [PATCH 2/8] xen/balloon: Move common memory reservation routines to a module
-Date: Fri, 25 May 2018 18:33:25 +0300
-Message-Id: <20180525153331.31188-3-andr2000@gmail.com>
-In-Reply-To: <20180525153331.31188-1-andr2000@gmail.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34864 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751317AbeECNg1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 09:36:27 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v4 00/11] R-Car DU Interlaced support through VSP1
+Date: Thu,  3 May 2018 14:36:11 +0100
+Message-Id: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+The Gen3 R-Car DU devices make use of the VSP to handle frame processing.
 
-Memory {increase|decrease}_reservation and VA mappings update/reset
-code used in balloon driver can be made common, so other drivers can
-also re-use the same functionality without open-coding.
-Create a dedicated module for the shared code and export corresponding
-symbols for other kernel modules.
+In this series we implement support for handling interlaced pipelines by using
+the auto-fld feature of the VSP hardware.
 
-Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
----
- drivers/xen/Makefile          |   1 +
- drivers/xen/balloon.c         |  71 ++----------------
- drivers/xen/mem-reservation.c | 134 ++++++++++++++++++++++++++++++++++
- include/xen/mem_reservation.h |  29 ++++++++
- 4 files changed, 170 insertions(+), 65 deletions(-)
- create mode 100644 drivers/xen/mem-reservation.c
- create mode 100644 include/xen/mem_reservation.h
+The implementation is preceded by some cleanup work and refactoring, through
+patches 1 to 6. These are trivial and could be collected earlier and
+independently if this series requires further revisions.
 
-diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
-index 451e833f5931..3c87b0c3aca6 100644
---- a/drivers/xen/Makefile
-+++ b/drivers/xen/Makefile
-@@ -2,6 +2,7 @@
- obj-$(CONFIG_HOTPLUG_CPU)		+= cpu_hotplug.o
- obj-$(CONFIG_X86)			+= fallback.o
- obj-y	+= grant-table.o features.o balloon.o manage.o preempt.o time.o
-+obj-y	+= mem-reservation.o
- obj-y	+= events/
- obj-y	+= xenbus/
- 
-diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
-index 065f0b607373..57b482d67a3a 100644
---- a/drivers/xen/balloon.c
-+++ b/drivers/xen/balloon.c
-@@ -71,6 +71,7 @@
- #include <xen/balloon.h>
- #include <xen/features.h>
- #include <xen/page.h>
-+#include <xen/mem_reservation.h>
- 
- static int xen_hotplug_unpopulated;
- 
-@@ -157,13 +158,6 @@ static DECLARE_DELAYED_WORK(balloon_worker, balloon_process);
- #define GFP_BALLOON \
- 	(GFP_HIGHUSER | __GFP_NOWARN | __GFP_NORETRY | __GFP_NOMEMALLOC)
- 
--static void scrub_page(struct page *page)
--{
--#ifdef CONFIG_XEN_SCRUB_PAGES
--	clear_highpage(page);
--#endif
--}
--
- /* balloon_append: add the given page to the balloon. */
- static void __balloon_append(struct page *page)
- {
-@@ -463,11 +457,6 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
- 	int rc;
- 	unsigned long i;
- 	struct page   *page;
--	struct xen_memory_reservation reservation = {
--		.address_bits = 0,
--		.extent_order = EXTENT_ORDER,
--		.domid        = DOMID_SELF
--	};
- 
- 	if (nr_pages > ARRAY_SIZE(frame_list))
- 		nr_pages = ARRAY_SIZE(frame_list);
-@@ -486,9 +475,7 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
- 		page = balloon_next_page(page);
- 	}
- 
--	set_xen_guest_handle(reservation.extent_start, frame_list);
--	reservation.nr_extents = nr_pages;
--	rc = HYPERVISOR_memory_op(XENMEM_populate_physmap, &reservation);
-+	rc = xenmem_reservation_increase(nr_pages, frame_list);
- 	if (rc <= 0)
- 		return BP_EAGAIN;
- 
-@@ -496,29 +483,7 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
- 		page = balloon_retrieve(false);
- 		BUG_ON(page == NULL);
- 
--#ifdef CONFIG_XEN_HAVE_PVMMU
--		/*
--		 * We don't support PV MMU when Linux and Xen is using
--		 * different page granularity.
--		 */
--		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
--
--		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
--			unsigned long pfn = page_to_pfn(page);
--
--			set_phys_to_machine(pfn, frame_list[i]);
--
--			/* Link back into the page tables if not highmem. */
--			if (!PageHighMem(page)) {
--				int ret;
--				ret = HYPERVISOR_update_va_mapping(
--						(unsigned long)__va(pfn << PAGE_SHIFT),
--						mfn_pte(frame_list[i], PAGE_KERNEL),
--						0);
--				BUG_ON(ret);
--			}
--		}
--#endif
-+		xenmem_reservation_va_mapping_update(1, &page, &frame_list[i]);
- 
- 		/* Relinquish the page back to the allocator. */
- 		free_reserved_page(page);
-@@ -535,11 +500,6 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
- 	unsigned long i;
- 	struct page *page, *tmp;
- 	int ret;
--	struct xen_memory_reservation reservation = {
--		.address_bits = 0,
--		.extent_order = EXTENT_ORDER,
--		.domid        = DOMID_SELF
--	};
- 	LIST_HEAD(pages);
- 
- 	if (nr_pages > ARRAY_SIZE(frame_list))
-@@ -553,7 +513,7 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
- 			break;
- 		}
- 		adjust_managed_page_count(page, -1);
--		scrub_page(page);
-+		xenmem_reservation_scrub_page(page);
- 		list_add(&page->lru, &pages);
- 	}
- 
-@@ -575,25 +535,8 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
- 		/* XENMEM_decrease_reservation requires a GFN */
- 		frame_list[i++] = xen_page_to_gfn(page);
- 
--#ifdef CONFIG_XEN_HAVE_PVMMU
--		/*
--		 * We don't support PV MMU when Linux and Xen is using
--		 * different page granularity.
--		 */
--		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
--
--		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
--			unsigned long pfn = page_to_pfn(page);
-+		xenmem_reservation_va_mapping_reset(1, &page);
- 
--			if (!PageHighMem(page)) {
--				ret = HYPERVISOR_update_va_mapping(
--						(unsigned long)__va(pfn << PAGE_SHIFT),
--						__pte_ma(0), 0);
--				BUG_ON(ret);
--			}
--			__set_phys_to_machine(pfn, INVALID_P2M_ENTRY);
--		}
--#endif
- 		list_del(&page->lru);
- 
- 		balloon_append(page);
-@@ -601,9 +544,7 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
- 
- 	flush_tlb_all();
- 
--	set_xen_guest_handle(reservation.extent_start, frame_list);
--	reservation.nr_extents   = nr_pages;
--	ret = HYPERVISOR_memory_op(XENMEM_decrease_reservation, &reservation);
-+	ret = xenmem_reservation_decrease(nr_pages, frame_list);
- 	BUG_ON(ret != nr_pages);
- 
- 	balloon_stats.current_pages -= nr_pages;
-diff --git a/drivers/xen/mem-reservation.c b/drivers/xen/mem-reservation.c
-new file mode 100644
-index 000000000000..29882e4324f5
---- /dev/null
-+++ b/drivers/xen/mem-reservation.c
-@@ -0,0 +1,134 @@
-+// SPDX-License-Identifier: GPL-2.0 OR MIT
-+
-+/******************************************************************************
-+ * Xen memory reservation utilities.
-+ *
-+ * Copyright (c) 2003, B Dragovic
-+ * Copyright (c) 2003-2004, M Williamson, K Fraser
-+ * Copyright (c) 2005 Dan M. Smith, IBM Corporation
-+ * Copyright (c) 2010 Daniel Kiper
-+ * Copyright (c) 2018, Oleksandr Andrushchenko, EPAM Systems Inc.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+
-+#include <asm/tlb.h>
-+#include <asm/xen/hypercall.h>
-+
-+#include <xen/interface/memory.h>
-+#include <xen/page.h>
-+
-+/*
-+ * Use one extent per PAGE_SIZE to avoid to break down the page into
-+ * multiple frame.
-+ */
-+#define EXTENT_ORDER (fls(XEN_PFN_PER_PAGE) - 1)
-+
-+void xenmem_reservation_scrub_page(struct page *page)
-+{
-+#ifdef CONFIG_XEN_SCRUB_PAGES
-+	clear_highpage(page);
-+#endif
-+}
-+EXPORT_SYMBOL(xenmem_reservation_scrub_page);
-+
-+void xenmem_reservation_va_mapping_update(unsigned long count,
-+					  struct page **pages,
-+					  xen_pfn_t *frames)
-+{
-+#ifdef CONFIG_XEN_HAVE_PVMMU
-+	int i;
-+
-+	for (i = 0; i < count; i++) {
-+		struct page *page;
-+
-+		page = pages[i];
-+		BUG_ON(page == NULL);
-+
-+		/*
-+		 * We don't support PV MMU when Linux and Xen is using
-+		 * different page granularity.
-+		 */
-+		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
-+
-+		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
-+			unsigned long pfn = page_to_pfn(page);
-+
-+			set_phys_to_machine(pfn, frames[i]);
-+
-+			/* Link back into the page tables if not highmem. */
-+			if (!PageHighMem(page)) {
-+				int ret;
-+
-+				ret = HYPERVISOR_update_va_mapping(
-+						(unsigned long)__va(pfn << PAGE_SHIFT),
-+						mfn_pte(frames[i], PAGE_KERNEL),
-+						0);
-+				BUG_ON(ret);
-+			}
-+		}
-+	}
-+#endif
-+}
-+EXPORT_SYMBOL(xenmem_reservation_va_mapping_update);
-+
-+void xenmem_reservation_va_mapping_reset(unsigned long count,
-+					 struct page **pages)
-+{
-+#ifdef CONFIG_XEN_HAVE_PVMMU
-+	int i;
-+
-+	for (i = 0; i < count; i++) {
-+		/*
-+		 * We don't support PV MMU when Linux and Xen is using
-+		 * different page granularity.
-+		 */
-+		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
-+
-+		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
-+			struct page *page = pages[i];
-+			unsigned long pfn = page_to_pfn(page);
-+
-+			if (!PageHighMem(page)) {
-+				int ret;
-+
-+				ret = HYPERVISOR_update_va_mapping(
-+						(unsigned long)__va(pfn << PAGE_SHIFT),
-+						__pte_ma(0), 0);
-+				BUG_ON(ret);
-+			}
-+			__set_phys_to_machine(pfn, INVALID_P2M_ENTRY);
-+		}
-+	}
-+#endif
-+}
-+EXPORT_SYMBOL(xenmem_reservation_va_mapping_reset);
-+
-+int xenmem_reservation_increase(int count, xen_pfn_t *frames)
-+{
-+	struct xen_memory_reservation reservation = {
-+		.address_bits = 0,
-+		.extent_order = EXTENT_ORDER,
-+		.domid        = DOMID_SELF
-+	};
-+
-+	set_xen_guest_handle(reservation.extent_start, frames);
-+	reservation.nr_extents = count;
-+	return HYPERVISOR_memory_op(XENMEM_populate_physmap, &reservation);
-+}
-+EXPORT_SYMBOL(xenmem_reservation_increase);
-+
-+int xenmem_reservation_decrease(int count, xen_pfn_t *frames)
-+{
-+	struct xen_memory_reservation reservation = {
-+		.address_bits = 0,
-+		.extent_order = EXTENT_ORDER,
-+		.domid        = DOMID_SELF
-+	};
-+
-+	set_xen_guest_handle(reservation.extent_start, frames);
-+	reservation.nr_extents = count;
-+	return HYPERVISOR_memory_op(XENMEM_decrease_reservation, &reservation);
-+}
-+EXPORT_SYMBOL(xenmem_reservation_decrease);
-diff --git a/include/xen/mem_reservation.h b/include/xen/mem_reservation.h
-new file mode 100644
-index 000000000000..9306d9b8743c
---- /dev/null
-+++ b/include/xen/mem_reservation.h
-@@ -0,0 +1,29 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR MIT */
-+
-+/*
-+ * Xen memory reservation utilities.
-+ *
-+ * Copyright (c) 2003, B Dragovic
-+ * Copyright (c) 2003-2004, M Williamson, K Fraser
-+ * Copyright (c) 2005 Dan M. Smith, IBM Corporation
-+ * Copyright (c) 2010 Daniel Kiper
-+ * Copyright (c) 2018, Oleksandr Andrushchenko, EPAM Systems Inc.
-+ */
-+
-+#ifndef _XENMEM_RESERVATION_H
-+#define _XENMEM_RESERVATION_H
-+
-+void xenmem_reservation_scrub_page(struct page *page);
-+
-+void xenmem_reservation_va_mapping_update(unsigned long count,
-+					  struct page **pages,
-+					  xen_pfn_t *frames);
-+
-+void xenmem_reservation_va_mapping_reset(unsigned long count,
-+					 struct page **pages);
-+
-+int xenmem_reservation_increase(int count, xen_pfn_t *frames);
-+
-+int xenmem_reservation_decrease(int count, xen_pfn_t *frames);
-+
-+#endif
+Patch 7 makes a key distinctive change to remove all existing support for
+headerless display lists throughout the VSP1 driver, and ensures that all
+pipelines use the same code path. This simplifies the code and reduces
+opportunity for untested code paths to exist.
+
+Patches 8, 9 and 10 implement the relevant support in the VSP1 driver, before
+patch 11 finally enables the feature through the drm R-Car DU driver.
+
+This series is based upon my previous TLB optimise and body rework (v9), and is
+available from the following URL:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git
+  tags/vsp1/du/interlaced/v4
+
+ChangeLog:
+
+v4:
+ - Move configure_partition() call changes into tlb-optimise-v9
+
+v3:
+ - Rebased on top of TLB Optimise rework v8
+ - Added the DL parameter back into the configure_partition() calls.
+   - This change could be moved into the TLB-Optimise series.
+ - Document interlaced field in struct vsp1_du_atomic_config
+
+v2:
+ - media: vsp1: use kernel __packed for structures
+    became:
+   media: vsp1: Remove packed attributes from aligned structures
+
+ - media: vsp1: Add support for extended display list headers
+   - No longer declares structs __packed
+
+ - media: vsp1: Provide support for extended command pools
+   - Fix spelling typo in commit message
+   - constify, and staticify the instantiation of vsp1_extended_commands
+   - s/autfld_cmds/autofld_cmds/
+   - staticify cmd pool functions (Thanks kbuild-bot)
+
+ - media: vsp1: Support Interlaced display pipelines
+   - fix erroneous BIT value which enabled interlaced
+   - fix field handling at frame_end interrupt
+
+Kieran Bingham (11):
+  media: vsp1: drm: Fix minor grammar error
+  media: vsp1: Remove packed attributes from aligned structures
+  media: vsp1: Rename dl_child to dl_next
+  media: vsp1: Remove unused display list structure field
+  media: vsp1: Clean up DLM objects on error
+  media: vsp1: Provide VSP1 feature helper macro
+  media: vsp1: Use header display lists for all WPF outputs linked to the DU
+  media: vsp1: Add support for extended display list headers
+  media: vsp1: Provide support for extended command pools
+  media: vsp1: Support Interlaced display pipelines
+  drm: rcar-du: Support interlaced video output through vsp1
+
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c  |   1 +-
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c   |   3 +-
+ drivers/media/platform/vsp1/vsp1.h      |   3 +-
+ drivers/media/platform/vsp1/vsp1_dl.c   | 407 +++++++++++++++++++------
+ drivers/media/platform/vsp1/vsp1_dl.h   |  32 +-
+ drivers/media/platform/vsp1/vsp1_drm.c  |  13 +-
+ drivers/media/platform/vsp1/vsp1_drv.c  |  23 +-
+ drivers/media/platform/vsp1/vsp1_regs.h |   6 +-
+ drivers/media/platform/vsp1/vsp1_rpf.c  |  71 +++-
+ drivers/media/platform/vsp1/vsp1_rwpf.h |   1 +-
+ drivers/media/platform/vsp1/vsp1_wpf.c  |   6 +-
+ include/media/vsp1.h                    |   2 +-
+ 12 files changed, 456 insertions(+), 112 deletions(-)
+
+base-commit: de53826416ea9c22ee985d1f0291aab7d7ea94ce
 -- 
-2.17.0
+git-series 0.9.1
