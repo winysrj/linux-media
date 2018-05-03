@@ -1,146 +1,528 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:53923 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1031384AbeEZMRu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 May 2018 08:17:50 -0400
-Date: Sat, 26 May 2018 13:17:46 +0100
-From: Sean Young <sean@mess.org>
-To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Y Song <ys114321@gmail.com>,
-        Quentin Monnet <quentin.monnet@netronome.com>
-Subject: Re: [PATCH v4 2/3] media: rc: introduce BPF_PROG_LIRC_MODE2
-Message-ID: <20180526121746.6epr54fgjdsl66ri@gofer.mess.org>
-References: <cover.1526651592.git.sean@mess.org>
- <cd5140387a0f9c5ffc68d1846774f12fed45f34d.1526651592.git.sean@mess.org>
- <20180525204509.7jsnnk2qzws3bmyd@ast-mbp>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180525204509.7jsnnk2qzws3bmyd@ast-mbp>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:57091 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751505AbeECOx1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 May 2018 10:53:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv13 18/28] videobuf2-v4l2: integrate with media requests
+Date: Thu,  3 May 2018 16:53:08 +0200
+Message-Id: <20180503145318.128315-19-hverkuil@xs4all.nl>
+In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 25, 2018 at 01:45:11PM -0700, Alexei Starovoitov wrote:
-> On Fri, May 18, 2018 at 03:07:29PM +0100, Sean Young wrote:
-> > Add support for BPF_PROG_LIRC_MODE2. This type of BPF program can call
-> > rc_keydown() to reported decoded IR scancodes, or rc_repeat() to report
-> > that the last key should be repeated.
-> > 
-> > The bpf program can be attached to using the bpf(BPF_PROG_ATTACH) syscall;
-> > the target_fd must be the /dev/lircN device.
-> > 
-> > Signed-off-by: Sean Young <sean@mess.org>
-> ...
-> >  enum bpf_attach_type {
-> > @@ -158,6 +159,7 @@ enum bpf_attach_type {
-> >  	BPF_CGROUP_INET6_CONNECT,
-> >  	BPF_CGROUP_INET4_POST_BIND,
-> >  	BPF_CGROUP_INET6_POST_BIND,
-> > +	BPF_LIRC_MODE2,
-> >  	__MAX_BPF_ATTACH_TYPE
-> >  };
-> >  
-> > @@ -1902,6 +1904,53 @@ union bpf_attr {
-> >   *		egress otherwise). This is the only flag supported for now.
-> >   *	Return
-> >   *		**SK_PASS** on success, or **SK_DROP** on error.
-> > + *
-> > + * int bpf_rc_keydown(void *ctx, u32 protocol, u64 scancode, u32 toggle)
-> > + *	Description
-> > + *		This helper is used in programs implementing IR decoding, to
-> > + *		report a successfully decoded key press with *scancode*,
-> > + *		*toggle* value in the given *protocol*. The scancode will be
-> > + *		translated to a keycode using the rc keymap, and reported as
-> > + *		an input key down event. After a period a key up event is
-> > + *		generated. This period can be extended by calling either
-> > + *		**bpf_rc_keydown** () with the same values, or calling
-> > + *		**bpf_rc_repeat** ().
-> > + *
-> > + *		Some protocols include a toggle bit, in case the button
-> > + *		was released and pressed again between consecutive scancodes
-> > + *
-> > + *		The *ctx* should point to the lirc sample as passed into
-> > + *		the program.
-> > + *
-> > + *		The *protocol* is the decoded protocol number (see
-> > + *		**enum rc_proto** for some predefined values).
-> > + *
-> > + *		This helper is only available is the kernel was compiled with
-> > + *		the **CONFIG_BPF_LIRC_MODE2** configuration option set to
-> > + *		"**y**".
-> > + *
-> > + *	Return
-> > + *		0
-> > + *
-> > + * int bpf_rc_repeat(void *ctx)
-> > + *	Description
-> > + *		This helper is used in programs implementing IR decoding, to
-> > + *		report a successfully decoded repeat key message. This delays
-> > + *		the generation of a key up event for previously generated
-> > + *		key down event.
-> > + *
-> > + *		Some IR protocols like NEC have a special IR message for
-> > + *		repeating last button, for when a button is held down.
-> > + *
-> > + *		The *ctx* should point to the lirc sample as passed into
-> > + *		the program.
-> > + *
-> > + *		This helper is only available is the kernel was compiled with
-> > + *		the **CONFIG_BPF_LIRC_MODE2** configuration option set to
-> > + *		"**y**".
-> 
-> Hi Sean,
-> 
-> thank you for working on this. The patch set looks good to me.
-> I'd only ask to change above two helper names to something more specific.
-> Since BPF_PROG_TYPE_LIRC_MODE2 is the name of new prog type and kconfig.
-> May be bpf_lirc2_keydown() and bpf_lirc2_repeat() ?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-A little history might help here.
+This implements the V4L2 part of the request support. The main
+change is that vb2_qbuf and vb2_prepare_buf now have a new
+media_device pointer. This required changes to several drivers
+that did not use the vb2_ioctl_qbuf/prepare_buf helper functions.
 
-lirc and rc-core have non-obvious meanings. So, lirc was the original project
-that dealt with IR. That project was rejected from mainline because it did
-not send translated keycodes to input devices (it exposed its own interface
-for keypresses).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../media/common/videobuf2/videobuf2-v4l2.c   | 97 ++++++++++++++++---
+ drivers/media/platform/omap3isp/ispvideo.c    |  2 +-
+ .../media/platform/s3c-camif/camif-capture.c  |  4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |  4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c  |  4 +-
+ .../media/platform/soc_camera/soc_camera.c    |  4 +-
+ drivers/media/usb/uvc/uvc_queue.c             |  5 +-
+ drivers/media/usb/uvc/uvc_v4l2.c              |  3 +-
+ drivers/media/usb/uvc/uvcvideo.h              |  1 +
+ drivers/media/v4l2-core/v4l2-mem2mem.c        |  7 +-
+ .../staging/media/davinci_vpfe/vpfe_video.c   |  3 +-
+ drivers/staging/media/omap4iss/iss_video.c    |  3 +-
+ drivers/usb/gadget/function/uvc_queue.c       |  2 +-
+ include/media/videobuf2-v4l2.h                | 14 ++-
+ 14 files changed, 122 insertions(+), 31 deletions(-)
 
-Then rc-core was written which maps IR scancodes to keycodes (using rc
-keymaps) and sends them to the input layer. The original lirc userspace ABI
-for receiving and sending raw IR pulses and spaces was retained (mode2 as
-it was called in lirc).
-
-Reusing parts of the lirc ABI for BPF decoding raw IR makes sense, however
-dispatching decoded scancodes was never part of lirc, only rc-core. In fact,
-rc-core is reused in hdmi-cec for cec commands, which does not use lirc
-at all. So for example, if we want to process cec messages in bpf, it would
-want call rc_keydown().
-
-I don't think this lirc/rc-core duality is particularly great, but I'm
-not sure what the right answer to that is.
-
-> > @@ -1576,6 +1577,8 @@ static int bpf_prog_attach(const union bpf_attr *attr)
-> >  	case BPF_SK_SKB_STREAM_PARSER:
-> >  	case BPF_SK_SKB_STREAM_VERDICT:
-> >  		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, true);
-> > +	case BPF_LIRC_MODE2:
-> > +		return rc_dev_prog_attach(attr);
-> ...
-> > +	case BPF_LIRC_MODE2:
-> > +		return rc_dev_prog_detach(attr);
-> 
-> and similar rename for internal function names that go into bpf core.
-
-I agree with this.
-
-> Please add accumulated acks when you respin.
-
-Good point, will do.
-
-Thanks,
-
-Sean
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index b8d370b97cca..0a68b19b40da 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -25,6 +25,7 @@
+ #include <linux/kthread.h>
+ 
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-common.h>
+@@ -40,10 +41,12 @@ module_param(debug, int, 0644);
+ 			pr_info("vb2-v4l2: %s: " fmt, __func__, ## arg); \
+ 	} while (0)
+ 
+-/* Flags that are set by the vb2 core */
++/* Flags that are set by us */
+ #define V4L2_BUFFER_MASK_FLAGS	(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED | \
+ 				 V4L2_BUF_FLAG_DONE | V4L2_BUF_FLAG_ERROR | \
+ 				 V4L2_BUF_FLAG_PREPARED | \
++				 V4L2_BUF_FLAG_IN_REQUEST | \
++				 V4L2_BUF_FLAG_REQUEST_FD | \
+ 				 V4L2_BUF_FLAG_TIMESTAMP_MASK)
+ /* Output buffer flags that should be passed on to the driver */
+ #define V4L2_BUFFER_OUT_FLAGS	(V4L2_BUF_FLAG_PFRAME | V4L2_BUF_FLAG_BFRAME | \
+@@ -181,6 +184,7 @@ static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b
+ 		return -EINVAL;
+ 	}
+ 	vbuf->sequence = 0;
++	vbuf->request_fd = -1;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+ 		switch (b->memory) {
+@@ -318,9 +322,12 @@ static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b
+ 	return 0;
+ }
+ 
+-static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+-				    const char *opname)
++static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *mdev,
++				    struct v4l2_buffer *b,
++				    const char *opname,
++				    struct media_request **p_req)
+ {
++	struct media_request *req;
+ 	struct vb2_v4l2_buffer *vbuf;
+ 	struct vb2_buffer *vb;
+ 	int ret;
+@@ -354,7 +361,55 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 
+ 	/* Copy relevant information provided by the userspace */
+ 	memset(vbuf->planes, 0, sizeof(vbuf->planes[0]) * vb->num_planes);
+-	return vb2_fill_vb2_v4l2_buffer(vb, b);
++	ret = vb2_fill_vb2_v4l2_buffer(vb, b);
++	if (ret)
++		return ret;
++
++	if (!(b->flags & V4L2_BUF_FLAG_REQUEST_FD))
++		return 0;
++
++	/*
++	 * For proper locking when queueing a request you need to be able
++	 * to lock access to the vb2 queue, so check that there is a lock
++	 * that we can use. In addition p_req must be non-NULL.
++	 */
++	if (WARN_ON(!q->lock || !p_req))
++		return -EINVAL;
++
++	/*
++	 * Make sure this op is implemented by the driver. It's easy to forget
++	 * this callback, but is it important when canceling a buffer in a
++	 * queued request.
++	 */
++	if (WARN_ON(!q->ops->buf_request_complete))
++		return -EINVAL;
++
++	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
++		dprintk(1, "%s: buffer is not in dequeued state\n", opname);
++		return -EINVAL;
++	}
++
++	if (b->request_fd < 0) {
++		dprintk(1, "%s: request_fd < 0\n", opname);
++		return -EINVAL;
++	}
++
++	req = media_request_get_by_fd(mdev, b->request_fd);
++	if (IS_ERR(req)) {
++		dprintk(1, "%s: invalid request_fd\n", opname);
++		return PTR_ERR(req);
++	}
++
++	if (atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE) {
++		dprintk(1, "%s: request is not idle\n", opname);
++		media_request_put(req);
++		return -EBUSY;
++	}
++
++	*p_req = req;
++	vbuf->request_fd = b->request_fd;
++
++	return 0;
+ }
+ 
+ /*
+@@ -437,6 +492,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	case VB2_BUF_STATE_ACTIVE:
+ 		b->flags |= V4L2_BUF_FLAG_QUEUED;
+ 		break;
++	case VB2_BUF_STATE_IN_REQUEST:
++		b->flags |= V4L2_BUF_FLAG_IN_REQUEST;
++		break;
+ 	case VB2_BUF_STATE_ERROR:
+ 		b->flags |= V4L2_BUF_FLAG_ERROR;
+ 		/* fall through */
+@@ -455,6 +513,10 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 
+ 	if (vb2_buffer_in_use(q, vb))
+ 		b->flags |= V4L2_BUF_FLAG_MAPPED;
++	if (vbuf->request_fd >= 0) {
++		b->flags |= V4L2_BUF_FLAG_REQUEST_FD;
++		b->request_fd = vbuf->request_fd;
++	}
+ 
+ 	if (!q->is_output &&
+ 		b->flags & V4L2_BUF_FLAG_DONE &&
+@@ -533,7 +595,8 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ }
+ EXPORT_SYMBOL_GPL(vb2_reqbufs);
+ 
+-int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
++int vb2_prepare_buf(struct vb2_queue *q, struct media_device *mdev,
++		    struct v4l2_buffer *b)
+ {
+ 	int ret;
+ 
+@@ -542,9 +605,12 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		return -EBUSY;
+ 	}
+ 
+-	ret = vb2_queue_or_prepare_buf(q, b, "prepare_buf");
++	if (b->flags & V4L2_BUF_FLAG_REQUEST_FD)
++		return -EINVAL;
++
++	ret = vb2_queue_or_prepare_buf(q, mdev, b, "prepare_buf", NULL);
+ 
+-	return ret ? ret : vb2_core_prepare_buf(q, b->index, b, NULL);
++	return ret ? ret : vb2_core_prepare_buf(q, b->index, b);
+ }
+ EXPORT_SYMBOL_GPL(vb2_prepare_buf);
+ 
+@@ -602,8 +668,10 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+ }
+ EXPORT_SYMBOL_GPL(vb2_create_bufs);
+ 
+-int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
++int vb2_qbuf(struct vb2_queue *q, struct media_device *mdev,
++	     struct v4l2_buffer *b)
+ {
++	struct media_request *req = NULL;
+ 	int ret;
+ 
+ 	if (vb2_fileio_is_active(q)) {
+@@ -611,8 +679,13 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		return -EBUSY;
+ 	}
+ 
+-	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+-	return ret ? ret : vb2_core_qbuf(q, b->index, b, NULL);
++	ret = vb2_queue_or_prepare_buf(q, mdev, b, "qbuf", &req);
++	if (ret)
++		return ret;
++	ret = vb2_core_qbuf(q, b->index, b, req);
++	if (req)
++		media_request_put(req);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
+@@ -802,7 +875,7 @@ int vb2_ioctl_prepare_buf(struct file *file, void *priv,
+ 
+ 	if (vb2_queue_is_busy(vdev, file))
+ 		return -EBUSY;
+-	return vb2_prepare_buf(vdev->queue, p);
++	return vb2_prepare_buf(vdev->queue, vdev->v4l2_dev->mdev, p);
+ }
+ EXPORT_SYMBOL_GPL(vb2_ioctl_prepare_buf);
+ 
+@@ -821,7 +894,7 @@ int vb2_ioctl_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ 
+ 	if (vb2_queue_is_busy(vdev, file))
+ 		return -EBUSY;
+-	return vb2_qbuf(vdev->queue, p);
++	return vb2_qbuf(vdev->queue, vdev->v4l2_dev->mdev, p);
+ }
+ EXPORT_SYMBOL_GPL(vb2_ioctl_qbuf);
+ 
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 674e7fd3ad99..1de7b6b13f67 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -940,7 +940,7 @@ isp_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ 	int ret;
+ 
+ 	mutex_lock(&video->queue_lock);
+-	ret = vb2_qbuf(&vfh->queue, b);
++	ret = vb2_qbuf(&vfh->queue, video->video.v4l2_dev->mdev, b);
+ 	mutex_unlock(&video->queue_lock);
+ 
+ 	return ret;
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index 9ab8e7ee2e1e..fafb6da3e804 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -941,7 +941,7 @@ static int s3c_camif_qbuf(struct file *file, void *priv,
+ 	if (vp->owner && vp->owner != priv)
+ 		return -EBUSY;
+ 
+-	return vb2_qbuf(&vp->vb_queue, buf);
++	return vb2_qbuf(&vp->vb_queue, vp->vdev.v4l2_dev->mdev, buf);
+ }
+ 
+ static int s3c_camif_dqbuf(struct file *file, void *priv,
+@@ -979,7 +979,7 @@ static int s3c_camif_prepare_buf(struct file *file, void *priv,
+ 				 struct v4l2_buffer *b)
+ {
+ 	struct camif_vp *vp = video_drvdata(file);
+-	return vb2_prepare_buf(&vp->vb_queue, b);
++	return vb2_prepare_buf(&vp->vb_queue, vp->vdev.v4l2_dev->mdev, b);
+ }
+ 
+ static int s3c_camif_g_selection(struct file *file, void *priv,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 5cf4d9921264..3d863e3f5798 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -632,9 +632,9 @@ static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 		return -EIO;
+ 	}
+ 	if (buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+-		return vb2_qbuf(&ctx->vq_src, buf);
++		return vb2_qbuf(&ctx->vq_src, NULL, buf);
+ 	else if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+-		return vb2_qbuf(&ctx->vq_dst, buf);
++		return vb2_qbuf(&ctx->vq_dst, NULL, buf);
+ 	return -EINVAL;
+ }
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 5c0462ca9993..ed12d5d062e8 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1621,9 +1621,9 @@ static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 			mfc_err("Call on QBUF after EOS command\n");
+ 			return -EIO;
+ 		}
+-		return vb2_qbuf(&ctx->vq_src, buf);
++		return vb2_qbuf(&ctx->vq_src, NULL, buf);
+ 	} else if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+-		return vb2_qbuf(&ctx->vq_dst, buf);
++		return vb2_qbuf(&ctx->vq_dst, NULL, buf);
+ 	}
+ 	return -EINVAL;
+ }
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index e6787abc34ae..08adf9a79420 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -394,7 +394,7 @@ static int soc_camera_qbuf(struct file *file, void *priv,
+ 	if (icd->streamer != file)
+ 		return -EBUSY;
+ 
+-	return vb2_qbuf(&icd->vb2_vidq, p);
++	return vb2_qbuf(&icd->vb2_vidq, NULL, p);
+ }
+ 
+ static int soc_camera_dqbuf(struct file *file, void *priv,
+@@ -430,7 +430,7 @@ static int soc_camera_prepare_buf(struct file *file, void *priv,
+ {
+ 	struct soc_camera_device *icd = file->private_data;
+ 
+-	return vb2_prepare_buf(&icd->vb2_vidq, b);
++	return vb2_prepare_buf(&icd->vb2_vidq, NULL, b);
+ }
+ 
+ static int soc_camera_expbuf(struct file *file, void *priv,
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index fecccb5e7628..8964e16f2b22 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -300,12 +300,13 @@ int uvc_create_buffers(struct uvc_video_queue *queue,
+ 	return ret;
+ }
+ 
+-int uvc_queue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
++int uvc_queue_buffer(struct uvc_video_queue *queue,
++		     struct media_device *mdev, struct v4l2_buffer *buf)
+ {
+ 	int ret;
+ 
+ 	mutex_lock(&queue->mutex);
+-	ret = vb2_qbuf(&queue->queue, buf);
++	ret = vb2_qbuf(&queue->queue, mdev, buf);
+ 	mutex_unlock(&queue->mutex);
+ 
+ 	return ret;
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index bd32914259ae..3da5fdc002ac 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -751,7 +751,8 @@ static int uvc_ioctl_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	if (!uvc_has_privileges(handle))
+ 		return -EBUSY;
+ 
+-	return uvc_queue_buffer(&stream->queue, buf);
++	return uvc_queue_buffer(&stream->queue,
++				stream->vdev.v4l2_dev->mdev, buf);
+ }
+ 
+ static int uvc_ioctl_expbuf(struct file *file, void *fh,
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index be5cf179228b..bc9ed18f043c 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -680,6 +680,7 @@ int uvc_query_buffer(struct uvc_video_queue *queue,
+ int uvc_create_buffers(struct uvc_video_queue *queue,
+ 		       struct v4l2_create_buffers *v4l2_cb);
+ int uvc_queue_buffer(struct uvc_video_queue *queue,
++		     struct media_device *mdev,
+ 		     struct v4l2_buffer *v4l2_buf);
+ int uvc_export_buffer(struct uvc_video_queue *queue,
+ 		      struct v4l2_exportbuffer *exp);
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index c4f963d96a79..438f1b869319 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -20,6 +20,7 @@
+ #include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-mem2mem.h>
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ 
+@@ -388,11 +389,12 @@ EXPORT_SYMBOL_GPL(v4l2_m2m_querybuf);
+ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 		  struct v4l2_buffer *buf)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct vb2_queue *vq;
+ 	int ret;
+ 
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+-	ret = vb2_qbuf(vq, buf);
++	ret = vb2_qbuf(vq, vdev->v4l2_dev->mdev, buf);
+ 	if (!ret)
+ 		v4l2_m2m_try_schedule(m2m_ctx);
+ 
+@@ -413,11 +415,12 @@ EXPORT_SYMBOL_GPL(v4l2_m2m_dqbuf);
+ int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 			 struct v4l2_buffer *buf)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct vb2_queue *vq;
+ 	int ret;
+ 
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+-	ret = vb2_prepare_buf(vq, buf);
++	ret = vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
+ 	if (!ret)
+ 		v4l2_m2m_try_schedule(m2m_ctx);
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 390fc98d07dd..0d243a71d82c 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -1426,7 +1426,8 @@ static int vpfe_qbuf(struct file *file, void *priv,
+ 		return -EACCES;
+ 	}
+ 
+-	return vb2_qbuf(&video->buffer_queue, p);
++	return vb2_qbuf(&video->buffer_queue,
++			video->video_dev.v4l2_dev->mdev, p);
+ }
+ 
+ /*
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index a3a83424a926..a35d1004b522 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -805,9 +805,10 @@ iss_video_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ static int
+ iss_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ {
++	struct iss_video *video = video_drvdata(file);
+ 	struct iss_video_fh *vfh = to_iss_video_fh(fh);
+ 
+-	return vb2_qbuf(&vfh->queue, b);
++	return vb2_qbuf(&vfh->queue, video->video.v4l2_dev->mdev, b);
+ }
+ 
+ static int
+diff --git a/drivers/usb/gadget/function/uvc_queue.c b/drivers/usb/gadget/function/uvc_queue.c
+index 9e33d5206d54..f2497cb96abb 100644
+--- a/drivers/usb/gadget/function/uvc_queue.c
++++ b/drivers/usb/gadget/function/uvc_queue.c
+@@ -166,7 +166,7 @@ int uvcg_queue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	ret = vb2_qbuf(&queue->queue, buf);
++	ret = vb2_qbuf(&queue->queue, NULL, buf);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+index 097bf3e6951d..91a2b3e1a642 100644
+--- a/include/media/videobuf2-v4l2.h
++++ b/include/media/videobuf2-v4l2.h
+@@ -32,6 +32,7 @@
+  *		&enum v4l2_field.
+  * @timecode:	frame timecode.
+  * @sequence:	sequence count of this frame.
++ * @request_fd:	the request_fd associated with this buffer
+  * @planes:	plane information (userptr/fd, length, bytesused, data_offset).
+  *
+  * Should contain enough information to be able to cover all the fields
+@@ -44,6 +45,7 @@ struct vb2_v4l2_buffer {
+ 	__u32			field;
+ 	struct v4l2_timecode	timecode;
+ 	__u32			sequence;
++	__s32			request_fd;
+ 	struct vb2_plane	planes[VB2_MAX_PLANES];
+ };
+ 
+@@ -79,6 +81,7 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create);
+  * vb2_prepare_buf() - Pass ownership of a buffer from userspace to the kernel
+  *
+  * @q:		pointer to &struct vb2_queue with videobuf2 queue.
++ * @mdev:	pointer to &struct media_device, may be NULL.
+  * @b:		buffer structure passed from userspace to
+  *		&v4l2_ioctl_ops->vidioc_prepare_buf handler in driver
+  *
+@@ -90,15 +93,19 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create);
+  * #) verifies the passed buffer,
+  * #) calls &vb2_ops->buf_prepare callback in the driver (if provided),
+  *    in which driver-specific buffer initialization can be performed.
++ * #) if @b->request_fd is non-zero and @mdev->ops->req_queue is set,
++ *    then bind the prepared buffer to the request.
+  *
+  * The return values from this function are intended to be directly returned
+  * from &v4l2_ioctl_ops->vidioc_prepare_buf handler in driver.
+  */
+-int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_prepare_buf(struct vb2_queue *q, struct media_device *mdev,
++		    struct v4l2_buffer *b);
+ 
+ /**
+  * vb2_qbuf() - Queue a buffer from userspace
+  * @q:		pointer to &struct vb2_queue with videobuf2 queue.
++ * @mdev:	pointer to &struct media_device, may be NULL.
+  * @b:		buffer structure passed from userspace to
+  *		&v4l2_ioctl_ops->vidioc_qbuf handler in driver
+  *
+@@ -107,6 +114,8 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
+  * This function:
+  *
+  * #) verifies the passed buffer;
++ * #) if @b->request_fd is non-zero and @mdev->ops->req_queue is set,
++ *    then bind the buffer to the request.
+  * #) if necessary, calls &vb2_ops->buf_prepare callback in the driver
+  *    (if provided), in which driver-specific buffer initialization can
+  *    be performed;
+@@ -116,7 +125,8 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
+  * The return values from this function are intended to be directly returned
+  * from &v4l2_ioctl_ops->vidioc_qbuf handler in driver.
+  */
+-int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_qbuf(struct vb2_queue *q, struct media_device *mdev,
++	     struct v4l2_buffer *b);
+ 
+ /**
+  * vb2_expbuf() - Export a buffer as a file descriptor
+-- 
+2.17.0
