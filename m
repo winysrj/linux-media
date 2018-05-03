@@ -1,338 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:51253 "EHLO
-        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751239AbeEDOGw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 10:06:52 -0400
-Received: by mail-wm0-f45.google.com with SMTP id j4so4265214wme.1
-        for <linux-media@vger.kernel.org>; Fri, 04 May 2018 07:06:51 -0700 (PDT)
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: DRI Development <dri-devel@lists.freedesktop.org>
-Cc: Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Subject: [PATCH] dma-fence: Polish kernel-doc for dma-fence.c
-Date: Fri,  4 May 2018 16:06:43 +0200
-Message-Id: <20180504140643.27365-1-daniel.vetter@ffwll.ch>
-In-Reply-To: <20180503142603.28513-16-daniel.vetter@ffwll.ch>
-References: <20180503142603.28513-16-daniel.vetter@ffwll.ch>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:59474 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751246AbeECIoh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 04:44:37 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 08/11] media: vsp1: Add support for extended display list headers
+Date: Thu,  3 May 2018 09:44:19 +0100
+Message-Id: <93e6f7d9c38cccbb886279c1d4b2ffebc054df92.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- Intro section that links to how this is exposed to userspace.
-- Lots more hyperlinks.
-- Minor clarifications and style polish
+Extended display list headers allow pre and post command lists to be
+executed by the VSP pipeline. This provides the base support for
+features such as AUTO_FLD (for interlaced support) and AUTO_DISP (for
+supporting continuous camera preview pipelines.
 
-v2: Add misplaced hunk of kerneldoc from a different patch.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org
-Cc: linaro-mm-sig@lists.linaro.org
 ---
- Documentation/driver-api/dma-buf.rst |   6 ++
- drivers/dma-buf/dma-fence.c          | 147 +++++++++++++++++++--------
- 2 files changed, 109 insertions(+), 44 deletions(-)
 
-diff --git a/Documentation/driver-api/dma-buf.rst b/Documentation/driver-api/dma-buf.rst
-index dc384f2f7f34..b541e97c7ab1 100644
---- a/Documentation/driver-api/dma-buf.rst
-+++ b/Documentation/driver-api/dma-buf.rst
-@@ -130,6 +130,12 @@ Reservation Objects
- DMA Fences
- ----------
+v2:
+ - remove __packed attributes
+
+ drivers/media/platform/vsp1/vsp1.h      |  1 +-
+ drivers/media/platform/vsp1/vsp1_dl.c   | 83 +++++++++++++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_dl.h   | 29 ++++++++-
+ drivers/media/platform/vsp1/vsp1_drv.c  |  7 +-
+ drivers/media/platform/vsp1/vsp1_regs.h |  5 +-
+ 5 files changed, 116 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index f0d21cc8e9ab..56c62122a81a 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -53,6 +53,7 @@ struct vsp1_uif;
+ #define VSP1_HAS_HGO		(1 << 7)
+ #define VSP1_HAS_HGT		(1 << 8)
+ #define VSP1_HAS_BRS		(1 << 9)
++#define VSP1_HAS_EXT_DL		(1 << 10)
  
-+.. kernel-doc:: drivers/dma-buf/dma-fence.c
-+   :doc: DMA fences overview
+ struct vsp1_device_info {
+ 	u32 version;
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index eafe93a3b4d9..82556f0f0a9a 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -22,6 +22,9 @@
+ #define VSP1_DLH_INT_ENABLE		(1 << 1)
+ #define VSP1_DLH_AUTO_START		(1 << 0)
+ 
++#define VSP1_DLH_EXT_PRE_CMD_EXEC	(1 << 9)
++#define VSP1_DLH_EXT_POST_CMD_EXEC	(1 << 8)
 +
-+DMA Fences Functions Reference
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ struct vsp1_dl_header_list {
+ 	u32 num_bytes;
+ 	u32 addr;
+@@ -34,11 +37,34 @@ struct vsp1_dl_header {
+ 	u32 flags;
+ };
+ 
++struct vsp1_dl_ext_header {
++	u32 reserved0;		/* alignment padding */
 +
- .. kernel-doc:: drivers/dma-buf/dma-fence.c
-    :export:
++	u16 pre_ext_cmd_qty;
++	u16 flags;
++	u32 pre_ext_cmd_plist;
++
++	u32 post_ext_cmd_qty;
++	u32 post_ext_cmd_plist;
++};
++
++struct vsp1_dl_header_extended {
++	struct vsp1_dl_header header;
++	struct vsp1_dl_ext_header ext;
++};
++
+ struct vsp1_dl_entry {
+ 	u32 addr;
+ 	u32 data;
+ };
  
-diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-fence.c
-index 7a92f85a4cec..1551ca7df394 100644
---- a/drivers/dma-buf/dma-fence.c
-+++ b/drivers/dma-buf/dma-fence.c
-@@ -38,12 +38,43 @@ EXPORT_TRACEPOINT_SYMBOL(dma_fence_enable_signal);
-  */
- static atomic64_t dma_fence_context_counter = ATOMIC64_INIT(0);
- 
-+/**
-+ * DOC: DMA fences overview
-+ *
-+ * DMA fences, represented by &struct dma_fence, are the kernel internal
-+ * synchronization primitive for DMA operations like GPU rendering, video
-+ * encoding/decoding, or displaying buffers on a screen.
-+ *
-+ * A fence is initialized using dma_fence_init() and completed using
-+ * dma_fence_signal(). Fences are associated with a context, allocated through
-+ * dma_fence_context_alloc(), and all fences on the same context are
-+ * fully ordered.
-+ *
-+ * Since the purposes of fences is to facilitate cross-device and
-+ * cross-application synchronization, there's multiple ways to use one:
-+ *
-+ * - Individual fences can be exposed as a &sync_file, accessed as a file
-+ *   descriptor from userspace, created by calling sync_file_create(). This is
-+ *   called explicit fencing, since userspace passes around explicit
-+ *   synchronization points.
-+ *
-+ * - Some subsystems also have their own explicit fencing primitives, like
-+ *   &drm_syncobj. Compared to &sync_file, a &drm_syncobj allows the underlying
-+ *   fence to be updated.
-+ *
-+ * - Then there's also implicit fencing, where the synchronization points are
-+ *   implicitly passed around as part of shared &dma_buf instances. Such
-+ *   implicit fences are stored in &struct reservation_object through the
-+ *   &dma_buf.resv pointer.
-+ */
++struct vsp1_dl_ext_cmd_header {
++	u32 cmd;
++	u32 flags;
++	u32 data;
++	u32 reserved;
++};
 +
  /**
-  * dma_fence_context_alloc - allocate an array of fence contexts
-- * @num:	[in]	amount of contexts to allocate
-+ * @num: amount of contexts to allocate
-  *
-- * This function will return the first index of the number of fences allocated.
-- * The fence context is used for setting fence->context to a unique number.
-+ * This function will return the first index of the number of fence contexts
-+ * allocated.  The fence context is used for setting &dma_fence.context to a
-+ * unique number by passing the context to dma_fence_init().
-  */
- u64 dma_fence_context_alloc(unsigned num)
- {
-@@ -59,10 +90,14 @@ EXPORT_SYMBOL(dma_fence_context_alloc);
-  * Signal completion for software callbacks on a fence, this will unblock
-  * dma_fence_wait() calls and run all the callbacks added with
-  * dma_fence_add_callback(). Can be called multiple times, but since a fence
-- * can only go from unsignaled to signaled state, it will only be effective
-- * the first time.
-+ * can only go from the unsignaled to the signaled state and not back, it will
-+ * only be effective the first time.
-+ *
-+ * Unlike dma_fence_signal(), this function must be called with &dma_fence.lock
-+ * held.
-  *
-- * Unlike dma_fence_signal, this function must be called with fence->lock held.
-+ * Returns 0 on success and a negative error value when @fence has been
-+ * signalled already.
-  */
- int dma_fence_signal_locked(struct dma_fence *fence)
- {
-@@ -102,8 +137,11 @@ EXPORT_SYMBOL(dma_fence_signal_locked);
-  * Signal completion for software callbacks on a fence, this will unblock
-  * dma_fence_wait() calls and run all the callbacks added with
-  * dma_fence_add_callback(). Can be called multiple times, but since a fence
-- * can only go from unsignaled to signaled state, it will only be effective
-- * the first time.
-+ * can only go from the unsignaled to the signaled state and not back, it will
-+ * only be effective the first time.
-+ *
-+ * Returns 0 on success and a negative error value when @fence has been
-+ * signalled already.
-  */
- int dma_fence_signal(struct dma_fence *fence)
- {
-@@ -136,9 +174,9 @@ EXPORT_SYMBOL(dma_fence_signal);
- /**
-  * dma_fence_wait_timeout - sleep until the fence gets signaled
-  * or until timeout elapses
-- * @fence:	[in]	the fence to wait on
-- * @intr:	[in]	if true, do an interruptible wait
-- * @timeout:	[in]	timeout value in jiffies, or MAX_SCHEDULE_TIMEOUT
-+ * @fence: the fence to wait on
-+ * @intr: if true, do an interruptible wait
-+ * @timeout: timeout value in jiffies, or MAX_SCHEDULE_TIMEOUT
-  *
-  * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or the
-  * remaining timeout in jiffies on success. Other error values may be
-@@ -148,6 +186,8 @@ EXPORT_SYMBOL(dma_fence_signal);
-  * directly or indirectly (buf-mgr between reservation and committing)
-  * holds a reference to the fence, otherwise the fence might be
-  * freed before return, resulting in undefined behavior.
-+ *
-+ * See also dma_fence_wait() and dma_fence_wait_any_timeout().
-  */
- signed long
- dma_fence_wait_timeout(struct dma_fence *fence, bool intr, signed long timeout)
-@@ -167,6 +207,13 @@ dma_fence_wait_timeout(struct dma_fence *fence, bool intr, signed long timeout)
+  * struct vsp1_dl_body - Display list body
+  * @list: entry in the display list list of bodies
+@@ -95,9 +121,12 @@ struct vsp1_dl_body_pool {
+  * @list: entry in the display list manager lists
+  * @dlm: the display list manager
+  * @header: display list header
++ * @extended: extended display list header. NULL for normal lists
+  * @dma: DMA address for the header
+  * @body0: first display list body
+  * @bodies: list of extra display list bodies
++ * @pre_cmd: pre cmd to be issued through extended dl header
++ * @post_cmd: post cmd to be issued through extended dl header
+  * @has_chain: if true, indicates that there's a partition chain
+  * @chain: entry in the display list partition chain
+  * @internal: whether the display list is used for internal purpose
+@@ -107,11 +136,15 @@ struct vsp1_dl_list {
+ 	struct vsp1_dl_manager *dlm;
+ 
+ 	struct vsp1_dl_header *header;
++	struct vsp1_dl_ext_header *extended;
+ 	dma_addr_t dma;
+ 
+ 	struct vsp1_dl_body *body0;
+ 	struct list_head bodies;
+ 
++	struct vsp1_dl_ext_cmd *pre_cmd;
++	struct vsp1_dl_ext_cmd *post_cmd;
++
+ 	bool has_chain;
+ 	struct list_head chain;
+ 
+@@ -496,6 +529,14 @@ int vsp1_dl_list_add_chain(struct vsp1_dl_list *head,
+ 	return 0;
  }
- EXPORT_SYMBOL(dma_fence_wait_timeout);
  
-+/**
-+ * dma_fence_release - default relese function for fences
-+ * @kref: &dma_fence.recfount
-+ *
-+ * This is the default release functions for &dma_fence. Drivers shouldn't call
-+ * this directly, but instead call dma_fence_put().
-+ */
- void dma_fence_release(struct kref *kref)
++static void vsp1_dl_ext_cmd_fill_header(struct vsp1_dl_ext_cmd *cmd)
++{
++	cmd->cmds[0].cmd = cmd->cmd_opcode;
++	cmd->cmds[0].flags = cmd->flags;
++	cmd->cmds[0].data = cmd->data_dma;
++	cmd->cmds[0].reserved = 0;
++}
++
+ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
  {
- 	struct dma_fence *fence =
-@@ -184,6 +231,13 @@ void dma_fence_release(struct kref *kref)
+ 	struct vsp1_dl_manager *dlm = dl->dlm;
+@@ -548,6 +589,27 @@ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
+ 		 */
+ 		dl->header->flags = VSP1_DLH_INT_ENABLE;
+ 	}
++
++	if (!dl->extended)
++		return;
++
++	dl->extended->flags = 0;
++
++	if (dl->pre_cmd) {
++		dl->extended->pre_ext_cmd_plist = dl->pre_cmd->cmd_dma;
++		dl->extended->pre_ext_cmd_qty = dl->pre_cmd->num_cmds;
++		dl->extended->flags |= VSP1_DLH_EXT_PRE_CMD_EXEC;
++
++		vsp1_dl_ext_cmd_fill_header(dl->pre_cmd);
++	}
++
++	if (dl->post_cmd) {
++		dl->extended->pre_ext_cmd_plist = dl->post_cmd->cmd_dma;
++		dl->extended->pre_ext_cmd_qty = dl->post_cmd->num_cmds;
++		dl->extended->flags |= VSP1_DLH_EXT_POST_CMD_EXEC;
++
++		vsp1_dl_ext_cmd_fill_header(dl->pre_cmd);
++	}
  }
- EXPORT_SYMBOL(dma_fence_release);
  
+ static bool vsp1_dl_list_hw_update_pending(struct vsp1_dl_manager *dlm)
+@@ -735,14 +797,20 @@ unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ }
+ 
+ /* Hardware Setup */
+-void vsp1_dlm_setup(struct vsp1_device *vsp1)
++void vsp1_dlm_setup(struct vsp1_device *vsp1, unsigned int index)
+ {
+ 	u32 ctrl = (256 << VI6_DL_CTRL_AR_WAIT_SHIFT)
+ 		 | VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
+ 		 | VI6_DL_CTRL_DLE;
+ 
++	if (vsp1_feature(vsp1, VSP1_HAS_EXT_DL))
++		vsp1_write(vsp1, VI6_DL_EXT_CTRL(index),
++			   (0x02 << VI6_DL_EXT_CTRL_POLINT_SHIFT) |
++			   VI6_DL_EXT_CTRL_DLPRI | VI6_DL_EXT_CTRL_EXT);
++
+ 	vsp1_write(vsp1, VI6_DL_CTRL, ctrl);
+-	vsp1_write(vsp1, VI6_DL_SWAP, VI6_DL_SWAP_LWS);
++	vsp1_write(vsp1, VI6_DL_SWAP(index), VI6_DL_SWAP_LWS |
++			 ((index == 1) ? VI6_DL_SWAP_IND : 0));
+ }
+ 
+ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
+@@ -787,7 +855,11 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 	 * fragmentation, with the header located right after the body in
+ 	 * memory.
+ 	 */
+-	header_size = ALIGN(sizeof(struct vsp1_dl_header), 8);
++	header_size = vsp1_feature(vsp1, VSP1_HAS_EXT_DL) ?
++			sizeof(struct vsp1_dl_header_extended) :
++			sizeof(struct vsp1_dl_header);
++
++	header_size = ALIGN(header_size, 8);
+ 
+ 	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc,
+ 					     VSP1_DL_NUM_ENTRIES, header_size);
+@@ -803,6 +875,11 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 			return NULL;
+ 		}
+ 
++		/* The extended header immediately follows the header */
++		if (vsp1_feature(vsp1, VSP1_HAS_EXT_DL))
++			dl->extended = (void *)dl->header
++				     + sizeof(*dl->header);
++
+ 		list_add_tail(&dl->list, &dlm->free);
+ 	}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index 216bd23029dd..aa5f4adc6617 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -20,7 +20,34 @@ struct vsp1_dl_manager;
+ #define VSP1_DL_FRAME_END_COMPLETED		BIT(0)
+ #define VSP1_DL_FRAME_END_INTERNAL		BIT(1)
+ 
+-void vsp1_dlm_setup(struct vsp1_device *vsp1);
 +/**
-+ * dma_fence_free - default release function for &dma_fence.
-+ * @fence: fence to release
-+ *
-+ * This is the default implementation for &dma_fence_ops.release. It calls
-+ * kfree_rcu() on @fence.
++ * struct vsp1_dl_ext_cmd - Extended Display command
++ * @free: entry in the pool of free commands list
++ * @cmd_opcode: command type opcode
++ * @flags: flags used by the command
++ * @cmds: array of command bodies for this extended cmd
++ * @num_cmds: quantity of commands in @cmds array
++ * @cmd_dma: DMA address of the command bodies
++ * @data: memory allocation for command specific data
++ * @data_dma: DMA address for command specific data
++ * @data_size: size of the @data_dma memory in bytes
 + */
- void dma_fence_free(struct dma_fence *fence)
- {
- 	kfree_rcu(fence, rcu);
-@@ -192,10 +246,11 @@ EXPORT_SYMBOL(dma_fence_free);
++struct vsp1_dl_ext_cmd {
++	struct list_head free;
++
++	u8 cmd_opcode;
++	u32 flags;
++
++	struct vsp1_dl_ext_cmd_header *cmds;
++	unsigned int num_cmds;
++	dma_addr_t cmd_dma;
++
++	void *data;
++	dma_addr_t data_dma;
++	size_t data_size;
++};
++
++void vsp1_dlm_setup(struct vsp1_device *vsp1, unsigned int index);
  
- /**
-  * dma_fence_enable_sw_signaling - enable signaling on fence
-- * @fence:	[in]	the fence to enable
-+ * @fence: the fence to enable
-  *
-- * this will request for sw signaling to be enabled, to make the fence
-- * complete as soon as possible
-+ * This will request for sw signaling to be enabled, to make the fence
-+ * complete as soon as possible. This calls &dma_fence_ops.enable_signaling
-+ * internally.
-  */
- void dma_fence_enable_sw_signaling(struct dma_fence *fence)
- {
-@@ -220,24 +275,24 @@ EXPORT_SYMBOL(dma_fence_enable_sw_signaling);
- /**
-  * dma_fence_add_callback - add a callback to be called when the fence
-  * is signaled
-- * @fence:	[in]	the fence to wait on
-- * @cb:		[in]	the callback to register
-- * @func:	[in]	the function to call
-+ * @fence: the fence to wait on
-+ * @cb: the callback to register
-+ * @func: the function to call
-  *
-- * cb will be initialized by dma_fence_add_callback, no initialization
-+ * @cb will be initialized by dma_fence_add_callback(), no initialization
-  * by the caller is required. Any number of callbacks can be registered
-  * to a fence, but a callback can only be registered to one fence at a time.
-  *
-  * Note that the callback can be called from an atomic context.  If
-  * fence is already signaled, this function will return -ENOENT (and
-- * *not* call the callback)
-+ * *not* call the callback).
-  *
-  * Add a software callback to the fence. Same restrictions apply to
-- * refcount as it does to dma_fence_wait, however the caller doesn't need to
-- * keep a refcount to fence afterwards: when software access is enabled,
-- * the creator of the fence is required to keep the fence alive until
-- * after it signals with dma_fence_signal. The callback itself can be called
-- * from irq context.
-+ * refcount as it does to dma_fence_wait(), however the caller doesn't need to
-+ * keep a refcount to fence afterward dma_fence_add_callback() has returned:
-+ * when software access is enabled, the creator of the fence is required to keep
-+ * the fence alive until after it signals with dma_fence_signal(). The callback
-+ * itself can be called from irq context.
-  *
-  * Returns 0 in case of success, -ENOENT if the fence is already signaled
-  * and -EINVAL in case of error.
-@@ -286,7 +341,7 @@ EXPORT_SYMBOL(dma_fence_add_callback);
+ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 					unsigned int index,
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 0fc388bf5a33..26a7b4d32e6c 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -545,7 +545,8 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
+ 	vsp1_write(vsp1, VI6_DPR_HGT_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
+ 		   (VI6_DPR_NODE_UNUSED << VI6_DPR_SMPPT_PT_SHIFT));
  
- /**
-  * dma_fence_get_status - returns the status upon completion
-- * @fence: [in]	the dma_fence to query
-+ * @fence: the dma_fence to query
-  *
-  * This wraps dma_fence_get_status_locked() to return the error status
-  * condition on a signaled fence. See dma_fence_get_status_locked() for more
-@@ -311,8 +366,8 @@ EXPORT_SYMBOL(dma_fence_get_status);
+-	vsp1_dlm_setup(vsp1);
++	for (i = 0; i < vsp1->info->wpf_count; ++i)
++		vsp1_dlm_setup(vsp1, i);
  
- /**
-  * dma_fence_remove_callback - remove a callback from the signaling list
-- * @fence:	[in]	the fence to wait on
-- * @cb:		[in]	the callback to remove
-+ * @fence: the fence to wait on
-+ * @cb: the callback to remove
-  *
-  * Remove a previously queued callback from the fence. This function returns
-  * true if the callback is successfully removed, or false if the fence has
-@@ -323,6 +378,9 @@ EXPORT_SYMBOL(dma_fence_get_status);
-  * doing, since deadlocks and race conditions could occur all too easily. For
-  * this reason, it should only ever be done on hardware lockup recovery,
-  * with a reference held to the fence.
-+ *
-+ * Behaviour is undefined if @cb has not been added to @fence using
-+ * dma_fence_add_callback() beforehand.
-  */
- bool
- dma_fence_remove_callback(struct dma_fence *fence, struct dma_fence_cb *cb)
-@@ -359,9 +417,9 @@ dma_fence_default_wait_cb(struct dma_fence *fence, struct dma_fence_cb *cb)
- /**
-  * dma_fence_default_wait - default sleep until the fence gets signaled
-  * or until timeout elapses
-- * @fence:	[in]	the fence to wait on
-- * @intr:	[in]	if true, do an interruptible wait
-- * @timeout:	[in]	timeout value in jiffies, or MAX_SCHEDULE_TIMEOUT
-+ * @fence: the fence to wait on
-+ * @intr: if true, do an interruptible wait
-+ * @timeout: timeout value in jiffies, or MAX_SCHEDULE_TIMEOUT
-  *
-  * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or the
-  * remaining timeout in jiffies on success. If timeout is zero the value one is
-@@ -454,12 +512,12 @@ dma_fence_test_signaled_any(struct dma_fence **fences, uint32_t count,
- /**
-  * dma_fence_wait_any_timeout - sleep until any fence gets signaled
-  * or until timeout elapses
-- * @fences:	[in]	array of fences to wait on
-- * @count:	[in]	number of fences to wait on
-- * @intr:	[in]	if true, do an interruptible wait
-- * @timeout:	[in]	timeout value in jiffies, or MAX_SCHEDULE_TIMEOUT
-- * @idx:       [out]	the first signaled fence index, meaningful only on
-- *			positive return
-+ * @fences: array of fences to wait on
-+ * @count: number of fences to wait on
-+ * @intr: if true, do an interruptible wait
-+ * @timeout: timeout value in jiffies, or MAX_SCHEDULE_TIMEOUT
-+ * @idx: used to store the first signaled fence index, meaningful only on
-+ *	positive return
-  *
-  * Returns -EINVAL on custom fence wait implementation, -ERESTARTSYS if
-  * interrupted, 0 if the wait timed out, or the remaining timeout in jiffies
-@@ -468,6 +526,8 @@ dma_fence_test_signaled_any(struct dma_fence **fences, uint32_t count,
-  * Synchronous waits for the first fence in the array to be signaled. The
-  * caller needs to hold a reference to all fences in the array, otherwise a
-  * fence might be freed before return, resulting in undefined behavior.
-+ *
-+ * See also dma_fence_wait() and dma_fence_wait_timeout().
-  */
- signed long
- dma_fence_wait_any_timeout(struct dma_fence **fences, uint32_t count,
-@@ -540,19 +600,18 @@ EXPORT_SYMBOL(dma_fence_wait_any_timeout);
+ 	return 0;
+ }
+@@ -754,7 +755,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.version = VI6_IP_VERSION_MODEL_VSPD_GEN3,
+ 		.model = "VSP2-D",
+ 		.gen = 3,
+-		.features = VSP1_HAS_BRU | VSP1_HAS_WPF_VFLIP,
++		.features = VSP1_HAS_BRU | VSP1_HAS_WPF_VFLIP | VSP1_HAS_EXT_DL,
+ 		.lif_count = 1,
+ 		.rpf_count = 5,
+ 		.uif_count = 1,
+@@ -774,7 +775,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.version = VI6_IP_VERSION_MODEL_VSPDL_GEN3,
+ 		.model = "VSP2-DL",
+ 		.gen = 3,
+-		.features = VSP1_HAS_BRS | VSP1_HAS_BRU,
++		.features = VSP1_HAS_BRS | VSP1_HAS_BRU | VSP1_HAS_EXT_DL,
+ 		.lif_count = 2,
+ 		.rpf_count = 5,
+ 		.uif_count = 2,
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index 0d249ff9f564..d054767570c1 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -67,12 +67,13 @@
  
- /**
-  * dma_fence_init - Initialize a custom fence.
-- * @fence:	[in]	the fence to initialize
-- * @ops:	[in]	the dma_fence_ops for operations on this fence
-- * @lock:	[in]	the irqsafe spinlock to use for locking this fence
-- * @context:	[in]	the execution context this fence is run on
-- * @seqno:	[in]	a linear increasing sequence number for this context
-+ * @fence: the fence to initialize
-+ * @ops: the dma_fence_ops for operations on this fence
-+ * @lock: the irqsafe spinlock to use for locking this fence
-+ * @context: the execution context this fence is run on
-+ * @seqno: a linear increasing sequence number for this context
-  *
-  * Initializes an allocated fence, the caller doesn't have to keep its
-  * refcount after committing with this fence, but it will need to hold a
-- * refcount again if dma_fence_ops.enable_signaling gets called. This can
-- * be used for other implementing other types of fence.
-+ * refcount again if &dma_fence_ops.enable_signaling gets called.
-  *
-  * context and seqno are used for easy comparison between fences, allowing
-- * to check which fence is later by simply using dma_fence_later.
-+ * to check which fence is later by simply using dma_fence_later().
-  */
- void
- dma_fence_init(struct dma_fence *fence, const struct dma_fence_ops *ops,
+ #define VI6_DL_HDR_ADDR(n)		(0x0104 + (n) * 4)
+ 
+-#define VI6_DL_SWAP			0x0114
++#define VI6_DL_SWAP(n)			(0x0114 + (n) * 56)
++#define VI6_DL_SWAP_IND			(1 << 31)
+ #define VI6_DL_SWAP_LWS			(1 << 2)
+ #define VI6_DL_SWAP_WDS			(1 << 1)
+ #define VI6_DL_SWAP_BTS			(1 << 0)
+ 
+-#define VI6_DL_EXT_CTRL			0x011c
++#define VI6_DL_EXT_CTRL(n)		(0x011c + (n) * 36)
+ #define VI6_DL_EXT_CTRL_NWE		(1 << 16)
+ #define VI6_DL_EXT_CTRL_POLINT_MASK	(0x3f << 8)
+ #define VI6_DL_EXT_CTRL_POLINT_SHIFT	8
 -- 
-2.17.0
+git-series 0.9.1
