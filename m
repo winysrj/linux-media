@@ -1,100 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:43413 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752631AbeENL2M (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 07:28:12 -0400
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Luca Ceresoli <luca@lucaceresoli.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v2 4/5] media: docs: selection: improve formatting
-Date: Mon, 14 May 2018 13:27:26 +0200
-Message-Id: <1526297247-20881-4-git-send-email-luca@lucaceresoli.net>
-In-Reply-To: <1526297247-20881-1-git-send-email-luca@lucaceresoli.net>
-References: <1526297247-20881-1-git-send-email-luca@lucaceresoli.net>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:59476 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751277AbeECIoa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 04:44:30 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 03/11] media: vsp1: Rename dl_child to dl_next
+Date: Thu,  3 May 2018 09:44:14 +0100
+Message-Id: <84f92b0a7131bcb182a571c98f7065d4972b4953.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Split section "Comparison with old cropping API" in paragraphs for
-easier reading and improve visible links text.
+Both vsp1_dl_list_commit() and __vsp1_dl_list_put() walk the display
+list chain referencing the nodes as children, when in reality they are
+siblings.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+Update the terminology to 'dl_next' to be consistent with the
+vsp1_video_pipeline_run() usage.
 
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
+ drivers/media/platform/vsp1/vsp1_dl.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-Changed v1 -> v2: nothing.
----
- .../media/uapi/v4l/selection-api-vs-crop-api.rst   | 55 ++++++++++++----------
- 1 file changed, 29 insertions(+), 26 deletions(-)
-
-diff --git a/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst b/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
-index 2ad30a49184f..ba1064a244a0 100644
---- a/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
-+++ b/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
-@@ -6,31 +6,34 @@
- Comparison with old cropping API
- ********************************
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index b6288ead24ae..09c29a4ed118 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -398,7 +398,7 @@ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm)
+ /* This function must be called with the display list manager lock held.*/
+ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
+ {
+-	struct vsp1_dl_list *dl_child;
++	struct vsp1_dl_list *dl_next;
  
--The selection API was introduced to cope with deficiencies of previous
--:ref:`API <crop>`, that was designed to control simple capture
--devices. Later the cropping API was adopted by video output drivers. The
--ioctls are used to select a part of the display were the video signal is
--inserted. It should be considered as an API abuse because the described
--operation is actually the composing. The selection API makes a clear
--distinction between composing and cropping operations by setting the
--appropriate targets. The V4L2 API lacks any support for composing to and
--cropping from an image inside a memory buffer. The application could
--configure a capture device to fill only a part of an image by abusing
--V4L2 API. Cropping a smaller image from a larger one is achieved by
--setting the field ``bytesperline`` at struct
--:c:type:`v4l2_pix_format`.
--Introducing an image offsets could be done by modifying field ``m_userptr``
--at struct
--:c:type:`v4l2_buffer` before calling
--:ref:`VIDIOC_QBUF`. Those operations should be avoided because they are not
--portable (endianness), and do not work for macroblock and Bayer formats
--and mmap buffers. The selection API deals with configuration of buffer
-+The selection API was introduced to cope with deficiencies of the
-+older :ref:`CROP API <crop>`, that was designed to control simple
-+capture devices. Later the cropping API was adopted by video output
-+drivers. The ioctls are used to select a part of the display were the
-+video signal is inserted. It should be considered as an API abuse
-+because the described operation is actually the composing. The
-+selection API makes a clear distinction between composing and cropping
-+operations by setting the appropriate targets.
-+
-+The V4L2 API lacks any support for composing to and cropping from an
-+image inside a memory buffer. The application could configure a
-+capture device to fill only a part of an image by abusing V4L2
-+API. Cropping a smaller image from a larger one is achieved by setting
-+the field ``bytesperline`` at struct :c:type:`v4l2_pix_format`.
-+Introducing an image offsets could be done by modifying field
-+``m_userptr`` at struct :c:type:`v4l2_buffer` before calling
-+:ref:`VIDIOC_QBUF <VIDIOC_QBUF>`. Those operations should be avoided
-+because they are not portable (endianness), and do not work for
-+macroblock and Bayer formats and mmap buffers.
-+
-+The selection API deals with configuration of buffer
- cropping/composing in a clear, intuitive and portable way. Next, with
- the selection API the concepts of the padded target and constraints
--flags are introduced. Finally, struct :c:type:`v4l2_crop`
--and struct :c:type:`v4l2_cropcap` have no reserved
--fields. Therefore there is no way to extend their functionality. The new
--struct :c:type:`v4l2_selection` provides a lot of place
--for future extensions. Driver developers are encouraged to implement
--only selection API. The former cropping API would be simulated using the
--new one.
-+flags are introduced. Finally, struct :c:type:`v4l2_crop` and struct
-+:c:type:`v4l2_cropcap` have no reserved fields. Therefore there is no
-+way to extend their functionality. The new struct
-+:c:type:`v4l2_selection` provides a lot of place for future
-+extensions.
-+
-+Driver developers are encouraged to implement only selection API. The
-+former cropping API would be simulated using the new one.
+ 	if (!dl)
+ 		return;
+@@ -408,8 +408,8 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
+ 	 * hardware operation.
+ 	 */
+ 	if (dl->has_chain) {
+-		list_for_each_entry(dl_child, &dl->chain, chain)
+-			__vsp1_dl_list_put(dl_child);
++		list_for_each_entry(dl_next, &dl->chain, chain)
++			__vsp1_dl_list_put(dl_next);
+ 	}
+ 
+ 	dl->has_chain = false;
+@@ -673,17 +673,17 @@ static void vsp1_dl_list_commit_singleshot(struct vsp1_dl_list *dl)
+ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal)
+ {
+ 	struct vsp1_dl_manager *dlm = dl->dlm;
+-	struct vsp1_dl_list *dl_child;
++	struct vsp1_dl_list *dl_next;
+ 	unsigned long flags;
+ 
+ 	if (dlm->mode == VSP1_DL_MODE_HEADER) {
+ 		/* Fill the header for the head and chained display lists. */
+ 		vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
+ 
+-		list_for_each_entry(dl_child, &dl->chain, chain) {
+-			bool last = list_is_last(&dl_child->chain, &dl->chain);
++		list_for_each_entry(dl_next, &dl->chain, chain) {
++			bool last = list_is_last(&dl_next->chain, &dl->chain);
+ 
+-			vsp1_dl_list_fill_header(dl_child, last);
++			vsp1_dl_list_fill_header(dl_next, last);
+ 		}
+ 	}
+ 
 -- 
-2.7.4
+git-series 0.9.1
