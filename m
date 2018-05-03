@@ -1,58 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:57360 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754471AbeEWJKB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 05:10:01 -0400
-Date: Wed, 23 May 2018 11:09:57 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Nobuhiro Iwamatsu <iwamatsu@nigauri.org>,
-        Nobuhiro Iwamatsu <iwamatsu@debian.org>
-Subject: Re: [PATCH v2] v4l: vsp1: Fix vsp1_regs.h license header
-Message-ID: <20180523090956.7u5cfvd5wdnxghtj@verge.net.au>
-References: <20180520072437.9686-1-laurent.pinchart+renesas@ideasonboard.com>
- <CAMuHMdUbjkcWsuocU-ox0y2etTsy7=WhKFKj3HDEoqyif_CtMw@mail.gmail.com>
- <20180523083324.vvtadkkoz6ti5qi7@verge.net.au>
- <1905091.9toDD4m9Wz@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1905091.9toDD4m9Wz@avalon>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34874 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751257AbeECNg2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 09:36:28 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v4 01/11] media: vsp1: drm: Fix minor grammar error
+Date: Thu,  3 May 2018 14:36:12 +0100
+Message-Id: <7ad68ea5ac48bbf51e30205c05b3fd4167f7afc5.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 23, 2018 at 11:37:47AM +0300, Laurent Pinchart wrote:
-> Hi Simon,
-> 
-> On Wednesday, 23 May 2018 11:33:26 EEST Simon Horman wrote:
-> > On Tue, May 22, 2018 at 01:04:56PM +0200, Geert Uytterhoeven wrote:
-> > > On Tue, May 22, 2018 at 11:05 AM, Simon Horman <horms@verge.net.au> wrote:
-> > >>> --- a/drivers/media/platform/vsp1/vsp1_regs.h
-> > >>> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
-> > >>> @@ -1,4 +1,4 @@
-> > >>> -/* SPDX-License-Identifier: GPL-2.0 */
-> > >>> +/* SPDX-License-Identifier: GPL-2.0+ */
-> > >> 
-> > >> While you are changing this line, I believe the correct format is
-> > >> to use a '//' comment.
-> > >> 
-> > >> i.e.:
-> > >> 
-> > >> // SPDX-License-Identifier: GPL-2.0+
-> > > 
-> > > Not for C header files, only for C source files.
-> > 
-> > Wow!
-> 
-> Yes, it's a mess :-( The rationale is that the assembler doesn't support C++-
-> style comments, so we need to use C-style comments in header files. We should 
-> really have standardized usage of C-style comments everywhere, it makes no 
-> sense to me.
+The pixel format is 'unsupported'. Fix the small debug message which
+incorrectly declares this.
 
-I'm reading this email while standing on my head
-and things make much more sense :)
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index ef0148082bf7..2c3db8b8adce 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -806,7 +806,7 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
+ 	 */
+ 	fmtinfo = vsp1_get_format_info(vsp1, cfg->pixelformat);
+ 	if (!fmtinfo) {
+-		dev_dbg(vsp1->dev, "Unsupport pixel format %08x for RPF\n",
++		dev_dbg(vsp1->dev, "Unsupported pixel format %08x for RPF\n",
+ 			cfg->pixelformat);
+ 		return -EINVAL;
+ 	}
+-- 
+git-series 0.9.1
