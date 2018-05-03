@@ -1,37 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49622 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751262AbeEDM0v (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 08:26:51 -0400
-Date: Fri, 4 May 2018 15:26:49 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv13 04/28] media-request: add media_request_get_by_fd
-Message-ID: <20180504122649.gvd5533a37k7dsct@valkosipuli.retiisi.org.uk>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
- <20180503145318.128315-5-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180503145318.128315-5-hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34888 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751380AbeECNg3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 09:36:29 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v4 02/11] media: vsp1: Remove packed attributes from aligned structures
+Date: Thu,  3 May 2018 14:36:13 +0100
+Message-Id: <d8f8e86a4e89a48150fae5cc4ee4bb977a13c196.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 03, 2018 at 04:52:54PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add media_request_get_by_fd() to find a request based on the file
-> descriptor.
-> 
-> The caller has to call media_request_put() for the returned
-> request since this function increments the refcount.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+The use of the packed attribute can cause a performance penalty for
+all accesses to the struct members, as the compiler will assume that the
+structure has the potential to have an unaligned base.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+These structures are all correctly aligned and contain no holes, thus
+the attribute is redundant and negatively impacts performance, so we
+remove the attributes entirely.
 
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+v2
+ - Remove attributes entirely
+---
+ drivers/media/platform/vsp1/vsp1_dl.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index c7fa1cb088cd..f4cede9b9b43 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -25,19 +25,19 @@
+ struct vsp1_dl_header_list {
+ 	u32 num_bytes;
+ 	u32 addr;
+-} __attribute__((__packed__));
++};
+ 
+ struct vsp1_dl_header {
+ 	u32 num_lists;
+ 	struct vsp1_dl_header_list lists[8];
+ 	u32 next_header;
+ 	u32 flags;
+-} __attribute__((__packed__));
++};
+ 
+ struct vsp1_dl_entry {
+ 	u32 addr;
+ 	u32 data;
+-} __attribute__((__packed__));
++};
+ 
+ /**
+  * struct vsp1_dl_body - Display list body
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+git-series 0.9.1
