@@ -1,54 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:40312 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751772AbeEVOxb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 10:53:31 -0400
-Received: by mail-wr0-f193.google.com with SMTP id p3-v6so1940114wrn.7
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 07:53:31 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v6 13/13] media: staging/imx: add i.MX7 entries to TODO file
-Date: Tue, 22 May 2018 15:52:45 +0100
-Message-Id: <20180522145245.3143-14-rui.silva@linaro.org>
-In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
-References: <20180522145245.3143-1-rui.silva@linaro.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:57156 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750999AbeECLqG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 07:46:06 -0400
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Thu, 03 May 2018 17:16:05 +0530
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-media-owner@vger.kernel.org
+Subject: Re: [PATCH 26/28] venus: implementing multi-stream support
+In-Reply-To: <64b9d816-617a-0ecd-fc47-8676a595f972@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+ <20180424124436.26955-27-stanimir.varbanov@linaro.org>
+ <d3611ce941e71fd901cce70da89f9ab4@codeaurora.org>
+ <64b9d816-617a-0ecd-fc47-8676a595f972@linaro.org>
+Message-ID: <26dd5ee8a6659dc8f86637516d60d01c@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add some i.MX7 related entries to TODO file.
+Hi Stanimir,
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- drivers/staging/media/imx/TODO | 9 +++++++++
- 1 file changed, 9 insertions(+)
+On 2018-05-03 12:42, Stanimir Varbanov wrote:
+> Hi Vikash,
+> 
+> Please write the comments for the chunk of code for which they are 
+> refer to.
+I see that the patch was about handling multistream mode, but the code 
+to handle
+the dpb buffer response is missing. My comment is basically to add the 
+required
+code.
 
-diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
-index aeeb15494a49..6f29b5ca5324 100644
---- a/drivers/staging/media/imx/TODO
-+++ b/drivers/staging/media/imx/TODO
-@@ -45,3 +45,12 @@
- 
-      Which means a port must not contain mixed-use endpoints, they
-      must all refer to media links between V4L2 subdevices.
-+
-+- i.MX7: all of the above, since it uses the imx media core
-+
-+- i.MX7: use Frame Interval Monitor
-+
-+- i.MX7: runtime testing with parallel sensor, links setup and streaming
-+
-+- i.MX7: runtime testing with different formats, for the time only 10-bit bayer
-+  is tested
--- 
-2.17.0
+> On  2.05.2018 10:40, Vikash Garodia wrote:
+>> Hello Stanimir,
+>> 
+>> On 2018-04-24 18:14, Stanimir Varbanov wrote:
+>>> This is implementing a multi-stream decoder support. The multi
+>>> stream gives an option to use the secondary decoder output
+>>> with different raw format (or the same in case of crop).
+>>> 
+>>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>>> ---
+>>>  drivers/media/platform/qcom/venus/core.h    |   1 +
+>>>  drivers/media/platform/qcom/venus/helpers.c | 204 
+>>> +++++++++++++++++++++++++++-
+>>>  drivers/media/platform/qcom/venus/helpers.h |   6 +
+>>>  drivers/media/platform/qcom/venus/vdec.c    |  91 ++++++++++++-
+>>>  drivers/media/platform/qcom/venus/venc.c    |   1 +
+>>>  5 files changed, 299 insertions(+), 4 deletions(-)
+>>> 
+>>> diff --git a/drivers/media/platform/qcom/venus/core.h
+>>> b/drivers/media/platform/qcom/venus/core.h
+>>> index 4d6c05f156c4..85e66e2dd672 100644
+>>> --- a/drivers/media/platform/qcom/venus/core.h
+>>> +++ b/drivers/media/platform/qcom/venus/core.h
+>>> @@ -259,6 +259,7 @@ struct venus_inst {
+>>>      struct list_head list;
+>>>      struct mutex lock;
+>>>      struct venus_core *core;
+>>> +    struct list_head dpbbufs;
+>>>      struct list_head internalbufs;
+>>>      struct list_head registeredbufs;
+>>>      struct list_head delayed_process;
+> 
+> <snip>
+> 
+>> 
+>> The dpb buffers queued to hardware will be returned back to host 
+>> either during flush
+>> or when the session is stopped. Host should not send these buffers to 
+>> client.
+> 
+> That's correct.
+> 
+>> vdec_buf_done should be handling in a way to drop dpb buffers from 
+>> sending to client.
+> 
+> That is also correct, vdec_buf_done is trying to find the buffer by
+> index from a list of queued buffers from v4l2 clients. See
+> venus_helper_vb2_buf_queue where it is calling v4l2_m2m_buf_queue.
+> 
+> So for the dpb buffers venus_helper_find_buf() will return NULL.
+
+My bad, i could see that the DPB buffers are not sent to client in the 
+existing patch.
+
+Instead of bailing out on NULL, i was thinking it is better to keep 
+explicit check for dpb
+buffers and exit with a debug log.
+
+> 
+> regards,
+> Stan
