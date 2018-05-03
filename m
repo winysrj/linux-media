@@ -1,104 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-1b.atlantis.sk ([80.94.52.26]:39261 "EHLO
-        smtp-1b.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964960AbeEYJIr (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:60013 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751508AbeECOx1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 05:08:47 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/3] gspca_zc3xx: Implement proper autogain and exposure control for OV7648
-Date: Fri, 25 May 2018 11:08:41 +0200
-Message-Id: <20180525090843.31735-1-linux@rainbow-software.org>
+        Thu, 3 May 2018 10:53:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv13 20/28] videobuf2-v4l2: add vb2_request_queue/validate helpers
+Date: Thu,  3 May 2018 16:53:10 +0200
+Message-Id: <20180503145318.128315-21-hverkuil@xs4all.nl>
+In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ZS0211 internal autogain causes pumping and flickering with OV7648
-sensor on 0ac8:307b webcam.
-Implement OV7648 autogain and exposure control and use that instead.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+The generic vb2_request_validate helper function checks if
+there are buffers in the request and if so, prepares (validates)
+all objects in the request.
+
+The generic vb2_request_queue helper function queues all buffer
+objects in the validated request.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/gspca/zc3xx.c | 42 +++++++++++++++++++++++++++++++++--------
- 1 file changed, 34 insertions(+), 8 deletions(-)
+ .../media/common/videobuf2/videobuf2-v4l2.c   | 38 +++++++++++++++++++
+ include/media/videobuf2-v4l2.h                |  4 ++
+ 2 files changed, 42 insertions(+)
 
-diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
-index 25b4dbe8e049..992918b3ad0c 100644
---- a/drivers/media/usb/gspca/zc3xx.c
-+++ b/drivers/media/usb/gspca/zc3xx.c
-@@ -5778,16 +5778,34 @@ static void setcontrast(struct gspca_dev *gspca_dev,
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 0a68b19b40da..674bafe808ed 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -1076,6 +1076,44 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
+ }
+ EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
  
- static s32 getexposure(struct gspca_dev *gspca_dev)
- {
--	return (i2c_read(gspca_dev, 0x25) << 9)
--		| (i2c_read(gspca_dev, 0x26) << 1)
--		| (i2c_read(gspca_dev, 0x27) >> 7);
-+	struct sd *sd = (struct sd *) gspca_dev;
++int vb2_request_validate(struct media_request *req)
++{
++	struct media_request_object *obj;
++	int ret = 0;
 +
-+	switch (sd->sensor) {
-+	case SENSOR_HV7131R:
-+		return (i2c_read(gspca_dev, 0x25) << 9)
-+			| (i2c_read(gspca_dev, 0x26) << 1)
-+			| (i2c_read(gspca_dev, 0x27) >> 7);
-+	case SENSOR_OV7620:
-+		return i2c_read(gspca_dev, 0x10);
-+	default:
-+		return -1;
++	if (!vb2_request_has_buffers(req))
++		return -ENOENT;
++
++	list_for_each_entry(obj, &req->objects, list) {
++		if (!obj->ops->prepare)
++			continue;
++
++		ret = obj->ops->prepare(obj);
++		if (ret)
++			break;
 +	}
- }
- 
- static void setexposure(struct gspca_dev *gspca_dev, s32 val)
- {
--	i2c_write(gspca_dev, 0x25, val >> 9, 0x00);
--	i2c_write(gspca_dev, 0x26, val >> 1, 0x00);
--	i2c_write(gspca_dev, 0x27, val << 7, 0x00);
-+	struct sd *sd = (struct sd *) gspca_dev;
 +
-+	switch (sd->sensor) {
-+	case SENSOR_HV7131R:
-+		i2c_write(gspca_dev, 0x25, val >> 9, 0x00);
-+		i2c_write(gspca_dev, 0x26, val >> 1, 0x00);
-+		i2c_write(gspca_dev, 0x27, val << 7, 0x00);
-+		break;
-+	case SENSOR_OV7620:
-+		i2c_write(gspca_dev, 0x10, val, 0x00);
-+		break;
++	if (ret) {
++		list_for_each_entry_continue_reverse(obj, &req->objects, list)
++			if (obj->ops->unprepare)
++				obj->ops->unprepare(obj);
++		return ret;
 +	}
- }
- 
- static void setquality(struct gspca_dev *gspca_dev)
-@@ -5918,7 +5936,12 @@ static void setlightfreq(struct gspca_dev *gspca_dev, s32 val)
- 
- static void setautogain(struct gspca_dev *gspca_dev, s32 val)
- {
--	reg_w(gspca_dev, val ? 0x42 : 0x02, 0x0180);
-+	struct sd *sd = (struct sd *) gspca_dev;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_request_validate);
 +
-+	if (sd->sensor == SENSOR_OV7620)
-+		i2c_write(gspca_dev, 0x13, val ? 0xa3 : 0x80, 0x00);
-+	else
-+		reg_w(gspca_dev, val ? 0x42 : 0x02, 0x0180);
- }
++void vb2_request_queue(struct media_request *req)
++{
++	struct media_request_object *obj;
++
++	list_for_each_entry(obj, &req->objects, list) {
++		if (obj->ops->queue)
++			obj->ops->queue(obj);
++	}
++}
++EXPORT_SYMBOL_GPL(vb2_request_queue);
++
+ MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
+ MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+index 91a2b3e1a642..727855463838 100644
+--- a/include/media/videobuf2-v4l2.h
++++ b/include/media/videobuf2-v4l2.h
+@@ -303,4 +303,8 @@ void vb2_ops_wait_prepare(struct vb2_queue *vq);
+  */
+ void vb2_ops_wait_finish(struct vb2_queue *vq);
  
- /*
-@@ -6439,6 +6462,9 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
- 	if (sd->sensor == SENSOR_HV7131R)
- 		sd->exposure = v4l2_ctrl_new_std(hdl, &zcxx_ctrl_ops,
- 			V4L2_CID_EXPOSURE, 0x30d, 0x493e, 1, 0x927);
-+	else if (sd->sensor == SENSOR_OV7620)
-+		sd->exposure = v4l2_ctrl_new_std(hdl, &zcxx_ctrl_ops,
-+			V4L2_CID_EXPOSURE, 0, 255, 1, 0x41);
- 	sd->autogain = v4l2_ctrl_new_std(hdl, &zcxx_ctrl_ops,
- 			V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
- 	if (sd->sensor != SENSOR_OV7630C)
-@@ -6458,7 +6484,7 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
- 		return hdl->error;
- 	}
- 	v4l2_ctrl_cluster(3, &sd->gamma);
--	if (sd->sensor == SENSOR_HV7131R)
-+	if (sd->sensor == SENSOR_HV7131R || sd->sensor == SENSOR_OV7620)
- 		v4l2_ctrl_auto_cluster(2, &sd->autogain, 0, true);
- 	return 0;
- }
++struct media_request;
++int vb2_request_validate(struct media_request *req);
++void vb2_request_queue(struct media_request *req);
++
+ #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
 -- 
-Ondrej Zary
+2.17.0
