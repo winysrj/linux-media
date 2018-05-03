@@ -1,202 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36693 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751236AbeEVPAj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 11:00:39 -0400
-Subject: Re: [Xen-devel] [RFC 1/3] xen/balloon: Allow allocating DMA buffers
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, matthew.d.roper@intel.com,
-        dongwon.kim@intel.com
-References: <20180517082604.14828-1-andr2000@gmail.com>
- <20180517082604.14828-2-andr2000@gmail.com>
- <6a108876-19b7-49d0-3de2-9e10f984736c@oracle.com>
- <9541926e-001a-e41e-317c-dbff6d687761@gmail.com>
- <218e2bf7-490d-f89e-9866-27b7e3dbc835@oracle.com>
- <a08e7d0d-f7d5-6b7e-979b-8a17060482f0@gmail.com>
- <b177a327-6a73-bb77-c69b-bc0958a05532@oracle.com>
- <f87478c7-3523-851c-5c3a-12a9e8753bb6@epam.com>
- <c2f0845b-ab2f-4b9b-6f46-6ddd236ad9ed@oracle.com>
- <77c20852-b9b8-c35a-26b0-b0317e6aba09@gmail.com>
- <f8775649-34eb-04ac-2264-609b33cdd504@oracle.com>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <2a88de28-27ef-8fe4-ddc1-35eb9e698567@gmail.com>
-Date: Tue, 22 May 2018 18:00:33 +0300
+Received: from mail-by2nam03on0073.outbound.protection.outlook.com ([104.47.42.73]:63695
+        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751969AbeECCnQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 May 2018 22:43:16 -0400
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Subject: [PATCH v5 4/8] media-bus: uapi: Add YCrCb 420 media bus format and rst
+Date: Wed, 2 May 2018 19:42:49 -0700
+Message-ID: <b6b590908656b4e96be76950aa7fb9054d97a6d5.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+In-Reply-To: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+References: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
 MIME-Version: 1.0
-In-Reply-To: <f8775649-34eb-04ac-2264-609b33cdd504@oracle.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/22/2018 05:33 PM, Boris Ostrovsky wrote:
-> On 05/22/2018 01:55 AM, Oleksandr Andrushchenko wrote:
->> On 05/21/2018 11:36 PM, Boris Ostrovsky wrote:
->>> On 05/21/2018 03:13 PM, Oleksandr Andrushchenko wrote:
->>>> On 05/21/2018 09:53 PM, Boris Ostrovsky wrote:
->>>>> On 05/21/2018 01:32 PM, Oleksandr Andrushchenko wrote:
->>>>>> On 05/21/2018 07:35 PM, Boris Ostrovsky wrote:
->>>>>>> On 05/21/2018 01:40 AM, Oleksandr Andrushchenko wrote:
->>>>>>>> On 05/19/2018 01:04 AM, Boris Ostrovsky wrote:
->>>>>>>>> On 05/17/2018 04:26 AM, Oleksandr Andrushchenko wrote:
->>>>>>>>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>>>>>>>> A commit message would be useful.
->>>>>>>> Sure, v1 will have it
->>>>>>>>>> Signed-off-by: Oleksandr Andrushchenko
->>>>>>>>>> <oleksandr_andrushchenko@epam.com>
->>>>>>>>>>
->>>>>>>>>>           for (i = 0; i < nr_pages; i++) {
->>>>>>>>>> -        page = alloc_page(gfp);
->>>>>>>>>> -        if (page == NULL) {
->>>>>>>>>> -            nr_pages = i;
->>>>>>>>>> -            state = BP_EAGAIN;
->>>>>>>>>> -            break;
->>>>>>>>>> +        if (ext_pages) {
->>>>>>>>>> +            page = ext_pages[i];
->>>>>>>>>> +        } else {
->>>>>>>>>> +            page = alloc_page(gfp);
->>>>>>>>>> +            if (page == NULL) {
->>>>>>>>>> +                nr_pages = i;
->>>>>>>>>> +                state = BP_EAGAIN;
->>>>>>>>>> +                break;
->>>>>>>>>> +            }
->>>>>>>>>>               }
->>>>>>>>>>               scrub_page(page);
->>>>>>>>>>               list_add(&page->lru, &pages);
->>>>>>>>>> @@ -529,7 +565,7 @@ static enum bp_state
->>>>>>>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
->>>>>>>>>>           i = 0;
->>>>>>>>>>           list_for_each_entry_safe(page, tmp, &pages, lru) {
->>>>>>>>>>               /* XENMEM_decrease_reservation requires a GFN */
->>>>>>>>>> -        frame_list[i++] = xen_page_to_gfn(page);
->>>>>>>>>> +        frames[i++] = xen_page_to_gfn(page);
->>>>>>>>>>         #ifdef CONFIG_XEN_HAVE_PVMMU
->>>>>>>>>>               /*
->>>>>>>>>> @@ -552,18 +588,22 @@ static enum bp_state
->>>>>>>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
->>>>>>>>>>       #endif
->>>>>>>>>>               list_del(&page->lru);
->>>>>>>>>>       -        balloon_append(page);
->>>>>>>>>> +        if (!ext_pages)
->>>>>>>>>> +            balloon_append(page);
->>>>>>>>> So what you are proposing is not really ballooning. You are just
->>>>>>>>> piggybacking on existing interfaces, aren't you?
->>>>>>>> Sort of. Basically I need to {increase|decrease}_reservation, not
->>>>>>>> actually
->>>>>>>> allocating ballooned pages.
->>>>>>>> Do you think I can simply EXPORT_SYMBOL for
->>>>>>>> {increase|decrease}_reservation?
->>>>>>>> Any other suggestion?
->>>>>>> I am actually wondering how much of that code you end up reusing.
->>>>>>> You
->>>>>>> pretty much create new code paths in both routines and common code
->>>>>>> ends
->>>>>>> up being essentially the hypercall.
->>>>>> Well, I hoped that it would be easier to maintain if I modify
->>>>>> existing
->>>>>> code
->>>>>> to support both use-cases, but I am also ok to create new routines if
->>>>>> this
->>>>>> seems to be reasonable - please let me know
->>>>>>>      So the question is --- would it make
->>>>>>> sense to do all of this separately from the balloon driver?
->>>>>> This can be done, but which driver will host this code then? If we
->>>>>> move from
->>>>>> the balloon driver, then this could go to either gntdev or
->>>>>> grant-table.
->>>>>> What's your preference?
->>>>> A separate module?
->>>>> Is there any use for this feature outside of your zero-copy DRM
->>>>> driver?
->>>> Intel's hyper dma-buf (Dongwon/Matt CC'ed), V4L/GPU at least.
->>>>
->>>> At the time I tried to upstream zcopy driver it was discussed and
->>>> decided that
->>>> it would be better if I remove all DRM specific code and move it to
->>>> Xen drivers.
->>>> Thus, this RFC.
->>>>
->>>> But it can also be implemented as a dedicated Xen dma-buf driver which
->>>> will have all the
->>>> code from this RFC + a bit more (char/misc device handling at least).
->>>> This will also require a dedicated user-space library, just like
->>>> libxengnttab.so
->>>> for gntdev (now I have all new IOCTLs covered there).
->>>>
->>>> If the idea of a dedicated Xen dma-buf driver seems to be more
->>>> attractive we
->>>> can work toward this solution. BTW, I do support this idea, but was not
->>>> sure if Xen community accepts yet another driver which duplicates
->>>> quite some code
->>>> of the existing gntdev/balloon/grant-table. And now after this RFC I
->>>> hope that all cons
->>>> and pros of both dedicated driver and gntdev/balloon/grant-table
->>>> extension are
->>>> clearly seen and we can make a decision.
->>> IIRC the objection for a separate module was in the context of gntdev
->>> was discussion, because (among other things) people didn't want to have
->>> yet another file in /dev/xen/
->>>
->>> Here we are talking about (a new) balloon-like module which doesn't
->>> create any new user-visible interfaces. And as for duplicating code ---
->>> as I said, I am not convinced there is much of duplication.
->>>
->>> I might even argue that we should add a new config option for this
->>> module.
->> I am not quite sure I am fully following you here: so, you suggest
->> that we have balloon.c unchanged, but instead create a new
->> module (namely a file under the same folder as balloon.c, e.g.
->> dma-buf-reservation.c) and move those {increase|decrease}_reservation
->> routines (specific to dma-buf) to that new file? And make it selectable
->> via Kconfig? If so, then how about the changes to grant-table and gntdev?
->> Those will look inconsistent then.
-> Inconsistent with what? The changes to grant code will also be under the
-> new config option.
-Ah, ok.
+This commit adds YUV 420 media bus format. VYYUYY8_1X24
+is an approximate way to descrive the pixels sent over
+the bus.
 
-Option 1. We will have Kconfig option which will cover dma-buf
-changes in balloon, grant-table and gntdev. And for that we will
-create dedicated routines in balloon and grant-table (copy of
-the existing ones, but modified to fit dma-buf use-case) and
-those under something like "#if CONFIG_XEN_DMABUF"?
-This is relatively easy to do for balloon/grant-table, but not that
-easy for gntdev: there still seems to be lots of code which can be reused,
-so I'll have to put lots of "#if CONFIG_XEN_DMABUF" there. Even more, I 
-change
-interfaces of the existing gntdev routines which won't look cute with 
-#if's, IMO.
+This patch also contain rst documentation for media bus format.
 
-Option 2. Try moving dma-buf related changes from balloon and
-grant-table to a new file. Then gntdev's Kconfig concerns from above 
-will still
-be there, but balloon/grant-table functionality will be localized in a 
-new module.
+Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+---
+Changes in v3:
+ - Fixed table alignment issue in rst file. Ensured the output is proper uisng
+   'make pdfdocs'
 
-I am still missing your point here?
+Changes in v2:
+ - Added rst documentation for MEDIA_BUS_FMT_VYYUYY8_1X24
 
->
->> If you suggest a new kernel driver module:
->> IMO, there is nothing bad if we create a dedicated kernel module
->> (driver) for Xen dma-buf handling selectable under Kconfig option.
->> Yes, this will create a yet another device under /dev/xen,
->> but most people will never see it if we set Kconfig to default to "n".
->> And then we'll need user-space support for that, so Xen tools will
->> be extended with libxendmabuf.so or so.
->> This way all Xen dma-buf support can be localized at one place which
->> might be easier to maintain. What is more it could be totally transparent
->> to most of us as Kconfig option won't be set by default (both kernel
->> and Xen).
->
-> The downside is that we will end up having another device for doing
-> things that are not that different from what we are already doing with
-> existing gnttab device. Or are they?
-Agree, but Kconfig option, IMO, won't make it look nice because
-of gntdev changes and code reuse.
-> -boris
-Thank you,
-Oleksandr
+ Documentation/media/uapi/v4l/subdev-formats.rst | 38 ++++++++++++++++++++++++-
+ include/uapi/linux/media-bus-format.h           |  3 +-
+ 2 files changed, 39 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+index 9fcabe7..904c52b 100644
+--- a/Documentation/media/uapi/v4l/subdev-formats.rst
++++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+@@ -6640,6 +6640,43 @@ the following codes.
+       - u\ :sub:`2`
+       - u\ :sub:`1`
+       - u\ :sub:`0`
++    * .. _MEDIA-BUS-FMT-VYYUYY8-1X24:
++
++      - MEDIA_BUS_FMT_VYYUYY8_1X24
++      - 0x202c
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      -
++      - v\ :sub:`3`
++      - v\ :sub:`2`
++      - v\ :sub:`1`
++      - v\ :sub:`0`
++      - y\ :sub:`7`
++      - y\ :sub:`6`
++      - y\ :sub:`5`
++      - y\ :sub:`4`
++      - y\ :sub:`3`
++      - y\ :sub:`2`
++      - y\ :sub:`1`
++      - y\ :sub:`0`
++      - u\ :sub:`3`
++      - u\ :sub:`2`
++      - u\ :sub:`1`
++      - u\ :sub:`0`
++      - y\ :sub:`7`
++      - y\ :sub:`6`
++      - y\ :sub:`5`
++      - y\ :sub:`4`
++      - y\ :sub:`3`
++      - y\ :sub:`2`
++      - y\ :sub:`1`
++      - y\ :sub:`0`
+     * .. _MEDIA-BUS-FMT-YUV10-1X30:
+ 
+       - MEDIA_BUS_FMT_YUV10_1X30
+@@ -7287,7 +7324,6 @@ The following table list existing packed 48bit wide YUV formats.
+       - y\ :sub:`1`
+       - y\ :sub:`0`
+ 
+-
+ .. raw:: latex
+ 
+ 	\endgroup
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 9e35117..ade7e9d 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -62,7 +62,7 @@
+ #define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
+ #define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
+ 
+-/* YUV (including grey) - next is	0x202c */
++/* YUV (including grey) - next is	0x202d */
+ #define MEDIA_BUS_FMT_Y8_1X8			0x2001
+ #define MEDIA_BUS_FMT_UV8_1X8			0x2015
+ #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
+@@ -106,6 +106,7 @@
+ #define MEDIA_BUS_FMT_YUV12_1X36		0x2029
+ #define MEDIA_BUS_FMT_YUV16_1X48		0x202a
+ #define MEDIA_BUS_FMT_UYYVYY16_0_5X48		0x202b
++#define MEDIA_BUS_FMT_VYYUYY8_1X24		0x202c
+ 
+ /* Bayer - next is	0x3021 */
+ #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
+-- 
+2.7.4
