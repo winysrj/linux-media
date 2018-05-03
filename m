@@ -1,83 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:21746 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751103AbeEUIzX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:23 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:56090 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751469AbeECOx0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 May 2018 10:53:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v14 31/36] vim2m: use workqueue
-Date: Mon, 21 May 2018 11:54:56 +0300
-Message-Id: <20180521085501.16861-32-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [PATCHv13 09/28] v4l2-ctrls: prepare internal structs for request API
+Date: Thu,  3 May 2018 16:52:59 +0200
+Message-Id: <20180503145318.128315-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
-interrupt context. Switch to a workqueue instead.
+Embed and initialize a media_request_object in struct v4l2_ctrl_handler.
+
+Add a p_req field to struct v4l2_ctrl_ref that will store the
+request value.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 ---
- drivers/media/platform/vim2m.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 1 +
+ include/media/v4l2-ctrls.h           | 7 +++++++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 9be4da3b85773..a1b0bb08668d3 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -150,6 +150,7 @@ struct vim2m_dev {
- 	spinlock_t		irqlock;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index aa1dd2015e84..d09f49530d9e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1880,6 +1880,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
+ 				      sizeof(hdl->buckets[0]),
+ 				      GFP_KERNEL | __GFP_ZERO);
+ 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
++	media_request_object_init(&hdl->req_obj);
+ 	return hdl->error;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index d26b8ddebb56..76352eb59f14 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -20,6 +20,7 @@
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
++#include <media/media-request.h>
  
- 	struct timer_list	timer;
-+	struct work_struct	work_run;
- 
- 	struct v4l2_m2m_dev	*m2m_dev;
+ /* forward references */
+ struct file;
+@@ -249,6 +250,8 @@ struct v4l2_ctrl {
+  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+  * @from_other_dev: If true, then @ctrl was defined in another
+  *		device than the &struct v4l2_ctrl_handler.
++ * @p_req:	The request value. Only used if the control handler
++ *		is bound to a media request.
+  *
+  * Each control handler has a list of these refs. The list_head is used to
+  * keep a sorted-by-control-ID list of all controls, while the next pointer
+@@ -260,6 +263,7 @@ struct v4l2_ctrl_ref {
+ 	struct v4l2_ctrl *ctrl;
+ 	struct v4l2_ctrl_helper *helper;
+ 	bool from_other_dev;
++	union v4l2_ctrl_ptr p_req;
  };
-@@ -392,9 +393,10 @@ static void device_run(void *priv)
- 	schedule_irq(dev, ctx->transtime);
- }
  
--static void device_isr(struct timer_list *t)
-+static void device_work(struct work_struct *w)
- {
--	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
-+	struct vim2m_dev *vim2m_dev =
-+		container_of(w, struct vim2m_dev, work_run);
- 	struct vim2m_ctx *curr_ctx;
- 	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 	unsigned long flags;
-@@ -426,6 +428,13 @@ static void device_isr(struct timer_list *t)
- 	}
- }
- 
-+static void device_isr(struct timer_list *t)
-+{
-+	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
-+
-+	schedule_work(&vim2m_dev->work_run);
-+}
-+
- /*
-  * video ioctls
+ /**
+@@ -283,6 +287,8 @@ struct v4l2_ctrl_ref {
+  * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
+  * @nr_of_buckets: Total number of buckets in the array.
+  * @error:	The error code of the first failed control addition.
++ * @req_obj:	The &struct media_request_object, used to link into a
++ *		&struct media_request.
   */
-@@ -806,6 +815,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
- 	struct vb2_v4l2_buffer *vbuf;
- 	unsigned long flags;
+ struct v4l2_ctrl_handler {
+ 	struct mutex _lock;
+@@ -295,6 +301,7 @@ struct v4l2_ctrl_handler {
+ 	void *notify_priv;
+ 	u16 nr_of_buckets;
+ 	int error;
++	struct media_request_object req_obj;
+ };
  
-+	flush_scheduled_work();
- 	for (;;) {
- 		if (V4L2_TYPE_IS_OUTPUT(q->type))
- 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-@@ -1011,6 +1021,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	vfd = &dev->vfd;
- 	vfd->lock = &dev->dev_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
-+	INIT_WORK(&dev->work_run, device_work);
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	dev->mdev.dev = &pdev->dev;
+ /**
 -- 
-2.11.0
+2.17.0
