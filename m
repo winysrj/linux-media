@@ -1,88 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33046 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751431AbeEFOT5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 10:19:57 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v5 04/14] media: ov772x: add checks for register read errors
-Date: Sun,  6 May 2018 23:19:19 +0900
-Message-Id: <1525616369-8843-5-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:43770 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751132AbeECP1D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 11:27:03 -0400
+Date: Thu, 3 May 2018 17:26:59 +0200
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        andy.yeh@intel.com
+Subject: Re: [PATCH 1/2] dt-bindings: media: Add "upside-down" property to
+ tell sensor orientation
+Message-ID: <20180503152659.x3zh3d747kdr3ymf@earth.universe>
+References: <20180502213115.24000-1-sakari.ailus@linux.intel.com>
+ <20180502213115.24000-2-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="shxchfnuktkao6oe"
+Content-Disposition: inline
+In-Reply-To: <20180502213115.24000-2-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This change adds checks for register read errors and returns correct
-error code.
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* v5
-- No changes
+--shxchfnuktkao6oe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- drivers/media/i2c/ov772x.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+Hi,
 
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index b6223bf..3fdbe64 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -1146,7 +1146,7 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
- static int ov772x_video_probe(struct ov772x_priv *priv)
- {
- 	struct i2c_client  *client = v4l2_get_subdevdata(&priv->subdev);
--	u8                  pid, ver;
-+	int		    pid, ver, midh, midl;
- 	const char         *devname;
- 	int		    ret;
- 
-@@ -1156,7 +1156,11 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
- 
- 	/* Check and show product ID and manufacturer ID. */
- 	pid = ov772x_read(client, PID);
-+	if (pid < 0)
-+		return pid;
- 	ver = ov772x_read(client, VER);
-+	if (ver < 0)
-+		return ver;
- 
- 	switch (VERSION(pid, ver)) {
- 	case OV7720:
-@@ -1172,13 +1176,17 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
- 		goto done;
- 	}
- 
-+	midh = ov772x_read(client, MIDH);
-+	if (midh < 0)
-+		return midh;
-+	midl = ov772x_read(client, MIDL);
-+	if (midl < 0)
-+		return midl;
-+
- 	dev_info(&client->dev,
- 		 "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
--		 devname,
--		 pid,
--		 ver,
--		 ov772x_read(client, MIDH),
--		 ov772x_read(client, MIDL));
-+		 devname, pid, ver, midh, midl);
-+
- 	ret = v4l2_ctrl_handler_setup(&priv->hdl);
- 
- done:
--- 
-2.7.4
+On Thu, May 03, 2018 at 12:31:14AM +0300, Sakari Ailus wrote:
+> Camera sensors are occasionally mounted upside down. In order to use such
+> a sensor without having to turn every image upside down separately, most
+> camera sensors support reversing the readout order by setting both
+> horizontal and vertical flipping.
+>=20
+> This patch adds a boolean property to tell a sensor is mounted upside
+> down.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+I think the DT binding should use a rotation property instead,
+similar to the panel bindings:
+
+Documentation/devicetree/bindings/display/panel/panel.txt
+
+-- Sebastian
+
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 3 +++
+>  1 file changed, 3 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt=
+ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index 258b8dfddf48..2a3e4ec4ea27 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -85,6 +85,9 @@ Optional properties
+> =20
+>  - lens-focus: A phandle to the node of the focus lens controller.
+> =20
+> +- upside-down: The device, typically an image sensor, is mounted upside
+> +  down in the system.
+> +
+> =20
+>  Optional endpoint properties
+>  ----------------------------
+> --=20
+> 2.11.0
+>=20
+
+--shxchfnuktkao6oe
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlrrKkAACgkQ2O7X88g7
++podKg/+OK5f7qBFjeZEesbu5HlbwbuULn9EBuht6XdgfvI9gX/LQB063mqWcTNm
+bLSLFqPJQsV22KdK3gQBYTzpDqDFt14N/1p5wybm7m5TWI5r1NqnbasBwn9PxXyb
+rNflL11LJOIzP1mlYJKme6mubqPCa7hU8qxYqB27bizrC7AEJhhTqLdPNDf5+YS0
+Oauxp+okJzyv2Ik1x9+zfENkF1BtT4bTrqLfE5wGZNCtQknZ6g6SPYwwi+PEMEPR
+KheqakOJwDEEoAKoz89E6uBh4+chK999Hzby/YcFVtbhw+oh4CLZgh4ViXBleLDc
+zgNtYnZlBcPsAOSI5yRhLhFsTqGjKb7OUrAUrCGPKMX8IjH8WO64W78WvCX0gEP2
+ShBP4MWZnVAFldvweTi0FQpTgCJ9JCQ291bgt/W7iO4gJu695BbKd5FHOGO6D+JR
+SB73e278RFsVUmXbSfoADAXPIuWzMrdfRSrn3ZtritoCc54mmPGfkhboWT9crYUK
+Sgfm/Ra6HKRFPF2wiVjlFg4en8SOeJppAnIf2ChcQo47v/rmjjxsw5kh+igXn0wG
+tdzzcqg0MAiJSMLn2fhqR1OrDqvE/jdrGxzzlu7hTnkwtcdC3CPIF7KgbOn1XRnL
+kuLXELJi7wMlbRCWMkbCMs1XTsZfdIg9az3wz+62uiZ1fID2HiU=
+=hU9X
+-----END PGP SIGNATURE-----
+
+--shxchfnuktkao6oe--
