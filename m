@@ -1,102 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:54827 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933887AbeEIOcK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 10:32:10 -0400
-Received: by mail-wm0-f66.google.com with SMTP id f6so25179170wmc.4
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 07:32:09 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>,
+Received: from mail-db5eur01on0054.outbound.protection.outlook.com ([104.47.2.54]:58576
+        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751862AbeECBuT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 May 2018 21:50:19 -0400
+From: "A.s. Dong" <aisheng.dong@nxp.com>
+To: Shawn Guo <shawnguo@kernel.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>,
+        Anson Huang <anson.huang@nxp.com>
+CC: "mchehab@kernel.org" <mchehab@kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v6 0/2]  media: Introduce Omnivision OV2680 driver
-Date: Wed,  9 May 2018 15:31:57 +0100
-Message-Id: <20180509143159.20690-1-rui.silva@linaro.org>
+        "linux-clk@vger.kernel.org" <linux-clk@vger.kernel.org>,
+        dl-linux-imx <linux-imx@nxp.com>
+Subject: RE: [PATCH v2 03/15] clk: imx7d: fix mipi dphy div parent
+Date: Thu, 3 May 2018 01:50:16 +0000
+Message-ID: <AM0PR04MB4211B3698E0111312A192C0A80870@AM0PR04MB4211.eurprd04.prod.outlook.com>
+References: <20180423134750.30403-1-rui.silva@linaro.org>
+ <20180423134750.30403-4-rui.silva@linaro.org> <20180503010810.GN3443@dragon>
+In-Reply-To: <20180503010810.GN3443@dragon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add driver and bindings for the OV2680 2 megapixel CMOS 1/5" sensor, which has
-a single MIPI lane interface and output format of 10-bit Raw RGB.
+> -----Original Message-----
+> From: Shawn Guo [mailto:shawnguo@kernel.org]
+> Sent: Thursday, May 3, 2018 9:08 AM
+> To: Rui Miguel Silva <rui.silva@linaro.org>; Anson Huang
+> <anson.huang@nxp.com>
+> Cc: mchehab@kernel.org; sakari.ailus@linux.intel.com; Steve Longerbeam
+> <slongerbeam@gmail.com>; Philipp Zabel <p.zabel@pengutronix.de>; Rob
+> Herring <robh+dt@kernel.org>; linux-media@vger.kernel.org;
+> devel@driverdev.osuosl.org; Fabio Estevam <fabio.estevam@nxp.com>;
+> devicetree@vger.kernel.org; Greg Kroah-Hartman
+> <gregkh@linuxfoundation.org>; Ryan Harkin <ryan.harkin@linaro.org>;
+> linux-clk@vger.kernel.org; dl-linux-imx <linux-imx@nxp.com>
+> Subject: Re: [PATCH v2 03/15] clk: imx7d: fix mipi dphy div parent
+>=20
+> Anson,
+>=20
+> Please have a look at this change.
+>=20
+> Shawn
+>=20
+> On Mon, Apr 23, 2018 at 02:47:38PM +0100, Rui Miguel Silva wrote:
+> > Fix the mipi dphy root divider to mipi_dphy_pre_div, this would remove
+> > a orphan clock and set the correct parent.
+> >
+> > before:
+> > cat clk_orphan_summary
+> >                                  enable  prepare  protect
+> >    clock                          count    count    count        rate  =
+ accuracy   phase
+> > -----------------------------------------------------------------------=
+-----------------
+> >  mipi_dphy_post_div                   1        1        0           0  =
+        0 0
+> >     mipi_dphy_root_clk                1        1        0           0  =
+        0 0
+> >
+> > cat clk_dump | grep mipi_dphy
+> > mipi_dphy_post_div                    1        1        0           0  =
+        0 0
+> >     mipi_dphy_root_clk                1        1        0           0  =
+        0 0
+> >
+> > after:
+> > cat clk_dump | grep mipi_dphy
+> >    mipi_dphy_src                     1        1        0    24000000   =
+       0 0
+> >        mipi_dphy_cg                  1        1        0    24000000   =
+       0 0
+> >           mipi_dphy_pre_div          1        1        0    24000000   =
+       0 0
+> >              mipi_dphy_post_div      1        1        0    24000000   =
+       0 0
+> >                 mipi_dphy_root_clk   1        1        0    24000000   =
+       0 0
+> >
+> > Cc: linux-clk@vger.kernel.org
+> > Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+> >
+> > Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 
-Features supported are described in PATCH 2/2.
+Two sign-off?
 
-v5->v6:
-Fabio Estevam:
-    - add power supplies (code and bindings)
-    - fix csi gpio polarity (code and bindings)
-    - rename powerdown to reset gpio
+Otherwise, the patch looks ok to me.
+Acked-by: Dong Aisheng <Aisheng.dong@nxp.com>
 
-- Removed Rob Herring Reviewed-by tag, since bindings have changed since his
-  ack.
+Regards
+Dong Aisheng
 
-v4->v5:
-Fixes for v4l2-compliance tests:
-    - add init_cfg
-    - add some input arguments validations
-    - fix format_try set
-
-v3->v4:
-Sakari Ailus:
-   - remove auto_{exposure|gain}_enable and direct call the set functions
-   - add separe control sets to gain and exposure
-   - fix number of controls allocated
-   - check the exact frequency that it is supported
-
-v2->v3:
-Rob Herring:
-    - add Reviewed-by tag to dts PATCH 1/1
-
-Sakari Ailus:
-    - align register values with bracket
-    - redone the {write|read}_reg i2c functions
-    - add bayer order handling with flip and mirror controls
-    - fix error path in probe release resources
-    - remove i2c_device_id and use probe_new
-
-Myself:
-    - remove ; at the end of macros
-
-v1->v2:
-Fabio Estevam:
-    - s/OV5640/OV2680 in PATCH 1/2 changelog
-
-Sakari Ailus:
-    - add description on endpoint properties in bindings
-    - add single endpoint in bindings
-    - drop OF dependency
-    - cleanup includes
-    - fix case in Color Bars
-    - remove frame rate selection
-    - 8/16/24 bit register access in the same transaction
-    - merge _reset and _soft_reset to _enable and rename it to power_on
-    - _gain_set use only the gain value (drop & 0x7ff)
-    - _gain_get remove the (0x377)
-    - single write/read at _exposure_set/get use write_reg24/read_reg24
-    - move mode_set_direct to _mode_set
-    - _mode_set set auto exposure/gain based on ctrl value
-    - s_frame_interval equal to g_frame_interval
-    - use closest match from: v4l: common: Add a function to obtain best size from a list
-    - check v4l2_ctrl_new_std return in _init
-
-    - fix gain manual value in auto_cluster
-
-Cheers,
-    Rui
-
-
-Rui Miguel Silva (2):
-  media: ov2680: dt: Add bindings for OV2680
-  media: ov2680: Add Omnivision OV2680 sensor driver
-
- .../devicetree/bindings/media/i2c/ov2680.txt  |   46 +
- drivers/media/i2c/Kconfig                     |   12 +
- drivers/media/i2c/Makefile                    |    1 +
- drivers/media/i2c/ov2680.c                    | 1169 +++++++++++++++++
- 4 files changed, 1228 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2680.txt
- create mode 100644 drivers/media/i2c/ov2680.c
-
--- 
-2.17.0
+> > ---
+> >  drivers/clk/imx/clk-imx7d.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
+> > index 975a20d3cc94..f7f4db2e6fa6 100644
+> > --- a/drivers/clk/imx/clk-imx7d.c
+> > +++ b/drivers/clk/imx/clk-imx7d.c
+> > @@ -729,7 +729,7 @@ static void __init imx7d_clocks_init(struct
+> device_node *ccm_node)
+> >  	clks[IMX7D_LCDIF_PIXEL_ROOT_DIV] =3D
+> imx_clk_divider2("lcdif_pixel_post_div", "lcdif_pixel_pre_div", base +
+> 0xa300, 0, 6);
+> >  	clks[IMX7D_MIPI_DSI_ROOT_DIV] =3D
+> imx_clk_divider2("mipi_dsi_post_div", "mipi_dsi_pre_div", base + 0xa380, =
+0,
+> 6);
+> >  	clks[IMX7D_MIPI_CSI_ROOT_DIV] =3D
+> imx_clk_divider2("mipi_csi_post_div", "mipi_csi_pre_div", base + 0xa400, =
+0,
+> 6);
+> > -	clks[IMX7D_MIPI_DPHY_ROOT_DIV] =3D
+> imx_clk_divider2("mipi_dphy_post_div", "mipi_csi_dphy_div", base +
+> 0xa480, 0, 6);
+> > +	clks[IMX7D_MIPI_DPHY_ROOT_DIV] =3D
+> > +imx_clk_divider2("mipi_dphy_post_div", "mipi_dphy_pre_div", base +
+> > +0xa480, 0, 6);
+> >  	clks[IMX7D_SAI1_ROOT_DIV] =3D imx_clk_divider2("sai1_post_div",
+> "sai1_pre_div", base + 0xa500, 0, 6);
+> >  	clks[IMX7D_SAI2_ROOT_DIV] =3D imx_clk_divider2("sai2_post_div",
+> "sai2_pre_div", base + 0xa580, 0, 6);
+> >  	clks[IMX7D_SAI3_ROOT_DIV] =3D imx_clk_divider2("sai3_post_div",
+> > "sai3_pre_div", base + 0xa600, 0, 6);
+> > --
+> > 2.17.0
+> >
