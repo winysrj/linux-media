@@ -1,10 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:48605 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751664AbeENJCM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 05:02:12 -0400
-Date: Mon, 14 May 2018 11:02:06 +0200
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:33621 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750954AbeECPiP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 11:38:15 -0400
+Date: Thu, 3 May 2018 17:38:01 +0200
 From: jacopo mondi <jacopo@jmondi.org>
 To: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
@@ -13,32 +12,38 @@ Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH v5 10/14] media: ov772x: reconstruct s_frame_interval()
-Message-ID: <20180514090206.GC5956@w540>
-References: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
- <1525616369-8843-11-git-send-email-akinobu.mita@gmail.com>
+Subject: Re: [PATCH v4 02/14] media: ov772x: correct setting of banding filter
+Message-ID: <20180503153801.GB19612@w540>
+References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+ <1525021993-17789-3-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="eqp4TxRxnD4KrmFZ"
+        protocol="application/pgp-signature"; boundary="v9Ux+11Zm5mwPlX6"
 Content-Disposition: inline
-In-Reply-To: <1525616369-8843-11-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1525021993-17789-3-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---eqp4TxRxnD4KrmFZ
+--v9Ux+11Zm5mwPlX6
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 
 Hi Akinobu,
-   thanks for resending
+   thanks for the patch
 
-On Sun, May 06, 2018 at 11:19:25PM +0900, Akinobu Mita wrote:
-> This splits the s_frame_interval() in subdev video ops into selecting the
-> frame interval and setting up the registers.
+On Mon, Apr 30, 2018 at 02:13:01AM +0900, Akinobu Mita wrote:
+> The banding filter ON/OFF is controlled via bit 5 of COM8 register.  It
+> is attempted to be enabled in ov772x_set_params() by the following line.
 >
-> This is a preparatory change to avoid accessing registers under power
-> saving mode.
+> 	ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, 1);
+>
+> But this unexpectedly results disabling the banding filter, because the
+> mask and set bits are exclusive.
+>
+> On the other hand, ov772x_s_ctrl() correctly sets the bit by:
+>
+> 	ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, BNDF_ON_OFF);
 >
 > Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
@@ -47,153 +52,65 @@ On Sun, May 06, 2018 at 11:19:25PM +0900, Akinobu Mita wrote:
 > Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 
-Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Acked-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
+One unrelated note: the fixes you have added in v4 are very welcome.
+For another time, maybe you want to send incremental patches instead
+of adding them to a series already in review, as increasing the series
+size may slow down its inclusion due to review latencies.
+V1 was 6 patches, v2 and v3 10, and this is one 14. This is fine, but
+to speed up things, maybe send fixes like this one separately and
+clearly state they have some dependency on an already sent series.
+That said, I'm not collecting patches, so that's just how I see that,
+maybe Sakari, who usually picks sensor driver contributions prefers the way
+you sent this.
 
 Thanks
-  j
+   j
 
 > ---
-> * v5
-> - Align arguments to open parenthesis
-> - Sort variable declarations
+> * v4
+> - New patch
 >
->  drivers/media/i2c/ov772x.c | 56 +++++++++++++++++++++++++++++-----------------
->  1 file changed, 35 insertions(+), 21 deletions(-)
+>  drivers/media/i2c/ov772x.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
 > diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-> index 6c0c792..92ad13f 100644
+> index b62860c..e255070 100644
 > --- a/drivers/media/i2c/ov772x.c
 > +++ b/drivers/media/i2c/ov772x.c
-> @@ -617,25 +617,16 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
->  	return 0;
->  }
+> @@ -1035,7 +1035,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
 >
-> -static int ov772x_set_frame_rate(struct ov772x_priv *priv,
-> -				 struct v4l2_fract *tpf,
-> -				 const struct ov772x_color_format *cfmt,
-> -				 const struct ov772x_win_size *win)
-> +static unsigned int ov772x_select_fps(struct ov772x_priv *priv,
-> +				      struct v4l2_fract *tpf)
->  {
-> -	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-> -	unsigned long fin = clk_get_rate(priv->clk);
->  	unsigned int fps = tpf->numerator ?
->  			   tpf->denominator / tpf->numerator :
->  			   tpf->denominator;
->  	unsigned int best_diff;
-> -	unsigned int fsize;
-> -	unsigned int pclk;
->  	unsigned int diff;
->  	unsigned int idx;
->  	unsigned int i;
-> -	u8 clkrc = 0;
-> -	u8 com4 = 0;
-> -	int ret;
->
->  	/* Approximate to the closest supported frame interval. */
->  	best_diff = ~0L;
-> @@ -646,7 +637,25 @@ static int ov772x_set_frame_rate(struct ov772x_priv *priv,
->  			best_diff = diff;
->  		}
->  	}
-> -	fps = ov772x_frame_intervals[idx];
-> +
-> +	return ov772x_frame_intervals[idx];
-> +}
-> +
-> +static int ov772x_set_frame_rate(struct ov772x_priv *priv,
-> +				 unsigned int fps,
-> +				 const struct ov772x_color_format *cfmt,
-> +				 const struct ov772x_win_size *win)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-> +	unsigned long fin = clk_get_rate(priv->clk);
-> +	unsigned int best_diff;
-> +	unsigned int fsize;
-> +	unsigned int pclk;
-> +	unsigned int diff;
-> +	unsigned int i;
-> +	u8 clkrc = 0;
-> +	u8 com4 = 0;
-> +	int ret;
->
->  	/* Use image size (with blankings) to calculate desired pixel clock. */
->  	switch (cfmt->com7 & OFMT_MASK) {
-> @@ -711,10 +720,6 @@ static int ov772x_set_frame_rate(struct ov772x_priv *priv,
->  	if (ret < 0)
->  		return ret;
->
-> -	tpf->numerator = 1;
-> -	tpf->denominator = fps;
-> -	priv->fps = tpf->denominator;
-> -
->  	return 0;
->  }
->
-> @@ -735,8 +740,20 @@ static int ov772x_s_frame_interval(struct v4l2_subdev *sd,
->  {
->  	struct ov772x_priv *priv = to_ov772x(sd);
->  	struct v4l2_fract *tpf = &ival->interval;
-> +	unsigned int fps;
-> +	int ret;
-> +
-> +	fps = ov772x_select_fps(priv, tpf);
-> +
-> +	ret = ov772x_set_frame_rate(priv, fps, priv->cfmt, priv->win);
-> +	if (ret)
-> +		return ret;
->
-> -	return ov772x_set_frame_rate(priv, tpf, priv->cfmt, priv->win);
-> +	tpf->numerator = 1;
-> +	tpf->denominator = fps;
-> +	priv->fps = fps;
-> +
-> +	return 0;
->  }
->
->  static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
-> @@ -993,7 +1010,6 @@ static int ov772x_set_params(struct ov772x_priv *priv,
->  			     const struct ov772x_win_size *win)
->  {
->  	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-> -	struct v4l2_fract tpf;
->  	int ret;
->  	u8  val;
->
-> @@ -1075,9 +1091,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
->  		goto ov772x_set_fmt_error;
->
->  	/* COM4, CLKRC: Set pixel clock and framerate. */
-> -	tpf.numerator = 1;
-> -	tpf.denominator = priv->fps;
-> -	ret = ov772x_set_frame_rate(priv, &tpf, cfmt, win);
-> +	ret = ov772x_set_frame_rate(priv, priv->fps, cfmt, win);
->  	if (ret < 0)
->  		goto ov772x_set_fmt_error;
->
+>  	/* Set COM8. */
+>  	if (priv->band_filter) {
+> -		ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, 1);
+> +		ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, BNDF_ON_OFF);
+>  		if (!ret)
+>  			ret = ov772x_mask_set(client, BDBASE,
+>  					      0xff, 256 - priv->band_filter);
 > --
 > 2.7.4
 >
 
---eqp4TxRxnD4KrmFZ
+--v9Ux+11Zm5mwPlX6
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJa+VCOAAoJEHI0Bo8WoVY8fV0P/3Th3rViNGQLzQBXcRcmGYgb
-h+KL7CCGpHW5gDubgYpZvIxfPIS2aZpLbbC759sURZ0rTMUCKTtHHE16O0G233wQ
-nDKW80U9tnU1BAeOdiYubCYlKIfub+wJZcp3Avb+Az6RZcbVXzQc1Zrxw71o7zeA
-Dq4SEVhZdGU77aWcHSzAOxgbal1PSvNe4Vot+mzusQiffS8T8wZCw+UcNCNqo0Kq
-9KF6QGswgyLtWqKWG9zeIe2C+83NuviTQ7kdAmj5Ff0dlLq2IhgeIJtuM8Jj9MeF
-IyUw74SQRvt9iZS8iNHLwDp1/9+8gW0znhJqr8nEGdLBFZILqHphqD5xJjqk4mw5
-S2HL5bYribxqD8rckLMehOCcX9tqUH1HXITDCR8AoIILDB5szda3PxefvzFf3Xi4
-cMJ9lrSW4Y2Dik3gOAzu/mXHTUY/uJNFBiwq23+STi5wQByOOMjVXXxunoDN4nd0
-xDJ79FjDk87db/8hKwgOR9WcCU5+Y4+KZYp2+3hQeNAQANKvD+RJp3eRQgJCbFqN
-iWLh+O8/y9EhLICvxdHwyEU4roY/ycBkwMjrneUXZ8h8wtLx3a6DdbVXBIb50V7B
-gCXxo45QopMeQ3CaulFqcUo+JUlqrzYvm+OB44q/6I6AvCXAO5zdQpswADrgps9k
-L+QaH+LMeq/5NpiB2Idd
-=q7HV
+iQIcBAEBAgAGBQJa6yzZAAoJEHI0Bo8WoVY83mYQAJZ7JZWm/qWQZacsYwGvYH6Y
+DHSH2XcPwOX2cWoegU/OY6ri2exoFiMQFz6Jcngre0Qfa8+enjjE8vW5oLxvZjao
+BJO9IAsppBWXisRLwdcjZJPn8XIQ5JpdV4FqzClASs6mArjuIe2txgEfb1XuOent
+bznL48168HY56seEKV1CFX86xx0zADtKVTZ0T+49r+l7RZsFKN5NMJl5UVlP/ZL6
+JBru1MgnOpKJsON6ezeyiHG1aS5hFsCZtFjS4LJb1e09LTNg5PlBo5ldUmhmd0cf
+N/a+KHlKHZU+nwZ5PxevkVJofuY2VQpFK8IRv13YIQToKCMbaSFA7/SY9gJdZzqC
+MOoWOHz0ZMwwHcTh9Mt4DS4ZgfE5TrlqasaPrqT9S3jDLRB5IJNhibkDgfGuKASJ
+H1VjASAo3fbaoqL+ZKdqMniBAaJNqcuqZM9ShnM/daHKghdcA+/XD1gr0v4NrtqW
+pJP3Ge6GaTuod+E+q3OvcDBgo/CILYfaAD9OeyCBBwniTY+Z61vCor6qkWm4L7iU
+P93ZD/400Cgh9gAfjgE19YrFFlvYHPSWdxAYNhoUa4B/308iGo0VcEn9gy5OQE8Y
+NiA7jCmlKXpJT8rDeg5lrFh/G/MD6kL0wI0KYp57d08sKwQdy+K7Uzavudac8Csx
+S3znhYWDWJnhzZRTD9kx
+=c3EM
 -----END PGP SIGNATURE-----
 
---eqp4TxRxnD4KrmFZ--
+--v9Ux+11Zm5mwPlX6--
