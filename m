@@ -1,340 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43762 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751452AbeERUmK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 16:42:10 -0400
-From: Kieran Bingham <kieran@ksquared.org.uk>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v11 00/10] vsp1: TLB optimisation and DL caching
-Date: Fri, 18 May 2018 21:41:53 +0100
-Message-Id: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail.bootlin.com ([62.4.15.54]:58644 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751420AbeECPNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 May 2018 11:13:53 -0400
+Date: Thu, 3 May 2018 17:13:50 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>
+Subject: Re: [PATCH v11 2/4] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+Message-ID: <20180503151350.7pdu5kdl6vp7wz4y@flea>
+References: <20180424122700.5387-1-maxime.ripard@bootlin.com>
+ <20180424122700.5387-3-maxime.ripard@bootlin.com>
+ <4924400e-67ea-e523-321a-a9d3490d7873@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="kpbebtlsvllvluiy"
+Content-Disposition: inline
+In-Reply-To: <4924400e-67ea-e523-321a-a9d3490d7873@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Each display list currently allocates an area of DMA memory to store register
-settings for the VSP1 to process. Each of these allocations adds pressure to
-the IPMMU TLB entries.
+--kpbebtlsvllvluiy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-We can reduce the pressure by pre-allocating larger areas and dividing the area
-across multiple bodies represented as a pool.
+Hi!
 
-With this reconfiguration of bodies, we can adapt the configuration code to
-separate out constant hardware configuration and cache it for re-use.
+Thanks for your review,
 
-The patches provided in this series can be found at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git  tags/vsp1/tlb-optimise/v11
+On Thu, May 03, 2018 at 12:54:57PM +0200, Hans Verkuil wrote:
+> > +static int csi2rx_stop(struct csi2rx_priv *csi2rx)
+> > +{
+> > +	unsigned int i;
+> > +
+> > +	clk_prepare_enable(csi2rx->p_clk);
+> > +	clk_disable_unprepare(csi2rx->sys_clk);
+> > +
+> > +	for (i =3D 0; i < csi2rx->max_streams; i++) {
+> > +		writel(0, csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
+> > +
+> > +		clk_disable_unprepare(csi2rx->pixel_clk[i]);
+> > +	}
+> > +
+> > +	clk_disable_unprepare(csi2rx->p_clk);
+> > +
+> > +	return v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, false=
+);
+> > +}
+> > +
+> > +static int csi2rx_s_stream(struct v4l2_subdev *subdev, int enable)
+> > +{
+> > +	struct csi2rx_priv *csi2rx =3D v4l2_subdev_to_csi2rx(subdev);
+> > +	int ret =3D 0;
+> > +
+> > +	mutex_lock(&csi2rx->lock);
+> > +
+> > +	if (enable) {
+> > +		/*
+> > +		 * If we're not the first users, there's no need to
+> > +		 * enable the whole controller.
+> > +		 */
+> > +		if (!csi2rx->count) {
+> > +			ret =3D csi2rx_start(csi2rx);
+> > +			if (ret)
+> > +				goto out;
+> > +		}
+> > +
+> > +		csi2rx->count++;
+> > +	} else {
+> > +		csi2rx->count--;
+> > +
+> > +		/*
+> > +		 * Let the last user turn off the lights.
+> > +		 */
+> > +		if (!csi2rx->count) {
+> > +			ret =3D csi2rx_stop(csi2rx);
+> > +			if (ret)
+> > +				goto out;
+>=20
+> Here the error from csi2rx_stop is propagated to the caller, but in the TX
+> driver it is ignored. Is there a reason for the difference?
 
-Changelog:
-----------
-v11:
- - Introduce two new patches as fixes to the VSP1.
-  * media: v4l: vsp1: Release buffers for each video node
-  * media: vsp1: Move video suspend resume handling to video object
+Even though that wasn't really intentional, TX only does a writel in
+its stop (which cannot fail), while RX will need to communicate with
+its subdev, and that can fail.
 
- - media: vsp1: Move video configuration to a cached dlb
-   - Now uses dlb's from the DLM pool
-   - clears the pipe->stream_config after it is released
-   - moves stream_config and configured flags to pipe objects.
+> In general I see little value in propagating errors when releasing/stoppi=
+ng
+> something, since there is usually very little you can do to handle the er=
+ror.
+> It really shouldn't fail.
 
-v10:
- - Rebase to latest linux-media/master
- - Remove pipe->configured flag, as pipe->state is suitable for the
-   same purpose, as:
-    (!pipe->configured) == (pipe->state == VSP1_PIPELINE_STOPPED)
+So do you want me to ignore the values in the s_stream function and
+log the error, or should I just make the start / stop function return
+void?
 
-v9:
- - Pass the DL through configure_partition() calls
- - Remove redundant reference to gc_bodies
+Maxime
 
-v8:
- - Fix formatting and white space
- - Reword vsp1_dl_list_add_body() documentation
- - Update commit message on "Provide a body pool"
- - No longer pass unnecessary dlm->pool through vsp1_dl_list_alloc()
- - Add support for the new UIF entity
- - Fix comment location for clu_configure_stream()
- - Implement configure_partition separation
- - Rename video->pipe_config to video->stream_config
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
-v7:
- - Rebased on to linux-media/master (v4.16-rc4)
- - Clean up the formatting of the vsp1_dl_list_add_body()
- - Fix formatting and white space
- -  s/prepare/configure_stream/
- -  s/configure/configure_frame/
+--kpbebtlsvllvluiy
+Content-Type: application/pgp-signature; name="signature.asc"
 
-v6:
- - Rebased on to linux-media/master (v4.16-rc1)
- - Removed DRM/UIF (DISCOM/ColorKey) updates
+-----BEGIN PGP SIGNATURE-----
 
-v5:
- - Rebased on to renesas-drivers-2018-01-09-v4.15-rc7 to fix conflicts
-   with DRM and UIF updates on VSP1 driver
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrrJy0ACgkQ0rTAlCFN
+r3Tz7g//SY85eumghZcnYema9FJCOSmIJKhG9Bf+RthIn8D3gyqKYG0LXl0xWX59
+xB/8QaQi3ZiG02h9973ziIpm+LwGwyXrLpPwk5Dkrv2R+yUO4TQrvt3eAditvlGl
+mBXca95BJapHxgB2as7zbLNxfufX8mAYd5uCZfzS2obz2p36PCeedSROt3G1V9pL
+egASswnz36PiOzPDuxm2b1vD+0JnZh0l5D0lyuuPY2wWmuzAGrAx3XVwXILx56/z
+HMnP3Xhtgr62SRllRb8OBAAKrhHBZ5DUt/HZkoHMA5UlIGSC7PY5R0liAd1twmwv
+8r+NRmMizyolvW1JCA/6CS/wLThfocZ3B13Ys3G8mZ8syCK+7xxNOEZZ61VIlScG
+So46pZbqoJdl/qC0NZI8Yq9XDRj0PCt5r0wi0uIfLpjHrk0yX9wOe+66kzD3WQLd
+TbWmdGRr2k8MzRcj4lgWhvKG66KtfrQAX/TkgUcDsO8FHdcOrMHAj8PZ0B31pLBa
+n/XvppiztbGT/8mmBmQuNLevjMK29SB7b1anTfSb3YOznzU5S7H3WJT7JcSzogW0
+OVlrol8+P6gXbXxD4xKMn5QUHShGuFMqBzl5NDaiRPVyepUi2umrBSCx9iZKkTZj
+wl/JVbM7UEq301sAXmh3MUxyml47Cnl6AVccixwE8WQeEWkonpQ=
+=F0QA
+-----END PGP SIGNATURE-----
 
-v4:
- - Rebased to v4.14
- * v4l: vsp1: Use reference counting for bodies
-   - Fix up reference handling comments
-
- * v4l: vsp1: Provide a body pool
-   - Provide comment explaining extra allocation on body pool
-     highlighting area for optimisation later.
-
- * v4l: vsp1: Refactor display list configure operations
-   - Fix up comment to describe yuv_mode caching rather than format
-
- * vsp1: Adapt entities to configure into a body
-   - Rename vsp1_dl_list_get_body() to vsp1_dl_list_get_body0()
-
- * v4l: vsp1: Move video configuration to a cached dlb
-   - Adjust pipe configured flag to be reset on resume rather than suspend
-   - rename dl_child, dl_next
-
-Testing:
---------
-The VSP unit tests have been run on this patch set with the following results:
-
-root@Ubuntu-ARM64:~/vsp-tests# ./vsp-tests.sh
---- Test loop 1 ---
-- vsp-unit-test-0000.sh
-Test Conditions:
-  Platform          Renesas Salvator-X 2nd version board based on r8a7795 ES2.0+
-  Kernel release    4.17.0-rc4-arm64-renesas-00397-g3d2f6f2901b0
-  convert           /usr/bin/convert
-  compare           /usr/bin/compare
-  killall           /usr/bin/killall
-  raw2rgbpnm        /usr/bin/raw2rgbpnm
-  stress            /usr/bin/stress
-  yavta             /usr/bin/yavta
-- vsp-unit-test-0001.sh
-Testing WPF packing in RGB332: pass
-Testing WPF packing in ARGB555: pass
-Testing WPF packing in XRGB555: pass
-Testing WPF packing in RGB565: pass
-Testing WPF packing in BGR24: pass
-Testing WPF packing in RGB24: pass
-Testing WPF packing in ABGR32: pass
-Testing WPF packing in ARGB32: pass
-Testing WPF packing in XBGR32: pass
-Testing WPF packing in XRGB32: pass
-- vsp-unit-test-0002.sh
-Testing WPF packing in NV12M: pass
-Testing WPF packing in NV16M: pass
-Testing WPF packing in NV21M: pass
-Testing WPF packing in NV61M: pass
-Testing WPF packing in UYVY: pass
-Testing WPF packing in VYUY: skip
-Testing WPF packing in YUV420M: pass
-Testing WPF packing in YUV422M: pass
-Testing WPF packing in YUV444M: pass
-Testing WPF packing in YVU420M: pass
-Testing WPF packing in YVU422M: pass
-Testing WPF packing in YVU444M: pass
-Testing WPF packing in YUYV: pass
-Testing WPF packing in YVYU: pass
-- vsp-unit-test-0003.sh
-Testing scaling from 640x640 to 640x480 in RGB24: pass
-Testing scaling from 1024x768 to 640x480 in RGB24: pass
-Testing scaling from 640x480 to 1024x768 in RGB24: pass
-Testing scaling from 640x640 to 640x480 in YUV444M: pass
-Testing scaling from 1024x768 to 640x480 in YUV444M: pass
-Testing scaling from 640x480 to 1024x768 in YUV444M: pass
-- vsp-unit-test-0004.sh
-Testing histogram in RGB24: pass
-Testing histogram in YUV444M: pass
-- vsp-unit-test-0005.sh
-Testing RPF.0: pass
-Testing RPF.1: pass
-Testing RPF.2: pass
-Testing RPF.3: pass
-Testing RPF.4: pass
-- vsp-unit-test-0006.sh
-Testing invalid pipeline with no RPF: pass
-Testing invalid pipeline with no WPF: pass
-- vsp-unit-test-0007.sh
-Testing BRU in RGB24 with 1 inputs: pass
-Testing BRU in RGB24 with 2 inputs: pass
-Testing BRU in RGB24 with 3 inputs: pass
-Testing BRU in RGB24 with 4 inputs: pass
-Testing BRU in RGB24 with 5 inputs: pass
-Testing BRU in YUV444M with 1 inputs: pass
-Testing BRU in YUV444M with 2 inputs: pass
-Testing BRU in YUV444M with 3 inputs: pass
-Testing BRU in YUV444M with 4 inputs: pass
-Testing BRU in YUV444M with 5 inputs: pass
-- vsp-unit-test-0008.sh
-Test requires unavailable feature set `bru rpf.0 uds wpf.0': skipped
-- vsp-unit-test-0009.sh
-Test requires unavailable feature set `rpf.0 wpf.0 wpf.1': skipped
-- vsp-unit-test-0010.sh
-Testing CLU in RGB24 with zero configuration: pass
-Testing CLU in RGB24 with identity configuration: pass
-Testing CLU in RGB24 with wave configuration: pass
-Testing CLU in YUV444M with zero configuration: pass
-Testing CLU in YUV444M with identity configuration: pass
-Testing CLU in YUV444M with wave configuration: pass
-Testing LUT in RGB24 with zero configuration: pass
-Testing LUT in RGB24 with identity configuration: pass
-Testing LUT in RGB24 with gamma configuration: pass
-Testing LUT in YUV444M with zero configuration: pass
-Testing LUT in YUV444M with identity configuration: pass
-Testing LUT in YUV444M with gamma configuration: pass
-- vsp-unit-test-0011.sh
-Testing  hflip=0 vflip=0 rotate=0: pass
-Testing  hflip=1 vflip=0 rotate=0: pass
-Testing  hflip=0 vflip=1 rotate=0: pass
-Testing  hflip=1 vflip=1 rotate=0: pass
-Testing  hflip=0 vflip=0 rotate=90: pass
-Testing  hflip=1 vflip=0 rotate=90: pass
-Testing  hflip=0 vflip=1 rotate=90: pass
-Testing  hflip=1 vflip=1 rotate=90: pass
-- vsp-unit-test-0012.sh
-Testing hflip: pass
-Testing vflip: pass
-- vsp-unit-test-0013.sh
-Testing RPF unpacking in RGB332: pass
-Testing RPF unpacking in ARGB555: pass
-Testing RPF unpacking in XRGB555: pass
-Testing RPF unpacking in RGB565: pass
-Testing RPF unpacking in BGR24: pass
-Testing RPF unpacking in RGB24: pass
-Testing RPF unpacking in ABGR32: pass
-Testing RPF unpacking in ARGB32: pass
-Testing RPF unpacking in XBGR32: pass
-Testing RPF unpacking in XRGB32: pass
-- vsp-unit-test-0014.sh
-Testing RPF unpacking in NV12M: pass
-Testing RPF unpacking in NV16M: pass
-Testing RPF unpacking in NV21M: pass
-Testing RPF unpacking in NV61M: pass
-Testing RPF unpacking in UYVY: pass
-Testing RPF unpacking in VYUY: skip
-Testing RPF unpacking in YUV420M: pass
-Testing RPF unpacking in YUV422M: pass
-Testing RPF unpacking in YUV444M: pass
-Testing RPF unpacking in YVU420M: pass
-Testing RPF unpacking in YVU422M: pass
-Testing RPF unpacking in YVU444M: pass
-Testing RPF unpacking in YUYV: pass
-Testing RPF unpacking in YVYU: pass
-- vsp-unit-test-0015.sh
-Testing SRU scaling from 1024x768 to 1024x768 in RGB24: pass
-Testing SRU scaling from 1024x768 to 2048x1536 in RGB24: pass
-Testing SRU scaling from 1024x768 to 1024x768 in YUV444M: pass
-Testing SRU scaling from 1024x768 to 2048x1536 in YUV444M: pass
-- vsp-unit-test-0016.sh
-Testing  hflip=0 vflip=0 rotate=0 640x480 -> 640x480: pass
-Testing  hflip=0 vflip=0 rotate=0 640x480 -> 1024x768: pass
-Testing  hflip=0 vflip=0 rotate=0 1024x768 -> 640x480: pass
-Testing  hflip=1 vflip=0 rotate=0 640x480 -> 640x480: pass
-Testing  hflip=1 vflip=0 rotate=0 640x480 -> 1024x768: pass
-Testing  hflip=1 vflip=0 rotate=0 1024x768 -> 640x480: pass
-Testing  hflip=0 vflip=1 rotate=0 640x480 -> 640x480: pass
-Testing  hflip=0 vflip=1 rotate=0 640x480 -> 1024x768: pass
-Testing  hflip=0 vflip=1 rotate=0 1024x768 -> 640x480: pass
-Testing  hflip=1 vflip=1 rotate=0 640x480 -> 640x480: pass
-Testing  hflip=1 vflip=1 rotate=0 640x480 -> 1024x768: pass
-Testing  hflip=1 vflip=1 rotate=0 1024x768 -> 640x480: pass
-Testing  hflip=0 vflip=0 rotate=90 640x480 -> 640x480: pass
-Testing  hflip=0 vflip=0 rotate=90 640x480 -> 1024x768: pass
-Testing  hflip=0 vflip=0 rotate=90 1024x768 -> 640x480: pass
-Testing  hflip=1 vflip=0 rotate=90 640x480 -> 640x480: pass
-Testing  hflip=1 vflip=0 rotate=90 640x480 -> 1024x768: pass
-Testing  hflip=1 vflip=0 rotate=90 1024x768 -> 640x480: pass
-Testing  hflip=0 vflip=1 rotate=90 640x480 -> 640x480: pass
-Testing  hflip=0 vflip=1 rotate=90 640x480 -> 1024x768: pass
-Testing  hflip=0 vflip=1 rotate=90 1024x768 -> 640x480: pass
-Testing  hflip=1 vflip=1 rotate=90 640x480 -> 640x480: pass
-Testing  hflip=1 vflip=1 rotate=90 640x480 -> 1024x768: pass
-Testing  hflip=1 vflip=1 rotate=90 1024x768 -> 640x480: pass
-- vsp-unit-test-0017.sh
-- vsp-unit-test-0018.sh
-Testing RPF crop from (0,0)/512x384: pass
-Testing RPF crop from (32,32)/512x384: pass
-Testing RPF crop from (32,64)/512x384: pass
-Testing RPF crop from (64,32)/512x384: pass
-- vsp-unit-test-0019.sh
-Testing non-active pipeline suspend/resume in suspend:freezer: passed
-Testing non-active pipeline suspend/resume in suspend:devices: passed
-Testing non-active pipeline suspend/resume in suspend:platform: passed
-Testing non-active pipeline suspend/resume in suspend:processors: passed
-Testing non-active pipeline suspend/resume in suspend:core: passed
-- vsp-unit-test-0020.sh
-Testing Testing active pipeline suspend/resume in suspend:freezer: pass
-Testing Testing active pipeline suspend/resume in suspend:devices: pass
-Testing Testing active pipeline suspend/resume in suspend:platform: pass
-Testing Testing active pipeline suspend/resume in suspend:processors: pass
-Testing Testing active pipeline suspend/resume in suspend:core: pass
-- vsp-unit-test-0021.sh
-Testing WPF packing in RGB332 during stress testing: pass
-Testing WPF packing in ARGB555 during stress testing: pass
-Testing WPF packing in XRGB555 during stress testing: pass
-Testing WPF packing in RGB565 during stress testing: pass
-Testing WPF packing in BGR24 during stress testing: pass
-Testing WPF packing in RGB24 during stress testing: pass
-Testing WPF packing in ABGR32 during stress testing: pass
-Testing WPF packing in ARGB32 during stress testing: pass
-Testing WPF packing in XBGR32 during stress testing: pass
-Testing WPF packing in XRGB32 during stress testing: pass
-./vsp-unit-test-0021.sh: line 34: 25075 Killed                  stress --cpu 8 --io 4 --vm 2 --vm-bytes 128M
-- vsp-unit-test-0022.sh
-Testing long duration pipelines under stress: pass
-./vsp-unit-test-0022.sh: line 38: 27041 Killed                  stress --cpu 8 --io 4 --vm 2 --vm-bytes 128M
-- vsp-unit-test-0023.sh
-Testing histogram HGT with hue areas 0,255,255,255,255,255,255,255,255,255,255,255: pass
-Testing histogram HGT with hue areas 0,40,40,80,80,120,120,160,160,200,200,255: pass
-Testing histogram HGT with hue areas 220,40,40,80,80,120,120,160,160,200,200,220: pass
-Testing histogram HGT with hue areas 0,10,50,60,100,110,150,160,200,210,250,255: pass
-Testing histogram HGT with hue areas 10,20,50,60,100,110,150,160,200,210,230,240: pass
-Testing histogram HGT with hue areas 240,20,60,80,100,120,140,160,180,200,210,220: pass
-- vsp-unit-test-0024.sh
-Test requires unavailable feature set `rpf.0 rpf.1 brs wpf.0': skipped
-168 tests: 147 passed, 0 failed, 3 skipped
-
-Kieran Bingham (10):
-  media: v4l: vsp1: Release buffers for each video node
-  media: vsp1: Move video suspend resume handling to video object
-  media: vsp1: Reword uses of 'fragment' as 'body'
-  media: vsp1: Protect bodies against overflow
-  media: vsp1: Provide a body pool
-  media: vsp1: Convert display lists to use new body pool
-  media: vsp1: Use reference counting for bodies
-  media: vsp1: Refactor display list configure operations
-  media: vsp1: Adapt entities to configure into a body
-  media: vsp1: Move video configuration to a cached dlb
-
- drivers/media/platform/vsp1/vsp1_brx.c    |  32 +--
- drivers/media/platform/vsp1/vsp1_clu.c    | 113 ++++---
- drivers/media/platform/vsp1/vsp1_clu.h    |   1 +-
- drivers/media/platform/vsp1/vsp1_dl.c     | 388 +++++++++++++----------
- drivers/media/platform/vsp1/vsp1_dl.h     |  21 +-
- drivers/media/platform/vsp1/vsp1_drm.c    |  18 +-
- drivers/media/platform/vsp1/vsp1_drv.c    |   4 +-
- drivers/media/platform/vsp1/vsp1_entity.c |  34 +-
- drivers/media/platform/vsp1/vsp1_entity.h |  45 +--
- drivers/media/platform/vsp1/vsp1_hgo.c    |  26 +--
- drivers/media/platform/vsp1/vsp1_hgt.c    |  28 +--
- drivers/media/platform/vsp1/vsp1_hsit.c   |  20 +-
- drivers/media/platform/vsp1/vsp1_lif.c    |  25 +-
- drivers/media/platform/vsp1/vsp1_lut.c    |  80 +++--
- drivers/media/platform/vsp1/vsp1_lut.h    |   1 +-
- drivers/media/platform/vsp1/vsp1_pipe.c   |  74 +----
- drivers/media/platform/vsp1/vsp1_pipe.h   |  12 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    | 189 +++++------
- drivers/media/platform/vsp1/vsp1_sru.c    |  24 +-
- drivers/media/platform/vsp1/vsp1_uds.c    |  73 ++--
- drivers/media/platform/vsp1/vsp1_uds.h    |   2 +-
- drivers/media/platform/vsp1/vsp1_uif.c    |  35 +--
- drivers/media/platform/vsp1/vsp1_video.c  | 177 +++++++---
- drivers/media/platform/vsp1/vsp1_video.h  |   3 +-
- drivers/media/platform/vsp1/vsp1_wpf.c    | 326 ++++++++++---------
- 25 files changed, 966 insertions(+), 785 deletions(-)
-
-base-commit: 8ed8bba70b4355b1ba029b151ade84475dd12991
--- 
-git-series 0.9.1
+--kpbebtlsvllvluiy--
