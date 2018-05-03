@@ -1,89 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay12.mail.gandi.net ([217.70.178.232]:58469 "EHLO
-        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1161582AbeEXWCk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 18:02:40 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v4 7/9] media: rcar-vin: Handle parallel subdev in link_notify
-Date: Fri, 25 May 2018 00:02:17 +0200
-Message-Id: <1527199339-7724-8-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34892 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751544AbeECNgb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 09:36:31 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v4 05/11] media: vsp1: Clean up DLM objects on error
+Date: Thu,  3 May 2018 14:36:16 +0100
+Message-Id: <b7cebaf1f970e25e32a211c4a352baaa7e026fc6.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Handle parallel subdevices in link_notify callback. If the notified link
-involves a parallel subdevice, do not change routing of the VIN-CSI-2
-devices and mark the VIN instance as using a parallel input. If the
-CSI-2 link setup succeeds instead, mark the VIN instance as using CSI-2.
+If there is an error allocating a display list within a DLM object
+the existing display lists are not free'd, and neither is the DL body
+pool.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Use the existing vsp1_dlm_destroy() function to clean up on error.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 35 ++++++++++++++++++++++++++++-
- 1 file changed, 34 insertions(+), 1 deletion(-)
+ drivers/media/platform/vsp1/vsp1_dl.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index b69b375..8edf896 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -171,9 +171,37 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index b23e88cda49f..fbffbd407b29 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -851,8 +851,10 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 		struct vsp1_dl_list *dl;
  
- 	/* Add the new link to the existing mask and check if it works. */
- 	csi_id = rvin_group_entity_to_csi_id(group, link->source->entity);
-+
-+	if (csi_id == -ENODEV) {
-+		struct v4l2_subdev *sd;
-+		unsigned int i;
-+
-+		/*
-+		 * Make sure the source entity subdevice is registered as
-+		 * a parallel input of one of the enabled VINs if it is not
-+		 * one of the CSI-2 subdevices.
-+		 *
-+		 * No hardware configuration required for parallel inputs,
-+		 * we can return here.
-+		 */
-+		sd = media_entity_to_v4l2_subdev(link->source->entity);
-+		for (i = 0; i < RCAR_VIN_NUM; i++) {
-+			if (group->vin[i] && group->vin[i]->parallel &&
-+			    group->vin[i]->parallel->subdev == sd) {
-+				group->vin[i]->is_csi = false;
-+				ret = 0;
-+				goto out;
-+			}
+ 		dl = vsp1_dl_list_alloc(dlm);
+-		if (!dl)
++		if (!dl) {
++			vsp1_dlm_destroy(dlm);
+ 			return NULL;
 +		}
-+
-+		vin_err(vin, "Subdevice %s not registered to any VIN\n",
-+			link->source->entity->name);
-+		ret = -ENODEV;
-+		goto out;
-+	}
-+
- 	channel = rvin_group_csi_pad_to_channel(link->source->index);
- 	mask_new = mask & rvin_group_get_mask(vin, csi_id, channel);
--
- 	vin_dbg(vin, "Try link change mask: 0x%x new: 0x%x\n", mask, mask_new);
  
- 	if (!mask_new) {
-@@ -183,6 +211,11 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
- 
- 	/* New valid CHSEL found, set the new value. */
- 	ret = rvin_set_channel_routing(group->vin[master_id], __ffs(mask_new));
-+	if (ret)
-+		goto out;
-+
-+	vin->is_csi = true;
-+
- out:
- 	mutex_unlock(&group->lock);
- 
+ 		list_add_tail(&dl->list, &dlm->free);
+ 	}
 -- 
-2.7.4
+git-series 0.9.1
