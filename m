@@ -1,90 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway30.websitewelcome.com ([192.185.160.12]:39327 "EHLO
-        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753427AbeEORwV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 13:52:21 -0400
-Received: from cm17.websitewelcome.com (cm17.websitewelcome.com [100.42.49.20])
-        by gateway30.websitewelcome.com (Postfix) with ESMTP id 8866314E99
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 12:29:14 -0500 (CDT)
-Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
-To: Dan Carpenter <dan.carpenter@oracle.com>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <cover.1524499368.git.gustavo@embeddedor.com>
- <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
- <20180423152455.363d285c@vento.lan>
- <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
- <20180423161742.66f939ba@vento.lan>
- <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
- <20180426204241.03a42996@vento.lan>
- <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
- <20180515085953.65bfa107@vento.lan> <20180515141655.idzuh2jfdkuu5grs@mwanda>
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Message-ID: <f342d8d6-b5e6-0cbf-d002-9561b79c90e4@embeddedor.com>
-Date: Tue, 15 May 2018 12:29:10 -0500
+Received: from mga09.intel.com ([134.134.136.24]:3444 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750993AbeECLXc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 May 2018 07:23:32 -0400
+Date: Thu, 3 May 2018 14:23:28 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Andy Yeh <andy.yeh@intel.com>
+Cc: linux-media@vger.kernel.org, tfiga@chromium.org,
+        Jason Chen <jasonx.z.chen@intel.com>,
+        Alan Chiang <alanx.chiang@intel.com>
+Subject: Re: [PATCH v11] media: imx258: Add imx258 camera sensor driver
+Message-ID: <20180503112328.fdvltrswztp42d6v@paasikivi.fi.intel.com>
+References: <1525275968-17207-1-git-send-email-andy.yeh@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20180515141655.idzuh2jfdkuu5grs@mwanda>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1525275968-17207-1-git-send-email-andy.yeh@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Andy,
 
-
-On 05/15/2018 09:16 AM, Dan Carpenter wrote:
->>>
->>> I'm curious about how you finally resolved to handle these issues.
->>>
->>> I noticed Smatch is no longer reporting them.
->>
->> There was no direct fix for it, but maybe this patch has something
->> to do with the smatch error report cleanup:
->>
->> commit 3ad3b7a2ebaefae37a7eafed0779324987ca5e56
->> Author: Sami Tolvanen <samitolvanen@google.com>
->> Date:   Tue May 8 13:56:12 2018 -0400
->>
->>      media: v4l2-ioctl: replace IOCTL_INFO_STD with stub functions
->>      
->>      This change removes IOCTL_INFO_STD and adds stub functions where
->>      needed using the DEFINE_V4L_STUB_FUNC macro. This fixes indirect call
->>      mismatches with Control-Flow Integrity, caused by calling standard
->>      ioctls using a function pointer that doesn't match the function type.
->>      
->>      Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
->>      Signed-off-by: Hans Verkuil <hansverk@cisco.com>
->>      Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
->>
-
-Thanks, Mauro.
-
+On Wed, May 02, 2018 at 11:46:08PM +0800, Andy Yeh wrote:
+> From: Jason Chen <jasonx.z.chen@intel.com>
 > 
-> Possibly...  There was an ancient bug in Smatch's function pointer
-> handling.  I just pushed a fix for it now so the warning is there on
-> linux-next.
+> Add a V4L2 sub-device driver for the Sony IMX258 image sensor.
+> This is a camera sensor using the I2C bus for control and the
+> CSI-2 bus for data.
 > 
+> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+> Signed-off-by: Alan Chiang <alanx.chiang@intel.com>
+> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 
-Dan,
+Applied with the following diff, i.e. align to opening parenthesis and use
+tabs for indentation:
 
-These are all the Spectre media issues I see smatch is reporting in 
-linux-next-20180515:
+diff --git b/drivers/media/i2c/imx258.c a/drivers/media/i2c/imx258.c
+index 40ab4a616103..fad3012f4fe5 100644
+--- b/drivers/media/i2c/imx258.c
++++ a/drivers/media/i2c/imx258.c
+@@ -56,9 +56,9 @@
+ #define IMX258_REG_B_DIGITAL_GAIN	0x0212
+ #define IMX258_REG_GB_DIGITAL_GAIN	0x0214
+ #define IMX258_DGTL_GAIN_MIN		0
+-#define IMX258_DGTL_GAIN_MAX		4096   /* Max = 0xFFF */
++#define IMX258_DGTL_GAIN_MAX		4096	/* Max = 0xFFF */
+ #define IMX258_DGTL_GAIN_DEFAULT	1024
+-#define IMX258_DGTL_GAIN_STEP           1
++#define IMX258_DGTL_GAIN_STEP		1
+ 
+ /* Test Pattern Control */
+ #define IMX258_REG_TEST_PATTERN		0x0600
+@@ -682,7 +682,7 @@ static int imx258_write_reg(struct imx258 *imx258, u16 reg, u32 len, u32 val)
+ 
+ /* Write a list of registers */
+ static int imx258_write_regs(struct imx258 *imx258,
+-			      const struct imx258_reg *regs, u32 len)
++			     const struct imx258_reg *regs, u32 len)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+ 	unsigned int i;
+@@ -818,8 +818,8 @@ static int imx258_enum_mbus_code(struct v4l2_subdev *sd,
+ }
+ 
+ static int imx258_enum_frame_size(struct v4l2_subdev *sd,
+-				   struct v4l2_subdev_pad_config *cfg,
+-				   struct v4l2_subdev_frame_size_enum *fse)
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_frame_size_enum *fse)
+ {
+ 	if (fse->index >= ARRAY_SIZE(supported_modes))
+ 		return -EINVAL;
+@@ -836,7 +836,7 @@ static int imx258_enum_frame_size(struct v4l2_subdev *sd,
+ }
+ 
+ static void imx258_update_pad_format(const struct imx258_mode *mode,
+-				      struct v4l2_subdev_format *fmt)
++				     struct v4l2_subdev_format *fmt)
+ {
+ 	fmt->format.width = mode->width;
+ 	fmt->format.height = mode->height;
+@@ -845,8 +845,8 @@ static void imx258_update_pad_format(const struct imx258_mode *mode,
+ }
+ 
+ static int __imx258_get_pad_format(struct imx258 *imx258,
+-				     struct v4l2_subdev_pad_config *cfg,
+-				     struct v4l2_subdev_format *fmt)
++				   struct v4l2_subdev_pad_config *cfg,
++				   struct v4l2_subdev_format *fmt)
+ {
+ 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
+ 		fmt->format = *v4l2_subdev_get_try_format(&imx258->sd, cfg,
+@@ -858,8 +858,8 @@ static int __imx258_get_pad_format(struct imx258 *imx258,
+ }
+ 
+ static int imx258_get_pad_format(struct v4l2_subdev *sd,
+-				  struct v4l2_subdev_pad_config *cfg,
+-				  struct v4l2_subdev_format *fmt)
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_format *fmt)
+ {
+ 	struct imx258 *imx258 = to_imx258(sd);
+ 	int ret;
+@@ -872,8 +872,8 @@ static int imx258_get_pad_format(struct v4l2_subdev *sd,
+ }
+ 
+ static int imx258_set_pad_format(struct v4l2_subdev *sd,
+-		       struct v4l2_subdev_pad_config *cfg,
+-		       struct v4l2_subdev_format *fmt)
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_format *fmt)
+ {
+ 	struct imx258 *imx258 = to_imx258(sd);
+ 	const struct imx258_mode *mode;
+@@ -951,7 +951,7 @@ static int imx258_start_streaming(struct imx258 *imx258)
+ 
+ 	/* Set Orientation be 180 degree */
+ 	ret = imx258_write_reg(imx258, REG_MIRROR_FLIP_CONTROL,
+-				IMX258_REG_VALUE_08BIT, REG_CONFIG_MIRROR_FLIP);
++			       IMX258_REG_VALUE_08BIT, REG_CONFIG_MIRROR_FLIP);
+ 	if (ret) {
+ 		dev_err(&client->dev, "%s failed to set orientation\n",
+ 			__func__);
+@@ -1073,7 +1073,7 @@ static int imx258_identify_module(struct imx258 *imx258)
+ 	u32 val;
+ 
+ 	ret = imx258_read_reg(imx258, IMX258_REG_CHIP_ID,
+-			       IMX258_REG_VALUE_16BIT, &val);
++			      IMX258_REG_VALUE_16BIT, &val);
+ 	if (ret) {
+ 		dev_err(&client->dev, "failed to read chip id %x\n",
+ 			IMX258_CHIP_ID);
 
-drivers/media/cec/cec-pin-error-inj.c:170 cec_pin_error_inj_parse_line() 
-warn: potential spectre issue 'pin->error_inj_args'
-drivers/media/dvb-core/dvb_ca_en50221.c:1479 dvb_ca_en50221_io_write() 
-warn: potential spectre issue 'ca->slot_info' (local cap)
-drivers/media/dvb-core/dvb_net.c:252 handle_one_ule_extension() warn: 
-potential spectre issue 'p->ule_next_hdr'
 
-I pulled the latest changes from the smatch repository and compiled it.
-
-I'm running smatch v0.5.0-4459-g2f66d40 now. Is this the latest version?
-
-I wonder if there is anything I might be missing.
-
-Thanks
---
-Gustavo
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
