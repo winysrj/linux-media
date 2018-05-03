@@ -1,81 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f196.google.com ([209.85.217.196]:37194 "EHLO
-        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754103AbeEaI4c (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:45922 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751069AbeECPTX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 04:56:32 -0400
-Received: by mail-ua0-f196.google.com with SMTP id i3-v6so14513050uad.4
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 01:56:32 -0700 (PDT)
-Received: from mail-vk0-f41.google.com (mail-vk0-f41.google.com. [209.85.213.41])
-        by smtp.gmail.com with ESMTPSA id 129-v6sm12011595vkv.43.2018.05.31.01.56.29
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 31 May 2018 01:56:30 -0700 (PDT)
-Received: by mail-vk0-f41.google.com with SMTP id o17-v6so462517vka.2
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 01:56:29 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org> <20180515075859.17217-17-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-17-stanimir.varbanov@linaro.org>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 31 May 2018 17:56:18 +0900
-Message-ID: <CAAFQd5B+DH3+2-7VcqJ5J4VxmftUCgS18qmfRJVzNAA+6u1NxQ@mail.gmail.com>
-Subject: Re: [PATCH v2 16/29] venus: add a helper function to set dynamic
- buffer mode
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+        Thu, 3 May 2018 11:19:23 -0400
+Subject: Re: [PATCH v11 2/4] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+To: Maxime Ripard <maxime.ripard@bootlin.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        vgarodia@codeaurora.org
-Content-Type: text/plain; charset="UTF-8"
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>
+References: <20180424122700.5387-1-maxime.ripard@bootlin.com>
+ <20180424122700.5387-3-maxime.ripard@bootlin.com>
+ <4924400e-67ea-e523-321a-a9d3490d7873@xs4all.nl>
+ <20180503151350.7pdu5kdl6vp7wz4y@flea>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5d8e965c-90f4-6d86-6759-6d77ad7fefc5@xs4all.nl>
+Date: Thu, 3 May 2018 17:19:11 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180503151350.7pdu5kdl6vp7wz4y@flea>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 15, 2018 at 5:05 PM Stanimir Varbanov
-<stanimir.varbanov@linaro.org> wrote:
->
-> Adds a new helper function to set dynamic buffer mode if it is
-> supported by current HFI version.
->
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
->  drivers/media/platform/qcom/venus/helpers.c | 22 ++++++++++++++++++++++
->  drivers/media/platform/qcom/venus/helpers.h |  1 +
->  drivers/media/platform/qcom/venus/vdec.c    | 15 +++------------
->  3 files changed, 26 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-> index 1eda19adbf28..824ad4d2d064 100644
-> --- a/drivers/media/platform/qcom/venus/helpers.c
-> +++ b/drivers/media/platform/qcom/venus/helpers.c
-> @@ -522,6 +522,28 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
->  }
->  EXPORT_SYMBOL_GPL(venus_helper_set_color_format);
->
-> +int venus_helper_set_dyn_bufmode(struct venus_inst *inst)
-> +{
-> +       u32 ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
-> +       struct hfi_buffer_alloc_mode mode;
-> +       int ret;
-> +
-> +       if (!is_dynamic_bufmode(inst))
-> +               return 0;
-> +
-> +       mode.type = HFI_BUFFER_OUTPUT;
-> +       mode.mode = HFI_BUFFER_MODE_DYNAMIC;
-> +
-> +       ret = hfi_session_set_property(inst, ptype, &mode);
-> +       if (ret)
-> +               return ret;
-> +
-> +       mode.type = HFI_BUFFER_OUTPUT2;
-> +
-> +       return hfi_session_set_property(inst, ptype, &mode);
+On 03/05/18 17:13, Maxime Ripard wrote:
+> Hi!
+> 
+> Thanks for your review,
+> 
+> On Thu, May 03, 2018 at 12:54:57PM +0200, Hans Verkuil wrote:
+>>> +static int csi2rx_stop(struct csi2rx_priv *csi2rx)
+>>> +{
+>>> +	unsigned int i;
+>>> +
+>>> +	clk_prepare_enable(csi2rx->p_clk);
+>>> +	clk_disable_unprepare(csi2rx->sys_clk);
+>>> +
+>>> +	for (i = 0; i < csi2rx->max_streams; i++) {
+>>> +		writel(0, csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
+>>> +
+>>> +		clk_disable_unprepare(csi2rx->pixel_clk[i]);
+>>> +	}
+>>> +
+>>> +	clk_disable_unprepare(csi2rx->p_clk);
+>>> +
+>>> +	return v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, false);
+>>> +}
+>>> +
+>>> +static int csi2rx_s_stream(struct v4l2_subdev *subdev, int enable)
+>>> +{
+>>> +	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(subdev);
+>>> +	int ret = 0;
+>>> +
+>>> +	mutex_lock(&csi2rx->lock);
+>>> +
+>>> +	if (enable) {
+>>> +		/*
+>>> +		 * If we're not the first users, there's no need to
+>>> +		 * enable the whole controller.
+>>> +		 */
+>>> +		if (!csi2rx->count) {
+>>> +			ret = csi2rx_start(csi2rx);
+>>> +			if (ret)
+>>> +				goto out;
+>>> +		}
+>>> +
+>>> +		csi2rx->count++;
+>>> +	} else {
+>>> +		csi2rx->count--;
+>>> +
+>>> +		/*
+>>> +		 * Let the last user turn off the lights.
+>>> +		 */
+>>> +		if (!csi2rx->count) {
+>>> +			ret = csi2rx_stop(csi2rx);
+>>> +			if (ret)
+>>> +				goto out;
+>>
+>> Here the error from csi2rx_stop is propagated to the caller, but in the TX
+>> driver it is ignored. Is there a reason for the difference?
+> 
+> Even though that wasn't really intentional, TX only does a writel in
+> its stop (which cannot fail), while RX will need to communicate with
+> its subdev, and that can fail.
+> 
+>> In general I see little value in propagating errors when releasing/stopping
+>> something, since there is usually very little you can do to handle the error.
+>> It really shouldn't fail.
+> 
+> So do you want me to ignore the values in the s_stream function and
+> log the error, or should I just make the start / stop function return
+> void?
 
-The function now sets HFI_BUFFER_OUTPUT2 in addition to
-HFI_BUFFER_OUTPUT only, as set by orignal code. Is it intentional? I
-guess we could have this mentioned in commit message.
+You can't ignore errors from start(), those should always be returned to the
+caller. But for stop() I'd just log the error and make csi2rx/tx_stop void functions.
 
-Best regards,
-Tomasz
+Regards,
+
+	Hans
+
+> 
+> Maxime
+> 
