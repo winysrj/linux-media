@@ -1,75 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway34.websitewelcome.com ([192.185.150.114]:44772 "EHLO
-        gateway34.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751469AbeEVR6J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 13:58:09 -0400
-Received: from cm10.websitewelcome.com (cm10.websitewelcome.com [100.42.49.4])
-        by gateway34.websitewelcome.com (Postfix) with ESMTP id B3C546EDCF
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 12:11:55 -0500 (CDT)
-Subject: Re: [media] duplicate code in media drivers
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Devin Heitmueller <dheitmueller@linuxtv.org>
-References: <20180521193951.GA16659@embeddedor.com>
- <20180521171415.00c56487@vento.lan>
- <CAGoCfiwHPPJZABCtMgPzqvHNprnLn8qG9R0aT0b3Y8VfR_ta+g@mail.gmail.com>
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Message-ID: <eda3980d-0464-b030-448a-bc60fab75f97@embeddedor.com>
-Date: Tue, 22 May 2018 12:11:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42770 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751745AbeECBI3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 May 2018 21:08:29 -0400
+Date: Thu, 3 May 2018 09:08:12 +0800
+From: Shawn Guo <shawnguo@kernel.org>
+To: Rui Miguel Silva <rui.silva@linaro.org>,
+        Anson Huang <Anson.Huang@nxp.com>
+Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        linux-clk@vger.kernel.org, linux-imx@nxp.com
+Subject: Re: [PATCH v2 03/15] clk: imx7d: fix mipi dphy div parent
+Message-ID: <20180503010810.GN3443@dragon>
+References: <20180423134750.30403-1-rui.silva@linaro.org>
+ <20180423134750.30403-4-rui.silva@linaro.org>
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfiwHPPJZABCtMgPzqvHNprnLn8qG9R0aT0b3Y8VfR_ta+g@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180423134750.30403-4-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Anson,
 
+Please have a look at this change.
 
-On 05/21/2018 03:44 PM, Devin Heitmueller wrote:
->>> diff -u -p drivers/media/dvb-frontends/au8522_decoder.c /tmp/nothing/media/dvb-frontends/au8522_decoder.c
->>> --- drivers/media/dvb-frontends/au8522_decoder.c
->>> +++ /tmp/nothing/media/dvb-frontends/au8522_decoder.c
->>> @@ -280,14 +280,9 @@ static void setup_decoder_defaults(struc
->>>                          AU8522_TOREGAAGC_REG0E5H_CVBS);
->>>          au8522_writereg(state, AU8522_REG016H, AU8522_REG016H_CVBS);
->>>
->>> -       if (is_svideo) {
->>>                  /* Despite what the table says, for the HVR-950q we still need
->>>                     to be in CVBS mode for the S-Video input (reason unknown). */
->>>                  /* filter_coef_type = 3; */
->>> -               filter_coef_type = 5;
->>> -       } else {
->>> -               filter_coef_type = 5;
->>> -       }
->>
->> Better ask Devin about this (c/c).
+Shawn
+
+On Mon, Apr 23, 2018 at 02:47:38PM +0100, Rui Miguel Silva wrote:
+> Fix the mipi dphy root divider to mipi_dphy_pre_div, this would remove a orphan
+> clock and set the correct parent.
 > 
-> This was a case where the implementation didn't match the datasheet,
-> and it wasn't clear why the filter coefficients weren't working
-> properly.  Essentially I should have labeled that as a TODO or FIXME
-> when I disabled the "right" value and forced it to always be five.  It
-> was also likely that the filter coefficients would need to differ if
-> taking video over the IF interface as opposed to CVBS/S-video, which
-> is why I didn't want to get rid of the logic entirely.  That said, the
-> only product I've ever seen with the tda18271 mated to the au8522 will
-> likely never be supported for analog video under Linux for unrelated
-> reasons.
+> before:
+> cat clk_orphan_summary
+>                                  enable  prepare  protect
+>    clock                          count    count    count        rate   accuracy   phase
+> ----------------------------------------------------------------------------------------
+>  mipi_dphy_post_div                   1        1        0           0          0 0
+>     mipi_dphy_root_clk                1        1        0           0          0 0
 > 
-> That said, it's worked "good enough" since I wrote the code nine years
-> ago, so if somebody wants to submit a patch to either get rid of the
-> if() statement or mark it as a FIXME that will likely never actually
-> get fixed, I wouldn't have an objection to either.
+> cat clk_dump | grep mipi_dphy
+> mipi_dphy_post_div                    1        1        0           0          0 0
+>     mipi_dphy_root_clk                1        1        0           0          0 0
 > 
-
-Devin,
-
-I've sent a patch based on your feedback.
-
-Thanks!
---
-Gustavo
+> after:
+> cat clk_dump | grep mipi_dphy
+>    mipi_dphy_src                     1        1        0    24000000          0 0
+>        mipi_dphy_cg                  1        1        0    24000000          0 0
+>           mipi_dphy_pre_div          1        1        0    24000000          0 0
+>              mipi_dphy_post_div      1        1        0    24000000          0 0
+>                 mipi_dphy_root_clk   1        1        0    24000000          0 0
+> 
+> Cc: linux-clk@vger.kernel.org
+> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+> 
+> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+> ---
+>  drivers/clk/imx/clk-imx7d.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
+> index 975a20d3cc94..f7f4db2e6fa6 100644
+> --- a/drivers/clk/imx/clk-imx7d.c
+> +++ b/drivers/clk/imx/clk-imx7d.c
+> @@ -729,7 +729,7 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
+>  	clks[IMX7D_LCDIF_PIXEL_ROOT_DIV] = imx_clk_divider2("lcdif_pixel_post_div", "lcdif_pixel_pre_div", base + 0xa300, 0, 6);
+>  	clks[IMX7D_MIPI_DSI_ROOT_DIV] = imx_clk_divider2("mipi_dsi_post_div", "mipi_dsi_pre_div", base + 0xa380, 0, 6);
+>  	clks[IMX7D_MIPI_CSI_ROOT_DIV] = imx_clk_divider2("mipi_csi_post_div", "mipi_csi_pre_div", base + 0xa400, 0, 6);
+> -	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_csi_dphy_div", base + 0xa480, 0, 6);
+> +	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_dphy_pre_div", base + 0xa480, 0, 6);
+>  	clks[IMX7D_SAI1_ROOT_DIV] = imx_clk_divider2("sai1_post_div", "sai1_pre_div", base + 0xa500, 0, 6);
+>  	clks[IMX7D_SAI2_ROOT_DIV] = imx_clk_divider2("sai2_post_div", "sai2_pre_div", base + 0xa580, 0, 6);
+>  	clks[IMX7D_SAI3_ROOT_DIV] = imx_clk_divider2("sai3_post_div", "sai3_pre_div", base + 0xa600, 0, 6);
+> -- 
+> 2.17.0
+> 
