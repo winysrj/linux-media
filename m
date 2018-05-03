@@ -1,47 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:33374 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751197AbeERSxo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 14:53:44 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 04/20] usbtv: Implement wait_prepare and wait_finish
-Date: Fri, 18 May 2018 15:51:52 -0300
-Message-Id: <20180518185208.17722-5-ezequiel@collabora.com>
-In-Reply-To: <20180518185208.17722-1-ezequiel@collabora.com>
-References: <20180518185208.17722-1-ezequiel@collabora.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:41360 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751838AbeECAHG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2018 20:07:06 -0400
+Received: by mail-pf0-f193.google.com with SMTP id v63so13146846pfk.8
+        for <linux-media@vger.kernel.org>; Wed, 02 May 2018 17:07:06 -0700 (PDT)
+From: Daniel Rosenberg <drosen@google.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        linux-kernel@vger.kernel.org
+Cc: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+        kernel-team@android.com, Daniel Rosenberg <drosen@google.com>,
+        Divya Ponnusamy <pdivya@codeaurora.org>,
+        stable <stable@vger.kernel.org>
+Subject: [PATCH] drivers: dma-buf: Change %p to %pK in debug messages
+Date: Wed,  2 May 2018 17:03:00 -0700
+Message-Id: <20180503000300.90083-1-drosen@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is currently specifying a vb2_queue lock,
-which means it straightforward to implement wait_prepare
-and wait_finish.
+The format specifier %p can leak kernel addresses
+while not valuing the kptr_restrict system settings.
+Use %pK instead of %p, which also evaluates whether
+kptr_restrict is set.
 
-Having these callbacks releases the queue lock while blocking,
-which improves latency by allowing for example streamoff
-or qbuf operations while waiting in dqbuf.
-
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+Signed-off-by: Divya Ponnusamy <pdivya@codeaurora.org>
+Signed-off-by: Daniel Rosenberg <drosen@google.com>
+Cc: stable <stable@vger.kernel.org>
 ---
- drivers/media/usb/usbtv/usbtv-video.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/dma-buf/sync_debug.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
-index 3668a04359e8..0c0d0ef71573 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -698,6 +698,8 @@ static const struct vb2_ops usbtv_vb2_ops = {
- 	.buf_queue = usbtv_buf_queue,
- 	.start_streaming = usbtv_start_streaming,
- 	.stop_streaming = usbtv_stop_streaming,
-+	.wait_prepare = vb2_ops_wait_prepare,
-+	.wait_finish = vb2_ops_wait_finish,
- };
+diff --git a/drivers/dma-buf/sync_debug.c b/drivers/dma-buf/sync_debug.c
+index c4c8ecb24aa9..d8d340542a79 100644
+--- a/drivers/dma-buf/sync_debug.c
++++ b/drivers/dma-buf/sync_debug.c
+@@ -133,7 +133,7 @@ static void sync_print_sync_file(struct seq_file *s,
+ 	char buf[128];
+ 	int i;
  
- static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
+-	seq_printf(s, "[%p] %s: %s\n", sync_file,
++	seq_printf(s, "[%pK] %s: %s\n", sync_file,
+ 		   sync_file_get_name(sync_file, buf, sizeof(buf)),
+ 		   sync_status_str(dma_fence_get_status(sync_file->fence)));
+ 
 -- 
-2.16.3
+2.17.0.441.gb46fe60e1d-goog
