@@ -1,89 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:58632 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751091AbeE3K5M (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:59852 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751455AbeECOxZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 06:57:12 -0400
-Subject: Re: [PATCH v5 0/3] IR decoding using BPF
-To: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        netdev@vger.kernel.org, Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Y Song <ys114321@gmail.com>,
-        Quentin Monnet <quentin.monnet@netronome.com>
-References: <cover.1527419762.git.sean@mess.org>
-From: Daniel Borkmann <daniel@iogearbox.net>
-Message-ID: <ddee9d3a-6464-1e41-d475-ede0918a17c3@iogearbox.net>
-Date: Wed, 30 May 2018 12:57:09 +0200
-MIME-Version: 1.0
-In-Reply-To: <cover.1527419762.git.sean@mess.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Thu, 3 May 2018 10:53:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv13 04/28] media-request: add media_request_get_by_fd
+Date: Thu,  3 May 2018 16:52:54 +0200
+Message-Id: <20180503145318.128315-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/27/2018 01:24 PM, Sean Young wrote:
-> The kernel IR decoders (drivers/media/rc/ir-*-decoder.c) support the most
-> widely used IR protocols, but there are many protocols which are not
-> supported[1]. For example, the lirc-remotes[2] repo has over 2700 remotes,
-> many of which are not supported by rc-core. There is a "long tail" of
-> unsupported IR protocols, for which lircd is need to decode the IR .
-> 
-> IR encoding is done in such a way that some simple circuit can decode it;
-> therefore, bpf is ideal.
-> 
-> In order to support all these protocols, here we have bpf based IR decoding.
-> The idea is that user-space can define a decoder in bpf, attach it to
-> the rc device through the lirc chardev.
-> 
-> Separate work is underway to extend ir-keytable to have an extensive library
-> of bpf-based decoders, and a much expanded library of rc keymaps.
-> 
-> Another future application would be to compile IRP[3] to a IR BPF program, and
-> so support virtually every remote without having to write a decoder for each.
-> It might also be possible to support non-button devices such as analog
-> directional pads or air conditioning remote controls and decode the target
-> temperature in bpf, and pass that to an input device.
-> 
-> Thanks,
-> 
-> Sean Young
-> 
-> [1] http://www.hifi-remote.com/wiki/index.php?title=DecodeIR
-> [2] https://sourceforge.net/p/lirc-remotes/code/ci/master/tree/remotes/
-> [3] http://www.hifi-remote.com/wiki/index.php?title=IRP_Notation
-> 
-> Changes since v4:
->  - Renamed rc_dev_bpf_{attach,detach,query} to lirc_bpf_{attach,detach,query}
->  - Fixed error path in lirc_bpf_query
->  - Rebased on bpf-next
-> 
-> Changes since v3:
->  - Implemented review comments from Quentin Monnet and Y Song (thanks!)
->  - More helpful and better formatted bpf helper documentation
->  - Changed back to bpf_prog_array rather than open-coded implementation
->  - scancodes can be 64 bit
->  - bpf gets passed values in microseconds, not nanoseconds.
->    microseconds is more than than enough (IR receivers support carriers upto
->    70kHz, at which point a single period is already 14 microseconds). Also,
->    this makes it much more consistent with lirc mode2.
->  - Since it looks much more like lirc mode2, rename the program type to
->    BPF_PROG_TYPE_LIRC_MODE2.
->  - Rebased on bpf-next
-> 
-> Changes since v2:
->  - Fixed locking issues
->  - Improved self-test to cover more cases
->  - Rebased on bpf-next again
-> 
-> Changes since v1:
->  - Code review comments from Y Song <ys114321@gmail.com> and
->    Randy Dunlap <rdunlap@infradead.org>
->  - Re-wrote sample bpf to be selftest
->  - Renamed RAWIR_DECODER -> RAWIR_EVENT (Kconfig, context, bpf prog type)
->  - Rebase on bpf-next
->  - Introduced bpf_rawir_event context structure with simpler access checking
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Applied to bpf-next, thanks Sean!
+Add media_request_get_by_fd() to find a request based on the file
+descriptor.
+
+The caller has to call media_request_put() for the returned
+request since this function increments the refcount.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/media-request.c | 32 ++++++++++++++++++++++++++++++++
+ include/media/media-request.h | 24 ++++++++++++++++++++++++
+ 2 files changed, 56 insertions(+)
+
+diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+index c216c4ab628b..edc1c3af1959 100644
+--- a/drivers/media/media-request.c
++++ b/drivers/media/media-request.c
+@@ -218,6 +218,38 @@ static const struct file_operations request_fops = {
+ 	.release = media_request_close,
+ };
+ 
++struct media_request *
++media_request_get_by_fd(struct media_device *mdev, int request_fd)
++{
++	struct file *filp;
++	struct media_request *req;
++
++	if (!mdev || !mdev->ops ||
++	    !mdev->ops->req_validate || !mdev->ops->req_queue)
++		return ERR_PTR(-EPERM);
++
++	filp = fget(request_fd);
++	if (!filp)
++		return ERR_PTR(-ENOENT);
++
++	if (filp->f_op != &request_fops)
++		goto err_fput;
++	req = filp->private_data;
++	if (req->mdev != mdev)
++		goto err_fput;
++
++	media_request_get(req);
++	fput(filp);
++
++	return req;
++
++err_fput:
++	fput(filp);
++
++	return ERR_PTR(-ENOENT);
++}
++EXPORT_SYMBOL_GPL(media_request_get_by_fd);
++
+ int media_request_alloc(struct media_device *mdev,
+ 			struct media_request_alloc *alloc)
+ {
+diff --git a/include/media/media-request.h b/include/media/media-request.h
+index e39122dfd717..997e096d7128 100644
+--- a/include/media/media-request.h
++++ b/include/media/media-request.h
+@@ -86,6 +86,24 @@ static inline void media_request_get(struct media_request *req)
+  */
+ void media_request_put(struct media_request *req);
+ 
++/**
++ * media_request_get_by_fd - Get a media request by fd
++ *
++ * @mdev: Media device this request belongs to
++ * @request_fd: The file descriptor of the request
++ *
++ * Get the request represented by @request_fd that is owned
++ * by the media device.
++ *
++ * Return a -EPERM error pointer if requests are not supported
++ * by this driver. Return -ENOENT if the request was not found.
++ * Return the pointer to the request if found: the caller will
++ * have to call @media_request_put when it finished using the
++ * request.
++ */
++struct media_request *
++media_request_get_by_fd(struct media_device *mdev, int request_fd);
++
+ /**
+  * media_request_alloc - Allocate the media request
+  *
+@@ -107,6 +125,12 @@ static inline void media_request_put(struct media_request *req)
+ {
+ }
+ 
++static inline struct media_request *
++media_request_get_by_fd(struct media_device *mdev, int request_fd)
++{
++	return ERR_PTR(-EPERM);
++}
++
+ #endif
+ 
+ /**
+-- 
+2.17.0
