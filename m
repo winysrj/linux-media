@@ -1,63 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f195.google.com ([209.85.217.195]:43880 "EHLO
-        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751533AbeEPIJD (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:56771 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751465AbeECKaB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 04:09:03 -0400
-Received: by mail-ua0-f195.google.com with SMTP id d4-v6so1974977ual.10
-        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 01:09:03 -0700 (PDT)
-Received: from mail-ua0-f175.google.com (mail-ua0-f175.google.com. [209.85.217.175])
-        by smtp.gmail.com with ESMTPSA id x8-v6sm204490uaj.44.2018.05.16.01.09.01
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 16 May 2018 01:09:01 -0700 (PDT)
-Received: by mail-ua0-f175.google.com with SMTP id e8-v6so1971837uam.13
-        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 01:09:01 -0700 (PDT)
+        Thu, 3 May 2018 06:30:01 -0400
+Subject: Re: [RFCv12 PATCH 03/29] media-request: implement media requests
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180501090051.9321-1-hverkuil@xs4all.nl>
+ <20180501090051.9321-4-hverkuil@xs4all.nl>
+ <20180502222404.ksvbdv656dd2r75b@valkosipuli.retiisi.org.uk>
+ <9e686118-f928-fb09-f319-d9484d92b8c1@xs4all.nl>
+ <20180503101216.xramu7k6a77rx27u@valkosipuli.retiisi.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d20986d5-e3df-ee12-c49f-9b9d0f8f1d03@xs4all.nl>
+Date: Thu, 3 May 2018 12:29:58 +0200
 MIME-Version: 1.0
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com> <20180308094807.9443-10-jacob-chen@iotwrt.com>
-In-Reply-To: <20180308094807.9443-10-jacob-chen@iotwrt.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 16 May 2018 17:08:49 +0900
-Message-ID: <CAAFQd5BZm6+s=o1xEu_+E56R-k+ujAFxfytjA+N_SAcU=4A9FA@mail.gmail.com>
-Subject: Re: [PATCH v6 09/17] media: rkisp1: add rockchip isp1 core driver
-To: Jacob Chen <jacob-chen@iotwrt.com>,
-        Shunqian Zheng <zhengsq@rock-chips.com>
-Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
-        Eddie Cai <eddie.cai.linux@gmail.com>,
-        Jeffy <jeffy.chen@rock-chips.com>, devicetree@vger.kernel.org,
-        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
-        Chen Jacob <jacob2.chen@rock-chips.com>,
-        =?UTF-8?B?6ZmI5Z+O?= <cc@rock-chips.com>,
-        Allon Huang <allon.huang@rock-chips.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20180503101216.xramu7k6a77rx27u@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacob, Shunqian,
+On 03/05/18 12:12, Sakari Ailus wrote:
+> On Thu, May 03, 2018 at 10:21:32AM +0200, Hans Verkuil wrote:
+>> On 03/05/18 00:24, Sakari Ailus wrote:
+>>> Hi Hans,
+>>>
+>>> On Tue, May 01, 2018 at 11:00:25AM +0200, Hans Verkuil wrote:
+> ...
+>>>> +
+>>>> +static int media_request_close(struct inode *inode, struct file *filp)
+>>>> +{
+>>>> +	struct media_request *req = filp->private_data;
+>>>> +
+>>>> +	media_request_put(req);
+>>>
+>>> A newline would be nice here.
+>>
+>> Why? I do not see it adding anything of value. Some of your other 'newline'
+>> comments make it indeed more readable, but I don't see any benefit from it
+>> here.
+> 
+> I'd think it's nice to have an empty line before return if it's detached
+> from everything else.
+> 
+>>
+>>>
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>> +static unsigned int media_request_poll(struct file *filp,
+>>>> +				       struct poll_table_struct *wait)
+>>>> +{
+>>>> +	struct media_request *req = filp->private_data;
+>>>> +	unsigned long flags;
+>>>> +	unsigned int ret = 0;
+>>>> +	enum media_request_state state;
+>>>> +
+>>>> +	if (!(poll_requested_events(wait) & POLLPRI))
+>>>> +		return 0;
+>>>> +
+>>>> +	spin_lock_irqsave(&req->lock, flags);
+>>>> +	state = atomic_read(&req->state);
+>>>> +
+>>>> +	if (state == MEDIA_REQUEST_STATE_COMPLETE) {
+>>>> +		ret = POLLPRI;
+>>>> +		goto unlock;
+>>>> +	}
+>>>> +	if (state == MEDIA_REQUEST_STATE_IDLE) {
+>>>
+>>> Should this be just anything else than QUEUE or VALIDATING? You're missing
+>>> CLEANING here, for instance.
+>>
+>> I changed it to != QUEUED. I don't think it is a good idea to include VALIDATING
+>> in this. It only makes sense to poll for the result if the request is fully queued.
+> 
+> Sounds good.
+> 
+> ...
+> 
+>>>> +	/*
+>>>> +	 * If the req_validate was successful, then we mark the state as QUEUED
+>>>> +	 * and call req_queue. The reason we set the state first is that this
+>>>> +	 * allows req_queue to unbind or complete the queued objects in case
+>>>> +	 * they are immediately 'consumed'. State changes from QUEUED to another
+>>>> +	 * state can only happen if either the driver changes the state or if
+>>>> +	 * the user cancels the vb2 queue. The driver can only change the state
+>>>> +	 * after each object is queued through the req_queue op (and note that
+>>>> +	 * that op cannot fail), so setting the state to QUEUED up front is
+>>>> +	 * safe.
+>>>> +	 *
+>>>> +	 * The other reason for changing the state is if the vb2 queue is
+>>>> +	 * canceled, and that uses the req_queue_mutex which is still locked
+>>>> +	 * while req_queue is called, so that's safe as well.
+>>>> +	 */
+>>>> +	atomic_set(&req->state,
+>>>> +		   ret ? MEDIA_REQUEST_STATE_IDLE : MEDIA_REQUEST_STATE_QUEUED);
+>>>> +
+>>>> +	if (!ret)
+>>>> +		mdev->ops->req_queue(req);
+>>>> +
+>>>> +	mutex_unlock(&mdev->req_queue_mutex);
+>>>> +
+>>>> +	if (ret) {
+>>>> +		dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
+>>>> +			req->debug_str, ret);
+>>>> +	} else {
+>>>> +		media_request_get(req);
+>>>
+>>> You'll need to get a reference before you queue the request. Otherwise it's
+>>> possible that it completes before you get here, and you end up accessing
+>>> released memory. The request refcount might be also under 0 before that
+>>> though.
+>>
+>> No, that can't happen. This function implements the QUEUE ioctl, which can only
+>> be called by userspace through the request fd, so there is always at least one
+>> reference open.
+> 
+> Indeed, you're right.
+> 
+> The curly braces are unnecessary above btw.
+> 
+> ...
+> 
+>>>> diff --git a/include/media/media-device.h b/include/media/media-device.h
+>>>> index bcc6ec434f1f..ae846208be51 100644
+>>>> --- a/include/media/media-device.h
+>>>> +++ b/include/media/media-device.h
+>>>> @@ -27,6 +27,7 @@
+>>>>  
+>>>>  struct ida;
+>>>>  struct device;
+>>>> +struct media_device;
+>>>>  
+>>>>  /**
+>>>>   * struct media_entity_notify - Media Entity Notify
+>>>> @@ -50,10 +51,22 @@ struct media_entity_notify {
+>>>>   * struct media_device_ops - Media device operations
+>>>>   * @link_notify: Link state change notification callback. This callback is
+>>>>   *		 called with the graph_mutex held.
+>>>> + * @req_alloc: Allocate a request
+>>>> + * @req_free: Free a request
+>>>> + * @req_validate: Validate a request, but do not queue yet
+>>>> + * @req_queue: Queue a validated request, cannot fail. If something goes
+>>>> + *	       wrong when queueing this request then it should be marked
+>>>> + *	       as such internally in the driver and any related buffers
+>>>> + *	       will eventually return to userspace with V4L2_BUF_FLAG_ERROR
+>>>> + *	       set.
+>>>
+>>> Note that this is MC; I think the reference is fine but I'd make it
+>>> explicit this is V4L2, and possibly that it's an example.
+>>
+>> I've changed the last line to:
+>>
+>> "must eventually return to vb2 with state VB2_BUF_STATE_ERROR."
+>>
+>> Since this is really a vb2 thing, not V4L2.
+>>
+>> It's not an example, based on what I know this should really be done like
+>> this. If reality proves to be different, then the comment will need to change.
+> 
+> Yes, but this is not a place for VB2 documentation nor a conclusive
+> document of what a failing queue operation would mean on whichever possible
+> other non-MC subsystem. So the VB2 related matter here remains an example
+> only.
+> 
+> We don't seem to have other than V4L2 using MC after more than five years
+> but I'd still be wary of thinking this is bound to V4L2 only.
+> 
 
-On Thu, Mar 8, 2018 at 6:49 PM Jacob Chen <jacob-chen@iotwrt.com> wrote:
-[snip]
-> +static const struct of_device_id rkisp1_plat_of_match[] = {
-> +       {
-> +               .compatible = "rockchip,rk3288-cif-isp",
-> +               .data = &rk3288_isp_clk_data,
-> +       }, {
-> +               .compatible = "rockchip,rk3399-cif-isp",
-> +               .data = &rk3399_isp_clk_data,
-> +       },
-> +       {},
-> +};
+It's all very tightly coupled to vb2 and I think we should just be honest in the
+comment. Nor do I see this ever being used in other subsystems: they have their
+own streaming etc. models.
 
-We need MODULE_DEVICE_TABLE() here.
+I'll keep this in unless other people complain about this.
 
-Best regards,
-Tomasz
+Regards,
+
+	Hans
