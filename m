@@ -1,83 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:42512 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750736AbeFAAbD (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44839 "EHLO
+        homiemail-a58.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751176AbeECVUX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 20:31:03 -0400
-Received: by mail-pl0-f68.google.com with SMTP id u6-v6so14225345pls.9
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:03 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 01/10] media: imx-csi: Pass sink pad field to ipu_csi_init_interface
-Date: Thu, 31 May 2018 17:30:40 -0700
-Message-Id: <1527813049-3231-2-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Thu, 3 May 2018 17:20:23 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH v2 2/9] cx231xx: Use board profile values for addresses
+Date: Thu,  3 May 2018 16:20:08 -0500
+Message-Id: <1525382415-4049-3-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1525382415-4049-1-git-send-email-brad@nextdimension.cc>
+References: <1525382415-4049-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The output pad's field type was being passed to ipu_csi_init_interface(),
-in order to deal with field type 'alternate' at the sink pad, which
-is not understood by ipu_csi_init_interface().
+Replace all usage of hard coded values with
+the proper field from the board profile.
 
-Remove that code and pass the sink pad field to ipu_csi_init_interface().
-The latter function will have to explicity deal with field type 'alternate'
-when setting up the CSI interface for BT.656 busses.
-
-Reported-by: Krzysztof Hałasa <khalasa@piap.pl>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-dvb.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 95d7805..9bc555c 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -629,12 +629,10 @@ static void csi_idmac_stop(struct csi_priv *priv)
- /* Update the CSI whole sensor and active windows */
- static int csi_setup(struct csi_priv *priv)
- {
--	struct v4l2_mbus_framefmt *infmt, *outfmt;
-+	struct v4l2_mbus_framefmt *infmt;
- 	struct v4l2_mbus_config mbus_cfg;
--	struct v4l2_mbus_framefmt if_fmt;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 67ed667..99f1a77 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -728,7 +728,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
  
- 	infmt = &priv->format_mbus[CSI_SINK_PAD];
--	outfmt = &priv->format_mbus[priv->active_output_pad];
+ 		if (!dvb_attach(tda18271_attach, dev->dvb->frontend[0],
+-			       0x60, tuner_i2c,
++			       dev->board.tuner_addr, tuner_i2c,
+ 			       &cnxt_rde253s_tunerconfig)) {
+ 			result = -EINVAL;
+ 			goto out_free;
+@@ -752,7 +752,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
  
- 	/* compose mbus_config from the upstream endpoint */
- 	mbus_cfg.type = priv->upstream_ep.bus_type;
-@@ -642,20 +640,13 @@ static int csi_setup(struct csi_priv *priv)
- 		priv->upstream_ep.bus.mipi_csi2.flags :
- 		priv->upstream_ep.bus.parallel.flags;
+ 		if (!dvb_attach(tda18271_attach, dev->dvb->frontend[0],
+-			       0x60, tuner_i2c,
++			       dev->board.tuner_addr, tuner_i2c,
+ 			       &cnxt_rde253s_tunerconfig)) {
+ 			result = -EINVAL;
+ 			goto out_free;
+@@ -779,7 +779,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
  
--	/*
--	 * we need to pass input frame to CSI interface, but
--	 * with translated field type from output format
--	 */
--	if_fmt = *infmt;
--	if_fmt.field = outfmt->field;
--
- 	ipu_csi_set_window(priv->csi, &priv->crop);
+ 		dvb_attach(tda18271_attach, dev->dvb->frontend[0],
+-			   0x60, tuner_i2c,
++			   dev->board.tuner_addr, tuner_i2c,
+ 			   &hcw_tda18271_config);
+ 		break;
  
- 	ipu_csi_set_downsize(priv->csi,
- 			     priv->crop.width == 2 * priv->compose.width,
- 			     priv->crop.height == 2 * priv->compose.height);
+@@ -797,7 +797,7 @@ static int dvb_init(struct cx231xx *dev)
  
--	ipu_csi_init_interface(priv->csi, &mbus_cfg, &if_fmt);
-+	ipu_csi_init_interface(priv->csi, &mbus_cfg, infmt);
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+ 		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
+-		info.addr = 0x64;
++		info.addr = dev->board.demod_addr;
+ 		info.platform_data = &si2165_pdata;
+ 		request_module(info.type);
+ 		client = i2c_new_device(demod_i2c, &info);
+@@ -822,8 +822,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
  
- 	ipu_csi_set_dest(priv->csi, priv->dest);
+ 		dvb_attach(tda18271_attach, dev->dvb->frontend[0],
+-			0x60,
+-			tuner_i2c,
++			dev->board.tuner_addr, tuner_i2c,
+ 			&hcw_tda18271_config);
+ 
+ 		dev->cx231xx_reset_analog_tuner = NULL;
+@@ -844,7 +843,7 @@ static int dvb_init(struct cx231xx *dev)
+ 
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+ 		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
+-		info.addr = 0x64;
++		info.addr = dev->board.demod_addr;
+ 		info.platform_data = &si2165_pdata;
+ 		request_module(info.type);
+ 		client = i2c_new_device(demod_i2c, &info);
+@@ -879,7 +878,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		si2157_config.if_port = 1;
+ 		si2157_config.inversion = true;
+ 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+-		info.addr = 0x60;
++		info.addr = dev->board.tuner_addr;
+ 		info.platform_data = &si2157_config;
+ 		request_module("si2157");
+ 
+@@ -938,7 +937,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		si2157_config.if_port = 1;
+ 		si2157_config.inversion = true;
+ 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+-		info.addr = 0x60;
++		info.addr = dev->board.tuner_addr;
+ 		info.platform_data = &si2157_config;
+ 		request_module("si2157");
+ 
+@@ -985,7 +984,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
+ 
+ 		dvb_attach(tda18271_attach, dev->dvb->frontend[0],
+-			   0x60, tuner_i2c,
++			   dev->board.tuner_addr, tuner_i2c,
+ 			   &pv_tda18271_config);
+ 		break;
  
 -- 
 2.7.4
