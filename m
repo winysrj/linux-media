@@ -1,268 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:50974 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965759AbeEXMV3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 08:21:29 -0400
-Message-ID: <adc612dd6f7f9fef24946c9976e45a78ce4867a1.camel@collabora.com>
-Subject: Re: [PATCHv2 0/4] gspca: convert to vb2gspca: convert to vb2
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>
-Date: Thu, 24 May 2018 09:20:03 -0300
-In-Reply-To: <ac7035af-775e-2793-538c-77ba012f647b@xs4all.nl>
-References: <000b7a63ddc949a2b8db1a8a11e60740593edb29.camel@collabora.com>
-         <ac7035af-775e-2793-538c-77ba012f647b@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-by2nam03on0044.outbound.protection.outlook.com ([104.47.42.44]:40056
+        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751974AbeECCnL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 May 2018 22:43:11 -0400
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Subject: [PATCH v5 5/8] v4l: xilinx: dma: Update video format descriptor
+Date: Wed, 2 May 2018 19:42:50 -0700
+Message-ID: <81391061e8a383fe33a1f8f519b9ae33748de00b.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+In-Reply-To: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+References: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-05-24 at 10:15 +0200, Hans Verkuil wrote:
-> On 23/05/18 22:51, Ezequiel Garcia wrote:
-> > 
-> > 
-> > On 22 May 2018 at 05:16, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > On 18/05/18 19:51, Ezequiel Garcia wrote:
-> > > > On 13 May 2018 at 06:47, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > > > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > > 
-> > > > > The first patch converts the gspca driver to the vb2 framework.
-> > > > > It was much easier to do than I expected and it saved almost 600
-> > > > > lines of gspca driver code.
-> > > > > 
-> > > > > The second patch fixes v4l2-compliance warnings for g/s_parm.
-> > > > > 
-> > > > > The third patch clears relevant fields in v4l2_streamparm in
-> > > > > v4l_s_parm(). This was never done before since v4l2-compliance
-> > > > > didn't check this.
-> > > > > 
-> > > > > The final patch deletes the now unused v4l2_disable_ioctl_locking()
-> > > > > function.
-> > > > > 
-> > > > > Tested with three different gspca webcams, and tested suspend/resume
-> > > > > as well.
-> > > > > 
-> > > > > I'll test with a few more webcams next week and if those tests all
-> > > > > succeed then I'll post a pull request.
-> > > > > 
-> > > > > Regards,
-> > > > > 
-> > > > >         Hans
-> > > > > 
-> > > > > Changes since v1:
-> > > > > 
-> > > > > - Re-added 'if (gspca_dev->present)' before the dq_callback call.
-> > > > > - Added Reviewed-by tags from Hans de Goede.
-> > > > > 
-> > > > > Hans Verkuil (4):
-> > > > >   gspca: convert to vb2
-> > > > >   gspca: fix g/s_parm handling
-> > > > >   v4l2-ioctl: clear fields in s_parm
-> > > > >   v4l2-ioctl: delete unused v4l2_disable_ioctl_locking
-> > > > > 
-> > > > >  drivers/media/usb/gspca/Kconfig            |   1 +
-> > > > >  drivers/media/usb/gspca/gspca.c            | 925 ++++-----------------
-> > > > >  drivers/media/usb/gspca/gspca.h            |  38 +-
-> > > > >  drivers/media/usb/gspca/m5602/m5602_core.c |   4 +-
-> > > > >  drivers/media/usb/gspca/ov534.c            |   1 -
-> > > > >  drivers/media/usb/gspca/topro.c            |   1 -
-> > > > >  drivers/media/usb/gspca/vc032x.c           |   2 +-
-> > > > >  drivers/media/v4l2-core/v4l2-ioctl.c       |  19 +-
-> > > > >  include/media/v4l2-dev.h                   |  15 -
-> > > > >  9 files changed, 210 insertions(+), 796 deletions(-)
-> > > > > 
-> > > > 
-> > > > Got a NULL pointer testing this series. However, I don't think
-> > > > the problem is with this series per-se, but more of a long-standing
-> > > > race.
-> > > > 
-> > > > [ 1133.771530] BUG: unable to handle kernel NULL pointer dereference
-> > > > at 00000000000000c4
-> > > > [ 1133.779354] PGD 0 P4D 0
-> > > > [ 1133.781885] Oops: 0000 [#1] PREEMPT SMP PTI
-> > > > [ 1133.786065] CPU: 1 PID: 0 Comm: swapper/1 Not tainted
-> > > > 4.17.0-rc3-next-20180503-ARCH-00029-gb14b92b054cc-dirty #11
-> > > > [ 1133.796306] Hardware name: ASUS All Series/H81M-D R2.0, BIOS 0504 05/14/2015
-> > > > [ 1133.803346] RIP: 0010:sd_pkt_scan+0x246/0x350 [gspca_sonixj]
-> > > > [ 1133.808994] Code: 00 89 d9 4c 89 e2 be 03 00 00 00 4c 89 ef e8 f1
-> > > > 06 c9 ff 49 8b 95 30 05 00 00 41 6b 85 d0 08 00 00 64 41 0f b7 8d d4
-> > > > 08 00 00 <0f> af 8a c4 00 00 00 31 d2 f7 f1 83 f8 54 0f 8f a6 00 00 00
-> > > > 83 f8
-> > > > [ 1133.827845] RSP: 0018:ffff88011fa83c78 EFLAGS: 00010002
-> > > > [ 1133.833061] RAX: 0000000000282d8c RBX: 00000000000002ee RCX: 0000000000000027
-> > > > [ 1133.840204] RDX: 0000000000000000 RSI: 0000000000000003 RDI: ffff8800c10b97e0
-> > > > [ 1133.847343] RBP: ffff88011fa83ca0 R08: 00000000000241a0 R09: ffffffffa021d45e
-> > > > [ 1133.854469] R10: 000000000000032c R11: ffff880115938700 R12: ffff8800c765b840
-> > > > [ 1133.861591] R13: ffff8800c10b9000 R14: 000000000000032c R15: 000000000000032c
-> > > > [ 1133.868726] FS:  0000000000000000(0000) GS:ffff88011fa80000(0000)
-> > > > knlGS:0000000000000000
-> > > > [ 1133.876802] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > > > [ 1133.882540] CR2: 00000000000000c4 CR3: 000000000200a004 CR4: 00000000001606e0
-> > > > [ 1133.889663] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> > > > [ 1133.896788] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-> > > > [ 1133.903920] Call Trace:
-> > > > [ 1133.906365]  <IRQ>
-> > > > [ 1133.908376]  ? sd_stop0+0x40/0x40 [gspca_sonixj]
-> > > > [ 1133.912988]  isoc_irq+0xb8/0x130 [gspca_main]
-> > > > [ 1133.917340]  __usb_hcd_giveback_urb+0x64/0xe0 [usbcore]
-> > > > [ 1133.922565]  usb_hcd_giveback_urb+0x11f/0x130 [usbcore]
-> > > > [ 1133.927782]  xhci_giveback_urb_in_irq.isra.20+0x84/0x100 [xhci_hcd]
-> > > > [ 1133.934038]  ? handle_cmd_completion+0x2cd/0x1100 [xhci_hcd]
-> > > > [ 1133.939689]  xhci_td_cleanup+0xfb/0x170 [xhci_hcd]
-> > > > [ 1133.944490]  finish_td+0xb3/0xf0 [xhci_hcd]
-> > > > [ 1133.948669]  xhci_irq+0x1532/0x2130 [xhci_hcd]
-> > > > [ 1133.953106]  ? handle_irq_event+0x47/0x5b
-> > > > [ 1133.957110]  xhci_msi_irq+0x11/0x20 [xhci_hcd]
-> > > > [ 1133.961546]  __handle_irq_event_percpu+0x42/0x1b0
-> > > > [ 1133.966243]  handle_irq_event_percpu+0x32/0x80
-> > > > [ 1133.970681]  handle_irq_event+0x3c/0x5b
-> > > > [ 1133.974511]  handle_edge_irq+0x7f/0x1b0
-> > > > [ 1133.978342]  handle_irq+0x1a/0x30
-> > > > [ 1133.981654]  do_IRQ+0x46/0xd0
-> > > > [ 1133.984617]  common_interrupt+0xf/0xf
-> > > > [ 1133.988274]  </IRQ>
-> > > > 
-> > > > Common sense tells me that the gspca_dev->urb[0] is
-> > > > set to NULL in destroy_urbs() and then accessed:
-> > > > 
-> > > > static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-> > > >                         u8 *data,                       /* isoc packet */
-> > > >                         int len)                        /* iso packet length */
-> > > > {
-> > > > [..]
-> > > >                 r = (sd->pktsz * 100) /
-> > > >                         (sd->npkt *
-> > > >                                 gspca_dev->urb[0]->iso_frame_desc[0].length);
-> > > > 
-> > > > As nothing protects the gspca_dev->urb array.
-> > > > 
-> > > > This is confirmed by disassembly, if I did the math right.
-> > > > sd_pkt_scan+0x246 is 0xC56:
-> > > > 
-> > > >      c3a:       e8 00 00 00 00          callq  c3f <sd_pkt_scan+0x22f>
-> > > >                                 gspca_dev->urb[0]->iso_frame_desc[0].length);
-> > > >      c3f:       49 8b 95 30 05 00 00    mov    0x530(%r13),%rdx
-> > > >                 r = (sd->pktsz * 100) /
-> > > >      c46:       41 6b 85 d0 08 00 00    imul   $0x64,0x8d0(%r13),%eax
-> > > >      c4d:       64
-> > > >                         (sd->npkt *
-> > > >      c4e:       41 0f b7 8d d4 08 00    movzwl 0x8d4(%r13),%ecx
-> > > >      c55:       00
-> > > >      c56:       0f af 8a c4 00 00 00    imul   0xc4(%rdx),%ecx
-> > > >                 r = (sd->pktsz * 100) /
-> > > > 
-> > > > Where %rdx seems to be gspca_dev->urb[0].
-> > > > 
-> > > > I think we should fix these gspca-state-urbs in all the gspca sub-drivers:
-> > > > 
-> > > > $ git grep "urb\[.*->" -- drivers/media/usb/gspca/
-> > > > drivers/media/usb/gspca/benq.c: if (urb == gspca_dev->urb[0] || urb ==
-> > > > gspca_dev->urb[2])
-> > > > drivers/media/usb/gspca/finepix.c:                      gspca_dev->urb[0]->pipe,
-> > > > drivers/media/usb/gspca/finepix.c:
-> > > > gspca_dev->urb[0]->transfer_buffer,
-> > > > drivers/media/usb/gspca/finepix.c:      usb_clear_halt(gspca_dev->dev,
-> > > > gspca_dev->urb[0]->pipe);
-> > > > drivers/media/usb/gspca/gspca.c:
-> > > >  gspca_dev->urb[0]->pipe);
-> > > > drivers/media/usb/gspca/jeilinj.c:
-> > > > gspca_dev->urb[0]->pipe,
-> > > > drivers/media/usb/gspca/jeilinj.c:
-> > > > gspca_dev->urb[0]->transfer_buffer,
-> > > > drivers/media/usb/gspca/jeilinj.c:              buf =
-> > > > gspca_dev->urb[0]->transfer_buffer;
-> > > > drivers/media/usb/gspca/sn9c20x.c:
-> > > > gspca_dev->urb[0]->iso_frame_desc[0].length);
-> > > > drivers/media/usb/gspca/sonixj.c:
-> > > > gspca_dev->urb[0]->iso_frame_desc[0].length);
-> > > > drivers/media/usb/gspca/xirlink_cit.c:
-> > > > usb_clear_halt(gspca_dev->dev, gspca_dev->urb[0]->pipe);
-> > > > drivers/media/usb/gspca/xirlink_cit.c:
-> > > > usb_clear_halt(gspca_dev->dev, gspca_dev->urb[0]->pipe);
-> > > > 
-> > > > Thoughts?
-> > > > 
-> > > 
-> > > Should be fixed in v3. The main problem was that the URBs were destroyed
-> > > too soon. By moving that to gspca_release this should no longer happen.
-> > > 
-> > 
-> > Hm, not so sure about that.
-> > 
-> > Like I said, I believe the problem lies in the destroy_urbs
-> > implementation and not related to this patchset. Let me try
-> > to convince you once again. How about this?
-> > 
-> > From 2876ad9d20d23c28c7a6b0078c82ff04ae7482a2 Mon Sep 17 00:00:00 2001
-> > From: Ezequiel Garcia <ezequiel@collabora.com>
-> > Date: Wed, 23 May 2018 17:13:48 -0300
-> > Subject: [PATCH] gspca: Kill all URBs before releasing any of them
-> > 
-> > Some subdrivers access the gspca_dev->urb array in the completion handler.
-> > To prevent use-after-free (actually, NULL dereferences) we need to
-> > synchronously kill all the URBs before we release them.
-> > 
-> > In particular, this is currently the case for drivers such
-> > as sn9c20x and sonixj, which access the gspca_dev->urb[0]
-> > in the context of completion handler for *any* of the URBs.
-> > 
-> > This commit changes the destroy_urb implementation, so it kills
-> > all URBs first, and then proceed to set the URBs to NULL in the
-> > array and release them.
-> > 
-> > Cc: stable@vger.kernel.org
-> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> > ---
-> >  drivers/media/usb/gspca/gspca.c | 15 +++++++++++----
-> >  1 file changed, 11 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-> > index d29773b8f696..eba6a8595cb7 100644
-> > --- a/drivers/media/usb/gspca/gspca.c
-> > +++ b/drivers/media/usb/gspca/gspca.c
-> > @@ -556,13 +556,20 @@ static void destroy_urbs(struct gspca_dev *gspca_dev)
-> >  	unsigned int i;
-> >  
-> >  	gspca_dbg(gspca_dev, D_STREAM, "kill transfer\n");
-> > +
-> > +	/* Killing all URBs guarantee that no URB completion
-> > +	 * handler is running. Therefore, there shouldn't
-> > +	 * be anyone trying to access gspca_dev->urb[i]
-> > +	 */
-> > +	for (i = 0; i < MAX_NURBS; i++)
-> > +		usb_kill_urb(gspca_dev->urb[i]);
-> > +
-> > +	gspca_dbg(gspca_dev, D_STREAM, "releasing urbs\n");
-> >  	for (i = 0; i < MAX_NURBS; i++) {
-> >  		urb = gspca_dev->urb[i];
-> > -		if (urb == NULL)
-> > -			break;
-> > -
-> > +		if (!urb)
-> > +			continue;
-> >  		gspca_dev->urb[i] = NULL;
-> > -		usb_kill_urb(urb);
-> >  		usb_free_coherent(gspca_dev->dev,
-> >  				  urb->transfer_buffer_length,
-> >  				  urb->transfer_buffer,
-> > 
-> 
-> After digging a bit deeper I concluded that you are right about this. But
-> I think it is best if I add this patch to the patch series. Moving the
-> teardown of the vb2 queue and related resources to gspca_release makes
-> sense and this is what other drivers do as well. But that does not
-> resolve suspend/resume where destroy_urbs is called as well, and that
-> should be fixed with your patch.
-> 
-> 
+This patch updates video format descriptor to help information
+viz., number of planes per color format and chroma sub sampling
+factors.
 
-Sure, feel free to add this patch and also my
-Tested-by: Ezequiel Garcia <ezequiel@collabora.com> to the series.
+Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+---
+Changes in v5:
+ - Added YUV420 10 bit format to video descriptor table
 
-Thanks a lot for doing the conversion!
+Changes in v4:
+ - Introduced bpp (bits per pixel) per plane
 
-Thanks,
-Eze
+ drivers/media/platform/xilinx/xilinx-dma.c | 12 ++++++------
+ drivers/media/platform/xilinx/xilinx-vip.c | 18 ++++++++++--------
+ drivers/media/platform/xilinx/xilinx-vip.h | 10 ++++++++--
+ 3 files changed, 24 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 727dc6e..518d572 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -366,7 +366,7 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
+ 	}
+ 
+ 	dma->xt.frame_size = 1;
+-	dma->sgl[0].size = dma->format.width * dma->fmtinfo->bpp;
++	dma->sgl[0].size = dma->format.width * dma->fmtinfo->bpp[0];
+ 	dma->sgl[0].icg = dma->format.bytesperline - dma->sgl[0].size;
+ 	dma->xt.numf = dma->format.height;
+ 
+@@ -569,12 +569,12 @@ __xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
+ 	 * the minimum and maximum values, clamp the requested width and convert
+ 	 * it back to pixels.
+ 	 */
+-	align = lcm(dma->align, info->bpp);
++	align = lcm(dma->align, info->bpp[0]);
+ 	min_width = roundup(XVIP_DMA_MIN_WIDTH, align);
+ 	max_width = rounddown(XVIP_DMA_MAX_WIDTH, align);
+-	width = rounddown(pix->width * info->bpp, align);
++	width = rounddown(pix->width * info->bpp[0], align);
+ 
+-	pix->width = clamp(width, min_width, max_width) / info->bpp;
++	pix->width = clamp(width, min_width, max_width) / info->bpp[0];
+ 	pix->height = clamp(pix->height, XVIP_DMA_MIN_HEIGHT,
+ 			    XVIP_DMA_MAX_HEIGHT);
+ 
+@@ -582,7 +582,7 @@ __xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
+ 	 * line value is zero, the module doesn't support user configurable line
+ 	 * sizes. Override the requested value with the minimum in that case.
+ 	 */
+-	min_bpl = pix->width * info->bpp;
++	min_bpl = pix->width * info->bpp[0];
+ 	max_bpl = rounddown(XVIP_DMA_MAX_WIDTH, dma->align);
+ 	bpl = rounddown(pix->bytesperline, dma->align);
+ 
+@@ -676,7 +676,7 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+ 	dma->format.field = V4L2_FIELD_NONE;
+ 	dma->format.width = XVIP_DMA_DEF_WIDTH;
+ 	dma->format.height = XVIP_DMA_DEF_HEIGHT;
+-	dma->format.bytesperline = dma->format.width * dma->fmtinfo->bpp;
++	dma->format.bytesperline = dma->format.width * dma->fmtinfo->bpp[0];
+ 	dma->format.sizeimage = dma->format.bytesperline * dma->format.height;
+ 
+ 	/* Initialize the media entity... */
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/platform/xilinx/xilinx-vip.c
+index 3112591..fb1a08f 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.c
++++ b/drivers/media/platform/xilinx/xilinx-vip.c
+@@ -27,22 +27,24 @@
+  */
+ 
+ static const struct xvip_video_format xvip_video_formats[] = {
++	{ XVIP_VF_YUV_420, 8, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
++	  {1, 2, 0}, V4L2_PIX_FMT_NV12, 2, 2, 2, "4:2:0, semi-planar, YUV" },
+ 	{ XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
+-	  2, V4L2_PIX_FMT_YUYV, "4:2:2, packed, YUYV" },
++	  {2, 0, 0}, V4L2_PIX_FMT_YUYV, 1, 2, 1, "4:2:2, packed, YUYV" },
+ 	{ XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
+-	  3, V4L2_PIX_FMT_YUV444, "4:4:4, packed, YUYV" },
++	  {3, 0, 0}, V4L2_PIX_FMT_YUV444, 1, 1, 1, "4:4:4, packed, YUYV" },
+ 	{ XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
+-	  3, 0, NULL },
++	  {3, 0, 0}, V4L2_PIX_FMT_RGB24, 1, 1, 1, "24-bit RGB" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
+-	  1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
++	  {1, 0, 0}, V4L2_PIX_FMT_GREY, 1, 1, 1, "Greyscale 8-bit" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
+-	  1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit RGGB" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit RGGB" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "grbg", MEDIA_BUS_FMT_SGRBG8_1X8,
+-	  1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit GRBG" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit GRBG" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "gbrg", MEDIA_BUS_FMT_SGBRG8_1X8,
+-	  1, V4L2_PIX_FMT_SGBRG8, "Bayer 8-bit GBRG" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, "Bayer 8-bit GBRG" },
+ 	{ XVIP_VF_MONO_SENSOR, 8, "bggr", MEDIA_BUS_FMT_SBGGR8_1X8,
+-	  1, V4L2_PIX_FMT_SBGGR8, "Bayer 8-bit BGGR" },
++	  {1, 0, 0}, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, "Bayer 8-bit BGGR" },
+ };
+ 
+ /**
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/platform/xilinx/xilinx-vip.h
+index 42fee20..256efa2 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.h
++++ b/drivers/media/platform/xilinx/xilinx-vip.h
+@@ -109,8 +109,11 @@ struct xvip_device {
+  * @width: AXI4 format width in bits per component
+  * @pattern: CFA pattern for Mono/Sensor formats
+  * @code: media bus format code
+- * @bpp: bytes per pixel (when stored in memory)
++ * @bpp: bytes per pixel is per plane
+  * @fourcc: V4L2 pixel format FCC identifier
++ * @num_planes: number of planes w.r.t. color format
++ * @hsub: Horizontal sampling factor of Chroma
++ * @vsub: Vertical sampling factor of Chroma
+  * @description: format description, suitable for userspace
+  */
+ struct xvip_video_format {
+@@ -118,8 +121,11 @@ struct xvip_video_format {
+ 	unsigned int width;
+ 	const char *pattern;
+ 	unsigned int code;
+-	unsigned int bpp;
++	unsigned int bpp[3];
+ 	u32 fourcc;
++	u8 num_planes;
++	u8 hsub;
++	u8 vsub;
+ 	const char *description;
+ };
+ 
+-- 
+2.7.4
