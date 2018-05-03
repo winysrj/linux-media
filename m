@@ -1,140 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db5eur01on0054.outbound.protection.outlook.com ([104.47.2.54]:58576
-        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751862AbeECBuT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 May 2018 21:50:19 -0400
-From: "A.s. Dong" <aisheng.dong@nxp.com>
-To: Shawn Guo <shawnguo@kernel.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        Anson Huang <anson.huang@nxp.com>
-CC: "mchehab@kernel.org" <mchehab@kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        "linux-clk@vger.kernel.org" <linux-clk@vger.kernel.org>,
-        dl-linux-imx <linux-imx@nxp.com>
-Subject: RE: [PATCH v2 03/15] clk: imx7d: fix mipi dphy div parent
-Date: Thu, 3 May 2018 01:50:16 +0000
-Message-ID: <AM0PR04MB4211B3698E0111312A192C0A80870@AM0PR04MB4211.eurprd04.prod.outlook.com>
-References: <20180423134750.30403-1-rui.silva@linaro.org>
- <20180423134750.30403-4-rui.silva@linaro.org> <20180503010810.GN3443@dragon>
-In-Reply-To: <20180503010810.GN3443@dragon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:40779 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751302AbeECQcJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 12:32:09 -0400
+From: Jan Luebbe <jlu@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Jan Luebbe <jlu@pengutronix.de>, slongerbeam@gmail.com,
+        p.zabel@pengutronix.de
+Subject: [PATCH] media: imx-csi: fix burst size for 16 bit
+Date: Thu,  3 May 2018 18:32:00 +0200
+Message-Id: <20180503163200.12214-1-jlu@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Shawn Guo [mailto:shawnguo@kernel.org]
-> Sent: Thursday, May 3, 2018 9:08 AM
-> To: Rui Miguel Silva <rui.silva@linaro.org>; Anson Huang
-> <anson.huang@nxp.com>
-> Cc: mchehab@kernel.org; sakari.ailus@linux.intel.com; Steve Longerbeam
-> <slongerbeam@gmail.com>; Philipp Zabel <p.zabel@pengutronix.de>; Rob
-> Herring <robh+dt@kernel.org>; linux-media@vger.kernel.org;
-> devel@driverdev.osuosl.org; Fabio Estevam <fabio.estevam@nxp.com>;
-> devicetree@vger.kernel.org; Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org>; Ryan Harkin <ryan.harkin@linaro.org>;
-> linux-clk@vger.kernel.org; dl-linux-imx <linux-imx@nxp.com>
-> Subject: Re: [PATCH v2 03/15] clk: imx7d: fix mipi dphy div parent
->=20
-> Anson,
->=20
-> Please have a look at this change.
->=20
-> Shawn
->=20
-> On Mon, Apr 23, 2018 at 02:47:38PM +0100, Rui Miguel Silva wrote:
-> > Fix the mipi dphy root divider to mipi_dphy_pre_div, this would remove
-> > a orphan clock and set the correct parent.
-> >
-> > before:
-> > cat clk_orphan_summary
-> >                                  enable  prepare  protect
-> >    clock                          count    count    count        rate  =
- accuracy   phase
-> > -----------------------------------------------------------------------=
------------------
-> >  mipi_dphy_post_div                   1        1        0           0  =
-        0 0
-> >     mipi_dphy_root_clk                1        1        0           0  =
-        0 0
-> >
-> > cat clk_dump | grep mipi_dphy
-> > mipi_dphy_post_div                    1        1        0           0  =
-        0 0
-> >     mipi_dphy_root_clk                1        1        0           0  =
-        0 0
-> >
-> > after:
-> > cat clk_dump | grep mipi_dphy
-> >    mipi_dphy_src                     1        1        0    24000000   =
-       0 0
-> >        mipi_dphy_cg                  1        1        0    24000000   =
-       0 0
-> >           mipi_dphy_pre_div          1        1        0    24000000   =
-       0 0
-> >              mipi_dphy_post_div      1        1        0    24000000   =
-       0 0
-> >                 mipi_dphy_root_clk   1        1        0    24000000   =
-       0 0
-> >
-> > Cc: linux-clk@vger.kernel.org
-> > Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
-> >
-> > Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+A burst_size of 4 does not work for the 16 bit passthrough formats, so
+we use 8 instead.
 
-Two sign-off?
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Otherwise, the patch looks ok to me.
-Acked-by: Dong Aisheng <Aisheng.dong@nxp.com>
-
-Regards
-Dong Aisheng
-
-> > ---
-> >  drivers/clk/imx/clk-imx7d.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
-> > index 975a20d3cc94..f7f4db2e6fa6 100644
-> > --- a/drivers/clk/imx/clk-imx7d.c
-> > +++ b/drivers/clk/imx/clk-imx7d.c
-> > @@ -729,7 +729,7 @@ static void __init imx7d_clocks_init(struct
-> device_node *ccm_node)
-> >  	clks[IMX7D_LCDIF_PIXEL_ROOT_DIV] =3D
-> imx_clk_divider2("lcdif_pixel_post_div", "lcdif_pixel_pre_div", base +
-> 0xa300, 0, 6);
-> >  	clks[IMX7D_MIPI_DSI_ROOT_DIV] =3D
-> imx_clk_divider2("mipi_dsi_post_div", "mipi_dsi_pre_div", base + 0xa380, =
-0,
-> 6);
-> >  	clks[IMX7D_MIPI_CSI_ROOT_DIV] =3D
-> imx_clk_divider2("mipi_csi_post_div", "mipi_csi_pre_div", base + 0xa400, =
-0,
-> 6);
-> > -	clks[IMX7D_MIPI_DPHY_ROOT_DIV] =3D
-> imx_clk_divider2("mipi_dphy_post_div", "mipi_csi_dphy_div", base +
-> 0xa480, 0, 6);
-> > +	clks[IMX7D_MIPI_DPHY_ROOT_DIV] =3D
-> > +imx_clk_divider2("mipi_dphy_post_div", "mipi_dphy_pre_div", base +
-> > +0xa480, 0, 6);
-> >  	clks[IMX7D_SAI1_ROOT_DIV] =3D imx_clk_divider2("sai1_post_div",
-> "sai1_pre_div", base + 0xa500, 0, 6);
-> >  	clks[IMX7D_SAI2_ROOT_DIV] =3D imx_clk_divider2("sai2_post_div",
-> "sai2_pre_div", base + 0xa580, 0, 6);
-> >  	clks[IMX7D_SAI3_ROOT_DIV] =3D imx_clk_divider2("sai3_post_div",
-> > "sai3_pre_div", base + 0xa600, 0, 6);
-> > --
-> > 2.17.0
-> >
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 1112d8f67a18..08b636084286 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -410,7 +410,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	case V4L2_PIX_FMT_SGRBG16:
+ 	case V4L2_PIX_FMT_SRGGB16:
+ 	case V4L2_PIX_FMT_Y16:
+-		burst_size = 4;
++		burst_size = 8;
+ 		passthrough = true;
+ 		passthrough_bits = 16;
+ 		break;
+-- 
+2.17.0
