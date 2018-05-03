@@ -1,148 +1,351 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:51147 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750733AbeEVLHv (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:45896 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751544AbeECOx3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 07:07:51 -0400
-Message-ID: <1526987269.3671.19.camel@pengutronix.de>
-Subject: Re: [PATCH] gpu: ipu-v3: Fix BT1120 interlaced CCIR codes
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Marek Vasut <marex@denx.de>, linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Tue, 22 May 2018 13:07:49 +0200
-In-Reply-To: <cec007aa-d0b7-0802-d771-355a29751a2b@denx.de>
-References: <20180407130428.24833-1-marex@denx.de>
-         <1526658687.3948.15.camel@pengutronix.de>
-         <cec007aa-d0b7-0802-d771-355a29751a2b@denx.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Thu, 3 May 2018 10:53:29 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv13 27/28] vivid: add request support
+Date: Thu,  3 May 2018 16:53:17 +0200
+Message-Id: <20180503145318.128315-28-hverkuil@xs4all.nl>
+In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Fri, 2018-05-18 at 18:21 +0200, Marek Vasut wrote:
-> On 05/18/2018 05:51 PM, Philipp Zabel wrote:
-> > Hi Marek,
-> > 
-> > On Sat, 2018-04-07 at 15:04 +0200, Marek Vasut wrote:
-> > > The BT1120 interlaced CCIR codes are the same as BT656 ones
-> > > and different than BT656 progressive CCIR codes, fix this.
-> > 
-> > thank you for the patch, and sorry for the delay.
-> > 
-> > > Signed-off-by: Marek Vasut <marex@denx.de>
-> > > Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-> > > Cc: Philipp Zabel <p.zabel@pengutronix.de>
-> > > ---
-> > >  drivers/gpu/ipu-v3/ipu-csi.c | 8 ++++++--
-> > >  1 file changed, 6 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
-> > > index caa05b0702e1..301a729581ce 100644
-> > > --- a/drivers/gpu/ipu-v3/ipu-csi.c
-> > > +++ b/drivers/gpu/ipu-v3/ipu-csi.c
-> > > @@ -435,12 +435,16 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
-> > >  		break;
-> > >  	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
-> > >  	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
-> > > -	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
-> > > -	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
-> > >  		ipu_csi_write(csi, 0x40030 | CSI_CCIR_ERR_DET_EN,
-> > >  				   CSI_CCIR_CODE_1);
-> > >  		ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
-> > >  		break;
-> > > +	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
-> > > +	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
-> > > +		ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN, CSI_CCIR_CODE_1);
-> > > +		ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
-> > > +		ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
-> > 
-> > If these are the same as BT656 codes (so this case would be for PAL?),
-> > could this just be moved up into the IPU_CSI_CLK_MODE_CCIR656_INTERLACED
-> > case? Would the NTSC CCIR codes be the same as well?
-> 
-> Dunno, I don't have any NTSC device to test. But the above was tested
-> with a PAL device I had.
-> 
-> I think the CCIR codes are different from BT656, although I might be wrong.
+Add support for requests to vivid.
 
-The driver currently has:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-core.c        |  8 ++++++++
+ drivers/media/platform/vivid/vivid-kthread-cap.c | 12 ++++++++++++
+ drivers/media/platform/vivid/vivid-kthread-out.c | 12 ++++++++++++
+ drivers/media/platform/vivid/vivid-sdr-cap.c     | 16 ++++++++++++++++
+ drivers/media/platform/vivid/vivid-vbi-cap.c     | 10 ++++++++++
+ drivers/media/platform/vivid/vivid-vbi-out.c     | 10 ++++++++++
+ drivers/media/platform/vivid/vivid-vid-cap.c     | 10 ++++++++++
+ drivers/media/platform/vivid/vivid-vid-out.c     | 10 ++++++++++
+ 8 files changed, 88 insertions(+)
 
-        case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
-                if (mbus_fmt->width == 720 && mbus_fmt->height == 576) {
-                        /*
-                         * PAL case
-                         *
-                         * Field0BlankEnd = 0x6, Field0BlankStart = 0x2,
-                         * Field0ActiveEnd = 0x4, Field0ActiveStart = 0
-                         * Field1BlankEnd = 0x7, Field1BlankStart = 0x3,
-                         * Field1ActiveEnd = 0x5, Field1ActiveStart = 0x1
-                         */
-                        height = 625; /* framelines for PAL */
-
-                        ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN,
-                                          CSI_CCIR_CODE_1);
-                        ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
-                        ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
-                } else if (mbus_fmt->width == 720 && mbus_fmt->height == 480) {                           
-                        /*
-                         * NTSC case
-                         *
-                         * Field0BlankEnd = 0x7, Field0BlankStart = 0x3,
-                         * Field0ActiveEnd = 0x5, Field0ActiveStart = 0x1
-                         * Field1BlankEnd = 0x6, Field1BlankStart = 0x2,
-                         * Field1ActiveEnd = 0x4, Field1ActiveStart = 0
-                         */
-                        height = 525; /* framelines for NTSC */
-
-                        ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
-                                          CSI_CCIR_CODE_1);
-                        ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
-                        ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
-                } else {
-                        dev_err(csi->ipu->dev,
-                                "Unsupported CCIR656 interlaced video mode\n");
-                        spin_unlock_irqrestore(&csi->lock, flags);
-                        return -EINVAL;
-                }
-                break;
-
-The PAL codes are exactly the same as in your patch. That's why I wonder
-whether we should just move
-	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
-	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
-up before
-        case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
-as follows:
-
-----------8<----------
-diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
-index caa05b0702e1..7e96382f9cb1 100644
---- a/drivers/gpu/ipu-v3/ipu-csi.c
-+++ b/drivers/gpu/ipu-v3/ipu-csi.c
-@@ -396,6 +396,8 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
-                ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
-                break;
-        case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
-+       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
-+       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
-                if (mbus_fmt->width == 720 && mbus_fmt->height == 576) {
-                        /*
-                         * PAL case
-@@ -435,8 +437,6 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
-                break;
-        case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
-        case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
--       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
--       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
-                ipu_csi_write(csi, 0x40030 | CSI_CCIR_ERR_DET_EN,
-                                   CSI_CCIR_CODE_1);
-                ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
----------->8----------
-
-Does this work for you?
-
-regards
-Philipp
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 69386b26d5dd..a84c7e37c22b 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -627,6 +627,13 @@ static void vivid_dev_release(struct v4l2_device *v4l2_dev)
+ 	kfree(dev);
+ }
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++static const struct media_device_ops vivid_media_ops = {
++	.req_validate = vb2_request_validate,
++	.req_queue = vb2_request_queue,
++};
++#endif
++
+ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ {
+ 	static const struct v4l2_dv_timings def_dv_timings =
+@@ -664,6 +671,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 	strlcpy(dev->mdev.model, VIVID_MODULE_NAME, sizeof(dev->mdev.model));
+ 	dev->mdev.dev = &pdev->dev;
+ 	media_device_init(&dev->mdev);
++	dev->mdev.ops = &vivid_media_ops;
+ #endif
+ 
+ 	/* register v4l2_device */
+diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
+index 3fdb280c36ca..c192b4b1b9de 100644
+--- a/drivers/media/platform/vivid/vivid-kthread-cap.c
++++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
+@@ -703,6 +703,8 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
+ 		goto update_mv;
+ 
+ 	if (vid_cap_buf) {
++		v4l2_ctrl_request_setup(vid_cap_buf->vb.vb2_buf.req_obj.req,
++					&dev->ctrl_hdl_vid_cap);
+ 		/* Fill buffer */
+ 		vivid_fillbuff(dev, vid_cap_buf);
+ 		dprintk(dev, 1, "filled buffer %d\n",
+@@ -713,6 +715,8 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
+ 			dev->fb_cap.fmt.pixelformat == dev->fmt_cap->fourcc)
+ 			vivid_overlay(dev, vid_cap_buf);
+ 
++		v4l2_ctrl_request_complete(vid_cap_buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_vid_cap);
+ 		vb2_buffer_done(&vid_cap_buf->vb.vb2_buf, dev->dqbuf_error ?
+ 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 		dprintk(dev, 2, "vid_cap buffer %d done\n",
+@@ -720,10 +724,14 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
+ 	}
+ 
+ 	if (vbi_cap_buf) {
++		v4l2_ctrl_request_setup(vbi_cap_buf->vb.vb2_buf.req_obj.req,
++					&dev->ctrl_hdl_vbi_cap);
+ 		if (dev->stream_sliced_vbi_cap)
+ 			vivid_sliced_vbi_cap_process(dev, vbi_cap_buf);
+ 		else
+ 			vivid_raw_vbi_cap_process(dev, vbi_cap_buf);
++		v4l2_ctrl_request_complete(vbi_cap_buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_vbi_cap);
+ 		vb2_buffer_done(&vbi_cap_buf->vb.vb2_buf, dev->dqbuf_error ?
+ 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 		dprintk(dev, 2, "vbi_cap %d done\n",
+@@ -891,6 +899,8 @@ void vivid_stop_generating_vid_cap(struct vivid_dev *dev, bool *pstreaming)
+ 			buf = list_entry(dev->vid_cap_active.next,
+ 					 struct vivid_buffer, list);
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vid_cap);
+ 			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+ 			dprintk(dev, 2, "vid_cap buffer %d done\n",
+ 				buf->vb.vb2_buf.index);
+@@ -904,6 +914,8 @@ void vivid_stop_generating_vid_cap(struct vivid_dev *dev, bool *pstreaming)
+ 			buf = list_entry(dev->vbi_cap_active.next,
+ 					 struct vivid_buffer, list);
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vbi_cap);
+ 			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+ 			dprintk(dev, 2, "vbi_cap buffer %d done\n",
+ 				buf->vb.vb2_buf.index);
+diff --git a/drivers/media/platform/vivid/vivid-kthread-out.c b/drivers/media/platform/vivid/vivid-kthread-out.c
+index 9981e7548019..5a14810eeb69 100644
+--- a/drivers/media/platform/vivid/vivid-kthread-out.c
++++ b/drivers/media/platform/vivid/vivid-kthread-out.c
+@@ -75,6 +75,10 @@ static void vivid_thread_vid_out_tick(struct vivid_dev *dev)
+ 		return;
+ 
+ 	if (vid_out_buf) {
++		v4l2_ctrl_request_setup(vid_out_buf->vb.vb2_buf.req_obj.req,
++					&dev->ctrl_hdl_vid_out);
++		v4l2_ctrl_request_complete(vid_out_buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_vid_out);
+ 		vid_out_buf->vb.sequence = dev->vid_out_seq_count;
+ 		if (dev->field_out == V4L2_FIELD_ALTERNATE) {
+ 			/*
+@@ -92,6 +96,10 @@ static void vivid_thread_vid_out_tick(struct vivid_dev *dev)
+ 	}
+ 
+ 	if (vbi_out_buf) {
++		v4l2_ctrl_request_setup(vbi_out_buf->vb.vb2_buf.req_obj.req,
++					&dev->ctrl_hdl_vbi_out);
++		v4l2_ctrl_request_complete(vbi_out_buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_vbi_out);
+ 		if (dev->stream_sliced_vbi_out)
+ 			vivid_sliced_vbi_out_process(dev, vbi_out_buf);
+ 
+@@ -262,6 +270,8 @@ void vivid_stop_generating_vid_out(struct vivid_dev *dev, bool *pstreaming)
+ 			buf = list_entry(dev->vid_out_active.next,
+ 					 struct vivid_buffer, list);
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vid_out);
+ 			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+ 			dprintk(dev, 2, "vid_out buffer %d done\n",
+ 				buf->vb.vb2_buf.index);
+@@ -275,6 +285,8 @@ void vivid_stop_generating_vid_out(struct vivid_dev *dev, bool *pstreaming)
+ 			buf = list_entry(dev->vbi_out_active.next,
+ 					 struct vivid_buffer, list);
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vbi_out);
+ 			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+ 			dprintk(dev, 2, "vbi_out buffer %d done\n",
+ 				buf->vb.vb2_buf.index);
+diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
+index cfb7cb4d37a8..76cf8810a974 100644
+--- a/drivers/media/platform/vivid/vivid-sdr-cap.c
++++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
+@@ -102,6 +102,10 @@ static void vivid_thread_sdr_cap_tick(struct vivid_dev *dev)
+ 
+ 	if (sdr_cap_buf) {
+ 		sdr_cap_buf->vb.sequence = dev->sdr_cap_seq_count;
++		v4l2_ctrl_request_setup(sdr_cap_buf->vb.vb2_buf.req_obj.req,
++					&dev->ctrl_hdl_sdr_cap);
++		v4l2_ctrl_request_complete(sdr_cap_buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_sdr_cap);
+ 		vivid_sdr_cap_process(dev, sdr_cap_buf);
+ 		sdr_cap_buf->vb.vb2_buf.timestamp =
+ 			ktime_get_ns() + dev->time_wrap_offset;
+@@ -272,6 +276,8 @@ static int sdr_cap_start_streaming(struct vb2_queue *vq, unsigned count)
+ 
+ 		list_for_each_entry_safe(buf, tmp, &dev->sdr_cap_active, list) {
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_sdr_cap);
+ 			vb2_buffer_done(&buf->vb.vb2_buf,
+ 					VB2_BUF_STATE_QUEUED);
+ 		}
+@@ -293,6 +299,8 @@ static void sdr_cap_stop_streaming(struct vb2_queue *vq)
+ 		buf = list_entry(dev->sdr_cap_active.next,
+ 				struct vivid_buffer, list);
+ 		list_del(&buf->list);
++		v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_sdr_cap);
+ 		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+ 	}
+ 
+@@ -303,12 +311,20 @@ static void sdr_cap_stop_streaming(struct vb2_queue *vq)
+ 	mutex_lock(&dev->mutex);
+ }
+ 
++static void sdr_cap_buf_request_complete(struct vb2_buffer *vb)
++{
++	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
++
++	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_sdr_cap);
++}
++
+ const struct vb2_ops vivid_sdr_cap_qops = {
+ 	.queue_setup		= sdr_cap_queue_setup,
+ 	.buf_prepare		= sdr_cap_buf_prepare,
+ 	.buf_queue		= sdr_cap_buf_queue,
+ 	.start_streaming	= sdr_cap_start_streaming,
+ 	.stop_streaming		= sdr_cap_stop_streaming,
++	.buf_request_complete	= sdr_cap_buf_request_complete,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
+diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
+index 92a852955173..903cebeb5ce5 100644
+--- a/drivers/media/platform/vivid/vivid-vbi-cap.c
++++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
+@@ -204,6 +204,8 @@ static int vbi_cap_start_streaming(struct vb2_queue *vq, unsigned count)
+ 
+ 		list_for_each_entry_safe(buf, tmp, &dev->vbi_cap_active, list) {
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vbi_cap);
+ 			vb2_buffer_done(&buf->vb.vb2_buf,
+ 					VB2_BUF_STATE_QUEUED);
+ 		}
+@@ -220,12 +222,20 @@ static void vbi_cap_stop_streaming(struct vb2_queue *vq)
+ 	vivid_stop_generating_vid_cap(dev, &dev->vbi_cap_streaming);
+ }
+ 
++static void vbi_cap_buf_request_complete(struct vb2_buffer *vb)
++{
++	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
++
++	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vbi_cap);
++}
++
+ const struct vb2_ops vivid_vbi_cap_qops = {
+ 	.queue_setup		= vbi_cap_queue_setup,
+ 	.buf_prepare		= vbi_cap_buf_prepare,
+ 	.buf_queue		= vbi_cap_buf_queue,
+ 	.start_streaming	= vbi_cap_start_streaming,
+ 	.stop_streaming		= vbi_cap_stop_streaming,
++	.buf_request_complete	= vbi_cap_buf_request_complete,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
+diff --git a/drivers/media/platform/vivid/vivid-vbi-out.c b/drivers/media/platform/vivid/vivid-vbi-out.c
+index 69486c130a7e..9357c07e30d6 100644
+--- a/drivers/media/platform/vivid/vivid-vbi-out.c
++++ b/drivers/media/platform/vivid/vivid-vbi-out.c
+@@ -96,6 +96,8 @@ static int vbi_out_start_streaming(struct vb2_queue *vq, unsigned count)
+ 
+ 		list_for_each_entry_safe(buf, tmp, &dev->vbi_out_active, list) {
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vbi_out);
+ 			vb2_buffer_done(&buf->vb.vb2_buf,
+ 					VB2_BUF_STATE_QUEUED);
+ 		}
+@@ -115,12 +117,20 @@ static void vbi_out_stop_streaming(struct vb2_queue *vq)
+ 	dev->vbi_out_have_cc[1] = false;
+ }
+ 
++static void vbi_out_buf_request_complete(struct vb2_buffer *vb)
++{
++	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
++
++	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vbi_out);
++}
++
+ const struct vb2_ops vivid_vbi_out_qops = {
+ 	.queue_setup		= vbi_out_queue_setup,
+ 	.buf_prepare		= vbi_out_buf_prepare,
+ 	.buf_queue		= vbi_out_buf_queue,
+ 	.start_streaming	= vbi_out_start_streaming,
+ 	.stop_streaming		= vbi_out_stop_streaming,
++	.buf_request_complete	= vbi_out_buf_request_complete,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 1599159f2574..b2aad441a071 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -240,6 +240,8 @@ static int vid_cap_start_streaming(struct vb2_queue *vq, unsigned count)
+ 
+ 		list_for_each_entry_safe(buf, tmp, &dev->vid_cap_active, list) {
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vid_cap);
+ 			vb2_buffer_done(&buf->vb.vb2_buf,
+ 					VB2_BUF_STATE_QUEUED);
+ 		}
+@@ -257,6 +259,13 @@ static void vid_cap_stop_streaming(struct vb2_queue *vq)
+ 	dev->can_loop_video = false;
+ }
+ 
++static void vid_cap_buf_request_complete(struct vb2_buffer *vb)
++{
++	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
++
++	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vid_cap);
++}
++
+ const struct vb2_ops vivid_vid_cap_qops = {
+ 	.queue_setup		= vid_cap_queue_setup,
+ 	.buf_prepare		= vid_cap_buf_prepare,
+@@ -264,6 +273,7 @@ const struct vb2_ops vivid_vid_cap_qops = {
+ 	.buf_queue		= vid_cap_buf_queue,
+ 	.start_streaming	= vid_cap_start_streaming,
+ 	.stop_streaming		= vid_cap_stop_streaming,
++	.buf_request_complete	= vid_cap_buf_request_complete,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index 51fec66d8d45..423a67133f28 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -162,6 +162,8 @@ static int vid_out_start_streaming(struct vb2_queue *vq, unsigned count)
+ 
+ 		list_for_each_entry_safe(buf, tmp, &dev->vid_out_active, list) {
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vid_out);
+ 			vb2_buffer_done(&buf->vb.vb2_buf,
+ 					VB2_BUF_STATE_QUEUED);
+ 		}
+@@ -179,12 +181,20 @@ static void vid_out_stop_streaming(struct vb2_queue *vq)
+ 	dev->can_loop_video = false;
+ }
+ 
++static void vid_out_buf_request_complete(struct vb2_buffer *vb)
++{
++	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
++
++	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vid_out);
++}
++
+ const struct vb2_ops vivid_vid_out_qops = {
+ 	.queue_setup		= vid_out_queue_setup,
+ 	.buf_prepare		= vid_out_buf_prepare,
+ 	.buf_queue		= vid_out_buf_queue,
+ 	.start_streaming	= vid_out_start_streaming,
+ 	.stop_streaming		= vid_out_stop_streaming,
++	.buf_request_complete	= vid_out_buf_request_complete,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
+-- 
+2.17.0
