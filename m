@@ -1,118 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:56375 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752433AbeEOHan (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:30:43 -0400
-From: Fabien DESSENNE <fabien.dessenne@st.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Jean Christophe TROTIN" <jean-christophe.trotin@st.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Luis R. Rodriguez" <mcgrof@kernel.org>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Are media drivers abusing of GFP_DMA? - was: Re: [LSF/MM TOPIC
- NOTES] x86 ZONE_DMA love
-Date: Tue, 15 May 2018 07:30:28 +0000
-Message-ID: <63607d94-b974-2bcd-c15e-fcb9350d8470@st.com>
-References: <20180426215406.GB27853@wotan.suse.de>
- <20180505130815.53a26955@vento.lan> <3561479.qPIcrWnXEC@avalon>
- <20180507121916.4eb7f5b2@vento.lan>
- <547252fc-dc74-93c6-fc77-be1bfb558787@st.com>
- <20180514073503.3da05fc6@vento.lan> <20180514073857.7fd69136@vento.lan>
-In-Reply-To: <20180514073857.7fd69136@vento.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <4D18BD365F868A45B91D8CD65F3EB881@st.com>
-Content-Transfer-Encoding: base64
+Received: from mail.kernel.org ([198.145.29.99]:34720 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752011AbeECDFS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 May 2018 23:05:18 -0400
+Date: Thu, 3 May 2018 11:05:03 +0800
+From: Shawn Guo <shawnguo@kernel.org>
+To: Rui Miguel Silva <rui.silva@linaro.org>
+Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>
+Subject: Re: [PATCH v2 10/15] ARM: dts: imx7s: add multiplexer controls
+Message-ID: <20180503030501.GQ3443@dragon>
+References: <20180423134750.30403-1-rui.silva@linaro.org>
+ <20180423134750.30403-11-rui.silva@linaro.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180423134750.30403-11-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCk9uIDE0LzA1LzE4IDEyOjM5LCBNYXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6DQo+IEVt
-IE1vbiwgMTQgTWF5IDIwMTggMDc6MzU6MDMgLTAzMDANCj4gTWF1cm8gQ2FydmFsaG8gQ2hlaGFi
-IDxtY2hlaGFiK3NhbXN1bmdAa2VybmVsLm9yZz4gZXNjcmV2ZXU6DQo+DQo+PiBIaSBGYWJpZW4s
-DQo+Pg0KPj4gRW0gTW9uLCAxNCBNYXkgMjAxOCAwODowMDozNyArMDAwMA0KPj4gRmFiaWVuIERF
-U1NFTk5FIDxmYWJpZW4uZGVzc2VubmVAc3QuY29tPiBlc2NyZXZldToNCj4+DQo+Pj4gT24gMDcv
-MDUvMTggMTc6MTksIE1hdXJvIENhcnZhbGhvIENoZWhhYiB3cm90ZToNCj4+Pj4gRW0gTW9uLCAw
-NyBNYXkgMjAxOCAxNjoyNjowOCArMDMwMA0KPj4+PiBMYXVyZW50IFBpbmNoYXJ0IDxsYXVyZW50
-LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+IGVzY3JldmV1Og0KPj4+PiAgIA0KPj4+Pj4gSGkg
-TWF1cm8sDQo+Pj4+Pg0KPj4+Pj4gT24gU2F0dXJkYXksIDUgTWF5IDIwMTggMTk6MDg6MTUgRUVT
-VCBNYXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6DQo+Pj4+Pj4gVGhlcmUgd2FzIGEgcmVjZW50
-IGRpc2N1c3Npb24gYWJvdXQgdGhlIHVzZS9hYnVzZSBvZiBHRlBfRE1BIGZsYWcgd2hlbg0KPj4+
-Pj4+IGFsbG9jYXRpbmcgbWVtb3JpZXMgYXQgTFNGL01NIDIwMTggKHNlZSBMdWlzIG5vdGVzIGVu
-Y2xvc2VkKS4NCj4+Pj4+Pg0KPj4+Pj4+IFRoZSBpZGVhIHNlZW1zIHRvIGJlIHRvIHJlbW92ZSBp
-dCwgdXNpbmcgQ01BIGluc3RlYWQuIEJlZm9yZSBkb2luZyB0aGF0LA0KPj4+Pj4+IGJldHRlciB0
-byBjaGVjayBpZiB3aGF0IHdlIGhhdmUgb24gbWVkaWEgaXMgYXJlIHZhbGlkIHVzZSBjYXNlcyBm
-b3IgaXQsIG9yDQo+Pj4+Pj4gaWYgaXQgaXMgdGhlcmUganVzdCBkdWUgdG8gc29tZSBtaXN1bmRl
-cnN0YW5kaW5nIChvciBiZWNhdXNlIGl0IHdhcw0KPj4+Pj4+IGNvcGllZCBmcm9tIHNvbWUgb3Ro
-ZXIgY29kZSkuDQo+Pj4+Pj4NCj4+Pj4+PiBIYW5zIGRlIEdvZWRlIHNlbnQgdXMgdG9kYXkgYSBw
-YXRjaCBzdG9wcGluZyBhYnVzZSBhdCBnc3BjYSwgYW5kIEknbQ0KPj4+Pj4+IGFsc28gcG9zdGlu
-ZyB0b2RheSB0d28gb3RoZXIgcGF0Y2hlcyBtZWFudCB0byBzdG9wIGFidXNlIG9mIGl0IG9uIFVT
-Qg0KPj4+Pj4+IGRyaXZlcnMuIFN0aWxsLCB0aGVyZSBhcmUgNCBwbGF0Zm9ybSBkcml2ZXJzIHVz
-aW5nIGl0Og0KPj4+Pj4+DQo+Pj4+Pj4gCSQgZ2l0IGdyZXAgLWwgLUUgIkdGUF9ETUFcXGIiIGRy
-aXZlcnMvbWVkaWEvDQo+Pj4+Pj4gCWRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vb21hcDNpc3AvaXNw
-c3RhdC5jDQo+Pj4+Pj4gCWRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3RpL2JkaXNwL2JkaXNwLWh3
-LmMNCj4+Pj4+PiAJZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvaHZhL2h2YS1tZW0uYw0KPj4+
-IEhpIE1hdXJvLA0KPj4+DQo+Pj4gVGhlIHR3byBTVEkgZHJpdmVycyAoYmRpc3AtaHcuYyBhbmQg
-aHZhLW1lbS5jKSBhcmUgb25seSBleHBlY3RlZCB0byBydW4NCj4+PiBvbiBBUk0gcGxhdGZvcm1z
-LCBub3Qgb24geDg2Lg0KPj4+IFNpbmNlIHRoaXMgdGhyZWFkIGRlYWxzIHdpdGggeDg2ICYgRE1B
-IHRyb3VibGUsIEkgYW0gbm90IHN1cmUgdGhhdCB3ZQ0KPj4+IGFjdHVhbGx5IGhhdmUgYSBwcm9i
-bGVtIGZvciB0aGUgc3RpIGRyaXZlcnMuDQo+Pj4NCj4+PiBUaGVyZSBhcmUgc29tZSBvdGhlciBz
-dGkgZHJpdmVycyB0aGF0IG1ha2UgdXNlIG9mIHRoaXMgR0ZQX0RNQSBmbGFnDQo+Pj4gKGRyaXZl
-cnMvZ3B1L2RybS9zdGkvc3RpXyouYykgYW5kIGl0IGRvZXMgbm90IHNlZW0gdG8gYmUgYSBwcm9i
-bGVtLg0KPj4+DQo+Pj4gTmV2ZXJ0aGVsZXNzIEkgY2FuIHNlZSB0aGF0IHRoZSBtZWRpYSBzdGkg
-ZHJpdmVycyBkZXBlbmQgb24gQ09NUElMRV9URVNUDQo+Pj4gKHdoaWNoIGlzIG5vdCB0aGUgY2Fz
-ZSBmb3IgdGhlIERSTSBvbmVzKS4NCj4+PiBXb3VsZCBpdCBiZSBhbiBhY2NlcHRhYmxlIHNvbHV0
-aW9uIHRvIHJlbW92ZSB0aGUgQ09NUElMRV9URVNUIGRlcGVuZGVuY3k/DQo+PiBUaGlzIGhhcyBu
-b3RoaW5nIHRvIGRvIHdpdGggZWl0aGVyIHg4NiBvciBDT01QSUxFX1RFU1QuIFRoZSB0aGluZyBp
-cw0KPj4gdGhhdCB0aGVyZSdzIGEgcGxhbiBmb3IgcmVtb3ZpbmcgR0ZQX0RNQSBmcm9tIHRoZSBL
-ZXJuZWxbMV0sIGFzIGl0IHdhcw0KPj4gb3JpZ2luYWxseSBtZWFudCB0byBiZSB1c2VkIG9ubHkg
-Ynkgb2xkIFBDcywgd2hlcmUgdGhlIERNQSBjb250cm9sbGVycw0KPj4gdXNlZCBvbmx5ICBvbiB0
-aGUgYm90dG9tIDE2IE1CIG1lbW9yeSBhZGRyZXNzICgyNCBiaXRzKS4gSU1ITywgaXQgaXMNCj4+
-IHZlcnkgdW5saWtlbHkgdGhhdCBhbnkgQVJNIFNvQyBoYXZlIHN1Y2ggbGltaXRhdGlvbi4NCj4+
-DQo+PiBbMV0gaHR0cHM6Ly9sd24ubmV0L0FydGljbGVzLzc1MzI3My8gKGFydGljbGUgd2lsbCBi
-ZSBmcmVlbHkgYXZhaWxhYmxlDQo+PiBvbiBNYXksIDE3KQ0KPiBCdHcsIHlvdSBjYW4gYWxzbyBy
-ZWFkIGFib3V0IHRoYXQgYXQ6DQo+IAlodHRwczovL2x3bi5uZXQvQXJ0aWNsZXMvNzUzMjc0Lw0K
-Pg0KPj4gQW55d2F5LCBiZWZvcmUgdGhlIHJlbW92YWwgb2YgR0ZQX0RNQSBoYXBwZW5zLCBJJ2Qg
-bGlrZSB0byBiZXR0ZXINCj4+IHVuZGVyc3RhbmQgd2h5IHdlJ3JlIHVzaW5nIGl0IGF0IG1lZGlh
-LCBhbmQgaWYgd2UgY2FuLCBpbnN0ZWFkLA0KPj4gc2V0IHRoZSBETUEgYml0IG1hc2ssIGp1c3Qg
-bGlrZSBhbG1vc3QgYWxsIG90aGVyIG1lZGlhIGRyaXZlcnMNCj4+IHRoYXQgcmVxdWlyZSB0byBj
-b25maW5lIERNQSBpbnRvIGEgY2VydGFpbiByYW5nZSBkby4gSW4gdGhlIGNhc2UNCj4+IG9mIEFS
-TSwgdGhpcyBpcyB3aGF0IHdlIGN1cnJlbnRseSBoYXZlOg0KPj4NCj4+IGRyaXZlcnMvbWVkaWEv
-cGxhdGZvcm0vZXh5bm9zLWdzYy9nc2MtY29yZS5jOiAgIHZiMl9kbWFfY29udGlnX3NldF9tYXhf
-c2VnX3NpemUoZGV2LCBETUFfQklUX01BU0soMzIpKTsNCj4+IGRyaXZlcnMvbWVkaWEvcGxhdGZv
-cm0vZXh5bm9zNC1pcy9maW1jLWNvcmUuYzogIHZiMl9kbWFfY29udGlnX3NldF9tYXhfc2VnX3Np
-emUoZGV2LCBETUFfQklUX01BU0soMzIpKTsNCj4+IGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vZXh5
-bm9zNC1pcy9maW1jLWlzLmM6ICAgIHZiMl9kbWFfY29udGlnX3NldF9tYXhfc2VnX3NpemUoZGV2
-LCBETUFfQklUX01BU0soMzIpKTsNCj4+IGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vZXh5bm9zNC1p
-cy9maW1jLWxpdGUuYzogIHZiMl9kbWFfY29udGlnX3NldF9tYXhfc2VnX3NpemUoZGV2LCBETUFf
-QklUX01BU0soMzIpKTsNCj4+IGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vbXRrLW1kcC9tdGtfbWRw
-X2NvcmUuYzogIHZiMl9kbWFfY29udGlnX3NldF9tYXhfc2VnX3NpemUoJnBkZXYtPmRldiwgRE1B
-X0JJVF9NQVNLKDMyKSk7DQo+PiBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL29tYXAzaXNwL2lzcC5j
-OiAgcmV0ID0gZG1hX2NvZXJjZV9tYXNrX2FuZF9jb2hlcmVudChpc3AtPmRldiwgRE1BX0JJVF9N
-QVNLKDMyKSk7DQo+PiBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3M1cC1nMmQvZzJkLmM6ICAgdmIy
-X2RtYV9jb250aWdfc2V0X21heF9zZWdfc2l6ZSgmcGRldi0+ZGV2LCBETUFfQklUX01BU0soMzIp
-KTsNCj4+IGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczVwLWpwZWcvanBlZy1jb3JlLmM6ICAgIHZi
-Ml9kbWFfY29udGlnX3NldF9tYXhfc2VnX3NpemUoJnBkZXYtPmRldiwgRE1BX0JJVF9NQVNLKDMy
-KSk7DQo+PiBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3M1cC1tZmMvczVwX21mYy5jOiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIERNQV9CSVRfTUFTSygzMikpOw0KPj4gZHJp
-dmVycy9tZWRpYS9wbGF0Zm9ybS9zNXAtbWZjL3M1cF9tZmMuYzogICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBETUFfQklUX01BU0soMzIpKTsNCj4+IGRyaXZlcnMvbWVkaWEv
-cGxhdGZvcm0vczVwLW1mYy9zNXBfbWZjLmM6ICAgICAgIHZiMl9kbWFfY29udGlnX3NldF9tYXhf
-c2VnX3NpemUoZGV2LCBETUFfQklUX01BU0soMzIpKTsNCj4+DQoNClRoYXQncyBjbGVhcmVyIG5v
-dywgdGhhbmsgeW91IGZvciB0aGUgY2xhcmlmaWNhdGlvbg0KSSBhbSBhYm91dCB0byBzZW5kIHBh
-dGNoZXMgZm9yIHRoZSBzdGkgZHJpdmVycyAoc2V0IHRoZSBETUEgYml0IG1hc2spDQoNCkJSLA0K
-RmFiaWVuDQoNCj4+PiBCUg0KPj4+DQo+Pj4gRmFiaWVuDQo+Pj4NCj4+Pj4+PiAJZHJpdmVycy9t
-ZWRpYS9zcGkvY3hkMjg4MC1zcGkuYw0KPj4+Pj4+DQo+Pj4+Pj4gQ291bGQgeW91IHBsZWFzZSBj
-aGVjayBpZiBHRlBfRE1BIGlzIHJlYWxseSBuZWVkZWQgdGhlcmUsIG9yIGlmIGl0IGlzDQo+Pj4+
-Pj4ganVzdCBiZWNhdXNlIG9mIHNvbWUgY3V0LWFuZC1wYXN0ZSBmcm9tIHNvbWUgb3RoZXIgcGxh
-Y2U/DQo+Pj4+PiBJIHN0YXJ0ZWQgbG9va2luZyBhdCB0aGF0IGZvciB0aGUgb21hcDNpc3AgZHJp
-dmVyIGJ1dCBTYWthcmkgYmVhdCBtZSBhdA0KPj4+Pj4gc3VibWl0dGluZyBhIHBhdGNoLiBHRlBf
-RE1BIGlzbid0IG5lZWRlZCBmb3Igb21hcDNpc3AuDQo+Pj4+PiAgIA0KPj4+PiBUaGFuayB5b3Ug
-Ym90aCBmb3IgbG9va2luZyBpbnRvIGl0Lg0KPj4+Pg0KPj4+PiBSZWdhcmRzLA0KPj4+PiBNYXVy
-bw0KPj4+Pg0KPj4+Pg0KPj4+Pg0KPj4+PiBUaGFua3MsDQo+Pj4+IE1hdXJvDQo+Pg0KPj4NCj4+
-IFRoYW5rcywNCj4+IE1hdXJvDQo+DQo+DQo+IFRoYW5rcywNCj4gTWF1cm8NCg==
+On Mon, Apr 23, 2018 at 02:47:45PM +0100, Rui Miguel Silva wrote:
+> The IOMUXC General Purpose Register has bitfield to control video bus
+> multiplexer to control the CSI input between the MIPI-CSI2 and parallel
+> interface. Add that register and mask.
+> 
+> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+> ---
+>  arch/arm/boot/dts/imx7s.dtsi | 9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
+> index d913c3f9c284..3027d6a62021 100644
+> --- a/arch/arm/boot/dts/imx7s.dtsi
+> +++ b/arch/arm/boot/dts/imx7s.dtsi
+> @@ -534,8 +534,15 @@
+>  
+>  			gpr: iomuxc-gpr@30340000 {
+>  				compatible = "fsl,imx7d-iomuxc-gpr",
+> -					"fsl,imx6q-iomuxc-gpr", "syscon";
+> +					"fsl,imx6q-iomuxc-gpr", "syscon", "simple-mfd";
+>  				reg = <0x30340000 0x10000>;
+> +
+> +				mux: mux-controller {
+> +					compatible = "mmio-mux";
+> +					#mux-control-cells = <1>;
+> +
+
+The newline in between property list is not really necessary.
+
+Shawn
+
+> +					mux-reg-masks = <0x14 0x00000010>;
+> +				};
+>  			};
+>  
+>  			ocotp: ocotp-ctrl@30350000 {
+> -- 
+> 2.17.0
+> 
