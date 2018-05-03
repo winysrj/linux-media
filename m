@@ -1,57 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:48349 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752819AbeEYNQ0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 09:16:26 -0400
-Subject: Re: [PATCH v2] media: davinci vpbe: array underflow in
- vpbe_enum_outputs()
-To: Dan Carpenter <dan.carpenter@oracle.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-References: <20180525131239.45exrwgxr2f3kb57@kili.mountain>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a322043a-5b45-b695-4302-173c5111896b@xs4all.nl>
-Date: Fri, 25 May 2018 15:16:21 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180525131239.45exrwgxr2f3kb57@kili.mountain>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([213.167.242.64]:59476 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751416AbeECIow (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 04:44:52 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 11/11] drm: rcar-du: Support interlaced video output through vsp1
+Date: Thu,  3 May 2018 09:44:22 +0100
+Message-Id: <2ceb322df5029f641ca33f8b9e65d53cefac02f5.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/05/18 15:12, Dan Carpenter wrote:
-> In vpbe_enum_outputs() we check if (temp_index >= cfg->num_outputs) but
-> the problem is that temp_index can be negative.  I've made
-> cgf->num_outputs unsigned to fix this issue.
+Use the newly exposed VSP1 interface to enable interlaced frame support
+through the VSP1 lif pipelines.
 
-Shouldn't temp_index also be made unsigned? It certainly would make a lot of
-sense to do that.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 1 +
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 3 +++
+ 2 files changed, 4 insertions(+)
 
-Regards,
-
-	Hans
-
-> 
-> Fixes: 66715cdc3224 ("[media] davinci vpbe: VPBE display driver")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> v2: fix it a different way
-> 
-> diff --git a/include/media/davinci/vpbe.h b/include/media/davinci/vpbe.h
-> index 79a566d7defd..180a05e91497 100644
-> --- a/include/media/davinci/vpbe.h
-> +++ b/include/media/davinci/vpbe.h
-> @@ -92,7 +92,7 @@ struct vpbe_config {
->  	struct encoder_config_info *ext_encoders;
->  	/* amplifier information goes here */
->  	struct amp_config_info *amp;
-> -	int num_outputs;
-> +	unsigned int num_outputs;
->  	/* Order is venc outputs followed by LCD and then external encoders */
->  	struct vpbe_output *outputs;
->  };
-> 
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+index d71d709fe3d9..206532959ec9 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+@@ -289,6 +289,7 @@ static void rcar_du_crtc_set_display_timing(struct rcar_du_crtc *rcrtc)
+ 	/* Signal polarities */
+ 	value = ((mode->flags & DRM_MODE_FLAG_PVSYNC) ? DSMR_VSL : 0)
+ 	      | ((mode->flags & DRM_MODE_FLAG_PHSYNC) ? DSMR_HSL : 0)
++	      | ((mode->flags & DRM_MODE_FLAG_INTERLACE) ? DSMR_ODEV : 0)
+ 	      | DSMR_DIPM_DISP | DSMR_CSPM;
+ 	rcar_du_crtc_write(rcrtc, DSMR, value);
+ 
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+index af7822a66dee..c7b37232ee91 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+@@ -186,6 +186,9 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
+ 	};
+ 	unsigned int i;
+ 
++	cfg.interlaced = !!(plane->plane.state->crtc->mode.flags
++			    & DRM_MODE_FLAG_INTERLACE);
++
+ 	cfg.src.left = state->state.src.x1 >> 16;
+ 	cfg.src.top = state->state.src.y1 >> 16;
+ 	cfg.src.width = drm_rect_width(&state->state.src) >> 16;
+-- 
+git-series 0.9.1
