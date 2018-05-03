@@ -1,88 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:49548 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965014AbeEXHPK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 03:15:10 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        alsa-devel@alsa-project.org
-Subject: [PATCH v2 09/13] ata: pata_pxa: remove the dmaengine compat need
-Date: Thu, 24 May 2018 09:06:59 +0200
-Message-Id: <20180524070703.11901-10-robert.jarzmik@free.fr>
-In-Reply-To: <20180524070703.11901-1-robert.jarzmik@free.fr>
-References: <20180524070703.11901-1-robert.jarzmik@free.fr>
+Received: from mail-cys01nam02on0088.outbound.protection.outlook.com ([104.47.37.88]:53216
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751987AbeECCnM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 May 2018 22:43:12 -0400
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Vishal Sagar <vishal.sagar@xilinx.com>,
+        Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Subject: [PATCH v5 3/8] xilinx: v4l: dma: Terminate DMA when media pipeline fail to start
+Date: Wed, 2 May 2018 19:42:48 -0700
+Message-ID: <8d18eea81b7d477d3802ebf185f995082f948ac5.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+In-Reply-To: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+References: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the pxa architecture switched towards the dmaengine slave map, the
-old compatibility mechanism to acquire the dma requestor line number and
-priority are not needed anymore.
+From: Vishal Sagar <vishal.sagar@xilinx.com>
 
-This patch simplifies the dma resource acquisition, using the more
-generic function dma_request_slave_channel().
+If an incorrectly configured media pipeline is started, the allocated
+dma descriptors aren't freed. This leads to kernel oops when pipeline
+is configured correctly and run subsequently.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Acked-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+This patch also replaces dmaengine_terminate_all() with
+dmaengine_terminate_sync() as the former one is deprecated.
+
+Signed-off-by: Vishal Sagar <vishal.sagar@xilinx.com>
+Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
 ---
- drivers/ata/pata_pxa.c | 10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ drivers/media/platform/xilinx/xilinx-dma.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/ata/pata_pxa.c b/drivers/ata/pata_pxa.c
-index f6c46e9a4dc0..e8b6a2e464c9 100644
---- a/drivers/ata/pata_pxa.c
-+++ b/drivers/ata/pata_pxa.c
-@@ -25,7 +25,6 @@
- #include <linux/libata.h>
- #include <linux/platform_device.h>
- #include <linux/dmaengine.h>
--#include <linux/dma/pxa-dma.h>
- #include <linux/gpio.h>
- #include <linux/slab.h>
- #include <linux/completion.h>
-@@ -180,8 +179,6 @@ static int pxa_ata_probe(struct platform_device *pdev)
- 	struct resource *irq_res;
- 	struct pata_pxa_pdata *pdata = dev_get_platdata(&pdev->dev);
- 	struct dma_slave_config	config;
--	dma_cap_mask_t mask;
--	struct pxad_param param;
- 	int ret = 0;
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 5426efe..727dc6e 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -437,6 +437,7 @@ static int xvip_dma_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	media_pipeline_stop(&dma->video.entity);
  
- 	/*
-@@ -278,10 +275,6 @@ static int pxa_ata_probe(struct platform_device *pdev)
+ error:
++	dmaengine_terminate_sync(dma->dma);
+ 	/* Give back all queued buffers to videobuf2. */
+ 	spin_lock_irq(&dma->queued_lock);
+ 	list_for_each_entry_safe(buf, nbuf, &dma->queued_bufs, queue) {
+@@ -458,7 +459,7 @@ static void xvip_dma_stop_streaming(struct vb2_queue *vq)
+ 	xvip_pipeline_set_stream(pipe, false);
  
- 	ap->private_data = data;
+ 	/* Stop and reset the DMA engine. */
+-	dmaengine_terminate_all(dma->dma);
++	dmaengine_terminate_sync(dma->dma);
  
--	dma_cap_zero(mask);
--	dma_cap_set(DMA_SLAVE, mask);
--	param.prio = PXAD_PRIO_LOWEST;
--	param.drcmr = pdata->dma_dreq;
- 	memset(&config, 0, sizeof(config));
- 	config.src_addr_width = DMA_SLAVE_BUSWIDTH_2_BYTES;
- 	config.dst_addr_width = DMA_SLAVE_BUSWIDTH_2_BYTES;
-@@ -294,8 +287,7 @@ static int pxa_ata_probe(struct platform_device *pdev)
- 	 * Request the DMA channel
- 	 */
- 	data->dma_chan =
--		dma_request_slave_channel_compat(mask, pxad_filter_fn,
--						 &param, &pdev->dev, "data");
-+		dma_request_slave_channel(&pdev->dev, "data");
- 	if (!data->dma_chan)
- 		return -EBUSY;
- 	ret = dmaengine_slave_config(data->dma_chan, &config);
+ 	/* Cleanup the pipeline and mark it as being stopped. */
+ 	xvip_pipeline_cleanup(pipe);
 -- 
-2.11.0
+2.7.4
