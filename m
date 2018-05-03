@@ -1,119 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36223 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752789AbeEGP5p (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 11:57:45 -0400
-Received: by mail-wm0-f65.google.com with SMTP id n10-v6so16266744wmc.1
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 08:57:44 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl, Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org, Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH 4/4] media: ov2680: add regulators to supply control
-Date: Mon,  7 May 2018 16:56:55 +0100
-Message-Id: <20180507155655.1555-5-rui.silva@linaro.org>
-In-Reply-To: <20180507155655.1555-1-rui.silva@linaro.org>
-References: <20180507155655.1555-1-rui.silva@linaro.org>
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44842 "EHLO
+        homiemail-a58.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751192AbeECVUX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 May 2018 17:20:23 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH v2 3/9] cx231xx: Style fix for struct zero init
+Date: Thu,  3 May 2018 16:20:09 -0500
+Message-Id: <1525382415-4049-4-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1525382415-4049-1-git-send-email-brad@nextdimension.cc>
+References: <1525382415-4049-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the code to control the regulators for the analogue and digital power
-supplies.
+Replace zero fill memset inits with
+equivalent {} in declaration
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
- drivers/media/i2c/ov2680.c | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ drivers/media/usb/cx231xx/cx231xx-dvb.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/i2c/ov2680.c b/drivers/media/i2c/ov2680.c
-index 8962b397211a..07bb475c970c 100644
---- a/drivers/media/i2c/ov2680.c
-+++ b/drivers/media/i2c/ov2680.c
-@@ -19,6 +19,7 @@
- #include <linux/module.h>
- #include <linux/of_device.h>
- #include <linux/gpio/consumer.h>
-+#include <linux/regulator/consumer.h>
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 99f1a77..12f2dcc 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -787,10 +787,9 @@ static int dvb_init(struct cx231xx *dev)
+ 	{
+ 		struct i2c_client *client;
+ 		struct i2c_board_info info;
+-		struct si2165_platform_data si2165_pdata;
++		struct si2165_platform_data si2165_pdata = {};
  
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
-@@ -65,6 +66,14 @@ struct reg_value {
- 	u8 val;
- };
+ 		/* attach demod */
+-		memset(&si2165_pdata, 0, sizeof(si2165_pdata));
+ 		si2165_pdata.fe = &dev->dvb->frontend[0];
+ 		si2165_pdata.chip_mode = SI2165_MODE_PLL_XTAL;
+ 		si2165_pdata.ref_freq_hz = 16000000;
+@@ -832,11 +831,10 @@ static int dvb_init(struct cx231xx *dev)
+ 	{
+ 		struct i2c_client *client;
+ 		struct i2c_board_info info;
+-		struct si2165_platform_data si2165_pdata;
+-		struct si2157_config si2157_config;
++		struct si2165_platform_data si2165_pdata = {};
++		struct si2157_config si2157_config = {};
  
-+static const char * const ov2680_supply_name[] = {
-+	"DOVDD",
-+	"DVDD",
-+	"AVDD",
-+};
-+
-+#define OV2680_NUM_SUPPLIES ARRAY_SIZE(ov2680_supply_name)
-+
- struct ov2680_mode_info {
- 	const char *name;
- 	enum ov2680_mode_id id;
-@@ -97,6 +106,7 @@ struct ov2680_dev {
- 	struct media_pad		pad;
- 	struct clk			*xvclk;
- 	u32				xvclk_freq;
-+	struct regulator_bulk_data	supplies[OV2680_NUM_SUPPLIES];
+ 		/* attach demod */
+-		memset(&si2165_pdata, 0, sizeof(si2165_pdata));
+ 		si2165_pdata.fe = &dev->dvb->frontend[0];
+ 		si2165_pdata.chip_mode = SI2165_MODE_PLL_EXT;
+ 		si2165_pdata.ref_freq_hz = 24000000;
+@@ -870,7 +868,6 @@ static int dvb_init(struct cx231xx *dev)
+ 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
  
- 	struct gpio_desc		*reset_gpio;
- 	struct mutex			lock; /* protect members */
-@@ -522,6 +532,7 @@ static int ov2680_power_off(struct ov2680_dev *sensor)
+ 		/* attach tuner */
+-		memset(&si2157_config, 0, sizeof(si2157_config));
+ 		si2157_config.fe = dev->dvb->frontend[0];
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+ 		si2157_config.mdev = dev->media_dev;
+@@ -907,7 +904,7 @@ static int dvb_init(struct cx231xx *dev)
+ 	{
+ 		struct i2c_client *client;
+ 		struct i2c_board_info info;
+-		struct si2157_config si2157_config;
++		struct si2157_config si2157_config = {};
  
- 	clk_disable_unprepare(sensor->xvclk);
- 	ov2680_power_down(sensor);
-+	regulator_bulk_disable(OV2680_NUM_SUPPLIES, sensor->supplies);
- 	sensor->is_enabled = false;
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
  
- 	return 0;
-@@ -535,6 +546,12 @@ static int ov2680_power_on(struct ov2680_dev *sensor)
- 	if (sensor->is_enabled)
- 		return 0;
+@@ -929,7 +926,6 @@ static int dvb_init(struct cx231xx *dev)
+ 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
  
-+	ret = regulator_bulk_enable(OV2680_NUM_SUPPLIES, sensor->supplies);
-+	if (ret < 0) {
-+		dev_err(dev, "failed to enable regulators: %d\n", ret);
-+		return ret;
-+	}
-+
- 	if (!sensor->reset_gpio) {
- 		ret = ov2680_write_reg(sensor, OV2680_REG_SOFT_RESET, 0x01);
- 		if (ret != 0) {
-@@ -962,6 +979,18 @@ static int ov2680_v4l2_init(struct ov2680_dev *sensor)
- 	return ret;
- }
- 
-+static int ov2680_get_regulators(struct ov2680_dev *sensor)
-+{
-+	int i;
-+
-+	for (i = 0; i < OV2680_NUM_SUPPLIES; i++)
-+		sensor->supplies[i].supply = ov2680_supply_name[i];
-+
-+	return devm_regulator_bulk_get(&sensor->i2c_client->dev,
-+				       OV2680_NUM_SUPPLIES,
-+				       sensor->supplies);
-+}
-+
- static int ov2680_check_id(struct ov2680_dev *sensor)
- {
- 	struct device *dev = ov2680_to_dev(sensor);
-@@ -1034,6 +1063,12 @@ static int ov2680_probe(struct i2c_client *client)
- 	if (ret < 0)
- 		return ret;
- 
-+	ret = ov2680_get_regulators(sensor);
-+	if (ret < 0) {
-+		dev_err(dev, "failed to get regulators\n");
-+		return ret;
-+	}
-+
- 	mutex_init(&sensor->lock);
- 
- 	ret = ov2680_v4l2_init(sensor);
+ 		/* attach tuner */
+-		memset(&si2157_config, 0, sizeof(si2157_config));
+ 		si2157_config.fe = dev->dvb->frontend[0];
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+ 		si2157_config.mdev = dev->media_dev;
 -- 
-2.17.0
+2.7.4
