@@ -1,69 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:60046 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752253AbeEOJ1E (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:56090 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751454AbeECOxY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 05:27:04 -0400
-Subject: Re: [PATCH v2 2/2] rcar-vin: fix crop and compose handling for Gen3
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-References: <20180511144126.24804-1-niklas.soderlund+renesas@ragnatech.se>
- <20180511144126.24804-3-niklas.soderlund+renesas@ragnatech.se>
-Reply-To: kieran.bingham@ideasonboard.com
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <746b2859-b064-c91e-00a6-7f2537a24ab2@ideasonboard.com>
-Date: Tue, 15 May 2018 10:27:00 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180511144126.24804-3-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+        Thu, 3 May 2018 10:53:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv13 06/28] v4l2-dev: lock req_queue_mutex
+Date: Thu,  3 May 2018 16:52:56 +0200
+Message-Id: <20180503145318.128315-7-hverkuil@xs4all.nl>
+In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This looks like quite the improvement :D
+We need to serialize streamon/off with queueing new requests.
+These ioctls may trigger the cancellation of a streaming
+operation, and that should not be mixed with queuing a new
+request at the same time.
 
-On 11/05/18 15:41, Niklas Söderlund wrote:
-> When refactoring the Gen3 enablement series crop and compose handling
-> where broken. This went unnoticed but can result in writing out side the
+Also TRY/S_EXT_CTRLS needs this lock to correctly serialize
+with MEDIA_REQUEST_IOC_QUEUE.
 
-As well as Sergei's 'where/were', 'out side' is one word in this context.
+Finally close() needs this lock since that too can trigger the
+cancellation of a streaming operation.
 
-'outside of the capture buffer'
+We take the req_queue_mutex here before any other locks since
+it is a very high-level lock.
 
-> capture buffer. Fix this by restoring the crop and compose to reflect
-> the format dimensions as we have not yet enabled the scaler for Gen3.
-> 
-> Fixes: 5e7c623632fcf8f5 ("media: rcar-vin: use different v4l2 operations in media controller mode")
-> Reported-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 37 +++++++++++++++++++++++++++++-
+ 1 file changed, 36 insertions(+), 1 deletion(-)
 
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 2fb8587116f25a4f..e78fba84d59028ef 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -702,6 +702,12 @@ static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
->  
->  	vin->format = f->fmt.pix;
->  
-> +	vin->crop.top = 0;
-> +	vin->crop.left = 0;
-> +	vin->crop.width = vin->format.width;
-> +	vin->crop.height = vin->format.height;
-> +	vin->compose = vin->crop;
-> +
->  	return 0;
->  }
->  
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 1d0b2208e8fb..b1c9efc0ecc4 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -353,13 +353,36 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 
+ 	if (vdev->fops->unlocked_ioctl) {
+ 		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
++		struct mutex *queue_lock = NULL;
+ 
+-		if (lock && mutex_lock_interruptible(lock))
++		/*
++		 * We need to serialize streamon/off with queueing new requests.
++		 * These ioctls may trigger the cancellation of a streaming
++		 * operation, and that should not be mixed with queueing a new
++		 * request at the same time.
++		 *
++		 * Also TRY/S_EXT_CTRLS needs this lock to correctly serialize
++		 * with MEDIA_REQUEST_IOC_QUEUE.
++		 */
++		if (vdev->v4l2_dev->mdev &&
++		    (cmd == VIDIOC_STREAMON || cmd == VIDIOC_STREAMOFF ||
++		     cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_TRY_EXT_CTRLS))
++			queue_lock = &vdev->v4l2_dev->mdev->req_queue_mutex;
++
++		if (queue_lock && mutex_lock_interruptible(queue_lock))
++			return -ERESTARTSYS;
++
++		if (lock && mutex_lock_interruptible(lock)) {
++			if (queue_lock)
++				mutex_unlock(queue_lock);
+ 			return -ERESTARTSYS;
++		}
+ 		if (video_is_registered(vdev))
+ 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+ 		if (lock)
+ 			mutex_unlock(lock);
++		if (queue_lock)
++			mutex_unlock(queue_lock);
+ 	} else
+ 		ret = -ENOTTY;
+ 
+@@ -442,8 +465,20 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 	struct video_device *vdev = video_devdata(filp);
+ 	int ret = 0;
+ 
++	/*
++	 * We need to serialize the release() with queueing new requests.
++	 * The release() may trigger the cancellation of a streaming
++	 * operation, and that should not be mixed with queueing a new
++	 * request at the same time.
++	 */
++	if (vdev->v4l2_dev->mdev)
++		mutex_lock(&vdev->v4l2_dev->mdev->req_queue_mutex);
++
+ 	if (vdev->fops->release)
+ 		ret = vdev->fops->release(filp);
++
++	if (vdev->v4l2_dev->mdev)
++		mutex_unlock(&vdev->v4l2_dev->mdev->req_queue_mutex);
+ 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+ 		printk(KERN_DEBUG "%s: release\n",
+ 			video_device_node_name(vdev));
+-- 
+2.17.0
