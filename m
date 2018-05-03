@@ -1,84 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34091 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753655AbeE1H7e (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 May 2018 03:59:34 -0400
-Received: by mail-wr0-f193.google.com with SMTP id j1-v6so18737514wrm.1
-        for <linux-media@vger.kernel.org>; Mon, 28 May 2018 00:59:33 -0700 (PDT)
-Subject: Re: [PATCH 4/6] media: imx-csi: Enable interlaced scan for field type
- alternate
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
- <1527292416-26187-5-git-send-email-steve_longerbeam@mentor.com>
- <1527490835.6846.1.camel@pengutronix.de>
-From: Ian Arkver <ian.arkver.dev@gmail.com>
-Message-ID: <b8a58843-35bd-1f74-2131-4987dcb4b42c@gmail.com>
-Date: Mon, 28 May 2018 08:59:30 +0100
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:39863 "EHLO
+        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751137AbeECPqv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 11:46:51 -0400
+Date: Thu, 3 May 2018 17:46:43 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v4 03/14] media: ov772x: allow i2c controllers without
+ I2C_FUNC_PROTOCOL_MANGLING
+Message-ID: <20180503154643.GC19612@w540>
+References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+ <1525021993-17789-4-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1527490835.6846.1.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ncSAzJYg3Aa9+CRW"
+Content-Disposition: inline
+In-Reply-To: <1525021993-17789-4-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28/05/18 08:00, Philipp Zabel wrote:
-> On Fri, 2018-05-25 at 16:53 -0700, Steve Longerbeam wrote:
->> Interlaced scan, a.k.a. interweave, should be enabled at the CSI IDMAC
->> output pad if the input field type is 'alternate' (in addition to field
->> types 'seq-tb' and 'seq-bt').
->>
->> Which brings up whether V4L2_FIELD_HAS_BOTH() macro should be used
->> to determine enabling interlaced/interweave scan. That macro
->> includes the 'interlaced' field types, and in those cases the data
->> is already interweaved with top/bottom field lines. A heads-up for
->> now that this if statement may need to call V4L2_FIELD_IS_SEQUENTIAL()
->> instead, I have no sensor hardware that sends 'interlaced' data, so can't
->> test.
-> 
-> I agree, the check here should be IS_SEQUENTIAL || ALTERNATE, and
-> interlaced_scan should also be enabled if image.pix.field is
-> INTERLACED_TB/BT.
-> And for INTERLACED_TB/BT input, the logic should be inverted: then we'd
-> have to enable interlaced_scan whenever image.pix.field is SEQ_BT/TB.
 
-Hi Philipp,
+--ncSAzJYg3Aa9+CRW
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-If your intent here is to de-interweave the two fields back to two 
-sequential fields, I don't believe the IDMAC operation would achieve 
-that. It's basically line stride doubling and a line offset for the 
-lines in the 2nd half of the incoming frame, right?
+Hi Akinobu,
 
-Regards,
-Ian
-> 
-> regards
-> Philipp
-> 
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>   drivers/staging/media/imx/imx-media-csi.c | 3 ++-
->>   1 file changed, 2 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
->> index 9bc555c..eef3483 100644
->> --- a/drivers/staging/media/imx/imx-media-csi.c
->> +++ b/drivers/staging/media/imx/imx-media-csi.c
->> @@ -477,7 +477,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
->>   	ipu_smfc_set_burstsize(priv->smfc, burst_size);
->>   
->>   	if (image.pix.field == V4L2_FIELD_NONE &&
->> -	    V4L2_FIELD_HAS_BOTH(infmt->field))
->> +	    (V4L2_FIELD_HAS_BOTH(infmt->field) ||
->> +	     infmt->field == V4L2_FIELD_ALTERNATE))
->>   		ipu_cpmem_interlaced_scan(priv->idmac_ch,
->>   					  image.pix.bytesperline);
->>   
+On Mon, Apr 30, 2018 at 02:13:02AM +0900, Akinobu Mita wrote:
+> The ov772x driver only works when the i2c controller have
+> I2C_FUNC_PROTOCOL_MANGLING.  However, many i2c controller drivers don't
+> support it.
+>
+> The reason that the ov772x requires I2C_FUNC_PROTOCOL_MANGLING is that
+> it doesn't support repeated starts.
+>
+> This changes the reading ov772x register method so that it doesn't
+> require I2C_FUNC_PROTOCOL_MANGLING by calling two separated i2c messages.
+>
+> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Cc: Wolfram Sang <wsa@the-dreams.de>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+
+As you have sent a separate series to move the SCCB case handling to
+the i2c core, and I feel like it may take some time to get there, as
+Sakari suggested, I'm fine with this change in the driver code.
+
+Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
+Thanks
+  j
+
+> ---
+> * v4
+> - No changes
+>
+>  drivers/media/i2c/ov772x.c | 20 ++++++++++++++------
+>  1 file changed, 14 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+> index e255070..b6223bf 100644
+> --- a/drivers/media/i2c/ov772x.c
+> +++ b/drivers/media/i2c/ov772x.c
+> @@ -542,9 +542,19 @@ static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
+>  	return container_of(sd, struct ov772x_priv, subdev);
+>  }
+>
+> -static inline int ov772x_read(struct i2c_client *client, u8 addr)
+> +static int ov772x_read(struct i2c_client *client, u8 addr)
+>  {
+> -	return i2c_smbus_read_byte_data(client, addr);
+> +	int ret;
+> +	u8 val;
+> +
+> +	ret = i2c_master_send(client, &addr, 1);
+> +	if (ret < 0)
+> +		return ret;
+> +	ret = i2c_master_recv(client, &val, 1);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return val;
+>  }
+>
+>  static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 value)
+> @@ -1255,13 +1265,11 @@ static int ov772x_probe(struct i2c_client *client,
+>  		return -EINVAL;
+>  	}
+>
+> -	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+> -					      I2C_FUNC_PROTOCOL_MANGLING)) {
+> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+>  		dev_err(&adapter->dev,
+> -			"I2C-Adapter doesn't support SMBUS_BYTE_DATA or PROTOCOL_MANGLING\n");
+> +			"I2C-Adapter doesn't support SMBUS_BYTE_DATA\n");
+>  		return -EIO;
+>  	}
+> -	client->flags |= I2C_CLIENT_SCCB;
+>
+>  	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+>  	if (!priv)
+> --
+> 2.7.4
+>
+
+--ncSAzJYg3Aa9+CRW
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJa6y7jAAoJEHI0Bo8WoVY8FKcQAIJweuIR2i8cbqot8QpADbdL
+Q1zLbhPCYqFxrKwiLa49sINDNdwpCJsqBFAL+Ef/Pt0RGDNbiZLA/MzL2RYdjVLR
+ELk/6P1gGOVMEAblIqGEnfWfwklUSg2mMU/wLmO+3CfPi5qNC+DktdaPjJgJx4TO
+Ez95JOPkZGFc3OXKh7xOGOTh8A0cR5DvkM4rKX1o1Ey4pbWOmeGB3EPbGmZp/Hy4
+Cx4HLhuWlpsM7m5rMsH+VB3i5tQvxmTm7AwHlyuMUdAXHDtIiJHzeEkbrlUdK9OP
+xXIVMY9qkZB4gr8HGUhv1cBVSYRmiyJFNeMyIWzo6+4fkdbwHZX9GX4meVrKXrRq
+Uc7rAy/kmXu1zSHMv122R8SPRa5VbM0KCH+BfKZcR0PEG2zofBEEzaIYbnMeIM8p
+M2lXIAeHm7sVtUpT+mcLCXyzSCr+0ffGUWFgPX90APO5/80Mof5GEnLuv5caWLGj
+F0AJC+KGagyHn8y+UdT2mFSqO4mlLuKQK2NIoXDjcKk3B0zySUA8jEIPsXFAEHoK
+O4wGAfIywhW5tU71Z7cDavF+cmrfJ2ASITjd1VbUPOanZzZN/kzweQZk85C2Tojy
+QDNs1zEjlduUJNZEHjpvN/NH0aVnekrvVzbI61PiGK778dybm9aHYlwSQOM0edUZ
+IAKR/rSIljxd0XMrbiPj
+=ytqw
+-----END PGP SIGNATURE-----
+
+--ncSAzJYg3Aa9+CRW--
