@@ -1,63 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay11.mail.gandi.net ([217.70.178.231]:45455 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752081AbeEPQct (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:56430 "EHLO
+        homiemail-a58.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751050AbeECOoT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 12:32:49 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
-        horms@verge.net.au, geert@glider.be
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 3/6] media: rcar-vin: Handle data-active property
-Date: Wed, 16 May 2018 18:32:29 +0200
-Message-Id: <1526488352-898-4-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
+        Thu, 3 May 2018 10:44:19 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH v2] saa7164: Fix driver name in debug output
+Date: Thu,  3 May 2018 09:44:11 -0500
+Message-Id: <1525358651-27127-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The data-active property has to be specified when running with embedded
-synchronization. The VIN peripheral can use HSYNC in place of CLOCKENB
-when the CLOCKENB pin is not connected, this requires explicit
-synchronization to be in use.
+This issue was reported by a user who downloaded a corrupt saa7164
+firmware, then went looking for a valid xc5000 firmware to fix the
+error displayed...but the device in question has no xc5000, thus after
+much effort, the wild goose chase eventually led to a support call.
 
-Now that the driver supports 'data-active' property, it makes not sense
-to zero the mbus configuration flags when running with implicit synch
-(V4L2_MBUS_BT656).
+The xc5000 has nothing to do with saa7164 (as far as I can tell),
+so replace the string with saa7164 as well as give a meaningful
+hint on the firmware mismatch.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+Since v1:
+- Appease the 0-day bot, fix print format related kernel warnings.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index d3072e1..075d08f 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -531,15 +531,21 @@ static int rvin_digital_parse_v4l2(struct device *dev,
- 		return -ENOTCONN;
+ drivers/media/pci/saa7164/saa7164-fw.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/pci/saa7164/saa7164-fw.c b/drivers/media/pci/saa7164/saa7164-fw.c
+index ef49064..ee65ea8 100644
+--- a/drivers/media/pci/saa7164/saa7164-fw.c
++++ b/drivers/media/pci/saa7164/saa7164-fw.c
+@@ -426,7 +426,8 @@ int saa7164_downloadfirmware(struct saa7164_dev *dev)
+ 			__func__, fw->size);
  
- 	vin->mbus_cfg.type = vep->bus_type;
-+	vin->mbus_cfg.flags = vep->bus.parallel.flags;
- 
- 	switch (vin->mbus_cfg.type) {
- 	case V4L2_MBUS_PARALLEL:
- 		vin_dbg(vin, "Found PARALLEL media bus\n");
--		vin->mbus_cfg.flags = vep->bus.parallel.flags;
- 		break;
- 	case V4L2_MBUS_BT656:
- 		vin_dbg(vin, "Found BT656 media bus\n");
--		vin->mbus_cfg.flags = 0;
-+
-+		if (!(vin->mbus_cfg.flags & V4L2_MBUS_DATA_ACTIVE_HIGH) &&
-+		    !(vin->mbus_cfg.flags & V4L2_MBUS_DATA_ACTIVE_LOW)) {
-+			vin_err(vin,
-+				"Missing data enable signal polarity property\n");
-+			return -EINVAL;
-+		}
- 		break;
- 	default:
- 		vin_err(vin, "Unknown media bus type\n");
+ 		if (fw->size != fwlength) {
+-			printk(KERN_ERR "xc5000: firmware incorrect size\n");
++			printk(KERN_ERR "saa7164: firmware incorrect size %ld != %u\n",
++				fw->size, fwlength);
+ 			ret = -ENOMEM;
+ 			goto out;
+ 		}
 -- 
 2.7.4
