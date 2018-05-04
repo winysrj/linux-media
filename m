@@ -1,97 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:52981 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751013AbeEPUur (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 16:50:47 -0400
-Received: by mail-wm0-f68.google.com with SMTP id w194-v6so4601544wmf.2
-        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 13:50:47 -0700 (PDT)
-Date: Wed, 16 May 2018 22:50:45 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 3/4] media: rcar-vin: Handle digital subdev in
- link_notify
-Message-ID: <20180516205045.GD17838@bigcity.dyn.berto.se>
-References: <1526473016-30559-1-git-send-email-jacopo+renesas@jmondi.org>
- <1526473016-30559-4-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-it0-f45.google.com ([209.85.214.45]:51186 "EHLO
+        mail-it0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750733AbeEDJZR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 05:25:17 -0400
+Received: by mail-it0-f45.google.com with SMTP id p3-v6so2592716itc.0
+        for <linux-media@vger.kernel.org>; Fri, 04 May 2018 02:25:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1526473016-30559-4-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <152542538170.4767.9925437389288286145@mail.alporthouse.com>
+References: <20180503142603.28513-1-daniel.vetter@ffwll.ch>
+ <20180503142603.28513-5-daniel.vetter@ffwll.ch> <152542135089.4767.3315686184618150713@mail.alporthouse.com>
+ <20180504081722.GQ12521@phenom.ffwll.local> <20180504082301.GR12521@phenom.ffwll.local>
+ <152542269311.4767.4254637128660397977@mail.alporthouse.com>
+ <20180504085759.GT12521@phenom.ffwll.local> <152542538170.4767.9925437389288286145@mail.alporthouse.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Fri, 4 May 2018 11:25:15 +0200
+Message-ID: <CAKMK7uHqdGsRQ60mL0LUmHPYp0zCyv0ni6=uhEpeHsOR3RLBzw@mail.gmail.com>
+Subject: Re: [PATCH 04/15] dma-fence: Make ->wait callback optional
+To: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: DRI Development <dri-devel@lists.freedesktop.org>,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+On Fri, May 4, 2018 at 11:16 AM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
+> Quoting Daniel Vetter (2018-05-04 09:57:59)
+>> On Fri, May 04, 2018 at 09:31:33AM +0100, Chris Wilson wrote:
+>> > Quoting Daniel Vetter (2018-05-04 09:23:01)
+>> > > On Fri, May 04, 2018 at 10:17:22AM +0200, Daniel Vetter wrote:
+>> > > > On Fri, May 04, 2018 at 09:09:10AM +0100, Chris Wilson wrote:
+>> > > > > Quoting Daniel Vetter (2018-05-03 15:25:52)
+>> > > > > > Almost everyone uses dma_fence_default_wait.
+>> > > > > >
+>> > > > > > v2: Also remove the BUG_ON(!ops->wait) (Chris).
+>> > > > >
+>> > > > > I just don't get the rationale for implicit over explicit.
+>> > > >
+>> > > > Closer approximation of dwim semantics. There's been tons of patch series
+>> > > > all over drm and related places to get there, once we have a big pile of
+>> > > > implementations and know what the dwim semantics should be. Individually
+>> > > > they're all not much, in aggregate they substantially simplify simple
+>> > > > drivers.
+>> > >
+>> > > I also think clearer separation between optional optimization hooks and
+>> > > mandatory core parts is useful in itself.
+>> >
+>> > A new spelling of midlayer ;) I don't see the contradiction with a
+>> > driver saying use the default and simplicity. (I know which one the
+>> > compiler thinks is simpler ;)
+>>
+>> If the compiler overhead is real then I guess it would makes to be
+>> explicit. I don't expect that to be a problem though for a blocking
+>> function.
+>>
+>> I disagree on this being a midlayer - you can still overwrite everything
+>> you please to. What it does help is people doing less copypasting (and
+>> assorted bugs), at least in the grand scheme of things. And we do have a
+>> _lot_ more random small drivers than just a few years ago. Reducing the
+>> amount of explicit typing just to get default bahaviour has been an
+>> ongoing theme for a few years now, and your objection here is about the
+>> first that this is not a good idea. So I'm somewhat confused.
+>
+> I'm just saying I don't see any rationale for this patch.
+>
+>         "Almost everyone uses dma_fence_default_wait."
+>
+> Why change?
+>
+> Making it look simpler on the surface, so that you don't have to think
+> about things straight away? I understand the appeal, but I do worry
+> about it just being an illusion. (Cutting and pasting a line saying
+> .wait = default_wait, doesn't feel that onerous, as you likely cut and
+> paste the ops anyway, and at the very least you are reminded about some
+> of the interactions. You could even have default initializers and/or
+> magic macros to hide the cut and paste; maybe a simple_dma_fence [now
+> that's a midlayer!] but I haven't looked.)
 
-Thanks for your patch,
+In really monolithic vtables like drm_driver we do use default
+function macros, so you type 1 line, get them all. But dma_fence_ops
+is pretty small, and most drivers only implement a few callbacks. Also
+note that e.g. the ->release callback already works like that, so this
+pattern is there already. I simply extended it to ->wait and
+->enable_signaling. Also note that I leave the EXPORT_SYMBOL in place,
+you can still wrap dma_fence_default_wait if you wish to do so.
 
-On 2018-05-16 14:16:55 +0200, Jacopo Mondi wrote:
-> Handle digital subdevices in link_notify callback. If the notified link
-> involves a digital subdevice, do not change routing of the VIN-CSI-2
-> devices.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 30 +++++++++++++++++++++++++++--
->  1 file changed, 28 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index 1003c8c..ea74c55 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -168,10 +168,36 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
->  	}
->  
->  	/* Add the new link to the existing mask and check if it works. */
-> -	csi_id = rvin_group_entity_to_csi_id(group, link->source->entity);
->  	channel = rvin_group_csi_pad_to_channel(link->source->index);
-> -	mask_new = mask & rvin_group_get_mask(vin, csi_id, channel);
-> +	csi_id = rvin_group_entity_to_csi_id(group, link->source->entity);
-> +	if (csi_id == -ENODEV) {
-> +		struct v4l2_subdev *sd;
-> +		unsigned int i;
-> +
-> +		/*
-> +		 * Make sure the source entity subdevice is registered as
-> +		 * a digital input of one of the enabled VINs if it is not
-> +		 * one of the CSI-2 subdevices.
-> +		 *
-> +		 * No hardware configuration required for digital inputs,
-> +		 * we can return here.
-> +		 */
-> +		sd = media_entity_to_v4l2_subdev(link->source->entity);
-> +		for (i = 0; i < RCAR_VIN_NUM; i++) {
-> +			if (group->vin[i] && group->vin[i]->digital &&
-> +			    group->vin[i]->digital->subdev == sd) {
-> +				ret = 0;
-> +				goto out;
-> +			}
-> +		}
-> +
-> +		vin_err(vin, "Subdevice %s not registered to any VIN\n",
-> +			link->source->entity->name);
-> +		ret = -ENODEV;
-> +		goto out;
-> +	}
-
-I like this patch, you made it so simple. I feared this would be the 
-ugly part when adding parallel support to Gen3. All that is missing is 
-handling of vin->mbus_cfg or how you think we best handle that for the 
-different input buses.
-
->  
-> +	mask_new = mask & rvin_group_get_mask(vin, csi_id, channel);
->  	vin_dbg(vin, "Try link change mask: 0x%x new: 0x%x\n", mask, mask_new);
->  
->  	if (!mask_new) {
-> -- 
-> 2.7.4
-> 
-
+But I just realized that I didn't clean out the optional release
+hooks, I guess I should do that too (for the few cases it's not yet
+done) and respin.
+-Daniel
 -- 
-Regards,
-Niklas Söderlund
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
