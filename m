@@ -1,70 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f53.google.com ([209.85.160.53]:45606 "EHLO
-        mail-pl0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754378AbeEUVZn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 17:25:43 -0400
-Received: by mail-pl0-f53.google.com with SMTP id bi12-v6so9516275plb.12
-        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 14:25:43 -0700 (PDT)
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-Cc: linux-media@vger.kernel.org,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Tim Harvey <tharvey@gateworks.com>
-References: <m37eobudmo.fsf@t19.piap.pl>
- <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com> <m3tvresqfw.fsf@t19.piap.pl>
- <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com> <m3fu2oswjh.fsf@t19.piap.pl>
- <m3603hsa4o.fsf@t19.piap.pl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
-Date: Mon, 21 May 2018 14:25:40 -0700
-MIME-Version: 1.0
-In-Reply-To: <m3603hsa4o.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from mta-p7.oit.umn.edu ([134.84.196.207]:59736 "EHLO
+        mta-p7.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751301AbeEDHaE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 03:30:04 -0400
+Received: from localhost (unknown [127.0.0.1])
+        by mta-p7.oit.umn.edu (Postfix) with ESMTP id B0748619
+        for <linux-media@vger.kernel.org>; Fri,  4 May 2018 07:30:03 +0000 (UTC)
+Received: from mta-p7.oit.umn.edu ([127.0.0.1])
+        by localhost (mta-p7.oit.umn.edu [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id DaE0wDsf-3bW for <linux-media@vger.kernel.org>;
+        Fri,  4 May 2018 02:30:03 -0500 (CDT)
+Received: from mail-it0-f72.google.com (mail-it0-f72.google.com [209.85.214.72])
+        (using TLSv1.2 with cipher AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mta-p7.oit.umn.edu (Postfix) with ESMTPS id 8431263C
+        for <linux-media@vger.kernel.org>; Fri,  4 May 2018 02:30:03 -0500 (CDT)
+Received: by mail-it0-f72.google.com with SMTP id y131-v6so1640499itc.5
+        for <linux-media@vger.kernel.org>; Fri, 04 May 2018 00:30:03 -0700 (PDT)
+From: Wenwen Wang <wang6495@umn.edu>
+To: Wenwen Wang <wang6495@umn.edu>
+Cc: Kangjie Lu <kjlu@umn.edu>, Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org (open list:STAGING - ATOMISP DRIVER),
+        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH] media: staging: atomisp: fix a potential missing-check bug
+Date: Fri,  4 May 2018 02:29:54 -0500
+Message-Id: <1525418996-19246-1-git-send-email-wang6495@umn.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Krzysztof, I've been on vacation, just returned today. I will
-find the time this week to attempt to reproduce your results on
-a SabreAuto quad with the adv7180.
+At the end of atomisp_subdev_set_selection(), the function
+atomisp_subdev_get_rect() is invoked to get the pointer to v4l2_rect. Since
+this function may return a NULL pointer, it is firstly invoked to check
+the returned pointer. If the returned pointer is not NULL, then the
+function is invoked again to obtain the pointer and the memory content
+at the location of the returned pointer is copied to the memory location of
+r. In most cases, the pointers returned by the two invocations are same.
+However, given that the pointer returned by the function
+atomisp_subdev_get_rect() is not a constant, it is possible that the two
+invocations return two different pointers. For example, another thread may
+race to modify the related pointers during the two invocations. In that
+case, even if the first returned pointer is not null, the second returned
+pointer might be null, which will cause issues such as null pointer
+dereference.
 
-Btw, if you just need to capture an interlaced frame (lines 0,1,2,...)
-without motion compensation, there is no need to use the VDIC
-path. Capturing directly from ipu2_csi1 should work, I've tested
-this many times on a SabreAuto. But I will try to reproduce your
-results.
+This patch saves the pointer returned by the first invocation and removes
+the second invocation. If the returned pointer is not NULL, the memory
+content is copied according to the original code.
 
-Steve
+Signed-off-by: Wenwen Wang <wang6495@umn.edu>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-
-On 05/21/2018 01:09 AM, Krzysztof Hałasa wrote:
-> Tested with NTSC camera, it's the same as with PAL.
-> The only case when IPU2_CSI1_SENS_CONF register is set to interlaced
-> mode (PRCTL=3, CCIR interlaced mode (BT.656)) is when all parts of the
-> pipeline are set to interlaced:
->
-> "adv7180 2-0020":0 [fmt:UYVY2X8/720x576 field:interlaced]
-> "ipu2_csi1_mux":1  [fmt:UYVY2X8/720x576 field:interlaced]
-> "ipu2_csi1_mux":2  [fmt:UYVY2X8/720x576 field:interlaced]
-> "ipu2_csi1":0      [fmt:UYVY2X8/720x576 field:interlaced]
-> "ipu2_csi1":2      [fmt:AYUV32/720x576 field:interlaced]
->
-> The image is stable and in sync, the "only" problem is that I get two
-> concatenated field images (in one V4L2 frame) instead of a normal
-> interlaced frame (all lines in order - 0, 1, 2, 3, 4 etc).
-> IOW I get V4L2_FIELD_ALTERNATE, V4L2_FIELD_SEQ_TB or V4L2_FIELD_SEQ_BT
-> (the data format, I don't mean the pixel format.field) while I need to
-> get V4L2_FIELD_INTERLACED, V4L2_FIELD_INTERLACED_TB or _BT.
->
->
-> If I set "ipu2_csi1":2 to field:none, the IPU2_CSI1_SENS_CONF is set to
-> progressive mode (PRCTL=2). It's the last element of the pipeline I can
-> configure, it's connected straight to "ipu2_csi1 capture" aka
-> /dev/videoX. I think CSI can't work with interlaced camera (and ADV7180)
-> when set to progressive, can it?
->
->
-> I wonder... perhaps to get an interlaced frame I need to route the data
-> through VDIC (ipu2_vdic, the deinterlacer)?
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
+index 49a9973..d5fa513 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
+@@ -366,6 +366,7 @@ int atomisp_subdev_set_selection(struct v4l2_subdev *sd,
+ 	unsigned int i;
+ 	unsigned int padding_w = pad_w;
+ 	unsigned int padding_h = pad_h;
++	struct v4l2_rect *p;
+ 
+ 	stream_id = atomisp_source_pad_to_stream_id(isp_sd, vdev_pad);
+ 
+@@ -536,9 +537,10 @@ int atomisp_subdev_set_selection(struct v4l2_subdev *sd,
+ 		ffmt[pad]->height = comp[pad]->height;
+ 	}
+ 
+-	if (!atomisp_subdev_get_rect(sd, cfg, which, pad, target))
++	p = atomisp_subdev_get_rect(sd, cfg, which, pad, target);
++	if (!p)
+ 		return -EINVAL;
+-	*r = *atomisp_subdev_get_rect(sd, cfg, which, pad, target);
++	*r = *p;
+ 
+ 	dev_dbg(isp->dev, "sel actual: l %d t %d w %d h %d\n",
+ 		r->left, r->top, r->width, r->height);
+-- 
+2.7.4
