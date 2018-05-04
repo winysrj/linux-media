@@ -1,162 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:44494 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753031AbeEURCd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 13:02:33 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
+Received: from mail.bootlin.com ([62.4.15.54]:60278 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751984AbeEDN7X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 May 2018 09:59:23 -0400
+Message-ID: <dd6b502c66aad1fe34eb0b16a1e44a4ebfd172f1.camel@bootlin.com>
+Subject: Re: [PATCH v2 09/10] ARM: dts: sun7i-a20: Add Video Engine and
+ reserved memory nodes
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
         Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v10 16/16] v4l: Document explicit synchronization behavior
-Date: Mon, 21 May 2018 13:59:46 -0300
-Message-Id: <20180521165946.11778-17-ezequiel@collabora.com>
-In-Reply-To: <20180521165946.11778-1-ezequiel@collabora.com>
-References: <20180521165946.11778-1-ezequiel@collabora.com>
+        Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 04 May 2018 15:57:48 +0200
+In-Reply-To: <20180504134033.wngpe5scyisreonn@flea>
+References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
+         <20180419154536.17846-5-paul.kocialkowski@bootlin.com>
+         <20180420073908.nkcbsdxibnzkqski@flea>
+         <82057e2f734137a3902d9313c228b01ceb345ee7.camel@bootlin.com>
+         <20180504084008.h6p4brari3xrbv6l@flea>
+         <e8cd340605ab4db8ebf2888a4fce645e8bc481d0.camel@bootlin.com>
+         <20180504091555.idgtzey53lozj2uh@flea>
+         <fc064c3f1534a6082dc2b4e18454e054b53e5aee.camel@bootlin.com>
+         <20180504134033.wngpe5scyisreonn@flea>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-mE95aWzEnbnH7U7+7hKq"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Add section to VIDIOC_QBUF and VIDIOC_QUERY_BUF about it
+--=-mE95aWzEnbnH7U7+7hKq
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-v9: assorted improvements.
+On Fri, 2018-05-04 at 15:40 +0200, Maxime Ripard wrote:
+> On Fri, May 04, 2018 at 02:04:38PM +0200, Paul Kocialkowski wrote:
+> > On Fri, 2018-05-04 at 11:15 +0200, Maxime Ripard wrote:
+> > > On Fri, May 04, 2018 at 10:47:44AM +0200, Paul Kocialkowski wrote:
+> > > > > > > > +			reg =3D <0x01c0e000 0x1000>;
+> > > > > > > > +			memory-region =3D <&ve_memory>;
+> > > > > > >=20
+> > > > > > > Since you made the CMA region the default one, you don't
+> > > > > > > need
+> > > > > > > to
+> > > > > > > tie
+> > > > > > > it to that device in particular (and you can drop it being
+> > > > > > > mandatory
+> > > > > > > from your binding as well).
+> > > > > >=20
+> > > > > > What if another driver (or the system) claims memory from
+> > > > > > that
+> > > > > > zone
+> > > > > > and
+> > > > > > that the reserved memory ends up not being available for the
+> > > > > > VPU
+> > > > > > anymore?
+> > > > > >=20
+> > > > > > Acccording to the reserved-memory documentation, the
+> > > > > > reusable
+> > > > > > property
+> > > > > > (that we need for dmabuf) puts a limitation that the device
+> > > > > > driver
+> > > > > > owning the region must be able to reclaim it back.
+> > > > > >=20
+> > > > > > How does that work out if the CMA region is not tied to a
+> > > > > > driver
+> > > > > > in
+> > > > > > particular?
+> > > > >=20
+> > > > > I'm not sure to get what you're saying. You have the property
+> > > > > linux,cma-default in your reserved region, so the behaviour
+> > > > > you
+> > > > > described is what you explicitly asked for.
+> > > >=20
+> > > > My point is that I don't see how the driver can claim back (part
+> > > > of)
+> > > > the
+> > > > reserved area if the area is not explicitly attached to it.
+> > > >=20
+> > > > Or is that mechanism made in a way that all drivers wishing to
+> > > > use
+> > > > the
+> > > > reserved memory area can claim it back from the system, but
+> > > > there is
+> > > > no
+> > > > priority (other than first-come first-served) for which drivers
+> > > > claims
+> > > > it back in case two want to use the same reserved region (in a
+> > > > scenario
+> > > > where there isn't enough memory to allow both drivers)?
+> > >=20
+> > > This is indeed what happens. Reusable is to let the system use the
+> > > reserved memory for things like caches that can easily be dropped
+> > > when
+> > > a driver wants to use the memory in that reserved area. Once that
+> > > memory has been allocated, there's no claiming back, unless that
+> > > memory segment was freed of course.
+> >=20
+> > Thanks for the clarification. So in our case, perhaps the best fit
+> > would
+> > be to make that area the default CMA pool so that we can be ensured
+> > that
+> > the whole 96 MiB is available for the VPU and that no other consumer
+> > of
+> > CMA will use it?
+>=20
+> The best fit for what use case ? We already discussed this, and I
+> don't see any point in having two separate CMA regions. If you have a
+> reasonably sized region that will accomodate for both the VPU and
+> display engine, why would we want to split them?
 
-v8: amend querybuf documentation.
+The use case I have in mind is boilerplate use of the VPU with the
+display engine, say with DMAbuf.
 
-v7: minor issues and English improvements (Hans Verkuil)
+It wasn't exactly clear in my memory whether we had decided that the CMA
+pool we use for the VPU should also be used for other CMA consumers (I
+realize that this is what we've been doing all along by having
+linux,cma-default; though).
 
-v6: Close some gaps in the docs (Hans)
+The fact that the memory region will accomodate for both the display
+engine and the VPU is not straightforward IMO and I think this has to be
+an explicit choice that we take. I was under the impression that we
+chose the 96 MiB because that's what the Allwinner reference code does.
+Does the reference code also use this pool for display?
 
-v5: - Remove V4L2_CAP_ORDERED
-    - Add doc about V4L2_FMT_FLAG_UNORDERED
+I liked the idea of having 96 MiB fully reserved to the VPU because it
+allows us to provide a limit on the use case, such as "this guarantees N
+buffers for resolution foo in format bar". If the display engine also
+uses it, then the limit also depends on how many GEM buffers are
+allocated (unless I'm missing something).
 
-v4: - Document ordering behavior for in-fences
-    - Document V4L2_CAP_ORDERED capability
-    - Remove doc about OUT_FENCE event
-    - Document immediate return of out-fence in QBUF
+> Or did you have any experience of running out of buffers?
 
-v3: - make the out_fence refer to the current buffer (Hans)
-    - Note what happens when the IN_FENCE is not set (Hans)
+Not yet, I haven't. I have no objection with making the reserved region
+the default CMA pool and have other consumers use it too.
 
-v2: - mention that fences are files (Hans)
-    - rework for the new API
+Cheers,
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- Documentation/media/uapi/v4l/vidioc-qbuf.rst     | 53 +++++++++++++++++++++++-
- Documentation/media/uapi/v4l/vidioc-querybuf.rst | 12 ++++--
- 2 files changed, 61 insertions(+), 4 deletions(-)
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+--=-mE95aWzEnbnH7U7+7hKq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-index 9e448a4aa3aa..f09e21247a6c 100644
---- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-@@ -54,7 +54,7 @@ When the buffer is intended for output (``type`` is
- or ``V4L2_BUF_TYPE_VBI_OUTPUT``) applications must also initialize the
- ``bytesused``, ``field`` and ``timestamp`` fields, see :ref:`buffer`
- for details. Applications must also set ``flags`` to 0. The
--``reserved2`` and ``reserved`` fields must be set to 0. When using the
-+``reserved`` field must be set to 0. When using the
- :ref:`multi-planar API <planar-apis>`, the ``m.planes`` field must
- contain a userspace pointer to a filled-in array of struct
- :c:type:`v4l2_plane` and the ``length`` field must be set
-@@ -118,6 +118,57 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
- The struct :c:type:`v4l2_buffer` structure is specified in
- :ref:`buffer`.
- 
-+Explicit Synchronization
-+------------------------
-+
-+Explicit Synchronization allows us to control the synchronization of
-+shared buffers from userspace by passing fences to the kernel and/or
-+receiving them from it. Fences passed to the kernel are named in-fences and
-+the kernel should wait on them to signal before using the buffer. On the other
-+side, the kernel can create out-fences for the buffers it queues to the
-+drivers. Out-fences signal when the driver is finished with buffer, i.e., the
-+buffer is ready. The fences are represented as a file and passed as a file
-+descriptor to userspace.
-+
-+The in-fences are communicated to the kernel at the ``VIDIOC_QBUF`` ioctl
-+using the ``V4L2_BUF_FLAG_IN_FENCE`` buffer flag and the `fence_fd` field. If
-+an in-fence needs to be passed to the kernel, `fence_fd` should be set to the
-+fence file descriptor number and the ``V4L2_BUF_FLAG_IN_FENCE`` should be set
-+as well. Setting one but not the other will cause ``VIDIOC_QBUF`` to return
-+with an error.
-+
-+It is guaranteed that all buffers queued with an in-fence will be queued to
-+the drivers in the same order. Fences may signal out of order, so this guarantee
-+is necessary to not change ordering. While waiting for a fence to signal,
-+all buffers queued afterwards will also be blocked until that fence signals.
-+
-+If the in-fence signals with an error the buffer will be marked with
-+``V4L2_BUF_FLAG_ERROR`` when returned to userspace at ``VIDIOC_DQBUF``.
-+Even with the error the order of dequeueing the buffers is preserved.
-+
-+To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
-+be set to ask for a fence to be attached to the buffer. The out-fence fd is
-+sent to userspace as a ``VIDIOC_QBUF`` return argument in the `fence_fd` field.
-+
-+Note the same `fence_fd` field is used for both sending the in-fence as
-+at input argument and to receive the out-fence as a return argument. A buffer can
-+have both an in-fence and an out-fence.
-+
-+At streamoff the out-fences will either signal normally if the driver waits
-+for the operations on the buffers to finish or signal with an error if the
-+driver cancels the pending operations. Buffers with in-fences won't be queued
-+to the driver if their fences signal. They will be cleaned up.
-+
-+The ``V4L2_FMT_FLAG_UNORDERED`` flag in ``VIDIOC_ENUM_FMT`` tells userspace
-+that when using this format, the order in which buffers are dequeued can
-+be different from the order in which they were queued.
-+
-+Ordering is important to fences because it can optimize the pipeline with
-+other drivers like a DRM/KMS display driver. For example, if a capture from the
-+camera is happening in an ordered manner one can send the capture buffer
-+out-fence to the DRM/KMS driver and rest assured that the buffers will be shown on
-+the screen in the correct order. If the queue is not ordered, then such
-+arrangements with other drivers may not be possible.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/v4l/vidioc-querybuf.rst b/Documentation/media/uapi/v4l/vidioc-querybuf.rst
-index dd54747fabc9..cda73b43c334 100644
---- a/Documentation/media/uapi/v4l/vidioc-querybuf.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querybuf.rst
-@@ -44,7 +44,7 @@ and the ``index`` field. Valid index numbers range from zero to the
- number of buffers allocated with
- :ref:`VIDIOC_REQBUFS` (struct
- :c:type:`v4l2_requestbuffers` ``count``) minus
--one. The ``reserved`` and ``reserved2`` fields must be set to 0. When
-+one. The ``reserved`` field must be set to 0. When
- using the :ref:`multi-planar API <planar-apis>`, the ``m.planes``
- field must contain a userspace pointer to an array of struct
- :c:type:`v4l2_plane` and the ``length`` field has to be set
-@@ -64,8 +64,14 @@ elements will be used instead and the ``length`` field of struct
- array elements. The driver may or may not set the remaining fields and
- flags, they are meaningless in this context.
- 
--The struct :c:type:`v4l2_buffer` structure is specified in
--:ref:`buffer`.
-+When using in-fences, the ``V4L2_BUF_FLAG_IN_FENCE`` will be set if the
-+in-fence didn't signal at the time of the
-+:ref:`VIDIOC_QUERYBUF`. Similarly, the ``V4L2_BUF_FLAG_OUT_FENCE`` will be
-+set if there's a pending out-fence for the buffer. Note that the ``fence_fd``
-+field is not set, because the file descriptor only makes sense
-+for the process that received the out-fence in the :ref:`VIDIOC_QBUF` response.
-+
-+The struct :c:type:`v4l2_buffer` structure is specified in :ref:`buffer`.
- 
- 
- Return Value
--- 
-2.16.3
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrsZtwACgkQ3cLmz3+f
+v9EL2wf+NPCzuKNgVq3Hnr2tDKkvVTg3EG7IU8oApVHtDC5ozsXMXweu1YAgoTH1
+f9efNP/op4SPm7W8srYXC242RrCkLnzva83C8M9/3ey3M/Mdfitocx3FmFI66OCK
+BWfiDqOEwJzlVkVgBS05rfJolMbZZBl4STHUjRg2DB9SceFT8dj7VVZiSxrnTKNC
+G14mtB7qkuDIYnbPL8pN554C44SYcLmlXJJWulreKqgeCPmHQ7h0V2yZpJXQCbR2
+bniAHj056Q892FJukO7q2sSNjtNOe4gWP5DAiKLfBBCL7T5pLF7UjYFQJFnEKqe6
+bAzSTMBdEb1SWUCCm7/lF7jt+BmOZA==
+=0arc
+-----END PGP SIGNATURE-----
+
+--=-mE95aWzEnbnH7U7+7hKq--
