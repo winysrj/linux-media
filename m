@@ -1,89 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56670 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1033167AbeEXUhH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 16:37:07 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 10/20] staging: bcm2835-camera: Provide lock for vb2_queue
-Date: Thu, 24 May 2018 17:35:10 -0300
-Message-Id: <20180524203520.1598-11-ezequiel@collabora.com>
-In-Reply-To: <20180524203520.1598-1-ezequiel@collabora.com>
-References: <20180524203520.1598-1-ezequiel@collabora.com>
+Received: from mail.bootlin.com ([62.4.15.54]:60958 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751301AbeEDOI1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 May 2018 10:08:27 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v12 1/4] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+Date: Fri,  4 May 2018 16:08:07 +0200
+Message-Id: <20180504140810.29497-2-maxime.ripard@bootlin.com>
+In-Reply-To: <20180504140810.29497-1-maxime.ripard@bootlin.com>
+References: <20180504140810.29497-1-maxime.ripard@bootlin.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the device mutex to protect the vb2_queue.
-This allows to replace the ad-hoc wait_{prepare, finish}
-with vb2_ops_wait_{prepare, finish}.
+The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up to
+4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
+the hardware implementation.
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+It can operate with an external D-PHY, an internal one or no D-PHY at all
+in some configurations.
+
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- .../vc04_services/bcm2835-camera/bcm2835-camera.c  | 24 +++++-----------------
- 1 file changed, 5 insertions(+), 19 deletions(-)
+ .../devicetree/bindings/media/cdns,csi2rx.txt | 100 ++++++++++++++++++
+ 1 file changed, 100 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
 
-diff --git a/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c b/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
-index d2262275a870..2a628475a1bd 100644
---- a/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
-+++ b/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
-@@ -601,28 +601,14 @@ static void stop_streaming(struct vb2_queue *vq)
- 		v4l2_err(&dev->v4l2_dev, "Failed to disable camera\n");
- }
- 
--static void bm2835_mmal_lock(struct vb2_queue *vq)
--{
--	struct bm2835_mmal_dev *dev = vb2_get_drv_priv(vq);
--
--	mutex_lock(&dev->mutex);
--}
--
--static void bm2835_mmal_unlock(struct vb2_queue *vq)
--{
--	struct bm2835_mmal_dev *dev = vb2_get_drv_priv(vq);
--
--	mutex_unlock(&dev->mutex);
--}
--
- static const struct vb2_ops bm2835_mmal_video_qops = {
- 	.queue_setup = queue_setup,
- 	.buf_prepare = buffer_prepare,
- 	.buf_queue = buffer_queue,
- 	.start_streaming = start_streaming,
- 	.stop_streaming = stop_streaming,
--	.wait_prepare = bm2835_mmal_unlock,
--	.wait_finish = bm2835_mmal_lock,
-+	.wait_prepare = vb2_ops_wait_prepare,
-+	.wait_finish = vb2_ops_wait_finish,
- };
- 
- /* ------------------------------------------------------------------
-@@ -1831,6 +1817,8 @@ static int __init bm2835_mmal_init(void)
- 			goto cleanup_gdev;
- 		}
- 
-+		/* v4l2 core mutex used to protect all fops and v4l2 ioctls. */
-+		mutex_init(&dev->mutex);
- 		dev->camera_num = camera;
- 		dev->max_width = resolutions[camera][0];
- 		dev->max_height = resolutions[camera][1];
-@@ -1875,13 +1863,11 @@ static int __init bm2835_mmal_init(void)
- 		q->ops = &bm2835_mmal_video_qops;
- 		q->mem_ops = &vb2_vmalloc_memops;
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+		q->lock = &dev->mutex;
- 		ret = vb2_queue_init(q);
- 		if (ret < 0)
- 			goto unreg_dev;
- 
--		/* v4l2 core mutex used to protect all fops and v4l2 ioctls. */
--		mutex_init(&dev->mutex);
--
- 		/* initialise video devices */
- 		ret = bm2835_mmal_init_device(dev, &dev->vdev);
- 		if (ret < 0)
+diff --git a/Documentation/devicetree/bindings/media/cdns,csi2rx.txt b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+new file mode 100644
+index 000000000000..6b02a0657ad9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+@@ -0,0 +1,100 @@
++Cadence MIPI-CSI2 RX controller
++===============================
++
++The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting up to 4 CSI
++lanes in input, and 4 different pixel streams in output.
++
++Required properties:
++  - compatible: must be set to "cdns,csi2rx" and an SoC-specific compatible
++  - reg: base address and size of the memory mapped region
++  - clocks: phandles to the clocks driving the controller
++  - clock-names: must contain:
++    * sys_clk: main clock
++    * p_clk: register bank clock
++    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
++                         implemented in hardware, between 0 and 3
++
++Optional properties:
++  - phys: phandle to the external D-PHY, phy-names must be provided
++  - phy-names: must contain "dphy", if the implementation uses an
++               external D-PHY
++
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++           port, in accordance with the video interface bindings defined in
++           Documentation/devicetree/bindings/media/video-interfaces.txt. The
++           port nodes are numbered as follows:
++
++           Port Description
++           -----------------------------
++           0    CSI-2 input
++           1    Stream 0 output
++           2    Stream 1 output
++           3    Stream 2 output
++           4    Stream 3 output
++
++           The stream output port nodes are optional if they are not
++           connected to anything at the hardware level or implemented
++           in the design.Since there is only one endpoint per port,
++           the endpoints are not numbered.
++
++
++Example:
++
++csi2rx: csi-bridge@0d060000 {
++	compatible = "cdns,csi2rx";
++	reg = <0x0d060000 0x1000>;
++	clocks = <&byteclock>, <&byteclock>
++		 <&coreclock>, <&coreclock>,
++		 <&coreclock>, <&coreclock>;
++	clock-names = "sys_clk", "p_clk",
++		      "pixel_if0_clk", "pixel_if1_clk",
++		      "pixel_if2_clk", "pixel_if3_clk";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi2rx_in_sensor: endpoint {
++				remote-endpoint = <&sensor_out_csi2rx>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			csi2rx_out_grabber0: endpoint {
++				remote-endpoint = <&grabber0_in_csi2rx>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi2rx_out_grabber1: endpoint {
++				remote-endpoint = <&grabber1_in_csi2rx>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			csi2rx_out_grabber2: endpoint {
++				remote-endpoint = <&grabber2_in_csi2rx>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			csi2rx_out_grabber3: endpoint {
++				remote-endpoint = <&grabber3_in_csi2rx>;
++			};
++		};
++	};
++};
 -- 
-2.16.3
+2.17.0
