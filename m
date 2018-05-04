@@ -1,89 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:33410 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751920AbeERSx6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 14:53:58 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 10/20] staging: bcm2835-camera: Provide lock for vb2_queue
-Date: Fri, 18 May 2018 15:51:58 -0300
-Message-Id: <20180518185208.17722-11-ezequiel@collabora.com>
-In-Reply-To: <20180518185208.17722-1-ezequiel@collabora.com>
-References: <20180518185208.17722-1-ezequiel@collabora.com>
+Received: from mail-lf0-f49.google.com ([209.85.215.49]:45506 "EHLO
+        mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750965AbeEDACs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 20:02:48 -0400
+Received: by mail-lf0-f49.google.com with SMTP id y14-v6so28104145lfy.12
+        for <linux-media@vger.kernel.org>; Thu, 03 May 2018 17:02:48 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAKMK7uG_WBvAaRDy9Co=LLa6cUcLTuWYNu7ABkUxs-NzEXNRew@mail.gmail.com>
+References: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
+ <4411331.L07MOrSnxD@avalon> <CAKMK7uG_WBvAaRDy9Co=LLa6cUcLTuWYNu7ABkUxs-NzEXNRew@mail.gmail.com>
+From: Dave Airlie <airlied@gmail.com>
+Date: Fri, 4 May 2018 10:02:46 +1000
+Message-ID: <CAPM=9tzqjCzZrfv6ubTvuA2yCtUXdVeCm2Axk9wYXeseP3wVMA@mail.gmail.com>
+Subject: Re: [PATCH v3 0/8] R-Car DU: Support CRC calculation
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the device mutex to protect the vb2_queue.
-This allows to replace the ad-hoc wait_{prepare, finish}
-with vb2_ops_wait_{prepare, finish}.
+On 3 May 2018 at 23:45, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Thu, May 3, 2018 at 2:06 PM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Dave,
+>>
+>> Ping ?
+>
+> Not aware of any crc core work going on in drm, so has my ack. Worst
+> case we do a topic branch or something like that (since I guess you'll
+> do a pull request anyway on the v4l side). Acked-by: me.
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- .../vc04_services/bcm2835-camera/bcm2835-camera.c  | 24 +++++-----------------
- 1 file changed, 5 insertions(+), 19 deletions(-)
+Oops,
 
-diff --git a/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c b/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
-index d2262275a870..2a628475a1bd 100644
---- a/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
-+++ b/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
-@@ -601,28 +601,14 @@ static void stop_streaming(struct vb2_queue *vq)
- 		v4l2_err(&dev->v4l2_dev, "Failed to disable camera\n");
- }
- 
--static void bm2835_mmal_lock(struct vb2_queue *vq)
--{
--	struct bm2835_mmal_dev *dev = vb2_get_drv_priv(vq);
--
--	mutex_lock(&dev->mutex);
--}
--
--static void bm2835_mmal_unlock(struct vb2_queue *vq)
--{
--	struct bm2835_mmal_dev *dev = vb2_get_drv_priv(vq);
--
--	mutex_unlock(&dev->mutex);
--}
--
- static const struct vb2_ops bm2835_mmal_video_qops = {
- 	.queue_setup = queue_setup,
- 	.buf_prepare = buffer_prepare,
- 	.buf_queue = buffer_queue,
- 	.start_streaming = start_streaming,
- 	.stop_streaming = stop_streaming,
--	.wait_prepare = bm2835_mmal_unlock,
--	.wait_finish = bm2835_mmal_lock,
-+	.wait_prepare = vb2_ops_wait_prepare,
-+	.wait_finish = vb2_ops_wait_finish,
- };
- 
- /* ------------------------------------------------------------------
-@@ -1831,6 +1817,8 @@ static int __init bm2835_mmal_init(void)
- 			goto cleanup_gdev;
- 		}
- 
-+		/* v4l2 core mutex used to protect all fops and v4l2 ioctls. */
-+		mutex_init(&dev->mutex);
- 		dev->camera_num = camera;
- 		dev->max_width = resolutions[camera][0];
- 		dev->max_height = resolutions[camera][1];
-@@ -1875,13 +1863,11 @@ static int __init bm2835_mmal_init(void)
- 		q->ops = &bm2835_mmal_video_qops;
- 		q->mem_ops = &vb2_vmalloc_memops;
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+		q->lock = &dev->mutex;
- 		ret = vb2_queue_init(q);
- 		if (ret < 0)
- 			goto unreg_dev;
- 
--		/* v4l2 core mutex used to protect all fops and v4l2 ioctls. */
--		mutex_init(&dev->mutex);
--
- 		/* initialise video devices */
- 		ret = bm2835_mmal_init_device(dev, &dev->vdev);
- 		if (ret < 0)
--- 
-2.16.3
+Acked-by: Dave Airlie <airlied@redhat.com>
+
+Dave.
