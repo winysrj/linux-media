@@ -1,89 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:49853 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935235AbeEYGcc (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:41512 "EHLO
+        homiemail-a58.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751114AbeEDNiN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 02:32:32 -0400
-Message-ID: <1527229949.4938.1.camel@pengutronix.de>
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>
-Cc: linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
-Date: Fri, 25 May 2018 08:32:29 +0200
-In-Reply-To: <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
-References: <m37eobudmo.fsf@t19.piap.pl>
-         <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
-         <m3tvresqfw.fsf@t19.piap.pl>
-         <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
-         <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
-         <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
-         <m3h8mxqc7t.fsf@t19.piap.pl>
-         <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Fri, 4 May 2018 09:38:13 -0400
+Subject: Re: [PATCH v2 0/9] cx231xx: House cleaning
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org
+References: <1525382415-4049-1-git-send-email-brad@nextdimension.cc>
+ <472b7510-05bc-f52d-86e4-98f21362f5aa@xs4all.nl>
+From: Brad Love <brad@nextdimension.cc>
+Message-ID: <3587c14b-105b-68ad-f999-53ece70bf16a@nextdimension.cc>
+Date: Fri, 4 May 2018 08:38:12 -0500
+MIME-Version: 1.0
+In-Reply-To: <472b7510-05bc-f52d-86e4-98f21362f5aa@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-05-24 at 11:12 -0700, Steve Longerbeam wrote:
-[...]
-> > The following is required as well. Now the question is why we can't skip
-> > writing those odd UV rows. Anyway, with these 2 changes, I get a stable
-> > NTSC (and probably PAL) interlaced video stream.
-> > 
-> > The manual says: Reduce Double Read or Writes (RDRW):
-> > This bit is relevant for YUV4:2:0 formats. For write channels:
-> > U and V components are not written to odd rows.
-> > 
-> > How could it be so? With YUV420, are they normally written?
-> 
-> Well, given that this bit exists, and assuming I understand it correctly 
-> (1),
-> I guess the U and V components for odd rows normally are placed on the
-> AXI bus. Which is a total waste of bus bandwidth because in 4:2:0,
-> the U and V components are the same for odd and even rows.
-> 
-> In other words for writing 4:2:0 to memory, this bit should _always_ be set.
-> 
-> (1) OTOH I don't really understand what this bit is trying to say.
-> Whether this bit is set or not, the data in memory is correct
-> for planar 4:2:0: y plane buffer followed by U plane of 1/4 size
-> (decimated by 2 in width and height), followed by Y plane of 1/4
-> size.
-> 
-> So I assume it is saying that the IPU normally places U/V components
-> on the AXI bus for odd rows, that are identical to the even row values.
+Hi Hans,
 
-Whether they are identical depends on the input format.
 
-The IDMAC always gets fed AYUV32 from the CSI or IC.
-If the CSI captures YUV 4:2:x, odd and even lines will have the same
-chroma values. But if the CSI captures YUV 4:4:4 (or RGB, fed through
-the IC), we can have AYUV32 input with different chroma values on even
-and odd lines.
-In that case the IPU just writes the even chroma line and then
-overwrites it with the odd line, unless the double write reduction bit
-is set.
+On 2018-05-04 01:27, Hans Verkuil wrote:
+> Hi Brad,
+>
+> On 03/05/18 23:20, Brad Love wrote:
+>> Included in this patch set is:
+>> - Bugfix for a device not working
+>> - Some clean up and value corrections
+>> - Conversion to new dvb i2c helpers
+>> - Update of device from old dvb attach to i2c device
+>> - Dependency fixes
+>> - Style fixes
+>>
+>> Changes since v1:
+>> - Style fixes in i2c helper patch
+>> - Some comment cleanup
+>> - Hardware validation of analog tuning
+>>
+>> Brad Love (9):
+>>   cx231xx: Fix several incorrect demod addresses
+>>   cx231xx: Use board profile values for addresses
+>>   cx231xx: Style fix for struct zero init
+>>   cx231xx: [bug] Ignore an i2c mux adapter
+>>   cx231xx: Switch to using new dvb i2c helpers
+>>   cx231xx: Update 955Q from dvb attach to i2c device
+>>   cx231xx: Remove unnecessary parameter clear
+>>   cx231xx: Remove RC_CORE dependency
+>>   cx231xx: Add I2C_MUX dependency
+>>
+>>  drivers/media/usb/cx231xx/Kconfig         |   1 -
+>>  drivers/media/usb/cx231xx/cx231xx-cards.c |   6 +-
+>>  drivers/media/usb/cx231xx/cx231xx-dvb.c   | 365 ++++++++----------------------
+>>  3 files changed, 94 insertions(+), 278 deletions(-)
+>>
+> In case you are ever interested in converting this driver to vb2,
+> I made an attempt back in 2015:
+>
+> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=cx231xx
+>
+> I never got it to work (I think it was mainly the DVB part that
+> didn't work, but I'm not certain anymore as it is such a long time
+> ago). I ran out of time and haven't continued with it, but it would
+> be really nice if someone could finish this vb2 conversion.
+>
+> Regards,
+>
+> 	Hans
 
-> IOW somehow those identical odd rows are dropped before writing to
-> the U/V planes in memory.
+I'll check this out and add it to my queue.
 
-potentially identical.
+Cheers,
 
-> Philipp please chime in if you have something to add here.
-
-I suppose the bit could be used to choose to write the chroma values of
-odd instead of even lines for 4:4:4 inputs, at the cost of increased
-memory bandwidth usage.
-
-> Steve
-> 
-> > OTOH it seems that not only UV is broken with this bit set.
-> > Y is broken as well.
-
-Maybe scanline interlave and double write reduction can't be used at the
-same time?
-
-regards
-Philipp
+Brad
