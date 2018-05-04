@@ -1,81 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:44572 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032525AbeEXKrf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 06:47:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v4 02/11] media: vsp1: Remove packed attributes from aligned structures
-Date: Thu, 24 May 2018 13:47:30 +0300
-Message-ID: <1879534.EAt6bC61BJ@avalon>
-In-Reply-To: <d8f8e86a4e89a48150fae5cc4ee4bb977a13c196.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com> <d8f8e86a4e89a48150fae5cc4ee4bb977a13c196.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.133]:34320 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751527AbeEDUBE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 16:01:04 -0400
+Date: Fri, 4 May 2018 17:00:59 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH 1/1] v4l: Add macros for printing V4L 4cc values
+Message-ID: <20180504170053.66f96b1c@vento.lan>
+In-Reply-To: <1522846930-2967-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1522846930-2967-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Em Wed,  4 Apr 2018 16:02:10 +0300
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-Thank you for the patch.
-
-On Thursday, 3 May 2018 16:36:13 EEST Kieran Bingham wrote:
-> The use of the packed attribute can cause a performance penalty for
-> all accesses to the struct members, as the compiler will assume that the
-> structure has the potential to have an unaligned base.
-> 
-> These structures are all correctly aligned and contain no holes, thus
-> the attribute is redundant and negatively impacts performance, so we
-> remove the attributes entirely.
-
-With gcc 6.4.0 this patch makes no difference on the generated object. Is it 
-worth it ?
-
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-You forget to pick Geert's review tag.
-
+> Add two macros that facilitate printing V4L fourcc values with printf
+> family of functions. v4l2_fourcc_conv provides the printf conversion
+> specifier for printing formats and v4l2_fourcc_to_conv provides the actual
+> arguments for that conversion specifier.
+>=20
+> These macros are useful in both user and kernel code, therefore put them
+> into videodev2.h.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
-> v2
->  - Remove attributes entirely
-> ---
->  drivers/media/platform/vsp1/vsp1_dl.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
-> b/drivers/media/platform/vsp1/vsp1_dl.c index c7fa1cb088cd..f4cede9b9b43
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> @@ -25,19 +25,19 @@
->  struct vsp1_dl_header_list {
->  	u32 num_bytes;
->  	u32 addr;
-> -} __attribute__((__packed__));
-> +};
-> 
->  struct vsp1_dl_header {
->  	u32 num_lists;
->  	struct vsp1_dl_header_list lists[8];
->  	u32 next_header;
->  	u32 flags;
-> -} __attribute__((__packed__));
-> +};
-> 
->  struct vsp1_dl_entry {
->  	u32 addr;
->  	u32 data;
-> -} __attribute__((__packed__));
-> +};
-> 
->  /**
->   * struct vsp1_dl_body - Display list body
+>  include/uapi/linux/videodev2.h | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+>=20
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev=
+2.h
+> index caec178..93184929 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -82,6 +82,31 @@
+>  	((__u32)(a) | ((__u32)(b) << 8) | ((__u32)(c) << 16) | ((__u32)(d) << 2=
+4))
+>  #define v4l2_fourcc_be(a, b, c, d)	(v4l2_fourcc(a, b, c, d) | (1 << 31))
+> =20
+> +/**
+> + * v4l2_fourcc_conv - Printf fourcc conversion specifiers for V4L2 forma=
+ts
+> + *
+> + * Use as part of the format string. The values are obtained using
+> + * @v4l2_fourcc_to_conv macro.
+> + *
+> + * Example ("format" is the V4L2 pixelformat in __u32):
+> + *
+> + * printf("V4L2 format is: " v4l2_fourcc_conv "\n", v4l2_fourcc_to_conv(=
+format);
+> + */
+> +#define v4l2_fourcc_conv "%c%c%c%c%s"
+> +
+> +/**
+> + * v4l2_fourcc_to_conv - Arguments for V4L2 fourcc format conversion
+> + *
+> + *=C2=A0@fourcc: V4L2 pixelformat, as in __u32
+> + *
+> + * Yields to a comma-separated list of arguments for printf that matches=
+ with
+> + * conversion specifiers provided by @v4l2_fourcc_conv.
+> + */
+> +#define v4l2_fourcc_to_conv(fourcc)					\
+> +	(fourcc) & 0x7f, ((fourcc) >> 8) & 0x7f, ((fourcc) >> 16) & 0x7f, \
+> +	((fourcc) >> 24) & 0x7f, (fourcc) & (1 << 31) ? "-BE" : ""
+> +
 
--- 
-Regards,
+IMO, it doesn't make sense to have this at uAPI.
 
-Laurent Pinchart
+
+Thanks,
+Mauro
