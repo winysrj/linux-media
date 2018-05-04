@@ -1,181 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:16331 "EHLO mga18.intel.com"
+Received: from mail.bootlin.com ([62.4.15.54]:51967 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750773AbeEUK3S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 06:29:18 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v14.1 v14 06/36] media-request: Add support for updating request objects optimally
-Date: Mon, 21 May 2018 13:29:05 +0300
-Message-Id: <20180521102905.17704-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-7-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-7-sakari.ailus@linux.intel.com>
+        id S1751172AbeEDIZf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 May 2018 04:25:35 -0400
+Message-ID: <1e27232735a0375f78f819c5f6b201aec475b1cd.camel@bootlin.com>
+Subject: Re: [PATCH v2 05/10] media: v4l: Add definitions for MPEG2 frame
+ format and header metadata
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree@vger.kernel.org,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg "
+         "Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-sunxi@googlegroups.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>, wens@csie.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Alexandre Courbot <acourbot@chromium.org>
+Date: Fri, 04 May 2018 10:24:03 +0200
+In-Reply-To: <CAAFQd5Dq4OeshtFaoxFK2357+-_=hzh0C7W=zksTWtaDuDCiGg@mail.gmail.com>
+References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
+         <20180419154536.17846-1-paul.kocialkowski@bootlin.com>
+         <CAAFQd5Dq4OeshtFaoxFK2357+-_=hzh0C7W=zksTWtaDuDCiGg@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-U4fIwvrA8kmLG9u793QO"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new request state (UPDATING) as well as a count for updating the
-request objects. This way, several updates may take place simultaneously
-without affecting each other. The drivers (as well as frameworks) still
-must serialise access to their own data structures; what is guaranteed by
-the new state is simply correct and optimal handling of requests.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-since v14:
+--=-U4fIwvrA8kmLG9u793QO
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-- Correctly initialise the refcount to zero, as well as check it's zero
-  when the request is cleaned
+Hi,
 
- drivers/media/media-request.c |  7 +++++-
- include/media/media-request.h | 55 ++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 60 insertions(+), 2 deletions(-)
+On Fri, 2018-04-20 at 09:51 +0000, Tomasz Figa wrote:
+> Hi Paul,
+>=20
+> On Fri, Apr 20, 2018 at 12:46 AM Paul Kocialkowski <
+> paul.kocialkowski@bootlin.com> wrote:
+> [snip]
+> > +struct v4l2_ctrl_mpeg2_frame_hdr {
+> > +       __u32 slice_len;
+> > +       __u32 slice_pos;
+> > +       enum { MPEG1, MPEG2 } type;
+>=20
+> Is enum suitable for UAPI?
 
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index a1576cf528605..cbffb0261df02 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -12,6 +12,7 @@
- 
- #include <linux/anon_inodes.h>
- #include <linux/file.h>
-+#include <linux/refcount.h>
- 
- #include <media/media-device.h>
- #include <media/media-request.h>
-@@ -22,6 +23,7 @@ static const char * const request_state[] = {
- 	[MEDIA_REQUEST_STATE_QUEUED]	 = "queued",
- 	[MEDIA_REQUEST_STATE_COMPLETE]	 = "complete",
- 	[MEDIA_REQUEST_STATE_CLEANING]	 = "cleaning",
-+	[MEDIA_REQUEST_STATE_UPDATING]	 = "updating",
- };
- 
- static const char *
-@@ -38,12 +40,14 @@ static void media_request_clean(struct media_request *req)
- 
- 	/* Just a sanity check. No other code path is allowed to change this. */
- 	WARN_ON(req->state != MEDIA_REQUEST_STATE_CLEANING);
-+	WARN_ON(refcount_read(&req->updating_count));
- 
- 	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
- 		media_request_object_unbind(obj);
- 		media_request_object_put(obj);
- 	}
- 
-+	refcount_set(&req->updating_count, 0);
- 	req->num_incomplete_objects = 0;
- 	wake_up_interruptible_all(&req->poll_wait);
- }
-@@ -294,6 +298,7 @@ int media_request_alloc(struct media_device *mdev,
- 	INIT_LIST_HEAD(&req->objects);
- 	spin_lock_init(&req->lock);
- 	init_waitqueue_head(&req->poll_wait);
-+	refcount_set(&req->updating_count, 0);
- 
- 	alloc->fd = fd;
- 
-@@ -385,7 +390,7 @@ int media_request_object_bind(struct media_request *req,
- 
- 	spin_lock_irqsave(&req->lock, flags);
- 
--	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_IDLE))
-+	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_UPDATING))
- 		goto unlock;
- 
- 	list_add_tail(&obj->list, &req->objects);
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index e175538d3c669..84186b7be7de8 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -15,7 +15,7 @@
- #include <linux/list.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
--#include <linux/atomic.h>
-+#include <linux/refcount.h>
- 
- #include <media/media-device.h>
- 
-@@ -28,6 +28,9 @@
-  * @MEDIA_REQUEST_STATE_QUEUED:		Queued
-  * @MEDIA_REQUEST_STATE_COMPLETE:	Completed, the request is done
-  * @MEDIA_REQUEST_STATE_CLEANING:	Cleaning, the request is being re-inited
-+ * @MEDIA_REQUEST_STATE_UPDATING:	The request is being updated, i.e.
-+ *					request objects are being added,
-+ *					modified or removed
-  */
- enum media_request_state {
- 	MEDIA_REQUEST_STATE_IDLE,
-@@ -35,6 +38,7 @@ enum media_request_state {
- 	MEDIA_REQUEST_STATE_QUEUED,
- 	MEDIA_REQUEST_STATE_COMPLETE,
- 	MEDIA_REQUEST_STATE_CLEANING,
-+	MEDIA_REQUEST_STATE_UPDATING,
- };
- 
- struct media_request_object;
-@@ -56,6 +60,7 @@ struct media_request {
- 	struct kref kref;
- 	char debug_str[TASK_COMM_LEN + 11];
- 	enum media_request_state state;
-+	refcount_t updating_count;
- 	struct list_head objects;
- 	unsigned int num_incomplete_objects;
- 	struct wait_queue_head poll_wait;
-@@ -65,6 +70,54 @@ struct media_request {
- #ifdef CONFIG_MEDIA_CONTROLLER
- 
- /**
-+ * media_request_lock_for_update - Lock the request for updating its objects
-+ *
-+ * @req: The media request
-+ *
-+ * Use before updating a request, i.e. adding, modifying or removing a request
-+ * object in it. A reference to the request must be held during the update. This
-+ * usually takes place automatically through a file handle. Use
-+ * @media_request_unlock_for_update when done.
-+ */
-+static inline int __must_check
-+media_request_lock_for_update(struct media_request *req)
-+{
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (req->state == MEDIA_REQUEST_STATE_IDLE ||
-+	    req->state == MEDIA_REQUEST_STATE_UPDATING) {
-+		req->state = MEDIA_REQUEST_STATE_UPDATING;
-+		refcount_inc(&req->updating_count);
-+	} else {
-+		ret = -EBUSY;
-+	}
-+	spin_unlock_irqrestore(&req->lock, flags);
-+
-+	return ret;
-+}
-+
-+/**
-+ * media_request_unlock_for_update - Unlock a request previously locked for
-+ *				     update
-+ *
-+ * @req: The media request
-+ *
-+ * Unlock a request that has previously been locked using
-+ * @media_request_lock_for_update.
-+ */
-+static inline void media_request_unlock_for_update(struct media_request *req)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (refcount_dec_and_test(&req->updating_count))
-+		req->state = MEDIA_REQUEST_STATE_IDLE;
-+	spin_unlock_irqrestore(&req->lock, flags);
-+}
-+
-+/**
-  * media_request_get - Get the media request
-  *
-  * @req: The request
--- 
-2.11.0
+As it turns out, it's not :)
+
+> > +
+> > +       __u16 width;
+> > +       __u16 height;
+> > +
+> > +       enum { PCT_I =3D 1, PCT_P, PCT_B, PCT_D } picture_coding_type;
+>=20
+> Ditto.
+>=20
+> > +       __u8 f_code[2][2];
+> > +
+> > +       __u8 intra_dc_precision;
+> > +       __u8 picture_structure;
+> > +       __u8 top_field_first;
+> > +       __u8 frame_pred_frame_dct;
+> > +       __u8 concealment_motion_vectors;
+> > +       __u8 q_scale_type;
+> > +       __u8 intra_vlc_format;
+> > +       __u8 alternate_scan;
+> > +
+> > +       __u8 backward_ref_index;
+> > +       __u8 forward_ref_index;
+> > +};
+> > +
+> >   #endif
+> > diff --git a/include/uapi/linux/videodev2.h
+>=20
+> b/include/uapi/linux/videodev2.h
+> > index 31b5728b56e9..4b8336f7bcf0 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -635,6 +635,7 @@ struct v4l2_pix_format {
+> >   #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L')
+> > /*
+>=20
+> SMPTE 421M Annex L compliant stream */
+> >   #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /*
+> > VP8 */
+> >   #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /*
+> > VP9 */
+> > +#define V4L2_PIX_FMT_MPEG2_FRAME v4l2_fourcc('M', 'G', '2', 'F') /*
+>=20
+> MPEG2 frame */
+>=20
+> >   /*  Vendor-specific formats   */
+> >   #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /*
+> > cpia1
+>=20
+> YUV */
+> > @@ -1586,6 +1587,7 @@ struct v4l2_ext_control {
+> >                  __u8 __user *p_u8;
+> >                  __u16 __user *p_u16;
+> >                  __u32 __user *p_u32;
+> > +               struct v4l2_ctrl_mpeg2_frame_hdr __user
+>=20
+> *p_mpeg2_frame_hdr;
+> >                  void __user *ptr;
+> >          };
+> >   } __attribute__ ((packed));
+> > @@ -1631,6 +1633,7 @@ enum v4l2_ctrl_type {
+> >          V4L2_CTRL_TYPE_U8            =3D 0x0100,
+> >          V4L2_CTRL_TYPE_U16           =3D 0x0101,
+> >          V4L2_CTRL_TYPE_U32           =3D 0x0102,
+> > +       V4L2_CTRL_TYPE_MPEG2_FRAME_HDR =3D 0x0109,
+>=20
+> Why 0x0109?
+
+Good catch. I see no reason in particular, so I'll probably make it
+0x0103 eventually.
+
+Cheers and thanks for the review!
+
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+--=-U4fIwvrA8kmLG9u793QO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrsGKMACgkQ3cLmz3+f
+v9Ggywf/buPoS1xRGzfgUMg0fQjA7nsPaat8ZmQFCQgezckDxvntqmMLn4fREdg2
+AwEwsulx3K6j96CFfHN4kJSovAd2vcQ6hZf9tP7T006o60ltjwbhjNhOqI9zhLKB
+EsJH/hEXkice1QA7LKYwor18ydoa8XD+jwM1/mOlerFFGyJHIMvDbFCTaD6JPffX
+dcEo7S7fpoOBE0Bj6FlD6PtynHWVQcxJGdpPptCOrHAGot1LP+DJqu7xU93IvzwZ
+dgEzpf5ZXY0U8zL0vyuyL4PmAEYyRnsUFosLNkhopVP/Ih/Ftz8gq3d21p8mMfxo
+sVw4XL7FSN7tgafIe/mUrW1UfWH0og==
+=9H7Z
+-----END PGP SIGNATURE-----
+
+--=-U4fIwvrA8kmLG9u793QO--
