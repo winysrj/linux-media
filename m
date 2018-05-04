@@ -1,65 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:51528 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1755458AbeE2Iss (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 04:48:48 -0400
-Date: Tue, 29 May 2018 10:48:45 +0200
-From: Gerd Hoffmann <kraxel@redhat.com>
-To: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Shuah Khan <shuah@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:KERNEL SELFTEST FRAMEWORK"
-        <linux-kselftest@vger.kernel.org>
-Subject: Re: [PATCH v3] Add udmabuf misc device
-Message-ID: <20180529084845.2al2dmpvjpz6eexp@sirius.home.kraxel.org>
-References: <20180525140808.12714-1-kraxel@redhat.com>
- <20180529082327.GF3438@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180529082327.GF3438@phenom.ffwll.local>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:39519 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751278AbeEDOoi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 10:44:38 -0400
+Message-ID: <1525445066.17782.38.camel@pengutronix.de>
+Subject: Re: [PATCH 2/2] media: imx: add support for RGB565_2X8 on parallel
+ bus
+From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
+To: kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
+        slongerbeam@gmail.com, p.zabel@pengutronix.de
+Date: Fri, 04 May 2018 16:44:26 +0200
+In-Reply-To: <201805041304.nDtDGKOf%fengguang.wu@intel.com>
+References: <20180503164120.9912-3-jlu@pengutronix.de>
+         <201805041304.nDtDGKOf%fengguang.wu@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hi,
+On Fri, 2018-05-04 at 13:07 +0800, kbuild test robot wrote:
+>    drivers/staging/media/imx/imx-media-csi.c: In function
+> 'csi_setup':
+> >> drivers/staging/media/imx/imx-media-csi.c:652:8: warning:
+> assignment discards 'const' qualifier from pointer target type [-
+> Wdiscarded-qualifiers]
+>      outcc = priv->cc[priv->active_output_pad];
+>            ^
 
-> > +static void *kmap_atomic_udmabuf(struct dma_buf *buf, unsigned long page_num)
-> > +{
-> > +	struct udmabuf *ubuf = buf->priv;
-> > +	struct page *page = ubuf->pages[page_num];
-> > +
-> > +	return kmap_atomic(page);
-> > +}
-> > +
-> > +static void *kmap_udmabuf(struct dma_buf *buf, unsigned long page_num)
-> > +{
-> > +	struct udmabuf *ubuf = buf->priv;
-> > +	struct page *page = ubuf->pages[page_num];
-> > +
-> > +	return kmap(page);
-> > +}
-> 
-> The above leaks like mad since no kunamp?
+I've fixed this and the unneeded semicolon for the next round.
 
-/me checks code.  Oops.  Yes.
-
-The docs say map() is required and unmap() is not (for both atomic and
-non-atomic cases), so I assumed there is a default implementation just
-doing kunmap(page).  Which is not the case.  /me looks a bit surprised.
-
-I'll fix it for v4.
-
-> Also I think we have 0 users of the kmap atomic interfaces ... so not sure
-> whether it's worth it to implement those.
-
-Well, the docs are correct.  kmap_atomic() is required, dma-buf.c calls
-the function pointer without checking it exists beforehand ...
-
-cheers,
-  Gerd
+Regards,
+Jan
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
