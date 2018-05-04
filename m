@@ -1,76 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:50652 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752488AbeEQRYJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 13:24:09 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH v10 2/8] media: vsp1: Protect bodies against overflow
-Date: Thu, 17 May 2018 18:23:55 +0100
-Message-Id: <3d343d7eef1d43b04c15dcbd473507ee539779ca.1526577622.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.e217e37c63010c4a78c4022a30a389e5d7627919.1526577622.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.e217e37c63010c4a78c4022a30a389e5d7627919.1526577622.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.e217e37c63010c4a78c4022a30a389e5d7627919.1526577622.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.e217e37c63010c4a78c4022a30a389e5d7627919.1526577622.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:54080 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751670AbeEDUIO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 16:08:14 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v9 09/15] vb2: mark codec drivers as unordered
+Date: Fri,  4 May 2018 17:06:06 -0300
+Message-Id: <20180504200612.8763-10-ezequiel@collabora.com>
+In-Reply-To: <20180504200612.8763-1-ezequiel@collabora.com>
+References: <20180504200612.8763-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The body write function relies on the code never asking it to write more
-than the entries available in the list.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Currently with each list body containing 256 entries, this is fine, but
-we can reduce this number greatly saving memory. In preparation of this
-add a level of protection to catch any buffer overflows.
+In preparation to have full support to explicit fence we are
+marking codec as non-ordered preventively. It is easier and safer from an
+uAPI point of view to move from unordered to ordered than the opposite.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+v3: set property instead of callback
+v2: mark only codec drivers as unordered (Nicolas and Hans)
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/media/platform/vsp1/vsp1_dl.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 2 ++
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 1 +
+ drivers/media/platform/qcom/venus/venc.c           | 2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           | 2 ++
+ 4 files changed, 7 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 083da4f05c20..51965c30dec2 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -46,6 +46,7 @@ struct vsp1_dl_entry {
-  * @dma: DMA address of the entries
-  * @size: size of the DMA memory in bytes
-  * @num_entries: number of stored entries
-+ * @max_entries: number of entries available
-  */
- struct vsp1_dl_body {
- 	struct list_head list;
-@@ -56,6 +57,7 @@ struct vsp1_dl_body {
- 	size_t size;
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+index 86f0a7134365..c03cefde0c28 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+@@ -1498,6 +1498,7 @@ int mtk_vcodec_dec_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock		= &ctx->dev->dev_mutex;
+ 	src_vq->dev             = &ctx->dev->plat_dev->dev;
++	src_vq->unordered       = 1;
  
- 	unsigned int num_entries;
-+	unsigned int max_entries;
- };
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret) {
+@@ -1513,6 +1514,7 @@ int mtk_vcodec_dec_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock		= &ctx->dev->dev_mutex;
+ 	dst_vq->dev             = &ctx->dev->plat_dev->dev;
++	src_vq->unordered       = 1;
  
- /**
-@@ -138,6 +140,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
+ 	ret = vb2_queue_init(dst_vq);
+ 	if (ret) {
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+index 1b1a28abbf1f..81751c9aa19d 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+@@ -1340,6 +1340,7 @@ int mtk_vcodec_enc_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock		= &ctx->dev->dev_mutex;
+ 	dst_vq->dev		= &ctx->dev->plat_dev->dev;
++	dst_vq->unordered	= 1;
  
- 	dlb->vsp1 = vsp1;
- 	dlb->size = size;
-+	dlb->max_entries = num_entries;
- 
- 	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
- 				    GFP_KERNEL);
-@@ -219,6 +222,10 @@ void vsp1_dl_body_free(struct vsp1_dl_body *dlb)
-  */
- void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
-+	if (WARN_ONCE(dlb->num_entries >= dlb->max_entries,
-+		      "DLB size exceeded (max %u)", dlb->max_entries))
-+		return;
-+
- 	dlb->entries[dlb->num_entries].addr = reg;
- 	dlb->entries[dlb->num_entries].data = data;
- 	dlb->num_entries++;
+ 	return vb2_queue_init(dst_vq);
+ }
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index 6b2ce479584e..17ec2d218aa5 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -1053,6 +1053,7 @@ static int m2m_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->buf_struct_size = sizeof(struct venus_buffer);
+ 	src_vq->allow_zero_bytesused = 1;
+ 	src_vq->min_buffers_needed = 1;
++	src_vq->unordered = 1;
+ 	src_vq->dev = inst->core->dev;
+ 	if (inst->core->res->hfi_version == HFI_VERSION_1XX)
+ 		src_vq->bidirectional = 1;
+@@ -1069,6 +1070,7 @@ static int m2m_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->buf_struct_size = sizeof(struct venus_buffer);
+ 	dst_vq->allow_zero_bytesused = 1;
+ 	dst_vq->min_buffers_needed = 1;
++	src_vq->unordered = 1;
+ 	dst_vq->dev = inst->core->dev;
+ 	ret = vb2_queue_init(dst_vq);
+ 	if (ret) {
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index a80251ed3143..6a4251f988ab 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -863,6 +863,7 @@ static int s5p_mfc_open(struct file *file)
+ 	q->dma_attrs = DMA_ATTR_ALLOC_SINGLE_PAGES;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	q->unordered = 1;
+ 	ret = vb2_queue_init(q);
+ 	if (ret) {
+ 		mfc_err("Failed to initialize videobuf2 queue(capture)\n");
+@@ -898,6 +899,7 @@ static int s5p_mfc_open(struct file *file)
+ 	q->dma_attrs = DMA_ATTR_ALLOC_SINGLE_PAGES;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	q->unordered = 1;
+ 	ret = vb2_queue_init(q);
+ 	if (ret) {
+ 		mfc_err("Failed to initialize videobuf2 queue(output)\n");
 -- 
-git-series 0.9.1
+2.16.3
