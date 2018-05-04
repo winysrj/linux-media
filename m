@@ -1,176 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.socionext.com ([202.248.49.38]:35842 "EHLO mx.socionext.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S968832AbeE3JJw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 05:09:52 -0400
-From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>,
-        Jassi Brar <jaswinder.singh@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-Subject: [PATCH 6/8] media: uniphier: add common module of DVB adapter drivers
-Date: Wed, 30 May 2018 18:09:44 +0900
-Message-Id: <20180530090946.1635-7-suzuki.katsuhiro@socionext.com>
-In-Reply-To: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
-References: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
+Received: from bombadil.infradead.org ([198.137.202.133]:36420 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751239AbeEDOHM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 10:07:12 -0400
+Date: Fri, 4 May 2018 11:07:01 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        linux-fbdev@vger.kernel.org
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Al Viro <viro@zeniv.linux.org.uk>
+Subject: Re: [PATCH v2 7/7] media: via-camera: allow build on non-x86 archs
+ with COMPILE_TEST
+Message-ID: <20180504110701.5436d05c@vento.lan>
+In-Reply-To: <5323943.SkjzUNBk3k@amdc3058>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+        <396bfb33e763c31ead093ac1035b2ecf7311b5bc.1524245455.git.mchehab@s-opensource.com>
+        <20180420160321.4ecefa00@vento.lan>
+        <CGME20180423121932eucas1p212eb6412ff8df511047c3afa782db6e0@eucas1p2.samsung.com>
+        <5323943.SkjzUNBk3k@amdc3058>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds common module for UniPhier DVB adapter drivers
-that equipments tuners and demod that connected by I2C and
-UniPhier demux.
+Em Mon, 23 Apr 2018 14:19:31 +0200
+Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com> escreveu:
 
-Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
----
- drivers/media/platform/uniphier/Makefile      |  5 ++
- drivers/media/platform/uniphier/hsc-core.c    |  8 ---
- .../platform/uniphier/uniphier-adapter.c      | 54 +++++++++++++++++++
- .../platform/uniphier/uniphier-adapter.h      | 42 +++++++++++++++
- 4 files changed, 101 insertions(+), 8 deletions(-)
- create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.c
- create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.h
 
-diff --git a/drivers/media/platform/uniphier/Makefile b/drivers/media/platform/uniphier/Makefile
-index 0622f04d9e68..9e75ad081b77 100644
---- a/drivers/media/platform/uniphier/Makefile
-+++ b/drivers/media/platform/uniphier/Makefile
-@@ -3,3 +3,8 @@ uniphier-dvb-y += hsc-core.o hsc-ucode.o hsc-css.o hsc-ts.o hsc-dma.o
- uniphier-dvb-$(CONFIG_DVB_UNIPHIER_LD11) += hsc-ld11.o
- 
- obj-$(CONFIG_DVB_UNIPHIER) += uniphier-dvb.o
-+
-+ccflags-y += -Idrivers/media/dvb-frontends/
-+ccflags-y += -Idrivers/media/tuners/
-+
-+uniphier-dvb-y += uniphier-adapter.o
-diff --git a/drivers/media/platform/uniphier/hsc-core.c b/drivers/media/platform/uniphier/hsc-core.c
-index cdb488e4df8c..a8d247cfd302 100644
---- a/drivers/media/platform/uniphier/hsc-core.c
-+++ b/drivers/media/platform/uniphier/hsc-core.c
-@@ -256,14 +256,6 @@ static void hsc_dmaif_feed_worker(struct work_struct *work)
- 	dma_sync_single_for_cpu(dev, dmapos, cnt, DMA_FROM_DEVICE);
- 	for (i = 0; i < cnt; i += SZ_M2TS_PKT) {
- 		pkt = buf->virt + buf->rd_offs + i;
--
--		if (pkt[4] == 0x47 && pkt[5] == 0x1f && pkt[6] == 0xff)
--			continue;
--		if (pkt[5] & 0x80)
--			continue;
--		if (pkt[7] & 0xc0)
--			continue;
--
- 		dvb_dmx_swfilter_packets(&tsif->demux, &pkt[4], 1);
- 	}
- 	dma_sync_single_for_device(dev, dmapos, cnt, DMA_FROM_DEVICE);
-diff --git a/drivers/media/platform/uniphier/uniphier-adapter.c b/drivers/media/platform/uniphier/uniphier-adapter.c
-new file mode 100644
-index 000000000000..c895bbd9988e
---- /dev/null
-+++ b/drivers/media/platform/uniphier/uniphier-adapter.c
-@@ -0,0 +1,54 @@
-+// SPDX-License-Identifier: GPL-2.0
-+//
-+// Socionext UniPhier LD20 adapter driver for ISDB.
-+// Using Socionext MN884434 ISDB-S/ISDB-T demodulator and
-+// SONY HELENE tuner.
-+//
-+// Copyright (c) 2018 Socionext Inc.
-+
-+#include <linux/kernel.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+
-+#include "hsc.h"
-+#include "uniphier-adapter.h"
-+
-+int uniphier_adapter_demux_probe(struct uniphier_adapter_priv *priv)
-+{
-+	const struct uniphier_adapter_spec *spec = priv->spec;
-+	struct device *dev = &priv->pdev->dev;
-+	struct device_node *node;
-+	int ret, i;
-+
-+	node = of_parse_phandle(dev->of_node, "demux", 0);
-+	if (!node) {
-+		dev_err(dev, "Failed to parse demux\n");
-+		return -ENODEV;
-+	}
-+
-+	priv->pdev_demux = of_find_device_by_node(node);
-+	if (!priv->pdev_demux) {
-+		dev_err(dev, "Failed to find demux device\n");
-+		of_node_put(node);
-+		return -ENODEV;
-+	}
-+	of_node_put(node);
-+
-+	priv->chip = platform_get_drvdata(priv->pdev_demux);
-+
-+	for (i = 0; i < spec->adapters; i++) {
-+		ret = hsc_tsif_init(&priv->chip->tsif[i], &spec->hsc_conf[i]);
-+		if (ret) {
-+			dev_err(dev, "Failed to init TS I/F\n");
-+			return ret;
-+		}
-+
-+		ret = hsc_dmaif_init(&priv->chip->dmaif[i], &spec->hsc_conf[i]);
-+		if (ret) {
-+			dev_err(dev, "Failed to init DMA I/F\n");
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-diff --git a/drivers/media/platform/uniphier/uniphier-adapter.h b/drivers/media/platform/uniphier/uniphier-adapter.h
-new file mode 100644
-index 000000000000..1faada3fd378
---- /dev/null
-+++ b/drivers/media/platform/uniphier/uniphier-adapter.h
-@@ -0,0 +1,42 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Socionext UniPhier DVB driver for High-speed Stream Controller (HSC).
-+ *
-+ * Copyright (c) 2018 Socionext Inc.
-+ */
-+
-+#ifndef DVB_UNIPHIER_ADAPTER_H__
-+#define DVB_UNIPHIER_ADAPTER_H__
-+
-+struct uniphier_adapter_spec {
-+	int adapters;
-+	const struct hsc_conf *hsc_conf;
-+	const struct i2c_board_info *demod_i2c_info;
-+	const struct i2c_board_info *tuner_i2c_info;
-+};
-+
-+struct uniphier_adapter_fe {
-+	struct i2c_client *demod_i2c;
-+	struct i2c_client *tuner_i2c;
-+	struct dvb_frontend *fe;
-+};
-+
-+struct uniphier_adapter_priv {
-+	const struct uniphier_adapter_spec *spec;
-+
-+	struct platform_device *pdev;
-+	struct hsc_chip *chip;
-+
-+	struct platform_device *pdev_demux;
-+	struct clk *demod_mclk;
-+	struct gpio_desc *demod_gpio;
-+	struct i2c_adapter *demod_i2c_adapter;
-+	struct gpio_desc *tuner_gpio;
-+	struct i2c_adapter *tuner_i2c_adapter;
-+
-+	struct uniphier_adapter_fe *fe;
-+};
-+
-+int uniphier_adapter_demux_probe(struct uniphier_adapter_priv *priv);
-+
-+#endif /* DVB_UNIPHIER_ADAPTER_H__ */
--- 
-2.17.0
+> How's about just allowing COMPILE_TEST for FB_VIA instead of adding
+> all these stubs?
+
+Works for me.
+
+Do you want to apply it via your tree or via the media one?
+
+If you prefer to apply on yours:
+
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+
+Thanks!
+Mauro
+
+> 
+> 
+> From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> Subject: [PATCH] video: fbdev: via: allow COMPILE_TEST build
+> 
+> This patch allows viafb driver to be build on !X86 archs
+> using COMPILE_TEST config option.
+> 
+> Since via-camera driver (VIDEO_VIA_CAMERA) depends on viafb
+> it also needs a little fixup.
+> 
+> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> ---
+>  drivers/media/platform/via-camera.c |    5 +++++
+>  drivers/video/fbdev/Kconfig         |    2 +-
+>  drivers/video/fbdev/via/global.h    |    6 ++++++
+>  drivers/video/fbdev/via/hw.c        |    1 -
+>  drivers/video/fbdev/via/via-core.c  |    1 -
+>  drivers/video/fbdev/via/via_clock.c |    2 +-
+>  drivers/video/fbdev/via/viafbdev.c  |    1 -
+>  7 files changed, 13 insertions(+), 5 deletions(-)
+> 
+> Index: b/drivers/media/platform/via-camera.c
+> ===================================================================
+> --- a/drivers/media/platform/via-camera.c	2018-04-23 13:46:37.000000000 +0200
+> +++ b/drivers/media/platform/via-camera.c	2018-04-23 14:01:07.873322815 +0200
+> @@ -27,7 +27,12 @@
+>  #include <linux/via-core.h>
+>  #include <linux/via-gpio.h>
+>  #include <linux/via_i2c.h>
+> +
+> +#ifdef CONFIG_X86
+>  #include <asm/olpc.h>
+> +#else
+> +#define machine_is_olpc(x) 0
+> +#endif
+>  
+>  #include "via-camera.h"
+>  
+> Index: b/drivers/video/fbdev/Kconfig
+> ===================================================================
+> --- a/drivers/video/fbdev/Kconfig	2018-04-10 12:34:26.618867549 +0200
+> +++ b/drivers/video/fbdev/Kconfig	2018-04-23 13:55:41.389314593 +0200
+> @@ -1437,7 +1437,7 @@ config FB_SIS_315
+>  
+>  config FB_VIA
+>         tristate "VIA UniChrome (Pro) and Chrome9 display support"
+> -       depends on FB && PCI && X86 && GPIOLIB && I2C
+> +       depends on FB && PCI && GPIOLIB && I2C && (X86 || COMPILE_TEST)
+>         select FB_CFB_FILLRECT
+>         select FB_CFB_COPYAREA
+>         select FB_CFB_IMAGEBLIT
+> Index: b/drivers/video/fbdev/via/global.h
+> ===================================================================
+> --- a/drivers/video/fbdev/via/global.h	2017-10-18 14:35:22.079448310 +0200
+> +++ b/drivers/video/fbdev/via/global.h	2018-04-23 13:52:57.121310456 +0200
+> @@ -33,6 +33,12 @@
+>  #include <linux/console.h>
+>  #include <linux/timer.h>
+>  
+> +#ifdef CONFIG_X86
+> +#include <asm/olpc.h>
+> +#else
+> +#define machine_is_olpc(x) 0
+> +#endif
+> +
+>  #include "debug.h"
+>  
+>  #include "viafbdev.h"
+> Index: b/drivers/video/fbdev/via/hw.c
+> ===================================================================
+> --- a/drivers/video/fbdev/via/hw.c	2017-10-18 14:35:22.079448310 +0200
+> +++ b/drivers/video/fbdev/via/hw.c	2018-04-23 13:54:24.881312666 +0200
+> @@ -20,7 +20,6 @@
+>   */
+>  
+>  #include <linux/via-core.h>
+> -#include <asm/olpc.h>
+>  #include "global.h"
+>  #include "via_clock.h"
+>  
+> Index: b/drivers/video/fbdev/via/via-core.c
+> ===================================================================
+> --- a/drivers/video/fbdev/via/via-core.c	2017-11-22 14:11:59.852728679 +0100
+> +++ b/drivers/video/fbdev/via/via-core.c	2018-04-23 13:53:24.893311156 +0200
+> @@ -17,7 +17,6 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/list.h>
+>  #include <linux/pm.h>
+> -#include <asm/olpc.h>
+>  
+>  /*
+>   * The default port config.
+> Index: b/drivers/video/fbdev/via/via_clock.c
+> ===================================================================
+> --- a/drivers/video/fbdev/via/via_clock.c	2017-10-18 14:35:22.083448309 +0200
+> +++ b/drivers/video/fbdev/via/via_clock.c	2018-04-23 13:53:45.389311672 +0200
+> @@ -25,7 +25,7 @@
+>  
+>  #include <linux/kernel.h>
+>  #include <linux/via-core.h>
+> -#include <asm/olpc.h>
+> +
+>  #include "via_clock.h"
+>  #include "global.h"
+>  #include "debug.h"
+> Index: b/drivers/video/fbdev/via/viafbdev.c
+> ===================================================================
+> --- a/drivers/video/fbdev/via/viafbdev.c	2017-11-22 14:11:59.852728679 +0100
+> +++ b/drivers/video/fbdev/via/viafbdev.c	2018-04-23 13:53:55.325311922 +0200
+> @@ -25,7 +25,6 @@
+>  #include <linux/stat.h>
+>  #include <linux/via-core.h>
+>  #include <linux/via_i2c.h>
+> -#include <asm/olpc.h>
+>  
+>  #define _MASTER_FILE
+>  #include "global.h"
+> 
+> 
+
+
+
+Thanks,
+Mauro
