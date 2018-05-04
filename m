@@ -1,201 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:43624 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932285AbeEWKb2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 06:31:28 -0400
-Message-ID: <70b7ddaf685c2fc08dfd1caaab45bb0cc9c99a21.camel@collabora.com>
-Subject: Re: [PATCH v10 08/16] v4l: mark unordered formats
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: kernel@collabora.com,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Date: Wed, 23 May 2018 07:30:00 -0300
-In-Reply-To: <2df0ec97-9e0f-8fc3-1481-ac0a72e52e4d@xs4all.nl>
-References: <20180521165946.11778-1-ezequiel@collabora.com>
-         <20180521165946.11778-9-ezequiel@collabora.com>
-         <2df0ec97-9e0f-8fc3-1481-ac0a72e52e4d@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from bombadil.infradead.org ([198.137.202.133]:54238 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750820AbeEDLeN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 07:34:13 -0400
+Date: Fri, 4 May 2018 08:33:55 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Harry Wei <harryxiyou@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Brian Warner <brian.warner@samsung.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        Bhumika Goyal <bhumirks@gmail.com>, Sean Young <sean@mess.org>,
+        Brad Love <brad@nextdimension.cc>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Alexey Klimov <klimov.linux@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Tim Harvey <tharvey@gateworks.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Yong Zhi <yong.zhi@intel.com>, Jan Kara <jack@suse.cz>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Kamil Rytarowski <n54@gmx.com>,
+        Matthew Wilcox <mawilcox@microsoft.com>,
+        linux-doc@vger.kernel.org, linux-kernel@zh-kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH] MAINTAINERS & files: Canonize the e-mails I use at
+ files
+Message-ID: <20180504083355.0c891ab3@vento.lan>
+In-Reply-To: <87in837km8.fsf@intel.com>
+References: <85bfc919e068ea7bb1e9b533ac6f60798844a5c0.1525428104.git.mchehab+samsung@kernel.org>
+        <87in837km8.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2018-05-22 at 13:55 +0200, Hans Verkuil wrote:
-> On 21/05/18 18:59, Ezequiel Garcia wrote:
-> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > 
-> > Now that we've introduced the V4L2_FMT_FLAG_UNORDERED flag,
-> > mark the appropriate formats.
-> > 
-> > v2: Set unordered flag before calling the driver callback.
-> > 
-> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-ioctl.c | 74 +++++++++++++++++++++++++++---------
-> >  1 file changed, 57 insertions(+), 17 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > index f48c505550e0..2135ac235a96 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > @@ -1102,6 +1102,27 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
-> >  	return ops->vidioc_enum_output(file, fh, p);
-> >  }
-> >  
-> > +static void v4l_fill_unordered_fmtdesc(struct v4l2_fmtdesc *fmt)
-> > +{
-> > +	switch (fmt->pixelformat) {
-> > +	case V4L2_PIX_FMT_MPEG:
-> > +	case V4L2_PIX_FMT_H264:
-> > +	case V4L2_PIX_FMT_H264_NO_SC:
-> > +	case V4L2_PIX_FMT_H264_MVC:
-> > +	case V4L2_PIX_FMT_H263:
-> > +	case V4L2_PIX_FMT_MPEG1:
-> > +	case V4L2_PIX_FMT_MPEG2:
-> > +	case V4L2_PIX_FMT_MPEG4:
-> > +	case V4L2_PIX_FMT_XVID:
-> > +	case V4L2_PIX_FMT_VC1_ANNEX_G:
-> > +	case V4L2_PIX_FMT_VC1_ANNEX_L:
-> > +	case V4L2_PIX_FMT_VP8:
-> > +	case V4L2_PIX_FMT_VP9:
-> > +	case V4L2_PIX_FMT_HEVC:
-> > +		fmt->flags |= V4L2_FMT_FLAG_UNORDERED;
+Em Fri, 04 May 2018 13:58:39 +0300
+Jani Nikula <jani.nikula@linux.intel.com> escreveu:
+
+> On Fri, 04 May 2018, Mauro Carvalho Chehab <mchehab+samsung@kernel.org> wrote:
+> > From now on, I'll start using my @kernel.org as my development e-mail.
+> >
+> > As such, let's remove the entries that point to the old
+> > mchehab@s-opensource.com at MAINTAINERS file.
+> >
+> > For the files written with a copyright with mchehab@s-opensource,
+> > let's keep Samsung on their names, using mchehab+samsung@kernel.org,
+> > in order to keep pointing to my employer, with sponsors the work.
+> >
+> > For the files written before I join Samsung (on July, 4 2013),
+> > let's just use mchehab@kernel.org.
+> >
+> > For bug reports, we can simply point to just kernel.org, as
+> > this will reach my mchehab+samsung inbox anyway.  
 > 
-> Please add a break here. This prevents potential future errors if new cases
-> are added below this line.
-> 
+> I suppose this begs the question, why do we insist on adding our email
+> addresses all over the place? On a quick grep, there are at least 40k+
+> email addresses in the sources. Do we expect them all to be up-to-date
+> too?
 
-Sure.
+That's a good question.
 
-> > +	}
-> > +}
-> > +
-> >  static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
-> >  {
-> >  	const unsigned sz = sizeof(fmt->description);
-> > @@ -1310,61 +1331,80 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
-> >  
-> >  	if (descr)
-> >  		WARN_ON(strlcpy(fmt->description, descr, sz) >= sz);
-> > -	fmt->flags = flags;
-> > +	fmt->flags |= flags;
-> >  }
-> >  
-> > -static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
-> > -				struct file *file, void *fh, void *arg)
-> > -{
-> > -	struct v4l2_fmtdesc *p = arg;
-> > -	int ret = check_fmt(file, p->type);
-> >  
-> > -	if (ret)
-> > -		return ret;
-> > -	ret = -EINVAL;
-> > +static int __vidioc_enum_fmt(const struct v4l2_ioctl_ops *ops,
-> > +			     struct v4l2_fmtdesc *p,
-> > +			     struct file *file, void *fh)
-> > +{
-> > +	int ret = 0;
-> >  
-> >  	switch (p->type) {
-> >  	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-> >  		if (unlikely(!ops->vidioc_enum_fmt_vid_cap))
-> >  			break;
-> > -		ret = ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
-> > +		ret = ops->vidioc_enum_fmt_vid_cap(file, fh, p);
-> >  		break;
-> >  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-> >  		if (unlikely(!ops->vidioc_enum_fmt_vid_cap_mplane))
-> >  			break;
-> > -		ret = ops->vidioc_enum_fmt_vid_cap_mplane(file, fh, arg);
-> > +		ret = ops->vidioc_enum_fmt_vid_cap_mplane(file, fh, p);
-> >  		break;
-> >  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
-> >  		if (unlikely(!ops->vidioc_enum_fmt_vid_overlay))
-> >  			break;
-> > -		ret = ops->vidioc_enum_fmt_vid_overlay(file, fh, arg);
-> > +		ret = ops->vidioc_enum_fmt_vid_overlay(file, fh, p);
-> >  		break;
-> >  	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> >  		if (unlikely(!ops->vidioc_enum_fmt_vid_out))
-> >  			break;
-> > -		ret = ops->vidioc_enum_fmt_vid_out(file, fh, arg);
-> > +		ret = ops->vidioc_enum_fmt_vid_out(file, fh, p);
-> >  		break;
-> >  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-> >  		if (unlikely(!ops->vidioc_enum_fmt_vid_out_mplane))
-> >  			break;
-> > -		ret = ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
-> > +		ret = ops->vidioc_enum_fmt_vid_out_mplane(file, fh, p);
-> >  		break;
-> >  	case V4L2_BUF_TYPE_SDR_CAPTURE:
-> >  		if (unlikely(!ops->vidioc_enum_fmt_sdr_cap))
-> >  			break;
-> > -		ret = ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
-> > +		ret = ops->vidioc_enum_fmt_sdr_cap(file, fh, p);
-> >  		break;
-> >  	case V4L2_BUF_TYPE_SDR_OUTPUT:
-> >  		if (unlikely(!ops->vidioc_enum_fmt_sdr_out))
-> >  			break;
-> > -		ret = ops->vidioc_enum_fmt_sdr_out(file, fh, arg);
-> > +		ret = ops->vidioc_enum_fmt_sdr_out(file, fh, p);
-> >  		break;
-> >  	case V4L2_BUF_TYPE_META_CAPTURE:
-> >  		if (unlikely(!ops->vidioc_enum_fmt_meta_cap))
-> >  			break;
-> > -		ret = ops->vidioc_enum_fmt_meta_cap(file, fh, arg);
-> > +		ret = ops->vidioc_enum_fmt_meta_cap(file, fh, p);
-> >  		break;
-> >  	}
-> > +	return ret;
-> > +}
-> > +
-> > +static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
-> > +				struct file *file, void *fh, void *arg)
-> > +{
-> > +	struct v4l2_fmtdesc *p = arg;
-> > +	int ret = check_fmt(file, p->type);
-> > +
-> > +	if (ret)
-> > +		return ret;
-> > +	ret = -EINVAL;
-> 
-> Why set ret when it is overwritten below?
-> 
+The usual use case is that the e-mail allows people to contact developers
+if needed. Such contact could simply due to something like handling SPDX
+or other license-related issues or for troubleshooting.
 
-Oops, seems to be some leftover code.
+There's also another reason (with IMHO, is more relevant): just the name
+may not be enough to uniquely identify the author of some code. While
+that might happen on occidental Countries, this is a way more relevant
+for Asian Countries. For example, there are very few surnames on
+some Countries there[1], and common names are usually... common. So, it
+is not hard to find several people with exactly the same name working at
+the same company. I've seen e-mails from those people that are things like
+john.doe51@some.company, john.doe69@some.company, ...
 
-> > +
-> > +	ret = __vidioc_enum_fmt(ops, p, file, fh);
-> > +	if (ret)
-> > +		return ret;
-> 
-> Huh? Why call the driver twice? As far as I can see you can just drop
-> these three lines above.
-> 
-> 
+[1] For example: https://en.wikipedia.org/wiki/List_of_Korean_surnames.
 
-Well, because I thought this was the outcome of v9 [1]. Let me quote you:
+The e-mail is a way to uniquely identify a person. If we remove it,
+then we may need to add another thing instead (like parents names,
+security number or whatever), with would be weird, IMO. 
 
-""
-I realized that this is a problem since this function is called *after*
-the driver. So the driver has no chance to clear this flag if it knows
-that the queue is always ordered.
-""
+As we all use e-mails to uniquely identify contributors submissions,
+IMHO, the best is to keep using e-mails. The side effect is that
+we should keep those emails updated.
 
-So, we first call the driver to get struct v4l2_fmtdesc pixelformat field
-filled by the driver, then we call v4l_fill_unordered_fmtdesc()
-to set FLAG_UNORDERED if needed, and finally we call the driver again
-so it can clear the FLAG_UNORDERED.
+-
 
-Does that make sense?
+In the specific case of this patch, as I'm now just using @kernel.org
+everywhere within the Kernel tree, I don't expect needing to change
+it in long term.
 
-[1] https://lkml.org/lkml/2018/5/7/349
+Thanks,
+Mauro
