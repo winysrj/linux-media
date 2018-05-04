@@ -1,148 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:47208 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750971AbeEEKct (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2018 06:32:49 -0400
-Date: Sat, 5 May 2018 07:32:44 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from mail.bootlin.com ([62.4.15.54]:50174 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750709AbeEDH6w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 May 2018 03:58:52 -0400
+Message-ID: <35411894a87b65865eb8b43e5f50829db336a323.camel@bootlin.com>
+Subject: Re: [PATCH v2 07/10] media: platform: Add Sunxi-Cedrus VPU decoder
+ driver
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sebastian Reichel <sre@kernel.org>
-Subject: Re: 4.17-rc3 regression in UVC driver
-Message-ID: <20180505073244.0e0dc9b1@vento.lan>
-In-Reply-To: <5976e224-ba79-ffbb-d377-734e85fadde4@ideasonboard.com>
-References: <20180504181900.pm72mxyueqb3fu3z@earth.universe>
-        <3a5a32b0-a78d-571c-60af-416656f81e69@ideasonboard.com>
-        <5976e224-ba79-ffbb-d377-734e85fadde4@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 04 May 2018 09:57:20 +0200
+In-Reply-To: <20180424091328.jsqp36nxekuj23am@paasikivi.fi.intel.com>
+References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
+         <20180419154536.17846-3-paul.kocialkowski@bootlin.com>
+         <20180424091328.jsqp36nxekuj23am@paasikivi.fi.intel.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-hmK8lEk1M6anlVahez65"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
 
-Em Sat, 5 May 2018 08:46:50 +0100
-Kieran Bingham <kieran.bingham@ideasonboard.com> escreveu:
+--=-hmK8lEk1M6anlVahez65
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA512
-> 
-> Hello again,
-> 
-> On 05/05/18 08:34, Kieran Bingham wrote:
-> > Hi Sebastian,
-> > 
-> > On 04/05/18 19:45, Sebastian Reichel wrote:  
-> >> Hi,
-> >> 
-> >> I just got the following error message every ms with 4.17-rc3 after 
-> >> upgrading to for first ~192 seconds after system start (Debian 
-> >> 4.17~rc3-1~exp1 kernel) on my Thinkpad X250:
-> >>   
-> >>> uvcvideo: Failed to query (GET_MIN) UVC control 2 on unit 1: -32 (exp. 
-> >>> 1).  
-> > 
-> > I have submitted a patch to fix this ... (and I thought it would have got 
-> > in by now ... so I'll chase this up)  
-> 
-> 
-> Mauro - I just saw Laurent sent a pull-request for this last week, so I guess
-> maybe it's on it's way:
-> 
-> [GIT FIXES FOR v4.17] UVC fixes (25/04/2018)
-> 
-> But perhaps it got missed ? - I don't see this patch in media/v4.17-4:
-> 
-> git log media/v4.17-4 --grep="media: uvcvideo: Prevent setting unavailable flags
-> "
-> <blank>
-> 
-> Anyway, I'll leave this in your hands.
+Hi,
 
-Yes, it got missed. Looking a the e-mail he sent, whitespaces completely
-destroyed the pull request, causing it to not be caught by patchwork.
+On Tue, 2018-04-24 at 12:13 +0300, Sakari Ailus wrote:
+> Hi Paul
+>=20
+> On Thu, Apr 19, 2018 at 05:45:33PM +0200, Paul Kocialkowski wrote:
+> > This introduces the Sunxi-Cedrus VPU driver that supports the VPU
+> > found
+> > in Allwinner SoCs, also known as Video Engine. It is implemented
+> > through
+> > a v4l2 m2m decoder device and a media device (used for media
+> > requests).
+> > So far, it only supports MPEG2 decoding.
+> >=20
+> > Since this VPU is stateless, synchronization with media requests is
+> > required in order to ensure consistency between frame headers that
+> > contain metadata about the frame to process and the raw slice data
+> > that
+> > is used to generate the frame.
+> >=20
+> > This driver was made possible thanks to the long-standing effort
+> > carried out by the linux-sunxi community in the interest of reverse
+> > engineering, documenting and implementing support for Allwinner VPU.
+>=20
+> No code review yet, but DT bindings precede the driver. Please also
+> add the appropriate MAINTAINERS entries.
 
-I manually pull from  git://linuxtv.org/pinchartl/media.git uvc/fixes
-and picked the patch.
+Thanks for the indication, will do in the next version(s).
 
-It should be at media_tree.git at the fixes branch.
+Cheers,
 
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+--=-hmK8lEk1M6anlVahez65
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-> 
-> - --
-> Regards
-> 
-> Kieran
-> 
-> 
-> > Please see : https://patchwork.linuxtv.org/patch/48043/ and apply the
-> > patch to bring your system logs back to a reasonable state :D
-> > 
-> > Laurent, Mauro,
-> > 
-> > This is the second bug report I've had on this topic. Can we aim to get 
-> > this patch merged please?
-> >   
-> >> I see /dev/video0 and /dev/video1. The first one seems to be functional. 
-> >> The second one does not work and does not make sense to me (the system 
-> >> has only one webcam). I did not try to bisect anything. Here is some
-> >> more information, that might be useful:  
-> > 
-> > There are two device nodes now, as one is provided to output meta-data or 
-> > such.
-> > 
-> >   
-> >>> sre@earth ~ % mpv /dev/video1 Playing: /dev/video1 [ffmpeg/demuxer] 
-> >>> video4linux2,v4l2: ioctl(VIDIOC_G_INPUT): Inappropriate ioctl for 
-> >>> device [lavf] avformat_open_input() failed Failed to recognize file 
-> >>> format. sre@earth ~ % udevadm info /dev/video0 P: 
-> >>> /devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4linux/video0
-> >>> N: video0 E: DEVNAME=/dev/video0 E: 
-> >>> DEVPATH=/devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4linux/video0
-> >>>
-> >>>
-> >>>   
-> E: MAJOR=81
-> >>> E: MINOR=0 E: SUBSYSTEM=video4linux sre@earth ~ % udevadm info 
-> >>> /dev/video1 P: 
-> >>> /devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4linux/video1
-> >>> N: video1 E: DEVNAME=/dev/video1 E: 
-> >>> DEVPATH=/devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4linux/video1
-> >>>
-> >>>
-> >>>   
-> E: MAJOR=81
-> >>> E: MINOR=1 E: SUBSYSTEM=video4linux sre@earth ~ % lsusb -d 04ca:703c 
-> >>> Bus 001 Device 004: ID 04ca:703c Lite-On Technology Corp.  
-> >> 
-> >> -- Sebastian  
-> > 
-> > 
-> > Regards
-> > 
-> > Kieran
-> >   
-> -----BEGIN PGP SIGNATURE-----
-> 
-> iQIzBAEBCgAdFiEEkC3XmD+9KP3jctR6oR5GchCkYf0FAlrtYWoACgkQoR5GchCk
-> Yf3tQg/7BgBFIj9more5vTaCFEU2L+tapdOBItO+mgzHI9fFXVHAmaVUlSjVAiMX
-> PlyRx1NsSnCRSZ4b6R/ydjEuNG5dLr2B8LfS5QP/6ABmUCONdCBIbx/2mDk+DtoX
-> XZeI65MMr3nZG7f6ZNq2EoVPIcFF4WLY4CsfixBOye3ps4e91IkTDFA/EVG0qkD8
-> XLRHACYSe/7lMS2TcAyOlmzWecYLYqnFBxfjlBD80NfdWITsDZdooZ3KUdHTCqN4
-> ooWjyifkeh79D8M9PGhnNGoB4gbHjTMhbZEH4RaABdv/jO/L4kPExX+2Wjc4LnRj
-> QlWmLm9svIisXJaPO6sPg+rIUr6xLTs5Dv5yYU+UpR9AVfVusHy7FfFoYkcHpThZ
-> h0rc1yi6eU4/Nnz1BvQbLCdjab2yEF5nD05PQs22r4ZJy04ymiz+y3SZvlr8vYfu
-> 2ZRJzjkvFHtWV3yd/LfjxmuzmYXH4Yn+yN8jMGu8sY4JtJEsSF8qPbjDpicOhXvI
-> pv4V9xvDGscsZdKFaNv0IES+NHNRsgPvx0sR0DOb3MC8T9p+aEJPfQEBly1XBPG0
-> 4GkvuA//DKpBASFdlSpKt4YW6OX56X+g8BPOcaBJV8BlBRzumDk4cAZ/T2t4DLm5
-> w3GnEwWLu0BiWl1LKqgh4xVgOg45IqcJJmDgupM3WzjCrYwVCbo=
-> =B80a
-> -----END PGP SIGNATURE-----
+-----BEGIN PGP SIGNATURE-----
 
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrsEmAACgkQ3cLmz3+f
+v9GZRgf+MJxEg75FOlbtwuNiPD3ZFm/aKpQpLJ+V9jDJN52TNqMfJA0vsgQASfz0
+zEE3NDQic84Mo4pQDk96k633Ddki11Ak6fSCNZgTtAxPjy/lIqADe0cZp9k5twAk
+o825TTXDTYcxygHD9bq4QSC674kPryxFSrX4/N7kZrFP+HQQxlBHxMMNsbH6aAzz
+qxpfRaYtcHUFM8kVnEcW9ksHqQAWhBYKRoUhPF/Q81ld0F4WMBKL4dIP0xivhW42
+8W23mSz3QHLILciUdPpxSVFiL2R1FuOkE7GXxZfjqK84OW/dncD7uh8aIALAEe2z
+A1JSPcrj1hC2axf3OoaLNNXI9JhccA==
+=CeZX
+-----END PGP SIGNATURE-----
 
-
-Thanks,
-Mauro
+--=-hmK8lEk1M6anlVahez65--
