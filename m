@@ -1,40 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33948 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751233AbeEQKnH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 06:43:07 -0400
-Received: from lanttu.localdomain (unknown [IPv6:2001:1bc8:1a6:d3d5::e1:1001])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id E4D1E634C7E
-        for <linux-media@vger.kernel.org>; Thu, 17 May 2018 13:43:04 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:54054 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751751AbeEDUIG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 16:08:06 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 0/3] dw9807 and imx258 drivers
-Date: Thu, 17 May 2018 13:43:01 +0300
-Message-Id: <20180517104304.10200-1-sakari.ailus@linux.intel.com>
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v9 07/15] v4l: mark unordered formats
+Date: Fri,  4 May 2018 17:06:04 -0300
+Message-Id: <20180504200612.8763-8-ezequiel@collabora.com>
+In-Reply-To: <20180504200612.8763-1-ezequiel@collabora.com>
+References: <20180504200612.8763-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Re-submitting with correct SoB lines. The removal of the unused retry
-variable has been merged to the dw9807 driver patch.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Alan Chiang (2):
-  media: dt-bindings: Add bindings for Dongwoon DW9807 voice coil
-  media: dw9807: Add dw9807 vcm driver
+Now that we've introduced the V4L2_FMT_FLAG_UNORDERED flag,
+mark the appropriate formats.
 
-Jason Chen (1):
-  media: imx258: Add imx258 camera sensor driver
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 55 ++++++++++++++++++++----------------
+ 1 file changed, 30 insertions(+), 25 deletions(-)
 
- .../bindings/media/i2c/dongwoon,dw9807.txt         |    9 +
- MAINTAINERS                                        |   14 +
- drivers/media/i2c/Kconfig                          |   21 +
- drivers/media/i2c/Makefile                         |    2 +
- drivers/media/i2c/dw9807.c                         |  329 +++++
- drivers/media/i2c/imx258.c                         | 1320 ++++++++++++++++++++
- 6 files changed, 1695 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
- create mode 100644 drivers/media/i2c/dw9807.c
- create mode 100644 drivers/media/i2c/imx258.c
-
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index f48c505550e0..f75ad954a6f2 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1260,20 +1260,6 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		case V4L2_PIX_FMT_MJPEG:	descr = "Motion-JPEG"; break;
+ 		case V4L2_PIX_FMT_JPEG:		descr = "JFIF JPEG"; break;
+ 		case V4L2_PIX_FMT_DV:		descr = "1394"; break;
+-		case V4L2_PIX_FMT_MPEG:		descr = "MPEG-1/2/4"; break;
+-		case V4L2_PIX_FMT_H264:		descr = "H.264"; break;
+-		case V4L2_PIX_FMT_H264_NO_SC:	descr = "H.264 (No Start Codes)"; break;
+-		case V4L2_PIX_FMT_H264_MVC:	descr = "H.264 MVC"; break;
+-		case V4L2_PIX_FMT_H263:		descr = "H.263"; break;
+-		case V4L2_PIX_FMT_MPEG1:	descr = "MPEG-1 ES"; break;
+-		case V4L2_PIX_FMT_MPEG2:	descr = "MPEG-2 ES"; break;
+-		case V4L2_PIX_FMT_MPEG4:	descr = "MPEG-4 part 2 ES"; break;
+-		case V4L2_PIX_FMT_XVID:		descr = "Xvid"; break;
+-		case V4L2_PIX_FMT_VC1_ANNEX_G:	descr = "VC-1 (SMPTE 412M Annex G)"; break;
+-		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
+-		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
+-		case V4L2_PIX_FMT_VP9:		descr = "VP9"; break;
+-		case V4L2_PIX_FMT_HEVC:		descr = "HEVC"; break; /* aka H.265 */
+ 		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
+ 		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
+ 		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
+@@ -1294,17 +1280,36 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		case V4L2_PIX_FMT_S5C_UYVY_JPG:	descr = "S5C73MX interleaved UYVY/JPEG"; break;
+ 		case V4L2_PIX_FMT_MT21C:	descr = "Mediatek Compressed Format"; break;
+ 		default:
+-			WARN(1, "Unknown pixelformat 0x%08x\n", fmt->pixelformat);
+-			if (fmt->description[0])
+-				return;
+-			flags = 0;
+-			snprintf(fmt->description, sz, "%c%c%c%c%s",
+-					(char)(fmt->pixelformat & 0x7f),
+-					(char)((fmt->pixelformat >> 8) & 0x7f),
+-					(char)((fmt->pixelformat >> 16) & 0x7f),
+-					(char)((fmt->pixelformat >> 24) & 0x7f),
+-					(fmt->pixelformat & (1 << 31)) ? "-BE" : "");
+-			break;
++			/* Unordered formats */
++			flags = V4L2_FMT_FLAG_UNORDERED;
++			switch (fmt->pixelformat) {
++			case V4L2_PIX_FMT_MPEG:		descr = "MPEG-1/2/4"; break;
++			case V4L2_PIX_FMT_H264:		descr = "H.264"; break;
++			case V4L2_PIX_FMT_H264_NO_SC:	descr = "H.264 (No Start Codes)"; break;
++			case V4L2_PIX_FMT_H264_MVC:	descr = "H.264 MVC"; break;
++			case V4L2_PIX_FMT_H263:		descr = "H.263"; break;
++			case V4L2_PIX_FMT_MPEG1:	descr = "MPEG-1 ES"; break;
++			case V4L2_PIX_FMT_MPEG2:	descr = "MPEG-2 ES"; break;
++			case V4L2_PIX_FMT_MPEG4:	descr = "MPEG-4 part 2 ES"; break;
++			case V4L2_PIX_FMT_XVID:		descr = "Xvid"; break;
++			case V4L2_PIX_FMT_VC1_ANNEX_G:	descr = "VC-1 (SMPTE 412M Annex G)"; break;
++			case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
++			case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
++			case V4L2_PIX_FMT_VP9:		descr = "VP9"; break;
++			case V4L2_PIX_FMT_HEVC:		descr = "HEVC"; break; /* aka H.265 */
++			default:
++				WARN(1, "Unknown pixelformat 0x%08x\n", fmt->pixelformat);
++				if (fmt->description[0])
++					return;
++				flags = 0;
++				snprintf(fmt->description, sz, "%c%c%c%c%s",
++						(char)(fmt->pixelformat & 0x7f),
++						(char)((fmt->pixelformat >> 8) & 0x7f),
++						(char)((fmt->pixelformat >> 16) & 0x7f),
++						(char)((fmt->pixelformat >> 24) & 0x7f),
++						(fmt->pixelformat & (1 << 31)) ? "-BE" : "");
++				break;
++			}
+ 		}
+ 	}
+ 
 -- 
-2.11.0
+2.16.3
