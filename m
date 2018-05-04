@@ -1,54 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41590 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965827AbeEYLDn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 07:03:43 -0400
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: linux-firmware@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, mchehab@infradead.org,
-        linux-media@vger.kernel.org, stanimir.varbanov@linaro.org,
-        vgarodia@codeaurora.org, acourbot@google.com
-Subject: qcom: add firmware file for Venus on SDM845 
-Date: Fri, 25 May 2018 16:33:28 +0530
-Message-Id: <1527246209-26685-1-git-send-email-vgarodia@codeaurora.org>
+Received: from bombadil.infradead.org ([198.137.202.133]:47468 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751687AbeEDS6f (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 14:58:35 -0400
+Date: Fri, 4 May 2018 15:58:27 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Tim Harvey <tharvey@gateworks.com>, Takashi Iwai <tiwai@suse.de>
+Cc: Mark Brown <broonie@kernel.org>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux-ALSA <alsa-devel@alsa-project.org>,
+        linux-kernel@vger.kernel.org,
+        linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3][RESEND] media: i2c: tda1997: replace codec to
+ component
+Message-ID: <20180504155827.3a192297@vento.lan>
+In-Reply-To: <CAJ+vNU35TfSLRYnkEYMkMQVC9r+XHt_pa-=+s4Dro3b-VNGULA@mail.gmail.com>
+References: <87in8ibrql.wl%kuninori.morimoto.gx@renesas.com>
+        <CAJ+vNU0mykhkMNNrN=Zsrj0_pv=XAkGiiQkXehQ4EWBkMDAv7w@mail.gmail.com>
+        <20180423165213.GL19834@sirena.org.uk>
+        <CAJ+vNU35TfSLRYnkEYMkMQVC9r+XHt_pa-=+s4Dro3b-VNGULA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hi,
+Em Mon, 23 Apr 2018 13:59:32 -0700
+Tim Harvey <tharvey@gateworks.com> escreveu:
 
-This pull request adds firmware files for Venus h/w codec found on the Qualcomm SDM845 chipset.
+> On Mon, Apr 23, 2018 at 9:52 AM, Mark Brown <broonie@kernel.org> wrote:
+> > On Mon, Apr 23, 2018 at 09:44:17AM -0700, Tim Harvey wrote:
+> >  
+> >> Could you add some detail to the commit explaining why we need to
+> >> replace codec to component? I don't really know what that means.
+> >> Please refer to a commit if the ASoC API is changing in some way we
+> >> need to catch up with.  
+> >
+> > This is a big transition in the ASoC API which is nearing completion -
+> > this driver is one of the last users of the CODEC struct, we've (well,
+> > mainly Morimoto-san) been migrating things away from it to the more
+> > general purpose component.  There's no one commit to point at really as
+> > the two have coexisted for a while and we won't be able to finally
+> > remove the CODEC struct until all the drivers have transitioned away.  
+> 
+> Mark,
+> 
+> Ok - thanks for the explanation!
+> 
+> Kuninori,
+> 
+> Sorry this took so long to get to. Tested on a GW5404
+> 
+> Tested-by: Tim Harvey <tharvey@gateworks.com>
+> Acked-by: Tim Harvey <tharvey@gateworks.com>
 
-The following changes since commit 2a9b2cf50fb32e36e4fc1586c2f6f1421913b553:
+In order to keep it together with the patches doing the removal of
+the old API, it is probably better to apply this via ALSA tree:
 
-  Merge branch 'for-upstreaming-v1.7.2' of https://github.com/felix-cavium/linux-firmware (2018-05-18 08:35:22 -0400)
+Acked-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
-are available in the git repository at:
+> 
+> Regards,
+> 
+> Tim
 
 
-  https://github.com/vgarodia/linux-firmware master
 
-for you to fetch changes up to d6088b9c9d7f49d3c6c43681190889eca0abdcce:
-
-  qcom: add venus firmware files for v5.2 (2018-05-25 15:16:43 +0530)
-
-----------------------------------------------------------------
-Vikash Garodia (1):
-      qcom: add venus firmware files for v5.2
-
- WHENCE                   |   9 +++++++++
- qcom/venus-5.2/venus.b00 | Bin 0 -> 212 bytes
- qcom/venus-5.2/venus.b01 | Bin 0 -> 6600 bytes
- qcom/venus-5.2/venus.b02 | Bin 0 -> 819552 bytes
- qcom/venus-5.2/venus.b03 | Bin 0 -> 33536 bytes
- qcom/venus-5.2/venus.b04 |   1 +
- qcom/venus-5.2/venus.mbn | Bin 0 -> 865408 bytes
- qcom/venus-5.2/venus.mdt | Bin 0 -> 6812 bytes
- 8 files changed, 10 insertions(+)
- create mode 100644 qcom/venus-5.2/venus.b00
- create mode 100644 qcom/venus-5.2/venus.b01
- create mode 100644 qcom/venus-5.2/venus.b02
- create mode 100644 qcom/venus-5.2/venus.b03
- create mode 100644 qcom/venus-5.2/venus.b04
- create mode 100644 qcom/venus-5.2/venus.mbn
- create mode 100644 qcom/venus-5.2/venus.mdt
+Thanks,
+Mauro
