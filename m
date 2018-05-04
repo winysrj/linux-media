@@ -1,166 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:60651 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754378AbeEWJY3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 05:24:29 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Rui Miguel Silva <rui.silva@linaro.org>, kernel@pengutronix.de,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2] media: video-mux: fix compliance failures
-Date: Wed, 23 May 2018 11:24:23 +0200
-Message-Id: <20180523092423.4386-1-p.zabel@pengutronix.de>
+Received: from mout.web.de ([212.227.17.12]:44033 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751326AbeEDQKw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 May 2018 12:10:52 -0400
+Subject: Re: [v3] [media] Use common error handling code in 19 functions
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Andrey Utkin <andrey_utkin@fastmail.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Brian Johnson <brijohn@gmail.com>,
+        =?UTF-8?Q?Christoph_B=c3=b6hmwalder?= <christoph@boehmwalder.at>,
+        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
+        Colin Ian King <colin.king@canonical.com>,
+        Daniele Nicolodi <daniele@grinta.net>,
+        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
+        Devendra Sharma <devendra.sharma9091@gmail.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Inki Dae <inki.dae@samsung.com>, Joe Perches <joe@perches.com>,
+        Kees Cook <keescook@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Mike Isely <isely@pobox.com>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Sean Young <sean@mess.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Shyam Saini <mayhs11saini@gmail.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Wei Yongjun <weiyongjun1@huawei.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <227d2d7c-5aee-1190-1624-26596a048d9c@users.sourceforge.net>
+ <57ef3a56-2578-1d5f-1268-348b49b0c573@users.sourceforge.net>
+Message-ID: <9e766f52-b09e-c61e-8d9f-23542d83f6b1@users.sourceforge.net>
+Date: Fri, 4 May 2018 18:08:59 +0200
+MIME-Version: 1.0
+In-Reply-To: <57ef3a56-2578-1d5f-1268-348b49b0c573@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Limit frame sizes to the [1, 65536] interval, media bus formats to
-the available list of formats, and initialize pad and try formats.
+> Adjust jump targets so that a bit of exception handling can be better
+> reused at the end of these functions.
 
-Reported-by: Rui Miguel Silva <rui.silva@linaro.org>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - Limit to [1, 65536] instead of [1, UINT_MAX - 1]
- - Add missing break in default case
- - Use .init_cfg pad op instead of .open internal op
----
- drivers/media/platform/video-mux.c | 108 +++++++++++++++++++++++++++++
- 1 file changed, 108 insertions(+)
+Why was this update suggestion rejected once more a moment ago?
 
-diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-index 1fb887293337..d27cb42ce6b1 100644
---- a/drivers/media/platform/video-mux.c
-+++ b/drivers/media/platform/video-mux.c
-@@ -180,6 +180,88 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
- 	if (!source_mbusformat)
- 		return -EINVAL;
- 
-+	/* No size limitations except V4L2 compliance requirements */
-+	v4l_bound_align_image(&sdformat->format.width, 1, 65536, 0,
-+			      &sdformat->format.height, 1, 65536, 0, 0);
-+
-+	/* All formats except LVDS and vendor specific formats are acceptable */
-+	switch (sdformat->format.code) {
-+	case MEDIA_BUS_FMT_RGB444_1X12:
-+	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
-+	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
-+	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
-+	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
-+	case MEDIA_BUS_FMT_RGB565_1X16:
-+	case MEDIA_BUS_FMT_BGR565_2X8_BE:
-+	case MEDIA_BUS_FMT_BGR565_2X8_LE:
-+	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-+	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-+	case MEDIA_BUS_FMT_RGB666_1X18:
-+	case MEDIA_BUS_FMT_RBG888_1X24:
-+	case MEDIA_BUS_FMT_RGB666_1X24_CPADHI:
-+	case MEDIA_BUS_FMT_BGR888_1X24:
-+	case MEDIA_BUS_FMT_GBR888_1X24:
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+	case MEDIA_BUS_FMT_RGB888_2X12_BE:
-+	case MEDIA_BUS_FMT_RGB888_2X12_LE:
-+	case MEDIA_BUS_FMT_ARGB8888_1X32:
-+	case MEDIA_BUS_FMT_RGB888_1X32_PADHI:
-+	case MEDIA_BUS_FMT_RGB101010_1X30:
-+	case MEDIA_BUS_FMT_RGB121212_1X36:
-+	case MEDIA_BUS_FMT_RGB161616_1X48:
-+	case MEDIA_BUS_FMT_Y8_1X8:
-+	case MEDIA_BUS_FMT_UV8_1X8:
-+	case MEDIA_BUS_FMT_UYVY8_1_5X8:
-+	case MEDIA_BUS_FMT_VYUY8_1_5X8:
-+	case MEDIA_BUS_FMT_YUYV8_1_5X8:
-+	case MEDIA_BUS_FMT_YVYU8_1_5X8:
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
-+	case MEDIA_BUS_FMT_VYUY8_2X8:
-+	case MEDIA_BUS_FMT_YUYV8_2X8:
-+	case MEDIA_BUS_FMT_YVYU8_2X8:
-+	case MEDIA_BUS_FMT_Y10_1X10:
-+	case MEDIA_BUS_FMT_UYVY10_2X10:
-+	case MEDIA_BUS_FMT_VYUY10_2X10:
-+	case MEDIA_BUS_FMT_YUYV10_2X10:
-+	case MEDIA_BUS_FMT_YVYU10_2X10:
-+	case MEDIA_BUS_FMT_Y12_1X12:
-+	case MEDIA_BUS_FMT_UYVY12_2X12:
-+	case MEDIA_BUS_FMT_VYUY12_2X12:
-+	case MEDIA_BUS_FMT_YUYV12_2X12:
-+	case MEDIA_BUS_FMT_YVYU12_2X12:
-+	case MEDIA_BUS_FMT_UYVY8_1X16:
-+	case MEDIA_BUS_FMT_VYUY8_1X16:
-+	case MEDIA_BUS_FMT_YUYV8_1X16:
-+	case MEDIA_BUS_FMT_YVYU8_1X16:
-+	case MEDIA_BUS_FMT_YDYUYDYV8_1X16:
-+	case MEDIA_BUS_FMT_UYVY10_1X20:
-+	case MEDIA_BUS_FMT_VYUY10_1X20:
-+	case MEDIA_BUS_FMT_YUYV10_1X20:
-+	case MEDIA_BUS_FMT_YVYU10_1X20:
-+	case MEDIA_BUS_FMT_VUY8_1X24:
-+	case MEDIA_BUS_FMT_YUV8_1X24:
-+	case MEDIA_BUS_FMT_UYYVYY8_0_5X24:
-+	case MEDIA_BUS_FMT_UYVY12_1X24:
-+	case MEDIA_BUS_FMT_VYUY12_1X24:
-+	case MEDIA_BUS_FMT_YUYV12_1X24:
-+	case MEDIA_BUS_FMT_YVYU12_1X24:
-+	case MEDIA_BUS_FMT_YUV10_1X30:
-+	case MEDIA_BUS_FMT_UYYVYY10_0_5X30:
-+	case MEDIA_BUS_FMT_AYUV8_1X32:
-+	case MEDIA_BUS_FMT_UYYVYY12_0_5X36:
-+	case MEDIA_BUS_FMT_YUV12_1X36:
-+	case MEDIA_BUS_FMT_YUV16_1X48:
-+	case MEDIA_BUS_FMT_UYYVYY16_0_5X48:
-+	case MEDIA_BUS_FMT_JPEG_1X8:
-+	case MEDIA_BUS_FMT_AHSV8888_1X32:
-+		break;
-+	default:
-+		sdformat->format.code = MEDIA_BUS_FMT_Y8_1X8;
-+		break;
-+	}
-+	if (sdformat->format.field == V4L2_FIELD_ANY)
-+		sdformat->format.field = V4L2_FIELD_NONE;
-+
- 	mutex_lock(&vmux->lock);
- 
- 	/* Source pad mirrors active sink pad, no limitations on sink pads */
-@@ -197,7 +279,27 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int video_mux_init_cfg(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg)
-+{
-+	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-+	struct v4l2_mbus_framefmt *mbusformat;
-+	int i;
-+
-+	mutex_lock(&vmux->lock);
-+
-+	for (i = 0; i < sd->entity.num_pads; i++) {
-+		mbusformat = v4l2_subdev_get_try_format(sd, cfg, i);
-+		*mbusformat = vmux->format_mbus[i];
-+	}
-+
-+	mutex_unlock(&vmux->lock);
-+
-+	return 0;
-+}
-+
- static const struct v4l2_subdev_pad_ops video_mux_pad_ops = {
-+	.init_cfg = video_mux_init_cfg,
- 	.get_fmt = video_mux_get_format,
- 	.set_fmt = video_mux_set_format,
- };
-@@ -263,6 +365,12 @@ static int video_mux_probe(struct platform_device *pdev)
- 	for (i = 0; i < num_pads - 1; i++)
- 		vmux->pads[i].flags = MEDIA_PAD_FL_SINK;
- 	vmux->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
-+	for (i = 0; i < num_pads; i++) {
-+		vmux->format_mbus[i].width = 1;
-+		vmux->format_mbus[i].height = 1;
-+		vmux->format_mbus[i].code = MEDIA_BUS_FMT_Y8_1X8;
-+		vmux->format_mbus[i].field = V4L2_FIELD_NONE;
-+	}
- 
- 	vmux->subdev.entity.function = MEDIA_ENT_F_VID_MUX;
- 	ret = media_entity_pads_init(&vmux->subdev.entity, num_pads,
--- 
-2.17.0
+https://patchwork.linuxtv.org/patch/47827/
+lkml.kernel.org/r/<57ef3a56-2578-1d5f-1268-348b49b0c573@users.sourceforge.net>
+https://lkml.org/lkml/2018/3/9/823
+
+Would you like to integrate such a source code transformation after any further adjustments?
+
+Regards,
+Markus
