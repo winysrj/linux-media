@@ -1,512 +1,457 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:39124 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751493AbeECOx1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 10:53:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv13 12/28] v4l2-ctrls: add core request support
-Date: Thu,  3 May 2018 16:53:02 +0200
-Message-Id: <20180503145318.128315-13-hverkuil@xs4all.nl>
-In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.133]:36208 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751503AbeEDODT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 10:03:19 -0400
+Date: Fri, 4 May 2018 11:02:53 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, linux-fbdev@vger.kernel.org
+Subject: Re: [PATCH v2 7/7] media: via-camera: allow build on non-x86 archs
+ with COMPILE_TEST
+Message-ID: <20180504110241.7a78263d@vento.lan>
+In-Reply-To: <5323943.SkjzUNBk3k@amdc3058>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+        <396bfb33e763c31ead093ac1035b2ecf7311b5bc.1524245455.git.mchehab@s-opensource.com>
+        <20180420160321.4ecefa00@vento.lan>
+        <CGME20180423121932eucas1p212eb6412ff8df511047c3afa782db6e0@eucas1p2.samsung.com>
+        <5323943.SkjzUNBk3k@amdc3058>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Mon, 23 Apr 2018 14:19:31 +0200
+Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com> escreveu:
 
-Integrate the request support. This adds the v4l2_ctrl_request_complete
-and v4l2_ctrl_request_setup functions to complete a request and (as a
-helper function) to apply a request to the hardware.
+> Hi Mauro,
+>=20
+> On Friday, April 20, 2018 04:03:21 PM Mauro Carvalho Chehab wrote:
+> > This driver depends on FB_VIA for lots of things. Provide stubs
+> > for the functions it needs, in order to allow building it with
+> > COMPILE_TEST outside x86 architecture. =20
+>=20
+> Please cc: me on fbdev related patches (patch adding new FB_VIA
+> ifdefs _is_ definitely fbdev related).
 
-It takes care of queuing requests and correctly chaining control values
-in the request queue.
+Ok. Btw, get maintainer script only gets the fbdev ML:
 
-Note that when a request is marked completed it will copy control values
-to the internal request state. This can be optimized in the future since
-this is sub-optimal when dealing with large compound and/or array controls.
+$ ./scripts/get_maintainer.pl -f include/linux/via-core.h
+Florian Tobias Schandinat <FlorianSchandinat@gmx.de> (maintainer:VIA UNICHR=
+OME(PRO)/CHROME9 FRAMEBUFFER DRIVER)
+linux-fbdev@vger.kernel.org (open list:VIA UNICHROME(PRO)/CHROME9 FRAMEBUFF=
+ER DRIVER)
+linux-kernel@vger.kernel.org (open list)
 
-For the initial 'stateless codec' use-case the current implementation is
-sufficient.
+It probably makes sense to add a:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 331 ++++++++++++++++++++++++++-
- include/media/v4l2-ctrls.h           |  23 ++
- 2 files changed, 348 insertions(+), 6 deletions(-)
+R: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index da4cc1485dc4..56b986185463 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1647,6 +1647,13 @@ static int new_to_user(struct v4l2_ext_control *c,
- 	return ptr_to_user(c, ctrl, ctrl->p_new);
- }
- 
-+/* Helper function: copy the request value back to the caller */
-+static int req_to_user(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl_ref *ref)
-+{
-+	return ptr_to_user(c, ref->ctrl, ref->p_req);
-+}
-+
- /* Helper function: copy the initial control value back to the caller */
- static int def_to_user(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl)
- {
-@@ -1766,6 +1773,26 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- 	ptr_to_ptr(ctrl, ctrl->p_cur, ctrl->p_new);
- }
- 
-+/* Copy the new value to the request value */
-+static void new_to_req(struct v4l2_ctrl_ref *ref)
-+{
-+	if (!ref)
-+		return;
-+	ptr_to_ptr(ref->ctrl, ref->ctrl->p_new, ref->p_req);
-+	ref->req = ref;
-+}
-+
-+/* Copy the request value to the new value */
-+static void req_to_new(struct v4l2_ctrl_ref *ref)
-+{
-+	if (!ref)
-+		return;
-+	if (ref->req)
-+		ptr_to_ptr(ref->ctrl, ref->req->p_req, ref->ctrl->p_new);
-+	else
-+		ptr_to_ptr(ref->ctrl, ref->ctrl->p_cur, ref->ctrl->p_new);
-+}
-+
- /* Return non-zero if one or more of the controls in the cluster has a new
-    value that differs from the current value. */
- static int cluster_changed(struct v4l2_ctrl *master)
-@@ -1875,6 +1902,9 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
- 	lockdep_set_class_and_name(hdl->lock, key, name);
- 	INIT_LIST_HEAD(&hdl->ctrls);
- 	INIT_LIST_HEAD(&hdl->ctrl_refs);
-+	INIT_LIST_HEAD(&hdl->requests);
-+	INIT_LIST_HEAD(&hdl->requests_queued);
-+	hdl->request_is_queued = false;
- 	hdl->nr_of_buckets = 1 + nr_of_controls_hint / 8;
- 	hdl->buckets = kvmalloc_array(hdl->nr_of_buckets,
- 				      sizeof(hdl->buckets[0]),
-@@ -1895,6 +1925,14 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
- 	if (hdl == NULL || hdl->buckets == NULL)
- 		return;
- 
-+	if (!hdl->req_obj.req && !list_empty(&hdl->requests)) {
-+		struct v4l2_ctrl_handler *req, *next_req;
-+
-+		list_for_each_entry_safe(req, next_req, &hdl->requests, requests) {
-+			media_request_object_unbind(&req->req_obj);
-+			media_request_object_put(&req->req_obj);
-+		}
-+	}
- 	mutex_lock(hdl->lock);
- 	/* Free all nodes */
- 	list_for_each_entry_safe(ref, next_ref, &hdl->ctrl_refs, node) {
-@@ -2816,6 +2854,128 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm)
- }
- EXPORT_SYMBOL(v4l2_querymenu);
- 
-+static int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
-+				   const struct v4l2_ctrl_handler *from)
-+{
-+	struct v4l2_ctrl_ref *ref;
-+	int err;
-+
-+	if (WARN_ON(!hdl || hdl == from))
-+		return -EINVAL;
-+
-+	if (hdl->error)
-+		return hdl->error;
-+
-+	WARN_ON(hdl->lock != &hdl->_lock);
-+
-+	mutex_lock(from->lock);
-+	list_for_each_entry(ref, &from->ctrl_refs, node) {
-+		struct v4l2_ctrl *ctrl = ref->ctrl;
-+		struct v4l2_ctrl_ref *new_ref;
-+
-+		/* Skip refs inherited from other devices */
-+		if (ref->from_other_dev)
-+			continue;
-+		/* And buttons */
-+		if (ctrl->type == V4L2_CTRL_TYPE_BUTTON)
-+			continue;
-+		err = handler_new_ref(hdl, ctrl, &new_ref, false, true);
-+		if (err) {
-+			printk("%s: handler_new_ref on control %x (%s) returned %d\n", __func__, ctrl->id, ctrl->name, err);
-+			err = 0;
-+			continue;
-+		}
-+		if (err)
-+			break;
-+	}
-+	mutex_unlock(from->lock);
-+	return err;
-+}
-+
-+static void v4l2_ctrl_request_queue(struct media_request_object *obj)
-+{
-+	struct v4l2_ctrl_handler *hdl =
-+		container_of(obj, struct v4l2_ctrl_handler, req_obj);
-+	struct v4l2_ctrl_handler *main_hdl = obj->priv;
-+	struct v4l2_ctrl_handler *prev_hdl = NULL;
-+	struct v4l2_ctrl_ref *ref_ctrl, *ref_ctrl_prev = NULL;
-+
-+	if (list_empty(&main_hdl->requests_queued))
-+		goto queue;
-+
-+	prev_hdl = list_last_entry(&main_hdl->requests_queued,
-+				   struct v4l2_ctrl_handler, requests_queued);
-+	/*
-+	 * Note: prev_hdl and hdl must contain the same list of control
-+	 * references, so if any differences are detected then that is a
-+	 * driver bug and the WARN_ON is triggered.
-+	 */
-+	mutex_lock(prev_hdl->lock);
-+	ref_ctrl_prev = list_first_entry(&prev_hdl->ctrl_refs,
-+					 struct v4l2_ctrl_ref, node);
-+	list_for_each_entry(ref_ctrl, &hdl->ctrl_refs, node) {
-+		if (ref_ctrl->req)
-+			continue;
-+		while (ref_ctrl_prev->ctrl->id < ref_ctrl->ctrl->id) {
-+			/* Should never happen, but just in case... */
-+			if (list_is_last(&ref_ctrl_prev->node,
-+					 &prev_hdl->ctrl_refs))
-+				break;
-+			ref_ctrl_prev = list_next_entry(ref_ctrl_prev, node);
-+		}
-+		if (WARN_ON(ref_ctrl_prev->ctrl->id != ref_ctrl->ctrl->id))
-+			break;
-+		ref_ctrl->req = ref_ctrl_prev->req;
-+	}
-+	mutex_unlock(prev_hdl->lock);
-+queue:
-+	list_add_tail(&hdl->requests_queued, &main_hdl->requests_queued);
-+	hdl->request_is_queued = true;
-+}
-+
-+static void v4l2_ctrl_request_unbind(struct media_request_object *obj)
-+{
-+	struct v4l2_ctrl_handler *hdl =
-+		container_of(obj, struct v4l2_ctrl_handler, req_obj);
-+
-+	list_del_init(&hdl->requests);
-+	if (hdl->request_is_queued) {
-+		list_del_init(&hdl->requests_queued);
-+		hdl->request_is_queued = false;
-+	}
-+}
-+
-+static void v4l2_ctrl_request_release(struct media_request_object *obj)
-+{
-+	struct v4l2_ctrl_handler *hdl =
-+		container_of(obj, struct v4l2_ctrl_handler, req_obj);
-+
-+	v4l2_ctrl_handler_free(hdl);
-+	kfree(hdl);
-+}
-+
-+static const struct media_request_object_ops req_ops = {
-+	.queue = v4l2_ctrl_request_queue,
-+	.unbind = v4l2_ctrl_request_unbind,
-+	.release = v4l2_ctrl_request_release,
-+};
-+
-+static int v4l2_ctrl_request_bind(struct media_request *req,
-+			   struct v4l2_ctrl_handler *hdl,
-+			   struct v4l2_ctrl_handler *from)
-+{
-+	int ret;
-+
-+	ret = v4l2_ctrl_request_clone(hdl, from);
-+
-+	if (!ret) {
-+		ret = media_request_object_bind(req, &req_ops,
-+						from, &hdl->req_obj);
-+		if (!ret)
-+			list_add_tail(&hdl->requests, &from->requests);
-+	}
-+	return ret;
-+}
- 
- /* Some general notes on the atomic requirements of VIDIOC_G/TRY/S_EXT_CTRLS:
- 
-@@ -2877,6 +3037,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 
- 		if (cs->which &&
- 		    cs->which != V4L2_CTRL_WHICH_DEF_VAL &&
-+		    cs->which != V4L2_CTRL_WHICH_REQUEST_VAL &&
- 		    V4L2_CTRL_ID2WHICH(id) != cs->which)
- 			return -EINVAL;
- 
-@@ -2956,13 +3117,12 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-    whether there are any controls at all. */
- static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
- {
--	if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL)
-+	if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL ||
-+	    which == V4L2_CTRL_WHICH_REQUEST_VAL)
- 		return 0;
- 	return find_ref_lock(hdl, which | 1) ? 0 : -EINVAL;
- }
- 
--
--
- /* Get extended controls. Allocates the helpers array if needed. */
- int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
- {
-@@ -3028,8 +3188,12 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 			u32 idx = i;
- 
- 			do {
--				ret = ctrl_to_user(cs->controls + idx,
--						   helpers[idx].ref->ctrl);
-+				if (helpers[idx].ref->req)
-+					ret = req_to_user(cs->controls + idx,
-+						helpers[idx].ref->req);
-+				else
-+					ret = ctrl_to_user(cs->controls + idx,
-+						helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
-@@ -3302,7 +3466,16 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		} while (!ret && idx);
- 
- 		if (!ret)
--			ret = try_or_set_cluster(fh, master, set, 0);
-+			ret = try_or_set_cluster(fh, master,
-+						 !hdl->req_obj.req && set, 0);
-+		if (!ret && hdl->req_obj.req && set) {
-+			for (j = 0; j < master->ncontrols; j++) {
-+				struct v4l2_ctrl_ref *ref =
-+					find_ref(hdl, master->cluster[j]->id);
-+
-+				new_to_req(ref);
-+			}
-+		}
- 
- 		/* Copy the new values back to userspace. */
- 		if (!ret) {
-@@ -3429,6 +3602,152 @@ int __v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
- }
- EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_string);
- 
-+void v4l2_ctrl_request_complete(struct media_request *req,
-+				struct v4l2_ctrl_handler *main_hdl)
-+{
-+	struct media_request_object *obj;
-+	struct v4l2_ctrl_handler *hdl;
-+	struct v4l2_ctrl_ref *ref;
-+
-+	if (!req || !main_hdl)
-+		return;
-+
-+	obj = media_request_object_find(req, &req_ops, main_hdl);
-+	if (!obj)
-+		return;
-+	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
-+
-+	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
-+		struct v4l2_ctrl *ctrl = ref->ctrl;
-+		struct v4l2_ctrl *master = ctrl->cluster[0];
-+		unsigned int i;
-+
-+		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
-+			ref->req = ref;
-+
-+			v4l2_ctrl_lock(master);
-+			/* g_volatile_ctrl will update the current control values */
-+			for (i = 0; i < master->ncontrols; i++)
-+				cur_to_new(master->cluster[i]);
-+			call_op(master, g_volatile_ctrl);
-+			new_to_req(ref);
-+			v4l2_ctrl_unlock(master);
-+			continue;
-+		}
-+		if (ref->req == ref)
-+			continue;
-+
-+		v4l2_ctrl_lock(ctrl);
-+		if (ref->req)
-+			ptr_to_ptr(ctrl, ref->req->p_req, ref->p_req);
-+		else
-+			ptr_to_ptr(ctrl, ctrl->p_cur, ref->p_req);
-+		v4l2_ctrl_unlock(ctrl);
-+	}
-+
-+	WARN_ON(!hdl->request_is_queued);
-+	list_del_init(&hdl->requests_queued);
-+	hdl->request_is_queued = false;
-+	media_request_object_complete(obj);
-+	media_request_object_put(obj);
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_request_complete);
-+
-+void v4l2_ctrl_request_setup(struct media_request *req,
-+			     struct v4l2_ctrl_handler *main_hdl)
-+{
-+	struct media_request_object *obj;
-+	struct v4l2_ctrl_handler *hdl;
-+	struct v4l2_ctrl_ref *ref;
-+
-+	if (!req || !main_hdl)
-+		return;
-+
-+	obj = media_request_object_find(req, &req_ops, main_hdl);
-+	if (!obj)
-+		return;
-+	if (obj->completed) {
-+		media_request_object_put(obj);
-+		return;
-+	}
-+	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
-+
-+	mutex_lock(hdl->lock);
-+
-+	list_for_each_entry(ref, &hdl->ctrl_refs, node)
-+		ref->done = false;
-+
-+	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
-+		struct v4l2_ctrl *ctrl = ref->ctrl;
-+		struct v4l2_ctrl *master = ctrl->cluster[0];
-+		bool have_new_data = false;
-+		int i;
-+
-+		/*
-+		 * Skip if this control was already handled by a cluster.
-+		 * Skip button controls and read-only controls.
-+		 */
-+		if (ref->done || ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
-+		    (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY))
-+			continue;
-+
-+		v4l2_ctrl_lock(master);
-+		for (i = 0; i < master->ncontrols; i++) {
-+			if (master->cluster[i]) {
-+				struct v4l2_ctrl_ref *r =
-+					find_ref(hdl, master->cluster[i]->id);
-+
-+				if (r->req && r == r->req) {
-+					have_new_data = true;
-+					break;
-+				}
-+			}
-+		}
-+		if (!have_new_data) {
-+			v4l2_ctrl_unlock(master);
-+			continue;
-+		}
-+
-+		for (i = 0; i < master->ncontrols; i++) {
-+			if (master->cluster[i]) {
-+				struct v4l2_ctrl_ref *r =
-+					find_ref(hdl, master->cluster[i]->id);
-+
-+				req_to_new(r);
-+				master->cluster[i]->is_new = 1;
-+				r->done = true;
-+			}
-+		}
-+		/*
-+		 * For volatile autoclusters that are currently in auto mode
-+		 * we need to discover if it will be set to manual mode.
-+		 * If so, then we have to copy the current volatile values
-+		 * first since those will become the new manual values (which
-+		 * may be overwritten by explicit new values from this set
-+		 * of controls).
-+		 */
-+		if (master->is_auto && master->has_volatiles &&
-+		    !is_cur_manual(master)) {
-+			s32 new_auto_val = *master->p_new.p_s32;
-+
-+			/*
-+			 * If the new value == the manual value, then copy
-+			 * the current volatile values.
-+			 */
-+			if (new_auto_val == master->manual_mode_value)
-+				update_from_auto_cluster(master);
-+		}
-+
-+		try_or_set_cluster(NULL, master, true, 0);
-+
-+		v4l2_ctrl_unlock(master);
-+	}
-+
-+	mutex_unlock(hdl->lock);
-+	media_request_object_put(obj);
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_request_setup);
-+
- void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
- {
- 	if (ctrl == NULL)
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 76352eb59f14..a0f7c38d1a90 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -250,6 +250,10 @@ struct v4l2_ctrl {
-  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
-  * @from_other_dev: If true, then @ctrl was defined in another
-  *		device than the &struct v4l2_ctrl_handler.
-+ * @done:	If true, then this control reference is part of a
-+ *		control cluster that was already set while applying
-+ *		the controls in this media request object.
-+ * @req:	If set, this refers to another request that sets this control.
-  * @p_req:	The request value. Only used if the control handler
-  *		is bound to a media request.
-  *
-@@ -263,6 +267,8 @@ struct v4l2_ctrl_ref {
- 	struct v4l2_ctrl *ctrl;
- 	struct v4l2_ctrl_helper *helper;
- 	bool from_other_dev;
-+	bool done;
-+	struct v4l2_ctrl_ref *req;
- 	union v4l2_ctrl_ptr p_req;
- };
- 
-@@ -287,6 +293,15 @@ struct v4l2_ctrl_ref {
-  * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
-  * @nr_of_buckets: Total number of buckets in the array.
-  * @error:	The error code of the first failed control addition.
-+ * @request_is_queued: True if the request was queued.
-+ * @requests:	List to keep track of open control handler request objects.
-+ *		For the parent control handler (@req_obj.req == NULL) this
-+ *		is the list header. When the parent control handler is
-+ *		removed, it has to unbind and put all these requests since
-+ *		they refer to the parent.
-+ * @requests_queued: List of the queued requests. This determines the order
-+ *		in which these controls are applied. Once the request is
-+ *		completed it is removed from this list.
-  * @req_obj:	The &struct media_request_object, used to link into a
-  *		&struct media_request.
-  */
-@@ -301,6 +316,9 @@ struct v4l2_ctrl_handler {
- 	void *notify_priv;
- 	u16 nr_of_buckets;
- 	int error;
-+	bool request_is_queued;
-+	struct list_head requests;
-+	struct list_head requests_queued;
- 	struct media_request_object req_obj;
- };
- 
-@@ -1059,6 +1077,11 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
-  */
- __poll_t v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
- 
-+void v4l2_ctrl_request_setup(struct media_request *req,
-+			     struct v4l2_ctrl_handler *hdl);
-+void v4l2_ctrl_request_complete(struct media_request *req,
-+				struct v4l2_ctrl_handler *hdl);
-+
- /* Helpers for ioctl_ops */
- 
- /**
--- 
-2.17.0
+At the MAINTAINERS' entry for VIA UNICHROME(PRO)/CHROME9 FRAMEBUFFER DRIVER.
+
+
+>=20
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> >=20
+> > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kc=
+onfig
+> > index e3229f7baed1..abaaed98a044 100644
+> > --- a/drivers/media/platform/Kconfig
+> > +++ b/drivers/media/platform/Kconfig
+> > @@ -15,7 +15,7 @@ source "drivers/media/platform/marvell-ccic/Kconfig"
+> > =20
+> >  config VIDEO_VIA_CAMERA
+> >  	tristate "VIAFB camera controller support"
+> > -	depends on FB_VIA
+> > +	depends on FB_VIA || COMPILE_TEST =20
+>=20
+> This is incorrect (too simple), please take a look at FB_VIA entry:
+>=20
+> config FB_VIA
+>        tristate "VIA UniChrome (Pro) and Chrome9 display support"
+>        depends on FB && PCI && X86 && GPIOLIB && I2C
+>        select FB_CFB_FILLRECT
+>        select FB_CFB_COPYAREA
+>        select FB_CFB_IMAGEBLIT
+>        select I2C_ALGOBIT
+>        help
+>=20
+> Therefore you also need to check PCI, GPIOLIB && I2C dependencies.
+
+OK. I'll add id, addressing the other issues you pointed and send
+a version 2 of the patches on this series that weren't merged.
+
+>=20
+> * For PCI=3Dn:
+>=20
+> drivers/media/platform/via-camera.c: In function =E2=80=98viacam_serial_i=
+s_enabled=E2=80=99:
+> drivers/media/platform/via-camera.c:1286:9: error: implicit declaration o=
+f function =E2=80=98pci_find_bus=E2=80=99 [-Werror=3Dimplicit-function-decl=
+aration]
+> drivers/media/platform/via-camera.c:1286:25: warning: initialization make=
+s pointer from integer without a cast [enabled by default]
+> drivers/media/platform/via-camera.c:1296:2: error: implicit declaration o=
+f function =E2=80=98pci_bus_read_config_byte=E2=80=99 [-Werror=3Dimplicit-f=
+unction-declaration]
+> drivers/media/platform/via-camera.c:1308:2: error: implicit declaration o=
+f function =E2=80=98pci_bus_write_config_byte=E2=80=99 [-Werror=3Dimplicit-=
+function-declaration]
+> cc1: some warnings being treated as errors
+> make[3]: *** [drivers/media/platform/via-camera.o] Error 1
+>=20
+> * For I2C=3Dn:
+>=20
+> WARNING: unmet direct dependencies detected for VIDEO_OV7670
+>   Depends on [n]: MEDIA_SUPPORT [=3Dy] && I2C [=3Dn] && VIDEO_V4L2 [=3Dy]=
+ && MEDIA_CAMERA_SUPPORT [=3Dy]
+>   Selected by [y]:
+>   - VIDEO_VIA_CAMERA [=3Dy] && MEDIA_SUPPORT [=3Dy] && V4L_PLATFORM_DRIVE=
+RS [=3Dy] && (FB_VIA [=3Dn] || COMPILE_TEST [=3Dy])
+>=20
+> drivers/media/i2c/ov7670.c: In function =E2=80=98ov7670_read_smbus=E2=80=
+=99:
+> drivers/media/i2c/ov7670.c:483:2: error: implicit declaration of function=
+ =E2=80=98i2c_smbus_read_byte_data=E2=80=99 [-Werror=3Dimplicit-function-de=
+claration]
+>   ret =3D i2c_smbus_read_byte_data(client, reg);
+>   ^
+> drivers/media/i2c/ov7670.c: In function =E2=80=98ov7670_write_smbus=E2=80=
+=99:
+> drivers/media/i2c/ov7670.c:496:2: error: implicit declaration of function=
+ =E2=80=98i2c_smbus_write_byte_data=E2=80=99 [-Werror=3Dimplicit-function-d=
+eclaration]
+>   int ret =3D i2c_smbus_write_byte_data(client, reg, value);
+>   ^
+> drivers/media/i2c/ov7670.c: In function =E2=80=98ov7670_read_i2c=E2=80=99:
+> drivers/media/i2c/ov7670.c:521:2: error: implicit declaration of function=
+ =E2=80=98i2c_transfer=E2=80=99 [-Werror=3Dimplicit-function-declaration]
+>   ret =3D i2c_transfer(client->adapter, &msg, 1);
+>   ^
+> drivers/media/i2c/ov7670.c: In function =E2=80=98ov7670_probe=E2=80=99:
+> drivers/media/i2c/ov7670.c:1835:3: error: implicit declaration of functio=
+n =E2=80=98i2c_adapter_id=E2=80=99 [-Werror=3Dimplicit-function-declaration]
+>    v4l_dbg(1, debug, client,
+>    ^
+> drivers/media/i2c/ov7670.c: At top level:
+> drivers/media/i2c/ov7670.c:1962:1: warning: data definition has no type o=
+r storage class [enabled by default]
+>  module_i2c_driver(ov7670_driver);
+>  ^
+> drivers/media/i2c/ov7670.c:1962:1: error: type defaults to =E2=80=98int=
+=E2=80=99 in declaration of =E2=80=98module_i2c_driver=E2=80=99 [-Werror=3D=
+implicit-int]
+> drivers/media/i2c/ov7670.c:1962:1: warning: parameter names (without type=
+s) in function declaration [enabled by default]
+> drivers/media/i2c/ov7670.c:1952:26: warning: =E2=80=98ov7670_driver=E2=80=
+=99 defined but not used [-Wunused-variable]
+>  static struct i2c_driver ov7670_driver =3D {
+>                           ^
+> cc1: some warnings being treated as errors
+> make[3]: *** [drivers/media/i2c/ov7670.o] Error 1
+>=20
+> * For GPIOLIB=3Dn it builds fine.
+>=20
+> >  	select VIDEOBUF_DMA_SG
+> >  	select VIDEO_OV7670
+> >  	help
+> > diff --git a/drivers/media/platform/via-camera.c b/drivers/media/platfo=
+rm/via-camera.c
+> > index e9a02639554b..4ab1695b33af 100644
+> > --- a/drivers/media/platform/via-camera.c
+> > +++ b/drivers/media/platform/via-camera.c
+> > @@ -27,7 +27,10 @@
+> >  #include <linux/via-core.h>
+> >  #include <linux/via-gpio.h>
+> >  #include <linux/via_i2c.h>
+> > +
+> > +#ifdef CONFIG_FB_VIA =20
+>=20
+> This should be CONFIG_X86.
+>=20
+> >  #include <asm/olpc.h>
+> > +#endif
+> > =20
+> >  #include "via-camera.h"
+> > =20
+> > @@ -1283,6 +1286,11 @@ static bool viacam_serial_is_enabled(void)
+> >  	struct pci_bus *pbus =3D pci_find_bus(0, 0);
+> >  	u8 cbyte;
+> > =20
+> > +#ifdef CONFIG_FB_VIA =20
+>=20
+> ditto
+>=20
+> > +	if (!machine_is_olpc())
+> > +		return false;
+> > +#endif
+> > +
+> >  	if (!pbus)
+> >  		return false;
+> >  	pci_bus_read_config_byte(pbus, VIACAM_SERIAL_DEVFN,
+> > @@ -1343,7 +1351,7 @@ static int viacam_probe(struct platform_device *p=
+dev)
+> >  		return -ENOMEM;
+> >  	}
+> > =20
+> > -	if (machine_is_olpc() && viacam_serial_is_enabled())
+> > +	if (viacam_serial_is_enabled())
+> >  		return -EBUSY;
+> > =20
+> >  	/*
+> > diff --git a/include/linux/via-core.h b/include/linux/via-core.h
+> > index 9c21cdf3e3b3..ced4419baef8 100644
+> > --- a/include/linux/via-core.h
+> > +++ b/include/linux/via-core.h
+> > @@ -70,8 +70,12 @@ struct viafb_pm_hooks {
+> >  	void *private;
+> >  };
+> > =20
+> > +#ifdef CONFIG_FB_VIA
+> >  void viafb_pm_register(struct viafb_pm_hooks *hooks);
+> >  void viafb_pm_unregister(struct viafb_pm_hooks *hooks);
+> > +#else
+> > +static inline void viafb_pm_register(struct viafb_pm_hooks *hooks) {}
+> > +#endif /* CONFIG_FB_VIA */
+> >  #endif /* CONFIG_PM */
+> > =20
+> >  /*
+> > @@ -113,8 +117,13 @@ struct viafb_dev {
+> >   * Interrupt management.
+> >   */
+> > =20
+> > +#ifdef CONFIG_FB_VIA
+> >  void viafb_irq_enable(u32 mask);
+> >  void viafb_irq_disable(u32 mask);
+> > +#else
+> > +static inline void viafb_irq_enable(u32 mask) {}
+> > +static inline void viafb_irq_disable(u32 mask) {}
+> > +#endif
+> > =20
+> >  /*
+> >   * The global interrupt control register and its bits.
+> > @@ -157,10 +166,18 @@ void viafb_irq_disable(u32 mask);
+> >  /*
+> >   * DMA management.
+> >   */
+> > +#ifdef CONFIG_FB_VIA
+> >  int viafb_request_dma(void);
+> >  void viafb_release_dma(void);
+> >  /* void viafb_dma_copy_out(unsigned int offset, dma_addr_t paddr, int =
+len); */
+> >  int viafb_dma_copy_out_sg(unsigned int offset, struct scatterlist *sg,=
+ int nsg);
+> > +#else
+> > +static inline int viafb_request_dma(void) { return 0; }
+> > +static inline void viafb_release_dma(void) {}
+> > +static inline int viafb_dma_copy_out_sg(unsigned int offset,
+> > +					struct scatterlist *sg, int nsg)
+> > +{ return 0; }
+> > +#endif
+> > =20
+> >  /*
+> >   * DMA Controller registers.
+> > diff --git a/include/linux/via-gpio.h b/include/linux/via-gpio.h
+> > index 8281aea3dd6d..b5a96cf7a874 100644
+> > --- a/include/linux/via-gpio.h
+> > +++ b/include/linux/via-gpio.h
+> > @@ -8,7 +8,11 @@
+> >  #ifndef __VIA_GPIO_H__
+> >  #define __VIA_GPIO_H__
+> > =20
+> > +#ifdef CONFIG_FB_VIA
+> >  extern int viafb_gpio_lookup(const char *name);
+> >  extern int viafb_gpio_init(void);
+> >  extern void viafb_gpio_exit(void);
+> > +#else
+> > +static inline int viafb_gpio_lookup(const char *name) { return 0; }
+> > +#endif
+> >  #endif
+> > diff --git a/include/linux/via_i2c.h b/include/linux/via_i2c.h
+> > index 44532e468c05..209bff950e22 100644
+> > --- a/include/linux/via_i2c.h
+> > +++ b/include/linux/via_i2c.h
+> > @@ -32,6 +32,7 @@ struct via_i2c_stuff {
+> >  };
+> > =20
+> > =20
+> > +#ifdef CONFIG_FB_VIA
+> >  int viafb_i2c_readbyte(u8 adap, u8 slave_addr, u8 index, u8 *pdata);
+> >  int viafb_i2c_writebyte(u8 adap, u8 slave_addr, u8 index, u8 data);
+> >  int viafb_i2c_readbytes(u8 adap, u8 slave_addr, u8 index, u8 *buff, in=
+t buff_len);
+> > @@ -39,4 +40,9 @@ struct i2c_adapter *viafb_find_i2c_adapter(enum viafb=
+_i2c_adap which);
+> > =20
+> >  extern int viafb_i2c_init(void);
+> >  extern void viafb_i2c_exit(void);
+> > +#else
+> > +static inline
+> > +struct i2c_adapter *viafb_find_i2c_adapter(enum viafb_i2c_adap which)
+> > +{ return NULL; }
+> > +#endif
+> >  #endif /* __VIA_I2C_H__ */ =20
+>=20
+> How's about just allowing COMPILE_TEST for FB_VIA instead of adding
+> all these stubs?
+>=20
+>=20
+> From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> Subject: [PATCH] video: fbdev: via: allow COMPILE_TEST build
+>=20
+> This patch allows viafb driver to be build on !X86 archs
+> using COMPILE_TEST config option.
+>=20
+> Since via-camera driver (VIDEO_VIA_CAMERA) depends on viafb
+> it also needs a little fixup.
+>=20
+> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> ---
+>  drivers/media/platform/via-camera.c |    5 +++++
+>  drivers/video/fbdev/Kconfig         |    2 +-
+>  drivers/video/fbdev/via/global.h    |    6 ++++++
+>  drivers/video/fbdev/via/hw.c        |    1 -
+>  drivers/video/fbdev/via/via-core.c  |    1 -
+>  drivers/video/fbdev/via/via_clock.c |    2 +-
+>  drivers/video/fbdev/via/viafbdev.c  |    1 -
+>  7 files changed, 13 insertions(+), 5 deletions(-)
+>=20
+> Index: b/drivers/media/platform/via-camera.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- a/drivers/media/platform/via-camera.c	2018-04-23 13:46:37.000000000 +=
+0200
+> +++ b/drivers/media/platform/via-camera.c	2018-04-23 14:01:07.873322815 +=
+0200
+> @@ -27,7 +27,12 @@
+>  #include <linux/via-core.h>
+>  #include <linux/via-gpio.h>
+>  #include <linux/via_i2c.h>
+> +
+> +#ifdef CONFIG_X86
+>  #include <asm/olpc.h>
+> +#else
+> +#define machine_is_olpc(x) 0
+> +#endif
+> =20
+>  #include "via-camera.h"
+> =20
+> Index: b/drivers/video/fbdev/Kconfig
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- a/drivers/video/fbdev/Kconfig	2018-04-10 12:34:26.618867549 +0200
+> +++ b/drivers/video/fbdev/Kconfig	2018-04-23 13:55:41.389314593 +0200
+> @@ -1437,7 +1437,7 @@ config FB_SIS_315
+> =20
+>  config FB_VIA
+>         tristate "VIA UniChrome (Pro) and Chrome9 display support"
+> -       depends on FB && PCI && X86 && GPIOLIB && I2C
+> +       depends on FB && PCI && GPIOLIB && I2C && (X86 || COMPILE_TEST)
+>         select FB_CFB_FILLRECT
+>         select FB_CFB_COPYAREA
+>         select FB_CFB_IMAGEBLIT
+> Index: b/drivers/video/fbdev/via/global.h
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- a/drivers/video/fbdev/via/global.h	2017-10-18 14:35:22.079448310 +0200
+> +++ b/drivers/video/fbdev/via/global.h	2018-04-23 13:52:57.121310456 +0200
+> @@ -33,6 +33,12 @@
+>  #include <linux/console.h>
+>  #include <linux/timer.h>
+> =20
+> +#ifdef CONFIG_X86
+> +#include <asm/olpc.h>
+> +#else
+> +#define machine_is_olpc(x) 0
+> +#endif
+> +
+>  #include "debug.h"
+> =20
+>  #include "viafbdev.h"
+> Index: b/drivers/video/fbdev/via/hw.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- a/drivers/video/fbdev/via/hw.c	2017-10-18 14:35:22.079448310 +0200
+> +++ b/drivers/video/fbdev/via/hw.c	2018-04-23 13:54:24.881312666 +0200
+> @@ -20,7 +20,6 @@
+>   */
+> =20
+>  #include <linux/via-core.h>
+> -#include <asm/olpc.h>
+>  #include "global.h"
+>  #include "via_clock.h"
+> =20
+> Index: b/drivers/video/fbdev/via/via-core.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- a/drivers/video/fbdev/via/via-core.c	2017-11-22 14:11:59.852728679 +0=
+100
+> +++ b/drivers/video/fbdev/via/via-core.c	2018-04-23 13:53:24.893311156 +0=
+200
+> @@ -17,7 +17,6 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/list.h>
+>  #include <linux/pm.h>
+> -#include <asm/olpc.h>
+> =20
+>  /*
+>   * The default port config.
+> Index: b/drivers/video/fbdev/via/via_clock.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- a/drivers/video/fbdev/via/via_clock.c	2017-10-18 14:35:22.083448309 +=
+0200
+> +++ b/drivers/video/fbdev/via/via_clock.c	2018-04-23 13:53:45.389311672 +=
+0200
+> @@ -25,7 +25,7 @@
+> =20
+>  #include <linux/kernel.h>
+>  #include <linux/via-core.h>
+> -#include <asm/olpc.h>
+> +
+>  #include "via_clock.h"
+>  #include "global.h"
+>  #include "debug.h"
+> Index: b/drivers/video/fbdev/via/viafbdev.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- a/drivers/video/fbdev/via/viafbdev.c	2017-11-22 14:11:59.852728679 +0=
+100
+> +++ b/drivers/video/fbdev/via/viafbdev.c	2018-04-23 13:53:55.325311922 +0=
+200
+> @@ -25,7 +25,6 @@
+>  #include <linux/stat.h>
+>  #include <linux/via-core.h>
+>  #include <linux/via_i2c.h>
+> -#include <asm/olpc.h>
+> =20
+>  #define _MASTER_FILE
+>  #include "global.h"
+>=20
+>=20
+
+
+
+Thanks,
+Mauro
