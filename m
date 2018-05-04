@@ -1,63 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:50395 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932451AbeE1UQq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 May 2018 16:16:46 -0400
-Date: Mon, 28 May 2018 23:16:42 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: Re: [PATCH v2] media: pxa_camera: avoid duplicate s_power calls
-Message-ID: <20180528201642.z54unsmkhppnesah@kekkonen.localdomain>
-References: <1527435011-9318-1-git-send-email-akinobu.mita@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1527435011-9318-1-git-send-email-akinobu.mita@gmail.com>
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:55240 "EHLO
+        homiemail-a58.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751611AbeEDVxh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 May 2018 17:53:37 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH v3] saa7164: Fix driver name in debug output
+Date: Fri,  4 May 2018 16:53:35 -0500
+Message-Id: <1525470815-25992-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 28, 2018 at 12:30:11AM +0900, Akinobu Mita wrote:
-> The open() operation for the pxa_camera driver always calls s_power()
-> operation to put its subdevice sensor in normal operation mode, and the
-> release() operation always call s_power() operation to put the subdevice
-> in power saving mode.
-> 
-> This requires the subdevice sensor driver to keep track of its power
-> state in order to avoid putting the subdevice in power saving mode while
-> the device is still opened by some users.
-> 
-> Many subdevice drivers handle it by the boilerplate code that increments
-> and decrements an internal counter in s_power() like below:
-> 
-> 	/*
-> 	 * If the power count is modified from 0 to != 0 or from != 0 to 0,
-> 	 * update the power state.
-> 	 */
-> 	if (sensor->power_count == !on) {
-> 		ret = ov5640_set_power(sensor, !!on);
-> 		if (ret)
-> 			goto out;
-> 	}
-> 
-> 	/* Update the power count. */
-> 	sensor->power_count += on ? 1 : -1;
-> 
-> However, some subdevice drivers don't handle it and may cause a problem
-> with the pxa_camera driver if the video device is opened by more than
-> two users at the same time.
-> 
-> Instead of propagating the boilerplate code for each subdevice driver
-> that implement s_power, this introduces an trick that many V4L2 drivers
-> are using with v4l2_fh_is_singular_file().
-> 
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+This issue was reported by a user who downloaded a corrupt saa7164
+firmware, then went looking for a valid xc5000 firmware to fix the
+error displayed...but the device in question has no xc5000, thus after
+much effort, the wild goose chase eventually led to a support call.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+The xc5000 has nothing to do with saa7164 (as far as I can tell),
+so replace the string with saa7164 as well as give a meaningful
+hint on the firmware mismatch.
 
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+Since v2:
+- 0day bot bite: Looked up what specifier size_t requires this time...
+
+Since v1:
+- Appease the 0-day bot, fix print format related kernel warnings.
+
+ drivers/media/pci/saa7164/saa7164-fw.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/pci/saa7164/saa7164-fw.c b/drivers/media/pci/saa7164/saa7164-fw.c
+index ef49064..ee65ea8 100644
+--- a/drivers/media/pci/saa7164/saa7164-fw.c
++++ b/drivers/media/pci/saa7164/saa7164-fw.c
+@@ -426,7 +426,8 @@ int saa7164_downloadfirmware(struct saa7164_dev *dev)
+ 			__func__, fw->size);
+ 
+ 		if (fw->size != fwlength) {
+-			printk(KERN_ERR "xc5000: firmware incorrect size\n");
++			printk(KERN_ERR "saa7164: firmware incorrect size %zu != %u\n",
++				fw->size, fwlength);
+ 			ret = -ENOMEM;
+ 			goto out;
+ 		}
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
