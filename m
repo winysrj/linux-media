@@ -1,150 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:55851 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751065AbeECIbc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 04:31:32 -0400
-Subject: Re: [RFCv12 PATCH 05/29] media-request: add media_request_find
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
- <20180501090051.9321-6-hverkuil@xs4all.nl>
- <20180502220614.khmasp7c43swaqid@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0f6f2608-9ec5-4982-19b7-d27801e87fef@xs4all.nl>
-Date: Thu, 3 May 2018 10:31:30 +0200
+Received: from mail.bootlin.com ([62.4.15.54]:59508 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751229AbeEDNkf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 May 2018 09:40:35 -0400
+Date: Fri, 4 May 2018 15:40:33 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: Re: [PATCH v2 09/10] ARM: dts: sun7i-a20: Add Video Engine and
+ reserved memory nodes
+Message-ID: <20180504134033.wngpe5scyisreonn@flea>
+References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
+ <20180419154536.17846-5-paul.kocialkowski@bootlin.com>
+ <20180420073908.nkcbsdxibnzkqski@flea>
+ <82057e2f734137a3902d9313c228b01ceb345ee7.camel@bootlin.com>
+ <20180504084008.h6p4brari3xrbv6l@flea>
+ <e8cd340605ab4db8ebf2888a4fce645e8bc481d0.camel@bootlin.com>
+ <20180504091555.idgtzey53lozj2uh@flea>
+ <fc064c3f1534a6082dc2b4e18454e054b53e5aee.camel@bootlin.com>
 MIME-Version: 1.0
-In-Reply-To: <20180502220614.khmasp7c43swaqid@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="mqms3knof33f5jwx"
+Content-Disposition: inline
+In-Reply-To: <fc064c3f1534a6082dc2b4e18454e054b53e5aee.camel@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/05/18 00:06, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> Thanks for the update.
-> 
-> On Tue, May 01, 2018 at 11:00:27AM +0200, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Add media_request_find() to find a request based on the file
->> descriptor.
-> 
-> What would you think of calling this media_request_get_by_fd() instead?
-> 
-> I think what the function does has changed over the time a bit but the name
-> has stayed.
 
-Good idea, done.
+--mqms3knof33f5jwx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+On Fri, May 04, 2018 at 02:04:38PM +0200, Paul Kocialkowski wrote:
+> On Fri, 2018-05-04 at 11:15 +0200, Maxime Ripard wrote:
+> > On Fri, May 04, 2018 at 10:47:44AM +0200, Paul Kocialkowski wrote:
+> > > > > > > +			reg =3D <0x01c0e000 0x1000>;
+> > > > > > > +			memory-region =3D <&ve_memory>;
+> > > > > >=20
+> > > > > > Since you made the CMA region the default one, you don't need
+> > > > > > to
+> > > > > > tie
+> > > > > > it to that device in particular (and you can drop it being
+> > > > > > mandatory
+> > > > > > from your binding as well).
+> > > > >=20
+> > > > > What if another driver (or the system) claims memory from that
+> > > > > zone
+> > > > > and
+> > > > > that the reserved memory ends up not being available for the VPU
+> > > > > anymore?
+> > > > >=20
+> > > > > Acccording to the reserved-memory documentation, the reusable
+> > > > > property
+> > > > > (that we need for dmabuf) puts a limitation that the device
+> > > > > driver
+> > > > > owning the region must be able to reclaim it back.
+> > > > >=20
+> > > > > How does that work out if the CMA region is not tied to a driver
+> > > > > in
+> > > > > particular?
+> > > >=20
+> > > > I'm not sure to get what you're saying. You have the property
+> > > > linux,cma-default in your reserved region, so the behaviour you
+> > > > described is what you explicitly asked for.
+> > >=20
+> > > My point is that I don't see how the driver can claim back (part of)
+> > > the
+> > > reserved area if the area is not explicitly attached to it.
+> > >=20
+> > > Or is that mechanism made in a way that all drivers wishing to use
+> > > the
+> > > reserved memory area can claim it back from the system, but there is
+> > > no
+> > > priority (other than first-come first-served) for which drivers
+> > > claims
+> > > it back in case two want to use the same reserved region (in a
+> > > scenario
+> > > where there isn't enough memory to allow both drivers)?
+> >=20
+> > This is indeed what happens. Reusable is to let the system use the
+> > reserved memory for things like caches that can easily be dropped when
+> > a driver wants to use the memory in that reserved area. Once that
+> > memory has been allocated, there's no claiming back, unless that
+> > memory segment was freed of course.
+>=20
+> Thanks for the clarification. So in our case, perhaps the best fit would
+> be to make that area the default CMA pool so that we can be ensured that
+> the whole 96 MiB is available for the VPU and that no other consumer of
+> CMA will use it?
 
-	Hans
+The best fit for what use case ? We already discussed this, and I
+don't see any point in having two separate CMA regions. If you have a
+reasonably sized region that will accomodate for both the VPU and
+display engine, why would we want to split them?
 
-> 
->>
->> The caller has to call media_request_put() for the returned
->> request since this function increments the refcount.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/media-request.c | 44 +++++++++++++++++++++++++++++++++++
->>  include/media/media-request.h | 10 ++++++++
->>  2 files changed, 54 insertions(+)
->>
->> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
->> index 22881d5700c8..a186db290d51 100644
->> --- a/drivers/media/media-request.c
->> +++ b/drivers/media/media-request.c
->> @@ -234,6 +234,50 @@ static const struct file_operations request_fops = {
->>  	.release = media_request_close,
->>  };
->>  
->> +/**
->> + * media_request_find - Find a request based on the file descriptor
->> + * @mdev: The media device
->> + * @request_fd: The request file handle
->> + *
->> + * Find and return the request associated with the given file descriptor, or
->> + * an error if no such request exists.
->> + *
->> + * When the function returns a request it increases its reference count. The
->> + * caller is responsible for releasing the reference by calling
->> + * media_request_put() on the request.
->> + */
->> +struct media_request *
->> +media_request_find(struct media_device *mdev, int request_fd)
->> +{
->> +	struct file *filp;
->> +	struct media_request *req;
->> +
->> +	if (!mdev || !mdev->ops ||
->> +	    !mdev->ops->req_validate || !mdev->ops->req_queue)
->> +		return ERR_PTR(-EPERM);
->> +
->> +	filp = fget(request_fd);
->> +	if (!filp)
->> +		return ERR_PTR(-ENOENT);
->> +
->> +	if (filp->f_op != &request_fops)
->> +		goto err_fput;
->> +	req = filp->private_data;
->> +	if (req->mdev != mdev)
->> +		goto err_fput;
->> +
->> +	media_request_get(req);
->> +	fput(filp);
->> +
->> +	return req;
->> +
->> +err_fput:
->> +	fput(filp);
->> +
->> +	return ERR_PTR(-ENOENT);
->> +}
->> +EXPORT_SYMBOL_GPL(media_request_find);
->> +
->>  int media_request_alloc(struct media_device *mdev,
->>  			struct media_request_alloc *alloc)
->>  {
->> diff --git a/include/media/media-request.h b/include/media/media-request.h
->> index 9051dfbc7d30..ce62fe74ebd6 100644
->> --- a/include/media/media-request.h
->> +++ b/include/media/media-request.h
->> @@ -70,6 +70,9 @@ static inline void media_request_get(struct media_request *req)
->>  void media_request_put(struct media_request *req);
->>  void media_request_cancel(struct media_request *req);
->>  
->> +struct media_request *
->> +media_request_find(struct media_device *mdev, int request_fd);
->> +
->>  int media_request_alloc(struct media_device *mdev,
->>  			struct media_request_alloc *alloc);
->>  #else
->> @@ -85,6 +88,12 @@ static inline void media_request_cancel(struct media_request *req)
->>  {
->>  }
->>  
->> +static inline struct media_request *
->> +media_request_find(struct media_device *mdev, int request_fd)
->> +{
->> +	return ERR_PTR(-ENOENT);
->> +}
->> +
->>  #endif
->>  
->>  struct media_request_object_ops {
->> @@ -188,6 +197,7 @@ static inline void media_request_object_unbind(struct media_request_object *obj)
->>  static inline void media_request_object_complete(struct media_request_object *obj)
->>  {
->>  }
->> +
->>  #endif
->>  
->>  #endif
->> -- 
->> 2.17.0
->>
-> 
+Or did you have any experience of running out of buffers?
+
+Maxime
+
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--mqms3knof33f5jwx
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrsYr4ACgkQ0rTAlCFN
+r3QDfw/9FgjN1zE2Qdx/vj5fU28Ulwr8Hs1Zq7Wd68zc5j9CChR0UHqnmXBErKcY
+qDgV8kCgmCl2fnfA1V9JV+Cec2E6+F6KxrLZv8Pg577FWvZKW4EBH+QtBx7iEFRL
+nE8o0KxI/Bu8XHD4e0L/eEexk2mWMC+FWpmvZ0+fzi5to75hUeVujwYMFRjdoCTz
+5+H+/2RH+vLnSLAurNJdfMU20KZ+ahqWpChwbO9nE9sFyqHDs4lhlff2zQstv32e
+tp10Y5irwds6dhvoH1cVyAXZFGQ7nrHXFsHiBZZZdCXxqGb53CPVf7Q4iQUqFzMx
+BW8jonZ3Coz+Y/NlgSYIAVjQdL5b8+5D1rJhsYN5CcYWhVF58acr7Yx/waB6aGX0
+EfKVf/HF3L9OTok2cgFHapFZERHwm7WzPoH8kQrLK8tQID8LsqMolAzrsFJWYgvK
+Gp/7AF/zBjwfUP4L4fCHJTJF9bhOU9t645pB0JwbC+0EovFKzNffCjNbIt6dxBKV
+dde7b/ePI4LPxm9zF4ZQLLC41jqO3KU6KBJ2XXZipUaTjhW7WpizhFS2tZZiuUCw
+UxmsQfCUf12H3EFRBOP+/Mjp+kangTSchbZ+E09VKsdJAmxrXpzw9VImlvmasgTe
+l72/l+OnLG2vYy8dCpRdYQOb49ODfXqtQGPiRn8opNhhUrkqADw=
+=MxQL
+-----END PGP SIGNATURE-----
+
+--mqms3knof33f5jwx--
