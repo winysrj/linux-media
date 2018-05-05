@@ -1,93 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:43770 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbeECP1D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 11:27:03 -0400
-Date: Thu, 3 May 2018 17:26:59 +0200
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        andy.yeh@intel.com
-Subject: Re: [PATCH 1/2] dt-bindings: media: Add "upside-down" property to
- tell sensor orientation
-Message-ID: <20180503152659.x3zh3d747kdr3ymf@earth.universe>
-References: <20180502213115.24000-1-sakari.ailus@linux.intel.com>
- <20180502213115.24000-2-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.15.3]:54073 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750752AbeEEHzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 5 May 2018 03:55:33 -0400
+Subject: Re: [v3] [media] Use common error handling code in 19 functions
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Andrey Utkin <andrey_utkin@fastmail.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Brian Johnson <brijohn@gmail.com>,
+        =?UTF-8?Q?Christoph_B=c3=b6hmwalder?= <christoph@boehmwalder.at>,
+        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
+        Colin Ian King <colin.king@canonical.com>,
+        Daniele Nicolodi <daniele@grinta.net>,
+        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
+        Devendra Sharma <devendra.sharma9091@gmail.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Inki Dae <inki.dae@samsung.com>, Joe Perches <joe@perches.com>,
+        Kees Cook <keescook@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Mike Isely <isely@pobox.com>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Sean Young <sean@mess.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Shyam Saini <mayhs11saini@gmail.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Wei Yongjun <weiyongjun1@huawei.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <227d2d7c-5aee-1190-1624-26596a048d9c@users.sourceforge.net>
+ <57ef3a56-2578-1d5f-1268-348b49b0c573@users.sourceforge.net>
+ <9e766f52-b09e-c61e-8d9f-23542d83f6b1@users.sourceforge.net>
+ <20180504144928.566ae507@vento.lan>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <980b7bd9-b922-55f7-c2d7-2d20552ade4c@users.sourceforge.net>
+Date: Sat, 5 May 2018 09:53:00 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="shxchfnuktkao6oe"
-Content-Disposition: inline
-In-Reply-To: <20180502213115.24000-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180504144928.566ae507@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---shxchfnuktkao6oe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Thu, May 03, 2018 at 12:31:14AM +0300, Sakari Ailus wrote:
-> Camera sensors are occasionally mounted upside down. In order to use such
-> a sensor without having to turn every image upside down separately, most
-> camera sensors support reversing the readout order by setting both
-> horizontal and vertical flipping.
->=20
-> This patch adds a boolean property to tell a sensor is mounted upside
-> down.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-I think the DT binding should use a rotation property instead,
-similar to the panel bindings:
-
-Documentation/devicetree/bindings/display/panel/panel.txt
-
--- Sebastian
-
-> ---
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 3 +++
->  1 file changed, 3 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt=
- b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> index 258b8dfddf48..2a3e4ec4ea27 100644
-> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> @@ -85,6 +85,9 @@ Optional properties
-> =20
->  - lens-focus: A phandle to the node of the focus lens controller.
-> =20
-> +- upside-down: The device, typically an image sensor, is mounted upside
-> +  down in the system.
+> @@ -656,18 +656,18 @@  static int dvb_dmxdev_start_feed(struct dmxdev *dmxdev,
+>  	tsfeed->priv = filter;
+>  
+>  	ret = tsfeed->set(tsfeed, feed->pid, ts_type, ts_pes, timeout);
+> -	if (ret < 0) {
+> -		dmxdev->demux->release_ts_feed(dmxdev->demux, tsfeed);
+> -		return ret;
+> -	}
+> +	if (ret < 0)
+> +		goto release_feed;
+>  
+>  	ret = tsfeed->start_filtering(tsfeed);
+> -	if (ret < 0) {
+> -		dmxdev->demux->release_ts_feed(dmxdev->demux, tsfeed);
+> -		return ret;
+> -	}
+> +	if (ret < 0)
+> +		goto release_feed;
+>  
+>  	return 0;
 > +
-> =20
->  Optional endpoint properties
->  ----------------------------
-> --=20
-> 2.11.0
->=20
+> +release_feed:
+> +	dmxdev->demux->release_ts_feed(dmxdev->demux, tsfeed);
+> +	return ret;
+>  }
+> 
+> There's *nothing* wrong with the above. It works fine,
 
---shxchfnuktkao6oe
-Content-Type: application/pgp-signature; name="signature.asc"
+I can agree to this view in principle according to the required control flow.
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlrrKkAACgkQ2O7X88g7
-+podKg/+OK5f7qBFjeZEesbu5HlbwbuULn9EBuht6XdgfvI9gX/LQB063mqWcTNm
-bLSLFqPJQsV22KdK3gQBYTzpDqDFt14N/1p5wybm7m5TWI5r1NqnbasBwn9PxXyb
-rNflL11LJOIzP1mlYJKme6mubqPCa7hU8qxYqB27bizrC7AEJhhTqLdPNDf5+YS0
-Oauxp+okJzyv2Ik1x9+zfENkF1BtT4bTrqLfE5wGZNCtQknZ6g6SPYwwi+PEMEPR
-KheqakOJwDEEoAKoz89E6uBh4+chK999Hzby/YcFVtbhw+oh4CLZgh4ViXBleLDc
-zgNtYnZlBcPsAOSI5yRhLhFsTqGjKb7OUrAUrCGPKMX8IjH8WO64W78WvCX0gEP2
-ShBP4MWZnVAFldvweTi0FQpTgCJ9JCQ291bgt/W7iO4gJu695BbKd5FHOGO6D+JR
-SB73e278RFsVUmXbSfoADAXPIuWzMrdfRSrn3ZtritoCc54mmPGfkhboWT9crYUK
-Sgfm/Ra6HKRFPF2wiVjlFg4en8SOeJppAnIf2ChcQo47v/rmjjxsw5kh+igXn0wG
-tdzzcqg0MAiJSMLn2fhqR1OrDqvE/jdrGxzzlu7hTnkwtcdC3CPIF7KgbOn1XRnL
-kuLXELJi7wMlbRCWMkbCMs1XTsZfdIg9az3wz+62uiZ1fID2HiU=
-=hU9X
------END PGP SIGNATURE-----
+> avoids goto
 
---shxchfnuktkao6oe--
+How does this wording fit to information from the section
+“7) Centralized exiting of functions” in the document “coding-style.rst”?
+
+
+> and probably even produce the same code, as gcc will likely optimize it.
+
+Would you like to clarify the current situation around supported
+software optimisations any more?
+
+
+> It is also easier to review, as the error handling is closer
+> to the code.
+
+Do we stumble on different coding style preferences once more?
+
+
+> On the other hand, there's nothing wrong on taking the approach
+> you're proposing.
+
+Thanks for another bit of positive feedback.
+
+
+> In the end, using goto or not on error handling like the above is 
+> a matter of personal taste - and taste changes with time
+
+Do Linux guidelines need any adjustments?
+
+
+> and with developer. I really don't have time to keep reviewing patches
+> that are just churning the code just due to someone's personal taste.
+
+I tried to apply another general source code transformation pattern.
+
+
+> I'm pretty sure if I start accepting things like that,
+> someone else would be on some future doing patches just reverting it,
+> and I would be likely having to apply them too.
+
+Why?
+
+I hope also that the source code can be kept consistent to some degree.
+
+
+> So, except if the patch is really fixing something - e.g. a broken
+> error handling code, I'll just ignore such patches and mark as
+> rejected without further notice/comments from now on.
+
+I would find such a communication style questionable.
+Do you distinguish between bug fixes and possible corrections for
+other error categories (or software weaknesses)?
+
+Regards,
+Markus
