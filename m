@@ -1,85 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:35662 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750944AbeECNpf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 09:45:35 -0400
-Subject: Re: [PATCH v3 10/11] media: vsp1: Support Interlaced display
- pipelines
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-References: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
- <bad0151f22d3d7dabe2424c9410bfae1c679bfd4.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
- <42ad373a-6beb-5821-6334-1feffd816dd8@ideasonboard.com>
- <1784754.iAtk829Up8@avalon>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <8df5710f-77c0-f466-e9ed-ffde4dd2f8d9@ideasonboard.com>
-Date: Thu, 3 May 2018 14:45:30 +0100
+Received: from mout.gmx.net ([212.227.15.18]:53899 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751086AbeEEM0S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 5 May 2018 08:26:18 -0400
+Received: from [192.168.178.21] ([79.222.126.74]) by mail.gmx.com (mrgmx001
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 0M2t0Q-1eNWbH0CZS-00sflM for
+ <linux-media@vger.kernel.org>; Sat, 05 May 2018 14:26:17 +0200
+To: linux-media <linux-media@vger.kernel.org>
+From: Martin Dauskardt <martin.dauskardt@gmx.de>
+Subject: compile error media-build on 4.15 because of 'device_get_match_data'
+Message-ID: <058eb808-5072-d9fb-c83c-5bc1201568fc@gmx.de>
+Date: Sat, 5 May 2018 14:26:16 +0200
 MIME-Version: 1.0
-In-Reply-To: <1784754.iAtk829Up8@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: de-DE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+I tried to compile media-build on Ubuntu 18.04. (gcc 7.3.0) with Kernel 
+4.15 and get this error:
 
-On 03/05/18 12:13, Laurent Pinchart wrote:
-> Hi Kieran,
 
-<snip>
+/home/martin/media_build/v4l/video-i2c.c: In function 'video_i2c_probe':
+/home/martin/media_build/v4l/video-i2c.c:456:16: error: implicit 
+declaration of function 'device_get_match_data'; did you mean 
+'of_device_get_match_data'? [-Werror=implicit-function-declaration]
+    data->chip = device_get_match_data(&client->dev);
+                 ^~~~~~~~~~~~~~~~~~~~~
+                 of_device_get_match_data
+/home/martin/media_build/v4l/video-i2c.c:456:14: warning: assignment 
+makes pointer from integer without a cast [-Wint-conversion]
+    data->chip = device_get_match_data(&client->dev);
+               ^
+cc1: some warnings being treated as errors
+scripts/Makefile.build:339: recipe for target 
+'/home/martin/media_build/v4l/video-i2c.o' failed
+make[3]: *** [/home/martin/media_build/v4l/video-i2c.o] Error 1
+Makefile:1552: recipe for target '_module_/home/martin/media_build/v4l' 
+failed
+make[2]: *** [_module_/home/martin/media_build/v4l] Error 2
+make[2]: Leaving directory '/usr/src/linux-headers-4.15.0-20-generic'
+Makefile:51: recipe for target 'default' failed
+make[1]: *** [default] Error 2
+make[1]: Verzeichnis „/home/martin/media_build/v4l“ wird verlassen
+Makefile:26: recipe for target 'all' failed
+make: *** [all] Error 2
+build failed at ./build line 526
 
->>> +	} else {
->>> +		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_Y, mem.addr[0]);
->>> +		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C0, mem.addr[1]);
->>> +		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C1, mem.addr[2]);
->>> +	}
->>>  }
->>> +
->>>  static void rpf_partition(struct vsp1_entity *entity,
->>>  			  struct vsp1_pipeline *pipe,
->>>  			  struct vsp1_partition *partition,
->>> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h
->>> b/drivers/media/platform/vsp1/vsp1_rwpf.h index
->>> 70742ecf766f..8d6e42f27908 100644
->>> --- a/drivers/media/platform/vsp1/vsp1_rwpf.h
->>> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
->>> @@ -42,6 +42,7 @@ struct vsp1_rwpf {
->>>  	struct v4l2_pix_format_mplane format;
->>>  	const struct vsp1_format_info *fmtinfo;
->>>  	unsigned int brx_input;
->>> +	bool interlaced;
-> 
-> kerneldoc might be nice :-)
-
-There's no existing kerneldoc on struct vsp1_rwpf ?
-
->>>
->>>  	unsigned int alpha;
->>>
-> 
-> [snip]
-> 
->>> diff --git a/include/media/vsp1.h b/include/media/vsp1.h
->>> index 678c24de1ac6..c10883f30980 100644
->>> --- a/include/media/vsp1.h
->>> +++ b/include/media/vsp1.h
->>> @@ -50,6 +50,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int
->>> pipe_index,> 
->>>   * @dst: destination rectangle on the display (integer coordinates)
->>>   * @alpha: alpha value (0: fully transparent, 255: fully opaque)
->>>   * @zpos: Z position of the plane (from 0 to number of planes minus 1)
->>> + * @interlaced: true for interlaced pipelines
-> 
-> Maybe "true if the pipeline outputs an interlaced stream" ?
-
-That's fine - but I've neglected to incorporate this into my v4 repost :-(
-
-If by any magic - v4 is suitable for integration already, and you're happy to
-take it into your tree - please feel free to update this comment.
-
-Otherwise it will be in any next update.
-
---
-KB
+I hope it is possible to integrate a patch for Kernel 4.15
