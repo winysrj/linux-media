@@ -1,169 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35879 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933887AbeEIOZX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 10:25:23 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+Received: from perceval.ideasonboard.com ([213.167.242.64]:44278 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751684AbeEEHe3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2018 03:34:29 -0400
+Subject: Re: 4.17-rc3 regression in UVC driver
+To: Sebastian Reichel <sre@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [RFC PATCH] i2c: add I2C_M_FORCE_STOP
-Date: Wed,  9 May 2018 23:24:37 +0900
-Message-Id: <1525875877-10164-1-git-send-email-akinobu.mita@gmail.com>
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <20180504181900.pm72mxyueqb3fu3z@earth.universe>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <3a5a32b0-a78d-571c-60af-416656f81e69@ideasonboard.com>
+Date: Sat, 5 May 2018 08:34:23 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180504181900.pm72mxyueqb3fu3z@earth.universe>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="YKKcJdQ08zHxxbJjuSHmkud0lpWPmtzzl"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds a new I2C_M_FORCE_STOP flag that forces a stop condition after
-the message in a combined transaction.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--YKKcJdQ08zHxxbJjuSHmkud0lpWPmtzzl
+Content-Type: multipart/mixed; boundary="0x9VZJI79S9k5Dn6A6pZmd7buvk2TDRoq";
+ protected-headers="v1"
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: Sebastian Reichel <sre@kernel.org>,
+ Linux Media Mailing List <linux-media@vger.kernel.org>,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@kernel.org>
+Message-ID: <3a5a32b0-a78d-571c-60af-416656f81e69@ideasonboard.com>
+Subject: Re: 4.17-rc3 regression in UVC driver
+References: <20180504181900.pm72mxyueqb3fu3z@earth.universe>
+In-Reply-To: <20180504181900.pm72mxyueqb3fu3z@earth.universe>
 
-This flag is intended to be used by the devices that don't support
-repeated starts like SCCB (Serial Camera Control Bus) devices.
+--0x9VZJI79S9k5Dn6A6pZmd7buvk2TDRoq
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
 
-Here is an example usage for ov772x driver that needs to issue two
-separated I2C messages as the ov772x device doesn't support repeated
-starts.
+Hi Sebastian,
 
-static int ov772x_read(struct i2c_client *client, u8 addr)
-{
-        u8 val;
-        struct i2c_msg msg[] = {
-                {
-                        .addr = client->addr,
-                        .flags = I2C_M_FORCE_STOP,
-                        .len = 1,
-                        .buf = &addr,
-                },
-                {
-                        .addr = client->addr,
-                        .flags = I2C_M_RD,
-                        .len = 1,
-                        .buf = &val,
-                },
-        };
-        int ret;
+On 04/05/18 19:45, Sebastian Reichel wrote:
+> Hi,
+>=20
+> I just got the following error message every ms with 4.17-rc3 after
+> upgrading to for first ~192 seconds after system start (Debian
+> 4.17~rc3-1~exp1 kernel) on my Thinkpad X250:
+>=20
+>> uvcvideo: Failed to query (GET_MIN) UVC control 2 on unit 1: -32 (exp.=
+ 1).
 
-        ret = i2c_transfer(client->adapter, msg, 2);
-        if (ret != 2)
-                return (ret < 0) ? ret : -EIO;
+I have submitted a patch to fix this ... (and I thought it would have got=
+ in by
+now ... so I'll chase this up)
 
-        return val;
-}
 
-This is another approach based on Mauro's advise for the initial attempt
-(http://patchwork.ozlabs.org/patch/905192/).
+Please see : https://patchwork.linuxtv.org/patch/48043/ and apply the pat=
+ch to
+bring your system logs back to a reasonable state :D
 
-Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Wolfram Sang <wsa@the-dreams.de>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
- drivers/i2c/i2c-core-base.c | 46 ++++++++++++++++++++++++++++++++++-----------
- include/uapi/linux/i2c.h    |  1 +
- 2 files changed, 36 insertions(+), 11 deletions(-)
+Laurent, Mauro,
 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index 1ba40bb..6b73484 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -1828,6 +1828,25 @@ static int i2c_check_for_quirks(struct i2c_adapter *adap, struct i2c_msg *msgs,
- 	return 0;
- }
- 
-+static int i2c_transfer_nolock(struct i2c_adapter *adap, struct i2c_msg *msgs,
-+			       int num)
-+{
-+	unsigned long orig_jiffies;
-+	int ret, try;
-+
-+	/* Retry automatically on arbitration loss */
-+	orig_jiffies = jiffies;
-+	for (ret = 0, try = 0; try <= adap->retries; try++) {
-+		ret = adap->algo->master_xfer(adap, msgs, num);
-+		if (ret != -EAGAIN)
-+			break;
-+		if (time_after(jiffies, orig_jiffies + adap->timeout))
-+			break;
-+	}
-+
-+	return ret;
-+}
-+
- /**
-  * __i2c_transfer - unlocked flavor of i2c_transfer
-  * @adap: Handle to I2C bus
-@@ -1842,8 +1861,8 @@ static int i2c_check_for_quirks(struct i2c_adapter *adap, struct i2c_msg *msgs,
-  */
- int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
- {
--	unsigned long orig_jiffies;
--	int ret, try;
-+	int ret;
-+	int i, n;
- 
- 	if (WARN_ON(!msgs || num < 1))
- 		return -EINVAL;
-@@ -1857,7 +1876,6 @@ int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
- 	 * being executed when not needed.
- 	 */
- 	if (static_branch_unlikely(&i2c_trace_msg_key)) {
--		int i;
- 		for (i = 0; i < num; i++)
- 			if (msgs[i].flags & I2C_M_RD)
- 				trace_i2c_read(adap, &msgs[i], i);
-@@ -1865,18 +1883,24 @@ int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
- 				trace_i2c_write(adap, &msgs[i], i);
- 	}
- 
--	/* Retry automatically on arbitration loss */
--	orig_jiffies = jiffies;
--	for (ret = 0, try = 0; try <= adap->retries; try++) {
--		ret = adap->algo->master_xfer(adap, msgs, num);
--		if (ret != -EAGAIN)
--			break;
--		if (time_after(jiffies, orig_jiffies + adap->timeout))
-+	for (i = 0; i < num; i += n) {
-+		for (n = 0; i + n < num; n++) {
-+			if (msgs[i + n].flags & I2C_M_FORCE_STOP) {
-+				n++;
-+				break;
-+			}
-+		}
-+
-+		ret = i2c_transfer_nolock(adap, &msgs[i], n);
-+		if (ret != n) {
-+			if (i > 0)
-+				ret = (ret < 0) ? i : i + ret;
- 			break;
-+		}
-+		ret = i + n;
- 	}
- 
- 	if (static_branch_unlikely(&i2c_trace_msg_key)) {
--		int i;
- 		for (i = 0; i < ret; i++)
- 			if (msgs[i].flags & I2C_M_RD)
- 				trace_i2c_reply(adap, &msgs[i], i);
-diff --git a/include/uapi/linux/i2c.h b/include/uapi/linux/i2c.h
-index f71a175..36e8c7c 100644
---- a/include/uapi/linux/i2c.h
-+++ b/include/uapi/linux/i2c.h
-@@ -72,6 +72,7 @@ struct i2c_msg {
- #define I2C_M_RD		0x0001	/* read data, from slave to master */
- 					/* I2C_M_RD is guaranteed to be 0x0001! */
- #define I2C_M_TEN		0x0010	/* this is a ten bit chip address */
-+#define I2C_M_FORCE_STOP	0x0100	/* force a stop condition after the message */
- #define I2C_M_DMA_SAFE		0x0200	/* the buffer of this message is DMA safe */
- 					/* makes only sense in kernelspace */
- 					/* userspace buffers are copied anyway */
--- 
-2.7.4
+This is the second bug report I've had on this topic.
+Can we aim to get this patch merged please?
+
+> I see /dev/video0 and /dev/video1. The first one seems to be
+> functional. The second one does not work and does not make
+> sense to me (the system has only one webcam). I did not try to
+> bisect anything. Here is some more information, that might
+> be useful:
+
+There are two device nodes now, as one is provided to output meta-data or=
+ such.
+
+
+>> sre@earth ~ % mpv /dev/video1=20
+>> Playing: /dev/video1
+>> [ffmpeg/demuxer] video4linux2,v4l2: ioctl(VIDIOC_G_INPUT): Inappropria=
+te ioctl for device
+>> [lavf] avformat_open_input() failed
+>> Failed to recognize file format.
+>> sre@earth ~ % udevadm info /dev/video0
+>> P: /devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4linux/video=
+0
+>> N: video0
+>> E: DEVNAME=3D/dev/video0
+>> E: DEVPATH=3D/devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4l=
+inux/video0
+>> E: MAJOR=3D81
+>> E: MINOR=3D0
+>> E: SUBSYSTEM=3Dvideo4linux
+>> sre@earth ~ % udevadm info /dev/video1
+>> P: /devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4linux/video=
+1
+>> N: video1
+>> E: DEVNAME=3D/dev/video1
+>> E: DEVPATH=3D/devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4l=
+inux/video1
+>> E: MAJOR=3D81
+>> E: MINOR=3D1
+>> E: SUBSYSTEM=3Dvideo4linux
+>> sre@earth ~ % lsusb -d 04ca:703c
+>> Bus 001 Device 004: ID 04ca:703c Lite-On Technology Corp.=20
+>=20
+> -- Sebastian
+
+
+Regards
+
+Kieran
+
+
+--0x9VZJI79S9k5Dn6A6pZmd7buvk2TDRoq--
+
+--YKKcJdQ08zHxxbJjuSHmkud0lpWPmtzzl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEkC3XmD+9KP3jctR6oR5GchCkYf0FAlrtXn8ACgkQoR5GchCk
+Yf0T7A/8C3rO96vBcrkUI+ZMO0UwBuzEZUAHfMfQHVgI9l4t7cK2u4bufYyudoUc
+u0gGx5NDsdF0GqzGK7pR+fnGMCmapZg3zlKt+Bmv3zdqj23lOnvg+zaNDxqo96ZU
+lP3h/KEBfBUxNdtcmVVxj1qpMAiLEO+UiQJa7dVr4Iso5nR95+fjYFXRe5rUWfuo
+BfQz47VvxgzNpCgSCj6G0OAadJ+Idt+Iz38xiFIchJsNf9T6wTcJHF98Q1oEM567
+llxitazBhiw8totvVKhBBV7kLQr4TXXpKL0OL/j2bP4YghXy7Pcv8Tg4O0C1DwOu
+OgWUo9ZX4KDIqtmgnDmN5ynGlGVtiuvu7fjT8WNu88pMHjd+R2+wz6f4rVPkgTFk
+4sDnL+OosovnoQ1kR46PrzUjakv97Bo6NYqgmi+AuBpNE3zwbJ46RblxtT0Yn2wF
+Ia0Ve1MoH+h88fRucMvrDXlGNaEKMVg6FBAKEOOz7ND39Ys5YRJV/tnUXCI4vm82
+jjbUFAp0/OtLpnSnMo+lPl5nfpgmIfPfNsCf6+UuyldN9Ctj/bZtduQOHKcUxCe8
+Mu2kNx3xzMLjXFEak08NFIyvZ4s0xVJQiJryqjG5id+Kzkj2FAXOZfR9ecK4x0cr
+mzHrIJB/DvekwaCvvMX3ICCvFKxiR7zohmcuFSDVAHTs/bF1u0U=
+=Hcoe
+-----END PGP SIGNATURE-----
+
+--YKKcJdQ08zHxxbJjuSHmkud0lpWPmtzzl--
