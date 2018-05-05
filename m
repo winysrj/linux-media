@@ -1,62 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:60158 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750883AbeETHEV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 May 2018 03:04:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v6 9/9] v4l: vsp1: Reduce display list body size
-Date: Sun, 20 May 2018 10:04:43 +0300
-Message-ID: <2794710.jCN7UpUv5u@avalon>
-In-Reply-To: <e0ad4e839ffffb002ced5e960b43f5a54cd0260e.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com> <e0ad4e839ffffb002ced5e960b43f5a54cd0260e.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail.anw.at ([195.234.101.228]:38329 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750821AbeEEMdr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 5 May 2018 08:33:47 -0400
+Subject: Re: compile error media-build on 4.15 because of
+ 'device_get_match_data'
+To: Martin Dauskardt <martin.dauskardt@gmx.de>,
+        linux-media <linux-media@vger.kernel.org>
+References: <058eb808-5072-d9fb-c83c-5bc1201568fc@gmx.de>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <4abfcdf2-cb54-a9c9-fafd-354b26c5f078@anw.at>
+Date: Sat, 5 May 2018 14:33:45 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <058eb808-5072-d9fb-c83c-5bc1201568fc@gmx.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hello!
 
-On Wednesday, 28 February 2018 22:52:43 EEST Kieran Bingham wrote:
-> The display list originally allocated a body of 256 entries to store all
-> of the register lists required for each frame.
-> 
-> This has now been separated into fragments for constant stream setup, and
-> runtime updates.
-> 
-> Empirical testing shows that the body0 now uses a maximum of 41
-> registers for each frame, for both DRM and Video API pipelines thus a
-> rounded 64 entries provides a suitable allocation.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+I just pushed a fix to media-build.
+But I had to disable the driver for Kernels older than 4.16.
+-> VIDEO_I2C requires device_get_match_data which requires
+   the function pointer device_get_match_data in fwnode_operations.
+The latter has been added first in Kernel 4.16.
 
-Just wondering, why have you dropped this from new versions of the patch 
-series ?
+If someone wants to have VIDEO_I2C in Kernels older than 4.16,
+please provide patch.
 
-> ---
->  drivers/media/platform/vsp1/vsp1_dl.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
-> b/drivers/media/platform/vsp1/vsp1_dl.c index a762e840d147..6b5743a431a2
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> @@ -21,7 +21,7 @@
->  #include "vsp1.h"
->  #include "vsp1_dl.h"
-> 
-> -#define VSP1_DL_NUM_ENTRIES		256
-> +#define VSP1_DL_NUM_ENTRIES		64
-> 
->  #define VSP1_DLH_INT_ENABLE		(1 << 1)
->  #define VSP1_DLH_AUTO_START		(1 << 0)
-
-
--- 
-Regards,
-
-Laurent Pinchart
+BR,
+   Jasmin
