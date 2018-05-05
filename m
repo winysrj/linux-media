@@ -1,119 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59114 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751927AbeENCFy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 May 2018 22:05:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: rcar-vin: enable support for r8a77965
-Date: Mon, 14 May 2018 05:06:11 +0300
-Message-ID: <3586332.p7dOIGCUmf@avalon>
-In-Reply-To: <20180513190023.16170-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180513190023.16170-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from bombadil.infradead.org ([198.137.202.133]:48154 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751086AbeEEPFT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2018 11:05:19 -0400
+Date: Sat, 5 May 2018 12:05:13 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>, Dave Airlie <airlied@gmail.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3 0/8] R-Car DU: Support CRC calculation
+Message-ID: <20180505120513.59e05e93@vento.lan>
+In-Reply-To: <5038283.TSNOrsSzts@avalon>
+References: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
+        <4411331.L07MOrSnxD@avalon>
+        <CAKMK7uG_WBvAaRDy9Co=LLa6cUcLTuWYNu7ABkUxs-NzEXNRew@mail.gmail.com>
+        <5038283.TSNOrsSzts@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Em Sat, 05 May 2018 17:06:50 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Thank you for the patch.
+> Hi Daniel,
+> 
+> (CC'ing Mauro)
+> 
+> On Thursday, 3 May 2018 16:45:36 EEST Daniel Vetter wrote:
+> > On Thu, May 3, 2018 at 2:06 PM, Laurent Pinchart wrote:  
+> > > Hi Dave,
+> > > 
+> > > Ping ?  
+> > 
+> > Not aware of any crc core work going on in drm, so has my ack.  
+> 
+> Thank you.
+> 
+> > Worst case we do a topic branch or something like that (since I guess you'll
+> > do a pull request anyway on the v4l side).  
+> 
+> That would unfortunately not be possible, as Mauro cherry-picks patches 
+> instead of merging pull requests. In rare cases I can ask for a pull-request 
+> to be merged as-is, but it's too late in this case as the previous pull 
+> request that this series is based on has been cherry-picked, not merged.
 
-On Sunday, 13 May 2018 22:00:23 EEST Niklas S=F6derlund wrote:
-> Add the SoC specific information for Renesas r8a77965.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+I probably missed something, but I fail to see what's the problem.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+If DRM needs a patch that was already merged on our tree, I can gladly
+create a stable branch/tag for it - well, media master branch is stable,
+but I can add a tag there just after the patch DRM needs, in order
+to avoid them to merge from us at some random point.
 
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 48 +++++++++++++++++++++
->  1 file changed, 48 insertions(+)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index
-> d3072e166a1ca24f..f7bfd05accbfde67 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -974,6 +974,50 @@ static const struct rvin_info rcar_info_r8a7796 =3D {
->  	.routes =3D rcar_info_r8a7796_routes,
->  };
->=20
-> +static const struct rvin_group_route _rcar_info_r8a77965_routes[] =3D {
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 0, .vin =3D 0, .mask =3D BIT(0) | B=
-IT(3) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 0, .vin =3D 0, .mask =3D BIT(1) | B=
-IT(4) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 1, .vin =3D 0, .mask =3D BIT(2) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 0, .vin =3D 1, .mask =3D BIT(0) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 1, .vin =3D 1, .mask =3D BIT(1) | B=
-IT(3) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 0, .vin =3D 1, .mask =3D BIT(2) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 1, .vin =3D 1, .mask =3D BIT(4) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 1, .vin =3D 2, .mask =3D BIT(0) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 0, .vin =3D 2, .mask =3D BIT(1) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 0, .vin =3D 2, .mask =3D BIT(2) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 2, .vin =3D 2, .mask =3D BIT(3) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 2, .vin =3D 2, .mask =3D BIT(4) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 1, .vin =3D 3, .mask =3D BIT(0) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 1, .vin =3D 3, .mask =3D BIT(1) | B=
-IT(2) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 3, .vin =3D 3, .mask =3D BIT(3) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 3, .vin =3D 3, .mask =3D BIT(4) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 0, .vin =3D 4, .mask =3D BIT(0) | B=
-IT(3) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 0, .vin =3D 4, .mask =3D BIT(1) | B=
-IT(4) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 1, .vin =3D 4, .mask =3D BIT(2) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 0, .vin =3D 5, .mask =3D BIT(0) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 1, .vin =3D 5, .mask =3D BIT(1) | B=
-IT(3) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 0, .vin =3D 5, .mask =3D BIT(2) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 1, .vin =3D 5, .mask =3D BIT(4) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 1, .vin =3D 6, .mask =3D BIT(0) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 0, .vin =3D 6, .mask =3D BIT(1) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 0, .vin =3D 6, .mask =3D BIT(2) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 2, .vin =3D 6, .mask =3D BIT(3) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 2, .vin =3D 6, .mask =3D BIT(4) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 1, .vin =3D 7, .mask =3D BIT(0) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 1, .vin =3D 7, .mask =3D BIT(1) | B=
-IT(2) },
-> +	{ .csi =3D RVIN_CSI40, .channel =3D 3, .vin =3D 7, .mask =3D BIT(3) },
-> +	{ .csi =3D RVIN_CSI20, .channel =3D 3, .vin =3D 7, .mask =3D BIT(4) },
-> +	{ /* Sentinel */ }
-> +};
-> +
-> +static const struct rvin_info rcar_info_r8a77965 =3D {
-> +	.model =3D RCAR_GEN3,
-> +	.use_mc =3D true,
-> +	.max_width =3D 4096,
-> +	.max_height =3D 4096,
-> +	.routes =3D _rcar_info_r8a77965_routes,
-> +};
-> +
->  static const struct rvin_group_route _rcar_info_r8a77970_routes[] =3D {
->  	{ .csi =3D RVIN_CSI40, .channel =3D 0, .vin =3D 0, .mask =3D BIT(0) | B=
-IT(3) },
->  	{ .csi =3D RVIN_CSI40, .channel =3D 0, .vin =3D 1, .mask =3D BIT(2) },
-> @@ -1030,6 +1074,10 @@ static const struct of_device_id rvin_of_id_table[=
-] =3D
-> { .compatible =3D "renesas,vin-r8a7796",
->  		.data =3D &rcar_info_r8a7796,
->  	},
-> +	{
-> +		.compatible =3D "renesas,vin-r8a77965",
-> +		.data =3D &rcar_info_r8a77965,
-> +	},
->  	{
->  		.compatible =3D "renesas,vin-r8a77970",
->  		.data =3D &rcar_info_r8a77970,
+If otherwise we need a patch applied at DRM, they can do the same:
+create a branch/tag, and I can pull from it.
 
-=2D-=20
-Regards,
-
-Laurent Pinchart
+Thanks,
+Mauro
