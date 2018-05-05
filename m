@@ -1,90 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36114 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753081AbeEVU54 (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:51947 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751802AbeEED1G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 16:57:56 -0400
-Received: by mail-wm0-f66.google.com with SMTP id n10-v6so3440518wmc.1
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 13:57:56 -0700 (PDT)
-Subject: Re: [PATCH 3/4] venus: add check to make scm calls
-To: Vikash Garodia <vgarodia@codeaurora.org>, hverkuil@xs4all.nl,
-        mchehab@kernel.org, andy.gross@linaro.org,
-        bjorn.andersson@linaro.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-soc@vger.kernel.org, acourbot@google.com
-References: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
- <1526556740-25494-4-git-send-email-vgarodia@codeaurora.org>
- <9d5e12b1-40bd-adab-05f0-bdb209bf0174@linaro.org>
- <20180522195026.GA16550@jcrouse-lnx.qualcomm.com>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <f9f99014-526d-d23b-6eaf-c04e45bef10a@linaro.org>
-Date: Tue, 22 May 2018 23:57:53 +0300
-MIME-Version: 1.0
-In-Reply-To: <20180522195026.GA16550@jcrouse-lnx.qualcomm.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 4 May 2018 23:27:06 -0400
+Message-ID: <6df4710300aee021116c5711d8306ac6@smtp-cloud8.xs4all.net>
+Date: Sat, 05 May 2018 05:27:02 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jordan,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 22.05.2018 22:50, Jordan Crouse wrote:
-> On Tue, May 22, 2018 at 04:04:51PM +0300, Stanimir Varbanov wrote:
->> Hi Vikash,
->>
->> On 05/17/2018 02:32 PM, Vikash Garodia wrote:
->>> In order to invoke scm calls, ensure that the platform
->>> has the required support to invoke the scm calls in
->>> secure world. This code is in preparation to add PIL
->>> functionality in venus driver.
->>>
->>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
->>> ---
->>>   drivers/media/platform/qcom/venus/hfi_venus.c | 26 +++++++++++++++++++-------
->>>   1 file changed, 19 insertions(+), 7 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
->>> index f61d34b..9bcce94 100644
->>> --- a/drivers/media/platform/qcom/venus/hfi_venus.c
->>> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
->>> @@ -27,6 +27,7 @@
->>>   #include "hfi_msgs.h"
->>>   #include "hfi_venus.h"
->>>   #include "hfi_venus_io.h"
->>> +#include "firmware.h"
->>>   
->>>   #define HFI_MASK_QHDR_TX_TYPE		0xff000000
->>>   #define HFI_MASK_QHDR_RX_TYPE		0x00ff0000
->>> @@ -570,13 +571,19 @@ static int venus_halt_axi(struct venus_hfi_device *hdev)
->>>   static int venus_power_off(struct venus_hfi_device *hdev)
->>>   {
->>>   	int ret;
->>> +	void __iomem *reg_base;
->>>   
->>>   	if (!hdev->power_enabled)
->>>   		return 0;
->>>   
->>> -	ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
->>> -	if (ret)
->>> -		return ret;
->>> +	if (qcom_scm_is_available()) {
->>> +		ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
->>
->> I think it will be clearer if we abstract qcom_scm_set_remote_state to
->> something like venus_set_state(SUSPEND|RESUME) in firmware.c and export
->> the functions to be used here.
-> 
-> This specific function is a little odd because the SCM function got overloaded
-> and used as a hardware workaround for the adreno a5xx zap shader.
-> 
-> When we added it for the GPU we knew the day would come that we would need it
-> for Venus so we kept the name purposely generic. You can wrap if if you want
-> but just know that there are other non video entities out there using it.
+Results of the daily build of media_tree:
 
-Sorry I wasn't clear, by abstract it I meant to introduce a new 
-venus_set_state function in venus/firmware.c where we'll select 
-tz/non-tz functions for suspend / resume depending on the configuration.
+date:			Sat May  5 05:00:13 CEST 2018
+media-tree git hash:	baa057e29b5824b3727e2eb643e513ba5e35aea0
+media_build git hash:	2945d108c680b3c09c9843e001e84a9797d7f379
+v4l-utils git hash:	03e763fd4b361b2082019032fc315b7606669335
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		0.5.2-RC1
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.15.0-3-amd64
 
-regards,
-Stan
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.101-i686: ERRORS
+linux-3.0.101-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.101-i686: ERRORS
+linux-3.2.101-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.113-i686: ERRORS
+linux-3.4.113-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.10-i686: ERRORS
+linux-3.7.10-x86_64: ERRORS
+linux-3.8.13-i686: ERRORS
+linux-3.8.13-x86_64: ERRORS
+linux-3.9.11-i686: ERRORS
+linux-3.9.11-x86_64: ERRORS
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.56-i686: ERRORS
+linux-3.16.56-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.102-i686: ERRORS
+linux-3.18.102-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.51-i686: ERRORS
+linux-4.1.51-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.109-i686: ERRORS
+linux-4.4.109-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.91-i686: ERRORS
+linux-4.9.91-x86_64: ERRORS
+linux-4.14.31-i686: ERRORS
+linux-4.14.31-x86_64: ERRORS
+linux-4.15.14-i686: ERRORS
+linux-4.15.14-x86_64: ERRORS
+linux-4.16-i686: WARNINGS
+linux-4.16-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
