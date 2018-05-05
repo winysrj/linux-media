@@ -1,121 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:44984 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751065AbeEUMS5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 08:18:57 -0400
-Received: by mail-wr0-f193.google.com with SMTP id y15-v6so15784405wrg.11
-        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 05:18:57 -0700 (PDT)
-Subject: Re: [PATCH v2 08/29] venus: hfi_venus: fix suspend function for venus
- 3xx versions
-To: Tomasz Figa <tfiga@chromium.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from osg.samsung.com ([64.30.133.232]:35452 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751709AbeEEPvi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 5 May 2018 11:51:38 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        vgarodia@codeaurora.org
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
- <20180515075859.17217-9-stanimir.varbanov@linaro.org>
- <CAAFQd5AtfQL3-xz6MPSDOuXkJoZaVYU4PECJL0VOZjqYRoV-wQ@mail.gmail.com>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <46683c10-bd18-b0f0-9b07-acc8cadb98a3@linaro.org>
-Date: Mon, 21 May 2018 15:18:54 +0300
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5AtfQL3-xz6MPSDOuXkJoZaVYU4PECJL0VOZjqYRoV-wQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Tomoki Sekiyama <tomoki.sekiyama@gmail.com>
+Subject: [PATCH] media: siano: don't use GFP_DMA
+Date: Sat,  5 May 2018 11:51:32 -0400
+Message-Id: <3864bed1ede15a547b18748c88c23a0861788177.1525535489.git.mchehab+samsung@kernel.org>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+I can't think on a single reason why this driver would be using
+GFP_DMA. The typical usage is as an USB driver. Any DMA restrictions
+should be handled inside the HCI driver, if any.
 
-On 05/18/2018 06:14 PM, Tomasz Figa wrote:
-> On Tue, May 15, 2018 at 5:11 PM Stanimir Varbanov <
-> stanimir.varbanov@linaro.org> wrote:
-> 
->> This fixes the suspend function for Venus 3xx versions by
->> add a check for WFI (wait for interrupt) bit. This bit
->> is on when the ARM9 is idle and entered in low power mode.
-> 
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>   drivers/media/platform/qcom/venus/hfi_venus.c    | 59
-> ++++++++++++++++--------
->>   drivers/media/platform/qcom/venus/hfi_venus_io.h |  1 +
->>   2 files changed, 41 insertions(+), 19 deletions(-)
-> 
->> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c
-> b/drivers/media/platform/qcom/venus/hfi_venus.c
->> index 53546174aab8..aac351f699a0 100644
->> --- a/drivers/media/platform/qcom/venus/hfi_venus.c
->> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
->> @@ -1447,7 +1447,7 @@ static int venus_suspend_3xx(struct venus_core
-> *core)
->>   {
->>          struct venus_hfi_device *hdev = to_hfi_priv(core);
->>          struct device *dev = core->dev;
->> -       u32 ctrl_status, wfi_status;
->> +       u32 ctrl_status, cpu_status;
->>          int ret;
->>          int cnt = 100;
-> 
->> @@ -1463,29 +1463,50 @@ static int venus_suspend_3xx(struct venus_core
-> *core)
->>                  return -EINVAL;
->>          }
-> 
->> -       ctrl_status = venus_readl(hdev, CPU_CS_SCIACMDARG0);
->> -       if (!(ctrl_status & CPU_CS_SCIACMDARG0_PC_READY)) {
->> -               wfi_status = venus_readl(hdev, WRAPPER_CPU_STATUS);
->> +       /*
->> +        * Power collapse sequence for Venus 3xx and 4xx versions:
->> +        * 1. Check for ARM9 and video core to be idle by checking WFI bit
->> +        *    (bit 0) in CPU status register and by checking Idle (bit
-> 30) in
->> +        *    Control status register for video core.
->> +        * 2. Send a command to prepare for power collapse.
->> +        * 3. Check for WFI and PC_READY bits.
->> +        */
->> +
->> +       while (--cnt) {
->> +               cpu_status = venus_readl(hdev, WRAPPER_CPU_STATUS);
->>                  ctrl_status = venus_readl(hdev, CPU_CS_SCIACMDARG0);
-> 
->> -               ret = venus_prepare_power_collapse(hdev, false);
->> -               if (ret) {
->> -                       dev_err(dev, "prepare for power collapse fail
-> (%d)\n",
->> -                               ret);
->> -                       return ret;
->> -               }
->> +               if (cpu_status & WRAPPER_CPU_STATUS_WFI &&
->> +                   ctrl_status & CPU_CS_SCIACMDARG0_INIT_IDLE_MSG_MASK)
->> +                       break;
-> 
->> -               cnt = 100;
->> -               while (cnt--) {
->> -                       wfi_status = venus_readl(hdev,
-> WRAPPER_CPU_STATUS);
->> -                       ctrl_status = venus_readl(hdev,
-> CPU_CS_SCIACMDARG0);
->> -                       if (ctrl_status & CPU_CS_SCIACMDARG0_PC_READY &&
->> -                           wfi_status & BIT(0))
->> -                               break;
->> -                       usleep_range(1000, 1500);
->> -               }
->> +               usleep_range(1000, 1500);
->>          }
-> 
-> To avoid opencoding the polling, I'd suggest doing a readx_poll_timeout()
-> trick:
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/media/common/siano/smscoreapi.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-I like the idea, will try to rework that and use readx_poll_timeout.
-
-<snip>
-
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index 1c93258a2d47..a5f0db0810d4 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -697,7 +697,7 @@ int smscore_register_device(struct smsdevice_params_t *params,
+ 		buffer = dma_alloc_coherent(params->device,
+ 					    dev->common_buffer_size,
+ 					    &dev->common_buffer_phys,
+-					    GFP_KERNEL | GFP_DMA);
++					    GFP_KERNEL);
+ 	if (!buffer) {
+ 		smscore_unregister_device(dev);
+ 		return -ENOMEM;
+@@ -792,7 +792,7 @@ static int smscore_init_ir(struct smscore_device_t *coredev)
+ 		else {
+ 			buffer = kmalloc(sizeof(struct sms_msg_data2) +
+ 						SMS_DMA_ALIGNMENT,
+-						GFP_KERNEL | GFP_DMA);
++						GFP_KERNEL);
+ 			if (buffer) {
+ 				struct sms_msg_data2 *msg =
+ 				(struct sms_msg_data2 *)
+@@ -933,7 +933,7 @@ static int smscore_load_firmware_family2(struct smscore_device_t *coredev,
+ 	}
+ 
+ 	/* PAGE_SIZE buffer shall be enough and dma aligned */
+-	msg = kmalloc(PAGE_SIZE, GFP_KERNEL | GFP_DMA);
++	msg = kmalloc(PAGE_SIZE, GFP_KERNEL);
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+@@ -1168,7 +1168,7 @@ static int smscore_load_firmware_from_file(struct smscore_device_t *coredev,
+ 	}
+ 	pr_debug("read fw %s, buffer size=0x%zx\n", fw_filename, fw->size);
+ 	fw_buf = kmalloc(ALIGN(fw->size + sizeof(struct sms_firmware),
+-			 SMS_ALLOC_ALIGNMENT), GFP_KERNEL | GFP_DMA);
++			 SMS_ALLOC_ALIGNMENT), GFP_KERNEL);
+ 	if (!fw_buf) {
+ 		pr_err("failed to allocate firmware buffer\n");
+ 		rc = -ENOMEM;
+@@ -1260,7 +1260,7 @@ EXPORT_SYMBOL_GPL(smscore_unregister_device);
+ static int smscore_detect_mode(struct smscore_device_t *coredev)
+ {
+ 	void *buffer = kmalloc(sizeof(struct sms_msg_hdr) + SMS_DMA_ALIGNMENT,
+-			       GFP_KERNEL | GFP_DMA);
++			       GFP_KERNEL);
+ 	struct sms_msg_hdr *msg =
+ 		(struct sms_msg_hdr *) SMS_ALIGN_ADDRESS(buffer);
+ 	int rc;
+@@ -1309,7 +1309,7 @@ static int smscore_init_device(struct smscore_device_t *coredev, int mode)
+ 	int rc = 0;
+ 
+ 	buffer = kmalloc(sizeof(struct sms_msg_data) +
+-			SMS_DMA_ALIGNMENT, GFP_KERNEL | GFP_DMA);
++			SMS_DMA_ALIGNMENT, GFP_KERNEL);
+ 	if (!buffer)
+ 		return -ENOMEM;
+ 
+@@ -1398,7 +1398,7 @@ int smscore_set_device_mode(struct smscore_device_t *coredev, int mode)
+ 		coredev->device_flags &= ~SMS_DEVICE_NOT_READY;
+ 
+ 		buffer = kmalloc(sizeof(struct sms_msg_data) +
+-				 SMS_DMA_ALIGNMENT, GFP_KERNEL | GFP_DMA);
++				 SMS_DMA_ALIGNMENT, GFP_KERNEL);
+ 		if (buffer) {
+ 			struct sms_msg_data *msg = (struct sms_msg_data *) SMS_ALIGN_ADDRESS(buffer);
+ 
+@@ -1971,7 +1971,7 @@ int smscore_gpio_configure(struct smscore_device_t *coredev, u8 pin_num,
+ 	total_len = sizeof(struct sms_msg_hdr) + (sizeof(u32) * 6);
+ 
+ 	buffer = kmalloc(total_len + SMS_DMA_ALIGNMENT,
+-			GFP_KERNEL | GFP_DMA);
++			GFP_KERNEL);
+ 	if (!buffer)
+ 		return -ENOMEM;
+ 
+@@ -2043,7 +2043,7 @@ int smscore_gpio_set_level(struct smscore_device_t *coredev, u8 pin_num,
+ 			(3 * sizeof(u32)); /* keep it 3 ! */
+ 
+ 	buffer = kmalloc(total_len + SMS_DMA_ALIGNMENT,
+-			GFP_KERNEL | GFP_DMA);
++			GFP_KERNEL);
+ 	if (!buffer)
+ 		return -ENOMEM;
+ 
+@@ -2091,7 +2091,7 @@ int smscore_gpio_get_level(struct smscore_device_t *coredev, u8 pin_num,
+ 	total_len = sizeof(struct sms_msg_hdr) + (2 * sizeof(u32));
+ 
+ 	buffer = kmalloc(total_len + SMS_DMA_ALIGNMENT,
+-			GFP_KERNEL | GFP_DMA);
++			GFP_KERNEL);
+ 	if (!buffer)
+ 		return -ENOMEM;
+ 
 -- 
-regards,
-Stan
+2.17.0
