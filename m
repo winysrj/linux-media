@@ -1,76 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:45152 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S967338AbeEXLu1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 07:50:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v4 11/11] drm: rcar-du: Support interlaced video output through vsp1
-Date: Thu, 24 May 2018 14:50:23 +0300
-Message-ID: <10463435.CoRpyeppX3@avalon>
-In-Reply-To: <0c7e8033195d0a80af9a353b01c116778c568e04.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com> <0c7e8033195d0a80af9a353b01c116778c568e04.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:52930 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750752AbeEEIWL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 5 May 2018 04:22:11 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+        "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: [PATCH] [media] gspca: Stop using GFP_DMA for buffers for USB bulk transfers
+Date: Sat,  5 May 2018 10:22:08 +0200
+Message-Id: <20180505082208.32553-1-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+The recent "x86 ZONE_DMA love" discussion at LSF/MM pointed out that some
+gspca sub-drivvers are using GFP_DMA to allocate buffers which are used
+for USB bulk transfers, there is absolutely no need for this, drop it.
 
-Thank you for the patch.
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/usb/gspca/jl2005bcd.c | 2 +-
+ drivers/media/usb/gspca/sq905.c     | 2 +-
+ drivers/media/usb/gspca/sq905c.c    | 2 +-
+ drivers/media/usb/gspca/vicam.c     | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-On Thursday, 3 May 2018 16:36:22 EEST Kieran Bingham wrote:
-> Use the newly exposed VSP1 interface to enable interlaced frame support
-> through the VSP1 lif pipelines.
-
-s/lif/LIF/
-
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
->  drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 1 +
->  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 3 +++
->  2 files changed, 4 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c index d71d709fe3d9..206532959ec9
-> 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> @@ -289,6 +289,7 @@ static void rcar_du_crtc_set_display_timing(struct
-> rcar_du_crtc *rcrtc) /* Signal polarities */
->  	value = ((mode->flags & DRM_MODE_FLAG_PVSYNC) ? DSMR_VSL : 0)
->  	      | ((mode->flags & DRM_MODE_FLAG_PHSYNC) ? DSMR_HSL : 0)
-> +	      | ((mode->flags & DRM_MODE_FLAG_INTERLACE) ? DSMR_ODEV : 0)
-
-How will this affect Gen2 ? Could you document what this change does in the 
-commit message ?
-
->  	      | DSMR_DIPM_DISP | DSMR_CSPM;
-> 
->  	rcar_du_crtc_write(rcrtc, DSMR, value);
-> 
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c index af7822a66dee..c7b37232ee91
-> 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> @@ -186,6 +186,9 @@ static void rcar_du_vsp_plane_setup(struct
-> rcar_du_vsp_plane *plane) };
->  	unsigned int i;
-> 
-> +	cfg.interlaced = !!(plane->plane.state->crtc->mode.flags
-> +			    & DRM_MODE_FLAG_INTERLACE);
-> +
->  	cfg.src.left = state->state.src.x1 >> 16;
->  	cfg.src.top = state->state.src.y1 >> 16;
->  	cfg.src.width = drm_rect_width(&state->state.src) >> 16;
-
+diff --git a/drivers/media/usb/gspca/jl2005bcd.c b/drivers/media/usb/gspca/jl2005bcd.c
+index d668589598d6..c40245950553 100644
+--- a/drivers/media/usb/gspca/jl2005bcd.c
++++ b/drivers/media/usb/gspca/jl2005bcd.c
+@@ -321,7 +321,7 @@ static void jl2005c_dostream(struct work_struct *work)
+ 	int ret;
+ 	u8 *buffer;
+ 
+-	buffer = kmalloc(JL2005C_MAX_TRANSFER, GFP_KERNEL | GFP_DMA);
++	buffer = kmalloc(JL2005C_MAX_TRANSFER, GFP_KERNEL);
+ 	if (!buffer) {
+ 		pr_err("Couldn't allocate USB buffer\n");
+ 		goto quit_stream;
+diff --git a/drivers/media/usb/gspca/sq905.c b/drivers/media/usb/gspca/sq905.c
+index cc8ff41b8ab3..ffea9c35b0a0 100644
+--- a/drivers/media/usb/gspca/sq905.c
++++ b/drivers/media/usb/gspca/sq905.c
+@@ -217,7 +217,7 @@ static void sq905_dostream(struct work_struct *work)
+ 	u8 *data;
+ 	u8 *buffer;
+ 
+-	buffer = kmalloc(SQ905_MAX_TRANSFER, GFP_KERNEL | GFP_DMA);
++	buffer = kmalloc(SQ905_MAX_TRANSFER, GFP_KERNEL);
+ 	if (!buffer) {
+ 		pr_err("Couldn't allocate USB buffer\n");
+ 		goto quit_stream;
+diff --git a/drivers/media/usb/gspca/sq905c.c b/drivers/media/usb/gspca/sq905c.c
+index 5e1269eb7c50..274921c0bb46 100644
+--- a/drivers/media/usb/gspca/sq905c.c
++++ b/drivers/media/usb/gspca/sq905c.c
+@@ -138,7 +138,7 @@ static void sq905c_dostream(struct work_struct *work)
+ 	int ret;
+ 	u8 *buffer;
+ 
+-	buffer = kmalloc(SQ905C_MAX_TRANSFER, GFP_KERNEL | GFP_DMA);
++	buffer = kmalloc(SQ905C_MAX_TRANSFER, GFP_KERNEL);
+ 	if (!buffer) {
+ 		pr_err("Couldn't allocate USB buffer\n");
+ 		goto quit_stream;
+diff --git a/drivers/media/usb/gspca/vicam.c b/drivers/media/usb/gspca/vicam.c
+index 554b90ef2200..8562bda0ef88 100644
+--- a/drivers/media/usb/gspca/vicam.c
++++ b/drivers/media/usb/gspca/vicam.c
+@@ -182,7 +182,7 @@ static void vicam_dostream(struct work_struct *work)
+ 
+ 	frame_sz = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].sizeimage +
+ 		   HEADER_SIZE;
+-	buffer = kmalloc(frame_sz, GFP_KERNEL | GFP_DMA);
++	buffer = kmalloc(frame_sz, GFP_KERNEL);
+ 	if (!buffer) {
+ 		pr_err("Couldn't allocate USB buffer\n");
+ 		goto exit;
 -- 
-Regards,
-
-Laurent Pinchart
+2.17.0
