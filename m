@@ -1,109 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:43296 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965752AbeE2SXZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 14:23:25 -0400
-Subject: Re: [PATCH 2/8] xen/balloon: Move common memory reservation routines
- to a module
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
- <20180525153331.31188-3-andr2000@gmail.com>
- <44f62fb1-e013-2883-dfa1-386c7a96784b@oracle.com>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <b46960c5-6046-4d71-4b4b-9efe96a9489b@gmail.com>
-Date: Tue, 29 May 2018 21:23:21 +0300
-MIME-Version: 1.0
-In-Reply-To: <44f62fb1-e013-2883-dfa1-386c7a96784b@oracle.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:38830 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751337AbeEEJuq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2018 05:50:46 -0400
+Received: by mail-wr0-f193.google.com with SMTP id 94-v6so21999086wrf.5
+        for <linux-media@vger.kernel.org>; Sat, 05 May 2018 02:50:46 -0700 (PDT)
+From: Thomas Hollstegge <thomas.hollstegge@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Thomas Hollstegge <thomas.hollstegge@gmail.com>
+Subject: [PATCH 1/2] si2168: Set TS clock mode and frequency
+Date: Sat,  5 May 2018 11:50:30 +0200
+Message-Id: <1525513831-17682-2-git-send-email-thomas.hollstegge@gmail.com>
+In-Reply-To: <1525513831-17682-1-git-send-email-thomas.hollstegge@gmail.com>
+References: <1525513831-17682-1-git-send-email-thomas.hollstegge@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Some devices require a higher TS clock frequency to demodulate some
+muxes. This adds two optional parameters to control the TS clock
+frequency mode as well as the frequency.
 
+Signed-off-by: Thomas Hollstegge <thomas.hollstegge@gmail.com>
+---
+ drivers/media/dvb-frontends/si2168.c      | 20 +++++++++++++++++++-
+ drivers/media/dvb-frontends/si2168.h      |  8 ++++++++
+ drivers/media/dvb-frontends/si2168_priv.h |  2 ++
+ 3 files changed, 29 insertions(+), 1 deletion(-)
 
-On 05/29/2018 09:24 PM, Boris Ostrovsky wrote:
-> On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
->> +
->> +void xenmem_reservation_va_mapping_update(unsigned long count,
->> +					  struct page **pages,
->> +					  xen_pfn_t *frames)
->> +{
->> +#ifdef CONFIG_XEN_HAVE_PVMMU
->> +	int i;
->> +
->> +	for (i = 0; i < count; i++) {
->> +		struct page *page;
->> +
->> +		page = pages[i];
->> +		BUG_ON(page == NULL);
->> +
->> +		/*
->> +		 * We don't support PV MMU when Linux and Xen is using
->> +		 * different page granularity.
->> +		 */
->> +		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
->> +
->> +		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
->> +			unsigned long pfn = page_to_pfn(page);
->> +
->> +			set_phys_to_machine(pfn, frames[i]);
->> +
->> +			/* Link back into the page tables if not highmem. */
->> +			if (!PageHighMem(page)) {
->> +				int ret;
->> +
->> +				ret = HYPERVISOR_update_va_mapping(
->> +						(unsigned long)__va(pfn << PAGE_SHIFT),
->> +						mfn_pte(frames[i], PAGE_KERNEL),
->> +						0);
->> +				BUG_ON(ret);
->> +			}
->> +		}
->> +	}
->> +#endif
->> +}
->> +EXPORT_SYMBOL(xenmem_reservation_va_mapping_update);
->> +
->> +void xenmem_reservation_va_mapping_reset(unsigned long count,
->> +					 struct page **pages)
->> +{
->> +#ifdef CONFIG_XEN_HAVE_PVMMU
->> +	int i;
->> +
->> +	for (i = 0; i < count; i++) {
->> +		/*
->> +		 * We don't support PV MMU when Linux and Xen is using
->> +		 * different page granularity.
->> +		 */
->> +		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
->> +
->> +		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
->> +			struct page *page = pages[i];
->> +			unsigned long pfn = page_to_pfn(page);
->> +
->> +			if (!PageHighMem(page)) {
->> +				int ret;
->> +
->> +				ret = HYPERVISOR_update_va_mapping(
->> +						(unsigned long)__va(pfn << PAGE_SHIFT),
->> +						__pte_ma(0), 0);
->> +				BUG_ON(ret);
->> +			}
->> +			__set_phys_to_machine(pfn, INVALID_P2M_ENTRY);
->> +		}
->> +	}
->> +#endif
->> +}
->> +EXPORT_SYMBOL(xenmem_reservation_va_mapping_reset);
-> One other thing I noticed --- both of these can be declared as NOPs in
-> the header file if !CONFIG_XEN_HAVE_PVMMU.
-Will rework it to be NOp for !CONFIG_XEN_HAVE_PVMMU
-> -boris
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 324493e..80740db 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -92,13 +92,15 @@ static int si2168_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
+ 	dev_dbg(&client->dev, "%s acquire: %d\n", __func__, acquire);
+ 
+ 	/* set TS_MODE property */
+-	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
++	memcpy(cmd.args, "\x14\x00\x01\x10\x00\x00", 6);
+ 	if (acquire)
+ 		cmd.args[4] |= dev->ts_mode;
+ 	else
+ 		cmd.args[4] |= SI2168_TS_TRISTATE;
+ 	if (dev->ts_clock_gapped)
+ 		cmd.args[4] |= 0x40;
++	cmd.args[4] |= (dev->ts_clock_mode & 0x03) << 4;
++
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+ 	ret = si2168_cmd_execute(client, &cmd);
+@@ -398,6 +400,18 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
++	/* set TS frequency */
++	if (dev->ts_clock_freq) {
++		memcpy(cmd.args, "\x14\x00\x0d\x10", 4);
++		cmd.args[4] = ((dev->ts_clock_freq / 10000) >> 0) & 0xff;
++		cmd.args[5] = ((dev->ts_clock_freq / 10000) >> 8) & 0xff;
++		cmd.wlen = 6;
++		cmd.rlen = 4;
++		ret = si2168_cmd_execute(client, &cmd);
++		if (ret)
++			goto err;
++	}
++
+ 	memcpy(cmd.args, "\x14\x00\x08\x10\xd7\x05", 6);
+ 	cmd.args[5] |= dev->ts_clock_inv ? 0x00 : 0x10;
+ 	cmd.wlen = 6;
+@@ -806,6 +820,10 @@ static int si2168_probe(struct i2c_client *client,
+ 	dev->ts_mode = config->ts_mode;
+ 	dev->ts_clock_inv = config->ts_clock_inv;
+ 	dev->ts_clock_gapped = config->ts_clock_gapped;
++	dev->ts_clock_mode = config->ts_clock_mode;
++	if (!dev->ts_clock_mode)
++		dev->ts_clock_mode = SI2168_TS_CLOCK_MODE_AUTO_ADAPT;
++	dev->ts_clock_freq = config->ts_clock_freq;
+ 	dev->spectral_inversion = config->spectral_inversion;
+ 
+ 	dev_info(&client->dev, "Silicon Labs Si2168-%c%d%d successfully identified\n",
+diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
+index d519edd..3f52ee8 100644
+--- a/drivers/media/dvb-frontends/si2168.h
++++ b/drivers/media/dvb-frontends/si2168.h
+@@ -47,6 +47,14 @@ struct si2168_config {
+ 	/* TS clock gapped */
+ 	bool ts_clock_gapped;
+ 
++	/* TS clock mode */
++#define SI2168_TS_CLOCK_MODE_AUTO_ADAPT	0x01
++#define SI2168_TS_CLOCK_MODE_MANUAL	0x02
++	u8 ts_clock_mode;
++
++	/* TS clock frequency (for manual mode) */
++	u32 ts_clock_freq;
++
+ 	/* Inverted spectrum */
+ 	bool spectral_inversion;
+ };
+diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+index 2d362e1..8173d6c 100644
+--- a/drivers/media/dvb-frontends/si2168_priv.h
++++ b/drivers/media/dvb-frontends/si2168_priv.h
+@@ -48,6 +48,8 @@ struct si2168_dev {
+ 	u8 ts_mode;
+ 	bool ts_clock_inv;
+ 	bool ts_clock_gapped;
++	u8 ts_clock_mode;
++	u32 ts_clock_freq;
+ 	bool spectral_inversion;
+ };
+ 
+-- 
+2.7.4
