@@ -1,56 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:44056 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750821AbeE3LIc (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:55094
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750961AbeEFIaR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 07:08:32 -0400
-Received: by mail-lf0-f68.google.com with SMTP id 36-v6so1695604lfr.11
-        for <linux-media@vger.kernel.org>; Wed, 30 May 2018 04:08:31 -0700 (PDT)
-Subject: Re: [PATCH] media: arch: sh: migor: Fix TW9910 PDN gpio
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        ysato@users.sourceforge.jp, dalias@libc.org,
-        laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com
-Cc: linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-References: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <4e636f8b-ba38-754a-4763-022eab578934@cogentembedded.com>
-Date: Wed, 30 May 2018 14:08:28 +0300
-MIME-Version: 1.0
-In-Reply-To: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-MW
-Content-Transfer-Encoding: 7bit
+        Sun, 6 May 2018 04:30:17 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mike Isely <isely@pobox.com>
+Cc: kernel-janitors@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] media: delete unneeded include
+Date: Sun,  6 May 2018 09:58:58 +0200
+Message-Id: <1525593538-11340-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+pvrusb2-video-v4l.h only declares pvr2_saa7115_subdev_update and
+includes pvrusb2-hdw-internal.h.  pvrusb2-cx2584x-v4l.c does not
+use pvr2_saa7115_subdev_update and it explicitly includes
+pvrusb2-hdw-internal.h.
 
-On 05/30/2018 12:13 PM, Jacopo Mondi wrote:
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-> The TW9910 PDN gpio (power down) is listed as active high in the chip
+---
+ drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-   GPIO.
-
-> manual. It turns out it is actually active low as when set to physical
-> level 0 it actually turns the video decoder power off.
-> 
-> Without this patch applied:
-> tw9910 0-0045: Product ID error 1f:2
-> 
-> With this patch applied:
-> tw9910 0-0045: tw9910 Product ID b:0
-> 
-> Fixes: commit "186c446f4b840bd77b79d3dc951ca436cb8abe79"
-
-   That's not how you specify the "Fixes:" tag, please see
-Documentation/process/submitting-patches.rst.
-
-> 
-
-   There shouldn't be an emoty line here.
-
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-[...]
-
-MBR, Sergei
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c b/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c
+index 242b213..d5bec0f 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c
+@@ -23,7 +23,6 @@
+ */
+ 
+ #include "pvrusb2-cx2584x-v4l.h"
+-#include "pvrusb2-video-v4l.h"
+ 
+ 
+ #include "pvrusb2-hdw-internal.h"
