@@ -1,194 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33079 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752636AbeEUIzA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:00 -0400
-Received: by mail-wm0-f68.google.com with SMTP id x12-v6so11223607wmc.0
-        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 01:54:59 -0700 (PDT)
-Subject: Re: [PATCH v2 2/5] drm/i915: hdmi: add CEC notifier to intel_hdmi
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
-Cc: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com, sadolfsson@google.com,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, fparent@baylibre.com,
-        felixe@google.com, marcheu@chromium.org, bleung@google.com,
-        darekm@google.com, linux-media@vger.kernel.org
-References: <1526648704-16873-1-git-send-email-narmstrong@baylibre.com>
- <1526648704-16873-3-git-send-email-narmstrong@baylibre.com>
- <20180518132403.GW23723@intel.com>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <26a21fdb-281c-cbbd-8f48-d9ba390b3363@baylibre.com>
-Date: Mon, 21 May 2018 10:54:55 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180518132403.GW23723@intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:43257 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751358AbeEFOTp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 10:19:45 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>
+Subject: [PATCH v5 00/14] media: ov772x: support media controller, device tree probing, etc.
+Date: Sun,  6 May 2018 23:19:15 +0900
+Message-Id: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ville,
+This patchset includes support media controller, sub-device interface,
+device tree probing and other miscellanuous changes for ov772x driver.
 
-On 18/05/2018 15:24, Ville Syrjälä wrote:
-> On Fri, May 18, 2018 at 03:05:01PM +0200, Neil Armstrong wrote:
->> This patchs adds the cec_notifier feature to the intel_hdmi part
->> of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
->> between each HDMI ports.
->> The changes will allow the i915 HDMI code to notify EDID and HPD changes
->> to an eventual CEC adapter.
->>
->> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->> ---
->>  drivers/gpu/drm/i915/Kconfig         |  1 +
->>  drivers/gpu/drm/i915/intel_display.h | 20 ++++++++++++++++++++
->>  drivers/gpu/drm/i915/intel_drv.h     |  2 ++
->>  drivers/gpu/drm/i915/intel_hdmi.c    | 13 +++++++++++++
->>  4 files changed, 36 insertions(+)
->>
->> diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
->> index dfd9588..2d65d56 100644
->> --- a/drivers/gpu/drm/i915/Kconfig
->> +++ b/drivers/gpu/drm/i915/Kconfig
->> @@ -23,6 +23,7 @@ config DRM_I915
->>  	select SYNC_FILE
->>  	select IOSF_MBI
->>  	select CRC32
->> +	select CEC_CORE if CEC_NOTIFIER
->>  	help
->>  	  Choose this option if you have a system that has "Intel Graphics
->>  	  Media Accelerator" or "HD Graphics" integrated graphics,
->> diff --git a/drivers/gpu/drm/i915/intel_display.h b/drivers/gpu/drm/i915/intel_display.h
->> index 4e7418b..c68d1c8 100644
->> --- a/drivers/gpu/drm/i915/intel_display.h
->> +++ b/drivers/gpu/drm/i915/intel_display.h
->> @@ -126,6 +126,26 @@ enum port {
->>  
->>  #define port_name(p) ((p) + 'A')
->>  
->> +static inline const char *port_identifier(enum port port)
->> +{
->> +	switch (port) {
->> +	case PORT_A:
->> +		return "Port A";
->> +	case PORT_B:
->> +		return "Port B";
->> +	case PORT_C:
->> +		return "Port C";
->> +	case PORT_D:
->> +		return "Port D";
->> +	case PORT_E:
->> +		return "Port E";
->> +	case PORT_F:
->> +		return "Port F";
->> +	default:
->> +		return "<invalid>";
->> +	}
->> +}
-> 
-> I don't think we need this in the header. A static function will do.
+* v5 (thanks to Jacopo Mondi)
+- Add Acked-by: line
+- Add Reviewed-by: line
+- Remove unnecessary space
+- Align arguments to open parenthesis
+- Sort variable declarations
+- Make s_frame_interval() return -EBUSY while streaming
 
-I just followed how other functions were declared, in the same way.
+* v4 (thanks to Laurent Pinchart)
+- Add Reviewed-by: lines
+- Correct setting of banding filter (New)
+- Omit consumer ID when getting clock reference (New)
+- Use v4l2_ctrl to get current control value (New)
+- Correctly restore the controls changed under power saving mode
 
-> And I was actually thinking something a bit fancier like:
-> snprintf("%s/port-%s", dev_name(dev), port_id(port));
-> 
-> Oh, I see you already pass the device in so I guess we don't need
-> that in the port id?
+* v3 (thanks to Sakari Ailus and Jacopo Mondi)
+- Reorder the patches
+- Add Reviewed-by: lines
+- Remove I2C_CLIENT_SCCB flag set as it isn't needed anymore
+- Fix typo in the commit log
+- Return without resetting if ov772x_edgectrl() failed
+- Update the error message for missing platform data
+- Rename mutex name from power_lock to lock
+- Add warning for duplicated s_power call
+- Add newlines before labels
+- Remove __v4l2_ctrl_handler_setup in s_power() as it causes duplicated
+  register settings
+- Make set_fmt() return -EBUSY while streaming (New)
 
-Indeed, my bad I forgot to answer your last question, we already pass a struct
-device which provides the device bus, name and id, so it's unneeded here.
+* v2 (thanks to Jacopo Mondi)
+- Replace the implementation of ov772x_read() instead of adding an
+  alternative method
+- Assign the ov772x_read() return value to pid and ver directly
+- Do the same for MIDH and MIDL
+- Move video_probe() before the entity initialization and remove the #ifdef
+  around the media_entity_cleanup()
+- Use generic names for reset and powerdown gpios (New)
+- Add "dt-bindings:" in the subject
+- Add a brief description of the sensor
+- Update the GPIO names
+- Indicate the GPIO active level
+- Add missing NULL checks for priv->info
+- Leave the check for the missing platform data if legacy platform data
+  probe is used.
+- Handle nested s_power() calls (New)
+- Reconstruct s_frame_interval() (New)
+- Avoid accessing registers
 
-> 
->> +
->>  enum dpio_channel {
->>  	DPIO_CH0,
->>  	DPIO_CH1
->> diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
->> index d436858..b50e51b 100644
->> --- a/drivers/gpu/drm/i915/intel_drv.h
->> +++ b/drivers/gpu/drm/i915/intel_drv.h
->> @@ -39,6 +39,7 @@
->>  #include <drm/drm_dp_mst_helper.h>
->>  #include <drm/drm_rect.h>
->>  #include <drm/drm_atomic.h>
->> +#include <media/cec-notifier.h>
->>  
->>  /**
->>   * __wait_for - magic wait macro
->> @@ -1001,6 +1002,7 @@ struct intel_hdmi {
->>  	bool has_audio;
->>  	bool rgb_quant_range_selectable;
->>  	struct intel_connector *attached_connector;
->> +	struct cec_notifier *notifier;
-> 
-> I was wondering if we need any ifdefs around this stuff, but I guess not
-> since it's just a pointer and all the functions seem to have empty
-> static inlines for the CEC=n case.
-> 
->>  };
->>  
->>  struct intel_dp_mst_encoder;
->> diff --git a/drivers/gpu/drm/i915/intel_hdmi.c b/drivers/gpu/drm/i915/intel_hdmi.c
->> index 1baef4a..d522b5b 100644
->> --- a/drivers/gpu/drm/i915/intel_hdmi.c
->> +++ b/drivers/gpu/drm/i915/intel_hdmi.c
->> @@ -1868,6 +1868,8 @@ intel_hdmi_set_edid(struct drm_connector *connector)
->>  		connected = true;
->>  	}
->>  
->> +	cec_notifier_set_phys_addr_from_edid(intel_hdmi->notifier, edid);
->> +
->>  	return connected;
->>  }
->>  
->> @@ -1876,6 +1878,7 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
->>  {
->>  	enum drm_connector_status status;
->>  	struct drm_i915_private *dev_priv = to_i915(connector->dev);
->> +	struct intel_hdmi *intel_hdmi = intel_attached_hdmi(connector);
->>  
->>  	DRM_DEBUG_KMS("[CONNECTOR:%d:%s]\n",
->>  		      connector->base.id, connector->name);
->> @@ -1891,6 +1894,9 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
->>  
->>  	intel_display_power_put(dev_priv, POWER_DOMAIN_GMBUS);
->>  
->> +	if (status != connector_status_connected)
->> +		cec_notifier_phys_addr_invalidate(intel_hdmi->notifier);
->> +
->>  	return status;
->>  }
->>  
->> @@ -2031,6 +2037,8 @@ static void chv_hdmi_pre_enable(struct intel_encoder *encoder,
->>  
->>  static void intel_hdmi_destroy(struct drm_connector *connector)
->>  {
->> +	if (intel_attached_hdmi(connector)->notifier)
->> +		cec_notifier_put(intel_attached_hdmi(connector)->notifier);
->>  	kfree(to_intel_connector(connector)->detect_edid);
->>  	drm_connector_cleanup(connector);
->>  	kfree(connector);
->> @@ -2358,6 +2366,11 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
->>  		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
->>  		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
->>  	}
->> +
->> +	intel_hdmi->notifier = cec_notifier_get_conn(dev->dev,
->> +						     port_identifier(port));
->> +	if (!intel_hdmi->notifier)
->> +		DRM_DEBUG_KMS("CEC notifier get failed\n");
->>  }
->>  
->>  void intel_hdmi_init(struct drm_i915_private *dev_priv,
->> -- 
->> 2.7.4
->>
->> _______________________________________________
->> dri-devel mailing list
->> dri-devel@lists.freedesktop.org
->> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-> 
+Akinobu Mita (14):
+  media: dt-bindings: ov772x: add device tree binding
+  media: ov772x: correct setting of banding filter
+  media: ov772x: allow i2c controllers without
+    I2C_FUNC_PROTOCOL_MANGLING
+  media: ov772x: add checks for register read errors
+  media: ov772x: add media controller support
+  media: ov772x: use generic names for reset and powerdown gpios
+  media: ov772x: omit consumer ID when getting clock reference
+  media: ov772x: support device tree probing
+  media: ov772x: handle nested s_power() calls
+  media: ov772x: reconstruct s_frame_interval()
+  media: ov772x: use v4l2_ctrl to get current control value
+  media: ov772x: avoid accessing registers under power saving mode
+  media: ov772x: make set_fmt() and s_frame_interval() return -EBUSY
+    while streaming
+  media: ov772x: create subdevice device node
 
-Thans,
-Neil
+ .../devicetree/bindings/media/i2c/ov772x.txt       |  40 +++
+ MAINTAINERS                                        |   1 +
+ arch/sh/boards/mach-migor/setup.c                  |   7 +-
+ drivers/media/i2c/ov772x.c                         | 357 +++++++++++++++------
+ 4 files changed, 308 insertions(+), 97 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
+
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Wolfram Sang <wsa@the-dreams.de>
+-- 
+2.7.4
