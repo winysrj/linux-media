@@ -1,130 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:51947 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751802AbeEED1G (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 23:27:06 -0400
-Message-ID: <6df4710300aee021116c5711d8306ac6@smtp-cloud8.xs4all.net>
-Date: Sat, 05 May 2018 05:27:02 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47506 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751118AbeEFIGJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 04:06:09 -0400
+Date: Sun, 6 May 2018 10:06:07 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+        nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org,
+        gshark.jeong@gmail.com, m.chehab@samsung.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org
+Subject: [PATCH] media: i2c: lm3560: add support for lm3559 chip
+Message-ID: <20180506080607.GA24212@amd>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--C7zPtVaVf+AK4Oqc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Sat May  5 05:00:13 CEST 2018
-media-tree git hash:	baa057e29b5824b3727e2eb643e513ba5e35aea0
-media_build git hash:	2945d108c680b3c09c9843e001e84a9797d7f379
-v4l-utils git hash:	03e763fd4b361b2082019032fc315b7606669335
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.14.31-i686: ERRORS
-linux-4.14.31-x86_64: ERRORS
-linux-4.15.14-i686: ERRORS
-linux-4.15.14-x86_64: ERRORS
-linux-4.16-i686: WARNINGS
-linux-4.16-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Add support for LM3559, as found in Motorola Droid 4 phone, for
+example. SW interface seems to be identical.
 
-Detailed results are available here:
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+index b600e03a..c4e5ed5 100644
+--- a/drivers/media/i2c/lm3560.c
++++ b/drivers/media/i2c/lm3560.c
+@@ -1,6 +1,6 @@
+ /*
+  * drivers/media/i2c/lm3560.c
+- * General device driver for TI lm3560, FLASH LED Driver
++ * General device driver for TI lm3559, lm3560, FLASH LED Driver
+  *
+  * Copyright (C) 2013 Texas Instruments
+  *
+@@ -465,6 +479,7 @@ static int lm3560_remove(struct i2c_client *client)
+ }
+=20
+ static const struct i2c_device_id lm3560_id_table[] =3D {
++	{LM3559_NAME, 0},
+ 	{LM3560_NAME, 0},
+ 	{}
+ };
+diff --git a/include/media/i2c/lm3560.h b/include/media/i2c/lm3560.h
+index a5bd310..0e2b1c7 100644
+--- a/include/media/i2c/lm3560.h
++++ b/include/media/i2c/lm3560.h
+@@ -22,6 +22,7 @@
+=20
+ #include <media/v4l2-subdev.h>
+=20
++#define LM3559_NAME	"lm3559"
+ #define LM3560_NAME	"lm3560"
+ #define LM3560_I2C_ADDR	(0x53)
+=20
 
-Full logs are available here:
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+--C7zPtVaVf+AK4Oqc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-The Media Infrastructure API from this daily build is here:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+iEYEARECAAYFAlrut28ACgkQMOfwapXb+vLSzQCgrhkflQFo4Ddsoh2TH1C9Pm55
+EAAAoJ2IWkJqV48lRGAuyKu5wjO3vJmh
+=SrIF
+-----END PGP SIGNATURE-----
+
+--C7zPtVaVf+AK4Oqc--
