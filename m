@@ -1,96 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:60013 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751508AbeECOx1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 10:53:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv13 20/28] videobuf2-v4l2: add vb2_request_queue/validate helpers
-Date: Thu,  3 May 2018 16:53:10 +0200
-Message-Id: <20180503145318.128315-21-hverkuil@xs4all.nl>
-In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+Received: from mail-io0-f194.google.com ([209.85.223.194]:43829 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751218AbeEFKZh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 06:25:37 -0400
+Received: by mail-io0-f194.google.com with SMTP id t23-v6so30363916ioc.10
+        for <linux-media@vger.kernel.org>; Sun, 06 May 2018 03:25:36 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180506062147.260be463@vento.lan>
+References: <dc56acf384130d9703684a239d8daa8748f63d8e.1525536580.git.mchehab+samsung@kernel.org>
+ <CAM1upfOiM77w=_65xarL9=68cTDP81b3_cx02v8mUjsrCwBo=Q@mail.gmail.com> <20180506062147.260be463@vento.lan>
+From: Tomoki Sekiyama <tomoki.sekiyama@gmail.com>
+Date: Sun, 6 May 2018 19:25:35 +0900
+Message-ID: <CAM1upfMzQz9a8s9MGtsZfVvXDwPuMUBZ_K3zqmeFMk2ZhRZkjQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: siano: don't use GFP_DMA
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Hans Verkuil <hansverk@cisco.com>,
+        "Luis R. Rodriguez" <mcgrof@kernel.org>, linux-mm@kvack.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+2018-05-06 18:21 GMT+09:00 Mauro Carvalho Chehab <mchehab+samsung@kernel.org>:
+> Em Sun, 6 May 2018 08:05:05 +0900
+> Tomoki Sekiyama <tomoki.sekiyama@gmail.com> escreveu:
+>
+>> 2018/5/6 1:09 Mauro Carvalho Chehab <mchehab+samsung@kernel.org>:
+>>
+>> > I can't think on a single reason why this driver would be using
+>> > GFP_DMA. The typical usage is as an USB driver. Any DMA restrictions
+>> > should be handled inside the HCI driver, if any.
+>> >
+>>
+>> siano driver supports SDIO (implemented
+>> in drivers/media/mmc/siano/smssdio.c) as well as USB.
+>> It looks like using sdio_memcpy_toio() to DMA transfer. I think that's why
+>> it is using GFP_DMA.
+>
+> Good point. I always forget about the mmc variant, as I don't
+> have any hardware to test.
+>
+> The best seems to add a new parameter to sms core register
+> function, allowing it to use extra gfp flags, and pass it only
+> for the SDIO variant.
+>
+> Patch enclosed.
 
-The generic vb2_request_validate helper function checks if
-there are buffers in the request and if so, prepares (validates)
-all objects in the request.
+I have confirmed that the USB stick works without GFP_DMA.
+The patch LGTM.
 
-The generic vb2_request_queue helper function queues all buffer
-objects in the validated request.
+Thanks,
+Tomoki
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../media/common/videobuf2/videobuf2-v4l2.c   | 38 +++++++++++++++++++
- include/media/videobuf2-v4l2.h                |  4 ++
- 2 files changed, 42 insertions(+)
-
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 0a68b19b40da..674bafe808ed 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -1076,6 +1076,44 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
- }
- EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
- 
-+int vb2_request_validate(struct media_request *req)
-+{
-+	struct media_request_object *obj;
-+	int ret = 0;
-+
-+	if (!vb2_request_has_buffers(req))
-+		return -ENOENT;
-+
-+	list_for_each_entry(obj, &req->objects, list) {
-+		if (!obj->ops->prepare)
-+			continue;
-+
-+		ret = obj->ops->prepare(obj);
-+		if (ret)
-+			break;
-+	}
-+
-+	if (ret) {
-+		list_for_each_entry_continue_reverse(obj, &req->objects, list)
-+			if (obj->ops->unprepare)
-+				obj->ops->unprepare(obj);
-+		return ret;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(vb2_request_validate);
-+
-+void vb2_request_queue(struct media_request *req)
-+{
-+	struct media_request_object *obj;
-+
-+	list_for_each_entry(obj, &req->objects, list) {
-+		if (obj->ops->queue)
-+			obj->ops->queue(obj);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(vb2_request_queue);
-+
- MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
- MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
- MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 91a2b3e1a642..727855463838 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -303,4 +303,8 @@ void vb2_ops_wait_prepare(struct vb2_queue *vq);
-  */
- void vb2_ops_wait_finish(struct vb2_queue *vq);
- 
-+struct media_request;
-+int vb2_request_validate(struct media_request *req);
-+void vb2_request_queue(struct media_request *req);
-+
- #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
--- 
-2.17.0
+> Regards,
+> Mauro
+>
+> [PATCH 1/2 v2] media: siano: use GFP_DMA only for smssdio
+>
+> Right now, the Siano's core uses GFP_DMA for both USB and
+> SDIO variants of the driver. There's no reason to use it
+> for USB. So, pass GFP_DMA as a parameter during sms core
+> register.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+>
+> diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+> index b5dcc6d1fe90..9ed7afa7b2ae 100644
+> --- a/drivers/media/common/siano/smscoreapi.c
+> +++ b/drivers/media/common/siano/smscoreapi.c
+> @@ -649,6 +649,7 @@ smscore_buffer_t *smscore_createbuffer(u8 *buffer, void *common_buffer,
+>   */
+>  int smscore_register_device(struct smsdevice_params_t *params,
+>                             struct smscore_device_t **coredev,
+> +                           gfp_t gfp_buf_flags,
+>                             void *mdev)
+>  {
+>         struct smscore_device_t *dev;
+> @@ -661,6 +662,7 @@ int smscore_register_device(struct smsdevice_params_t *params,
+>  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+>         dev->media_dev = mdev;
+>  #endif
+> +       dev->gfp_buf_flags = gfp_buf_flags;
+>
+>         /* init list entry so it could be safe in smscore_unregister_device */
+>         INIT_LIST_HEAD(&dev->entry);
+> @@ -697,7 +699,7 @@ int smscore_register_device(struct smsdevice_params_t *params,
+>                 buffer = dma_alloc_coherent(params->device,
+>                                             dev->common_buffer_size,
+>                                             &dev->common_buffer_phys,
+> -                                           GFP_KERNEL | GFP_DMA);
+> +                                           GFP_KERNEL | dev->gfp_buf_flags);
+>         if (!buffer) {
+>                 smscore_unregister_device(dev);
+>                 return -ENOMEM;
+> @@ -792,7 +794,7 @@ static int smscore_init_ir(struct smscore_device_t *coredev)
+>                 else {
+>                         buffer = kmalloc(sizeof(struct sms_msg_data2) +
+>                                                 SMS_DMA_ALIGNMENT,
+> -                                               GFP_KERNEL | GFP_DMA);
+> +                                               GFP_KERNEL | coredev->gfp_buf_flags);
+>                         if (buffer) {
+>                                 struct sms_msg_data2 *msg =
+>                                 (struct sms_msg_data2 *)
+> @@ -933,7 +935,7 @@ static int smscore_load_firmware_family2(struct smscore_device_t *coredev,
+>         }
+>
+>         /* PAGE_SIZE buffer shall be enough and dma aligned */
+> -       msg = kmalloc(PAGE_SIZE, GFP_KERNEL | GFP_DMA);
+> +       msg = kmalloc(PAGE_SIZE, GFP_KERNEL | coredev->gfp_buf_flags);
+>         if (!msg)
+>                 return -ENOMEM;
+>
+> @@ -1168,7 +1170,7 @@ static int smscore_load_firmware_from_file(struct smscore_device_t *coredev,
+>         }
+>         pr_debug("read fw %s, buffer size=0x%zx\n", fw_filename, fw->size);
+>         fw_buf = kmalloc(ALIGN(fw->size + sizeof(struct sms_firmware),
+> -                        SMS_ALLOC_ALIGNMENT), GFP_KERNEL | GFP_DMA);
+> +                        SMS_ALLOC_ALIGNMENT), GFP_KERNEL | coredev->gfp_buf_flags);
+>         if (!fw_buf) {
+>                 pr_err("failed to allocate firmware buffer\n");
+>                 rc = -ENOMEM;
+> @@ -1260,7 +1262,7 @@ EXPORT_SYMBOL_GPL(smscore_unregister_device);
+>  static int smscore_detect_mode(struct smscore_device_t *coredev)
+>  {
+>         void *buffer = kmalloc(sizeof(struct sms_msg_hdr) + SMS_DMA_ALIGNMENT,
+> -                              GFP_KERNEL | GFP_DMA);
+> +                              GFP_KERNEL | coredev->gfp_buf_flags);
+>         struct sms_msg_hdr *msg =
+>                 (struct sms_msg_hdr *) SMS_ALIGN_ADDRESS(buffer);
+>         int rc;
+> @@ -1309,7 +1311,7 @@ static int smscore_init_device(struct smscore_device_t *coredev, int mode)
+>         int rc = 0;
+>
+>         buffer = kmalloc(sizeof(struct sms_msg_data) +
+> -                       SMS_DMA_ALIGNMENT, GFP_KERNEL | GFP_DMA);
+> +                       SMS_DMA_ALIGNMENT, GFP_KERNEL | coredev->gfp_buf_flags);
+>         if (!buffer)
+>                 return -ENOMEM;
+>
+> @@ -1398,7 +1400,7 @@ int smscore_set_device_mode(struct smscore_device_t *coredev, int mode)
+>                 coredev->device_flags &= ~SMS_DEVICE_NOT_READY;
+>
+>                 buffer = kmalloc(sizeof(struct sms_msg_data) +
+> -                                SMS_DMA_ALIGNMENT, GFP_KERNEL | GFP_DMA);
+> +                                SMS_DMA_ALIGNMENT, GFP_KERNEL | coredev->gfp_buf_flags);
+>                 if (buffer) {
+>                         struct sms_msg_data *msg = (struct sms_msg_data *) SMS_ALIGN_ADDRESS(buffer);
+>
+> @@ -1971,7 +1973,7 @@ int smscore_gpio_configure(struct smscore_device_t *coredev, u8 pin_num,
+>         total_len = sizeof(struct sms_msg_hdr) + (sizeof(u32) * 6);
+>
+>         buffer = kmalloc(total_len + SMS_DMA_ALIGNMENT,
+> -                       GFP_KERNEL | GFP_DMA);
+> +                       GFP_KERNEL | coredev->gfp_buf_flags);
+>         if (!buffer)
+>                 return -ENOMEM;
+>
+> @@ -2043,7 +2045,7 @@ int smscore_gpio_set_level(struct smscore_device_t *coredev, u8 pin_num,
+>                         (3 * sizeof(u32)); /* keep it 3 ! */
+>
+>         buffer = kmalloc(total_len + SMS_DMA_ALIGNMENT,
+> -                       GFP_KERNEL | GFP_DMA);
+> +                       GFP_KERNEL | coredev->gfp_buf_flags);
+>         if (!buffer)
+>                 return -ENOMEM;
+>
+> @@ -2091,7 +2093,7 @@ int smscore_gpio_get_level(struct smscore_device_t *coredev, u8 pin_num,
+>         total_len = sizeof(struct sms_msg_hdr) + (2 * sizeof(u32));
+>
+>         buffer = kmalloc(total_len + SMS_DMA_ALIGNMENT,
+> -                       GFP_KERNEL | GFP_DMA);
+> +                       GFP_KERNEL | coredev->gfp_buf_flags);
+>         if (!buffer)
+>                 return -ENOMEM;
+>
+> diff --git a/drivers/media/common/siano/smscoreapi.h b/drivers/media/common/siano/smscoreapi.h
+> index 134c69f7ea7b..eb58853008c9 100644
+> --- a/drivers/media/common/siano/smscoreapi.h
+> +++ b/drivers/media/common/siano/smscoreapi.h
+> @@ -190,6 +190,8 @@ struct smscore_device_t {
+>
+>         int mode, modes_supported;
+>
+> +       gfp_t gfp_buf_flags;
+> +
+>         /* host <--> device messages */
+>         struct completion version_ex_done, data_download_done, trigger_done;
+>         struct completion data_validity_done, device_ready_done;
+> @@ -1125,6 +1127,7 @@ extern void smscore_unregister_hotplug(hotplug_t hotplug);
+>
+>  extern int smscore_register_device(struct smsdevice_params_t *params,
+>                                    struct smscore_device_t **coredev,
+> +                                  gfp_t gfp_buf_flags,
+>                                    void *mdev);
+>  extern void smscore_unregister_device(struct smscore_device_t *coredev);
+>
+> diff --git a/drivers/media/mmc/siano/smssdio.c b/drivers/media/mmc/siano/smssdio.c
+> index fee2d710bbf8..b9e40d4ca0e8 100644
+> --- a/drivers/media/mmc/siano/smssdio.c
+> +++ b/drivers/media/mmc/siano/smssdio.c
+> @@ -279,7 +279,7 @@ static int smssdio_probe(struct sdio_func *func,
+>                 goto free;
+>         }
+>
+> -       ret = smscore_register_device(&params, &smsdev->coredev, NULL);
+> +       ret = smscore_register_device(&params, &smsdev->coredev, GFP_DMA, NULL);
+>         if (ret < 0)
+>                 goto free;
+>
+> diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+> index 6d436e9e454f..be3634407f1f 100644
+> --- a/drivers/media/usb/siano/smsusb.c
+> +++ b/drivers/media/usb/siano/smsusb.c
+> @@ -455,7 +455,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+>         mdev = siano_media_device_register(dev, board_id);
+>
+>         /* register in smscore */
+> -       rc = smscore_register_device(&params, &dev->coredev, mdev);
+> +       rc = smscore_register_device(&params, &dev->coredev, 0, mdev);
+>         if (rc < 0) {
+>                 pr_err("smscore_register_device(...) failed, rc %d\n", rc);
+>                 smsusb_term_device(intf);
