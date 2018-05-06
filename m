@@ -1,117 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:54080 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751670AbeEDUIO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 16:08:14 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v9 09/15] vb2: mark codec drivers as unordered
-Date: Fri,  4 May 2018 17:06:06 -0300
-Message-Id: <20180504200612.8763-10-ezequiel@collabora.com>
-In-Reply-To: <20180504200612.8763-1-ezequiel@collabora.com>
-References: <20180504200612.8763-1-ezequiel@collabora.com>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:37943 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751777AbeEFOUA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 10:20:00 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v5 05/14] media: ov772x: add media controller support
+Date: Sun,  6 May 2018 23:19:20 +0900
+Message-Id: <1525616369-8843-6-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
+References: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Create a source pad and set the media controller type to the sensor.
 
-In preparation to have full support to explicit fence we are
-marking codec as non-ordered preventively. It is easier and safer from an
-uAPI point of view to move from unordered to ordered than the opposite.
-
-v3: set property instead of callback
-v2: mark only codec drivers as unordered (Nicolas and Hans)
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 2 ++
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 1 +
- drivers/media/platform/qcom/venus/venc.c           | 2 ++
- drivers/media/platform/s5p-mfc/s5p_mfc.c           | 2 ++
- 4 files changed, 7 insertions(+)
+* v5
+- No changes
 
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-index 86f0a7134365..c03cefde0c28 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-@@ -1498,6 +1498,7 @@ int mtk_vcodec_dec_queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	src_vq->lock		= &ctx->dev->dev_mutex;
- 	src_vq->dev             = &ctx->dev->plat_dev->dev;
-+	src_vq->unordered       = 1;
+ drivers/media/i2c/ov772x.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 3fdbe64..bb5327f 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -424,6 +424,9 @@ struct ov772x_priv {
+ 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
+ 	unsigned short                    band_filter;
+ 	unsigned int			  fps;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_pad pad;
++#endif
+ };
  
- 	ret = vb2_queue_init(src_vq);
- 	if (ret) {
-@@ -1513,6 +1514,7 @@ int mtk_vcodec_dec_queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	dst_vq->lock		= &ctx->dev->dev_mutex;
- 	dst_vq->dev             = &ctx->dev->plat_dev->dev;
-+	src_vq->unordered       = 1;
+ /*
+@@ -1316,16 +1319,26 @@ static int ov772x_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto error_gpio_put;
  
- 	ret = vb2_queue_init(dst_vq);
- 	if (ret) {
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-index 1b1a28abbf1f..81751c9aa19d 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-@@ -1340,6 +1340,7 @@ int mtk_vcodec_enc_queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	dst_vq->lock		= &ctx->dev->dev_mutex;
- 	dst_vq->dev		= &ctx->dev->plat_dev->dev;
-+	dst_vq->unordered	= 1;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
++	priv->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&priv->subdev.entity, 1, &priv->pad);
++	if (ret < 0)
++		goto error_gpio_put;
++#endif
++
+ 	priv->cfmt = &ov772x_cfmts[0];
+ 	priv->win = &ov772x_win_sizes[0];
+ 	priv->fps = 15;
  
- 	return vb2_queue_init(dst_vq);
- }
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 6b2ce479584e..17ec2d218aa5 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -1053,6 +1053,7 @@ static int m2m_queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->buf_struct_size = sizeof(struct venus_buffer);
- 	src_vq->allow_zero_bytesused = 1;
- 	src_vq->min_buffers_needed = 1;
-+	src_vq->unordered = 1;
- 	src_vq->dev = inst->core->dev;
- 	if (inst->core->res->hfi_version == HFI_VERSION_1XX)
- 		src_vq->bidirectional = 1;
-@@ -1069,6 +1070,7 @@ static int m2m_queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->buf_struct_size = sizeof(struct venus_buffer);
- 	dst_vq->allow_zero_bytesused = 1;
- 	dst_vq->min_buffers_needed = 1;
-+	src_vq->unordered = 1;
- 	dst_vq->dev = inst->core->dev;
- 	ret = vb2_queue_init(dst_vq);
- 	if (ret) {
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index a80251ed3143..6a4251f988ab 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -863,6 +863,7 @@ static int s5p_mfc_open(struct file *file)
- 	q->dma_attrs = DMA_ATTR_ALLOC_SINGLE_PAGES;
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	q->unordered = 1;
- 	ret = vb2_queue_init(q);
- 	if (ret) {
- 		mfc_err("Failed to initialize videobuf2 queue(capture)\n");
-@@ -898,6 +899,7 @@ static int s5p_mfc_open(struct file *file)
- 	q->dma_attrs = DMA_ATTR_ALLOC_SINGLE_PAGES;
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	q->unordered = 1;
- 	ret = vb2_queue_init(q);
- 	if (ret) {
- 		mfc_err("Failed to initialize videobuf2 queue(output)\n");
+ 	ret = v4l2_async_register_subdev(&priv->subdev);
+ 	if (ret)
+-		goto error_gpio_put;
++		goto error_entity_cleanup;
+ 
+ 	return 0;
+ 
++error_entity_cleanup:
++	media_entity_cleanup(&priv->subdev.entity);
+ error_gpio_put:
+ 	if (priv->pwdn_gpio)
+ 		gpiod_put(priv->pwdn_gpio);
+@@ -1341,6 +1354,7 @@ static int ov772x_remove(struct i2c_client *client)
+ {
+ 	struct ov772x_priv *priv = to_ov772x(i2c_get_clientdata(client));
+ 
++	media_entity_cleanup(&priv->subdev.entity);
+ 	clk_put(priv->clk);
+ 	if (priv->pwdn_gpio)
+ 		gpiod_put(priv->pwdn_gpio);
 -- 
-2.16.3
+2.7.4
