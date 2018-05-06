@@ -1,172 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f182.google.com ([209.85.192.182]:42169 "EHLO
-        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751457AbeEMSNt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 May 2018 14:13:49 -0400
-Received: by mail-pf0-f182.google.com with SMTP id p14-v6so4941197pfh.9
-        for <linux-media@vger.kernel.org>; Sun, 13 May 2018 11:13:49 -0700 (PDT)
-Subject: Re: [PATCH v6 3/5] dvb-usb/friio, dvb-usb-v2/gl861: decompose friio
- and merge with gl861
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com, crope@iki.fi
-References: <20180408172138.9974-1-tskd08@gmail.com>
- <20180408172138.9974-4-tskd08@gmail.com> <20180505081217.280864d9@vento.lan>
-From: Akihiro TSUKADA <tskd08@gmail.com>
-Message-ID: <75102816-67d1-56d2-6bd7-46d4fe9ce437@gmail.com>
-Date: Mon, 14 May 2018 03:13:44 +0900
-MIME-Version: 1.0
-In-Reply-To: <20180505081217.280864d9@vento.lan>
-Content-Type: text/plain; charset=iso-2022-jp
-Content-Language: en_US
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:37487 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751777AbeEFOUI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 10:20:08 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v5 08/14] media: ov772x: support device tree probing
+Date: Sun,  6 May 2018 23:19:23 +0900
+Message-Id: <1525616369-8843-9-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
+References: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-thanks for the review.
+The ov772x driver currently only supports legacy platform data probe.
+This change enables device tree probing.
 
->> +gl861_i2c_rawwrite(struct dvb_usb_device *d, u8 addr, u8 *wbuf, u16 wlen)>> +{>> +	u8 *buf;>> +	int ret;>> +>> +	buf = kmalloc(wlen, GFP_KERNEL);>> +	if (!buf)>> +		return -ENOMEM;>> +>> +	usleep_range(1000, 2000); /* avoid I2C errors */> > I guess this is probably also at the original code, but it seems really> weird to sleep here just after kmalloc().> > I would move any need for sleeps to the i2c xfer function, where it> makes clearer why it is needed and where. Same applies to other> usleep_range() calls at the functions below.
-those sleeps are for placing time gap between consecutive i2c transactions,
-but I agree that they should be moved to the i2c_xfer loop.
-I'll fix them in the next version.
+Note that the platform data probe can select auto or manual edge control
+mode, but the device tree probling can only select auto edge control mode
+for now.
 
->> +/*
->> + * In Friio,
->> + * I2C commnucations to the tuner are relay'ed via the demod (via the bridge),
->> + * so its encapsulation to USB message is different from the one to the demod.
-> 
-> This is quite common. I guess the rationale of using the demod's I2C mux
-> is to avoid noise at the tuner when there are I2C traffic that aren't related
-> to it.
-> 
-> You should probably implement it via I2C_MUX support.
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* v5
+- Remove unnecessary space
 
-I know that the i2c bus structure is common,
-but as I wrote to Antti before,
-i2c transactions to the tuner use the different USB transactions with
-different 'request' value from the one used in the other demod transactions.
+ drivers/media/i2c/ov772x.c | 64 ++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 45 insertions(+), 19 deletions(-)
 
-Here is the packet log example (I posted to linux-media before):
-"Re: [PATCH v4] dvb-usb/friio, dvb-usb-v2/gl861: decompose friio and merge with gl861"
-Message ID: <f047a680-436b-bf40-ae0a-68279366b668@gmail.com>
-Sent on: Sun, 1 Apr 2018 00:30:49 +0900
-
-I still do not understand how this can be implemented with I2C_MUX,
-or in the demod/tuner drivers.
-i2c to the tuner does not need gating/arbitration/locking,
-only needs to access via the demod reg,
-which is already implemented in the adapter by the demod,
-but it must be sent in the distinct USB transaction with its own 'request' value.
-
->> +/* init/config of Friio demod chip(?) */
->> +static int friio_reset(struct dvb_usb_device *d)
->> +{
->> +	int i, ret;
->> +	u8 wbuf[2], rbuf[2];
->> +
->> +	static const u8 friio_init_cmds[][2] = {
->> +		{0x33, 0x08}, {0x37, 0x40}, {0x3a, 0x1f}, {0x3b, 0xff},
->> +		{0x3c, 0x1f}, {0x3d, 0xff}, {0x38, 0x00}, {0x35, 0x00},
->> +		{0x39, 0x00}, {0x36, 0x00},
->> +	};
->> +
->> +	ret = usb_set_interface(d->udev, 0, 0);
->> +	if (ret < 0)
->> +		return ret;
->> +
->> +	wbuf[0] = 0x11;
->> +	wbuf[1] = 0x02;
->> +	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
->> +	if (ret < 0)
->> +		return ret;
->> +	usleep_range(2000, 3000);
->> +
->> +	wbuf[0] = 0x11;
->> +	wbuf[1] = 0x00;
->> +	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
->> +	if (ret < 0)
->> +		return ret;
->> +	usleep_range(1000, 2000);
-> 
-> Hmm... you had already usleeps() all over I2C xfer routines. Why adding
-> extra sleeps here?
-
-Those sleeps were added to (roughly) simulate the timing
-seen in the packet capture logs on a Windows box.
-They certainly include the time for application processing,
-but may include the necessary wait time after each command/i2c-transaction,
-so they are kept for safety.
-
-> Also, why isn't it calling i2c_transfer() instead of gl861_i2c_msg()?
-> Same applies to other similar calls.
-
-Because friio_reset can be called in the following trace:
-friio_reset
-friio_power_ctrl
-d->props->power_ctrl
-dvb_usbv2_device_power_ctrl
-dvb_usbv2_init
-
-and in dvb_usbv2_init, dvb_usbv2_device_power_ctrl is called
-BEFORE i2c adapter initialization (dvb_usbv2_i2c_init).
-
->> +static int friio_tuner_detach(struct dvb_usb_adapter *adap)
->> +{
->> +	struct friio_priv *priv;
->> +
->> +	priv = adap_to_priv(adap);
->> +#ifndef CONFIG_MEDIA_ATTACH
->> +	/* Note:
->> +	 * When CONFIG_MEDIA_ATTACH is defined,
->> +	 * the tuner module is already "put" by the following call trace:
->> +	 *
->> +	 * symbol_put_addr(fe->ops.tuner_ops.release)
->> +	 * dvb_frontend_invoke_release(fe, fe->ops.tuner_ops.release)
->> +	 * dvb_frontend_detach(fe)
->> +	 * dvb_usbv2_adapter_frontend_exit(adap)
->> +	 * dvb_usbv2_adapter_exit(d)
->> +	 * dvb_usbv2_exit(d)
->> +	 * dvb_usbv2_disconnect(intf)
->> +	 *
->> +	 * Since the tuner driver of Friio (dvb-pll) has .release defined,
->> +	 * dvb_module_release() should be skipped if CONFIG_MEDIA_ATTACH,
->> +	 * to avoid double-putting the module.
->> +	 * Even without dvb_module_release(),
->> +	 * the tuner i2c device is automatically unregistered
->> +	 * when its i2c adapter is unregistered with the demod i2c device.
->> +	 *
->> +	 * The same "double-putting" can happen to the demod module as well,
->> +	 * but tc90522 does not define any _invoke_release()'ed functions,
->> +	 * thus Friio is not affected.
->> +	 */
->> +	dvb_module_release(priv->i2c_client_tuner);
->> +#endif
-> 
-> This looks really weird to me... why only at this driver we need this?
-> If we have some issues at the DVB core - or at dvb-usb-v2, the fix should
-> be there, and not here.
-
-dvb-usb-v2 handles attach/detach of frontend/tuner driver modules
-on behalf of each bridge driver.
-
-While sub drivers are attached via d->props->{frontend, tuner}_attach,
-they are implicitly 'dvb_detach'ed in dvb_frontend_detach() on disconnect,
-not detached explicitly in d->props->{frontend, tuner}_detach().
-But i2c drivers need to be 'dvb_module_release'ed in those *_detach(),
-so any i2c drivers that define any 'implicitly detached' ops function
-would be affected by this double-put problem.
-(I suspect that even legacy dvb_attached drivers are also affected
-if they define both ops{.detach, .release, ...} functions,
-but there seems to be no such drivers currently.)
-
-Fix in dvb-core/dvb-usb-v2 would be too complicated
-for this (transient?) problem, since it will get unnecessary
-once all dvb_attach's are replaced and removed.
-
-so I am going to fix it in the tuner driver (dvb_pll) instead,
-like af9013 or ts2020 drivers,
-by clearing tuner_ops.release and moving its code to i2c .remove().
-
-regards,
-Akihiro
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index f939e28..2b02411 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -749,13 +749,13 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_VFLIP:
+ 		val = ctrl->val ? VFLIP_IMG : 0x00;
+ 		priv->flag_vflip = ctrl->val;
+-		if (priv->info->flags & OV772X_FLAG_VFLIP)
++		if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
+ 			val ^= VFLIP_IMG;
+ 		return ov772x_mask_set(client, COM3, VFLIP_IMG, val);
+ 	case V4L2_CID_HFLIP:
+ 		val = ctrl->val ? HFLIP_IMG : 0x00;
+ 		priv->flag_hflip = ctrl->val;
+-		if (priv->info->flags & OV772X_FLAG_HFLIP)
++		if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+ 			val ^= HFLIP_IMG;
+ 		return ov772x_mask_set(client, COM3, HFLIP_IMG, val);
+ 	case V4L2_CID_BAND_STOP_FILTER:
+@@ -914,19 +914,14 @@ static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
+ 	*win = ov772x_select_win(mf->width, mf->height);
+ }
+ 
+-static int ov772x_set_params(struct ov772x_priv *priv,
+-			     const struct ov772x_color_format *cfmt,
+-			     const struct ov772x_win_size *win)
++static int ov772x_edgectrl(struct ov772x_priv *priv)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+-	struct v4l2_fract tpf;
+ 	int ret;
+-	u8  val;
+ 
+-	/* Reset hardware. */
+-	ov772x_reset(client);
++	if (!priv->info)
++		return 0;
+ 
+-	/* Edge Ctrl. */
+ 	if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
+ 		/*
+ 		 * Manual Edge Control Mode.
+@@ -937,19 +932,19 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 
+ 		ret = ov772x_mask_set(client, DSPAUTO, EDGE_ACTRL, 0x00);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_TRSHLD, OV772X_EDGE_THRESHOLD_MASK,
+ 				      priv->info->edgectrl.threshold);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_STRNGT, OV772X_EDGE_STRENGTH_MASK,
+ 				      priv->info->edgectrl.strength);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 	} else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
+ 		/*
+@@ -961,15 +956,35 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 				      EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
+ 				      priv->info->edgectrl.upper);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_LOWER, OV772X_EDGE_LOWER_MASK,
+ 				      priv->info->edgectrl.lower);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 	}
+ 
++	return 0;
++}
++
++static int ov772x_set_params(struct ov772x_priv *priv,
++			     const struct ov772x_color_format *cfmt,
++			     const struct ov772x_win_size *win)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
++	struct v4l2_fract tpf;
++	int ret;
++	u8  val;
++
++	/* Reset hardware. */
++	ov772x_reset(client);
++
++	/* Edge Ctrl. */
++	ret = ov772x_edgectrl(priv);
++	if (ret < 0)
++		return ret;
++
+ 	/* Format and window size. */
+ 	ret = ov772x_write(client, HSTART, win->rect.left >> 2);
+ 	if (ret < 0)
+@@ -1020,9 +1035,9 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 
+ 	/* Set COM3. */
+ 	val = cfmt->com3;
+-	if (priv->info->flags & OV772X_FLAG_VFLIP)
++	if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
+ 		val |= VFLIP_IMG;
+-	if (priv->info->flags & OV772X_FLAG_HFLIP)
++	if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+ 		val |= HFLIP_IMG;
+ 	if (priv->flag_vflip)
+ 		val ^= VFLIP_IMG;
+@@ -1271,8 +1286,9 @@ static int ov772x_probe(struct i2c_client *client,
+ 	struct i2c_adapter	*adapter = client->adapter;
+ 	int			ret;
+ 
+-	if (!client->dev.platform_data) {
+-		dev_err(&client->dev, "Missing ov772x platform data\n");
++	if (!client->dev.of_node && !client->dev.platform_data) {
++		dev_err(&client->dev,
++			"Missing ov772x platform data for non-DT device\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1370,9 +1386,19 @@ static const struct i2c_device_id ov772x_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, ov772x_id);
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id ov772x_of_match[] = {
++	{ .compatible = "ovti,ov7725", },
++	{ .compatible = "ovti,ov7720", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, ov772x_of_match);
++#endif
++
+ static struct i2c_driver ov772x_i2c_driver = {
+ 	.driver = {
+ 		.name = "ov772x",
++		.of_match_table = of_match_ptr(ov772x_of_match),
+ 	},
+ 	.probe    = ov772x_probe,
+ 	.remove   = ov772x_remove,
+-- 
+2.7.4
