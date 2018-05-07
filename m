@@ -1,61 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:59004 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756016AbeEIHEr (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37864 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751968AbeEGMfp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 May 2018 03:04:47 -0400
-Subject: Re: [PATCH v9 11/15] vb2: add in-fence support to QBUF
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: kernel@collabora.com,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20180504200612.8763-1-ezequiel@collabora.com>
- <20180504200612.8763-12-ezequiel@collabora.com>
- <5fd5d7a9-5b74-fe2a-6148-59b90cabb9e8@xs4all.nl>
- <5541e08b048b932789db1c58438c2a2c2b6da7ce.camel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0a4f2701-a699-3c28-559d-2bf638178b94@xs4all.nl>
-Date: Wed, 9 May 2018 09:04:40 +0200
+        Mon, 7 May 2018 08:35:45 -0400
+Date: Mon, 7 May 2018 15:35:43 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl
+Subject: [GIT PULL for 4.18] Cadence CSI-2 TX and RX drivers
+Message-ID: <20180507123543.nlcrl62nids2rirh@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <5541e08b048b932789db1c58438c2a2c2b6da7ce.camel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2018 09:16 PM, Ezequiel Garcia wrote:
-> On Mon, 2018-05-07 at 14:07 +0200, Hans Verkuil wrote:
->> On 04/05/18 22:06, Ezequiel Garcia wrote:
->>> @@ -1421,15 +1505,40 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->>>  	trace_vb2_qbuf(q, vb);
->>>  
->>>  	/*
->>> -	 * If already streaming, give the buffer to driver for processing.
->>> -	 * If not, the buffer will be given to driver on next streamon.
->>> +	 * For explicit synchronization: If the fence didn't signal
->>> +	 * yet we setup a callback to queue the buffer once the fence
->>> +	 * signals and then return successfully. But if the fence
->>> +	 * already signaled we lose the reference we held and queue the
->>> +	 * buffer to the driver.
->>
->> What happens if the fence signaled an error? Is that error returned to userspace?
->> (i.e. VIDIOC_QBUF will fail in that case)
->>
-> 
-> Hm, good question. If the fence signals with an error, we won't catch it apparently.
-> We should fix dma_fence_add_callback to know about signaled vs. error signaled.
+Hi Mauro,
 
-OK, so in the meantime we need a comment explaining this in the code. Perhaps as
-a FIXME or TODO.
+Here are the drivers for Cadence CSI-2 TX and RX hardware blocks.
 
-Regards,
+Please pull.
 
-	Hans
+
+The following changes since commit f10379aad39e9da8bc7d1822e251b5f0673067ef:
+
+  media: include/video/omapfb_dss.h: use IS_ENABLED() (2018-05-05 11:45:51 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.18-4
+
+for you to fetch changes up to b2c23eb3e5f8ab0a54fc4aad875d12d127508f85:
+
+  v4l: cadence: Add Cadence MIPI-CSI2 TX driver (2018-05-07 12:52:50 +0300)
+
+----------------------------------------------------------------
+Maxime Ripard (4):
+      dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+      v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+      dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
+      v4l: cadence: Add Cadence MIPI-CSI2 TX driver
+
+ .../devicetree/bindings/media/cdns,csi2rx.txt      | 100 ++++
+ .../devicetree/bindings/media/cdns,csi2tx.txt      |  98 ++++
+ MAINTAINERS                                        |   7 +
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   1 +
+ drivers/media/platform/cadence/Kconfig             |  34 ++
+ drivers/media/platform/cadence/Makefile            |   4 +
+ drivers/media/platform/cadence/cdns-csi2rx.c       | 498 ++++++++++++++++++
+ drivers/media/platform/cadence/cdns-csi2tx.c       | 563 +++++++++++++++++++++
+ 9 files changed, 1306 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+ create mode 100644 drivers/media/platform/cadence/Kconfig
+ create mode 100644 drivers/media/platform/cadence/Makefile
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
