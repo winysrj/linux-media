@@ -1,125 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:57343 "EHLO mail.bootlin.com"
+Received: from mout.gmx.net ([212.227.15.15]:59447 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752636AbeEGPmO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 11:42:14 -0400
-Date: Mon, 7 May 2018 17:42:01 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Alexandre Courbot <gnurou@gmail.com>,
-        Florent Revest <florent.revest@free-electrons.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Randy Li <ayaka@soulik.info>
-Subject: Re: [PATCH v3 11/14] media: platform: Add Sunxi-Cedrus VPU decoder
- driver
-Message-ID: <20180507154201.4vz3y6j7u7kzfud6@flea>
-References: <20180507124500.20434-1-paul.kocialkowski@bootlin.com>
- <20180507124500.20434-12-paul.kocialkowski@bootlin.com>
+        id S1750881AbeEGPMS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 May 2018 11:12:18 -0400
+Date: Mon, 7 May 2018 17:12:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v7 1/2] uvcvideo: send a control event when a Control
+ Change interrupt arrives
+In-Reply-To: <3321819.nzIFIPUmca@avalon>
+Message-ID: <alpine.DEB.2.20.1805071708130.6924@axis700.grange>
+References: <20180323092401.12162-1-laurent.pinchart@ideasonboard.com> <2079648.niC1Apbgeu@avalon> <alpine.DEB.2.20.1804100848040.29394@axis700.grange> <3321819.nzIFIPUmca@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <20180507124500.20434-12-paul.kocialkowski@bootlin.com>
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 07, 2018 at 02:44:57PM +0200, Paul Kocialkowski wrote:
-> +#define SYSCON_SRAM_CTRL_REG0	0x0
-> +#define SYSCON_SRAM_C1_MAP_VE	0x7fffffff
+Hi Laurent,
 
-This isn't needed anymore
+Thanks for the replies. One follow-up question:
 
-> +	dev->ahb_clk = devm_clk_get(dev->dev, "ahb");
-> +	if (IS_ERR(dev->ahb_clk)) {
-> +		dev_err(dev->dev, "failed to get ahb clock\n");
-> +		return PTR_ERR(dev->ahb_clk);
-> +	}
-> +	dev->mod_clk = devm_clk_get(dev->dev, "mod");
-> +	if (IS_ERR(dev->mod_clk)) {
-> +		dev_err(dev->dev, "failed to get mod clock\n");
-> +		return PTR_ERR(dev->mod_clk);
-> +	}
-> +	dev->ram_clk = devm_clk_get(dev->dev, "ram");
-> +	if (IS_ERR(dev->ram_clk)) {
-> +		dev_err(dev->dev, "failed to get ram clock\n");
-> +		return PTR_ERR(dev->ram_clk);
-> +	}
+On Mon, 7 May 2018, Laurent Pinchart wrote:
 
-Please add some blank lines between those blocks
+> Hi Guennadi,
+> 
+> On Tuesday, 10 April 2018 14:31:35 EEST Guennadi Liakhovetski wrote:
+> > On Fri, 23 Mar 2018, Laurent Pinchart wrote:
+> > > On Friday, 23 March 2018 11:24:00 EET Laurent Pinchart wrote:
+> > >> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > >> 
+> > >> UVC defines a method of handling asynchronous controls, which sends a
+> > >> USB packet over the interrupt pipe. This patch implements support for
+> > >> such packets by sending a control event to the user. Since this can
+> > >> involve USB traffic and, therefore, scheduling, this has to be done
+> > >> in a work queue.
+> > >> 
+> > >> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> > >> ---
+> > >> 
+> > >>  drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++++++++++---
+> > >>  drivers/media/usb/uvc/uvc_status.c | 111 ++++++++++++++++++++++---
+> > >>  drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
+> > >>  drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
+> > >>  include/uapi/linux/uvcvideo.h      |   2 +
+> > >>  5 files changed, 269 insertions(+), 29 deletions(-)
+> > >> 
+> > >> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> > >> b/drivers/media/usb/uvc/uvc_ctrl.c index 4042cbdb721b..f4773c56438c
+> > >> 100644
+> > >> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> > >> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
 
-> +	dev->rstc = devm_reset_control_get(dev->dev, NULL);
+[snip]
 
-You're not checking the error code here
+> > >> +void uvc_ctrl_status_event(struct uvc_video_chain *chain,
+> > >> +			   struct uvc_control *ctrl, u8 *data, size_t len)
+> > >> +{
+> > >> +	struct uvc_device *dev = chain->dev;
+> > >> +	struct uvc_ctrl_work *w = &dev->async_ctrl;
+> > >> +
+> > >> +	if (list_empty(&ctrl->info.mappings))
+> > >> +		return;
+> > >> +
+> > >> +	spin_lock(&w->lock);
+> > >> +	if (w->data)
+> > >> +		/* A previous event work hasn't run yet, we lose 1 event */
+> > >> +		kfree(w->data);
+> > > 
+> > > I really don't like losing events :/
+> > 
+> > Well, I'm not sure whether having no available status URBs isn't
+> > equivalent to losing events, but if you prefer that - no problem.
+> > 
+> > >> +	w->data = kmalloc(len, GFP_ATOMIC);
+> > > 
+> > > GFP_ATOMIC allocation isn't very nice either.
+> > > 
+> > > How about if we instead delayed resubmitting the status URB until the
+> > > event is fully processed by the work queue ? That way we wouldn't lose
+> > > events, we wouldn't need memory allocation in atomic context, and if the
+> > > work queue becomes a bottleneck we could even queue multiple status URBs
+> > > and easily add them to a list for processing by the work queue.
+> > 
+> > You mean only for control status events? Can do, sure.
+> 
+> I mean the status endpoint URB in general, so this would affect both control 
+> events and button events.
 
-> +	dev->syscon = syscon_regmap_lookup_by_phandle(dev->dev->of_node,
-> +						      "syscon");
-> +	if (IS_ERR(dev->syscon)) {
-> +		dev->syscon = NULL;
-> +	} else {
-> +		regmap_write_bits(dev->syscon, SYSCON_SRAM_CTRL_REG0,
-> +				  SYSCON_SRAM_C1_MAP_VE,
-> +				  SYSCON_SRAM_C1_MAP_VE);
-> +	}
+I don't think any of my UVC cameras have such a button, do you have any of 
+those? I'd rather not change something, that I cannot test myself and 
+cannot have tested. I could leave the button processing as is and only 
+change the URB submission path for control change events?
 
-You don't need the syscon part anymore either
-
-> +	ret = clk_prepare_enable(dev->ahb_clk);
-> +	if (ret) {
-> +		dev_err(dev->dev, "could not enable ahb clock\n");
-> +		return -EFAULT;
-> +	}
-> +	ret = clk_prepare_enable(dev->mod_clk);
-> +	if (ret) {
-> +		clk_disable_unprepare(dev->ahb_clk);
-> +		dev_err(dev->dev, "could not enable mod clock\n");
-> +		return -EFAULT;
-> +	}
-> +	ret = clk_prepare_enable(dev->ram_clk);
-> +	if (ret) {
-> +		clk_disable_unprepare(dev->mod_clk);
-> +		clk_disable_unprepare(dev->ahb_clk);
-> +		dev_err(dev->dev, "could not enable ram clock\n");
-> +		return -EFAULT;
-> +	}
-> +
-> +	ret = reset_control_reset(dev->rstc);
-> +	if (ret) {
-> +		clk_disable_unprepare(dev->ram_clk);
-> +		clk_disable_unprepare(dev->mod_clk);
-> +		clk_disable_unprepare(dev->ahb_clk);
-> +		dev_err(dev->dev, "could not reset device\n");
-> +		return -EFAULT;
-
-labels would simplify this greatly, and you should also release the
-sram and the memory region here.
-
-Maxime
-
--- 
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
+Thanks
+Guennadi
