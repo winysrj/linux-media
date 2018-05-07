@@ -1,12 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:44476 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752986AbeEURC3 (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:56769 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751938AbeEGLa7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 13:02:29 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mon, 7 May 2018 07:30:59 -0400
+Subject: Re: [PATCH v9 10/15] vb2: add explicit fence user API
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org
+Cc: kernel@collabora.com,
         Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
         Shuah Khan <shuahkh@osg.samsung.com>,
         Pawel Osciak <pawel@osciak.com>,
@@ -14,214 +15,192 @@ Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
         Sakari Ailus <sakari.ailus@iki.fi>,
         Brian Starkey <brian.starkey@arm.com>,
         linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v10 15/16] v4l: Add V4L2_CAP_FENCES to drivers
-Date: Mon, 21 May 2018 13:59:45 -0300
-Message-Id: <20180521165946.11778-16-ezequiel@collabora.com>
-In-Reply-To: <20180521165946.11778-1-ezequiel@collabora.com>
-References: <20180521165946.11778-1-ezequiel@collabora.com>
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20180504200612.8763-1-ezequiel@collabora.com>
+ <20180504200612.8763-11-ezequiel@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1f3e8527-d18b-9d60-31c4-11b3bd6a28b5@xs4all.nl>
+Date: Mon, 7 May 2018 13:30:56 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180504200612.8763-11-ezequiel@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+On 04/05/18 22:06, Ezequiel Garcia wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> Turn the reserved2 field into fence_fd that we will use to send
+> an in-fence to the kernel or return an out-fence from the kernel to
+> userspace.
+> 
+> Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+> when sending an in-fence to the kernel to be waited on, and
+> V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
+> 
+> v7: minor fixes on the Documentation (Hans Verkuil)
+> 
+> v6: big improvement on doc (Hans Verkuil)
+> 
+> v5: - keep using reserved2 field for cpia2
+>     - set fence_fd to 0 for now, for compat with userspace(Mauro)
+> 
+> v4: make it a union with reserved2 and fence_fd (Hans Verkuil)
+> 
+> v3: make the out_fence refer to the current buffer (Hans Verkuil)
+> 
+> v2: add documentation
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  Documentation/media/uapi/v4l/buffer.rst         | 45 +++++++++++++++++++++++--
+>  drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  4 +--
+>  include/uapi/linux/videodev2.h                  |  8 ++++-
+>  4 files changed, 52 insertions(+), 7 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> index e2c85ddc990b..be9719cf5745 100644
+> --- a/Documentation/media/uapi/v4l/buffer.rst
+> +++ b/Documentation/media/uapi/v4l/buffer.rst
+> @@ -301,10 +301,22 @@ struct v4l2_buffer
+>  	elements in the ``planes`` array. The driver will fill in the
+>  	actual number of valid elements in that array.
+>      * - __u32
 
-Drivers that use videobuf2 are capable of using fences and
-should report that to userspace.
+Type is now __s32.
 
-v10: - Add CAPS_FENCES to drivers that don't use fh->m2m_ctx.
-     - Keep the ifdef V4L2_MEM2MEM_DEV.
-     - Set CAPS_FENCES after vidioc_querycap.
-v9: Add in the core.
+> -      - ``reserved2``
+> +      - ``fence_fd``
+>        -
+> -      - A place holder for future extensions. Drivers and applications
+> -	must set this to 0.
+> +      - Used to communicate a fence file descriptors from userspace to kernel
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- drivers/media/platform/exynos-gsc/gsc-m2m.c        |  3 ++-
- drivers/media/platform/m2m-deinterlace.c           |  3 ++-
- drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c       |  3 ++-
- .../media/platform/mtk-vcodec/mtk_vcodec_dec_drv.c |  2 +-
- .../media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c |  3 ++-
- drivers/media/platform/mx2_emmaprp.c               |  3 ++-
- drivers/media/platform/qcom/venus/vdec.c           |  3 ++-
- drivers/media/platform/qcom/venus/venc.c           |  3 ++-
- drivers/media/platform/sh_veu.c                    |  3 ++-
- drivers/media/v4l2-core/v4l2-ioctl.c               | 24 +++++++++++++++++++++-
- 10 files changed, 40 insertions(+), 10 deletions(-)
+descriptors -> descriptor
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index e9ff27949a91..fbf072c8aedd 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -298,7 +298,8 @@ static int gsc_m2m_querycap(struct file *file, void *fh,
- 	strlcpy(cap->card, GSC_MODULE_NAME " gscaler", sizeof(cap->card));
- 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
- 		 dev_name(&gsc->pdev->dev));
--	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE;
-+	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE |
-+			   V4L2_CAP_FENCES;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
-diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-index 1e4195144f39..b7421de1268f 100644
---- a/drivers/media/platform/m2m-deinterlace.c
-+++ b/drivers/media/platform/m2m-deinterlace.c
-@@ -461,7 +461,8 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	 * and are scheduled for removal.
- 	 */
- 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
--			   V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
-+			   V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING |
-+			   V4L2_CAP_FENCES;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
- 	return 0;
-diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-index 583d47724ee8..7aba2ba128ba 100644
---- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-+++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-@@ -1242,7 +1242,8 @@ int mtk_mdp_register_m2m_device(struct mtk_mdp_dev *mdp)
- 		ret = -ENOMEM;
- 		goto err_video_alloc;
- 	}
--	mdp->vdev->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
-+	mdp->vdev->device_caps = V4L2_CAP_FENCES | V4L2_CAP_VIDEO_M2M_MPLANE |
-+				 V4L2_CAP_STREAMING;
- 	mdp->vdev->fops = &mtk_mdp_m2m_fops;
- 	mdp->vdev->ioctl_ops = &mtk_mdp_m2m_ioctl_ops;
- 	mdp->vdev->release = video_device_release;
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_drv.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_drv.c
-index 4334b7394861..75318a4129ea 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_drv.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_drv.c
-@@ -321,7 +321,7 @@ static int mtk_vcodec_probe(struct platform_device *pdev)
- 	vfd_dec->v4l2_dev	= &dev->v4l2_dev;
- 	vfd_dec->vfl_dir	= VFL_DIR_M2M;
- 	vfd_dec->device_caps	= V4L2_CAP_VIDEO_M2M_MPLANE |
--			V4L2_CAP_STREAMING;
-+			V4L2_CAP_STREAMING | V4L2_CAP_FENCES;
- 
- 	snprintf(vfd_dec->name, sizeof(vfd_dec->name), "%s",
- 		MTK_VCODEC_DEC_NAME);
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-index 83f859e8509c..1c9d4e7262bb 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-@@ -339,7 +339,8 @@ static int mtk_vcodec_probe(struct platform_device *pdev)
- 	vfd_enc->v4l2_dev       = &dev->v4l2_dev;
- 	vfd_enc->vfl_dir        = VFL_DIR_M2M;
- 	vfd_enc->device_caps	= V4L2_CAP_VIDEO_M2M_MPLANE |
--					V4L2_CAP_STREAMING;
-+					V4L2_CAP_STREAMING |
-+					V4L2_CAP_FENCES;
- 
- 	snprintf(vfd_enc->name, sizeof(vfd_enc->name), "%s",
- 		 MTK_VCODEC_ENC_NAME);
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index 5a8eff60e95f..230ad00fc62d 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -401,7 +401,8 @@ static int vidioc_querycap(struct file *file, void *priv,
- {
- 	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
- 	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
--	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING |
-+			   V4L2_CAP_FENCES;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index 8d7b4fc95880..9da748d05bd9 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -1099,7 +1099,8 @@ static int vdec_probe(struct platform_device *pdev)
- 	vdev->ioctl_ops = &vdec_ioctl_ops;
- 	vdev->vfl_dir = VFL_DIR_M2M;
- 	vdev->v4l2_dev = &core->v4l2_dev;
--	vdev->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
-+	vdev->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING |
-+			    V4L2_CAP_FENCES;
- 
- 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret)
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 713c79ba9639..41b25ef2d4dc 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -1243,7 +1243,8 @@ static int venc_probe(struct platform_device *pdev)
- 	vdev->ioctl_ops = &venc_ioctl_ops;
- 	vdev->vfl_dir = VFL_DIR_M2M;
- 	vdev->v4l2_dev = &core->v4l2_dev;
--	vdev->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
-+	vdev->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING |
-+			    V4L2_CAP_FENCES;
- 
- 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret)
-diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-index 1a0cde017fdf..4ad7ec5a197a 100644
---- a/drivers/media/platform/sh_veu.c
-+++ b/drivers/media/platform/sh_veu.c
-@@ -351,7 +351,8 @@ static int sh_veu_querycap(struct file *file, void *priv,
- 	strlcpy(cap->driver, "sh-veu", sizeof(cap->driver));
- 	strlcpy(cap->card, "sh-mobile VEU", sizeof(cap->card));
- 	strlcpy(cap->bus_info, "platform:sh-veu", sizeof(cap->bus_info));
--	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING |
-+			   V4L2_CAP_FENCES;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
- 	return 0;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 2135ac235a96..4c5e95a0fe6f 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -29,6 +29,7 @@
- #include <media/v4l2-device.h>
- #include <media/videobuf2-v4l2.h>
- #include <media/v4l2-mc.h>
-+#include <media/v4l2-mem2mem.h>
- 
- #include <trace/events/v4l2.h>
- 
-@@ -1002,6 +1003,8 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
- {
- 	struct v4l2_capability *cap = (struct v4l2_capability *)arg;
- 	struct video_device *vfd = video_devdata(file);
-+	struct v4l2_fh *vfh =
-+		test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
- 	int ret;
- 
- 	cap->version = LINUX_VERSION_CODE;
-@@ -1010,7 +1013,26 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
- 
- 	ret = ops->vidioc_querycap(file, fh, cap);
- 
--	cap->capabilities |= V4L2_CAP_EXT_PIX_FORMAT;
-+	/* If a streaming device has a queue or a m2m context,
-+	 * then the device supports explicit sync.
-+	 */
-+	if (cap->device_caps & V4L2_CAP_STREAMING) {
-+		/*
-+		 * TODO: Drop these additional queue lock
-+		 * checks once we make vb2_queue lock
-+		 * mandatory.
-+		 */
-+		if (vfd->queue && vfd->queue->lock)
-+			cap->device_caps |= V4L2_CAP_FENCES;
-+#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
-+		if (vfh && vfh->m2m_ctx &&
-+		    vfh->m2m_ctx->cap_q_ctx.q.lock &&
-+		    vfh->m2m_ctx->out_q_ctx.q.lock)
-+			cap->device_caps |= V4L2_CAP_FENCES;
-+#endif
-+	}
-+	cap->capabilities |= cap->device_caps | V4L2_CAP_EXT_PIX_FORMAT;
-+
- 	/*
- 	 * Drivers MUST fill in device_caps, so check for this and
- 	 * warn if it was forgotten.
--- 
-2.16.3
+> +	and vice-versa. On :ref:`VIDIOC_QBUF <VIDIOC_QBUF>` when sending
+> +	an in-fence for V4L2 to wait on, the ``V4L2_BUF_FLAG_IN_FENCE`` flag must
+> +	be used and this field set to the fence file descriptor of the in-fence.
+> +	If the in-fence is not valid ` VIDIOC_QBUF`` returns an error.
+> +
+> +        To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE``
+> +	must be set, the kernel will return the out-fence file descriptor in
+> +	this field. If it fails to create the out-fence ``VIDIOC_QBUF` returns
+> +        an error.
+> +
+> +	For all other ioctls V4L2 sets this field to -1 if
+> +	``V4L2_BUF_FLAG_IN_FENCE`` and/or ``V4L2_BUF_FLAG_OUT_FENCE`` are set,
+> +	otherwise this field is set to 0 for backward compatibility.
+>      * - __u32
+>        - ``reserved``
+>        -
+> @@ -648,6 +660,33 @@ Buffer Flags
+>        - Start Of Exposure. The buffer timestamp has been taken when the
+>  	exposure of the frame has begun. This is only valid for the
+>  	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
+> +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
+> +
+> +      - ``V4L2_BUF_FLAG_IN_FENCE``
+> +      - 0x00200000
+> +      - Ask V4L2 to wait on the fence passed in the ``fence_fd`` field. The
+> +	buffer won't be queued to the driver until the fence signals. The order
+> +	in which buffers are queued is guaranteed to be preserved, so any
+> +	buffers queued after this buffer will also be blocked until this fence
+> +	signals. This flag must be set before calling ``VIDIOC_QBUF``. For
+> +	other ioctls the driver just reports the value of the flag.
+> +
+> +        If the fence signals the flag is cleared and not reported anymore.
+> +	If the fence is not valid ``VIDIOC_QBUF`` returns an error.
+> +
+> +
+> +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
+> +
+> +      - ``V4L2_BUF_FLAG_OUT_FENCE``
+> +      - 0x00400000
+> +      - Request for a fence to be attached to the buffer. The driver will fill
+> +	in the out-fence fd in the ``fence_fd`` field when :ref:`VIDIOC_QBUF
+> +	<VIDIOC_QBUF>` returns. This flag must be set before calling
+> +	``VIDIOC_QBUF``. For other ioctls the driver just reports the value of
+> +	the flag.
+
+What happens once the out fence signals? Is this flag cleared? I think that would
+make sense.
+
+> +
+> +        If the creation of the out-fence fails ``VIDIOC_QBUF`` returns an
+> +	error.
+>  
+>  
+
+I would like to see a mention here that it is valid to set both FENCE flags.
+
+>  
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> index 64503615d00b..b1c0fa2b0b88 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+>  	b->timestamp = ns_to_timeval(vb->timestamp);
+>  	b->timecode = vbuf->timecode;
+>  	b->sequence = vbuf->sequence;
+> -	b->reserved2 = 0;
+> +	b->fence_fd = 0;
+>  	b->reserved = 0;
+>  
+>  	if (q->is_multiplanar) {
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index 4312935f1dfc..93c752459aec 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -388,7 +388,7 @@ struct v4l2_buffer32 {
+>  		__s32		fd;
+>  	} m;
+>  	__u32			length;
+> -	__u32			reserved2;
+> +	__s32			fence_fd;
+>  	__u32			reserved;
+>  };
+>  
+> @@ -606,7 +606,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
+>  	    assign_in_user(&up->timestamp.tv_usec, &kp->timestamp.tv_usec) ||
+>  	    copy_in_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
+>  	    assign_in_user(&up->sequence, &kp->sequence) ||
+> -	    assign_in_user(&up->reserved2, &kp->reserved2) ||
+> +	    assign_in_user(&up->fence_fd, &kp->fence_fd) ||
+>  	    assign_in_user(&up->reserved, &kp->reserved) ||
+>  	    get_user(length, &kp->length) ||
+>  	    put_user(length, &up->length))
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index a8842a5ca636..1f18dc68ecab 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -934,7 +934,10 @@ struct v4l2_buffer {
+>  		__s32		fd;
+>  	} m;
+>  	__u32			length;
+> -	__u32			reserved2;
+> +	union {
+> +		__s32		fence_fd;
+> +		__u32		reserved2;
+> +	};
+>  	__u32			reserved;
+>  };
+>  
+> @@ -971,6 +974,9 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+>  /* mem2mem encoder/decoder */
+>  #define V4L2_BUF_FLAG_LAST			0x00100000
+> +/* Explicit synchronization */
+> +#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
+> +#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+>  
+>  /**
+>   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+> 
+
+Regards,
+
+	Hans
