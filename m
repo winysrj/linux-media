@@ -1,66 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:26451 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750970AbeEBVol (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 May 2018 17:44:41 -0400
-Date: Thu, 3 May 2018 00:44:39 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: Re: [PATCH v2 08/12] media: ov5640: Adjust the clock based on the
- expected rate
-Message-ID: <20180502214439.sjnmg6dp6inupbmu@kekkonen.localdomain>
-References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
- <20180416123701.15901-9-maxime.ripard@bootlin.com>
- <20180424072147.t5ix4zpiwwjx4rzv@paasikivi.fi.intel.com>
- <20180424193644.cjzlauohsokbsrux@flea>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180424193644.cjzlauohsokbsrux@flea>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:40433 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752581AbeEGQW4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:22:56 -0400
+Received: by mail-wr0-f193.google.com with SMTP id v60-v6so29360219wrc.7
+        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:22:55 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v3 11/14] ARM: dts: imx7s: add capture subsystem
+Date: Mon,  7 May 2018 17:21:49 +0100
+Message-Id: <20180507162152.2545-12-rui.silva@linaro.org>
+In-Reply-To: <20180507162152.2545-1-rui.silva@linaro.org>
+References: <20180507162152.2545-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 24, 2018 at 09:36:44PM +0200, Maxime Ripard wrote:
-> Hi Sakari,
-> 
-> On Tue, Apr 24, 2018 at 10:21:47AM +0300, Sakari Ailus wrote:
-> > >  /* download ov5640 settings to sensor through i2c */
-> > >  static int ov5640_load_regs(struct ov5640_dev *sensor,
-> > >  			    const struct ov5640_mode_info *mode)
-> > > @@ -1620,6 +1830,14 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
-> > >  	if (ret)
-> > >  		return ret;
-> > >  
-> > > +	if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
-> > > +		ret = ov5640_set_mipi_pclk(sensor, mode->clock);
-> > 
-> > What is the value of the mode->clock expected to signify? It'd seem like
-> > that this changes from this patch to the next. Which one is correct?
-> 
-> It doesn't, this is the clock rate computed through the formula
-> described above (and that might be incorrect for MIPI-CSI, given
-> Samuel feedback) from the way the registers are initialized in the
-> arrays.
-> 
-> This shouldn't bring any change to the clock rate, but instead of
-> hardcoding it, we now have the infrastructure to calculate the factors
-> for any given rate.
-> 
-> The subsequent patch will remove that hardcoded clock rate and
-> generate it dynamically from the timings / format.
-> 
-> Does that make sense? Or maybe I should split this some other way?
+Add media capture subsystem device to i.MX7 definitions.
 
-I guess it's ok as it is. I think I must have misread a chunk in the
-following patch --- sorry about the noise.
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ arch/arm/boot/dts/imx7s.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
+diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
+index 0bae41f2944c..058e0cbf8ee7 100644
+--- a/arch/arm/boot/dts/imx7s.dtsi
++++ b/arch/arm/boot/dts/imx7s.dtsi
+@@ -1175,4 +1175,9 @@
+ 			assigned-clock-parents = <&clks IMX7D_PLL_ENET_MAIN_500M_CLK>;
+ 		};
+ 	};
++
++	capture-subsystem {
++		compatible = "fsl,imx7-capture-subsystem";
++		ports = <&csi>;
++	};
+ };
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.17.0
