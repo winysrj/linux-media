@@ -1,51 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:46868 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754032AbeEWF1e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 01:27:34 -0400
-From: Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>
-To: alan@linux.intel.com, sakari.ailus@linux.intel.com,
-        mchehab@kernel.org, gregkh@linuxfoundation.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 4/6] media: staging: atomisp: Fix potential NULL pointer dereference
-Date: Wed, 23 May 2018 10:51:34 +0530
-Message-Id: <1527052896-30777-5-git-send-email-pankaj.laxminarayan.bharadiya@intel.com>
-In-Reply-To: <1527052896-30777-1-git-send-email-pankaj.laxminarayan.bharadiya@intel.com>
-References: <1527052896-30777-1-git-send-email-pankaj.laxminarayan.bharadiya@intel.com>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:36663 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752064AbeEGOXs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 10:23:48 -0400
+Message-ID: <1525703026.6317.23.camel@pengutronix.de>
+Subject: Re: [PATCH 0/2] media: imx: add capture support for RGB565_2X8 on
+ parallel bus
+From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+Cc: p.zabel@pengutronix.de
+Date: Mon, 07 May 2018 16:23:46 +0200
+In-Reply-To: <ed3906bf-9682-77c6-011a-31bd1b76be7f@gmail.com>
+References: <20180503164120.9912-1-jlu@pengutronix.de>
+         <ed3906bf-9682-77c6-011a-31bd1b76be7f@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In ia_css_pipe_get_primary_binarydesc(), "pipe" is being dereferenced
-before it is null checked.
-Fix it by moving the "pipe" pointer dereference after it has been
-properly null checked.
+Hi Steve,
 
-Signed-off-by: Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>
----
- .../atomisp/pci/atomisp2/css2400/camera/pipe/src/pipe_binarydesc.c     | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+thanks for reviewing!
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/camera/pipe/src/pipe_binarydesc.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/camera/pipe/src/pipe_binarydesc.c
-index 98a2a3e..ca86157 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/camera/pipe/src/pipe_binarydesc.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/camera/pipe/src/pipe_binarydesc.c
-@@ -554,7 +554,7 @@ void ia_css_pipe_get_primary_binarydesc(
- 	struct ia_css_frame_info *vf_info,
- 	unsigned int stage_idx)
- {
--	enum ia_css_pipe_version pipe_version = pipe->config.isp_pipe_version;
-+	enum ia_css_pipe_version pipe_version;
- 	int mode;
- 	unsigned int i;
- 	struct ia_css_frame_info *out_infos[IA_CSS_BINARY_MAX_OUTPUT_PORTS];
-@@ -567,6 +567,7 @@ void ia_css_pipe_get_primary_binarydesc(
- 	/*assert(vf_info != NULL);*/
- 	IA_CSS_ENTER_PRIVATE("");
- 
-+	pipe_version = pipe->config.isp_pipe_version;
- 	if (pipe_version == IA_CSS_PIPE_VERSION_2_6_1)
- 		mode = primary_hq_binary_modes[stage_idx];
- 	else
+On Sat, 2018-05-05 at 15:22 -0700, Steve Longerbeam wrote:
+> I reviewed this patch series, and while I don't have any
+> objections to the code-level changes, but my question
+> is more specifically about how the IPU/CSI deals with
+> receiving RGB565 over a parallel bus.
+> 
+> My understanding was that if the CSI receives RGB565
+> over a parallel 8-bit sensor bus, the CSI_SENS_DATA_FORMAT
+> register field is programmed to RGB565, and the CSI outputs
+> ARGB8888. Then IDMAC component packing can be setup to
+> write pixels to memory as RGB565. Does that not work?
+
+This was our first thought too. As far as we can see in our
+experiments, that mode doesn't actually work for the parallel bus.
+Philipp's interpretation is that this mode is only intended for use
+with the MIPI-CSI2 input.
+
+> Assuming that above does not work (and indeed parallel RGB565
+> must be handled as pass-through), then I think support for capturing
+> parallel RGB555 as pass-through should be added to this series as
+> well.
+
+I don't have a sensor which produces RGB555, so it wouldn't be able to
+test it.
+
+> Also what about RGB565 over a 16-bit parallel sensor bus? The
+> reference manual hints that perhaps this could be treated as
+> non-passthrough ("on the fly processing"), e.g. could be passed
+> on to the IC pre-processor:
+> 
+>      16 bit RGB565
+>          This is the only mode that allows on the fly processing of 16 bit data. In this mode the
+>          CSI is programmed to receive 16 bit generic data. In this mode the interface is
+>          restricted to be in "non-gated mode" and the CSI#_DATA_SOURCE bit has to be set
+>          If the external device is 24bit - the user can connect a 16 bit sample of it (RGB565
+>          format). The IPU has to be configured in the same way as the case of
+>          CSI#_SENS_DATA_FORMAT=RGB565
+
+I've not looked at this case, as I don't have a sensor with that format
+either. :/
+
+Thanks,
+Jan
 -- 
-2.7.4
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
