@@ -1,81 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:24065 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934089AbeEJIdz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 May 2018 04:33:55 -0400
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-CC: "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Chiang, AlanX" <alanx.chiang@intel.com>
-Subject: RE: [PATCH v11] media: imx258: Add imx258 camera sensor driver
-Date: Thu, 10 May 2018 08:33:52 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D598D9C@PGSMSX111.gar.corp.intel.com>
-References: <1525275968-17207-1-git-send-email-andy.yeh@intel.com>
- <CAAFQd5BYokHC7J8wEjT4twx7_bU1Yyv1LbN2PAK2tjmCrr2cig@mail.gmail.com>
- <5881B549BE56034BB7E7D11D6EDEA2020678E62E@PGSMSX106.gar.corp.intel.com>
- <CAAFQd5CvPCfFx6Nxb26JdSAfD_YNe=-hvyJ=iKLcTA0LpxC4_g@mail.gmail.com>
- <FA6CF6692DF0B343ABE491A46A2CD0E76C65E22D@SHSMSX101.ccr.corp.intel.com>
- <CAAFQd5BKhXiZMZf9OscrHt+SNQNC2PCguKXcNcZNPhjmrgUxzQ@mail.gmail.com>
-In-Reply-To: <CAAFQd5BKhXiZMZf9OscrHt+SNQNC2PCguKXcNcZNPhjmrgUxzQ@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from bombadil.infradead.org ([198.137.202.133]:57720 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752363AbeEGPVI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 11:21:08 -0400
+Date: Mon, 7 May 2018 12:21:03 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: vsp1: cleanup a false positive warning
+Message-ID: <20180507122103.40048014@vento.lan>
+In-Reply-To: <3223850.s1aV98ALtZ@avalon>
+References: <a1bedd480c31bcc2f48cd6d965a9bb853e8786ee.1525436031.git.mchehab+samsung@kernel.org>
+        <3223850.s1aV98ALtZ@avalon>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgVG9tYXN6LA0KDQoNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IFRvbWFz
-eiBGaWdhIFttYWlsdG86dGZpZ2FAY2hyb21pdW0ub3JnXSANClNlbnQ6IFRodXJzZGF5LCBNYXkg
-MTAsIDIwMTggMzowNCBQTQ0KVG86IFpoZW5nLCBKaWFuIFh1IDxqaWFuLnh1LnpoZW5nQGludGVs
-LmNvbT4NCkNjOiBDaGVuLCBKYXNvblggWiA8amFzb254LnouY2hlbkBpbnRlbC5jb20+OyBZZWgs
-IEFuZHkgPGFuZHkueWVoQGludGVsLmNvbT47IExpbnV4IE1lZGlhIE1haWxpbmcgTGlzdCA8bGlu
-dXgtbWVkaWFAdmdlci5rZXJuZWwub3JnPjsgU2FrYXJpIEFpbHVzIDxzYWthcmkuYWlsdXNAbGlu
-dXguaW50ZWwuY29tPjsgQ2hpYW5nLCBBbGFuWCA8YWxhbnguY2hpYW5nQGludGVsLmNvbT4NClN1
-YmplY3Q6IFJlOiBbUEFUQ0ggdjExXSBtZWRpYTogaW14MjU4OiBBZGQgaW14MjU4IGNhbWVyYSBz
-ZW5zb3IgZHJpdmVyDQoNCk9uIFRodSwgTWF5IDEwLCAyMDE4IGF0IDM6NTYgUE0gWmhlbmcsIEpp
-YW4gWHUgPGppYW4ueHUuemhlbmdAaW50ZWwuY29tPg0Kd3JvdGU6DQoNCj4gSGkgVG9tYXN6LA0K
-DQo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiBGcm9tOiBsaW51eC1tZWRpYS1v
-d25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1tZWRpYS0gDQo+ID4gb3duZXJAdmdl
-ci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgVG9tYXN6IEZpZ2ENCj4gPiBTZW50OiBXZWRuZXNk
-YXksIE1heSA5LCAyMDE4IDY6MDUgUE0NCj4gPiBUbzogQ2hlbiwgSmFzb25YIFogPGphc29ueC56
-LmNoZW5AaW50ZWwuY29tPg0KPiA+IENjOiBZZWgsIEFuZHkgPGFuZHkueWVoQGludGVsLmNvbT47
-IExpbnV4IE1lZGlhIE1haWxpbmcgTGlzdCA8bGludXgtIA0KPiA+IG1lZGlhQHZnZXIua2VybmVs
-Lm9yZz47IFNha2FyaSBBaWx1cyA8c2FrYXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbT47DQpDaGlh
-bmcsDQo+ID4gQWxhblggPGFsYW54LmNoaWFuZ0BpbnRlbC5jb20+DQo+ID4gU3ViamVjdDogUmU6
-IFtQQVRDSCB2MTFdIG1lZGlhOiBpbXgyNTg6IEFkZCBpbXgyNTggY2FtZXJhIHNlbnNvciANCj4g
-PiBkcml2ZXINCj4gPg0KPiA+IEhpIEphc29uLA0KPiA+DQo+ID4gPiBJUFUzIEhBTCBoYXMgYSBo
-YW5kbGVyIHRvIGJpbmQgdGVzdF9wYXR0ZXJuIG1vZGUuDQo+ID4gPiBUaGUgQ09MT1IgQkFSIE1P
-REUgaW4gSEFMIGhhcyBiZWVuIGNvbmZpZ3VyZWQgdG8gMSB3aGVuIEFQUCANCj4gPiA+IHJlcXVl
-c3RzIHRvDQo+ID4gb3V0cHV0IGNvbG9yIGJhciBpbWFnZS4NCj4gPiA+IEhvd2V2ZXIgU29ueSBz
-ZW5zb3IncyBDT0xPUiBCQVIgTU9ERSBpcyBkZXNpZ25lZCBhcyAyIGluIHJlZ2lzdGVyDQp0YWJs
-ZS4NCj4gPiAoZ3JleSBjb2xvciBiYXJzIGFzIDEpLg0KPiA+ID4gV2hlbiBIQUwgc2VuZHMgaGFu
-ZGxlciB0byBkcml2ZXIgdG8gc3dpdGNoIHRlc3QgcGF0dGVybiBtb2RlICh0byANCj4gPiA+IENP
-TE9SDQo+ID4gQkFSIC0gdmFsOiAxKSwgaXQgd2lsbCBiZSBncmV5IGNvbG9yLCBzaW5jZSBkcml2
-ZXIgc3RpbGwgc2V0DQpURVNUX1BBVFRFUk5fTU9ERQ0KPiA+IHJlZyB2YWx1ZSB0byAxLCB0aG9z
-ZSBpdCBpcyBub3Qgd2hhdCB3ZSBleHBlY3RlZC4NCj4gPg0KPiA+ID4gVGhhdCBpcyB3aHkgd2Ug
-aGF2ZSB0byBtYWtlIGFuIGFycmF5IHdpdGggaW5kZXggdG8gYXJyYW5nZSB0aGUgDQo+ID4gPiBv
-cmRlciBvZg0KPiA+IHRoZSB0ZXN0IHBhdHRlcm4gaXRlbXMsIHNvIGRyaXZlciB3aWxsIGNob29z
-ZSBDT0xPUiBCQVIgY29ycmVjdGx5IA0KPiA+IHdoZW4NCkhBTA0KPiA+IHNlbmQgdGVzdF9wYXR0
-ZXJuIG1lc3NhZ2UgKHdpdGggMSkuDQo+ID4gPiBUaGUgY29uY2VwdCBpcyB0aGUgdGVzdF9wYXR0
-ZXJuX21lbnUgY291bGQgYmUgbGlzdGVkIGluIGRyaXZlciBwZXIgDQo+ID4gPiByZWFsDQo+ID4g
-cmVxdWlyZW1lbnQsIG5vIG1hdHRlciBob3cgdGhlIHNlbnNvciByZWdpc3RlciBpcyBkZXNpZ25l
-ZC4NCj4gPg0KPiA+DQo+ID4gVjRMMiBzcGVjaWZpY2F0aW9uIGRvZXMgbm90IGRlZmluZSBhbnkg
-cGFydGljdWxhciBvcmRlciBvZiBtZW51IA0KPiA+IGVudHJpZXMNCmluDQo+ID4gVjRMMl9DSURf
-VEVTVF9QQVRURVJOLiBUaGUgYXBwbGljYXRpb24gc2hvdWxkIHF1ZXJ5IHRoZSBzdHJpbmdzIGlu
-IA0KPiA+IHRoZSBtZW51IGFuZCBkZXRlcm1pbmUgdGhlIG9wdGlvbiBpdCBuZWVkcyBiYXNlZCBv
-biB0aGF0LiBJZiBpdCANCj4gPiBoYXJkY29kZXMgcGFydGljdWxhciBpbmRleCwgaXQncyBhIGJ1
-Zy4NCg0KPiBJcyB0aGVyZSBhbnkgcmVhc29uIHRoYXQgdGhlcmUgaXMgbm8gY2VydGFpbiBtYWNy
-byBkZWZpbmUgZm9yIA0KPiBkaWZmZXJlbnQNCnR5cGUgb2YgdGVzdCBwYXR0ZXJuIGluIHY0bDI/
-DQo+IFNvIEFwcCB3aWxsIG5vdCBkZXBlbmQgb24gYW55IHN0cmluZ3Mgd2hlcmUgY291bGQgYmUg
-ZGlmZmVyZW50IG9uDQpkaWZmZXJlbnQgc2Vuc29yIGRyaXZlcnMuDQoNCj4gWWVzLiBBdmFpbGFi
-bGUgcGF0dGVybnMgZGlmZmVyIHNpZ25pZmljYW50bHkgYmV0d2VlbiBvbmUgc2Vuc29yIGFuZCBh
-bm90aGVyLCBzbyB0aGUgbWVudSBwb3NpdGlvbnMgYXJlIGNvbnNpZGVyZWQgaGFyZHdhcmUtc3Bl
-Y2lmaWMuDQoNCkluIGN1cnJlbnQgZGVzaWduLCBhcHBsaWNhdGlvbiBjYW4gc3RpbGwgcXVlcnkg
-dGhlIGF2YWlsYWJsZSBwYXR0ZXJucyBhbmQgc2VsZWN0IHBlciB0aGVpciBuZWVkcy4gQWx0aG91
-Z2ggdGhlIG1lbnUgcG9zaXRpb24gZG9lc24ndCBleGFjdGx5IHRoZSBzYW1lIGFzIHRoZSBkYXRh
-c2hlZXQsIGl0IHN0aWxsIGNvbXBsaWVzIHdpdGggdGhlIFY0TDIgcnVsZS4gQmVjYXVzZSBpdCB3
-aWxsIG5vdCBpbnRyb2R1Y2UgYnVnIGZvciBhbnkgYXBwbGljYXRpb24sIHdlIHRoaW5rIGl0IGlz
-IGEgZmVhc2libGUgYXBwcm9hY2guDQoNCkJlc3QgcmVnYXJkcywNClRvbWFzeg0K
+Em Mon, 07 May 2018 17:05:24 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+
+> Hi Mauro,
+> 
+> Thank you for the patch.
+> 
+> On Friday, 4 May 2018 15:13:58 EEST Mauro Carvalho Chehab wrote:
+> > With the new vsp1 code changes introduced by changeset
+> > f81f9adc4ee1 ("media: v4l: vsp1: Assign BRU and BRS to pipelines
+> > dynamically"), smatch complains with:
+> > 	drivers/media/platform/vsp1/vsp1_drm.c:262 vsp1_du_pipeline_setup_bru()
+> > error: we previously assumed 'pipe->bru' could be null (see line 180)
+> > 
+> > This is a false positive, as, if pipe->bru is NULL, the brx
+> > var will be different, with ends by calling a code that will
+> > set pipe->bru to another value.
+> > 
+> > Yet, cleaning this false positive is as easy as adding an explicit
+> > check if pipe->bru is NULL.  
+> 
+> It's not very difficult indeed, but it really is a false positive. I think the 
+> proposed change decreases readability, the condition currently reads as "if 
+> (new brx != old brx)", why does smatch even flag that as an error ?
+
+I've no idea. Never studied smatch code. If you don't think that
+this is a fix for it, do you have an alternative patch (either to
+smatch or to vsp1)?
+
+Regards,
+Mauro
+
+> 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> > ---
+> >  drivers/media/platform/vsp1/vsp1_drm.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+> > b/drivers/media/platform/vsp1/vsp1_drm.c index 095dc48aa25a..cb6b60843400
+> > 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> > @@ -185,7 +185,7 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_device
+> > *vsp1, brx = &vsp1->brs->entity;
+> > 
+> >  	/* Switch BRx if needed. */
+> > -	if (brx != pipe->brx) {
+> > +	if (brx != pipe->brx || !pipe->brx) {
+> >  		struct vsp1_entity *released_brx = NULL;
+> > 
+> >  		/* Release our BRx if we have one. */  
+> 
+
+
+
+Thanks,
+Mauro
