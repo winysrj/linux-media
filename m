@@ -1,199 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:46647 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753050AbeENL4M (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 07:56:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@pobox.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: [RFC PATCH 2/6] v4l2-core: push taking ioctl mutex down to ioctl handler.
-Date: Mon, 14 May 2018 13:55:58 +0200
-Message-Id: <20180514115602.9791-3-hverkuil@xs4all.nl>
-In-Reply-To: <20180514115602.9791-1-hverkuil@xs4all.nl>
-References: <20180514115602.9791-1-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.133]:48744 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752020AbeEGPqj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 11:46:39 -0400
+Date: Mon, 7 May 2018 12:46:27 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv13 01/28] v4l2-device.h: always expose mdev
+Message-ID: <20180507124627.5054b56f@vento.lan>
+In-Reply-To: <20180504105128.fruwu2jofn2iz5gt@valkosipuli.retiisi.org.uk>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+        <20180503145318.128315-2-hverkuil@xs4all.nl>
+        <20180504105128.fruwu2jofn2iz5gt@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Em Fri, 4 May 2018 13:51:28 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-The ioctl serialization mutex (vdev->lock or q->lock for vb2 queues)
-was taken at the highest level in v4l2-dev.c. This prevents more
-fine-grained locking since at that level we cannot examine the ioctl
-arguments, we can only do that after video_usercopy is called.
+> On Thu, May 03, 2018 at 04:52:51PM +0200, Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > The mdev field is only present if CONFIG_MEDIA_CONTROLLER is set.
+> > But since we will need to pass the media_device to vb2 and the
+> > control framework it is very convenient to just make this field
+> > available all the time. If CONFIG_MEDIA_CONTROLLER is not set,
+> > then it will just be NULL.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>  
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
 
-So push the locking down to __video_do_ioctl() and subdev_do_ioctl_lock().
+This patch is no-brainer. It could be sent no matter what. However,
+the patch is too simple :-)
 
-This also allows us to make a few functions in v4l2-ioctl.c static and
-video_usercopy() is no longer exported.
+There are a number of places where if CONFIG_MEDIA_CONTROLLER
+(and for CONFIG_MEDIA_CONTROLLER_DVB - with is also optionally 
+added at DVB core) is tested just because the field may or may
+not be there.
 
-The locking scheme is not changed by this patch, just pushed down.
+If we're willing to always have it at the struct, then we should look
+on all #ifs for CONFIG_MEDIA_CONTROLLER and get rid of most (or all)
+of them, ensuring that function stubs will be enough for the code
+itself to do the right thing if !CONFIG_MEDIA_CONTROLLER.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dev.c    |  6 ------
- drivers/media/v4l2-core/v4l2-ioctl.c  | 17 ++++++++++++++---
- drivers/media/v4l2-core/v4l2-subdev.c | 17 ++++++++++++++++-
- include/media/v4l2-dev.h              |  9 ---------
- include/media/v4l2-ioctl.h            | 12 ------------
- 5 files changed, 30 insertions(+), 31 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index c4f4357e9ca4..4ffd7d60a901 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -360,14 +360,8 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 	int ret = -ENODEV;
- 
- 	if (vdev->fops->unlocked_ioctl) {
--		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
--
--		if (lock && mutex_lock_interruptible(lock))
--			return -ERESTARTSYS;
- 		if (video_is_registered(vdev))
- 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
--		if (lock)
--			mutex_unlock(lock);
- 	} else
- 		ret = -ENOTTY;
- 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index de5d96dbe69e..a12c66ead30d 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2619,14 +2619,14 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
- 
--bool v4l2_is_known_ioctl(unsigned int cmd)
-+static bool v4l2_is_known_ioctl(unsigned int cmd)
- {
- 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
- 		return false;
- 	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
- }
- 
--struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
-+static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
- {
- 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
- 		return vdev->lock;
-@@ -2679,6 +2679,7 @@ static long __video_do_ioctl(struct file *file,
- 		unsigned int cmd, void *arg)
- {
- 	struct video_device *vfd = video_devdata(file);
-+	struct mutex *lock = v4l2_ioctl_get_lock(vfd, cmd);
- 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
- 	bool write_only = false;
- 	struct v4l2_ioctl_info default_info;
-@@ -2697,6 +2698,14 @@ static long __video_do_ioctl(struct file *file,
- 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
- 		vfh = file->private_data;
- 
-+	if (lock && mutex_lock_interruptible(lock))
-+		return -ERESTARTSYS;
-+
-+	if (!video_is_registered(vfd)) {
-+		ret = -ENODEV;
-+		goto unlock;
-+	}
-+
- 	if (v4l2_is_known_ioctl(cmd)) {
- 		info = &v4l2_ioctls[_IOC_NR(cmd)];
- 
-@@ -2752,6 +2761,9 @@ static long __video_do_ioctl(struct file *file,
- 		}
- 	}
- 
-+unlock:
-+	if (lock)
-+		mutex_unlock(lock);
- 	return ret;
- }
- 
-@@ -2941,7 +2953,6 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 	kvfree(mbuf);
- 	return err;
- }
--EXPORT_SYMBOL(video_usercopy);
- 
- long video_ioctl2(struct file *file,
- 	       unsigned int cmd, unsigned long arg)
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index f9eed938d348..6a7f7f75dfd7 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -502,10 +502,25 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	return 0;
- }
- 
-+static long subdev_do_ioctl_lock(struct file *file, unsigned int cmd, void *arg)
-+{
-+	struct video_device *vdev = video_devdata(file);
-+	struct mutex *lock = vdev->lock;
-+	long ret = -ENODEV;
-+
-+	if (lock && mutex_lock_interruptible(lock))
-+		return -ERESTARTSYS;
-+	if (video_is_registered(vdev))
-+		ret = subdev_do_ioctl(file, cmd, arg);
-+	if (lock)
-+		mutex_unlock(lock);
-+	return ret;
-+}
-+
- static long subdev_ioctl(struct file *file, unsigned int cmd,
- 	unsigned long arg)
- {
--	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
-+	return video_usercopy(file, cmd, arg, subdev_do_ioctl_lock);
- }
- 
- #ifdef CONFIG_COMPAT
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 73073f6ee48c..eb23f025aa6b 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -437,15 +437,6 @@ void video_device_release(struct video_device *vdev);
-  */
- void video_device_release_empty(struct video_device *vdev);
- 
--/**
-- * v4l2_is_known_ioctl - Checks if a given cmd is a known V4L ioctl
-- *
-- * @cmd: ioctl command
-- *
-- * returns true if cmd is a known V4L2 ioctl
-- */
--bool v4l2_is_known_ioctl(unsigned int cmd);
--
- /** v4l2_disable_ioctl_locking - mark that a given command
-  *	shouldn't use core locking
-  *
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index a7b3f7c75d62..a8dbf5b54b5c 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -658,18 +658,6 @@ void v4l_printk_ioctl(const char *prefix, unsigned int cmd);
- 
- struct video_device;
- 
--
--/**
-- * v4l2_ioctl_get_lock - get the mutex (if any) that it is need to lock for
-- *	a given command.
-- *
-- * @vdev: Pointer to struct &video_device.
-- * @cmd: Ioctl name.
-- *
-- * .. note:: Internal use only. Should not be used outside V4L2 core.
-- */
--struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned int cmd);
--
- /* names for fancy debug output */
- extern const char *v4l2_field_names[];
- extern const char *v4l2_type_names[];
--- 
-2.17.0
+Thanks,
+Mauro
