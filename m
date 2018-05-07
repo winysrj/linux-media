@@ -1,88 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:60176 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751135AbeEGGiU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 02:38:20 -0400
-Date: Mon, 7 May 2018 09:38:14 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Jacob Chen <jacob-chen@iotwrt.com>,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?utf-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
-        Eddie Cai <eddie.cai.linux@gmail.com>,
-        Jeffy <jeffy.chen@rock-chips.com>, devicetree@vger.kernel.org,
-        Heiko =?utf-8?Q?St=C3=BCbner?= <heiko@sntech.de>,
-        Chen Jacob <jacob2.chen@rock-chips.com>,
-        =?utf-8?B?6ZmI5Z+O?= <cc@rock-chips.com>,
-        Allon Huang <allon.huang@rock-chips.com>
-Subject: Re: [PATCH v6 05/17] media: rkisp1: add Rockchip ISP1 subdev driver
-Message-ID: <20180507063814.vweb4p3nfgnoc3td@tarshish>
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
- <20180308094807.9443-6-jacob-chen@iotwrt.com>
- <20180503090909.o3dyhukzs2y7em5z@tarshish>
- <CAAFQd5CvBv4hkE=PSHBJTYa9Lj0SyggxpMBEAYD=if0=T0uzHw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5CvBv4hkE=PSHBJTYa9Lj0SyggxpMBEAYD=if0=T0uzHw@mail.gmail.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:39779 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752549AbeEGQWx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:22:53 -0400
+Received: by mail-wm0-f67.google.com with SMTP id f8-v6so16465380wmc.4
+        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:22:53 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v3 10/14] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
+Date: Mon,  7 May 2018 17:21:48 +0100
+Message-Id: <20180507162152.2545-11-rui.silva@linaro.org>
+In-Reply-To: <20180507162152.2545-1-rui.silva@linaro.org>
+References: <20180507162152.2545-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+This patch adds the device tree nodes for csi, video multiplexer and mipi-csi
+besides the graph connecting the necessary endpoints to make the media capture
+entities to work in imx7 Warp board.
 
-On Mon, May 07, 2018 at 06:13:27AM +0000, Tomasz Figa wrote:
-> On Thu, May 3, 2018 at 6:09 PM Baruch Siach <baruch@tkos.co.il> wrote:
-> > On Thu, Mar 08, 2018 at 05:47:55PM +0800, Jacob Chen wrote:
-> > > +static int rkisp1_isp_sd_s_power(struct v4l2_subdev *sd, int on)
-> > > +{
-> > > +     struct rkisp1_device *isp_dev = sd_to_isp_dev(sd);
-> > > +     int ret;
-> > > +
-> > > +     v4l2_dbg(1, rkisp1_debug, &isp_dev->v4l2_dev, "s_power: %d\n",
-> on);
-> > > +
-> > > +     if (on) {
-> > > +             ret = pm_runtime_get_sync(isp_dev->dev);
-> > > +             if (ret < 0)
-> > > +                     return ret;
-> > > +
-> > > +             rkisp1_config_clk(isp_dev);
-> > > +     } else {
-> > > +             ret = pm_runtime_put(isp_dev->dev);
-> 
-> > I commented this line out to make more than one STREAMON work. Otherwise, 
-> > the second STREAMON hangs. I guess the bug is not this driver. Probably
-> > something in drivers/soc/rockchip/pm_domains.c. Just noting that in case 
-> > you or someone on Cc would like to investigate it further.
-> >
-> > I tested v4.16-rc4 on the Tinkerboard.
-> 
-> Looks like that version doesn't include the IOMMU PM and clock handling
-> rework [1], which should fix a lot of runtime PM issues. FWIW, linux-next
-> seems to already include it.
-> 
-> [1] https://lkml.org/lkml/2018/3/23/44
+Also add the pin control related with the mipi_csi in that board.
 
-Thanks for the reference.
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ arch/arm/boot/dts/imx7s-warp.dts | 78 ++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx7s.dtsi     | 28 ++++++++++++
+ 2 files changed, 106 insertions(+)
 
-It looks like the iommu driver part is in Linus' tree already. The DT part is 
-in the v4.18-armsoc/dts32 branch of Heiko's tree. Am I missing anything?
-
-Anyway, I'll take a look.
-
-Thanks again,
-baruch
-
+diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
+index 8a30b148534d..ffd170ae925a 100644
+--- a/arch/arm/boot/dts/imx7s-warp.dts
++++ b/arch/arm/boot/dts/imx7s-warp.dts
+@@ -310,6 +310,77 @@
+ 	status = "okay";
+ };
+ 
++&gpr {
++	csi_mux {
++		compatible = "video-mux";
++		mux-controls = <&mux 0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi_mux_from_parallel_sensor: endpoint {
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			csi_mux_from_mipi_vc0: endpoint {
++				remote-endpoint = <&mipi_vc0_to_csi_mux>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi_mux_to_csi: endpoint {
++				remote-endpoint = <&csi_from_csi_mux>;
++			};
++		};
++	};
++};
++
++&csi {
++	status = "okay";
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	port@0 {
++		reg = <0>;
++
++		csi_from_csi_mux: endpoint {
++			remote-endpoint = <&csi_mux_to_csi>;
++		};
++	};
++};
++
++&mipi_csi {
++	clock-frequency = <166000000>;
++	status = "okay";
++	#address-cells = <1>;
++	#size-cells = <0>;
++	fsl,csis-hs-settle = <3>;
++
++	port@0 {
++		reg = <0>;
++
++		mipi_from_sensor: endpoint {
++			remote-endpoint = <&ov2680_to_mipi>;
++			data-lanes = <1>;
++		};
++	};
++
++	port@1 {
++		reg = <1>;
++
++		mipi_vc0_to_csi_mux: endpoint {
++			remote-endpoint = <&csi_mux_from_mipi_vc0>;
++		};
++	};
++};
++
+ &wdog1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_wdog>;
+@@ -357,6 +428,13 @@
+ 		>;
+ 	};
+ 
++	pinctrl_mipi_csi: mipi_csi {
++		fsl,pins = <
++			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
++			MX7D_PAD_ENET1_RGMII_TD0__GPIO7_IO6	0x14
++		>;
++	};
++
+ 	pinctrl_sai1: sai1grp {
+ 		fsl,pins = <
+ 			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
+diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
+index 3590dab529f9..0bae41f2944c 100644
+--- a/arch/arm/boot/dts/imx7s.dtsi
++++ b/arch/arm/boot/dts/imx7s.dtsi
+@@ -46,6 +46,7 @@
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
++#include <dt-bindings/reset/imx7-reset.h>
+ #include "imx7d-pinfunc.h"
+ 
+ / {
+@@ -738,6 +739,17 @@
+ 				status = "disabled";
+ 			};
+ 
++			csi: csi@30710000 {
++				compatible = "fsl,imx7-csi";
++				reg = <0x30710000 0x10000>;
++				interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
++				clocks = <&clks IMX7D_CLK_DUMMY>,
++						<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
++						<&clks IMX7D_CLK_DUMMY>;
++				clock-names = "axi", "mclk", "dcic";
++				status = "disabled";
++			};
++
+ 			lcdif: lcdif@30730000 {
+ 				compatible = "fsl,imx7d-lcdif", "fsl,imx28-lcdif";
+ 				reg = <0x30730000 0x10000>;
+@@ -747,6 +759,22 @@
+ 				clock-names = "pix", "axi";
+ 				status = "disabled";
+ 			};
++
++			mipi_csi: mipi-csi@30750000 {
++				compatible = "fsl,imx7-mipi-csi2";
++				reg = <0x30750000 0x10000>;
++				interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
++				clocks = <&clks IMX7D_IPG_ROOT_CLK>,
++						<&clks IMX7D_MIPI_CSI_ROOT_CLK>,
++						<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
++				clock-names = "pclk", "wrap", "phy";
++				power-domains = <&pgc_mipi_phy>;
++				phy-supply = <&reg_1p0d>;
++				resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
++				reset-names = "mrst";
++				bus-width = <2>;
++				status = "disabled";
++			};
+ 		};
+ 
+ 		aips3: aips-bus@30800000 {
 -- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
+2.17.0
