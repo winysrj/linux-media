@@ -1,102 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay7-d.mail.gandi.net ([217.70.183.200]:44141 "EHLO
-        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750707AbeEDJca (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 05:32:30 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-        mchehab@kernel.org, sakari.ailus@iki.fi
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH] media: renesas-ceu: Set mbus_fmt on subdev operations
-Date: Fri,  4 May 2018 11:32:17 +0200
-Message-Id: <1525426337-17636-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from bombadil.infradead.org ([198.137.202.133]:55810 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752276AbeEGPT1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 11:19:27 -0400
+Date: Mon, 7 May 2018 12:19:16 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Fabien Dessenne <fabien.dessenne@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Luis R. Rodriguez" <mcgrof@kernel.org>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: Are media drivers abusing of GFP_DMA? - was: Re: [LSF/MM TOPIC
+ NOTES] x86 ZONE_DMA love
+Message-ID: <20180507121916.4eb7f5b2@vento.lan>
+In-Reply-To: <3561479.qPIcrWnXEC@avalon>
+References: <20180426215406.GB27853@wotan.suse.de>
+        <20180505130815.53a26955@vento.lan>
+        <3561479.qPIcrWnXEC@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The renesas-ceu driver intializes the desired mbus_format at 'complete'
-time, inspecting the supported subdevice ones, and tuning some
-parameters to produce the requested memory format from what the sensor
-can produce. Although, the initially selected mbus_format was not
-provided to the subdevice during set_fmt and try_fmt operations,
-providing instead a '0' mbus format code.
+Em Mon, 07 May 2018 16:26:08 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-As long as the sensor defaults to a compatible mbus_format when an
-invalid code as '0' is provided, capture operations work correctly. If
-the subdevice defaults to an unsupported format (eg. some RGB
-permutations) capture does not work properly due to a mismatch on the
-expected and received image format on the wire.
+> Hi Mauro,
+> 
+> On Saturday, 5 May 2018 19:08:15 EEST Mauro Carvalho Chehab wrote:
+> > There was a recent discussion about the use/abuse of GFP_DMA flag when
+> > allocating memories at LSF/MM 2018 (see Luis notes enclosed).
+> > 
+> > The idea seems to be to remove it, using CMA instead. Before doing that,
+> > better to check if what we have on media is are valid use cases for it, or
+> > if it is there just due to some misunderstanding (or because it was
+> > copied from some other code).
+> > 
+> > Hans de Goede sent us today a patch stopping abuse at gspca, and I'm
+> > also posting today two other patches meant to stop abuse of it on USB
+> > drivers. Still, there are 4 platform drivers using it:
+> > 
+> > 	$ git grep -l -E "GFP_DMA\\b" drivers/media/
+> > 	drivers/media/platform/omap3isp/ispstat.c
+> > 	drivers/media/platform/sti/bdisp/bdisp-hw.c
+> > 	drivers/media/platform/sti/hva/hva-mem.c
+> > 	drivers/media/spi/cxd2880-spi.c
+> > 
+> > Could you please check if GFP_DMA is really needed there, or if it is
+> > just because of some cut-and-paste from some other place?  
+> 
+> I started looking at that for the omap3isp driver but Sakari beat me at 
+> submitting a patch. GFP_DMA isn't needed for omap3isp.
+> 
+Thank you both for looking into it.
 
-Fix that by re-using the initially selected mbus_format code during
-set_fmt and try_fmt subdevice operation calls.
+Regards,
+Mauro
 
-Tested by printing out the format selection procedure with ov7670
-sensor.
 
-Before this patch:
-[    0.866001] ov7670_try_fmt_internal -- Looking for mbus_code 0x0000
-[    0.870882] ov7670_try_fmt_internal -- Try mbus_code 0x2008
-[    0.876336] ov7670_try_fmt_internal -- Try mbus_code 0x1002
-[    0.881387] ov7670_try_fmt_internal -- Try mbus_code 0x1008
-[    0.886537] ov7670_try_fmt_internal -- Try mbus_code 0x3001
-[    0.891584] ov7670_try_fmt_internal -- mbus_code defaulted to 0x2008
 
-With this patch applied:
-[    0.867015] ov7670_try_fmt_internal -- Looking for mbus_code 0x2008
-[    0.873205] ov7670_try_fmt_internal -- Try mbus_code 0x2008: match
-
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/platform/renesas-ceu.c | 20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/platform/renesas-ceu.c b/drivers/media/platform/renesas-ceu.c
-index 6599dba..dec1b35 100644
---- a/drivers/media/platform/renesas-ceu.c
-+++ b/drivers/media/platform/renesas-ceu.c
-@@ -777,8 +777,15 @@ static int ceu_try_fmt(struct ceu_device *ceudev, struct v4l2_format *v4l2_fmt)
- 	const struct ceu_fmt *ceu_fmt;
- 	int ret;
-
-+	/*
-+	 * Set format on sensor sub device: bus format used to produce memory
-+	 * format is selected at initialization time.
-+	 */
- 	struct v4l2_subdev_format sd_format = {
--		.which = V4L2_SUBDEV_FORMAT_TRY,
-+		.which	= V4L2_SUBDEV_FORMAT_TRY,
-+		.format	= {
-+			.code = ceu_sd->mbus_fmt.mbus_code,
-+		},
- 	};
-
- 	switch (pix->pixelformat) {
-@@ -800,10 +807,6 @@ static int ceu_try_fmt(struct ceu_device *ceudev, struct v4l2_format *v4l2_fmt)
- 	v4l_bound_align_image(&pix->width, 2, CEU_MAX_WIDTH, 4,
- 			      &pix->height, 4, CEU_MAX_HEIGHT, 4, 0);
-
--	/*
--	 * Set format on sensor sub device: bus format used to produce memory
--	 * format is selected at initialization time.
--	 */
- 	v4l2_fill_mbus_format_mplane(&sd_format.format, pix);
- 	ret = v4l2_subdev_call(v4l2_sd, pad, set_fmt, &pad_cfg, &sd_format);
- 	if (ret)
-@@ -827,8 +830,15 @@ static int ceu_set_fmt(struct ceu_device *ceudev, struct v4l2_format *v4l2_fmt)
- 	struct v4l2_subdev *v4l2_sd = ceu_sd->v4l2_sd;
- 	int ret;
-
-+	/*
-+	 * Set format on sensor sub device: bus format used to produce memory
-+	 * format is selected at initialization time.
-+	 */
- 	struct v4l2_subdev_format format = {
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+		.format	= {
-+			.code = ceu_sd->mbus_fmt.mbus_code,
-+		},
- 	};
-
- 	ret = ceu_try_fmt(ceudev, v4l2_fmt);
---
-2.7.4
+Thanks,
+Mauro
