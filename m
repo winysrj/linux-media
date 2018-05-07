@@ -1,28 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:32778 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752186AbeEOHQo (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41852 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752874AbeEGVpm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:16:44 -0400
-Date: Tue, 15 May 2018 09:16:24 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Niklas =?utf-8?Q?S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: dt-bindings: media: rcar_vin: add support for
- r8a77965
-Message-ID: <20180515071623.45ynnlu7z454pysd@verge.net.au>
-References: <20180513185818.15359-1-niklas.soderlund+renesas@ragnatech.se>
+        Mon, 7 May 2018 17:45:42 -0400
+Date: Tue, 8 May 2018 00:45:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sami Tolvanen <samitolvanen@google.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] media: media-device: fix ioctl function types
+Message-ID: <20180507214540.55d5k7xk2ytdqjij@valkosipuli.retiisi.org.uk>
+References: <20180507104509.lq4ep22fm6h53gra@valkosipuli.retiisi.org.uk>
+ <20180507180946.104340-1-samitolvanen@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180513185818.15359-1-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180507180946.104340-1-samitolvanen@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 13, 2018 at 08:58:18PM +0200, Niklas Söderlund wrote:
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+On Mon, May 07, 2018 at 11:09:46AM -0700, Sami Tolvanen wrote:
+> This change fixes function types for media device ioctls to avoid
+> indirect call mismatches with Control-Flow Integrity checking.
+> 
+> Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
 
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+Kiitos!
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
