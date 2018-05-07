@@ -1,109 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:39405 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753304AbeE3Mvh (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:51944 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751884AbeEGOUQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 08:51:37 -0400
-Date: Wed, 30 May 2018 14:51:24 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
+        Mon, 7 May 2018 10:20:16 -0400
+Subject: Re: [PATCH v3 00/13] media: imx: Switch to subdev notifiers
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Subject: Re: [PATCH] media: arch: sh: migor: Fix TW9910 PDN gpio
-Message-ID: <20180530125124.GB10472@w540>
-References: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org>
- <2981239.tGoCg7U0XF@avalon>
- <20180530122343.GA10472@w540>
- <14986389.IZxnRVqLam@avalon>
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9bdfbbf3-abcd-dd2e-506e-aa3ee6f14bc3@xs4all.nl>
+Date: Mon, 7 May 2018 16:20:13 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="1LKvkjL3sHcu1TtY"
-Content-Disposition: inline
-In-Reply-To: <14986389.IZxnRVqLam@avalon>
+In-Reply-To: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Steve, Sakari,
 
---1LKvkjL3sHcu1TtY
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Any progress on this? The imx7 patch series depends on this so that can't
+move forward until this is merged.
 
-Hi Laurent,
+Regards,
 
-On Wed, May 30, 2018 at 03:38:01PM +0300, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> On Wednesday, 30 May 2018 15:23:43 EEST jacopo mondi wrote:
-> > On Wed, May 30, 2018 at 02:52:31PM +0300, Laurent Pinchart wrote:
-> > > On Wednesday, 30 May 2018 12:30:49 EEST Geert Uytterhoeven wrote:
-> > >> On Wed, May 30, 2018 at 11:13 AM, Jacopo Mondi wrote:
-> > >>> The TW9910 PDN gpio (power down) is listed as active high in the chip
-> > >>> manual. It turns out it is actually active low as when set to physical
-> > >>> level 0 it actually turns the video decoder power off.
-> > >>
-> > >> So the picture "Typical TW9910 External Circuitry" in the datasheet,
-> > >> which ties PDN to GND permanently, is wrong?
-> >
-> > Also the definition of PDN pin in TW9910 manual, as reported by Laurent made
-> > me think the pin had to stay in logical state 1 to have the chip powered
-> > down. That's why my initial 'ACTIVE_HIGH' flag. The chip was not
-> > recognized, but I thought it was a local problem of the Migo-R board I
-> > was using.
-> >
-> > Then one day I tried inverting the pin active state just to be sure,
-> > and it started being fully operational :/
-> >
-> > > The SH PTT2 line is connected directory to the TW9910 PDN signal, without
-> > > any inverter on the board. The PDN signal is clearly documented as
-> > > active-high in the TW9910 datasheet. Something is thus weird.
-> >
-> > I suspect the 'active high' definition in datasheet is different from
-> > our understanding. Their 'active' means the chip is operational, which
-> > is not what one would expect from a powerdown pin.
-> >
-> > > Jacopo, is it possible to measure the PDN signal on the board as close as
-> > > possible to the TW9910 to see if it works as expected ?
-> >
-> > Not for me. The board is in Japan and my multimeter doesn't have cables
-> > that long, unfortunately.
->
-> How about trying that during your next trip to Japan ? :-)
+	Hans
 
-Ok, I'll stop looking for cables 10.000km long on amazon.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
->
->
-
---1LKvkjL3sHcu1TtY
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbDp5MAAoJEHI0Bo8WoVY8QHUQAMcVg1vDw1YGbzxaH77Jq4Wi
-SJR3p0SOmO8DMrnDLa9Gcp4Bv5DNb7ldiZ9eHszdx8kuzxx4Zj9sowvw9i1c8wZF
-kXECE6TTVv0rnUszLi64ueRVHy9MMICOVzIHDIp5YdFhwoWJAhiU/RRbgRSNBw9K
-pNtQMqXFVRFLIyOenH3N3AcvqRdK+C1IXjDmdqAwEZ98dp+uS2L5AeyvqnDOS4r0
-BwQOp8wzcXoyNv/PI98KaWvqGfRaLVhVMWe7gdwuFVMijGCWMtg2EtteMbr6+zwZ
-9eNDx1nvusGcgwOaTfkAaphEMmhjMqNuU7bp2E0UwVF6+0IKfO3sAtUq1nvZhXyr
-TsDIki1mQs1h7ZA3AawUnVII92Zb9ekWJaylgARrgIfNdBq77ZnQRwROV3dHgvII
-2NxM9WxP/hqu2a5NchlkKQi+fDYBd4OhagvMP6D3lwQ5JL7nlV+Z/U9+3ex8RZJb
-xmQYlfc5ThZ3lcMc+0vnYmeOEVm93HLnRWqOINcM7zNhw0Rezb+oYSwsLZg96l30
-RC36Kh3LSsERVhfg51b9cdqhQiYi6uVPbqyyGFABBtSE4OfOJi32Q5lg/RbkS/fb
-eWoJxcVclJ+r1cZjJQucN7dzSrhzCaE67NQGzd/t08zi2q3m+uKVaYzLd32DiNzk
-KOK1HE5D94Q+lz7kwLcx
-=ptHo
------END PGP SIGNATURE-----
-
---1LKvkjL3sHcu1TtY--
+On 21/03/18 01:37, Steve Longerbeam wrote:
+> This patchset converts the imx-media driver and its dependent
+> subdevs to use subdev notifiers.
+> 
+> There are a couple shortcomings in v4l2-core that prevented
+> subdev notifiers from working correctly in imx-media:
+> 
+> 1. v4l2_async_notifier_fwnode_parse_endpoint() treats a fwnode
+>    endpoint that is not connected to a remote device as an error.
+>    But in the case of the video-mux subdev, this is not an error,
+>    it is OK if some of the mux inputs have no connection. Also,
+>    Documentation/devicetree/bindings/media/video-interfaces.txt explicitly
+>    states that the 'remote-endpoint' property is optional. So the first
+>    patch is a small modification to ignore empty endpoints in
+>    v4l2_async_notifier_fwnode_parse_endpoint() and allow
+>    __v4l2_async_notifier_parse_fwnode_endpoints() to continue to
+>    parse the remaining port endpoints of the device.
+> 
+> 2. In the imx-media graph, multiple subdevs will encounter the same
+>    upstream subdev (such as the imx6-mipi-csi2 receiver), and so
+>    v4l2_async_notifier_parse_fwnode_endpoints() will add imx6-mipi-csi2
+>    multiple times. This is treated as an error by
+>    v4l2_async_notifier_register() later.
+> 
+>    To get around this problem, add an v4l2_async_notifier_add_subdev()
+>    which first verifies the provided asd does not already exist in the
+>    given notifier asd list or in other registered notifiers. If the asd
+>    exists, the function returns -EEXIST and it's up to the caller to
+>    decide if that is an error (in imx-media case it is never an error).
+> 
+>    Patches 2-4 deal with adding that support.
+> 
+> 3. Patch 5 adds v4l2_async_register_fwnode_subdev(), which is a
+>    convenience function for parsing a subdev's fwnode port endpoints
+>    for connected remote subdevs, registering a subdev notifier, and
+>    then registering the sub-device itself.
+> 
+> The remaining patches update the subdev drivers to register a
+> subdev notifier with endpoint parsing, and the changes to imx-media
+> to support that.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+> 
+> History:
+> v3:
+> - code optimization in asd_equal(), and remove unneeded braces,
+>   suggested by Sakari Ailus.
+> - add a NULL asd pointer check to v4l2_async_notifier_asd_valid().
+> - fix an error-out path in v4l2_async_register_fwnode_subdev() that
+>   forgot to put device.
+> 
+> v2:
+> - don't pass an empty endpoint to the parse_endpoint callback, 
+>   v4l2_async_notifier_fwnode_parse_endpoint() now just ignores them
+>   and returns success.
+> - Fix a couple compile warnings and errors seen in i386 and sh archs.
+> 
+> 
+> Steve Longerbeam (13):
+>   media: v4l2-fwnode: ignore endpoints that have no remote port parent
+>   media: v4l2: async: Allow searching for asd of any type
+>   media: v4l2: async: Add v4l2_async_notifier_add_subdev
+>   media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev
+>   media: v4l2-fwnode: Add a convenience function for registering subdevs
+>     with notifiers
+>   media: platform: video-mux: Register a subdev notifier
+>   media: imx: csi: Register a subdev notifier
+>   media: imx: mipi csi-2: Register a subdev notifier
+>   media: staging/imx: of: Remove recursive graph walk
+>   media: staging/imx: Loop through all registered subdevs for media
+>     links
+>   media: staging/imx: Rename root notifier
+>   media: staging/imx: Switch to v4l2_async_notifier_add_subdev
+>   media: staging/imx: TODO: Remove one assumption about OF graph parsing
+> 
+>  drivers/media/pci/intel/ipu3/ipu3-cio2.c          |  10 +-
+>  drivers/media/platform/video-mux.c                |  36 ++-
+>  drivers/media/v4l2-core/v4l2-async.c              | 268 ++++++++++++++++------
+>  drivers/media/v4l2-core/v4l2-fwnode.c             | 231 +++++++++++--------
+>  drivers/staging/media/imx/TODO                    |  29 +--
+>  drivers/staging/media/imx/imx-media-csi.c         |  11 +-
+>  drivers/staging/media/imx/imx-media-dev.c         | 134 +++--------
+>  drivers/staging/media/imx/imx-media-internal-sd.c |   5 +-
+>  drivers/staging/media/imx/imx-media-of.c          | 106 +--------
+>  drivers/staging/media/imx/imx-media.h             |   6 +-
+>  drivers/staging/media/imx/imx6-mipi-csi2.c        |  31 ++-
+>  include/media/v4l2-async.h                        |  24 +-
+>  include/media/v4l2-fwnode.h                       |  65 +++++-
+>  13 files changed, 534 insertions(+), 422 deletions(-)
+> 
