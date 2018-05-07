@@ -1,267 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:36254 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753849AbeE1IbA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 May 2018 04:31:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [GIT PULL FOR v4.18] R-Car VSP1 TLB optimisation
-Date: Mon, 28 May 2018 11:31:01 +0300
-Message-ID: <3755894.Y1GIYirAvc@avalon>
-In-Reply-To: <7346563.L0Ry6hIlrs@avalon>
-References: <10831984.07PNLvckhh@avalon> <20180526082818.70a369b5@vento.lan> <7346563.L0Ry6hIlrs@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:40415 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752471AbeEGQWp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:22:45 -0400
+Received: by mail-wr0-f193.google.com with SMTP id v60-v6so29359656wrc.7
+        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:22:45 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v3 07/14] media: dt-bindings: add bindings for i.MX7 media driver
+Date: Mon,  7 May 2018 17:21:45 +0100
+Message-Id: <20180507162152.2545-8-rui.silva@linaro.org>
+In-Reply-To: <20180507162152.2545-1-rui.silva@linaro.org>
+References: <20180507162152.2545-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro and Dan,
+Add bindings documentation for i.MX7 media drivers.
 
-Dan, there's a question for you below.
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ .../devicetree/bindings/media/imx7.txt        | 152 ++++++++++++++++++
+ 1 file changed, 152 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/imx7.txt
 
-On Monday, 28 May 2018 11:28:41 EEST Laurent Pinchart wrote:
-> On Saturday, 26 May 2018 14:28:18 EEST Mauro Carvalho Chehab wrote:
-> > Em Sat, 26 May 2018 03:24:00 +0300 Laurent Pinchart escreveu:
-> [snip]
-> 
-> > > I've reproduced the issue and created a minimal test case.
-> > > 
-> > >  1. struct vsp1_pipeline;
-> > >  2.
-> > >  3. struct vsp1_entity {
-> > >  4.         struct vsp1_pipeline *pipe;
-> > >  5.         struct vsp1_entity *sink;
-> > >  6.         unsigned int source_pad;
-> > >  7. };
-> > >  8.
-> > >  9. struct vsp1_pipeline {
-> > > 10.         struct vsp1_entity *brx;
-> > > 11. };
-> > > 12.
-> > > 13. struct vsp1_brx {
-> > > 14.         struct vsp1_entity entity;
-> > > 15. };
-> > > 16.
-> > > 17. struct vsp1_device {
-> > > 18.         struct vsp1_brx *bru;
-> > > 19.         struct vsp1_brx *brs;
-> > > 20. };
-> > > 21.
-> > > 22. unsigned int frob(struct vsp1_device *vsp1, struct vsp1_pipeline
-> > > *pipe)
-> > > 23. {
-> > > 24.         struct vsp1_entity *brx;
-> > > 25.
-> > > 26.         if (pipe->brx)
-> > > 27.                 brx = pipe->brx;
-> > > 28.         else if (!vsp1->bru->entity.pipe)
-> > > 29.                 brx = &vsp1->bru->entity;
-> > > 30.         else
-> > > 31.                 brx = &vsp1->brs->entity;
-> > > 32.
-> > > 33.         if (brx != pipe->brx)
-> > > 34.                 pipe->brx = brx;
-> > > 35.
-> > > 36.         return pipe->brx->source_pad;
-> > > 37. }
-> > > 
-> > > The reason why smatch complains is that it has no guarantee that
-> > > vsp1->brs is not NULL. It's quite tricky:
-> > > 
-> > > - On line 26, smatch assumes that pipe->brx can be NULL
-> > > - On line 27, brx is assigned a non-NULL value (as pipe->brx is not NULL
-> > > due to line 26)
-> > > - On line 28, smatch assumes that vsp1->bru is not NULL
-> > > - On line 29, brx is assigned a non-NULL value (as vsp1->bru is not NULL
-> > > due to line 28)
-> > > - On line 31, brx is assigned a possibly NULL value (as there's no
-> > > information regarding vsp1->brs)
-> > > - On line 34, pipe->brx is not assigned a non-NULL value if brx is NULL
-> > > - On line 36 pipe->brx is dereferenced
-> > > 
-> > > The problem comes from the fact that smatch assumes that vsp1->brs isn't
-> > > NULL. Adding a "(void)vsp1->brs->entity;" statement on line 25 makes the
-> > > warning disappear.
-> > > 
-> > > So how do we know that vsp1->brs isn't NULL in the original code ?
-> > > 
-> > >         if (pipe->num_inputs > 2)
-> > >                 brx = &vsp1->bru->entity;
-> > >         else if (pipe->brx && !drm_pipe->force_brx_release)
-> > >                 brx = pipe->brx;
-> > >         else if (!vsp1->bru->entity.pipe)
-> > >                 brx = &vsp1->bru->entity;
-> > >         else
-> > >                 brx = &vsp1->brs->entity;
-> > > 
-> > > A VSP1 instance can have no brs, so in general vsp1->brs can be NULL.
-> > > However, when that's the case, the following conditions are fulfilled.
-> > > 
-> > > - drm_pipe->force_brx_release will be false
-> > > - either pipe->brx will be non-NULL, or vsp1->bru->entity.pipe will be
-> > > NULL
-> > > 
-> > > The fourth branch should thus never be taken.
-> > 
-> > I don't think that adding a forth branch there would solve.
-> > 
-> > The thing is that Smatch knows that pipe->brx can be NULL, as the function
-> > explicly checks if pipe->brx != NULL.
-> > 
-> > When Smatch handles this if:
-> > 	if (brx != pipe->brx) {
-> > 
-> > It wrongly assumes that this could be false if pipe->brx is NULL.
-> > I don't know why, as Smatch should know that brx can't be NULL.
-> 
-> brx can be NULL here if an only if vsp1->brs is NULL (as the entity field is
-> first in the vsp1->brs structure, so &vsp1->brs->entity has the same
-> address as vsp1->brs).
-> 
-> vsp1->brs can be NULL on some devices, but in that case we have the
-> following guarantees:
-> 
-> - drm_pipe->force_brx_release will always be FALSE
-> - either pipe->brx will be non-NULL or vsp1->bru->entity.pipe will be NULL
-> 
-> So the fourth branch is never taken.
-> 
-> The above conditions come from outside this function, and smatch can't know
-> about them. However, I don't know whether the problems comes from smatch
-> assuming that vsp1->brs can be NULL, or from somewhere else.
-> 
-> > On such case, the next code to be executed would be:
-> > 	format.pad = pipe->brx->source_pad;
-> > 
-> > With would be trying to de-ref a NULL pointer.
-> > 
-> > There are two ways to fix it:
-> > 
-> > 1) with my patch.
-> > 
-> > It is based to the fact that, if pipe->brx is null, then brx won't be
-> > NULL. So, the logic that "Switch BRx if needed." will always be called:
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> > b/drivers/media/platform/vsp1/vsp1_drm.c index 095dc48aa25a..cb6b60843400
-> > 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> > @@ -185,7 +185,7 @@ static int vsp1_du_pipeline_setup_brx(struct
-> > vsp1_device *vsp1,
-> >  	brx = &vsp1->brs->entity;
-> > 
-> >  	/* Switch BRx if needed. */
-> > -	if (brx != pipe->brx) {
-> > +	if (brx != pipe->brx || !pipe->brx) {
-> >  		struct vsp1_entity *released_brx = NULL;
-> >  		
-> >  		/* Release our BRx if we have one. */
-> > 
-> > The code with switches BRx ensures that pipe->brx won't be null, as
-> > 
-> > in the end, it sets:
-> > 	pipe->brx = brx;
-> > 
-> > And brx can't be NULL.
-> 
-> The reason I don't like this is because the problem originally comes from
-> the fact that smatch assumes that vsp1->brs can be NULL when it can't. I'd
-> rather modify the code in a way that explicitly tests for vsp1->brs.
-> However, smatch won't accept that happily :-/ I tried
-> 
->         if (pipe->num_inputs > 2)
->                 brx = &vsp1->bru->entity;
->         else if (pipe->brx && !drm_pipe->force_brx_release)
->                 brx = pipe->brx;
->         else if (!vsp1->bru->entity.pipe)
->                 brx = &vsp1->bru->entity;
->         else if (vsp1->brs)
->                 brx = &vsp1->brs->entity;
->         else
->                 return -EINVAL;
-> 
-> and I still get the same warning. I had to write the following (which is
-> obviously not correct) to silence the warning.
-> 
->         if (pipe->num_inputs > 2)
->                 brx = &vsp1->bru->entity;
->         else if (pipe->brx)
->                 brx = pipe->brx;
->         else if (!vsp1->bru->entity.pipe)
->                 brx = &vsp1->bru->entity;
->         else {
->                 (void)vsp1->brs->entity;
->                 brx = &vsp1->brs->entity;
->         }
-> 
-> Both the (void)vsp1->brs->entity and the removal of the !drm_pipe-
-> 
-> >force_brx_release were needed, any of those on its own didn't fix the
-> 
-> problem.
-> 
-> > From my PoV, this patch has the advantage of explicitly showing
-> > to humans that the code inside the if statement will always be
-> > executed when pipe->brx is NULL.
-> > 
-> > -
-> > 
-> > Another way to solve would be to explicitly check if pipe->brx is still
-> > null before de-referencing:
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> > b/drivers/media/platform/vsp1/vsp1_drm.c index edb35a5c57ea..9fe063d6df31
-> > 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> > @@ -327,6 +327,9 @@ static int vsp1_du_pipeline_setup_brx(struct
-> > vsp1_device *vsp1,
-> >  		list_add_tail(&pipe->brx->list_pipe, &pipe->entities);
-> >  	}
-> > 
-> > +	if (!pipe->brx)
-> > +		return -EINVAL;
-> > +
-> >  	/*
-> >  	 * Configure the format on the BRx source and verify that it matches
-> >  	 the
-> >  	 * requested format. We don't set the media bus code as it is
-> >  	 configured
-> > 
-> > The right fix would be, instead, to fix Smatch to handle the:
-> > 	if (brx != pipe->brx)
-> > 
-> > for the cases where one var can be NULL while the other can't be NULL,
-> > but, as I said before, I suspect that this can be a way more complex.
-> 
-> I'm not sure smatch is faulty here, or at least not when it interprets the
-> brx != pipe->brx check. The problem seems to come from the fact that is
-> believes brx can be NULL.
-
-And that being said, I just tried
-
-        if (pipe->num_inputs > 2)
-                brx = &vsp1->bru->entity;
-        else if (pipe->brx && !drm_pipe->force_brx_release)
-                brx = pipe->brx;
-        else if (!vsp1->bru->entity.pipe)
-                brx = &vsp1->bru->entity;
-        else
-                brx = &vsp1->brs->entity;
-
-        if (!brx)
-                return -EINVAL;
-
-and that didn't help either... Dan, would you have some light to shed on this 
-problem ?
-
+diff --git a/Documentation/devicetree/bindings/media/imx7.txt b/Documentation/devicetree/bindings/media/imx7.txt
+new file mode 100644
+index 000000000000..06d723d6354d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/imx7.txt
+@@ -0,0 +1,152 @@
++Freescale i.MX7 Media Video Device
++==================================
++
++Video Media Controller node
++---------------------------
++
++This is the media controller node for video capture support. It is a
++virtual device that lists the camera serial interface nodes that the
++media device will control.
++
++Required properties:
++- compatible : "fsl,imx7-capture-subsystem";
++- ports      : Should contain a list of phandles pointing to camera
++		sensor interface port of CSI
++
++example:
++
++capture-subsystem {
++	compatible = "fsl,imx7-capture-subsystem";
++	ports = <&csi>;
++};
++
++
++mipi_csi2 node
++--------------
++
++This is the device node for the MIPI CSI-2 receiver core in i.MX7 SoC. It is
++compatible with previous version of Samsung D-phy.
++
++Required properties:
++
++- compatible    : "fsl,imx7-mipi-csi2";
++- reg           : base address and length of the register set for the device;
++- interrupts    : should contain MIPI CSIS interrupt;
++- clocks        : list of clock specifiers, see
++        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
++- clock-names   : must contain "pclk", "wrap" and "phy" entries, matching
++                  entries in the clock property;
++- power-domains : a phandle to the power domain, see
++          Documentation/devicetree/bindings/power/power_domain.txt for details.
++- reset-names   : should include following entry "mrst";
++- resets        : a list of phandle, should contain reset entry of
++                  reset-names;
++- phy-supply    : from the generic phy bindings, a phandle to a regulator that
++	          provides power to MIPI CSIS core;
++- bus-width     : maximum number of data lanes supported (SoC specific);
++
++Optional properties:
++
++- clock-frequency : The IP's main (system bus) clock frequency in Hz, default
++		    value when this property is not specified is 166 MHz;
++
++port node
++---------
++
++- reg		  : (required) can take the values 0 or 1, where 0 is the
++                     related sink port and port 1 should be the source one;
++
++endpoint node
++-------------
++
++- data-lanes    : (required) an array specifying active physical MIPI-CSI2
++		    data input lanes and their mapping to logical lanes; the
++		    array's content is unused, only its length is meaningful;
++
++- fsl,csis-hs-settle : (optional) differential receiver (HS-RX) settle time;
++
++example:
++
++        mipi_csi: mipi-csi@30750000 {
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++                compatible = "fsl,imx7-mipi-csi2";
++                reg = <0x30750000 0x10000>;
++                interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
++                clocks = <&clks IMX7D_IPG_ROOT_CLK>,
++                                <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
++                                <&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
++                clock-names = "pclk", "wrap", "phy";
++                clock-names = "mipi", "phy";
++                clock-frequency = <166000000>;
++                power-domains = <&pgc_mipi_phy>;
++                phy-supply = <&reg_1p0d>;
++                resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
++                reset-names = "mrst";
++                bus-width = <4>;
++                fsl,csis-hs-settle = <3>;
++                fsl,csis-clk-settle = <0>;
++
++                port@0 {
++                        reg = <0>;
++
++                        mipi_from_sensor: endpoint {
++                                remote-endpoint = <&ov2680_to_mipi>;
++                                data-lanes = <1>;
++                        };
++                };
++
++                port@1 {
++                        reg = <1>;
++
++                        mipi_vc0_to_csi_mux: endpoint {
++                                remote-endpoint = <&csi_mux_from_mipi_vc0>;
++                        };
++                };
++        };
++
++
++csi node
++--------
++
++This is device node for the CMOS Sensor Interface (CSI) which enables the chip
++to connect directly to external CMOS image sensors.
++
++Required properties:
++
++- compatible    : "fsl,imx7-csi";
++- reg           : base address and length of the register set for the device;
++- interrupts    : should contain CSI interrupt;
++- clocks        : list of clock specifiers, see
++        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
++- clock-names   : must contain "axi", "mclk" and "dcic" entries, matching
++                 entries in the clock property;
++
++port node
++---------
++
++- reg		  : (required) should be 0 for the sink port;
++
++example:
++
++                csi: csi@30710000 {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        compatible = "fsl,imx7-csi";
++                        reg = <0x30710000 0x10000>;
++                        interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
++                        clocks = <&clks IMX7D_CLK_DUMMY>,
++                                        <&clks IMX7D_CSI_MCLK_ROOT_CLK>,
++                                        <&clks IMX7D_CLK_DUMMY>;
++                        clock-names = "axi", "mclk", "dcic";
++
++                        port@0 {
++                                reg = <0>;
++
++                                csi_from_csi_mux: endpoint {
++                                        remote-endpoint = <&csi_mux_to_csi>;
++                                };
++                        };
++                };
 -- 
-Regards,
-
-Laurent Pinchart
+2.17.0
