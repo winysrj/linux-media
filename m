@@ -1,119 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:50846 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752411AbeEGMrh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 08:47:37 -0400
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+Received: from mail-it0-f66.google.com ([209.85.214.66]:51170 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751923AbeEGQeJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:34:09 -0400
+Received: by mail-it0-f66.google.com with SMTP id p3-v6so12534661itc.0
+        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:34:09 -0700 (PDT)
+Subject: Re: [PATCH v3 00/13] media: imx: Switch to subdev notifiers
+To: Hans Verkuil <hverkuil@xs4all.nl>, Yong Zhi <yong.zhi@intel.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Alexandre Courbot <gnurou@gmail.com>,
-        Florent Revest <florent.revest@free-electrons.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Randy Li <ayaka@soulik.info>
-Subject: [PATCH v3 10/14] dt-bindings: media: Document bindings for the Sunxi-Cedrus VPU driver
-Date: Mon,  7 May 2018 14:44:56 +0200
-Message-Id: <20180507124500.20434-11-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20180507124500.20434-1-paul.kocialkowski@bootlin.com>
-References: <20180507124500.20434-1-paul.kocialkowski@bootlin.com>
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+ <9bdfbbf3-abcd-dd2e-506e-aa3ee6f14bc3@xs4all.nl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <6826b8d8-9085-99c7-bdca-c173550685cb@gmail.com>
+Date: Mon, 7 May 2018 09:34:05 -0700
+MIME-Version: 1.0
+In-Reply-To: <9bdfbbf3-abcd-dd2e-506e-aa3ee6f14bc3@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds a device-tree binding document that specifies the properties
-used by the Sunxi-Cedurs VPU driver, as well as examples.
 
-Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
----
- .../devicetree/bindings/media/sunxi-cedrus.txt     | 58 ++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-cedrus.txt
 
-diff --git a/Documentation/devicetree/bindings/media/sunxi-cedrus.txt b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-new file mode 100644
-index 000000000000..4c3f2b596ded
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-@@ -0,0 +1,58 @@
-+Device-tree bindings for the VPU found in Allwinner SoCs, referred to as the
-+Video Engine (VE) in Allwinner literature.
-+
-+The VPU can only access the first 256 MiB of DRAM, that are DMA-mapped starting
-+from the DRAM base. This requires specific memory allocation and handling.
-+
-+Required properties:
-+- compatible		: must be one of the following compatibles:
-+			- "allwinner,sun4i-a10-video-engine"
-+			- "allwinner,sun5i-a13-video-engine"
-+			- "allwinner,sun7i-a20-video-engine"
-+			- "allwinner,sun8i-a33-video-engine"
-+- reg			: register base and length of VE;
-+- clocks		: list of clock specifiers, corresponding to entries in
-+			  the clock-names property;
-+- clock-names		: should contain "ahb", "mod" and "ram" entries;
-+- assigned-clocks	: list of clocks assigned to the VE;
-+- assigned-clocks-rates	: list of clock rates for the clocks assigned to the VE;
-+- resets		: phandle for reset;
-+- interrupts		: VE interrupt number;
-+- allwinner,sram	: SRAM region to use with the VE.
-+
-+Optional properties:
-+- memory-region		: CMA pool to use for buffers allocation instead of the
-+			  default CMA pool.
-+
-+Example:
-+
-+reserved-memory {
-+	#address-cells = <1>;
-+	#size-cells = <1>;
-+	ranges;
-+
-+	/* Address must be kept in the lower 256 MiBs of DRAM for VE. */
-+	cma_pool: cma@4a000000 {
-+		compatible = "shared-dma-pool";
-+		size = <0x6000000>;
-+		alloc-ranges = <0x4a000000 0x6000000>;
-+		reusable;
-+		linux,cma-default;
-+	};
-+};
-+
-+video-codec@1c0e000 {
-+	compatible = "allwinner,sun7i-a20-video-engine";
-+	reg = <0x01c0e000 0x1000>;
-+
-+	clocks = <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
-+		 <&ccu CLK_DRAM_VE>;
-+	clock-names = "ahb", "mod", "ram";
-+
-+	assigned-clocks = <&ccu CLK_VE>;
-+	assigned-clock-rates = <320000000>;
-+
-+	resets = <&ccu RST_VE>;
-+	interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
-+	allwinner,sram = <&ve_sram 1>;
-+};
--- 
-2.16.3
+On 05/07/2018 07:20 AM, Hans Verkuil wrote:
+> Steve, Sakari,
+>
+> Any progress on this? The imx7 patch series depends on this so that can't
+> move forward until this is merged.
+
+Hi Hans, I've been working on the updates and will submit v4 today.
+
+Steve
+
+
+>
+>
+> On 21/03/18 01:37, Steve Longerbeam wrote:
+>> This patchset converts the imx-media driver and its dependent
+>> subdevs to use subdev notifiers.
+>>
+>> There are a couple shortcomings in v4l2-core that prevented
+>> subdev notifiers from working correctly in imx-media:
+>>
+>> 1. v4l2_async_notifier_fwnode_parse_endpoint() treats a fwnode
+>>     endpoint that is not connected to a remote device as an error.
+>>     But in the case of the video-mux subdev, this is not an error,
+>>     it is OK if some of the mux inputs have no connection. Also,
+>>     Documentation/devicetree/bindings/media/video-interfaces.txt explicitly
+>>     states that the 'remote-endpoint' property is optional. So the first
+>>     patch is a small modification to ignore empty endpoints in
+>>     v4l2_async_notifier_fwnode_parse_endpoint() and allow
+>>     __v4l2_async_notifier_parse_fwnode_endpoints() to continue to
+>>     parse the remaining port endpoints of the device.
+>>
+>> 2. In the imx-media graph, multiple subdevs will encounter the same
+>>     upstream subdev (such as the imx6-mipi-csi2 receiver), and so
+>>     v4l2_async_notifier_parse_fwnode_endpoints() will add imx6-mipi-csi2
+>>     multiple times. This is treated as an error by
+>>     v4l2_async_notifier_register() later.
+>>
+>>     To get around this problem, add an v4l2_async_notifier_add_subdev()
+>>     which first verifies the provided asd does not already exist in the
+>>     given notifier asd list or in other registered notifiers. If the asd
+>>     exists, the function returns -EEXIST and it's up to the caller to
+>>     decide if that is an error (in imx-media case it is never an error).
+>>
+>>     Patches 2-4 deal with adding that support.
+>>
+>> 3. Patch 5 adds v4l2_async_register_fwnode_subdev(), which is a
+>>     convenience function for parsing a subdev's fwnode port endpoints
+>>     for connected remote subdevs, registering a subdev notifier, and
+>>     then registering the sub-device itself.
+>>
+>> The remaining patches update the subdev drivers to register a
+>> subdev notifier with endpoint parsing, and the changes to imx-media
+>> to support that.
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+>>
+>> History:
+>> v3:
+>> - code optimization in asd_equal(), and remove unneeded braces,
+>>    suggested by Sakari Ailus.
+>> - add a NULL asd pointer check to v4l2_async_notifier_asd_valid().
+>> - fix an error-out path in v4l2_async_register_fwnode_subdev() that
+>>    forgot to put device.
+>>
+>> v2:
+>> - don't pass an empty endpoint to the parse_endpoint callback,
+>>    v4l2_async_notifier_fwnode_parse_endpoint() now just ignores them
+>>    and returns success.
+>> - Fix a couple compile warnings and errors seen in i386 and sh archs.
+>>
+>>
+>> Steve Longerbeam (13):
+>>    media: v4l2-fwnode: ignore endpoints that have no remote port parent
+>>    media: v4l2: async: Allow searching for asd of any type
+>>    media: v4l2: async: Add v4l2_async_notifier_add_subdev
+>>    media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev
+>>    media: v4l2-fwnode: Add a convenience function for registering subdevs
+>>      with notifiers
+>>    media: platform: video-mux: Register a subdev notifier
+>>    media: imx: csi: Register a subdev notifier
+>>    media: imx: mipi csi-2: Register a subdev notifier
+>>    media: staging/imx: of: Remove recursive graph walk
+>>    media: staging/imx: Loop through all registered subdevs for media
+>>      links
+>>    media: staging/imx: Rename root notifier
+>>    media: staging/imx: Switch to v4l2_async_notifier_add_subdev
+>>    media: staging/imx: TODO: Remove one assumption about OF graph parsing
+>>
+>>   drivers/media/pci/intel/ipu3/ipu3-cio2.c          |  10 +-
+>>   drivers/media/platform/video-mux.c                |  36 ++-
+>>   drivers/media/v4l2-core/v4l2-async.c              | 268 ++++++++++++++++------
+>>   drivers/media/v4l2-core/v4l2-fwnode.c             | 231 +++++++++++--------
+>>   drivers/staging/media/imx/TODO                    |  29 +--
+>>   drivers/staging/media/imx/imx-media-csi.c         |  11 +-
+>>   drivers/staging/media/imx/imx-media-dev.c         | 134 +++--------
+>>   drivers/staging/media/imx/imx-media-internal-sd.c |   5 +-
+>>   drivers/staging/media/imx/imx-media-of.c          | 106 +--------
+>>   drivers/staging/media/imx/imx-media.h             |   6 +-
+>>   drivers/staging/media/imx/imx6-mipi-csi2.c        |  31 ++-
+>>   include/media/v4l2-async.h                        |  24 +-
+>>   include/media/v4l2-fwnode.h                       |  65 +++++-
+>>   13 files changed, 534 insertions(+), 422 deletions(-)
+>>
