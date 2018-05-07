@@ -1,54 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:56551 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755422AbeE2Isc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 04:48:32 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v5 09/10] media: rcar-vin: Rename _rcar_info to rcar_info
-Date: Tue, 29 May 2018 10:48:07 +0200
-Message-Id: <1527583688-314-10-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.bootlin.com ([62.4.15.54]:50828 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752328AbeEGMrd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 May 2018 08:47:33 -0400
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Alexandre Courbot <gnurou@gmail.com>,
+        Florent Revest <florent.revest@free-electrons.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Randy Li <ayaka@soulik.info>
+Subject: [PATCH v3 04/14] ARM: dts: sun7i-a20: Use dedicated SRAM controller compatible
+Date: Mon,  7 May 2018 14:44:50 +0200
+Message-Id: <20180507124500.20434-5-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180507124500.20434-1-paul.kocialkowski@bootlin.com>
+References: <20180507124500.20434-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove leading underscore to align all rcar_group_route structure
-declarations.
+Use the newly-introduced SRAM controller compatible for the A20 instead
+of its A10 fashion.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/sun7i-a20.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index e353ba9..7869308 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -1036,7 +1036,7 @@ static const struct rvin_info rcar_info_r8a7796 = {
- 	.routes = rcar_info_r8a7796_routes,
- };
+diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
+index e529e4ff2174..b179e05408e4 100644
+--- a/arch/arm/boot/dts/sun7i-a20.dtsi
++++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+@@ -240,7 +240,7 @@
+ 		ranges;
  
--static const struct rvin_group_route _rcar_info_r8a77970_routes[] = {
-+static const struct rvin_group_route rcar_info_r8a77970_routes[] = {
- 	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
- 	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
- 	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(3) },
-@@ -1052,7 +1052,7 @@ static const struct rvin_info rcar_info_r8a77970 = {
- 	.use_mc = true,
- 	.max_width = 4096,
- 	.max_height = 4096,
--	.routes = _rcar_info_r8a77970_routes,
-+	.routes = rcar_info_r8a77970_routes,
- };
- 
- static const struct of_device_id rvin_of_id_table[] = {
+ 		sram-controller@1c00000 {
+-			compatible = "allwinner,sun4i-a10-sram-controller";
++			compatible = "allwinner,sun7i-a20-sram-controller";
+ 			reg = <0x01c00000 0x30>;
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
 -- 
-2.7.4
+2.16.3
