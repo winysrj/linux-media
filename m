@@ -1,134 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:37505 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751153AbeEPWPJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 18:15:09 -0400
-Received: by mail-lf0-f65.google.com with SMTP id r2-v6so5764886lff.4
-        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 15:15:08 -0700 (PDT)
-Date: Thu, 17 May 2018 00:15:06 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: laurent.pinchart@ideasonboard.com, horms@verge.net.au,
-        geert@glider.be, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, robh+dt@kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 6/6] ARM: dts: rcar-gen2: Add 'data-active' property
-Message-ID: <20180516221506.GG17948@bigcity.dyn.berto.se>
-References: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
- <1526488352-898-7-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1526488352-898-7-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail.bootlin.com ([62.4.15.54]:50846 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752411AbeEGMrh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 May 2018 08:47:37 -0400
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Alexandre Courbot <gnurou@gmail.com>,
+        Florent Revest <florent.revest@free-electrons.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Randy Li <ayaka@soulik.info>
+Subject: [PATCH v3 10/14] dt-bindings: media: Document bindings for the Sunxi-Cedrus VPU driver
+Date: Mon,  7 May 2018 14:44:56 +0200
+Message-Id: <20180507124500.20434-11-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180507124500.20434-1-paul.kocialkowski@bootlin.com>
+References: <20180507124500.20434-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+This adds a device-tree binding document that specifies the properties
+used by the Sunxi-Cedurs VPU driver, as well as examples.
 
-Thanks for your work.
+Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+---
+ .../devicetree/bindings/media/sunxi-cedrus.txt     | 58 ++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/sunxi-cedrus.txt
 
-On 2018-05-16 18:32:32 +0200, Jacopo Mondi wrote:
-> The 'data-active' property needs to be specified when using embedded
-> synchronization. Add it to the Gen-2 boards using composite video input.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  arch/arm/boot/dts/r8a7790-lager.dts   | 1 +
->  arch/arm/boot/dts/r8a7791-koelsch.dts | 1 +
->  arch/arm/boot/dts/r8a7791-porter.dts  | 1 +
->  arch/arm/boot/dts/r8a7793-gose.dts    | 1 +
->  arch/arm/boot/dts/r8a7794-alt.dts     | 1 +
->  arch/arm/boot/dts/r8a7794-silk.dts    | 1 +
->  6 files changed, 6 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-> index b56b309..48fcb44 100644
-> --- a/arch/arm/boot/dts/r8a7790-lager.dts
-> +++ b/arch/arm/boot/dts/r8a7790-lager.dts
-> @@ -893,6 +893,7 @@
-> 
->  		vin1ep0: endpoint {
->  			remote-endpoint = <&adv7180>;
-> +			data-active = <1>;
->  		};
->  	};
->  };
-> diff --git a/arch/arm/boot/dts/r8a7791-koelsch.dts b/arch/arm/boot/dts/r8a7791-koelsch.dts
-> index 9967666..fa0b25f 100644
-> --- a/arch/arm/boot/dts/r8a7791-koelsch.dts
-> +++ b/arch/arm/boot/dts/r8a7791-koelsch.dts
-> @@ -868,6 +868,7 @@
-> 
->  		vin1ep: endpoint {
->  			remote-endpoint = <&adv7180>;
-> +			data-active = <1>;
-
-Depending on how we interpret the data-active property this can be good 
-or bad. But if we interpret it as the polarity of the VIn_CLKENB pin 
-this is not good as this is not connected for the adv7180 on Koelsch.
-
-I have not checked all the Gen2 schematics as I'm still not sure how to 
-interpret the property.
-
-
->  		};
->  	};
->  };
-> diff --git a/arch/arm/boot/dts/r8a7791-porter.dts b/arch/arm/boot/dts/r8a7791-porter.dts
-> index 055a7f1..96b9605 100644
-> --- a/arch/arm/boot/dts/r8a7791-porter.dts
-> +++ b/arch/arm/boot/dts/r8a7791-porter.dts
-> @@ -391,6 +391,7 @@
-> 
->  		vin0ep: endpoint {
->  			remote-endpoint = <&adv7180>;
-> +			data-active = <1>;
->  		};
->  	};
->  };
-> diff --git a/arch/arm/boot/dts/r8a7793-gose.dts b/arch/arm/boot/dts/r8a7793-gose.dts
-> index 9d3fba2..80b4fa8 100644
-> --- a/arch/arm/boot/dts/r8a7793-gose.dts
-> +++ b/arch/arm/boot/dts/r8a7793-gose.dts
-> @@ -779,6 +779,7 @@
-> 
->  		vin1ep: endpoint {
->  			remote-endpoint = <&adv7180_out>;
-> +			data-active = <1>;
->  		};
->  	};
->  };
-> diff --git a/arch/arm/boot/dts/r8a7794-alt.dts b/arch/arm/boot/dts/r8a7794-alt.dts
-> index 4bbb9cc..00df605d 100644
-> --- a/arch/arm/boot/dts/r8a7794-alt.dts
-> +++ b/arch/arm/boot/dts/r8a7794-alt.dts
-> @@ -380,6 +380,7 @@
-> 
->  		vin0ep: endpoint {
->  			remote-endpoint = <&adv7180>;
-> +			data-active = <1>;
->  		};
->  	};
->  };
-> diff --git a/arch/arm/boot/dts/r8a7794-silk.dts b/arch/arm/boot/dts/r8a7794-silk.dts
-> index c0c5d31..ed17376 100644
-> --- a/arch/arm/boot/dts/r8a7794-silk.dts
-> +++ b/arch/arm/boot/dts/r8a7794-silk.dts
-> @@ -480,6 +480,7 @@
-> 
->  		vin0ep: endpoint {
->  			remote-endpoint = <&adv7180>;
-> +			data-active = <1>;
->  		};
->  	};
->  };
-> --
-> 2.7.4
-> 
-
+diff --git a/Documentation/devicetree/bindings/media/sunxi-cedrus.txt b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
+new file mode 100644
+index 000000000000..4c3f2b596ded
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
+@@ -0,0 +1,58 @@
++Device-tree bindings for the VPU found in Allwinner SoCs, referred to as the
++Video Engine (VE) in Allwinner literature.
++
++The VPU can only access the first 256 MiB of DRAM, that are DMA-mapped starting
++from the DRAM base. This requires specific memory allocation and handling.
++
++Required properties:
++- compatible		: must be one of the following compatibles:
++			- "allwinner,sun4i-a10-video-engine"
++			- "allwinner,sun5i-a13-video-engine"
++			- "allwinner,sun7i-a20-video-engine"
++			- "allwinner,sun8i-a33-video-engine"
++- reg			: register base and length of VE;
++- clocks		: list of clock specifiers, corresponding to entries in
++			  the clock-names property;
++- clock-names		: should contain "ahb", "mod" and "ram" entries;
++- assigned-clocks	: list of clocks assigned to the VE;
++- assigned-clocks-rates	: list of clock rates for the clocks assigned to the VE;
++- resets		: phandle for reset;
++- interrupts		: VE interrupt number;
++- allwinner,sram	: SRAM region to use with the VE.
++
++Optional properties:
++- memory-region		: CMA pool to use for buffers allocation instead of the
++			  default CMA pool.
++
++Example:
++
++reserved-memory {
++	#address-cells = <1>;
++	#size-cells = <1>;
++	ranges;
++
++	/* Address must be kept in the lower 256 MiBs of DRAM for VE. */
++	cma_pool: cma@4a000000 {
++		compatible = "shared-dma-pool";
++		size = <0x6000000>;
++		alloc-ranges = <0x4a000000 0x6000000>;
++		reusable;
++		linux,cma-default;
++	};
++};
++
++video-codec@1c0e000 {
++	compatible = "allwinner,sun7i-a20-video-engine";
++	reg = <0x01c0e000 0x1000>;
++
++	clocks = <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
++		 <&ccu CLK_DRAM_VE>;
++	clock-names = "ahb", "mod", "ram";
++
++	assigned-clocks = <&ccu CLK_VE>;
++	assigned-clock-rates = <320000000>;
++
++	resets = <&ccu RST_VE>;
++	interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
++	allwinner,sram = <&ve_sram 1>;
++};
 -- 
-Regards,
-Niklas Söderlund
+2.16.3
