@@ -1,116 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:52964 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751416AbeECOxY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 10:53:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv13 05/28] media-request: add media_request_object_find
-Date: Thu,  3 May 2018 16:52:55 +0200
-Message-Id: <20180503145318.128315-6-hverkuil@xs4all.nl>
-In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:51628 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751912AbeEGOzL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 10:55:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v7 1/2] uvcvideo: send a control event when a Control Change interrupt arrives
+Date: Mon, 07 May 2018 17:55:28 +0300
+Message-ID: <10902962.FtRundIz3A@avalon>
+In-Reply-To: <alpine.DEB.2.20.1804261124480.13154@axis700.grange>
+References: <20180323092401.12162-1-laurent.pinchart@ideasonboard.com> <alpine.DEB.2.20.1804100848040.29394@axis700.grange> <alpine.DEB.2.20.1804261124480.13154@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Guennadi,
 
-Add media_request_object_find to find a request object inside a
-request based on ops and/or priv values.
+On Thursday, 26 April 2018 12:28:42 EEST Guennadi Liakhovetski wrote:
+> On Tue, 10 Apr 2018, Guennadi Liakhovetski wrote:
+> 
+> [snip]
+> 
+> >>> @@ -1488,6 +1591,25 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+> >>>  		return -EINVAL;
+> >>>  	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
+> >>>  		return -EACCES;
+> >>> +	if (ctrl->info.flags & UVC_CTRL_FLAG_ASYNCHRONOUS) {
+> >>> +		if (ctrl->handle)
+> >>> +			/*
+> >>> +			 * We have already sent this control to the camera
+> >>> +			 * recently and are currently waiting for a completion
+> >>> +			 * notification. The camera might already have completed
+> >>> +			 * its processing and is ready to accept a new control
+> >>> +			 * or it's still busy processing. If we send a new
+> >>> +			 * instance of this control now, in the former case the
+> >>> +			 * camera will process this one too and we'll get
+> >>> +			 * completions for both, but we will only deliver an
+> >>> +			 * event for one of them back to the user. In the latter
+> >>> +			 * case the camera will reply with a STALL. It's easier
+> >>> +			 * and more reliable to return an error now and let the
+> >>> +			 * user retry.
+> >>> +			 */
+> >>> +			return -EBUSY;
+> >>> +		ctrl->handle = handle;
+> >> 
+> >> This part worries me. If the control change event isn't received for any
+> >> reason (such as a buggy device for instance, or uvc_ctrl_status_event()
+> >> being called with the previous event not processed yet), the control
+> >> will stay busy forever.
+> >> 
+> >> I see two approaches to fix this. One would be to forward all received
+> >> control change events to all file handles unconditionally and remove
+> >> the handle field from the uvc_control structure.
+> > 
+> > How is this a solution? A case of senging a repeated control to the camera
+> > and causing a STALL would still be possible. If you prefer STALLs, you
+> > could just remove this check here.
+> > 
+> >> Another one would be to add a timeout, storing
+> >> the time at which the control has been set in the uvc_control structure,
+> >> and checking whether the time difference exceeds a fixed timeout here.
+> >> We could also combine the two, replacing the handle field with a
+> >> timestamp field.
+> > 
+> > Don't think you can remove the handle field, there are a couple of things,
+> > that need it, also you'll have to send events to all listeners, including
+> > the thread, that has sent the control, which contradicts the API? Assuming
+> > it hasn't set the V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK flag.
+> > 
+> > I can add a timeout, even though that doesn't seem to be very clean to me.
+> > According to the UVC standard some controls can take a while to complete,
+> > possibly seconds. How long would you propose that timeout to be?
+> 
+> How about just not checking when setting control and letting the camera
+> decide? That's what the STALL mechanism is there for. The only advantage
+> of using this is to provide a short-cut when we're "sure," that the
+> hardware isn't ready to take a new request yet, but if implementing such a
+> shortcut becomes too cumbersome, we can give control back to the hardware.
 
-Objects of the same type (vb2 buffer, control handler) will have
-the same ops value. And objects that refer to the same 'parent'
-object (e.g. the v4l2_ctrl_handler that has the current driver
-state) will have the same priv value.
+I'm fine with that, we can always implement a more complex mechanism later if 
+it ends up being needed. It would be nice if the STALL could result in -EBUSY 
+being returned in that case (through patch 2/2 for instance).
 
-The caller has to call media_request_object_put() for the returned
-object since this function increments the refcount.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/media-request.c | 25 +++++++++++++++++++++++++
- include/media/media-request.h | 24 ++++++++++++++++++++++++
- 2 files changed, 49 insertions(+)
-
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index edc1c3af1959..c7e11e816e27 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -322,6 +322,31 @@ static void media_request_object_release(struct kref *kref)
- 	obj->ops->release(obj);
- }
- 
-+struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv)
-+{
-+	struct media_request_object *obj;
-+	struct media_request_object *found = NULL;
-+	unsigned long flags;
-+
-+	if (WARN_ON(!ops || !priv))
-+		return NULL;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	list_for_each_entry(obj, &req->objects, list) {
-+		if (obj->ops == ops && obj->priv == priv) {
-+			media_request_object_get(obj);
-+			found = obj;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&req->lock, flags);
-+	return found;
-+}
-+EXPORT_SYMBOL_GPL(media_request_object_find);
-+
- void media_request_object_put(struct media_request_object *obj)
- {
- 	kref_put(&obj->kref, media_request_object_release);
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index 997e096d7128..5367b4a2f91c 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -196,6 +196,22 @@ static inline void media_request_object_get(struct media_request_object *obj)
-  */
- void media_request_object_put(struct media_request_object *obj);
- 
-+/**
-+ * media_request_object_find - Find an object in a request
-+ *
-+ * @ops: Find an object with this ops value
-+ * @priv: Find an object with this priv value
-+ *
-+ * Both @ops and @priv must be non-NULL.
-+ *
-+ * Returns NULL if not found or the object pointer. The caller must
-+ * call media_request_object_put() once it finished using the object.
-+ */
-+struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv);
-+
- /**
-  * media_request_object_init - Initialise a media request object
-  *
-@@ -241,6 +257,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
- {
- }
- 
-+static inline struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv)
-+{
-+	return NULL;
-+}
-+
- static inline void media_request_object_init(struct media_request_object *obj)
- {
- 	obj->ops = NULL;
 -- 
-2.17.0
+Regards,
+
+Laurent Pinchart
