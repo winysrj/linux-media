@@ -1,56 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:60087 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753592AbeEAJA4 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37882 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751968AbeEGMgo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 05:00:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Mon, 7 May 2018 08:36:44 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id AA404634C50
+        for <linux-media@vger.kernel.org>; Mon,  7 May 2018 15:36:43 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1fFfNj-0003gw-Fn
+        for linux-media@vger.kernel.org; Mon, 07 May 2018 15:36:43 +0300
+Date: Mon, 7 May 2018 15:36:43 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv12 PATCH 16/29] videobuf2-core: embed media_request_object
-Date: Tue,  1 May 2018 11:00:38 +0200
-Message-Id: <20180501090051.9321-17-hverkuil@xs4all.nl>
-In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
+Subject: [GIT PULL for 4.18] IPU3 CIO2 fix
+Message-ID: <20180507123643.ftdo6z3x6cwhwwej@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-Make vb2_buffer a request object.
+Here's a fix for the IPU3 CIO2 driver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/videobuf2-core.h | 3 +++
- 1 file changed, 3 insertions(+)
+Please pull.
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 224c4820a044..3d54654c3cd4 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -17,6 +17,7 @@
- #include <linux/poll.h>
- #include <linux/dma-buf.h>
- #include <linux/bitops.h>
-+#include <media/media-request.h>
- 
- #define VB2_MAX_FRAME	(32)
- #define VB2_MAX_PLANES	(8)
-@@ -238,6 +239,7 @@ struct vb2_queue;
-  * @num_planes:		number of planes in the buffer
-  *			on an internal driver queue.
-  * @timestamp:		frame timestamp in ns.
-+ * @req_obj:		used to bind this buffer to a request
-  */
- struct vb2_buffer {
- 	struct vb2_queue	*vb2_queue;
-@@ -246,6 +248,7 @@ struct vb2_buffer {
- 	unsigned int		memory;
- 	unsigned int		num_planes;
- 	u64			timestamp;
-+	struct media_request_object	req_obj;
- 
- 	/* private: internal use only
- 	 *
+
+The following changes since commit f10379aad39e9da8bc7d1822e251b5f0673067ef:
+
+  media: include/video/omapfb_dss.h: use IS_ENABLED() (2018-05-05 11:45:51 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git ipu3
+
+for you to fetch changes up to fdb5fbc5020b63841e8bd9d4a11429f6bcba13b9:
+
+  media: intel-ipu3: cio2: Handle IRQs until INT_STS is cleared (2018-05-07 14:50:00 +0300)
+
+----------------------------------------------------------------
+Bingbu Cao (1):
+      media: intel-ipu3: cio2: Handle IRQs until INT_STS is cleared
+
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c | 32 ++++++++++++++++++++++----------
+ 1 file changed, 22 insertions(+), 10 deletions(-)
+
 -- 
-2.17.0
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
