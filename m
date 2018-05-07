@@ -1,45 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:38258 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750724AbeEKPTi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 11:19:38 -0400
-Received: by mail-lf0-f65.google.com with SMTP id z142-v6so8464309lff.5
-        for <linux-media@vger.kernel.org>; Fri, 11 May 2018 08:19:38 -0700 (PDT)
-Subject: Re: [PATCH v2 2/2] rcar-vin: fix crop and compose handling for Gen3
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-References: <20180511144126.24804-1-niklas.soderlund+renesas@ragnatech.se>
- <20180511144126.24804-3-niklas.soderlund+renesas@ragnatech.se>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <2fdeeccf-3418-3a1d-0be2-95e999974f19@cogentembedded.com>
-Date: Fri, 11 May 2018 18:19:35 +0300
-MIME-Version: 1.0
-In-Reply-To: <20180511144126.24804-3-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-MW
-Content-Transfer-Encoding: 8bit
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:44337 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752781AbeEGP5h (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 11:57:37 -0400
+Received: by mail-wr0-f196.google.com with SMTP id y15-v6so17563177wrg.11
+        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 08:57:37 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl, Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org, Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH 2/4] media: ov2680: dt: rename gpio to reset and fix polarity
+Date: Mon,  7 May 2018 16:56:53 +0100
+Message-Id: <20180507155655.1555-3-rui.silva@linaro.org>
+In-Reply-To: <20180507155655.1555-1-rui.silva@linaro.org>
+References: <20180507155655.1555-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+Since the GPIO 3 controls both reset and powerdown, we rename it to reset. Fix
+the polarity of this, as it is a low active signal and not an high active.
 
-On 05/11/2018 05:41 PM, Niklas Söderlund wrote:
+As at it, rename the mipi endpoint in the example to be coherent with the a real
+case that will be introduce for imx7 media driver.
 
-> When refactoring the Gen3 enablement series crop and compose handling
-> where broken. This went unnoticed but can result in writing out side the
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ Documentation/devicetree/bindings/media/i2c/ov2680.txt | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-   s/Where/Were/?
-
-> capture buffer. Fix this by restoring the crop and compose to reflect
-> the format dimensions as we have not yet enabled the scaler for Gen3.
-> 
-> Fixes: 5e7c623632fcf8f5 ("media: rcar-vin: use different v4l2 operations in media controller mode")
-> Reported-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-[...]
-
-MBR, Sergei
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2680.txt b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+index e5d8f130309d..11e925ed9dad 100644
+--- a/Documentation/devicetree/bindings/media/i2c/ov2680.txt
++++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+@@ -9,8 +9,8 @@ Required Properties:
+ - AVDD-supply: Analog voltage supply.
+ 
+ Optional Properties:
+-- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
+-		     if any. This is an active high signal to the OV2680.
++- reset-gpios: reference to the GPIO connected to the powerdown/reset pin,
++               if any. This is an active low signal to the OV2680.
+ 
+ The device node must contain one 'port' child node for its digital output
+ video port, and this port must have a single endpoint in accordance with
+@@ -30,14 +30,14 @@ Example:
+ 		reg = <0x36>;
+ 		clocks = <&osc>;
+ 		clock-names = "xvclk";
+-		powerdown-gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
++		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
+ 		DOVDD-supply = <&sw2_reg>;
+ 		DVDD-supply = <&sw2_reg>;
+ 		AVDD-supply = <&reg_peri_3p15v>;
+ 
+ 		port {
+-			ov2680_mipi_ep: endpoint {
+-				remote-endpoint = <&mipi_sensor_ep>;
++			ov2680_to_mipi: endpoint {
++				remote-endpoint = <&mipi_from_sensor>;
+ 				clock-lanes = <0>;
+ 				data-lanes = <1>;
+ 			};
+-- 
+2.17.0
