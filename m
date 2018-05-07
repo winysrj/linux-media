@@ -1,140 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:45160 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751080AbeETEDW (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36710 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751906AbeEGJcW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 May 2018 00:03:22 -0400
-Message-ID: <e3715202a449eb4020b6880db41b4375@smtp-cloud9.xs4all.net>
-Date: Sun, 20 May 2018 06:03:20 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 7 May 2018 05:32:22 -0400
+Date: Mon, 7 May 2018 12:32:19 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: hans.verkuil@cisco.com, mchehab@kernel.org, robh+dt@kernel.org,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] media: i2c: mt9t112: Add device tree support
+Message-ID: <20180507093219.hrhaliadccaytenj@valkosipuli.retiisi.org.uk>
+References: <1524654014-17852-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1524654014-17852-3-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1524654014-17852-3-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Jacopo,
 
-Results of the daily build of media_tree:
+On Wed, Apr 25, 2018 at 01:00:14PM +0200, Jacopo Mondi wrote:
+> Add support for OF systems to mt9t112 image sensor driver.
+> 
+> As the devicetree bindings use standard name for 'powerdown' gpio, and while
+> at there, update the existing mt9t112 users to use the new name.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  arch/sh/boards/mach-ecovec24/setup.c |  4 +-
+>  drivers/media/i2c/mt9t112.c          | 87 +++++++++++++++++++++++++++++++-----
+>  2 files changed, 77 insertions(+), 14 deletions(-)
+> 
+> diff --git a/arch/sh/boards/mach-ecovec24/setup.c b/arch/sh/boards/mach-ecovec24/setup.c
+> index adc61d1..16de9ec 100644
+> --- a/arch/sh/boards/mach-ecovec24/setup.c
+> +++ b/arch/sh/boards/mach-ecovec24/setup.c
+> @@ -480,7 +480,7 @@ static struct gpiod_lookup_table tw9910_gpios = {
+>  static struct gpiod_lookup_table mt9t112_0_gpios = {
+>  	.dev_id		= "0-003c",
+>  	.table		= {
+> -		GPIO_LOOKUP("sh7724_pfc", GPIO_PTA3, "standby",
+> +		GPIO_LOOKUP("sh7724_pfc", GPIO_PTA3, "powerdown",
+>  			    GPIO_ACTIVE_HIGH),
+>  	},
+>  };
+> @@ -488,7 +488,7 @@ static struct gpiod_lookup_table mt9t112_0_gpios = {
+>  static struct gpiod_lookup_table mt9t112_1_gpios = {
+>  	.dev_id		= "1-003c",
+>  	.table		= {
+> -		GPIO_LOOKUP("sh7724_pfc", GPIO_PTA4, "standby",
+> +		GPIO_LOOKUP("sh7724_pfc", GPIO_PTA4, "powerdown",
+>  			    GPIO_ACTIVE_HIGH),
+>  	},
+>  };
+> diff --git a/drivers/media/i2c/mt9t112.c b/drivers/media/i2c/mt9t112.c
+> index af8cca9..704e7fb 100644
+> --- a/drivers/media/i2c/mt9t112.c
+> +++ b/drivers/media/i2c/mt9t112.c
+> @@ -32,6 +32,7 @@
+> 
+>  #include <media/i2c/mt9t112.h>
+>  #include <media/v4l2-common.h>
+> +#include <media/v4l2-fwnode.h>
+>  #include <media/v4l2-image-sizes.h>
+>  #include <media/v4l2-subdev.h>
+> 
+> @@ -77,6 +78,15 @@
+>  #define VAR(id, offset)  _VAR(id, offset, 0x0000)
+>  #define VAR8(id, offset) _VAR(id, offset, 0x8000)
+> 
+> +/*
+> + * Default PLL configuration for 24MHz input clock
+> + */
+> +static struct mt9t112_platform_data mt9t112_default_pdata_24MHz = {
+> +	.divider	= {
+> +		0x49, 0x6, 0, 6, 0, 9, 9, 6, 0,
+> +	},
+> +};
+> +
+>  /************************************************************************
+>   *			struct
+>   ***********************************************************************/
+> @@ -88,6 +98,7 @@ struct mt9t112_format {
+>  };
+> 
+>  struct mt9t112_priv {
+> +	struct device			*dev;
+>  	struct v4l2_subdev		 subdev;
+>  	struct mt9t112_platform_data	*info;
+>  	struct i2c_client		*client;
+> @@ -1066,13 +1077,39 @@ static int mt9t112_camera_probe(struct i2c_client *client)
+>  	return ret;
+>  }
+> 
+> +static int mt9t112_parse_dt(struct mt9t112_priv *priv)
+> +{
+> +	struct fwnode_handle *fwnode = dev_fwnode(priv->dev);
+> +	struct fwnode_handle *ep;
+> +	struct v4l2_fwnode_endpoint vep;
+> +	int ret;
+> +
+> +	ep = fwnode_graph_get_next_endpoint(fwnode, NULL);
+> +	if (IS_ERR_OR_NULL(ep)) {
+> +		dev_err(priv->dev, "No endpoint registered\n");
+> +		return PTR_ERR(ep);
+> +	}
+> +
+> +	ret = v4l2_fwnode_endpoint_parse(ep, &vep);
+> +	fwnode_handle_put(ep);
+> +	if (ret) {
+> +		dev_err(priv->dev, "Unable to parse endpoint: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	if (vep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+> +		priv->info->flags = MT9T112_FLAG_PCLK_RISING_EDGE;
+> +
+> +	return 0;
+> +}
+> +
+>  static int mt9t112_probe(struct i2c_client *client,
+>  			 const struct i2c_device_id *did)
+>  {
+>  	struct mt9t112_priv *priv;
+>  	int ret;
+> 
+> -	if (!client->dev.platform_data) {
+> +	if (!client->dev.of_node && !client->dev.platform_data) {
+>  		dev_err(&client->dev, "mt9t112: missing platform data!\n");
+>  		return -EINVAL;
+>  	}
+> @@ -1081,23 +1118,39 @@ static int mt9t112_probe(struct i2c_client *client,
+>  	if (!priv)
+>  		return -ENOMEM;
+> 
+> -	priv->info = client->dev.platform_data;
+>  	priv->init_done = false;
+> -
+> -	v4l2_i2c_subdev_init(&priv->subdev, client, &mt9t112_subdev_ops);
+> -
+> -	priv->clk = devm_clk_get(&client->dev, "extclk");
+> -	if (PTR_ERR(priv->clk) == -ENOENT) {
+> +	priv->dev = &client->dev;
+> +
+> +	if (client->dev.platform_data) {
+> +		priv->info = client->dev.platform_data;
+> +
+> +		priv->clk = devm_clk_get(&client->dev, "extclk");
 
-date:			Sun May 20 05:00:10 CEST 2018
-media-tree git hash:	7e6b6b945272c20f6b78d319e07f27897a8373c9
-media_build git hash:	b165bbec0a605da346b1724ef1d20b69cea34544
-v4l-utils git hash:	e2038ec6451293787b929338c2a671c732b8693d
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
+extclk needs to be documented in DT binding documentation.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: OK
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: WARNINGS
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: WARNINGS
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: WARNINGS
-linux-4.13.16-i686: WARNINGS
-linux-4.13.16-x86_64: WARNINGS
-linux-4.14.31-i686: WARNINGS
-linux-4.14.31-x86_64: WARNINGS
-linux-4.15.14-i686: WARNINGS
-linux-4.15.14-x86_64: WARNINGS
-linux-4.16.8-i686: WARNINGS
-linux-4.16.8-x86_64: WARNINGS
-linux-4.17-rc4-i686: WARNINGS
-linux-4.17-rc4-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+> +		if (PTR_ERR(priv->clk) == -ENOENT) {
+> +			priv->clk = NULL;
+> +		} else if (IS_ERR(priv->clk)) {
+> +			dev_err(&client->dev,
+> +				"Unable to get clock \"extclk\"\n");
+> +			return PTR_ERR(priv->clk);
+> +		}
+> +	} else {
+> +		/*
+> +		 * External clock frequencies != 24MHz are only supported
+> +		 * for non-OF systems.
+> +		 */
 
-Detailed results are available here:
+Shouldn't you actually set the frequency? Or perhaps even better to check
+it, and use assigned-clocks and assigned-clock-rates properties?
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+>  		priv->clk = NULL;
+> -	} else if (IS_ERR(priv->clk)) {
+> -		dev_err(&client->dev, "Unable to get clock \"extclk\"\n");
+> -		return PTR_ERR(priv->clk);
+> +		priv->info = &mt9t112_default_pdata_24MHz;
+> +
+> +		ret = mt9t112_parse_dt(priv);
+> +		if (ret)
+> +			return ret;
+>  	}
+> 
+> -	priv->standby_gpio = devm_gpiod_get_optional(&client->dev, "standby",
+> +	v4l2_i2c_subdev_init(&priv->subdev, client, &mt9t112_subdev_ops);
+> +
+> +	priv->standby_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
+>  						     GPIOD_OUT_HIGH);
+>  	if (IS_ERR(priv->standby_gpio)) {
+> -		dev_err(&client->dev, "Unable to get gpio \"standby\"\n");
+> +		dev_err(&client->dev, "Unable to get gpio \"powerdown\"\n");
+>  		return PTR_ERR(priv->standby_gpio);
+>  	}
+> 
+> @@ -1124,9 +1177,19 @@ static const struct i2c_device_id mt9t112_id[] = {
+>  };
+>  MODULE_DEVICE_TABLE(i2c, mt9t112_id);
+> 
+> +#if IS_ENABLED(CONFIG_OF)
+> +static const struct of_device_id mt9t112_of_match[] = {
+> +	{ .compatible = "micron,mt9t111", },
+> +	{ .compatible = "micron,mt9t112", },
+> +	{ /* sentinel */ },
+> +};
+> +MODULE_DEVICE_TABLE(of, mt9t112_of_match);
+> +#endif
+> +
+>  static struct i2c_driver mt9t112_i2c_driver = {
+>  	.driver = {
+>  		.name = "mt9t112",
+> +		.of_match_table = of_match_ptr(mt9t112_of_match),
 
-Full logs are available here:
+No need to use of_match_ptr().
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+>  	},
+>  	.probe    = mt9t112_probe,
+>  	.remove   = mt9t112_remove,
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
