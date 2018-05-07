@@ -1,80 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56298 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S966243AbeEYMEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 08:04:43 -0400
-Received: from mail-qt0-f176.google.com (mail-qt0-f176.google.com [209.85.216.176])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 46B5620857
-        for <linux-media@vger.kernel.org>; Fri, 25 May 2018 12:04:42 +0000 (UTC)
-Received: by mail-qt0-f176.google.com with SMTP id f1-v6so6186972qtj.6
-        for <linux-media@vger.kernel.org>; Fri, 25 May 2018 05:04:42 -0700 (PDT)
+Received: from mail-vk0-f67.google.com ([209.85.213.67]:37404 "EHLO
+        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750732AbeEGGNl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 02:13:41 -0400
+Received: by mail-vk0-f67.google.com with SMTP id m144-v6so16729632vke.4
+        for <linux-media@vger.kernel.org>; Sun, 06 May 2018 23:13:40 -0700 (PDT)
+Received: from mail-ua0-f171.google.com (mail-ua0-f171.google.com. [209.85.217.171])
+        by smtp.gmail.com with ESMTPSA id j185-v6sm7210013vkc.42.2018.05.06.23.13.38
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 06 May 2018 23:13:39 -0700 (PDT)
+Received: by mail-ua0-f171.google.com with SMTP id d4so9286570ual.10
+        for <linux-media@vger.kernel.org>; Sun, 06 May 2018 23:13:38 -0700 (PDT)
 MIME-Version: 1.0
-References: <1527246209-26685-1-git-send-email-vgarodia@codeaurora.org> <1527246209-26685-2-git-send-email-vgarodia@codeaurora.org>
-In-Reply-To: <1527246209-26685-2-git-send-email-vgarodia@codeaurora.org>
-From: Josh Boyer <jwboyer@kernel.org>
-Date: Fri, 25 May 2018 08:04:28 -0400
-Message-ID: <CA+5PVA67tow+prVC55XF4=CbRGXJvPi2SuCMyhRyuw5qt8T6_Q@mail.gmail.com>
-Subject: Re: qcom: add firmware file for Venus on SDM845
-To: vgarodia@codeaurora.org
-Cc: Linux Firmware <linux-firmware@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
+References: <20180308094807.9443-1-jacob-chen@iotwrt.com> <20180308094807.9443-6-jacob-chen@iotwrt.com>
+ <20180503090909.o3dyhukzs2y7em5z@tarshish>
+In-Reply-To: <20180503090909.o3dyhukzs2y7em5z@tarshish>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Mon, 07 May 2018 06:13:27 +0000
+Message-ID: <CAAFQd5CvBv4hkE=PSHBJTYa9Lj0SyggxpMBEAYD=if0=T0uzHw@mail.gmail.com>
+Subject: Re: [PATCH v6 05/17] media: rkisp1: add Rockchip ISP1 subdev driver
+To: baruch@tkos.co.il
+Cc: Jacob Chen <jacob-chen@iotwrt.com>,
+        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        stanimir.varbanov@linaro.org, acourbot@google.com
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Shunqian Zheng <zhengsq@rock-chips.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
+        Eddie Cai <eddie.cai.linux@gmail.com>,
+        Jeffy <jeffy.chen@rock-chips.com>, devicetree@vger.kernel.org,
+        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
+        Chen Jacob <jacob2.chen@rock-chips.com>,
+        =?UTF-8?B?6ZmI5Z+O?= <cc@rock-chips.com>,
+        Allon Huang <allon.huang@rock-chips.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 25, 2018 at 7:03 AM Vikash Garodia <vgarodia@codeaurora.org>
-wrote:
+Hi Baruch,
 
-> This pull request adds firmware files for Venus h/w codec found on the
-Qualcomm SDM845 chipset.
+On Thu, May 3, 2018 at 6:09 PM Baruch Siach <baruch@tkos.co.il> wrote:
 
-> The following changes since commit
-2a9b2cf50fb32e36e4fc1586c2f6f1421913b553:
+> Hi Jacob,
 
->    Merge branch 'for-upstreaming-v1.7.2' of
-https://github.com/felix-cavium/linux-firmware (2018-05-18 08:35:22 -0400)
+> On Thu, Mar 08, 2018 at 05:47:55PM +0800, Jacob Chen wrote:
+> > +static int rkisp1_isp_sd_s_power(struct v4l2_subdev *sd, int on)
+> > +{
+> > +     struct rkisp1_device *isp_dev = sd_to_isp_dev(sd);
+> > +     int ret;
+> > +
+> > +     v4l2_dbg(1, rkisp1_debug, &isp_dev->v4l2_dev, "s_power: %d\n",
+on);
+> > +
+> > +     if (on) {
+> > +             ret = pm_runtime_get_sync(isp_dev->dev);
+> > +             if (ret < 0)
+> > +                     return ret;
+> > +
+> > +             rkisp1_config_clk(isp_dev);
+> > +     } else {
+> > +             ret = pm_runtime_put(isp_dev->dev);
 
-> are available in the git repository at:
+> I commented this line out to make more than one STREAMON work. Otherwise,
+the
+> second STREAMON hangs. I guess the bug is not this driver. Probably
+something
+> in drivers/soc/rockchip/pm_domains.c. Just noting that in case you or
+someone
+> on Cc would like to investigate it further.
 
+> I tested v4.16-rc4 on the Tinkerboard.
 
->    https://github.com/vgarodia/linux-firmware master
+Looks like that version doesn't include the IOMMU PM and clock handling
+rework [1], which should fix a lot of runtime PM issues. FWIW, linux-next
+seems to already include it.
 
-> for you to fetch changes up to d6088b9c9d7f49d3c6c43681190889eca0abdcce:
+[1] https://lkml.org/lkml/2018/3/23/44
 
->    qcom: add venus firmware files for v5.2 (2018-05-25 15:16:43 +0530)
-
-> ----------------------------------------------------------------
-> Vikash Garodia (1):
->        qcom: add venus firmware files for v5.2
-
->   WHENCE                   |   9 +++++++++
->   qcom/venus-5.2/venus.b00 | Bin 0 -> 212 bytes
->   qcom/venus-5.2/venus.b01 | Bin 0 -> 6600 bytes
->   qcom/venus-5.2/venus.b02 | Bin 0 -> 819552 bytes
->   qcom/venus-5.2/venus.b03 | Bin 0 -> 33536 bytes
->   qcom/venus-5.2/venus.b04 |   1 +
->   qcom/venus-5.2/venus.mbn | Bin 0 -> 865408 bytes
->   qcom/venus-5.2/venus.mdt | Bin 0 -> 6812 bytes
->   8 files changed, 10 insertions(+)
->   create mode 100644 qcom/venus-5.2/venus.b00
->   create mode 100644 qcom/venus-5.2/venus.b01
->   create mode 100644 qcom/venus-5.2/venus.b02
->   create mode 100644 qcom/venus-5.2/venus.b03
->   create mode 100644 qcom/venus-5.2/venus.b04
->   create mode 100644 qcom/venus-5.2/venus.mbn
->   create mode 100644 qcom/venus-5.2/venus.mdt
-
-The venus.mbn file isn't mentioned in WHENCE:
-
-[jwboyer@vader linux-firmware]$ ./check_whence.py
-E: qcom/venus-5.2/venus.mbn not listed in WHENCE
-[jwboyer@vader linux-firmware]$
-
-Can you fix that up and let me know when to re-pull?
-
-josh
+Best regards,
+Tomasz
