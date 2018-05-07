@@ -1,70 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:55986 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751859AbeEPDkY (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36622 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750934AbeEGJR4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 23:40:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv13 01/28] v4l2-device.h: always expose mdev
-Date: Wed, 16 May 2018 06:40:43 +0300
-Message-ID: <8283804.eRl6xko2oE@avalon>
-In-Reply-To: <20180503145318.128315-2-hverkuil@xs4all.nl>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl> <20180503145318.128315-2-hverkuil@xs4all.nl>
+        Mon, 7 May 2018 05:17:56 -0400
+Date: Mon, 7 May 2018 12:17:54 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: hans.verkuil@cisco.com, mchehab@kernel.org, robh+dt@kernel.org,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] dt-bindings: media: i2c: Add mt9t111 image sensor
+Message-ID: <20180507091753.fectimexhgyho3vk@valkosipuli.retiisi.org.uk>
+References: <1524654014-17852-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1524654014-17852-2-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1524654014-17852-2-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Jacopo,
 
-Thank you for the patch.
-
-On Thursday, 3 May 2018 17:52:51 EEST Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Apr 25, 2018 at 01:00:13PM +0200, Jacopo Mondi wrote:
+> Add device tree bindings documentation for Micron MT9T111/MT9T112 image
+> sensors.
 > 
-> The mdev field is only present if CONFIG_MEDIA_CONTROLLER is set.
-> But since we will need to pass the media_device to vb2 and the
-> control framework it is very convenient to just make this field
-> available all the time. If CONFIG_MEDIA_CONTROLLER is not set,
-> then it will just be NULL.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > ---
->  include/media/v4l2-device.h | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+>  Documentation/devicetree/bindings/mt9t112.txt | 41 +++++++++++++++++++++++++++
+>  1 file changed, 41 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/mt9t112.txt
 > 
-> diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-> index 0c9e4da55499..b330e4a08a6b 100644
-> --- a/include/media/v4l2-device.h
-> +++ b/include/media/v4l2-device.h
-> @@ -33,7 +33,7 @@ struct v4l2_ctrl_handler;
->   * struct v4l2_device - main struct to for V4L2 device drivers
->   *
->   * @dev: pointer to struct device.
-> - * @mdev: pointer to struct media_device
-> + * @mdev: pointer to struct media_device, may be NULL.
->   * @subdevs: used to keep track of the registered subdevs
->   * @lock: lock this struct; can be used by the driver as well
->   *	if this struct is embedded into a larger struct.
-> @@ -58,9 +58,7 @@ struct v4l2_ctrl_handler;
->   */
->  struct v4l2_device {
->  	struct device *dev;
-> -#if defined(CONFIG_MEDIA_CONTROLLER)
->  	struct media_device *mdev;
-> -#endif
->  	struct list_head subdevs;
->  	spinlock_t lock;
->  	char name[V4L2_DEVICE_NAME_SIZE];
+> diff --git a/Documentation/devicetree/bindings/mt9t112.txt b/Documentation/devicetree/bindings/mt9t112.txt
+> new file mode 100644
+> index 0000000..cbad475
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mt9t112.txt
+> @@ -0,0 +1,41 @@
+> +Micron 3.1Mp CMOS Digital Image Sensor
+> +--------------------------------------
+> +
+> +The Micron MT9T111 and MT9T112 are 1/4 inch 3.1Mp System-On-A-Chip (SOC) CMOS
+> +digital image sensors which support up to QXGA (2048x1536) image resolution in
+> +4/3 format.
+> +
+> +The sensors can be programmed through a two-wire serial interface and can
+> +work both in parallel data output mode as well as in MIPI CSI-2 mode.
+> +
+> +Required Properties:
+> +- compatible: shall be one of the following values
+> +  	"micron,mt9t111" for MT9T111 sensors
+> +	"micron,mt9t112" for MT9T112 sensors
+> +
+> +Optional properties:
+> +- powerdown-gpios: reference to powerdown input GPIO signal. Pin name "STANDBY".
+> +  Active level is high.
+> +
+> +The device node shall contain one 'port' sub-node with one 'endpoint' child
+> +node, modeled accordingly to bindings described in:
+> +Documentation/devicetree/bindings/media/video-interfaces.txt
+> +
+> +Example:
+> +--------
+> +
+> +	mt9t112@3d {
+> +		compatible = "micron,mt9t112";
+> +		reg = <0x3d>;
+> +
+> +		powerdown-gpios = <&gpio4 2 GPIO_ACTIVE_HIGH>;
+> +
+> +		port {
+> +			mt9t112_out: endpoint {
+> +				pclk-sample = <1>;
 
+Could you document pclk-sample as an endpoint property? I'd suggest making
+it optional with a default configuration.
+
+> +				remote-endpoint = <&ceu_in>;
+> +			};
+> +		};
+> +	};
+> +
+> +
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
