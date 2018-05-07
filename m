@@ -1,107 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:54322 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751189AbeEDOKl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 10:10:41 -0400
-Received: by mail-wm0-f65.google.com with SMTP id f6so4261655wmc.4
-        for <linux-media@vger.kernel.org>; Fri, 04 May 2018 07:10:40 -0700 (PDT)
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: DRI Development <dri-devel@lists.freedesktop.org>
-Cc: Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Subject: [PATCH] dma-fence: Make ->enable_signaling optional
-Date: Fri,  4 May 2018 16:10:34 +0200
-Message-Id: <20180504141034.27727-1-daniel.vetter@ffwll.ch>
-In-Reply-To: <20180503142603.28513-3-daniel.vetter@ffwll.ch>
-References: <20180503142603.28513-3-daniel.vetter@ffwll.ch>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:47280 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751954AbeEGKSa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 May 2018 06:18:30 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.18] Various fixes/improvements
+Message-ID: <2f5b19ac-050e-35ab-0ce8-8807a83618d5@xs4all.nl>
+Date: Mon, 7 May 2018 12:18:28 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Many drivers have a trivial implementation for ->enable_signaling.
-Let's make it optional by assuming that signalling is already
-available when the callback isn't present.
+Fixes/improvements all over the place.
 
-v2: Don't do the trick to set the ENABLE_SIGNAL_BIT
-unconditionally, it results in an expensive spinlock take for
-everyone. Instead just check if the callback is present. Suggested by
-Maarten.
+Regards,
 
-Also move misplaced kerneldoc hunk to the right patch.
+	Hans
 
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Reviewed-by: Christian König <christian.koenig@amd.com> (v1)
-Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org
-Cc: linaro-mm-sig@lists.linaro.org
----
- drivers/dma-buf/dma-fence.c | 9 +++++----
- include/linux/dma-fence.h   | 3 ++-
- 2 files changed, 7 insertions(+), 5 deletions(-)
+The following changes since commit f10379aad39e9da8bc7d1822e251b5f0673067ef:
 
-diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-fence.c
-index 4edb9fd3cf47..dd01a1720be9 100644
---- a/drivers/dma-buf/dma-fence.c
-+++ b/drivers/dma-buf/dma-fence.c
-@@ -200,7 +200,8 @@ void dma_fence_enable_sw_signaling(struct dma_fence *fence)
- 
- 	if (!test_and_set_bit(DMA_FENCE_FLAG_ENABLE_SIGNAL_BIT,
- 			      &fence->flags) &&
--	    !test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fence->flags)) {
-+	    !test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fence->flags) &&
-+	    fence->ops->enable_signaling) {
- 		trace_dma_fence_enable_signal(fence);
- 
- 		spin_lock_irqsave(fence->lock, flags);
-@@ -260,7 +261,7 @@ int dma_fence_add_callback(struct dma_fence *fence, struct dma_fence_cb *cb,
- 
- 	if (test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fence->flags))
- 		ret = -ENOENT;
--	else if (!was_set) {
-+	else if (!was_set && fence->ops->enable_signaling) {
- 		trace_dma_fence_enable_signal(fence);
- 
- 		if (!fence->ops->enable_signaling(fence)) {
-@@ -388,7 +389,7 @@ dma_fence_default_wait(struct dma_fence *fence, bool intr, signed long timeout)
- 	if (test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fence->flags))
- 		goto out;
- 
--	if (!was_set) {
-+	if (!was_set && fence->ops->enable_signaling) {
- 		trace_dma_fence_enable_signal(fence);
- 
- 		if (!fence->ops->enable_signaling(fence)) {
-@@ -560,7 +561,7 @@ dma_fence_init(struct dma_fence *fence, const struct dma_fence_ops *ops,
- 	       spinlock_t *lock, u64 context, unsigned seqno)
- {
- 	BUG_ON(!lock);
--	BUG_ON(!ops || !ops->wait || !ops->enable_signaling ||
-+	BUG_ON(!ops || !ops->wait ||
- 	       !ops->get_driver_name || !ops->get_timeline_name);
- 
- 	kref_init(&fence->refcount);
-diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
-index 111aefe1c956..c053d19e1e24 100644
---- a/include/linux/dma-fence.h
-+++ b/include/linux/dma-fence.h
-@@ -166,7 +166,8 @@ struct dma_fence_ops {
- 	 * released when the fence is signalled (through e.g. the interrupt
- 	 * handler).
- 	 *
--	 * This callback is mandatory.
-+	 * This callback is optional. If this callback is not present, then the
-+	 * driver must always have signaling enabled.
- 	 */
- 	bool (*enable_signaling)(struct dma_fence *fence);
- 
--- 
-2.17.0
+  media: include/video/omapfb_dss.h: use IS_ENABLED() (2018-05-05 11:45:51 -0400)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.18b
+
+for you to fetch changes up to a80a3c5312359ffb8a4e744d8674dfdfae058857:
+
+  media: imx-csi: fix burst size for 16 bit (2018-05-07 11:56:46 +0200)
+
+----------------------------------------------------------------
+Arvind Yadav (2):
+      platform: Use gpio_is_valid()
+      sta2x11: Use gpio_is_valid() and remove unnecessary check
+
+Brad Love (4):
+      em28xx: Fix DualHD broken second tuner
+      intel-ipu3: Kconfig coding style issue
+      cec: Kconfig coding style issue
+      saa7164: Fix driver name in debug output
+
+Colin Ian King (1):
+      media/usbvision: fix spelling mistake: "compresion" -> "compression"
+
+Dan Carpenter (1):
+      media: vpbe_venc: potential uninitialized variable in ven_sub_dev_init()
+
+Fengguang Wu (1):
+      media: vcodec: fix ptr_ret.cocci warnings
+
+Hans Verkuil (2):
+      cec-gpio: use GPIOD_OUT_HIGH_OPEN_DRAIN
+      v4l2-dev.h: fix doc warning
+
+Jacopo Mondi (1):
+      media: renesas-ceu: Set mbus_fmt on subdev operations
+
+Jan Luebbe (1):
+      media: imx-csi: fix burst size for 16 bit
+
+Jasmin Jessich (2):
+      media: Use ktime_set() in pt1.c
+      media: Revert cleanup ktime_set() usage
+
+Julia Lawall (1):
+      pvrusb2: delete unneeded include
+
+Niklas Söderlund (1):
+      media: entity: fix spelling for media_entity_get_fwnode_pad()
+
+Philipp Zabel (4):
+      media: coda: reuse coda_s_fmt_vid_cap to propagate format in coda_s_fmt_vid_out
+      media: coda: do not try to propagate format if capture queue busy
+      media: coda: set colorimetry on coded queue
+      media: imx: add 16-bit grayscale support
+
+Robin Murphy (1):
+      media: videobuf-dma-sg: Fix dma_{sync,unmap}_sg() calls
+
+Sami Tolvanen (1):
+      media: media-device: fix ioctl function types
+
+Simon Que (1):
+      v4l2-core: Rename array 'video_driver' to 'video_drivers'
+
+Souptick Joarder (1):
+      videobuf: Change return type to vm_fault_t
+
+Wolfram Sang (1):
+      media: platform: am437x: simplify getting .drvdata
+
+ drivers/media/Kconfig                           | 12 ++++++------
+ drivers/media/dvb-core/dmxdev.c                 |  2 +-
+ drivers/media/media-device.c                    | 21 +++++++++++----------
+ drivers/media/pci/cx88/cx88-input.c             |  6 ++++--
+ drivers/media/pci/intel/ipu3/Kconfig            | 12 ++++++------
+ drivers/media/pci/pt1/pt1.c                     |  2 +-
+ drivers/media/pci/pt3/pt3.c                     |  2 +-
+ drivers/media/pci/saa7164/saa7164-fw.c          |  3 ++-
+ drivers/media/pci/sta2x11/sta2x11_vip.c         | 31 +++++++++++++++----------------
+ drivers/media/platform/am437x/am437x-vpfe.c     |  6 ++----
+ drivers/media/platform/cec-gpio/cec-gpio.c      |  2 +-
+ drivers/media/platform/coda/coda-common.c       | 45 +++++++++++++++++++++++++++++++--------------
+ drivers/media/platform/davinci/vpbe_venc.c      |  2 +-
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c |  5 +----
+ drivers/media/platform/renesas-ceu.c            | 20 +++++++++++++++-----
+ drivers/media/platform/via-camera.c             |  2 +-
+ drivers/media/usb/em28xx/em28xx-dvb.c           |  2 +-
+ drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c |  1 -
+ drivers/media/usb/usbvision/usbvision-core.c    |  2 +-
+ drivers/media/v4l2-core/v4l2-dev.c              | 22 +++++++++++-----------
+ drivers/media/v4l2-core/videobuf-dma-sg.c       |  6 +++---
+ drivers/staging/media/imx/imx-media-csi.c       |  3 ++-
+ drivers/staging/media/imx/imx-media-utils.c     |  9 +++++++++
+ include/media/media-entity.h                    |  2 +-
+ include/media/v4l2-dev.h                        |  1 +
+ 25 files changed, 128 insertions(+), 93 deletions(-)
