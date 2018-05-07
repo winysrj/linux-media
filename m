@@ -1,239 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:32872 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754181AbeEOOmm (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:48995 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751940AbeEGJFq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 10:42:42 -0400
-Received: by mail-qt0-f194.google.com with SMTP id e8-v6so569145qth.0
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 07:42:42 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        Stefan Adolfsson <sadolfsson@chromium.org>
-Subject: [PATCH v2 3/5] mfd: cros-ec: Introduce CEC commands and events definitions.
-Date: Tue, 15 May 2018 16:42:20 +0200
-Message-Id: <1526395342-15481-4-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
-References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
+        Mon, 7 May 2018 05:05:46 -0400
+Subject: Re: [PATCH] media: zoran: move to dma-mapping interface
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        mjpeg-users@lists.sourceforge.net,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Trent Piepho <tpiepho@impinj.com>
+References: <20180424204158.2764095-1-arnd@arndb.de>
+ <20180425061537.GA23383@infradead.org>
+ <CAK8P3a06ragAPWpHGm-bGoZ8t6QyAttWJfD0jU_wcGy7FqLb5w@mail.gmail.com>
+ <20180425072138.GA16375@infradead.org>
+ <CAK8P3a1cs_SPesadAQhV3QU97WjNE8bLPSQCfaMQRU7zr_oh3w@mail.gmail.com>
+ <20180425152636.GC27076@infradead.org>
+ <CAK8P3a0CHSC7yP3x8xDJgcg5xMzD1-sC-rmBJECtYvGFmyG4vQ@mail.gmail.com>
+ <20180425142229.25d756ed@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <36e4effa-135d-daeb-1abb-f55500a9dfee@xs4all.nl>
+Date: Mon, 7 May 2018 11:05:40 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180425142229.25d756ed@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The EC can expose a CEC bus, this patch adds the CEC related definitions
-needed by the cros-ec-cec driver.
-Having a 16 byte mkbp event size makes it possible to send CEC
-messages from the EC to the AP directly inside the mkbp event
-instead of first doing a notification and then a read.
+On 25/04/18 19:22, Mauro Carvalho Chehab wrote:
+> Em Wed, 25 Apr 2018 17:58:25 +0200
+> Arnd Bergmann <arnd@arndb.de> escreveu:
+> 
+>> On Wed, Apr 25, 2018 at 5:26 PM, Christoph Hellwig <hch@infradead.org> wrote:
+>>> On Wed, Apr 25, 2018 at 01:15:18PM +0200, Arnd Bergmann wrote:  
+>>>> That thought had occurred to me as well. I removed the oldest ISDN
+>>>> drivers already some years ago, and the OSS sound drivers
+>>>> got removed as well, and comedi got converted to the dma-mapping
+>>>> interfaces, so there isn't much left at all now. This is what we
+>>>> have as of v4.17-rc1:  
+>>>
+>>> Yes, I've been looking at various grotty old bits to purge.  Usually
+>>> I've been looking for some non-tree wide patches and CCed the last
+>>> active people to see if they care.  In a few cases people do, but
+>>> most often no one does.  
+>>
+>> Let's start with this one (zoran) then, as Mauro is keen on having
+>> all media drivers compile-testable on x86-64 and arm.
+>>
+>> Trent Piepho and Hans Verkuil both worked on this driver in the
+>> 2008/2009 timeframe and those were the last commits from anyone
+>> who appears to have tested their patches on actual hardware.
+> 
+> Zoran is a driver for old hardware. I don't doubt that are people
+> out there still using it, but who knows?
+> 
+> I have a few those boards packed somewhere. I haven't work with PCI
+> hardware for a while. If needed, I can try to seek for them and
+> do some tests. I need first to unpack a machine with PCI slots...
+> the NUCs I generally use for development don't have any :-)
+> 
+> Anyway, except for virt_to_bus() and related stuff, I think that this
+> driver is in good shape, as Hans did a lot of work in the past to
+> make it to use the current media framework.
+> 
+>>
+>> Trent, Hans: do you have reason to believe that there might still
+>> be users out there?
 
-Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
----
- drivers/platform/chrome/cros_ec_proto.c | 42 +++++++++++++----
- include/linux/mfd/cros_ec.h             |  2 +-
- include/linux/mfd/cros_ec_commands.h    | 80 +++++++++++++++++++++++++++++++++
- 3 files changed, 114 insertions(+), 10 deletions(-)
+I have no way of knowing this. However, I think they are easily replaced
+by much cheaper USB alternatives today.
 
-diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
-index e7bbdf9..ba47f79 100644
---- a/drivers/platform/chrome/cros_ec_proto.c
-+++ b/drivers/platform/chrome/cros_ec_proto.c
-@@ -504,29 +504,53 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
- }
- EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
- 
-+static int get_next_event_xfer(struct cros_ec_device *ec_dev,
-+			       struct cros_ec_command *msg,
-+			       int version, uint32_t size)
-+{
-+	int ret;
-+
-+	msg->version = version;
-+	msg->command = EC_CMD_GET_NEXT_EVENT;
-+	msg->insize = size;
-+	msg->outsize = 0;
-+
-+	ret = cros_ec_cmd_xfer(ec_dev, msg);
-+	if (ret > 0) {
-+		ec_dev->event_size = ret - 1;
-+		memcpy(&ec_dev->event_data, msg->data, size);
-+	}
-+
-+	return ret;
-+}
-+
- static int get_next_event(struct cros_ec_device *ec_dev)
- {
- 	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
- 	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
-+	static int cmd_version = 1;
- 	int ret;
- 
-+	BUILD_BUG_ON(sizeof(union ec_response_get_next_data_v1) != 16);
-+
- 	if (ec_dev->suspended) {
- 		dev_dbg(ec_dev->dev, "Device suspended.\n");
- 		return -EHOSTDOWN;
- 	}
- 
--	msg->version = 0;
--	msg->command = EC_CMD_GET_NEXT_EVENT;
--	msg->insize = sizeof(ec_dev->event_data);
--	msg->outsize = 0;
-+	if (cmd_version == 1) {
-+		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
-+					  sizeof(ec_dev->event_data));
-+		if (ret != EC_RES_INVALID_VERSION)
-+			return ret;
- 
--	ret = cros_ec_cmd_xfer(ec_dev, msg);
--	if (ret > 0) {
--		ec_dev->event_size = ret - 1;
--		memcpy(&ec_dev->event_data, msg->data,
--		       sizeof(ec_dev->event_data));
-+		/* Fallback to version 0 for future send attempts */
-+		cmd_version = 0;
- 	}
- 
-+	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
-+				  sizeof(struct ec_response_get_next_event));
-+
- 	return ret;
- }
- 
-diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
-index 2d4e23c..f3415eb 100644
---- a/include/linux/mfd/cros_ec.h
-+++ b/include/linux/mfd/cros_ec.h
-@@ -147,7 +147,7 @@ struct cros_ec_device {
- 	bool mkbp_event_supported;
- 	struct blocking_notifier_head event_notifier;
- 
--	struct ec_response_get_next_event event_data;
-+	struct ec_response_get_next_event_v1 event_data;
- 	int event_size;
- 	u32 host_event_wake_mask;
- };
-diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
-index f2edd99..18df466 100644
---- a/include/linux/mfd/cros_ec_commands.h
-+++ b/include/linux/mfd/cros_ec_commands.h
-@@ -804,6 +804,8 @@ enum ec_feature_code {
- 	EC_FEATURE_MOTION_SENSE_FIFO = 24,
- 	/* EC has RTC feature that can be controlled by host commands */
- 	EC_FEATURE_RTC = 27,
-+	/* EC supports CEC commands */
-+	EC_FEATURE_CEC = 35,
- };
- 
- #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
-@@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
- 	/* EC sent a sysrq command */
- 	EC_MKBP_EVENT_SYSRQ = 6,
- 
-+	/* Notify the AP that something happened on CEC */
-+	EC_MKBP_CEC_EVENT = 8,
-+
-+	/* Send an incoming CEC message to the AP */
-+	EC_MKBP_EVENT_CEC_MESSAGE = 9,
-+
- 	/* Number of MKBP events */
- 	EC_MKBP_EVENT_COUNT,
- };
-@@ -2093,12 +2101,31 @@ union ec_response_get_next_data {
- 	uint32_t   sysrq;
- } __packed;
- 
-+union ec_response_get_next_data_v1 {
-+	uint8_t   key_matrix[16];
-+
-+	/* Unaligned */
-+	uint32_t  host_event;
-+
-+	uint32_t   buttons;
-+	uint32_t   switches;
-+	uint32_t   sysrq;
-+	uint32_t   cec_events;
-+	uint8_t    cec_message[16];
-+} __packed;
-+
- struct ec_response_get_next_event {
- 	uint8_t event_type;
- 	/* Followed by event data if any */
- 	union ec_response_get_next_data data;
- } __packed;
- 
-+struct ec_response_get_next_event_v1 {
-+	uint8_t event_type;
-+	/* Followed by event data if any */
-+	union ec_response_get_next_data_v1 data;
-+} __packed;
-+
- /* Bit indices for buttons and switches.*/
- /* Buttons */
- #define EC_MKBP_POWER_BUTTON	0
-@@ -2828,6 +2855,59 @@ struct ec_params_reboot_ec {
- /* Current version of ACPI memory address space */
- #define EC_ACPI_MEM_VERSION_CURRENT 1
- 
-+/*****************************************************************************/
-+/*
-+ * HDMI CEC commands
-+ *
-+ * These commands are for sending and receiving message via HDMI CEC
-+ */
-+#define MAX_CEC_MSG_LEN 16
-+
-+/* CEC message from the AP to be written on the CEC bus */
-+#define EC_CMD_CEC_WRITE_MSG 0x00B8
-+
-+/* Message to write to the CEC bus */
-+struct ec_params_cec_write {
-+	uint8_t msg[MAX_CEC_MSG_LEN];
-+} __packed;
-+
-+/* Set various CEC parameters */
-+#define EC_CMD_CEC_SET 0x00BA
-+
-+struct ec_params_cec_set {
-+	uint8_t cmd; /* enum cec_command */
-+	union {
-+		uint8_t enable;
-+		uint8_t address;
-+	};
-+} __packed;
-+
-+/* Read various CEC parameters */
-+#define EC_CMD_CEC_GET 0x00BB
-+
-+struct ec_params_cec_get {
-+	uint8_t cmd; /* enum cec_command */
-+} __packed;
-+
-+struct ec_response_cec_get {
-+	union {
-+		uint8_t enable;
-+		uint8_t address;
-+	};
-+} __packed;
-+
-+enum cec_command {
-+	/* CEC reading, writing and events enable */
-+	CEC_CMD_ENABLE,
-+	/* CEC logical address  */
-+	CEC_CMD_LOGICAL_ADDRESS,
-+};
-+
-+/* Events from CEC to AP */
-+enum mkbp_cec_event {
-+	EC_MKBP_CEC_SEND_OK			= 1 << 0,
-+	EC_MKBP_CEC_SEND_FAILED			= 1 << 1,
-+};
- 
- /*****************************************************************************/
- /*
--- 
-2.7.4
+I did some work on the zoran driver several years ago, but it doesn't use
+the vb2 framework (and not even the older vb1 framework!) so I'm sure there
+are all sorts of bugs in that driver.
+
+Personally I would be fine with moving this driver to staging and removing
+it by, say, the end of the year.
+
+Nobody is going to work on it and I think it is time to retire it.
+
+Regards,
+
+	Hans
