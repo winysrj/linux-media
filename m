@@ -1,54 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:54903 "EHLO
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36223 "EHLO
         mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751605AbeEVOxL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 10:53:11 -0400
-Received: by mail-wm0-f65.google.com with SMTP id f6-v6so539081wmc.4
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 07:53:10 -0700 (PDT)
+        with ESMTP id S1752789AbeEGP5p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 11:57:45 -0400
+Received: by mail-wm0-f65.google.com with SMTP id n10-v6so16266744wmc.1
+        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 08:57:44 -0700 (PDT)
 From: Rui Miguel Silva <rui.silva@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v6 05/13] clk: imx7d: reset parent for mipi csi root
-Date: Tue, 22 May 2018 15:52:37 +0100
-Message-Id: <20180522145245.3143-6-rui.silva@linaro.org>
-In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
-References: <20180522145245.3143-1-rui.silva@linaro.org>
+        hverkuil@xs4all.nl, Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org, Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH 4/4] media: ov2680: add regulators to supply control
+Date: Mon,  7 May 2018 16:56:55 +0100
+Message-Id: <20180507155655.1555-5-rui.silva@linaro.org>
+In-Reply-To: <20180507155655.1555-1-rui.silva@linaro.org>
+References: <20180507155655.1555-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To guarantee that we do not get Overflow in image FIFO the outer bandwidth has
-to be faster than inputer bandwidth. For that it must be possible to set a
-faster frequency clock. So set new parent to sys_pfd3 clock for the mipi csi
-block.
+Add the code to control the regulators for the analogue and digital power
+supplies.
 
-Acked-by: Shawn Guo <shawnguo@kernel.org>
 Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- drivers/clk/imx/clk-imx7d.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/i2c/ov2680.c | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
-index f7f4db2e6fa6..27877d05faa2 100644
---- a/drivers/clk/imx/clk-imx7d.c
-+++ b/drivers/clk/imx/clk-imx7d.c
-@@ -891,6 +891,8 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
- 	clk_set_parent(clks[IMX7D_PLL_AUDIO_MAIN_BYPASS], clks[IMX7D_PLL_AUDIO_MAIN]);
- 	clk_set_parent(clks[IMX7D_PLL_VIDEO_MAIN_BYPASS], clks[IMX7D_PLL_VIDEO_MAIN]);
+diff --git a/drivers/media/i2c/ov2680.c b/drivers/media/i2c/ov2680.c
+index 8962b397211a..07bb475c970c 100644
+--- a/drivers/media/i2c/ov2680.c
++++ b/drivers/media/i2c/ov2680.c
+@@ -19,6 +19,7 @@
+ #include <linux/module.h>
+ #include <linux/of_device.h>
+ #include <linux/gpio/consumer.h>
++#include <linux/regulator/consumer.h>
  
-+	clk_set_parent(clks[IMX7D_MIPI_CSI_ROOT_SRC], clks[IMX7D_PLL_SYS_PFD3_CLK]);
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ctrls.h>
+@@ -65,6 +66,14 @@ struct reg_value {
+ 	u8 val;
+ };
+ 
++static const char * const ov2680_supply_name[] = {
++	"DOVDD",
++	"DVDD",
++	"AVDD",
++};
 +
- 	/* use old gpt clk setting, gpt1 root clk must be twice as gpt counter freq */
- 	clk_set_parent(clks[IMX7D_GPT1_ROOT_SRC], clks[IMX7D_OSC_24M_CLK]);
++#define OV2680_NUM_SUPPLIES ARRAY_SIZE(ov2680_supply_name)
++
+ struct ov2680_mode_info {
+ 	const char *name;
+ 	enum ov2680_mode_id id;
+@@ -97,6 +106,7 @@ struct ov2680_dev {
+ 	struct media_pad		pad;
+ 	struct clk			*xvclk;
+ 	u32				xvclk_freq;
++	struct regulator_bulk_data	supplies[OV2680_NUM_SUPPLIES];
  
+ 	struct gpio_desc		*reset_gpio;
+ 	struct mutex			lock; /* protect members */
+@@ -522,6 +532,7 @@ static int ov2680_power_off(struct ov2680_dev *sensor)
+ 
+ 	clk_disable_unprepare(sensor->xvclk);
+ 	ov2680_power_down(sensor);
++	regulator_bulk_disable(OV2680_NUM_SUPPLIES, sensor->supplies);
+ 	sensor->is_enabled = false;
+ 
+ 	return 0;
+@@ -535,6 +546,12 @@ static int ov2680_power_on(struct ov2680_dev *sensor)
+ 	if (sensor->is_enabled)
+ 		return 0;
+ 
++	ret = regulator_bulk_enable(OV2680_NUM_SUPPLIES, sensor->supplies);
++	if (ret < 0) {
++		dev_err(dev, "failed to enable regulators: %d\n", ret);
++		return ret;
++	}
++
+ 	if (!sensor->reset_gpio) {
+ 		ret = ov2680_write_reg(sensor, OV2680_REG_SOFT_RESET, 0x01);
+ 		if (ret != 0) {
+@@ -962,6 +979,18 @@ static int ov2680_v4l2_init(struct ov2680_dev *sensor)
+ 	return ret;
+ }
+ 
++static int ov2680_get_regulators(struct ov2680_dev *sensor)
++{
++	int i;
++
++	for (i = 0; i < OV2680_NUM_SUPPLIES; i++)
++		sensor->supplies[i].supply = ov2680_supply_name[i];
++
++	return devm_regulator_bulk_get(&sensor->i2c_client->dev,
++				       OV2680_NUM_SUPPLIES,
++				       sensor->supplies);
++}
++
+ static int ov2680_check_id(struct ov2680_dev *sensor)
+ {
+ 	struct device *dev = ov2680_to_dev(sensor);
+@@ -1034,6 +1063,12 @@ static int ov2680_probe(struct i2c_client *client)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	ret = ov2680_get_regulators(sensor);
++	if (ret < 0) {
++		dev_err(dev, "failed to get regulators\n");
++		return ret;
++	}
++
+ 	mutex_init(&sensor->lock);
+ 
+ 	ret = ov2680_v4l2_init(sensor);
 -- 
 2.17.0
