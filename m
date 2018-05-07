@@ -1,104 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:53280 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752729AbeEKK3D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 06:29:03 -0400
-Subject: Re: [PATCH 5/5] media: rcar-vin: Use FTEV for digital input
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <1526032781-14319-1-git-send-email-jacopo+renesas@jmondi.org>
- <1526032781-14319-6-git-send-email-jacopo+renesas@jmondi.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b3b6acfd-1006-b84f-f70f-29bbf6df85db@xs4all.nl>
-Date: Fri, 11 May 2018 12:28:55 +0200
+Received: from perceval.ideasonboard.com ([213.167.242.64]:50852 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752007AbeEGNRS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 09:17:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [RESEND] [media] omap3isp: support 64-bit version of omap3isp_stat_data
+Date: Mon, 07 May 2018 16:17:32 +0300
+Message-ID: <2922276.lKgGZtlCEW@avalon>
+In-Reply-To: <20180425213044.1535393-1-arnd@arndb.de>
+References: <20180425213044.1535393-1-arnd@arndb.de>
 MIME-Version: 1.0
-In-Reply-To: <1526032781-14319-6-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/11/18 11:59, Jacopo Mondi wrote:
-> Since commit (015060cb "media: rcar-vin: enable field toggle after a set
-> number of lines for Gen3) the VIN generates an internal field signal
-> toggle after a fixed number of received lines, and uses the internal
-> field signal to drive capture operations. When capturing from digital
-> input, using FTEH driven field signal toggling messes up the received
-> image sizes. Fall back to use FTEV driven signal toggling when capturing
-> from digital input.
+Hi Arnd,
+
+Thank you for the patch.
+
+On Thursday, 26 April 2018 00:30:10 EEST Arnd Bergmann wrote:
+> C libraries with 64-bit time_t use an incompatible format for
+> struct omap3isp_stat_data. This changes the kernel code to
+> support either version, by moving over the normal handling
+> to the 64-bit variant, and adding compatiblity code to handle
+> the old binary format with the existing ioctl command code.
 > 
-> As explained in the comment, this disables buffer overflow protection
-> for digital input capture, for which the FOE overflow might be used in
-> future.
-
-I don't know the details of the hardware, but this sounds dangerous.
-
-You should know that with HDMI input it is perfectly possible that you get
-more data than you should. I.e. instead of 1080 lines (assuming full HD)
-you might get more lines. This happens if the vertical sync is missed due
-to pin bounce when connecting a source.
-
-Other reasons for this are flaky signals, bad clocks, etc.
-
-It's rare, but it really happens.
-
-A good DMA engine will refuse to write more than fits in the buffer.
-
-If you disable that, then you will get overflows eventually.
-
-The reality with HDMI input is that you should never assume clean valid
-data. You do not control the source and it can send anything it likes.
-
+> Fortunately, the command code includes the size of the structure,
+> so the difference gets handled automatically. In the process of
+> eliminating the references to 'struct timeval' from the kernel,
+> I also change the way the timestamp is generated internally,
+> basically by open-coding the v4l2_get_timestamp() call.
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 18 +++++++++++++++++-
->  1 file changed, 17 insertions(+), 1 deletion(-)
+> I submitted this one in November and asked again in January,
+> still waiting for a review so it can be applied.
+> ---
+>  drivers/media/platform/omap3isp/isph3a_aewb.c |  2 ++
+>  drivers/media/platform/omap3isp/isph3a_af.c   |  2 ++
+>  drivers/media/platform/omap3isp/isphist.c     |  2 ++
+>  drivers/media/platform/omap3isp/ispstat.c     | 21 +++++++++++++++++++--
+>  drivers/media/platform/omap3isp/ispstat.h     |  4 +++-
+>  include/uapi/linux/omap3isp.h                 | 22 ++++++++++++++++++++++
+>  6 files changed, 50 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index ea7a120..8dc3455 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -685,11 +685,27 @@ static int rvin_setup(struct rvin_dev *vin)
->  		break;
+> diff --git a/drivers/media/platform/omap3isp/isph3a_aewb.c
+> b/drivers/media/platform/omap3isp/isph3a_aewb.c index
+> d44626f20ac6..3c82dea4d375 100644
+> --- a/drivers/media/platform/omap3isp/isph3a_aewb.c
+> +++ b/drivers/media/platform/omap3isp/isph3a_aewb.c
+> @@ -250,6 +250,8 @@ static long h3a_aewb_ioctl(struct v4l2_subdev *sd,
+> unsigned int cmd, void *arg) return omap3isp_stat_config(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_REQ:
+>  		return omap3isp_stat_request_statistics(stat, arg);
+> +	case VIDIOC_OMAP3ISP_STAT_REQ_TIME32:
+> +		return omap3isp_stat_request_statistics_time32(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_EN: {
+>  		unsigned long *en = arg;
+>  		return omap3isp_stat_enable(stat, !!*en);
+> diff --git a/drivers/media/platform/omap3isp/isph3a_af.c
+> b/drivers/media/platform/omap3isp/isph3a_af.c index
+> 99bd6cc21d86..4da25c84f0c6 100644
+> --- a/drivers/media/platform/omap3isp/isph3a_af.c
+> +++ b/drivers/media/platform/omap3isp/isph3a_af.c
+> @@ -314,6 +314,8 @@ static long h3a_af_ioctl(struct v4l2_subdev *sd,
+> unsigned int cmd, void *arg) return omap3isp_stat_config(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_REQ:
+>  		return omap3isp_stat_request_statistics(stat, arg);
+> +	case VIDIOC_OMAP3ISP_STAT_REQ_TIME32:
+> +		return omap3isp_stat_request_statistics_time32(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_EN: {
+>  		int *en = arg;
+>  		return omap3isp_stat_enable(stat, !!*en);
+> diff --git a/drivers/media/platform/omap3isp/isphist.c
+> b/drivers/media/platform/omap3isp/isphist.c index
+> a4ed5d140d48..d4be3d0e06f9 100644
+> --- a/drivers/media/platform/omap3isp/isphist.c
+> +++ b/drivers/media/platform/omap3isp/isphist.c
+> @@ -435,6 +435,8 @@ static long hist_ioctl(struct v4l2_subdev *sd, unsigned
+> int cmd, void *arg) return omap3isp_stat_config(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_REQ:
+>  		return omap3isp_stat_request_statistics(stat, arg);
+> +	case VIDIOC_OMAP3ISP_STAT_REQ_TIME32:
+> +		return omap3isp_stat_request_statistics_time32(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_EN: {
+>  		int *en = arg;
+>  		return omap3isp_stat_enable(stat, !!*en);
+> diff --git a/drivers/media/platform/omap3isp/ispstat.c
+> b/drivers/media/platform/omap3isp/ispstat.c index
+> 47cbc7e3d825..5967dfd0a9f7 100644
+> --- a/drivers/media/platform/omap3isp/ispstat.c
+> +++ b/drivers/media/platform/omap3isp/ispstat.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/dma-mapping.h>
+>  #include <linux/slab.h>
+>  #include <linux/uaccess.h>
+> +#include <linux/timekeeping.h>
+
+Could you please keep the headers alphabetically sorted ?
+
+> 
+>  #include "isp.h"
+> 
+> @@ -237,7 +238,7 @@ static int isp_stat_buf_queue(struct ispstat *stat)
+>  	if (!stat->active_buf)
+>  		return STAT_NO_BUF;
+> 
+> -	v4l2_get_timestamp(&stat->active_buf->ts);
+> +	ktime_get_ts64(&stat->active_buf->ts);
+> 
+>  	stat->active_buf->buf_size = stat->buf_size;
+>  	if (isp_stat_buf_check_magic(stat, stat->active_buf)) {
+> @@ -500,7 +501,8 @@ int omap3isp_stat_request_statistics(struct ispstat
+> *stat, return PTR_ERR(buf);
 >  	}
->  
-> -	if (vin->info->model == RCAR_GEN3) {
-> +	if (vin->info->model == RCAR_GEN3 &&
-> +	    vin->mbus_cfg.type == V4L2_MBUS_CSI2) {
->  		/* Enable HSYNC Field Toggle mode after height HSYNC inputs. */
->  		lines = vin->format.height / (halfsize ? 2 : 1);
->  		dmr2 = VNDMR2_FTEH | VNDMR2_HLV(lines);
->  		vin_dbg(vin, "Field Toogle after %u lines\n", lines);
-
-Typo: Toogle -> Toggle
-
-> +	} else if (vin->info->model == RCAR_GEN3 &&
-> +		   vin->mbus_cfg.type == V4L2_MBUS_PARALLEL) {
-> +		/*
-> +		 * FIXME
-> +		 * Section 26.3.17 specifies that for digital input there's no
-> +		 * need to program FTEH or FTEV to generate internal
-> +		 * field toggle signal to driver capture. Although when
-> +		 * running on GEN3 with digital input no EFE interrupt is ever
-> +		 * generated, and we need to rely on FTEV driven field signal
-> +		 * toggling, as using FTEH as in the CSI-2 case, messes up
-> +		 * the output image size. This implies no protection
-> +		 * against buffer overflow is in place for Gen3 digital input
-> +		 * capture.
-> +		 */
-> +		dmr2 = VNDMR2_FTEV;
->  	} else {
->  		/* Enable VSYNC Field Toogle mode after one VSYNC input. */
-
-Ditto. Search and replace?
-
->  		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
 > 
+> -	data->ts = buf->ts;
+> +	data->ts.tv_sec = buf->ts.tv_sec;
+> +	data->ts.tv_usec = buf->ts.tv_nsec / NSEC_PER_USEC;
+>  	data->config_counter = buf->config_counter;
+>  	data->frame_number = buf->frame_number;
+>  	data->buf_size = buf->buf_size;
+> @@ -512,6 +514,21 @@ int omap3isp_stat_request_statistics(struct ispstat
+> *stat, return 0;
+>  }
+> 
+> +int omap3isp_stat_request_statistics_time32(struct ispstat *stat,
+> +					struct omap3isp_stat_data_time32 *data)
+> +{
+> +	struct omap3isp_stat_data data64;
+> +	int ret;
+> +
+> +	ret = omap3isp_stat_request_statistics(stat, &data64);
+> +
+> +	data->ts.tv_sec = data64.ts.tv_sec;
+> +	data->ts.tv_usec = data64.ts.tv_usec;
+> +	memcpy(&data->buf, &data64.buf, sizeof(*data) - sizeof(data->ts));
+> +
+> +	return ret;
 
+We could return immediately after omap3isp_stat_request_statistics() if the 
+function fails, but that's no big deal, the error path is clearly a cold path.
+
+> +}
+> +
+>  /*
+>   * omap3isp_stat_config - Receives new statistic engine configuration.
+>   * @new_conf: Pointer to config structure.
+> diff --git a/drivers/media/platform/omap3isp/ispstat.h
+> b/drivers/media/platform/omap3isp/ispstat.h index
+> 6d9b0244f320..923b38cfc682 100644
+> --- a/drivers/media/platform/omap3isp/ispstat.h
+> +++ b/drivers/media/platform/omap3isp/ispstat.h
+> @@ -39,7 +39,7 @@ struct ispstat_buffer {
+>  	struct sg_table sgt;
+>  	void *virt_addr;
+>  	dma_addr_t dma_addr;
+> -	struct timeval ts;
+> +	struct timespec64 ts;
+>  	u32 buf_size;
+>  	u32 frame_number;
+>  	u16 config_counter;
+> @@ -130,6 +130,8 @@ struct ispstat_generic_config {
+>  int omap3isp_stat_config(struct ispstat *stat, void *new_conf);
+>  int omap3isp_stat_request_statistics(struct ispstat *stat,
+>  				     struct omap3isp_stat_data *data);
+> +int omap3isp_stat_request_statistics_time32(struct ispstat *stat,
+> +				     struct omap3isp_stat_data_time32 *data);
+>  int omap3isp_stat_init(struct ispstat *stat, const char *name,
+>  		       const struct v4l2_subdev_ops *sd_ops);
+>  void omap3isp_stat_cleanup(struct ispstat *stat);
+> diff --git a/include/uapi/linux/omap3isp.h b/include/uapi/linux/omap3isp.h
+> index 1a920145db04..87b55755f4ff 100644
+> --- a/include/uapi/linux/omap3isp.h
+> +++ b/include/uapi/linux/omap3isp.h
+> @@ -55,6 +55,8 @@
+>  	_IOWR('V', BASE_VIDIOC_PRIVATE + 5, struct omap3isp_h3a_af_config)
+>  #define VIDIOC_OMAP3ISP_STAT_REQ \
+>  	_IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct omap3isp_stat_data)
+> +#define VIDIOC_OMAP3ISP_STAT_REQ_TIME32 \
+> +	_IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct omap3isp_stat_data_time32)
+>  #define VIDIOC_OMAP3ISP_STAT_EN \
+>  	_IOWR('V', BASE_VIDIOC_PRIVATE + 7, unsigned long)
+> 
+> @@ -165,7 +167,14 @@ struct omap3isp_h3a_aewb_config {
+>   * @config_counter: Number of the configuration associated with the data.
+>   */
+>  struct omap3isp_stat_data {
+> +#ifdef __KERNEL__
+> +	struct {
+> +		__s64	tv_sec;
+> +		__s64	tv_usec;
+> +	} ts;
+
+I share Sakari's comment about this method implying a little-endian system, 
+but as the SoCs that integrate this device are all little-endian, that's not a 
+problem in practice.
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+If you agree with the small comment about header ordering, let's get this 
+patch finally merged.
+
+> +#else
+>  	struct timeval ts;
+> +#endif
+>  	void __user *buf;
+>  	__u32 buf_size;
+>  	__u16 frame_number;
+> @@ -173,6 +182,19 @@ struct omap3isp_stat_data {
+>  	__u16 config_counter;
+>  };
+> 
+> +#ifdef __KERNEL__
+> +struct omap3isp_stat_data_time32 {
+> +	struct {
+> +		__s32	tv_sec;
+> +		__s32	tv_usec;
+> +	} ts;
+> +	__u32 buf;
+> +	__u32 buf_size;
+> +	__u16 frame_number;
+> +	__u16 cur_frame;
+> +	__u16 config_counter;
+> +};
+> +#endif
+> 
+>  /* Histogram related structs */
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
