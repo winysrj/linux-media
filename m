@@ -1,64 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:38074 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750736AbeFAAbG (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:49625 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750795AbeEGKcm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 20:31:06 -0400
-Received: by mail-pl0-f65.google.com with SMTP id c11-v6so14224007plr.5
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:06 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 03/10] media: videodev2.h: Add macros V4L2_FIELD_IS_{INTERLACED|SEQUENTIAL}
-Date: Thu, 31 May 2018 17:30:42 -0700
-Message-Id: <1527813049-3231-4-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+        Mon, 7 May 2018 06:32:42 -0400
+Subject: Re: [PATCH 15/28] venus: add a helper function to set dynamic buffer
+ mode
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+ <20180424124436.26955-16-stanimir.varbanov@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <38a80abe-ba2c-c85b-f8a5-bb74245df172@xs4all.nl>
+Date: Mon, 7 May 2018 12:32:38 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180424124436.26955-16-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds two helper macros:
+On 24/04/18 14:44, Stanimir Varbanov wrote:
+> Adds a new helper function to set dymaic buffer mode if it is
 
-Add a macro that returns true if the given field type is 'sequential',
-that is a full frame is transmitted, or exists in memory, as all top
-field lines followed by all bottom field lines, or vice-versa.
+dymaic -> dynamic
 
-Add a macro that returns true if the given field type is 'interlaced',
-that is a full frame is transmitted, or exists in memory, as top field
-lines interlaced with bottom field lines.
+Regards,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
-Changes since v1:
-- add the complement macro V4L2_FIELD_IS_INTERLACED
-- remove V4L2_FIELD_ALTERNATE from V4L2_FIELD_IS_SEQUENTIAL macro.
-- moved new macros past end of existing V4L2_FIELD_HAS_* macros.
----
- include/uapi/linux/videodev2.h | 7 +++++++
- 1 file changed, 7 insertions(+)
+	Hans
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 600877b..d4e12f4 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -130,6 +130,13 @@ enum v4l2_field {
- 	((field) == V4L2_FIELD_BOTTOM ||\
- 	 (field) == V4L2_FIELD_TOP ||\
- 	 (field) == V4L2_FIELD_ALTERNATE)
-+#define V4L2_FIELD_IS_INTERLACED(field) \
-+	((field) == V4L2_FIELD_INTERLACED ||\
-+	 (field) == V4L2_FIELD_INTERLACED_TB ||\
-+	 (field) == V4L2_FIELD_INTERLACED_BT)
-+#define V4L2_FIELD_IS_SEQUENTIAL(field) \
-+	((field) == V4L2_FIELD_SEQ_TB ||\
-+	 (field) == V4L2_FIELD_SEQ_BT)
- 
- enum v4l2_buf_type {
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,
--- 
-2.7.4
+> supported by current HFI version.
+> 
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/media/platform/qcom/venus/helpers.c | 22 ++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/helpers.h |  1 +
+>  drivers/media/platform/qcom/venus/vdec.c    | 15 +++------------
+>  3 files changed, 26 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+> index 1eda19adbf28..824ad4d2d064 100644
+> --- a/drivers/media/platform/qcom/venus/helpers.c
+> +++ b/drivers/media/platform/qcom/venus/helpers.c
+> @@ -522,6 +522,28 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
+>  }
+>  EXPORT_SYMBOL_GPL(venus_helper_set_color_format);
+>  
+> +int venus_helper_set_dyn_bufmode(struct venus_inst *inst)
+> +{
+> +	u32 ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
+> +	struct hfi_buffer_alloc_mode mode;
+> +	int ret;
+> +
+> +	if (!is_dynamic_bufmode(inst))
+> +		return 0;
+> +
+> +	mode.type = HFI_BUFFER_OUTPUT;
+> +	mode.mode = HFI_BUFFER_MODE_DYNAMIC;
+> +
+> +	ret = hfi_session_set_property(inst, ptype, &mode);
+> +	if (ret)
+> +		return ret;
+> +
+> +	mode.type = HFI_BUFFER_OUTPUT2;
+> +
+> +	return hfi_session_set_property(inst, ptype, &mode);
+> +}
+> +EXPORT_SYMBOL_GPL(venus_helper_set_dyn_bufmode);
+> +
+>  static void delayed_process_buf_func(struct work_struct *work)
+>  {
+>  	struct venus_buffer *buf, *n;
+> diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+> index 0e64aa95624a..52b961ed491e 100644
+> --- a/drivers/media/platform/qcom/venus/helpers.h
+> +++ b/drivers/media/platform/qcom/venus/helpers.h
+> @@ -40,6 +40,7 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
+>  int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+>  			      unsigned int output_bufs);
+>  int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
+> +int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
+>  void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+>  void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
+>  void venus_helper_init_instance(struct venus_inst *inst);
+> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+> index 0ddc2c4df934..1de9cc64cf2f 100644
+> --- a/drivers/media/platform/qcom/venus/vdec.c
+> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> @@ -557,18 +557,9 @@ static int vdec_set_properties(struct venus_inst *inst)
+>  			return ret;
+>  	}
+>  
+> -	if (core->res->hfi_version == HFI_VERSION_3XX ||
+> -	    inst->cap_bufs_mode_dynamic) {
+> -		struct hfi_buffer_alloc_mode mode;
+> -
+> -		ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
+> -		mode.type = HFI_BUFFER_OUTPUT;
+> -		mode.mode = HFI_BUFFER_MODE_DYNAMIC;
+> -
+> -		ret = hfi_session_set_property(inst, ptype, &mode);
+> -		if (ret)
+> -			return ret;
+> -	}
+> +	ret = venus_helper_set_dyn_bufmode(inst);
+> +	if (ret)
+> +		return ret;
+>  
+>  	if (ctr->post_loop_deb_mode) {
+>  		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
+> 
