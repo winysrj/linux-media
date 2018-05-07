@@ -1,46 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:36617 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751012AbeFAAbN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 20:31:13 -0400
-Received: by mail-pl0-f66.google.com with SMTP id v24-v6so14225305plo.3
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:13 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 07/10] media: imx-csi: Allow skipping odd chroma rows for YVU420
-Date: Thu, 31 May 2018 17:30:46 -0700
-Message-Id: <1527813049-3231-8-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:51010 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751976AbeEGNUo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 09:20:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org
+Subject: Re: [PATCH 1/2] omap3isp: Remove useless NULL check in omap3isp_stat_config
+Date: Mon, 07 May 2018 16:21:01 +0300
+Message-ID: <2245450.zWd5xHTode@avalon>
+In-Reply-To: <20180507124723.2153-2-sakari.ailus@linux.intel.com>
+References: <20180507124723.2153-1-sakari.ailus@linux.intel.com> <20180507124723.2153-2-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Skip writing U/V components to odd rows for YVU420 in addition to
-YUV420 and NV12.
+Hi Sakari,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-csi.c | 1 +
- 1 file changed, 1 insertion(+)
+Thank you for the patch.
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 6101e2ed..c878a00 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -430,6 +430,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 		passthrough_bits = 16;
- 		break;
- 	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
- 	case V4L2_PIX_FMT_NV12:
- 		burst_size = (image.pix.width & 0x3f) ?
- 			     ((image.pix.width & 0x1f) ?
+On Monday, 7 May 2018 15:47:22 EEST Sakari Ailus wrote:
+> The omap3isp driver checked whether the second argument (the new
+> configuration) to the ISP statistics is NULL. This is the pointer to the
+> user-given argument and is never NULL. Remove the check.
+> 
+> Reported-by: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/omap3isp/ispstat.c | 6 ------
+>  1 file changed, 6 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispstat.c
+> b/drivers/media/platform/omap3isp/ispstat.c index
+> 529cd8fb29b1..34a91125da36 100644
+> --- a/drivers/media/platform/omap3isp/ispstat.c
+> +++ b/drivers/media/platform/omap3isp/ispstat.c
+> @@ -542,12 +542,6 @@ int omap3isp_stat_config(struct ispstat *stat, void
+> *new_conf) struct ispstat_generic_config *user_cfg = new_conf;
+>  	u32 buf_size = user_cfg->buf_size;
+> 
+> -	if (!new_conf) {
+> -		dev_dbg(stat->isp->dev, "%s: configuration is NULL\n",
+> -			stat->subdev.name);
+> -		return -EINVAL;
+> -	}
+> -
+>  	mutex_lock(&stat->ioctl_lock);
+> 
+>  	dev_dbg(stat->isp->dev,
+
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
