@@ -1,108 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:50861 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752428AbeEGMrj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 08:47:39 -0400
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Alexandre Courbot <gnurou@gmail.com>,
-        Florent Revest <florent.revest@free-electrons.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Randy Li <ayaka@soulik.info>
-Subject: [PATCH v3 13/14] ARM: dts: sun7i-a20: Add Video Engine and reserved memory nodes
-Date: Mon,  7 May 2018 14:44:59 +0200
-Message-Id: <20180507124500.20434-14-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20180507124500.20434-1-paul.kocialkowski@bootlin.com>
-References: <20180507124500.20434-1-paul.kocialkowski@bootlin.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37614 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751960AbeEGLiu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 May 2018 07:38:50 -0400
+Date: Mon, 7 May 2018 14:38:47 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Alan Cox <gnomes@lxorguk.ukuu.org.uk>, linux-media@vger.kernel.org,
+        andriy.shevchenko@intel.com
+Subject: Re: atomisp: drop from staging ?
+Message-ID: <20180507113847.dfam3eiu3yxbflwa@valkosipuli.retiisi.org.uk>
+References: <20180429011837.68859797@alans-desktop>
+ <20180430094100.rbppnbpw5pnuoth4@valkosipuli.retiisi.org.uk>
+ <20180503083049.nidmolfegklwnsqr@valkosipuli.retiisi.org.uk>
+ <20180504111730.5ef8bdf8@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180504111730.5ef8bdf8@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds nodes for the Video Engine and the associated reserved memory
-for the A20. Up to 96 MiB of memory are dedicated to the CMA pool.
+On Fri, May 04, 2018 at 11:17:30AM -0300, Mauro Carvalho Chehab wrote:
+> Em Thu, 3 May 2018 11:30:50 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > On Mon, Apr 30, 2018 at 12:41:00PM +0300, Sakari Ailus wrote:
+> > > Hi Alan,
+> > > 
+> > > On Sun, Apr 29, 2018 at 01:18:37AM +0100, Alan Cox wrote:  
+> > > > 
+> > > > I think this is going to be the best option. When I started cleaning up
+> > > > the atomisp code I had time to work on it. Then spectre/meltdown
+> > > > happened (which btw is why the updating suddenly and mysteriously stopped
+> > > > last summer).
+> > > > 
+> > > > I no longer have time to work on it and it's becoming evident that the
+> > > > world of speculative side channel is going to be mean that I am
+> > > > not going to get time in the forseeable future despite me trying to find
+> > > > space to get back into atomisp cleaning up. It sucks because we made some
+> > > > good initial progress but shit happens.
+> > > > 
+> > > > There are at this point (unsurprisngly ;)) no other volunteers I can
+> > > > find crazy enough to take this on.  
+> > > 
+> > > The driver has been in the staging tree for quite some time now and is a
+> > > regular target of cleanup patches but little has been done to address the
+> > > growing list of entries in the associated TODO file to get it out of
+> > > staging. Beyond this, I don't have the hardware but as far as I understand,
+> > > the driver is not functional in its current state.
+> > > 
+> > > I agree with removing the driver. It can always be brought back if someone
+> > > wishes to continue working it.
+> > > 
+> > > I can send patches to remove it.  
+> > 
+> > The patch didn't make it to the list likely because it was too big --- even
+> > with -D option to git format-patch!
+> > 
+> > It's here:
+> > 
+> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=atomisp-no-more>
+> 
+> I really hate remove things like that, but atomisp is on real bad shape.
+> I'm wandering if at least the sensor drivers could be converted before
+> dropping it.
 
-The VPU can only map the first 256 MiB of DRAM, so the reserved memory
-pool has to be located in that area. Following Allwinner's decision in
-downstream software, the last 96 MiB of the first 256 MiB of RAM are
-reserved for this purpose.
+The sensor drivers depend on atomisp specific interfaces and these drivers
+cannot be readily used with another bridge / ISP --- also consider the
+hardware likely isn't available either. One option could be to leave them
+in the staging tree, but the probability they'd eventually be considered
+dead code and removed as-is is very high.
 
-Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
----
- arch/arm/boot/dts/sun7i-a20.dtsi | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+Most of the value in these drivers are likely the register lists but if the
+sensors are used elsewhere, these register lists could well be different
+due to different external clock frequencies etc.
 
-diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
-index 9bb6c35fb850..5fccccff469b 100644
---- a/arch/arm/boot/dts/sun7i-a20.dtsi
-+++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-@@ -161,6 +161,21 @@
- 		reg = <0x40000000 0x80000000>;
- 	};
- 
-+	reserved-memory {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+
-+		/* Address must be kept in the lower 256 MiBs of DRAM for VE. */
-+		cma_pool: cma@4a000000 {
-+			compatible = "shared-dma-pool";
-+			size = <0x6000000>;
-+			alloc-ranges = <0x4a000000 0x6000000>;
-+			reusable;
-+			linux,cma-default;
-+		};
-+	};
-+
- 	timer {
- 		compatible = "arm,armv7-timer";
- 		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
-@@ -463,6 +478,22 @@
- 			};
- 		};
- 
-+		vpu: video-codec@1c0e000 {
-+			compatible = "allwinner,sun7i-a20-video-engine";
-+			reg = <0x01c0e000 0x1000>;
-+
-+			clocks = <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
-+				 <&ccu CLK_DRAM_VE>;
-+			clock-names = "ahb", "mod", "ram";
-+
-+			assigned-clocks = <&ccu CLK_VE>;
-+			assigned-clock-rates = <320000000>;
-+
-+			resets = <&ccu RST_VE>;
-+			interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
-+			allwinner,sram = <&ve_sram 1>;
-+		};
-+
- 		mmc0: mmc@1c0f000 {
- 			compatible = "allwinner,sun7i-a20-mmc";
- 			reg = <0x01c0f000 0x1000>;
+I'd prefer removing them as well. If someone wishes to continue working on
+the atomisp driver and / or the sensor drivers, the patch can always be
+reverted.
+
+> 
+> That's said, I don't have atomisp hardware either, and, even if I had,
+> I probably won't have enough time to fix it. So, if you all won't be
+> able to do any work on it any time soon, and that's what you want
+> for now, I'm ok with removing it.
+> 
+> Sakari,
+> 
+> Please send me a pull request with the driver removal patch and I'll
+> apply it.
+
+I will.
+
 -- 
-2.16.3
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
