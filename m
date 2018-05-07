@@ -1,70 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:36598 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S934764AbeE2N7h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 09:59:37 -0400
-From: Gerd Hoffmann <kraxel@redhat.com>
-To: dri-devel@lists.freedesktop.org
-Cc: Gerd Hoffmann <kraxel@redhat.com>, Daniel Vetter <daniel@ffwll.ch>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        linux-media@vger.kernel.org (open list:DMA BUFFER SHARING FRAMEWORK),
-        linaro-mm-sig@lists.linaro.org (moderated list:DMA BUFFER SHARING
-        FRAMEWORK), linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH] dma-buf: make map_atomic and map function pointers optional
-Date: Tue, 29 May 2018 15:59:18 +0200
-Message-Id: <20180529135918.19729-1-kraxel@redhat.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33668 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752464AbeEGQWn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:22:43 -0400
+Received: by mail-wm0-f66.google.com with SMTP id x12-v6so15775975wmc.0
+        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:22:42 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v3 06/14] media: staging/imx: add imx7 capture subsystem
+Date: Mon,  7 May 2018 17:21:44 +0100
+Message-Id: <20180507162152.2545-7-rui.silva@linaro.org>
+In-Reply-To: <20180507162152.2545-1-rui.silva@linaro.org>
+References: <20180507162152.2545-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So drivers don't need dummy functions just returning NULL.
+Add imx7 capture subsystem to imx-media core to allow the use some of the
+existing modules for i.MX5/6 with i.MX7 SoC.
 
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+Since i.MX7 does not have an IPU, add driver data with unset ipu_present flag
+that change some runtime behaviors.
+
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- include/linux/dma-buf.h   | 4 ++--
- drivers/dma-buf/dma-buf.c | 4 ++++
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/staging/media/imx/imx-media-dev.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 085db2fee2..88917fa796 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -39,12 +39,12 @@ struct dma_buf_attachment;
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index b019dcefccd6..55fe0321edc0 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -561,8 +561,13 @@ static const struct imx_media_driver_data imx6_drvdata = {
+ 	.ipu_present = true,
+ };
  
- /**
-  * struct dma_buf_ops - operations possible on struct dma_buf
-- * @map_atomic: maps a page from the buffer into kernel address
-+ * @map_atomic: [optional] maps a page from the buffer into kernel address
-  *		space, users may not block until the subsequent unmap call.
-  *		This callback must not sleep.
-  * @unmap_atomic: [optional] unmaps a atomically mapped page from the buffer.
-  *		  This Callback must not sleep.
-- * @map: maps a page from the buffer into kernel address space.
-+ * @map: [optional] maps a page from the buffer into kernel address space.
-  * @unmap: [optional] unmaps a page from the buffer.
-  * @vmap: [optional] creates a virtual mapping for the buffer into kernel
-  *	  address space. Same restrictions as for vmap and friends apply.
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index d78d5fc173..4c45e31258 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -872,6 +872,8 @@ void *dma_buf_kmap_atomic(struct dma_buf *dmabuf, unsigned long page_num)
- {
- 	WARN_ON(!dmabuf);
- 
-+	if (!dmabuf->ops->map_atomic)
-+		return NULL;
- 	return dmabuf->ops->map_atomic(dmabuf, page_num);
- }
- EXPORT_SYMBOL_GPL(dma_buf_kmap_atomic);
-@@ -907,6 +909,8 @@ void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long page_num)
- {
- 	WARN_ON(!dmabuf);
- 
-+	if (!dmabuf->ops->map)
-+		return NULL;
- 	return dmabuf->ops->map(dmabuf, page_num);
- }
- EXPORT_SYMBOL_GPL(dma_buf_kmap);
++static const struct imx_media_driver_data imx7_drvdata = {
++	.ipu_present = false,
++};
++
+ static const struct of_device_id imx_media_dt_ids[] = {
+ 	{ .compatible = "fsl,imx-capture-subsystem", .data = &imx6_drvdata },
++	{ .compatible = "fsl,imx7-capture-subsystem", .data = &imx7_drvdata },
+ 	{ /* sentinel */ }
+ };
+ MODULE_DEVICE_TABLE(of, imx_media_dt_ids);
 -- 
-2.9.3
+2.17.0
