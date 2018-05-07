@@ -1,233 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:43828 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751356AbeEQIyI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 04:54:08 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v3 03/12] media: ov5640: Remove the clocks registers initialization
-Date: Thu, 17 May 2018 10:53:56 +0200
-Message-Id: <20180517085405.10104-4-maxime.ripard@bootlin.com>
-In-Reply-To: <20180517085405.10104-1-maxime.ripard@bootlin.com>
-References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37282 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752357AbeEGKpL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 May 2018 06:45:11 -0400
+Date: Mon, 7 May 2018 13:45:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sami Tolvanen <samitolvanen@google.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: media-device: fix ioctl function types
+Message-ID: <20180507104509.lq4ep22fm6h53gra@valkosipuli.retiisi.org.uk>
+References: <20180427195430.237342-1-samitolvanen@google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180427195430.237342-1-samitolvanen@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Part of the hardcoded initialization sequence is to set up the proper clock
-dividers. However, this is now done dynamically through proper code and as
-such, the static one is now redundant.
+Moi,
 
-Let's remove it.
+On Fri, Apr 27, 2018 at 12:54:30PM -0700, Sami Tolvanen wrote:
+> This change fixes function types for media device ioctls to avoid
+> indirect call mismatches with Control-Flow Integrity checking.
+> 
+> Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
+> ---
+>  drivers/media/media-device.c | 21 +++++++++++----------
+>  1 file changed, 11 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 35e81f7c0d2f..bc5c024906e6 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -54,9 +54,10 @@ static int media_device_close(struct file *filp)
+>  	return 0;
+>  }
+>  
+> -static int media_device_get_info(struct media_device *dev,
+> -				 struct media_device_info *info)
+> +static long media_device_get_info(struct media_device *dev, void *arg)
+>  {
+> +	struct media_device_info *info = (struct media_device_info *)arg;
 
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
----
- drivers/media/i2c/ov5640.c | 46 ++++++++++++++++++--------------------
- 1 file changed, 22 insertions(+), 24 deletions(-)
+How about removing the cast? It's not really needed.
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 63923d85a31f..45e5ba32b8d1 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -256,8 +256,7 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
- static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
- 	{0x3103, 0x11, 0, 0}, {0x3008, 0x82, 0, 5}, {0x3008, 0x42, 0, 0},
- 	{0x3103, 0x03, 0, 0}, {0x3017, 0x00, 0, 0}, {0x3018, 0x00, 0, 0},
--	{0x3034, 0x18, 0, 0}, {0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0},
--	{0x3037, 0x13, 0, 0}, {0x3630, 0x36, 0, 0},
-+	{0x3630, 0x36, 0, 0},
- 	{0x3631, 0x0e, 0, 0}, {0x3632, 0xe2, 0, 0}, {0x3633, 0x12, 0, 0},
- 	{0x3621, 0xe0, 0, 0}, {0x3704, 0xa0, 0, 0}, {0x3703, 0x5a, 0, 0},
- 	{0x3715, 0x78, 0, 0}, {0x3717, 0x01, 0, 0}, {0x370b, 0x60, 0, 0},
-@@ -340,7 +339,7 @@ static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
- };
- 
- static const struct reg_value ov5640_setting_30fps_VGA_640_480[] = {
--	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -359,7 +358,7 @@ static const struct reg_value ov5640_setting_30fps_VGA_640_480[] = {
- };
- 
- static const struct reg_value ov5640_setting_15fps_VGA_640_480[] = {
--	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -378,7 +377,7 @@ static const struct reg_value ov5640_setting_15fps_VGA_640_480[] = {
- };
- 
- static const struct reg_value ov5640_setting_30fps_XGA_1024_768[] = {
--	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -394,11 +393,10 @@ static const struct reg_value ov5640_setting_30fps_XGA_1024_768[] = {
- 	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
- 	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
- 	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x3503, 0x00, 0, 0},
--	{0x3035, 0x12, 0, 0},
- };
- 
- static const struct reg_value ov5640_setting_15fps_XGA_1024_768[] = {
--	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -417,7 +415,7 @@ static const struct reg_value ov5640_setting_15fps_XGA_1024_768[] = {
- };
- 
- static const struct reg_value ov5640_setting_30fps_QVGA_320_240[] = {
--	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -436,7 +434,7 @@ static const struct reg_value ov5640_setting_30fps_QVGA_320_240[] = {
- };
- 
- static const struct reg_value ov5640_setting_15fps_QVGA_320_240[] = {
--	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -455,7 +453,7 @@ static const struct reg_value ov5640_setting_15fps_QVGA_320_240[] = {
- };
- 
- static const struct reg_value ov5640_setting_30fps_QCIF_176_144[] = {
--	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -474,7 +472,7 @@ static const struct reg_value ov5640_setting_30fps_QCIF_176_144[] = {
- };
- 
- static const struct reg_value ov5640_setting_15fps_QCIF_176_144[] = {
--	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -493,7 +491,7 @@ static const struct reg_value ov5640_setting_15fps_QCIF_176_144[] = {
- };
- 
- static const struct reg_value ov5640_setting_30fps_NTSC_720_480[] = {
--	{0x3035, 0x12, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -512,7 +510,7 @@ static const struct reg_value ov5640_setting_30fps_NTSC_720_480[] = {
- };
- 
- static const struct reg_value ov5640_setting_15fps_NTSC_720_480[] = {
--	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -531,7 +529,7 @@ static const struct reg_value ov5640_setting_15fps_NTSC_720_480[] = {
- };
- 
- static const struct reg_value ov5640_setting_30fps_PAL_720_576[] = {
--	{0x3035, 0x12, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -550,7 +548,7 @@ static const struct reg_value ov5640_setting_30fps_PAL_720_576[] = {
- };
- 
- static const struct reg_value ov5640_setting_15fps_PAL_720_576[] = {
--	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -570,7 +568,7 @@ static const struct reg_value ov5640_setting_15fps_PAL_720_576[] = {
- 
- static const struct reg_value ov5640_setting_30fps_720P_1280_720[] = {
- 	{0x3008, 0x42, 0, 0},
--	{0x3035, 0x21, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x07, 0, 0},
-+	{0x3c07, 0x07, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -590,7 +588,7 @@ static const struct reg_value ov5640_setting_30fps_720P_1280_720[] = {
- };
- 
- static const struct reg_value ov5640_setting_15fps_720P_1280_720[] = {
--	{0x3035, 0x41, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x07, 0, 0},
-+	{0x3c07, 0x07, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -610,7 +608,7 @@ static const struct reg_value ov5640_setting_15fps_720P_1280_720[] = {
- 
- static const struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
- 	{0x3008, 0x42, 0, 0},
--	{0x3035, 0x21, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x40, 0, 0}, {0x3821, 0x06, 0, 0}, {0x3814, 0x11, 0, 0},
- 	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -625,8 +623,8 @@ static const struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
- 	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
- 	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
- 	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
--	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0}, {0x3035, 0x11, 0, 0},
--	{0x3036, 0x54, 0, 0}, {0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
-+	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0},
-+	{0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3800, 0x01, 0, 0}, {0x3801, 0x50, 0, 0}, {0x3802, 0x01, 0, 0},
- 	{0x3803, 0xb2, 0, 0}, {0x3804, 0x08, 0, 0}, {0x3805, 0xef, 0, 0},
-@@ -643,7 +641,7 @@ static const struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
- 
- static const struct reg_value ov5640_setting_15fps_1080P_1920_1080[] = {
- 	{0x3008, 0x42, 0, 0},
--	{0x3035, 0x21, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x40, 0, 0}, {0x3821, 0x06, 0, 0}, {0x3814, 0x11, 0, 0},
- 	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
-@@ -658,8 +656,8 @@ static const struct reg_value ov5640_setting_15fps_1080P_1920_1080[] = {
- 	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
- 	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
- 	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
--	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0}, {0x3035, 0x21, 0, 0},
--	{0x3036, 0x54, 0, 1}, {0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
-+	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0},
-+	{0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3800, 0x01, 0, 0}, {0x3801, 0x50, 0, 0}, {0x3802, 0x01, 0, 0},
- 	{0x3803, 0xb2, 0, 0}, {0x3804, 0x08, 0, 0}, {0x3805, 0xef, 0, 0},
-@@ -675,7 +673,7 @@ static const struct reg_value ov5640_setting_15fps_1080P_1920_1080[] = {
- 
- static const struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
- 	{0x3820, 0x40, 0, 0}, {0x3821, 0x06, 0, 0},
--	{0x3035, 0x21, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x08, 0, 0},
-+	{0x3c07, 0x08, 0, 0},
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3820, 0x40, 0, 0}, {0x3821, 0x06, 0, 0}, {0x3814, 0x11, 0, 0},
- 	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+Same below.
+
+> +
+>  	memset(info, 0, sizeof(*info));
+>  
+>  	if (dev->driver_name[0])
+> @@ -93,9 +94,9 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
+>  	return NULL;
+>  }
+>  
+> -static long media_device_enum_entities(struct media_device *mdev,
+> -				       struct media_entity_desc *entd)
+> +static long media_device_enum_entities(struct media_device *mdev, void *arg)
+>  {
+> +	struct media_entity_desc *entd = (struct media_entity_desc *)arg;
+>  	struct media_entity *ent;
+>  
+>  	ent = find_entity(mdev, entd->id);
+> @@ -146,9 +147,9 @@ static void media_device_kpad_to_upad(const struct media_pad *kpad,
+>  	upad->flags = kpad->flags;
+>  }
+>  
+> -static long media_device_enum_links(struct media_device *mdev,
+> -				    struct media_links_enum *links)
+> +static long media_device_enum_links(struct media_device *mdev, void *arg)
+>  {
+> +	struct media_links_enum *links = (struct media_links_enum *)arg;
+>  	struct media_entity *entity;
+>  
+>  	entity = find_entity(mdev, links->entity);
+> @@ -195,9 +196,9 @@ static long media_device_enum_links(struct media_device *mdev,
+>  	return 0;
+>  }
+>  
+> -static long media_device_setup_link(struct media_device *mdev,
+> -				    struct media_link_desc *linkd)
+> +static long media_device_setup_link(struct media_device *mdev, void *arg)
+>  {
+> +	struct media_link_desc *linkd = (struct media_link_desc *)arg;
+>  	struct media_link *link = NULL;
+>  	struct media_entity *source;
+>  	struct media_entity *sink;
+> @@ -225,9 +226,9 @@ static long media_device_setup_link(struct media_device *mdev,
+>  	return __media_entity_setup_link(link, linkd->flags);
+>  }
+>  
+> -static long media_device_get_topology(struct media_device *mdev,
+> -				      struct media_v2_topology *topo)
+> +static long media_device_get_topology(struct media_device *mdev, void *arg)
+>  {
+> +	struct media_v2_topology *topo = (struct media_v2_topology *)arg;
+>  	struct media_entity *entity;
+>  	struct media_interface *intf;
+>  	struct media_pad *pad;
+
 -- 
-2.17.0
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
