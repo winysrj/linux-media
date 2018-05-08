@@ -1,63 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:53998 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751826AbeEDUHv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 16:07:51 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:42687 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755355AbeEHOOQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 10:14:16 -0400
+From: Jan Luebbe <jlu@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v9 03/15] omap3isp: group device capabilities
-Date: Fri,  4 May 2018 17:06:00 -0300
-Message-Id: <20180504200612.8763-4-ezequiel@collabora.com>
-In-Reply-To: <20180504200612.8763-1-ezequiel@collabora.com>
-References: <20180504200612.8763-1-ezequiel@collabora.com>
+Cc: Jan Luebbe <jlu@pengutronix.de>, slongerbeam@gmail.com,
+        p.zabel@pengutronix.de, kernel@pengutronix.de
+Subject: [PATCH v2 1/2] media: imx: capture: refactor enum_/try_fmt
+Date: Tue,  8 May 2018 16:14:10 +0200
+Message-Id: <20180508141411.26620-2-jlu@pengutronix.de>
+In-Reply-To: <20180508141411.26620-1-jlu@pengutronix.de>
+References: <20180508141411.26620-1-jlu@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+By checking and handling the internal IPU formats (ARGB or AYUV) first,
+we don't need to check whether it's a bayer format, as we can default to
+passing the input format on in all other cases.
 
-Instead of putting V4L2_CAP_STREAMING everywhere, set device_caps
-earlier with this value.
+This simplifies handling the different configurations for RGB565 between
+parallel and MIPI CSI-2, as we don't need to check the details of the
+format anymore.
 
-v2: move cap->capabilities assignment down (Hans Verkuil)
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
 ---
- drivers/media/platform/omap3isp/ispvideo.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/staging/media/imx/imx-media-capture.c | 38 +++++++++----------
+ 1 file changed, 18 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index a751c89a3ea8..db9aae222134 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -658,13 +658,15 @@ isp_video_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
- 	strlcpy(cap->card, video->video.name, sizeof(cap->card));
- 	strlcpy(cap->bus_info, "media", sizeof(cap->bus_info));
+diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+index 0ccabe04b0e1..64c23ef92931 100644
+--- a/drivers/staging/media/imx/imx-media-capture.c
++++ b/drivers/staging/media/imx/imx-media-capture.c
+@@ -170,23 +170,22 @@ static int capture_enum_fmt_vid_cap(struct file *file, void *fh,
+ 	}
  
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
--		| V4L2_CAP_STREAMING | V4L2_CAP_DEVICE_CAPS;
-+	cap->device_caps = V4L2_CAP_STREAMING;
+ 	cc_src = imx_media_find_ipu_format(fmt_src.format.code, CS_SEL_ANY);
+-	if (!cc_src)
+-		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
+-						    CS_SEL_ANY, true);
+-	if (!cc_src)
+-		return -EINVAL;
+-
+-	if (cc_src->bayer) {
+-		if (f->index != 0)
+-			return -EINVAL;
+-		fourcc = cc_src->fourcc;
+-	} else {
++	if (cc_src) {
+ 		u32 cs_sel = (cc_src->cs == IPUV3_COLORSPACE_YUV) ?
+ 			CS_SEL_YUV : CS_SEL_RGB;
  
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
- 	else
--		cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-+		cap->device_caps |= V4L2_CAP_VIDEO_OUTPUT;
+ 		ret = imx_media_enum_format(&fourcc, f->index, cs_sel);
+ 		if (ret)
+ 			return ret;
++	} else {
++		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
++						    CS_SEL_ANY, true);
++		if (WARN_ON(!cc_src))
++			return -EINVAL;
 +
-+	cap->capabilities = cap->device_caps | V4L2_CAP_VIDEO_CAPTURE |
-+		V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_DEVICE_CAPS;
++		if (f->index != 0)
++			return -EINVAL;
++		fourcc = cc_src->fourcc;
+ 	}
  
- 	return 0;
- }
+ 	f->pixelformat = fourcc;
+@@ -219,15 +218,7 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
+ 		return ret;
+ 
+ 	cc_src = imx_media_find_ipu_format(fmt_src.format.code, CS_SEL_ANY);
+-	if (!cc_src)
+-		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
+-						    CS_SEL_ANY, true);
+-	if (!cc_src)
+-		return -EINVAL;
+-
+-	if (cc_src->bayer) {
+-		cc = cc_src;
+-	} else {
++	if (cc_src) {
+ 		u32 fourcc, cs_sel;
+ 
+ 		cs_sel = (cc_src->cs == IPUV3_COLORSPACE_YUV) ?
+@@ -239,6 +230,13 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
+ 			imx_media_enum_format(&fourcc, 0, cs_sel);
+ 			cc = imx_media_find_format(fourcc, cs_sel, false);
+ 		}
++	} else {
++		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
++						    CS_SEL_ANY, true);
++		if (WARN_ON(!cc_src))
++			return -EINVAL;
++
++		cc = cc_src;
+ 	}
+ 
+ 	imx_media_mbus_fmt_to_pix_fmt(&f->fmt.pix, &fmt_src.format, cc);
 -- 
-2.16.3
+2.17.0
