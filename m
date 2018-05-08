@@ -1,75 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53010 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751400AbeEHN0P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 May 2018 09:26:15 -0400
-Date: Tue, 8 May 2018 16:26:10 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Wenwen Wang <wang6495@umn.edu>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Kangjie Lu <kjlu@umn.edu>,
-        "open list:STAGING - ATOMISP DRIVER" <linux-media@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Alan Cox <alan@linux.intel.com>
-Subject: Re: [PATCH] media: staging: atomisp: fix a potential missing-check
- bug
-Message-ID: <20180508132610.4wr5vtduy4fjrqm7@kekkonen.localdomain>
-References: <1525300731-27324-1-git-send-email-wang6495@umn.edu>
- <20180508121635.mdw4jikv66iyprie@mwanda>
- <CAAa=b7dZFqKxFg=ez5Q7H=94HvqrO16pWH6sEmwrWgx60xCxNw@mail.gmail.com>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40681 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932646AbeEHIeg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 May 2018 04:34:36 -0400
+Subject: Re: [PATCHv13 01/28] v4l2-device.h: always expose mdev
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+ <20180503145318.128315-2-hverkuil@xs4all.nl>
+ <20180504105128.fruwu2jofn2iz5gt@valkosipuli.retiisi.org.uk>
+ <20180507124627.5054b56f@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f9ae8fc4-5cb3-9eba-d66c-2712d91af9f3@xs4all.nl>
+Date: Tue, 8 May 2018 10:34:29 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAa=b7dZFqKxFg=ez5Q7H=94HvqrO16pWH6sEmwrWgx60xCxNw@mail.gmail.com>
+In-Reply-To: <20180507124627.5054b56f@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 08, 2018 at 08:04:54AM -0500, Wenwen Wang wrote:
-> On Tue, May 8, 2018 at 7:16 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> > On Wed, May 02, 2018 at 05:38:49PM -0500, Wenwen Wang wrote:
-> >> At the end of atomisp_subdev_set_selection(), the function
-> >> atomisp_subdev_get_rect() is invoked to get the pointer to v4l2_rect. Since
-> >> this function may return a NULL pointer, it is firstly invoked to check
-> >> the returned pointer. If the returned pointer is not NULL, then the
-> >> function is invoked again to obtain the pointer and the memory content
-> >> at the location of the returned pointer is copied to the memory location of
-> >> r. In most cases, the pointers returned by the two invocations are same.
-> >> However, given that the pointer returned by the function
-> >> atomisp_subdev_get_rect() is not a constant, it is possible that the two
-> >> invocations return two different pointers. For example, another thread may
-> >> race to modify the related pointers during the two invocations.
-> >
-> > You're assuming a very serious race condition exists.
-> >
-> >
-> >> In that
-> >> case, even if the first returned pointer is not null, the second returned
-> >> pointer might be null, which will cause issues such as null pointer
-> >> dereference.
-> >
-> > And then complaining that if a really serious bug exists then this very
-> > minor bug would exist too...  If there were really a race condition like
-> > that then we'd want to fix it instead.  In other words, this is not a
-> > real life bug fix.
-> >
-> > But it would be fine as a readability or static checker fix so that's
-> > fine.
+On 05/07/2018 05:46 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 4 May 2018 13:51:28 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 > 
-> Thanks for your response. From the performance perspective, this bug
-> should also be fixed, as the second invocation is redundant if it is
-> expected to return a same pointer as the first one.
+>> On Thu, May 03, 2018 at 04:52:51PM +0200, Hans Verkuil wrote:
+>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> The mdev field is only present if CONFIG_MEDIA_CONTROLLER is set.
+>>> But since we will need to pass the media_device to vb2 and the
+>>> control framework it is very convenient to just make this field
+>>> available all the time. If CONFIG_MEDIA_CONTROLLER is not set,
+>>> then it will just be NULL.
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>  
+>>
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>
+> 
+> This patch is no-brainer. It could be sent no matter what. However,
+> the patch is too simple :-)
+> 
+> There are a number of places where if CONFIG_MEDIA_CONTROLLER
+> (and for CONFIG_MEDIA_CONTROLLER_DVB - with is also optionally 
+> added at DVB core) is tested just because the field may or may
+> not be there.
+> 
+> If we're willing to always have it at the struct, then we should look
+> on all #ifs for CONFIG_MEDIA_CONTROLLER and get rid of most (or all)
+> of them, ensuring that function stubs will be enough for the code
+> itself to do the right thing if !CONFIG_MEDIA_CONTROLLER.
 
-The arguments are unchanged so the function returns the same pointer.
+I looked at this, and in all cases where v4l2_dev->mdev is checked the
+following code always uses something that requires CONFIG_MEDIA_CONTROLLER
+anyway (usually the entity).
 
-Btw. this driver is being removed; please see discussion here:
+Regards,
 
-<URL:https://www.spinics.net/lists/linux-media/msg133223.html>
+	Hans
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+> 
+> Thanks,
+> Mauro
+> 
