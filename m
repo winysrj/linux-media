@@ -1,172 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:38306 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751771AbeEFSIs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 14:08:48 -0400
-Received: by mail-wr0-f195.google.com with SMTP id 94-v6so24404287wrf.5
-        for <linux-media@vger.kernel.org>; Sun, 06 May 2018 11:08:47 -0700 (PDT)
-From: Thomas Hollstegge <thomas.hollstegge@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thomas Hollstegge <thomas.hollstegge@gmail.com>,
-        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-Subject: [PATCH v2 2/2] dvbsky: Add support for MyGica T230C v2
-Date: Sun,  6 May 2018 20:08:00 +0200
-Message-Id: <1525630080-19329-3-git-send-email-thomas.hollstegge@gmail.com>
-In-Reply-To: <1525630080-19329-1-git-send-email-thomas.hollstegge@gmail.com>
-References: <1525513831-17682-1-git-send-email-thomas.hollstegge@gmail.com>
- <1525630080-19329-1-git-send-email-thomas.hollstegge@gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:3787 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751464AbeEHUDh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 May 2018 16:03:37 -0400
+Date: Tue, 8 May 2018 23:03:31 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Rui Miguel Silva <rui.silva@linaro.org>
+Cc: mchehab@kernel.org, hverkuil@xs4all.nl,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org, Ryan Harkin <ryan.harkin@linaro.org>
+Subject: Re: [PATCH 0/4] media: ov2680: follow up from initial version
+Message-ID: <20180508200331.enfi6dtw4bctcgyi@kekkonen.localdomain>
+References: <20180507155655.1555-1-rui.silva@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180507155655.1555-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support for newer revisions of the MyGica T230C, shipping with a
-different USB pid. Although sometimes referred to as T230C2, the device
-is sold under its original name T230C.
+Hi,
 
-Besides a slightly different PCB layout and some different minor
-components, it utilizes the same bridge, demodulator and tuner as the
-older revision. However, it requires a fixed TS clock frequency of 10
-MHz to tune to some muxes.
+On Mon, May 07, 2018 at 04:56:51PM +0100, Rui Miguel Silva wrote:
+> Sorry I have Out-of-Office some part of last week, I had v6 of the original
+> series ready but since I have received the notification from patchwork that the
+> v5 was accepted, I am sending this as a follow up tha address Fabio comments.
 
-Tested with various DVB-T2 HEVC and DVB-C channels.
+I think I somehow managed to get the patchwork state wrong; the original
+ov2680 set hasn't been applied yet. The latest patches I have applied are
+here:
 
-Signed-off-by: Thomas Hollstegge <thomas.hollstegge@gmail.com>
-Cc: Stefan Brüns <stefan.bruens@rwth-aachen.de>
----
- drivers/media/usb/dvb-usb-v2/dvbsky.c | 90 +++++++++++++++++++++++++++++++++++
- include/media/dvb-usb-ids.h           |  1 +
- 2 files changed, 91 insertions(+)
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=for-4.18-3>
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-index e28bd88..4a4c6ae 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -583,6 +583,66 @@ static int dvbsky_mygica_t230c_attach(struct dvb_usb_adapter *adap)
- 	return 0;
- }
- 
-+static int dvbsky_mygica_t230c_v2_attach(struct dvb_usb_adapter *adap)
-+{
-+	struct dvbsky_state *state = adap_to_priv(adap);
-+	struct dvb_usb_device *d = adap_to_d(adap);
-+	struct i2c_adapter *i2c_adapter;
-+	struct i2c_client *client_demod, *client_tuner;
-+	struct i2c_board_info info;
-+	struct si2168_config si2168_config;
-+	struct si2157_config si2157_config;
-+
-+	/* attach demod */
-+	memset(&si2168_config, 0, sizeof(si2168_config));
-+	si2168_config.i2c_adapter = &i2c_adapter;
-+	si2168_config.fe = &adap->fe[0];
-+	si2168_config.ts_mode = SI2168_TS_PARALLEL;
-+	si2168_config.ts_clock_inv = 1;
-+	si2168_config.ts_clock_mode = SI2168_TS_CLOCK_MODE_MANUAL;
-+	si2168_config.ts_clock_freq = 10000000;
-+	memset(&info, 0, sizeof(struct i2c_board_info));
-+	strlcpy(info.type, "si2168", sizeof(info.type));
-+	info.addr = 0x64;
-+	info.platform_data = &si2168_config;
-+
-+	request_module("si2168");
-+	client_demod = i2c_new_device(&d->i2c_adap, &info);
-+	if (!client_demod || !client_demod->dev.driver)
-+		goto fail_demod_device;
-+	if (!try_module_get(client_demod->dev.driver->owner))
-+		goto fail_demod_module;
-+
-+	/* attach tuner */
-+	memset(&si2157_config, 0, sizeof(si2157_config));
-+	si2157_config.fe = adap->fe[0];
-+	si2157_config.if_port = 0;
-+	memset(&info, 0, sizeof(struct i2c_board_info));
-+	strlcpy(info.type, "si2141", sizeof(info.type));
-+	info.addr = 0x60;
-+	info.platform_data = &si2157_config;
-+
-+	request_module("si2157");
-+	client_tuner = i2c_new_device(i2c_adapter, &info);
-+	if (!client_tuner || !client_tuner->dev.driver)
-+		goto fail_tuner_device;
-+	if (!try_module_get(client_tuner->dev.driver->owner))
-+		goto fail_tuner_module;
-+
-+	state->i2c_client_demod = client_demod;
-+	state->i2c_client_tuner = client_tuner;
-+	return 0;
-+
-+fail_tuner_module:
-+	i2c_unregister_device(client_tuner);
-+fail_tuner_device:
-+	module_put(client_demod->dev.driver->owner);
-+fail_demod_module:
-+	i2c_unregister_device(client_demod);
-+fail_demod_device:
-+	return -ENODEV;
-+}
-+
- 
- static int dvbsky_identify_state(struct dvb_usb_device *d, const char **name)
- {
-@@ -762,6 +822,33 @@ static struct dvb_usb_device_properties mygica_t230c_props = {
- 	}
- };
- 
-+static struct dvb_usb_device_properties mygica_t230c_v2_props = {
-+	.driver_name = KBUILD_MODNAME,
-+	.owner = THIS_MODULE,
-+	.adapter_nr = adapter_nr,
-+	.size_of_priv = sizeof(struct dvbsky_state),
-+
-+	.generic_bulk_ctrl_endpoint = 0x01,
-+	.generic_bulk_ctrl_endpoint_response = 0x81,
-+	.generic_bulk_ctrl_delay = DVBSKY_MSG_DELAY,
-+
-+	.i2c_algo         = &dvbsky_i2c_algo,
-+	.frontend_attach  = dvbsky_mygica_t230c_v2_attach,
-+	.init             = dvbsky_init,
-+	.get_rc_config    = dvbsky_get_rc_config,
-+	.streaming_ctrl   = dvbsky_streaming_ctrl,
-+	.identify_state	  = dvbsky_identify_state,
-+	.exit             = dvbsky_exit,
-+
-+	.num_adapters = 1,
-+	.adapter = {
-+		{
-+			.stream = DVB_USB_STREAM_BULK(0x82, 8, 4096),
-+		}
-+	}
-+};
-+
-+
- static const struct usb_device_id dvbsky_id_table[] = {
- 	{ DVB_USB_DEVICE(0x0572, 0x6831,
- 		&dvbsky_s960_props, "DVBSky S960/S860", RC_MAP_DVBSKY) },
-@@ -797,6 +884,9 @@ static const struct usb_device_id dvbsky_id_table[] = {
- 	{ DVB_USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230C,
- 		&mygica_t230c_props, "MyGica Mini DVB-T2 USB Stick T230C",
- 		RC_MAP_TOTAL_MEDIA_IN_HAND_02) },
-+	{ DVB_USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230C_V2,
-+		&mygica_t230c_v2_props, "MyGica Mini DVB-T2 USB Stick T230C v2",
-+		RC_MAP_TOTAL_MEDIA_IN_HAND_02) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, dvbsky_id_table);
-diff --git a/include/media/dvb-usb-ids.h b/include/media/dvb-usb-ids.h
-index f9e73b4..d606248 100644
---- a/include/media/dvb-usb-ids.h
-+++ b/include/media/dvb-usb-ids.h
-@@ -387,6 +387,7 @@
- #define USB_PID_MYGICA_D689				0xd811
- #define USB_PID_MYGICA_T230				0xc688
- #define USB_PID_MYGICA_T230C				0xc689
-+#define USB_PID_MYGICA_T230C_V2				0xc68a
- #define USB_PID_ELGATO_EYETV_DIVERSITY			0x0011
- #define USB_PID_ELGATO_EYETV_DTT			0x0021
- #define USB_PID_ELGATO_EYETV_DTT_2			0x003f
+Could you merge this to the original set and resend, please?
+
 -- 
-2.7.4
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
