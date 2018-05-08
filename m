@@ -1,103 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:59070 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932233AbeEHKj6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 06:39:58 -0400
-Subject: Re: [PATCH][media-next] media: ddbridge: avoid out-of-bounds write on
- array demod_in_use
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+Received: from mail-pf0-f169.google.com ([209.85.192.169]:45304 "EHLO
+        mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752239AbeEHRSC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 13:18:02 -0400
+Received: by mail-pf0-f169.google.com with SMTP id c10so24262058pfi.12
+        for <linux-media@vger.kernel.org>; Tue, 08 May 2018 10:18:02 -0700 (PDT)
+Date: Tue, 8 May 2018 10:17:59 -0700
+From: Sami Tolvanen <samitolvanen@google.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org
-References: <20180507230842.28409-1-colin.king@canonical.com>
- <20180508123836.0b5c2f7f@lt530>
-From: Colin Ian King <colin.king@canonical.com>
-Message-ID: <c7ea26b7-d743-f2bd-fd0d-41421ae2778d@canonical.com>
-Date: Tue, 8 May 2018 11:39:56 +0100
+Subject: Re: [PATCH v2] media: v4l2-ioctl: fix function types for
+ IOCTL_INFO_STD
+Message-ID: <20180508171759.GA184279@samitolvanen.mtv.corp.google.com>
+References: <44310a2b-2797-223c-fab4-0214490e5201@xs4all.nl>
+ <20180507205135.88398-1-samitolvanen@google.com>
+ <a627c61e-f227-297c-087e-c2a701b46a64@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20180508123836.0b5c2f7f@lt530>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a627c61e-f227-297c-087e-c2a701b46a64@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/05/18 11:38, Daniel Scheller wrote:
-> Hi Colin,
+On Tue, May 08, 2018 at 10:18:24AM +0200, Hans Verkuil wrote:
+> Just call this v4l_stub_g_fbuf, conform the naming of the other functions.
 > 
-> Am Tue,  8 May 2018 00:08:42 +0100
-> schrieb Colin King <colin.king@canonical.com>:
+> So just replace vidioc_ by v4l_stub_ in all these DEFINE_IOCTL_FNC macros.
 > 
->> From: Colin Ian King <colin.king@canonical.com>
->>
->> In function stop there is a check to see if state->demod is a stopped
->> value of 0xff, however, later on, array demod_in_use is indexed with
->> this value causing an out-of-bounds write error.  Avoid this by only
->> writing to array demod_in_use if state->demod is not set to the stopped
->> sentinal value for this specific corner case.  Also, replace the magic
->> value 0xff with DEMOD_STOPPED to make code more readable.
->>
->> Detected by CoverityScan, CID#1468550 ("Out-of-bounds write")
->>
->> Fixes: daeeb1319e6f ("media: ddbridge: initial support for MCI-based MaxSX8 cards")
->> Signed-off-by: Colin Ian King <colin.king@canonical.com>
->> ---
->>  drivers/media/pci/ddbridge/ddbridge-mci.c | 11 +++++++----
->>  1 file changed, 7 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/media/pci/ddbridge/ddbridge-mci.c b/drivers/media/pci/ddbridge/ddbridge-mci.c
->> index a85ff3e6b919..1f5ed53c8d35 100644
->> --- a/drivers/media/pci/ddbridge/ddbridge-mci.c
->> +++ b/drivers/media/pci/ddbridge/ddbridge-mci.c
->> @@ -20,6 +20,8 @@
->>  #include "ddbridge-io.h"
->>  #include "ddbridge-mci.h"
->>  
->> +#define DEMOD_STOPPED	(0xff)
->> +
->>  static LIST_HEAD(mci_list);
->>  
->>  static const u32 MCLK = (1550000000 / 12);
->> @@ -193,7 +195,7 @@ static int stop(struct dvb_frontend *fe)
->>  	u32 input = state->tuner;
->>  
->>  	memset(&cmd, 0, sizeof(cmd));
->> -	if (state->demod != 0xff) {
->> +	if (state->demod != DEMOD_STOPPED) {
->>  		cmd.command = MCI_CMD_STOP;
->>  		cmd.demod = state->demod;
->>  		mci_cmd(state, &cmd, NULL);
->> @@ -209,10 +211,11 @@ static int stop(struct dvb_frontend *fe)
->>  	state->base->tuner_use_count[input]--;
->>  	if (!state->base->tuner_use_count[input])
->>  		mci_set_tuner(fe, input, 0);
->> -	state->base->demod_in_use[state->demod] = 0;
->> +	if (state->demod != DEMOD_STOPPED)
->> +		state->base->demod_in_use[state->demod] = 0;
->>  	state->base->used_ldpc_bitrate[state->nr] = 0;
->> -	state->demod = 0xff;
->> -	state->base->assigned_demod[state->nr] = 0xff;
->> +	state->demod = DEMOD_STOPPED;
->> +	state->base->assigned_demod[state->nr] = DEMOD_STOPPED;
->>  	state->base->iq_mode = 0;
->>  	mutex_unlock(&state->base->tuner_lock);
->>  	state->started = 0;
-> 
-> Thanks for the patch, or - better - pointing this out. While it's
-> unlikely this will ever be an issue, I'm fine with changing the code
-> like that, but I'd prefer to change it a bit differently (ie.
-> DEMOD_STOPPED should be DEMOD_UNUSED, and I'd add defines for max.
-> tuners and use/compare against them).
+> This way the function name in the big array matches the name in this macro,
+> and the 'stub' part indicates that it is just a stub function.
 
-Sounds like a good idea.
+vidioc_ is actually part of the function name in struct v4l2_ioctl_ops,
+which the stub needs to call. I can change the stub name to start with
+v4l_stub_, but if you prefer to drop vidioc_ entirely from the name,
+the macro still wouldn't end up matching the array. It would have to be
+something like this:
 
-> 
-> I'll send out a different patch that will cover the potential
-> coverityscan problem throughout the end of the week.
+  #define DEFINE_IOCTL_FNC(_vidioc) \
+	static int v4l_stub_ ## _vidioc( \
+	...
+		return ops->vidioc_ ## _vidioc(file, fh, p); \
+  ...
+  DEFINE_IOCTL_FNC(g_fbuf)
+  ...
+  static struct v4l2_ioctl_info v4l2_ioctls[] = {
+	...
+	IOCTL_INFO(VIDIOC_G_FBUF, v4l_stub_g_fbuf, ...),
 
-Great. Thanks!
+Any thoughts?
 
-> 
-> Best regards,
-> Daniel Scheller
-> 
+	Sami
