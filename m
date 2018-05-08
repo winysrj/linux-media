@@ -1,93 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:41458 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752866AbeEKKoN (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:48595 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754355AbeEHHeT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 06:44:13 -0400
-Received: by mail-lf0-f67.google.com with SMTP id m17-v6so2116789lfj.8
-        for <linux-media@vger.kernel.org>; Fri, 11 May 2018 03:44:13 -0700 (PDT)
-Date: Fri, 11 May 2018 12:44:10 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 1/5] media: rcar-vin: Add support for R-Car R8A77995 SoC
-Message-ID: <20180511104410.GB18974@bigcity.dyn.berto.se>
-References: <1526032781-14319-1-git-send-email-jacopo+renesas@jmondi.org>
- <1526032781-14319-2-git-send-email-jacopo+renesas@jmondi.org>
+        Tue, 8 May 2018 03:34:19 -0400
+Subject: Re: [PATCHv13 04/28] media-request: add media_request_get_by_fd
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+ <20180503145318.128315-5-hverkuil@xs4all.nl>
+ <20180507140120.4f04b9bb@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bad8f0a4-4e78-865a-9083-6dafb03722a1@xs4all.nl>
+Date: Tue, 8 May 2018 09:34:11 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1526032781-14319-2-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <20180507140120.4f04b9bb@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
-
-Thanks for your patch.
-
-On 2018-05-11 11:59:37 +0200, Jacopo Mondi wrote:
-> Add R-Car R8A77995 SoC to the rcar-vin supported ones.
+On 05/07/2018 07:01 PM, Mauro Carvalho Chehab wrote:
+> Em Thu,  3 May 2018 16:52:54 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-
-I would move this to be the last patch in the series as a indication 
-that capture on R8A77995 is now ready to be used. But for the change 
-itself.
-
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add media_request_get_by_fd() to find a request based on the file
+>> descriptor.
+>>
+>> The caller has to call media_request_put() for the returned
+>> request since this function increments the refcount.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/media-request.c | 32 ++++++++++++++++++++++++++++++++
+>>  include/media/media-request.h | 24 ++++++++++++++++++++++++
+>>  2 files changed, 56 insertions(+)
+>>
+>> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+>> index c216c4ab628b..edc1c3af1959 100644
+>> --- a/drivers/media/media-request.c
+>> +++ b/drivers/media/media-request.c
+>> @@ -218,6 +218,38 @@ static const struct file_operations request_fops = {
+>>  	.release = media_request_close,
+>>  };
+>>  
+>> +struct media_request *
+>> +media_request_get_by_fd(struct media_device *mdev, int request_fd)
+>> +{
+>> +	struct file *filp;
+>> +	struct media_request *req;
+>> +
+>> +	if (!mdev || !mdev->ops ||
+>> +	    !mdev->ops->req_validate || !mdev->ops->req_queue)
+>> +		return ERR_PTR(-EPERM);
+>> +
+>> +	filp = fget(request_fd);
+>> +	if (!filp)
+>> +		return ERR_PTR(-ENOENT);
+>> +
+>> +	if (filp->f_op != &request_fops)
+>> +		goto err_fput;
+>> +	req = filp->private_data;
+>> +	if (req->mdev != mdev)
+>> +		goto err_fput;
+>> +
+>> +	media_request_get(req);
 > 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index d3072e1..e547ef7 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -985,6 +985,10 @@ static const struct rvin_group_route _rcar_info_r8a77970_routes[] = {
->  	{ /* Sentinel */ }
->  };
->  
-> +static const struct rvin_group_route _rcar_info_r8a77995_routes[] = {
-> +	{ /* Sentinel */ }
-> +};
-> +
->  static const struct rvin_info rcar_info_r8a77970 = {
->  	.model = RCAR_GEN3,
->  	.use_mc = true,
-> @@ -993,6 +997,14 @@ static const struct rvin_info rcar_info_r8a77970 = {
->  	.routes = _rcar_info_r8a77970_routes,
->  };
->  
-> +static const struct rvin_info rcar_info_r8a77995 = {
-> +	.model = RCAR_GEN3,
-> +	.use_mc = true,
-> +	.max_width = 4096,
-> +	.max_height = 4096,
-> +	.routes = _rcar_info_r8a77995_routes,
-> +};
-> +
->  static const struct of_device_id rvin_of_id_table[] = {
->  	{
->  		.compatible = "renesas,vin-r8a7778",
-> @@ -1034,6 +1046,10 @@ static const struct of_device_id rvin_of_id_table[] = {
->  		.compatible = "renesas,vin-r8a77970",
->  		.data = &rcar_info_r8a77970,
->  	},
-> +	{
-> +		.compatible = "renesas,vin-r8a77995",
-> +		.data = &rcar_info_r8a77995,
-> +	},
->  	{ /* Sentinel */ },
->  };
->  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
-> -- 
-> 2.7.4
-> 
+> Hmm... this function changes the req struct (by calling kref_get) without
+> holding neither the mutex or the spin lock...
 
--- 
+kref_get is atomic, so why would you need to add additional locking?
+
+Neither can the request be 'put' by another process before media_request_get()
+is called due to the fget() above: while the fd has a refcount > 0 the
+request refcount is also > 0. I'll add some comments to clarify this.
+
+> 
+>> +	fput(filp);
+>> +
+>> +	return req;
+>> +
+>> +err_fput:
+>> +	fput(filp);
+>> +
+>> +	return ERR_PTR(-ENOENT);
+>> +}
+>> +EXPORT_SYMBOL_GPL(media_request_get_by_fd);
+>> +
+>>  int media_request_alloc(struct media_device *mdev,
+>>  			struct media_request_alloc *alloc)
+>>  {
+>> diff --git a/include/media/media-request.h b/include/media/media-request.h
+>> index e39122dfd717..997e096d7128 100644
+>> --- a/include/media/media-request.h
+>> +++ b/include/media/media-request.h
+>> @@ -86,6 +86,24 @@ static inline void media_request_get(struct media_request *req)
+>>   */
+>>  void media_request_put(struct media_request *req);
+>>  
+>> +/**
+>> + * media_request_get_by_fd - Get a media request by fd
+>> + *
+>> + * @mdev: Media device this request belongs to
+>> + * @request_fd: The file descriptor of the request
+>> + *
+>> + * Get the request represented by @request_fd that is owned
+>> + * by the media device.
+>> + *
+>> + * Return a -EPERM error pointer if requests are not supported
+>> + * by this driver. Return -ENOENT if the request was not found.
+>> + * Return the pointer to the request if found: the caller will
+>> + * have to call @media_request_put when it finished using the
+>> + * request.
+> 
+> ... so, it should be said here how this should be serialized, in order
+> to avoid it to be destroyed by a task while some other task might be
+> trying to instantiate it.
+
+This doesn't need any serialization. If the request_fd is found, then
+it will return the request with the request refcount increased.
+
+I also do not understand what you mean with "some other task might be
+trying to instantiate it".
+
+I think there is some misunderstanding here.
+
 Regards,
-Niklas Söderlund
+
+	Hans
+
+
+> 
+>> + */
+>> +struct media_request *
+>> +media_request_get_by_fd(struct media_device *mdev, int request_fd);
+>> +
+>>  /**
+>>   * media_request_alloc - Allocate the media request
+>>   *
+>> @@ -107,6 +125,12 @@ static inline void media_request_put(struct media_request *req)
+>>  {
+>>  }
+>>  
+>> +static inline struct media_request *
+>> +media_request_get_by_fd(struct media_device *mdev, int request_fd)
+>> +{
+>> +	return ERR_PTR(-EPERM);
+>> +}
+>> +
+>>  #endif
+>>  
+>>  /**
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
