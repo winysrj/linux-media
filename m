@@ -1,151 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39945 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S965968AbeEXJgF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 05:36:05 -0400
-Subject: Re: [PATCHv13 05/28] media-request: add media_request_object_find
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
- <20180503145318.128315-6-hverkuil@xs4all.nl>
- <20180504124307.sddriagirmig4yf4@valkosipuli.retiisi.org.uk>
- <20180507140513.5d71664b@vento.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5a2fb4e3-2ad1-0c59-7311-132640d0a4c4@xs4all.nl>
-Date: Thu, 24 May 2018 11:36:03 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180507140513.5d71664b@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:50421 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755133AbeEHOae (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 10:30:34 -0400
+Message-ID: <1525789823.18091.11.camel@pengutronix.de>
+Subject: Re: [PATCH v3 07/14] media: dt-bindings: add bindings for i.MX7
+ media driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>
+Date: Tue, 08 May 2018 16:30:23 +0200
+In-Reply-To: <20180507162152.2545-8-rui.silva@linaro.org>
+References: <20180507162152.2545-1-rui.silva@linaro.org>
+         <20180507162152.2545-8-rui.silva@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/05/18 19:05, Mauro Carvalho Chehab wrote:
-> Em Fri, 4 May 2018 15:43:07 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+On Mon, 2018-05-07 at 17:21 +0100, Rui Miguel Silva wrote:
+> Add bindings documentation for i.MX7 media drivers.
 > 
->> On Thu, May 03, 2018 at 04:52:55PM +0200, Hans Verkuil wrote:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> Add media_request_object_find to find a request object inside a
->>> request based on ops and/or priv values.
->>>
->>> Objects of the same type (vb2 buffer, control handler) will have
->>> the same ops value. And objects that refer to the same 'parent'
->>> object (e.g. the v4l2_ctrl_handler that has the current driver
->>> state) will have the same priv value.
->>>
->>> The caller has to call media_request_object_put() for the returned
->>> object since this function increments the refcount.
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> ---
->>>  drivers/media/media-request.c | 25 +++++++++++++++++++++++++
->>>  include/media/media-request.h | 24 ++++++++++++++++++++++++
->>>  2 files changed, 49 insertions(+)
->>>
->>> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
->>> index edc1c3af1959..c7e11e816e27 100644
->>> --- a/drivers/media/media-request.c
->>> +++ b/drivers/media/media-request.c
->>> @@ -322,6 +322,31 @@ static void media_request_object_release(struct kref *kref)
->>>  	obj->ops->release(obj);
->>>  }
->>>  
->>> +struct media_request_object *
->>> +media_request_object_find(struct media_request *req,
->>> +			  const struct media_request_object_ops *ops,
->>> +			  void *priv)
->>> +{
->>> +	struct media_request_object *obj;
->>> +	struct media_request_object *found = NULL;
->>> +	unsigned long flags;
->>> +
->>> +	if (WARN_ON(!ops || !priv))
->>> +		return NULL;
->>> +
->>> +	spin_lock_irqsave(&req->lock, flags);
->>> +	list_for_each_entry(obj, &req->objects, list) {
->>> +		if (obj->ops == ops && obj->priv == priv) {
->>> +			media_request_object_get(obj);
->>> +			found = obj;
->>> +			break;
->>> +		}
->>> +	}
->>> +	spin_unlock_irqrestore(&req->lock, flags);
->>> +	return found;
->>> +}
->>> +EXPORT_SYMBOL_GPL(media_request_object_find);
->>> +
->>>  void media_request_object_put(struct media_request_object *obj)
->>>  {
->>>  	kref_put(&obj->kref, media_request_object_release);
->>> diff --git a/include/media/media-request.h b/include/media/media-request.h
->>> index 997e096d7128..5367b4a2f91c 100644
->>> --- a/include/media/media-request.h
->>> +++ b/include/media/media-request.h
->>> @@ -196,6 +196,22 @@ static inline void media_request_object_get(struct media_request_object *obj)
->>>   */
->>>  void media_request_object_put(struct media_request_object *obj);
->>>  
->>> +/**
->>> + * media_request_object_find - Find an object in a request
->>> + *
->>> + * @ops: Find an object with this ops value
->>> + * @priv: Find an object with this priv value
->>> + *
->>> + * Both @ops and @priv must be non-NULL.
->>> + *
->>> + * Returns NULL if not found or the object pointer. The caller must  
->>
->> I'd describe the successful case first. I.e. "Returns the object pointer or
->> NULL it not found".
+> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+> ---
+>  .../devicetree/bindings/media/imx7.txt        | 152 ++++++++++++++++++
+>  1 file changed, 152 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/imx7.txt
 > 
-> It would be good to also tell that this routine internally uses the
-> spin lock.
+> diff --git a/Documentation/devicetree/bindings/media/imx7.txt b/Documentation/devicetree/bindings/media/imx7.txt
+> new file mode 100644
+> index 000000000000..06d723d6354d
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/imx7.txt
+> @@ -0,0 +1,152 @@
+> +Freescale i.MX7 Media Video Device
+> +==================================
+> +
+> +Video Media Controller node
+> +---------------------------
+> +
+> +This is the media controller node for video capture support. It is a
+> +virtual device that lists the camera serial interface nodes that the
+> +media device will control.
+> +
+> +Required properties:
+> +- compatible : "fsl,imx7-capture-subsystem";
+> +- ports      : Should contain a list of phandles pointing to camera
+> +		sensor interface port of CSI
+> +
+> +example:
+> +
+> +capture-subsystem {
+> +	compatible = "fsl,imx7-capture-subsystem";
+> +	ports = <&csi>;
+> +};
 
-Done.
+Purely from a device tree perspective, I think this node is unnecessary
+on i.MX7. The reason we have it for i.MX6 is that there are two
+identical IPUs on some of them, which makes it impossible to reasonably
+bind the subsystem driver to one or the other of the ipu nodes. On i.MX7
+the csi node is unique.
 
-Regards,
+The relevant imx-media-dev.c code in imx_media_probe could be refactored
+into a utility function that could be called from the probe function of
+the csi driver as well.
 
-	Hans
+[...]
+> +csi node
+> +--------
+> +
+> +This is device node for the CMOS Sensor Interface (CSI) which enables the chip
+> +to connect directly to external CMOS image sensors.
+> +
+> +Required properties:
+> +
+> +- compatible    : "fsl,imx7-csi";
+> +- reg           : base address and length of the register set for the device;
+> +- interrupts    : should contain CSI interrupt;
+> +- clocks        : list of clock specifiers, see
+> +        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
+> +- clock-names   : must contain "axi", "mclk" and "dcic" entries, matching
+> +                 entries in the clock property;
+> +
+> +port node
+> +---------
+> +
+> +- reg		  : (required) should be 0 for the sink port;
 
-> 
->>
->> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>
->>> + * call media_request_object_put() once it finished using the object.
->>> + */
->>> +struct media_request_object *
->>> +media_request_object_find(struct media_request *req,
->>> +			  const struct media_request_object_ops *ops,
->>> +			  void *priv);
->>> +
->>>  /**
->>>   * media_request_object_init - Initialise a media request object
->>>   *
->>> @@ -241,6 +257,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
->>>  {
->>>  }
->>>  
->>> +static inline struct media_request_object *
->>> +media_request_object_find(struct media_request *req,
->>> +			  const struct media_request_object_ops *ops,
->>> +			  void *priv)
->>> +{
->>> +	return NULL;
->>> +}
->>> +
->>>  static inline void media_request_object_init(struct media_request_object *obj)
->>>  {
->>>  	obj->ops = NULL;  
->>
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+Not necessary, see below.
+
+> +
+> +example:
+> +
+> +                csi: csi@30710000 {
+> +                        #address-cells = <1>;
+> +                        #size-cells = <0>;
+> +
+> +                        compatible = "fsl,imx7-csi";
+> +                        reg = <0x30710000 0x10000>;
+> +                        interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
+> +                        clocks = <&clks IMX7D_CLK_DUMMY>,
+> +                                        <&clks IMX7D_CSI_MCLK_ROOT_CLK>,
+> +                                        <&clks IMX7D_CLK_DUMMY>;
+> +                        clock-names = "axi", "mclk", "dcic";
+> +
+> +                        port@0 {
+> +                                reg = <0>;
+
+Since there is only one port, it does not need to be numbered.
+
+> +
+> +                                csi_from_csi_mux: endpoint {
+> +                                        remote-endpoint = <&csi_mux_to_csi>;
+> +                                };
+> +                        };
+> +                };
+
+regards
+Philipp
