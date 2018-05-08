@@ -1,79 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:58171 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755283AbeEaOTM (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45960 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754659AbeEHJGT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 10:19:12 -0400
-Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras
- on generic apps
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        LMML <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20180517160708.74811cfb@vento.lan>
- <20180528104351.5cf52a24@vento.lan> <20180531102212.41a8848e@vento.lan>
- <f2b70cc5-d7b8-1462-969c-a0557c778801@xs4all.nl>
-Message-ID: <8f75d52e-851f-df50-7046-6d858d09c8a8@xs4all.nl>
-Date: Thu, 31 May 2018 16:19:07 +0200
+        Tue, 8 May 2018 05:06:19 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 494D6634C4E
+        for <linux-media@vger.kernel.org>; Tue,  8 May 2018 12:06:17 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1fFyZc-0003mn-W7
+        for linux-media@vger.kernel.org; Tue, 08 May 2018 12:06:16 +0300
+Date: Tue, 8 May 2018 12:06:16 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.18] Omap3isp fixes
+Message-ID: <20180508090616.recvrhbp3t5y56jb@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <f2b70cc5-d7b8-1462-969c-a0557c778801@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/31/18 15:58, Hans Verkuil wrote:
-> On 05/31/18 15:22, Mauro Carvalho Chehab wrote:
->> Em Mon, 28 May 2018 10:43:51 -0300
->> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
->>
->>> Em Thu, 17 May 2018 16:07:08 -0300
->>> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
->>>
->>>> Hi all,
->>>>
->>>> The goal of this e-mail is to schedule a meeting in order to discuss
->>>> improvements at the media subsystem in order to support complex camera
->>>> hardware by usual apps.
->>>>
->>>> The main focus here is to allow supporting devices with MC-based
->>>> hardware connected to a camera.
->>>>
->>>> In short, my proposal is to meet with the interested parties on solving
->>>> this issue during the Open Source Summit in Japan, e. g. between
->>>> June, 19-22, in Tokyo.  
->>>
->>> Let's schedule the meeting to happen in Tokyo, Japan at June, 19.
->>>
->>> Location yet to be defined, but it will either be together with
->>> OSS Japan or at Google. I'll confirm the address tomorrow.
->>
->> More details about the meeting:
->>
->> Date: June, 19
->> Site: Google
->> Address: 〒106-6126 Tokyo, Minato, Roppongi, 6 Chome−10−1 Roppongi Hills Mori Tower 44F
->>
->> Please confirm who will be attending the meeting.
-> 
-> I plan to attend the meeting via Google Hangouts.
+Hi Mauro,
 
-Well, the afternoon part of the meeting at least :-)
+Here are some fixes for the omap3isp driver.
 
-Regards,
+Please pull.
 
-	Hans
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> Hoping to see you there.
->>
->> Thanks and regards!
->> Mauro
->>
-> 
+The following changes since commit f10379aad39e9da8bc7d1822e251b5f0673067ef:
+
+  media: include/video/omapfb_dss.h: use IS_ENABLED() (2018-05-05 11:45:51 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git omap3isp
+
+for you to fetch changes up to 68578cecbfd0909a6c2547578446da95537498c9:
+
+  omap3isp: Don't use GFP_DMA (2018-05-07 16:25:03 +0300)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      omap3isp: support 64-bit version of omap3isp_stat_data
+
+Sakari Ailus (2):
+      omap3isp: Remove useless NULL check in omap3isp_stat_config
+      omap3isp: Don't use GFP_DMA
+
+ drivers/media/platform/omap3isp/isph3a_aewb.c |  2 ++
+ drivers/media/platform/omap3isp/isph3a_af.c   |  2 ++
+ drivers/media/platform/omap3isp/isphist.c     |  2 ++
+ drivers/media/platform/omap3isp/ispstat.c     | 29 ++++++++++++++++++---------
+ drivers/media/platform/omap3isp/ispstat.h     |  4 +++-
+ include/uapi/linux/omap3isp.h                 | 22 ++++++++++++++++++++
+ 6 files changed, 51 insertions(+), 10 deletions(-)
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
