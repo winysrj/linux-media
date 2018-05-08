@@ -1,49 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:41492 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751472AbeETGum (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 May 2018 02:50:42 -0400
-From: Wolfram Sang <wsa@the-dreams.de>
-To: linux-i2c@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-        Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/7] media: netup_unidvb: don't check number of messages in the driver
-Date: Sun, 20 May 2018 08:50:32 +0200
-Message-Id: <20180520065039.7989-2-wsa@the-dreams.de>
-In-Reply-To: <20180520065039.7989-1-wsa@the-dreams.de>
-References: <20180520065039.7989-1-wsa@the-dreams.de>
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44807 "EHLO
+        homiemail-a116.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755941AbeEHVU0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 May 2018 17:20:26 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mspieth@digivation.com.au
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 2/5] cx23885: Use PCI and TS masks in irq functions
+Date: Tue,  8 May 2018 16:20:17 -0500
+Message-Id: <1525814420-25243-3-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1525814420-25243-1-git-send-email-brad@nextdimension.cc>
+References: <1525814420-25243-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit 1eace8344c02 ("i2c: add param sanity check to
-i2c_transfer()"), the I2C core does this check now. We can remove it
-from drivers.
+Currently mask is read for pci_status/ts1_status/ts2_status, but
+otherwise ignored. The masks are now used to determine whether
+action is warranted.
 
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
+ drivers/media/pci/cx23885/cx23885-core.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-Only build tested.
-
- drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c | 5 -----
- 1 file changed, 5 deletions(-)
-
-diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c b/drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c
-index b13e319d24b7..5f1613aec93c 100644
---- a/drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c
-+++ b/drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c
-@@ -214,11 +214,6 @@ static int netup_i2c_xfer(struct i2c_adapter *adap,
- 	struct netup_i2c *i2c = i2c_get_adapdata(adap);
- 	u16 reg;
+diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
+index b279758..3f55319 100644
+--- a/drivers/media/pci/cx23885/cx23885-core.c
++++ b/drivers/media/pci/cx23885/cx23885-core.c
+@@ -1704,6 +1704,12 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
  
--	if (num <= 0) {
--		dev_dbg(i2c->adap.dev.parent,
--			"%s(): num == %d\n", __func__, num);
--		return -EINVAL;
--	}
- 	spin_lock_irqsave(&i2c->lock, flags);
- 	if (i2c->state != STATE_DONE) {
- 		dev_dbg(i2c->adap.dev.parent,
+ 	pci_status = cx_read(PCI_INT_STAT);
+ 	pci_mask = cx23885_irq_get_mask(dev);
++	if ((pci_status & pci_mask) == 0) {
++		dprintk(7, "pci_status: 0x%08x  pci_mask: 0x%08x\n",
++			pci_status, pci_mask);
++		goto out;
++	}
++
+ 	vida_status = cx_read(VID_A_INT_STAT);
+ 	vida_mask = cx_read(VID_A_INT_MSK);
+ 	audint_status = cx_read(AUDIO_INT_INT_STAT);
+@@ -1713,7 +1719,9 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
+ 	ts2_status = cx_read(VID_C_INT_STAT);
+ 	ts2_mask = cx_read(VID_C_INT_MSK);
+ 
+-	if ((pci_status == 0) && (ts2_status == 0) && (ts1_status == 0))
++	if (((pci_status & pci_mask) == 0) &&
++		((ts2_status & ts2_mask) == 0) &&
++		((ts1_status & ts1_mask) == 0))
+ 		goto out;
+ 
+ 	vida_count = cx_read(VID_A_GPCNT);
+@@ -1840,7 +1848,7 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
+ 	}
+ 
+ 	if (handled)
+-		cx_write(PCI_INT_STAT, pci_status);
++		cx_write(PCI_INT_STAT, pci_status & pci_mask);
+ out:
+ 	return IRQ_RETVAL(handled);
+ }
 -- 
-2.11.0
+2.7.4
