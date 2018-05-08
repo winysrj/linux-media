@@ -1,57 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59476 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751416AbeECIow (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 04:44:52 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 11/11] drm: rcar-du: Support interlaced video output through vsp1
-Date: Thu,  3 May 2018 09:44:22 +0100
-Message-Id: <2ceb322df5029f641ca33f8b9e65d53cefac02f5.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.a15c17beeb074afaf226d19ff3c4fdba2f647500.1525336865.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44807 "EHLO
+        homiemail-a116.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755966AbeEHVU1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 May 2018 17:20:27 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mspieth@digivation.com.au
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 4/5] cx23885: Expand registers in dma tsport reg dump
+Date: Tue,  8 May 2018 16:20:19 -0500
+Message-Id: <1525814420-25243-5-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1525814420-25243-1-git-send-email-brad@nextdimension.cc>
+References: <1525814420-25243-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the newly exposed VSP1 interface to enable interlaced frame support
-through the VSP1 lif pipelines.
+Include some additional useful registers in the output.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 1 +
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 3 +++
- 2 files changed, 4 insertions(+)
+ drivers/media/pci/cx23885/cx23885-core.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-index d71d709fe3d9..206532959ec9 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-@@ -289,6 +289,7 @@ static void rcar_du_crtc_set_display_timing(struct rcar_du_crtc *rcrtc)
- 	/* Signal polarities */
- 	value = ((mode->flags & DRM_MODE_FLAG_PVSYNC) ? DSMR_VSL : 0)
- 	      | ((mode->flags & DRM_MODE_FLAG_PHSYNC) ? DSMR_HSL : 0)
-+	      | ((mode->flags & DRM_MODE_FLAG_INTERLACE) ? DSMR_ODEV : 0)
- 	      | DSMR_DIPM_DISP | DSMR_CSPM;
- 	rcar_du_crtc_write(rcrtc, DSMR, value);
+diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
+index 20a1fd2..1150160 100644
+--- a/drivers/media/pci/cx23885/cx23885-core.c
++++ b/drivers/media/pci/cx23885/cx23885-core.c
+@@ -1369,6 +1369,18 @@ static void cx23885_tsport_reg_dump(struct cx23885_tsport *port)
+ 		port->reg_ts_clk_en, cx_read(port->reg_ts_clk_en));
+ 	dprintk(1, "%s() ts_int_msk(0x%08X)     0x%08x\n", __func__,
+ 		port->reg_ts_int_msk, cx_read(port->reg_ts_int_msk));
++	dprintk(1, "%s() ts_int_status(0x%08X)  0x%08x\n", __func__,
++		port->reg_ts_int_stat, cx_read(port->reg_ts_int_stat));
++	dprintk(1, "%s() PCI_INT_STAT           0x%08X\n", __func__,
++		cx_read(PCI_INT_STAT));
++	dprintk(1, "%s() VID_B_INT_MSTAT        0x%08X\n", __func__,
++		cx_read(VID_B_INT_MSTAT));
++	dprintk(1, "%s() VID_B_INT_SSTAT        0x%08X\n", __func__,
++		cx_read(VID_B_INT_SSTAT));
++	dprintk(1, "%s() VID_C_INT_MSTAT        0x%08X\n", __func__,
++		cx_read(VID_C_INT_MSTAT));
++	dprintk(1, "%s() VID_C_INT_SSTAT        0x%08X\n", __func__,
++		cx_read(VID_C_INT_SSTAT));
+ }
  
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-index af7822a66dee..c7b37232ee91 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-@@ -186,6 +186,9 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
- 	};
- 	unsigned int i;
- 
-+	cfg.interlaced = !!(plane->plane.state->crtc->mode.flags
-+			    & DRM_MODE_FLAG_INTERLACE);
-+
- 	cfg.src.left = state->state.src.x1 >> 16;
- 	cfg.src.top = state->state.src.y1 >> 16;
- 	cfg.src.width = drm_rect_width(&state->state.src) >> 16;
+ int cx23885_start_dma(struct cx23885_tsport *port,
 -- 
-git-series 0.9.1
+2.7.4
