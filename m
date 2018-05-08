@@ -1,90 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:43866 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751319AbeEQIyK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 04:54:10 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v3 06/12] media: ov5640: Compute the clock rate at runtime
-Date: Thu, 17 May 2018 10:53:59 +0200
-Message-Id: <20180517085405.10104-7-maxime.ripard@bootlin.com>
-In-Reply-To: <20180517085405.10104-1-maxime.ripard@bootlin.com>
-References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:52684 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754363AbeEHHtN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 May 2018 03:49:13 -0400
+Subject: Re: [PATCHv13 09/28] v4l2-ctrls: prepare internal structs for request
+ API
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+ <20180503145318.128315-10-hverkuil@xs4all.nl>
+ <20180507143512.3688897b@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <64b7f316-dd03-dc9c-0a37-15194c503b31@xs4all.nl>
+Date: Tue, 8 May 2018 09:49:09 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180507143512.3688897b@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The clock rate, while hardcoded until now, is actually a function of the
-resolution, framerate and bytes per pixel. Now that we have an algorithm to
-adjust our clock rate, we can select it dynamically when we change the
-mode.
+On 05/07/2018 07:35 PM, Mauro Carvalho Chehab wrote:
+> Em Thu,  3 May 2018 16:52:59 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Embed and initialize a media_request_object in struct v4l2_ctrl_handler.
+>>
+>> Add a p_req field to struct v4l2_ctrl_ref that will store the
+>> request value.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-ctrls.c | 1 +
+>>  include/media/v4l2-ctrls.h           | 7 +++++++
+>>  2 files changed, 8 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index aa1dd2015e84..d09f49530d9e 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -1880,6 +1880,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
+>>  				      sizeof(hdl->buckets[0]),
+>>  				      GFP_KERNEL | __GFP_ZERO);
+>>  	hdl->error = hdl->buckets ? 0 : -ENOMEM;
+>> +	media_request_object_init(&hdl->req_obj);
+>>  	return hdl->error;
+>>  }
+>>  EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
+>> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+>> index d26b8ddebb56..76352eb59f14 100644
+>> --- a/include/media/v4l2-ctrls.h
+>> +++ b/include/media/v4l2-ctrls.h
+>> @@ -20,6 +20,7 @@
+>>  #include <linux/list.h>
+>>  #include <linux/mutex.h>
+>>  #include <linux/videodev2.h>
+>> +#include <media/media-request.h>
+>>  
+>>  /* forward references */
+>>  struct file;
+>> @@ -249,6 +250,8 @@ struct v4l2_ctrl {
+>>   *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+>>   * @from_other_dev: If true, then @ctrl was defined in another
+>>   *		device than the &struct v4l2_ctrl_handler.
+>> + * @p_req:	The request value. Only used if the control handler
+>> + *		is bound to a media request.
+> 
+> Could you please better elaborate the description of this field?
+> 
+> I read this patch dozen times to understand what you meant by
+> "request value", as I would be expecting here a "media_request_"
+> object or something similar. Instead, what you meant to say is that
+> @p_req will be used to cache the data passed via a request API call,
+> while the request is not handled yet, right?
 
-This changes a bit the clock rate being used, with the following effect:
+The control handler has the request object. If the control handler is
+part of a request, then the values of the controls that are owned by that
+control handler are stored in p_req. When the request has been completed
+p_req will contain the value at completion time.
 
-+------+------+------+------+-----+-----------------+----------------+-----------+
-| Hact | Vact | Htot | Vtot | FPS | Hardcoded clock | Computed clock | Deviation |
-+------+------+------+------+-----+-----------------+----------------+-----------+
-|  640 |  480 | 1896 | 1080 |  15 |        56000000 |       61430400 | 8.84 %    |
-|  640 |  480 | 1896 | 1080 |  30 |       112000000 |      122860800 | 8.84 %    |
-| 1024 |  768 | 1896 | 1080 |  15 |        56000000 |       61430400 | 8.84 %    |
-| 1024 |  768 | 1896 | 1080 |  30 |       112000000 |      122860800 | 8.84 %    |
-|  320 |  240 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
-|  320 |  240 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
-|  176 |  144 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
-|  176 |  144 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
-|  720 |  480 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
-|  720 |  480 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
-|  720 |  576 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
-|  720 |  576 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
-| 1280 |  720 | 1892 |  740 |  15 |        42000000 |       42002400 | 0.01 %    |
-| 1280 |  720 | 1892 |  740 |  30 |        84000000 |       84004800 | 0.01 %    |
-| 1920 | 1080 | 2500 | 1120 |  15 |        84000000 |       84000000 | 0.00 %    |
-| 1920 | 1080 | 2500 | 1120 |  30 |       168000000 |      168000000 | 0.00 %    |
-| 2592 | 1944 | 2844 | 1944 |  15 |        84000000 |      165862080 | 49.36 %   |
-+------+------+------+------+-----+-----------------+----------------+-----------+
+I'll improve the documentation.
 
-Only the 640x480, 1024x768 and 2592x1944 modes are significantly affected
-by the new formula.
+> 
+> 
+>>   *
+>>   * Each control handler has a list of these refs. The list_head is used to
+>>   * keep a sorted-by-control-ID list of all controls, while the next pointer
+>> @@ -260,6 +263,7 @@ struct v4l2_ctrl_ref {
+>>  	struct v4l2_ctrl *ctrl;
+>>  	struct v4l2_ctrl_helper *helper;
+>>  	bool from_other_dev;
+>> +	union v4l2_ctrl_ptr p_req;
+>>  };
+>>  
+>>  /**
+>> @@ -283,6 +287,8 @@ struct v4l2_ctrl_ref {
+>>   * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
+>>   * @nr_of_buckets: Total number of buckets in the array.
+>>   * @error:	The error code of the first failed control addition.
+>> + * @req_obj:	The &struct media_request_object, used to link into a
+>> + *		&struct media_request.
+> 
+> I would document that there is kref is inside @req_obj, as we can't
+> add another kref here later.
 
-In this case, 640x480 and 1024x768 are actually fixed by this change.
-Indeed, the sensor was sending data at, for example, 27.33fps instead of
-30fps. This is -9%, which is roughly what we're seeing in the array.
-Testing these modes with the new clock setup actually fix that error, and
-data are now sent at around 30fps.
+OK.
 
-2592x1944, on the other hand, is probably due to the fact that this mode
-can only be used using MIPI-CSI2, in a two lane mode, and never really
-tested with a DVP bus.
+Regards,
 
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
----
- drivers/media/i2c/ov5640.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+	Hans
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 77864a1a5eb0..e9bd0aa55409 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1886,7 +1886,8 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
- 	 * which is 8 bits per pixel.
- 	 */
- 	bpp = sensor->fmt.code == MEDIA_BUS_FMT_JPEG_1X8 ? 8 : 16;
--	rate = mode->pixel_clock * bpp;
-+	rate = mode->vtot * mode->htot * bpp;
-+	rate *= ov5640_framerates[sensor->current_fr];
- 	if (sensor->ep.bus_type == V4L2_MBUS_CSI2) {
- 		rate = rate / sensor->ep.bus.mipi_csi2.num_data_lanes;
- 		ret = ov5640_set_mipi_pclk(sensor, rate);
--- 
-2.17.0
+> 
+>>   */
+>>  struct v4l2_ctrl_handler {
+>>  	struct mutex _lock;
+>> @@ -295,6 +301,7 @@ struct v4l2_ctrl_handler {
+>>  	void *notify_priv;
+>>  	u16 nr_of_buckets;
+>>  	int error;
+>> +	struct media_request_object req_obj;
+>>  };
+>>  
+>>  /**
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
