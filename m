@@ -1,131 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57537 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751993AbeECDr5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 May 2018 23:47:57 -0400
-Message-ID: <75d203fecd12a0037326837ae37f1f5b@smtp-cloud7.xs4all.net>
-Date: Thu, 03 May 2018 05:47:55 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from merlin.infradead.org ([205.233.59.134]:46130 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754148AbeEHW4V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 18:56:21 -0400
+Subject: Re: [PATCH] media: include/video/omapfb_dss.h: use IS_ENABLED()
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+        tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+References: <201805050150.CmagcMOg%fengguang.wu@intel.com>
+ <8d55f45b6aa36f5c758d191825f14cd31723b371.1525466956.git.mchehab+samsung@kernel.org>
+ <a2d8c62a-0030-af35-5a0d-0090fccc6ed5@infradead.org>
+ <20180505181447.2ba0ca3f@vento.lan>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <0789b035-0e0f-0665-bd0b-3a7aae6fe9f7@infradead.org>
+Date: Tue, 8 May 2018 15:56:12 -0700
+MIME-Version: 1.0
+In-Reply-To: <20180505181447.2ba0ca3f@vento.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 05/05/2018 02:14 PM, Mauro Carvalho Chehab wrote:
+> Em Sat, 5 May 2018 10:59:23 -0700
+> Randy Dunlap <rdunlap@infradead.org> escreveu:
+> 
+>> On 05/04/2018 01:49 PM, Mauro Carvalho Chehab wrote:
+>>> Just checking for ifdefs cause build issues as reported by
+>>> kernel test:
+>>>
+>>> config: openrisc-allmodconfig (attached as .config)
+>>> compiler: or1k-linux-gcc (GCC) 6.0.0 20160327 (experimental)
+>>>
+>>> All errors (new ones prefixed by >>):
+>>>
+>>>    drivers/video/fbdev/omap2/omapfb/omapfb-main.c: In function 'omapfb_init_connections':  
+>>>>> drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2396:8: error: implicit declaration of function 'omapdss_find_mgr_from_display' [-Werror=implicit-function-declaration]  
+>>>      mgr = omapdss_find_mgr_from_display(def_dssdev);
+>>>            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>>    drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2396:6: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+>>>      mgr = omapdss_find_mgr_from_display(def_dssdev);
+>>>          ^
+>>>    drivers/video/fbdev/omap2/omapfb/omapfb-main.c: In function 'omapfb_find_default_display':  
+>>>>> drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2430:13: error: implicit declaration of function 'omapdss_get_default_display_name' [-Werror=implicit-function-declaration]  
+>>>      def_name = omapdss_get_default_display_name();
+>>>                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>>    drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2430:11: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+>>>      def_name = omapdss_get_default_display_name();
+>>>               ^
+>>>
+>>> So, use IS_ENABLED() instead.  
+>>
+>> Hi,
+>>
+>> I would like to test this (the change doesn't make much sense to me),
+>> but I cannot find the kernel config file nor the kernel test robot's
+>> email of this report.
+>>
+>> Please include an lkml.kernel.org/r/<message_id> reference to such emails
+>> so that interested parties can join the party.
+> 
+> The message was not c/c to lkml. You can see the original here:
+> 
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg130809.html
+> 
+> 
+>>
+>> Does this patch apply only to your media tree?  so hopefully I can see it in
+>> linux-next on Monday.
+> 
+> Yes, as it is over another two patches applied there.
+> 
+> If you want to test it earlier, it is in the top of the master branch:
+> 	https://git.linuxtv.org/media_tree.git
+> 
+>>
+>> Thanks.
+>>
+>>> Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+>>> Cc: Randy Dunlap <rdunlap@infradead.org>
+>>> Cc: tomi.valkeinen@ti.com
+>>> Cc: linux-omap@vger.kernel.org
+>>> Cc: linux-fbdev@vger.kernel.org
+>>> Fixes: 771f7be87ff9 ("media: omapfb: omapfb_dss.h: add stubs to build with COMPILE_TEST && DRM_OMAP")
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+>>> ---
+>>>  include/video/omapfb_dss.h | 2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/include/video/omapfb_dss.h b/include/video/omapfb_dss.h
+>>> index e9775144ff3b..12755d8d9b4f 100644
+>>> --- a/include/video/omapfb_dss.h
+>>> +++ b/include/video/omapfb_dss.h
+>>> @@ -778,7 +778,7 @@ struct omap_dss_driver {
+>>>  
+>>>  typedef void (*omap_dispc_isr_t) (void *arg, u32 mask);
+>>>  
+>>> -#ifdef CONFIG_FB_OMAP2
+>>> +#if IS_ENABLED(CONFIG_FB_OMAP2)
+>>>  
+>>>  enum omapdss_version omapdss_get_version(void);
+>>>  bool omapdss_is_initialized(void);
 
-Results of the daily build of media_tree:
+The patch doesn't make any sense to me.  I would like to see an
+explanation of why this is needed, other than "it fixes the build." ;)
 
-date:			Thu May  3 05:00:11 CEST 2018
-media-tree git hash:	a2b2eff6ac2716f499defa590a6ec4ba379d765e
-media_build git hash:	2945d108c680b3c09c9843e001e84a9797d7f379
-v4l-utils git hash:	03e763fd4b361b2082019032fc315b7606669335
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
+But it does fix the build, so:
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+thanks,
+-- 
+~Randy
