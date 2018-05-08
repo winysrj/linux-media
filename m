@@ -1,314 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:56625 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753749AbeEAJA4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 05:00:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv12 PATCH 13/29] v4l2-ctrls: support g/s_ext_ctrls for requests
-Date: Tue,  1 May 2018 11:00:35 +0200
-Message-Id: <20180501090051.9321-14-hverkuil@xs4all.nl>
-In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:33818 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752954AbeEHAIy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 20:08:54 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180507213305.kfxabgkdvf7xwt7m@valkosipuli.retiisi.org.uk>
+References: <20180425213044.1535393-1-arnd@arndb.de> <2922276.lKgGZtlCEW@avalon>
+ <20180507131906.rdvcmvim5gvi5odk@valkosipuli.retiisi.org.uk>
+ <CAK8P3a2+Xi8VF7B40zev1CT55HCNE92+MsPEiaGj7tOXEV57dg@mail.gmail.com> <20180507213305.kfxabgkdvf7xwt7m@valkosipuli.retiisi.org.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 7 May 2018 20:08:53 -0400
+Message-ID: <CAK8P3a3k5VMmZWuqqgCRTTgE4Ffct_reVJi5Tt8hkvTUUaDFow@mail.gmail.com>
+Subject: Re: [PATCH] [RESEND] [media] omap3isp: support 64-bit version of omap3isp_stat_data
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, May 7, 2018 at 5:33 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> On Mon, May 07, 2018 at 04:36:45PM -0400, Arnd Bergmann wrote:
+>> On Mon, May 7, 2018 at 9:19 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>> > On Mon, May 07, 2018 at 04:17:32PM +0300, Laurent Pinchart wrote:
+>> >> On Thursday, 26 April 2018 00:30:10 EEST Arnd Bergmann wrote:
+>> >> > +int omap3isp_stat_request_statistics_time32(struct ispstat *stat,
+>> >> > +                                   struct omap3isp_stat_data_time32 *data)
+>> >> > +{
+>> >> > +   struct omap3isp_stat_data data64;
+>> >> > +   int ret;
+>> >> > +
+>> >> > +   ret = omap3isp_stat_request_statistics(stat, &data64);
+>> >> > +
+>> >> > +   data->ts.tv_sec = data64.ts.tv_sec;
+>> >> > +   data->ts.tv_usec = data64.ts.tv_usec;
+>> >> > +   memcpy(&data->buf, &data64.buf, sizeof(*data) - sizeof(data->ts));
+>> >> > +
+>> >> > +   return ret;
+>> >>
+>> >> We could return immediately after omap3isp_stat_request_statistics() if the
+>> >> function fails, but that's no big deal, the error path is clearly a cold path.
+>>
+>> I looked at it again and briefly thought that it would leak kernel stack
+>> data in my version and changing it would be required to avoid that,
+>> but I do see now that the absence of the INFO_FL_ALWAYS_COPY
+>> flag makes it safe after all.
+>>
+>> I agree that returning early here would be nicer here, I'll leave it up to
+>> Sakari to fold in that change if he likes.
+>
+> I agree with the change; actually the data64 struct will be left untouched
+> if there's an error so changing this doesn't seem to make a difference.
+> Private IOCTLs have always_copy == false, so the argument struct isn't
+> copied back to the kernel.
+>
+> The diff is here. Let me know if something went wrong...
+>
+> diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+> index dfee8eaf2226..47353fee26c3 100644
+> --- a/drivers/media/platform/omap3isp/ispstat.c
+> +++ b/drivers/media/platform/omap3isp/ispstat.c
+> @@ -519,12 +519,14 @@ int omap3isp_stat_request_statistics_time32(struct ispstat *stat,
+>         int ret;
+>
+>         ret = omap3isp_stat_request_statistics(stat, &data64);
+> +       if (ret)
+> +               return ret;
+>
+>         data->ts.tv_sec = data64.ts.tv_sec;
+>         data->ts.tv_usec = data64.ts.tv_usec;
+>         memcpy(&data->buf, &data64.buf, sizeof(*data) - sizeof(data->ts));
+>
+> -       return ret;
+> +       return 0;
+>  }
 
-The v4l2_g/s_ext_ctrls functions now support control handlers that
-represent requests.
+Yes, that's exactly what I had in mind. Thanks for fixing it up!
 
-The v4l2_ctrls_find_req_obj() function is responsible for finding the
-request from the fd.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/omap3isp/ispvideo.c |   2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c       | 113 +++++++++++++++++++--
- drivers/media/v4l2-core/v4l2-ioctl.c       |  12 +--
- drivers/media/v4l2-core/v4l2-subdev.c      |   9 +-
- include/media/v4l2-ctrls.h                 |   7 +-
- 5 files changed, 124 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index a751c89a3ea8..bd564c2e767f 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -1028,7 +1028,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
- 	ctrls.count = 1;
- 	ctrls.controls = &ctrl;
- 
--	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
-+	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, NULL, &ctrls);
- 	if (ret < 0) {
- 		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
- 			 pipe->external->name);
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 27279cb19f61..ec15255dbc0e 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -3134,7 +3134,8 @@ static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
- }
- 
- /* Get extended controls. Allocates the helpers array if needed. */
--int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
-+int __v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-+		       struct v4l2_ext_controls *cs)
- {
- 	struct v4l2_ctrl_helper helper[4];
- 	struct v4l2_ctrl_helper *helpers = helper;
-@@ -3214,6 +3215,73 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 		kvfree(helpers);
- 	return ret;
- }
-+
-+static struct media_request_object *
-+v4l2_ctrls_find_req_obj(struct v4l2_ctrl_handler *hdl,
-+			struct media_device *mdev, s32 fd, bool set)
-+{
-+	struct media_request *req = media_request_find(mdev, fd);
-+	struct media_request_object *obj;
-+	struct v4l2_ctrl_handler *new_hdl;
-+	int ret;
-+
-+	if (IS_ERR(req))
-+		return ERR_CAST(req);
-+
-+	if (set && atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE) {
-+		media_request_put(req);
-+		return ERR_PTR(-EBUSY);
-+	}
-+
-+	obj = media_request_object_find(req, &req_ops, hdl);
-+	if (obj) {
-+		media_request_put(req);
-+		return obj;
-+	}
-+
-+	new_hdl = kzalloc(sizeof(*new_hdl), GFP_KERNEL);
-+	if (!new_hdl) {
-+		ret = -ENOMEM;
-+		goto put;
-+	}
-+	obj = &new_hdl->req_obj;
-+	ret = v4l2_ctrl_handler_init(new_hdl, (hdl->nr_of_buckets - 1) * 8);
-+	if (!ret)
-+		ret = v4l2_ctrl_request_bind(req, new_hdl, hdl);
-+	if (!ret) {
-+		media_request_object_get(obj);
-+		media_request_put(req);
-+		return obj;
-+	}
-+	kfree(new_hdl);
-+
-+put:
-+	media_request_put(req);
-+	return ERR_PTR(ret);
-+}
-+
-+int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-+		     struct v4l2_ext_controls *cs)
-+{
-+	struct media_request_object *obj = NULL;
-+	int ret;
-+
-+	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
-+		if (!mdev || cs->request_fd < 0)
-+			return -EINVAL;
-+		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, false);
-+		if (IS_ERR(obj))
-+			return PTR_ERR(obj);
-+		hdl = container_of(obj, struct v4l2_ctrl_handler,
-+				   req_obj);
-+	}
-+
-+	ret = __v4l2_g_ext_ctrls(hdl, cs);
-+
-+	if (obj)
-+		media_request_object_put(obj);
-+	return ret;
-+}
- EXPORT_SYMBOL(v4l2_g_ext_ctrls);
- 
- /* Helper function to get a single control */
-@@ -3389,9 +3457,9 @@ static void update_from_auto_cluster(struct v4l2_ctrl *master)
- }
- 
- /* Try or try-and-set controls */
--static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
--			     struct v4l2_ext_controls *cs,
--			     bool set)
-+static int __try_set_ext_ctrls(struct v4l2_fh *fh,
-+			       struct v4l2_ctrl_handler *hdl,
-+			       struct v4l2_ext_controls *cs, bool set)
- {
- 	struct v4l2_ctrl_helper helper[4];
- 	struct v4l2_ctrl_helper *helpers = helper;
-@@ -3504,16 +3572,45 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 	return ret;
- }
- 
--int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
-+static int try_set_ext_ctrls(struct v4l2_fh *fh,
-+			     struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-+			     struct v4l2_ext_controls *cs, bool set)
-+{
-+	struct media_request_object *obj = NULL;
-+	int ret;
-+
-+	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
-+		if (!mdev || cs->request_fd < 0)
-+			return -EINVAL;
-+		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, true);
-+		if (IS_ERR(obj))
-+			return PTR_ERR(obj);
-+		if (atomic_read(&obj->req->state) != MEDIA_REQUEST_STATE_IDLE) {
-+			media_request_object_put(obj);
-+			return -EBUSY;
-+		}
-+		hdl = container_of(obj, struct v4l2_ctrl_handler,
-+				   req_obj);
-+	}
-+
-+	ret = __try_set_ext_ctrls(fh, hdl, cs, set);
-+
-+	if (obj)
-+		media_request_object_put(obj);
-+	return ret;
-+}
-+
-+int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-+		       struct v4l2_ext_controls *cs)
- {
--	return try_set_ext_ctrls(NULL, hdl, cs, false);
-+	return try_set_ext_ctrls(NULL, hdl, mdev, cs, false);
- }
- EXPORT_SYMBOL(v4l2_try_ext_ctrls);
- 
- int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
--					struct v4l2_ext_controls *cs)
-+		     struct media_device *mdev, struct v4l2_ext_controls *cs)
- {
--	return try_set_ext_ctrls(fh, hdl, cs, true);
-+	return try_set_ext_ctrls(fh, hdl, mdev, cs, true);
- }
- EXPORT_SYMBOL(v4l2_s_ext_ctrls);
- 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 9ce23e23c5bf..56741c4a48fc 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2079,9 +2079,9 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 
- 	p->error_idx = p->count;
- 	if (vfh && vfh->ctrl_handler)
--		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
-+		return v4l2_g_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (vfd->ctrl_handler)
--		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
-+		return v4l2_g_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (ops->vidioc_g_ext_ctrls == NULL)
- 		return -ENOTTY;
- 	return check_ext_ctrls(p, 0) ? ops->vidioc_g_ext_ctrls(file, fh, p) :
-@@ -2098,9 +2098,9 @@ static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 
- 	p->error_idx = p->count;
- 	if (vfh && vfh->ctrl_handler)
--		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
-+		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (vfd->ctrl_handler)
--		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, p);
-+		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (ops->vidioc_s_ext_ctrls == NULL)
- 		return -ENOTTY;
- 	return check_ext_ctrls(p, 0) ? ops->vidioc_s_ext_ctrls(file, fh, p) :
-@@ -2117,9 +2117,9 @@ static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 
- 	p->error_idx = p->count;
- 	if (vfh && vfh->ctrl_handler)
--		return v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
-+		return v4l2_try_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (vfd->ctrl_handler)
--		return v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
-+		return v4l2_try_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (ops->vidioc_try_ext_ctrls == NULL)
- 		return -ENOTTY;
- 	return check_ext_ctrls(p, 0) ? ops->vidioc_try_ext_ctrls(file, fh, p) :
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index f9eed938d348..ce8c133e0ccd 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -222,17 +222,20 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_G_EXT_CTRLS:
- 		if (!vfh->ctrl_handler)
- 			return -ENOTTY;
--		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
-+		return v4l2_g_ext_ctrls(vfh->ctrl_handler,
-+					sd->v4l2_dev->mdev, arg);
- 
- 	case VIDIOC_S_EXT_CTRLS:
- 		if (!vfh->ctrl_handler)
- 			return -ENOTTY;
--		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
-+		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler,
-+					sd->v4l2_dev->mdev, arg);
- 
- 	case VIDIOC_TRY_EXT_CTRLS:
- 		if (!vfh->ctrl_handler)
- 			return -ENOTTY;
--		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
-+		return v4l2_try_ext_ctrls(vfh->ctrl_handler,
-+					  sd->v4l2_dev->mdev, arg);
- 
- 	case VIDIOC_DQEVENT:
- 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index a0f7c38d1a90..963c37b02363 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -1148,11 +1148,12 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
-  *	:ref:`VIDIOC_G_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
-  *
-  * @hdl: pointer to &struct v4l2_ctrl_handler
-+ * @mdev: pointer to &struct media_device
-  * @c: pointer to &struct v4l2_ext_controls
-  *
-  * If hdl == NULL then they will all return -EINVAL.
-  */
--int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-+int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
- 		     struct v4l2_ext_controls *c);
- 
- /**
-@@ -1160,11 +1161,13 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-  *	:ref:`VIDIOC_TRY_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
-  *
-  * @hdl: pointer to &struct v4l2_ctrl_handler
-+ * @mdev: pointer to &struct media_device
-  * @c: pointer to &struct v4l2_ext_controls
-  *
-  * If hdl == NULL then they will all return -EINVAL.
-  */
- int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-+		       struct media_device *mdev,
- 		       struct v4l2_ext_controls *c);
- 
- /**
-@@ -1173,11 +1176,13 @@ int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-  *
-  * @fh: pointer to &struct v4l2_fh
-  * @hdl: pointer to &struct v4l2_ctrl_handler
-+ * @mdev: pointer to &struct media_device
-  * @c: pointer to &struct v4l2_ext_controls
-  *
-  * If hdl == NULL then they will all return -EINVAL.
-  */
- int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
-+		     struct media_device *mdev,
- 		     struct v4l2_ext_controls *c);
- 
- /**
--- 
-2.17.0
+      Arnd
