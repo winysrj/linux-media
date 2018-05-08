@@ -1,352 +1,942 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:57059 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S940312AbeE1Qha (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 May 2018 12:37:30 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        sakari.ailus@iki.fi, mchehab@kernel.org,
-        ysato@users.sourceforge.jp, dalias@libc.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/5] media: i2c: rj54n1: Remove soc_camera dependencies
-Date: Mon, 28 May 2018 18:37:08 +0200
-Message-Id: <1527525431-22852-3-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1527525431-22852-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1527525431-22852-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from bombadil.infradead.org ([198.137.202.133]:48396 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754371AbeEHKV1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 06:21:27 -0400
+Date: Tue, 8 May 2018 07:21:16 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv13 03/28] media-request: implement media requests
+Message-ID: <20180508072116.265756e1@vento.lan>
+In-Reply-To: <20180504122750.bcmbhnwtpibd7425@valkosipuli.retiisi.org.uk>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+        <20180503145318.128315-4-hverkuil@xs4all.nl>
+        <20180504122750.bcmbhnwtpibd7425@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove soc_camera framework dependencies from rj54n1 sensor driver.
-- Handle clock
-- Handle GPIOs (named 'powerup' and 'enable')
-- Register the async subdevice
-- Remove g/s_mbus_config as they're deprecated.
-- Adjust build system
-- List the driver as maintained for 'Odd Fixes' as I don't have HW to test.
+Em Fri, 4 May 2018 15:27:50 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-This commits does not remove the original soc_camera based driver.
+> Hi Hans,
+> 
+> I've read this patch a large number of times and I think also the details
+> begin to seem sound. A few comments below.
 
-Compiled tested only.
+I'm sending this after analyzing the other patches in this series,
+as this is the core of the changes. So, although I wrote the comments
+early, I wanted to read first all other patches before sending it.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- MAINTAINERS                    |   8 +++
- drivers/media/i2c/Kconfig      |  11 +++
- drivers/media/i2c/Makefile     |   1 +
- drivers/media/i2c/rj54n1cb0c.c | 153 +++++++++++++++++++++++------------------
- 4 files changed, 107 insertions(+), 66 deletions(-)
+> 
+> On Thu, May 03, 2018 at 04:52:53PM +0200, Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Add initial media request support:
+> > 
+> > 1) Add MEDIA_IOC_REQUEST_ALLOC ioctl support to media-device.c
+> > 2) Add struct media_request to store request objects.
+> > 3) Add struct media_request_object to represent a request object.
+> > 4) Add MEDIA_REQUEST_IOC_QUEUE/REINIT ioctl support.
+> > 
+> > Basic lifecycle: the application allocates a request, adds
+> > objects to it, queues the request, polls until it is completed
+> > and can then read the final values of the objects at the time
+> > of completion. When it closes the file descriptor the request
+> > memory will be freed (actually, when the last user of that request
+> > releases the request).
+> > 
+> > Drivers will bind an object to a request (the 'adds objects to it'
+> > phase), when MEDIA_REQUEST_IOC_QUEUE is called the request is
+> > validated (req_validate op), then queued (the req_queue op).
+> > 
+> > When done with an object it can either be unbound from the request
+> > (e.g. when the driver has finished with a vb2 buffer) or marked as
+> > completed (e.g. for controls associated with a buffer). When all
+> > objects in the request are completed (or unbound), then the request
+> > fd will signal an exception (poll).
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index cbcd5ab..0dd7532 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12680,6 +12680,14 @@ W:	http://www.ibm.com/developerworks/linux/linux390/
- S:	Supported
- F:	net/smc/
- 
-+SHARP RJ54N1CB0C SENSOR DRIVER
-+M:	Jacopo Mondi <jacopo@jmondi.org>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Odd fixes
-+F:	drivers/media/i2c/rj54n1cb0c.c
-+F:	include/media/i2c/rj54n1cb0c.h
-+
- SH_VEU V4L2 MEM2MEM DRIVER
- L:	linux-media@vger.kernel.org
- S:	Orphan
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index b95b447..7b5a224 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -846,6 +846,17 @@ config VIDEO_NOON010PC30
- 
- source "drivers/media/i2c/m5mols/Kconfig"
- 
-+config VIDEO_RJ54N1
-+	tristate "Sharp RJ54N1CB0C sensor support"
-+	depends on I2C && VIDEO_V4L2
-+	depends on MEDIA_CAMERA_SUPPORT
-+	help
-+	  This is a V4L2 sensor-level driver for Sharp RJ54N1CB0C CMOS image
-+	  sensor.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called rj54n1.
-+
- config VIDEO_S5K6AA
- 	tristate "Samsung S5K6AAFX sensor support"
- 	depends on MEDIA_CAMERA_SUPPORT
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index ff6e291..3f9c1f7 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -86,6 +86,7 @@ obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
- obj-$(CONFIG_VIDEO_MT9V032) += mt9v032.o
- obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
- obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
-+obj-$(CONFIG_VIDEO_RJ54N1)	+= rj54n1cb0c.o
- obj-$(CONFIG_VIDEO_S5K6AA)	+= s5k6aa.o
- obj-$(CONFIG_VIDEO_S5K6A3)	+= s5k6a3.o
- obj-$(CONFIG_VIDEO_S5K4ECGX)	+= s5k4ecgx.o
-diff --git a/drivers/media/i2c/rj54n1cb0c.c b/drivers/media/i2c/rj54n1cb0c.c
-index 02398d0..6ad998a 100644
---- a/drivers/media/i2c/rj54n1cb0c.c
-+++ b/drivers/media/i2c/rj54n1cb0c.c
-@@ -1,25 +1,25 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Driver for RJ54N1CB0C CMOS Image Sensor from Sharp
-  *
-- * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ * Copyright (C) 2018, Jacopo Mondi <jacopo@jmondi.org>
-  *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-+ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-  */
- 
-+#include <linux/clk.h>
- #include <linux/delay.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/i2c.h>
-+#include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
--#include <linux/module.h>
- 
- #include <media/i2c/rj54n1cb0c.h>
--#include <media/soc_camera.h>
--#include <media/v4l2-clk.h>
--#include <media/v4l2-subdev.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-subdev.h>
- 
- #define RJ54N1_DEV_CODE			0x0400
- #define RJ54N1_DEV_CODE2		0x0401
-@@ -151,7 +151,9 @@ struct rj54n1_clock_div {
- struct rj54n1 {
- 	struct v4l2_subdev subdev;
- 	struct v4l2_ctrl_handler hdl;
--	struct v4l2_clk *clk;
-+	struct clk *clk;
-+	struct gpio_desc *pwup_gpio;
-+	struct gpio_desc *enable_gpio;
- 	struct rj54n1_clock_div clk_div;
- 	const struct rj54n1_datafmt *fmt;
- 	struct v4l2_rect rect;	/* Sensor window */
-@@ -545,8 +547,7 @@ static int rj54n1_set_selection(struct v4l2_subdev *sd,
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct rj54n1 *rj54n1 = to_rj54n1(client);
- 	const struct v4l2_rect *rect = &sel->r;
--	int dummy = 0, output_w, output_h,
--		input_w = rect->width, input_h = rect->height;
-+	int output_w, output_h, input_w = rect->width, input_h = rect->height;
- 	int ret;
- 
- 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE ||
-@@ -554,11 +555,8 @@ static int rj54n1_set_selection(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 
- 	/* arbitrary minimum width and height, edges unimportant */
--	soc_camera_limit_side(&dummy, &input_w,
--		     RJ54N1_COLUMN_SKIP, 8, RJ54N1_MAX_WIDTH);
--
--	soc_camera_limit_side(&dummy, &input_h,
--		     RJ54N1_ROW_SKIP, 8, RJ54N1_MAX_HEIGHT);
-+	v4l_bound_align_image(&input_w, 8, RJ54N1_MAX_WIDTH, 0,
-+			      &input_h, 8, RJ54N1_MAX_HEIGHT, 0, 0);
- 
- 	output_w = (input_w * 1024 + rj54n1->resize / 2) / rj54n1->resize;
- 	output_h = (input_h * 1024 + rj54n1->resize / 2) / rj54n1->resize;
-@@ -618,6 +616,9 @@ static int rj54n1_get_fmt(struct v4l2_subdev *sd,
- 
- 	mf->code	= rj54n1->fmt->code;
- 	mf->colorspace	= rj54n1->fmt->colorspace;
-+	mf->ycbcr_enc	= V4L2_YCBCR_ENC_601;
-+	mf->xfer_func	= V4L2_XFER_FUNC_SRGB;
-+	mf->quantization = V4L2_QUANTIZATION_DEFAULT;
- 	mf->field	= V4L2_FIELD_NONE;
- 	mf->width	= rj54n1->width;
- 	mf->height	= rj54n1->height;
-@@ -1163,10 +1164,27 @@ static int rj54n1_s_register(struct v4l2_subdev *sd,
- static int rj54n1_s_power(struct v4l2_subdev *sd, int on)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct rj54n1 *rj54n1 = to_rj54n1(client);
- 
--	return soc_camera_set_power(&client->dev, ssdd, rj54n1->clk, on);
-+	if (on) {
-+		if (rj54n1->pwup_gpio)
-+			gpiod_set_value(rj54n1->pwup_gpio, 1);
-+		if (rj54n1->enable_gpio)
-+			gpiod_set_value(rj54n1->enable_gpio, 1);
-+
-+		msleep(1);
-+
-+		return clk_prepare_enable(rj54n1->clk);
-+	}
-+
-+	clk_disable_unprepare(rj54n1->clk);
-+
-+	if (rj54n1->enable_gpio)
-+		gpiod_set_value(rj54n1->enable_gpio, 0);
-+	if (rj54n1->pwup_gpio)
-+		gpiod_set_value(rj54n1->pwup_gpio, 0);
-+
-+	return 0;
- }
- 
- static int rj54n1_s_ctrl(struct v4l2_ctrl *ctrl)
-@@ -1221,40 +1239,8 @@ static const struct v4l2_subdev_core_ops rj54n1_subdev_core_ops = {
- 	.s_power	= rj54n1_s_power,
- };
- 
--static int rj54n1_g_mbus_config(struct v4l2_subdev *sd,
--				struct v4l2_mbus_config *cfg)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--
--	cfg->flags =
--		V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_PCLK_SAMPLE_FALLING |
--		V4L2_MBUS_MASTER | V4L2_MBUS_DATA_ACTIVE_HIGH |
--		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH;
--	cfg->type = V4L2_MBUS_PARALLEL;
--	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
--
--	return 0;
--}
--
--static int rj54n1_s_mbus_config(struct v4l2_subdev *sd,
--				const struct v4l2_mbus_config *cfg)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--
--	/* Figures 2.5-1 to 2.5-3 - default falling pixclk edge */
--	if (soc_camera_apply_board_flags(ssdd, cfg) &
--	    V4L2_MBUS_PCLK_SAMPLE_RISING)
--		return reg_write(client, RJ54N1_OUT_SIGPO, 1 << 4);
--	else
--		return reg_write(client, RJ54N1_OUT_SIGPO, 0);
--}
--
- static const struct v4l2_subdev_video_ops rj54n1_subdev_video_ops = {
- 	.s_stream	= rj54n1_s_stream,
--	.g_mbus_config	= rj54n1_g_mbus_config,
--	.s_mbus_config	= rj54n1_s_mbus_config,
- };
- 
- static const struct v4l2_subdev_pad_ops rj54n1_subdev_pad_ops = {
-@@ -1316,17 +1302,16 @@ static int rj54n1_probe(struct i2c_client *client,
- 			const struct i2c_device_id *did)
- {
- 	struct rj54n1 *rj54n1;
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-+	struct i2c_adapter *adapter = client->adapter;
- 	struct rj54n1_pdata *rj54n1_priv;
- 	int ret;
- 
--	if (!ssdd || !ssdd->drv_priv) {
-+	if (!client->dev.platform_data) {
- 		dev_err(&client->dev, "RJ54N1CB0C: missing platform data!\n");
- 		return -EINVAL;
- 	}
- 
--	rj54n1_priv = ssdd->drv_priv;
-+	rj54n1_priv = client->dev.platform_data;
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_warn(&adapter->dev,
-@@ -1364,32 +1349,68 @@ static int rj54n1_probe(struct i2c_client *client,
- 	rj54n1->tgclk_mhz	= (rj54n1_priv->mclk_freq / PLL_L * PLL_N) /
- 		(clk_div.ratio_tg + 1) / (clk_div.ratio_t + 1);
- 
--	rj54n1->clk = v4l2_clk_get(&client->dev, "mclk");
-+	rj54n1->clk = clk_get(&client->dev, NULL);
- 	if (IS_ERR(rj54n1->clk)) {
- 		ret = PTR_ERR(rj54n1->clk);
--		goto eclkget;
-+		goto err_free_ctrl;
- 	}
- 
--	ret = rj54n1_video_probe(client, rj54n1_priv);
--	if (ret < 0) {
--		v4l2_clk_put(rj54n1->clk);
--eclkget:
--		v4l2_ctrl_handler_free(&rj54n1->hdl);
-+	rj54n1->pwup_gpio = gpiod_get_optional(&client->dev, "powerup",
-+					       GPIOD_OUT_LOW);
-+	if (IS_ERR(rj54n1->pwup_gpio)) {
-+		dev_info(&client->dev, "Unable to get GPIO \"powerup\": %ld\n",
-+			 PTR_ERR(rj54n1->pwup_gpio));
-+		ret = PTR_ERR(rj54n1->pwup_gpio);
-+		goto err_clk_put;
-+	}
-+
-+	rj54n1->enable_gpio = gpiod_get_optional(&client->dev, "enable",
-+						 GPIOD_OUT_LOW);
-+	if (IS_ERR(rj54n1->enable_gpio)) {
-+		dev_info(&client->dev, "Unable to get GPIO \"enable\": %ld\n",
-+			 PTR_ERR(rj54n1->enable_gpio));
-+		ret = PTR_ERR(rj54n1->enable_gpio);
-+		goto err_gpio_put;
- 	}
- 
-+	ret = rj54n1_video_probe(client, rj54n1_priv);
-+	if (ret < 0)
-+		goto err_gpio_put;
-+
-+	ret = v4l2_async_register_subdev(&rj54n1->subdev);
-+	if (ret)
-+		goto err_gpio_put;
-+
-+	return 0;
-+
-+err_gpio_put:
-+	if (rj54n1->enable_gpio)
-+		gpiod_put(rj54n1->enable_gpio);
-+
-+	if (rj54n1->pwup_gpio)
-+		gpiod_put(rj54n1->pwup_gpio);
-+
-+err_clk_put:
-+	clk_put(rj54n1->clk);
-+
-+err_free_ctrl:
-+	v4l2_ctrl_handler_free(&rj54n1->hdl);
-+
- 	return ret;
- }
- 
- static int rj54n1_remove(struct i2c_client *client)
- {
- 	struct rj54n1 *rj54n1 = to_rj54n1(client);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 
--	v4l2_clk_put(rj54n1->clk);
--	v4l2_device_unregister_subdev(&rj54n1->subdev);
--	if (ssdd->free_bus)
--		ssdd->free_bus(ssdd);
-+	if (rj54n1->enable_gpio)
-+		gpiod_put(rj54n1->enable_gpio);
-+	if (rj54n1->pwup_gpio)
-+		gpiod_put(rj54n1->pwup_gpio);
-+
-+	clk_put(rj54n1->clk);
- 	v4l2_ctrl_handler_free(&rj54n1->hdl);
-+	v4l2_async_unregister_subdev(&rj54n1->subdev);
- 
- 	return 0;
- }
--- 
-2.7.4
+Hmm... As you're adding Copyrights from Intel/Google in this patch, that
+indicates that part of the stuff you're adding here were authored by
+others. So, you should use Co-developed-by: tag here, and get the SOBs
+from the other developers that did part of the work[1].
+
+[1] except if your work was sponsored by Cisco, Intel and Google, but
+    I think this is not the case.
+
+> > ---
+> >  drivers/media/Makefile        |   3 +-
+> >  drivers/media/media-device.c  |  14 ++
+> >  drivers/media/media-request.c | 407 ++++++++++++++++++++++++++++++++++
+> >  include/media/media-device.h  |  16 ++
+> >  include/media/media-request.h | 244 ++++++++++++++++++++
+> >  5 files changed, 683 insertions(+), 1 deletion(-)
+> >  create mode 100644 drivers/media/media-request.c
+> >  create mode 100644 include/media/media-request.h
+> > 
+> > diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> > index 594b462ddf0e..985d35ec6b29 100644
+> > --- a/drivers/media/Makefile
+> > +++ b/drivers/media/Makefile
+> > @@ -3,7 +3,8 @@
+> >  # Makefile for the kernel multimedia device drivers.
+> >  #
+> >  
+> > -media-objs	:= media-device.o media-devnode.o media-entity.o
+> > +media-objs	:= media-device.o media-devnode.o media-entity.o \
+> > +		   media-request.o
+> >  
+> >  #
+> >  # I2C drivers should come before other drivers, otherwise they'll fail
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 35e81f7c0d2f..bb6a64acd3f0 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -32,6 +32,7 @@
+> >  #include <media/media-device.h>
+> >  #include <media/media-devnode.h>
+> >  #include <media/media-entity.h>
+> > +#include <media/media-request.h>
+> >  
+> >  #ifdef CONFIG_MEDIA_CONTROLLER
+> >  
+> > @@ -366,6 +367,15 @@ static long media_device_get_topology(struct media_device *mdev,
+> >  	return ret;
+> >  }
+> >  
+> > +static long media_device_request_alloc(struct media_device *mdev,
+> > +				       struct media_request_alloc *alloc)
+> > +{
+> > +	if (!mdev->ops || !mdev->ops->req_validate || !mdev->ops->req_queue)
+> > +		return -ENOTTY;
+> > +
+> > +	return media_request_alloc(mdev, alloc);
+> > +}
+> > +
+> >  static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
+> >  {
+> >  	/* All media IOCTLs are _IOWR() */
+> > @@ -414,6 +424,7 @@ static const struct media_ioctl_info ioctl_info[] = {
+> >  	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
+> >  	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
+> >  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+> > +	MEDIA_IOC(REQUEST_ALLOC, media_device_request_alloc, 0),
+> >  };
+> >  
+> >  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> > @@ -686,6 +697,8 @@ void media_device_init(struct media_device *mdev)
+> >  	INIT_LIST_HEAD(&mdev->pads);
+> >  	INIT_LIST_HEAD(&mdev->links);
+> >  	INIT_LIST_HEAD(&mdev->entity_notify);
+> > +
+> > +	mutex_init(&mdev->req_queue_mutex);
+> >  	mutex_init(&mdev->graph_mutex);
+> >  	ida_init(&mdev->entity_internal_idx);
+> >  
+> > @@ -699,6 +712,7 @@ void media_device_cleanup(struct media_device *mdev)
+> >  	mdev->entity_internal_idx_max = 0;
+> >  	media_graph_walk_cleanup(&mdev->pm_count_walk);
+> >  	mutex_destroy(&mdev->graph_mutex);
+> > +	mutex_destroy(&mdev->req_queue_mutex);
+> >  }
+> >  EXPORT_SYMBOL_GPL(media_device_cleanup);
+> >  
+> > diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+> > new file mode 100644
+> > index 000000000000..c216c4ab628b
+> > --- /dev/null
+> > +++ b/drivers/media/media-request.c
+> > @@ -0,0 +1,407 @@
+> > +// SPDX-License-Identifier: GPL-2.0-only
+> > +/*
+> > + * Media device request objects
+> > + *
+> > + * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+> > + * Copyright (C) 2018 Intel Corporation
+> > + * Copyright (C) 2018 Google, Inc.
+> > + *
+> > + * Author: Hans Verkuil <hans.verkuil@cisco.com>
+> > + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > + */
+> > +
+> > +#include <linux/anon_inodes.h>
+> > +#include <linux/file.h>
+> > +
+> > +#include <media/media-device.h>
+> > +#include <media/media-request.h>
+> > +
+> > +static const char * const request_state[] = {
+> > +	[MEDIA_REQUEST_STATE_IDLE]	 = "idle",
+> > +	[MEDIA_REQUEST_STATE_VALIDATING] = "validating",
+> > +	[MEDIA_REQUEST_STATE_QUEUED]	 = "queued",
+> > +	[MEDIA_REQUEST_STATE_COMPLETE]	 = "complete",
+> > +	[MEDIA_REQUEST_STATE_CLEANING]	 = "cleaning",
+> > +};
+> > +
+> > +static const char *
+> > +media_request_state_str(enum media_request_state state)
+> > +{
+> > +	if (WARN_ON(state >= ARRAY_SIZE(request_state)))
+> > +		return "invalid";
+> > +	return request_state[state];
+> > +}
+> > +
+> > +static void media_request_clean(struct media_request *req)
+> > +{
+> > +	struct media_request_object *obj, *obj_safe;
+> > +
+> > +	WARN_ON(atomic_read(&req->state) != MEDIA_REQUEST_STATE_CLEANING);
+> > +
+> > +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
+> > +		media_request_object_unbind(obj);
+> > +		media_request_object_put(obj);
+> > +	}
+> > +
+> > +	req->num_incomplete_objects = 0;  
+> 
+> The number of incomplete objects should be already zero here. I'd think
+> that a different number would suggest that something has gone very wrong
+> and should be complained about. How about adding
+> WARN_ON(req->num_incomplete_objects) above this line? 
+> 
+> > +	wake_up_interruptible_all(&req->poll_wait);
+> > +}
+> > +
+> > +static void media_request_release(struct kref *kref)
+> > +{
+> > +	struct media_request *req =
+> > +		container_of(kref, struct media_request, kref);
+> > +	struct media_device *mdev = req->mdev;
+> > +
+> > +	dev_dbg(mdev->dev, "request: release %s\n", req->debug_str);
+> > +
+> > +	atomic_set(&req->state, MEDIA_REQUEST_STATE_CLEANING);
+> > +
+> > +	media_request_clean(req);
+> > +
+> > +	if (mdev->ops->req_free)
+> > +		mdev->ops->req_free(req);
+> > +	else
+> > +		kfree(req);
+> > +}
+> > +
+> > +void media_request_put(struct media_request *req)
+> > +{
+> > +	kref_put(&req->kref, media_request_release);
+> > +}
+> > +EXPORT_SYMBOL_GPL(media_request_put);
+> > +
+> > +static int media_request_close(struct inode *inode, struct file *filp)
+> > +{
+> > +	struct media_request *req = filp->private_data;
+> > +
+> > +	media_request_put(req);
+> > +	return 0;
+> > +}
+> > +
+> > +static unsigned int media_request_poll(struct file *filp,
+> > +				       struct poll_table_struct *wait)
+> > +{
+> > +	struct media_request *req = filp->private_data;
+> > +	unsigned long flags;
+> > +	unsigned int ret = 0;
+> > +	enum media_request_state state;
+> > +
+> > +	if (!(poll_requested_events(wait) & POLLPRI))
+> > +		return 0;
+> > +
+> > +	spin_lock_irqsave(&req->lock, flags);
+> > +	state = atomic_read(&req->state);
+> > +
+> > +	if (state == MEDIA_REQUEST_STATE_COMPLETE) {
+> > +		ret = POLLPRI;
+> > +		goto unlock;
+> > +	}
+> > +	if (state != MEDIA_REQUEST_STATE_QUEUED) {
+> > +		ret = POLLERR;
+> > +		goto unlock;
+> > +	}
+> > +
+> > +	poll_wait(filp, &req->poll_wait, wait);
+> > +
+> > +unlock:
+> > +	spin_unlock_irqrestore(&req->lock, flags);
+> > +	return ret;
+> > +}
+> > +
+> > +static long media_request_ioctl_queue(struct media_request *req)
+> > +{
+> > +	struct media_device *mdev = req->mdev;
+> > +	enum media_request_state state;
+> > +	unsigned long flags;
+> > +	int ret = 0;  
+> 
+> ret is unconditionally assigned below, no need to initialise here.
+> 
+> > +
+> > +	dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
+> > +
+> > +	/*
+> > +	 * Ensure the request that is validated will be the one that gets queued
+> > +	 * next by serialising the queueing process. This mutex is also used
+> > +	 * to serialize with canceling a vb2 queue and with setting values such
+> > +	 * as controls in a request.
+> > +	 */
+> > +	mutex_lock(&mdev->req_queue_mutex);
+> > +
+> > +	spin_lock_irqsave(&req->lock, flags);
+> > +	state = atomic_cmpxchg(&req->state, MEDIA_REQUEST_STATE_IDLE,
+> > +			       MEDIA_REQUEST_STATE_VALIDATING);
+> > +	spin_unlock_irqrestore(&req->lock, flags);
+
+It looks weird to serialize access to it with a mutex, a spin lock and 
+an atomic call.
+
+IMHO, locking is still an issue here. I would love to test the 
+locks with some tool that would randomize syscalls, issuing close(),
+poll() and read() at wrong times and inverting the order of some calls, 
+in order to do some empiric test that all locks are at the right places.
+
+Complex locking schemas like that usually tend to cause a lot of
+troubles.
+
+> > +	if (state != MEDIA_REQUEST_STATE_IDLE) {
+> > +		dev_dbg(mdev->dev,
+> > +			"request: unable to queue %s, request in state %s\n",
+> > +			req->debug_str, media_request_state_str(state));
+> > +		mutex_unlock(&mdev->req_queue_mutex);
+> > +		return -EBUSY;
+> > +	}
+> > +
+> > +	ret = mdev->ops->req_validate(req);
+> > +
+> > +	/*
+> > +	 * If the req_validate was successful, then we mark the state as QUEUED
+> > +	 * and call req_queue. The reason we set the state first is that this
+> > +	 * allows req_queue to unbind or complete the queued objects in case
+> > +	 * they are immediately 'consumed'. State changes from QUEUED to another
+> > +	 * state can only happen if either the driver changes the state or if
+> > +	 * the user cancels the vb2 queue. The driver can only change the state
+> > +	 * after each object is queued through the req_queue op (and note that
+> > +	 * that op cannot fail), so setting the state to QUEUED up front is
+> > +	 * safe.
+> > +	 *
+> > +	 * The other reason for changing the state is if the vb2 queue is
+> > +	 * canceled, and that uses the req_queue_mutex which is still locked
+> > +	 * while req_queue is called, so that's safe as well.
+> > +	 */
+> > +	atomic_set(&req->state,
+> > +		   ret ? MEDIA_REQUEST_STATE_IDLE : MEDIA_REQUEST_STATE_QUEUED);
+
+Why are you changing state also when ret fails?
+
+Also, why you had to use a spin lock earlier in this function just 
+to change the req->state but you don't need to use it here?
+
+> > +
+> > +	if (!ret)
+> > +		mdev->ops->req_queue(req);
+> > +
+> > +	mutex_unlock(&mdev->req_queue_mutex);
+> > +
+> > +	if (ret)
+> > +		dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
+> > +			req->debug_str, ret);
+> > +	else
+> > +		media_request_get(req);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static long media_request_ioctl_reinit(struct media_request *req)
+> > +{
+> > +	struct media_device *mdev = req->mdev;
+> > +	unsigned long flags;
+> > +
+> > +	spin_lock_irqsave(&req->lock, flags);
+> > +	if (atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE &&
+> > +	    atomic_read(&req->state) != MEDIA_REQUEST_STATE_COMPLETE) {
+> > +		dev_dbg(mdev->dev,
+> > +			"request: %s not in idle or complete state, cannot reinit\n",
+> > +			req->debug_str);
+> > +		spin_unlock_irqrestore(&req->lock, flags);
+> > +		return -EBUSY;
+> > +	}
+> > +	atomic_set(&req->state, MEDIA_REQUEST_STATE_CLEANING);
+> > +	spin_unlock_irqrestore(&req->lock, flags);
+> > +
+> > +	media_request_clean(req);
+> > +
+> > +	atomic_set(&req->state, MEDIA_REQUEST_STATE_IDLE);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static long media_request_ioctl(struct file *filp, unsigned int cmd,
+> > +				unsigned long arg)
+> > +{
+> > +	struct media_request *req = filp->private_data;
+> > +
+> > +	switch (cmd) {
+> > +	case MEDIA_REQUEST_IOC_QUEUE:
+> > +		return media_request_ioctl_queue(req);
+> > +	case MEDIA_REQUEST_IOC_REINIT:
+> > +		return media_request_ioctl_reinit(req);
+> > +	default:
+> > +		return -ENOIOCTLCMD;
+> > +	}
+> > +}
+> > +
+> > +static const struct file_operations request_fops = {
+> > +	.owner = THIS_MODULE,
+> > +	.poll = media_request_poll,
+> > +	.unlocked_ioctl = media_request_ioctl,
+> > +	.release = media_request_close,
+> > +};
+> > +
+> > +int media_request_alloc(struct media_device *mdev,
+> > +			struct media_request_alloc *alloc)
+> > +{
+> > +	struct media_request *req;
+> > +	struct file *filp;
+> > +	char comm[TASK_COMM_LEN];
+> > +	int fd;
+> > +	int ret;
+> > +
+> > +	/* Either both are NULL or both are non-NULL */
+> > +	if (WARN_ON(!mdev->ops->req_alloc ^ !mdev->ops->req_free))
+> > +		return -ENOMEM;
+> > +
+> > +	fd = get_unused_fd_flags(O_CLOEXEC);
+> > +	if (fd < 0)
+> > +		return fd;
+> > +
+> > +	filp = anon_inode_getfile("request", &request_fops, NULL, O_CLOEXEC);
+> > +	if (IS_ERR(filp)) {
+> > +		ret = PTR_ERR(filp);
+> > +		goto err_put_fd;
+> > +	}
+> > +
+> > +	if (mdev->ops->req_alloc)
+> > +		req = mdev->ops->req_alloc(mdev);
+> > +	else
+> > +		req = kzalloc(sizeof(*req), GFP_KERNEL);
+> > +	if (!req) {
+> > +		ret = -ENOMEM;
+> > +		goto err_fput;
+> > +	}
+> > +
+> > +	filp->private_data = req;
+> > +	req->mdev = mdev;
+> > +	atomic_set(&req->state, MEDIA_REQUEST_STATE_IDLE);
+> > +	req->num_incomplete_objects = 0;
+> > +	kref_init(&req->kref);
+> > +	INIT_LIST_HEAD(&req->objects);
+> > +	spin_lock_init(&req->lock);
+> > +	init_waitqueue_head(&req->poll_wait);
+> > +
+> > +	alloc->fd = fd;
+> > +
+> > +	get_task_comm(comm, current);
+> > +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
+> > +		 comm, fd);
+> > +	dev_dbg(mdev->dev, "request: allocated %s\n", req->debug_str);
+> > +
+> > +	fd_install(fd, filp);
+> > +
+> > +	return 0;
+> > +
+> > +err_fput:
+> > +	fput(filp);
+> > +
+> > +err_put_fd:
+> > +	put_unused_fd(fd);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static void media_request_object_release(struct kref *kref)
+> > +{
+> > +	struct media_request_object *obj =
+> > +		container_of(kref, struct media_request_object, kref);
+> > +	struct media_request *req = obj->req;
+> > +
+> > +	if (req)
+> > +		media_request_object_unbind(obj);
+> > +	obj->ops->release(obj);
+> > +}
+> > +
+> > +void media_request_object_put(struct media_request_object *obj)
+> > +{
+> > +	kref_put(&obj->kref, media_request_object_release);
+> > +}
+> > +EXPORT_SYMBOL_GPL(media_request_object_put);
+> > +
+> > +void media_request_object_init(struct media_request_object *obj)
+> > +{
+> > +	obj->ops = NULL;
+> > +	obj->req = NULL;
+> > +	obj->priv = NULL;
+> > +	obj->completed = false;
+> > +	INIT_LIST_HEAD(&obj->list);
+> > +	kref_init(&obj->kref);
+> > +}
+> > +EXPORT_SYMBOL_GPL(media_request_object_init);
+> > +
+> > +int media_request_object_bind(struct media_request *req,
+> > +			      const struct media_request_object_ops *ops,
+> > +			      void *priv,
+> > +			      struct media_request_object *obj)
+> > +{
+> > +	unsigned long flags;
+> > +	int ret = -EBUSY;
+> > +
+> > +	if (WARN_ON(!ops->release))
+> > +		return -EPERM;
+> > +
+> > +	obj->req = req;
+> > +	obj->ops = ops;
+> > +	obj->priv = priv;
+> > +
+> > +	spin_lock_irqsave(&req->lock, flags);
+> > +
+> > +	if (WARN_ON(atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE))
+> > +		goto unlock;  
+> 
+> Is this worth a kernel warning, or rather how the drivers / other framework
+> bits (e.g. VB2) prevent user from binding objects to non-idle requests?
+> Even if you added a similar check to the caller, the request state could
+> well change in the meantime.
+> 
+> Perhaps add __must_check to the return value?
+> 
+> > +
+> > +	list_add_tail(&obj->list, &req->objects);
+> > +	req->num_incomplete_objects++;
+> > +	ret = 0;
+> > +
+> > +unlock:
+> > +	spin_unlock_irqrestore(&req->lock, flags);
+> > +	return ret;
+> > +}
+> > +EXPORT_SYMBOL_GPL(media_request_object_bind);
+> > +
+> > +void media_request_object_unbind(struct media_request_object *obj)
+> > +{
+> > +	struct media_request *req = obj->req;
+> > +	enum media_request_state state;
+> > +	unsigned long flags;
+> > +	bool completed = false;
+> > +
+> > +	if (WARN_ON(!req))
+> > +		return;
+> > +
+> > +	spin_lock_irqsave(&req->lock, flags);
+> > +	list_del(&obj->list);
+> > +	obj->req = NULL;
+> > +
+> > +	state = atomic_read(&req->state);
+> > +
+> > +	if (state == MEDIA_REQUEST_STATE_COMPLETE ||
+> > +	    state == MEDIA_REQUEST_STATE_CLEANING)
+> > +		goto unlock;
+> > +
+> > +	if (WARN_ON(state == MEDIA_REQUEST_STATE_VALIDATING))
+> > +		goto unlock;
+> > +
+> > +	if (WARN_ON(!req->num_incomplete_objects))
+> > +		goto unlock;
+> > +
+> > +	req->num_incomplete_objects--;
+> > +	if (state == MEDIA_REQUEST_STATE_QUEUED &&
+> > +	    !req->num_incomplete_objects) {
+> > +		atomic_set(&req->state, MEDIA_REQUEST_STATE_COMPLETE);
+> > +		completed = true;
+> > +		wake_up_interruptible_all(&req->poll_wait);
+> > +	}
+> > +
+> > +unlock:
+> > +	spin_unlock_irqrestore(&req->lock, flags);
+> > +	if (obj->ops->unbind)
+> > +		obj->ops->unbind(obj);
+> > +	if (completed)
+> > +		media_request_put(req);
+> > +}
+> > +EXPORT_SYMBOL_GPL(media_request_object_unbind);
+> > +
+> > +void media_request_object_complete(struct media_request_object *obj)
+> > +{
+> > +	struct media_request *req = obj->req;
+> > +	unsigned long flags;
+> > +	bool completed = false;
+> > +
+> > +	spin_lock_irqsave(&req->lock, flags);
+> > +	if (obj->completed)
+> > +		goto unlock;
+> > +	obj->completed = true;
+> > +	if (WARN_ON(!req->num_incomplete_objects) ||
+> > +	    WARN_ON(atomic_read(&req->state) != MEDIA_REQUEST_STATE_QUEUED))
+> > +		goto unlock;
+> > +
+> > +	if (!--req->num_incomplete_objects) {
+> > +		atomic_set(&req->state, MEDIA_REQUEST_STATE_COMPLETE);
+> > +		wake_up_interruptible_all(&req->poll_wait);
+> > +		completed = true;
+> > +	}
+> > +unlock:
+> > +	spin_unlock_irqrestore(&req->lock, flags);
+> > +	if (completed)
+> > +		media_request_put(req);
+> > +}
+> > +EXPORT_SYMBOL_GPL(media_request_object_complete);
+> > diff --git a/include/media/media-device.h b/include/media/media-device.h
+> > index bcc6ec434f1f..7d855823341c 100644
+> > --- a/include/media/media-device.h
+> > +++ b/include/media/media-device.h
+> > @@ -27,6 +27,7 @@
+> >  
+> >  struct ida;
+> >  struct device;
+> > +struct media_device;
+> >  
+> >  /**
+> >   * struct media_entity_notify - Media Entity Notify
+> > @@ -50,10 +51,21 @@ struct media_entity_notify {
+> >   * struct media_device_ops - Media device operations
+> >   * @link_notify: Link state change notification callback. This callback is
+> >   *		 called with the graph_mutex held.
+> > + * @req_alloc: Allocate a request
+> > + * @req_free: Free a request
+
+Please do place better descriptions there. First of all, either both
+should be used or both should be NULL - as validated by
+media_request_alloc() logic.
+
+Second, it should be clearer that those are meant to be used when
+the driver needs to allocate a bigger struct that embeds a 
+struct media_request object on it, with should be destroyed at 
+ops->req_free() call.
+
+Also, such embed struct should not contain a kref (multiple krefs
+at the same struct doesn't work).
+
+> > + * @req_validate: Validate a request, but do not queue yet
+> > + * @req_queue: Queue a validated request, cannot fail. If something goes
+> > + *	       wrong when queueing this request then it should be marked
+> > + *	       as such internally in the driver and any related buffers
+> > + *	       must eventually return to vb2 with state VB2_BUF_STATE_ERROR.
+
+Please describe what kind of req locks (if any) can/should
+be used inside each callback.
+
+
+> >   */
+> >  struct media_device_ops {
+> >  	int (*link_notify)(struct media_link *link, u32 flags,
+> >  			   unsigned int notification);
+> > +	struct media_request *(*req_alloc)(struct media_device *mdev);
+> > +	void (*req_free)(struct media_request *req);
+> > +	int (*req_validate)(struct media_request *req);
+> > +	void (*req_queue)(struct media_request *req);
+> >  };
+> >  
+> >  /**
+> > @@ -88,6 +100,8 @@ struct media_device_ops {
+> >   * @disable_source: Disable Source Handler function pointer
+> >   *
+> >   * @ops:	Operation handler callbacks
+> > + * @req_queue_mutex: Serialise the MEDIA_REQUEST_IOC_QUEUE ioctl w.r.t. this
+> > + *		     media device.
+
+This description is incomplete as it doesn't match the explanation you
+introduced at patch 00/18. Please add a complete locking description,
+as patches 00 aren't stored anywhere at the git tree, and there are lots
+of non-trivial assumptions on your locking schema.
+
+> >   *
+> >   * This structure represents an abstract high-level media device. It allows easy
+> >   * access to entities and provides basic media device-level support. The
+> > @@ -158,6 +172,8 @@ struct media_device {
+> >  	void (*disable_source)(struct media_entity *entity);
+> >  
+> >  	const struct media_device_ops *ops;
+> > +
+> > +	struct mutex req_queue_mutex;
+> >  };
+> >  
+> >  /* We don't need to include pci.h or usb.h here */
+> > diff --git a/include/media/media-request.h b/include/media/media-request.h
+> > new file mode 100644
+> > index 000000000000..e39122dfd717
+> > --- /dev/null
+> > +++ b/include/media/media-request.h
+> > @@ -0,0 +1,244 @@
+> > +// SPDX-License-Identifier: GPL-2.0-only
+> > +/*
+> > + * Media device request objects
+> > + *
+> > + * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+> > + * Copyright (C) 2018 Intel Corporation
+> > + *
+> > + * Author: Hans Verkuil <hans.verkuil@cisco.com>
+> > + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > + */
+> > +
+> > +#ifndef MEDIA_REQUEST_H
+> > +#define MEDIA_REQUEST_H
+> > +
+> > +#include <linux/list.h>
+> > +#include <linux/slab.h>
+> > +#include <linux/spinlock.h>
+> > +#include <linux/atomic.h>
+> > +
+> > +#include <media/media-device.h>
+> > +
+> > +/**
+> > + * enum media_request_state - media request state
+> > + *
+> > + * @MEDIA_REQUEST_STATE_IDLE:		Idle
+> > + * @MEDIA_REQUEST_STATE_VALIDATING:	Validating the request, no state changes
+> > + *					allowed
+> > + * @MEDIA_REQUEST_STATE_QUEUED:		Queued
+> > + * @MEDIA_REQUEST_STATE_COMPLETE:	Completed, the request is done
+> > + * @MEDIA_REQUEST_STATE_CLEANING:	Cleaning, the request is being re-inited
+> > + */
+> > +enum media_request_state {
+> > +	MEDIA_REQUEST_STATE_IDLE,
+> > +	MEDIA_REQUEST_STATE_VALIDATING,
+> > +	MEDIA_REQUEST_STATE_QUEUED,
+> > +	MEDIA_REQUEST_STATE_COMPLETE,
+> > +	MEDIA_REQUEST_STATE_CLEANING,
+> > +};
+> > +
+> > +struct media_request_object;
+> > +
+> > +/**
+> > + * struct media_request - Media device request
+> > + * @mdev: Media device this request belongs to
+> > + * @kref: Reference count
+> > + * @debug_str: Prefix for debug messages (process name:fd)
+> > + * @state: The state of the request
+> > + * @objects: List of @struct media_request_object request objects
+> > + * @num_objects: The number of objects in the request
+> > + * @num_incompleted_objects: The number of incomplete objects in the request
+> > + * @poll_wait: Wait queue for poll
+> > + * @lock: Serializes access to this struct
+> > + */
+> > +struct media_request {
+> > +	struct media_device *mdev;
+> > +	struct kref kref;
+> > +	char debug_str[TASK_COMM_LEN + 11];
+> > +	atomic_t state;
+> > +	struct list_head objects;
+> > +	unsigned int num_incomplete_objects;
+> > +	struct wait_queue_head poll_wait;
+> > +	spinlock_t lock;
+> > +};
+> > +
+> > +#ifdef CONFIG_MEDIA_CONTROLLER
+> > +
+> > +/**
+> > + * media_request_get - Get the media request
+> > + *
+> > + * @req: The request
+> > + *
+> > + * Get the media request.
+> > + */
+> > +static inline void media_request_get(struct media_request *req)
+> > +{
+> > +	kref_get(&req->kref);
+> > +}
+> > +
+> > +/**
+> > + * media_request_put - Put the media request
+> > + *
+> > + * @req: The request
+> > + *
+> > + * Put the media request. The media request will be released
+> > + * when the refcount reaches 0.
+> > + */
+> > +void media_request_put(struct media_request *req);
+> > +
+> > +/**
+> > + * media_request_alloc - Allocate the media request
+> > + *
+> > + * @mdev: Media device this request belongs to
+> > + * @alloc: Store the request's file descriptor in this struct
+> > + *
+> > + * Allocated the media request and put the fd in @alloc->fd.
+> > + */
+> > +int media_request_alloc(struct media_device *mdev,
+> > +			struct media_request_alloc *alloc);
+> > +
+> > +#else
+> > +
+> > +static inline void media_request_get(struct media_request *req)
+> > +{
+> > +}
+> > +
+> > +static inline void media_request_put(struct media_request *req)
+> > +{
+> > +}
+> > +
+> > +#endif
+> > +
+> > +/**
+> > + * struct media_request_object_ops - Media request object operations
+> > + * @prepare: Validate and prepare the request object, optional.
+> > + * @unprepare: Unprepare the request object, optional.
+> > + * @queue: Queue the request object, optional.
+> > + * @unbind: Unbind the request object, optional.
+> > + * @release: Release the request object, required.
+> > + */
+> > +struct media_request_object_ops {
+> > +	int (*prepare)(struct media_request_object *object);
+> > +	void (*unprepare)(struct media_request_object *object);
+> > +	void (*queue)(struct media_request_object *object);
+> > +	void (*unbind)(struct media_request_object *object);
+> > +	void (*release)(struct media_request_object *object);
+> > +};
+> > +
+> > +/**
+> > + * struct media_request_object - An opaque object that belongs to a media
+> > + *				 request
+> > + *
+> > + * @ops: object's operations
+> > + * @priv: object's priv pointer
+> > + * @req: the request this object belongs to (can be NULL)
+> > + * @list: List entry of the object for @struct media_request
+> > + * @kref: Reference count of the object, acquire before releasing req->lock
+> > + * @completed: If true, then this object was completed.
+> > + *
+> > + * An object related to the request. This struct is embedded in the
+> > + * larger object data.
+
+what do you mean by "the larger object data"? What struct is "the" struct?
+
+> > + */
+> > +struct media_request_object {
+> > +	const struct media_request_object_ops *ops;
+> > +	void *priv;
+> > +	struct media_request *req;
+> > +	struct list_head list;
+> > +	struct kref kref;
+> > +	bool completed;
+> > +};
+> > +
+> > +#ifdef CONFIG_MEDIA_CONTROLLER
+> > +
+> > +/**
+> > + * media_request_object_get - Get a media request object
+> > + *
+> > + * @obj: The object
+> > + *
+> > + * Get a media request object.
+> > + */
+> > +static inline void media_request_object_get(struct media_request_object *obj)
+> > +{
+> > +	kref_get(&obj->kref);
+> > +}
+> > +
+> > +/**
+> > + * media_request_object_put - Put a media request object
+> > + *
+> > + * @obj: The object
+> > + *
+> > + * Put a media request object. Once all references are gone, the
+> > + * object's memory is released.
+> > + */
+> > +void media_request_object_put(struct media_request_object *obj);
+> > +
+> > +/**
+> > + * media_request_object_init - Initialise a media request object
+> > + *
+> > + * Initialise a media request object. The object will be released using the
+> > + * release callback of the ops once it has no references (this function
+> > + * initialises references to one).
+> > + */
+> > +void media_request_object_init(struct media_request_object *obj);
+> > +
+> > +/**
+> > + * media_request_object_bind - Bind a media request object to a request  
+> 
+> Argument documentation is missing.
+> 
+> I think you should also say that "every bound object must be unbound later
+> on".
+> 
+> > + */
+> > +int media_request_object_bind(struct media_request *req,
+> > +			      const struct media_request_object_ops *ops,
+> > +			      void *priv,
+> > +			      struct media_request_object *obj);
+> > +
+> > +/**
+> > + * media_request_object_unbind - Unbind a media request object
+> > + *
+> > + * @obj: The object
+> > + *
+> > + * Unbind the media request object from the request.
+> > + */
+> > +void media_request_object_unbind(struct media_request_object *obj);
+> > +
+> > +/**
+> > + * media_request_object_complete - Mark the media request object as complete
+> > + *
+> > + * @obj: The object
+> > + *
+> > + * Mark the media request object as complete.  
+> 
+> Add:
+> 
+> Only bound request objects may be completed.
+> 
+> > + */
+> > +void media_request_object_complete(struct media_request_object *obj);
+> > +
+> > +#else
+> > +
+> > +static inline void media_request_object_get(struct media_request_object *obj)
+> > +{
+> > +}
+> > +
+> > +static inline void media_request_object_put(struct media_request_object *obj)
+> > +{
+> > +}
+> > +
+> > +static inline void media_request_object_init(struct media_request_object *obj)
+> > +{
+> > +	obj->ops = NULL;
+> > +	obj->req = NULL;
+> > +}
+> > +
+> > +static inline int media_request_object_bind(struct media_request *req,
+> > +			       const struct media_request_object_ops *ops,
+> > +			       void *priv,
+> > +			       struct media_request_object *obj)
+> > +{
+> > +	return 0;
+> > +}
+> > +
+> > +static inline void media_request_object_unbind(struct media_request_object *obj)
+> > +{
+> > +}
+> > +
+> > +static inline void media_request_object_complete(struct media_request_object *obj)
+> > +{
+> > +}
+> > +
+> > +#endif
+> > +
+> > +#endif  
+> 
+
+
+
+Thanks,
+Mauro
