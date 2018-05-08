@@ -1,80 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:34892 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751317AbeECNg3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 09:36:29 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 03/11] media: vsp1: Rename dl_child to dl_next
-Date: Thu,  3 May 2018 14:36:14 +0100
-Message-Id: <6de8b0a020738df7775fdcae22adccc0e97d8a96.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:35667 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932193AbeEHOZG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 10:25:06 -0400
+Message-ID: <1525789504.18091.9.camel@pengutronix.de>
+Subject: Re: [PATCH v2 0/2] media: imx: add capture support for RGB565_2X8
+ on parallel bus
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Jan Luebbe <jlu@pengutronix.de>, linux-media@vger.kernel.org
+Cc: slongerbeam@gmail.com, kernel@pengutronix.de
+Date: Tue, 08 May 2018 16:25:04 +0200
+In-Reply-To: <20180508141411.26620-1-jlu@pengutronix.de>
+References: <20180508141411.26620-1-jlu@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both vsp1_dl_list_commit() and __vsp1_dl_list_put() walk the display
-list chain referencing the nodes as children, when in reality they are
-siblings.
+On Tue, 2018-05-08 at 16:14 +0200, Jan Luebbe wrote:
+> The IPU can only capture RGB565 with two 8-bit cycles in bayer/generic
+> mode on the parallel bus, compared to a specific mode on MIPI CSI-2.
+> To handle this, we extend imx_media_pixfmt with a cycles per pixel
+> field, which is used for generic formats on the parallel bus.
+> 
+> Before actually adding RGB565_2X8 support for the parallel bus, this
+> series simplifies handing of the the different configurations for RGB565
+> between parallel and MIPI CSI-2 in imx-media-capture. This avoids having
+> to explicitly pass on the format in the second patch.
+> 
+> Changes since v1:
+>   - fixed problems reported the kbuild test robot
+>   - added helper functions as suggested by Steve Longerbeam
+>     (is_parallel_bus and requires_passthrough)
+>   - removed passthough format check in csi_link_validate() (suggested by
+>     Philipp Zabel during internal review)
 
-Update the terminology to 'dl_next' to be consistent with the
-vsp1_video_pipeline_run() usage.
+The theory is that IC only supports AYUV8_1X32 and RGB888_1X24 input,
+and any passthrough format on the CSI sink will differ from those.
+Mismatching formats are already caught by v4l2_subdev_link_validate
+called on the ipu?_vdic or ipu?_ic_prp entities' sink pads.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_dl.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index f4cede9b9b43..ec6fc21fabe0 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -398,7 +398,7 @@ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm)
- /* This function must be called with the display list manager lock held.*/
- static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
- {
--	struct vsp1_dl_list *dl_child;
-+	struct vsp1_dl_list *dl_next;
- 
- 	if (!dl)
- 		return;
-@@ -408,8 +408,8 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
- 	 * hardware operation.
- 	 */
- 	if (dl->has_chain) {
--		list_for_each_entry(dl_child, &dl->chain, chain)
--			__vsp1_dl_list_put(dl_child);
-+		list_for_each_entry(dl_next, &dl->chain, chain)
-+			__vsp1_dl_list_put(dl_next);
- 	}
- 
- 	dl->has_chain = false;
-@@ -673,17 +673,17 @@ static void vsp1_dl_list_commit_singleshot(struct vsp1_dl_list *dl)
- void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal)
- {
- 	struct vsp1_dl_manager *dlm = dl->dlm;
--	struct vsp1_dl_list *dl_child;
-+	struct vsp1_dl_list *dl_next;
- 	unsigned long flags;
- 
- 	if (dlm->mode == VSP1_DL_MODE_HEADER) {
- 		/* Fill the header for the head and chained display lists. */
- 		vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
- 
--		list_for_each_entry(dl_child, &dl->chain, chain) {
--			bool last = list_is_last(&dl_child->chain, &dl->chain);
-+		list_for_each_entry(dl_next, &dl->chain, chain) {
-+			bool last = list_is_last(&dl_next->chain, &dl->chain);
- 
--			vsp1_dl_list_fill_header(dl_child, last);
-+			vsp1_dl_list_fill_header(dl_next, last);
- 		}
- 	}
- 
--- 
-git-series 0.9.1
+regards
+Philipp
