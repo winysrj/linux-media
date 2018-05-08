@@ -1,73 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.socionext.com ([202.248.49.38]:35838 "EHLO mx.socionext.com"
+Received: from mout.gmx.net ([212.227.15.18]:42543 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S968694AbeE3JJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 05:09:50 -0400
-From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>,
-        Jassi Brar <jaswinder.singh@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-Subject: [PATCH 0/8] add UniPhier DVB Frontend system support
-Date: Wed, 30 May 2018 18:09:38 +0900
-Message-Id: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
+        id S1752294AbeEHLFV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 May 2018 07:05:21 -0400
+Date: Tue, 8 May 2018 13:05:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v7 1/2] uvcvideo: send a control event when a Control
+ Change interrupt arrives
+In-Reply-To: <3321819.nzIFIPUmca@avalon>
+Message-ID: <alpine.DEB.2.20.1805081253280.9684@axis700.grange>
+References: <20180323092401.12162-1-laurent.pinchart@ideasonboard.com> <2079648.niC1Apbgeu@avalon> <alpine.DEB.2.20.1804100848040.29394@axis700.grange> <3321819.nzIFIPUmca@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series adds support for DVB Frontend system named HSC support
-for UniPhier LD11/LD20 SoCs. This driver supports MPEG2-TS serial
-signal input from external demodulator and DMA MPEG2-TS stream data
-onto memory.
+Hi Laurent,
 
-UniPhier HSC driver provides many ports of TS input. Since the HSC
-has mixed register map for those ports. It hard to split each register
-areas.
+One more comment-to-comment:
 
-Katsuhiro Suzuki (8):
-  media: uniphier: add DT bindings documentation for UniPhier HSC
-  media: uniphier: add headers of HSC MPEG2-TS I/O driver
-  media: uniphier: add submodules of HSC MPEG2-TS I/O driver
-  media: uniphier: add common module of HSC MPEG2-TS I/O driver
-  media: uniphier: add LD11/LD20 HSC support
-  media: uniphier: add common module of DVB adapter drivers
-  media: uniphier: add LD11 adapter driver for ISDB
-  media: uniphier: add LD20 adapter driver for ISDB
+On Mon, 7 May 2018, Laurent Pinchart wrote:
 
- .../bindings/media/uniphier,hsc.txt           |  38 ++
- drivers/media/platform/Kconfig                |   1 +
- drivers/media/platform/Makefile               |   2 +
- drivers/media/platform/uniphier/Kconfig       |  37 ++
- drivers/media/platform/uniphier/Makefile      |  12 +
- drivers/media/platform/uniphier/hsc-core.c    | 506 ++++++++++++++++++
- drivers/media/platform/uniphier/hsc-css.c     | 258 +++++++++
- drivers/media/platform/uniphier/hsc-dma.c     | 302 +++++++++++
- drivers/media/platform/uniphier/hsc-ld11.c    | 219 ++++++++
- drivers/media/platform/uniphier/hsc-reg.h     | 491 +++++++++++++++++
- drivers/media/platform/uniphier/hsc-ts.c      |  99 ++++
- drivers/media/platform/uniphier/hsc-ucode.c   | 436 +++++++++++++++
- drivers/media/platform/uniphier/hsc.h         | 480 +++++++++++++++++
- .../platform/uniphier/ld11-mn884433-helene.c  | 265 +++++++++
- .../platform/uniphier/ld20-mn884434-helene.c  | 274 ++++++++++
- .../platform/uniphier/uniphier-adapter.c      |  54 ++
- .../platform/uniphier/uniphier-adapter.h      |  42 ++
- 17 files changed, 3516 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/uniphier,hsc.txt
- create mode 100644 drivers/media/platform/uniphier/Kconfig
- create mode 100644 drivers/media/platform/uniphier/Makefile
- create mode 100644 drivers/media/platform/uniphier/hsc-core.c
- create mode 100644 drivers/media/platform/uniphier/hsc-css.c
- create mode 100644 drivers/media/platform/uniphier/hsc-dma.c
- create mode 100644 drivers/media/platform/uniphier/hsc-ld11.c
- create mode 100644 drivers/media/platform/uniphier/hsc-reg.h
- create mode 100644 drivers/media/platform/uniphier/hsc-ts.c
- create mode 100644 drivers/media/platform/uniphier/hsc-ucode.c
- create mode 100644 drivers/media/platform/uniphier/hsc.h
- create mode 100644 drivers/media/platform/uniphier/ld11-mn884433-helene.c
- create mode 100644 drivers/media/platform/uniphier/ld20-mn884434-helene.c
- create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.c
- create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.h
+> Hi Guennadi,
+> 
+> On Tuesday, 10 April 2018 14:31:35 EEST Guennadi Liakhovetski wrote:
+> > On Fri, 23 Mar 2018, Laurent Pinchart wrote:
+> > > On Friday, 23 March 2018 11:24:00 EET Laurent Pinchart wrote:
+> > >> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > >> 
+> > >> UVC defines a method of handling asynchronous controls, which sends a
+> > >> USB packet over the interrupt pipe. This patch implements support for
+> > >> such packets by sending a control event to the user. Since this can
+> > >> involve USB traffic and, therefore, scheduling, this has to be done
+> > >> in a work queue.
+> > >> 
+> > >> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> > >> ---
+> > >> 
+> > >>  drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++++++++++---
+> > >>  drivers/media/usb/uvc/uvc_status.c | 111 ++++++++++++++++++++++---
+> > >>  drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
+> > >>  drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
+> > >>  include/uapi/linux/uvcvideo.h      |   2 +
+> > >>  5 files changed, 269 insertions(+), 29 deletions(-)
 
--- 
-2.17.0
+[snip]
+
+> > >> diff --git a/drivers/media/usb/uvc/uvc_status.c
+> > >> b/drivers/media/usb/uvc/uvc_status.c index 7b710410584a..d1d83aed6a1d
+> > >> 100644
+> > >> --- a/drivers/media/usb/uvc/uvc_status.c
+> > >> +++ b/drivers/media/usb/uvc/uvc_status.c
+
+[snip]
+
+> > >> +				ctrl = uvc_event_entity_ctrl(entity,
+> > >> +							     status->bSelector);
+> > >> +				/*
+> > >> +				 * Some buggy cameras send asynchronous Control
+> > >> +				 * Change events for control, other than the
+> > >> +				 * ones, that had been changed, even though the
+> > >> +				 * AutoUpdate flag isn't set for the control.
+> > >> +				 */
+> > > 
+> > > That's lots of commas, I'm not sure what you mean here. Are there cameras
+> > > that send event for controls that haven't changed ? Or cameras that send
+> > > events for controls that don't have the auto-update flag set ? Do you
+> > > know what cameras are affected ?
+> > 
+> > I meant a case like
+> > 
+> > set_control(x=X)
+> > interrupt(x=X)
+> > interrupt(y=Y)
+> > 
+> > where y is a different control and it doesn't have an auto-update flag
+> > set. I think those were some early versions of our cameras, but as far as
+> > I can see, we need the check anyway for autoupdate controls, so, I can
+> > just remove the comment.
+> 
+> OK. But now that I read the comment again, how is it related to the check ? 
+> Why do you need ctrl->handle->chain == *chain ? Isn't that only a partial 
+> guard for the case above, as both x and y could be part of the same chain ?
+
+The uvc_event_entity_ctrl() function checks the selector, so, a selector + 
+chain should be unique?
+
+Thanks
+Guennadi
