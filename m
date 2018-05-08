@@ -1,85 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:44010 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753045AbeENL4M (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:58048 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750710AbeEHEKH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 07:56:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Tue, 8 May 2018 00:10:07 -0400
+Message-ID: <63df03faf50f1f357831f3b66aeccabb@smtp-cloud7.xs4all.net>
+Date: Tue, 08 May 2018 06:10:04 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@pobox.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [RFC PATCH 0/6] v4l2 core: push ioctl lock down to ioctl handler
-Date: Mon, 14 May 2018 13:55:56 +0200
-Message-Id: <20180514115602.9791-1-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-While working on the DMA fence API and the Request API it became
-clear that the core ioctl scheme was done at a too-high level.
+Results of the daily build of media_tree:
 
-Being able to actually look at the struct passed as the ioctl
-argument would help a lot in decide what lock(s) to take.
+date:			Tue May  8 05:00:12 CEST 2018
+media-tree git hash:	f10379aad39e9da8bc7d1822e251b5f0673067ef
+media_build git hash:	f474c00fb99c3785bec5b0817bf0e2487fe06ea3
+v4l-utils git hash:	03e763fd4b361b2082019032fc315b7606669335
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		0.5.2-RC1
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.15.0-3-amd64
 
-This patch series pushes the lock down into v4l2-ioctl.c, after
-video_usercopy() was called.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.101-i686: ERRORS
+linux-3.0.101-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.101-i686: ERRORS
+linux-3.2.101-x86_64: ERRORS
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: ERRORS
+linux-3.4.113-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.10-i686: ERRORS
+linux-3.7.10-x86_64: ERRORS
+linux-3.8.13-i686: ERRORS
+linux-3.8.13-x86_64: ERRORS
+linux-3.9.11-i686: ERRORS
+linux-3.9.11-x86_64: ERRORS
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.31-i686: OK
+linux-4.14.31-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16-i686: OK
+linux-4.16-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-The first patch is for the only driver that does not set
-unlocked_ioctl to video_ioctl2: pvrusb2. It actually does
-call it in its own unlocked_ioctl function.
+Detailed results are available here:
 
-Mike, can you test this patch? I tried to test it but my pvrusb2
-fails in a USB transfer (unrelated to this patch). I'll mail you
-separately with the details, since I've no idea what is going on.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-The second patch pushes the lock down.
+Full logs are available here:
 
-The third patch adds support for mem2mem devices by selecting
-the correct queue lock (capture vs output): this was never
-possible before.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-Note: in practice it appears that all m2m devices use the same
-lock for both capture and output queues. Perhaps this should
-be standardized?
+The Media Infrastructure API from this daily build is here:
 
-The final three patches require that queue->lock is always
-set. There are some drivers that do not set this (and Ezequiel
-will look at that and provide patches that will have to go
-in between patch 3 and 4 of this RFC series), but without that
-you will have performance issues with a blocking DQBUF (it
-will never release the core ioctl serialization lock while
-waiting for a new frame).
-
-I have added a test for this to v4l2-compliance. We never tested
-this before.
-
-Another note: the gspca vb2 conversion series I posted yesterday
-also remove the v4l2_disable_ioctl_locking() function, so that
-cleans up another little locking-related dark corner in the core.
-
-Regards,
-
-	Hans
-
-Hans Verkuil (6):
-  pvrusb2: replace pvr2_v4l2_ioctl by video_ioctl2
-  v4l2-core: push taking ioctl mutex down to ioctl handler.
-  v4l2-ioctl.c: use correct vb2_queue lock for m2m devices
-  videobuf2-core: require q->lock
-  videobuf2: assume q->lock is always set
-  v4l2-ioctl.c: assume queue->lock is always set
-
- .../media/common/videobuf2/videobuf2-core.c   | 22 ++---
- .../media/common/videobuf2/videobuf2-v4l2.c   | 27 ++----
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c      | 83 +++++++------------
- drivers/media/v4l2-core/v4l2-dev.c            |  6 --
- drivers/media/v4l2-core/v4l2-ioctl.c          | 75 +++++++++++++++--
- drivers/media/v4l2-core/v4l2-subdev.c         | 17 +++-
- include/media/v4l2-dev.h                      |  9 --
- include/media/v4l2-ioctl.h                    | 12 ---
- include/media/videobuf2-core.h                |  2 -
- 9 files changed, 133 insertions(+), 120 deletions(-)
-
--- 
-2.17.0
+http://www.xs4all.nl/~hverkuil/spec/index.html
