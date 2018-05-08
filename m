@@ -1,154 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:34888 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751417AbeECNgc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 09:36:32 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 06/11] media: vsp1: Provide VSP1 feature helper macro
-Date: Thu,  3 May 2018 14:36:17 +0100
-Message-Id: <c9def3055aa8acf4a45c3a17b1da2c2468d35cca.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46786 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750716AbeEHKwf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 May 2018 06:52:35 -0400
+Date: Tue, 8 May 2018 13:52:33 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv13 03/28] media-request: implement media requests
+Message-ID: <20180508105233.kuuzas77w3s73xio@valkosipuli.retiisi.org.uk>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+ <20180503145318.128315-4-hverkuil@xs4all.nl>
+ <20180504122750.bcmbhnwtpibd7425@valkosipuli.retiisi.org.uk>
+ <20180508072116.265756e1@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180508072116.265756e1@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VSP1 devices define their specific capabilities through features
-marked in their device info structure. Various parts of the code read
-this info structure to infer if the features are available.
+Hi Mauro, Hans,
 
-Wrap this into a more readable vsp1_feature(vsp1, f) macro to ensure
-that usage is consistent throughout the driver.
+On Tue, May 08, 2018 at 07:21:16AM -0300, Mauro Carvalho Chehab wrote:
+> Em Fri, 4 May 2018 15:27:50 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Hi Hans,
+> > 
+> > I've read this patch a large number of times and I think also the details
+> > begin to seem sound. A few comments below.
+> 
+> I'm sending this after analyzing the other patches in this series,
+> as this is the core of the changes. So, although I wrote the comments
+> early, I wanted to read first all other patches before sending it.
+> 
+> > 
+> > On Thu, May 03, 2018 at 04:52:53PM +0200, Hans Verkuil wrote:
+> > > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > > 
+> > > Add initial media request support:
+> > > 
+> > > 1) Add MEDIA_IOC_REQUEST_ALLOC ioctl support to media-device.c
+> > > 2) Add struct media_request to store request objects.
+> > > 3) Add struct media_request_object to represent a request object.
+> > > 4) Add MEDIA_REQUEST_IOC_QUEUE/REINIT ioctl support.
+> > > 
+> > > Basic lifecycle: the application allocates a request, adds
+> > > objects to it, queues the request, polls until it is completed
+> > > and can then read the final values of the objects at the time
+> > > of completion. When it closes the file descriptor the request
+> > > memory will be freed (actually, when the last user of that request
+> > > releases the request).
+> > > 
+> > > Drivers will bind an object to a request (the 'adds objects to it'
+> > > phase), when MEDIA_REQUEST_IOC_QUEUE is called the request is
+> > > validated (req_validate op), then queued (the req_queue op).
+> > > 
+> > > When done with an object it can either be unbound from the request
+> > > (e.g. when the driver has finished with a vb2 buffer) or marked as
+> > > completed (e.g. for controls associated with a buffer). When all
+> > > objects in the request are completed (or unbound), then the request
+> > > fd will signal an exception (poll).
+> > > 
+> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Hmm... As you're adding Copyrights from Intel/Google in this patch, that
+> indicates that part of the stuff you're adding here were authored by
+> others. So, you should use Co-developed-by: tag here, and get the SOBs
+> from the other developers that did part of the work[1].
+> 
+> [1] except if your work was sponsored by Cisco, Intel and Google, but
+>     I think this is not the case.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1.h     |  2 ++
- drivers/media/platform/vsp1/vsp1_drv.c | 16 ++++++++--------
- drivers/media/platform/vsp1/vsp1_wpf.c |  6 +++---
- 3 files changed, 13 insertions(+), 11 deletions(-)
+I think this could be appropriate:
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index 33f632331474..f0d21cc8e9ab 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -68,6 +68,8 @@ struct vsp1_device_info {
- 	bool uapi;
- };
- 
-+#define vsp1_feature(vsp1, f) ((vsp1)->info->features & (f))
-+
- struct vsp1_device {
- 	struct device *dev;
- 	const struct vsp1_device_info *info;
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index d29f9c4baebe..0fc388bf5a33 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -265,7 +265,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 	}
- 
- 	/* Instantiate all the entities. */
--	if (vsp1->info->features & VSP1_HAS_BRS) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_BRS)) {
- 		vsp1->brs = vsp1_brx_create(vsp1, VSP1_ENTITY_BRS);
- 		if (IS_ERR(vsp1->brs)) {
- 			ret = PTR_ERR(vsp1->brs);
-@@ -275,7 +275,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		list_add_tail(&vsp1->brs->entity.list_dev, &vsp1->entities);
- 	}
- 
--	if (vsp1->info->features & VSP1_HAS_BRU) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_BRU)) {
- 		vsp1->bru = vsp1_brx_create(vsp1, VSP1_ENTITY_BRU);
- 		if (IS_ERR(vsp1->bru)) {
- 			ret = PTR_ERR(vsp1->bru);
-@@ -285,7 +285,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		list_add_tail(&vsp1->bru->entity.list_dev, &vsp1->entities);
- 	}
- 
--	if (vsp1->info->features & VSP1_HAS_CLU) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_CLU)) {
- 		vsp1->clu = vsp1_clu_create(vsp1);
- 		if (IS_ERR(vsp1->clu)) {
- 			ret = PTR_ERR(vsp1->clu);
-@@ -311,7 +311,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 
- 	list_add_tail(&vsp1->hst->entity.list_dev, &vsp1->entities);
- 
--	if (vsp1->info->features & VSP1_HAS_HGO && vsp1->info->uapi) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_HGO) && vsp1->info->uapi) {
- 		vsp1->hgo = vsp1_hgo_create(vsp1);
- 		if (IS_ERR(vsp1->hgo)) {
- 			ret = PTR_ERR(vsp1->hgo);
-@@ -322,7 +322,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 			      &vsp1->entities);
- 	}
- 
--	if (vsp1->info->features & VSP1_HAS_HGT && vsp1->info->uapi) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_HGT) && vsp1->info->uapi) {
- 		vsp1->hgt = vsp1_hgt_create(vsp1);
- 		if (IS_ERR(vsp1->hgt)) {
- 			ret = PTR_ERR(vsp1->hgt);
-@@ -353,7 +353,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		}
- 	}
- 
--	if (vsp1->info->features & VSP1_HAS_LUT) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_LUT)) {
- 		vsp1->lut = vsp1_lut_create(vsp1);
- 		if (IS_ERR(vsp1->lut)) {
- 			ret = PTR_ERR(vsp1->lut);
-@@ -387,7 +387,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		}
- 	}
- 
--	if (vsp1->info->features & VSP1_HAS_SRU) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_SRU)) {
- 		vsp1->sru = vsp1_sru_create(vsp1);
- 		if (IS_ERR(vsp1->sru)) {
- 			ret = PTR_ERR(vsp1->sru);
-@@ -537,7 +537,7 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
- 	vsp1_write(vsp1, VI6_DPR_HSI_ROUTE, VI6_DPR_NODE_UNUSED);
- 	vsp1_write(vsp1, VI6_DPR_BRU_ROUTE, VI6_DPR_NODE_UNUSED);
- 
--	if (vsp1->info->features & VSP1_HAS_BRS)
-+	if (vsp1_feature(vsp1, VSP1_HAS_BRS))
- 		vsp1_write(vsp1, VI6_DPR_ILV_BRS_ROUTE, VI6_DPR_NODE_UNUSED);
- 
- 	vsp1_write(vsp1, VI6_DPR_HGO_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 2edea361eee4..ea1d226371b2 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -141,13 +141,13 @@ static int wpf_init_controls(struct vsp1_rwpf *wpf)
- 	if (wpf->entity.index != 0) {
- 		/* Only WPF0 supports flipping. */
- 		num_flip_ctrls = 0;
--	} else if (vsp1->info->features & VSP1_HAS_WPF_HFLIP) {
-+	} else if (vsp1_feature(vsp1, VSP1_HAS_WPF_HFLIP)) {
- 		/*
- 		 * When horizontal flip is supported the WPF implements three
- 		 * controls (horizontal flip, vertical flip and rotation).
- 		 */
- 		num_flip_ctrls = 3;
--	} else if (vsp1->info->features & VSP1_HAS_WPF_VFLIP) {
-+	} else if (vsp1_feature(vsp1, VSP1_HAS_WPF_VFLIP)) {
- 		/*
- 		 * When only vertical flip is supported the WPF implements a
- 		 * single control (vertical flip).
-@@ -276,7 +276,7 @@ static void wpf_configure_stream(struct vsp1_entity *entity,
- 
- 		vsp1_wpf_write(wpf, dlb, VI6_WPF_DSWAP, fmtinfo->swap);
- 
--		if (vsp1->info->features & VSP1_HAS_WPF_HFLIP &&
-+		if (vsp1_feature(vsp1, VSP1_HAS_WPF_HFLIP) &&
- 		    wpf->entity.index == 0)
- 			vsp1_wpf_write(wpf, dlb, VI6_WPF_ROT_CTRL,
- 				       VI6_WPF_ROT_CTRL_LN16 |
+    Co-developed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+    Co-developed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+    Co-developed-by: Alexandre Courbot <acourbot@chromium.org>
+
+...
+
+> > > +static long media_request_ioctl_queue(struct media_request *req)
+> > > +{
+> > > +	struct media_device *mdev = req->mdev;
+> > > +	enum media_request_state state;
+> > > +	unsigned long flags;
+> > > +	int ret = 0;  
+> > 
+> > ret is unconditionally assigned below, no need to initialise here.
+> > 
+> > > +
+> > > +	dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
+> > > +
+> > > +	/*
+> > > +	 * Ensure the request that is validated will be the one that gets queued
+> > > +	 * next by serialising the queueing process. This mutex is also used
+> > > +	 * to serialize with canceling a vb2 queue and with setting values such
+> > > +	 * as controls in a request.
+> > > +	 */
+> > > +	mutex_lock(&mdev->req_queue_mutex);
+> > > +
+> > > +	spin_lock_irqsave(&req->lock, flags);
+> > > +	state = atomic_cmpxchg(&req->state, MEDIA_REQUEST_STATE_IDLE,
+> > > +			       MEDIA_REQUEST_STATE_VALIDATING);
+> > > +	spin_unlock_irqrestore(&req->lock, flags);
+> 
+> It looks weird to serialize access to it with a mutex, a spin lock and 
+> an atomic call.
+
+req->lock is needed for state changes from idle to other states as also
+other struct members need to be serialised with that, with the request
+state. Which is kind of in line with my earlier point: there's little
+if any benefit in making this field atomic.
+
+The mutex is there to ensure only a single request remains in validating
+state, i.e. we will be changing the state of the device request tip one
+request at a time.
+
+> 
+> IMHO, locking is still an issue here. I would love to test the 
+> locks with some tool that would randomize syscalls, issuing close(),
+> poll() and read() at wrong times and inverting the order of some calls, 
+> in order to do some empiric test that all locks are at the right places.
+> 
+> Complex locking schemas like that usually tend to cause a lot of
+> troubles.
+> 
+> > > +	if (state != MEDIA_REQUEST_STATE_IDLE) {
+> > > +		dev_dbg(mdev->dev,
+> > > +			"request: unable to queue %s, request in state %s\n",
+> > > +			req->debug_str, media_request_state_str(state));
+> > > +		mutex_unlock(&mdev->req_queue_mutex);
+> > > +		return -EBUSY;
+> > > +	}
+> > > +
+> > > +	ret = mdev->ops->req_validate(req);
+> > > +
+> > > +	/*
+> > > +	 * If the req_validate was successful, then we mark the state as QUEUED
+> > > +	 * and call req_queue. The reason we set the state first is that this
+> > > +	 * allows req_queue to unbind or complete the queued objects in case
+> > > +	 * they are immediately 'consumed'. State changes from QUEUED to another
+> > > +	 * state can only happen if either the driver changes the state or if
+> > > +	 * the user cancels the vb2 queue. The driver can only change the state
+> > > +	 * after each object is queued through the req_queue op (and note that
+> > > +	 * that op cannot fail), so setting the state to QUEUED up front is
+> > > +	 * safe.
+> > > +	 *
+> > > +	 * The other reason for changing the state is if the vb2 queue is
+> > > +	 * canceled, and that uses the req_queue_mutex which is still locked
+> > > +	 * while req_queue is called, so that's safe as well.
+> > > +	 */
+> > > +	atomic_set(&req->state,
+> > > +		   ret ? MEDIA_REQUEST_STATE_IDLE : MEDIA_REQUEST_STATE_QUEUED);
+> 
+> Why are you changing state also when ret fails?
+> 
+> Also, why you had to use a spin lock earlier in this function just 
+> to change the req->state but you don't need to use it here?
+
+The reason is subtle: the operations that need spinlock protection can take
+place in request states other than "validating".
+
+...
+
+> > > +/**
+> > > + * struct media_request_object_ops - Media request object operations
+> > > + * @prepare: Validate and prepare the request object, optional.
+> > > + * @unprepare: Unprepare the request object, optional.
+> > > + * @queue: Queue the request object, optional.
+> > > + * @unbind: Unbind the request object, optional.
+> > > + * @release: Release the request object, required.
+> > > + */
+> > > +struct media_request_object_ops {
+> > > +	int (*prepare)(struct media_request_object *object);
+> > > +	void (*unprepare)(struct media_request_object *object);
+> > > +	void (*queue)(struct media_request_object *object);
+> > > +	void (*unbind)(struct media_request_object *object);
+> > > +	void (*release)(struct media_request_object *object);
+> > > +};
+> > > +
+> > > +/**
+> > > + * struct media_request_object - An opaque object that belongs to a media
+> > > + *				 request
+> > > + *
+> > > + * @ops: object's operations
+> > > + * @priv: object's priv pointer
+> > > + * @req: the request this object belongs to (can be NULL)
+> > > + * @list: List entry of the object for @struct media_request
+> > > + * @kref: Reference count of the object, acquire before releasing req->lock
+> > > + * @completed: If true, then this object was completed.
+> > > + *
+> > > + * An object related to the request. This struct is embedded in the
+> > > + * larger object data.
+> 
+> what do you mean by "the larger object data"? What struct is "the" struct?
+
+There is no particular type: the API offers generic binding of objects to a
+request. The objects are later retrieved when validating, queueing and
+implementing that request.
+
 -- 
-git-series 0.9.1
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
