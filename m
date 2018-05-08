@@ -1,189 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:49853 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751403AbeEDHus (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 03:50:48 -0400
-Message-ID: <82057e2f734137a3902d9313c228b01ceb345ee7.camel@bootlin.com>
-Subject: Re: [PATCH v2 09/10] ARM: dts: sun7i-a20: Add Video Engine and
- reserved memory nodes
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 04 May 2018 09:49:16 +0200
-In-Reply-To: <20180420073908.nkcbsdxibnzkqski@flea>
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
-         <20180419154536.17846-5-paul.kocialkowski@bootlin.com>
-         <20180420073908.nkcbsdxibnzkqski@flea>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-Ou7PoX3TY+MPVqw7G5RG"
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:39113 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755133AbeEHONh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 10:13:37 -0400
+Message-ID: <1525788814.6317.28.camel@pengutronix.de>
+Subject: Re: [PATCH 0/2] media: imx: add capture support for RGB565_2X8 on
+ parallel bus
+From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+Cc: p.zabel@pengutronix.de
+Date: Tue, 08 May 2018 16:13:34 +0200
+In-Reply-To: <8003e4cf-4d35-1dd8-aa1e-3428d2f0e7d1@gmail.com>
+References: <20180503164120.9912-1-jlu@pengutronix.de>
+         <ed3906bf-9682-77c6-011a-31bd1b76be7f@gmail.com>
+         <1525703026.6317.23.camel@pengutronix.de>
+         <8003e4cf-4d35-1dd8-aa1e-3428d2f0e7d1@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---=-Ou7PoX3TY+MPVqw7G5RG
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
 Hi,
 
-On Fri, 2018-04-20 at 09:39 +0200, Maxime Ripard wrote:
-> On Thu, Apr 19, 2018 at 05:45:35PM +0200, Paul Kocialkowski wrote:
-> > This adds nodes for the Video Engine and the associated reserved
-> > memory
-> > for the Allwinner A20. Up to 96 MiB of memory are dedicated to the
-> > VPU.
-> >=20
-> > The VPU can only map the first 256 MiB of DRAM, so the reserved
-> > memory
-> > pool has to be located in that area. Following Allwinner's decision
-> > in
-> > downstream software, the last 96 MiB of the first 256 MiB of RAM are
-> > reserved for this purpose.
-> >=20
-> > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> > ---
-> >  arch/arm/boot/dts/sun7i-a20.dtsi | 31
-> > +++++++++++++++++++++++++++++++
-> >  1 file changed, 31 insertions(+)
-> >=20
-> > diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi
-> > b/arch/arm/boot/dts/sun7i-a20.dtsi
-> > index bd0cd3204273..cb6d82065dcf 100644
-> > --- a/arch/arm/boot/dts/sun7i-a20.dtsi
-> > +++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-> > @@ -163,6 +163,20 @@
-> >  		reg =3D <0x40000000 0x80000000>;
-> >  	};
-> > =20
-> > +	reserved-memory {
-> > +		#address-cells =3D <1>;
-> > +		#size-cells =3D <1>;
-> > +		ranges;
-> > +
-> > +		/* Address must be kept in the lower 256 MiBs of
-> > DRAM for VE. */
-> > +		ve_memory: cma@4a000000 {
-> > +			compatible =3D "shared-dma-pool";
-> > +			reg =3D <0x4a000000 0x6000000>;
-> > +			no-map;
->=20
-> I'm not sure why no-map is needed.
+On Mon, 2018-05-07 at 11:21 -0700, Steve Longerbeam wrote:
+> On 05/07/2018 07:23 AM, Jan Lübbe wrote:
+> > On Sat, 2018-05-05 at 15:22 -0700, Steve Longerbeam wrote:
+> > > I reviewed this patch series, and while I don't have any
+> > > objections to the code-level changes, but my question
+> > > is more specifically about how the IPU/CSI deals with
+> > > receiving RGB565 over a parallel bus.
+> > > 
+> > > My understanding was that if the CSI receives RGB565
+> > > over a parallel 8-bit sensor bus, the CSI_SENS_DATA_FORMAT
+> > > register field is programmed to RGB565, and the CSI outputs
+> > > ARGB8888. Then IDMAC component packing can be setup to
+> > > write pixels to memory as RGB565. Does that not work?
+> > 
+> > This was our first thought too. As far as we can see in our
+> > experiments, that mode doesn't actually work for the parallel bus.
+> > Philipp's interpretation is that this mode is only intended for use
+> > with the MIPI-CSI2 input.
+> 
+> Ok, that was my suspicion on reading this as well. And it's likely
+> that the other sensor formats on parallel busses require pass-through,
+> e.g. anything other than UYVY_2x8 and YUYV_2x8 requires
+> pass-through.
 
-In fact, having no-map here would lead to reserving the area as cache-
-coherent instead of contiguous and thus prevented dmabuf support.
-Replacing it by "resuable" allows proper CMA reservation.
+OK.
 
-> And I guess we could use alloc-ranges to make sure the region is in
-> the proper memory range, instead of hardcoding it.
+> In other words, if the sensor bus is parallel, only 8-bit bus UYVY_2x8
+> and YUYV_2x8 can be routed to the IC pad or component packed/unpacked
+> by the IDMAC pad. All other sensor formats on a parallel bus (8 or 16 
+> bit) must be sent to IDMAC pad as pass-through.
+> 
+> I think the code can be simplified/made more readable because of this,
+> something like:
+> 
+> static inline bool is_parallel_bus(struct v4l2_fwnode_endpoint *ep)
+> {
+>          return ep->bus_type != V4L2_MBUS_CSI2;
+> }
+> 
+> static inline bool requires_pass_through(
+>      struct v4l2_fwnode_endpoint *ep,
+>      struct v4l2_mbus_framefmt *infmt,
+>      const struct imx_media_pixfmt *incc) {
+>          return incc->bayer || (is_parallel_bus(ep) && infmt->code != 
+> UYVY_2x8 && infmt->code != YUYV_2x8);
+> }
+> 
+> 
+> Then requires_pass_through() can be used everywhere we need to
+> determine the pass-though requirement.
 
-As far as I could understand from the documentation, "alloc-ranges" is
-used for dynamic allocation while only "reg" is used for static
-allocation. We are currently going with static allocation and thus
-reserve the whole 96 MiB. Is using dynamic allocation instead desirable
-here?
+OK, i've added these helper functions. In csi_link_validate() we don't
+have the infmt handy, but as the downstream elements check if they have
+a native format anyway, this check is redundant and so i've dropped it.
 
-> > +			linux,cma-default;
-> > +		};
-> > +	};
-> > +
-> >  	timer {
-> >  		compatible =3D "arm,armv7-timer";
-> >  		interrupts =3D <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) |
-> > IRQ_TYPE_LEVEL_LOW)>,
-> > @@ -451,6 +465,23 @@
-> >  			};
-> >  		};
-> > =20
-> > +		ve: video-engine@1c0e000 {
-> > +			compatible =3D "allwinner,sun4i-a10-video-
-> > engine";
->=20
-> We should have an A20-specific compatible here, at least, so that we
-> can deal with any quirk we might find down the road.
+> Also, there's something wrong with the 'switch (image.pix.pixelformat) 
+> {...}' block in csi_idmac_setup_channel(). Pass-though, burst size, pass-though 
+> bits, should be determined by input media-bus code, not final capture V4L2 pix
+> format.
 
-Yes that's a very good point.
+I just followed the existing code there, which already configures all
+of these.
 
-> > +			reg =3D <0x01c0e000 0x1000>;
-> > +			memory-region =3D <&ve_memory>;
->=20
-> Since you made the CMA region the default one, you don't need to tie
-> it to that device in particular (and you can drop it being mandatory
-> from your binding as well).
+> > > Assuming that above does not work (and indeed parallel RGB565
+> > > must be handled as pass-through), then I think support for capturing
+> > > parallel RGB555 as pass-through should be added to this series as
+> > > well.
+> > 
+> > I don't have a sensor which produces RGB555, so it wouldn't be able to
+> > test it.
+> 
+> Understood, but for code readability and consistency I think the code
+> can be cleaned up as above.
 
-What if another driver (or the system) claims memory from that zone and
-that the reserved memory ends up not being available for the VPU
-anymore?
+Yes, i've changed that for v2.
 
-Acccording to the reserved-memory documentation, the reusable property
-(that we need for dmabuf) puts a limitation that the device driver
-owning the region must be able to reclaim it back.
+> > > Also what about RGB565 over a 16-bit parallel sensor bus? The
+> > > reference manual hints that perhaps this could be treated as
+> > > non-passthrough ("on the fly processing"), e.g. could be passed
+> > > on to the IC pre-processor:
+> > > 
+> > >       16 bit RGB565
+> > >           This is the only mode that allows on the fly processing of 16 bit data. In this mode the
+> > >           CSI is programmed to receive 16 bit generic data. In this mode the interface is
+> > >           restricted to be in "non-gated mode" and the CSI#_DATA_SOURCE bit has to be set
+> > >           If the external device is 24bit - the user can connect a 16 bit sample of it (RGB565
+> > >           format). The IPU has to be configured in the same way as the case of
+> > >           CSI#_SENS_DATA_FORMAT=RGB565
+> > 
+> > I've not looked at this case, as I don't have a sensor with that format
+> > either. :/
+> 
+> Ok, I was just curious if you knew anything more about this. Let's
+> ignore it :)
 
-How does that work out if the CMA region is not tied to a driver in
-particular?
+OK. :)
 
-> > +
-> > +			clocks =3D <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
-> > +				 <&ccu CLK_DRAM_VE>;
-> > +			clock-names =3D "ahb", "mod", "ram";
-> > +
-> > +			assigned-clocks =3D <&ccu CLK_VE>;
-> > +			assigned-clock-rates =3D <320000000>;
->=20
-> This should be set from within the driver. If it's something that you
-> absolutely needed for the device to operate, you have no guarantee
-> that the clock rate won't change at any point in time after the device
-> probe, so that's not a proper solution.
->=20
-> And if it's not needed and can be adjusted depending on the
-> framerate/codec/resolution, then it shouldn't be in the DT either.
-
-Yes, that makes sense.
-
-> Don't you also need to map the SRAM on the A20?
-
-That's a good point, there is currently no syscon handle for A20 (and
-also A13). Maybe SRAM is muxed to the VE by default so it "just works"?=20
-
-I'll investigate on this side, also keeping in mind that the actual
-solution is to use the SRAM controller driver (but that won't make it to
-v3).
-
-Cheers and thanks for the review!
-
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
---=-Ou7PoX3TY+MPVqw7G5RG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrsEHwACgkQ3cLmz3+f
-v9GuaQf/QMOI/oUgcV0qLmh0CK8rKQVGPT+TH9ZK8E3X9cggGcTBAT3rH4EUgOXm
-rAABPSHXM5y1d1S6gfMDPZmUd4TMUX2G79QKBoe8O8IJ3xVqES5m9Z9tanRptDB4
-fS4iOzoyeXgAAMKnkCS8Oa4vWe2s6zTKhzIgP6ttQgRpxnJ851xir2tBfPJe4Bjs
-MCsD87PWd9Ix4ddTG9rnRysxJovph5/j5jMnUk5WoZUwMipq5U91vQmnHNczF16m
-6PQmHp93Bv7tROmlU/IRPx+0Ynbi8U7sNFBIxVsHNev5RWupfQJUIqqqqQV9mMWQ
-9QYTlvXbawcI9Xx8XF5PFZfL+k4jbQ==
-=9wxS
------END PGP SIGNATURE-----
-
---=-Ou7PoX3TY+MPVqw7G5RG--
+Regards,
+Jan
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
