@@ -1,36 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:36549 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751173AbeECMrN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 08:47:13 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l2-dev.h: fix doc warning
-Message-ID: <d4d954aa-5bd5-bddb-4b4c-a117031a1c67@xs4all.nl>
-Date: Thu, 3 May 2018 14:47:10 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mout.gmx.net ([212.227.15.15]:55379 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932599AbeEHPHr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 May 2018 11:07:47 -0400
+Received: from axis700.grange ([87.78.226.14]) by mail.gmx.com (mrgmx003
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 0M4002-1ePkoN2J2A-00ra6H for
+ <linux-media@vger.kernel.org>; Tue, 08 May 2018 17:07:45 +0200
+Received: from 200r.grange (200r.grange [192.168.1.16])
+        by axis700.grange (Postfix) with ESMTP id 920B860EC3
+        for <linux-media@vger.kernel.org>; Tue,  8 May 2018 17:07:44 +0200 (CEST)
+From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v8 0/3] uvcvideo: asynchronous controls
+Date: Tue,  8 May 2018 17:07:41 +0200
+Message-Id: <1525792064-30836-1-git-send-email-guennadi.liakhovetski@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix this warning when building the docs:
+Added a patch to remove a redundant check, addressed Laurent's
+comments.
 
-include/media/v4l2-dev.h:42: warning: Enum value 'VFL_TYPE_MAX' not described in enum 'vfl_devnode_type'
+Guennadi Liakhovetski (3):
+  uvcvideo: remove a redundant check
+  uvcvideo: send a control event when a Control Change interrupt arrives
+  uvcvideo: handle control pipe protocol STALLs
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index f60cf9cf3b9c..73073f6ee48c 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -30,6 +30,7 @@
-  * @VFL_TYPE_SUBDEV:	for V4L2 subdevices
-  * @VFL_TYPE_SDR:	for Software Defined Radio tuners
-  * @VFL_TYPE_TOUCH:	for touch sensors
-+ * @VFL_TYPE_MAX:	number of VFL types, must always be last in the enum
-  */
- enum vfl_devnode_type {
- 	VFL_TYPE_GRABBER	= 0,
+ drivers/media/usb/uvc/uvc_ctrl.c   | 168 ++++++++++++++++++++++++++++++-------
+ drivers/media/usb/uvc/uvc_status.c | 112 ++++++++++++++++++++++---
+ drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
+ drivers/media/usb/uvc/uvc_video.c  |  52 ++++++++++--
+ drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
+ include/uapi/linux/uvcvideo.h      |   2 +
+ 6 files changed, 302 insertions(+), 51 deletions(-)
+
+-- 
+1.9.3
+
+Thanks
+Guennadi
