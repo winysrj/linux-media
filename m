@@ -1,281 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f179.google.com ([209.85.128.179]:33204 "EHLO
-        mail-wr0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756053AbeEILIc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 07:08:32 -0400
-Received: by mail-wr0-f179.google.com with SMTP id o4-v6so35246939wrm.0
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 04:08:31 -0700 (PDT)
-References: <20180507162152.2545-1-rui.silva@linaro.org> <20180507162152.2545-14-rui.silva@linaro.org> <c4f8d144-0ab8-d72a-7bff-3dc4d1598380@infradead.org>
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>, devel@driverdev.osuosl.org,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Shawn Guo <shawnguo@kernel.org>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 13/14] media: imx7.rst: add documentation for i.MX7 media driver
-In-reply-to: <c4f8d144-0ab8-d72a-7bff-3dc4d1598380@infradead.org>
-Date: Wed, 09 May 2018 12:08:29 +0100
-Message-ID: <m3bmdp9jde.fsf@linaro.org>
+Received: from bombadil.infradead.org ([198.137.202.133]:55504 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754476AbeEHKiX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 06:38:23 -0400
+Date: Tue, 8 May 2018 07:38:13 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv13 04/28] media-request: add media_request_get_by_fd
+Message-ID: <20180508073813.2b121eba@vento.lan>
+In-Reply-To: <bad8f0a4-4e78-865a-9083-6dafb03722a1@xs4all.nl>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+        <20180503145318.128315-5-hverkuil@xs4all.nl>
+        <20180507140120.4f04b9bb@vento.lan>
+        <bad8f0a4-4e78-865a-9083-6dafb03722a1@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Randy,
-On Tue 08 May 2018 at 17:24, Randy Dunlap wrote:
-> Hi,
->
-> I have a few editing suggestions below...
+Em Tue, 8 May 2018 09:34:11 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Thank you very much for this. I will incorporate this in the next 
-version.
+> On 05/07/2018 07:01 PM, Mauro Carvalho Chehab wrote:
+> > Em Thu,  3 May 2018 16:52:54 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Add media_request_get_by_fd() to find a request based on the file
+> >> descriptor.
+> >>
+> >> The caller has to call media_request_put() for the returned
+> >> request since this function increments the refcount.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  drivers/media/media-request.c | 32 ++++++++++++++++++++++++++++++++
+> >>  include/media/media-request.h | 24 ++++++++++++++++++++++++
+> >>  2 files changed, 56 insertions(+)
+> >>
+> >> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+> >> index c216c4ab628b..edc1c3af1959 100644
+> >> --- a/drivers/media/media-request.c
+> >> +++ b/drivers/media/media-request.c
+> >> @@ -218,6 +218,38 @@ static const struct file_operations request_fops = {
+> >>  	.release = media_request_close,
+> >>  };
+> >>  
+> >> +struct media_request *
+> >> +media_request_get_by_fd(struct media_device *mdev, int request_fd)
+> >> +{
+> >> +	struct file *filp;
+> >> +	struct media_request *req;
+> >> +
+> >> +	if (!mdev || !mdev->ops ||
+> >> +	    !mdev->ops->req_validate || !mdev->ops->req_queue)
+> >> +		return ERR_PTR(-EPERM);
+> >> +
+> >> +	filp = fget(request_fd);
+> >> +	if (!filp)
+> >> +		return ERR_PTR(-ENOENT);
+> >> +
+> >> +	if (filp->f_op != &request_fops)
+> >> +		goto err_fput;
+> >> +	req = filp->private_data;
+> >> +	if (req->mdev != mdev)
+> >> +		goto err_fput;
+> >> +
+> >> +	media_request_get(req);  
+> > 
+> > Hmm... this function changes the req struct (by calling kref_get) without
+> > holding neither the mutex or the spin lock...  
+> 
+> kref_get is atomic, so why would you need to add additional locking?
+> 
+> Neither can the request be 'put' by another process before media_request_get()
+> is called due to the fget() above: while the fd has a refcount > 0 the
+> request refcount is also > 0. I'll add some comments to clarify this.
 
----
-Cheers,
-	Rui
+I see. Yeah, please add a comment here.
 
->
-> On 05/07/2018 09:21 AM, Rui Miguel Silva wrote:
->> Add rst document to describe the i.MX7 media driver and also a 
->> working example
->> from the Warp7 board usage with a OV2680 sensor.
->> 
->> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
->> ---
->>  Documentation/media/v4l-drivers/imx7.rst  | 157 
->>  ++++++++++++++++++++++
->>  Documentation/media/v4l-drivers/index.rst |   1 +
->>  2 files changed, 158 insertions(+)
->>  create mode 100644 Documentation/media/v4l-drivers/imx7.rst
->> 
->> diff --git a/Documentation/media/v4l-drivers/imx7.rst 
->> b/Documentation/media/v4l-drivers/imx7.rst
->> new file mode 100644
->> index 000000000000..64b97b442277
->> --- /dev/null
->> +++ b/Documentation/media/v4l-drivers/imx7.rst
->> @@ -0,0 +1,157 @@
->> +i.MX7 Video Capture Driver
->> +==========================
->> +
->> +Introduction
->> +------------
->> +
->> +The i.MX7 contrary to the i.MX5/6 family does not contain an 
->> Image Processing
->> +Unit (IPU), because of that the capabilities to perform 
->> operations or
->
-> s/,/;/
->
->> +manipulation of the capture frames is less feature rich.
->
->                                       are less
->
->> +
->> +For image capture the i.MX7 have three units:
->
->                                has
->
->> +- CMOS Sensor Interface (CSI)
->> +- Video Multiplexer
->> +- MIPI CSI-2 Receiver
->> +
->> +::
->> +                                           |\
->> +   MIPI Camera Input ---> MIPI CSI-2 --- > | \
->> +                                           |  \
->> +                                           | M |
->> +                                           | U | ------>  CSI 
->> ---> Capture
->> +                                           | X |
->> +                                           |  /
->> +   Parallel Camera Input ----------------> | /
->> +                                           |/
->> +
->> +For additional information, please refer to the latest 
->> versions of the i.MX7
->> +reference manual [#f1]_.
->> +
->> +Entities
->> +--------
->> +
->> +imx7-mipi-csi2
->> +--------------
->> +
->> +This is the MIPI CSI-2 recevier entity. It has one sink pad to 
->> receive the pixel
->
->                           receiver
->
->> +data from MIPI CSI-2 camera sensor. It has one source pad, 
->> corresponding to the
->> +virtual channel 0. This module is compliant to previous 
->> version of Samsung
->> +D-phy, and support two D-PHY Rx Data lanes.
->
->               supports
->
->> +
->> +csi_mux
->> +-------
->> +
->> +This is the video multiplexer. It has two sink pads to select 
->> from either camera
->> +sensors with a parallel interface or from MIPI CSI-2 virtual 
->> channel 0.  It has
->
->    sensor
->
->> +a single source pad that routes to the CSI.
->> +
->> +csi
->> +---
->> +
->> +The CSI enables the chip to connect directly to external CMOS 
->> image sensor. CSI
->> +can interfaces directly with Parallel and MIPI CSI-2 buses. It 
->> has 256 x 64 FIFO
->
->        interface
->
->> +to store received image pixel data and embedded DMA 
->> controllers to transfer data
->> +from the FIFO through AHB bus.
->> +
->> +This entity has one sink pad that receive from the csi_mux 
->> entity and a single
->
->                                      receives
->
->> +source pad that route video frames directly to memory buffers, 
->> this pad is
->
->                    routes 
->                    buffers. This pad is
->
->> +routed to a capture device node.
->> +
->> +Usage Notes
->> +-----------
->> +
->> +To aid in configuration and for backward compatibility with 
->> V4L2 applications
->> +that access controls only from video device nodes, the capture 
->> device interfaces
->> +inherit controls from the active entities in the current 
->> pipeline, so controls
->> +can be accessed either directly from the subdev or from the 
->> active capture
->> +device interface. For example, the sensor controls are 
->> available either from the
->> +sensor subdevs or from the active capture device.
->> +
->> +Warp7 with OV2680
->> +-----------------
->> +
->> +On this platform an OV2680 MIPI CSI-2 module is connected to 
->> the internal MIPI
->> +CSI-2 receiver. The following example configures a video 
->> capture pipeline with
->> +an output of 800x600, and BGGR 10 bit bayer format:
->> +
->> +.. code-block:: none
->> +   # Setup links
->> +   media-ctl -l "'ov2680 1-0036':0 -> 'imx7-mipi-csis.0':0[1]"
->> +   media-ctl -l "'imx7-mipi-csis.0':1 -> 'csi_mux':1[1]"
->> +   media-ctl -l "'csi_mux':2 -> 'csi':0[1]"
->> +   media-ctl -l "'csi':1 -> 'csi capture':0[1]"
->> +
->> +   # Configure pads for pipeline
->> +   media-ctl -V "'ov2680 1-0036':0 [fmt:SBGGR10_1X10/800x600 
->> field:none]"
->> +   media-ctl -V "'csi_mux':1 [fmt:SBGGR10_1X10/800x600 
->> field:none]"
->> +   media-ctl -V "'csi_mux':2 [fmt:SBGGR10_1X10/800x600 
->> field:none]"
->> +   media-ctl -V "'imx7-mipi-csis.0':0 
->> [fmt:SBGGR10_1X10/800x600 field:none]"
->> +   media-ctl -V "'csi':0 [fmt:SBGGR10_1X10/800x600 
->> field:none]"
->> +
->> +After this streaming can start, the v4l2-ctl tool can be used 
->> to select any of
->
->                         can start. The
->
->> +the resolutions supported by the sensor.
->> +
->> +.. code-block:: none
->> +    root@imx7s-warp:~# media-ctl -p
->> +    Media controller API version 4.17.0
->> +
->> +    Media device information
->> +    ------------------------
->> +    driver          imx-media
->> +    model           imx-media
->> +    serial
->> +    bus info
->> +    hw revision     0x0
->> +    driver version  4.17.0
->> +
->> +    Device topology
->> +    - entity 1: csi (2 pads, 2 links)
->> +		type V4L2 subdev subtype Unknown flags 0
->> +		device node name /dev/v4l-subdev0
->> +	    pad0: Sink
->> +		    [fmt:SBGGR10_1X10/800x600 field:none]
->> +		    <- "csi_mux":2 [ENABLED]
->> +	    pad1: Source
->> +		    [fmt:SBGGR10_1X10/800x600 field:none]
->> +		    -> "csi capture":0 [ENABLED]
->> +
->> +    - entity 4: csi capture (1 pad, 1 link)
->> +		type Node subtype V4L flags 0
->> +		device node name /dev/video0
->> +	    pad0: Sink
->> +		    <- "csi":1 [ENABLED]
->> +
->> +    - entity 10: csi_mux (3 pads, 2 links)
->> +		type V4L2 subdev subtype Unknown flags 0
->> +		device node name /dev/v4l-subdev1
->> +	    pad0: Sink
->> +		    [fmt:unknown/0x0]
->> +	    pad1: Sink
->> +		    [fmt:unknown/800x600 field:none]
->> +		    <- "imx7-mipi-csis.0":1 [ENABLED]
->> +	    pad2: Source
->> +		    [fmt:unknown/800x600 field:none]
->> +		    -> "csi":0 [ENABLED]
->> +
->> +    - entity 14: imx7-mipi-csis.0 (2 pads, 2 links)
->> +		type V4L2 subdev subtype Unknown flags 0
->> +		device node name /dev/v4l-subdev2
->> +	    pad0: Sink
->> +		    [fmt:SBGGR10_1X10/800x600 field:none]
->> +		    <- "ov2680 1-0036":0 [ENABLED]
->> +	    pad1: Source
->> +		    [fmt:SBGGR10_1X10/800x600 field:none]
->> +		    -> "csi_mux":1 [ENABLED]
->> +
->> +    - entity 17: ov2680 1-0036 (1 pad, 1 link)
->> +		type V4L2 subdev subtype Sensor flags 0
->> +		device node name /dev/v4l-subdev3
->> +	    pad0: Source
->> +		    [fmt:SBGGR10_1X10/800x600 field:none]
->> +		    -> "imx7-mipi-csis.0":0 [ENABLED]
->> +
->> +
->> +References
->> +----------
->> +
->> +.. [#f1] 
->> https://www.nxp.com/docs/en/reference-manual/IMX7SRM.pdf
->
-> thanks.
+Thanks,
+Mauro
+
+
+
+
+
+> 
+> >   
+> >> +	fput(filp);
+> >> +
+> >> +	return req;
+> >> +
+> >> +err_fput:
+> >> +	fput(filp);
+> >> +
+> >> +	return ERR_PTR(-ENOENT);
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(media_request_get_by_fd);
+> >> +
+> >>  int media_request_alloc(struct media_device *mdev,
+> >>  			struct media_request_alloc *alloc)
+> >>  {
+> >> diff --git a/include/media/media-request.h b/include/media/media-request.h
+> >> index e39122dfd717..997e096d7128 100644
+> >> --- a/include/media/media-request.h
+> >> +++ b/include/media/media-request.h
+> >> @@ -86,6 +86,24 @@ static inline void media_request_get(struct media_request *req)
+> >>   */
+> >>  void media_request_put(struct media_request *req);
+> >>  
+> >> +/**
+> >> + * media_request_get_by_fd - Get a media request by fd
+> >> + *
+> >> + * @mdev: Media device this request belongs to
+> >> + * @request_fd: The file descriptor of the request
+> >> + *
+> >> + * Get the request represented by @request_fd that is owned
+> >> + * by the media device.
+> >> + *
+> >> + * Return a -EPERM error pointer if requests are not supported
+> >> + * by this driver. Return -ENOENT if the request was not found.
+> >> + * Return the pointer to the request if found: the caller will
+> >> + * have to call @media_request_put when it finished using the
+> >> + * request.  
+> > 
+> > ... so, it should be said here how this should be serialized, in order
+> > to avoid it to be destroyed by a task while some other task might be
+> > trying to instantiate it.  
+> 
+> This doesn't need any serialization. If the request_fd is found, then
+> it will return the request with the request refcount increased.
+> 
+> I also do not understand what you mean with "some other task might be
+> trying to instantiate it".
+> 
+> I think there is some misunderstanding here.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> 
+> >   
+> >> + */
+> >> +struct media_request *
+> >> +media_request_get_by_fd(struct media_device *mdev, int request_fd);
+> >> +
+> >>  /**
+> >>   * media_request_alloc - Allocate the media request
+> >>   *
+> >> @@ -107,6 +125,12 @@ static inline void media_request_put(struct media_request *req)
+> >>  {
+> >>  }
+> >>  
+> >> +static inline struct media_request *
+> >> +media_request_get_by_fd(struct media_device *mdev, int request_fd)
+> >> +{
+> >> +	return ERR_PTR(-EPERM);
+> >> +}
+> >> +
+> >>  #endif
+> >>  
+> >>  /**  
+> > 
+> > 
+> > 
+> > Thanks,
+> > Mauro
+> >   
+> 
+
+
+
+Thanks,
+Mauro
