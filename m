@@ -1,460 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:45690 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750994AbeEAJHu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2018 05:07:50 -0400
-Subject: Re: [PATCH v7 8/8] media: vsp1: Move video configuration to a cached
- dlb
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
- <397eb3811ec096d0ceefa1dbea2d0ae68feb0587.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
- <10234110.l0SE7yvkH2@avalon>
- <066d4c14-5b92-bc99-d82a-d44df4a32726@ideasonboard.com>
- <b8ebf0d1-5b2b-db3f-0a0d-6458063003a5@ideasonboard.com>
-Message-ID: <ef65fe13-43c1-674f-e844-a125c853f4a6@ideasonboard.com>
-Date: Tue, 1 May 2018 10:07:45 +0100
+Received: from merlin.infradead.org ([205.233.59.134]:48540 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755439AbeEHRYa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 13:24:30 -0400
+Subject: Re: [PATCH v3 13/14] media: imx7.rst: add documentation for i.MX7
+ media driver
+To: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Shawn Guo <shawnguo@kernel.org>, linux-media@vger.kernel.org
+References: <20180507162152.2545-1-rui.silva@linaro.org>
+ <20180507162152.2545-14-rui.silva@linaro.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <c4f8d144-0ab8-d72a-7bff-3dc4d1598380@infradead.org>
+Date: Tue, 8 May 2018 10:24:21 -0700
 MIME-Version: 1.0
-In-Reply-To: <b8ebf0d1-5b2b-db3f-0a0d-6458063003a5@ideasonboard.com>
+In-Reply-To: <20180507162152.2545-14-rui.silva@linaro.org>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA512
+Hi,
 
-On 01/05/18 09:28, Kieran Bingham wrote:
-> Hi Laurent,
-> 
-> New plan ... (from the .. why didn't I think of this earlier department)
+I have a few editing suggestions below...
 
-Nope ... My suggestion in the previous mail (regarding dropping the configured
-flag in place of using the pipe->state s) doesn't work because the pipeline is
-set to be running before the vsp1_video_pipeline_run() gets the opportunity to
-check it.
+On 05/07/2018 09:21 AM, Rui Miguel Silva wrote:
+> Add rst document to describe the i.MX7 media driver and also a working example
+> from the Warp7 board usage with a OV2680 sensor.
+> 
+> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+> ---
+>  Documentation/media/v4l-drivers/imx7.rst  | 157 ++++++++++++++++++++++
+>  Documentation/media/v4l-drivers/index.rst |   1 +
+>  2 files changed, 158 insertions(+)
+>  create mode 100644 Documentation/media/v4l-drivers/imx7.rst
+> 
+> diff --git a/Documentation/media/v4l-drivers/imx7.rst b/Documentation/media/v4l-drivers/imx7.rst
+> new file mode 100644
+> index 000000000000..64b97b442277
+> --- /dev/null
+> +++ b/Documentation/media/v4l-drivers/imx7.rst
+> @@ -0,0 +1,157 @@
+> +i.MX7 Video Capture Driver
+> +==========================
+> +
+> +Introduction
+> +------------
+> +
+> +The i.MX7 contrary to the i.MX5/6 family does not contain an Image Processing
+> +Unit (IPU), because of that the capabilities to perform operations or
 
-We could extend the states to include a 'VSP1_PIPELINE_STARTING' in between
-_STOPPED, and _RUNNING, but I think that's more complicated as the state
-machine across the whole code will be affected.
+s/,/;/
 
-(which is why I chose to add a flag in the first place)
+> +manipulation of the capture frames is less feature rich.
 
+                                      are less
 
-> On 30/04/18 18:48, Kieran Bingham wrote:
->> Hi Laurent,
->> 
->> On 07/04/18 01:23, Laurent Pinchart wrote:
->>> Hi Kieran,
->>> 
->>> Thank you for the patch.
->>> 
->>> On Thursday, 8 March 2018 02:05:31 EEST Kieran Bingham wrote:
->>>> We are now able to configure a pipeline directly into a local
->>>> display list body. Take advantage of this fact, and create a
->>>> cacheable body to store the configuration of the pipeline in the
->>>> video object.
->>>> 
->>>> vsp1_video_pipeline_run() is now the last user of the pipe->dl
->>>> object. Convert this function to use the cached video->config body
->>>> and obtain a local display list reference.
->>>> 
->>>> Attach the video->config body to the display list when needed before 
->>>> committing to hardware.
->>>> 
->>>> The pipe object is marked as un-configured when resuming from a
->>>> suspend. This ensures that when the hardware is reset - our cached
->>>> configuration will be re-attached to the next committed DL.
->>>> 
->>>> Signed-off-by: Kieran Bingham
->>>> <kieran.bingham+renesas@ideasonboard.com> ---
->>>> 
->>>> v3: - 's/fragment/body/', 's/fragments/bodies/' - video dlb cache
->>>> allocation increased from 2 to 3 dlbs
->>>> 
->>>> Our video DL usage now looks like the below output:
->>>> 
->>>> dl->body0 contains our disposable runtime configuration. Max 41. 
->>>> dl_child->body0 is our partition specific configuration. Max 12. 
->>>> dl->bodies shows our constant configuration and LUTs.
->>>> 
->>>> These two are LUT/CLU: * dl->bodies[x]->num_entries 256 / max 256 *
->>>> dl->bodies[x]->num_entries 4914 / max 4914
->>>> 
->>>> Which shows that our 'constant' configuration cache is currently 
->>>> utilised to a maximum of 64 entries.
->>>> 
->>>> trace-cmd report | \ grep max | sed 's/.*vsp1_dl_list_commit://g' |
->>>> sort | uniq;
->>>> 
->>>> dl->body0->num_entries 13 / max 128 dl->body0->num_entries 14 / max
->>>> 128 dl->body0->num_entries 16 / max 128 dl->body0->num_entries 20 /
->>>> max 128 dl->body0->num_entries 27 / max 128 dl->body0->num_entries 34
->>>> / max 128 dl->body0->num_entries 41 / max 128 
->>>> dl_child->body0->num_entries 10 / max 128 
->>>> dl_child->body0->num_entries 12 / max 128 dl->bodies[x]->num_entries
->>>> 15 / max 128 dl->bodies[x]->num_entries 16 / max 128 
->>>> dl->bodies[x]->num_entries 17 / max 128 dl->bodies[x]->num_entries 18
->>>> / max 128 dl->bodies[x]->num_entries 20 / max 128 
->>>> dl->bodies[x]->num_entries 21 / max 128 dl->bodies[x]->num_entries
->>>> 256 / max 256 dl->bodies[x]->num_entries 31 / max 128 
->>>> dl->bodies[x]->num_entries 32 / max 128 dl->bodies[x]->num_entries 39
->>>> / max 128 dl->bodies[x]->num_entries 40 / max 128 
->>>> dl->bodies[x]->num_entries 47 / max 128 dl->bodies[x]->num_entries 48
->>>> / max 128 dl->bodies[x]->num_entries 4914 / max 4914 
->>>> dl->bodies[x]->num_entries 55 / max 128 dl->bodies[x]->num_entries 56
->>>> / max 128 dl->bodies[x]->num_entries 63 / max 128 
->>>> dl->bodies[x]->num_entries 64 / max 128
->>> 
->>> This might be useful to capture in the main part of the commit
->>> message.
->>> 
->>>> v4: - Adjust pipe configured flag to be reset on resume rather than
->>>> suspend - rename dl_child, dl_next
->>>> 
->>>> drivers/media/platform/vsp1/vsp1_pipe.c  |  7 +++- 
->>>> drivers/media/platform/vsp1/vsp1_pipe.h  |  4 +- 
->>>> drivers/media/platform/vsp1/vsp1_video.c | 67
->>>> ++++++++++++++++--------- drivers/media/platform/vsp1/vsp1_video.h |
->>>> 2 +- 4 files changed, 54 insertions(+), 26 deletions(-)
->>>> 
->>>> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c 
->>>> b/drivers/media/platform/vsp1/vsp1_pipe.c index
->>>> 5012643583b6..fa445b1a2e38 100644 ---
->>>> a/drivers/media/platform/vsp1/vsp1_pipe.c +++
->>>> b/drivers/media/platform/vsp1/vsp1_pipe.c @@ -249,6 +249,7 @@ void
->>>> vsp1_pipeline_run(struct vsp1_pipeline *pipe) vsp1_write(vsp1,
->>>> VI6_CMD(pipe->output->entity.index), VI6_CMD_STRCMD); pipe->state =
->>>> VSP1_PIPELINE_RUNNING; +		pipe->configured = true;
-> 
-> Look at that lovely pipe->state flag update right above the
-> pipe->configured update...
-> 
->>>> }
->>>> 
->>>> pipe->buffers_ready = 0; @@ -470,6 +471,12 @@ void
->>>> vsp1_pipelines_resume(struct vsp1_device *vsp1) continue;
->>>> 
->>>> spin_lock_irqsave(&pipe->irqlock, flags); +		/* +		 * The hardware
->>>> may have been reset during a suspend and will +		 * need a full
->>>> reconfiguration +		 */
->>> 
->>> s/reconfiguration/reconfiguration./
->>> 
->>>> +		pipe->configured = false;
-> 
-> If we have 'suspended' then pipe->state == STOPPED
-> 
-> 
->>>> +
->>> 
->>> Where does that full reconfiguration occur, given that the
->>> vsp1_pipeline_run() right below sets pipe->configured to true without
->>> performing reconfiguration ?
->> 
->> It's magic isn't it :D
->> 
->> If the pipe->configured flag gets set to false, the next execution of 
->> vsp1_pipeline_run() attaches the video->pipe_config (the cached
->> configuration, containing the route_setup() and the configure_stream()
->> entries) to the display list before configuring for the next frame.
->> 
->> This means that the hardware gets a full configuration written to it
->> after a suspend/resume action.
->> 
->> Perhaps the comment should say "The video object will write out it's
->> cached pipe configuration on the next display list commit"
->> 
->> 
->>> 
->>>> if (vsp1_pipeline_ready(pipe)) vsp1_pipeline_run(pipe);
-> 
->>>> spin_unlock_irqrestore(&pipe->irqlock, flags); diff --git
->>>> a/drivers/media/platform/vsp1/vsp1_pipe.h 
->>>> b/drivers/media/platform/vsp1/vsp1_pipe.h index
->>>> 90d29492b9b9..e7ad6211b4d0 100644 ---
->>>> a/drivers/media/platform/vsp1/vsp1_pipe.h +++
->>>> b/drivers/media/platform/vsp1/vsp1_pipe.h @@ -90,6 +90,7 @@ struct
->>>> vsp1_partition { * @irqlock: protects the pipeline state * @state:
->>>> current state * @wq: wait queue to wait for state change completion +
->>>> * @configured: flag determining if the hardware has run since reset
-> 
-> I think this flag can now be removed...
-> 
->>>> * @frame_end: frame end interrupt handler * @lock: protects the
->>>> pipeline use count and stream count * @kref: pipeline reference
->>>> count @@ -117,6 +118,7 @@ struct vsp1_pipeline { spinlock_t irqlock; 
->>>> enum vsp1_pipeline_state state; wait_queue_head_t wq; +	bool
->>>> configured;
-> 
-> and here of course...
-> 
->>>> 
->>>> void (*frame_end)(struct vsp1_pipeline *pipe, bool completed);
->>>> 
->>>> @@ -143,8 +145,6 @@ struct vsp1_pipeline { */ struct list_head
->>>> entities;
->>>> 
->>>> -	struct vsp1_dl_list *dl; -
->>> 
->>> You should remove the corresponding line from the structure
->>> documentation.
->> 
->> Done.
->> 
->>> 
->>>> unsigned int partitions; struct vsp1_partition *partition; struct
->>>> vsp1_partition *part_table; diff --git
->>>> a/drivers/media/platform/vsp1/vsp1_video.c 
->>>> b/drivers/media/platform/vsp1/vsp1_video.c index
->>>> b47708660e53..96d9872667d9 100644 ---
->>>> a/drivers/media/platform/vsp1/vsp1_video.c +++
->>>> b/drivers/media/platform/vsp1/vsp1_video.c @@ -394,37 +394,43 @@
->>>> static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline
->>>> *pipe, static void vsp1_video_pipeline_run(struct vsp1_pipeline
->>>> *pipe) { struct vsp1_device *vsp1 = pipe->output->entity.vsp1; +
->>>> struct vsp1_video *video = pipe->output->video; unsigned int
->>>> partition; +	struct vsp1_dl_list *dl; + +	dl =
->>>> vsp1_dl_list_get(pipe->output->dlm);
->>>> 
->>>> -	if (!pipe->dl) -		pipe->dl = vsp1_dl_list_get(pipe->output->dlm); +
->>>> /* Attach our pipe configuration to fully initialise the hardware */
->>> 
->>> s/hardware/hardware./
->>> 
->>> There are other similar comments in this patch.
-> 
-> I think I've fixed these up.
-> 
->>> 
->>>> +	if (!pipe->configured) {
-> 
-> So - if this line, instead of reading !pipe->configured was:
-> 
-> +	if (vsp1_pipeline_stopped(pipe)) {
-> 
->>>> +		vsp1_dl_list_add_body(dl, video->pipe_config); +		pipe->configured
->>>> = true;
-> 
-> Then we don't need to update the flag, or access the pipe internals.
-> 
->>>> +	}
-> 
-> 
-> 
-> 
->>>> 
->>>> /* Run the first partition */ -
->>>> vsp1_video_pipeline_run_partition(pipe, pipe->dl, 0); +
->>>> vsp1_video_pipeline_run_partition(pipe, dl, 0);
->>>> 
->>>> /* Process consecutive partitions as necessary */ for (partition = 1;
->>>> partition < pipe->partitions; ++partition) { -		struct vsp1_dl_list
->>>> *dl; +		struct vsp1_dl_list *dl_next;
->>>> 
->>>> -		dl = vsp1_dl_list_get(pipe->output->dlm); +		dl_next =
->>>> vsp1_dl_list_get(pipe->output->dlm);
->>>> 
->>>> /* * An incomplete chain will still function, but output only * the
->>>> partitions that had a dl available. The frame end * interrupt will be
->>>> marked on the last dl in the chain. */ -		if (!dl) { +		if (!dl_next)
->>>> { dev_err(vsp1->dev, "Failed to obtain a dl list. Frame will be 
->>>> incomplete\n"); break; }
->>>> 
->>>> -		vsp1_video_pipeline_run_partition(pipe, dl, partition); -
->>>> vsp1_dl_list_add_chain(pipe->dl, dl); +
->>>> vsp1_video_pipeline_run_partition(pipe, dl_next, partition); +
->>>> vsp1_dl_list_add_chain(dl, dl_next); }
->>>> 
->>>> /* Complete, and commit the head display list. */ -
->>>> vsp1_dl_list_commit(pipe->dl); -	pipe->dl = NULL; +
->>>> vsp1_dl_list_commit(dl);
->>>> 
->>>> vsp1_pipeline_run(pipe); } @@ -790,8 +796,8 @@ static void
->>>> vsp1_video_buffer_queue(struct vb2_buffer *vb)
->>>> 
->>>> static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe) { +
->>>> struct vsp1_video *video = pipe->output->video; struct vsp1_entity
->>>> *entity; -	struct vsp1_dl_body *dlb; int ret;
->>>> 
->>>> /* Determine this pipelines sizes for image partitioning support. */ 
->>>> @@ -799,14 +805,6 @@ static int vsp1_video_setup_pipeline(struct 
->>>> vsp1_pipeline *pipe) if (ret < 0) return ret;
->>>> 
->>>> -	/* Prepare the display list. */ -	pipe->dl =
->>>> vsp1_dl_list_get(pipe->output->dlm); -	if (!pipe->dl) -		return
->>>> -ENOMEM; - -	/* Retrieve the default DLB from the list */ -	dlb =
->>>> vsp1_dl_list_get_body0(pipe->dl); - if (pipe->uds) { struct vsp1_uds
->>>> *uds = to_uds(&pipe->uds->subdev);
->>>> 
->>>> @@ -828,11 +826,20 @@ static int vsp1_video_setup_pipeline(struct 
->>>> vsp1_pipeline *pipe) } }
->>>> 
->>>> +	/* Obtain a clean body from our pool */ +	video->pipe_config =
->>>> vsp1_dl_body_get(video->dlbs); +	if (!video->pipe_config) +		return
->>>> -ENOMEM; + +	/* Configure the entities into our cached pipe
->>>> configuration */ list_for_each_entry(entity, &pipe->entities,
->>>> list_pipe) { -		vsp1_entity_route_setup(entity, pipe, dlb); -
->>>> vsp1_entity_configure_stream(entity, pipe, dlb); +
->>>> vsp1_entity_route_setup(entity, pipe, video->pipe_config); +
->>>> vsp1_entity_configure_stream(entity, pipe, video->pipe_config); }
->>>> 
->>>> +	/* Ensure that our cached configuration is updated in the next DL
->>>> */ +	pipe->configured = false;
->>> 
->>> Quoting my comment to a previous version, and your reply to it which I
->>> have failed to answer,
->>> 
->>>>> I'm tempted to move this at pipeline stop time (either to 
->>>>> vsp1_video_stop_streaming() right after the vsp1_pipeline_stop()
->>>>> call, or in vsp1_pipeline_stop() itself), possibly with a WARN_ON()
->>>>> here to catch bugs in the driver.
->>>> 
->>>> Do you mean just setting the flag? or the pipe_configuration? This is
->>>> a setup task - not a stop task ... ? We are doing this as part of 
->>>> vsp1_video_start_streaming().
->>> 
->>> I meant just setting the configured flag back to false.
->> 
->> The point at this line in the code is to ensure that the flag is set
->> false, because all of that stream configuration isn't included in the
->> display list - unless the flag is false.
->> 
->> If the flag is initialised false in object creation, and stream stop -
->> then that's fine. I felt like setting it false here was appropriate
->> because as soon as the video->pipe_config cache is populated - that's the
->> time it also needs to be 'flushed' to the hardware through the next
->> dl_commit()
->> 
->>> 
->>>> IMO, The flag should only be updated after the configuration has
->>>> been updated to signal that the new configuration should be written
->>>> out to the hardware.
->>>> 
->>>> Unless you mean to mark the pipe->configured = false; at 
->>>> vsp1_pipeline_stop() time because we reset the pipe to halt it ?
->>> 
->>> That's the idea, yes. And now that I think about it again, we could
->>> also set pipe->configured to false in vsp1_video_cleanup_pipeline()
->>> right after the vsp1_dl_body_put() call.
->>> 
->>> What bothers me here is that the pipe->configured flag is handled both
->>> in vsp1_pipe.c and vsp1_video.c. Coupled with my above comment about
->>> the full reconfiguration at resume time,
->> 
->> Which comment - the one saying it doesn't happen? (It does... it uses the
->> cached configuration)
->> 
->>> I think we might not be abstracting this as we should. I wonder whether
->>> it would be possible to either make the flag local to vsp1_pipe.c, or
->>> local to vsp1_video.c and move it from the pipeline object to the video
->>> object. My gut feeling right now (and it might be too late to trust it)
->>> is that, as the pipe_config object is stored in vsp1_video, so should
->>> the configured flag.
->>> 
->>> Please feel free to challenge this.
->> 
->> The flag is in the pipe because that's accessible at resume time. I
->> could provide accessors so that it's not modified directly from the
->> vsp_video object?
->> 
->> But the configuration cache is specific to the video object - which is
->> why it's in there...
->> 
->> I'm not sure that the pipeline vsp1_pipelines_resume() can modify flags
->> in the video object at resume time though ... which would be the other
->> direction of approaching this ...
-> 
-> 
-> So summarising my inlines above...
-> 
-> Yes, currently this patch is modifying a flag based on the hardware state
-> to know when to apply the current cached configuration to the next outgoing
-> display list.
-> 
-> We don't need to have a flag (or the cross-object pollution) because I
-> believe we can use the pipe->state status to tell us the exact information
-> we need. (when the pipeline has stopped, and thus needs to have the routing
-> and stream information sent to hardware)
-> 
-> I'll try it out - and hopefully send a v8... that I'm happy with :D
-> 
-> 
-> 
-> -- Kieran
-> 
-> 
-> 
->> 
->>> 
->>>> + return 0; }
->>>> 
->>>> @@ -842,6 +849,9 @@ static void vsp1_video_cleanup_pipeline(struct 
->>>> vsp1_pipeline *pipe) struct vsp1_vb2_buffer *buffer; unsigned long
->>>> flags;
->>>> 
->>>> +	/* Release any cached configuration */ +
->>>> vsp1_dl_body_put(video->pipe_config); + /* Remove all buffers from
->>>> the IRQ queue. */ spin_lock_irqsave(&video->irqlock, flags); 
->>>> list_for_each_entry(buffer, &video->irqqueue, queue) @@ -918,9 +928,6
->>>> @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq) ret =
->>>> vsp1_pipeline_stop(pipe); if (ret == -ETIMEDOUT) 
->>>> dev_err(video->vsp1->dev, "pipeline stop timeout\n"); - -
->>>> vsp1_dl_list_put(pipe->dl); -		pipe->dl = NULL; } 
->>>> mutex_unlock(&pipe->lock);
->>>> 
->>>> @@ -1240,6 +1247,16 @@ struct vsp1_video *vsp1_video_create(struct 
->>>> vsp1_device *vsp1, goto error; }
->>>> 
->>>> +	/* +	 * Utilise a body pool to cache the constant configuration of
->>>> the +	 * pipeline object. +	 */ +	video->dlbs =
->>>> vsp1_dl_body_pool_create(vsp1, 3, 128, 0); +	if (!video->dlbs) { +
->>>> ret = -ENOMEM; +		goto error; +	} + return video;
->>>> 
->>>> error: @@ -1249,6 +1266,8 @@ struct vsp1_video
->>>> *vsp1_video_create(struct vsp1_device *vsp1,
->>>> 
->>>> void vsp1_video_cleanup(struct vsp1_video *video) { +
->>>> vsp1_dl_body_pool_destroy(video->dlbs); + if
->>>> (video_is_registered(&video->video)) 
->>>> video_unregister_device(&video->video);
->>>> 
->>>> diff --git a/drivers/media/platform/vsp1/vsp1_video.h 
->>>> b/drivers/media/platform/vsp1/vsp1_video.h index
->>>> 50ea7f02205f..e84f8ee902c1 100644 ---
->>>> a/drivers/media/platform/vsp1/vsp1_video.h +++
->>>> b/drivers/media/platform/vsp1/vsp1_video.h @@ -43,6 +43,8 @@ struct
->>>> vsp1_video {
->>>> 
->>>> struct mutex lock;
->>>> 
->>>> +	struct vsp1_dl_body_pool *dlbs; +	struct vsp1_dl_body
->>>> *pipe_config;
+> +
+> +For image capture the i.MX7 have three units:
 
-Meanwhile, renaming pipe_config to stream_config seems to make sense as it
-stores the stream configuration (non-runtime) parameters.
+                               has
 
+> +- CMOS Sensor Interface (CSI)
+> +- Video Multiplexer
+> +- MIPI CSI-2 Receiver
+> +
+> +::
+> +                                           |\
+> +   MIPI Camera Input ---> MIPI CSI-2 --- > | \
+> +                                           |  \
+> +                                           | M |
+> +                                           | U | ------>  CSI ---> Capture
+> +                                           | X |
+> +                                           |  /
+> +   Parallel Camera Input ----------------> | /
+> +                                           |/
+> +
+> +For additional information, please refer to the latest versions of the i.MX7
+> +reference manual [#f1]_.
+> +
+> +Entities
+> +--------
+> +
+> +imx7-mipi-csi2
+> +--------------
+> +
+> +This is the MIPI CSI-2 recevier entity. It has one sink pad to receive the pixel
 
->>>> unsigned int pipe_index;
->>>> 
->>>> struct vb2_queue queue;
->>> 
-> 
------BEGIN PGP SIGNATURE-----
+                          receiver
 
-iQIzBAEBCgAdFiEEkC3XmD+9KP3jctR6oR5GchCkYf0FAlroLmEACgkQoR5GchCk
-Yf2kthAAqdOsIsFfjjRdZrxoZJwanQE8KRpXcdkfBMJvdAKJUqIMKYWX9YCdPlQN
-lmppii6U8Ru8MG9OBMlYVlG2SYFIEbGJSDJA5OIvQN41VLVkvSOLbdf6hp03kSNs
-QxqORR3ZKYqApxzeX7ayXv8c2JXLk7MrdPyvYdh8PNB+sj/B6aFc997IxKccwmuN
-6ZZOt6AAEEUtDR0kMgY5JamkT6UqRoNxebBbxgM4yNCoOAVp3AYyA23GTwvviKuE
-dAMGWE6hdCwz3k057RzpwePfeHKXnSxusabRr/vVRnLrzUw/DB81SHs9E87qkyWV
-mu9SLkbK0TadWx94j5iZJPyN7VoUXned7JWSOkS4GZ/GpiVtgioKdEDbztJSSBUY
-8WzUhuYfyYWppGGW1MwPByaeKhiKgCO2zsMLM3qgLPywAvkxIt5hsJUJ1IZGWpW/
-eOhDtwjA4XTTKH0bPRhcxEJrojwwOKT38TbyKjejDgFMAe9jPSWKxgrTJZls/JkE
-/kydepbUJmd0dzliUs69py0T1jq8kQbHm6Kn1lxkiKJCEBajRSOjtK+fe0msBJzh
-fHjZAFMUpZX28C6NpQqnRz/9FQhmOlYAW90MEXB7yQTGB/oeWgQW/WViuxHj+iYZ
-TuoUzpK+O2sE9eGYOhlb+VIxAlxWrh2Xexv7pLMSMKCCEzdEFMo=
-=zey1
------END PGP SIGNATURE-----
+> +data from MIPI CSI-2 camera sensor. It has one source pad, corresponding to the
+> +virtual channel 0. This module is compliant to previous version of Samsung
+> +D-phy, and support two D-PHY Rx Data lanes.
+
+              supports
+
+> +
+> +csi_mux
+> +-------
+> +
+> +This is the video multiplexer. It has two sink pads to select from either camera
+> +sensors with a parallel interface or from MIPI CSI-2 virtual channel 0.  It has
+
+   sensor
+
+> +a single source pad that routes to the CSI.
+> +
+> +csi
+> +---
+> +
+> +The CSI enables the chip to connect directly to external CMOS image sensor. CSI
+> +can interfaces directly with Parallel and MIPI CSI-2 buses. It has 256 x 64 FIFO
+
+       interface
+
+> +to store received image pixel data and embedded DMA controllers to transfer data
+> +from the FIFO through AHB bus.
+> +
+> +This entity has one sink pad that receive from the csi_mux entity and a single
+
+                                     receives
+
+> +source pad that route video frames directly to memory buffers, this pad is
+
+                   routes                                buffers. This pad is
+
+> +routed to a capture device node.
+> +
+> +Usage Notes
+> +-----------
+> +
+> +To aid in configuration and for backward compatibility with V4L2 applications
+> +that access controls only from video device nodes, the capture device interfaces
+> +inherit controls from the active entities in the current pipeline, so controls
+> +can be accessed either directly from the subdev or from the active capture
+> +device interface. For example, the sensor controls are available either from the
+> +sensor subdevs or from the active capture device.
+> +
+> +Warp7 with OV2680
+> +-----------------
+> +
+> +On this platform an OV2680 MIPI CSI-2 module is connected to the internal MIPI
+> +CSI-2 receiver. The following example configures a video capture pipeline with
+> +an output of 800x600, and BGGR 10 bit bayer format:
+> +
+> +.. code-block:: none
+> +   # Setup links
+> +   media-ctl -l "'ov2680 1-0036':0 -> 'imx7-mipi-csis.0':0[1]"
+> +   media-ctl -l "'imx7-mipi-csis.0':1 -> 'csi_mux':1[1]"
+> +   media-ctl -l "'csi_mux':2 -> 'csi':0[1]"
+> +   media-ctl -l "'csi':1 -> 'csi capture':0[1]"
+> +
+> +   # Configure pads for pipeline
+> +   media-ctl -V "'ov2680 1-0036':0 [fmt:SBGGR10_1X10/800x600 field:none]"
+> +   media-ctl -V "'csi_mux':1 [fmt:SBGGR10_1X10/800x600 field:none]"
+> +   media-ctl -V "'csi_mux':2 [fmt:SBGGR10_1X10/800x600 field:none]"
+> +   media-ctl -V "'imx7-mipi-csis.0':0 [fmt:SBGGR10_1X10/800x600 field:none]"
+> +   media-ctl -V "'csi':0 [fmt:SBGGR10_1X10/800x600 field:none]"
+> +
+> +After this streaming can start, the v4l2-ctl tool can be used to select any of
+
+                        can start. The
+
+> +the resolutions supported by the sensor.
+> +
+> +.. code-block:: none
+> +    root@imx7s-warp:~# media-ctl -p
+> +    Media controller API version 4.17.0
+> +
+> +    Media device information
+> +    ------------------------
+> +    driver          imx-media
+> +    model           imx-media
+> +    serial
+> +    bus info
+> +    hw revision     0x0
+> +    driver version  4.17.0
+> +
+> +    Device topology
+> +    - entity 1: csi (2 pads, 2 links)
+> +		type V4L2 subdev subtype Unknown flags 0
+> +		device node name /dev/v4l-subdev0
+> +	    pad0: Sink
+> +		    [fmt:SBGGR10_1X10/800x600 field:none]
+> +		    <- "csi_mux":2 [ENABLED]
+> +	    pad1: Source
+> +		    [fmt:SBGGR10_1X10/800x600 field:none]
+> +		    -> "csi capture":0 [ENABLED]
+> +
+> +    - entity 4: csi capture (1 pad, 1 link)
+> +		type Node subtype V4L flags 0
+> +		device node name /dev/video0
+> +	    pad0: Sink
+> +		    <- "csi":1 [ENABLED]
+> +
+> +    - entity 10: csi_mux (3 pads, 2 links)
+> +		type V4L2 subdev subtype Unknown flags 0
+> +		device node name /dev/v4l-subdev1
+> +	    pad0: Sink
+> +		    [fmt:unknown/0x0]
+> +	    pad1: Sink
+> +		    [fmt:unknown/800x600 field:none]
+> +		    <- "imx7-mipi-csis.0":1 [ENABLED]
+> +	    pad2: Source
+> +		    [fmt:unknown/800x600 field:none]
+> +		    -> "csi":0 [ENABLED]
+> +
+> +    - entity 14: imx7-mipi-csis.0 (2 pads, 2 links)
+> +		type V4L2 subdev subtype Unknown flags 0
+> +		device node name /dev/v4l-subdev2
+> +	    pad0: Sink
+> +		    [fmt:SBGGR10_1X10/800x600 field:none]
+> +		    <- "ov2680 1-0036":0 [ENABLED]
+> +	    pad1: Source
+> +		    [fmt:SBGGR10_1X10/800x600 field:none]
+> +		    -> "csi_mux":1 [ENABLED]
+> +
+> +    - entity 17: ov2680 1-0036 (1 pad, 1 link)
+> +		type V4L2 subdev subtype Sensor flags 0
+> +		device node name /dev/v4l-subdev3
+> +	    pad0: Source
+> +		    [fmt:SBGGR10_1X10/800x600 field:none]
+> +		    -> "imx7-mipi-csis.0":0 [ENABLED]
+> +
+> +
+> +References
+> +----------
+> +
+> +.. [#f1] https://www.nxp.com/docs/en/reference-manual/IMX7SRM.pdf
+
+thanks.
+-- 
+~Randy
