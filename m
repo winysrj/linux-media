@@ -1,43 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:37421 "EHLO
-        homiemail-a46.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750835AbeELWqM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 May 2018 18:46:12 -0400
-Subject: Re: [PATCH 5/7] Header location fix for 3.5.0 to 3.11.x
-To: "Jasmin J." <jasmin@anw.at>, Brad Love <brad@nextdimension.cc>,
-        linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-References: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
- <1524763162-4865-6-git-send-email-brad@nextdimension.cc>
- <4ae5be5c-167e-bf3b-4849-8958552f8d05@anw.at>
-From: Brad Love <brad@nextdimension.cc>
-Message-ID: <16264dca-f0c2-a699-c7ff-f392ce8751f4@nextdimension.cc>
-Date: Sat, 12 May 2018 17:46:11 -0500
+Received: from mail-ot0-f169.google.com ([74.125.82.169]:36325 "EHLO
+        mail-ot0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932170AbeEHN2N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 09:28:13 -0400
 MIME-Version: 1.0
-In-Reply-To: <4ae5be5c-167e-bf3b-4849-8958552f8d05@anw.at>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Content-Language: en-GB
+In-Reply-To: <20180507162152.2545-13-rui.silva@linaro.org>
+References: <20180507162152.2545-1-rui.silva@linaro.org> <20180507162152.2545-13-rui.silva@linaro.org>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Tue, 8 May 2018 10:28:11 -0300
+Message-ID: <CAOMZO5B+P5jyPshBe1NyyFyXCtmeQ_=pEB3CGHQuX_1Gfpa8rQ@mail.gmail.com>
+Subject: Re: [PATCH v3 12/14] ARM: dts: imx7s-warp: add ov2680 sensor node
+To: Rui Miguel Silva <rui.silva@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org, Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Rui,
 
-On 2018-05-12 14:42, Jasmin J. wrote:
-> Hello Brad!
->
-> This patch added the inclusion of "linux/of_i2c.h".
-> This gave the warnings in the last nightly build for Kernel
-> 3.6 - 3.9.
->
-> I just pushed a fix for that, so we should have an OK build this
-> night.
->
-> BR,
->    Jasmin
+On Mon, May 7, 2018 at 1:21 PM, Rui Miguel Silva <rui.silva@linaro.org> wrote:
 
-Thanks for the fix Jasmin. Are the build logs public?
+> +       reg_peri_3p15v: regulator-peri-3p15v {
+> +               compatible = "regulator-fixed";
+> +               regulator-name = "peri_3p15v_reg";
+> +               regulator-min-microvolt = <3150000>;
+> +               regulator-max-microvolt = <3150000>;
+> +               regulator-always-on;
 
-Cheers,
-
-Brad
+You can remove the 'regulator-always-on' property as this regulator
+will be controlled by AVDD-supply.
