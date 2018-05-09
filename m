@@ -1,63 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:41732 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751524AbeERF2r (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:59004 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756016AbeEIHEr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 01:28:47 -0400
-Received: by mail-pg0-f67.google.com with SMTP id w4-v6so2810172pgq.8
-        for <linux-media@vger.kernel.org>; Thu, 17 May 2018 22:28:47 -0700 (PDT)
-Date: Thu, 17 May 2018 22:28:44 -0700
-From: Bjorn Andersson <bjorn.andersson@linaro.org>
-To: Vikash Garodia <vgarodia@codeaurora.org>
-Cc: hverkuil@xs4all.nl, mchehab@kernel.org, andy.gross@linaro.org,
-        stanimir.varbanov@linaro.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-soc@vger.kernel.org, acourbot@google.com
-Subject: Re: [PATCH 1/4] soc: qcom: mdt_loader: Add check to make scm calls
-Message-ID: <20180518052844.GP14924@minitux>
-References: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
- <1526556740-25494-2-git-send-email-vgarodia@codeaurora.org>
+        Wed, 9 May 2018 03:04:47 -0400
+Subject: Re: [PATCH v9 11/15] vb2: add in-fence support to QBUF
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org
+Cc: kernel@collabora.com,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20180504200612.8763-1-ezequiel@collabora.com>
+ <20180504200612.8763-12-ezequiel@collabora.com>
+ <5fd5d7a9-5b74-fe2a-6148-59b90cabb9e8@xs4all.nl>
+ <5541e08b048b932789db1c58438c2a2c2b6da7ce.camel@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0a4f2701-a699-3c28-559d-2bf638178b94@xs4all.nl>
+Date: Wed, 9 May 2018 09:04:40 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1526556740-25494-2-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <5541e08b048b932789db1c58438c2a2c2b6da7ce.camel@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 17 May 04:32 PDT 2018, Vikash Garodia wrote:
-
-> In order to invoke scm calls, ensure that the platform
-> has the required support to invoke the scm calls in
-> secure world.
+On 05/08/2018 09:16 PM, Ezequiel Garcia wrote:
+> On Mon, 2018-05-07 at 14:07 +0200, Hans Verkuil wrote:
+>> On 04/05/18 22:06, Ezequiel Garcia wrote:
+>>> @@ -1421,15 +1505,40 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+>>>  	trace_vb2_qbuf(q, vb);
+>>>  
+>>>  	/*
+>>> -	 * If already streaming, give the buffer to driver for processing.
+>>> -	 * If not, the buffer will be given to driver on next streamon.
+>>> +	 * For explicit synchronization: If the fence didn't signal
+>>> +	 * yet we setup a callback to queue the buffer once the fence
+>>> +	 * signals and then return successfully. But if the fence
+>>> +	 * already signaled we lose the reference we held and queue the
+>>> +	 * buffer to the driver.
+>>
+>> What happens if the fence signaled an error? Is that error returned to userspace?
+>> (i.e. VIDIOC_QBUF will fail in that case)
+>>
 > 
-> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> ---
->  drivers/soc/qcom/mdt_loader.c | 21 +++++++++++++--------
->  1 file changed, 13 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/soc/qcom/mdt_loader.c b/drivers/soc/qcom/mdt_loader.c
-> index 17b314d..db55d53 100644
-> --- a/drivers/soc/qcom/mdt_loader.c
-> +++ b/drivers/soc/qcom/mdt_loader.c
-> @@ -121,10 +121,12 @@ int qcom_mdt_load(struct device *dev, const struct firmware *fw,
->  	if (!fw_name)
->  		return -ENOMEM;
->  
-> -	ret = qcom_scm_pas_init_image(pas_id, fw->data, fw->size);
-> -	if (ret) {
-> -		dev_err(dev, "invalid firmware metadata\n");
-> -		goto out;
-> +	if (qcom_scm_is_available()) {
+> Hm, good question. If the fence signals with an error, we won't catch it apparently.
+> We should fix dma_fence_add_callback to know about signaled vs. error signaled.
 
-qcom_scm_is_available() tells you if the qcom_scm driver has been
-probed, not if your platform implements PAS.
-
-Please add a DT property to tell the driver if it should require PAS or
-not (the absence of such property should indicate PAS is required, for
-backwards compatibility purposes). For the MDT loader we need to merge
-the following patch to make this work:
-
-https://patchwork.kernel.org/patch/10397889/ 
+OK, so in the meantime we need a comment explaining this in the code. Perhaps as
+a FIXME or TODO.
 
 Regards,
-Bjorn
+
+	Hans
