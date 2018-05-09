@@ -1,79 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay11.mail.gandi.net ([217.70.178.231]:45791 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935380AbeE2PG0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 11:06:26 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
-        horms@verge.net.au, geert@glider.be
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        robh+dt@kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 0/8] media: rcar-vin: Brush endpoint properties
-Date: Tue, 29 May 2018 17:05:51 +0200
-Message-Id: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:41938 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933864AbeEIKfJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 May 2018 06:35:09 -0400
+Date: Wed, 9 May 2018 11:35:05 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org, kernel@collabora.com,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v9 11/15] vb2: add in-fence support to QBUF
+Message-ID: <20180509103504.GB39838@e107564-lin.cambridge.arm.com>
+References: <20180504200612.8763-1-ezequiel@collabora.com>
+ <20180504200612.8763-12-ezequiel@collabora.com>
+ <5fd5d7a9-5b74-fe2a-6148-59b90cabb9e8@xs4all.nl>
+ <1525821486.1445.17.camel@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <1525821486.1445.17.camel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-   3rd version of VIN endpoint brushing series.
+Hi,
 
-Slightly enlarged the linux-media receiver list, as this new version
-introduces a common property in 'video-interfaces.txt'.
+On Tue, May 08, 2018 at 08:18:06PM -0300, Gustavo Padovan wrote:
+>
+>Hi Hans,
+>
+>On Mon, 2018-05-07 at 14:07 +0200, Hans Verkuil wrote:
+>> On 04/05/18 22:06, Ezequiel Garcia wrote:
+>> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Quite some changes compared to v1/v2:
-- First patch in the series changed to include Niklas' comments on using
-  spaces for indent over tabs in documentation and as suggested by Rob and
-  Laurent to refer to 'video-interfaces.txt' in property description.
-- As suggested by Rob this series introduces a new property 'data-enable-active'
-  to describe data enable signal polarity instead of using 'data-active' which
-  refers to the data lanes polarity.
-- Use this new property to control CLKENB pin polarity in VIN driver
-- Introduce a new custom property to describe the 'use HSYNC as data-enable'
-  function provided by VIN. In previous iterations I used the presence of
-  'data-active' to enable/disable this functionality. That was confusing and
-  not correct as it used the wrong property. As this is a VIN specificity, I
-  thought a custom property is more suited.
-- Last patch is still there and I know it is debated. My opinion is that it is
-  still needed, as the presence of those un-documented and un-parsed properties
-  confuses users which may expect changing those properties value to reflect on
-  the video interface configuration, which does not happens instead.
+[snip]
 
-Individual changelog per patch when relevant.
+>> > diff --git a/include/media/videobuf2-core.h
+>> > b/include/media/videobuf2-core.h
+>> > index 364e4cb41b10..28ce8f66882e 100644
+>> > --- a/include/media/videobuf2-core.h
+>> > +++ b/include/media/videobuf2-core.h
+>> > @@ -17,6 +17,7 @@
+>> >  #include <linux/poll.h>
+>> >  #include <linux/dma-buf.h>
+>> >  #include <linux/bitops.h>
+>> > +#include <linux/dma-fence.h>
+>> >
+>> >  #define VB2_MAX_FRAME	(32)
+>> >  #define VB2_MAX_PLANES	(8)
+>> > @@ -255,12 +256,21 @@ struct vb2_buffer {
+>> >  	 * done_entry:		entry on the list that
+>> > stores all buffers ready
+>> >  	 *			to be dequeued to userspace
+>> >  	 * vb2_plane:		per-plane information; do not
+>> > change
+>> > +	 * in_fence:		fence received from vb2 client
+>> > to wait on before
+>> > +	 *			using the buffer (queueing to
+>> > the driver)
+>> > +	 * fence_cb:		fence callback information
+>> > +	 * fence_cb_lock:	protect callback signal/remove
+>> >  	 */
+>> >  	enum vb2_buffer_state	state;
+>> >
+>> >  	struct vb2_plane	planes[VB2_MAX_PLANES];
+>> >  	struct list_head	queued_entry;
+>> >  	struct list_head	done_entry;
+>> > +
+>> > +	struct dma_fence	*in_fence;
+>> > +	struct dma_fence_cb	fence_cb;
+>> > +	spinlock_t              fence_cb_lock;
+>> > +
+>>
+>> So for the _MPLANE formats this is one fence for all planes. Which
+>> makes sense, but how
+>> does drm handle that? Also one fence for all planes?
+>
+>Yes, this is one fence for all planes.
+>
+>The DRM concept for planes is a totally different concept and is
+>basically a representation of an user definable square on the screen,
+>and to that plane there in one framebuffer attached - display hw has no
+>such a multiplanar for the same image AFAICT. So you probably need some
+>blit to convert the v4l2 multiplanar to a DRM framebuffer.
+>
 
-Thanks
-    j
+Lots of display hardware can do multi-planar formats, and there's
+space in struct drm_framebuffer for up to 4 buffer handles (e.g. 3
+handles are passed for Luma, Cr, and Cb when the framebuffer format is
+DRM_FORMAT_YUV420) - like V4L2 MPLANE.
 
-Jacopo Mondi (8):
-  dt-bindings: media: rcar-vin: Describe optional ep properties
-  dt-bindings: media: Document data-enable-active property
-  media: v4l2-fwnode: parse 'data-enable-active' prop
-  dt-bindings: media: rcar-vin: Add 'data-enable-active'
-  media: rcar-vin: Handle data-enable polarity
-  dt-bindings: rcar-vin: Add 'hsync-as-de' custom prop
-  media: rcar-vin: Handle 'hsync-as-de' property
-  ARM: dts: rcar-gen2: Remove unused VIN properties
+The V4L2 code here matches with the DRM "explicit sync"
+(IN_FENCE_FD/OUT_FENCE_PTR) stuff, which is probably what we want.
+The main difference is that in DRM, explicit fences aren't associated
+with framebuffers, they're associated with the things using the
+framebuffers - but practically it doesn't make a difference.
 
- Documentation/devicetree/bindings/media/rcar_vin.txt     | 16 +++++++++++++++-
- .../devicetree/bindings/media/video-interfaces.txt       |  2 ++
- arch/arm/boot/dts/r8a7790-lager.dts                      |  3 ---
- arch/arm/boot/dts/r8a7791-koelsch.dts                    |  3 ---
- arch/arm/boot/dts/r8a7791-porter.dts                     |  1 -
- arch/arm/boot/dts/r8a7793-gose.dts                       |  3 ---
- arch/arm/boot/dts/r8a7794-alt.dts                        |  1 -
- arch/arm/boot/dts/r8a7794-silk.dts                       |  1 -
- drivers/media/platform/rcar-vin/rcar-core.c              |  6 ++++++
- drivers/media/platform/rcar-vin/rcar-dma.c               | 11 +++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h               |  2 ++
- drivers/media/v4l2-core/v4l2-fwnode.c                    |  5 +++++
- include/media/v4l2-mediabus.h                            |  2 ++
- 13 files changed, 43 insertions(+), 13 deletions(-)
+There can be per-buffer "implicit sync" via dma-buf reservation
+objects, but I don't think this series should attempt to deal with
+that.
 
---
-2.7.4
+Cheers,
+-Brian
+
+>>
+>> I think there should be a comment about this somewhere.
+>
+>Yes, we've been over this exact discussion a few times :)
+>Having entirely different things with the same name is quite confusing.
+>
+>Regards,
+>
+>Gustavo
+>
+>-- 
+>Gustavo Padovan
+>Principal Software Engineer
+>Collabora Ltd.
