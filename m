@@ -1,124 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:41938 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933864AbeEIKfJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 May 2018 06:35:09 -0400
-Date: Wed, 9 May 2018 11:35:05 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org, kernel@collabora.com,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v9 11/15] vb2: add in-fence support to QBUF
-Message-ID: <20180509103504.GB39838@e107564-lin.cambridge.arm.com>
-References: <20180504200612.8763-1-ezequiel@collabora.com>
- <20180504200612.8763-12-ezequiel@collabora.com>
- <5fd5d7a9-5b74-fe2a-6148-59b90cabb9e8@xs4all.nl>
- <1525821486.1445.17.camel@collabora.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44966 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1756160AbeEIJ5V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 May 2018 05:57:21 -0400
+Date: Wed, 9 May 2018 12:57:19 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Matt Ranostay <matt.ranostay@konsulko.com>
+Subject: Re: [PATCH] media: video-i2c: get rid of two gcc warnings
+Message-ID: <20180509095718.gux7v4hsoxebc4kc@valkosipuli.retiisi.org.uk>
+References: <1b3d5f2ae882cfca37c4422dfd72fd455d01166a.1525443571.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1525821486.1445.17.camel@collabora.com>
+In-Reply-To: <1b3d5f2ae882cfca37c4422dfd72fd455d01166a.1525443571.git.mchehab+samsung@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, May 04, 2018 at 10:19:34AM -0400, Mauro Carvalho Chehab wrote:
+> After adding this driver, gcc complains with:
+> 
+> drivers/media/i2c/video-i2c.c:55:1: warning: 'static' is not at beginning of declaration [-Wold-style-declaration]
+>  const static struct v4l2_fmtdesc amg88xx_format = {
+>  ^~~~~
+> drivers/media/i2c/video-i2c.c:59:1: warning: 'static' is not at beginning of declaration [-Wold-style-declaration]
+>  const static struct v4l2_frmsize_discrete amg88xx_size = {
+>  ^~~~~
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
-On Tue, May 08, 2018 at 08:18:06PM -0300, Gustavo Padovan wrote:
->
->Hi Hans,
->
->On Mon, 2018-05-07 at 14:07 +0200, Hans Verkuil wrote:
->> On 04/05/18 22:06, Ezequiel Garcia wrote:
->> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-[snip]
-
->> > diff --git a/include/media/videobuf2-core.h
->> > b/include/media/videobuf2-core.h
->> > index 364e4cb41b10..28ce8f66882e 100644
->> > --- a/include/media/videobuf2-core.h
->> > +++ b/include/media/videobuf2-core.h
->> > @@ -17,6 +17,7 @@
->> >  #include <linux/poll.h>
->> >  #include <linux/dma-buf.h>
->> >  #include <linux/bitops.h>
->> > +#include <linux/dma-fence.h>
->> >
->> >  #define VB2_MAX_FRAME	(32)
->> >  #define VB2_MAX_PLANES	(8)
->> > @@ -255,12 +256,21 @@ struct vb2_buffer {
->> >  	 * done_entry:		entry on the list that
->> > stores all buffers ready
->> >  	 *			to be dequeued to userspace
->> >  	 * vb2_plane:		per-plane information; do not
->> > change
->> > +	 * in_fence:		fence received from vb2 client
->> > to wait on before
->> > +	 *			using the buffer (queueing to
->> > the driver)
->> > +	 * fence_cb:		fence callback information
->> > +	 * fence_cb_lock:	protect callback signal/remove
->> >  	 */
->> >  	enum vb2_buffer_state	state;
->> >
->> >  	struct vb2_plane	planes[VB2_MAX_PLANES];
->> >  	struct list_head	queued_entry;
->> >  	struct list_head	done_entry;
->> > +
->> > +	struct dma_fence	*in_fence;
->> > +	struct dma_fence_cb	fence_cb;
->> > +	spinlock_t              fence_cb_lock;
->> > +
->>
->> So for the _MPLANE formats this is one fence for all planes. Which
->> makes sense, but how
->> does drm handle that? Also one fence for all planes?
->
->Yes, this is one fence for all planes.
->
->The DRM concept for planes is a totally different concept and is
->basically a representation of an user definable square on the screen,
->and to that plane there in one framebuffer attached - display hw has no
->such a multiplanar for the same image AFAICT. So you probably need some
->blit to convert the v4l2 multiplanar to a DRM framebuffer.
->
-
-Lots of display hardware can do multi-planar formats, and there's
-space in struct drm_framebuffer for up to 4 buffer handles (e.g. 3
-handles are passed for Luma, Cr, and Cb when the framebuffer format is
-DRM_FORMAT_YUV420) - like V4L2 MPLANE.
-
-The V4L2 code here matches with the DRM "explicit sync"
-(IN_FENCE_FD/OUT_FENCE_PTR) stuff, which is probably what we want.
-The main difference is that in DRM, explicit fences aren't associated
-with framebuffers, they're associated with the things using the
-framebuffers - but practically it doesn't make a difference.
-
-There can be per-buffer "implicit sync" via dma-buf reservation
-objects, but I don't think this series should attempt to deal with
-that.
-
-Cheers,
--Brian
-
->>
->> I think there should be a comment about this somewhere.
->
->Yes, we've been over this exact discussion a few times :)
->Having entirely different things with the same name is quite confusing.
->
->Regards,
->
->Gustavo
->
->-- 
->Gustavo Padovan
->Principal Software Engineer
->Collabora Ltd.
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
