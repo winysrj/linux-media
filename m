@@ -1,83 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:28370 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752699AbeEUIzV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:21 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v14 26/36] videobuf2-core: add request helper functions
-Date: Mon, 21 May 2018 11:54:51 +0300
-Message-Id: <20180521085501.16861-27-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:42941 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965887AbeEIWr1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 18:47:27 -0400
+Received: by mail-pl0-f65.google.com with SMTP id u6-v6so93473pls.9
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 15:47:27 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 08/14] media: imx: csi: Register a subdev notifier
+Date: Wed,  9 May 2018 15:46:57 -0700
+Message-Id: <1525906023-827-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Parse neighbor remote devices on the CSI port, and add them to a subdev
+notifier, by calling v4l2_async_notifier_parse_fwnode_endpoints_by_port()
+using the CSI's port id. And register the subdev notifier for the CSI.
 
-Add a new helper function to tell if a request object is a buffer.
-
-Add a new helper function that returns true if a media_request
-contains at least one buffer.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/common/videobuf2/videobuf2-core.c | 17 +++++++++++++++++
- include/media/videobuf2-core.h                  | 15 +++++++++++++++
- 2 files changed, 32 insertions(+)
+Changes since v3:
+- v4l2_async_register_fwnode_subdev() no longer supports parsing
+  port sub-devices, so call
+  v4l2_async_notifier_parse_fwnode_endpoints_by_port() directly.
+---
+ drivers/staging/media/imx/imx-media-csi.c | 55 ++++++++++++++++++++++++++++++-
+ 1 file changed, 54 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index 4eebbed67c657..1adc08289876b 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -1340,6 +1340,23 @@ static const struct media_request_object_ops vb2_core_req_ops = {
- 	.release = vb2_req_release,
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 16cab40..190f0b4 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -1737,6 +1737,59 @@ static const struct v4l2_subdev_internal_ops csi_internal_ops = {
+ 	.unregistered = csi_unregistered,
  };
  
-+bool vb2_request_object_is_buffer(struct media_request_object *obj)
++static int imx_csi_parse_endpoint(struct device *dev,
++				  struct v4l2_fwnode_endpoint *vep,
++				  struct v4l2_async_subdev *asd)
 +{
-+	return obj->ops == &vb2_core_req_ops;
++	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -EINVAL;
 +}
-+EXPORT_SYMBOL_GPL(vb2_request_object_is_buffer);
 +
-+bool vb2_request_has_buffers(struct media_request *req)
++static int imx_csi_async_register(struct csi_priv *priv)
 +{
-+	struct media_request_object *obj;
++	struct v4l2_async_notifier *notifier;
++	struct fwnode_handle *fwnode;
++	unsigned int port;
++	int ret;
 +
-+	list_for_each_entry(obj, &req->objects, list)
-+		if (vb2_request_object_is_buffer(obj))
-+			return true;
-+	return false;
++	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
++	if (!notifier)
++		return -ENOMEM;
++
++	fwnode = dev_fwnode(priv->dev);
++
++	/* get this CSI's port id */
++	ret = fwnode_property_read_u32(fwnode, "reg", &port);
++	if (ret < 0)
++		goto out_free;
++
++	ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
++		priv->dev->parent, notifier, sizeof(struct v4l2_async_subdev),
++		port, imx_csi_parse_endpoint);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_subdev_notifier_register(&priv->sd, notifier);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_register_subdev(&priv->sd);
++	if (ret < 0)
++		goto out_unregister;
++
++	priv->sd.subdev_notifier = notifier;
++
++	return 0;
++
++out_unregister:
++	v4l2_async_notifier_unregister(notifier);
++out_cleanup:
++	v4l2_async_notifier_cleanup(notifier);
++out_free:
++	kfree(notifier);
++
++	return ret;
 +}
-+EXPORT_SYMBOL_GPL(vb2_request_has_buffers);
 +
- int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+ static int imx_csi_probe(struct platform_device *pdev)
  {
- 	struct vb2_buffer *vb;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 0b0e8b56aed1a..c9045f113791b 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -1161,4 +1161,19 @@ bool vb2_buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb);
-  */
- int vb2_verify_memory_type(struct vb2_queue *q,
- 		enum vb2_memory memory, unsigned int type);
-+
-+/**
-+ * vb2_request_object_is_buffer() - return true if the object is a buffer
-+ *
-+ * @obj:	the request object.
-+ */
-+bool vb2_request_object_is_buffer(struct media_request_object *obj);
-+
-+/**
-+ * vb2_request_has_buffers() - return true if the request contains buffers
-+ *
-+ * @req:	the request.
-+ */
-+bool vb2_request_has_buffers(struct media_request *req);
-+
- #endif /* _MEDIA_VIDEOBUF2_CORE_H */
+ 	struct ipu_client_platformdata *pdata;
+@@ -1806,7 +1859,7 @@ static int imx_csi_probe(struct platform_device *pdev)
+ 			goto free;
+ 	}
+ 
+-	ret = v4l2_async_register_subdev(&priv->sd);
++	ret = imx_csi_async_register(priv);
+ 	if (ret)
+ 		goto free;
+ 
 -- 
-2.11.0
+2.7.4
