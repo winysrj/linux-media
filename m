@@ -1,92 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:44166 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935895AbeE3Hwe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 03:52:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Vinod <vkoul@kernel.org>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:46650 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933573AbeEIQdL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 May 2018 12:33:11 -0400
+Date: Wed, 9 May 2018 17:33:01 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: Ezequiel Garcia <ezequiel@collabora.com>
+Cc: linux-media@vger.kernel.org, kernel@collabora.com,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: camera control interface
-Date: Wed, 30 May 2018 10:52:36 +0300
-Message-ID: <3520974.Kjugio0TXv@avalon>
-In-Reply-To: <20180530074056.GQ5666@vkoul-mobl>
-References: <20180529082932.GH5666@vkoul-mobl> <2441685.2FbY4xYTJB@avalon> <20180530074056.GQ5666@vkoul-mobl>
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH v9 10/15] vb2: add explicit fence user API
+Message-ID: <20180509163300.GA23664@e107564-lin.cambridge.arm.com>
+References: <20180504200612.8763-1-ezequiel@collabora.com>
+ <20180504200612.8763-11-ezequiel@collabora.com>
+ <20180509103353.GA39838@e107564-lin.cambridge.arm.com>
+ <e52f72ea1fdf491dd10a9a40bbced6d3bad66f7b.camel@collabora.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <e52f72ea1fdf491dd10a9a40bbced6d3bad66f7b.camel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vinod,
+On Wed, May 09, 2018 at 12:52:26PM -0300, Ezequiel Garcia wrote:
+>On Wed, 2018-05-09 at 11:33 +0100, Brian Starkey wrote:
+>> Hi Ezequiel,
+>>
+>> On Fri, May 04, 2018 at 05:06:07PM -0300, Ezequiel Garcia wrote:
+>> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+>> >
+>> > Turn the reserved2 field into fence_fd that we will use to send
+>> > an in-fence to the kernel or return an out-fence from the kernel to
+>> > userspace.
+>> >
+>> > Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+>> > when sending an in-fence to the kernel to be waited on, and
+>> > V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
+>> >
+>> > v7: minor fixes on the Documentation (Hans Verkuil)
+>> >
+>> > v6: big improvement on doc (Hans Verkuil)
+>> >
+>> > v5: - keep using reserved2 field for cpia2
+>> >    - set fence_fd to 0 for now, for compat with userspace(Mauro)
+>> >
+>> > v4: make it a union with reserved2 and fence_fd (Hans Verkuil)
+>> >
+>> > v3: make the out_fence refer to the current buffer (Hans Verkuil)
+>> >
+>> > v2: add documentation
+>> >
+>> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+>> > ---
+>> > Documentation/media/uapi/v4l/buffer.rst         | 45 +++++++++++++++++++++++--
+>> > drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
+>> > drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  4 +--
+>> > include/uapi/linux/videodev2.h                  |  8 ++++-
+>> > 4 files changed, 52 insertions(+), 7 deletions(-)
+>> >
+>> > diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+>> > index e2c85ddc990b..be9719cf5745 100644
+>> > --- a/Documentation/media/uapi/v4l/buffer.rst
+>> > +++ b/Documentation/media/uapi/v4l/buffer.rst
+>> > @@ -301,10 +301,22 @@ struct v4l2_buffer
+>> > 	elements in the ``planes`` array. The driver will fill in the
+>> > 	actual number of valid elements in that array.
+>> >     * - __u32
+>> > -      - ``reserved2``
+>> > +      - ``fence_fd``
+>> >       -
+>> > -      - A place holder for future extensions. Drivers and applications
+>> > -	must set this to 0.
+>> > +      - Used to communicate a fence file descriptors from userspace to kernel
+>> > +	and vice-versa. On :ref:`VIDIOC_QBUF <VIDIOC_QBUF>` when sending
+>> > +	an in-fence for V4L2 to wait on, the ``V4L2_BUF_FLAG_IN_FENCE`` flag must
+>> > +	be used and this field set to the fence file descriptor of the in-fence.
+>> > +	If the in-fence is not valid ` VIDIOC_QBUF`` returns an error.
+>> > +
+>> > +        To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE``
+>> > +	must be set, the kernel will return the out-fence file descriptor in
+>> > +	this field. If it fails to create the out-fence ``VIDIOC_QBUF` returns
+>> > +        an error.
+>> > +
+>> > +	For all other ioctls V4L2 sets this field to -1 if
+>> > +	``V4L2_BUF_FLAG_IN_FENCE`` and/or ``V4L2_BUF_FLAG_OUT_FENCE`` are set,
+>> > +	otherwise this field is set to 0 for backward compatibility.
+>> >     * - __u32
+>> >       - ``reserved``
+>> >       -
+>> > @@ -648,6 +660,33 @@ Buffer Flags
+>> >       - Start Of Exposure. The buffer timestamp has been taken when the
+>> > 	exposure of the frame has begun. This is only valid for the
+>> > 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
+>> > +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
+>> > +
+>> > +      - ``V4L2_BUF_FLAG_IN_FENCE``
+>> > +      - 0x00200000
+>> > +      - Ask V4L2 to wait on the fence passed in the ``fence_fd`` field. The
+>> > +	buffer won't be queued to the driver until the fence signals. The order
+>> > +	in which buffers are queued is guaranteed to be preserved, so any
+>> > +	buffers queued after this buffer will also be blocked until this fence
+>> > +	signals. This flag must be set before calling ``VIDIOC_QBUF``. For
+>> > +	other ioctls the driver just reports the value of the flag.
+>> > +
+>> > +        If the fence signals the flag is cleared and not reported anymore.
+>> > +	If the fence is not valid ``VIDIOC_QBUF`` returns an error.
+>> > +
+>> > +
+>> > +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
+>> > +
+>> > +      - ``V4L2_BUF_FLAG_OUT_FENCE``
+>> > +      - 0x00400000
+>> > +      - Request for a fence to be attached to the buffer. The driver will fill
+>> > +	in the out-fence fd in the ``fence_fd`` field when :ref:`VIDIOC_QBUF
+>> > +	<VIDIOC_QBUF>` returns. This flag must be set before calling
+>> > +	``VIDIOC_QBUF``. For other ioctls the driver just reports the value of
+>> > +	the flag.
+>> > +
+>> > +        If the creation of the out-fence fails ``VIDIOC_QBUF`` returns an
+>> > +	error.
+>> >
+>>
+>> I commented similarly on some of the old patch-sets, and it's a minor
+>> thing, but I still think the ordering of this series is off. It's
+>> strange/wrong to me document all this behaviour, and expose the flags
+>> to userspace, when the functionality isn't implemented yet.
+>>
+>> If I apply this patch to the kernel, then the kernel doesn't do what
+>> the (newly added) kernel-doc says it will.
+>>
+>
+>This has never been a problem, and it has always been the canonical
+>way of doing things.
+>
+>First the required macros, stubs, documentation and interfaces are added,
+>and then they are implemented.
 
-On Wednesday, 30 May 2018 10:40:56 EEST Vinod wrote:
-> On 30-05-18, 10:31, Laurent Pinchart wrote:
-> > On Wednesday, 30 May 2018 10:28:58 EEST Vinod wrote:
-> >> On 30-05-18, 10:04, Laurent Pinchart wrote:
-> >>>> I am writing a driver for camera control inteface which is an i2c
-> >>>> controller. So looking up the code I think it can be a v4l subdev,
-> >>>> right? Can it be an independent i2c master and not v4l subdev?
-> >>> 
-> >>> What do you mean by "camera control interface" here ? A hardware
-> >> device handling communication with camera sensors ? I assume the
-> >>> communication bus is I2C ? Is that "camera control interface" plain
-> >>> I2C or does it have additional features ?
-> >>> 
-> >>> If we're talking about an I2C controller a V4L2 subdev is not only
-> >>> unneeded, but it wouldn't help. You need an I2C master.
-> >> 
-> >> Sorry if I wasn't quite right in description, the control interface is
-> >> indeed i2c master and gpio. The camera sensors are i2c slaves connected
-> >> to this i2c master and gpio for sensors are connected to this as well.
-> > 
-> > No worries. This clarifies the context.
-> > 
-> >>>> Second the control sports GPIOs. It can support  a set of
-> >>>> synchronization primitives so it's possible to drive I2C clients and
-> >>>> GPIOs with hardware controlled timing to allow for sync control of
-> >>>> sensors hooked and also for fancy strobe. How would we represent
-> >>>> these gpios in v4l2 and allow the control, any ideas on that.
-> >>> 
-> >>> Even if your main use case it related to camera, synchronization of
-> >>> I2C and GPIO doesn't seem to be a V4L2 feature to me. It sounds that
-> >>> you need to implement that int he I2C and GPIO subsystems.
-> >> 
-> >> Well if a user wants to capture multiple cameras and synchronise,
-> >> wouldn't that need sync of i2c and gpio. I understand it may not be
-> >> supported but the question is would it be a nice feature for v4l, if so
-> >> how to go about it?
-> > 
-> > You need two parts to implement this in my opinion. First, you need a
-> > synchronized I2C + GPIO mechanism on which to base the implementation.
-> > That's not V4L2-specific and should I believe be handled in the I2C and
-> > GPIO subsystems. Then, you need to expose the concept of camera
-> > synchronization in V4L2. That part will likely require API extensions,
-> > both inside the kernel and towards userspace.
-> 
-> Okay thanks. So should I do a v4l subdev for i2c master or leave it in
-> i2c subsystem. Does subdev make sense for gpio too..
+If you say so, I don't know what sets the standard but that seems
+kinda backwards.
 
-A V4L2 subdev doesn't make sense for any of these. Roughly speaking, a subdev 
-represent an entity in a video data pipeline (with the notable exception of 
-lens and flash controllers). I2C, GPIO and other resources (such as clocks) 
-are not part of the video data pipeline (unless video data itself transits on 
-I2C, but that's another story).
+I'd expect the "flick the switch, expose to userspace" to always be
+the last thing, but I'm happy to be shown examples to the contrary.
 
-> How does one go about 'linking' the two?
+>
+>I see no reason to go berserk here, unless you see an actual problem?
+>Or something actually broken?
+>
 
-That's what you have to invent :-)
+The only "broken" thing, is as I said - I can apply this patch to a
+kernel (any kernel, because there's no dependencies in the code), and
+it won't do what the kernel-doc says it will.
 
-> Btw where is v4l userspace located?
+Maybe I'm crazy, but shouldn't comments at least be correct at the
+point where they are added, even if they become incorrect later
+through neglect?
 
-There's no official "V4L2 userspace". V4L2 is a kernel to userspace API. Lots 
-of applications then use that API, either directly, or through a framework as 
-GStreamer.
+Cheers,
+-Brian
 
--- 
-Regards,
-
-Laurent Pinchart
+>The only thing I can think of is that we should return fence_fd -1
+>if the flags are set. We could do it on this patch, and be consistent
+>with userspace.
+>
+>Regards,
+>Eze
