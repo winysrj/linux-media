@@ -1,206 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46786 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46756 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750716AbeEHKwf (ORCPT
+        by vger.kernel.org with ESMTP id S934976AbeEINXN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 May 2018 06:52:35 -0400
-Date: Tue, 8 May 2018 13:52:33 +0300
+        Wed, 9 May 2018 09:23:13 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 64163634C7E
+        for <linux-media@vger.kernel.org>; Wed,  9 May 2018 16:23:11 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1fGP3n-0000G3-5W
+        for linux-media@vger.kernel.org; Wed, 09 May 2018 16:23:11 +0300
+Date: Wed, 9 May 2018 16:23:10 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv13 03/28] media-request: implement media requests
-Message-ID: <20180508105233.kuuzas77w3s73xio@valkosipuli.retiisi.org.uk>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
- <20180503145318.128315-4-hverkuil@xs4all.nl>
- <20180504122750.bcmbhnwtpibd7425@valkosipuli.retiisi.org.uk>
- <20180508072116.265756e1@vento.lan>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL v2 for 4.18] Omap3isp cleanups
+Message-ID: <20180509132310.4zh5vu5jmmqluoz3@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180508072116.265756e1@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, Hans,
+Hi Mauro,
 
-On Tue, May 08, 2018 at 07:21:16AM -0300, Mauro Carvalho Chehab wrote:
-> Em Fri, 4 May 2018 15:27:50 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Hi Hans,
-> > 
-> > I've read this patch a large number of times and I think also the details
-> > begin to seem sound. A few comments below.
-> 
-> I'm sending this after analyzing the other patches in this series,
-> as this is the core of the changes. So, although I wrote the comments
-> early, I wanted to read first all other patches before sending it.
-> 
-> > 
-> > On Thu, May 03, 2018 at 04:52:53PM +0200, Hans Verkuil wrote:
-> > > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > > 
-> > > Add initial media request support:
-> > > 
-> > > 1) Add MEDIA_IOC_REQUEST_ALLOC ioctl support to media-device.c
-> > > 2) Add struct media_request to store request objects.
-> > > 3) Add struct media_request_object to represent a request object.
-> > > 4) Add MEDIA_REQUEST_IOC_QUEUE/REINIT ioctl support.
-> > > 
-> > > Basic lifecycle: the application allocates a request, adds
-> > > objects to it, queues the request, polls until it is completed
-> > > and can then read the final values of the objects at the time
-> > > of completion. When it closes the file descriptor the request
-> > > memory will be freed (actually, when the last user of that request
-> > > releases the request).
-> > > 
-> > > Drivers will bind an object to a request (the 'adds objects to it'
-> > > phase), when MEDIA_REQUEST_IOC_QUEUE is called the request is
-> > > validated (req_validate op), then queued (the req_queue op).
-> > > 
-> > > When done with an object it can either be unbound from the request
-> > > (e.g. when the driver has finished with a vb2 buffer) or marked as
-> > > completed (e.g. for controls associated with a buffer). When all
-> > > objects in the request are completed (or unbound), then the request
-> > > fd will signal an exception (poll).
-> > > 
-> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Hmm... As you're adding Copyrights from Intel/Google in this patch, that
-> indicates that part of the stuff you're adding here were authored by
-> others. So, you should use Co-developed-by: tag here, and get the SOBs
-> from the other developers that did part of the work[1].
-> 
-> [1] except if your work was sponsored by Cisco, Intel and Google, but
->     I think this is not the case.
+Here are some fixes for the omap3isp driver.
 
-I think this could be appropriate:
+Since v1, I've added a fix that was intended to be included in v1 (in
+Arnd's patch):
 
-    Co-developed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-    Co-developed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-    Co-developed-by: Alexandre Courbot <acourbot@chromium.org>
+<URL:https://patchwork.linuxtv.org/patch/49369/>
 
-...
+Please pull.
 
-> > > +static long media_request_ioctl_queue(struct media_request *req)
-> > > +{
-> > > +	struct media_device *mdev = req->mdev;
-> > > +	enum media_request_state state;
-> > > +	unsigned long flags;
-> > > +	int ret = 0;  
-> > 
-> > ret is unconditionally assigned below, no need to initialise here.
-> > 
-> > > +
-> > > +	dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
-> > > +
-> > > +	/*
-> > > +	 * Ensure the request that is validated will be the one that gets queued
-> > > +	 * next by serialising the queueing process. This mutex is also used
-> > > +	 * to serialize with canceling a vb2 queue and with setting values such
-> > > +	 * as controls in a request.
-> > > +	 */
-> > > +	mutex_lock(&mdev->req_queue_mutex);
-> > > +
-> > > +	spin_lock_irqsave(&req->lock, flags);
-> > > +	state = atomic_cmpxchg(&req->state, MEDIA_REQUEST_STATE_IDLE,
-> > > +			       MEDIA_REQUEST_STATE_VALIDATING);
-> > > +	spin_unlock_irqrestore(&req->lock, flags);
-> 
-> It looks weird to serialize access to it with a mutex, a spin lock and 
-> an atomic call.
 
-req->lock is needed for state changes from idle to other states as also
-other struct members need to be serialised with that, with the request
-state. Which is kind of in line with my earlier point: there's little
-if any benefit in making this field atomic.
+The following changes since commit f10379aad39e9da8bc7d1822e251b5f0673067ef:
 
-The mutex is there to ensure only a single request remains in validating
-state, i.e. we will be changing the state of the device request tip one
-request at a time.
+  media: include/video/omapfb_dss.h: use IS_ENABLED() (2018-05-05 11:45:51 -0400)
 
-> 
-> IMHO, locking is still an issue here. I would love to test the 
-> locks with some tool that would randomize syscalls, issuing close(),
-> poll() and read() at wrong times and inverting the order of some calls, 
-> in order to do some empiric test that all locks are at the right places.
-> 
-> Complex locking schemas like that usually tend to cause a lot of
-> troubles.
-> 
-> > > +	if (state != MEDIA_REQUEST_STATE_IDLE) {
-> > > +		dev_dbg(mdev->dev,
-> > > +			"request: unable to queue %s, request in state %s\n",
-> > > +			req->debug_str, media_request_state_str(state));
-> > > +		mutex_unlock(&mdev->req_queue_mutex);
-> > > +		return -EBUSY;
-> > > +	}
-> > > +
-> > > +	ret = mdev->ops->req_validate(req);
-> > > +
-> > > +	/*
-> > > +	 * If the req_validate was successful, then we mark the state as QUEUED
-> > > +	 * and call req_queue. The reason we set the state first is that this
-> > > +	 * allows req_queue to unbind or complete the queued objects in case
-> > > +	 * they are immediately 'consumed'. State changes from QUEUED to another
-> > > +	 * state can only happen if either the driver changes the state or if
-> > > +	 * the user cancels the vb2 queue. The driver can only change the state
-> > > +	 * after each object is queued through the req_queue op (and note that
-> > > +	 * that op cannot fail), so setting the state to QUEUED up front is
-> > > +	 * safe.
-> > > +	 *
-> > > +	 * The other reason for changing the state is if the vb2 queue is
-> > > +	 * canceled, and that uses the req_queue_mutex which is still locked
-> > > +	 * while req_queue is called, so that's safe as well.
-> > > +	 */
-> > > +	atomic_set(&req->state,
-> > > +		   ret ? MEDIA_REQUEST_STATE_IDLE : MEDIA_REQUEST_STATE_QUEUED);
-> 
-> Why are you changing state also when ret fails?
-> 
-> Also, why you had to use a spin lock earlier in this function just 
-> to change the req->state but you don't need to use it here?
+are available in the git repository at:
 
-The reason is subtle: the operations that need spinlock protection can take
-place in request states other than "validating".
+  ssh://linuxtv.org/git/sailus/media_tree.git omap3isp
 
-...
+for you to fetch changes up to aa5b856d6c0be0600cb68ff619bbcad8e7aecb53:
 
-> > > +/**
-> > > + * struct media_request_object_ops - Media request object operations
-> > > + * @prepare: Validate and prepare the request object, optional.
-> > > + * @unprepare: Unprepare the request object, optional.
-> > > + * @queue: Queue the request object, optional.
-> > > + * @unbind: Unbind the request object, optional.
-> > > + * @release: Release the request object, required.
-> > > + */
-> > > +struct media_request_object_ops {
-> > > +	int (*prepare)(struct media_request_object *object);
-> > > +	void (*unprepare)(struct media_request_object *object);
-> > > +	void (*queue)(struct media_request_object *object);
-> > > +	void (*unbind)(struct media_request_object *object);
-> > > +	void (*release)(struct media_request_object *object);
-> > > +};
-> > > +
-> > > +/**
-> > > + * struct media_request_object - An opaque object that belongs to a media
-> > > + *				 request
-> > > + *
-> > > + * @ops: object's operations
-> > > + * @priv: object's priv pointer
-> > > + * @req: the request this object belongs to (can be NULL)
-> > > + * @list: List entry of the object for @struct media_request
-> > > + * @kref: Reference count of the object, acquire before releasing req->lock
-> > > + * @completed: If true, then this object was completed.
-> > > + *
-> > > + * An object related to the request. This struct is embedded in the
-> > > + * larger object data.
-> 
-> what do you mean by "the larger object data"? What struct is "the" struct?
+  omap3isp: Don't use GFP_DMA (2018-05-09 16:22:05 +0300)
 
-There is no particular type: the API offers generic binding of objects to a
-request. The objects are later retrieved when validating, queueing and
-implementing that request.
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      omap3isp: support 64-bit version of omap3isp_stat_data
+
+Sakari Ailus (2):
+      omap3isp: Remove useless NULL check in omap3isp_stat_config
+      omap3isp: Don't use GFP_DMA
+
+ drivers/media/platform/omap3isp/isph3a_aewb.c |  2 ++
+ drivers/media/platform/omap3isp/isph3a_af.c   |  2 ++
+ drivers/media/platform/omap3isp/isphist.c     |  2 ++
+ drivers/media/platform/omap3isp/ispstat.c     | 31 +++++++++++++++++++--------
+ drivers/media/platform/omap3isp/ispstat.h     |  4 +++-
+ include/uapi/linux/omap3isp.h                 | 22 +++++++++++++++++++
+ 6 files changed, 53 insertions(+), 10 deletions(-)
 
 -- 
 Sakari Ailus
