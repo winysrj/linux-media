@@ -1,92 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37200 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751558AbeEDSpX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 14:45:23 -0400
-Received: from mail.kernel.org (unknown [91.207.57.115])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 940AB214C5
-        for <linux-media@vger.kernel.org>; Fri,  4 May 2018 18:45:22 +0000 (UTC)
-Date: Fri, 4 May 2018 20:45:13 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: 4.17-rc3 regression in UVC driver
-Message-ID: <20180504181900.pm72mxyueqb3fu3z@earth.universe>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="7ksofjbnqa2rsyfs"
-Content-Disposition: inline
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:35182 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965768AbeEIWrZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 18:47:25 -0400
+Received: by mail-pl0-f68.google.com with SMTP id i5-v6so102297plt.2
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 15:47:25 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 07/14] media: platform: video-mux: Register a subdev notifier
+Date: Wed,  9 May 2018 15:46:56 -0700
+Message-Id: <1525906023-827-8-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Parse neighbor remote devices on the video muxes input ports, add them to a
+subdev notifier, and register the subdev notifier for the video mux, by
+calling v4l2_async_register_fwnode_subdev().
 
---7ksofjbnqa2rsyfs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+Changes since v3:
+- pass num_pads - 1 (num_input_pads) to video_mux_async_register().
+Changes since v2:
+- none
+Changes since v1:
+- add #include <linux/slab.h> for kcalloc() declaration.
+---
+ drivers/media/platform/video-mux.c | 36 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
 
-Hi,
-
-I just got the following error message every ms with 4.17-rc3 after
-upgrading to for first ~192 seconds after system start (Debian
-4.17~rc3-1~exp1 kernel) on my Thinkpad X250:
-
-> uvcvideo: Failed to query (GET_MIN) UVC control 2 on unit 1: -32 (exp. 1).
-
-I see /dev/video0 and /dev/video1. The first one seems to be
-functional. The second one does not work and does not make
-sense to me (the system has only one webcam). I did not try to
-bisect anything. Here is some more information, that might
-be useful:
-
-> sre@earth ~ % mpv /dev/video1=20
-> Playing: /dev/video1
-> [ffmpeg/demuxer] video4linux2,v4l2: ioctl(VIDIOC_G_INPUT): Inappropriate =
-ioctl for device
-> [lavf] avformat_open_input() failed
-> Failed to recognize file format.
-> sre@earth ~ % udevadm info /dev/video0
-> P: /devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4linux/video0
-> N: video0
-> E: DEVNAME=3D/dev/video0
-> E: DEVPATH=3D/devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4linu=
-x/video0
-> E: MAJOR=3D81
-> E: MINOR=3D0
-> E: SUBSYSTEM=3Dvideo4linux
-> sre@earth ~ % udevadm info /dev/video1
-> P: /devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4linux/video1
-> N: video1
-> E: DEVNAME=3D/dev/video1
-> E: DEVPATH=3D/devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/video4linu=
-x/video1
-> E: MAJOR=3D81
-> E: MINOR=3D1
-> E: SUBSYSTEM=3Dvideo4linux
-> sre@earth ~ % lsusb -d 04ca:703c
-> Bus 001 Device 004: ID 04ca:703c Lite-On Technology Corp.=20
-
--- Sebastian
-
---7ksofjbnqa2rsyfs
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlrsqjQACgkQ2O7X88g7
-+prDRw/+MSsZ5Ux1ee2pXojulWVJcG7cig1v9IjnGrKY41yxdDhKHELoAVK6KYyo
-O6ffNDZDVCwrPfWufQAb3FtLqegRmZ7kUeTksHYsIHzWDtdTRRyiRknRbmaf+7w1
-HOtrcZiID8SPTE0g98YPFSTVfW6L9Bknn0d7X4vX9T2zE7wgWlc0m70qO314DSEK
-gEWUK2mpQ3CwhfOoGeVFnAHVKLppWtqK0d/j5JPpk4QkVXYcqV7T7+iSgAjdyEsJ
-uKIwdmonj0E2ApABxz+6T/sXHlOErg6jn+7ywejq2XUsh9AbzNUX4nOOhaVjpbql
-j/4wSJmK/32hlCbXfLystuQFM5qlrLxUSfdJ+/6BmnldW0H+24CK+DPc6ZCEpQFK
-U0HsDhcxq4JFKNPcvg+jbmn/EcidaeS9MRwOXZXiV1ZbvtyFM9U3Av4CyXSLOcic
-MPkSFOvghH0OvC+9EtkEoAw80j54Eg6vPs/APRBAt/bgoJvP4SHgpJs7G/+C0fqL
-hbSWo3NSox8n/UP62y1B9GwS4djxyFKvQ68wQMG0nHYHIEnGAn4aZj9wXLuTaRLT
-IfzUQtcylLfxC083RyBYoQwK81hUez0S6Vsz9opTc7coZWl7WyAoHV8jvwYhTqYz
-rTpKi12zFIdlvIObOYiRHEOp2M2S4QZW6oOEv2u1aaTAliNlpUA=
-=e/5O
------END PGP SIGNATURE-----
-
---7ksofjbnqa2rsyfs--
+diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+index 1fb8872..e54a719 100644
+--- a/drivers/media/platform/video-mux.c
++++ b/drivers/media/platform/video-mux.c
+@@ -21,8 +21,10 @@
+ #include <linux/of.h>
+ #include <linux/of_graph.h>
+ #include <linux/platform_device.h>
++#include <linux/slab.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ 
+ struct video_mux {
+@@ -207,6 +209,38 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
+ 	.video = &video_mux_subdev_video_ops,
+ };
+ 
++static int video_mux_parse_endpoint(struct device *dev,
++				    struct v4l2_fwnode_endpoint *vep,
++				    struct v4l2_async_subdev *asd)
++{
++	/*
++	 * it's not an error if remote is missing on a video-mux
++	 * input port, return -ENOTCONN to skip this endpoint with
++	 * no error.
++	 */
++	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
++}
++
++static int video_mux_async_register(struct video_mux *vmux,
++				    unsigned int num_input_pads)
++{
++	unsigned int i, *ports;
++	int ret;
++
++	ports = kcalloc(num_input_pads, sizeof(*ports), GFP_KERNEL);
++	if (!ports)
++		return -ENOMEM;
++	for (i = 0; i < num_input_pads; i++)
++		ports[i] = i;
++
++	ret = v4l2_async_register_fwnode_subdev(
++		&vmux->subdev, sizeof(struct v4l2_async_subdev),
++		ports, num_input_pads, video_mux_parse_endpoint);
++
++	kfree(ports);
++	return ret;
++}
++
+ static int video_mux_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *np = pdev->dev.of_node;
+@@ -272,7 +306,7 @@ static int video_mux_probe(struct platform_device *pdev)
+ 
+ 	vmux->subdev.entity.ops = &video_mux_ops;
+ 
+-	return v4l2_async_register_subdev(&vmux->subdev);
++	return video_mux_async_register(vmux, num_pads - 1);
+ }
+ 
+ static int video_mux_remove(struct platform_device *pdev)
+-- 
+2.7.4
