@@ -1,34 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:33933 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751499AbeEDMtO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 08:49:14 -0400
-From: Jan Luebbe <jlu@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Jan Luebbe <jlu@pengutronix.de>, kernel@pengutronix.de,
-        devicetree@vger.kernel.org
-Subject: [PATCH 0/2] add support for TI SCAN921226H video deserializer
-Date: Fri,  4 May 2018 14:49:01 +0200
-Message-Id: <20180504124903.6276-1-jlu@pengutronix.de>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:51185 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964883AbeEIUIJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 16:08:09 -0400
+Received: by mail-wm0-f68.google.com with SMTP id t11-v6so519220wmt.0
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 13:08:08 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, mchehab+samsung@kernel.org
+Subject: [PATCH 2/4] [media] ddbridge/mci: add identifiers to function definition arguments
+Date: Wed,  9 May 2018 22:08:01 +0200
+Message-Id: <20180509200803.5253-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20180509200803.5253-1-d.scheller.oss@gmail.com>
+References: <20180509200803.5253-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series adds a binding and the corresponding V4L subdev driver for
-the TI SCAN921226H video deserializer. Although the device doesn't need
-to be configured, it can be controlled via GPIOs to allow multiple
-sensors on the same parallel video bus.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Jan Luebbe (2):
-  media: dt-bindings: add binding for TI SCAN921226H video deserializer
-  media: platform: add driver for TI SCAN921226H video deserializer
+Fixes two checkpatch warnings
 
- .../bindings/media/ti,scan921226h.txt         |  59 +++
- drivers/media/platform/Kconfig                |   7 +
- drivers/media/platform/Makefile               |   2 +
- drivers/media/platform/scan921226h.c          | 353 ++++++++++++++++++
- 4 files changed, 421 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/ti,scan921226h.txt
- create mode 100644 drivers/media/platform/scan921226h.c
+  WARNING: function definition argument 'xxx' should also have an identifier name
 
+in the ddb_mci_attach() prototype definition. checkpatch keeps complaining
+on the "int (**fn_set_input)" as it seems to have issues with the
+ptr-to-ptr, though this probably needs fixing in checkpatch.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-mci.c | 2 +-
+ drivers/media/pci/ddbridge/ddbridge-mci.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/pci/ddbridge/ddbridge-mci.c b/drivers/media/pci/ddbridge/ddbridge-mci.c
+index 8d9592e75ad5..4ac634fc96e4 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-mci.c
++++ b/drivers/media/pci/ddbridge/ddbridge-mci.c
+@@ -500,7 +500,7 @@ static int probe(struct mci *state)
+ struct dvb_frontend
+ *ddb_mci_attach(struct ddb_input *input,
+ 		int mci_type, int nr,
+-		int (**fn_set_input)(struct dvb_frontend *, int))
++		int (**fn_set_input)(struct dvb_frontend *fe, int input))
+ {
+ 	struct ddb_port *port = input->port;
+ 	struct ddb *dev = port->dev;
+diff --git a/drivers/media/pci/ddbridge/ddbridge-mci.h b/drivers/media/pci/ddbridge/ddbridge-mci.h
+index 453dcb9f8208..209cc2b92dff 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-mci.h
++++ b/drivers/media/pci/ddbridge/ddbridge-mci.h
+@@ -151,6 +151,6 @@ struct mci_result {
+ struct dvb_frontend
+ *ddb_mci_attach(struct ddb_input *input,
+ 		int mci_type, int nr,
+-		int (**fn_set_input)(struct dvb_frontend *, int));
++		int (**fn_set_input)(struct dvb_frontend *fe, int input));
+ 
+ #endif /* _DDBRIDGE_MCI_H_ */
 -- 
-2.17.0
+2.16.1
