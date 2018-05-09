@@ -1,66 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56702 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1034643AbeEXUhS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 16:37:18 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 15/20] m2m-deinterlace: Implement wait_prepare and wait_finish
-Date: Thu, 24 May 2018 17:35:15 -0300
-Message-Id: <20180524203520.1598-16-ezequiel@collabora.com>
-In-Reply-To: <20180524203520.1598-1-ezequiel@collabora.com>
-References: <20180524203520.1598-1-ezequiel@collabora.com>
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:39917 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933783AbeEIIP2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 04:15:28 -0400
+Received: by mail-wm0-f41.google.com with SMTP id f8-v6so26004026wmc.4
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 01:15:27 -0700 (PDT)
+Subject: Re: [PATCH 10/28] venus: vdec: call session_continue in insufficient
+ event
+To: Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-media-owner@vger.kernel.org
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+ <20180424124436.26955-11-stanimir.varbanov@linaro.org>
+ <85963ca3e12f4d71f2bc2db7d601d4b2@codeaurora.org>
+ <c349eca0-2227-75f3-111c-9980336896d1@linaro.org>
+ <5cfb0fc9e54763712799e9adf5770dac@codeaurora.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <4c66fc5c-87fb-3c0e-06c1-6e5c23bc138c@linaro.org>
+Date: Wed, 9 May 2018 11:15:23 +0300
+MIME-Version: 1.0
+In-Reply-To: <5cfb0fc9e54763712799e9adf5770dac@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is currently specifying a video_device lock,
-which means it is protecting all the ioctls (including
-queue ioctls) with a single mutex.
+Hi Vikash,
 
-It's therefore straightforward to implement wait_prepare
-and wait_finish, by explicitly setting the vb2_queue lock.
+On 05/04/2018 02:09 PM, Vikash Garodia wrote:
+> Hi Stanimir,
+> 
+> On 2018-05-03 17:06, Stanimir Varbanov wrote:
+>> Hi Vikash,
+>>
+>> Thanks for the comments!
+>>
+>> On  2.05.2018 09:26, Vikash Garodia wrote:
+>>> Hello Stanimir,
+>>>
+>>> On 2018-04-24 18:14, Stanimir Varbanov wrote:
+>>>> Call session_continue for Venus 4xx version even when the event
+>>>> says that the buffer resources are not sufficient. Leaving a
+>>>> comment with more information about the workaround.
+>>>>
+>>>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>>>> ---
+>>>>  drivers/media/platform/qcom/venus/vdec.c | 8 ++++++++
+>>>>  1 file changed, 8 insertions(+)
+>>>>
+>>>> diff --git a/drivers/media/platform/qcom/venus/vdec.c
+>>>> b/drivers/media/platform/qcom/venus/vdec.c
+>>>> index c45452634e7e..91c7384ff9c8 100644
+>>>> --- a/drivers/media/platform/qcom/venus/vdec.c
+>>>> +++ b/drivers/media/platform/qcom/venus/vdec.c
+>>>> @@ -873,6 +873,14 @@ static void vdec_event_notify(struct venus_inst
+>>>> *inst, u32 event,
+>>>>
+>>>>              dev_dbg(dev, "event not sufficient resources (%ux%u)\n",
+>>>>                  data->width, data->height);
+>>>> +            /*
+>>>> +             * Workaround: Even that the firmware send and event for
+>>>> +             * insufficient buffer resources it is safe to call
+>>>> +             * session_continue because actually the event says that
+>>>> +             * the number of capture buffers is lower.
+>>>> +             */
+>>>> +            if (IS_V4(core))
+>>>> +                hfi_session_continue(inst);
+>>>>              break;
+>>>>          case HFI_EVENT_RELEASE_BUFFER_REFERENCE:
+>>>>              venus_helper_release_buf_ref(inst, data->tag);
+>>>
+>>> Insufficient event from video firmware could be sent either,
+>>> 1. due to insufficient buffer resources
+>>> 2. due to lower capture buffers
+>>>
+>>> It cannot be assumed that the event received by the host is due to
+>>> lower capture
+>>> buffers. Incase the buffer resource is insufficient, let say there is
+>>> a bitstream
+>>> resolution switch from 720p to 1080p, capture buffers needs to be
+>>> reallocated.
+>>
+>> I agree with you. I will rework this part and call session_continue
+>> only for case #2.
+> 
+> Even if the capture buffers are lower, driver should consider
+> reallocation of capture
+> buffers with required higher count. Without this, it may happen that for
+> a given video
+> frame, the decoded output will not be generated.
 
-Having these callbacks releases the queue lock while blocking,
-which improves latency by allowing for example streamoff
-or qbuf operations while waiting in dqbuf.
+Thanks for the comments, I realized that this workaround is not needed
+anymore, so I will drop the patch.
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- drivers/media/platform/m2m-deinterlace.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-index 1e4195144f39..94dd8ec0f265 100644
---- a/drivers/media/platform/m2m-deinterlace.c
-+++ b/drivers/media/platform/m2m-deinterlace.c
-@@ -856,6 +856,8 @@ static const struct vb2_ops deinterlace_qops = {
- 	.queue_setup	 = deinterlace_queue_setup,
- 	.buf_prepare	 = deinterlace_buf_prepare,
- 	.buf_queue	 = deinterlace_buf_queue,
-+	.wait_prepare	 = vb2_ops_wait_prepare,
-+	.wait_finish	 = vb2_ops_wait_finish,
- };
- 
- static int queue_init(void *priv, struct vb2_queue *src_vq,
-@@ -872,6 +874,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	src_vq->dev = ctx->dev->v4l2_dev.dev;
-+	src_vq->lock = &ctx->dev->dev_mutex;
- 	q_data[V4L2_M2M_SRC].fmt = &formats[0];
- 	q_data[V4L2_M2M_SRC].width = 640;
- 	q_data[V4L2_M2M_SRC].height = 480;
-@@ -890,6 +893,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	dst_vq->dev = ctx->dev->v4l2_dev.dev;
-+	dst_vq->lock = &ctx->dev->dev_mutex;
- 	q_data[V4L2_M2M_DST].fmt = &formats[0];
- 	q_data[V4L2_M2M_DST].width = 640;
- 	q_data[V4L2_M2M_DST].height = 480;
 -- 
-2.16.3
+regards,
+Stan
