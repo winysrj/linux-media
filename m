@@ -1,57 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:55468 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751059AbeEDOYU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 10:24:20 -0400
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-fbdev@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47128 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932701AbeEIOWj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 May 2018 10:22:39 -0400
+Date: Wed, 9 May 2018 17:22:36 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
+        linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Al Viro <viro@zeniv.linux.org.uk>
-Subject: Re: [PATCH v2 7/7] media: via-camera: allow build on non-x86 archs
- with COMPILE_TEST
-Date: Fri, 04 May 2018 16:24:15 +0200
-Message-id: <33168202.5GZa68eadz@amdc3058>
-In-reply-to: <20180504110701.5436d05c@vento.lan>
-MIME-version: 1.0
-Content-transfer-encoding: 7Bit
-Content-type: text/plain; charset="us-ascii"
-References: <cover.1524245455.git.mchehab@s-opensource.com>
-        <5323943.SkjzUNBk3k@amdc3058> <20180504110701.5436d05c@vento.lan>
-        <CGME20180504142416eucas1p1d8028ba30719c1a0a6e7c5edfb2bc152@eucas1p1.samsung.com>
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [RFC PATCH] media: i2c: add SCCB helpers
+Message-ID: <20180509142236.e4lsibhp7pu7cpms@valkosipuli.retiisi.org.uk>
+References: <1524759212-10941-1-git-send-email-akinobu.mita@gmail.com>
+ <20180509105719.bydr4rla23okvlbf@earth.universe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180509105719.bydr4rla23okvlbf@earth.universe>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, May 04, 2018 11:07:01 AM Mauro Carvalho Chehab wrote:
-> Em Mon, 23 Apr 2018 14:19:31 +0200
-> Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com> escreveu:
+On Wed, May 09, 2018 at 12:57:19PM +0200, Sebastian Reichel wrote:
+> Hi,
 > 
+> On Fri, Apr 27, 2018 at 01:13:32AM +0900, Akinobu Mita wrote:
+> > diff --git a/drivers/media/i2c/sccb.c b/drivers/media/i2c/sccb.c
+> > new file mode 100644
+> > index 0000000..80a3fb7
+> > --- /dev/null
+> > +++ b/drivers/media/i2c/sccb.c
+> > @@ -0,0 +1,35 @@
+> > +// SPDX-License-Identifier: GPL-2.0
+> > +
+> > +#include <linux/i2c.h>
+> > +
+> > +int sccb_read_byte(struct i2c_client *client, u8 addr)
+> > +{
+> > +	int ret;
+> > +	u8 val;
+> > +
+> > +	/* Issue two separated requests in order to avoid repeated start */
+> > +
+> > +	ret = i2c_master_send(client, &addr, 1);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	ret = i2c_master_recv(client, &val, 1);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	return val;
+> > +}
+> > +EXPORT_SYMBOL_GPL(sccb_read_byte);
+> > +
+> > +int sccb_write_byte(struct i2c_client *client, u8 addr, u8 data)
+> > +{
+> > +	int ret;
+> > +	unsigned char msgbuf[] = { addr, data };
+> > +
+> > +	ret = i2c_master_send(client, msgbuf, 2);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(sccb_write_byte);
+> > diff --git a/drivers/media/i2c/sccb.h b/drivers/media/i2c/sccb.h
+> > new file mode 100644
+> > index 0000000..68da0e9
+> > --- /dev/null
+> > +++ b/drivers/media/i2c/sccb.h
+> > @@ -0,0 +1,14 @@
+> > +/* SPDX-License-Identifier: GPL-2.0 */
+> > +/*
+> > + * SCCB helper functions
+> > + */
+> > +
+> > +#ifndef __SCCB_H__
+> > +#define __SCCB_H__
+> > +
+> > +#include <linux/i2c.h>
+> > +
+> > +int sccb_read_byte(struct i2c_client *client, u8 addr);
+> > +int sccb_write_byte(struct i2c_client *client, u8 addr, u8 data);
+> > +
+> > +#endif /* __SCCB_H__ */
 > 
-> > How's about just allowing COMPILE_TEST for FB_VIA instead of adding
-> > all these stubs?
-> 
-> Works for me.
-> 
-> Do you want to apply it via your tree or via the media one?
-> 
-> If you prefer to apply on yours:
-> 
-> Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> The functions look very simple. Have you considered moving them into
+> sccb.h as static inline?
 
-Thanks, I'll apply it to my tree later.
+I agree. (Considering my previous comment on the dependencies, this is a
+better idea. No need for a module this small.)
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
