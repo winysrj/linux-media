@@ -1,78 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f196.google.com ([209.85.217.196]:42969 "EHLO
-        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754112AbeEaJUT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 05:20:19 -0400
-Received: by mail-ua0-f196.google.com with SMTP id x18-v6so7786748uaj.9
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 02:20:18 -0700 (PDT)
-Received: from mail-vk0-f45.google.com (mail-vk0-f45.google.com. [209.85.213.45])
-        by smtp.gmail.com with ESMTPSA id f8-v6sm12828749uaj.26.2018.05.31.02.20.17
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 31 May 2018 02:20:17 -0700 (PDT)
-Received: by mail-vk0-f45.google.com with SMTP id x191-v6so12908011vke.10
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 02:20:17 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org> <20180515075859.17217-24-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-24-stanimir.varbanov@linaro.org>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 31 May 2018 18:20:04 +0900
-Message-ID: <CAAFQd5CGiB-7kQ8tWBw69cceu6+9mdhrW9ohHCfcVcWbJLbGfg@mail.gmail.com>
-Subject: Re: [PATCH v2 23/29] venus: helpers: add a helper to return opb
- buffer sizes
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56400 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964950AbeEIPxu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 11:53:50 -0400
+Message-ID: <e52f72ea1fdf491dd10a9a40bbced6d3bad66f7b.camel@collabora.com>
+Subject: Re: [PATCH v9 10/15] vb2: add explicit fence user API
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Brian Starkey <brian.starkey@arm.com>
+Cc: linux-media@vger.kernel.org, kernel@collabora.com,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        vgarodia@codeaurora.org
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Date: Wed, 09 May 2018 12:52:26 -0300
+In-Reply-To: <20180509103353.GA39838@e107564-lin.cambridge.arm.com>
+References: <20180504200612.8763-1-ezequiel@collabora.com>
+         <20180504200612.8763-11-ezequiel@collabora.com>
+         <20180509103353.GA39838@e107564-lin.cambridge.arm.com>
 Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 15, 2018 at 5:02 PM Stanimir Varbanov
-<stanimir.varbanov@linaro.org> wrote:
->
-> Add a helper function to return current output picture buffer size.
-> OPB sizes can vary depending on the selected decoder output(s).
->
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
->  drivers/media/platform/qcom/venus/core.h    | 10 ++++++++++
->  drivers/media/platform/qcom/venus/helpers.c | 15 +++++++++++++++
->  drivers/media/platform/qcom/venus/helpers.h |  1 +
->  3 files changed, 26 insertions(+)
->
-> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-> index 255292899204..4d6c05f156c4 100644
-> --- a/drivers/media/platform/qcom/venus/core.h
-> +++ b/drivers/media/platform/qcom/venus/core.h
-> @@ -234,6 +234,11 @@ struct venus_buffer {
->   * @num_output_bufs:   holds number of output buffers
->   * @input_buf_size     holds input buffer size
->   * @output_buf_size:   holds output buffer size
-> + * @output2_buf_size:  holds secondary decoder output buffer size
-> + * @dpb_buftype:       decoded picture buffer type
-> + * @dpb_fmt:           decodec picture buffre raw format
+On Wed, 2018-05-09 at 11:33 +0100, Brian Starkey wrote:
+> Hi Ezequiel,
+> 
+> On Fri, May 04, 2018 at 05:06:07PM -0300, Ezequiel Garcia wrote:
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > Turn the reserved2 field into fence_fd that we will use to send
+> > an in-fence to the kernel or return an out-fence from the kernel to
+> > userspace.
+> > 
+> > Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+> > when sending an in-fence to the kernel to be waited on, and
+> > V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
+> > 
+> > v7: minor fixes on the Documentation (Hans Verkuil)
+> > 
+> > v6: big improvement on doc (Hans Verkuil)
+> > 
+> > v5: - keep using reserved2 field for cpia2
+> >    - set fence_fd to 0 for now, for compat with userspace(Mauro)
+> > 
+> > v4: make it a union with reserved2 and fence_fd (Hans Verkuil)
+> > 
+> > v3: make the out_fence refer to the current buffer (Hans Verkuil)
+> > 
+> > v2: add documentation
+> > 
+> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > ---
+> > Documentation/media/uapi/v4l/buffer.rst         | 45 +++++++++++++++++++++++--
+> > drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
+> > drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  4 +--
+> > include/uapi/linux/videodev2.h                  |  8 ++++-
+> > 4 files changed, 52 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> > index e2c85ddc990b..be9719cf5745 100644
+> > --- a/Documentation/media/uapi/v4l/buffer.rst
+> > +++ b/Documentation/media/uapi/v4l/buffer.rst
+> > @@ -301,10 +301,22 @@ struct v4l2_buffer
+> > 	elements in the ``planes`` array. The driver will fill in the
+> > 	actual number of valid elements in that array.
+> >     * - __u32
+> > -      - ``reserved2``
+> > +      - ``fence_fd``
+> >       -
+> > -      - A place holder for future extensions. Drivers and applications
+> > -	must set this to 0.
+> > +      - Used to communicate a fence file descriptors from userspace to kernel
+> > +	and vice-versa. On :ref:`VIDIOC_QBUF <VIDIOC_QBUF>` when sending
+> > +	an in-fence for V4L2 to wait on, the ``V4L2_BUF_FLAG_IN_FENCE`` flag must
+> > +	be used and this field set to the fence file descriptor of the in-fence.
+> > +	If the in-fence is not valid ` VIDIOC_QBUF`` returns an error.
+> > +
+> > +        To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE``
+> > +	must be set, the kernel will return the out-fence file descriptor in
+> > +	this field. If it fails to create the out-fence ``VIDIOC_QBUF` returns
+> > +        an error.
+> > +
+> > +	For all other ioctls V4L2 sets this field to -1 if
+> > +	``V4L2_BUF_FLAG_IN_FENCE`` and/or ``V4L2_BUF_FLAG_OUT_FENCE`` are set,
+> > +	otherwise this field is set to 0 for backward compatibility.
+> >     * - __u32
+> >       - ``reserved``
+> >       -
+> > @@ -648,6 +660,33 @@ Buffer Flags
+> >       - Start Of Exposure. The buffer timestamp has been taken when the
+> > 	exposure of the frame has begun. This is only valid for the
+> > 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
+> > +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
+> > +
+> > +      - ``V4L2_BUF_FLAG_IN_FENCE``
+> > +      - 0x00200000
+> > +      - Ask V4L2 to wait on the fence passed in the ``fence_fd`` field. The
+> > +	buffer won't be queued to the driver until the fence signals. The order
+> > +	in which buffers are queued is guaranteed to be preserved, so any
+> > +	buffers queued after this buffer will also be blocked until this fence
+> > +	signals. This flag must be set before calling ``VIDIOC_QBUF``. For
+> > +	other ioctls the driver just reports the value of the flag.
+> > +
+> > +        If the fence signals the flag is cleared and not reported anymore.
+> > +	If the fence is not valid ``VIDIOC_QBUF`` returns an error.
+> > +
+> > +
+> > +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
+> > +
+> > +      - ``V4L2_BUF_FLAG_OUT_FENCE``
+> > +      - 0x00400000
+> > +      - Request for a fence to be attached to the buffer. The driver will fill
+> > +	in the out-fence fd in the ``fence_fd`` field when :ref:`VIDIOC_QBUF
+> > +	<VIDIOC_QBUF>` returns. This flag must be set before calling
+> > +	``VIDIOC_QBUF``. For other ioctls the driver just reports the value of
+> > +	the flag.
+> > +
+> > +        If the creation of the out-fence fails ``VIDIOC_QBUF`` returns an
+> > +	error.
+> > 
+> 
+> I commented similarly on some of the old patch-sets, and it's a minor
+> thing, but I still think the ordering of this series is off. It's
+> strange/wrong to me document all this behaviour, and expose the flags
+> to userspace, when the functionality isn't implemented yet.
+> 
+> If I apply this patch to the kernel, then the kernel doesn't do what
+> the (newly added) kernel-doc says it will.
+> 
 
-typo: s/decodec/decoded/ and s/buffre/buffer/
+This has never been a problem, and it has always been the canonical
+way of doing things.
 
-> + * @opb_buftype:       output picture buffer type
-> + * @opb_fmt:           output picture buffer raw format
->   * @reconfig:  a flag raised by decoder when the stream resolution changed
->   * @reconfig_width:    holds the new width
->   * @reconfig_height:   holds the new height
-> @@ -282,6 +287,11 @@ struct venus_inst {
->         unsigned int num_output_bufs;
->         unsigned int input_buf_size;
->         unsigned int output_buf_size;
-> +       unsigned int output2_buf_size;
-> +       u32 dpb_buftype;
-> +       u32 dpb_fmt;
+First the required macros, stubs, documentation and interfaces are added,
+and then they are implemented.
 
-These 2 don't seem to be used.
+I see no reason to go berserk here, unless you see an actual problem?
+Or something actually broken?
 
-Best regards,
-Tomasz
+The only thing I can think of is that we should return fence_fd -1
+if the flags are set. We could do it on this patch, and be consistent
+with userspace.
+
+Regards,
+Eze
