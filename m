@@ -1,139 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:55388 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752170AbeEGRF0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 13:05:26 -0400
-Date: Mon, 7 May 2018 14:05:13 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv13 05/28] media-request: add media_request_object_find
-Message-ID: <20180507140513.5d71664b@vento.lan>
-In-Reply-To: <20180504124307.sddriagirmig4yf4@valkosipuli.retiisi.org.uk>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
-        <20180503145318.128315-6-hverkuil@xs4all.nl>
-        <20180504124307.sddriagirmig4yf4@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:54814 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934965AbeEIUII (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 16:08:08 -0400
+Received: by mail-wm0-f66.google.com with SMTP id f6-v6so480513wmc.4
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 13:08:07 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, mchehab+samsung@kernel.org
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Subject: [PATCH 1/4] [media] ddbridge/mci: protect against out-of-bounds array access in stop()
+Date: Wed,  9 May 2018 22:08:00 +0200
+Message-Id: <20180509200803.5253-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20180509200803.5253-1-d.scheller.oss@gmail.com>
+References: <20180509200803.5253-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 4 May 2018 15:43:07 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-> On Thu, May 03, 2018 at 04:52:55PM +0200, Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Add media_request_object_find to find a request object inside a
-> > request based on ops and/or priv values.
-> > 
-> > Objects of the same type (vb2 buffer, control handler) will have
-> > the same ops value. And objects that refer to the same 'parent'
-> > object (e.g. the v4l2_ctrl_handler that has the current driver
-> > state) will have the same priv value.
-> > 
-> > The caller has to call media_request_object_put() for the returned
-> > object since this function increments the refcount.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/media-request.c | 25 +++++++++++++++++++++++++
-> >  include/media/media-request.h | 24 ++++++++++++++++++++++++
-> >  2 files changed, 49 insertions(+)
-> > 
-> > diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> > index edc1c3af1959..c7e11e816e27 100644
-> > --- a/drivers/media/media-request.c
-> > +++ b/drivers/media/media-request.c
-> > @@ -322,6 +322,31 @@ static void media_request_object_release(struct kref *kref)
-> >  	obj->ops->release(obj);
-> >  }
-> >  
-> > +struct media_request_object *
-> > +media_request_object_find(struct media_request *req,
-> > +			  const struct media_request_object_ops *ops,
-> > +			  void *priv)
-> > +{
-> > +	struct media_request_object *obj;
-> > +	struct media_request_object *found = NULL;
-> > +	unsigned long flags;
-> > +
-> > +	if (WARN_ON(!ops || !priv))
-> > +		return NULL;
-> > +
-> > +	spin_lock_irqsave(&req->lock, flags);
-> > +	list_for_each_entry(obj, &req->objects, list) {
-> > +		if (obj->ops == ops && obj->priv == priv) {
-> > +			media_request_object_get(obj);
-> > +			found = obj;
-> > +			break;
-> > +		}
-> > +	}
-> > +	spin_unlock_irqrestore(&req->lock, flags);
-> > +	return found;
-> > +}
-> > +EXPORT_SYMBOL_GPL(media_request_object_find);
-> > +
-> >  void media_request_object_put(struct media_request_object *obj)
-> >  {
-> >  	kref_put(&obj->kref, media_request_object_release);
-> > diff --git a/include/media/media-request.h b/include/media/media-request.h
-> > index 997e096d7128..5367b4a2f91c 100644
-> > --- a/include/media/media-request.h
-> > +++ b/include/media/media-request.h
-> > @@ -196,6 +196,22 @@ static inline void media_request_object_get(struct media_request_object *obj)
-> >   */
-> >  void media_request_object_put(struct media_request_object *obj);
-> >  
-> > +/**
-> > + * media_request_object_find - Find an object in a request
-> > + *
-> > + * @ops: Find an object with this ops value
-> > + * @priv: Find an object with this priv value
-> > + *
-> > + * Both @ops and @priv must be non-NULL.
-> > + *
-> > + * Returns NULL if not found or the object pointer. The caller must  
-> 
-> I'd describe the successful case first. I.e. "Returns the object pointer or
-> NULL it not found".
+In stop(), an (unlikely) out-of-bounds write error can occur when setting
+the demod_in_use element indexed by state->demod to zero, as state->demod
+isn't checked for being in the range of the array size of demod_in_use, and
+state->demod maybe carrying the magic 0xff (demod unused) value. Prevent
+this by checking state->demod not exceeding the array size before setting
+the element value. To make the code a bit easier to read, replace the magic
+value and the number of array elements with defines, and use them at a few
+more places.
 
-It would be good to also tell that this routine internally uses the
-spin lock.
+Detected by CoverityScan, CID#1468550 ("Out-of-bounds write")
 
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> > + * call media_request_object_put() once it finished using the object.
-> > + */
-> > +struct media_request_object *
-> > +media_request_object_find(struct media_request *req,
-> > +			  const struct media_request_object_ops *ops,
-> > +			  void *priv);
-> > +
-> >  /**
-> >   * media_request_object_init - Initialise a media request object
-> >   *
-> > @@ -241,6 +257,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
-> >  {
-> >  }
-> >  
-> > +static inline struct media_request_object *
-> > +media_request_object_find(struct media_request *req,
-> > +			  const struct media_request_object_ops *ops,
-> > +			  void *priv)
-> > +{
-> > +	return NULL;
-> > +}
-> > +
-> >  static inline void media_request_object_init(struct media_request_object *obj)
-> >  {
-> >  	obj->ops = NULL;  
-> 
+Thanks to Colin for reporting the problem and providing an initial patch.
 
+Fixes: daeeb1319e6f ("media: ddbridge: initial support for MCI-based MaxSX8 cards")
+Reported-by: Colin Ian King <colin.king@canonical.com>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-mci.c | 21 +++++++++++----------
+ drivers/media/pci/ddbridge/ddbridge-mci.h |  4 ++++
+ 2 files changed, 15 insertions(+), 10 deletions(-)
 
-
-Thanks,
-Mauro
+diff --git a/drivers/media/pci/ddbridge/ddbridge-mci.c b/drivers/media/pci/ddbridge/ddbridge-mci.c
+index a85ff3e6b919..8d9592e75ad5 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-mci.c
++++ b/drivers/media/pci/ddbridge/ddbridge-mci.c
+@@ -38,10 +38,10 @@ struct mci_base {
+ 	struct mutex         mci_lock; /* concurrent MCI access lock */
+ 	int                  count;
+ 
+-	u8                   tuner_use_count[4];
+-	u8                   assigned_demod[8];
+-	u32                  used_ldpc_bitrate[8];
+-	u8                   demod_in_use[8];
++	u8                   tuner_use_count[MCI_TUNER_MAX];
++	u8                   assigned_demod[MCI_DEMOD_MAX];
++	u32                  used_ldpc_bitrate[MCI_DEMOD_MAX];
++	u8                   demod_in_use[MCI_DEMOD_MAX];
+ 	u32                  iq_mode;
+ };
+ 
+@@ -193,7 +193,7 @@ static int stop(struct dvb_frontend *fe)
+ 	u32 input = state->tuner;
+ 
+ 	memset(&cmd, 0, sizeof(cmd));
+-	if (state->demod != 0xff) {
++	if (state->demod != DEMOD_UNUSED) {
+ 		cmd.command = MCI_CMD_STOP;
+ 		cmd.demod = state->demod;
+ 		mci_cmd(state, &cmd, NULL);
+@@ -209,10 +209,11 @@ static int stop(struct dvb_frontend *fe)
+ 	state->base->tuner_use_count[input]--;
+ 	if (!state->base->tuner_use_count[input])
+ 		mci_set_tuner(fe, input, 0);
+-	state->base->demod_in_use[state->demod] = 0;
++	if (state->demod < MCI_DEMOD_MAX)
++		state->base->demod_in_use[state->demod] = 0;
+ 	state->base->used_ldpc_bitrate[state->nr] = 0;
+-	state->demod = 0xff;
+-	state->base->assigned_demod[state->nr] = 0xff;
++	state->demod = DEMOD_UNUSED;
++	state->base->assigned_demod[state->nr] = DEMOD_UNUSED;
+ 	state->base->iq_mode = 0;
+ 	mutex_unlock(&state->base->tuner_lock);
+ 	state->started = 0;
+@@ -250,7 +251,7 @@ static int start(struct dvb_frontend *fe, u32 flags, u32 modmask, u32 ts_config)
+ 		stat = -EBUSY;
+ 		goto unlock;
+ 	}
+-	for (i = 0; i < 8; i++) {
++	for (i = 0; i < MCI_DEMOD_MAX; i++) {
+ 		used_ldpc_bitrate += state->base->used_ldpc_bitrate[i];
+ 		if (state->base->demod_in_use[i])
+ 			used_demods++;
+@@ -342,7 +343,7 @@ static int start_iq(struct dvb_frontend *fe, u32 ts_config)
+ 		stat = -EBUSY;
+ 		goto unlock;
+ 	}
+-	for (i = 0; i < 8; i++)
++	for (i = 0; i < MCI_DEMOD_MAX; i++)
+ 		if (state->base->demod_in_use[i])
+ 			used_demods++;
+ 	if (used_demods > 0) {
+diff --git a/drivers/media/pci/ddbridge/ddbridge-mci.h b/drivers/media/pci/ddbridge/ddbridge-mci.h
+index c4193c5ee095..453dcb9f8208 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-mci.h
++++ b/drivers/media/pci/ddbridge/ddbridge-mci.h
+@@ -19,6 +19,10 @@
+ #ifndef _DDBRIDGE_MCI_H_
+ #define _DDBRIDGE_MCI_H_
+ 
++#define MCI_DEMOD_MAX                       8
++#define MCI_TUNER_MAX                       4
++#define DEMOD_UNUSED                        (0xFF)
++
+ #define MCI_CONTROL                         (0x500)
+ #define MCI_COMMAND                         (0x600)
+ #define MCI_RESULT                          (0x680)
+-- 
+2.16.1
