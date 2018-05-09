@@ -1,395 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52235 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753851AbeEAJA5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 05:00:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv12 PATCH 23/29] Documentation: v4l: document request API
-Date: Tue,  1 May 2018 11:00:45 +0200
-Message-Id: <20180501090051.9321-24-hverkuil@xs4all.nl>
-In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
+Received: from smtp.codeaurora.org ([198.145.29.96]:39342 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751000AbeEIOOm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 10:14:42 -0400
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Wed, 09 May 2018 19:44:41 +0530
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-media-owner@vger.kernel.org
+Subject: Re: [PATCH 08/28] venus: hfi_venus: add suspend function for 4xx
+ version
+In-Reply-To: <ce03189a-b56e-e73e-852f-1ad10d4c8bd3@linaro.org>
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+ <20180424124436.26955-9-stanimir.varbanov@linaro.org>
+ <8f26cd748f283043b32da05b39f29348@codeaurora.org>
+ <ce03189a-b56e-e73e-852f-1ad10d4c8bd3@linaro.org>
+Message-ID: <4bb351351a9725db42bf06da1e778290@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alexandre Courbot <acourbot@chromium.org>
+Hi Stanimir,
 
-Document the request API for V4L2 devices, and amend the documentation
-of system calls influenced by it.
+On 2018-05-09 16:45, Stanimir Varbanov wrote:
+> Hi Vikash,
+> 
+> On 05/02/2018 09:07 AM, vgarodia@codeaurora.org wrote:
+>> Hello Stanimir,
+>> 
+>> On 2018-04-24 18:14, Stanimir Varbanov wrote:
+>>> This adds suspend (power collapse) function with slightly
+>>> different order of calls comparing with Venus 3xx.
+>>> 
+>>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>>> ---
+>>>  drivers/media/platform/qcom/venus/hfi_venus.c | 52
+>>> +++++++++++++++++++++++++++
+>>>  1 file changed, 52 insertions(+)
+>>> 
+>>> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c
+>>> b/drivers/media/platform/qcom/venus/hfi_venus.c
+>>> index 53546174aab8..f61d34bf61b4 100644
+>>> --- a/drivers/media/platform/qcom/venus/hfi_venus.c
+>>> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+>>> @@ -1443,6 +1443,55 @@ static int venus_suspend_1xx(struct venus_core
+>>> *core)
+>>>      return 0;
+>>>  }
+>>> 
+>>> +static int venus_suspend_4xx(struct venus_core *core)
+>>> +{
+>>> +    struct venus_hfi_device *hdev = to_hfi_priv(core);
+>>> +    struct device *dev = core->dev;
+>>> +    u32 val;
+>>> +    int ret;
+>>> +
+>>> +    if (!hdev->power_enabled || hdev->suspended)
+>>> +        return 0;
+>>> +
+>>> +    mutex_lock(&hdev->lock);
+>>> +    ret = venus_is_valid_state(hdev);
+>>> +    mutex_unlock(&hdev->lock);
+>>> +
+>>> +    if (!ret) {
+>>> +        dev_err(dev, "bad state, cannot suspend\n");
+>>> +        return -EINVAL;
+>>> +    }
+>>> +
+>>> +    ret = venus_prepare_power_collapse(hdev, false);
+>>> +    if (ret) {
+>>> +        dev_err(dev, "prepare for power collapse fail (%d)\n", ret);
+>>> +        return ret;
+>>> +    }
+>>> +
+>>> +    ret = readl_poll_timeout(core->base + CPU_CS_SCIACMDARG0, val,
+>>> +                 val & CPU_CS_SCIACMDARG0_PC_READY,
+>>> +                 POLL_INTERVAL_US, 100000);
+>>> +    if (ret) {
+>>> +        dev_err(dev, "Polling power collapse ready timed out\n");
+>>> +        return ret;
+>>> +    }
+>>> +
+>>> +    mutex_lock(&hdev->lock);
+>>> +
+>>> +    ret = venus_power_off(hdev);
+>>> +    if (ret) {
+>>> +        dev_err(dev, "venus_power_off (%d)\n", ret);
+>>> +        mutex_unlock(&hdev->lock);
+>>> +        return ret;
+>>> +    }
+>>> +
+>>> +    hdev->suspended = true;
+>>> +
+>>> +    mutex_unlock(&hdev->lock);
+>>> +
+>>> +    return 0;
+>>> +}
+>>> +
+>>>  static int venus_suspend_3xx(struct venus_core *core)
+>>>  {
+>>>      struct venus_hfi_device *hdev = to_hfi_priv(core);
+>>> @@ -1507,6 +1556,9 @@ static int venus_suspend(struct venus_core 
+>>> *core)
+>>>      if (core->res->hfi_version == HFI_VERSION_3XX)
+>>>          return venus_suspend_3xx(core);
+>>> 
+>>> +    if (core->res->hfi_version == HFI_VERSION_4XX)
+>>> +        return venus_suspend_4xx(core);
+>>> +
+>>>      return venus_suspend_1xx(core);
+>>>  }
+>> 
+>> Let me brief on the power collapse sequence for Venus_4xx
+>> 1. Host checks for ARM9 and Video core to be idle.
+>>    This can be done by checking for WFI bit (bit 0) in CPU status
+>> register for ARM9 and by checking bit 30 in Control status reg for 
+>> video
+>> core/s.
+>> 2. Host then sends command to ARM9 to prepare for power collapse.
+>> 3. Host then checks for WFI bit and PC_READY bit before withdrawing
+>> going for power off.
+>> 
+>> As per this patch, host is preparing for power collapse without 
+>> checking
+>> for #1.
+>> Update the code to handle #3.
+> 
+> This looks similar to suspend for Venus 3xx. Can you confirm that the
+> sequence of checks for 4xx is the same as 3xx?
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- Documentation/media/uapi/v4l/buffer.rst       |  19 +-
- Documentation/media/uapi/v4l/common.rst       |   1 +
- Documentation/media/uapi/v4l/request-api.rst  | 218 ++++++++++++++++++
- .../media/uapi/v4l/vidioc-g-ext-ctrls.rst     |  25 +-
- Documentation/media/uapi/v4l/vidioc-qbuf.rst  |   8 +
- .../media/videodev2.h.rst.exceptions          |   1 +
- 6 files changed, 266 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/request-api.rst
-
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index e2c85ddc990b..5b312faf93b8 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -306,10 +306,13 @@ struct v4l2_buffer
-       - A place holder for future extensions. Drivers and applications
- 	must set this to 0.
-     * - __u32
--      - ``reserved``
-+      - ``request_fd``
-       -
--      - A place holder for future extensions. Drivers and applications
--	must set this to 0.
-+      - The file descriptor of the request to queue the buffer to. If specified
-+        and flag ``V4L2_BUF_FLAG_REQUEST_FD`` is set, then the buffer will be
-+	queued to that request. This is set by the user when calling
-+	:ref:`VIDIOC_QBUF` and :ref:`VIDIOC_PREPARE_BUF` and ignored by other
-+	ioctls.
- 
- 
- 
-@@ -514,6 +517,11 @@ Buffer Flags
- 	streaming may continue as normal and the buffer may be reused
- 	normally. Drivers set this flag when the ``VIDIOC_DQBUF`` ioctl is
- 	called.
-+    * .. _`V4L2-BUF-FLAG-IN-REQUEST`:
-+
-+      - ``V4L2_BUF_FLAG_IN_REQUEST``
-+      - 0x00000080
-+      - This buffer is part of a request that hasn't been queued yet.
-     * .. _`V4L2-BUF-FLAG-KEYFRAME`:
- 
-       - ``V4L2_BUF_FLAG_KEYFRAME``
-@@ -589,6 +597,11 @@ Buffer Flags
- 	the format. Any Any subsequent call to the
- 	:ref:`VIDIOC_DQBUF <VIDIOC_QBUF>` ioctl will not block anymore,
- 	but return an ``EPIPE`` error code.
-+    * .. _`V4L2-BUF-FLAG-REQUEST-FD`:
-+
-+      - ``V4L2_BUF_FLAG_REQUEST_FD``
-+      - 0x00800000
-+      - The ``request_fd`` field contains a valid file descriptor.
-     * .. _`V4L2-BUF-FLAG-TIMESTAMP-MASK`:
- 
-       - ``V4L2_BUF_FLAG_TIMESTAMP_MASK``
-diff --git a/Documentation/media/uapi/v4l/common.rst b/Documentation/media/uapi/v4l/common.rst
-index 13f2ed3fc5a6..a4aa0059d45a 100644
---- a/Documentation/media/uapi/v4l/common.rst
-+++ b/Documentation/media/uapi/v4l/common.rst
-@@ -44,3 +44,4 @@ applicable to all devices.
-     crop
-     selection-api
-     streaming-par
-+    request-api
-diff --git a/Documentation/media/uapi/v4l/request-api.rst b/Documentation/media/uapi/v4l/request-api.rst
-new file mode 100644
-index 000000000000..e9576ccb1111
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/request-api.rst
-@@ -0,0 +1,218 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _media-request-api:
-+
-+Request API
-+===========
-+
-+The Request API has been designed to allow V4L2 to deal with requirements of
-+modern devices (stateless codecs, MIPI cameras, ...) and APIs (Android Codec
-+v2). One such requirement is the ability for devices belonging to the same
-+pipeline to reconfigure and collaborate closely on a per-frame basis. Another is
-+efficient support of stateless codecs, which need per-frame controls to be set
-+asynchronously in order to be used efficiently.
-+
-+Supporting these features without the Request API is possible but terribly
-+inefficient: user-space would have to flush all activity on the media pipeline,
-+reconfigure it for the next frame, queue the buffers to be processed with that
-+configuration, and wait until they are all available for dequeuing before
-+considering the next frame. This defeats the purpose of having buffer queues
-+since in practice only one buffer would be queued at a time.
-+
-+The Request API allows a specific configuration of the pipeline (media
-+controller topology + controls for each device) to be associated with specific
-+buffers. The parameters are applied by each participating device as buffers
-+associated to a request flow in. This allows user-space to schedule several
-+tasks ("requests") with different parameters in advance, knowing that the
-+parameters will be applied when needed to get the expected result. Controls
-+values at the time of request completion are also available for reading.
-+
-+Usage
-+=====
-+
-+The Request API is used on top of standard media controller and V4L2 calls,
-+which are augmented with an extra ``request_fd`` parameter. Request themselves
-+are allocated from either a supporting V4L2 device node, or a supporting media
-+controller node. The origin of requests determine their scope: requests
-+allocated from a V4L2 device node can only act on that device, whereas requests
-+allocated from a media controller node can control the whole pipeline of the
-+controller.
-+
-+Request Allocation
-+------------------
-+
-+User-space allocates requests using the ``MEDIA_IOC_REQUEST_ALLOC`` ioctl
-+for the media device node. This returns a file descriptor representing the
-+request. Typically, several such requests will be allocated.
-+
-+Request Preparation
-+-------------------
-+
-+Standard V4L2 ioctls can then receive a request file descriptor to express the
-+fact that the ioctl is part of said request, and is not to be applied
-+immediately. V4L2 ioctls supporting this are :c:func:`VIDIOC_S_EXT_CTRLS` and
-+:c:func:`VIDIOC_QBUF`. Controls set with a request parameter are stored instead
-+of being immediately applied, and queued buffers not enter the regular buffer
-+queue until the request is submitted. Only one buffer can be queued to a given
-+queue for a given request.
-+
-+Request Submission
-+------------------
-+
-+Once the parameters and buffers of the request are specified, it can be
-+submitted by calling the ``MEDIA_REQUEST_IOC_QUEUE`` ioctl on the request FD.
-+This will make the buffers associated to the request available to their driver,
-+which can then apply the saved controls as buffers are processed. A submitted
-+request cannot be modified anymore.
-+
-+If several devices are part of the request, individual drivers may synchronize
-+so the requested pipeline's topology is applied before the buffers are
-+processed. This is at the discretion of media controller drivers and is not a
-+requirement.
-+
-+Buffers queued without an associated request after a request-bound buffer will
-+be processed using the state of the hardware at the time of the request
-+completion. All the same, controls set without a request are applied
-+immediately, regardless of whether a request is in use or not.
-+
-+User-space can ``poll()`` a request FD in order to wait until the request
-+completes. A request is considered complete once all its associated buffers are
-+available for dequeuing. Note that user-space does not need to wait for the
-+request to complete to dequeue its buffers: buffers that are available halfway
-+through a request can be dequeued independently of the request's state.
-+
-+A completed request contains the state of the request at the time of the
-+request completion. User-space can query that state by calling
-+:c:func:`VIDIOC_G_EXT_CTRLS` with the request FD.
-+
-+Recycling and Destruction
-+-------------------------
-+
-+Finally, completed request can either be discarded or be reused. Calling
-+``close()`` on a request FD will make that FD unusable, freeing the request if
-+it is not referenced elsewhere. The ``MEDIA_REQUEST_IOC_QUEUE`` ioctl will
-+clear a request's state and make it available again. No state is retained by
-+this operation: the request is as if it had just been allocated.
-+
-+Example for a M2M Device
-+------------------------
-+
-+M2M devices are single-node V4L2 devices providing one OUTPUT queue (for
-+user-space
-+to provide input buffers) and one CAPTURE queue (to retrieve processed data).
-+They are perfectly symetric, i.e. one buffer of input will produce one buffer of
-+output. These devices are commonly used for frame processors or stateless
-+codecs.
-+
-+In this use-case, the request API can be used to associate specific controls to
-+be applied by the driver before processing an OUTPUT buffer, allowing user-space
-+to queue many such buffers in advance. It can also take advantage of requests'
-+ability to capture the state of controls when the request completes to read back
-+information that may be subject to change.
-+
-+Put into code, after obtaining a request, user-space can assign controls and one
-+OUTPUT buffer to it:
-+
-+.. code-block:: c
-+
-+	struct v4l2_buffer buf;
-+	struct v4l2_ext_controls ctrls;
-+	struct media_request_alloc alloc = { 0 };
-+	int req_fd;
-+	...
-+	ioctl(media_fd, MEDIA_IOC_REQUEST_ALLOC, &alloc);
-+	req_fd = alloc.fd;
-+	...
-+	ctrls.which = V4L2_CTRL_WHICH_REQUEST_VAL;
-+	ctrls.request_fd = req_fd;
-+	ioctl(codec_fd, VIDIOC_S_EXT_CTRLS, &ctrls);
-+	...
-+	buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	buf.flags |= V4L2_BUF_FLAG_REQUEST_FD;
-+	buf.request_fd = req_fd;
-+	ioctl(codec_fd, VIDIOC_QBUF, &buf);
-+
-+Note that request_fd does not need to be specified for CAPTURE buffers: since
-+there is symetry between the OUTPUT and CAPTURE queues, and requests are
-+processed in order of submission, we can know which CAPTURE buffer corresponds
-+to which request.
-+
-+Once the request is fully prepared, it can be submitted to the driver:
-+
-+.. code-block:: c
-+
-+	ioctl(request_fd, MEDIA_REQUEST_IOC_QUEUE, NULL);
-+
-+User-space can then either wait for the request to complete by calling poll() on
-+its file descriptor, or start dequeuing CAPTURE buffers. Most likely, it will
-+want to get CAPTURE buffers as soon as possible and this can be done using a
-+regular DQBUF:
-+
-+.. code-block:: c
-+
-+	struct v4l2_buffer buf;
-+
-+	memset(&buf, 0, sizeof(buf));
-+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	ioctl(codec_fd, VIDIOC_DQBUF, &buf);
-+
-+We can then, after ensuring that the request is completed via polling the
-+request FD, query control values at the time of its completion via an
-+annotated call to G_EXT_CTRLS. This is particularly useful for volatile controls
-+for which we want to query values as soon as the capture buffer is produced.
-+
-+.. code-block:: c
-+
-+	struct pollfd pfd = { .events = POLLIN, .fd = request_fd };
-+	poll(&pfd, 1, -1);
-+	...
-+	ctrls.request_fd = req_fd;
-+	ioctl(codec_fd, VIDIOC_G_EXT_CTRLS, &ctrls);
-+
-+Once we don't need the request anymore, we can either recycle it for reuse with
-+MEDIA_REQUEST_IOC_REINIT...
-+
-+.. code-block:: c
-+
-+	ioctl(request, MEDIA_REQUEST_IOC_REINIT, NULL);
-+
-+... or close its file descriptor to completely dispose of it.
-+
-+.. code-block:: c
-+
-+	close(request_fd);
-+
-+Example for a Simple Capture Device
-+-----------------------------------
-+
-+With a simple capture device, requests can be used to specify controls to apply
-+to a given CAPTURE buffer. The driver will apply these controls before producing
-+the marked CAPTURE buffer.
-+
-+.. code-block:: c
-+
-+	struct v4l2_buffer buf;
-+	struct v4l2_ext_controls ctrls;
-+	struct media_request_alloc alloc = { 0 };
-+	int req_fd;
-+	...
-+	ioctl(media_fd, MEDIA_IOC_REQUEST_ALLOC, &alloc);
-+	req_fd = alloc.fd;
-+	...
-+	ctrls.which = V4L2_CTRL_WHICH_REQUEST_VAL;
-+	ctrls.request_fd = req_fd;
-+	ioctl(camera_fd, VIDIOC_S_EXT_CTRLS, &ctrls);
-+	...
-+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	buf.flags |= V4L2_BUF_FLAG_REQUEST_FD;
-+	buf.request_fd = req_fd;
-+	ioctl(camera_fd, VIDIOC_QBUF, &buf);
-+
-+Once the request is fully prepared, it can be submitted to the driver:
-+
-+.. code-block:: c
-+
-+	ioctl(req_fd, MEDIA_REQUEST_IOC_QUEUE, &cmd);
-+
-+User-space can then dequeue buffers, wait for the request completion, query
-+controls and recycle the request as in the M2M example above.
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-index 2011c2b2ee67..e463384f6f6c 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-@@ -95,6 +95,19 @@ appropriate. In the first case the new value is set in struct
- is inappropriate (e.g. the given menu index is not supported by the menu
- control), then this will also result in an ``EINVAL`` error code error.
- 
-+If ``request_fd`` is set to a not-submitted request file descriptor and
-+``which`` is set to V4L2_CTRL_WHICH_REQUEST_VAL, then the
-+controls are not applied immediately when calling
-+:ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, but instead are applied right
-+before the driver starts processing a buffer associated to the same request.
-+
-+If ``request_fd`` is specified and ``which`` is set to V4L2_CTRL_WHICH_REQUEST_VAL
-+during a call to :ref:`VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, then the
-+returned values will be the values currently set for the request (or the
-+hardware value if none is set) if the request has not yet completed, or the
-+values of the controls at the time of request completion if it has already
-+completed.
-+
- The driver will only set/get these controls if all control values are
- correct. This prevents the situation where only some of the controls
- were set/get. Only low-level errors (e. g. a failed i2c command) can
-@@ -209,8 +222,10 @@ still cause this situation.
-       - ``which``
-       - Which value of the control to get/set/try.
- 	``V4L2_CTRL_WHICH_CUR_VAL`` will return the current value of the
--	control and ``V4L2_CTRL_WHICH_DEF_VAL`` will return the default
--	value of the control.
-+	control, ``V4L2_CTRL_WHICH_DEF_VAL`` will return the default
-+	value of the control and ``V4L2_CTRL_WHICH_REQUEST_VAL`` indicates that
-+	these controls have to be retrieved from a request or tried/set for
-+	a request.
- 
- 	.. note::
- 
-@@ -272,8 +287,12 @@ still cause this situation.
- 	then you can call :ref:`VIDIOC_TRY_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` to try to discover the
- 	actual control that failed the validation step. Unfortunately,
- 	there is no ``TRY`` equivalent for :ref:`VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`.
-+    * - __s32
-+      - ``request_fd``
-+	File descriptor of the request to be used by this operation. Only
-+	valid if ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``.
-     * - __u32
--      - ``reserved``\ [2]
-+      - ``reserved``\ [1]
-       - Reserved for future extensions.
- 
- 	Drivers and applications must set the array to zero.
-diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-index 9e448a4aa3aa..6246f1888583 100644
---- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-@@ -98,6 +98,14 @@ dequeued, until the :ref:`VIDIOC_STREAMOFF <VIDIOC_STREAMON>` or
- :ref:`VIDIOC_REQBUFS` ioctl is called, or until the
- device is closed.
- 
-+The ``request_fd`` field can be used when queuing to specify the file
-+descriptor of a request, if requests are in use. Setting it means that the
-+buffer will not be passed to the driver until the request itself is submitted.
-+Also, the driver will apply any setting associated with the request before
-+processing the buffer. Only one buffer per queue can be assigned that way to
-+a request. This field will be ignored unless the ``V4L2_BUF_FLAG_REQUEST_FD``
-+flag is set.
-+
- Applications call the ``VIDIOC_DQBUF`` ioctl to dequeue a filled
- (capturing) or displayed (output) buffer from the driver's outgoing
- queue. They just set the ``type``, ``memory`` and ``reserved`` fields of
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index a5cb0a8686ac..5a5a1c772053 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -514,6 +514,7 @@ ignore define V4L2_CTRL_DRIVER_PRIV
- ignore define V4L2_CTRL_MAX_DIMS
- ignore define V4L2_CTRL_WHICH_CUR_VAL
- ignore define V4L2_CTRL_WHICH_DEF_VAL
-+ignore define V4L2_CTRL_WHICH_REQUEST_VAL
- ignore define V4L2_OUT_CAP_CUSTOM_TIMINGS
- ignore define V4L2_CID_MAX_CTRLS
- 
--- 
-2.17.0
+Do you mean the driver implementation for Suspend Venus 3xx or the 
+hardware
+expectation for Venus 3xx ? If hardware expectation wise, the sequence 
+is
+same for 3xx and 4xx.
+In the suspend implementation for 3xx, i see that the host just reads 
+the WFI
+and idle status bits, but does not validate those bit value before 
+preparing
+Venus for power collapse. Sequence #2 and #3 is followed for Venus 3xx
+implementation.
