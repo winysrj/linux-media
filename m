@@ -1,44 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:59253 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755133AbeEHOOQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 10:14:16 -0400
-From: Jan Luebbe <jlu@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Jan Luebbe <jlu@pengutronix.de>, slongerbeam@gmail.com,
-        p.zabel@pengutronix.de, kernel@pengutronix.de
-Subject: [PATCH v2 0/2] media: imx: add capture support for RGB565_2X8 on parallel bus
-Date: Tue,  8 May 2018 16:14:09 +0200
-Message-Id: <20180508141411.26620-1-jlu@pengutronix.de>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:40347 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935047AbeEIOcO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 10:32:14 -0400
+Received: by mail-wr0-f194.google.com with SMTP id v60-v6so35831015wrc.7
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 07:32:13 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>,
+        devicetree@vger.kernel.org
+Subject: [PATCH v6 1/2] media: ov2680: dt: Add bindings for OV2680
+Date: Wed,  9 May 2018 15:31:58 +0100
+Message-Id: <20180509143159.20690-2-rui.silva@linaro.org>
+In-Reply-To: <20180509143159.20690-1-rui.silva@linaro.org>
+References: <20180509143159.20690-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The IPU can only capture RGB565 with two 8-bit cycles in bayer/generic
-mode on the parallel bus, compared to a specific mode on MIPI CSI-2.
-To handle this, we extend imx_media_pixfmt with a cycles per pixel
-field, which is used for generic formats on the parallel bus.
+Add device tree binding documentation for the OV2680 camera sensor.
 
-Before actually adding RGB565_2X8 support for the parallel bus, this
-series simplifies handing of the the different configurations for RGB565
-between parallel and MIPI CSI-2 in imx-media-capture. This avoids having
-to explicitly pass on the format in the second patch.
+CC: devicetree@vger.kernel.org
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ .../devicetree/bindings/media/i2c/ov2680.txt  | 46 +++++++++++++++++++
+ 1 file changed, 46 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2680.txt
 
-Changes since v1:
-  - fixed problems reported the kbuild test robot
-  - added helper functions as suggested by Steve Longerbeam
-    (is_parallel_bus and requires_passthrough)
-  - removed passthough format check in csi_link_validate() (suggested by
-    Philipp Zabel during internal review)
-
-Jan Luebbe (2):
-  media: imx: capture: refactor enum_/try_fmt
-  media: imx: add support for RGB565_2X8 on parallel bus
-
- drivers/staging/media/imx/imx-media-capture.c | 38 +++++------
- drivers/staging/media/imx/imx-media-csi.c     | 68 ++++++++++++++-----
- drivers/staging/media/imx/imx-media-utils.c   |  1 +
- drivers/staging/media/imx/imx-media.h         |  2 +
- 4 files changed, 73 insertions(+), 36 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2680.txt b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+new file mode 100644
+index 000000000000..11e925ed9dad
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+@@ -0,0 +1,46 @@
++* Omnivision OV2680 MIPI CSI-2 sensor
++
++Required Properties:
++- compatible: should be "ovti,ov2680".
++- clocks: reference to the xvclk input clock.
++- clock-names: should be "xvclk".
++- DOVDD-supply: Digital I/O voltage supply.
++- DVDD-supply: Digital core voltage supply.
++- AVDD-supply: Analog voltage supply.
++
++Optional Properties:
++- reset-gpios: reference to the GPIO connected to the powerdown/reset pin,
++               if any. This is an active low signal to the OV2680.
++
++The device node must contain one 'port' child node for its digital output
++video port, and this port must have a single endpoint in accordance with
++ the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Endpoint node required properties for CSI-2 connection are:
++- remote-endpoint: a phandle to the bus receiver's endpoint node.
++- clock-lanes: should be set to <0> (clock lane on hardware lane 0).
++- data-lanes: should be set to <1> (one CSI-2 lane supported).
++
++Example:
++
++&i2c2 {
++	ov2680: camera-sensor@36 {
++		compatible = "ovti,ov2680";
++		reg = <0x36>;
++		clocks = <&osc>;
++		clock-names = "xvclk";
++		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
++		DOVDD-supply = <&sw2_reg>;
++		DVDD-supply = <&sw2_reg>;
++		AVDD-supply = <&reg_peri_3p15v>;
++
++		port {
++			ov2680_to_mipi: endpoint {
++				remote-endpoint = <&mipi_from_sensor>;
++				clock-lanes = <0>;
++				data-lanes = <1>;
++			};
++		};
++	};
++};
 -- 
 2.17.0
