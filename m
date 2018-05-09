@@ -1,451 +1,405 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:64684 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752030AbeEBPpu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 May 2018 11:45:50 -0400
-From: Andy Yeh <andy.yeh@intel.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, andy.yeh@intel.com,
-        devicetree@vger.kernel.org, tfiga@chromium.org, jacopo@jmondi.org,
-        Alan Chiang <alanx.chiang@intel.com>
-Subject: [RESEND PATCH v9 2/2] media: dw9807: Add dw9807 vcm driver
-Date: Wed,  2 May 2018 23:53:48 +0800
-Message-Id: <1525276428-17379-3-git-send-email-andy.yeh@intel.com>
-In-Reply-To: <1525276428-17379-1-git-send-email-andy.yeh@intel.com>
-References: <1525276428-17379-1-git-send-email-andy.yeh@intel.com>
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:44315 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965768AbeEIWrS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 18:47:18 -0400
+Received: by mail-pl0-f68.google.com with SMTP id e6-v6so90790plt.11
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 15:47:18 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 03/14] media: v4l2: async: Add v4l2_async_notifier_add_subdev
+Date: Wed,  9 May 2018 15:46:52 -0700
+Message-Id: <1525906023-827-4-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alan Chiang <alanx.chiang@intel.com>
+v4l2_async_notifier_add_subdev() adds an asd to the notifier. It checks
+that no other equivalent asd's have already been added to this notifier's
+asd list, or to other registered notifier's waiting or done lists, and
+increments num_subdevs.
 
-DW9807 is a 10 bit DAC from Dongwoon, designed for linear
-control of voice coil motor.
+v4l2_async_notifier_add_subdev() does not make use of the notifier subdevs
+array, otherwise it would have to re-allocate the array every time the
+function was called. In place of the subdevs array, the function adds
+the newly allocated asd to a new master asd_list. The function will
+return error with a WARN() if it is ever called with the subdevs array
+allocated.
 
-This driver creates a V4L2 subdevice and
-provides control to set the desired focus.
+In v4l2_async_notifier_has_async_subdev(), __v4l2_async_notifier_register(),
+and v4l2_async_notifier_cleanup(), maintain backward compatibility with
+the subdevs array, by alternatively operate on the subdevs array or a
+non-empty notifier->asd_list.
 
-Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-Acked-by: Rob Herring <robh@kernel.org>
-
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
-since v1:
-- changed author.
-since v2:
-- addressed outstanding comments.
-- enabled sequential write to update 2 registers in a single transaction.
-since v3:
-- addressed comments for v3.
-- Remove redundant codes and declare some variables as constant variable.
-- separate DT binding to another patch
-since v4:
-- sent patchset included DT binding with cover page
-since v6:
-- change the return code of i2c_check
-- fix long cols exceed 80 chars
-- remove #define DW9807_NAME since only used once
-since v7:
-- Remove some redundant type cast
-- Modify to meet the coding style
-- Replace a while loop by readx_poll_timeout function
-- Return the i2c error directly.
-since v8:
-- Added Reviewed-by and Acked-by
+Changes since v3:
+- init notifier lists after the sanity checks.
+Changes since v2:
+- add a NULL asd pointer check to v4l2_async_notifier_asd_valid().
+Changes since v1:
+- none
+---
+ drivers/media/v4l2-core/v4l2-async.c | 206 +++++++++++++++++++++++++++--------
+ include/media/v4l2-async.h           |  26 ++++-
+ 2 files changed, 187 insertions(+), 45 deletions(-)
 
- MAINTAINERS                |   7 +
- drivers/media/i2c/Kconfig  |  10 ++
- drivers/media/i2c/Makefile |   1 +
- drivers/media/i2c/dw9807.c | 329 +++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 347 insertions(+)
- create mode 100644 drivers/media/i2c/dw9807.c
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 845fc25..a339bb5 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4385,6 +4385,13 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/i2c/dw9714.c
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 0e7e529..48d66ae 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -363,16 +363,26 @@ static bool v4l2_async_notifier_has_async_subdev(
+ 	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd,
+ 	unsigned int this_index)
+ {
++	struct v4l2_async_subdev *asd_y;
+ 	unsigned int j;
  
-+DONGWOON DW9807 LENS VOICE COIL DRIVER
-+M:	Sakari Ailus <sakari.ailus@linux.intel.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/dw9807.c
-+
- DOUBLETALK DRIVER
- M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
- L:	blinux-list@redhat.com
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index cb5d7ff..fd01842 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -325,6 +325,16 @@ config VIDEO_DW9714
- 	  capability. This is designed for linear control of
- 	  voice coil motors, controlled via I2C serial interface.
+ 	lockdep_assert_held(&list_lock);
  
-+config VIDEO_DW9807
-+	tristate "DW9807 lens voice coil support"
-+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+	depends on VIDEO_V4L2_SUBDEV_API
-+	---help---
-+	  This is a driver for the DW9807 camera lens voice coil.
-+	  DW9807 is a 10 bit DAC with 100mA output current sink
-+	  capability. This is designed for linear control of
-+	  voice coil motors, controlled via I2C serial interface.
+ 	/* Check that an asd is not being added more than once. */
+-	for (j = 0; j < this_index; j++) {
+-		struct v4l2_async_subdev *asd_y = notifier->subdevs[j];
+-
+-		if (asd_equal(asd, asd_y))
+-			return true;
++	if (notifier->subdevs) {
++		for (j = 0; j < this_index; j++) {
++			asd_y = notifier->subdevs[j];
++			if (asd_equal(asd, asd_y))
++				return true;
++		}
++	} else {
++		j = 0;
++		list_for_each_entry(asd_y, &notifier->asd_list, asd_list) {
++			if (j++ >= this_index)
++				break;
++			if (asd_equal(asd, asd_y))
++				return true;
++		}
+ 	}
+ 
+ 	/* Check that an asd does not exist in other notifiers. */
+@@ -383,10 +393,46 @@ static bool v4l2_async_notifier_has_async_subdev(
+ 	return false;
+ }
+ 
+-static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
++static int v4l2_async_notifier_asd_valid(struct v4l2_async_notifier *notifier,
++					 struct v4l2_async_subdev *asd,
++					 unsigned int this_index)
+ {
+ 	struct device *dev =
+ 		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
 +
- config VIDEO_SAA7110
- 	tristate "Philips SAA7110 video decoder"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index 548a9ef..1b62639 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
- obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
- obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
- obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
-+obj-$(CONFIG_VIDEO_DW9807)  += dw9807.o
- obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
- obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
- obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
-diff --git a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c
-new file mode 100644
-index 0000000..28ede2b
---- /dev/null
-+++ b/drivers/media/i2c/dw9807.c
-@@ -0,0 +1,329 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2018 Intel Corporation
++	if (!asd)
++		return -EINVAL;
 +
-+#include <linux/acpi.h>
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/iopoll.h>
-+#include <linux/module.h>
-+#include <linux/pm_runtime.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
++	switch (asd->match_type) {
++	case V4L2_ASYNC_MATCH_CUSTOM:
++	case V4L2_ASYNC_MATCH_DEVNAME:
++	case V4L2_ASYNC_MATCH_I2C:
++	case V4L2_ASYNC_MATCH_FWNODE:
++		if (v4l2_async_notifier_has_async_subdev(notifier, asd,
++							 this_index))
++			return -EEXIST;
++		break;
++	default:
++		dev_err(dev, "Invalid match type %u on %p\n",
++			asd->match_type, asd);
++		return -EINVAL;
++	}
 +
-+#define DW9807_MAX_FOCUS_POS	1023
-+/*
-+ * This sets the minimum granularity for the focus positions.
-+ * A value of 1 gives maximum accuracy for a desired focus position.
-+ */
-+#define DW9807_FOCUS_STEPS	1
-+/*
-+ * This acts as the minimum granularity of lens movement.
-+ * Keep this value power of 2, so the control steps can be
-+ * uniformly adjusted for gradual lens movement, with desired
-+ * number of control steps.
-+ */
-+#define DW9807_CTRL_STEPS	16
-+#define DW9807_CTRL_DELAY_US	1000
-+
-+#define DW9807_CTL_ADDR		0x02
-+/*
-+ * DW9807 separates two registers to control the VCM position.
-+ * One for MSB value, another is LSB value.
-+ */
-+#define DW9807_MSB_ADDR		0x03
-+#define DW9807_LSB_ADDR		0x04
-+#define DW9807_STATUS_ADDR	0x05
-+#define DW9807_MODE_ADDR	0x06
-+#define DW9807_RESONANCE_ADDR	0x07
-+
-+#define MAX_RETRY		10
-+
-+struct dw9807_device {
-+	struct v4l2_ctrl_handler ctrls_vcm;
-+	struct v4l2_subdev sd;
-+	u16 current_val;
-+};
-+
-+static inline struct dw9807_device *sd_to_dw9807_vcm(
-+					struct v4l2_subdev *subdev)
-+{
-+	return container_of(subdev, struct dw9807_device, sd);
++	return 0;
 +}
 +
-+static int dw9807_i2c_check(struct i2c_client *client)
++static void __v4l2_async_notifier_init(struct v4l2_async_notifier *notifier)
 +{
-+	const char status_addr = DW9807_STATUS_ADDR;
-+	char status_result;
++	lockdep_assert_held(&list_lock);
++
++	INIT_LIST_HEAD(&notifier->asd_list);
++	INIT_LIST_HEAD(&notifier->waiting);
++	INIT_LIST_HEAD(&notifier->done);
++	notifier->lists_initialized = true;
++}
++
++static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
++{
+ 	struct v4l2_async_subdev *asd;
+ 	int ret;
+ 	int i;
+@@ -394,34 +440,40 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+ 		return -EINVAL;
+ 
+-	INIT_LIST_HEAD(&notifier->waiting);
+-	INIT_LIST_HEAD(&notifier->done);
+-
+ 	mutex_lock(&list_lock);
+ 
+-	for (i = 0; i < notifier->num_subdevs; i++) {
+-		asd = notifier->subdevs[i];
++	if (!notifier->lists_initialized)
++		__v4l2_async_notifier_init(notifier);
+ 
+-		switch (asd->match_type) {
+-		case V4L2_ASYNC_MATCH_CUSTOM:
+-		case V4L2_ASYNC_MATCH_DEVNAME:
+-		case V4L2_ASYNC_MATCH_I2C:
+-		case V4L2_ASYNC_MATCH_FWNODE:
+-			if (v4l2_async_notifier_has_async_subdev(
+-				    notifier, asd, i)) {
+-				dev_err(dev,
+-					"asd has already been registered or in notifier's subdev list\n");
+-				ret = -EEXIST;
+-				goto err_unlock;
+-			}
+-			break;
+-		default:
+-			dev_err(dev, "Invalid match type %u on %p\n",
+-				asd->match_type, asd);
++	if (!list_empty(&notifier->asd_list)) {
++		/*
++		 * Caller must have either used v4l2_async_notifier_add_subdev
++		 * to add asd's to notifier->asd_list, or provided the
++		 * notifier->subdevs array, but not both.
++		 */
++		if (WARN_ON(notifier->subdevs)) {
+ 			ret = -EINVAL;
+ 			goto err_unlock;
+ 		}
+-		list_add_tail(&asd->list, &notifier->waiting);
++
++		i = 0;
++		list_for_each_entry(asd, &notifier->asd_list, asd_list) {
++			ret = v4l2_async_notifier_asd_valid(notifier, asd, i++);
++			if (ret)
++				goto err_unlock;
++
++			list_add_tail(&asd->list, &notifier->waiting);
++		}
++	} else if (notifier->subdevs) {
++		for (i = 0; i < notifier->num_subdevs; i++) {
++			asd = notifier->subdevs[i];
++
++			ret = v4l2_async_notifier_asd_valid(notifier, asd, i);
++			if (ret)
++				goto err_unlock;
++
++			list_add_tail(&asd->list, &notifier->waiting);
++		}
+ 	}
+ 
+ 	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+@@ -511,36 +563,102 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+ 
+-void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
++static void __v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
+ {
++	struct v4l2_async_subdev *asd, *tmp;
+ 	unsigned int i;
+ 
+-	if (!notifier || !notifier->max_subdevs)
++	if (!notifier)
+ 		return;
+ 
+-	for (i = 0; i < notifier->num_subdevs; i++) {
+-		struct v4l2_async_subdev *asd = notifier->subdevs[i];
++	if (notifier->subdevs) {
++		if (!notifier->max_subdevs)
++			return;
+ 
+-		switch (asd->match_type) {
+-		case V4L2_ASYNC_MATCH_FWNODE:
+-			fwnode_handle_put(asd->match.fwnode);
+-			break;
+-		default:
+-			WARN_ON_ONCE(true);
+-			break;
++		for (i = 0; i < notifier->num_subdevs; i++) {
++			asd = notifier->subdevs[i];
++
++			switch (asd->match_type) {
++			case V4L2_ASYNC_MATCH_FWNODE:
++				fwnode_handle_put(asd->match.fwnode);
++				break;
++			default:
++				break;
++			}
++
++			kfree(asd);
+ 		}
+ 
+-		kfree(asd);
++		notifier->max_subdevs = 0;
++		kvfree(notifier->subdevs);
++		notifier->subdevs = NULL;
++	} else if (notifier->lists_initialized) {
++		list_for_each_entry_safe(asd, tmp,
++					 &notifier->asd_list, asd_list) {
++			switch (asd->match_type) {
++			case V4L2_ASYNC_MATCH_FWNODE:
++				fwnode_handle_put(asd->match.fwnode);
++				break;
++			default:
++				break;
++			}
++
++			list_del(&asd->asd_list);
++			kfree(asd);
++		}
+ 	}
+ 
+-	notifier->max_subdevs = 0;
+ 	notifier->num_subdevs = 0;
++}
++
++void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
++{
++	mutex_lock(&list_lock);
+ 
+-	kvfree(notifier->subdevs);
+-	notifier->subdevs = NULL;
++	__v4l2_async_notifier_cleanup(notifier);
++
++	mutex_unlock(&list_lock);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_async_notifier_cleanup);
+ 
++int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
++				   struct v4l2_async_subdev *asd)
++{
 +	int ret;
 +
-+	ret = i2c_master_send(client, &status_addr, sizeof(status_addr));
-+	if (ret < 0) {
-+		dev_err(&client->dev, "I2C write STATUS address fail ret = %d\n",
-+			ret);
-+		return ret;
++	mutex_lock(&list_lock);
++
++	if (notifier->num_subdevs >= V4L2_MAX_SUBDEVS) {
++		ret = -EINVAL;
++		goto unlock;
 +	}
-+
-+	ret = i2c_master_recv(client, &status_result, sizeof(status_result));
-+	if (ret < 0) {
-+		dev_err(&client->dev, "I2C read STATUS value fail ret = %d\n",
-+			ret);
-+		return ret;
-+	}
-+
-+	return status_result;
-+}
-+
-+static int dw9807_set_dac(struct i2c_client *client, u16 data)
-+{
-+	const char tx_data[3] = {
-+		DW9807_MSB_ADDR, ((data >> 8) & 0x03), (data & 0xff)
-+	};
-+	int val, ret, retry = 0;
 +
 +	/*
-+	 * According to the datasheet, need to check the bus status before we
-+	 * write VCM position. This ensure that we really write the value
-+	 * into the register
++	 * If caller uses this function, it cannot also allocate and
++	 * place asd's in the notifier->subdevs array.
 +	 */
-+	ret = readx_poll_timeout(dw9807_i2c_check, client, val, val <= 0,
-+			DW9807_CTRL_DELAY_US, MAX_RETRY * DW9807_CTRL_DELAY_US);
-+
-+	if (ret || val < 0) {
-+		if (ret) {
-+			dev_warn(&client->dev,
-+				"Cannot do the write operation because VCM is busy\n");
-+		}
-+
-+		return ret ? -EBUSY : val;
++	if (WARN_ON(notifier->subdevs)) {
++		ret = -EINVAL;
++		goto unlock;
 +	}
 +
-+	/* Write VCM position to registers */
-+	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
-+	if (ret < 0) {
-+		dev_err(&client->dev,
-+			"I2C write MSB fail ret=%d\n", ret);
++	if (!notifier->lists_initialized)
++		__v4l2_async_notifier_init(notifier);
 +
-+		return ret;
-+	}
++	ret = v4l2_async_notifier_asd_valid(notifier, asd,
++					    notifier->num_subdevs);
++	if (ret)
++		goto unlock;
 +
-+	return 0;
++	list_add_tail(&asd->asd_list, &notifier->asd_list);
++	notifier->num_subdevs++;
++
++unlock:
++	mutex_unlock(&list_lock);
++	return ret;
 +}
++EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_subdev);
 +
-+static int dw9807_set_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct dw9807_device *dev_vcm = container_of(ctrl->handler,
-+		struct dw9807_device, ctrls_vcm);
-+
-+	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE) {
-+		struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);
-+
-+		dev_vcm->current_val = ctrl->val;
-+		return dw9807_set_dac(client, ctrl->val);
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static const struct v4l2_ctrl_ops dw9807_vcm_ctrl_ops = {
-+	.s_ctrl = dw9807_set_ctrl,
-+};
-+
-+static int dw9807_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	int rval;
-+
-+	rval = pm_runtime_get_sync(sd->dev);
-+	if (rval < 0) {
-+		pm_runtime_put_noidle(sd->dev);
-+		return rval;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw9807_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	pm_runtime_put(sd->dev);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops dw9807_int_ops = {
-+	.open = dw9807_open,
-+	.close = dw9807_close,
-+};
-+
-+static const struct v4l2_subdev_ops dw9807_ops = { };
-+
-+static void dw9807_subdev_cleanup(struct dw9807_device *dw9807_dev)
-+{
-+	v4l2_async_unregister_subdev(&dw9807_dev->sd);
-+	v4l2_ctrl_handler_free(&dw9807_dev->ctrls_vcm);
-+	media_entity_cleanup(&dw9807_dev->sd.entity);
-+}
-+
-+static int dw9807_init_controls(struct dw9807_device *dev_vcm)
-+{
-+	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
-+	const struct v4l2_ctrl_ops *ops = &dw9807_vcm_ctrl_ops;
-+	struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);
-+
-+	v4l2_ctrl_handler_init(hdl, 1);
-+
-+	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
-+			  0, DW9807_MAX_FOCUS_POS, DW9807_FOCUS_STEPS, 0);
-+
-+	dev_vcm->sd.ctrl_handler = hdl;
-+	if (hdl->error) {
-+		dev_err(&client->dev, "%s fail error: 0x%x\n",
-+			__func__, hdl->error);
-+		return hdl->error;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw9807_probe(struct i2c_client *client)
-+{
-+	struct dw9807_device *dw9807_dev;
-+	int rval;
-+
-+	dw9807_dev = devm_kzalloc(&client->dev, sizeof(*dw9807_dev),
-+				  GFP_KERNEL);
-+	if (dw9807_dev == NULL)
-+		return -ENOMEM;
-+
-+	v4l2_i2c_subdev_init(&dw9807_dev->sd, client, &dw9807_ops);
-+	dw9807_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	dw9807_dev->sd.internal_ops = &dw9807_int_ops;
-+
-+	rval = dw9807_init_controls(dw9807_dev);
-+	if (rval)
-+		goto err_cleanup;
-+
-+	rval = media_entity_pads_init(&dw9807_dev->sd.entity, 0, NULL);
-+	if (rval < 0)
-+		goto err_cleanup;
-+
-+	dw9807_dev->sd.entity.function = MEDIA_ENT_F_LENS;
-+
-+	rval = v4l2_async_register_subdev(&dw9807_dev->sd);
-+	if (rval < 0)
-+		goto err_cleanup;
-+
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+	pm_runtime_idle(&client->dev);
-+
-+	return 0;
-+
-+err_cleanup:
-+	dw9807_subdev_cleanup(dw9807_dev);
-+
-+	return rval;
-+}
-+
-+static int dw9807_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+
-+	dw9807_subdev_cleanup(dw9807_dev);
-+
-+	return 0;
-+}
-+
-+/*
-+ * This function sets the vcm position, so it consumes least current
-+ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
-+ * to make the movements smoothly.
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ {
+ 	struct v4l2_async_notifier *subdev_notifier;
+@@ -614,7 +732,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ 	mutex_lock(&list_lock);
+ 
+ 	__v4l2_async_notifier_unregister(sd->subdev_notifier);
+-	v4l2_async_notifier_cleanup(sd->subdev_notifier);
++	__v4l2_async_notifier_cleanup(sd->subdev_notifier);
+ 	kfree(sd->subdev_notifier);
+ 	sd->subdev_notifier = NULL;
+ 
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 1592d32..6e752ef 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -73,6 +73,8 @@ enum v4l2_async_match_type {
+  * @match.custom.priv:
+  *		Driver-specific private struct with match parameters
+  *		to be used if %V4L2_ASYNC_MATCH_CUSTOM.
++ * @asd_list:	used to add struct v4l2_async_subdev objects to the
++ *		master notifier->asd_list
+  * @list:	used to link struct v4l2_async_subdev objects, waiting to be
+  *		probed, to a notifier->waiting list
+  *
+@@ -98,6 +100,7 @@ struct v4l2_async_subdev {
+ 
+ 	/* v4l2-async core private: not to be used by drivers */
+ 	struct list_head list;
++	struct list_head asd_list;
+ };
+ 
+ /**
+@@ -127,9 +130,11 @@ struct v4l2_async_notifier_operations {
+  * @v4l2_dev:	v4l2_device of the root notifier, NULL otherwise
+  * @sd:		sub-device that registered the notifier, NULL otherwise
+  * @parent:	parent notifier
++ * @asd_list:	master list of struct v4l2_async_subdev, replaces @subdevs
+  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+  * @done:	list of struct v4l2_subdev, already probed
+  * @list:	member in a global list of notifiers
++ * @lists_initialized: list_head's have been initialized
+  */
+ struct v4l2_async_notifier {
+ 	const struct v4l2_async_notifier_operations *ops;
+@@ -139,12 +144,29 @@ struct v4l2_async_notifier {
+ 	struct v4l2_device *v4l2_dev;
+ 	struct v4l2_subdev *sd;
+ 	struct v4l2_async_notifier *parent;
++	struct list_head asd_list;
+ 	struct list_head waiting;
+ 	struct list_head done;
+ 	struct list_head list;
++	bool lists_initialized;
+ };
+ 
+ /**
++ * v4l2_async_notifier_add_subdev - Add an async subdev to the
++ *				notifier's master asd_list.
++ *
++ * @notifier: pointer to &struct v4l2_async_notifier
++ * @asd: pointer to &struct v4l2_async_subdev
++ *
++ * This can be used before registering a notifier to add an
++ * asd to the notifiers master asd_list. If the caller uses
++ * this method to compose an asd list, it must never allocate
++ * or place asd's in the @subdevs array.
 + */
-+static int __maybe_unused dw9807_vcm_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+	const char tx_data[2] = { DW9807_CTL_ADDR, 0x01 };
-+	int ret, val;
++int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
++				   struct v4l2_async_subdev *asd);
 +
-+	for (val = dw9807_dev->current_val & ~(DW9807_CTRL_STEPS - 1);
-+	     val >= 0; val -= DW9807_CTRL_STEPS) {
-+		ret = dw9807_set_dac(client, val);
-+		if (ret)
-+			dev_err_once(dev, "%s I2C failure: %d", __func__, ret);
-+		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
-+	}
-+
-+	/* Power down */
-+	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
-+	if (ret < 0) {
-+		dev_err(&client->dev, "I2C write CTL fail ret = %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * This function sets the vcm position to the value set by the user
-+ * through v4l2_ctrl_ops s_ctrl handler
-+ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
-+ * to make the movements smoothly.
-+ */
-+static int  __maybe_unused dw9807_vcm_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+	const char tx_data[2] = { DW9807_CTL_ADDR, 0x00 };
-+	int ret, val;
-+
-+	/* Power on */
-+	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
-+	if (ret < 0) {
-+		dev_err(&client->dev, "I2C write CTL fail ret = %d\n", ret);
-+		return ret;
-+	}
-+
-+	for (val = dw9807_dev->current_val % DW9807_CTRL_STEPS;
-+	     val < dw9807_dev->current_val + DW9807_CTRL_STEPS - 1;
-+	     val += DW9807_CTRL_STEPS) {
-+		ret = dw9807_set_dac(client, val);
-+		if (ret)
-+			dev_err_ratelimited(dev, "%s I2C failure: %d",
-+						__func__, ret);
-+		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id dw9807_of_table[] = {
-+	{ .compatible = "dongwoon,dw9807" },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, dw9807_of_table);
-+
-+static const struct dev_pm_ops dw9807_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume)
-+	SET_RUNTIME_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume, NULL)
-+};
-+
-+static struct i2c_driver dw9807_i2c_driver = {
-+	.driver = {
-+		.name = "dw9807",
-+		.pm = &dw9807_pm_ops,
-+		.of_match_table = dw9807_of_table,
-+	},
-+	.probe_new = dw9807_probe,
-+	.remove = dw9807_remove,
-+};
-+
-+module_i2c_driver(dw9807_i2c_driver);
-+
-+MODULE_AUTHOR("Chiang, Alan <alanx.chiang@intel.com>");
-+MODULE_DESCRIPTION("DW9807 VCM driver");
-+MODULE_LICENSE("GPL v2");
++/**
+  * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
+  *
+  * @v4l2_dev: pointer to &struct v4l2_device
+@@ -177,7 +199,9 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
+  * Release memory resources related to a notifier, including the async
+  * sub-devices allocated for the purposes of the notifier but not the notifier
+  * itself. The user is responsible for calling this function to clean up the
+- * notifier after calling @v4l2_async_notifier_parse_fwnode_endpoints or
++ * notifier after calling
++ * @v4l2_async_notifier_add_subdev,
++ * @v4l2_async_notifier_parse_fwnode_endpoints or
+  * @v4l2_fwnode_reference_parse_sensor_common.
+  *
+  * There is no harm from calling v4l2_async_notifier_cleanup in other
 -- 
 2.7.4
