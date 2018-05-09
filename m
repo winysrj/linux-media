@@ -1,109 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:52534 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752693AbeEGTYm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 15:24:42 -0400
-Received: by mail-wm0-f65.google.com with SMTP id w194so15080041wmf.2
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 12:24:41 -0700 (PDT)
-Subject: Re: [PATCH 28/28] venus: add HEVC codec support
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
- <20180424124436.26955-29-stanimir.varbanov@linaro.org>
- <4ae458ed-97b6-b23f-88c4-0a5efd754d9d@xs4all.nl>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <f2dfd7d4-c791-b44f-a30a-8acff945798c@linaro.org>
-Date: Mon, 7 May 2018 22:24:38 +0300
-MIME-Version: 1.0
-In-Reply-To: <4ae458ed-97b6-b23f-88c4-0a5efd754d9d@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35566 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965887AbeEIWrU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 18:47:20 -0400
+Received: by mail-pf0-f196.google.com with SMTP id x9-v6so84314pfm.2
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 15:47:19 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 04/14] media: v4l2: async: Add convenience functions to allocate and add asd's
+Date: Wed,  9 May 2018 15:46:53 -0700
+Message-Id: <1525906023-827-5-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Add these convenience functions, which allocate an asd of match type
+fwnode, i2c, or device-name, of size asd_struct_size, and then adds
+them to the notifier asd_list.
 
-On  7.05.2018 13:39, Hans Verkuil wrote:
-> On 24/04/18 14:44, Stanimir Varbanov wrote:
->> This add HEVC codec support for venus versions 3xx and 4xx.
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>   drivers/media/platform/qcom/venus/helpers.c | 3 +++
->>   drivers/media/platform/qcom/venus/hfi.c     | 2 ++
->>   drivers/media/platform/qcom/venus/vdec.c    | 4 ++++
->>   drivers/media/platform/qcom/venus/venc.c    | 4 ++++
->>   4 files changed, 13 insertions(+)
->>
->> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
->> index 87dcf9973e6f..fecadba039cf 100644
->> --- a/drivers/media/platform/qcom/venus/helpers.c
->> +++ b/drivers/media/platform/qcom/venus/helpers.c
->> @@ -71,6 +71,9 @@ bool venus_helper_check_codec(struct venus_inst *inst, u32 v4l2_pixfmt)
->>   	case V4L2_PIX_FMT_XVID:
->>   		codec = HFI_VIDEO_CODEC_DIVX;
->>   		break;
->> +	case V4L2_PIX_FMT_HEVC:
->> +		codec = HFI_VIDEO_CODEC_HEVC;
->> +		break;
->>   	default:
->>   		return false;
->>   	}
->> diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
->> index 94ca27b0bb99..24207829982f 100644
->> --- a/drivers/media/platform/qcom/venus/hfi.c
->> +++ b/drivers/media/platform/qcom/venus/hfi.c
->> @@ -49,6 +49,8 @@ static u32 to_codec_type(u32 pixfmt)
->>   		return HFI_VIDEO_CODEC_VP9;
->>   	case V4L2_PIX_FMT_XVID:
->>   		return HFI_VIDEO_CODEC_DIVX;
->> +	case V4L2_PIX_FMT_HEVC:
->> +		return HFI_VIDEO_CODEC_HEVC;
->>   	default:
->>   		return 0;
->>   	}
->> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
->> index 7deee104ac56..a114f421edad 100644
->> --- a/drivers/media/platform/qcom/venus/vdec.c
->> +++ b/drivers/media/platform/qcom/venus/vdec.c
->> @@ -77,6 +77,10 @@ static const struct venus_format vdec_formats[] = {
->>   		.pixfmt = V4L2_PIX_FMT_XVID,
->>   		.num_planes = 1,
->>   		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->> +	}, {
->> +		.pixfmt = V4L2_PIX_FMT_HEVC,
->> +		.num_planes = 1,
->> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->>   	},
->>   };
->>   
->> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
->> index a703bce78abc..fdb76b69786f 100644
->> --- a/drivers/media/platform/qcom/venus/venc.c
->> +++ b/drivers/media/platform/qcom/venus/venc.c
->> @@ -59,6 +59,10 @@ static const struct venus_format venc_formats[] = {
->>   		.pixfmt = V4L2_PIX_FMT_VP8,
->>   		.num_planes = 1,
->>   		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
->> +	}, {
->> +		.pixfmt = V4L2_PIX_FMT_HEVC,
->> +		.num_planes = 1,
->> +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
->>   	},
->>   };
->>   
->>
-> 
-> No changes are necessary to venc_set_properties() for HEVC support?
-> 
-> Just checking, I kind of expected that.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 76 ++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h           | 62 +++++++++++++++++++++++++++++
+ 2 files changed, 138 insertions(+)
 
-yes, I think so, but will leave that for future updates.
-
-regards,
-Stan
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 48d66ae..17f32d9 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -659,6 +659,82 @@ int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_subdev);
+ 
++struct v4l2_async_subdev *
++v4l2_async_notifier_add_fwnode_subdev(struct v4l2_async_notifier *notifier,
++				      struct fwnode_handle *fwnode,
++				      unsigned int asd_struct_size)
++{
++	struct v4l2_async_subdev *asd;
++	int ret;
++
++	asd = kzalloc(asd_struct_size, GFP_KERNEL);
++	if (!asd)
++		return ERR_PTR(-ENOMEM);
++
++	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
++	asd->match.fwnode = fwnode;
++
++	ret = v4l2_async_notifier_add_subdev(notifier, asd);
++	if (ret) {
++		kfree(asd);
++		return ERR_PTR(ret);
++	}
++
++	return asd;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_fwnode_subdev);
++
++struct v4l2_async_subdev *
++v4l2_async_notifier_add_i2c_subdev(struct v4l2_async_notifier *notifier,
++				   int adapter_id, unsigned short address,
++				   unsigned int asd_struct_size)
++{
++	struct v4l2_async_subdev *asd;
++	int ret;
++
++	asd = kzalloc(asd_struct_size, GFP_KERNEL);
++	if (!asd)
++		return ERR_PTR(-ENOMEM);
++
++	asd->match_type = V4L2_ASYNC_MATCH_I2C;
++	asd->match.i2c.adapter_id = adapter_id;
++	asd->match.i2c.address = address;
++
++	ret = v4l2_async_notifier_add_subdev(notifier, asd);
++	if (ret) {
++		kfree(asd);
++		return ERR_PTR(ret);
++	}
++
++	return asd;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_i2c_subdev);
++
++struct v4l2_async_subdev *
++v4l2_async_notifier_add_devname_subdev(struct v4l2_async_notifier *notifier,
++				       const char *device_name,
++				       unsigned int asd_struct_size)
++{
++	struct v4l2_async_subdev *asd;
++	int ret;
++
++	asd = kzalloc(asd_struct_size, GFP_KERNEL);
++	if (!asd)
++		return ERR_PTR(-ENOMEM);
++
++	asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
++	asd->match.device_name = device_name;
++
++	ret = v4l2_async_notifier_add_subdev(notifier, asd);
++	if (ret) {
++		kfree(asd);
++		return ERR_PTR(ret);
++	}
++
++	return asd;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_devname_subdev);
++
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ {
+ 	struct v4l2_async_notifier *subdev_notifier;
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 6e752ef..5394361 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -167,6 +167,68 @@ int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
+ 				   struct v4l2_async_subdev *asd);
+ 
+ /**
++ * v4l2_async_notifier_add_fwnode_subdev - Allocate and add a fwnode async
++ *				subdev to the notifier's master asd_list.
++ *
++ * @notifier: pointer to &struct v4l2_async_notifier
++ * @fwnode: fwnode handle of the sub-device to be matched
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev). The &struct
++ *		     v4l2_async_subdev shall be the first member of
++ *		     the driver's async sub-device struct, i.e. both
++ *		     begin at the same memory address.
++ *
++ * This can be used before registering a notifier to add a
++ * fwnode-matched asd to the notifiers master asd_list. If the caller
++ * uses this method to compose an asd list, it must never allocate
++ * or place asd's in the @subdevs array.
++ */
++struct v4l2_async_subdev *
++v4l2_async_notifier_add_fwnode_subdev(struct v4l2_async_notifier *notifier,
++				      struct fwnode_handle *fwnode,
++				      unsigned int asd_struct_size);
++
++/**
++ * v4l2_async_notifier_add_i2c_subdev - Allocate and add an i2c async
++ *				subdev to the notifier's master asd_list.
++ *
++ * @notifier: pointer to &struct v4l2_async_notifier
++ * @adapter_id: I2C adapter ID to be matched
++ * @address: I2C address of sub-device to be matched
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev). The &struct
++ *		     v4l2_async_subdev shall be the first member of
++ *		     the driver's async sub-device struct, i.e. both
++ *		     begin at the same memory address.
++ *
++ * Same as above but for I2C matched sub-devices.
++ */
++struct v4l2_async_subdev *
++v4l2_async_notifier_add_i2c_subdev(struct v4l2_async_notifier *notifier,
++				   int adapter_id, unsigned short address,
++				   unsigned int asd_struct_size);
++
++/**
++ * v4l2_async_notifier_add_devname_subdev - Allocate and add a device-name
++ *				async subdev to the notifier's master asd_list.
++ *
++ * @notifier: pointer to &struct v4l2_async_notifier
++ * @device_name: device name string to be matched
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev). The &struct
++ *		     v4l2_async_subdev shall be the first member of
++ *		     the driver's async sub-device struct, i.e. both
++ *		     begin at the same memory address.
++ *
++ * Same as above but for device-name matched sub-devices.
++ */
++struct v4l2_async_subdev *
++v4l2_async_notifier_add_devname_subdev(struct v4l2_async_notifier *notifier,
++				       const char *device_name,
++				       unsigned int asd_struct_size);
++
++
++/**
+  * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
+  *
+  * @v4l2_dev: pointer to &struct v4l2_device
+-- 
+2.7.4
