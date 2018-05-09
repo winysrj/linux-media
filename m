@@ -1,87 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:37404 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750732AbeEGGNl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 02:13:41 -0400
-Received: by mail-vk0-f67.google.com with SMTP id m144-v6so16729632vke.4
-        for <linux-media@vger.kernel.org>; Sun, 06 May 2018 23:13:40 -0700 (PDT)
-Received: from mail-ua0-f171.google.com (mail-ua0-f171.google.com. [209.85.217.171])
-        by smtp.gmail.com with ESMTPSA id j185-v6sm7210013vkc.42.2018.05.06.23.13.38
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 06 May 2018 23:13:39 -0700 (PDT)
-Received: by mail-ua0-f171.google.com with SMTP id d4so9286570ual.10
-        for <linux-media@vger.kernel.org>; Sun, 06 May 2018 23:13:38 -0700 (PDT)
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:54390 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933863AbeEILK1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 07:10:27 -0400
+Received: by mail-wm0-f68.google.com with SMTP id f6so23944687wmc.4
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 04:10:26 -0700 (PDT)
+References: <20180507162152.2545-1-rui.silva@linaro.org> <20180507162152.2545-11-rui.silva@linaro.org> <1525856026.5888.4.camel@pengutronix.de>
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>
+Subject: Re: [PATCH v3 10/14] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
+In-reply-to: <1525856026.5888.4.camel@pengutronix.de>
+Date: Wed, 09 May 2018 12:10:24 +0100
+Message-ID: <m3a7t99ja7.fsf@linaro.org>
 MIME-Version: 1.0
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com> <20180308094807.9443-6-jacob-chen@iotwrt.com>
- <20180503090909.o3dyhukzs2y7em5z@tarshish>
-In-Reply-To: <20180503090909.o3dyhukzs2y7em5z@tarshish>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Mon, 07 May 2018 06:13:27 +0000
-Message-ID: <CAAFQd5CvBv4hkE=PSHBJTYa9Lj0SyggxpMBEAYD=if0=T0uzHw@mail.gmail.com>
-Subject: Re: [PATCH v6 05/17] media: rkisp1: add Rockchip ISP1 subdev driver
-To: baruch@tkos.co.il
-Cc: Jacob Chen <jacob-chen@iotwrt.com>,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
-        Eddie Cai <eddie.cai.linux@gmail.com>,
-        Jeffy <jeffy.chen@rock-chips.com>, devicetree@vger.kernel.org,
-        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
-        Chen Jacob <jacob2.chen@rock-chips.com>,
-        =?UTF-8?B?6ZmI5Z+O?= <cc@rock-chips.com>,
-        Allon Huang <allon.huang@rock-chips.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Baruch,
+Hi Philipp,
+Thanks.
 
-On Thu, May 3, 2018 at 6:09 PM Baruch Siach <baruch@tkos.co.il> wrote:
+On Wed 09 May 2018 at 08:53, Philipp Zabel wrote:
+> On Mon, 2018-05-07 at 17:21 +0100, Rui Miguel Silva wrote:
+>> This patch adds the device tree nodes for csi, video 
+>> multiplexer and mipi-csi
+>> besides the graph connecting the necessary endpoints to make 
+>> the media capture
+>> entities to work in imx7 Warp board.
+>> 
+>> Also add the pin control related with the mipi_csi in that 
+>> board.
+>> 
+>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>> ---
+>>  arch/arm/boot/dts/imx7s-warp.dts | 78 
+>>  ++++++++++++++++++++++++++++++++
+>>  arch/arm/boot/dts/imx7s.dtsi     | 28 ++++++++++++
+>>  2 files changed, 106 insertions(+)
+>> 
+>> diff --git a/arch/arm/boot/dts/imx7s-warp.dts 
+>> b/arch/arm/boot/dts/imx7s-warp.dts
+>> index 8a30b148534d..ffd170ae925a 100644
+>> --- a/arch/arm/boot/dts/imx7s-warp.dts
+>> +++ b/arch/arm/boot/dts/imx7s-warp.dts
+>> @@ -310,6 +310,77 @@
+>>  	status = "okay";
+>>  };
+>>  
+>> +&gpr {
+>> +	csi_mux {
+>> +		compatible = "video-mux";
+>> +		mux-controls = <&mux 0>;
+>> +		#address-cells = <1>;
+>> +		#size-cells = <0>;
+>> +
+>> +		port@0 {
+>> +			reg = <0>;
+>> +
+>> +			csi_mux_from_parallel_sensor: endpoint {
+>> +			};
+>> +		};
+>> +
+>> +		port@1 {
+>> +			reg = <1>;
+>> +
+>> +			csi_mux_from_mipi_vc0: endpoint {
+>> +				remote-endpoint = 
+>> <&mipi_vc0_to_csi_mux>;
+>> +			};
+>> +		};
+>> +
+>> +		port@2 {
+>> +			reg = <2>;
+>> +
+>> +			csi_mux_to_csi: endpoint {
+>> +				remote-endpoint = 
+>> <&csi_from_csi_mux>;
+>> +			};
+>> +		};
+>> +	};
+>> +};
+>> +
+>> +&csi {
+>> +	status = "okay";
+>> +	#address-cells = <1>;
+>> +	#size-cells = <0>;
+>> +
+>> +	port@0 {
+>> +		reg = <0>;
+>
+> Same comment as for the binding docs, since the CSI only has one 
+> port,
+> it doesn't have to be numbered.
 
-> Hi Jacob,
+ack.
 
-> On Thu, Mar 08, 2018 at 05:47:55PM +0800, Jacob Chen wrote:
-> > +static int rkisp1_isp_sd_s_power(struct v4l2_subdev *sd, int on)
-> > +{
-> > +     struct rkisp1_device *isp_dev = sd_to_isp_dev(sd);
-> > +     int ret;
-> > +
-> > +     v4l2_dbg(1, rkisp1_debug, &isp_dev->v4l2_dev, "s_power: %d\n",
-on);
-> > +
-> > +     if (on) {
-> > +             ret = pm_runtime_get_sync(isp_dev->dev);
-> > +             if (ret < 0)
-> > +                     return ret;
-> > +
-> > +             rkisp1_config_clk(isp_dev);
-> > +     } else {
-> > +             ret = pm_runtime_put(isp_dev->dev);
+>
+>> +
+>> +		csi_from_csi_mux: endpoint {
+>> +			remote-endpoint = <&csi_mux_to_csi>;
+>> +		};
+>> +	};
+>> +};
+>> +
+>> +&mipi_csi {
+>> +	clock-frequency = <166000000>;
+>> +	status = "okay";
+>> +	#address-cells = <1>;
+>> +	#size-cells = <0>;
+>> +	fsl,csis-hs-settle = <3>;
+>> +
+>> +	port@0 {
+>> +		reg = <0>;
+>> +
+>> +		mipi_from_sensor: endpoint {
+>> +			remote-endpoint = <&ov2680_to_mipi>;
+>> +			data-lanes = <1>;
+>> +		};
+>> +	};
+>> +
+>> +	port@1 {
+>> +		reg = <1>;
+>> +
+>> +		mipi_vc0_to_csi_mux: endpoint {
+>> +			remote-endpoint = 
+>> <&csi_mux_from_mipi_vc0>;
+>> +		};
+>> +	};
+>> +};
+>> +
+>>  &wdog1 {
+>>  	pinctrl-names = "default";
+>>  	pinctrl-0 = <&pinctrl_wdog>;
+>> @@ -357,6 +428,13 @@
+>>  		>;
+>>  	};
+>>  
+>> +	pinctrl_mipi_csi: mipi_csi {
+>> +		fsl,pins = <
+>> +			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3 
+>> 0x14
+>
+> This is the ov2680 reset GPIO? I think this belongs into patch 
+> 12.
 
-> I commented this line out to make more than one STREAMON work. Otherwise,
-the
-> second STREAMON hangs. I guess the bug is not this driver. Probably
-something
-> in drivers/soc/rockchip/pm_domains.c. Just noting that in case you or
-someone
-> on Cc would like to investigate it further.
+Yes, you are right.
 
-> I tested v4.16-rc4 on the Tinkerboard.
+>
+>> +			MX7D_PAD_ENET1_RGMII_TD0__GPIO7_IO6 
+>> 0x14
+>
+> What is this GPIO used for?
 
-Looks like that version doesn't include the IOMMU PM and clock handling
-rework [1], which should fix a lot of runtime PM issues. FWIW, linux-next
-seems to already include it.
+MKBUS_RESET and totally unrelated. I will remove it. Thanks for 
+notice this.
 
-[1] https://lkml.org/lkml/2018/3/23/44
-
-Best regards,
-Tomasz
+---
+Cheers,
+	Rui
