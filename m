@@ -1,284 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.socionext.com ([202.248.49.38]:35838 "EHLO mx.socionext.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S968826AbeE3JJw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 05:09:52 -0400
-From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>,
-        Jassi Brar <jaswinder.singh@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-Subject: [PATCH 5/8] media: uniphier: add LD11/LD20 HSC support
-Date: Wed, 30 May 2018 18:09:43 +0900
-Message-Id: <20180530090946.1635-6-suzuki.katsuhiro@socionext.com>
-In-Reply-To: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
-References: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36906 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965887AbeEIWrX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 18:47:23 -0400
+Received: by mail-pf0-f195.google.com with SMTP id e9-v6so81936pfi.4
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 15:47:23 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 06/14] media: v4l2-fwnode: Add a convenience function for registering subdevs with notifiers
+Date: Wed,  9 May 2018 15:46:55 -0700
+Message-Id: <1525906023-827-7-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds definition of registers specs to support of HSC
-MPEG2-TS I/O driver for UniPhier LD11/LD20 SoCs.
+Adds v4l2_async_register_fwnode_subdev(), which is a convenience function
+for parsing a sub-device's fwnode port endpoints for connected remote
+sub-devices, registering a sub-device notifier, and then registering
+the sub-device itself.
 
-Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/uniphier/Kconfig    |   8 +
- drivers/media/platform/uniphier/Makefile   |   1 +
- drivers/media/platform/uniphier/hsc-ld11.c | 219 +++++++++++++++++++++
- 3 files changed, 228 insertions(+)
- create mode 100644 drivers/media/platform/uniphier/hsc-ld11.c
+Changes since v3:
+- remove support for port sub-devices, such sub-devices will have to
+  role their own.
+Changes since v2:
+- fix error-out path in v4l2_async_register_fwnode_subdev() that forgot
+  to put device.
+Changes since v1:
+- add #include <media/v4l2-subdev.h> to v4l2-fwnode.h for
+  'struct v4l2_subdev' declaration.
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 62 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-fwnode.h           | 38 +++++++++++++++++++++
+ 2 files changed, 100 insertions(+)
 
-diff --git a/drivers/media/platform/uniphier/Kconfig b/drivers/media/platform/uniphier/Kconfig
-index 1b4543ec1e3c..8f3a662a391c 100644
---- a/drivers/media/platform/uniphier/Kconfig
-+++ b/drivers/media/platform/uniphier/Kconfig
-@@ -7,3 +7,11 @@ config DVB_UNIPHIER
- 	  Driver for UniPhier frontend for MPEG2-TS input/output,
- 	  demux and descramble.
- 	  Say Y when you want to support this frontend.
-+
-+config DVB_UNIPHIER_LD11
-+	bool "Support UniPhier LD11/LD20 HSC Device Driver"
-+	depends on DVB_UNIPHIER
-+	help
-+	  Driver for the HSC (High speed Stream Controller) for
-+	  UniPhier LD11/LD20.
-+	  Say Y when you want to support this hardware.
-diff --git a/drivers/media/platform/uniphier/Makefile b/drivers/media/platform/uniphier/Makefile
-index 88bc860b391f..0622f04d9e68 100644
---- a/drivers/media/platform/uniphier/Makefile
-+++ b/drivers/media/platform/uniphier/Makefile
-@@ -1,4 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0
- uniphier-dvb-y += hsc-core.o hsc-ucode.o hsc-css.o hsc-ts.o hsc-dma.o
-+uniphier-dvb-$(CONFIG_DVB_UNIPHIER_LD11) += hsc-ld11.o
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 0f88856..87c70e3 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -870,6 +870,68 @@ int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
  
- obj-$(CONFIG_DVB_UNIPHIER) += uniphier-dvb.o
-diff --git a/drivers/media/platform/uniphier/hsc-ld11.c b/drivers/media/platform/uniphier/hsc-ld11.c
-new file mode 100644
-index 000000000000..df3cc85ac525
---- /dev/null
-+++ b/drivers/media/platform/uniphier/hsc-ld11.c
-@@ -0,0 +1,219 @@
-+// SPDX-License-Identifier: GPL-2.0
-+//
-+// Socionext UniPhier DVB driver for High-speed Stream Controller (HSC).
-+// For UniPhier LD11/LD20.
-+//
-+// Copyright (c) 2018 Socionext Inc.
++int v4l2_async_register_fwnode_subdev(
++	struct v4l2_subdev *sd, size_t asd_struct_size,
++	unsigned int *ports, unsigned int num_ports,
++	int (*parse_endpoint)(struct device *dev,
++			      struct v4l2_fwnode_endpoint *vep,
++			      struct v4l2_async_subdev *asd))
++{
++	struct v4l2_async_notifier *notifier;
++	struct device *dev = sd->dev;
++	struct fwnode_handle *fwnode;
++	int ret;
 +
-+#include "hsc.h"
-+#include "hsc-reg.h"
++	if (WARN_ON(!dev))
++		return -ENODEV;
 +
-+static const struct hsc_spec_init_ram uniphier_hsc_ld11_init_rams[] = {
-+	{ FLT_PATN_RAM_TOP_ADDR, FLT_PATN_RAM_SIZE, ~0, },
-+	{ FLT_MASK_RAM_TOP_ADDR, FLT_MASK_RAM_SIZE, 0, },
-+	/* FLT_PID Pattern */
-+	{ SHARE_MEMORY_0_NORMAL, FLT_PIDPATTERN_SIZE, ~0, },
-+	/* FLT_PID Table */
-+	{ SHARE_MEMORY_0_NORMAL + FLT_PIDPATTERN_SIZE,
-+	  SHARE_MEMORY_0_SIZE - FLT_PIDPATTERN_SIZE, 0, },
-+	{ SHARE_MEMORY_1_NORMAL, SHARE_MEMORY_1_SIZE, 0, },
-+	{ SHARE_MEMORY_2_NORMAL, SHARE_MEMORY_2_SIZE, 0, },
-+	{ SHARE_MEMORY_3_NORMAL, SHARE_MEMORY_3_SIZE, 0, },
-+	{ SHARE_MEMORY_4_NORMAL, SHARE_MEMORY_4_SIZE, 0, },
-+	{ SHARE_MEMORY_5_NORMAL, SHARE_MEMORY_5_SIZE, 0, },
-+};
++	fwnode = dev_fwnode(dev);
++	if (!fwnode_device_is_available(fwnode))
++		return -ENODEV;
 +
-+static const struct hsc_spec_init_ram uniphier_hsc_ld20_init_rams[] = {
-+	{ FLT_PATN_RAM_TOP_ADDR, FLT_PATN_RAM_SIZE, ~0, },
-+	{ FLT_MASK_RAM_TOP_ADDR, FLT_MASK_RAM_SIZE, 0, },
-+	/* FLT_PID Pattern */
-+	{ SHARE_MEMORY_0_NORMAL, FLT_PIDPATTERN_SIZE, ~0, },
-+	/* FLT_PID Table */
-+	{ SHARE_MEMORY_0_NORMAL + FLT_PIDPATTERN_SIZE,
-+	  SHARE_MEMORY_0_SIZE - FLT_PIDPATTERN_SIZE, 0, },
-+	{ SHARE_MEMORY_1_NORMAL, SHARE_MEMORY_1_SIZE, 0, },
-+	{ SHARE_MEMORY_2_NORMAL, SHARE_MEMORY_2_SIZE, 0, },
-+	{ SHARE_MEMORY_3_NORMAL, SHARE_MEMORY_3_SIZE, 0, },
-+	{ SHARE_MEMORY_4_NORMAL, SHARE_MEMORY_4_SIZE, 0, },
-+	{ SHARE_MEMORY_5_NORMAL, SHARE_MEMORY_5_SIZE, 0, },
-+	{ SHARE_MEMORY_6_NORMAL, SHARE_MEMORY_6_SIZE, 0, },
-+	{ SHARE_MEMORY_7_NORMAL, SHARE_MEMORY_7_SIZE, 0, },
-+};
++	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
++	if (!notifier)
++		return -ENOMEM;
 +
-+static const struct hsc_spec_css_in uniphier_hsc_ld11_css_in[] = {
-+	[HSC_CSS_IN_SRLTS0] = {
-+		.pol = { true, CSS_SIGNALPOLCH(0), -1,  3,  0, },
-+	},
-+	[HSC_CSS_IN_SRLTS1] = {
-+		.pol = { true, CSS_SIGNALPOLCH(0), -1, 11,  8, },
-+	},
-+	[HSC_CSS_IN_SRLTS2] = {
-+		.pol = { true, CSS_SIGNALPOLCH(0), -1, 19, 16, },
-+	},
-+	[HSC_CSS_IN_SRLTS3] = {
-+		.pol = { true, CSS_SIGNALPOLCH(0), -1, 27, 24, },
-+	},
-+	[HSC_CSS_IN_SRLTS4] = {
-+		.pol = { true, CSS_SIGNALPOLCH(1), -1,  3,  0, },
-+	},
-+	[HSC_CSS_IN_PARTS0] = {
-+		.pol = { true, CSS_PTSISIGNALPOL,  -1, -1,  0, },
-+	},
-+	[HSC_CSS_IN_PARTS1] = {
-+		.pol = { true, CSS_PTSISIGNALPOL,  -1, -1,  8, },
-+	},
-+	[HSC_CSS_IN_DMD0]   = {
-+		.pol = { true, CSS_DMDSIGNALPOL,   -1, -1, 16, },
-+	},
-+};
++	if (!ports) {
++		ret = v4l2_async_notifier_parse_fwnode_endpoints(
++			dev, notifier, asd_struct_size, parse_endpoint);
++		if (ret < 0)
++			goto out_cleanup;
++	} else {
++		unsigned int i;
 +
-+static const struct hsc_spec_css_out uniphier_hsc_ld11_css_out[] = {
-+	[HSC_CSS_OUT_SRLTS0] = {
-+		.pol = { true, CSS_STSOSIGNALPOL,   6, -1,  0, },
-+		.sel = { true, CSS_OUTPUTCTRL(0), GENMASK(4,  0), },
-+	},
-+	[HSC_CSS_OUT_SRLTS1] = {
-+		.pol = { true, CSS_STSOSIGNALPOL,  14, -1,  8, },
-+		.sel = { true, CSS_OUTPUTCTRL(0), GENMASK(12,  8), },
-+	},
-+	[HSC_CSS_OUT_TSI0] = {
-+		.sel = { true, CSS_OUTPUTCTRL(1), GENMASK(4,  0), },
-+	},
-+	[HSC_CSS_OUT_TSI1] = {
-+		.sel = { true, CSS_OUTPUTCTRL(1), GENMASK(12,  8), },
-+	},
-+	[HSC_CSS_OUT_TSI2] = {
-+		.sel = { true, CSS_OUTPUTCTRL(1), GENMASK(20, 16), },
-+	},
-+	[HSC_CSS_OUT_TSI3] = {
-+		.sel = { true, CSS_OUTPUTCTRL(1), GENMASK(28, 24), },
-+	},
-+	[HSC_CSS_OUT_TSI4] = {
-+		.sel = { true, CSS_OUTPUTCTRL(2), GENMASK(4,  0), },
-+	},
-+	[HSC_CSS_OUT_PARTS0] = {
-+		.pol = { true, CSS_PTSOSIGNALPOL,  -1, -1,  0, },
-+		.sel = { true, CSS_OUTPUTCTRL(4), GENMASK(4,  0), },
-+	},
-+	[HSC_CSS_OUT_PKTFF0] = {
-+		.sel = { true, CSS_OUTPUTCTRL(5), GENMASK(4,  0), },
-+	},
-+};
++		for (i = 0; i < num_ports; i++) {
++			ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
++				dev, notifier, asd_struct_size,
++				ports[i], parse_endpoint);
++			if (ret < 0)
++				goto out_cleanup;
++		}
++	}
 +
-+static const struct hsc_spec_ts uniphier_hsc_ld11_ts_in[] = {
-+	[HSC_TSI0] = {
-+		.intr = { true, IOB_INTREN0, 13 },
-+	},
-+	[HSC_TSI1] = {
-+		.intr = { true, IOB_INTREN0, 14 },
-+	},
-+	[HSC_TSI2] = {
-+		.intr = { true, IOB_INTREN0, 15 },
-+	},
-+	[HSC_TSI3] = {
-+		.intr = { true, IOB_INTREN0, 16 },
-+	},
-+	[HSC_TSI4] = {
-+		.intr = { true, IOB_INTREN0, 17 },
-+	},
-+};
++	ret = v4l2_async_subdev_notifier_register(sd, notifier);
++	if (ret < 0)
++		goto out_cleanup;
 +
-+static const struct hsc_spec_dma uniphier_hsc_ld11_dma_in[] = {
-+	[HSC_DMA_IN0] = {
-+		.dma_ch = 5,
-+		.en     = { true, CDMBC_TDSTRT, 5 },
-+		.intr   = { true, IOB_INTREN1, 1 },
-+	},
-+	[HSC_DMA_IN1] = {
-+		.dma_ch = 6,
-+		.en     = { true, CDMBC_TDSTRT, 6 },
-+		.intr   = { true, IOB_INTREN1, 2 },
-+	},
-+	[HSC_DMA_IN2] = {
-+		.dma_ch = 7,
-+		.en     = { true, CDMBC_TDSTRT, 7 },
-+		.intr   = { true, IOB_INTREN1, 3 },
-+	},
-+	[HSC_DMA_IN3] = {
-+		.dma_ch = 22,
-+		.en     = { true, CDMBC_TDSTRT, 13 },
-+		.intr   = { true, IOB_INTREN1, 4 },
-+	},
-+	[HSC_DMA_IN4] = {
-+		.dma_ch = 23,
-+		.en     = { true, CDMBC_TDSTRT, 14 },
-+		.intr   = { true, IOB_INTREN1, 5 },
-+	},
-+	[HSC_DMA_IN5] = {
-+		.dma_ch = 24,
-+		.en     = { true, CDMBC_TDSTRT, 15 },
-+		.intr   = { true, IOB_INTREN1, 6 },
-+	},
-+};
++	ret = v4l2_async_register_subdev(sd);
++	if (ret < 0)
++		goto out_unregister;
 +
-+static const struct hsc_spec_dma uniphier_hsc_ld11_dma_out[] = {
-+	[HSC_DMA_OUT0] = {
-+		.dma_ch = 1,
-+		.en     = { true, CDMBC_TDSTRT, 1 },
-+		.intr   = { true, IOB_INTREN1, 13 },
-+	},
-+	[HSC_DMA_OUT1] = {
-+		.dma_ch = 2,
-+		.en     = { true, CDMBC_TDSTRT, 2 },
-+		.intr   = { true, IOB_INTREN1, 14 },
-+	},
-+	[HSC_DMA_OUT2] = {
-+		.dma_ch = 3,
-+		.en     = { true, CDMBC_TDSTRT, 3 },
-+		.intr   = { true, IOB_INTREN1, 15 },
-+	},
-+	[HSC_DMA_OUT3] = {
-+		.dma_ch = 19,
-+		.en     = { true, CDMBC_TDSTRT, 9 },
-+		.intr   = { true, IOB_INTREN1, 16 },
-+	},
-+	[HSC_DMA_OUT4] = {
-+		.dma_ch = 20,
-+		.en     = { true, CDMBC_TDSTRT, 10 },
-+		.intr   = { true, IOB_INTREN1, 17 },
-+	},
-+	[HSC_DMA_OUT5] = {
-+		.dma_ch = 21,
-+		.en     = { true, CDMBC_TDSTRT, 11 },
-+		.intr   = { true, IOB_INTREN1, 18 },
-+	},
-+};
++	sd->subdev_notifier = notifier;
 +
-+const struct hsc_spec uniphier_hsc_ld11_spec = {
-+	.ucode_spu     = { "hsc_spu_code_ld11.bin", "hsc_spu_data_ld11.bin" },
-+	.ucode_ace     = { "hsc_ace_code_ld11.bin", "hsc_ace_data_ld11.bin" },
-+	.init_rams     = uniphier_hsc_ld11_init_rams,
-+	.num_init_rams = ARRAY_SIZE(uniphier_hsc_ld11_init_rams),
-+	.css_in        = uniphier_hsc_ld11_css_in,
-+	.num_css_in    = ARRAY_SIZE(uniphier_hsc_ld11_css_in),
-+	.css_out       = uniphier_hsc_ld11_css_out,
-+	.num_css_out   = ARRAY_SIZE(uniphier_hsc_ld11_css_out),
-+	.ts_in         = uniphier_hsc_ld11_ts_in,
-+	.num_ts_in     = ARRAY_SIZE(uniphier_hsc_ld11_ts_in),
-+	.dma_in        = uniphier_hsc_ld11_dma_in,
-+	.num_dma_in    = ARRAY_SIZE(uniphier_hsc_ld11_dma_in),
-+	.dma_out       = uniphier_hsc_ld11_dma_out,
-+	.num_dma_out   = ARRAY_SIZE(uniphier_hsc_ld11_dma_out),
-+};
++	return 0;
 +
-+const struct hsc_spec uniphier_hsc_ld20_spec = {
-+	.ucode_spu     = { "hsc_spu_code_ld11.bin", "hsc_spu_data_ld11.bin" },
-+	.ucode_ace     = { "hsc_ace_code_ld11.bin", "hsc_ace_data_ld11.bin" },
-+	.init_rams     = uniphier_hsc_ld20_init_rams,
-+	.num_init_rams = ARRAY_SIZE(uniphier_hsc_ld20_init_rams),
-+	.css_in        = uniphier_hsc_ld11_css_in,
-+	.num_css_in    = ARRAY_SIZE(uniphier_hsc_ld11_css_in),
-+	.css_out       = uniphier_hsc_ld11_css_out,
-+	.num_css_out   = ARRAY_SIZE(uniphier_hsc_ld11_css_out),
-+	.ts_in         = uniphier_hsc_ld11_ts_in,
-+	.num_ts_in     = ARRAY_SIZE(uniphier_hsc_ld11_ts_in),
-+	.dma_in        = uniphier_hsc_ld11_dma_in,
-+	.num_dma_in    = ARRAY_SIZE(uniphier_hsc_ld11_dma_in),
-+	.dma_out       = uniphier_hsc_ld11_dma_out,
-+	.num_dma_out   = ARRAY_SIZE(uniphier_hsc_ld11_dma_out),
-+};
++out_unregister:
++	v4l2_async_notifier_unregister(notifier);
++out_cleanup:
++	v4l2_async_notifier_cleanup(notifier);
++	kfree(notifier);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_register_fwnode_subdev);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index ea7a8b2..031ebb0 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -23,6 +23,7 @@
+ #include <linux/types.h>
+ 
+ #include <media/v4l2-mediabus.h>
++#include <media/v4l2-subdev.h>
+ 
+ struct fwnode_handle;
+ struct v4l2_async_notifier;
+@@ -360,4 +361,41 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+ int v4l2_async_notifier_parse_fwnode_sensor_common(
+ 	struct device *dev, struct v4l2_async_notifier *notifier);
+ 
++/**
++ * v4l2_async_register_fwnode_subdev - registers a sub-device to the
++ *					asynchronous sub-device framework
++ *					and parses fwnode endpoints
++ *
++ * @sd: pointer to struct &v4l2_subdev
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev). The &struct
++ *		     v4l2_async_subdev shall be the first member of
++ *		     the driver's async sub-device struct, i.e. both
++ *		     begin at the same memory address.
++ * @ports: array of port id's to parse for fwnode endpoints. If NULL, will
++ *	   parse all ports owned by the sub-device.
++ * @num_ports: number of ports in @ports array. Ignored if @ports is NULL.
++ * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
++ *		    endpoint. Optional.
++ *
++ * This function is just like v4l2_async_register_subdev() with the
++ * exception that calling it will also allocate a notifier for the
++ * sub-device, parse the sub-device's firmware node endpoints using
++ * v4l2_async_notifier_parse_fwnode_endpoints() or
++ * v4l2_async_notifier_parse_fwnode_endpoints_by_port(), and
++ * registers the sub-device notifier. The sub-device is similarly
++ * unregistered by calling v4l2_async_unregister_subdev().
++ *
++ * While registered, the subdev module is marked as in-use.
++ *
++ * An error is returned if the module is no longer loaded on any attempts
++ * to register it.
++ */
++int v4l2_async_register_fwnode_subdev(
++	struct v4l2_subdev *sd, size_t asd_struct_size,
++	unsigned int *ports, unsigned int num_ports,
++	int (*parse_endpoint)(struct device *dev,
++			      struct v4l2_fwnode_endpoint *vep,
++			      struct v4l2_async_subdev *asd));
++
+ #endif /* _V4L2_FWNODE_H */
 -- 
-2.17.0
+2.7.4
