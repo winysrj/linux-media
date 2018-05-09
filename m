@@ -1,132 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:44406 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753382AbeEURCJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 13:02:09 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v10 10/16] vb2: mark codec drivers as unordered
-Date: Mon, 21 May 2018 13:59:40 -0300
-Message-Id: <20180521165946.11778-11-ezequiel@collabora.com>
-In-Reply-To: <20180521165946.11778-1-ezequiel@collabora.com>
-References: <20180521165946.11778-1-ezequiel@collabora.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:51771 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751370AbeEILPT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 07:15:19 -0400
+Received: by mail-wm0-f67.google.com with SMTP id j4so24013772wme.1
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 04:15:18 -0700 (PDT)
+Subject: Re: [PATCH 08/28] venus: hfi_venus: add suspend function for 4xx
+ version
+To: vgarodia@codeaurora.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+ <20180424124436.26955-9-stanimir.varbanov@linaro.org>
+ <8f26cd748f283043b32da05b39f29348@codeaurora.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <ce03189a-b56e-e73e-852f-1ad10d4c8bd3@linaro.org>
+Date: Wed, 9 May 2018 14:15:16 +0300
+MIME-Version: 1.0
+In-Reply-To: <8f26cd748f283043b32da05b39f29348@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Hi Vikash,
 
-In preparation to have full support to explicit fence we are
-marking codec as non-ordered preventively. It is easier and safer from an
-uAPI point of view to move from unordered to ordered than the opposite.
+On 05/02/2018 09:07 AM, vgarodia@codeaurora.org wrote:
+> Hello Stanimir,
+> 
+> On 2018-04-24 18:14, Stanimir Varbanov wrote:
+>> This adds suspend (power collapse) function with slightly
+>> different order of calls comparing with Venus 3xx.
+>>
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>  drivers/media/platform/qcom/venus/hfi_venus.c | 52
+>> +++++++++++++++++++++++++++
+>>  1 file changed, 52 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c
+>> b/drivers/media/platform/qcom/venus/hfi_venus.c
+>> index 53546174aab8..f61d34bf61b4 100644
+>> --- a/drivers/media/platform/qcom/venus/hfi_venus.c
+>> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+>> @@ -1443,6 +1443,55 @@ static int venus_suspend_1xx(struct venus_core
+>> *core)
+>>      return 0;
+>>  }
+>>
+>> +static int venus_suspend_4xx(struct venus_core *core)
+>> +{
+>> +    struct venus_hfi_device *hdev = to_hfi_priv(core);
+>> +    struct device *dev = core->dev;
+>> +    u32 val;
+>> +    int ret;
+>> +
+>> +    if (!hdev->power_enabled || hdev->suspended)
+>> +        return 0;
+>> +
+>> +    mutex_lock(&hdev->lock);
+>> +    ret = venus_is_valid_state(hdev);
+>> +    mutex_unlock(&hdev->lock);
+>> +
+>> +    if (!ret) {
+>> +        dev_err(dev, "bad state, cannot suspend\n");
+>> +        return -EINVAL;
+>> +    }
+>> +
+>> +    ret = venus_prepare_power_collapse(hdev, false);
+>> +    if (ret) {
+>> +        dev_err(dev, "prepare for power collapse fail (%d)\n", ret);
+>> +        return ret;
+>> +    }
+>> +
+>> +    ret = readl_poll_timeout(core->base + CPU_CS_SCIACMDARG0, val,
+>> +                 val & CPU_CS_SCIACMDARG0_PC_READY,
+>> +                 POLL_INTERVAL_US, 100000);
+>> +    if (ret) {
+>> +        dev_err(dev, "Polling power collapse ready timed out\n");
+>> +        return ret;
+>> +    }
+>> +
+>> +    mutex_lock(&hdev->lock);
+>> +
+>> +    ret = venus_power_off(hdev);
+>> +    if (ret) {
+>> +        dev_err(dev, "venus_power_off (%d)\n", ret);
+>> +        mutex_unlock(&hdev->lock);
+>> +        return ret;
+>> +    }
+>> +
+>> +    hdev->suspended = true;
+>> +
+>> +    mutex_unlock(&hdev->lock);
+>> +
+>> +    return 0;
+>> +}
+>> +
+>>  static int venus_suspend_3xx(struct venus_core *core)
+>>  {
+>>      struct venus_hfi_device *hdev = to_hfi_priv(core);
+>> @@ -1507,6 +1556,9 @@ static int venus_suspend(struct venus_core *core)
+>>      if (core->res->hfi_version == HFI_VERSION_3XX)
+>>          return venus_suspend_3xx(core);
+>>
+>> +    if (core->res->hfi_version == HFI_VERSION_4XX)
+>> +        return venus_suspend_4xx(core);
+>> +
+>>      return venus_suspend_1xx(core);
+>>  }
+> 
+> Let me brief on the power collapse sequence for Venus_4xx
+> 1. Host checks for ARM9 and Video core to be idle.
+>    This can be done by checking for WFI bit (bit 0) in CPU status
+> register for ARM9 and by checking bit 30 in Control status reg for video
+> core/s.
+> 2. Host then sends command to ARM9 to prepare for power collapse.
+> 3. Host then checks for WFI bit and PC_READY bit before withdrawing
+> going for power off.
+> 
+> As per this patch, host is preparing for power collapse without checking
+> for #1.
+> Update the code to handle #3.
 
-v2: mark only codec drivers as unordered (Nicolas and Hans)
+This looks similar to suspend for Venus 3xx. Can you confirm that the
+sequence of checks for 4xx is the same as 3xx?
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- drivers/media/platform/coda/coda-common.c          | 1 +
- drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 1 +
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 1 +
- drivers/media/platform/qcom/venus/vdec.c           | 1 +
- drivers/media/platform/qcom/venus/venc.c           | 1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 1 +
- 7 files changed, 7 insertions(+)
-
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 04e35d70ce2e..cac36a11efa2 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1649,6 +1649,7 @@ static const struct vb2_ops coda_qops = {
- 	.stop_streaming		= coda_stop_streaming,
- 	.wait_prepare		= vb2_ops_wait_prepare,
- 	.wait_finish		= vb2_ops_wait_finish,
-+	.is_unordered		= vb2_ops_is_unordered,
- };
- 
- static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-index 86f0a7134365..a4a02f3790fa 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-@@ -1445,6 +1445,7 @@ static const struct vb2_ops mtk_vdec_vb2_ops = {
- 	.buf_finish	= vb2ops_vdec_buf_finish,
- 	.start_streaming	= vb2ops_vdec_start_streaming,
- 	.stop_streaming	= vb2ops_vdec_stop_streaming,
-+	.is_unordered	= vb2_ops_is_unordered,
- };
- 
- const struct v4l2_ioctl_ops mtk_vdec_ioctl_ops = {
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-index 1b1a28abbf1f..d37d670346b9 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-@@ -931,6 +931,7 @@ static const struct vb2_ops mtk_venc_vb2_ops = {
- 	.wait_finish		= vb2_ops_wait_finish,
- 	.start_streaming	= vb2ops_venc_start_streaming,
- 	.stop_streaming		= vb2ops_venc_stop_streaming,
-+	.is_unordered		= vb2_ops_is_unordered,
- };
- 
- static int mtk_venc_encode_header(void *priv)
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index 49bbd1861d3a..8d7b4fc95880 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -794,6 +794,7 @@ static const struct vb2_ops vdec_vb2_ops = {
- 	.start_streaming = vdec_start_streaming,
- 	.stop_streaming = venus_helper_vb2_stop_streaming,
- 	.buf_queue = venus_helper_vb2_buf_queue,
-+	.is_unordered = vb2_ops_is_unordered,
- };
- 
- static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 6b2ce479584e..713c79ba9639 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -983,6 +983,7 @@ static const struct vb2_ops venc_vb2_ops = {
- 	.start_streaming = venc_start_streaming,
- 	.stop_streaming = venus_helper_vb2_stop_streaming,
- 	.buf_queue = venus_helper_vb2_buf_queue,
-+	.is_unordered = vb2_ops_is_unordered,
- };
- 
- static void venc_buf_done(struct venus_inst *inst, unsigned int buf_type,
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 5cf4d9921264..4402a5d621b2 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -1105,6 +1105,7 @@ static struct vb2_ops s5p_mfc_dec_qops = {
- 	.start_streaming	= s5p_mfc_start_streaming,
- 	.stop_streaming		= s5p_mfc_stop_streaming,
- 	.buf_queue		= s5p_mfc_buf_queue,
-+	.is_unordered		= vb2_ops_is_unordered,
- };
- 
- const struct s5p_mfc_codec_ops *get_dec_codec_ops(void)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 5c0462ca9993..376bd8eab8d8 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -2613,6 +2613,7 @@ static struct vb2_ops s5p_mfc_enc_qops = {
- 	.start_streaming	= s5p_mfc_start_streaming,
- 	.stop_streaming		= s5p_mfc_stop_streaming,
- 	.buf_queue		= s5p_mfc_buf_queue,
-+	.is_unordered		= vb2_ops_is_unordered,
- };
- 
- const struct s5p_mfc_codec_ops *get_enc_codec_ops(void)
 -- 
-2.16.3
+regards,
+Stan
