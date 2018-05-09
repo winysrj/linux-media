@@ -1,84 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:47708 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755134AbeEaPPU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 11:15:20 -0400
-Date: Thu, 31 May 2018 12:15:14 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Tomasz Figa <tfiga@google.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        =?UTF-8?B?6rmA?= =?UTF-8?B?7Iq57Jqw?= <sw0312.kim@samsung.com>,
-        =?UTF-8?B?64yA7J246riw?= <inki.dae@samsung.com>
-Subject: Re: [ANN] Meeting to discuss improvements to support MC-based
- cameras on generic apps
-Message-ID: <20180531121514.34b9176a@vento.lan>
-In-Reply-To: <CAAFQd5AiqUA97=Aksmf9WAoMd0npxpEGJuRh6+vC+Fg4B7CZYQ@mail.gmail.com>
-References: <20180517160708.74811cfb@vento.lan>
-        <20180528104351.5cf52a24@vento.lan>
-        <20180531102212.41a8848e@vento.lan>
-        <f2b70cc5-d7b8-1462-969c-a0557c778801@xs4all.nl>
-        <CAAFQd5AiqUA97=Aksmf9WAoMd0npxpEGJuRh6+vC+Fg4B7CZYQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:40086 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965780AbeEIWrQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 18:47:16 -0400
+Received: by mail-pl0-f68.google.com with SMTP id t12-v6so96896plo.7
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 15:47:16 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 02/14] media: v4l2: async: Allow searching for asd of any type
+Date: Wed,  9 May 2018 15:46:51 -0700
+Message-Id: <1525906023-827-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 31 May 2018 23:18:38 +0900
-Tomasz Figa <tfiga@google.com> escreveu:
+Generalize v4l2_async_notifier_fwnode_has_async_subdev() to allow
+searching for any type of async subdev, not just fwnodes. Rename to
+v4l2_async_notifier_has_async_subdev() and pass it an asd pointer.
 
-> Hi Hans and everyone,
->=20
-> On Thu, May 31, 2018 at 10:58 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> > On 05/31/18 15:22, Mauro Carvalho Chehab wrote: =20
-> > > Em Mon, 28 May 2018 10:43:51 -0300
-> > > Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
-> > > =20
-> > >> Em Thu, 17 May 2018 16:07:08 -0300
-> > >> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
-> > >> =20
-> > >>> Hi all,
-> > >>>
-> > >>> The goal of this e-mail is to schedule a meeting in order to discuss
-> > >>> improvements at the media subsystem in order to support complex cam=
-era
-> > >>> hardware by usual apps.
-> > >>>
-> > >>> The main focus here is to allow supporting devices with MC-based
-> > >>> hardware connected to a camera.
-> > >>>
-> > >>> In short, my proposal is to meet with the interested parties on sol=
-ving
-> > >>> this issue during the Open Source Summit in Japan, e. g. between
-> > >>> June, 19-22, in Tokyo. =20
-> > >>
-> > >> Let's schedule the meeting to happen in Tokyo, Japan at June, 19.
-> > >>
-> > >> Location yet to be defined, but it will either be together with
-> > >> OSS Japan or at Google. I'll confirm the address tomorrow. =20
-> > >
-> > > More details about the meeting:
-> > >
-> > > Date: June, 19
-> > > Site: Google
-> > > Address: =E3=80=92106-6126 Tokyo, Minato, Roppongi, 6 Chome=E2=88=921=
-0=E2=88=921 Roppongi Hills Mori Tower 44F
-> > >
-> > > Please confirm who will be attending the meeting. =20
-> >
-> > I plan to attend the meeting via Google Hangouts. =20
->=20
-> I'll be there as an organizer and participant. We will also have Ricky
-> from our camera team in Taipei join via Hangouts.
->=20
-> To avoid wasting time on the day of the event, I'd like to have a full
-> list of participants with emails, so that I can arrange building
-> access. Replying "Yes, I'll be there" will work for me. ;)
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+Changes since v3:
+- removed TODO to support asd compare with CUSTOM match type in
+  asd_equal().
+Changes since v2:
+- code optimization in asd_equal(), and remove unneeded braces,
+  suggested by Sakari Ailus.
+Changes since v1:
+- none
+---
+ drivers/media/v4l2-core/v4l2-async.c | 73 +++++++++++++++++++++---------------
+ 1 file changed, 43 insertions(+), 30 deletions(-)
 
-Please add Mr. Seung-Woo Kim also from Samsung. He's also intending
-to be there.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 2b08d03..0e7e529 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -124,6 +124,31 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+ 	return NULL;
+ }
+ 
++/* Compare two asd's for equivalence */
++static bool asd_equal(struct v4l2_async_subdev *asd_x,
++		      struct v4l2_async_subdev *asd_y)
++{
++	if (asd_x->match_type != asd_y->match_type)
++		return false;
++
++	switch (asd_x->match_type) {
++	case V4L2_ASYNC_MATCH_DEVNAME:
++		return strcmp(asd_x->match.device_name,
++			      asd_y->match.device_name) == 0;
++	case V4L2_ASYNC_MATCH_I2C:
++		return asd_x->match.i2c.adapter_id ==
++			asd_y->match.i2c.adapter_id &&
++			asd_x->match.i2c.address ==
++			asd_y->match.i2c.address;
++	case V4L2_ASYNC_MATCH_FWNODE:
++		return asd_x->match.fwnode == asd_y->match.fwnode;
++	default:
++		break;
++	}
++
++	return false;
++}
++
+ /* Find the sub-device notifier registered by a sub-device driver. */
+ static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
+ 	struct v4l2_subdev *sd)
+@@ -308,29 +333,22 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+ 	notifier->parent = NULL;
+ }
+ 
+-/* See if an fwnode can be found in a notifier's lists. */
+-static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+-	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
++/* See if an async sub-device can be found in a notifier's lists. */
++static bool __v4l2_async_notifier_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd)
+ {
+-	struct v4l2_async_subdev *asd;
++	struct v4l2_async_subdev *asd_y;
+ 	struct v4l2_subdev *sd;
+ 
+-	list_for_each_entry(asd, &notifier->waiting, list) {
+-		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+-			continue;
+-
+-		if (asd->match.fwnode == fwnode)
++	list_for_each_entry(asd_y, &notifier->waiting, list)
++		if (asd_equal(asd, asd_y))
+ 			return true;
+-	}
+ 
+ 	list_for_each_entry(sd, &notifier->done, async_list) {
+ 		if (WARN_ON(!sd->asd))
+ 			continue;
+ 
+-		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+-			continue;
+-
+-		if (sd->asd->match.fwnode == fwnode)
++		if (asd_equal(asd, sd->asd))
+ 			return true;
+ 	}
+ 
+@@ -338,32 +356,28 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+ }
+ 
+ /*
+- * Find out whether an async sub-device was set up for an fwnode already or
++ * Find out whether an async sub-device was set up already or
+  * whether it exists in a given notifier before @this_index.
+  */
+-static bool v4l2_async_notifier_fwnode_has_async_subdev(
+-	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
++static bool v4l2_async_notifier_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd,
+ 	unsigned int this_index)
+ {
+ 	unsigned int j;
+ 
+ 	lockdep_assert_held(&list_lock);
+ 
+-	/* Check that an fwnode is not being added more than once. */
++	/* Check that an asd is not being added more than once. */
+ 	for (j = 0; j < this_index; j++) {
+-		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
+-		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
++		struct v4l2_async_subdev *asd_y = notifier->subdevs[j];
+ 
+-		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
+-		    asd->match.fwnode ==
+-		    other_asd->match.fwnode)
++		if (asd_equal(asd, asd_y))
+ 			return true;
+ 	}
+ 
+-	/* Check than an fwnode did not exist in other notifiers. */
++	/* Check that an asd does not exist in other notifiers. */
+ 	list_for_each_entry(notifier, &notifier_list, list)
+-		if (__v4l2_async_notifier_fwnode_has_async_subdev(
+-			    notifier, fwnode))
++		if (__v4l2_async_notifier_has_async_subdev(notifier, asd))
+ 			return true;
+ 
+ 	return false;
+@@ -392,12 +406,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 		case V4L2_ASYNC_MATCH_CUSTOM:
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
+-			break;
+ 		case V4L2_ASYNC_MATCH_FWNODE:
+-			if (v4l2_async_notifier_fwnode_has_async_subdev(
+-				    notifier, asd->match.fwnode, i)) {
++			if (v4l2_async_notifier_has_async_subdev(
++				    notifier, asd, i)) {
+ 				dev_err(dev,
+-					"fwnode has already been registered or in notifier's subdev list\n");
++					"asd has already been registered or in notifier's subdev list\n");
+ 				ret = -EEXIST;
+ 				goto err_unlock;
+ 			}
+-- 
+2.7.4
