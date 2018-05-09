@@ -1,68 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:44849 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932291AbeENNNw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 09:13:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 3/7] s5p-mfc: fix two sparse warnings
-Date: Mon, 14 May 2018 15:13:42 +0200
-Message-Id: <20180514131346.15795-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180514131346.15795-1-hverkuil@xs4all.nl>
-References: <20180514131346.15795-1-hverkuil@xs4all.nl>
+Received: from mail-wr0-f179.google.com ([209.85.128.179]:33204 "EHLO
+        mail-wr0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756053AbeEILIc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 07:08:32 -0400
+Received: by mail-wr0-f179.google.com with SMTP id o4-v6so35246939wrm.0
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 04:08:31 -0700 (PDT)
+References: <20180507162152.2545-1-rui.silva@linaro.org> <20180507162152.2545-14-rui.silva@linaro.org> <c4f8d144-0ab8-d72a-7bff-3dc4d1598380@infradead.org>
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Shawn Guo <shawnguo@kernel.org>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 13/14] media: imx7.rst: add documentation for i.MX7 media driver
+In-reply-to: <c4f8d144-0ab8-d72a-7bff-3dc4d1598380@infradead.org>
+Date: Wed, 09 May 2018 12:08:29 +0100
+Message-ID: <m3bmdp9jde.fsf@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Randy,
+On Tue 08 May 2018 at 17:24, Randy Dunlap wrote:
+> Hi,
+>
+> I have a few editing suggestions below...
 
-media-git/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c: In function 'vidioc_querycap':
-media-git/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1317:2: warning: 'strncpy' output may be truncated copying 31 bytes from a string of length 31 [-Wstringop-truncation]
-  strncpy(cap->card, dev->vfd_enc->name, sizeof(cap->card) - 1);
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-media-git/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c: In function 'vidioc_querycap':
-media-git/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:275:2: warning: 'strncpy' output may be truncated copying 31 bytes from a string of length 31 [-Wstringop-truncation]
-  strncpy(cap->card, dev->vfd_dec->name, sizeof(cap->card) - 1);
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Thank you very much for this. I will incorporate this in the next 
+version.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 4 ++--
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Cheers,
+	Rui
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 5cf4d9921264..6a3cc4f86c5d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -271,8 +271,8 @@ static int vidioc_querycap(struct file *file, void *priv,
- {
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 
--	strncpy(cap->driver, S5P_MFC_NAME, sizeof(cap->driver) - 1);
--	strncpy(cap->card, dev->vfd_dec->name, sizeof(cap->card) - 1);
-+	strlcpy(cap->driver, S5P_MFC_NAME, sizeof(cap->driver));
-+	strlcpy(cap->card, dev->vfd_dec->name, sizeof(cap->card));
- 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
- 		 dev_name(&dev->plat_dev->dev));
- 	/*
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 5c0462ca9993..570f391f2cfd 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1313,8 +1313,8 @@ static int vidioc_querycap(struct file *file, void *priv,
- {
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 
--	strncpy(cap->driver, S5P_MFC_NAME, sizeof(cap->driver) - 1);
--	strncpy(cap->card, dev->vfd_enc->name, sizeof(cap->card) - 1);
-+	strlcpy(cap->driver, S5P_MFC_NAME, sizeof(cap->driver));
-+	strlcpy(cap->card, dev->vfd_enc->name, sizeof(cap->card));
- 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
- 		 dev_name(&dev->plat_dev->dev));
- 	/*
--- 
-2.17.0
+>
+> On 05/07/2018 09:21 AM, Rui Miguel Silva wrote:
+>> Add rst document to describe the i.MX7 media driver and also a 
+>> working example
+>> from the Warp7 board usage with a OV2680 sensor.
+>> 
+>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>> ---
+>>  Documentation/media/v4l-drivers/imx7.rst  | 157 
+>>  ++++++++++++++++++++++
+>>  Documentation/media/v4l-drivers/index.rst |   1 +
+>>  2 files changed, 158 insertions(+)
+>>  create mode 100644 Documentation/media/v4l-drivers/imx7.rst
+>> 
+>> diff --git a/Documentation/media/v4l-drivers/imx7.rst 
+>> b/Documentation/media/v4l-drivers/imx7.rst
+>> new file mode 100644
+>> index 000000000000..64b97b442277
+>> --- /dev/null
+>> +++ b/Documentation/media/v4l-drivers/imx7.rst
+>> @@ -0,0 +1,157 @@
+>> +i.MX7 Video Capture Driver
+>> +==========================
+>> +
+>> +Introduction
+>> +------------
+>> +
+>> +The i.MX7 contrary to the i.MX5/6 family does not contain an 
+>> Image Processing
+>> +Unit (IPU), because of that the capabilities to perform 
+>> operations or
+>
+> s/,/;/
+>
+>> +manipulation of the capture frames is less feature rich.
+>
+>                                       are less
+>
+>> +
+>> +For image capture the i.MX7 have three units:
+>
+>                                has
+>
+>> +- CMOS Sensor Interface (CSI)
+>> +- Video Multiplexer
+>> +- MIPI CSI-2 Receiver
+>> +
+>> +::
+>> +                                           |\
+>> +   MIPI Camera Input ---> MIPI CSI-2 --- > | \
+>> +                                           |  \
+>> +                                           | M |
+>> +                                           | U | ------>  CSI 
+>> ---> Capture
+>> +                                           | X |
+>> +                                           |  /
+>> +   Parallel Camera Input ----------------> | /
+>> +                                           |/
+>> +
+>> +For additional information, please refer to the latest 
+>> versions of the i.MX7
+>> +reference manual [#f1]_.
+>> +
+>> +Entities
+>> +--------
+>> +
+>> +imx7-mipi-csi2
+>> +--------------
+>> +
+>> +This is the MIPI CSI-2 recevier entity. It has one sink pad to 
+>> receive the pixel
+>
+>                           receiver
+>
+>> +data from MIPI CSI-2 camera sensor. It has one source pad, 
+>> corresponding to the
+>> +virtual channel 0. This module is compliant to previous 
+>> version of Samsung
+>> +D-phy, and support two D-PHY Rx Data lanes.
+>
+>               supports
+>
+>> +
+>> +csi_mux
+>> +-------
+>> +
+>> +This is the video multiplexer. It has two sink pads to select 
+>> from either camera
+>> +sensors with a parallel interface or from MIPI CSI-2 virtual 
+>> channel 0.  It has
+>
+>    sensor
+>
+>> +a single source pad that routes to the CSI.
+>> +
+>> +csi
+>> +---
+>> +
+>> +The CSI enables the chip to connect directly to external CMOS 
+>> image sensor. CSI
+>> +can interfaces directly with Parallel and MIPI CSI-2 buses. It 
+>> has 256 x 64 FIFO
+>
+>        interface
+>
+>> +to store received image pixel data and embedded DMA 
+>> controllers to transfer data
+>> +from the FIFO through AHB bus.
+>> +
+>> +This entity has one sink pad that receive from the csi_mux 
+>> entity and a single
+>
+>                                      receives
+>
+>> +source pad that route video frames directly to memory buffers, 
+>> this pad is
+>
+>                    routes 
+>                    buffers. This pad is
+>
+>> +routed to a capture device node.
+>> +
+>> +Usage Notes
+>> +-----------
+>> +
+>> +To aid in configuration and for backward compatibility with 
+>> V4L2 applications
+>> +that access controls only from video device nodes, the capture 
+>> device interfaces
+>> +inherit controls from the active entities in the current 
+>> pipeline, so controls
+>> +can be accessed either directly from the subdev or from the 
+>> active capture
+>> +device interface. For example, the sensor controls are 
+>> available either from the
+>> +sensor subdevs or from the active capture device.
+>> +
+>> +Warp7 with OV2680
+>> +-----------------
+>> +
+>> +On this platform an OV2680 MIPI CSI-2 module is connected to 
+>> the internal MIPI
+>> +CSI-2 receiver. The following example configures a video 
+>> capture pipeline with
+>> +an output of 800x600, and BGGR 10 bit bayer format:
+>> +
+>> +.. code-block:: none
+>> +   # Setup links
+>> +   media-ctl -l "'ov2680 1-0036':0 -> 'imx7-mipi-csis.0':0[1]"
+>> +   media-ctl -l "'imx7-mipi-csis.0':1 -> 'csi_mux':1[1]"
+>> +   media-ctl -l "'csi_mux':2 -> 'csi':0[1]"
+>> +   media-ctl -l "'csi':1 -> 'csi capture':0[1]"
+>> +
+>> +   # Configure pads for pipeline
+>> +   media-ctl -V "'ov2680 1-0036':0 [fmt:SBGGR10_1X10/800x600 
+>> field:none]"
+>> +   media-ctl -V "'csi_mux':1 [fmt:SBGGR10_1X10/800x600 
+>> field:none]"
+>> +   media-ctl -V "'csi_mux':2 [fmt:SBGGR10_1X10/800x600 
+>> field:none]"
+>> +   media-ctl -V "'imx7-mipi-csis.0':0 
+>> [fmt:SBGGR10_1X10/800x600 field:none]"
+>> +   media-ctl -V "'csi':0 [fmt:SBGGR10_1X10/800x600 
+>> field:none]"
+>> +
+>> +After this streaming can start, the v4l2-ctl tool can be used 
+>> to select any of
+>
+>                         can start. The
+>
+>> +the resolutions supported by the sensor.
+>> +
+>> +.. code-block:: none
+>> +    root@imx7s-warp:~# media-ctl -p
+>> +    Media controller API version 4.17.0
+>> +
+>> +    Media device information
+>> +    ------------------------
+>> +    driver          imx-media
+>> +    model           imx-media
+>> +    serial
+>> +    bus info
+>> +    hw revision     0x0
+>> +    driver version  4.17.0
+>> +
+>> +    Device topology
+>> +    - entity 1: csi (2 pads, 2 links)
+>> +		type V4L2 subdev subtype Unknown flags 0
+>> +		device node name /dev/v4l-subdev0
+>> +	    pad0: Sink
+>> +		    [fmt:SBGGR10_1X10/800x600 field:none]
+>> +		    <- "csi_mux":2 [ENABLED]
+>> +	    pad1: Source
+>> +		    [fmt:SBGGR10_1X10/800x600 field:none]
+>> +		    -> "csi capture":0 [ENABLED]
+>> +
+>> +    - entity 4: csi capture (1 pad, 1 link)
+>> +		type Node subtype V4L flags 0
+>> +		device node name /dev/video0
+>> +	    pad0: Sink
+>> +		    <- "csi":1 [ENABLED]
+>> +
+>> +    - entity 10: csi_mux (3 pads, 2 links)
+>> +		type V4L2 subdev subtype Unknown flags 0
+>> +		device node name /dev/v4l-subdev1
+>> +	    pad0: Sink
+>> +		    [fmt:unknown/0x0]
+>> +	    pad1: Sink
+>> +		    [fmt:unknown/800x600 field:none]
+>> +		    <- "imx7-mipi-csis.0":1 [ENABLED]
+>> +	    pad2: Source
+>> +		    [fmt:unknown/800x600 field:none]
+>> +		    -> "csi":0 [ENABLED]
+>> +
+>> +    - entity 14: imx7-mipi-csis.0 (2 pads, 2 links)
+>> +		type V4L2 subdev subtype Unknown flags 0
+>> +		device node name /dev/v4l-subdev2
+>> +	    pad0: Sink
+>> +		    [fmt:SBGGR10_1X10/800x600 field:none]
+>> +		    <- "ov2680 1-0036":0 [ENABLED]
+>> +	    pad1: Source
+>> +		    [fmt:SBGGR10_1X10/800x600 field:none]
+>> +		    -> "csi_mux":1 [ENABLED]
+>> +
+>> +    - entity 17: ov2680 1-0036 (1 pad, 1 link)
+>> +		type V4L2 subdev subtype Sensor flags 0
+>> +		device node name /dev/v4l-subdev3
+>> +	    pad0: Source
+>> +		    [fmt:SBGGR10_1X10/800x600 field:none]
+>> +		    -> "imx7-mipi-csis.0":0 [ENABLED]
+>> +
+>> +
+>> +References
+>> +----------
+>> +
+>> +.. [#f1] 
+>> https://www.nxp.com/docs/en/reference-manual/IMX7SRM.pdf
+>
+> thanks.
