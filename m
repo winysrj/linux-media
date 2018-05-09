@@ -1,37 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2120.oracle.com ([141.146.126.78]:43328 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965010AbeE2Rgh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 13:36:37 -0400
-Subject: Re: [PATCH 1/8] xen/grant-table: Make set/clear page private code
- shared
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
- <20180525153331.31188-2-andr2000@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <19b1ba80-b2e2-d292-ab55-6186e9da5fe3@oracle.com>
-Date: Tue, 29 May 2018 13:39:35 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180525153331.31188-2-andr2000@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mga09.intel.com ([134.134.136.24]:49252 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934275AbeEIJ2d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 May 2018 05:28:33 -0400
+From: "Chen, JasonX Z" <jasonx.z.chen@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>, "Yeh, Andy" <andy.yeh@intel.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Chiang, AlanX" <alanx.chiang@intel.com>
+Subject: RE: [PATCH v11] media: imx258: Add imx258 camera sensor driver
+Date: Wed, 9 May 2018 09:28:30 +0000
+Message-ID: <5881B549BE56034BB7E7D11D6EDEA2020678E62E@PGSMSX106.gar.corp.intel.com>
+References: <1525275968-17207-1-git-send-email-andy.yeh@intel.com>
+ <CAAFQd5BYokHC7J8wEjT4twx7_bU1Yyv1LbN2PAK2tjmCrr2cig@mail.gmail.com>
+In-Reply-To: <CAAFQd5BYokHC7J8wEjT4twx7_bU1Yyv1LbN2PAK2tjmCrr2cig@mail.gmail.com>
 Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
-> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->
-> Make set/clear page private code shared and accessible to
-> other kernel modules which can re-use these instead of open-coding.
->
-> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-
-Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+SGVsbG8gVG9tYXN6DQoNCj4+ICsvKiBUZXN0IFBhdHRlcm4gQ29udHJvbCAqLw0KPj4gKyNkZWZp
+bmUgSU1YMjU4X1JFR19URVNUX1BBVFRFUk4gICAgICAgICAgICAgICAgMHgwNjAwDQo+PiArI2Rl
+ZmluZSBJTVgyNThfVEVTVF9QQVRURVJOX0RJU0FCTEUgICAgMA0KPj4gKyNkZWZpbmUgSU1YMjU4
+X1RFU1RfUEFUVEVSTl9TT0xJRF9DT0xPUiAgICAgICAgMQ0KPj4gKyNkZWZpbmUgSU1YMjU4X1RF
+U1RfUEFUVEVSTl9DT0xPUl9CQVJTIDIgI2RlZmluZSANCj4+ICtJTVgyNThfVEVTVF9QQVRURVJO
+X0dSRVlfQ09MT1IgMw0KPj4gKyNkZWZpbmUgSU1YMjU4X1RFU1RfUEFUVEVSTl9QTjkgICAgICAg
+ICAgICAgICAgNA0KPj4gKw0KPj4gKy8qIE9yaWVudGF0aW9uICovDQo+PiArI2RlZmluZSBSRUdf
+TUlSUk9SX0ZMSVBfQ09OVFJPTCAgICAgICAgICAgICAgICAweDAxMDENCj4+ICsjZGVmaW5lIFJF
+R19DT05GSUdfTUlSUk9SX0ZMSVAgICAgICAgICAweDAzDQo+PiArI2RlZmluZSBSRUdfQ09ORklH
+X0ZMSVBfVEVTVF9QQVRURVJOICAgMHgwMg0KPg0KPlRoZSBuYW1lcyBhcmUgaW5jb25zaXN0ZW50
+IGhlcmUuIEFsbCBvdGhlciByZWdpc3RlciBhZGRyZXNzZXMgc3RhcnQgd2l0aCBJTVgyNThfUkVH
+IGFuZCB2YWx1ZXMgd2l0aCBJTVgyNThfPGZpZWxkIG5hbWU+IChubyBSRUcpLg0KPg0KPltzbmlw
+XQ0KDQpXZSB3aWxsIHVwZGF0ZSBhdCBuZXh0IHBhdGNoLg0KDQo+PiArc3RhdGljIGNvbnN0IGNo
+YXIgKiBjb25zdCBpbXgyNThfdGVzdF9wYXR0ZXJuX21lbnVbXSA9IHsNCj4+ICsgICAgICAgIkRp
+c2FibGVkIiwNCj4+ICsgICAgICAgIkNvbG9yIEJhcnMiLA0KPj4gKyAgICAgICAiU29saWQgQ29s
+b3IiLA0KPj4gKyAgICAgICAiR3JleSBDb2xvciBCYXJzIiwNCj4+ICsgICAgICAgIlBOOSINCj4+
+ICt9Ow0KPj4gKw0KPj4gK3N0YXRpYyBjb25zdCBpbnQgaW14MjU4X3Rlc3RfcGF0dGVybl92YWxb
+XSA9IHsNCj4+ICsgICAgICAgSU1YMjU4X1RFU1RfUEFUVEVSTl9ESVNBQkxFLA0KPj4gKyAgICAg
+ICBJTVgyNThfVEVTVF9QQVRURVJOX0NPTE9SX0JBUlMsDQo+PiArICAgICAgIElNWDI1OF9URVNU
+X1BBVFRFUk5fU09MSURfQ09MT1IsDQo+PiArICAgICAgIElNWDI1OF9URVNUX1BBVFRFUk5fR1JF
+WV9DT0xPUiwNCj4+ICsgICAgICAgSU1YMjU4X1RFU1RfUEFUVEVSTl9QTjksDQo+PiArfTsNCj4N
+Cj5CeSByZW9yZGVyaW5nIGlteDI1OF90ZXN0X3BhdHRlcm5fbWVudVtdLCB0aGlzIGFycmF5IGNh
+biBiZSByZW1vdmVkIGFuZA0KPmN0cmwtPnZhbCBjYW4gYmUgdXNlZCBkaXJlY3RseS4gSXQgaXMg
+dmFsaWRhdGVkIGJ5IGNvbnRyb2wgZnJhbWV3b3JrIHRvIA0KPmN0cmwtPmJlDQo+d2l0aGluIG1l
+bnUgcmFuZ2UgYW5kIHNvIHNhZmUgdG8gYmUgdXNlZCBmb3IgcHJvZ3JhbW1pbmcgaGFyZHdhcmUu
+DQo+DQo+W3NuaXBdDQoNCklQVTMgSEFMIGhhcyBhIGhhbmRsZXIgdG8gYmluZCB0ZXN0X3BhdHRl
+cm4gbW9kZS4NClRoZSBDT0xPUiBCQVIgTU9ERSBpbiBIQUwgaGFzIGJlZW4gY29uZmlndXJlZCB0
+byAxIHdoZW4gQVBQIHJlcXVlc3RzIHRvIG91dHB1dCBjb2xvciBiYXIgaW1hZ2UuIA0KSG93ZXZl
+ciBTb255IHNlbnNvcidzIENPTE9SIEJBUiBNT0RFIGlzIGRlc2lnbmVkIGFzIDIgaW4gcmVnaXN0
+ZXIgdGFibGUuIChncmV5IGNvbG9yIGJhcnMgYXMgMSkuDQpXaGVuIEhBTCBzZW5kcyBoYW5kbGVy
+IHRvIGRyaXZlciB0byBzd2l0Y2ggdGVzdCBwYXR0ZXJuIG1vZGUgKHRvIENPTE9SIEJBUiAtIHZh
+bDogMSksIGl0IHdpbGwgYmUgZ3JleSBjb2xvciwgc2luY2UgZHJpdmVyIHN0aWxsIHNldCBURVNU
+X1BBVFRFUk5fTU9ERSByZWcgdmFsdWUgdG8gMSwgdGhvc2UgaXQgaXMgbm90IHdoYXQgd2UgZXhw
+ZWN0ZWQuDQoNClRoYXQgaXMgd2h5IHdlIGhhdmUgdG8gbWFrZSBhbiBhcnJheSB3aXRoIGluZGV4
+IHRvIGFycmFuZ2UgdGhlIG9yZGVyIG9mIHRoZSB0ZXN0IHBhdHRlcm4gaXRlbXMsIHNvIGRyaXZl
+ciB3aWxsIGNob29zZSBDT0xPUiBCQVIgY29ycmVjdGx5IHdoZW4gSEFMIHNlbmQgdGVzdF9wYXR0
+ZXJuIG1lc3NhZ2UgKHdpdGggMSkuDQpUaGUgY29uY2VwdCBpcyB0aGUgdGVzdF9wYXR0ZXJuX21l
+bnUgY291bGQgYmUgbGlzdGVkIGluIGRyaXZlciBwZXIgcmVhbCByZXF1aXJlbWVudCwgbm8gbWF0
+dGVyIGhvdyB0aGUgc2Vuc29yIHJlZ2lzdGVyIGlzIGRlc2lnbmVkLg0KDQo+PiArICAgICAgIGNh
+c2UgVjRMMl9DSURfVEVTVF9QQVRURVJOOg0KPj4gKyAgICAgICAgICAgICAgIHJldCA9IGlteDI1
+OF93cml0ZV9yZWcoaW14MjU4LCBJTVgyNThfUkVHX1RFU1RfUEFUVEVSTiwNCj4+ICsgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgSU1YMjU4X1JFR19WQUxVRV8xNkJJVCwNCj4+ICsgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgaW14MjU4X3Rlc3RfcGF0dGVybl92YWxbY3RybC0+
+dmFsXSk7DQo+PiArDQo+PiArICAgICAgICAgICAgICAgcmV0ID0gaW14MjU4X3dyaXRlX3JlZyhp
+bXgyNTgsIFJFR19NSVJST1JfRkxJUF9DT05UUk9MLA0KPj4gKyAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICBJTVgyNThfUkVHX1ZBTFVFXzA4QklULA0KPj4gKyAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICBjdHJsLT52YWwgPT0gaW14MjU4X3Rlc3RfcGF0dGVybl92YWwNCj4+ICsg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgW0lNWDI1OF9URVNUX1BBVFRFUk5fRElTQUJM
+RV0gPw0KPj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBSRUdfQ09ORklHX01JUlJP
+Ul9GTElQIDoNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgUkVHX0NPTkZJR19G
+TElQX1RFU1RfUEFUVEVSTik7DQo+DQo+VGhlIGNvbXBhcmlzb24gYWJvdmUgZG9lc24ndCBtYWtl
+IGFueSBzZW5zZS4gY3RybC0+dmFsIGlzIGFuIGluZGV4IGludG8gaW14MjU4X3Rlc3RfcGF0dGVy
+bl92YWxbXSwgYnV0IGlteDI1OF90ZXN0X3BhdHRlcm5fdmFsW0lNWDI1OF9URVNUX1BBVFRFUk5f
+RElTQUJMRV0gaXMgYSByZWdpc3RlciB2YWx1ZS4NCj5Nb3Jlb3ZlciwgSU1YMjU4X1RFU1RfUEFU
+VEVSTl9ESVNBQkxFIGlzIGFsc28gYSByZWdpc3RlciB2YWx1ZSwgc28gaXQgZG9lc24ndCBtYWtl
+IHNlbnNlIHRvIHVzZSBpdCBmb3IgaW5kZXhpbmcgdGhlIGFycmF5LiBJJ2Qgc3VnZ2VzdCBzaW1w
+bHkgY2hlY2tpbmcgZm9yICghY3RybC0+dmFsKS4NCj4NCg0KV2Ugd2lsbCB1cGRhdGUgYXQgbmV4
+dCBwYXRjaC4NCg0KDQpCLlIuLA0KSmFzb24NCg==
