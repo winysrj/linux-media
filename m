@@ -1,36 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:42925 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752009AbeEANmo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2018 09:42:44 -0400
-Date: Tue, 1 May 2018 08:42:42 -0500
-From: Rob Herring <robh@kernel.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 27/28] venus: add sdm845 compatible and resource data
-Message-ID: <20180501134242.GA31402@rob-hp-laptop>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
- <20180424124436.26955-28-stanimir.varbanov@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180424124436.26955-28-stanimir.varbanov@linaro.org>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:38035 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934007AbeEII7V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 04:59:21 -0400
+Message-ID: <1525856353.5888.6.camel@pengutronix.de>
+Subject: Re: [PATCH v3 09/14] ARM: dts: imx7s: add multiplexer controls
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>
+Date: Wed, 09 May 2018 10:59:13 +0200
+In-Reply-To: <20180507162152.2545-10-rui.silva@linaro.org>
+References: <20180507162152.2545-1-rui.silva@linaro.org>
+         <20180507162152.2545-10-rui.silva@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 24, 2018 at 03:44:35PM +0300, Stanimir Varbanov wrote:
-> This adds sdm845 DT compatible string with it's resource
-> data table.
+On Mon, 2018-05-07 at 17:21 +0100, Rui Miguel Silva wrote:
+> The IOMUXC General Purpose Register has bitfield to control video bus
+> multiplexer to control the CSI input between the MIPI-CSI2 and parallel
+> interface. Add that register and mask.
 > 
-> Cc: devicetree@vger.kernel.org
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 > ---
->  .../devicetree/bindings/media/qcom,venus.txt       |  1 +
->  drivers/media/platform/qcom/venus/core.c           | 22 ++++++++++++++++++++++
->  2 files changed, 23 insertions(+)
+>  arch/arm/boot/dts/imx7s.dtsi | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
+> index 67450ad89940..3590dab529f9 100644
+> --- a/arch/arm/boot/dts/imx7s.dtsi
+> +++ b/arch/arm/boot/dts/imx7s.dtsi
+> @@ -520,8 +520,14 @@
+>  
+>  			gpr: iomuxc-gpr@30340000 {
+>  				compatible = "fsl,imx7d-iomuxc-gpr",
+> -					"fsl,imx6q-iomuxc-gpr", "syscon";
+> +					"fsl,imx6q-iomuxc-gpr", "syscon", "simple-mfd";
+>  				reg = <0x30340000 0x10000>;
+> +
+> +				mux: mux-controller {
+> +					compatible = "mmio-mux";
+> +					#mux-control-cells = <1>;
+> +					mux-reg-masks = <0x14 0x00000010>;
+> +				};
+>  			};
+>  
+>  			ocotp: ocotp-ctrl@30350000 {
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+regards
+Philipp
