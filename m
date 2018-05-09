@@ -1,99 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:47051 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750992AbeEPHbX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 03:31:23 -0400
-Received: by mail-qt0-f195.google.com with SMTP id m16-v6so3769146qtg.13
-        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 00:31:22 -0700 (PDT)
-Subject: Re: [Intel-gfx] [PATCH v2 2/5] drm/i915: hdmi: add CEC notifier to
- intel_hdmi
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
-Cc: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com, sadolfsson@google.com,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, fparent@baylibre.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        linux-media@vger.kernel.org
-References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
- <1526395342-15481-3-git-send-email-narmstrong@baylibre.com>
- <20180515153521.GB23723@intel.com>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <aff8c86f-b282-c901-5ef5-c5ee334aeedc@baylibre.com>
-Date: Wed, 16 May 2018 09:31:16 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180515153521.GB23723@intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:40033 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965426AbeEIWmT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 18:42:19 -0400
+Received: by mail-qt0-f193.google.com with SMTP id h2-v6so203893qtp.7
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 15:42:19 -0700 (PDT)
+Message-ID: <1525905732.3381.6.camel@padovan.org>
+Subject: Re: [PATCH] dma-fence: Make dma_fence_add_callback() fail if
+ signaled with error
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        kernel@collabora.com
+Date: Wed, 09 May 2018 19:42:12 -0300
+In-Reply-To: <20180509201449.27452-1-ezequiel@collabora.com>
+References: <20180509201449.27452-1-ezequiel@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ville,
+Hi Ezequiel,
 
-On 15/05/2018 17:35, Ville Syrjälä wrote:
-> On Tue, May 15, 2018 at 04:42:19PM +0200, Neil Armstrong wrote:
->> This patchs adds the cec_notifier feature to the intel_hdmi part
->> of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
->> between each HDMI ports.
->> The changes will allow the i915 HDMI code to notify EDID and HPD changes
->> to an eventual CEC adapter.
->>
->> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->> ---
->>  drivers/gpu/drm/i915/Kconfig      |  1 +
->>  drivers/gpu/drm/i915/intel_drv.h  |  2 ++
->>  drivers/gpu/drm/i915/intel_hdmi.c | 12 ++++++++++++
->>  3 files changed, 15 insertions(+)
->>
-
-[..]
-
->>  }
->>  
->> @@ -2031,6 +2037,8 @@ static void chv_hdmi_pre_enable(struct intel_encoder *encoder,
->>  
->>  static void intel_hdmi_destroy(struct drm_connector *connector)
->>  {
->> +	if (intel_attached_hdmi(connector)->notifier)
->> +		cec_notifier_put(intel_attached_hdmi(connector)->notifier);
->>  	kfree(to_intel_connector(connector)->detect_edid);
->>  	drm_connector_cleanup(connector);
->>  	kfree(connector);
->> @@ -2358,6 +2366,10 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
->>  		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
->>  		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
->>  	}
->> +
->> +	intel_hdmi->notifier = cec_notifier_get_conn(dev->dev, connector->name);
+On Wed, 2018-05-09 at 17:14 -0300, Ezequiel Garcia wrote:
+> Change how dma_fence_add_callback() behaves, when the fence
+> has error-signaled by the time it is being add. After this commit,
+> dma_fence_add_callback() returns the fence error, if it
+> has error-signaled before dma_fence_add_callback() is called.
 > 
-> What are we doing with the connector name here? Those are not actually
-> guaranteed to be stable, and any change in the connector probe order
-> may cause the name to change.
-
-The i915 driver can expose multiple HDMI connectors, but each connected will
-have a different EDID and CEC physical address, so we will need a different notifier
-for each connector.
-
-The connector name is DRM dependent, but user-space actually uses this name for
-operations, so I supposed it was kind of stable.
-
-Anyway, is there another stable id/name/whatever that can be used to make a name to
-distinguish the HDMI connectors ?
-
-Neil
-
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> ---
+>  drivers/dma-buf/dma-fence.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
 > 
->> +	if (!intel_hdmi->notifier)
->> +		DRM_DEBUG_KMS("CEC notifier get failed\n");
->>  }
->>  
->>  void intel_hdmi_init(struct drm_i915_private *dev_priv,
->> -- 
->> 2.7.4
->>
->> _______________________________________________
->> Intel-gfx mailing list
->> Intel-gfx@lists.freedesktop.org
->> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
-> 
+> diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-
+> fence.c
+> index 4edb9fd3cf47..298b440c5b68 100644
+> --- a/drivers/dma-buf/dma-fence.c
+> +++ b/drivers/dma-buf/dma-fence.c
+> @@ -226,7 +226,8 @@ EXPORT_SYMBOL(dma_fence_enable_sw_signaling);
+>   *
+>   * Note that the callback can be called from an atomic context.  If
+>   * fence is already signaled, this function will return -ENOENT (and
+> - * *not* call the callback)
+> + * *not* call the callback). If the fence is error-signaled, this
+> + * function returns the fence error.
+>   *
+>   * Add a software callback to the fence. Same restrictions apply to
+>   * refcount as it does to dma_fence_wait, however the caller doesn't
+> need to
+> @@ -235,8 +236,8 @@ EXPORT_SYMBOL(dma_fence_enable_sw_signaling);
+>   * after it signals with dma_fence_signal. The callback itself can
+> be called
+>   * from irq context.
+>   *
+> - * Returns 0 in case of success, -ENOENT if the fence is already
+> signaled
+> - * and -EINVAL in case of error.
+> + * Returns 0 in case of success, -ENOENT (or the error value) if the
+> fence is
+> + * already signaled and -EINVAL in case of error.
+>   */
+>  int dma_fence_add_callback(struct dma_fence *fence, struct
+> dma_fence_cb *cb,
+>  			   dma_fence_func_t func)
+> @@ -250,7 +251,8 @@ int dma_fence_add_callback(struct dma_fence
+> *fence, struct dma_fence_cb *cb,
+>  
+>  	if (test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fence->flags)) {
+>  		INIT_LIST_HEAD(&cb->node);
+> -		return -ENOENT;
+> +		ret = (fence->error < 0) ? fence->error : -ENOENT;
+> +		return ret;
+>  	}
+
+It looks good to me, but I'd first go check all place we call it in the
+kernel because I have some memory of callers relying on the -ENOENT
+return code for some decision. I might be wrong though.
+
+Regards,
+
+Gustavo
