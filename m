@@ -1,123 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:50303 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751172AbeEDNsD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 09:48:03 -0400
-Received: by mail-wm0-f48.google.com with SMTP id t11so4194823wmt.0
-        for <linux-media@vger.kernel.org>; Fri, 04 May 2018 06:48:02 -0700 (PDT)
-Date: Fri, 4 May 2018 15:47:59 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: christian.koenig@amd.com
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        DRI Development <dri-devel@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 04/15] dma-fence: Make ->wait callback optional
-Message-ID: <20180504134759.GA12521@phenom.ffwll.local>
-References: <20180503142603.28513-1-daniel.vetter@ffwll.ch>
- <20180503142603.28513-5-daniel.vetter@ffwll.ch>
- <152542135089.4767.3315686184618150713@mail.alporthouse.com>
- <20180504081722.GQ12521@phenom.ffwll.local>
- <20180504082301.GR12521@phenom.ffwll.local>
- <152542269311.4767.4254637128660397977@mail.alporthouse.com>
- <20180504085759.GT12521@phenom.ffwll.local>
- <152542538170.4767.9925437389288286145@mail.alporthouse.com>
- <CAKMK7uHqdGsRQ60mL0LUmHPYp0zCyv0ni6=uhEpeHsOR3RLBzw@mail.gmail.com>
- <82509ba9-b305-433f-b70c-16ae857d13bc@gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:40685 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932875AbeEIMkP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 May 2018 08:40:15 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Harry Wei <harryxiyou@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Andy Walls <awalls@md.metrocast.net>,
+        Erik Andren <erik.andren@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Takashi Iwai <tiwai@suse.de>, linux-kernel@zh-kernel.org,
+        linux-doc@vger.kernel.org, mjpeg-users@lists.sourceforge.net
+Subject: [PATCH 3/3] media: v4l: fix broken video4linux docs locations
+Date: Wed,  9 May 2018 09:40:07 -0300
+Message-Id: <8ee3955662fb6a652599ae4f3b00201b44eda97a.1525869503.git.mchehab+samsung@kernel.org>
+In-Reply-To: <d805b8f0265652f5b9dfc8f8f276a490a1fdba5f.1525869503.git.mchehab+samsung@kernel.org>
+References: <d805b8f0265652f5b9dfc8f8f276a490a1fdba5f.1525869503.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <d805b8f0265652f5b9dfc8f8f276a490a1fdba5f.1525869503.git.mchehab+samsung@kernel.org>
+References: <d805b8f0265652f5b9dfc8f8f276a490a1fdba5f.1525869503.git.mchehab+samsung@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <82509ba9-b305-433f-b70c-16ae857d13bc@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 04, 2018 at 03:17:08PM +0200, Christian K�nig wrote:
-> Am 04.05.2018 um 11:25 schrieb Daniel Vetter:
-> > On Fri, May 4, 2018 at 11:16 AM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
-> > > Quoting Daniel Vetter (2018-05-04 09:57:59)
-> > > > On Fri, May 04, 2018 at 09:31:33AM +0100, Chris Wilson wrote:
-> > > > > Quoting Daniel Vetter (2018-05-04 09:23:01)
-> > > > > > On Fri, May 04, 2018 at 10:17:22AM +0200, Daniel Vetter wrote:
-> > > > > > > On Fri, May 04, 2018 at 09:09:10AM +0100, Chris Wilson wrote:
-> > > > > > > > Quoting Daniel Vetter (2018-05-03 15:25:52)
-> > > > > > > > > Almost everyone uses dma_fence_default_wait.
-> > > > > > > > > 
-> > > > > > > > > v2: Also remove the BUG_ON(!ops->wait) (Chris).
-> > > > > > > > I just don't get the rationale for implicit over explicit.
-> > > > > > > Closer approximation of dwim semantics. There's been tons of patch series
-> > > > > > > all over drm and related places to get there, once we have a big pile of
-> > > > > > > implementations and know what the dwim semantics should be. Individually
-> > > > > > > they're all not much, in aggregate they substantially simplify simple
-> > > > > > > drivers.
-> > > > > > I also think clearer separation between optional optimization hooks and
-> > > > > > mandatory core parts is useful in itself.
-> > > > > A new spelling of midlayer ;) I don't see the contradiction with a
-> > > > > driver saying use the default and simplicity. (I know which one the
-> > > > > compiler thinks is simpler ;)
-> > > > If the compiler overhead is real then I guess it would makes to be
-> > > > explicit. I don't expect that to be a problem though for a blocking
-> > > > function.
-> > > > 
-> > > > I disagree on this being a midlayer - you can still overwrite everything
-> > > > you please to. What it does help is people doing less copypasting (and
-> > > > assorted bugs), at least in the grand scheme of things. And we do have a
-> > > > _lot_ more random small drivers than just a few years ago. Reducing the
-> > > > amount of explicit typing just to get default bahaviour has been an
-> > > > ongoing theme for a few years now, and your objection here is about the
-> > > > first that this is not a good idea. So I'm somewhat confused.
-> > > I'm just saying I don't see any rationale for this patch.
-> > > 
-> > >          "Almost everyone uses dma_fence_default_wait."
-> > > 
-> > > Why change?
-> > > 
-> > > Making it look simpler on the surface, so that you don't have to think
-> > > about things straight away? I understand the appeal, but I do worry
-> > > about it just being an illusion. (Cutting and pasting a line saying
-> > > .wait = default_wait, doesn't feel that onerous, as you likely cut and
-> > > paste the ops anyway, and at the very least you are reminded about some
-> > > of the interactions. You could even have default initializers and/or
-> > > magic macros to hide the cut and paste; maybe a simple_dma_fence [now
-> > > that's a midlayer!] but I haven't looked.)
-> > In really monolithic vtables like drm_driver we do use default
-> > function macros, so you type 1 line, get them all. But dma_fence_ops
-> > is pretty small, and most drivers only implement a few callbacks. Also
-> > note that e.g. the ->release callback already works like that, so this
-> > pattern is there already. I simply extended it to ->wait and
-> > ->enable_signaling. Also note that I leave the EXPORT_SYMBOL in place,
-> > you can still wrap dma_fence_default_wait if you wish to do so.
-> > 
-> > But I just realized that I didn't clean out the optional release
-> > hooks, I guess I should do that too (for the few cases it's not yet
-> > done) and respin.
-> 
-> I kind of agree with Chris here, but also see the practical problem to copy
-> the default function in all the implementations.
-> 
-> We had the same problem in TTM and I also don't really like the result to
-> always have that "if (some_callback) default(); else some_callback();".
-> 
-> Might be that the run time overhead is negligible, but it doesn't feels
-> right from the coding style perspective.
+There are several places pointing to old documentation files:
 
-Hm, maybe I've seen too much bad code, but modeset helpers is choke full
-of exactly that pattern. It's imo also a trade-off. If you have a fairly
-specialized library like ttm that's used by relatively few things, doing
-everything explicitly is probably better. It's also where kms started out
-from.
+  Documentation/video4linux/API.html
+  Documentation/video4linux/bttv/
+  Documentation/video4linux/cx2341x/fw-encoder-api.txt
+  Documentation/video4linux/m5602.txt
+  Documentation/video4linux/v4l2-framework.txt
+  Documentation/video4linux/videobuf
+  Documentation/video4linux/Zoran
 
-But if you have a huge pile of fairly simple drivers, imo the balance
-starts to tip the other way, and a bit of additional logic in the shared
-code to make all the implementations a notch simpler is good. If we
-wouldn't have acquired quite a pile of dma_fence implementations I
-wouldn't have bothered with all this.
--Daniel
+Make them point to the new location where available, removing
+otherwise.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ .../translations/zh_CN/video4linux/v4l2-framework.txt  |  6 +++---
+ drivers/media/pci/bt8xx/Kconfig                        |  2 +-
+ drivers/media/pci/cx18/cx18-streams.c                  |  4 ++--
+ drivers/media/pci/zoran/Kconfig                        |  2 +-
+ drivers/media/radio/Kconfig                            | 10 +++++-----
+ drivers/media/radio/wl128x/Kconfig                     |  2 +-
+ drivers/media/usb/gspca/m5602/Kconfig                  |  2 --
+ 7 files changed, 13 insertions(+), 15 deletions(-)
+
+diff --git a/Documentation/translations/zh_CN/video4linux/v4l2-framework.txt b/Documentation/translations/zh_CN/video4linux/v4l2-framework.txt
+index 698660b7f21f..054716a7ae77 100644
+--- a/Documentation/translations/zh_CN/video4linux/v4l2-framework.txt
++++ b/Documentation/translations/zh_CN/video4linux/v4l2-framework.txt
+@@ -1,4 +1,4 @@
+-Chinese translated version of Documentation/video4linux/v4l2-framework.txt
++Chinese translated version of Documentation/media/media_kapi.rst
+ 
+ If you have any comment or update to the content, please contact the
+ original document maintainer directly.  However, if you have a problem
+@@ -9,7 +9,7 @@ or if there is a problem with the translation.
+ Maintainer: Mauro Carvalho Chehab <mchehab@infradead.org>
+ Chinese maintainer: Fu Wei <tekkamanninja@gmail.com>
+ ---------------------------------------------------------------------
+-Documentation/video4linux/v4l2-framework.txt 的中文翻译
++Documentation/media/media_kapi.rst 的中文翻译
+ 
+ 如果想评论或更新本文的内容，请直接联系原文档的维护者。如果你使用英文
+ 交流有困难的话，也可以向中文版维护者求助。如果本翻译更新不及时或者翻
+@@ -777,7 +777,7 @@ v4l2 核心 API 提供了一个处理视频缓冲的标准方法(称为“videob
+ 线性 DMA(videobuf-dma-contig)以及大多用于 USB 设备的用 vmalloc
+ 分配的缓冲(videobuf-vmalloc)。
+ 
+-请参阅 Documentation/video4linux/videobuf，以获得更多关于 videobuf
++请参阅 Documentation/media/kapi/v4l2-videobuf.rst，以获得更多关于 videobuf
+ 层的使用信息。
+ 
+ v4l2_fh 结构体
+diff --git a/drivers/media/pci/bt8xx/Kconfig b/drivers/media/pci/bt8xx/Kconfig
+index 4a93f6ded100..bc89e37608cd 100644
+--- a/drivers/media/pci/bt8xx/Kconfig
++++ b/drivers/media/pci/bt8xx/Kconfig
+@@ -16,7 +16,7 @@ config VIDEO_BT848
+ 	---help---
+ 	  Support for BT848 based frame grabber/overlay boards. This includes
+ 	  the Miro, Hauppauge and STB boards. Please read the material in
+-	  <file:Documentation/video4linux/bttv/> for more information.
++	  <file:Documentation/media/v4l-drivers/bttv.rst> for more information.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called bttv.
+diff --git a/drivers/media/pci/cx18/cx18-streams.c b/drivers/media/pci/cx18/cx18-streams.c
+index a594cfdeca20..b36f4ce25d22 100644
+--- a/drivers/media/pci/cx18/cx18-streams.c
++++ b/drivers/media/pci/cx18/cx18-streams.c
+@@ -853,7 +853,7 @@ int cx18_start_v4l2_encode_stream(struct cx18_stream *s)
+ 
+ 		/*
+ 		 * Audio related reset according to
+-		 * Documentation/video4linux/cx2341x/fw-encoder-api.txt
++		 * Documentation/media/v4l-drivers/cx2341x.rst
+ 		 */
+ 		if (atomic_read(&cx->ana_capturing) == 0)
+ 			cx18_vapi(cx, CX18_CPU_SET_MISC_PARAMETERS, 2,
+@@ -861,7 +861,7 @@ int cx18_start_v4l2_encode_stream(struct cx18_stream *s)
+ 
+ 		/*
+ 		 * Number of lines for Field 1 & Field 2 according to
+-		 * Documentation/video4linux/cx2341x/fw-encoder-api.txt
++		 * Documentation/media/v4l-drivers/cx2341x.rst
+ 		 * Field 1 is 312 for 625 line systems in BT.656
+ 		 * Field 2 is 313 for 625 line systems in BT.656
+ 		 */
+diff --git a/drivers/media/pci/zoran/Kconfig b/drivers/media/pci/zoran/Kconfig
+index 39ec35bd21a5..66c4c238ac0f 100644
+--- a/drivers/media/pci/zoran/Kconfig
++++ b/drivers/media/pci/zoran/Kconfig
+@@ -7,7 +7,7 @@ config VIDEO_ZORAN
+ 	  36057/36067 PCI controller chipset. This includes the Iomega
+ 	  Buz, Pinnacle DC10+ and the Linux Media Labs LML33. There is
+ 	  a driver homepage at <http://mjpeg.sf.net/driver-zoran/>. For
+-	  more information, check <file:Documentation/video4linux/Zoran>.
++	  more information, check <file:Documentation/media/v4l-drivers/zoran.rst>.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called zr36067.
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 8fa403c7149e..04ddd5057098 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -35,7 +35,7 @@ config RADIO_SI476X
+ 	  In order to control your radio card, you will need to use programs
+ 	  that are compatible with the Video For Linux 2 API.  Information on
+ 	  this API and pointers to "v4l2" programs may be found at
+-	  <file:Documentation/video4linux/API.html>.
++	  <file:Documentation/media/media_uapi.rst>.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called radio-si476x.
+@@ -75,7 +75,7 @@ config RADIO_MAXIRADIO
+ 	  In order to control your radio card, you will need to use programs
+ 	  that are compatible with the Video For Linux API.  Information on
+ 	  this API and pointers to "v4l" programs may be found at
+-	  <file:Documentation/video4linux/API.html>.
++	  <file:Documentation/media/media_uapi.rst>.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called radio-maxiradio.
+@@ -93,7 +93,7 @@ config RADIO_SHARK
+ 	  In order to control your radio card, you will need to use programs
+ 	  that are compatible with the Video For Linux API.  Information on
+ 	  this API and pointers to "v4l" programs may be found at
+-	  <file:Documentation/video4linux/API.html>.
++	  <file:Documentation/media/media_uapi.rst>.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called radio-shark.
+@@ -110,7 +110,7 @@ config RADIO_SHARK2
+ 	  In order to control your radio card, you will need to use programs
+ 	  that are compatible with the Video For Linux API.  Information on
+ 	  this API and pointers to "v4l" programs may be found at
+-	  <file:Documentation/video4linux/API.html>.
++	  <file:Documentation/media/media_uapi.rst>.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called radio-shark2.
+@@ -217,7 +217,7 @@ config RADIO_WL1273
+ 	  In order to control your radio card, you will need to use programs
+ 	  that are compatible with the Video For Linux 2 API.  Information on
+ 	  this API and pointers to "v4l2" programs may be found at
+-	  <file:Documentation/video4linux/API.html>.
++	  <file:Documentation/media/media_uapi.rst>.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called radio-wl1273.
+diff --git a/drivers/media/radio/wl128x/Kconfig b/drivers/media/radio/wl128x/Kconfig
+index 2add222ea346..64b66bbdae72 100644
+--- a/drivers/media/radio/wl128x/Kconfig
++++ b/drivers/media/radio/wl128x/Kconfig
+@@ -12,6 +12,6 @@ config RADIO_WL128X
+ 	  In order to control your radio card, you will need to use programs
+ 	  that are compatible with the Video For Linux 2 API.  Information on
+ 	  this API and pointers to "v4l2" programs may be found at
+-	  <file:Documentation/video4linux/API.html>.
++	  <file:Documentation/media/media_uapi.rst>.
+ 
+ endmenu
+diff --git a/drivers/media/usb/gspca/m5602/Kconfig b/drivers/media/usb/gspca/m5602/Kconfig
+index 5a69016ed75f..13a00399ced9 100644
+--- a/drivers/media/usb/gspca/m5602/Kconfig
++++ b/drivers/media/usb/gspca/m5602/Kconfig
+@@ -5,7 +5,5 @@ config USB_M5602
+ 	  Say Y here if you want support for cameras based on the
+ 	  ALi m5602 connected to various image sensors.
+ 
+-	  See <file:Documentation/video4linux/m5602.txt> for more info.
+-
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called gspca_m5602.
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.17.0
