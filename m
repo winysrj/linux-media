@@ -1,87 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:52678 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753534AbeEOORT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 10:17:19 -0400
-Date: Tue, 15 May 2018 17:16:55 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
-Message-ID: <20180515141655.idzuh2jfdkuu5grs@mwanda>
-References: <cover.1524499368.git.gustavo@embeddedor.com>
- <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
- <20180423152455.363d285c@vento.lan>
- <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
- <20180423161742.66f939ba@vento.lan>
- <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
- <20180426204241.03a42996@vento.lan>
- <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
- <20180515085953.65bfa107@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180515085953.65bfa107@vento.lan>
+Received: from osg.samsung.com ([64.30.133.232]:47621 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756679AbeEJK43 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 May 2018 06:56:29 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH] qm1d1b0004: fix a warning about an unused default_cfg var
+Date: Thu, 10 May 2018 06:56:23 -0400
+Message-Id: <3b7158d61a27b7701356969c6fed353a7c67b45e.1525949774.git.mchehab+samsung@kernel.org>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 15, 2018 at 08:59:53AM -0300, Mauro Carvalho Chehab wrote:
-> Em Mon, 14 May 2018 22:31:37 -0500
-> "Gustavo A. R. Silva" <gustavo@embeddedor.com> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > On 04/26/2018 06:42 PM, Mauro Carvalho Chehab wrote:
-> > 
-> > >>
-> > >> I noticed you changed the status of this series from rejected to new.
-> > > 
-> > > Yes.
-> > > 
-> > >> Also, there are other similar issues in media/pci/
-> > > 
-> > > Well, the issues will be there everywhere on all media drivers.
-> > > 
-> > > I marked your patches because I need to study it carefully, after
-> > > Peter's explanations. My plan is to do it next week. Still not
-> > > sure if the approach you took is the best one or not.
-> > > 
-> > > As I said, one possibility is to change the way v4l2-core handles
-> > > VIDIOC_ENUM_foo ioctls, but that would be make harder to -stable
-> > > backports.
-> > > 
-> > > I need a weekend to sleep on it.
-> > > 
-> > 
-> > I'm curious about how you finally resolved to handle these issues.
-> > 
-> > I noticed Smatch is no longer reporting them.
-> 
-> There was no direct fix for it, but maybe this patch has something
-> to do with the smatch error report cleanup:
-> 
-> commit 3ad3b7a2ebaefae37a7eafed0779324987ca5e56
-> Author: Sami Tolvanen <samitolvanen@google.com>
-> Date:   Tue May 8 13:56:12 2018 -0400
-> 
->     media: v4l2-ioctl: replace IOCTL_INFO_STD with stub functions
->     
->     This change removes IOCTL_INFO_STD and adds stub functions where
->     needed using the DEFINE_V4L_STUB_FUNC macro. This fixes indirect call
->     mismatches with Control-Flow Integrity, caused by calling standard
->     ioctls using a function pointer that doesn't match the function type.
->     
->     Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
->     Signed-off-by: Hans Verkuil <hansverk@cisco.com>
->     Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> 
+As warned by gcc:
 
-Possibly...  There was an ancient bug in Smatch's function pointer
-handling.  I just pushed a fix for it now so the warning is there on
-linux-next.
+	drivers/media/tuners/qm1d1b0004.c:62:39: warning: 'default_cfg' defined but not used [-Wunused-const-variable=]
+	 static const struct qm1d1b0004_config default_cfg = {
+	                                       ^~~~~~~~~~~
 
-regards,
-dan carpenter
+This var is currently unused. So, comment it out.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/media/tuners/qm1d1b0004.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/media/tuners/qm1d1b0004.c b/drivers/media/tuners/qm1d1b0004.c
+index 9dac1b875c18..b4495cc1626b 100644
+--- a/drivers/media/tuners/qm1d1b0004.c
++++ b/drivers/media/tuners/qm1d1b0004.c
+@@ -59,10 +59,12 @@
+ #define QM1D1B0004_XTL_FREQ 4000
+ #define QM1D1B0004_LPF_FALLBACK 30000
+ 
++#if 0 /* Currently unused */
+ static const struct qm1d1b0004_config default_cfg = {
+ 	.lpf_freq = QM1D1B0004_CFG_LPF_DFLT,
+ 	.half_step = false,
+ };
++#endif
+ 
+ struct qm1d1b0004_state {
+ 	struct qm1d1b0004_config cfg;
+-- 
+2.17.0
