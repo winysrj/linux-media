@@ -1,201 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47578 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750898AbeEBMYw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 May 2018 08:24:52 -0400
-Subject: Re: [RFCv12 PATCH 03/29] media-request: implement media requests
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
- <20180501090051.9321-4-hverkuil@xs4all.nl>
-Message-ID: <6535eaa9-4134-c897-900a-de7d73771ac4@xs4all.nl>
-Date: Wed, 2 May 2018 14:24:49 +0200
+Received: from ni.piap.pl ([195.187.100.4]:37364 "EHLO ni.piap.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756736AbeEJI16 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 May 2018 04:27:58 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: <linux-media@vger.kernel.org>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Tim Harvey <tharvey@gateworks.com>
+Subject: i.MX6 IPU CSI analog video input on Ventana
+Date: Thu, 10 May 2018 10:19:11 +0200
+Message-ID: <m37eobudmo.fsf@t19.piap.pl>
 MIME-Version: 1.0
-In-Reply-To: <20180501090051.9321-4-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/05/18 11:00, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add initial media request support.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/Makefile        |   3 +-
->  drivers/media/media-device.c  |  13 ++
->  drivers/media/media-request.c | 418 ++++++++++++++++++++++++++++++++++
->  include/media/media-device.h  |  17 ++
->  include/media/media-request.h | 193 ++++++++++++++++
->  5 files changed, 643 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/media-request.c
->  create mode 100644 include/media/media-request.h
-> 
-> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-> index 594b462ddf0e..985d35ec6b29 100644
-> --- a/drivers/media/Makefile
-> +++ b/drivers/media/Makefile
-> @@ -3,7 +3,8 @@
->  # Makefile for the kernel multimedia device drivers.
->  #
->  
-> -media-objs	:= media-device.o media-devnode.o media-entity.o
-> +media-objs	:= media-device.o media-devnode.o media-entity.o \
-> +		   media-request.o
->  
->  #
->  # I2C drivers should come before other drivers, otherwise they'll fail
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 35e81f7c0d2f..25d7e2a3ee84 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -32,6 +32,7 @@
->  #include <media/media-device.h>
->  #include <media/media-devnode.h>
->  #include <media/media-entity.h>
-> +#include <media/media-request.h>
->  
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  
-> @@ -366,6 +367,15 @@ static long media_device_get_topology(struct media_device *mdev,
->  	return ret;
->  }
->  
-> +static long media_device_request_alloc(struct media_device *mdev,
-> +				       struct media_request_alloc *alloc)
-> +{
-> +	if (!mdev->ops || !mdev->ops->req_validate || !mdev->ops->req_queue)
-> +		return -ENOTTY;
-> +
-> +	return media_request_alloc(mdev, alloc);
-> +}
-> +
->  static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
->  {
->  	/* All media IOCTLs are _IOWR() */
-> @@ -414,6 +424,7 @@ static const struct media_ioctl_info ioctl_info[] = {
->  	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
->  	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
->  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
-> +	MEDIA_IOC(REQUEST_ALLOC, media_device_request_alloc, 0),
->  };
->  
->  static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> @@ -686,6 +697,8 @@ void media_device_init(struct media_device *mdev)
->  	INIT_LIST_HEAD(&mdev->pads);
->  	INIT_LIST_HEAD(&mdev->links);
->  	INIT_LIST_HEAD(&mdev->entity_notify);
-> +
-> +	mutex_init(&mdev->req_queue_mutex);
->  	mutex_init(&mdev->graph_mutex);
->  	ida_init(&mdev->entity_internal_idx);
->  
-> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> new file mode 100644
-> index 000000000000..22881d5700c8
-> --- /dev/null
-> +++ b/drivers/media/media-request.c
-> @@ -0,0 +1,418 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Media device request objects
-> + *
-> + * Copyright (C) 2018 Intel Corporation
-> + * Copyright (C) 2018 Google, Inc.
-> + *
-> + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> + */
-> +
-> +#include <linux/anon_inodes.h>
-> +#include <linux/file.h>
-> +
-> +#include <media/media-device.h>
-> +#include <media/media-request.h>
-> +
-> +static const char * const request_state[] = {
-> +	[MEDIA_REQUEST_STATE_IDLE]	 = "idle",
-> +	[MEDIA_REQUEST_STATE_VALIDATING] = "validating",
-> +	[MEDIA_REQUEST_STATE_QUEUED]	 = "queued",
-> +	[MEDIA_REQUEST_STATE_COMPLETE]	 = "complete",
-> +	[MEDIA_REQUEST_STATE_CLEANING]	 = "cleaning",
-> +};
-> +
-> +static const char *
-> +media_request_state_str(enum media_request_state state)
-> +{
-> +	if (WARN_ON(state >= ARRAY_SIZE(request_state)))
-> +		return "unknown";
-> +	return request_state[state];
-> +}
-> +
-> +static void media_request_clean(struct media_request *req)
-> +{
-> +	struct media_request_object *obj, *obj_safe;
-> +
-> +	WARN_ON(atomic_read(&req->state) != MEDIA_REQUEST_STATE_CLEANING);
-> +
-> +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
-> +		media_request_object_unbind(obj);
-> +		media_request_object_put(obj);
-> +	}
-> +
-> +	req->num_incomplete_objects = 0;
-> +	wake_up_interruptible_all(&req->poll_wait);
-> +}
-> +
-> +static void media_request_release(struct kref *kref)
-> +{
-> +	struct media_request *req =
-> +		container_of(kref, struct media_request, kref);
-> +	struct media_device *mdev = req->mdev;
-> +
-> +	dev_dbg(mdev->dev, "request: release %s\n", req->debug_str);
-> +
-> +	atomic_set(&req->state, MEDIA_REQUEST_STATE_CLEANING);
-> +
-> +	media_request_clean(req);
-> +
-> +	if (mdev->ops->req_free)
-> +		mdev->ops->req_free(req);
-> +	else
-> +		kfree(req);
-> +}
-> +
-> +void media_request_put(struct media_request *req)
-> +{
-> +	kref_put(&req->kref, media_request_release);
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_put);
-> +
-> +void media_request_cancel(struct media_request *req)
-> +{
-> +	struct media_request_object *obj, *obj_safe;
-> +
-> +	/*
-> +	 * This is serialized with the req_queue_mutex and streaming
-> +	 * has stopped, so there is no need to take the spinlock here.
-> +	 */
-> +	WARN_ON_ONCE(!mutex_is_locked(&req->mdev->req_queue_mutex));
-> +	if (atomic_read(&req->state) != MEDIA_REQUEST_STATE_QUEUED)
-> +		return;
-> +
-> +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list)
-> +		if (obj->ops->cancel)
-> +			obj->ops->cancel(obj);
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_cancel);
+Hi,
 
-Forget about this function, while trying to document this function I realized
-that this is the wrong approach. This should be done through a vb2 op instead
-that drivers have to implement.
+I'm using analog PAL video in on GW53xx/54xx boards (through ADV7180
+chip and 8-bit parallel CSI input, with (presumably) BT.656).
+I'm trying to upgrade from e.g. Linux 4.2 + Steve's older MX6 camera
+driver (which works fine) to v.4.16 with the recently merged driver.
 
-It's fixed in the upcoming v13.
+media-ctl -r -l '"adv7180 2-0020":0->"ipu2_csi1_mux":1[1],
+                 "ipu2_csi1_mux":2->"ipu2_csi1":0[1],
+                 "ipu2_csi1":2->"ipu2_csi1 capture":0[1]'
 
-Regards,
+media-ctl -V '"adv7180 2-0020":0[fmt:UYVY2X8 720x576 field:interlaced]'
+media-ctl -V '"ipu2_csi1_mux":1[fmt:UYVY2X8 720x576 field:interlaced]'
+media-ctl -V '"ipu2_csi1_mux":2[fmt:UYVY2X8 720x576 field:interlaced]'
 
-	Hans
+It seems there are issues, though:
+
+First, I can't find a way to change to PAL standard. *s_std() doesn't
+propagate from "ipu2_csi1 capture" through "ipu2_csi1_mux" to adv7180.
+
+For now I have just changed the default:
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -1320,7 +1321,7 @@ static int adv7180_probe(struct i2c_client *client,
+ 
+     state->irq = client->irq;
+     mutex_init(&state->mutex);
+-    state->curr_norm = V4L2_STD_NTSC;
++    state->curr_norm = V4L2_STD_PAL;
+     if (state->chip_info->flags & ADV7180_FLAG_RESET_POWERED)
+         state->powered = true;
+     else
+
+
+Second, the image format information I'm getting out of "ipu2_csi1
+capture" device is:
+
+open("/dev/video6")
+ioctl(VIDIOC_S_FMT, {V4L2_BUF_TYPE_VIDEO_CAPTURE,
+	fmt.pix={704x576, pixelformat=NV12, V4L2_FIELD_INTERLACED} =>
+	fmt.pix={720x576, pixelformat=NV12, V4L2_FIELD_INTERLACED,
+        bytesperline=720, sizeimage=622080,
+	colorspace=V4L2_COLORSPACE_SMPTE170M}})
+
+Now, the resulting image obtained via QBUF/DQBUF doesn't seem to be
+a single interlaced frame (like it was with older drivers). Actually,
+I'm getting the two fields, encoded with NV12 and concatenated
+together (I think it's V4L2_FIELD_SEQ_TB or V4L2_FIELD_SEQ_BT).
+
+What's wrong?
+Is it possible to get a real V4L2_FIELD_INTERLACED frame, so it can be
+passed straight to the CODA H.264 encoder?
+-- 
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
