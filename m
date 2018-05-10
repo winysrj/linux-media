@@ -1,80 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:57720 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752363AbeEGPVI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 11:21:08 -0400
-Date: Mon, 7 May 2018 12:21:03 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: vsp1: cleanup a false positive warning
-Message-ID: <20180507122103.40048014@vento.lan>
-In-Reply-To: <3223850.s1aV98ALtZ@avalon>
-References: <a1bedd480c31bcc2f48cd6d965a9bb853e8786ee.1525436031.git.mchehab+samsung@kernel.org>
-        <3223850.s1aV98ALtZ@avalon>
+Received: from mga05.intel.com ([192.55.52.43]:8873 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757002AbeEJJLv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 May 2018 05:11:51 -0400
+From: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>
+CC: "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
+        "Yeh, Andy" <andy.yeh@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Chiang, AlanX" <alanx.chiang@intel.com>
+Subject: RE: [PATCH v11] media: imx258: Add imx258 camera sensor driver
+Date: Thu, 10 May 2018 09:11:47 +0000
+Message-ID: <FA6CF6692DF0B343ABE491A46A2CD0E76C65E481@SHSMSX101.ccr.corp.intel.com>
+References: <1525275968-17207-1-git-send-email-andy.yeh@intel.com>
+ <CAAFQd5BYokHC7J8wEjT4twx7_bU1Yyv1LbN2PAK2tjmCrr2cig@mail.gmail.com>
+ <5881B549BE56034BB7E7D11D6EDEA2020678E62E@PGSMSX106.gar.corp.intel.com>
+ <CAAFQd5CvPCfFx6Nxb26JdSAfD_YNe=-hvyJ=iKLcTA0LpxC4_g@mail.gmail.com>
+ <FA6CF6692DF0B343ABE491A46A2CD0E76C65E22D@SHSMSX101.ccr.corp.intel.com>
+ <CAAFQd5BKhXiZMZf9OscrHt+SNQNC2PCguKXcNcZNPhjmrgUxzQ@mail.gmail.com>
+In-Reply-To: <CAAFQd5BKhXiZMZf9OscrHt+SNQNC2PCguKXcNcZNPhjmrgUxzQ@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 07 May 2018 17:05:24 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-
-> Hi Mauro,
-> 
-> Thank you for the patch.
-> 
-> On Friday, 4 May 2018 15:13:58 EEST Mauro Carvalho Chehab wrote:
-> > With the new vsp1 code changes introduced by changeset
-> > f81f9adc4ee1 ("media: v4l: vsp1: Assign BRU and BRS to pipelines
-> > dynamically"), smatch complains with:
-> > 	drivers/media/platform/vsp1/vsp1_drm.c:262 vsp1_du_pipeline_setup_bru()
-> > error: we previously assumed 'pipe->bru' could be null (see line 180)
-> > 
-> > This is a false positive, as, if pipe->bru is NULL, the brx
-> > var will be different, with ends by calling a code that will
-> > set pipe->bru to another value.
-> > 
-> > Yet, cleaning this false positive is as easy as adding an explicit
-> > check if pipe->bru is NULL.  
-> 
-> It's not very difficult indeed, but it really is a false positive. I think the 
-> proposed change decreases readability, the condition currently reads as "if 
-> (new brx != old brx)", why does smatch even flag that as an error ?
-
-I've no idea. Never studied smatch code. If you don't think that
-this is a fix for it, do you have an alternative patch (either to
-smatch or to vsp1)?
-
-Regards,
-Mauro
-
-> 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> > ---
-> >  drivers/media/platform/vsp1/vsp1_drm.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> > b/drivers/media/platform/vsp1/vsp1_drm.c index 095dc48aa25a..cb6b60843400
-> > 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> > @@ -185,7 +185,7 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_device
-> > *vsp1, brx = &vsp1->brs->entity;
-> > 
-> >  	/* Switch BRx if needed. */
-> > -	if (brx != pipe->brx) {
-> > +	if (brx != pipe->brx || !pipe->brx) {
-> >  		struct vsp1_entity *released_brx = NULL;
-> > 
-> >  		/* Release our BRx if we have one. */  
-> 
-
-
-
-Thanks,
-Mauro
+SGkgVG9tYXN6LA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGxpbnV4
+LW1lZGlhLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LW1lZGlhLQ0KPiBvd25l
+ckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBUb21hc3ogRmlnYQ0KPiBTZW50OiBUaHVy
+c2RheSwgTWF5IDEwLCAyMDE4IDM6MDQgUE0NCj4gVG86IFpoZW5nLCBKaWFuIFh1IDxqaWFuLnh1
+LnpoZW5nQGludGVsLmNvbT4NCj4gQ2M6IENoZW4sIEphc29uWCBaIDxqYXNvbnguei5jaGVuQGlu
+dGVsLmNvbT47IFllaCwgQW5keQ0KPiA8YW5keS55ZWhAaW50ZWwuY29tPjsgTGludXggTWVkaWEg
+TWFpbGluZyBMaXN0IDxsaW51eC0NCj4gbWVkaWFAdmdlci5rZXJuZWwub3JnPjsgU2FrYXJpIEFp
+bHVzIDxzYWthcmkuYWlsdXNAbGludXguaW50ZWwuY29tPjsgQ2hpYW5nLA0KPiBBbGFuWCA8YWxh
+bnguY2hpYW5nQGludGVsLmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MTFdIG1lZGlhOiBp
+bXgyNTg6IEFkZCBpbXgyNTggY2FtZXJhIHNlbnNvciBkcml2ZXINCj4gDQo+IE9uIFRodSwgTWF5
+IDEwLCAyMDE4IGF0IDM6NTYgUE0gWmhlbmcsIEppYW4gWHUgPGppYW4ueHUuemhlbmdAaW50ZWwu
+Y29tPg0KPiB3cm90ZToNCj4gDQo+ID4gSGkgVG9tYXN6LA0KPiANCj4gPiA+IC0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tDQo+ID4gPiBGcm9tOiBsaW51eC1tZWRpYS1vd25lckB2Z2VyLmtlcm5l
+bC5vcmcgW21haWx0bzpsaW51eC1tZWRpYS0NCj4gPiA+IG93bmVyQHZnZXIua2VybmVsLm9yZ10g
+T24gQmVoYWxmIE9mIFRvbWFzeiBGaWdhDQo+ID4gPiBTZW50OiBXZWRuZXNkYXksIE1heSA5LCAy
+MDE4IDY6MDUgUE0NCj4gPiA+IFRvOiBDaGVuLCBKYXNvblggWiA8amFzb254LnouY2hlbkBpbnRl
+bC5jb20+DQo+ID4gPiBDYzogWWVoLCBBbmR5IDxhbmR5LnllaEBpbnRlbC5jb20+OyBMaW51eCBN
+ZWRpYSBNYWlsaW5nIExpc3QgPGxpbnV4LQ0KPiA+ID4gbWVkaWFAdmdlci5rZXJuZWwub3JnPjsg
+U2FrYXJpIEFpbHVzIDxzYWthcmkuYWlsdXNAbGludXguaW50ZWwuY29tPjsNCj4gQ2hpYW5nLA0K
+PiA+ID4gQWxhblggPGFsYW54LmNoaWFuZ0BpbnRlbC5jb20+DQo+ID4gPiBTdWJqZWN0OiBSZTog
+W1BBVENIIHYxMV0gbWVkaWE6IGlteDI1ODogQWRkIGlteDI1OCBjYW1lcmEgc2Vuc29yDQo+ID4g
+PiBkcml2ZXINCj4gPiA+DQo+ID4gPiBIaSBKYXNvbiwNCj4gPiA+DQo+ID4gPiA+IElQVTMgSEFM
+IGhhcyBhIGhhbmRsZXIgdG8gYmluZCB0ZXN0X3BhdHRlcm4gbW9kZS4NCj4gPiA+ID4gVGhlIENP
+TE9SIEJBUiBNT0RFIGluIEhBTCBoYXMgYmVlbiBjb25maWd1cmVkIHRvIDEgd2hlbiBBUFANCj4g
+PiA+ID4gcmVxdWVzdHMgdG8NCj4gPiA+IG91dHB1dCBjb2xvciBiYXIgaW1hZ2UuDQo+ID4gPiA+
+IEhvd2V2ZXIgU29ueSBzZW5zb3IncyBDT0xPUiBCQVIgTU9ERSBpcyBkZXNpZ25lZCBhcyAyIGlu
+IHJlZ2lzdGVyDQo+IHRhYmxlLg0KPiA+ID4gKGdyZXkgY29sb3IgYmFycyBhcyAxKS4NCj4gPiA+
+ID4gV2hlbiBIQUwgc2VuZHMgaGFuZGxlciB0byBkcml2ZXIgdG8gc3dpdGNoIHRlc3QgcGF0dGVy
+biBtb2RlICh0bw0KPiA+ID4gPiBDT0xPUg0KPiA+ID4gQkFSIC0gdmFsOiAxKSwgaXQgd2lsbCBi
+ZSBncmV5IGNvbG9yLCBzaW5jZSBkcml2ZXIgc3RpbGwgc2V0DQo+IFRFU1RfUEFUVEVSTl9NT0RF
+DQo+ID4gPiByZWcgdmFsdWUgdG8gMSwgdGhvc2UgaXQgaXMgbm90IHdoYXQgd2UgZXhwZWN0ZWQu
+DQo+ID4gPg0KPiA+ID4gPiBUaGF0IGlzIHdoeSB3ZSBoYXZlIHRvIG1ha2UgYW4gYXJyYXkgd2l0
+aCBpbmRleCB0byBhcnJhbmdlIHRoZQ0KPiA+ID4gPiBvcmRlciBvZg0KPiA+ID4gdGhlIHRlc3Qg
+cGF0dGVybiBpdGVtcywgc28gZHJpdmVyIHdpbGwgY2hvb3NlIENPTE9SIEJBUiBjb3JyZWN0bHkN
+Cj4gPiA+IHdoZW4NCj4gSEFMDQo+ID4gPiBzZW5kIHRlc3RfcGF0dGVybiBtZXNzYWdlICh3aXRo
+IDEpLg0KPiA+ID4gPiBUaGUgY29uY2VwdCBpcyB0aGUgdGVzdF9wYXR0ZXJuX21lbnUgY291bGQg
+YmUgbGlzdGVkIGluIGRyaXZlciBwZXINCj4gPiA+ID4gcmVhbA0KPiA+ID4gcmVxdWlyZW1lbnQs
+IG5vIG1hdHRlciBob3cgdGhlIHNlbnNvciByZWdpc3RlciBpcyBkZXNpZ25lZC4NCj4gPiA+DQo+
+ID4gPg0KPiA+ID4gVjRMMiBzcGVjaWZpY2F0aW9uIGRvZXMgbm90IGRlZmluZSBhbnkgcGFydGlj
+dWxhciBvcmRlciBvZiBtZW51DQo+ID4gPiBlbnRyaWVzDQo+IGluDQo+ID4gPiBWNEwyX0NJRF9U
+RVNUX1BBVFRFUk4uIFRoZSBhcHBsaWNhdGlvbiBzaG91bGQgcXVlcnkgdGhlIHN0cmluZ3MgaW4N
+Cj4gPiA+IHRoZSBtZW51IGFuZCBkZXRlcm1pbmUgdGhlIG9wdGlvbiBpdCBuZWVkcyBiYXNlZCBv
+biB0aGF0LiBJZiBpdA0KPiA+ID4gaGFyZGNvZGVzIHBhcnRpY3VsYXIgaW5kZXgsIGl0J3MgYSBi
+dWcuDQo+IA0KPiA+IElzIHRoZXJlIGFueSByZWFzb24gdGhhdCB0aGVyZSBpcyBubyBjZXJ0YWlu
+IG1hY3JvIGRlZmluZSBmb3INCj4gPiBkaWZmZXJlbnQNCj4gdHlwZSBvZiB0ZXN0IHBhdHRlcm4g
+aW4gdjRsMj8NCj4gPiBTbyBBcHAgd2lsbCBub3QgZGVwZW5kIG9uIGFueSBzdHJpbmdzIHdoZXJl
+IGNvdWxkIGJlIGRpZmZlcmVudCBvbg0KPiBkaWZmZXJlbnQgc2Vuc29yIGRyaXZlcnMuDQo+IA0K
+PiBZZXMuIEF2YWlsYWJsZSBwYXR0ZXJucyBkaWZmZXIgc2lnbmlmaWNhbnRseSBiZXR3ZWVuIG9u
+ZSBzZW5zb3IgYW5kIGFub3RoZXIsDQo+IHNvIHRoZSBtZW51IHBvc2l0aW9ucyBhcmUgY29uc2lk
+ZXJlZCBoYXJkd2FyZS1zcGVjaWZpYy4NCg0KVGhlIHByb2JsZW0gaXMgZXZlbiBBcHAgcXVlcmll
+cyB0aGUgc3RyaW5ncyBpbiBkcml2ZXIsIGl0IHN0aWxsIGRvZXNuJ3QgbG9vayBnb29kIGVub3Vn
+aC4NCkJlY2F1c2UgZGlmZmVyZW50IGRyaXZlciBtYXkgaGF2ZSBkaWZmZXJlbnQgc3RyaW5ncyBl
+dmVuIGZvciBzYW1lIHR5cGUsIENvbG9yIEJhciwgZm9yIGV4YW1wbGUuDQpTbyBpdCdzIHRoZSBi
+ZXN0IHY0bDIgY291bGQgaGF2ZSBzZXZlcmFsIHN0YW5kYXJkaXplIG5hbWVzIGZvciB0ZXN0IHBh
+dHRlcm4gdHlwZXMuIA0KSW4gdGhpcyBjYXNlIEFwcCBkb2Vzbid0IG5lZWQgdG8gaGFyZCBjb2Rl
+IHRlc3QgcGF0dGVybiBzdHJpbmdzIGZvciBkaWZmZXJlbnQgc2Vuc29ycy4NCg0KRG8geW91IHRo
+aW5rIGl0IG1ha2VzIHNlbnNlPw0KDQpCZXN0IFJlZ2FyZHMsDQpKaWFueHUoQ2xpdmUpIFpoZW5n
+DQo=
