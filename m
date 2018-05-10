@@ -1,96 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49352 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751107AbeEDLet (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:36454 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756118AbeEJD3t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 07:34:49 -0400
-Date: Fri, 4 May 2018 14:34:47 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv13 24/28] vim2m: use workqueue
-Message-ID: <20180504113447.srfsvlgm24ttj6wr@valkosipuli.retiisi.org.uk>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
- <20180503145318.128315-25-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180503145318.128315-25-hverkuil@xs4all.nl>
+        Wed, 9 May 2018 23:29:49 -0400
+Message-ID: <2ccb73e121eafdbef39c47cf542e5d07@smtp-cloud7.xs4all.net>
+Date: Thu, 10 May 2018 05:29:46 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Thu, May 03, 2018 at 04:53:14PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
-> interrupt context. Switch to a workqueue instead.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/platform/vim2m.c | 15 +++++++++++++--
->  1 file changed, 13 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-> index 9be4da3b8577..a1b0bb08668d 100644
-> --- a/drivers/media/platform/vim2m.c
-> +++ b/drivers/media/platform/vim2m.c
-> @@ -150,6 +150,7 @@ struct vim2m_dev {
->  	spinlock_t		irqlock;
->  
->  	struct timer_list	timer;
-> +	struct work_struct	work_run;
->  
->  	struct v4l2_m2m_dev	*m2m_dev;
->  };
-> @@ -392,9 +393,10 @@ static void device_run(void *priv)
->  	schedule_irq(dev, ctx->transtime);
->  }
->  
-> -static void device_isr(struct timer_list *t)
-> +static void device_work(struct work_struct *w)
->  {
-> -	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
-> +	struct vim2m_dev *vim2m_dev =
-> +		container_of(w, struct vim2m_dev, work_run);
->  	struct vim2m_ctx *curr_ctx;
->  	struct vb2_v4l2_buffer *src_vb, *dst_vb;
->  	unsigned long flags;
-> @@ -426,6 +428,13 @@ static void device_isr(struct timer_list *t)
->  	}
->  }
->  
-> +static void device_isr(struct timer_list *t)
-> +{
-> +	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
-> +
-> +	schedule_work(&vim2m_dev->work_run);
-> +}
-> +
->  /*
->   * video ioctls
->   */
-> @@ -806,6 +815,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
->  	struct vb2_v4l2_buffer *vbuf;
->  	unsigned long flags;
->  
-> +	flush_scheduled_work();
->  	for (;;) {
->  		if (V4L2_TYPE_IS_OUTPUT(q->type))
->  			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-> @@ -1011,6 +1021,7 @@ static int vim2m_probe(struct platform_device *pdev)
->  	vfd = &dev->vfd;
->  	vfd->lock = &dev->dev_mutex;
->  	vfd->v4l2_dev = &dev->v4l2_dev;
-> +	INIT_WORK(&dev->work_run, device_work);
->  
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	dev->mdev.dev = &pdev->dev;
+Results of the daily build of media_tree:
 
-How about just removing the time and using schedule_delayed_work()
-instead? That'd be quite a bit more simple.
+date:			Thu May 10 05:00:13 CEST 2018
+media-tree git hash:	e280edff3308602922d623e15bae473152869eba
+media_build git hash:	c8da003a287662e0eb421ff1fe33fabee01a85b0
+v4l-utils git hash:	03e763fd4b361b2082019032fc315b7606669335
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		0.5.2-RC1
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.15.0-3-amd64
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.101-i686: ERRORS
+linux-3.0.101-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.101-i686: ERRORS
+linux-3.2.101-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.113-i686: ERRORS
+linux-3.4.113-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.10-i686: ERRORS
+linux-3.7.10-x86_64: ERRORS
+linux-3.8.13-i686: ERRORS
+linux-3.8.13-x86_64: ERRORS
+linux-3.9.11-i686: ERRORS
+linux-3.9.11-x86_64: ERRORS
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.56-i686: ERRORS
+linux-3.16.56-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.102-i686: ERRORS
+linux-3.18.102-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.51-i686: ERRORS
+linux-4.1.51-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.109-i686: ERRORS
+linux-4.4.109-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.91-i686: ERRORS
+linux-4.9.91-x86_64: ERRORS
+linux-4.10.17-i686: ERRORS
+linux-4.10.17-x86_64: ERRORS
+linux-4.11.12-i686: ERRORS
+linux-4.11.12-x86_64: ERRORS
+linux-4.12.14-i686: ERRORS
+linux-4.12.14-x86_64: ERRORS
+linux-4.13.16-i686: ERRORS
+linux-4.13.16-x86_64: ERRORS
+linux-4.14.31-i686: ERRORS
+linux-4.14.31-x86_64: ERRORS
+linux-4.15.14-i686: ERRORS
+linux-4.15.14-x86_64: ERRORS
+linux-4.16-i686: ERRORS
+linux-4.16-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
