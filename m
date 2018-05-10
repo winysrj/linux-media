@@ -1,69 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34396 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1031970AbeEXK1X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 06:27:23 -0400
-Subject: Re: [PATCHv13 12/28] v4l2-ctrls: add core request support
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
- <20180503145318.128315-13-hverkuil@xs4all.nl>
- <20180507150600.66d794c6@vento.lan>
- <630745ed-dcac-61f6-9683-2236fc6c2c2a@xs4all.nl>
- <20180508074957.2c8e5464@vento.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0702530d-0479-2345-f091-c778947e79d1@xs4all.nl>
-Date: Thu, 24 May 2018 12:27:21 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180508074957.2c8e5464@vento.lan>
-Content-Type: text/plain; charset=utf-8
+Received: from mga12.intel.com ([192.55.52.136]:19775 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753693AbeEJG43 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 May 2018 02:56:29 -0400
+From: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>,
+        "Chen, JasonX Z" <jasonx.z.chen@intel.com>
+CC: "Yeh, Andy" <andy.yeh@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Chiang, AlanX" <alanx.chiang@intel.com>
+Subject: RE: [PATCH v11] media: imx258: Add imx258 camera sensor driver
+Date: Thu, 10 May 2018 06:56:25 +0000
+Message-ID: <FA6CF6692DF0B343ABE491A46A2CD0E76C65E22D@SHSMSX101.ccr.corp.intel.com>
+References: <1525275968-17207-1-git-send-email-andy.yeh@intel.com>
+ <CAAFQd5BYokHC7J8wEjT4twx7_bU1Yyv1LbN2PAK2tjmCrr2cig@mail.gmail.com>
+ <5881B549BE56034BB7E7D11D6EDEA2020678E62E@PGSMSX106.gar.corp.intel.com>
+ <CAAFQd5CvPCfFx6Nxb26JdSAfD_YNe=-hvyJ=iKLcTA0LpxC4_g@mail.gmail.com>
+In-Reply-To: <CAAFQd5CvPCfFx6Nxb26JdSAfD_YNe=-hvyJ=iKLcTA0LpxC4_g@mail.gmail.com>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/05/18 12:49, Mauro Carvalho Chehab wrote:
-> Em Tue, 8 May 2018 10:07:22 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->>>> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
->>>> index 76352eb59f14..a0f7c38d1a90 100644
->>>> --- a/include/media/v4l2-ctrls.h
->>>> +++ b/include/media/v4l2-ctrls.h
->>>> @@ -250,6 +250,10 @@ struct v4l2_ctrl {
->>>>   *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
->>>>   * @from_other_dev: If true, then @ctrl was defined in another
->>>>   *		device than the &struct v4l2_ctrl_handler.
->>>> + * @done:	If true, then this control reference is part of a
->>>> + *		control cluster that was already set while applying
->>>> + *		the controls in this media request object.  
->>>
->>> Hmm... I would rename it for request_done or something similar, as it
->>> seems that this applies only for requests.  
->>
->> No, the variable name is correct (it serves the same purpose as the 'done'
->> field in struct v4l2_ctrl), but the description should be improved.
->>
->> I also want to take another look at this: I wonder if it isn't possible to
->> use the v4l2_ctrl 'done' field for this instead of having to add a new field
->> here.
-
-Unfortunately, that isn't possible.
-
-> 
-> If it can use v4l2_ctrl done, it would indeed be better. Otherwise, as
-> this new "done" is used only by requests, I really think that it shold
-> be renamed, to let it clearer that this is the "done" that should be used
-> when requests are used.
-
-I've renamed 'done' to req_done and improved (I hope) the comment.
-
-Regards,
-
-	Hans
-
-> 
-> Thanks,
-> Mauro
-> 
+SGkgVG9tYXN6LCANCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51
+eC1tZWRpYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1tZWRpYS0NCj4gb3du
+ZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgVG9tYXN6IEZpZ2ENCj4gU2VudDogV2Vk
+bmVzZGF5LCBNYXkgOSwgMjAxOCA2OjA1IFBNDQo+IFRvOiBDaGVuLCBKYXNvblggWiA8amFzb254
+LnouY2hlbkBpbnRlbC5jb20+DQo+IENjOiBZZWgsIEFuZHkgPGFuZHkueWVoQGludGVsLmNvbT47
+IExpbnV4IE1lZGlhIE1haWxpbmcgTGlzdCA8bGludXgtDQo+IG1lZGlhQHZnZXIua2VybmVsLm9y
+Zz47IFNha2FyaSBBaWx1cyA8c2FrYXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbT47IENoaWFuZywN
+Cj4gQWxhblggPGFsYW54LmNoaWFuZ0BpbnRlbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0gg
+djExXSBtZWRpYTogaW14MjU4OiBBZGQgaW14MjU4IGNhbWVyYSBzZW5zb3IgZHJpdmVyDQo+IA0K
+PiBIaSBKYXNvbiwNCj4gDQo+ID4gSVBVMyBIQUwgaGFzIGEgaGFuZGxlciB0byBiaW5kIHRlc3Rf
+cGF0dGVybiBtb2RlLg0KPiA+IFRoZSBDT0xPUiBCQVIgTU9ERSBpbiBIQUwgaGFzIGJlZW4gY29u
+ZmlndXJlZCB0byAxIHdoZW4gQVBQIHJlcXVlc3RzDQo+ID4gdG8NCj4gb3V0cHV0IGNvbG9yIGJh
+ciBpbWFnZS4NCj4gPiBIb3dldmVyIFNvbnkgc2Vuc29yJ3MgQ09MT1IgQkFSIE1PREUgaXMgZGVz
+aWduZWQgYXMgMiBpbiByZWdpc3RlciB0YWJsZS4NCj4gKGdyZXkgY29sb3IgYmFycyBhcyAxKS4N
+Cj4gPiBXaGVuIEhBTCBzZW5kcyBoYW5kbGVyIHRvIGRyaXZlciB0byBzd2l0Y2ggdGVzdCBwYXR0
+ZXJuIG1vZGUgKHRvIENPTE9SDQo+IEJBUiAtIHZhbDogMSksIGl0IHdpbGwgYmUgZ3JleSBjb2xv
+ciwgc2luY2UgZHJpdmVyIHN0aWxsIHNldCBURVNUX1BBVFRFUk5fTU9ERQ0KPiByZWcgdmFsdWUg
+dG8gMSwgdGhvc2UgaXQgaXMgbm90IHdoYXQgd2UgZXhwZWN0ZWQuDQo+IA0KPiA+IFRoYXQgaXMg
+d2h5IHdlIGhhdmUgdG8gbWFrZSBhbiBhcnJheSB3aXRoIGluZGV4IHRvIGFycmFuZ2UgdGhlIG9y
+ZGVyDQo+ID4gb2YNCj4gdGhlIHRlc3QgcGF0dGVybiBpdGVtcywgc28gZHJpdmVyIHdpbGwgY2hv
+b3NlIENPTE9SIEJBUiBjb3JyZWN0bHkgd2hlbiBIQUwNCj4gc2VuZCB0ZXN0X3BhdHRlcm4gbWVz
+c2FnZSAod2l0aCAxKS4NCj4gPiBUaGUgY29uY2VwdCBpcyB0aGUgdGVzdF9wYXR0ZXJuX21lbnUg
+Y291bGQgYmUgbGlzdGVkIGluIGRyaXZlciBwZXINCj4gPiByZWFsDQo+IHJlcXVpcmVtZW50LCBu
+byBtYXR0ZXIgaG93IHRoZSBzZW5zb3IgcmVnaXN0ZXIgaXMgZGVzaWduZWQuDQo+IA0KPiANCj4g
+VjRMMiBzcGVjaWZpY2F0aW9uIGRvZXMgbm90IGRlZmluZSBhbnkgcGFydGljdWxhciBvcmRlciBv
+ZiBtZW51IGVudHJpZXMgaW4NCj4gVjRMMl9DSURfVEVTVF9QQVRURVJOLiBUaGUgYXBwbGljYXRp
+b24gc2hvdWxkIHF1ZXJ5IHRoZSBzdHJpbmdzIGluIHRoZQ0KPiBtZW51IGFuZCBkZXRlcm1pbmUg
+dGhlIG9wdGlvbiBpdCBuZWVkcyBiYXNlZCBvbiB0aGF0LiBJZiBpdCBoYXJkY29kZXMNCj4gcGFy
+dGljdWxhciBpbmRleCwgaXQncyBhIGJ1Zy4NCg0KSXMgdGhlcmUgYW55IHJlYXNvbiB0aGF0IHRo
+ZXJlIGlzIG5vIGNlcnRhaW4gbWFjcm8gZGVmaW5lIGZvciBkaWZmZXJlbnQgdHlwZSBvZiB0ZXN0
+IHBhdHRlcm4gaW4gdjRsMj8NClNvIEFwcCB3aWxsIG5vdCBkZXBlbmQgb24gYW55IHN0cmluZ3Mg
+d2hlcmUgY291bGQgYmUgZGlmZmVyZW50IG9uIGRpZmZlcmVudCBzZW5zb3IgZHJpdmVycy4NCg0K
+PiANCj4gVGhhbmtzLg0KPiANCj4gQmVzdCByZWdhcmRzLA0KPiBUb21hc3oNCg==
