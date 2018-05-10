@@ -1,120 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:47207 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755119AbeE0LYN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 27 May 2018 07:24:13 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Y Song <ys114321@gmail.com>,
-        Quentin Monnet <quentin.monnet@netronome.com>
-Subject: [PATCH v5 0/3] IR decoding using BPF
-Date: Sun, 27 May 2018 12:24:07 +0100
-Message-Id: <cover.1527419762.git.sean@mess.org>
+Received: from mail-ua0-f194.google.com ([209.85.217.194]:44289 "EHLO
+        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933810AbeEJHEW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 May 2018 03:04:22 -0400
+Received: by mail-ua0-f194.google.com with SMTP id h15-v6so666049uan.11
+        for <linux-media@vger.kernel.org>; Thu, 10 May 2018 00:04:21 -0700 (PDT)
+Received: from mail-ua0-f175.google.com (mail-ua0-f175.google.com. [209.85.217.175])
+        by smtp.gmail.com with ESMTPSA id v138-v6sm49369vke.12.2018.05.10.00.04.19
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 10 May 2018 00:04:19 -0700 (PDT)
+Received: by mail-ua0-f175.google.com with SMTP id e8-v6so659198uam.13
+        for <linux-media@vger.kernel.org>; Thu, 10 May 2018 00:04:19 -0700 (PDT)
+MIME-Version: 1.0
+References: <1525275968-17207-1-git-send-email-andy.yeh@intel.com>
+ <CAAFQd5BYokHC7J8wEjT4twx7_bU1Yyv1LbN2PAK2tjmCrr2cig@mail.gmail.com>
+ <5881B549BE56034BB7E7D11D6EDEA2020678E62E@PGSMSX106.gar.corp.intel.com>
+ <CAAFQd5CvPCfFx6Nxb26JdSAfD_YNe=-hvyJ=iKLcTA0LpxC4_g@mail.gmail.com> <FA6CF6692DF0B343ABE491A46A2CD0E76C65E22D@SHSMSX101.ccr.corp.intel.com>
+In-Reply-To: <FA6CF6692DF0B343ABE491A46A2CD0E76C65E22D@SHSMSX101.ccr.corp.intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 10 May 2018 07:04:08 +0000
+Message-ID: <CAAFQd5BKhXiZMZf9OscrHt+SNQNC2PCguKXcNcZNPhjmrgUxzQ@mail.gmail.com>
+Subject: Re: [PATCH v11] media: imx258: Add imx258 camera sensor driver
+To: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+Cc: "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
+        "Yeh, Andy" <andy.yeh@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Alan Chiang <alanx.chiang@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The kernel IR decoders (drivers/media/rc/ir-*-decoder.c) support the most
-widely used IR protocols, but there are many protocols which are not
-supported[1]. For example, the lirc-remotes[2] repo has over 2700 remotes,
-many of which are not supported by rc-core. There is a "long tail" of
-unsupported IR protocols, for which lircd is need to decode the IR .
+On Thu, May 10, 2018 at 3:56 PM Zheng, Jian Xu <jian.xu.zheng@intel.com>
+wrote:
 
-IR encoding is done in such a way that some simple circuit can decode it;
-therefore, bpf is ideal.
+> Hi Tomasz,
 
-In order to support all these protocols, here we have bpf based IR decoding.
-The idea is that user-space can define a decoder in bpf, attach it to
-the rc device through the lirc chardev.
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Tomasz Figa
+> > Sent: Wednesday, May 9, 2018 6:05 PM
+> > To: Chen, JasonX Z <jasonx.z.chen@intel.com>
+> > Cc: Yeh, Andy <andy.yeh@intel.com>; Linux Media Mailing List <linux-
+> > media@vger.kernel.org>; Sakari Ailus <sakari.ailus@linux.intel.com>;
+Chiang,
+> > AlanX <alanx.chiang@intel.com>
+> > Subject: Re: [PATCH v11] media: imx258: Add imx258 camera sensor driver
+> >
+> > Hi Jason,
+> >
+> > > IPU3 HAL has a handler to bind test_pattern mode.
+> > > The COLOR BAR MODE in HAL has been configured to 1 when APP requests
+> > > to
+> > output color bar image.
+> > > However Sony sensor's COLOR BAR MODE is designed as 2 in register
+table.
+> > (grey color bars as 1).
+> > > When HAL sends handler to driver to switch test pattern mode (to COLOR
+> > BAR - val: 1), it will be grey color, since driver still set
+TEST_PATTERN_MODE
+> > reg value to 1, those it is not what we expected.
+> >
+> > > That is why we have to make an array with index to arrange the order
+> > > of
+> > the test pattern items, so driver will choose COLOR BAR correctly when
+HAL
+> > send test_pattern message (with 1).
+> > > The concept is the test_pattern_menu could be listed in driver per
+> > > real
+> > requirement, no matter how the sensor register is designed.
+> >
+> >
+> > V4L2 specification does not define any particular order of menu entries
+in
+> > V4L2_CID_TEST_PATTERN. The application should query the strings in the
+> > menu and determine the option it needs based on that. If it hardcodes
+> > particular index, it's a bug.
 
-Separate work is underway to extend ir-keytable to have an extensive library
-of bpf-based decoders, and a much expanded library of rc keymaps.
+> Is there any reason that there is no certain macro define for different
+type of test pattern in v4l2?
+> So App will not depend on any strings where could be different on
+different sensor drivers.
 
-Another future application would be to compile IRP[3] to a IR BPF program, and
-so support virtually every remote without having to write a decoder for each.
-It might also be possible to support non-button devices such as analog
-directional pads or air conditioning remote controls and decode the target
-temperature in bpf, and pass that to an input device.
+Yes. Available patterns differ significantly between one sensor and
+another, so the menu positions are considered hardware-specific.
 
-Thanks,
-
-Sean Young
-
-[1] http://www.hifi-remote.com/wiki/index.php?title=DecodeIR
-[2] https://sourceforge.net/p/lirc-remotes/code/ci/master/tree/remotes/
-[3] http://www.hifi-remote.com/wiki/index.php?title=IRP_Notation
-
-Changes since v4:
- - Renamed rc_dev_bpf_{attach,detach,query} to lirc_bpf_{attach,detach,query}
- - Fixed error path in lirc_bpf_query
- - Rebased on bpf-next
-
-Changes since v3:
- - Implemented review comments from Quentin Monnet and Y Song (thanks!)
- - More helpful and better formatted bpf helper documentation
- - Changed back to bpf_prog_array rather than open-coded implementation
- - scancodes can be 64 bit
- - bpf gets passed values in microseconds, not nanoseconds.
-   microseconds is more than than enough (IR receivers support carriers upto
-   70kHz, at which point a single period is already 14 microseconds). Also,
-   this makes it much more consistent with lirc mode2.
- - Since it looks much more like lirc mode2, rename the program type to
-   BPF_PROG_TYPE_LIRC_MODE2.
- - Rebased on bpf-next
-
-Changes since v2:
- - Fixed locking issues
- - Improved self-test to cover more cases
- - Rebased on bpf-next again
-
-Changes since v1:
- - Code review comments from Y Song <ys114321@gmail.com> and
-   Randy Dunlap <rdunlap@infradead.org>
- - Re-wrote sample bpf to be selftest
- - Renamed RAWIR_DECODER -> RAWIR_EVENT (Kconfig, context, bpf prog type)
- - Rebase on bpf-next
- - Introduced bpf_rawir_event context structure with simpler access checking
-
-
-Sean Young (3):
-  bpf: bpf_prog_array_copy() should return -ENOENT if exclude_prog not
-    found
-  media: rc: introduce BPF_PROG_LIRC_MODE2
-  bpf: add selftest for lirc_mode2 type program
-
- drivers/media/rc/Kconfig                      |  13 +
- drivers/media/rc/Makefile                     |   1 +
- drivers/media/rc/bpf-lirc.c                   | 313 ++++++++++++++++++
- drivers/media/rc/lirc_dev.c                   |  30 ++
- drivers/media/rc/rc-core-priv.h               |  21 ++
- drivers/media/rc/rc-ir-raw.c                  |  12 +-
- include/linux/bpf_lirc.h                      |  29 ++
- include/linux/bpf_types.h                     |   3 +
- include/uapi/linux/bpf.h                      |  53 ++-
- kernel/bpf/core.c                             |  11 +-
- kernel/bpf/syscall.c                          |   7 +
- kernel/trace/bpf_trace.c                      |   2 +
- tools/bpf/bpftool/prog.c                      |   1 +
- tools/include/uapi/linux/bpf.h                |  53 ++-
- tools/include/uapi/linux/lirc.h               | 217 ++++++++++++
- tools/lib/bpf/libbpf.c                        |   1 +
- tools/testing/selftests/bpf/.gitignore        |   1 +
- tools/testing/selftests/bpf/Makefile          |   7 +-
- tools/testing/selftests/bpf/bpf_helpers.h     |   5 +
- .../testing/selftests/bpf/test_lirc_mode2.sh  |  28 ++
- .../selftests/bpf/test_lirc_mode2_kern.c      |  23 ++
- .../selftests/bpf/test_lirc_mode2_user.c      | 149 +++++++++
- 22 files changed, 971 insertions(+), 9 deletions(-)
- create mode 100644 drivers/media/rc/bpf-lirc.c
- create mode 100644 include/linux/bpf_lirc.h
- create mode 100644 tools/include/uapi/linux/lirc.h
- create mode 100755 tools/testing/selftests/bpf/test_lirc_mode2.sh
- create mode 100644 tools/testing/selftests/bpf/test_lirc_mode2_kern.c
- create mode 100644 tools/testing/selftests/bpf/test_lirc_mode2_user.c
-
--- 
-2.17.0
+Best regards,
+Tomasz
