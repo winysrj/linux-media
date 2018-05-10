@@ -1,474 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35707 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751502AbeEVNC7 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:52224 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756793AbeEJLE2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 09:02:59 -0400
-Received: by mail-wm0-f68.google.com with SMTP id o78-v6so33463288wmg.0
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 06:02:58 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: Re: [PATCH 4/4] media: venus: add PIL support
-To: Vikash Garodia <vgarodia@codeaurora.org>, hverkuil@xs4all.nl,
-        mchehab@kernel.org, andy.gross@linaro.org,
-        bjorn.andersson@linaro.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        acourbot@google.com
-References: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
- <1526556740-25494-5-git-send-email-vgarodia@codeaurora.org>
-Message-ID: <3822394c-b304-15c3-c978-ee39589308eb@linaro.org>
-Date: Tue, 22 May 2018 16:02:53 +0300
+        Thu, 10 May 2018 07:04:28 -0400
+Date: Thu, 10 May 2018 08:04:21 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Nibble Max <nibble.max@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>, wsa@the-dreams.de
+Subject: Re: Regression: DVBSky S960 USB tuner doesn't work in 4.10 or newer
+Message-ID: <20180510080421.411cb00a@vento.lan>
+In-Reply-To: <CAAZRmGx3ySxtsy-23gD5ToaqLnMrS-V2id8qXEdHA1+naGe5nQ@mail.gmail.com>
+References: <CAAZRmGz8iTDSZ6S=05V0JKDXBnS47e43MBBSvnGtrVv-QioirA@mail.gmail.com>
+        <20180409091441.GX4043@hirez.programming.kicks-ass.net>
+        <CAAZRmGw9DTHX65cYch6ozjGejMnDNQx_aNF-RYPRo+E4COEoRA@mail.gmail.com>
+        <18b9e776-3558-30ed-f616-a0ba8e4d177d@iki.fi>
+        <CAAZRmGzvh_R_JPkD6sNC_qQddTrv0zCi3TEdGd-Si9qTc2HrLg@mail.gmail.com>
+        <20180427133311.5789da57@vento.lan>
+        <CAAZRmGx3ySxtsy-23gD5ToaqLnMrS-V2id8qXEdHA1+naGe5nQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1526556740-25494-5-git-send-email-vgarodia@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikash,
+Em Sat, 28 Apr 2018 08:01:21 +0200
+Olli Salonen <olli.salonen@iki.fi> escreveu:
 
-On 05/17/2018 02:32 PM, Vikash Garodia wrote:
-> This adds support to load the video firmware
-> and bring ARM9 out of reset. This is useful
-> for platforms which does not have trustzone
-> to reset the ARM9.
+> I did test the patch and while it doesn't seem to introduce any
+> negative side effects it does not provide a remedy for the original
+> problem that was seen after introducing
+> 9d659ae14b545c4296e812c70493bfdc999b5c1c (you probably did not expect
+> that either).
+
+Ok, I'll apply it then. Having one less lock makes it cleaner.
 > 
-> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> ---
->  .../devicetree/bindings/media/qcom,venus.txt       |   8 +-
->  drivers/media/platform/qcom/venus/core.c           |  67 +++++++--
->  drivers/media/platform/qcom/venus/core.h           |   6 +
->  drivers/media/platform/qcom/venus/firmware.c       | 163 +++++++++++++++++----
->  drivers/media/platform/qcom/venus/firmware.h       |  10 +-
->  5 files changed, 217 insertions(+), 37 deletions(-)
 > 
-> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> index 00d0d1b..0ff0f2d 100644
-> --- a/Documentation/devicetree/bindings/media/qcom,venus.txt
-> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+> Cheers,
+> -olli
+> 
+> On 27 April 2018 at 18:33, Mauro Carvalho Chehab
+> <mchehab+samsung@kernel.org> wrote:
+> > Em Fri, 27 Apr 2018 16:25:08 +0200
+> > Olli Salonen <olli.salonen@iki.fi> escreveu:
+> >
+> >> Thanks for the suggestion Antti.
+> >>
+> >> I've tried to add a delay in various places, but haven't seen any
+> >> improvement. However, what I did saw was that if I added an msleep
+> >> after the lock:
+> >>
+> >> static int dvbsky_usb_generic_rw(struct dvb_usb_device *d,
+> >>                 u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
+> >> {
+> >>         int ret;
+> >>         struct dvbsky_state *state = d_to_priv(d);
+> >>
+> >>         mutex_lock(&d->usb_mutex);
+> >>         msleep(20);
+> >>
+> >> The error was seen very within a minute. If I increased the msleep to
+> >> 50, it failed within seconds. This doesn't seem to make sense to me.
+> >> This is the only function where usb_mutex is used. If the mutex is
+> >> held for a longer time, the next attempt to lock the mutex should just
+> >> be delayed a bit, no?
+> >
+> > I don't like the idea of having two mutexes there to protect reading/writing
+> > to data one for "generic" r/w ops, and another one just for streaming
+> > control, with ends by calling the "generic" mutex.
+> >
+> > IMHO, I would get rid of one of the mutexes, e. g. something like the
+> > patch below (untested).
+> >
+> > Regards,
+> > Mauro
+> >
+> > media: dvbsky: use just one mutex for serializing device R/W ops
+> >
+> > Right now, there are two mutexes serializing r/w ops: one "generic"
+> > and another one specifically for stream on/off.
+> >
+> > Clean it a little bit, getting rid of one of the mutexes.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> >
+> > diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> > index 43eb82884555..50553975c39d 100644
+> > --- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> > +++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> > @@ -31,7 +31,6 @@ MODULE_PARM_DESC(disable_rc, "Disable inbuilt IR receiver.");
+> >  DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+> >
+> >  struct dvbsky_state {
+> > -       struct mutex stream_mutex;
+> >         u8 ibuf[DVBSKY_BUF_LEN];
+> >         u8 obuf[DVBSKY_BUF_LEN];
+> >         u8 last_lock;
+> > @@ -68,18 +67,17 @@ static int dvbsky_usb_generic_rw(struct dvb_usb_device *d,
+> >
+> >  static int dvbsky_stream_ctrl(struct dvb_usb_device *d, u8 onoff)
+> >  {
+> > -       struct dvbsky_state *state = d_to_priv(d);
+> >         int ret;
+> > -       u8 obuf_pre[3] = { 0x37, 0, 0 };
+> > -       u8 obuf_post[3] = { 0x36, 3, 0 };
+> > +       static u8 obuf_pre[3] = { 0x37, 0, 0 };
+> > +       static u8 obuf_post[3] = { 0x36, 3, 0 };
+> >
+> > -       mutex_lock(&state->stream_mutex);
+> > -       ret = dvbsky_usb_generic_rw(d, obuf_pre, 3, NULL, 0);
+> > +       mutex_lock(&d->usb_mutex);
+> > +       ret = dvb_usbv2_generic_rw_locked(d, obuf_pre, 3, NULL, 0);
+> >         if (!ret && onoff) {
+> >                 msleep(20);
+> > -               ret = dvbsky_usb_generic_rw(d, obuf_post, 3, NULL, 0);
+> > +               ret = dvb_usbv2_generic_rw_locked(d, obuf_post, 3, NULL, 0);
+> >         }
+> > -       mutex_unlock(&state->stream_mutex);
+> > +       mutex_unlock(&d->usb_mutex);
+> >         return ret;
+> >  }
+> >
+> > @@ -744,8 +742,6 @@ static int dvbsky_init(struct dvb_usb_device *d)
+> >         if (ret)
+> >                 return ret;
+> >         */
+> > -       mutex_init(&state->stream_mutex);
+> > -
+> >         state->last_lock = 0;
+> >
+> >         return 0;
+> >
+> >
+> >
+> > Thanks,
+> > Mauro
 
-for this change in DT binding you have to cc devicetree ML. And probably
-it could be separate patch.
 
-> @@ -53,7 +53,7 @@
->  
->  * Subnodes
->  The Venus video-codec node must contain two subnodes representing
-> -video-decoder and video-encoder.
-> +video-decoder and video-encoder, one optional firmware subnode.
->  
->  Every of video-encoder or video-decoder subnode should have:
->  
-> @@ -79,6 +79,8 @@ Every of video-encoder or video-decoder subnode should have:
->  		    power domain which is responsible for collapsing
->  		    and restoring power to the subcore.
->  
-> +The firmware sub node must contain the iommus specifiers for ARM9.
-> +
->  * An Example
->  	video-codec@1d00000 {
->  		compatible = "qcom,msm8916-venus";
-> @@ -105,4 +107,8 @@ Every of video-encoder or video-decoder subnode should have:
->  			clock-names = "core";
->  			power-domains = <&mmcc VENUS_CORE1_GDSC>;
->  		};
-> +		firmware {
 
-venus-firmware
-
-> +			compatible = "qcom,venus-pil-no-tz";
-
-this should be following the other subnodes compatible names:
-
-compatible = "venus-firmware";
-
-> +			iommus = <&apps_smmu 0x10b2 0x0>;
-> +		}
->  	};
-> diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-> index 1308488..16910558 100644
-> --- a/drivers/media/platform/qcom/venus/core.c
-> +++ b/drivers/media/platform/qcom/venus/core.c
-> @@ -22,6 +22,7 @@
->  #include <linux/slab.h>
->  #include <linux/types.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/iommu.h>
->  #include <media/videobuf2-v4l2.h>
->  #include <media/v4l2-mem2mem.h>
->  #include <media/v4l2-ioctl.h>
-> @@ -30,6 +31,7 @@
->  #include "vdec.h"
->  #include "venc.h"
->  #include "firmware.h"
-> +#include "hfi_venus.h"
->  
->  static void venus_event_notify(struct venus_core *core, u32 event)
->  {
-> @@ -76,7 +78,7 @@ static void venus_sys_error_handler(struct work_struct *work)
->  	hfi_core_deinit(core, true);
->  	hfi_destroy(core);
->  	mutex_lock(&core->lock);
-> -	venus_shutdown(core->dev);
-> +	venus_shutdown(core);
->  
->  	pm_runtime_put_sync(core->dev);
->  
-> @@ -84,7 +86,7 @@ static void venus_sys_error_handler(struct work_struct *work)
->  
->  	pm_runtime_get_sync(core->dev);
->  
-> -	ret |= venus_boot(core->dev, core->res->fwname);
-> +	ret |= venus_boot(core);
->  
->  	ret |= hfi_core_resume(core, true);
->  
-> @@ -179,6 +181,20 @@ static u32 to_v4l2_codec_type(u32 codec)
->  	}
->  }
->  
-> +static int store_firmware_dev(struct device *dev, void *data)
-> +{
-> +	struct venus_core *core;
-> +
-> +	core = (struct venus_core *)data;
-> +	if (!core)
-> +		return -EINVAL;
-> +
-> +	if (of_device_is_compatible(dev->of_node, "qcom,venus-pil-no-tz"))
-> +		core->fw.dev = dev;
-> +
-> +	return 0;
-> +}
-> +
->  static int venus_enumerate_codecs(struct venus_core *core, u32 type)
->  {
->  	const struct hfi_inst_ops dummy_ops = {};
-> @@ -229,6 +245,7 @@ static int venus_probe(struct platform_device *pdev)
->  	struct device *dev = &pdev->dev;
->  	struct venus_core *core;
->  	struct resource *r;
-> +	struct iommu_domain *iommu_domain;
->  	int ret;
->  
->  	core = devm_kzalloc(dev, sizeof(*core), GFP_KERNEL);
-> @@ -279,7 +296,14 @@ static int venus_probe(struct platform_device *pdev)
->  	if (ret < 0)
->  		goto err_runtime_disable;
->  
-> -	ret = venus_boot(dev, core->res->fwname);
-> +	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
-> +	if (ret)
-> +		goto err_runtime_disable;
-> +
-> +	/* Attempt to register child devices */
-
-This comment is wrong, the child devices are created by
-of_platform_populate above.
-
-> +	ret = device_for_each_child(dev, core, store_firmware_dev);
-
-Why we need these complex gymnastics to get struct device pointer when
-that could be done in venus_firmware .probe method?
-
-I think the answer is because you want to avoid having venus-firmware.ko
-(because you have to have separate struct device for iommu SID). In that
-case it would be better to make venus-firmware.ko.
-
-> +
-> +	ret = venus_boot(core);
->  	if (ret)
->  		goto err_runtime_disable;
->  
-> @@ -303,14 +327,17 @@ static int venus_probe(struct platform_device *pdev)
->  	if (ret)
->  		goto err_core_deinit;
->  
-> -	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
-> +	ret = pm_runtime_put_sync(dev);
->  	if (ret)
->  		goto err_dev_unregister;
->  
-> -	ret = pm_runtime_put_sync(dev);
-> -	if (ret)
-> +	iommu_domain = iommu_get_domain_for_dev(dev);
-> +	if (!iommu_domain)
->  		goto err_dev_unregister;
->  
-> +	iommu_domain->geometry.aperture_start = VENUS_FW_MEM_SIZE;
-> +	iommu_domain->geometry.aperture_end = VENUS_MAX_MEM_REGION;
-
-I don't think that is needed for this struct device (Venus DT node
-struct device). And also why aperture_start is on 6th MB? I think that
-this iommu domain is for venus_non_secure iommu context_bank.
-
-Those geometry parameters are checked/used only from dma-iommu.c. They
-are checked before entering on venus_probe and only when
-geometry.force_aperture is true. So updating those params here doesn't
-make any sense to iommu?
-
-> +
->  	return 0;
->  
->  err_dev_unregister:
-> @@ -318,7 +345,7 @@ static int venus_probe(struct platform_device *pdev)
->  err_core_deinit:
->  	hfi_core_deinit(core, false);
->  err_venus_shutdown:
-> -	venus_shutdown(dev);
-> +	venus_shutdown(core);
->  err_runtime_disable:
->  	pm_runtime_set_suspended(dev);
->  	pm_runtime_disable(dev);
-> @@ -339,7 +366,7 @@ static int venus_remove(struct platform_device *pdev)
->  	WARN_ON(ret);
->  
->  	hfi_destroy(core);
-> -	venus_shutdown(dev);
-> +	venus_shutdown(core);
->  	of_platform_depopulate(dev);
->  
->  	pm_runtime_put_sync(dev);
-> @@ -483,7 +510,29 @@ static __maybe_unused int venus_runtime_resume(struct device *dev)
->  		.pm = &venus_pm_ops,
->  	},
->  };
-> -module_platform_driver(qcom_venus_driver);
-> +
-> +static int __init venus_init(void)
-> +{
-> +	int ret;
-> +
-> +	ret = platform_driver_register(&qcom_video_firmware_driver);
-> +	if (ret)
-> +		return ret;
-
-I think that this shouldn't be here, it is clear that firmware loader
-code should be on separate device/driver (even outside of venus DT node).
-
-> +
-> +	ret = platform_driver_register(&qcom_venus_driver);
-> +	if (ret)
-> +		platform_driver_unregister(&qcom_video_firmware_driver);
-> +
-> +	return ret;
-> +}
-> +module_init(venus_init);
-> +
-> +static void __exit venus_exit(void)
-> +{
-> +	platform_driver_unregister(&qcom_venus_driver);
-> +	platform_driver_unregister(&qcom_video_firmware_driver);
-> +}
-> +module_exit(venus_exit);
->  
->  MODULE_ALIAS("platform:qcom-venus");
->  MODULE_DESCRIPTION("Qualcomm Venus video encoder and decoder driver");
-> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-> index 85e66e2..68fc8af 100644
-> --- a/drivers/media/platform/qcom/venus/core.h
-> +++ b/drivers/media/platform/qcom/venus/core.h
-> @@ -80,6 +80,11 @@ struct venus_caps {
->  	bool valid;
->  };
->  
-> +struct video_firmware {
-> +	struct device *dev;
-> +	dma_addr_t iova;
-> +	struct iommu_domain *iommu_domain;
-> +};
->  /**
->   * struct venus_core - holds core parameters valid for all instances
->   *
-> @@ -124,6 +129,7 @@ struct venus_core {
->  	struct device *dev;
->  	struct device *dev_dec;
->  	struct device *dev_enc;
-> +	struct video_firmware fw;
->  	struct mutex lock;
->  	struct list_head instances;
->  	atomic_t insts_count;
-> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-> index 8f25375..614c805 100644
-> --- a/drivers/media/platform/qcom/venus/firmware.c
-> +++ b/drivers/media/platform/qcom/venus/firmware.c
-> @@ -12,8 +12,12 @@
->   *
->   */
->  
-> +#include <linux/module.h>
-> +#include <linux/of_device.h>
-> +#include <linux/platform_device.h>
->  #include <linux/device.h>
->  #include <linux/firmware.h>
-> +#include <linux/iommu.h>
->  #include <linux/delay.h>
->  #include <linux/kernel.h>
->  #include <linux/io.h>
-> @@ -27,8 +31,10 @@
->  #include "firmware.h"
->  #include "hfi_venus_io.h"
->  
-> -#define VENUS_PAS_ID			9
-> -#define VENUS_FW_MEM_SIZE		(6 * SZ_1M)
-> +static const struct of_device_id firmware_dt_match[] = {
-> +	{ .compatible = "qcom,venus-pil-no-tz" },
-> +	{ }
-> +};
->  
->  void venus_reset_hw(struct venus_core *core)
->  {
-> @@ -53,40 +59,37 @@ void venus_reset_hw(struct venus_core *core)
->  	/* Bring Arm9 out of reset */
->  	writel_relaxed(0, reg_base + WRAPPER_A9SS_SW_RESET);
->  }
-> -int venus_boot(struct device *dev, const char *fwname)
-> +EXPORT_SYMBOL_GPL(venus_reset_hw);
-> +
-> +int venus_load_fw(struct device *dev, const char *fwname,
-> +		phys_addr_t *mem_phys, size_t *mem_size)
->  {
->  	const struct firmware *mdt;
->  	struct device_node *node;
-> -	phys_addr_t mem_phys;
->  	struct resource r;
->  	ssize_t fw_size;
-> -	size_t mem_size;
->  	void *mem_va;
->  	int ret;
->  
-> -	if (!IS_ENABLED(CONFIG_QCOM_MDT_LOADER) || !qcom_scm_is_available())
-> -		return -EPROBE_DEFER;
-> -
->  	node = of_parse_phandle(dev->of_node, "memory-region", 0);
->  	if (!node) {
->  		dev_err(dev, "no memory-region specified\n");
->  		return -EINVAL;
->  	}
-> -
->  	ret = of_address_to_resource(node, 0, &r);
->  	if (ret)
->  		return ret;
->  
-> -	mem_phys = r.start;
-> -	mem_size = resource_size(&r);
-> +	*mem_phys = r.start;
-> +	*mem_size = resource_size(&r);
->  
-> -	if (mem_size < VENUS_FW_MEM_SIZE)
-> +	if (*mem_size < VENUS_FW_MEM_SIZE)
->  		return -EINVAL;
->  
-> -	mem_va = memremap(r.start, mem_size, MEMREMAP_WC);
-> +	mem_va = memremap(r.start, *mem_size, MEMREMAP_WC);
->  	if (!mem_va) {
->  		dev_err(dev, "unable to map memory region: %pa+%zx\n",
-> -			&r.start, mem_size);
-> +			&r.start, *mem_size);
->  		return -ENOMEM;
->  	}
->  
-> @@ -101,24 +104,134 @@ int venus_boot(struct device *dev, const char *fwname)
->  		goto err_unmap;
->  	}
->  
-> -	ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va, mem_phys,
-> -			    mem_size, NULL);
-> +	ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va, *mem_phys,
-> +			    *mem_size, NULL);
->  
->  	release_firmware(mdt);
->  
-> -	if (ret)
-> -		goto err_unmap;
-> -
-> -	ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
-> -	if (ret)
-> -		goto err_unmap;
-> -
->  err_unmap:
->  	memunmap(mem_va);
->  	return ret;
->  }
->  
-> -int venus_shutdown(struct device *dev)
-> +int venus_boot_noTZ(struct venus_core *core, phys_addr_t mem_phys,
-> +							size_t mem_size)
->  {
-> -	return qcom_scm_pas_shutdown(VENUS_PAS_ID);
-> +	struct iommu_domain *iommu;
-> +	struct device *dev;
-> +	int ret;
-> +
-> +	if (!core->fw.dev)
-> +		return -EPROBE_DEFER;
-> +
-> +	dev = core->fw.dev;
-> +
-> +	iommu = iommu_domain_alloc(&platform_bus_type);
-> +	if (!iommu) {
-> +		dev_err(dev, "Failed to allocate iommu domain\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	iommu->geometry.aperture_start = 0x0;
-> +	iommu->geometry.aperture_end = VENUS_FW_MEM_SIZE;
-
-The same comment for geometry params as for venus_probe is valid here.
-
-> +
-> +	ret = iommu_attach_device(iommu, dev);
-> +	if (ret) {
-> +		dev_err(dev, "could not attach device\n");
-> +		goto err_attach;
-> +	}
-> +
-> +	ret = iommu_map(iommu, core->fw.iova, mem_phys, mem_size,
-> +			IOMMU_READ|IOMMU_WRITE|IOMMU_PRIV);
-
-iova is not initialized and is zero, maybe we don't need that variable
-in the venus_firmware structure?
-
-> +	if (ret) {
-> +		dev_err(dev, "could not map video firmware region\n");
-> +		goto err_map;
-> +	}
-> +	core->fw.iommu_domain = iommu;
-> +	venus_reset_hw(core);
-> +
-> +	return 0;
-> +
-> +err_map:
-> +	iommu_detach_device(iommu, dev);
-> +err_attach:
-> +	iommu_domain_free(iommu);
-> +	return ret;
->  }
-> +
-> +int venus_shutdown_noTZ(struct venus_core *core)
-> +{
-> +	struct iommu_domain *iommu;
-> +	u32 reg;
-> +	struct device *dev = core->fw.dev;
-> +	void __iomem *reg_base = core->base;
-> +
-> +	/* Assert the reset to ARM9 */
-> +	reg = readl_relaxed(reg_base + WRAPPER_A9SS_SW_RESET);
-> +	reg |= BIT(4);
-> +	writel_relaxed(reg, reg_base + WRAPPER_A9SS_SW_RESET);
-> +
-> +	/* Make sure reset is asserted before the mapping is removed */
-> +	mb();
-> +
-> +	iommu = core->fw.iommu_domain;
-> +
-> +	iommu_unmap(iommu, core->fw.iova, VENUS_FW_MEM_SIZE);
-> +	iommu_detach_device(iommu, dev);
-> +	iommu_domain_free(iommu);
-
-check iommu APIs for errors.
-
--- 
-regards,
-Stan
+Thanks,
+Mauro
