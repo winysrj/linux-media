@@ -1,79 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:35363 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751732AbeETXBO (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:34018 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935589AbeEJMxU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 May 2018 19:01:14 -0400
-Received: by mail-it0-f65.google.com with SMTP id q72-v6so19185793itc.0
-        for <linux-media@vger.kernel.org>; Sun, 20 May 2018 16:01:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180520072437.9686-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180520072437.9686-1-laurent.pinchart+renesas@ideasonboard.com>
-From: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
-Date: Mon, 21 May 2018 08:00:43 +0900
-Message-ID: <CABMQnVLYUkCwgAi__vaou3EfwRsed5EWgT0BdcWBMWCESenogQ@mail.gmail.com>
-Subject: Re: [PATCH v2] v4l: vsp1: Fix vsp1_regs.h license header
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+        Thu, 10 May 2018 08:53:20 -0400
+Message-ID: <d4c75122e8e8ee89c7198e12445c67ef0ee11f04.camel@collabora.com>
+Subject: Re: [PATCH] dma-fence: Make dma_fence_add_callback() fail if
+ signaled with error
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Gustavo Padovan <gustavo@padovan.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        kernel@collabora.com
+Date: Thu, 10 May 2018 09:51:56 -0300
+In-Reply-To: <1525905732.3381.6.camel@padovan.org>
+References: <20180509201449.27452-1-ezequiel@collabora.com>
+         <1525905732.3381.6.camel@padovan.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, 2018-05-09 at 19:42 -0300, Gustavo Padovan wrote:
+> Hi Ezequiel,
+> 
+> On Wed, 2018-05-09 at 17:14 -0300, Ezequiel Garcia wrote:
+> > Change how dma_fence_add_callback() behaves, when the fence
+> > has error-signaled by the time it is being add. After this commit,
+> > dma_fence_add_callback() returns the fence error, if it
+> > has error-signaled before dma_fence_add_callback() is called.
+> > 
+> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > ---
+> >  drivers/dma-buf/dma-fence.c | 10 ++++++----
+> >  1 file changed, 6 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-
+> > fence.c
+> > index 4edb9fd3cf47..298b440c5b68 100644
+> > --- a/drivers/dma-buf/dma-fence.c
+> > +++ b/drivers/dma-buf/dma-fence.c
+> > @@ -226,7 +226,8 @@ EXPORT_SYMBOL(dma_fence_enable_sw_signaling);
+> >   *
+> >   * Note that the callback can be called from an atomic context.  If
+> >   * fence is already signaled, this function will return -ENOENT (and
+> > - * *not* call the callback)
+> > + * *not* call the callback). If the fence is error-signaled, this
+> > + * function returns the fence error.
+> >   *
+> >   * Add a software callback to the fence. Same restrictions apply to
+> >   * refcount as it does to dma_fence_wait, however the caller doesn't
+> > need to
+> > @@ -235,8 +236,8 @@ EXPORT_SYMBOL(dma_fence_enable_sw_signaling);
+> >   * after it signals with dma_fence_signal. The callback itself can
+> > be called
+> >   * from irq context.
+> >   *
+> > - * Returns 0 in case of success, -ENOENT if the fence is already
+> > signaled
+> > - * and -EINVAL in case of error.
+> > + * Returns 0 in case of success, -ENOENT (or the error value) if the
+> > fence is
+> > + * already signaled and -EINVAL in case of error.
+> >   */
+> >  int dma_fence_add_callback(struct dma_fence *fence, struct
+> > dma_fence_cb *cb,
+> >  			   dma_fence_func_t func)
+> > @@ -250,7 +251,8 @@ int dma_fence_add_callback(struct dma_fence
+> > *fence, struct dma_fence_cb *cb,
+> >  
+> >  	if (test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fence->flags)) {
+> >  		INIT_LIST_HEAD(&cb->node);
+> > -		return -ENOENT;
+> > +		ret = (fence->error < 0) ? fence->error : -ENOENT;
+> > +		return ret;
+> >  	}
+> 
+> It looks good to me, but I'd first go check all place we call it in the
+> kernel because I have some memory of callers relying on the -ENOENT
+> return code for some decision. I might be wrong though.
+> 
+> 
 
-2018-05-20 16:24 GMT+09:00 Laurent Pinchart
-<laurent.pinchart+renesas@ideasonboard.com>:
-> All source files of the vsp1 driver are licensed under the GPLv2+ except
-> for vsp1_regs.h which is licensed under GPLv2. This is caused by a bad
-> copy&paste that dates back from the initial version of the driver. Fix
-> it.
->
-> Cc: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
-> Acked-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> Acked-by: Sergei Shtylyov<sergei.shtylyov@cogentembedded.com>
-> Acked-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Acked-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.co=
-m>
-> ---
-> Iwamatsu-san,
->
-> While working on the VSP1 driver I noticed that all source files are
-> licensed under the GPLv2+ except for vsp1_regs.h which is licensed under
-> GPLv2. I'd like to fix this inconsistency. As you have contributed to
-> that file, could you please provide your explicit ack if you agree to
-> this change ?
+I checked all users before submitting this patch.
 
-Yes,  I agree with this change.
+git grep " = dma_fence_add_callback"
+drivers/gpu/drm/i915/i915_sw_fence.c:   ret = dma_fence_add_callback(dma, &cb->base, func);
+drivers/gpu/drm/scheduler/gpu_scheduler.c:                      r = dma_fence_add_callback(fence, &s_fence->cb,
+drivers/gpu/drm/scheduler/gpu_scheduler.c:                      r = dma_fence_add_callback(fence, &s_fence->cb,
 
-Acked-by: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
+And from what I could see, all of them handle the error
+properly.
 
-> ---
->  drivers/media/platform/vsp1/vsp1_regs.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/plat=
-form/vsp1/vsp1_regs.h
-> index 0d249ff9f564..e82661216c1d 100644
-> --- a/drivers/media/platform/vsp1/vsp1_regs.h
-> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
-> @@ -1,4 +1,4 @@
-> -/* SPDX-License-Identifier: GPL-2.0 */
-> +/* SPDX-License-Identifier: GPL-2.0+ */
->  /*
->   * vsp1_regs.h  --  R-Car VSP1 Registers Definitions
->   *
-> --
-> Regards,
->
-> Laurent Pinchart
->
-
-Best regards,
-  Nobuhiro
-
---=20
-Nobuhiro Iwamatsu
-   iwamatsu at {nigauri.org / debian.org}
-   GPG ID: 40AD1FA6
+Thanks,
+Eze
