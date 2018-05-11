@@ -1,69 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:38233 "EHLO
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:39352 "EHLO
         mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752746AbeEUOV5 (ORCPT
+        with ESMTP id S1750758AbeEKFM0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 10:21:57 -0400
-Received: by mail-wm0-f66.google.com with SMTP id m129-v6so26832526wmb.3
-        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 07:21:57 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com, eballetbo@gmail.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v4 4/5] mfd: cros_ec_dev: Add CEC sub-device registration
-Date: Mon, 21 May 2018 16:21:45 +0200
-Message-Id: <1526912506-18406-5-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1526912506-18406-1-git-send-email-narmstrong@baylibre.com>
-References: <1526912506-18406-1-git-send-email-narmstrong@baylibre.com>
+        Fri, 11 May 2018 01:12:26 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180507124500.20434-3-paul.kocialkowski@bootlin.com>
+References: <20180507124500.20434-1-paul.kocialkowski@bootlin.com> <20180507124500.20434-3-paul.kocialkowski@bootlin.com>
+From: Chen-Yu Tsai <wens@csie.org>
+Date: Thu, 10 May 2018 22:05:33 -0700
+Message-ID: <CAGb2v67An8RSCKEDSgW_jY7m8iw22K4rRHb02q67decmCBcjhg@mail.gmail.com>
+Subject: Re: [PATCH v3 02/14] drivers: soc: sunxi: Add dedicated compatibles
+ for the A13, A20 and A33
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Alexandre Courbot <gnurou@gmail.com>,
+        Florent Revest <florent.revest@free-electrons.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Randy Li <ayaka@soulik.info>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The EC can expose a CEC bus, thus add the cros-ec-cec MFD sub-device
-when the CEC feature bit is present.
+On Mon, May 7, 2018 at 5:44 AM, Paul Kocialkowski
+<paul.kocialkowski@bootlin.com> wrote:
+> This introduces platform-specific compatibles for the A13, A20 and A33
+> SRAM driver. No particular adaptation for these platforms is required at
+> this point, although this might become the case in the future.
+>
+> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> ---
+>  drivers/soc/sunxi/sunxi_sram.c | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/drivers/soc/sunxi/sunxi_sram.c b/drivers/soc/sunxi/sunxi_sram.c
+> index 74cb81f37bd6..43ebc3bd33f2 100644
+> --- a/drivers/soc/sunxi/sunxi_sram.c
+> +++ b/drivers/soc/sunxi/sunxi_sram.c
+> @@ -315,6 +315,9 @@ static int sunxi_sram_probe(struct platform_device *pdev)
+>
+>  static const struct of_device_id sunxi_sram_dt_match[] = {
+>         { .compatible = "allwinner,sun4i-a10-sram-controller" },
+> +       { .compatible = "allwinner,sun5i-a13-sram-controller" },
+> +       { .compatible = "allwinner,sun7i-a20-sram-controller" },
+> +       { .compatible = "allwinner,sun8i-a33-sram-controller" },
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-Reviewed-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
----
- drivers/mfd/cros_ec_dev.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+We should probably name these "system-controller". Maxime?
 
-diff --git a/drivers/mfd/cros_ec_dev.c b/drivers/mfd/cros_ec_dev.c
-index 1d6dc5c..272969e 100644
---- a/drivers/mfd/cros_ec_dev.c
-+++ b/drivers/mfd/cros_ec_dev.c
-@@ -383,6 +383,10 @@ static void cros_ec_sensors_register(struct cros_ec_dev *ec)
- 	kfree(msg);
- }
- 
-+static const struct mfd_cell cros_ec_cec_cells[] = {
-+	{ .name = "cros-ec-cec" }
-+};
-+
- static const struct mfd_cell cros_ec_rtc_cells[] = {
- 	{ .name = "cros-ec-rtc" }
- };
-@@ -426,6 +430,18 @@ static int ec_device_probe(struct platform_device *pdev)
- 	if (cros_ec_check_features(ec, EC_FEATURE_MOTION_SENSE))
- 		cros_ec_sensors_register(ec);
- 
-+	/* Check whether this EC instance has CEC host command support */
-+	if (cros_ec_check_features(ec, EC_FEATURE_CEC)) {
-+		retval = mfd_add_devices(ec->dev, PLATFORM_DEVID_AUTO,
-+					 cros_ec_cec_cells,
-+					 ARRAY_SIZE(cros_ec_cec_cells),
-+					 NULL, 0, NULL);
-+		if (retval)
-+			dev_err(ec->dev,
-+				"failed to add cros-ec-cec device: %d\n",
-+				retval);
-+	}
-+
- 	/* Check whether this EC instance has RTC host command support */
- 	if (cros_ec_check_features(ec, EC_FEATURE_RTC)) {
- 		retval = mfd_add_devices(ec->dev, PLATFORM_DEVID_AUTO,
--- 
-2.7.4
+ChenYu
+
+>         { .compatible = "allwinner,sun50i-a64-sram-controller" },
+>         { },
+>  };
+> --
+> 2.16.3
+>
