@@ -1,92 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:33434 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752128AbeERSyF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 14:54:05 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 13/20] davinci_vpfe: Add video_device and vb2_queue locks
-Date: Fri, 18 May 2018 15:52:01 -0300
-Message-Id: <20180518185208.17722-14-ezequiel@collabora.com>
-In-Reply-To: <20180518185208.17722-1-ezequiel@collabora.com>
-References: <20180518185208.17722-1-ezequiel@collabora.com>
+Received: from mail.anw.at ([195.234.101.228]:51676 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750746AbeEKUCX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 May 2018 16:02:23 -0400
+Subject: Re: [PATCH 7/7] Add config-compat.h override config-mycompat.h
+To: Brad Love <brad@nextdimension.cc>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
+ <1524763162-4865-8-git-send-email-brad@nextdimension.cc>
+ <c20ac1dd-153c-5d43-f0fd-ade27c548f86@xs4all.nl>
+ <777ec77a-1a1c-138b-b5ca-33201649acc7@nextdimension.cc>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <3a039830-6ae8-406b-ede6-77553d7f45dd@anw.at>
+Date: Fri, 11 May 2018 22:02:18 +0200
+MIME-Version: 1.0
+In-Reply-To: <777ec77a-1a1c-138b-b5ca-33201649acc7@nextdimension.cc>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, this driver does not serialize its video4linux
-ioctls, which is a bug, as race conditions might appear.
+Hello Brad!
 
-In addition, video_device and vb2_queue locks are now both
-mandatory. Add them, and implement wait_prepare and
-wait_finish.
+> and which the media_build system does not pick up on for whatever
+> reason.
+Maybe it would be better to analyse why "make_config_compat.pl" selects
+wrongly the compatibility code.
 
-To stay on the safe side, this commit uses a single mutex
-for both locks. Better latency can be obtained by separating
-these if needed.
+> It seems there is quite often at least one backport I must disable,
+> and some target kernels require multiple backports disabled.
+This sounds strange. media-build should handle those cases correctly
+in my opinion and should be fixed.
+At least we should check why this happens.
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 6 +++++-
- drivers/staging/media/davinci_vpfe/vpfe_video.h | 2 +-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+Patch 7/7 sounds like a workaround for me.
+If there is really no other solution, than we need to implement this
+possibility for distro maintainers.
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 390fc98d07dd..1269a983455e 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -1312,6 +1312,8 @@ static const struct vb2_ops video_qops = {
- 	.stop_streaming		= vpfe_stop_streaming,
- 	.buf_cleanup		= vpfe_buf_cleanup,
- 	.buf_queue		= vpfe_buffer_queue,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
- 
- /*
-@@ -1357,6 +1359,7 @@ static int vpfe_reqbufs(struct file *file, void *priv,
- 	q->buf_struct_size = sizeof(struct vpfe_cap_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->dev = vpfe_dev->pdev;
-+	q->lock = &video->lock;
- 
- 	ret = vb2_queue_init(q);
- 	if (ret) {
-@@ -1598,17 +1601,18 @@ int vpfe_video_init(struct vpfe_video_device *video, const char *name)
- 		return -EINVAL;
- 	}
- 	/* Initialize field of video device */
-+	mutex_init(&video->lock);
- 	video->video_dev.release = video_device_release;
- 	video->video_dev.fops = &vpfe_fops;
- 	video->video_dev.ioctl_ops = &vpfe_ioctl_ops;
- 	video->video_dev.minor = -1;
- 	video->video_dev.tvnorms = 0;
-+	video->video_dev.lock = &video->lock;
- 	snprintf(video->video_dev.name, sizeof(video->video_dev.name),
- 		 "DAVINCI VIDEO %s %s", name, direction);
- 
- 	spin_lock_init(&video->irqlock);
- 	spin_lock_init(&video->dma_queue_lock);
--	mutex_init(&video->lock);
- 	ret = media_entity_pads_init(&video->video_dev.entity,
- 				1, &video->pad);
- 	if (ret < 0)
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-index 22136d3dadcb..4bbd219e8329 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-@@ -128,7 +128,7 @@ struct vpfe_video_device {
- 	spinlock_t				irqlock;
- 	/* IRQ lock for DMA queue */
- 	spinlock_t				dma_queue_lock;
--	/* lock used to access this structure */
-+	/* lock used to serialize all video4linux ioctls */
- 	struct mutex				lock;
- 	/* number of users performing IO */
- 	u32					io_usrs;
--- 
-2.16.3
+On the other hand, why is media-build used by distro maintainers at all?
+I thought distro Kernels are built with a full tree and thus doesn't
+need media-build.
+
+BR,
+   Jasmin
