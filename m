@@ -1,138 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:58048 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750710AbeEHEKH (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:54318 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753019AbeEKOEy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 May 2018 00:10:07 -0400
-Message-ID: <63df03faf50f1f357831f3b66aeccabb@smtp-cloud7.xs4all.net>
-Date: Tue, 08 May 2018 06:10:04 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 11 May 2018 10:04:54 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2] media: i2c: adv748x: Fix pixel rate values
+Date: Fri, 11 May 2018 16:04:34 +0200
+Message-Id: <20180511140434.19274-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Results of the daily build of media_tree:
+The pixel rate, as reported by the V4L2_CID_PIXEL_RATE control, must
+include both horizontal and vertical blanking. Both the AFE and HDMI
+receiver program it incorrectly:
 
-date:			Tue May  8 05:00:12 CEST 2018
-media-tree git hash:	f10379aad39e9da8bc7d1822e251b5f0673067ef
-media_build git hash:	f474c00fb99c3785bec5b0817bf0e2487fe06ea3
-v4l-utils git hash:	03e763fd4b361b2082019032fc315b7606669335
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
+- The HDMI receiver goes to the trouble of removing blanking to compute
+the rate of active pixels. This is easy to fix by removing the
+computation and returning the incoming pixel clock rate directly.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+- The AFE performs similar calculation, while it should simply return
+the fixed pixel rate for analog sources, mandated by the ADV748x to be
+14.3180180 MHz.
 
-Detailed results are available here:
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+[Niklas: Update AFE fixed pixel rate]
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+---
 
-Full logs are available here:
+* Changes since v1
+- Update AFE fixed pixel rate.
+---
+ drivers/media/i2c/adv748x/adv748x-afe.c  | 12 ++++++------
+ drivers/media/i2c/adv748x/adv748x-hdmi.c |  8 +-------
+ 2 files changed, 7 insertions(+), 13 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
+index 61514bae7e5ceb42..edd25e895e5dec3c 100644
+--- a/drivers/media/i2c/adv748x/adv748x-afe.c
++++ b/drivers/media/i2c/adv748x/adv748x-afe.c
+@@ -321,17 +321,17 @@ static const struct v4l2_subdev_video_ops adv748x_afe_video_ops = {
+ static int adv748x_afe_propagate_pixelrate(struct adv748x_afe *afe)
+ {
+ 	struct v4l2_subdev *tx;
+-	unsigned int width, height, fps;
+ 
+ 	tx = adv748x_get_remote_sd(&afe->pads[ADV748X_AFE_SOURCE]);
+ 	if (!tx)
+ 		return -ENOLINK;
+ 
+-	width = 720;
+-	height = afe->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+-	fps = afe->curr_norm & V4L2_STD_525_60 ? 30 : 25;
+-
+-	return adv748x_csi2_set_pixelrate(tx, width * height * fps);
++	/*
++	 * The ADV748x ADC sampling frequency is twice the externally supplied
++	 * clock whose frequency is required to be 28.63636 MHz. It oversamples
++	 * with a factor of 4 resulting in a pixel rate of 14.3180180 MHz.
++	 */
++	return adv748x_csi2_set_pixelrate(tx, 14318180);
+ }
+ 
+ static int adv748x_afe_enum_mbus_code(struct v4l2_subdev *sd,
+diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+index 10d229a4f08868f7..aecc2a84dfecbec8 100644
+--- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
++++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+@@ -402,8 +402,6 @@ static int adv748x_hdmi_propagate_pixelrate(struct adv748x_hdmi *hdmi)
+ {
+ 	struct v4l2_subdev *tx;
+ 	struct v4l2_dv_timings timings;
+-	struct v4l2_bt_timings *bt = &timings.bt;
+-	unsigned int fps;
+ 
+ 	tx = adv748x_get_remote_sd(&hdmi->pads[ADV748X_HDMI_SOURCE]);
+ 	if (!tx)
+@@ -411,11 +409,7 @@ static int adv748x_hdmi_propagate_pixelrate(struct adv748x_hdmi *hdmi)
+ 
+ 	adv748x_hdmi_query_dv_timings(&hdmi->sd, &timings);
+ 
+-	fps = DIV_ROUND_CLOSEST_ULL(bt->pixelclock,
+-				    V4L2_DV_BT_FRAME_WIDTH(bt) *
+-				    V4L2_DV_BT_FRAME_HEIGHT(bt));
+-
+-	return adv748x_csi2_set_pixelrate(tx, bt->width * bt->height * fps);
++	return adv748x_csi2_set_pixelrate(tx, timings.bt.pixelclock);
+ }
+ 
+ static int adv748x_hdmi_enum_mbus_code(struct v4l2_subdev *sd,
+-- 
+2.17.0
