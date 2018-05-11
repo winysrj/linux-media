@@ -1,138 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:56096 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752188AbeEOI13 (ORCPT
+Received: from mx-ginzinger.sigmacloud.services ([185.154.235.147]:38819 "EHLO
+        mx-ginzinger.sigmacloud.services" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751981AbeEKGRB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 04:27:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Fabien DESSENNE <fabien.dessenne@st.com>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Jean Christophe TROTIN <jean-christophe.trotin@st.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Luis R. Rodriguez" <mcgrof@kernel.org>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Fri, 11 May 2018 02:17:01 -0400
+From: Franz Melchior <Melchior.Franz@ginzinger.com>
+To: =?utf-8?B?S3J6eXN6dG9mIEhhxYJhc2E=?= <khalasa@piap.pl>,
         "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Are media drivers abusing of GFP_DMA? - was: Re: [LSF/MM TOPIC NOTES] x86 ZONE_DMA love
-Date: Tue, 15 May 2018 11:27:44 +0300
-Message-ID: <2362912.ePyn3BKvGt@avalon>
-In-Reply-To: <63607d94-b974-2bcd-c15e-fcb9350d8470@st.com>
-References: <20180426215406.GB27853@wotan.suse.de> <20180514073857.7fd69136@vento.lan> <63607d94-b974-2bcd-c15e-fcb9350d8470@st.com>
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+Date: Fri, 11 May 2018 06:11:04 +0000
+Message-ID: <bb2580e2-c5bf-1a5d-30be-d400692a7520@ginzinger.com>
+References: <m37eobudmo.fsf@t19.piap.pl>
+In-Reply-To: <m37eobudmo.fsf@t19.piap.pl>
+Content-Language: de-DE
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <0A25FFC83A70F44AAF5C0132334A2431@ginzinger.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On Tuesday, 15 May 2018 10:30:28 EEST Fabien DESSENNE wrote:
-> On 14/05/18 12:39, Mauro Carvalho Chehab wrote:
-> > Em Mon, 14 May 2018 07:35:03 -0300 Mauro Carvalho Chehab escreveu:
-> >> Em Mon, 14 May 2018 08:00:37 +0000 Fabien DESSENNE escreveu:
-> >>> On 07/05/18 17:19, Mauro Carvalho Chehab wrote:
-> >>>> Em Mon, 07 May 2018 16:26:08 +0300 Laurent Pinchart escreveu:
-> >>>>> On Saturday, 5 May 2018 19:08:15 EEST Mauro Carvalho Chehab wrote:
-> >>>>> 
-> >>>>>> There was a recent discussion about the use/abuse of GFP_DMA flag
-> >>>>>> when allocating memories at LSF/MM 2018 (see Luis notes enclosed).
-> >>>>>>
-> >>>>>> The idea seems to be to remove it, using CMA instead. Before doing
-> >>>>>> that, better to check if what we have on media is are valid use cases
-> >>>>>> for it, or if it is there just due to some misunderstanding (or
-> >>>>>> because it was copied from some other code).
-> >>>>>>
-> >>>>>> Hans de Goede sent us today a patch stopping abuse at gspca, and I'm
-> >>>>>> also posting today two other patches meant to stop abuse of it on
-> >>>>>> USB drivers. Still, there are 4 platform drivers using it:
-> >>>>>>
-> >>>>>> 	$ git grep -l -E "GFP_DMA\\b" drivers/media/
-> >>>>>> 	drivers/media/platform/omap3isp/ispstat.c
-> >>>>>> 	drivers/media/platform/sti/bdisp/bdisp-hw.c
-> >>>>>> 	drivers/media/platform/sti/hva/hva-mem.c
-> >>>
-> >>> The two STI drivers (bdisp-hw.c and hva-mem.c) are only expected to run
-> >>> on ARM platforms, not on x86. Since this thread deals with x86 & DMA
-> >>> trouble, I am not sure that we actually have a problem for the sti
-> >>> drivers.
-> >>>
-> >>> There are some other sti drivers that make use of this GFP_DMA flag
-> >>> (drivers/gpu/drm/sti/sti_*.c) and it does not seem to be a problem.
-> >>>
-> >>> Nevertheless I can see that the media sti drivers depend on COMPILE_TEST
-> >>> (which is not the case for the DRM ones).
-> >>> Would it be an acceptable solution to remove the COMPILE_TEST
-> >>> dependency?
-> >> 
-> >> This has nothing to do with either x86 or COMPILE_TEST. The thing is
-> >> that there's a plan for removing GFP_DMA from the Kernel[1], as it was
-> >> originally meant to be used only by old PCs, where the DMA controllers
-> >> used only  on the bottom 16 MB memory address (24 bits). IMHO, it is
-> >> very unlikely that any ARM SoC have such limitation.
-> >>
-> >> [1] https://lwn.net/Articles/753273/ (article will be freely available
-> >> on May, 17)
-> > 
-> > Btw, you can also read about that at:
-> > 
-> > 	https://lwn.net/Articles/753274/
-> >
-> >> Anyway, before the removal of GFP_DMA happens, I'd like to better
-> >> understand why we're using it at media, and if we can, instead,
-> >> set the DMA bit mask, just like almost all other media drivers
-> >> that require to confine DMA into a certain range do. In the case
-> >> of ARM, this is what we currently have:
-> >>
-> >> drivers/media/platform/exynos-gsc/gsc-core.c:  
-> >> vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
-> >> drivers/media/platform/exynos4-is/fimc-core.c: 
-> >> vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
-> >> drivers/media/platform/exynos4-is/fimc-is.c:   
-> >> vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
-> >> drivers/media/platform/exynos4-is/fimc-lite.c: 
-> >> vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
-> >> drivers/media/platform/mtk-mdp/mtk_mdp_core.c: 
-> >> vb2_dma_contig_set_max_seg_size(&pdev->dev, DMA_BIT_MASK(32));
-> >> drivers/media/platform/omap3isp/isp.c:  ret =
-> >> dma_coerce_mask_and_coherent(isp->dev, DMA_BIT_MASK(32));
-> >> drivers/media/platform/s5p-g2d/g2d.c:  
-> >> vb2_dma_contig_set_max_seg_size(&pdev->dev, DMA_BIT_MASK(32));
-> >> drivers/media/platform/s5p-jpeg/jpeg-core.c:   
-> >> vb2_dma_contig_set_max_seg_size(&pdev->dev, DMA_BIT_MASK(32));
-> >> drivers/media/platform/s5p-mfc/s5p_mfc.c:                               
-> >>        DMA_BIT_MASK(32));
-> >> drivers/media/platform/s5p-mfc/s5p_mfc.c:     
-> >>                                  DMA_BIT_MASK(32));
-> >> drivers/media/platform/s5p-mfc/s5p_mfc.c:      
-> >> vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
-> 
-> That's clearer now, thank you for the clarification
-> I am about to send patches for the sti drivers (set the DMA bit mask)
-
-Some drivers call vb2_dma_contig_set_max_seg_size() and some call 
-dma_coerce_mask_and_coherent(). Both are likely needed, the former telling the 
-DMA mapping API about the maximum size of a scatter-gather chunk that the 
-device supports (when using vb2-dma-contig that size should really be the full 
-address space supported by the device as we want DMA-contiguous buffers), and 
-the latter telling the DMA mapping API about the address space that is 
-accessible through DMA (and thus in which address range buffers must be 
-placed).
-
-I wonder why the omap3isp driver works without a 
-vb2_dma_contig_set_max_seg_size() call. Sakari, any insight ?
-
-> >>>>>> 	drivers/media/spi/cxd2880-spi.c
-> >>>>>>
-> >>>>>> Could you please check if GFP_DMA is really needed there, or if it
-> >>>>>> is just because of some cut-and-paste from some other place?
-> >>>>> 
-> >>>>> I started looking at that for the omap3isp driver but Sakari beat me
-> >>>>> at submitting a patch. GFP_DMA isn't needed for omap3isp.
-> >>>> 
-> >>>> Thank you both for looking into it.
-
--- 
-Regards,
-
-Laurent Pinchart
+SGV5LA0KDQoqIEtyenlzenRvZiBIYcWCYXNhLCAyMDE4LTA1LTEwIDEwOjE5Og0KPiBJJ20gdXNp
+bmcgYW5hbG9nIFBBTCB2aWRlbyBpbiBvbiBHVzUzeHgvNTR4eCBib2FyZHMgKHRocm91Z2ggQURW
+NzE4MA0KPiBjaGlwIGFuZCA4LWJpdCBwYXJhbGxlbCBDU0kgaW5wdXQsIHdpdGggKHByZXN1bWFi
+bHkpIEJULjY1NikuDQpbLi4uXQ0KPiBGaXJzdCwgSSBjYW4ndCBmaW5kIGEgd2F5IHRvIGNoYW5n
+ZSB0byBQQUwgc3RhbmRhcmQuICpzX3N0ZCgpIGRvZXNuJ3QNCj4gcHJvcGFnYXRlIGZyb20gImlw
+dTJfY3NpMSBjYXB0dXJlIiB0aHJvdWdoICJpcHUyX2NzaTFfbXV4IiB0byBhZHY3MTgwLg0KPg0K
+PiBGb3Igbm93IEkgaGF2ZSBqdXN0IGNoYW5nZWQgdGhlIGRlZmF1bHQ6DQo+IC0tLSBhL2RyaXZl
+cnMvbWVkaWEvaTJjL2FkdjcxODAuYw0KPiArKysgYi9kcml2ZXJzL21lZGlhL2kyYy9hZHY3MTgw
+LmMNCj4gQEAgLTEzMjAsNyArMTMyMSw3IEBAIHN0YXRpYyBpbnQgYWR2NzE4MF9wcm9iZShzdHJ1
+Y3QgaTJjX2NsaWVudCAqY2xpZW50LA0KPg0KPiAgICAgICBzdGF0ZS0+aXJxID0gY2xpZW50LT5p
+cnE7DQo+ICAgICAgIG11dGV4X2luaXQoJnN0YXRlLT5tdXRleCk7DQo+IC0gICAgc3RhdGUtPmN1
+cnJfbm9ybSA9IFY0TDJfU1REX05UU0M7DQo+ICsgICAgc3RhdGUtPmN1cnJfbm9ybSA9IFY0TDJf
+U1REX1BBTDsNCj4gICAgICAgaWYgKHN0YXRlLT5jaGlwX2luZm8tPmZsYWdzICYgQURWNzE4MF9G
+TEFHX1JFU0VUX1BPV0VSRUQpDQo+ICAgICAgICAgICBzdGF0ZS0+cG93ZXJlZCA9IHRydWU7DQo+
+ICAgICAgIGVsc2UNCg0KSkZUUjogSSBoYWQgYSBzaW1pbGFyIHByb2JsZW0gb24gYSBib2FyZCwg
+d2hlcmUgdGhlcmUgY2FuIGVpdGhlciBiZSBhbg0KTlRTQyAqb3IqIGEgUEFMIGNhbWVyYSwgc28g
+SSBoYWQgdG8gbWFrZSBpdCBkeW5hbWljLg0KDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlh
+L2kyYy9hZHY3MTgwLmMgYi9kcml2ZXJzL21lZGlhL2kyYy9hZHY3MTgwLmMNCmluZGV4IDNkZjI4
+ZjJmOWIzOC4uZTVlYmViZjdhMWY0IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9tZWRpYS9pMmMvYWR2
+NzE4MC5jDQorKysgYi9kcml2ZXJzL21lZGlhL2kyYy9hZHY3MTgwLmMNCkBAIC0xMzIwLDcgKzEz
+MjAsMjcgQEAgc3RhdGljIGludCBhZHY3MTgwX3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGll
+bnQsDQoNCiAgICAgICAgIHN0YXRlLT5pcnEgPSBjbGllbnQtPmlycTsNCiAgICAgICAgIG11dGV4
+X2luaXQoJnN0YXRlLT5tdXRleCk7DQorDQorICAgICAgIC8qIGNoZWNrIGlmIHZpZGVvIHN0YW5k
+YXJkIChQQUwsIE5UU0MpIGhhcyBhbHJlYWR5IGJlZW4gZGV0ZXJtaW5lZCAqLw0KKyAgICAgICBy
+ZXQgPSBhZHY3MTgwX3JlYWQoc3RhdGUsIEFEVjcxODBfUkVHX1NUQVRVUzEpOw0KKyAgICAgICBp
+ZiAocmV0IDwgMCkgew0KKyAgICAgICAgICAgICAgIHJldCA9IC1FSU87DQorICAgICAgICAgICAg
+ICAgZ290byBlcnJfdW5yZWdpc3Rlcl92cHBfY2xpZW50Ow0KKyAgICAgICB9DQorDQogICAgICAg
+ICBzdGF0ZS0+Y3Vycl9ub3JtID0gVjRMMl9TVERfTlRTQzsNCisgICAgICAgaWYgKHJldCAmIEFE
+VjcxODBfU1RBVFVTMV9JTl9MT0NLKSB7DQorICAgICAgICAgICAgICAgcmV0ID0gKHJldCA+PiA0
+KSAmIDB4MDc7IC8qIGF1dG9kZXRlY3Rpb24gcmVzdWx0IChBRF9SRVNVTFQpICovDQorICAgICAg
+ICAgICAgICAgaWYgKHJldCA+PSAyICYmIHJldCA8PSA0KSB7DQorICAgICAgICAgICAgICAgICAg
+ICAgICB2NGxfaW5mbyhjbGllbnQsICJsb2NrZWQgb24gUEFMIHNpZ25hbFxuIik7DQorICAgICAg
+ICAgICAgICAgICAgICAgICBzdGF0ZS0+Y3Vycl9ub3JtID0gVjRMMl9TVERfUEFMOw0KKyAgICAg
+ICAgICAgICAgIH0gZWxzZSB7DQorICAgICAgICAgICAgICAgICAgICAgICB2NGxfaW5mbyhjbGll
+bnQsICJsb2NrZWQgb24gTlRTQyBzaWduYWxcbiIpOw0KKyAgICAgICAgICAgICAgIH0NCisgICAg
+ICAgfSBlbHNlIHsNCisgICAgICAgICAgICAgICB2NGxfaW5mbyhjbGllbnQsICJubyBzaWduYWws
+IHVzaW5nIE5UU0NcbiIpOw0KKyAgICAgICB9DQorDQogICAgICAgICBpZiAoc3RhdGUtPmNoaXBf
+aW5mby0+ZmxhZ3MgJiBBRFY3MTgwX0ZMQUdfUkVTRVRfUE9XRVJFRCkNCiAgICAgICAgICAgICAg
+ICAgc3RhdGUtPnBvd2VyZWQgPSB0cnVlOw0KICAgICAgICAgZWxzZQ0KbS4NCg0KDQpNZWxjaGlv
+ciBGcmFueiB8IEVudHdpY2tsdW5nIFNvZnR3YXJlDQoNCkdJTlpJTkdFUiBFTEVDVFJPTklDIFNZ
+U1RFTVMgR01CSA0KDQpUZWwuOiArNDMgNzcyMyA1NDIyIDE1Ng0KTWFpbDogbWVsY2hpb3IuZnJh
+bnpAZ2luemluZ2VyLmNvbQ0KV2ViOiB3d3cuZ2luemluZ2VyLmNvbQ0KDQoNCg0KDQoNCg0KDQpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQoNCkdpbnppbmdlciBlbGVj
+dHJvbmljIHN5c3RlbXMgR21iSA0KR2V3ZXJiZWdlYmlldCBQaXJhdGggMTYNCjQ5NTIgV2VuZyBp
+bSBJbm5rcmVpcw0Kd3d3Lmdpbnppbmdlci5jb20NCg0KRmlybWVuYnVjaG51bW1lcjogRk4gMzY0
+OTU4ZA0KRmlybWVuYnVjaGdlcmljaHQ6IFJpZWQgaW0gSW5ua3JlaXMNClVJRC1Oci46IEFUVTY2
+NTIxMDg5DQoNCg==
