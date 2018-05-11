@@ -1,110 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:36488 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752783AbeEOQYY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 12:24:24 -0400
-Date: Tue, 15 May 2018 16:24:23 +0000
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Fabien DESSENNE <fabien.dessenne@st.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jean Christophe TROTIN <jean-christophe.trotin@st.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Luis R. Rodriguez" <mcgrof@kernel.org>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Are media drivers abusing of GFP_DMA? - was: Re: [LSF/MM TOPIC
- NOTES] x86 ZONE_DMA love
-Message-ID: <20180515162422.GG27853@wotan.suse.de>
-References: <20180426215406.GB27853@wotan.suse.de>
- <20180505130815.53a26955@vento.lan>
- <3561479.qPIcrWnXEC@avalon>
- <20180507121916.4eb7f5b2@vento.lan>
- <547252fc-dc74-93c6-fc77-be1bfb558787@st.com>
- <20180514073503.3da05fc6@vento.lan>
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:24046 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753186AbeEKOmG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 May 2018 10:42:06 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 1/2] Revert "media: rcar-vin: enable field toggle after a set number of lines for Gen3"
+Date: Fri, 11 May 2018 16:41:25 +0200
+Message-Id: <20180511144126.24804-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180511144126.24804-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180511144126.24804-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180514073503.3da05fc6@vento.lan>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 14, 2018 at 07:35:03AM -0300, Mauro Carvalho Chehab wrote:
-> Hi Fabien,
-> 
-> Em Mon, 14 May 2018 08:00:37 +0000
-> Fabien DESSENNE <fabien.dessenne@st.com> escreveu:
-> 
-> > On 07/05/18 17:19, Mauro Carvalho Chehab wrote:
-> > > Em Mon, 07 May 2018 16:26:08 +0300
-> > > Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-> > >  
-> > >> Hi Mauro,
-> > >>
-> > >> On Saturday, 5 May 2018 19:08:15 EEST Mauro Carvalho Chehab wrote:  
-> > >>> There was a recent discussion about the use/abuse of GFP_DMA flag when
-> > >>> allocating memories at LSF/MM 2018 (see Luis notes enclosed).
-> > >>>
-> > >>> The idea seems to be to remove it, using CMA instead. Before doing that,
-> > >>> better to check if what we have on media is are valid use cases for it, or
-> > >>> if it is there just due to some misunderstanding (or because it was
-> > >>> copied from some other code).
-> > >>>
-> > >>> Hans de Goede sent us today a patch stopping abuse at gspca, and I'm
-> > >>> also posting today two other patches meant to stop abuse of it on USB
-> > >>> drivers. Still, there are 4 platform drivers using it:
-> > >>>
-> > >>> 	$ git grep -l -E "GFP_DMA\\b" drivers/media/
-> > >>> 	drivers/media/platform/omap3isp/ispstat.c
-> > >>> 	drivers/media/platform/sti/bdisp/bdisp-hw.c
-> > >>> 	drivers/media/platform/sti/hva/hva-mem.c  
-> > 
-> > Hi Mauro,
-> > 
-> > The two STI drivers (bdisp-hw.c and hva-mem.c) are only expected to run 
-> > on ARM platforms, not on x86.
-> > Since this thread deals with x86 & DMA trouble, I am not sure that we 
-> > actually have a problem for the sti drivers.
-> > 
-> > There are some other sti drivers that make use of this GFP_DMA flag 
-> > (drivers/gpu/drm/sti/sti_*.c) and it does not seem to be a problem.
-> > 
-> > Nevertheless I can see that the media sti drivers depend on COMPILE_TEST 
-> > (which is not the case for the DRM ones).
-> > Would it be an acceptable solution to remove the COMPILE_TEST dependency?
-> 
-> This has nothing to do with either x86 
+The offending commit was an attempt to fix the issue of writing outside
+the capture buffer for VIN Gen3. Unfortunately it only fixed the symptom
+of the problem to such a degree I could no longer reproduce it. Revert
+the offending commit before a proper fix can be added in a follow-up
+patch.
 
-Actually it does.
+This reverts commit 015060cb7795eac34454696cc9c9f8b76926a401.
 
-> or COMPILE_TEST. The thing is
-> that there's a plan for removing GFP_DMA from the Kernel[1], 
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
 
-That would not be possible given architectures use GFP_DMA for other
-things and there are plenty of legacy x86 drivers which still need to be
-around. So the focus from mm folks shifted to letting x86 folks map
-GFP_DMA onto the CMA pool. Long term, this is nothing that driver developers
-need to care for, but just knowing internally behind the scenes there is some
-cleaning up being done in terms of architecture.
-
-> as it was
-> originally meant to be used only by old PCs, where the DMA controllers
-> used only  on the bottom 16 MB memory address (24 bits).
-
-This is actually the part that is x86 specific.
-
-Each other architecture may use it for some other definition and it seems
-some architectures use GFP_DMA all over the place. So the topic really should
-be about x86.
-
-> IMHO, it is 
-> very unlikely that any ARM SoC have such limitation.
-
-Right, how the flag is used on other architectures varies, so in fact the
-focus for cleaning up for now should be an x86 effort. Whether or not
-other architectures do something silly with GFP_DMA is beyond the scope
-of what was discussed.
-
-  Luis
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index b41ba9a4a2b3ac90..ac07f99e3516a620 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -124,9 +124,7 @@
+ #define VNDMR2_VPS		(1 << 30)
+ #define VNDMR2_HPS		(1 << 29)
+ #define VNDMR2_FTEV		(1 << 17)
+-#define VNDMR2_FTEH		(1 << 16)
+ #define VNDMR2_VLV(n)		((n & 0xf) << 12)
+-#define VNDMR2_HLV(n)		((n) & 0xfff)
+ 
+ /* Video n CSI2 Interface Mode Register (Gen3) */
+ #define VNCSI_IFMD_DES1		(1 << 26)
+@@ -614,9 +612,8 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 
+ static int rvin_setup(struct rvin_dev *vin)
+ {
+-	u32 vnmc, dmr, dmr2, interrupts, lines;
++	u32 vnmc, dmr, dmr2, interrupts;
+ 	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+-	bool halfsize = false;
+ 
+ 	switch (vin->format.field) {
+ 	case V4L2_FIELD_TOP:
+@@ -631,15 +628,12 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		/* Use BT if video standard can be read and is 60 Hz format */
+ 		if (!vin->info->use_mc && vin->std & V4L2_STD_525_60)
+ 			vnmc = VNMC_IM_FULL | VNMC_FOC;
+-		halfsize = true;
+ 		break;
+ 	case V4L2_FIELD_INTERLACED_TB:
+ 		vnmc = VNMC_IM_FULL;
+-		halfsize = true;
+ 		break;
+ 	case V4L2_FIELD_INTERLACED_BT:
+ 		vnmc = VNMC_IM_FULL | VNMC_FOC;
+-		halfsize = true;
+ 		break;
+ 	case V4L2_FIELD_NONE:
+ 		vnmc = VNMC_IM_ODD_EVEN;
+@@ -682,15 +676,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	}
+ 
+-	if (vin->info->model == RCAR_GEN3) {
+-		/* Enable HSYNC Field Toggle mode after height HSYNC inputs. */
+-		lines = vin->format.height / (halfsize ? 2 : 1);
+-		dmr2 = VNDMR2_FTEH | VNDMR2_HLV(lines);
+-		vin_dbg(vin, "Field Toogle after %u lines\n", lines);
+-	} else {
+-		/* Enable VSYNC Field Toogle mode after one VSYNC input. */
++	/* Enable VSYNC Field Toogle mode after one VSYNC input */
++	if (vin->info->model == RCAR_GEN3)
++		dmr2 = VNDMR2_FTEV;
++	else
+ 		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+-	}
+ 
+ 	/* Hsync Signal Polarity Select */
+ 	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+-- 
+2.17.0
