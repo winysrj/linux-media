@@ -1,213 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:62561 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751348AbeE1Ocr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 May 2018 10:32:47 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel@vger.kernel.org
-Subject: [PATCH] media: dvb: get rid of VIDEO_SET_SPU_PALETTE
-Date: Mon, 28 May 2018 11:32:41 -0300
-Message-Id: <c1e86dc99d811e90d11181b2bf2e1237db76a5c1.1527517459.git.mchehab+samsung@kernel.org>
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:50977 "EHLO
+        homiemail-a121.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750798AbeEKVsa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 May 2018 17:48:30 -0400
+Subject: Re: [PATCH 7/7] Add config-compat.h override config-mycompat.h
+To: "Jasmin J." <jasmin@anw.at>, Brad Love <brad@nextdimension.cc>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
+ <1524763162-4865-8-git-send-email-brad@nextdimension.cc>
+ <c20ac1dd-153c-5d43-f0fd-ade27c548f86@xs4all.nl>
+ <777ec77a-1a1c-138b-b5ca-33201649acc7@nextdimension.cc>
+ <3a039830-6ae8-406b-ede6-77553d7f45dd@anw.at>
+ <412dd3a2-b48e-3068-4181-37c66d664891@nextdimension.cc>
+ <2e78051f-d025-6a50-e745-20baf20325b6@anw.at>
+From: Brad Love <brad@nextdimension.cc>
+Message-ID: <9a9ca72a-420a-85fc-1fa5-fbd49f06069c@nextdimension.cc>
+Date: Fri, 11 May 2018 16:48:27 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <2e78051f-d025-6a50-e745-20baf20325b6@anw.at>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No upstream drivers use it. It doesn't make any sense to have
-a compat32 code for something that nobody uses upstream.
+Hi Jasmin,
 
-Reported-by: Alexander Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- .../media/uapi/dvb/video-set-spu-palette.rst  | 82 -------------------
- .../media/uapi/dvb/video_function_calls.rst   |  1 -
- Documentation/media/uapi/dvb/video_types.rst  | 18 ----
- Documentation/media/video.h.rst.exceptions    |  1 -
- fs/compat_ioctl.c                             |  2 -
- include/uapi/linux/dvb/video.h                |  7 --
- 6 files changed, 111 deletions(-)
- delete mode 100644 Documentation/media/uapi/dvb/video-set-spu-palette.rst
 
-diff --git a/Documentation/media/uapi/dvb/video-set-spu-palette.rst b/Documentation/media/uapi/dvb/video-set-spu-palette.rst
-deleted file mode 100644
-index 51a1913d21d2..000000000000
---- a/Documentation/media/uapi/dvb/video-set-spu-palette.rst
-+++ /dev/null
-@@ -1,82 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. _VIDEO_SET_SPU_PALETTE:
--
--=====================
--VIDEO_SET_SPU_PALETTE
--=====================
--
--Name
------
--
--VIDEO_SET_SPU_PALETTE
--
--.. attention:: This ioctl is deprecated.
--
--Synopsis
----------
--
--.. c:function:: int ioctl(fd, VIDEO_SET_SPU_PALETTE, struct video_spu_palette *palette )
--    :name: VIDEO_SET_SPU_PALETTE
--
--
--Arguments
-----------
--
--.. flat-table::
--    :header-rows:  0
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  int fd
--
--       -  File descriptor returned by a previous call to open().
--
--    -  .. row 2
--
--       -  int request
--
--       -  Equals VIDEO_SET_SPU_PALETTE for this command.
--
--    -  .. row 3
--
--       -  video_spu_palette_t \*palette
--
--       -  SPU palette according to section ??.
--
--
--Description
-------------
--
--This ioctl sets the SPU color palette.
--
--.. c:type:: video_spu_palette
--
--.. code-block::c
--
--	typedef struct video_spu_palette {      /* SPU Palette information */
--		int length;
--		__u8 __user *palette;
--	} video_spu_palette_t;
--
--Return Value
--------------
--
--On success 0 is returned, on error -1 and the ``errno`` variable is set
--appropriately. The generic error codes are described at the
--:ref:`Generic Error Codes <gen-errors>` chapter.
--
--
--
--.. flat-table::
--    :header-rows:  0
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ``EINVAL``
--
--       -  input is not a valid palette or driver doesn’t handle SPU.
-diff --git a/Documentation/media/uapi/dvb/video_function_calls.rst b/Documentation/media/uapi/dvb/video_function_calls.rst
-index 68588ac7fecb..8d8383ffaeba 100644
---- a/Documentation/media/uapi/dvb/video_function_calls.rst
-+++ b/Documentation/media/uapi/dvb/video_function_calls.rst
-@@ -38,6 +38,5 @@ Video Function Calls
-     video-set-system
-     video-set-highlight
-     video-set-spu
--    video-set-spu-palette
-     video-get-navi
-     video-set-attributes
-diff --git a/Documentation/media/uapi/dvb/video_types.rst b/Documentation/media/uapi/dvb/video_types.rst
-index 640a21de6b8a..4cfa00e5c934 100644
---- a/Documentation/media/uapi/dvb/video_types.rst
-+++ b/Documentation/media/uapi/dvb/video_types.rst
-@@ -320,24 +320,6 @@ to the following format:
-      } video_spu_t;
- 
- 
--.. c:type:: video_spu_palette
--
--struct video_spu_palette
--========================
--
--The following structure is used to set the SPU palette by calling
--VIDEO_SPU_PALETTE:
--
--
--.. code-block:: c
--
--     typedef
--     struct video_spu_palette {
--	 int length;
--	 uint8_t *palette;
--     } video_spu_palette_t;
--
--
- .. c:type:: video_navi_pack
- 
- struct video_navi_pack
-diff --git a/Documentation/media/video.h.rst.exceptions b/Documentation/media/video.h.rst.exceptions
-index a91aa884ce0e..89d7c3ef2da7 100644
---- a/Documentation/media/video.h.rst.exceptions
-+++ b/Documentation/media/video.h.rst.exceptions
-@@ -36,5 +36,4 @@ replace typedef video_stream_source_t :c:type:`video_stream_source`
- replace typedef video_play_state_t :c:type:`video_play_state`
- replace typedef video_highlight_t :c:type:`video_highlight`
- replace typedef video_spu_t :c:type:`video_spu`
--replace typedef video_spu_palette_t :c:type:`video_spu_palette`
- replace typedef video_navi_pack_t :c:type:`video_navi_pack`
-diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
-index ef80085ed564..e78ecda283d2 100644
---- a/fs/compat_ioctl.c
-+++ b/fs/compat_ioctl.c
-@@ -1349,8 +1349,6 @@ static long do_ioctl_trans(unsigned int cmd,
- 		return do_video_get_event(file, cmd, argp);
- 	case VIDEO_STILLPICTURE:
- 		return do_video_stillpicture(file, cmd, argp);
--	case VIDEO_SET_SPU_PALETTE:
--		return do_video_set_spu_palette(file, cmd, argp);
- 	}
- 
- 	/*
-diff --git a/include/uapi/linux/dvb/video.h b/include/uapi/linux/dvb/video.h
-index df3d7028c807..6a0c9757b7ba 100644
---- a/include/uapi/linux/dvb/video.h
-+++ b/include/uapi/linux/dvb/video.h
-@@ -186,12 +186,6 @@ typedef struct video_spu {
- } video_spu_t;
- 
- 
--typedef struct video_spu_palette {      /* SPU Palette information */
--	int length;
--	__u8 __user *palette;
--} video_spu_palette_t;
--
--
- typedef struct video_navi_pack {
- 	int length;          /* 0 ... 1024 */
- 	__u8 data[1024];
-@@ -248,7 +242,6 @@ typedef __u16 video_attributes_t;
- #define VIDEO_SET_SYSTEM           _IO('o', 38)
- #define VIDEO_SET_HIGHLIGHT        _IOW('o', 39, video_highlight_t)
- #define VIDEO_SET_SPU              _IOW('o', 50, video_spu_t)
--#define VIDEO_SET_SPU_PALETTE      _IOW('o', 51, video_spu_palette_t)
- #define VIDEO_GET_NAVI             _IOR('o', 52, video_navi_pack_t)
- #define VIDEO_SET_ATTRIBUTES       _IO('o', 53)
- #define VIDEO_GET_SIZE             _IOR('o', 55, video_size_t)
--- 
-2.17.0
+On 2018-05-11 16:43, Jasmin J. wrote:
+> Hello Brad!
+>
+> THX for this clarification!
+>
+> So you tried already to fix the config_compat script and I agree with you that
+> it is difficult for you because of the various Kernels and distributions you
+> have to maintain.
+>
+> Then your workaround is indeed a possibility to use media-build to build your
+> modules out of tree for all the combinations you have. Maybe in the future
+> other people may use this also.
+>
+> BR,
+>    Jasmin
+
+Please do check out my v2. Hans also had questions and concerns over the
+intended usage, so I did my best to explain it thoroughly in the v2 commit
+message along with inside of compat.h. I hope it is clear enough now to
+understand for anyone who might need the feature in the future.
+
+Cheers,
+
+Brad
