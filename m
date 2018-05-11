@@ -1,140 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:41510 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751379AbeEQDlO (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:63216 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752394AbeEKOQm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 23:41:14 -0400
-Message-ID: <9488489c0f7cb5d38f865fa551642a79@smtp-cloud7.xs4all.net>
-Date: Thu, 17 May 2018 05:41:12 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 11 May 2018 10:16:42 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 1/2] Revert "media: rcar-vin: enable field toggle after a set number of lines for Gen3"
+Date: Fri, 11 May 2018 16:15:40 +0200
+Message-Id: <20180511141541.3164-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180511141541.3164-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180511141541.3164-1-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This reverts commit 015060cb7795eac34454696cc9c9f8b76926a401.
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
 
-Results of the daily build of media_tree:
-
-date:			Thu May 17 05:00:12 CEST 2018
-media-tree git hash:	7e6b6b945272c20f6b78d319e07f27897a8373c9
-media_build git hash:	d72556c0502c096c089c99c58ee4a02a13133361
-v4l-utils git hash:	e2038ec6451293787b929338c2a671c732b8693d
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
-
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: OK
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: ERRORS
-linux-4.13.16-x86_64: ERRORS
-linux-4.14.31-i686: WARNINGS
-linux-4.14.31-x86_64: WARNINGS
-linux-4.15.14-i686: WARNINGS
-linux-4.15.14-x86_64: WARNINGS
-linux-4.16.8-i686: WARNINGS
-linux-4.16.8-x86_64: WARNINGS
-linux-4.17-rc4-i686: WARNINGS
-linux-4.17-rc4-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index b41ba9a4a2b3ac90..ac07f99e3516a620 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -124,9 +124,7 @@
+ #define VNDMR2_VPS		(1 << 30)
+ #define VNDMR2_HPS		(1 << 29)
+ #define VNDMR2_FTEV		(1 << 17)
+-#define VNDMR2_FTEH		(1 << 16)
+ #define VNDMR2_VLV(n)		((n & 0xf) << 12)
+-#define VNDMR2_HLV(n)		((n) & 0xfff)
+ 
+ /* Video n CSI2 Interface Mode Register (Gen3) */
+ #define VNCSI_IFMD_DES1		(1 << 26)
+@@ -614,9 +612,8 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 
+ static int rvin_setup(struct rvin_dev *vin)
+ {
+-	u32 vnmc, dmr, dmr2, interrupts, lines;
++	u32 vnmc, dmr, dmr2, interrupts;
+ 	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+-	bool halfsize = false;
+ 
+ 	switch (vin->format.field) {
+ 	case V4L2_FIELD_TOP:
+@@ -631,15 +628,12 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		/* Use BT if video standard can be read and is 60 Hz format */
+ 		if (!vin->info->use_mc && vin->std & V4L2_STD_525_60)
+ 			vnmc = VNMC_IM_FULL | VNMC_FOC;
+-		halfsize = true;
+ 		break;
+ 	case V4L2_FIELD_INTERLACED_TB:
+ 		vnmc = VNMC_IM_FULL;
+-		halfsize = true;
+ 		break;
+ 	case V4L2_FIELD_INTERLACED_BT:
+ 		vnmc = VNMC_IM_FULL | VNMC_FOC;
+-		halfsize = true;
+ 		break;
+ 	case V4L2_FIELD_NONE:
+ 		vnmc = VNMC_IM_ODD_EVEN;
+@@ -682,15 +676,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	}
+ 
+-	if (vin->info->model == RCAR_GEN3) {
+-		/* Enable HSYNC Field Toggle mode after height HSYNC inputs. */
+-		lines = vin->format.height / (halfsize ? 2 : 1);
+-		dmr2 = VNDMR2_FTEH | VNDMR2_HLV(lines);
+-		vin_dbg(vin, "Field Toogle after %u lines\n", lines);
+-	} else {
+-		/* Enable VSYNC Field Toogle mode after one VSYNC input. */
++	/* Enable VSYNC Field Toogle mode after one VSYNC input */
++	if (vin->info->model == RCAR_GEN3)
++		dmr2 = VNDMR2_FTEV;
++	else
+ 		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+-	}
+ 
+ 	/* Hsync Signal Polarity Select */
+ 	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+-- 
+2.17.0
