@@ -1,41 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:40101 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936585AbeE1X6m (ORCPT
+Received: from relay12.mail.gandi.net ([217.70.178.232]:43113 "EHLO
+        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752232AbeEKJ7t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 May 2018 19:58:42 -0400
-Subject: Re: [RFC PATCH v2 1/2] drm: Add generic colorkey properties
-From: Dmitry Osipenko <digetx@gmail.com>
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Sinclair Yeh <syeh@vmware.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20180526155623.12610-1-digetx@gmail.com>
- <20180526155623.12610-2-digetx@gmail.com> <20180528131501.GK23723@intel.com>
- <efba1801-5b00-1fa1-45df-a5d3a2e3d63a@gmail.com>
-Message-ID: <2fe5b5ba-af52-5cdf-b022-9c04f9024e86@gmail.com>
-Date: Tue, 29 May 2018 02:58:38 +0300
-MIME-Version: 1.0
-In-Reply-To: <efba1801-5b00-1fa1-45df-a5d3a2e3d63a@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 11 May 2018 05:59:49 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 0/5] rcar-vin: Add support for digital input on Gen3
+Date: Fri, 11 May 2018 11:59:36 +0200
+Message-Id: <1526032781-14319-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29.05.2018 02:48, Dmitry Osipenko wrote:
-> inversion=true" if mask has form of 0x11000111, though this could be not
+Hello,
+   this series add support for 'digital' input to the Gen3 version of rcar-vin
+driver.
 
-For clarity: I meant s/0x11000111/0xFF000FFF/.
+'Digital' inputs (the terms comes from the existing Gen2 version of the driver)
+describe parallel video input sources connected to a VIN instance. So far, the
+Gen3-version of the driver (the media-controller compliant one) only supported
+CSI-2 inputs.
+
+This series extends the device tree parsing to accept a connection on port@0,
+and parses the 'digital' subdevice, as implemented in patches [2/5] and [3/5].
+
+The series has been tested on D3 Draak platform, which has an HDMI decoder
+connected to the parallel input of VIN4. To have capture operations working
+properly two additional patches have been added to the series.
+[4/5] is a general fix which should imo be included regardless of this series.
+[5/5] won't please Niklas, as it discards buffer overflow protection for
+the digital capture operations. As explained in the commit message, I had to
+fall back to use field toggling on VSYNC input to have images correctly
+captured. A possible protection against buffer overflow may be enabling
+interrupt for the FIFO overflow and stop capture at that point, but this have to
+be discussed later.
+
+A separate series for the VIN4 and HDMI input enabling on Draak board has been
+sent to renesas-soc list.
+
+The vin-tests repository patches to automate capture testing have been extended
+to support D3 board and capture from HDMI output, and patches have been sent
+to Niklas.
+
+The series is based on the media-master tree, where VIN patches have been
+recently merged.
+
+Tested capturing HDMI input images on D3 and for backward compatibility on
+Salvator-X M3-W too (seems like I didn't break anything there).
+
+Patches for testing on D3 are available at:
+git://jmondi.org/linux d3/media-master/driver
+git://jmondi.org/linux d3/media-master/dts
+git://jmondi.org/linux d3/media-master/test
+git://jmondi.org/vin-tests d3
+
+Patches to test on M3-W (based on latest renesas drivers, which includes an
+older version of VIN series, but has CSI-2 driver) available at:
+git://jmondi.org/linux d3/renesas-drivers/test
+
+Thanks
+    j
+
+Jacopo Mondi (5):
+  media: rcar-vin: Add support for R-Car R8A77995 SoC
+  media: rcar-vin: Add digital input subdevice parsing
+  media: rcar-vin: [un]bind and link digital subdevice
+  media: rcar-vin: Do not use crop if not configured
+  media: rcar-vin: Use FTEV for digital input
+
+ drivers/media/platform/rcar-vin/rcar-core.c | 315 +++++++++++++++++++++++-----
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  33 ++-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  13 ++
+ 3 files changed, 305 insertions(+), 56 deletions(-)
+
+--
+2.7.4
