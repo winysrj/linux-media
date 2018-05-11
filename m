@@ -1,72 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-1b.atlantis.sk ([80.94.52.26]:37029 "EHLO
-        smtp-1b.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964971AbeEYJIr (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:40983 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752386AbeEKLeX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 05:08:47 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/3 v2] gspca_zc3xx: Fix power line frequency settings for OV7648
-Date: Fri, 25 May 2018 11:08:42 +0200
-Message-Id: <20180525090843.31735-2-linux@rainbow-software.org>
-In-Reply-To: <20180525090843.31735-1-linux@rainbow-software.org>
-References: <20180525090843.31735-1-linux@rainbow-software.org>
+        Fri, 11 May 2018 07:34:23 -0400
+Received: by mail-lf0-f65.google.com with SMTP id m17-v6so2308270lfj.8
+        for <linux-media@vger.kernel.org>; Fri, 11 May 2018 04:34:22 -0700 (PDT)
+Date: Fri, 11 May 2018 13:34:20 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 4/5] media: rcar-vin: Do not use crop if not configured
+Message-ID: <20180511113420.GL18974@bigcity.dyn.berto.se>
+References: <1526032781-14319-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526032781-14319-5-git-send-email-jacopo+renesas@jmondi.org>
+ <20180511111037.GD18974@bigcity.dyn.berto.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180511111037.GD18974@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Power line frequency settings for OV7648 sensor contain autogain
-and exposure commands, affecting unrelated controls. Remove them.
+Hi again,
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- drivers/media/usb/gspca/zc3xx.c | 7 -------
- 1 file changed, 7 deletions(-)
+On 2018-05-11 13:10:37 +0200, Niklas Söderlund wrote:
+> Hi Jacopo,
+> 
+> Thanks for your work.
+> 
+> On 2018-05-11 11:59:40 +0200, Jacopo Mondi wrote:
+> > The crop_scale routine uses the crop rectangle memebers to configure the
+> > VIN clipping rectangle. When crop is not configured all its fields are
+> > 0s, and setting the clipping rectangle vertical and horizontal extensions
+> > to (0 - 1) causes the registers to be written with an incorrect
+> > 0xffffffff value.
+> 
+> This is an interesting find and a clear bug in my code. But I can't see 
+> how crop ever could be 0. When s_fmt is called it always resets the crop 
+> and compose width's to the requested format size.
+> 
+> I'm curious how you found this bug, I tried to reproduce it but could 
+> not. 
 
-diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
-index 992918b3ad0c..c72f2d9167d9 100644
---- a/drivers/media/usb/gspca/zc3xx.c
-+++ b/drivers/media/usb/gspca/zc3xx.c
-@@ -3184,7 +3184,6 @@ static const struct usb_action ov7620_InitialScale[] = {	/* 320x240 */
- 	{}
- };
- static const struct usb_action ov7620_50HZ[] = {
--	{0xaa, 0x13, 0x00a3},	/* 00,13,a3,aa */
- 	{0xdd, 0x00, 0x0100},	/* 00,01,00,dd */
- 	{0xaa, 0x2b, 0x0096},	/* 00,2b,96,aa */
- 	{0xaa, 0x75, 0x008a},	/* 00,75,8a,aa */
-@@ -3195,15 +3194,12 @@ static const struct usb_action ov7620_50HZ[] = {
- 	{0xa0, 0x00, ZC3XX_R195_ANTIFLICKERHIGH},	/* 01,95,00,cc */
- 	{0xa0, 0x00, ZC3XX_R196_ANTIFLICKERMID},	/* 01,96,00,cc */
- 	{0xa0, 0x83, ZC3XX_R197_ANTIFLICKERLOW},	/* 01,97,83,cc */
--	{0xaa, 0x10, 0x0082},				/* 00,10,82,aa */
- 	{0xaa, 0x76, 0x0003},				/* 00,76,03,aa */
- /*	{0xa0, 0x40, ZC3XX_R002_CLOCKSELECT},		 * 00,02,40,cc
- 							 * if mode0 (640x480) */
- 	{}
- };
- static const struct usb_action ov7620_60HZ[] = {
--	{0xaa, 0x13, 0x00a3},			/* 00,13,a3,aa */
--						/* (bug in zs211.inf) */
- 	{0xdd, 0x00, 0x0100},			/* 00,01,00,dd */
- 	{0xaa, 0x2b, 0x0000},			/* 00,2b,00,aa */
- 	{0xaa, 0x75, 0x008a},			/* 00,75,8a,aa */
-@@ -3214,7 +3210,6 @@ static const struct usb_action ov7620_60HZ[] = {
- 	{0xa0, 0x00, ZC3XX_R195_ANTIFLICKERHIGH}, /* 01,95,00,cc */
- 	{0xa0, 0x00, ZC3XX_R196_ANTIFLICKERMID}, /* 01,96,00,cc */
- 	{0xa0, 0x83, ZC3XX_R197_ANTIFLICKERLOW}, /* 01,97,83,cc */
--	{0xaa, 0x10, 0x0020},			/* 00,10,20,aa */
- 	{0xaa, 0x76, 0x0003},			/* 00,76,03,aa */
- /*	{0xa0, 0x40, ZC3XX_R002_CLOCKSELECT},	 * 00,02,40,cc
- 						 * if mode0 (640x480) */
-@@ -3224,8 +3219,6 @@ static const struct usb_action ov7620_60HZ[] = {
- 	{}
- };
- static const struct usb_action ov7620_NoFliker[] = {
--	{0xaa, 0x13, 0x00a3},			/* 00,13,a3,aa */
--						/* (bug in zs211.inf) */
- 	{0xdd, 0x00, 0x0100},			/* 00,01,00,dd */
- 	{0xaa, 0x2b, 0x0000},			/* 00,2b,00,aa */
- 	{0xaa, 0x75, 0x008e},			/* 00,75,8e,aa */
+My bad I was looking at the wrong thing, yes I can reproduce this on 
+CSI-2 capture as well. Really nice find!
+
+> This is indeed something we should fix! But I think the proper fix is 
+>not allowing crop to be 0 and not treating the symptom in 
+>rvin_crop_scale_comp().
+> 
+> > 
+> > Fix this by using the actual format width and height when no crop
+> > rectangle has been programmed.
+> > 
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  drivers/media/platform/rcar-vin/rcar-dma.c | 15 +++++++++------
+> >  1 file changed, 9 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> > index b41ba9a..ea7a120 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> > @@ -579,22 +579,25 @@ static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
+> >  
+> >  void rvin_crop_scale_comp(struct rvin_dev *vin)
+> >  {
+> > -	/* Set Start/End Pixel/Line Pre-Clip */
+> > +	u32 width = vin->crop.width ? vin->crop.left + vin->crop.width :
+> > +				      vin->format.width;
+> > +	u32 height = vin->crop.height ? vin->crop.top + vin->crop.height :
+> > +					vin->format.height;
+> > +
+> > +	/* Set Start/End Pixel/Line Pre-Clip if crop is configured. */
+> >  	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
+> > -	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
+> > +	rvin_write(vin, width - 1, VNEPPRC_REG);
+> >  
+> >  	switch (vin->format.field) {
+> >  	case V4L2_FIELD_INTERLACED:
+> >  	case V4L2_FIELD_INTERLACED_TB:
+> >  	case V4L2_FIELD_INTERLACED_BT:
+> >  		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
+> > -		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
+> > -			   VNELPRC_REG);
+> > +		rvin_write(vin, height / 2 - 1, VNELPRC_REG);
+> >  		break;
+> >  	default:
+> >  		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
+> > -		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
+> > -			   VNELPRC_REG);
+> > +		rvin_write(vin, height - 1, VNELPRC_REG);
+> >  		break;
+> >  	}
+> >  
+> > -- 
+> > 2.7.4
+> > 
+> 
+> -- 
+> Regards,
+> Niklas Söderlund
+
 -- 
-Ondrej Zary
+Regards,
+Niklas Söderlund
