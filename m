@@ -1,56 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:52601 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756679AbeEJLIq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 May 2018 07:08:46 -0400
-From: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Chen, JasonX Z" <jasonx.z.chen@intel.com>
-CC: Tomasz Figa <tfiga@chromium.org>, "Yeh, Andy" <andy.yeh@intel.com>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        "Chiang, AlanX" <alanx.chiang@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
-Subject: RE: [PATCH v11] media: imx258: Add imx258 camera sensor driver
-Date: Thu, 10 May 2018 11:08:43 +0000
-Message-ID: <FA6CF6692DF0B343ABE491A46A2CD0E76C65E546@SHSMSX101.ccr.corp.intel.com>
-References: <1525275968-17207-1-git-send-email-andy.yeh@intel.com>
- <CAAFQd5BYokHC7J8wEjT4twx7_bU1Yyv1LbN2PAK2tjmCrr2cig@mail.gmail.com>
- <5881B549BE56034BB7E7D11D6EDEA2020678E62E@PGSMSX106.gar.corp.intel.com>
- <20180509094259.w7woldhmhbm55vho@paasikivi.fi.intel.com>
-In-Reply-To: <20180509094259.w7woldhmhbm55vho@paasikivi.fi.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:36934 "EHLO
+        homiemail-a125.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751210AbeEKPXM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 May 2018 11:23:12 -0400
+Subject: Re: [PATCH 7/7] Add config-compat.h override config-mycompat.h
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org
+References: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
+ <1524763162-4865-8-git-send-email-brad@nextdimension.cc>
+ <c20ac1dd-153c-5d43-f0fd-ade27c548f86@xs4all.nl>
+ <777ec77a-1a1c-138b-b5ca-33201649acc7@nextdimension.cc>
+ <996b40ec-b4a2-8ce8-61ab-ce58269d3627@xs4all.nl>
+From: Brad Love <brad@nextdimension.cc>
+Message-ID: <1ec2af8b-ee4a-29ed-56f0-b1a8c9201558@nextdimension.cc>
+Date: Fri, 11 May 2018 10:23:10 -0500
 MIME-Version: 1.0
+In-Reply-To: <996b40ec-b4a2-8ce8-61ab-ce58269d3627@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari & Jason,
+Hi Hans,
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Sakari Ailus
-> Sent: Wednesday, May 9, 2018 5:43 PM
-> To: Chen, JasonX Z <jasonx.z.chen@intel.com>
-> Cc: Tomasz Figa <tfiga@chromium.org>; Yeh, Andy <andy.yeh@intel.com>;
-> Linux Media Mailing List <linux-media@vger.kernel.org>; Chiang, AlanX
-> <alanx.chiang@intel.com>
-> Subject: Re: [PATCH v11] media: imx258: Add imx258 camera sensor driver
-> 
-> Hi Jason,
-> 
-> On Wed, May 09, 2018 at 09:28:30AM +0000, Chen, JasonX Z wrote:
-> > Hello Tomasz
-> >
-> > >> +/* Test Pattern Control */
-> > >> +#define IMX258_REG_TEST_PATTERN                0x0600
-> > >> +#define IMX258_TEST_PATTERN_DISABLE    0
-> > >> +#define IMX258_TEST_PATTERN_SOLID_COLOR        1
-> > >> +#define IMX258_TEST_PATTERN_COLOR_BARS 2 #define
-> > >> +IMX258_TEST_PATTERN_GREY_COLOR 3
-> > >> +#define IMX258_TEST_PATTERN_PN9                4
 
-I suppose we only use IMX258_TEST_PATTERN_COLOR_BARS. I heard that we'd better remove the functions/code no one would use. Is that true? e.g. remove all h_flip and v_flip ioctls because it's not used by anyone.
+On 2018-05-11 10:11, Hans Verkuil wrote:
+> On 05/11/18 17:08, Brad Love wrote:
+>> Hi Hans,
+>>
+>>
+>> On 2018-05-11 09:41, Hans Verkuil wrote:
+>>> Hi Brad,
+>>>
+>>> On 04/26/18 19:19, Brad Love wrote:
+>>>> config-mycompat.h is for overriding macros which are incorrectly
+>>>> enabled on certain kernels by the build system. The file should be
+>>>> left empty, unless build errors are encountered for a kernel. The
+>>>> file is removed by distclean, therefore should be externally
+>>>> sourced, before the build process starts, when required.
+>>>>
+>>>> In standard operation the file is empty, but if a particular kernel =
+has
+>>>> incorrectly enabled options defined this allows them to be undefined=
+=2E
+>>> Can you give an example where this will be used?
+>>>
+>>> FYI: I've committed patches 1-6, but I don't quite understand when th=
+is patch
+>>> is needed.
+>>>
+>>> With "for overriding macros which are incorrectly enabled on certain =
+kernels"
+>>> do you mean when distros do backports of features from later kernels?=
 
-Best Regards,
-Jianxu(Clive) Zheng
+>>>
+>>> Regards,
+>>>
+>>> 	Hans
+>>
+>> Apologies if I was not very clear. Yes, this is for use in
+>> kernels/distros whose maintainers have integrated various backports, a=
+nd
+>> which the media_build system does not pick up on for whatever reason. =
+At
+>> that point there are options defined in config-compat.h, which enable
+>> backports in compat.h, but which already exist in the target kernel.
+>>
+>> For example, on the device I'm working on right now, in kernel 3.10, I=
+
+>> have to supply the following three options in config-mycompat.h or
+>> modify the tree and stuff them right into the top of compat.h:
+>>
+>> #undef NEED_WRITEL_RELAXED
+>> #undef NEED_PM_RUNTIME_GET
+>> #undef NEED_PFN_TO_PHYS
+>>
+>>
+>> The above disables those three media_build backports and allows
+>> everything to build. It seems there is quite often at least one backpo=
+rt
+>> I must disable, and some target kernels require multiple backports dis=
+abled.
+> OK, that's what I thought. Can you post a v2 of this patch with this ex=
+planation
+> included? Both in the commit log and in the compat.h comment.
+>
+> That should make it clear what the purpose of this file is.
+>
+> Regards,
+>
+> 	Hans
+
+
+Will do now.
+
+
+
+>
+>> Cheers,
+>>
+>> Brad
+>>
+>>
+>>
+>>>> Signed-off-by: Brad Love <brad@nextdimension.cc>
+>>>> ---
+>>>>  v4l/Makefile | 3 ++-
+>>>>  v4l/compat.h | 7 +++++++
+>>>>  2 files changed, 9 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/v4l/Makefile b/v4l/Makefile
+>>>> index 270a624..ee18d11 100644
+>>>> --- a/v4l/Makefile
+>>>> +++ b/v4l/Makefile
+>>>> @@ -273,6 +273,7 @@ links::
+>>>>  	@find ../linux/drivers/misc -name '*.[ch]' -type f -print0 | xargs=
+ -0n 255 ln -sf --target-directory=3D.
+>>>> =20
+>>>>  config-compat.h:: $(obj)/.version .myconfig scripts/make_config_com=
+pat.pl
+>>>> +	-touch $(obj)/config-mycompat.h
+>>>>  	perl scripts/make_config_compat.pl $(SRCDIR) $(obj)/.myconfig $(ob=
+j)/config-compat.h
+>>>> =20
+>>>>  kernel-links makelinks::
+>>>> @@ -298,7 +299,7 @@ clean::
+>>>>  distclean:: clean
+>>>>  	-rm -f .version .*.o.flags .*.o.d *.mod.gcno Makefile.media \
+>>>>  		Kconfig Kconfig.kern .config .config.cmd .myconfig \
+>>>> -		.kconfig.dep
+>>>> +		.kconfig.dep config-mycompat.h
+>>>>  	-rm -rf .tmp_versions .tmp*.ver .tmp*.o .*.gcno .cache.mk
+>>>>  	-rm -f scripts/lxdialog scripts/kconfig
+>>>>  	@find .. -name '*.orig' -exec rm '{}' \;
+>>>> diff --git a/v4l/compat.h b/v4l/compat.h
+>>>> index 87ce401..db48fdf 100644
+>>>> --- a/v4l/compat.h
+>>>> +++ b/v4l/compat.h
+>>>> @@ -8,6 +8,13 @@
+>>>>  #include <linux/version.h>
+>>>> =20
+>>>>  #include "config-compat.h"
+>>>> +/* config-mycompat.h is for overriding #defines which
+>>>> + * are incorrectly enabled on certain kernels. The file
+>>>> + * should be left empty, unless build errors are encountered
+>>>> + * for a kernel. The file is removed by distclean, therefore
+>>>> + * should be externally sourced, before compilation, when required.=
+
+>>>> + */
+>>>> +#include "config-mycompat.h"
+>>>> =20
+>>>>  #ifndef SZ_512
+>>>>  #define SZ_512				0x00000200
+>>>>
+>>
