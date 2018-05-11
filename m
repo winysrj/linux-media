@@ -1,62 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:45306 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751370AbeELOoI (ORCPT
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:28903 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753261AbeEKPGi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 May 2018 10:44:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/4] v4l2-ioctl: clear fields in s_parm
-Date: Sat, 12 May 2018 16:44:02 +0200
-Message-Id: <20180512144403.13576-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180512144403.13576-1-hverkuil@xs4all.nl>
-References: <20180512144403.13576-1-hverkuil@xs4all.nl>
+        Fri, 11 May 2018 11:06:38 -0400
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To: alan@linux.intel.com, sakari.ailus@linux.intel.com,
+        mchehab@kernel.org, gregkh@linuxfoundation.org,
+        andriy.shevchenko@linux.intel.com, chen.chenchacha@foxmail.com,
+        keescook@chromium.org, arvind.yadav.cs@gmail.com
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH 1/3] media: staging: atomisp: Return an error code in case of error in 'lm3554_probe()'
+Date: Fri, 11 May 2018 17:06:16 +0200
+Message-Id: <2eff9a8d6d67b60aed87277ab4f8b48b2251d559.1526048313.git.christophe.jaillet@wanadoo.fr>
+In-Reply-To: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
+References: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
+In-Reply-To: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
+References: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+If 'v4l2_ctrl_handler_init()' fails, we go to the error handling path, do
+some clean-up and return err, which is known to be 0 (i.e. success).
 
-Zero the reserved capture/output array.
+Axe the 'ret' variable and use 'err' directly in order to return the error
+code instead.
+Also remove the initialization of 'err' which was hiding this issue.
 
-Zero the extendedmode (it is never used in drivers).
-
-Clear all flags in capture/outputmode except for V4L2_MODE_HIGHQUALITY,
-as that is the only valid flag.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ drivers/staging/media/atomisp/i2c/atomisp-lm3554.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index a40dbec271f1..212aac1d22c1 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1952,7 +1952,22 @@ static int v4l_s_parm(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_streamparm *p = arg;
- 	int ret = check_fmt(file, p->type);
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c b/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
+index 7098bf317f16..723fa74ff815 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
+@@ -852,10 +852,9 @@ static void *lm3554_platform_data_func(struct i2c_client *client)
  
--	return ret ? ret : ops->vidioc_s_parm(file, fh, p);
-+	if (ret)
-+		return ret;
-+
-+	/* Note: extendedmode is never used in drivers */
-+	if (V4L2_TYPE_IS_OUTPUT(p->type)) {
-+		memset(p->parm.output.reserved, 0,
-+		       sizeof(p->parm.output.reserved));
-+		p->parm.output.extendedmode = 0;
-+		p->parm.output.outputmode &= V4L2_MODE_HIGHQUALITY;
-+	} else {
-+		memset(p->parm.capture.reserved, 0,
-+		       sizeof(p->parm.capture.reserved));
-+		p->parm.capture.extendedmode = 0;
-+		p->parm.capture.capturemode &= V4L2_MODE_HIGHQUALITY;
-+	}
-+	return ops->vidioc_s_parm(file, fh, p);
- }
+ static int lm3554_probe(struct i2c_client *client)
+ {
+-	int err = 0;
++	int err;
+ 	struct lm3554 *flash;
+ 	unsigned int i;
+-	int ret;
  
- static int v4l_queryctrl(const struct v4l2_ioctl_ops *ops,
+ 	flash = kzalloc(sizeof(*flash), GFP_KERNEL);
+ 	if (!flash)
+@@ -868,10 +867,9 @@ static int lm3554_probe(struct i2c_client *client)
+ 	flash->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	flash->mode = ATOMISP_FLASH_MODE_OFF;
+ 	flash->timeout = LM3554_MAX_TIMEOUT / LM3554_TIMEOUT_STEPSIZE - 1;
+-	ret =
+-	    v4l2_ctrl_handler_init(&flash->ctrl_handler,
+-				   ARRAY_SIZE(lm3554_controls));
+-	if (ret) {
++	err = v4l2_ctrl_handler_init(&flash->ctrl_handler,
++				     ARRAY_SIZE(lm3554_controls));
++	if (err) {
+ 		dev_err(&client->dev, "error initialize a ctrl_handler.\n");
+ 		goto fail2;
+ 	}
 -- 
 2.17.0
