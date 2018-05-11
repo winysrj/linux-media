@@ -1,90 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:53657 "EHLO mga05.intel.com"
+Received: from gofer.mess.org ([88.97.38.141]:51871 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752675AbeEUIzR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:17 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v14 12/36] v4l2-ctrls: prepare internal structs for request API
-Date: Mon, 21 May 2018 11:54:37 +0300
-Message-Id: <20180521085501.16861-13-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+        id S1752389AbeEKIgv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 May 2018 04:36:51 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, Matthias Reichl <hias@horus.com>
+Subject: [PATCH 1/3] media: mceusb: filter out bogus timing irdata of duration 0
+Date: Fri, 11 May 2018 09:36:48 +0100
+Message-Id: <20180511083650.20020-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+A mceusb device has been observed producing invalid irdata. Proactively
+guard against this.
 
-Embed and initialize a media_request_object in struct v4l2_ctrl_handler.
-
-Add a p_req field to struct v4l2_ctrl_ref that will store the
-request value.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+Suggested-by: Matthias Reichl <hias@horus.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 1 +
- include/media/v4l2-ctrls.h           | 7 +++++++
- 2 files changed, 8 insertions(+)
+ drivers/media/rc/mceusb.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index aa1dd2015e84b..d09f49530d9e8 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1880,6 +1880,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
- 				      sizeof(hdl->buckets[0]),
- 				      GFP_KERNEL | __GFP_ZERO);
- 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
-+	media_request_object_init(&hdl->req_obj);
- 	return hdl->error;
- }
- EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index d26b8ddebb560..76352eb59f14a 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -20,6 +20,7 @@
- #include <linux/list.h>
- #include <linux/mutex.h>
- #include <linux/videodev2.h>
-+#include <media/media-request.h>
- 
- /* forward references */
- struct file;
-@@ -249,6 +250,8 @@ struct v4l2_ctrl {
-  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
-  * @from_other_dev: If true, then @ctrl was defined in another
-  *		device than the &struct v4l2_ctrl_handler.
-+ * @p_req:	The request value. Only used if the control handler
-+ *		is bound to a media request.
-  *
-  * Each control handler has a list of these refs. The list_head is used to
-  * keep a sorted-by-control-ID list of all controls, while the next pointer
-@@ -260,6 +263,7 @@ struct v4l2_ctrl_ref {
- 	struct v4l2_ctrl *ctrl;
- 	struct v4l2_ctrl_helper *helper;
- 	bool from_other_dev;
-+	union v4l2_ctrl_ptr p_req;
- };
- 
- /**
-@@ -283,6 +287,8 @@ struct v4l2_ctrl_ref {
-  * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
-  * @nr_of_buckets: Total number of buckets in the array.
-  * @error:	The error code of the first failed control addition.
-+ * @req_obj:	The &struct media_request_object, used to link into a
-+ *		&struct media_request.
-  */
- struct v4l2_ctrl_handler {
- 	struct mutex _lock;
-@@ -295,6 +301,7 @@ struct v4l2_ctrl_handler {
- 	void *notify_priv;
- 	u16 nr_of_buckets;
- 	int error;
-+	struct media_request_object req_obj;
- };
- 
- /**
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 1619b748469b..1ca49491abc8 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -1177,6 +1177,11 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ 			init_ir_raw_event(&rawir);
+ 			rawir.pulse = ((ir->buf_in[i] & MCE_PULSE_BIT) != 0);
+ 			rawir.duration = (ir->buf_in[i] & MCE_PULSE_MASK);
++			if (unlikely(!rawir.duration)) {
++				dev_warn(ir->dev, "nonsensical irdata %02x with duration 0",
++					 ir->buf_in[i]);
++				break;
++			}
+ 			if (rawir.pulse) {
+ 				ir->pulse_tunit += rawir.duration;
+ 				ir->pulse_count++;
 -- 
-2.11.0
+2.14.3
