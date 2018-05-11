@@ -1,43 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f52.google.com ([209.85.160.52]:41409 "EHLO
-        mail-pl0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030721AbeEYXxp (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37260 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750746AbeEKASp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 19:53:45 -0400
-Received: by mail-pl0-f52.google.com with SMTP id az12-v6so3974270plb.8
-        for <linux-media@vger.kernel.org>; Fri, 25 May 2018 16:53:45 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 0/6] imx-media: Fixes for bt.656 interlaced capture
-Date: Fri, 25 May 2018 16:53:30 -0700
-Message-Id: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
+        Thu, 10 May 2018 20:18:45 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Lubomir Rintel <lkundrak@v3.sk>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH] usbtv: Implement wait_prepare and wait_finish
+Date: Thu, 10 May 2018 21:17:20 -0300
+Message-Id: <20180511001720.6007-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A set of patches that fixes some bugs with capturing from a bt.656
-interlaced source, and incompatibilites between IDMAC interlace
-interweaving and 4:2:0 data write reduction.
+This driver is currently specifying a vb2_queue lock,
+which means it straightforward to implement wait_prepare
+and wait_finish.
 
-Steve Longerbeam (6):
-  media: imx-csi: Fix interlaced bt.656
-  gpu: ipu-csi: Check for field type alternate
-  media: videodev2.h: Add macro V4L2_FIELD_IS_SEQUENTIAL
-  media: imx-csi: Enable interlaced scan for field type alternate
-  media: imx-csi: Allow skipping odd chroma rows for YVU420
-  media: staging/imx: interweave and odd-chroma-row skip are
-    incompatible
+Having these callbacks releases the queue lock while blocking,
+which improves latency by allowing for example streamoff
+or qbuf operations while waiting in dqbuf.
 
- drivers/gpu/ipu-v3/ipu-csi.c                |  3 ++-
- drivers/staging/media/imx/imx-ic-prpencvf.c | 18 ++++++++++++-----
- drivers/staging/media/imx/imx-media-csi.c   | 31 ++++++++++++++---------------
- include/uapi/linux/videodev2.h              |  4 ++++
- 4 files changed, 34 insertions(+), 22 deletions(-)
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+Compile tested only.
 
+ drivers/media/usb/usbtv/usbtv-video.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
+index 3668a04359e8..0c0d0ef71573 100644
+--- a/drivers/media/usb/usbtv/usbtv-video.c
++++ b/drivers/media/usb/usbtv/usbtv-video.c
+@@ -698,6 +698,8 @@ static const struct vb2_ops usbtv_vb2_ops = {
+ 	.buf_queue = usbtv_buf_queue,
+ 	.start_streaming = usbtv_start_streaming,
+ 	.stop_streaming = usbtv_stop_streaming,
++	.wait_prepare = vb2_ops_wait_prepare,
++	.wait_finish = vb2_ops_wait_finish,
+ };
+ 
+ static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
 -- 
-2.7.4
+2.16.3
