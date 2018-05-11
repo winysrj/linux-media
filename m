@@ -1,117 +1,282 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:51283 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751771AbeEFSIm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 14:08:42 -0400
-Received: by mail-wm0-f65.google.com with SMTP id j4so10750697wme.1
-        for <linux-media@vger.kernel.org>; Sun, 06 May 2018 11:08:41 -0700 (PDT)
-From: Thomas Hollstegge <thomas.hollstegge@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thomas Hollstegge <thomas.hollstegge@gmail.com>
-Subject: [PATCH v2 1/2] si2168: Set TS clock mode and frequency
-Date: Sun,  6 May 2018 20:07:59 +0200
-Message-Id: <1525630080-19329-2-git-send-email-thomas.hollstegge@gmail.com>
-In-Reply-To: <1525630080-19329-1-git-send-email-thomas.hollstegge@gmail.com>
-References: <1525513831-17682-1-git-send-email-thomas.hollstegge@gmail.com>
- <1525630080-19329-1-git-send-email-thomas.hollstegge@gmail.com>
+Received: from relay12.mail.gandi.net ([217.70.178.232]:59793 "EHLO
+        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752232AbeEKJ7v (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 May 2018 05:59:51 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 2/5] media: rcar-vin: Add digital input subdevice parsing
+Date: Fri, 11 May 2018 11:59:38 +0200
+Message-Id: <1526032781-14319-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1526032781-14319-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1526032781-14319-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some devices require a higher TS clock frequency to demodulate some
-muxes. This adds two optional parameters to control the TS clock
-frequency mode as well as the frequency.
+Add support for digital input subdevices to Gen-3 rcar-vin.
+The Gen-3, media-controller compliant, version has so far only accepted
+CSI-2 input subdevices. Remove assumptions on the supported bus_type and
+accepted number of subdevices, and allow digital input connections on port@0.
 
-Signed-off-by: Thomas Hollstegge <thomas.hollstegge@gmail.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/dvb-frontends/si2168.c      | 20 +++++++++++++++++++-
- drivers/media/dvb-frontends/si2168.h      |  8 ++++++++
- drivers/media/dvb-frontends/si2168_priv.h |  2 ++
- 3 files changed, 29 insertions(+), 1 deletion(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 166 +++++++++++++++++++++++-----
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  13 +++
+ 2 files changed, 153 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 324493e..80740db 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -92,13 +92,15 @@ static int si2168_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
- 	dev_dbg(&client->dev, "%s acquire: %d\n", __func__, acquire);
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index e547ef7..105b6b6 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -697,29 +697,21 @@ static const struct v4l2_async_notifier_operations rvin_group_notify_ops = {
+ 	.complete = rvin_group_notify_complete,
+ };
  
- 	/* set TS_MODE property */
--	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
-+	memcpy(cmd.args, "\x14\x00\x01\x10\x00\x00", 6);
- 	if (acquire)
- 		cmd.args[4] |= dev->ts_mode;
- 	else
- 		cmd.args[4] |= SI2168_TS_TRISTATE;
- 	if (dev->ts_clock_gapped)
- 		cmd.args[4] |= 0x40;
-+	cmd.args[4] |= (dev->ts_clock_mode & 0x03) << 4;
+-static int rvin_mc_parse_of_endpoint(struct device *dev,
+-				     struct v4l2_fwnode_endpoint *vep,
+-				     struct v4l2_async_subdev *asd)
++static int rvin_mc_parse_of_csi2(struct rvin_dev *vin,
++				 struct v4l2_fwnode_endpoint *vep,
++				 struct v4l2_async_subdev *asd)
+ {
+-	struct rvin_dev *vin = dev_get_drvdata(dev);
+-
+-	if (vep->base.port != 1 || vep->base.id >= RVIN_CSI_MAX)
++	if (vep->base.id >= RVIN_CSI_MAX)
+ 		return -EINVAL;
+ 
+-	if (!of_device_is_available(to_of_node(asd->match.fwnode))) {
+-
+-		vin_dbg(vin, "OF device %pOF disabled, ignoring\n",
+-			to_of_node(asd->match.fwnode));
+-		return -ENOTCONN;
+-
+-	}
+-
+ 	if (vin->group->csi[vep->base.id].fwnode) {
+ 		vin_dbg(vin, "OF device %pOF already handled\n",
+ 			to_of_node(asd->match.fwnode));
+ 		return -ENOTCONN;
+ 	}
+ 
++	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
++	vin->mbus_cfg.flags = 0;
+ 	vin->group->csi[vep->base.id].fwnode = asd->match.fwnode;
+ 
+ 	vin_dbg(vin, "Add group OF device %pOF to slot %u\n",
+@@ -728,9 +720,97 @@ static int rvin_mc_parse_of_endpoint(struct device *dev,
+ 	return 0;
+ }
+ 
++static int rvin_mc_parse_of_digital(struct rvin_dev *vin,
++				    struct v4l2_fwnode_endpoint *vep,
++				    struct v4l2_async_subdev *asd)
++{
++	if (vep->base.id)
++		return -EINVAL;
 +
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
- 	ret = si2168_cmd_execute(client, &cmd);
-@@ -398,6 +400,18 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	/* set TS frequency */
-+	if (dev->ts_clock_freq) {
-+		memcpy(cmd.args, "\x14\x00\x0d\x10", 4);
-+		cmd.args[4] = ((dev->ts_clock_freq / 10000) >> 0) & 0xff;
-+		cmd.args[5] = ((dev->ts_clock_freq / 10000) >> 8) & 0xff;
-+		cmd.wlen = 6;
-+		cmd.rlen = 4;
-+		ret = si2168_cmd_execute(client, &cmd);
-+		if (ret)
-+			goto err;
++	vin->mbus_cfg.type = vep->bus_type;
++	if (vin->mbus_cfg.type == V4L2_MBUS_PARALLEL)
++		vin->mbus_cfg.flags = vep->bus.parallel.flags;
++	else
++		vin->mbus_cfg.flags = 0;
++
++	/*
++	 * 'v4l2_async_notifier_fwnode_parse_endpoint()' has reserved
++	 * enough memory for a whole 'rvin_grap_entity' structure, whose 'asd'
++	 * is the first member of. Safely cast it to the 'digital' field of
++	 * the selected vin instance.
++	 */
++	vin->digital = (struct rvin_graph_entity *)asd;
++
++	vin_dbg(vin, "Add OF device %pOF as VIN%u digital input\n",
++		to_of_node(asd->match.fwnode), vin->id);
++
++	return 0;
++}
++
++static int rvin_mc_parse_of_endpoint(struct device *dev,
++				     struct v4l2_fwnode_endpoint *vep,
++				     struct v4l2_async_subdev *asd)
++{
++	struct rvin_dev *group_vin = dev_get_drvdata(dev);
++	struct rvin_group *group = group_vin->group;
++	struct fwnode_handle *fw_vin;
++	struct fwnode_handle *fw_port;
++	struct rvin_dev *vin;
++	unsigned int i;
++	int ret;
++
++	if (!fwnode_device_is_available(asd->match.fwnode)) {
++		vin_dbg(group_vin, "OF device %pOF disabled, ignoring\n",
++			to_of_node(asd->match.fwnode));
++		return -ENOTCONN;
 +	}
 +
- 	memcpy(cmd.args, "\x14\x00\x08\x10\xd7\x05", 6);
- 	cmd.args[5] |= dev->ts_clock_inv ? 0x00 : 0x10;
- 	cmd.wlen = 6;
-@@ -806,6 +820,10 @@ static int si2168_probe(struct i2c_client *client,
- 	dev->ts_mode = config->ts_mode;
- 	dev->ts_clock_inv = config->ts_clock_inv;
- 	dev->ts_clock_gapped = config->ts_clock_gapped;
-+	dev->ts_clock_mode = config->ts_clock_mode;
-+	if (!dev->ts_clock_mode)
-+		dev->ts_clock_mode = SI2168_TS_CLOCK_MODE_AUTO_ADAPT;
-+	dev->ts_clock_freq = config->ts_clock_freq;
- 	dev->spectral_inversion = config->spectral_inversion;
- 
- 	dev_info(&client->dev, "Silicon Labs Si2168-%c%d%d successfully identified\n",
-diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-index d519edd..3f52ee8 100644
---- a/drivers/media/dvb-frontends/si2168.h
-+++ b/drivers/media/dvb-frontends/si2168.h
-@@ -47,6 +47,14 @@ struct si2168_config {
- 	/* TS clock gapped */
- 	bool ts_clock_gapped;
- 
-+	/* TS clock mode */
-+#define SI2168_TS_CLOCK_MODE_AUTO_ADAPT	0x01
-+#define SI2168_TS_CLOCK_MODE_MANUAL	0x02
-+	u8 ts_clock_mode;
++	/*
++	 * Find out to which VIN instance this ep belongs to.
++	 *
++	 * While the list of async subdevices and the async notifier
++	 * belong to the whole group, the bus configuration properties
++	 * are instance specific; find the instance by matching its fwnode.
++	 */
++	fw_port = fwnode_get_parent(vep->base.local_fwnode);
++	fw_vin = fwnode_graph_get_port_parent(fw_port);
++	fwnode_handle_put(fw_port);
++	if (!fw_vin)
++		return -ENOENT;
 +
-+	/* TS clock frequency (for manual mode) */
-+	u32 ts_clock_freq;
++	for (i = 0; i < RCAR_VIN_NUM; i++) {
++		if (!group->vin[i])
++			continue;
 +
- 	/* Inverted spectrum */
- 	bool spectral_inversion;
- };
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 2d362e1..8173d6c 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -48,6 +48,8 @@ struct si2168_dev {
- 	u8 ts_mode;
- 	bool ts_clock_inv;
- 	bool ts_clock_gapped;
-+	u8 ts_clock_mode;
-+	u32 ts_clock_freq;
- 	bool spectral_inversion;
++		if (fw_vin == dev_fwnode(group->vin[i]->dev))
++			break;
++	}
++	fwnode_handle_put(fw_vin);
++
++	if (i == RCAR_VIN_NUM) {
++		vin_err(group_vin, "Unable to find VIN device for %pOF\n",
++			to_of_node(asd->match.fwnode));
++		return -ENOENT;
++	}
++	vin = group->vin[i];
++
++	switch (vep->base.port) {
++	case RVIN_PORT_DIGITAL:
++		ret = rvin_mc_parse_of_digital(vin, vep, asd);
++		break;
++	case RVIN_PORT_CSI2:
++	default:
++		ret = rvin_mc_parse_of_csi2(vin, vep, asd);
++		break;
++	}
++
++	return ret;
++}
++
+ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+ {
+ 	unsigned int count = 0;
++	size_t asd_struct_size;
+ 	unsigned int i;
+ 	int ret;
+ 
+@@ -753,25 +833,58 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+ 	}
+ 
+ 	/*
+-	 * Have all VIN's look for subdevices. Some subdevices will overlap
+-	 * but the parser function can handle it, so each subdevice will
+-	 * only be registered once with the notifier.
++	 * Have all VIN's look for subdevices. Some CSI-2 subdevices will
++	 * overlap but the parser function can handle it, so each subdevice
++	 * will only be registered once with the notifier.
+ 	 */
+ 
+ 	vin->group->notifier = &vin->notifier;
+ 
+ 	for (i = 0; i < RCAR_VIN_NUM; i++) {
++		struct fwnode_handle *fwdev;
++		struct fwnode_handle *fwep;
++		struct fwnode_endpoint ep;
++
+ 		if (!vin->group->vin[i])
+ 			continue;
+ 
++		/*
++		 * If a digital input is described in port@0 proceed to parse
++		 * it and register a single sub-device for this VIN instance.
++		 * If no digital input is available go inspect the CSI-2
++		 * connections described in port@1.
++		 */
++		fwdev = dev_fwnode(vin->group->vin[i]->dev);
++		fwep = fwnode_graph_get_next_endpoint(fwdev, NULL);
++		if (!fwep) {
++			ret = PTR_ERR(fwep);
++			goto error_unlock_return;
++		}
++
++		ret = fwnode_graph_parse_endpoint(fwep, &ep);
++		fwnode_handle_put(fwep);
++		if (ret)
++			goto error_unlock_return;
++
++		switch (ep.port) {
++		case RVIN_PORT_DIGITAL:
++			asd_struct_size = sizeof(struct rvin_graph_entity);
++			break;
++		case RVIN_PORT_CSI2:
++			asd_struct_size = sizeof(struct v4l2_async_subdev);
++			break;
++		default:
++			vin_err(vin, "port%u not allowed\n", ep.port);
++			ret = -EINVAL;
++			goto error_unlock_return;
++		}
++
+ 		ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+ 				vin->group->vin[i]->dev, vin->group->notifier,
+-				sizeof(struct v4l2_async_subdev), 1,
++				asd_struct_size, ep.port,
+ 				rvin_mc_parse_of_endpoint);
+-		if (ret) {
+-			mutex_unlock(&vin->group->lock);
+-			return ret;
+-		}
++		if (ret)
++			goto error_unlock_return;
+ 	}
+ 
+ 	mutex_unlock(&vin->group->lock);
+@@ -785,16 +898,17 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+ 	}
+ 
+ 	return 0;
++
++error_unlock_return:
++	mutex_unlock(&vin->group->lock);
++
++	return ret;
+ }
+ 
+ static int rvin_mc_init(struct rvin_dev *vin)
+ {
+ 	int ret;
+ 
+-	/* All our sources are CSI-2 */
+-	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
+-	vin->mbus_cfg.flags = 0;
+-
+ 	vin->pad.flags = MEDIA_PAD_FL_SINK;
+ 	ret = media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
+ 	if (ret)
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index c2aef78..a63f3c6 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -52,6 +52,19 @@ enum rvin_csi_id {
  };
  
+ /**
++ * enum rvin_port_id
++ *
++ * List the available VIN port functions.
++ *
++ * RVIN_PORT_DIGITAL	- Input port for digital video connection
++ * RVIN_PORT_CSI2	- Input port for CSI-2 video connection
++ */
++enum rvin_port_id {
++	RVIN_PORT_DIGITAL,
++	RVIN_PORT_CSI2
++};
++
++/**
+  * STOPPED  - No operation in progress
+  * RUNNING  - Operation in progress have buffers
+  * STOPPING - Stopping operation
 -- 
 2.7.4
