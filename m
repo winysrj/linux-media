@@ -1,92 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:42543 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752294AbeEHLFV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 May 2018 07:05:21 -0400
-Date: Tue, 8 May 2018 13:05:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v7 1/2] uvcvideo: send a control event when a Control
- Change interrupt arrives
-In-Reply-To: <3321819.nzIFIPUmca@avalon>
-Message-ID: <alpine.DEB.2.20.1805081253280.9684@axis700.grange>
-References: <20180323092401.12162-1-laurent.pinchart@ideasonboard.com> <2079648.niC1Apbgeu@avalon> <alpine.DEB.2.20.1804100848040.29394@axis700.grange> <3321819.nzIFIPUmca@avalon>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:60481 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752592AbeEKObN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 May 2018 10:31:13 -0400
+Subject: Re: [PATCH 1/2] Revert "media: rcar-vin: enable field toggle after a
+ set number of lines for Gen3"
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+References: <20180511141541.3164-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180511141541.3164-2-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <955c66e3-0147-aef5-e459-5a298a3c569b@xs4all.nl>
+Date: Fri, 11 May 2018 16:30:51 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20180511141541.3164-2-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 05/11/18 16:15, Niklas Söderlund wrote:
+> This reverts commit 015060cb7795eac34454696cc9c9f8b76926a401.
 
-One more comment-to-comment:
+Why? The cover letter states the reason, but it also needs to be added
+here in the commit log.
 
-On Mon, 7 May 2018, Laurent Pinchart wrote:
+Regards,
 
-> Hi Guennadi,
+	Hans
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 20 +++++---------------
+>  1 file changed, 5 insertions(+), 15 deletions(-)
 > 
-> On Tuesday, 10 April 2018 14:31:35 EEST Guennadi Liakhovetski wrote:
-> > On Fri, 23 Mar 2018, Laurent Pinchart wrote:
-> > > On Friday, 23 March 2018 11:24:00 EET Laurent Pinchart wrote:
-> > >> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > >> 
-> > >> UVC defines a method of handling asynchronous controls, which sends a
-> > >> USB packet over the interrupt pipe. This patch implements support for
-> > >> such packets by sending a control event to the user. Since this can
-> > >> involve USB traffic and, therefore, scheduling, this has to be done
-> > >> in a work queue.
-> > >> 
-> > >> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > >> ---
-> > >> 
-> > >>  drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++++++++++---
-> > >>  drivers/media/usb/uvc/uvc_status.c | 111 ++++++++++++++++++++++---
-> > >>  drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
-> > >>  drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
-> > >>  include/uapi/linux/uvcvideo.h      |   2 +
-> > >>  5 files changed, 269 insertions(+), 29 deletions(-)
-
-[snip]
-
-> > >> diff --git a/drivers/media/usb/uvc/uvc_status.c
-> > >> b/drivers/media/usb/uvc/uvc_status.c index 7b710410584a..d1d83aed6a1d
-> > >> 100644
-> > >> --- a/drivers/media/usb/uvc/uvc_status.c
-> > >> +++ b/drivers/media/usb/uvc/uvc_status.c
-
-[snip]
-
-> > >> +				ctrl = uvc_event_entity_ctrl(entity,
-> > >> +							     status->bSelector);
-> > >> +				/*
-> > >> +				 * Some buggy cameras send asynchronous Control
-> > >> +				 * Change events for control, other than the
-> > >> +				 * ones, that had been changed, even though the
-> > >> +				 * AutoUpdate flag isn't set for the control.
-> > >> +				 */
-> > > 
-> > > That's lots of commas, I'm not sure what you mean here. Are there cameras
-> > > that send event for controls that haven't changed ? Or cameras that send
-> > > events for controls that don't have the auto-update flag set ? Do you
-> > > know what cameras are affected ?
-> > 
-> > I meant a case like
-> > 
-> > set_control(x=X)
-> > interrupt(x=X)
-> > interrupt(y=Y)
-> > 
-> > where y is a different control and it doesn't have an auto-update flag
-> > set. I think those were some early versions of our cameras, but as far as
-> > I can see, we need the check anyway for autoupdate controls, so, I can
-> > just remove the comment.
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index b41ba9a4a2b3ac90..ac07f99e3516a620 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -124,9 +124,7 @@
+>  #define VNDMR2_VPS		(1 << 30)
+>  #define VNDMR2_HPS		(1 << 29)
+>  #define VNDMR2_FTEV		(1 << 17)
+> -#define VNDMR2_FTEH		(1 << 16)
+>  #define VNDMR2_VLV(n)		((n & 0xf) << 12)
+> -#define VNDMR2_HLV(n)		((n) & 0xfff)
+>  
+>  /* Video n CSI2 Interface Mode Register (Gen3) */
+>  #define VNCSI_IFMD_DES1		(1 << 26)
+> @@ -614,9 +612,8 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+>  
+>  static int rvin_setup(struct rvin_dev *vin)
+>  {
+> -	u32 vnmc, dmr, dmr2, interrupts, lines;
+> +	u32 vnmc, dmr, dmr2, interrupts;
+>  	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+> -	bool halfsize = false;
+>  
+>  	switch (vin->format.field) {
+>  	case V4L2_FIELD_TOP:
+> @@ -631,15 +628,12 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		/* Use BT if video standard can be read and is 60 Hz format */
+>  		if (!vin->info->use_mc && vin->std & V4L2_STD_525_60)
+>  			vnmc = VNMC_IM_FULL | VNMC_FOC;
+> -		halfsize = true;
+>  		break;
+>  	case V4L2_FIELD_INTERLACED_TB:
+>  		vnmc = VNMC_IM_FULL;
+> -		halfsize = true;
+>  		break;
+>  	case V4L2_FIELD_INTERLACED_BT:
+>  		vnmc = VNMC_IM_FULL | VNMC_FOC;
+> -		halfsize = true;
+>  		break;
+>  	case V4L2_FIELD_NONE:
+>  		vnmc = VNMC_IM_ODD_EVEN;
+> @@ -682,15 +676,11 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		break;
+>  	}
+>  
+> -	if (vin->info->model == RCAR_GEN3) {
+> -		/* Enable HSYNC Field Toggle mode after height HSYNC inputs. */
+> -		lines = vin->format.height / (halfsize ? 2 : 1);
+> -		dmr2 = VNDMR2_FTEH | VNDMR2_HLV(lines);
+> -		vin_dbg(vin, "Field Toogle after %u lines\n", lines);
+> -	} else {
+> -		/* Enable VSYNC Field Toogle mode after one VSYNC input. */
+> +	/* Enable VSYNC Field Toogle mode after one VSYNC input */
+> +	if (vin->info->model == RCAR_GEN3)
+> +		dmr2 = VNDMR2_FTEV;
+> +	else
+>  		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+> -	}
+>  
+>  	/* Hsync Signal Polarity Select */
+>  	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
 > 
-> OK. But now that I read the comment again, how is it related to the check ? 
-> Why do you need ctrl->handle->chain == *chain ? Isn't that only a partial 
-> guard for the case above, as both x and y could be part of the same chain ?
-
-The uvc_event_entity_ctrl() function checks the selector, so, a selector + 
-chain should be unique?
-
-Thanks
-Guennadi
