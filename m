@@ -1,53 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:34120 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751709AbeEET4i (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2018 15:56:38 -0400
-Received: by mail-pf0-f193.google.com with SMTP id a14so19917475pfi.1
-        for <linux-media@vger.kernel.org>; Sat, 05 May 2018 12:56:38 -0700 (PDT)
-Subject: Re: [PATCH] media: imx-csi: fix burst size for 16 bit
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Jan Luebbe <jlu@pengutronix.de>, linux-media@vger.kernel.org
-References: <20180503163200.12214-1-jlu@pengutronix.de>
- <1525365651.3408.3.camel@pengutronix.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <81614a46-d06b-3f91-91c5-e599a987ea75@gmail.com>
-Date: Sat, 5 May 2018 12:56:35 -0700
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:53280 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752729AbeEKK3D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 May 2018 06:29:03 -0400
+Subject: Re: [PATCH 5/5] media: rcar-vin: Use FTEV for digital input
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <1526032781-14319-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526032781-14319-6-git-send-email-jacopo+renesas@jmondi.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <b3b6acfd-1006-b84f-f70f-29bbf6df85db@xs4all.nl>
+Date: Fri, 11 May 2018 12:28:55 +0200
 MIME-Version: 1.0
-In-Reply-To: <1525365651.3408.3.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1526032781-14319-6-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+On 05/11/18 11:59, Jacopo Mondi wrote:
+> Since commit (015060cb "media: rcar-vin: enable field toggle after a set
+> number of lines for Gen3) the VIN generates an internal field signal
+> toggle after a fixed number of received lines, and uses the internal
+> field signal to drive capture operations. When capturing from digital
+> input, using FTEH driven field signal toggling messes up the received
+> image sizes. Fall back to use FTEV driven signal toggling when capturing
+> from digital input.
+> 
+> As explained in the comment, this disables buffer overflow protection
+> for digital input capture, for which the FOE overflow might be used in
+> future.
 
+I don't know the details of the hardware, but this sounds dangerous.
 
-On 05/03/2018 09:40 AM, Philipp Zabel wrote:
-> On Thu, 2018-05-03 at 18:32 +0200, Jan Luebbe wrote:
->> A burst_size of 4 does not work for the 16 bit passthrough formats, so
->> we use 8 instead.
->>
->> Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
->> ---
->>   drivers/staging/media/imx/imx-media-csi.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
->> index 1112d8f67a18..08b636084286 100644
->> --- a/drivers/staging/media/imx/imx-media-csi.c
->> +++ b/drivers/staging/media/imx/imx-media-csi.c
->> @@ -410,7 +410,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
->>   	case V4L2_PIX_FMT_SGRBG16:
->>   	case V4L2_PIX_FMT_SRGGB16:
->>   	case V4L2_PIX_FMT_Y16:
->> -		burst_size = 4;
->> +		burst_size = 8;
-> This seems to be the equivalent to commit 37ea9830139b3 ("media: imx-
-> csi: fix burst size"), but for 16-bit formats.
->
-> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
->
-> regards
-> Philipp
+You should know that with HDMI input it is perfectly possible that you get
+more data than you should. I.e. instead of 1080 lines (assuming full HD)
+you might get more lines. This happens if the vertical sync is missed due
+to pin bounce when connecting a source.
+
+Other reasons for this are flaky signals, bad clocks, etc.
+
+It's rare, but it really happens.
+
+A good DMA engine will refuse to write more than fits in the buffer.
+
+If you disable that, then you will get overflows eventually.
+
+The reality with HDMI input is that you should never assume clean valid
+data. You do not control the source and it can send anything it likes.
+
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 18 +++++++++++++++++-
+>  1 file changed, 17 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index ea7a120..8dc3455 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -685,11 +685,27 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		break;
+>  	}
+>  
+> -	if (vin->info->model == RCAR_GEN3) {
+> +	if (vin->info->model == RCAR_GEN3 &&
+> +	    vin->mbus_cfg.type == V4L2_MBUS_CSI2) {
+>  		/* Enable HSYNC Field Toggle mode after height HSYNC inputs. */
+>  		lines = vin->format.height / (halfsize ? 2 : 1);
+>  		dmr2 = VNDMR2_FTEH | VNDMR2_HLV(lines);
+>  		vin_dbg(vin, "Field Toogle after %u lines\n", lines);
+
+Typo: Toogle -> Toggle
+
+> +	} else if (vin->info->model == RCAR_GEN3 &&
+> +		   vin->mbus_cfg.type == V4L2_MBUS_PARALLEL) {
+> +		/*
+> +		 * FIXME
+> +		 * Section 26.3.17 specifies that for digital input there's no
+> +		 * need to program FTEH or FTEV to generate internal
+> +		 * field toggle signal to driver capture. Although when
+> +		 * running on GEN3 with digital input no EFE interrupt is ever
+> +		 * generated, and we need to rely on FTEV driven field signal
+> +		 * toggling, as using FTEH as in the CSI-2 case, messes up
+> +		 * the output image size. This implies no protection
+> +		 * against buffer overflow is in place for Gen3 digital input
+> +		 * capture.
+> +		 */
+> +		dmr2 = VNDMR2_FTEV;
+>  	} else {
+>  		/* Enable VSYNC Field Toogle mode after one VSYNC input. */
+
+Ditto. Search and replace?
+
+>  		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+> 
+
+Regards,
+
+	Hans
