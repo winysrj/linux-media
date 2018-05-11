@@ -1,158 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:46833 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754063AbeEOOme (ORCPT
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:33324 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753353AbeEKPGj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 10:42:34 -0400
-Received: by mail-qt0-f193.google.com with SMTP id m16-v6so519729qtg.13
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 07:42:33 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 1/5] media: cec-notifier: Get notifier by device and connector name
-Date: Tue, 15 May 2018 16:42:18 +0200
-Message-Id: <1526395342-15481-2-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
-References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
+        Fri, 11 May 2018 11:06:39 -0400
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To: alan@linux.intel.com, sakari.ailus@linux.intel.com,
+        mchehab@kernel.org, gregkh@linuxfoundation.org,
+        andriy.shevchenko@linux.intel.com, chen.chenchacha@foxmail.com,
+        keescook@chromium.org, arvind.yadav.cs@gmail.com
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH 2/3] media: staging: atomisp: Fix an error handling path in 'lm3554_probe()'
+Date: Fri, 11 May 2018 17:06:17 +0200
+Message-Id: <f762630a681c08d9903cf73243dd98416ae96a7c.1526048313.git.christophe.jaillet@wanadoo.fr>
+In-Reply-To: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
+References: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
+In-Reply-To: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
+References: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In non device-tree world, we can need to get the notifier by the driver
-name directly and eventually defer probe if not yet created.
+The use of 'fail1' and 'fail2' is not correct. Reorder these calls to
+branch at the right place of the error handling path.
 
-This patch adds a variant of the get function by using the device name
-instead and will not create a notifier if not yet created.
-
-But the i915 driver exposes at least 2 HDMI connectors, this patch also
-adds the possibility to add a connector name tied to the notifier device
-to form a tuple and associate different CEC controllers for each HDMI
-connectors.
-
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 ---
- drivers/media/cec/cec-notifier.c | 11 ++++++++---
- include/media/cec-notifier.h     | 27 ++++++++++++++++++++++++---
- 2 files changed, 32 insertions(+), 6 deletions(-)
+ drivers/staging/media/atomisp/i2c/atomisp-lm3554.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
-index 16dffa0..dd2078b 100644
---- a/drivers/media/cec/cec-notifier.c
-+++ b/drivers/media/cec/cec-notifier.c
-@@ -21,6 +21,7 @@ struct cec_notifier {
- 	struct list_head head;
- 	struct kref kref;
- 	struct device *dev;
-+	const char *conn;
- 	struct cec_adapter *cec_adap;
- 	void (*callback)(struct cec_adapter *adap, u16 pa);
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c b/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
+index 723fa74ff815..1e5f516f6e50 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
+@@ -871,7 +871,7 @@ static int lm3554_probe(struct i2c_client *client)
+ 				     ARRAY_SIZE(lm3554_controls));
+ 	if (err) {
+ 		dev_err(&client->dev, "error initialize a ctrl_handler.\n");
+-		goto fail2;
++		goto fail1;
+ 	}
  
-@@ -30,13 +31,14 @@ struct cec_notifier {
- static LIST_HEAD(cec_notifiers);
- static DEFINE_MUTEX(cec_notifiers_lock);
+ 	for (i = 0; i < ARRAY_SIZE(lm3554_controls); i++)
+@@ -879,7 +879,6 @@ static int lm3554_probe(struct i2c_client *client)
+ 				     NULL);
  
--struct cec_notifier *cec_notifier_get(struct device *dev)
-+struct cec_notifier *cec_notifier_get_conn(struct device *dev, const char *conn)
- {
- 	struct cec_notifier *n;
+ 	if (flash->ctrl_handler.error) {
+-
+ 		dev_err(&client->dev, "ctrl_handler error.\n");
+ 		goto fail2;
+ 	}
+@@ -888,7 +887,7 @@ static int lm3554_probe(struct i2c_client *client)
+ 	err = media_entity_pads_init(&flash->sd.entity, 0, NULL);
+ 	if (err) {
+ 		dev_err(&client->dev, "error initialize a media entity.\n");
+-		goto fail1;
++		goto fail2;
+ 	}
  
- 	mutex_lock(&cec_notifiers_lock);
- 	list_for_each_entry(n, &cec_notifiers, head) {
--		if (n->dev == dev) {
-+		if (n->dev == dev &&
-+		    (!conn || !strcmp(n->conn, conn))) {
- 			kref_get(&n->kref);
- 			mutex_unlock(&cec_notifiers_lock);
- 			return n;
-@@ -46,6 +48,8 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
- 	if (!n)
- 		goto unlock;
- 	n->dev = dev;
-+	if (conn)
-+		n->conn = kstrdup(conn, GFP_KERNEL);
- 	n->phys_addr = CEC_PHYS_ADDR_INVALID;
- 	mutex_init(&n->lock);
- 	kref_init(&n->kref);
-@@ -54,7 +58,7 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
- 	mutex_unlock(&cec_notifiers_lock);
- 	return n;
- }
--EXPORT_SYMBOL_GPL(cec_notifier_get);
-+EXPORT_SYMBOL_GPL(cec_notifier_get_conn);
- 
- static void cec_notifier_release(struct kref *kref)
- {
-@@ -62,6 +66,7 @@ static void cec_notifier_release(struct kref *kref)
- 		container_of(kref, struct cec_notifier, kref);
- 
- 	list_del(&n->head);
-+	kfree(n->conn);
- 	kfree(n);
- }
- 
-diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
-index cf0add7..814eeef 100644
---- a/include/media/cec-notifier.h
-+++ b/include/media/cec-notifier.h
-@@ -20,8 +20,10 @@ struct cec_notifier;
- #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
- 
- /**
-- * cec_notifier_get - find or create a new cec_notifier for the given device.
-+ * cec_notifier_get_conn - find or create a new cec_notifier for the given
-+ * device and connector tuple.
-  * @dev: device that sends the events.
-+ * @conn: the connector name from which the event occurs
-  *
-  * If a notifier for device @dev already exists, then increase the refcount
-  * and return that notifier.
-@@ -31,7 +33,8 @@ struct cec_notifier;
-  *
-  * Return NULL if the memory could not be allocated.
-  */
--struct cec_notifier *cec_notifier_get(struct device *dev);
-+struct cec_notifier *cec_notifier_get_conn(struct device *dev,
-+					   const char *conn);
- 
- /**
-  * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
-@@ -85,7 +88,8 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
- 			       struct cec_notifier *notifier);
- 
- #else
--static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+static inline struct cec_notifier *cec_notifier_get_conn(struct device *dev,
-+							 const char *conn)
- {
- 	/* A non-NULL pointer is expected on success */
- 	return (struct cec_notifier *)0xdeadfeed;
-@@ -121,6 +125,23 @@ static inline void cec_register_cec_notifier(struct cec_adapter *adap,
- #endif
- 
- /**
-+ * cec_notifier_get - find or create a new cec_notifier for the given device.
-+ * @dev: device that sends the events.
-+ *
-+ * If a notifier for device @dev already exists, then increase the refcount
-+ * and return that notifier.
-+ *
-+ * If it doesn't exist, then allocate a new notifier struct and return a
-+ * pointer to that new struct.
-+ *
-+ * Return NULL if the memory could not be allocated.
-+ */
-+static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+{
-+	return cec_notifier_get_conn(dev, NULL);
-+}
-+
-+/**
-  * cec_notifier_phys_addr_invalidate() - set the physical address to INVALID
-  *
-  * @n: the CEC notifier
+ 	flash->sd.entity.function = MEDIA_ENT_F_FLASH;
 -- 
-2.7.4
+2.17.0
