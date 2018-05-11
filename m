@@ -1,55 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37882 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751968AbeEGMgo (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:63189 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750758AbeEKOQk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 08:36:44 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id AA404634C50
-        for <linux-media@vger.kernel.org>; Mon,  7 May 2018 15:36:43 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1fFfNj-0003gw-Fn
-        for linux-media@vger.kernel.org; Mon, 07 May 2018 15:36:43 +0300
-Date: Mon, 7 May 2018 15:36:43 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.18] IPU3 CIO2 fix
-Message-ID: <20180507123643.ftdo6z3x6cwhwwej@valkosipuli.retiisi.org.uk>
+        Fri, 11 May 2018 10:16:40 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 0/2] rcar-vin: Fix potential buffer overrun root cause
+Date: Fri, 11 May 2018 16:15:39 +0200
+Message-Id: <20180511141541.3164-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-Here's a fix for the IPU3 CIO2 driver.
+Commit 015060cb7795eac3 ("media: rcar-vin: enable field toggle after a 
+set number of lines for Gen3") was an attempt to fix the issue of 
+writing outside the capture buffer for VIN Gen3. Unfortunately it only 
+fixed a symptom of a problem to such a degree I could no longer 
+reproduce it.
 
-Please pull.
+Jacopo on the other hand working on a different setup still ran into the 
+issue. And he even figured out the root cause of the issue. When I 
+submitted the original VIN Gen3 support I had when addressing a review 
+comment missed to keep the crop and compose dimensions in sync with the 
+requested format resulting in the DMA engine not properly stopping 
+before writing outside the buffer.
 
+This series reverts the incorrect fix in 1/2 and applies a correct one 
+in 2/2. I think this should be picked up for v4.18.
 
-The following changes since commit f10379aad39e9da8bc7d1822e251b5f0673067ef:
+Niklas Söderlund (2):
+  Revert "media: rcar-vin: enable field toggle after a set number of
+    lines for Gen3"
+  rcar-vin: fix crop and compose handling for Gen3
 
-  media: include/video/omapfb_dss.h: use IS_ENABLED() (2018-05-05 11:45:51 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git ipu3
-
-for you to fetch changes up to fdb5fbc5020b63841e8bd9d4a11429f6bcba13b9:
-
-  media: intel-ipu3: cio2: Handle IRQs until INT_STS is cleared (2018-05-07 14:50:00 +0300)
-
-----------------------------------------------------------------
-Bingbu Cao (1):
-      media: intel-ipu3: cio2: Handle IRQs until INT_STS is cleared
-
- drivers/media/pci/intel/ipu3/ipu3-cio2.c | 32 ++++++++++++++++++++++----------
- 1 file changed, 22 insertions(+), 10 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 20 +++++---------------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  6 ++++++
+ 2 files changed, 11 insertions(+), 15 deletions(-)
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.17.0
