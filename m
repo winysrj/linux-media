@@ -1,74 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:3897 "EHLO mga03.intel.com"
+Received: from mail.anw.at ([195.234.101.228]:41393 "EHLO mail.anw.at"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964904AbeE3JTm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 05:19:42 -0400
-Date: Wed, 30 May 2018 12:19:34 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Yong Deng <yong.deng@magewell.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Thierry Reding <treding@nvidia.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v10 0/2] Initial Allwinner V3s CSI Support
-Message-ID: <20180530091934.tbd6xbyr5s3ipn3v@paasikivi.fi.intel.com>
-References: <20180517090224.u3ygdzjr77im2mmp@flea>
- <20180529095757.qkz7jyuxza7movbc@flea.home>
+        id S1750756AbeELJb1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 May 2018 05:31:27 -0400
+Subject: Re: [PATCH 2/7] Disable additional drivers requiring gpio/consumer.h
+To: Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org
+References: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
+ <1524763162-4865-3-git-send-email-brad@nextdimension.cc>
+From: "Jasmin J." <jasmin@anw.at>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e8d69388-3e47-eeaf-840d-5464fc6c8dc5@anw.at>
+Date: Sat, 12 May 2018 11:31:23 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180529095757.qkz7jyuxza7movbc@flea.home>
+In-Reply-To: <1524763162-4865-3-git-send-email-brad@nextdimension.cc>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 29, 2018 at 11:57:57AM +0200, Maxime Ripard wrote:
-> On Thu, May 17, 2018 at 11:02:24AM +0200, Maxime Ripard wrote:
-> > On Fri, May 04, 2018 at 02:44:08PM +0800, Yong Deng wrote:
-> > > This patchset add initial support for Allwinner V3s CSI.
-> > > 
-> > > Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-> > > interface and CSI1 is used for parallel interface. This is not
-> > > documented in datasheet but by test and guess.
-> > > 
-> > > This patchset implement a v4l2 framework driver and add a binding 
-> > > documentation for it. 
-> > > 
-> > > Currently, the driver only support the parallel interface. And has been
-> > > tested with a BT1120 signal which generating from FPGA. The following
-> > > fetures are not support with this patchset:
-> > >   - ISP 
-> > >   - MIPI-CSI2
-> > >   - Master clock for camera sensor
-> > >   - Power regulator for the front end IC
-> > 
-> > I tested it on my H3 with a parallel camera, and it still works. Thanks!
-> > 
-> > Hans, Sakari, any chance this might land in 4.18?
-> 
-> Ping?
+Hello Brad!
 
-I'll try to look into this soonish but it seems to be too late for 4.18.
-Sorry about that.
+Tonight build broke due to patch 95ee4c285022!
+You enabled VIDEO_OV2685 for 3.13., which doesn't
+compile for Kernels older than 3.17. When you look
+to the Kernel 3.17 section a lot of the drivers you
+enabled for 3.13 with your patch should be enabled
+for 3.17 only.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+So please test this and provide a follow up patch.
+I will not revert 95ee4c285022 now, except you can't
+fix it in a reasonable time frame.
+
+If you like and you have time you can improve
+scripts/make_kconfig.pl to detect such an issue to
+avoid future problems like this. I also had such a
+situation with enabling a driver twice in the past.
+
+BR,
+   Jasmin
