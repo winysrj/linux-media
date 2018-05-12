@@ -1,47 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:41522 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751537AbeETGup (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 May 2018 02:50:45 -0400
-From: Wolfram Sang <wsa@the-dreams.de>
-To: linux-i2c@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 5/7] media: hdpvr: don't check number of messages in the driver
-Date: Sun, 20 May 2018 08:50:36 +0200
-Message-Id: <20180520065039.7989-6-wsa@the-dreams.de>
-In-Reply-To: <20180520065039.7989-1-wsa@the-dreams.de>
-References: <20180520065039.7989-1-wsa@the-dreams.de>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:34141 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751333AbeELOoI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 May 2018 10:44:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/4] gspca: fix g/s_parm handling
+Date: Sat, 12 May 2018 16:44:01 +0200
+Message-Id: <20180512144403.13576-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180512144403.13576-1-hverkuil@xs4all.nl>
+References: <20180512144403.13576-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit 1eace8344c02 ("i2c: add param sanity check to
-i2c_transfer()"), the I2C core does this check now. We can remove it
-from drivers.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+Fix v4l2-compliance error: s_parm never set V4L2_CAP_TIMEPERFRAME.
+Also various cleanups.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ drivers/media/usb/gspca/gspca.c | 29 ++++++++++++++++-------------
+ drivers/media/usb/gspca/ov534.c |  1 -
+ drivers/media/usb/gspca/topro.c |  1 -
+ 3 files changed, 16 insertions(+), 15 deletions(-)
 
-Only build tested.
-
- drivers/media/usb/hdpvr/hdpvr-i2c.c | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/drivers/media/usb/hdpvr/hdpvr-i2c.c b/drivers/media/usb/hdpvr/hdpvr-i2c.c
-index 4720d79b0282..c97dcf981b3f 100644
---- a/drivers/media/usb/hdpvr/hdpvr-i2c.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-i2c.c
-@@ -117,9 +117,6 @@ static int hdpvr_transfer(struct i2c_adapter *i2c_adapter, struct i2c_msg *msgs,
- 	struct hdpvr_device *dev = i2c_get_adapdata(i2c_adapter);
- 	int retval = 0, addr;
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index ca87c58359e0..20c58ce82bd9 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -1254,14 +1254,15 @@ static int vidioc_g_parm(struct file *filp, void *priv,
+ {
+ 	struct gspca_dev *gspca_dev = video_drvdata(filp);
  
--	if (num <= 0)
--		return 0;
--
- 	mutex_lock(&dev->i2c_mutex);
+-	parm->parm.capture.readbuffers = 2;
++	parm->parm.capture.readbuffers = gspca_dev->queue.min_buffers_needed;
  
- 	addr = msgs[0].addr << 1;
+-	if (gspca_dev->sd_desc->get_streamparm) {
+-		gspca_dev->usb_err = 0;
+-		gspca_dev->sd_desc->get_streamparm(gspca_dev, parm);
+-		return gspca_dev->usb_err;
+-	}
+-	return 0;
++	if (!gspca_dev->sd_desc->get_streamparm)
++		return 0;
++
++	parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
++	gspca_dev->usb_err = 0;
++	gspca_dev->sd_desc->get_streamparm(gspca_dev, parm);
++	return gspca_dev->usb_err;
+ }
+ 
+ static int vidioc_s_parm(struct file *filp, void *priv,
+@@ -1269,15 +1270,17 @@ static int vidioc_s_parm(struct file *filp, void *priv,
+ {
+ 	struct gspca_dev *gspca_dev = video_drvdata(filp);
+ 
+-	parm->parm.capture.readbuffers = 2;
++	parm->parm.capture.readbuffers = gspca_dev->queue.min_buffers_needed;
+ 
+-	if (gspca_dev->sd_desc->set_streamparm) {
+-		gspca_dev->usb_err = 0;
+-		gspca_dev->sd_desc->set_streamparm(gspca_dev, parm);
+-		return gspca_dev->usb_err;
++	if (!gspca_dev->sd_desc->set_streamparm) {
++		parm->parm.capture.capability = 0;
++		return 0;
+ 	}
+ 
+-	return 0;
++	parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
++	gspca_dev->usb_err = 0;
++	gspca_dev->sd_desc->set_streamparm(gspca_dev, parm);
++	return gspca_dev->usb_err;
+ }
+ 
+ static int gspca_queue_setup(struct vb2_queue *vq,
+diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
+index f293921a1f2b..d06dc0755b9a 100644
+--- a/drivers/media/usb/gspca/ov534.c
++++ b/drivers/media/usb/gspca/ov534.c
+@@ -1476,7 +1476,6 @@ static void sd_get_streamparm(struct gspca_dev *gspca_dev,
+ 	struct v4l2_fract *tpf = &cp->timeperframe;
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+-	cp->capability |= V4L2_CAP_TIMEPERFRAME;
+ 	tpf->numerator = 1;
+ 	tpf->denominator = sd->frame_rate;
+ }
+diff --git a/drivers/media/usb/gspca/topro.c b/drivers/media/usb/gspca/topro.c
+index 82e2be14cad8..6f3ec0366a2f 100644
+--- a/drivers/media/usb/gspca/topro.c
++++ b/drivers/media/usb/gspca/topro.c
+@@ -4780,7 +4780,6 @@ static void sd_get_streamparm(struct gspca_dev *gspca_dev,
+ 	struct v4l2_fract *tpf = &cp->timeperframe;
+ 	int fr, i;
+ 
+-	cp->capability |= V4L2_CAP_TIMEPERFRAME;
+ 	tpf->numerator = 1;
+ 	i = get_fr_idx(gspca_dev);
+ 	if (i & 0x80) {
 -- 
-2.11.0
+2.17.0
