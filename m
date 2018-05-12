@@ -1,294 +1,429 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:50374 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750945AbeEUJAW (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:46441 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751028AbeELLYk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 05:00:22 -0400
-Received: by mail-wm0-f68.google.com with SMTP id t11-v6so24093399wmt.0
-        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 02:00:21 -0700 (PDT)
-Subject: Re: [PATCH v2 3/5] mfd: cros-ec: Introduce CEC commands and events
- definitions.
-To: Enric Balletbo Serra <eballetbo@gmail.com>
-Cc: David Airlie <airlied@linux.ie>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        Olof Johansson <olof@lixom.net>,
-        Sean Paul <seanpaul@google.com>, sadolfsson@google.com,
-        Felix Ekblom <felixe@google.com>,
-        Benson Leung <bleung@google.com>, darekm@google.com,
-        =?UTF-8?Q?St=c3=a9phane_Marchesin?= <marcheu@chromium.org>,
-        Fabien Parent <fparent@baylibre.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Stefan Adolfsson <sadolfsson@chromium.org>
-References: <1526648704-16873-1-git-send-email-narmstrong@baylibre.com>
- <1526648704-16873-4-git-send-email-narmstrong@baylibre.com>
- <CAFqH_50MsavjXP1fDhiiXR=ARyCK5-PXDCsQNKk3b1BPSXzwdw@mail.gmail.com>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <414f69e8-1d47-f5c8-4a09-7a1bbd6ffa33@baylibre.com>
-Date: Mon, 21 May 2018 11:00:19 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAFqH_50MsavjXP1fDhiiXR=ARyCK5-PXDCsQNKk3b1BPSXzwdw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Sat, 12 May 2018 07:24:40 -0400
+Received: by mail-wr0-f196.google.com with SMTP id a12-v6so7659154wrn.13
+        for <linux-media@vger.kernel.org>; Sat, 12 May 2018 04:24:39 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, mchehab+samsung@kernel.org
+Subject: [PATCH v3 3/3] [media] ddbridge: implement IOCTL handling
+Date: Sat, 12 May 2018 13:24:32 +0200
+Message-Id: <20180512112432.30887-4-d.scheller.oss@gmail.com>
+In-Reply-To: <20180512112432.30887-1-d.scheller.oss@gmail.com>
+References: <20180512112432.30887-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enric,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On 18/05/2018 18:19, Enric Balletbo Serra wrote:
-> Hi Neil,
-> 
-> 2018-05-18 15:05 GMT+02:00 Neil Armstrong <narmstrong@baylibre.com>:
->> The EC can expose a CEC bus, this patch adds the CEC related definitions
->> needed by the cros-ec-cec driver.
->> Having a 16 byte mkbp event size makes it possible to send CEC
->> messages from the EC to the AP directly inside the mkbp event
->> instead of first doing a notification and then a read.
->>
->> Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
->> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->> ---
->>  drivers/platform/chrome/cros_ec_proto.c | 40 +++++++++++++----
->>  include/linux/mfd/cros_ec.h             |  2 +-
->>  include/linux/mfd/cros_ec_commands.h    | 80 +++++++++++++++++++++++++++++++++
->>  3 files changed, 112 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
->> index e7bbdf9..c4f6c44 100644
->> --- a/drivers/platform/chrome/cros_ec_proto.c
->> +++ b/drivers/platform/chrome/cros_ec_proto.c
->> @@ -504,10 +504,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
->>  }
->>  EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
->>
->> +static int get_next_event_xfer(struct cros_ec_device *ec_dev,
->> +                              struct cros_ec_command *msg,
->> +                              int version, uint32_t size)
->> +{
->> +       int ret;
->> +
->> +       msg->version = version;
->> +       msg->command = EC_CMD_GET_NEXT_EVENT;
->> +       msg->insize = size;
->> +       msg->outsize = 0;
->> +
->> +       ret = cros_ec_cmd_xfer(ec_dev, msg);
->> +       if (ret > 0) {
->> +               ec_dev->event_size = ret - 1;
->> +               memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
->> +       }
->> +
->> +       return ret;
->> +}
->> +
->>  static int get_next_event(struct cros_ec_device *ec_dev)
->>  {
->>         u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
->>         struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
->> +       static int cmd_version = 1;
-> 
-> Personal opinion, but I don't like this static here, and also I don't
-> think this is scalable. Could we ask for the command version?
+This patch adds back the IOCTL API/functionality which is present in the
+upstream dddvb driver package. In comparison, the IOCTL handler has been
+factored to a separate object (and with that, some functionality from
+-core, such as reg_wait() and ddb_flashio() has been moved there aswell).
+The IOCTLs were defined in an include in include/uapi/linux/ previously
+and being reused here.
 
-I don't have an opinion, I only followed how it was implemented on the
-chromeos kernel and adapted to mainline. If you have a better way, I'll use it !
+The main purpose at the moment is to enable the mainline driver to handle
+FPGA firmware updates of all cards supported by the ddbridge driver, which
+gets even more important since the introduction of the MaxSX8 support
+(this card basically implements the I2C demod/tuner drivers which are used
+normally in FPGA, so any fixes need to be flashed into the card), and
+the recent firmware releases for the CineS2v7 and Octopus CI S2 series
+that not only carry bugfixes, but also enables support for higher
+bandwidth transponders.
 
-> 
->>         int ret;
->>
->>         if (ec_dev->suspended) {
->> @@ -515,18 +536,19 @@ static int get_next_event(struct cros_ec_device *ec_dev)
->>                 return -EHOSTDOWN;
->>         }
->>
->> -       msg->version = 0;
->> -       msg->command = EC_CMD_GET_NEXT_EVENT;
->> -       msg->insize = sizeof(ec_dev->event_data);
->> -       msg->outsize = 0;
->> +       if (cmd_version == 1) {
->> +               ret = get_next_event_xfer(ec_dev, msg, cmd_version,
->> +                               sizeof(struct ec_response_get_next_event_v1));
->> +               if (ret < 0 || msg->result != EC_RES_INVALID_VERSION)
->> +                       return ret;
->>
->> -       ret = cros_ec_cmd_xfer(ec_dev, msg);
->> -       if (ret > 0) {
->> -               ec_dev->event_size = ret - 1;
->> -               memcpy(&ec_dev->event_data, msg->data,
->> -                      sizeof(ec_dev->event_data));
->> +               /* Fallback to version 0 for future send attempts */
->> +               cmd_version = 0;
->>         }
->>
-> 
-> So we always do a failed transfer on all these EC devices that does
-> not support CEC. I am wondering if wouldn't be better pass the command
-> version to the cros_ec_get_next_event function. The driver should know
-> which version to use, just a random idea.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/Makefile         |   3 +-
+ drivers/media/pci/ddbridge/ddbridge-core.c  | 111 +----------------
+ drivers/media/pci/ddbridge/ddbridge-ioctl.c | 179 ++++++++++++++++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-ioctl.h |  32 +++++
+ 4 files changed, 215 insertions(+), 110 deletions(-)
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-ioctl.c
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-ioctl.h
 
-No, the driver cannot know the command version, this depends on the FW version
-and the platform. AFAIK this must be discovered.
-
-> 
->> +       ret = get_next_event_xfer(ec_dev, msg, cmd_version,
->> +                                 sizeof(struct ec_response_get_next_event));
->> +
->>         return ret;
->>  }
->>
->> diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
->> index f36125e..32caef3 100644
->> --- a/include/linux/mfd/cros_ec.h
->> +++ b/include/linux/mfd/cros_ec.h
->> @@ -147,7 +147,7 @@ struct cros_ec_device {
->>         bool mkbp_event_supported;
->>         struct blocking_notifier_head event_notifier;
->>
->> -       struct ec_response_get_next_event event_data;
->> +       struct ec_response_get_next_event_v1 event_data;
->>         int event_size;
->>         u32 host_event_wake_mask;
->>  };
->> diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
->> index f2edd99..16c3a2b 100644
->> --- a/include/linux/mfd/cros_ec_commands.h
->> +++ b/include/linux/mfd/cros_ec_commands.h
-> 
-> This file is going to be very big and as requested by Lee I plan to
-> convert this file to the kernel-doc format, this patch introduces some
-> new structs so could you document the new structs in the suggested
-> format?
-
-Ok
-
-> 
->> @@ -804,6 +804,8 @@ enum ec_feature_code {
->>         EC_FEATURE_MOTION_SENSE_FIFO = 24,
->>         /* EC has RTC feature that can be controlled by host commands */
->>         EC_FEATURE_RTC = 27,
->> +       /* EC supports CEC commands */
->> +       EC_FEATURE_CEC = 35,
->>  };
->>
->>  #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
->> @@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
->>         /* EC sent a sysrq command */
->>         EC_MKBP_EVENT_SYSRQ = 6,
->>
->> +       /* Notify the AP that something happened on CEC */
->> +       EC_MKBP_CEC_EVENT = 8,
->> +
->> +       /* Send an incoming CEC message to the AP */
->> +       EC_MKBP_EVENT_CEC_MESSAGE = 9,
->> +
->>         /* Number of MKBP events */
->>         EC_MKBP_EVENT_COUNT,
->>  };
->> @@ -2093,12 +2101,31 @@ union ec_response_get_next_data {
->>         uint32_t   sysrq;
->>  } __packed;
->>
->> +union ec_response_get_next_data_v1 {
->> +       uint8_t   key_matrix[16];
->> +
->> +       /* Unaligned */
->> +       uint32_t  host_event;
->> +
->> +       uint32_t   buttons;
->> +       uint32_t   switches;
->> +       uint32_t   sysrq;
->> +       uint32_t   cec_events;
->> +       uint8_t    cec_message[16];
->> +} __packed;
->> +
->>  struct ec_response_get_next_event {
->>         uint8_t event_type;
->>         /* Followed by event data if any */
->>         union ec_response_get_next_data data;
->>  } __packed;
->>
->> +struct ec_response_get_next_event_v1 {
->> +       uint8_t event_type;
->> +       /* Followed by event data if any */
->> +       union ec_response_get_next_data_v1 data;
->> +} __packed;
->> +
->>  /* Bit indices for buttons and switches.*/
->>  /* Buttons */
->>  #define EC_MKBP_POWER_BUTTON   0
->> @@ -2828,6 +2855,59 @@ struct ec_params_reboot_ec {
->>  /* Current version of ACPI memory address space */
->>  #define EC_ACPI_MEM_VERSION_CURRENT 1
->>
->> +/*****************************************************************************/
->> +/*
->> + * HDMI CEC commands
->> + *
->> + * These commands are for sending and receiving message via HDMI CEC
->> + */
->> +#define MAX_CEC_MSG_LEN 16
->> +
->> +/* CEC message from the AP to be written on the CEC bus */
->> +#define EC_CMD_CEC_WRITE_MSG 0x00B8
->> +
->> +/* Message to write to the CEC bus */
->> +struct ec_params_cec_write {
->> +       uint8_t msg[MAX_CEC_MSG_LEN];
->> +} __packed;
->> +
->> +/* Set various CEC parameters */
->> +#define EC_CMD_CEC_SET 0x00BA
->> +
->> +struct ec_params_cec_set {
->> +       uint8_t cmd; /* enum cec_command */
->> +       union {
->> +               uint8_t enable;
->> +               uint8_t address;
->> +       };
->> +} __packed;
->> +
->> +/* Read various CEC parameters */
->> +#define EC_CMD_CEC_GET 0x00BB
->> +
->> +struct ec_params_cec_get {
->> +       uint8_t cmd; /* enum cec_command */
->> +} __packed;
->> +
->> +struct ec_response_cec_get {
->> +       union {
->> +               uint8_t enable;
->> +               uint8_t address;
->> +       };
->> +} __packed;
->> +
->> +enum cec_command {
->> +       /* CEC reading, writing and events enable */
->> +       CEC_CMD_ENABLE,
->> +       /* CEC logical address  */
->> +       CEC_CMD_LOGICAL_ADDRESS,
->> +};
->> +
->> +/* Events from CEC to AP */
->> +enum mkbp_cec_event {
->> +       EC_MKBP_CEC_SEND_OK                     = 1 << 0,
->> +       EC_MKBP_CEC_SEND_FAILED                 = 1 << 1,
-> 
-> Use the BIT() macro.
-
-Ok
-
-> 
->> +};
->>
->>  /*****************************************************************************/
->>  /*
->> --
->> 2.7.4
->>
-> 
-> Thanks,
->   Enric
-> 
+diff --git a/drivers/media/pci/ddbridge/Makefile b/drivers/media/pci/ddbridge/Makefile
+index 9b9e35f171b7..3563a3e3d7f9 100644
+--- a/drivers/media/pci/ddbridge/Makefile
++++ b/drivers/media/pci/ddbridge/Makefile
+@@ -4,7 +4,8 @@
+ #
+ 
+ ddbridge-objs := ddbridge-main.o ddbridge-core.o ddbridge-ci.o \
+-		ddbridge-hw.o ddbridge-i2c.o ddbridge-max.o ddbridge-mci.o
++		ddbridge-hw.o ddbridge-i2c.o ddbridge-ioctl.o ddbridge-max.o \
++		ddbridge-mci.o
+ 
+ obj-$(CONFIG_DVB_DDBRIDGE) += ddbridge.o
+ 
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 377269c64449..cc0db7b718b1 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -40,6 +40,7 @@
+ #include "ddbridge-max.h"
+ #include "ddbridge-ci.h"
+ #include "ddbridge-io.h"
++#include "ddbridge-ioctl.h"
+ 
+ #include "tda18271c2dd.h"
+ #include "stv6110x.h"
+@@ -2547,112 +2548,14 @@ irqreturn_t ddb_irq_handler(int irq, void *dev_id)
+ /****************************************************************************/
+ /****************************************************************************/
+ 
+-static int reg_wait(struct ddb *dev, u32 reg, u32 bit)
+-{
+-	u32 count = 0;
+-
+-	while (safe_ddbreadl(dev, reg) & bit) {
+-		ndelay(10);
+-		if (++count == 100)
+-			return -1;
+-	}
+-	return 0;
+-}
+-
+-static int flashio(struct ddb *dev, u32 lnr, u8 *wbuf, u32 wlen, u8 *rbuf,
+-		   u32 rlen)
+-{
+-	u32 data, shift;
+-	u32 tag = DDB_LINK_TAG(lnr);
+-	struct ddb_link *link = &dev->link[lnr];
+-
+-	mutex_lock(&link->flash_mutex);
+-	if (wlen > 4)
+-		ddbwritel(dev, 1, tag | SPI_CONTROL);
+-	while (wlen > 4) {
+-		/* FIXME: check for big-endian */
+-		data = swab32(*(u32 *)wbuf);
+-		wbuf += 4;
+-		wlen -= 4;
+-		ddbwritel(dev, data, tag | SPI_DATA);
+-		if (reg_wait(dev, tag | SPI_CONTROL, 4))
+-			goto fail;
+-	}
+-	if (rlen)
+-		ddbwritel(dev, 0x0001 | ((wlen << (8 + 3)) & 0x1f00),
+-			  tag | SPI_CONTROL);
+-	else
+-		ddbwritel(dev, 0x0003 | ((wlen << (8 + 3)) & 0x1f00),
+-			  tag | SPI_CONTROL);
+-
+-	data = 0;
+-	shift = ((4 - wlen) * 8);
+-	while (wlen) {
+-		data <<= 8;
+-		data |= *wbuf;
+-		wlen--;
+-		wbuf++;
+-	}
+-	if (shift)
+-		data <<= shift;
+-	ddbwritel(dev, data, tag | SPI_DATA);
+-	if (reg_wait(dev, tag | SPI_CONTROL, 4))
+-		goto fail;
+-
+-	if (!rlen) {
+-		ddbwritel(dev, 0, tag | SPI_CONTROL);
+-		goto exit;
+-	}
+-	if (rlen > 4)
+-		ddbwritel(dev, 1, tag | SPI_CONTROL);
+-
+-	while (rlen > 4) {
+-		ddbwritel(dev, 0xffffffff, tag | SPI_DATA);
+-		if (reg_wait(dev, tag | SPI_CONTROL, 4))
+-			goto fail;
+-		data = ddbreadl(dev, tag | SPI_DATA);
+-		*(u32 *)rbuf = swab32(data);
+-		rbuf += 4;
+-		rlen -= 4;
+-	}
+-	ddbwritel(dev, 0x0003 | ((rlen << (8 + 3)) & 0x1F00),
+-		  tag | SPI_CONTROL);
+-	ddbwritel(dev, 0xffffffff, tag | SPI_DATA);
+-	if (reg_wait(dev, tag | SPI_CONTROL, 4))
+-		goto fail;
+-
+-	data = ddbreadl(dev, tag | SPI_DATA);
+-	ddbwritel(dev, 0, tag | SPI_CONTROL);
+-
+-	if (rlen < 4)
+-		data <<= ((4 - rlen) * 8);
+-
+-	while (rlen > 0) {
+-		*rbuf = ((data >> 24) & 0xff);
+-		data <<= 8;
+-		rbuf++;
+-		rlen--;
+-	}
+-exit:
+-	mutex_unlock(&link->flash_mutex);
+-	return 0;
+-fail:
+-	mutex_unlock(&link->flash_mutex);
+-	return -1;
+-}
+-
+ int ddbridge_flashread(struct ddb *dev, u32 link, u8 *buf, u32 addr, u32 len)
+ {
+ 	u8 cmd[4] = {0x03, (addr >> 16) & 0xff,
+ 		     (addr >> 8) & 0xff, addr & 0xff};
+ 
+-	return flashio(dev, link, cmd, 4, buf, len);
++	return ddb_do_flashio(dev, link, cmd, 4, buf, len);
+ }
+ 
+-/*
+- * TODO/FIXME: add/implement IOCTLs from upstream driver
+- */
+-
+ #define DDB_NAME "ddbridge"
+ 
+ static u32 ddb_num;
+@@ -2678,16 +2581,6 @@ static int ddb_open(struct inode *inode, struct file *file)
+ 	return 0;
+ }
+ 
+-static long ddb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+-{
+-	struct ddb *dev = file->private_data;
+-
+-	dev_warn(dev->dev, "DDB IOCTLs unsupported (cmd: %d, arg: %lu)\n",
+-		 cmd, arg);
+-
+-	return -ENOTTY;
+-}
+-
+ static const struct file_operations ddb_fops = {
+ 	.unlocked_ioctl = ddb_ioctl,
+ 	.open           = ddb_open,
+diff --git a/drivers/media/pci/ddbridge/ddbridge-ioctl.c b/drivers/media/pci/ddbridge/ddbridge-ioctl.c
+new file mode 100644
+index 000000000000..f0431b468383
+--- /dev/null
++++ b/drivers/media/pci/ddbridge/ddbridge-ioctl.c
+@@ -0,0 +1,179 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * ddbridge-ioctl.c: Digital Devices bridge IOCTL handler
++ *
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
++ *                         Marcus Metzler <mocm@metzlerbros.de>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 only, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/module.h>
++#include <linux/i2c.h>
++#include <linux/vmalloc.h>
++
++#include "ddbridge.h"
++#include "ddbridge-i2c.h"
++#include "ddbridge-regs.h"
++#include "ddbridge-io.h"
++#include "ddbridge-ioctl.h"
++
++/******************************************************************************/
++
++static int reg_wait(struct ddb *dev, u32 reg, u32 bit)
++{
++	u32 count = 0;
++
++	while (safe_ddbreadl(dev, reg) & bit) {
++		ndelay(10);
++		if (++count == 100)
++			return -1;
++	}
++	return 0;
++}
++
++/******************************************************************************/
++
++int ddb_do_flashio(struct ddb *dev, u32 lnr, u8 *wbuf, u32 wlen,
++		   u8 *rbuf, u32 rlen)
++{
++	u32 data, shift;
++	u32 tag = DDB_LINK_TAG(lnr);
++	struct ddb_link *link = &dev->link[lnr];
++
++	mutex_lock(&link->flash_mutex);
++	if (wlen > 4)
++		ddbwritel(dev, 1, tag | SPI_CONTROL);
++	while (wlen > 4) {
++		/* FIXME: check for big-endian */
++		data = swab32(*(u32 *)wbuf);
++		wbuf += 4;
++		wlen -= 4;
++		ddbwritel(dev, data, tag | SPI_DATA);
++		if (reg_wait(dev, tag | SPI_CONTROL, 4))
++			goto fail;
++	}
++	if (rlen)
++		ddbwritel(dev, 0x0001 | ((wlen << (8 + 3)) & 0x1f00),
++			  tag | SPI_CONTROL);
++	else
++		ddbwritel(dev, 0x0003 | ((wlen << (8 + 3)) & 0x1f00),
++			  tag | SPI_CONTROL);
++
++	data = 0;
++	shift = ((4 - wlen) * 8);
++	while (wlen) {
++		data <<= 8;
++		data |= *wbuf;
++		wlen--;
++		wbuf++;
++	}
++	if (shift)
++		data <<= shift;
++	ddbwritel(dev, data, tag | SPI_DATA);
++	if (reg_wait(dev, tag | SPI_CONTROL, 4))
++		goto fail;
++
++	if (!rlen) {
++		ddbwritel(dev, 0, tag | SPI_CONTROL);
++		goto exit;
++	}
++	if (rlen > 4)
++		ddbwritel(dev, 1, tag | SPI_CONTROL);
++
++	while (rlen > 4) {
++		ddbwritel(dev, 0xffffffff, tag | SPI_DATA);
++		if (reg_wait(dev, tag | SPI_CONTROL, 4))
++			goto fail;
++		data = ddbreadl(dev, tag | SPI_DATA);
++		*(u32 *)rbuf = swab32(data);
++		rbuf += 4;
++		rlen -= 4;
++	}
++	ddbwritel(dev, 0x0003 | ((rlen << (8 + 3)) & 0x1F00),
++		  tag | SPI_CONTROL);
++	ddbwritel(dev, 0xffffffff, tag | SPI_DATA);
++	if (reg_wait(dev, tag | SPI_CONTROL, 4))
++		goto fail;
++
++	data = ddbreadl(dev, tag | SPI_DATA);
++	ddbwritel(dev, 0, tag | SPI_CONTROL);
++
++	if (rlen < 4)
++		data <<= ((4 - rlen) * 8);
++
++	while (rlen > 0) {
++		*rbuf = ((data >> 24) & 0xff);
++		data <<= 8;
++		rbuf++;
++		rlen--;
++	}
++exit:
++	mutex_unlock(&link->flash_mutex);
++	return 0;
++fail:
++	mutex_unlock(&link->flash_mutex);
++	return -1;
++}
++
++long ddb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++{
++	struct ddb *dev = file->private_data;
++	__user void *parg = (__user void *)arg;
++	int res;
++
++	switch (cmd) {
++	case DDB_IOCTL_FLASHIO:
++	{
++		struct ddb_flashio fio;
++		u8 *rbuf, *wbuf;
++
++		if (copy_from_user(&fio, parg, sizeof(fio)))
++			return -EFAULT;
++		if (fio.write_len > 1028 || fio.read_len > 1028)
++			return -EINVAL;
++		if (fio.write_len + fio.read_len > 1028)
++			return -EINVAL;
++		if (fio.link > 3)
++			return -EINVAL;
++
++		wbuf = dev->iobuf;
++		rbuf = wbuf + fio.write_len;
++
++		if (copy_from_user(wbuf, fio.write_buf, fio.write_len))
++			return -EFAULT;
++		res = ddb_do_flashio(dev, fio.link, wbuf, fio.write_len,
++				     rbuf, fio.read_len);
++		if (res)
++			return res;
++		if (copy_to_user(fio.read_buf, rbuf, fio.read_len))
++			return -EFAULT;
++		break;
++	}
++	case DDB_IOCTL_ID:
++	{
++		struct ddb_id ddbid;
++
++		ddbid.vendor = dev->link[0].ids.vendor;
++		ddbid.device = dev->link[0].ids.device;
++		ddbid.subvendor = dev->link[0].ids.subvendor;
++		ddbid.subdevice = dev->link[0].ids.subdevice;
++		ddbid.hw = ddbreadl(dev, 0);
++		ddbid.regmap = ddbreadl(dev, 4);
++		if (copy_to_user(parg, &ddbid, sizeof(ddbid)))
++			return -EFAULT;
++		break;
++	}
++	default:
++		return -ENOTTY;
++	}
++	return 0;
++}
+diff --git a/drivers/media/pci/ddbridge/ddbridge-ioctl.h b/drivers/media/pci/ddbridge/ddbridge-ioctl.h
+new file mode 100644
+index 000000000000..4865e98482ef
+--- /dev/null
++++ b/drivers/media/pci/ddbridge/ddbridge-ioctl.h
+@@ -0,0 +1,32 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * ddbridge-ioctl.h: Digital Devices bridge IOCTL handler
++ *
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
++ *                         Marcus Metzler <mocm@metzlerbros.de>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 only, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef __DDBRIDGE_IOCTL_H__
++#define __DDBRIDGE_IOCTL_H__
++
++#include <linux/ddbridge-ioctl.h>
++
++#include "ddbridge.h"
++
++/******************************************************************************/
++
++int ddb_do_flashio(struct ddb *dev, u32 lnr, u8 *wbuf, u32 wlen, u8 *rbuf,
++		   u32 rlen);
++long ddb_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
++
++#endif /* __DDBRIDGE_IOCTL_H__ */
+-- 
+2.16.1
