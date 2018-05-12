@@ -1,85 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:46991 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751172AbeEVL5w (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:33255 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750980AbeELOoI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 07:57:52 -0400
-Subject: Re: [PATCH v10 09/16] cobalt: add .is_unordered() for cobalt
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: kernel@collabora.com,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20180521165946.11778-1-ezequiel@collabora.com>
- <20180521165946.11778-10-ezequiel@collabora.com>
+        Sat, 12 May 2018 10:44:08 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <27bdf91f-920c-a5b6-1114-42996fff9813@xs4all.nl>
-Date: Tue, 22 May 2018 13:57:50 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180521165946.11778-10-ezequiel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 0/4] gspca: convert to vb2
+Date: Sat, 12 May 2018 16:43:59 +0200
+Message-Id: <20180512144403.13576-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21/05/18 18:59, Ezequiel Garcia wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> The cobalt driver may reorder the capture buffers so we need to report
-> it as such.
-> 
-> v3: set formats as unordered
-> v2: use vb2_ops_set_unordered() helper
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> ---
->  drivers/media/pci/cobalt/cobalt-v4l2.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
-> index e2a4c705d353..ccca1a96df90 100644
-> --- a/drivers/media/pci/cobalt/cobalt-v4l2.c
-> +++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
-> @@ -430,6 +430,7 @@ static const struct vb2_ops cobalt_qops = {
->  	.stop_streaming = cobalt_stop_streaming,
->  	.wait_prepare = vb2_ops_wait_prepare,
->  	.wait_finish = vb2_ops_wait_finish,
-> +	.is_unordered = vb2_ops_is_unordered,
->  };
->  
->  /* V4L2 ioctls */
-> @@ -695,14 +696,17 @@ static int cobalt_enum_fmt_vid_cap(struct file *file, void *priv_fh,
->  	case 0:
->  		strlcpy(f->description, "YUV 4:2:2", sizeof(f->description));
->  		f->pixelformat = V4L2_PIX_FMT_YUYV;
-> +		f->flags |= V4L2_FMT_FLAG_UNORDERED;
->  		break;
->  	case 1:
->  		strlcpy(f->description, "RGB24", sizeof(f->description));
->  		f->pixelformat = V4L2_PIX_FMT_RGB24;
-> +		f->flags |= V4L2_FMT_FLAG_UNORDERED;
->  		break;
->  	case 2:
->  		strlcpy(f->description, "RGB32", sizeof(f->description));
->  		f->pixelformat = V4L2_PIX_FMT_BGR32;
-> +		f->flags |= V4L2_FMT_FLAG_UNORDERED;
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Rather than adding this for every case, just move it out of the switch and
-set it just before the 'return 0'.
+The first patch converts the gspca driver to the vb2 framework.
+It was much easier to do than I expected and it saved almost 600
+lines of gspca driver code.
+
+The second patch fixes v4l2-compliance warnings for g/s_parm.
+
+The third patch clears relevant fields in v4l2_streamparm in
+v4l_s_parm(). This was never done before since v4l2-compliance
+didn't check this.
+
+The final patch deletes the now unused v4l2_disable_ioctl_locking()
+function.
+
+Tested with three different gspca webcams, and tested suspend/resume
+as well.
 
 Regards,
 
 	Hans
 
->  		break;
->  	default:
->  		return -EINVAL;
-> 
+Hans Verkuil (4):
+  gspca: convert to vb2
+  gspca: fix g/s_parm handling
+  v4l2-ioctl: clear fields in s_parm
+  v4l2-ioctl: delete unused v4l2_disable_ioctl_locking
+
+ drivers/media/usb/gspca/Kconfig            |   1 +
+ drivers/media/usb/gspca/gspca.c            | 924 ++++-----------------
+ drivers/media/usb/gspca/gspca.h            |  38 +-
+ drivers/media/usb/gspca/m5602/m5602_core.c |   4 +-
+ drivers/media/usb/gspca/ov534.c            |   1 -
+ drivers/media/usb/gspca/topro.c            |   1 -
+ drivers/media/usb/gspca/vc032x.c           |   2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c       |  19 +-
+ include/media/v4l2-dev.h                   |  15 -
+ 9 files changed, 209 insertions(+), 796 deletions(-)
+
+-- 
+2.17.0
