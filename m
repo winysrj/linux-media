@@ -1,160 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:44717 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030465AbeEXJ51 (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:46439 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751003AbeELLYi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 05:57:27 -0400
-Received: by mail-wr0-f194.google.com with SMTP id y15-v6so1943629wrg.11
-        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 02:57:27 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        eballetbo@gmail.com
-Subject: [PATCH v6 1/6] media: cec-notifier: Get notifier by device and connector name
-Date: Thu, 24 May 2018 11:57:16 +0200
-Message-Id: <1527155841-28494-2-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
-References: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
+        Sat, 12 May 2018 07:24:38 -0400
+Received: by mail-wr0-f195.google.com with SMTP id a12-v6so7659129wrn.13
+        for <linux-media@vger.kernel.org>; Sat, 12 May 2018 04:24:38 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, mchehab+samsung@kernel.org
+Subject: [PATCH v3 2/3] [media] ddbridge: uAPI header for IOCTL definitions and related data structs
+Date: Sat, 12 May 2018 13:24:31 +0200
+Message-Id: <20180512112432.30887-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20180512112432.30887-1-d.scheller.oss@gmail.com>
+References: <20180512112432.30887-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In non device-tree world, we can need to get the notifier by the driver
-name directly and eventually defer probe if not yet created.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-This patch adds a variant of the get function by using the device name
-instead and will not create a notifier if not yet created.
+Add a uAPI header to define the IOCTLs and the related data structs used by
+ddbridge, which currently are IOCTL_DDB_FLASHIO and IOCTL_DDB_IO. The
+header can be included by userspace applications directly to make use of
+the IOCTLs, and they even should use this header to keep things matching
+with the kernel driver.
 
-But the i915 driver exposes at least 2 HDMI connectors, this patch also
-adds the possibility to add a connector name tied to the notifier device
-to form a tuple and associate different CEC controllers for each HDMI
-connectors.
-
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/cec/cec-notifier.c | 11 ++++++++---
- include/media/cec-notifier.h     | 27 ++++++++++++++++++++++++---
- 2 files changed, 32 insertions(+), 6 deletions(-)
+ MAINTAINERS                         |  1 +
+ include/uapi/linux/ddbridge-ioctl.h | 61 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 62 insertions(+)
+ create mode 100644 include/uapi/linux/ddbridge-ioctl.h
 
-diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
-index 16dffa0..dd2078b 100644
---- a/drivers/media/cec/cec-notifier.c
-+++ b/drivers/media/cec/cec-notifier.c
-@@ -21,6 +21,7 @@ struct cec_notifier {
- 	struct list_head head;
- 	struct kref kref;
- 	struct device *dev;
-+	const char *conn;
- 	struct cec_adapter *cec_adap;
- 	void (*callback)(struct cec_adapter *adap, u16 pa);
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0a919a84d344..6b7da989fbed 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8710,6 +8710,7 @@ W:	https://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/pci/ddbridge/*
++F:	include/uapi/linux/ddbridge-ioctl.h
  
-@@ -30,13 +31,14 @@ struct cec_notifier {
- static LIST_HEAD(cec_notifiers);
- static DEFINE_MUTEX(cec_notifiers_lock);
- 
--struct cec_notifier *cec_notifier_get(struct device *dev)
-+struct cec_notifier *cec_notifier_get_conn(struct device *dev, const char *conn)
- {
- 	struct cec_notifier *n;
- 
- 	mutex_lock(&cec_notifiers_lock);
- 	list_for_each_entry(n, &cec_notifiers, head) {
--		if (n->dev == dev) {
-+		if (n->dev == dev &&
-+		    (!conn || !strcmp(n->conn, conn))) {
- 			kref_get(&n->kref);
- 			mutex_unlock(&cec_notifiers_lock);
- 			return n;
-@@ -46,6 +48,8 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
- 	if (!n)
- 		goto unlock;
- 	n->dev = dev;
-+	if (conn)
-+		n->conn = kstrdup(conn, GFP_KERNEL);
- 	n->phys_addr = CEC_PHYS_ADDR_INVALID;
- 	mutex_init(&n->lock);
- 	kref_init(&n->kref);
-@@ -54,7 +58,7 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
- 	mutex_unlock(&cec_notifiers_lock);
- 	return n;
- }
--EXPORT_SYMBOL_GPL(cec_notifier_get);
-+EXPORT_SYMBOL_GPL(cec_notifier_get_conn);
- 
- static void cec_notifier_release(struct kref *kref)
- {
-@@ -62,6 +66,7 @@ static void cec_notifier_release(struct kref *kref)
- 		container_of(kref, struct cec_notifier, kref);
- 
- 	list_del(&n->head);
-+	kfree(n->conn);
- 	kfree(n);
- }
- 
-diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
-index cf0add7..814eeef 100644
---- a/include/media/cec-notifier.h
-+++ b/include/media/cec-notifier.h
-@@ -20,8 +20,10 @@ struct cec_notifier;
- #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
- 
- /**
-- * cec_notifier_get - find or create a new cec_notifier for the given device.
-+ * cec_notifier_get_conn - find or create a new cec_notifier for the given
-+ * device and connector tuple.
-  * @dev: device that sends the events.
-+ * @conn: the connector name from which the event occurs
-  *
-  * If a notifier for device @dev already exists, then increase the refcount
-  * and return that notifier.
-@@ -31,7 +33,8 @@ struct cec_notifier;
-  *
-  * Return NULL if the memory could not be allocated.
-  */
--struct cec_notifier *cec_notifier_get(struct device *dev);
-+struct cec_notifier *cec_notifier_get_conn(struct device *dev,
-+					   const char *conn);
- 
- /**
-  * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
-@@ -85,7 +88,8 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
- 			       struct cec_notifier *notifier);
- 
- #else
--static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+static inline struct cec_notifier *cec_notifier_get_conn(struct device *dev,
-+							 const char *conn)
- {
- 	/* A non-NULL pointer is expected on success */
- 	return (struct cec_notifier *)0xdeadfeed;
-@@ -121,6 +125,23 @@ static inline void cec_register_cec_notifier(struct cec_adapter *adap,
- #endif
- 
- /**
-+ * cec_notifier_get - find or create a new cec_notifier for the given device.
-+ * @dev: device that sends the events.
+ MEDIA DRIVERS FOR FREESCALE IMX
+ M:	Steve Longerbeam <slongerbeam@gmail.com>
+diff --git a/include/uapi/linux/ddbridge-ioctl.h b/include/uapi/linux/ddbridge-ioctl.h
+new file mode 100644
+index 000000000000..5b28a797da41
+--- /dev/null
++++ b/include/uapi/linux/ddbridge-ioctl.h
+@@ -0,0 +1,61 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * ddbridge-ioctl.h: Digital Devices bridge IOCTL API
 + *
-+ * If a notifier for device @dev already exists, then increase the refcount
-+ * and return that notifier.
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
++ *                         Marcus Metzler <mocm@metzlerbros.de>
 + *
-+ * If it doesn't exist, then allocate a new notifier struct and return a
-+ * pointer to that new struct.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 only, as published by the Free Software Foundation.
 + *
-+ * Return NULL if the memory could not be allocated.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
 + */
-+static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+{
-+	return cec_notifier_get_conn(dev, NULL);
-+}
 +
-+/**
-  * cec_notifier_phys_addr_invalidate() - set the physical address to INVALID
-  *
-  * @n: the CEC notifier
++#ifndef __LINUX_DDBRIDGE_IOCTL_H__
++#define __LINUX_DDBRIDGE_IOCTL_H__
++
++#include <linux/compiler.h>
++#include <linux/types.h>
++
++/******************************************************************************/
++
++#define DDB_IOCTL_MAGIC		0xDD
++#define DDB_IOCTL_SEQIDX	0xE0
++
++/* DDB_IOCTL_FLASHIO */
++struct ddb_flashio {
++	/* write_*: userspace -> flash */
++	__user __u8 *write_buf;
++	__u32        write_len;
++	/* read_*: flash -> userspace */
++	__user __u8 *read_buf;
++	__u32        read_len;
++	/* card/addon link */
++	__u32        link;
++};
++
++/* DDB_IOCTL_ID */
++struct ddb_id {
++	/* card/PCI device data, FPGA/regmap info */
++	__u16 vendor;
++	__u16 device;
++	__u16 subvendor;
++	__u16 subdevice;
++	__u32 hw;
++	__u32 regmap;
++};
++
++/* IOCTLs */
++#define DDB_IOCTL_FLASHIO \
++	_IOWR(DDB_IOCTL_MAGIC, (DDB_IOCTL_SEQIDX + 0x00), struct ddb_flashio)
++#define DDB_IOCTL_ID \
++	_IOR(DDB_IOCTL_MAGIC,  (DDB_IOCTL_SEQIDX + 0x03), struct ddb_id)
++
++/******************************************************************************/
++
++#endif /* __LINUX_DDBRIDGE_IOCTL_H__ */
 -- 
-2.7.4
+2.16.1
