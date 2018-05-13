@@ -1,95 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:44606 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030469AbeEXKvJ (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:1603 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751620AbeEMTAp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 06:51:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v4 03/11] media: vsp1: Rename dl_child to dl_next
-Date: Thu, 24 May 2018 13:51:05 +0300
-Message-ID: <1629785.SXvnFGcEuQ@avalon>
-In-Reply-To: <6de8b0a020738df7775fdcae22adccc0e97d8a96.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com> <6de8b0a020738df7775fdcae22adccc0e97d8a96.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Sun, 13 May 2018 15:00:45 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] media: rcar-vin: enable support for r8a77965
+Date: Sun, 13 May 2018 21:00:23 +0200
+Message-Id: <20180513190023.16170-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Add the SoC specific information for Renesas r8a77965.
 
-Thank you for the patch.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 48 +++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
-On Thursday, 3 May 2018 16:36:14 EEST Kieran Bingham wrote:
-> Both vsp1_dl_list_commit() and __vsp1_dl_list_put() walk the display
-> list chain referencing the nodes as children, when in reality they are
-> siblings.
-> 
-> Update the terminology to 'dl_next' to be consistent with the
-> vsp1_video_pipeline_run() usage.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/vsp1/vsp1_dl.c | 14 +++++++-------
->  1 file changed, 7 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
-> b/drivers/media/platform/vsp1/vsp1_dl.c index f4cede9b9b43..ec6fc21fabe0
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> @@ -398,7 +398,7 @@ struct vsp1_dl_list *vsp1_dl_list_get(struct
-> vsp1_dl_manager *dlm) /* This function must be called with the display list
-> manager lock held.*/ static void __vsp1_dl_list_put(struct vsp1_dl_list
-> *dl)
->  {
-> -	struct vsp1_dl_list *dl_child;
-> +	struct vsp1_dl_list *dl_next;
-> 
->  	if (!dl)
->  		return;
-> @@ -408,8 +408,8 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
->  	 * hardware operation.
->  	 */
->  	if (dl->has_chain) {
-> -		list_for_each_entry(dl_child, &dl->chain, chain)
-> -			__vsp1_dl_list_put(dl_child);
-> +		list_for_each_entry(dl_next, &dl->chain, chain)
-> +			__vsp1_dl_list_put(dl_next);
->  	}
-> 
->  	dl->has_chain = false;
-> @@ -673,17 +673,17 @@ static void vsp1_dl_list_commit_singleshot(struct
-> vsp1_dl_list *dl) void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool
-> internal)
->  {
->  	struct vsp1_dl_manager *dlm = dl->dlm;
-> -	struct vsp1_dl_list *dl_child;
-> +	struct vsp1_dl_list *dl_next;
->  	unsigned long flags;
-> 
->  	if (dlm->mode == VSP1_DL_MODE_HEADER) {
->  		/* Fill the header for the head and chained display lists. */
->  		vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
-> 
-> -		list_for_each_entry(dl_child, &dl->chain, chain) {
-> -			bool last = list_is_last(&dl_child->chain, &dl->chain);
-> +		list_for_each_entry(dl_next, &dl->chain, chain) {
-> +			bool last = list_is_last(&dl_next->chain, &dl->chain);
-> 
-> -			vsp1_dl_list_fill_header(dl_child, last);
-> +			vsp1_dl_list_fill_header(dl_next, last);
->  		}
->  	}
-
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index d3072e166a1ca24f..f7bfd05accbfde67 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -974,6 +974,50 @@ static const struct rvin_info rcar_info_r8a7796 = {
+ 	.routes = rcar_info_r8a7796_routes,
+ };
+ 
++static const struct rvin_group_route _rcar_info_r8a77965_routes[] = {
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 0, .mask = BIT(1) | BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 0, .mask = BIT(2) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 1, .mask = BIT(0) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(1) | BIT(3) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 1, .mask = BIT(4) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 2, .mask = BIT(0) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 2, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 2, .vin = 2, .mask = BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 3, .mask = BIT(1) | BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 3, .vin = 3, .mask = BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 4, .mask = BIT(0) | BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 4, .mask = BIT(1) | BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 4, .mask = BIT(2) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 5, .mask = BIT(0) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 5, .mask = BIT(1) | BIT(3) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 5, .mask = BIT(2) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 5, .mask = BIT(4) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 6, .mask = BIT(0) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 6, .mask = BIT(1) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 6, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 2, .vin = 6, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 2, .vin = 6, .mask = BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 7, .mask = BIT(0) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 7, .mask = BIT(1) | BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 3, .vin = 7, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 3, .vin = 7, .mask = BIT(4) },
++	{ /* Sentinel */ }
++};
++
++static const struct rvin_info rcar_info_r8a77965 = {
++	.model = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++	.routes = _rcar_info_r8a77965_routes,
++};
++
+ static const struct rvin_group_route _rcar_info_r8a77970_routes[] = {
+ 	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
+ 	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
+@@ -1030,6 +1074,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.compatible = "renesas,vin-r8a7796",
+ 		.data = &rcar_info_r8a7796,
+ 	},
++	{
++		.compatible = "renesas,vin-r8a77965",
++		.data = &rcar_info_r8a77965,
++	},
+ 	{
+ 		.compatible = "renesas,vin-r8a77970",
+ 		.data = &rcar_info_r8a77970,
 -- 
-Regards,
-
-Laurent Pinchart
+2.17.0
