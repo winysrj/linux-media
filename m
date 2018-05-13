@@ -1,153 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:36238 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937148AbeE3HQo (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:60918 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751226AbeEMLFa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 03:16:44 -0400
-Received: by mail-pg0-f67.google.com with SMTP id m5-v6so3353848pgd.3
-        for <linux-media@vger.kernel.org>; Wed, 30 May 2018 00:16:44 -0700 (PDT)
-From: Keiichi Watanabe <keiichiw@chromium.org>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Keiichi Watanabe <keiichiw@chromium.org>,
-        Tom Saeger <tom.saeger@oracle.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mediatek@lists.infradead.org
-Subject: [PATCH v2 1/2] media: v4l2-ctrl: Add control for VP9 profile
-Date: Wed, 30 May 2018 16:16:12 +0900
-Message-Id: <20180530071613.125768-2-keiichiw@chromium.org>
-In-Reply-To: <20180530071613.125768-1-keiichiw@chromium.org>
-References: <20180530071613.125768-1-keiichiw@chromium.org>
+        Sun, 13 May 2018 07:05:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 1/3] cpia2: move to staging in preparation for removal
+Date: Sun, 13 May 2018 13:05:23 +0200
+Message-Id: <20180513110525.20062-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180513110525.20062-1-hverkuil@xs4all.nl>
+References: <20180513110525.20062-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new control V4L2_CID_MPEG_VIDEO_VP9_PROFILE for selecting desired
-profile for VP9 encoder and querying for supported profiles by VP9 encoder
-or decoder.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-An existing control V4L2_CID_MPEG_VIDEO_VPX_PROFILE cannot be
-used for querying since it is not a menu control but an integer
-control, which cannot return an arbitrary set of supported profiles.
+This driver hasn't been tested in a long, long time. The hardware is
+ancient and pretty much obsolete. This driver also needs to be converted
+to newer media frameworks (vb2!) but due to the lack of time and interest
+that is unlikely to happen.
 
-The new control V4L2_CID_MPEG_VIDEO_VP9_PROFILE is a menu control as
-with controls for other codec profiles. (e.g. H264)
+So this driver is a prime candidate for removal. If someone is interested
+in working on this driver to prevent its removal, then please contact the
+linux-media mailinglist.
 
-Signed-off-by: Keiichi Watanabe <keiichiw@chromium.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../media/uapi/v4l/extended-controls.rst      | 26 +++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c          | 12 +++++++++
- include/uapi/linux/v4l2-controls.h            |  8 ++++++
- 3 files changed, 46 insertions(+)
+ drivers/media/usb/Kconfig                                    | 1 -
+ drivers/media/usb/Makefile                                   | 1 -
+ drivers/staging/media/Kconfig                                | 2 ++
+ drivers/staging/media/Makefile                               | 1 +
+ drivers/{media/usb => staging/media}/cpia2/Kconfig           | 2 +-
+ drivers/{media/usb => staging/media}/cpia2/Makefile          | 0
+ drivers/staging/media/cpia2/TODO                             | 4 ++++
+ drivers/{media/usb => staging/media}/cpia2/cpia2.h           | 0
+ drivers/{media/usb => staging/media}/cpia2/cpia2_core.c      | 0
+ drivers/{media/usb => staging/media}/cpia2/cpia2_registers.h | 0
+ drivers/{media/usb => staging/media}/cpia2/cpia2_usb.c       | 0
+ drivers/{media/usb => staging/media}/cpia2/cpia2_v4l.c       | 0
+ 12 files changed, 8 insertions(+), 3 deletions(-)
+ rename drivers/{media/usb => staging/media}/cpia2/Kconfig (87%)
+ rename drivers/{media/usb => staging/media}/cpia2/Makefile (100%)
+ create mode 100644 drivers/staging/media/cpia2/TODO
+ rename drivers/{media/usb => staging/media}/cpia2/cpia2.h (100%)
+ rename drivers/{media/usb => staging/media}/cpia2/cpia2_core.c (100%)
+ rename drivers/{media/usb => staging/media}/cpia2/cpia2_registers.h (100%)
+ rename drivers/{media/usb => staging/media}/cpia2/cpia2_usb.c (100%)
+ rename drivers/{media/usb => staging/media}/cpia2/cpia2_v4l.c (100%)
 
-diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-index 03931f9b1285..4f7f128a4998 100644
---- a/Documentation/media/uapi/v4l/extended-controls.rst
-+++ b/Documentation/media/uapi/v4l/extended-controls.rst
-@@ -1959,6 +1959,32 @@ enum v4l2_vp8_golden_frame_sel -
-     Select the desired profile for VPx encoder. Acceptable values are 0,
-     1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
-
-+.. _v4l2-mpeg-video-vp9-profile:
+diff --git a/drivers/media/usb/Kconfig b/drivers/media/usb/Kconfig
+index b24e753c4766..7c4058b67008 100644
+--- a/drivers/media/usb/Kconfig
++++ b/drivers/media/usb/Kconfig
+@@ -13,7 +13,6 @@ if MEDIA_CAMERA_SUPPORT
+ source "drivers/media/usb/uvc/Kconfig"
+ source "drivers/media/usb/gspca/Kconfig"
+ source "drivers/media/usb/pwc/Kconfig"
+-source "drivers/media/usb/cpia2/Kconfig"
+ source "drivers/media/usb/zr364xx/Kconfig"
+ source "drivers/media/usb/stkwebcam/Kconfig"
+ source "drivers/media/usb/s2255/Kconfig"
+diff --git a/drivers/media/usb/Makefile b/drivers/media/usb/Makefile
+index 21e46b10caa5..356b1103a0aa 100644
+--- a/drivers/media/usb/Makefile
++++ b/drivers/media/usb/Makefile
+@@ -13,7 +13,6 @@ obj-$(CONFIG_USB_PWC)           += pwc/
+ obj-$(CONFIG_USB_AIRSPY)        += airspy/
+ obj-$(CONFIG_USB_HACKRF)        += hackrf/
+ obj-$(CONFIG_USB_MSI2500)       += msi2500/
+-obj-$(CONFIG_VIDEO_CPIA2) += cpia2/
+ obj-$(CONFIG_VIDEO_AU0828) += au0828/
+ obj-$(CONFIG_VIDEO_HDPVR)	+= hdpvr/
+ obj-$(CONFIG_VIDEO_PVRUSB2) += pvrusb2/
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index 4c495a10025c..68b9084d3476 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -23,6 +23,8 @@ source "drivers/staging/media/atomisp/Kconfig"
+ 
+ source "drivers/staging/media/bcm2048/Kconfig"
+ 
++source "drivers/staging/media/cpia2/Kconfig"
 +
-+``V4L2_CID_MPEG_VIDEO_VP9_PROFILE``
-+    (enum)
-+
-+enum v4l2_mpeg_video_vp9_profile -
-+    This control allows to select the profile for VP9 encoder.
-+    This is also used to enumerate supported profiles by VP9 encoder or decoder.
-+    Possible values are:
-+
-+
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 0
-+
-+    * - ``V4L2_MPEG_VIDEO_VP9_PROFILE_0``
-+      - Profile 0
-+    * - ``V4L2_MPEG_VIDEO_VP9_PROFILE_1``
-+      - Profile 1
-+    * - ``V4L2_MPEG_VIDEO_VP9_PROFILE_2``
-+      - Profile 2
-+    * - ``V4L2_MPEG_VIDEO_VP9_PROFILE_3``
-+      - Profile 3
-+
-+
-
- High Efficiency Video Coding (HEVC/H.265) Control Reference
- -----------------------------------------------------------
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index d29e45516eb7..401ce21c2e63 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -431,6 +431,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Use Previous Specific Frame",
- 		NULL,
- 	};
-+	static const char * const vp9_profile[] = {
-+		"0",
-+		"1",
-+		"2",
-+		"3",
-+		NULL,
-+	};
-
- 	static const char * const flash_led_mode[] = {
- 		"Off",
-@@ -614,6 +621,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return mpeg4_profile;
- 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
- 		return vpx_golden_frame_sel;
-+	case V4L2_CID_MPEG_VIDEO_VP9_PROFILE:
-+		return vp9_profile;
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
- 		return jpeg_chroma_subsampling;
- 	case V4L2_CID_DV_TX_MODE:
-@@ -841,6 +850,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
-
-+	case V4L2_CID_MPEG_VIDEO_VP9_PROFILE:			return "VP9 Profile";
-+
- 	/* HEVC controls */
- 	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:		return "HEVC I-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:		return "HEVC P-Frame QP Value";
-@@ -1180,6 +1191,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DEINTERLACING_MODE:
- 	case V4L2_CID_TUNE_DEEMPHASIS:
- 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
-+	case V4L2_CID_MPEG_VIDEO_VP9_PROFILE:
- 	case V4L2_CID_DETECT_MD_MODE:
- 	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
- 	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 8d473c979b61..56203b7b715c 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -589,6 +589,14 @@ enum v4l2_vp8_golden_frame_sel {
- #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
- #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
-
-+#define V4L2_CID_MPEG_VIDEO_VP9_PROFILE			(V4L2_CID_MPEG_BASE+512)
-+enum v4l2_mpeg_video_vp9_profile {
-+	V4L2_MPEG_VIDEO_VP9_PROFILE_0				= 0,
-+	V4L2_MPEG_VIDEO_VP9_PROFILE_1				= 1,
-+	V4L2_MPEG_VIDEO_VP9_PROFILE_2				= 2,
-+	V4L2_MPEG_VIDEO_VP9_PROFILE_3				= 3,
-+};
-+
- /* CIDs for HEVC encoding. */
-
- #define V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP		(V4L2_CID_MPEG_BASE + 600)
---
-2.17.0.921.gf22659ad46-goog
+ source "drivers/staging/media/davinci_vpfe/Kconfig"
+ 
+ source "drivers/staging/media/imx/Kconfig"
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index 61a5765cb98f..f1566ac9a6c0 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
++obj-$(CONFIG_VIDEO_CPIA2) 	+= cpia2/
+ obj-$(CONFIG_VIDEO_IMX_MEDIA)	+= imx/
+ obj-$(CONFIG_SOC_CAMERA_IMX074)	+= imx074/
+ obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031/
+diff --git a/drivers/media/usb/cpia2/Kconfig b/drivers/staging/media/cpia2/Kconfig
+similarity index 87%
+rename from drivers/media/usb/cpia2/Kconfig
+rename to drivers/staging/media/cpia2/Kconfig
+index 66e9283f5993..805670826281 100644
+--- a/drivers/media/usb/cpia2/Kconfig
++++ b/drivers/staging/media/cpia2/Kconfig
+@@ -1,5 +1,5 @@
+ config VIDEO_CPIA2
+-	tristate "CPiA2 Video For Linux"
++	tristate "CPiA2 Video For Linux (Deprecated)"
+ 	depends on VIDEO_DEV && USB && VIDEO_V4L2
+ 	---help---
+ 	  This is the video4linux driver for cameras based on Vision's CPiA2
+diff --git a/drivers/media/usb/cpia2/Makefile b/drivers/staging/media/cpia2/Makefile
+similarity index 100%
+rename from drivers/media/usb/cpia2/Makefile
+rename to drivers/staging/media/cpia2/Makefile
+diff --git a/drivers/staging/media/cpia2/TODO b/drivers/staging/media/cpia2/TODO
+new file mode 100644
+index 000000000000..4a4dff2073cd
+--- /dev/null
++++ b/drivers/staging/media/cpia2/TODO
+@@ -0,0 +1,4 @@
++The cpia2 driver is marked deprecated. It will be removed
++around May 2019 unless someone is willing to update this
++driver to the latest V4L2 frameworks (especially the vb2
++framework).
+diff --git a/drivers/media/usb/cpia2/cpia2.h b/drivers/staging/media/cpia2/cpia2.h
+similarity index 100%
+rename from drivers/media/usb/cpia2/cpia2.h
+rename to drivers/staging/media/cpia2/cpia2.h
+diff --git a/drivers/media/usb/cpia2/cpia2_core.c b/drivers/staging/media/cpia2/cpia2_core.c
+similarity index 100%
+rename from drivers/media/usb/cpia2/cpia2_core.c
+rename to drivers/staging/media/cpia2/cpia2_core.c
+diff --git a/drivers/media/usb/cpia2/cpia2_registers.h b/drivers/staging/media/cpia2/cpia2_registers.h
+similarity index 100%
+rename from drivers/media/usb/cpia2/cpia2_registers.h
+rename to drivers/staging/media/cpia2/cpia2_registers.h
+diff --git a/drivers/media/usb/cpia2/cpia2_usb.c b/drivers/staging/media/cpia2/cpia2_usb.c
+similarity index 100%
+rename from drivers/media/usb/cpia2/cpia2_usb.c
+rename to drivers/staging/media/cpia2/cpia2_usb.c
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/staging/media/cpia2/cpia2_v4l.c
+similarity index 100%
+rename from drivers/media/usb/cpia2/cpia2_v4l.c
+rename to drivers/staging/media/cpia2/cpia2_v4l.c
+-- 
+2.17.0
