@@ -1,82 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54879 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754438AbeEWQTo (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:46013 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751219AbeEMJrr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 12:19:44 -0400
-Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras
- on generic apps
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
-        LMML <linux-media@vger.kernel.org>,
-        Wim Taymans <wtaymans@redhat.com>, schaller@redhat.com
-References: <20180517160708.74811cfb@vento.lan>
- <644920d91d1f69d659f233c6a52382d3f919babc.camel@ndufresne.ca>
- <3216261.G88TfqiCiH@avalon> <20180518082447.3068c34c@vento.lan>
+        Sun, 13 May 2018 05:47:47 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <727fc55e-970c-53c3-f286-f7e7c1035184@xs4all.nl>
-Date: Wed, 23 May 2018 18:19:37 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180518082447.3068c34c@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 4/4] v4l2-ioctl: delete unused v4l2_disable_ioctl_locking
+Date: Sun, 13 May 2018 11:47:41 +0200
+Message-Id: <20180513094741.25096-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180513094741.25096-1-hverkuil@xs4all.nl>
+References: <20180513094741.25096-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18/05/18 13:24, Mauro Carvalho Chehab wrote:
-> One of the biggest reasons why we decided to start libv4l project,
-> in the past, was to ensure an open source solution. The problem we
-> faced on that time is to ensure that, when a new media driver were
-> added with some proprietary output format, an open source decoding
-> software were also added at libv4l.
-> 
-> This approach ensured that all non-MC cameras are supported by all
-> V4L2 applications.
-> 
-> Before libv4l, media support for a given device were limited to a few 
-> apps that knew how to decode the format. There were even cases were a
-> proprietary app were required, as no open source decoders were available.
-> 
-> From my PoV, the biggest gain with libv4l is that the same group of
-> maintainers can ensure that the entire solution (Kernel driver and
-> low level userspace support) will provide everything required for an
-> open source app to work with it.
-> 
-> I'm not sure how we would keep enforcing it if the pipeline setting
-> and control propagation logic for an specific hardware will be
-> delegated to PipeWire. It seems easier to keep doing it on a libv4l
-> (version 2) and let PipeWire to use it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I've decided not to attend this meeting. It is not quite my core expertise
-and it is a bit too far to make it worth my time. If there are good reasons
-for me being there that I missed, then please let me know asap and I might
-reconsider this.
+The last user of this 'feature' was the gspca driver. Now that
+that driver has been converted to vb2 we can delete this code.
 
-What I would like to say though it that I think libv4l is a bit of a dead
-end and probably not suitable for adding support for this.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c |  2 --
+ include/media/v4l2-dev.h             | 15 ---------------
+ 2 files changed, 17 deletions(-)
 
-Currently libv4l2 is too intertwined with libv4lconvert and too messy.
-Its original motivation was for converting custom formats and that is
-mostly obsolete now that UVC has standardized formats to just a few.
-
-I think a core library is needed that provides the basic functionality
-and that can be used directly by applications if they don't want to use
-v4l2_open() and friends.
-
-I.e. it should be possible for e.g. gstreamer to use this core library
-to easily configure and use the MC instead of having to call v4l2_open() etc.
-and rely on magic code to do this for them. It's simply ugly to overload
-mmap with v4l2_mmap or to emulate read() if the driver doesn't support it.
-
-We might still have a libv4l2-like library sitting on top of this, but
-perhaps with limited functionality. For example, I think it would be
-reasonable to no longer support custom formats. If an application wants
-to support that, then it should call conversion functions for the core
-library explicitly. This has the big advantage of solving the dmabuf
-and mmap issues in today's libv4l2.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 212aac1d22c1..c23fbfe90a9e 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2666,8 +2666,6 @@ struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
+ {
+ 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
+ 		return vdev->lock;
+-	if (test_bit(_IOC_NR(cmd), vdev->disable_locking))
+-		return NULL;
+ 	if (vdev->queue && vdev->queue->lock &&
+ 			(v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
+ 		return vdev->queue->lock;
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 73073f6ee48c..30423aefe7c5 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -238,7 +238,6 @@ struct v4l2_file_operations {
+  * @ioctl_ops: pointer to &struct v4l2_ioctl_ops with ioctl callbacks
+  *
+  * @valid_ioctls: bitmap with the valid ioctls for this device
+- * @disable_locking: bitmap with the ioctls that don't require locking
+  * @lock: pointer to &struct mutex serialization lock
+  *
+  * .. note::
+@@ -291,7 +290,6 @@ struct video_device
+ 	const struct v4l2_ioctl_ops *ioctl_ops;
+ 	DECLARE_BITMAP(valid_ioctls, BASE_VIDIOC_PRIVATE);
+ 
+-	DECLARE_BITMAP(disable_locking, BASE_VIDIOC_PRIVATE);
+ 	struct mutex *lock;
+ };
+ 
+@@ -446,19 +444,6 @@ void video_device_release_empty(struct video_device *vdev);
+  */
+ bool v4l2_is_known_ioctl(unsigned int cmd);
+ 
+-/** v4l2_disable_ioctl_locking - mark that a given command
+- *	shouldn't use core locking
+- *
+- * @vdev: pointer to &struct video_device
+- * @cmd: ioctl command
+- */
+-static inline void v4l2_disable_ioctl_locking(struct video_device *vdev,
+-					      unsigned int cmd)
+-{
+-	if (_IOC_NR(cmd) < BASE_VIDIOC_PRIVATE)
+-		set_bit(_IOC_NR(cmd), vdev->disable_locking);
+-}
+-
+ /**
+  * v4l2_disable_ioctl- mark that a given command isn't implemented.
+  *	shouldn't use core locking
+-- 
+2.17.0
