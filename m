@@ -1,50 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shark1.inbox.lv ([194.152.32.81]:34945 "EHLO shark1.inbox.lv"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751541AbeEUMHf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 08:07:35 -0400
-Received: from shark1.inbox.lv (localhost [127.0.0.1])
-        by shark1-out.inbox.lv (Postfix) with ESMTP id 4ECB41118106
-        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 15:01:21 +0300 (EEST)
-Received: from localhost (localhost [127.0.0.1])
-        by shark1-in.inbox.lv (Postfix) with ESMTP id 48A0611180D4
-        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 15:01:21 +0300 (EEST)
-Received: from shark1.inbox.lv ([127.0.0.1])
-        by localhost (shark1.inbox.lv [127.0.0.1]) (spamfilter, port 35)
-        with ESMTP id zK1Cnu_7JJ7K for <linux-media@vger.kernel.org>;
-        Mon, 21 May 2018 15:01:20 +0300 (EEST)
-Received: from mail.inbox.lv (pop1 [10.0.1.111])
-        by shark1-in.inbox.lv (Postfix) with ESMTP id D1A8911180CD
-        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 15:01:20 +0300 (EEST)
-Received: from [192.168.178.31] (p57bb4ec1.dip0.t-ipconnect.de [87.187.78.193])
-        (Authenticated sender: light23@inbox.lv)
-        by mail.inbox.lv (Postfix) with ESMTPA id 7225C4490D
-        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 15:01:20 +0300 (EEST)
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:46357 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750941AbeEMJrq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 13 May 2018 05:47:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-From: Light <light23@inbox.lv>
-Subject: Bugfix for Tevii S650
-Message-ID: <897fac42-1456-c2ad-94be-3aee64df18d6@inbox.lv>
-Date: Mon, 21 May 2018 14:01:17 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Cc: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCHv2 0/4] gspca: convert to vb2gspca: convert to vb2
+Date: Sun, 13 May 2018 11:47:37 +0200
+Message-Id: <20180513094741.25096-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-staring with kernel 4.1 the tevii S650 usb box is not working any more, 
-last working version was 4.0.
+The first patch converts the gspca driver to the vb2 framework.
+It was much easier to do than I expected and it saved almost 600
+lines of gspca driver code.
 
-The  bug was also reported here 
-https://www.spinics.net/lists/linux-media/msg121356.html
+The second patch fixes v4l2-compliance warnings for g/s_parm.
 
-I found a solution for it and uploaded a patch to the kernel bugzilla.
+The third patch clears relevant fields in v4l2_streamparm in
+v4l_s_parm(). This was never done before since v4l2-compliance
+didn't check this.
 
-See here: https://bugzilla.kernel.org/show_bug.cgi?id=197731
+The final patch deletes the now unused v4l2_disable_ioctl_locking()
+function.
 
-Can somebody of the maintainers have a look on it and apply the patch to 
-the kernes sources?
+Tested with three different gspca webcams, and tested suspend/resume
+as well.
 
-Light
+I'll test with a few more webcams next week and if those tests all
+succeed then I'll post a pull request.
+
+Regards,
+
+	Hans
+
+Changes since v1:
+
+- Re-added 'if (gspca_dev->present)' before the dq_callback call.
+- Added Reviewed-by tags from Hans de Goede.
+
+Hans Verkuil (4):
+  gspca: convert to vb2
+  gspca: fix g/s_parm handling
+  v4l2-ioctl: clear fields in s_parm
+  v4l2-ioctl: delete unused v4l2_disable_ioctl_locking
+
+ drivers/media/usb/gspca/Kconfig            |   1 +
+ drivers/media/usb/gspca/gspca.c            | 925 ++++-----------------
+ drivers/media/usb/gspca/gspca.h            |  38 +-
+ drivers/media/usb/gspca/m5602/m5602_core.c |   4 +-
+ drivers/media/usb/gspca/ov534.c            |   1 -
+ drivers/media/usb/gspca/topro.c            |   1 -
+ drivers/media/usb/gspca/vc032x.c           |   2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c       |  19 +-
+ include/media/v4l2-dev.h                   |  15 -
+ 9 files changed, 210 insertions(+), 796 deletions(-)
+
+-- 
+2.17.0
