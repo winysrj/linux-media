@@ -1,86 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay12.mail.gandi.net ([217.70.178.232]:53439 "EHLO
-        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1033200AbeEXWCj (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:39110 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750850AbeEMJMS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 18:02:39 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v4 6/9] media: rcar-vin: Link parallel input media entities
-Date: Fri, 25 May 2018 00:02:16 +0200
-Message-Id: <1527199339-7724-7-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
+        Sun, 13 May 2018 05:12:18 -0400
+Subject: Re: [PATCH 2/5] media: docs: clarify relationship between crop and
+ selection APIs
+To: Luca Ceresoli <luca@lucaceresoli.net>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+References: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
+ <1522790146-16061-2-git-send-email-luca@lucaceresoli.net>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <fca47fb0-a299-af1d-4485-268907bb1007@xs4all.nl>
+Date: Sun, 13 May 2018 11:12:09 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1522790146-16061-2-git-send-email-luca@lucaceresoli.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When running with media-controller link the parallel input
-media entities with the VIN entities at 'complete' callback time.
+On 04/03/2018 11:15 PM, Luca Ceresoli wrote:
+> Having two somewhat similar and largely overlapping APIs is confusing,
+> especially since the older one appears in the docs before the newer
+> and most featureful counterpart.
+> 
+> Clarify all of this in several ways:
+>  - swap the two sections
+>  - give a name to the two APIs in the section names
+>  - add a note at the beginning of the CROP API section
+> 
+> Also remove a note that is incorrect (correct wording is in
+> vidioc-cropcap.rst).
+> 
+> Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+> Based on info from: Hans Verkuil <hverkuil@xs4all.nl>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> ---
+>  Documentation/media/uapi/v4l/common.rst            |  2 +-
+>  Documentation/media/uapi/v4l/crop.rst              | 21 ++++++++++++---------
+>  Documentation/media/uapi/v4l/selection-api-005.rst |  2 ++
+>  Documentation/media/uapi/v4l/selection-api.rst     |  4 ++--
+>  4 files changed, 17 insertions(+), 12 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/common.rst b/Documentation/media/uapi/v4l/common.rst
+> index 13f2ed3fc5a6..5f93e71122ef 100644
+> --- a/Documentation/media/uapi/v4l/common.rst
+> +++ b/Documentation/media/uapi/v4l/common.rst
+> @@ -41,6 +41,6 @@ applicable to all devices.
+>      extended-controls
+>      format
+>      planar-apis
+> -    crop
+>      selection-api
+> +    crop
+>      streaming-par
+> diff --git a/Documentation/media/uapi/v4l/crop.rst b/Documentation/media/uapi/v4l/crop.rst
+> index 182565b9ace4..83fa16eb347e 100644
+> --- a/Documentation/media/uapi/v4l/crop.rst
+> +++ b/Documentation/media/uapi/v4l/crop.rst
+> @@ -2,9 +2,18 @@
+>  
+>  .. _crop:
+>  
+> -*************************************
+> -Image Cropping, Insertion and Scaling
+> -*************************************
+> +*****************************************************
+> +Image Cropping, Insertion and Scaling -- the CROP API
+> +*****************************************************
+> +
+> +.. note::
+> +
+> +   The CROP API is mostly superseded by the newer :ref:`SELECTION API
+> +   <selection-api>`. The new API should be preferred in most cases,
+> +   with the exception of pixel aspect ratio detection, which is
+> +   implemented by :ref:`VIDIOC_CROPCAP <VIDIOC_CROPCAP>` and has no
+> +   equivalent in the SELECTION API. See :ref:`selection-vs-crop` for a
+> +   comparison of the two APIs.
+>  
+>  Some video capture devices can sample a subsection of the picture and
+>  shrink or enlarge it to an image of arbitrary size. We call these
+> @@ -40,12 +49,6 @@ support scaling or the :ref:`VIDIOC_G_CROP <VIDIOC_G_CROP>` and
+>  :ref:`VIDIOC_S_CROP <VIDIOC_G_CROP>` ioctls. Their size (and position
+>  where applicable) will be fixed in this case.
+>  
+> -.. note::
+> -
+> -   All capture and output devices must support the
+> -   :ref:`VIDIOC_CROPCAP <VIDIOC_CROPCAP>` ioctl such that applications
+> -   can determine if scaling takes place.
 
-To create media links the v4l2_device should be registered first.
-Check if the device is already registered, to avoid double registrations.
+This note should be rewritten, not deleted:
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+	All capture and output devices that support the CROP or SELECTION API
+	will also support the :ref:`VIDIOC_CROPCAP <VIDIOC_CROPCAP>` ioctl.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 29619c2..b69b375 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -476,6 +476,8 @@ static void rvin_parallel_subdevice_detach(struct rvin_dev *vin)
- static int rvin_parallel_notify_complete(struct v4l2_async_notifier *notifier)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct media_entity *source;
-+	struct media_entity *sink;
- 	int ret;
- 
- 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
-@@ -484,7 +486,26 @@ static int rvin_parallel_notify_complete(struct v4l2_async_notifier *notifier)
- 		return ret;
- 	}
- 
--	return rvin_v4l2_register(vin);
-+	if (!video_is_registered(&vin->vdev)) {
-+		ret = rvin_v4l2_register(vin);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	if (!vin->info->use_mc)
-+		return 0;
-+
-+	/* If we're running with media-controller, link the subdevs. */
-+	source = &vin->parallel->subdev->entity;
-+	sink = &vin->vdev.entity;
-+
-+	ret = media_create_pad_link(source, vin->parallel->source_pad,
-+				    sink, vin->parallel->sink_pad, 0);
-+	if (ret)
-+		vin_err(vin, "Error adding link from %s to %s: %d\n",
-+			source->name, sink->name, ret);
-+
-+	return ret;
- }
- 
- static void rvin_parallel_notify_unbind(struct v4l2_async_notifier *notifier,
-@@ -604,7 +625,8 @@ static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
- 
- 	/* Register all video nodes for the group. */
- 	for (i = 0; i < RCAR_VIN_NUM; i++) {
--		if (vin->group->vin[i]) {
-+		if (vin->group->vin[i] &&
-+		    !video_is_registered(&vin->group->vin[i]->vdev)) {
- 			ret = rvin_v4l2_register(vin->group->vin[i]);
- 			if (ret)
- 				return ret;
--- 
-2.7.4
+Regards,
+
+	Hans
+
+> -
+>  
+>  Cropping Structures
+>  ===================
+> diff --git a/Documentation/media/uapi/v4l/selection-api-005.rst b/Documentation/media/uapi/v4l/selection-api-005.rst
+> index 5b47a28ac6d7..2ad30a49184f 100644
+> --- a/Documentation/media/uapi/v4l/selection-api-005.rst
+> +++ b/Documentation/media/uapi/v4l/selection-api-005.rst
+> @@ -1,5 +1,7 @@
+>  .. -*- coding: utf-8; mode: rst -*-
+>  
+> +.. _selection-vs-crop:
+> +
+>  ********************************
+>  Comparison with old cropping API
+>  ********************************
+> diff --git a/Documentation/media/uapi/v4l/selection-api.rst b/Documentation/media/uapi/v4l/selection-api.rst
+> index 81ea52d785b9..e4e623824b30 100644
+> --- a/Documentation/media/uapi/v4l/selection-api.rst
+> +++ b/Documentation/media/uapi/v4l/selection-api.rst
+> @@ -2,8 +2,8 @@
+>  
+>  .. _selection-api:
+>  
+> -API for cropping, composing and scaling
+> -=======================================
+> +Cropping, composing and scaling -- the SELECTION API
+> +====================================================
+>  
+>  
+>  .. toctree::
+> 
