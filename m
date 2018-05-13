@@ -1,56 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:50298 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752394AbeEKOf0 (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:36612 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750980AbeEMJrq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 10:35:26 -0400
-Subject: Re: [PATCH 6/7] Fix frame vector wildcard file check
-To: Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org
-References: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
- <1524763162-4865-7-git-send-email-brad@nextdimension.cc>
+        Sun, 13 May 2018 05:47:46 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <42682437-2134-023e-fc73-248689241936@xs4all.nl>
-Date: Fri, 11 May 2018 16:35:20 +0200
-MIME-Version: 1.0
-In-Reply-To: <1524763162-4865-7-git-send-email-brad@nextdimension.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 2/4] gspca: fix g/s_parm handling
+Date: Sun, 13 May 2018 11:47:39 +0200
+Message-Id: <20180513094741.25096-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180513094741.25096-1-hverkuil@xs4all.nl>
+References: <20180513094741.25096-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/26/18 19:19, Brad Love wrote:
-> This check was consistently failing on all systems tested.
-> The path to object directory is used here to explicitly override
-> CWD. The thought is, if frame_vector.c exists in the build
-> directory then the build system has determined it is required,
-> and the source therefore should be compiled. The module will
-> not be built unless the build system has enabled it's config
-> option anyways, so this change should be safe in all circumstances.
-> 
-> Signed-off-by: Brad Love <brad@nextdimension.cc>
-> ---
->  v4l/Makefile | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/v4l/Makefile b/v4l/Makefile
-> index b512600..270a624 100644
-> --- a/v4l/Makefile
-> +++ b/v4l/Makefile
-> @@ -88,7 +88,7 @@ ifneq ($(filter $(no-makefile-media-targets), $(MAKECMDGOALS)),)
->  endif
->  
->  makefile-mm := 1
-> -ifeq ($(wildcard ../linux/mm/frame_vector.c),)
-> +ifeq ("$(wildcard $(obj)/frame_vector.c)","")
->  	makefile-mm := 0
->  endif
->  
-> 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ah, nice. Hopefully this fixes this issue. I never could figure out
-why it failed for some people.
+Fix v4l2-compliance error: s_parm never set V4L2_CAP_TIMEPERFRAME.
+Also various g/s_parm-related cleanups.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/usb/gspca/gspca.c | 29 ++++++++++++++++-------------
+ drivers/media/usb/gspca/ov534.c |  1 -
+ drivers/media/usb/gspca/topro.c |  1 -
+ 3 files changed, 16 insertions(+), 15 deletions(-)
 
-	Hans
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 96f409676ba3..a383058b0cb3 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -1254,14 +1254,15 @@ static int vidioc_g_parm(struct file *filp, void *priv,
+ {
+ 	struct gspca_dev *gspca_dev = video_drvdata(filp);
+ 
+-	parm->parm.capture.readbuffers = 2;
++	parm->parm.capture.readbuffers = gspca_dev->queue.min_buffers_needed;
+ 
+-	if (gspca_dev->sd_desc->get_streamparm) {
+-		gspca_dev->usb_err = 0;
+-		gspca_dev->sd_desc->get_streamparm(gspca_dev, parm);
+-		return gspca_dev->usb_err;
+-	}
+-	return 0;
++	if (!gspca_dev->sd_desc->get_streamparm)
++		return 0;
++
++	parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
++	gspca_dev->usb_err = 0;
++	gspca_dev->sd_desc->get_streamparm(gspca_dev, parm);
++	return gspca_dev->usb_err;
+ }
+ 
+ static int vidioc_s_parm(struct file *filp, void *priv,
+@@ -1269,15 +1270,17 @@ static int vidioc_s_parm(struct file *filp, void *priv,
+ {
+ 	struct gspca_dev *gspca_dev = video_drvdata(filp);
+ 
+-	parm->parm.capture.readbuffers = 2;
++	parm->parm.capture.readbuffers = gspca_dev->queue.min_buffers_needed;
+ 
+-	if (gspca_dev->sd_desc->set_streamparm) {
+-		gspca_dev->usb_err = 0;
+-		gspca_dev->sd_desc->set_streamparm(gspca_dev, parm);
+-		return gspca_dev->usb_err;
++	if (!gspca_dev->sd_desc->set_streamparm) {
++		parm->parm.capture.capability = 0;
++		return 0;
+ 	}
+ 
+-	return 0;
++	parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
++	gspca_dev->usb_err = 0;
++	gspca_dev->sd_desc->set_streamparm(gspca_dev, parm);
++	return gspca_dev->usb_err;
+ }
+ 
+ static int gspca_queue_setup(struct vb2_queue *vq,
+diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
+index f293921a1f2b..d06dc0755b9a 100644
+--- a/drivers/media/usb/gspca/ov534.c
++++ b/drivers/media/usb/gspca/ov534.c
+@@ -1476,7 +1476,6 @@ static void sd_get_streamparm(struct gspca_dev *gspca_dev,
+ 	struct v4l2_fract *tpf = &cp->timeperframe;
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+-	cp->capability |= V4L2_CAP_TIMEPERFRAME;
+ 	tpf->numerator = 1;
+ 	tpf->denominator = sd->frame_rate;
+ }
+diff --git a/drivers/media/usb/gspca/topro.c b/drivers/media/usb/gspca/topro.c
+index 82e2be14cad8..6f3ec0366a2f 100644
+--- a/drivers/media/usb/gspca/topro.c
++++ b/drivers/media/usb/gspca/topro.c
+@@ -4780,7 +4780,6 @@ static void sd_get_streamparm(struct gspca_dev *gspca_dev,
+ 	struct v4l2_fract *tpf = &cp->timeperframe;
+ 	int fr, i;
+ 
+-	cp->capability |= V4L2_CAP_TIMEPERFRAME;
+ 	tpf->numerator = 1;
+ 	i = get_fr_idx(gspca_dev);
+ 	if (i & 0x80) {
+-- 
+2.17.0
