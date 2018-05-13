@@ -1,50 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2120.oracle.com ([156.151.31.85]:43370 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1424700AbeE1LTC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 May 2018 07:19:02 -0400
-Date: Mon, 28 May 2018 14:18:41 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [GIT PULL FOR v4.18] R-Car VSP1 TLB optimisation
-Message-ID: <20180528111841.cevpbkzmrro25ysm@mwanda>
-References: <10831984.07PNLvckhh@avalon>
- <20180526082818.70a369b5@vento.lan>
- <7346563.L0Ry6hIlrs@avalon>
- <3755894.Y1GIYirAvc@avalon>
- <20180528071754.2b594656@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180528071754.2b594656@vento.lan>
+Received: from mail.horus.com ([78.46.148.228]:52350 "EHLO mail.horus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750941AbeEMLYf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 13 May 2018 07:24:35 -0400
+From: Matthias Reichl <hias@horus.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] media: rc: ite-cir: lower timeout and extend allowed timeout range
+Date: Sun, 13 May 2018 13:24:31 +0200
+Message-Id: <20180513112431.7016-1-hias@horus.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 28, 2018 at 07:17:54AM -0300, Mauro Carvalho Chehab wrote:
-> This (obviously wrong patch) shut up the warning:
-> 
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -248,6 +248,9 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_device *vsp1,
->         else
->                 brx = &vsp1->brs->entity;
->  
-> +       if (pipe->brx == brx)
-> +               pipe->brx = &vsp1->brs->entity;
-> +
->         /* Switch BRx if needed. */
->         if (brx != pipe->brx) {
->                 struct vsp1_entity *released_brx = NULL;
-> 
+The minimum possible timeout of ite-cir is 8 samples, which is
+typically about 70us. The driver however changes the FIFO trigger
+level from the hardware's default of 1 byte to 17 bytes, so the minimum
+usable timeout value is 17 * 8 samples, which is typically about 1.2ms.
 
-Just to be clear.  After this patch, Smatch does *NOT* think that
-"pipe->brx" is necessarily non-NULL.  What this patch does it that
-Smatch says "pipe->brx has been modified on every code path since we
-checked for NULL, so forget about the earlier check".
+Tests showed that using timeouts down to 1.2ms actually work fine.
 
-regards,
-dan carpenter
+The current default timeout of 200ms is much longer than necessary and
+the maximum timeout of 1s seems to have been chosen a bit arbitrarily.
+
+So change the minimum timeout to the driver's limit of 17 * 8 samples
+and bring timeout and maximum timeout in line with the settings
+of many other receivers.
+
+Signed-off-by: Matthias Reichl <hias@horus.com>
+---
+ drivers/media/rc/ite-cir.c | 8 +++++---
+ drivers/media/rc/ite-cir.h | 7 -------
+ 2 files changed, 5 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+index 65e104c7ddfc..de77d22c30a7 100644
+--- a/drivers/media/rc/ite-cir.c
++++ b/drivers/media/rc/ite-cir.c
+@@ -1561,9 +1561,11 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+ 	rdev->close = ite_close;
+ 	rdev->s_idle = ite_s_idle;
+ 	rdev->s_rx_carrier_range = ite_set_rx_carrier_range;
+-	rdev->min_timeout = ITE_MIN_IDLE_TIMEOUT;
+-	rdev->max_timeout = ITE_MAX_IDLE_TIMEOUT;
+-	rdev->timeout = ITE_IDLE_TIMEOUT;
++	/* FIFO threshold is 17 bytes, so 17 * 8 samples minimum */
++	rdev->min_timeout = 17 * 8 * ITE_BAUDRATE_DIVISOR *
++			    itdev->params.sample_period;
++	rdev->timeout = IR_DEFAULT_TIMEOUT;
++	rdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
+ 	rdev->rx_resolution = ITE_BAUDRATE_DIVISOR *
+ 				itdev->params.sample_period;
+ 	rdev->tx_resolution = ITE_BAUDRATE_DIVISOR *
+diff --git a/drivers/media/rc/ite-cir.h b/drivers/media/rc/ite-cir.h
+index 0e8ebc880d1f..9cb24ac01350 100644
+--- a/drivers/media/rc/ite-cir.h
++++ b/drivers/media/rc/ite-cir.h
+@@ -154,13 +154,6 @@ struct ite_dev {
+ /* default carrier freq for when demodulator is off (Hz) */
+ #define ITE_DEFAULT_CARRIER_FREQ	38000
+ 
+-/* default idling timeout in ns (0.2 seconds) */
+-#define ITE_IDLE_TIMEOUT		200000000UL
+-
+-/* limit timeout values */
+-#define ITE_MIN_IDLE_TIMEOUT		100000000UL
+-#define ITE_MAX_IDLE_TIMEOUT		1000000000UL
+-
+ /* convert bits to us */
+ #define ITE_BITS_TO_NS(bits, sample_period) \
+ ((u32) ((bits) * ITE_BAUDRATE_DIVISOR * sample_period))
+-- 
+2.11.0
