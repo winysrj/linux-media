@@ -1,54 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:44460 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S965450AbeEXIoU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 04:44:20 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: RFC: Request API and memory-to-memory devices
-Message-ID: <157f4fc4-eebf-41ab-1e9c-93d7baefc612@xs4all.nl>
-Date: Thu, 24 May 2018 10:44:13 +0200
+Received: from gofer.mess.org ([88.97.38.141]:50807 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751260AbeEMMi3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 13 May 2018 08:38:29 -0400
+Date: Sun, 13 May 2018 13:38:27 +0100
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.18] RC fixes
+Message-ID: <20180513123827.vo5566xuezxwyf3i@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Memory-to-memory devices have one video node, one internal control handler
-but two vb2_queues (DMA engines). While often there is one buffer produced
-for every buffer consumed, but this is by no means standard. E.g. deinterlacers
-will produce on buffer for every two buffers consumed. Codecs that receive
-a bit stream and can parse it to discover the framing may have no relation
-between the number of buffers consumed and the number of buffers produced.
+Hi Mauro,
 
-This poses a few problems for the Request API. Requiring that a request
-contains the buffers for both output and capture queue will be difficult
-to implement, especially in the latter case where there is no relationship
-between the number of consumed and produced buffers.
+Here is a fix for the lirc docs warning, a fix for the topseed mceusb
+device which did not like having its IR timeout set, and some patches
+which validate the IR raw events drivers produce.
 
-In addition, userspace can make two requests: one for the capture queue,
-one for the output queue, each with associated controls. But since the
-controls are shared between capture and output there is an issue of
-what to do when the same control is set in both requests.
+Thanks
+Sean
 
-I propose to restrict the usage of requests for m2m drivers to the output
-queue only. This keeps things simple for both kernel and userspace and
-avoids complex solutions.
+The following changes since commit 2a5f2705c97625aa1a4e1dd4d584eaa05392e060:
 
-Requests only make sense if there is actually configuration you can apply
-for each buffer, and while that's true for the output queue, on the capture
-queue you just capture the result of whatever the device delivers. I don't
-believe there is much if anything you can or want to control per-buffer.
+  media: lgdt330x.h: fix compiler warning (2018-05-11 11:40:09 -0400)
 
-Am I missing something? Comments?
+are available in the Git repository at:
 
-Regards,
+  git://linuxtv.org/syoung/media_tree.git for-v4.18c
 
-	Hans
+for you to fetch changes up to 4190ce876ae3ac624bbc9d57c10e84525e56be94:
+
+  media: rc: ite-cir: lower timeout and extend allowed timeout range (2018-05-13 13:14:12 +0100)
+
+----------------------------------------------------------------
+Matthias Reichl (1):
+      media: rc: ite-cir: lower timeout and extend allowed timeout range
+
+Sean Young (8):
+      media: mceusb: MCE_CMD_SETIRTIMEOUT cause strange behaviour on device
+      media: mceusb: filter out bogus timing irdata of duration 0
+      media: mceusb: add missing break
+      media: lirc-func.rst: new ioctl LIRC_GET_REC_TIMEOUT is not in a separate file
+      media: rc: default to idle on at startup or after reset
+      media: rc: drivers should produce alternate pulse and space timing events
+      media: rc: decoders do not need to check for transitions
+      media: rc: winbond: do not send reset and timeout raw events on startup
+
+ Documentation/media/uapi/rc/lirc-func.rst |  1 -
+ drivers/media/rc/ir-mce_kbd-decoder.c     |  6 ------
+ drivers/media/rc/ir-rc5-decoder.c         |  3 ---
+ drivers/media/rc/ir-rc6-decoder.c         | 10 ----------
+ drivers/media/rc/ite-cir.c                |  8 +++++---
+ drivers/media/rc/ite-cir.h                |  7 -------
+ drivers/media/rc/mceusb.c                 | 28 +++++++++++++++++++++++++---
+ drivers/media/rc/rc-ir-raw.c              | 20 ++++++++++++++++----
+ drivers/media/rc/winbond-cir.c            |  4 ++--
+ include/media/rc-core.h                   |  1 +
+ 10 files changed, 49 insertions(+), 39 deletions(-)
