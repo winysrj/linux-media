@@ -1,41 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:53321 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752066AbeENMJ1 (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:40186 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751926AbeEMTIg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 08:09:27 -0400
-Subject: Re: [RFC PATCH 0/6] v4l2 core: push ioctl lock down to ioctl handler
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@pobox.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-References: <20180514115602.9791-1-hverkuil@xs4all.nl>
-Message-ID: <34da836c-2ac6-2005-2f06-c8cd0cb1d158@xs4all.nl>
-Date: Mon, 14 May 2018 14:09:22 +0200
+        Sun, 13 May 2018 15:08:36 -0400
+Received: by mail-lf0-f66.google.com with SMTP id p85-v6so14819882lfg.7
+        for <linux-media@vger.kernel.org>; Sun, 13 May 2018 12:08:35 -0700 (PDT)
+Date: Sun, 13 May 2018 21:08:32 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        jacopo mondi <jacopo@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH v14 2/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver
+ driver
+Message-ID: <20180513190832.GA30519@bigcity.dyn.berto.se>
+References: <20180426202121.27243-1-niklas.soderlund+renesas@ragnatech.se>
+ <4257407.ajpJjWYCOs@avalon>
+ <20180426232832.GA14242@bigcity.dyn.berto.se>
+ <1887143.X2lPidqNhn@avalon>
 MIME-Version: 1.0
-In-Reply-To: <20180514115602.9791-1-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1887143.X2lPidqNhn@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mike,
+Hi Laurent,
 
-On 05/14/2018 01:55 PM, Hans Verkuil wrote:
-> Mike, can you test this patch? I tried to test it but my pvrusb2
-> fails in a USB transfer (unrelated to this patch). I'll mail you
-> separately with the details, since I've no idea what is going on.
+On 2018-04-28 19:01:37 +0300, Laurent Pinchart wrote:
+> Hi Niklas,
+> 
+> On Friday, 27 April 2018 02:28:32 EEST Niklas Söderlund wrote:
+> > On 2018-04-27 00:30:25 +0300, Laurent Pinchart wrote:
+> > > On Thursday, 26 April 2018 23:21:21 EEST Niklas Söderlund wrote:
+> > >> A V4L2 driver for Renesas R-Car MIPI CSI-2 receiver. The driver
+> > >> supports the R-Car Gen3 SoCs where separate CSI-2 hardware blocks are
+> > >> connected between the video sources and the video grabbers (VIN).
+> > >> 
+> > >> Driver is based on a prototype by Koji Matsuoka in the Renesas BSP.
+> > >> 
+> > >> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > >> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >> Reviewed-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > >> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > >> 
+> > >> ---
+> > >> 
+> > >> * Changes since v13
+> > >> - Change return rcar_csi2_formats + i to return &rcar_csi2_formats[i].
+> > >> - Add define for PHCLM_STOPSTATECKL.
+> > >> - Update spelling in comments.
+> > >> - Update calculation in rcar_csi2_calc_phypll() according to
+> > >>   https://linuxtv.org/downloads/v4l-dvb-apis/kapi/csi2.html. The one
+> > >>   before v14 did not take into account that 2 bits per sample is
+> > >>   transmitted.
+> > > 
+> > > Just one small comment about this, please see below.
+> > > 
+> > >> - Use Geert's suggestion of (1 << priv->lanes) - 1 instead of switch
+> > >>   statement to set correct number of lanes to enable.
+> > >> - Change hex constants in hsfreqrange_m3w_h3es1[] to lower case to match
+> > >>   style of rest of file.
+> > >> - Switch to %u instead of 0x%x when printing bus type.
+> > >> - Switch to %u instead of %d for priv->lanes which is unsigned.
+> > >> - Add MEDIA_BUS_FMT_YUYV8_1X16 to the list of supported formats in
+> > >>   rcar_csi2_formats[].
+> > >> - Fixed bps for MEDIA_BUS_FMT_YUYV10_2X10 to 20 and not 16.
+> > >> - Set INTSTATE after PL-11 is confirmed to match flow chart in
+> > >>   datasheet.
+> > >> - Change priv->notifier.subdevs == NULL to !priv->notifier.subdevs.
+> > >> - Add Maxime's and laurent's tags.
+> > >> ---
+> > >> 
+> > >>  drivers/media/platform/rcar-vin/Kconfig     |  12 +
+> > >>  drivers/media/platform/rcar-vin/Makefile    |   1 +
+> > >>  drivers/media/platform/rcar-vin/rcar-csi2.c | 883 ++++++++++++++++++++
+> > >>  3 files changed, 896 insertions(+)
+> > >>  create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
+> > > 
+> > > [snip]
+> > > 
+> > >> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> > >> b/drivers/media/platform/rcar-vin/rcar-csi2.c new file mode 100644
+> > >> index 0000000000000000..49b29d5680f9d80b
+> > >> --- /dev/null
+> > > > +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> > > 
+> > > [snip]
+> > > 
+> > >> +static int rcar_csi2_calc_phypll(struct rcar_csi2 *priv, unsigned int
+> > >> bpp,
+> > >> +				 u32 *phypll)
+> > >> +{
+> > >> +	const struct phypll_hsfreqrange *hsfreq;
+> > >> +	struct v4l2_subdev *source;
+> > >> +	struct v4l2_ctrl *ctrl;
+> > >> +	u64 mbps;
+> > >> +
+> > >> +	if (!priv->remote)
+> > >> +		return -ENODEV;
+> > >> +
+> > >> +	source = priv->remote;
+> > >> +
+> > >> +	/* Read the pixel rate control from remote */
+> > >> +	ctrl = v4l2_ctrl_find(source->ctrl_handler, V4L2_CID_PIXEL_RATE);
+> > >> +	if (!ctrl) {
+> > >> +		dev_err(priv->dev, "no pixel rate control in subdev %s\n",
+> > >> +			source->name);
+> > >> +		return -EINVAL;
+> > >> +	}
+> > >> +
+> > >> +	/*
+> > >> +	 * Calculate the phypll in mbps (from v4l2 documentation)
+> > >> +	 * link_freq = (pixel_rate * bits_per_sample) / (2 * nr_of_lanes)
+> > >> +	 */
+> > >> +	mbps = v4l2_ctrl_g_ctrl_int64(ctrl) * bpp;
+> > >> +	do_div(mbps, priv->lanes * 2000000);
+> > > 
+> > > pixel rate * bits per sample will give you the overall bit rate, which you
+> > > then divide by the number of lanes to get the bitrate per lane, and then
+> > > by 2 as D-PHY is a DDR PHY and transmits 2 bits per clock cycle. You then
+> > > end up with the link frequency, which is thus expressed in MHz, not in
+> > > Mbps. I would thus name the mbps variable freq, and rename the
+> > > phypll_hsfreqrange mbps field to freq (maybe with a small comment right
+> > > after the field to tell the value is expressed in MHz).
+> > 
+> > I agree that freq would be a better name for what it represents. Never
+> > the less I prefer to stick with mbps as that is whats used in the
+> > datasheet. See Table '25.9 HSFREQRANGE Bit Set Values'.
+> > 
+> > With this in mind if you still feel strongly about renaming it I could
+> > do so. But at lest for me it feels more useful to easily be able to map
+> > the variable to the datasheet tables :-)
+> 
+> After reading the datasheet I don't care too strongly about a rename, but I 
+> now care about getting it right :-) The datasheet clearly specifies the 
+> maximum data rate to be 1.5 Gbps / lane (section 25.1.1 Features), and figure 
+> 25.9 corroborates that and shows a corresponding frequency of 750 MHz. I thus 
+> believe that the values in table 25.9 and 25.10 are indeed bitrates (in Mbps / 
+> lane), so I think you shouldn't divide by 2 in the above formula.
 
-Never mind. After unplugging the power and plugging it back in it is
-now working.
+As this now appears to have been fully sorted out on the adv748x end I'm 
+now in full agreement with you and I will not divide by 2 to get the 
+bitrate here for the CSI-2 driver.
 
-Not sure what happened, but at least I can test this now, and it looks
-fine.
+> 
+> > >> +	for (hsfreq = priv->info->hsfreqrange; hsfreq->mbps != 0; hsfreq++)
+> > >> +		if (hsfreq->mbps >= mbps)
+> > >> +			break;
+> > >> +
+> > >> +	if (!hsfreq->mbps) {
+> > >> +		dev_err(priv->dev, "Unsupported PHY speed (%llu Mbps)", mbps);
+> > >> +		return -ERANGE;
+> > >> +	}
+> > >> +
+> > >> +	dev_dbg(priv->dev, "PHY HSFREQRANGE requested %llu got %u Mbps\n",
+> > >> mbps,
+> > >> +		hsfreq->mbps);
+> > >> +
+> > >> +	*phypll = PHYPLL_HSFREQRANGE(hsfreq->reg);
+> > >> +
+> > >> +	return 0;
+> > >> +}
+> > > 
+> > > [snip]
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
+> 
 
-BTW, v4l2-compliance complains about a lot of things, and I get a lot
-of sysfs kernel warnings when I unplug the device.
-
+-- 
 Regards,
-
-	Has
+Niklas Söderlund
