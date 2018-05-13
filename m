@@ -1,178 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:42948 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965768AbeEIWra (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 18:47:30 -0400
-Received: by mail-pl0-f68.google.com with SMTP id u6-v6so93551pls.9
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 15:47:30 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 10/14] media: staging/imx: of: Remove recursive graph walk
-Date: Wed,  9 May 2018 15:46:59 -0700
-Message-Id: <1525906023-827-11-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:57234 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750862AbeEMKNS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 13 May 2018 06:13:18 -0400
+Subject: Re: cron job: media_tree daily build: OK
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+References: <aeb95f634b7fdda8330256e7ae900b1b@smtp-cloud7.xs4all.net>
+Cc: "Jasmin J." <jasmin@anw.at>
+Message-ID: <09f70aaa-3c87-9b23-836d-57ca94010412@xs4all.nl>
+Date: Sun, 13 May 2018 12:13:11 +0200
+MIME-Version: 1.0
+In-Reply-To: <aeb95f634b7fdda8330256e7ae900b1b@smtp-cloud7.xs4all.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After moving to subdev notifiers, it's no longer necessary to recursively
-walk the OF graph, because the subdev notifiers will discover and add
-devices from the graph for us.
+Great to see an OK here! And it's going to change to warnings for the
+next build: I've updated the compiler to gcc-8.1.
 
-So the recursive of_parse_subdev() function is gone, replaced with
-of_add_csi() which adds only the CSI port fwnodes to the imx-media
-root notifier.
+A quick look at the warnings shows mostly warnings of this type:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-of.c | 106 +++----------------------------
- 1 file changed, 8 insertions(+), 98 deletions(-)
+warning: '__builtin_strncpy' output truncated copying 15 bytes from a string of length 17 [-Wstringop-truncation]
 
-diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
-index acde372..1c91754 100644
---- a/drivers/staging/media/imx/imx-media-of.c
-+++ b/drivers/staging/media/imx/imx-media-of.c
-@@ -20,74 +20,19 @@
- #include <video/imx-ipu-v3.h>
- #include "imx-media.h"
- 
--static int of_get_port_count(const struct device_node *np)
-+static int of_add_csi(struct imx_media_dev *imxmd, struct device_node *csi_np)
- {
--	struct device_node *ports, *child;
--	int num = 0;
--
--	/* check if this node has a ports subnode */
--	ports = of_get_child_by_name(np, "ports");
--	if (ports)
--		np = ports;
--
--	for_each_child_of_node(np, child)
--		if (of_node_cmp(child->name, "port") == 0)
--			num++;
--
--	of_node_put(ports);
--	return num;
--}
--
--/*
-- * find the remote device node given local endpoint node
-- */
--static bool of_get_remote(struct device_node *epnode,
--			  struct device_node **remote_node)
--{
--	struct device_node *rp, *rpp;
--	struct device_node *remote;
--	bool is_csi_port;
--
--	rp = of_graph_get_remote_port(epnode);
--	rpp = of_graph_get_remote_port_parent(epnode);
--
--	if (of_device_is_compatible(rpp, "fsl,imx6q-ipu")) {
--		/* the remote is one of the CSI ports */
--		remote = rp;
--		of_node_put(rpp);
--		is_csi_port = true;
--	} else {
--		remote = rpp;
--		of_node_put(rp);
--		is_csi_port = false;
--	}
--
--	if (!of_device_is_available(remote)) {
--		of_node_put(remote);
--		*remote_node = NULL;
--	} else {
--		*remote_node = remote;
--	}
--
--	return is_csi_port;
--}
--
--static int
--of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
--		bool is_csi_port)
--{
--	int i, num_ports, ret;
-+	int ret;
- 
--	if (!of_device_is_available(sd_np)) {
-+	if (!of_device_is_available(csi_np)) {
- 		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
--			sd_np->name);
-+			csi_np->name);
- 		/* unavailable is not an error */
- 		return 0;
- 	}
- 
--	/* register this subdev with async notifier */
--	ret = imx_media_add_async_subdev(imxmd, of_fwnode_handle(sd_np),
--					 NULL);
-+	/* add CSI fwnode to async notifier */
-+	ret = imx_media_add_async_subdev(imxmd, of_fwnode_handle(csi_np), NULL);
- 	if (ret) {
- 		if (ret == -EEXIST) {
- 			/* already added, everything is fine */
-@@ -98,42 +43,7 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
- 		return ret;
- 	}
- 
--	/*
--	 * the ipu-csi has one sink port. The source pads are not
--	 * represented in the device tree by port nodes, but are
--	 * described by the internal pads and links later.
--	 */
--	num_ports = is_csi_port ? 1 : of_get_port_count(sd_np);
--
--	for (i = 0; i < num_ports; i++) {
--		struct device_node *epnode = NULL, *port, *remote_np;
--
--		port = is_csi_port ? sd_np : of_graph_get_port_by_id(sd_np, i);
--		if (!port)
--			continue;
--
--		for_each_child_of_node(port, epnode) {
--			bool remote_is_csi;
--
--			remote_is_csi = of_get_remote(epnode, &remote_np);
--			if (!remote_np)
--				continue;
--
--			ret = of_parse_subdev(imxmd, remote_np, remote_is_csi);
--			of_node_put(remote_np);
--			if (ret)
--				break;
--		}
--
--		if (port != sd_np)
--			of_node_put(port);
--		if (ret) {
--			of_node_put(epnode);
--			break;
--		}
--	}
--
--	return ret;
-+	return 0;
- }
- 
- int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
-@@ -147,7 +57,7 @@ int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
- 		if (!csi_np)
- 			break;
- 
--		ret = of_parse_subdev(imxmd, csi_np, true);
-+		ret = of_add_csi(imxmd, csi_np);
- 		of_node_put(csi_np);
- 		if (ret)
- 			return ret;
--- 
-2.7.4
+In most cases the strncpy should really be replaced with strlcpy.
+
+Compiling with gcc 8.1 give a truckload of objtool warnings. For the time
+being I've added a grep -v to ignore all of them. It looks like objtool isn't
+quite gcc 8 compatible.
+
+Regards,
+
+	Hans
+
+On 05/13/2018 07:09 AM, Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds media_tree for
+> the kernels and architectures in the list below.
+> 
+> Results of the daily build of media_tree:
+> 
+> date:			Sun May 13 05:00:14 CEST 2018
+> media-tree git hash:	2a5f2705c97625aa1a4e1dd4d584eaa05392e060
+> media_build git hash:	d72556c0502c096c089c99c58ee4a02a13133361
+> v4l-utils git hash:	51cfcefe65225430fd6794301adcaae133ebfc2d
+> gcc version:		i686-linux-gcc (GCC) 7.3.0
+> sparse version:		0.5.2-RC1
+> smatch version:		0.5.1
+> host hardware:		x86_64
+> host os:		4.15.0-3-amd64
+> 
+> linux-git-arm-at91: OK
+> linux-git-arm-davinci: OK
+> linux-git-arm-multi: OK
+> linux-git-arm-pxa: OK
+> linux-git-arm-stm32: OK
+> linux-git-arm64: OK
+> linux-git-i686: OK
+> linux-git-mips: OK
+> linux-git-powerpc64: OK
+> linux-git-sh: OK
+> linux-git-x86_64: OK
+> Check COMPILE_TEST: OK
+> linux-2.6.36.4-i686: OK
+> linux-2.6.36.4-x86_64: OK
+> linux-2.6.37.6-i686: OK
+> linux-2.6.37.6-x86_64: OK
+> linux-2.6.38.8-i686: OK
+> linux-2.6.38.8-x86_64: OK
+> linux-2.6.39.4-i686: OK
+> linux-2.6.39.4-x86_64: OK
+> linux-3.0.101-i686: OK
+> linux-3.0.101-x86_64: OK
+> linux-3.1.10-i686: OK
+> linux-3.1.10-x86_64: OK
+> linux-3.2.101-i686: OK
+> linux-3.2.101-x86_64: OK
+> linux-3.3.8-i686: OK
+> linux-3.3.8-x86_64: OK
+> linux-3.4.113-i686: OK
+> linux-3.4.113-x86_64: OK
+> linux-3.5.7-i686: OK
+> linux-3.5.7-x86_64: OK
+> linux-3.6.11-i686: OK
+> linux-3.6.11-x86_64: OK
+> linux-3.7.10-i686: OK
+> linux-3.7.10-x86_64: OK
+> linux-3.8.13-i686: OK
+> linux-3.8.13-x86_64: OK
+> linux-3.9.11-i686: OK
+> linux-3.9.11-x86_64: OK
+> linux-3.10.108-i686: OK
+> linux-3.10.108-x86_64: OK
+> linux-3.11.10-i686: OK
+> linux-3.11.10-x86_64: OK
+> linux-3.12.74-i686: OK
+> linux-3.12.74-x86_64: OK
+> linux-3.13.11-i686: OK
+> linux-3.13.11-x86_64: OK
+> linux-3.14.79-i686: OK
+> linux-3.14.79-x86_64: OK
+> linux-3.15.10-i686: OK
+> linux-3.15.10-x86_64: OK
+> linux-3.16.56-i686: OK
+> linux-3.16.56-x86_64: OK
+> linux-3.17.8-i686: OK
+> linux-3.17.8-x86_64: OK
+> linux-3.18.102-i686: OK
+> linux-3.18.102-x86_64: OK
+> linux-3.19.8-i686: OK
+> linux-3.19.8-x86_64: OK
+> linux-4.0.9-i686: OK
+> linux-4.0.9-x86_64: OK
+> linux-4.1.51-i686: OK
+> linux-4.1.51-x86_64: OK
+> linux-4.2.8-i686: OK
+> linux-4.2.8-x86_64: OK
+> linux-4.3.6-i686: OK
+> linux-4.3.6-x86_64: OK
+> linux-4.4.109-i686: OK
+> linux-4.4.109-x86_64: OK
+> linux-4.5.7-i686: OK
+> linux-4.5.7-x86_64: OK
+> linux-4.6.7-i686: OK
+> linux-4.6.7-x86_64: OK
+> linux-4.7.10-i686: OK
+> linux-4.7.10-x86_64: OK
+> linux-4.8.17-i686: OK
+> linux-4.8.17-x86_64: OK
+> linux-4.9.91-i686: OK
+> linux-4.9.91-x86_64: OK
+> linux-4.10.17-i686: OK
+> linux-4.10.17-x86_64: OK
+> linux-4.11.12-i686: OK
+> linux-4.11.12-x86_64: OK
+> linux-4.12.14-i686: OK
+> linux-4.12.14-x86_64: OK
+> linux-4.13.16-i686: OK
+> linux-4.13.16-x86_64: OK
+> linux-4.14.31-i686: OK
+> linux-4.14.31-x86_64: OK
+> linux-4.15.14-i686: OK
+> linux-4.15.14-x86_64: OK
+> linux-4.16.8-i686: OK
+> linux-4.16.8-x86_64: OK
+> linux-4.17-rc4-i686: OK
+> linux-4.17-rc4-x86_64: OK
+> apps: OK
+> spec-git: OK
+> sparse: WARNINGS
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+> 
+> Full logs are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+> 
+> The Media Infrastructure API from this daily build is here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
