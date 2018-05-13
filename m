@@ -1,69 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:60415 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934496AbeEYN7n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 09:59:43 -0400
-Date: Fri, 25 May 2018 14:59:41 +0100
-From: Sean Young <sean@mess.org>
-To: =?utf-8?Q?Micha=C5=82?= Winiarski <michal.winiarski@intel.com>
-Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
-Subject: Re: [PATCH 3/3] media: rc: nuvoton: Keep device enabled during reg
- init
-Message-ID: <20180525135941.v3eopzko4joduitx@gofer.mess.org>
-References: <20180521143803.25664-1-michal.winiarski@intel.com>
- <20180521143803.25664-3-michal.winiarski@intel.com>
- <20180524113140.s365usmtbnnzn6ft@gofer.mess.org>
- <20180525133523.a42pueu4gvkx6k32@mwiniars-main.ger.corp.intel.com>
+Received: from avasout06.plus.net ([212.159.14.18]:56806 "EHLO
+        avasout06.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751762AbeEMTBn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 13 May 2018 15:01:43 -0400
+Subject: Re: [PATCH] [media] gspca: Stop using GFP_DMA for buffers for USB
+ bulk transfers
+To: Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org,
+        "Luis R. Rodriguez" <mcgrof@kernel.org>
+References: <20180505082208.32553-1-hdegoede@redhat.com>
+From: Adam Baker <linux@baker-net.org.uk>
+Message-ID: <2e774de2-eda8-775e-4164-8b48fbadcbd6@baker-net.org.uk>
+Date: Sun, 13 May 2018 19:54:09 +0100
 MIME-Version: 1.0
+In-Reply-To: <20180505082208.32553-1-hdegoede@redhat.com>
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180525133523.a42pueu4gvkx6k32@mwiniars-main.ger.corp.intel.com>
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 25, 2018 at 03:35:23PM +0200, Michał Winiarski wrote:
-> On Thu, May 24, 2018 at 12:31:40PM +0100, Sean Young wrote:
-> > On Mon, May 21, 2018 at 04:38:03PM +0200, Michał Winiarski wrote:
-> > > Doing writes when the device is disabled seems to be a NOOP.
-> > > Let's enable the device, write the values, and then disable it on init.
-> > > This changes the behavior for wake device, which is now being disabled
-> > > after init.
-> > 
-> > I don't have the datasheet so I might be misunderstanding this. We want
-> > the IR wakeup to work fine even after kernel crash/power loss, right?
+On 05/05/18 09:22, Hans de Goede wrote:
+> The recent "x86 ZONE_DMA love" discussion at LSF/MM pointed out that some
+> gspca sub-drivvers are using GFP_DMA to allocate buffers which are used
+> for USB bulk transfers, there is absolutely no need for this, drop it.
 > 
-> [snip]
-> 
-> Right, that makes sense. I completely ignored this scenario.
->  
-> > > -	/* enable the CIR WAKE logical device */
-> > > -	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR_WAKE);
-> > > +	nvt_disable_logical_dev(nvt, LOGICAL_DEV_CIR);
-> > 
-> > The way I read this is that the CIR, not CIR_WAKE, is being disabled,
-> > which seems contrary to what the commit message says.
-> > 
-> 
-> That's a typo. And by accident it makes the wake_device work correctly :)
-> I think that registers init logic was still broken though, operating under the
-> assumption that the device is enabled on module load...
-> 
-> I guess we should just remove disable(LOGICAL_DEV_CIR) from wake_regs_init.
-> 
-> Have you already included this in any non-rebasing tree?
 
-Nothing has been applied yet.
+The documentation for kmalloc() says
+  GFP_DMA - Allocation suitable for DMA.
 
-> Should I send a v2 or fixup on top?
+end at least in sq905.c the allocation is passed to the USB stack that
+then uses it for DMA.
 
-I don't have the hardware to test this, a v2 would be appreciated.
+Looking a bit closer the "suitable for DMA" label that GFP_DMA promises
+is not really a sensible thing for kmalloc() to determine as it is
+dependent on the DMA controller in question. The USB stack now ensures
+that everything works correctly as long as the memory is allocated with
+kmalloc() so acked by me for sq905.c but, is anyone taking care of
+fixing the kmalloc() documentation?
 
-We're late in the release cycle and I'm wondering if this patch would also
-solve the nuvoton probe problem:
-
-https://patchwork.linuxtv.org/patch/49874/
-
-Thanks,
-
-Sean
+Adam Baker
