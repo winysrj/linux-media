@@ -1,76 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:56551 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751091AbeE2IsY (ORCPT
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:45151 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751626AbeENJLp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 04:48:24 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v5 04/10] media: rcar-vin: Cleanup notifier in error path
-Date: Tue, 29 May 2018 10:48:02 +0200
-Message-Id: <1527583688-314-5-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
+        Mon, 14 May 2018 05:11:45 -0400
+Date: Mon, 14 May 2018 11:11:04 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH v5 14/14] media: ov772x: create subdevice device node
+Message-ID: <20180514091104.GF5956@w540>
+References: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
+ <1525616369-8843-15-git-send-email-akinobu.mita@gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="QWpDgw58+k1mSFBj"
+Content-Disposition: inline
+In-Reply-To: <1525616369-8843-15-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-During the notifier initialization, memory for the list of associated async
-subdevices is reserved during the fwnode endpoint parsing from the v4l2-async
-framework. If the notifier registration fails, that memory should be released
-and the notifier 'cleaned up'.
 
-Catch the notifier registration error and perform the cleanup both for the
-group and the parallel notifiers.
+--QWpDgw58+k1mSFBj
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Hi Akinobu,
+   thanks for the patch.
 
----
-v5:
-- new patch
+On Sun, May 06, 2018 at 11:19:29PM +0900, Akinobu Mita wrote:
+> Set the V4L2_SUBDEV_FL_HAS_DEVNODE flag for the subdevice so that the
+> subdevice device node is created.
+>
+> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 
----
- drivers/media/platform/rcar-vin/rcar-core.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index d3aadf3..f7a28e9 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -573,10 +573,15 @@ static int rvin_parallel_graph_init(struct rvin_dev *vin)
- 	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
- 	if (ret < 0) {
- 		vin_err(vin, "Notifier registration failed\n");
--		return ret;
-+		goto error_notifier_cleanup;
- 	}
+Thanks
+   j
 
- 	return 0;
-+
-+error_notifier_cleanup:
-+	v4l2_async_notifier_cleanup(&vin->group->notifier);
-+
-+	return ret;
- }
+> ---
+> * v5
+> - No changes
+>
+>  drivers/media/i2c/ov772x.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+> index 4b479f9..f7f4fe6 100644
+> --- a/drivers/media/i2c/ov772x.c
+> +++ b/drivers/media/i2c/ov772x.c
+> @@ -1409,6 +1409,7 @@ static int ov772x_probe(struct i2c_client *client,
+>  	mutex_init(&priv->lock);
+>
+>  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
+> +	priv->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>  	v4l2_ctrl_handler_init(&priv->hdl, 3);
+>  	/* Use our mutex for the controls */
+>  	priv->hdl.lock = &priv->lock;
+> --
+> 2.7.4
+>
 
- /* -----------------------------------------------------------------------------
-@@ -775,10 +780,15 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
- 					   &vin->group->notifier);
- 	if (ret < 0) {
- 		vin_err(vin, "Notifier registration failed\n");
--		return ret;
-+		goto error_notifier_cleanup;
- 	}
+--QWpDgw58+k1mSFBj
+Content-Type: application/pgp-signature; name="signature.asc"
 
- 	return 0;
-+
-+error_notifier_cleanup:
-+	v4l2_async_notifier_cleanup(&vin->group->notifier);
-+
-+	return ret;
- }
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
- static int rvin_mc_init(struct rvin_dev *vin)
---
-2.7.4
+iQIcBAEBAgAGBQJa+VKoAAoJEHI0Bo8WoVY8PPQQAK7rWEbq0k10QMdJoOSnMKNv
+SvyoZp3oHkIF19yeNSA9LtZoLjGvWemJJOiX7IRhIo68c/QbXx9ZePme8yU563/H
+oMS1HhfRqjYFKPNIcIlzbEz3sdixIbAo5p76WxZ1iOw8WK2dBGQj5U6u7TpZM/X7
+7KAuzOS01l/haipyqMYzfboBsIVh4oPEBtx4GrXKvOxNkbiie8of7h6wwBTaUNEF
+KRuAJcc6CIOxdL8W5nalNZtrNK1LFNqx8EfAtR1dHzJXc9wEDHtXeMYmpHDOZFi+
+gfMrl1PzlDopKMDxbkzhJtQdjfZ8lL6S8lljowg0pR4vEAQf5YqgInfXzyuKqdL0
+LjkdQYGa5dSqNqcwhyVaPkvEaANTTptWHs8qWKep1y4+7CmBrroqcRhC7zQ4VBVm
+qD4CNKFwPKPs1QoPhwjc1iFAJmlnOuyM/3DO3yaiZpz6RqYQlUDJxr/UAIxOrNXg
+f0RxtgimO79r3ba/Cx6IYPRvW2Z59kvjsND1m6yiAD9qJ2mkIeDmj/mGqxWsy6Z5
+KGlusjOWRFkW8oXKCqvNOr/dsfAE2TaqpugD9rDM43E3rfnMd++ONc9XvGZDlquv
+15Sgd4Bc27I2StG3HXJ54R5ndRFrZiTbKCqSvyL4ORG99b7pJeAtvvtC+PSdXqkc
+YgMCZ3QR8Yc+vcBzOtDc
+=W1KH
+-----END PGP SIGNATURE-----
+
+--QWpDgw58+k1mSFBj--
