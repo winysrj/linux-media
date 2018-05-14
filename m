@@ -1,53 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:44893 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752519AbeEGQWs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:22:48 -0400
-Received: by mail-wr0-f194.google.com with SMTP id y15-v6so17643721wrg.11
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:22:47 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v3 08/14] ARM: dts: imx7s: add mipi phy power domain
-Date: Mon,  7 May 2018 17:21:46 +0100
-Message-Id: <20180507162152.2545-9-rui.silva@linaro.org>
-In-Reply-To: <20180507162152.2545-1-rui.silva@linaro.org>
-References: <20180507162152.2545-1-rui.silva@linaro.org>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:43276 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753104AbeENL4N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 May 2018 07:56:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mike Isely <isely@pobox.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [RFC PATCH 6/6] v4l2-ioctl.c: assume queue->lock is always set
+Date: Mon, 14 May 2018 13:56:02 +0200
+Message-Id: <20180514115602.9791-7-hverkuil@xs4all.nl>
+In-Reply-To: <20180514115602.9791-1-hverkuil@xs4all.nl>
+References: <20180514115602.9791-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add power domain index 0 related with mipi-phy to imx7s.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+vb2_queue now expects a valid lock pointer, so drop the checks for
+that in v4l2-ioctl.c.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- arch/arm/boot/dts/imx7s.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-index 4d42335c0dee..67450ad89940 100644
---- a/arch/arm/boot/dts/imx7s.dtsi
-+++ b/arch/arm/boot/dts/imx7s.dtsi
-@@ -636,6 +636,12 @@
- 					#address-cells = <1>;
- 					#size-cells = <0>;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index b871b8fe5105..15bfbc6ce6c0 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2681,12 +2681,11 @@ static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev,
+ 		struct v4l2_m2m_queue_ctx *ctx = is_output ?
+ 			&vfh->m2m_ctx->out_q_ctx : &vfh->m2m_ctx->cap_q_ctx;
  
-+					pgc_mipi_phy: pgc-power-domain@0 {
-+						#power-domain-cells = <0>;
-+						reg = <0>;
-+						power-supply = <&reg_1p0d>;
-+					};
-+
- 					pgc_pcie_phy: pgc-power-domain@1 {
- 						#power-domain-cells = <0>;
- 						reg = <1>;
+-		if (ctx->q.lock)
+-			return ctx->q.lock;
++		return ctx->q.lock;
+ 	}
+ #endif
+-	if (vdev->queue && vdev->queue->lock &&
+-			(v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
++	if (vdev->queue &&
++	    (v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
+ 		return vdev->queue->lock;
+ 	return vdev->lock;
+ }
 -- 
 2.17.0
