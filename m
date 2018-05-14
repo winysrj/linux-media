@@ -1,128 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:38643 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752572AbeEOH7u (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:51723 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751022AbeENEqK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:59:50 -0400
-Received: by mail-wr0-f195.google.com with SMTP id 94-v6so14909393wrf.5
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:49 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v2 20/29] venus: helpers: add a new helper to set raw format
-Date: Tue, 15 May 2018 10:58:50 +0300
-Message-Id: <20180515075859.17217-21-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+        Mon, 14 May 2018 00:46:10 -0400
+Message-ID: <d890fe42aed8319a5db8bc76abc2666b@smtp-cloud8.xs4all.net>
+Date: Mon, 14 May 2018 06:46:04 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The new helper will has one more argument for buffer type, that
-way the decoder can configure the format on it's secondary
-output.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/helpers.c | 52 ++++++++++++++++++-----------
- drivers/media/platform/qcom/venus/helpers.h |  2 ++
- 2 files changed, 35 insertions(+), 19 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index 5512fbfdebb9..0d55604f7484 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -410,6 +410,20 @@ static int session_register_bufs(struct venus_inst *inst)
- 	return ret;
- }
- 
-+static u32 to_hfi_raw_fmt(u32 v4l2_fmt)
-+{
-+	switch (v4l2_fmt) {
-+	case V4L2_PIX_FMT_NV12:
-+		return HFI_COLOR_FORMAT_NV12;
-+	case V4L2_PIX_FMT_NV21:
-+		return HFI_COLOR_FORMAT_NV21;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
- int venus_helper_get_bufreq(struct venus_inst *inst, u32 type,
- 			    struct hfi_buffer_requirements *req)
- {
-@@ -491,35 +505,35 @@ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- }
- EXPORT_SYMBOL_GPL(venus_helper_set_num_bufs);
- 
--int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
-+int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
-+				u32 buftype)
- {
--	struct hfi_uncompressed_format_select fmt;
- 	u32 ptype = HFI_PROPERTY_PARAM_UNCOMPRESSED_FORMAT_SELECT;
--	int ret;
-+	struct hfi_uncompressed_format_select fmt;
-+
-+	fmt.buffer_type = buftype;
-+	fmt.format = hfi_format;
-+
-+	return hfi_session_set_property(inst, ptype, &fmt);
-+}
-+EXPORT_SYMBOL_GPL(venus_helper_set_raw_format);
-+
-+int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
-+{
-+	u32 hfi_format, buftype;
- 
- 	if (inst->session_type == VIDC_SESSION_TYPE_DEC)
--		fmt.buffer_type = HFI_BUFFER_OUTPUT;
-+		buftype = HFI_BUFFER_OUTPUT;
- 	else if (inst->session_type == VIDC_SESSION_TYPE_ENC)
--		fmt.buffer_type = HFI_BUFFER_INPUT;
-+		buftype = HFI_BUFFER_INPUT;
- 	else
- 		return -EINVAL;
- 
--	switch (pixfmt) {
--	case V4L2_PIX_FMT_NV12:
--		fmt.format = HFI_COLOR_FORMAT_NV12;
--		break;
--	case V4L2_PIX_FMT_NV21:
--		fmt.format = HFI_COLOR_FORMAT_NV21;
--		break;
--	default:
-+	hfi_format = to_hfi_raw_fmt(pixfmt);
-+	if (!hfi_format)
- 		return -EINVAL;
--	}
- 
--	ret = hfi_session_set_property(inst, ptype, &fmt);
--	if (ret)
--		return ret;
--
--	return 0;
-+	return venus_helper_set_raw_format(inst, hfi_format, buftype);
- }
- EXPORT_SYMBOL_GPL(venus_helper_set_color_format);
- 
-diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index 0de9989adcdb..79af7845efbd 100644
---- a/drivers/media/platform/qcom/venus/helpers.h
-+++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -40,6 +40,8 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
- 				       u32 buftype);
- int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- 			      unsigned int output_bufs);
-+int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
-+				u32 buftype);
- int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
- int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
- int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype);
--- 
-2.14.1
+date:			Mon May 14 05:00:14 CEST 2018
+media-tree git hash:	2a5f2705c97625aa1a4e1dd4d584eaa05392e060
+media_build git hash:	d72556c0502c096c089c99c58ee4a02a13133361
+v4l-utils git hash:	51cfcefe65225430fd6794301adcaae133ebfc2d
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2-RC1
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.15.0-3-amd64
+
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: OK
+linux-git-arm64: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.101-i686: WARNINGS
+linux-3.0.101-x86_64: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.101-i686: WARNINGS
+linux-3.2.101-x86_64: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.113-i686: WARNINGS
+linux-3.4.113-x86_64: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.10-i686: WARNINGS
+linux-3.7.10-x86_64: WARNINGS
+linux-3.8.13-i686: WARNINGS
+linux-3.8.13-x86_64: WARNINGS
+linux-3.9.11-i686: WARNINGS
+linux-3.9.11-x86_64: WARNINGS
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: WARNINGS
+linux-3.11.10-x86_64: WARNINGS
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.79-i686: WARNINGS
+linux-3.14.79-x86_64: WARNINGS
+linux-3.15.10-i686: WARNINGS
+linux-3.15.10-x86_64: WARNINGS
+linux-3.16.56-i686: WARNINGS
+linux-3.16.56-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: WARNINGS
+linux-3.19.8-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.10-i686: WARNINGS
+linux-4.7.10-x86_64: WARNINGS
+linux-4.8.17-i686: WARNINGS
+linux-4.8.17-x86_64: WARNINGS
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: WARNINGS
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: WARNINGS
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: WARNINGS
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: WARNINGS
+linux-4.13.16-i686: WARNINGS
+linux-4.13.16-x86_64: WARNINGS
+linux-4.14.31-i686: WARNINGS
+linux-4.14.31-x86_64: WARNINGS
+linux-4.15.14-i686: WARNINGS
+linux-4.15.14-x86_64: WARNINGS
+linux-4.16.8-i686: WARNINGS
+linux-4.16.8-x86_64: WARNINGS
+linux-4.17-rc4-i686: WARNINGS
+linux-4.17-rc4-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
