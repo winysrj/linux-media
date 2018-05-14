@@ -1,53 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0050.outbound.protection.outlook.com ([104.47.40.50]:13728
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751974AbeECCnP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 May 2018 22:43:15 -0400
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>,
-        Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-Subject: [PATCH v5 1/8] v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
-Date: Wed, 2 May 2018 19:42:46 -0700
-Message-ID: <3b02c211b800dd40bd6e34a193eca4a6842af950.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
-In-Reply-To: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
-References: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:43413 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752631AbeENL2M (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 May 2018 07:28:12 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Luca Ceresoli <luca@lucaceresoli.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 4/5] media: docs: selection: improve formatting
+Date: Mon, 14 May 2018 13:27:26 +0200
+Message-Id: <1526297247-20881-4-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1526297247-20881-1-git-send-email-luca@lucaceresoli.net>
+References: <1526297247-20881-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
+Split section "Comparison with old cropping API" in paragraphs for
+easier reading and improve visible links text.
 
-In current implementation driver only checks the colorspace
-between the last subdev in the pipeline and the connected video node,
-the pipeline could be configured with wrong colorspace information
-until the very end. It thus makes little sense to check the
-colorspace only at the video node. So check can be dropped until
-we find a better solution to carry colorspace information
-through pipelines and to userspace.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
 
-Signed-off-by: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
-Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
 ---
- drivers/media/platform/xilinx/xilinx-dma.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 522cdfd..cb20ada 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -75,8 +75,7 @@ static int xvip_dma_verify_format(struct xvip_dma *dma)
+Changed v1 -> v2: nothing.
+---
+ .../media/uapi/v4l/selection-api-vs-crop-api.rst   | 55 ++++++++++++----------
+ 1 file changed, 29 insertions(+), 26 deletions(-)
+
+diff --git a/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst b/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
+index 2ad30a49184f..ba1064a244a0 100644
+--- a/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
++++ b/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
+@@ -6,31 +6,34 @@
+ Comparison with old cropping API
+ ********************************
  
- 	if (dma->fmtinfo->code != fmt.format.code ||
- 	    dma->format.height != fmt.format.height ||
--	    dma->format.width != fmt.format.width ||
--	    dma->format.colorspace != fmt.format.colorspace)
-+	    dma->format.width != fmt.format.width)
- 		return -EINVAL;
- 
- 	return 0;
+-The selection API was introduced to cope with deficiencies of previous
+-:ref:`API <crop>`, that was designed to control simple capture
+-devices. Later the cropping API was adopted by video output drivers. The
+-ioctls are used to select a part of the display were the video signal is
+-inserted. It should be considered as an API abuse because the described
+-operation is actually the composing. The selection API makes a clear
+-distinction between composing and cropping operations by setting the
+-appropriate targets. The V4L2 API lacks any support for composing to and
+-cropping from an image inside a memory buffer. The application could
+-configure a capture device to fill only a part of an image by abusing
+-V4L2 API. Cropping a smaller image from a larger one is achieved by
+-setting the field ``bytesperline`` at struct
+-:c:type:`v4l2_pix_format`.
+-Introducing an image offsets could be done by modifying field ``m_userptr``
+-at struct
+-:c:type:`v4l2_buffer` before calling
+-:ref:`VIDIOC_QBUF`. Those operations should be avoided because they are not
+-portable (endianness), and do not work for macroblock and Bayer formats
+-and mmap buffers. The selection API deals with configuration of buffer
++The selection API was introduced to cope with deficiencies of the
++older :ref:`CROP API <crop>`, that was designed to control simple
++capture devices. Later the cropping API was adopted by video output
++drivers. The ioctls are used to select a part of the display were the
++video signal is inserted. It should be considered as an API abuse
++because the described operation is actually the composing. The
++selection API makes a clear distinction between composing and cropping
++operations by setting the appropriate targets.
++
++The V4L2 API lacks any support for composing to and cropping from an
++image inside a memory buffer. The application could configure a
++capture device to fill only a part of an image by abusing V4L2
++API. Cropping a smaller image from a larger one is achieved by setting
++the field ``bytesperline`` at struct :c:type:`v4l2_pix_format`.
++Introducing an image offsets could be done by modifying field
++``m_userptr`` at struct :c:type:`v4l2_buffer` before calling
++:ref:`VIDIOC_QBUF <VIDIOC_QBUF>`. Those operations should be avoided
++because they are not portable (endianness), and do not work for
++macroblock and Bayer formats and mmap buffers.
++
++The selection API deals with configuration of buffer
+ cropping/composing in a clear, intuitive and portable way. Next, with
+ the selection API the concepts of the padded target and constraints
+-flags are introduced. Finally, struct :c:type:`v4l2_crop`
+-and struct :c:type:`v4l2_cropcap` have no reserved
+-fields. Therefore there is no way to extend their functionality. The new
+-struct :c:type:`v4l2_selection` provides a lot of place
+-for future extensions. Driver developers are encouraged to implement
+-only selection API. The former cropping API would be simulated using the
+-new one.
++flags are introduced. Finally, struct :c:type:`v4l2_crop` and struct
++:c:type:`v4l2_cropcap` have no reserved fields. Therefore there is no
++way to extend their functionality. The new struct
++:c:type:`v4l2_selection` provides a lot of place for future
++extensions.
++
++Driver developers are encouraged to implement only selection API. The
++former cropping API would be simulated using the new one.
 -- 
 2.7.4
