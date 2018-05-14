@@ -1,110 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:36749 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751810AbeE3MX5 (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:40856 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752348AbeENWkq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 08:23:57 -0400
-Date: Wed, 30 May 2018 14:23:43 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Subject: Re: [PATCH] media: arch: sh: migor: Fix TW9910 PDN gpio
-Message-ID: <20180530122343.GA10472@w540>
-References: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org>
- <CAMuHMdVsV9k0OjFMkQSiKCenxfEHgcZxrMU3a5eXRaCDdeA5-A@mail.gmail.com>
- <2981239.tGoCg7U0XF@avalon>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
-Content-Disposition: inline
-In-Reply-To: <2981239.tGoCg7U0XF@avalon>
+        Mon, 14 May 2018 18:40:46 -0400
+Received: by mail-lf0-f67.google.com with SMTP id p85-v6so20404544lfg.7
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2018 15:40:45 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: [RFC PATCH 1/5] mfd: cros_ec_dev: Add CEC sub-device registration
+Date: Tue, 15 May 2018 00:40:35 +0200
+Message-Id: <1526337639-3568-2-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
+References: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The EC can expose a CEC bus, thus add the cros-ec-cec MFD sub-device
+when the CEC feature bit is present.
 
---gKMricLos+KVdGMg
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ drivers/mfd/cros_ec_dev.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Hi Laurent, Geert,
-
-On Wed, May 30, 2018 at 02:52:31PM +0300, Laurent Pinchart wrote:
-> Hi Geert,
->
-> On Wednesday, 30 May 2018 12:30:49 EEST Geert Uytterhoeven wrote:
-> > Hi Jacopo,
-> >
-> > On Wed, May 30, 2018 at 11:13 AM, Jacopo Mondi wrote:
-> > > The TW9910 PDN gpio (power down) is listed as active high in the chip
-> > > manual. It turns out it is actually active low as when set to physical
-> > > level 0 it actually turns the video decoder power off.
-> >
-> > So the picture "Typical TW9910 External Circuitry" in the datasheet, which
-> > ties PDN to GND permanently, is wrong?
-
-Also the definition of PDN pin in TW9910 manual, as reported by Laurent made me
-think the pin had to stay in logical state 1 to have the chip powered
-down. That's why my initial 'ACTIVE_HIGH' flag. The chip was not
-recognized, but I thought it was a local problem of the Migo-R board I
-was using.
-
-Then one day I tried inverting the pin active state just to be sure,
-and it started being fully operational :/
-
->
-> The SH PTT2 line is connected directory to the TW9910 PDN signal, without any
-> inverter on the board. The PDN signal is clearly documented as active-high in
-> the TW9910 datasheet. Something is thus weird.
-
-I suspect the 'active high' definition in datasheet is different from
-our understanding. Their 'active' means the chip is operational, which
-is not what one would expect from a powerdown pin.
-
->
-> Jacopo, is it possible to measure the PDN signal on the board as close as
-> possible to the TW9910 to see if it works as expected ?
-
-Not for me. The board is in Japan and my multimeter doesn't have cables
-that long, unfortunately.
-
-Thanks
-   j
-
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
->
->
-
---gKMricLos+KVdGMg
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbDpfOAAoJEHI0Bo8WoVY8rPUP/2bvaGORFzFtZJnarkpmaM0Z
-rMewrP2s9s76zY5/7J5SJqNme/4nwUH36UDtSyWUC6sWsqaNs5jVWi2EYlXFuZE9
-kNaxHkBUVwJQtFUTCeMT1ahZxDbfvg4zkPvGAK9t85r2KSz5IemHXcJM4YkeTSdP
-lBQTxCPIDKNK1ENj8UZwdeH471v28lpIVrN964RoLiA8WlllqCPJ4NF5fsmxPYsg
-RghXeiKxJmxJ2SnR+kMTIk9h9WQ7CL3AaJueceHOvDtgMkNPihacPeIQhUCjPWFc
-S5Ywc0wp73++TRbcNGkGexbL8WgOmw7q4TXXt7Q/5VwvJO4y3icvRijGlJAT5s3N
-hhFmUFX6xFnMjry8e9rWWAHPPj+JLb9X7cs5wNB4+1GATgk/80hFasRoR2ChGAJq
-hXkIYoOgvkjwnoc3jWaDvRUwfNUvPTthQB92N+Av6B0TBj0+qjR/o79hWwX5r4lt
-8RCy9o644yQBzqj8OEOAfPVQ1Zeli+yP2hpO7lUuuVeJ+UUVISJ4FWqlM97YbJPo
-kGn4NNiRqW5b6tGlHcZrzEOsEtpxDuZOroGKo0Ljfk060NABdWwqY4x1jPkJ9wxh
-BvvGedCzQphvGzneqjLWL+VkxAwkAOi20EGc93NuiPrcZxYwCuJoLv35KfWCHS3s
-d+U8pVmvkqCDAd2EfaYS
-=qJZI
------END PGP SIGNATURE-----
-
---gKMricLos+KVdGMg--
+diff --git a/drivers/mfd/cros_ec_dev.c b/drivers/mfd/cros_ec_dev.c
+index eafd06f..57064ec 100644
+--- a/drivers/mfd/cros_ec_dev.c
++++ b/drivers/mfd/cros_ec_dev.c
+@@ -383,6 +383,18 @@ static void cros_ec_sensors_register(struct cros_ec_dev *ec)
+ 	kfree(msg);
+ }
+ 
++static void cros_ec_cec_register(struct cros_ec_dev *ec)
++{
++	int ret;
++	struct mfd_cell cec_cell = {
++		.name = "cros-ec-cec",
++	};
++
++	ret = mfd_add_devices(ec->dev, 0, &cec_cell, 1, NULL, 0, NULL);
++	if (ret)
++		dev_err(ec->dev, "failed to add EC CEC\n");
++}
++
+ static int ec_device_probe(struct platform_device *pdev)
+ {
+ 	int retval = -ENOMEM;
+@@ -422,6 +434,10 @@ static int ec_device_probe(struct platform_device *pdev)
+ 	if (cros_ec_check_features(ec, EC_FEATURE_MOTION_SENSE))
+ 		cros_ec_sensors_register(ec);
+ 
++	/* check whether this EC handles CEC. */
++	if (cros_ec_check_features(ec, EC_FEATURE_CEC))
++		cros_ec_cec_register(ec);
++
+ 	/* Take control of the lightbar from the EC. */
+ 	lb_manual_suspend_ctrl(ec, 1);
+ 
+-- 
+2.7.4
