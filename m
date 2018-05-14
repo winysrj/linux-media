@@ -1,117 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:46232 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750713AbeESFRV (ORCPT
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:55209 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752060AbeENLYJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 May 2018 01:17:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Nicolas Dufresne <nicolas@ndufresne.ca>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        LMML <linux-media@vger.kernel.org>,
-        Wim Taymans <wtaymans@redhat.com>, schaller@redhat.com
-Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras on generic apps
-Date: Sat, 19 May 2018 08:17:42 +0300
-Message-ID: <2039084.mzKZ95HuWk@avalon>
-In-Reply-To: <7f9f800349eb45fb9c3a96b37f238fab0a610ee4.camel@ndufresne.ca>
-References: <20180517160708.74811cfb@vento.lan> <1568098.156aR60jyk@avalon> <7f9f800349eb45fb9c3a96b37f238fab0a610ee4.camel@ndufresne.ca>
+        Mon, 14 May 2018 07:24:09 -0400
+Subject: Re: [PATCH 2/5] media: docs: clarify relationship between crop and
+ selection APIs
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+References: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
+ <1522790146-16061-2-git-send-email-luca@lucaceresoli.net>
+ <fca47fb0-a299-af1d-4485-268907bb1007@xs4all.nl>
+From: Luca Ceresoli <luca@lucaceresoli.net>
+Message-ID: <fefa4941-4465-ccb8-81be-d411c515c710@lucaceresoli.net>
+Date: Mon, 14 May 2018 13:24:07 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <fca47fb0-a299-af1d-4485-268907bb1007@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+Hi Hans,
 
-On Friday, 18 May 2018 18:15:20 EEST Nicolas Dufresne wrote:
-> Le vendredi 18 mai 2018 =E0 15:38 +0300, Laurent Pinchart a =E9crit :
-> >> Before libv4l, media support for a given device were limited to a few
-> >> apps that knew how to decode the format. There were even cases were a
-> >> proprietary app were required, as no open source decoders were
-> >> available.
-> >>=20
-> >> From my PoV, the biggest gain with libv4l is that the same group of
-> >> maintainers can ensure that the entire solution (Kernel driver and
-> >> low level userspace support) will provide everything required for an
-> >> open source app to work with it.
-> >>=20
-> >> I'm not sure how we would keep enforcing it if the pipeline setting
-> >> and control propagation logic for an specific hardware will be
-> >> delegated to PipeWire. It seems easier to keep doing it on a libv4l
-> >> (version 2) and let PipeWire to use it.
-> >=20
-> > I believe we need to first study pipewire in more details. I have no
-> > personal opinion yet as I haven't had time to investigate it. That being
-> > said, I don't think that libv4l with closed-source plugins would be much
-> > better than a closed-source pipewire plugin. What main concern once we
-> > provide a userspace camera stack API is that vendors might implement th=
-at
-> > API in a closed-source component that calls to a kernel driver
-> > implementing a custom API, with all knowledge about the camera located =
-in
-> > the closed-source component. I'm not sure how to prevent that, my best
-> > proposal would be to make V4L2 so useful that vendors wouldn't even thi=
-nk
-> > about a different solution (possibly coupled by the pressure put by
-> > platform vendors such as Google who mandate upstream kernel drivers for
-> > Chrome OS, but that's still limited as even when it comes to Google
-> > there's no such pressure on the Android side).
->=20
-> If there is proprietary plugins, then I don't think it will make any
-> difference were this is implemented.
+thanks for the review.
 
-I tend to agree overall, although the community that develops the framework=
- we=20
-will end up using can make a difference in that area.
+On 13/05/2018 11:12, Hans Verkuil wrote:
+> On 04/03/2018 11:15 PM, Luca Ceresoli wrote:
+>> Having two somewhat similar and largely overlapping APIs is confusing,
+>> especially since the older one appears in the docs before the newer
+>> and most featureful counterpart.
+>>
+>> Clarify all of this in several ways:
+>>  - swap the two sections
+>>  - give a name to the two APIs in the section names
+>>  - add a note at the beginning of the CROP API section
+>>
+>> Also remove a note that is incorrect (correct wording is in
+>> vidioc-cropcap.rst).
+>>
+>> Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+>> Based on info from: Hans Verkuil <hverkuil@xs4all.nl>
+>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> ---
+>>  Documentation/media/uapi/v4l/common.rst            |  2 +-
+>>  Documentation/media/uapi/v4l/crop.rst              | 21 ++++++++++++---------
+>>  Documentation/media/uapi/v4l/selection-api-005.rst |  2 ++
+>>  Documentation/media/uapi/v4l/selection-api.rst     |  4 ++--
+>>  4 files changed, 17 insertions(+), 12 deletions(-)
+>>
+>> diff --git a/Documentation/media/uapi/v4l/common.rst b/Documentation/media/uapi/v4l/common.rst
+>> index 13f2ed3fc5a6..5f93e71122ef 100644
+>> --- a/Documentation/media/uapi/v4l/common.rst
+>> +++ b/Documentation/media/uapi/v4l/common.rst
+>> @@ -41,6 +41,6 @@ applicable to all devices.
+>>      extended-controls
+>>      format
+>>      planar-apis
+>> -    crop
+>>      selection-api
+>> +    crop
+>>      streaming-par
+>> diff --git a/Documentation/media/uapi/v4l/crop.rst b/Documentation/media/uapi/v4l/crop.rst
+>> index 182565b9ace4..83fa16eb347e 100644
+>> --- a/Documentation/media/uapi/v4l/crop.rst
+>> +++ b/Documentation/media/uapi/v4l/crop.rst
+>> @@ -2,9 +2,18 @@
+>>  
+>>  .. _crop:
+>>  
+>> -*************************************
+>> -Image Cropping, Insertion and Scaling
+>> -*************************************
+>> +*****************************************************
+>> +Image Cropping, Insertion and Scaling -- the CROP API
+>> +*****************************************************
+>> +
+>> +.. note::
+>> +
+>> +   The CROP API is mostly superseded by the newer :ref:`SELECTION API
+>> +   <selection-api>`. The new API should be preferred in most cases,
+>> +   with the exception of pixel aspect ratio detection, which is
+>> +   implemented by :ref:`VIDIOC_CROPCAP <VIDIOC_CROPCAP>` and has no
+>> +   equivalent in the SELECTION API. See :ref:`selection-vs-crop` for a
+>> +   comparison of the two APIs.
+>>  
+>>  Some video capture devices can sample a subsection of the picture and
+>>  shrink or enlarge it to an image of arbitrary size. We call these
+>> @@ -40,12 +49,6 @@ support scaling or the :ref:`VIDIOC_G_CROP <VIDIOC_G_CROP>` and
+>>  :ref:`VIDIOC_S_CROP <VIDIOC_G_CROP>` ioctls. Their size (and position
+>>  where applicable) will be fixed in this case.
+>>  
+>> -.. note::
+>> -
+>> -   All capture and output devices must support the
+>> -   :ref:`VIDIOC_CROPCAP <VIDIOC_CROPCAP>` ioctl such that applications
+>> -   can determine if scaling takes place.
+> 
+> This note should be rewritten, not deleted:
+> 
+> 	All capture and output devices that support the CROP or SELECTION API
+> 	will also support the :ref:`VIDIOC_CROPCAP <VIDIOC_CROPCAP>` ioctl.
 
-> The difference is the feature set we expose. 3A is per device, but multip=
-le
-> streams, with per request controls is also possible.
+I don't remember exactly the reationale for this removal, perhaps it's
+that I added a note above with similar content. But reading that again
+now I realize the added not does not clearly state "VIDIOC_CROPCAP is
+mandatory".
 
-Could you detail what you mean exactly by multiple streams ? Are you talkin=
-g=20
-about multiple independent streams coming from the same device (such as vid=
-eo=20
-+ depth map, 3D video, ...) or streams created from a single source (sensor=
-)=20
-to serve different purposes (viewfinder, video capture, still image capture=
-,=20
-=2E..) ?
+Thus I added the updated note to v2 as you suggested.
 
-> PipeWire gives central place to manage this, while giving multiple process
-> access to the camera streams. I think in the end, what fits better would =
-be
-> something like or the Android Camera HAL2. But we could encourage OSS by
-> maintaining a base implementation that covers all the V4L2 aspect, leaving
-> only the 3A aspect of the work to be done.
-
-Ideally that's the goal I'd like to reach, regardless of which multimedia=20
-stack we go for.
-
-> Maybe we need to come up with an abstraction that does not prevent multi-
-> streams, but only requires 3A per vendors
-
-That would be tricky to achieve, as it's usually very use-case- and ISP-
-dependent. Maybe we could come up with an interface for another vendor-
-specific component to handle this, but I fear it will be so intertwined wit=
-h=20
-the 3A implementation that it wouldn't be possible to isolate those two=20
-components.
-
-> (saying per vendors, as some of this could be Open Source by third partie=
-s).
-
-Note that in practice 3A is often tuned per-device, starting from a per-ven=
-dor=20
-implementation.
-
-> just thinking out loud now ;-P
-
-That's exactly what we need to do to start with :-)
-
-> p.s. Do we have the Intel / IPU3 folks in in the loop ? This is likely
-> the most pressing HW as it's shipping on many laptops now.
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+Bye,
+-- 
+Luca
