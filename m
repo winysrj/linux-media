@@ -1,84 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:50005 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753859AbeEAJA5 (ORCPT
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:56513 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752189AbeENL2M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 05:00:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Mon, 14 May 2018 07:28:12 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv12 PATCH 25/29] vim2m: use workqueue
-Date: Tue,  1 May 2018 11:00:47 +0200
-Message-Id: <20180501090051.9321-26-hverkuil@xs4all.nl>
-In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Luca Ceresoli <luca@lucaceresoli.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 1/5] media: docs: selection: fix typos
+Date: Mon, 14 May 2018 13:27:23 +0200
+Message-Id: <1526297247-20881-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Fix typos in the selection documentation:
+ - over -> cover
+ - BONDS -> BOUNDS
 
-v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
-interrupt context. Switch to a workqueue instead.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/vim2m.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 9be4da3b8577..a1b0bb08668d 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -150,6 +150,7 @@ struct vim2m_dev {
- 	spinlock_t		irqlock;
+Changed v1 -> v2:
+ - add a commit message (Hans)
+---
+ Documentation/media/uapi/v4l/selection-api-004.rst | 2 +-
+ Documentation/media/uapi/v4l/selection.svg         | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/media/uapi/v4l/selection-api-004.rst b/Documentation/media/uapi/v4l/selection-api-004.rst
+index d782cd5b2117..0a4ddc2d71db 100644
+--- a/Documentation/media/uapi/v4l/selection-api-004.rst
++++ b/Documentation/media/uapi/v4l/selection-api-004.rst
+@@ -41,7 +41,7 @@ The driver may further adjust the requested size and/or position
+ according to hardware limitations.
  
- 	struct timer_list	timer;
-+	struct work_struct	work_run;
- 
- 	struct v4l2_m2m_dev	*m2m_dev;
- };
-@@ -392,9 +393,10 @@ static void device_run(void *priv)
- 	schedule_irq(dev, ctx->transtime);
- }
- 
--static void device_isr(struct timer_list *t)
-+static void device_work(struct work_struct *w)
- {
--	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
-+	struct vim2m_dev *vim2m_dev =
-+		container_of(w, struct vim2m_dev, work_run);
- 	struct vim2m_ctx *curr_ctx;
- 	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 	unsigned long flags;
-@@ -426,6 +428,13 @@ static void device_isr(struct timer_list *t)
- 	}
- }
- 
-+static void device_isr(struct timer_list *t)
-+{
-+	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
-+
-+	schedule_work(&vim2m_dev->work_run);
-+}
-+
- /*
-  * video ioctls
-  */
-@@ -806,6 +815,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
- 	struct vb2_v4l2_buffer *vbuf;
- 	unsigned long flags;
- 
-+	flush_scheduled_work();
- 	for (;;) {
- 		if (V4L2_TYPE_IS_OUTPUT(q->type))
- 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-@@ -1011,6 +1021,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	vfd = &dev->vfd;
- 	vfd->lock = &dev->dev_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
-+	INIT_WORK(&dev->work_run, device_work);
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	dev->mdev.dev = &pdev->dev;
+ Each capture device has a default source rectangle, given by the
+-``V4L2_SEL_TGT_CROP_DEFAULT`` target. This rectangle shall over what the
++``V4L2_SEL_TGT_CROP_DEFAULT`` target. This rectangle shall cover what the
+ driver writer considers the complete picture. Drivers shall set the
+ active crop rectangle to the default when the driver is first loaded,
+ but not later.
+diff --git a/Documentation/media/uapi/v4l/selection.svg b/Documentation/media/uapi/v4l/selection.svg
+index a93e3b59786d..911062bd2844 100644
+--- a/Documentation/media/uapi/v4l/selection.svg
++++ b/Documentation/media/uapi/v4l/selection.svg
+@@ -1128,11 +1128,11 @@
+    </text>
+   </g>
+   <text transform="matrix(.96106 0 0 1.0405 48.571 195.53)" x="2438.062" y="1368.429" enable-background="new" font-size="50" style="line-height:125%">
+-   <tspan x="2438.062" y="1368.429">COMPOSE_BONDS</tspan>
++   <tspan x="2438.062" y="1368.429">COMPOSE_BOUNDS</tspan>
+   </text>
+   <g font-size="40">
+    <text transform="translate(48.571 195.53)" x="8.082" y="1438.896" enable-background="new" style="line-height:125%">
+-    <tspan x="8.082" y="1438.896" font-size="50">CROP_BONDS</tspan>
++    <tspan x="8.082" y="1438.896" font-size="50">CROP_BOUNDS</tspan>
+    </text>
+    <text transform="translate(48.571 195.53)" x="1455.443" y="-26.808" enable-background="new" style="line-height:125%">
+     <tspan x="1455.443" y="-26.808" font-size="50">overscan area</tspan>
 -- 
-2.17.0
+2.7.4
