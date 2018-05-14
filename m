@@ -1,95 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:57494 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751139AbeEUIzU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:20 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40572 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753051AbeENL4N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 May 2018 07:56:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v14 27/36] videobuf2-v4l2: add vb2_request_queue/validate helpers
-Date: Mon, 21 May 2018 11:54:52 +0300
-Message-Id: <20180521085501.16861-28-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+Cc: Mike Isely <isely@pobox.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [RFC PATCH 3/6] v4l2-ioctl.c: use correct vb2_queue lock for m2m devices
+Date: Mon, 14 May 2018 13:55:59 +0200
+Message-Id: <20180514115602.9791-4-hverkuil@xs4all.nl>
+In-Reply-To: <20180514115602.9791-1-hverkuil@xs4all.nl>
+References: <20180514115602.9791-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-The generic vb2_request_validate helper function checks if
-there are buffers in the request and if so, prepares (validates)
-all objects in the request.
+For m2m devices the vdev->queue lock was always taken instead of the
+lock for the specific capture or output queue. Now that we pushed
+the locking down into __video_do_ioctl() we can pick the correct
+lock and improve the performance of m2m devices.
 
-The generic vb2_request_queue helper function queues all buffer
-objects in the validated request.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 38 +++++++++++++++++++++++++
- include/media/videobuf2-v4l2.h                  |  4 +++
- 2 files changed, 42 insertions(+)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 59 +++++++++++++++++++++++++++-
+ 1 file changed, 57 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 8b390960ca671..ff228334d4418 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -1079,6 +1079,44 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index a12c66ead30d..b871b8fe5105 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -29,6 +29,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-mc.h>
++#include <media/v4l2-mem2mem.h>
+ 
+ #include <trace/events/v4l2.h>
+ 
+@@ -2626,12 +2627,64 @@ static bool v4l2_is_known_ioctl(unsigned int cmd)
+ 	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
  }
- EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
  
-+int vb2_request_validate(struct media_request *req)
+-static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
++#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
++static bool v4l2_ioctl_m2m_queue_is_output(unsigned int cmd, void *arg)
 +{
-+	struct media_request_object *obj;
-+	int ret = 0;
++	switch (cmd) {
++	case VIDIOC_CREATE_BUFS: {
++		struct v4l2_create_buffers *cbufs = arg;
 +
-+	if (!vb2_request_has_buffers(req))
-+		return -ENOENT;
-+
-+	list_for_each_entry(obj, &req->objects, list) {
-+		if (!obj->ops->prepare)
-+			continue;
-+
-+		ret = obj->ops->prepare(obj);
-+		if (ret)
-+			break;
++		return V4L2_TYPE_IS_OUTPUT(cbufs->format.type);
 +	}
++	case VIDIOC_REQBUFS: {
++		struct v4l2_requestbuffers *rbufs = arg;
 +
-+	if (ret) {
-+		list_for_each_entry_continue_reverse(obj, &req->objects, list)
-+			if (obj->ops->unprepare)
-+				obj->ops->unprepare(obj);
-+		return ret;
++		return V4L2_TYPE_IS_OUTPUT(rbufs->type);
 +	}
-+	return 0;
++	case VIDIOC_QBUF:
++	case VIDIOC_DQBUF:
++	case VIDIOC_QUERYBUF:
++	case VIDIOC_PREPARE_BUF: {
++		struct v4l2_buffer *buf = arg;
++
++		return V4L2_TYPE_IS_OUTPUT(buf->type);
++	}
++	case VIDIOC_EXPBUF: {
++		struct v4l2_exportbuffer *expbuf = arg;
++
++		return V4L2_TYPE_IS_OUTPUT(expbuf->type);
++	}
++	case VIDIOC_STREAMON:
++	case VIDIOC_STREAMOFF: {
++		int *type = arg;
++
++		return V4L2_TYPE_IS_OUTPUT(*type);
++	}
++	default:
++		return false;
++	}
 +}
-+EXPORT_SYMBOL_GPL(vb2_request_validate);
++#endif
 +
-+void vb2_request_queue(struct media_request *req)
-+{
-+	struct media_request_object *obj;
++static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev,
++					 struct v4l2_fh *vfh, unsigned cmd,
++					 void *arg)
+ {
+ 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
+ 		return vdev->lock;
+ 	if (test_bit(_IOC_NR(cmd), vdev->disable_locking))
+ 		return NULL;
++#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
++	if (vfh && vfh->m2m_ctx &&
++	    (v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE)) {
++		bool is_output = v4l2_ioctl_m2m_queue_is_output(cmd, arg);
++		struct v4l2_m2m_queue_ctx *ctx = is_output ?
++			&vfh->m2m_ctx->out_q_ctx : &vfh->m2m_ctx->cap_q_ctx;
 +
-+	list_for_each_entry(obj, &req->objects, list) {
-+		if (obj->ops->queue)
-+			obj->ops->queue(obj);
++		if (ctx->q.lock)
++			return ctx->q.lock;
 +	}
-+}
-+EXPORT_SYMBOL_GPL(vb2_request_queue);
-+
- MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
- MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
- MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 91a2b3e1a642a..727855463838c 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -303,4 +303,8 @@ void vb2_ops_wait_prepare(struct vb2_queue *vq);
-  */
- void vb2_ops_wait_finish(struct vb2_queue *vq);
++#endif
+ 	if (vdev->queue && vdev->queue->lock &&
+ 			(v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
+ 		return vdev->queue->lock;
+@@ -2679,7 +2732,7 @@ static long __video_do_ioctl(struct file *file,
+ 		unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vfd = video_devdata(file);
+-	struct mutex *lock = v4l2_ioctl_get_lock(vfd, cmd);
++	struct mutex *lock;
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	bool write_only = false;
+ 	struct v4l2_ioctl_info default_info;
+@@ -2698,6 +2751,8 @@ static long __video_do_ioctl(struct file *file,
+ 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
+ 		vfh = file->private_data;
  
-+struct media_request;
-+int vb2_request_validate(struct media_request *req);
-+void vb2_request_queue(struct media_request *req);
++	lock = v4l2_ioctl_get_lock(vfd, vfh, cmd, arg);
 +
- #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
+ 	if (lock && mutex_lock_interruptible(lock))
+ 		return -ERESTARTSYS;
+ 
 -- 
-2.11.0
+2.17.0
