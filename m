@@ -1,61 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:46963 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937280AbeE3HQv (ORCPT
+Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:53374 "EHLO
+        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754307AbeENPA3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 03:16:51 -0400
-Received: by mail-pl0-f65.google.com with SMTP id 30-v6so10510561pld.13
-        for <linux-media@vger.kernel.org>; Wed, 30 May 2018 00:16:51 -0700 (PDT)
-From: Keiichi Watanabe <keiichiw@chromium.org>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Keiichi Watanabe <keiichiw@chromium.org>,
-        Tom Saeger <tom.saeger@oracle.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mediatek@lists.infradead.org
-Subject: [PATCH v2 2/2] media: mtk-vcodec: Support VP9 profile in decoder
-Date: Wed, 30 May 2018 16:16:13 +0900
-Message-Id: <20180530071613.125768-3-keiichiw@chromium.org>
-In-Reply-To: <20180530071613.125768-1-keiichiw@chromium.org>
-References: <20180530071613.125768-1-keiichiw@chromium.org>
+        Mon, 14 May 2018 11:00:29 -0400
+Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
+        by mx08-00252a01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id w4EEuXpV009832
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2018 16:00:27 +0100
+Received: from mail-pl0-f69.google.com (mail-pl0-f69.google.com [209.85.160.69])
+        by mx08-00252a01.pphosted.com with ESMTP id 2hwmrg14hv-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2018 16:00:27 +0100
+Received: by mail-pl0-f69.google.com with SMTP id b36-v6so11497865pli.2
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2018 08:00:27 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAAoAYcNiAMafVk+-JasZZso7JwEN79FQPpBuGmbQZRhdSuQEqw@mail.gmail.com>
+References: <CAAoAYcNiAMafVk+-JasZZso7JwEN79FQPpBuGmbQZRhdSuQEqw@mail.gmail.com>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Mon, 14 May 2018 16:00:24 +0100
+Message-ID: <CAAoAYcNFEgYxMUXMJ2LcSvMmh72q8OxT=KQCsOMp_+sdvAX-vw@mail.gmail.com>
+Subject: Re: Compressed formats - framed or unframed?
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2_CID_MPEG_VIDEO_VP9_PROFILE control in MediaTek decoder's
-driver.
-MediaTek decoder only supports profile 0 for now.
+On 26 April 2018 at 17:25, Dave Stevenson
+<dave.stevenson@raspberrypi.org> wrote:
+> Hi All.
+>
+> I'm trying to get a V4L2 M2M driver sorted for the Raspberry Pi to
+> allow access to the video codecs. Much of it is working fine.
+>
+> One thing that isn't clear relates to video decode. Do the compressed
+> formats (eg V4L2_PIX_FMT_H264) have to be framed into one frame per
+> V4L2 buffer, or is providing unframed chunks of an elementary stream
+> permitted. The docs only say "H264 video elementary stream with start
+> codes.". Admittedly timestamps are nearly meaningless if you feed in
+> unframed data, but could potentially be interpolated.
+>
+> What does other hardware support?
+>
+> I could handle it either way, but there are some performance tweaks I
+> can do if I know the data must be framed.
 
-Signed-off-by: Keiichi Watanabe <keiichiw@chromium.org>
----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Does anyone have any view on this?
 
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-index 86f0a7134365..f9393504356d 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-@@ -1400,6 +1400,12 @@ int mtk_vcodec_dec_ctrls_setup(struct mtk_vcodec_ctx *ctx)
- 				V4L2_CID_MIN_BUFFERS_FOR_CAPTURE,
- 				0, 32, 1, 1);
- 	ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
-+	v4l2_ctrl_new_std_menu(&ctx->ctrl_hdl,
-+				&mtk_vcodec_dec_ctrl_ops,
-+				V4L2_CID_MPEG_VIDEO_VP9_PROFILE,
-+				V4L2_MPEG_VIDEO_VP9_PROFILE_3,
-+				~(1U << V4L2_MPEG_VIDEO_VP9_PROFILE_0),
-+				V4L2_MPEG_VIDEO_VP9_PROFILE_0);
-
- 	if (ctx->ctrl_hdl.error) {
- 		mtk_v4l2_err("Adding control failed %d",
---
-2.17.0.921.gf22659ad46-goog
+Thanks
+  Dave
