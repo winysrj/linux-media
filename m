@@ -1,64 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:53982 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751756AbeEDUHr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 16:07:47 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:59061 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932357AbeENNNw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 May 2018 09:13:52 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v9 02/15] hackrf: group device capabilities
-Date: Fri,  4 May 2018 17:05:59 -0300
-Message-Id: <20180504200612.8763-3-ezequiel@collabora.com>
-In-Reply-To: <20180504200612.8763-1-ezequiel@collabora.com>
-References: <20180504200612.8763-1-ezequiel@collabora.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/7] hdpvr: fix compiler warning
+Date: Mon, 14 May 2018 15:13:43 +0200
+Message-Id: <20180514131346.15795-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180514131346.15795-1-hverkuil@xs4all.nl>
+References: <20180514131346.15795-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Instead of putting V4L2_CAP_STREAMING and V4L2_CAP_READWRITE
-everywhere, set device_caps earlier with these values.
+In function 'strncpy',
+    inlined from 'vidioc_g_audio' at media-git/drivers/media/usb/hdpvr/hdpvr-video.c:876:2:
+media-git/include/linux/string.h:246:9: warning: '__builtin_strncpy' specified bound 32 equals destination size [-Wstringop-truncation]
+  return __builtin_strncpy(p, q, size);
+         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/hackrf/hackrf.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ drivers/media/usb/hdpvr/hdpvr-video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-index 7eb53517a82f..6d692fb3e8dd 100644
---- a/drivers/media/usb/hackrf/hackrf.c
-+++ b/drivers/media/usb/hackrf/hackrf.c
-@@ -909,18 +909,15 @@ static int hackrf_querycap(struct file *file, void *fh,
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 77c3d331ff31..1b89c77bad66 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -873,7 +873,7 @@ static int vidioc_g_audio(struct file *file, void *private_data,
  
- 	dev_dbg(&intf->dev, "\n");
- 
-+	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
- 	if (vdev->vfl_dir == VFL_DIR_RX)
--		cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER |
--				   V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
--
-+		cap->device_caps |= V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER;
- 	else
--		cap->device_caps = V4L2_CAP_SDR_OUTPUT | V4L2_CAP_MODULATOR |
--				   V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
-+		cap->device_caps |= V4L2_CAP_SDR_OUTPUT | V4L2_CAP_MODULATOR;
- 
- 	cap->capabilities = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER |
- 			    V4L2_CAP_SDR_OUTPUT | V4L2_CAP_MODULATOR |
--			    V4L2_CAP_STREAMING | V4L2_CAP_READWRITE |
--			    V4L2_CAP_DEVICE_CAPS;
-+			    V4L2_CAP_DEVICE_CAPS | cap->device_caps;
- 	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
- 	strlcpy(cap->card, dev->rx_vdev.name, sizeof(cap->card));
- 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+ 	audio->index = dev->options.audio_input;
+ 	audio->capability = V4L2_AUDCAP_STEREO;
+-	strncpy(audio->name, audio_iname[audio->index], sizeof(audio->name));
++	strlcpy(audio->name, audio_iname[audio->index], sizeof(audio->name));
+ 	audio->name[sizeof(audio->name) - 1] = '\0';
+ 	return 0;
+ }
 -- 
-2.16.3
+2.17.0
