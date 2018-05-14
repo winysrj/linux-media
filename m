@@ -1,125 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:41128 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751777AbeEFOUL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 10:20:11 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v5 09/14] media: ov772x: handle nested s_power() calls
-Date: Sun,  6 May 2018 23:19:24 +0900
-Message-Id: <1525616369-8843-10-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:60079 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753049AbeENL4M (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 May 2018 07:56:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mike Isely <isely@pobox.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [RFC PATCH 1/6] pvrusb2: replace pvr2_v4l2_ioctl by video_ioctl2
+Date: Mon, 14 May 2018 13:55:57 +0200
+Message-Id: <20180514115602.9791-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180514115602.9791-1-hverkuil@xs4all.nl>
+References: <20180514115602.9791-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Depending on the v4l2 driver, calling s_power() could be nested.  So the
-actual transitions between power saving mode and normal operation mode
-should only happen at the first power on and the last power off.
+From: Hans Verkuil <hansverk@cisco.com>
 
-This adds an s_power() nesting counter and updates the power state if the
-counter is modified from 0 to != 0 or from != 0 to 0.
+This driver is the only V4L driver that does not set unlocked_ioctl
+to video_ioctl2.
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+The only thing that pvr2_v4l2_ioctl does besides calling video_ioctl2
+is calling pvr2_hdw_commit_ctl(). Add pvr2_hdw_commit_ctl() calls to
+the various ioctls that need this, and we can replace pvr2_v4l2_ioctl
+by video_ioctl2.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
-* v5
-- No changes
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 83 +++++++++---------------
+ 1 file changed, 31 insertions(+), 52 deletions(-)
 
- drivers/media/i2c/ov772x.c | 34 ++++++++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index 2b02411..6c0c792 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -424,6 +424,9 @@ struct ov772x_priv {
- 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
- 	unsigned short                    band_filter;
- 	unsigned int			  fps;
-+	/* lock to protect power_count */
-+	struct mutex			  lock;
-+	int				  power_count;
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_pad pad;
- #endif
-@@ -871,9 +874,26 @@ static int ov772x_power_off(struct ov772x_priv *priv)
- static int ov772x_s_power(struct v4l2_subdev *sd, int on)
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+index 9fdc57c1658f..e53a80b589a1 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+@@ -159,9 +159,12 @@ static int pvr2_s_std(struct file *file, void *priv, v4l2_std_id std)
  {
- 	struct ov772x_priv *priv = to_ov772x(sd);
-+	int ret = 0;
-+
-+	mutex_lock(&priv->lock);
-+
-+	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
-+	 * update the power state.
-+	 */
-+	if (priv->power_count == !on)
-+		ret = on ? ov772x_power_on(priv) : ov772x_power_off(priv);
-+
-+	if (!ret) {
-+		/* Update the power count. */
-+		priv->power_count += on ? 1 : -1;
-+		WARN(priv->power_count < 0, "Unbalanced power count\n");
-+		WARN(priv->power_count > 1, "Duplicated s_power call\n");
-+	}
-+
-+	mutex_unlock(&priv->lock);
+ 	struct pvr2_v4l2_fh *fh = file->private_data;
+ 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
++	int ret;
  
--	return on ? ov772x_power_on(priv) :
--		    ov772x_power_off(priv);
+-	return pvr2_ctrl_set_value(
++	ret = pvr2_ctrl_set_value(
+ 		pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_STDCUR), std);
++	pvr2_hdw_commit_ctl(hdw);
 +	return ret;
  }
  
- static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
-@@ -1303,6 +1323,7 @@ static int ov772x_probe(struct i2c_client *client,
- 		return -ENOMEM;
+ static int pvr2_querystd(struct file *file, void *priv, v4l2_std_id *std)
+@@ -251,12 +254,15 @@ static int pvr2_s_input(struct file *file, void *priv, unsigned int inp)
+ {
+ 	struct pvr2_v4l2_fh *fh = file->private_data;
+ 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
++	int ret;
  
- 	priv->info = client->dev.platform_data;
-+	mutex_init(&priv->lock);
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 3);
-@@ -1313,8 +1334,10 @@ static int ov772x_probe(struct i2c_client *client,
- 	v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
- 			  V4L2_CID_BAND_STOP_FILTER, 0, 256, 1, 0);
- 	priv->subdev.ctrl_handler = &priv->hdl;
--	if (priv->hdl.error)
--		return priv->hdl.error;
-+	if (priv->hdl.error) {
-+		ret = priv->hdl.error;
-+		goto error_mutex_destroy;
-+	}
- 
- 	priv->clk = clk_get(&client->dev, NULL);
- 	if (IS_ERR(priv->clk)) {
-@@ -1362,6 +1385,8 @@ static int ov772x_probe(struct i2c_client *client,
- 	clk_put(priv->clk);
- error_ctrl_free:
- 	v4l2_ctrl_handler_free(&priv->hdl);
-+error_mutex_destroy:
-+	mutex_destroy(&priv->lock);
- 
- 	return ret;
+ 	if (inp >= fh->input_cnt)
+ 		return -EINVAL;
+-	return pvr2_ctrl_set_value(
++	ret = pvr2_ctrl_set_value(
+ 			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_INPUT),
+ 			fh->input_map[inp]);
++	pvr2_hdw_commit_ctl(hdw);
++	return ret;
  }
-@@ -1376,6 +1401,7 @@ static int ov772x_remove(struct i2c_client *client)
- 		gpiod_put(priv->pwdn_gpio);
- 	v4l2_async_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
-+	mutex_destroy(&priv->lock);
  
+ static int pvr2_enumaudio(struct file *file, void *priv, struct v4l2_audio *vin)
+@@ -315,13 +321,16 @@ static int pvr2_s_tuner(struct file *file, void *priv, const struct v4l2_tuner *
+ {
+ 	struct pvr2_v4l2_fh *fh = file->private_data;
+ 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
++	int ret;
+ 
+ 	if (vt->index != 0)
+ 		return -EINVAL;
+ 
+-	return pvr2_ctrl_set_value(
++	ret = pvr2_ctrl_set_value(
+ 			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_AUDIOMODE),
+ 			vt->audmode);
++	pvr2_hdw_commit_ctl(hdw);
++	return ret;
+ }
+ 
+ static int pvr2_s_frequency(struct file *file, void *priv, const struct v4l2_frequency *vf)
+@@ -353,8 +362,10 @@ static int pvr2_s_frequency(struct file *file, void *priv, const struct v4l2_fre
+ 		fv = (fv * 125) / 2;
+ 	else
+ 		fv = fv * 62500;
+-	return pvr2_ctrl_set_value(
++	ret = pvr2_ctrl_set_value(
+ 			pvr2_hdw_get_ctrl_by_id(hdw,PVR2_CID_FREQUENCY),fv);
++	pvr2_hdw_commit_ctl(hdw);
++	return ret;
+ }
+ 
+ static int pvr2_g_frequency(struct file *file, void *priv, struct v4l2_frequency *vf)
+@@ -470,6 +481,7 @@ static int pvr2_s_fmt_vid_cap(struct file *file, void *priv, struct v4l2_format
+ 	vcp = pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_VRES);
+ 	pvr2_ctrl_set_value(hcp, vf->fmt.pix.width);
+ 	pvr2_ctrl_set_value(vcp, vf->fmt.pix.height);
++	pvr2_hdw_commit_ctl(hdw);
  	return 0;
  }
+ 
+@@ -597,9 +609,12 @@ static int pvr2_s_ctrl(struct file *file, void *priv, struct v4l2_control *vc)
+ {
+ 	struct pvr2_v4l2_fh *fh = file->private_data;
+ 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
++	int ret;
+ 
+-	return pvr2_ctrl_set_value(pvr2_hdw_get_ctrl_v4l(hdw, vc->id),
++	ret = pvr2_ctrl_set_value(pvr2_hdw_get_ctrl_v4l(hdw, vc->id),
+ 			vc->value);
++	pvr2_hdw_commit_ctl(hdw);
++	return ret;
+ }
+ 
+ static int pvr2_g_ext_ctrls(struct file *file, void *priv,
+@@ -658,10 +673,12 @@ static int pvr2_s_ext_ctrls(struct file *file, void *priv,
+ 				ctrl->value);
+ 		if (ret) {
+ 			ctls->error_idx = idx;
+-			return ret;
++			goto commit;
+ 		}
+ 	}
+-	return 0;
++commit:
++	pvr2_hdw_commit_ctl(hdw);
++	return ret;
+ }
+ 
+ static int pvr2_try_ext_ctrls(struct file *file, void *priv,
+@@ -764,23 +781,23 @@ static int pvr2_s_selection(struct file *file, void *priv,
+ 			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPL),
+ 			sel->r.left);
+ 	if (ret != 0)
+-		return -EINVAL;
++		goto commit;
+ 	ret = pvr2_ctrl_set_value(
+ 			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPT),
+ 			sel->r.top);
+ 	if (ret != 0)
+-		return -EINVAL;
++		goto commit;
+ 	ret = pvr2_ctrl_set_value(
+ 			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPW),
+ 			sel->r.width);
+ 	if (ret != 0)
+-		return -EINVAL;
++		goto commit;
+ 	ret = pvr2_ctrl_set_value(
+ 			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPH),
+ 			sel->r.height);
+-	if (ret != 0)
+-		return -EINVAL;
+-	return 0;
++commit:
++	pvr2_hdw_commit_ctl(hdw);
++	return ret;
+ }
+ 
+ static int pvr2_log_status(struct file *file, void *priv)
+@@ -905,44 +922,6 @@ static void pvr2_v4l2_internal_check(struct pvr2_channel *chp)
+ }
+ 
+ 
+-static long pvr2_v4l2_ioctl(struct file *file,
+-			   unsigned int cmd, unsigned long arg)
+-{
+-
+-	struct pvr2_v4l2_fh *fh = file->private_data;
+-	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
+-	long ret = -EINVAL;
+-
+-	if (pvrusb2_debug & PVR2_TRACE_V4LIOCTL)
+-		v4l_printk_ioctl(pvr2_hdw_get_driver_name(hdw), cmd);
+-
+-	if (!pvr2_hdw_dev_ok(hdw)) {
+-		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
+-			   "ioctl failed - bad or no context");
+-		return -EFAULT;
+-	}
+-
+-	ret = video_ioctl2(file, cmd, arg);
+-
+-	pvr2_hdw_commit_ctl(hdw);
+-
+-	if (ret < 0) {
+-		if (pvrusb2_debug & PVR2_TRACE_V4LIOCTL) {
+-			pvr2_trace(PVR2_TRACE_V4LIOCTL,
+-				   "pvr2_v4l2_do_ioctl failure, ret=%ld command was:",
+-ret);
+-			v4l_printk_ioctl(pvr2_hdw_get_driver_name(hdw), cmd);
+-		}
+-	} else {
+-		pvr2_trace(PVR2_TRACE_V4LIOCTL,
+-			   "pvr2_v4l2_do_ioctl complete, ret=%ld (0x%lx)",
+-			   ret, ret);
+-	}
+-	return ret;
+-
+-}
+-
+-
+ static int pvr2_v4l2_release(struct file *file)
+ {
+ 	struct pvr2_v4l2_fh *fhp = file->private_data;
+@@ -1205,7 +1184,7 @@ static const struct v4l2_file_operations vdev_fops = {
+ 	.open       = pvr2_v4l2_open,
+ 	.release    = pvr2_v4l2_release,
+ 	.read       = pvr2_v4l2_read,
+-	.unlocked_ioctl = pvr2_v4l2_ioctl,
++	.unlocked_ioctl = video_ioctl2,
+ 	.poll       = pvr2_v4l2_poll,
+ };
+ 
 -- 
-2.7.4
+2.17.0
