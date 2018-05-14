@@ -1,124 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:40018 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753936AbeEOQkt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 12:40:49 -0400
-MIME-Version: 1.0
-In-Reply-To: <568980a1-9c22-ccdb-de43-ba88cdce4ecd@xs4all.nl>
-References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
- <1526395342-15481-5-git-send-email-narmstrong@baylibre.com> <568980a1-9c22-ccdb-de43-ba88cdce4ecd@xs4all.nl>
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Date: Tue, 15 May 2018 18:40:48 +0200
-Message-ID: <CAFqH_52nkk=ATeNoOdhmfAioD30sbg_kyAxr259bydLj9Z6xJg@mail.gmail.com>
-Subject: Re: [PATCH v2 4/5] mfd: cros_ec_dev: Add CEC sub-device registration
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Neil Armstrong <narmstrong@baylibre.com>,
-        David Airlie <airlied@linux.ie>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        Olof Johansson <olof@lixom.net>, seanpaul@google.com,
-        sadolfsson@google.com, intel-gfx@lists.freedesktop.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Fabien Parent <fparent@baylibre.com>, felixe@google.com,
-        =?UTF-8?Q?St=C3=A9phane_Marchesin?= <marcheu@chromium.org>,
-        Benson Leung <bleung@google.com>, darekm@google.com,
-        linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from gofer.mess.org ([88.97.38.141]:33215 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752137AbeENVLE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 May 2018 17:11:04 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
+        Matthias Reichl <hias@horus.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH v1 1/4] media: rc: introduce BPF_PROG_IR_DECODER
+Date: Mon, 14 May 2018 22:10:58 +0100
+Message-Id: <32a944171d5c48abf126259595b0088ce3122c91.1526331777.git.sean@mess.org>
+In-Reply-To: <cover.1526331777.git.sean@mess.org>
+References: <cover.1526331777.git.sean@mess.org>
+In-Reply-To: <cover.1526331777.git.sean@mess.org>
+References: <cover.1526331777.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Neil,
+Add support for BPF_PROG_IR_DECODER. This type of BPF program can call
+rc_keydown() to reported decoded IR scancodes, or rc_repeat() to report
+that the last key should be repeated.
 
-I suspect that this patch will conflict with some patches that will be
-queued for 4.18 that also introduces new devices, well, for now I
-don't see these merged in the Lee's tree.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/Kconfig          |  8 +++
+ drivers/media/rc/Makefile         |  1 +
+ drivers/media/rc/ir-bpf-decoder.c | 93 +++++++++++++++++++++++++++++++
+ include/linux/bpf_types.h         |  3 +
+ include/uapi/linux/bpf.h          | 16 +++++-
+ 5 files changed, 120 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/rc/ir-bpf-decoder.c
 
-Based on some reviews I got when I send a patch to this file ...
-
-2018-05-15 17:29 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> On 05/15/2018 04:42 PM, Neil Armstrong wrote:
->> The EC can expose a CEC bus, thus add the cros-ec-cec MFD sub-device
->> when the CEC feature bit is present.
->>
->> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->
-> For what it is worth (not an MFD expert):
->
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Thanks!
->
->         Hans
->
->> ---
->>  drivers/mfd/cros_ec_dev.c | 16 ++++++++++++++++
->>  1 file changed, 16 insertions(+)
->>
->> diff --git a/drivers/mfd/cros_ec_dev.c b/drivers/mfd/cros_ec_dev.c
->> index eafd06f..57064ec 100644
->> --- a/drivers/mfd/cros_ec_dev.c
->> +++ b/drivers/mfd/cros_ec_dev.c
->> @@ -383,6 +383,18 @@ static void cros_ec_sensors_register(struct cros_ec_dev *ec)
->>       kfree(msg);
->>  }
->>
->> +static void cros_ec_cec_register(struct cros_ec_dev *ec)
->> +{
->> +     int ret;
->> +     struct mfd_cell cec_cell = {
->> +             .name = "cros-ec-cec",
->> +     };
->> +
->> +     ret = mfd_add_devices(ec->dev, 0, &cec_cell, 1, NULL, 0, NULL);
->> +     if (ret)
->> +             dev_err(ec->dev, "failed to add EC CEC\n");
->> +}
->> +
-
-Do not create a single function to only call mfd_add_devices, instead
-do the following on top:
-
-static const struct mfd_cell cros_ec_cec_cells[] = {
-        { .name = "cros-ec-cec" }
-};
-
-
->>  static int ec_device_probe(struct platform_device *pdev)
->>  {
->>       int retval = -ENOMEM;
->> @@ -422,6 +434,10 @@ static int ec_device_probe(struct platform_device *pdev)
->>       if (cros_ec_check_features(ec, EC_FEATURE_MOTION_SENSE))
->>               cros_ec_sensors_register(ec);
->>
->> +     /* check whether this EC handles CEC. */
->> +     if (cros_ec_check_features(ec, EC_FEATURE_CEC))
->> +             cros_ec_cec_register(ec);
->> +
-
-and use PLATFORM_DEVID_AUTO and the ARRAY_SIZE macro, something like this.
-
-/* Check whether this EC instance handles CEC */
-if (cros_ec_check_features(ec, EC_FEATURE_CEC)) {
-        retval = mfd_add_devices(ec->dev, PLATFORM_DEVID_AUTO,
-                                                  cros_ec_cec_cells,
-                                                  ARRAY_SIZE(cros_ec_cec_cells),
-                                                  NULL, 0, NULL);
-        if (retval)
-                dev_err(ec->dev, "failed to add cros-ec-cec device: %d\n",
-                             retval);
-}
-
-Best regards,
-  Enric
-
->>       /* Take control of the lightbar from the EC. */
->>       lb_manual_suspend_ctrl(ec, 1);
->>
->>
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index eb2c3b6eca7f..10ad6167d87c 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -120,6 +120,14 @@ config IR_IMON_DECODER
+ 	   remote control and you would like to use it with a raw IR
+ 	   receiver, or if you wish to use an encoder to transmit this IR.
+ 
++config IR_BPF_DECODER
++	bool "Enable IR raw decoder using BPF"
++	depends on BPF_SYSCALL
++	depends on RC_CORE=y
++	help
++	   Enable this option to make it possible to load custom IR
++	   decoders written in BPF.
++
+ endif #RC_DECODERS
+ 
+ menuconfig RC_DEVICES
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 2e1c87066f6c..12e1118430d0 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -5,6 +5,7 @@ obj-y += keymaps/
+ obj-$(CONFIG_RC_CORE) += rc-core.o
+ rc-core-y := rc-main.o rc-ir-raw.o
+ rc-core-$(CONFIG_LIRC) += lirc_dev.o
++rc-core-$(CONFIG_IR_BPF_DECODER) += ir-bpf-decoder.o
+ obj-$(CONFIG_IR_NEC_DECODER) += ir-nec-decoder.o
+ obj-$(CONFIG_IR_RC5_DECODER) += ir-rc5-decoder.o
+ obj-$(CONFIG_IR_RC6_DECODER) += ir-rc6-decoder.o
+diff --git a/drivers/media/rc/ir-bpf-decoder.c b/drivers/media/rc/ir-bpf-decoder.c
+new file mode 100644
+index 000000000000..aaa5e208b1a5
+--- /dev/null
++++ b/drivers/media/rc/ir-bpf-decoder.c
+@@ -0,0 +1,93 @@
++// SPDX-License-Identifier: GPL-2.0
++// ir-bpf-decoder.c - handles bpf decoders
++//
++// Copyright (C) 2018 Sean Young <sean@mess.org>
++
++#include <linux/bpf.h>
++#include <linux/filter.h>
++#include "rc-core-priv.h"
++
++/*
++ * BPF interface for raw IR decoder
++ */
++const struct bpf_prog_ops ir_decoder_prog_ops = {
++};
++
++BPF_CALL_1(bpf_rc_repeat, struct ir_raw_event*, event)
++{
++	struct ir_raw_event_ctrl *ctrl;
++
++	ctrl = container_of(event, struct ir_raw_event_ctrl, prev_ev);
++
++	rc_repeat(ctrl->dev);
++	return 0;
++}
++
++static const struct bpf_func_proto rc_repeat_proto = {
++	.func	   = bpf_rc_repeat,
++	.gpl_only  = true, // rc_repeat is EXPORT_SYMBOL_GPL
++	.ret_type  = RET_VOID,
++	.arg1_type = ARG_PTR_TO_CTX,
++};
++
++BPF_CALL_4(bpf_rc_keydown, struct ir_raw_event*, event, u32, protocol,
++	   u32, scancode, u32, toggle)
++{
++	struct ir_raw_event_ctrl *ctrl;
++
++	ctrl = container_of(event, struct ir_raw_event_ctrl, prev_ev);
++	rc_keydown(ctrl->dev, protocol, scancode, toggle != 0);
++	return 0;
++}
++
++static const struct bpf_func_proto rc_keydown_proto = {
++	.func	   = bpf_rc_keydown,
++	.gpl_only  = true, // rc_keydown is EXPORT_SYMBOL_GPL
++	.ret_type  = RET_VOID,
++	.arg1_type = ARG_PTR_TO_CTX,
++	.arg2_type = ARG_ANYTHING,
++	.arg3_type = ARG_ANYTHING,
++	.arg4_type = ARG_ANYTHING,
++};
++
++static const struct bpf_func_proto *ir_decoder_func_proto(enum bpf_func_id func_id, const struct bpf_prog *prog)
++{
++	switch (func_id) {
++	case BPF_FUNC_rc_repeat:
++		return &rc_repeat_proto;
++	case BPF_FUNC_rc_keydown:
++		return &rc_keydown_proto;
++	case BPF_FUNC_map_lookup_elem:
++		return &bpf_map_lookup_elem_proto;
++	case BPF_FUNC_map_update_elem:
++		return &bpf_map_update_elem_proto;
++	case BPF_FUNC_map_delete_elem:
++		return &bpf_map_delete_elem_proto;
++	case BPF_FUNC_ktime_get_ns:
++		return &bpf_ktime_get_ns_proto;
++	case BPF_FUNC_tail_call:
++		return &bpf_tail_call_proto;
++	case BPF_FUNC_get_prandom_u32:
++		return &bpf_get_prandom_u32_proto;
++	default:
++		return NULL;
++	}
++}
++
++static bool ir_decoder_is_valid_access(int off, int size,
++				       enum bpf_access_type type,
++				       const struct bpf_prog *prog,
++				       struct bpf_insn_access_aux *info)
++{
++	if (type == BPF_WRITE)
++		return false;
++	if (off < 0 || off + size > sizeof(struct ir_raw_event))
++		return false;
++
++	return true;
++}
++
++const struct bpf_verifier_ops ir_decoder_verifier_ops = {
++	.get_func_proto  = ir_decoder_func_proto,
++	.is_valid_access = ir_decoder_is_valid_access
++};
+diff --git a/include/linux/bpf_types.h b/include/linux/bpf_types.h
+index 2b28fcf6f6ae..ee5355715ee0 100644
+--- a/include/linux/bpf_types.h
++++ b/include/linux/bpf_types.h
+@@ -25,6 +25,9 @@ BPF_PROG_TYPE(BPF_PROG_TYPE_RAW_TRACEPOINT, raw_tracepoint)
+ #ifdef CONFIG_CGROUP_BPF
+ BPF_PROG_TYPE(BPF_PROG_TYPE_CGROUP_DEVICE, cg_dev)
+ #endif
++#ifdef CONFIG_IR_BPF_DECODER
++BPF_PROG_TYPE(BPF_PROG_TYPE_RAWIR_DECODER, ir_decoder)
++#endif
+ 
+ BPF_MAP_TYPE(BPF_MAP_TYPE_ARRAY, array_map_ops)
+ BPF_MAP_TYPE(BPF_MAP_TYPE_PERCPU_ARRAY, percpu_array_map_ops)
+diff --git a/include/uapi/linux/bpf.h b/include/uapi/linux/bpf.h
+index c5ec89732a8d..6ad053e831c0 100644
+--- a/include/uapi/linux/bpf.h
++++ b/include/uapi/linux/bpf.h
+@@ -137,6 +137,7 @@ enum bpf_prog_type {
+ 	BPF_PROG_TYPE_SK_MSG,
+ 	BPF_PROG_TYPE_RAW_TRACEPOINT,
+ 	BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
++	BPF_PROG_TYPE_RAWIR_DECODER,
+ };
+ 
+ enum bpf_attach_type {
+@@ -755,6 +756,17 @@ union bpf_attr {
+  *     @addr: pointer to struct sockaddr to bind socket to
+  *     @addr_len: length of sockaddr structure
+  *     Return: 0 on success or negative error code
++ *
++ * int bpf_rc_keydown(ctx, protocol, scancode, toggle)
++ *	Report decoded scancode with toggle value
++ *	@ctx: pointer to ctx
++ *	@protocol: decoded protocol
++ *	@scancode: decoded scancode
++ *	@toggle: set to 1 if button was toggled, else 0
++ *
++ * int bpf_rc_repeat(ctx)
++ *	Repeat the last decoded scancode
++ *	@ctx: pointer to ctx
+  */
+ #define __BPF_FUNC_MAPPER(FN)		\
+ 	FN(unspec),			\
+@@ -821,7 +833,9 @@ union bpf_attr {
+ 	FN(msg_apply_bytes),		\
+ 	FN(msg_cork_bytes),		\
+ 	FN(msg_pull_data),		\
+-	FN(bind),
++	FN(bind),			\
++	FN(rc_repeat),			\
++	FN(rc_keydown),
+ 
+ /* integer value in 'imm' field of BPF_CALL instruction selects which helper
+  * function eBPF program intends to call
+-- 
+2.17.0
