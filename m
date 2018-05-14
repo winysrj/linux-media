@@ -1,77 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:39311 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751068AbeFAAbQ (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:46671 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932270AbeENNNw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 20:31:16 -0400
-Received: by mail-pg0-f68.google.com with SMTP id w12-v6so9233068pgc.6
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:16 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 09/10] media: imx-csi: Move crop/compose reset after filling default mbus fields
-Date: Thu, 31 May 2018 17:30:48 -0700
-Message-Id: <1527813049-3231-10-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+        Mon, 14 May 2018 09:13:52 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/7] zoran: fix compiler warning
+Date: Mon, 14 May 2018 15:13:41 +0200
+Message-Id: <20180514131346.15795-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180514131346.15795-1-hverkuil@xs4all.nl>
+References: <20180514131346.15795-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If caller passes un-initialized field type V4L2_FIELD_ANY to CSI
-sink pad, the reset CSI crop window would not be correct, because
-the crop window depends on the current input field type. To fix move
-the reset of crop and compose windows to after the call to
-imx_media_fill_default_mbus_fields().
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+In file included from media-git/include/linux/bitmap.h:9,
+                 from media-git/include/linux/cpumask.h:12,
+                 from media-git/arch/x86/include/asm/cpumask.h:5,
+                 from media-git/arch/x86/include/asm/msr.h:11,
+                 from media-git/arch/x86/include/asm/processor.h:21,
+                 from media-git/arch/x86/include/asm/cpufeature.h:5,
+                 from media-git/arch/x86/include/asm/thread_info.h:53,
+                 from media-git/include/linux/thread_info.h:38,
+                 from media-git/arch/x86/include/asm/preempt.h:7,
+                 from media-git/include/linux/preempt.h:81,
+                 from media-git/include/linux/spinlock.h:51,
+                 from media-git/include/linux/seqlock.h:36,
+                 from media-git/include/linux/time.h:6,
+                 from media-git/include/linux/stat.h:19,
+                 from media-git/include/linux/module.h:10,
+                 from media-git/drivers/staging/media/zoran/zoran_driver.c:44:
+In function 'strncpy',
+    inlined from 'zoran_querycap' at media-git/drivers/staging/media/zoran/zoran_driver.c:1512:2:
+media-git/include/linux/string.h:246:9: warning: '__builtin_strncpy' output may be truncated copying 31 bytes from a string of length 31 [-Wstringop-truncation]
+  return __builtin_strncpy(p, q, size);
+         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/staging/media/zoran/zoran_driver.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index c878a00..471130a 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1358,17 +1358,6 @@ static void csi_try_fmt(struct csi_priv *priv,
- 				      W_ALIGN, &sdformat->format.height,
- 				      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
+diff --git a/drivers/staging/media/zoran/zoran_driver.c b/drivers/staging/media/zoran/zoran_driver.c
+index 14f9c0e26a1c..d2e13fffbc6b 100644
+--- a/drivers/staging/media/zoran/zoran_driver.c
++++ b/drivers/staging/media/zoran/zoran_driver.c
+@@ -1509,8 +1509,8 @@ static int zoran_querycap(struct file *file, void *__fh, struct v4l2_capability
+ 	struct zoran_fh *fh = __fh;
+ 	struct zoran *zr = fh->zr;
  
--		/* Reset crop and compose rectangles */
--		crop->left = 0;
--		crop->top = 0;
--		crop->width = sdformat->format.width;
--		crop->height = sdformat->format.height;
--		csi_try_crop(priv, crop, cfg, &sdformat->format, upstream_ep);
--		compose->left = 0;
--		compose->top = 0;
--		compose->width = crop->width;
--		compose->height = crop->height;
--
- 		*cc = imx_media_find_mbus_format(sdformat->format.code,
- 						 CS_SEL_ANY, true);
- 		if (!*cc) {
-@@ -1385,6 +1374,17 @@ static void csi_try_fmt(struct csi_priv *priv,
- 			&sdformat->format, infmt,
- 			priv->active_output_pad == CSI_SRC_PAD_DIRECT);
- 
-+		/* Reset crop and compose rectangles */
-+		crop->left = 0;
-+		crop->top = 0;
-+		crop->width = sdformat->format.width;
-+		crop->height = sdformat->format.height;
-+		csi_try_crop(priv, crop, cfg, &sdformat->format, upstream_ep);
-+		compose->left = 0;
-+		compose->top = 0;
-+		compose->width = crop->width;
-+		compose->height = crop->height;
-+
- 		break;
- 	}
- }
+-	strncpy(cap->card, ZR_DEVNAME(zr), sizeof(cap->card)-1);
+-	strncpy(cap->driver, "zoran", sizeof(cap->driver)-1);
++	strlcpy(cap->card, ZR_DEVNAME(zr), sizeof(cap->card));
++	strlcpy(cap->driver, "zoran", sizeof(cap->driver));
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "PCI:%s",
+ 		 pci_name(zr->pci_dev));
+ 	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_CAPTURE |
 -- 
-2.7.4
+2.17.0
