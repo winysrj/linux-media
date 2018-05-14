@@ -1,120 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:43685 "EHLO
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:44010 "EHLO
         lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753856AbeEAJA5 (ORCPT
+        by vger.kernel.org with ESMTP id S1753045AbeENL4M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 05:00:57 -0400
+        Mon, 14 May 2018 07:56:12 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv12 PATCH 24/29] media: vim2m: add media device
-Date: Tue,  1 May 2018 11:00:46 +0200
-Message-Id: <20180501090051.9321-25-hverkuil@xs4all.nl>
-In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
+Cc: Mike Isely <isely@pobox.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [RFC PATCH 0/6] v4l2 core: push ioctl lock down to ioctl handler
+Date: Mon, 14 May 2018 13:55:56 +0200
+Message-Id: <20180514115602.9791-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Request API requires a media node. Add one to the vim2m driver so we can
-use requests with it.
+While working on the DMA fence API and the Request API it became
+clear that the core ioctl scheme was done at a too-high level.
 
-This probably needs a bit more work to correctly represent m2m
-hardware in the media topology.
+Being able to actually look at the struct passed as the ioctl
+argument would help a lot in decide what lock(s) to take.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vim2m.c | 42 ++++++++++++++++++++++++++++++----
- 1 file changed, 37 insertions(+), 5 deletions(-)
+This patch series pushes the lock down into v4l2-ioctl.c, after
+video_usercopy() was called.
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 065483e62db4..9be4da3b8577 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -140,6 +140,10 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
- struct vim2m_dev {
- 	struct v4l2_device	v4l2_dev;
- 	struct video_device	vfd;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device	mdev;
-+	struct media_pad	pad[2];
-+#endif
- 
- 	atomic_t		num_inst;
- 	struct mutex		dev_mutex;
-@@ -1000,11 +1004,6 @@ static int vim2m_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	spin_lock_init(&dev->irqlock);
--
--	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
--	if (ret)
--		return ret;
--
- 	atomic_set(&dev->num_inst, 0);
- 	mutex_init(&dev->dev_mutex);
- 
-@@ -1013,6 +1012,22 @@ static int vim2m_probe(struct platform_device *pdev)
- 	vfd->lock = &dev->dev_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	dev->mdev.dev = &pdev->dev;
-+	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
-+	media_device_init(&dev->mdev);
-+	dev->v4l2_dev.mdev = &dev->mdev;
-+	dev->pad[0].flags = MEDIA_PAD_FL_SINK;
-+	dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_pads_init(&vfd->entity, 2, dev->pad);
-+	if (ret)
-+		return ret;
-+#endif
-+
-+	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-+	if (ret)
-+		goto unreg_media;
-+
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
-@@ -1034,6 +1049,13 @@ static int vim2m_probe(struct platform_device *pdev)
- 		goto err_m2m;
- 	}
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	/* Register the media device node */
-+	ret = media_device_register(&dev->mdev);
-+	if (ret)
-+		goto err_m2m;
-+#endif
-+
- 	return 0;
- 
- err_m2m:
-@@ -1041,6 +1063,10 @@ static int vim2m_probe(struct platform_device *pdev)
- 	video_unregister_device(&dev->vfd);
- unreg_dev:
- 	v4l2_device_unregister(&dev->v4l2_dev);
-+unreg_media:
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_device_unregister(&dev->mdev);
-+#endif
- 
- 	return ret;
- }
-@@ -1050,6 +1076,12 @@ static int vim2m_remove(struct platform_device *pdev)
- 	struct vim2m_dev *dev = platform_get_drvdata(pdev);
- 
- 	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_device_unregister(&dev->mdev);
-+	media_device_cleanup(&dev->mdev);
-+#endif
-+
- 	v4l2_m2m_release(dev->m2m_dev);
- 	del_timer_sync(&dev->timer);
- 	video_unregister_device(&dev->vfd);
+The first patch is for the only driver that does not set
+unlocked_ioctl to video_ioctl2: pvrusb2. It actually does
+call it in its own unlocked_ioctl function.
+
+Mike, can you test this patch? I tried to test it but my pvrusb2
+fails in a USB transfer (unrelated to this patch). I'll mail you
+separately with the details, since I've no idea what is going on.
+
+The second patch pushes the lock down.
+
+The third patch adds support for mem2mem devices by selecting
+the correct queue lock (capture vs output): this was never
+possible before.
+
+Note: in practice it appears that all m2m devices use the same
+lock for both capture and output queues. Perhaps this should
+be standardized?
+
+The final three patches require that queue->lock is always
+set. There are some drivers that do not set this (and Ezequiel
+will look at that and provide patches that will have to go
+in between patch 3 and 4 of this RFC series), but without that
+you will have performance issues with a blocking DQBUF (it
+will never release the core ioctl serialization lock while
+waiting for a new frame).
+
+I have added a test for this to v4l2-compliance. We never tested
+this before.
+
+Another note: the gspca vb2 conversion series I posted yesterday
+also remove the v4l2_disable_ioctl_locking() function, so that
+cleans up another little locking-related dark corner in the core.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (6):
+  pvrusb2: replace pvr2_v4l2_ioctl by video_ioctl2
+  v4l2-core: push taking ioctl mutex down to ioctl handler.
+  v4l2-ioctl.c: use correct vb2_queue lock for m2m devices
+  videobuf2-core: require q->lock
+  videobuf2: assume q->lock is always set
+  v4l2-ioctl.c: assume queue->lock is always set
+
+ .../media/common/videobuf2/videobuf2-core.c   | 22 ++---
+ .../media/common/videobuf2/videobuf2-v4l2.c   | 27 ++----
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c      | 83 +++++++------------
+ drivers/media/v4l2-core/v4l2-dev.c            |  6 --
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 75 +++++++++++++++--
+ drivers/media/v4l2-core/v4l2-subdev.c         | 17 +++-
+ include/media/v4l2-dev.h                      |  9 --
+ include/media/v4l2-ioctl.h                    | 12 ---
+ include/media/videobuf2-core.h                |  2 -
+ 9 files changed, 133 insertions(+), 120 deletions(-)
+
 -- 
 2.17.0
