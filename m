@@ -1,133 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:44211 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935905AbeE3Gru (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:46647 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753050AbeENL4M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 02:47:50 -0400
-Subject: Re: [PATCH 4/8] xen/gntdev: Allow mappings for DMA buffers
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
- <20180525153331.31188-5-andr2000@gmail.com>
- <9f2999a8-7786-5811-bdf0-ff7f30301cf2@oracle.com>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <c4cca97f-bd36-75bd-36aa-1edf3b140d15@gmail.com>
-Date: Wed, 30 May 2018 09:47:46 +0300
-MIME-Version: 1.0
-In-Reply-To: <9f2999a8-7786-5811-bdf0-ff7f30301cf2@oracle.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+        Mon, 14 May 2018 07:56:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mike Isely <isely@pobox.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [RFC PATCH 2/6] v4l2-core: push taking ioctl mutex down to ioctl handler.
+Date: Mon, 14 May 2018 13:55:58 +0200
+Message-Id: <20180514115602.9791-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180514115602.9791-1-hverkuil@xs4all.nl>
+References: <20180514115602.9791-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2018 12:52 AM, Boris Ostrovsky wrote:
-> On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
->>   
->>   struct unmap_notify {
->> @@ -96,10 +104,28 @@ struct grant_map {
->>   	struct gnttab_unmap_grant_ref *kunmap_ops;
->>   	struct page **pages;
->>   	unsigned long pages_vm_start;
->> +
->> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
->> +	/*
->> +	 * If dmabuf_vaddr is not NULL then this mapping is backed by DMA
->> +	 * capable memory.
->> +	 */
->> +
->> +	/* Device for which DMA memory is allocated. */
->> +	struct device *dma_dev;
->> +	/* Flags used to create this DMA buffer: GNTDEV_DMABUF_FLAG_XXX. */
->> +	bool dma_flags;
-> Again, I think most of the comments here can be dropped. Except possibly
-> for the flags.
-will drop most of those
->> +	/* Virtual/CPU address of the DMA buffer. */
->> +	void *dma_vaddr;
->> +	/* Bus address of the DMA buffer. */
->> +	dma_addr_t dma_bus_addr;
->> +#endif
->>   };
->>   
->>   static int unmap_grant_pages(struct grant_map *map, int offset, int pages);
->>   
->> +static struct miscdevice gntdev_miscdev;
->> +
->>   /* ------------------------------------------------------------------ */
->>   
->>   static void gntdev_print_maps(struct gntdev_priv *priv,
->> @@ -121,8 +147,26 @@ static void gntdev_free_map(struct grant_map *map)
->>   	if (map == NULL)
->>   		return;
->>   
->> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
->> +	if (map->dma_vaddr) {
->> +		struct gnttab_dma_alloc_args args;
->> +
->> +		args.dev = map->dma_dev;
->> +		args.coherent = map->dma_flags & GNTDEV_DMA_FLAG_COHERENT;
->> +		args.nr_pages = map->count;
->> +		args.pages = map->pages;
->> +		args.vaddr = map->dma_vaddr;
->> +		args.dev_bus_addr = map->dma_bus_addr;
->> +
->> +		gnttab_dma_free_pages(&args);
->> +	} else if (map->pages) {
->> +		gnttab_free_pages(map->count, map->pages);
->> +	}
->> +#else
->>   	if (map->pages)
->>   		gnttab_free_pages(map->count, map->pages);
->> +#endif
->> +
-> } else
-> #endif
->      if (map->pages)
->          gnttab_free_pages(map->count, map->pages);
->
->
-> (and elsewhere)
-ok, just wasn't sure if it is ok to violate kernel coding style here ;)
->>   	kfree(map->pages);
->>   	kfree(map->grants);
->>   	kfree(map->map_ops);
->
->
->>   
->> diff --git a/include/uapi/xen/gntdev.h b/include/uapi/xen/gntdev.h
->> index 6d1163456c03..2d5a4672f07c 100644
->> --- a/include/uapi/xen/gntdev.h
->> +++ b/include/uapi/xen/gntdev.h
->> @@ -200,4 +200,19 @@ struct ioctl_gntdev_grant_copy {
->>   /* Send an interrupt on the indicated event channel */
->>   #define UNMAP_NOTIFY_SEND_EVENT 0x2
->>   
->> +/*
->> + * Flags to be used while requesting memory mapping's backing storage
->> + * to be allocated with DMA API.
->> + */
->> +
->> +/*
->> + * The buffer is backed with memory allocated with dma_alloc_wc.
->> + */
->> +#define GNTDEV_DMA_FLAG_WC		(1 << 1)
->
-> Is there a reason you are not using bit 0?
-No reason for that, will start from 0
->
-> -boris
-Thank you,
-Oleksandr
->> +
->> +/*
->> + * The buffer is backed with memory allocated with dma_alloc_coherent.
->> + */
->> +#define GNTDEV_DMA_FLAG_COHERENT	(1 << 2)
->> +
->>   #endif /* __LINUX_PUBLIC_GNTDEV_H__ */
+From: Hans Verkuil <hansverk@cisco.com>
+
+The ioctl serialization mutex (vdev->lock or q->lock for vb2 queues)
+was taken at the highest level in v4l2-dev.c. This prevents more
+fine-grained locking since at that level we cannot examine the ioctl
+arguments, we can only do that after video_usercopy is called.
+
+So push the locking down to __video_do_ioctl() and subdev_do_ioctl_lock().
+
+This also allows us to make a few functions in v4l2-ioctl.c static and
+video_usercopy() is no longer exported.
+
+The locking scheme is not changed by this patch, just pushed down.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c    |  6 ------
+ drivers/media/v4l2-core/v4l2-ioctl.c  | 17 ++++++++++++++---
+ drivers/media/v4l2-core/v4l2-subdev.c | 17 ++++++++++++++++-
+ include/media/v4l2-dev.h              |  9 ---------
+ include/media/v4l2-ioctl.h            | 12 ------------
+ 5 files changed, 30 insertions(+), 31 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index c4f4357e9ca4..4ffd7d60a901 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -360,14 +360,8 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	int ret = -ENODEV;
+ 
+ 	if (vdev->fops->unlocked_ioctl) {
+-		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
+-
+-		if (lock && mutex_lock_interruptible(lock))
+-			return -ERESTARTSYS;
+ 		if (video_is_registered(vdev))
+ 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+-		if (lock)
+-			mutex_unlock(lock);
+ 	} else
+ 		ret = -ENOTTY;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index de5d96dbe69e..a12c66ead30d 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2619,14 +2619,14 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+ 
+-bool v4l2_is_known_ioctl(unsigned int cmd)
++static bool v4l2_is_known_ioctl(unsigned int cmd)
+ {
+ 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
+ 		return false;
+ 	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
+ }
+ 
+-struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
++static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
+ {
+ 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
+ 		return vdev->lock;
+@@ -2679,6 +2679,7 @@ static long __video_do_ioctl(struct file *file,
+ 		unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vfd = video_devdata(file);
++	struct mutex *lock = v4l2_ioctl_get_lock(vfd, cmd);
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	bool write_only = false;
+ 	struct v4l2_ioctl_info default_info;
+@@ -2697,6 +2698,14 @@ static long __video_do_ioctl(struct file *file,
+ 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
+ 		vfh = file->private_data;
+ 
++	if (lock && mutex_lock_interruptible(lock))
++		return -ERESTARTSYS;
++
++	if (!video_is_registered(vfd)) {
++		ret = -ENODEV;
++		goto unlock;
++	}
++
+ 	if (v4l2_is_known_ioctl(cmd)) {
+ 		info = &v4l2_ioctls[_IOC_NR(cmd)];
+ 
+@@ -2752,6 +2761,9 @@ static long __video_do_ioctl(struct file *file,
+ 		}
+ 	}
+ 
++unlock:
++	if (lock)
++		mutex_unlock(lock);
+ 	return ret;
+ }
+ 
+@@ -2941,7 +2953,6 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 	kvfree(mbuf);
+ 	return err;
+ }
+-EXPORT_SYMBOL(video_usercopy);
+ 
+ long video_ioctl2(struct file *file,
+ 	       unsigned int cmd, unsigned long arg)
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index f9eed938d348..6a7f7f75dfd7 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -502,10 +502,25 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	return 0;
+ }
+ 
++static long subdev_do_ioctl_lock(struct file *file, unsigned int cmd, void *arg)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct mutex *lock = vdev->lock;
++	long ret = -ENODEV;
++
++	if (lock && mutex_lock_interruptible(lock))
++		return -ERESTARTSYS;
++	if (video_is_registered(vdev))
++		ret = subdev_do_ioctl(file, cmd, arg);
++	if (lock)
++		mutex_unlock(lock);
++	return ret;
++}
++
+ static long subdev_ioctl(struct file *file, unsigned int cmd,
+ 	unsigned long arg)
+ {
+-	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
++	return video_usercopy(file, cmd, arg, subdev_do_ioctl_lock);
+ }
+ 
+ #ifdef CONFIG_COMPAT
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 73073f6ee48c..eb23f025aa6b 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -437,15 +437,6 @@ void video_device_release(struct video_device *vdev);
+  */
+ void video_device_release_empty(struct video_device *vdev);
+ 
+-/**
+- * v4l2_is_known_ioctl - Checks if a given cmd is a known V4L ioctl
+- *
+- * @cmd: ioctl command
+- *
+- * returns true if cmd is a known V4L2 ioctl
+- */
+-bool v4l2_is_known_ioctl(unsigned int cmd);
+-
+ /** v4l2_disable_ioctl_locking - mark that a given command
+  *	shouldn't use core locking
+  *
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index a7b3f7c75d62..a8dbf5b54b5c 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -658,18 +658,6 @@ void v4l_printk_ioctl(const char *prefix, unsigned int cmd);
+ 
+ struct video_device;
+ 
+-
+-/**
+- * v4l2_ioctl_get_lock - get the mutex (if any) that it is need to lock for
+- *	a given command.
+- *
+- * @vdev: Pointer to struct &video_device.
+- * @cmd: Ioctl name.
+- *
+- * .. note:: Internal use only. Should not be used outside V4L2 core.
+- */
+-struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned int cmd);
+-
+ /* names for fancy debug output */
+ extern const char *v4l2_field_names[];
+ extern const char *v4l2_type_names[];
+-- 
+2.17.0
