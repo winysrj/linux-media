@@ -1,64 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:42389 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751533AbeENGpu (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:37555 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752293AbeENWko (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 02:45:50 -0400
-Received: by mail-wr0-f193.google.com with SMTP id v5-v6so10985808wrf.9
-        for <linux-media@vger.kernel.org>; Sun, 13 May 2018 23:45:49 -0700 (PDT)
-Subject: Re: [PATCH] [media] gspca: Stop using GFP_DMA for buffers for USB
- bulk transfers
-To: Adam Baker <linux@baker-net.org.uk>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org,
-        "Luis R. Rodriguez" <mcgrof@kernel.org>
-References: <20180505082208.32553-1-hdegoede@redhat.com>
- <2e774de2-eda8-775e-4164-8b48fbadcbd6@baker-net.org.uk>
-From: Hans de Goede <hdegoede@redhat.com>
-Message-ID: <46016353-6e2a-5efb-8b26-89a037518f47@redhat.com>
-Date: Mon, 14 May 2018 07:45:46 +0100
-MIME-Version: 1.0
-In-Reply-To: <2e774de2-eda8-775e-4164-8b48fbadcbd6@baker-net.org.uk>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 14 May 2018 18:40:44 -0400
+Received: by mail-lf0-f65.google.com with SMTP id r2-v6so20405895lff.4
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2018 15:40:43 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: [RFC PATCH 0/5] Add ChromeOS EC CEC Support
+Date: Tue, 15 May 2018 00:40:34 +0200
+Message-Id: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi All,
 
-On 05/13/2018 07:54 PM, Adam Baker wrote:
-> On 05/05/18 09:22, Hans de Goede wrote:
->> The recent "x86 ZONE_DMA love" discussion at LSF/MM pointed out that some
->> gspca sub-drivvers are using GFP_DMA to allocate buffers which are used
->> for USB bulk transfers, there is absolutely no need for this, drop it.
->>
-> 
-> The documentation for kmalloc() says
->    GFP_DMA - Allocation suitable for DMA.
-> 
-> end at least in sq905.c the allocation is passed to the USB stack that
-> then uses it for DMA.
-> 
-> Looking a bit closer the "suitable for DMA" label that GFP_DMA promises
-> is not really a sensible thing for kmalloc() to determine as it is
-> dependent on the DMA controller in question. The USB stack now ensures
-> that everything works correctly as long as the memory is allocated with
-> kmalloc() so acked by me for sq905.c but, is anyone taking care of
-> fixing the kmalloc() documentation?
+The new Google "Fizz" Intel-based ChromeOS device is gaining CEC support
+throught it's Embedded Controller, to enable the Linux CEC Core to communicate
+with it and get the CEC Physical Address from the correct HDMI Connector, the
+following must be added/changed:
+- Add the CEC sub-device registration in the ChromeOS EC MFD Driver
+- Add the CEC related commands and events definitions into the EC MFD driver
+- Add a way to get a CEC notifier with it's (optional) connector name
+- Add the CEC notifier to the i915 HDMI driver
+- Add the proper ChromeOS EC CEC Driver
 
-The whole GFP_DMA flag use in the kernel is a mess and fixing the
-doucmentation is not easy and likely also not the solution, see:
+The CEC notifier with the connector name is the tricky point, since even on
+Device-Tree platforms, there is no way to distinguish between multiple HDMI
+connectors from the same DRM driver. The solution I implemented is pretty
+simple and only adds an optional connector name to eventually distinguish
+an HDMI connector notifier from another if they share the same device.
 
-https://lwn.net/Articles/753273/
+Feel free to comment this patchset !
 
-Note this article is currently only available to LWN subscribers
-(it will become freely available in a week).
+Neil Armstrong (5):
+  mfd: cros_ec_dev: Add CEC sub-device registration
+  media: cec-notifier: Get notifier by device and connector name
+  drm/i915: hdmi: add CEC notifier to intel_hdmi
+  mfd: cros-ec: Introduce CEC commands and events definitions.
+  media: platform: Add Chrome OS EC CEC driver
 
-I'll send you a private mail with a link which will allow you
-to read it.
+ drivers/gpu/drm/i915/intel_drv.h             |   2 +
+ drivers/gpu/drm/i915/intel_hdmi.c            |  10 +
+ drivers/media/cec/cec-notifier.c             |  30 ++-
+ drivers/media/platform/Kconfig               |  11 +
+ drivers/media/platform/Makefile              |   2 +
+ drivers/media/platform/cros-ec/Makefile      |   1 +
+ drivers/media/platform/cros-ec/cros-ec-cec.c | 331 +++++++++++++++++++++++++++
+ drivers/mfd/cros_ec_dev.c                    |  16 ++
+ drivers/platform/chrome/cros_ec_proto.c      |  42 +++-
+ include/linux/mfd/cros_ec.h                  |   2 +-
+ include/linux/mfd/cros_ec_commands.h         |  80 +++++++
+ include/media/cec-notifier.h                 |  44 +++-
+ 12 files changed, 556 insertions(+), 15 deletions(-)
+ create mode 100644 drivers/media/platform/cros-ec/Makefile
+ create mode 100644 drivers/media/platform/cros-ec/cros-ec-cec.c
 
-Regards,
-
-Hans
+-- 
+2.7.4
