@@ -1,107 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:42149 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752253AbeEPHkX (ORCPT
+Received: from icp-osb-irony-out5.external.iinet.net.au ([203.59.1.221]:20234
+        "EHLO icp-osb-irony-out5.external.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752078AbeENXOv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 03:40:23 -0400
-Received: by mail-qt0-f195.google.com with SMTP id c2-v6so3811240qtn.9
-        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 00:40:22 -0700 (PDT)
-Subject: Re: [Intel-gfx] [PATCH v2 2/5] drm/i915: hdmi: add CEC notifier to
- intel_hdmi
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
-Cc: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com, sadolfsson@google.com,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, fparent@baylibre.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        linux-media@vger.kernel.org
-References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
- <1526395342-15481-3-git-send-email-narmstrong@baylibre.com>
- <20180515153521.GB23723@intel.com>
- <aff8c86f-b282-c901-5ef5-c5ee334aeedc@baylibre.com>
-Message-ID: <e0f99123-1463-c082-122e-67cf0d106e25@baylibre.com>
-Date: Wed, 16 May 2018 09:40:17 +0200
+        Mon, 14 May 2018 19:14:51 -0400
+Subject: Re: [PATCH 1/7] i2c: i2c-gpio: move header to platform_data
+To: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org
+Cc: Russell King <linux@armlinux.org.uk>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Tony Lindgren <tony@atomide.com>,
+        Sergey Lapin <slapin@ossfans.org>,
+        Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Ralf Baechle <ralf@linux-mips.org>,
+        James Hogan <jhogan@kernel.org>,
+        Haavard Skinnemoen <hskinnemoen@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-media@vger.kernel.org
+References: <20180419200015.15095-1-wsa@the-dreams.de>
+ <20180419200015.15095-2-wsa@the-dreams.de>
+ <20180514213719.o6ceftp2quem3s7f@ninjato>
+From: Greg Ungerer <gerg@uclinux.org>
+Message-ID: <40bb677a-e6e1-7906-28fe-9e74cdfbefd7@uclinux.org>
+Date: Tue, 15 May 2018 09:03:08 +1000
 MIME-Version: 1.0
-In-Reply-To: <aff8c86f-b282-c901-5ef5-c5ee334aeedc@baylibre.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20180514213719.o6ceftp2quem3s7f@ninjato>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16/05/2018 09:31, Neil Armstrong wrote:
-> Hi Ville,
-> 
-> On 15/05/2018 17:35, Ville Syrjälä wrote:
->> On Tue, May 15, 2018 at 04:42:19PM +0200, Neil Armstrong wrote:
->>> This patchs adds the cec_notifier feature to the intel_hdmi part
->>> of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
->>> between each HDMI ports.
->>> The changes will allow the i915 HDMI code to notify EDID and HPD changes
->>> to an eventual CEC adapter.
->>>
->>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->>> ---
->>>  drivers/gpu/drm/i915/Kconfig      |  1 +
->>>  drivers/gpu/drm/i915/intel_drv.h  |  2 ++
->>>  drivers/gpu/drm/i915/intel_hdmi.c | 12 ++++++++++++
->>>  3 files changed, 15 insertions(+)
->>>
-> 
-> [..]
-> 
->>>  }
->>>  
->>> @@ -2031,6 +2037,8 @@ static void chv_hdmi_pre_enable(struct intel_encoder *encoder,
->>>  
->>>  static void intel_hdmi_destroy(struct drm_connector *connector)
->>>  {
->>> +	if (intel_attached_hdmi(connector)->notifier)
->>> +		cec_notifier_put(intel_attached_hdmi(connector)->notifier);
->>>  	kfree(to_intel_connector(connector)->detect_edid);
->>>  	drm_connector_cleanup(connector);
->>>  	kfree(connector);
->>> @@ -2358,6 +2366,10 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
->>>  		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
->>>  		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
->>>  	}
->>> +
->>> +	intel_hdmi->notifier = cec_notifier_get_conn(dev->dev, connector->name);
->>
->> What are we doing with the connector name here? Those are not actually
->> guaranteed to be stable, and any change in the connector probe order
->> may cause the name to change.
-> 
-> The i915 driver can expose multiple HDMI connectors, but each connected will
-> have a different EDID and CEC physical address, so we will need a different notifier
-> for each connector.
-> 
-> The connector name is DRM dependent, but user-space actually uses this name for
-> operations, so I supposed it was kind of stable.
-> 
-> Anyway, is there another stable id/name/whatever that can be used to make a name to
-> distinguish the HDMI connectors ?
 
-Would "HDMI %c", port_name(port) be OK to use ?
+Hi Wolfram,
 
-Neil
+On 15/05/18 07:37, Wolfram Sang wrote:
+>>   arch/arm/mach-ks8695/board-acs5k.c               | 2 +-
+>>   arch/arm/mach-sa1100/simpad.c                    | 2 +-
+>>   arch/mips/alchemy/board-gpr.c                    | 2 +-
+> 
+> Those still need acks...
+> 
+>> diff --git a/arch/arm/mach-ks8695/board-acs5k.c b/arch/arm/mach-ks8695/board-acs5k.c
+>> index 937eb1d47e7b..ef835d82cdb9 100644
+>> --- a/arch/arm/mach-ks8695/board-acs5k.c
+>> +++ b/arch/arm/mach-ks8695/board-acs5k.c
+>> @@ -19,7 +19,7 @@
+>>   #include <linux/gpio/machine.h>
+>>   #include <linux/i2c.h>
+>>   #include <linux/i2c-algo-bit.h>
+>> -#include <linux/i2c-gpio.h>
+>> +#include <linux/platform_data/i2c-gpio.h>
+>>   #include <linux/platform_data/pca953x.h>
+>>   
+>>   #include <linux/mtd/mtd.h>
+> 
+> ...
+> 
+>> diff --git a/arch/arm/mach-sa1100/simpad.c b/arch/arm/mach-sa1100/simpad.c
+>> index ace010479eb6..49a61e6f3c5f 100644
+>> --- a/arch/arm/mach-sa1100/simpad.c
+>> +++ b/arch/arm/mach-sa1100/simpad.c
+>> @@ -37,7 +37,7 @@
+>>   #include <linux/input.h>
+>>   #include <linux/gpio_keys.h>
+>>   #include <linux/leds.h>
+>> -#include <linux/i2c-gpio.h>
+>> +#include <linux/platform_data/i2c-gpio.h>
+>>   
+>>   #include "generic.h"
+>>   
+>> diff --git a/arch/mips/alchemy/board-gpr.c b/arch/mips/alchemy/board-gpr.c
+>> index 4e79dbd54a33..fa75d75b5ba9 100644
+>> --- a/arch/mips/alchemy/board-gpr.c
+>> +++ b/arch/mips/alchemy/board-gpr.c
+>> @@ -29,7 +29,7 @@
+>>   #include <linux/leds.h>
+>>   #include <linux/gpio.h>
+>>   #include <linux/i2c.h>
+>> -#include <linux/i2c-gpio.h>
+>> +#include <linux/platform_data/i2c-gpio.h>
+>>   #include <linux/gpio/machine.h>
+>>   #include <asm/bootinfo.h>
+>>   #include <asm/idle.h>
+> 
+> ... and this was the shortened diff for those.
+> 
+> Greg, Russell, Ralf, James? Is it okay if I take this via my tree?
 
+Yes, I have no problem with that for the ks8695 part.
+
+Acked-by: Greg Ungerer <gerg@uclinux.org>
+
+Thanks
+Greg
+
+
+> Thanks,
 > 
-> Neil
-> 
->>
->>> +	if (!intel_hdmi->notifier)
->>> +		DRM_DEBUG_KMS("CEC notifier get failed\n");
->>>  }
->>>  
->>>  void intel_hdmi_init(struct drm_i915_private *dev_priv,
->>> -- 
->>> 2.7.4
->>>
->>> _______________________________________________
->>> Intel-gfx mailing list
->>> Intel-gfx@lists.freedesktop.org
->>> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
->>
+>     Wolfram
 > 
