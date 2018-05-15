@@ -1,44 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:39432 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751019AbeEUJZH (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:33813 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752261AbeEOHqp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 05:25:07 -0400
-From: Colin King <colin.king@canonical.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>, linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] hdpvr: fix spelling mistake: "Hauppage" -> "Hauppauge"
-Date: Mon, 21 May 2018 10:25:02 +0100
-Message-Id: <20180521092502.18141-1-colin.king@canonical.com>
+        Tue, 15 May 2018 03:46:45 -0400
+Date: Tue, 15 May 2018 09:46:25 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] Fix potential buffer overrun root cause
+Message-ID: <20180515074625.lbelepoh2637qfwe@verge.net.au>
+References: <20180511144126.24804-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180511144126.24804-1-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+On Fri, May 11, 2018 at 04:41:24PM +0200, Niklas Söderlund wrote:
+> Hi,
+> 
+> Commit 015060cb7795eac3 ("media: rcar-vin: enable field toggle after a
+> set number of lines for Gen3") was an attempt to fix the issue of
+> writing outside the capture buffer for VIN Gen3. Unfortunately it only
+> fixed a symptom of a problem to such a degree I could no longer
+> reproduce it.
+> 
+> Jacopo on the other hand working on a different setup still ran into the
+> issue. And he even figured out the root cause of the issue. When I
+> submitted the original VIN Gen3 support I had when addressing a review
+> comment missed to keep the crop and compose dimensions in sync with the
+> requested format resulting in the DMA engine not properly stopping
+> before writing outside the buffer.
+> 
+> This series reverts the incorrect fix in 1/2 and applies a correct one
+> in 2/2. I think this should be picked up for v4.18.
+> 
+> * Changes since v1
+> - Add commit message to 1/2.
+> 
+> Niklas Söderlund (2):
+>   Revert "media: rcar-vin: enable field toggle after a set number of
+>     lines for Gen3"
+>   rcar-vin: fix crop and compose handling for Gen3
 
-Trivial fix to spelling mistake in name field
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/usb/hdpvr/hdpvr-i2c.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/hdpvr/hdpvr-i2c.c b/drivers/media/usb/hdpvr/hdpvr-i2c.c
-index 4720d79b0282..c71ddefd2e58 100644
---- a/drivers/media/usb/hdpvr/hdpvr-i2c.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-i2c.c
-@@ -173,7 +173,7 @@ static const struct i2c_algorithm hdpvr_algo = {
- };
- 
- static const struct i2c_adapter hdpvr_i2c_adapter_template = {
--	.name   = "Hauppage HD PVR I2C",
-+	.name   = "Hauppauge HD PVR I2C",
- 	.owner  = THIS_MODULE,
- 	.algo   = &hdpvr_algo,
- };
--- 
-2.17.0
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
