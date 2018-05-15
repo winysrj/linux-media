@@ -1,331 +1,492 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:58417 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756016AbeEIHIh (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:47793 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752321AbeEOG6P (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 May 2018 03:08:37 -0400
-Subject: Re: [PATCH v4] media: v4l2-ioctl: replace IOCTL_INFO_STD with stub
- functions
-To: Sami Tolvanen <samitolvanen@google.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <9c66c21c-616e-24a3-4da9-ea5130528739@xs4all.nl>
- <20180508175612.35944-1-samitolvanen@google.com>
+        Tue, 15 May 2018 02:58:15 -0400
+Subject: Re: [RFC PATCH 5/5] media: platform: Add Chrome OS EC CEC driver
+To: Neil Armstrong <narmstrong@baylibre.com>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+References: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
+ <1526337639-3568-6-git-send-email-narmstrong@baylibre.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ddcb4285-8c93-9dff-7765-00f20a7ce52e@xs4all.nl>
-Date: Wed, 9 May 2018 09:08:32 +0200
+Message-ID: <f76d52b1-77bc-49dd-483c-43058d38da04@xs4all.nl>
+Date: Tue, 15 May 2018 08:58:09 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180508175612.35944-1-samitolvanen@google.com>
+In-Reply-To: <1526337639-3568-6-git-send-email-narmstrong@baylibre.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2018 07:56 PM, Sami Tolvanen wrote:
-> This change removes IOCTL_INFO_STD and adds stub functions where
-> needed using the DEFINE_V4L_STUB_FUNC macro. This fixes indirect call
-> mismatches with Control-Flow Integrity, caused by calling standard
-> ioctls using a function pointer that doesn't match the function type.
+On 05/15/2018 12:40 AM, Neil Armstrong wrote:
+> The Chrome OS Embedded Controller can expose a CEC bus, this patch add the
+> driver for such feature of the Embedded Controller.
+> 
+> This driver is part of the cros-ec MFD and will be add as a sub-device when
+> the feature bit is exposed by the EC.
+> 
+> The controller will only handle a single logical address and handles
+> all the messages retries and will only expose Success or Error.
+> 
+> When the logical address is invalid, the controller will act as a CEC sniffer
+> and transfer all messages on the bus.
 
-Looks great, thank you!
+I did not see any support for this. If this works as you state here, then adding
+support for CEC_CAP_MONITOR_ALL is highly recommended.
 
-I'll add it to my next pull request for Mauro.
+> 
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> ---
+>  drivers/media/platform/Kconfig               |  11 +
+>  drivers/media/platform/Makefile              |   2 +
+>  drivers/media/platform/cros-ec/Makefile      |   1 +
+>  drivers/media/platform/cros-ec/cros-ec-cec.c | 331 +++++++++++++++++++++++++++
+>  4 files changed, 345 insertions(+)
+>  create mode 100644 drivers/media/platform/cros-ec/Makefile
+>  create mode 100644 drivers/media/platform/cros-ec/cros-ec-cec.c
 
-It's a nice improvement of the code.
+Shouldn't the directory be called cros-ec-cec?
+
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index c7a1cf8..e55a8ed2 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -546,6 +546,17 @@ menuconfig CEC_PLATFORM_DRIVERS
+>  
+>  if CEC_PLATFORM_DRIVERS
+>  
+> +config VIDEO_CROS_EC_CEC
+> +	tristate "Chrome OS EC CEC driver"
+> +	depends on MFD_CROS_EC || COMPILE_TEST
+> +	select CEC_CORE
+> +	select CEC_NOTIFIER
+> +	---help---
+> +	  If you say yes here you will get support for the
+> +	  Chrome OS Embedded Controller's CEC.
+> +	  The CEC bus is present in the HDMI connector and enables communication
+> +	  between compatible devices.
+> +
+>  config VIDEO_MESON_AO_CEC
+>  	tristate "Amlogic Meson AO CEC driver"
+>  	depends on ARCH_MESON || COMPILE_TEST
+> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+> index 932515d..0e0582e 100644
+> --- a/drivers/media/platform/Makefile
+> +++ b/drivers/media/platform/Makefile
+> @@ -92,3 +92,5 @@ obj-$(CONFIG_VIDEO_QCOM_CAMSS)		+= qcom/camss-8x16/
+>  obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
+>  
+>  obj-y					+= meson/
+> +
+> +obj-y					+= cros-ec/
+> diff --git a/drivers/media/platform/cros-ec/Makefile b/drivers/media/platform/cros-ec/Makefile
+> new file mode 100644
+> index 0000000..9ce97f9
+> --- /dev/null
+> +++ b/drivers/media/platform/cros-ec/Makefile
+> @@ -0,0 +1 @@
+> +obj-$(CONFIG_VIDEO_CROS_EC_CEC) += cros-ec-cec.o
+> diff --git a/drivers/media/platform/cros-ec/cros-ec-cec.c b/drivers/media/platform/cros-ec/cros-ec-cec.c
+> new file mode 100644
+> index 0000000..fea90da
+> --- /dev/null
+> +++ b/drivers/media/platform/cros-ec/cros-ec-cec.c
+> @@ -0,0 +1,331 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+> +/*
+> + * CEC driver for Chrome OS Embedded Controller
+> + *
+> + * Copyright (c) 2018 BayLibre, SAS
+> + * Author: Neil Armstrong <narmstrong@baylibre.com>
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/dmi.h>
+> +#include <linux/cec.h>
+> +#include <linux/slab.h>
+> +#include <linux/interrupt.h>
+> +#include <media/cec.h>
+> +#include <media/cec-notifier.h>
+> +#include <linux/mfd/cros_ec.h>
+> +#include <linux/mfd/cros_ec_commands.h>
+> +
+> +#define DRV_NAME	"cros-ec-cec"
+> +
+> +/**
+> + * struct cros_ec_cec - Driver data for EC CEC
+> + *
+> + * @cros_ec: Pointer to EC device
+> + * @notifier: Notifier info for responding to EC events
+> + * @adap: CEC adapter
+> + * @notify: CEC notifier pointer
+> + * @rc_msg: storage for a received message
+> + */
+> +struct cros_ec_cec {
+> +	struct cros_ec_device *cros_ec;
+> +	struct notifier_block notifier;
+> +	struct cec_adapter *adap;
+> +	struct cec_notifier *notify;
+> +	struct cec_msg rx_msg;
+> +};
+> +
+> +static void handle_cec_message(struct cros_ec_cec *cros_ec_cec)
+> +{
+> +	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
+> +	uint8_t *cec_message = cros_ec->event_data.data.cec_message;
+> +	unsigned int len = cros_ec->event_size;
+> +
+> +	cros_ec_cec->rx_msg.len = len;
+
+How robust is the underlying code and hardware? What happens if a
+CEC message with more than 16 bytes is received?
+
+Hard to test unless you have an RPi3 set up as a CEC debugger. See
+last section in https://hverkuil.home.xs4all.nl/cec-status.txt.
+
+Since you worked with CEC for a while now I recommend you set up such
+a system. It's cheap and very useful.
+
+> +	memcpy(cros_ec_cec->rx_msg.msg, cec_message, len);
+> +
+> +	cec_received_msg(cros_ec_cec->adap, &cros_ec_cec->rx_msg);
+> +}
+> +
+> +static void handle_cec_event(struct cros_ec_cec *cros_ec_cec)
+> +{
+> +	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
+> +	uint32_t events = cros_ec->event_data.data.cec_events;
+> +
+> +	if (events & EC_MKBP_CEC_SEND_OK)
+> +		cec_transmit_attempt_done(cros_ec_cec->adap,
+> +					  CEC_TX_STATUS_OK);
+> +
+> +	if (events & EC_MKBP_CEC_SEND_FAILED)
+> +		cec_transmit_attempt_done(cros_ec_cec->adap,
+> +					  CEC_TX_STATUS_ERROR);
+
+You said above that the HW takes care of all the message retries.
+If that's the case, then you need to use cec_transmit_done here
+and pass in status CEC_TX_STATUS_MAX_RETRIES | CEC_TX_STATUS_NACK.
+The MAX_RETRIES flag tells the cec core that it shouldn't attempt
+to retry the message because the HW already did that.
+
+NACK is better than ERROR if the hardware supports only an OK/FAIL
+result.
+
+> +}
+> +
+> +static int cros_ec_cec_event(struct notifier_block *nb,
+> +	unsigned long queued_during_suspend, void *_notify)
+> +{
+> +	struct cros_ec_cec *cros_ec_cec;
+> +	struct cros_ec_device *cros_ec;
+> +
+> +	cros_ec_cec = container_of(nb, struct cros_ec_cec, notifier);
+> +	cros_ec = cros_ec_cec->cros_ec;
+> +
+> +	if (cros_ec->event_data.event_type == EC_MKBP_CEC_EVENT) {
+> +		handle_cec_event(cros_ec_cec);
+> +		return NOTIFY_OK;
+> +	}
+> +
+> +	if (cros_ec->event_data.event_type == EC_MKBP_EVENT_CEC_MESSAGE) {
+> +		handle_cec_message(cros_ec_cec);
+> +		return NOTIFY_OK;
+> +	}
+> +
+> +	return NOTIFY_DONE;
+> +}
+> +
+> +static int cros_ec_cec_set_log_addr(struct cec_adapter *adap, u8 logical_addr)
+> +{
+> +	struct cros_ec_cec *cros_ec_cec = adap->priv;
+> +	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
+> +	struct {
+> +		struct cros_ec_command msg;
+> +		struct ec_params_cec_set data;
+> +	} __packed msg;
+
+Just say: ... msg = {};
+
+> +	int ret = 0;
+> +
+> +	if (logical_addr == CEC_LOG_ADDR_INVALID)
+> +		return 0;
+
+This looks weird. If I had configured a LA before, then this should unconfigure
+it. But it just keeps the existing LA, so any poll messages to us will still
+be Acked. Or am I missing something?
+
+> +
+> +	memset(&msg, 0, sizeof(msg));
+
+and you can drop this memset.
+
+> +	msg.msg.command = EC_CMD_CEC_SET;
+> +	msg.msg.outsize = sizeof(msg.data);
+> +	msg.data.cmd = CEC_CMD_LOGICAL_ADDRESS;
+> +	msg.data.address = logical_addr;
+> +
+> +	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
+> +	if (ret < 0) {
+> +		dev_err(cros_ec->dev,
+> +			"error setting CEC logical address on EC: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int cros_ec_cec_transmit(struct cec_adapter *adap, u8 attempts,
+> +				u32 signal_free_time, struct cec_msg *cec_msg)
+> +{
+> +	struct cros_ec_cec *cros_ec_cec = adap->priv;
+> +	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
+> +	struct {
+> +		struct cros_ec_command msg;
+> +		struct ec_params_cec_write data;
+> +	} __packed msg;
+
+... msg = {};
+
+> +	int ret = 0;
+> +
+> +	if (cec_msg->len > MAX_CEC_MSG_LEN)
+> +		return -EINVAL;
+
+No need, can never happen.
+
+> +
+> +	memset(&msg, 0, sizeof(msg));
+
+and drop this.
+
+> +	msg.msg.command = EC_CMD_CEC_WRITE_MSG;
+> +	msg.msg.outsize = cec_msg->len;
+> +	memcpy(msg.data.msg, cec_msg->msg, cec_msg->len);
+> +
+> +	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
+> +	if (ret < 0) {
+> +		dev_err(cros_ec->dev,
+> +			"error writting CEC msg on EC: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int cros_ec_cec_adap_enable(struct cec_adapter *adap, bool enable)
+> +{
+> +	struct cros_ec_cec *cros_ec_cec = adap->priv;
+> +	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
+> +	struct {
+> +		struct cros_ec_command msg;
+> +		struct ec_params_cec_set data;
+> +	} __packed msg;
+> +	int ret = 0;
+> +
+> +	memset(&msg, 0, sizeof(msg));
+> +	msg.msg.command = EC_CMD_CEC_SET;
+> +	msg.msg.outsize = sizeof(msg.data);
+> +	msg.data.cmd = CEC_CMD_ENABLE;
+> +	msg.data.enable = enable;
+> +
+> +	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
+> +	if (ret < 0) {
+> +		dev_err(cros_ec->dev,
+> +			"error %sabling CEC on EC: %d\n",
+> +			(enable ? "en" : "dis"), ret);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct cec_adap_ops cros_ec_cec_ops = {
+> +	.adap_enable = cros_ec_cec_adap_enable,
+> +	.adap_log_addr = cros_ec_cec_set_log_addr,
+> +	.adap_transmit = cros_ec_cec_transmit,
+> +};
+> +
+> +#ifdef CONFIG_PM_SLEEP
+> +static int cros_ec_cec_suspend(struct device *dev)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct cros_ec_cec *cros_ec_cec = dev_get_drvdata(&pdev->dev);
+> +
+> +	if (device_may_wakeup(dev))
+> +		enable_irq_wake(cros_ec_cec->cros_ec->irq);
+> +
+> +	return 0;
+> +}
+> +
+> +static int cros_ec_cec_resume(struct device *dev)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct cros_ec_cec *cros_ec_cec = dev_get_drvdata(&pdev->dev);
+> +
+> +	if (device_may_wakeup(dev))
+> +		disable_irq_wake(cros_ec_cec->cros_ec->irq);
+> +
+> +	return 0;
+> +}
+> +#endif
+> +
+> +static SIMPLE_DEV_PM_OPS(cros_ec_cec_pm_ops,
+> +	cros_ec_cec_suspend, cros_ec_cec_resume);
+> +
+> +
+> +struct cec_dmi_match {
+> +	char *sys_vendor;
+> +	char *product_name;
+> +	char *devname;
+> +	char *conn;
+> +};
+> +
+> +static const struct cec_dmi_match cec_dmi_match_table[] = {
+> +	/* Google Fizz */
+> +	{ "Google", "Fizz", "0000:00:02.0", "HDMI-A-1" },
+> +};
+> +
+> +static int cros_ec_cec_get_notifier(struct cec_notifier **notify)
+> +{
+> +	int i;
+> +
+> +	for (i = 0 ; i < ARRAY_SIZE(cec_dmi_match_table) ; ++i) {
+> +		const struct cec_dmi_match *m = &cec_dmi_match_table[i];
+> +
+> +		if (dmi_match(DMI_SYS_VENDOR, m->sys_vendor) &&
+> +		    dmi_match(DMI_PRODUCT_NAME, m->product_name)) {
+> +			*notify = cec_notifier_get_byname(m->devname, m->conn);
+
+See my comments for patch 2/5.
+
+> +			return 0;
+> +		}
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static int cros_ec_cec_probe(struct platform_device *pdev)
+> +{
+> +	struct cros_ec_dev *ec_dev = dev_get_drvdata(pdev->dev.parent);
+> +	struct cros_ec_device *cros_ec = ec_dev->ec_dev;
+> +	struct cros_ec_cec *cros_ec_cec;
+> +	unsigned int cec_caps = CEC_CAP_DEFAULTS;
+
+Does this need CEC_CAP_NEEDS_HPD? Can it still use CEC if there is no HPD
+signal?
+
+> +	int ret;
+> +
+> +	cros_ec_cec = devm_kzalloc(&pdev->dev, sizeof(*cros_ec_cec),
+> +				   GFP_KERNEL);
+> +	if (!cros_ec_cec)
+> +		return -ENOMEM;
+> +
+> +	platform_set_drvdata(pdev, cros_ec_cec);
+> +	cros_ec_cec->cros_ec = cros_ec;
+> +
+> +	ret = cros_ec_cec_get_notifier(&cros_ec_cec->notify);
+> +	if (ret) {
+> +		dev_warn(&pdev->dev, "no CEC notifier available\n");
+> +		cec_caps |= CEC_CAP_PHYS_ADDR;
+
+Can this happen? What hardware has this? I am strongly opposed to CEC drivers
+using this capability unless there is no other option. It's a pain for userspace.
+
+> +	} else if (!cros_ec_cec->notify) {
+> +		return -EPROBE_DEFER;
+> +	}
+> +
+> +	ret = device_init_wakeup(&pdev->dev, 1);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "failed to initialize wakeup\n");
+> +		return ret;
+> +	}
+> +
+> +	cros_ec_cec->adap = cec_allocate_adapter(&cros_ec_cec_ops, cros_ec_cec,
+> +						 DRV_NAME, cec_caps, 1);
+> +	if (IS_ERR(cros_ec_cec->adap))
+> +		return PTR_ERR(cros_ec_cec->adap);
+> +
+> +	cros_ec_cec->adap->owner = THIS_MODULE;
+
+This can be dropped, cec_register_adapter() sets this already.
+
+> +
+> +	/* Get CEC events from the EC. */
+> +	cros_ec_cec->notifier.notifier_call = cros_ec_cec_event;
+> +	ret = blocking_notifier_chain_register(&cros_ec->event_notifier,
+> +					       &cros_ec_cec->notifier);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "failed to register notifier\n");
+> +		cec_delete_adapter(cros_ec_cec->adap);
+> +		return ret;
+> +	}
+> +
+> +	ret = cec_register_adapter(cros_ec_cec->adap, &pdev->dev);
+> +	if (ret < 0) {
+> +		cec_delete_adapter(cros_ec_cec->adap);
+> +		return ret;
+> +	}
+> +
+> +	cec_register_cec_notifier(cros_ec_cec->adap, cros_ec_cec->notify);
+> +
+> +	return 0;
+> +}
+> +
+> +static int cros_ec_cec_remove(struct platform_device *pdev)
+> +{
+> +	struct cros_ec_cec *cros_ec_cec = platform_get_drvdata(pdev);
+> +	struct device *dev = &pdev->dev;
+> +	int ret;
+> +
+> +	ret = blocking_notifier_chain_unregister(
+> +			&cros_ec_cec->cros_ec->event_notifier,
+> +			&cros_ec_cec->notifier);
+> +
+> +	if (ret) {
+> +		dev_err(dev, "failed to unregister notifier\n");
+> +		return ret;
+> +	}
+> +
+> +	cec_unregister_adapter(cros_ec_cec->adap);
+> +
+> +	if (cros_ec_cec->notify)
+> +		cec_notifier_put(cros_ec_cec->notify);
+> +
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver cros_ec_cec_driver = {
+> +	.probe = cros_ec_cec_probe,
+> +	.remove  = cros_ec_cec_remove,
+> +	.driver = {
+> +		.name = DRV_NAME,
+> +		.pm = &cros_ec_cec_pm_ops,
+> +	},
+> +};
+> +
+> +module_platform_driver(cros_ec_cec_driver);
+> +
+> +MODULE_DESCRIPTION("CEC driver for Chrome OS ECs");
+> +MODULE_AUTHOR("Neil Armstrong <narmstrong@baylibre.com>");
+> +MODULE_LICENSE("GPL");
+> +MODULE_ALIAS("platform:" DRV_NAME);
+> 
 
 Regards,
 
 	Hans
-
-> 
-> Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 245 ++++++++++++++-------------
->  1 file changed, 130 insertions(+), 115 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index de5d96dbe69e0..a40dbec271f1d 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -2489,11 +2489,8 @@ struct v4l2_ioctl_info {
->  	unsigned int ioctl;
->  	u32 flags;
->  	const char * const name;
-> -	union {
-> -		u32 offset;
-> -		int (*func)(const struct v4l2_ioctl_ops *ops,
-> -				struct file *file, void *fh, void *p);
-> -	} u;
-> +	int (*func)(const struct v4l2_ioctl_ops *ops, struct file *file,
-> +		    void *fh, void *p);
->  	void (*debug)(const void *arg, bool write_only);
->  };
->  
-> @@ -2501,121 +2498,145 @@ struct v4l2_ioctl_info {
->  #define INFO_FL_PRIO		(1 << 0)
->  /* This control can be valid if the filehandle passes a control handler. */
->  #define INFO_FL_CTRL		(1 << 1)
-> -/* This is a standard ioctl, no need for special code */
-> -#define INFO_FL_STD		(1 << 2)
-> -/* This is ioctl has its own function */
-> -#define INFO_FL_FUNC		(1 << 3)
->  /* Queuing ioctl */
-> -#define INFO_FL_QUEUE		(1 << 4)
-> +#define INFO_FL_QUEUE		(1 << 2)
->  /* Always copy back result, even on error */
-> -#define INFO_FL_ALWAYS_COPY	(1 << 5)
-> +#define INFO_FL_ALWAYS_COPY	(1 << 3)
->  /* Zero struct from after the field to the end */
->  #define INFO_FL_CLEAR(v4l2_struct, field)			\
->  	((offsetof(struct v4l2_struct, field) +			\
->  	  sizeof(((struct v4l2_struct *)0)->field)) << 16)
->  #define INFO_FL_CLEAR_MASK	(_IOC_SIZEMASK << 16)
->  
-> -#define IOCTL_INFO_STD(_ioctl, _vidioc, _debug, _flags)			\
-> -	[_IOC_NR(_ioctl)] = {						\
-> -		.ioctl = _ioctl,					\
-> -		.flags = _flags | INFO_FL_STD,				\
-> -		.name = #_ioctl,					\
-> -		.u.offset = offsetof(struct v4l2_ioctl_ops, _vidioc),	\
-> -		.debug = _debug,					\
-> +#define DEFINE_V4L_STUB_FUNC(_vidioc)				\
-> +	static int v4l_stub_ ## _vidioc(			\
-> +			const struct v4l2_ioctl_ops *ops,	\
-> +			struct file *file, void *fh, void *p)	\
-> +	{							\
-> +		return ops->vidioc_ ## _vidioc(file, fh, p);	\
->  	}
->  
-> -#define IOCTL_INFO_FNC(_ioctl, _func, _debug, _flags)			\
-> -	[_IOC_NR(_ioctl)] = {						\
-> -		.ioctl = _ioctl,					\
-> -		.flags = _flags | INFO_FL_FUNC,				\
-> -		.name = #_ioctl,					\
-> -		.u.func = _func,					\
-> -		.debug = _debug,					\
-> +#define IOCTL_INFO(_ioctl, _func, _debug, _flags)		\
-> +	[_IOC_NR(_ioctl)] = {					\
-> +		.ioctl = _ioctl,				\
-> +		.flags = _flags,				\
-> +		.name = #_ioctl,				\
-> +		.func = _func,					\
-> +		.debug = _debug,				\
->  	}
->  
-> +DEFINE_V4L_STUB_FUNC(g_fbuf)
-> +DEFINE_V4L_STUB_FUNC(s_fbuf)
-> +DEFINE_V4L_STUB_FUNC(expbuf)
-> +DEFINE_V4L_STUB_FUNC(g_std)
-> +DEFINE_V4L_STUB_FUNC(g_audio)
-> +DEFINE_V4L_STUB_FUNC(s_audio)
-> +DEFINE_V4L_STUB_FUNC(g_input)
-> +DEFINE_V4L_STUB_FUNC(g_edid)
-> +DEFINE_V4L_STUB_FUNC(s_edid)
-> +DEFINE_V4L_STUB_FUNC(g_output)
-> +DEFINE_V4L_STUB_FUNC(g_audout)
-> +DEFINE_V4L_STUB_FUNC(s_audout)
-> +DEFINE_V4L_STUB_FUNC(g_jpegcomp)
-> +DEFINE_V4L_STUB_FUNC(s_jpegcomp)
-> +DEFINE_V4L_STUB_FUNC(enumaudio)
-> +DEFINE_V4L_STUB_FUNC(enumaudout)
-> +DEFINE_V4L_STUB_FUNC(enum_framesizes)
-> +DEFINE_V4L_STUB_FUNC(enum_frameintervals)
-> +DEFINE_V4L_STUB_FUNC(g_enc_index)
-> +DEFINE_V4L_STUB_FUNC(encoder_cmd)
-> +DEFINE_V4L_STUB_FUNC(try_encoder_cmd)
-> +DEFINE_V4L_STUB_FUNC(decoder_cmd)
-> +DEFINE_V4L_STUB_FUNC(try_decoder_cmd)
-> +DEFINE_V4L_STUB_FUNC(s_dv_timings)
-> +DEFINE_V4L_STUB_FUNC(g_dv_timings)
-> +DEFINE_V4L_STUB_FUNC(enum_dv_timings)
-> +DEFINE_V4L_STUB_FUNC(query_dv_timings)
-> +DEFINE_V4L_STUB_FUNC(dv_timings_cap)
-> +
->  static struct v4l2_ioctl_info v4l2_ioctls[] = {
-> -	IOCTL_INFO_FNC(VIDIOC_QUERYCAP, v4l_querycap, v4l_print_querycap, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_ENUM_FMT, v4l_enum_fmt, v4l_print_fmtdesc, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
-> -	IOCTL_INFO_FNC(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_S_FMT, v4l_s_fmt, v4l_print_format, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_REQBUFS, v4l_reqbufs, v4l_print_requestbuffers, INFO_FL_PRIO | INFO_FL_QUEUE),
-> -	IOCTL_INFO_FNC(VIDIOC_QUERYBUF, v4l_querybuf, v4l_print_buffer, INFO_FL_QUEUE | INFO_FL_CLEAR(v4l2_buffer, length)),
-> -	IOCTL_INFO_STD(VIDIOC_G_FBUF, vidioc_g_fbuf, v4l_print_framebuffer, 0),
-> -	IOCTL_INFO_STD(VIDIOC_S_FBUF, vidioc_s_fbuf, v4l_print_framebuffer, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_OVERLAY, v4l_overlay, v4l_print_u32, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_QBUF, v4l_qbuf, v4l_print_buffer, INFO_FL_QUEUE),
-> -	IOCTL_INFO_STD(VIDIOC_EXPBUF, vidioc_expbuf, v4l_print_exportbuffer, INFO_FL_QUEUE | INFO_FL_CLEAR(v4l2_exportbuffer, flags)),
-> -	IOCTL_INFO_FNC(VIDIOC_DQBUF, v4l_dqbuf, v4l_print_buffer, INFO_FL_QUEUE),
-> -	IOCTL_INFO_FNC(VIDIOC_STREAMON, v4l_streamon, v4l_print_buftype, INFO_FL_PRIO | INFO_FL_QUEUE),
-> -	IOCTL_INFO_FNC(VIDIOC_STREAMOFF, v4l_streamoff, v4l_print_buftype, INFO_FL_PRIO | INFO_FL_QUEUE),
-> -	IOCTL_INFO_FNC(VIDIOC_G_PARM, v4l_g_parm, v4l_print_streamparm, INFO_FL_CLEAR(v4l2_streamparm, type)),
-> -	IOCTL_INFO_FNC(VIDIOC_S_PARM, v4l_s_parm, v4l_print_streamparm, INFO_FL_PRIO),
-> -	IOCTL_INFO_STD(VIDIOC_G_STD, vidioc_g_std, v4l_print_std, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_S_STD, v4l_s_std, v4l_print_std, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_ENUMSTD, v4l_enumstd, v4l_print_standard, INFO_FL_CLEAR(v4l2_standard, index)),
-> -	IOCTL_INFO_FNC(VIDIOC_ENUMINPUT, v4l_enuminput, v4l_print_enuminput, INFO_FL_CLEAR(v4l2_input, index)),
-> -	IOCTL_INFO_FNC(VIDIOC_G_CTRL, v4l_g_ctrl, v4l_print_control, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_control, id)),
-> -	IOCTL_INFO_FNC(VIDIOC_S_CTRL, v4l_s_ctrl, v4l_print_control, INFO_FL_PRIO | INFO_FL_CTRL),
-> -	IOCTL_INFO_FNC(VIDIOC_G_TUNER, v4l_g_tuner, v4l_print_tuner, INFO_FL_CLEAR(v4l2_tuner, index)),
-> -	IOCTL_INFO_FNC(VIDIOC_S_TUNER, v4l_s_tuner, v4l_print_tuner, INFO_FL_PRIO),
-> -	IOCTL_INFO_STD(VIDIOC_G_AUDIO, vidioc_g_audio, v4l_print_audio, 0),
-> -	IOCTL_INFO_STD(VIDIOC_S_AUDIO, vidioc_s_audio, v4l_print_audio, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_QUERYCTRL, v4l_queryctrl, v4l_print_queryctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
-> -	IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu, v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
-> -	IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32, INFO_FL_PRIO),
-> -	IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, INFO_FL_ALWAYS_COPY),
-> -	IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid, INFO_FL_PRIO | INFO_FL_ALWAYS_COPY),
-> -	IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_S_OUTPUT, v4l_s_output, v4l_print_u32, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_ENUMOUTPUT, v4l_enumoutput, v4l_print_enumoutput, INFO_FL_CLEAR(v4l2_output, index)),
-> -	IOCTL_INFO_STD(VIDIOC_G_AUDOUT, vidioc_g_audout, v4l_print_audioout, 0),
-> -	IOCTL_INFO_STD(VIDIOC_S_AUDOUT, vidioc_s_audout, v4l_print_audioout, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_G_MODULATOR, v4l_g_modulator, v4l_print_modulator, INFO_FL_CLEAR(v4l2_modulator, index)),
-> -	IOCTL_INFO_FNC(VIDIOC_S_MODULATOR, v4l_s_modulator, v4l_print_modulator, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_G_FREQUENCY, v4l_g_frequency, v4l_print_frequency, INFO_FL_CLEAR(v4l2_frequency, tuner)),
-> -	IOCTL_INFO_FNC(VIDIOC_S_FREQUENCY, v4l_s_frequency, v4l_print_frequency, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
-> -	IOCTL_INFO_FNC(VIDIOC_G_CROP, v4l_g_crop, v4l_print_crop, INFO_FL_CLEAR(v4l2_crop, type)),
-> -	IOCTL_INFO_FNC(VIDIOC_S_CROP, v4l_s_crop, v4l_print_crop, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_G_SELECTION, v4l_g_selection, v4l_print_selection, INFO_FL_CLEAR(v4l2_selection, r)),
-> -	IOCTL_INFO_FNC(VIDIOC_S_SELECTION, v4l_s_selection, v4l_print_selection, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_selection, r)),
-> -	IOCTL_INFO_STD(VIDIOC_G_JPEGCOMP, vidioc_g_jpegcomp, v4l_print_jpegcompression, 0),
-> -	IOCTL_INFO_STD(VIDIOC_S_JPEGCOMP, vidioc_s_jpegcomp, v4l_print_jpegcompression, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_TRY_FMT, v4l_try_fmt, v4l_print_format, 0),
-> -	IOCTL_INFO_STD(VIDIOC_ENUMAUDIO, vidioc_enumaudio, v4l_print_audio, INFO_FL_CLEAR(v4l2_audio, index)),
-> -	IOCTL_INFO_STD(VIDIOC_ENUMAUDOUT, vidioc_enumaudout, v4l_print_audioout, INFO_FL_CLEAR(v4l2_audioout, index)),
-> -	IOCTL_INFO_FNC(VIDIOC_G_PRIORITY, v4l_g_priority, v4l_print_u32, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_S_PRIORITY, v4l_s_priority, v4l_print_u32, INFO_FL_PRIO),
-> -	IOCTL_INFO_FNC(VIDIOC_G_SLICED_VBI_CAP, v4l_g_sliced_vbi_cap, v4l_print_sliced_vbi_cap, INFO_FL_CLEAR(v4l2_sliced_vbi_cap, type)),
-> -	IOCTL_INFO_FNC(VIDIOC_LOG_STATUS, v4l_log_status, v4l_print_newline, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_G_EXT_CTRLS, v4l_g_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
-> -	IOCTL_INFO_FNC(VIDIOC_S_EXT_CTRLS, v4l_s_ext_ctrls, v4l_print_ext_controls, INFO_FL_PRIO | INFO_FL_CTRL),
-> -	IOCTL_INFO_FNC(VIDIOC_TRY_EXT_CTRLS, v4l_try_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
-> -	IOCTL_INFO_STD(VIDIOC_ENUM_FRAMESIZES, vidioc_enum_framesizes, v4l_print_frmsizeenum, INFO_FL_CLEAR(v4l2_frmsizeenum, pixel_format)),
-> -	IOCTL_INFO_STD(VIDIOC_ENUM_FRAMEINTERVALS, vidioc_enum_frameintervals, v4l_print_frmivalenum, INFO_FL_CLEAR(v4l2_frmivalenum, height)),
-> -	IOCTL_INFO_STD(VIDIOC_G_ENC_INDEX, vidioc_g_enc_index, v4l_print_enc_idx, 0),
-> -	IOCTL_INFO_STD(VIDIOC_ENCODER_CMD, vidioc_encoder_cmd, v4l_print_encoder_cmd, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
-> -	IOCTL_INFO_STD(VIDIOC_TRY_ENCODER_CMD, vidioc_try_encoder_cmd, v4l_print_encoder_cmd, INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
-> -	IOCTL_INFO_STD(VIDIOC_DECODER_CMD, vidioc_decoder_cmd, v4l_print_decoder_cmd, INFO_FL_PRIO),
-> -	IOCTL_INFO_STD(VIDIOC_TRY_DECODER_CMD, vidioc_try_decoder_cmd, v4l_print_decoder_cmd, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_DBG_S_REGISTER, v4l_dbg_s_register, v4l_print_dbg_register, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_DBG_G_REGISTER, v4l_dbg_g_register, v4l_print_dbg_register, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_S_HW_FREQ_SEEK, v4l_s_hw_freq_seek, v4l_print_hw_freq_seek, INFO_FL_PRIO),
-> -	IOCTL_INFO_STD(VIDIOC_S_DV_TIMINGS, vidioc_s_dv_timings, v4l_print_dv_timings, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_dv_timings, bt.flags)),
-> -	IOCTL_INFO_STD(VIDIOC_G_DV_TIMINGS, vidioc_g_dv_timings, v4l_print_dv_timings, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_DQEVENT, v4l_dqevent, v4l_print_event, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_SUBSCRIBE_EVENT, v4l_subscribe_event, v4l_print_event_subscription, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_UNSUBSCRIBE_EVENT, v4l_unsubscribe_event, v4l_print_event_subscription, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_CREATE_BUFS, v4l_create_bufs, v4l_print_create_buffers, INFO_FL_PRIO | INFO_FL_QUEUE),
-> -	IOCTL_INFO_FNC(VIDIOC_PREPARE_BUF, v4l_prepare_buf, v4l_print_buffer, INFO_FL_QUEUE),
-> -	IOCTL_INFO_STD(VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings, v4l_print_enum_dv_timings, INFO_FL_CLEAR(v4l2_enum_dv_timings, pad)),
-> -	IOCTL_INFO_STD(VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings, v4l_print_dv_timings, INFO_FL_ALWAYS_COPY),
-> -	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, pad)),
-> -	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
-> -	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
-> -	IOCTL_INFO_FNC(VIDIOC_QUERY_EXT_CTRL, v4l_query_ext_ctrl, v4l_print_query_ext_ctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_query_ext_ctrl, id)),
-> +	IOCTL_INFO(VIDIOC_QUERYCAP, v4l_querycap, v4l_print_querycap, 0),
-> +	IOCTL_INFO(VIDIOC_ENUM_FMT, v4l_enum_fmt, v4l_print_fmtdesc, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
-> +	IOCTL_INFO(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, 0),
-> +	IOCTL_INFO(VIDIOC_S_FMT, v4l_s_fmt, v4l_print_format, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_REQBUFS, v4l_reqbufs, v4l_print_requestbuffers, INFO_FL_PRIO | INFO_FL_QUEUE),
-> +	IOCTL_INFO(VIDIOC_QUERYBUF, v4l_querybuf, v4l_print_buffer, INFO_FL_QUEUE | INFO_FL_CLEAR(v4l2_buffer, length)),
-> +	IOCTL_INFO(VIDIOC_G_FBUF, v4l_stub_g_fbuf, v4l_print_framebuffer, 0),
-> +	IOCTL_INFO(VIDIOC_S_FBUF, v4l_stub_s_fbuf, v4l_print_framebuffer, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_OVERLAY, v4l_overlay, v4l_print_u32, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_QBUF, v4l_qbuf, v4l_print_buffer, INFO_FL_QUEUE),
-> +	IOCTL_INFO(VIDIOC_EXPBUF, v4l_stub_expbuf, v4l_print_exportbuffer, INFO_FL_QUEUE | INFO_FL_CLEAR(v4l2_exportbuffer, flags)),
-> +	IOCTL_INFO(VIDIOC_DQBUF, v4l_dqbuf, v4l_print_buffer, INFO_FL_QUEUE),
-> +	IOCTL_INFO(VIDIOC_STREAMON, v4l_streamon, v4l_print_buftype, INFO_FL_PRIO | INFO_FL_QUEUE),
-> +	IOCTL_INFO(VIDIOC_STREAMOFF, v4l_streamoff, v4l_print_buftype, INFO_FL_PRIO | INFO_FL_QUEUE),
-> +	IOCTL_INFO(VIDIOC_G_PARM, v4l_g_parm, v4l_print_streamparm, INFO_FL_CLEAR(v4l2_streamparm, type)),
-> +	IOCTL_INFO(VIDIOC_S_PARM, v4l_s_parm, v4l_print_streamparm, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_G_STD, v4l_stub_g_std, v4l_print_std, 0),
-> +	IOCTL_INFO(VIDIOC_S_STD, v4l_s_std, v4l_print_std, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_ENUMSTD, v4l_enumstd, v4l_print_standard, INFO_FL_CLEAR(v4l2_standard, index)),
-> +	IOCTL_INFO(VIDIOC_ENUMINPUT, v4l_enuminput, v4l_print_enuminput, INFO_FL_CLEAR(v4l2_input, index)),
-> +	IOCTL_INFO(VIDIOC_G_CTRL, v4l_g_ctrl, v4l_print_control, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_control, id)),
-> +	IOCTL_INFO(VIDIOC_S_CTRL, v4l_s_ctrl, v4l_print_control, INFO_FL_PRIO | INFO_FL_CTRL),
-> +	IOCTL_INFO(VIDIOC_G_TUNER, v4l_g_tuner, v4l_print_tuner, INFO_FL_CLEAR(v4l2_tuner, index)),
-> +	IOCTL_INFO(VIDIOC_S_TUNER, v4l_s_tuner, v4l_print_tuner, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_G_AUDIO, v4l_stub_g_audio, v4l_print_audio, 0),
-> +	IOCTL_INFO(VIDIOC_S_AUDIO, v4l_stub_s_audio, v4l_print_audio, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_QUERYCTRL, v4l_queryctrl, v4l_print_queryctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
-> +	IOCTL_INFO(VIDIOC_QUERYMENU, v4l_querymenu, v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
-> +	IOCTL_INFO(VIDIOC_G_INPUT, v4l_stub_g_input, v4l_print_u32, 0),
-> +	IOCTL_INFO(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_G_EDID, v4l_stub_g_edid, v4l_print_edid, INFO_FL_ALWAYS_COPY),
-> +	IOCTL_INFO(VIDIOC_S_EDID, v4l_stub_s_edid, v4l_print_edid, INFO_FL_PRIO | INFO_FL_ALWAYS_COPY),
-> +	IOCTL_INFO(VIDIOC_G_OUTPUT, v4l_stub_g_output, v4l_print_u32, 0),
-> +	IOCTL_INFO(VIDIOC_S_OUTPUT, v4l_s_output, v4l_print_u32, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_ENUMOUTPUT, v4l_enumoutput, v4l_print_enumoutput, INFO_FL_CLEAR(v4l2_output, index)),
-> +	IOCTL_INFO(VIDIOC_G_AUDOUT, v4l_stub_g_audout, v4l_print_audioout, 0),
-> +	IOCTL_INFO(VIDIOC_S_AUDOUT, v4l_stub_s_audout, v4l_print_audioout, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_G_MODULATOR, v4l_g_modulator, v4l_print_modulator, INFO_FL_CLEAR(v4l2_modulator, index)),
-> +	IOCTL_INFO(VIDIOC_S_MODULATOR, v4l_s_modulator, v4l_print_modulator, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_G_FREQUENCY, v4l_g_frequency, v4l_print_frequency, INFO_FL_CLEAR(v4l2_frequency, tuner)),
-> +	IOCTL_INFO(VIDIOC_S_FREQUENCY, v4l_s_frequency, v4l_print_frequency, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
-> +	IOCTL_INFO(VIDIOC_G_CROP, v4l_g_crop, v4l_print_crop, INFO_FL_CLEAR(v4l2_crop, type)),
-> +	IOCTL_INFO(VIDIOC_S_CROP, v4l_s_crop, v4l_print_crop, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_G_SELECTION, v4l_g_selection, v4l_print_selection, INFO_FL_CLEAR(v4l2_selection, r)),
-> +	IOCTL_INFO(VIDIOC_S_SELECTION, v4l_s_selection, v4l_print_selection, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_selection, r)),
-> +	IOCTL_INFO(VIDIOC_G_JPEGCOMP, v4l_stub_g_jpegcomp, v4l_print_jpegcompression, 0),
-> +	IOCTL_INFO(VIDIOC_S_JPEGCOMP, v4l_stub_s_jpegcomp, v4l_print_jpegcompression, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),
-> +	IOCTL_INFO(VIDIOC_TRY_FMT, v4l_try_fmt, v4l_print_format, 0),
-> +	IOCTL_INFO(VIDIOC_ENUMAUDIO, v4l_stub_enumaudio, v4l_print_audio, INFO_FL_CLEAR(v4l2_audio, index)),
-> +	IOCTL_INFO(VIDIOC_ENUMAUDOUT, v4l_stub_enumaudout, v4l_print_audioout, INFO_FL_CLEAR(v4l2_audioout, index)),
-> +	IOCTL_INFO(VIDIOC_G_PRIORITY, v4l_g_priority, v4l_print_u32, 0),
-> +	IOCTL_INFO(VIDIOC_S_PRIORITY, v4l_s_priority, v4l_print_u32, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, v4l_g_sliced_vbi_cap, v4l_print_sliced_vbi_cap, INFO_FL_CLEAR(v4l2_sliced_vbi_cap, type)),
-> +	IOCTL_INFO(VIDIOC_LOG_STATUS, v4l_log_status, v4l_print_newline, 0),
-> +	IOCTL_INFO(VIDIOC_G_EXT_CTRLS, v4l_g_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
-> +	IOCTL_INFO(VIDIOC_S_EXT_CTRLS, v4l_s_ext_ctrls, v4l_print_ext_controls, INFO_FL_PRIO | INFO_FL_CTRL),
-> +	IOCTL_INFO(VIDIOC_TRY_EXT_CTRLS, v4l_try_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
-> +	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, v4l_stub_enum_framesizes, v4l_print_frmsizeenum, INFO_FL_CLEAR(v4l2_frmsizeenum, pixel_format)),
-> +	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, v4l_stub_enum_frameintervals, v4l_print_frmivalenum, INFO_FL_CLEAR(v4l2_frmivalenum, height)),
-> +	IOCTL_INFO(VIDIOC_G_ENC_INDEX, v4l_stub_g_enc_index, v4l_print_enc_idx, 0),
-> +	IOCTL_INFO(VIDIOC_ENCODER_CMD, v4l_stub_encoder_cmd, v4l_print_encoder_cmd, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
-> +	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, v4l_stub_try_encoder_cmd, v4l_print_encoder_cmd, INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
-> +	IOCTL_INFO(VIDIOC_DECODER_CMD, v4l_stub_decoder_cmd, v4l_print_decoder_cmd, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD, v4l_stub_try_decoder_cmd, v4l_print_decoder_cmd, 0),
-> +	IOCTL_INFO(VIDIOC_DBG_S_REGISTER, v4l_dbg_s_register, v4l_print_dbg_register, 0),
-> +	IOCTL_INFO(VIDIOC_DBG_G_REGISTER, v4l_dbg_g_register, v4l_print_dbg_register, 0),
-> +	IOCTL_INFO(VIDIOC_S_HW_FREQ_SEEK, v4l_s_hw_freq_seek, v4l_print_hw_freq_seek, INFO_FL_PRIO),
-> +	IOCTL_INFO(VIDIOC_S_DV_TIMINGS, v4l_stub_s_dv_timings, v4l_print_dv_timings, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_dv_timings, bt.flags)),
-> +	IOCTL_INFO(VIDIOC_G_DV_TIMINGS, v4l_stub_g_dv_timings, v4l_print_dv_timings, 0),
-> +	IOCTL_INFO(VIDIOC_DQEVENT, v4l_dqevent, v4l_print_event, 0),
-> +	IOCTL_INFO(VIDIOC_SUBSCRIBE_EVENT, v4l_subscribe_event, v4l_print_event_subscription, 0),
-> +	IOCTL_INFO(VIDIOC_UNSUBSCRIBE_EVENT, v4l_unsubscribe_event, v4l_print_event_subscription, 0),
-> +	IOCTL_INFO(VIDIOC_CREATE_BUFS, v4l_create_bufs, v4l_print_create_buffers, INFO_FL_PRIO | INFO_FL_QUEUE),
-> +	IOCTL_INFO(VIDIOC_PREPARE_BUF, v4l_prepare_buf, v4l_print_buffer, INFO_FL_QUEUE),
-> +	IOCTL_INFO(VIDIOC_ENUM_DV_TIMINGS, v4l_stub_enum_dv_timings, v4l_print_enum_dv_timings, INFO_FL_CLEAR(v4l2_enum_dv_timings, pad)),
-> +	IOCTL_INFO(VIDIOC_QUERY_DV_TIMINGS, v4l_stub_query_dv_timings, v4l_print_dv_timings, INFO_FL_ALWAYS_COPY),
-> +	IOCTL_INFO(VIDIOC_DV_TIMINGS_CAP, v4l_stub_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, pad)),
-> +	IOCTL_INFO(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
-> +	IOCTL_INFO(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
-> +	IOCTL_INFO(VIDIOC_QUERY_EXT_CTRL, v4l_query_ext_ctrl, v4l_print_query_ext_ctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_query_ext_ctrl, id)),
->  };
->  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
->  
-> @@ -2717,14 +2738,8 @@ static long __video_do_ioctl(struct file *file,
->  	}
->  
->  	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
-> -	if (info->flags & INFO_FL_STD) {
-> -		typedef int (*vidioc_op)(struct file *file, void *fh, void *p);
-> -		const void *p = vfd->ioctl_ops;
-> -		const vidioc_op *vidioc = p + info->u.offset;
-> -
-> -		ret = (*vidioc)(file, fh, arg);
-> -	} else if (info->flags & INFO_FL_FUNC) {
-> -		ret = info->u.func(ops, file, fh, arg);
-> +	if (info != &default_info) {
-> +		ret = info->func(ops, file, fh, arg);
->  	} else if (!ops->vidioc_default) {
->  		ret = -ENOTTY;
->  	} else {
-> 
