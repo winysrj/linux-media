@@ -1,226 +1,429 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:39717 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752430AbeEOH2y (ORCPT
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:40964 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753140AbeEOMre (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:28:54 -0400
-Received: by mail-lf0-f68.google.com with SMTP id j193-v6so21826330lfg.6
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:28:54 -0700 (PDT)
-Subject: Re: [RFC PATCH 2/5] media: cec-notifier: Get notifier by device and
- connector name
-To: Hans Verkuil <hverkuil@xs4all.nl>, airlied@linux.ie,
-        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
-        seanpaul@google.com
-Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
-        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        Tue, 15 May 2018 08:47:34 -0400
+Received: by mail-qk0-f194.google.com with SMTP id d125-v6so12781690qkb.8
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 05:47:34 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
         dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
         intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
-References: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
- <1526337639-3568-3-git-send-email-narmstrong@baylibre.com>
- <adbbccf9-d8af-c43a-3f10-bdd828e8c842@xs4all.nl>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <9a20dfa6-d61a-637a-0311-e260e555f86f@baylibre.com>
-Date: Tue, 15 May 2018 09:28:51 +0200
-MIME-Version: 1.0
-In-Reply-To: <adbbccf9-d8af-c43a-3f10-bdd828e8c842@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 5/5] media: platform: Add Chrome OS EC CEC driver
+Date: Tue, 15 May 2018 14:47:01 +0200
+Message-Id: <1526388421-18808-6-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1526388421-18808-1-git-send-email-narmstrong@baylibre.com>
+References: <1526388421-18808-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/05/2018 08:27, Hans Verkuil wrote:
-> Hi Neil,
-> 
-> Thanks for this patch series!
-> 
-> Some comments below:
-> 
-> On 05/15/2018 12:40 AM, Neil Armstrong wrote:
->> In non device-tree world, we can need to get the notifier by the driver
->> name directly and eventually defer probe if not yet created.
->>
->> This patch adds a variant of the get function by using the device name
->> instead and will not create a notifier if not yet created.
->>
->> But the i915 driver exposes at least 2 HDMI connectors, this patch also
->> adds the possibility to add a connector name tied to the notifier device
->> to form a tuple and associate different CEC controllers for each HDMI
->> connectors.
->>
->> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->> ---
->>  drivers/media/cec/cec-notifier.c | 30 ++++++++++++++++++++++++---
->>  include/media/cec-notifier.h     | 44 ++++++++++++++++++++++++++++++++++++++--
->>  2 files changed, 69 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
->> index 16dffa0..716070a 100644
->> --- a/drivers/media/cec/cec-notifier.c
->> +++ b/drivers/media/cec/cec-notifier.c
->> @@ -21,6 +21,7 @@ struct cec_notifier {
->>  	struct list_head head;
->>  	struct kref kref;
->>  	struct device *dev;
->> +	const char *conn;
->>  	struct cec_adapter *cec_adap;
->>  	void (*callback)(struct cec_adapter *adap, u16 pa);
->>  
->> @@ -30,13 +31,34 @@ struct cec_notifier {
->>  static LIST_HEAD(cec_notifiers);
->>  static DEFINE_MUTEX(cec_notifiers_lock);
->>  
->> -struct cec_notifier *cec_notifier_get(struct device *dev)
->> +struct cec_notifier *cec_notifier_get_byname(const char *name,
->> +					     const char *conn)
->>  {
->>  	struct cec_notifier *n;
->>  
->>  	mutex_lock(&cec_notifiers_lock);
->>  	list_for_each_entry(n, &cec_notifiers, head) {
->> -		if (n->dev == dev) {
->> +		if (!strcmp(dev_name(n->dev), name) &&
->> +		    (!conn || !strcmp(n->conn, conn))) {
->> +			kref_get(&n->kref);
->> +			mutex_unlock(&cec_notifiers_lock);
->> +			return n;
->> +		}
->> +	}
->> +	mutex_unlock(&cec_notifiers_lock);
->> +
->> +	return NULL;
-> 
-> This doesn't seem right. For one it doesn't act like the other cec_notifier_get*
-> functions in that it doesn't make a new notifier if it wasn't found yet in the
-> list.
-> 
-> For another, I think this function shouldn't be here at all. How about calling
-> bus_find_device_by_name(), then use cec_notifier_get_conn()?
+The Chrome OS Embedded Controller can expose a CEC bus, this patch add the
+driver for such feature of the Embedded Controller.
 
-Yes, it's safer and will keep the original cec_notifier_get() behavior.
+This driver is part of the cros-ec MFD and will be add as a sub-device when
+the feature bit is exposed by the EC.
 
-> 
->> +}
->> +EXPORT_SYMBOL_GPL(cec_notifier_get_byname);
->> +
->> +struct cec_notifier *cec_notifier_get_conn(struct device *dev, const char *conn)
->> +{
->> +	struct cec_notifier *n;
->> +
->> +	mutex_lock(&cec_notifiers_lock);
->> +	list_for_each_entry(n, &cec_notifiers, head) {
->> +		if (n->dev == dev &&
->> +		    (!conn || !strcmp(n->conn, conn))) {
->>  			kref_get(&n->kref);
->>  			mutex_unlock(&cec_notifiers_lock);
->>  			return n;
->> @@ -46,6 +68,8 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
->>  	if (!n)
->>  		goto unlock;
->>  	n->dev = dev;
->> +	if (conn)
->> +		n->conn = devm_kstrdup(dev, conn, GFP_KERNEL);
-> 
-> The use of devm_kstrdup worries me. The problem is that when the 'dev' device
-> is removed, this memory is also automatically freed. But the notifier might
-> still have a reference through the CEC driver, so you end up with a n->conn
-> pointer that points to freed memory.
-> 
-> I think it is better to just use kstrdup and kfree it when the last notifier
-> reference is released.
+The controller will only handle a single logical address and handles
+all the messages retries and will only expose Success or Error.
 
-Ok
+The controller will be tied to the HDMI CEC notifier by using the platform
+DMI Data and the i915 device name and connector name.
 
-> 
->>  	n->phys_addr = CEC_PHYS_ADDR_INVALID;
->>  	mutex_init(&n->lock);
->>  	kref_init(&n->kref);
->> @@ -54,7 +78,7 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
->>  	mutex_unlock(&cec_notifiers_lock);
->>  	return n;
->>  }
->> -EXPORT_SYMBOL_GPL(cec_notifier_get);
->> +EXPORT_SYMBOL_GPL(cec_notifier_get_conn);
->>  
->>  static void cec_notifier_release(struct kref *kref)
->>  {
->> diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
->> index cf0add7..70f2974 100644
->> --- a/include/media/cec-notifier.h
->> +++ b/include/media/cec-notifier.h
->> @@ -20,6 +20,37 @@ struct cec_notifier;
->>  #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
->>  
->>  /**
->> + * cec_notifier_get_byname - find a cec_notifier for the given device name
->> + * and connector tuple.
->> + * @name: device name that sends the events.
->> + * @conn: the connector name from which the event occurs
->> + *
->> + * If a notifier for device @name exists, then increase the refcount and
->> + * return that notifier.
->> + *
->> + * If it doesn't exist, return NULL
->> + */
->> +struct cec_notifier *cec_notifier_get_byname(const char *name,
->> +					     const char *conn);
->> +
->> +/**
->> + * cec_notifier_get_conn - find or create a new cec_notifier for the given
->> + * device and connector tuple.
->> + * @dev: device that sends the events.
->> + * @conn: the connector name from which the event occurs
->> + *
->> + * If a notifier for device @dev already exists, then increase the refcount
->> + * and return that notifier.
->> + *
->> + * If it doesn't exist, then allocate a new notifier struct and return a
->> + * pointer to that new struct.
->> + *
->> + * Return NULL if the memory could not be allocated.
->> + */
->> +struct cec_notifier *cec_notifier_get_conn(struct device *dev,
->> +					   const char *conn);
->> +
->> +/**
->>   * cec_notifier_get - find or create a new cec_notifier for the given device.
->>   * @dev: device that sends the events.
->>   *
->> @@ -31,7 +62,10 @@ struct cec_notifier;
->>   *
->>   * Return NULL if the memory could not be allocated.
->>   */
->> -struct cec_notifier *cec_notifier_get(struct device *dev);
->> +static inline struct cec_notifier *cec_notifier_get(struct device *dev)
->> +{
->> +	return cec_notifier_get_conn(dev, NULL);
->> +}
->>  
->>  /**
->>   * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
->> @@ -85,12 +119,18 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
->>  			       struct cec_notifier *notifier);
->>  
->>  #else
->> -static inline struct cec_notifier *cec_notifier_get(struct device *dev)
->> +static inline struct cec_notifier *cec_notifier_get_conn(struct device *dev,
->> +							 const char *conn)
->>  {
->>  	/* A non-NULL pointer is expected on success */
->>  	return (struct cec_notifier *)0xdeadfeed;
->>  }
->>  
->> +static inline struct cec_notifier *cec_notifier_get(struct device *dev)
->> +{
->> +	return cec_notifier_get_conn(dev, NULL);
->> +}
->> +
->>  static inline void cec_notifier_put(struct cec_notifier *n)
->>  {
->>  }
->>
-> 
-> Regards,
-> 
-> 	Hans
-> 
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ drivers/media/platform/Kconfig                   |  11 +
+ drivers/media/platform/Makefile                  |   2 +
+ drivers/media/platform/cros-ec-cec/Makefile      |   1 +
+ drivers/media/platform/cros-ec-cec/cros-ec-cec.c | 336 +++++++++++++++++++++++
+ 4 files changed, 350 insertions(+)
+ create mode 100644 drivers/media/platform/cros-ec-cec/Makefile
+ create mode 100644 drivers/media/platform/cros-ec-cec/cros-ec-cec.c
+
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index c7a1cf8..e55a8ed2 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -546,6 +546,17 @@ menuconfig CEC_PLATFORM_DRIVERS
+ 
+ if CEC_PLATFORM_DRIVERS
+ 
++config VIDEO_CROS_EC_CEC
++	tristate "Chrome OS EC CEC driver"
++	depends on MFD_CROS_EC || COMPILE_TEST
++	select CEC_CORE
++	select CEC_NOTIFIER
++	---help---
++	  If you say yes here you will get support for the
++	  Chrome OS Embedded Controller's CEC.
++	  The CEC bus is present in the HDMI connector and enables communication
++	  between compatible devices.
++
+ config VIDEO_MESON_AO_CEC
+ 	tristate "Amlogic Meson AO CEC driver"
+ 	depends on ARCH_MESON || COMPILE_TEST
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 932515d..830696f 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -92,3 +92,5 @@ obj-$(CONFIG_VIDEO_QCOM_CAMSS)		+= qcom/camss-8x16/
+ obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
+ 
+ obj-y					+= meson/
++
++obj-y					+= cros-ec-cec/
+diff --git a/drivers/media/platform/cros-ec-cec/Makefile b/drivers/media/platform/cros-ec-cec/Makefile
+new file mode 100644
+index 0000000..9ce97f9
+--- /dev/null
++++ b/drivers/media/platform/cros-ec-cec/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_VIDEO_CROS_EC_CEC) += cros-ec-cec.o
+diff --git a/drivers/media/platform/cros-ec-cec/cros-ec-cec.c b/drivers/media/platform/cros-ec-cec/cros-ec-cec.c
+new file mode 100644
+index 0000000..bbff5d6
+--- /dev/null
++++ b/drivers/media/platform/cros-ec-cec/cros-ec-cec.c
+@@ -0,0 +1,336 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * CEC driver for Chrome OS Embedded Controller
++ *
++ * Copyright (c) 2018 BayLibre, SAS
++ * Author: Neil Armstrong <narmstrong@baylibre.com>
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/dmi.h>
++#include <linux/pci.h>
++#include <linux/cec.h>
++#include <linux/slab.h>
++#include <linux/interrupt.h>
++#include <media/cec.h>
++#include <media/cec-notifier.h>
++#include <linux/mfd/cros_ec.h>
++#include <linux/mfd/cros_ec_commands.h>
++
++/*
++ * This handles the CEC interface to the ChromeOS Embedded Controller,
++ * but only a single CEC line tied to a single HDMI output is handled now.
++ */
++
++#define DRV_NAME	"cros-ec-cec"
++
++/**
++ * struct cros_ec_cec - Driver data for EC CEC
++ *
++ * @cros_ec: Pointer to EC device
++ * @notifier: Notifier info for responding to EC events
++ * @adap: CEC adapter
++ * @notify: CEC notifier pointer
++ * @rx_msg: storage for a received message
++ */
++struct cros_ec_cec {
++	struct cros_ec_device *cros_ec;
++	struct notifier_block notifier;
++	struct cec_adapter *adap;
++	struct cec_notifier *notify;
++	struct cec_msg rx_msg;
++};
++
++static void handle_cec_message(struct cros_ec_cec *cros_ec_cec)
++{
++	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
++	uint8_t *cec_message = cros_ec->event_data.data.cec_message;
++	unsigned int len = cros_ec->event_size;
++
++	cros_ec_cec->rx_msg.len = len;
++	memcpy(cros_ec_cec->rx_msg.msg, cec_message, len);
++
++	cec_received_msg(cros_ec_cec->adap, &cros_ec_cec->rx_msg);
++}
++
++static void handle_cec_event(struct cros_ec_cec *cros_ec_cec)
++{
++	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
++	uint32_t events = cros_ec->event_data.data.cec_events;
++
++	if (events & EC_MKBP_CEC_SEND_OK)
++		cec_transmit_attempt_done(cros_ec_cec->adap,
++					  CEC_TX_STATUS_OK);
++
++	/* FW takes care of all retries, tell core to avoid more retries */
++	if (events & EC_MKBP_CEC_SEND_FAILED)
++		cec_transmit_attempt_done(cros_ec_cec->adap,
++					  CEC_TX_STATUS_MAX_RETRIES |
++					  CEC_TX_STATUS_NACK);
++}
++
++static int cros_ec_cec_event(struct notifier_block *nb,
++	unsigned long queued_during_suspend, void *_notify)
++{
++	struct cros_ec_cec *cros_ec_cec;
++	struct cros_ec_device *cros_ec;
++
++	cros_ec_cec = container_of(nb, struct cros_ec_cec, notifier);
++	cros_ec = cros_ec_cec->cros_ec;
++
++	if (cros_ec->event_data.event_type == EC_MKBP_CEC_EVENT) {
++		handle_cec_event(cros_ec_cec);
++		return NOTIFY_OK;
++	}
++
++	if (cros_ec->event_data.event_type == EC_MKBP_EVENT_CEC_MESSAGE) {
++		handle_cec_message(cros_ec_cec);
++		return NOTIFY_OK;
++	}
++
++	return NOTIFY_DONE;
++}
++
++static int cros_ec_cec_set_log_addr(struct cec_adapter *adap, u8 logical_addr)
++{
++	struct cros_ec_cec *cros_ec_cec = adap->priv;
++	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
++	struct {
++		struct cros_ec_command msg;
++		struct ec_params_cec_set data;
++	} __packed msg = {};
++	int ret = 0;
++
++	msg.msg.command = EC_CMD_CEC_SET;
++	msg.msg.outsize = sizeof(msg.data);
++	msg.data.cmd = CEC_CMD_LOGICAL_ADDRESS;
++	msg.data.address = logical_addr;
++
++	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
++	if (ret < 0) {
++		dev_err(cros_ec->dev,
++			"error setting CEC logical address on EC: %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int cros_ec_cec_transmit(struct cec_adapter *adap, u8 attempts,
++				u32 signal_free_time, struct cec_msg *cec_msg)
++{
++	struct cros_ec_cec *cros_ec_cec = adap->priv;
++	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
++	struct {
++		struct cros_ec_command msg;
++		struct ec_params_cec_write data;
++	} __packed msg = {};
++	int ret = 0;
++
++	msg.msg.command = EC_CMD_CEC_WRITE_MSG;
++	msg.msg.outsize = cec_msg->len;
++	memcpy(msg.data.msg, cec_msg->msg, cec_msg->len);
++
++	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
++	if (ret < 0) {
++		dev_err(cros_ec->dev,
++			"error writting CEC msg on EC: %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int cros_ec_cec_adap_enable(struct cec_adapter *adap, bool enable)
++{
++	struct cros_ec_cec *cros_ec_cec = adap->priv;
++	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
++	struct {
++		struct cros_ec_command msg;
++		struct ec_params_cec_set data;
++	} __packed msg;
++	int ret = 0;
++
++	memset(&msg, 0, sizeof(msg));
++	msg.msg.command = EC_CMD_CEC_SET;
++	msg.msg.outsize = sizeof(msg.data);
++	msg.data.cmd = CEC_CMD_ENABLE;
++	msg.data.enable = enable;
++
++	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
++	if (ret < 0) {
++		dev_err(cros_ec->dev,
++			"error %sabling CEC on EC: %d\n",
++			(enable ? "en" : "dis"), ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++static const struct cec_adap_ops cros_ec_cec_ops = {
++	.adap_enable = cros_ec_cec_adap_enable,
++	.adap_log_addr = cros_ec_cec_set_log_addr,
++	.adap_transmit = cros_ec_cec_transmit,
++};
++
++#ifdef CONFIG_PM_SLEEP
++static int cros_ec_cec_suspend(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct cros_ec_cec *cros_ec_cec = dev_get_drvdata(&pdev->dev);
++
++	if (device_may_wakeup(dev))
++		enable_irq_wake(cros_ec_cec->cros_ec->irq);
++
++	return 0;
++}
++
++static int cros_ec_cec_resume(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct cros_ec_cec *cros_ec_cec = dev_get_drvdata(&pdev->dev);
++
++	if (device_may_wakeup(dev))
++		disable_irq_wake(cros_ec_cec->cros_ec->irq);
++
++	return 0;
++}
++#endif
++
++static SIMPLE_DEV_PM_OPS(cros_ec_cec_pm_ops,
++	cros_ec_cec_suspend, cros_ec_cec_resume);
++
++
++struct cec_dmi_match {
++	char *sys_vendor;
++	char *product_name;
++	char *devname;
++	char *conn;
++};
++
++static const struct cec_dmi_match cec_dmi_match_table[] = {
++	/* Google Fizz */
++	{ "Google", "Fizz", "0000:00:02.0", "HDMI-A-1" },
++};
++
++static int cros_ec_cec_get_notifier(struct device *dev,
++				    struct cec_notifier **notify)
++{
++	int i;
++
++	for (i = 0 ; i < ARRAY_SIZE(cec_dmi_match_table) ; ++i) {
++		const struct cec_dmi_match *m = &cec_dmi_match_table[i];
++
++		if (dmi_match(DMI_SYS_VENDOR, m->sys_vendor) &&
++		    dmi_match(DMI_PRODUCT_NAME, m->product_name)) {
++			struct device *d;
++
++			/* Find the device, bail out if not yet registered */
++			d = bus_find_device_by_name(&pci_bus_type, NULL,
++						    m->devname);
++			if (!d)
++				return -EPROBE_DEFER;
++
++			*notify = cec_notifier_get_conn(d, m->conn);
++			return 0;
++		}
++	}
++
++	/* Hardware support must be added in the cec_dmi_match_table */
++	dev_warn(dev, "CEC notifier not configured for this hardware\n");
++
++	return -ENODEV;
++}
++
++static int cros_ec_cec_probe(struct platform_device *pdev)
++{
++	struct cros_ec_dev *ec_dev = dev_get_drvdata(pdev->dev.parent);
++	struct cros_ec_device *cros_ec = ec_dev->ec_dev;
++	struct cros_ec_cec *cros_ec_cec;
++	int ret;
++
++	cros_ec_cec = devm_kzalloc(&pdev->dev, sizeof(*cros_ec_cec),
++				   GFP_KERNEL);
++	if (!cros_ec_cec)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, cros_ec_cec);
++	cros_ec_cec->cros_ec = cros_ec;
++
++	ret = cros_ec_cec_get_notifier(&pdev->dev, &cros_ec_cec->notify);
++	if (ret)
++		return ret;
++
++	ret = device_init_wakeup(&pdev->dev, 1);
++	if (ret) {
++		dev_err(&pdev->dev, "failed to initialize wakeup\n");
++		return ret;
++	}
++
++	cros_ec_cec->adap = cec_allocate_adapter(&cros_ec_cec_ops, cros_ec_cec,
++						 DRV_NAME, CEC_CAP_DEFAULTS, 1);
++	if (IS_ERR(cros_ec_cec->adap))
++		return PTR_ERR(cros_ec_cec->adap);
++
++	/* Get CEC events from the EC. */
++	cros_ec_cec->notifier.notifier_call = cros_ec_cec_event;
++	ret = blocking_notifier_chain_register(&cros_ec->event_notifier,
++					       &cros_ec_cec->notifier);
++	if (ret) {
++		dev_err(&pdev->dev, "failed to register notifier\n");
++		cec_delete_adapter(cros_ec_cec->adap);
++		return ret;
++	}
++
++	ret = cec_register_adapter(cros_ec_cec->adap, &pdev->dev);
++	if (ret < 0) {
++		cec_delete_adapter(cros_ec_cec->adap);
++		return ret;
++	}
++
++	cec_register_cec_notifier(cros_ec_cec->adap, cros_ec_cec->notify);
++
++	return 0;
++}
++
++static int cros_ec_cec_remove(struct platform_device *pdev)
++{
++	struct cros_ec_cec *cros_ec_cec = platform_get_drvdata(pdev);
++	struct device *dev = &pdev->dev;
++	int ret;
++
++	ret = blocking_notifier_chain_unregister(
++			&cros_ec_cec->cros_ec->event_notifier,
++			&cros_ec_cec->notifier);
++
++	if (ret) {
++		dev_err(dev, "failed to unregister notifier\n");
++		return ret;
++	}
++
++	cec_unregister_adapter(cros_ec_cec->adap);
++
++	if (cros_ec_cec->notify)
++		cec_notifier_put(cros_ec_cec->notify);
++
++	return 0;
++}
++
++static struct platform_driver cros_ec_cec_driver = {
++	.probe = cros_ec_cec_probe,
++	.remove  = cros_ec_cec_remove,
++	.driver = {
++		.name = DRV_NAME,
++		.pm = &cros_ec_cec_pm_ops,
++	},
++};
++
++module_platform_driver(cros_ec_cec_driver);
++
++MODULE_DESCRIPTION("CEC driver for Chrome OS ECs");
++MODULE_AUTHOR("Neil Armstrong <narmstrong@baylibre.com>");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRV_NAME);
+-- 
+2.7.4
