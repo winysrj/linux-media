@@ -1,58 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:43867 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751061AbeEQIyK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 04:54:10 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v3 05/12] media: ov5640: Remove redundant register setup
-Date: Thu, 17 May 2018 10:53:58 +0200
-Message-Id: <20180517085405.10104-6-maxime.ripard@bootlin.com>
-In-Reply-To: <20180517085405.10104-1-maxime.ripard@bootlin.com>
-References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:36797 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752059AbeEOH72 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 03:59:28 -0400
+Received: by mail-wr0-f195.google.com with SMTP id p4-v6so14929106wrh.3
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:28 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 00/29] Venus updates
+Date: Tue, 15 May 2018 10:58:30 +0300
+Message-Id: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MIPI divider is also cleared as part of the clock setup sequence, so we
-can remove that code.
+Hello,
 
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
----
- drivers/media/i2c/ov5640.c | 10 ----------
- 1 file changed, 10 deletions(-)
+Here is v2 with following comments addressed:
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index ce9bfaafb675..77864a1a5eb0 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1281,16 +1281,6 @@ static int ov5640_set_stream_dvp(struct ov5640_dev *sensor, bool on)
- 	 */
- 
- 	if (on) {
--		/*
--		 * reset MIPI PCLK/SERCLK divider
--		 *
--		 * SC PLL CONTRL1 0
--		 * - [3..0]:	MIPI PCLK/SERCLK divider
--		 */
--		ret = ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL1, 0x0f, 0);
--		if (ret)
--			return ret;
--
- 		/*
- 		 * configure parallel port control lines polarity
- 		 *
+* reworked venus suspend 3xx and reuse it for 4xx.
+* drop 10/28 patch from v1, i.e. call of session_continue when
+  buffer requirements are not sufficient.
+* fixed kbuild test robot warning in 11/28 by allocating instance
+  variable from heap.
+* spelling typo in 15/28.
+* added Reviewed-by for DT changes.
+* extended 28/28 HEVC support for encoder, now the profile and
+  level are selected properly.
+
+Comments are welcome!
+
+regards,
+Stan
+
+Stanimir Varbanov (29):
+  venus: hfi_msgs: correct pointer increment
+  venus: hfi: preparation to support venus 4xx
+  venus: hfi: update sequence event to handle more properties
+  venus: hfi_cmds: add set_properties for 4xx version
+  venus: hfi: support session continue for 4xx version
+  venus: hfi: handle buffer output2 type as well
+  venus: hfi_venus: add halt AXI support for Venus 4xx
+  venus: hfi_venus: fix suspend function for venus 3xx versions
+  venus: hfi_venus: move set of default properties to core init
+  venus: hfi_venus: add suspend functionality for Venus 4xx
+  venus: venc,vdec: adds clocks needed for venus 4xx
+  venus: add common capability parser
+  venus: helpers: make a commmon function for power_enable
+  venus: core: delete not used flag for buffer mode
+  venus: helpers: rename a helper function and use buffer mode from caps
+  venus: add a helper function to set dynamic buffer mode
+  venus: add helper function to set actual buffer size
+  venus: delete no longer used bufmode flag from instance
+  venus: helpers: add buffer type argument to a helper
+  venus: helpers: add a new helper to set raw format
+  venus: helpers,vdec,venc: add helpers to set work mode and core usage
+  venus: helpers: extend set_num_bufs helper with one more argument
+  venus: helpers: add a helper to return opb buffer sizes
+  venus: vdec: get required input buffers as well
+  venus: vdec: new function for output configuration
+  venus: move frame size calculations in common place
+  venus: implementing multi-stream support
+  venus: add sdm845 compatible and resource data
+  venus: add HEVC codec support
+
+ .../devicetree/bindings/media/qcom,venus.txt       |   1 +
+ drivers/media/platform/qcom/venus/Makefile         |   3 +-
+ drivers/media/platform/qcom/venus/core.c           | 107 ++++
+ drivers/media/platform/qcom/venus/core.h           |  93 ++--
+ drivers/media/platform/qcom/venus/helpers.c        | 558 +++++++++++++++++++--
+ drivers/media/platform/qcom/venus/helpers.h        |  23 +-
+ drivers/media/platform/qcom/venus/hfi.c            |  12 +-
+ drivers/media/platform/qcom/venus/hfi.h            |   9 +
+ drivers/media/platform/qcom/venus/hfi_cmds.c       |  64 ++-
+ drivers/media/platform/qcom/venus/hfi_helper.h     | 112 ++++-
+ drivers/media/platform/qcom/venus/hfi_msgs.c       | 401 +++------------
+ drivers/media/platform/qcom/venus/hfi_parser.c     | 291 +++++++++++
+ drivers/media/platform/qcom/venus/hfi_parser.h     |  45 ++
+ drivers/media/platform/qcom/venus/hfi_venus.c      |  95 +++-
+ drivers/media/platform/qcom/venus/hfi_venus_io.h   |  25 +
+ drivers/media/platform/qcom/venus/vdec.c           | 316 +++++++-----
+ drivers/media/platform/qcom/venus/venc.c           | 211 ++++----
+ 17 files changed, 1689 insertions(+), 677 deletions(-)
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.h
+
 -- 
-2.17.0
+2.14.1
