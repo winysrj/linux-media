@@ -1,67 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:44337 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752781AbeEGP5h (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 11:57:37 -0400
-Received: by mail-wr0-f196.google.com with SMTP id y15-v6so17563177wrg.11
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 08:57:37 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl, Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org, Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH 2/4] media: ov2680: dt: rename gpio to reset and fix polarity
-Date: Mon,  7 May 2018 16:56:53 +0100
-Message-Id: <20180507155655.1555-3-rui.silva@linaro.org>
-In-Reply-To: <20180507155655.1555-1-rui.silva@linaro.org>
-References: <20180507155655.1555-1-rui.silva@linaro.org>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42906 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752044AbeEOIuK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 04:50:10 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] adv7511: fix clearing of the CEC receive buffer
+Message-ID: <042a8899-22de-ed0e-bcbe-26e86b8f989e@xs4all.nl>
+Date: Tue, 15 May 2018 10:50:05 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since the GPIO 3 controls both reset and powerdown, we rename it to reset. Fix
-the polarity of this, as it is a low active signal and not an high active.
+The CEC receive buffer was not always cleared correctly. The
+datasheet was a bit confusing since sometimes it mentioned that the
+bit in CEC register 0x4a had to be toggled, and sometimes it suggested
+it was a 'Clear-on-write' bit. But it really needs to be toggled.
 
-As at it, rename the mipi endpoint in the example to be coherent with the a real
-case that will be introduce for imx7 media driver.
+The patch also enables/disables the CEC irqs after the other irq are
+enabled/disabled instead of doing it before. It may not matter, but it
+feels more logical to do it in that order, and the implementation that
+we (Cisco) have used until now and that is known to be reliable also
+did it in that order.
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/devicetree/bindings/media/i2c/ov2680.txt | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+index d23505a411ee..d4b191c5ac47 100644
+--- a/drivers/media/i2c/adv7511.c
++++ b/drivers/media/i2c/adv7511.c
+@@ -732,8 +732,8 @@ static int adv7511_cec_adap_enable(struct cec_adapter *adap, bool enable)
+ 		/* power up cec section */
+ 		adv7511_cec_write_and_or(sd, 0x4e, 0xfc, 0x01);
+ 		/* legacy mode and clear all rx buffers */
++		adv7511_cec_write(sd, 0x4a, 0x00);
+ 		adv7511_cec_write(sd, 0x4a, 0x07);
+-		adv7511_cec_write(sd, 0x4a, 0);
+ 		adv7511_cec_write_and_or(sd, 0x11, 0xfe, 0); /* initially disable tx */
+ 		/* enabled irqs: */
+ 		/* tx: ready */
+@@ -917,9 +917,6 @@ static void adv7511_set_isr(struct v4l2_subdev *sd, bool enable)
+ 	else if (adv7511_have_hotplug(sd))
+ 		irqs |= MASK_ADV7511_EDID_RDY_INT;
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov2680.txt b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
-index e5d8f130309d..11e925ed9dad 100644
---- a/Documentation/devicetree/bindings/media/i2c/ov2680.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
-@@ -9,8 +9,8 @@ Required Properties:
- - AVDD-supply: Analog voltage supply.
- 
- Optional Properties:
--- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
--		     if any. This is an active high signal to the OV2680.
-+- reset-gpios: reference to the GPIO connected to the powerdown/reset pin,
-+               if any. This is an active low signal to the OV2680.
- 
- The device node must contain one 'port' child node for its digital output
- video port, and this port must have a single endpoint in accordance with
-@@ -30,14 +30,14 @@ Example:
- 		reg = <0x36>;
- 		clocks = <&osc>;
- 		clock-names = "xvclk";
--		powerdown-gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
-+		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
- 		DOVDD-supply = <&sw2_reg>;
- 		DVDD-supply = <&sw2_reg>;
- 		AVDD-supply = <&reg_peri_3p15v>;
- 
- 		port {
--			ov2680_mipi_ep: endpoint {
--				remote-endpoint = <&mipi_sensor_ep>;
-+			ov2680_to_mipi: endpoint {
-+				remote-endpoint = <&mipi_from_sensor>;
- 				clock-lanes = <0>;
- 				data-lanes = <1>;
- 			};
--- 
-2.17.0
+-	adv7511_wr_and_or(sd, 0x95, 0xc0,
+-			  (state->cec_enabled_adap && enable) ? 0x39 : 0x00);
+-
+ 	/*
+ 	 * This i2c write can fail (approx. 1 in 1000 writes). But it
+ 	 * is essential that this register is correct, so retry it
+@@ -933,9 +930,11 @@ static void adv7511_set_isr(struct v4l2_subdev *sd, bool enable)
+ 		irqs_rd = adv7511_rd(sd, 0x94);
+ 	} while (retries-- && irqs_rd != irqs);
+
+-	if (irqs_rd == irqs)
+-		return;
+-	v4l2_err(sd, "Could not set interrupts: hw failure?\n");
++	if (irqs_rd != irqs)
++		v4l2_err(sd, "Could not set interrupts: hw failure?\n");
++
++	adv7511_wr_and_or(sd, 0x95, 0xc0,
++			  (state->cec_enabled_adap && enable) ? 0x39 : 0x00);
+ }
+
+ /* Interrupt handler */
+@@ -982,8 +981,8 @@ static int adv7511_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 			for (i = 0; i < msg.len; i++)
+ 				msg.msg[i] = adv7511_cec_read(sd, i + 0x15);
+
+-			adv7511_cec_write(sd, 0x4a, 1); /* toggle to re-enable rx 1 */
+-			adv7511_cec_write(sd, 0x4a, 0);
++			adv7511_cec_write(sd, 0x4a, 0); /* toggle to re-enable rx 1 */
++			adv7511_cec_write(sd, 0x4a, 1);
+ 			cec_received_msg(state->cec_adap, &msg);
+ 		}
+ 	}
+@@ -1778,6 +1777,7 @@ static void adv7511_init_setup(struct v4l2_subdev *sd)
+
+ 	/* legacy mode */
+ 	adv7511_cec_write(sd, 0x4a, 0x00);
++	adv7511_cec_write(sd, 0x4a, 0x07);
+
+ 	if (cec_clk % 750000 != 0)
+ 		v4l2_err(sd, "%s: cec_clk %d, not multiple of 750 Khz\n",
