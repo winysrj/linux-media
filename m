@@ -1,69 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx-ginzinger.sigmacloud.services ([185.154.235.147]:38819 "EHLO
-        mx-ginzinger.sigmacloud.services" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751981AbeEKGRB (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:54765 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752602AbeEOJyF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 02:17:01 -0400
-From: Franz Melchior <Melchior.Franz@ginzinger.com>
-To: =?utf-8?B?S3J6eXN6dG9mIEhhxYJhc2E=?= <khalasa@piap.pl>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-Date: Fri, 11 May 2018 06:11:04 +0000
-Message-ID: <bb2580e2-c5bf-1a5d-30be-d400692a7520@ginzinger.com>
-References: <m37eobudmo.fsf@t19.piap.pl>
-In-Reply-To: <m37eobudmo.fsf@t19.piap.pl>
-Content-Language: de-DE
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <0A25FFC83A70F44AAF5C0132334A2431@ginzinger.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Tue, 15 May 2018 05:54:05 -0400
+Subject: Re: [PATCH 3/7] s5p-mfc: fix two sparse warnings
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <e504deb8-ce01-1bfb-a430-2b7bd4184cae@samsung.com>
+Date: Tue, 15 May 2018 11:53:57 +0200
+MIME-version: 1.0
+In-reply-to: <20180514131346.15795-4-hverkuil@xs4all.nl>
+Content-type: text/plain; charset="utf-8"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <20180514131346.15795-1-hverkuil@xs4all.nl>
+        <CGME20180514131355epcas2p2c365c6e6832bf16e7d9f2eb5f02d72a4@epcas2p2.samsung.com>
+        <20180514131346.15795-4-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGV5LA0KDQoqIEtyenlzenRvZiBIYcWCYXNhLCAyMDE4LTA1LTEwIDEwOjE5Og0KPiBJJ20gdXNp
-bmcgYW5hbG9nIFBBTCB2aWRlbyBpbiBvbiBHVzUzeHgvNTR4eCBib2FyZHMgKHRocm91Z2ggQURW
-NzE4MA0KPiBjaGlwIGFuZCA4LWJpdCBwYXJhbGxlbCBDU0kgaW5wdXQsIHdpdGggKHByZXN1bWFi
-bHkpIEJULjY1NikuDQpbLi4uXQ0KPiBGaXJzdCwgSSBjYW4ndCBmaW5kIGEgd2F5IHRvIGNoYW5n
-ZSB0byBQQUwgc3RhbmRhcmQuICpzX3N0ZCgpIGRvZXNuJ3QNCj4gcHJvcGFnYXRlIGZyb20gImlw
-dTJfY3NpMSBjYXB0dXJlIiB0aHJvdWdoICJpcHUyX2NzaTFfbXV4IiB0byBhZHY3MTgwLg0KPg0K
-PiBGb3Igbm93IEkgaGF2ZSBqdXN0IGNoYW5nZWQgdGhlIGRlZmF1bHQ6DQo+IC0tLSBhL2RyaXZl
-cnMvbWVkaWEvaTJjL2FkdjcxODAuYw0KPiArKysgYi9kcml2ZXJzL21lZGlhL2kyYy9hZHY3MTgw
-LmMNCj4gQEAgLTEzMjAsNyArMTMyMSw3IEBAIHN0YXRpYyBpbnQgYWR2NzE4MF9wcm9iZShzdHJ1
-Y3QgaTJjX2NsaWVudCAqY2xpZW50LA0KPg0KPiAgICAgICBzdGF0ZS0+aXJxID0gY2xpZW50LT5p
-cnE7DQo+ICAgICAgIG11dGV4X2luaXQoJnN0YXRlLT5tdXRleCk7DQo+IC0gICAgc3RhdGUtPmN1
-cnJfbm9ybSA9IFY0TDJfU1REX05UU0M7DQo+ICsgICAgc3RhdGUtPmN1cnJfbm9ybSA9IFY0TDJf
-U1REX1BBTDsNCj4gICAgICAgaWYgKHN0YXRlLT5jaGlwX2luZm8tPmZsYWdzICYgQURWNzE4MF9G
-TEFHX1JFU0VUX1BPV0VSRUQpDQo+ICAgICAgICAgICBzdGF0ZS0+cG93ZXJlZCA9IHRydWU7DQo+
-ICAgICAgIGVsc2UNCg0KSkZUUjogSSBoYWQgYSBzaW1pbGFyIHByb2JsZW0gb24gYSBib2FyZCwg
-d2hlcmUgdGhlcmUgY2FuIGVpdGhlciBiZSBhbg0KTlRTQyAqb3IqIGEgUEFMIGNhbWVyYSwgc28g
-SSBoYWQgdG8gbWFrZSBpdCBkeW5hbWljLg0KDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlh
-L2kyYy9hZHY3MTgwLmMgYi9kcml2ZXJzL21lZGlhL2kyYy9hZHY3MTgwLmMNCmluZGV4IDNkZjI4
-ZjJmOWIzOC4uZTVlYmViZjdhMWY0IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9tZWRpYS9pMmMvYWR2
-NzE4MC5jDQorKysgYi9kcml2ZXJzL21lZGlhL2kyYy9hZHY3MTgwLmMNCkBAIC0xMzIwLDcgKzEz
-MjAsMjcgQEAgc3RhdGljIGludCBhZHY3MTgwX3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGll
-bnQsDQoNCiAgICAgICAgIHN0YXRlLT5pcnEgPSBjbGllbnQtPmlycTsNCiAgICAgICAgIG11dGV4
-X2luaXQoJnN0YXRlLT5tdXRleCk7DQorDQorICAgICAgIC8qIGNoZWNrIGlmIHZpZGVvIHN0YW5k
-YXJkIChQQUwsIE5UU0MpIGhhcyBhbHJlYWR5IGJlZW4gZGV0ZXJtaW5lZCAqLw0KKyAgICAgICBy
-ZXQgPSBhZHY3MTgwX3JlYWQoc3RhdGUsIEFEVjcxODBfUkVHX1NUQVRVUzEpOw0KKyAgICAgICBp
-ZiAocmV0IDwgMCkgew0KKyAgICAgICAgICAgICAgIHJldCA9IC1FSU87DQorICAgICAgICAgICAg
-ICAgZ290byBlcnJfdW5yZWdpc3Rlcl92cHBfY2xpZW50Ow0KKyAgICAgICB9DQorDQogICAgICAg
-ICBzdGF0ZS0+Y3Vycl9ub3JtID0gVjRMMl9TVERfTlRTQzsNCisgICAgICAgaWYgKHJldCAmIEFE
-VjcxODBfU1RBVFVTMV9JTl9MT0NLKSB7DQorICAgICAgICAgICAgICAgcmV0ID0gKHJldCA+PiA0
-KSAmIDB4MDc7IC8qIGF1dG9kZXRlY3Rpb24gcmVzdWx0IChBRF9SRVNVTFQpICovDQorICAgICAg
-ICAgICAgICAgaWYgKHJldCA+PSAyICYmIHJldCA8PSA0KSB7DQorICAgICAgICAgICAgICAgICAg
-ICAgICB2NGxfaW5mbyhjbGllbnQsICJsb2NrZWQgb24gUEFMIHNpZ25hbFxuIik7DQorICAgICAg
-ICAgICAgICAgICAgICAgICBzdGF0ZS0+Y3Vycl9ub3JtID0gVjRMMl9TVERfUEFMOw0KKyAgICAg
-ICAgICAgICAgIH0gZWxzZSB7DQorICAgICAgICAgICAgICAgICAgICAgICB2NGxfaW5mbyhjbGll
-bnQsICJsb2NrZWQgb24gTlRTQyBzaWduYWxcbiIpOw0KKyAgICAgICAgICAgICAgIH0NCisgICAg
-ICAgfSBlbHNlIHsNCisgICAgICAgICAgICAgICB2NGxfaW5mbyhjbGllbnQsICJubyBzaWduYWws
-IHVzaW5nIE5UU0NcbiIpOw0KKyAgICAgICB9DQorDQogICAgICAgICBpZiAoc3RhdGUtPmNoaXBf
-aW5mby0+ZmxhZ3MgJiBBRFY3MTgwX0ZMQUdfUkVTRVRfUE9XRVJFRCkNCiAgICAgICAgICAgICAg
-ICAgc3RhdGUtPnBvd2VyZWQgPSB0cnVlOw0KICAgICAgICAgZWxzZQ0KbS4NCg0KDQpNZWxjaGlv
-ciBGcmFueiB8IEVudHdpY2tsdW5nIFNvZnR3YXJlDQoNCkdJTlpJTkdFUiBFTEVDVFJPTklDIFNZ
-U1RFTVMgR01CSA0KDQpUZWwuOiArNDMgNzcyMyA1NDIyIDE1Ng0KTWFpbDogbWVsY2hpb3IuZnJh
-bnpAZ2luemluZ2VyLmNvbQ0KV2ViOiB3d3cuZ2luemluZ2VyLmNvbQ0KDQoNCg0KDQoNCg0KDQpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQoNCkdpbnppbmdlciBlbGVj
-dHJvbmljIHN5c3RlbXMgR21iSA0KR2V3ZXJiZWdlYmlldCBQaXJhdGggMTYNCjQ5NTIgV2VuZyBp
-bSBJbm5rcmVpcw0Kd3d3Lmdpbnppbmdlci5jb20NCg0KRmlybWVuYnVjaG51bW1lcjogRk4gMzY0
-OTU4ZA0KRmlybWVuYnVjaGdlcmljaHQ6IFJpZWQgaW0gSW5ua3JlaXMNClVJRC1Oci46IEFUVTY2
-NTIxMDg5DQoNCg==
+On 05/14/2018 03:13 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> media-git/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c: In function 'vidioc_querycap':
+> media-git/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1317:2: warning: 'strncpy' output may be truncated copying 31 bytes from a string of length 31 [-Wstringop-truncation]
+>   strncpy(cap->card, dev->vfd_enc->name, sizeof(cap->card) - 1);
+>   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> media-git/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c: In function 'vidioc_querycap':
+> media-git/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:275:2: warning: 'strncpy' output may be truncated copying 31 bytes from a string of length 31 [-Wstringop-truncation]
+>   strncpy(cap->card, dev->vfd_dec->name, sizeof(cap->card) - 1);
+>   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
