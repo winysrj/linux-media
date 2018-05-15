@@ -1,104 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:37239 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965945AbeEIWrd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 18:47:33 -0400
-Received: by mail-pg0-f65.google.com with SMTP id a13-v6so71638pgu.4
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 15:47:33 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 12/14] media: staging/imx: Rename root notifier
-Date: Wed,  9 May 2018 15:47:01 -0700
-Message-Id: <1525906023-827-13-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:39233 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752604AbeEOH7x (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 03:59:53 -0400
+Received: by mail-wr0-f195.google.com with SMTP id q3-v6so14910864wrj.6
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:52 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 23/29] venus: helpers: add a helper to return opb buffer sizes
+Date: Tue, 15 May 2018 10:58:53 +0300
+Message-Id: <20180515075859.17217-24-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename the imx-media root async notifier from "subdev_notifier" to
-simply "notifier", so as not to confuse it with true subdev notifiers.
-No functional changes.
+Add a helper function to return current output picture buffer size.
+OPB sizes can vary depending on the selected decoder output(s).
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/staging/media/imx/imx-media-dev.c | 14 +++++++-------
- drivers/staging/media/imx/imx-media.h     |  2 +-
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/media/platform/qcom/venus/core.h    | 10 ++++++++++
+ drivers/media/platform/qcom/venus/helpers.c | 15 +++++++++++++++
+ drivers/media/platform/qcom/venus/helpers.h |  1 +
+ 3 files changed, 26 insertions(+)
 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index 4d00ed3..dd4702a 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -29,7 +29,7 @@
- 
- static inline struct imx_media_dev *notifier2dev(struct v4l2_async_notifier *n)
- {
--	return container_of(n, struct imx_media_dev, subdev_notifier);
-+	return container_of(n, struct imx_media_dev, notifier);
+diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+index 255292899204..4d6c05f156c4 100644
+--- a/drivers/media/platform/qcom/venus/core.h
++++ b/drivers/media/platform/qcom/venus/core.h
+@@ -234,6 +234,11 @@ struct venus_buffer {
+  * @num_output_bufs:	holds number of output buffers
+  * @input_buf_size	holds input buffer size
+  * @output_buf_size:	holds output buffer size
++ * @output2_buf_size:	holds secondary decoder output buffer size
++ * @dpb_buftype:	decoded picture buffer type
++ * @dpb_fmt:		decodec picture buffre raw format
++ * @opb_buftype:	output picture buffer type
++ * @opb_fmt:		output picture buffer raw format
+  * @reconfig:	a flag raised by decoder when the stream resolution changed
+  * @reconfig_width:	holds the new width
+  * @reconfig_height:	holds the new height
+@@ -282,6 +287,11 @@ struct venus_inst {
+ 	unsigned int num_output_bufs;
+ 	unsigned int input_buf_size;
+ 	unsigned int output_buf_size;
++	unsigned int output2_buf_size;
++	u32 dpb_buftype;
++	u32 dpb_fmt;
++	u32 opb_buftype;
++	u32 opb_fmt;
+ 	bool reconfig;
+ 	u32 reconfig_width;
+ 	u32 reconfig_height;
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index f04d16953b3a..f0a0fca60c76 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -611,6 +611,21 @@ int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype)
  }
+ EXPORT_SYMBOL_GPL(venus_helper_set_bufsize);
  
- /*
-@@ -113,7 +113,7 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
- 
- 	list_add_tail(&imxasd->list, &imxmd->asd_list);
- 
--	imxmd->subdev_notifier.num_subdevs++;
-+	imxmd->notifier.num_subdevs++;
- 
- 	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
- 		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
-@@ -532,7 +532,7 @@ static int imx_media_probe(struct platform_device *pdev)
- 		goto unreg_dev;
- 	}
- 
--	num_subdevs = imxmd->subdev_notifier.num_subdevs;
-+	num_subdevs = imxmd->notifier.num_subdevs;
- 
- 	/* no subdevs? just bail */
- 	if (num_subdevs == 0) {
-@@ -552,10 +552,10 @@ static int imx_media_probe(struct platform_device *pdev)
- 		subdevs[i++] = &imxasd->asd;
- 
- 	/* prepare the async subdev notifier and register it */
--	imxmd->subdev_notifier.subdevs = subdevs;
--	imxmd->subdev_notifier.ops = &imx_media_subdev_ops;
-+	imxmd->notifier.subdevs = subdevs;
-+	imxmd->notifier.ops = &imx_media_subdev_ops;
- 	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
--					   &imxmd->subdev_notifier);
-+					   &imxmd->notifier);
- 	if (ret) {
- 		v4l2_err(&imxmd->v4l2_dev,
- 			 "v4l2_async_notifier_register failed with %d\n", ret);
-@@ -580,7 +580,7 @@ static int imx_media_remove(struct platform_device *pdev)
- 
- 	v4l2_info(&imxmd->v4l2_dev, "Removing imx-media\n");
- 
--	v4l2_async_notifier_unregister(&imxmd->subdev_notifier);
-+	v4l2_async_notifier_unregister(&imxmd->notifier);
- 	imx_media_remove_internal_subdevs(imxmd);
- 	v4l2_device_unregister(&imxmd->v4l2_dev);
- 	media_device_unregister(&imxmd->md);
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index e945e0e..7edb18a 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -148,7 +148,7 @@ struct imx_media_dev {
- 
- 	/* for async subdev registration */
- 	struct list_head asd_list;
--	struct v4l2_async_notifier subdev_notifier;
-+	struct v4l2_async_notifier notifier;
- };
- 
- enum codespace_sel {
++unsigned int venus_helper_get_opb_size(struct venus_inst *inst)
++{
++	/* the encoder has only one output */
++	if (inst->session_type == VIDC_SESSION_TYPE_ENC)
++		return inst->output_buf_size;
++
++	if (inst->opb_buftype == HFI_BUFFER_OUTPUT)
++		return inst->output_buf_size;
++	else if (inst->opb_buftype == HFI_BUFFER_OUTPUT2)
++		return inst->output2_buf_size;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(venus_helper_get_opb_size);
++
+ static void delayed_process_buf_func(struct work_struct *work)
+ {
+ 	struct venus_buffer *buf, *n;
+diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+index 8ff4bd3ef958..92be45894a69 100644
+--- a/drivers/media/platform/qcom/venus/helpers.h
++++ b/drivers/media/platform/qcom/venus/helpers.h
+@@ -48,6 +48,7 @@ int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
+ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
+ int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
+ int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype);
++unsigned int venus_helper_get_opb_size(struct venus_inst *inst);
+ void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+ void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
+ void venus_helper_init_instance(struct venus_inst *inst);
 -- 
-2.7.4
+2.14.1
