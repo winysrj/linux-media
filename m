@@ -1,204 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bugwerft.de ([46.23.86.59]:52908 "EHLO mail.bugwerft.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964790AbeEYIfm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 04:35:42 -0400
-Subject: Re: [PATCH v2 08/13] ASoC: pxa: remove the dmaengine compat need
-To: Robert Jarzmik <robert.jarzmik@free.fr>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        alsa-devel@alsa-project.org
-References: <20180524070703.11901-1-robert.jarzmik@free.fr>
- <20180524070703.11901-9-robert.jarzmik@free.fr>
-From: Daniel Mack <daniel@zonque.org>
-Message-ID: <5bc2aa06-7939-1ca4-6704-30f307edcda4@zonque.org>
-Date: Fri, 25 May 2018 10:35:37 +0200
+Received: from bombadil.infradead.org ([198.137.202.133]:34752 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750748AbeEOWDc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 18:03:32 -0400
+Date: Tue, 15 May 2018 19:03:14 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
+        sre@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Message-ID: <20180515190314.2909e3be@vento.lan>
+In-Reply-To: <20180515200117.GA21673@amd>
+References: <20170516124519.GA25650@amd>
+        <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
+        <20180316205512.GA6069@amd>
+        <c2a7e1f3-589d-7186-2a85-545bfa1c4536@xs4all.nl>
+        <20180319102354.GA12557@amd>
+        <20180319074715.5b700405@vento.lan>
+        <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
+        <20180319120043.GA20451@amd>
+        <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
+        <20180319095544.7e235a3e@vento.lan>
+        <20180515200117.GA21673@amd>
 MIME-Version: 1.0
-In-Reply-To: <20180524070703.11901-9-robert.jarzmik@free.fr>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, May 24, 2018 09:06 AM, Robert Jarzmik wrote:
-> As the pxa architecture switched towards the dmaengine slave map, the
-> old compatibility mechanism to acquire the dma requestor line number and
-> priority are not needed anymore.
-> 
-> This patch simplifies the dma resource acquisition, using the more
-> generic function dma_request_slave_channel().
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Em Tue, 15 May 2018 22:01:17 +0200
+Pavel Machek <pavel@ucw.cz> escreveu:
 
-Reviewed-by: Daniel Mack <daniel@zonque.org>
+> Hi!
+>=20
+> > So, IMHO, entities should be described as:
+> >=20
+> > 	[entity entity1]
+> > 		name =3D foo
+> > 		function =3D bar =20
+>=20
+> I don't really think windows-style config file is suitable here, as we
+> have more than two "nested blocks".
+>=20
+> What about something like this? Note that I'd only implement the
+> controls mapping for now... but it should be extensible later to setup
+> mappings for the application.
+>=20
+> Best regards,
+> 								Pavel
+>=20
+>=20
+> #modes: 2
+> Driver name: OMAP 3 resizer
 
-> ---
->   sound/arm/pxa2xx-ac97.c     | 14 ++------------
->   sound/arm/pxa2xx-pcm-lib.c  |  6 +++---
->   sound/soc/pxa/pxa2xx-ac97.c | 32 +++++---------------------------
->   sound/soc/pxa/pxa2xx-i2s.c  |  6 ++----
->   4 files changed, 12 insertions(+), 46 deletions(-)
-> 
-> diff --git a/sound/arm/pxa2xx-ac97.c b/sound/arm/pxa2xx-ac97.c
-> index 4bc244c40f80..236a63cdaf9f 100644
-> --- a/sound/arm/pxa2xx-ac97.c
-> +++ b/sound/arm/pxa2xx-ac97.c
-> @@ -63,28 +63,18 @@ static struct snd_ac97_bus_ops pxa2xx_ac97_ops = {
->   	.reset	= pxa2xx_ac97_legacy_reset,
->   };
->   
-> -static struct pxad_param pxa2xx_ac97_pcm_out_req = {
-> -	.prio = PXAD_PRIO_LOWEST,
-> -	.drcmr = 12,
-> -};
-> -
->   static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_out = {
->   	.addr		= __PREG(PCDR),
->   	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-> +	.chan_name	= "pcm_pcm_stereo_out",
->   	.maxburst	= 32,
-> -	.filter_data	= &pxa2xx_ac97_pcm_out_req,
-> -};
-> -
-> -static struct pxad_param pxa2xx_ac97_pcm_in_req = {
-> -	.prio = PXAD_PRIO_LOWEST,
-> -	.drcmr = 11,
->   };
->   
->   static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_in = {
->   	.addr		= __PREG(PCDR),
->   	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-> +	.chan_name	= "pcm_pcm_stereo_in",
->   	.maxburst	= 32,
-> -	.filter_data	= &pxa2xx_ac97_pcm_in_req,
->   };
->   
->   static struct snd_pcm *pxa2xx_ac97_pcm;
-> diff --git a/sound/arm/pxa2xx-pcm-lib.c b/sound/arm/pxa2xx-pcm-lib.c
-> index e8da3b8ee721..dcbe7ecc1835 100644
-> --- a/sound/arm/pxa2xx-pcm-lib.c
-> +++ b/sound/arm/pxa2xx-pcm-lib.c
-> @@ -125,9 +125,9 @@ int __pxa2xx_pcm_open(struct snd_pcm_substream *substream)
->   	if (ret < 0)
->   		return ret;
->   
-> -	return snd_dmaengine_pcm_open_request_chan(substream,
-> -					pxad_filter_fn,
-> -					dma_params->filter_data);
-> +	return snd_dmaengine_pcm_open(
-> +		substream, dma_request_slave_channel(rtd->cpu_dai->dev,
-> +						     dma_params->chan_name));
->   }
->   EXPORT_SYMBOL(__pxa2xx_pcm_open);
->   
-> diff --git a/sound/soc/pxa/pxa2xx-ac97.c b/sound/soc/pxa/pxa2xx-ac97.c
-> index 803818aabee9..1b41c0f2a8fb 100644
-> --- a/sound/soc/pxa/pxa2xx-ac97.c
-> +++ b/sound/soc/pxa/pxa2xx-ac97.c
-> @@ -68,61 +68,39 @@ static struct snd_ac97_bus_ops pxa2xx_ac97_ops = {
->   	.reset	= pxa2xx_ac97_cold_reset,
->   };
->   
-> -static struct pxad_param pxa2xx_ac97_pcm_stereo_in_req = {
-> -	.prio = PXAD_PRIO_LOWEST,
-> -	.drcmr = 11,
-> -};
-> -
->   static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_stereo_in = {
->   	.addr		= __PREG(PCDR),
->   	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-> +	.chan_name	= "pcm_pcm_stereo_in",
->   	.maxburst	= 32,
-> -	.filter_data	= &pxa2xx_ac97_pcm_stereo_in_req,
-> -};
-> -
-> -static struct pxad_param pxa2xx_ac97_pcm_stereo_out_req = {
-> -	.prio = PXAD_PRIO_LOWEST,
-> -	.drcmr = 12,
->   };
->   
->   static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_stereo_out = {
->   	.addr		= __PREG(PCDR),
->   	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-> +	.chan_name	= "pcm_pcm_stereo_out",
->   	.maxburst	= 32,
-> -	.filter_data	= &pxa2xx_ac97_pcm_stereo_out_req,
->   };
->   
-> -static struct pxad_param pxa2xx_ac97_pcm_aux_mono_out_req = {
-> -	.prio = PXAD_PRIO_LOWEST,
-> -	.drcmr = 10,
-> -};
->   static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_aux_mono_out = {
->   	.addr		= __PREG(MODR),
->   	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
-> +	.chan_name	= "pcm_aux_mono_out",
->   	.maxburst	= 16,
-> -	.filter_data	= &pxa2xx_ac97_pcm_aux_mono_out_req,
->   };
->   
-> -static struct pxad_param pxa2xx_ac97_pcm_aux_mono_in_req = {
-> -	.prio = PXAD_PRIO_LOWEST,
-> -	.drcmr = 9,
-> -};
->   static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_aux_mono_in = {
->   	.addr		= __PREG(MODR),
->   	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
-> +	.chan_name	= "pcm_aux_mono_in",
->   	.maxburst	= 16,
-> -	.filter_data	= &pxa2xx_ac97_pcm_aux_mono_in_req,
->   };
->   
-> -static struct pxad_param pxa2xx_ac97_pcm_aux_mic_mono_req = {
-> -	.prio = PXAD_PRIO_LOWEST,
-> -	.drcmr = 8,
-> -};
->   static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_mic_mono_in = {
->   	.addr		= __PREG(MCDR),
->   	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
-> +	.chan_name	= "pcm_aux_mic_mono",
->   	.maxburst	= 16,
-> -	.filter_data	= &pxa2xx_ac97_pcm_aux_mic_mono_req,
->   };
->   
->   static int pxa2xx_ac97_hifi_startup(struct snd_pcm_substream *substream,
-> diff --git a/sound/soc/pxa/pxa2xx-i2s.c b/sound/soc/pxa/pxa2xx-i2s.c
-> index 3fb60baf6eab..e7184de0de04 100644
-> --- a/sound/soc/pxa/pxa2xx-i2s.c
-> +++ b/sound/soc/pxa/pxa2xx-i2s.c
-> @@ -82,20 +82,18 @@ static struct pxa_i2s_port pxa_i2s;
->   static struct clk *clk_i2s;
->   static int clk_ena = 0;
->   
-> -static unsigned long pxa2xx_i2s_pcm_stereo_out_req = 3;
->   static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_out = {
->   	.addr		= __PREG(SADR),
->   	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-> +	.chan_name	= "tx",
->   	.maxburst	= 32,
-> -	.filter_data	= &pxa2xx_i2s_pcm_stereo_out_req,
->   };
->   
-> -static unsigned long pxa2xx_i2s_pcm_stereo_in_req = 2;
->   static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_in = {
->   	.addr		= __PREG(SADR),
->   	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-> +	.chan_name	= "rx",
->   	.maxburst	= 32,
-> -	.filter_data	= &pxa2xx_i2s_pcm_stereo_in_req,
->   };
->   
->   static int pxa2xx_i2s_startup(struct snd_pcm_substream *substream,
-> 
+It probably makes sense to place the driver name before #modes.
+
+=46rom what I understood, the "#foo: <number>" is a tag that makes the
+parser to expect for <number> of "foo".
+
+I would also add a first line at the beginning describing the
+version of the format, just in case we add more stuff that
+would require to change something at the format.
+
+Except for that, it seems ok.
+
+> Mode: 3000x1800
+>  #devices: 2
+>   0: et8ek8 sensor
+>   1: OMAP3 resizer
+>  #controls: 2
+>   0x4321a034: 1
+>   0x4113aab0: 1
+>  #links: 1
+>   link:
+>    entity1: et8ek8 sensor:1
+>    entity2: OMAP3 resizer:0
+>    resolution1: 1024x768
+>    resolution2: 1024x768
+> Mode: 1024x768
+>  #devices: 2
+>   0: et8ek8 sensor
+>   1: OMAP3 resizer
+>  #controls: 2
+>   0x4321a034: 1
+>   0x4113aab0: 1
+>  #links: 1
+>   link:
+>    entity1: et8ek8 sensor:1
+>    entity2: OMAP3 resizer:0
+>    resolution1: 1024x768
+>    resolution2: 1024x768
+>=20
+>=20
+>=20
+
+
+
+Thanks,
+Mauro
