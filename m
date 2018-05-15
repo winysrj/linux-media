@@ -1,160 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:60958 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751301AbeEDOI1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 10:08:27 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:40507 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752471AbeEOH7c (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 03:59:32 -0400
+Received: by mail-wr0-f196.google.com with SMTP id v60-v6so14908904wrc.7
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:32 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v12 1/4] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
-Date: Fri,  4 May 2018 16:08:07 +0200
-Message-Id: <20180504140810.29497-2-maxime.ripard@bootlin.com>
-In-Reply-To: <20180504140810.29497-1-maxime.ripard@bootlin.com>
-References: <20180504140810.29497-1-maxime.ripard@bootlin.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 04/29] venus: hfi_cmds: add set_properties for 4xx version
+Date: Tue, 15 May 2018 10:58:34 +0300
+Message-Id: <20180515075859.17217-5-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up to
-4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
-the hardware implementation.
+Adds set_properties method to handle newer 4xx properties and
+fall-back to 3xx for the rest.
 
-It can operate with an external D-PHY, an internal one or no D-PHY at all
-in some configurations.
-
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- .../devicetree/bindings/media/cdns,csi2rx.txt | 100 ++++++++++++++++++
- 1 file changed, 100 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+ drivers/media/platform/qcom/venus/hfi_cmds.c | 64 +++++++++++++++++++++++++++-
+ 1 file changed, 63 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/cdns,csi2rx.txt b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
-new file mode 100644
-index 000000000000..6b02a0657ad9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
-@@ -0,0 +1,100 @@
-+Cadence MIPI-CSI2 RX controller
-+===============================
+diff --git a/drivers/media/platform/qcom/venus/hfi_cmds.c b/drivers/media/platform/qcom/venus/hfi_cmds.c
+index 1cfeb7743041..6bd287154796 100644
+--- a/drivers/media/platform/qcom/venus/hfi_cmds.c
++++ b/drivers/media/platform/qcom/venus/hfi_cmds.c
+@@ -1166,6 +1166,65 @@ pkt_session_set_property_3xx(struct hfi_session_set_property_pkt *pkt,
+ 	return ret;
+ }
+ 
++static int
++pkt_session_set_property_4xx(struct hfi_session_set_property_pkt *pkt,
++			     void *cookie, u32 ptype, void *pdata)
++{
++	void *prop_data;
++	int ret = 0;
 +
-+The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting up to 4 CSI
-+lanes in input, and 4 different pixel streams in output.
++	if (!pkt || !cookie || !pdata)
++		return -EINVAL;
 +
-+Required properties:
-+  - compatible: must be set to "cdns,csi2rx" and an SoC-specific compatible
-+  - reg: base address and size of the memory mapped region
-+  - clocks: phandles to the clocks driving the controller
-+  - clock-names: must contain:
-+    * sys_clk: main clock
-+    * p_clk: register bank clock
-+    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
-+                         implemented in hardware, between 0 and 3
++	prop_data = &pkt->data[1];
 +
-+Optional properties:
-+  - phys: phandle to the external D-PHY, phy-names must be provided
-+  - phy-names: must contain "dphy", if the implementation uses an
-+               external D-PHY
++	pkt->shdr.hdr.size = sizeof(*pkt);
++	pkt->shdr.hdr.pkt_type = HFI_CMD_SESSION_SET_PROPERTY;
++	pkt->shdr.session_id = hash32_ptr(cookie);
++	pkt->num_properties = 1;
++	pkt->data[0] = ptype;
 +
-+Required subnodes:
-+  - ports: A ports node with one port child node per device input and output
-+           port, in accordance with the video interface bindings defined in
-+           Documentation/devicetree/bindings/media/video-interfaces.txt. The
-+           port nodes are numbered as follows:
++	/*
++	 * Any session set property which is different in 3XX packetization
++	 * should be added as a new case below. All unchanged session set
++	 * properties will be handled in the default case.
++	 */
++	switch (ptype) {
++	case HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL: {
++		struct hfi_buffer_count_actual *in = pdata;
++		struct hfi_buffer_count_actual_4xx *count = prop_data;
 +
-+           Port Description
-+           -----------------------------
-+           0    CSI-2 input
-+           1    Stream 0 output
-+           2    Stream 1 output
-+           3    Stream 2 output
-+           4    Stream 3 output
++		count->count_actual = in->count_actual;
++		count->type = in->type;
++		count->count_min_host = in->count_actual;
++		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*count);
++		break;
++	}
++	case HFI_PROPERTY_PARAM_WORK_MODE: {
++		struct hfi_video_work_mode *in = pdata, *wm = prop_data;
 +
-+           The stream output port nodes are optional if they are not
-+           connected to anything at the hardware level or implemented
-+           in the design.Since there is only one endpoint per port,
-+           the endpoints are not numbered.
++		wm->video_work_mode = in->video_work_mode;
++		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*wm);
++		break;
++	}
++	case HFI_PROPERTY_CONFIG_VIDEOCORES_USAGE: {
++		struct hfi_videocores_usage_type *in = pdata, *cu = prop_data;
 +
++		cu->video_core_enable_mask = in->video_core_enable_mask;
++		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*cu);
++		break;
++	}
++	case HFI_PROPERTY_CONFIG_VENC_MAX_BITRATE:
++		/* not implemented on Venus 4xx */
++		break;
++	default:
++		ret = pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
++		break;
++	}
 +
-+Example:
++	return ret;
++}
 +
-+csi2rx: csi-bridge@0d060000 {
-+	compatible = "cdns,csi2rx";
-+	reg = <0x0d060000 0x1000>;
-+	clocks = <&byteclock>, <&byteclock>
-+		 <&coreclock>, <&coreclock>,
-+		 <&coreclock>, <&coreclock>;
-+	clock-names = "sys_clk", "p_clk",
-+		      "pixel_if0_clk", "pixel_if1_clk",
-+		      "pixel_if2_clk", "pixel_if3_clk";
+ int pkt_session_get_property(struct hfi_session_get_property_pkt *pkt,
+ 			     void *cookie, u32 ptype)
+ {
+@@ -1181,7 +1240,10 @@ int pkt_session_set_property(struct hfi_session_set_property_pkt *pkt,
+ 	if (hfi_ver == HFI_VERSION_1XX)
+ 		return pkt_session_set_property_1x(pkt, cookie, ptype, pdata);
+ 
+-	return pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
++	if (hfi_ver == HFI_VERSION_3XX)
++		return pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
 +
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi2rx_in_sensor: endpoint {
-+				remote-endpoint = <&sensor_out_csi2rx>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			csi2rx_out_grabber0: endpoint {
-+				remote-endpoint = <&grabber0_in_csi2rx>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			csi2rx_out_grabber1: endpoint {
-+				remote-endpoint = <&grabber1_in_csi2rx>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			csi2rx_out_grabber2: endpoint {
-+				remote-endpoint = <&grabber2_in_csi2rx>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			csi2rx_out_grabber3: endpoint {
-+				remote-endpoint = <&grabber3_in_csi2rx>;
-+			};
-+		};
-+	};
-+};
++	return pkt_session_set_property_4xx(pkt, cookie, ptype, pdata);
+ }
+ 
+ void pkt_set_version(enum hfi_version version)
 -- 
-2.17.0
+2.14.1
