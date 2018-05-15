@@ -1,440 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:39737 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751977AbeERNFR (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34427 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752179AbeEOP2k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 09:05:17 -0400
-Received: by mail-wm0-f66.google.com with SMTP id f8-v6so15093661wmc.4
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 06:05:17 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
+        Tue, 15 May 2018 11:28:40 -0400
+Subject: Re: [PATCH v2 3/5] mfd: cros-ec: Introduce CEC commands and events
+ definitions.
+To: Neil Armstrong <narmstrong@baylibre.com>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
         dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 5/5] media: platform: Add Chrome OS EC CEC driver
-Date: Fri, 18 May 2018 15:05:04 +0200
-Message-Id: <1526648704-16873-6-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1526648704-16873-1-git-send-email-narmstrong@baylibre.com>
-References: <1526648704-16873-1-git-send-email-narmstrong@baylibre.com>
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        Stefan Adolfsson <sadolfsson@chromium.org>
+References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
+ <1526395342-15481-4-git-send-email-narmstrong@baylibre.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <774f11b2-d21a-7dd5-4463-bcdff1f6535f@xs4all.nl>
+Date: Tue, 15 May 2018 17:28:32 +0200
+MIME-Version: 1.0
+In-Reply-To: <1526395342-15481-4-git-send-email-narmstrong@baylibre.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Chrome OS Embedded Controller can expose a CEC bus, this patch add the
-driver for such feature of the Embedded Controller.
+On 05/15/2018 04:42 PM, Neil Armstrong wrote:
+> The EC can expose a CEC bus, this patch adds the CEC related definitions
+> needed by the cros-ec-cec driver.
+> Having a 16 byte mkbp event size makes it possible to send CEC
+> messages from the EC to the AP directly inside the mkbp event
+> instead of first doing a notification and then a read.
+> 
+> Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> ---
+>  drivers/platform/chrome/cros_ec_proto.c | 42 +++++++++++++----
+>  include/linux/mfd/cros_ec.h             |  2 +-
+>  include/linux/mfd/cros_ec_commands.h    | 80 +++++++++++++++++++++++++++++++++
+>  3 files changed, 114 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
+> index e7bbdf9..ba47f79 100644
+> --- a/drivers/platform/chrome/cros_ec_proto.c
+> +++ b/drivers/platform/chrome/cros_ec_proto.c
+> @@ -504,29 +504,53 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
+>  }
+>  EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
+>  
+> +static int get_next_event_xfer(struct cros_ec_device *ec_dev,
+> +			       struct cros_ec_command *msg,
+> +			       int version, uint32_t size)
+> +{
+> +	int ret;
+> +
+> +	msg->version = version;
+> +	msg->command = EC_CMD_GET_NEXT_EVENT;
+> +	msg->insize = size;
+> +	msg->outsize = 0;
+> +
+> +	ret = cros_ec_cmd_xfer(ec_dev, msg);
+> +	if (ret > 0) {
+> +		ec_dev->event_size = ret - 1;
+> +		memcpy(&ec_dev->event_data, msg->data, size);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  static int get_next_event(struct cros_ec_device *ec_dev)
+>  {
+>  	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
+>  	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
+> +	static int cmd_version = 1;
+>  	int ret;
+>  
+> +	BUILD_BUG_ON(sizeof(union ec_response_get_next_data_v1) != 16);
 
-This driver is part of the cros-ec MFD and will be add as a sub-device when
-the feature bit is exposed by the EC.
+Use the define instead of hardcoding 16. I'm not really sure why you need this.
+If cec_message uses the right define for the array size (see my comment below),
+then this really can't go wrong, can it?
 
-The controller will only handle a single logical address and handles
-all the messages retries and will only expose Success or Error.
+> +
+>  	if (ec_dev->suspended) {
+>  		dev_dbg(ec_dev->dev, "Device suspended.\n");
+>  		return -EHOSTDOWN;
+>  	}
+>  
+> -	msg->version = 0;
+> -	msg->command = EC_CMD_GET_NEXT_EVENT;
+> -	msg->insize = sizeof(ec_dev->event_data);
+> -	msg->outsize = 0;
+> +	if (cmd_version == 1) {
+> +		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
+> +					  sizeof(ec_dev->event_data));
+> +		if (ret != EC_RES_INVALID_VERSION)
+> +			return ret;
+>  
+> -	ret = cros_ec_cmd_xfer(ec_dev, msg);
+> -	if (ret > 0) {
+> -		ec_dev->event_size = ret - 1;
+> -		memcpy(&ec_dev->event_data, msg->data,
+> -		       sizeof(ec_dev->event_data));
+> +		/* Fallback to version 0 for future send attempts */
+> +		cmd_version = 0;
+>  	}
+>  
+> +	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
+> +				  sizeof(struct ec_response_get_next_event));
+> +
+>  	return ret;
+>  }
+>  
+> diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
+> index 2d4e23c..f3415eb 100644
+> --- a/include/linux/mfd/cros_ec.h
+> +++ b/include/linux/mfd/cros_ec.h
+> @@ -147,7 +147,7 @@ struct cros_ec_device {
+>  	bool mkbp_event_supported;
+>  	struct blocking_notifier_head event_notifier;
+>  
+> -	struct ec_response_get_next_event event_data;
+> +	struct ec_response_get_next_event_v1 event_data;
+>  	int event_size;
+>  	u32 host_event_wake_mask;
+>  };
+> diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
+> index f2edd99..18df466 100644
+> --- a/include/linux/mfd/cros_ec_commands.h
+> +++ b/include/linux/mfd/cros_ec_commands.h
+> @@ -804,6 +804,8 @@ enum ec_feature_code {
+>  	EC_FEATURE_MOTION_SENSE_FIFO = 24,
+>  	/* EC has RTC feature that can be controlled by host commands */
+>  	EC_FEATURE_RTC = 27,
+> +	/* EC supports CEC commands */
+> +	EC_FEATURE_CEC = 35,
+>  };
+>  
+>  #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
+> @@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
+>  	/* EC sent a sysrq command */
+>  	EC_MKBP_EVENT_SYSRQ = 6,
+>  
+> +	/* Notify the AP that something happened on CEC */
+> +	EC_MKBP_CEC_EVENT = 8,
+> +
+> +	/* Send an incoming CEC message to the AP */
+> +	EC_MKBP_EVENT_CEC_MESSAGE = 9,
+> +
+>  	/* Number of MKBP events */
+>  	EC_MKBP_EVENT_COUNT,
+>  };
+> @@ -2093,12 +2101,31 @@ union ec_response_get_next_data {
+>  	uint32_t   sysrq;
+>  } __packed;
+>  
+> +union ec_response_get_next_data_v1 {
+> +	uint8_t   key_matrix[16];
+> +
+> +	/* Unaligned */
+> +	uint32_t  host_event;
+> +
+> +	uint32_t   buttons;
+> +	uint32_t   switches;
+> +	uint32_t   sysrq;
+> +	uint32_t   cec_events;
+> +	uint8_t    cec_message[16];
+> +} __packed;
+> +
+>  struct ec_response_get_next_event {
+>  	uint8_t event_type;
+>  	/* Followed by event data if any */
+>  	union ec_response_get_next_data data;
+>  } __packed;
+>  
+> +struct ec_response_get_next_event_v1 {
+> +	uint8_t event_type;
+> +	/* Followed by event data if any */
+> +	union ec_response_get_next_data_v1 data;
+> +} __packed;
+> +
+>  /* Bit indices for buttons and switches.*/
+>  /* Buttons */
+>  #define EC_MKBP_POWER_BUTTON	0
+> @@ -2828,6 +2855,59 @@ struct ec_params_reboot_ec {
+>  /* Current version of ACPI memory address space */
+>  #define EC_ACPI_MEM_VERSION_CURRENT 1
+>  
+> +/*****************************************************************************/
+> +/*
+> + * HDMI CEC commands
+> + *
+> + * These commands are for sending and receiving message via HDMI CEC
+> + */
+> +#define MAX_CEC_MSG_LEN 16
 
-The controller will be tied to the HDMI CEC notifier by using the platform
-DMI Data and the i915 device name and connector name.
+Hmm, uapi/linux/cec.h already defines CEC_MAX_MSG_SIZE with the same value.
+Perhaps it is better to include linux/cec.h here instead of creating a second
+define?
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
----
- drivers/media/platform/Kconfig                   |  11 +
- drivers/media/platform/Makefile                  |   2 +
- drivers/media/platform/cros-ec-cec/Makefile      |   1 +
- drivers/media/platform/cros-ec-cec/cros-ec-cec.c | 347 +++++++++++++++++++++++
- 4 files changed, 361 insertions(+)
- create mode 100644 drivers/media/platform/cros-ec-cec/Makefile
- create mode 100644 drivers/media/platform/cros-ec-cec/cros-ec-cec.c
+And shouldn't this define also be used for the cec_message array above?
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index c7a1cf8..e55a8ed2 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -546,6 +546,17 @@ menuconfig CEC_PLATFORM_DRIVERS
- 
- if CEC_PLATFORM_DRIVERS
- 
-+config VIDEO_CROS_EC_CEC
-+	tristate "Chrome OS EC CEC driver"
-+	depends on MFD_CROS_EC || COMPILE_TEST
-+	select CEC_CORE
-+	select CEC_NOTIFIER
-+	---help---
-+	  If you say yes here you will get support for the
-+	  Chrome OS Embedded Controller's CEC.
-+	  The CEC bus is present in the HDMI connector and enables communication
-+	  between compatible devices.
-+
- config VIDEO_MESON_AO_CEC
- 	tristate "Amlogic Meson AO CEC driver"
- 	depends on ARCH_MESON || COMPILE_TEST
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 932515d..830696f 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -92,3 +92,5 @@ obj-$(CONFIG_VIDEO_QCOM_CAMSS)		+= qcom/camss-8x16/
- obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
- 
- obj-y					+= meson/
-+
-+obj-y					+= cros-ec-cec/
-diff --git a/drivers/media/platform/cros-ec-cec/Makefile b/drivers/media/platform/cros-ec-cec/Makefile
-new file mode 100644
-index 0000000..9ce97f9
---- /dev/null
-+++ b/drivers/media/platform/cros-ec-cec/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_VIDEO_CROS_EC_CEC) += cros-ec-cec.o
-diff --git a/drivers/media/platform/cros-ec-cec/cros-ec-cec.c b/drivers/media/platform/cros-ec-cec/cros-ec-cec.c
-new file mode 100644
-index 0000000..7e1e275
---- /dev/null
-+++ b/drivers/media/platform/cros-ec-cec/cros-ec-cec.c
-@@ -0,0 +1,347 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * CEC driver for Chrome OS Embedded Controller
-+ *
-+ * Copyright (c) 2018 BayLibre, SAS
-+ * Author: Neil Armstrong <narmstrong@baylibre.com>
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/dmi.h>
-+#include <linux/pci.h>
-+#include <linux/cec.h>
-+#include <linux/slab.h>
-+#include <linux/interrupt.h>
-+#include <media/cec.h>
-+#include <media/cec-notifier.h>
-+#include <linux/mfd/cros_ec.h>
-+#include <linux/mfd/cros_ec_commands.h>
-+
-+#define DRV_NAME	"cros-ec-cec"
-+
-+/**
-+ * struct cros_ec_cec - Driver data for EC CEC
-+ *
-+ * @cros_ec: Pointer to EC device
-+ * @notifier: Notifier info for responding to EC events
-+ * @adap: CEC adapter
-+ * @notify: CEC notifier pointer
-+ * @rx_msg: storage for a received message
-+ */
-+struct cros_ec_cec {
-+	struct cros_ec_device *cros_ec;
-+	struct notifier_block notifier;
-+	struct cec_adapter *adap;
-+	struct cec_notifier *notify;
-+	struct cec_msg rx_msg;
-+};
-+
-+static void handle_cec_message(struct cros_ec_cec *cros_ec_cec)
-+{
-+	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
-+	uint8_t *cec_message = cros_ec->event_data.data.cec_message;
-+	unsigned int len = cros_ec->event_size;
-+
-+	cros_ec_cec->rx_msg.len = len;
-+	memcpy(cros_ec_cec->rx_msg.msg, cec_message, len);
-+
-+	cec_received_msg(cros_ec_cec->adap, &cros_ec_cec->rx_msg);
-+}
-+
-+static void handle_cec_event(struct cros_ec_cec *cros_ec_cec)
-+{
-+	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
-+	uint32_t events = cros_ec->event_data.data.cec_events;
-+
-+	if (events & EC_MKBP_CEC_SEND_OK)
-+		cec_transmit_attempt_done(cros_ec_cec->adap,
-+					  CEC_TX_STATUS_OK);
-+
-+	/* FW takes care of all retries, tell core to avoid more retries */
-+	if (events & EC_MKBP_CEC_SEND_FAILED)
-+		cec_transmit_attempt_done(cros_ec_cec->adap,
-+					  CEC_TX_STATUS_MAX_RETRIES |
-+					  CEC_TX_STATUS_NACK);
-+}
-+
-+static int cros_ec_cec_event(struct notifier_block *nb,
-+			     unsigned long queued_during_suspend,
-+			     void *_notify)
-+{
-+	struct cros_ec_cec *cros_ec_cec;
-+	struct cros_ec_device *cros_ec;
-+
-+	cros_ec_cec = container_of(nb, struct cros_ec_cec, notifier);
-+	cros_ec = cros_ec_cec->cros_ec;
-+
-+	if (cros_ec->event_data.event_type == EC_MKBP_CEC_EVENT) {
-+		handle_cec_event(cros_ec_cec);
-+		return NOTIFY_OK;
-+	}
-+
-+	if (cros_ec->event_data.event_type == EC_MKBP_EVENT_CEC_MESSAGE) {
-+		handle_cec_message(cros_ec_cec);
-+		return NOTIFY_OK;
-+	}
-+
-+	return NOTIFY_DONE;
-+}
-+
-+static int cros_ec_cec_set_log_addr(struct cec_adapter *adap, u8 logical_addr)
-+{
-+	struct cros_ec_cec *cros_ec_cec = adap->priv;
-+	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
-+	struct {
-+		struct cros_ec_command msg;
-+		struct ec_params_cec_set data;
-+	} __packed msg = {};
-+	int ret;
-+
-+	msg.msg.command = EC_CMD_CEC_SET;
-+	msg.msg.outsize = sizeof(msg.data);
-+	msg.data.cmd = CEC_CMD_LOGICAL_ADDRESS;
-+	msg.data.address = logical_addr;
-+
-+	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
-+	if (ret < 0) {
-+		dev_err(cros_ec->dev,
-+			"error setting CEC logical address on EC: %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int cros_ec_cec_transmit(struct cec_adapter *adap, u8 attempts,
-+				u32 signal_free_time, struct cec_msg *cec_msg)
-+{
-+	struct cros_ec_cec *cros_ec_cec = adap->priv;
-+	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
-+	struct {
-+		struct cros_ec_command msg;
-+		struct ec_params_cec_write data;
-+	} __packed msg = {};
-+	int ret;
-+
-+	msg.msg.command = EC_CMD_CEC_WRITE_MSG;
-+	msg.msg.outsize = cec_msg->len;
-+	memcpy(msg.data.msg, cec_msg->msg, cec_msg->len);
-+
-+	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
-+	if (ret < 0) {
-+		dev_err(cros_ec->dev,
-+			"error writing CEC msg on EC: %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int cros_ec_cec_adap_enable(struct cec_adapter *adap, bool enable)
-+{
-+	struct cros_ec_cec *cros_ec_cec = adap->priv;
-+	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
-+	struct {
-+		struct cros_ec_command msg;
-+		struct ec_params_cec_set data;
-+	} __packed msg = {};
-+	int ret;
-+
-+	msg.msg.command = EC_CMD_CEC_SET;
-+	msg.msg.outsize = sizeof(msg.data);
-+	msg.data.cmd = CEC_CMD_ENABLE;
-+	msg.data.enable = enable;
-+
-+	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
-+	if (ret < 0) {
-+		dev_err(cros_ec->dev,
-+			"error %sabling CEC on EC: %d\n",
-+			(enable ? "en" : "dis"), ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct cec_adap_ops cros_ec_cec_ops = {
-+	.adap_enable = cros_ec_cec_adap_enable,
-+	.adap_log_addr = cros_ec_cec_set_log_addr,
-+	.adap_transmit = cros_ec_cec_transmit,
-+};
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int cros_ec_cec_suspend(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct cros_ec_cec *cros_ec_cec = dev_get_drvdata(&pdev->dev);
-+
-+	if (device_may_wakeup(dev))
-+		enable_irq_wake(cros_ec_cec->cros_ec->irq);
-+
-+	return 0;
-+}
-+
-+static int cros_ec_cec_resume(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct cros_ec_cec *cros_ec_cec = dev_get_drvdata(&pdev->dev);
-+
-+	if (device_may_wakeup(dev))
-+		disable_irq_wake(cros_ec_cec->cros_ec->irq);
-+
-+	return 0;
-+}
-+#endif
-+
-+static SIMPLE_DEV_PM_OPS(cros_ec_cec_pm_ops,
-+	cros_ec_cec_suspend, cros_ec_cec_resume);
-+
-+#if IS_ENABLED(CONFIG_PCI) && IS_ENABLED(CONFIG_DMI)
-+
-+/*
-+ * The Firmware only handles a single CEC interface tied to a single HDMI
-+ * connector we specify along with the DRM device name handling the HDMI output
-+ */
-+
-+struct cec_dmi_match {
-+	char *sys_vendor;
-+	char *product_name;
-+	char *devname;
-+	char *conn;
-+};
-+
-+static const struct cec_dmi_match cec_dmi_match_table[] = {
-+	/* Google Fizz */
-+	{ "Google", "Fizz", "0000:00:02.0", "Port B" },
-+};
-+
-+static int cros_ec_cec_get_notifier(struct device *dev,
-+				    struct cec_notifier **notify)
-+{
-+	int i;
-+
-+	for (i = 0 ; i < ARRAY_SIZE(cec_dmi_match_table) ; ++i) {
-+		const struct cec_dmi_match *m = &cec_dmi_match_table[i];
-+
-+		if (dmi_match(DMI_SYS_VENDOR, m->sys_vendor) &&
-+		    dmi_match(DMI_PRODUCT_NAME, m->product_name)) {
-+			struct device *d;
-+
-+			/* Find the device, bail out if not yet registered */
-+			d = bus_find_device_by_name(&pci_bus_type, NULL,
-+						    m->devname);
-+			if (!d)
-+				return -EPROBE_DEFER;
-+
-+			*notify = cec_notifier_get_conn(d, m->conn);
-+			return 0;
-+		}
-+	}
-+
-+	/* Hardware support must be added in the cec_dmi_match_table */
-+	dev_warn(dev, "CEC notifier not configured for this hardware\n");
-+
-+	return -ENODEV;
-+}
-+
-+#else
-+
-+static int cros_ec_cec_get_notifier(struct device *dev,
-+				    struct cec_notifier **notify)
-+{
-+	return -ENODEV;
-+}
-+
-+#endif
-+
-+static int cros_ec_cec_probe(struct platform_device *pdev)
-+{
-+	struct cros_ec_dev *ec_dev = dev_get_drvdata(pdev->dev.parent);
-+	struct cros_ec_device *cros_ec = ec_dev->ec_dev;
-+	struct cros_ec_cec *cros_ec_cec;
-+	int ret;
-+
-+	cros_ec_cec = devm_kzalloc(&pdev->dev, sizeof(*cros_ec_cec),
-+				   GFP_KERNEL);
-+	if (!cros_ec_cec)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, cros_ec_cec);
-+	cros_ec_cec->cros_ec = cros_ec;
-+
-+	ret = cros_ec_cec_get_notifier(&pdev->dev, &cros_ec_cec->notify);
-+	if (ret)
-+		return ret;
-+
-+	ret = device_init_wakeup(&pdev->dev, 1);
-+	if (ret) {
-+		dev_err(&pdev->dev, "failed to initialize wakeup\n");
-+		return ret;
-+	}
-+
-+	cros_ec_cec->adap = cec_allocate_adapter(&cros_ec_cec_ops, cros_ec_cec,
-+						 DRV_NAME, CEC_CAP_DEFAULTS, 1);
-+	if (IS_ERR(cros_ec_cec->adap))
-+		return PTR_ERR(cros_ec_cec->adap);
-+
-+	/* Get CEC events from the EC. */
-+	cros_ec_cec->notifier.notifier_call = cros_ec_cec_event;
-+	ret = blocking_notifier_chain_register(&cros_ec->event_notifier,
-+					       &cros_ec_cec->notifier);
-+	if (ret) {
-+		dev_err(&pdev->dev, "failed to register notifier\n");
-+		cec_delete_adapter(cros_ec_cec->adap);
-+		return ret;
-+	}
-+
-+	ret = cec_register_adapter(cros_ec_cec->adap, &pdev->dev);
-+	if (ret < 0) {
-+		cec_delete_adapter(cros_ec_cec->adap);
-+		return ret;
-+	}
-+
-+	cec_register_cec_notifier(cros_ec_cec->adap, cros_ec_cec->notify);
-+
-+	return 0;
-+}
-+
-+static int cros_ec_cec_remove(struct platform_device *pdev)
-+{
-+	struct cros_ec_cec *cros_ec_cec = platform_get_drvdata(pdev);
-+	struct device *dev = &pdev->dev;
-+	int ret;
-+
-+	ret = blocking_notifier_chain_unregister(
-+			&cros_ec_cec->cros_ec->event_notifier,
-+			&cros_ec_cec->notifier);
-+
-+	if (ret) {
-+		dev_err(dev, "failed to unregister notifier\n");
-+		return ret;
-+	}
-+
-+	cec_unregister_adapter(cros_ec_cec->adap);
-+
-+	if (cros_ec_cec->notify)
-+		cec_notifier_put(cros_ec_cec->notify);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver cros_ec_cec_driver = {
-+	.probe = cros_ec_cec_probe,
-+	.remove  = cros_ec_cec_remove,
-+	.driver = {
-+		.name = DRV_NAME,
-+		.pm = &cros_ec_cec_pm_ops,
-+	},
-+};
-+
-+module_platform_driver(cros_ec_cec_driver);
-+
-+MODULE_DESCRIPTION("CEC driver for Chrome OS ECs");
-+MODULE_AUTHOR("Neil Armstrong <narmstrong@baylibre.com>");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" DRV_NAME);
--- 
-2.7.4
+Regards,
+
+	Hans
+
+> +
+> +/* CEC message from the AP to be written on the CEC bus */
+> +#define EC_CMD_CEC_WRITE_MSG 0x00B8
+> +
+> +/* Message to write to the CEC bus */
+> +struct ec_params_cec_write {
+> +	uint8_t msg[MAX_CEC_MSG_LEN];
+> +} __packed;
+> +
+> +/* Set various CEC parameters */
+> +#define EC_CMD_CEC_SET 0x00BA
+> +
+> +struct ec_params_cec_set {
+> +	uint8_t cmd; /* enum cec_command */
+> +	union {
+> +		uint8_t enable;
+> +		uint8_t address;
+> +	};
+> +} __packed;
+> +
+> +/* Read various CEC parameters */
+> +#define EC_CMD_CEC_GET 0x00BB
+> +
+> +struct ec_params_cec_get {
+> +	uint8_t cmd; /* enum cec_command */
+> +} __packed;
+> +
+> +struct ec_response_cec_get {
+> +	union {
+> +		uint8_t enable;
+> +		uint8_t address;
+> +	};
+> +} __packed;
+> +
+> +enum cec_command {
+> +	/* CEC reading, writing and events enable */
+> +	CEC_CMD_ENABLE,
+> +	/* CEC logical address  */
+> +	CEC_CMD_LOGICAL_ADDRESS,
+> +};
+> +
+> +/* Events from CEC to AP */
+> +enum mkbp_cec_event {
+> +	EC_MKBP_CEC_SEND_OK			= 1 << 0,
+> +	EC_MKBP_CEC_SEND_FAILED			= 1 << 1,
+> +};
+>  
+>  /*****************************************************************************/
+>  /*
+> 
