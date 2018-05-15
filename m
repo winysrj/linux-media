@@ -1,50 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:41101 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932431AbeE3WH4 (ORCPT
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:45926 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752591AbeEOQK7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 18:07:56 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] media: v4l: omap: add VIDEO_V4L2 dependency
-Date: Thu, 31 May 2018 00:07:11 +0200
-Message-Id: <20180530220735.1651221-2-arnd@arndb.de>
-In-Reply-To: <20180530220735.1651221-1-arnd@arndb.de>
-References: <20180530220735.1651221-1-arnd@arndb.de>
+        Tue, 15 May 2018 12:10:59 -0400
+Received: by mail-qt0-f193.google.com with SMTP id j42-v6so946092qtj.12
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 09:10:59 -0700 (PDT)
+Subject: Re: [PATCH v2 1/5] media: cec-notifier: Get notifier by device and
+ connector name
+To: Hans Verkuil <hverkuil@xs4all.nl>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
+ <1526395342-15481-2-git-send-email-narmstrong@baylibre.com>
+ <309fa9b4-0c0b-25af-31a3-84fe5fc00743@xs4all.nl>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <19cebe7d-5217-de5e-c668-ea2926e5ea0f@baylibre.com>
+Date: Tue, 15 May 2018 18:10:53 +0200
+MIME-Version: 1.0
+In-Reply-To: <309fa9b4-0c0b-25af-31a3-84fe5fc00743@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The omap media driver can be built-in while the v4l2 core is a loadable
-module. This is a mistake and leads to link errors:
+On 15/05/2018 17:22, Hans Verkuil wrote:
+> On 05/15/2018 04:42 PM, Neil Armstrong wrote:
+>> In non device-tree world, we can need to get the notifier by the driver
+>> name directly and eventually defer probe if not yet created.
+>>
+>> This patch adds a variant of the get function by using the device name
+>> instead and will not create a notifier if not yet created.
+>>
+>> But the i915 driver exposes at least 2 HDMI connectors, this patch also
+>> adds the possibility to add a connector name tied to the notifier device
+>> to form a tuple and associate different CEC controllers for each HDMI
+>> connectors.
+> 
+> The patch looks good, but I'm curious about this paragraph above.
+> 
+> Was this tested with devices with more than one HDMI output? Or only on
+> laptops with a single physical HDMI output? If there are two or more
+> outputs then I guess it is the HW designer that decides with output gets
+> CEC support?
 
-drivers/media/platform/omap/omap_vout.o: In function `omap_vout_remove':
-omap_vout.c:(.text+0xec): undefined reference to `v4l2_device_unregister'
-omap_vout.c:(.text+0x140): undefined reference to `video_device_release'
-omap_vout.c:(.text+0x150): undefined reference to `video_unregister_device'
-omap_vout.c:(.text+0x15c): undefined reference to `v4l2_ctrl_handler_free'
+The driver exposes 2 HDMI connectors (I suspect one is connected to the USB-C alt mode mux along the DP port),
+and only one connected has the CEC line connected to the Embedded Controller.
 
-An explicit Kconfig dependency on VIDEO_V4L2 avoids the problem.
-I ran into this problem for the first time today during my randconfig
-builds, but could not find what caused it.
+Neil
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/platform/omap/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/platform/omap/Kconfig b/drivers/media/platform/omap/Kconfig
-index d827b6c285a6..4b5e55d41ad4 100644
---- a/drivers/media/platform/omap/Kconfig
-+++ b/drivers/media/platform/omap/Kconfig
-@@ -8,6 +8,7 @@ config VIDEO_OMAP2_VOUT
- 	depends on MMU
- 	depends on FB_OMAP2 || (COMPILE_TEST && FB_OMAP2=n)
- 	depends on ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
-+	depends on VIDEO_V4L2
- 	select VIDEOBUF_GEN
- 	select VIDEOBUF_DMA_CONTIG
- 	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
--- 
-2.9.0
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>
+>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+>> ---
+>>  drivers/media/cec/cec-notifier.c | 11 ++++++++---
+>>  include/media/cec-notifier.h     | 27 ++++++++++++++++++++++++---
+>>  2 files changed, 32 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
+>> index 16dffa0..dd2078b 100644
+>> --- a/drivers/media/cec/cec-notifier.c
+>> +++ b/drivers/media/cec/cec-notifier.c
+>> @@ -21,6 +21,7 @@ struct cec_notifier {
+>>  	struct list_head head;
+>>  	struct kref kref;
+>>  	struct device *dev;
+>> +	const char *conn;
+>>  	struct cec_adapter *cec_adap;
+>>  	void (*callback)(struct cec_adapter *adap, u16 pa);
+>>  
+>> @@ -30,13 +31,14 @@ struct cec_notifier {
+>>  static LIST_HEAD(cec_notifiers);
+>>  static DEFINE_MUTEX(cec_notifiers_lock);
+>>  
+>> -struct cec_notifier *cec_notifier_get(struct device *dev)
+>> +struct cec_notifier *cec_notifier_get_conn(struct device *dev, const char *conn)
+>>  {
+>>  	struct cec_notifier *n;
+>>  
+>>  	mutex_lock(&cec_notifiers_lock);
+>>  	list_for_each_entry(n, &cec_notifiers, head) {
+>> -		if (n->dev == dev) {
+>> +		if (n->dev == dev &&
+>> +		    (!conn || !strcmp(n->conn, conn))) {
+>>  			kref_get(&n->kref);
+>>  			mutex_unlock(&cec_notifiers_lock);
+>>  			return n;
+>> @@ -46,6 +48,8 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
+>>  	if (!n)
+>>  		goto unlock;
+>>  	n->dev = dev;
+>> +	if (conn)
+>> +		n->conn = kstrdup(conn, GFP_KERNEL);
+>>  	n->phys_addr = CEC_PHYS_ADDR_INVALID;
+>>  	mutex_init(&n->lock);
+>>  	kref_init(&n->kref);
+>> @@ -54,7 +58,7 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
+>>  	mutex_unlock(&cec_notifiers_lock);
+>>  	return n;
+>>  }
+>> -EXPORT_SYMBOL_GPL(cec_notifier_get);
+>> +EXPORT_SYMBOL_GPL(cec_notifier_get_conn);
+>>  
+>>  static void cec_notifier_release(struct kref *kref)
+>>  {
+>> @@ -62,6 +66,7 @@ static void cec_notifier_release(struct kref *kref)
+>>  		container_of(kref, struct cec_notifier, kref);
+>>  
+>>  	list_del(&n->head);
+>> +	kfree(n->conn);
+>>  	kfree(n);
+>>  }
+>>  
+>> diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
+>> index cf0add7..814eeef 100644
+>> --- a/include/media/cec-notifier.h
+>> +++ b/include/media/cec-notifier.h
+>> @@ -20,8 +20,10 @@ struct cec_notifier;
+>>  #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
+>>  
+>>  /**
+>> - * cec_notifier_get - find or create a new cec_notifier for the given device.
+>> + * cec_notifier_get_conn - find or create a new cec_notifier for the given
+>> + * device and connector tuple.
+>>   * @dev: device that sends the events.
+>> + * @conn: the connector name from which the event occurs
+>>   *
+>>   * If a notifier for device @dev already exists, then increase the refcount
+>>   * and return that notifier.
+>> @@ -31,7 +33,8 @@ struct cec_notifier;
+>>   *
+>>   * Return NULL if the memory could not be allocated.
+>>   */
+>> -struct cec_notifier *cec_notifier_get(struct device *dev);
+>> +struct cec_notifier *cec_notifier_get_conn(struct device *dev,
+>> +					   const char *conn);
+>>  
+>>  /**
+>>   * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
+>> @@ -85,7 +88,8 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
+>>  			       struct cec_notifier *notifier);
+>>  
+>>  #else
+>> -static inline struct cec_notifier *cec_notifier_get(struct device *dev)
+>> +static inline struct cec_notifier *cec_notifier_get_conn(struct device *dev,
+>> +							 const char *conn)
+>>  {
+>>  	/* A non-NULL pointer is expected on success */
+>>  	return (struct cec_notifier *)0xdeadfeed;
+>> @@ -121,6 +125,23 @@ static inline void cec_register_cec_notifier(struct cec_adapter *adap,
+>>  #endif
+>>  
+>>  /**
+>> + * cec_notifier_get - find or create a new cec_notifier for the given device.
+>> + * @dev: device that sends the events.
+>> + *
+>> + * If a notifier for device @dev already exists, then increase the refcount
+>> + * and return that notifier.
+>> + *
+>> + * If it doesn't exist, then allocate a new notifier struct and return a
+>> + * pointer to that new struct.
+>> + *
+>> + * Return NULL if the memory could not be allocated.
+>> + */
+>> +static inline struct cec_notifier *cec_notifier_get(struct device *dev)
+>> +{
+>> +	return cec_notifier_get_conn(dev, NULL);
+>> +}
+>> +
+>> +/**
+>>   * cec_notifier_phys_addr_invalidate() - set the physical address to INVALID
+>>   *
+>>   * @n: the CEC notifier
+>>
+> 
