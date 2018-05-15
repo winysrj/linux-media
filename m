@@ -1,429 +1,535 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:33821 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751493AbeEDMtO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 08:49:14 -0400
-From: Jan Luebbe <jlu@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Jan Luebbe <jlu@pengutronix.de>, kernel@pengutronix.de,
-        devicetree@vger.kernel.org
-Subject: [PATCH 2/2] media: platform: add driver for TI SCAN921226H video deserializer
-Date: Fri,  4 May 2018 14:49:03 +0200
-Message-Id: <20180504124903.6276-3-jlu@pengutronix.de>
-In-Reply-To: <20180504124903.6276-1-jlu@pengutronix.de>
-References: <20180504124903.6276-1-jlu@pengutronix.de>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:33198 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752130AbeEOHZt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 03:25:49 -0400
+Received: by mail-lf0-f67.google.com with SMTP id h9-v6so20818609lfi.0
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:25:48 -0700 (PDT)
+Subject: Re: [RFC PATCH 5/5] media: platform: Add Chrome OS EC CEC driver
+To: Hans Verkuil <hverkuil@xs4all.nl>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+References: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
+ <1526337639-3568-6-git-send-email-narmstrong@baylibre.com>
+ <f76d52b1-77bc-49dd-483c-43058d38da04@xs4all.nl>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <ee591542-c481-3009-b3b5-725695ea9bfd@baylibre.com>
+Date: Tue, 15 May 2018 09:25:45 +0200
+MIME-Version: 1.0
+In-Reply-To: <f76d52b1-77bc-49dd-483c-43058d38da04@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Although one could have a working setup with a sensor such as the
-MT9V024 connected via LVDS to the deserializer and then via parallel to
-the SoC's camera interface even without having a driver for the
-deserializer, controlling the deserializer's state is needed when
-multiple cameras share the parallel bus. By enabling only one at a time,
-a camera can be selected at runtime using mediactl.
+Hi Hans,
 
-This driver will en-/disable the deserializer via GPIOs as needed
-depending on the media entity link state.
+Thanks for the extensive review.
 
-The current v4l2-compliance doesn't report any warnings or errors.
+On 15/05/2018 08:58, Hans Verkuil wrote:
+> On 05/15/2018 12:40 AM, Neil Armstrong wrote:
+>> The Chrome OS Embedded Controller can expose a CEC bus, this patch add the
+>> driver for such feature of the Embedded Controller.
+>>
+>> This driver is part of the cros-ec MFD and will be add as a sub-device when
+>> the feature bit is exposed by the EC.
+>>
+>> The controller will only handle a single logical address and handles
+>> all the messages retries and will only expose Success or Error.
+>>
+>> When the logical address is invalid, the controller will act as a CEC sniffer
+>> and transfer all messages on the bus.
+> 
+> I did not see any support for this. If this works as you state here, then adding
+> support for CEC_CAP_MONITOR_ALL is highly recommended.
 
-Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
----
- drivers/media/platform/Kconfig       |   7 +
- drivers/media/platform/Makefile      |   2 +
- drivers/media/platform/scan921226h.c | 353 +++++++++++++++++++++++++++
- 3 files changed, 362 insertions(+)
- create mode 100644 drivers/media/platform/scan921226h.c
+Oops, I forgot to remove this phrase, the FW will maybe support it, but it has been
+dropped for the first revision.
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index c7a1cf8a1b01..f321f895d173 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -384,6 +384,13 @@ config VIDEO_STI_DELTA_DRIVER
- 
- endif # VIDEO_STI_DELTA
- 
-+config VIDEO_SCAN921226H
-+	tristate "TI SCAN921226H LVDS deserializer driver"
-+	depends on VIDEO_DEV && VIDEO_V4L2
-+	help
-+	      Enables support for the SCAN921226H LVDS deserializer, which is
-+	      controlled via two GPIOs (output enable and power down).
-+
- config VIDEO_SH_VEU
- 	tristate "SuperH VEU mem2mem video processing driver"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 932515df4477..45f90189a193 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -53,6 +53,8 @@ obj-y					+= stm32/
- 
- obj-y					+= davinci/
- 
-+obj-$(CONFIG_VIDEO_SCAN921226H)		+= scan921226h.o
-+
- obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
- 
- obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
-diff --git a/drivers/media/platform/scan921226h.c b/drivers/media/platform/scan921226h.c
-new file mode 100644
-index 000000000000..59fcd55ceaa2
---- /dev/null
-+++ b/drivers/media/platform/scan921226h.c
-@@ -0,0 +1,353 @@
-+/*
-+ * TI SCAN921226H deserializer driver
-+ *
-+ * Copyright (C) 2018 Pengutronix, Jan Luebbe <kernel@pengutronix.de>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/gpio/consumer.h>
-+#include <linux/of.h>
-+#include <linux/of_graph.h>
-+#include <linux/platform_device.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+
-+struct video_des {
-+	struct v4l2_subdev subdev;
-+	struct media_pad pads[2];
-+	struct v4l2_mbus_framefmt format_mbus;
-+	struct gpio_desc *npwrdn_gpio;
-+	struct gpio_desc *enable_gpio;
-+	struct mutex lock;
-+	int active;
-+};
-+
-+static inline struct video_des *v4l2_subdev_to_video_des(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct video_des, subdev);
-+}
-+
-+static int video_des_link_setup(struct media_entity *entity,
-+				const struct media_pad *local,
-+				const struct media_pad *remote, u32 flags)
-+{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct video_des *vdes = v4l2_subdev_to_video_des(sd);
-+
-+	/*
-+	 * The deserializer state is determined by the enabled source pad link.
-+	 * Enabling or disabling the sink pad link has no effect.
-+	 */
-+	if (local->flags & MEDIA_PAD_FL_SINK)
-+		return 0;
-+
-+	dev_dbg(sd->dev, "link setup '%s':%d->'%s':%d[%d]",
-+		remote->entity->name, remote->index, local->entity->name,
-+		local->index, flags & MEDIA_LNK_FL_ENABLED);
-+
-+	mutex_lock(&vdes->lock);
-+
-+	if (flags & MEDIA_LNK_FL_ENABLED) {
-+		dev_dbg(sd->dev, "going active\n");
-+		gpiod_set_value_cansleep(vdes->npwrdn_gpio, 1);
-+		udelay(10); /* wait for the PLL to lock */
-+		gpiod_set_value_cansleep(vdes->enable_gpio, 1);
-+	} else {
-+		dev_dbg(sd->dev, "going inactive\n");
-+		gpiod_set_value_cansleep(vdes->enable_gpio, 0);
-+		gpiod_set_value_cansleep(vdes->npwrdn_gpio, 0);
-+	}
-+
-+	mutex_unlock(&vdes->lock);
-+
-+	return 0;
-+}
-+
-+static const struct media_entity_operations video_des_ops = {
-+	.link_setup = video_des_link_setup,
-+	.link_validate = v4l2_subdev_link_validate,
-+};
-+
-+static int video_des_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct v4l2_subdev *upstream_sd;
-+	struct media_pad *pad;
-+
-+	pad = media_entity_remote_pad(&sd->entity.pads[0]);
-+	if (!pad) {
-+		dev_err(sd->dev, "Failed to find remote source pad\n");
-+		return -ENOLINK;
-+	}
-+
-+	if (!is_media_entity_v4l2_subdev(pad->entity)) {
-+		dev_err(sd->dev, "Upstream entity is not a v4l2 subdev\n");
-+		return -ENODEV;
-+	}
-+
-+	upstream_sd = media_entity_to_v4l2_subdev(pad->entity);
-+
-+	return v4l2_subdev_call(upstream_sd, video, s_stream, enable);
-+}
-+
-+static const struct v4l2_subdev_video_ops video_des_subdev_video_ops = {
-+	.s_stream = video_des_s_stream,
-+};
-+
-+static struct v4l2_mbus_framefmt *
-+__video_des_get_pad_format(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_pad_config *cfg,
-+			   unsigned int pad, u32 which)
-+{
-+	struct video_des *vdes = v4l2_subdev_to_video_des(sd);
-+
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_format(sd, cfg, pad);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &vdes->format_mbus;
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static int video_des_get_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct video_des *vdes = v4l2_subdev_to_video_des(sd);
-+
-+	mutex_lock(&vdes->lock);
-+
-+	sdformat->format = *__video_des_get_pad_format(sd, cfg, sdformat->pad,
-+						       sdformat->which);
-+
-+	mutex_unlock(&vdes->lock);
-+
-+	return 0;
-+}
-+
-+static int video_des_set_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct video_des *vdes = v4l2_subdev_to_video_des(sd);
-+	struct v4l2_mbus_framefmt *mbusformat;
-+	struct media_pad *pad = &vdes->pads[sdformat->pad];
-+
-+	mbusformat = __video_des_get_pad_format(sd, cfg, sdformat->pad,
-+					    sdformat->which);
-+	if (!mbusformat)
-+		return -EINVAL;
-+
-+	mutex_lock(&vdes->lock);
-+
-+	/* Source pad mirrors sink pad, no limitations on sink pads */
-+	if ((pad->flags & MEDIA_PAD_FL_SOURCE)) {
-+		sdformat->format = vdes->format_mbus;
-+	} else {
-+		/* any sizes are allowed */
-+		v4l_bound_align_image(
-+			&sdformat->format.width, 1, UINT_MAX-1, 0,
-+			&sdformat->format.height, 1, UINT_MAX-1, 0,
-+			0);
-+		if (sdformat->format.field == V4L2_FIELD_ANY)
-+			sdformat->format.field = V4L2_FIELD_NONE;
-+		switch (sdformat->format.code) {
-+		/* only 8 bit formats are supported */
-+		case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
-+		case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
-+		case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
-+		case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
-+		case MEDIA_BUS_FMT_BGR565_2X8_BE:
-+		case MEDIA_BUS_FMT_BGR565_2X8_LE:
-+		case MEDIA_BUS_FMT_RGB565_2X8_BE:
-+		case MEDIA_BUS_FMT_RGB565_2X8_LE:
-+		case MEDIA_BUS_FMT_Y8_1X8:
-+		case MEDIA_BUS_FMT_UV8_1X8:
-+		case MEDIA_BUS_FMT_UYVY8_1_5X8:
-+		case MEDIA_BUS_FMT_VYUY8_1_5X8:
-+		case MEDIA_BUS_FMT_YUYV8_1_5X8:
-+		case MEDIA_BUS_FMT_YVYU8_1_5X8:
-+		case MEDIA_BUS_FMT_UYVY8_2X8:
-+		case MEDIA_BUS_FMT_VYUY8_2X8:
-+		case MEDIA_BUS_FMT_YUYV8_2X8:
-+		case MEDIA_BUS_FMT_YVYU8_2X8:
-+		case MEDIA_BUS_FMT_SBGGR8_1X8:
-+		case MEDIA_BUS_FMT_SGBRG8_1X8:
-+		case MEDIA_BUS_FMT_SGRBG8_1X8:
-+		case MEDIA_BUS_FMT_SRGGB8_1X8:
-+		case MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8:
-+		case MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8:
-+		case MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8:
-+		case MEDIA_BUS_FMT_SRGGB10_ALAW8_1X8:
-+		case MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8:
-+		case MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8:
-+		case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
-+		case MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8:
-+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
-+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE:
-+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE:
-+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE:
-+		case MEDIA_BUS_FMT_JPEG_1X8:
-+		case MEDIA_BUS_FMT_S5C_UYVY_JPEG_1X8:
-+			break;
-+		default:
-+			sdformat->format.code = MEDIA_BUS_FMT_Y8_1X8;
-+		}
-+	}
-+
-+	*mbusformat = sdformat->format;
-+
-+	mutex_unlock(&vdes->lock);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_pad_ops video_des_pad_ops = {
-+	.get_fmt = video_des_get_format,
-+	.set_fmt = video_des_set_format,
-+};
-+
-+static int video_des_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct video_des *vdes = v4l2_subdev_to_video_des(sd);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	mutex_lock(&vdes->lock);
-+
-+	format = v4l2_subdev_get_try_format(sd, fh->pad, 0);
-+	*format = vdes->format_mbus;
-+	format = v4l2_subdev_get_try_format(sd, fh->pad, 1);
-+	*format = vdes->format_mbus;
-+
-+	mutex_unlock(&vdes->lock);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops video_des_subdev_internal_ops = {
-+	.open = video_des_open,
-+};
-+
-+static const struct v4l2_subdev_ops video_des_subdev_ops = {
-+	.pad = &video_des_pad_ops,
-+	.video = &video_des_subdev_video_ops,
-+};
-+
-+static int video_des_probe(struct platform_device *pdev)
-+{
-+	struct device_node *np = pdev->dev.of_node;
-+	struct device *dev = &pdev->dev;
-+	struct device_node *ep;
-+	struct video_des *vdes;
-+	unsigned int num_pads = 0;
-+	int ret;
-+
-+	vdes = devm_kzalloc(dev, sizeof(*vdes), GFP_KERNEL);
-+	if (!vdes)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, vdes);
-+
-+	v4l2_subdev_init(&vdes->subdev, &video_des_subdev_ops);
-+	snprintf(vdes->subdev.name, sizeof(vdes->subdev.name), "%s", np->name);
-+	vdes->subdev.internal_ops = &video_des_subdev_internal_ops;
-+	vdes->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	vdes->subdev.dev = dev;
-+
-+	/*
-+	 * We only have two ports: sink and source
-+	 */
-+	for_each_endpoint_of_node(np, ep) {
-+		struct of_endpoint endpoint;
-+
-+		of_graph_parse_endpoint(ep, &endpoint);
-+		num_pads = max(num_pads, endpoint.port + 1);
-+	}
-+
-+	if (num_pads != 2) {
-+		dev_err(dev, "Wrong number of ports %d (!= 2)\n", num_pads);
-+		return -EINVAL;
-+	}
-+
-+	vdes->npwrdn_gpio = devm_gpiod_get(dev, "npwrdn", GPIOD_OUT_LOW);
-+	if (IS_ERR(vdes->npwrdn_gpio)) {
-+		ret = PTR_ERR(vdes->npwrdn_gpio);
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(dev, "Failed to get npwrdn GPIO: %d\n", ret);
-+		return ret;
-+	}
-+
-+	vdes->enable_gpio = devm_gpiod_get(dev, "enable", GPIOD_OUT_LOW);
-+	if (IS_ERR(vdes->enable_gpio)) {
-+		ret = PTR_ERR(vdes->enable_gpio);
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(dev, "Failed to get enable GPIO: %d\n", ret);
-+		return ret;
-+	}
-+
-+	mutex_init(&vdes->lock);
-+
-+	vdes->pads[0].flags = MEDIA_PAD_FL_SINK;
-+	vdes->pads[1].flags = MEDIA_PAD_FL_SOURCE;
-+
-+	vdes->format_mbus.width = 1;
-+	vdes->format_mbus.height = 1;
-+	vdes->format_mbus.code = MEDIA_BUS_FMT_Y8_1X8;
-+	vdes->format_mbus.field = V4L2_FIELD_NONE;
-+
-+	vdes->subdev.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
-+	ret = media_entity_pads_init(&vdes->subdev.entity, 2,
-+				     vdes->pads);
-+	if (ret < 0)
-+		return ret;
-+
-+	vdes->subdev.entity.ops = &video_des_ops;
-+
-+	return v4l2_async_register_subdev(&vdes->subdev);
-+}
-+
-+static int video_des_remove(struct platform_device *pdev)
-+{
-+	struct video_des *vdes = platform_get_drvdata(pdev);
-+	struct v4l2_subdev *sd = &vdes->subdev;
-+
-+	v4l2_async_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id video_des_dt_ids[] = {
-+	{ .compatible = "ti,scan921226h", },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, video_des_dt_ids);
-+
-+static struct platform_driver video_des_driver = {
-+	.probe		= video_des_probe,
-+	.remove		= video_des_remove,
-+	.driver		= {
-+		.of_match_table = video_des_dt_ids,
-+		.name = "scan921226h",
-+	},
-+};
-+
-+module_platform_driver(video_des_driver);
-+
-+MODULE_DESCRIPTION("SCAN921226H video deserializer");
-+MODULE_AUTHOR("Jan Luebbe, Pengutronix");
-+MODULE_LICENSE("GPL");
--- 
-2.17.0
+> 
+>>
+>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+>> ---
+>>  drivers/media/platform/Kconfig               |  11 +
+>>  drivers/media/platform/Makefile              |   2 +
+>>  drivers/media/platform/cros-ec/Makefile      |   1 +
+>>  drivers/media/platform/cros-ec/cros-ec-cec.c | 331 +++++++++++++++++++++++++++
+>>  4 files changed, 345 insertions(+)
+>>  create mode 100644 drivers/media/platform/cros-ec/Makefile
+>>  create mode 100644 drivers/media/platform/cros-ec/cros-ec-cec.c
+> 
+> Shouldn't the directory be called cros-ec-cec?
+> 
+>>
+>> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+>> index c7a1cf8..e55a8ed2 100644
+>> --- a/drivers/media/platform/Kconfig
+>> +++ b/drivers/media/platform/Kconfig
+>> @@ -546,6 +546,17 @@ menuconfig CEC_PLATFORM_DRIVERS
+>>  
+>>  if CEC_PLATFORM_DRIVERS
+>>  
+>> +config VIDEO_CROS_EC_CEC
+>> +	tristate "Chrome OS EC CEC driver"
+>> +	depends on MFD_CROS_EC || COMPILE_TEST
+>> +	select CEC_CORE
+>> +	select CEC_NOTIFIER
+>> +	---help---
+>> +	  If you say yes here you will get support for the
+>> +	  Chrome OS Embedded Controller's CEC.
+>> +	  The CEC bus is present in the HDMI connector and enables communication
+>> +	  between compatible devices.
+>> +
+>>  config VIDEO_MESON_AO_CEC
+>>  	tristate "Amlogic Meson AO CEC driver"
+>>  	depends on ARCH_MESON || COMPILE_TEST
+>> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+>> index 932515d..0e0582e 100644
+>> --- a/drivers/media/platform/Makefile
+>> +++ b/drivers/media/platform/Makefile
+>> @@ -92,3 +92,5 @@ obj-$(CONFIG_VIDEO_QCOM_CAMSS)		+= qcom/camss-8x16/
+>>  obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
+>>  
+>>  obj-y					+= meson/
+>> +
+>> +obj-y					+= cros-ec/
+>> diff --git a/drivers/media/platform/cros-ec/Makefile b/drivers/media/platform/cros-ec/Makefile
+>> new file mode 100644
+>> index 0000000..9ce97f9
+>> --- /dev/null
+>> +++ b/drivers/media/platform/cros-ec/Makefile
+>> @@ -0,0 +1 @@
+>> +obj-$(CONFIG_VIDEO_CROS_EC_CEC) += cros-ec-cec.o
+>> diff --git a/drivers/media/platform/cros-ec/cros-ec-cec.c b/drivers/media/platform/cros-ec/cros-ec-cec.c
+>> new file mode 100644
+>> index 0000000..fea90da
+>> --- /dev/null
+>> +++ b/drivers/media/platform/cros-ec/cros-ec-cec.c
+>> @@ -0,0 +1,331 @@
+>> +// SPDX-License-Identifier: GPL-2.0+
+>> +/*
+>> + * CEC driver for Chrome OS Embedded Controller
+>> + *
+>> + * Copyright (c) 2018 BayLibre, SAS
+>> + * Author: Neil Armstrong <narmstrong@baylibre.com>
+>> + */
+>> +
+>> +#include <linux/kernel.h>
+>> +#include <linux/module.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/dmi.h>
+>> +#include <linux/cec.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/interrupt.h>
+>> +#include <media/cec.h>
+>> +#include <media/cec-notifier.h>
+>> +#include <linux/mfd/cros_ec.h>
+>> +#include <linux/mfd/cros_ec_commands.h>
+>> +
+>> +#define DRV_NAME	"cros-ec-cec"
+>> +
+>> +/**
+>> + * struct cros_ec_cec - Driver data for EC CEC
+>> + *
+>> + * @cros_ec: Pointer to EC device
+>> + * @notifier: Notifier info for responding to EC events
+>> + * @adap: CEC adapter
+>> + * @notify: CEC notifier pointer
+>> + * @rc_msg: storage for a received message
+>> + */
+>> +struct cros_ec_cec {
+>> +	struct cros_ec_device *cros_ec;
+>> +	struct notifier_block notifier;
+>> +	struct cec_adapter *adap;
+>> +	struct cec_notifier *notify;
+>> +	struct cec_msg rx_msg;
+>> +};
+>> +
+>> +static void handle_cec_message(struct cros_ec_cec *cros_ec_cec)
+>> +{
+>> +	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
+>> +	uint8_t *cec_message = cros_ec->event_data.data.cec_message;
+>> +	unsigned int len = cros_ec->event_size;
+>> +
+>> +	cros_ec_cec->rx_msg.len = len;
+> 
+> How robust is the underlying code and hardware? What happens if a
+> CEC message with more than 16 bytes is received?
+> 
+> Hard to test unless you have an RPi3 set up as a CEC debugger. See
+> last section in https://hverkuil.home.xs4all.nl/cec-status.txt.
+> 
+> Since you worked with CEC for a while now I recommend you set up such
+> a system. It's cheap and very useful.
+
+I will definitely setup this kind of system, I tried using am Amlogic SoC, but it really can't monitor the bus....
+
+But I also have an ST STM32F0 Development board with double HDMI connector to develop CEC, I'll maybe try to use it for that purpose.
+
+> 
+>> +	memcpy(cros_ec_cec->rx_msg.msg, cec_message, len);
+>> +
+>> +	cec_received_msg(cros_ec_cec->adap, &cros_ec_cec->rx_msg);
+>> +}
+>> +
+>> +static void handle_cec_event(struct cros_ec_cec *cros_ec_cec)
+>> +{
+>> +	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
+>> +	uint32_t events = cros_ec->event_data.data.cec_events;
+>> +
+>> +	if (events & EC_MKBP_CEC_SEND_OK)
+>> +		cec_transmit_attempt_done(cros_ec_cec->adap,
+>> +					  CEC_TX_STATUS_OK);
+>> +
+>> +	if (events & EC_MKBP_CEC_SEND_FAILED)
+>> +		cec_transmit_attempt_done(cros_ec_cec->adap,
+>> +					  CEC_TX_STATUS_ERROR);
+> 
+> You said above that the HW takes care of all the message retries.
+> If that's the case, then you need to use cec_transmit_done here
+> and pass in status CEC_TX_STATUS_MAX_RETRIES | CEC_TX_STATUS_NACK.
+> The MAX_RETRIES flag tells the cec core that it shouldn't attempt
+> to retry the message because the HW already did that.
+> 
+> NACK is better than ERROR if the hardware supports only an OK/FAIL
+> result.
+
+Ok, we were unsure about this, thanks for the clarification.
+
+> 
+>> +}
+>> +
+>> +static int cros_ec_cec_event(struct notifier_block *nb,
+>> +	unsigned long queued_during_suspend, void *_notify)
+>> +{
+>> +	struct cros_ec_cec *cros_ec_cec;
+>> +	struct cros_ec_device *cros_ec;
+>> +
+>> +	cros_ec_cec = container_of(nb, struct cros_ec_cec, notifier);
+>> +	cros_ec = cros_ec_cec->cros_ec;
+>> +
+>> +	if (cros_ec->event_data.event_type == EC_MKBP_CEC_EVENT) {
+>> +		handle_cec_event(cros_ec_cec);
+>> +		return NOTIFY_OK;
+>> +	}
+>> +
+>> +	if (cros_ec->event_data.event_type == EC_MKBP_EVENT_CEC_MESSAGE) {
+>> +		handle_cec_message(cros_ec_cec);
+>> +		return NOTIFY_OK;
+>> +	}
+>> +
+>> +	return NOTIFY_DONE;
+>> +}
+>> +
+>> +static int cros_ec_cec_set_log_addr(struct cec_adapter *adap, u8 logical_addr)
+>> +{
+>> +	struct cros_ec_cec *cros_ec_cec = adap->priv;
+>> +	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
+>> +	struct {
+>> +		struct cros_ec_command msg;
+>> +		struct ec_params_cec_set data;
+>> +	} __packed msg;
+> 
+> Just say: ... msg = {};
+> 
+>> +	int ret = 0;
+>> +
+>> +	if (logical_addr == CEC_LOG_ADDR_INVALID)
+>> +		return 0;
+> 
+> This looks weird. If I had configured a LA before, then this should unconfigure
+> it. But it just keeps the existing LA, so any poll messages to us will still
+> be Acked. Or am I missing something?
+> 
+>> +
+>> +	memset(&msg, 0, sizeof(msg));
+> 
+> and you can drop this memset.
+
+I always forget this trick.
+
+> 
+>> +	msg.msg.command = EC_CMD_CEC_SET;
+>> +	msg.msg.outsize = sizeof(msg.data);
+>> +	msg.data.cmd = CEC_CMD_LOGICAL_ADDRESS;
+>> +	msg.data.address = logical_addr;
+>> +
+>> +	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
+>> +	if (ret < 0) {
+>> +		dev_err(cros_ec->dev,
+>> +			"error setting CEC logical address on EC: %d\n", ret);
+>> +		return ret;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int cros_ec_cec_transmit(struct cec_adapter *adap, u8 attempts,
+>> +				u32 signal_free_time, struct cec_msg *cec_msg)
+>> +{
+>> +	struct cros_ec_cec *cros_ec_cec = adap->priv;
+>> +	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
+>> +	struct {
+>> +		struct cros_ec_command msg;
+>> +		struct ec_params_cec_write data;
+>> +	} __packed msg;
+> 
+> ... msg = {};
+> 
+>> +	int ret = 0;
+>> +
+>> +	if (cec_msg->len > MAX_CEC_MSG_LEN)
+>> +		return -EINVAL;
+> 
+> No need, can never happen.
+
+Forgor to remove it, the API changed in the meantime, now it can never happen !
+
+> 
+>> +
+>> +	memset(&msg, 0, sizeof(msg));
+> 
+> and drop this.
+> 
+>> +	msg.msg.command = EC_CMD_CEC_WRITE_MSG;
+>> +	msg.msg.outsize = cec_msg->len;
+>> +	memcpy(msg.data.msg, cec_msg->msg, cec_msg->len);
+>> +
+>> +	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
+>> +	if (ret < 0) {
+>> +		dev_err(cros_ec->dev,
+>> +			"error writting CEC msg on EC: %d\n", ret);
+>> +		return ret;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int cros_ec_cec_adap_enable(struct cec_adapter *adap, bool enable)
+>> +{
+>> +	struct cros_ec_cec *cros_ec_cec = adap->priv;
+>> +	struct cros_ec_device *cros_ec = cros_ec_cec->cros_ec;
+>> +	struct {
+>> +		struct cros_ec_command msg;
+>> +		struct ec_params_cec_set data;
+>> +	} __packed msg;
+>> +	int ret = 0;
+>> +
+>> +	memset(&msg, 0, sizeof(msg));
+>> +	msg.msg.command = EC_CMD_CEC_SET;
+>> +	msg.msg.outsize = sizeof(msg.data);
+>> +	msg.data.cmd = CEC_CMD_ENABLE;
+>> +	msg.data.enable = enable;
+>> +
+>> +	ret = cros_ec_cmd_xfer_status(cros_ec, &msg.msg);
+>> +	if (ret < 0) {
+>> +		dev_err(cros_ec->dev,
+>> +			"error %sabling CEC on EC: %d\n",
+>> +			(enable ? "en" : "dis"), ret);
+>> +		return ret;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct cec_adap_ops cros_ec_cec_ops = {
+>> +	.adap_enable = cros_ec_cec_adap_enable,
+>> +	.adap_log_addr = cros_ec_cec_set_log_addr,
+>> +	.adap_transmit = cros_ec_cec_transmit,
+>> +};
+>> +
+>> +#ifdef CONFIG_PM_SLEEP
+>> +static int cros_ec_cec_suspend(struct device *dev)
+>> +{
+>> +	struct platform_device *pdev = to_platform_device(dev);
+>> +	struct cros_ec_cec *cros_ec_cec = dev_get_drvdata(&pdev->dev);
+>> +
+>> +	if (device_may_wakeup(dev))
+>> +		enable_irq_wake(cros_ec_cec->cros_ec->irq);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int cros_ec_cec_resume(struct device *dev)
+>> +{
+>> +	struct platform_device *pdev = to_platform_device(dev);
+>> +	struct cros_ec_cec *cros_ec_cec = dev_get_drvdata(&pdev->dev);
+>> +
+>> +	if (device_may_wakeup(dev))
+>> +		disable_irq_wake(cros_ec_cec->cros_ec->irq);
+>> +
+>> +	return 0;
+>> +}
+>> +#endif
+>> +
+>> +static SIMPLE_DEV_PM_OPS(cros_ec_cec_pm_ops,
+>> +	cros_ec_cec_suspend, cros_ec_cec_resume);
+>> +
+>> +
+>> +struct cec_dmi_match {
+>> +	char *sys_vendor;
+>> +	char *product_name;
+>> +	char *devname;
+>> +	char *conn;
+>> +};
+>> +
+>> +static const struct cec_dmi_match cec_dmi_match_table[] = {
+>> +	/* Google Fizz */
+>> +	{ "Google", "Fizz", "0000:00:02.0", "HDMI-A-1" },
+>> +};
+>> +
+>> +static int cros_ec_cec_get_notifier(struct cec_notifier **notify)
+>> +{
+>> +	int i;
+>> +
+>> +	for (i = 0 ; i < ARRAY_SIZE(cec_dmi_match_table) ; ++i) {
+>> +		const struct cec_dmi_match *m = &cec_dmi_match_table[i];
+>> +
+>> +		if (dmi_match(DMI_SYS_VENDOR, m->sys_vendor) &&
+>> +		    dmi_match(DMI_PRODUCT_NAME, m->product_name)) {
+>> +			*notify = cec_notifier_get_byname(m->devname, m->conn);
+> 
+> See my comments for patch 2/5.
+
+I will change with you comment, looks way cleaner.
+
+> 
+>> +			return 0;
+>> +		}
+>> +	}
+>> +
+>> +	return -EINVAL;
+>> +}
+>> +
+>> +static int cros_ec_cec_probe(struct platform_device *pdev)
+>> +{
+>> +	struct cros_ec_dev *ec_dev = dev_get_drvdata(pdev->dev.parent);
+>> +	struct cros_ec_device *cros_ec = ec_dev->ec_dev;
+>> +	struct cros_ec_cec *cros_ec_cec;
+>> +	unsigned int cec_caps = CEC_CAP_DEFAULTS;
+> 
+> Does this need CEC_CAP_NEEDS_HPD? Can it still use CEC if there is no HPD
+> signal?
+
+No, Yes, the EC FW is independent of the HPD status
+
+> 
+>> +	int ret;
+>> +
+>> +	cros_ec_cec = devm_kzalloc(&pdev->dev, sizeof(*cros_ec_cec),
+>> +				   GFP_KERNEL);
+>> +	if (!cros_ec_cec)
+>> +		return -ENOMEM;
+>> +
+>> +	platform_set_drvdata(pdev, cros_ec_cec);
+>> +	cros_ec_cec->cros_ec = cros_ec;
+>> +
+>> +	ret = cros_ec_cec_get_notifier(&cros_ec_cec->notify);
+>> +	if (ret) {
+>> +		dev_warn(&pdev->dev, "no CEC notifier available\n");
+>> +		cec_caps |= CEC_CAP_PHYS_ADDR;
+> 
+> Can this happen? What hardware has this? I am strongly opposed to CEC drivers
+> using this capability unless there is no other option. It's a pain for userspace.
+
+It's in case an HW having a CEC capable FW but not in the cec_dmi_match_table, in this case
+it won't fail but still enable the CEC interface without a notifier.
+
+> 
+>> +	} else if (!cros_ec_cec->notify) {
+>> +		return -EPROBE_DEFER;
+>> +	}
+>> +
+>> +	ret = device_init_wakeup(&pdev->dev, 1);
+>> +	if (ret) {
+>> +		dev_err(&pdev->dev, "failed to initialize wakeup\n");
+>> +		return ret;
+>> +	}
+>> +
+>> +	cros_ec_cec->adap = cec_allocate_adapter(&cros_ec_cec_ops, cros_ec_cec,
+>> +						 DRV_NAME, cec_caps, 1);
+>> +	if (IS_ERR(cros_ec_cec->adap))
+>> +		return PTR_ERR(cros_ec_cec->adap);
+>> +
+>> +	cros_ec_cec->adap->owner = THIS_MODULE;
+> 
+> This can be dropped, cec_register_adapter() sets this already.
+
+Noted.
+
+> 
+>> +
+>> +	/* Get CEC events from the EC. */
+>> +	cros_ec_cec->notifier.notifier_call = cros_ec_cec_event;
+>> +	ret = blocking_notifier_chain_register(&cros_ec->event_notifier,
+>> +					       &cros_ec_cec->notifier);
+>> +	if (ret) {
+>> +		dev_err(&pdev->dev, "failed to register notifier\n");
+>> +		cec_delete_adapter(cros_ec_cec->adap);
+>> +		return ret;
+>> +	}
+>> +
+>> +	ret = cec_register_adapter(cros_ec_cec->adap, &pdev->dev);
+>> +	if (ret < 0) {
+>> +		cec_delete_adapter(cros_ec_cec->adap);
+>> +		return ret;
+>> +	}
+>> +
+>> +	cec_register_cec_notifier(cros_ec_cec->adap, cros_ec_cec->notify);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int cros_ec_cec_remove(struct platform_device *pdev)
+>> +{
+>> +	struct cros_ec_cec *cros_ec_cec = platform_get_drvdata(pdev);
+>> +	struct device *dev = &pdev->dev;
+>> +	int ret;
+>> +
+>> +	ret = blocking_notifier_chain_unregister(
+>> +			&cros_ec_cec->cros_ec->event_notifier,
+>> +			&cros_ec_cec->notifier);
+>> +
+>> +	if (ret) {
+>> +		dev_err(dev, "failed to unregister notifier\n");
+>> +		return ret;
+>> +	}
+>> +
+>> +	cec_unregister_adapter(cros_ec_cec->adap);
+>> +
+>> +	if (cros_ec_cec->notify)
+>> +		cec_notifier_put(cros_ec_cec->notify);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static struct platform_driver cros_ec_cec_driver = {
+>> +	.probe = cros_ec_cec_probe,
+>> +	.remove  = cros_ec_cec_remove,
+>> +	.driver = {
+>> +		.name = DRV_NAME,
+>> +		.pm = &cros_ec_cec_pm_ops,
+>> +	},
+>> +};
+>> +
+>> +module_platform_driver(cros_ec_cec_driver);
+>> +
+>> +MODULE_DESCRIPTION("CEC driver for Chrome OS ECs");
+>> +MODULE_AUTHOR("Neil Armstrong <narmstrong@baylibre.com>");
+>> +MODULE_LICENSE("GPL");
+>> +MODULE_ALIAS("platform:" DRV_NAME);
+>>
+> 
+> Regards,
+> 
+> 	Hans
+> 
+
+Thanks,
+Neil
