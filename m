@@ -1,63 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay11.mail.gandi.net ([217.70.178.231]:54079 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750806AbeEPQco (ORCPT
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:41983 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753502AbeEOMra (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 12:32:44 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
-        horms@verge.net.au, geert@glider.be
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 0/6] media: rcar-vin: Brush endpoint properties
-Date: Wed, 16 May 2018 18:32:26 +0200
-Message-Id: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
+        Tue, 15 May 2018 08:47:30 -0400
+Received: by mail-qk0-f196.google.com with SMTP id d125-v6so12781508qkb.8
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 05:47:29 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 4/5] mfd: cros_ec_dev: Add CEC sub-device registration
+Date: Tue, 15 May 2018 14:47:00 +0200
+Message-Id: <1526388421-18808-5-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1526388421-18808-1-git-send-email-narmstrong@baylibre.com>
+References: <1526388421-18808-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-   this series touches the bindings and the driver handling endpoint
-properties for digital subdevices of the R-Car VIN driver.
+The EC can expose a CEC bus, thus add the cros-ec-cec MFD sub-device
+when the CEC feature bit is present.
 
-The first patch simply documents what are the endpoint properties supported
-at the moment, then the second one extends them with 'data-active'.
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ drivers/mfd/cros_ec_dev.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-As the VIN hardware allows to use HSYNC as data enable signal when the CLCKENB
-pin is left unconnected, the 'data-active' property presence determinates
-if HSYNC has to be used or not as data enable signal. As a consequence, when
-running with embedded synchronism, and there is not HSYNC signal, it becomes
-mandatory to specify 'data-active' polarity in DTS.
-
-To address this, all Gen-2 boards featuring a composite video input and
-running with embedded synchronization, now need that property to be specified
-in DTS. Before adding it, remove un-used properties as 'pclk-sample' and
-'bus-width' from the Gen-2 bindings, as they are not parsed by the VIN driver
-and only confuse users.
-
-Niklas, as you already know I don't have any Gen2 board. Could you give this
-a spin on Koelsch if you like the series?
-
-Thanks
-   j
-
-Jacopo Mondi (6):
-  dt-bindings: media: rcar-vin: Describe optional ep properties
-  dt-bindings: media: rcar-vin: Document data-active
-  media: rcar-vin: Handle data-active property
-  media: rcar-vin: Handle CLOCKENB pin polarity
-  ARM: dts: rcar-gen2: Remove unused VIN properties
-  ARM: dts: rcar-gen2: Add 'data-active' property
-
- Documentation/devicetree/bindings/media/rcar_vin.txt | 18 +++++++++++++++++-
- arch/arm/boot/dts/r8a7790-lager.dts                  |  4 +---
- arch/arm/boot/dts/r8a7791-koelsch.dts                |  4 +---
- arch/arm/boot/dts/r8a7791-porter.dts                 |  2 +-
- arch/arm/boot/dts/r8a7793-gose.dts                   |  4 +---
- arch/arm/boot/dts/r8a7794-alt.dts                    |  2 +-
- arch/arm/boot/dts/r8a7794-silk.dts                   |  2 +-
- drivers/media/platform/rcar-vin/rcar-core.c          | 10 ++++++++--
- drivers/media/platform/rcar-vin/rcar-dma.c           | 11 +++++++++++
- 9 files changed, 42 insertions(+), 15 deletions(-)
-
---
+diff --git a/drivers/mfd/cros_ec_dev.c b/drivers/mfd/cros_ec_dev.c
+index eafd06f..57064ec 100644
+--- a/drivers/mfd/cros_ec_dev.c
++++ b/drivers/mfd/cros_ec_dev.c
+@@ -383,6 +383,18 @@ static void cros_ec_sensors_register(struct cros_ec_dev *ec)
+ 	kfree(msg);
+ }
+ 
++static void cros_ec_cec_register(struct cros_ec_dev *ec)
++{
++	int ret;
++	struct mfd_cell cec_cell = {
++		.name = "cros-ec-cec",
++	};
++
++	ret = mfd_add_devices(ec->dev, 0, &cec_cell, 1, NULL, 0, NULL);
++	if (ret)
++		dev_err(ec->dev, "failed to add EC CEC\n");
++}
++
+ static int ec_device_probe(struct platform_device *pdev)
+ {
+ 	int retval = -ENOMEM;
+@@ -422,6 +434,10 @@ static int ec_device_probe(struct platform_device *pdev)
+ 	if (cros_ec_check_features(ec, EC_FEATURE_MOTION_SENSE))
+ 		cros_ec_sensors_register(ec);
+ 
++	/* check whether this EC handles CEC. */
++	if (cros_ec_check_features(ec, EC_FEATURE_CEC))
++		cros_ec_cec_register(ec);
++
+ 	/* Take control of the lightbar from the EC. */
+ 	lb_manual_suspend_ctrl(ec, 1);
+ 
+-- 
 2.7.4
