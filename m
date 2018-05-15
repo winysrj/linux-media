@@ -1,41 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:41393 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750756AbeELJb1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 May 2018 05:31:27 -0400
-Subject: Re: [PATCH 2/7] Disable additional drivers requiring gpio/consumer.h
-To: Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org
-References: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
- <1524763162-4865-3-git-send-email-brad@nextdimension.cc>
-From: "Jasmin J." <jasmin@anw.at>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e8d69388-3e47-eeaf-840d-5464fc6c8dc5@anw.at>
-Date: Sat, 12 May 2018 11:31:23 +0200
-MIME-Version: 1.0
-In-Reply-To: <1524763162-4865-3-git-send-email-brad@nextdimension.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35188 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752551AbeEOH7y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 03:59:54 -0400
+Received: by mail-wr0-f196.google.com with SMTP id i14-v6so14910642wre.2
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:53 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 24/29] venus: vdec: get required input buffers as well
+Date: Tue, 15 May 2018 10:58:54 +0300
+Message-Id: <20180515075859.17217-25-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Brad!
+Rework and rename vdec_cap_num_buffers() to get the number of
+input buffers too.
 
-Tonight build broke due to patch 95ee4c285022!
-You enabled VIDEO_OV2685 for 3.13., which doesn't
-compile for Kernels older than 3.17. When you look
-to the Kernel 3.17 section a lot of the drivers you
-enabled for 3.13 with your patch should be enabled
-for 3.17 only.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/vdec.c | 41 +++++++++++++++++++-------------
+ 1 file changed, 24 insertions(+), 17 deletions(-)
 
-So please test this and provide a follow up patch.
-I will not revert 95ee4c285022 now, except you can't
-fix it in a reasonable time frame.
-
-If you like and you have time you can improve
-scripts/make_kconfig.pl to detect such an issue to
-avoid future problems like this. I also had such a
-situation with enabling a driver twice in the past.
-
-BR,
-   Jasmin
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 898c5edb91f5..5a5e3e2fece4 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -603,19 +603,32 @@ static int vdec_init_session(struct venus_inst *inst)
+ 	return ret;
+ }
+ 
+-static int vdec_cap_num_buffers(struct venus_inst *inst, unsigned int *num)
++static int vdec_num_buffers(struct venus_inst *inst, unsigned int *in_num,
++			    unsigned int *out_num)
+ {
++	enum hfi_version ver = inst->core->res->hfi_version;
+ 	struct hfi_buffer_requirements bufreq;
+ 	int ret;
+ 
++	*in_num = *out_num = 0;
++
+ 	ret = vdec_init_session(inst);
+ 	if (ret)
+ 		return ret;
+ 
++	ret = venus_helper_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
++	if (ret)
++		goto deinit;
++
++	*in_num = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
++
+ 	ret = venus_helper_get_bufreq(inst, HFI_BUFFER_OUTPUT, &bufreq);
++	if (ret)
++		goto deinit;
+ 
+-	*num = bufreq.count_actual;
++	*out_num = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
+ 
++deinit:
+ 	hfi_session_deinit(inst);
+ 
+ 	return ret;
+@@ -626,7 +639,7 @@ static int vdec_queue_setup(struct vb2_queue *q,
+ 			    unsigned int sizes[], struct device *alloc_devs[])
+ {
+ 	struct venus_inst *inst = vb2_get_drv_priv(q);
+-	unsigned int p, num;
++	unsigned int p, in_num, out_num;
+ 	int ret = 0;
+ 
+ 	if (*num_planes) {
+@@ -649,35 +662,29 @@ static int vdec_queue_setup(struct vb2_queue *q,
+ 		return 0;
+ 	}
+ 
++	ret = vdec_num_buffers(inst, &in_num, &out_num);
++	if (ret)
++		return ret;
++
+ 	switch (q->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+ 		*num_planes = inst->fmt_out->num_planes;
+ 		sizes[0] = get_framesize_compressed(inst->out_width,
+ 						    inst->out_height);
+ 		inst->input_buf_size = sizes[0];
++		*num_buffers = max(*num_buffers, in_num);
+ 		inst->num_input_bufs = *num_buffers;
+-
+-		ret = vdec_cap_num_buffers(inst, &num);
+-		if (ret)
+-			break;
+-
+-		inst->num_output_bufs = num;
++		inst->num_output_bufs = out_num;
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 		*num_planes = inst->fmt_cap->num_planes;
+ 
+-		ret = vdec_cap_num_buffers(inst, &num);
+-		if (ret)
+-			break;
+-
+-		*num_buffers = max(*num_buffers, num);
+-
+ 		for (p = 0; p < *num_planes; p++)
+ 			sizes[p] = get_framesize_uncompressed(p, inst->width,
+ 							      inst->height);
+-
+-		inst->num_output_bufs = *num_buffers;
+ 		inst->output_buf_size = sizes[0];
++		*num_buffers = max(*num_buffers, out_num);
++		inst->num_output_bufs = *num_buffers;
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+-- 
+2.14.1
