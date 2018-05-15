@@ -1,51 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56732 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1161272AbeEXUh0 (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:55267 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752206AbeEOGeL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 16:37:26 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH 19/20] v4l2-ioctl.c: assume queue->lock is always set
-Date: Thu, 24 May 2018 17:35:19 -0300
-Message-Id: <20180524203520.1598-20-ezequiel@collabora.com>
-In-Reply-To: <20180524203520.1598-1-ezequiel@collabora.com>
-References: <20180524203520.1598-1-ezequiel@collabora.com>
+        Tue, 15 May 2018 02:34:11 -0400
+Subject: Re: [RFC PATCH 3/5] drm/i915: hdmi: add CEC notifier to intel_hdmi
+To: Neil Armstrong <narmstrong@baylibre.com>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+References: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
+ <1526337639-3568-4-git-send-email-narmstrong@baylibre.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <38dcd327-004c-3fb3-8e22-3b3b92542fc9@xs4all.nl>
+Date: Tue, 15 May 2018 08:34:06 +0200
+MIME-Version: 1.0
+In-Reply-To: <1526337639-3568-4-git-send-email-narmstrong@baylibre.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+On 05/15/2018 12:40 AM, Neil Armstrong wrote:
+> This patchs adds the cec_notifier feature to the intel_hdmi part
+> of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
+> between each HDMI ports.
+> The changes will allow the i915 HDMI code to notify EDID and HPD changes
+> to an eventual CEC adapter.
+> 
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> ---
+>  drivers/gpu/drm/i915/intel_drv.h  |  2 ++
+>  drivers/gpu/drm/i915/intel_hdmi.c | 10 ++++++++++
 
-vb2_queue now expects a valid lock pointer, so drop the checks for
-that in v4l2-ioctl.c.
+The Kconfig also needs to be changed. In the DRM_I915 you need to add:
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+	select CEC_CORE if CEC_NOTIFIER
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ee1eec136e55..834e3de69992 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2694,12 +2694,11 @@ static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev,
- 		struct v4l2_m2m_queue_ctx *ctx = is_output ?
- 			&vfh->m2m_ctx->out_q_ctx : &vfh->m2m_ctx->cap_q_ctx;
- 
--		if (ctx->q.lock)
--			return ctx->q.lock;
-+		return ctx->q.lock;
- 	}
- #endif
--	if (vdev->queue && vdev->queue->lock &&
--			(v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
-+	if (vdev->queue &&
-+	    (v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
- 		return vdev->queue->lock;
- 	return vdev->lock;
- }
--- 
-2.16.3
+Otherwise you'll get problems if the cec driver is a module and i915 is built-in.
+
+Regards,
+
+	Hans
