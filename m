@@ -1,74 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:33070 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751268AbeEDPcY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 11:32:24 -0400
-Date: Fri, 4 May 2018 12:32:18 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Subject: Re: [PATCH] media: vsp1: cleanup a false positive warning
-Message-ID: <20180504123218.2f900409@vento.lan>
-In-Reply-To: <CAMuHMdX-kD0a_bRnxB+G8eE6sVhETAGuyoYOr5N0HM9VZa8LCw@mail.gmail.com>
-References: <a1bedd480c31bcc2f48cd6d965a9bb853e8786ee.1525436031.git.mchehab+samsung@kernel.org>
-        <CAMuHMdX-kD0a_bRnxB+G8eE6sVhETAGuyoYOr5N0HM9VZa8LCw@mail.gmail.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:33773 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752448AbeEOO22 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 10:28:28 -0400
+Subject: Re: [PATCH] [Patch v2] usbtv: Fix refcounting mixup
+To: Oliver Neukum <oneukum@suse.com>, mchehab@s-opensource.com,
+        ben.hutchings@codethink.co.uk, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org
+Cc: stable@vger.kernel.org
+References: <20180515130744.19342-1-oneukum@suse.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <85dd974b-c251-47a5-600d-77b009e2dfcd@xs4all.nl>
+Date: Tue, 15 May 2018 16:28:22 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20180515130744.19342-1-oneukum@suse.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 4 May 2018 16:37:23 +0200
-Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
+On 05/15/18 15:07, Oliver Neukum wrote:
+> The premature free in the error path is blocked by V4L
+> refcounting, not USB refcounting. Thanks to
+> Ben Hutchings for review.
+> 
+> [v2] corrected attributions
+> 
+> Signed-off-by: Oliver Neukum <oneukum@suse.com>
+> Fixes: 50e704453553 ("media: usbtv: prevent double free in error case")
+> CC: stable@vger.kernel.org
+> Reported-by: Ben Hutchings <ben.hutchings@codethink.co.uk>
+> ---
+>  drivers/media/usb/usbtv/usbtv-core.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/usbtv/usbtv-core.c b/drivers/media/usb/usbtv/usbtv-core.c
+> index 5095c380b2c1..4a03c4d66314 100644
+> --- a/drivers/media/usb/usbtv/usbtv-core.c
+> +++ b/drivers/media/usb/usbtv/usbtv-core.c
+> @@ -113,7 +113,8 @@ static int usbtv_probe(struct usb_interface *intf,
+>  
+>  usbtv_audio_fail:
+>  	/* we must not free at this point */
+> -	usb_get_dev(usbtv->udev);
+> +	v4l2_device_get(&usbtv->v4l2_dev);
 
-> Hi Mauro,
-> 
-> On Fri, May 4, 2018 at 2:13 PM, Mauro Carvalho Chehab
-> <mchehab+samsung@kernel.org> wrote:
-> > With the new vsp1 code changes introduced by changeset
-> > f81f9adc4ee1 ("media: v4l: vsp1: Assign BRU and BRS to pipelines dynamically"),
-> > smatch complains with:
-> >         drivers/media/platform/vsp1/vsp1_drm.c:262 vsp1_du_pipeline_setup_bru() error: we previously assumed 'pipe->bru' could be null (see line 180)
-> >
-> > This is a false positive, as, if pipe->bru is NULL, the brx
-> > var will be different, with ends by calling a code that will
-> > set pipe->bru to another value.
-> >
-> > Yet, cleaning this false positive is as easy as adding an explicit
-> > check if pipe->bru is NULL.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>  
-> 
-> Thanks for your patch!
-> 
-> s/bru/brx/
+This is very confusing. I think it is much better to move the
+v4l2_device_register() call from usbtv_video_init to this probe function.
 
-Hah, yeah... there was a rename from bru->brx... 
-I guess that confused me, as I saw this error before the renaming patch
-(even though I wrote it to be applied after them) :-)
+The extra v4l2_device_get in the probe() can just be dropped and
+usbtv_video_free() no longer needs to call v4l2_device_put().
 
-> 
-> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> > @@ -185,7 +185,7 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_device *vsp1,
-> >                 brx = &vsp1->brs->entity;
-> >
-> >         /* Switch BRx if needed. */
-> > -       if (brx != pipe->brx) {
-> > +       if (brx != pipe->brx || !pipe->brx) {
-> >                 struct vsp1_entity *released_brx = NULL;
-> >
-> >                 /* Release our BRx if we have one. */  
-> 
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
+The only place you need a v4l2_device_put() is in the disconnect()
+function at the end.
 
+Regards,
 
+	Hans
 
-Thanks,
-Mauro
+> +	/* this will undo the v4l2_device_get() */
+>  	usbtv_video_free(usbtv);
+>  
+>  usbtv_video_fail:
+> 
