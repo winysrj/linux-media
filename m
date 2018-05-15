@@ -1,116 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:38512 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965017AbeEJQc4 (ORCPT
+Received: from gateway30.websitewelcome.com ([192.185.160.12]:39327 "EHLO
+        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753427AbeEORwV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 May 2018 12:32:56 -0400
-Received: by mail-pl0-f66.google.com with SMTP id c11-v6so1605700plr.5
-        for <linux-media@vger.kernel.org>; Thu, 10 May 2018 09:32:56 -0700 (PDT)
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
-        linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Tim Harvey <tharvey@gateworks.com>
-References: <m37eobudmo.fsf@t19.piap.pl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
-Date: Thu, 10 May 2018 09:32:51 -0700
+        Tue, 15 May 2018 13:52:21 -0400
+Received: from cm17.websitewelcome.com (cm17.websitewelcome.com [100.42.49.20])
+        by gateway30.websitewelcome.com (Postfix) with ESMTP id 8866314E99
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 12:29:14 -0500 (CDT)
+Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
+To: Dan Carpenter <dan.carpenter@oracle.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <cover.1524499368.git.gustavo@embeddedor.com>
+ <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
+ <20180423152455.363d285c@vento.lan>
+ <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
+ <20180423161742.66f939ba@vento.lan>
+ <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
+ <20180426204241.03a42996@vento.lan>
+ <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
+ <20180515085953.65bfa107@vento.lan> <20180515141655.idzuh2jfdkuu5grs@mwanda>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Message-ID: <f342d8d6-b5e6-0cbf-d002-9561b79c90e4@embeddedor.com>
+Date: Tue, 15 May 2018 12:29:10 -0500
 MIME-Version: 1.0
-In-Reply-To: <m37eobudmo.fsf@t19.piap.pl>
+In-Reply-To: <20180515141655.idzuh2jfdkuu5grs@mwanda>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
 Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Krzysztof,
 
 
-On 05/10/2018 01:19 AM, Krzysztof Hałasa wrote:
-> Hi,
->
-> I'm using analog PAL video in on GW53xx/54xx boards (through ADV7180
-> chip and 8-bit parallel CSI input, with (presumably) BT.656).
-> I'm trying to upgrade from e.g. Linux 4.2 + Steve's older MX6 camera
-> driver (which works fine) to v.4.16 with the recently merged driver.
->
-> media-ctl -r -l '"adv7180 2-0020":0->"ipu2_csi1_mux":1[1],
->                   "ipu2_csi1_mux":2->"ipu2_csi1":0[1],
->                   "ipu2_csi1":2->"ipu2_csi1 capture":0[1]'
->
-> media-ctl -V '"adv7180 2-0020":0[fmt:UYVY2X8 720x576 field:interlaced]'
-> media-ctl -V '"ipu2_csi1_mux":1[fmt:UYVY2X8 720x576 field:interlaced]'
-> media-ctl -V '"ipu2_csi1_mux":2[fmt:UYVY2X8 720x576 field:interlaced]'
->
-> It seems there are issues, though:
->
-> First, I can't find a way to change to PAL standard. *s_std() doesn't
-> propagate from "ipu2_csi1 capture" through "ipu2_csi1_mux" to adv7180.
+On 05/15/2018 09:16 AM, Dan Carpenter wrote:
+>>>
+>>> I'm curious about how you finally resolved to handle these issues.
+>>>
+>>> I noticed Smatch is no longer reporting them.
+>>
+>> There was no direct fix for it, but maybe this patch has something
+>> to do with the smatch error report cleanup:
+>>
+>> commit 3ad3b7a2ebaefae37a7eafed0779324987ca5e56
+>> Author: Sami Tolvanen <samitolvanen@google.com>
+>> Date:   Tue May 8 13:56:12 2018 -0400
+>>
+>>      media: v4l2-ioctl: replace IOCTL_INFO_STD with stub functions
+>>      
+>>      This change removes IOCTL_INFO_STD and adds stub functions where
+>>      needed using the DEFINE_V4L_STUB_FUNC macro. This fixes indirect call
+>>      mismatches with Control-Flow Integrity, caused by calling standard
+>>      ioctls using a function pointer that doesn't match the function type.
+>>      
+>>      Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
+>>      Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+>>      Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+>>
 
-Right. That's a current drawback, other mc drivers have this issue
-too. One option, besides changing the default below, is to make
-VIDIOC_QUERYSTD, VIDIOC_G_STD, and VIDIOC_S_STD ioctls
-available for use via v4l2 subdevice node, as in:
+Thanks, Mauro.
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c 
-b/drivers/media/v4l2-core/v4l2-subdev.c
-index 43fefa7..fedc347 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -195,6 +195,15 @@ static long subdev_do_ioctl(struct file *file, 
-unsigned int cmd, void *arg)
-      case VIDIOC_QUERYMENU:
-          return v4l2_querymenu(vfh->ctrl_handler, arg);
+> 
+> Possibly...  There was an ancient bug in Smatch's function pointer
+> handling.  I just pushed a fix for it now so the warning is there on
+> linux-next.
+> 
 
-+    case VIDIOC_QUERYSTD:
-+        return v4l2_subdev_call(sd, video, querystd, arg);
-+
-+    case VIDIOC_G_STD:
-+        return v4l2_subdev_call(sd, video, g_std, arg);
-+
-+    case VIDIOC_S_STD:
-+        return v4l2_subdev_call(sd, video, s_std, *(v4l2_std_id *)arg);
-+
-      case VIDIOC_G_CTRL:
-          return v4l2_g_ctrl(vfh->ctrl_handler, arg);
+Dan,
 
+These are all the Spectre media issues I see smatch is reporting in 
+linux-next-20180515:
 
->
-> For now I have just changed the default:
-> --- a/drivers/media/i2c/adv7180.c
-> +++ b/drivers/media/i2c/adv7180.c
-> @@ -1320,7 +1321,7 @@ static int adv7180_probe(struct i2c_client *client,
->   
->       state->irq = client->irq;
->       mutex_init(&state->mutex);
-> -    state->curr_norm = V4L2_STD_NTSC;
-> +    state->curr_norm = V4L2_STD_PAL;
->       if (state->chip_info->flags & ADV7180_FLAG_RESET_POWERED)
->           state->powered = true;
->       else
->
->
-> Second, the image format information I'm getting out of "ipu2_csi1
-> capture" device is:
->
-> open("/dev/video6")
-> ioctl(VIDIOC_S_FMT, {V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> 	fmt.pix={704x576, pixelformat=NV12, V4L2_FIELD_INTERLACED} =>
-> 	fmt.pix={720x576, pixelformat=NV12, V4L2_FIELD_INTERLACED,
->          bytesperline=720, sizeimage=622080,
-> 	colorspace=V4L2_COLORSPACE_SMPTE170M}})
->
-> Now, the resulting image obtained via QBUF/DQBUF doesn't seem to be
-> a single interlaced frame (like it was with older drivers). Actually,
-> I'm getting the two fields, encoded with NV12 and concatenated
-> together (I think it's V4L2_FIELD_SEQ_TB or V4L2_FIELD_SEQ_BT).
->
-> What's wrong?
+drivers/media/cec/cec-pin-error-inj.c:170 cec_pin_error_inj_parse_line() 
+warn: potential spectre issue 'pin->error_inj_args'
+drivers/media/dvb-core/dvb_ca_en50221.c:1479 dvb_ca_en50221_io_write() 
+warn: potential spectre issue 'ca->slot_info' (local cap)
+drivers/media/dvb-core/dvb_net.c:252 handle_one_ule_extension() warn: 
+potential spectre issue 'p->ule_next_hdr'
 
-Set field type at /dev/video6 to NONE. That will enable IDMAC
-interweaving of the top and bottom fields.
+I pulled the latest changes from the smatch repository and compiled it.
 
-Steve
+I'm running smatch v0.5.0-4459-g2f66d40 now. Is this the latest version?
 
-> Is it possible to get a real V4L2_FIELD_INTERLACED frame, so it can be
-> passed straight to the CODA H.264 encoder?
+I wonder if there is anything I might be missing.
+
+Thanks
+--
+Gustavo
