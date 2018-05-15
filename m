@@ -1,190 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:39779 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752549AbeEGQWx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:22:53 -0400
-Received: by mail-wm0-f67.google.com with SMTP id f8-v6so16465380wmc.4
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:22:53 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v3 10/14] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
-Date: Mon,  7 May 2018 17:21:48 +0100
-Message-Id: <20180507162152.2545-11-rui.silva@linaro.org>
-In-Reply-To: <20180507162152.2545-1-rui.silva@linaro.org>
-References: <20180507162152.2545-1-rui.silva@linaro.org>
+Received: from mail.fireflyinternet.com ([109.228.58.192]:53219 "EHLO
+        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752297AbeEOMQk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 08:16:40 -0400
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        "Daniel Vetter" <daniel@ffwll.ch>
+From: Chris Wilson <chris@chris-wilson.co.uk>
+In-Reply-To: <e75424afd7fafad7b584a9cf905684de661996cb.camel@collabora.com>
+Cc: "Sumit Semwal" <sumit.semwal@linaro.org>,
+        "Gustavo Padovan" <gustavo@padovan.org>, kernel@collabora.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+References: <20180509201449.27452-1-ezequiel@collabora.com>
+ <152602366168.22269.11696001916463464983@mail.alporthouse.com>
+ <20180514164823.GH28661@phenom.ffwll.local>
+ <e75424afd7fafad7b584a9cf905684de661996cb.camel@collabora.com>
+Message-ID: <152638659036.18532.13662508480413451560@mail.alporthouse.com>
+Subject: Re: [PATCH] dma-fence: Make dma_fence_add_callback() fail if signaled with
+ error
+Date: Tue, 15 May 2018 13:16:30 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the device tree nodes for csi, video multiplexer and mipi-csi
-besides the graph connecting the necessary endpoints to make the media capture
-entities to work in imx7 Warp board.
+Quoting Ezequiel Garcia (2018-05-14 22:28:31)
+> On Mon, 2018-05-14 at 18:48 +0200, Daniel Vetter wrote:
+> > On Fri, May 11, 2018 at 08:27:41AM +0100, Chris Wilson wrote:
+> > > Quoting Ezequiel Garcia (2018-05-09 21:14:49)
+> > > > Change how dma_fence_add_callback() behaves, when the fence
+> > > > has error-signaled by the time it is being add. After this commit,
+> > > > dma_fence_add_callback() returns the fence error, if it
+> > > > has error-signaled before dma_fence_add_callback() is called.
+> > > 
+> > > Why? What problem are you trying to solve? fence->error does not imply
+> > > that the fence has yet been signaled, and the caller wants a callback
+> > > when it is signaled.
+> > 
+> > On top this is incosistent, e.g. we don't do the same for any of the other
+> > dma_fence interfaces. Plus there's the issue that you might alias errno
+> > values with fence errno values.
+> > 
+> 
+> Right.
+> 
+> > I think keeping the error codes from the functions you're calling distinct
+> > from the error code of the fence itself makes a lot of sense. The first
+> > tells you whether your request worked out (or why not), the second tells
+> > you whether the asynchronous dma operation (gpu rendering, page flip,
+> > whatever) that the dma_fence represents worked out (or why not). That's 2
+> > distinct things imo.
+> > 
+> > Might be good to show us the driver code that needs this behaviour so we
+> > can discuss how to best handle your use-case.
+> > 
+> 
+> This change arose while discussing the in-fences support for video4linux.
+> Here's the patch that calls dma_fence_add_callback https://lkml.org/lkml/2018/5/4/766.
+> 
+> The code snippet currently looks something like this:
+> 
+>         if (vb->in_fence) {
+>                 ret = dma_fence_add_callback(vb->in_fence, &vb->fence_cb,
+>                                 
+>              vb2_qbuf_fence_cb);
+>                 /* is the fence signaled? */
+>                 if (ret == -ENOENT) {
+>         
+>                 dma_fence_put(vb->in_fence);
+>                         vb->in_fence = NULL;
+>                 } else if (ret)
+> {
+>                         goto unlock;
+>                 }
+>         }
+> 
+> In this use case, if the callback is added successfully,
+> the video4linux core defers the activation of the buffer
+> until the fence signals.
+> 
+> If the fence is signaled (currently disregarding of errors)
+> then the buffer is assumed to be ready to be activated,
+> and so it gets queued for hardware usage.
+> 
+> Giving some more thought to this, I'm not so sure what is
+> the right action if a fence signaled with error. In this case,
+> it appears to me that we shouldn't be using this buffer
+> if its in-fence is in error, but perhaps I'm missing
+> something.
 
-Also add the pin control related with the mipi_csi in that board.
-
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- arch/arm/boot/dts/imx7s-warp.dts | 78 ++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/imx7s.dtsi     | 28 ++++++++++++
- 2 files changed, 106 insertions(+)
-
-diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
-index 8a30b148534d..ffd170ae925a 100644
---- a/arch/arm/boot/dts/imx7s-warp.dts
-+++ b/arch/arm/boot/dts/imx7s-warp.dts
-@@ -310,6 +310,77 @@
- 	status = "okay";
- };
- 
-+&gpr {
-+	csi_mux {
-+		compatible = "video-mux";
-+		mux-controls = <&mux 0>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			csi_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_csi_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			csi_mux_to_csi: endpoint {
-+				remote-endpoint = <&csi_from_csi_mux>;
-+			};
-+		};
-+	};
-+};
-+
-+&csi {
-+	status = "okay";
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	port@0 {
-+		reg = <0>;
-+
-+		csi_from_csi_mux: endpoint {
-+			remote-endpoint = <&csi_mux_to_csi>;
-+		};
-+	};
-+};
-+
-+&mipi_csi {
-+	clock-frequency = <166000000>;
-+	status = "okay";
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+	fsl,csis-hs-settle = <3>;
-+
-+	port@0 {
-+		reg = <0>;
-+
-+		mipi_from_sensor: endpoint {
-+			remote-endpoint = <&ov2680_to_mipi>;
-+			data-lanes = <1>;
-+		};
-+	};
-+
-+	port@1 {
-+		reg = <1>;
-+
-+		mipi_vc0_to_csi_mux: endpoint {
-+			remote-endpoint = <&csi_mux_from_mipi_vc0>;
-+		};
-+	};
-+};
-+
- &wdog1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_wdog>;
-@@ -357,6 +428,13 @@
- 		>;
- 	};
- 
-+	pinctrl_mipi_csi: mipi_csi {
-+		fsl,pins = <
-+			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
-+			MX7D_PAD_ENET1_RGMII_TD0__GPIO7_IO6	0x14
-+		>;
-+	};
-+
- 	pinctrl_sai1: sai1grp {
- 		fsl,pins = <
- 			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
-diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-index 3590dab529f9..0bae41f2944c 100644
---- a/arch/arm/boot/dts/imx7s.dtsi
-+++ b/arch/arm/boot/dts/imx7s.dtsi
-@@ -46,6 +46,7 @@
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/input/input.h>
- #include <dt-bindings/interrupt-controller/arm-gic.h>
-+#include <dt-bindings/reset/imx7-reset.h>
- #include "imx7d-pinfunc.h"
- 
- / {
-@@ -738,6 +739,17 @@
- 				status = "disabled";
- 			};
- 
-+			csi: csi@30710000 {
-+				compatible = "fsl,imx7-csi";
-+				reg = <0x30710000 0x10000>;
-+				interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
-+				clocks = <&clks IMX7D_CLK_DUMMY>,
-+						<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
-+						<&clks IMX7D_CLK_DUMMY>;
-+				clock-names = "axi", "mclk", "dcic";
-+				status = "disabled";
-+			};
-+
- 			lcdif: lcdif@30730000 {
- 				compatible = "fsl,imx7d-lcdif", "fsl,imx28-lcdif";
- 				reg = <0x30730000 0x10000>;
-@@ -747,6 +759,22 @@
- 				clock-names = "pix", "axi";
- 				status = "disabled";
- 			};
-+
-+			mipi_csi: mipi-csi@30750000 {
-+				compatible = "fsl,imx7-mipi-csi2";
-+				reg = <0x30750000 0x10000>;
-+				interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
-+				clocks = <&clks IMX7D_IPG_ROOT_CLK>,
-+						<&clks IMX7D_MIPI_CSI_ROOT_CLK>,
-+						<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
-+				clock-names = "pclk", "wrap", "phy";
-+				power-domains = <&pgc_mipi_phy>;
-+				phy-supply = <&reg_1p0d>;
-+				resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
-+				reset-names = "mrst";
-+				bus-width = <2>;
-+				status = "disabled";
-+			};
- 		};
- 
- 		aips3: aips-bus@30800000 {
--- 
-2.17.0
+What I have in mind for async errors is to skip the operation and
+propagate the error onto the next fence. Mostly because those async
+errors may include fatal errors such as unable to pin the backing
+storage for the operation, but even "trivial" errors such as an early
+operation failing means that this request is then subject to garbage-in,
+garbage-out. However, for trivial errors I would just propagate the
+error status (so the caller knows something went wrong if they care, but
+in all likelihood no one will notice) and continue on with the glitchy
+operation.
+-Chris
