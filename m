@@ -1,47 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:41518 "EHLO pokefinder.org"
+Received: from mail.kernel.org ([198.145.29.99]:35920 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751021AbeETGuo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 May 2018 02:50:44 -0400
-From: Wolfram Sang <wsa@the-dreams.de>
-To: linux-i2c@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 4/7] media: em28xx: don't check number of messages in the driver
-Date: Sun, 20 May 2018 08:50:35 +0200
-Message-Id: <20180520065039.7989-5-wsa@the-dreams.de>
-In-Reply-To: <20180520065039.7989-1-wsa@the-dreams.de>
-References: <20180520065039.7989-1-wsa@the-dreams.de>
+        id S1753189AbeEOMyk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 08:54:40 -0400
+Date: Tue, 15 May 2018 14:54:23 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Oliver Neukum <oneukum@suse.com>
+Cc: mchehab@s-opensource.com, ben.hutchings@codethink.co.uk,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] usbtv: Fix refcounting mixup
+Message-ID: <20180515125423.GA7303@kroah.com>
+References: <20180515115137.27724-1-oneukum@suse.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180515115137.27724-1-oneukum@suse.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit 1eace8344c02 ("i2c: add param sanity check to
-i2c_transfer()"), the I2C core does this check now. We can remove it
-from drivers.
+On Tue, May 15, 2018 at 01:51:37PM +0200, Oliver Neukum wrote:
+> The premature free in the error path is blocked by V4L
+> refcounting, not USB refcounting. Thanks to
+> Ben Hutchings for review.
+> 
+> Signed-off-by: Oliver Neukum <oneukum@suse.com>
+> Fixes: 50e704453553 ("media: usbtv: prevent double free in error case")
 
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
----
+Please add:
+Cc: stable <stable@vger.kernel.org>
 
-Only build tested.
+to this patch as well so I pick up the fix in the stable trees.
 
- drivers/media/usb/em28xx/em28xx-i2c.c | 4 ----
- 1 file changed, 4 deletions(-)
+And a "Reported-by:" line would be nice as well to give credit to Ben :)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 6458682bc6e2..e19d6342e0d0 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -559,10 +559,6 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 		dev->cur_i2c_bus = bus;
- 	}
- 
--	if (num <= 0) {
--		rt_mutex_unlock(&dev->i2c_bus_lock);
--		return 0;
--	}
- 	for (i = 0; i < num; i++) {
- 		addr = msgs[i].addr << 1;
- 		if (!msgs[i].len) {
--- 
-2.11.0
+thanks,
+
+greg k-h
