@@ -1,72 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:44392 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753376AbeEURCF (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:38495 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752226AbeEOJWG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 13:02:05 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
+        Tue, 15 May 2018 05:22:06 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v10 09/16] cobalt: add .is_unordered() for cobalt
-Date: Mon, 21 May 2018 13:59:39 -0300
-Message-Id: <20180521165946.11778-10-ezequiel@collabora.com>
-In-Reply-To: <20180521165946.11778-1-ezequiel@collabora.com>
-References: <20180521165946.11778-1-ezequiel@collabora.com>
+Cc: dan.carpenter@oracle.com, linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] exynos4-is: Prevent NULL pointer dereference in
+ __isp_video_try_fmt()
+Date: Tue, 15 May 2018 11:21:45 +0200
+Message-id: <20180515092145.6161-1-s.nawrocki@samsung.com>
+References: <CGME20180515092203epcas2p4a97c179cbba250cf45c1527a5e00735c@epcas2p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+This patch fixes potential NULL pointer dereference as indicated
+by the following static checker warning:
 
-The cobalt driver may reorder the capture buffers so we need to report
-it as such.
+drivers/media/platform/exynos4-is/fimc-isp-video.c:408 isp_video_try_fmt_mplane()
+error: NULL dereference inside function '__isp_video_try_fmt(isp, &f->fmt.pix_mp, (0))()'.
 
-v3: set formats as unordered
-v2: use vb2_ops_set_unordered() helper
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+Fixes: 34947b8aebe3: ("[media] exynos4-is: Add the FIMC-IS ISP capture DMA driver")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/pci/cobalt/cobalt-v4l2.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/platform/exynos4-is/fimc-isp-video.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
-index e2a4c705d353..ccca1a96df90 100644
---- a/drivers/media/pci/cobalt/cobalt-v4l2.c
-+++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
-@@ -430,6 +430,7 @@ static const struct vb2_ops cobalt_qops = {
- 	.stop_streaming = cobalt_stop_streaming,
- 	.wait_prepare = vb2_ops_wait_prepare,
- 	.wait_finish = vb2_ops_wait_finish,
-+	.is_unordered = vb2_ops_is_unordered,
- };
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+index 55ba696b8cf4..a920164f53f1 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+@@ -384,12 +384,17 @@ static void __isp_video_try_fmt(struct fimc_isp *isp,
+ 				struct v4l2_pix_format_mplane *pixm,
+ 				const struct fimc_fmt **fmt)
+ {
+-	*fmt = fimc_isp_find_format(&pixm->pixelformat, NULL, 2);
++	const struct fimc_fmt *__fmt;
++
++	__fmt = fimc_isp_find_format(&pixm->pixelformat, NULL, 2);
++
++	if (fmt)
++		*fmt = __fmt;
  
- /* V4L2 ioctls */
-@@ -695,14 +696,17 @@ static int cobalt_enum_fmt_vid_cap(struct file *file, void *priv_fh,
- 	case 0:
- 		strlcpy(f->description, "YUV 4:2:2", sizeof(f->description));
- 		f->pixelformat = V4L2_PIX_FMT_YUYV;
-+		f->flags |= V4L2_FMT_FLAG_UNORDERED;
- 		break;
- 	case 1:
- 		strlcpy(f->description, "RGB24", sizeof(f->description));
- 		f->pixelformat = V4L2_PIX_FMT_RGB24;
-+		f->flags |= V4L2_FMT_FLAG_UNORDERED;
- 		break;
- 	case 2:
- 		strlcpy(f->description, "RGB32", sizeof(f->description));
- 		f->pixelformat = V4L2_PIX_FMT_BGR32;
-+		f->flags |= V4L2_FMT_FLAG_UNORDERED;
- 		break;
- 	default:
- 		return -EINVAL;
+ 	pixm->colorspace = V4L2_COLORSPACE_SRGB;
+ 	pixm->field = V4L2_FIELD_NONE;
+-	pixm->num_planes = (*fmt)->memplanes;
+-	pixm->pixelformat = (*fmt)->fourcc;
++	pixm->num_planes = __fmt->memplanes;
++	pixm->pixelformat = __fmt->fourcc;
+ 	/*
+ 	 * TODO: double check with the docmentation these width/height
+ 	 * constraints are correct.
 -- 
-2.16.3
+2.14.2
