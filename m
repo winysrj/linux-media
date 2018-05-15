@@ -1,95 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:21750 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752662AbeEUIzY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:24 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v14 36/36] v4l: m2m: Simplify exiting the function in v4l2_m2m_try_schedule
-Date: Mon, 21 May 2018 11:55:01 +0300
-Message-Id: <20180521085501.16861-37-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:36310 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752372AbeEOHag (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 03:30:36 -0400
+Received: by mail-lf0-f65.google.com with SMTP id t129-v6so21810261lff.3
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:30:35 -0700 (PDT)
+Subject: Re: [RFC PATCH 3/5] drm/i915: hdmi: add CEC notifier to intel_hdmi
+To: Hans Verkuil <hverkuil@xs4all.nl>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+References: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
+ <1526337639-3568-4-git-send-email-narmstrong@baylibre.com>
+ <b38aa2db-903a-c882-69d6-170b3c2aa70c@xs4all.nl>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <85da38a7-f396-882a-723e-437cc53d9c63@baylibre.com>
+Date: Tue, 15 May 2018 09:30:32 +0200
+MIME-Version: 1.0
+In-Reply-To: <b38aa2db-903a-c882-69d6-170b3c2aa70c@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_m2m_try_schedule function acquires and releases multiple
-spinlocks; simplify unlocking the job lock by adding a label to unlock the
-job lock and exit the function.
+On 15/05/2018 08:29, Hans Verkuil wrote:
+> On 05/15/2018 12:40 AM, Neil Armstrong wrote:
+>> This patchs adds the cec_notifier feature to the intel_hdmi part
+>> of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
+>> between each HDMI ports.
+>> The changes will allow the i915 HDMI code to notify EDID and HPD changes
+>> to an eventual CEC adapter.
+>>
+>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+>> ---
+>>  drivers/gpu/drm/i915/intel_drv.h  |  2 ++
+>>  drivers/gpu/drm/i915/intel_hdmi.c | 10 ++++++++++
+>>  2 files changed, 12 insertions(+)
+>>
+>> diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
+>> index d436858..b50e51b 100644
+>> --- a/drivers/gpu/drm/i915/intel_drv.h
+>> +++ b/drivers/gpu/drm/i915/intel_drv.h
+>> @@ -39,6 +39,7 @@
+>>  #include <drm/drm_dp_mst_helper.h>
+>>  #include <drm/drm_rect.h>
+>>  #include <drm/drm_atomic.h>
+>> +#include <media/cec-notifier.h>
+>>  
+>>  /**
+>>   * __wait_for - magic wait macro
+>> @@ -1001,6 +1002,7 @@ struct intel_hdmi {
+>>  	bool has_audio;
+>>  	bool rgb_quant_range_selectable;
+>>  	struct intel_connector *attached_connector;
+>> +	struct cec_notifier *notifier;
+>>  };
+>>  
+>>  struct intel_dp_mst_encoder;
+>> diff --git a/drivers/gpu/drm/i915/intel_hdmi.c b/drivers/gpu/drm/i915/intel_hdmi.c
+>> index 1baef4a..9b94d72 100644
+>> --- a/drivers/gpu/drm/i915/intel_hdmi.c
+>> +++ b/drivers/gpu/drm/i915/intel_hdmi.c
+>> @@ -1868,6 +1868,8 @@ intel_hdmi_set_edid(struct drm_connector *connector)
+>>  		connected = true;
+>>  	}
+>>  
+>> +	cec_notifier_set_phys_addr_from_edid(intel_hdmi->notifier, edid);
+>> +
+>>  	return connected;
+>>  }
+>>  
+>> @@ -1876,6 +1878,7 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
+>>  {
+>>  	enum drm_connector_status status;
+>>  	struct drm_i915_private *dev_priv = to_i915(connector->dev);
+>> +	struct intel_hdmi *intel_hdmi = intel_attached_hdmi(connector);
+>>  
+>>  	DRM_DEBUG_KMS("[CONNECTOR:%d:%s]\n",
+>>  		      connector->base.id, connector->name);
+>> @@ -1891,6 +1894,9 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
+>>  
+>>  	intel_display_power_put(dev_priv, POWER_DOMAIN_GMBUS);
+>>  
+>> +	if (status != connector_status_connected)
+>> +		cec_notifier_phys_addr_invalidate(intel_hdmi->notifier);
+>> +
+>>  	return status;
+>>  }
+>>  
+>> @@ -2358,6 +2364,10 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
+>>  		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
+>>  		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
+>>  	}
+>> +
+>> +	intel_hdmi->notifier = cec_notifier_get_conn(dev->dev, connector->name);
+>> +	if (!intel_hdmi->notifier)
+>> +		DRM_DEBUG_KMS("CEC notifier get failed\n");
+> 
+> You 'get' the notifier here, but where is the cec_notifier_put when the connector is deleted?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-mem2mem.c | 22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+Because I failed to find a safe place for this !
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 80233bf6523ac..2c20c7a6de2b7 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -231,15 +231,13 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
- 
- 	/* If the context is aborted then don't schedule it */
- 	if (m2m_ctx->job_flags & TRANS_ABORT) {
--		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
- 		dprintk("Aborted context\n");
--		return;
-+		goto out_unlock;
- 	}
- 
- 	if (m2m_ctx->job_flags & TRANS_QUEUED) {
--		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
- 		dprintk("On job queue already\n");
--		return;
-+		goto out_unlock;
- 	}
- 
- 	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
-@@ -247,9 +245,8 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
- 	    && !m2m_ctx->out_q_ctx.buffered) {
- 		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
- 					flags_out);
--		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
- 		dprintk("No input buffers available\n");
--		return;
-+		goto out_unlock;
- 	}
- 	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
- 	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)
-@@ -258,18 +255,16 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
- 					flags_cap);
- 		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
- 					flags_out);
--		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
- 		dprintk("No output buffers available\n");
--		return;
-+		goto out_unlock;
- 	}
- 	spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
- 	spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
- 
- 	if (m2m_dev->m2m_ops->job_ready
- 		&& (!m2m_dev->m2m_ops->job_ready(m2m_ctx->priv))) {
--		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
- 		dprintk("Driver not ready\n");
--		return;
-+		goto out_unlock;
- 	}
- 
- 	list_add_tail(&m2m_ctx->queue, &m2m_dev->job_queue);
-@@ -278,6 +273,13 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
- 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
- 
- 	v4l2_m2m_try_run(m2m_dev);
-+
-+	return;
-+
-+out_unlock:
-+	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
-+
-+	return;
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
- 
--- 
-2.11.0
+I will have a second look...
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>  }
+>>  
+>>  void intel_hdmi_init(struct drm_i915_private *dev_priv,
+>>
+> 
