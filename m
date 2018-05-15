@@ -1,82 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:39352 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750758AbeEKFM0 (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:39717 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752430AbeEOH2y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 01:12:26 -0400
+        Tue, 15 May 2018 03:28:54 -0400
+Received: by mail-lf0-f68.google.com with SMTP id j193-v6so21826330lfg.6
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:28:54 -0700 (PDT)
+Subject: Re: [RFC PATCH 2/5] media: cec-notifier: Get notifier by device and
+ connector name
+To: Hans Verkuil <hverkuil@xs4all.nl>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+References: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
+ <1526337639-3568-3-git-send-email-narmstrong@baylibre.com>
+ <adbbccf9-d8af-c43a-3f10-bdd828e8c842@xs4all.nl>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <9a20dfa6-d61a-637a-0311-e260e555f86f@baylibre.com>
+Date: Tue, 15 May 2018 09:28:51 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180507124500.20434-3-paul.kocialkowski@bootlin.com>
-References: <20180507124500.20434-1-paul.kocialkowski@bootlin.com> <20180507124500.20434-3-paul.kocialkowski@bootlin.com>
-From: Chen-Yu Tsai <wens@csie.org>
-Date: Thu, 10 May 2018 22:05:33 -0700
-Message-ID: <CAGb2v67An8RSCKEDSgW_jY7m8iw22K4rRHb02q67decmCBcjhg@mail.gmail.com>
-Subject: Re: [PATCH v3 02/14] drivers: soc: sunxi: Add dedicated compatibles
- for the A13, A20 and A33
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Alexandre Courbot <gnurou@gmail.com>,
-        Florent Revest <florent.revest@free-electrons.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Randy Li <ayaka@soulik.info>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <adbbccf9-d8af-c43a-3f10-bdd828e8c842@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 7, 2018 at 5:44 AM, Paul Kocialkowski
-<paul.kocialkowski@bootlin.com> wrote:
-> This introduces platform-specific compatibles for the A13, A20 and A33
-> SRAM driver. No particular adaptation for these platforms is required at
-> this point, although this might become the case in the future.
->
-> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> ---
->  drivers/soc/sunxi/sunxi_sram.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/soc/sunxi/sunxi_sram.c b/drivers/soc/sunxi/sunxi_sram.c
-> index 74cb81f37bd6..43ebc3bd33f2 100644
-> --- a/drivers/soc/sunxi/sunxi_sram.c
-> +++ b/drivers/soc/sunxi/sunxi_sram.c
-> @@ -315,6 +315,9 @@ static int sunxi_sram_probe(struct platform_device *pdev)
->
->  static const struct of_device_id sunxi_sram_dt_match[] = {
->         { .compatible = "allwinner,sun4i-a10-sram-controller" },
-> +       { .compatible = "allwinner,sun5i-a13-sram-controller" },
-> +       { .compatible = "allwinner,sun7i-a20-sram-controller" },
-> +       { .compatible = "allwinner,sun8i-a33-sram-controller" },
+On 15/05/2018 08:27, Hans Verkuil wrote:
+> Hi Neil,
+> 
+> Thanks for this patch series!
+> 
+> Some comments below:
+> 
+> On 05/15/2018 12:40 AM, Neil Armstrong wrote:
+>> In non device-tree world, we can need to get the notifier by the driver
+>> name directly and eventually defer probe if not yet created.
+>>
+>> This patch adds a variant of the get function by using the device name
+>> instead and will not create a notifier if not yet created.
+>>
+>> But the i915 driver exposes at least 2 HDMI connectors, this patch also
+>> adds the possibility to add a connector name tied to the notifier device
+>> to form a tuple and associate different CEC controllers for each HDMI
+>> connectors.
+>>
+>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+>> ---
+>>  drivers/media/cec/cec-notifier.c | 30 ++++++++++++++++++++++++---
+>>  include/media/cec-notifier.h     | 44 ++++++++++++++++++++++++++++++++++++++--
+>>  2 files changed, 69 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
+>> index 16dffa0..716070a 100644
+>> --- a/drivers/media/cec/cec-notifier.c
+>> +++ b/drivers/media/cec/cec-notifier.c
+>> @@ -21,6 +21,7 @@ struct cec_notifier {
+>>  	struct list_head head;
+>>  	struct kref kref;
+>>  	struct device *dev;
+>> +	const char *conn;
+>>  	struct cec_adapter *cec_adap;
+>>  	void (*callback)(struct cec_adapter *adap, u16 pa);
+>>  
+>> @@ -30,13 +31,34 @@ struct cec_notifier {
+>>  static LIST_HEAD(cec_notifiers);
+>>  static DEFINE_MUTEX(cec_notifiers_lock);
+>>  
+>> -struct cec_notifier *cec_notifier_get(struct device *dev)
+>> +struct cec_notifier *cec_notifier_get_byname(const char *name,
+>> +					     const char *conn)
+>>  {
+>>  	struct cec_notifier *n;
+>>  
+>>  	mutex_lock(&cec_notifiers_lock);
+>>  	list_for_each_entry(n, &cec_notifiers, head) {
+>> -		if (n->dev == dev) {
+>> +		if (!strcmp(dev_name(n->dev), name) &&
+>> +		    (!conn || !strcmp(n->conn, conn))) {
+>> +			kref_get(&n->kref);
+>> +			mutex_unlock(&cec_notifiers_lock);
+>> +			return n;
+>> +		}
+>> +	}
+>> +	mutex_unlock(&cec_notifiers_lock);
+>> +
+>> +	return NULL;
+> 
+> This doesn't seem right. For one it doesn't act like the other cec_notifier_get*
+> functions in that it doesn't make a new notifier if it wasn't found yet in the
+> list.
+> 
+> For another, I think this function shouldn't be here at all. How about calling
+> bus_find_device_by_name(), then use cec_notifier_get_conn()?
 
-We should probably name these "system-controller". Maxime?
+Yes, it's safer and will keep the original cec_notifier_get() behavior.
 
-ChenYu
+> 
+>> +}
+>> +EXPORT_SYMBOL_GPL(cec_notifier_get_byname);
+>> +
+>> +struct cec_notifier *cec_notifier_get_conn(struct device *dev, const char *conn)
+>> +{
+>> +	struct cec_notifier *n;
+>> +
+>> +	mutex_lock(&cec_notifiers_lock);
+>> +	list_for_each_entry(n, &cec_notifiers, head) {
+>> +		if (n->dev == dev &&
+>> +		    (!conn || !strcmp(n->conn, conn))) {
+>>  			kref_get(&n->kref);
+>>  			mutex_unlock(&cec_notifiers_lock);
+>>  			return n;
+>> @@ -46,6 +68,8 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
+>>  	if (!n)
+>>  		goto unlock;
+>>  	n->dev = dev;
+>> +	if (conn)
+>> +		n->conn = devm_kstrdup(dev, conn, GFP_KERNEL);
+> 
+> The use of devm_kstrdup worries me. The problem is that when the 'dev' device
+> is removed, this memory is also automatically freed. But the notifier might
+> still have a reference through the CEC driver, so you end up with a n->conn
+> pointer that points to freed memory.
+> 
+> I think it is better to just use kstrdup and kfree it when the last notifier
+> reference is released.
 
->         { .compatible = "allwinner,sun50i-a64-sram-controller" },
->         { },
->  };
-> --
-> 2.16.3
->
+Ok
+
+> 
+>>  	n->phys_addr = CEC_PHYS_ADDR_INVALID;
+>>  	mutex_init(&n->lock);
+>>  	kref_init(&n->kref);
+>> @@ -54,7 +78,7 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
+>>  	mutex_unlock(&cec_notifiers_lock);
+>>  	return n;
+>>  }
+>> -EXPORT_SYMBOL_GPL(cec_notifier_get);
+>> +EXPORT_SYMBOL_GPL(cec_notifier_get_conn);
+>>  
+>>  static void cec_notifier_release(struct kref *kref)
+>>  {
+>> diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
+>> index cf0add7..70f2974 100644
+>> --- a/include/media/cec-notifier.h
+>> +++ b/include/media/cec-notifier.h
+>> @@ -20,6 +20,37 @@ struct cec_notifier;
+>>  #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
+>>  
+>>  /**
+>> + * cec_notifier_get_byname - find a cec_notifier for the given device name
+>> + * and connector tuple.
+>> + * @name: device name that sends the events.
+>> + * @conn: the connector name from which the event occurs
+>> + *
+>> + * If a notifier for device @name exists, then increase the refcount and
+>> + * return that notifier.
+>> + *
+>> + * If it doesn't exist, return NULL
+>> + */
+>> +struct cec_notifier *cec_notifier_get_byname(const char *name,
+>> +					     const char *conn);
+>> +
+>> +/**
+>> + * cec_notifier_get_conn - find or create a new cec_notifier for the given
+>> + * device and connector tuple.
+>> + * @dev: device that sends the events.
+>> + * @conn: the connector name from which the event occurs
+>> + *
+>> + * If a notifier for device @dev already exists, then increase the refcount
+>> + * and return that notifier.
+>> + *
+>> + * If it doesn't exist, then allocate a new notifier struct and return a
+>> + * pointer to that new struct.
+>> + *
+>> + * Return NULL if the memory could not be allocated.
+>> + */
+>> +struct cec_notifier *cec_notifier_get_conn(struct device *dev,
+>> +					   const char *conn);
+>> +
+>> +/**
+>>   * cec_notifier_get - find or create a new cec_notifier for the given device.
+>>   * @dev: device that sends the events.
+>>   *
+>> @@ -31,7 +62,10 @@ struct cec_notifier;
+>>   *
+>>   * Return NULL if the memory could not be allocated.
+>>   */
+>> -struct cec_notifier *cec_notifier_get(struct device *dev);
+>> +static inline struct cec_notifier *cec_notifier_get(struct device *dev)
+>> +{
+>> +	return cec_notifier_get_conn(dev, NULL);
+>> +}
+>>  
+>>  /**
+>>   * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
+>> @@ -85,12 +119,18 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
+>>  			       struct cec_notifier *notifier);
+>>  
+>>  #else
+>> -static inline struct cec_notifier *cec_notifier_get(struct device *dev)
+>> +static inline struct cec_notifier *cec_notifier_get_conn(struct device *dev,
+>> +							 const char *conn)
+>>  {
+>>  	/* A non-NULL pointer is expected on success */
+>>  	return (struct cec_notifier *)0xdeadfeed;
+>>  }
+>>  
+>> +static inline struct cec_notifier *cec_notifier_get(struct device *dev)
+>> +{
+>> +	return cec_notifier_get_conn(dev, NULL);
+>> +}
+>> +
+>>  static inline void cec_notifier_put(struct cec_notifier *n)
+>>  {
+>>  }
+>>
+> 
+> Regards,
+> 
+> 	Hans
+> 
