@@ -1,103 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35916 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751431AbeEFOTs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 10:19:48 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>
-Subject: [PATCH v5 01/14] media: dt-bindings: ov772x: add device tree binding
-Date: Sun,  6 May 2018 23:19:16 +0900
-Message-Id: <1525616369-8843-2-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
+Received: from gateway36.websitewelcome.com ([50.116.127.2]:38614 "EHLO
+        gateway36.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752084AbeEODzg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 May 2018 23:55:36 -0400
+Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
+        by gateway36.websitewelcome.com (Postfix) with ESMTP id 0BBD7400CA222
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2018 22:31:52 -0500 (CDT)
+Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <cover.1524499368.git.gustavo@embeddedor.com>
+ <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
+ <20180423152455.363d285c@vento.lan>
+ <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
+ <20180423161742.66f939ba@vento.lan>
+ <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
+ <20180426204241.03a42996@vento.lan>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Message-ID: <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
+Date: Mon, 14 May 2018 22:31:37 -0500
+MIME-Version: 1.0
+In-Reply-To: <20180426204241.03a42996@vento.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds a device tree binding documentation for OV7720/OV7725 sensor.
+Hi Mauro,
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* v5
-- No changes
+On 04/26/2018 06:42 PM, Mauro Carvalho Chehab wrote:
 
- .../devicetree/bindings/media/i2c/ov772x.txt       | 40 ++++++++++++++++++++++
- MAINTAINERS                                        |  1 +
- 2 files changed, 41 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
+>>
+>> I noticed you changed the status of this series from rejected to new.
+> 
+> Yes.
+> 
+>> Also, there are other similar issues in media/pci/
+> 
+> Well, the issues will be there everywhere on all media drivers.
+> 
+> I marked your patches because I need to study it carefully, after
+> Peter's explanations. My plan is to do it next week. Still not
+> sure if the approach you took is the best one or not.
+> 
+> As I said, one possibility is to change the way v4l2-core handles
+> VIDIOC_ENUM_foo ioctls, but that would be make harder to -stable
+> backports.
+> 
+> I need a weekend to sleep on it.
+> 
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov772x.txt b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
-new file mode 100644
-index 0000000..0b3ede5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
-@@ -0,0 +1,40 @@
-+* Omnivision OV7720/OV7725 CMOS sensor
-+
-+The Omnivision OV7720/OV7725 sensor supports multiple resolutions output,
-+such as VGA, QVGA, and any size scaling down from CIF to 40x30. It also can
-+support the YUV422, RGB565/555/444, GRB422 or raw RGB output formats.
-+
-+Required Properties:
-+- compatible: shall be one of
-+	"ovti,ov7720"
-+	"ovti,ov7725"
-+- clocks: reference to the xclk input clock.
-+
-+Optional Properties:
-+- reset-gpios: reference to the GPIO connected to the RSTB pin which is
-+  active low, if any.
-+- powerdown-gpios: reference to the GPIO connected to the PWDN pin which is
-+  active high, if any.
-+
-+The device node shall contain one 'port' child node with one child 'endpoint'
-+subnode for its digital output video port, in accordance with the video
-+interface bindings defined in Documentation/devicetree/bindings/media/
-+video-interfaces.txt.
-+
-+Example:
-+
-+&i2c0 {
-+	ov772x: camera@21 {
-+		compatible = "ovti,ov7725";
-+		reg = <0x21>;
-+		reset-gpios = <&axi_gpio_0 0 GPIO_ACTIVE_LOW>;
-+		powerdown-gpios = <&axi_gpio_0 1 GPIO_ACTIVE_LOW>;
-+		clocks = <&xclk>;
-+
-+		port {
-+			ov772x_0: endpoint {
-+				remote-endpoint = <&vcap1_in0>;
-+			};
-+		};
-+	};
-+};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index df6e9bb..cd4c270 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -10356,6 +10356,7 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Odd fixes
- F:	drivers/media/i2c/ov772x.c
- F:	include/media/i2c/ov772x.h
-+F:	Documentation/devicetree/bindings/media/i2c/ov772x.txt
- 
- OMNIVISION OV7740 SENSOR DRIVER
- M:	Wenyou Yang <wenyou.yang@microchip.com>
--- 
-2.7.4
+I'm curious about how you finally resolved to handle these issues.
+
+I noticed Smatch is no longer reporting them.
+
+Thanks
+--
+Gustavo
