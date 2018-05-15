@@ -1,108 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.134]:40127 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966018AbeEYP0u (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:51665 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752102AbeEOHVG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 11:26:50 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 4/5] media: marvel-ccic: allow ccic and mmp drivers to coexist
-Date: Fri, 25 May 2018 17:25:11 +0200
-Message-Id: <20180525152523.2821369-4-arnd@arndb.de>
-In-Reply-To: <20180525152523.2821369-1-arnd@arndb.de>
-References: <20180525152523.2821369-1-arnd@arndb.de>
+        Tue, 15 May 2018 03:21:06 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Neil Armstrong <narmstrong@baylibre.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cec: improve cec status documentation
+Message-ID: <31f2a3ae-aaa3-633f-6327-2b884dd59898@xs4all.nl>
+Date: Tue, 15 May 2018 09:21:01 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Randconfig builds fail when one of the two is a built-in driver and
-the other one is a loadable module:
+Clarify the description of status bits, particularly w.r.t. ERROR and NACK.
 
-drivers/media/platform/marvell-ccic/mcam-core.o: In function `mccic_register':
-mcam-core.c:(.text+0x2594): undefined reference to `__this_module'
-drivers/media/platform/marvell-ccic/mcam-core.o:(.rodata+0x50): undefined reference to `__this_module'
-
-The problem is that mcam-core.c can not be built both ways at the smae
-time. However, we can make kbuild take care of that by making the core
-driver a separate module, which can be either built-in or loadable
-as needed.
-Making it a separate module requires exporting a few symbols and
-adding the module license from the header.
-
-Fixes: 0a9c643c8faa ("media: marvel-ccic: re-enable mmp-driver build")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/marvell-ccic/Makefile    | 9 ++++-----
- drivers/media/platform/marvell-ccic/mcam-core.c | 9 ++++++++-
- 2 files changed, 12 insertions(+), 6 deletions(-)
+diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
+index a9f53f069a2d..1d989c544370 100644
+--- a/Documentation/media/kapi/cec-core.rst
++++ b/Documentation/media/kapi/cec-core.rst
+@@ -246,7 +246,10 @@ CEC_TX_STATUS_LOW_DRIVE:
+ CEC_TX_STATUS_ERROR:
+ 	some unspecified error occurred: this can be one of ARB_LOST
+ 	or LOW_DRIVE if the hardware cannot differentiate or something
+-	else entirely.
++	else entirely. Some hardware only supports OK and FAIL as the
++	result of a transmit, i.e. there is no way to differentiate
++	between the different possible errors. In that case map FAIL
++	to CEC_TX_STATUS_NACK and not to CEC_TX_STATUS_ERROR.
 
-diff --git a/drivers/media/platform/marvell-ccic/Makefile b/drivers/media/platform/marvell-ccic/Makefile
-index 05a792c579a2..b3a4d0cdccb8 100644
---- a/drivers/media/platform/marvell-ccic/Makefile
-+++ b/drivers/media/platform/marvell-ccic/Makefile
-@@ -1,6 +1,5 @@
--obj-$(CONFIG_VIDEO_CAFE_CCIC) += cafe_ccic.o
--cafe_ccic-y := cafe-driver.o mcam-core.o
--
--obj-$(CONFIG_VIDEO_MMP_CAMERA) += mmp_camera.o
--mmp_camera-y := mmp-driver.o mcam-core.o
-+obj-$(CONFIG_VIDEO_CAFE_CCIC) += cafe_ccic.o mcam-core.o
-+cafe_ccic-y := cafe-driver.o
- 
-+obj-$(CONFIG_VIDEO_MMP_CAMERA) += mmp_camera.o mcam-core.o
-+mmp_camera-y := mmp-driver.o
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 80670eeee142..dfdbd4354b74 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1720,6 +1720,7 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
- 	}
- 	return handled;
- }
-+EXPORT_SYMBOL_GPL(mccic_irq);
- 
- /* ---------------------------------------------------------------------- */
- /*
-@@ -1830,7 +1831,7 @@ int mccic_register(struct mcam_camera *cam)
- 	v4l2_device_unregister(&cam->v4l2_dev);
- 	return ret;
- }
--
-+EXPORT_SYMBOL_GPL(mccic_register);
- 
- void mccic_shutdown(struct mcam_camera *cam)
- {
-@@ -1850,6 +1851,7 @@ void mccic_shutdown(struct mcam_camera *cam)
- 	v4l2_ctrl_handler_free(&cam->ctrl_handler);
- 	v4l2_device_unregister(&cam->v4l2_dev);
- }
-+EXPORT_SYMBOL_GPL(mccic_shutdown);
- 
- /*
-  * Power management
-@@ -1868,6 +1870,7 @@ void mccic_suspend(struct mcam_camera *cam)
- 	}
- 	mutex_unlock(&cam->s_mutex);
- }
-+EXPORT_SYMBOL_GPL(mccic_suspend);
- 
- int mccic_resume(struct mcam_camera *cam)
- {
-@@ -1898,4 +1901,8 @@ int mccic_resume(struct mcam_camera *cam)
- 	}
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(mccic_resume);
- #endif /* CONFIG_PM */
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
--- 
-2.9.0
+ CEC_TX_STATUS_MAX_RETRIES:
+ 	could not transmit the message after trying multiple times.
+diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+index bdad4b197bcd..e964074cd15b 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+@@ -231,26 +231,32 @@ View On' messages from initiator 0xf ('Unregistered') to destination 0 ('TV').
+       - ``CEC_TX_STATUS_OK``
+       - 0x01
+       - The message was transmitted successfully. This is mutually
+-	exclusive with :ref:`CEC_TX_STATUS_MAX_RETRIES <CEC-TX-STATUS-MAX-RETRIES>`. Other bits can still
+-	be set if earlier attempts met with failure before the transmit
+-	was eventually successful.
++	exclusive with :ref:`CEC_TX_STATUS_MAX_RETRIES <CEC-TX-STATUS-MAX-RETRIES>`.
++	Other bits can still be set if earlier attempts met with failure before
++	the transmit was eventually successful.
+     * .. _`CEC-TX-STATUS-ARB-LOST`:
+
+       - ``CEC_TX_STATUS_ARB_LOST``
+       - 0x02
+-      - CEC line arbitration was lost.
++      - CEC line arbitration was lost, i.e. another transmit started at the
++        same time with a higher priority. Optional status, not all hardware
++	can detect this error condition.
+     * .. _`CEC-TX-STATUS-NACK`:
+
+       - ``CEC_TX_STATUS_NACK``
+       - 0x04
+-      - Message was not acknowledged.
++      - Message was not acknowledged. Note that some hardware cannot tell apart
++        a 'Not Acknowledged' status from other error conditions, i.e. the result
++	of a transmit is just OK or FAIL. In that case this status will be
++	returned when the transmit failed.
+     * .. _`CEC-TX-STATUS-LOW-DRIVE`:
+
+       - ``CEC_TX_STATUS_LOW_DRIVE``
+       - 0x08
+       - Low drive was detected on the CEC bus. This indicates that a
+ 	follower detected an error on the bus and requests a
+-	retransmission.
++	retransmission. Optional status, not all hardware can detect this
++	error condition.
+     * .. _`CEC-TX-STATUS-ERROR`:
+
+       - ``CEC_TX_STATUS_ERROR``
+@@ -258,14 +264,14 @@ View On' messages from initiator 0xf ('Unregistered') to destination 0 ('TV').
+       - Some error occurred. This is used for any errors that do not fit
+ 	``CEC_TX_STATUS_ARB_LOST`` or ``CEC_TX_STATUS_LOW_DRIVE``, either because
+ 	the hardware could not tell which error occurred, or because the hardware
+-	tested for other conditions besides those two.
++	tested for other conditions besides those two. Optional status.
+     * .. _`CEC-TX-STATUS-MAX-RETRIES`:
+
+       - ``CEC_TX_STATUS_MAX_RETRIES``
+       - 0x20
+       - The transmit failed after one or more retries. This status bit is
+-	mutually exclusive with :ref:`CEC_TX_STATUS_OK <CEC-TX-STATUS-OK>`. Other bits can still
+-	be set to explain which failures were seen.
++	mutually exclusive with :ref:`CEC_TX_STATUS_OK <CEC-TX-STATUS-OK>`.
++	Other bits can still be set to explain which failures were seen.
+
+
+ .. tabularcolumns:: |p{5.6cm}|p{0.9cm}|p{11.0cm}|
