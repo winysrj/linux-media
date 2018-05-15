@@ -1,84 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:23785 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964922AbeEYOmH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 10:42:07 -0400
-Date: Fri, 25 May 2018 16:42:02 +0200
-From: =?utf-8?Q?Micha=C5=82?= Winiarski <michal.winiarski@intel.com>
-To: Sean Young <sean@mess.org>
-CC: <linux-media@vger.kernel.org>, Jarod Wilson <jarod@redhat.com>
-Subject: Re: [PATCH 3/3] media: rc: nuvoton: Keep device enabled during reg
- init
-Message-ID: <20180525144202.n6o47kk4e45wphbm@mwiniars-main.ger.corp.intel.com>
-References: <20180521143803.25664-1-michal.winiarski@intel.com>
- <20180521143803.25664-3-michal.winiarski@intel.com>
- <20180524113140.s365usmtbnnzn6ft@gofer.mess.org>
- <20180525133523.a42pueu4gvkx6k32@mwiniars-main.ger.corp.intel.com>
- <20180525135941.v3eopzko4joduitx@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180525135941.v3eopzko4joduitx@gofer.mess.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:50644 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752484AbeEOH7d (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 03:59:33 -0400
+Received: by mail-wm0-f65.google.com with SMTP id t11-v6so17686617wmt.0
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:33 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 05/29] venus: hfi: support session continue for 4xx version
+Date: Tue, 15 May 2018 10:58:35 +0300
+Message-Id: <20180515075859.17217-6-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 25, 2018 at 02:59:41PM +0100, Sean Young wrote:
-> On Fri, May 25, 2018 at 03:35:23PM +0200, Michał Winiarski wrote:
-> > On Thu, May 24, 2018 at 12:31:40PM +0100, Sean Young wrote:
-> > > On Mon, May 21, 2018 at 04:38:03PM +0200, Michał Winiarski wrote:
-> > > > Doing writes when the device is disabled seems to be a NOOP.
-> > > > Let's enable the device, write the values, and then disable it on init.
-> > > > This changes the behavior for wake device, which is now being disabled
-> > > > after init.
-> > > 
-> > > I don't have the datasheet so I might be misunderstanding this. We want
-> > > the IR wakeup to work fine even after kernel crash/power loss, right?
-> > 
-> > [snip]
-> > 
-> > Right, that makes sense. I completely ignored this scenario.
-> >  
-> > > > -	/* enable the CIR WAKE logical device */
-> > > > -	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR_WAKE);
-> > > > +	nvt_disable_logical_dev(nvt, LOGICAL_DEV_CIR);
-> > > 
-> > > The way I read this is that the CIR, not CIR_WAKE, is being disabled,
-> > > which seems contrary to what the commit message says.
-> > > 
-> > 
-> > That's a typo. And by accident it makes the wake_device work correctly :)
-> > I think that registers init logic was still broken though, operating under the
-> > assumption that the device is enabled on module load...
-> > 
-> > I guess we should just remove disable(LOGICAL_DEV_CIR) from wake_regs_init.
-> > 
-> > Have you already included this in any non-rebasing tree?
-> 
-> Nothing has been applied yet.
-> 
-> > Should I send a v2 or fixup on top?
-> 
-> I don't have the hardware to test this, a v2 would be appreciated.
-> 
-> We're late in the release cycle and I'm wondering if this patch would also
-> solve the nuvoton probe problem:
-> 
-> https://patchwork.linuxtv.org/patch/49874/
+This makes possible to handle session_continue for 4xx as well.
 
-It causes us to go back to previous behavior (we're refcounting open/close,
-with your patch initial open on my system is coming from kbd_connect(), so
-userspace close() doesn't propagate to nuvoton-cir).
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/hfi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-It passes my test of "load the module with debug=1, see if I'm getting
-interrupts".
-
-If there's any scenario in which->close() would be called, it's still going to
-be broken.
-
--Michał
-
-> 
-> Thanks,
-> 
-> Sean
+diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
+index bca894a00c07..cbc6fad05e47 100644
+--- a/drivers/media/platform/qcom/venus/hfi.c
++++ b/drivers/media/platform/qcom/venus/hfi.c
+@@ -312,7 +312,7 @@ int hfi_session_continue(struct venus_inst *inst)
+ {
+ 	struct venus_core *core = inst->core;
+ 
+-	if (core->res->hfi_version != HFI_VERSION_3XX)
++	if (core->res->hfi_version == HFI_VERSION_1XX)
+ 		return 0;
+ 
+ 	return core->ops->session_continue(inst);
+-- 
+2.14.1
