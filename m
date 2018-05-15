@@ -1,97 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:48690 "EHLO ni.piap.pl"
+Received: from gofer.mess.org ([88.97.38.141]:59117 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934393AbeEYHHT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 03:07:19 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Tim Harvey <tharvey@gateworks.com>
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-References: <m37eobudmo.fsf@t19.piap.pl>
-        <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
-        <m3tvresqfw.fsf@t19.piap.pl>
-        <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
-        <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
-        <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
-        <m3h8mxqc7t.fsf@t19.piap.pl>
-        <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
-Date: Fri, 25 May 2018 09:07:17 +0200
-In-Reply-To: <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com> (Steve
-        Longerbeam's message of "Thu, 24 May 2018 11:12:01 -0700")
-Message-ID: <m336ygqkm2.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain
+        id S1751859AbeEOSuX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 14:50:23 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
+        Matthias Reichl <hias@horus.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Y Song <ys114321@gmail.com>
+Subject: [PATCH v2 0/2] IR decoding using BPF
+Date: Tue, 15 May 2018 19:50:18 +0100
+Message-Id: <cover.1526409690.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steve Longerbeam <slongerbeam@gmail.com> writes:
+The kernel IR decoders support the most widely used IR protocols, but there
+are many protocols which are not supported[1]. For example, the
+lirc-remotes[2] repo has over 2700 remotes, many of which are not supported
+by rc-core. There is a "long tail" of unsupported IR protocols.
 
->> The manual says: Reduce Double Read or Writes (RDRW):
->> This bit is relevant for YUV4:2:0 formats. For write channels:
->> U and V components are not written to odd rows.
->>
->> How could it be so? With YUV420, are they normally written?
->
-> Well, given that this bit exists, and assuming I understand it
-> correctly (1),
-> I guess the U and V components for odd rows normally are placed on the
-> AXI bus. Which is a total waste of bus bandwidth because in 4:2:0,
-> the U and V components are the same for odd and even rows.
+IR encoding is done in such a way that some simple circuit can decode it;
+therefore, bpf is ideal.
 
-Right. Now, the AXI bus is just a "memory bus", it's a newer version of
-the AHB. One can't simply "place data" on AXI, it must be a write to
-a specific address, and the data will end up in RAM (assuming the
-configuration is sane). How can we have two possible data formats (with
-and without the RDRW bit) with fixed image format (420-type) is beyond
-me.
+In order to support all these protocols, here we have bpf based IR decoding.
+The idea is that user-space can define a decoder in bpf, attach it to
+the rc device through the lirc chardev.
 
-> Commits
->
-> 14330d7f08 ("media: imx: csi: enable double write reduction")
-> b54a5c2dc8 ("media: imx: prpencvf: enable double write reduction")
->
-> should be reverted for now, until the behavior of this bit is better
-> understood.
+Separate work is underway to extend ir-keytable to have an extensive library
+of bpf-based decoders, and a much expanded library of rc keymaps.
 
-I agree.
+Another future application would be to compile IRP[3] to a IR BPF program, and
+so support virtually every remote without having to write a decoder for each.
 
-I have dumped a raw frame (720 x 480 NV12 frame size 518400 from
-interlaced NTSC camera), with the RDRW bit set.
+Thanks,
 
-The Y plane contains, well, valid Y data (720 x 480 bytes).
+Sean Young
 
-The color plane (360 pixels x 240 line pairs * 2 colors) has every other
-line pair zeroed. I.e., there is a 720-byte line pair filled with valid UV
-data, then there are 720 zeros (360 zeroed UV pairs). Then there is valid
-UV data and so on.
+[1] http://www.hifi-remote.com/wiki/index.php?title=DecodeIR
+[2] https://sourceforge.net/p/lirc-remotes/code/ci/master/tree/remotes/
+[3] http://www.hifi-remote.com/wiki/index.php?title=IRP_Notation
 
-Not sure what could it be for. Some weird sort of YUV 4:1:0? I guess we
-don't want it ATM.
+Changes since v1:
+ - Code review comments from Y Song <ys114321@gmail.com> and
+   Randy Dunlap <rdunlap@infradead.org>
+ - Re-wrote sample bpf to be selftest
+ - Renamed RAWIR_DECODER -> RAWIR_EVENT (Kconfig, context, bpf prog type)
+ - Rebase on bpf-next
+ - Introduced bpf_rawir_event context structure with simpler access checking
 
-WRT ADV7180 field format:
+Sean Young (2):
+  media: rc: introduce BPF_PROG_RAWIR_EVENT
+  bpf: add selftest for rawir_event type program
 
-> This might be a good time to bring up the fact that the ADV7180 driver
-> is wrong
-> to set output to "interlaced". The ADV7180 does not transmit top lines
-> interlaced
-> with bottom lines. It transmits all top lines followed by all bottom
-> lines (or
-> vice-versa), i.e. it should be either V4L2_FIELD_SEQ_TB or
-> V4L2_FIELD_SEQ_BT.
-> It can also be set to V4L2_FIELD_ALTERNATE, and then it is left up to
-> downstream
-> elements to determine field order (TB or BT).
+ drivers/media/rc/Kconfig                      |  10 +
+ drivers/media/rc/Makefile                     |   1 +
+ drivers/media/rc/bpf-rawir-event.c            | 322 ++++++++++++++++++
+ drivers/media/rc/lirc_dev.c                   |  28 ++
+ drivers/media/rc/rc-core-priv.h               |  19 ++
+ drivers/media/rc/rc-ir-raw.c                  |   3 +
+ include/linux/bpf_rcdev.h                     |  30 ++
+ include/linux/bpf_types.h                     |   3 +
+ include/uapi/linux/bpf.h                      |  55 ++-
+ kernel/bpf/syscall.c                          |   7 +
+ tools/bpf/bpftool/prog.c                      |   1 +
+ tools/include/uapi/linux/bpf.h                |  55 ++-
+ tools/lib/bpf/libbpf.c                        |   1 +
+ tools/testing/selftests/bpf/Makefile          |   7 +-
+ tools/testing/selftests/bpf/bpf_helpers.h     |   6 +
+ tools/testing/selftests/bpf/test_rawir.sh     |  37 ++
+ .../selftests/bpf/test_rawir_event_kern.c     |  26 ++
+ .../selftests/bpf/test_rawir_event_user.c     |  90 +++++
+ 18 files changed, 696 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/media/rc/bpf-rawir-event.c
+ create mode 100644 include/linux/bpf_rcdev.h
+ create mode 100755 tools/testing/selftests/bpf/test_rawir.sh
+ create mode 100644 tools/testing/selftests/bpf/test_rawir_event_kern.c
+ create mode 100644 tools/testing/selftests/bpf/test_rawir_event_user.c
 
-Right. ADV7180, AFAIK, doesn't have the hardware (frame buffer) to get
-two interlaced fields and merge them to form a complete frame.
-It simply transforms the incoming analog signal into binary data stream.
-This issue should be fixed.
-
-Thanks for your work,
 -- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+2.17.0
