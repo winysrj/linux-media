@@ -1,144 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:42247 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030816AbeEYXxz (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:52891 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752406AbeEOH7n (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 19:53:55 -0400
-Received: by mail-pf0-f193.google.com with SMTP id p14-v6so3261020pfh.9
-        for <linux-media@vger.kernel.org>; Fri, 25 May 2018 16:53:55 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Tue, 15 May 2018 03:59:43 -0400
+Received: by mail-wm0-f66.google.com with SMTP id w194-v6so17604957wmf.2
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:42 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 6/6] media: staging/imx: interweave and odd-chroma-row skip are incompatible
-Date: Fri, 25 May 2018 16:53:36 -0700
-Message-Id: <1527292416-26187-7-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 13/29] venus: helpers: make a commmon function for power_enable
+Date: Tue, 15 May 2018 10:58:43 +0300
+Message-Id: <20180515075859.17217-14-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If IDMAC interweaving is enabled in a write channel, the channel must
-write the odd chroma rows for 4:2:0 formats. Skipping writing the odd
-chroma rows produces corrupted captured 4:2:0 images when interweave
-is enabled.
+Make common function which will enable power when enabling/disabling
+clocks and also covers Venus 3xx/4xx versions.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/staging/media/imx/imx-ic-prpencvf.c | 18 +++++++++++++-----
- drivers/staging/media/imx/imx-media-csi.c   | 18 ++++++++++++------
- 2 files changed, 25 insertions(+), 11 deletions(-)
+ drivers/media/platform/qcom/venus/helpers.c | 51 +++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/helpers.h |  2 ++
+ drivers/media/platform/qcom/venus/vdec.c    | 25 ++++----------
+ drivers/media/platform/qcom/venus/venc.c    | 25 ++++----------
+ 4 files changed, 67 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-index ae453fd..b63b3f4 100644
---- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-+++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-@@ -353,6 +353,7 @@ static int prp_setup_channel(struct prp_priv *priv,
- 	struct v4l2_mbus_framefmt *infmt;
- 	unsigned int burst_size;
- 	struct ipu_image image;
-+	bool interweave;
- 	int ret;
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index d9065cc8a7d3..2b21f6ed7502 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -13,6 +13,7 @@
+  *
+  */
+ #include <linux/clk.h>
++#include <linux/iopoll.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/pm_runtime.h>
+@@ -24,6 +25,7 @@
+ #include "core.h"
+ #include "helpers.h"
+ #include "hfi_helper.h"
++#include "hfi_venus_io.h"
  
- 	infmt = &priv->format_mbus[PRPENCVF_SINK_PAD];
-@@ -365,6 +366,10 @@ static int prp_setup_channel(struct prp_priv *priv,
- 	image.rect.width = image.pix.width;
- 	image.rect.height = image.pix.height;
- 
-+	interweave = (image.pix.field == V4L2_FIELD_NONE &&
-+		      V4L2_FIELD_HAS_BOTH(infmt->field) &&
-+		      channel == priv->out_ch);
+ struct intbuf {
+ 	struct list_head list;
+@@ -781,3 +783,52 @@ void venus_helper_init_instance(struct venus_inst *inst)
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(venus_helper_init_instance);
 +
- 	if (rot_swap_width_height) {
- 		swap(image.pix.width, image.pix.height);
- 		swap(image.rect.width, image.rect.height);
-@@ -377,12 +382,17 @@ static int prp_setup_channel(struct prp_priv *priv,
- 	image.phys0 = addr0;
- 	image.phys1 = addr1;
- 
--	if (channel == priv->out_ch || channel == priv->rot_out_ch) {
-+	/*
-+	 * Skip writing U and V components to odd rows in the output
-+	 * channels for planar 4:2:0 (but not when enabling IDMAC
-+	 * interweaving, they are incompatible).
-+	 */
-+	if (!interweave && (channel == priv->out_ch ||
-+			    channel == priv->rot_out_ch)) {
- 		switch (image.pix.pixelformat) {
- 		case V4L2_PIX_FMT_YUV420:
- 		case V4L2_PIX_FMT_YVU420:
- 		case V4L2_PIX_FMT_NV12:
--			/* Skip writing U and V components to odd rows */
- 			ipu_cpmem_skip_odd_chroma_rows(channel);
- 			break;
- 		}
-@@ -405,9 +415,7 @@ static int prp_setup_channel(struct prp_priv *priv,
- 	if (rot_mode)
- 		ipu_cpmem_set_rotation(channel, rot_mode);
- 
--	if (image.pix.field == V4L2_FIELD_NONE &&
--	    V4L2_FIELD_HAS_BOTH(infmt->field) &&
--	    channel == priv->out_ch)
-+	if (interweave)
- 		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline);
- 
- 	ret = ipu_ic_task_idma_init(priv->ic, channel,
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 6829c08..ab2de71 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -368,10 +368,10 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
++int venus_helper_power_enable(struct venus_core *core, u32 session_type,
++			      bool enable)
++{
++	void __iomem *ctrl, *stat;
++	u32 val;
++	int ret;
++
++	if (!IS_V3(core) && !IS_V4(core))
++		return -EINVAL;
++
++	if (IS_V3(core)) {
++		if (session_type == VIDC_SESSION_TYPE_DEC)
++			ctrl = core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL;
++		else
++			ctrl = core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL;
++		if (enable)
++			writel(0, ctrl);
++		else
++			writel(1, ctrl);
++
++		return 0;
++	}
++
++	if (session_type == VIDC_SESSION_TYPE_DEC) {
++		ctrl = core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL;
++		stat = core->base + WRAPPER_VCODEC0_MMCC_POWER_STATUS;
++	} else {
++		ctrl = core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL;
++		stat = core->base + WRAPPER_VCODEC1_MMCC_POWER_STATUS;
++	}
++
++	if (enable) {
++		writel(0, ctrl);
++
++		ret = readl_poll_timeout(stat, val, val & BIT(1), 1, 100);
++		if (ret)
++			return ret;
++	} else {
++		writel(1, ctrl);
++
++		ret = readl_poll_timeout(stat, val, !(val & BIT(1)), 1, 100);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(venus_helper_power_enable);
+diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+index 971392be5df5..0e64aa95624a 100644
+--- a/drivers/media/platform/qcom/venus/helpers.h
++++ b/drivers/media/platform/qcom/venus/helpers.h
+@@ -43,4 +43,6 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
+ void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+ void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
+ void venus_helper_init_instance(struct venus_inst *inst);
++int venus_helper_power_enable(struct venus_core *core, u32 session_type,
++			      bool enable);
+ #endif
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 3b38bd1241b0..2bd81de6328a 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -1123,26 +1123,21 @@ static int vdec_remove(struct platform_device *pdev)
+ static __maybe_unused int vdec_runtime_suspend(struct device *dev)
  {
- 	struct imx_media_video_dev *vdev = priv->vdev;
- 	struct v4l2_mbus_framefmt *infmt;
-+	bool passthrough, interweave;
- 	struct ipu_image image;
- 	u32 passthrough_bits;
- 	dma_addr_t phys[2];
--	bool passthrough;
- 	u32 burst_size;
- 	int ret;
+ 	struct venus_core *core = dev_get_drvdata(dev);
++	int ret;
  
-@@ -389,6 +389,10 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 	image.phys0 = phys[0];
- 	image.phys1 = phys[1];
+ 	if (IS_V1(core))
+ 		return 0;
  
-+	interweave = (image.pix.field == V4L2_FIELD_NONE &&
-+		      (V4L2_FIELD_HAS_BOTH(infmt->field) ||
-+		       infmt->field == V4L2_FIELD_ALTERNATE));
-+
- 	/*
- 	 * Check for conditions that require the IPU to handle the
- 	 * data internally as generic data, aka passthrough mode:
-@@ -422,8 +426,12 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 			      ((image.pix.width & 0xf) ? 8 : 16) : 32) : 64;
- 		passthrough = is_parallel_16bit_bus(&priv->upstream_ep);
- 		passthrough_bits = 16;
--		/* Skip writing U and V components to odd rows */
--		ipu_cpmem_skip_odd_chroma_rows(priv->idmac_ch);
-+		/*
-+		 * Skip writing U and V components to odd rows (but not
-+		 * when enabling IDMAC interweaving, they are incompatible).
-+		 */
-+		if (!interweave)
-+			ipu_cpmem_skip_odd_chroma_rows(priv->idmac_ch);
- 		break;
- 	case V4L2_PIX_FMT_YUYV:
- 	case V4L2_PIX_FMT_UYVY:
-@@ -477,9 +485,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+-	if (IS_V3(core))
+-		writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(0, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
++	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, true);
  
- 	ipu_smfc_set_burstsize(priv->smfc, burst_size);
+ 	if (IS_V4(core))
+ 		clk_disable_unprepare(core->core0_bus_clk);
  
--	if (image.pix.field == V4L2_FIELD_NONE &&
--	    (V4L2_FIELD_HAS_BOTH(infmt->field) ||
--	     infmt->field == V4L2_FIELD_ALTERNATE))
-+	if (interweave)
- 		ipu_cpmem_interlaced_scan(priv->idmac_ch,
- 					  image.pix.bytesperline);
+ 	clk_disable_unprepare(core->core0_clk);
  
+-	if (IS_V3(core))
+-		writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(1, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
++	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static __maybe_unused int vdec_runtime_resume(struct device *dev)
+@@ -1153,20 +1148,14 @@ static __maybe_unused int vdec_runtime_resume(struct device *dev)
+ 	if (IS_V1(core))
+ 		return 0;
+ 
+-	if (IS_V3(core))
+-		writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(0, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
++	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, true);
+ 
+-	ret = clk_prepare_enable(core->core0_clk);
++	ret |= clk_prepare_enable(core->core0_clk);
+ 
+ 	if (IS_V4(core))
+ 		ret |= clk_prepare_enable(core->core0_bus_clk);
+ 
+-	if (IS_V3(core))
+-		writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(1, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
++	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index be8ea3326386..f87d891325ea 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -1267,26 +1267,21 @@ static int venc_remove(struct platform_device *pdev)
+ static __maybe_unused int venc_runtime_suspend(struct device *dev)
+ {
+ 	struct venus_core *core = dev_get_drvdata(dev);
++	int ret;
+ 
+ 	if (IS_V1(core))
+ 		return 0;
+ 
+-	if (IS_V3(core))
+-		writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(0, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
++	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, true);
+ 
+ 	if (IS_V4(core))
+ 		clk_disable_unprepare(core->core1_bus_clk);
+ 
+ 	clk_disable_unprepare(core->core1_clk);
+ 
+-	if (IS_V3(core))
+-		writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(1, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
++	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, false);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static __maybe_unused int venc_runtime_resume(struct device *dev)
+@@ -1297,20 +1292,14 @@ static __maybe_unused int venc_runtime_resume(struct device *dev)
+ 	if (IS_V1(core))
+ 		return 0;
+ 
+-	if (IS_V3(core))
+-		writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(0, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
++	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, true);
+ 
+-	ret = clk_prepare_enable(core->core1_clk);
++	ret |= clk_prepare_enable(core->core1_clk);
+ 
+ 	if (IS_V4(core))
+ 		ret |= clk_prepare_enable(core->core1_bus_clk);
+ 
+-	if (IS_V3(core))
+-		writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+-	else if (IS_V4(core))
+-		writel(1, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
++	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, false);
+ 
+ 	return ret;
+ }
 -- 
-2.7.4
+2.14.1
