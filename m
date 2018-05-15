@@ -1,71 +1,432 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:17598 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750778AbeEPP2R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 11:28:17 -0400
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "jacopo@jmondi.org" <jacopo@jmondi.org>,
-        "Chiang, AlanX" <alanx.chiang@intel.com>
-Subject: RE: [RESEND PATCH v9 2/2] media: dw9807: Add dw9807 vcm driver
-Date: Wed, 16 May 2018 15:28:12 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D59E549@PGSMSX111.gar.corp.intel.com>
-References: <1525276428-17379-1-git-send-email-andy.yeh@intel.com>
-        <1525276428-17379-3-git-send-email-andy.yeh@intel.com>
- <20180509160332.75c1eb1b@vento.lan>
-In-Reply-To: <20180509160332.75c1eb1b@vento.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ua0-f195.google.com ([209.85.217.195]:46035 "EHLO
+        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750886AbeEOFXi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 01:23:38 -0400
 MIME-Version: 1.0
+In-Reply-To: <cd3a5e27ef4122fab90daae2af6031982df77282.1526331777.git.sean@mess.org>
+References: <cover.1526331777.git.sean@mess.org> <cd3a5e27ef4122fab90daae2af6031982df77282.1526331777.git.sean@mess.org>
+From: Y Song <ys114321@gmail.com>
+Date: Mon, 14 May 2018 22:22:57 -0700
+Message-ID: <CAH3MdRVYi1YN7V3CYGcXWhyKCC+Vno7XS2v2UfrA5_zkCNfXiw@mail.gmail.com>
+Subject: Re: [PATCH v1 2/4] media: bpf: allow raw IR decoder bpf programs to
+ be used
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        netdev <netdev@vger.kernel.org>,
+        Matthias Reichl <hias@horus.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-
->-----Original Message-----
->From: Mauro Carvalho Chehab [mailto:mchehab+samsung@kernel.org] 
->Sent: Thursday, May 10, 2018 3:04 AM
->To: Yeh, Andy <andy.yeh@intel.com>
->Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; devicetree@vger.kernel.org; tfiga@chromium.org; jacopo@jmondi.org; Chiang, AlanX <alanx.chiang@intel.com>
->Subject: Re: [RESEND PATCH v9 2/2] media: dw9807: Add dw9807 vcm driver
+On Mon, May 14, 2018 at 2:10 PM, Sean Young <sean@mess.org> wrote:
+> This implements attaching, detaching, querying and execution. The target
+> fd has to be the /dev/lircN device.
 >
->This adds a new warning.
+> Signed-off-by: Sean Young <sean@mess.org>
+> ---
+>  drivers/media/rc/ir-bpf-decoder.c | 191 ++++++++++++++++++++++++++++++
+>  drivers/media/rc/lirc_dev.c       |  30 +++++
+>  drivers/media/rc/rc-core-priv.h   |  15 +++
+>  drivers/media/rc/rc-ir-raw.c      |   5 +
+>  include/uapi/linux/bpf.h          |   1 +
+>  kernel/bpf/syscall.c              |   7 ++
+>  6 files changed, 249 insertions(+)
 >
->Thanks,
->Mauro
-> 
->    drivers/media/i2c/dw9807.c: In function 'dw9807_set_dac':
->    drivers/media/i2c/dw9807.c:81:16: warning: unused variable 'retry' [-Wunused-variable]
->      int val, ret, retry = 0;
->                    ^
->    
->Please either fix or fold the following patch.
+> diff --git a/drivers/media/rc/ir-bpf-decoder.c b/drivers/media/rc/ir-bpf-decoder.c
+> index aaa5e208b1a5..651590a14772 100644
+> --- a/drivers/media/rc/ir-bpf-decoder.c
+> +++ b/drivers/media/rc/ir-bpf-decoder.c
+> @@ -91,3 +91,194 @@ const struct bpf_verifier_ops ir_decoder_verifier_ops = {
+>         .get_func_proto  = ir_decoder_func_proto,
+>         .is_valid_access = ir_decoder_is_valid_access
+>  };
+> +
+> +#define BPF_MAX_PROGS 64
+> +
+> +int rc_dev_bpf_attach(struct rc_dev *rcdev, struct bpf_prog *prog, u32 flags)
+
+flags is not used in this function.
+
+> +{
+> +       struct ir_raw_event_ctrl *raw;
+> +       struct bpf_prog_array __rcu *old_array;
+> +       struct bpf_prog_array *new_array;
+> +       int ret;
+> +
+> +       if (rcdev->driver_type != RC_DRIVER_IR_RAW)
+> +               return -EINVAL;
+> +
+> +       ret = mutex_lock_interruptible(&rcdev->lock);
+> +       if (ret)
+> +               return ret;
+> +
+> +       raw = rcdev->raw;
+> +
+> +       if (raw->progs && bpf_prog_array_length(raw->progs) >= BPF_MAX_PROGS) {
+> +               ret = -E2BIG;
+> +               goto out;
+> +       }
+> +
+> +       old_array = raw->progs;
+> +       ret = bpf_prog_array_copy(old_array, NULL, prog, &new_array);
+> +       if (ret < 0)
+> +               goto out;
+> +
+> +       rcu_assign_pointer(raw->progs, new_array);
+> +       bpf_prog_array_free(old_array);
+> +out:
+> +       mutex_unlock(&rcdev->lock);
+> +       return ret;
+> +}
+> +
+> +int rc_dev_bpf_detach(struct rc_dev *rcdev, struct bpf_prog *prog, u32 flags)
+
+flags is not used in this function.
+
+> +{
+> +       struct ir_raw_event_ctrl *raw;
+> +       struct bpf_prog_array __rcu *old_array;
+> +       struct bpf_prog_array *new_array;
+> +       int ret;
+> +
+> +       if (rcdev->driver_type != RC_DRIVER_IR_RAW)
+> +               return -EINVAL;
+> +
+> +       ret = mutex_lock_interruptible(&rcdev->lock);
+> +       if (ret)
+> +               return ret;
+> +
+> +       raw = rcdev->raw;
+> +
+> +       old_array = raw->progs;
+> +       ret = bpf_prog_array_copy(old_array, prog, NULL, &new_array);
+> +       if (ret < 0) {
+> +               bpf_prog_array_delete_safe(old_array, prog);
+> +       } else {
+> +               rcu_assign_pointer(raw->progs, new_array);
+> +               bpf_prog_array_free(old_array);
+> +       }
+> +
+> +       bpf_prog_put(prog);
+> +       mutex_unlock(&rcdev->lock);
+> +       return 0;
+> +}
+> +
+> +void rc_dev_bpf_run(struct rc_dev *rcdev)
+> +{
+> +       struct ir_raw_event_ctrl *raw = rcdev->raw;
+> +
+> +       if (raw->progs)
+> +               BPF_PROG_RUN_ARRAY(raw->progs, &raw->prev_ev, BPF_PROG_RUN);
+> +}
+> +
+> +void rc_dev_bpf_put(struct rc_dev *rcdev)
+> +{
+> +       struct bpf_prog_array *progs = rcdev->raw->progs;
+> +       int i, size;
+> +
+> +       if (!progs)
+> +               return;
+> +
+> +       size = bpf_prog_array_length(progs);
+> +       for (i = 0; i < size; i++)
+> +               bpf_prog_put(progs->progs[i]);
+> +
+> +       bpf_prog_array_free(rcdev->raw->progs);
+> +}
+> +
+> +int rc_dev_prog_attach(const union bpf_attr *attr)
+> +{
+> +       struct bpf_prog *prog;
+> +       struct rc_dev *rcdev;
+> +       int ret;
+> +
+> +       if (attr->attach_flags & BPF_F_ALLOW_OVERRIDE)
+> +               return -EINVAL;
+
+Looks like you really did not use flags except here.
+BPF_F_ALLOW_OVERRIDE is originally used for
+cgroup type of attachment and the comment explicits
+saying so.
+
+In the query below, the flags value "0" is copied to userspace.
+
+In your case, I think you can just disallow any value, i.g.,
+attr->attach_flags must be 0, and then you further down
+check that if the prog is already in the array, you just return an error.
+
+> +
+> +       prog = bpf_prog_get_type(attr->attach_bpf_fd,
+> +                                BPF_PROG_TYPE_RAWIR_DECODER);
+> +       if (IS_ERR(prog))
+> +               return PTR_ERR(prog);
+> +
+> +       rcdev = rc_dev_get_from_fd(attr->target_fd);
+> +       if (IS_ERR(rcdev)) {
+> +               bpf_prog_put(prog);
+> +               return PTR_ERR(rcdev);
+> +       }
+> +
+> +       ret = rc_dev_bpf_attach(rcdev, prog, attr->attach_flags);
+> +       if (ret)
+> +               bpf_prog_put(prog);
+> +
+> +       put_device(&rcdev->dev);
+> +
+> +       return ret;
+> +}
+> +
+> +int rc_dev_prog_detach(const union bpf_attr *attr)
+> +{
+> +       struct bpf_prog *prog;
+> +       struct rc_dev *rcdev;
+> +       int ret;
+> +
+> +       if (attr->attach_flags & BPF_F_ALLOW_OVERRIDE)
+> +               return -EINVAL;
+> +
+> +       prog = bpf_prog_get_type(attr->attach_bpf_fd,
+> +                                BPF_PROG_TYPE_RAWIR_DECODER);
+> +       if (IS_ERR(prog))
+> +               return PTR_ERR(prog);
+> +
+> +       rcdev = rc_dev_get_from_fd(attr->target_fd);
+> +       if (IS_ERR(rcdev)) {
+> +               bpf_prog_put(prog);
+> +               return PTR_ERR(rcdev);
+> +       }
+> +
+> +       ret = rc_dev_bpf_detach(rcdev, prog, attr->attach_flags);
+> +
+> +       bpf_prog_put(prog);
+> +       put_device(&rcdev->dev);
+> +
+> +       return ret;
+> +}
+> +
+> +int rc_dev_prog_query(const union bpf_attr *attr, union bpf_attr __user *uattr)
+> +{
+> +       __u32 __user *prog_ids = u64_to_user_ptr(attr->query.prog_ids);
+> +       struct bpf_prog_array *progs;
+> +       struct rc_dev *rcdev;
+> +       u32 cnt, flags = 0;
+> +       int ret;
+> +
+> +       if (attr->query.query_flags)
+> +               return -EINVAL;
+> +
+> +       rcdev = rc_dev_get_from_fd(attr->query.target_fd);
+> +       if (IS_ERR(rcdev))
+> +               return PTR_ERR(rcdev);
+> +
+> +       if (rcdev->driver_type != RC_DRIVER_IR_RAW) {
+> +               ret = -EINVAL;
+> +               goto out;
+> +       }
+> +
+> +       ret = mutex_lock_interruptible(&rcdev->lock);
+> +       if (ret)
+> +               goto out;
+> +
+> +       progs = rcdev->raw->progs;
+> +       cnt = progs ? bpf_prog_array_length(progs) : 0;
+> +
+> +       if (copy_to_user(&uattr->query.prog_cnt, &cnt, sizeof(cnt))) {
+> +               ret = -EFAULT;
+> +               goto out;
+> +       }
+> +       if (copy_to_user(&uattr->query.attach_flags, &flags, sizeof(flags))) {
+> +               ret = -EFAULT;
+> +               goto out;
+> +       }
+> +
+> +       if (attr->query.prog_cnt != 0 && prog_ids && cnt)
+> +               ret = bpf_prog_array_copy_to_user(progs, prog_ids, cnt);
+> +
+> +out:
+> +       mutex_unlock(&rcdev->lock);
+> +       put_device(&rcdev->dev);
+> +
+> +       return ret;
+> +}
+> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+> index 24e9fbb80e81..65319f2ccc13 100644
+> --- a/drivers/media/rc/lirc_dev.c
+> +++ b/drivers/media/rc/lirc_dev.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+>  #include <linux/device.h>
+> +#include <linux/file.h>
+>  #include <linux/idr.h>
+>  #include <linux/poll.h>
+>  #include <linux/sched.h>
+> @@ -28,6 +29,8 @@
+>  #include "rc-core-priv.h"
+>  #include <uapi/linux/lirc.h>
 >
-
-I noticed you just submitted a patch to the list to address the warning. Thanks.
-https://patchwork.linuxtv.org/patch/49575/
-
-Just in the meantime, I uploaded the same one before noticing your patch.  I would like to obsolete mine, so let me know if you agree too. Thanks.
-https://patchwork.linuxtv.org/patch/49574/
-
-
-Regards, Andy
-
->diff --git a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c index 28ede2b47acf..6ebb98717fb1 100644
->--- a/drivers/media/i2c/dw9807.c
->+++ b/drivers/media/i2c/dw9807.c
->@@ -78,7 +78,7 @@ static int dw9807_set_dac(struct i2c_client *client, u16 data)
->        const char tx_data[3] = {
->                DW9807_MSB_ADDR, ((data >> 8) & 0x03), (data & 0xff)
->        };
->-       int val, ret, retry = 0;
->+       int val, ret;
-> 
->        /*
->         * According to the datasheet, need to check the bus status before we
+> +#include <linux/bpf-rcdev.h>
+> +
+>  #define LIRCBUF_SIZE   256
+>
+>  static dev_t lirc_base_dev;
+> @@ -816,4 +819,31 @@ void __exit lirc_dev_exit(void)
+>         unregister_chrdev_region(lirc_base_dev, RC_DEV_MAX);
+>  }
+>
+> +struct rc_dev *rc_dev_get_from_fd(int fd)
+> +{
+> +       struct rc_dev *dev;
+> +       struct file *f;
+> +
+> +       f = fget_raw(fd);
+> +       if (!f)
+> +               return ERR_PTR(-EBADF);
+> +
+> +       if (!S_ISCHR(f->f_inode->i_mode) ||
+> +           imajor(f->f_inode) != MAJOR(lirc_base_dev)) {
+> +               fput(f);
+> +               return ERR_PTR(-EBADF);
+> +       }
+> +
+> +       dev = container_of(f->f_inode->i_cdev, struct rc_dev, lirc_cdev);
+> +       if (!dev->registered) {
+> +               fput(f);
+> +               return ERR_PTR(-ENODEV);
+> +       }
+> +
+> +       get_device(&dev->dev);
+> +       fput(f);
+> +
+> +       return dev;
+> +}
+> +
+>  MODULE_ALIAS("lirc_dev");
+> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+> index e0e6a17460f6..b6f24f369657 100644
+> --- a/drivers/media/rc/rc-core-priv.h
+> +++ b/drivers/media/rc/rc-core-priv.h
+> @@ -57,6 +57,9 @@ struct ir_raw_event_ctrl {
+>         /* raw decoder state follows */
+>         struct ir_raw_event prev_ev;
+>         struct ir_raw_event this_ev;
+> +#ifdef CONFIG_IR_BPF_DECODER
+> +       struct bpf_prog_array *progs;
+> +#endif
+>         struct nec_dec {
+>                 int state;
+>                 unsigned count;
+> @@ -288,6 +291,7 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev);
+>  void ir_lirc_scancode_event(struct rc_dev *dev, struct lirc_scancode *lsc);
+>  int ir_lirc_register(struct rc_dev *dev);
+>  void ir_lirc_unregister(struct rc_dev *dev);
+> +struct rc_dev *rc_dev_get_from_fd(int fd);
+>  #else
+>  static inline int lirc_dev_init(void) { return 0; }
+>  static inline void lirc_dev_exit(void) {}
+> @@ -299,4 +303,15 @@ static inline int ir_lirc_register(struct rc_dev *dev) { return 0; }
+>  static inline void ir_lirc_unregister(struct rc_dev *dev) { }
+>  #endif
+>
+> +/*
+> + * bpf interface
+> + */
+> +#ifdef CONFIG_IR_BPF_DECODER
+> +void rc_dev_bpf_put(struct rc_dev *dev);
+> +void rc_dev_bpf_run(struct rc_dev *dev);
+> +#else
+> +void rc_dev_bpf_put(struct rc_dev *dev) {}
+> +void rc_dev_bpf_run(struct rc_dev *dev) {}
+> +#endif
+> +
+>  #endif /* _RC_CORE_PRIV */
+> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+> index 374f83105a23..efddd9c44466 100644
+> --- a/drivers/media/rc/rc-ir-raw.c
+> +++ b/drivers/media/rc/rc-ir-raw.c
+> @@ -8,6 +8,8 @@
+>  #include <linux/mutex.h>
+>  #include <linux/kmod.h>
+>  #include <linux/sched.h>
+> +#include <linux/filter.h>
+> +#include <linux/bpf.h>
+>  #include "rc-core-priv.h"
+>
+>  /* Used to keep track of IR raw clients, protected by ir_raw_handler_lock */
+> @@ -33,6 +35,7 @@ static int ir_raw_event_thread(void *data)
+>                                         handler->decode(raw->dev, ev);
+>                         ir_lirc_raw_event(raw->dev, ev);
+>                         raw->prev_ev = ev;
+> +                       rc_dev_bpf_run(raw->dev);
+>                 }
+>                 mutex_unlock(&ir_raw_handler_lock);
+>
+> @@ -623,6 +626,8 @@ void ir_raw_event_unregister(struct rc_dev *dev)
+>                         handler->raw_unregister(dev);
+>         mutex_unlock(&ir_raw_handler_lock);
+>
+> +       rc_dev_bpf_put(dev);
+> +
+>         ir_raw_event_free(dev);
+>  }
+>
+> diff --git a/include/uapi/linux/bpf.h b/include/uapi/linux/bpf.h
+> index 6ad053e831c0..d9740599adf6 100644
+> --- a/include/uapi/linux/bpf.h
+> +++ b/include/uapi/linux/bpf.h
+> @@ -155,6 +155,7 @@ enum bpf_attach_type {
+>         BPF_CGROUP_INET6_CONNECT,
+>         BPF_CGROUP_INET4_POST_BIND,
+>         BPF_CGROUP_INET6_POST_BIND,
+> +       BPF_RAWIR_DECODER,
+>         __MAX_BPF_ATTACH_TYPE
+>  };
+>
+> diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
+> index 016ef9025827..63ecc1f2e1e3 100644
+> --- a/kernel/bpf/syscall.c
+> +++ b/kernel/bpf/syscall.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/timekeeping.h>
+>  #include <linux/ctype.h>
+>  #include <linux/nospec.h>
+> +#include <linux/bpf-rcdev.h>
+>
+>  #define IS_FD_ARRAY(map) ((map)->map_type == BPF_MAP_TYPE_PROG_ARRAY || \
+>                            (map)->map_type == BPF_MAP_TYPE_PERF_EVENT_ARRAY || \
+> @@ -1556,6 +1557,8 @@ static int bpf_prog_attach(const union bpf_attr *attr)
+>         case BPF_SK_SKB_STREAM_PARSER:
+>         case BPF_SK_SKB_STREAM_VERDICT:
+>                 return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, true);
+> +       case BPF_RAWIR_DECODER:
+> +               return rc_dev_prog_attach(attr);
+>         default:
+>                 return -EINVAL;
+>         }
+> @@ -1626,6 +1629,8 @@ static int bpf_prog_detach(const union bpf_attr *attr)
+>         case BPF_SK_SKB_STREAM_PARSER:
+>         case BPF_SK_SKB_STREAM_VERDICT:
+>                 return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, false);
+> +       case BPF_RAWIR_DECODER:
+> +               return rc_dev_prog_detach(attr);
+>         default:
+>                 return -EINVAL;
+>         }
+> @@ -1673,6 +1678,8 @@ static int bpf_prog_query(const union bpf_attr *attr,
+>         case BPF_CGROUP_SOCK_OPS:
+>         case BPF_CGROUP_DEVICE:
+>                 break;
+> +       case BPF_RAWIR_DECODER:
+> +               return rc_dev_prog_query(attr, uattr);
+>         default:
+>                 return -EINVAL;
+>         }
+> --
+> 2.17.0
+>
