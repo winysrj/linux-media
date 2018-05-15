@@ -1,95 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56630 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S969126AbeEXUg5 (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:46194 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752561AbeEOH7r (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 16:36:57 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 05/20] sta2x11: Add video_device and vb2_queue locks
-Date: Thu, 24 May 2018 17:35:05 -0300
-Message-Id: <20180524203520.1598-6-ezequiel@collabora.com>
-In-Reply-To: <20180524203520.1598-1-ezequiel@collabora.com>
-References: <20180524203520.1598-1-ezequiel@collabora.com>
+        Tue, 15 May 2018 03:59:47 -0400
+Received: by mail-wr0-f194.google.com with SMTP id a12-v6so14884553wrn.13
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:46 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 17/29] venus: add helper function to set actual buffer size
+Date: Tue, 15 May 2018 10:58:47 +0300
+Message-Id: <20180515075859.17217-18-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, this driver does not serialize its video4linux
-ioctls, which is a bug, as race conditions might appear.
+Add and use a helper function to set actual buffer size for
+particular buffer type. This is also preparation to use
+the second decoder output.
 
-In addition, video_device and vb2_queue locks are now both
-mandatory. Add them, and implement wait_prepare and
-wait_finish.
-
-To stay on the safe side, this commit uses a single mutex
-for both locks. Better latency can be obtained by separating
-these if needed.
-
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
-It's not really related to this commit, but there is no
-locking around vip->active in vip_irq() ?
-Perhaps it's a non-issue, but it looks fishy.
+ drivers/media/platform/qcom/venus/helpers.c | 12 ++++++++++++
+ drivers/media/platform/qcom/venus/helpers.h |  1 +
+ drivers/media/platform/qcom/venus/vdec.c    | 10 ++--------
+ 3 files changed, 15 insertions(+), 8 deletions(-)
 
-vip_irq()
-{
-	// ...
-        if (vip->active) { /* Acquisition is over on this buffer */
-		// ...
-                vb2_buffer_done(&vip->active->vb.vb2_buf, VB2_BUF_STATE_DONE);
-        }
-}
----
- drivers/media/pci/sta2x11/sta2x11_vip.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
-index dd199bfc1d45..d47b99c2100f 100644
---- a/drivers/media/pci/sta2x11/sta2x11_vip.c
-+++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
-@@ -145,6 +145,7 @@ struct sta2x11_vip {
- 	unsigned int sequence;
- 	struct vip_buffer *active; /* current active buffer */
- 	spinlock_t lock; /* Used in videobuf2 callback */
-+	struct mutex v4l_lock;
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index 824ad4d2d064..94664a3ce3e2 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -544,6 +544,18 @@ int venus_helper_set_dyn_bufmode(struct venus_inst *inst)
+ }
+ EXPORT_SYMBOL_GPL(venus_helper_set_dyn_bufmode);
  
- 	/* Interrupt counters */
- 	int tcount, bcount;
-@@ -385,6 +386,8 @@ static const struct vb2_ops vip_video_qops = {
- 	.buf_queue		= buffer_queue,
- 	.start_streaming	= start_streaming,
- 	.stop_streaming		= stop_streaming,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
++int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype)
++{
++	u32 ptype = HFI_PROPERTY_PARAM_BUFFER_SIZE_ACTUAL;
++	struct hfi_buffer_size_actual bufsz;
++
++	bufsz.type = buftype;
++	bufsz.size = bufsize;
++
++	return hfi_session_set_property(inst, ptype, &bufsz);
++}
++EXPORT_SYMBOL_GPL(venus_helper_set_bufsize);
++
+ static void delayed_process_buf_func(struct work_struct *work)
+ {
+ 	struct venus_buffer *buf, *n;
+diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+index 52b961ed491e..cd306bd8978f 100644
+--- a/drivers/media/platform/qcom/venus/helpers.h
++++ b/drivers/media/platform/qcom/venus/helpers.h
+@@ -41,6 +41,7 @@ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+ 			      unsigned int output_bufs);
+ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
+ int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
++int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype);
+ void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+ void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
+ void venus_helper_init_instance(struct venus_inst *inst);
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 271192273953..e8e00d0650e9 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -710,7 +710,6 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+ {
+ 	struct venus_inst *inst = vb2_get_drv_priv(q);
+ 	struct venus_core *core = inst->core;
+-	u32 ptype;
+ 	int ret;
  
+ 	mutex_lock(&inst->lock);
+@@ -740,13 +739,8 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		goto deinit_sess;
  
-@@ -870,6 +873,7 @@ static int sta2x11_vip_init_buffer(struct sta2x11_vip *vip)
- 	vip->vb_vidq.mem_ops = &vb2_dma_contig_memops;
- 	vip->vb_vidq.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	vip->vb_vidq.dev = &vip->pdev->dev;
-+	vip->vb_vidq.lock = &vip->v4l_lock;
- 	err = vb2_queue_init(&vip->vb_vidq);
- 	if (err)
- 		return err;
-@@ -1035,6 +1039,7 @@ static int sta2x11_vip_init_one(struct pci_dev *pdev,
- 	vip->std = V4L2_STD_PAL;
- 	vip->format = formats_50[0];
- 	vip->config = config;
-+	mutex_init(&vip->v4l_lock);
- 
- 	ret = sta2x11_vip_init_controls(vip);
- 	if (ret)
-@@ -1081,6 +1086,7 @@ static int sta2x11_vip_init_one(struct pci_dev *pdev,
- 	vip->video_dev = video_dev_template;
- 	vip->video_dev.v4l2_dev = &vip->v4l2_dev;
- 	vip->video_dev.queue = &vip->vb_vidq;
-+	vip->video_dev.lock = &vip->v4l_lock;
- 	video_set_drvdata(&vip->video_dev, vip);
- 
- 	ret = video_register_device(&vip->video_dev, VFL_TYPE_GRABBER, -1);
+ 	if (core->res->hfi_version == HFI_VERSION_3XX) {
+-		struct hfi_buffer_size_actual buf_sz;
+-
+-		ptype = HFI_PROPERTY_PARAM_BUFFER_SIZE_ACTUAL;
+-		buf_sz.type = HFI_BUFFER_OUTPUT;
+-		buf_sz.size = inst->output_buf_size;
+-
+-		ret = hfi_session_set_property(inst, ptype, &buf_sz);
++		ret = venus_helper_set_bufsize(inst, inst->output_buf_size,
++					       HFI_BUFFER_OUTPUT);
+ 		if (ret)
+ 			goto deinit_sess;
+ 	}
 -- 
-2.16.3
+2.14.1
