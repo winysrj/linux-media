@@ -1,52 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:41727 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752563AbeEKOSP (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:38034 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752558AbeEOH7q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 10:18:15 -0400
-From: Colin King <colin.king@canonical.com>
+        Tue, 15 May 2018 03:59:46 -0400
+Received: by mail-wm0-f67.google.com with SMTP id m129-v6so19614708wmb.3
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:45 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: dvb_frontends: fix spelling mistake: "unexpcted" -> "unexpected"
-Date: Fri, 11 May 2018 15:18:13 +0100
-Message-Id: <20180511141813.26739-1-colin.king@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 16/29] venus: add a helper function to set dynamic buffer mode
+Date: Tue, 15 May 2018 10:58:46 +0300
+Message-Id: <20180515075859.17217-17-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Adds a new helper function to set dynamic buffer mode if it is
+supported by current HFI version.
 
-Trivial fix to spelling mistake in dprintk message text
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/dvb-frontends/l64781.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/qcom/venus/helpers.c | 22 ++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/helpers.h |  1 +
+ drivers/media/platform/qcom/venus/vdec.c    | 15 +++------------
+ 3 files changed, 26 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/l64781.c b/drivers/media/dvb-frontends/l64781.c
-index e056f36e6f0c..249c18761e6e 100644
---- a/drivers/media/dvb-frontends/l64781.c
-+++ b/drivers/media/dvb-frontends/l64781.c
-@@ -546,7 +546,7 @@ struct dvb_frontend* l64781_attach(const struct l64781_config* config,
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index 1eda19adbf28..824ad4d2d064 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -522,6 +522,28 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
+ }
+ EXPORT_SYMBOL_GPL(venus_helper_set_color_format);
  
- 	/* Responds to all reads with 0 */
- 	if (l64781_readreg(state, 0x1a) != 0) {
--		dprintk("Read 1 returned unexpcted value\n");
-+		dprintk("Read 1 returned unexpected value\n");
- 		goto error;
++int venus_helper_set_dyn_bufmode(struct venus_inst *inst)
++{
++	u32 ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
++	struct hfi_buffer_alloc_mode mode;
++	int ret;
++
++	if (!is_dynamic_bufmode(inst))
++		return 0;
++
++	mode.type = HFI_BUFFER_OUTPUT;
++	mode.mode = HFI_BUFFER_MODE_DYNAMIC;
++
++	ret = hfi_session_set_property(inst, ptype, &mode);
++	if (ret)
++		return ret;
++
++	mode.type = HFI_BUFFER_OUTPUT2;
++
++	return hfi_session_set_property(inst, ptype, &mode);
++}
++EXPORT_SYMBOL_GPL(venus_helper_set_dyn_bufmode);
++
+ static void delayed_process_buf_func(struct work_struct *work)
+ {
+ 	struct venus_buffer *buf, *n;
+diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+index 0e64aa95624a..52b961ed491e 100644
+--- a/drivers/media/platform/qcom/venus/helpers.h
++++ b/drivers/media/platform/qcom/venus/helpers.h
+@@ -40,6 +40,7 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
+ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+ 			      unsigned int output_bufs);
+ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
++int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
+ void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+ void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
+ void venus_helper_init_instance(struct venus_inst *inst);
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 2bd81de6328a..271192273953 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -557,18 +557,9 @@ static int vdec_set_properties(struct venus_inst *inst)
+ 			return ret;
  	}
  
-@@ -555,7 +555,7 @@ struct dvb_frontend* l64781_attach(const struct l64781_config* config,
+-	if (core->res->hfi_version == HFI_VERSION_3XX ||
+-	    inst->cap_bufs_mode_dynamic) {
+-		struct hfi_buffer_alloc_mode mode;
+-
+-		ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
+-		mode.type = HFI_BUFFER_OUTPUT;
+-		mode.mode = HFI_BUFFER_MODE_DYNAMIC;
+-
+-		ret = hfi_session_set_property(inst, ptype, &mode);
+-		if (ret)
+-			return ret;
+-	}
++	ret = venus_helper_set_dyn_bufmode(inst);
++	if (ret)
++		return ret;
  
- 	/* Responds with register default value */
- 	if (l64781_readreg(state, 0x1a) != 0xa1) {
--		dprintk("Read 2 returned unexpcted value\n");
-+		dprintk("Read 2 returned unexpected value\n");
- 		goto error;
- 	}
- 
+ 	if (ctr->post_loop_deb_mode) {
+ 		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
 -- 
-2.17.0
+2.14.1
