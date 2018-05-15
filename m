@@ -1,129 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40572 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753051AbeENL4N (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:41567 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752522AbeEOP3i (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 07:56:13 -0400
+        Tue, 15 May 2018 11:29:38 -0400
+Subject: Re: [PATCH v2 4/5] mfd: cros_ec_dev: Add CEC sub-device registration
+To: Neil Armstrong <narmstrong@baylibre.com>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
+ <1526395342-15481-5-git-send-email-narmstrong@baylibre.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@pobox.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: [RFC PATCH 3/6] v4l2-ioctl.c: use correct vb2_queue lock for m2m devices
-Date: Mon, 14 May 2018 13:55:59 +0200
-Message-Id: <20180514115602.9791-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180514115602.9791-1-hverkuil@xs4all.nl>
-References: <20180514115602.9791-1-hverkuil@xs4all.nl>
+Message-ID: <568980a1-9c22-ccdb-de43-ba88cdce4ecd@xs4all.nl>
+Date: Tue, 15 May 2018 17:29:32 +0200
+MIME-Version: 1.0
+In-Reply-To: <1526395342-15481-5-git-send-email-narmstrong@baylibre.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+On 05/15/2018 04:42 PM, Neil Armstrong wrote:
+> The EC can expose a CEC bus, thus add the cros-ec-cec MFD sub-device
+> when the CEC feature bit is present.
+> 
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 
-For m2m devices the vdev->queue lock was always taken instead of the
-lock for the specific capture or output queue. Now that we pushed
-the locking down into __video_do_ioctl() we can pick the correct
-lock and improve the performance of m2m devices.
+For what it is worth (not an MFD expert):
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 59 +++++++++++++++++++++++++++-
- 1 file changed, 57 insertions(+), 2 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index a12c66ead30d..b871b8fe5105 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -29,6 +29,7 @@
- #include <media/v4l2-device.h>
- #include <media/videobuf2-v4l2.h>
- #include <media/v4l2-mc.h>
-+#include <media/v4l2-mem2mem.h>
- 
- #include <trace/events/v4l2.h>
- 
-@@ -2626,12 +2627,64 @@ static bool v4l2_is_known_ioctl(unsigned int cmd)
- 	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
- }
- 
--static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
-+#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
-+static bool v4l2_ioctl_m2m_queue_is_output(unsigned int cmd, void *arg)
-+{
-+	switch (cmd) {
-+	case VIDIOC_CREATE_BUFS: {
-+		struct v4l2_create_buffers *cbufs = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(cbufs->format.type);
-+	}
-+	case VIDIOC_REQBUFS: {
-+		struct v4l2_requestbuffers *rbufs = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(rbufs->type);
-+	}
-+	case VIDIOC_QBUF:
-+	case VIDIOC_DQBUF:
-+	case VIDIOC_QUERYBUF:
-+	case VIDIOC_PREPARE_BUF: {
-+		struct v4l2_buffer *buf = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(buf->type);
-+	}
-+	case VIDIOC_EXPBUF: {
-+		struct v4l2_exportbuffer *expbuf = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(expbuf->type);
-+	}
-+	case VIDIOC_STREAMON:
-+	case VIDIOC_STREAMOFF: {
-+		int *type = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(*type);
-+	}
-+	default:
-+		return false;
-+	}
-+}
-+#endif
-+
-+static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev,
-+					 struct v4l2_fh *vfh, unsigned cmd,
-+					 void *arg)
- {
- 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
- 		return vdev->lock;
- 	if (test_bit(_IOC_NR(cmd), vdev->disable_locking))
- 		return NULL;
-+#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
-+	if (vfh && vfh->m2m_ctx &&
-+	    (v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE)) {
-+		bool is_output = v4l2_ioctl_m2m_queue_is_output(cmd, arg);
-+		struct v4l2_m2m_queue_ctx *ctx = is_output ?
-+			&vfh->m2m_ctx->out_q_ctx : &vfh->m2m_ctx->cap_q_ctx;
-+
-+		if (ctx->q.lock)
-+			return ctx->q.lock;
-+	}
-+#endif
- 	if (vdev->queue && vdev->queue->lock &&
- 			(v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
- 		return vdev->queue->lock;
-@@ -2679,7 +2732,7 @@ static long __video_do_ioctl(struct file *file,
- 		unsigned int cmd, void *arg)
- {
- 	struct video_device *vfd = video_devdata(file);
--	struct mutex *lock = v4l2_ioctl_get_lock(vfd, cmd);
-+	struct mutex *lock;
- 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
- 	bool write_only = false;
- 	struct v4l2_ioctl_info default_info;
-@@ -2698,6 +2751,8 @@ static long __video_do_ioctl(struct file *file,
- 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
- 		vfh = file->private_data;
- 
-+	lock = v4l2_ioctl_get_lock(vfd, vfh, cmd, arg);
-+
- 	if (lock && mutex_lock_interruptible(lock))
- 		return -ERESTARTSYS;
- 
--- 
-2.17.0
+Thanks!
+
+	Hans
+
+> ---
+>  drivers/mfd/cros_ec_dev.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/drivers/mfd/cros_ec_dev.c b/drivers/mfd/cros_ec_dev.c
+> index eafd06f..57064ec 100644
+> --- a/drivers/mfd/cros_ec_dev.c
+> +++ b/drivers/mfd/cros_ec_dev.c
+> @@ -383,6 +383,18 @@ static void cros_ec_sensors_register(struct cros_ec_dev *ec)
+>  	kfree(msg);
+>  }
+>  
+> +static void cros_ec_cec_register(struct cros_ec_dev *ec)
+> +{
+> +	int ret;
+> +	struct mfd_cell cec_cell = {
+> +		.name = "cros-ec-cec",
+> +	};
+> +
+> +	ret = mfd_add_devices(ec->dev, 0, &cec_cell, 1, NULL, 0, NULL);
+> +	if (ret)
+> +		dev_err(ec->dev, "failed to add EC CEC\n");
+> +}
+> +
+>  static int ec_device_probe(struct platform_device *pdev)
+>  {
+>  	int retval = -ENOMEM;
+> @@ -422,6 +434,10 @@ static int ec_device_probe(struct platform_device *pdev)
+>  	if (cros_ec_check_features(ec, EC_FEATURE_MOTION_SENSE))
+>  		cros_ec_sensors_register(ec);
+>  
+> +	/* check whether this EC handles CEC. */
+> +	if (cros_ec_check_features(ec, EC_FEATURE_CEC))
+> +		cros_ec_cec_register(ec);
+> +
+>  	/* Take control of the lightbar from the EC. */
+>  	lb_manual_suspend_ctrl(ec, 1);
+>  
+> 
