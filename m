@@ -1,503 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:53405 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751091AbeE2IoK (ORCPT
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:34320 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752821AbeEOMr0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 04:44:10 -0400
-Received: by mail-wm0-f68.google.com with SMTP id a67-v6so38000492wmf.3
-        for <linux-media@vger.kernel.org>; Tue, 29 May 2018 01:44:10 -0700 (PDT)
-Date: Tue, 29 May 2018 10:44:06 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Gerd Hoffmann <kraxel@redhat.com>, dri-devel@lists.freedesktop.org,
-        David Airlie <airlied@linux.ie>,
-        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Shuah Khan <shuah@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:KERNEL SELFTEST FRAMEWORK"
-        <linux-kselftest@vger.kernel.org>
-Subject: Re: [PATCH v3] Add udmabuf misc device
-Message-ID: <20180529084406.GI3438@phenom.ffwll.local>
-References: <20180525140808.12714-1-kraxel@redhat.com>
- <20180529082327.GF3438@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180529082327.GF3438@phenom.ffwll.local>
+        Tue, 15 May 2018 08:47:26 -0400
+Received: by mail-qk0-f195.google.com with SMTP id p186-v6so9045qkd.1
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 05:47:26 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        Stefan Adolfsson <sadolfsson@chromium.org>
+Subject: [PATCH 3/5] mfd: cros-ec: Introduce CEC commands and events definitions.
+Date: Tue, 15 May 2018 14:46:59 +0200
+Message-Id: <1526388421-18808-4-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1526388421-18808-1-git-send-email-narmstrong@baylibre.com>
+References: <1526388421-18808-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 29, 2018 at 10:23:27AM +0200, Daniel Vetter wrote:
-> On Fri, May 25, 2018 at 04:08:08PM +0200, Gerd Hoffmann wrote:
-> > A driver to let userspace turn memfd regions into dma-bufs.
-> > 
-> > Use case:  Allows qemu create dmabufs for the vga framebuffer or
-> > virtio-gpu ressources.  Then they can be passed around to display
-> > those guest things on the host.  To spice client for classic full
-> > framebuffer display, and hopefully some day to wayland server for
-> > seamless guest window display.
-> > 
-> > Note: Initial revision which supports a single region only so it
-> >       can't handle virtio-gpu ressources yet.
-> > 
-> > qemu test branch:
-> >   https://git.kraxel.org/cgit/qemu/log/?h=sirius/udmabuf
-> > 
-> > Cc: David Airlie <airlied@linux.ie>
-> > Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> > Cc: Daniel Vetter <daniel@ffwll.ch>
-> > Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-> > ---
-> >  include/uapi/linux/udmabuf.h                      |  19 ++
-> >  drivers/dma-buf/udmabuf.c                         | 240 ++++++++++++++++++++++
-> >  tools/testing/selftests/drivers/dma-buf/udmabuf.c |  95 +++++++++
-> >  drivers/dma-buf/Kconfig                           |   7 +
-> >  drivers/dma-buf/Makefile                          |   1 +
-> >  tools/testing/selftests/drivers/dma-buf/Makefile  |   5 +
-> >  6 files changed, 367 insertions(+)
-> >  create mode 100644 include/uapi/linux/udmabuf.h
-> >  create mode 100644 drivers/dma-buf/udmabuf.c
-> >  create mode 100644 tools/testing/selftests/drivers/dma-buf/udmabuf.c
-> >  create mode 100644 tools/testing/selftests/drivers/dma-buf/Makefile
-> > 
-> > diff --git a/include/uapi/linux/udmabuf.h b/include/uapi/linux/udmabuf.h
-> > new file mode 100644
-> > index 0000000000..2fbe69cf05
-> > --- /dev/null
-> > +++ b/include/uapi/linux/udmabuf.h
-> > @@ -0,0 +1,19 @@
-> > +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-> > +#ifndef _UAPI_LINUX_UDMABUF_H
-> > +#define _UAPI_LINUX_UDMABUF_H
-> > +
-> > +#include <linux/types.h>
-> > +#include <linux/ioctl.h>
-> > +
-> > +#define UDMABUF_FLAGS_CLOEXEC	0x01
-> > +
-> > +struct udmabuf_create {
-> > +	__u32 memfd;
-> > +	__u32 flags;
-> > +	__u64 offset;
-> > +	__u64 size;
-> > +};
-> > +
-> > +#define UDMABUF_CREATE _IOW(0x42, 0x23, struct udmabuf_create)
-> > +
-> > +#endif /* _UAPI_LINUX_UDMABUF_H */
-> > diff --git a/drivers/dma-buf/udmabuf.c b/drivers/dma-buf/udmabuf.c
-> > new file mode 100644
-> > index 0000000000..f9600dc985
-> > --- /dev/null
-> > +++ b/drivers/dma-buf/udmabuf.c
-> > @@ -0,0 +1,240 @@
-> > +/*
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +#include <linux/init.h>
-> > +#include <linux/module.h>
-> > +#include <linux/device.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/slab.h>
-> > +#include <linux/miscdevice.h>
-> > +#include <linux/dma-buf.h>
-> > +#include <linux/highmem.h>
-> > +#include <linux/cred.h>
-> > +#include <linux/shmem_fs.h>
-> > +
-> > +#include <uapi/linux/udmabuf.h>
-> > +
-> > +struct udmabuf {
-> > +	struct file *filp;
-> > +	u32 pagecount;
-> > +	struct page **pages;
-> > +};
-> > +
-> > +static int udmabuf_vm_fault(struct vm_fault *vmf)
-> > +{
-> > +	struct vm_area_struct *vma = vmf->vma;
-> > +	struct udmabuf *ubuf = vma->vm_private_data;
-> > +
-> > +	if (WARN_ON(vmf->pgoff >= ubuf->pagecount))
-> > +		return VM_FAULT_SIGBUS;
-> > +
-> > +	vmf->page = ubuf->pages[vmf->pgoff];
-> > +	get_page(vmf->page);
-> > +	return 0;
-> > +}
-> > +
-> > +static const struct vm_operations_struct udmabuf_vm_ops = {
-> > +	.fault = udmabuf_vm_fault,
-> > +};
-> > +
-> > +static int mmap_udmabuf(struct dma_buf *buf, struct vm_area_struct *vma)
-> > +{
-> > +	struct udmabuf *ubuf = buf->priv;
-> > +
-> > +	if ((vma->vm_flags & VM_SHARED) == 0)
-> > +		return -EINVAL;
-> > +
-> > +	vma->vm_ops = &udmabuf_vm_ops;
-> > +	vma->vm_private_data = ubuf;
-> > +	return 0;
-> > +}
-> > +
-> > +static struct sg_table *map_udmabuf(struct dma_buf_attachment *at,
-> > +				    enum dma_data_direction direction)
-> > +{
-> > +	struct udmabuf *ubuf = at->dmabuf->priv;
-> > +	struct sg_table *sg;
-> > +
-> > +	sg = kzalloc(sizeof(*sg), GFP_KERNEL);
-> > +	if (!sg)
-> > +		goto err1;
-> > +	if (sg_alloc_table_from_pages(sg, ubuf->pages, ubuf->pagecount,
-> > +				      0, ubuf->pagecount << PAGE_SHIFT,
-> > +				      GFP_KERNEL) < 0)
-> > +		goto err2;
-> > +	if (!dma_map_sg(at->dev, sg->sgl, sg->nents, direction))
-> > +		goto err3;
-> > +
-> > +	return sg;
-> > +
-> > +err3:
-> > +	sg_free_table(sg);
-> > +err2:
-> > +	kfree(sg);
-> > +err1:
-> > +	return ERR_PTR(-ENOMEM);
-> > +}
-> > +
-> > +static void unmap_udmabuf(struct dma_buf_attachment *at,
-> > +			  struct sg_table *sg,
-> > +			  enum dma_data_direction direction)
-> > +{
-> > +	sg_free_table(sg);
-> > +	kfree(sg);
-> > +}
-> > +
-> > +static void release_udmabuf(struct dma_buf *buf)
-> > +{
-> > +	struct udmabuf *ubuf = buf->priv;
-> > +	pgoff_t pg;
-> > +
-> > +	for (pg = 0; pg < ubuf->pagecount; pg++)
-> > +		put_page(ubuf->pages[pg]);
-> > +	fput(ubuf->filp);
-> > +	kfree(ubuf->pages);
-> > +	kfree(ubuf);
-> > +}
-> > +
-> > +static void *kmap_atomic_udmabuf(struct dma_buf *buf, unsigned long page_num)
-> > +{
-> > +	struct udmabuf *ubuf = buf->priv;
-> > +	struct page *page = ubuf->pages[page_num];
-> > +
-> > +	return kmap_atomic(page);
-> > +}
-> > +
-> > +static void *kmap_udmabuf(struct dma_buf *buf, unsigned long page_num)
-> > +{
-> > +	struct udmabuf *ubuf = buf->priv;
-> > +	struct page *page = ubuf->pages[page_num];
-> > +
-> > +	return kmap(page);
-> > +}
-> 
-> The above leaks like mad since no kunamp?
-> 
-> Also I think we have 0 users of the kmap atomic interfaces ... so not sure
-> whether it's worth it to implement those.
-> -Daniel
-> 
-> > +
-> > +static struct dma_buf_ops udmabuf_ops = {
-> > +	.map_dma_buf	  = map_udmabuf,
-> > +	.unmap_dma_buf	  = unmap_udmabuf,
-> > +	.release	  = release_udmabuf,
-> > +	.map_atomic	  = kmap_atomic_udmabuf,
-> > +	.map		  = kmap_udmabuf,
-> > +	.mmap		  = mmap_udmabuf,
-> > +};
-> > +
-> > +static long udmabuf_ioctl_create(struct file *filp, unsigned long arg)
-> > +{
-> > +	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
-> > +	struct udmabuf_create create;
-> > +	struct udmabuf *ubuf;
-> > +	struct dma_buf *buf;
-> > +	pgoff_t pgoff, pgidx;
-> > +	struct page *page;
-> > +	int ret = -EINVAL;
-> > +	u32 flags;
-> > +
-> > +	if (copy_from_user(&create, (void __user *)arg,
-> > +			   sizeof(struct udmabuf_create)))
-> > +		return -EFAULT;
-> > +
-> > +	if (!IS_ALIGNED(create.offset, PAGE_SIZE))
-> > +		return -EINVAL;
-> > +	if (!IS_ALIGNED(create.size, PAGE_SIZE))
-> > +		return -EINVAL;
-> > +
-> > +	ubuf = kzalloc(sizeof(struct udmabuf), GFP_KERNEL);
-> > +	if (!ubuf)
-> > +		return -ENOMEM;
-> > +
-> > +	ubuf->filp = fget(create.memfd);
-> > +	if (!ubuf->filp)
-> > +		goto err_free_ubuf;
-> > +	if (!shmem_mapping(file_inode(ubuf->filp)->i_mapping))
-> > +		goto err_free_ubuf;
+The EC can expose a CEC bus, this patch adds the CEC related definitions
+needed by the cros-ec-cec driver.
+Having a 16 byte mkbp event size makes it possible to send CEC
+messages from the EC to the AP directly inside the mkbp event
+instead of first doing a notification and then a read.
 
-Can/should we test here that the memfd has a locked down size here? I do
-think yes (otherwise the dma-buf operations need to take that into
-account, and all kinds of funny things might happen), but I'm not sure
-whether your userspace can cope with that.
+Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ drivers/platform/chrome/cros_ec_proto.c | 42 +++++++++++++----
+ include/linux/mfd/cros_ec.h             |  2 +-
+ include/linux/mfd/cros_ec_commands.h    | 80 +++++++++++++++++++++++++++++++++
+ 3 files changed, 114 insertions(+), 10 deletions(-)
 
-On that: Link to userspace patches/git tree using this would be nice.
--Daniel
-
-> > +
-> > +	ubuf->pagecount = create.size >> PAGE_SHIFT;
-> > +	ubuf->pages = kmalloc_array(ubuf->pagecount, sizeof(struct page*),
-> > +				    GFP_KERNEL);
-> > +	if (!ubuf->pages) {
-> > +		ret = -ENOMEM;
-> > +		goto err_free_ubuf;
-> > +	}
-> > +
-> > +	pgoff = create.offset >> PAGE_SHIFT;
-> > +	for (pgidx = 0; pgidx < ubuf->pagecount; pgidx++) {
-> > +		page = shmem_read_mapping_page(
-> > +			file_inode(ubuf->filp)->i_mapping, pgoff + pgidx);
-> > +		if (IS_ERR(page)) {
-> > +			ret = PTR_ERR(buf);
-> > +			goto err_put_pages;
-> > +		}
-> > +		ubuf->pages[pgidx] = page;
-> > +	}
-> > +
-> > +	exp_info.ops  = &udmabuf_ops;
-> > +	exp_info.size = ubuf->pagecount << PAGE_SHIFT;
-> > +	exp_info.priv = ubuf;
-> > +
-> > +	buf = dma_buf_export(&exp_info);
-> > +	if (IS_ERR(buf)) {
-> > +		ret = PTR_ERR(buf);
-> > +		goto err_put_pages;
-> > +	}
-> > +
-> > +	flags = 0;
-> > +	if (create.flags & UDMABUF_FLAGS_CLOEXEC)
-> > +		flags |= O_CLOEXEC;
-> > +	return dma_buf_fd(buf, flags);
-> > +
-> > +err_put_pages:
-> > +	while (pgidx > 0)
-> > +		put_page(ubuf->pages[--pgidx]);
-> > +err_free_ubuf:
-> > +	fput(ubuf->filp);
-> > +	kfree(ubuf->pages);
-> > +	kfree(ubuf);
-> > +	return ret;
-> > +}
-> > +
-> > +static long udmabuf_ioctl(struct file *filp, unsigned int ioctl,
-> > +			  unsigned long arg)
-> > +{
-> > +	long ret;
-> > +
-> > +	switch (ioctl) {
-> > +	case UDMABUF_CREATE:
-> > +		ret = udmabuf_ioctl_create(filp, arg);
-> > +		break;
-> > +	default:
-> > +		ret = -EINVAL;
-> > +		break;
-> > +	}
-> > +	return ret;
-> > +}
-> > +
-> > +static const struct file_operations udmabuf_fops = {
-> > +	.owner		= THIS_MODULE,
-> > +	.unlocked_ioctl = udmabuf_ioctl,
-> > +};
-> > +
-> > +static struct miscdevice udmabuf_misc = {
-> > +	.minor          = MISC_DYNAMIC_MINOR,
-> > +	.name           = "udmabuf",
-> > +	.fops           = &udmabuf_fops,
-> > +};
-> > +
-> > +static int __init udmabuf_dev_init(void)
-> > +{
-> > +	return misc_register(&udmabuf_misc);
-> > +}
-> > +
-> > +static void __exit udmabuf_dev_exit(void)
-> > +{
-> > +	misc_deregister(&udmabuf_misc);
-> > +}
-> > +
-> > +module_init(udmabuf_dev_init)
-> > +module_exit(udmabuf_dev_exit)
-> > +
-> > +MODULE_AUTHOR("Gerd Hoffmann <kraxel@redhat.com>");
-> > +MODULE_LICENSE("GPL v2");
-> > diff --git a/tools/testing/selftests/drivers/dma-buf/udmabuf.c b/tools/testing/selftests/drivers/dma-buf/udmabuf.c
-> > new file mode 100644
-> > index 0000000000..d46c58b0dd
-> > --- /dev/null
-> > +++ b/tools/testing/selftests/drivers/dma-buf/udmabuf.c
-> > @@ -0,0 +1,95 @@
-> > +#include <stdio.h>
-> > +#include <stdlib.h>
-> > +#include <unistd.h>
-> > +#include <string.h>
-> > +#include <errno.h>
-> > +#include <fcntl.h>
-> > +#include <malloc.h>
-> > +
-> > +#include <sys/ioctl.h>
-> > +#include <sys/syscall.h>
-> > +#include <linux/memfd.h>
-> > +#include <linux/udmabuf.h>
-> > +
-> > +#define TEST_PREFIX	"drivers/dma-buf/udmabuf"
-> > +#define NUM_PAGES       4
-> > +
-> > +static int memfd_create(const char *name, unsigned int flags)
-> > +{
-> > +	return syscall(__NR_memfd_create, name, flags);
-> > +}
-> > +
-> > +int main(int argc, char *argv[])
-> > +{
-> > +	struct udmabuf_create create;
-> > +	int devfd, memfd, buf, ret;
-> > +	off_t size;
-> > +	void *mem;
-> > +
-> > +	devfd = open("/dev/udmabuf", O_RDWR);
-> > +	if (devfd < 0) {
-> > +		printf("%s: [skip,no-udmabuf]\n", TEST_PREFIX);
-> > +		exit(77);
-> > +	}
-> > +
-> > +	memfd = memfd_create("udmabuf-test", MFD_CLOEXEC);
-> > +	if (memfd < 0) {
-> > +		printf("%s: [skip,no-memfd]\n", TEST_PREFIX);
-> > +		exit(77);
-> > +	}
-> > +
-> > +	size = getpagesize() * NUM_PAGES;
-> > +	ret = ftruncate(memfd, size);
-> > +	if (ret == -1) {
-> > +		printf("%s: [FAIL,memfd-truncate]\n", TEST_PREFIX);
-> > +		exit(1);
-> > +	}
-> > +
-> > +	memset(&create, 0, sizeof(create));
-> > +
-> > +	/* should fail (offset not page aligned) */
-> > +	create.memfd  = memfd;
-> > +	create.offset = getpagesize()/2;
-> > +	create.size   = getpagesize();
-> > +	buf = ioctl(devfd, UDMABUF_CREATE, &create);
-> > +	if (buf >= 0) {
-> > +		printf("%s: [FAIL,test-1]\n", TEST_PREFIX);
-> > +		exit(1);
-> > +	}
-> > +
-> > +	/* should fail (size not multiple of page) */
-> > +	create.memfd  = memfd;
-> > +	create.offset = 0;
-> > +	create.size   = getpagesize()/2;
-> > +	buf = ioctl(devfd, UDMABUF_CREATE, &create);
-> > +	if (buf >= 0) {
-> > +		printf("%s: [FAIL,test-2]\n", TEST_PREFIX);
-> > +		exit(1);
-> > +	}
-> > +
-> > +	/* should fail (not memfd) */
-> > +	create.memfd  = 0; /* stdin */
-> > +	create.offset = 0;
-> > +	create.size   = size;
-> > +	buf = ioctl(devfd, UDMABUF_CREATE, &create);
-> > +	if (buf >= 0) {
-> > +		printf("%s: [FAIL,test-3]\n", TEST_PREFIX);
-> > +		exit(1);
-> > +	}
-> > +
-> > +	/* should work */
-> > +	create.memfd  = memfd;
-> > +	create.offset = 0;
-> > +	create.size   = size;
-> > +	buf = ioctl(devfd, UDMABUF_CREATE, &create);
-> > +	if (buf < 0) {
-> > +		printf("%s: [FAIL,test-4]\n", TEST_PREFIX);
-> > +		exit(1);
-> > +	}
-> > +
-> > +	fprintf(stderr, "%s: ok\n", TEST_PREFIX);
-> > +	close(buf);
-> > +	close(memfd);
-> > +	close(devfd);
-> > +	return 0;
-> > +}
-> > diff --git a/drivers/dma-buf/Kconfig b/drivers/dma-buf/Kconfig
-> > index ed3b785bae..19be3ec62d 100644
-> > --- a/drivers/dma-buf/Kconfig
-> > +++ b/drivers/dma-buf/Kconfig
-> > @@ -30,4 +30,11 @@ config SW_SYNC
-> >  	  WARNING: improper use of this can result in deadlocking kernel
-> >  	  drivers from userspace. Intended for test and debug only.
-> >  
-> > +config UDMABUF
-> > +	bool "userspace dmabuf misc driver"
-> > +	default n
-> > +	depends on DMA_SHARED_BUFFER
-> > +	---help---
-> > +	  A driver to let userspace turn iovs into dma-bufs.
-> > +
-> >  endmenu
-> > diff --git a/drivers/dma-buf/Makefile b/drivers/dma-buf/Makefile
-> > index c33bf88631..0913a6ccab 100644
-> > --- a/drivers/dma-buf/Makefile
-> > +++ b/drivers/dma-buf/Makefile
-> > @@ -1,3 +1,4 @@
-> >  obj-y := dma-buf.o dma-fence.o dma-fence-array.o reservation.o seqno-fence.o
-> >  obj-$(CONFIG_SYNC_FILE)		+= sync_file.o
-> >  obj-$(CONFIG_SW_SYNC)		+= sw_sync.o sync_debug.o
-> > +obj-$(CONFIG_UDMABUF)		+= udmabuf.o
-> > diff --git a/tools/testing/selftests/drivers/dma-buf/Makefile b/tools/testing/selftests/drivers/dma-buf/Makefile
-> > new file mode 100644
-> > index 0000000000..4154c3d7aa
-> > --- /dev/null
-> > +++ b/tools/testing/selftests/drivers/dma-buf/Makefile
-> > @@ -0,0 +1,5 @@
-> > +CFLAGS += -I../../../../../usr/include/
-> > +
-> > +TEST_GEN_PROGS := udmabuf
-> > +
-> > +include ../../lib.mk
-> > -- 
-> > 2.9.3
-> > 
-> 
-> -- 
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> http://blog.ffwll.ch
-
+diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
+index e7bbdf9..ba47f79 100644
+--- a/drivers/platform/chrome/cros_ec_proto.c
++++ b/drivers/platform/chrome/cros_ec_proto.c
+@@ -504,29 +504,53 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
+ }
+ EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
+ 
++static int get_next_event_xfer(struct cros_ec_device *ec_dev,
++			       struct cros_ec_command *msg,
++			       int version, uint32_t size)
++{
++	int ret;
++
++	msg->version = version;
++	msg->command = EC_CMD_GET_NEXT_EVENT;
++	msg->insize = size;
++	msg->outsize = 0;
++
++	ret = cros_ec_cmd_xfer(ec_dev, msg);
++	if (ret > 0) {
++		ec_dev->event_size = ret - 1;
++		memcpy(&ec_dev->event_data, msg->data, size);
++	}
++
++	return ret;
++}
++
+ static int get_next_event(struct cros_ec_device *ec_dev)
+ {
+ 	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
+ 	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
++	static int cmd_version = 1;
+ 	int ret;
+ 
++	BUILD_BUG_ON(sizeof(union ec_response_get_next_data_v1) != 16);
++
+ 	if (ec_dev->suspended) {
+ 		dev_dbg(ec_dev->dev, "Device suspended.\n");
+ 		return -EHOSTDOWN;
+ 	}
+ 
+-	msg->version = 0;
+-	msg->command = EC_CMD_GET_NEXT_EVENT;
+-	msg->insize = sizeof(ec_dev->event_data);
+-	msg->outsize = 0;
++	if (cmd_version == 1) {
++		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
++					  sizeof(ec_dev->event_data));
++		if (ret != EC_RES_INVALID_VERSION)
++			return ret;
+ 
+-	ret = cros_ec_cmd_xfer(ec_dev, msg);
+-	if (ret > 0) {
+-		ec_dev->event_size = ret - 1;
+-		memcpy(&ec_dev->event_data, msg->data,
+-		       sizeof(ec_dev->event_data));
++		/* Fallback to version 0 for future send attempts */
++		cmd_version = 0;
+ 	}
+ 
++	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
++				  sizeof(struct ec_response_get_next_event));
++
+ 	return ret;
+ }
+ 
+diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
+index 2d4e23c..f3415eb 100644
+--- a/include/linux/mfd/cros_ec.h
++++ b/include/linux/mfd/cros_ec.h
+@@ -147,7 +147,7 @@ struct cros_ec_device {
+ 	bool mkbp_event_supported;
+ 	struct blocking_notifier_head event_notifier;
+ 
+-	struct ec_response_get_next_event event_data;
++	struct ec_response_get_next_event_v1 event_data;
+ 	int event_size;
+ 	u32 host_event_wake_mask;
+ };
+diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
+index f2edd99..18df466 100644
+--- a/include/linux/mfd/cros_ec_commands.h
++++ b/include/linux/mfd/cros_ec_commands.h
+@@ -804,6 +804,8 @@ enum ec_feature_code {
+ 	EC_FEATURE_MOTION_SENSE_FIFO = 24,
+ 	/* EC has RTC feature that can be controlled by host commands */
+ 	EC_FEATURE_RTC = 27,
++	/* EC supports CEC commands */
++	EC_FEATURE_CEC = 35,
+ };
+ 
+ #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
+@@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
+ 	/* EC sent a sysrq command */
+ 	EC_MKBP_EVENT_SYSRQ = 6,
+ 
++	/* Notify the AP that something happened on CEC */
++	EC_MKBP_CEC_EVENT = 8,
++
++	/* Send an incoming CEC message to the AP */
++	EC_MKBP_EVENT_CEC_MESSAGE = 9,
++
+ 	/* Number of MKBP events */
+ 	EC_MKBP_EVENT_COUNT,
+ };
+@@ -2093,12 +2101,31 @@ union ec_response_get_next_data {
+ 	uint32_t   sysrq;
+ } __packed;
+ 
++union ec_response_get_next_data_v1 {
++	uint8_t   key_matrix[16];
++
++	/* Unaligned */
++	uint32_t  host_event;
++
++	uint32_t   buttons;
++	uint32_t   switches;
++	uint32_t   sysrq;
++	uint32_t   cec_events;
++	uint8_t    cec_message[16];
++} __packed;
++
+ struct ec_response_get_next_event {
+ 	uint8_t event_type;
+ 	/* Followed by event data if any */
+ 	union ec_response_get_next_data data;
+ } __packed;
+ 
++struct ec_response_get_next_event_v1 {
++	uint8_t event_type;
++	/* Followed by event data if any */
++	union ec_response_get_next_data_v1 data;
++} __packed;
++
+ /* Bit indices for buttons and switches.*/
+ /* Buttons */
+ #define EC_MKBP_POWER_BUTTON	0
+@@ -2828,6 +2855,59 @@ struct ec_params_reboot_ec {
+ /* Current version of ACPI memory address space */
+ #define EC_ACPI_MEM_VERSION_CURRENT 1
+ 
++/*****************************************************************************/
++/*
++ * HDMI CEC commands
++ *
++ * These commands are for sending and receiving message via HDMI CEC
++ */
++#define MAX_CEC_MSG_LEN 16
++
++/* CEC message from the AP to be written on the CEC bus */
++#define EC_CMD_CEC_WRITE_MSG 0x00B8
++
++/* Message to write to the CEC bus */
++struct ec_params_cec_write {
++	uint8_t msg[MAX_CEC_MSG_LEN];
++} __packed;
++
++/* Set various CEC parameters */
++#define EC_CMD_CEC_SET 0x00BA
++
++struct ec_params_cec_set {
++	uint8_t cmd; /* enum cec_command */
++	union {
++		uint8_t enable;
++		uint8_t address;
++	};
++} __packed;
++
++/* Read various CEC parameters */
++#define EC_CMD_CEC_GET 0x00BB
++
++struct ec_params_cec_get {
++	uint8_t cmd; /* enum cec_command */
++} __packed;
++
++struct ec_response_cec_get {
++	union {
++		uint8_t enable;
++		uint8_t address;
++	};
++}__packed;
++
++enum cec_command {
++	/* CEC reading, writing and events enable */
++	CEC_CMD_ENABLE,
++	/* CEC logical address  */
++	CEC_CMD_LOGICAL_ADDRESS,
++};
++
++/* Events from CEC to AP */
++enum mkbp_cec_event {
++	EC_MKBP_CEC_SEND_OK			= 1 << 0,
++	EC_MKBP_CEC_SEND_FAILED			= 1 << 1,
++};
+ 
+ /*****************************************************************************/
+ /*
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.7.4
