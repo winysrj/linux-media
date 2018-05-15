@@ -1,291 +1,365 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:34718 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751271AbeECNfz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 09:35:55 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v9 3/8] media: vsp1: Provide a body pool
-Date: Thu,  3 May 2018 14:35:42 +0100
-Message-Id: <2f0a262d7526f911272634cd5dfa771329263e5a.1525354160.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.76b8251c2457cea047ecba892cf0d7a351644051.1525354160.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.76b8251c2457cea047ecba892cf0d7a351644051.1525354160.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.76b8251c2457cea047ecba892cf0d7a351644051.1525354160.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.76b8251c2457cea047ecba892cf0d7a351644051.1525354160.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:39615 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752306AbeEOH7b (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 03:59:31 -0400
+Received: by mail-wm0-f68.google.com with SMTP id f8-v6so19700136wmc.4
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:30 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 02/29] venus: hfi: preparation to support venus 4xx
+Date: Tue, 15 May 2018 10:58:32 +0300
+Message-Id: <20180515075859.17217-3-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each display list allocates a body to store register values in a dma
-accessible buffer from a dma_alloc_wc() allocation. Each of these
-results in an entry in the IOMMU TLB, and a large number of display list
-allocations adds pressure to this resource.
+This covers the differences between 1xx,3xx and 4xx.
 
-Reduce TLB pressure on the IPMMUs by allocating multiple display list
-bodies in a single allocation, and providing these to the display list
-through a 'body pool'. A pool can be allocated by the display list
-manager or entities which require their own body allocations.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
-v8:
- - Update commit message
- - Fix comments and descriptions
+ drivers/media/platform/qcom/venus/core.h         |  4 ++
+ drivers/media/platform/qcom/venus/helpers.c      | 37 +++++++----
+ drivers/media/platform/qcom/venus/hfi_helper.h   | 84 ++++++++++++++++++++++--
+ drivers/media/platform/qcom/venus/hfi_venus_io.h | 24 +++++++
+ drivers/media/platform/qcom/venus/vdec.c         |  5 +-
+ drivers/media/platform/qcom/venus/venc.c         |  5 +-
+ 6 files changed, 137 insertions(+), 22 deletions(-)
 
-v4:
- - Provide comment explaining extra allocation on body pool
-   highlighting area for optimisation later.
-
-v3:
- - s/fragment/body/, s/fragments/bodies/
- - qty -> num_bodies
- - indentation fix
- - s/vsp1_dl_body_pool_{alloc,free}/vsp1_dl_body_pool_{create,destroy}/'
- - Add kerneldoc to non-static functions
-
-v2:
- - assign dlb->dma correctly
----
- drivers/media/platform/vsp1/vsp1_dl.c | 163 +++++++++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_dl.h |   8 +-
- 2 files changed, 171 insertions(+)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 51965c30dec2..41ace89a585b 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -41,6 +41,8 @@ struct vsp1_dl_entry {
- /**
-  * struct vsp1_dl_body - Display list body
-  * @list: entry in the display list list of bodies
-+ * @free: entry in the pool free body list
-+ * @pool: pool to which this body belongs
-  * @vsp1: the VSP1 device
-  * @entries: array of entries
-  * @dma: DMA address of the entries
-@@ -50,6 +52,9 @@ struct vsp1_dl_entry {
-  */
- struct vsp1_dl_body {
- 	struct list_head list;
-+	struct list_head free;
-+
-+	struct vsp1_dl_body_pool *pool;
- 	struct vsp1_device *vsp1;
- 
- 	struct vsp1_dl_entry *entries;
-@@ -61,6 +66,30 @@ struct vsp1_dl_body {
+diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+index 0360d295f4c8..8d3e150800c9 100644
+--- a/drivers/media/platform/qcom/venus/core.h
++++ b/drivers/media/platform/qcom/venus/core.h
+@@ -305,6 +305,10 @@ struct venus_inst {
+ 	struct hfi_buffer_requirements bufreq[HFI_BUFFER_TYPE_MAX];
  };
  
- /**
-+ * struct vsp1_dl_body_pool - display list body pool
-+ * @dma: DMA address of the entries
-+ * @size: size of the full DMA memory pool in bytes
-+ * @mem: CPU memory pointer for the pool
-+ * @bodies: Array of DLB structures for the pool
-+ * @free: List of free DLB entries
-+ * @lock: Protects the free list
-+ * @vsp1: the VSP1 device
-+ */
-+struct vsp1_dl_body_pool {
-+	/* DMA allocation */
-+	dma_addr_t dma;
-+	size_t size;
-+	void *mem;
++#define IS_V1(core)	((core)->res->hfi_version == HFI_VERSION_1XX)
++#define IS_V3(core)	((core)->res->hfi_version == HFI_VERSION_3XX)
++#define IS_V4(core)	((core)->res->hfi_version == HFI_VERSION_4XX)
 +
-+	/* Body management */
-+	struct vsp1_dl_body *bodies;
-+	struct list_head free;
-+	spinlock_t lock;
-+
-+	struct vsp1_device *vsp1;
+ #define ctrl_to_inst(ctrl)	\
+ 	container_of((ctrl)->handler, struct venus_inst, ctrl_handler)
+ 
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index 0ce9559a2924..d9065cc8a7d3 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -166,21 +166,37 @@ static int intbufs_unset_buffers(struct venus_inst *inst)
+ 	return ret;
+ }
+ 
+-static const unsigned int intbuf_types[] = {
+-	HFI_BUFFER_INTERNAL_SCRATCH,
+-	HFI_BUFFER_INTERNAL_SCRATCH_1,
+-	HFI_BUFFER_INTERNAL_SCRATCH_2,
++static const unsigned int intbuf_types_1xx[] = {
++	HFI_BUFFER_INTERNAL_SCRATCH(HFI_VERSION_1XX),
++	HFI_BUFFER_INTERNAL_SCRATCH_1(HFI_VERSION_1XX),
++	HFI_BUFFER_INTERNAL_SCRATCH_2(HFI_VERSION_1XX),
++	HFI_BUFFER_INTERNAL_PERSIST,
++	HFI_BUFFER_INTERNAL_PERSIST_1,
 +};
 +
-+/**
-  * struct vsp1_dl_list - Display list
-  * @list: entry in the display list manager lists
-  * @dlm: the display list manager
-@@ -104,6 +133,7 @@ enum vsp1_dl_mode {
-  * @active: list currently being processed (loaded) by hardware
-  * @queued: list queued to the hardware (written to the DL registers)
-  * @pending: list waiting to be queued to the hardware
-+ * @pool: body pool for the display list bodies
-  * @gc_work: bodies garbage collector work struct
-  * @gc_bodies: array of display list bodies waiting to be freed
-  */
-@@ -119,6 +149,8 @@ struct vsp1_dl_manager {
- 	struct vsp1_dl_list *queued;
- 	struct vsp1_dl_list *pending;
- 
-+	struct vsp1_dl_body_pool *pool;
-+
- 	struct work_struct gc_work;
- 	struct list_head gc_bodies;
++static const unsigned int intbuf_types_4xx[] = {
++	HFI_BUFFER_INTERNAL_SCRATCH(HFI_VERSION_4XX),
++	HFI_BUFFER_INTERNAL_SCRATCH_1(HFI_VERSION_4XX),
++	HFI_BUFFER_INTERNAL_SCRATCH_2(HFI_VERSION_4XX),
+ 	HFI_BUFFER_INTERNAL_PERSIST,
+ 	HFI_BUFFER_INTERNAL_PERSIST_1,
  };
-@@ -127,6 +159,137 @@ struct vsp1_dl_manager {
-  * Display List Body Management
-  */
  
-+/**
-+ * vsp1_dl_body_pool_create - Create a pool of bodies from a single allocation
-+ * @vsp1: The VSP1 device
-+ * @num_bodies: The number of bodies to allocate
-+ * @num_entries: The maximum number of entries that a body can contain
-+ * @extra_size: Extra allocation provided for the bodies
-+ *
-+ * Allocate a pool of display list bodies each with enough memory to contain the
-+ * requested number of entries plus the @extra_size.
-+ *
-+ * Return a pointer to a pool on success or NULL if memory can't be allocated.
-+ */
-+struct vsp1_dl_body_pool *
-+vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
-+			 unsigned int num_entries, size_t extra_size)
-+{
-+	struct vsp1_dl_body_pool *pool;
-+	size_t dlb_size;
-+	unsigned int i;
+ static int intbufs_alloc(struct venus_inst *inst)
+ {
+-	unsigned int i;
++	size_t arr_sz;
++	size_t i;
+ 	int ret;
+ 
+-	for (i = 0; i < ARRAY_SIZE(intbuf_types); i++) {
+-		ret = intbufs_set_buffer(inst, intbuf_types[i]);
++	if (IS_V4(inst->core))
++		arr_sz = ARRAY_SIZE(intbuf_types_4xx);
++	else
++		arr_sz = ARRAY_SIZE(intbuf_types_1xx);
 +
-+	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
-+	if (!pool)
-+		return NULL;
++	for (i = 0; i < arr_sz; i++) {
++		ret = intbufs_set_buffer(inst,
++			    IS_V4(inst->core) ? intbuf_types_4xx[i] :
++						intbuf_types_1xx[i]);
+ 		if (ret)
+ 			goto error;
+ 	}
+@@ -257,12 +273,11 @@ static int load_scale_clocks(struct venus_core *core)
+ 
+ set_freq:
+ 
+-	if (core->res->hfi_version == HFI_VERSION_3XX) {
+-		ret = clk_set_rate(clk, freq);
++	ret = clk_set_rate(clk, freq);
 +
-+	pool->vsp1 = vsp1;
-+
-+	/*
-+	 * TODO: 'extra_size' is only used by vsp1_dlm_create(), to allocate
-+	 * extra memory for the display list header. We need only one header per
-+	 * display list, not per display list body, thus this allocation is
-+	 * extraneous and should be reworked in the future.
-+	 */
-+	dlb_size = num_entries * sizeof(struct vsp1_dl_entry) + extra_size;
-+	pool->size = dlb_size * num_bodies;
-+
-+	pool->bodies = kcalloc(num_bodies, sizeof(*pool->bodies), GFP_KERNEL);
-+	if (!pool->bodies) {
-+		kfree(pool);
-+		return NULL;
-+	}
-+
-+	pool->mem = dma_alloc_wc(vsp1->bus_master, pool->size, &pool->dma,
-+				 GFP_KERNEL);
-+	if (!pool->mem) {
-+		kfree(pool->bodies);
-+		kfree(pool);
-+		return NULL;
-+	}
-+
-+	spin_lock_init(&pool->lock);
-+	INIT_LIST_HEAD(&pool->free);
-+
-+	for (i = 0; i < num_bodies; ++i) {
-+		struct vsp1_dl_body *dlb = &pool->bodies[i];
-+
-+		dlb->pool = pool;
-+		dlb->max_entries = num_entries;
-+
-+		dlb->dma = pool->dma + i * dlb_size;
-+		dlb->entries = pool->mem + i * dlb_size;
-+
-+		list_add_tail(&dlb->free, &pool->free);
-+	}
-+
-+	return pool;
-+}
-+
-+/**
-+ * vsp1_dl_body_pool_destroy - Release a body pool
-+ * @pool: The body pool
-+ *
-+ * Release all components of a pool allocation.
-+ */
-+void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool)
-+{
-+	if (!pool)
-+		return;
-+
-+	if (pool->mem)
-+		dma_free_wc(pool->vsp1->bus_master, pool->size, pool->mem,
-+			    pool->dma);
-+
-+	kfree(pool->bodies);
-+	kfree(pool);
-+}
-+
-+/**
-+ * vsp1_dl_body_get - Obtain a body from a pool
-+ * @pool: The body pool
-+ *
-+ * Obtain a body from the pool without blocking.
-+ *
-+ * Returns a display list body or NULL if there are none available.
-+ */
-+struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
-+{
-+	struct vsp1_dl_body *dlb = NULL;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pool->lock, flags);
-+
-+	if (!list_empty(&pool->free)) {
-+		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
-+		list_del(&dlb->free);
-+	}
-+
-+	spin_unlock_irqrestore(&pool->lock, flags);
-+
-+	return dlb;
-+}
-+
-+/**
-+ * vsp1_dl_body_put - Return a body back to its pool
-+ * @dlb: The display list body
-+ *
-+ * Return a body back to the pool, and reset the num_entries to clear the list.
-+ */
-+void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
-+{
-+	unsigned long flags;
-+
-+	if (!dlb)
-+		return;
-+
-+	dlb->num_entries = 0;
-+
-+	spin_lock_irqsave(&dlb->pool->lock, flags);
-+	list_add_tail(&dlb->free, &dlb->pool->free);
-+	spin_unlock_irqrestore(&dlb->pool->lock, flags);
-+}
-+
++	if (IS_V3(core) || IS_V4(core)) {
+ 		ret |= clk_set_rate(core->core0_clk, freq);
+ 		ret |= clk_set_rate(core->core1_clk, freq);
+-	} else {
+-		ret = clk_set_rate(clk, freq);
+ 	}
+ 
+ 	if (ret) {
+diff --git a/drivers/media/platform/qcom/venus/hfi_helper.h b/drivers/media/platform/qcom/venus/hfi_helper.h
+index 55d8eb21403a..1bc5aab1ce6b 100644
+--- a/drivers/media/platform/qcom/venus/hfi_helper.h
++++ b/drivers/media/platform/qcom/venus/hfi_helper.h
+@@ -121,6 +121,7 @@
+ #define HFI_EXTRADATA_METADATA_FILLER			0x7fe00002
+ 
+ #define HFI_INDEX_EXTRADATA_INPUT_CROP			0x0700000e
++#define HFI_INDEX_EXTRADATA_OUTPUT_CROP			0x0700000f
+ #define HFI_INDEX_EXTRADATA_DIGITAL_ZOOM		0x07000010
+ #define HFI_INDEX_EXTRADATA_ASPECT_RATIO		0x7f100003
+ 
+@@ -376,13 +377,18 @@
+ #define HFI_BUFFER_OUTPUT2			0x3
+ #define HFI_BUFFER_INTERNAL_PERSIST		0x4
+ #define HFI_BUFFER_INTERNAL_PERSIST_1		0x5
+-#define HFI_BUFFER_INTERNAL_SCRATCH		0x1000001
+-#define HFI_BUFFER_EXTRADATA_INPUT		0x1000002
+-#define HFI_BUFFER_EXTRADATA_OUTPUT		0x1000003
+-#define HFI_BUFFER_EXTRADATA_OUTPUT2		0x1000004
+-#define HFI_BUFFER_INTERNAL_SCRATCH_1		0x1000005
+-#define HFI_BUFFER_INTERNAL_SCRATCH_2		0x1000006
+-
++#define HFI_BUFFER_INTERNAL_SCRATCH(ver)	\
++	(((ver) == HFI_VERSION_4XX) ? 0x6 : 0x1000001)
++#define HFI_BUFFER_INTERNAL_SCRATCH_1(ver)	\
++	(((ver) == HFI_VERSION_4XX) ? 0x7 : 0x1000005)
++#define HFI_BUFFER_INTERNAL_SCRATCH_2(ver)	\
++	(((ver) == HFI_VERSION_4XX) ? 0x8 : 0x1000006)
++#define HFI_BUFFER_EXTRADATA_INPUT(ver)		\
++	(((ver) == HFI_VERSION_4XX) ? 0xc : 0x1000002)
++#define HFI_BUFFER_EXTRADATA_OUTPUT(ver)	\
++	(((ver) == HFI_VERSION_4XX) ? 0xa : 0x1000003)
++#define HFI_BUFFER_EXTRADATA_OUTPUT2(ver)	\
++	(((ver) == HFI_VERSION_4XX) ? 0xb : 0x1000004)
+ #define HFI_BUFFER_TYPE_MAX			11
+ 
+ #define HFI_BUFFER_MODE_STATIC			0x1000001
+@@ -424,12 +430,14 @@
+ #define HFI_PROPERTY_PARAM_CODEC_MASK_SUPPORTED			0x100e
+ #define HFI_PROPERTY_PARAM_MVC_BUFFER_LAYOUT			0x100f
+ #define HFI_PROPERTY_PARAM_MAX_SESSIONS_SUPPORTED		0x1010
++#define HFI_PROPERTY_PARAM_WORK_MODE				0x1015
+ 
  /*
-  * Initialize a display list body object and allocate DMA memory for the body
-  * data. The display list body object is expected to have been initialized to
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index 57565debe132..107eebcdbab6 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -13,6 +13,7 @@
+  * HFI_PROPERTY_CONFIG_COMMON_START
+  * HFI_DOMAIN_BASE_COMMON + HFI_ARCH_COMMON_OFFSET + 0x2000
+  */
+ #define HFI_PROPERTY_CONFIG_FRAME_RATE				0x2001
++#define HFI_PROPERTY_CONFIG_VIDEOCORES_USAGE			0x2002
  
- struct vsp1_device;
- struct vsp1_dl_body;
-+struct vsp1_dl_body_pool;
- struct vsp1_dl_list;
- struct vsp1_dl_manager;
+ /*
+  * HFI_PROPERTY_PARAM_VDEC_COMMON_START
+@@ -438,6 +446,9 @@
+ #define HFI_PROPERTY_PARAM_VDEC_MULTI_STREAM			0x1003001
+ #define HFI_PROPERTY_PARAM_VDEC_CONCEAL_COLOR			0x1003002
+ #define HFI_PROPERTY_PARAM_VDEC_NONCP_OUTPUT2			0x1003003
++#define HFI_PROPERTY_PARAM_VDEC_PIXEL_BITDEPTH			0x1003007
++#define HFI_PROPERTY_PARAM_VDEC_PIC_STRUCT			0x1003009
++#define HFI_PROPERTY_PARAM_VDEC_COLOUR_SPACE			0x100300a
  
-@@ -33,6 +34,13 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
- void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
- void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal);
+ /*
+  * HFI_PROPERTY_CONFIG_VDEC_COMMON_START
+@@ -518,6 +529,7 @@
+ enum hfi_version {
+ 	HFI_VERSION_1XX,
+ 	HFI_VERSION_3XX,
++	HFI_VERSION_4XX
+ };
  
-+struct vsp1_dl_body_pool *
-+vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
-+			 unsigned int num_entries, size_t extra_size);
-+void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool);
-+struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool);
-+void vsp1_dl_body_put(struct vsp1_dl_body *dlb);
+ struct hfi_buffer_info {
+@@ -767,12 +779,56 @@ struct hfi_framesize {
+ 	u32 height;
+ };
+ 
++#define VIDC_CORE_ID_DEFAULT	0
++#define VIDC_CORE_ID_1		1
++#define VIDC_CORE_ID_2		2
++#define VIDC_CORE_ID_3		3
 +
- struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
- 					unsigned int num_entries);
- void vsp1_dl_body_free(struct vsp1_dl_body *dlb);
++struct hfi_videocores_usage_type {
++	u32 video_core_enable_mask;
++};
++
++#define VIDC_WORK_MODE_1	1
++#define VIDC_WORK_MODE_2	2
++
++struct hfi_video_work_mode {
++	u32 video_work_mode;
++};
++
+ struct hfi_h264_vui_timing_info {
+ 	u32 enable;
+ 	u32 fixed_framerate;
+ 	u32 time_scale;
+ };
+ 
++struct hfi_bit_depth {
++	u32 buffer_type;
++	u32 bit_depth;
++};
++
++struct hfi_picture_type {
++	u32 is_sync_frame;
++	u32 picture_type;
++};
++
++struct hfi_pic_struct {
++	u32 progressive_only;
++};
++
++struct hfi_colour_space {
++	u32 colour_space;
++};
++
++struct hfi_extradata_input_crop {
++	u32 size;
++	u32 version;
++	u32 port_index;
++	u32 left;
++	u32 top;
++	u32 width;
++	u32 height;
++};
++
+ #define HFI_COLOR_FORMAT_MONOCHROME		0x01
+ #define HFI_COLOR_FORMAT_NV12			0x02
+ #define HFI_COLOR_FORMAT_NV21			0x03
+@@ -961,6 +1017,12 @@ struct hfi_buffer_count_actual {
+ 	u32 count_actual;
+ };
+ 
++struct hfi_buffer_count_actual_4xx {
++	u32 type;
++	u32 count_actual;
++	u32 count_min_host;
++};
++
+ struct hfi_buffer_size_actual {
+ 	u32 type;
+ 	u32 size;
+@@ -971,6 +1033,14 @@ struct hfi_buffer_display_hold_count_actual {
+ 	u32 hold_count;
+ };
+ 
++/* HFI 4XX reorder the fields, use these macros */
++#define HFI_BUFREQ_HOLD_COUNT(bufreq, ver)	\
++	((ver) == HFI_VERSION_4XX ? 0 : (bufreq)->hold_count)
++#define HFI_BUFREQ_COUNT_MIN(bufreq, ver)	\
++	((ver) == HFI_VERSION_4XX ? (bufreq)->hold_count : (bufreq)->count_min)
++#define HFI_BUFREQ_COUNT_MIN_HOST(bufreq, ver)	\
++	((ver) == HFI_VERSION_4XX ? (bufreq)->count_min : 0)
++
+ struct hfi_buffer_requirements {
+ 	u32 type;
+ 	u32 size;
+diff --git a/drivers/media/platform/qcom/venus/hfi_venus_io.h b/drivers/media/platform/qcom/venus/hfi_venus_io.h
+index 98cc350113ab..76f47936d0fa 100644
+--- a/drivers/media/platform/qcom/venus/hfi_venus_io.h
++++ b/drivers/media/platform/qcom/venus/hfi_venus_io.h
+@@ -110,4 +110,28 @@
+ #define WRAPPER_CPU_STATUS			(WRAPPER_BASE + 0x2014)
+ #define WRAPPER_SW_RESET			(WRAPPER_BASE + 0x3000)
+ 
++/* Venus 4xx */
++#define WRAPPER_VCODEC0_MMCC_POWER_STATUS	(WRAPPER_BASE + 0x90)
++#define WRAPPER_VCODEC0_MMCC_POWER_CONTROL	(WRAPPER_BASE + 0x94)
++
++#define WRAPPER_VCODEC1_MMCC_POWER_STATUS	(WRAPPER_BASE + 0x110)
++#define WRAPPER_VCODEC1_MMCC_POWER_CONTROL	(WRAPPER_BASE + 0x114)
++
++/* vcodec noc error log registers */
++#define VCODEC_CORE0_VIDEO_NOC_BASE_OFFS		0x4000
++#define VCODEC_CORE1_VIDEO_NOC_BASE_OFFS		0xc000
++#define VCODEC_COREX_VIDEO_NOC_ERR_SWID_LOW_OFFS	0x500
++#define VCODEC_COREX_VIDEO_NOC_ERR_SWID_HIGH_OFFS	0x504
++#define VCODEC_COREX_VIDEO_NOC_ERR_MAINCTL_LOW_OFFS	0x508
++#define VCODEC_COREX_VIDEO_NOC_ERR_ERRVLD_LOW_OFFS	0x510
++#define VCODEC_COREX_VIDEO_NOC_ERR_ERRCLR_LOW_OFFS	0x518
++#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG0_LOW_OFFS	0x520
++#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG0_HIGH_OFFS	0x524
++#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG1_LOW_OFFS	0x528
++#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG1_HIGH_OFFS	0x52c
++#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG2_LOW_OFFS	0x530
++#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG2_HIGH_OFFS	0x534
++#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG3_LOW_OFFS	0x538
++#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG3_HIGH_OFFS	0x53c
++
+ #endif
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 49bbd1861d3a..261a51adeef2 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -689,6 +689,7 @@ static int vdec_queue_setup(struct vb2_queue *q,
+ 
+ static int vdec_verify_conf(struct venus_inst *inst)
+ {
++	enum hfi_version ver = inst->core->res->hfi_version;
+ 	struct hfi_buffer_requirements bufreq;
+ 	int ret;
+ 
+@@ -700,14 +701,14 @@ static int vdec_verify_conf(struct venus_inst *inst)
+ 		return ret;
+ 
+ 	if (inst->num_output_bufs < bufreq.count_actual ||
+-	    inst->num_output_bufs < bufreq.count_min)
++	    inst->num_output_bufs < HFI_BUFREQ_COUNT_MIN(&bufreq, ver))
+ 		return -EINVAL;
+ 
+ 	ret = venus_helper_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
+ 	if (ret)
+ 		return ret;
+ 
+-	if (inst->num_input_bufs < bufreq.count_min)
++	if (inst->num_input_bufs < HFI_BUFREQ_COUNT_MIN(&bufreq, ver))
+ 		return -EINVAL;
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index 6b2ce479584e..947001170a77 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -892,6 +892,7 @@ static int venc_queue_setup(struct vb2_queue *q,
+ 
+ static int venc_verify_conf(struct venus_inst *inst)
+ {
++	enum hfi_version ver = inst->core->res->hfi_version;
+ 	struct hfi_buffer_requirements bufreq;
+ 	int ret;
+ 
+@@ -903,7 +904,7 @@ static int venc_verify_conf(struct venus_inst *inst)
+ 		return ret;
+ 
+ 	if (inst->num_output_bufs < bufreq.count_actual ||
+-	    inst->num_output_bufs < bufreq.count_min)
++	    inst->num_output_bufs < HFI_BUFREQ_COUNT_MIN(&bufreq, ver))
+ 		return -EINVAL;
+ 
+ 	ret = venus_helper_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
+@@ -911,7 +912,7 @@ static int venc_verify_conf(struct venus_inst *inst)
+ 		return ret;
+ 
+ 	if (inst->num_input_bufs < bufreq.count_actual ||
+-	    inst->num_input_bufs < bufreq.count_min)
++	    inst->num_input_bufs < HFI_BUFREQ_COUNT_MIN(&bufreq, ver))
+ 		return -EINVAL;
+ 
+ 	return 0;
 -- 
-git-series 0.9.1
+2.14.1
