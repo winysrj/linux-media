@@ -1,128 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54182 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751389AbeEPKqU (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:50653 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752512AbeEOH7h (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 06:46:20 -0400
-Date: Wed, 16 May 2018 13:46:18 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv13 12/28] v4l2-ctrls: add core request support
-Message-ID: <20180516104618.56fqtmxjutzldhw5@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180516101934.dekzi6zlyzqbs5t6@valkosipuli.retiisi.org.uk>
+        Tue, 15 May 2018 03:59:37 -0400
+Received: by mail-wm0-f65.google.com with SMTP id t11-v6so17686932wmt.0
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:37 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 09/29] venus: hfi_venus: move set of default properties to core init
+Date: Tue, 15 May 2018 10:58:39 +0300
+Message-Id: <20180515075859.17217-10-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 16, 2018 at 01:19:34PM +0300, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Thu, May 03, 2018 at 04:53:02PM +0200, Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Integrate the request support. This adds the v4l2_ctrl_request_complete
-> > and v4l2_ctrl_request_setup functions to complete a request and (as a
-> > helper function) to apply a request to the hardware.
-> > 
-> > It takes care of queuing requests and correctly chaining control values
-> > in the request queue.
-> > 
-> > Note that when a request is marked completed it will copy control values
-> > to the internal request state. This can be optimized in the future since
-> > this is sub-optimal when dealing with large compound and/or array controls.
-> > 
-> > For the initial 'stateless codec' use-case the current implementation is
-> > sufficient.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-ctrls.c | 331 ++++++++++++++++++++++++++-
-> >  include/media/v4l2-ctrls.h           |  23 ++
-> >  2 files changed, 348 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > index da4cc1485dc4..56b986185463 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > @@ -3429,6 +3602,152 @@ int __v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
-> >  }
-> >  EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_string);
-> >  
-> > +void v4l2_ctrl_request_complete(struct media_request *req,
-> > +				struct v4l2_ctrl_handler *main_hdl)
-> > +{
-> > +	struct media_request_object *obj;
-> > +	struct v4l2_ctrl_handler *hdl;
-> > +	struct v4l2_ctrl_ref *ref;
-> > +
-> > +	if (!req || !main_hdl)
-> > +		return;
-> > +
-> > +	obj = media_request_object_find(req, &req_ops, main_hdl);
-> > +	if (!obj)
-> > +		return;
-> > +	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
-> > +
-> > +	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
-> > +		struct v4l2_ctrl *ctrl = ref->ctrl;
-> > +		struct v4l2_ctrl *master = ctrl->cluster[0];
-> > +		unsigned int i;
-> > +
-> > +		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
-> > +			ref->req = ref;
-> > +
-> > +			v4l2_ctrl_lock(master);
-> > +			/* g_volatile_ctrl will update the current control values */
-> > +			for (i = 0; i < master->ncontrols; i++)
-> > +				cur_to_new(master->cluster[i]);
-> > +			call_op(master, g_volatile_ctrl);
-> > +			new_to_req(ref);
-> > +			v4l2_ctrl_unlock(master);
-> > +			continue;
-> > +		}
-> > +		if (ref->req == ref)
-> > +			continue;
-> > +
-> > +		v4l2_ctrl_lock(ctrl);
-> > +		if (ref->req)
-> > +			ptr_to_ptr(ctrl, ref->req->p_req, ref->p_req);
-> > +		else
-> > +			ptr_to_ptr(ctrl, ctrl->p_cur, ref->p_req);
-> > +		v4l2_ctrl_unlock(ctrl);
-> > +	}
-> > +
-> > +	WARN_ON(!hdl->request_is_queued);
-> > +	list_del_init(&hdl->requests_queued);
-> > +	hdl->request_is_queued = false;
-> > +	media_request_object_complete(obj);
-> > +	media_request_object_put(obj);
-> > +}
-> > +EXPORT_SYMBOL(v4l2_ctrl_request_complete);
-> > +
-> > +void v4l2_ctrl_request_setup(struct media_request *req,
-> > +			     struct v4l2_ctrl_handler *main_hdl)
-> 
-> Drivers are expected to use this function internally to make use of the
-> control values in the request. Is that your thinking as well?
-> 
-> The problem with this implementation is that once a driver eventually gets
-> a callback (s_ctrl), the callback doesn't have the information on the
-> request. That means the driver has no means to associate the control value
-> to the request anymore --- and that is against the very purpose of the
-> function.
-> 
-> Instead, I'd add a new argument to the callback function --- the request
-> --- or add another callback function to be used for applying control values
-> for requests. Or alternatively, provide an easy way to enumerate the
-> controls and their values in a control handler. For the driver must store
+This moves setting of default properties (firmware debug, idle
+indicator and low power mode) from session init to core init.
+All of those properties are need to be enabled/disabled early
+so that they could be used before the clients are even initialized.
 
-To address this fully --- using S_EXT_CTRLS on uAPI to the control handler
-should likely be prevented as long as there are request objects related to
-that handler. Or at least request objects that are not completed.
+The other reason is to set idle indicator property early before
+we enter into venus_suspend function where we need to check for
+ARM9 WFI.
 
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/hfi_venus.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
+index aac351f699a0..284da69eb81b 100644
+--- a/drivers/media/platform/qcom/venus/hfi_venus.c
++++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+@@ -1090,6 +1090,10 @@ static int venus_core_init(struct venus_core *core)
+ 	if (ret)
+ 		dev_warn(dev, "failed to send image version pkt to fw\n");
+ 
++	ret = venus_sys_set_default_properties(hdev);
++	if (ret)
++		return ret;
++
+ 	return 0;
+ }
+ 
+@@ -1134,10 +1138,6 @@ static int venus_session_init(struct venus_inst *inst, u32 session_type,
+ 	struct hfi_session_init_pkt pkt;
+ 	int ret;
+ 
+-	ret = venus_sys_set_default_properties(hdev);
+-	if (ret)
+-		return ret;
+-
+ 	ret = pkt_session_init(&pkt, inst, session_type, codec);
+ 	if (ret)
+ 		goto err;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
