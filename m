@@ -1,63 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50684 "EHLO mail.kernel.org"
+Received: from mga12.intel.com ([192.55.52.136]:17472 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750863AbeEAWLe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 18:11:34 -0400
-Content-Type: text/plain; charset="utf-8"
+        id S1752260AbeEOJZL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 May 2018 05:25:11 -0400
+Date: Tue, 15 May 2018 12:25:07 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        jacopo mondi <jacopo@jmondi.org>
+Subject: Re: [PATCH v16 0/2] rcar-csi2: add Renesas R-Car MIPI CSI-2
+Message-ID: <20180515092507.6eaq3fsejd64fuqu@paasikivi.fi.intel.com>
+References: <20180515005635.25715-1-niklas.soderlund+renesas@ragnatech.se>
+ <2644518.Vheqspdx5b@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com
-From: Stephen Boyd <sboyd@kernel.org>
-In-Reply-To: <20180423134750.30403-4-rui.silva@linaro.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        linux-clk@vger.kernel.org
-References: <20180423134750.30403-1-rui.silva@linaro.org>
- <20180423134750.30403-4-rui.silva@linaro.org>
-Message-ID: <152521269309.138124.2596659349470455371@swboyd.mtv.corp.google.com>
-Subject: Re: [PATCH v2 03/15] clk: imx7d: fix mipi dphy div parent
-Date: Tue, 01 May 2018 15:11:33 -0700
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2644518.Vheqspdx5b@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quoting Rui Miguel Silva (2018-04-23 06:47:38)
-> Fix the mipi dphy root divider to mipi_dphy_pre_div, this would remove a orphan
-> clock and set the correct parent.
+On Tue, May 15, 2018 at 07:50:45AM +0300, Laurent Pinchart wrote:
+> Hi Niklas,
 > 
-> before:
-> cat clk_orphan_summary
->                                  enable  prepare  protect
->    clock                          count    count    count        rate   accuracy   phase
-> ----------------------------------------------------------------------------------------
->  mipi_dphy_post_div                   1        1        0           0          0 0
->     mipi_dphy_root_clk                1        1        0           0          0 0
+> On Tuesday, 15 May 2018 03:56:33 EEST Niklas Söderlund wrote:
+> > Hi,
+> > 
+> > This is the latest incarnation of R-Car MIPI CSI-2 receiver driver. It's
+> > based on top of the media-tree and are tested on Renesas Salvator-X and
+> > Salvator-XS together with adv7482 and the now in tree rcar-vin driver :-)
+> > 
+> > I hope this is the last incarnation of this patch-set, I do think it is
+> > ready for upstream consumption :-)
 > 
-> cat clk_dump | grep mipi_dphy
-> mipi_dphy_post_div                    1        1        0           0          0 0
->     mipi_dphy_root_clk                1        1        0           0          0 0
+> So do I. Even though you dropped Hans' reviewed-by tag due to changes in the 
+> hardware initialization code, I think the part that Hans cares about the most 
+> is the V4L2 API implementation, so I believe his review still applies. In my 
+> opinion the series has received the necessary review.
 > 
-> after:
-> cat clk_dump | grep mipi_dphy
->    mipi_dphy_src                     1        1        0    24000000          0 0
->        mipi_dphy_cg                  1        1        0    24000000          0 0
->           mipi_dphy_pre_div          1        1        0    24000000          0 0
->              mipi_dphy_post_div      1        1        0    24000000          0 0
->                 mipi_dphy_root_clk   1        1        0    24000000          0 0
-> 
-> Cc: linux-clk@vger.kernel.org
-> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
-> 
-> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+> Hans, would you like to take this through your tree, or should we send a pull 
+> request directly to Mauro ? I'd like the two patches to be merged in v4.18 if 
+> possible.
 
-You have double signed-off-by here. Please resend.
+I've applied the patches to my tree as discussed with Hans previously.
 
-Also, add a "Fixes:" tag so we know where to backport this to.
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
