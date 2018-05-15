@@ -1,123 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37366 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750881AbeEGK77 (ORCPT
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:46833 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754063AbeEOOme (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 06:59:59 -0400
-Date: Mon, 7 May 2018 13:59:56 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] media: v4l: Add new 10-bit packed grayscale format
-Message-ID: <20180507105956.o5fhjq7udmo7qt2z@valkosipuli.retiisi.org.uk>
-References: <1524829239-4664-1-git-send-email-todor.tomov@linaro.org>
- <1524829239-4664-3-git-send-email-todor.tomov@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1524829239-4664-3-git-send-email-todor.tomov@linaro.org>
+        Tue, 15 May 2018 10:42:34 -0400
+Received: by mail-qt0-f193.google.com with SMTP id m16-v6so519729qtg.13
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 07:42:33 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 1/5] media: cec-notifier: Get notifier by device and connector name
+Date: Tue, 15 May 2018 16:42:18 +0200
+Message-Id: <1526395342-15481-2-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
+References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
+In non device-tree world, we can need to get the notifier by the driver
+name directly and eventually defer probe if not yet created.
 
-On Fri, Apr 27, 2018 at 02:40:39PM +0300, Todor Tomov wrote:
-> The new format will be called V4L2_PIX_FMT_Y10P.
-> It is similar to the V4L2_PIX_FMT_SBGGR10P family formats
-> but V4L2_PIX_FMT_Y10P is a grayscale format.
-> 
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> ---
->  Documentation/media/uapi/v4l/pixfmt-y10p.rst | 31 ++++++++++++++++++++++++++++
->  Documentation/media/uapi/v4l/yuv-formats.rst |  1 +
->  drivers/media/v4l2-core/v4l2-ioctl.c         |  1 +
->  include/uapi/linux/videodev2.h               |  1 +
->  4 files changed, 34 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-y10p.rst
-> 
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-y10p.rst b/Documentation/media/uapi/v4l/pixfmt-y10p.rst
-> new file mode 100644
-> index 0000000..0018fe7
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-y10p.rst
-> @@ -0,0 +1,31 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _V4L2-PIX-FMT-Y10P:
-> +
-> +******************************
-> +V4L2_PIX_FMT_Y10P ('Y10P')
-> +******************************
-> +
-> +Grey-scale image as a MIPI RAW10 packed array
-> +
-> +
-> +Description
-> +===========
-> +
-> +This is a packed grey-scale image format with a depth of 10 bits per
-> +pixel. Every four consecutive pixels are packed into 5 bytes. Each of
-> +the first 4 bytes contain the 8 high order bits of the pixels, and
-> +the 5th byte contains the 2 least significants bits of each pixel,
-> +in the same order.
-> +
-> +**Bit-packed representation.**
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - Y'\ :sub:`00[9:2]`
-> +      - Y'\ :sub:`01[9:2]`
-> +      - Y'\ :sub:`02[9:2]`
-> +      - Y'\ :sub:`03[9:2]`
-> +      - Y'\ :sub:`03[1:0]`\ Y'\ :sub:`02[1:0]`\ Y'\ :sub:`01[1:0]`\ Y'\ :sub:`00[1:0]`
+This patch adds a variant of the get function by using the device name
+instead and will not create a notifier if not yet created.
 
-Could you add which exact bits the two LSBs of each pixel go to in the last
-byte, as in the 10-bit packed Bayer format documentation?
+But the i915 driver exposes at least 2 HDMI connectors, this patch also
+adds the possibility to add a connector name tied to the notifier device
+to form a tuple and associate different CEC controllers for each HDMI
+connectors.
 
-> diff --git a/Documentation/media/uapi/v4l/yuv-formats.rst b/Documentation/media/uapi/v4l/yuv-formats.rst
-> index 3334ea4..9ab0592 100644
-> --- a/Documentation/media/uapi/v4l/yuv-formats.rst
-> +++ b/Documentation/media/uapi/v4l/yuv-formats.rst
-> @@ -29,6 +29,7 @@ to brightness information.
->      pixfmt-y10
->      pixfmt-y12
->      pixfmt-y10b
-> +    pixfmt-y10p
->      pixfmt-y16
->      pixfmt-y16-be
->      pixfmt-y8i
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index f48c505..bdf2399 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1147,6 +1147,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
->  	case V4L2_PIX_FMT_Y16:		descr = "16-bit Greyscale"; break;
->  	case V4L2_PIX_FMT_Y16_BE:	descr = "16-bit Greyscale BE"; break;
->  	case V4L2_PIX_FMT_Y10BPACK:	descr = "10-bit Greyscale (Packed)"; break;
-> +	case V4L2_PIX_FMT_Y10P:		descr = "10-bit Greyscale (MIPI Packed)"; break;
->  	case V4L2_PIX_FMT_Y8I:		descr = "Interleaved 8-bit Greyscale"; break;
->  	case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit Greyscale"; break;
->  	case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 600877b..b24ab720 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -522,6 +522,7 @@ struct v4l2_pix_format {
->  
->  /* Grey bit-packed formats */
->  #define V4L2_PIX_FMT_Y10BPACK    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
-> +#define V4L2_PIX_FMT_Y10P    v4l2_fourcc('Y', '1', '0', 'P') /* 10  Greyscale, MIPI RAW10 packed */
->  
->  /* Palette formats */
->  #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
-> -- 
-> 2.7.4
-> 
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ drivers/media/cec/cec-notifier.c | 11 ++++++++---
+ include/media/cec-notifier.h     | 27 ++++++++++++++++++++++++---
+ 2 files changed, 32 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
+index 16dffa0..dd2078b 100644
+--- a/drivers/media/cec/cec-notifier.c
++++ b/drivers/media/cec/cec-notifier.c
+@@ -21,6 +21,7 @@ struct cec_notifier {
+ 	struct list_head head;
+ 	struct kref kref;
+ 	struct device *dev;
++	const char *conn;
+ 	struct cec_adapter *cec_adap;
+ 	void (*callback)(struct cec_adapter *adap, u16 pa);
+ 
+@@ -30,13 +31,14 @@ struct cec_notifier {
+ static LIST_HEAD(cec_notifiers);
+ static DEFINE_MUTEX(cec_notifiers_lock);
+ 
+-struct cec_notifier *cec_notifier_get(struct device *dev)
++struct cec_notifier *cec_notifier_get_conn(struct device *dev, const char *conn)
+ {
+ 	struct cec_notifier *n;
+ 
+ 	mutex_lock(&cec_notifiers_lock);
+ 	list_for_each_entry(n, &cec_notifiers, head) {
+-		if (n->dev == dev) {
++		if (n->dev == dev &&
++		    (!conn || !strcmp(n->conn, conn))) {
+ 			kref_get(&n->kref);
+ 			mutex_unlock(&cec_notifiers_lock);
+ 			return n;
+@@ -46,6 +48,8 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
+ 	if (!n)
+ 		goto unlock;
+ 	n->dev = dev;
++	if (conn)
++		n->conn = kstrdup(conn, GFP_KERNEL);
+ 	n->phys_addr = CEC_PHYS_ADDR_INVALID;
+ 	mutex_init(&n->lock);
+ 	kref_init(&n->kref);
+@@ -54,7 +58,7 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
+ 	mutex_unlock(&cec_notifiers_lock);
+ 	return n;
+ }
+-EXPORT_SYMBOL_GPL(cec_notifier_get);
++EXPORT_SYMBOL_GPL(cec_notifier_get_conn);
+ 
+ static void cec_notifier_release(struct kref *kref)
+ {
+@@ -62,6 +66,7 @@ static void cec_notifier_release(struct kref *kref)
+ 		container_of(kref, struct cec_notifier, kref);
+ 
+ 	list_del(&n->head);
++	kfree(n->conn);
+ 	kfree(n);
+ }
+ 
+diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
+index cf0add7..814eeef 100644
+--- a/include/media/cec-notifier.h
++++ b/include/media/cec-notifier.h
+@@ -20,8 +20,10 @@ struct cec_notifier;
+ #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
+ 
+ /**
+- * cec_notifier_get - find or create a new cec_notifier for the given device.
++ * cec_notifier_get_conn - find or create a new cec_notifier for the given
++ * device and connector tuple.
+  * @dev: device that sends the events.
++ * @conn: the connector name from which the event occurs
+  *
+  * If a notifier for device @dev already exists, then increase the refcount
+  * and return that notifier.
+@@ -31,7 +33,8 @@ struct cec_notifier;
+  *
+  * Return NULL if the memory could not be allocated.
+  */
+-struct cec_notifier *cec_notifier_get(struct device *dev);
++struct cec_notifier *cec_notifier_get_conn(struct device *dev,
++					   const char *conn);
+ 
+ /**
+  * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
+@@ -85,7 +88,8 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
+ 			       struct cec_notifier *notifier);
+ 
+ #else
+-static inline struct cec_notifier *cec_notifier_get(struct device *dev)
++static inline struct cec_notifier *cec_notifier_get_conn(struct device *dev,
++							 const char *conn)
+ {
+ 	/* A non-NULL pointer is expected on success */
+ 	return (struct cec_notifier *)0xdeadfeed;
+@@ -121,6 +125,23 @@ static inline void cec_register_cec_notifier(struct cec_adapter *adap,
+ #endif
+ 
+ /**
++ * cec_notifier_get - find or create a new cec_notifier for the given device.
++ * @dev: device that sends the events.
++ *
++ * If a notifier for device @dev already exists, then increase the refcount
++ * and return that notifier.
++ *
++ * If it doesn't exist, then allocate a new notifier struct and return a
++ * pointer to that new struct.
++ *
++ * Return NULL if the memory could not be allocated.
++ */
++static inline struct cec_notifier *cec_notifier_get(struct device *dev)
++{
++	return cec_notifier_get_conn(dev, NULL);
++}
++
++/**
+  * cec_notifier_phys_addr_invalidate() - set the physical address to INVALID
+  *
+  * @n: the CEC notifier
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
