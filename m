@@ -1,145 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:44879 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751319AbeEPHm2 (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:52859 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752464AbeEOH7b (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 03:42:28 -0400
-Received: by mail-qk0-f196.google.com with SMTP id t129-v6so2368245qke.11
-        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 00:42:27 -0700 (PDT)
-Subject: Re: [PATCH v2 4/5] mfd: cros_ec_dev: Add CEC sub-device registration
-To: Enric Balletbo Serra <eballetbo@gmail.com>,
+        Tue, 15 May 2018 03:59:31 -0400
+Received: by mail-wm0-f54.google.com with SMTP id w194-v6so17604098wmf.2
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:31 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
-Cc: David Airlie <airlied@linux.ie>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        Olof Johansson <olof@lixom.net>, seanpaul@google.com,
-        sadolfsson@google.com, intel-gfx@lists.freedesktop.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Fabien Parent <fparent@baylibre.com>, felixe@google.com,
-        =?UTF-8?Q?St=c3=a9phane_Marchesin?= <marcheu@chromium.org>,
-        Benson Leung <bleung@google.com>, darekm@google.com,
-        linux-media@vger.kernel.org
-References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
- <1526395342-15481-5-git-send-email-narmstrong@baylibre.com>
- <568980a1-9c22-ccdb-de43-ba88cdce4ecd@xs4all.nl>
- <CAFqH_52nkk=ATeNoOdhmfAioD30sbg_kyAxr259bydLj9Z6xJg@mail.gmail.com>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <0ac61992-3946-63f2-02ed-0dcfa3058a1a@baylibre.com>
-Date: Wed, 16 May 2018 09:42:22 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAFqH_52nkk=ATeNoOdhmfAioD30sbg_kyAxr259bydLj9Z6xJg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 03/29] venus: hfi: update sequence event to handle more properties
+Date: Tue, 15 May 2018 10:58:33 +0300
+Message-Id: <20180515075859.17217-4-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enric,
+HFI version 4xx can pass more properties in the sequence change
+event, extend the event structure with them.
 
-On 15/05/2018 18:40, Enric Balletbo Serra wrote:
-> Hi Neil,
-> 
-> I suspect that this patch will conflict with some patches that will be
-> queued for 4.18 that also introduces new devices, well, for now I
-> don't see these merged in the Lee's tree.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/hfi.h      |  9 ++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.c | 46 ++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+)
 
-Indeed, I found your patches, I'll rebase this one when Lee pushes them in his tree.
-
-> 
-> Based on some reviews I got when I send a patch to this file ...
-> 
-> 2018-05-15 17:29 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
->> On 05/15/2018 04:42 PM, Neil Armstrong wrote:
->>> The EC can expose a CEC bus, thus add the cros-ec-cec MFD sub-device
->>> when the CEC feature bit is present.
->>>
->>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->>
->> For what it is worth (not an MFD expert):
->>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Thanks!
->>
->>         Hans
->>
->>> ---
->>>  drivers/mfd/cros_ec_dev.c | 16 ++++++++++++++++
->>>  1 file changed, 16 insertions(+)
->>>
->>> diff --git a/drivers/mfd/cros_ec_dev.c b/drivers/mfd/cros_ec_dev.c
->>> index eafd06f..57064ec 100644
->>> --- a/drivers/mfd/cros_ec_dev.c
->>> +++ b/drivers/mfd/cros_ec_dev.c
->>> @@ -383,6 +383,18 @@ static void cros_ec_sensors_register(struct cros_ec_dev *ec)
->>>       kfree(msg);
->>>  }
->>>
->>> +static void cros_ec_cec_register(struct cros_ec_dev *ec)
->>> +{
->>> +     int ret;
->>> +     struct mfd_cell cec_cell = {
->>> +             .name = "cros-ec-cec",
->>> +     };
->>> +
->>> +     ret = mfd_add_devices(ec->dev, 0, &cec_cell, 1, NULL, 0, NULL);
->>> +     if (ret)
->>> +             dev_err(ec->dev, "failed to add EC CEC\n");
->>> +}
->>> +
-> 
-> Do not create a single function to only call mfd_add_devices, instead
-> do the following on top:
-> 
-> static const struct mfd_cell cros_ec_cec_cells[] = {
->         { .name = "cros-ec-cec" }
-> };
-
-OK
-
-> 
-> 
->>>  static int ec_device_probe(struct platform_device *pdev)
->>>  {
->>>       int retval = -ENOMEM;
->>> @@ -422,6 +434,10 @@ static int ec_device_probe(struct platform_device *pdev)
->>>       if (cros_ec_check_features(ec, EC_FEATURE_MOTION_SENSE))
->>>               cros_ec_sensors_register(ec);
->>>
->>> +     /* check whether this EC handles CEC. */
->>> +     if (cros_ec_check_features(ec, EC_FEATURE_CEC))
->>> +             cros_ec_cec_register(ec);
->>> +
-> 
-> and use PLATFORM_DEVID_AUTO and the ARRAY_SIZE macro, something like this.
-> 
-> /* Check whether this EC instance handles CEC */
-> if (cros_ec_check_features(ec, EC_FEATURE_CEC)) {
->         retval = mfd_add_devices(ec->dev, PLATFORM_DEVID_AUTO,
->                                                   cros_ec_cec_cells,
->                                                   ARRAY_SIZE(cros_ec_cec_cells),
->                                                   NULL, 0, NULL);
->         if (retval)
->                 dev_err(ec->dev, "failed to add cros-ec-cec device: %d\n",
->                              retval);
-> }
-
-Ok, like the RTC registration.
-
-Thanks,
-Neil
-
-> 
-> Best regards,
->   Enric
-> 
->>>       /* Take control of the lightbar from the EC. */
->>>       lb_manual_suspend_ctrl(ec, 1);
->>>
->>>
->>
->> _______________________________________________
->> dri-devel mailing list
->> dri-devel@lists.freedesktop.org
->> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+diff --git a/drivers/media/platform/qcom/venus/hfi.h b/drivers/media/platform/qcom/venus/hfi.h
+index 5466b7d60dd0..21376d93170f 100644
+--- a/drivers/media/platform/qcom/venus/hfi.h
++++ b/drivers/media/platform/qcom/venus/hfi.h
+@@ -74,6 +74,15 @@ struct hfi_event_data {
+ 	u32 tag;
+ 	u32 profile;
+ 	u32 level;
++	u32 bit_depth;
++	u32 pic_struct;
++	u32 colour_space;
++	u32 entropy_mode;
++	u32 buf_count;
++	struct {
++		u32 left, top;
++		u32 width, height;
++	} input_crop;
+ };
+ 
+ /* define core states */
+diff --git a/drivers/media/platform/qcom/venus/hfi_msgs.c b/drivers/media/platform/qcom/venus/hfi_msgs.c
+index 589e1a6b36a9..5970e9b1716b 100644
+--- a/drivers/media/platform/qcom/venus/hfi_msgs.c
++++ b/drivers/media/platform/qcom/venus/hfi_msgs.c
+@@ -25,10 +25,17 @@
+ static void event_seq_changed(struct venus_core *core, struct venus_inst *inst,
+ 			      struct hfi_msg_event_notify_pkt *pkt)
+ {
++	enum hfi_version ver = core->res->hfi_version;
+ 	struct hfi_event_data event = {0};
+ 	int num_properties_changed;
+ 	struct hfi_framesize *frame_sz;
+ 	struct hfi_profile_level *profile_level;
++	struct hfi_bit_depth *pixel_depth;
++	struct hfi_pic_struct *pic_struct;
++	struct hfi_colour_space *colour_info;
++	struct hfi_buffer_requirements *bufreq;
++	struct hfi_extradata_input_crop *crop;
++	u32 entropy_mode = 0;
+ 	u8 *data_ptr;
+ 	u32 ptype;
+ 
+@@ -69,6 +76,45 @@ static void event_seq_changed(struct venus_core *core, struct venus_inst *inst,
+ 			event.level = profile_level->level;
+ 			data_ptr += sizeof(*profile_level);
+ 			break;
++		case HFI_PROPERTY_PARAM_VDEC_PIXEL_BITDEPTH:
++			data_ptr += sizeof(u32);
++			pixel_depth = (struct hfi_bit_depth *)data_ptr;
++			event.bit_depth = pixel_depth->bit_depth;
++			data_ptr += sizeof(*pixel_depth);
++			break;
++		case HFI_PROPERTY_PARAM_VDEC_PIC_STRUCT:
++			data_ptr += sizeof(u32);
++			pic_struct = (struct hfi_pic_struct *)data_ptr;
++			event.pic_struct = pic_struct->progressive_only;
++			data_ptr += sizeof(*pic_struct);
++			break;
++		case HFI_PROPERTY_PARAM_VDEC_COLOUR_SPACE:
++			data_ptr += sizeof(u32);
++			colour_info = (struct hfi_colour_space *)data_ptr;
++			event.colour_space = colour_info->colour_space;
++			data_ptr += sizeof(*colour_info);
++			break;
++		case HFI_PROPERTY_CONFIG_VDEC_ENTROPY:
++			data_ptr += sizeof(u32);
++			entropy_mode = *(u32 *)data_ptr;
++			event.entropy_mode = entropy_mode;
++			data_ptr += sizeof(u32);
++			break;
++		case HFI_PROPERTY_CONFIG_BUFFER_REQUIREMENTS:
++			data_ptr += sizeof(u32);
++			bufreq = (struct hfi_buffer_requirements *)data_ptr;
++			event.buf_count = HFI_BUFREQ_COUNT_MIN(bufreq, ver);
++			data_ptr += sizeof(*bufreq);
++			break;
++		case HFI_INDEX_EXTRADATA_INPUT_CROP:
++			data_ptr += sizeof(u32);
++			crop = (struct hfi_extradata_input_crop *)data_ptr;
++			event.input_crop.left = crop->left;
++			event.input_crop.top = crop->top;
++			event.input_crop.width = crop->width;
++			event.input_crop.height = crop->height;
++			data_ptr += sizeof(*crop);
++			break;
+ 		default:
+ 			break;
+ 		}
+-- 
+2.14.1
