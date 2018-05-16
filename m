@@ -1,101 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:42987 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755299AbeEaO3N (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:42149 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752253AbeEPHkX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 10:29:13 -0400
-Subject: Re: [PATCH 2/8] xen/balloon: Move common memory reservation routines
- to a module
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
- <20180525153331.31188-3-andr2000@gmail.com>
- <59ab73b0-967b-a82f-3b0d-95f1b0dc40a5@oracle.com>
- <89de7bdb-8759-419f-63bf-8ed0d57650f0@gmail.com>
- <edfa937b-3311-98db-2e6f-b4083598f796@oracle.com>
- <6ca7f428-eede-2c14-85fe-da4a20bcea0d@gmail.com>
- <5dd3378d-ac32-691e-1f80-7218a5d07fd6@oracle.com>
- <43c17501-8865-6e1f-1a92-d947755d8fa8@gmail.com>
- <c08c380d-17af-b668-acf2-8d8a94333aca@oracle.com>
- <b9046572-8802-b213-a74f-68f58a58ae6a@gmail.com>
-Message-ID: <4d386f6f-5212-1e42-abf7-1913f6218f05@gmail.com>
-Date: Thu, 31 May 2018 17:29:09 +0300
+        Wed, 16 May 2018 03:40:23 -0400
+Received: by mail-qt0-f195.google.com with SMTP id c2-v6so3811240qtn.9
+        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 00:40:22 -0700 (PDT)
+Subject: Re: [Intel-gfx] [PATCH v2 2/5] drm/i915: hdmi: add CEC notifier to
+ intel_hdmi
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
+Cc: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com, sadolfsson@google.com,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, fparent@baylibre.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        linux-media@vger.kernel.org
+References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
+ <1526395342-15481-3-git-send-email-narmstrong@baylibre.com>
+ <20180515153521.GB23723@intel.com>
+ <aff8c86f-b282-c901-5ef5-c5ee334aeedc@baylibre.com>
+Message-ID: <e0f99123-1463-c082-122e-67cf0d106e25@baylibre.com>
+Date: Wed, 16 May 2018 09:40:17 +0200
 MIME-Version: 1.0
-In-Reply-To: <b9046572-8802-b213-a74f-68f58a58ae6a@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <aff8c86f-b282-c901-5ef5-c5ee334aeedc@baylibre.com>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/31/2018 10:51 AM, Oleksandr Andrushchenko wrote:
-> On 05/30/2018 10:24 PM, Boris Ostrovsky wrote:
->> On 05/30/2018 01:46 PM, Oleksandr Andrushchenko wrote:
->>> On 05/30/2018 06:54 PM, Boris Ostrovsky wrote:
->>>>
->>>> BTW, I also think you can further simplify
->>>> xenmem_reservation_va_mapping_* routines by bailing out right away if
->>>> xen_feature(XENFEAT_auto_translated_physmap). In fact, you might even
->>>> make them inlines, along the lines of
->>>>
->>>> inline void xenmem_reservation_va_mapping_reset(unsigned long count,
->>>>                       struct page **pages)
->>>> {
->>>> #ifdef CONFIG_XEN_HAVE_PVMMU
->>>>      if (!xen_feature(XENFEAT_auto_translated_physmap))
->>>>          __xenmem_reservation_va_mapping_reset(...)
->>>> #endif
->>>> }
->>> How about:
+On 16/05/2018 09:31, Neil Armstrong wrote:
+> Hi Ville,
+> 
+> On 15/05/2018 17:35, Ville Syrjälä wrote:
+>> On Tue, May 15, 2018 at 04:42:19PM +0200, Neil Armstrong wrote:
+>>> This patchs adds the cec_notifier feature to the intel_hdmi part
+>>> of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
+>>> between each HDMI ports.
+>>> The changes will allow the i915 HDMI code to notify EDID and HPD changes
+>>> to an eventual CEC adapter.
 >>>
->>> #ifdef CONFIG_XEN_HAVE_PVMMU
->>> static inline __xenmem_reservation_va_mapping_reset(struct page *page)
->>> {
->>> [...]
->>> }
->>> #endif
+>>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+>>> ---
+>>>  drivers/gpu/drm/i915/Kconfig      |  1 +
+>>>  drivers/gpu/drm/i915/intel_drv.h  |  2 ++
+>>>  drivers/gpu/drm/i915/intel_hdmi.c | 12 ++++++++++++
+>>>  3 files changed, 15 insertions(+)
 >>>
->>> and
->>>
->>> void xenmem_reservation_va_mapping_reset(unsigned long count,
->>>                       struct page **pages)
->>> {
->>> #ifdef CONFIG_XEN_HAVE_PVMMU
->>>      if (!xen_feature(XENFEAT_auto_translated_physmap)) {
->>>          int i;
->>>
->>>          for (i = 0; i < count; i++)
->>>              __xenmem_reservation_va_mapping_reset(pages[i]);
->>>      }
->>> #endif
->>> }
->>>
->>> This way I can use __xenmem_reservation_va_mapping_reset(page);
->>> instead of xenmem_reservation_va_mapping_reset(1, &page);
+> 
+> [..]
+> 
+>>>  }
+>>>  
+>>> @@ -2031,6 +2037,8 @@ static void chv_hdmi_pre_enable(struct intel_encoder *encoder,
+>>>  
+>>>  static void intel_hdmi_destroy(struct drm_connector *connector)
+>>>  {
+>>> +	if (intel_attached_hdmi(connector)->notifier)
+>>> +		cec_notifier_put(intel_attached_hdmi(connector)->notifier);
+>>>  	kfree(to_intel_connector(connector)->detect_edid);
+>>>  	drm_connector_cleanup(connector);
+>>>  	kfree(connector);
+>>> @@ -2358,6 +2366,10 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
+>>>  		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
+>>>  		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
+>>>  	}
+>>> +
+>>> +	intel_hdmi->notifier = cec_notifier_get_conn(dev->dev, connector->name);
 >>
->> Sure, this also works.
-> Could you please take look at the patch attached if this is what we want?
-Please ignore it, it is ugly ;)
-I have implemented this as you suggested:
+>> What are we doing with the connector name here? Those are not actually
+>> guaranteed to be stable, and any change in the connector probe order
+>> may cause the name to change.
+> 
+> The i915 driver can expose multiple HDMI connectors, but each connected will
+> have a different EDID and CEC physical address, so we will need a different notifier
+> for each connector.
+> 
+> The connector name is DRM dependent, but user-space actually uses this name for
+> operations, so I supposed it was kind of stable.
+> 
+> Anyway, is there another stable id/name/whatever that can be used to make a name to
+> distinguish the HDMI connectors ?
 
-static inline void
-xenmem_reservation_va_mapping_update(unsigned long count,
-                      struct page **pages,
-                      xen_pfn_t *frames)
-{
-#ifdef CONFIG_XEN_HAVE_PVMMU
-     if (!xen_feature(XENFEAT_auto_translated_physmap))
-         __xenmem_reservation_va_mapping_update(count, pages, frames);
-#endif
-}
+Would "HDMI %c", port_name(port) be OK to use ?
 
->> -boris
+Neil
+
+> 
+> Neil
+> 
 >>
-> Thank you,
-> Oleksandr
+>>> +	if (!intel_hdmi->notifier)
+>>> +		DRM_DEBUG_KMS("CEC notifier get failed\n");
+>>>  }
+>>>  
+>>>  void intel_hdmi_init(struct drm_i915_private *dev_priv,
+>>> -- 
+>>> 2.7.4
+>>>
+>>> _______________________________________________
+>>> Intel-gfx mailing list
+>>> Intel-gfx@lists.freedesktop.org
+>>> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
+>>
+> 
