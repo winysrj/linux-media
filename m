@@ -1,56 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:43520 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751474AbeE3PHK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 11:07:10 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 3/3] media: videodev2: get rid of VIDIOC_RESERVED
-Date: Wed, 30 May 2018 12:07:05 -0300
-Message-Id: <292157c1593c2ea4f5bc6e22c69cf2950914f1d4.1527692791.git.mchehab+samsung@kernel.org>
-In-Reply-To: <a0ab10ef59a28f8c8b35f4f647b55ac79d0c96d6.1527692791.git.mchehab+samsung@kernel.org>
-References: <a0ab10ef59a28f8c8b35f4f647b55ac79d0c96d6.1527692791.git.mchehab+samsung@kernel.org>
-In-Reply-To: <a0ab10ef59a28f8c8b35f4f647b55ac79d0c96d6.1527692791.git.mchehab+samsung@kernel.org>
-References: <a0ab10ef59a28f8c8b35f4f647b55ac79d0c96d6.1527692791.git.mchehab+samsung@kernel.org>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:46941 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750847AbeEPUca (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 May 2018 16:32:30 -0400
+From: mika.batsman@gmail.com
+To: crope@iki.fi, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org,
+        =?UTF-8?q?Mika=20B=C3=A5tsman?= <mika.batsman@gmail.com>,
+        stable@vger.kernel.org
+Subject: [PATCH] media: gl861: fix probe of dvb_usb_gl861
+Date: Wed, 16 May 2018 23:32:19 +0300
+Message-Id: <1526502739-20887-1-git-send-email-mika.batsman@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While this ioctl is there at least since Kernel 2.6.12-rc2, it
-was never used by any upstream driver.
+From: Mika Båtsman <mika.batsman@gmail.com>
 
-Get rid of it.
+Probe of dvb_usb_gl861 was working at least with v4.4. Noticed the issue
+with v4.13 but according to similar issues the problem started with v4.9.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+[   15.288065] transfer buffer not dma capable
+[   15.288090] WARNING: CPU: 2 PID: 493 at drivers/usb/core/hcd.c:1595 usb_hcd_map_urb_for_dma+0x4e2/0x640
+...CUT...
+[   15.288791] dvb_usb_gl861: probe of 3-7:1.0 failed with error -5
+
+Tested with MSI Mega Sky 580 DVB-T Tuner [GL861]
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Mika Båtsman <mika.batsman@gmail.com>
 ---
- Documentation/media/videodev2.h.rst.exceptions | 1 -
- include/uapi/linux/videodev2.h                 | 1 -
- 2 files changed, 2 deletions(-)
+ drivers/media/usb/dvb-usb-v2/gl861.c | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index a5cb0a8686ac..ca9f0edc579e 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -517,7 +517,6 @@ ignore define V4L2_CTRL_WHICH_DEF_VAL
- ignore define V4L2_OUT_CAP_CUSTOM_TIMINGS
- ignore define V4L2_CID_MAX_CTRLS
+diff --git a/drivers/media/usb/dvb-usb-v2/gl861.c b/drivers/media/usb/dvb-usb-v2/gl861.c
+index b1b09c5..0a988e3 100644
+--- a/drivers/media/usb/dvb-usb-v2/gl861.c
++++ b/drivers/media/usb/dvb-usb-v2/gl861.c
+@@ -20,15 +20,22 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
+ 	u16 value = addr << (8 + 1);
+ 	int wo = (rbuf == NULL || rlen == 0); /* write-only */
+ 	u8 req, type;
++	int ret;
++	void *dmadata;
  
--ignore ioctl VIDIOC_RESERVED
- ignore define BASE_VIDIOC_PRIVATE
+ 	if (wo) {
+ 		req = GL861_REQ_I2C_WRITE;
+ 		type = GL861_WRITE;
++		dmadata = kmemdup(wbuf, wlen, GFP_KERNEL);
+ 	} else { /* rw */
+ 		req = GL861_REQ_I2C_READ;
+ 		type = GL861_READ;
++		dmadata = kmalloc(rlen, GFP_KERNEL);
+ 	}
  
- # Associate ioctls with their counterparts
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 600877be5c22..d0c5fb38677c 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -2310,7 +2310,6 @@ struct v4l2_create_buffers {
-  *
-  */
- #define VIDIOC_QUERYCAP		 _IOR('V',  0, struct v4l2_capability)
--#define VIDIOC_RESERVED		  _IO('V',  1)
- #define VIDIOC_ENUM_FMT         _IOWR('V',  2, struct v4l2_fmtdesc)
- #define VIDIOC_G_FMT		_IOWR('V',  4, struct v4l2_format)
- #define VIDIOC_S_FMT		_IOWR('V',  5, struct v4l2_format)
++	if (!dmadata)
++		return -ENOMEM;
++
+ 	switch (wlen) {
+ 	case 1:
+ 		index = wbuf[0];
+@@ -45,8 +52,14 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
+ 
+ 	msleep(1); /* avoid I2C errors */
+ 
+-	return usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), req, type,
+-			       value, index, rbuf, rlen, 2000);
++	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), req, type,
++			       value, index, dmadata, rlen, 2000);
++
++	if (!wo)
++		memcpy(rbuf, dmadata, rlen);
++
++	kfree(dmadata);
++	return ret;
+ }
+ 
+ /* I2C */
 -- 
-2.17.0
+2.7.4
