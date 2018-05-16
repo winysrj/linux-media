@@ -1,79 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:54082 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751196AbeEDORk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 10:17:40 -0400
-Date: Fri, 4 May 2018 11:17:30 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Alan Cox <gnomes@lxorguk.ukuu.org.uk>, linux-media@vger.kernel.org,
-        andriy.shevchenko@intel.com
-Subject: Re: atomisp: drop from staging ?
-Message-ID: <20180504111730.5ef8bdf8@vento.lan>
-In-Reply-To: <20180503083049.nidmolfegklwnsqr@valkosipuli.retiisi.org.uk>
-References: <20180429011837.68859797@alans-desktop>
-        <20180430094100.rbppnbpw5pnuoth4@valkosipuli.retiisi.org.uk>
-        <20180503083049.nidmolfegklwnsqr@valkosipuli.retiisi.org.uk>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54182 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751389AbeEPKqU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 May 2018 06:46:20 -0400
+Date: Wed, 16 May 2018 13:46:18 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv13 12/28] v4l2-ctrls: add core request support
+Message-ID: <20180516104618.56fqtmxjutzldhw5@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180516101934.dekzi6zlyzqbs5t6@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 3 May 2018 11:30:50 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-
-> On Mon, Apr 30, 2018 at 12:41:00PM +0300, Sakari Ailus wrote:
-> > Hi Alan,
-> > 
-> > On Sun, Apr 29, 2018 at 01:18:37AM +0100, Alan Cox wrote:  
-> > > 
-> > > I think this is going to be the best option. When I started cleaning up
-> > > the atomisp code I had time to work on it. Then spectre/meltdown
-> > > happened (which btw is why the updating suddenly and mysteriously stopped
-> > > last summer).
-> > > 
-> > > I no longer have time to work on it and it's becoming evident that the
-> > > world of speculative side channel is going to be mean that I am
-> > > not going to get time in the forseeable future despite me trying to find
-> > > space to get back into atomisp cleaning up. It sucks because we made some
-> > > good initial progress but shit happens.
-> > > 
-> > > There are at this point (unsurprisngly ;)) no other volunteers I can
-> > > find crazy enough to take this on.  
-> > 
-> > The driver has been in the staging tree for quite some time now and is a
-> > regular target of cleanup patches but little has been done to address the
-> > growing list of entries in the associated TODO file to get it out of
-> > staging. Beyond this, I don't have the hardware but as far as I understand,
-> > the driver is not functional in its current state.
-> > 
-> > I agree with removing the driver. It can always be brought back if someone
-> > wishes to continue working it.
-> > 
-> > I can send patches to remove it.  
+On Wed, May 16, 2018 at 01:19:34PM +0300, Sakari Ailus wrote:
+> Hi Hans,
 > 
-> The patch didn't make it to the list likely because it was too big --- even
-> with -D option to git format-patch!
+> On Thu, May 03, 2018 at 04:53:02PM +0200, Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Integrate the request support. This adds the v4l2_ctrl_request_complete
+> > and v4l2_ctrl_request_setup functions to complete a request and (as a
+> > helper function) to apply a request to the hardware.
+> > 
+> > It takes care of queuing requests and correctly chaining control values
+> > in the request queue.
+> > 
+> > Note that when a request is marked completed it will copy control values
+> > to the internal request state. This can be optimized in the future since
+> > this is sub-optimal when dealing with large compound and/or array controls.
+> > 
+> > For the initial 'stateless codec' use-case the current implementation is
+> > sufficient.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-ctrls.c | 331 ++++++++++++++++++++++++++-
+> >  include/media/v4l2-ctrls.h           |  23 ++
+> >  2 files changed, 348 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > index da4cc1485dc4..56b986185463 100644
+> > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > @@ -3429,6 +3602,152 @@ int __v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
+> >  }
+> >  EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_string);
+> >  
+> > +void v4l2_ctrl_request_complete(struct media_request *req,
+> > +				struct v4l2_ctrl_handler *main_hdl)
+> > +{
+> > +	struct media_request_object *obj;
+> > +	struct v4l2_ctrl_handler *hdl;
+> > +	struct v4l2_ctrl_ref *ref;
+> > +
+> > +	if (!req || !main_hdl)
+> > +		return;
+> > +
+> > +	obj = media_request_object_find(req, &req_ops, main_hdl);
+> > +	if (!obj)
+> > +		return;
+> > +	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
+> > +
+> > +	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
+> > +		struct v4l2_ctrl *ctrl = ref->ctrl;
+> > +		struct v4l2_ctrl *master = ctrl->cluster[0];
+> > +		unsigned int i;
+> > +
+> > +		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
+> > +			ref->req = ref;
+> > +
+> > +			v4l2_ctrl_lock(master);
+> > +			/* g_volatile_ctrl will update the current control values */
+> > +			for (i = 0; i < master->ncontrols; i++)
+> > +				cur_to_new(master->cluster[i]);
+> > +			call_op(master, g_volatile_ctrl);
+> > +			new_to_req(ref);
+> > +			v4l2_ctrl_unlock(master);
+> > +			continue;
+> > +		}
+> > +		if (ref->req == ref)
+> > +			continue;
+> > +
+> > +		v4l2_ctrl_lock(ctrl);
+> > +		if (ref->req)
+> > +			ptr_to_ptr(ctrl, ref->req->p_req, ref->p_req);
+> > +		else
+> > +			ptr_to_ptr(ctrl, ctrl->p_cur, ref->p_req);
+> > +		v4l2_ctrl_unlock(ctrl);
+> > +	}
+> > +
+> > +	WARN_ON(!hdl->request_is_queued);
+> > +	list_del_init(&hdl->requests_queued);
+> > +	hdl->request_is_queued = false;
+> > +	media_request_object_complete(obj);
+> > +	media_request_object_put(obj);
+> > +}
+> > +EXPORT_SYMBOL(v4l2_ctrl_request_complete);
+> > +
+> > +void v4l2_ctrl_request_setup(struct media_request *req,
+> > +			     struct v4l2_ctrl_handler *main_hdl)
 > 
-> It's here:
+> Drivers are expected to use this function internally to make use of the
+> control values in the request. Is that your thinking as well?
 > 
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=atomisp-no-more>
+> The problem with this implementation is that once a driver eventually gets
+> a callback (s_ctrl), the callback doesn't have the information on the
+> request. That means the driver has no means to associate the control value
+> to the request anymore --- and that is against the very purpose of the
+> function.
+> 
+> Instead, I'd add a new argument to the callback function --- the request
+> --- or add another callback function to be used for applying control values
+> for requests. Or alternatively, provide an easy way to enumerate the
+> controls and their values in a control handler. For the driver must store
 
-I really hate remove things like that, but atomisp is on real bad shape.
-I'm wandering if at least the sensor drivers could be converted before
-dropping it.
+To address this fully --- using S_EXT_CTRLS on uAPI to the control handler
+should likely be prevented as long as there are request objects related to
+that handler. Or at least request objects that are not completed.
 
-That's said, I don't have atomisp hardware either, and, even if I had,
-I probably won't have enough time to fix it. So, if you all won't be
-able to do any work on it any time soon, and that's what you want
-for now, I'm ok with removing it.
-
-Sakari,
-
-Please send me a pull request with the driver removal patch and I'll
-apply it.
-
-
-Thanks,
-Mauro
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
