@@ -1,70 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:36551 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751229AbeEVJFa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 05:05:30 -0400
-Date: Tue, 22 May 2018 11:05:26 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Nobuhiro Iwamatsu <iwamatsu@nigauri.org>,
-        Nobuhiro Iwamatsu <iwamatsu@debian.org>
-Subject: Re: [PATCH v2] v4l: vsp1: Fix vsp1_regs.h license header
-Message-ID: <20180522090519.ghezen56unsjix62@verge.net.au>
-References: <20180520072437.9686-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from imap.netup.ru ([77.72.80.14]:60206 "EHLO imap.netup.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751533AbeEPLEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 May 2018 07:04:45 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180520072437.9686-1-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180516084120.28674-1-suzuki.katsuhiro@socionext.com>
+References: <20180516084120.28674-1-suzuki.katsuhiro@socionext.com>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Wed, 16 May 2018 06:56:58 -0400
+Message-ID: <CAK3bHNVS26fjJVnccoTKAbT-nzd7RmY+3Y=DXddB+DWbgHTEmA@mail.gmail.com>
+Subject: Re: [PATCH] media: helene: fix xtal frequency setting at power on
+To: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Masami Hiramatsu <masami.hiramatsu@linaro.org>,
+        Jassi Brar <jaswinder.singh@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 20, 2018 at 10:24:37AM +0300, Laurent Pinchart wrote:
-> All source files of the vsp1 driver are licensed under the GPLv2+ except
-> for vsp1_regs.h which is licensed under GPLv2. This is caused by a bad
-> copy&paste that dates back from the initial version of the driver. Fix
-> it.
-> 
-> Cc: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
-> Acked-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> Acked-by: Sergei Shtylyov<sergei.shtylyov@cogentembedded.com>
-> Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Acked-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Abylay Ospan <aospan@netup.ru>
+
+2018-05-16 4:41 GMT-04:00 Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>:
+> This patch fixes crystal frequency setting when power on this device.
+>
+> Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
 > ---
-> Iwamatsu-san,
-> 
-> While working on the VSP1 driver I noticed that all source files are
-> licensed under the GPLv2+ except for vsp1_regs.h which is licensed under
-> GPLv2. I'd like to fix this inconsistency. As you have contributed to
-> that file, could you please provide your explicit ack if you agree to
-> this change ?
-> ---
->  drivers/media/platform/vsp1/vsp1_regs.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-> index 0d249ff9f564..e82661216c1d 100644
-> --- a/drivers/media/platform/vsp1/vsp1_regs.h
-> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
-> @@ -1,4 +1,4 @@
-> -/* SPDX-License-Identifier: GPL-2.0 */
-> +/* SPDX-License-Identifier: GPL-2.0+ */
+>  drivers/media/dvb-frontends/helene.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/dvb-frontends/helene.c b/drivers/media/dvb-frontends/helene.c
+> index 0a4f312c4368..8fcf7a00782a 100644
+> --- a/drivers/media/dvb-frontends/helene.c
+> +++ b/drivers/media/dvb-frontends/helene.c
+> @@ -924,7 +924,10 @@ static int helene_x_pon(struct helene_priv *priv)
+>         helene_write_regs(priv, 0x99, cdata, sizeof(cdata));
+>
+>         /* 0x81 - 0x94 */
+> -       data[0] = 0x18; /* xtal 24 MHz */
+> +       if (priv->xtal == SONY_HELENE_XTAL_16000)
+> +               data[0] = 0x10; /* xtal 16 MHz */
+> +       else
+> +               data[0] = 0x18; /* xtal 24 MHz */
+>         data[1] = (uint8_t)(0x80 | (0x04 & 0x1F)); /* 4 x 25 = 100uA */
+>         data[2] = (uint8_t)(0x80 | (0x26 & 0x7F)); /* 38 x 0.25 = 9.5pF */
+>         data[3] = 0x80; /* REFOUT signal output 500mVpp */
+> --
+> 2.17.0
+>
 
-While you are changing this line, I believe the correct format is
-to use a '//' comment.
 
-i.e.:
 
-// SPDX-License-Identifier: GPL-2.0+
-
->  /*
->   * vsp1_regs.h  --  R-Car VSP1 Registers Definitions
->   *
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+-- 
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
