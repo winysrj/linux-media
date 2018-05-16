@@ -1,62 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f54.google.com ([209.85.214.54]:40462 "EHLO
-        mail-it0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755549AbeEaQZo (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:52112 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751389AbeEPIyS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 12:25:44 -0400
-Received: by mail-it0-f54.google.com with SMTP id j186-v6so28741334ita.5
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 09:25:44 -0700 (PDT)
+        Wed, 16 May 2018 04:54:18 -0400
+Date: Wed, 16 May 2018 10:54:14 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 2/2] ARM: dts: r8a7740: Add CEU0
+Message-ID: <20180516085409.5u4hnes2dsfwwf5u@verge.net.au>
+References: <1524767083-19862-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1524767083-19862-3-git-send-email-jacopo+renesas@jmondi.org>
+ <CAMuHMdWSasm9PfurphB5wrgrhkO8v7YBpSZNnnC+mS_Vs4AJ5Q@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4b9c4b84704ba4d1a89bd0408e76e68e5554d078.camel@ndufresne.ca>
-References: <CAMty3ZAMjCKv1BtLnobRZUzp=9Xu1gY5+R3Zi-JuobAJZQrXxg@mail.gmail.com>
- <4b9c4b84704ba4d1a89bd0408e76e68e5554d078.camel@ndufresne.ca>
-From: Jagan Teki <jagan@amarulasolutions.com>
-Date: Thu, 31 May 2018 21:55:43 +0530
-Message-ID: <CAMty3ZCV0LgDK0vFtN2HvLVZ4W26mvn4xEr0wby1TaYyhbFZsw@mail.gmail.com>
-Subject: Re: i.MX6 MIPI-CSI2 OV5640 Camera testing on Mainline Linux
-To: Nicolas Dufresne <nicolas@ndufresne.ca>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Discussion of the development of and with GStreamer
-        <gstreamer-devel@lists.freedesktop.org>,
-        linux-media@vger.kernel.org,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdWSasm9PfurphB5wrgrhkO8v7YBpSZNnnC+mS_Vs4AJ5Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 31, 2018 at 9:40 PM, Nicolas Dufresne <nicolas@ndufresne.ca> wr=
-ote:
-> Le jeudi 31 mai 2018 =C3=A0 20:39 +0530, Jagan Teki a =C3=A9crit :
->> Hi All,
->>
->> I'm trying to verify MIPI-CSI2 OV5640 camera on i.MX6 platform with
->> Mainline Linux.
->>
->> I've followed these[1] instructions to configure MC links and pads
->> based on the probing details from dmesg and trying to capture
->> ipu1_ic_prpenc capture (/dev/video1) but it's not working.
->>
->> Can anyone help me to verify whether I configured all the details
->> properly if not please suggest.
->>
->> I'm pasting full log here, so-that anyone can comment in line and dt
->> changes are at [2]
->
-> Be aware that because all of the provided GStreamer logs lines are
-> truncated, I won't be able to comment on the issue.
+On Wed, May 16, 2018 at 09:40:09AM +0200, Geert Uytterhoeven wrote:
+> Hi Jacopo,
+> 
+> On Thu, Apr 26, 2018 at 8:24 PM, Jacopo Mondi <jacopo+renesas@jmondi.org> wrote:
+> > Describe CEU0 peripheral for Renesas R-Mobile A1 R8A7740 Soc.
+> >
+> > Reported-by: Geert Uytterhoeven <geert@glider.be>
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> 
+> Thanks for your patch!
+> 
+> Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> 
+> Minor question below.
+> 
+> > --- a/arch/arm/boot/dts/r8a7740.dtsi
+> > +++ b/arch/arm/boot/dts/r8a7740.dtsi
+> > @@ -67,6 +67,16 @@
+> >                 power-domains = <&pd_d4>;
+> >         };
+> >
+> > +       ceu0: ceu@fe910000 {
+> > +               reg = <0xfe910000 0x3000>;
+> > +               compatible = "renesas,r8a7740-ceu";
+> > +               interrupts = <GIC_SPI 160 IRQ_TYPE_LEVEL_HIGH>;
+> > +               clocks = <&mstp1_clks R8A7740_CLK_CEU20>;
+> > +               clock-names = "ceu20";
+> 
+> Why the "clock-names" property? It's not mentioned in the DT bindings, and
+> may cause issues if the bindings are ever amended.
 
-Sorry for the confusion, here is the gst log [3] and dmesg + media-ctl [4]
+I have dropped that property for now.
 
-[3] https://paste.ubuntu.com/p/NpG8ynb8nQ/
-[4] https://paste.ubuntu.com/p/VGX3sYdvVW/
-
-Jagan.
-
---=20
-Jagan Teki
-Senior Linux Kernel Engineer | Amarula Solutions
-U-Boot, Linux | Upstream Maintainer
-Hyderabad, India.
+> 
+> > +               power-domains = <&pd_a4r>;
+> > +               status = "disabled";
+> > +       };
+> > +
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> -- 
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
+> 
