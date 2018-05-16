@@ -1,123 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:57648 "EHLO pokefinder.org"
+Received: from mx2.suse.de ([195.135.220.15]:47004 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751978AbeENVhX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 17:37:23 -0400
-Date: Mon, 14 May 2018 23:37:20 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: linux-i2c@vger.kernel.org
-Cc: Greg Ungerer <gerg@uclinux.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Tony Lindgren <tony@atomide.com>,
-        Sergey Lapin <slapin@ossfans.org>,
-        Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Ralf Baechle <ralf@linux-mips.org>,
-        James Hogan <jhogan@kernel.org>,
-        Haavard Skinnemoen <hskinnemoen@gmail.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/7] i2c: i2c-gpio: move header to platform_data
-Message-ID: <20180514213719.o6ceftp2quem3s7f@ninjato>
-References: <20180419200015.15095-1-wsa@the-dreams.de>
- <20180419200015.15095-2-wsa@the-dreams.de>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="tcoidkrh63ciwaqm"
-Content-Disposition: inline
-In-Reply-To: <20180419200015.15095-2-wsa@the-dreams.de>
+        id S1751182AbeEPJXs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 May 2018 05:23:48 -0400
+Message-ID: <1526462623.25281.5.camel@suse.com>
+Subject: Re: [PATCH] [Patch v2] usbtv: Fix refcounting mixup
+From: Oliver Neukum <oneukum@suse.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, ben.hutchings@codethink.co.uk,
+        gregkh@linuxfoundation.org, mchehab@s-opensource.com,
+        linux-media@vger.kernel.org
+Cc: stable@vger.kernel.org
+Date: Wed, 16 May 2018 11:23:43 +0200
+In-Reply-To: <1ee4b00d-9a55-92cf-e708-1e0c60ca4bfd@xs4all.nl>
+References: <20180515130744.19342-1-oneukum@suse.com>
+         <85dd974b-c251-47a5-600d-77b009e2dfcd@xs4all.nl>
+         <1526399190.31771.2.camel@suse.com>
+         <1ee4b00d-9a55-92cf-e708-1e0c60ca4bfd@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Am Dienstag, den 15.05.2018, 18:01 +0200 schrieb Hans Verkuil:
+> On 05/15/2018 05:46 PM, Oliver Neukum wrote:
+> > Am Dienstag, den 15.05.2018, 16:28 +0200 schrieb Hans Verkuil:
+> > > On 05/15/18 15:07, Oliver Neukum wrote:
 
---tcoidkrh63ciwaqm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > > >  usbtv_audio_fail:
+> > > >  	/* we must not free at this point */
+> > > > -	usb_get_dev(usbtv->udev);
+> > > > +	v4l2_device_get(&usbtv->v4l2_dev);
+> > > 
+> > > This is very confusing. I think it is much better to move the
+> > 
+> > Yes. It confused me.
+> > 
+> > > v4l2_device_register() call from usbtv_video_init to this probe function.
+> > 
+> > Yes, but it is called here. So you want to do it after registering the
+> > audio?
+> 
+> No, before. It's a global data structure, so this can be done before the
+> call to usbtv_video_init() as part of the top-level initialization of the
+> driver.
 
+Eh, but we cannot create a V4L device before the first device
+is connected and we must certainly create multiple V4L devices if
+multiple physical devices are connected.
 
->  arch/arm/mach-ks8695/board-acs5k.c               | 2 +-
->  arch/arm/mach-sa1100/simpad.c                    | 2 +-
->  arch/mips/alchemy/board-gpr.c                    | 2 +-
+Maybe I am dense. Please elaborate.
+It seem to me that the driver is confusing because it uses
+multiple refcounts.
 
-Those still need acks...
-
-> diff --git a/arch/arm/mach-ks8695/board-acs5k.c b/arch/arm/mach-ks8695/bo=
-ard-acs5k.c
-> index 937eb1d47e7b..ef835d82cdb9 100644
-> --- a/arch/arm/mach-ks8695/board-acs5k.c
-> +++ b/arch/arm/mach-ks8695/board-acs5k.c
-> @@ -19,7 +19,7 @@
->  #include <linux/gpio/machine.h>
->  #include <linux/i2c.h>
->  #include <linux/i2c-algo-bit.h>
-> -#include <linux/i2c-gpio.h>
-> +#include <linux/platform_data/i2c-gpio.h>
->  #include <linux/platform_data/pca953x.h>
-> =20
->  #include <linux/mtd/mtd.h>
-
-=2E..
-
-> diff --git a/arch/arm/mach-sa1100/simpad.c b/arch/arm/mach-sa1100/simpad.c
-> index ace010479eb6..49a61e6f3c5f 100644
-> --- a/arch/arm/mach-sa1100/simpad.c
-> +++ b/arch/arm/mach-sa1100/simpad.c
-> @@ -37,7 +37,7 @@
->  #include <linux/input.h>
->  #include <linux/gpio_keys.h>
->  #include <linux/leds.h>
-> -#include <linux/i2c-gpio.h>
-> +#include <linux/platform_data/i2c-gpio.h>
-> =20
->  #include "generic.h"
-> =20
-> diff --git a/arch/mips/alchemy/board-gpr.c b/arch/mips/alchemy/board-gpr.c
-> index 4e79dbd54a33..fa75d75b5ba9 100644
-> --- a/arch/mips/alchemy/board-gpr.c
-> +++ b/arch/mips/alchemy/board-gpr.c
-> @@ -29,7 +29,7 @@
->  #include <linux/leds.h>
->  #include <linux/gpio.h>
->  #include <linux/i2c.h>
-> -#include <linux/i2c-gpio.h>
-> +#include <linux/platform_data/i2c-gpio.h>
->  #include <linux/gpio/machine.h>
->  #include <asm/bootinfo.h>
->  #include <asm/idle.h>
-
-=2E.. and this was the shortened diff for those.
-
-Greg, Russell, Ralf, James? Is it okay if I take this via my tree?
-
-Thanks,
-
-   Wolfram
-
-
---tcoidkrh63ciwaqm
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlr6AYsACgkQFA3kzBSg
-KbbazA//bpr6/qUgGIXnVTTVquilOsWl6XIWFNDxE7TweCbHbjHsf72+og1lNDGd
-oqyZuuuBrNg749CO9e9mvgkefDr7q80j84bzRwj0uvmULtAB/kvHV67kepBmmqJ0
-xrmTOquVT4owzbiE46lJWPMp5x1K1JII7/lsWk9Ftlq2SzZX0Z/64y9MCcod23Iq
-7JaAraqsGRQAu39/DqO+oQugPqX2zPnp1BSXDIM5UUJUXBKjzdpS9JpUUJTqiVM0
-9hBcYxd8aE4SQrhkiVArvELgO1gvERL13q6LNe185j+9c8Jo5ACR9mSCGi+oRzPC
-4ZAtlWjluD7nXr6ZnaAd7IEg2LVnO9SSDuztnMGXN8c3taV+jb6EnhGmubuGn6yM
-sug3NzFRT29jvyn3jLwZjZfJDQtuTlQz6+VtsrrIRNyrEohgWAd/ZrJJr91tV0DK
-31DCDEYWZ4t0b9ZSty+EQ2LrBrxZoZo0cQ+jW1/2SI6dJbB3zLNSMyTKx56AjYR/
-NGqPw5sIkpoylOkVKUOvz9VTsidTroNE49/jMzkUIaepIrO8Zh5sqSRo8W2TEuGJ
-VwU/QYzKhGrOtHd5n9nXYqikcRjet+rFGSwtQQCpOKRuu7lcZZ5l6965wBGHEocu
-XVJlX0I6t956kRNIEdgrAVWT1PbAHcm4ztc4NMby6j8DiozPSbw=
-=rmj3
------END PGP SIGNATURE-----
-
---tcoidkrh63ciwaqm--
+	Regards
+		Oliver
