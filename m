@@ -1,123 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:53803 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751800AbeE2GSj (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:44612 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752309AbeEPNhJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 02:18:39 -0400
-Subject: Re: [PATCH v2] media: staging: tegra-vde: Reset memory client
-To: Dmitry Osipenko <digetx@gmail.com>,
+        Wed, 16 May 2018 09:37:09 -0400
+Date: Wed, 16 May 2018 10:36:56 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thierry Reding <thierry.reding@gmail.com>
-Cc: linux-tegra@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-References: <20180526142755.22966-1-digetx@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <87260ffb-545f-4b2c-450f-25091d028187@xs4all.nl>
-Date: Tue, 29 May 2018 08:18:33 +0200
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
+Message-ID: <20180516103656.208043d4@vento.lan>
+In-Reply-To: <20180516131108.xcvsw6m4qrmqgykh@mwanda>
+References: <20180423152455.363d285c@vento.lan>
+        <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
+        <20180423161742.66f939ba@vento.lan>
+        <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
+        <20180426204241.03a42996@vento.lan>
+        <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
+        <20180515085953.65bfa107@vento.lan>
+        <20180515141655.idzuh2jfdkuu5grs@mwanda>
+        <f342d8d6-b5e6-0cbf-d002-9561b79c90e4@embeddedor.com>
+        <20180515160033.156f119c@vento.lan>
+        <20180516131108.xcvsw6m4qrmqgykh@mwanda>
 MIME-Version: 1.0
-In-Reply-To: <20180526142755.22966-1-digetx@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dmitry,
+Em Wed, 16 May 2018 16:11:08 +0300
+Dan Carpenter <dan.carpenter@oracle.com> escreveu:
 
-On 05/26/2018 04:27 PM, Dmitry Osipenko wrote:
-> DMA requests must be blocked before resetting VDE HW, otherwise it is
-> possible to get a memory corruption or a machine hang. Use the reset
-> control provided by the Memory Controller to block DMA before resetting
-> the VDE HW.
+> On Tue, May 15, 2018 at 04:00:33PM -0300, Mauro Carvalho Chehab wrote:
+> > Yeah, that's the same I'm getting from media upstream.
+> >   
+> > > drivers/media/cec/cec-pin-error-inj.c:170 cec_pin_error_inj_parse_line() 
+> > > warn: potential spectre issue 'pin->error_inj_args'  
+> > 
+> > This one seems a false positive, as the index var is u8 and the
+> > array has 256 elements, as the userspace input from 'op' is 
+> > initialized with:
+> > 
+> > 	u8 v;
+> > 	u32 op;
+> > 
+> > 	if (!kstrtou8(token, 0, &v))
+> > 		op = v;
+> >   
 > 
-> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
-> ---
-> 
-> Changelog:
-> 
-> v2:
-> 	- Reset HW even if Memory Client resetting fails.
+> It's hard to silence this because Smatch stores the current user
+> controlled range list, not what it was initially.  I wrote all this code
+> to detect bounds checking errors, so there wasn't any need to save the
+> range list before the bounds check.  Since "op" is a u32, I can't even
+> go by the type of the index....
 
-Please note that v1 has already been merged, so if you can make a v3 rebased
-on top of the latest media_tree master branch, then I'll queue that up for
-4.18.
+Yeah, I was thinking that is would be harder to clean this up on
+smatch. I proposed a patch to the ML that simplifies the logic,
+making easier for both humans and Smatch to better understand how
+the arrays are indexed.
+
+> 
+> > > drivers/media/dvb-core/dvb_ca_en50221.c:1479 dvb_ca_en50221_io_write() 
+> > > warn: potential spectre issue 'ca->slot_info' (local cap)  
+> > 
+> > This one seems a real issue to me. Sent a patch for it.
+> >   
+> > > drivers/media/dvb-core/dvb_net.c:252 handle_one_ule_extension() warn: 
+> > > potential spectre issue 'p->ule_next_hdr'  
+> > 
+> > I failed to see what's wrong here, or if this is exploited.   
+> 
+> Oh...  Huh.  This is a bug in smatch.  That line looks like:
+> 
+> 	p->ule_sndu_type = ntohs(*(__be16 *)(p->ule_next_hdr + ((p->ule_dbit ? 2 : 3) * ETH_ALEN)));
+> 
+> Smatch see the ntohs() and marks everything inside it as untrusted
+> network data.  I'll fix this.
+
+Thanks!
 
 Regards,
-
-	Hans
-> 
->  drivers/staging/media/tegra-vde/tegra-vde.c | 35 +++++++++++++++++++--
->  1 file changed, 33 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
-> index 90177a59b97c..6f06061a40d9 100644
-> --- a/drivers/staging/media/tegra-vde/tegra-vde.c
-> +++ b/drivers/staging/media/tegra-vde/tegra-vde.c
-> @@ -73,6 +73,7 @@ struct tegra_vde {
->  	struct mutex lock;
->  	struct miscdevice miscdev;
->  	struct reset_control *rst;
-> +	struct reset_control *rst_mc;
->  	struct gen_pool *iram_pool;
->  	struct completion decode_completion;
->  	struct clk *clk;
-> @@ -850,9 +851,23 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
->  	 * We rely on the VDE registers reset value, otherwise VDE
->  	 * causes bus lockup.
->  	 */
-> +	ret = reset_control_assert(vde->rst_mc);
-> +	if (ret) {
-> +		dev_err(dev, "DEC start: Failed to assert MC reset: %d\n",
-> +			ret);
-> +		goto put_runtime_pm;
-> +	}
-> +
->  	ret = reset_control_reset(vde->rst);
->  	if (ret) {
-> -		dev_err(dev, "Failed to reset HW: %d\n", ret);
-> +		dev_err(dev, "DEC start: Failed to reset HW: %d\n", ret);
-> +		goto put_runtime_pm;
-> +	}
-> +
-> +	ret = reset_control_deassert(vde->rst_mc);
-> +	if (ret) {
-> +		dev_err(dev, "DEC start: Failed to deassert MC reset: %d\n",
-> +			ret);
->  		goto put_runtime_pm;
->  	}
->  
-> @@ -880,9 +895,18 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
->  		ret = timeout;
->  	}
->  
-> +	/*
-> +	 * At first reset memory client to avoid resetting VDE HW in the
-> +	 * middle of DMA which could result into memory corruption or hang
-> +	 * the whole system.
-> +	 */
-> +	err = reset_control_assert(vde->rst_mc);
-> +	if (err)
-> +		dev_err(dev, "DEC end: Failed to assert MC reset: %d\n", err);
-> +
->  	err = reset_control_assert(vde->rst);
->  	if (err)
-> -		dev_err(dev, "Failed to assert HW reset: %d\n", err);
-> +		dev_err(dev, "DEC end: Failed to assert HW reset: %d\n", err);
->  
->  put_runtime_pm:
->  	pm_runtime_mark_last_busy(dev);
-> @@ -1074,6 +1098,13 @@ static int tegra_vde_probe(struct platform_device *pdev)
->  		return err;
->  	}
->  
-> +	vde->rst_mc = devm_reset_control_get_optional(dev, "mc");
-> +	if (IS_ERR(vde->rst_mc)) {
-> +		err = PTR_ERR(vde->rst_mc);
-> +		dev_err(dev, "Could not get MC reset %d\n", err);
-> +		return err;
-> +	}
-> +
->  	irq = platform_get_irq_byname(pdev, "sync-token");
->  	if (irq < 0)
->  		return irq;
-> 
+Mauro
