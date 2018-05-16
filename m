@@ -1,179 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f176.google.com ([209.85.223.176]:39508 "EHLO
-        mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751684AbeEDVNS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 17:13:18 -0400
-Received: by mail-io0-f176.google.com with SMTP id r9-v6so27203536iod.6
-        for <linux-media@vger.kernel.org>; Fri, 04 May 2018 14:13:17 -0700 (PDT)
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:33471 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752204AbeEPVzl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 May 2018 17:55:41 -0400
+Received: by mail-wr0-f195.google.com with SMTP id o4-v6so3599531wrm.0
+        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 14:55:41 -0700 (PDT)
+Date: Wed, 16 May 2018 23:55:38 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, horms@verge.net.au,
+        geert@glider.be, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 2/6] dt-bindings: media: rcar-vin: Document data-active
+Message-ID: <20180516215538.GC17948@bigcity.dyn.berto.se>
+References: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526488352-898-3-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-In-Reply-To: <CAMZdPi-DGc4-BTyJ7Lx2tHLdGvPg__OPRsr7V1DrQwL9Cc87_A@mail.gmail.com>
-References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
- <20180419123244.tujbrkpazbdyows6@flea> <CAFwsNOEV0Q2HjmaoT-m-znD-+0VSfE4tJ2vCPuNpUe2M72ErAA@mail.gmail.com>
- <3075738.A80d5ULHjc@avalon> <CAFwsNOECP74VKYavSo6RBzzohZ1S69=CVjSP_zYDsBXMhyxMjw@mail.gmail.com>
- <20180503151621.onuq77ph32o5euis@flea> <CAMZdPi-DGc4-BTyJ7Lx2tHLdGvPg__OPRsr7V1DrQwL9Cc87_A@mail.gmail.com>
-From: Sam Bobrowicz <sam@elite-embedded.com>
-Date: Fri, 4 May 2018 14:13:16 -0700
-Message-ID: <CAFwsNOEYmcCGnBE1pLV53JxSNEzCOk0oCMw=dowaeD1ckuDuoA@mail.gmail.com>
-Subject: Re: [PATCH v2 00/12] media: ov5640: Misc cleanup and improvements
-To: Loic Poulain <loic.poulain@linaro.org>
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1526488352-898-3-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hi,
->
-> On 3 May 2018 at 17:16, Maxime Ripard <maxime.ripard@bootlin.com> wrote:
-> > Hi,
-> >
-> > On Wed, May 02, 2018 at 11:11:55AM -0700, Sam Bobrowicz wrote:
-> >> > On Wednesday, 25 April 2018 01:11:19 EEST Sam Bobrowicz wrote:
-> >> >> FYI, still hard at work on this. Did some more experiments last week
-> >> >> that seemed to corroborate the clock tree in the spreadsheet. It also
-> >> >> seems that the output of the P divider cell, SCLK cell and MIPI Rate
-> >> >> cell in the spreadsheet must have a ratio of 2x:1x:8x (respectively)
-> >> >> in order for the sensor to work properly on my platform, and that the
-> >> >> SCLK value must be close to the "rate" variable that you calculate and
-> >> >> pass to set_mipi_pclk. Unfortunately, I've only got the sensor working
-> >> >> well for 1080p@15Hz and 720p@30Hz, both with a SCLK of 42MHz (aka
-> >> >> 84:42:336). I'm running experiments now trying to adjust the htot and
-> >> >> vtot values to create different required rates, and also to try to get
-> >> >> faster Mipi rates working. Any information you have on the
-> >> >> requirements of the htot and vtot values with respect to vact and hact
-> >> >> values would likely be helpful.
-> >> >>
-> >> >> I'm also keeping an eye on the scaler clock, which I think may be
-> >> >> affecting certain resolutions, but haven't been able to see it make a
-> >> >> difference yet (see register 0x3824 and 0x460c)
-> >> >>
-> >> >> I plan on pushing a set of patches once I get this figured out, we can
-> >> >> discuss what I should base them on when I get closer to that point.
-> >> >> I'm new to this process :)
-> >> >
-> >> > I'm also interested in getting the ov5640 driver working with MIPI CSI-2.
-> >> > Studying the datasheet and the driver code, I found the stream on sequence to
-> >> > be a bit weird. In particular the configuration of OV5640_REG_IO_MIPI_CTRL00,
-> >> > OV5640_REG_PAD_OUTPUT00 and OV5640_REG_MIPI_CTRL00 caught my attention.
-> >> >
-> >> > OV5640_REG_IO_MIPI_CTRL00 (0x300e) is set to 0x45 in the large array of init
-> >> > mode data and never touched for MIPI CSI-2 (the register is only touched in
-> >> > ov5640_set_stream_dvp). The value means
-> >> >
-> >> > - mipi_lane_mode: 010 is documented as "debug mode", I would have expected 000
-> >> > for one lane or 001 for two lanes.
-> >>
-> >> I noticed this too, but it seems that 010 is the correct value for two
-> >> lane mode. I think this is a typo in the datasheet.
-> >>
-> >> >
-> >> > - MIPI TX PHY power down: 0 is documented as "debug mode" and 1 as "Power down
-> >> > PHY HS TX", so I suppose 0 is correct.
-> >> >
-> >> > - MIPI RX PHY power down: 0 is documented as "debug mode" and 1 as "Power down
-> >> > PHY LP RX module", so I suppose 0 is correct. I however wonder why there's a
-> >> > RX PHY, it could be a typo.
-> >> >
-> >> > - mipi_en: 1 means MIPI enable, which should be correct.
-> >> >
-> >> > - BIT(0) is undocumented.
-> >> >
-> >> > OV5640_REG_PAD_OUTPUT00 (0x3019) isn't initialized explicitly and thus retains
-> >> > its default value of 0x00, and is controlled when starting and stopping the
-> >> > stream where it's set to 0x00 and 0x70 respectively. Bits 6:4 control the
-> >> > "sleep mode" state of lane 2, lane 1 and clock lane respectively, and should
-> >> > be LP11 in my opinion (that's the PHY stop state). However, setting them to
-> >> > 0x00 when starting the stream mean that LP00 is selected as the sleep state at
-> >> > stream start, and LP11 when stopping the stream. Maybe "sleep mode" means
-> >> > LPDT, but I would expect that to be controlled by the idle status bit in
-> >> > register 0x4800.
-> >> >
-> >>
-> >> I did not need to mess with the accesses to 0x3019 in order to get
-> >> things working on my system. I'm not sure of this registers actual
-> >> behavior, but it might affect idling while not streaming (after power
-> >> on). My pipeline currently only powers the sensor while streaming, so
-> >> I might be missing some ramifications of this register.
-> >>
-> >> > OV5640_REG_MIPI_CTRL00 (0x4800) is set to 0x04 in the large array of init mode
-> >> > data, and BIT(5) is then cleared at stream on time and set at stream off time.
-> >> > This means:
-> >> >
-> >> > - Clock lane gate enable: Clock lane is free running
-> >> > - Line sync enable: Do not send line short packets for each line (I assume
-> >> > that's LS/LE)
-> >> > - Lane select: Use lane1 as default data lane.
-> >> > - Idle status: MIPI bus will be LP11 when no packet to transmit. I would have
-> >> > expected the idle status to correspond to LPDT, and thus be LP00 (as opposed
-> >> > to the stop state that should be LP11, which I believe is named "sleep mode"
-> >> > in the datasheet and controlled in register 0x3019).
-> >> >
-> >> > BIT(5) is the clock lane gate enable, so at stream on time the clock is set to
-> >> > free running, and at stream off time to "Gate clock lane when no packet to
-> >> > transmit". Couldn't we always enable clock gating ?
-> >>
-> >> Good question, it might be worth testing. Same as above, I didn't need
-> >> to mess with this reg either.
-> >>
-> >> > Do you have any insight on this ? Have you modified the MIPI CSI-2
-> >> > configuration to get the CSI-2 output working ?
-> >>
-> >> Good news, MIPI is now working on my platform. I had to make several
-> >> changes to how the mipi clocking is calculated in order to get things
-> >> stable, but I think I got it figured out. Maxime's changes were really
-> >> helpful.
-> >>
-> >> I will try to get some patches out today or tomorrow that should get
-> >> you up and running.
-> >>
-> >> Maxime, I'd prefer to create the patches myself for the experience.
-> >> I've read all of the submission guidelines and I understand the
-> >> general process, but how should I submit them to the mailing list
-> >> since they are based to your patches, which are still under review?
-> >> Should I send the patch series to the mailing list myself and just
-> >> mention this patch series, maybe with the In-Reply-To header? Or
-> >> should I just post a link to them here so you can review them and add
-> >> them to a new version of your patch series?
-> >
-> > That's definitely something you can do if you want to try it out :)
-> >
-> > However, we shouldn't break the bisectability either, so this will
-> > need to be folded into this serie eventually.
-> >
-> > Maxime
-> >
-> > --
-> > Maxime Ripard, Bootlin (formerly Free Electrons)
-> > Embedded Linux and Kernel engineering
-> > https://bootlin.com
->
-> FYI, I've found the following document:
-> https://community.nxp.com/servlet/JiveServlet/downloadImage/105-32914-99951/ov5640_diagram.jpg
->
-> So it seems that clock tree is a bit different.
+Hi Jacopo,
 
-So that is where the Digilent RnD team got their information. I was
-working with an ASCII representation of the same diagram, thanks for
-providing that.
+Thanks for your work.
 
->
-> So, from my understanding we need to calculate dividers so that:
-> sclk = vtot * htot * fps
-> pclk = sclk  * byte-per-pixel
-> mipisclk = 8 * pclk / num-lanes
->
-> Regards,
-> Loic
+On 2018-05-16 18:32:28 +0200, Jacopo Mondi wrote:
+> Document 'data-active' property in R-Car VIN device tree bindings.
+> The property is optional when running with explicit synchronization
+> (eg. BT.601) but mandatory when embedded synchronization is in use (eg.
+> BT.656) as specified by the hardware manual.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> index c53ce4e..17eac8a 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -63,6 +63,11 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+>  	If both HSYNC and VSYNC polarities are not specified, embedded
+>  	synchronization is selected.
+> 
+> +        - data-active: active state of data enable signal (CLOCKENB pin).
 
-Unfortunately there are more factors at play depending on what
-features you are using in the ISP. Easiest way for me to describe them
-is to just complete my patches, then we can discuss further.
+I'm not sure what you mean by active state here. video-interfaces.txt 
+defines data-active as 'similar to HSYNC and VSYNC, specifies data line 
+polarity' so I assume this is the polarity of the CLOCKENB pin?
 
-Sam
+> +          0/1 for LOW/HIGH respectively. If not specified, use HSYNC as
+> +          data enable signal. When using embedded synchronization this
+> +          property is mandatory.
+
+I'm confused, why is this mandatory if we have no embedded sync (that is 
+hsync-active and vsync-active not defined)? I can't find any reference 
+to this in the Gen2 datasheet but I'm sure I'm just missing it :-)
+
+> +
+>      - port 1 - sub-nodes describing one or more endpoints connected to
+>        the VIN from local SoC CSI-2 receivers. The endpoint numbers must
+>        use the following schema.
+> --
+> 2.7.4
+> 
+
+-- 
+Regards,
+Niklas Söderlund
