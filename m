@@ -1,54 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:17472 "EHLO mga12.intel.com"
+Received: from gofer.mess.org ([88.97.38.141]:42429 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752260AbeEOJZL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 05:25:11 -0400
-Date: Tue, 15 May 2018 12:25:07 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        jacopo mondi <jacopo@jmondi.org>
-Subject: Re: [PATCH v16 0/2] rcar-csi2: add Renesas R-Car MIPI CSI-2
-Message-ID: <20180515092507.6eaq3fsejd64fuqu@paasikivi.fi.intel.com>
-References: <20180515005635.25715-1-niklas.soderlund+renesas@ragnatech.se>
- <2644518.Vheqspdx5b@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <2644518.Vheqspdx5b@avalon>
+        id S1751213AbeEPVEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 May 2018 17:04:43 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
+        Matthias Reichl <hias@horus.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Y Song <ys114321@gmail.com>
+Subject: [PATCH v3 0/2] IR decoding using BPF
+Date: Wed, 16 May 2018 22:04:39 +0100
+Message-Id: <cover.1526504511.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 15, 2018 at 07:50:45AM +0300, Laurent Pinchart wrote:
-> Hi Niklas,
-> 
-> On Tuesday, 15 May 2018 03:56:33 EEST Niklas Söderlund wrote:
-> > Hi,
-> > 
-> > This is the latest incarnation of R-Car MIPI CSI-2 receiver driver. It's
-> > based on top of the media-tree and are tested on Renesas Salvator-X and
-> > Salvator-XS together with adv7482 and the now in tree rcar-vin driver :-)
-> > 
-> > I hope this is the last incarnation of this patch-set, I do think it is
-> > ready for upstream consumption :-)
-> 
-> So do I. Even though you dropped Hans' reviewed-by tag due to changes in the 
-> hardware initialization code, I think the part that Hans cares about the most 
-> is the V4L2 API implementation, so I believe his review still applies. In my 
-> opinion the series has received the necessary review.
-> 
-> Hans, would you like to take this through your tree, or should we send a pull 
-> request directly to Mauro ? I'd like the two patches to be merged in v4.18 if 
-> possible.
+The kernel IR decoders (drivers/media/rc/ir-*-decoder.c) support the most
+widely used IR protocols, but there are many protocols which are not
+supported[1]. For example, the lirc-remotes[2] repo has over 2700 remotes,
+many of which are not supported by rc-core. There is a "long tail" of
+unsupported IR protocols, for which lircd is need to decode the IR .
 
-I've applied the patches to my tree as discussed with Hans previously.
+IR encoding is done in such a way that some simple circuit can decode it;
+therefore, bpf is ideal.
+
+In order to support all these protocols, here we have bpf based IR decoding.
+The idea is that user-space can define a decoder in bpf, attach it to
+the rc device through the lirc chardev.
+
+Separate work is underway to extend ir-keytable to have an extensive library
+of bpf-based decoders, and a much expanded library of rc keymaps.
+
+Another future application would be to compile IRP[3] to a IR BPF program, and
+so support virtually every remote without having to write a decoder for each.
+It might also be possible to support non-button devices such as analog
+directional pads or air conditioning remote controls and decode the target
+temperature in bpf, and pass that to an input device.
+
+Thanks,
+
+Sean Young
+
+[1] http://www.hifi-remote.com/wiki/index.php?title=DecodeIR
+[2] https://sourceforge.net/p/lirc-remotes/code/ci/master/tree/remotes/
+[3] http://www.hifi-remote.com/wiki/index.php?title=IRP_Notation
+
+Changes since v2:
+ - Fixed locking issues
+ - Improved self-test to cover more cases
+ - Rebased on bpf-next again
+
+Changes since v1:
+ - Code review comments from Y Song <ys114321@gmail.com> and
+   Randy Dunlap <rdunlap@infradead.org>
+ - Re-wrote sample bpf to be selftest
+ - Renamed RAWIR_DECODER -> RAWIR_EVENT (Kconfig, context, bpf prog type)
+ - Rebase on bpf-next
+ - Introduced bpf_rawir_event context structure with simpler access checking
+
+Sean Young (2):
+  media: rc: introduce BPF_PROG_RAWIR_EVENT
+  bpf: add selftest for rawir_event type program
+
+ drivers/media/rc/Kconfig                      |  13 +
+ drivers/media/rc/Makefile                     |   1 +
+ drivers/media/rc/bpf-rawir-event.c            | 363 ++++++++++++++++++
+ drivers/media/rc/lirc_dev.c                   |  24 ++
+ drivers/media/rc/rc-core-priv.h               |  24 ++
+ drivers/media/rc/rc-ir-raw.c                  |  14 +-
+ include/linux/bpf_rcdev.h                     |  30 ++
+ include/linux/bpf_types.h                     |   3 +
+ include/uapi/linux/bpf.h                      |  55 ++-
+ kernel/bpf/syscall.c                          |   7 +
+ tools/bpf/bpftool/prog.c                      |   1 +
+ tools/include/uapi/linux/bpf.h                |  57 ++-
+ tools/lib/bpf/libbpf.c                        |   1 +
+ tools/testing/selftests/bpf/Makefile          |   8 +-
+ tools/testing/selftests/bpf/bpf_helpers.h     |   6 +
+ tools/testing/selftests/bpf/test_rawir.sh     |  37 ++
+ .../selftests/bpf/test_rawir_event_kern.c     |  26 ++
+ .../selftests/bpf/test_rawir_event_user.c     | 130 +++++++
+ 18 files changed, 792 insertions(+), 8 deletions(-)
+ create mode 100644 drivers/media/rc/bpf-rawir-event.c
+ create mode 100644 include/linux/bpf_rcdev.h
+ create mode 100755 tools/testing/selftests/bpf/test_rawir.sh
+ create mode 100644 tools/testing/selftests/bpf/test_rawir_event_kern.c
+ create mode 100644 tools/testing/selftests/bpf/test_rawir_event_user.c
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.17.0
