@@ -1,380 +1,318 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:45298 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966400AbeEXMMy (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:57264 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752081AbeEPKza (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 08:12:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v4 09/11] media: vsp1: Provide support for extended command pools
-Date: Thu, 24 May 2018 15:12:50 +0300
-Message-ID: <3571558.kvhfykCuCL@avalon>
-In-Reply-To: <58cdbb43c0d617e28b3545060aff2019d42c148c.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com> <58cdbb43c0d617e28b3545060aff2019d42c148c.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Wed, 16 May 2018 06:55:30 -0400
+Subject: Re: [PATCHv13 12/28] v4l2-ctrls: add core request support
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+ <20180503145318.128315-13-hverkuil@xs4all.nl>
+ <20180516101934.dekzi6zlyzqbs5t6@valkosipuli.retiisi.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9b1b3397-d869-bf32-a90f-fba7f8b82df0@xs4all.nl>
+Date: Wed, 16 May 2018 12:55:24 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20180516101934.dekzi6zlyzqbs5t6@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
-
-Thank you for the patch.
-
-On Thursday, 3 May 2018 16:36:20 EEST Kieran Bingham wrote:
-> VSPD and VSP-DL devices can provide extended display lists supporting
-> extended command display list objects.
+On 05/16/18 12:19, Sakari Ailus wrote:
+> Hi Hans,
 > 
-> These extended commands require their own dma memory areas for a header
-> and body specific to the command type.
+> On Thu, May 03, 2018 at 04:53:02PM +0200, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Integrate the request support. This adds the v4l2_ctrl_request_complete
+>> and v4l2_ctrl_request_setup functions to complete a request and (as a
+>> helper function) to apply a request to the hardware.
+>>
+>> It takes care of queuing requests and correctly chaining control values
+>> in the request queue.
+>>
+>> Note that when a request is marked completed it will copy control values
+>> to the internal request state. This can be optimized in the future since
+>> this is sub-optimal when dealing with large compound and/or array controls.
+>>
+>> For the initial 'stateless codec' use-case the current implementation is
+>> sufficient.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-ctrls.c | 331 ++++++++++++++++++++++++++-
+>>  include/media/v4l2-ctrls.h           |  23 ++
+>>  2 files changed, 348 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index da4cc1485dc4..56b986185463 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -3429,6 +3602,152 @@ int __v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
+>>  }
+>>  EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_string);
+>>  
+>> +void v4l2_ctrl_request_complete(struct media_request *req,
+>> +				struct v4l2_ctrl_handler *main_hdl)
+>> +{
+>> +	struct media_request_object *obj;
+>> +	struct v4l2_ctrl_handler *hdl;
+>> +	struct v4l2_ctrl_ref *ref;
+>> +
+>> +	if (!req || !main_hdl)
+>> +		return;
+>> +
+>> +	obj = media_request_object_find(req, &req_ops, main_hdl);
+>> +	if (!obj)
+>> +		return;
+>> +	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
+>> +
+>> +	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
+>> +		struct v4l2_ctrl *ctrl = ref->ctrl;
+>> +		struct v4l2_ctrl *master = ctrl->cluster[0];
+>> +		unsigned int i;
+>> +
+>> +		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
+>> +			ref->req = ref;
+>> +
+>> +			v4l2_ctrl_lock(master);
+>> +			/* g_volatile_ctrl will update the current control values */
+>> +			for (i = 0; i < master->ncontrols; i++)
+>> +				cur_to_new(master->cluster[i]);
+>> +			call_op(master, g_volatile_ctrl);
+>> +			new_to_req(ref);
+>> +			v4l2_ctrl_unlock(master);
+>> +			continue;
+>> +		}
+>> +		if (ref->req == ref)
+>> +			continue;
+>> +
+>> +		v4l2_ctrl_lock(ctrl);
+>> +		if (ref->req)
+>> +			ptr_to_ptr(ctrl, ref->req->p_req, ref->p_req);
+>> +		else
+>> +			ptr_to_ptr(ctrl, ctrl->p_cur, ref->p_req);
+>> +		v4l2_ctrl_unlock(ctrl);
+>> +	}
+>> +
+>> +	WARN_ON(!hdl->request_is_queued);
+>> +	list_del_init(&hdl->requests_queued);
+>> +	hdl->request_is_queued = false;
+>> +	media_request_object_complete(obj);
+>> +	media_request_object_put(obj);
+>> +}
+>> +EXPORT_SYMBOL(v4l2_ctrl_request_complete);
+>> +
+>> +void v4l2_ctrl_request_setup(struct media_request *req,
+>> +			     struct v4l2_ctrl_handler *main_hdl)
 > 
-> Implement a command pool to allocate all necessary memory in a single
-> DMA allocation to reduce pressure on the TLB, and provide convenient
-> re-usable command objects for the entities to utilise.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> ---
-> 
-> v2:
->  - Fix spelling typo in commit message
->  - constify, and staticify the instantiation of vsp1_extended_commands
->  - s/autfld_cmds/autofld_cmds/
->  - staticify cmd pool functions (Thanks kbuild-bot)
-> ---
->  drivers/media/platform/vsp1/vsp1_dl.c | 191 +++++++++++++++++++++++++++-
->  drivers/media/platform/vsp1/vsp1_dl.h |   3 +-
->  2 files changed, 194 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
-> b/drivers/media/platform/vsp1/vsp1_dl.c index b64d32535edc..d33ae5f125bd
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> @@ -117,6 +117,30 @@ struct vsp1_dl_body_pool {
->  };
-> 
->  /**
-> + * struct vsp1_cmd_pool - display list body pool
+> Drivers are expected to use this function internally to make use of the
+> control values in the request. Is that your thinking as well?
 
-The structure is called vsp1_dl_cmd_pool. I would document it as "Display list 
-commands pool", not "body pool".
+Not quite. For simple drivers like stateless codecs this driver just applies
+all the controls in the request to the hardware. However, this only works for
+cases where you can do this just before you process the buffer.
 
-> + * @dma: DMA address of the entries
-> + * @size: size of the full DMA memory pool in bytes
-> + * @mem: CPU memory pointer for the pool
-> + * @bodies: Array of DLB structures for the pool
+More complex drivers are unlikely to be able to use this function. Instead
+they will have to know about HW requirements like how long it will take for
+a sensor to actually use a new value.
 
-The field is called cmds.
+> The problem with this implementation is that once a driver eventually gets
+> a callback (s_ctrl), the callback doesn't have the information on the
+> request. That means the driver has no means to associate the control value
+> to the request anymore --- and that is against the very purpose of the
+> function.
 
-> + * @free: List of free DLB entries
+s_ctrl just applies the value to the hardware, it shouldn't have to care
+about the request. Scheduling when a control value in a request will have
+to be applied to the hardware is something that the driver will have to
+coordinate.
 
-"free pool entries" or "free command entries" ?
+In any case, this v4l2_ctrl_request_setup() function is unsuitable for
+such complex devices. We will need something smarter for that.
 
-> + * @lock: Protects the pool and free list
+I have not looked at that since it is out of scope of stateless codecs.
+The core problem here is how to schedule when you apply controls in a
+request given the pending buffer queue.
 
-The pool is the whole structure, does the lock really protects all fields ?
-
-> + * @vsp1: the VSP1 device
-> + */
-> +struct vsp1_dl_cmd_pool {
-> +	/* DMA allocation */
-> +	dma_addr_t dma;
-> +	size_t size;
-> +	void *mem;
-> +
-> +	struct vsp1_dl_ext_cmd *cmds;
-> +	struct list_head free;
-> +
-> +	spinlock_t lock;
-> +
-> +	struct vsp1_device *vsp1;
-> +};
-> +
-> +/**
->   * struct vsp1_dl_list - Display list
->   * @list: entry in the display list manager lists
->   * @dlm: the display list manager
-> @@ -162,6 +186,7 @@ struct vsp1_dl_list {
->   * @queued: list queued to the hardware (written to the DL registers)
->   * @pending: list waiting to be queued to the hardware
->   * @pool: body pool for the display list bodies
-> + * @autofld_cmds: command pool to support auto-fld interlaced mode
-
-This could also be used for auto-disp. How about calling it cmdpool ?
-
->   */
->  struct vsp1_dl_manager {
->  	unsigned int index;
-> @@ -175,6 +200,7 @@ struct vsp1_dl_manager {
->  	struct vsp1_dl_list *pending;
-> 
->  	struct vsp1_dl_body_pool *pool;
-> +	struct vsp1_dl_cmd_pool *autofld_cmds;
->  };
-> 
->  /* ------------------------------------------------------------------------
-> @@ -338,6 +364,140 @@ void vsp1_dl_body_write(struct vsp1_dl_body *dlb,
-> u32 reg, u32 data) }
-> 
->  /* ------------------------------------------------------------------------
-> + * Display List Extended Command Management
-> + */
-> +
-> +enum vsp1_extcmd_type {
-> +	VSP1_EXTCMD_AUTODISP,
-> +	VSP1_EXTCMD_AUTOFLD,
-> +};
-> +
-> +struct vsp1_extended_command_info {
-> +	u16 opcode;
-> +	size_t body_size;
-> +} static const vsp1_extended_commands[] = {
-
-The location of the static const keywords is strange. I would move them before 
-struct, or split the structure definition and variable declaration.
-
-> +	[VSP1_EXTCMD_AUTODISP] = { 0x02, 96 },
-> +	[VSP1_EXTCMD_AUTOFLD]  = { 0x03, 160 },
-> +};
-> +
-> +/**
-> + * vsp1_dl_cmd_pool_create - Create a pool of commands from a single
-> allocation
-> + * @vsp1: The VSP1 device
-> + * @type: The command pool type
-> + * @num_commands: The quantity of commands to allocate
-
-s/quantity/number/ ?
-
-> + *
-> + * Allocate a pool of commands each with enough memory to contain the
-> private
-> + * data of each command. The allocation sizes are dependent upon the
-> command
-> + * type.
-> + *
-> + * Return a pointer to a pool on success or NULL if memory can't be
-
-s/a pool/the pool/
-
-> allocated.
-> + */
-> +static struct vsp1_dl_cmd_pool *
-> +vsp1_dl_cmd_pool_create(struct vsp1_device *vsp1, enum vsp1_extcmd_type
-> type,
-> +			unsigned int num_cmds)
-> +{
-> +	struct vsp1_dl_cmd_pool *pool;
-> +	unsigned int i;
-> +	size_t cmd_size;
-> +
-> +	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
-> +	if (!pool)
-> +		return NULL;
-> +
-> +	pool->cmds = kcalloc(num_cmds, sizeof(*pool->cmds), GFP_KERNEL);
-> +	if (!pool->cmds) {
-> +		kfree(pool);
-> +		return NULL;
-> +	}
-> +
-> +	cmd_size = sizeof(struct vsp1_dl_ext_cmd_header) +
-> +		   vsp1_extended_commands[type].body_size;
-> +	cmd_size = ALIGN(cmd_size, 16);
-> +
-> +	pool->size = cmd_size * num_cmds;
-> +	pool->mem = dma_alloc_wc(vsp1->bus_master, pool->size, &pool->dma,
-> +				 GFP_KERNEL);
-> +	if (!pool->mem) {
-> +		kfree(pool->cmds);
-> +		kfree(pool);
-> +		return NULL;
-> +	}
-> +
-> +	spin_lock_init(&pool->lock);
-> +	INIT_LIST_HEAD(&pool->free);
-
-I would move these two lines right after allocation of pool, I find it more 
-readable to perform small and simple initialization right away.
-
-> +	for (i = 0; i < num_cmds; ++i) {
-> +		struct vsp1_dl_ext_cmd *cmd = &pool->cmds[i];
-> +		size_t cmd_offset = i * cmd_size;
-> +		size_t data_offset = sizeof(struct vsp1_dl_ext_cmd_header) +
-> +				     cmd_offset;
-
-The data memory has to be 16-bytes aligned. This is guaranteed as the header 
-is 16 bytes long, and cmd_size is aligned to 16 bytes, but it would be worth 
-adding a comment to explain this.
-
-> +		cmd->pool = pool;
-> +		cmd->cmd_opcode = vsp1_extended_commands[type].opcode;
-> +
-> +		/* TODO: Auto-disp can utilise more than one command per cmd */
-
-That will be annoying to handle :-/
-
-> +		cmd->num_cmds = 1;
-> +		cmd->cmds = pool->mem + cmd_offset;
-> +		cmd->cmd_dma = pool->dma + cmd_offset;
-> +
-> +		cmd->data = pool->mem + data_offset;
-> +		cmd->data_dma = pool->dma + data_offset;
-> +		cmd->data_size = vsp1_extended_commands[type].body_size;
-> +
-> +		list_add_tail(&cmd->free, &pool->free);
-> +	}
-> +
-> +	return pool;
-> +}
-> +
-> +static
-> +struct vsp1_dl_ext_cmd *vsp1_dl_ext_cmd_get(struct vsp1_dl_cmd_pool *pool)
-> +{
-> +	struct vsp1_dl_ext_cmd *cmd = NULL;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&pool->lock, flags);
-> +
-> +	if (!list_empty(&pool->free)) {
-> +		cmd = list_first_entry(&pool->free, struct vsp1_dl_ext_cmd,
-> +				       free);
-> +		list_del(&cmd->free);
-> +	}
-> +
-> +	spin_unlock_irqrestore(&pool->lock, flags);
-> +
-> +	return cmd;
-> +}
-> +
-> +static void vsp1_dl_ext_cmd_put(struct vsp1_dl_ext_cmd *cmd)
-> +{
-> +	unsigned long flags;
-> +
-> +	if (!cmd)
-> +		return;
-> +
-> +	/* Reset flags, these mark data usage */
-
-s/usage/usage./
-
-> +	cmd->flags = 0;
-> +
-> +	spin_lock_irqsave(&cmd->pool->lock, flags);
-> +	list_add_tail(&cmd->free, &cmd->pool->free);
-> +	spin_unlock_irqrestore(&cmd->pool->lock, flags);
-> +}
-> +
-> +static void vsp1_dl_ext_cmd_pool_destroy(struct vsp1_dl_cmd_pool *pool)
-> +{
-> +	if (!pool)
-> +		return;
-> +
-> +	if (pool->mem)
-> +		dma_free_wc(pool->vsp1->bus_master, pool->size, pool->mem,
-> +			    pool->dma);
-> +
-> +	kfree(pool->cmds);
-> +	kfree(pool);
-> +}
-> +
-> +/* ------------------------------------------------------------------------
-> - * Display List Transaction Management
->   */
-> 
-> @@ -440,6 +600,12 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
-> 
->  	vsp1_dl_list_bodies_put(dl);
-> 
-> +	vsp1_dl_ext_cmd_put(dl->pre_cmd);
-> +	vsp1_dl_ext_cmd_put(dl->post_cmd);
-> +
-> +	dl->pre_cmd = NULL;
-> +	dl->post_cmd = NULL;
-> +
->  	/*
->  	 * body0 is reused as as an optimisation as presently every display list
->  	 * has at least one body, thus we reinitialise the entries list.
-> @@ -883,6 +1049,15 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct
-> vsp1_device *vsp1, list_add_tail(&dl->list, &dlm->free);
->  	}
-> 
-> +	if (vsp1_feature(vsp1, VSP1_HAS_EXT_DL)) {
-> +		dlm->autofld_cmds = vsp1_dl_cmd_pool_create(vsp1,
-> +					VSP1_EXTCMD_AUTOFLD, prealloc);
-> +		if (!dlm->autofld_cmds) {
-> +			vsp1_dlm_destroy(dlm);
-> +			return NULL;
-> +		}
-> +	}
-> +
->  	return dlm;
->  }
-> 
-> @@ -899,4 +1074,20 @@ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
->  	}
-> 
->  	vsp1_dl_body_pool_destroy(dlm->pool);
-> +	vsp1_dl_ext_cmd_pool_destroy(dlm->autofld_cmds);
-> +}
-> +
-> +struct vsp1_dl_ext_cmd *vsp1_dlm_get_autofld_cmd(struct vsp1_dl_list *dl)
-> +{
-> +	struct vsp1_dl_manager *dlm = dl->dlm;
-> +	struct vsp1_dl_ext_cmd *cmd;
-> +
-> +	if (dl->pre_cmd)
-> +		return dl->pre_cmd;
-> +
-> +	cmd = vsp1_dl_ext_cmd_get(dlm->autofld_cmds);
-> +	if (cmd)
-> +		dl->pre_cmd = cmd;
-> +
-> +	return cmd;
-
-You can write it in a simpler way.
-
-	dl->pre_cmd = vsp1_dl_ext_cmd_get(dlm->autofld_cmds);
-	return dl->pre_cmd;
-
->  }
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.h
-> b/drivers/media/platform/vsp1/vsp1_dl.h index aa5f4adc6617..d9621207b093
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.h
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
-> @@ -22,6 +22,7 @@ struct vsp1_dl_manager;
-> 
->  /**
->   * struct vsp1_dl_ext_cmd - Extended Display command
-> + * @pool: pool to which this command belongs
->   * @free: entry in the pool of free commands list
->   * @cmd_opcode: command type opcode
->   * @flags: flags used by the command
-> @@ -33,6 +34,7 @@ struct vsp1_dl_manager;
->   * @data_size: size of the @data_dma memory in bytes
->   */
->  struct vsp1_dl_ext_cmd {
-> +	struct vsp1_dl_cmd_pool *pool;
->  	struct list_head free;
-> 
->  	u8 cmd_opcode;
-> @@ -55,6 +57,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device
-> *vsp1, void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
->  void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
->  unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
-> +struct vsp1_dl_ext_cmd *vsp1_dlm_get_autofld_cmd(struct vsp1_dl_list *dl);
-
-Should this be named vsp1_dl_get_autofld_cmd() as it operates on a dl ? I also 
-think that you should move it down to group it with the dl functions.
-
->  struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
->  void vsp1_dl_list_put(struct vsp1_dl_list *dl);
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> Instead, I'd add a new argument to the callback function --- the request
+> --- or add another callback function to be used for applying control values
+> for requests. Or alternatively, provide an easy way to enumerate the
+> controls and their values in a control handler. For the driver must store
+> that value in the request itself to be able to use it: the current
+> implementation in vim2m is such that controls are simply set to the driver
+> as they'd arrive from the uAPI directly. This way also anyone having access
+> to the video device could set whatever control values that would end up
+> being used in processing the request.
+> 
+> Feel free to point out if I'm mistaken in my analysis.
+> 
+>> +{
+>> +	struct media_request_object *obj;
+>> +	struct v4l2_ctrl_handler *hdl;
+>> +	struct v4l2_ctrl_ref *ref;
+>> +
+>> +	if (!req || !main_hdl)
+>> +		return;
+>> +
+>> +	obj = media_request_object_find(req, &req_ops, main_hdl);
+>> +	if (!obj)
+>> +		return;
+>> +	if (obj->completed) {
+>> +		media_request_object_put(obj);
+>> +		return;
+>> +	}
+>> +	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
+>> +
+>> +	mutex_lock(hdl->lock);
+>> +
+>> +	list_for_each_entry(ref, &hdl->ctrl_refs, node)
+>> +		ref->done = false;
+>> +
+>> +	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
+>> +		struct v4l2_ctrl *ctrl = ref->ctrl;
+>> +		struct v4l2_ctrl *master = ctrl->cluster[0];
+>> +		bool have_new_data = false;
+>> +		int i;
+>> +
+>> +		/*
+>> +		 * Skip if this control was already handled by a cluster.
+>> +		 * Skip button controls and read-only controls.
+>> +		 */
+>> +		if (ref->done || ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
+>> +		    (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY))
+>> +			continue;
+>> +
+>> +		v4l2_ctrl_lock(master);
+>> +		for (i = 0; i < master->ncontrols; i++) {
+>> +			if (master->cluster[i]) {
+>> +				struct v4l2_ctrl_ref *r =
+>> +					find_ref(hdl, master->cluster[i]->id);
+>> +
+>> +				if (r->req && r == r->req) {
+>> +					have_new_data = true;
+>> +					break;
+>> +				}
+>> +			}
+>> +		}
+>> +		if (!have_new_data) {
+>> +			v4l2_ctrl_unlock(master);
+>> +			continue;
+>> +		}
+>> +
+>> +		for (i = 0; i < master->ncontrols; i++) {
+>> +			if (master->cluster[i]) {
+>> +				struct v4l2_ctrl_ref *r =
+>> +					find_ref(hdl, master->cluster[i]->id);
+>> +
+>> +				req_to_new(r);
+>> +				master->cluster[i]->is_new = 1;
+>> +				r->done = true;
+>> +			}
+>> +		}
+>> +		/*
+>> +		 * For volatile autoclusters that are currently in auto mode
+>> +		 * we need to discover if it will be set to manual mode.
+>> +		 * If so, then we have to copy the current volatile values
+>> +		 * first since those will become the new manual values (which
+>> +		 * may be overwritten by explicit new values from this set
+>> +		 * of controls).
+>> +		 */
+>> +		if (master->is_auto && master->has_volatiles &&
+>> +		    !is_cur_manual(master)) {
+>> +			s32 new_auto_val = *master->p_new.p_s32;
+>> +
+>> +			/*
+>> +			 * If the new value == the manual value, then copy
+>> +			 * the current volatile values.
+>> +			 */
+>> +			if (new_auto_val == master->manual_mode_value)
+>> +				update_from_auto_cluster(master);
+>> +		}
+>> +
+>> +		try_or_set_cluster(NULL, master, true, 0);
+>> +
+>> +		v4l2_ctrl_unlock(master);
+>> +	}
+>> +
+>> +	mutex_unlock(hdl->lock);
+>> +	media_request_object_put(obj);
+>> +}
+>> +EXPORT_SYMBOL(v4l2_ctrl_request_setup);
+>> +
+>>  void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
+>>  {
+>>  	if (ctrl == NULL)
+>> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+>> index 76352eb59f14..a0f7c38d1a90 100644
+>> --- a/include/media/v4l2-ctrls.h
+>> +++ b/include/media/v4l2-ctrls.h
+>> @@ -250,6 +250,10 @@ struct v4l2_ctrl {
+>>   *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+>>   * @from_other_dev: If true, then @ctrl was defined in another
+>>   *		device than the &struct v4l2_ctrl_handler.
+>> + * @done:	If true, then this control reference is part of a
+>> + *		control cluster that was already set while applying
+>> + *		the controls in this media request object.
+>> + * @req:	If set, this refers to another request that sets this control.
+>>   * @p_req:	The request value. Only used if the control handler
+>>   *		is bound to a media request.
+>>   *
+>> @@ -263,6 +267,8 @@ struct v4l2_ctrl_ref {
+>>  	struct v4l2_ctrl *ctrl;
+>>  	struct v4l2_ctrl_helper *helper;
+>>  	bool from_other_dev;
+>> +	bool done;
+>> +	struct v4l2_ctrl_ref *req;
+>>  	union v4l2_ctrl_ptr p_req;
+>>  };
+>>  
+>> @@ -287,6 +293,15 @@ struct v4l2_ctrl_ref {
+>>   * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
+>>   * @nr_of_buckets: Total number of buckets in the array.
+>>   * @error:	The error code of the first failed control addition.
+>> + * @request_is_queued: True if the request was queued.
+>> + * @requests:	List to keep track of open control handler request objects.
+>> + *		For the parent control handler (@req_obj.req == NULL) this
+>> + *		is the list header. When the parent control handler is
+>> + *		removed, it has to unbind and put all these requests since
+>> + *		they refer to the parent.
+>> + * @requests_queued: List of the queued requests. This determines the order
+>> + *		in which these controls are applied. Once the request is
+>> + *		completed it is removed from this list.
+>>   * @req_obj:	The &struct media_request_object, used to link into a
+>>   *		&struct media_request.
+>>   */
+>> @@ -301,6 +316,9 @@ struct v4l2_ctrl_handler {
+>>  	void *notify_priv;
+>>  	u16 nr_of_buckets;
+>>  	int error;
+>> +	bool request_is_queued;
+>> +	struct list_head requests;
+>> +	struct list_head requests_queued;
+>>  	struct media_request_object req_obj;
+>>  };
+>>  
+>> @@ -1059,6 +1077,11 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+>>   */
+>>  __poll_t v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
+>>  
+>> +void v4l2_ctrl_request_setup(struct media_request *req,
+>> +			     struct v4l2_ctrl_handler *hdl);
+>> +void v4l2_ctrl_request_complete(struct media_request *req,
+>> +				struct v4l2_ctrl_handler *hdl);
+>> +
+>>  /* Helpers for ioctl_ops */
+>>  
+>>  /**
+>> -- 
+>> 2.17.0
+>>
+> 
