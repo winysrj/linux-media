@@ -1,131 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:38472 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030620AbeEXQQx (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:43917 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751402AbeEPK0M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 12:16:53 -0400
-Received: by mail-pl0-f67.google.com with SMTP id c11-v6so1355248plr.5
-        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 09:16:53 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180522135958.sywjvur3ff7ejw37@paasikivi.fi.intel.com>
-References: <1526830838-2812-1-git-send-email-akinobu.mita@gmail.com> <20180522135958.sywjvur3ff7ejw37@paasikivi.fi.intel.com>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Fri, 25 May 2018 01:16:32 +0900
-Message-ID: <CAC5umyju4Fd7Si2D67x_y7H_U686j-Zkk7EQF9BdEKZcND4uEQ@mail.gmail.com>
-Subject: Re: [PATCH] media: pxa_camera: avoid duplicate s_power calls
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
+        Wed, 16 May 2018 06:26:12 -0400
+Message-ID: <1526466365.3494.26.camel@pengutronix.de>
+Subject: Re: [PATCH] dma-fence: Make dma_fence_add_callback() fail if
+ signaled with error
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Daniel Vetter <daniel@ffwll.ch>,
+        Chris Wilson <chris@chris-wilson.co.uk>
+Cc: dri-devel@lists.freedesktop.org, kernel@collabora.com,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org
+Date: Wed, 16 May 2018 12:26:05 +0200
+In-Reply-To: <20180516094224.GD3438@phenom.ffwll.local>
+References: <20180509201449.27452-1-ezequiel@collabora.com>
+         <152602366168.22269.11696001916463464983@mail.alporthouse.com>
+         <20180514164823.GH28661@phenom.ffwll.local>
+         <e75424afd7fafad7b584a9cf905684de661996cb.camel@collabora.com>
+         <152638659036.18532.13662508480413451560@mail.alporthouse.com>
+         <20180516094224.GD3438@phenom.ffwll.local>
 Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-05-22 22:59 GMT+09:00 Sakari Ailus <sakari.ailus@linux.intel.com>:
-> Dear Mita-san,
->
-> On Mon, May 21, 2018 at 12:40:38AM +0900, Akinobu Mita wrote:
->> The open() operation for the pxa_camera driver always calls s_power()
->> operation to put its subdevice sensor in normal operation mode, and the
->> release() operation always call s_power() operation to put the subdevice
->> in power saving mode.
->>
->> This requires the subdevice sensor driver to keep track of its power
->> state in order to avoid putting the subdevice in power saving mode while
->> the device is still opened by some users.
->>
->> Many subdevice drivers handle it by the boilerplate code that increments
->> and decrements an internal counter in s_power() like below:
->>
->>       /*
->>        * If the power count is modified from 0 to != 0 or from != 0 to 0,
->>        * update the power state.
->>        */
->>       if (sensor->power_count == !on) {
->>               ret = ov5640_set_power(sensor, !!on);
->>               if (ret)
->>                       goto out;
->>       }
->>
->>       /* Update the power count. */
->>       sensor->power_count += on ? 1 : -1;
->>
->> However, some subdevice drivers don't handle it and may cause a problem
->> with the pxa_camera driver if the video device is opened by more than
->> two users at the same time.
->>
->> Instead of propagating the boilerplate code for each subdevice driver
->> that implement s_power, this introduces an trick that many V4L2 drivers
->> are using with v4l2_fh_is_singular_file().
->
-> I'd rather like that the sub-device drivers would move to use runtime PM
-> instead of depending on the s_power() callback. It's much cleaner that way.
+Am Mittwoch, den 16.05.2018, 11:42 +0200 schrieb Daniel Vetter:
+> On Tue, May 15, 2018 at 01:16:30PM +0100, Chris Wilson wrote:
+> > Quoting Ezequiel Garcia (2018-05-14 22:28:31)
+> > > On Mon, 2018-05-14 at 18:48 +0200, Daniel Vetter wrote:
+> > > > On Fri, May 11, 2018 at 08:27:41AM +0100, Chris Wilson wrote:
+> > > > > Quoting Ezequiel Garcia (2018-05-09 21:14:49)
+> > > > > > Change how dma_fence_add_callback() behaves, when the fence
+> > > > > > has error-signaled by the time it is being add. After this commit,
+> > > > > > dma_fence_add_callback() returns the fence error, if it
+> > > > > > has error-signaled before dma_fence_add_callback() is called.
+> > > > > 
+> > > > > Why? What problem are you trying to solve? fence->error does not imply
+> > > > > that the fence has yet been signaled, and the caller wants a callback
+> > > > > when it is signaled.
+> > > > 
+> > > > On top this is incosistent, e.g. we don't do the same for any of the other
+> > > > dma_fence interfaces. Plus there's the issue that you might alias errno
+> > > > values with fence errno values.
+> > > > 
+> > > 
+> > > Right.
+> > > 
+> > > > I think keeping the error codes from the functions you're calling distinct
+> > > > from the error code of the fence itself makes a lot of sense. The first
+> > > > tells you whether your request worked out (or why not), the second tells
+> > > > you whether the asynchronous dma operation (gpu rendering, page flip,
+> > > > whatever) that the dma_fence represents worked out (or why not). That's 2
+> > > > distinct things imo.
+> > > > 
+> > > > Might be good to show us the driver code that needs this behaviour so we
+> > > > can discuss how to best handle your use-case.
+> > > > 
+> > > 
+> > > This change arose while discussing the in-fences support for video4linux.
+> > > Here's the patch that calls dma_fence_add_callback https://lkml.org/lkml/2018/5/4/766.
+> > > 
+> > > The code snippet currently looks something like this:
+> > > 
+> > >         if (vb->in_fence) {
+> > >                 ret = dma_fence_add_callback(vb->in_fence, &vb->fence_cb,
+> > >                                 
+> > >              vb2_qbuf_fence_cb);
+> > >                 /* is the fence signaled? */
+> > >                 if (ret == -ENOENT) {
+> > >         
+> > >                 dma_fence_put(vb->in_fence);
+> > >                         vb->in_fence = NULL;
+> > >                 } else if (ret)
+> > > {
+> > >                         goto unlock;
+> > >                 }
+> > >         }
+> > > 
+> > > In this use case, if the callback is added successfully,
+> > > the video4linux core defers the activation of the buffer
+> > > until the fence signals.
+> > > 
+> > > If the fence is signaled (currently disregarding of errors)
+> > > then the buffer is assumed to be ready to be activated,
+> > > and so it gets queued for hardware usage.
+> > > 
+> > > Giving some more thought to this, I'm not so sure what is
+> > > the right action if a fence signaled with error. In this case,
+> > > it appears to me that we shouldn't be using this buffer
+> > > if its in-fence is in error, but perhaps I'm missing
+> > > something.
+> > 
+> > What I have in mind for async errors is to skip the operation and
+> > propagate the error onto the next fence. Mostly because those async
+> > errors may include fatal errors such as unable to pin the backing
+> > storage for the operation, but even "trivial" errors such as an early
+> > operation failing means that this request is then subject to garbage-in,
+> > garbage-out. However, for trivial errors I would just propagate the
+> > error status (so the caller knows something went wrong if they care, but
+> > in all likelihood no one will notice) and continue on with the glitchy
+> > operation.
+> 
+> In general, there's not really any hard rule about propagating fence
+> errors across devices. It's mostly just used by drivers internally to keep
+> track of failed stuff (gpu hangs or anything else async like Chris
+> describes here).
+> 
+> For v4l I'm not sure you want to care much about this, since right now the
+> main use of fence errors is gpu hang recovery (whether it's the driver or
+> hw that's hung doesn't matter here).
 
-Sounds good.
-I'll look into whether some sensor drivers can be converted to use it.
+Yes, my understanding is that fence signal and errors are two distinct
+things that should not be conflated like it is done in this patch.
 
-> It's not a near-term solution though. The approach seems fine, please see
-> comments below though.
->
->>
->> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
->> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
->> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
->> ---
->>  drivers/media/platform/pxa_camera.c | 17 ++++++++++++-----
->>  1 file changed, 12 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
->> index c71a007..c792cb1 100644
->> --- a/drivers/media/platform/pxa_camera.c
->> +++ b/drivers/media/platform/pxa_camera.c
->> @@ -2040,6 +2040,9 @@ static int pxac_fops_camera_open(struct file *filp)
->>       if (ret < 0)
->>               goto out;
->>
->> +     if (!v4l2_fh_is_singular_file(filp))
->> +             goto out;
->> +
->>       ret = sensor_call(pcdev, core, s_power, 1);
->>       if (ret)
->>               v4l2_fh_release(filp);
->> @@ -2052,13 +2055,17 @@ static int pxac_fops_camera_release(struct file *filp)
->>  {
->>       struct pxa_camera_dev *pcdev = video_drvdata(filp);
->>       int ret;
->> -
->> -     ret = vb2_fop_release(filp);
->> -     if (ret < 0)
->> -             return ret;
->> +     bool fh_singular;
->>
->>       mutex_lock(&pcdev->mlock);
->> -     ret = sensor_call(pcdev, core, s_power, 0);
->> +
->> +     fh_singular = v4l2_fh_is_singular_file(filp);
->> +
->> +     ret = _vb2_fop_release(filp, NULL);
->
-> I'm not sure whether using the return value to return an error from release
-> is really useful. If you want to use it, I'd shout loud instead.
+In my understanding signaling a fence means the HW or SW component
+which added the fence is done with the buffer and will not touch it
+anymore. In case of an unrecoverable error the fence will be signaled
+with error status set, so we correctly reflect the buffer status as
+being free to be used by whoever is waiting for it, but may contain
+garbage.
 
-What is the best way to handle these errors in release?
+If a fence waiter cares about the buffer content and may wish to skip
+its operation if the fence is signaled with an error it should do it by
+explicitly checking the fence error status, instead of making this
+implicit behavior.
 
-AFAICS, vb2_fop_release() always returns zero for now and most platform
-drivers don't use return value from s_power() calling with on == 0.
-
-So ignoring both of vb2_fop_release error and s_power error makes sense?
-
->> +
->> +     if (fh_singular)
->
-> ret assigned previously is overwritten here without checking.
->
->> +             ret = sensor_call(pcdev, core, s_power, 0);
->> +
->>       mutex_unlock(&pcdev->mlock);
->>
->>       return ret;
->
-> --
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
+Regards,
+Lucas
