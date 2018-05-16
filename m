@@ -1,40 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:39395 "EHLO mail.anw.at"
+Received: from mx.socionext.com ([202.248.49.38]:8591 "EHLO mx.socionext.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751022AbeEMHtw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 May 2018 03:49:52 -0400
-Subject: Re: [PATCH 5/7] Header location fix for 3.5.0 to 3.11.x
-To: Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-References: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
- <1524763162-4865-6-git-send-email-brad@nextdimension.cc>
- <4ae5be5c-167e-bf3b-4849-8958552f8d05@anw.at>
- <16264dca-f0c2-a699-c7ff-f392ce8751f4@nextdimension.cc>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <2c7fab30-8a79-2fc7-b29b-1db2bb4bfbbb@anw.at>
-Date: Sun, 13 May 2018 09:49:47 +0200
-MIME-Version: 1.0
-In-Reply-To: <16264dca-f0c2-a699-c7ff-f392ce8751f4@nextdimension.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+        id S1751510AbeEPIh4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 May 2018 04:37:56 -0400
+From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+To: Abylay Ospan <aospan@netup.ru>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>,
+        Jassi Brar <jaswinder.singh@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+Subject: [PATCH v2] media: helene: add I2C device probe function
+Date: Wed, 16 May 2018 17:37:53 +0900
+Message-Id: <20180516083753.15510-1-suzuki.katsuhiro@socionext.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Brad!
+This patch adds I2C probe function to use dvb_module_probe()
+with this driver.
 
-> Are the build logs public?
-Look for the eMail
-   cron job: media_tree daily build: ?????
+Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
 
-The ????? is OK, WARNINGS or ERRORS
-In this eMail there are links to the short and long logfile.
+---
 
+Changes since v1:
+  - Add documents for dvb_frontend member of helene_config
+---
+ drivers/media/dvb-frontends/helene.c | 88 ++++++++++++++++++++++++++--
+ drivers/media/dvb-frontends/helene.h |  3 +
+ 2 files changed, 87 insertions(+), 4 deletions(-)
 
-Hans uses a complete build system which can download the Kernel sources, build
-media-build against all of them and does also Sparse and Smatch tests. It even
-builds gcc 7.x and all of the required tools for you. You can find it here:
-   https://git.linuxtv.org/hverkuil/build-scripts.git
-
-BR,
-   Jasmin
+diff --git a/drivers/media/dvb-frontends/helene.c b/drivers/media/dvb-frontends/helene.c
+index a0d0b53c91d7..04033f0c278b 100644
+--- a/drivers/media/dvb-frontends/helene.c
++++ b/drivers/media/dvb-frontends/helene.c
+@@ -666,7 +666,7 @@ static int helene_set_params_s(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int helene_set_params(struct dvb_frontend *fe)
++static int helene_set_params_t(struct dvb_frontend *fe)
+ {
+ 	u8 data[MAX_WRITE_REGSIZE];
+ 	u32 frequency;
+@@ -835,6 +835,19 @@ static int helene_set_params(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
++static int helene_set_params(struct dvb_frontend *fe)
++{
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++
++	if (p->delivery_system == SYS_DVBT ||
++	    p->delivery_system == SYS_DVBT2 ||
++	    p->delivery_system == SYS_ISDBT ||
++	    p->delivery_system == SYS_DVBC_ANNEX_A)
++		return helene_set_params_t(fe);
++
++	return helene_set_params_s(fe);
++}
++
+ static int helene_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+ 	struct helene_priv *priv = fe->tuner_priv;
+@@ -843,7 +856,7 @@ static int helene_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
+ 
+-static const struct dvb_tuner_ops helene_tuner_ops = {
++static const struct dvb_tuner_ops helene_tuner_ops_t = {
+ 	.info = {
+ 		.name = "Sony HELENE Ter tuner",
+ 		.frequency_min = 1000000,
+@@ -853,7 +866,7 @@ static const struct dvb_tuner_ops helene_tuner_ops = {
+ 	.init = helene_init,
+ 	.release = helene_release,
+ 	.sleep = helene_sleep,
+-	.set_params = helene_set_params,
++	.set_params = helene_set_params_t,
+ 	.get_frequency = helene_get_frequency,
+ };
+ 
+@@ -871,6 +884,20 @@ static const struct dvb_tuner_ops helene_tuner_ops_s = {
+ 	.get_frequency = helene_get_frequency,
+ };
+ 
++static const struct dvb_tuner_ops helene_tuner_ops = {
++	.info = {
++		.name = "Sony HELENE Sat/Ter tuner",
++		.frequency_min = 500000,
++		.frequency_max = 1200000000,
++		.frequency_step = 1000,
++	},
++	.init = helene_init,
++	.release = helene_release,
++	.sleep = helene_sleep,
++	.set_params = helene_set_params,
++	.get_frequency = helene_get_frequency,
++};
++
+ /* power-on tuner
+  * call once after reset
+  */
+@@ -1032,7 +1059,7 @@ struct dvb_frontend *helene_attach(struct dvb_frontend *fe,
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+-	memcpy(&fe->ops.tuner_ops, &helene_tuner_ops,
++	memcpy(&fe->ops.tuner_ops, &helene_tuner_ops_t,
+ 			sizeof(struct dvb_tuner_ops));
+ 	fe->tuner_priv = priv;
+ 	dev_info(&priv->i2c->dev,
+@@ -1042,6 +1069,59 @@ struct dvb_frontend *helene_attach(struct dvb_frontend *fe,
+ }
+ EXPORT_SYMBOL(helene_attach);
+ 
++static int helene_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct helene_config *config = client->dev.platform_data;
++	struct dvb_frontend *fe = config->fe;
++	struct device *dev = &client->dev;
++	struct helene_priv *priv;
++
++	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++	priv->i2c_address = client->addr;
++	priv->i2c = client->adapter;
++	priv->set_tuner_data = config->set_tuner_priv;
++	priv->set_tuner = config->set_tuner_callback;
++	priv->xtal = config->xtal;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	if (helene_x_pon(priv) != 0)
++		return -EINVAL;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	memcpy(&fe->ops.tuner_ops, &helene_tuner_ops,
++	       sizeof(struct dvb_tuner_ops));
++	fe->tuner_priv = priv;
++	i2c_set_clientdata(client, priv);
++
++	dev_info(dev, "Sony HELENE attached on addr=%x at I2C adapter %p\n",
++		 priv->i2c_address, priv->i2c);
++
++	return 0;
++}
++
++static const struct i2c_device_id helene_id[] = {
++	{ "helene", },
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, helene_id);
++
++static struct i2c_driver helene_driver = {
++	.driver = {
++		.name = "helene",
++	},
++	.probe    = helene_probe,
++	.id_table = helene_id,
++};
++module_i2c_driver(helene_driver);
++
+ MODULE_DESCRIPTION("Sony HELENE Sat/Ter tuner driver");
+ MODULE_AUTHOR("Abylay Ospan <aospan@netup.ru>");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/dvb-frontends/helene.h b/drivers/media/dvb-frontends/helene.h
+index c9fc81c7e4e7..8562d01bc93e 100644
+--- a/drivers/media/dvb-frontends/helene.h
++++ b/drivers/media/dvb-frontends/helene.h
+@@ -39,6 +39,7 @@ enum helene_xtal {
+  * @set_tuner_callback:	Callback function that notifies the parent driver
+  *			which tuner is active now
+  * @xtal: Cristal frequency as described by &enum helene_xtal
++ * @fe: Frontend for which connects this tuner
+  */
+ struct helene_config {
+ 	u8	i2c_address;
+@@ -46,6 +47,8 @@ struct helene_config {
+ 	void	*set_tuner_priv;
+ 	int	(*set_tuner_callback)(void *, int);
+ 	enum helene_xtal xtal;
++
++	struct dvb_frontend *fe;
+ };
+ 
+ #if IS_REACHABLE(CONFIG_DVB_HELENE)
+-- 
+2.17.0
