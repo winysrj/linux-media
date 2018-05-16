@@ -1,110 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f179.google.com ([209.85.192.179]:44510 "EHLO
-        mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750711AbeEKRfg (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:45628 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750799AbeEPS2k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 13:35:36 -0400
-Received: by mail-pf0-f179.google.com with SMTP id q22-v6so3039166pff.11
-        for <linux-media@vger.kernel.org>; Fri, 11 May 2018 10:35:35 -0700 (PDT)
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-Cc: linux-media@vger.kernel.org,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Tim Harvey <tharvey@gateworks.com>
-References: <m37eobudmo.fsf@t19.piap.pl>
- <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com> <m3tvresqfw.fsf@t19.piap.pl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
-Date: Fri, 11 May 2018 10:35:28 -0700
-MIME-Version: 1.0
-In-Reply-To: <m3tvresqfw.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+        Wed, 16 May 2018 14:28:40 -0400
+Message-ID: <98f6b816358a51394f1d9fe3d0f13eb762febce6.camel@collabora.com>
+Subject: Re: [PATCH] dma-fence: Make dma_fence_add_callback() fail if
+ signaled with error
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Lucas Stach <l.stach@pengutronix.de>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Chris Wilson <chris@chris-wilson.co.uk>
+Cc: dri-devel@lists.freedesktop.org, kernel@collabora.com,
+        linux-media@vger.kernel.org
+Date: Wed, 16 May 2018 15:27:15 -0300
+In-Reply-To: <1526466365.3494.26.camel@pengutronix.de>
+References: <20180509201449.27452-1-ezequiel@collabora.com>
+         <152602366168.22269.11696001916463464983@mail.alporthouse.com>
+         <20180514164823.GH28661@phenom.ffwll.local>
+         <e75424afd7fafad7b584a9cf905684de661996cb.camel@collabora.com>
+         <152638659036.18532.13662508480413451560@mail.alporthouse.com>
+         <20180516094224.GD3438@phenom.ffwll.local>
+         <1526466365.3494.26.camel@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, 2018-05-16 at 12:26 +0200, Lucas Stach wrote:
+> Am Mittwoch, den 16.05.2018, 11:42 +0200 schrieb Daniel Vetter:
+> > On Tue, May 15, 2018 at 01:16:30PM +0100, Chris Wilson wrote:
+> > > Quoting Ezequiel Garcia (2018-05-14 22:28:31)
+> > > > On Mon, 2018-05-14 at 18:48 +0200, Daniel Vetter wrote:
+> > > > > On Fri, May 11, 2018 at 08:27:41AM +0100, Chris Wilson wrote:
+> > > > > > Quoting Ezequiel Garcia (2018-05-09 21:14:49)
+> > > > > > > Change how dma_fence_add_callback() behaves, when the fence
+> > > > > > > has error-signaled by the time it is being add. After this commit,
+> > > > > > > dma_fence_add_callback() returns the fence error, if it
+> > > > > > > has error-signaled before dma_fence_add_callback() is called.
+> > > > > > 
+> > > > > > Why? What problem are you trying to solve? fence->error does not imply
+> > > > > > that the fence has yet been signaled, and the caller wants a callback
+> > > > > > when it is signaled.
+> > > > > 
+> > > > > On top this is incosistent, e.g. we don't do the same for any of the other
+> > > > > dma_fence interfaces. Plus there's the issue that you might alias errno
+> > > > > values with fence errno values.
+> > > > > 
+> > > > 
+> > > > Right.
+> > > > 
+> > > > > I think keeping the error codes from the functions you're calling distinct
+> > > > > from the error code of the fence itself makes a lot of sense. The first
+> > > > > tells you whether your request worked out (or why not), the second tells
+> > > > > you whether the asynchronous dma operation (gpu rendering, page flip,
+> > > > > whatever) that the dma_fence represents worked out (or why not). That's 2
+> > > > > distinct things imo.
+> > > > > 
+> > > > > Might be good to show us the driver code that needs this behaviour so we
+> > > > > can discuss how to best handle your use-case.
+> > > > > 
+> > > > 
+> > > > This change arose while discussing the in-fences support for video4linux.
+> > > > Here's the patch that calls dma_fence_add_callback https://lkml.org/lkml/2018/5/4/766.
+> > > > 
+> > > > The code snippet currently looks something like this:
+> > > > 
+> > > >         if (vb->in_fence) {
+> > > >                 ret = dma_fence_add_callback(vb->in_fence, &vb->fence_cb,
+> > > >                                 
+> > > >              vb2_qbuf_fence_cb);
+> > > >                 /* is the fence signaled? */
+> > > >                 if (ret == -ENOENT) {
+> > > >         
+> > > >                 dma_fence_put(vb->in_fence);
+> > > >                         vb->in_fence = NULL;
+> > > >                 } else if (ret)
+> > > > {
+> > > >                         goto unlock;
+> > > >                 }
+> > > >         }
+> > > > 
+> > > > In this use case, if the callback is added successfully,
+> > > > the video4linux core defers the activation of the buffer
+> > > > until the fence signals.
+> > > > 
+> > > > If the fence is signaled (currently disregarding of errors)
+> > > > then the buffer is assumed to be ready to be activated,
+> > > > and so it gets queued for hardware usage.
+> > > > 
+> > > > Giving some more thought to this, I'm not so sure what is
+> > > > the right action if a fence signaled with error. In this case,
+> > > > it appears to me that we shouldn't be using this buffer
+> > > > if its in-fence is in error, but perhaps I'm missing
+> > > > something.
+> > > 
+> > > What I have in mind for async errors is to skip the operation and
+> > > propagate the error onto the next fence. Mostly because those async
+> > > errors may include fatal errors such as unable to pin the backing
+> > > storage for the operation, but even "trivial" errors such as an early
+> > > operation failing means that this request is then subject to garbage-in,
+> > > garbage-out. However, for trivial errors I would just propagate the
+> > > error status (so the caller knows something went wrong if they care, but
+> > > in all likelihood no one will notice) and continue on with the glitchy
+> > > operation.
+> > 
+> > In general, there's not really any hard rule about propagating fence
+> > errors across devices. It's mostly just used by drivers internally to keep
+> > track of failed stuff (gpu hangs or anything else async like Chris
+> > describes here).
+> > 
+> > For v4l I'm not sure you want to care much about this, since right now the
+> > main use of fence errors is gpu hang recovery (whether it's the driver or
+> > hw that's hung doesn't matter here).
+> 
+> Yes, my understanding is that fence signal and errors are two distinct
+> things that should not be conflated like it is done in this patch.
+> 
+> In my understanding signaling a fence means the HW or SW component
+> which added the fence is done with the buffer and will not touch it
+> anymore. In case of an unrecoverable error the fence will be signaled
+> with error status set, so we correctly reflect the buffer status as
+> being free to be used by whoever is waiting for it, but may contain
+> garbage.
+> 
+> If a fence waiter cares about the buffer content and may wish to skip
+> its operation if the fence is signaled with an error it should do it by
+> explicitly checking the fence error status, instead of making this
+> implicit behavior.
+> 
 
+Yes, that sounds right.
 
-On 05/10/2018 10:37 PM, Krzysztof Hałasa wrote:
-> Steve Longerbeam <slongerbeam@gmail.com> writes:
->
->>> Second, the image format information I'm getting out of "ipu2_csi1
->>> capture" device is:
->>>
->>> open("/dev/video6")
->>> ioctl(VIDIOC_S_FMT, {V4L2_BUF_TYPE_VIDEO_CAPTURE,
->>> 	fmt.pix={704x576, pixelformat=NV12, V4L2_FIELD_INTERLACED} =>
->>> 	fmt.pix={720x576, pixelformat=NV12, V4L2_FIELD_INTERLACED,
->>>           bytesperline=720, sizeimage=622080,
->>> 	colorspace=V4L2_COLORSPACE_SMPTE170M}})
->>>
->>> Now, the resulting image obtained via QBUF/DQBUF doesn't seem to be
->>> a single interlaced frame (like it was with older drivers). Actually,
->>> I'm getting the two fields, encoded with NV12 and concatenated
->>> together (I think it's V4L2_FIELD_SEQ_TB or V4L2_FIELD_SEQ_BT).
->>>
->>> What's wrong?
->> Set field type at /dev/video6 to NONE. That will enable IDMAC
->> interweaving of the top and bottom fields.
-> Such as this?
-> "adv7180 2-0020":0
->                  [fmt:UYVY2X8/720x576 field:interlaced]
-> "ipu2_csi1_mux":1
->                  [fmt:UYVY2X8/720x576 field:interlaced]
-> "ipu2_csi1_mux":2
->                  [fmt:UYVY2X8/720x576 field:interlaced]
-> "ipu2_csi1":0
->                  [fmt:UYVY2X8/720x576 field:interlaced
->                   crop.bounds:(0,0)/720x576
->                   crop:(0,0)/720x576
->                   compose.bounds:(0,0)/720x576
->                   compose:(0,0)/720x576]
-> "ipu2_csi1":2
->                  [fmt:AYUV32/720x576 field:none]
-
-
-Yes, that looks fine.
-
-> There is something wrong - the resulting image is out of (vertical)
-> sync,
-
-Yes, the CSI on i.MX6 does not deal well with unstable bt.656 sync codes,
-which results in vertical sync issues (scrolling or split images). The 
-ADV7180
-will often shift the sync codes around in various situations (initial 
-power on,
-see below, also when there is an interruption of the input analog CVBS
-signal).
-
-There is a frame interval monitor in the imx-media driver that can catch 
-these
-unstable sync code events and send an v4l2 event to userspace, userspace can
-then issue stream off->on which usually corrects the vertical sync.
-
-See https://linuxtv.org/downloads/v4l-dvb-apis/v4l-drivers/imx.html, section
-15.9 for more info on the vertical sync issues in i.MX6 CSI and how to setup
-the FIM to correct them.
-
-One other thing I've noticed is that the ADV7180 can send unstable bt.656
-sync codes after initial power on. Try adding a ~10 frame time delay in
-adv7180_set_power(), so that the imx CSI won't see these frames and
-get tripped up at stream on.
-
-
->   it seems the time it takes to receive a frame is a bit longer than
-> the normal 40 ms. I can also set field to NONE on "ipu2_csi1_mux":[12]
-> but it doesn't sync, either. Only with everything set to INTERLACED, the
-> frame is synchronized (actually, it starts unsynchronized, but slowly
-> scrolls down the screen and eventually "catches sync").
-> With the old drivers nothing like this happens: the image is "instantly"
-> synchronized and it's a single interlaced frame, not the two halves
-> concatenated.
-
-The old driver, IIRC, would also catch the unstable sync codes via
-a FIM, but would internally restart IPU capture hardware without
-the involvement of userspace, effectively this was an internal
-stream on/off. In imx-media, this must be done via userspace when
-it catches the V4L2_EVENT_IMX_FRAME_INTERVAL_ERROR event.
-
-Steve
+Thanks for the help,
+Eze
