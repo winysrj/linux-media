@@ -1,140 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38366 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751345AbeEaEKh (ORCPT
+Received: from relay11.mail.gandi.net ([217.70.178.231]:54079 "EHLO
+        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750806AbeEPQco (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 00:10:37 -0400
-Message-ID: <a63e2971240cd3a5fc135b471c80a056@smtp-cloud7.xs4all.net>
-Date: Thu, 31 May 2018 06:10:33 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Wed, 16 May 2018 12:32:44 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        horms@verge.net.au, geert@glider.be
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 0/6] media: rcar-vin: Brush endpoint properties
+Date: Wed, 16 May 2018 18:32:26 +0200
+Message-Id: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello,
+   this series touches the bindings and the driver handling endpoint
+properties for digital subdevices of the R-Car VIN driver.
 
-Results of the daily build of media_tree:
+The first patch simply documents what are the endpoint properties supported
+at the moment, then the second one extends them with 'data-active'.
 
-date:			Thu May 31 05:00:16 CEST 2018
-media-tree git hash:	a00031c159748f322f771f3c1d5ed944cba4bd30
-media_build git hash:	b2f4db1adbe0cb2e42e875c16c009f1fa95d3325
-v4l-utils git hash:	2a12796b5c22cd1a549eb8fa25db873ced811ca5
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+As the VIN hardware allows to use HSYNC as data enable signal when the CLCKENB
+pin is left unconnected, the 'data-active' property presence determinates
+if HSYNC has to be used or not as data enable signal. As a consequence, when
+running with embedded synchronism, and there is not HSYNC signal, it becomes
+mandatory to specify 'data-active' polarity in DTS.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-rc4-i686: OK
-linux-4.17-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+To address this, all Gen-2 boards featuring a composite video input and
+running with embedded synchronization, now need that property to be specified
+in DTS. Before adding it, remove un-used properties as 'pclk-sample' and
+'bus-width' from the Gen-2 bindings, as they are not parsed by the VIN driver
+and only confuse users.
 
-Detailed results are available here:
+Niklas, as you already know I don't have any Gen2 board. Could you give this
+a spin on Koelsch if you like the series?
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Thanks
+   j
 
-Full logs are available here:
+Jacopo Mondi (6):
+  dt-bindings: media: rcar-vin: Describe optional ep properties
+  dt-bindings: media: rcar-vin: Document data-active
+  media: rcar-vin: Handle data-active property
+  media: rcar-vin: Handle CLOCKENB pin polarity
+  ARM: dts: rcar-gen2: Remove unused VIN properties
+  ARM: dts: rcar-gen2: Add 'data-active' property
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 18 +++++++++++++++++-
+ arch/arm/boot/dts/r8a7790-lager.dts                  |  4 +---
+ arch/arm/boot/dts/r8a7791-koelsch.dts                |  4 +---
+ arch/arm/boot/dts/r8a7791-porter.dts                 |  2 +-
+ arch/arm/boot/dts/r8a7793-gose.dts                   |  4 +---
+ arch/arm/boot/dts/r8a7794-alt.dts                    |  2 +-
+ arch/arm/boot/dts/r8a7794-silk.dts                   |  2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c          | 10 ++++++++--
+ drivers/media/platform/rcar-vin/rcar-dma.c           | 11 +++++++++++
+ 9 files changed, 42 insertions(+), 15 deletions(-)
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--
+2.7.4
