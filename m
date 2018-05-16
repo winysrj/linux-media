@@ -1,62 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:49746 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751157AbeEENcF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2018 09:32:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [GIT FIXES FOR v4.17] UVC fixes
-Date: Sat, 05 May 2018 16:32:19 +0300
-Message-ID: <3875430.XimFTxnfmR@avalon>
-In-Reply-To: <20180505073538.3999f6b0@vento.lan>
-References: <2618618.x2Pkc03X4B@avalon> <20180505073538.3999f6b0@vento.lan>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:40719 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751150AbeEPV6t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 May 2018 17:58:49 -0400
+Received: by mail-lf0-f67.google.com with SMTP id i11-v6so442217lfb.7
+        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 14:58:49 -0700 (PDT)
+Date: Wed, 16 May 2018 23:58:47 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, horms@verge.net.au,
+        geert@glider.be, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 3/6] media: rcar-vin: Handle data-active property
+Message-ID: <20180516215847.GD17948@bigcity.dyn.berto.se>
+References: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526488352-898-4-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1526488352-898-4-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Jacopo,
 
-On Saturday, 5 May 2018 13:35:38 EEST Mauro Carvalho Chehab wrote:
-> Em Wed, 25 Apr 2018 03:37:00 +0300 Laurent Pinchart escreveu:
-> > Hi Mauro,
-> > 
-> > The following changes since commit 
-60cc43fc888428bb2f18f08997432d426a243338:
-> >   Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)
-> > 
-> > are available in the Git repository at:
-> >   git://linuxtv.org/pinchartl/media.git uvc/fixes
-> > 
-> > for you to fetch changes up to 3f22b63e8a488156467da43cdf9a3a7bd683f161:
-> >   media: uvcvideo: Prevent setting unavailable flags (2018-04-25 03:16:42
-> > 
-> > +0300)
+Thanks for your work.
+
+On 2018-05-16 18:32:29 +0200, Jacopo Mondi wrote:
+> The data-active property has to be specified when running with embedded
+> synchronization. The VIN peripheral can use HSYNC in place of CLOCKENB
+> when the CLOCKENB pin is not connected, this requires explicit
+> synchronization to be in use.
+
+Is this really the intent of the data-active property? I read the 
+video-interfaces.txt document as such as if no hsync-active, 
+vsync-active and data-active we should use the embedded synchronization 
+else set the polarity for the requested pins. What am I not 
+understanding here?
+
 > 
-> Not sure what happened here, but this e-mail is completely mangled.
-> This way, patchwork won't parse it.
+> Now that the driver supports 'data-active' property, it makes not sense
+> to zero the mbus configuration flags when running with implicit synch
+> (V4L2_MBUS_BT656).
 > 
-> I manually applied it, but next time please check if your emailer
-> is not messing with pull requests.
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index d3072e1..075d08f 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -531,15 +531,21 @@ static int rvin_digital_parse_v4l2(struct device *dev,
+>  		return -ENOTCONN;
+>  
+>  	vin->mbus_cfg.type = vep->bus_type;
+> +	vin->mbus_cfg.flags = vep->bus.parallel.flags;
+>  
+>  	switch (vin->mbus_cfg.type) {
+>  	case V4L2_MBUS_PARALLEL:
+>  		vin_dbg(vin, "Found PARALLEL media bus\n");
+> -		vin->mbus_cfg.flags = vep->bus.parallel.flags;
+>  		break;
+>  	case V4L2_MBUS_BT656:
+>  		vin_dbg(vin, "Found BT656 media bus\n");
+> -		vin->mbus_cfg.flags = 0;
+> +
+> +		if (!(vin->mbus_cfg.flags & V4L2_MBUS_DATA_ACTIVE_HIGH) &&
+> +		    !(vin->mbus_cfg.flags & V4L2_MBUS_DATA_ACTIVE_LOW)) {
+> +			vin_err(vin,
+> +				"Missing data enable signal polarity property\n");
 
-I really don't know what happened, I've used the same mailer as usual, nothing 
-changed in my workflow :-/ I'll keep an eye on that when submitting the next 
-pull request.
+I fear this can't be an error as that would break backward comp ability 
+with existing dtb's.
 
-Thank you for applying the patch.
-
-> > ----------------------------------------------------------------
-> > 
-> > Kieran Bingham (1):
-> >       media: uvcvideo: Prevent setting unavailable flags
-> >  
-> >  drivers/media/usb/uvc/uvc_ctrl.c | 17 +++++++++--------
-> >  1 file changed, 9 insertions(+), 8 deletions(-)
+> +			return -EINVAL;
+> +		}
+>  		break;
+>  	default:
+>  		vin_err(vin, "Unknown media bus type\n");
+> -- 
+> 2.7.4
+> 
 
 -- 
 Regards,
-
-Laurent Pinchart
+Niklas Söderlund
