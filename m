@@ -1,410 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:43401 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752136AbeEQRSl (ORCPT
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:36902 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751285AbeEPHpd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 13:18:41 -0400
+        Wed, 16 May 2018 03:45:33 -0400
+Received: by mail-qk0-f194.google.com with SMTP id 11-v6so2386636qkk.4
+        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 00:45:33 -0700 (PDT)
+Subject: Re: [PATCH v2 3/5] mfd: cros-ec: Introduce CEC commands and events
+ definitions.
+To: Hans Verkuil <hverkuil@xs4all.nl>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        Stefan Adolfsson <sadolfsson@chromium.org>
+References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
+ <1526395342-15481-4-git-send-email-narmstrong@baylibre.com>
+ <774f11b2-d21a-7dd5-4463-bcdff1f6535f@xs4all.nl>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <53f91641-80b0-b568-e1a2-0da4764c51e4@baylibre.com>
+Date: Wed, 16 May 2018 09:45:27 +0200
 MIME-Version: 1.0
-In-Reply-To: <78945f2bf82e9f16695f72bed3930d1302d38e29.1526504511.git.sean@mess.org>
-References: <cover.1526504511.git.sean@mess.org> <78945f2bf82e9f16695f72bed3930d1302d38e29.1526504511.git.sean@mess.org>
-From: Y Song <ys114321@gmail.com>
-Date: Thu, 17 May 2018 10:17:59 -0700
-Message-ID: <CAH3MdRUhrBzHXKgcu1htSHTqeKVWnci+ADrTriCqjXLHUezB+w@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] bpf: add selftest for rawir_event type program
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        netdev <netdev@vger.kernel.org>,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <774f11b2-d21a-7dd5-4463-bcdff1f6535f@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 16, 2018 at 2:04 PM, Sean Young <sean@mess.org> wrote:
-> This is simple test over rc-loopback.
->
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  tools/bpf/bpftool/prog.c                      |   1 +
->  tools/include/uapi/linux/bpf.h                |  57 +++++++-
->  tools/lib/bpf/libbpf.c                        |   1 +
->  tools/testing/selftests/bpf/Makefile          |   8 +-
->  tools/testing/selftests/bpf/bpf_helpers.h     |   6 +
->  tools/testing/selftests/bpf/test_rawir.sh     |  37 +++++
->  .../selftests/bpf/test_rawir_event_kern.c     |  26 ++++
->  .../selftests/bpf/test_rawir_event_user.c     | 130 ++++++++++++++++++
->  8 files changed, 261 insertions(+), 5 deletions(-)
->  create mode 100755 tools/testing/selftests/bpf/test_rawir.sh
->  create mode 100644 tools/testing/selftests/bpf/test_rawir_event_kern.c
->  create mode 100644 tools/testing/selftests/bpf/test_rawir_event_user.c
+Hi Hans,
 
-Could you copy include/uapi/linux/lirc.h file to tools directory as well.
-Otherwise, I will get the following compilation error:
+On 15/05/2018 17:28, Hans Verkuil wrote:
+> On 05/15/2018 04:42 PM, Neil Armstrong wrote:
+>> The EC can expose a CEC bus, this patch adds the CEC related definitions
+>> needed by the cros-ec-cec driver.
+>> Having a 16 byte mkbp event size makes it possible to send CEC
+>> messages from the EC to the AP directly inside the mkbp event
+>> instead of first doing a notification and then a read.
+>>
+>> Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
+>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+>> ---
+>>  drivers/platform/chrome/cros_ec_proto.c | 42 +++++++++++++----
+>>  include/linux/mfd/cros_ec.h             |  2 +-
+>>  include/linux/mfd/cros_ec_commands.h    | 80 +++++++++++++++++++++++++++++++++
+>>  3 files changed, 114 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
+>> index e7bbdf9..ba47f79 100644
+>> --- a/drivers/platform/chrome/cros_ec_proto.c
+>> +++ b/drivers/platform/chrome/cros_ec_proto.c
+>> @@ -504,29 +504,53 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
+>>  }
+>>  EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
+>>  
+>> +static int get_next_event_xfer(struct cros_ec_device *ec_dev,
+>> +			       struct cros_ec_command *msg,
+>> +			       int version, uint32_t size)
+>> +{
+>> +	int ret;
+>> +
+>> +	msg->version = version;
+>> +	msg->command = EC_CMD_GET_NEXT_EVENT;
+>> +	msg->insize = size;
+>> +	msg->outsize = 0;
+>> +
+>> +	ret = cros_ec_cmd_xfer(ec_dev, msg);
+>> +	if (ret > 0) {
+>> +		ec_dev->event_size = ret - 1;
+>> +		memcpy(&ec_dev->event_data, msg->data, size);
+>> +	}
+>> +
+>> +	return ret;
+>> +}
+>> +
+>>  static int get_next_event(struct cros_ec_device *ec_dev)
+>>  {
+>>  	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
+>>  	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
+>> +	static int cmd_version = 1;
+>>  	int ret;
+>>  
+>> +	BUILD_BUG_ON(sizeof(union ec_response_get_next_data_v1) != 16);
+> 
+> Use the define instead of hardcoding 16. I'm not really sure why you need this.
+> If cec_message uses the right define for the array size (see my comment below),
+> then this really can't go wrong, can it?
 
-gcc -Wall -O2 -I../../../include/uapi -I../../../lib
--I../../../lib/bpf -I../../../../include/generated  -I../../../include
-   test_rawir_event_user.c
-/home/yhs/work/bpf-next/tools/testing/selftests/bpf/libbpf.a -lcap
--lelf -lrt -lpthread -o
-/home/yhs/work/bpf-next/tools/testing/selftests/bpf/test_rawir_event_user
-test_rawir_event_user.c: In function =E2=80=98main=E2=80=99:
-test_rawir_event_user.c:60:15: error: =E2=80=98LIRC_MODE_SCANCODE=E2=80=99 =
-undeclared
-(first use in this function); did you mean =E2=80=98LIRC_MODE_LIRCCODE=E2=
-=80=99?
-        mode =3D LIRC_MODE_SCANCODE;
-               ^~~~~~~~~~~~~~~~~~
-               LIRC_MODE_LIRCCODE
-test_rawir_event_user.c:60:15: note: each undeclared identifier is
-reported only once for each function it appears in
-test_rawir_event_user.c:93:29: error: storage size of =E2=80=98lsc=E2=80=99=
- isn=E2=80=99t known
-        struct lirc_scancode lsc;
-                             ^~~
-test_rawir_event_user.c:93:29: warning: unused variable =E2=80=98lsc=E2=80=
-=99
-[-Wunused-variable]
+This is taken from the chrome kernelk, to be sure the size is ok, but yes it should be 16, I'll see
+if I can drop this.
 
->
-> diff --git a/tools/bpf/bpftool/prog.c b/tools/bpf/bpftool/prog.c
-> index 9bdfdf2d3fbe..8889a4ee8577 100644
-> --- a/tools/bpf/bpftool/prog.c
-> +++ b/tools/bpf/bpftool/prog.c
-> @@ -71,6 +71,7 @@ static const char * const prog_type_name[] =3D {
->         [BPF_PROG_TYPE_SK_MSG]          =3D "sk_msg",
->         [BPF_PROG_TYPE_RAW_TRACEPOINT]  =3D "raw_tracepoint",
->         [BPF_PROG_TYPE_CGROUP_SOCK_ADDR] =3D "cgroup_sock_addr",
-> +       [BPF_PROG_TYPE_RAWIR_EVENT]     =3D "rawir_event",
->  };
->
->  static void print_boot_time(__u64 nsecs, char *buf, unsigned int size)
-> diff --git a/tools/include/uapi/linux/bpf.h b/tools/include/uapi/linux/bp=
-f.h
-> index 1205d86a7a29..243e141e8a5b 100644
-> --- a/tools/include/uapi/linux/bpf.h
-> +++ b/tools/include/uapi/linux/bpf.h
-> @@ -141,6 +141,7 @@ enum bpf_prog_type {
->         BPF_PROG_TYPE_SK_MSG,
->         BPF_PROG_TYPE_RAW_TRACEPOINT,
->         BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
-> +       BPF_PROG_TYPE_RAWIR_EVENT,
->  };
->
->  enum bpf_attach_type {
-> @@ -158,6 +159,7 @@ enum bpf_attach_type {
->         BPF_CGROUP_INET6_CONNECT,
->         BPF_CGROUP_INET4_POST_BIND,
->         BPF_CGROUP_INET6_POST_BIND,
-> +       BPF_RAWIR_EVENT,
->         __MAX_BPF_ATTACH_TYPE
->  };
->
-> @@ -1829,7 +1831,6 @@ union bpf_attr {
->   *     Return
->   *             0 on success, or a negative error in case of failure.
->   *
-> - *
->   * int bpf_fib_lookup(void *ctx, struct bpf_fib_lookup *params, int plen=
-, u32 flags)
->   *     Description
->   *             Do FIB lookup in kernel tables using parameters in *param=
-s*.
-> @@ -1856,6 +1857,7 @@ union bpf_attr {
->   *             Egress device index on success, 0 if packet needs to cont=
-inue
->   *             up the stack for further processing or a negative error i=
-n case
->   *             of failure.
-> + *
->   * int bpf_sock_hash_update(struct bpf_sock_ops_kern *skops, struct bpf_=
-map *map, void *key, u64 flags)
->   *     Description
->   *             Add an entry to, or update a sockhash *map* referencing s=
-ockets.
-> @@ -1902,6 +1904,35 @@ union bpf_attr {
->   *             egress otherwise). This is the only flag supported for no=
-w.
->   *     Return
->   *             **SK_PASS** on success, or **SK_DROP** on error.
-> + *
-> + * int bpf_rc_keydown(void *ctx, u32 protocol, u32 scancode, u32 toggle)
-> + *     Description
-> + *             Report decoded scancode with toggle value. For use in
-> + *             BPF_PROG_TYPE_RAWIR_EVENT, to report a successfully
-> + *             decoded scancode. This is will generate a keydown event,
-> + *             and a keyup event once the scancode is no longer repeated=
-.
-> + *
-> + *             *ctx* pointer to bpf_rawir_event, *protocol* is decoded
-> + *             protocol (see RC_PROTO_* enum).
-> + *
-> + *             Some protocols include a toggle bit, in case the button
-> + *             was released and pressed again between consecutive scanco=
-des,
-> + *             copy this bit into *toggle* if it exists, else set to 0.
-> + *
-> + *     Return
-> + *             Always return 0 (for now)
-> + *
-> + * int bpf_rc_repeat(void *ctx)
-> + *     Description
-> + *             Repeat the last decoded scancode; some IR protocols like
-> + *             NEC have a special IR message for repeat last button,
-> + *             in case user is holding a button down; the scancode is
-> + *             not repeated.
-> + *
-> + *             *ctx* pointer to bpf_rawir_event.
-> + *
-> + *     Return
-> + *             Always return 0 (for now)
->   */
->  #define __BPF_FUNC_MAPPER(FN)          \
->         FN(unspec),                     \
-> @@ -1976,7 +2007,9 @@ union bpf_attr {
->         FN(fib_lookup),                 \
->         FN(sock_hash_update),           \
->         FN(msg_redirect_hash),          \
-> -       FN(sk_redirect_hash),
-> +       FN(sk_redirect_hash),           \
-> +       FN(rc_repeat),                  \
-> +       FN(rc_keydown),
->
->  /* integer value in 'imm' field of BPF_CALL instruction selects which he=
-lper
->   * function eBPF program intends to call
-> @@ -2043,6 +2076,26 @@ enum bpf_hdr_start_off {
->         BPF_HDR_START_NET,
->  };
->
-> +/*
-> + * user accessible mirror of in-kernel ir_raw_event
-> + */
-> +#define BPF_RAWIR_EVENT_SPACE          0
-> +#define BPF_RAWIR_EVENT_PULSE          1
-> +#define BPF_RAWIR_EVENT_TIMEOUT                2
-> +#define BPF_RAWIR_EVENT_RESET          3
-> +#define BPF_RAWIR_EVENT_CARRIER                4
-> +#define BPF_RAWIR_EVENT_DUTY_CYCLE     5
-> +
-> +struct bpf_rawir_event {
-> +       union {
-> +               __u32   duration;
-> +               __u32   carrier;
-> +               __u32   duty_cycle;
-> +       };
-> +
-> +       __u32   type;
-> +};
-> +
->  /* user accessible mirror of in-kernel sk_buff.
->   * new fields can only be added to the end of this structure
->   */
-> diff --git a/tools/lib/bpf/libbpf.c b/tools/lib/bpf/libbpf.c
-> index df54c4c9e48a..372269e9053d 100644
-> --- a/tools/lib/bpf/libbpf.c
-> +++ b/tools/lib/bpf/libbpf.c
-> @@ -1455,6 +1455,7 @@ static bool bpf_prog_type__needs_kver(enum bpf_prog=
-_type type)
->         case BPF_PROG_TYPE_CGROUP_DEVICE:
->         case BPF_PROG_TYPE_SK_MSG:
->         case BPF_PROG_TYPE_CGROUP_SOCK_ADDR:
-> +       case BPF_PROG_TYPE_RAWIR_EVENT:
->                 return false;
->         case BPF_PROG_TYPE_UNSPEC:
->         case BPF_PROG_TYPE_KPROBE:
-> diff --git a/tools/testing/selftests/bpf/Makefile b/tools/testing/selftes=
-ts/bpf/Makefile
-> index 1eb0fa2aba92..b84e36d05d34 100644
-> --- a/tools/testing/selftests/bpf/Makefile
-> +++ b/tools/testing/selftests/bpf/Makefile
-> @@ -24,7 +24,7 @@ urandom_read: urandom_read.c
->  # Order correspond to 'make run_tests' order
->  TEST_GEN_PROGS =3D test_verifier test_tag test_maps test_lru_map test_lp=
-m_map test_progs \
->         test_align test_verifier_log test_dev_cgroup test_tcpbpf_user \
-> -       test_sock test_btf test_sockmap
-> +       test_sock test_btf test_sockmap test_rawir_event_user
->
->  TEST_GEN_FILES =3D test_pkt_access.o test_xdp.o test_l4lb.o test_tcp_est=
-ats.o test_obj_id.o \
->         test_pkt_md_access.o test_xdp_redirect.o test_xdp_meta.o sockmap_=
-parse_prog.o     \
-> @@ -33,7 +33,8 @@ TEST_GEN_FILES =3D test_pkt_access.o test_xdp.o test_l4=
-lb.o test_tcp_estats.o test
->         sample_map_ret0.o test_tcpbpf_kern.o test_stacktrace_build_id.o \
->         sockmap_tcp_msg_prog.o connect4_prog.o connect6_prog.o test_adjus=
-t_tail.o \
->         test_btf_haskv.o test_btf_nokv.o test_sockmap_kern.o test_tunnel_=
-kern.o \
-> -       test_get_stack_rawtp.o test_sockmap_kern.o test_sockhash_kern.o
-> +       test_get_stack_rawtp.o test_sockmap_kern.o test_sockhash_kern.o \
-> +       test_rawir_event_kern.o
->
->  # Order correspond to 'make run_tests' order
->  TEST_PROGS :=3D test_kmod.sh \
-> @@ -42,7 +43,8 @@ TEST_PROGS :=3D test_kmod.sh \
->         test_xdp_meta.sh \
->         test_offload.py \
->         test_sock_addr.sh \
-> -       test_tunnel.sh
-> +       test_tunnel.sh \
-> +       test_rawir.sh
->
->  # Compile but not part of 'make run_tests'
->  TEST_GEN_PROGS_EXTENDED =3D test_libbpf_open test_sock_addr
-> diff --git a/tools/testing/selftests/bpf/bpf_helpers.h b/tools/testing/se=
-lftests/bpf/bpf_helpers.h
-> index 8f143dfb3700..26d89b7f9841 100644
-> --- a/tools/testing/selftests/bpf/bpf_helpers.h
-> +++ b/tools/testing/selftests/bpf/bpf_helpers.h
-> @@ -114,6 +114,12 @@ static int (*bpf_get_stack)(void *ctx, void *buf, in=
-t size, int flags) =3D
->  static int (*bpf_fib_lookup)(void *ctx, struct bpf_fib_lookup *params,
->                              int plen, __u32 flags) =3D
->         (void *) BPF_FUNC_fib_lookup;
-> +static int (*bpf_rc_repeat)(void *ctx) =3D
-> +       (void *) BPF_FUNC_rc_repeat;
-> +static int (*bpf_rc_keydown)(void *ctx, unsigned int protocol,
-> +                            unsigned int scancode, unsigned int toggle) =
-=3D
-> +       (void *) BPF_FUNC_rc_keydown;
-> +
->
->  /* llvm builtin functions that eBPF C program may use to
->   * emit BPF_LD_ABS and BPF_LD_IND instructions
-> diff --git a/tools/testing/selftests/bpf/test_rawir.sh b/tools/testing/se=
-lftests/bpf/test_rawir.sh
-> new file mode 100755
-> index 000000000000..0aa77b043ee1
-> --- /dev/null
-> +++ b/tools/testing/selftests/bpf/test_rawir.sh
-> @@ -0,0 +1,37 @@
-> +#!/bin/bash
-> +# SPDX-License-Identifier: GPL-2.0
-> +
-> +# Test bpf_rawir_event over rc-loopback. Steps for the test:
-> +#
-> +# 1. Find the /dev/lircN device for rc-loopback
-> +# 2. Attach bpf_rawir_event program which decodes some IR.
-> +# 3. Send some IR to the same IR device; since it is loopback, this will
-> +#    end up in the bpf program
-> +# 4. bpf program should decode IR and report keycode
-> +# 5. We can read keycode from same /dev/lirc device
-> +
-> +GREEN=3D'\033[0;92m'
-> +RED=3D'\033[0;31m'
-> +NC=3D'\033[0m' # No Color
-> +
-> +modprobe rc-loopback
-> +
-> +for i in /sys/class/rc/rc*
-> +do
-> +       if grep -q DRV_NAME=3Drc-loopback $i/uevent
-> +       then
-> +               LIRCDEV=3D$(grep DEVNAME=3D $i/lirc*/uevent | sed sQDEVNA=
-ME=3DQ/dev/Q)
-> +       fi
-> +done
-> +
-> +if [ -n $LIRCDEV ];
-> +then
-> +       TYPE=3Drawir_event
-> +       ./test_rawir_event_user $LIRCDEV
-> +       ret=3D$?
-> +       if [ $ret -ne 0 ]; then
-> +               echo -e ${RED}"FAIL: $TYPE"${NC}
-> +       else
-> +               echo -e ${GREEN}"PASS: $TYPE"${NC}
-> +       fi
-> +fi
-> diff --git a/tools/testing/selftests/bpf/test_rawir_event_kern.c b/tools/=
-testing/selftests/bpf/test_rawir_event_kern.c
-> new file mode 100644
-> index 000000000000..33ba5d30af62
-> --- /dev/null
-> +++ b/tools/testing/selftests/bpf/test_rawir_event_kern.c
-> @@ -0,0 +1,26 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +// test ir decoder
-> +//
-> +// Copyright (C) 2018 Sean Young <sean@mess.org>
-> +
-> +#include <linux/bpf.h>
-> +#include "bpf_helpers.h"
-> +
-> +SEC("rawir_event")
-> +int bpf_decoder(struct bpf_rawir_event *e)
-> +{
-> +       if (e->type =3D=3D BPF_RAWIR_EVENT_PULSE) {
-> +               /*
-> +                * The lirc interface is microseconds, but here we receiv=
-e
-> +                * nanoseconds.
-> +                */
-> +               int microseconds =3D e->duration / 1000;
-> +
-> +               if (microseconds & 0x10000)
-> +                       bpf_rc_keydown(e, 0x40, microseconds & 0xffff, 0)=
-;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +char _license[] SEC("license") =3D "GPL";
-> diff --git a/tools/testing/selftests/bpf/test_rawir_event_user.c b/tools/=
-testing/selftests/bpf/test_rawir_event_user.c
-> new file mode 100644
-> index 000000000000..c3d7f2c68033
-> --- /dev/null
-> +++ b/tools/testing/selftests/bpf/test_rawir_event_user.c
-> @@ -0,0 +1,130 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +// test ir decoder
-> +//
-> +// Copyright (C) 2018 Sean Young <sean@mess.org>
-> +
-> +#include <linux/bpf.h>
-> +#include <linux/lirc.h>
-> +#include <assert.h>
-> +#include <errno.h>
-> +#include <signal.h>
-> +#include <stdio.h>
-> +#include <stdlib.h>
-> +#include <stdbool.h>
-> +#include <string.h>
-> +#include <unistd.h>
-> +#include <poll.h>
-> +#include <libgen.h>
-> +#include <sys/resource.h>
-> +#include <sys/types.h>
-> +#include <sys/ioctl.h>
-> +#include <sys/stat.h>
-> +#include <fcntl.h>
-> +
-> +#include "bpf_util.h"
-> +#include <bpf/bpf.h>
-> +#include <bpf/libbpf.h>
-> +
-> +int main(int argc, char **argv)
-> +{
-> +       struct bpf_object *obj;
-> +       int ret, lircfd, progfd, mode;
-> +       int testir =3D 0x1dead;
-> +       u32 prog_ids[10], prog_flags[10], prog_cnt;
-> +
-> +       if (argc !=3D 2) {
-> +               printf("Usage: %s /dev/lircN\n", argv[0]);
+> 
+>> +
+>>  	if (ec_dev->suspended) {
+>>  		dev_dbg(ec_dev->dev, "Device suspended.\n");
+>>  		return -EHOSTDOWN;
+>>  	}
+>>  
+>> -	msg->version = 0;
+>> -	msg->command = EC_CMD_GET_NEXT_EVENT;
+>> -	msg->insize = sizeof(ec_dev->event_data);
+>> -	msg->outsize = 0;
+>> +	if (cmd_version == 1) {
+>> +		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
+>> +					  sizeof(ec_dev->event_data));
+>> +		if (ret != EC_RES_INVALID_VERSION)
+>> +			return ret;
+>>  
+>> -	ret = cros_ec_cmd_xfer(ec_dev, msg);
+>> -	if (ret > 0) {
+>> -		ec_dev->event_size = ret - 1;
+>> -		memcpy(&ec_dev->event_data, msg->data,
+>> -		       sizeof(ec_dev->event_data));
+>> +		/* Fallback to version 0 for future send attempts */
+>> +		cmd_version = 0;
+>>  	}
+>>  
+>> +	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
+>> +				  sizeof(struct ec_response_get_next_event));
+>> +
+>>  	return ret;
+>>  }
+>>  
+>> diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
+>> index 2d4e23c..f3415eb 100644
+>> --- a/include/linux/mfd/cros_ec.h
+>> +++ b/include/linux/mfd/cros_ec.h
+>> @@ -147,7 +147,7 @@ struct cros_ec_device {
+>>  	bool mkbp_event_supported;
+>>  	struct blocking_notifier_head event_notifier;
+>>  
+>> -	struct ec_response_get_next_event event_data;
+>> +	struct ec_response_get_next_event_v1 event_data;
+>>  	int event_size;
+>>  	u32 host_event_wake_mask;
+>>  };
+>> diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
+>> index f2edd99..18df466 100644
+>> --- a/include/linux/mfd/cros_ec_commands.h
+>> +++ b/include/linux/mfd/cros_ec_commands.h
+>> @@ -804,6 +804,8 @@ enum ec_feature_code {
+>>  	EC_FEATURE_MOTION_SENSE_FIFO = 24,
+>>  	/* EC has RTC feature that can be controlled by host commands */
+>>  	EC_FEATURE_RTC = 27,
+>> +	/* EC supports CEC commands */
+>> +	EC_FEATURE_CEC = 35,
+>>  };
+>>  
+>>  #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
+>> @@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
+>>  	/* EC sent a sysrq command */
+>>  	EC_MKBP_EVENT_SYSRQ = 6,
+>>  
+>> +	/* Notify the AP that something happened on CEC */
+>> +	EC_MKBP_CEC_EVENT = 8,
+>> +
+>> +	/* Send an incoming CEC message to the AP */
+>> +	EC_MKBP_EVENT_CEC_MESSAGE = 9,
+>> +
+>>  	/* Number of MKBP events */
+>>  	EC_MKBP_EVENT_COUNT,
+>>  };
+>> @@ -2093,12 +2101,31 @@ union ec_response_get_next_data {
+>>  	uint32_t   sysrq;
+>>  } __packed;
+>>  
+>> +union ec_response_get_next_data_v1 {
+>> +	uint8_t   key_matrix[16];
+>> +
+>> +	/* Unaligned */
+>> +	uint32_t  host_event;
+>> +
+>> +	uint32_t   buttons;
+>> +	uint32_t   switches;
+>> +	uint32_t   sysrq;
+>> +	uint32_t   cec_events;
+>> +	uint8_t    cec_message[16];
+>> +} __packed;
+>> +
+>>  struct ec_response_get_next_event {
+>>  	uint8_t event_type;
+>>  	/* Followed by event data if any */
+>>  	union ec_response_get_next_data data;
+>>  } __packed;
+>>  
+>> +struct ec_response_get_next_event_v1 {
+>> +	uint8_t event_type;
+>> +	/* Followed by event data if any */
+>> +	union ec_response_get_next_data_v1 data;
+>> +} __packed;
+>> +
+>>  /* Bit indices for buttons and switches.*/
+>>  /* Buttons */
+>>  #define EC_MKBP_POWER_BUTTON	0
+>> @@ -2828,6 +2855,59 @@ struct ec_params_reboot_ec {
+>>  /* Current version of ACPI memory address space */
+>>  #define EC_ACPI_MEM_VERSION_CURRENT 1
+>>  
+>> +/*****************************************************************************/
+>> +/*
+>> + * HDMI CEC commands
+>> + *
+>> + * These commands are for sending and receiving message via HDMI CEC
+>> + */
+>> +#define MAX_CEC_MSG_LEN 16
+> 
+> Hmm, uapi/linux/cec.h already defines CEC_MAX_MSG_SIZE with the same value.
+> Perhaps it is better to include linux/cec.h here instead of creating a second
+> define?
+> 
+> And shouldn't this define also be used for the cec_message array above?
 
-Most people probably not really familiar with lircN device. It would be
-good to provide more information about how to enable this, e.g.,
-  CONFIG_RC_CORE=3Dy
-  CONFIG_BPF_RAWIR_EVENT=3Dy
-  CONFIG_RC_LOOPBACK=3Dy
-  ......
+These defines are tied to the Embedded Controller API, so it may be goog to keep them
+separated from the rest of the Linux APO, I'll see about using the define in the event
+struct, but I think they want to have a formal array size using a number.
 
-Thanks!
+Neil
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>> +
+>> +/* CEC message from the AP to be written on the CEC bus */
+>> +#define EC_CMD_CEC_WRITE_MSG 0x00B8
+>> +
+>> +/* Message to write to the CEC bus */
+>> +struct ec_params_cec_write {
+>> +	uint8_t msg[MAX_CEC_MSG_LEN];
+>> +} __packed;
+>> +
+>> +/* Set various CEC parameters */
+>> +#define EC_CMD_CEC_SET 0x00BA
+>> +
+>> +struct ec_params_cec_set {
+>> +	uint8_t cmd; /* enum cec_command */
+>> +	union {
+>> +		uint8_t enable;
+>> +		uint8_t address;
+>> +	};
+>> +} __packed;
+>> +
+>> +/* Read various CEC parameters */
+>> +#define EC_CMD_CEC_GET 0x00BB
+>> +
+>> +struct ec_params_cec_get {
+>> +	uint8_t cmd; /* enum cec_command */
+>> +} __packed;
+>> +
+>> +struct ec_response_cec_get {
+>> +	union {
+>> +		uint8_t enable;
+>> +		uint8_t address;
+>> +	};
+>> +} __packed;
+>> +
+>> +enum cec_command {
+>> +	/* CEC reading, writing and events enable */
+>> +	CEC_CMD_ENABLE,
+>> +	/* CEC logical address  */
+>> +	CEC_CMD_LOGICAL_ADDRESS,
+>> +};
+>> +
+>> +/* Events from CEC to AP */
+>> +enum mkbp_cec_event {
+>> +	EC_MKBP_CEC_SEND_OK			= 1 << 0,
+>> +	EC_MKBP_CEC_SEND_FAILED			= 1 << 1,
+>> +};
+>>  
+>>  /*****************************************************************************/
+>>  /*
+>>
+> 
