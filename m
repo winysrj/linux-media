@@ -1,73 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:55880 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753100AbeERJ2a (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 05:28:30 -0400
-Received: by mail-wm0-f68.google.com with SMTP id a8-v6so12964929wmg.5
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 02:28:29 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+Received: from mail.bootlin.com ([62.4.15.54]:43867 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751061AbeEQIyK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 04:54:10 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
         Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v5 03/12] clk: imx7d: fix mipi dphy div parent
-Date: Fri, 18 May 2018 10:27:57 +0100
-Message-Id: <20180518092806.3829-4-rui.silva@linaro.org>
-In-Reply-To: <20180518092806.3829-1-rui.silva@linaro.org>
-References: <20180518092806.3829-1-rui.silva@linaro.org>
+        Daniel Mack <daniel@zonque.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v3 05/12] media: ov5640: Remove redundant register setup
+Date: Thu, 17 May 2018 10:53:58 +0200
+Message-Id: <20180517085405.10104-6-maxime.ripard@bootlin.com>
+In-Reply-To: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the mipi dphy root divider to mipi_dphy_pre_div, this would remove a orphan
-clock and set the correct parent.
+The MIPI divider is also cleared as part of the clock setup sequence, so we
+can remove that code.
 
-before:
-cat clk_orphan_summary
-                                 enable  prepare  protect
-   clock                          count    count    count        rate   accuracy   phase
-----------------------------------------------------------------------------------------
- mipi_dphy_post_div                   1        1        0           0          0 0
-    mipi_dphy_root_clk                1        1        0           0          0 0
-
-cat clk_dump | grep mipi_dphy
-mipi_dphy_post_div                    1        1        0           0          0 0
-    mipi_dphy_root_clk                1        1        0           0          0 0
-
-after:
-cat clk_dump | grep mipi_dphy
-   mipi_dphy_src                     1        1        0    24000000          0 0
-       mipi_dphy_cg                  1        1        0    24000000          0 0
-          mipi_dphy_pre_div          1        1        0    24000000          0 0
-             mipi_dphy_post_div      1        1        0    24000000          0 0
-                mipi_dphy_root_clk   1        1        0    24000000          0 0
-
-Fixes: 8f6d8094b215 ("ARM: imx: add imx7d clk tree support")
-Acked-by: Dong Aisheng <Aisheng.dong@nxp.com>
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/clk/imx/clk-imx7d.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/ov5640.c | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
-index 975a20d3cc94..f7f4db2e6fa6 100644
---- a/drivers/clk/imx/clk-imx7d.c
-+++ b/drivers/clk/imx/clk-imx7d.c
-@@ -729,7 +729,7 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
- 	clks[IMX7D_LCDIF_PIXEL_ROOT_DIV] = imx_clk_divider2("lcdif_pixel_post_div", "lcdif_pixel_pre_div", base + 0xa300, 0, 6);
- 	clks[IMX7D_MIPI_DSI_ROOT_DIV] = imx_clk_divider2("mipi_dsi_post_div", "mipi_dsi_pre_div", base + 0xa380, 0, 6);
- 	clks[IMX7D_MIPI_CSI_ROOT_DIV] = imx_clk_divider2("mipi_csi_post_div", "mipi_csi_pre_div", base + 0xa400, 0, 6);
--	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_csi_dphy_div", base + 0xa480, 0, 6);
-+	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_dphy_pre_div", base + 0xa480, 0, 6);
- 	clks[IMX7D_SAI1_ROOT_DIV] = imx_clk_divider2("sai1_post_div", "sai1_pre_div", base + 0xa500, 0, 6);
- 	clks[IMX7D_SAI2_ROOT_DIV] = imx_clk_divider2("sai2_post_div", "sai2_pre_div", base + 0xa580, 0, 6);
- 	clks[IMX7D_SAI3_ROOT_DIV] = imx_clk_divider2("sai3_post_div", "sai3_pre_div", base + 0xa600, 0, 6);
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index ce9bfaafb675..77864a1a5eb0 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1281,16 +1281,6 @@ static int ov5640_set_stream_dvp(struct ov5640_dev *sensor, bool on)
+ 	 */
+ 
+ 	if (on) {
+-		/*
+-		 * reset MIPI PCLK/SERCLK divider
+-		 *
+-		 * SC PLL CONTRL1 0
+-		 * - [3..0]:	MIPI PCLK/SERCLK divider
+-		 */
+-		ret = ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL1, 0x0f, 0);
+-		if (ret)
+-			return ret;
+-
+ 		/*
+ 		 * configure parallel port control lines polarity
+ 		 *
 -- 
 2.17.0
