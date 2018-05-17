@@ -1,53 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:33698 "EHLO osg.samsung.com"
+Received: from mga05.intel.com ([192.55.52.43]:57704 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751278AbeEDOTo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 10:19:44 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Matt Ranostay <matt.ranostay@konsulko.com>
-Subject: [PATCH] media: video-i2c: get rid of two gcc warnings
-Date: Fri,  4 May 2018 10:19:34 -0400
-Message-Id: <1b3d5f2ae882cfca37c4422dfd72fd455d01166a.1525443571.git.mchehab+samsung@kernel.org>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        id S1750819AbeEQEAv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 00:00:51 -0400
+From: bingbu.cao@intel.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, bingbu.cao@linux.intel.com,
+        tian.shu.qiu@linux.intel.com, rajmohan.mani@intel.com,
+        mchehab@kernel.org
+Subject: [PATCH 2/3] dt-bindings: Add bindings for AKM ak7375 voice coil lens
+Date: Thu, 17 May 2018 12:03:13 +0800
+Message-Id: <1526529794-25569-2-git-send-email-bingbu.cao@intel.com>
+In-Reply-To: <1526529794-25569-1-git-send-email-bingbu.cao@intel.com>
+References: <1526529794-25569-1-git-send-email-bingbu.cao@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After adding this driver, gcc complains with:
+From: Bingbu Cao <bingbu.cao@intel.com>
 
-drivers/media/i2c/video-i2c.c:55:1: warning: 'static' is not at beginning of declaration [-Wold-style-declaration]
- const static struct v4l2_fmtdesc amg88xx_format = {
- ^~~~~
-drivers/media/i2c/video-i2c.c:59:1: warning: 'static' is not at beginning of declaration [-Wold-style-declaration]
- const static struct v4l2_frmsize_discrete amg88xx_size = {
- ^~~~~
+Add device tree bindings for AKM ak7375 voice coil lens
+driver. This chip is used to drive a lens in a camera module.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
+Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
 ---
- drivers/media/i2c/video-i2c.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/devicetree/bindings/media/i2c/akm,ak7375.txt | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/akm,ak7375.txt
 
-diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
-index 971eb46c87f6..0b347cc19aa5 100644
---- a/drivers/media/i2c/video-i2c.c
-+++ b/drivers/media/i2c/video-i2c.c
-@@ -52,11 +52,11 @@ struct video_i2c_data {
- 	struct list_head vid_cap_active;
- };
- 
--const static struct v4l2_fmtdesc amg88xx_format = {
-+static const struct v4l2_fmtdesc amg88xx_format = {
- 	.pixelformat = V4L2_PIX_FMT_Y12,
- };
- 
--const static struct v4l2_frmsize_discrete amg88xx_size = {
-+static const struct v4l2_frmsize_discrete amg88xx_size = {
- 	.width = 8,
- 	.height = 8,
- };
+diff --git a/Documentation/devicetree/bindings/media/i2c/akm,ak7375.txt b/Documentation/devicetree/bindings/media/i2c/akm,ak7375.txt
+new file mode 100644
+index 000000000000..ec7f3c82dc57
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/akm,ak7375.txt
+@@ -0,0 +1,8 @@
++Asahi Kasei Microdevices AK7375 voice coil lens driver
++
++AK7375 is a 12-bit DAC intended for controlling voice coil lenses.
++
++Mandatory properties:
++
++- compatible: "akm,ak7375"
++- reg: I2C slave address
 -- 
-2.17.0
+1.9.1
