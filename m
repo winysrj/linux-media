@@ -1,97 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:59447 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750881AbeEGPMS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 11:12:18 -0400
-Date: Mon, 7 May 2018 17:12:14 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v7 1/2] uvcvideo: send a control event when a Control
- Change interrupt arrives
-In-Reply-To: <3321819.nzIFIPUmca@avalon>
-Message-ID: <alpine.DEB.2.20.1805071708130.6924@axis700.grange>
-References: <20180323092401.12162-1-laurent.pinchart@ideasonboard.com> <2079648.niC1Apbgeu@avalon> <alpine.DEB.2.20.1804100848040.29394@axis700.grange> <3321819.nzIFIPUmca@avalon>
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:36981 "EHLO
+        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751017AbeEQIaK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 04:30:10 -0400
+Date: Thu, 17 May 2018 10:30:00 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, horms@verge.net.au,
+        geert@glider.be, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 3/6] media: rcar-vin: Handle data-active property
+Message-ID: <20180517083000.GV5956@w540>
+References: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526488352-898-4-git-send-email-jacopo+renesas@jmondi.org>
+ <20180516215847.GD17948@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="i6WX/W6h5xa4jqsd"
+Content-Disposition: inline
+In-Reply-To: <20180516215847.GD17948@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-Thanks for the replies. One follow-up question:
+--i6WX/W6h5xa4jqsd
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, 7 May 2018, Laurent Pinchart wrote:
+Hi Niklas,
 
-> Hi Guennadi,
-> 
-> On Tuesday, 10 April 2018 14:31:35 EEST Guennadi Liakhovetski wrote:
-> > On Fri, 23 Mar 2018, Laurent Pinchart wrote:
-> > > On Friday, 23 March 2018 11:24:00 EET Laurent Pinchart wrote:
-> > >> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > >> 
-> > >> UVC defines a method of handling asynchronous controls, which sends a
-> > >> USB packet over the interrupt pipe. This patch implements support for
-> > >> such packets by sending a control event to the user. Since this can
-> > >> involve USB traffic and, therefore, scheduling, this has to be done
-> > >> in a work queue.
-> > >> 
-> > >> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > >> ---
-> > >> 
-> > >>  drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++++++++++---
-> > >>  drivers/media/usb/uvc/uvc_status.c | 111 ++++++++++++++++++++++---
-> > >>  drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
-> > >>  drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
-> > >>  include/uapi/linux/uvcvideo.h      |   2 +
-> > >>  5 files changed, 269 insertions(+), 29 deletions(-)
-> > >> 
-> > >> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> > >> b/drivers/media/usb/uvc/uvc_ctrl.c index 4042cbdb721b..f4773c56438c
-> > >> 100644
-> > >> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> > >> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+On Wed, May 16, 2018 at 11:58:47PM +0200, Niklas S=C3=B6derlund wrote:
+> Hi Jacopo,
+>
+> Thanks for your work.
+>
+> On 2018-05-16 18:32:29 +0200, Jacopo Mondi wrote:
+> > The data-active property has to be specified when running with embedded
+> > synchronization. The VIN peripheral can use HSYNC in place of CLOCKENB
+> > when the CLOCKENB pin is not connected, this requires explicit
+> > synchronization to be in use.
+>
+> Is this really the intent of the data-active property? I read the
+> video-interfaces.txt document as such as if no hsync-active,
+> vsync-active and data-active we should use the embedded synchronization
+> else set the polarity for the requested pins. What am I not
+> understanding here?
 
-[snip]
+Almost correct.
 
-> > >> +void uvc_ctrl_status_event(struct uvc_video_chain *chain,
-> > >> +			   struct uvc_control *ctrl, u8 *data, size_t len)
-> > >> +{
-> > >> +	struct uvc_device *dev = chain->dev;
-> > >> +	struct uvc_ctrl_work *w = &dev->async_ctrl;
-> > >> +
-> > >> +	if (list_empty(&ctrl->info.mappings))
-> > >> +		return;
-> > >> +
-> > >> +	spin_lock(&w->lock);
-> > >> +	if (w->data)
-> > >> +		/* A previous event work hasn't run yet, we lose 1 event */
-> > >> +		kfree(w->data);
-> > > 
-> > > I really don't like losing events :/
-> > 
-> > Well, I'm not sure whether having no available status URBs isn't
-> > equivalent to losing events, but if you prefer that - no problem.
-> > 
-> > >> +	w->data = kmalloc(len, GFP_ATOMIC);
-> > > 
-> > > GFP_ATOMIC allocation isn't very nice either.
-> > > 
-> > > How about if we instead delayed resubmitting the status URB until the
-> > > event is fully processed by the work queue ? That way we wouldn't lose
-> > > events, we wouldn't need memory allocation in atomic context, and if the
-> > > work queue becomes a bottleneck we could even queue multiple status URBs
-> > > and easily add them to a list for processing by the work queue.
-> > 
-> > You mean only for control status events? Can do, sure.
-> 
-> I mean the status endpoint URB in general, so this would affect both control 
-> events and button events.
+The presence of hsync-active, vsync-active and field-evev-active
+properties determinate the bus type we're running on. If none of the
+is specified, the bus is marked 'BT656' and we assume the system is
+using embedded synchronization.
 
-I don't think any of my UVC cameras have such a button, do you have any of 
-those? I'd rather not change something, that I cannot test myself and 
-cannot have tested. I could leave the button processing as is and only 
-change the URB submission path for control change events?
+data-active does not take part in the bus identification, and my
+reasoning was the other way around as explained in reply to your
+comment on [2/6], and as explained there my reasoning is probably
+wrong, and we should set CHS -only- when running with explicit
+synchronization, instead of making it mandatory when running with
+embedded syncs.
 
-Thanks
-Guennadi
+Thanks and sorry for my confusion.
+
+    j
+>
+> >
+> > Now that the driver supports 'data-active' property, it makes not sense
+> > to zero the mbus configuration flags when running with implicit synch
+> > (V4L2_MBUS_BT656).
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  drivers/media/platform/rcar-vin/rcar-core.c | 10 ++++++++--
+> >  1 file changed, 8 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/medi=
+a/platform/rcar-vin/rcar-core.c
+> > index d3072e1..075d08f 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> > @@ -531,15 +531,21 @@ static int rvin_digital_parse_v4l2(struct device =
+*dev,
+> >  		return -ENOTCONN;
+> >
+> >  	vin->mbus_cfg.type =3D vep->bus_type;
+> > +	vin->mbus_cfg.flags =3D vep->bus.parallel.flags;
+> >
+> >  	switch (vin->mbus_cfg.type) {
+> >  	case V4L2_MBUS_PARALLEL:
+> >  		vin_dbg(vin, "Found PARALLEL media bus\n");
+> > -		vin->mbus_cfg.flags =3D vep->bus.parallel.flags;
+> >  		break;
+> >  	case V4L2_MBUS_BT656:
+> >  		vin_dbg(vin, "Found BT656 media bus\n");
+> > -		vin->mbus_cfg.flags =3D 0;
+> > +
+> > +		if (!(vin->mbus_cfg.flags & V4L2_MBUS_DATA_ACTIVE_HIGH) &&
+> > +		    !(vin->mbus_cfg.flags & V4L2_MBUS_DATA_ACTIVE_LOW)) {
+> > +			vin_err(vin,
+> > +				"Missing data enable signal polarity property\n");
+>
+> I fear this can't be an error as that would break backward comp ability
+> with existing dtb's.
+>
+> > +			return -EINVAL;
+> > +		}
+> >  		break;
+> >  	default:
+> >  		vin_err(vin, "Unknown media bus type\n");
+> > --
+> > 2.7.4
+> >
+>
+> --
+> Regards,
+> Niklas S=C3=B6derlund
+
+--i6WX/W6h5xa4jqsd
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJa/T2IAAoJEHI0Bo8WoVY8ZngQALr1/wUgjDmaTuwOvF0rx6Js
+1VCZdcCxTfC3hoBsSMtHGGiedcA+HbIzS+yup6zycn/fecwxYP1iO4ZyfzacOLjl
+g/3ax+yKmDBHsUSVHkj0XH+z+f7xKYLFGnVIPg4GE+W0w8JLhTVrMAzPNuHUPVke
+DO8720pcLMe3mn4m1DKVOPhEdZ3SUuZUwfG4EXI15jpVGu4v0NsvlmtM8bK7vZiA
+vBUllfxDB9NwWte7RgnuATNQDXoHxFPFrZAZaks6hDmfxK2saFPb6QEEMjRqvF/0
+OPt4QM45gW2k3uLVjd8jqjBUqCp8hzAZyuUfzw/879Z5f3ivvAZL5KCRnANmMYXK
+yYDh+wy65qNlzoU8iox7h3E97ZMz9RiR7gVlk53Gydd7SJTsNJ9Q+qlTMXOFMKH5
+FoPwHWo30jpwAC/sYALZEgFeq73WK3C3ISMPxCSvJbk6Ftc7L1GDyw92CqvdYszJ
+wZRNkR0jDcUaG8Ykcx3f35mikldvE3P4NETLMj0NCjm9cPYBlErtHsnQ3qZuxF4A
+uL9OqHmen62s8YBAgXnLSP03NKXgFlN4xaPRYYe/0dV90R6l4m8lImc1TVRVTr+a
+h9FgMoPLdhT/1iRsfeQIuD1HRg7Pb0hyDRV8NEDFaW8jPKkEj5PmiY1cpuJgz2tq
+qdG4ykG8OyExrIaXev/H
+=9bfw
+-----END PGP SIGNATURE-----
+
+--i6WX/W6h5xa4jqsd--
