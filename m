@@ -1,100 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:39996 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751104AbeEMLF3 (ORCPT
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:17918 "EHLO
+        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752415AbeEQObF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 May 2018 07:05:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 0/3] cpia2/zr364xx/usbvision: move to staging
-Date: Sun, 13 May 2018 13:05:22 +0200
-Message-Id: <20180513110525.20062-1-hverkuil@xs4all.nl>
+        Thu, 17 May 2018 10:31:05 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 0/2] v4l: Add support for STD ioctls on subdev nodes
+Date: Thu, 17 May 2018 16:30:14 +0200
+Message-Id: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-Since we're going to deprecate the zoran driver (and remove it in a
-year), I thought that this is a good time to look at some other
-drivers that 1) do not use the proper frameworks (vb2!) and 2) are
-for ancient hardware for which there are easily available working
-alternatives.
+This series enables the video standards to be controlled directly on the 
+subdev device node. This is needed as there is no way to control the 
+standard of a subdevice if it's part of a media controller centric setup 
+as oppose to a video centric one.
 
-This patch series proposes to move the following drivers to staging:
+I have tested this on Renesas Gen3 Salvator-XS M3-N using the AFE
+subdevice from the adv748x driver together with the R-Car VIN and CSI-2
+pipeline. And verified ENUMSTD still works for video device centric 
+devices on Renesas Gen2 Koelsch board.
 
-- cpia2: used in old USB microscopes. The last real change was in
-  April 2012 by me.
+I wrote a prototype patch for v4l2-ctl which adds four new options
+(--get-subdev-standard, --get-subdev-standard, --set-subdev-standard and
+--get-subdev-detected-standard) to ease testing which I plan to submit
+after some cleanup if this patch receives positive feedback.
 
-- zr364xx: used in (very!) old digital cameras. The last real change
-  was in June 2012 by me.
+If you or anyone else is interested in testing this patch the v4l2-utils
+prototype patches are available at
 
-- usbvision: old TV capture device. Never worked very well. The last
-  changes where for a bug report in end 2015/early 2016 and many
-  fixed/improvements from me in July 2015.
+git://git.ragnatech.se/v4l-utils#subdev-std
 
-The cpia2 and usbvision have their own streaming implementation,
-the zr364xx uses vb1.
+* Changes since v1
+- Add VIDIOC_SUBDEV_ENUMSTD.
 
-I don't think it is likely that anyone is willing to convert these
-drivers to vb2.
+Niklas Söderlund (2):
+  v4l2-ioctl: create helper to fill in v4l2_standard for ENUMSTD
+  v4l: Add support for STD ioctls on subdev nodes
 
-Regards,
-
-	Hans
-
-Hans Verkuil (3):
-  cpia2: move to staging in preparation for removal
-  zr364xx: move to staging in preparation for removal
-  usbvision: move to staging in preparation for removal
-
- MAINTAINERS                                                 | 4 ++--
- drivers/media/usb/Kconfig                                   | 3 ---
- drivers/media/usb/Makefile                                  | 4 +---
- drivers/staging/media/Kconfig                               | 6 ++++++
- drivers/staging/media/Makefile                              | 3 +++
- drivers/{media/usb => staging/media}/cpia2/Kconfig          | 2 +-
- drivers/{media/usb => staging/media}/cpia2/Makefile         | 0
- drivers/staging/media/cpia2/TODO                            | 4 ++++
- drivers/{media/usb => staging/media}/cpia2/cpia2.h          | 0
- drivers/{media/usb => staging/media}/cpia2/cpia2_core.c     | 0
- .../{media/usb => staging/media}/cpia2/cpia2_registers.h    | 0
- drivers/{media/usb => staging/media}/cpia2/cpia2_usb.c      | 0
- drivers/{media/usb => staging/media}/cpia2/cpia2_v4l.c      | 0
- drivers/{media/usb => staging/media}/usbvision/Kconfig      | 2 +-
- drivers/{media/usb => staging/media}/usbvision/Makefile     | 0
- drivers/staging/media/usbvision/TODO                        | 4 ++++
- .../usb => staging/media}/usbvision/usbvision-cards.c       | 0
- .../usb => staging/media}/usbvision/usbvision-cards.h       | 0
- .../{media/usb => staging/media}/usbvision/usbvision-core.c | 0
- .../{media/usb => staging/media}/usbvision/usbvision-i2c.c  | 0
- .../usb => staging/media}/usbvision/usbvision-video.c       | 0
- drivers/{media/usb => staging/media}/usbvision/usbvision.h  | 0
- drivers/{media/usb => staging/media}/zr364xx/Kconfig        | 0
- drivers/{media/usb => staging/media}/zr364xx/Makefile       | 0
- drivers/staging/media/zr364xx/TODO                          | 4 ++++
- drivers/{media/usb => staging/media}/zr364xx/zr364xx.c      | 0
- 26 files changed, 26 insertions(+), 10 deletions(-)
- rename drivers/{media/usb => staging/media}/cpia2/Kconfig (87%)
- rename drivers/{media/usb => staging/media}/cpia2/Makefile (100%)
- create mode 100644 drivers/staging/media/cpia2/TODO
- rename drivers/{media/usb => staging/media}/cpia2/cpia2.h (100%)
- rename drivers/{media/usb => staging/media}/cpia2/cpia2_core.c (100%)
- rename drivers/{media/usb => staging/media}/cpia2/cpia2_registers.h (100%)
- rename drivers/{media/usb => staging/media}/cpia2/cpia2_usb.c (100%)
- rename drivers/{media/usb => staging/media}/cpia2/cpia2_v4l.c (100%)
- rename drivers/{media/usb => staging/media}/usbvision/Kconfig (82%)
- rename drivers/{media/usb => staging/media}/usbvision/Makefile (100%)
- create mode 100644 drivers/staging/media/usbvision/TODO
- rename drivers/{media/usb => staging/media}/usbvision/usbvision-cards.c (100%)
- rename drivers/{media/usb => staging/media}/usbvision/usbvision-cards.h (100%)
- rename drivers/{media/usb => staging/media}/usbvision/usbvision-core.c (100%)
- rename drivers/{media/usb => staging/media}/usbvision/usbvision-i2c.c (100%)
- rename drivers/{media/usb => staging/media}/usbvision/usbvision-video.c (100%)
- rename drivers/{media/usb => staging/media}/usbvision/usbvision.h (100%)
- rename drivers/{media/usb => staging/media}/zr364xx/Kconfig (100%)
- rename drivers/{media/usb => staging/media}/zr364xx/Makefile (100%)
- create mode 100644 drivers/staging/media/zr364xx/TODO
- rename drivers/{media/usb => staging/media}/zr364xx/zr364xx.c (100%)
+ .../media/uapi/v4l/vidioc-enumstd.rst         | 11 ++--
+ Documentation/media/uapi/v4l/vidioc-g-std.rst | 14 ++--
+ .../media/uapi/v4l/vidioc-querystd.rst        | 11 ++--
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 66 +++++++++++--------
+ drivers/media/v4l2-core/v4l2-subdev.c         | 22 +++++++
+ include/media/v4l2-ioctl.h                    | 11 ++++
+ include/uapi/linux/v4l2-subdev.h              |  4 ++
+ 7 files changed, 98 insertions(+), 41 deletions(-)
 
 -- 
 2.17.0
