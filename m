@@ -1,88 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:53371 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753874AbeEAJA5 (ORCPT
+Received: from gateway23.websitewelcome.com ([192.185.50.250]:38937 "EHLO
+        gateway23.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751786AbeEQBOT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 05:00:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv12 PATCH 26/29] vim2m: support requests
-Date: Tue,  1 May 2018 11:00:48 +0200
-Message-Id: <20180501090051.9321-27-hverkuil@xs4all.nl>
-In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
+        Wed, 16 May 2018 21:14:19 -0400
+Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
+        by gateway23.websitewelcome.com (Postfix) with ESMTP id CAF6416B7E
+        for <linux-media@vger.kernel.org>; Wed, 16 May 2018 20:14:18 -0500 (CDT)
+Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
+ <20180423152455.363d285c@vento.lan>
+ <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
+ <20180423161742.66f939ba@vento.lan>
+ <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
+ <20180426204241.03a42996@vento.lan>
+ <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
+ <20180515085953.65bfa107@vento.lan> <20180515141655.idzuh2jfdkuu5grs@mwanda>
+ <f342d8d6-b5e6-0cbf-d002-9561b79c90e4@embeddedor.com>
+ <20180515193936.m25kzyeknsk2bo2c@mwanda>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Message-ID: <0f31a60b-911d-0140-3546-98317e2a0557@embeddedor.com>
+Date: Wed, 16 May 2018 20:14:12 -0500
+MIME-Version: 1.0
+In-Reply-To: <20180515193936.m25kzyeknsk2bo2c@mwanda>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add support for requests to vim2m.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vim2m.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+On 05/15/2018 02:39 PM, Dan Carpenter wrote:
+>> Dan,
+>>
+>> These are all the Spectre media issues I see smatch is reporting in
+>> linux-next-20180515:
+>>
+>> drivers/media/cec/cec-pin-error-inj.c:170 cec_pin_error_inj_parse_line()
+>> warn: potential spectre issue 'pin->error_inj_args'
+>> drivers/media/dvb-core/dvb_ca_en50221.c:1479 dvb_ca_en50221_io_write() warn:
+>> potential spectre issue 'ca->slot_info' (local cap)
+>> drivers/media/dvb-core/dvb_net.c:252 handle_one_ule_extension() warn:
+>> potential spectre issue 'p->ule_next_hdr'
+>>
+>> I pulled the latest changes from the smatch repository and compiled it.
+>>
+>> I'm running smatch v0.5.0-4459-g2f66d40 now. Is this the latest version?
+>>
+>> I wonder if there is anything I might be missing.
+>>
+> 
+> You'd need to rebuild the db (possibly twice but definitely once).
+> 
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index a1b0bb08668d..b6a20905beaf 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -387,8 +387,26 @@ static void device_run(void *priv)
- 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
- 
-+	/* Apply request controls if needed */
-+	if (src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+	if (dst_buf->vb2_buf.req_obj.req &&
-+	    dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_setup(dst_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+
- 	device_process(ctx, src_buf, dst_buf);
- 
-+	/* Complete request controls if needed */
-+	if (src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_complete(src_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+	if (dst_buf->vb2_buf.req_obj.req &&
-+	    dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_complete(dst_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+
- 	/* Run a timer, which simulates a hardware irq  */
- 	schedule_irq(dev, ctx->transtime);
- }
-@@ -823,6 +841,8 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
- 			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
- 		if (vbuf == NULL)
- 			return;
-+		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
-+					   &ctx->hdl);
- 		spin_lock_irqsave(&ctx->dev->irqlock, flags);
- 		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
- 		spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
-@@ -1003,6 +1023,11 @@ static const struct v4l2_m2m_ops m2m_ops = {
- 	.job_abort	= job_abort,
- };
- 
-+static const struct media_device_ops m2m_media_ops = {
-+	.req_validate = vb2_request_validate,
-+	.req_queue = vb2_m2m_request_queue,
-+};
-+
- static int vim2m_probe(struct platform_device *pdev)
- {
- 	struct vim2m_dev *dev;
-@@ -1027,6 +1052,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	dev->mdev.dev = &pdev->dev;
- 	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
- 	media_device_init(&dev->mdev);
-+	dev->mdev.ops = &m2m_media_ops;
- 	dev->v4l2_dev.mdev = &dev->mdev;
- 	dev->pad[0].flags = MEDIA_PAD_FL_SINK;
- 	dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
--- 
-2.17.0
+Hi Dan,
+
+After rebuilding the db (once), these are all the Spectre media warnings 
+I get:
+
+drivers/media/pci/ddbridge/ddbridge-core.c:233 ddb_redirect() warn: 
+potential spectre issue 'ddbs'
+drivers/media/pci/ddbridge/ddbridge-core.c:243 ddb_redirect() warn: 
+potential spectre issue 'pdev->port'
+drivers/media/pci/ddbridge/ddbridge-core.c:252 ddb_redirect() warn: 
+potential spectre issue 'idev->input'
+drivers/media/dvb-core/dvb_ca_en50221.c:1400 
+dvb_ca_en50221_io_do_ioctl() warn: potential spectre issue 
+'ca->slot_info' (local cap)
+drivers/media/dvb-core/dvb_ca_en50221.c:1479 dvb_ca_en50221_io_write() 
+warn: potential spectre issue 'ca->slot_info' (local cap)
+drivers/media/dvb-core/dvb_net.c:252 handle_one_ule_extension() warn: 
+potential spectre issue 'p->ule_next_hdr'
+drivers/media/dvb-core/dvb_net.c:1483 dvb_net_do_ioctl() warn: potential 
+spectre issue 'dvbnet->device' (local cap)
+drivers/media/cec/cec-pin-error-inj.c:170 cec_pin_error_inj_parse_line() 
+warn: potential spectre issue 'pin->error_inj_args'
+
+I just want to double check if you are getting the same output. In case 
+you are getting the same, then what Mauro commented about these issues:
+
+https://patchwork.linuxtv.org/project/linux-media/list/?submitter=7277
+
+being resolved by commit 3ad3b7a2ebaefae37a7eafed0779324987ca5e56 seems 
+to be correct.
+
+Thanks
+--
+Gustavo
