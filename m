@@ -1,131 +1,428 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:45612 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751345AbeEGLC4 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33952 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751334AbeEQKnH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 07:02:56 -0400
-Subject: Re: [PATCH v9 09/15] vb2: mark codec drivers as unordered
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: kernel@collabora.com,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20180504200612.8763-1-ezequiel@collabora.com>
- <20180504200612.8763-10-ezequiel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cd197170-983d-c981-9463-3d4df64d4329@xs4all.nl>
-Date: Mon, 7 May 2018 13:02:52 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180504200612.8763-10-ezequiel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Thu, 17 May 2018 06:43:07 -0400
+Received: from lanttu.localdomain (unknown [IPv6:2001:1bc8:1a6:d3d5::e1:1001])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 53C4F634C83
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2018 13:43:05 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/3] media: dw9807: Add dw9807 vcm driver
+Date: Thu, 17 May 2018 13:43:03 +0300
+Message-Id: <20180517104304.10200-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180517104304.10200-1-sakari.ailus@linux.intel.com>
+References: <20180517104304.10200-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/05/18 22:06, Ezequiel Garcia wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> In preparation to have full support to explicit fence we are
-> marking codec as non-ordered preventively. It is easier and safer from an
-> uAPI point of view to move from unordered to ordered than the opposite.
-> 
-> v3: set property instead of callback
-> v2: mark only codec drivers as unordered (Nicolas and Hans)
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> ---
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 2 ++
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 1 +
->  drivers/media/platform/qcom/venus/venc.c           | 2 ++
->  drivers/media/platform/s5p-mfc/s5p_mfc.c           | 2 ++
+From: Alan Chiang <alanx.chiang@intel.com>
 
-Why were coda, exynos-gsc, exynos4-is and venus/vdec.c removed?
-Those were patched in v8.
+DW9807 is a 10 bit DAC from Dongwoon, designed for linear
+control of voice coil motor.
 
-Regards,
+This driver creates a V4L2 subdevice and
+provides control to set the desired focus.
 
-	Hans
+Signed-off-by: Alan Chiang <alanx.chiang@intel.com>
+Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ MAINTAINERS                |   7 +
+ drivers/media/i2c/Kconfig  |  10 ++
+ drivers/media/i2c/Makefile |   1 +
+ drivers/media/i2c/dw9807.c | 329 +++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 347 insertions(+)
+ create mode 100644 drivers/media/i2c/dw9807.c
 
->  4 files changed, 7 insertions(+)
-> 
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> index 86f0a7134365..c03cefde0c28 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> @@ -1498,6 +1498,7 @@ int mtk_vcodec_dec_queue_init(void *priv, struct vb2_queue *src_vq,
->  	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  	src_vq->lock		= &ctx->dev->dev_mutex;
->  	src_vq->dev             = &ctx->dev->plat_dev->dev;
-> +	src_vq->unordered       = 1;
->  
->  	ret = vb2_queue_init(src_vq);
->  	if (ret) {
-> @@ -1513,6 +1514,7 @@ int mtk_vcodec_dec_queue_init(void *priv, struct vb2_queue *src_vq,
->  	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  	dst_vq->lock		= &ctx->dev->dev_mutex;
->  	dst_vq->dev             = &ctx->dev->plat_dev->dev;
-> +	src_vq->unordered       = 1;
->  
->  	ret = vb2_queue_init(dst_vq);
->  	if (ret) {
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-> index 1b1a28abbf1f..81751c9aa19d 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-> @@ -1340,6 +1340,7 @@ int mtk_vcodec_enc_queue_init(void *priv, struct vb2_queue *src_vq,
->  	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  	dst_vq->lock		= &ctx->dev->dev_mutex;
->  	dst_vq->dev		= &ctx->dev->plat_dev->dev;
-> +	dst_vq->unordered	= 1;
->  
->  	return vb2_queue_init(dst_vq);
->  }
-> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-> index 6b2ce479584e..17ec2d218aa5 100644
-> --- a/drivers/media/platform/qcom/venus/venc.c
-> +++ b/drivers/media/platform/qcom/venus/venc.c
-> @@ -1053,6 +1053,7 @@ static int m2m_queue_init(void *priv, struct vb2_queue *src_vq,
->  	src_vq->buf_struct_size = sizeof(struct venus_buffer);
->  	src_vq->allow_zero_bytesused = 1;
->  	src_vq->min_buffers_needed = 1;
-> +	src_vq->unordered = 1;
->  	src_vq->dev = inst->core->dev;
->  	if (inst->core->res->hfi_version == HFI_VERSION_1XX)
->  		src_vq->bidirectional = 1;
-> @@ -1069,6 +1070,7 @@ static int m2m_queue_init(void *priv, struct vb2_queue *src_vq,
->  	dst_vq->buf_struct_size = sizeof(struct venus_buffer);
->  	dst_vq->allow_zero_bytesused = 1;
->  	dst_vq->min_buffers_needed = 1;
-> +	src_vq->unordered = 1;
->  	dst_vq->dev = inst->core->dev;
->  	ret = vb2_queue_init(dst_vq);
->  	if (ret) {
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index a80251ed3143..6a4251f988ab 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -863,6 +863,7 @@ static int s5p_mfc_open(struct file *file)
->  	q->dma_attrs = DMA_ATTR_ALLOC_SINGLE_PAGES;
->  	q->mem_ops = &vb2_dma_contig_memops;
->  	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> +	q->unordered = 1;
->  	ret = vb2_queue_init(q);
->  	if (ret) {
->  		mfc_err("Failed to initialize videobuf2 queue(capture)\n");
-> @@ -898,6 +899,7 @@ static int s5p_mfc_open(struct file *file)
->  	q->dma_attrs = DMA_ATTR_ALLOC_SINGLE_PAGES;
->  	q->mem_ops = &vb2_dma_contig_memops;
->  	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> +	q->unordered = 1;
->  	ret = vb2_queue_init(q);
->  	if (ret) {
->  		mfc_err("Failed to initialize videobuf2 queue(output)\n");
-> 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 519f172c9267..6304b696c698 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4382,6 +4382,13 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/i2c/dw9714.c
+ 
++DONGWOON DW9807 LENS VOICE COIL DRIVER
++M:	Sakari Ailus <sakari.ailus@linux.intel.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/dw9807.c
++
+ DOUBLETALK DRIVER
+ M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
+ L:	blinux-list@redhat.com
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index b95b44702ccb..e6a721c5e3b0 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -336,6 +336,16 @@ config VIDEO_DW9714
+ 	  capability. This is designed for linear control of
+ 	  voice coil motors, controlled via I2C serial interface.
+ 
++config VIDEO_DW9807
++	tristate "DW9807 lens voice coil support"
++	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
++	depends on VIDEO_V4L2_SUBDEV_API
++	---help---
++	  This is a driver for the DW9807 camera lens voice coil.
++	  DW9807 is a 10 bit DAC with 100mA output current sink
++	  capability. This is designed for linear control of
++	  voice coil motors, controlled via I2C serial interface.
++
+ config VIDEO_SAA7110
+ 	tristate "Philips SAA7110 video decoder"
+ 	depends on VIDEO_V4L2 && I2C
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index ff6e2914abda..5cf15edacb2b 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -24,6 +24,7 @@ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
+ obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
+ obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
+ obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
++obj-$(CONFIG_VIDEO_DW9807)  += dw9807.o
+ obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
+ obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
+ obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
+diff --git a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c
+new file mode 100644
+index 000000000000..6ebb98717fb1
+--- /dev/null
++++ b/drivers/media/i2c/dw9807.c
+@@ -0,0 +1,329 @@
++// SPDX-License-Identifier: GPL-2.0
++// Copyright (C) 2018 Intel Corporation
++
++#include <linux/acpi.h>
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/iopoll.h>
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++
++#define DW9807_MAX_FOCUS_POS	1023
++/*
++ * This sets the minimum granularity for the focus positions.
++ * A value of 1 gives maximum accuracy for a desired focus position.
++ */
++#define DW9807_FOCUS_STEPS	1
++/*
++ * This acts as the minimum granularity of lens movement.
++ * Keep this value power of 2, so the control steps can be
++ * uniformly adjusted for gradual lens movement, with desired
++ * number of control steps.
++ */
++#define DW9807_CTRL_STEPS	16
++#define DW9807_CTRL_DELAY_US	1000
++
++#define DW9807_CTL_ADDR		0x02
++/*
++ * DW9807 separates two registers to control the VCM position.
++ * One for MSB value, another is LSB value.
++ */
++#define DW9807_MSB_ADDR		0x03
++#define DW9807_LSB_ADDR		0x04
++#define DW9807_STATUS_ADDR	0x05
++#define DW9807_MODE_ADDR	0x06
++#define DW9807_RESONANCE_ADDR	0x07
++
++#define MAX_RETRY		10
++
++struct dw9807_device {
++	struct v4l2_ctrl_handler ctrls_vcm;
++	struct v4l2_subdev sd;
++	u16 current_val;
++};
++
++static inline struct dw9807_device *sd_to_dw9807_vcm(
++					struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct dw9807_device, sd);
++}
++
++static int dw9807_i2c_check(struct i2c_client *client)
++{
++	const char status_addr = DW9807_STATUS_ADDR;
++	char status_result;
++	int ret;
++
++	ret = i2c_master_send(client, &status_addr, sizeof(status_addr));
++	if (ret < 0) {
++		dev_err(&client->dev, "I2C write STATUS address fail ret = %d\n",
++			ret);
++		return ret;
++	}
++
++	ret = i2c_master_recv(client, &status_result, sizeof(status_result));
++	if (ret < 0) {
++		dev_err(&client->dev, "I2C read STATUS value fail ret = %d\n",
++			ret);
++		return ret;
++	}
++
++	return status_result;
++}
++
++static int dw9807_set_dac(struct i2c_client *client, u16 data)
++{
++	const char tx_data[3] = {
++		DW9807_MSB_ADDR, ((data >> 8) & 0x03), (data & 0xff)
++	};
++	int val, ret;
++
++	/*
++	 * According to the datasheet, need to check the bus status before we
++	 * write VCM position. This ensure that we really write the value
++	 * into the register
++	 */
++	ret = readx_poll_timeout(dw9807_i2c_check, client, val, val <= 0,
++			DW9807_CTRL_DELAY_US, MAX_RETRY * DW9807_CTRL_DELAY_US);
++
++	if (ret || val < 0) {
++		if (ret) {
++			dev_warn(&client->dev,
++				"Cannot do the write operation because VCM is busy\n");
++		}
++
++		return ret ? -EBUSY : val;
++	}
++
++	/* Write VCM position to registers */
++	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
++	if (ret < 0) {
++		dev_err(&client->dev,
++			"I2C write MSB fail ret=%d\n", ret);
++
++		return ret;
++	}
++
++	return 0;
++}
++
++static int dw9807_set_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct dw9807_device *dev_vcm = container_of(ctrl->handler,
++		struct dw9807_device, ctrls_vcm);
++
++	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE) {
++		struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);
++
++		dev_vcm->current_val = ctrl->val;
++		return dw9807_set_dac(client, ctrl->val);
++	}
++
++	return -EINVAL;
++}
++
++static const struct v4l2_ctrl_ops dw9807_vcm_ctrl_ops = {
++	.s_ctrl = dw9807_set_ctrl,
++};
++
++static int dw9807_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	int rval;
++
++	rval = pm_runtime_get_sync(sd->dev);
++	if (rval < 0) {
++		pm_runtime_put_noidle(sd->dev);
++		return rval;
++	}
++
++	return 0;
++}
++
++static int dw9807_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	pm_runtime_put(sd->dev);
++
++	return 0;
++}
++
++static const struct v4l2_subdev_internal_ops dw9807_int_ops = {
++	.open = dw9807_open,
++	.close = dw9807_close,
++};
++
++static const struct v4l2_subdev_ops dw9807_ops = { };
++
++static void dw9807_subdev_cleanup(struct dw9807_device *dw9807_dev)
++{
++	v4l2_async_unregister_subdev(&dw9807_dev->sd);
++	v4l2_ctrl_handler_free(&dw9807_dev->ctrls_vcm);
++	media_entity_cleanup(&dw9807_dev->sd.entity);
++}
++
++static int dw9807_init_controls(struct dw9807_device *dev_vcm)
++{
++	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
++	const struct v4l2_ctrl_ops *ops = &dw9807_vcm_ctrl_ops;
++	struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);
++
++	v4l2_ctrl_handler_init(hdl, 1);
++
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
++			  0, DW9807_MAX_FOCUS_POS, DW9807_FOCUS_STEPS, 0);
++
++	dev_vcm->sd.ctrl_handler = hdl;
++	if (hdl->error) {
++		dev_err(&client->dev, "%s fail error: 0x%x\n",
++			__func__, hdl->error);
++		return hdl->error;
++	}
++
++	return 0;
++}
++
++static int dw9807_probe(struct i2c_client *client)
++{
++	struct dw9807_device *dw9807_dev;
++	int rval;
++
++	dw9807_dev = devm_kzalloc(&client->dev, sizeof(*dw9807_dev),
++				  GFP_KERNEL);
++	if (dw9807_dev == NULL)
++		return -ENOMEM;
++
++	v4l2_i2c_subdev_init(&dw9807_dev->sd, client, &dw9807_ops);
++	dw9807_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	dw9807_dev->sd.internal_ops = &dw9807_int_ops;
++
++	rval = dw9807_init_controls(dw9807_dev);
++	if (rval)
++		goto err_cleanup;
++
++	rval = media_entity_pads_init(&dw9807_dev->sd.entity, 0, NULL);
++	if (rval < 0)
++		goto err_cleanup;
++
++	dw9807_dev->sd.entity.function = MEDIA_ENT_F_LENS;
++
++	rval = v4l2_async_register_subdev(&dw9807_dev->sd);
++	if (rval < 0)
++		goto err_cleanup;
++
++	pm_runtime_set_active(&client->dev);
++	pm_runtime_enable(&client->dev);
++	pm_runtime_idle(&client->dev);
++
++	return 0;
++
++err_cleanup:
++	dw9807_subdev_cleanup(dw9807_dev);
++
++	return rval;
++}
++
++static int dw9807_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
++
++	pm_runtime_disable(&client->dev);
++	pm_runtime_set_suspended(&client->dev);
++
++	dw9807_subdev_cleanup(dw9807_dev);
++
++	return 0;
++}
++
++/*
++ * This function sets the vcm position, so it consumes least current
++ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
++ * to make the movements smoothly.
++ */
++static int __maybe_unused dw9807_vcm_suspend(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
++	const char tx_data[2] = { DW9807_CTL_ADDR, 0x01 };
++	int ret, val;
++
++	for (val = dw9807_dev->current_val & ~(DW9807_CTRL_STEPS - 1);
++	     val >= 0; val -= DW9807_CTRL_STEPS) {
++		ret = dw9807_set_dac(client, val);
++		if (ret)
++			dev_err_once(dev, "%s I2C failure: %d", __func__, ret);
++		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
++	}
++
++	/* Power down */
++	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
++	if (ret < 0) {
++		dev_err(&client->dev, "I2C write CTL fail ret = %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++/*
++ * This function sets the vcm position to the value set by the user
++ * through v4l2_ctrl_ops s_ctrl handler
++ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
++ * to make the movements smoothly.
++ */
++static int  __maybe_unused dw9807_vcm_resume(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
++	const char tx_data[2] = { DW9807_CTL_ADDR, 0x00 };
++	int ret, val;
++
++	/* Power on */
++	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
++	if (ret < 0) {
++		dev_err(&client->dev, "I2C write CTL fail ret = %d\n", ret);
++		return ret;
++	}
++
++	for (val = dw9807_dev->current_val % DW9807_CTRL_STEPS;
++	     val < dw9807_dev->current_val + DW9807_CTRL_STEPS - 1;
++	     val += DW9807_CTRL_STEPS) {
++		ret = dw9807_set_dac(client, val);
++		if (ret)
++			dev_err_ratelimited(dev, "%s I2C failure: %d",
++						__func__, ret);
++		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
++	}
++
++	return 0;
++}
++
++static const struct of_device_id dw9807_of_table[] = {
++	{ .compatible = "dongwoon,dw9807" },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, dw9807_of_table);
++
++static const struct dev_pm_ops dw9807_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume)
++	SET_RUNTIME_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume, NULL)
++};
++
++static struct i2c_driver dw9807_i2c_driver = {
++	.driver = {
++		.name = "dw9807",
++		.pm = &dw9807_pm_ops,
++		.of_match_table = dw9807_of_table,
++	},
++	.probe_new = dw9807_probe,
++	.remove = dw9807_remove,
++};
++
++module_i2c_driver(dw9807_i2c_driver);
++
++MODULE_AUTHOR("Chiang, Alan <alanx.chiang@intel.com>");
++MODULE_DESCRIPTION("DW9807 VCM driver");
++MODULE_LICENSE("GPL v2");
+-- 
+2.11.0
