@@ -1,77 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47418 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751057AbeEFICw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 04:02:52 -0400
-Date: Sun, 6 May 2018 10:02:50 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-        nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org,
-        gshark.jeong@gmail.com, m.chehab@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org
-Subject: [PATCH] media: i2c: lm3560: use conservative defaults
-Message-ID: <20180506080250.GA24114@amd>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
-Content-Disposition: inline
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:55023 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750938AbeEQMvP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 08:51:15 -0400
+Received: by mail-wm0-f67.google.com with SMTP id f6-v6so8198313wmc.4
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2018 05:51:14 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v4 09/12] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
+Date: Thu, 17 May 2018 13:50:30 +0100
+Message-Id: <20180517125033.18050-10-rui.silva@linaro.org>
+In-Reply-To: <20180517125033.18050-1-rui.silva@linaro.org>
+References: <20180517125033.18050-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch adds the device tree nodes for csi, video multiplexer and mipi-csi
+besides the graph connecting the necessary endpoints to make the media capture
+entities to work in imx7 Warp board.
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Also add the pin control related with the mipi_csi in that board.
 
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ arch/arm/boot/dts/imx7s-warp.dts | 51 ++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx7s.dtsi     | 28 ++++++++++++++++++
+ 2 files changed, 79 insertions(+)
 
-If no pdata is found, we should use lowest current settings, not highest.
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
-index b600e03a..c4e5ed5 100644
---- a/drivers/media/i2c/lm3560.c
-+++ b/drivers/media/i2c/lm3560.c
-@@ -420,14 +434,14 @@ static int lm3560_probe(struct i2c_client *client,
- 		pdata =3D devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
- 		if (pdata =3D=3D NULL)
- 			return -ENODEV;
--		pdata->peak =3D LM3560_PEAK_3600mA;
--		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MAX;
-+		pdata->peak =3D LM3560_PEAK_1600mA;
-+		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MIN;
- 		/* led 1 */
--		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MAX;
--		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MAX;
-+		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MIN;
-+		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MIN;
- 		/* led 2 */
--		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MAX;
--		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MAX;
-+		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MIN;
-+		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MIN;
- 	}
- 	flash->pdata =3D pdata;
- 	flash->dev =3D &client->dev;
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlrutqoACgkQMOfwapXb+vKAhwCgw3VcquxPd6JBDpXbdEgC00AC
-jhwAnijIiGbVPSqdr41LZYehCC7/vjiV
-=mn6q
------END PGP SIGNATURE-----
-
---+QahgC5+KEYLbs62--
+diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
+index 8a30b148534d..cb175ee2fc9d 100644
+--- a/arch/arm/boot/dts/imx7s-warp.dts
++++ b/arch/arm/boot/dts/imx7s-warp.dts
+@@ -310,6 +310,57 @@
+ 	status = "okay";
+ };
+ 
++&gpr {
++	csi_mux {
++		compatible = "video-mux";
++		mux-controls = <&mux 0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@1 {
++			reg = <1>;
++
++			csi_mux_from_mipi_vc0: endpoint {
++				remote-endpoint = <&mipi_vc0_to_csi_mux>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi_mux_to_csi: endpoint {
++				remote-endpoint = <&csi_from_csi_mux>;
++			};
++		};
++	};
++};
++
++&csi {
++	status = "okay";
++
++	port {
++		csi_from_csi_mux: endpoint {
++			remote-endpoint = <&csi_mux_to_csi>;
++		};
++	};
++};
++
++&mipi_csi {
++	clock-frequency = <166000000>;
++	status = "okay";
++	#address-cells = <1>;
++	#size-cells = <0>;
++	fsl,csis-hs-settle = <3>;
++
++	port@1 {
++		reg = <1>;
++
++		mipi_vc0_to_csi_mux: endpoint {
++			remote-endpoint = <&csi_mux_from_mipi_vc0>;
++		};
++	};
++};
++
+ &wdog1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_wdog>;
+diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
+index 3590dab529f9..0bae41f2944c 100644
+--- a/arch/arm/boot/dts/imx7s.dtsi
++++ b/arch/arm/boot/dts/imx7s.dtsi
+@@ -46,6 +46,7 @@
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
++#include <dt-bindings/reset/imx7-reset.h>
+ #include "imx7d-pinfunc.h"
+ 
+ / {
+@@ -738,6 +739,17 @@
+ 				status = "disabled";
+ 			};
+ 
++			csi: csi@30710000 {
++				compatible = "fsl,imx7-csi";
++				reg = <0x30710000 0x10000>;
++				interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
++				clocks = <&clks IMX7D_CLK_DUMMY>,
++						<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
++						<&clks IMX7D_CLK_DUMMY>;
++				clock-names = "axi", "mclk", "dcic";
++				status = "disabled";
++			};
++
+ 			lcdif: lcdif@30730000 {
+ 				compatible = "fsl,imx7d-lcdif", "fsl,imx28-lcdif";
+ 				reg = <0x30730000 0x10000>;
+@@ -747,6 +759,22 @@
+ 				clock-names = "pix", "axi";
+ 				status = "disabled";
+ 			};
++
++			mipi_csi: mipi-csi@30750000 {
++				compatible = "fsl,imx7-mipi-csi2";
++				reg = <0x30750000 0x10000>;
++				interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
++				clocks = <&clks IMX7D_IPG_ROOT_CLK>,
++						<&clks IMX7D_MIPI_CSI_ROOT_CLK>,
++						<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
++				clock-names = "pclk", "wrap", "phy";
++				power-domains = <&pgc_mipi_phy>;
++				phy-supply = <&reg_1p0d>;
++				resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
++				reset-names = "mrst";
++				bus-width = <2>;
++				status = "disabled";
++			};
+ 		};
+ 
+ 		aips3: aips-bus@30800000 {
+-- 
+2.17.0
