@@ -1,57 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:47004 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751182AbeEPJXs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 05:23:48 -0400
-Message-ID: <1526462623.25281.5.camel@suse.com>
-Subject: Re: [PATCH] [Patch v2] usbtv: Fix refcounting mixup
-From: Oliver Neukum <oneukum@suse.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, ben.hutchings@codethink.co.uk,
-        gregkh@linuxfoundation.org, mchehab@s-opensource.com,
-        linux-media@vger.kernel.org
-Cc: stable@vger.kernel.org
-Date: Wed, 16 May 2018 11:23:43 +0200
-In-Reply-To: <1ee4b00d-9a55-92cf-e708-1e0c60ca4bfd@xs4all.nl>
-References: <20180515130744.19342-1-oneukum@suse.com>
-         <85dd974b-c251-47a5-600d-77b009e2dfcd@xs4all.nl>
-         <1526399190.31771.2.camel@suse.com>
-         <1ee4b00d-9a55-92cf-e708-1e0c60ca4bfd@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from gateway33.websitewelcome.com ([192.185.146.195]:36787 "EHLO
+        gateway33.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750924AbeEQS26 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 14:28:58 -0400
+Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
+        by gateway33.websitewelcome.com (Postfix) with ESMTP id ECE0D46D6FA
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2018 13:08:27 -0500 (CDT)
+Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
+ <20180423152455.363d285c@vento.lan>
+ <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
+ <20180423161742.66f939ba@vento.lan>
+ <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
+ <20180426204241.03a42996@vento.lan>
+ <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
+ <20180515085953.65bfa107@vento.lan> <20180515141655.idzuh2jfdkuu5grs@mwanda>
+ <f342d8d6-b5e6-0cbf-d002-9561b79c90e4@embeddedor.com>
+ <20180515193936.m25kzyeknsk2bo2c@mwanda>
+ <0f31a60b-911d-0140-3546-98317e2a0557@embeddedor.com>
+ <d34cf31f-6dc5-ee2d-ea6d-513dd5e8e5c3@embeddedor.com>
+ <20180517083440.14e6b975@vento.lan> <20180517084324.3242c257@vento.lan>
+ <20180517091340.7d8c62b2@vento.lan>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Message-ID: <5921004a-a7d3-59c9-2ef4-b6a490390d3f@embeddedor.com>
+Date: Thu, 17 May 2018 13:08:24 -0500
+MIME-Version: 1.0
+In-Reply-To: <20180517091340.7d8c62b2@vento.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Dienstag, den 15.05.2018, 18:01 +0200 schrieb Hans Verkuil:
-> On 05/15/2018 05:46 PM, Oliver Neukum wrote:
-> > Am Dienstag, den 15.05.2018, 16:28 +0200 schrieb Hans Verkuil:
-> > > On 05/15/18 15:07, Oliver Neukum wrote:
 
-> > > >  usbtv_audio_fail:
-> > > >  	/* we must not free at this point */
-> > > > -	usb_get_dev(usbtv->udev);
-> > > > +	v4l2_device_get(&usbtv->v4l2_dev);
-> > > 
-> > > This is very confusing. I think it is much better to move the
-> > 
-> > Yes. It confused me.
-> > 
-> > > v4l2_device_register() call from usbtv_video_init to this probe function.
-> > 
-> > Yes, but it is called here. So you want to do it after registering the
-> > audio?
+
+On 05/17/2018 07:13 AM, Mauro Carvalho Chehab wrote:
+> Em Thu, 17 May 2018 08:43:24 -0300
+> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
 > 
-> No, before. It's a global data structure, so this can be done before the
-> call to usbtv_video_init() as part of the top-level initialization of the
-> driver.
+>>>>> On 05/15/2018 02:39 PM, Dan Carpenter wrote:
+>>>    
+>>>>>> You'd need to rebuild the db (possibly twice but definitely once).
+>>>
+>>> How? Here, I just pull from your git tree and do a "make". At most,
+>>> make clean; make.
+>>
+>> Never mind. Found it using grep. I'm running this:
+>>
+>> 	make allyesconfig
+>> 	/devel/smatch/smatch_scripts/build_kernel_data.sh
+>> 	/devel/smatch/smatch_scripts/build_kernel_data.sh
+> 
+> It seems that something is broken... getting this error/warning:
+> 
+> DBD::SQLite::db do failed: unrecognized token: "'end + strlen("
+> " at /devel/smatch/smatch_scripts/../smatch_data/db/fill_db_sql.pl line 32, <WARNS> line 2938054.
+> 
 
-Eh, but we cannot create a V4L device before the first device
-is connected and we must certainly create multiple V4L devices if
-multiple physical devices are connected.
+Yep. I get the same warning multiple times.
 
-Maybe I am dense. Please elaborate.
-It seem to me that the driver is confusing because it uses
-multiple refcounts.
+BTW, Mauro, you sent a patch to fix an spectre v1 issue in this file 
+yesterday: dvb_ca_en50221.c:1480, but it seems there is another instance 
+of the same issue some lines above:
 
-	Regards
-		Oliver
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c 
+b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 1310526..7edd9db 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -1398,6 +1398,7 @@ static int dvb_ca_en50221_io_do_ioctl(struct file 
+*file,
+
+                 info->type = CA_CI_LINK;
+                 info->flags = 0;
++               slot = array_index_nospec(slot, ca->slot_count + 1);
+                 sl = &ca->slot_info[slot];
+                 if ((sl->slot_state != DVB_CA_SLOTSTATE_NONE) &&
+                     (sl->slot_state != DVB_CA_SLOTSTATE_INVALID)) {
+
+
+Thanks
+--
+Gustavo
