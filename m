@@ -1,153 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0044.outbound.protection.outlook.com ([104.47.42.44]:40056
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751974AbeECCnL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 May 2018 22:43:11 -0400
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-Subject: [PATCH v5 5/8] v4l: xilinx: dma: Update video format descriptor
-Date: Wed, 2 May 2018 19:42:50 -0700
-Message-ID: <81391061e8a383fe33a1f8f519b9ae33748de00b.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
-In-Reply-To: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
-References: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:18077 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752446AbeEQObM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 10:31:12 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 2/2] v4l: Add support for STD ioctls on subdev nodes
+Date: Thu, 17 May 2018 16:30:16 +0200
+Message-Id: <20180517143016.13501-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch updates video format descriptor to help information
-viz., number of planes per color format and chroma sub sampling
-factors.
+There is no way to control the standard of subdevices which are part of
+a media device. The ioctls which exists all target video devices
+explicitly and the idea is that the video device should talk to the
+subdevice. For subdevices part of a media graph this is not possible and
+the standard must be controlled on the subdev device directly.
 
-Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Add four new ioctls to be able to directly interact with subdevices and
+control the video standard; VIDIOC_SUBDEV_ENUMSTD, VIDIOC_SUBDEV_G_STD,
+VIDIOC_SUBDEV_S_STD and VIDIOC_SUBDEV_QUERYSTD.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
 ---
-Changes in v5:
- - Added YUV420 10 bit format to video descriptor table
 
-Changes in v4:
- - Introduced bpp (bits per pixel) per plane
+* Changes since v1
+- Added VIDIOC_SUBDEV_ENUMSTD.
+---
+ .../media/uapi/v4l/vidioc-enumstd.rst         | 11 ++++++----
+ Documentation/media/uapi/v4l/vidioc-g-std.rst | 14 ++++++++----
+ .../media/uapi/v4l/vidioc-querystd.rst        | 11 ++++++----
+ drivers/media/v4l2-core/v4l2-subdev.c         | 22 +++++++++++++++++++
+ include/uapi/linux/v4l2-subdev.h              |  4 ++++
+ 5 files changed, 50 insertions(+), 12 deletions(-)
 
- drivers/media/platform/xilinx/xilinx-dma.c | 12 ++++++------
- drivers/media/platform/xilinx/xilinx-vip.c | 18 ++++++++++--------
- drivers/media/platform/xilinx/xilinx-vip.h | 10 ++++++++--
- 3 files changed, 24 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 727dc6e..518d572 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -366,7 +366,7 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
- 	}
+diff --git a/Documentation/media/uapi/v4l/vidioc-enumstd.rst b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
+index b7fda29f46a139a0..2644a62acd4b6822 100644
+--- a/Documentation/media/uapi/v4l/vidioc-enumstd.rst
++++ b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
+@@ -2,14 +2,14 @@
  
- 	dma->xt.frame_size = 1;
--	dma->sgl[0].size = dma->format.width * dma->fmtinfo->bpp;
-+	dma->sgl[0].size = dma->format.width * dma->fmtinfo->bpp[0];
- 	dma->sgl[0].icg = dma->format.bytesperline - dma->sgl[0].size;
- 	dma->xt.numf = dma->format.height;
+ .. _VIDIOC_ENUMSTD:
  
-@@ -569,12 +569,12 @@ __xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
- 	 * the minimum and maximum values, clamp the requested width and convert
- 	 * it back to pixels.
- 	 */
--	align = lcm(dma->align, info->bpp);
-+	align = lcm(dma->align, info->bpp[0]);
- 	min_width = roundup(XVIP_DMA_MIN_WIDTH, align);
- 	max_width = rounddown(XVIP_DMA_MAX_WIDTH, align);
--	width = rounddown(pix->width * info->bpp, align);
-+	width = rounddown(pix->width * info->bpp[0], align);
+-********************
+-ioctl VIDIOC_ENUMSTD
+-********************
++*******************************************
++ioctl VIDIOC_ENUMSTD, VIDIOC_SUBDEV_ENUMSTD
++*******************************************
  
--	pix->width = clamp(width, min_width, max_width) / info->bpp;
-+	pix->width = clamp(width, min_width, max_width) / info->bpp[0];
- 	pix->height = clamp(pix->height, XVIP_DMA_MIN_HEIGHT,
- 			    XVIP_DMA_MAX_HEIGHT);
+ Name
+ ====
  
-@@ -582,7 +582,7 @@ __xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
- 	 * line value is zero, the module doesn't support user configurable line
- 	 * sizes. Override the requested value with the minimum in that case.
- 	 */
--	min_bpl = pix->width * info->bpp;
-+	min_bpl = pix->width * info->bpp[0];
- 	max_bpl = rounddown(XVIP_DMA_MAX_WIDTH, dma->align);
- 	bpl = rounddown(pix->bytesperline, dma->align);
+-VIDIOC_ENUMSTD - Enumerate supported video standards
++VIDIOC_ENUMSTD - VIDIOC_SUBDEV_ENUMSTD - Enumerate supported video standards
  
-@@ -676,7 +676,7 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
- 	dma->format.field = V4L2_FIELD_NONE;
- 	dma->format.width = XVIP_DMA_DEF_WIDTH;
- 	dma->format.height = XVIP_DMA_DEF_HEIGHT;
--	dma->format.bytesperline = dma->format.width * dma->fmtinfo->bpp;
-+	dma->format.bytesperline = dma->format.width * dma->fmtinfo->bpp[0];
- 	dma->format.sizeimage = dma->format.bytesperline * dma->format.height;
  
- 	/* Initialize the media entity... */
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/platform/xilinx/xilinx-vip.c
-index 3112591..fb1a08f 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.c
-+++ b/drivers/media/platform/xilinx/xilinx-vip.c
-@@ -27,22 +27,24 @@
-  */
+ Synopsis
+@@ -18,6 +18,9 @@ Synopsis
+ .. c:function:: int ioctl( int fd, VIDIOC_ENUMSTD, struct v4l2_standard *argp )
+     :name: VIDIOC_ENUMSTD
  
- static const struct xvip_video_format xvip_video_formats[] = {
-+	{ XVIP_VF_YUV_420, 8, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
-+	  {1, 2, 0}, V4L2_PIX_FMT_NV12, 2, 2, 2, "4:2:0, semi-planar, YUV" },
- 	{ XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
--	  2, V4L2_PIX_FMT_YUYV, "4:2:2, packed, YUYV" },
-+	  {2, 0, 0}, V4L2_PIX_FMT_YUYV, 1, 2, 1, "4:2:2, packed, YUYV" },
- 	{ XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
--	  3, V4L2_PIX_FMT_YUV444, "4:4:4, packed, YUYV" },
-+	  {3, 0, 0}, V4L2_PIX_FMT_YUV444, 1, 1, 1, "4:4:4, packed, YUYV" },
- 	{ XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
--	  3, 0, NULL },
-+	  {3, 0, 0}, V4L2_PIX_FMT_RGB24, 1, 1, 1, "24-bit RGB" },
- 	{ XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
--	  1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
-+	  {1, 0, 0}, V4L2_PIX_FMT_GREY, 1, 1, 1, "Greyscale 8-bit" },
- 	{ XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
--	  1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit RGGB" },
-+	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit RGGB" },
- 	{ XVIP_VF_MONO_SENSOR, 8, "grbg", MEDIA_BUS_FMT_SGRBG8_1X8,
--	  1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit GRBG" },
-+	  {1, 0, 0}, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, "Bayer 8-bit GRBG" },
- 	{ XVIP_VF_MONO_SENSOR, 8, "gbrg", MEDIA_BUS_FMT_SGBRG8_1X8,
--	  1, V4L2_PIX_FMT_SGBRG8, "Bayer 8-bit GBRG" },
-+	  {1, 0, 0}, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, "Bayer 8-bit GBRG" },
- 	{ XVIP_VF_MONO_SENSOR, 8, "bggr", MEDIA_BUS_FMT_SBGGR8_1X8,
--	  1, V4L2_PIX_FMT_SBGGR8, "Bayer 8-bit BGGR" },
-+	  {1, 0, 0}, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, "Bayer 8-bit BGGR" },
- };
++.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_ENUMSTD, struct v4l2_standard *argp )
++    :name: VIDIOC_SUBDEV_ENUMSTD
++
  
- /**
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/platform/xilinx/xilinx-vip.h
-index 42fee20..256efa2 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.h
-+++ b/drivers/media/platform/xilinx/xilinx-vip.h
-@@ -109,8 +109,11 @@ struct xvip_device {
-  * @width: AXI4 format width in bits per component
-  * @pattern: CFA pattern for Mono/Sensor formats
-  * @code: media bus format code
-- * @bpp: bytes per pixel (when stored in memory)
-+ * @bpp: bytes per pixel is per plane
-  * @fourcc: V4L2 pixel format FCC identifier
-+ * @num_planes: number of planes w.r.t. color format
-+ * @hsub: Horizontal sampling factor of Chroma
-+ * @vsub: Vertical sampling factor of Chroma
-  * @description: format description, suitable for userspace
-  */
- struct xvip_video_format {
-@@ -118,8 +121,11 @@ struct xvip_video_format {
- 	unsigned int width;
- 	const char *pattern;
- 	unsigned int code;
--	unsigned int bpp;
-+	unsigned int bpp[3];
- 	u32 fourcc;
-+	u8 num_planes;
-+	u8 hsub;
-+	u8 vsub;
- 	const char *description;
- };
+ Arguments
+ =========
+diff --git a/Documentation/media/uapi/v4l/vidioc-g-std.rst b/Documentation/media/uapi/v4l/vidioc-g-std.rst
+index 90791ab51a5371b8..8d94f0404df270db 100644
+--- a/Documentation/media/uapi/v4l/vidioc-g-std.rst
++++ b/Documentation/media/uapi/v4l/vidioc-g-std.rst
+@@ -2,14 +2,14 @@
  
+ .. _VIDIOC_G_STD:
+ 
+-********************************
+-ioctl VIDIOC_G_STD, VIDIOC_S_STD
+-********************************
++**************************************************************************
++ioctl VIDIOC_G_STD, VIDIOC_S_STD, VIDIOC_SUBDEV_G_STD, VIDIOC_SUBDEV_S_STD
++**************************************************************************
+ 
+ Name
+ ====
+ 
+-VIDIOC_G_STD - VIDIOC_S_STD - Query or select the video standard of the current input
++VIDIOC_G_STD - VIDIOC_S_STD - VIDIOC_SUBDEV_G_STD - VIDIOC_SUBDEV_S_STD - Query or select the video standard of the current input
+ 
+ 
+ Synopsis
+@@ -21,6 +21,12 @@ Synopsis
+ .. c:function:: int ioctl( int fd, VIDIOC_S_STD, const v4l2_std_id *argp )
+     :name: VIDIOC_S_STD
+ 
++.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_G_STD, v4l2_std_id *argp )
++    :name: VIDIOC_SUBDEV_G_STD
++
++.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_S_STD, const v4l2_std_id *argp )
++    :name: VIDIOC_SUBDEV_S_STD
++
+ 
+ Arguments
+ =========
+diff --git a/Documentation/media/uapi/v4l/vidioc-querystd.rst b/Documentation/media/uapi/v4l/vidioc-querystd.rst
+index cf40bca19b9f8665..a8385cc7481869dd 100644
+--- a/Documentation/media/uapi/v4l/vidioc-querystd.rst
++++ b/Documentation/media/uapi/v4l/vidioc-querystd.rst
+@@ -2,14 +2,14 @@
+ 
+ .. _VIDIOC_QUERYSTD:
+ 
+-*********************
+-ioctl VIDIOC_QUERYSTD
+-*********************
++*********************************************
++ioctl VIDIOC_QUERYSTD, VIDIOC_SUBDEV_QUERYSTD
++*********************************************
+ 
+ Name
+ ====
+ 
+-VIDIOC_QUERYSTD - Sense the video standard received by the current input
++VIDIOC_QUERYSTD - VIDIOC_SUBDEV_QUERYSTD - Sense the video standard received by the current input
+ 
+ 
+ Synopsis
+@@ -18,6 +18,9 @@ Synopsis
+ .. c:function:: int ioctl( int fd, VIDIOC_QUERYSTD, v4l2_std_id *argp )
+     :name: VIDIOC_QUERYSTD
+ 
++.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_QUERYSTD, v4l2_std_id *argp )
++    :name: VIDIOC_SUBDEV_QUERYSTD
++
+ 
+ Arguments
+ =========
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index f9eed938d3480b74..27a2c633f2323f5f 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -494,6 +494,28 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 
+ 	case VIDIOC_SUBDEV_S_DV_TIMINGS:
+ 		return v4l2_subdev_call(sd, video, s_dv_timings, arg);
++
++	case VIDIOC_SUBDEV_G_STD:
++		return v4l2_subdev_call(sd, video, g_std, arg);
++
++	case VIDIOC_SUBDEV_S_STD: {
++		v4l2_std_id *std = arg;
++
++		return v4l2_subdev_call(sd, video, s_std, *std);
++	}
++
++	case VIDIOC_SUBDEV_ENUMSTD: {
++		struct v4l2_standard *p = arg;
++		v4l2_std_id id;
++
++		if (v4l2_subdev_call(sd, video, g_tvnorms, &id))
++			return -EINVAL;
++
++		return v4l_video_std_enumstd(p, id);
++	}
++
++	case VIDIOC_SUBDEV_QUERYSTD:
++		return v4l2_subdev_call(sd, video, querystd, arg);
+ #endif
+ 	default:
+ 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
+index c95a53e6743cb040..03970ce3074193e6 100644
+--- a/include/uapi/linux/v4l2-subdev.h
++++ b/include/uapi/linux/v4l2-subdev.h
+@@ -170,8 +170,12 @@ struct v4l2_subdev_selection {
+ #define VIDIOC_SUBDEV_G_SELECTION		_IOWR('V', 61, struct v4l2_subdev_selection)
+ #define VIDIOC_SUBDEV_S_SELECTION		_IOWR('V', 62, struct v4l2_subdev_selection)
+ /* The following ioctls are identical to the ioctls in videodev2.h */
++#define VIDIOC_SUBDEV_G_STD			_IOR('V', 23, v4l2_std_id)
++#define VIDIOC_SUBDEV_S_STD			_IOW('V', 24, v4l2_std_id)
++#define VIDIOC_SUBDEV_ENUMSTD			_IOWR('V', 25, struct v4l2_standard)
+ #define VIDIOC_SUBDEV_G_EDID			_IOWR('V', 40, struct v4l2_edid)
+ #define VIDIOC_SUBDEV_S_EDID			_IOWR('V', 41, struct v4l2_edid)
++#define VIDIOC_SUBDEV_QUERYSTD			_IOR('V', 63, v4l2_std_id)
+ #define VIDIOC_SUBDEV_S_DV_TIMINGS		_IOWR('V', 87, struct v4l2_dv_timings)
+ #define VIDIOC_SUBDEV_G_DV_TIMINGS		_IOWR('V', 88, struct v4l2_dv_timings)
+ #define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 98, struct v4l2_enum_dv_timings)
 -- 
-2.7.4
+2.17.0
