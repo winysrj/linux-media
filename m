@@ -1,184 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:40858 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752401AbeENWkr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 18:40:47 -0400
-Received: by mail-lf0-f65.google.com with SMTP id p85-v6so20404605lfg.7
-        for <linux-media@vger.kernel.org>; Mon, 14 May 2018 15:40:46 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [RFC PATCH 2/5] media: cec-notifier: Get notifier by device and connector name
-Date: Tue, 15 May 2018 00:40:36 +0200
-Message-Id: <1526337639-3568-3-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
-References: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
+Received: from gofer.mess.org ([88.97.38.141]:60337 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750938AbeEQNoa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 09:44:30 -0400
+Date: Thu, 17 May 2018 14:44:28 +0100
+From: Sean Young <sean@mess.org>
+To: Quentin Monnet <quentin.monnet@netronome.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
+        Matthias Reichl <hias@horus.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Y Song <ys114321@gmail.com>
+Subject: Re: [PATCH v3 1/2] media: rc: introduce BPF_PROG_RAWIR_EVENT
+Message-ID: <20180517134427.bjvt2t3jfabpvbcy@gofer.mess.org>
+References: <cover.1526504511.git.sean@mess.org>
+ <92785c791057185fa5691f78cecfa4beae7fc336.1526504511.git.sean@mess.org>
+ <592262ad-e92f-2b53-f6bb-086257c21db0@netronome.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <592262ad-e92f-2b53-f6bb-086257c21db0@netronome.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In non device-tree world, we can need to get the notifier by the driver
-name directly and eventually defer probe if not yet created.
+Hi Quentin,
 
-This patch adds a variant of the get function by using the device name
-instead and will not create a notifier if not yet created.
+On Thu, May 17, 2018 at 01:10:56PM +0100, Quentin Monnet wrote:
+> 2018-05-16 22:04 UTC+0100 ~ Sean Young <sean@mess.org>
+> > Add support for BPF_PROG_RAWIR_EVENT. This type of BPF program can call
+> > rc_keydown() to reported decoded IR scancodes, or rc_repeat() to report
+> > that the last key should be repeated.
+> > 
+> > The bpf program can be attached to using the bpf(BPF_PROG_ATTACH) syscall;
+> > the target_fd must be the /dev/lircN device.
+> > 
+> > Signed-off-by: Sean Young <sean@mess.org>
+> > ---
+> >  drivers/media/rc/Kconfig           |  13 ++
+> >  drivers/media/rc/Makefile          |   1 +
+> >  drivers/media/rc/bpf-rawir-event.c | 363 +++++++++++++++++++++++++++++
+> >  drivers/media/rc/lirc_dev.c        |  24 ++
+> >  drivers/media/rc/rc-core-priv.h    |  24 ++
+> >  drivers/media/rc/rc-ir-raw.c       |  14 +-
+> >  include/linux/bpf_rcdev.h          |  30 +++
+> >  include/linux/bpf_types.h          |   3 +
+> >  include/uapi/linux/bpf.h           |  55 ++++-
+> >  kernel/bpf/syscall.c               |   7 +
+> >  10 files changed, 531 insertions(+), 3 deletions(-)
+> >  create mode 100644 drivers/media/rc/bpf-rawir-event.c
+> >  create mode 100644 include/linux/bpf_rcdev.h
+> > 
+> 
+> [...]
+> 
+> Hi Sean,
+> 
+> Please find below some nitpicks on the documentation for the two helpers.
 
-But the i915 driver exposes at least 2 HDMI connectors, this patch also
-adds the possibility to add a connector name tied to the notifier device
-to form a tuple and associate different CEC controllers for each HDMI
-connectors.
+I agree with all your points. I will reword and fix this for v4.
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
----
- drivers/media/cec/cec-notifier.c | 30 ++++++++++++++++++++++++---
- include/media/cec-notifier.h     | 44 ++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 69 insertions(+), 5 deletions(-)
+Thanks,
 
-diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
-index 16dffa0..716070a 100644
---- a/drivers/media/cec/cec-notifier.c
-+++ b/drivers/media/cec/cec-notifier.c
-@@ -21,6 +21,7 @@ struct cec_notifier {
- 	struct list_head head;
- 	struct kref kref;
- 	struct device *dev;
-+	const char *conn;
- 	struct cec_adapter *cec_adap;
- 	void (*callback)(struct cec_adapter *adap, u16 pa);
- 
-@@ -30,13 +31,34 @@ struct cec_notifier {
- static LIST_HEAD(cec_notifiers);
- static DEFINE_MUTEX(cec_notifiers_lock);
- 
--struct cec_notifier *cec_notifier_get(struct device *dev)
-+struct cec_notifier *cec_notifier_get_byname(const char *name,
-+					     const char *conn)
- {
- 	struct cec_notifier *n;
- 
- 	mutex_lock(&cec_notifiers_lock);
- 	list_for_each_entry(n, &cec_notifiers, head) {
--		if (n->dev == dev) {
-+		if (!strcmp(dev_name(n->dev), name) &&
-+		    (!conn || !strcmp(n->conn, conn))) {
-+			kref_get(&n->kref);
-+			mutex_unlock(&cec_notifiers_lock);
-+			return n;
-+		}
-+	}
-+	mutex_unlock(&cec_notifiers_lock);
-+
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(cec_notifier_get_byname);
-+
-+struct cec_notifier *cec_notifier_get_conn(struct device *dev, const char *conn)
-+{
-+	struct cec_notifier *n;
-+
-+	mutex_lock(&cec_notifiers_lock);
-+	list_for_each_entry(n, &cec_notifiers, head) {
-+		if (n->dev == dev &&
-+		    (!conn || !strcmp(n->conn, conn))) {
- 			kref_get(&n->kref);
- 			mutex_unlock(&cec_notifiers_lock);
- 			return n;
-@@ -46,6 +68,8 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
- 	if (!n)
- 		goto unlock;
- 	n->dev = dev;
-+	if (conn)
-+		n->conn = devm_kstrdup(dev, conn, GFP_KERNEL);
- 	n->phys_addr = CEC_PHYS_ADDR_INVALID;
- 	mutex_init(&n->lock);
- 	kref_init(&n->kref);
-@@ -54,7 +78,7 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
- 	mutex_unlock(&cec_notifiers_lock);
- 	return n;
- }
--EXPORT_SYMBOL_GPL(cec_notifier_get);
-+EXPORT_SYMBOL_GPL(cec_notifier_get_conn);
- 
- static void cec_notifier_release(struct kref *kref)
- {
-diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
-index cf0add7..70f2974 100644
---- a/include/media/cec-notifier.h
-+++ b/include/media/cec-notifier.h
-@@ -20,6 +20,37 @@ struct cec_notifier;
- #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
- 
- /**
-+ * cec_notifier_get_byname - find a cec_notifier for the given device name
-+ * and connector tuple.
-+ * @name: device name that sends the events.
-+ * @conn: the connector name from which the event occurs
-+ *
-+ * If a notifier for device @name exists, then increase the refcount and
-+ * return that notifier.
-+ *
-+ * If it doesn't exist, return NULL
-+ */
-+struct cec_notifier *cec_notifier_get_byname(const char *name,
-+					     const char *conn);
-+
-+/**
-+ * cec_notifier_get_conn - find or create a new cec_notifier for the given
-+ * device and connector tuple.
-+ * @dev: device that sends the events.
-+ * @conn: the connector name from which the event occurs
-+ *
-+ * If a notifier for device @dev already exists, then increase the refcount
-+ * and return that notifier.
-+ *
-+ * If it doesn't exist, then allocate a new notifier struct and return a
-+ * pointer to that new struct.
-+ *
-+ * Return NULL if the memory could not be allocated.
-+ */
-+struct cec_notifier *cec_notifier_get_conn(struct device *dev,
-+					   const char *conn);
-+
-+/**
-  * cec_notifier_get - find or create a new cec_notifier for the given device.
-  * @dev: device that sends the events.
-  *
-@@ -31,7 +62,10 @@ struct cec_notifier;
-  *
-  * Return NULL if the memory could not be allocated.
-  */
--struct cec_notifier *cec_notifier_get(struct device *dev);
-+static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+{
-+	return cec_notifier_get_conn(dev, NULL);
-+}
- 
- /**
-  * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
-@@ -85,12 +119,18 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
- 			       struct cec_notifier *notifier);
- 
- #else
--static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+static inline struct cec_notifier *cec_notifier_get_conn(struct device *dev,
-+							 const char *conn)
- {
- 	/* A non-NULL pointer is expected on success */
- 	return (struct cec_notifier *)0xdeadfeed;
- }
- 
-+static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+{
-+	return cec_notifier_get_conn(dev, NULL);
-+}
-+
- static inline void cec_notifier_put(struct cec_notifier *n)
- {
- }
--- 
-2.7.4
+Sean
+> 
+> > diff --git a/include/uapi/linux/bpf.h b/include/uapi/linux/bpf.h
+> > index d94d333a8225..243e141e8a5b 100644
+> > --- a/include/uapi/linux/bpf.h
+> > +++ b/include/uapi/linux/bpf.h
+> 
+> [...]
+> 
+> > @@ -1902,6 +1904,35 @@ union bpf_attr {
+> >   *		egress otherwise). This is the only flag supported for now.
+> >   *	Return
+> >   *		**SK_PASS** on success, or **SK_DROP** on error.
+> > + *
+> > + * int bpf_rc_keydown(void *ctx, u32 protocol, u32 scancode, u32 toggle)
+> > + *	Description
+> > + *		Report decoded scancode with toggle value. For use in
+> > + *		BPF_PROG_TYPE_RAWIR_EVENT, to report a successfully
+> 
+> Could you please use bold RST markup for constants and function names?
+> Typically for BPF_PROG_TYPE_RAWIR_EVENT here and the enum below.
+> 
+> > + *		decoded scancode. This is will generate a keydown event,
+> 
+> s/This is will/This will/?
+> 
+> > + *		and a keyup event once the scancode is no longer repeated.
+> > + *
+> > + *		*ctx* pointer to bpf_rawir_event, *protocol* is decoded
+> > + *		protocol (see RC_PROTO_* enum).
+> 
+> This documentation is intended to be compiled as a man page. Could you
+> please use a complete sentence here?
+> Also, this could do with additional markup as well: **struct
+> bpf_rawir_event**.
+> 
+> > + *
+> > + *		Some protocols include a toggle bit, in case the button
+> > + *		was released and pressed again between consecutive scancodes,
+> > + *		copy this bit into *toggle* if it exists, else set to 0.
+> > + *
+> > + *     Return
+> 
+> The "Return" lines here and in the second helper use space indent
+> instead as tabs (as all other lines do). Would you mind fixing it for
+> consistency?
+> 
+> > + *		Always return 0 (for now)
+> 
+> Other helpers use just "0" in that case, but I do not really mind.
+> Out of curiosity, do you have anything specific in mind for changing the
+> return value here in the future?
+
+I don't expect this is to change, so I should just "0".
+
+> 
+> > + *
+> > + * int bpf_rc_repeat(void *ctx)
+> > + *	Description
+> > + *		Repeat the last decoded scancode; some IR protocols like
+> > + *		NEC have a special IR message for repeat last button,
+> 
+> s/repeat/repeating/?
+> 
+> > + *		in case user is holding a button down; the scancode is
+> > + *		not repeated.
+> > + *
+> > + *		*ctx* pointer to bpf_rawir_event.
+> 
+> Please use a complete sentence here as well, if you do not mind.
+> 
+> > + *
+> > + *     Return
+> > + *		Always return 0 (for now)
+> >   */
+> Thanks,
+> Quentin
