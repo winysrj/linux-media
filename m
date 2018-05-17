@@ -1,69 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:33662 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:43796 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750947AbeECROM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 13:14:12 -0400
-Date: Thu, 3 May 2018 19:14:10 +0200
+        id S1751233AbeEQIyH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 04:54:07 -0400
 From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v9 0/2] Initial Allwinner V3s CSI Support
-Message-ID: <20180503171410.q52ak27u47gycy6o@flea>
-References: <1520301070-48769-1-git-send-email-yong.deng@magewell.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <1520301070-48769-1-git-send-email-yong.deng@magewell.com>
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Daniel Mack <daniel@zonque.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v3 00/12] media: ov5640: Misc cleanup and improvements
+Date: Thu, 17 May 2018 10:53:53 +0200
+Message-Id: <20180517085405.10104-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+Hi,
 
-On Tue, Mar 06, 2018 at 09:51:10AM +0800, Yong Deng wrote:
-> This patchset add initial support for Allwinner V3s CSI.
-> 
-> Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-> interface and CSI1 is used for parallel interface. This is not
-> documented in datasheet but by test and guess.
-> 
-> This patchset implement a v4l2 framework driver and add a binding 
-> documentation for it. 
-> 
-> Currently, the driver only support the parallel interface. And has been
-> tested with a BT1120 signal which generating from FPGA. The following
-> fetures are not support with this patchset:
->   - ISP 
->   - MIPI-CSI2
->   - Master clock for camera sensor
->   - Power regulator for the front end IC
+Here is a "small" series that mostly cleans up the ov5640 driver code,
+slowly getting rid of the big data array for more understandable code
+(hopefully).
 
-Do you plan on sending another version some time soon? It would be
-awesome to have this in 4.18.
+The biggest addition would be the clock rate computation at runtime,
+instead of relying on those arrays to setup the clock tree
+properly. As a side effect, it fixes the framerate that was off by
+around 10% on the smaller resolutions, and we now support 60fps.
 
-Thanks!
+This also introduces a bunch of new features.
+
+Let me know what you think,
 Maxime
 
+Changes from v2:
+  - Rebased on latest Sakari PR
+  - Fixed the issues reported by Hugues: improper FPS returned for
+    formats, improper rounding of the FPS, some with his suggestions,
+    some by simplifying the logic.
+  - Expanded the clock tree comments based on the feedback from Samuel
+    Bobrowicz and Loic Poulain
+  - Merged some of the changes made by Samuel Bobrowicz to fix the
+    MIPI rate computation, fix the call sites of the
+    ov5640_set_timings function, the auto-exposure calculation call,
+    etc.
+  - Split the patches into smaller ones in order to make it more
+    readable (hopefully)
+
+Changes from v1:
+  - Integrated Hugues' suggestions to fix v4l2-compliance
+  - Fixed the bus width with JPEG
+  - Dropped the clock rate calculation loops for something simpler as
+    suggested by Sakari
+  - Cache the exposure value instead of using the control value
+  - Rebased on top of 4.17
+
+Maxime Ripard (11):
+  media: ov5640: Adjust the clock based on the expected rate
+  media: ov5640: Remove the clocks registers initialization
+  media: ov5640: Remove redundant defines
+  media: ov5640: Remove redundant register setup
+  media: ov5640: Compute the clock rate at runtime
+  media: ov5640: Remove pixel clock rates
+  media: ov5640: Enhance FPS handling
+  media: ov5640: Make the return rate type more explicit
+  media: ov5640: Make the FPS clamping / rounding more extendable
+  media: ov5640: Add 60 fps support
+  media: ov5640: Remove duplicate auto-exposure setup
+
+Samuel Bobrowicz (1):
+  media: ov5640: Fix timings setup code
+
+ drivers/media/i2c/ov5640.c | 701 +++++++++++++++++++++----------------
+ 1 file changed, 392 insertions(+), 309 deletions(-)
+
 -- 
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
+2.17.0
