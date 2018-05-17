@@ -1,83 +1,368 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:55843 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752036AbeEGQW7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:22:59 -0400
-Received: by mail-wm0-f67.google.com with SMTP id a8so14334366wmg.5
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:22:58 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v3 12/14] ARM: dts: imx7s-warp: add ov2680 sensor node
-Date: Mon,  7 May 2018 17:21:50 +0100
-Message-Id: <20180507162152.2545-13-rui.silva@linaro.org>
-In-Reply-To: <20180507162152.2545-1-rui.silva@linaro.org>
-References: <20180507162152.2545-1-rui.silva@linaro.org>
+Received: from mga05.intel.com ([192.55.52.43]:57704 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750819AbeEQEAw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 00:00:52 -0400
+From: bingbu.cao@intel.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, bingbu.cao@linux.intel.com,
+        tian.shu.qiu@linux.intel.com, rajmohan.mani@intel.com,
+        mchehab@kernel.org
+Subject: [PATCH 3/3] media: ak7375: Add ak7375 lens voice coil driver
+Date: Thu, 17 May 2018 12:03:14 +0800
+Message-Id: <1526529794-25569-3-git-send-email-bingbu.cao@intel.com>
+In-Reply-To: <1526529794-25569-1-git-send-email-bingbu.cao@intel.com>
+References: <1526529794-25569-1-git-send-email-bingbu.cao@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Warp7 comes with a Omnivision OV2680 sensor, add the node here to make complete
-the camera data path for this system. Add the needed regulator to the analog
-voltage supply.
+From: Bingbu Cao <bingbu.cao@intel.com>
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Add a V4L2 sub-device driver for the ak7375 lens voice coil.
+This is a voice coil module using the I2C bus to control the
+focus position.
+
+Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
+Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
 ---
- arch/arm/boot/dts/imx7s-warp.dts | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ MAINTAINERS                |   8 ++
+ drivers/media/i2c/Kconfig  |  10 ++
+ drivers/media/i2c/Makefile |   1 +
+ drivers/media/i2c/ak7375.c | 274 +++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 293 insertions(+)
+ create mode 100644 drivers/media/i2c/ak7375.c
 
-diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
-index ffd170ae925a..10df24c05b76 100644
---- a/arch/arm/boot/dts/imx7s-warp.dts
-+++ b/arch/arm/boot/dts/imx7s-warp.dts
-@@ -91,6 +91,14 @@
- 		regulator-always-on;
- 	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e73a55a6a855..7a8fea7b90fe 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -625,6 +625,14 @@ T:	git git://linuxtv.org/anttip/media_tree.git
+ S:	Maintained
+ F:	drivers/media/usb/airspy/
  
-+	reg_peri_3p15v: regulator-peri-3p15v {
-+		compatible = "regulator-fixed";
-+		regulator-name = "peri_3p15v_reg";
-+		regulator-min-microvolt = <3150000>;
-+		regulator-max-microvolt = <3150000>;
-+		regulator-always-on;
-+	};
++AKM AK7375 LENS VOICE COIL DRIVER
++M:	Tianshu Qiu <tian.shu.qiu@intel.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/ak7375.c
++F:	Documentation/devicetree/bindings/media/i2c/akm,ak7375.txt
 +
- 	sound {
- 		compatible = "simple-audio-card";
- 		simple-audio-card,name = "imx7-sgtl5000";
-@@ -218,6 +226,25 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_i2c2>;
- 	status = "okay";
-+
-+	ov2680: camera@36 {
-+		compatible = "ovti,ov2680";
-+		reg = <0x36>;
-+		clocks = <&osc>;
-+		clock-names = "xvclk";
-+		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
-+		DOVDD-supply = <&sw2_reg>;
-+		DVDD-supply = <&sw2_reg>;
-+		AVDD-supply = <&reg_peri_3p15v>;
-+
-+		port {
-+			ov2680_to_mipi: endpoint {
-+				remote-endpoint = <&mipi_from_sensor>;
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+			};
-+		};
-+	};
- };
+ ALACRITECH GIGABIT ETHERNET DRIVER
+ M:	Lino Sanfilippo <LinoSanfilippo@gmx.de>
+ S:	Maintained
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 1f9d7c6aa31a..92b7e9b1588c 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -326,6 +326,16 @@ config VIDEO_AD5820
+ 	  This is a driver for the AD5820 camera lens voice coil.
+ 	  It is used for example in Nokia N900 (RX-51).
  
- &i2c4 {
++config VIDEO_AK7375
++	tristate "AK7375 lens voice coil support"
++	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
++	depends on VIDEO_V4L2_SUBDEV_API
++	help
++	  This is a driver for the AK7375 camera lens voice coil.
++	  AK7375 is a 12 bit DAC with 120mA output current sink
++	  capability. This is designed for linear control of
++	  voice coil motors, controlled via I2C serial interface.
++
+ config VIDEO_DW9714
+ 	tristate "DW9714 lens voice coil support"
+ 	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 16fc34eda5cc..4261f66a29e6 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7127) += saa7127.o
+ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
+ obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
+ obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
++obj-$(CONFIG_VIDEO_AK7375)  += ak7375.o
+ obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
+ obj-$(CONFIG_VIDEO_DW9807)  += dw9807.o
+ obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
+diff --git a/drivers/media/i2c/ak7375.c b/drivers/media/i2c/ak7375.c
+new file mode 100644
+index 000000000000..7379fe35f4f4
+--- /dev/null
++++ b/drivers/media/i2c/ak7375.c
+@@ -0,0 +1,274 @@
++// SPDX-License-Identifier: GPL-2.0
++// Copyright (C) 2018 Intel Corporation
++
++#include <linux/acpi.h>
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++
++#define AK7375_MAX_FOCUS_POS	4095
++/*
++ * This sets the minimum granularity for the focus positions.
++ * A value of 1 gives maximum accuracy for a desired focus position
++ */
++#define AK7375_FOCUS_STEPS	1
++/*
++ * This acts as the minimum granularity of lens movement.
++ * Keep this value power of 2, so the control steps can be
++ * uniformly adjusted for gradual lens movement, with desired
++ * number of control steps.
++ */
++#define AK7375_CTRL_STEPS	64
++#define AK7375_CTRL_DELAY_US	1000
++
++#define AK7375_REG_POSITION	0x0
++#define AK7375_REG_CONT		0x2
++#define AK7375_MODE_ACTIVE	0x0
++#define AK7375_MODE_STANDBY	0x40
++
++/* ak7375 device structure */
++struct ak7375_device {
++	struct v4l2_ctrl_handler ctrls_vcm;
++	struct v4l2_subdev sd;
++	struct v4l2_ctrl *focus;
++};
++
++static inline struct ak7375_device *to_ak7375_vcm(struct v4l2_ctrl *ctrl)
++{
++	return container_of(ctrl->handler, struct ak7375_device, ctrls_vcm);
++}
++
++static inline struct ak7375_device *sd_to_ak7375_vcm(struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct ak7375_device, sd);
++}
++
++static int ak7375_i2c_write(struct ak7375_device *ak7375,
++	u8 addr, u16 data, int size)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ak7375->sd);
++	int ret;
++	u8 buf[3];
++
++	if (size != 1 && size != 2)
++		return -EINVAL;
++	buf[0] = addr;
++	buf[2] = data & 0xff;
++	if (size == 2)
++		buf[1] = data >> 8;
++	ret = i2c_master_send(client, (const char *)buf, size + 1);
++	if (ret < 0)
++		return ret;
++	if (ret != size + 1)
++		return -EIO;
++	return 0;
++}
++
++static int ak7375_set_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct ak7375_device *dev_vcm = to_ak7375_vcm(ctrl);
++
++	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE)
++		return ak7375_i2c_write(dev_vcm, AK7375_REG_POSITION,
++					ctrl->val << 4, 2);
++
++	return -EINVAL;
++}
++
++static const struct v4l2_ctrl_ops ak7375_vcm_ctrl_ops = {
++	.s_ctrl = ak7375_set_ctrl,
++};
++
++static int ak7375_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	int rval;
++
++	rval = pm_runtime_get_sync(sd->dev);
++	if (rval < 0) {
++		pm_runtime_put_noidle(sd->dev);
++		return rval;
++	}
++
++	return 0;
++}
++
++static int ak7375_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	pm_runtime_put(sd->dev);
++
++	return 0;
++}
++
++static const struct v4l2_subdev_internal_ops ak7375_int_ops = {
++	.open = ak7375_open,
++	.close = ak7375_close,
++};
++
++static const struct v4l2_subdev_ops ak7375_ops = { };
++
++static void ak7375_subdev_cleanup(struct ak7375_device *ak7375_dev)
++{
++	v4l2_async_unregister_subdev(&ak7375_dev->sd);
++	v4l2_ctrl_handler_free(&ak7375_dev->ctrls_vcm);
++	media_entity_cleanup(&ak7375_dev->sd.entity);
++}
++
++static int ak7375_init_controls(struct ak7375_device *dev_vcm)
++{
++	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
++	const struct v4l2_ctrl_ops *ops = &ak7375_vcm_ctrl_ops;
++
++	v4l2_ctrl_handler_init(hdl, 1);
++
++	dev_vcm->focus = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
++		0, AK7375_MAX_FOCUS_POS, AK7375_FOCUS_STEPS, 0);
++
++	if (hdl->error)
++		dev_err(dev_vcm->sd.dev, "%s fail error: 0x%x\n",
++			__func__, hdl->error);
++	dev_vcm->sd.ctrl_handler = hdl;
++	return hdl->error;
++}
++
++static int ak7375_probe(struct i2c_client *client)
++{
++	struct ak7375_device *ak7375_dev;
++	int val;
++
++	ak7375_dev = devm_kzalloc(&client->dev, sizeof(*ak7375_dev),
++				  GFP_KERNEL);
++	if (!ak7375_dev)
++		return -ENOMEM;
++
++	v4l2_i2c_subdev_init(&ak7375_dev->sd, client, &ak7375_ops);
++	ak7375_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	ak7375_dev->sd.internal_ops = &ak7375_int_ops;
++	ak7375_dev->sd.entity.function = MEDIA_ENT_F_LENS;
++
++	val = ak7375_init_controls(ak7375_dev);
++	if (val)
++		goto err_cleanup;
++
++	val = v4l2_async_register_subdev(&ak7375_dev->sd);
++	if (val < 0)
++		goto err_cleanup;
++
++	pm_runtime_set_active(&client->dev);
++	pm_runtime_enable(&client->dev);
++	pm_runtime_idle(&client->dev);
++
++	return 0;
++
++err_cleanup:
++	v4l2_ctrl_handler_free(&ak7375_dev->ctrls_vcm);
++	media_entity_cleanup(&ak7375_dev->sd.entity);
++	dev_err(&client->dev, "Probe failed: %d\n", val);
++	return val;
++}
++
++static int ak7375_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
++
++	ak7375_subdev_cleanup(ak7375_dev);
++	pm_runtime_disable(&client->dev);
++	pm_runtime_set_suspended(&client->dev);
++
++	return 0;
++}
++
++/*
++ * This function sets the vcm position, so it consumes least current
++ * The lens position is gradually moved in units of AK7375_CTRL_STEPS,
++ * to make the movements smoothly.
++ */
++static int __maybe_unused ak7375_vcm_suspend(struct device *dev)
++{
++
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
++	int ret, val;
++
++	for (val = ak7375_dev->focus->val & ~(AK7375_CTRL_STEPS - 1);
++	     val >= 0; val -= AK7375_CTRL_STEPS) {
++		ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_POSITION,
++				       val << 4, 2);
++		if (ret)
++			dev_err_once(dev, "%s I2C failure: %d\n",
++				     __func__, ret);
++		usleep_range(AK7375_CTRL_DELAY_US, AK7375_CTRL_DELAY_US + 10);
++	}
++
++	ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_CONT,
++			       AK7375_MODE_STANDBY, 1);
++	if (ret) {
++		dev_err(dev, "%s I2C failure: %d\n", __func__, ret);
++		return ret;
++	}
++	return 0;
++}
++
++/*
++ * This function sets the vcm position to the value set by the user
++ * through v4l2_ctrl_ops s_ctrl handler
++ * The lens position is gradually moved in units of AK7375_CTRL_STEPS,
++ * to make the movements smoothly.
++ */
++static int __maybe_unused ak7375_vcm_resume(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
++	int ret, val;
++
++	ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_CONT,
++		AK7375_MODE_ACTIVE, 1);
++	if (ret) {
++		dev_err(dev, "%s I2C failure: %d\n", __func__, ret);
++		return ret;
++	}
++
++	for (val = ak7375_dev->focus->val % AK7375_CTRL_STEPS;
++	     val <= ak7375_dev->focus->val;
++	     val += AK7375_CTRL_STEPS) {
++		ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_POSITION,
++				       val << 4, 2);
++		if (ret)
++			dev_err_ratelimited(dev, "%s I2C failure: %d\n",
++						__func__, ret);
++		usleep_range(AK7375_CTRL_DELAY_US, AK7375_CTRL_DELAY_US + 10);
++	}
++	return 0;
++}
++
++static const struct of_device_id ak7375_of_table[] = {
++	{ .compatible = "akm,ak7375" },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, ak7375_of_table);
++
++static const struct dev_pm_ops ak7375_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(ak7375_vcm_suspend, ak7375_vcm_resume)
++	SET_RUNTIME_PM_OPS(ak7375_vcm_suspend, ak7375_vcm_resume, NULL)
++};
++
++static struct i2c_driver ak7375_i2c_driver = {
++	.driver = {
++		.name = "ak7375",
++		.pm = &ak7375_pm_ops,
++		.of_match_table = ak7375_of_table,
++	},
++	.probe_new = ak7375_probe,
++	.remove = ak7375_remove,
++};
++module_i2c_driver(ak7375_i2c_driver);
++
++MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
++MODULE_AUTHOR("Bingbu Cao <bingbu.cao@intel.com>");
++MODULE_DESCRIPTION("AK7375 VCM driver");
++MODULE_LICENSE("GPL v2");
 -- 
-2.17.0
+1.9.1
