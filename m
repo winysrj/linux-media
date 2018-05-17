@@ -1,112 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:55196 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932264AbeEWKFo (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:52056 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752448AbeEQP5m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 06:05:44 -0400
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Luca Ceresoli <luca@lucaceresoli.net>,
-        Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 5/7] media: imx274: simplify imx274_write_table()
-Date: Wed, 23 May 2018 12:05:18 +0200
-Message-Id: <1527069921-21084-6-git-send-email-luca@lucaceresoli.net>
-In-Reply-To: <1527069921-21084-1-git-send-email-luca@lucaceresoli.net>
-References: <1527069921-21084-1-git-send-email-luca@lucaceresoli.net>
+        Thu, 17 May 2018 11:57:42 -0400
+Date: Thu, 17 May 2018 09:57:38 -0600
+From: Jordan Crouse <jcrouse@codeaurora.org>
+To: Vikash Garodia <vgarodia@codeaurora.org>
+Cc: hverkuil@xs4all.nl, mchehab@kernel.org, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org, stanimir.varbanov@linaro.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        acourbot@google.com
+Subject: Re: [PATCH 2/4] media: venus: add a routine to reset ARM9
+Message-ID: <20180517155737.GI4995@jcrouse-lnx.qualcomm.com>
+References: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
+ <1526556740-25494-3-git-send-email-vgarodia@codeaurora.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1526556740-25494-3-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-imx274_write_table() is a mere wrapper (and the only user) to
-imx274_regmap_util_write_table_8(). Remove this useless indirection by
-merging the two functions into one.
+On Thu, May 17, 2018 at 05:02:18PM +0530, Vikash Garodia wrote:
+> Add a new routine to reset the ARM9 and brings it
+> out of reset. This is in preparation to add PIL
+> functionality in venus driver.
+> 
+> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+> ---
+>  drivers/media/platform/qcom/venus/firmware.c     | 26 ++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/firmware.h     |  1 +
+>  drivers/media/platform/qcom/venus/hfi_venus_io.h |  5 +++++
+>  3 files changed, 32 insertions(+)
+> 
+> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+> index c4a5778..8f25375 100644
+> --- a/drivers/media/platform/qcom/venus/firmware.c
+> +++ b/drivers/media/platform/qcom/venus/firmware.c
+> @@ -14,6 +14,7 @@
+>  
+>  #include <linux/device.h>
+>  #include <linux/firmware.h>
+> +#include <linux/delay.h>
+>  #include <linux/kernel.h>
+>  #include <linux/io.h>
+>  #include <linux/of.h>
+> @@ -22,11 +23,36 @@
+>  #include <linux/sizes.h>
+>  #include <linux/soc/qcom/mdt_loader.h>
+>  
+> +#include "core.h"
+>  #include "firmware.h"
+> +#include "hfi_venus_io.h"
+>  
+>  #define VENUS_PAS_ID			9
+>  #define VENUS_FW_MEM_SIZE		(6 * SZ_1M)
+>  
+> +void venus_reset_hw(struct venus_core *core)
+> +{
+> +	void __iomem *reg_base = core->base;
+> +
+> +	writel(0, reg_base + WRAPPER_FW_START_ADDR);
+> +	writel(VENUS_FW_MEM_SIZE, reg_base + WRAPPER_FW_END_ADDR);
+> +	writel(0, reg_base + WRAPPER_CPA_START_ADDR);
+> +	writel(VENUS_FW_MEM_SIZE, reg_base + WRAPPER_CPA_END_ADDR);
+> +	writel(0x0, reg_base + WRAPPER_CPU_CGC_DIS);
+> +	writel(0x0, reg_base + WRAPPER_CPU_CLOCK_CONFIG);
 
-Also get rid of the wait_ms_addr and end_addr parameters since it does
-not make any sense to give them any values other than
-IMX274_TABLE_WAIT_MS and IMX274_TABLE_END.
+If you are going to have a bunch of writel() functions followed by a barrier it
+wouldn't hurt to use writel_relaxed() instead.
 
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Jordan
 
----
-Changed v2 -> v3: nothing
+> +	/* Make sure all register writes are committed. */
+> +	mb();
+> +
+> +	/*
+> +	 * Need to wait 10 cycles of internal clocks before bringing ARM9
+> +	 * out of reset.
+> +	 */
+> +	udelay(1);
+> +
+> +	/* Bring Arm9 out of reset */
+> +	writel_relaxed(0, reg_base + WRAPPER_A9SS_SW_RESET);
+> +}
+>  int venus_boot(struct device *dev, const char *fwname)
+>  {
+>  	const struct firmware *mdt;
+> diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
+> index 428efb5..d56f5b2 100644
+> --- a/drivers/media/platform/qcom/venus/firmware.h
+> +++ b/drivers/media/platform/qcom/venus/firmware.h
+> @@ -18,5 +18,6 @@
+>  
+>  int venus_boot(struct device *dev, const char *fwname);
+>  int venus_shutdown(struct device *dev);
+> +void venus_reset_hw(struct venus_core *core);
+>  
+>  #endif
+> diff --git a/drivers/media/platform/qcom/venus/hfi_venus_io.h b/drivers/media/platform/qcom/venus/hfi_venus_io.h
+> index 76f4793..39afa5d 100644
+> --- a/drivers/media/platform/qcom/venus/hfi_venus_io.h
+> +++ b/drivers/media/platform/qcom/venus/hfi_venus_io.h
+> @@ -109,6 +109,11 @@
+>  #define WRAPPER_CPU_CGC_DIS			(WRAPPER_BASE + 0x2010)
+>  #define WRAPPER_CPU_STATUS			(WRAPPER_BASE + 0x2014)
+>  #define WRAPPER_SW_RESET			(WRAPPER_BASE + 0x3000)
+> +#define WRAPPER_CPA_START_ADDR		(WRAPPER_BASE + 0x1020)
+> +#define WRAPPER_CPA_END_ADDR		(WRAPPER_BASE + 0x1024)
+> +#define WRAPPER_FW_START_ADDR		(WRAPPER_BASE + 0x1028)
+> +#define WRAPPER_FW_END_ADDR			(WRAPPER_BASE + 0x102C)
+> +#define WRAPPER_A9SS_SW_RESET		(WRAPPER_BASE + 0x3000)
+>  
+>  /* Venus 4xx */
+>  #define WRAPPER_VCODEC0_MMCC_POWER_STATUS	(WRAPPER_BASE + 0x90)
 
-Changed v1 -> v2:
- - add "media: " prefix to commit message
----
- drivers/media/i2c/imx274.c | 28 ++++++++++------------------
- 1 file changed, 10 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index ceeec97cd330..48343c2ade83 100644
---- a/drivers/media/i2c/imx274.c
-+++ b/drivers/media/i2c/imx274.c
-@@ -597,20 +597,18 @@ static inline struct stimx274 *to_imx274(struct v4l2_subdev *sd)
- }
- 
- /*
-- * imx274_regmap_util_write_table_8 - Function for writing register table
-- * @regmap: Pointer to device reg map structure
-- * @table: Table containing register values
-- * @wait_ms_addr: Flag for performing delay
-- * @end_addr: Flag for incating end of table
-+ * Writing a register table
-+ *
-+ * @priv: Pointer to device
-+ * @table: Table containing register values (with optional delays)
-  *
-  * This is used to write register table into sensor's reg map.
-  *
-  * Return: 0 on success, errors otherwise
-  */
--static int imx274_regmap_util_write_table_8(struct regmap *regmap,
--					    const struct reg_8 table[],
--					    u16 wait_ms_addr, u16 end_addr)
-+static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
- {
-+	struct regmap *regmap = priv->regmap;
- 	int err = 0;
- 	const struct reg_8 *next;
- 	u8 val;
-@@ -622,8 +620,8 @@ static int imx274_regmap_util_write_table_8(struct regmap *regmap,
- 
- 	for (next = table;; next++) {
- 		if ((next->addr != range_start + range_count) ||
--		    (next->addr == end_addr) ||
--		    (next->addr == wait_ms_addr) ||
-+		    (next->addr == IMX274_TABLE_END) ||
-+		    (next->addr == IMX274_TABLE_WAIT_MS) ||
- 		    (range_count == max_range_vals)) {
- 			if (range_count == 1)
- 				err = regmap_write(regmap,
-@@ -642,10 +640,10 @@ static int imx274_regmap_util_write_table_8(struct regmap *regmap,
- 			range_count = 0;
- 
- 			/* Handle special address values */
--			if (next->addr == end_addr)
-+			if (next->addr == IMX274_TABLE_END)
- 				break;
- 
--			if (next->addr == wait_ms_addr) {
-+			if (next->addr == IMX274_TABLE_WAIT_MS) {
- 				msleep_range(next->val);
- 				continue;
- 			}
-@@ -692,12 +690,6 @@ static inline int imx274_write_reg(struct stimx274 *priv, u16 addr, u8 val)
- 	return err;
- }
- 
--static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
--{
--	return imx274_regmap_util_write_table_8(priv->regmap,
--		table, IMX274_TABLE_WAIT_MS, IMX274_TABLE_END);
--}
--
- /*
-  * Set mode registers to start stream.
-  * @priv: Pointer to device structure
 -- 
-2.7.4
+The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
