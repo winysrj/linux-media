@@ -1,138 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:58700 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933383AbeEIDki (ORCPT
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:37049 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752173AbeEQIZ6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 May 2018 23:40:38 -0400
-Message-ID: <f15bfb08d884900e2f181030221409a3@smtp-cloud8.xs4all.net>
-Date: Wed, 09 May 2018 05:40:36 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 17 May 2018 04:25:58 -0400
+Date: Thu, 17 May 2018 10:25:52 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, horms@verge.net.au,
+        geert@glider.be, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 2/6] dt-bindings: media: rcar-vin: Document data-active
+Message-ID: <20180517082552.GU5956@w540>
+References: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526488352-898-3-git-send-email-jacopo+renesas@jmondi.org>
+ <20180516215538.GC17948@bigcity.dyn.berto.se>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="HACzHn9G0kmbdSJa"
+Content-Disposition: inline
+In-Reply-To: <20180516215538.GC17948@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--HACzHn9G0kmbdSJa
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Wed May  9 05:00:12 CEST 2018
-media-tree git hash:	f10379aad39e9da8bc7d1822e251b5f0673067ef
-media_build git hash:	f4c610423a165a6fc0409ea5c06f8a83948f910f
-v4l-utils git hash:	03e763fd4b361b2082019032fc315b7606669335
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
+Hi Niklas,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: ERRORS
-linux-4.13.16-x86_64: ERRORS
-linux-4.14.31-i686: ERRORS
-linux-4.14.31-x86_64: ERRORS
-linux-4.15.14-i686: ERRORS
-linux-4.15.14-x86_64: ERRORS
-linux-4.16-i686: ERRORS
-linux-4.16-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+On Wed, May 16, 2018 at 11:55:38PM +0200, Niklas S=C3=B6derlund wrote:
+> Hi Jacopo,
+>
+> Thanks for your work.
+>
+> On 2018-05-16 18:32:28 +0200, Jacopo Mondi wrote:
+> > Document 'data-active' property in R-Car VIN device tree bindings.
+> > The property is optional when running with explicit synchronization
+> > (eg. BT.601) but mandatory when embedded synchronization is in use (eg.
+> > BT.656) as specified by the hardware manual.
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  Documentation/devicetree/bindings/media/rcar_vin.txt | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> >
+> > diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Doc=
+umentation/devicetree/bindings/media/rcar_vin.txt
+> > index c53ce4e..17eac8a 100644
+> > --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > @@ -63,6 +63,11 @@ from local SoC CSI-2 receivers (port1) depending on =
+SoC.
+> >  	If both HSYNC and VSYNC polarities are not specified, embedded
+> >  	synchronization is selected.
+> >
+> > +        - data-active: active state of data enable signal (CLOCKENB pi=
+n).
+>
+> I'm not sure what you mean by active state here. video-interfaces.txt
+> defines data-active as 'similar to HSYNC and VSYNC, specifies data line
+> polarity' so I assume this is the polarity of the CLOCKENB pin?
 
-Detailed results are available here:
+Yes, I can change this if it feels confusing to you.
+>
+> > +          0/1 for LOW/HIGH respectively. If not specified, use HSYNC as
+> > +          data enable signal. When using embedded synchronization this
+> > +          property is mandatory.
+>
+> I'm confused, why is this mandatory if we have no embedded sync (that is
+> hsync-active and vsync-active not defined)? I can't find any reference
+> to this in the Gen2 datasheet but I'm sure I'm just missing it :-)
+>
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Not exactly, it becomes mandatory IF we have embedded sync.
+Here it is my reasoning:
 
-Full logs are available here:
+In the documentation of CHS bit of Vn_DMR2 register [1] the following
+is specified:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+"When using ITU-R BT.601, BT.709, BT.1358 interface, and the
+VIn_CLKENB pin is unused, the CHS bit must be set to 1."
 
-The Media Infrastructure API from this daily build is here:
+And setting the CHS bit to 1:
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+"HSYNC signal (VIn_HSYNC#) input from the pin is internally used
+as the clock enable signal"
+
+So, if 'data-active' property is not specified I assume CLCKENB is not
+used, and set the CHS bit. What if we are using BT656 and there is no
+HSYNC? Then specifying 'data-active' becomes mandatory, as otherwise we
+set the CHS bit and wait for HSYNC pin transitions that won't happen.
+
+This is probably wrong, as in the Koelsch case, there is no guarantee
+that CLKENB is connected, and what I should have done is probably set
+the CHS bit only when running on V4L2_MBUS_PARALLEL, and leave CHS
+(and CES, if 'data-active' is not specified) untouched, as we're doing
+today when running on V4L2_MBUS_BT656. Does this work better in your
+opinion?
+
+This also makes patch [6/6] (where I was adding 'data-active' to Gen-2
+boards) not required.
+
+Thanks
+   j
+
+
+[1] 26.2.18 Video n Data Mode Register 2 (VnDMR2) Datasheet version,
+R19UH0105EJ0100 Rev.1.00 Apr 30, 2018
+
+> > +
+> >      - port 1 - sub-nodes describing one or more endpoints connected to
+> >        the VIN from local SoC CSI-2 receivers. The endpoint numbers must
+> >        use the following schema.
+> > --
+> > 2.7.4
+> >
+>
+> --
+> Regards,
+> Niklas S=C3=B6derlund
+
+--HACzHn9G0kmbdSJa
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJa/TyQAAoJEHI0Bo8WoVY8qIMP/2LFs0lyKtRCt9G7gEkiyg71
+JiKiycx3R6DsRoylPnvxVX1FELJb2VLKUe4AHsx2UuIQ7MrZ5idzQZc3aQcVLOTF
+3IOIn3Be7Qb29dCg/orsrT2SH63UMiQ5FzAvzm2MaWuVlXdk1iL70+xMcF2+KDNc
+ftluKwdParGJO+IN5b6mejhonciX/eDAVFdMCPqSaKjI3Es1U6lPj/d1CeCQRlIs
+pjpuEN/yoERVzuMHRs0iyop03nQ2yJzVE5dBSWyrjlHFLmiElp7OGXowV5bTE0cQ
+ItbLqxYbCnNy0vUoJGsB+8j76holYuePUS/MNvoVd3SPtJwgKFW6hDSqSCZwDzFf
+P65o6zNrJUKkNXMcJOUS3tOh7ZynPASvlKkzaCPjNpoG0iOV7WuO0s+P8tXglDs/
++69a2cvQXgBNaYv7xJuRxZvt77iT9gVW4nABINvH939yBp9cTjmYSCiietck0Zca
+yyNAR7BkM/LtS3fkWFg+/urKXECJGI3nmHH1MTl3RFJJloUIgc3q6HvN9c1/uILA
+Iv0Y2pqUhjk06uFgDUGnOyKfb+lOrUFE8aOjP6zuQlLjyeAvZwxZCDYz2j96Nmrq
+kl3fwe88KT4qW0vLZMndC0Wv2db7SaTwWubvg5n78jGUUB7MWmV/qHnvKxngDCA+
+xAGQZhu4aeVfM9u5uJEs
+=tEzF
+-----END PGP SIGNATURE-----
+
+--HACzHn9G0kmbdSJa--
