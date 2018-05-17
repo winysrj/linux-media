@@ -1,56 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:64380 "EHLO mga03.intel.com"
+Received: from mail.bootlin.com ([62.4.15.54]:43905 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753419AbeEHHWF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 May 2018 03:22:05 -0400
-Date: Tue, 8 May 2018 15:18:51 +0800
-From: Yunliang Ding <yunliang.ding@intel.com>
-To: Colin King <colin.king@canonical.com>
-Cc: Alan Cox <alan@linux.intel.com>,
+        id S1751698AbeEQIyN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 04:54:13 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: atomisp: fix spelling mistake: "diregard" ->
- "disregard"
-Message-ID: <20180508071850.GA17320@intel.com>
-References: <20180429120647.10194-1-colin.king@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20180429120647.10194-1-colin.king@canonical.com>
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Daniel Mack <daniel@zonque.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v3 09/12] media: ov5640: Make the return rate type more explicit
+Date: Thu, 17 May 2018 10:54:02 +0200
+Message-Id: <20180517085405.10104-10-maxime.ripard@bootlin.com>
+In-Reply-To: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-04-29 at 13:06:47 +0100, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> Trivial fix to spelling mistake in ia_css_print message text
+In the ov5640_try_frame_interval function, the ret variable actually holds
+the frame rate index to use, which is represented by the enum
+ov5640_frame_rate in the driver.
 
-Hi Colin,
+Make it more obvious.
 
-The atomisp drivers will soon EOL accorinding to the ML discussion.
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ drivers/media/i2c/ov5640.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  .../css2400/css_2401_csi2p_system/host/csi_rx_private.h         | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/host/csi_rx_private.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/host/csi_rx_private.h
-> index 9c0cb4a63862..4fa74e7a96e6 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/host/csi_rx_private.h
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/host/csi_rx_private.h
-> @@ -202,7 +202,7 @@ static inline void csi_rx_be_ctrl_dump_state(
->  		ia_css_print("CSI RX BE STATE Controller %d PEC ID %d custom pec 0x%x \n", ID, i, state->pec[i]);
->  	}
->  #endif
-> -	ia_css_print("CSI RX BE STATE Controller %d Global LUT diregard reg 0x%x \n", ID, state->global_lut_disregard_reg);
-> +	ia_css_print("CSI RX BE STATE Controller %d Global LUT disregard reg 0x%x \n", ID, state->global_lut_disregard_reg);
->  	ia_css_print("CSI RX BE STATE Controller %d packet stall reg 0x%x \n", ID, state->packet_status_stall);
->  	/*
->  	 * Get the values of the register-set per
-> -- 
-> 2.17.0
-> 
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 785a692946b6..b9a8f3feed74 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1889,8 +1889,8 @@ static int ov5640_try_frame_interval(struct ov5640_dev *sensor,
+ 				     u32 width, u32 height)
+ {
+ 	const struct ov5640_mode_info *mode;
++	enum ov5640_frame_rate rate = OV5640_30_FPS;
+ 	u32 minfps, maxfps, fps;
+-	int ret;
+ 
+ 	minfps = ov5640_framerates[OV5640_15_FPS];
+ 	maxfps = ov5640_framerates[OV5640_30_FPS];
+@@ -1913,10 +1913,10 @@ static int ov5640_try_frame_interval(struct ov5640_dev *sensor,
+ 	else
+ 		fi->denominator = minfps;
+ 
+-	ret = (fi->denominator == minfps) ? OV5640_15_FPS : OV5640_30_FPS;
++	rate = (fi->denominator == minfps) ? OV5640_15_FPS : OV5640_30_FPS;
+ 
+-	mode = ov5640_find_mode(sensor, ret, width, height, false);
+-	return mode ? ret : -EINVAL;
++	mode = ov5640_find_mode(sensor, rate, width, height, false);
++	return mode ? rate : -EINVAL;
+ }
+ 
+ static int ov5640_get_fmt(struct v4l2_subdev *sd,
+-- 
+2.17.0
