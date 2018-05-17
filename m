@@ -1,106 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay11.mail.gandi.net ([217.70.178.231]:39045 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935749AbeE2PGr (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:48914 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752398AbeEQPuF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 11:06:47 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
-        horms@verge.net.au, geert@glider.be
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        robh+dt@kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 7/8] media: rcar-vin: Handle 'hsync-as-de' property
-Date: Tue, 29 May 2018 17:05:58 +0200
-Message-Id: <1527606359-19261-8-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
+        Thu, 17 May 2018 11:50:05 -0400
+Date: Thu, 17 May 2018 09:50:01 -0600
+From: Jordan Crouse <jcrouse@codeaurora.org>
+To: Vikash Garodia <vgarodia@codeaurora.org>
+Cc: hverkuil@xs4all.nl, mchehab@kernel.org, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org, stanimir.varbanov@linaro.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        acourbot@google.com
+Subject: Re: [PATCH 1/4] soc: qcom: mdt_loader: Add check to make scm calls
+Message-ID: <20180517155000.GH4995@jcrouse-lnx.qualcomm.com>
+References: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
+ <1526556740-25494-2-git-send-email-vgarodia@codeaurora.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1526556740-25494-2-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse and handle 'hsync-as-de' custom property and set the CHS flag during
-the VIN interface setup.
+On Thu, May 17, 2018 at 05:02:17PM +0530, Vikash Garodia wrote:
+> In order to invoke scm calls, ensure that the platform
+> has the required support to invoke the scm calls in
+> secure world.
+> 
+> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+> ---
+>  drivers/soc/qcom/mdt_loader.c | 21 +++++++++++++--------
+>  1 file changed, 13 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/soc/qcom/mdt_loader.c b/drivers/soc/qcom/mdt_loader.c
+> index 17b314d..db55d53 100644
+> --- a/drivers/soc/qcom/mdt_loader.c
+> +++ b/drivers/soc/qcom/mdt_loader.c
+> @@ -121,10 +121,12 @@ int qcom_mdt_load(struct device *dev, const struct firmware *fw,
+>  	if (!fw_name)
+>  		return -ENOMEM;
+>  
+> -	ret = qcom_scm_pas_init_image(pas_id, fw->data, fw->size);
+> -	if (ret) {
+> -		dev_err(dev, "invalid firmware metadata\n");
+> -		goto out;
+> +	if (qcom_scm_is_available()) {
+> +		ret = qcom_scm_pas_init_image(pas_id, fw->data, fw->size);
+> +		if (ret) {
+> +			dev_err(dev, "invalid firmware metadata\n");
+> +			goto out;
+> +		}
+>  	}
+>
+>  	for (i = 0; i < ehdr->e_phnum; i++) {
+> @@ -144,10 +146,13 @@ int qcom_mdt_load(struct device *dev, const struct firmware *fw,
+>  	}
+>  
+>  	if (relocate) {
+> -		ret = qcom_scm_pas_mem_setup(pas_id, mem_phys, max_addr - min_addr);
+> -		if (ret) {
+> -			dev_err(dev, "unable to setup relocation\n");
+> -			goto out;
+> +		if (qcom_scm_is_available()) {
+> +			ret = qcom_scm_pas_mem_setup(pas_id, mem_phys,
+> +							max_addr - min_addr);
+> +			if (ret) {
+> +				dev_err(dev, "unable to setup relocation\n");
+> +				goto out;
+> +			}
+>  		}
+>  
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
-v3:
-- new patch
-- use the new custom property to set the CHS bit
----
- drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
- drivers/media/platform/rcar-vin/rcar-dma.c  | 6 ++++++
- drivers/media/platform/rcar-vin/rcar-vin.h  | 2 ++
- 3 files changed, 14 insertions(+)
+As far as I can tell you can make it all the way through the function with
+'ret' uninitialized if qcom_scm_is_available() returns false which is a bug, but
+I'm confused why you would even bother loading the firmware even if you didn't
+have SCM.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 3062171..71710b8 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -589,6 +589,7 @@ static int rvin_parallel_parse_v4l2(struct device *dev,
- 	struct rvin_dev *vin = dev_get_drvdata(dev);
- 	struct rvin_parallel_entity *rvpe =
- 		container_of(asd, struct rvin_parallel_entity, asd);
-+	const struct fwnode_handle *fwnode = vep->base.local_fwnode;
+Jordan
 
- 	if (vep->base.port || vep->base.id)
- 		return -ENOTCONN;
-@@ -610,6 +611,11 @@ static int rvin_parallel_parse_v4l2(struct device *dev,
- 		return -EINVAL;
- 	}
-
-+	if (fwnode_property_read_bool(fwnode, "renesas,hsync-as-de"))
-+		vin->parallel->chs = true;
-+	else
-+		vin->parallel->chs = false;
-+
- 	return 0;
- }
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 9145b56..01d0737 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -124,6 +124,7 @@
- #define VNDMR2_VPS		(1 << 30)
- #define VNDMR2_HPS		(1 << 29)
- #define VNDMR2_CES		(1 << 28)
-+#define VNDMR2_CHS		(1 << 23)
- #define VNDMR2_FTEV		(1 << 17)
- #define VNDMR2_VLV(n)		((n & 0xf) << 12)
-
-@@ -703,6 +704,11 @@ static int rvin_setup(struct rvin_dev *vin)
- 		/* Data Enable Polarity Select */
- 		if (vin->parallel->mbus_flags & V4L2_MBUS_DATA_ENABLE_LOW)
- 			dmr2 |= VNDMR2_CES;
-+
-+		/* Use HSYNC as data-enable signal */
-+		if (vin->parallel->mbus_type == V4L2_MBUS_PARALLEL &&
-+		    vin->parallel->chs)
-+			dmr2 |= VNDMR2_CHS;
- 	}
-
- 	/*
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 8bc3704..846f978 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -78,6 +78,7 @@ struct rvin_video_format {
-  * @subdev:	subdevice matched using async framework
-  * @mbus_type:	media bus type
-  * @mbus_flags:	media bus configuration flags
-+ * @chs:	use HSYNC as data-enable flag
-  * @source_pad:	source pad of remote subdevice
-  * @sink_pad:	sink pad of remote subdevice
-  *
-@@ -88,6 +89,7 @@ struct rvin_parallel_entity {
-
- 	enum v4l2_mbus_type mbus_type;
- 	unsigned int mbus_flags;
-+	bool chs;
-
- 	unsigned int source_pad;
- 	unsigned int sink_pad;
---
-2.7.4
+-- 
+The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
