@@ -1,86 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:37908 "EHLO mga03.intel.com"
+Received: from mail.bootlin.com ([62.4.15.54]:43866 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750837AbeECHbz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 03:31:55 -0400
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "jacopo@jmondi.org" <jacopo@jmondi.org>,
-        "Chiang, AlanX" <alanx.chiang@intel.com>
-Subject: RE: [RESEND PATCH v9 1/2] media: dt-bindings: Add bindings for
- Dongwoon DW9807 voice coil
-Date: Thu, 3 May 2018 07:31:50 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D58F56E@PGSMSX111.gar.corp.intel.com>
-References: <1525276428-17379-1-git-send-email-andy.yeh@intel.com>
- <1525276428-17379-2-git-send-email-andy.yeh@intel.com>
- <20180502213637.ycvksj33edrkprpn@kekkonen.localdomain>
-In-Reply-To: <20180502213637.ycvksj33edrkprpn@kekkonen.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        id S1751319AbeEQIyK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 04:54:10 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Daniel Mack <daniel@zonque.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v3 06/12] media: ov5640: Compute the clock rate at runtime
+Date: Thu, 17 May 2018 10:53:59 +0200
+Message-Id: <20180517085405.10104-7-maxime.ripard@bootlin.com>
+In-Reply-To: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+The clock rate, while hardcoded until now, is actually a function of the
+resolution, framerate and bytes per pixel. Now that we have an algorithm to
+adjust our clock rate, we can select it dynamically when we change the
+mode.
 
-Thanks to add to your tree. And I am not familiar with the process. So I wonder how the patchset will be applied to the Linux media tree eventually?
+This changes a bit the clock rate being used, with the following effect:
 
-Regards, Andy
++------+------+------+------+-----+-----------------+----------------+-----------+
+| Hact | Vact | Htot | Vtot | FPS | Hardcoded clock | Computed clock | Deviation |
++------+------+------+------+-----+-----------------+----------------+-----------+
+|  640 |  480 | 1896 | 1080 |  15 |        56000000 |       61430400 | 8.84 %    |
+|  640 |  480 | 1896 | 1080 |  30 |       112000000 |      122860800 | 8.84 %    |
+| 1024 |  768 | 1896 | 1080 |  15 |        56000000 |       61430400 | 8.84 %    |
+| 1024 |  768 | 1896 | 1080 |  30 |       112000000 |      122860800 | 8.84 %    |
+|  320 |  240 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  320 |  240 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+|  176 |  144 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  176 |  144 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+|  720 |  480 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  720 |  480 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+|  720 |  576 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  720 |  576 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+| 1280 |  720 | 1892 |  740 |  15 |        42000000 |       42002400 | 0.01 %    |
+| 1280 |  720 | 1892 |  740 |  30 |        84000000 |       84004800 | 0.01 %    |
+| 1920 | 1080 | 2500 | 1120 |  15 |        84000000 |       84000000 | 0.00 %    |
+| 1920 | 1080 | 2500 | 1120 |  30 |       168000000 |      168000000 | 0.00 %    |
+| 2592 | 1944 | 2844 | 1944 |  15 |        84000000 |      165862080 | 49.36 %   |
++------+------+------+------+-----+-----------------+----------------+-----------+
 
------Original Message-----
-From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com] 
-Sent: Thursday, May 3, 2018 5:37 AM
-To: Yeh, Andy <andy.yeh@intel.com>
-Cc: linux-media@vger.kernel.org; devicetree@vger.kernel.org; tfiga@chromium.org; jacopo@jmondi.org; Chiang, AlanX <alanx.chiang@intel.com>
-Subject: Re: [RESEND PATCH v9 1/2] media: dt-bindings: Add bindings for Dongwoon DW9807 voice coil
+Only the 640x480, 1024x768 and 2592x1944 modes are significantly affected
+by the new formula.
 
-On Wed, May 02, 2018 at 11:53:47PM +0800, Andy Yeh wrote:
-> From: Alan Chiang <alanx.chiang@intel.com>
-> 
-> Dongwoon DW9807 is a voice coil lens driver.
-> 
-> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-> Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+In this case, 640x480 and 1024x768 are actually fixed by this change.
+Indeed, the sensor was sending data at, for example, 27.33fps instead of
+30fps. This is -9%, which is roughly what we're seeing in the array.
+Testing these modes with the new clock setup actually fix that error, and
+data are now sent at around 30fps.
 
-I don't remember seeing these two on the first patch nor giving mine. For what it's worth, I've applied v8 to my tree here:
+2592x1944, on the other hand, is probably due to the fact that this mode
+can only be used using MIPI-CSI2, in a two lane mode, and never really
+tested with a DVP bus.
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=for-4.18-3>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ drivers/media/i2c/ov5640.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-I.e. there's no need to resend the same patch to just add the regular acked-by or reviewed-by tags. "RESEND" in the subject suggests you're sending exactly the same patch, and in that case the version would be unchanged as well.
-
-> Acked-by: Rob Herring <robh@kernel.org>
-> 
-> ---
->  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt | 9 
-> +++++++++
->  1 file changed, 9 insertions(+)
->  create mode 100644 
-> Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-> 
-> diff --git 
-> a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt 
-> b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-> new file mode 100644
-> index 0000000..0a1a860
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-> @@ -0,0 +1,9 @@
-> +Dongwoon Anatech DW9807 voice coil lens driver
-> +
-> +DW9807 is a 10-bit DAC with current sink capability. It is intended 
-> +for controlling voice coil lenses.
-> +
-> +Mandatory properties:
-> +
-> +- compatible: "dongwoon,dw9807"
-> +- reg: I2C slave address
-
---
-Sakari Ailus
-sakari.ailus@linux.intel.com
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 77864a1a5eb0..e9bd0aa55409 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1886,7 +1886,8 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+ 	 * which is 8 bits per pixel.
+ 	 */
+ 	bpp = sensor->fmt.code == MEDIA_BUS_FMT_JPEG_1X8 ? 8 : 16;
+-	rate = mode->pixel_clock * bpp;
++	rate = mode->vtot * mode->htot * bpp;
++	rate *= ov5640_framerates[sensor->current_fr];
+ 	if (sensor->ep.bus_type == V4L2_MBUS_CSI2) {
+ 		rate = rate / sensor->ep.bus.mipi_csi2.num_data_lanes;
+ 		ret = ov5640_set_mipi_pclk(sensor, rate);
+-- 
+2.17.0
