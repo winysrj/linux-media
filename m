@@ -1,270 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:45618 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752073AbeEOEsr (ORCPT
+Received: from gateway24.websitewelcome.com ([192.185.51.251]:15688 "EHLO
+        gateway24.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751664AbeEQKgI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 00:48:47 -0400
-MIME-Version: 1.0
-In-Reply-To: <32a944171d5c48abf126259595b0088ce3122c91.1526331777.git.sean@mess.org>
-References: <cover.1526331777.git.sean@mess.org> <32a944171d5c48abf126259595b0088ce3122c91.1526331777.git.sean@mess.org>
-From: Y Song <ys114321@gmail.com>
-Date: Mon, 14 May 2018 21:48:05 -0700
-Message-ID: <CAH3MdRXkzpJZ=VLwJWpuwiNhcjJwjNqpaZXwk+1-HfL_7hjJew@mail.gmail.com>
-Subject: Re: [PATCH v1 1/4] media: rc: introduce BPF_PROG_IR_DECODER
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
+        Thu, 17 May 2018 06:36:08 -0400
+Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
+        by gateway24.websitewelcome.com (Postfix) with ESMTP id 6BE35C73B
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2018 05:36:06 -0500 (CDT)
+Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        netdev <netdev@vger.kernel.org>,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset="UTF-8"
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
+ <20180423152455.363d285c@vento.lan>
+ <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
+ <20180423161742.66f939ba@vento.lan>
+ <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
+ <20180426204241.03a42996@vento.lan>
+ <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
+ <20180515085953.65bfa107@vento.lan> <20180515141655.idzuh2jfdkuu5grs@mwanda>
+ <f342d8d6-b5e6-0cbf-d002-9561b79c90e4@embeddedor.com>
+ <20180515193936.m25kzyeknsk2bo2c@mwanda>
+ <0f31a60b-911d-0140-3546-98317e2a0557@embeddedor.com>
+Message-ID: <d34cf31f-6dc5-ee2d-ea6d-513dd5e8e5c3@embeddedor.com>
+Date: Thu, 17 May 2018 05:36:03 -0500
+MIME-Version: 1.0
+In-Reply-To: <0f31a60b-911d-0140-3546-98317e2a0557@embeddedor.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 14, 2018 at 2:10 PM, Sean Young <sean@mess.org> wrote:
-> Add support for BPF_PROG_IR_DECODER. This type of BPF program can call
-> rc_keydown() to reported decoded IR scancodes, or rc_repeat() to report
-> that the last key should be repeated.
->
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/rc/Kconfig          |  8 +++
->  drivers/media/rc/Makefile         |  1 +
->  drivers/media/rc/ir-bpf-decoder.c | 93 +++++++++++++++++++++++++++++++
->  include/linux/bpf_types.h         |  3 +
->  include/uapi/linux/bpf.h          | 16 +++++-
->  5 files changed, 120 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/rc/ir-bpf-decoder.c
->
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index eb2c3b6eca7f..10ad6167d87c 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -120,6 +120,14 @@ config IR_IMON_DECODER
->            remote control and you would like to use it with a raw IR
->            receiver, or if you wish to use an encoder to transmit this IR.
->
-> +config IR_BPF_DECODER
-> +       bool "Enable IR raw decoder using BPF"
-> +       depends on BPF_SYSCALL
-> +       depends on RC_CORE=y
-> +       help
-> +          Enable this option to make it possible to load custom IR
-> +          decoders written in BPF.
-> +
->  endif #RC_DECODERS
->
->  menuconfig RC_DEVICES
-> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-> index 2e1c87066f6c..12e1118430d0 100644
-> --- a/drivers/media/rc/Makefile
-> +++ b/drivers/media/rc/Makefile
-> @@ -5,6 +5,7 @@ obj-y += keymaps/
->  obj-$(CONFIG_RC_CORE) += rc-core.o
->  rc-core-y := rc-main.o rc-ir-raw.o
->  rc-core-$(CONFIG_LIRC) += lirc_dev.o
-> +rc-core-$(CONFIG_IR_BPF_DECODER) += ir-bpf-decoder.o
->  obj-$(CONFIG_IR_NEC_DECODER) += ir-nec-decoder.o
->  obj-$(CONFIG_IR_RC5_DECODER) += ir-rc5-decoder.o
->  obj-$(CONFIG_IR_RC6_DECODER) += ir-rc6-decoder.o
-> diff --git a/drivers/media/rc/ir-bpf-decoder.c b/drivers/media/rc/ir-bpf-decoder.c
-> new file mode 100644
-> index 000000000000..aaa5e208b1a5
-> --- /dev/null
-> +++ b/drivers/media/rc/ir-bpf-decoder.c
-> @@ -0,0 +1,93 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +// ir-bpf-decoder.c - handles bpf decoders
-> +//
-> +// Copyright (C) 2018 Sean Young <sean@mess.org>
-> +
-> +#include <linux/bpf.h>
-> +#include <linux/filter.h>
-> +#include "rc-core-priv.h"
-> +
-> +/*
-> + * BPF interface for raw IR decoder
-> + */
-> +const struct bpf_prog_ops ir_decoder_prog_ops = {
-> +};
-> +
-> +BPF_CALL_1(bpf_rc_repeat, struct ir_raw_event*, event)
-> +{
-> +       struct ir_raw_event_ctrl *ctrl;
-> +
-> +       ctrl = container_of(event, struct ir_raw_event_ctrl, prev_ev);
-> +
-> +       rc_repeat(ctrl->dev);
-> +       return 0;
-> +}
-> +
-> +static const struct bpf_func_proto rc_repeat_proto = {
-> +       .func      = bpf_rc_repeat,
-> +       .gpl_only  = true, // rc_repeat is EXPORT_SYMBOL_GPL
-> +       .ret_type  = RET_VOID,
 
-I suggest using RET_INTEGER here since we do return an integer 0.
-RET_INTEGER will also make it easy to extend if you want to return
-a non-zero value for error code or other reasons.
 
-> +       .arg1_type = ARG_PTR_TO_CTX,
-> +};
-> +
-> +BPF_CALL_4(bpf_rc_keydown, struct ir_raw_event*, event, u32, protocol,
-> +          u32, scancode, u32, toggle)
-> +{
-> +       struct ir_raw_event_ctrl *ctrl;
-> +
-> +       ctrl = container_of(event, struct ir_raw_event_ctrl, prev_ev);
-> +       rc_keydown(ctrl->dev, protocol, scancode, toggle != 0);
-> +       return 0;
-> +}
-> +
-> +static const struct bpf_func_proto rc_keydown_proto = {
-> +       .func      = bpf_rc_keydown,
-> +       .gpl_only  = true, // rc_keydown is EXPORT_SYMBOL_GPL
-> +       .ret_type  = RET_VOID,
+On 05/16/2018 08:14 PM, Gustavo A. R. Silva wrote:
+> 
+> 
+> On 05/15/2018 02:39 PM, Dan Carpenter wrote:
+>>> Dan,
+>>>
+>>> These are all the Spectre media issues I see smatch is reporting in
+>>> linux-next-20180515:
+>>>
+>>> drivers/media/cec/cec-pin-error-inj.c:170 cec_pin_error_inj_parse_line()
+>>> warn: potential spectre issue 'pin->error_inj_args'
+>>> drivers/media/dvb-core/dvb_ca_en50221.c:1479 
+>>> dvb_ca_en50221_io_write() warn:
+>>> potential spectre issue 'ca->slot_info' (local cap)
+>>> drivers/media/dvb-core/dvb_net.c:252 handle_one_ule_extension() warn:
+>>> potential spectre issue 'p->ule_next_hdr'
+>>>
+>>> I pulled the latest changes from the smatch repository and compiled it.
+>>>
+>>> I'm running smatch v0.5.0-4459-g2f66d40 now. Is this the latest version?
+>>>
+>>> I wonder if there is anything I might be missing.
+>>>
+>>
+>> You'd need to rebuild the db (possibly twice but definitely once).
+>>
+> 
+> Hi Dan,
+> 
+> After rebuilding the db (once), these are all the Spectre media warnings 
+> I get:
+> 
+> drivers/media/pci/ddbridge/ddbridge-core.c:233 ddb_redirect() warn: 
+> potential spectre issue 'ddbs'
+> drivers/media/pci/ddbridge/ddbridge-core.c:243 ddb_redirect() warn: 
+> potential spectre issue 'pdev->port'
+> drivers/media/pci/ddbridge/ddbridge-core.c:252 ddb_redirect() warn: 
+> potential spectre issue 'idev->input'
+> drivers/media/dvb-core/dvb_ca_en50221.c:1400 
+> dvb_ca_en50221_io_do_ioctl() warn: potential spectre issue 
+> 'ca->slot_info' (local cap)
+> drivers/media/dvb-core/dvb_ca_en50221.c:1479 dvb_ca_en50221_io_write() 
+> warn: potential spectre issue 'ca->slot_info' (local cap)
+> drivers/media/dvb-core/dvb_net.c:252 handle_one_ule_extension() warn: 
+> potential spectre issue 'p->ule_next_hdr'
+> drivers/media/dvb-core/dvb_net.c:1483 dvb_net_do_ioctl() warn: potential 
+> spectre issue 'dvbnet->device' (local cap)
+> drivers/media/cec/cec-pin-error-inj.c:170 cec_pin_error_inj_parse_line() 
+> warn: potential spectre issue 'pin->error_inj_args'
+> 
+> I just want to double check if you are getting the same output. In case 
+> you are getting the same, then what Mauro commented about these issues:
+> 
+> https://patchwork.linuxtv.org/project/linux-media/list/?submitter=7277
+> 
+> being resolved by commit 3ad3b7a2ebaefae37a7eafed0779324987ca5e56 seems 
+> to be correct.
+> 
 
-ditto. RET_INTEGER is preferable.
+Interesting, I've rebuild the db twice and now I get a total of 75 
+Spectre warnings in drivers/media
 
-> +       .arg1_type = ARG_PTR_TO_CTX,
-> +       .arg2_type = ARG_ANYTHING,
-> +       .arg3_type = ARG_ANYTHING,
-> +       .arg4_type = ARG_ANYTHING,
-> +};
-> +
-> +static const struct bpf_func_proto *ir_decoder_func_proto(enum bpf_func_id func_id, const struct bpf_prog *prog)
-> +{
-> +       switch (func_id) {
-> +       case BPF_FUNC_rc_repeat:
-> +               return &rc_repeat_proto;
-> +       case BPF_FUNC_rc_keydown:
-> +               return &rc_keydown_proto;
-> +       case BPF_FUNC_map_lookup_elem:
-> +               return &bpf_map_lookup_elem_proto;
-> +       case BPF_FUNC_map_update_elem:
-> +               return &bpf_map_update_elem_proto;
-> +       case BPF_FUNC_map_delete_elem:
-> +               return &bpf_map_delete_elem_proto;
-> +       case BPF_FUNC_ktime_get_ns:
-> +               return &bpf_ktime_get_ns_proto;
-> +       case BPF_FUNC_tail_call:
-> +               return &bpf_tail_call_proto;
-> +       case BPF_FUNC_get_prandom_u32:
-> +               return &bpf_get_prandom_u32_proto;
-> +       default:
-> +               return NULL;
-> +       }
-> +}
-> +
-> +static bool ir_decoder_is_valid_access(int off, int size,
-> +                                      enum bpf_access_type type,
-> +                                      const struct bpf_prog *prog,
-> +                                      struct bpf_insn_access_aux *info)
-> +{
-> +       if (type == BPF_WRITE)
-> +               return false;
-> +       if (off < 0 || off + size > sizeof(struct ir_raw_event))
-> +               return false;
-
-You probably need more than just checking the boundary.
->From patch #3, the structure is:
- struct ir_raw_event {
-        union {
-                __u32           duration;
-                __u32           carrier;
-        };
-        __u8                    duty_cycle;
-
-        unsigned                pulse:1;
-        unsigned                reset:1;
-        unsigned                timeout:1;
-       unsigned                carrier_report:1;
-};
-
-You would like the memory access to be aligned,
-so accessing duration/carrier with 4-byte alignment, and
-pulse/reset/timeout/carrier_report 4-byte alignment as well.
-
-You could only allow __u32 access to duration/carrier.
-But if you want bpf program to access duration/carrier with
-code like (__u16)(ctx->duration), then the compiler may
-translate the load to a 2-byte load. You may need to handle
-endianness here. You can check net/core/filter.c function
-bpf_skb_is_valid_access for some examples.
-
-> +
-> +       return true;
-> +}
-> +
-> +const struct bpf_verifier_ops ir_decoder_verifier_ops = {
-> +       .get_func_proto  = ir_decoder_func_proto,
-> +       .is_valid_access = ir_decoder_is_valid_access
-> +};
-> diff --git a/include/linux/bpf_types.h b/include/linux/bpf_types.h
-> index 2b28fcf6f6ae..ee5355715ee0 100644
-> --- a/include/linux/bpf_types.h
-> +++ b/include/linux/bpf_types.h
-> @@ -25,6 +25,9 @@ BPF_PROG_TYPE(BPF_PROG_TYPE_RAW_TRACEPOINT, raw_tracepoint)
->  #ifdef CONFIG_CGROUP_BPF
->  BPF_PROG_TYPE(BPF_PROG_TYPE_CGROUP_DEVICE, cg_dev)
->  #endif
-> +#ifdef CONFIG_IR_BPF_DECODER
-> +BPF_PROG_TYPE(BPF_PROG_TYPE_RAWIR_DECODER, ir_decoder)
-> +#endif
->
->  BPF_MAP_TYPE(BPF_MAP_TYPE_ARRAY, array_map_ops)
->  BPF_MAP_TYPE(BPF_MAP_TYPE_PERCPU_ARRAY, percpu_array_map_ops)
-> diff --git a/include/uapi/linux/bpf.h b/include/uapi/linux/bpf.h
-> index c5ec89732a8d..6ad053e831c0 100644
-> --- a/include/uapi/linux/bpf.h
-> +++ b/include/uapi/linux/bpf.h
-> @@ -137,6 +137,7 @@ enum bpf_prog_type {
->         BPF_PROG_TYPE_SK_MSG,
->         BPF_PROG_TYPE_RAW_TRACEPOINT,
->         BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
-> +       BPF_PROG_TYPE_RAWIR_DECODER,
->  };
->
->  enum bpf_attach_type {
-> @@ -755,6 +756,17 @@ union bpf_attr {
->   *     @addr: pointer to struct sockaddr to bind socket to
->   *     @addr_len: length of sockaddr structure
->   *     Return: 0 on success or negative error code
-> + *
-> + * int bpf_rc_keydown(ctx, protocol, scancode, toggle)
-> + *     Report decoded scancode with toggle value
-> + *     @ctx: pointer to ctx
-> + *     @protocol: decoded protocol
-> + *     @scancode: decoded scancode
-> + *     @toggle: set to 1 if button was toggled, else 0
-> + *
-> + * int bpf_rc_repeat(ctx)
-> + *     Repeat the last decoded scancode
-> + *     @ctx: pointer to ctx
-
-The comment format has changed dramatically for
-documentation reason. Could you rebase your change
-on top of bpf-next tree? You will need to rewrite the above
-helper description so tools can generate proper documentation
-for them.
-
->   */
->  #define __BPF_FUNC_MAPPER(FN)          \
->         FN(unspec),                     \
-> @@ -821,7 +833,9 @@ union bpf_attr {
->         FN(msg_apply_bytes),            \
->         FN(msg_cork_bytes),             \
->         FN(msg_pull_data),              \
-> -       FN(bind),
-> +       FN(bind),                       \
-> +       FN(rc_repeat),                  \
-> +       FN(rc_keydown),
->
->  /* integer value in 'imm' field of BPF_CALL instruction selects which helper
->   * function eBPF program intends to call
-> --
-> 2.17.0
->
+--
+Gustavo
