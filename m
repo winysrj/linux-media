@@ -1,63 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:46831 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751217AbeEMJrr (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:60614 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751097AbeEQLdQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 May 2018 05:47:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 3/4] v4l2-ioctl: clear fields in s_parm
-Date: Sun, 13 May 2018 11:47:40 +0200
-Message-Id: <20180513094741.25096-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180513094741.25096-1-hverkuil@xs4all.nl>
-References: <20180513094741.25096-1-hverkuil@xs4all.nl>
+        Thu, 17 May 2018 07:33:16 -0400
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: hverkuil@xs4all.nl, mchehab@kernel.org, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org, stanimir.varbanov@linaro.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        acourbot@google.com, Vikash Garodia <vgarodia@codeaurora.org>
+Subject: [PATCH 3/4] venus: add check to make scm calls
+Date: Thu, 17 May 2018 17:02:19 +0530
+Message-Id: <1526556740-25494-4-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
+References: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+In order to invoke scm calls, ensure that the platform
+has the required support to invoke the scm calls in
+secure world. This code is in preparation to add PIL
+functionality in venus driver.
 
-Zero the reserved capture/output array.
-
-Zero the extendedmode (it is never used in drivers).
-
-Clear all flags in capture/outputmode except for V4L2_MODE_HIGHQUALITY,
-as that is the only valid flag.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ drivers/media/platform/qcom/venus/hfi_venus.c | 26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index a40dbec271f1..212aac1d22c1 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1952,7 +1952,22 @@ static int v4l_s_parm(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_streamparm *p = arg;
- 	int ret = check_fmt(file, p->type);
+diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
+index f61d34b..9bcce94 100644
+--- a/drivers/media/platform/qcom/venus/hfi_venus.c
++++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+@@ -27,6 +27,7 @@
+ #include "hfi_msgs.h"
+ #include "hfi_venus.h"
+ #include "hfi_venus_io.h"
++#include "firmware.h"
  
--	return ret ? ret : ops->vidioc_s_parm(file, fh, p);
-+	if (ret)
-+		return ret;
-+
-+	/* Note: extendedmode is never used in drivers */
-+	if (V4L2_TYPE_IS_OUTPUT(p->type)) {
-+		memset(p->parm.output.reserved, 0,
-+		       sizeof(p->parm.output.reserved));
-+		p->parm.output.extendedmode = 0;
-+		p->parm.output.outputmode &= V4L2_MODE_HIGHQUALITY;
+ #define HFI_MASK_QHDR_TX_TYPE		0xff000000
+ #define HFI_MASK_QHDR_RX_TYPE		0x00ff0000
+@@ -570,13 +571,19 @@ static int venus_halt_axi(struct venus_hfi_device *hdev)
+ static int venus_power_off(struct venus_hfi_device *hdev)
+ {
+ 	int ret;
++	void __iomem *reg_base;
+ 
+ 	if (!hdev->power_enabled)
+ 		return 0;
+ 
+-	ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
+-	if (ret)
+-		return ret;
++	if (qcom_scm_is_available()) {
++		ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
++		if (ret)
++			return ret;
 +	} else {
-+		memset(p->parm.capture.reserved, 0,
-+		       sizeof(p->parm.capture.reserved));
-+		p->parm.capture.extendedmode = 0;
-+		p->parm.capture.capturemode &= V4L2_MODE_HIGHQUALITY;
++		reg_base = hdev->core->base;
++		writel_relaxed(1, reg_base + WRAPPER_A9SS_SW_RESET);
 +	}
-+	return ops->vidioc_s_parm(file, fh, p);
- }
  
- static int v4l_queryctrl(const struct v4l2_ioctl_ops *ops,
+ 	ret = venus_halt_axi(hdev);
+ 	if (ret)
+@@ -594,9 +601,13 @@ static int venus_power_on(struct venus_hfi_device *hdev)
+ 	if (hdev->power_enabled)
+ 		return 0;
+ 
+-	ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_RESUME, 0);
+-	if (ret)
+-		goto err;
++	if (qcom_scm_is_available()) {
++		ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_RESUME, 0);
++		if (ret)
++			goto err;
++	} else {
++		venus_reset_hw(hdev->core);
++	}
+ 
+ 	ret = venus_run(hdev);
+ 	if (ret)
+@@ -607,7 +618,8 @@ static int venus_power_on(struct venus_hfi_device *hdev)
+ 	return 0;
+ 
+ err_suspend:
+-	qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
++	if (qcom_scm_is_available())
++		qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
+ err:
+ 	hdev->power_enabled = false;
+ 	return ret;
 -- 
-2.17.0
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
