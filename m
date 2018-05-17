@@ -1,81 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:45911 "EHLO mga14.intel.com"
+Received: from mail.bootlin.com ([62.4.15.54]:43902 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751001AbeEDK4I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 06:56:08 -0400
-From: Jani Nikula <jani.nikula@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Harry Wei <harryxiyou@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Brian Warner <brian.warner@samsung.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
+        id S1751665AbeEQIyN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 04:54:13 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        Bhumika Goyal <bhumirks@gmail.com>, Sean Young <sean@mess.org>,
-        Brad Love <brad@nextdimension.cc>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Alexey Klimov <klimov.linux@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Tim Harvey <tharvey@gateworks.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Yong Zhi <yong.zhi@intel.com>, Jan Kara <jack@suse.cz>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Kamil Rytarowski <n54@gmx.com>,
-        Matthew Wilcox <mawilcox@microsoft.com>,
-        linux-doc@vger.kernel.org, linux-kernel@zh-kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH] MAINTAINERS & files: Canonize the e-mails I use at files
-In-Reply-To: <85bfc919e068ea7bb1e9b533ac6f60798844a5c0.1525428104.git.mchehab+samsung@kernel.org>
-References: <85bfc919e068ea7bb1e9b533ac6f60798844a5c0.1525428104.git.mchehab+samsung@kernel.org>
-Date: Fri, 04 May 2018 13:58:39 +0300
-Message-ID: <87in837km8.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Daniel Mack <daniel@zonque.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v3 11/12] media: ov5640: Add 60 fps support
+Date: Thu, 17 May 2018 10:54:04 +0200
+Message-Id: <20180517085405.10104-12-maxime.ripard@bootlin.com>
+In-Reply-To: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 04 May 2018, Mauro Carvalho Chehab <mchehab+samsung@kernel.org> wrote:
-> From now on, I'll start using my @kernel.org as my development e-mail.
->
-> As such, let's remove the entries that point to the old
-> mchehab@s-opensource.com at MAINTAINERS file.
->
-> For the files written with a copyright with mchehab@s-opensource,
-> let's keep Samsung on their names, using mchehab+samsung@kernel.org,
-> in order to keep pointing to my employer, with sponsors the work.
->
-> For the files written before I join Samsung (on July, 4 2013),
-> let's just use mchehab@kernel.org.
->
-> For bug reports, we can simply point to just kernel.org, as
-> this will reach my mchehab+samsung inbox anyway.
+Now that we have everything in place to compute the clock rate at runtime,
+we can enable the 60fps framerate for the mode we tested it with.
 
-I suppose this begs the question, why do we insist on adding our email
-addresses all over the place? On a quick grep, there are at least 40k+
-email addresses in the sources. Do we expect them all to be up-to-date
-too?
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ drivers/media/i2c/ov5640.c | 30 ++++++++++++++++++++++++------
+ 1 file changed, 24 insertions(+), 6 deletions(-)
 
-
-BR,
-Jani.
-
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 0f6c39080d69..a8852ded60b6 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -109,6 +109,7 @@ enum ov5640_mode_id {
+ enum ov5640_frame_rate {
+ 	OV5640_15_FPS = 0,
+ 	OV5640_30_FPS,
++	OV5640_60_FPS,
+ 	OV5640_NUM_FRAMERATES,
+ };
+ 
+@@ -137,6 +138,7 @@ MODULE_PARM_DESC(virtual_channel,
+ static const int ov5640_framerates[] = {
+ 	[OV5640_15_FPS] = 15,
+ 	[OV5640_30_FPS] = 30,
++	[OV5640_60_FPS] = 60,
+ };
+ 
+ /* regulator supplies */
+@@ -1439,12 +1441,23 @@ ov5640_find_mode(struct ov5640_dev *sensor, enum ov5640_frame_rate fr,
+ 				/* try to find another mode */
+ 				continue;
+ 
++			/* Only 640x480 can operate at 60fps (for now) */
++			if (fr == OV5640_60_FPS &&
++			    !(width == 640 && height == 480))
++				/* try to find another mode */
++				continue;
++
+ 			break;
+ 		}
+ 	}
+ 
+-	if (nearest && i < 0)
+-		mode = &ov5640_mode_data[0];
++	/* VGA is the only mode that supports all the framerates */
++	if (i < 0) {
++		if (!nearest)
++			return NULL;
++
++		mode = &ov5640_mode_data[OV5640_MODE_VGA_640_480];
++	}
+ 
+ 	return mode;
+ }
+@@ -1894,12 +1907,13 @@ static int ov5640_try_frame_interval(struct ov5640_dev *sensor,
+ 	int i;
+ 
+ 	minfps = ov5640_framerates[OV5640_15_FPS];
+-	maxfps = ov5640_framerates[OV5640_30_FPS];
++	maxfps = ov5640_framerates[OV5640_60_FPS];
+ 
+ 	if (fi->numerator == 0) {
+ 		fi->denominator = maxfps;
+ 		fi->numerator = 1;
+-		return OV5640_30_FPS;
++		rate = OV5640_60_FPS;
++		goto find_mode;
+ 	}
+ 
+ 	fps = clamp_val(DIV_ROUND_CLOSEST(fi->denominator, fi->numerator),
+@@ -1918,6 +1932,7 @@ static int ov5640_try_frame_interval(struct ov5640_dev *sensor,
+ 	fi->numerator = 1;
+ 	fi->denominator = best_fps;
+ 
++find_mode:
+ 	mode = ov5640_find_mode(sensor, rate, width, height, false);
+ 	return mode ? rate : -EINVAL;
+ }
+@@ -2495,8 +2510,11 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
+ 
+ 	frame_rate = ov5640_try_frame_interval(sensor, &fi->interval,
+ 					       mode->hact, mode->vact);
+-	if (frame_rate < 0)
+-		frame_rate = OV5640_15_FPS;
++	if (frame_rate < 0) {
++		/* Always return a valid frame interval value */
++		fi->interval = sensor->frame_interval;
++		goto out;
++	}
+ 
+ 	sensor->current_fr = frame_rate;
+ 	sensor->frame_interval = fi->interval;
 -- 
-Jani Nikula, Intel Open Source Technology Center
+2.17.0
