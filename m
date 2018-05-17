@@ -1,143 +1,343 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:54073 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750752AbeEEHzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 5 May 2018 03:55:33 -0400
-Subject: Re: [v3] [media] Use common error handling code in 19 functions
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Andrey Utkin <andrey_utkin@fastmail.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Brian Johnson <brijohn@gmail.com>,
-        =?UTF-8?Q?Christoph_B=c3=b6hmwalder?= <christoph@boehmwalder.at>,
-        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
-        Colin Ian King <colin.king@canonical.com>,
-        Daniele Nicolodi <daniele@grinta.net>,
-        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
-        Devendra Sharma <devendra.sharma9091@gmail.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Inki Dae <inki.dae@samsung.com>, Joe Perches <joe@perches.com>,
-        Kees Cook <keescook@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Mike Isely <isely@pobox.com>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Sean Young <sean@mess.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Shyam Saini <mayhs11saini@gmail.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Wei Yongjun <weiyongjun1@huawei.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <227d2d7c-5aee-1190-1624-26596a048d9c@users.sourceforge.net>
- <57ef3a56-2578-1d5f-1268-348b49b0c573@users.sourceforge.net>
- <9e766f52-b09e-c61e-8d9f-23542d83f6b1@users.sourceforge.net>
- <20180504144928.566ae507@vento.lan>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <980b7bd9-b922-55f7-c2d7-2d20552ade4c@users.sourceforge.net>
-Date: Sat, 5 May 2018 09:53:00 +0200
+Received: from perceval.ideasonboard.com ([213.167.242.64]:51304 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752135AbeEQT5M (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 15:57:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v10 8/8] media: vsp1: Move video configuration to a cached dlb
+Date: Thu, 17 May 2018 22:57:33 +0300
+Message-ID: <6338801.iKhgFcFgWd@avalon>
+In-Reply-To: <3d2f6f2901b04db73a9c2f8189b97079b2a55371.1526577622.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.e217e37c63010c4a78c4022a30a389e5d7627919.1526577622.git-series.kieran.bingham+renesas@ideasonboard.com> <3d2f6f2901b04db73a9c2f8189b97079b2a55371.1526577622.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20180504144928.566ae507@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> @@ -656,18 +656,18 @@  static int dvb_dmxdev_start_feed(struct dmxdev *dmxdev,
->  	tsfeed->priv = filter;
->  
->  	ret = tsfeed->set(tsfeed, feed->pid, ts_type, ts_pes, timeout);
-> -	if (ret < 0) {
-> -		dmxdev->demux->release_ts_feed(dmxdev->demux, tsfeed);
-> -		return ret;
-> -	}
-> +	if (ret < 0)
-> +		goto release_feed;
->  
->  	ret = tsfeed->start_filtering(tsfeed);
-> -	if (ret < 0) {
-> -		dmxdev->demux->release_ts_feed(dmxdev->demux, tsfeed);
-> -		return ret;
-> -	}
-> +	if (ret < 0)
-> +		goto release_feed;
->  
->  	return 0;
-> +
-> +release_feed:
-> +	dmxdev->demux->release_ts_feed(dmxdev->demux, tsfeed);
-> +	return ret;
->  }
+Hi Kieran,
+
+Thank you for the patch.
+
+On Thursday, 17 May 2018 20:24:01 EEST Kieran Bingham wrote:
+> We are now able to configure a pipeline directly into a local display
+> list body. Take advantage of this fact, and create a cacheable body to
+> store the configuration of the pipeline in the video object.
 > 
-> There's *nothing* wrong with the above. It works fine,
+> vsp1_video_pipeline_run() is now the last user of the pipe->dl object.
+> Convert this function to use the cached video->config body and obtain a
+> local display list reference.
+> 
+> Attach the video->config body to the display list when needed before
+> committing to hardware.
+> 
+> The pipe object is marked as un-configured when resuming from a suspend.
 
-I can agree to this view in principle according to the required control flow.
+Is this comment still valid ?
 
+> This ensures that when the hardware is reset - our cached configuration
+> will be re-attached to the next committed DL.
+> 
+> Our video DL usage now looks like the below output:
+> 
+> dl->body0 contains our disposable runtime configuration. Max 41.
+> dl_child->body0 is our partition specific configuration. Max 12.
+> dl->bodies shows our constant configuration and LUTs.
+> 
+>   These two are LUT/CLU:
+>      * dl->bodies[x]->num_entries 256 / max 256
+>      * dl->bodies[x]->num_entries 4914 / max 4914
+> 
+> Which shows that our 'constant' configuration cache is currently
+> utilised to a maximum of 64 entries.
+> 
+> trace-cmd report | \
+>     grep max | sed 's/.*vsp1_dl_list_commit://g' | sort | uniq;
+> 
+>   dl->body0->num_entries 13 / max 128
+>   dl->body0->num_entries 14 / max 128
+>   dl->body0->num_entries 16 / max 128
+>   dl->body0->num_entries 20 / max 128
+>   dl->body0->num_entries 27 / max 128
+>   dl->body0->num_entries 34 / max 128
+>   dl->body0->num_entries 41 / max 128
+>   dl_child->body0->num_entries 10 / max 128
+>   dl_child->body0->num_entries 12 / max 128
+>   dl->bodies[x]->num_entries 15 / max 128
+>   dl->bodies[x]->num_entries 16 / max 128
+>   dl->bodies[x]->num_entries 17 / max 128
+>   dl->bodies[x]->num_entries 18 / max 128
+>   dl->bodies[x]->num_entries 20 / max 128
+>   dl->bodies[x]->num_entries 21 / max 128
+>   dl->bodies[x]->num_entries 256 / max 256
+>   dl->bodies[x]->num_entries 31 / max 128
+>   dl->bodies[x]->num_entries 32 / max 128
+>   dl->bodies[x]->num_entries 39 / max 128
+>   dl->bodies[x]->num_entries 40 / max 128
+>   dl->bodies[x]->num_entries 47 / max 128
+>   dl->bodies[x]->num_entries 48 / max 128
+>   dl->bodies[x]->num_entries 4914 / max 4914
+>   dl->bodies[x]->num_entries 55 / max 128
+>   dl->bodies[x]->num_entries 56 / max 128
+>   dl->bodies[x]->num_entries 63 / max 128
+>   dl->bodies[x]->num_entries 64 / max 128
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+> v10:
+>  - Removed pipe->configured flag, and use
+>    pipe->state == VSP1_PIPELINE_STOPPED instead.
+> 
+> v8:
+>  - Fix comments
+>  - Rename video->pipe_config -> video->stream_config
+> 
+> v4:
+>  - Adjust pipe configured flag to be reset on resume rather than suspend
+>  - rename dl_child, dl_next
+> 
+> v3:
+>  - 's/fragment/body/', 's/fragments/bodies/'
+>  - video dlb cache allocation increased from 2 to 3 dlbs
+> 
+>  drivers/media/platform/vsp1/vsp1_pipe.h  |  3 +-
+>  drivers/media/platform/vsp1/vsp1_video.c | 67 +++++++++++++++----------
+>  drivers/media/platform/vsp1/vsp1_video.h |  2 +-
+>  3 files changed, 43 insertions(+), 29 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
+> b/drivers/media/platform/vsp1/vsp1_pipe.h index e00010693eef..be6ecab3cbed
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+> @@ -102,7 +102,6 @@ struct vsp1_partition {
+>   * @uds: UDS entity, if present
+>   * @uds_input: entity at the input of the UDS, if the UDS is present
+>   * @entities: list of entities in the pipeline
+> - * @dl: display list associated with the pipeline
+>   * @partitions: The number of partitions used to process one frame
+>   * @partition: The current partition for configuration to process
+>   * @part_table: The pre-calculated partitions used by the pipeline
+> @@ -139,8 +138,6 @@ struct vsp1_pipeline {
+>  	 */
+>  	struct list_head entities;
+> 
+> -	struct vsp1_dl_list *dl;
+> -
+>  	unsigned int partitions;
+>  	struct vsp1_partition *partition;
+>  	struct vsp1_partition *part_table;
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> b/drivers/media/platform/vsp1/vsp1_video.c index 72f29773eb1c..f2bc26d28396
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -390,44 +390,48 @@ static void vsp1_video_pipeline_run_partition(struct
+> vsp1_pipeline *pipe, static void vsp1_video_pipeline_run(struct
+> vsp1_pipeline *pipe)
+>  {
+>  	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+> +	struct vsp1_video *video = pipe->output->video;
+>  	struct vsp1_entity *entity;
+>  	struct vsp1_dl_body *dlb;
+> +	struct vsp1_dl_list *dl;
+>  	unsigned int partition;
+> 
+> -	if (!pipe->dl)
+> -		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+> +	dl = vsp1_dl_list_get(pipe->output->dlm);
+> +
+> +	/* Attach our pipe configuration to fully initialise the hardware. */
 
-> avoids goto
+I'd expand this to explain that the cached stream configuration needs to be 
+applied only if the VSP is uninitialized. How about
 
-How does this wording fit to information from the section
-“7) Centralized exiting of functions” in the document “coding-style.rst”?
+	/*
+	 * If the VSP hardware isn't configured yet (which occurs either when 
+	 * processing the first frame or after a system suspend/resume), add the 
+	 * cached stream configuration to the display list to perform a full
+	 * initialisation.
+	 */
 
+> +	if (pipe->state == VSP1_PIPELINE_STOPPED)
+> +		vsp1_dl_list_add_body(dl, video->stream_config);
 
-> and probably even produce the same code, as gcc will likely optimize it.
+The pipeline state is set to VSP1_PIPELINE_STOPPED at the end of every frame 
+in vsp1_video_pipeline_frame_end(). Do you really want to fully reconfigure 
+the hardware for every frame ?
 
-Would you like to clarify the current situation around supported
-software optimisations any more?
+> -	dlb = vsp1_dl_list_get_body0(pipe->dl);
+> +	dlb = vsp1_dl_list_get_body0(dl);
+> 
+>  	list_for_each_entry(entity, &pipe->entities, list_pipe)
+> -		vsp1_entity_configure_frame(entity, pipe, pipe->dl, dlb);
+> +		vsp1_entity_configure_frame(entity, pipe, dl, dlb);
+> 
+>  	/* Run the first partition. */
+> -	vsp1_video_pipeline_run_partition(pipe, pipe->dl, 0);
+> +	vsp1_video_pipeline_run_partition(pipe, dl, 0);
+> 
+>  	/* Process consecutive partitions as necessary. */
+>  	for (partition = 1; partition < pipe->partitions; ++partition) {
+> -		struct vsp1_dl_list *dl;
+> +		struct vsp1_dl_list *dl_next;
+> 
+> -		dl = vsp1_dl_list_get(pipe->output->dlm);
+> +		dl_next = vsp1_dl_list_get(pipe->output->dlm);
+> 
+>  		/*
+>  		 * An incomplete chain will still function, but output only
+>  		 * the partitions that had a dl available. The frame end
+>  		 * interrupt will be marked on the last dl in the chain.
+>  		 */
+> -		if (!dl) {
+> +		if (!dl_next) {
+>  			dev_err(vsp1->dev, "Failed to obtain a dl list. Frame will be
+> incomplete\n"); break;
+>  		}
+> 
+> -		vsp1_video_pipeline_run_partition(pipe, dl, partition);
+> -		vsp1_dl_list_add_chain(pipe->dl, dl);
+> +		vsp1_video_pipeline_run_partition(pipe, dl_next, partition);
+> +		vsp1_dl_list_add_chain(dl, dl_next);
+>  	}
+> 
+>  	/* Complete, and commit the head display list. */
+> -	vsp1_dl_list_commit(pipe->dl, false);
+> -	pipe->dl = NULL;
+> +	vsp1_dl_list_commit(dl, false);
+> 
+>  	vsp1_pipeline_run(pipe);
+>  }
+> @@ -790,8 +794,8 @@ static void vsp1_video_buffer_queue(struct vb2_buffer
+> *vb)
+> 
+>  static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+>  {
+> +	struct vsp1_video *video = pipe->output->video;
+>  	struct vsp1_entity *entity;
+> -	struct vsp1_dl_body *dlb;
+>  	int ret;
+> 
+>  	/* Determine this pipelines sizes for image partitioning support. */
+> @@ -799,14 +803,6 @@ static int vsp1_video_setup_pipeline(struct
+> vsp1_pipeline *pipe) if (ret < 0)
+>  		return ret;
+> 
+> -	/* Prepare the display list. */
+> -	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+> -	if (!pipe->dl)
+> -		return -ENOMEM;
+> -
+> -	/* Retrieve the default DLB from the list. */
+> -	dlb = vsp1_dl_list_get_body0(pipe->dl);
+> -
+>  	if (pipe->uds) {
+>  		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
+> 
+> @@ -828,9 +824,16 @@ static int vsp1_video_setup_pipeline(struct
+> vsp1_pipeline *pipe) }
+>  	}
+> 
+> +	/* Obtain a clean body from our pool. */
+> +	video->stream_config = vsp1_dl_body_get(video->dlbs);
+> +	if (!video->stream_config)
+> +		return -ENOMEM;
+> +
+> +	/* Configure the entities into our cached pipe configuration. */
 
+I would group the two comments to better explain what we're doing here. How 
+about something like this ?
 
-> It is also easier to review, as the error handling is closer
-> to the code.
+	/*
+	 * Compute and cache the stream configuration for the pipeline. First
+	 * create a display list body to hold the configuration, and then write
+	 * routing and stream configuration for each entity in the body. The
+	 * body will be added to the display list by vsp1_video_pipeline_run()
+	 * when the pipeline needs to be fully reconfigured.
+	 */
 
-Do we stumble on different coding style preferences once more?
+>  	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+> -		vsp1_entity_route_setup(entity, pipe, dlb);
+> -		vsp1_entity_configure_stream(entity, pipe, dlb);
+> +		vsp1_entity_route_setup(entity, pipe, video->stream_config);
+> +		vsp1_entity_configure_stream(entity, pipe,
+> +					     video->stream_config);
+>  	}
+> 
+>  	return 0;
+> @@ -842,6 +845,9 @@ static void vsp1_video_cleanup_pipeline(struct
+> vsp1_pipeline *pipe) struct vsp1_vb2_buffer *buffer;
+>  	unsigned long flags;
+> 
+> +	/* Release any cached configuration. */
+> +	vsp1_dl_body_put(video->stream_config);
+> +
+>  	/* Remove all buffers from the IRQ queue. */
+>  	spin_lock_irqsave(&video->irqlock, flags);
+>  	list_for_each_entry(buffer, &video->irqqueue, queue)
+> @@ -918,9 +924,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue
+> *vq) ret = vsp1_pipeline_stop(pipe);
+>  		if (ret == -ETIMEDOUT)
+>  			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
+> -
+> -		vsp1_dl_list_put(pipe->dl);
+> -		pipe->dl = NULL;
+>  	}
+>  	mutex_unlock(&pipe->lock);
+> 
+> @@ -1240,6 +1243,16 @@ struct vsp1_video *vsp1_video_create(struct
+> vsp1_device *vsp1, goto error;
+>  	}
+> 
+> +	/*
+> +	 * Utilise a body pool to cache the constant configuration of the
+> +	 * pipeline object.
+> +	 */
+> +	video->dlbs = vsp1_dl_body_pool_create(vsp1, 3, 128, 0);
 
+Why do we preallocate three bodies here, don't we need just one ?
 
-> On the other hand, there's nothing wrong on taking the approach
-> you're proposing.
+I'm also wondering whether we could reuse the WPF body pool instead of 
+creating a new one.
 
-Thanks for another bit of positive feedback.
+> +	if (!video->dlbs) {
+> +		ret = -ENOMEM;
+> +		goto error;
+> +	}
+> +
+>  	return video;
+> 
+>  error:
+> @@ -1249,6 +1262,8 @@ struct vsp1_video *vsp1_video_create(struct
+> vsp1_device *vsp1,
+> 
+>  void vsp1_video_cleanup(struct vsp1_video *video)
+>  {
+> +	vsp1_dl_body_pool_destroy(video->dlbs);
+> +
+>  	if (video_is_registered(&video->video))
+>  		video_unregister_device(&video->video);
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.h
+> b/drivers/media/platform/vsp1/vsp1_video.h index 75a5a65c66fe..77bbfb4a5b54
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.h
+> +++ b/drivers/media/platform/vsp1/vsp1_video.h
+> @@ -39,6 +39,8 @@ struct vsp1_video {
+> 
+>  	struct mutex lock;
+> 
+> +	struct vsp1_dl_body_pool *dlbs;
+> +	struct vsp1_dl_body *stream_config;
+>  	unsigned int pipe_index;
+> 
+>  	struct vb2_queue queue;
 
-
-> In the end, using goto or not on error handling like the above is 
-> a matter of personal taste - and taste changes with time
-
-Do Linux guidelines need any adjustments?
-
-
-> and with developer. I really don't have time to keep reviewing patches
-> that are just churning the code just due to someone's personal taste.
-
-I tried to apply another general source code transformation pattern.
-
-
-> I'm pretty sure if I start accepting things like that,
-> someone else would be on some future doing patches just reverting it,
-> and I would be likely having to apply them too.
-
-Why?
-
-I hope also that the source code can be kept consistent to some degree.
-
-
-> So, except if the patch is really fixing something - e.g. a broken
-> error handling code, I'll just ignore such patches and mark as
-> rejected without further notice/comments from now on.
-
-I would find such a communication style questionable.
-Do you distinguish between bug fixes and possible corrections for
-other error categories (or software weaknesses)?
-
+-- 
 Regards,
-Markus
+
+Laurent Pinchart
