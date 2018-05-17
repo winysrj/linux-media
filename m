@@ -1,181 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:39498 "EHLO mga06.intel.com"
+Received: from mail.bootlin.com ([62.4.15.54]:49807 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751298AbeERNYK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 09:24:10 -0400
-Date: Fri, 18 May 2018 16:24:03 +0300
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com, sadolfsson@google.com,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, fparent@baylibre.com,
-        felixe@google.com, marcheu@chromium.org, bleung@google.com,
-        darekm@google.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/5] drm/i915: hdmi: add CEC notifier to intel_hdmi
-Message-ID: <20180518132403.GW23723@intel.com>
-References: <1526648704-16873-1-git-send-email-narmstrong@baylibre.com>
- <1526648704-16873-3-git-send-email-narmstrong@baylibre.com>
+        id S1750938AbeEQLWJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 07:22:09 -0400
+Date: Thu, 17 May 2018 13:22:07 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Daniel Mack <daniel@zonque.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH v3 00/12] media: ov5640: Misc cleanup and improvements
+Message-ID: <20180517112207.lrcif2qwpkbiy2zs@flea>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+ <645869ce-3cad-29e9-72ed-297a9e787c48@zonque.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="2wr63to2idfjy2jv"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1526648704-16873-3-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <645869ce-3cad-29e9-72ed-297a9e787c48@zonque.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 18, 2018 at 03:05:01PM +0200, Neil Armstrong wrote:
-> This patchs adds the cec_notifier feature to the intel_hdmi part
-> of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
-> between each HDMI ports.
-> The changes will allow the i915 HDMI code to notify EDID and HPD changes
-> to an eventual CEC adapter.
-> 
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> ---
->  drivers/gpu/drm/i915/Kconfig         |  1 +
->  drivers/gpu/drm/i915/intel_display.h | 20 ++++++++++++++++++++
->  drivers/gpu/drm/i915/intel_drv.h     |  2 ++
->  drivers/gpu/drm/i915/intel_hdmi.c    | 13 +++++++++++++
->  4 files changed, 36 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
-> index dfd9588..2d65d56 100644
-> --- a/drivers/gpu/drm/i915/Kconfig
-> +++ b/drivers/gpu/drm/i915/Kconfig
-> @@ -23,6 +23,7 @@ config DRM_I915
->  	select SYNC_FILE
->  	select IOSF_MBI
->  	select CRC32
-> +	select CEC_CORE if CEC_NOTIFIER
->  	help
->  	  Choose this option if you have a system that has "Intel Graphics
->  	  Media Accelerator" or "HD Graphics" integrated graphics,
-> diff --git a/drivers/gpu/drm/i915/intel_display.h b/drivers/gpu/drm/i915/intel_display.h
-> index 4e7418b..c68d1c8 100644
-> --- a/drivers/gpu/drm/i915/intel_display.h
-> +++ b/drivers/gpu/drm/i915/intel_display.h
-> @@ -126,6 +126,26 @@ enum port {
->  
->  #define port_name(p) ((p) + 'A')
->  
-> +static inline const char *port_identifier(enum port port)
-> +{
-> +	switch (port) {
-> +	case PORT_A:
-> +		return "Port A";
-> +	case PORT_B:
-> +		return "Port B";
-> +	case PORT_C:
-> +		return "Port C";
-> +	case PORT_D:
-> +		return "Port D";
-> +	case PORT_E:
-> +		return "Port E";
-> +	case PORT_F:
-> +		return "Port F";
-> +	default:
-> +		return "<invalid>";
-> +	}
-> +}
 
-I don't think we need this in the header. A static function will do.
+--2wr63to2idfjy2jv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-And I was actually thinking something a bit fancier like:
-snprintf("%s/port-%s", dev_name(dev), port_id(port));
+Hi,
 
-Oh, I see you already pass the device in so I guess we don't need
-that in the port id?
+On Thu, May 17, 2018 at 11:24:04AM +0200, Daniel Mack wrote:
+> Hi,
+>=20
+> On Thursday, May 17, 2018 10:53 AM, Maxime Ripard wrote:
+> > Here is a "small" series that mostly cleans up the ov5640 driver code,
+> > slowly getting rid of the big data array for more understandable code
+> > (hopefully).
+> >=20
+> > The biggest addition would be the clock rate computation at runtime,
+> > instead of relying on those arrays to setup the clock tree
+> > properly. As a side effect, it fixes the framerate that was off by
+> > around 10% on the smaller resolutions, and we now support 60fps.
+> >=20
+> > This also introduces a bunch of new features.
+>=20
+> I'd like to give this a try. What tree should this patch set be applied o=
+n?
+> I had no luck with media_tree/for-4.18-6.
 
-> +
->  enum dpio_channel {
->  	DPIO_CH0,
->  	DPIO_CH1
-> diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
-> index d436858..b50e51b 100644
-> --- a/drivers/gpu/drm/i915/intel_drv.h
-> +++ b/drivers/gpu/drm/i915/intel_drv.h
-> @@ -39,6 +39,7 @@
->  #include <drm/drm_dp_mst_helper.h>
->  #include <drm/drm_rect.h>
->  #include <drm/drm_atomic.h>
-> +#include <media/cec-notifier.h>
->  
->  /**
->   * __wait_for - magic wait macro
-> @@ -1001,6 +1002,7 @@ struct intel_hdmi {
->  	bool has_audio;
->  	bool rgb_quant_range_selectable;
->  	struct intel_connector *attached_connector;
-> +	struct cec_notifier *notifier;
+Maybe it wasn't the latest after all, sorry. It's based on Sakari's
+for-4.18-3 PR (67f76c65e94f).
 
-I was wondering if we need any ifdefs around this stuff, but I guess not
-since it's just a pointer and all the functions seem to have empty
-static inlines for the CEC=n case.
+Maxime
 
->  };
->  
->  struct intel_dp_mst_encoder;
-> diff --git a/drivers/gpu/drm/i915/intel_hdmi.c b/drivers/gpu/drm/i915/intel_hdmi.c
-> index 1baef4a..d522b5b 100644
-> --- a/drivers/gpu/drm/i915/intel_hdmi.c
-> +++ b/drivers/gpu/drm/i915/intel_hdmi.c
-> @@ -1868,6 +1868,8 @@ intel_hdmi_set_edid(struct drm_connector *connector)
->  		connected = true;
->  	}
->  
-> +	cec_notifier_set_phys_addr_from_edid(intel_hdmi->notifier, edid);
-> +
->  	return connected;
->  }
->  
-> @@ -1876,6 +1878,7 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
->  {
->  	enum drm_connector_status status;
->  	struct drm_i915_private *dev_priv = to_i915(connector->dev);
-> +	struct intel_hdmi *intel_hdmi = intel_attached_hdmi(connector);
->  
->  	DRM_DEBUG_KMS("[CONNECTOR:%d:%s]\n",
->  		      connector->base.id, connector->name);
-> @@ -1891,6 +1894,9 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
->  
->  	intel_display_power_put(dev_priv, POWER_DOMAIN_GMBUS);
->  
-> +	if (status != connector_status_connected)
-> +		cec_notifier_phys_addr_invalidate(intel_hdmi->notifier);
-> +
->  	return status;
->  }
->  
-> @@ -2031,6 +2037,8 @@ static void chv_hdmi_pre_enable(struct intel_encoder *encoder,
->  
->  static void intel_hdmi_destroy(struct drm_connector *connector)
->  {
-> +	if (intel_attached_hdmi(connector)->notifier)
-> +		cec_notifier_put(intel_attached_hdmi(connector)->notifier);
->  	kfree(to_intel_connector(connector)->detect_edid);
->  	drm_connector_cleanup(connector);
->  	kfree(connector);
-> @@ -2358,6 +2366,11 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
->  		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
->  		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
->  	}
-> +
-> +	intel_hdmi->notifier = cec_notifier_get_conn(dev->dev,
-> +						     port_identifier(port));
-> +	if (!intel_hdmi->notifier)
-> +		DRM_DEBUG_KMS("CEC notifier get failed\n");
->  }
->  
->  void intel_hdmi_init(struct drm_i915_private *dev_priv,
-> -- 
-> 2.7.4
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
--- 
-Ville Syrjälä
-Intel
+--2wr63to2idfjy2jv
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlr9ZckACgkQ0rTAlCFN
+r3TXmg/+PzTti2yeeEZA0raWV9DTklzMQU8srjomIPljJGYLKkLgA/FOamEa1x64
+/Yv6duH+EmcDWbIj5KC3YHuSa+8zT/iecHuZ8/7gIxEZ4h8PR/zIOCX7JwxKkkp9
+QJgVd/B8v9v0hN+Uw/JA9sjOj6TCt+hWc2XkDwP6M+5sXigwp0x7PoOB45snxl1L
+MiT4U60W8138LMBGsboQN9Z3QlvxhkLqpUskdcRTLt7FpSMEMsbxCyuUflGR17YH
++eZh0EIcsCvYJPZZyoAAlN+/atcsEof/4K9EeJK6gEB0D6wkfOyj44HYxqNm3SVq
+7hLibKTYqmJEZUMb3+IWJ1WhNLdjfmVutqhZKa0/B5/db+QA9G5V2tgMva6IcPN0
+e7nAzmSDN4fZ/yRJ08Id5MbUIc/ckbpWZggPa1lKEIhhA8k4iE1WKFVeYFspmUek
+1Ox4ftZKZ55CVqe5wWb6YRETRlg91r9SkVikbE6bLq1aaEHdjv16rTxMIzsK18k/
+W3CsxBr2ZmIRx6jONO6tmFyq1v2D3i77NxaUAOF3mWo0KDub1QaBTYGQFP/xvWXx
+Vv11LY62FOUPbmdxOhsRM7X1ekpDczJElVZhJlxV/sAL/FO/jvuLNX+bqRyb9PKO
+jy1x8Ln7TCNsU8QIafOU/hUyvMhN3wXLn7kVu80pTRsMHULFoNI=
+=l0PT
+-----END PGP SIGNATURE-----
+
+--2wr63to2idfjy2jv--
