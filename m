@@ -1,215 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:53633 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753059AbeENL4N (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 07:56:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@pobox.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: [RFC PATCH 5/6] videobuf2: assume q->lock is always set
-Date: Mon, 14 May 2018 13:56:01 +0200
-Message-Id: <20180514115602.9791-6-hverkuil@xs4all.nl>
-In-Reply-To: <20180514115602.9791-1-hverkuil@xs4all.nl>
-References: <20180514115602.9791-1-hverkuil@xs4all.nl>
+Received: from mx.socionext.com ([202.248.49.38]:17540 "EHLO mx.socionext.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751290AbeEQA5z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 May 2018 20:57:55 -0400
+From: "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com>
+To: "'Abylay Ospan'" <aospan@netup.ru>,
+        =?utf-8?B?U3V6dWtpLCBLYXRzdWhpcm8v6Yi05pyoIOWLneWNmg==?=
+        <suzuki.katsuhiro@socionext.com>
+Cc: "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        "linux-media" <linux-media@vger.kernel.org>,
+        "Masami Hiramatsu" <masami.hiramatsu@linaro.org>,
+        "Jassi Brar" <jaswinder.singh@linaro.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>
+References: <20180516084111.28618-1-suzuki.katsuhiro@socionext.com> <CAK3bHNUVqd2GODY3k4fzWwtZkZZKMH5Qxs+oiWCODcU9gdYK0A@mail.gmail.com>
+In-Reply-To: <CAK3bHNUVqd2GODY3k4fzWwtZkZZKMH5Qxs+oiWCODcU9gdYK0A@mail.gmail.com>
+Subject: Re: [PATCH] media: helene: fix tuning frequency of satellite
+Date: Thu, 17 May 2018 09:57:50 +0900
+Message-ID: <000601d3ed7a$145a94b0$3d0fbe10$@socionext.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Language: ja
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Hello Abylay,
 
-Drop checks for q->lock. Drop calls to wait_finish/prepare, just lock/unlock
-q->lock.
+> -----Original Message-----
+> From: Abylay Ospan <aospan@netup.ru>
+> Sent: Wednesday, May 16, 2018 7:56 PM
+> To: Suzuki, Katsuhiro/鈴木 勝博 <suzuki.katsuhiro@socionext.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>; linux-media
+> <linux-media@vger.kernel.org>; Masami Hiramatsu <masami.hiramatsu@linaro.org>;
+> Jassi Brar <jaswinder.singh@linaro.org>; linux-arm-kernel@lists.infradead.org;
+> linux-kernel@vger.kernel.org
+> Subject: Re: [PATCH] media: helene: fix tuning frequency of satellite
+> 
+> True.
+> I'm curious but how did it worked before ...
+> Which hardware (dvb adapter) are you using ?
+> 
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- .../media/common/videobuf2/videobuf2-core.c   | 21 ++++++---------
- .../media/common/videobuf2/videobuf2-v4l2.c   | 27 +++++--------------
- include/media/videobuf2-core.h                |  2 --
- 3 files changed, 15 insertions(+), 35 deletions(-)
+I'm using evaluation boards of my company. So it's not exist in market...
+Tuner module is SONY SUT-PJ series for ISDB-S/ISDB-T (not for DVB).
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index 3b89ec5e0b2f..8ca279a43549 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -462,8 +462,7 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 	 * counters to the kernel log.
- 	 */
- 	if (q->num_buffers) {
--		bool unbalanced = q->cnt_start_streaming != q->cnt_stop_streaming ||
--				  q->cnt_wait_prepare != q->cnt_wait_finish;
-+		bool unbalanced = q->cnt_start_streaming != q->cnt_stop_streaming;
- 
- 		if (unbalanced || debug) {
- 			pr_info("counters for queue %p:%s\n", q,
-@@ -471,12 +470,8 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 			pr_info("     setup: %u start_streaming: %u stop_streaming: %u\n",
- 				q->cnt_queue_setup, q->cnt_start_streaming,
- 				q->cnt_stop_streaming);
--			pr_info("     wait_prepare: %u wait_finish: %u\n",
--				q->cnt_wait_prepare, q->cnt_wait_finish);
- 		}
- 		q->cnt_queue_setup = 0;
--		q->cnt_wait_prepare = 0;
--		q->cnt_wait_finish = 0;
- 		q->cnt_start_streaming = 0;
- 		q->cnt_stop_streaming = 0;
- 	}
-@@ -1484,10 +1479,10 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
- 
- 		/*
- 		 * We are streaming and blocking, wait for another buffer to
--		 * become ready or for streamoff. Driver's lock is released to
-+		 * become ready or for streamoff. The queue's lock is released to
- 		 * allow streamoff or qbuf to be called while waiting.
- 		 */
--		call_void_qop(q, wait_prepare, q);
-+		mutex_unlock(q->lock);
- 
- 		/*
- 		 * All locks have been released, it is safe to sleep now.
-@@ -1501,7 +1496,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
- 		 * We need to reevaluate both conditions again after reacquiring
- 		 * the locks or return an error if one occurred.
- 		 */
--		call_void_qop(q, wait_finish, q);
-+		mutex_lock(q->lock);
- 		if (ret) {
- 			dprintk(1, "sleep was interrupted\n");
- 			return ret;
-@@ -2528,10 +2523,10 @@ static int vb2_thread(void *data)
- 			vb = q->bufs[index++];
- 			prequeue--;
- 		} else {
--			call_void_qop(q, wait_finish, q);
-+			mutex_lock(q->lock);
- 			if (!threadio->stop)
- 				ret = vb2_core_dqbuf(q, &index, NULL, 0);
--			call_void_qop(q, wait_prepare, q);
-+			mutex_unlock(q->lock);
- 			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
- 			if (!ret)
- 				vb = q->bufs[index];
-@@ -2543,12 +2538,12 @@ static int vb2_thread(void *data)
- 		if (vb->state != VB2_BUF_STATE_ERROR)
- 			if (threadio->fnc(vb, threadio->priv))
- 				break;
--		call_void_qop(q, wait_finish, q);
-+		mutex_lock(q->lock);
- 		if (copy_timestamp)
- 			vb->timestamp = ktime_get_ns();
- 		if (!threadio->stop)
- 			ret = vb2_core_qbuf(q, vb->index, NULL);
--		call_void_qop(q, wait_prepare, q);
-+		mutex_unlock(q->lock);
- 		if (ret || threadio->stop)
- 			break;
- 	}
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 886a2d8d5c6c..7d2172468f72 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -852,9 +852,8 @@ EXPORT_SYMBOL_GPL(_vb2_fop_release);
- int vb2_fop_release(struct file *file)
- {
- 	struct video_device *vdev = video_devdata(file);
--	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
- 
--	return _vb2_fop_release(file, lock);
-+	return _vb2_fop_release(file, vdev->queue->lock);
- }
- EXPORT_SYMBOL_GPL(vb2_fop_release);
- 
-@@ -862,12 +861,11 @@ ssize_t vb2_fop_write(struct file *file, const char __user *buf,
- 		size_t count, loff_t *ppos)
- {
- 	struct video_device *vdev = video_devdata(file);
--	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
- 	int err = -EBUSY;
- 
- 	if (!(vdev->queue->io_modes & VB2_WRITE))
- 		return -EINVAL;
--	if (lock && mutex_lock_interruptible(lock))
-+	if (mutex_lock_interruptible(vdev->queue->lock))
- 		return -ERESTARTSYS;
- 	if (vb2_queue_is_busy(vdev, file))
- 		goto exit;
-@@ -876,8 +874,7 @@ ssize_t vb2_fop_write(struct file *file, const char __user *buf,
- 	if (vdev->queue->fileio)
- 		vdev->queue->owner = file->private_data;
- exit:
--	if (lock)
--		mutex_unlock(lock);
-+	mutex_unlock(vdev->queue->lock);
- 	return err;
- }
- EXPORT_SYMBOL_GPL(vb2_fop_write);
-@@ -886,12 +883,11 @@ ssize_t vb2_fop_read(struct file *file, char __user *buf,
- 		size_t count, loff_t *ppos)
- {
- 	struct video_device *vdev = video_devdata(file);
--	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
- 	int err = -EBUSY;
- 
- 	if (!(vdev->queue->io_modes & VB2_READ))
- 		return -EINVAL;
--	if (lock && mutex_lock_interruptible(lock))
-+	if (mutex_lock_interruptible(vdev->queue->lock))
- 		return -ERESTARTSYS;
- 	if (vb2_queue_is_busy(vdev, file))
- 		goto exit;
-@@ -900,8 +896,7 @@ ssize_t vb2_fop_read(struct file *file, char __user *buf,
- 	if (vdev->queue->fileio)
- 		vdev->queue->owner = file->private_data;
- exit:
--	if (lock)
--		mutex_unlock(lock);
-+	mutex_unlock(vdev->queue->lock);
- 	return err;
- }
- EXPORT_SYMBOL_GPL(vb2_fop_read);
-@@ -910,17 +905,10 @@ __poll_t vb2_fop_poll(struct file *file, poll_table *wait)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct vb2_queue *q = vdev->queue;
--	struct mutex *lock = q->lock ? q->lock : vdev->lock;
- 	__poll_t res;
- 	void *fileio;
- 
--	/*
--	 * If this helper doesn't know how to lock, then you shouldn't be using
--	 * it but you should write your own.
--	 */
--	WARN_ON(!lock);
--
--	if (lock && mutex_lock_interruptible(lock))
-+	if (mutex_lock_interruptible(q->lock))
- 		return EPOLLERR;
- 
- 	fileio = q->fileio;
-@@ -930,8 +918,7 @@ __poll_t vb2_fop_poll(struct file *file, poll_table *wait)
- 	/* If fileio was started, then we have a new queue owner. */
- 	if (!fileio && q->fileio)
- 		q->owner = file->private_data;
--	if (lock)
--		mutex_unlock(lock);
-+	mutex_unlock(q->lock);
- 	return res;
- }
- EXPORT_SYMBOL_GPL(vb2_fop_poll);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f6818f732f34..d4e557b4f820 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -565,8 +565,6 @@ struct vb2_queue {
- 	 * called. Used to check for unbalanced ops.
- 	 */
- 	u32				cnt_queue_setup;
--	u32				cnt_wait_prepare;
--	u32				cnt_wait_finish;
- 	u32				cnt_start_streaming;
- 	u32				cnt_stop_streaming;
- #endif
--- 
-2.17.0
+Regards,
+--
+Katsuhiro Suzuki
+
+
+> 2018-05-16 4:41 GMT-04:00 Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com
+> <mailto:suzuki.katsuhiro@socionext.com> >:
+> 
+> 
+> 	This patch fixes tuning frequency of satellite to kHz. That as same
+> 	as terrestrial one.
+> 
+> 	Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com
+> <mailto:suzuki.katsuhiro@socionext.com> >
+> 	---
+> 	 drivers/media/dvb-frontends/helene.c | 2 +-
+> 	 1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> 	diff --git a/drivers/media/dvb-frontends/helene.c
+> b/drivers/media/dvb-frontends/helene.c
+> 	index 04033f0c278b..0a4f312c4368 100644
+> 	--- a/drivers/media/dvb-frontends/helene.c
+> 	+++ b/drivers/media/dvb-frontends/helene.c
+> 	@@ -523,7 +523,7 @@ static int helene_set_params_s(struct dvb_frontend *fe)
+> 	        enum helene_tv_system_t tv_system;
+> 	        struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+> 	        struct helene_priv *priv = fe->tuner_priv;
+> 	-       int frequencykHz = p->frequency;
+> 	+       int frequencykHz = p->frequency / 1000;
+> 	        uint32_t frequency4kHz = 0;
+> 	        u32 symbol_rate = p->symbol_rate/1000;
+> 
+> 	--
+> 	2.17.0
+> 
+> 
+> 
+> 
+> 
+> 
+> --
+> 
+> Abylay Ospan,
+> NetUP Inc.
+> http://www.netup.tv <http://www.netup.tv/>
