@@ -1,63 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:38035 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934007AbeEII7V (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 04:59:21 -0400
-Message-ID: <1525856353.5888.6.camel@pengutronix.de>
-Subject: Re: [PATCH v3 09/14] ARM: dts: imx7s: add multiplexer controls
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>
-Date: Wed, 09 May 2018 10:59:13 +0200
-In-Reply-To: <20180507162152.2545-10-rui.silva@linaro.org>
-References: <20180507162152.2545-1-rui.silva@linaro.org>
-         <20180507162152.2545-10-rui.silva@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp.codeaurora.org ([198.145.29.96]:60322 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751396AbeEQLc5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 07:32:57 -0400
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: hverkuil@xs4all.nl, mchehab@kernel.org, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org, stanimir.varbanov@linaro.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        acourbot@google.com, Vikash Garodia <vgarodia@codeaurora.org>
+Subject: [PATCH 1/4] soc: qcom: mdt_loader: Add check to make scm calls
+Date: Thu, 17 May 2018 17:02:17 +0530
+Message-Id: <1526556740-25494-2-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
+References: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-05-07 at 17:21 +0100, Rui Miguel Silva wrote:
-> The IOMUXC General Purpose Register has bitfield to control video bus
-> multiplexer to control the CSI input between the MIPI-CSI2 and parallel
-> interface. Add that register and mask.
-> 
-> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
-> ---
->  arch/arm/boot/dts/imx7s.dtsi | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-> index 67450ad89940..3590dab529f9 100644
-> --- a/arch/arm/boot/dts/imx7s.dtsi
-> +++ b/arch/arm/boot/dts/imx7s.dtsi
-> @@ -520,8 +520,14 @@
->  
->  			gpr: iomuxc-gpr@30340000 {
->  				compatible = "fsl,imx7d-iomuxc-gpr",
-> -					"fsl,imx6q-iomuxc-gpr", "syscon";
-> +					"fsl,imx6q-iomuxc-gpr", "syscon", "simple-mfd";
->  				reg = <0x30340000 0x10000>;
-> +
-> +				mux: mux-controller {
-> +					compatible = "mmio-mux";
-> +					#mux-control-cells = <1>;
-> +					mux-reg-masks = <0x14 0x00000010>;
-> +				};
->  			};
->  
->  			ocotp: ocotp-ctrl@30350000 {
+In order to invoke scm calls, ensure that the platform
+has the required support to invoke the scm calls in
+secure world.
 
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+---
+ drivers/soc/qcom/mdt_loader.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-regards
-Philipp
+diff --git a/drivers/soc/qcom/mdt_loader.c b/drivers/soc/qcom/mdt_loader.c
+index 17b314d..db55d53 100644
+--- a/drivers/soc/qcom/mdt_loader.c
++++ b/drivers/soc/qcom/mdt_loader.c
+@@ -121,10 +121,12 @@ int qcom_mdt_load(struct device *dev, const struct firmware *fw,
+ 	if (!fw_name)
+ 		return -ENOMEM;
+ 
+-	ret = qcom_scm_pas_init_image(pas_id, fw->data, fw->size);
+-	if (ret) {
+-		dev_err(dev, "invalid firmware metadata\n");
+-		goto out;
++	if (qcom_scm_is_available()) {
++		ret = qcom_scm_pas_init_image(pas_id, fw->data, fw->size);
++		if (ret) {
++			dev_err(dev, "invalid firmware metadata\n");
++			goto out;
++		}
+ 	}
+ 
+ 	for (i = 0; i < ehdr->e_phnum; i++) {
+@@ -144,10 +146,13 @@ int qcom_mdt_load(struct device *dev, const struct firmware *fw,
+ 	}
+ 
+ 	if (relocate) {
+-		ret = qcom_scm_pas_mem_setup(pas_id, mem_phys, max_addr - min_addr);
+-		if (ret) {
+-			dev_err(dev, "unable to setup relocation\n");
+-			goto out;
++		if (qcom_scm_is_available()) {
++			ret = qcom_scm_pas_mem_setup(pas_id, mem_phys,
++							max_addr - min_addr);
++			if (ret) {
++				dev_err(dev, "unable to setup relocation\n");
++				goto out;
++			}
+ 		}
+ 
+ 		/*
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
