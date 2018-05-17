@@ -1,159 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bugwerft.de ([46.23.86.59]:52730 "EHLO mail.bugwerft.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935919AbeEYH4T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 03:56:19 -0400
-Subject: Re: [PATCH v2 13/13] ARM: pxa: change SSP DMA channels allocation
-To: Robert Jarzmik <robert.jarzmik@free.fr>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        alsa-devel@alsa-project.org
-References: <20180524070703.11901-1-robert.jarzmik@free.fr>
- <20180524070703.11901-14-robert.jarzmik@free.fr>
-From: Daniel Mack <daniel@zonque.org>
-Message-ID: <7e50d21c-c563-156f-d5d3-cd977af0e9d0@zonque.org>
-Date: Fri, 25 May 2018 09:56:13 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180524070703.11901-14-robert.jarzmik@free.fr>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:35608 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750924AbeEQJyn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 05:54:43 -0400
+Received: by mail-pl0-f65.google.com with SMTP id i5-v6so2233901plt.2
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2018 02:54:43 -0700 (PDT)
+From: Keiichi Watanabe <keiichiw@google.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: v4l2-ctrl: Add control for VP9 profile
+Date: Thu, 17 May 2018 18:53:49 +0900
+Message-Id: <20180517095349.203865-1-keiichiw@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, May 24, 2018 09:07 AM, Robert Jarzmik wrote:
-> Now the dma_slave_map is available for PXA architecture, switch the SSP
-> device to it.
-> 
-> This specifically means that :
-> - for platform data based machines, the DMA requestor channels are
->    extracted from the slave map, where pxa-ssp-dai.<N> is a 1-1 match to
->    ssp.<N>, and the channels are either "rx" or "tx".
-> 
-> - for device tree platforms, the dma node should be hooked into the
->    pxa2xx-ac97 or pxa-ssp-dai node.
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Add a new control V4L2_CID_MPEG_VIDEO_VP9_PROFILE for selecting desired
+profile for VP9 encoder and querying for supported profiles by VP9 encoder
+or decoder.
 
-Acked-by: Daniel Mack <daniel@zonque.org>
+An existing control V4L2_CID_MPEG_VIDEO_VPX_PROFILE cannot be
+used for querying since it is not a menu control but an integer
+control, which cannot return an arbitrary set of supported profiles.
 
+The new control V4L2_CID_MPEG_VIDEO_VP9_PROFILE is a menu control as
+with controls for other codec profiles. (e.g. H264)
 
-We should, however, merge what's left of this management glue code into 
-the users of it, so the dma related properties can be put in the right 
-devicetree node.
+Signed-off-by: Keiichi Watanabe <keiichiw@chromium.org>
+---
 
-I'll prepare a patch for that for 4.18. This is a good preparation for 
-this round though.
+ .../media/uapi/v4l/extended-controls.rst      | 26 +++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c          | 12 +++++++++
+ include/uapi/linux/v4l2-controls.h            |  8 ++++++
+ 3 files changed, 46 insertions(+)
 
-
-Thanks,
-Daniel
-
-
-> ---
-> Since v1: Removed channel names from platform_data
-> ---
->   arch/arm/plat-pxa/ssp.c    | 47 ----------------------------------------------
->   include/linux/pxa2xx_ssp.h |  2 --
->   sound/soc/pxa/pxa-ssp.c    |  5 ++---
->   3 files changed, 2 insertions(+), 52 deletions(-)
-> 
-> diff --git a/arch/arm/plat-pxa/ssp.c b/arch/arm/plat-pxa/ssp.c
-> index ba13f793fbce..ed36dcab80f1 100644
-> --- a/arch/arm/plat-pxa/ssp.c
-> +++ b/arch/arm/plat-pxa/ssp.c
-> @@ -127,53 +127,6 @@ static int pxa_ssp_probe(struct platform_device *pdev)
->   	if (IS_ERR(ssp->clk))
->   		return PTR_ERR(ssp->clk);
->   
-> -	if (dev->of_node) {
-> -		struct of_phandle_args dma_spec;
-> -		struct device_node *np = dev->of_node;
-> -		int ret;
-> -
-> -		/*
-> -		 * FIXME: we should allocate the DMA channel from this
-> -		 * context and pass the channel down to the ssp users.
-> -		 * For now, we lookup the rx and tx indices manually
-> -		 */
-> -
-> -		/* rx */
-> -		ret = of_parse_phandle_with_args(np, "dmas", "#dma-cells",
-> -						 0, &dma_spec);
-> -
-> -		if (ret) {
-> -			dev_err(dev, "Can't parse dmas property\n");
-> -			return -ENODEV;
-> -		}
-> -		ssp->drcmr_rx = dma_spec.args[0];
-> -		of_node_put(dma_spec.np);
-> -
-> -		/* tx */
-> -		ret = of_parse_phandle_with_args(np, "dmas", "#dma-cells",
-> -						 1, &dma_spec);
-> -		if (ret) {
-> -			dev_err(dev, "Can't parse dmas property\n");
-> -			return -ENODEV;
-> -		}
-> -		ssp->drcmr_tx = dma_spec.args[0];
-> -		of_node_put(dma_spec.np);
-> -	} else {
-> -		res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
-> -		if (res == NULL) {
-> -			dev_err(dev, "no SSP RX DRCMR defined\n");
-> -			return -ENODEV;
-> -		}
-> -		ssp->drcmr_rx = res->start;
-> -
-> -		res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
-> -		if (res == NULL) {
-> -			dev_err(dev, "no SSP TX DRCMR defined\n");
-> -			return -ENODEV;
-> -		}
-> -		ssp->drcmr_tx = res->start;
-> -	}
-> -
->   	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->   	if (res == NULL) {
->   		dev_err(dev, "no memory resource defined\n");
-> diff --git a/include/linux/pxa2xx_ssp.h b/include/linux/pxa2xx_ssp.h
-> index 8461b18e4608..03a7ca46735b 100644
-> --- a/include/linux/pxa2xx_ssp.h
-> +++ b/include/linux/pxa2xx_ssp.h
-> @@ -212,8 +212,6 @@ struct ssp_device {
->   	int		type;
->   	int		use_count;
->   	int		irq;
-> -	int		drcmr_rx;
-> -	int		drcmr_tx;
->   
->   	struct device_node	*of_node;
->   };
-> diff --git a/sound/soc/pxa/pxa-ssp.c b/sound/soc/pxa/pxa-ssp.c
-> index 0291c7cb64eb..e09368d89bbc 100644
-> --- a/sound/soc/pxa/pxa-ssp.c
-> +++ b/sound/soc/pxa/pxa-ssp.c
-> @@ -104,9 +104,8 @@ static int pxa_ssp_startup(struct snd_pcm_substream *substream,
->   	dma = kzalloc(sizeof(struct snd_dmaengine_dai_dma_data), GFP_KERNEL);
->   	if (!dma)
->   		return -ENOMEM;
-> -
-> -	dma->filter_data = substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
-> -				&ssp->drcmr_tx : &ssp->drcmr_rx;
-> +	dma->chan_name = substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
-> +		"tx" : "rx";
->   
->   	snd_soc_dai_set_dma_data(cpu_dai, substream, dma);
->   
-> 
+diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+index 03931f9b1285..4f7f128a4998 100644
+--- a/Documentation/media/uapi/v4l/extended-controls.rst
++++ b/Documentation/media/uapi/v4l/extended-controls.rst
+@@ -1959,6 +1959,32 @@ enum v4l2_vp8_golden_frame_sel -
+     Select the desired profile for VPx encoder. Acceptable values are 0,
+     1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
+ 
++.. _v4l2-mpeg-video-vp9-profile:
++
++``V4L2_CID_MPEG_VIDEO_VP9_PROFILE``
++    (enum)
++
++enum v4l2_mpeg_video_vp9_profile -
++    This control allows to select the profile for VP9 encoder.
++    This is also used to enumerate supported profiles by VP9 encoder or decoder.
++    Possible values are:
++
++
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++
++    * - ``V4L2_MPEG_VIDEO_VP9_PROFILE_0``
++      - Profile 0
++    * - ``V4L2_MPEG_VIDEO_VP9_PROFILE_1``
++      - Profile 1
++    * - ``V4L2_MPEG_VIDEO_VP9_PROFILE_2``
++      - Profile 2
++    * - ``V4L2_MPEG_VIDEO_VP9_PROFILE_3``
++      - Profile 3
++
++
+ 
+ High Efficiency Video Coding (HEVC/H.265) Control Reference
+ -----------------------------------------------------------
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index d29e45516eb7..401ce21c2e63 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -431,6 +431,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Use Previous Specific Frame",
+ 		NULL,
+ 	};
++	static const char * const vp9_profile[] = {
++		"0",
++		"1",
++		"2",
++		"3",
++		NULL,
++	};
+ 
+ 	static const char * const flash_led_mode[] = {
+ 		"Off",
+@@ -614,6 +621,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return mpeg4_profile;
+ 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
+ 		return vpx_golden_frame_sel;
++	case V4L2_CID_MPEG_VIDEO_VP9_PROFILE:
++		return vp9_profile;
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+ 		return jpeg_chroma_subsampling;
+ 	case V4L2_CID_DV_TX_MODE:
+@@ -841,6 +850,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
+ 
++	case V4L2_CID_MPEG_VIDEO_VP9_PROFILE:			return "VP9 Profile";
++
+ 	/* HEVC controls */
+ 	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:		return "HEVC I-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:		return "HEVC P-Frame QP Value";
+@@ -1180,6 +1191,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_DEINTERLACING_MODE:
+ 	case V4L2_CID_TUNE_DEEMPHASIS:
+ 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
++	case V4L2_CID_MPEG_VIDEO_VP9_PROFILE:
+ 	case V4L2_CID_DETECT_MD_MODE:
+ 	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
+ 	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 8d473c979b61..56203b7b715c 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -589,6 +589,14 @@ enum v4l2_vp8_golden_frame_sel {
+ #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
+ #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
+ 
++#define V4L2_CID_MPEG_VIDEO_VP9_PROFILE			(V4L2_CID_MPEG_BASE+512)
++enum v4l2_mpeg_video_vp9_profile {
++	V4L2_MPEG_VIDEO_VP9_PROFILE_0				= 0,
++	V4L2_MPEG_VIDEO_VP9_PROFILE_1				= 1,
++	V4L2_MPEG_VIDEO_VP9_PROFILE_2				= 2,
++	V4L2_MPEG_VIDEO_VP9_PROFILE_3				= 3,
++};
++
+ /* CIDs for HEVC encoding. */
+ 
+ #define V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP		(V4L2_CID_MPEG_BASE + 600)
+-- 
+2.17.0.441.gb46fe60e1d-goog
