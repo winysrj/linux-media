@@ -1,65 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f174.google.com ([209.85.192.174]:37791 "EHLO
-        mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750736AbeFAAbB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 20:31:01 -0400
-Received: by mail-pf0-f174.google.com with SMTP id e9-v6so11596920pfi.4
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:01 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 00/10] imx-media: Fixes for interlaced capture
-Date: Thu, 31 May 2018 17:30:39 -0700
-Message-Id: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.bootlin.com ([62.4.15.54]:43875 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751644AbeEQIyL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 May 2018 04:54:11 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Daniel Mack <daniel@zonque.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v3 07/12] media: ov5640: Remove pixel clock rates
+Date: Thu, 17 May 2018 10:54:00 +0200
+Message-Id: <20180517085405.10104-8-maxime.ripard@bootlin.com>
+In-Reply-To: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A set of patches that fixes some bugs with capturing from an
-interlaced source, and incompatibilites between IDMAC interlace
-interweaving and 4:2:0 data write reduction.
+The pixel clock rates were introduced to report the initially static clock
+rate.
 
-History:
-v2:
-- update media driver doc.
-- enable idmac interweave only if input field is sequential/alternate,
-  and output field is 'interlaced*'.
-- move field try logic out of *try_fmt and into separate function.
-- fix bug with resetting crop/compose rectangles.
-- add a patch that fixes a field order bug in VDIC indirect mode.
-- remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
-  Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
-- add macro V4L2_FIELD_IS_INTERLACED().
-  
-Steve Longerbeam (10):
-  media: imx-csi: Pass sink pad field to ipu_csi_init_interface
-  gpu: ipu-csi: Check for field type alternate
-  media: videodev2.h: Add macros V4L2_FIELD_IS_{INTERLACED|SEQUENTIAL}
-  media: imx: interweave only for sequential input/interlaced output
-    fields
-  media: imx: interweave and odd-chroma-row skip are incompatible
-  media: imx: Fix field setting logic in try_fmt
-  media: imx-csi: Allow skipping odd chroma rows for YVU420
-  media: imx: vdic: rely on VDIC for correct field order
-  media: imx-csi: Move crop/compose reset after filling default mbus
-    fields
-  media: imx.rst: Update doc to reflect fixes to interlaced capture
+Since this is now handled dynamically, we can remove them entirely.
 
- Documentation/media/v4l-drivers/imx.rst     |  51 +++++++++----
- drivers/gpu/ipu-v3/ipu-csi.c                |   3 +-
- drivers/staging/media/imx/imx-ic-prpencvf.c |  51 +++++++++++--
- drivers/staging/media/imx/imx-media-csi.c   | 114 ++++++++++++++++++----------
- drivers/staging/media/imx/imx-media-vdic.c  |  12 +--
- include/uapi/linux/videodev2.h              |   7 ++
- 6 files changed, 165 insertions(+), 73 deletions(-)
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ drivers/media/i2c/ov5640.c | 21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
 
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index e9bd0aa55409..48f3c9e640ed 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -171,7 +171,6 @@ struct ov5640_mode_info {
+ 	u32 htot;
+ 	u32 vact;
+ 	u32 vtot;
+-	u32 pixel_clock;
+ 	const struct reg_value *reg_data;
+ 	u32 reg_data_size;
+ };
+@@ -691,7 +690,6 @@ static const struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
+ /* power-on sensor init reg table */
+ static const struct ov5640_mode_info ov5640_mode_init_data = {
+ 	0, SUBSAMPLING, 640, 1896, 480, 984,
+-	56000000,
+ 	ov5640_init_setting_30fps_VGA,
+ 	ARRAY_SIZE(ov5640_init_setting_30fps_VGA),
+ };
+@@ -701,91 +699,74 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+ 	{
+ 		{OV5640_MODE_QCIF_176_144, SUBSAMPLING,
+ 		 176, 1896, 144, 984,
+-		 28000000,
+ 		 ov5640_setting_15fps_QCIF_176_144,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QCIF_176_144)},
+ 		{OV5640_MODE_QVGA_320_240, SUBSAMPLING,
+ 		 320, 1896, 240, 984,
+-		 28000000,
+ 		 ov5640_setting_15fps_QVGA_320_240,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QVGA_320_240)},
+ 		{OV5640_MODE_VGA_640_480, SUBSAMPLING,
+ 		 640, 1896, 480, 1080,
+-		 28000000,
+ 		 ov5640_setting_15fps_VGA_640_480,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_VGA_640_480)},
+ 		{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
+ 		 720, 1896, 480, 984,
+-		 28000000,
+ 		 ov5640_setting_15fps_NTSC_720_480,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_NTSC_720_480)},
+ 		{OV5640_MODE_PAL_720_576, SUBSAMPLING,
+ 		 720, 1896, 576, 984,
+-		 28000000,
+ 		 ov5640_setting_15fps_PAL_720_576,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_PAL_720_576)},
+ 		{OV5640_MODE_XGA_1024_768, SUBSAMPLING,
+ 		 1024, 1896, 768, 1080,
+-		 28000000,
+ 		 ov5640_setting_15fps_XGA_1024_768,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_XGA_1024_768)},
+ 		{OV5640_MODE_720P_1280_720, SUBSAMPLING,
+ 		 1280, 1892, 720, 740,
+-		 21000000,
+ 		 ov5640_setting_15fps_720P_1280_720,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_720P_1280_720)},
+ 		{OV5640_MODE_1080P_1920_1080, SCALING,
+ 		 1920, 2500, 1080, 1120,
+-		 42000000,
+ 		 ov5640_setting_15fps_1080P_1920_1080,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_1080P_1920_1080)},
+ 		{OV5640_MODE_QSXGA_2592_1944, SCALING,
+ 		 2592, 2844, 1944, 1968,
+-		 84000000,
+ 		 ov5640_setting_15fps_QSXGA_2592_1944,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QSXGA_2592_1944)},
+ 	}, {
+ 		{OV5640_MODE_QCIF_176_144, SUBSAMPLING,
+ 		 176, 1896, 144, 984,
+-		 56000000,
+ 		 ov5640_setting_30fps_QCIF_176_144,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_QCIF_176_144)},
+ 		{OV5640_MODE_QVGA_320_240, SUBSAMPLING,
+ 		 320, 1896, 240, 984,
+-		 56000000,
+ 		 ov5640_setting_30fps_QVGA_320_240,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_QVGA_320_240)},
+ 		{OV5640_MODE_VGA_640_480, SUBSAMPLING,
+ 		 640, 1896, 480, 1080,
+-		 56000000,
+ 		 ov5640_setting_30fps_VGA_640_480,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_VGA_640_480)},
+ 		{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
+ 		 720, 1896, 480, 984,
+-		 56000000,
+ 		 ov5640_setting_30fps_NTSC_720_480,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_NTSC_720_480)},
+ 		{OV5640_MODE_PAL_720_576, SUBSAMPLING,
+ 		 720, 1896, 576, 984,
+-		 56000000,
+ 		 ov5640_setting_30fps_PAL_720_576,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_PAL_720_576)},
+ 		{OV5640_MODE_XGA_1024_768, SUBSAMPLING,
+ 		 1024, 1896, 768, 1080,
+-		 56000000,
+ 		 ov5640_setting_30fps_XGA_1024_768,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_XGA_1024_768)},
+ 		{OV5640_MODE_720P_1280_720, SUBSAMPLING,
+ 		 1280, 1892, 720, 740,
+-		 42000000,
+ 		 ov5640_setting_30fps_720P_1280_720,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_720P_1280_720)},
+ 		{OV5640_MODE_1080P_1920_1080, SCALING,
+ 		 1920, 2500, 1080, 1120,
+-		 84000000,
+ 		 ov5640_setting_30fps_1080P_1920_1080,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_1080P_1920_1080)},
+-		{OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, 0, 0, 0, NULL, 0},
++		{OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, 0, 0, NULL, 0},
+ 	},
+ };
+ 
 -- 
-2.7.4
+2.17.0
