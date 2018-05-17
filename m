@@ -1,863 +1,410 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:57730 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750781AbeECIVj (ORCPT
+Received: from mail-vk0-f67.google.com ([209.85.213.67]:43401 "EHLO
+        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752136AbeEQRSl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 04:21:39 -0400
-Subject: Re: [RFCv12 PATCH 03/29] media-request: implement media requests
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
- <20180501090051.9321-4-hverkuil@xs4all.nl>
- <20180502222404.ksvbdv656dd2r75b@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <9e686118-f928-fb09-f319-d9484d92b8c1@xs4all.nl>
-Date: Thu, 3 May 2018 10:21:32 +0200
+        Thu, 17 May 2018 13:18:41 -0400
 MIME-Version: 1.0
-In-Reply-To: <20180502222404.ksvbdv656dd2r75b@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <78945f2bf82e9f16695f72bed3930d1302d38e29.1526504511.git.sean@mess.org>
+References: <cover.1526504511.git.sean@mess.org> <78945f2bf82e9f16695f72bed3930d1302d38e29.1526504511.git.sean@mess.org>
+From: Y Song <ys114321@gmail.com>
+Date: Thu, 17 May 2018 10:17:59 -0700
+Message-ID: <CAH3MdRUhrBzHXKgcu1htSHTqeKVWnci+ADrTriCqjXLHUezB+w@mail.gmail.com>
+Subject: Re: [PATCH v3 2/2] bpf: add selftest for rawir_event type program
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        netdev <netdev@vger.kernel.org>,
+        Matthias Reichl <hias@horus.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/05/18 00:24, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Tue, May 01, 2018 at 11:00:25AM +0200, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Add initial media request support.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/Makefile        |   3 +-
->>  drivers/media/media-device.c  |  13 ++
->>  drivers/media/media-request.c | 418 ++++++++++++++++++++++++++++++++++
->>  include/media/media-device.h  |  17 ++
->>  include/media/media-request.h | 193 ++++++++++++++++
->>  5 files changed, 643 insertions(+), 1 deletion(-)
->>  create mode 100644 drivers/media/media-request.c
->>  create mode 100644 include/media/media-request.h
->>
->> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
->> index 594b462ddf0e..985d35ec6b29 100644
->> --- a/drivers/media/Makefile
->> +++ b/drivers/media/Makefile
->> @@ -3,7 +3,8 @@
->>  # Makefile for the kernel multimedia device drivers.
->>  #
->>  
->> -media-objs	:= media-device.o media-devnode.o media-entity.o
->> +media-objs	:= media-device.o media-devnode.o media-entity.o \
->> +		   media-request.o
->>  
->>  #
->>  # I2C drivers should come before other drivers, otherwise they'll fail
->> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->> index 35e81f7c0d2f..25d7e2a3ee84 100644
->> --- a/drivers/media/media-device.c
->> +++ b/drivers/media/media-device.c
->> @@ -32,6 +32,7 @@
->>  #include <media/media-device.h>
->>  #include <media/media-devnode.h>
->>  #include <media/media-entity.h>
->> +#include <media/media-request.h>
->>  
->>  #ifdef CONFIG_MEDIA_CONTROLLER
->>  
->> @@ -366,6 +367,15 @@ static long media_device_get_topology(struct media_device *mdev,
->>  	return ret;
->>  }
->>  
->> +static long media_device_request_alloc(struct media_device *mdev,
->> +				       struct media_request_alloc *alloc)
->> +{
->> +	if (!mdev->ops || !mdev->ops->req_validate || !mdev->ops->req_queue)
->> +		return -ENOTTY;
->> +
->> +	return media_request_alloc(mdev, alloc);
->> +}
->> +
->>  static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
->>  {
->>  	/* All media IOCTLs are _IOWR() */
->> @@ -414,6 +424,7 @@ static const struct media_ioctl_info ioctl_info[] = {
->>  	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
->>  	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
->>  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
->> +	MEDIA_IOC(REQUEST_ALLOC, media_device_request_alloc, 0),
->>  };
->>  
->>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
->> @@ -686,6 +697,8 @@ void media_device_init(struct media_device *mdev)
->>  	INIT_LIST_HEAD(&mdev->pads);
->>  	INIT_LIST_HEAD(&mdev->links);
->>  	INIT_LIST_HEAD(&mdev->entity_notify);
->> +
->> +	mutex_init(&mdev->req_queue_mutex);
-> 
-> You'll need to add the corresponding mutex_destroy() to
-> media_device_cleanup().
+On Wed, May 16, 2018 at 2:04 PM, Sean Young <sean@mess.org> wrote:
+> This is simple test over rc-loopback.
+>
+> Signed-off-by: Sean Young <sean@mess.org>
+> ---
+>  tools/bpf/bpftool/prog.c                      |   1 +
+>  tools/include/uapi/linux/bpf.h                |  57 +++++++-
+>  tools/lib/bpf/libbpf.c                        |   1 +
+>  tools/testing/selftests/bpf/Makefile          |   8 +-
+>  tools/testing/selftests/bpf/bpf_helpers.h     |   6 +
+>  tools/testing/selftests/bpf/test_rawir.sh     |  37 +++++
+>  .../selftests/bpf/test_rawir_event_kern.c     |  26 ++++
+>  .../selftests/bpf/test_rawir_event_user.c     | 130 ++++++++++++++++++
+>  8 files changed, 261 insertions(+), 5 deletions(-)
+>  create mode 100755 tools/testing/selftests/bpf/test_rawir.sh
+>  create mode 100644 tools/testing/selftests/bpf/test_rawir_event_kern.c
+>  create mode 100644 tools/testing/selftests/bpf/test_rawir_event_user.c
 
-Done.
+Could you copy include/uapi/linux/lirc.h file to tools directory as well.
+Otherwise, I will get the following compilation error:
 
-> 
->>  	mutex_init(&mdev->graph_mutex);
->>  	ida_init(&mdev->entity_internal_idx);
->>  
->> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
->> new file mode 100644
->> index 000000000000..22881d5700c8
->> --- /dev/null
->> +++ b/drivers/media/media-request.c
->> @@ -0,0 +1,418 @@
->> +// SPDX-License-Identifier: GPL-2.0
->> +/*
->> + * Media device request objects
->> + *
->> + * Copyright (C) 2018 Intel Corporation
->> + * Copyright (C) 2018 Google, Inc.
->> + *
->> + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
->> + */
->> +
->> +#include <linux/anon_inodes.h>
->> +#include <linux/file.h>
->> +
->> +#include <media/media-device.h>
->> +#include <media/media-request.h>
->> +
->> +static const char * const request_state[] = {
->> +	[MEDIA_REQUEST_STATE_IDLE]	 = "idle",
->> +	[MEDIA_REQUEST_STATE_VALIDATING] = "validating",
->> +	[MEDIA_REQUEST_STATE_QUEUED]	 = "queued",
->> +	[MEDIA_REQUEST_STATE_COMPLETE]	 = "complete",
->> +	[MEDIA_REQUEST_STATE_CLEANING]	 = "cleaning",
->> +};
->> +
->> +static const char *
->> +media_request_state_str(enum media_request_state state)
->> +{
->> +	if (WARN_ON(state >= ARRAY_SIZE(request_state)))
->> +		return "unknown";
-> 
-> Unknown or invalid? I'd think that states that are not defined in
-> request_state above are not valid.
+gcc -Wall -O2 -I../../../include/uapi -I../../../lib
+-I../../../lib/bpf -I../../../../include/generated  -I../../../include
+   test_rawir_event_user.c
+/home/yhs/work/bpf-next/tools/testing/selftests/bpf/libbpf.a -lcap
+-lelf -lrt -lpthread -o
+/home/yhs/work/bpf-next/tools/testing/selftests/bpf/test_rawir_event_user
+test_rawir_event_user.c: In function =E2=80=98main=E2=80=99:
+test_rawir_event_user.c:60:15: error: =E2=80=98LIRC_MODE_SCANCODE=E2=80=99 =
+undeclared
+(first use in this function); did you mean =E2=80=98LIRC_MODE_LIRCCODE=E2=
+=80=99?
+        mode =3D LIRC_MODE_SCANCODE;
+               ^~~~~~~~~~~~~~~~~~
+               LIRC_MODE_LIRCCODE
+test_rawir_event_user.c:60:15: note: each undeclared identifier is
+reported only once for each function it appears in
+test_rawir_event_user.c:93:29: error: storage size of =E2=80=98lsc=E2=80=99=
+ isn=E2=80=99t known
+        struct lirc_scancode lsc;
+                             ^~~
+test_rawir_event_user.c:93:29: warning: unused variable =E2=80=98lsc=E2=80=
+=99
+[-Wunused-variable]
 
-Changed to invalid.
+>
+> diff --git a/tools/bpf/bpftool/prog.c b/tools/bpf/bpftool/prog.c
+> index 9bdfdf2d3fbe..8889a4ee8577 100644
+> --- a/tools/bpf/bpftool/prog.c
+> +++ b/tools/bpf/bpftool/prog.c
+> @@ -71,6 +71,7 @@ static const char * const prog_type_name[] =3D {
+>         [BPF_PROG_TYPE_SK_MSG]          =3D "sk_msg",
+>         [BPF_PROG_TYPE_RAW_TRACEPOINT]  =3D "raw_tracepoint",
+>         [BPF_PROG_TYPE_CGROUP_SOCK_ADDR] =3D "cgroup_sock_addr",
+> +       [BPF_PROG_TYPE_RAWIR_EVENT]     =3D "rawir_event",
+>  };
+>
+>  static void print_boot_time(__u64 nsecs, char *buf, unsigned int size)
+> diff --git a/tools/include/uapi/linux/bpf.h b/tools/include/uapi/linux/bp=
+f.h
+> index 1205d86a7a29..243e141e8a5b 100644
+> --- a/tools/include/uapi/linux/bpf.h
+> +++ b/tools/include/uapi/linux/bpf.h
+> @@ -141,6 +141,7 @@ enum bpf_prog_type {
+>         BPF_PROG_TYPE_SK_MSG,
+>         BPF_PROG_TYPE_RAW_TRACEPOINT,
+>         BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
+> +       BPF_PROG_TYPE_RAWIR_EVENT,
+>  };
+>
+>  enum bpf_attach_type {
+> @@ -158,6 +159,7 @@ enum bpf_attach_type {
+>         BPF_CGROUP_INET6_CONNECT,
+>         BPF_CGROUP_INET4_POST_BIND,
+>         BPF_CGROUP_INET6_POST_BIND,
+> +       BPF_RAWIR_EVENT,
+>         __MAX_BPF_ATTACH_TYPE
+>  };
+>
+> @@ -1829,7 +1831,6 @@ union bpf_attr {
+>   *     Return
+>   *             0 on success, or a negative error in case of failure.
+>   *
+> - *
+>   * int bpf_fib_lookup(void *ctx, struct bpf_fib_lookup *params, int plen=
+, u32 flags)
+>   *     Description
+>   *             Do FIB lookup in kernel tables using parameters in *param=
+s*.
+> @@ -1856,6 +1857,7 @@ union bpf_attr {
+>   *             Egress device index on success, 0 if packet needs to cont=
+inue
+>   *             up the stack for further processing or a negative error i=
+n case
+>   *             of failure.
+> + *
+>   * int bpf_sock_hash_update(struct bpf_sock_ops_kern *skops, struct bpf_=
+map *map, void *key, u64 flags)
+>   *     Description
+>   *             Add an entry to, or update a sockhash *map* referencing s=
+ockets.
+> @@ -1902,6 +1904,35 @@ union bpf_attr {
+>   *             egress otherwise). This is the only flag supported for no=
+w.
+>   *     Return
+>   *             **SK_PASS** on success, or **SK_DROP** on error.
+> + *
+> + * int bpf_rc_keydown(void *ctx, u32 protocol, u32 scancode, u32 toggle)
+> + *     Description
+> + *             Report decoded scancode with toggle value. For use in
+> + *             BPF_PROG_TYPE_RAWIR_EVENT, to report a successfully
+> + *             decoded scancode. This is will generate a keydown event,
+> + *             and a keyup event once the scancode is no longer repeated=
+.
+> + *
+> + *             *ctx* pointer to bpf_rawir_event, *protocol* is decoded
+> + *             protocol (see RC_PROTO_* enum).
+> + *
+> + *             Some protocols include a toggle bit, in case the button
+> + *             was released and pressed again between consecutive scanco=
+des,
+> + *             copy this bit into *toggle* if it exists, else set to 0.
+> + *
+> + *     Return
+> + *             Always return 0 (for now)
+> + *
+> + * int bpf_rc_repeat(void *ctx)
+> + *     Description
+> + *             Repeat the last decoded scancode; some IR protocols like
+> + *             NEC have a special IR message for repeat last button,
+> + *             in case user is holding a button down; the scancode is
+> + *             not repeated.
+> + *
+> + *             *ctx* pointer to bpf_rawir_event.
+> + *
+> + *     Return
+> + *             Always return 0 (for now)
+>   */
+>  #define __BPF_FUNC_MAPPER(FN)          \
+>         FN(unspec),                     \
+> @@ -1976,7 +2007,9 @@ union bpf_attr {
+>         FN(fib_lookup),                 \
+>         FN(sock_hash_update),           \
+>         FN(msg_redirect_hash),          \
+> -       FN(sk_redirect_hash),
+> +       FN(sk_redirect_hash),           \
+> +       FN(rc_repeat),                  \
+> +       FN(rc_keydown),
+>
+>  /* integer value in 'imm' field of BPF_CALL instruction selects which he=
+lper
+>   * function eBPF program intends to call
+> @@ -2043,6 +2076,26 @@ enum bpf_hdr_start_off {
+>         BPF_HDR_START_NET,
+>  };
+>
+> +/*
+> + * user accessible mirror of in-kernel ir_raw_event
+> + */
+> +#define BPF_RAWIR_EVENT_SPACE          0
+> +#define BPF_RAWIR_EVENT_PULSE          1
+> +#define BPF_RAWIR_EVENT_TIMEOUT                2
+> +#define BPF_RAWIR_EVENT_RESET          3
+> +#define BPF_RAWIR_EVENT_CARRIER                4
+> +#define BPF_RAWIR_EVENT_DUTY_CYCLE     5
+> +
+> +struct bpf_rawir_event {
+> +       union {
+> +               __u32   duration;
+> +               __u32   carrier;
+> +               __u32   duty_cycle;
+> +       };
+> +
+> +       __u32   type;
+> +};
+> +
+>  /* user accessible mirror of in-kernel sk_buff.
+>   * new fields can only be added to the end of this structure
+>   */
+> diff --git a/tools/lib/bpf/libbpf.c b/tools/lib/bpf/libbpf.c
+> index df54c4c9e48a..372269e9053d 100644
+> --- a/tools/lib/bpf/libbpf.c
+> +++ b/tools/lib/bpf/libbpf.c
+> @@ -1455,6 +1455,7 @@ static bool bpf_prog_type__needs_kver(enum bpf_prog=
+_type type)
+>         case BPF_PROG_TYPE_CGROUP_DEVICE:
+>         case BPF_PROG_TYPE_SK_MSG:
+>         case BPF_PROG_TYPE_CGROUP_SOCK_ADDR:
+> +       case BPF_PROG_TYPE_RAWIR_EVENT:
+>                 return false;
+>         case BPF_PROG_TYPE_UNSPEC:
+>         case BPF_PROG_TYPE_KPROBE:
+> diff --git a/tools/testing/selftests/bpf/Makefile b/tools/testing/selftes=
+ts/bpf/Makefile
+> index 1eb0fa2aba92..b84e36d05d34 100644
+> --- a/tools/testing/selftests/bpf/Makefile
+> +++ b/tools/testing/selftests/bpf/Makefile
+> @@ -24,7 +24,7 @@ urandom_read: urandom_read.c
+>  # Order correspond to 'make run_tests' order
+>  TEST_GEN_PROGS =3D test_verifier test_tag test_maps test_lru_map test_lp=
+m_map test_progs \
+>         test_align test_verifier_log test_dev_cgroup test_tcpbpf_user \
+> -       test_sock test_btf test_sockmap
+> +       test_sock test_btf test_sockmap test_rawir_event_user
+>
+>  TEST_GEN_FILES =3D test_pkt_access.o test_xdp.o test_l4lb.o test_tcp_est=
+ats.o test_obj_id.o \
+>         test_pkt_md_access.o test_xdp_redirect.o test_xdp_meta.o sockmap_=
+parse_prog.o     \
+> @@ -33,7 +33,8 @@ TEST_GEN_FILES =3D test_pkt_access.o test_xdp.o test_l4=
+lb.o test_tcp_estats.o test
+>         sample_map_ret0.o test_tcpbpf_kern.o test_stacktrace_build_id.o \
+>         sockmap_tcp_msg_prog.o connect4_prog.o connect6_prog.o test_adjus=
+t_tail.o \
+>         test_btf_haskv.o test_btf_nokv.o test_sockmap_kern.o test_tunnel_=
+kern.o \
+> -       test_get_stack_rawtp.o test_sockmap_kern.o test_sockhash_kern.o
+> +       test_get_stack_rawtp.o test_sockmap_kern.o test_sockhash_kern.o \
+> +       test_rawir_event_kern.o
+>
+>  # Order correspond to 'make run_tests' order
+>  TEST_PROGS :=3D test_kmod.sh \
+> @@ -42,7 +43,8 @@ TEST_PROGS :=3D test_kmod.sh \
+>         test_xdp_meta.sh \
+>         test_offload.py \
+>         test_sock_addr.sh \
+> -       test_tunnel.sh
+> +       test_tunnel.sh \
+> +       test_rawir.sh
+>
+>  # Compile but not part of 'make run_tests'
+>  TEST_GEN_PROGS_EXTENDED =3D test_libbpf_open test_sock_addr
+> diff --git a/tools/testing/selftests/bpf/bpf_helpers.h b/tools/testing/se=
+lftests/bpf/bpf_helpers.h
+> index 8f143dfb3700..26d89b7f9841 100644
+> --- a/tools/testing/selftests/bpf/bpf_helpers.h
+> +++ b/tools/testing/selftests/bpf/bpf_helpers.h
+> @@ -114,6 +114,12 @@ static int (*bpf_get_stack)(void *ctx, void *buf, in=
+t size, int flags) =3D
+>  static int (*bpf_fib_lookup)(void *ctx, struct bpf_fib_lookup *params,
+>                              int plen, __u32 flags) =3D
+>         (void *) BPF_FUNC_fib_lookup;
+> +static int (*bpf_rc_repeat)(void *ctx) =3D
+> +       (void *) BPF_FUNC_rc_repeat;
+> +static int (*bpf_rc_keydown)(void *ctx, unsigned int protocol,
+> +                            unsigned int scancode, unsigned int toggle) =
+=3D
+> +       (void *) BPF_FUNC_rc_keydown;
+> +
+>
+>  /* llvm builtin functions that eBPF C program may use to
+>   * emit BPF_LD_ABS and BPF_LD_IND instructions
+> diff --git a/tools/testing/selftests/bpf/test_rawir.sh b/tools/testing/se=
+lftests/bpf/test_rawir.sh
+> new file mode 100755
+> index 000000000000..0aa77b043ee1
+> --- /dev/null
+> +++ b/tools/testing/selftests/bpf/test_rawir.sh
+> @@ -0,0 +1,37 @@
+> +#!/bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +
+> +# Test bpf_rawir_event over rc-loopback. Steps for the test:
+> +#
+> +# 1. Find the /dev/lircN device for rc-loopback
+> +# 2. Attach bpf_rawir_event program which decodes some IR.
+> +# 3. Send some IR to the same IR device; since it is loopback, this will
+> +#    end up in the bpf program
+> +# 4. bpf program should decode IR and report keycode
+> +# 5. We can read keycode from same /dev/lirc device
+> +
+> +GREEN=3D'\033[0;92m'
+> +RED=3D'\033[0;31m'
+> +NC=3D'\033[0m' # No Color
+> +
+> +modprobe rc-loopback
+> +
+> +for i in /sys/class/rc/rc*
+> +do
+> +       if grep -q DRV_NAME=3Drc-loopback $i/uevent
+> +       then
+> +               LIRCDEV=3D$(grep DEVNAME=3D $i/lirc*/uevent | sed sQDEVNA=
+ME=3DQ/dev/Q)
+> +       fi
+> +done
+> +
+> +if [ -n $LIRCDEV ];
+> +then
+> +       TYPE=3Drawir_event
+> +       ./test_rawir_event_user $LIRCDEV
+> +       ret=3D$?
+> +       if [ $ret -ne 0 ]; then
+> +               echo -e ${RED}"FAIL: $TYPE"${NC}
+> +       else
+> +               echo -e ${GREEN}"PASS: $TYPE"${NC}
+> +       fi
+> +fi
+> diff --git a/tools/testing/selftests/bpf/test_rawir_event_kern.c b/tools/=
+testing/selftests/bpf/test_rawir_event_kern.c
+> new file mode 100644
+> index 000000000000..33ba5d30af62
+> --- /dev/null
+> +++ b/tools/testing/selftests/bpf/test_rawir_event_kern.c
+> @@ -0,0 +1,26 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +// test ir decoder
+> +//
+> +// Copyright (C) 2018 Sean Young <sean@mess.org>
+> +
+> +#include <linux/bpf.h>
+> +#include "bpf_helpers.h"
+> +
+> +SEC("rawir_event")
+> +int bpf_decoder(struct bpf_rawir_event *e)
+> +{
+> +       if (e->type =3D=3D BPF_RAWIR_EVENT_PULSE) {
+> +               /*
+> +                * The lirc interface is microseconds, but here we receiv=
+e
+> +                * nanoseconds.
+> +                */
+> +               int microseconds =3D e->duration / 1000;
+> +
+> +               if (microseconds & 0x10000)
+> +                       bpf_rc_keydown(e, 0x40, microseconds & 0xffff, 0)=
+;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +char _license[] SEC("license") =3D "GPL";
+> diff --git a/tools/testing/selftests/bpf/test_rawir_event_user.c b/tools/=
+testing/selftests/bpf/test_rawir_event_user.c
+> new file mode 100644
+> index 000000000000..c3d7f2c68033
+> --- /dev/null
+> +++ b/tools/testing/selftests/bpf/test_rawir_event_user.c
+> @@ -0,0 +1,130 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +// test ir decoder
+> +//
+> +// Copyright (C) 2018 Sean Young <sean@mess.org>
+> +
+> +#include <linux/bpf.h>
+> +#include <linux/lirc.h>
+> +#include <assert.h>
+> +#include <errno.h>
+> +#include <signal.h>
+> +#include <stdio.h>
+> +#include <stdlib.h>
+> +#include <stdbool.h>
+> +#include <string.h>
+> +#include <unistd.h>
+> +#include <poll.h>
+> +#include <libgen.h>
+> +#include <sys/resource.h>
+> +#include <sys/types.h>
+> +#include <sys/ioctl.h>
+> +#include <sys/stat.h>
+> +#include <fcntl.h>
+> +
+> +#include "bpf_util.h"
+> +#include <bpf/bpf.h>
+> +#include <bpf/libbpf.h>
+> +
+> +int main(int argc, char **argv)
+> +{
+> +       struct bpf_object *obj;
+> +       int ret, lircfd, progfd, mode;
+> +       int testir =3D 0x1dead;
+> +       u32 prog_ids[10], prog_flags[10], prog_cnt;
+> +
+> +       if (argc !=3D 2) {
+> +               printf("Usage: %s /dev/lircN\n", argv[0]);
 
-> 
->> +	return request_state[state];
->> +}
->> +
->> +static void media_request_clean(struct media_request *req)
->> +{
->> +	struct media_request_object *obj, *obj_safe;
->> +
->> +	WARN_ON(atomic_read(&req->state) != MEDIA_REQUEST_STATE_CLEANING);
->> +
->> +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
->> +		media_request_object_unbind(obj);
->> +		media_request_object_put(obj);
->> +	}
->> +
->> +	req->num_incomplete_objects = 0;
->> +	wake_up_interruptible_all(&req->poll_wait);
->> +}
->> +
->> +static void media_request_release(struct kref *kref)
->> +{
->> +	struct media_request *req =
->> +		container_of(kref, struct media_request, kref);
->> +	struct media_device *mdev = req->mdev;
->> +
->> +	dev_dbg(mdev->dev, "request: release %s\n", req->debug_str);
->> +
->> +	atomic_set(&req->state, MEDIA_REQUEST_STATE_CLEANING);
->> +
->> +	media_request_clean(req);
->> +
->> +	if (mdev->ops->req_free)
->> +		mdev->ops->req_free(req);
->> +	else
->> +		kfree(req);
->> +}
->> +
->> +void media_request_put(struct media_request *req)
->> +{
->> +	kref_put(&req->kref, media_request_release);
->> +}
->> +EXPORT_SYMBOL_GPL(media_request_put);
->> +
->> +void media_request_cancel(struct media_request *req)
->> +{
->> +	struct media_request_object *obj, *obj_safe;
->> +
->> +	/*
->> +	 * This is serialized with the req_queue_mutex and streaming
->> +	 * has stopped, so there is no need to take the spinlock here.
->> +	 */
->> +	WARN_ON_ONCE(!mutex_is_locked(&req->mdev->req_queue_mutex));
-> 
-> Hmm. How about lockdep_assert_held(&req->mdev->req_queue_mutex)?
-> 
->> +	if (atomic_read(&req->state) != MEDIA_REQUEST_STATE_QUEUED)
->> +		return;
->> +
->> +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list)
->> +		if (obj->ops->cancel)
->> +			obj->ops->cancel(obj);
->> +}
->> +EXPORT_SYMBOL_GPL(media_request_cancel);
+Most people probably not really familiar with lircN device. It would be
+good to provide more information about how to enable this, e.g.,
+  CONFIG_RC_CORE=3Dy
+  CONFIG_BPF_RAWIR_EVENT=3Dy
+  CONFIG_RC_LOOPBACK=3Dy
+  ......
 
-media_request_cancel is gone in v13, so this no longer applies.
-
->> +
->> +static int media_request_close(struct inode *inode, struct file *filp)
->> +{
->> +	struct media_request *req = filp->private_data;
->> +
->> +	media_request_put(req);
-> 
-> A newline would be nice here.
-
-Why? I do not see it adding anything of value. Some of your other 'newline'
-comments make it indeed more readable, but I don't see any benefit from it
-here.
-
-> 
->> +	return 0;
->> +}
->> +
->> +static unsigned int media_request_poll(struct file *filp,
->> +				       struct poll_table_struct *wait)
->> +{
->> +	struct media_request *req = filp->private_data;
->> +	unsigned long flags;
->> +	unsigned int ret = 0;
->> +	enum media_request_state state;
->> +
->> +	if (!(poll_requested_events(wait) & POLLPRI))
->> +		return 0;
->> +
->> +	spin_lock_irqsave(&req->lock, flags);
->> +	state = atomic_read(&req->state);
->> +
->> +	if (state == MEDIA_REQUEST_STATE_COMPLETE) {
->> +		ret = POLLPRI;
->> +		goto unlock;
->> +	}
->> +	if (state == MEDIA_REQUEST_STATE_IDLE) {
-> 
-> Should this be just anything else than QUEUE or VALIDATING? You're missing
-> CLEANING here, for instance.
-
-I changed it to != QUEUED. I don't think it is a good idea to include VALIDATING
-in this. It only makes sense to poll for the result if the request is fully queued.
-
-> 
->> +		ret = POLLERR;
->> +		goto unlock;
->> +	}
->> +
->> +	poll_wait(filp, &req->poll_wait, wait);
-> 
-> Newline?
-
-Ack.
-
-> 
->> +unlock:
->> +	spin_unlock_irqrestore(&req->lock, flags);
->> +	return ret;
->> +}
->> +
->> +static long media_request_ioctl_queue(struct media_request *req)
->> +{
->> +	struct media_device *mdev = req->mdev;
->> +	enum media_request_state state;
->> +	unsigned long flags;
->> +	int ret = 0;
->> +
->> +	dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
->> +
->> +	/*
->> +	 * Ensure the request that is validated will be the one that gets queued
->> +	 * next by serialising the queueing process. This mutex is also used
->> +	 * to serialize with canceling a vb2 queue and with setting values such
->> +	 * as controls in a request.
->> +	 */
->> +	mutex_lock(&mdev->req_queue_mutex);
->> +
->> +	spin_lock_irqsave(&req->lock, flags);
->> +	state = atomic_cmpxchg(&req->state, MEDIA_REQUEST_STATE_IDLE,
->> +			       MEDIA_REQUEST_STATE_VALIDATING);
->> +	spin_unlock_irqrestore(&req->lock, flags);
->> +	if (state != MEDIA_REQUEST_STATE_IDLE) {
->> +		dev_dbg(mdev->dev,
->> +			"request: unable to queue %s, request in state %s\n",
->> +			req->debug_str, media_request_state_str(state));
->> +		mutex_unlock(&mdev->req_queue_mutex);
->> +		return -EBUSY;
->> +	}
->> +
->> +	ret = mdev->ops->req_validate(req);
->> +
->> +	/*
->> +	 * If the req_validate was successful, then we mark the state as QUEUED
->> +	 * and call req_queue. The reason we set the state first is that this
->> +	 * allows req_queue to unbind or complete the queued objects in case
->> +	 * they are immediately 'consumed'. State changes from QUEUED to another
->> +	 * state can only happen if either the driver changes the state or if
->> +	 * the user cancels the vb2 queue. The driver can only change the state
->> +	 * after each object is queued through the req_queue op (and note that
->> +	 * that op cannot fail), so setting the state to QUEUED up front is
->> +	 * safe.
->> +	 *
->> +	 * The other reason for changing the state is if the vb2 queue is
->> +	 * canceled, and that uses the req_queue_mutex which is still locked
->> +	 * while req_queue is called, so that's safe as well.
->> +	 */
->> +	atomic_set(&req->state,
->> +		   ret ? MEDIA_REQUEST_STATE_IDLE : MEDIA_REQUEST_STATE_QUEUED);
->> +
->> +	if (!ret)
->> +		mdev->ops->req_queue(req);
->> +
->> +	mutex_unlock(&mdev->req_queue_mutex);
->> +
->> +	if (ret) {
->> +		dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
->> +			req->debug_str, ret);
->> +	} else {
->> +		media_request_get(req);
-> 
-> You'll need to get a reference before you queue the request. Otherwise it's
-> possible that it completes before you get here, and you end up accessing
-> released memory. The request refcount might be also under 0 before that
-> though.
-
-No, that can't happen. This function implements the QUEUE ioctl, which can only
-be called by userspace through the request fd, so there is always at least one
-reference open.
-
-> 
->> +	}
->> +
->> +	return ret;
->> +}
->> +
->> +static long media_request_ioctl_reinit(struct media_request *req)
->> +{
->> +	struct media_device *mdev = req->mdev;
->> +	unsigned long flags;
->> +
->> +	spin_lock_irqsave(&req->lock, flags);
->> +	if (atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE &&
->> +	    atomic_read(&req->state) != MEDIA_REQUEST_STATE_COMPLETE) {
->> +		dev_dbg(mdev->dev,
->> +			"request: %s not in idle or complete state, cannot reinit\n",
->> +			req->debug_str);
->> +		spin_unlock_irqrestore(&req->lock, flags);
->> +		return -EBUSY;
->> +	}
->> +	atomic_set(&req->state, MEDIA_REQUEST_STATE_CLEANING);
->> +	spin_unlock_irqrestore(&req->lock, flags);
->> +
->> +	media_request_clean(req);
->> +
->> +	atomic_set(&req->state, MEDIA_REQUEST_STATE_IDLE);
->> +
->> +	return 0;
->> +}
->> +
->> +static long media_request_ioctl(struct file *filp, unsigned int cmd,
->> +				unsigned long arg)
->> +{
->> +	struct media_request *req = filp->private_data;
->> +
->> +	switch (cmd) {
->> +	case MEDIA_REQUEST_IOC_QUEUE:
->> +		return media_request_ioctl_queue(req);
->> +	case MEDIA_REQUEST_IOC_REINIT:
->> +		return media_request_ioctl_reinit(req);
->> +	default:
->> +		return -ENOIOCTLCMD;
->> +	}
->> +}
->> +
->> +static const struct file_operations request_fops = {
->> +	.owner = THIS_MODULE,
->> +	.poll = media_request_poll,
->> +	.unlocked_ioctl = media_request_ioctl,
->> +	.release = media_request_close,
->> +};
->> +
->> +int media_request_alloc(struct media_device *mdev,
->> +			struct media_request_alloc *alloc)
->> +{
->> +	struct media_request *req;
->> +	struct file *filp;
->> +	char comm[TASK_COMM_LEN];
->> +	int fd;
->> +	int ret;
->> +
->> +	/* Either both are NULL or both are non-NULL */
->> +	if (WARN_ON(!mdev->ops->req_alloc ^ !mdev->ops->req_free))
->> +		return -ENOMEM;
->> +
->> +	fd = get_unused_fd_flags(O_CLOEXEC);
->> +	if (fd < 0)
->> +		return fd;
->> +
->> +	filp = anon_inode_getfile("request", &request_fops, NULL, O_CLOEXEC);
->> +	if (IS_ERR(filp)) {
->> +		ret = PTR_ERR(filp);
->> +		goto err_put_fd;
->> +	}
->> +
->> +	if (mdev->ops->req_alloc)
->> +		req = mdev->ops->req_alloc(mdev);
->> +	else
->> +		req = kzalloc(sizeof(*req), GFP_KERNEL);
->> +	if (!req) {
->> +		ret = -ENOMEM;
->> +		goto err_fput;
->> +	}
->> +
->> +	filp->private_data = req;
->> +	req->mdev = mdev;
->> +	atomic_set(&req->state, MEDIA_REQUEST_STATE_IDLE);
->> +	req->num_incomplete_objects = 0;
->> +	kref_init(&req->kref);
->> +	INIT_LIST_HEAD(&req->objects);
->> +	spin_lock_init(&req->lock);
->> +	init_waitqueue_head(&req->poll_wait);
->> +
->> +	alloc->fd = fd;
->> +
->> +	get_task_comm(comm, current);
->> +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
->> +		 comm, fd);
->> +	dev_dbg(mdev->dev, "request: allocated %s\n", req->debug_str);
->> +
->> +	fd_install(fd, filp);
->> +
->> +	return 0;
->> +
->> +err_fput:
->> +	fput(filp);
->> +
->> +err_put_fd:
->> +	put_unused_fd(fd);
->> +
->> +	return ret;
->> +}
->> +
->> +static void media_request_object_release(struct kref *kref)
->> +{
->> +	struct media_request_object *obj =
->> +		container_of(kref, struct media_request_object, kref);
->> +	struct media_request *req = obj->req;
->> +
->> +	if (req)
->> +		media_request_object_unbind(obj);
->> +	obj->ops->release(obj);
->> +}
->> +
->> +void media_request_object_put(struct media_request_object *obj)
->> +{
->> +	kref_put(&obj->kref, media_request_object_release);
->> +}
->> +EXPORT_SYMBOL_GPL(media_request_object_put);
->> +
->> +void media_request_object_init(struct media_request_object *obj)
->> +{
->> +	obj->ops = NULL;
->> +	obj->req = NULL;
->> +	obj->priv = NULL;
->> +	obj->completed = false;
->> +	INIT_LIST_HEAD(&obj->list);
->> +	kref_init(&obj->kref);
->> +}
->> +EXPORT_SYMBOL_GPL(media_request_object_init);
->> +
->> +int media_request_object_bind(struct media_request *req,
->> +			      const struct media_request_object_ops *ops,
->> +			      void *priv,
->> +			      struct media_request_object *obj)
->> +{
->> +	unsigned long flags;
->> +	int ret = -EBUSY;
->> +
->> +	if (WARN_ON(!ops->release || !ops->cancel))
->> +		return -EPERM;
->> +
->> +	obj->req = req;
->> +	obj->ops = ops;
->> +	obj->priv = priv;
-> 
-> I think this function would benefit from some sprinkling of newlines here
-> and there. :-)
-
-Done.
-
-> 
->> +	spin_lock_irqsave(&req->lock, flags);
->> +	if (WARN_ON(atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE))
->> +		goto unlock;
->> +	list_add_tail(&obj->list, &req->objects);
->> +	req->num_incomplete_objects++;
->> +	ret = 0;
->> +unlock:
->> +	spin_unlock_irqrestore(&req->lock, flags);
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL_GPL(media_request_object_bind);
->> +
->> +void media_request_object_unbind(struct media_request_object *obj)
->> +{
->> +	struct media_request *req = obj->req;
->> +	enum media_request_state state;
->> +	unsigned long flags;
->> +	bool completed = false;
->> +
->> +	if (WARN_ON(!req))
->> +		return;
->> +
->> +	spin_lock_irqsave(&req->lock, flags);
->> +	list_del(&obj->list);
->> +	obj->req = NULL;
->> +
->> +	state = atomic_read(&req->state);
->> +
->> +	if (state == MEDIA_REQUEST_STATE_COMPLETE ||
->> +	    state == MEDIA_REQUEST_STATE_CLEANING)
->> +		goto unlock;
->> +
->> +	if (WARN_ON(state == MEDIA_REQUEST_STATE_VALIDATING))
->> +		goto unlock;
->> +
->> +	if (WARN_ON(!req->num_incomplete_objects))
->> +		goto unlock;
->> +
->> +	req->num_incomplete_objects--;
->> +	if (state == MEDIA_REQUEST_STATE_QUEUED &&
->> +	    !req->num_incomplete_objects) {
->> +		atomic_set(&req->state, MEDIA_REQUEST_STATE_COMPLETE);
->> +		completed = true;
->> +		wake_up_interruptible_all(&req->poll_wait);
->> +	}
-> 
-> A newline before a label would be nice.
-
-Done.
-
-> 
->> +unlock:
->> +	spin_unlock_irqrestore(&req->lock, flags);
->> +	if (obj->ops->unbind)
->> +		obj->ops->unbind(obj);
->> +	if (completed)
->> +		media_request_put(req);
->> +}
->> +EXPORT_SYMBOL_GPL(media_request_object_unbind);
->> +
->> +void media_request_object_complete(struct media_request_object *obj)
->> +{
->> +	struct media_request *req = obj->req;
->> +	unsigned long flags;
->> +	bool completed = false;
->> +
->> +	spin_lock_irqsave(&req->lock, flags);
->> +	if (obj->completed)
->> +		goto unlock;
->> +	obj->completed = true;
->> +	if (WARN_ON(!req->num_incomplete_objects) ||
->> +	    WARN_ON(atomic_read(&req->state) != MEDIA_REQUEST_STATE_QUEUED))
->> +		goto unlock;
->> +
->> +	if (!--req->num_incomplete_objects) {
->> +		atomic_set(&req->state, MEDIA_REQUEST_STATE_COMPLETE);
->> +		wake_up_interruptible_all(&req->poll_wait);
->> +		completed = true;
->> +	}
->> +unlock:
->> +	spin_unlock_irqrestore(&req->lock, flags);
->> +	if (completed)
->> +		media_request_put(req);
->> +}
->> +EXPORT_SYMBOL_GPL(media_request_object_complete);
->> diff --git a/include/media/media-device.h b/include/media/media-device.h
->> index bcc6ec434f1f..ae846208be51 100644
->> --- a/include/media/media-device.h
->> +++ b/include/media/media-device.h
->> @@ -27,6 +27,7 @@
->>  
->>  struct ida;
->>  struct device;
->> +struct media_device;
->>  
->>  /**
->>   * struct media_entity_notify - Media Entity Notify
->> @@ -50,10 +51,22 @@ struct media_entity_notify {
->>   * struct media_device_ops - Media device operations
->>   * @link_notify: Link state change notification callback. This callback is
->>   *		 called with the graph_mutex held.
->> + * @req_alloc: Allocate a request
->> + * @req_free: Free a request
->> + * @req_validate: Validate a request, but do not queue yet
->> + * @req_queue: Queue a validated request, cannot fail. If something goes
->> + *	       wrong when queueing this request then it should be marked
->> + *	       as such internally in the driver and any related buffers
->> + *	       will eventually return to userspace with V4L2_BUF_FLAG_ERROR
->> + *	       set.
-> 
-> Note that this is MC; I think the reference is fine but I'd make it
-> explicit this is V4L2, and possibly that it's an example.
-
-I've changed the last line to:
-
-"must eventually return to vb2 with state VB2_BUF_STATE_ERROR."
-
-Since this is really a vb2 thing, not V4L2.
-
-It's not an example, based on what I know this should really be done like
-this. If reality proves to be different, then the comment will need to change.
-
-> 
->>   */
->>  struct media_device_ops {
->>  	int (*link_notify)(struct media_link *link, u32 flags,
->>  			   unsigned int notification);
->> +	struct media_request *(*req_alloc)(struct media_device *mdev);
->> +	void (*req_free)(struct media_request *req);
->> +	int (*req_validate)(struct media_request *req);
->> +	void (*req_queue)(struct media_request *req);
->>  };
->>  
->>  /**
->> @@ -88,6 +101,8 @@ struct media_device_ops {
->>   * @disable_source: Disable Source Handler function pointer
->>   *
->>   * @ops:	Operation handler callbacks
->> + * @req_queue_mutex: Serialise the MEDIA_REQUEST_IOC_QUEUE ioctl w.r.t. this
->> + *		     media device.
->>   *
->>   * This structure represents an abstract high-level media device. It allows easy
->>   * access to entities and provides basic media device-level support. The
->> @@ -158,6 +173,8 @@ struct media_device {
->>  	void (*disable_source)(struct media_entity *entity);
->>  
->>  	const struct media_device_ops *ops;
->> +
->> +	struct mutex req_queue_mutex;
->>  };
->>  
->>  /* We don't need to include pci.h or usb.h here */
->> diff --git a/include/media/media-request.h b/include/media/media-request.h
->> new file mode 100644
->> index 000000000000..9051dfbc7d30
->> --- /dev/null
->> +++ b/include/media/media-request.h
->> @@ -0,0 +1,193 @@
->> +// SPDX-License-Identifier: GPL-2.0
->> +/*
->> + * Media device request objects
->> + *
->> + * Copyright (C) 2018 Intel Corporation
->> + *
->> + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
->> + */
->> +
->> +#ifndef MEDIA_REQUEST_H
->> +#define MEDIA_REQUEST_H
->> +
->> +#include <linux/list.h>
->> +#include <linux/slab.h>
->> +#include <linux/spinlock.h>
->> +#include <linux/atomic.h>
->> +
->> +#include <media/media-device.h>
->> +
->> +/**
->> + * enum media_request_state - media request state
->> + *
->> + * @MEDIA_REQUEST_STATE_IDLE:		Idle
->> + * @MEDIA_REQUEST_STATE_VALIDATING:	Validating the request, no state changes
->> + *					allowed
->> + * @MEDIA_REQUEST_STATE_QUEUED:		Queued
->> + * @MEDIA_REQUEST_STATE_COMPLETE:	Completed, the request is done
->> + * @MEDIA_REQUEST_STATE_CLEANING:	Cleaning, the request is being re-inited
->> + */
->> +enum media_request_state {
->> +	MEDIA_REQUEST_STATE_IDLE,
->> +	MEDIA_REQUEST_STATE_VALIDATING,
->> +	MEDIA_REQUEST_STATE_QUEUED,
->> +	MEDIA_REQUEST_STATE_COMPLETE,
->> +	MEDIA_REQUEST_STATE_CLEANING,
->> +};
->> +
->> +struct media_request_object;
->> +
->> +/**
->> + * struct media_request - Media device request
->> + * @mdev: Media device this request belongs to
->> + * @kref: Reference count
->> + * @debug_str: Prefix for debug messages (process name:fd)
->> + * @state: The state of the request
->> + * @objects: List of @struct media_request_object request objects
->> + * @num_objects: The number of objects in the request
->> + * @num_incompleted_objects: The number of incomplete objects in the request
->> + * @poll_wait: Wait queue for poll
->> + * @lock: Serializes access to this struct
->> + */
->> +struct media_request {
->> +	struct media_device *mdev;
->> +	struct kref kref;
->> +	char debug_str[TASK_COMM_LEN + 11];
->> +	atomic_t state;
->> +	struct list_head objects;
->> +	unsigned int num_incomplete_objects;
->> +	struct wait_queue_head poll_wait;
->> +	spinlock_t lock;
->> +};
->> +
->> +#ifdef CONFIG_MEDIA_CONTROLLER
->> +
->> +static inline void media_request_get(struct media_request *req)
->> +{
->> +	kref_get(&req->kref);
->> +}
->> +
->> +void media_request_put(struct media_request *req);
->> +void media_request_cancel(struct media_request *req);
->> +
->> +int media_request_alloc(struct media_device *mdev,
->> +			struct media_request_alloc *alloc);
->> +#else
->> +static inline void media_request_get(struct media_request *req)
->> +{
->> +}
->> +
->> +static inline void media_request_put(struct media_request *req)
->> +{
->> +}
->> +
->> +static inline void media_request_cancel(struct media_request *req)
->> +{
->> +}
->> +
->> +#endif
->> +
->> +struct media_request_object_ops {
->> +	int (*prepare)(struct media_request_object *object);
->> +	void (*unprepare)(struct media_request_object *object);
->> +	void (*queue)(struct media_request_object *object);
->> +	void (*unbind)(struct media_request_object *object);
->> +	void (*cancel)(struct media_request_object *object);
->> +	void (*release)(struct media_request_object *object);
->> +};
->> +
->> +/**
->> + * struct media_request_object - An opaque object that belongs to a media
->> + *				 request
->> + *
->> + * @ops: object's operations
->> + * @priv: object's priv pointer
->> + * @req: the request this object belongs to (can be NULL)
->> + * @list: List entry of the object for @struct media_request
->> + * @kref: Reference count of the object, acquire before releasing req->lock
->> + * @completed: If true, then this object was completed.
->> + *
->> + * An object related to the request. This struct is embedded in the
->> + * larger object data.
->> + */
->> +struct media_request_object {
->> +	const struct media_request_object_ops *ops;
->> +	void *priv;
->> +	struct media_request *req;
->> +	struct list_head list;
->> +	struct kref kref;
->> +	bool completed;
->> +};
->> +
->> +#ifdef CONFIG_MEDIA_CONTROLLER
->> +static inline void media_request_object_get(struct media_request_object *obj)
->> +{
->> +	kref_get(&obj->kref);
->> +}
->> +
->> +/**
->> + * media_request_object_put - Put a media request object
->> + *
->> + * @obj: The object
->> + *
->> + * Put a media request object. Once all references are gone, the
->> + * object's memory is released.
->> + */
->> +void media_request_object_put(struct media_request_object *obj);
->> +
->> +/**
->> + * media_request_object_init - Initialise a media request object
->> + *
->> + * Initialise a media request object. The object will be released using the
->> + * release callback of the ops once it has no references (this function
->> + * initialises references to one).
->> + */
->> +void media_request_object_init(struct media_request_object *obj);
->> +
->> +/**
->> + * media_request_object_bind - Bind a media request object to a request
->> + */
->> +int media_request_object_bind(struct media_request *req,
->> +			      const struct media_request_object_ops *ops,
->> +			      void *priv,
->> +			      struct media_request_object *obj);
->> +
->> +void media_request_object_unbind(struct media_request_object *obj);
->> +
->> +/**
->> + * media_request_object_complete - Mark the media request object as complete
->> + */
->> +void media_request_object_complete(struct media_request_object *obj);
->> +#else
->> +static inline void media_request_object_get(struct media_request_object *obj)
->> +{
->> +}
->> +
->> +static inline void media_request_object_put(struct media_request_object *obj)
->> +{
->> +}
->> +
->> +static inline void media_request_object_init(struct media_request_object *obj)
->> +{
->> +	obj->ops = NULL;
->> +	obj->req = NULL;
->> +}
->> +
->> +static inline int media_request_object_bind(struct media_request *req,
->> +			       const struct media_request_object_ops *ops,
->> +			       void *priv,
->> +			       struct media_request_object *obj)
->> +{
->> +	return 0;
->> +}
->> +
->> +static inline void media_request_object_unbind(struct media_request_object *obj)
->> +{
->> +}
->> +
->> +static inline void media_request_object_complete(struct media_request_object *obj)
->> +{
->> +}
->> +#endif
->> +
->> +#endif
->>
-> 
-
-Regards,
-
-	Hans
+Thanks!
