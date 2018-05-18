@@ -1,198 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:16590 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964973AbeEXHPI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 03:15:08 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        alsa-devel@alsa-project.org
-Subject: [PATCH v2 08/13] ASoC: pxa: remove the dmaengine compat need
-Date: Thu, 24 May 2018 09:06:58 +0200
-Message-Id: <20180524070703.11901-9-robert.jarzmik@free.fr>
-In-Reply-To: <20180524070703.11901-1-robert.jarzmik@free.fr>
-References: <20180524070703.11901-1-robert.jarzmik@free.fr>
+Received: from mail.bootlin.com ([62.4.15.54]:53718 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751985AbeERJGA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 05:06:00 -0400
+Date: Fri, 18 May 2018 11:05:49 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Hugues FRUCHET <hugues.fruchet@st.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2 11/12] media: ov5640: Add 60 fps support
+Message-ID: <20180518090549.bdzgo2x5w2nndhia@flea>
+References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
+ <20180416123701.15901-12-maxime.ripard@bootlin.com>
+ <1ef58196-f04a-8b75-6d01-8ec5e22bfc7f@st.com>
+ <20180517085207.wvfrji3o7dlgnvq2@flea>
+ <feb37eec-44ea-eb4a-ed59-32fe697e4bcb@st.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="6oi7lcplupsnvank"
+Content-Disposition: inline
+In-Reply-To: <feb37eec-44ea-eb4a-ed59-32fe697e4bcb@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the pxa architecture switched towards the dmaengine slave map, the
-old compatibility mechanism to acquire the dma requestor line number and
-priority are not needed anymore.
 
-This patch simplifies the dma resource acquisition, using the more
-generic function dma_request_slave_channel().
+--6oi7lcplupsnvank
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- sound/arm/pxa2xx-ac97.c     | 14 ++------------
- sound/arm/pxa2xx-pcm-lib.c  |  6 +++---
- sound/soc/pxa/pxa2xx-ac97.c | 32 +++++---------------------------
- sound/soc/pxa/pxa2xx-i2s.c  |  6 ++----
- 4 files changed, 12 insertions(+), 46 deletions(-)
+Hi Hugues,
 
-diff --git a/sound/arm/pxa2xx-ac97.c b/sound/arm/pxa2xx-ac97.c
-index 4bc244c40f80..236a63cdaf9f 100644
---- a/sound/arm/pxa2xx-ac97.c
-+++ b/sound/arm/pxa2xx-ac97.c
-@@ -63,28 +63,18 @@ static struct snd_ac97_bus_ops pxa2xx_ac97_ops = {
- 	.reset	= pxa2xx_ac97_legacy_reset,
- };
- 
--static struct pxad_param pxa2xx_ac97_pcm_out_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 12,
--};
--
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_out = {
- 	.addr		= __PREG(PCDR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "pcm_pcm_stereo_out",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_ac97_pcm_out_req,
--};
--
--static struct pxad_param pxa2xx_ac97_pcm_in_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 11,
- };
- 
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_in = {
- 	.addr		= __PREG(PCDR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "pcm_pcm_stereo_in",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_ac97_pcm_in_req,
- };
- 
- static struct snd_pcm *pxa2xx_ac97_pcm;
-diff --git a/sound/arm/pxa2xx-pcm-lib.c b/sound/arm/pxa2xx-pcm-lib.c
-index e8da3b8ee721..dcbe7ecc1835 100644
---- a/sound/arm/pxa2xx-pcm-lib.c
-+++ b/sound/arm/pxa2xx-pcm-lib.c
-@@ -125,9 +125,9 @@ int __pxa2xx_pcm_open(struct snd_pcm_substream *substream)
- 	if (ret < 0)
- 		return ret;
- 
--	return snd_dmaengine_pcm_open_request_chan(substream,
--					pxad_filter_fn,
--					dma_params->filter_data);
-+	return snd_dmaengine_pcm_open(
-+		substream, dma_request_slave_channel(rtd->cpu_dai->dev,
-+						     dma_params->chan_name));
- }
- EXPORT_SYMBOL(__pxa2xx_pcm_open);
- 
-diff --git a/sound/soc/pxa/pxa2xx-ac97.c b/sound/soc/pxa/pxa2xx-ac97.c
-index 803818aabee9..1b41c0f2a8fb 100644
---- a/sound/soc/pxa/pxa2xx-ac97.c
-+++ b/sound/soc/pxa/pxa2xx-ac97.c
-@@ -68,61 +68,39 @@ static struct snd_ac97_bus_ops pxa2xx_ac97_ops = {
- 	.reset	= pxa2xx_ac97_cold_reset,
- };
- 
--static struct pxad_param pxa2xx_ac97_pcm_stereo_in_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 11,
--};
--
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_stereo_in = {
- 	.addr		= __PREG(PCDR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "pcm_pcm_stereo_in",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_ac97_pcm_stereo_in_req,
--};
--
--static struct pxad_param pxa2xx_ac97_pcm_stereo_out_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 12,
- };
- 
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_stereo_out = {
- 	.addr		= __PREG(PCDR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "pcm_pcm_stereo_out",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_ac97_pcm_stereo_out_req,
- };
- 
--static struct pxad_param pxa2xx_ac97_pcm_aux_mono_out_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 10,
--};
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_aux_mono_out = {
- 	.addr		= __PREG(MODR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
-+	.chan_name	= "pcm_aux_mono_out",
- 	.maxburst	= 16,
--	.filter_data	= &pxa2xx_ac97_pcm_aux_mono_out_req,
- };
- 
--static struct pxad_param pxa2xx_ac97_pcm_aux_mono_in_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 9,
--};
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_aux_mono_in = {
- 	.addr		= __PREG(MODR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
-+	.chan_name	= "pcm_aux_mono_in",
- 	.maxburst	= 16,
--	.filter_data	= &pxa2xx_ac97_pcm_aux_mono_in_req,
- };
- 
--static struct pxad_param pxa2xx_ac97_pcm_aux_mic_mono_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 8,
--};
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_mic_mono_in = {
- 	.addr		= __PREG(MCDR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
-+	.chan_name	= "pcm_aux_mic_mono",
- 	.maxburst	= 16,
--	.filter_data	= &pxa2xx_ac97_pcm_aux_mic_mono_req,
- };
- 
- static int pxa2xx_ac97_hifi_startup(struct snd_pcm_substream *substream,
-diff --git a/sound/soc/pxa/pxa2xx-i2s.c b/sound/soc/pxa/pxa2xx-i2s.c
-index 3fb60baf6eab..e7184de0de04 100644
---- a/sound/soc/pxa/pxa2xx-i2s.c
-+++ b/sound/soc/pxa/pxa2xx-i2s.c
-@@ -82,20 +82,18 @@ static struct pxa_i2s_port pxa_i2s;
- static struct clk *clk_i2s;
- static int clk_ena = 0;
- 
--static unsigned long pxa2xx_i2s_pcm_stereo_out_req = 3;
- static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_out = {
- 	.addr		= __PREG(SADR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "tx",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_i2s_pcm_stereo_out_req,
- };
- 
--static unsigned long pxa2xx_i2s_pcm_stereo_in_req = 2;
- static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_in = {
- 	.addr		= __PREG(SADR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "rx",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_i2s_pcm_stereo_in_req,
- };
- 
- static int pxa2xx_i2s_startup(struct snd_pcm_substream *substream,
--- 
-2.11.0
+On Thu, May 17, 2018 at 01:29:24PM +0000, Hugues FRUCHET wrote:
+> No special modification of v4l2-ctl, I'm using currently v4l-utils 1.12.3.
+> What output do you have ?
+
+The same one, without the resolution and framerate. I'm pretty sure
+this is a driver issue and not an usperspace one.
+
+Maxime
+
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--6oi7lcplupsnvank
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlr+l2wACgkQ0rTAlCFN
+r3QHAg/9HBYAasJcjAd4l2uUOfoxBjLBrY65q89CXGdGOIMZDKsirUhSNhW2dWmC
+X/xtHk7n+hk8OS9pUqGW5JiXlyvjJ1xHJN7Gac0pu/hNS3q/8EyYuisUYjZVPcWi
+wfk/Am6iUC8SBA8jBNGoL+2haZbNB2ae6KzpRuX8BGAW1Vs5xrw0QIyNeDBH73Ef
+5fi6kDFO4+TaHbM5pklqxc6F+/E0e6AWhuCJ2SpKNDV5wea+ZDO7z2Fk2DOZRUAJ
+ZMtZVy3KN6igeu9GY/Kfa4FgNN9uPnJzU0x0lEvOJLlH8yEboI6vWt/kGnLhP5ZI
+xBkmj1iovv0cohZu/hEeMFqH2E2zUFmz4AzzyL9BmoZ5MKHfgj2ThFTQV8o32wAj
+ydrGeeeRxIIePcFmf/kWHQb3RrR1wGcqQGZCYTPpFbOAjMkm9Rk9mWzJY7ViHGAH
+whW+9iMKr/l/aOR7M3kTpU2J3XjrR84iDnjzWhA+tpHalP9dGWnZVe6TYp/NzXXP
+7L8bdswm2p20eugQhH69PPEc7mY/W4vowHy84lQS4gtkIqtb8qq5FIoHMdXvKhz+
+Hx1WtDJ6vDPgSXkXH1iEFfCqBVsGSsWmiUhzD/AjSCAYQVIRpzOD43jr4PID8c4A
+9MWypxbaAA4hldSa2eJlwbE8Oj4dR1BAGqGNvnCsMrayGfx/ifM=
+=VIpA
+-----END PGP SIGNATURE-----
+
+--6oi7lcplupsnvank--
