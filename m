@@ -1,238 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:52891 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752406AbeEOH7n (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33364 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751197AbeERSxm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:59:43 -0400
-Received: by mail-wm0-f66.google.com with SMTP id w194-v6so17604957wmf.2
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:42 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v2 13/29] venus: helpers: make a commmon function for power_enable
-Date: Tue, 15 May 2018 10:58:43 +0300
-Message-Id: <20180515075859.17217-14-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+        Fri, 18 May 2018 14:53:42 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        Abylay Ospan <aospan@netup.ru>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH 03/20] v4l2-ioctl.c: use correct vb2_queue lock for m2m devices
+Date: Fri, 18 May 2018 15:51:51 -0300
+Message-Id: <20180518185208.17722-4-ezequiel@collabora.com>
+In-Reply-To: <20180518185208.17722-1-ezequiel@collabora.com>
+References: <20180518185208.17722-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make common function which will enable power when enabling/disabling
-clocks and also covers Venus 3xx/4xx versions.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+For m2m devices the vdev->queue lock was always taken instead of the
+lock for the specific capture or output queue. Now that we pushed
+the locking down into __video_do_ioctl() we can pick the correct
+lock and improve the performance of m2m devices.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- drivers/media/platform/qcom/venus/helpers.c | 51 +++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/helpers.h |  2 ++
- drivers/media/platform/qcom/venus/vdec.c    | 25 ++++----------
- drivers/media/platform/qcom/venus/venc.c    | 25 ++++----------
- 4 files changed, 67 insertions(+), 36 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 59 ++++++++++++++++++++++++++++++++++--
+ 1 file changed, 57 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index d9065cc8a7d3..2b21f6ed7502 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -13,6 +13,7 @@
-  *
-  */
- #include <linux/clk.h>
-+#include <linux/iopoll.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
- #include <linux/pm_runtime.h>
-@@ -24,6 +25,7 @@
- #include "core.h"
- #include "helpers.h"
- #include "hfi_helper.h"
-+#include "hfi_venus_io.h"
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index de1b868500f3..ee1eec136e55 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -29,6 +29,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-mc.h>
++#include <media/v4l2-mem2mem.h>
  
- struct intbuf {
- 	struct list_head list;
-@@ -781,3 +783,52 @@ void venus_helper_init_instance(struct venus_inst *inst)
- 	}
+ #include <trace/events/v4l2.h>
+ 
+@@ -2641,10 +2642,62 @@ static bool v4l2_is_known_ioctl(unsigned int cmd)
+ 	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
  }
- EXPORT_SYMBOL_GPL(venus_helper_init_instance);
-+
-+int venus_helper_power_enable(struct venus_core *core, u32 session_type,
-+			      bool enable)
+ 
+-static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
++#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
++static bool v4l2_ioctl_m2m_queue_is_output(unsigned int cmd, void *arg)
 +{
-+	void __iomem *ctrl, *stat;
-+	u32 val;
-+	int ret;
++	switch (cmd) {
++	case VIDIOC_CREATE_BUFS: {
++		struct v4l2_create_buffers *cbufs = arg;
 +
-+	if (!IS_V3(core) && !IS_V4(core))
-+		return -EINVAL;
-+
-+	if (IS_V3(core)) {
-+		if (session_type == VIDC_SESSION_TYPE_DEC)
-+			ctrl = core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL;
-+		else
-+			ctrl = core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL;
-+		if (enable)
-+			writel(0, ctrl);
-+		else
-+			writel(1, ctrl);
-+
-+		return 0;
++		return V4L2_TYPE_IS_OUTPUT(cbufs->format.type);
 +	}
++	case VIDIOC_REQBUFS: {
++		struct v4l2_requestbuffers *rbufs = arg;
 +
-+	if (session_type == VIDC_SESSION_TYPE_DEC) {
-+		ctrl = core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL;
-+		stat = core->base + WRAPPER_VCODEC0_MMCC_POWER_STATUS;
-+	} else {
-+		ctrl = core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL;
-+		stat = core->base + WRAPPER_VCODEC1_MMCC_POWER_STATUS;
++		return V4L2_TYPE_IS_OUTPUT(rbufs->type);
 +	}
++	case VIDIOC_QBUF:
++	case VIDIOC_DQBUF:
++	case VIDIOC_QUERYBUF:
++	case VIDIOC_PREPARE_BUF: {
++		struct v4l2_buffer *buf = arg;
 +
-+	if (enable) {
-+		writel(0, ctrl);
-+
-+		ret = readl_poll_timeout(stat, val, val & BIT(1), 1, 100);
-+		if (ret)
-+			return ret;
-+	} else {
-+		writel(1, ctrl);
-+
-+		ret = readl_poll_timeout(stat, val, !(val & BIT(1)), 1, 100);
-+		if (ret)
-+			return ret;
++		return V4L2_TYPE_IS_OUTPUT(buf->type);
 +	}
++	case VIDIOC_EXPBUF: {
++		struct v4l2_exportbuffer *expbuf = arg;
 +
-+	return 0;
++		return V4L2_TYPE_IS_OUTPUT(expbuf->type);
++	}
++	case VIDIOC_STREAMON:
++	case VIDIOC_STREAMOFF: {
++		int *type = arg;
++
++		return V4L2_TYPE_IS_OUTPUT(*type);
++	}
++	default:
++		return false;
++	}
 +}
-+EXPORT_SYMBOL_GPL(venus_helper_power_enable);
-diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index 971392be5df5..0e64aa95624a 100644
---- a/drivers/media/platform/qcom/venus/helpers.h
-+++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -43,4 +43,6 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
- void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
- void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
- void venus_helper_init_instance(struct venus_inst *inst);
-+int venus_helper_power_enable(struct venus_core *core, u32 session_type,
-+			      bool enable);
- #endif
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index 3b38bd1241b0..2bd81de6328a 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -1123,26 +1123,21 @@ static int vdec_remove(struct platform_device *pdev)
- static __maybe_unused int vdec_runtime_suspend(struct device *dev)
++#endif
++
++static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev,
++					 struct v4l2_fh *vfh, unsigned cmd,
++					 void *arg)
  {
- 	struct venus_core *core = dev_get_drvdata(dev);
-+	int ret;
- 
- 	if (IS_V1(core))
- 		return 0;
- 
--	if (IS_V3(core))
--		writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(0, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
-+	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, true);
- 
- 	if (IS_V4(core))
- 		clk_disable_unprepare(core->core0_bus_clk);
- 
- 	clk_disable_unprepare(core->core0_clk);
- 
--	if (IS_V3(core))
--		writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(1, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
-+	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
- 
--	return 0;
-+	return ret;
- }
- 
- static __maybe_unused int vdec_runtime_resume(struct device *dev)
-@@ -1153,20 +1148,14 @@ static __maybe_unused int vdec_runtime_resume(struct device *dev)
- 	if (IS_V1(core))
- 		return 0;
- 
--	if (IS_V3(core))
--		writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(0, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
-+	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, true);
- 
--	ret = clk_prepare_enable(core->core0_clk);
-+	ret |= clk_prepare_enable(core->core0_clk);
- 
- 	if (IS_V4(core))
- 		ret |= clk_prepare_enable(core->core0_bus_clk);
- 
--	if (IS_V3(core))
--		writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(1, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
-+	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index be8ea3326386..f87d891325ea 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -1267,26 +1267,21 @@ static int venc_remove(struct platform_device *pdev)
- static __maybe_unused int venc_runtime_suspend(struct device *dev)
+ 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
+ 		return vdev->lock;
++#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
++	if (vfh && vfh->m2m_ctx &&
++	    (v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE)) {
++		bool is_output = v4l2_ioctl_m2m_queue_is_output(cmd, arg);
++		struct v4l2_m2m_queue_ctx *ctx = is_output ?
++			&vfh->m2m_ctx->out_q_ctx : &vfh->m2m_ctx->cap_q_ctx;
++
++		if (ctx->q.lock)
++			return ctx->q.lock;
++	}
++#endif
+ 	if (vdev->queue && vdev->queue->lock &&
+ 			(v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
+ 		return vdev->queue->lock;
+@@ -2692,7 +2745,7 @@ static long __video_do_ioctl(struct file *file,
+ 		unsigned int cmd, void *arg)
  {
- 	struct venus_core *core = dev_get_drvdata(dev);
-+	int ret;
+ 	struct video_device *vfd = video_devdata(file);
+-	struct mutex *lock = v4l2_ioctl_get_lock(vfd, cmd);
++	struct mutex *lock;
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	bool write_only = false;
+ 	struct v4l2_ioctl_info default_info;
+@@ -2711,6 +2764,8 @@ static long __video_do_ioctl(struct file *file,
+ 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
+ 		vfh = file->private_data;
  
- 	if (IS_V1(core))
- 		return 0;
++	lock = v4l2_ioctl_get_lock(vfd, vfh, cmd, arg);
++
+ 	if (lock && mutex_lock_interruptible(lock))
+ 		return -ERESTARTSYS;
  
--	if (IS_V3(core))
--		writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(0, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
-+	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, true);
- 
- 	if (IS_V4(core))
- 		clk_disable_unprepare(core->core1_bus_clk);
- 
- 	clk_disable_unprepare(core->core1_clk);
- 
--	if (IS_V3(core))
--		writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(1, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
-+	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, false);
- 
--	return 0;
-+	return ret;
- }
- 
- static __maybe_unused int venc_runtime_resume(struct device *dev)
-@@ -1297,20 +1292,14 @@ static __maybe_unused int venc_runtime_resume(struct device *dev)
- 	if (IS_V1(core))
- 		return 0;
- 
--	if (IS_V3(core))
--		writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(0, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
-+	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, true);
- 
--	ret = clk_prepare_enable(core->core1_clk);
-+	ret |= clk_prepare_enable(core->core1_clk);
- 
- 	if (IS_V4(core))
- 		ret |= clk_prepare_enable(core->core1_bus_clk);
- 
--	if (IS_V3(core))
--		writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(1, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
-+	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, false);
- 
- 	return ret;
- }
 -- 
-2.14.1
+2.16.3
