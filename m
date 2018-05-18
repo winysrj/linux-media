@@ -1,75 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay12.mail.gandi.net ([217.70.178.232]:34367 "EHLO
-        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966725AbeEXWCc (ORCPT
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:40072 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752301AbeERPPX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 18:02:32 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v4 0/9] rcar-vin: Add support for parallel input on Gen3
-Date: Fri, 25 May 2018 00:02:10 +0200
-Message-Id: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Fri, 18 May 2018 11:15:23 -0400
+Received: by mail-qk0-f174.google.com with SMTP id s83-v6so6700402qke.7
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 08:15:23 -0700 (PDT)
+Message-ID: <7f9f800349eb45fb9c3a96b37f238fab0a610ee4.camel@ndufresne.ca>
+Subject: Re: [ANN] Meeting to discuss improvements to support MC-based
+ cameras on generic apps
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: LMML <linux-media@vger.kernel.org>,
+        Wim Taymans <wtaymans@redhat.com>, schaller@redhat.com
+Date: Fri, 18 May 2018 11:15:20 -0400
+In-Reply-To: <1568098.156aR60jyk@avalon>
+References: <20180517160708.74811cfb@vento.lan> <3216261.G88TfqiCiH@avalon>
+         <20180518082447.3068c34c@vento.lan> <1568098.156aR60jyk@avalon>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-tPrO3/KC1HWpMryXwugg"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-   this series adds support for parallel video input to the Gen3 version of
-rcar-vin driver.
 
-Compared to v3, this new iteration closes all comments from Niklas and Sergei.
+--=-tPrO3/KC1HWpMryXwugg
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-As the meat of the patch series hasn't changed much, please refer to v3 cover
-letter for more details.
+Le vendredi 18 mai 2018 =C3=A0 15:38 +0300, Laurent Pinchart a =C3=A9crit :
+> > Before libv4l, media support for a given device were limited to a few
+> > apps that knew how to decode the format. There were even cases were a
+> > proprietary app were required, as no open source decoders were availabl=
+e.
+> >=20
+> > From my PoV, the biggest gain with libv4l is that the same group of
+> > maintainers can ensure that the entire solution (Kernel driver and
+> > low level userspace support) will provide everything required for an
+> > open source app to work with it.
+> >=20
+> > I'm not sure how we would keep enforcing it if the pipeline setting
+> > and control propagation logic for an specific hardware will be
+> > delegated to PipeWire. It seems easier to keep doing it on a libv4l
+> > (version 2) and let PipeWire to use it.
+>=20
+> I believe we need to first study pipewire in more details. I have no pers=
+onal=20
+> opinion yet as I haven't had time to investigate it. That being said, I d=
+on't=20
+> think that libv4l with closed-source plugins would be much better than a=
+=20
+> closed-source pipewire plugin. What main concern once we provide a usersp=
+ace=20
+> camera stack API is that vendors might implement that API in a closed-sou=
+rce=20
+> component that calls to a kernel driver implementing a custom API, with a=
+ll=20
+> knowledge about the camera located in the closed-source component. I'm no=
+t=20
+> sure how to prevent that, my best proposal would be to make V4L2 so usefu=
+l=20
+> that vendors wouldn't even think about a different solution (possibly cou=
+pled=20
+> by the pressure put by platform vendors such as Google who mandate upstre=
+am=20
+> kernel drivers for Chrome OS, but that's still limited as even when it co=
+mes=20
+> to Google there's no such pressure on the Android side).
 
-The most notable change is the great simplification of the parallel
-input notifiers registration in [5/9], as now the media controller is
-initialized before parallel inputs are parsed. As the media device is now
-properly initialized, parallel input notifiers can be registered as soon as new
-input devices are discovered, without having to wait for the group notifier
-complete callback to be called. Thanks Niklas for pointing that out.
+If there is proprietary plugins, then I don't think it will make any
+difference were this is implemented. The difference is the feature set
+we expose. 3A is per device, but multiple streams, with per request
+controls is also possible. PipeWire gives central place to manage this,
+while giving multiple process access to the camera streams. I think in
+the end, what fits better would be something like or the Android Camera
+HAL2. But we could encourage OSS by maintaining a base implementation
+that covers all the V4L2 aspect, leaving only the 3A aspect of the work
+to be done. Maybe we need to come up with an abstraction that does not
+prevent multi-streams, but only requires 3A per vendors (saying per
+vendors, as some of this could be Open Source by third parties).
 
-Testing:
-Tested image capture on both Draak and Salvator-X M3-W with a fake parallel
-input device added.
+just thinking out loud now ;-P
+Nicolas
 
-Test branch for Salvator-X available at
-git://jmondi.org d3/media-master/salvator-x-dts_csi2/m3w-add_parallel_to_dts+driver-v4
-For Draak at:
-git://jmondi.org d3/media-master/salvator-x-dts_csi2/d3-vin-driver-v4+enable-HDMI-in-dts
-(sorry for the horrid branch names :)
+p.s. Do we have the Intel / IPU3 folks in in the loop ? This is likely
+the most pressing HW as it's shipping on many laptops now.
+--=-tPrO3/KC1HWpMryXwugg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Niklas, I know you have a V3M with expansion that has both CSI-2 and parallel
-input. Could you give this one a spin please?
+-----BEGIN PGP SIGNATURE-----
 
-No changelog reported here, except from the one reported above.
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWv7uCAAKCRBxUwItrAao
+HAuPAJ42XbA0TqIgapcpw6HLQBfqrE9ezQCeJWRhyZVsNUrk5tdIxjAHC6kmOgk=
+=QhIW
+-----END PGP SIGNATURE-----
 
-Most of the other changes are minors, the most notable ones are reported in
-each patch commit message.
-
-Thanks
-   j
-
-Jacopo Mondi (9):
-  media: rcar-vin: Rename 'digital' to 'parallel'
-  media: rcar-vin: Remove two empty lines
-  media: rcar-vin: Create a group notifier
-  media: rcar-vin: Cache the mbus configuration flags
-  media: rcar-vin: Parse parallel input on Gen3
-  media: rcar-vin: Link parallel input media entities
-  media: rcar-vin: Handle parallel subdev in link_notify
-  media: rcar-vin: Rename _rcar_info to rcar_info
-  media: rcar-vin: Add support for R-Car R8A77995 SoC
-
- drivers/media/platform/rcar-vin/rcar-core.c | 258 ++++++++++++++++++----------
- drivers/media/platform/rcar-vin/rcar-dma.c  |  36 ++--
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  12 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  29 ++--
- 4 files changed, 215 insertions(+), 120 deletions(-)
-
---
-2.7.4
+--=-tPrO3/KC1HWpMryXwugg--
