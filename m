@@ -1,45 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:25948 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753186AbeEKPGW (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33454 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751920AbeERSyL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 11:06:22 -0400
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-To: alan@linux.intel.com, sakari.ailus@linux.intel.com,
-        mchehab@kernel.org, gregkh@linuxfoundation.org,
-        andriy.shevchenko@linux.intel.com, chen.chenchacha@foxmail.com,
-        keescook@chromium.org, arvind.yadav.cs@gmail.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH 0/3] media: staging: atomisp: 
-Date: Fri, 11 May 2018 17:06:15 +0200
-Message-Id: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
+        Fri, 18 May 2018 14:54:11 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        Abylay Ospan <aospan@netup.ru>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH 16/20] stk1160: Set the vb2_queue lock before calling vb2_queue_init
+Date: Fri, 18 May 2018 15:52:04 -0300
+Message-Id: <20180518185208.17722-17-ezequiel@collabora.com>
+In-Reply-To: <20180518185208.17722-1-ezequiel@collabora.com>
+References: <20180518185208.17722-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These 3 patches fixes (at least I hope) some issues found in or around
-'lm3554_probe()'.
+The vb2_queue will soon be mandatory. The videobuf2 core
+will throw a verbose warning if it's not set.
 
-Please review them carefully. I've only compile tested the changes and
-I propose them because they sound logical to me.
+The stk1160 driver is setting the queue lock, but after
+the vb2_queue_init call. Avoid the warning by setting
+the lock before the queue initialization.
 
-The first one, return an error code instead of 0 if the call to an
-initialisation function fails.
-The 2nd one reorders own some label are reached in order to have a logical
-flow (first error goes to last label, last error goes to first label)
-The 3rd one fix the use 'media_entity_cleanup()'. If this one is correct,
-some other drivers will need to be fixed the same way.  
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ drivers/media/usb/stk1160/stk1160-v4l.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Christophe JAILLET (3):
-  media: staging: atomisp: Return an error code in case
-    of error in 'lm3554_probe()'
-  media: staging: atomisp: Fix an error handling path in
-    'lm3554_probe()'
-  media: staging: atomisp: Fix usage of 'media_entity_cleanup()'
-
- .../media/atomisp/i2c/atomisp-lm3554.c        | 20 +++++++++----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
-
+diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+index 77b759a0bcd9..504e413edcd2 100644
+--- a/drivers/media/usb/stk1160/stk1160-v4l.c
++++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+@@ -802,6 +802,7 @@ int stk1160_vb2_setup(struct stk1160 *dev)
+ 	q->buf_struct_size = sizeof(struct stk1160_buffer);
+ 	q->ops = &stk1160_video_qops;
+ 	q->mem_ops = &vb2_vmalloc_memops;
++	q->lock = &dev->vb_queue_lock;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 
+ 	rc = vb2_queue_init(q);
+@@ -827,7 +828,6 @@ int stk1160_video_register(struct stk1160 *dev)
+ 	 * It will be used to protect *only* v4l2 ioctls.
+ 	 */
+ 	dev->vdev.lock = &dev->v4l_lock;
+-	dev->vdev.queue->lock = &dev->vb_queue_lock;
+ 
+ 	/* This will be used to set video_device parent */
+ 	dev->vdev.v4l2_dev = &dev->v4l2_dev;
 -- 
-2.17.0
+2.16.3
