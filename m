@@ -1,408 +1,362 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:36915 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752138AbeENVLF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 17:11:05 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH v1 2/4] media: bpf: allow raw IR decoder bpf programs to be used
-Date: Mon, 14 May 2018 22:10:59 +0100
-Message-Id: <cd3a5e27ef4122fab90daae2af6031982df77282.1526331777.git.sean@mess.org>
-In-Reply-To: <cover.1526331777.git.sean@mess.org>
-References: <cover.1526331777.git.sean@mess.org>
-In-Reply-To: <cover.1526331777.git.sean@mess.org>
-References: <cover.1526331777.git.sean@mess.org>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:43978 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751298AbeERVEn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 17:04:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran@ksquared.org.uk>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v11 10/10] media: vsp1: Move video configuration to a cached dlb
+Date: Sat, 19 May 2018 00:05:05 +0300
+Message-ID: <50895869.ZX84A3tOQ9@avalon>
+In-Reply-To: <02b8eb289bd4af3a9717dff3a7750940588d505b.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com> <02b8eb289bd4af3a9717dff3a7750940588d505b.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This implements attaching, detaching, querying and execution. The target
-fd has to be the /dev/lircN device.
+Hi Kieran,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-bpf-decoder.c | 191 ++++++++++++++++++++++++++++++
- drivers/media/rc/lirc_dev.c       |  30 +++++
- drivers/media/rc/rc-core-priv.h   |  15 +++
- drivers/media/rc/rc-ir-raw.c      |   5 +
- include/uapi/linux/bpf.h          |   1 +
- kernel/bpf/syscall.c              |   7 ++
- 6 files changed, 249 insertions(+)
+Thank you for the patch.
 
-diff --git a/drivers/media/rc/ir-bpf-decoder.c b/drivers/media/rc/ir-bpf-decoder.c
-index aaa5e208b1a5..651590a14772 100644
---- a/drivers/media/rc/ir-bpf-decoder.c
-+++ b/drivers/media/rc/ir-bpf-decoder.c
-@@ -91,3 +91,194 @@ const struct bpf_verifier_ops ir_decoder_verifier_ops = {
- 	.get_func_proto  = ir_decoder_func_proto,
- 	.is_valid_access = ir_decoder_is_valid_access
- };
-+
-+#define BPF_MAX_PROGS 64
-+
-+int rc_dev_bpf_attach(struct rc_dev *rcdev, struct bpf_prog *prog, u32 flags)
-+{
-+	struct ir_raw_event_ctrl *raw;
-+	struct bpf_prog_array __rcu *old_array;
-+	struct bpf_prog_array *new_array;
-+	int ret;
-+
-+	if (rcdev->driver_type != RC_DRIVER_IR_RAW)
-+		return -EINVAL;
-+
-+	ret = mutex_lock_interruptible(&rcdev->lock);
-+	if (ret)
-+		return ret;
-+
-+	raw = rcdev->raw;
-+
-+	if (raw->progs && bpf_prog_array_length(raw->progs) >= BPF_MAX_PROGS) {
-+		ret = -E2BIG;
-+		goto out;
-+	}
-+
-+	old_array = raw->progs;
-+	ret = bpf_prog_array_copy(old_array, NULL, prog, &new_array);
-+	if (ret < 0)
-+		goto out;
-+
-+	rcu_assign_pointer(raw->progs, new_array);
-+	bpf_prog_array_free(old_array);
-+out:
-+	mutex_unlock(&rcdev->lock);
-+	return ret;
-+}
-+
-+int rc_dev_bpf_detach(struct rc_dev *rcdev, struct bpf_prog *prog, u32 flags)
-+{
-+	struct ir_raw_event_ctrl *raw;
-+	struct bpf_prog_array __rcu *old_array;
-+	struct bpf_prog_array *new_array;
-+	int ret;
-+
-+	if (rcdev->driver_type != RC_DRIVER_IR_RAW)
-+		return -EINVAL;
-+
-+	ret = mutex_lock_interruptible(&rcdev->lock);
-+	if (ret)
-+		return ret;
-+
-+	raw = rcdev->raw;
-+
-+	old_array = raw->progs;
-+	ret = bpf_prog_array_copy(old_array, prog, NULL, &new_array);
-+	if (ret < 0) {
-+		bpf_prog_array_delete_safe(old_array, prog);
-+	} else {
-+		rcu_assign_pointer(raw->progs, new_array);
-+		bpf_prog_array_free(old_array);
-+	}
-+
-+	bpf_prog_put(prog);
-+	mutex_unlock(&rcdev->lock);
-+	return 0;
-+}
-+
-+void rc_dev_bpf_run(struct rc_dev *rcdev)
-+{
-+	struct ir_raw_event_ctrl *raw = rcdev->raw;
-+
-+	if (raw->progs)
-+		BPF_PROG_RUN_ARRAY(raw->progs, &raw->prev_ev, BPF_PROG_RUN);
-+}
-+
-+void rc_dev_bpf_put(struct rc_dev *rcdev)
-+{
-+	struct bpf_prog_array *progs = rcdev->raw->progs;
-+	int i, size;
-+
-+	if (!progs)
-+		return;
-+
-+	size = bpf_prog_array_length(progs);
-+	for (i = 0; i < size; i++)
-+		bpf_prog_put(progs->progs[i]);
-+
-+	bpf_prog_array_free(rcdev->raw->progs);
-+}
-+
-+int rc_dev_prog_attach(const union bpf_attr *attr)
-+{
-+	struct bpf_prog *prog;
-+	struct rc_dev *rcdev;
-+	int ret;
-+
-+	if (attr->attach_flags & BPF_F_ALLOW_OVERRIDE)
-+		return -EINVAL;
-+
-+	prog = bpf_prog_get_type(attr->attach_bpf_fd,
-+				 BPF_PROG_TYPE_RAWIR_DECODER);
-+	if (IS_ERR(prog))
-+		return PTR_ERR(prog);
-+
-+	rcdev = rc_dev_get_from_fd(attr->target_fd);
-+	if (IS_ERR(rcdev)) {
-+		bpf_prog_put(prog);
-+		return PTR_ERR(rcdev);
-+	}
-+
-+	ret = rc_dev_bpf_attach(rcdev, prog, attr->attach_flags);
-+	if (ret)
-+		bpf_prog_put(prog);
-+
-+	put_device(&rcdev->dev);
-+
-+	return ret;
-+}
-+
-+int rc_dev_prog_detach(const union bpf_attr *attr)
-+{
-+	struct bpf_prog *prog;
-+	struct rc_dev *rcdev;
-+	int ret;
-+
-+	if (attr->attach_flags & BPF_F_ALLOW_OVERRIDE)
-+		return -EINVAL;
-+
-+	prog = bpf_prog_get_type(attr->attach_bpf_fd,
-+				 BPF_PROG_TYPE_RAWIR_DECODER);
-+	if (IS_ERR(prog))
-+		return PTR_ERR(prog);
-+
-+	rcdev = rc_dev_get_from_fd(attr->target_fd);
-+	if (IS_ERR(rcdev)) {
-+		bpf_prog_put(prog);
-+		return PTR_ERR(rcdev);
-+	}
-+
-+	ret = rc_dev_bpf_detach(rcdev, prog, attr->attach_flags);
-+
-+	bpf_prog_put(prog);
-+	put_device(&rcdev->dev);
-+
-+	return ret;
-+}
-+
-+int rc_dev_prog_query(const union bpf_attr *attr, union bpf_attr __user *uattr)
-+{
-+	__u32 __user *prog_ids = u64_to_user_ptr(attr->query.prog_ids);
-+	struct bpf_prog_array *progs;
-+	struct rc_dev *rcdev;
-+	u32 cnt, flags = 0;
-+	int ret;
-+
-+	if (attr->query.query_flags)
-+		return -EINVAL;
-+
-+	rcdev = rc_dev_get_from_fd(attr->query.target_fd);
-+	if (IS_ERR(rcdev))
-+		return PTR_ERR(rcdev);
-+
-+	if (rcdev->driver_type != RC_DRIVER_IR_RAW) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	ret = mutex_lock_interruptible(&rcdev->lock);
-+	if (ret)
-+		goto out;
-+
-+	progs = rcdev->raw->progs;
-+	cnt = progs ? bpf_prog_array_length(progs) : 0;
-+
-+	if (copy_to_user(&uattr->query.prog_cnt, &cnt, sizeof(cnt))) {
-+		ret = -EFAULT;
-+		goto out;
-+	}
-+	if (copy_to_user(&uattr->query.attach_flags, &flags, sizeof(flags))) {
-+		ret = -EFAULT;
-+		goto out;
-+	}
-+
-+	if (attr->query.prog_cnt != 0 && prog_ids && cnt)
-+		ret = bpf_prog_array_copy_to_user(progs, prog_ids, cnt);
-+
-+out:
-+	mutex_unlock(&rcdev->lock);
-+	put_device(&rcdev->dev);
-+
-+	return ret;
-+}
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 24e9fbb80e81..65319f2ccc13 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -20,6 +20,7 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/device.h>
-+#include <linux/file.h>
- #include <linux/idr.h>
- #include <linux/poll.h>
- #include <linux/sched.h>
-@@ -28,6 +29,8 @@
- #include "rc-core-priv.h"
- #include <uapi/linux/lirc.h>
- 
-+#include <linux/bpf-rcdev.h>
-+
- #define LIRCBUF_SIZE	256
- 
- static dev_t lirc_base_dev;
-@@ -816,4 +819,31 @@ void __exit lirc_dev_exit(void)
- 	unregister_chrdev_region(lirc_base_dev, RC_DEV_MAX);
- }
- 
-+struct rc_dev *rc_dev_get_from_fd(int fd)
-+{
-+	struct rc_dev *dev;
-+	struct file *f;
-+
-+	f = fget_raw(fd);
-+	if (!f)
-+		return ERR_PTR(-EBADF);
-+
-+	if (!S_ISCHR(f->f_inode->i_mode) ||
-+	    imajor(f->f_inode) != MAJOR(lirc_base_dev)) {
-+		fput(f);
-+		return ERR_PTR(-EBADF);
-+	}
-+
-+	dev = container_of(f->f_inode->i_cdev, struct rc_dev, lirc_cdev);
-+	if (!dev->registered) {
-+		fput(f);
-+		return ERR_PTR(-ENODEV);
-+	}
-+
-+	get_device(&dev->dev);
-+	fput(f);
-+
-+	return dev;
-+}
-+
- MODULE_ALIAS("lirc_dev");
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index e0e6a17460f6..b6f24f369657 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -57,6 +57,9 @@ struct ir_raw_event_ctrl {
- 	/* raw decoder state follows */
- 	struct ir_raw_event prev_ev;
- 	struct ir_raw_event this_ev;
-+#ifdef CONFIG_IR_BPF_DECODER
-+	struct bpf_prog_array *progs;
-+#endif
- 	struct nec_dec {
- 		int state;
- 		unsigned count;
-@@ -288,6 +291,7 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev);
- void ir_lirc_scancode_event(struct rc_dev *dev, struct lirc_scancode *lsc);
- int ir_lirc_register(struct rc_dev *dev);
- void ir_lirc_unregister(struct rc_dev *dev);
-+struct rc_dev *rc_dev_get_from_fd(int fd);
- #else
- static inline int lirc_dev_init(void) { return 0; }
- static inline void lirc_dev_exit(void) {}
-@@ -299,4 +303,15 @@ static inline int ir_lirc_register(struct rc_dev *dev) { return 0; }
- static inline void ir_lirc_unregister(struct rc_dev *dev) { }
- #endif
- 
-+/*
-+ * bpf interface
-+ */
-+#ifdef CONFIG_IR_BPF_DECODER
-+void rc_dev_bpf_put(struct rc_dev *dev);
-+void rc_dev_bpf_run(struct rc_dev *dev);
-+#else
-+void rc_dev_bpf_put(struct rc_dev *dev) {}
-+void rc_dev_bpf_run(struct rc_dev *dev) {}
-+#endif
-+
- #endif /* _RC_CORE_PRIV */
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 374f83105a23..efddd9c44466 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -8,6 +8,8 @@
- #include <linux/mutex.h>
- #include <linux/kmod.h>
- #include <linux/sched.h>
-+#include <linux/filter.h>
-+#include <linux/bpf.h>
- #include "rc-core-priv.h"
- 
- /* Used to keep track of IR raw clients, protected by ir_raw_handler_lock */
-@@ -33,6 +35,7 @@ static int ir_raw_event_thread(void *data)
- 					handler->decode(raw->dev, ev);
- 			ir_lirc_raw_event(raw->dev, ev);
- 			raw->prev_ev = ev;
-+			rc_dev_bpf_run(raw->dev);
- 		}
- 		mutex_unlock(&ir_raw_handler_lock);
- 
-@@ -623,6 +626,8 @@ void ir_raw_event_unregister(struct rc_dev *dev)
- 			handler->raw_unregister(dev);
- 	mutex_unlock(&ir_raw_handler_lock);
- 
-+	rc_dev_bpf_put(dev);
-+
- 	ir_raw_event_free(dev);
- }
- 
-diff --git a/include/uapi/linux/bpf.h b/include/uapi/linux/bpf.h
-index 6ad053e831c0..d9740599adf6 100644
---- a/include/uapi/linux/bpf.h
-+++ b/include/uapi/linux/bpf.h
-@@ -155,6 +155,7 @@ enum bpf_attach_type {
- 	BPF_CGROUP_INET6_CONNECT,
- 	BPF_CGROUP_INET4_POST_BIND,
- 	BPF_CGROUP_INET6_POST_BIND,
-+	BPF_RAWIR_DECODER,
- 	__MAX_BPF_ATTACH_TYPE
- };
- 
-diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
-index 016ef9025827..63ecc1f2e1e3 100644
---- a/kernel/bpf/syscall.c
-+++ b/kernel/bpf/syscall.c
-@@ -27,6 +27,7 @@
- #include <linux/timekeeping.h>
- #include <linux/ctype.h>
- #include <linux/nospec.h>
-+#include <linux/bpf-rcdev.h>
- 
- #define IS_FD_ARRAY(map) ((map)->map_type == BPF_MAP_TYPE_PROG_ARRAY || \
- 			   (map)->map_type == BPF_MAP_TYPE_PERF_EVENT_ARRAY || \
-@@ -1556,6 +1557,8 @@ static int bpf_prog_attach(const union bpf_attr *attr)
- 	case BPF_SK_SKB_STREAM_PARSER:
- 	case BPF_SK_SKB_STREAM_VERDICT:
- 		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, true);
-+	case BPF_RAWIR_DECODER:
-+		return rc_dev_prog_attach(attr);
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1626,6 +1629,8 @@ static int bpf_prog_detach(const union bpf_attr *attr)
- 	case BPF_SK_SKB_STREAM_PARSER:
- 	case BPF_SK_SKB_STREAM_VERDICT:
- 		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, false);
-+	case BPF_RAWIR_DECODER:
-+		return rc_dev_prog_detach(attr);
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1673,6 +1678,8 @@ static int bpf_prog_query(const union bpf_attr *attr,
- 	case BPF_CGROUP_SOCK_OPS:
- 	case BPF_CGROUP_DEVICE:
- 		break;
-+	case BPF_RAWIR_DECODER:
-+		return rc_dev_prog_query(attr, uattr);
- 	default:
- 		return -EINVAL;
- 	}
+On Friday, 18 May 2018 23:42:03 EEST Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> We are now able to configure a pipeline directly into a local display
+> list body. Take advantage of this fact, and create a cacheable body to
+> store the configuration of the pipeline in the video object.
+
+s/video object/pipeline object/
+
+> 
+> vsp1_video_pipeline_run() is now the last user of the pipe->dl object.
+> Convert this function to use the cached video->config body and obtain a
+
+s/video->config/pipe->stream_config/
+
+> local display list reference.
+> 
+> Attach the video->stream_config body to the display list when needed
+
+s/video/pipe/
+
+> before committing to hardware.
+> 
+> Use a flag 'configured' to know when we should attach our stream_config
+> to the next outgoing display list to reconfigure the hardware in the
+> event of our first frame, or the first frame following a suspend/resume
+> cycle.
+> 
+> Our video DL usage now looks like the below output:
+> 
+> dl->body0 contains our disposable runtime configuration. Max 41.
+> dl_child->body0 is our partition specific configuration. Max 12.
+> dl->bodies shows our constant configuration and LUTs.
+> 
+>   These two are LUT/CLU:
+>      * dl->bodies[x]->num_entries 256 / max 256
+>      * dl->bodies[x]->num_entries 4914 / max 4914
+> 
+> Which shows that our 'constant' configuration cache is currently
+> utilised to a maximum of 64 entries.
+> 
+> trace-cmd report | \
+>     grep max | sed 's/.*vsp1_dl_list_commit://g' | sort | uniq;
+> 
+>   dl->body0->num_entries 13 / max 128
+>   dl->body0->num_entries 14 / max 128
+>   dl->body0->num_entries 16 / max 128
+>   dl->body0->num_entries 20 / max 128
+>   dl->body0->num_entries 27 / max 128
+>   dl->body0->num_entries 34 / max 128
+>   dl->body0->num_entries 41 / max 128
+>   dl_child->body0->num_entries 10 / max 128
+>   dl_child->body0->num_entries 12 / max 128
+>   dl->bodies[x]->num_entries 15 / max 128
+>   dl->bodies[x]->num_entries 16 / max 128
+>   dl->bodies[x]->num_entries 17 / max 128
+>   dl->bodies[x]->num_entries 18 / max 128
+>   dl->bodies[x]->num_entries 20 / max 128
+>   dl->bodies[x]->num_entries 21 / max 128
+>   dl->bodies[x]->num_entries 256 / max 256
+>   dl->bodies[x]->num_entries 31 / max 128
+>   dl->bodies[x]->num_entries 32 / max 128
+>   dl->bodies[x]->num_entries 39 / max 128
+>   dl->bodies[x]->num_entries 40 / max 128
+>   dl->bodies[x]->num_entries 47 / max 128
+>   dl->bodies[x]->num_entries 48 / max 128
+>   dl->bodies[x]->num_entries 4914 / max 4914
+>   dl->bodies[x]->num_entries 55 / max 128
+>   dl->bodies[x]->num_entries 56 / max 128
+>   dl->bodies[x]->num_entries 63 / max 128
+>   dl->bodies[x]->num_entries 64 / max 128
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+> v11:
+>  - Remove dlbs pool from video object.
+>    Utilise the DLM pool for video->stream_config
+>  - Improve comments
+>  - clear the video->stream_config after it is released
+>    object.
+>  - stream_config and configured flag return to the pipe object.
+> 
+> v10:
+>  - Removed pipe->configured flag, and use
+>    pipe->state == VSP1_PIPELINE_STOPPED instead.
+> 
+> v8:
+>  - Fix comments
+>  - Rename video->pipe_config -> video->stream_config
+> 
+> v4:
+>  - Adjust pipe configured flag to be reset on resume rather than suspend
+>  - rename dl_child, dl_next
+> 
+> v3:
+>  - 's/fragment/body/', 's/fragments/bodies/'
+>  - video dlb cache allocation increased from 2 to 3 dlbs
+> 
+>  drivers/media/platform/vsp1/vsp1_dl.c    | 10 +++-
+>  drivers/media/platform/vsp1/vsp1_dl.h    |  1 +-
+>  drivers/media/platform/vsp1/vsp1_pipe.h  |  6 +-
+>  drivers/media/platform/vsp1/vsp1_video.c | 69 +++++++++++++++----------
+>  4 files changed, 56 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
+> b/drivers/media/platform/vsp1/vsp1_dl.c index c7fa1cb088cd..0f97305de965
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+> @@ -813,6 +813,11 @@ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
+>  	dlm->pending = NULL;
+>  }
+> 
+> +struct vsp1_dl_body *vsp1_dlm_dl_body_get(struct vsp1_dl_manager *dlm)
+> +{
+> +	return vsp1_dl_body_get(dlm->pool);
+> +}
+> +
+>  struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+>  					unsigned int index,
+>  					unsigned int prealloc)
+> @@ -838,13 +843,14 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct
+> vsp1_device *vsp1,
+>  	 * Initialize the display list body and allocate DMA memory for the body
+>  	 * and the optional header. Both are allocated together to avoid memory
+>  	 * fragmentation, with the header located right after the body in
+> -	 * memory.
+> +	 * memory. An extra body is allocated on top of the prealloc to account
+> +	 * for the cached body used by the vsp1_video object.
+
+s/vsp1_video/vsp1_pipeline/
+
+Apart from that,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+There's no need to resubmit, I'll fix when applying.
+
+>  	 */
+>  	header_size = dlm->mode == VSP1_DL_MODE_HEADER
+>  		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
+> 
+>  		    : 0;
+> 
+> -	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc,
+> +	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc + 1,
+>  					     VSP1_DL_NUM_ENTRIES, header_size);
+>  	if (!dlm->pool)
+>  		return NULL;
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.h
+> b/drivers/media/platform/vsp1/vsp1_dl.h index 216bd23029dd..7dba0469c92e
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.h
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
+> @@ -28,6 +28,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device
+> *vsp1, void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
+>  void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
+>  unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+> +struct vsp1_dl_body *vsp1_dlm_dl_body_get(struct vsp1_dl_manager *dlm);
+> 
+>  struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+>  void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
+> b/drivers/media/platform/vsp1/vsp1_pipe.h index f1155d20fa2d..743d8f0db45c
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+> @@ -102,7 +102,8 @@ struct vsp1_partition {
+>   * @uds: UDS entity, if present
+>   * @uds_input: entity at the input of the UDS, if the UDS is present
+>   * @entities: list of entities in the pipeline
+> - * @dl: display list associated with the pipeline
+> + * @stream_config: cached stream configuration for video pipelines
+> + * @configured: when false the @stream_config shall be written to the
+> hardware
+>   * @partitions: The number of partitions used to process one frame
+>   * @partition: The current partition for configuration to process *
+> @part_table: The pre-calculated partitions used by the pipeline @@ -139,7
+> +140,8 @@ struct vsp1_pipeline {
+>  	 */
+>  	struct list_head entities;
+> 
+> -	struct vsp1_dl_list *dl;
+> +	struct vsp1_dl_body *stream_config;
+> +	bool configured;
+> 
+>  	unsigned int partitions;
+>  	struct vsp1_partition *partition;
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> b/drivers/media/platform/vsp1/vsp1_video.c index c46291ff9e6b..81d47a09d7bc
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -392,42 +392,51 @@ static void vsp1_video_pipeline_run(struct
+> vsp1_pipeline *pipe) struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+>  	struct vsp1_entity *entity;
+>  	struct vsp1_dl_body *dlb;
+> +	struct vsp1_dl_list *dl;
+>  	unsigned int partition;
+> 
+> -	if (!pipe->dl)
+> -		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+> +	dl = vsp1_dl_list_get(pipe->output->dlm);
+> 
+> -	dlb = vsp1_dl_list_get_body0(pipe->dl);
+> +	/*
+> +	 * If the VSP hardware isn't configured yet (which occurs either when
+> +	 * processing the first frame or after a system suspend/resume), add the
+> +	 * cached stream configuration to the display list to perform a full
+> +	 * initialisation.
+> +	 */
+> +	if (!pipe->configured)
+> +		vsp1_dl_list_add_body(dl, pipe->stream_config);
+> +
+> +	dlb = vsp1_dl_list_get_body0(dl);
+> 
+>  	list_for_each_entry(entity, &pipe->entities, list_pipe)
+> -		vsp1_entity_configure_frame(entity, pipe, pipe->dl, dlb);
+> +		vsp1_entity_configure_frame(entity, pipe, dl, dlb);
+> 
+>  	/* Run the first partition. */
+> -	vsp1_video_pipeline_run_partition(pipe, pipe->dl, 0);
+> +	vsp1_video_pipeline_run_partition(pipe, dl, 0);
+> 
+>  	/* Process consecutive partitions as necessary. */
+>  	for (partition = 1; partition < pipe->partitions; ++partition) {
+> -		struct vsp1_dl_list *dl;
+> +		struct vsp1_dl_list *dl_next;
+> 
+> -		dl = vsp1_dl_list_get(pipe->output->dlm);
+> +		dl_next = vsp1_dl_list_get(pipe->output->dlm);
+> 
+>  		/*
+>  		 * An incomplete chain will still function, but output only
+>  		 * the partitions that had a dl available. The frame end
+>  		 * interrupt will be marked on the last dl in the chain.
+>  		 */
+> -		if (!dl) {
+> +		if (!dl_next) {
+>  			dev_err(vsp1->dev, "Failed to obtain a dl list. Frame will be
+> incomplete\n"); break;
+>  		}
+> 
+> -		vsp1_video_pipeline_run_partition(pipe, dl, partition);
+> -		vsp1_dl_list_add_chain(pipe->dl, dl);
+> +		vsp1_video_pipeline_run_partition(pipe, dl_next, partition);
+> +		vsp1_dl_list_add_chain(dl, dl_next);
+>  	}
+> 
+>  	/* Complete, and commit the head display list. */
+> -	vsp1_dl_list_commit(pipe->dl, false);
+> -	pipe->dl = NULL;
+> +	vsp1_dl_list_commit(dl, false);
+> +	pipe->configured = true;
+> 
+>  	vsp1_pipeline_run(pipe);
+>  }
+> @@ -791,7 +800,6 @@ static void vsp1_video_buffer_queue(struct vb2_buffer
+> *vb) static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+>  {
+>  	struct vsp1_entity *entity;
+> -	struct vsp1_dl_body *dlb;
+>  	int ret;
+> 
+>  	/* Determine this pipelines sizes for image partitioning support. */
+> @@ -799,14 +807,6 @@ static int vsp1_video_setup_pipeline(struct
+> vsp1_pipeline *pipe) if (ret < 0)
+>  		return ret;
+> 
+> -	/* Prepare the display list. */
+> -	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+> -	if (!pipe->dl)
+> -		return -ENOMEM;
+> -
+> -	/* Retrieve the default DLB from the list. */
+> -	dlb = vsp1_dl_list_get_body0(pipe->dl);
+> -
+>  	if (pipe->uds) {
+>  		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
+> 
+> @@ -828,9 +828,18 @@ static int vsp1_video_setup_pipeline(struct
+> vsp1_pipeline *pipe) }
+>  	}
+> 
+> +	/*
+> +	 * Compute and cache the stream configuration into a body. The cached
+> +	 * body will be added to the display list by vsp1_video_pipeline_run()
+> +	 * whenever the pipeline needs to be fully reconfigured.
+> +	 */
+> +	pipe->stream_config = vsp1_dlm_dl_body_get(pipe->output->dlm);
+> +	if (!pipe->stream_config)
+> +		return -ENOMEM;
+> +
+>  	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+> -		vsp1_entity_route_setup(entity, pipe, dlb);
+> -		vsp1_entity_configure_stream(entity, pipe, dlb);
+> +		vsp1_entity_route_setup(entity, pipe, pipe->stream_config);
+> +		vsp1_entity_configure_stream(entity, pipe, pipe->stream_config);
+>  	}
+> 
+>  	return 0;
+> @@ -853,12 +862,14 @@ static void vsp1_video_cleanup_pipeline(struct
+> vsp1_pipeline *pipe) {
+>  	lockdep_assert_held(&pipe->lock);
+> 
+> +	/* Release any cached configuration from our output video. */
+> +	vsp1_dl_body_put(pipe->stream_config);
+> +	pipe->stream_config = NULL;
+> +	pipe->configured = false;
+> +
+>  	/* Release our partition table allocation */
+>  	kfree(pipe->part_table);
+>  	pipe->part_table = NULL;
+> -
+> -	vsp1_dl_list_put(pipe->dl);
+> -	pipe->dl = NULL;
+>  }
+> 
+>  static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int
+> count) @@ -1232,6 +1243,12 @@ void vsp1_video_resume(struct vsp1_device
+> *vsp1) if (pipe == NULL)
+>  			continue;
+> 
+> +		/*
+> +		 * The hardware may have been reset during a suspend and will
+> +		 * need a full reconfiguration.
+> +		 */
+> +		pipe->configured = false;
+> +
+>  		spin_lock_irqsave(&pipe->irqlock, flags);
+>  		if (vsp1_pipeline_ready(pipe))
+>  			vsp1_video_pipeline_run(pipe);
+
 -- 
-2.17.0
+Regards,
+
+Laurent Pinchart
