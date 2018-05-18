@@ -1,124 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:56019 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754168AbeEWIr7 (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:55880 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753100AbeERJ2a (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 04:47:59 -0400
-Message-ID: <1527065278.6875.1.camel@pengutronix.de>
-Subject: Re: [PATCH] media: video-mux: fix compliance failures
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Rui Miguel Silva <rui.silva@linaro.org>, kernel@pengutronix.de
-Date: Wed, 23 May 2018 10:47:58 +0200
-In-Reply-To: <16e0879d-2db3-951b-fd96-636b9615a3f2@xs4all.nl>
-References: <20180522162925.16854-1-p.zabel@pengutronix.de>
-         <16e0879d-2db3-951b-fd96-636b9615a3f2@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Fri, 18 May 2018 05:28:30 -0400
+Received: by mail-wm0-f68.google.com with SMTP id a8-v6so12964929wmg.5
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 02:28:29 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v5 03/12] clk: imx7d: fix mipi dphy div parent
+Date: Fri, 18 May 2018 10:27:57 +0100
+Message-Id: <20180518092806.3829-4-rui.silva@linaro.org>
+In-Reply-To: <20180518092806.3829-1-rui.silva@linaro.org>
+References: <20180518092806.3829-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Fix the mipi dphy root divider to mipi_dphy_pre_div, this would remove a orphan
+clock and set the correct parent.
 
-thank you for the review comments.
+before:
+cat clk_orphan_summary
+                                 enable  prepare  protect
+   clock                          count    count    count        rate   accuracy   phase
+----------------------------------------------------------------------------------------
+ mipi_dphy_post_div                   1        1        0           0          0 0
+    mipi_dphy_root_clk                1        1        0           0          0 0
 
-On Tue, 2018-05-22 at 19:47 +0200, Hans Verkuil wrote:
-> On 22/05/18 18:29, Philipp Zabel wrote:
-> > Limit frame sizes to the [1, UINT_MAX-1] interval, media bus formats to
-> > the available list of formats, and initialize pad and try formats.
-> > 
-> > Reported-by: Rui Miguel Silva <rui.silva@linaro.org>
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >  drivers/media/platform/video-mux.c | 110 +++++++++++++++++++++++++++++
-> >  1 file changed, 110 insertions(+)
-> > 
-> > diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-> > index 1fb887293337..ade1dae706aa 100644
-> > --- a/drivers/media/platform/video-mux.c
-> > +++ b/drivers/media/platform/video-mux.c
-> > @@ -180,6 +180,87 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
-> >  	if (!source_mbusformat)
-> >  		return -EINVAL;
-> >  
-> > +	/* No size limitations except V4L2 compliance requirements */
-> > +	v4l_bound_align_image(&sdformat->format.width, 1, UINT_MAX - 1, 0,
-> > +			      &sdformat->format.height, 1, UINT_MAX - 1, 0, 0);
-> 
-> This is a bit dubious. I would pick more realistic min/max values like 16 and
+cat clk_dump | grep mipi_dphy
+mipi_dphy_post_div                    1        1        0           0          0 0
+    mipi_dphy_root_clk                1        1        0           0          0 0
 
-Why 16? A grayscale or RGB sensor could crop down to 1x1, see mt9v032
-for example.
+after:
+cat clk_dump | grep mipi_dphy
+   mipi_dphy_src                     1        1        0    24000000          0 0
+       mipi_dphy_cg                  1        1        0    24000000          0 0
+          mipi_dphy_pre_div          1        1        0    24000000          0 0
+             mipi_dphy_post_div      1        1        0    24000000          0 0
+                mipi_dphy_root_clk   1        1        0    24000000          0 0
 
-> 65536. UINT_MAX - 1 will overflow whenever code increments/multiplies it for some
-> reason, which can cause all sorts of weird issues.
+Fixes: 8f6d8094b215 ("ARM: imx: add imx7d clk tree support")
+Acked-by: Dong Aisheng <Aisheng.dong@nxp.com>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ drivers/clk/imx/clk-imx7d.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Ok. Should v4l2-compliance check for > 65536 then, instead of (or
-additionally to) UINT_MAX?
-
-> > +
-> > +	/* All formats except LVDS and vendor specific formats are acceptable */
-> > +	switch (sdformat->format.code) {
-> > +	case MEDIA_BUS_FMT_RGB444_1X12:
-> > +	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
-[...]
-> > +	case MEDIA_BUS_FMT_JPEG_1X8:
-> > +	case MEDIA_BUS_FMT_AHSV8888_1X32:
-> > +		break;
-> > +	default:
-> > +		sdformat->format.code = MEDIA_BUS_FMT_Y8_1X8;
-> 
-> Add a break here.
-
-Will do.
-
-> > +	}
-> > +	if (sdformat->format.field == V4L2_FIELD_ANY)
-> > +		sdformat->format.field = V4L2_FIELD_NONE;
-> > +
-> >  	mutex_lock(&vmux->lock);
-> >  
-> >  	/* Source pad mirrors active sink pad, no limitations on sink pads */
-> > @@ -197,11 +278,33 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
-> >  	return 0;
-> >  }
-> >  
-> > +static int video_mux_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> > +{
-> > +	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
-> > +	struct v4l2_mbus_framefmt *mbusformat;
-> > +	int i;
-> > +
-> > +	mutex_lock(&vmux->lock);
-> > +
-> > +	for (i = 0; i < sd->entity.num_pads; i++) {
-> > +		mbusformat = v4l2_subdev_get_try_format(sd, fh->pad, i);
-> > +		*mbusformat = vmux->format_mbus[i];
-> > +	}
-> > +
-> > +	mutex_unlock(&vmux->lock);
-> > +
-> > +	return 0;
-> > +}
-> 
-> This isn't the right approach. Instead implement the init_cfg pad op.
-
-How embarrassing, yes.
-
-> > +
-> >  static const struct v4l2_subdev_pad_ops video_mux_pad_ops = {
-> >  	.get_fmt = video_mux_get_format,
-> >  	.set_fmt = video_mux_set_format,
-> >  };
-> >  
-> > +static const struct v4l2_subdev_internal_ops video_mux_internal_ops = {
-> > +	.open = video_mux_open,
-> > +};
-> 
-> So this can be dropped.
-
-Ok, thanks!
-
-regards
-Philipp
+diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
+index 975a20d3cc94..f7f4db2e6fa6 100644
+--- a/drivers/clk/imx/clk-imx7d.c
++++ b/drivers/clk/imx/clk-imx7d.c
+@@ -729,7 +729,7 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
+ 	clks[IMX7D_LCDIF_PIXEL_ROOT_DIV] = imx_clk_divider2("lcdif_pixel_post_div", "lcdif_pixel_pre_div", base + 0xa300, 0, 6);
+ 	clks[IMX7D_MIPI_DSI_ROOT_DIV] = imx_clk_divider2("mipi_dsi_post_div", "mipi_dsi_pre_div", base + 0xa380, 0, 6);
+ 	clks[IMX7D_MIPI_CSI_ROOT_DIV] = imx_clk_divider2("mipi_csi_post_div", "mipi_csi_pre_div", base + 0xa400, 0, 6);
+-	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_csi_dphy_div", base + 0xa480, 0, 6);
++	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_dphy_pre_div", base + 0xa480, 0, 6);
+ 	clks[IMX7D_SAI1_ROOT_DIV] = imx_clk_divider2("sai1_post_div", "sai1_pre_div", base + 0xa500, 0, 6);
+ 	clks[IMX7D_SAI2_ROOT_DIV] = imx_clk_divider2("sai2_post_div", "sai2_pre_div", base + 0xa580, 0, 6);
+ 	clks[IMX7D_SAI3_ROOT_DIV] = imx_clk_divider2("sai3_post_div", "sai3_pre_div", base + 0xa600, 0, 6);
+-- 
+2.17.0
