@@ -1,104 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:34752 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750748AbeEOWDc (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:39664 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752348AbeERNsH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 18:03:32 -0400
-Date: Tue, 15 May 2018 19:03:14 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
-        sre@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
- pipeline
-Message-ID: <20180515190314.2909e3be@vento.lan>
-In-Reply-To: <20180515200117.GA21673@amd>
-References: <20170516124519.GA25650@amd>
-        <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
-        <20180316205512.GA6069@amd>
-        <c2a7e1f3-589d-7186-2a85-545bfa1c4536@xs4all.nl>
-        <20180319102354.GA12557@amd>
-        <20180319074715.5b700405@vento.lan>
-        <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
-        <20180319120043.GA20451@amd>
-        <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
-        <20180319095544.7e235a3e@vento.lan>
-        <20180515200117.GA21673@amd>
+        Fri, 18 May 2018 09:48:07 -0400
+Received: by mail-wr0-f193.google.com with SMTP id w18-v6so5534217wrn.6
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 06:48:06 -0700 (PDT)
+Subject: Re: [PATCH v3 2/2] bpf: add selftest for rawir_event type program
+To: Sean Young <sean@mess.org>
+Cc: Y Song <ys114321@gmail.com>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        netdev <netdev@vger.kernel.org>,
+        Matthias Reichl <hias@horus.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+References: <cover.1526504511.git.sean@mess.org>
+ <78945f2bf82e9f16695f72bed3930d1302d38e29.1526504511.git.sean@mess.org>
+ <CAH3MdRUhrBzHXKgcu1htSHTqeKVWnci+ADrTriCqjXLHUezB+w@mail.gmail.com>
+ <20180517210140.ck225yuckq6onheb@gofer.mess.org>
+ <86ffb16c-9b4e-c826-ecd2-82266e7b8c2e@netronome.com>
+ <20180518133329.fafkew5nkr2bmzah@gofer.mess.org>
+From: Quentin Monnet <quentin.monnet@netronome.com>
+Message-ID: <efa49fb3-0d7d-ecb2-861e-5d61186e161e@netronome.com>
+Date: Fri, 18 May 2018 14:48:04 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20180518133329.fafkew5nkr2bmzah@gofer.mess.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 15 May 2018 22:01:17 +0200
-Pavel Machek <pavel@ucw.cz> escreveu:
+2018-05-18 14:33 UTC+0100 ~ Sean Young <sean@mess.org>
+> On Fri, May 18, 2018 at 11:13:07AM +0100, Quentin Monnet wrote:
+>> 2018-05-17 22:01 UTC+0100 ~ Sean Young <sean@mess.org>
+>>> On Thu, May 17, 2018 at 10:17:59AM -0700, Y Song wrote:
+>>>> On Wed, May 16, 2018 at 2:04 PM, Sean Young <sean@mess.org> wrote:
+>>>>> This is simple test over rc-loopback.
+>>>>>
+>>>>> Signed-off-by: Sean Young <sean@mess.org>
+>>>>> ---
+>>>>>  tools/bpf/bpftool/prog.c                      |   1 +
+>>>>>  tools/include/uapi/linux/bpf.h                |  57 +++++++-
+>>>>>  tools/lib/bpf/libbpf.c                        |   1 +
+>>>>>  tools/testing/selftests/bpf/Makefile          |   8 +-
+>>>>>  tools/testing/selftests/bpf/bpf_helpers.h     |   6 +
+>>>>>  tools/testing/selftests/bpf/test_rawir.sh     |  37 +++++
+>>>>>  .../selftests/bpf/test_rawir_event_kern.c     |  26 ++++
+>>>>>  .../selftests/bpf/test_rawir_event_user.c     | 130 ++++++++++++++++++
+>>>>>  8 files changed, 261 insertions(+), 5 deletions(-)
+>>>>>  create mode 100755 tools/testing/selftests/bpf/test_rawir.sh
+>>>>>  create mode 100644 tools/testing/selftests/bpf/test_rawir_event_kern.c
+>>>>>  create mode 100644 tools/testing/selftests/bpf/test_rawir_event_user.c
+>>
+>> [...]
+>>
+>>>> Most people probably not really familiar with lircN device. It would be
+>>>> good to provide more information about how to enable this, e.g.,
+>>>>   CONFIG_RC_CORE=y
+>>>>   CONFIG_BPF_RAWIR_EVENT=y
+>>>>   CONFIG_RC_LOOPBACK=y
+>>>>   ......
+>>>
+>>> Good point. I'll add some words explaining what is and how to make it work.
+>>>
+>>> Thanks
+>>> Sean
+>>
+>>
+>> By the way, shouldn't the two eBPF helpers bpf_rc_keydown() and
+>> bpf_rc_repeat() be compiled out in patch 1 if e.g.
+>> CONFIG_BPF_RAWIR_EVENT is not set? There are some other helpers that are
+>> compiled only if relevant config options are set (bpf_get_xfrm_state()
+>> for example).
+> 
+> So if CONFIG_BPF_RAWIR_EVENT is not set, then bpf-rawir-event.c is not
+> compiled. Stubs are created in include/linux/bpf_rcdev.h, so this is
+> already the case if I understand your correctly.
 
-> Hi!
->=20
-> > So, IMHO, entities should be described as:
-> >=20
-> > 	[entity entity1]
-> > 		name =3D foo
-> > 		function =3D bar =20
->=20
-> I don't really think windows-style config file is suitable here, as we
-> have more than two "nested blocks".
->=20
-> What about something like this? Note that I'd only implement the
-> controls mapping for now... but it should be extensible later to setup
-> mappings for the application.
->=20
-> Best regards,
-> 								Pavel
->=20
->=20
-> #modes: 2
-> Driver name: OMAP 3 resizer
+This is correct, sorry for the mistake.
 
-It probably makes sense to place the driver name before #modes.
+>> (If you were to change that, please also update helper documentations to
+>> indicate what configuration options are required to be able to use the
+>> helpers.)
+> 
+> Ok, I'll add that.
+Thanks a lot!
 
-=46rom what I understood, the "#foo: <number>" is a tag that makes the
-parser to expect for <number> of "foo".
-
-I would also add a first line at the beginning describing the
-version of the format, just in case we add more stuff that
-would require to change something at the format.
-
-Except for that, it seems ok.
-
-> Mode: 3000x1800
->  #devices: 2
->   0: et8ek8 sensor
->   1: OMAP3 resizer
->  #controls: 2
->   0x4321a034: 1
->   0x4113aab0: 1
->  #links: 1
->   link:
->    entity1: et8ek8 sensor:1
->    entity2: OMAP3 resizer:0
->    resolution1: 1024x768
->    resolution2: 1024x768
-> Mode: 1024x768
->  #devices: 2
->   0: et8ek8 sensor
->   1: OMAP3 resizer
->  #controls: 2
->   0x4321a034: 1
->   0x4113aab0: 1
->  #links: 1
->   link:
->    entity1: et8ek8 sensor:1
->    entity2: OMAP3 resizer:0
->    resolution1: 1024x768
->    resolution2: 1024x768
->=20
->=20
->=20
-
-
-
-Thanks,
-Mauro
+Quentin
