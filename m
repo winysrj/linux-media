@@ -1,265 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f47.google.com ([209.85.213.47]:32887 "EHLO
-        mail-vk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751076AbeEBNK7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2018 09:10:59 -0400
+Received: from userp2120.oracle.com ([156.151.31.85]:48024 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752044AbeERWQC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 18:16:02 -0400
+Subject: Re: [Xen-devel][RFC 2/3] xen/grant-table: Extend API to work with DMA
+ buffers
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180517082604.14828-1-andr2000@gmail.com>
+ <20180517082604.14828-3-andr2000@gmail.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <28532709-6c87-f048-be6a-3c4ba02ae56f@oracle.com>
+Date: Fri, 18 May 2018 18:19:02 -0400
 MIME-Version: 1.0
-In-Reply-To: <20180414115726.5075-4-niklas.soderlund+renesas@ragnatech.se>
-References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se> <20180414115726.5075-4-niklas.soderlund+renesas@ragnatech.se>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 2 May 2018 15:10:57 +0200
-Message-ID: <CAMuHMdX98E5Zskj_PrxZgsPizfOXk744GBeP3copFC5FPOgdCg@mail.gmail.com>
-Subject: Re: [PATCH v14 03/33] rcar-vin: add Gen3 devicetree bindings documentation
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20180517082604.14828-3-andr2000@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
-
-Some comments, triggered by seeing Simon's "[PATCH 00/10]
-ARM, arm64: dts: renesas: update register properties"  series.
-
-On Sat, Apr 14, 2018 at 1:56 PM, Niklas S=C3=B6derlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> Document the devicetree bindings for the CSI-2 inputs available on Gen3.
+On 05/17/2018 04:26 AM, Oleksandr Andrushchenko wrote:
+> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 >
-> There is a need to add a custom property 'renesas,id' and to define
-> which CSI-2 input is described in which endpoint under the port@1 node.
-> This information is needed since there are a set of predefined routes
-> between each VIN and CSI-2 block. This routing table will be kept
-> inside the driver but in order for it to act on it it must know which
-> VIN and CSI-2 is which.
+> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+> ---
+>  drivers/xen/grant-table.c | 49 +++++++++++++++++++++++++++++++++++++++
+>  include/xen/grant_table.h |  7 ++++++
+>  2 files changed, 56 insertions(+)
 >
-> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
-se>
-> Acked-by: Rob Herring <robh@kernel.org>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -2,8 +2,12 @@ Renesas R-Car Video Input driver (rcar_vin)
->  -------------------------------------------
->
->  The rcar_vin device provides video input capabilities for the Renesas R-=
-Car
-> -family of devices. The current blocks are always slaves and suppot one i=
-nput
-> -channel which can be either RGB, YUYV or BT656.
-> +family of devices.
+> diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
+> index bb36b1e1dbcc..c27bcc420575 100644
+> --- a/drivers/xen/grant-table.c
+> +++ b/drivers/xen/grant-table.c
+> @@ -729,6 +729,55 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
+>  }
+>  EXPORT_SYMBOL(gnttab_free_pages);
+>  
+> +int gnttab_dma_alloc_pages(struct device *dev, bool coherent,
+> +			   int nr_pages, struct page **pages,
+> +			   void **vaddr, dma_addr_t *dev_bus_addr)
+> +{
+> +	int i;
+> +	int ret;
 > +
-> +Each VIN instance has a single parallel input that supports RGB and YUV =
-video,
-> +with both external synchronization and BT.656 synchronization for the la=
-tter.
-> +Depending on the instance the VIN input is connected to external SoC pin=
-s, or
-> +on Gen3 platforms to a CSI-2 receiver.
->
->   - compatible: Must be one or more of the following
->     - "renesas,vin-r8a7743" for the R8A7743 device
-> @@ -16,6 +20,8 @@ channel which can be either RGB, YUYV or BT656.
->     - "renesas,vin-r8a7793" for the R8A7793 device
->     - "renesas,vin-r8a7794" for the R8A7794 device
->     - "renesas,vin-r8a7795" for the R8A7795 device
-> +   - "renesas,vin-r8a7796" for the R8A7796 device
-> +   - "renesas,vin-r8a77970" for the R8A77970 device
->     - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatibl=
-e
->       device.
->     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
-> @@ -31,21 +37,38 @@ channel which can be either RGB, YUYV or BT656.
->  Additionally, an alias named vinX will need to be created to specify
->  which video input device this is.
->
-> -The per-board settings:
-> +The per-board settings Gen2 platforms:
->   - port sub-node describing a single endpoint connected to the vin
->     as described in video-interfaces.txt[1]. Only the first one will
->     be considered as each vin interface has one input port.
->
-> -   These settings are used to work out video input format and widths
-> -   into the system.
-> +The per-board settings Gen3 platforms:
->
-> +Gen3 platforms can support both a single connected parallel input source
-> +from external SoC pins (port0) and/or multiple parallel input sources
+> +	ret = alloc_dma_xenballooned_pages(dev, coherent, nr_pages, pages,
+> +					   vaddr, dev_bus_addr);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	for (i = 0; i < nr_pages; i++) {
+> +#if BITS_PER_LONG < 64
+> +		struct xen_page_foreign *foreign;
+> +
+> +		foreign = kzalloc(sizeof(*foreign), GFP_KERNEL);
+> +		if (!foreign) {
+> +			gnttab_dma_free_pages(dev, flags, nr_pages, pages,
+> +					      *vaddr, *dev_bus_addr);
+> +			return -ENOMEM;
+> +		}
+> +		set_page_private(pages[i], (unsigned long)foreign);
+> +#endif
+> +		SetPagePrivate(pages[i]);
+> +	}
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(gnttab_dma_alloc_pages);
+> +
+> +void gnttab_dma_free_pages(struct device *dev, bool coherent,
+> +			   int nr_pages, struct page **pages,
+> +			   void *vaddr, dma_addr_t dev_bus_addr)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < nr_pages; i++) {
+> +		if (PagePrivate(pages[i])) {
+> +#if BITS_PER_LONG < 64
+> +			kfree((void *)page_private(pages[i]));
+> +#endif
+> +			ClearPagePrivate(pages[i]);
+> +		}
+> +	}
+> +	free_dma_xenballooned_pages(dev, coherent, nr_pages, pages,
+> +				    vaddr, dev_bus_addr);
+> +}
+> +EXPORT_SYMBOL(gnttab_dma_free_pages);
 
-port@0?
 
-> +from local SoC CSI-2 receivers (port1) depending on SoC.
+Given that these routines look almost exactly like their non-dma
+counterparts I wonder whether common code could be factored out.
 
-port@1?
+-boris
 
->
-> -Device node example
-> --------------------
-> +- renesas,id - ID number of the VIN, VINx in the documentation.
-> +- ports
-> +    - port 0 - sub-node describing a single endpoint connected to the VI=
-N
 
-port@0?
 
-> +      from external SoC pins described in video-interfaces.txt[1].
-> +      Describing more then one endpoint in port 0 is invalid. Only VIN
-
-port@0?
-
-> +      instances that are connected to external pins should have port 0.
-
-port@0?
-
-> +    - port 1 - sub-nodes describing one or more endpoints connected to
-
-port@1?
-
-> +      the VIN from local SoC CSI-2 receivers. The endpoint numbers must
-> +      use the following schema.
->
-> -       aliases {
-> -              vin0 =3D &vin0;
-> -       };
-> +        - Endpoint 0 - sub-node describing the endpoint connected to CSI=
-20
-
-endpoint@0 (lower case and unit address)?
-
-> +        - Endpoint 1 - sub-node describing the endpoint connected to CSI=
-21
-
-endpoint@1?
-
-> +        - Endpoint 2 - sub-node describing the endpoint connected to CSI=
-40
-
-endpoint@2?
-
-> +        - Endpoint 3 - sub-node describing the endpoint connected to CSI=
-41
-
-endpoint@3?
 
 > +
-> +Device node example for Gen2 platforms
-> +--------------------------------------
+>  /* Handling of paged out grant targets (GNTST_eagain) */
+>  #define MAX_DELAY 256
+>  static inline void
+> diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
+> index 34b1379f9777..20ee2b5ba965 100644
+> --- a/include/xen/grant_table.h
+> +++ b/include/xen/grant_table.h
+> @@ -195,6 +195,13 @@ void gnttab_free_auto_xlat_frames(void);
+>  int gnttab_alloc_pages(int nr_pages, struct page **pages);
+>  void gnttab_free_pages(int nr_pages, struct page **pages);
+>  
+> +int gnttab_dma_alloc_pages(struct device *dev, bool coherent,
+> +			   int nr_pages, struct page **pages,
+> +			   void **vaddr, dma_addr_t *dev_bus_addr);
+> +void gnttab_dma_free_pages(struct device *dev, bool coherent,
+> +			   int nr_pages, struct page **pages,
+> +			   void *vaddr, dma_addr_t dev_bus_addr);
 > +
-> +        aliases {
-> +                vin0 =3D &vin0;
-> +        };
->
->          vin0: vin@e6ef0000 {
->                  compatible =3D "renesas,vin-r8a7790", "renesas,rcar-gen2=
--vin";
-> @@ -55,8 +78,8 @@ Device node example
->                  status =3D "disabled";
->          };
->
-> -Board setup example (vin1 composite video input)
-> -------------------------------------------------
-> +Board setup example for Gen2 platforms (vin1 composite video input)
-> +-------------------------------------------------------------------
->
->  &i2c2   {
->          status =3D "okay";
-> @@ -95,6 +118,77 @@ Board setup example (vin1 composite video input)
->          };
->  };
->
-> +Device node example for Gen3 platforms
-> +--------------------------------------
->
-> +        vin0: video@e6ef0000 {
-> +                compatible =3D "renesas,vin-r8a7795";
-> +                reg =3D <0 0xe6ef0000 0 0x1000>;
-> +                interrupts =3D <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
-> +                clocks =3D <&cpg CPG_MOD 811>;
-> +                power-domains =3D <&sysc R8A7795_PD_ALWAYS_ON>;
-> +                resets =3D <&cpg 811>;
-> +                renesas,id =3D <0>;
-> +
-> +                ports {
-> +                        #address-cells =3D <1>;
-> +                        #size-cells =3D <0>;
-> +
-> +                        port@1 {
-> +                                #address-cells =3D <1>;
-> +                                #size-cells =3D <0>;
-> +
-> +                                reg =3D <1>;
-> +
-> +                                vin0csi20: endpoint@0 {
-> +                                        reg =3D <0>;
-> +                                        remote-endpoint=3D <&csi20vin0>;
-> +                                };
-> +                                vin0csi21: endpoint@1 {
-> +                                        reg =3D <1>;
-> +                                        remote-endpoint=3D <&csi21vin0>;
-> +                                };
-> +                                vin0csi40: endpoint@2 {
-> +                                        reg =3D <2>;
-> +                                        remote-endpoint=3D <&csi40vin0>;
-> +                                };
-> +                        };
-> +                };
-> +        };
-> +
-> +        csi20: csi2@fea80000 {
-> +                compatible =3D "renesas,r8a7795-csi2";
-> +                reg =3D <0 0xfea80000 0 0x10000>;
-> +                interrupts =3D <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
-> +                clocks =3D <&cpg CPG_MOD 714>;
-> +                power-domains =3D <&sysc R8A7795_PD_ALWAYS_ON>;
-> +                resets =3D <&cpg 714>;
-> +
-> +                ports {
-> +                        #address-cells =3D <1>;
-> +                        #size-cells =3D <0>;
-> +
-> +                        port@0 {
-> +                                reg =3D <0>;
-> +                                csi20_in: endpoint {
-> +                                        clock-lanes =3D <0>;
-> +                                        data-lanes =3D <1>;
-> +                                        remote-endpoint =3D <&adv7482_tx=
-b>;
-> +                                };
-> +                        };
-> +
-> +                        port@1 {
-> +                                #address-cells =3D <1>;
-> +                                #size-cells =3D <0>;
-> +
-> +                                reg =3D <1>;
-> +
-> +                                csi20vin0: endpoint@0 {
-> +                                        reg =3D <0>;
-> +                                        remote-endpoint =3D <&vin0csi20>=
-;
-> +                                };
-> +                        };
-> +                };
-> +        };
->
->  [1] video-interfaces.txt common video media interface
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---=20
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+>  int gnttab_map_refs(struct gnttab_map_grant_ref *map_ops,
+>  		    struct gnttab_map_grant_ref *kmap_ops,
+>  		    struct page **pages, unsigned int count);
