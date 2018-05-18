@@ -1,89 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:63216 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752394AbeEKOQm (ORCPT
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:56001 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750882AbeEROmT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 10:16:42 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 1/2] Revert "media: rcar-vin: enable field toggle after a set number of lines for Gen3"
-Date: Fri, 11 May 2018 16:15:40 +0200
-Message-Id: <20180511141541.3164-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180511141541.3164-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180511141541.3164-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 18 May 2018 10:42:19 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3 9/9] media: rcar-vin: Add support for R-Car R8A77995 SoC
+Date: Fri, 18 May 2018 16:40:45 +0200
+Message-Id: <1526654445-10702-10-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1526654445-10702-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1526654445-10702-1-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit 015060cb7795eac34454696cc9c9f8b76926a401.
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 20 +++++---------------
- 1 file changed, 5 insertions(+), 15 deletions(-)
+Add R-Car R8A77995 SoC to the rcar-vin supported ones.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index b41ba9a4a2b3ac90..ac07f99e3516a620 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -124,9 +124,7 @@
- #define VNDMR2_VPS		(1 << 30)
- #define VNDMR2_HPS		(1 << 29)
- #define VNDMR2_FTEV		(1 << 17)
--#define VNDMR2_FTEH		(1 << 16)
- #define VNDMR2_VLV(n)		((n & 0xf) << 12)
--#define VNDMR2_HLV(n)		((n) & 0xfff)
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index b740f41..0e088d9 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -1079,6 +1079,18 @@ static const struct rvin_info rcar_info_r8a77970 = {
+ 	.routes = rcar_info_r8a77970_routes,
+ };
  
- /* Video n CSI2 Interface Mode Register (Gen3) */
- #define VNCSI_IFMD_DES1		(1 << 26)
-@@ -614,9 +612,8 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
- 
- static int rvin_setup(struct rvin_dev *vin)
- {
--	u32 vnmc, dmr, dmr2, interrupts, lines;
-+	u32 vnmc, dmr, dmr2, interrupts;
- 	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
--	bool halfsize = false;
- 
- 	switch (vin->format.field) {
- 	case V4L2_FIELD_TOP:
-@@ -631,15 +628,12 @@ static int rvin_setup(struct rvin_dev *vin)
- 		/* Use BT if video standard can be read and is 60 Hz format */
- 		if (!vin->info->use_mc && vin->std & V4L2_STD_525_60)
- 			vnmc = VNMC_IM_FULL | VNMC_FOC;
--		halfsize = true;
- 		break;
- 	case V4L2_FIELD_INTERLACED_TB:
- 		vnmc = VNMC_IM_FULL;
--		halfsize = true;
- 		break;
- 	case V4L2_FIELD_INTERLACED_BT:
- 		vnmc = VNMC_IM_FULL | VNMC_FOC;
--		halfsize = true;
- 		break;
- 	case V4L2_FIELD_NONE:
- 		vnmc = VNMC_IM_ODD_EVEN;
-@@ -682,15 +676,11 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	}
- 
--	if (vin->info->model == RCAR_GEN3) {
--		/* Enable HSYNC Field Toggle mode after height HSYNC inputs. */
--		lines = vin->format.height / (halfsize ? 2 : 1);
--		dmr2 = VNDMR2_FTEH | VNDMR2_HLV(lines);
--		vin_dbg(vin, "Field Toogle after %u lines\n", lines);
--	} else {
--		/* Enable VSYNC Field Toogle mode after one VSYNC input. */
-+	/* Enable VSYNC Field Toogle mode after one VSYNC input */
-+	if (vin->info->model == RCAR_GEN3)
-+		dmr2 = VNDMR2_FTEV;
-+	else
- 		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
--	}
- 
- 	/* Hsync Signal Polarity Select */
- 	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++static const struct rvin_group_route rcar_info_r8a77995_routes[] = {
++	{ /* Sentinel */ }
++};
++
++static const struct rvin_info rcar_info_r8a77995 = {
++	.model = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++	.routes = rcar_info_r8a77995_routes,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+ 	{
+ 		.compatible = "renesas,vin-r8a7778",
+@@ -1120,6 +1132,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.compatible = "renesas,vin-r8a77970",
+ 		.data = &rcar_info_r8a77970,
+ 	},
++	{
++		.compatible = "renesas,vin-r8a77995",
++		.data = &rcar_info_r8a77995,
++	},
+ 	{ /* Sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
 -- 
-2.17.0
+2.7.4
