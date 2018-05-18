@@ -1,92 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56690 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1033167AbeEXUhO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 16:37:14 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 13/20] davinci_vpfe: Add video_device and vb2_queue locks
-Date: Thu, 24 May 2018 17:35:13 -0300
-Message-Id: <20180524203520.1598-14-ezequiel@collabora.com>
-In-Reply-To: <20180524203520.1598-1-ezequiel@collabora.com>
-References: <20180524203520.1598-1-ezequiel@collabora.com>
+Received: from gofer.mess.org ([88.97.38.141]:59811 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752564AbeERPZb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 11:25:31 -0400
+Date: Fri, 18 May 2018 16:25:29 +0100
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        "Michael Kerrisk (man-opages)" <mtk.manpages@gmail.com>
+Cc: linux-man@vger.kernel.org, linux-media@vger.kernel.org,
+        Alec Leamas <leamas.alec@gmail.com>
+Subject: Re: [PATCH] lirc.4: remove ioctls and feature bits which were never
+ implemented
+Message-ID: <20180518152529.eunu6e6735z62bug@gofer.mess.org>
+References: <20180423102637.xtcjidetxo6iaslx@gofer.mess.org>
+ <6b531be3-56ea-b534-3493-d64c98b3f6c5@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6b531be3-56ea-b534-3493-d64c98b3f6c5@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, this driver does not serialize its video4linux
-ioctls, which is a bug, as race conditions might appear.
+On Sun, May 06, 2018 at 12:34:53PM +0200, Michael Kerrisk (man-opages) wrote:
+> [CCing original author of this page]
+> 
+> 
+> On 04/23/2018 12:26 PM, Sean Young wrote:
+> > The lirc header file included ioctls and feature bits which were never
+> > implemented by any driver. They were removed in commit:
+> > 
+> > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d55f09abe24b4dfadab246b6f217da547361cdb6
+> 
+> Alec, does this patch look okay to you?
 
-In addition, video_device and vb2_queue locks are now both
-mandatory. Add them, and implement wait_prepare and
-wait_finish.
+Mauro, as Alec is not responding, would you be able to sign this off?
 
-To stay on the safe side, this commit uses a single mutex
-for both locks. Better latency can be obtained by separating
-these if needed.
+Alternatively, what can be done to progress this?
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 6 +++++-
- drivers/staging/media/davinci_vpfe/vpfe_video.h | 2 +-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+There is some new functionality in lirc which should be added to this man
+page too, so I have more to come (when I get round to writing it).
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 390fc98d07dd..1269a983455e 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -1312,6 +1312,8 @@ static const struct vb2_ops video_qops = {
- 	.stop_streaming		= vpfe_stop_streaming,
- 	.buf_cleanup		= vpfe_buf_cleanup,
- 	.buf_queue		= vpfe_buffer_queue,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
- 
- /*
-@@ -1357,6 +1359,7 @@ static int vpfe_reqbufs(struct file *file, void *priv,
- 	q->buf_struct_size = sizeof(struct vpfe_cap_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->dev = vpfe_dev->pdev;
-+	q->lock = &video->lock;
- 
- 	ret = vb2_queue_init(q);
- 	if (ret) {
-@@ -1598,17 +1601,18 @@ int vpfe_video_init(struct vpfe_video_device *video, const char *name)
- 		return -EINVAL;
- 	}
- 	/* Initialize field of video device */
-+	mutex_init(&video->lock);
- 	video->video_dev.release = video_device_release;
- 	video->video_dev.fops = &vpfe_fops;
- 	video->video_dev.ioctl_ops = &vpfe_ioctl_ops;
- 	video->video_dev.minor = -1;
- 	video->video_dev.tvnorms = 0;
-+	video->video_dev.lock = &video->lock;
- 	snprintf(video->video_dev.name, sizeof(video->video_dev.name),
- 		 "DAVINCI VIDEO %s %s", name, direction);
- 
- 	spin_lock_init(&video->irqlock);
- 	spin_lock_init(&video->dma_queue_lock);
--	mutex_init(&video->lock);
- 	ret = media_entity_pads_init(&video->video_dev.entity,
- 				1, &video->pad);
- 	if (ret < 0)
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-index 22136d3dadcb..4bbd219e8329 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-@@ -128,7 +128,7 @@ struct vpfe_video_device {
- 	spinlock_t				irqlock;
- 	/* IRQ lock for DMA queue */
- 	spinlock_t				dma_queue_lock;
--	/* lock used to access this structure */
-+	/* lock used to serialize all video4linux ioctls */
- 	struct mutex				lock;
- 	/* number of users performing IO */
- 	u32					io_usrs;
--- 
-2.16.3
+Thanks,
+
+Sean
+> 
+> Cheers,
+> 
+> Michael
+> 
+> > Signed-off-by: Sean Young <sean@mess.org>
+> > ---
+> >   man4/lirc.4 | 92 ++-----------------------------------------------------------
+> >   1 file changed, 2 insertions(+), 90 deletions(-)
+> > 
+> > diff --git a/man4/lirc.4 b/man4/lirc.4
+> > index 1e94a7163..3adff55f1 100644
+> > --- a/man4/lirc.4
+> > +++ b/man4/lirc.4
+> > @@ -78,9 +78,7 @@ The package reflects a timeout; see the
+> >   .B LIRC_SET_REC_TIMEOUT_REPORTS
+> >   ioctl.
+> >   .\"
+> > -.SS Reading input with the
+> > -.B LIRC_MODE_LIRCCODE
+> > -drivers
+> > +.SS Reading input with the LIRC_MODE_LIRCCODE drivers
+> >   .PP
+> >   In the \fBLIRC_MODE_LIRCCODE\fR
+> >   mode, the data returned by
+> > @@ -204,17 +202,11 @@ Currently serves no purpose since only
+> >   .BR LIRC_MODE_PULSE
+> >   is supported.
+> >   .TP
+> > -.BR LIRC_GET_SEND_CARRIER " (\fIvoid\fP)"
+> > -Get the modulation frequency (Hz).
+> > -.TP
+> >   .BR LIRC_SET_SEND_CARRIER " (\fIint\fP)"
+> >   Set the modulation frequency.
+> >   The argument is the frequency (Hz).
+> >   .TP
+> > -.BR LIRC_GET_SEND_CARRIER " (\fIvoid\fP)"
+> > -Get the modulation frequency used when decoding (Hz).
+> > -.TP
+> > -.BR SET_SEND_DUTY_CYCLE " (\fIint\fP)"
+> > +.BR LIRC_SET_SEND_DUTY_CYCLE " (\fIint\fP)"
+> >   Set the carrier duty cycle.
+> >   .I val
+> >   is a number in the range [0,100] which
+> > @@ -284,36 +276,6 @@ By default this should be turned off.
+> >   .BR LIRC_GET_REC_RESOLUTION " (\fIvoid\fP)"
+> >   Return the driver resolution (microseconds).
+> >   .TP
+> > -.BR LIRC_GET_MIN_FILTER_PULSE " (\fIvoid\fP)", " " \
+> > -LIRC_GET_MAX_FILTER_PULSE " (\fIvoid\fP)"
+> > -Some devices are able to filter out spikes in the incoming signal
+> > -using given filter rules.
+> > -These ioctls return the hardware capabilities that describe the bounds
+> > -of the possible filters.
+> > -Filter settings depend on the IR protocols that are expected.
+> > -.BR lircd (8)
+> > -derives the settings from all protocols definitions found in its
+> > -.BR lircd.conf (5)
+> > -config file.
+> > -.TP
+> > -.BR LIRC_GET_MIN_FILTER_SPACE " (\fIvoid\fP)", " " \
+> > -LIRC_GET_MAX_FILTER_SPACE " (\fIvoid\fP)"
+> > -See
+> > -.BR LIRC_GET_MIN_FILTER_PULSE .
+> > -.TP
+> > -.BR LIRC_SET_REC_FILTER " (\fIint\fP)"
+> > -Pulses/spaces shorter than this (microseconds) are filtered out by
+> > -hardware.
+> > -.TP
+> > -.BR LIRC_SET_REC_FILTER_PULSE " (\fIint\fP)", " " \
+> > -LIRC_SET_REC_FILTER_SPACE " (\fIint\fP)"
+> > -Pulses/spaces shorter than this (microseconds) are filtered out by
+> > -hardware.
+> > -If filters cannot be set independently for pulse/space, the
+> > -corresponding ioctls must return an error and
+> > -.BR LIRC_SET_REC_FILTER
+> > -should be used instead.
+> > -.TP
+> >   .BR LIRC_SET_TRANSMITTER_MASK
+> >   Enable the set of transmitters specified in
+> >   .IR val ,
+> > @@ -343,32 +305,6 @@ carrier reports.
+> >   In that case, it will be disabled as soon as you disable carrier reports.
+> >   Trying to disable a wide band receiver while carrier reports are active
+> >   will do nothing.
+> > -.TP
+> > -.BR LIRC_SETUP_START " (\fIvoid\fP), " LIRC_SETUP_END " (\fIvoid\fP)"
+> > -Setting of several driver parameters can be optimized by bracketing
+> > -the actual ioctl calls
+> > -.BR LIRC_SETUP_START
+> > -and
+> > -.BR LIRC_SETUP_END .
+> > -When a driver receives a
+> > -.BR LIRC_SETUP_START
+> > -ioctl, it can choose to not commit further setting changes to the
+> > -hardware until a
+> > -.BR LIRC_SETUP_END
+> > -is received.
+> > -But this is open to the driver implementation and every driver
+> > -must also handle parameter changes which are not encapsulated by
+> > -.BR LIRC_SETUP_START
+> > -and
+> > -.BR LIRC_SETUP_END .
+> > -Drivers can also choose to ignore these ioctls.
+> > -.TP
+> > -.BR LIRC_NOTIFY_DECODE " (\fIvoid\fP)"
+> > -This ioctl is called by
+> > -.BR lircd (8)
+> > -whenever a successful decoding of an incoming IR signal is possible.
+> > -This can be used by supporting hardware to give visual user
+> > -feedback, for example by flashing an LED.
+> >   .\"
+> >   .SH FEATURES
+> >   .PP
+> > @@ -378,14 +314,6 @@ The
+> >   ioctl returns a bit mask describing features of the driver.
+> >   The following bits may be returned in the mask:
+> >   .TP
+> > -.BR LIRC_CAN_REC_RAW
+> > -The driver is capable of receiving using
+> > -.BR LIRC_MODE_RAW .
+> > -.TP
+> > -.BR LIRC_CAN_REC_PULSE
+> > -The driver is capable of receiving using
+> > -.BR LIRC_MODE_PULSE .
+> > -.TP
+> >   .BR LIRC_CAN_REC_MODE2
+> >   The driver is capable of receiving using
+> >   .BR LIRC_MODE_MODE2 .
+> > @@ -426,10 +354,6 @@ The driver supports
+> >   The driver supports
+> >   .BR LIRC_SET_REC_TIMEOUT .
+> >   .TP
+> > -.BR LIRC_CAN_SET_REC_FILTER
+> > -The driver supports
+> > -.BR LIRC_SET_REC_FILTER .
+> > -.TP
+> >   .BR LIRC_CAN_MEASURE_CARRIER
+> >   The driver supports measuring of the modulation frequency using
+> >   .BR LIRC_SET_MEASURE_CARRIER_MODE .
+> > @@ -438,22 +362,10 @@ The driver supports measuring of the modulation frequency using
+> >   The driver supports learning mode using
+> >   .BR LIRC_SET_WIDEBAND_RECEIVER .
+> >   .TP
+> > -.BR LIRC_CAN_NOTIFY_DECODE
+> > -The driver supports
+> > -.BR LIRC_NOTIFY_DECODE .
+> > -.TP
+> > -.BR LIRC_CAN_SEND_RAW
+> > -The driver supports sending using
+> > -.BR LIRC_MODE_RAW .
+> > -.TP
+> >   .BR LIRC_CAN_SEND_PULSE
+> >   The driver supports sending using
+> >   .BR LIRC_MODE_PULSE .
+> >   .TP
+> > -.BR LIRC_CAN_SEND_MODE2
+> > -The driver supports sending using
+> > -.BR LIRC_MODE_MODE2 .
+> > -.TP
+> >   .BR LIRC_CAN_SEND_LIRCCODE
+> >   The driver supports sending.
+> >   (This is uncommon, since
+> > 
