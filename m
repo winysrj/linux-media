@@ -1,83 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54884 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751907AbeEQSFL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 14:05:11 -0400
-Content-Type: text/plain; charset="utf-8"
+Received: from perceval.ideasonboard.com ([213.167.242.64]:43900 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751952AbeERUxX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 16:53:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran@ksquared.org.uk>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v11 02/10] media: vsp1: Move video suspend resume handling to video object
+Date: Fri, 18 May 2018 23:53:44 +0300
+Message-ID: <4496844.sVUn2bIkLG@avalon>
+In-Reply-To: <1969e3639e2a1bcfd104a1054b30f9d914fe5dfb.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com> <1969e3639e2a1bcfd104a1054b30f9d914fe5dfb.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com
-From: Stephen Boyd <sboyd@kernel.org>
-In-Reply-To: <20180517125033.18050-4-rui.silva@linaro.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        linux-clk@vger.kernel.org
-References: <20180517125033.18050-1-rui.silva@linaro.org>
- <20180517125033.18050-4-rui.silva@linaro.org>
-Message-ID: <152658031035.210890.12212209931570500982@swboyd.mtv.corp.google.com>
-Subject: Re: [PATCH v4 03/12] clk: imx7d: fix mipi dphy div parent
-Date: Thu, 17 May 2018 11:05:10 -0700
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quoting Rui Miguel Silva (2018-05-17 05:50:24)
-> Fix the mipi dphy root divider to mipi_dphy_pre_div, this would remove a =
-orphan
-> clock and set the correct parent.
-> =
+Hi Kieran,
 
-> before:
-> cat clk_orphan_summary
->                                  enable  prepare  protect
->    clock                          count    count    count        rate   a=
-ccuracy   phase
-> -------------------------------------------------------------------------=
----------------
->  mipi_dphy_post_div                   1        1        0           0    =
-      0 0
->     mipi_dphy_root_clk                1        1        0           0    =
-      0 0
-> =
+Thank you for the patch.
 
-> cat clk_dump | grep mipi_dphy
-> mipi_dphy_post_div                    1        1        0           0    =
-      0 0
->     mipi_dphy_root_clk                1        1        0           0    =
-      0 0
-> =
+On Friday, 18 May 2018 23:41:55 EEST Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> The suspend and resume handlers are only utilised by video pipelines,
+> yet the functions currently reside in the vsp1_pipe object.
+> 
+> This causes an issue with resume, as the functions incorrectly call
+> vsp1_pipeline_run() directly instead of processing the video object
+> through vsp1_video_pipeline_run().
+> 
+> Move the functions to the video object, renaming accordingly and update
+> the resume handler to call vsp1_video_pipeline_run() as appropriate.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-> after:
-> cat clk_dump | grep mipi_dphy
->    mipi_dphy_src                     1        1        0    24000000     =
-     0 0
->        mipi_dphy_cg                  1        1        0    24000000     =
-     0 0
->           mipi_dphy_pre_div          1        1        0    24000000     =
-     0 0
->              mipi_dphy_post_div      1        1        0    24000000     =
-     0 0
->                 mipi_dphy_root_clk   1        1        0    24000000     =
-     0 0
-> =
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> Fixes: 8f6d8094b215 ("ARM: imx: add imx7d clk tree support")
-> =
-
-> Cc: linux-clk@vger.kernel.org
-> Acked-by: Dong Aisheng <Aisheng.dong@nxp.com>
-> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 > ---
+>  drivers/media/platform/vsp1/vsp1_drv.c   |  4 +-
+>  drivers/media/platform/vsp1/vsp1_pipe.c  | 70 +-----------------------
+>  drivers/media/platform/vsp1/vsp1_pipe.h  |  3 +-
+>  drivers/media/platform/vsp1/vsp1_video.c | 75 +++++++++++++++++++++++++-
+>  drivers/media/platform/vsp1/vsp1_video.h |  3 +-
+>  5 files changed, 80 insertions(+), 75 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
+> b/drivers/media/platform/vsp1/vsp1_drv.c index d29f9c4baebe..5d82f6ee56ea
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drv.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+> @@ -589,7 +589,7 @@ static int __maybe_unused vsp1_pm_suspend(struct device
+> *dev) * restarted explicitly by the DU.
+>  	 */
+>  	if (!vsp1->drm)
+> -		vsp1_pipelines_suspend(vsp1);
+> +		vsp1_video_suspend(vsp1);
+> 
+>  	pm_runtime_force_suspend(vsp1->dev);
+> 
+> @@ -607,7 +607,7 @@ static int __maybe_unused vsp1_pm_resume(struct device
+> *dev) * restarted explicitly by the DU.
+>  	 */
+>  	if (!vsp1->drm)
+> -		vsp1_pipelines_resume(vsp1);
+> +		vsp1_video_resume(vsp1);
+> 
+>  	return 0;
+>  }
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c
+> b/drivers/media/platform/vsp1/vsp1_pipe.c index 6fde4c0b9844..da21f1a7cd75
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+> @@ -386,73 +386,3 @@ void vsp1_pipeline_propagate_partition(struct
+> vsp1_pipeline *pipe, }
+>  }
+> 
+> -void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
+> -{
+> -	unsigned long flags;
+> -	unsigned int i;
+> -	int ret;
+> -
+> -	/*
+> -	 * To avoid increasing the system suspend time needlessly, loop over the
+> -	 * pipelines twice, first to set them all to the stopping state, and
+> -	 * then to wait for the stop to complete.
+> -	 */
+> -	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+> -		struct vsp1_rwpf *wpf = vsp1->wpf[i];
+> -		struct vsp1_pipeline *pipe;
+> -
+> -		if (wpf == NULL)
+> -			continue;
+> -
+> -		pipe = wpf->entity.pipe;
+> -		if (pipe == NULL)
+> -			continue;
+> -
+> -		spin_lock_irqsave(&pipe->irqlock, flags);
+> -		if (pipe->state == VSP1_PIPELINE_RUNNING)
+> -			pipe->state = VSP1_PIPELINE_STOPPING;
+> -		spin_unlock_irqrestore(&pipe->irqlock, flags);
+> -	}
+> -
+> -	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+> -		struct vsp1_rwpf *wpf = vsp1->wpf[i];
+> -		struct vsp1_pipeline *pipe;
+> -
+> -		if (wpf == NULL)
+> -			continue;
+> -
+> -		pipe = wpf->entity.pipe;
+> -		if (pipe == NULL)
+> -			continue;
+> -
+> -		ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
+> -					 msecs_to_jiffies(500));
+> -		if (ret == 0)
+> -			dev_warn(vsp1->dev, "pipeline %u stop timeout\n",
+> -				 wpf->entity.index);
+> -	}
+> -}
+> -
+> -void vsp1_pipelines_resume(struct vsp1_device *vsp1)
+> -{
+> -	unsigned long flags;
+> -	unsigned int i;
+> -
+> -	/* Resume all running pipelines. */
+> -	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+> -		struct vsp1_rwpf *wpf = vsp1->wpf[i];
+> -		struct vsp1_pipeline *pipe;
+> -
+> -		if (wpf == NULL)
+> -			continue;
+> -
+> -		pipe = wpf->entity.pipe;
+> -		if (pipe == NULL)
+> -			continue;
+> -
+> -		spin_lock_irqsave(&pipe->irqlock, flags);
+> -		if (vsp1_pipeline_ready(pipe))
+> -			vsp1_pipeline_run(pipe);
+> -		spin_unlock_irqrestore(&pipe->irqlock, flags);
+> -	}
+> -}
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
+> b/drivers/media/platform/vsp1/vsp1_pipe.h index 663d7fed7929..69858ba6cb31
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+> @@ -164,9 +164,6 @@ void vsp1_pipeline_propagate_partition(struct
+> vsp1_pipeline *pipe, unsigned int index,
+>  				       struct vsp1_partition_window *window);
+> 
+> -void vsp1_pipelines_suspend(struct vsp1_device *vsp1);
+> -void vsp1_pipelines_resume(struct vsp1_device *vsp1);
+> -
+>  const struct vsp1_format_info *vsp1_get_format_info(struct vsp1_device
+> *vsp1, u32 fourcc);
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> b/drivers/media/platform/vsp1/vsp1_video.c index ba89dd176a13..5deb35210055
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -1171,6 +1171,81 @@ static const struct v4l2_file_operations
+> vsp1_video_fops = { };
+> 
+>  /*
+> ---------------------------------------------------------------------------
+> -- + * Suspend and Resume
+> + */
+> +
+> +void vsp1_video_suspend(struct vsp1_device *vsp1)
+> +{
+> +	unsigned long flags;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	/*
+> +	 * To avoid increasing the system suspend time needlessly, loop over the
+> +	 * pipelines twice, first to set them all to the stopping state, and
+> +	 * then to wait for the stop to complete.
+> +	 */
+> +	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+> +		struct vsp1_rwpf *wpf = vsp1->wpf[i];
+> +		struct vsp1_pipeline *pipe;
+> +
+> +		if (wpf == NULL)
+> +			continue;
+> +
+> +		pipe = wpf->entity.pipe;
+> +		if (pipe == NULL)
+> +			continue;
+> +
+> +		spin_lock_irqsave(&pipe->irqlock, flags);
+> +		if (pipe->state == VSP1_PIPELINE_RUNNING)
+> +			pipe->state = VSP1_PIPELINE_STOPPING;
+> +		spin_unlock_irqrestore(&pipe->irqlock, flags);
+> +	}
+> +
+> +	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+> +		struct vsp1_rwpf *wpf = vsp1->wpf[i];
+> +		struct vsp1_pipeline *pipe;
+> +
+> +		if (wpf == NULL)
+> +			continue;
+> +
+> +		pipe = wpf->entity.pipe;
+> +		if (pipe == NULL)
+> +			continue;
+> +
+> +		ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
+> +					 msecs_to_jiffies(500));
+> +		if (ret == 0)
+> +			dev_warn(vsp1->dev, "pipeline %u stop timeout\n",
+> +				 wpf->entity.index);
+> +	}
+> +}
+> +
+> +void vsp1_video_resume(struct vsp1_device *vsp1)
+> +{
+> +	unsigned long flags;
+> +	unsigned int i;
+> +
+> +	/* Resume all running pipelines. */
+> +	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+> +		struct vsp1_rwpf *wpf = vsp1->wpf[i];
+> +		struct vsp1_pipeline *pipe;
+> +
+> +		if (wpf == NULL)
+> +			continue;
+> +
+> +		pipe = wpf->entity.pipe;
+> +		if (pipe == NULL)
+> +			continue;
+> +
+> +		spin_lock_irqsave(&pipe->irqlock, flags);
+> +		if (vsp1_pipeline_ready(pipe))
+> +			vsp1_video_pipeline_run(pipe);
+> +		spin_unlock_irqrestore(&pipe->irqlock, flags);
+> +	}
+> +}
+> +
+> +/*
+> ---------------------------------------------------------------------------
+> -- * Initialization and Cleanup
+>   */
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.h
+> b/drivers/media/platform/vsp1/vsp1_video.h index 75a5a65c66fe..f3cf5e2fdf5a
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.h
+> +++ b/drivers/media/platform/vsp1/vsp1_video.h
+> @@ -51,6 +51,9 @@ static inline struct vsp1_video *to_vsp1_video(struct
+> video_device *vdev) return container_of(vdev, struct vsp1_video, video);
+>  }
+> 
+> +void vsp1_video_suspend(struct vsp1_device *vsp1);
+> +void vsp1_video_resume(struct vsp1_device *vsp1);
+> +
+>  struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
+>  				     struct vsp1_rwpf *rwpf);
+>  void vsp1_video_cleanup(struct vsp1_video *video);
 
-I only get two patches out of the 12 and I don't get a cover letter.
-Did you want me to pick up these clk patches into clk-next? Where are
-the other patches? Can you cc lkml on all your kernel emails so I can
-easily find them?
+
+-- 
+Regards,
+
+Laurent Pinchart
