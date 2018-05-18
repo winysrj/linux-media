@@ -1,58 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:37905 "EHLO imap.netup.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751662AbeEPLEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 07:04:45 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:50728 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752536AbeEROEk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 10:04:40 -0400
+Date: Fri, 18 May 2018 16:04:35 +0200
+From: Ana Guerrero Lopez <ana.guerrero@collabora.com>
+To: ming_qian@realsil.com.cn
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: media: uvcvideo: Support realtek's UVC 1.5 device
+Message-ID: <20180518140435.GA17444@delenn>
+References: <1525831988-32017-1-git-send-email-ming_qian@realsil.com.cn>
 MIME-Version: 1.0
-In-Reply-To: <20180516084111.28618-1-suzuki.katsuhiro@socionext.com>
-References: <20180516084111.28618-1-suzuki.katsuhiro@socionext.com>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 16 May 2018 06:58:13 -0400
-Message-ID: <CAK3bHNW8=z2WH6xCijAP2XCX94iE5z-HwHRYNhbJwZvbOav10A@mail.gmail.com>
-Subject: Re: [PATCH] media: helene: fix tuning frequency of satellite
-To: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Masami Hiramatsu <masami.hiramatsu@linaro.org>,
-        Jassi Brar <jaswinder.singh@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1525831988-32017-1-git-send-email-ming_qian@realsil.com.cn>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-True.
-I'm curious but how did it worked before ...
-Which hardware (dvb adapter) are you using ?
+On Wed, May 09, 2018 at 10:13:08AM +0800, ming_qian@realsil.com.cn wrote:
+> From: ming_qian <ming_qian@realsil.com.cn>
+> 
+> The length of UVC 1.5 video control is 48, and it id 34 for UVC 1.1.
+> Change it to 48 for UVC 1.5 device,
+> and the UVC 1.5 device can be recognized.
+> 
+> More changes to the driver are needed for full UVC 1.5 compatibility.
+> However, at least the UVC 1.5 Realtek RTS5847/RTS5852 cameras have
+> been reported to work well.
+> 
+> Signed-off-by: ming_qian <ming_qian@realsil.com.cn>
+> Tested-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+> Tested-by: Josef Šimánek <josef.simanek@gmail.com>
 
-2018-05-16 4:41 GMT-04:00 Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>:
-> This patch fixes tuning frequency of satellite to kHz. That as same
-> as terrestrial one.
->
-> Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-> ---
->  drivers/media/dvb-frontends/helene.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/dvb-frontends/helene.c b/drivers/media/dvb-frontends/helene.c
-> index 04033f0c278b..0a4f312c4368 100644
-> --- a/drivers/media/dvb-frontends/helene.c
-> +++ b/drivers/media/dvb-frontends/helene.c
-> @@ -523,7 +523,7 @@ static int helene_set_params_s(struct dvb_frontend *fe)
->         enum helene_tv_system_t tv_system;
->         struct dtv_frontend_properties *p = &fe->dtv_property_cache;
->         struct helene_priv *priv = fe->tuner_priv;
-> -       int frequencykHz = p->frequency;
-> +       int frequencykHz = p->frequency / 1000;
->         uint32_t frequency4kHz = 0;
->         u32 symbol_rate = p->symbol_rate/1000;
->
-> --
-> 2.17.0
->
+It works perfectly here on 4.16.5 with a Dell XPS 9370 in Debian.
 
+Tested-by: Ana Guerrero Lopez <ana.guerrero@collabora.com>
 
-
--- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+Cheers,
+Ana
