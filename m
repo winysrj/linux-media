@@ -1,62 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:50807 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751260AbeEMMi3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 May 2018 08:38:29 -0400
-Date: Sun, 13 May 2018 13:38:27 +0100
-From: Sean Young <sean@mess.org>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:40101 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752214AbeERN4p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 09:56:45 -0400
+From: Jan Luebbe <jlu@pengutronix.de>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.18] RC fixes
-Message-ID: <20180513123827.vo5566xuezxwyf3i@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: Jan Luebbe <jlu@pengutronix.de>, slongerbeam@gmail.com,
+        p.zabel@pengutronix.de, kernel@pengutronix.de
+Subject: [PATCH v3 1/2] media: imx: capture: refactor enum_/try_fmt
+Date: Fri, 18 May 2018 15:56:38 +0200
+Message-Id: <20180518135639.19889-2-jlu@pengutronix.de>
+In-Reply-To: <20180518135639.19889-1-jlu@pengutronix.de>
+References: <20180518135639.19889-1-jlu@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+By checking and handling the internal IPU formats (ARGB or AYUV) first,
+we don't need to check whether it's a bayer format, as we can default to
+passing the input format on in all other cases.
 
-Here is a fix for the lirc docs warning, a fix for the topseed mceusb
-device which did not like having its IR timeout set, and some patches
-which validate the IR raw events drivers produce.
+This simplifies handling the different configurations for RGB565 between
+parallel and MIPI CSI-2, as we don't need to check the details of the
+format anymore.
 
-Thanks
-Sean
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+---
+ drivers/staging/media/imx/imx-media-capture.c | 38 +++++++++----------
+ 1 file changed, 18 insertions(+), 20 deletions(-)
 
-The following changes since commit 2a5f2705c97625aa1a4e1dd4d584eaa05392e060:
-
-  media: lgdt330x.h: fix compiler warning (2018-05-11 11:40:09 -0400)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/syoung/media_tree.git for-v4.18c
-
-for you to fetch changes up to 4190ce876ae3ac624bbc9d57c10e84525e56be94:
-
-  media: rc: ite-cir: lower timeout and extend allowed timeout range (2018-05-13 13:14:12 +0100)
-
-----------------------------------------------------------------
-Matthias Reichl (1):
-      media: rc: ite-cir: lower timeout and extend allowed timeout range
-
-Sean Young (8):
-      media: mceusb: MCE_CMD_SETIRTIMEOUT cause strange behaviour on device
-      media: mceusb: filter out bogus timing irdata of duration 0
-      media: mceusb: add missing break
-      media: lirc-func.rst: new ioctl LIRC_GET_REC_TIMEOUT is not in a separate file
-      media: rc: default to idle on at startup or after reset
-      media: rc: drivers should produce alternate pulse and space timing events
-      media: rc: decoders do not need to check for transitions
-      media: rc: winbond: do not send reset and timeout raw events on startup
-
- Documentation/media/uapi/rc/lirc-func.rst |  1 -
- drivers/media/rc/ir-mce_kbd-decoder.c     |  6 ------
- drivers/media/rc/ir-rc5-decoder.c         |  3 ---
- drivers/media/rc/ir-rc6-decoder.c         | 10 ----------
- drivers/media/rc/ite-cir.c                |  8 +++++---
- drivers/media/rc/ite-cir.h                |  7 -------
- drivers/media/rc/mceusb.c                 | 28 +++++++++++++++++++++++++---
- drivers/media/rc/rc-ir-raw.c              | 20 ++++++++++++++++----
- drivers/media/rc/winbond-cir.c            |  4 ++--
- include/media/rc-core.h                   |  1 +
- 10 files changed, 49 insertions(+), 39 deletions(-)
+diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+index 0ccabe04b0e1..64c23ef92931 100644
+--- a/drivers/staging/media/imx/imx-media-capture.c
++++ b/drivers/staging/media/imx/imx-media-capture.c
+@@ -170,23 +170,22 @@ static int capture_enum_fmt_vid_cap(struct file *file, void *fh,
+ 	}
+ 
+ 	cc_src = imx_media_find_ipu_format(fmt_src.format.code, CS_SEL_ANY);
+-	if (!cc_src)
+-		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
+-						    CS_SEL_ANY, true);
+-	if (!cc_src)
+-		return -EINVAL;
+-
+-	if (cc_src->bayer) {
+-		if (f->index != 0)
+-			return -EINVAL;
+-		fourcc = cc_src->fourcc;
+-	} else {
++	if (cc_src) {
+ 		u32 cs_sel = (cc_src->cs == IPUV3_COLORSPACE_YUV) ?
+ 			CS_SEL_YUV : CS_SEL_RGB;
+ 
+ 		ret = imx_media_enum_format(&fourcc, f->index, cs_sel);
+ 		if (ret)
+ 			return ret;
++	} else {
++		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
++						    CS_SEL_ANY, true);
++		if (WARN_ON(!cc_src))
++			return -EINVAL;
++
++		if (f->index != 0)
++			return -EINVAL;
++		fourcc = cc_src->fourcc;
+ 	}
+ 
+ 	f->pixelformat = fourcc;
+@@ -219,15 +218,7 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
+ 		return ret;
+ 
+ 	cc_src = imx_media_find_ipu_format(fmt_src.format.code, CS_SEL_ANY);
+-	if (!cc_src)
+-		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
+-						    CS_SEL_ANY, true);
+-	if (!cc_src)
+-		return -EINVAL;
+-
+-	if (cc_src->bayer) {
+-		cc = cc_src;
+-	} else {
++	if (cc_src) {
+ 		u32 fourcc, cs_sel;
+ 
+ 		cs_sel = (cc_src->cs == IPUV3_COLORSPACE_YUV) ?
+@@ -239,6 +230,13 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
+ 			imx_media_enum_format(&fourcc, 0, cs_sel);
+ 			cc = imx_media_find_format(fourcc, cs_sel, false);
+ 		}
++	} else {
++		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
++						    CS_SEL_ANY, true);
++		if (WARN_ON(!cc_src))
++			return -EINVAL;
++
++		cc = cc_src;
+ 	}
+ 
+ 	imx_media_mbus_fmt_to_pix_fmt(&f->fmt.pix, &fmt_src.format, cc);
+-- 
+2.17.0
