@@ -1,73 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:41674 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964976AbeE3IxY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 04:53:24 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-References: <m37eobudmo.fsf@t19.piap.pl>
-        <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
-        <m3tvresqfw.fsf@t19.piap.pl>
-        <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
-        <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
-        <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
-        <m3h8mxqc7t.fsf@t19.piap.pl>
-        <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
-        <1527229949.4938.1.camel@pengutronix.de> <m3y3g8p5j3.fsf@t19.piap.pl>
-        <1e11fa9a-8fa6-c746-7ee1-a64666bfc44e@gmail.com>
-        <m3lgc2q5vl.fsf@t19.piap.pl>
-        <06b9dd3d-3b7d-d34d-5263-411c99ab1a8b@gmail.com>
-Date: Wed, 30 May 2018 10:53:21 +0200
-In-Reply-To: <06b9dd3d-3b7d-d34d-5263-411c99ab1a8b@gmail.com> (Steve
-        Longerbeam's message of "Tue, 29 May 2018 07:00:36 -0700")
-Message-ID: <m38t81plry.fsf@t19.piap.pl>
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:43890 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752249AbeEROEV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 10:04:21 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1526648704-16873-1-git-send-email-narmstrong@baylibre.com>
+References: <1526648704-16873-1-git-send-email-narmstrong@baylibre.com>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Date: Fri, 18 May 2018 16:04:19 +0200
+Message-ID: <CAFqH_52JvXExvk6ToJ6_7kHVE+EDjc3NBngkexktx1ReOS1KuQ@mail.gmail.com>
+Subject: Re: [PATCH v2 0/5] Add ChromeOS EC CEC Support
+To: Neil Armstrong <narmstrong@baylibre.com>
+Cc: David Airlie <airlied@linux.ie>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        Olof Johansson <olof@lixom.net>,
+        Sean Paul <seanpaul@google.com>, sadolfsson@google.com,
+        Felix Ekblom <felixe@google.com>,
+        Benson Leung <bleung@google.com>, darekm@google.com,
+        =?UTF-8?Q?St=C3=A9phane_Marchesin?= <marcheu@chromium.org>,
+        Fabien Parent <fparent@baylibre.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steve Longerbeam <slongerbeam@gmail.com> writes:
+Hi Neil,
 
-> Yes, you'll need to patch adv7180.c to select either
-> 'seq-bt/tb' or 'alternate'. The current version will override
-> any attempt to set field to anything other than 'interlaced'.
-> This is in anticipation of getting a patch merged for adv7180
-> that fixes this.
+2018-05-18 15:04 GMT+02:00 Neil Armstrong <narmstrong@baylibre.com>:
+> Hi All,
+>
+> The new Google "Fizz" Intel-based ChromeOS device is gaining CEC support
+> through it's Embedded Controller, to enable the Linux CEC Core to communicate
+> with it and get the CEC Physical Address from the correct HDMI Connector, the
+> following must be added/changed:
+> - Add the CEC sub-device registration in the ChromeOS EC MFD Driver
+> - Add the CEC related commands and events definitions into the EC MFD driver
+> - Add a way to get a CEC notifier with it's (optional) connector name
+> - Add the CEC notifier to the i915 HDMI driver
+> - Add the proper ChromeOS EC CEC Driver
+>
+> The CEC notifier with the connector name is the tricky point, since even on
+> Device-Tree platforms, there is no way to distinguish between multiple HDMI
+> connectors from the same DRM driver. The solution I implemented is pretty
+> simple and only adds an optional connector name to eventually distinguish
+> an HDMI connector notifier from another if they share the same device.
+>
+> Feel free to comment this patchset !
+>
+> Changes since v2:
+>  - Add i915 port_identifier() and use this stable name as cec_notifier conn name
+>  - Fixed and cleaned up the CEC commands and events handling
+>  - Rebased the CEC sub-device registration on top of Enric's serie
+>  - Fixed comments typo on cec driver
+>  - Protected the DMI match only with PCI and DMI Kconfigs
+>
 
-Right. I've applied the patch from your adv718x-v6 branch (just the
-"media: adv7180: fix field type" patch) and now it works.
+Just because I got confused when I saw two v2 in my inbox. This is v3, right?
 
-Also, I have changed "seq-bt" to "alternate" (in the examples in
-Documentation/media/v4l-drivers/imx.rst) - the data stream from ADV7180
-to CSI consists of separate fields which can then be merged into frames
-in any order requested by the user (e.g. in accordance with "digital PAL
-/ NTSC" requirements).
-
-The following:
-media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480 field:alternate]"
-media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480]"
-media-ctl -V "'ipu2_csi1':2 [fmt:AYUV32/720x480 field:interlaced]"
-now produces:
-
-"adv7180 2-0020":0 [fmt:UYVY2X8/720x480 field:alternate]
-"ipu2_csi1_mux":1  [fmt:UYVY2X8/720x480 field:alternate]
-"ipu2_csi1_mux":2  [fmt:UYVY2X8/720x480 field:alternate]
-"ipu2_csi1":0      [fmt:UYVY2X8/720x480 field:alternate]
-"ipu2_csi1":2      [fmt:AYUV32/720x480 field:interlaced-bt]
-
-and it works correctly.
-
-The only issue is that I can't:
-media-ctl -V "'ipu2_csi1':2 [fmt:AYUV32/720x480 field:interlaced-tb]"
-(it remains fixed in -bt mode since NTSC is the default). I think we may
-set TB/BT by default (depending on CSI input geometry or TV standard),
-but it should be possible for the user to explicitly request the field
-order on CSI output (I can make a patch I guess).
--- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+> Changes since v1:
+>  - Added cec_notifier_put to intel_hdmi
+>  - Fixed all small reported issues on the EC CEC driver
+>  - Moved the cec_notifier_get out of the #if .. #else .. #endif
+>
+> Changes since RFC:
+>  - Moved CEC sub-device registration after CEC commands and events definitions patch
+>  - Removed get_notifier_get_byname
+>  - Added CEC_CORE select into i915 Kconfig
+>  - Removed CEC driver fallback if notifier is not configured on HW, added explicit warn
+>  - Fixed CEC core return type on error
+>  - Moved to cros-ec-cec media platform directory
+>  - Use bus_find_device() to find the pci i915 device instead of get_notifier_get_byname()
+>  - Fix Logical Address setup
+>  - Added comment about HW support
+>  - Removed memset of msg structures
+>
+> Neil Armstrong (5):
+>   media: cec-notifier: Get notifier by device and connector name
+>   drm/i915: hdmi: add CEC notifier to intel_hdmi
+>   mfd: cros-ec: Introduce CEC commands and events definitions.
+>   mfd: cros_ec_dev: Add CEC sub-device registration
+>   media: platform: Add Chrome OS EC CEC driver
+>
+>  drivers/gpu/drm/i915/Kconfig                     |   1 +
+>  drivers/gpu/drm/i915/intel_display.h             |  20 ++
+>  drivers/gpu/drm/i915/intel_drv.h                 |   2 +
+>  drivers/gpu/drm/i915/intel_hdmi.c                |  13 +
+>  drivers/media/cec/cec-notifier.c                 |  11 +-
+>  drivers/media/platform/Kconfig                   |  11 +
+>  drivers/media/platform/Makefile                  |   2 +
+>  drivers/media/platform/cros-ec-cec/Makefile      |   1 +
+>  drivers/media/platform/cros-ec-cec/cros-ec-cec.c | 347 +++++++++++++++++++++++
+>  drivers/mfd/cros_ec_dev.c                        |  16 ++
+>  drivers/platform/chrome/cros_ec_proto.c          |  40 ++-
+>  include/linux/mfd/cros_ec.h                      |   2 +-
+>  include/linux/mfd/cros_ec_commands.h             |  80 ++++++
+>  include/media/cec-notifier.h                     |  27 +-
+>  14 files changed, 557 insertions(+), 16 deletions(-)
+>  create mode 100644 drivers/media/platform/cros-ec-cec/Makefile
+>  create mode 100644 drivers/media/platform/cros-ec-cec/cros-ec-cec.c
+>
+> --
+> 2.7.4
+>
