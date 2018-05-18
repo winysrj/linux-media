@@ -1,116 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:38830 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751337AbeEEJuq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2018 05:50:46 -0400
-Received: by mail-wr0-f193.google.com with SMTP id 94-v6so21999086wrf.5
-        for <linux-media@vger.kernel.org>; Sat, 05 May 2018 02:50:46 -0700 (PDT)
-From: Thomas Hollstegge <thomas.hollstegge@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thomas Hollstegge <thomas.hollstegge@gmail.com>
-Subject: [PATCH 1/2] si2168: Set TS clock mode and frequency
-Date: Sat,  5 May 2018 11:50:30 +0200
-Message-Id: <1525513831-17682-2-git-send-email-thomas.hollstegge@gmail.com>
-In-Reply-To: <1525513831-17682-1-git-send-email-thomas.hollstegge@gmail.com>
-References: <1525513831-17682-1-git-send-email-thomas.hollstegge@gmail.com>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:36775 "EHLO
+        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753435AbeERIwo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 04:52:44 -0400
+Received: by mail-wm0-f44.google.com with SMTP id n10-v6so13637453wmc.1
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 01:52:43 -0700 (PDT)
+Subject: Re: [PATCH 01/28] venus: hfi_msgs: correct pointer increment
+To: Tomasz Figa <tfiga@chromium.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        vgarodia@codeaurora.org
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+ <20180424124436.26955-2-stanimir.varbanov@linaro.org>
+ <CAAFQd5CYaeUNFMFrQAC2mofd80LKt6zxBRwAje4AoWbhGvGJ0A@mail.gmail.com>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <ace94242-b4cc-c671-451e-de668273d2ef@linaro.org>
+Date: Fri, 18 May 2018 11:52:40 +0300
+MIME-Version: 1.0
+In-Reply-To: <CAAFQd5CYaeUNFMFrQAC2mofd80LKt6zxBRwAje4AoWbhGvGJ0A@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some devices require a higher TS clock frequency to demodulate some
-muxes. This adds two optional parameters to control the TS clock
-frequency mode as well as the frequency.
+Hi Tomasz,
 
-Signed-off-by: Thomas Hollstegge <thomas.hollstegge@gmail.com>
----
- drivers/media/dvb-frontends/si2168.c      | 20 +++++++++++++++++++-
- drivers/media/dvb-frontends/si2168.h      |  8 ++++++++
- drivers/media/dvb-frontends/si2168_priv.h |  2 ++
- 3 files changed, 29 insertions(+), 1 deletion(-)
+Thanks for the review!
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 324493e..80740db 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -92,13 +92,15 @@ static int si2168_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
- 	dev_dbg(&client->dev, "%s acquire: %d\n", __func__, acquire);
- 
- 	/* set TS_MODE property */
--	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
-+	memcpy(cmd.args, "\x14\x00\x01\x10\x00\x00", 6);
- 	if (acquire)
- 		cmd.args[4] |= dev->ts_mode;
- 	else
- 		cmd.args[4] |= SI2168_TS_TRISTATE;
- 	if (dev->ts_clock_gapped)
- 		cmd.args[4] |= 0x40;
-+	cmd.args[4] |= (dev->ts_clock_mode & 0x03) << 4;
-+
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
- 	ret = si2168_cmd_execute(client, &cmd);
-@@ -398,6 +400,18 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	/* set TS frequency */
-+	if (dev->ts_clock_freq) {
-+		memcpy(cmd.args, "\x14\x00\x0d\x10", 4);
-+		cmd.args[4] = ((dev->ts_clock_freq / 10000) >> 0) & 0xff;
-+		cmd.args[5] = ((dev->ts_clock_freq / 10000) >> 8) & 0xff;
-+		cmd.wlen = 6;
-+		cmd.rlen = 4;
-+		ret = si2168_cmd_execute(client, &cmd);
-+		if (ret)
-+			goto err;
-+	}
-+
- 	memcpy(cmd.args, "\x14\x00\x08\x10\xd7\x05", 6);
- 	cmd.args[5] |= dev->ts_clock_inv ? 0x00 : 0x10;
- 	cmd.wlen = 6;
-@@ -806,6 +820,10 @@ static int si2168_probe(struct i2c_client *client,
- 	dev->ts_mode = config->ts_mode;
- 	dev->ts_clock_inv = config->ts_clock_inv;
- 	dev->ts_clock_gapped = config->ts_clock_gapped;
-+	dev->ts_clock_mode = config->ts_clock_mode;
-+	if (!dev->ts_clock_mode)
-+		dev->ts_clock_mode = SI2168_TS_CLOCK_MODE_AUTO_ADAPT;
-+	dev->ts_clock_freq = config->ts_clock_freq;
- 	dev->spectral_inversion = config->spectral_inversion;
- 
- 	dev_info(&client->dev, "Silicon Labs Si2168-%c%d%d successfully identified\n",
-diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-index d519edd..3f52ee8 100644
---- a/drivers/media/dvb-frontends/si2168.h
-+++ b/drivers/media/dvb-frontends/si2168.h
-@@ -47,6 +47,14 @@ struct si2168_config {
- 	/* TS clock gapped */
- 	bool ts_clock_gapped;
- 
-+	/* TS clock mode */
-+#define SI2168_TS_CLOCK_MODE_AUTO_ADAPT	0x01
-+#define SI2168_TS_CLOCK_MODE_MANUAL	0x02
-+	u8 ts_clock_mode;
-+
-+	/* TS clock frequency (for manual mode) */
-+	u32 ts_clock_freq;
-+
- 	/* Inverted spectrum */
- 	bool spectral_inversion;
- };
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 2d362e1..8173d6c 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -48,6 +48,8 @@ struct si2168_dev {
- 	u8 ts_mode;
- 	bool ts_clock_inv;
- 	bool ts_clock_gapped;
-+	u8 ts_clock_mode;
-+	u32 ts_clock_freq;
- 	bool spectral_inversion;
- };
- 
+On 05/18/2018 11:33 AM, Tomasz Figa wrote:
+> Hi Stanimir,
+> 
+> Thanks for the series. I'll be gradually reviewing subsequent patches. Stay
+> tuned. :)
+> 
+
+Please consider that there is a v2 of this patchset. :)
+
+> 
+> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+> 
+
+Thanks!
+
 -- 
-2.7.4
+regards,
+Stan
