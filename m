@@ -1,156 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:40267 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933887AbeEIO0T (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 10:26:19 -0400
-Received: by mail-wm0-f68.google.com with SMTP id j5-v6so28254822wme.5
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 07:26:19 -0700 (PDT)
-Subject: Re: [PATCH 08/28] venus: hfi_venus: add suspend function for 4xx
- version
-To: Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-media-owner@vger.kernel.org
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
- <20180424124436.26955-9-stanimir.varbanov@linaro.org>
- <8f26cd748f283043b32da05b39f29348@codeaurora.org>
- <ce03189a-b56e-e73e-852f-1ad10d4c8bd3@linaro.org>
- <4bb351351a9725db42bf06da1e778290@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <9f46bca2-4e86-bafc-198d-c7d2f001fbe6@linaro.org>
-Date: Wed, 9 May 2018 17:26:16 +0300
-MIME-Version: 1.0
-In-Reply-To: <4bb351351a9725db42bf06da1e778290@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:38566 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751531AbeERVJZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 17:09:25 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH] tw686x: Fix incorrect vb2_mem_ops GFP flags
+Date: Fri, 18 May 2018 18:07:48 -0300
+Message-Id: <20180518210748.21983-4-ezequiel@collabora.com>
+In-Reply-To: <20180518210748.21983-1-ezequiel@collabora.com>
+References: <20180518210748.21983-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+When the driver is configured in the "memcpy" dma-mode,
+it uses vb2_vmalloc_memops, which is backed by a SLAB
+allocator and so shouldn't be using GFP_DMA32.
 
-On 05/09/2018 05:14 PM, Vikash Garodia wrote:
-> Hi Stanimir,
-> 
-> On 2018-05-09 16:45, Stanimir Varbanov wrote:
->> Hi Vikash,
->>
->> On 05/02/2018 09:07 AM, vgarodia@codeaurora.org wrote:
->>> Hello Stanimir,
->>>
->>> On 2018-04-24 18:14, Stanimir Varbanov wrote:
->>>> This adds suspend (power collapse) function with slightly
->>>> different order of calls comparing with Venus 3xx.
->>>>
->>>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->>>> ---
->>>>  drivers/media/platform/qcom/venus/hfi_venus.c | 52
->>>> +++++++++++++++++++++++++++
->>>>  1 file changed, 52 insertions(+)
->>>>
->>>> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c
->>>> b/drivers/media/platform/qcom/venus/hfi_venus.c
->>>> index 53546174aab8..f61d34bf61b4 100644
->>>> --- a/drivers/media/platform/qcom/venus/hfi_venus.c
->>>> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
->>>> @@ -1443,6 +1443,55 @@ static int venus_suspend_1xx(struct venus_core
->>>> *core)
->>>>      return 0;
->>>>  }
->>>>
->>>> +static int venus_suspend_4xx(struct venus_core *core)
->>>> +{
->>>> +    struct venus_hfi_device *hdev = to_hfi_priv(core);
->>>> +    struct device *dev = core->dev;
->>>> +    u32 val;
->>>> +    int ret;
->>>> +
->>>> +    if (!hdev->power_enabled || hdev->suspended)
->>>> +        return 0;
->>>> +
->>>> +    mutex_lock(&hdev->lock);
->>>> +    ret = venus_is_valid_state(hdev);
->>>> +    mutex_unlock(&hdev->lock);
->>>> +
->>>> +    if (!ret) {
->>>> +        dev_err(dev, "bad state, cannot suspend\n");
->>>> +        return -EINVAL;
->>>> +    }
->>>> +
->>>> +    ret = venus_prepare_power_collapse(hdev, false);
->>>> +    if (ret) {
->>>> +        dev_err(dev, "prepare for power collapse fail (%d)\n", ret);
->>>> +        return ret;
->>>> +    }
->>>> +
->>>> +    ret = readl_poll_timeout(core->base + CPU_CS_SCIACMDARG0, val,
->>>> +                 val & CPU_CS_SCIACMDARG0_PC_READY,
->>>> +                 POLL_INTERVAL_US, 100000);
->>>> +    if (ret) {
->>>> +        dev_err(dev, "Polling power collapse ready timed out\n");
->>>> +        return ret;
->>>> +    }
->>>> +
->>>> +    mutex_lock(&hdev->lock);
->>>> +
->>>> +    ret = venus_power_off(hdev);
->>>> +    if (ret) {
->>>> +        dev_err(dev, "venus_power_off (%d)\n", ret);
->>>> +        mutex_unlock(&hdev->lock);
->>>> +        return ret;
->>>> +    }
->>>> +
->>>> +    hdev->suspended = true;
->>>> +
->>>> +    mutex_unlock(&hdev->lock);
->>>> +
->>>> +    return 0;
->>>> +}
->>>> +
->>>>  static int venus_suspend_3xx(struct venus_core *core)
->>>>  {
->>>>      struct venus_hfi_device *hdev = to_hfi_priv(core);
->>>> @@ -1507,6 +1556,9 @@ static int venus_suspend(struct venus_core *core)
->>>>      if (core->res->hfi_version == HFI_VERSION_3XX)
->>>>          return venus_suspend_3xx(core);
->>>>
->>>> +    if (core->res->hfi_version == HFI_VERSION_4XX)
->>>> +        return venus_suspend_4xx(core);
->>>> +
->>>>      return venus_suspend_1xx(core);
->>>>  }
->>>
->>> Let me brief on the power collapse sequence for Venus_4xx
->>> 1. Host checks for ARM9 and Video core to be idle.
->>>    This can be done by checking for WFI bit (bit 0) in CPU status
->>> register for ARM9 and by checking bit 30 in Control status reg for video
->>> core/s.
->>> 2. Host then sends command to ARM9 to prepare for power collapse.
->>> 3. Host then checks for WFI bit and PC_READY bit before withdrawing
->>> going for power off.
->>>
->>> As per this patch, host is preparing for power collapse without checking
->>> for #1.
->>> Update the code to handle #3.
->>
->> This looks similar to suspend for Venus 3xx. Can you confirm that the
->> sequence of checks for 4xx is the same as 3xx?
-> 
-> Do you mean the driver implementation for Suspend Venus 3xx or the hardware
-> expectation for Venus 3xx ? If hardware expectation wise, the sequence is
-> same for 3xx and 4xx.
-> In the suspend implementation for 3xx, i see that the host just reads
-> the WFI
-> and idle status bits, but does not validate those bit value before
-> preparing
-> Venus for power collapse. Sequence #2 and #3 is followed for Venus 3xx
-> implementation.
+Fix it.
 
-OK, than we can reuse venus_suspend_3xx function for 4xx, just need to
-fix WFI and idle bit for #1.
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ drivers/media/pci/tw686x/tw686x-video.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index c3fafa97b2d0..0ea8dd44026c 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -1228,7 +1228,8 @@ int tw686x_video_init(struct tw686x_dev *dev)
+ 		vc->vidq.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		vc->vidq.min_buffers_needed = 2;
+ 		vc->vidq.lock = &vc->vb_mutex;
+-		vc->vidq.gfp_flags = GFP_DMA32;
++		vc->vidq.gfp_flags = dev->dma_mode != TW686X_DMA_MODE_MEMCPY ?
++				     GFP_DMA32 : 0;
+ 		vc->vidq.dev = &dev->pci_dev->dev;
+ 
+ 		err = vb2_queue_init(&vc->vidq);
 -- 
-regards,
-Stan
+2.16.3
