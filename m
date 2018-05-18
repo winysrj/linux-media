@@ -1,62 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:28373 "EHLO mga14.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:53738 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752697AbeEUIzV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:21 -0400
+        id S1751606AbeERWNy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 18:13:54 -0400
+Date: Sat, 19 May 2018 01:13:47 +0300
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v14 24/36] videobuf2-v4l2: Lock the media request for update for QBUF
-Date: Mon, 21 May 2018 11:54:49 +0300
-Message-Id: <20180521085501.16861-25-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+To: Rui Miguel Silva <rui.silva@linaro.org>
+Cc: mchehab@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>
+Subject: Re: [PATCH v4 06/12] media: dt-bindings: add bindings for i.MX7
+ media driver
+Message-ID: <20180518221346.fy4264hehvjjcd4y@kekkonen.localdomain>
+References: <20180517125033.18050-1-rui.silva@linaro.org>
+ <20180517125033.18050-7-rui.silva@linaro.org>
+ <20180518065824.csio2fgwsxo2g2ow@valkosipuli.retiisi.org.uk>
+ <m3tvr5xt9t.fsf@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <m3tvr5xt9t.fsf@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lock the media request for updating on QBUF IOCTL using
-media_request_lock_for_update().
+On Fri, May 18, 2018 at 09:27:58AM +0100, Rui Miguel Silva wrote:
+> > > +endpoint node
+> > > +-------------
+> > > +
+> > > +- data-lanes    : (required) an array specifying active physical
+> > > MIPI-CSI2
+> > > +		    data input lanes and their mapping to logical lanes; the
+> > > +		    array's content is unused, only its length is meaningful;
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+Btw. do note that you may get a warning due to this from the CSI-2 bus
+property parsing code if the lane numbers are wrong.
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 0a68b19b40da7..8b390960ca671 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -398,12 +398,13 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
- 	if (IS_ERR(req)) {
- 		dprintk(1, "%s: invalid request_fd\n", opname);
- 		return PTR_ERR(req);
--	}
--
--	if (atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE) {
--		dprintk(1, "%s: request is not idle\n", opname);
--		media_request_put(req);
--		return -EBUSY;
-+	} else {
-+		ret = media_request_lock_for_update(req);
-+		if (ret) {
-+			media_request_put(req);
-+			dprintk(1, "%s: request %d busy\n", opname, b->request_fd);
-+			return PTR_ERR(req);
-+		}
- 	}
- 
- 	*p_req = req;
-@@ -683,8 +684,10 @@ int vb2_qbuf(struct vb2_queue *q, struct media_device *mdev,
- 	if (ret)
- 		return ret;
- 	ret = vb2_core_qbuf(q, b->index, b, req);
--	if (req)
-+	if (req) {
-+		media_request_unlock_for_update(req);
- 		media_request_put(req);
-+	}
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
+> > > +
+> > > +- fsl,csis-hs-settle : (optional) differential receiver (HS-RX)
+> > > settle time;
+> > 
+> > Could you calculate this, as other drivers do? It probably changes
+> > depending on the device runtime configuration.
+> 
+> The only reference to possible values to this parameter is given by
+> table in [0], can you point me out the formula for imx7 in the
+> documentation?
+
+I don't know imx7 but the other CSI-2 drivers need no such system specific
+configuration.
+
 -- 
-2.11.0
+Sakari Ailus
+sakari.ailus@linux.intel.com
