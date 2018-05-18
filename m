@@ -1,121 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:54814 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934965AbeEIUII (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 16:08:08 -0400
-Received: by mail-wm0-f66.google.com with SMTP id f6-v6so480513wmc.4
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 13:08:07 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, mchehab+samsung@kernel.org
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Subject: [PATCH 1/4] [media] ddbridge/mci: protect against out-of-bounds array access in stop()
-Date: Wed,  9 May 2018 22:08:00 +0200
-Message-Id: <20180509200803.5253-2-d.scheller.oss@gmail.com>
-In-Reply-To: <20180509200803.5253-1-d.scheller.oss@gmail.com>
-References: <20180509200803.5253-1-d.scheller.oss@gmail.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:43920 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751747AbeERUz1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 16:55:27 -0400
+Subject: Re: [PATCH v11 01/10] media: v4l: vsp1: Release buffers for each
+ video node
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        stable@vger.kernel.org
+References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <f05e7c227e8ab1f0c5d65ccdcb92c7c20c00594a.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <2666334.YPxzfcQE7O@avalon>
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <ffce81c5-673d-37b3-0cda-8b97e2178616@ideasonboard.com>
+Date: Fri, 18 May 2018 21:55:23 +0100
+MIME-Version: 1.0
+In-Reply-To: <2666334.YPxzfcQE7O@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
 
-In stop(), an (unlikely) out-of-bounds write error can occur when setting
-the demod_in_use element indexed by state->demod to zero, as state->demod
-isn't checked for being in the range of the array size of demod_in_use, and
-state->demod maybe carrying the magic 0xff (demod unused) value. Prevent
-this by checking state->demod not exceeding the array size before setting
-the element value. To make the code a bit easier to read, replace the magic
-value and the number of array elements with defines, and use them at a few
-more places.
+On 18/05/18 21:53, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Friday, 18 May 2018 23:41:54 EEST Kieran Bingham wrote:
+>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> Commit 372b2b0399fc ("media: v4l: vsp1: Release buffers in
+>> start_streaming error path") introduced a helper to clean up buffers on
+>> error paths, but inadvertently changed the code such that only the
+>> output WPF buffers were cleaned, rather than the video node being
+>> operated on.
+>>
+>> Since then vsp1_video_cleanup_pipeline() has grown to perform both video
+>> node cleanup, as well as pipeline cleanup. Split the implementation into
+>> two distinct functions that perform the required work, so that each
+>> video node can release it's buffers correctly on streamoff. The pipe
+> 
+> s/it's/its/
+> 
+>> cleanup that was performed in the vsp1_video_stop_streaming() (releasing
+>> the pipe->dl) is moved to the function for clarity.
+>>
+>> Fixes: 372b2b0399fc ("media: v4l: vsp1: Release buffers in start_streaming
+>> error path")
+>> Cc: stable@vger.kernel.org # v4.13+
+> 
+> Commit 372b2b0399fc was introduced in v4.14, should this be v4.14+ ?
 
-Detected by CoverityScan, CID#1468550 ("Out-of-bounds write")
+Yes, thank you - that's me mis-interpreting my own scripts to get the version
+for fixes.
 
-Thanks to Colin for reporting the problem and providing an initial patch.
 
-Fixes: daeeb1319e6f ("media: ddbridge: initial support for MCI-based MaxSX8 cards")
-Reported-by: Colin Ian King <colin.king@canonical.com>
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-mci.c | 21 +++++++++++----------
- drivers/media/pci/ddbridge/ddbridge-mci.h |  4 ++++
- 2 files changed, 15 insertions(+), 10 deletions(-)
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> No need to resubmit for this, I'll fix the commit message when applying.
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-mci.c b/drivers/media/pci/ddbridge/ddbridge-mci.c
-index a85ff3e6b919..8d9592e75ad5 100644
---- a/drivers/media/pci/ddbridge/ddbridge-mci.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-mci.c
-@@ -38,10 +38,10 @@ struct mci_base {
- 	struct mutex         mci_lock; /* concurrent MCI access lock */
- 	int                  count;
- 
--	u8                   tuner_use_count[4];
--	u8                   assigned_demod[8];
--	u32                  used_ldpc_bitrate[8];
--	u8                   demod_in_use[8];
-+	u8                   tuner_use_count[MCI_TUNER_MAX];
-+	u8                   assigned_demod[MCI_DEMOD_MAX];
-+	u32                  used_ldpc_bitrate[MCI_DEMOD_MAX];
-+	u8                   demod_in_use[MCI_DEMOD_MAX];
- 	u32                  iq_mode;
- };
- 
-@@ -193,7 +193,7 @@ static int stop(struct dvb_frontend *fe)
- 	u32 input = state->tuner;
- 
- 	memset(&cmd, 0, sizeof(cmd));
--	if (state->demod != 0xff) {
-+	if (state->demod != DEMOD_UNUSED) {
- 		cmd.command = MCI_CMD_STOP;
- 		cmd.demod = state->demod;
- 		mci_cmd(state, &cmd, NULL);
-@@ -209,10 +209,11 @@ static int stop(struct dvb_frontend *fe)
- 	state->base->tuner_use_count[input]--;
- 	if (!state->base->tuner_use_count[input])
- 		mci_set_tuner(fe, input, 0);
--	state->base->demod_in_use[state->demod] = 0;
-+	if (state->demod < MCI_DEMOD_MAX)
-+		state->base->demod_in_use[state->demod] = 0;
- 	state->base->used_ldpc_bitrate[state->nr] = 0;
--	state->demod = 0xff;
--	state->base->assigned_demod[state->nr] = 0xff;
-+	state->demod = DEMOD_UNUSED;
-+	state->base->assigned_demod[state->nr] = DEMOD_UNUSED;
- 	state->base->iq_mode = 0;
- 	mutex_unlock(&state->base->tuner_lock);
- 	state->started = 0;
-@@ -250,7 +251,7 @@ static int start(struct dvb_frontend *fe, u32 flags, u32 modmask, u32 ts_config)
- 		stat = -EBUSY;
- 		goto unlock;
- 	}
--	for (i = 0; i < 8; i++) {
-+	for (i = 0; i < MCI_DEMOD_MAX; i++) {
- 		used_ldpc_bitrate += state->base->used_ldpc_bitrate[i];
- 		if (state->base->demod_in_use[i])
- 			used_demods++;
-@@ -342,7 +343,7 @@ static int start_iq(struct dvb_frontend *fe, u32 ts_config)
- 		stat = -EBUSY;
- 		goto unlock;
- 	}
--	for (i = 0; i < 8; i++)
-+	for (i = 0; i < MCI_DEMOD_MAX; i++)
- 		if (state->base->demod_in_use[i])
- 			used_demods++;
- 	if (used_demods > 0) {
-diff --git a/drivers/media/pci/ddbridge/ddbridge-mci.h b/drivers/media/pci/ddbridge/ddbridge-mci.h
-index c4193c5ee095..453dcb9f8208 100644
---- a/drivers/media/pci/ddbridge/ddbridge-mci.h
-+++ b/drivers/media/pci/ddbridge/ddbridge-mci.h
-@@ -19,6 +19,10 @@
- #ifndef _DDBRIDGE_MCI_H_
- #define _DDBRIDGE_MCI_H_
- 
-+#define MCI_DEMOD_MAX                       8
-+#define MCI_TUNER_MAX                       4
-+#define DEMOD_UNUSED                        (0xFF)
-+
- #define MCI_CONTROL                         (0x500)
- #define MCI_COMMAND                         (0x600)
- #define MCI_RESULT                          (0x680)
--- 
-2.16.1
+Great.
+
+--
+Kieran
+
+> 
+>> ---
+>>  drivers/media/platform/vsp1/vsp1_video.c | 21 +++++++++++++--------
+>>  1 file changed, 13 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+>> b/drivers/media/platform/vsp1/vsp1_video.c index c8c12223a267..ba89dd176a13
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_video.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+>> @@ -842,9 +842,8 @@ static int vsp1_video_setup_pipeline(struct
+>> vsp1_pipeline *pipe) return 0;
+>>  }
+>>
+>> -static void vsp1_video_cleanup_pipeline(struct vsp1_pipeline *pipe)
+>> +static void vsp1_video_release_buffers(struct vsp1_video *video)
+>>  {
+>> -	struct vsp1_video *video = pipe->output->video;
+>>  	struct vsp1_vb2_buffer *buffer;
+>>  	unsigned long flags;
+>>
+>> @@ -854,12 +853,18 @@ static void vsp1_video_cleanup_pipeline(struct
+>> vsp1_pipeline *pipe) vb2_buffer_done(&buffer->buf.vb2_buf,
+>> VB2_BUF_STATE_ERROR);
+>>  	INIT_LIST_HEAD(&video->irqqueue);
+>>  	spin_unlock_irqrestore(&video->irqlock, flags);
+>> +}
+>> +
+>> +static void vsp1_video_cleanup_pipeline(struct vsp1_pipeline *pipe)
+>> +{
+>> +	lockdep_assert_held(&pipe->lock);
+>>
+>>  	/* Release our partition table allocation */
+>> -	mutex_lock(&pipe->lock);
+>>  	kfree(pipe->part_table);
+>>  	pipe->part_table = NULL;
+>> -	mutex_unlock(&pipe->lock);
+>> +
+>> +	vsp1_dl_list_put(pipe->dl);
+>> +	pipe->dl = NULL;
+>>  }
+>>
+>>  static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int
+>> count) @@ -874,8 +879,9 @@ static int vsp1_video_start_streaming(struct
+>> vb2_queue *vq, unsigned int count) if (pipe->stream_count ==
+>> pipe->num_inputs) {
+>>  		ret = vsp1_video_setup_pipeline(pipe);
+>>  		if (ret < 0) {
+>> -			mutex_unlock(&pipe->lock);
+>> +			vsp1_video_release_buffers(video);
+>>  			vsp1_video_cleanup_pipeline(pipe);
+>> +			mutex_unlock(&pipe->lock);
+>>  			return ret;
+>>  		}
+>>
+>> @@ -925,13 +931,12 @@ static void vsp1_video_stop_streaming(struct vb2_queue
+>> *vq) if (ret == -ETIMEDOUT)
+>>  			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
+>>
+>> -		vsp1_dl_list_put(pipe->dl);
+>> -		pipe->dl = NULL;
+>> +		vsp1_video_cleanup_pipeline(pipe);
+>>  	}
+>>  	mutex_unlock(&pipe->lock);
+>>
+>>  	media_pipeline_stop(&video->video.entity);
+>> -	vsp1_video_cleanup_pipeline(pipe);
+>> +	vsp1_video_release_buffers(video);
+>>  	vsp1_video_pipeline_put(pipe);
+>>  }
+> 
