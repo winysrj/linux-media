@@ -1,60 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:43050 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751293AbeEQMNr (ORCPT
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:35689 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751405AbeEROlv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 08:13:47 -0400
-Date: Thu, 17 May 2018 09:13:40 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
-Message-ID: <20180517091340.7d8c62b2@vento.lan>
-In-Reply-To: <20180517084324.3242c257@vento.lan>
-References: <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
-        <20180423152455.363d285c@vento.lan>
-        <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
-        <20180423161742.66f939ba@vento.lan>
-        <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
-        <20180426204241.03a42996@vento.lan>
-        <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
-        <20180515085953.65bfa107@vento.lan>
-        <20180515141655.idzuh2jfdkuu5grs@mwanda>
-        <f342d8d6-b5e6-0cbf-d002-9561b79c90e4@embeddedor.com>
-        <20180515193936.m25kzyeknsk2bo2c@mwanda>
-        <0f31a60b-911d-0140-3546-98317e2a0557@embeddedor.com>
-        <d34cf31f-6dc5-ee2d-ea6d-513dd5e8e5c3@embeddedor.com>
-        <20180517083440.14e6b975@vento.lan>
-        <20180517084324.3242c257@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 18 May 2018 10:41:51 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3 6/9] media: rcar-vin: Link parallel input media entities
+Date: Fri, 18 May 2018 16:40:42 +0200
+Message-Id: <1526654445-10702-7-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1526654445-10702-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1526654445-10702-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 17 May 2018 08:43:24 -0300
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+When running with media-controller link the parallel input
+media entities with the VIN entities at 'complete' callback time.
 
-> > > > On 05/15/2018 02:39 PM, Dan Carpenter wrote:  
-> >   
-> > > >> You'd need to rebuild the db (possibly twice but definitely once).  
-> > 
-> > How? Here, I just pull from your git tree and do a "make". At most,
-> > make clean; make.  
-> 
-> Never mind. Found it using grep. I'm running this:
-> 
-> 	make allyesconfig
-> 	/devel/smatch/smatch_scripts/build_kernel_data.sh
-> 	/devel/smatch/smatch_scripts/build_kernel_data.sh
+To create media links the v4l2_device should be registered first.
+Check if the device is already registered, to avoid double registrations.
 
-It seems that something is broken... getting this error/warning:
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
 
-DBD::SQLite::db do failed: unrecognized token: "'end + strlen("
-" at /devel/smatch/smatch_scripts/../smatch_data/db/fill_db_sql.pl line 32, <WARNS> line 2938054.
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 745e8ee..d13bbcf 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -478,6 +478,8 @@ static void rvin_parallel_subdevice_detach(struct rvin_dev *vin)
+ static int rvin_parallel_notify_complete(struct v4l2_async_notifier *notifier)
+ {
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
++	struct media_entity *source;
++	struct media_entity *sink;
+ 	int ret;
+ 
+ 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+@@ -486,7 +488,26 @@ static int rvin_parallel_notify_complete(struct v4l2_async_notifier *notifier)
+ 		return ret;
+ 	}
+ 
+-	return rvin_v4l2_register(vin);
++	if (!video_is_registered(&vin->vdev)) {
++		ret = rvin_v4l2_register(vin);
++		if (ret < 0)
++			return ret;
++	}
++
++	if (!vin->info->use_mc)
++		return 0;
++
++	/* If we're running with media-controller, link the subdevs. */
++	source = &vin->parallel->subdev->entity;
++	sink = &vin->vdev.entity;
++
++	ret = media_create_pad_link(source, vin->parallel->source_pad,
++				    sink, vin->parallel->sink_pad, 0);
++	if (ret)
++		vin_err(vin, "Error adding link from %s to %s: %d\n",
++			source->name, sink->name, ret);
++
++	return ret;
+ }
+ 
+ static void rvin_parallel_notify_unbind(struct v4l2_async_notifier *notifier,
+@@ -611,7 +632,8 @@ static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
+ 
+ 	/* Register all video nodes for the group. */
+ 	for (i = 0; i < RCAR_VIN_NUM; i++) {
+-		if (vin->group->vin[i]) {
++		if (vin->group->vin[i] &&
++		    !video_is_registered(&vin->group->vin[i]->vdev)) {
+ 			ret = rvin_v4l2_register(vin->group->vin[i]);
+ 			if (ret)
+ 				return ret;
+-- 
+2.7.4
