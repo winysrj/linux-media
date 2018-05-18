@@ -1,120 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:53168 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751525AbeECOx2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 10:53:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv13 23/28] media: vim2m: add media device
-Date: Thu,  3 May 2018 16:53:13 +0200
-Message-Id: <20180503145318.128315-24-hverkuil@xs4all.nl>
-In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+Received: from mail.bugwerft.de ([46.23.86.59]:51328 "EHLO mail.bugwerft.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751413AbeERKgA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 06:36:00 -0400
+Subject: Re: [PATCH v3 03/12] media: ov5640: Remove the clocks registers
+ initialization
+To: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+ <20180517085405.10104-4-maxime.ripard@bootlin.com>
+From: Daniel Mack <daniel@zonque.org>
+Message-ID: <0de04d7b-9c75-3e4e-4cf9-deaedeab54a4@zonque.org>
+Date: Fri, 18 May 2018 12:35:57 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180517085405.10104-4-maxime.ripard@bootlin.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thursday, May 17, 2018 10:53 AM, Maxime Ripard wrote:
+> Part of the hardcoded initialization sequence is to set up the proper clock
+> dividers. However, this is now done dynamically through proper code and as
+> such, the static one is now redundant.
+> 
+> Let's remove it.
+> 
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> ---
 
-Request API requires a media node. Add one to the vim2m driver so we can
-use requests with it.
+[...]
 
-This probably needs a bit more work to correctly represent m2m
-hardware in the media topology.
+> @@ -625,8 +623,8 @@ static const struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
+>   	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+>   	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
+>   	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+> -	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0}, {0x3035, 0x11, 0, 0},
+> -	{0x3036, 0x54, 0, 0}, {0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
+> +	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0},
+> +	{0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vim2m.c | 42 ++++++++++++++++++++++++++++++----
- 1 file changed, 37 insertions(+), 5 deletions(-)
+This is the mode that I'm testing with. Previously, the hard-coded 
+registers here were:
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 065483e62db4..9be4da3b8577 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -140,6 +140,10 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
- struct vim2m_dev {
- 	struct v4l2_device	v4l2_dev;
- 	struct video_device	vfd;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device	mdev;
-+	struct media_pad	pad[2];
-+#endif
- 
- 	atomic_t		num_inst;
- 	struct mutex		dev_mutex;
-@@ -1000,11 +1004,6 @@ static int vim2m_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	spin_lock_init(&dev->irqlock);
--
--	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
--	if (ret)
--		return ret;
--
- 	atomic_set(&dev->num_inst, 0);
- 	mutex_init(&dev->dev_mutex);
- 
-@@ -1013,6 +1012,22 @@ static int vim2m_probe(struct platform_device *pdev)
- 	vfd->lock = &dev->dev_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	dev->mdev.dev = &pdev->dev;
-+	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
-+	media_device_init(&dev->mdev);
-+	dev->v4l2_dev.mdev = &dev->mdev;
-+	dev->pad[0].flags = MEDIA_PAD_FL_SINK;
-+	dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_pads_init(&vfd->entity, 2, dev->pad);
-+	if (ret)
-+		return ret;
-+#endif
-+
-+	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-+	if (ret)
-+		goto unreg_media;
-+
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
-@@ -1034,6 +1049,13 @@ static int vim2m_probe(struct platform_device *pdev)
- 		goto err_m2m;
- 	}
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	/* Register the media device node */
-+	ret = media_device_register(&dev->mdev);
-+	if (ret)
-+		goto err_m2m;
-+#endif
-+
- 	return 0;
- 
- err_m2m:
-@@ -1041,6 +1063,10 @@ static int vim2m_probe(struct platform_device *pdev)
- 	video_unregister_device(&dev->vfd);
- unreg_dev:
- 	v4l2_device_unregister(&dev->v4l2_dev);
-+unreg_media:
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_device_unregister(&dev->mdev);
-+#endif
- 
- 	return ret;
- }
-@@ -1050,6 +1076,12 @@ static int vim2m_remove(struct platform_device *pdev)
- 	struct vim2m_dev *dev = platform_get_drvdata(pdev);
- 
- 	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_device_unregister(&dev->mdev);
-+	media_device_cleanup(&dev->mdev);
-+#endif
-+
- 	v4l2_m2m_release(dev->m2m_dev);
- 	del_timer_sync(&dev->timer);
- 	video_unregister_device(&dev->vfd);
--- 
-2.17.0
+  OV5640_REG_SC_PLL_CTRL1 (0x3035) = 0x11
+  OV5640_REG_SC_PLL_CTRL2 (0x3036) = 0x54
+  OV5640_REG_SC_PLL_CTRL3 (0x3037) = 0x07
+
+Your new code that calculates the clock rates dynamically ends up with 
+different values however:
+
+  OV5640_REG_SC_PLL_CTRL1 (0x3035) = 0x11
+  OV5640_REG_SC_PLL_CTRL2 (0x3036) = 0xa8
+  OV5640_REG_SC_PLL_CTRL3 (0x3037) = 0x03
+
+Interestingly, leaving the hard-coded values in the array *and* letting 
+ov5640_set_mipi_pclk() do its thing later still works. So again it seems 
+that writes to registers after 0x3035/0x3036/0x3037 seem to depend on 
+the values of these timing registers. You might need to leave these 
+values as dummies in the array. Confusing.
+
+Any idea?
+
+
+Thanks,
+Daniel
