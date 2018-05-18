@@ -1,52 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:48482 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S932847AbeE2Ks4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 06:48:56 -0400
-Date: Tue, 29 May 2018 12:48:55 +0200
-From: Gerd Hoffmann <kraxel@redhat.com>
-To: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Shuah Khan <shuah@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:KERNEL SELFTEST FRAMEWORK"
-        <linux-kselftest@vger.kernel.org>
-Subject: Re: [PATCH v3] Add udmabuf misc device
-Message-ID: <20180529104855.vvrfdtbgrsqj27ga@sirius.home.kraxel.org>
-References: <20180525140808.12714-1-kraxel@redhat.com>
- <20180529082327.GF3438@phenom.ffwll.local>
- <20180529084406.GI3438@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180529084406.GI3438@phenom.ffwll.local>
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:36416 "EHLO
+        homiemail-a44.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752560AbeEROGd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 10:06:33 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH] atomisp driver has been removed from staging
+Date: Fri, 18 May 2018 09:06:30 -0500
+Message-Id: <1526652391-18898-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hi,
+Nuked completely, no backport required now.
 
-> > > qemu test branch:
-> > >   https://git.kraxel.org/cgit/qemu/log/?h=sirius/udmabuf
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ backports/v4.10_sched_signal.patch | 13 -------------
+ 1 file changed, 13 deletions(-)
 
-> > > +	if (!shmem_mapping(file_inode(ubuf->filp)->i_mapping))
-> > > +		goto err_free_ubuf;
-> 
-> Can/should we test here that the memfd has a locked down size here?
-
-Makes sense.  Suggested way to check that?  unstatic memfd_get_seals()
-function (mm/shmem.c)?  Or is there some better way?
-
-Also which seals should we require?  Is F_SEAL_SHRINK enough?
-
-> On that: Link to userspace patches/git tree using this would be nice.
-
-See above.
-
-cheers,
-  Gerd
+diff --git a/backports/v4.10_sched_signal.patch b/backports/v4.10_sched_signal.patch
+index d32b2f4..c9876c2 100644
+--- a/backports/v4.10_sched_signal.patch
++++ b/backports/v4.10_sched_signal.patch
+@@ -257,19 +257,6 @@ index add2edb..8eb0f49 100644
+  #include <linux/slab.h>
+  #include <linux/interrupt.h>
+  
+-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+-index a6620d2..887f147 100644
+---- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+-@@ -34,7 +34,7 @@
+- #include <linux/errno.h>
+- #include <linux/io.h>
+- #include <asm/current.h>
+--#include <linux/sched/signal.h>
+-+#include <linux/sched.h>
+- #include <linux/file.h>
+- 
+- #include <asm/set_memory.h>
+ diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+ index a7b3f7c..a63034b 100644
+ --- a/include/media/v4l2-ioctl.h
+-- 
+2.7.4
