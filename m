@@ -1,140 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:45854 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1031051AbeEZDm7 (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:45107 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753831AbeERI2D (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 23:42:59 -0400
-Message-ID: <0d4ddf24d8078fc9f989a8bd68f7ba64@smtp-cloud8.xs4all.net>
-Date: Sat, 26 May 2018 05:42:56 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 18 May 2018 04:28:03 -0400
+Received: by mail-wr0-f195.google.com with SMTP id w3-v6so566039wrl.12
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 01:28:03 -0700 (PDT)
+References: <20180517125033.18050-1-rui.silva@linaro.org> <20180517125033.18050-7-rui.silva@linaro.org> <20180518065824.csio2fgwsxo2g2ow@valkosipuli.retiisi.org.uk>
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>
+Subject: Re: [PATCH v4 06/12] media: dt-bindings: add bindings for i.MX7 media driver
+In-reply-to: <20180518065824.csio2fgwsxo2g2ow@valkosipuli.retiisi.org.uk>
+Date: Fri, 18 May 2018 09:27:58 +0100
+Message-ID: <m3tvr5xt9t.fsf@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sakari,
+Thanks for the review.
+On Fri 18 May 2018 at 06:58, Sakari Ailus wrote:
+> Hi Rui,
+>
+> On Thu, May 17, 2018 at 01:50:27PM +0100, Rui Miguel Silva 
+> wrote:
+>> Add bindings documentation for i.MX7 media drivers.
+>> 
+>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>> ---
+>>  .../devicetree/bindings/media/imx7.txt        | 145 
+>>  ++++++++++++++++++
+>>  1 file changed, 145 insertions(+)
+>>  create mode 100644 
+>>  Documentation/devicetree/bindings/media/imx7.txt
+>> 
+>> diff --git a/Documentation/devicetree/bindings/media/imx7.txt 
+>> b/Documentation/devicetree/bindings/media/imx7.txt
+>> new file mode 100644
+>> index 000000000000..161cff8e6442
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/imx7.txt
+>> @@ -0,0 +1,145 @@
+>> +Freescale i.MX7 Media Video Device
+>> +==================================
+>> +
+>> +Video Media Controller node
+>> +---------------------------
+>
+> Note that DT bindings document the hardware, they are as such 
+> not Linux
+> dependent.
 
-Results of the daily build of media_tree:
+This was removed in this series, however I removed it in the wrong 
+patch,
+If you see patch 11/12 you will see this being removed. I will fix 
+this
+in v5. Thanks for notice it.
 
-date:			Sat May 26 05:00:17 CEST 2018
-media-tree git hash:	e646e17713eeb3b6484b6d7a24ce34854123fa39
-media_build git hash:	6d922b94bf0fcc9f0a1e52370b7d1d4fc2a59f8d
-v4l-utils git hash:	2a12796b5c22cd1a549eb8fa25db873ced811ca5
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+> 
+>> +
+>> +This is the media controller node for video capture support. 
+>> It is a
+>> +virtual device that lists the camera serial interface nodes 
+>> that the
+>> +media device will control.
+>
+> Ditto.
+>
+>> +
+>> +Required properties:
+>> +- compatible : "fsl,imx7-capture-subsystem";
+>> +- ports      : Should contain a list of phandles pointing to 
+>> camera
+>> +		sensor interface port of CSI
+>> +
+>> +example:
+>> +
+>> +capture-subsystem {
+>
+> What's the purpose of this node, if you only refer to another 
+> device? This
+> one rather does not look like a real device at all.
+>
+>> +	compatible = "fsl,imx7-capture-subsystem";
+>> +	ports = <&csi>;
+>> +};
+>> +
+>> +
+>> +mipi_csi2 node
+>> +--------------
+>> +
+>> +This is the device node for the MIPI CSI-2 receiver core in 
+>> i.MX7 SoC. It is
+>> +compatible with previous version of Samsung D-phy.
+>> +
+>> +Required properties:
+>> +
+>> +- compatible    : "fsl,imx7-mipi-csi2";
+>> +- reg           : base address and length of the register set 
+>> for the device;
+>> +- interrupts    : should contain MIPI CSIS interrupt;
+>> +- clocks        : list of clock specifiers, see
+>> + 
+>> Documentation/devicetree/bindings/clock/clock-bindings.txt for 
+>> details;
+>> +- clock-names   : must contain "pclk", "wrap" and "phy" 
+>> entries, matching
+>> +                  entries in the clock property;
+>> +- power-domains : a phandle to the power domain, see
+>> + 
+>> Documentation/devicetree/bindings/power/power_domain.txt for 
+>> details.
+>> +- reset-names   : should include following entry "mrst";
+>> +- resets        : a list of phandle, should contain reset 
+>> entry of
+>> +                  reset-names;
+>> +- phy-supply    : from the generic phy bindings, a phandle to 
+>> a regulator that
+>> +	          provides power to MIPI CSIS core;
+>> +- bus-width     : maximum number of data lanes supported (SoC 
+>> specific);
+>> +
+>> +Optional properties:
+>> +
+>> +- clock-frequency : The IP's main (system bus) clock frequency 
+>> in Hz, default
+>> +		    value when this property is not specified is 
+>> 166 MHz;
+>> +
+>> +port node
+>> +---------
+>> +
+>> +- reg		  : (required) can take the values 0 or 1, 
+>> where 0 is the
+>> +                     related sink port and port 1 should be 
+>> the source one;
+>> +
+>> +endpoint node
+>> +-------------
+>> +
+>> +- data-lanes    : (required) an array specifying active 
+>> physical MIPI-CSI2
+>> +		    data input lanes and their mapping to logical 
+>> lanes; the
+>> +		    array's content is unused, only its length is 
+>> meaningful;
+>> +
+>> +- fsl,csis-hs-settle : (optional) differential receiver 
+>> (HS-RX) settle time;
+>
+> Could you calculate this, as other drivers do? It probably 
+> changes
+> depending on the device runtime configuration.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-rc4-i686: OK
-linux-4.17-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+The only reference to possible values to this parameter is given 
+by
+table in [0], can you point me out the formula for imx7 in the
+documentation?
 
-Detailed results are available here:
+---
+Cheers,
+	Rui
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+[0] https://community.nxp.com/thread/463777
