@@ -1,82 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:57671 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967779AbeEXLY2 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:52017 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752910AbeERJ2j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 07:24:28 -0400
-Subject: Re: [PATCH v6 5/6] mfd: cros_ec_dev: Add CEC sub-device registration
-To: Neil Armstrong <narmstrong@baylibre.com>, airlied@linux.ie,
-        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
-        seanpaul@google.com
-Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
-        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        eballetbo@gmail.com
-References: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
- <1527155841-28494-6-git-send-email-narmstrong@baylibre.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5fa2ded2-3072-6dba-dd7f-1dc39fdc4d23@xs4all.nl>
-Date: Thu, 24 May 2018 13:24:25 +0200
-MIME-Version: 1.0
-In-Reply-To: <1527155841-28494-6-git-send-email-narmstrong@baylibre.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 18 May 2018 05:28:39 -0400
+Received: by mail-wm0-f66.google.com with SMTP id j4-v6so13070129wme.1
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 02:28:38 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v5 06/12] media: dt-bindings: add bindings for i.MX7 media driver
+Date: Fri, 18 May 2018 10:28:00 +0100
+Message-Id: <20180518092806.3829-7-rui.silva@linaro.org>
+In-Reply-To: <20180518092806.3829-1-rui.silva@linaro.org>
+References: <20180518092806.3829-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 24/05/18 11:57, Neil Armstrong wrote:
-> The EC can expose a CEC bus, thus add the cros-ec-cec MFD sub-device
-> when the CEC feature bit is present.
-> 
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> Reviewed-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Add bindings documentation for i.MX7 media drivers.
 
-For whatever it is worth:
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ .../devicetree/bindings/media/imx7.txt        | 125 ++++++++++++++++++
+ 1 file changed, 125 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/imx7.txt
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> ---
->  drivers/mfd/cros_ec_dev.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/drivers/mfd/cros_ec_dev.c b/drivers/mfd/cros_ec_dev.c
-> index 1d6dc5c..272969e 100644
-> --- a/drivers/mfd/cros_ec_dev.c
-> +++ b/drivers/mfd/cros_ec_dev.c
-> @@ -383,6 +383,10 @@ static void cros_ec_sensors_register(struct cros_ec_dev *ec)
->  	kfree(msg);
->  }
->  
-> +static const struct mfd_cell cros_ec_cec_cells[] = {
-> +	{ .name = "cros-ec-cec" }
-> +};
-> +
->  static const struct mfd_cell cros_ec_rtc_cells[] = {
->  	{ .name = "cros-ec-rtc" }
->  };
-> @@ -426,6 +430,18 @@ static int ec_device_probe(struct platform_device *pdev)
->  	if (cros_ec_check_features(ec, EC_FEATURE_MOTION_SENSE))
->  		cros_ec_sensors_register(ec);
->  
-> +	/* Check whether this EC instance has CEC host command support */
-> +	if (cros_ec_check_features(ec, EC_FEATURE_CEC)) {
-> +		retval = mfd_add_devices(ec->dev, PLATFORM_DEVID_AUTO,
-> +					 cros_ec_cec_cells,
-> +					 ARRAY_SIZE(cros_ec_cec_cells),
-> +					 NULL, 0, NULL);
-> +		if (retval)
-> +			dev_err(ec->dev,
-> +				"failed to add cros-ec-cec device: %d\n",
-> +				retval);
-> +	}
-> +
->  	/* Check whether this EC instance has RTC host command support */
->  	if (cros_ec_check_features(ec, EC_FEATURE_RTC)) {
->  		retval = mfd_add_devices(ec->dev, PLATFORM_DEVID_AUTO,
-> 
+diff --git a/Documentation/devicetree/bindings/media/imx7.txt b/Documentation/devicetree/bindings/media/imx7.txt
+new file mode 100644
+index 000000000000..a26372630377
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/imx7.txt
+@@ -0,0 +1,125 @@
++Freescale i.MX7 Media Video Device
++==================================
++
++mipi_csi2 node
++--------------
++
++This is the device node for the MIPI CSI-2 receiver core in i.MX7 SoC. It is
++compatible with previous version of Samsung D-phy.
++
++Required properties:
++
++- compatible    : "fsl,imx7-mipi-csi2";
++- reg           : base address and length of the register set for the device;
++- interrupts    : should contain MIPI CSIS interrupt;
++- clocks        : list of clock specifiers, see
++        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
++- clock-names   : must contain "pclk", "wrap" and "phy" entries, matching
++                  entries in the clock property;
++- power-domains : a phandle to the power domain, see
++          Documentation/devicetree/bindings/power/power_domain.txt for details.
++- reset-names   : should include following entry "mrst";
++- resets        : a list of phandle, should contain reset entry of
++                  reset-names;
++- phy-supply    : from the generic phy bindings, a phandle to a regulator that
++	          provides power to MIPI CSIS core;
++- bus-width     : maximum number of data lanes supported (SoC specific);
++
++Optional properties:
++
++- clock-frequency : The IP's main (system bus) clock frequency in Hz, default
++		    value when this property is not specified is 166 MHz;
++
++port node
++---------
++
++- reg		  : (required) can take the values 0 or 1, where 0 is the
++                     related sink port and port 1 should be the source one;
++
++endpoint node
++-------------
++
++- data-lanes    : (required) an array specifying active physical MIPI-CSI2
++		    data input lanes and their mapping to logical lanes; the
++		    array's content is unused, only its length is meaningful;
++
++- fsl,csis-hs-settle : (optional) differential receiver (HS-RX) settle time;
++
++example:
++
++        mipi_csi: mipi-csi@30750000 {
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++                compatible = "fsl,imx7-mipi-csi2";
++                reg = <0x30750000 0x10000>;
++                interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
++                clocks = <&clks IMX7D_IPG_ROOT_CLK>,
++                                <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
++                                <&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
++                clock-names = "pclk", "wrap", "phy";
++                clock-names = "mipi", "phy";
++                clock-frequency = <166000000>;
++                power-domains = <&pgc_mipi_phy>;
++                phy-supply = <&reg_1p0d>;
++                resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
++                reset-names = "mrst";
++                bus-width = <4>;
++                fsl,csis-hs-settle = <3>;
++                fsl,csis-clk-settle = <0>;
++
++                port@0 {
++                        reg = <0>;
++
++                        mipi_from_sensor: endpoint {
++                                remote-endpoint = <&ov2680_to_mipi>;
++                                data-lanes = <1>;
++                        };
++                };
++
++                port@1 {
++                        reg = <1>;
++
++                        mipi_vc0_to_csi_mux: endpoint {
++                                remote-endpoint = <&csi_mux_from_mipi_vc0>;
++                        };
++                };
++        };
++
++
++csi node
++--------
++
++This is device node for the CMOS Sensor Interface (CSI) which enables the chip
++to connect directly to external CMOS image sensors.
++
++Required properties:
++
++- compatible    : "fsl,imx7-csi";
++- reg           : base address and length of the register set for the device;
++- interrupts    : should contain CSI interrupt;
++- clocks        : list of clock specifiers, see
++        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
++- clock-names   : must contain "axi", "mclk" and "dcic" entries, matching
++                 entries in the clock property;
++
++example:
++
++                csi: csi@30710000 {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        compatible = "fsl,imx7-csi";
++                        reg = <0x30710000 0x10000>;
++                        interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
++                        clocks = <&clks IMX7D_CLK_DUMMY>,
++                                        <&clks IMX7D_CSI_MCLK_ROOT_CLK>,
++                                        <&clks IMX7D_CLK_DUMMY>;
++                        clock-names = "axi", "mclk", "dcic";
++
++                        port {
++                                csi_from_csi_mux: endpoint {
++                                        remote-endpoint = <&csi_mux_to_csi>;
++                                };
++                        };
++                };
+-- 
+2.17.0
