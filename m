@@ -1,67 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:37555 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752293AbeENWko (ORCPT
+Received: from mail-vk0-f52.google.com ([209.85.213.52]:36869 "EHLO
+        mail-vk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751506AbeERI4O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 18:40:44 -0400
-Received: by mail-lf0-f65.google.com with SMTP id r2-v6so20405895lff.4
-        for <linux-media@vger.kernel.org>; Mon, 14 May 2018 15:40:43 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [RFC PATCH 0/5] Add ChromeOS EC CEC Support
-Date: Tue, 15 May 2018 00:40:34 +0200
-Message-Id: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
+        Fri, 18 May 2018 04:56:14 -0400
+Received: by mail-vk0-f52.google.com with SMTP id m144-v6so4382961vke.4
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 01:56:14 -0700 (PDT)
+Received: from mail-vk0-f46.google.com (mail-vk0-f46.google.com. [209.85.213.46])
+        by smtp.gmail.com with ESMTPSA id 79-v6sm1915313ual.3.2018.05.18.01.56.12
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 18 May 2018 01:56:12 -0700 (PDT)
+Received: by mail-vk0-f46.google.com with SMTP id q189-v6so4373822vkb.0
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 01:56:12 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+ <20180424124436.26955-2-stanimir.varbanov@linaro.org> <CAAFQd5CYaeUNFMFrQAC2mofd80LKt6zxBRwAje4AoWbhGvGJ0A@mail.gmail.com>
+ <ace94242-b4cc-c671-451e-de668273d2ef@linaro.org>
+In-Reply-To: <ace94242-b4cc-c671-451e-de668273d2ef@linaro.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 18 May 2018 17:56:00 +0900
+Message-ID: <CAAFQd5CazCbucV6ep5eS9eBULwJVNUGNfeOSe_AVk_iN21VA8A@mail.gmail.com>
+Subject: Re: [PATCH 01/28] venus: hfi_msgs: correct pointer increment
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+On Fri, May 18, 2018 at 5:52 PM Stanimir Varbanov <
+stanimir.varbanov@linaro.org> wrote:
 
-The new Google "Fizz" Intel-based ChromeOS device is gaining CEC support
-throught it's Embedded Controller, to enable the Linux CEC Core to communicate
-with it and get the CEC Physical Address from the correct HDMI Connector, the
-following must be added/changed:
-- Add the CEC sub-device registration in the ChromeOS EC MFD Driver
-- Add the CEC related commands and events definitions into the EC MFD driver
-- Add a way to get a CEC notifier with it's (optional) connector name
-- Add the CEC notifier to the i915 HDMI driver
-- Add the proper ChromeOS EC CEC Driver
+> Hi Tomasz,
 
-The CEC notifier with the connector name is the tricky point, since even on
-Device-Tree platforms, there is no way to distinguish between multiple HDMI
-connectors from the same DRM driver. The solution I implemented is pretty
-simple and only adds an optional connector name to eventually distinguish
-an HDMI connector notifier from another if they share the same device.
+> Thanks for the review!
 
-Feel free to comment this patchset !
+> On 05/18/2018 11:33 AM, Tomasz Figa wrote:
+> > Hi Stanimir,
+> >
+> > Thanks for the series. I'll be gradually reviewing subsequent patches.
+Stay
+> > tuned. :)
+> >
 
-Neil Armstrong (5):
-  mfd: cros_ec_dev: Add CEC sub-device registration
-  media: cec-notifier: Get notifier by device and connector name
-  drm/i915: hdmi: add CEC notifier to intel_hdmi
-  mfd: cros-ec: Introduce CEC commands and events definitions.
-  media: platform: Add Chrome OS EC CEC driver
+> Please consider that there is a v2 of this patchset. :)
 
- drivers/gpu/drm/i915/intel_drv.h             |   2 +
- drivers/gpu/drm/i915/intel_hdmi.c            |  10 +
- drivers/media/cec/cec-notifier.c             |  30 ++-
- drivers/media/platform/Kconfig               |  11 +
- drivers/media/platform/Makefile              |   2 +
- drivers/media/platform/cros-ec/Makefile      |   1 +
- drivers/media/platform/cros-ec/cros-ec-cec.c | 331 +++++++++++++++++++++++++++
- drivers/mfd/cros_ec_dev.c                    |  16 ++
- drivers/platform/chrome/cros_ec_proto.c      |  42 +++-
- include/linux/mfd/cros_ec.h                  |   2 +-
- include/linux/mfd/cros_ec_commands.h         |  80 +++++++
- include/media/cec-notifier.h                 |  44 +++-
- 12 files changed, 556 insertions(+), 15 deletions(-)
- create mode 100644 drivers/media/platform/cros-ec/Makefile
- create mode 100644 drivers/media/platform/cros-ec/cros-ec-cec.c
+Thanks for heads up. Looks like I missed it originally. Will move to v2
+with my review.
 
--- 
-2.7.4
+Best regards,
+Tomasz
