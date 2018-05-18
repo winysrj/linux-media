@@ -1,107 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:54318 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753019AbeEKOEy (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:43780 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752225AbeERUmN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 10:04:54 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2] media: i2c: adv748x: Fix pixel rate values
-Date: Fri, 11 May 2018 16:04:34 +0200
-Message-Id: <20180511140434.19274-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Fri, 18 May 2018 16:42:13 -0400
+From: Kieran Bingham <kieran@ksquared.org.uk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v11 04/10] media: vsp1: Protect bodies against overflow
+Date: Fri, 18 May 2018 21:41:57 +0100
+Message-Id: <4b35530281bb2d821905718b8e3022f1c8e4f365.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-The pixel rate, as reported by the V4L2_CID_PIXEL_RATE control, must
-include both horizontal and vertical blanking. Both the AFE and HDMI
-receiver program it incorrectly:
+The body write function relies on the code never asking it to write more
+than the entries available in the list.
 
-- The HDMI receiver goes to the trouble of removing blanking to compute
-the rate of active pixels. This is easy to fix by removing the
-computation and returning the incoming pixel clock rate directly.
+Currently with each list body containing 256 entries, this is fine, but
+we can reduce this number greatly saving memory. In preparation of this
+add a level of protection to catch any buffer overflows.
 
-- The AFE performs similar calculation, while it should simply return
-the fixed pixel rate for analog sources, mandated by the ADV748x to be
-14.3180180 MHz.
-
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-[Niklas: Update AFE fixed pixel rate]
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
 ---
+ drivers/media/platform/vsp1/vsp1_dl.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-* Changes since v1
-- Update AFE fixed pixel rate.
----
- drivers/media/i2c/adv748x/adv748x-afe.c  | 12 ++++++------
- drivers/media/i2c/adv748x/adv748x-hdmi.c |  8 +-------
- 2 files changed, 7 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
-index 61514bae7e5ceb42..edd25e895e5dec3c 100644
---- a/drivers/media/i2c/adv748x/adv748x-afe.c
-+++ b/drivers/media/i2c/adv748x/adv748x-afe.c
-@@ -321,17 +321,17 @@ static const struct v4l2_subdev_video_ops adv748x_afe_video_ops = {
- static int adv748x_afe_propagate_pixelrate(struct adv748x_afe *afe)
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 083da4f05c20..51965c30dec2 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -46,6 +46,7 @@ struct vsp1_dl_entry {
+  * @dma: DMA address of the entries
+  * @size: size of the DMA memory in bytes
+  * @num_entries: number of stored entries
++ * @max_entries: number of entries available
+  */
+ struct vsp1_dl_body {
+ 	struct list_head list;
+@@ -56,6 +57,7 @@ struct vsp1_dl_body {
+ 	size_t size;
+ 
+ 	unsigned int num_entries;
++	unsigned int max_entries;
+ };
+ 
+ /**
+@@ -138,6 +140,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
+ 
+ 	dlb->vsp1 = vsp1;
+ 	dlb->size = size;
++	dlb->max_entries = num_entries;
+ 
+ 	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
+ 				    GFP_KERNEL);
+@@ -219,6 +222,10 @@ void vsp1_dl_body_free(struct vsp1_dl_body *dlb)
+  */
+ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
  {
- 	struct v4l2_subdev *tx;
--	unsigned int width, height, fps;
- 
- 	tx = adv748x_get_remote_sd(&afe->pads[ADV748X_AFE_SOURCE]);
- 	if (!tx)
- 		return -ENOLINK;
- 
--	width = 720;
--	height = afe->curr_norm & V4L2_STD_525_60 ? 480 : 576;
--	fps = afe->curr_norm & V4L2_STD_525_60 ? 30 : 25;
--
--	return adv748x_csi2_set_pixelrate(tx, width * height * fps);
-+	/*
-+	 * The ADV748x ADC sampling frequency is twice the externally supplied
-+	 * clock whose frequency is required to be 28.63636 MHz. It oversamples
-+	 * with a factor of 4 resulting in a pixel rate of 14.3180180 MHz.
-+	 */
-+	return adv748x_csi2_set_pixelrate(tx, 14318180);
- }
- 
- static int adv748x_afe_enum_mbus_code(struct v4l2_subdev *sd,
-diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
-index 10d229a4f08868f7..aecc2a84dfecbec8 100644
---- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
-+++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
-@@ -402,8 +402,6 @@ static int adv748x_hdmi_propagate_pixelrate(struct adv748x_hdmi *hdmi)
- {
- 	struct v4l2_subdev *tx;
- 	struct v4l2_dv_timings timings;
--	struct v4l2_bt_timings *bt = &timings.bt;
--	unsigned int fps;
- 
- 	tx = adv748x_get_remote_sd(&hdmi->pads[ADV748X_HDMI_SOURCE]);
- 	if (!tx)
-@@ -411,11 +409,7 @@ static int adv748x_hdmi_propagate_pixelrate(struct adv748x_hdmi *hdmi)
- 
- 	adv748x_hdmi_query_dv_timings(&hdmi->sd, &timings);
- 
--	fps = DIV_ROUND_CLOSEST_ULL(bt->pixelclock,
--				    V4L2_DV_BT_FRAME_WIDTH(bt) *
--				    V4L2_DV_BT_FRAME_HEIGHT(bt));
--
--	return adv748x_csi2_set_pixelrate(tx, bt->width * bt->height * fps);
-+	return adv748x_csi2_set_pixelrate(tx, timings.bt.pixelclock);
- }
- 
- static int adv748x_hdmi_enum_mbus_code(struct v4l2_subdev *sd,
++	if (WARN_ONCE(dlb->num_entries >= dlb->max_entries,
++		      "DLB size exceeded (max %u)", dlb->max_entries))
++		return;
++
+ 	dlb->entries[dlb->num_entries].addr = reg;
+ 	dlb->entries[dlb->num_entries].data = data;
+ 	dlb->num_entries++;
 -- 
-2.17.0
+git-series 0.9.1
