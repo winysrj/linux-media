@@ -1,57 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:62458 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752129AbeEOHhV (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:50510 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752560AbeERIaQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:37:21 -0400
-From: Fabien Dessenne <fabien.dessenne@st.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        <linux-media@vger.kernel.org>
-CC: Benjamin Gaignard <benjamin.gaignard@st.com>
-Subject: [PATCH 1/2] media: bdisp: don't use GFP_DMA
-Date: Tue, 15 May 2018 09:37:06 +0200
-Message-ID: <1526369827-19551-1-git-send-email-fabien.dessenne@st.com>
+        Fri, 18 May 2018 04:30:16 -0400
+Received: by mail-wm0-f66.google.com with SMTP id t11-v6so12796885wmt.0
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 01:30:15 -0700 (PDT)
+References: <20180517125033.18050-1-rui.silva@linaro.org> <20180517125033.18050-4-rui.silva@linaro.org> <152658031035.210890.12212209931570500982@swboyd.mtv.corp.google.com>
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: Stephen Boyd <sboyd@kernel.org>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>,
+        linux-clk@vger.kernel.org
+Subject: Re: [PATCH v4 03/12] clk: imx7d: fix mipi dphy div parent
+In-reply-to: <152658031035.210890.12212209931570500982@swboyd.mtv.corp.google.com>
+Date: Fri, 18 May 2018 09:30:12 +0100
+Message-ID: <m3sh6pxt63.fsf@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set the DMA_MASK and stop using the GFP_DMA flag
+Hi Stephen,
+On Thu 17 May 2018 at 18:05, Stephen Boyd wrote:
+> Quoting Rui Miguel Silva (2018-05-17 05:50:24)
+>> Fix the mipi dphy root divider to mipi_dphy_pre_div, this would 
+>> remove a orphan
+>> clock and set the correct parent.
+>> 
+>> before:
+>> cat clk_orphan_summary
+>>                                  enable  prepare  protect
+>>    clock                          count    count    count 
+>>    rate   accuracy   phase
+>> ----------------------------------------------------------------------------------------
+>>  mipi_dphy_post_div                   1        1        0 
+>>  0          0 0
+>>     mipi_dphy_root_clk                1        1        0 
+>>     0          0 0
+>> 
+>> cat clk_dump | grep mipi_dphy
+>> mipi_dphy_post_div                    1        1        0 
+>> 0          0 0
+>>     mipi_dphy_root_clk                1        1        0 
+>>     0          0 0
+>> 
+>> after:
+>> cat clk_dump | grep mipi_dphy
+>>    mipi_dphy_src                     1        1        0 
+>>    24000000          0 0
+>>        mipi_dphy_cg                  1        1        0 
+>>        24000000          0 0
+>>           mipi_dphy_pre_div          1        1        0 
+>>           24000000          0 0
+>>              mipi_dphy_post_div      1        1        0 
+>>              24000000          0 0
+>>                 mipi_dphy_root_clk   1        1        0 
+>>                 24000000          0 0
+>> 
+>> Fixes: 8f6d8094b215 ("ARM: imx: add imx7d clk tree support")
+>> 
+>> Cc: linux-clk@vger.kernel.org
+>> Acked-by: Dong Aisheng <Aisheng.dong@nxp.com>
+>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>> ---
+>
+> I only get two patches out of the 12 and I don't get a cover 
+> letter.
+> Did you want me to pick up these clk patches into clk-next? 
+> Where are
+> the other patches? Can you cc lkml on all your kernel emails so 
+> I can
+> easily find them?
 
-Signed-off-by: Fabien Dessenne <fabien.dessenne@st.com>
+Yea, sorry, You are right, I will cc all patches to the lists. v5 
+is on
+the way and I will do that.
+
 ---
- drivers/media/platform/sti/bdisp/bdisp-hw.c   | 2 +-
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c | 4 ++++
- 2 files changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-hw.c b/drivers/media/platform/sti/bdisp/bdisp-hw.c
-index a5eb592..26d9fa7 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-hw.c
-+++ b/drivers/media/platform/sti/bdisp/bdisp-hw.c
-@@ -455,7 +455,7 @@ int bdisp_hw_alloc_nodes(struct bdisp_ctx *ctx)
- 
- 	/* Allocate all the nodes within a single memory page */
- 	base = dma_alloc_attrs(dev, node_size * MAX_NB_NODE, &paddr,
--			       GFP_KERNEL | GFP_DMA, DMA_ATTR_WRITE_COMBINE);
-+			       GFP_KERNEL, DMA_ATTR_WRITE_COMBINE);
- 	if (!base) {
- 		dev_err(dev, "%s no mem\n", __func__);
- 		return -ENOMEM;
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-index bf4ca16..66b6409 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-+++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-@@ -1297,6 +1297,10 @@ static int bdisp_probe(struct platform_device *pdev)
- 	if (!bdisp)
- 		return -ENOMEM;
- 
-+	ret = dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(32));
-+	if (ret)
-+		return ret;
-+
- 	bdisp->pdev = pdev;
- 	bdisp->dev = dev;
- 	platform_set_drvdata(pdev, bdisp);
--- 
-2.7.4
+Cheers,
+	Rui
