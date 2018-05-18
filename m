@@ -1,155 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:36225 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753895AbeEaFhg (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:43784 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751452AbeERUmO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 01:37:36 -0400
-Subject: Re: [PATCH 1/8] xen/grant-table: Make set/clear page private code
- shared
-To: Dongwon Kim <dongwon.kim@intel.com>
-Cc: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, boris.ostrovsky@oracle.com,
-        konrad.wilk@oracle.com, daniel.vetter@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
- <20180525153331.31188-2-andr2000@gmail.com>
- <20180530213416.GA3159@downor-Z87X-UD5H>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <3830bb6c-62e8-199a-aef3-59ccc0e59017@gmail.com>
-Date: Thu, 31 May 2018 08:37:32 +0300
-MIME-Version: 1.0
-In-Reply-To: <20180530213416.GA3159@downor-Z87X-UD5H>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        Fri, 18 May 2018 16:42:14 -0400
+From: Kieran Bingham <kieran@ksquared.org.uk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v11 05/10] media: vsp1: Provide a body pool
+Date: Fri, 18 May 2018 21:41:58 +0100
+Message-Id: <00120dab092a30f9711bbb5e439852c269407605.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/31/2018 12:34 AM, Dongwon Kim wrote:
-> On Fri, May 25, 2018 at 06:33:24PM +0300, Oleksandr Andrushchenko wrote:
->> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>
->> Make set/clear page private code shared and accessible to
->> other kernel modules which can re-use these instead of open-coding.
->>
->> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->> ---
->>   drivers/xen/grant-table.c | 54 +++++++++++++++++++++++++--------------
->>   include/xen/grant_table.h |  3 +++
->>   2 files changed, 38 insertions(+), 19 deletions(-)
->>
->> diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
->> index 27be107d6480..d7488226e1f2 100644
->> --- a/drivers/xen/grant-table.c
->> +++ b/drivers/xen/grant-table.c
->> @@ -769,29 +769,18 @@ void gnttab_free_auto_xlat_frames(void)
->>   }
->>   EXPORT_SYMBOL_GPL(gnttab_free_auto_xlat_frames);
->>   
->> -/**
->> - * gnttab_alloc_pages - alloc pages suitable for grant mapping into
->> - * @nr_pages: number of pages to alloc
->> - * @pages: returns the pages
->> - */
->> -int gnttab_alloc_pages(int nr_pages, struct page **pages)
->> +int gnttab_pages_set_private(int nr_pages, struct page **pages)
->>   {
->>   	int i;
->> -	int ret;
->> -
->> -	ret = alloc_xenballooned_pages(nr_pages, pages);
->> -	if (ret < 0)
->> -		return ret;
->>   
->>   	for (i = 0; i < nr_pages; i++) {
->>   #if BITS_PER_LONG < 64
->>   		struct xen_page_foreign *foreign;
->>   
->>   		foreign = kzalloc(sizeof(*foreign), GFP_KERNEL);
->> -		if (!foreign) {
->> -			gnttab_free_pages(nr_pages, pages);
->> +		if (!foreign)
-> Don't we have to free previously allocated "foreign"(s) if it fails in the middle
-> (e.g. 0 < i && i < nr_pages - 1) before returning?
-gnttab_free_pages(nr_pages, pages); will take care of it when called from
-outside, see below. It can also handle partial allocations, so no problem
-here
->>   			return -ENOMEM;
->> -		}
->> +
->>   		set_page_private(pages[i], (unsigned long)foreign);
->>   #endif
->>   		SetPagePrivate(pages[i]);
->> @@ -799,14 +788,30 @@ int gnttab_alloc_pages(int nr_pages, struct page **pages)
->>   
->>   	return 0;
->>   }
->> -EXPORT_SYMBOL(gnttab_alloc_pages);
->> +EXPORT_SYMBOL(gnttab_pages_set_private);
->>   
->>   /**
->> - * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
->> - * @nr_pages; number of pages to free
->> - * @pages: the pages
->> + * gnttab_alloc_pages - alloc pages suitable for grant mapping into
->> + * @nr_pages: number of pages to alloc
->> + * @pages: returns the pages
->>    */
->> -void gnttab_free_pages(int nr_pages, struct page **pages)
->> +int gnttab_alloc_pages(int nr_pages, struct page **pages)
->> +{
->> +	int ret;
->> +
->> +	ret = alloc_xenballooned_pages(nr_pages, pages);
->> +	if (ret < 0)
->> +		return ret;
->> +
->> +	ret = gnttab_pages_set_private(nr_pages, pages);
->> +	if (ret < 0)
->> +		gnttab_free_pages(nr_pages, pages);
->> +
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL(gnttab_alloc_pages);
->> +
->> +void gnttab_pages_clear_private(int nr_pages, struct page **pages)
->>   {
->>   	int i;
->>   
->> @@ -818,6 +823,17 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
->>   			ClearPagePrivate(pages[i]);
->>   		}
->>   	}
->> +}
->> +EXPORT_SYMBOL(gnttab_pages_clear_private);
->> +
->> +/**
->> + * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
->> + * @nr_pages; number of pages to free
->> + * @pages: the pages
->> + */
->> +void gnttab_free_pages(int nr_pages, struct page **pages)
->> +{
->> +	gnttab_pages_clear_private(nr_pages, pages);
->>   	free_xenballooned_pages(nr_pages, pages);
->>   }
->>   EXPORT_SYMBOL(gnttab_free_pages);
->> diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
->> index 2e37741f6b8d..de03f2542bb7 100644
->> --- a/include/xen/grant_table.h
->> +++ b/include/xen/grant_table.h
->> @@ -198,6 +198,9 @@ void gnttab_free_auto_xlat_frames(void);
->>   int gnttab_alloc_pages(int nr_pages, struct page **pages);
->>   void gnttab_free_pages(int nr_pages, struct page **pages);
->>   
->> +int gnttab_pages_set_private(int nr_pages, struct page **pages);
->> +void gnttab_pages_clear_private(int nr_pages, struct page **pages);
->> +
->>   int gnttab_map_refs(struct gnttab_map_grant_ref *map_ops,
->>   		    struct gnttab_map_grant_ref *kmap_ops,
->>   		    struct page **pages, unsigned int count);
->> -- 
->> 2.17.0
->>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+Each display list allocates a body to store register values in a dma
+accessible buffer from a dma_alloc_wc() allocation. Each of these
+results in an entry in the IOMMU TLB, and a large number of display list
+allocations adds pressure to this resource.
+
+Reduce TLB pressure on the IPMMUs by allocating multiple display list
+bodies in a single allocation, and providing these to the display list
+through a 'body pool'. A pool can be allocated by the display list
+manager or entities which require their own body allocations.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_dl.c | 163 +++++++++++++++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_dl.h |   8 +-
+ 2 files changed, 171 insertions(+)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 51965c30dec2..41ace89a585b 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -41,6 +41,8 @@ struct vsp1_dl_entry {
+ /**
+  * struct vsp1_dl_body - Display list body
+  * @list: entry in the display list list of bodies
++ * @free: entry in the pool free body list
++ * @pool: pool to which this body belongs
+  * @vsp1: the VSP1 device
+  * @entries: array of entries
+  * @dma: DMA address of the entries
+@@ -50,6 +52,9 @@ struct vsp1_dl_entry {
+  */
+ struct vsp1_dl_body {
+ 	struct list_head list;
++	struct list_head free;
++
++	struct vsp1_dl_body_pool *pool;
+ 	struct vsp1_device *vsp1;
+ 
+ 	struct vsp1_dl_entry *entries;
+@@ -61,6 +66,30 @@ struct vsp1_dl_body {
+ };
+ 
+ /**
++ * struct vsp1_dl_body_pool - display list body pool
++ * @dma: DMA address of the entries
++ * @size: size of the full DMA memory pool in bytes
++ * @mem: CPU memory pointer for the pool
++ * @bodies: Array of DLB structures for the pool
++ * @free: List of free DLB entries
++ * @lock: Protects the free list
++ * @vsp1: the VSP1 device
++ */
++struct vsp1_dl_body_pool {
++	/* DMA allocation */
++	dma_addr_t dma;
++	size_t size;
++	void *mem;
++
++	/* Body management */
++	struct vsp1_dl_body *bodies;
++	struct list_head free;
++	spinlock_t lock;
++
++	struct vsp1_device *vsp1;
++};
++
++/**
+  * struct vsp1_dl_list - Display list
+  * @list: entry in the display list manager lists
+  * @dlm: the display list manager
+@@ -104,6 +133,7 @@ enum vsp1_dl_mode {
+  * @active: list currently being processed (loaded) by hardware
+  * @queued: list queued to the hardware (written to the DL registers)
+  * @pending: list waiting to be queued to the hardware
++ * @pool: body pool for the display list bodies
+  * @gc_work: bodies garbage collector work struct
+  * @gc_bodies: array of display list bodies waiting to be freed
+  */
+@@ -119,6 +149,8 @@ struct vsp1_dl_manager {
+ 	struct vsp1_dl_list *queued;
+ 	struct vsp1_dl_list *pending;
+ 
++	struct vsp1_dl_body_pool *pool;
++
+ 	struct work_struct gc_work;
+ 	struct list_head gc_bodies;
+ };
+@@ -127,6 +159,137 @@ struct vsp1_dl_manager {
+  * Display List Body Management
+  */
+ 
++/**
++ * vsp1_dl_body_pool_create - Create a pool of bodies from a single allocation
++ * @vsp1: The VSP1 device
++ * @num_bodies: The number of bodies to allocate
++ * @num_entries: The maximum number of entries that a body can contain
++ * @extra_size: Extra allocation provided for the bodies
++ *
++ * Allocate a pool of display list bodies each with enough memory to contain the
++ * requested number of entries plus the @extra_size.
++ *
++ * Return a pointer to a pool on success or NULL if memory can't be allocated.
++ */
++struct vsp1_dl_body_pool *
++vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
++			 unsigned int num_entries, size_t extra_size)
++{
++	struct vsp1_dl_body_pool *pool;
++	size_t dlb_size;
++	unsigned int i;
++
++	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
++	if (!pool)
++		return NULL;
++
++	pool->vsp1 = vsp1;
++
++	/*
++	 * TODO: 'extra_size' is only used by vsp1_dlm_create(), to allocate
++	 * extra memory for the display list header. We need only one header per
++	 * display list, not per display list body, thus this allocation is
++	 * extraneous and should be reworked in the future.
++	 */
++	dlb_size = num_entries * sizeof(struct vsp1_dl_entry) + extra_size;
++	pool->size = dlb_size * num_bodies;
++
++	pool->bodies = kcalloc(num_bodies, sizeof(*pool->bodies), GFP_KERNEL);
++	if (!pool->bodies) {
++		kfree(pool);
++		return NULL;
++	}
++
++	pool->mem = dma_alloc_wc(vsp1->bus_master, pool->size, &pool->dma,
++				 GFP_KERNEL);
++	if (!pool->mem) {
++		kfree(pool->bodies);
++		kfree(pool);
++		return NULL;
++	}
++
++	spin_lock_init(&pool->lock);
++	INIT_LIST_HEAD(&pool->free);
++
++	for (i = 0; i < num_bodies; ++i) {
++		struct vsp1_dl_body *dlb = &pool->bodies[i];
++
++		dlb->pool = pool;
++		dlb->max_entries = num_entries;
++
++		dlb->dma = pool->dma + i * dlb_size;
++		dlb->entries = pool->mem + i * dlb_size;
++
++		list_add_tail(&dlb->free, &pool->free);
++	}
++
++	return pool;
++}
++
++/**
++ * vsp1_dl_body_pool_destroy - Release a body pool
++ * @pool: The body pool
++ *
++ * Release all components of a pool allocation.
++ */
++void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool)
++{
++	if (!pool)
++		return;
++
++	if (pool->mem)
++		dma_free_wc(pool->vsp1->bus_master, pool->size, pool->mem,
++			    pool->dma);
++
++	kfree(pool->bodies);
++	kfree(pool);
++}
++
++/**
++ * vsp1_dl_body_get - Obtain a body from a pool
++ * @pool: The body pool
++ *
++ * Obtain a body from the pool without blocking.
++ *
++ * Returns a display list body or NULL if there are none available.
++ */
++struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
++{
++	struct vsp1_dl_body *dlb = NULL;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pool->lock, flags);
++
++	if (!list_empty(&pool->free)) {
++		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
++		list_del(&dlb->free);
++	}
++
++	spin_unlock_irqrestore(&pool->lock, flags);
++
++	return dlb;
++}
++
++/**
++ * vsp1_dl_body_put - Return a body back to its pool
++ * @dlb: The display list body
++ *
++ * Return a body back to the pool, and reset the num_entries to clear the list.
++ */
++void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
++{
++	unsigned long flags;
++
++	if (!dlb)
++		return;
++
++	dlb->num_entries = 0;
++
++	spin_lock_irqsave(&dlb->pool->lock, flags);
++	list_add_tail(&dlb->free, &dlb->pool->free);
++	spin_unlock_irqrestore(&dlb->pool->lock, flags);
++}
++
+ /*
+  * Initialize a display list body object and allocate DMA memory for the body
+  * data. The display list body object is expected to have been initialized to
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index 57565debe132..107eebcdbab6 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -13,6 +13,7 @@
+ 
+ struct vsp1_device;
+ struct vsp1_dl_body;
++struct vsp1_dl_body_pool;
+ struct vsp1_dl_list;
+ struct vsp1_dl_manager;
+ 
+@@ -33,6 +34,13 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
+ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal);
+ 
++struct vsp1_dl_body_pool *
++vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
++			 unsigned int num_entries, size_t extra_size);
++void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool);
++struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool);
++void vsp1_dl_body_put(struct vsp1_dl_body *dlb);
++
+ struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
+ 					unsigned int num_entries);
+ void vsp1_dl_body_free(struct vsp1_dl_body *dlb);
+-- 
+git-series 0.9.1
