@@ -1,432 +1,301 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f195.google.com ([209.85.217.195]:46035 "EHLO
-        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750886AbeEOFXi (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:60013 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752588AbeERN4p (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 01:23:38 -0400
-MIME-Version: 1.0
-In-Reply-To: <cd3a5e27ef4122fab90daae2af6031982df77282.1526331777.git.sean@mess.org>
-References: <cover.1526331777.git.sean@mess.org> <cd3a5e27ef4122fab90daae2af6031982df77282.1526331777.git.sean@mess.org>
-From: Y Song <ys114321@gmail.com>
-Date: Mon, 14 May 2018 22:22:57 -0700
-Message-ID: <CAH3MdRVYi1YN7V3CYGcXWhyKCC+Vno7XS2v2UfrA5_zkCNfXiw@mail.gmail.com>
-Subject: Re: [PATCH v1 2/4] media: bpf: allow raw IR decoder bpf programs to
- be used
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        netdev <netdev@vger.kernel.org>,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset="UTF-8"
+        Fri, 18 May 2018 09:56:45 -0400
+From: Jan Luebbe <jlu@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Jan Luebbe <jlu@pengutronix.de>, slongerbeam@gmail.com,
+        p.zabel@pengutronix.de, kernel@pengutronix.de,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 2/2] media: imx: add support for RGB565_2X8 on parallel bus
+Date: Fri, 18 May 2018 15:56:39 +0200
+Message-Id: <20180518135639.19889-3-jlu@pengutronix.de>
+In-Reply-To: <20180518135639.19889-1-jlu@pengutronix.de>
+References: <20180518135639.19889-1-jlu@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 14, 2018 at 2:10 PM, Sean Young <sean@mess.org> wrote:
-> This implements attaching, detaching, querying and execution. The target
-> fd has to be the /dev/lircN device.
->
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/rc/ir-bpf-decoder.c | 191 ++++++++++++++++++++++++++++++
->  drivers/media/rc/lirc_dev.c       |  30 +++++
->  drivers/media/rc/rc-core-priv.h   |  15 +++
->  drivers/media/rc/rc-ir-raw.c      |   5 +
->  include/uapi/linux/bpf.h          |   1 +
->  kernel/bpf/syscall.c              |   7 ++
->  6 files changed, 249 insertions(+)
->
-> diff --git a/drivers/media/rc/ir-bpf-decoder.c b/drivers/media/rc/ir-bpf-decoder.c
-> index aaa5e208b1a5..651590a14772 100644
-> --- a/drivers/media/rc/ir-bpf-decoder.c
-> +++ b/drivers/media/rc/ir-bpf-decoder.c
-> @@ -91,3 +91,194 @@ const struct bpf_verifier_ops ir_decoder_verifier_ops = {
->         .get_func_proto  = ir_decoder_func_proto,
->         .is_valid_access = ir_decoder_is_valid_access
->  };
-> +
-> +#define BPF_MAX_PROGS 64
-> +
-> +int rc_dev_bpf_attach(struct rc_dev *rcdev, struct bpf_prog *prog, u32 flags)
+The IPU can only capture RGB565 with two 8-bit cycles in bayer/generic
+mode on the parallel bus, compared to a specific mode on MIPI CSI-2.
+To handle this, we extend imx_media_pixfmt with a cycles per pixel
+field, which is used for generic formats on the parallel bus.
 
-flags is not used in this function.
+Based on the selected format and bus, we then update the width to
+account for the multiple cycles per pixel.
 
-> +{
-> +       struct ir_raw_event_ctrl *raw;
-> +       struct bpf_prog_array __rcu *old_array;
-> +       struct bpf_prog_array *new_array;
-> +       int ret;
-> +
-> +       if (rcdev->driver_type != RC_DRIVER_IR_RAW)
-> +               return -EINVAL;
-> +
-> +       ret = mutex_lock_interruptible(&rcdev->lock);
-> +       if (ret)
-> +               return ret;
-> +
-> +       raw = rcdev->raw;
-> +
-> +       if (raw->progs && bpf_prog_array_length(raw->progs) >= BPF_MAX_PROGS) {
-> +               ret = -E2BIG;
-> +               goto out;
-> +       }
-> +
-> +       old_array = raw->progs;
-> +       ret = bpf_prog_array_copy(old_array, NULL, prog, &new_array);
-> +       if (ret < 0)
-> +               goto out;
-> +
-> +       rcu_assign_pointer(raw->progs, new_array);
-> +       bpf_prog_array_free(old_array);
-> +out:
-> +       mutex_unlock(&rcdev->lock);
-> +       return ret;
-> +}
-> +
-> +int rc_dev_bpf_detach(struct rc_dev *rcdev, struct bpf_prog *prog, u32 flags)
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-csi.c   | 101 +++++++++++++-------
+ drivers/staging/media/imx/imx-media-utils.c |   1 +
+ drivers/staging/media/imx/imx-media.h       |   2 +
+ 3 files changed, 71 insertions(+), 33 deletions(-)
 
-flags is not used in this function.
-
-> +{
-> +       struct ir_raw_event_ctrl *raw;
-> +       struct bpf_prog_array __rcu *old_array;
-> +       struct bpf_prog_array *new_array;
-> +       int ret;
-> +
-> +       if (rcdev->driver_type != RC_DRIVER_IR_RAW)
-> +               return -EINVAL;
-> +
-> +       ret = mutex_lock_interruptible(&rcdev->lock);
-> +       if (ret)
-> +               return ret;
-> +
-> +       raw = rcdev->raw;
-> +
-> +       old_array = raw->progs;
-> +       ret = bpf_prog_array_copy(old_array, prog, NULL, &new_array);
-> +       if (ret < 0) {
-> +               bpf_prog_array_delete_safe(old_array, prog);
-> +       } else {
-> +               rcu_assign_pointer(raw->progs, new_array);
-> +               bpf_prog_array_free(old_array);
-> +       }
-> +
-> +       bpf_prog_put(prog);
-> +       mutex_unlock(&rcdev->lock);
-> +       return 0;
-> +}
-> +
-> +void rc_dev_bpf_run(struct rc_dev *rcdev)
-> +{
-> +       struct ir_raw_event_ctrl *raw = rcdev->raw;
-> +
-> +       if (raw->progs)
-> +               BPF_PROG_RUN_ARRAY(raw->progs, &raw->prev_ev, BPF_PROG_RUN);
-> +}
-> +
-> +void rc_dev_bpf_put(struct rc_dev *rcdev)
-> +{
-> +       struct bpf_prog_array *progs = rcdev->raw->progs;
-> +       int i, size;
-> +
-> +       if (!progs)
-> +               return;
-> +
-> +       size = bpf_prog_array_length(progs);
-> +       for (i = 0; i < size; i++)
-> +               bpf_prog_put(progs->progs[i]);
-> +
-> +       bpf_prog_array_free(rcdev->raw->progs);
-> +}
-> +
-> +int rc_dev_prog_attach(const union bpf_attr *attr)
-> +{
-> +       struct bpf_prog *prog;
-> +       struct rc_dev *rcdev;
-> +       int ret;
-> +
-> +       if (attr->attach_flags & BPF_F_ALLOW_OVERRIDE)
-> +               return -EINVAL;
-
-Looks like you really did not use flags except here.
-BPF_F_ALLOW_OVERRIDE is originally used for
-cgroup type of attachment and the comment explicits
-saying so.
-
-In the query below, the flags value "0" is copied to userspace.
-
-In your case, I think you can just disallow any value, i.g.,
-attr->attach_flags must be 0, and then you further down
-check that if the prog is already in the array, you just return an error.
-
-> +
-> +       prog = bpf_prog_get_type(attr->attach_bpf_fd,
-> +                                BPF_PROG_TYPE_RAWIR_DECODER);
-> +       if (IS_ERR(prog))
-> +               return PTR_ERR(prog);
-> +
-> +       rcdev = rc_dev_get_from_fd(attr->target_fd);
-> +       if (IS_ERR(rcdev)) {
-> +               bpf_prog_put(prog);
-> +               return PTR_ERR(rcdev);
-> +       }
-> +
-> +       ret = rc_dev_bpf_attach(rcdev, prog, attr->attach_flags);
-> +       if (ret)
-> +               bpf_prog_put(prog);
-> +
-> +       put_device(&rcdev->dev);
-> +
-> +       return ret;
-> +}
-> +
-> +int rc_dev_prog_detach(const union bpf_attr *attr)
-> +{
-> +       struct bpf_prog *prog;
-> +       struct rc_dev *rcdev;
-> +       int ret;
-> +
-> +       if (attr->attach_flags & BPF_F_ALLOW_OVERRIDE)
-> +               return -EINVAL;
-> +
-> +       prog = bpf_prog_get_type(attr->attach_bpf_fd,
-> +                                BPF_PROG_TYPE_RAWIR_DECODER);
-> +       if (IS_ERR(prog))
-> +               return PTR_ERR(prog);
-> +
-> +       rcdev = rc_dev_get_from_fd(attr->target_fd);
-> +       if (IS_ERR(rcdev)) {
-> +               bpf_prog_put(prog);
-> +               return PTR_ERR(rcdev);
-> +       }
-> +
-> +       ret = rc_dev_bpf_detach(rcdev, prog, attr->attach_flags);
-> +
-> +       bpf_prog_put(prog);
-> +       put_device(&rcdev->dev);
-> +
-> +       return ret;
-> +}
-> +
-> +int rc_dev_prog_query(const union bpf_attr *attr, union bpf_attr __user *uattr)
-> +{
-> +       __u32 __user *prog_ids = u64_to_user_ptr(attr->query.prog_ids);
-> +       struct bpf_prog_array *progs;
-> +       struct rc_dev *rcdev;
-> +       u32 cnt, flags = 0;
-> +       int ret;
-> +
-> +       if (attr->query.query_flags)
-> +               return -EINVAL;
-> +
-> +       rcdev = rc_dev_get_from_fd(attr->query.target_fd);
-> +       if (IS_ERR(rcdev))
-> +               return PTR_ERR(rcdev);
-> +
-> +       if (rcdev->driver_type != RC_DRIVER_IR_RAW) {
-> +               ret = -EINVAL;
-> +               goto out;
-> +       }
-> +
-> +       ret = mutex_lock_interruptible(&rcdev->lock);
-> +       if (ret)
-> +               goto out;
-> +
-> +       progs = rcdev->raw->progs;
-> +       cnt = progs ? bpf_prog_array_length(progs) : 0;
-> +
-> +       if (copy_to_user(&uattr->query.prog_cnt, &cnt, sizeof(cnt))) {
-> +               ret = -EFAULT;
-> +               goto out;
-> +       }
-> +       if (copy_to_user(&uattr->query.attach_flags, &flags, sizeof(flags))) {
-> +               ret = -EFAULT;
-> +               goto out;
-> +       }
-> +
-> +       if (attr->query.prog_cnt != 0 && prog_ids && cnt)
-> +               ret = bpf_prog_array_copy_to_user(progs, prog_ids, cnt);
-> +
-> +out:
-> +       mutex_unlock(&rcdev->lock);
-> +       put_device(&rcdev->dev);
-> +
-> +       return ret;
-> +}
-> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-> index 24e9fbb80e81..65319f2ccc13 100644
-> --- a/drivers/media/rc/lirc_dev.c
-> +++ b/drivers/media/rc/lirc_dev.c
-> @@ -20,6 +20,7 @@
->  #include <linux/module.h>
->  #include <linux/mutex.h>
->  #include <linux/device.h>
-> +#include <linux/file.h>
->  #include <linux/idr.h>
->  #include <linux/poll.h>
->  #include <linux/sched.h>
-> @@ -28,6 +29,8 @@
->  #include "rc-core-priv.h"
->  #include <uapi/linux/lirc.h>
->
-> +#include <linux/bpf-rcdev.h>
-> +
->  #define LIRCBUF_SIZE   256
->
->  static dev_t lirc_base_dev;
-> @@ -816,4 +819,31 @@ void __exit lirc_dev_exit(void)
->         unregister_chrdev_region(lirc_base_dev, RC_DEV_MAX);
->  }
->
-> +struct rc_dev *rc_dev_get_from_fd(int fd)
-> +{
-> +       struct rc_dev *dev;
-> +       struct file *f;
-> +
-> +       f = fget_raw(fd);
-> +       if (!f)
-> +               return ERR_PTR(-EBADF);
-> +
-> +       if (!S_ISCHR(f->f_inode->i_mode) ||
-> +           imajor(f->f_inode) != MAJOR(lirc_base_dev)) {
-> +               fput(f);
-> +               return ERR_PTR(-EBADF);
-> +       }
-> +
-> +       dev = container_of(f->f_inode->i_cdev, struct rc_dev, lirc_cdev);
-> +       if (!dev->registered) {
-> +               fput(f);
-> +               return ERR_PTR(-ENODEV);
-> +       }
-> +
-> +       get_device(&dev->dev);
-> +       fput(f);
-> +
-> +       return dev;
-> +}
-> +
->  MODULE_ALIAS("lirc_dev");
-> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-> index e0e6a17460f6..b6f24f369657 100644
-> --- a/drivers/media/rc/rc-core-priv.h
-> +++ b/drivers/media/rc/rc-core-priv.h
-> @@ -57,6 +57,9 @@ struct ir_raw_event_ctrl {
->         /* raw decoder state follows */
->         struct ir_raw_event prev_ev;
->         struct ir_raw_event this_ev;
-> +#ifdef CONFIG_IR_BPF_DECODER
-> +       struct bpf_prog_array *progs;
-> +#endif
->         struct nec_dec {
->                 int state;
->                 unsigned count;
-> @@ -288,6 +291,7 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev);
->  void ir_lirc_scancode_event(struct rc_dev *dev, struct lirc_scancode *lsc);
->  int ir_lirc_register(struct rc_dev *dev);
->  void ir_lirc_unregister(struct rc_dev *dev);
-> +struct rc_dev *rc_dev_get_from_fd(int fd);
->  #else
->  static inline int lirc_dev_init(void) { return 0; }
->  static inline void lirc_dev_exit(void) {}
-> @@ -299,4 +303,15 @@ static inline int ir_lirc_register(struct rc_dev *dev) { return 0; }
->  static inline void ir_lirc_unregister(struct rc_dev *dev) { }
->  #endif
->
-> +/*
-> + * bpf interface
-> + */
-> +#ifdef CONFIG_IR_BPF_DECODER
-> +void rc_dev_bpf_put(struct rc_dev *dev);
-> +void rc_dev_bpf_run(struct rc_dev *dev);
-> +#else
-> +void rc_dev_bpf_put(struct rc_dev *dev) {}
-> +void rc_dev_bpf_run(struct rc_dev *dev) {}
-> +#endif
-> +
->  #endif /* _RC_CORE_PRIV */
-> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-> index 374f83105a23..efddd9c44466 100644
-> --- a/drivers/media/rc/rc-ir-raw.c
-> +++ b/drivers/media/rc/rc-ir-raw.c
-> @@ -8,6 +8,8 @@
->  #include <linux/mutex.h>
->  #include <linux/kmod.h>
->  #include <linux/sched.h>
-> +#include <linux/filter.h>
-> +#include <linux/bpf.h>
->  #include "rc-core-priv.h"
->
->  /* Used to keep track of IR raw clients, protected by ir_raw_handler_lock */
-> @@ -33,6 +35,7 @@ static int ir_raw_event_thread(void *data)
->                                         handler->decode(raw->dev, ev);
->                         ir_lirc_raw_event(raw->dev, ev);
->                         raw->prev_ev = ev;
-> +                       rc_dev_bpf_run(raw->dev);
->                 }
->                 mutex_unlock(&ir_raw_handler_lock);
->
-> @@ -623,6 +626,8 @@ void ir_raw_event_unregister(struct rc_dev *dev)
->                         handler->raw_unregister(dev);
->         mutex_unlock(&ir_raw_handler_lock);
->
-> +       rc_dev_bpf_put(dev);
-> +
->         ir_raw_event_free(dev);
->  }
->
-> diff --git a/include/uapi/linux/bpf.h b/include/uapi/linux/bpf.h
-> index 6ad053e831c0..d9740599adf6 100644
-> --- a/include/uapi/linux/bpf.h
-> +++ b/include/uapi/linux/bpf.h
-> @@ -155,6 +155,7 @@ enum bpf_attach_type {
->         BPF_CGROUP_INET6_CONNECT,
->         BPF_CGROUP_INET4_POST_BIND,
->         BPF_CGROUP_INET6_POST_BIND,
-> +       BPF_RAWIR_DECODER,
->         __MAX_BPF_ATTACH_TYPE
->  };
->
-> diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
-> index 016ef9025827..63ecc1f2e1e3 100644
-> --- a/kernel/bpf/syscall.c
-> +++ b/kernel/bpf/syscall.c
-> @@ -27,6 +27,7 @@
->  #include <linux/timekeeping.h>
->  #include <linux/ctype.h>
->  #include <linux/nospec.h>
-> +#include <linux/bpf-rcdev.h>
->
->  #define IS_FD_ARRAY(map) ((map)->map_type == BPF_MAP_TYPE_PROG_ARRAY || \
->                            (map)->map_type == BPF_MAP_TYPE_PERF_EVENT_ARRAY || \
-> @@ -1556,6 +1557,8 @@ static int bpf_prog_attach(const union bpf_attr *attr)
->         case BPF_SK_SKB_STREAM_PARSER:
->         case BPF_SK_SKB_STREAM_VERDICT:
->                 return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, true);
-> +       case BPF_RAWIR_DECODER:
-> +               return rc_dev_prog_attach(attr);
->         default:
->                 return -EINVAL;
->         }
-> @@ -1626,6 +1629,8 @@ static int bpf_prog_detach(const union bpf_attr *attr)
->         case BPF_SK_SKB_STREAM_PARSER:
->         case BPF_SK_SKB_STREAM_VERDICT:
->                 return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, false);
-> +       case BPF_RAWIR_DECODER:
-> +               return rc_dev_prog_detach(attr);
->         default:
->                 return -EINVAL;
->         }
-> @@ -1673,6 +1678,8 @@ static int bpf_prog_query(const union bpf_attr *attr,
->         case BPF_CGROUP_SOCK_OPS:
->         case BPF_CGROUP_DEVICE:
->                 break;
-> +       case BPF_RAWIR_DECODER:
-> +               return rc_dev_prog_query(attr, uattr);
->         default:
->                 return -EINVAL;
->         }
-> --
-> 2.17.0
->
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 08b636084286..64e795b0bdae 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -121,10 +121,32 @@ static inline struct csi_priv *sd_to_dev(struct v4l2_subdev *sdev)
+ 	return container_of(sdev, struct csi_priv, sd);
+ }
+ 
++static inline bool is_parallel_bus(struct v4l2_fwnode_endpoint *ep)
++{
++	return ep->bus_type != V4L2_MBUS_CSI2;
++}
++
+ static inline bool is_parallel_16bit_bus(struct v4l2_fwnode_endpoint *ep)
+ {
+-	return ep->bus_type != V4L2_MBUS_CSI2 &&
+-		ep->bus.parallel.bus_width >= 16;
++	return is_parallel_bus(ep) && ep->bus.parallel.bus_width >= 16;
++}
++
++/*
++ * Check for conditions that require the IPU to handle the
++ * data internally as generic data, aka passthrough mode:
++ * - raw bayer media bus formats, or
++ * - the CSI is receiving from a 16-bit parallel bus, or
++ * - the CSI is receiving from an 8-bit parallel bus and the incoming
++ *   media bus format is other than UYVY8_2X8/YUYV8_2X8.
++ */
++static inline bool requires_passthrough(struct v4l2_fwnode_endpoint *ep,
++					struct v4l2_mbus_framefmt *infmt,
++					const struct imx_media_pixfmt *incc)
++{
++	return incc->bayer || is_parallel_16bit_bus(ep) ||
++		(is_parallel_bus(ep) &&
++		 infmt->code != MEDIA_BUS_FMT_UYVY8_2X8 &&
++		 infmt->code != MEDIA_BUS_FMT_YUYV8_2X8);
+ }
+ 
+ /*
+@@ -367,15 +389,18 @@ static void csi_idmac_unsetup_vb2_buf(struct csi_priv *priv,
+ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ {
+ 	struct imx_media_video_dev *vdev = priv->vdev;
++	const struct imx_media_pixfmt *incc;
+ 	struct v4l2_mbus_framefmt *infmt;
+ 	struct ipu_image image;
+ 	u32 passthrough_bits;
++	u32 passthrough_cycles;
+ 	dma_addr_t phys[2];
+ 	bool passthrough;
+ 	u32 burst_size;
+ 	int ret;
+ 
+ 	infmt = &priv->format_mbus[CSI_SINK_PAD];
++	incc = priv->cc[CSI_SINK_PAD];
+ 
+ 	ipu_cpmem_zero(priv->idmac_ch);
+ 
+@@ -389,12 +414,9 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	image.phys0 = phys[0];
+ 	image.phys1 = phys[1];
+ 
+-	/*
+-	 * Check for conditions that require the IPU to handle the
+-	 * data internally as generic data, aka passthrough mode:
+-	 * - raw bayer formats
+-	 * - the CSI is receiving from a 16-bit parallel bus
+-	 */
++	passthrough = requires_passthrough(&priv->upstream_ep, infmt, incc);
++	passthrough_cycles = 1;
++
+ 	switch (image.pix.pixelformat) {
+ 	case V4L2_PIX_FMT_SBGGR8:
+ 	case V4L2_PIX_FMT_SGBRG8:
+@@ -402,7 +424,6 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	case V4L2_PIX_FMT_SRGGB8:
+ 	case V4L2_PIX_FMT_GREY:
+ 		burst_size = 16;
+-		passthrough = true;
+ 		passthrough_bits = 8;
+ 		break;
+ 	case V4L2_PIX_FMT_SBGGR16:
+@@ -411,7 +432,6 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	case V4L2_PIX_FMT_SRGGB16:
+ 	case V4L2_PIX_FMT_Y16:
+ 		burst_size = 8;
+-		passthrough = true;
+ 		passthrough_bits = 16;
+ 		break;
+ 	case V4L2_PIX_FMT_YUV420:
+@@ -419,7 +439,6 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 		burst_size = (image.pix.width & 0x3f) ?
+ 			     ((image.pix.width & 0x1f) ?
+ 			      ((image.pix.width & 0xf) ? 8 : 16) : 32) : 64;
+-		passthrough = is_parallel_16bit_bus(&priv->upstream_ep);
+ 		passthrough_bits = 16;
+ 		/* Skip writing U and V components to odd rows */
+ 		ipu_cpmem_skip_odd_chroma_rows(priv->idmac_ch);
+@@ -428,18 +447,25 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	case V4L2_PIX_FMT_UYVY:
+ 		burst_size = (image.pix.width & 0x1f) ?
+ 			     ((image.pix.width & 0xf) ? 8 : 16) : 32;
+-		passthrough = is_parallel_16bit_bus(&priv->upstream_ep);
+ 		passthrough_bits = 16;
+ 		break;
++	case V4L2_PIX_FMT_RGB565:
++		if (passthrough) {
++			burst_size = 16;
++			passthrough_bits = 8;
++			passthrough_cycles = incc->cycles;
++			break;
++		}
++		/* fallthrough for non-passthrough RGB565 (CSI-2 bus) */
+ 	default:
+ 		burst_size = (image.pix.width & 0xf) ? 8 : 16;
+-		passthrough = is_parallel_16bit_bus(&priv->upstream_ep);
+ 		passthrough_bits = 16;
+ 		break;
+ 	}
+ 
+ 	if (passthrough) {
+-		ipu_cpmem_set_resolution(priv->idmac_ch, image.rect.width,
++		ipu_cpmem_set_resolution(priv->idmac_ch,
++					 image.rect.width * passthrough_cycles,
+ 					 image.rect.height);
+ 		ipu_cpmem_set_stride(priv->idmac_ch, image.pix.bytesperline);
+ 		ipu_cpmem_set_buffer(priv->idmac_ch, 0, image.phys0);
+@@ -630,17 +656,20 @@ static void csi_idmac_stop(struct csi_priv *priv)
+ static int csi_setup(struct csi_priv *priv)
+ {
+ 	struct v4l2_mbus_framefmt *infmt, *outfmt;
++	const struct imx_media_pixfmt *incc;
+ 	struct v4l2_mbus_config mbus_cfg;
+ 	struct v4l2_mbus_framefmt if_fmt;
++	struct v4l2_rect crop;
+ 
+ 	infmt = &priv->format_mbus[CSI_SINK_PAD];
++	incc = priv->cc[CSI_SINK_PAD];
+ 	outfmt = &priv->format_mbus[priv->active_output_pad];
+ 
+ 	/* compose mbus_config from the upstream endpoint */
+ 	mbus_cfg.type = priv->upstream_ep.bus_type;
+-	mbus_cfg.flags = (priv->upstream_ep.bus_type == V4L2_MBUS_CSI2) ?
+-		priv->upstream_ep.bus.mipi_csi2.flags :
+-		priv->upstream_ep.bus.parallel.flags;
++	mbus_cfg.flags = is_parallel_bus(&priv->upstream_ep) ?
++		priv->upstream_ep.bus.parallel.flags :
++		priv->upstream_ep.bus.mipi_csi2.flags;
+ 
+ 	/*
+ 	 * we need to pass input frame to CSI interface, but
+@@ -648,8 +677,18 @@ static int csi_setup(struct csi_priv *priv)
+ 	 */
+ 	if_fmt = *infmt;
+ 	if_fmt.field = outfmt->field;
++	crop = priv->crop;
+ 
+-	ipu_csi_set_window(priv->csi, &priv->crop);
++	/*
++	 * if cycles is set, we need to handle this over multiple cycles as
++	 * generic/bayer data
++	 */
++	if (is_parallel_bus(&priv->upstream_ep) && incc->cycles) {
++		if_fmt.width *= incc->cycles;
++		crop.width *= incc->cycles;
++	}
++
++	ipu_csi_set_window(priv->csi, &crop);
+ 
+ 	ipu_csi_set_downsize(priv->csi,
+ 			     priv->crop.width == 2 * priv->compose.width,
+@@ -1007,7 +1046,6 @@ static int csi_link_validate(struct v4l2_subdev *sd,
+ {
+ 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
+ 	struct v4l2_fwnode_endpoint upstream_ep = {};
+-	const struct imx_media_pixfmt *incc;
+ 	bool is_csi2;
+ 	int ret;
+ 
+@@ -1025,17 +1063,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
+ 	mutex_lock(&priv->lock);
+ 
+ 	priv->upstream_ep = upstream_ep;
+-	is_csi2 = (upstream_ep.bus_type == V4L2_MBUS_CSI2);
+-	incc = priv->cc[CSI_SINK_PAD];
+-
+-	if (priv->dest != IPU_CSI_DEST_IDMAC &&
+-	    (incc->bayer || is_parallel_16bit_bus(&upstream_ep))) {
+-		v4l2_err(&priv->sd,
+-			 "bayer/16-bit parallel buses must go to IDMAC pad\n");
+-		ret = -EINVAL;
+-		goto out;
+-	}
+-
++	is_csi2 = !is_parallel_bus(&upstream_ep);
+ 	if (is_csi2) {
+ 		int vc_num = 0;
+ 		/*
+@@ -1059,7 +1087,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
+ 
+ 	/* select either parallel or MIPI-CSI2 as input to CSI */
+ 	ipu_set_csi_src_mux(priv->ipu, priv->csi_id, is_csi2);
+-out:
++
+ 	mutex_unlock(&priv->lock);
+ 	return ret;
+ }
+@@ -1131,6 +1159,7 @@ static int csi_enum_mbus_code(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_mbus_code_enum *code)
+ {
+ 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
++	struct v4l2_fwnode_endpoint upstream_ep;
+ 	const struct imx_media_pixfmt *incc;
+ 	struct v4l2_mbus_framefmt *infmt;
+ 	int ret = 0;
+@@ -1147,7 +1176,13 @@ static int csi_enum_mbus_code(struct v4l2_subdev *sd,
+ 		break;
+ 	case CSI_SRC_PAD_DIRECT:
+ 	case CSI_SRC_PAD_IDMAC:
+-		if (incc->bayer) {
++		ret = csi_get_upstream_endpoint(priv, &upstream_ep);
++		if (ret) {
++			v4l2_err(&priv->sd, "failed to find upstream endpoint\n");
++			goto out;
++		}
++
++		if (requires_passthrough(&upstream_ep, infmt, incc)) {
+ 			if (code->index != 0) {
+ 				ret = -EINVAL;
+ 				goto out;
+@@ -1286,7 +1321,7 @@ static void csi_try_fmt(struct csi_priv *priv,
+ 		sdformat->format.width = compose->width;
+ 		sdformat->format.height = compose->height;
+ 
+-		if (incc->bayer) {
++		if (requires_passthrough(upstream_ep, infmt, incc)) {
+ 			sdformat->format.code = infmt->code;
+ 			*cc = incc;
+ 		} else {
+diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
+index 7ec2db84451c..8aa13403b09d 100644
+--- a/drivers/staging/media/imx/imx-media-utils.c
++++ b/drivers/staging/media/imx/imx-media-utils.c
+@@ -78,6 +78,7 @@ static const struct imx_media_pixfmt rgb_formats[] = {
+ 		.codes  = {MEDIA_BUS_FMT_RGB565_2X8_LE},
+ 		.cs     = IPUV3_COLORSPACE_RGB,
+ 		.bpp    = 16,
++		.cycles = 2,
+ 	}, {
+ 		.fourcc	= V4L2_PIX_FMT_RGB24,
+ 		.codes  = {
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index e945e0ed6dd6..57bd094cf765 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -62,6 +62,8 @@ struct imx_media_pixfmt {
+ 	u32     fourcc;
+ 	u32     codes[4];
+ 	int     bpp;     /* total bpp */
++	/* cycles per pixel for generic (bayer) formats for the parallel bus */
++	int	cycles;
+ 	enum ipu_color_space cs;
+ 	bool    planar;  /* is a planar format */
+ 	bool    bayer;   /* is a raw bayer format */
+-- 
+2.17.0
