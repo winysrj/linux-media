@@ -1,63 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:41455 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751221AbeERQuY (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33356 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751197AbeERSxk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 12:50:24 -0400
-Date: Fri, 18 May 2018 11:50:22 -0500
-From: Rob Herring <robh@kernel.org>
-To: Rui Miguel Silva <rui.silva@linaro.org>
-Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>, linux-clk@vger.kernel.org
-Subject: Re: [PATCH v5 07/12] ARM: dts: imx7s: add mipi phy power domain
-Message-ID: <20180518165022.GB21131@rob-hp-laptop>
-References: <20180518092806.3829-1-rui.silva@linaro.org>
- <20180518092806.3829-8-rui.silva@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180518092806.3829-8-rui.silva@linaro.org>
+        Fri, 18 May 2018 14:53:40 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        Abylay Ospan <aospan@netup.ru>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH 02/20] v4l2-core: push taking ioctl mutex down to ioctl handler.
+Date: Fri, 18 May 2018 15:51:50 -0300
+Message-Id: <20180518185208.17722-3-ezequiel@collabora.com>
+In-Reply-To: <20180518185208.17722-1-ezequiel@collabora.com>
+References: <20180518185208.17722-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 18, 2018 at 10:28:01AM +0100, Rui Miguel Silva wrote:
-> Add power domain index 0 related with mipi-phy to imx7s.
-> 
-> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
-> ---
->  arch/arm/boot/dts/imx7s.dtsi | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-> index 4d42335c0dee..67450ad89940 100644
-> --- a/arch/arm/boot/dts/imx7s.dtsi
-> +++ b/arch/arm/boot/dts/imx7s.dtsi
-> @@ -636,6 +636,12 @@
->  					#address-cells = <1>;
->  					#size-cells = <0>;
->  
-> +					pgc_mipi_phy: pgc-power-domain@0 {
+From: Hans Verkuil <hansverk@cisco.com>
 
-power-domain@0
+The ioctl serialization mutex (vdev->lock or q->lock for vb2 queues)
+was taken at the highest level in v4l2-dev.c. This prevents more
+fine-grained locking since at that level we cannot examine the ioctl
+arguments, we can only do that after video_usercopy is called.
 
-> +						#power-domain-cells = <0>;
-> +						reg = <0>;
-> +						power-supply = <&reg_1p0d>;
-> +					};
-> +
->  					pgc_pcie_phy: pgc-power-domain@1 {
+So push the locking down to __video_do_ioctl() and subdev_do_ioctl_lock().
 
-ditto.
+This also allows us to make a few functions in v4l2-ioctl.c static and
+video_usercopy() is no longer exported.
 
->  						#power-domain-cells = <0>;
->  						reg = <1>;
-> -- 
-> 2.17.0
-> 
+The locking scheme is not changed by this patch, just pushed down.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c    |  6 ------
+ drivers/media/v4l2-core/v4l2-ioctl.c  | 17 ++++++++++++++---
+ drivers/media/v4l2-core/v4l2-subdev.c | 17 ++++++++++++++++-
+ include/media/v4l2-dev.h              |  9 ---------
+ include/media/v4l2-ioctl.h            | 12 ------------
+ 5 files changed, 30 insertions(+), 31 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 1d0b2208e8fb..baf8cd549128 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -352,14 +352,8 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	int ret = -ENODEV;
+ 
+ 	if (vdev->fops->unlocked_ioctl) {
+-		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
+-
+-		if (lock && mutex_lock_interruptible(lock))
+-			return -ERESTARTSYS;
+ 		if (video_is_registered(vdev))
+ 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+-		if (lock)
+-			mutex_unlock(lock);
+ 	} else
+ 		ret = -ENOTTY;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 63de1c7134cc..de1b868500f3 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2634,14 +2634,14 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+ 
+-bool v4l2_is_known_ioctl(unsigned int cmd)
++static bool v4l2_is_known_ioctl(unsigned int cmd)
+ {
+ 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
+ 		return false;
+ 	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
+ }
+ 
+-struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
++static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
+ {
+ 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
+ 		return vdev->lock;
+@@ -2692,6 +2692,7 @@ static long __video_do_ioctl(struct file *file,
+ 		unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vfd = video_devdata(file);
++	struct mutex *lock = v4l2_ioctl_get_lock(vfd, cmd);
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	bool write_only = false;
+ 	struct v4l2_ioctl_info default_info;
+@@ -2710,6 +2711,14 @@ static long __video_do_ioctl(struct file *file,
+ 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
+ 		vfh = file->private_data;
+ 
++	if (lock && mutex_lock_interruptible(lock))
++		return -ERESTARTSYS;
++
++	if (!video_is_registered(vfd)) {
++		ret = -ENODEV;
++		goto unlock;
++	}
++
+ 	if (v4l2_is_known_ioctl(cmd)) {
+ 		info = &v4l2_ioctls[_IOC_NR(cmd)];
+ 
+@@ -2765,6 +2774,9 @@ static long __video_do_ioctl(struct file *file,
+ 		}
+ 	}
+ 
++unlock:
++	if (lock)
++		mutex_unlock(lock);
+ 	return ret;
+ }
+ 
+@@ -2954,7 +2966,6 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 	kvfree(mbuf);
+ 	return err;
+ }
+-EXPORT_SYMBOL(video_usercopy);
+ 
+ long video_ioctl2(struct file *file,
+ 	       unsigned int cmd, unsigned long arg)
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index f9eed938d348..6a7f7f75dfd7 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -502,10 +502,25 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	return 0;
+ }
+ 
++static long subdev_do_ioctl_lock(struct file *file, unsigned int cmd, void *arg)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct mutex *lock = vdev->lock;
++	long ret = -ENODEV;
++
++	if (lock && mutex_lock_interruptible(lock))
++		return -ERESTARTSYS;
++	if (video_is_registered(vdev))
++		ret = subdev_do_ioctl(file, cmd, arg);
++	if (lock)
++		mutex_unlock(lock);
++	return ret;
++}
++
+ static long subdev_ioctl(struct file *file, unsigned int cmd,
+ 	unsigned long arg)
+ {
+-	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
++	return video_usercopy(file, cmd, arg, subdev_do_ioctl_lock);
+ }
+ 
+ #ifdef CONFIG_COMPAT
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 4546958eeba0..3a0be40749bc 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -434,15 +434,6 @@ void video_device_release(struct video_device *vdev);
+  */
+ void video_device_release_empty(struct video_device *vdev);
+ 
+-/**
+- * v4l2_is_known_ioctl - Checks if a given cmd is a known V4L ioctl
+- *
+- * @cmd: ioctl command
+- *
+- * returns true if cmd is a known V4L2 ioctl
+- */
+-bool v4l2_is_known_ioctl(unsigned int cmd);
+-
+ /**
+  * v4l2_disable_ioctl- mark that a given command isn't implemented.
+  *	shouldn't use core locking
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index a7b3f7c75d62..a8dbf5b54b5c 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -658,18 +658,6 @@ void v4l_printk_ioctl(const char *prefix, unsigned int cmd);
+ 
+ struct video_device;
+ 
+-
+-/**
+- * v4l2_ioctl_get_lock - get the mutex (if any) that it is need to lock for
+- *	a given command.
+- *
+- * @vdev: Pointer to struct &video_device.
+- * @cmd: Ioctl name.
+- *
+- * .. note:: Internal use only. Should not be used outside V4L2 core.
+- */
+-struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned int cmd);
+-
+ /* names for fancy debug output */
+ extern const char *v4l2_field_names[];
+ extern const char *v4l2_type_names[];
+-- 
+2.16.3
