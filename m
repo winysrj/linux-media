@@ -1,102 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway24.websitewelcome.com ([192.185.51.251]:15688 "EHLO
-        gateway24.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751664AbeEQKgI (ORCPT
+Received: from mail-vk0-f65.google.com ([209.85.213.65]:40779 "EHLO
+        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753695AbeERIeE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 06:36:08 -0400
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway24.websitewelcome.com (Postfix) with ESMTP id 6BE35C73B
-        for <linux-media@vger.kernel.org>; Thu, 17 May 2018 05:36:06 -0500 (CDT)
-Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
- <20180423152455.363d285c@vento.lan>
- <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
- <20180423161742.66f939ba@vento.lan>
- <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
- <20180426204241.03a42996@vento.lan>
- <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
- <20180515085953.65bfa107@vento.lan> <20180515141655.idzuh2jfdkuu5grs@mwanda>
- <f342d8d6-b5e6-0cbf-d002-9561b79c90e4@embeddedor.com>
- <20180515193936.m25kzyeknsk2bo2c@mwanda>
- <0f31a60b-911d-0140-3546-98317e2a0557@embeddedor.com>
-Message-ID: <d34cf31f-6dc5-ee2d-ea6d-513dd5e8e5c3@embeddedor.com>
-Date: Thu, 17 May 2018 05:36:03 -0500
+        Fri, 18 May 2018 04:34:04 -0400
+Received: by mail-vk0-f65.google.com with SMTP id e67-v6so4341524vke.7
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 01:34:04 -0700 (PDT)
+Received: from mail-vk0-f52.google.com (mail-vk0-f52.google.com. [209.85.213.52])
+        by smtp.gmail.com with ESMTPSA id 23-v6sm1168661uau.40.2018.05.18.01.34.02
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 18 May 2018 01:34:02 -0700 (PDT)
+Received: by mail-vk0-f52.google.com with SMTP id x66-v6so4328852vka.11
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 01:34:02 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <0f31a60b-911d-0140-3546-98317e2a0557@embeddedor.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <20180424124436.26955-1-stanimir.varbanov@linaro.org> <20180424124436.26955-2-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180424124436.26955-2-stanimir.varbanov@linaro.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 18 May 2018 17:33:50 +0900
+Message-ID: <CAAFQd5CYaeUNFMFrQAC2mofd80LKt6zxBRwAje4AoWbhGvGJ0A@mail.gmail.com>
+Subject: Re: [PATCH 01/28] venus: hfi_msgs: correct pointer increment
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Stanimir,
 
+Thanks for the series. I'll be gradually reviewing subsequent patches. Stay
+tuned. :)
 
-On 05/16/2018 08:14 PM, Gustavo A. R. Silva wrote:
-> 
-> 
-> On 05/15/2018 02:39 PM, Dan Carpenter wrote:
->>> Dan,
->>>
->>> These are all the Spectre media issues I see smatch is reporting in
->>> linux-next-20180515:
->>>
->>> drivers/media/cec/cec-pin-error-inj.c:170 cec_pin_error_inj_parse_line()
->>> warn: potential spectre issue 'pin->error_inj_args'
->>> drivers/media/dvb-core/dvb_ca_en50221.c:1479 
->>> dvb_ca_en50221_io_write() warn:
->>> potential spectre issue 'ca->slot_info' (local cap)
->>> drivers/media/dvb-core/dvb_net.c:252 handle_one_ule_extension() warn:
->>> potential spectre issue 'p->ule_next_hdr'
->>>
->>> I pulled the latest changes from the smatch repository and compiled it.
->>>
->>> I'm running smatch v0.5.0-4459-g2f66d40 now. Is this the latest version?
->>>
->>> I wonder if there is anything I might be missing.
->>>
->>
->> You'd need to rebuild the db (possibly twice but definitely once).
->>
-> 
-> Hi Dan,
-> 
-> After rebuilding the db (once), these are all the Spectre media warnings 
-> I get:
-> 
-> drivers/media/pci/ddbridge/ddbridge-core.c:233 ddb_redirect() warn: 
-> potential spectre issue 'ddbs'
-> drivers/media/pci/ddbridge/ddbridge-core.c:243 ddb_redirect() warn: 
-> potential spectre issue 'pdev->port'
-> drivers/media/pci/ddbridge/ddbridge-core.c:252 ddb_redirect() warn: 
-> potential spectre issue 'idev->input'
-> drivers/media/dvb-core/dvb_ca_en50221.c:1400 
-> dvb_ca_en50221_io_do_ioctl() warn: potential spectre issue 
-> 'ca->slot_info' (local cap)
-> drivers/media/dvb-core/dvb_ca_en50221.c:1479 dvb_ca_en50221_io_write() 
-> warn: potential spectre issue 'ca->slot_info' (local cap)
-> drivers/media/dvb-core/dvb_net.c:252 handle_one_ule_extension() warn: 
-> potential spectre issue 'p->ule_next_hdr'
-> drivers/media/dvb-core/dvb_net.c:1483 dvb_net_do_ioctl() warn: potential 
-> spectre issue 'dvbnet->device' (local cap)
-> drivers/media/cec/cec-pin-error-inj.c:170 cec_pin_error_inj_parse_line() 
-> warn: potential spectre issue 'pin->error_inj_args'
-> 
-> I just want to double check if you are getting the same output. In case 
-> you are getting the same, then what Mauro commented about these issues:
-> 
-> https://patchwork.linuxtv.org/project/linux-media/list/?submitter=7277
-> 
-> being resolved by commit 3ad3b7a2ebaefae37a7eafed0779324987ca5e56 seems 
-> to be correct.
-> 
+On Tue, Apr 24, 2018 at 9:56 PM Stanimir Varbanov <
+stanimir.varbanov@linaro.org> wrote:
 
-Interesting, I've rebuild the db twice and now I get a total of 75 
-Spectre warnings in drivers/media
+> Data pointer should be incremented by size of the structure not
+> the size of a pointer, correct the mistake.
 
---
-Gustavo
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>   drivers/media/platform/qcom/venus/hfi_msgs.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+
+> diff --git a/drivers/media/platform/qcom/venus/hfi_msgs.c
+b/drivers/media/platform/qcom/venus/hfi_msgs.c
+> index 90c93d9603dc..589e1a6b36a9 100644
+> --- a/drivers/media/platform/qcom/venus/hfi_msgs.c
+> +++ b/drivers/media/platform/qcom/venus/hfi_msgs.c
+> @@ -60,14 +60,14 @@ static void event_seq_changed(struct venus_core
+*core, struct venus_inst *inst,
+>                          frame_sz = (struct hfi_framesize *)data_ptr;
+>                          event.width = frame_sz->width;
+>                          event.height = frame_sz->height;
+> -                       data_ptr += sizeof(frame_sz);
+> +                       data_ptr += sizeof(*frame_sz);
+>                          break;
+>                  case HFI_PROPERTY_PARAM_PROFILE_LEVEL_CURRENT:
+>                          data_ptr += sizeof(u32);
+>                          profile_level = (struct hfi_profile_level
+*)data_ptr;
+>                          event.profile = profile_level->profile;
+>                          event.level = profile_level->level;
+> -                       data_ptr += sizeof(profile_level);
+> +                       data_ptr += sizeof(*profile_level);
+>                          break;
+>                  default:
+>                          break;
+
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+
+Best regards,
+Tomasz
