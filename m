@@ -1,208 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:42130 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753000AbeEONeK (ORCPT
+Received: from mail-vk0-f67.google.com ([209.85.213.67]:44465 "EHLO
+        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750763AbeERJpJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 09:34:10 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Sakari Ailus" <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 11/12] media: ov5640: Add 60 fps support
-Date: Tue, 15 May 2018 13:33:55 +0000
-Message-ID: <1ef58196-f04a-8b75-6d01-8ec5e22bfc7f@st.com>
-References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
- <20180416123701.15901-12-maxime.ripard@bootlin.com>
-In-Reply-To: <20180416123701.15901-12-maxime.ripard@bootlin.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <C8F88407B603D84C820C67F8937A9930@st.com>
-Content-Transfer-Encoding: base64
+        Fri, 18 May 2018 05:45:09 -0400
+Received: by mail-vk0-f67.google.com with SMTP id x66-v6so4434485vka.11
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 02:45:08 -0700 (PDT)
+Received: from mail-ua0-f175.google.com (mail-ua0-f175.google.com. [209.85.217.175])
+        by smtp.gmail.com with ESMTPSA id k10-v6sm1779420uab.4.2018.05.18.02.45.06
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 18 May 2018 02:45:06 -0700 (PDT)
+Received: by mail-ua0-f175.google.com with SMTP id b25-v6so4952676uak.3
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 02:45:06 -0700 (PDT)
 MIME-Version: 1.0
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org> <20180515075859.17217-3-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-3-stanimir.varbanov@linaro.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 18 May 2018 18:44:54 +0900
+Message-ID: <CAAFQd5Ddfrj7Gh5KAkUxEjiT_LPaYqyzxOd53eCcG5Q7weMEmw@mail.gmail.com>
+Subject: Re: [PATCH v2 02/29] venus: hfi: preparation to support venus 4xx
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTWF4aW1lLA0KDQpJJ3ZlIHRha2VuIHRoZSB3aG9sZSBzZXJpZSBhbmQgbWFkZSBzb21lIHRl
-c3RzIG9uIFNUTTMyIHBsYXRmb3JtIHVzaW5nIA0KRFZQIHBhcmFsbGVsIGludGVyZmFjZS4NCk5v
-dyBKUEVHIGlzIE9LIGFuZCBJJ3ZlIG5vdCBzZWVuIGFueSByZWdyZXNzaW9ucyBhcHBhcnQgb24g
-ZnJhbWVyYXRlIA0KY29udHJvbCBsaW5rZWQgdG8gdGhpcyBjdXJyZW50IHBhdGNoc2V0Lg0KDQpI
-ZXJlIGFyZSBpc3N1ZXMgb2JzZXJ2ZWQgYXJvdW5kIGZyYW1lcmF0ZSBjb250cm9sOg0KMSkgRnJh
-bWVyYXRlIGVudW1lcmF0aW9uIGlzIGJ1Z2d5IGFuZCBhbGwgcmVzb2x1dGlvbnMgYXJlIGNsYWlt
-ZWQgDQpzdXBwb3J0aW5nIDE1LzMwLzYwOg0KdjRsMi1jdGwgLS1saXN0LWZvcm1hdHMtZXh0DQpp
-b2N0bDogVklESU9DX0VOVU1fRk1UDQogICAgICAgICBJbmRleCAgICAgICA6IDANCiAgICAgICAg
-IFR5cGUgICAgICAgIDogVmlkZW8gQ2FwdHVyZQ0KICAgICAgICAgUGl4ZWwgRm9ybWF0OiAnSlBF
-RycgKGNvbXByZXNzZWQpDQogICAgICAgICBOYW1lICAgICAgICA6IEpGSUYgSlBFRw0KICAgICAg
-ICAgICAgICAgICBTaXplOiBEaXNjcmV0ZSAxNzZ4MTQ0DQogICAgICAgICAgICAgICAgICAgICAg
-ICAgSW50ZXJ2YWw6IERpc2NyZXRlIDAuMDY3cyAoMTUuMDAwIGZwcykNCiAgICAgICAgICAgICAg
-ICAgICAgICAgICBJbnRlcnZhbDogRGlzY3JldGUgMC4wMzNzICgzMC4wMDAgZnBzKQ0KICAgICAg
-ICAgICAgICAgICAgICAgICAgIEludGVydmFsOiBEaXNjcmV0ZSAwLjAxN3MgKDYwLjAwMCBmcHMp
-DQogICAgICAgICAgICAgICAgIFNpemU6IERpc2NyZXRlIDMyMHgyNDANCiAgICAgICAgICAgICAg
-ICAgICAgICAgICBJbnRlcnZhbDogRGlzY3JldGUgMC4wNjdzICgxNS4wMDAgZnBzKQ0KICAgICAg
-ICAgICAgICAgICAgICAgICAgIEludGVydmFsOiBEaXNjcmV0ZSAwLjAzM3MgKDMwLjAwMCBmcHMp
-DQogICAgICAgICAgICAgICAgICAgICAgICAgSW50ZXJ2YWw6IERpc2NyZXRlIDAuMDE3cyAoNjAu
-MDAwIGZwcykNCiAgICAgICAgICAgICAgICAgU2l6ZTogRGlzY3JldGUgNjQweDQ4MA0KICAgICAg
-ICAgICAgICAgICAgICAgICAgIEludGVydmFsOiBEaXNjcmV0ZSAwLjA2N3MgKDE1LjAwMCBmcHMp
-DQogICAgICAgICAgICAgICAgICAgICAgICAgSW50ZXJ2YWw6IERpc2NyZXRlIDAuMDMzcyAoMzAu
-MDAwIGZwcykNCiAgICAgICAgICAgICAgICAgICAgICAgICBJbnRlcnZhbDogRGlzY3JldGUgMC4w
-MTdzICg2MC4wMDAgZnBzKQ0KICAgICAgICAgICAgICAgICBTaXplOiBEaXNjcmV0ZSA3MjB4NDgw
-DQogICAgICAgICAgICAgICAgICAgICAgICAgSW50ZXJ2YWw6IERpc2NyZXRlIDAuMDY3cyAoMTUu
-MDAwIGZwcykNCiAgICAgICAgICAgICAgICAgICAgICAgICBJbnRlcnZhbDogRGlzY3JldGUgMC4w
-MzNzICgzMC4wMDAgZnBzKQ0KICAgICAgICAgICAgICAgICAgICAgICAgIEludGVydmFsOiBEaXNj
-cmV0ZSAwLjAxN3MgKDYwLjAwMCBmcHMpDQogICAgICAgICAgICAgICAgIFNpemU6IERpc2NyZXRl
-IDcyMHg1NzYNCiAgICAgICAgICAgICAgICAgICAgICAgICBJbnRlcnZhbDogRGlzY3JldGUgMC4w
-NjdzICgxNS4wMDAgZnBzKQ0KICAgICAgICAgICAgICAgICAgICAgICAgIEludGVydmFsOiBEaXNj
-cmV0ZSAwLjAzM3MgKDMwLjAwMCBmcHMpDQogICAgICAgICAgICAgICAgICAgICAgICAgSW50ZXJ2
-YWw6IERpc2NyZXRlIDAuMDE3cyAoNjAuMDAwIGZwcykNCiAgICAgICAgICAgICAgICAgU2l6ZTog
-RGlzY3JldGUgMTAyNHg3NjgNCiAgICAgICAgICAgICAgICAgICAgICAgICBJbnRlcnZhbDogRGlz
-Y3JldGUgMC4wNjdzICgxNS4wMDAgZnBzKQ0KICAgICAgICAgICAgICAgICAgICAgICAgIEludGVy
-dmFsOiBEaXNjcmV0ZSAwLjAzM3MgKDMwLjAwMCBmcHMpDQogICAgICAgICAgICAgICAgICAgICAg
-ICAgSW50ZXJ2YWw6IERpc2NyZXRlIDAuMDE3cyAoNjAuMDAwIGZwcykNCiAgICAgICAgICAgICAg
-ICAgU2l6ZTogRGlzY3JldGUgMTI4MHg3MjANCiAgICAgICAgICAgICAgICAgICAgICAgICBJbnRl
-cnZhbDogRGlzY3JldGUgMC4wNjdzICgxNS4wMDAgZnBzKQ0KICAgICAgICAgICAgICAgICAgICAg
-ICAgIEludGVydmFsOiBEaXNjcmV0ZSAwLjAzM3MgKDMwLjAwMCBmcHMpDQogICAgICAgICAgICAg
-ICAgICAgICAgICAgSW50ZXJ2YWw6IERpc2NyZXRlIDAuMDE3cyAoNjAuMDAwIGZwcykNCiAgICAg
-ICAgICAgICAgICAgU2l6ZTogRGlzY3JldGUgMTkyMHgxMDgwDQogICAgICAgICAgICAgICAgICAg
-ICAgICAgSW50ZXJ2YWw6IERpc2NyZXRlIDAuMDY3cyAoMTUuMDAwIGZwcykNCiAgICAgICAgICAg
-ICAgICAgICAgICAgICBJbnRlcnZhbDogRGlzY3JldGUgMC4wMzNzICgzMC4wMDAgZnBzKQ0KICAg
-ICAgICAgICAgICAgICAgICAgICAgIEludGVydmFsOiBEaXNjcmV0ZSAwLjAxN3MgKDYwLjAwMCBm
-cHMpDQogICAgICAgICAgICAgICAgIFNpemU6IERpc2NyZXRlIDI1OTJ4MTk0NA0KICAgICAgICAg
-ICAgICAgICAgICAgICAgIEludGVydmFsOiBEaXNjcmV0ZSAwLjA2N3MgKDE1LjAwMCBmcHMpDQog
-ICAgICAgICAgICAgICAgICAgICAgICAgSW50ZXJ2YWw6IERpc2NyZXRlIDAuMDMzcyAoMzAuMDAw
-IGZwcykNCiAgICAgICAgICAgICAgICAgICAgICAgICBJbnRlcnZhbDogRGlzY3JldGUgMC4wMTdz
-ICg2MC4wMDAgZnBzKQ0KDQoyKSBGcmFtZSBpbnRlcnZhbCBzZXR0aW5nIGlzIHJldHVybmluZyBp
-bmNvcnJlY3QgdmFsdWUgKCoxMDAwKToNCnY0bDItY3RsIC0tc2V0LXBhcm09MTUNCjwNCkZyYW1l
-IHJhdGUgc2V0IHRvIDE1MDAwLjAwMCBmcHMNCg0KMykgQWZ0ZXIgaGF2aW5nIGZpeGVkIDEpIGFu
-ZCAyKSwgNzIweDQ4MCA2MGZwcyBpcyBzdGlsbCBzdXBwb3J0ZWQ6DQogICAgICAgICAgICAgICAg
-IFNpemU6IERpc2NyZXRlIDY0MHg0ODANCiAgICAgICAgICAgICAgICAgICAgICAgICBJbnRlcnZh
-bDogRGlzY3JldGUgMC4wNjdzICgxNS4wMDAgZnBzKQ0KICAgICAgICAgICAgICAgICAgICAgICAg
-IEludGVydmFsOiBEaXNjcmV0ZSAwLjAzM3MgKDMwLjAwMCBmcHMpDQogICAgICAgICAgICAgICAg
-ICAgICAgICAgSW50ZXJ2YWw6IERpc2NyZXRlIDAuMDE3cyAoNjAuMDAwIGZwcykNCiAgICAgICAg
-ICAgICAgICAgU2l6ZTogRGlzY3JldGUgNzIweDQ4MA0KICAgICAgICAgICAgICAgICAgICAgICAg
-IEludGVydmFsOiBEaXNjcmV0ZSAwLjA2N3MgKDE1LjAwMCBmcHMpDQogICAgICAgICAgICAgICAg
-ICAgICAgICAgSW50ZXJ2YWw6IERpc2NyZXRlIDAuMDMzcyAoMzAuMDAwIGZwcykNCiAgICAgICAg
-ICAgICAgICAgICAgICAgICBJbnRlcnZhbDogRGlzY3JldGUgMC4wMTdzICg2MC4wMDAgZnBzKQ0K
-DQpTb21lIGZpeGVzIGFyZSBwcm9wb3NlZCBiZWxvdzoNCg0KDQpPbiAwNC8xNi8yMDE4IDAyOjM3
-IFBNLCBNYXhpbWUgUmlwYXJkIHdyb3RlOg0KPiBOb3cgdGhhdCB3ZSBoYXZlIGV2ZXJ5dGhpbmcg
-aW4gcGxhY2UgdG8gY29tcHV0ZSB0aGUgY2xvY2sgcmF0ZSBhdCBydW50aW1lLA0KPiB3ZSBjYW4g
-ZW5hYmxlIHRoZSA2MGZwcyBmcmFtZXJhdGUgZm9yIHRoZSBtb2RlIHdlIHRlc3RlZCBpdCB3aXRo
-Lg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTWF4aW1lIFJpcGFyZCA8bWF4aW1lLnJpcGFyZEBib290
-bGluLmNvbT4NCj4gLS0tDQo+ICAgZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMgfCAzMyArKysr
-KysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0NCj4gICAxIGZpbGUgY2hhbmdlZCwgMjUgaW5z
-ZXJ0aW9ucygrKSwgOCBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21l
-ZGlhL2kyYy9vdjU2NDAuYyBiL2RyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jDQo+IGluZGV4IDY5
-MGVkMDIzODc2My4uYzAxYmJjNWY5ZjM0IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL21lZGlhL2ky
-Yy9vdjU2NDAuYw0KPiArKysgYi9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPiBAQCAtMTEy
-LDYgKzExMiw3IEBAIGVudW0gb3Y1NjQwX21vZGVfaWQgew0KPiAgIGVudW0gb3Y1NjQwX2ZyYW1l
-X3JhdGUgew0KPiAgIAlPVjU2NDBfMTVfRlBTID0gMCwNCj4gICAJT1Y1NjQwXzMwX0ZQUywNCj4g
-KwlPVjU2NDBfNjBfRlBTLA0KPiAgIAlPVjU2NDBfTlVNX0ZSQU1FUkFURVMsDQo+ICAgfTsNCj4g
-ICANCj4gQEAgLTE0MCw2ICsxNDEsNyBAQCBNT0RVTEVfUEFSTV9ERVNDKHZpcnR1YWxfY2hhbm5l
-bCwNCj4gICBzdGF0aWMgY29uc3QgaW50IG92NTY0MF9mcmFtZXJhdGVzW10gPSB7DQo+ICAgCVtP
-VjU2NDBfMTVfRlBTXSA9IDE1LA0KPiAgIAlbT1Y1NjQwXzMwX0ZQU10gPSAzMCwNCj4gKwlbT1Y1
-NjQwXzYwX0ZQU10gPSA2MCwNCj4gICB9Ow0KPiAgIA0KPiAgIC8qIHJlZ3VsYXRvciBzdXBwbGll
-cyAqLw0KPiBAQCAtMTM5OCwxMiArMTQwMCwxOSBAQCBvdjU2NDBfZmluZF9tb2RlKHN0cnVjdCBv
-djU2NDBfZGV2ICpzZW5zb3IsIGVudW0gb3Y1NjQwX2ZyYW1lX3JhdGUgZnIsDQo+ICAgCQkJCS8q
-IHRyeSB0byBmaW5kIGFub3RoZXIgbW9kZSAqLw0KPiAgIAkJCQljb250aW51ZTsNCj4gICANCj4g
-KwkJCS8qIE9ubHkgNjQweDQ4MCBjYW4gb3BlcmF0ZSBhdCA2MGZwcyAoZm9yIG5vdykgKi8NCj4g
-KwkJCWlmIChmciA9PSBPVjU2NDBfNjBfRlBTICYmDQo+ICsJCQkgICAgd2lkdGggIT0gNjQwICYm
-IGhlaWdodCAhPSA0ODApDQoNClNob3VsZCBiZQ0KKwkJCSAgICAhKHdpZHRoID09IDY0MCAmJiBo
-ZWlnaHQgPT0gNDgwKSkNCm90aGVyd2lzZSA3MjB4NDgwIGlzIGFsc28gc3VwcG9ydGVkIChidWcg
-MykpDQoNCj4gKwkJCQkvKiB0cnkgdG8gZmluZCBhbm90aGVyIG1vZGUgKi8NCj4gKwkJCQljb250
-aW51ZTsNCj4gKw0KPiAgIAkJCWJyZWFrOw0KPiAgIAkJfQ0KPiAgIAl9DQo+ICAgDQo+ICsJLyog
-VkdBIGlzIHRoZSBvbmx5IG1vZGUgdGhhdCBzdXBwb3J0cyBhbGwgdGhlIGZyYW1lcmF0ZXMgKi8N
-Cj4gICAJaWYgKG5lYXJlc3QgJiYgaSA8IDApDQo+IC0JCW1vZGUgPSAmb3Y1NjQwX21vZGVfZGF0
-YVswXTsNCj4gKwkJbW9kZSA9ICZvdjU2NDBfbW9kZV9kYXRhW09WNTY0MF9NT0RFX1ZHQV82NDBf
-NDgwXTsNCg0KQ29kZSBpcyBtaXNzaW5nIHRvIHJlamVjdCB1bnN1cHBvcnRlZCBmcmFtZXJhdGVz
-IHdoZW4gbmVhcmVzdCBpcyBub3QgDQpzZXQsIHRoaXMgZml4IGVudW1lcmF0aW9uIGJ1ZyAxKToN
-Ci0JaWYgKG5lYXJlc3QgJiYgaSA8IDApDQorCWlmIChpIDwgMCkgew0KKwkJLyogbm8gbWF0Y2gg
-Ki8NCisJCWlmICghbmVhcmVzdCkNCisJCQlyZXR1cm4gTlVMTDsNCiAgCQltb2RlID0gJm92NTY0
-MF9tb2RlX2RhdGFbT1Y1NjQwX01PREVfVkdBXzY0MF80ODBdOw0KKwl9DQoNCkFueXdheSBJIG5l
-ZWQgdG8gcmV3b3JrIHRoaXMgY29kZSB1c2luZyBuZXcgU2FrYXJpIA0KdjRsMl9maW5kX25lYXJl
-c3Rfc2l6ZSgpIGNvZGUgYXMgc3RhdGVkIGluOg0KaHR0cHM6Ly9wYXRjaHdvcmsubGludXh0di5v
-cmcvcGF0Y2gvNDc3NjcvDQoNCg0KPiAgIA0KPiAgIAlyZXR1cm4gbW9kZTsNCj4gICB9DQo+IEBA
-IC0xODQ4LDEyICsxODU3LDEzIEBAIHN0YXRpYyBpbnQgb3Y1NjQwX3RyeV9mcmFtZV9pbnRlcnZh
-bChzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yLA0KPiAgIAlpbnQgcmV0Ow0KPiAgIA0KPiAgIAlt
-aW5mcHMgPSBvdjU2NDBfZnJhbWVyYXRlc1tPVjU2NDBfMTVfRlBTXTsNCj4gLQltYXhmcHMgPSBv
-djU2NDBfZnJhbWVyYXRlc1tPVjU2NDBfMzBfRlBTXTsNCj4gKwltYXhmcHMgPSBvdjU2NDBfZnJh
-bWVyYXRlc1tPVjU2NDBfNjBfRlBTXTsNCj4gICANCj4gICAJaWYgKGZpLT5udW1lcmF0b3IgPT0g
-MCkgew0KPiAgIAkJZmktPmRlbm9taW5hdG9yID0gbWF4ZnBzOw0KPiAgIAkJZmktPm51bWVyYXRv
-ciA9IDE7DQo+IC0JCXJldHVybiBPVjU2NDBfMzBfRlBTOw0KPiArCQlyZXQgPSBPVjU2NDBfNjBf
-RlBTOw0KPiArCQlnb3RvIGZpbmRfbW9kZTsNCj4gICAJfQ0KPiAgIA0KPiAgIAlmcHMgPSBESVZf
-Uk9VTkRfQ0xPU0VTVChmaS0+ZGVub21pbmF0b3IsIGZpLT5udW1lcmF0b3IpOw0KPiBAQCAtMTg2
-NSwxMSArMTg3NSwxNSBAQCBzdGF0aWMgaW50IG92NTY0MF90cnlfZnJhbWVfaW50ZXJ2YWwoc3Ry
-dWN0IG92NTY0MF9kZXYgKnNlbnNvciwNCj4gICAJCWZpLT5kZW5vbWluYXRvciA9IG1pbmZwczsN
-Cj4gICAJZWxzZSBpZiAoMiAqIGZwcyA+PSAyICogbWluZnBzICsgKG1heGZwcyAtIG1pbmZwcykp
-DQo+ICAgCQlmaS0+ZGVub21pbmF0b3IgPSBtYXhmcHM7DQoNCmVsc2UgaXMgbWlzc2luZyBoZXJl
-IGxlYWRpbmcgdG8gZGVub21pbmF0b3IgdW50b3VjaGVkIHdoaWxlIG51bWVyYXRvciANCmhhcyBi
-ZWVuIHJlc2V0IHRvIDEsIGxlYWRpbmcgdG8gYnVnIDIpLg0KSW4gZmFjdCwgb3JpZ2luYWwgY29k
-ZSBpcyB2YWxpZCBmb3Igb25seSAyIHZhbHVlcywgbWluIGFuZCBtYXgsIGJ5IA0KYWRkaW5nIGEg
-dGhpcmQgZnBzIHZhbHVlLCByZXdvcmsgb2YgdGhlIGNvbmRpdGlvbnMgYXJlIG5lZWRlZCB1c2lu
-ZyBhIA0KIm1pZCIgdmFsdWUsIHNlZSBwcm9wb3NlZCBjb2RlOg0KDQpzdGF0aWMgaW50IG92NTY0
-MF90cnlfZnJhbWVfaW50ZXJ2YWwoc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciwNCiAgCQkJCSAg
-ICAgc3RydWN0IHY0bDJfZnJhY3QgKmZpLA0KICAJCQkJICAgICB1MzIgd2lkdGgsIHUzMiBoZWln
-aHQpDQogIHsNCiAgCWNvbnN0IHN0cnVjdCBvdjU2NDBfbW9kZV9pbmZvICptb2RlOw0KLQl1MzIg
-bWluZnBzLCBtYXhmcHMsIGZwczsNCisJdTMyIG1pbmZwcywgbWlkZnBzLCBtYXhmcHMsIGZwczsN
-CiAgCWludCByZXQ7DQoNCiAgCW1pbmZwcyA9IG92NTY0MF9mcmFtZXJhdGVzW09WNTY0MF8xNV9G
-UFNdOw0KLQltYXhmcHMgPSBvdjU2NDBfZnJhbWVyYXRlc1tPVjU2NDBfMzBfRlBTXTsNCisJbWlk
-ZnBzID0gb3Y1NjQwX2ZyYW1lcmF0ZXNbT1Y1NjQwXzMwX0ZQU107DQorCW1heGZwcyA9IG92NTY0
-MF9mcmFtZXJhdGVzW09WNTY0MF82MF9GUFNdOw0KDQogIAlpZiAoZmktPm51bWVyYXRvciA9PSAw
-KSB7DQogIAkJZmktPmRlbm9taW5hdG9yID0gbWF4ZnBzOw0KICAJCWZpLT5udW1lcmF0b3IgPSAx
-Ow0KLQkJcmV0dXJuIE9WNTY0MF8zMF9GUFM7DQorCQlyZXQgPSBPVjU2NDBfNjBfRlBTOw0KKwkJ
-Z290byBmaW5kX21vZGU7DQogIAl9DQoNCiAgCWZwcyA9IERJVl9ST1VORF9DTE9TRVNUKGZpLT5k
-ZW5vbWluYXRvciwgZmktPm51bWVyYXRvcik7DQoNCiAgCWZpLT5udW1lcmF0b3IgPSAxOw0KLQlp
-ZiAoZnBzID4gbWF4ZnBzKQ0KKwlpZiAoKGZwcyA+PSBtYXhmcHMpIHx8DQorCSAgICAoKDIgKiBm
-cHMgPj0gKG1pZGZwcyArIG1heGZwcykpICYmIChmcHMgPCBtYXhmcHMpKSkNCiAgCQlmaS0+ZGVu
-b21pbmF0b3IgPSBtYXhmcHM7DQotCWVsc2UgaWYgKGZwcyA8IG1pbmZwcykNCisJZWxzZSBpZiAo
-KGZwcyA8PSBtaW5mcHMpICB8fA0KKwkJICgoMiAqIGZwcyA8PSAobWluZnBzICsgbWlkZnBzKSkg
-JiYgKGZwcyA+IG1pbmZwcykpKQ0KICAJCWZpLT5kZW5vbWluYXRvciA9IG1pbmZwczsNCi0JZWxz
-ZSBpZiAoMiAqIGZwcyA+PSAyICogbWluZnBzICsgKG1heGZwcyAtIG1pbmZwcykpDQotCQlmaS0+
-ZGVub21pbmF0b3IgPSBtYXhmcHM7DQogIAllbHNlDQotCQlmaS0+ZGVub21pbmF0b3IgPSBtaW5m
-cHM7DQorCQlmaS0+ZGVub21pbmF0b3IgPSBtaWRmcHM7DQoNCi0JcmV0ID0gKGZpLT5kZW5vbWlu
-YXRvciA9PSBtaW5mcHMpID8gT1Y1NjQwXzE1X0ZQUyA6IE9WNTY0MF8zMF9GUFM7DQorCWlmIChm
-aS0+ZGVub21pbmF0b3IgPT0gbWluZnBzKQ0KKwkJcmV0ID0gT1Y1NjQwXzE1X0ZQUzsNCisJZWxz
-ZSBpZiAoZmktPmRlbm9taW5hdG9yID09IG1heGZwcykNCisJCXJldCA9IE9WNTY0MF82MF9GUFM7
-DQorCWVsc2UNCisJCXJldCA9IE9WNTY0MF8zMF9GUFM7DQoNCitmaW5kX21vZGU6DQogIAltb2Rl
-ID0gb3Y1NjQwX2ZpbmRfbW9kZShzZW5zb3IsIHJldCwgd2lkdGgsIGhlaWdodCwgZmFsc2UpOw0K
-ICAJcmV0dXJuIG1vZGUgPyByZXQgOiAtRUlOVkFMOw0KICB9DQoNClRoaXMgY29kZSBoYXMgYmVl
-biB0ZXN0ZWQgdXNpbmcgdjRsMi1jdGw6DQoNCnY0bDItY3RsIC0tc2V0LWZtdC12aWRlbz13aWR0
-aD02NDAsaGVpZ2h0PTQ4MCxwaXhlbGZvcm1hdD1SR0JQDQp2NGwyLWN0bCAtLXNldC1wYXJtPTE0
-DQp2NGwyLWN0bCAtLXNldC1wYXJtPTE1DQp2NGwyLWN0bCAtLXNldC1wYXJtPTE2DQp2NGwyLWN0
-bCAtLXNldC1wYXJtPTIyDQp2NGwyLWN0bCAtLXNldC1wYXJtPTIzDQp2NGwyLWN0bCAtLXNldC1w
-YXJtPTI0DQp2NGwyLWN0bCAtLXNldC1wYXJtPTI5DQp2NGwyLWN0bCAtLXNldC1wYXJtPTMwDQp2
-NGwyLWN0bCAtLXNldC1wYXJtPTMxDQp2NGwyLWN0bCAtLXNldC1wYXJtPTM2DQp2NGwyLWN0bCAt
-LXNldC1wYXJtPTQyDQp2NGwyLWN0bCAtLXNldC1wYXJtPTQ1DQp2NGwyLWN0bCAtLXNldC1wYXJt
-PTQ2DQp2NGwyLWN0bCAtLXNldC1wYXJtPTU5DQp2NGwyLWN0bCAtLXNldC1wYXJtPTYwDQp2NGwy
-LWN0bCAtLXNldC1wYXJtPTYxDQpyb290QHN0bTMybXAxOn4jIHY0bDItY3RsIC0tc2V0LXBhcm09
-MTQNCkZyYW1lIHJhdGUgc2V0IHRvIDE1LjAwMCBmcHMNCnJvb3RAc3RtMzJtcDE6fiMgdjRsMi1j
-dGwgLS1zZXQtcGFybT0xNQ0KRnJhbWUgcmF0ZSBzZXQgdG8gMTUuMDAwIGZwcw0Kcm9vdEBzdG0z
-Mm1wMTp+IyB2NGwyLWN0bCAtLXNldC1wYXJtPTE2DQpGcmFtZSByYXRlIHNldCB0byAxNS4wMDAg
-ZnBzDQpyb290QHN0bTMybXAxOn4jIHY0bDItY3RsIC0tc2V0LXBhcm09MjINCkZyYW1lIHJhdGUg
-c2V0IHRvIDE1LjAwMCBmcHMNCnJvb3RAc3RtMzJtcDE6fiMgdjRsMi1jdGwgLS1zZXQtcGFybT0y
-Mw0KRnJhbWUgcmF0ZSBzZXQgdG8gMzAuMDAwIGZwcw0Kcm9vdEBzdG0zMm1wMTp+IyB2NGwyLWN0
-bCAtLXNldC1wYXJtPTI0DQpGcmFtZSByYXRlIHNldCB0byAzMC4wMDAgZnBzDQpyb290QHN0bTMy
-bXAxOn4jIHY0bDItY3RsIC0tc2V0LXBhcm09MjkNCkZyYW1lIHJhdGUgc2V0IHRvIDMwLjAwMCBm
-cHMNCnJvb3RAc3RtMzJtcDE6fiMgdjRsMi1jdGwgLS1zZXQtcGFybT0zMA0KRnJhbWUgcmF0ZSBz
-ZXQgdG8gMzAuMDAwIGZwcw0Kcm9vdEBzdG0zMm1wMTp+IyB2NGwyLWN0bCAtLXNldC1wYXJtPTMx
-DQpGcmFtZSByYXRlIHNldCB0byAzMC4wMDAgZnBzDQpyb290QHN0bTMybXAxOn4jIHY0bDItY3Rs
-IC0tc2V0LXBhcm09MzYNCkZyYW1lIHJhdGUgc2V0IHRvIDMwLjAwMCBmcHMNCnJvb3RAc3RtMzJt
-cDE6fiMgdjRsMi1jdGwgLS1zZXQtcGFybT00Mg0KRnJhbWUgcmF0ZSBzZXQgdG8gMzAuMDAwIGZw
-cw0Kcm9vdEBzdG0zMm1wMTp+IyB2NGwyLWN0bCAtLXNldC1wYXJtPTQ1DQpGcmFtZSByYXRlIHNl
-dCB0byA2MC4wMDAgZnBzDQpyb290QHN0bTMybXAxOn4jIHY0bDItY3RsIC0tc2V0LXBhcm09NDYN
-CkZyYW1lIHJhdGUgc2V0IHRvIDYwLjAwMCBmcHMNCnJvb3RAc3RtMzJtcDE6fiMgdjRsMi1jdGwg
-LS1zZXQtcGFybT01OQ0KRnJhbWUgcmF0ZSBzZXQgdG8gNjAuMDAwIGZwcw0Kcm9vdEBzdG0zMm1w
-MTp+IyB2NGwyLWN0bCAtLXNldC1wYXJtPTYwDQpGcmFtZSByYXRlIHNldCB0byA2MC4wMDAgZnBz
-DQpyb290QHN0bTMybXAxOn4jIHY0bDItY3RsIC0tc2V0LXBhcm09NjENCkZyYW1lIHJhdGUgc2V0
-IHRvIDYwLjAwMCBmcHMNCg0KDQo+IEBAIC0yNDU4LDggKzI0NzIsMTEgQEAgc3RhdGljIGludCBv
-djU2NDBfc19mcmFtZV9pbnRlcnZhbChzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLA0KPiAgIA0KPiAg
-IAlmcmFtZV9yYXRlID0gb3Y1NjQwX3RyeV9mcmFtZV9pbnRlcnZhbChzZW5zb3IsICZmaS0+aW50
-ZXJ2YWwsDQo+ICAgCQkJCQkgICAgICAgbW9kZS0+aGFjdCwgbW9kZS0+dmFjdCk7DQo+IC0JaWYg
-KGZyYW1lX3JhdGUgPCAwKQ0KPiAtCQlmcmFtZV9yYXRlID0gT1Y1NjQwXzE1X0ZQUzsNCj4gKwlp
-ZiAoZnJhbWVfcmF0ZSA8IDApIHsNCj4gKwkJLyogQWx3YXlzIHJldHVybiBhIHZhbGlkIGZyYW1l
-IGludGVydmFsIHZhbHVlICovDQo+ICsJCWZpLT5pbnRlcnZhbCA9IHNlbnNvci0+ZnJhbWVfaW50
-ZXJ2YWw7DQo+ICsJCWdvdG8gb3V0Ow0KPiArCX0NCj4gICANCj4gICAJc2Vuc29yLT5jdXJyZW50
-X2ZyID0gZnJhbWVfcmF0ZTsNCj4gICAJc2Vuc29yLT5mcmFtZV9pbnRlcnZhbCA9IGZpLT5pbnRl
-cnZhbDsNCj4gDQoNCg0KQmVzdCByZWdhcmRzLA0KSHVndWVzLg==
+Hi Stanimir,
+
+On Tue, May 15, 2018 at 5:14 PM Stanimir Varbanov <
+stanimir.varbanov@linaro.org> wrote:
+
+> This covers the differences between 1xx,3xx and 4xx.
+
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>    drivers/media/platform/qcom/venus/core.h         |  4 ++
+>    drivers/media/platform/qcom/venus/helpers.c      | 37 +++++++----
+>    drivers/media/platform/qcom/venus/hfi_helper.h   | 84
+++++++++++++++++++++++--
+>    drivers/media/platform/qcom/venus/hfi_venus_io.h | 24 +++++++
+>    drivers/media/platform/qcom/venus/vdec.c         |  5 +-
+>    drivers/media/platform/qcom/venus/venc.c         |  5 +-
+>    6 files changed, 137 insertions(+), 22 deletions(-)
+
+Please see my comments inline.
+
+[snip]
+
+> @@ -257,12 +273,11 @@ static int load_scale_clocks(struct venus_core
+*core)
+
+>    set_freq:
+
+> -       if (core->res->hfi_version == HFI_VERSION_3XX) {
+> -               ret = clk_set_rate(clk, freq);
+> +       ret = clk_set_rate(clk, freq);
+> +
+> +       if (IS_V3(core) || IS_V4(core)) {
+>                   ret |= clk_set_rate(core->core0_clk, freq);
+>                   ret |= clk_set_rate(core->core1_clk, freq);
+> -       } else {
+> -               ret = clk_set_rate(clk, freq);
+>           }
+
+nit: The clock API defines NULL clock as a special no-op value and so
+clk_set_rate(NULL, ...) would return 0 instantly. Maybe it would just make
+sense to have core0_clk and core1_clk set to NULL for V1 and remove the
+condition here?
+
+>           if (ret) {
+> diff --git a/drivers/media/platform/qcom/venus/hfi_helper.h
+b/drivers/media/platform/qcom/venus/hfi_helper.h
+> index 55d8eb21403a..1bc5aab1ce6b 100644
+> --- a/drivers/media/platform/qcom/venus/hfi_helper.h
+> +++ b/drivers/media/platform/qcom/venus/hfi_helper.h
+> @@ -121,6 +121,7 @@
+>    #define HFI_EXTRADATA_METADATA_FILLER                  0x7fe00002
+
+>    #define HFI_INDEX_EXTRADATA_INPUT_CROP                 0x0700000e
+> +#define HFI_INDEX_EXTRADATA_OUTPUT_CROP                        0x0700000f
+
+nit: Would it make sense to suffix this _4XX, so that reader could know
+that it was introduced in this version? Similarly for other newly added
+definitions.
+
+>    #define HFI_INDEX_EXTRADATA_DIGITAL_ZOOM               0x07000010
+>    #define HFI_INDEX_EXTRADATA_ASPECT_RATIO               0x7f100003
+
+> @@ -376,13 +377,18 @@
+>    #define HFI_BUFFER_OUTPUT2                     0x3
+>    #define HFI_BUFFER_INTERNAL_PERSIST            0x4
+>    #define HFI_BUFFER_INTERNAL_PERSIST_1          0x5
+> -#define HFI_BUFFER_INTERNAL_SCRATCH            0x1000001
+> -#define HFI_BUFFER_EXTRADATA_INPUT             0x1000002
+> -#define HFI_BUFFER_EXTRADATA_OUTPUT            0x1000003
+> -#define HFI_BUFFER_EXTRADATA_OUTPUT2           0x1000004
+> -#define HFI_BUFFER_INTERNAL_SCRATCH_1          0x1000005
+> -#define HFI_BUFFER_INTERNAL_SCRATCH_2          0x1000006
+> -
+> +#define HFI_BUFFER_INTERNAL_SCRATCH(ver)       \
+> +       (((ver) == HFI_VERSION_4XX) ? 0x6 : 0x1000001)
+> +#define HFI_BUFFER_INTERNAL_SCRATCH_1(ver)     \
+> +       (((ver) == HFI_VERSION_4XX) ? 0x7 : 0x1000005)
+> +#define HFI_BUFFER_INTERNAL_SCRATCH_2(ver)     \
+> +       (((ver) == HFI_VERSION_4XX) ? 0x8 : 0x1000006)
+> +#define HFI_BUFFER_EXTRADATA_INPUT(ver)                \
+> +       (((ver) == HFI_VERSION_4XX) ? 0xc : 0x1000002)
+> +#define HFI_BUFFER_EXTRADATA_OUTPUT(ver)       \
+> +       (((ver) == HFI_VERSION_4XX) ? 0xa : 0x1000003)
+> +#define HFI_BUFFER_EXTRADATA_OUTPUT2(ver)      \
+> +       (((ver) == HFI_VERSION_4XX) ? 0xb : 0x1000004)
+
+nit: Does it make sense to add an argument, rather than simply defining
+separate HFI_BUFFER_INTERNAL_SCRATCH_1XX and
+HFI_BUFFER_INTERNAL_SCRATCH_4XX? In my subjective opinion, the argument
+just makes it harder to read, as it's not clear how it is used inside the
+macro from reading just the call to it. Also it would get messy when adding
+further variants in future.
+
+[snip]
+
+> +/* HFI 4XX reorder the fields, use these macros */
+> +#define HFI_BUFREQ_HOLD_COUNT(bufreq, ver)     \
+> +       ((ver) == HFI_VERSION_4XX ? 0 : (bufreq)->hold_count)
+> +#define HFI_BUFREQ_COUNT_MIN(bufreq, ver)      \
+> +       ((ver) == HFI_VERSION_4XX ? (bufreq)->hold_count :
+(bufreq)->count_min)
+> +#define HFI_BUFREQ_COUNT_MIN_HOST(bufreq, ver) \
+> +       ((ver) == HFI_VERSION_4XX ? (bufreq)->count_min : 0)
+> +
+
+Hmm, this is a bit messy. The macro is supposed to return count_min, but it
+returns hold_count. Shouldn't we define a separate
+hfi_buffer_requirements_4xx struct for 4XX?
+
+Even though this seems to simplify the code eventually, I think it might be
+quite confusing for anyone working with the driver in the future.
+
+Also HFI_BUFREQ_HOLD_COUNT and HFI_BUFREQ_COUNT_MIN_HOST don't seem to be
+used anywhere.
+
+[snip]
+
+> +/* vcodec noc error log registers */
+> +#define VCODEC_CORE0_VIDEO_NOC_BASE_OFFS               0x4000
+> +#define VCODEC_CORE1_VIDEO_NOC_BASE_OFFS               0xc000
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_SWID_LOW_OFFS       0x500
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_SWID_HIGH_OFFS      0x504
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_MAINCTL_LOW_OFFS    0x508
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_ERRVLD_LOW_OFFS     0x510
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_ERRCLR_LOW_OFFS     0x518
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG0_LOW_OFFS    0x520
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG0_HIGH_OFFS   0x524
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG1_LOW_OFFS    0x528
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG1_HIGH_OFFS   0x52c
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG2_LOW_OFFS    0x530
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG2_HIGH_OFFS   0x534
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG3_LOW_OFFS    0x538
+> +#define VCODEC_COREX_VIDEO_NOC_ERR_ERRLOG3_HIGH_OFFS   0x53c
+
+What are these offsets from?
+
+nit: Other registers seem to be defined as (xxx_BASE + offset). Is there
+any reason to define these in another way?
+
+> +
+>    #endif
+> diff --git a/drivers/media/platform/qcom/venus/vdec.c
+b/drivers/media/platform/qcom/venus/vdec.c
+> index 49bbd1861d3a..261a51adeef2 100644
+> --- a/drivers/media/platform/qcom/venus/vdec.c
+> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> @@ -689,6 +689,7 @@ static int vdec_queue_setup(struct vb2_queue *q,
+
+>    static int vdec_verify_conf(struct venus_inst *inst)
+>    {
+> +       enum hfi_version ver = inst->core->res->hfi_version;
+>           struct hfi_buffer_requirements bufreq;
+>           int ret;
+
+> @@ -700,14 +701,14 @@ static int vdec_verify_conf(struct venus_inst *inst)
+>                   return ret;
+
+>           if (inst->num_output_bufs < bufreq.count_actual ||
+> -           inst->num_output_bufs < bufreq.count_min)
+> +           inst->num_output_bufs < HFI_BUFREQ_COUNT_MIN(&bufreq, ver))
+>                   return -EINVAL;
+
+>           ret = venus_helper_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
+>           if (ret)
+>                   return ret;
+
+> -       if (inst->num_input_bufs < bufreq.count_min)
+> +       if (inst->num_input_bufs < HFI_BUFREQ_COUNT_MIN(&bufreq, ver))
+>                   return -EINVAL;
+
+Back to the point I raised above, maybe we could make
+venus_helper_get_bufreq() untangle the order of fields for 4XX? It seems to
+do a memcpy anyway, so doing it field by field for such small struct
+shouldn't really matter.
+
+Best regards,
+Tomasz
