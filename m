@@ -1,64 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:58824 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751803AbeEITDk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 15:03:40 -0400
-Date: Wed, 9 May 2018 16:03:32 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Andy Yeh <andy.yeh@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        devicetree@vger.kernel.org, tfiga@chromium.org, jacopo@jmondi.org,
-        Alan Chiang <alanx.chiang@intel.com>
-Subject: Re: [RESEND PATCH v9 2/2] media: dw9807: Add dw9807 vcm driver
-Message-ID: <20180509160332.75c1eb1b@vento.lan>
-In-Reply-To: <1525276428-17379-3-git-send-email-andy.yeh@intel.com>
-References: <1525276428-17379-1-git-send-email-andy.yeh@intel.com>
-        <1525276428-17379-3-git-send-email-andy.yeh@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33418 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751577AbeERSyA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 14:54:00 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        Abylay Ospan <aospan@netup.ru>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH 11/20] dvb-core: Provide lock for vb2_queue
+Date: Fri, 18 May 2018 15:51:59 -0300
+Message-Id: <20180518185208.17722-12-ezequiel@collabora.com>
+In-Reply-To: <20180518185208.17722-1-ezequiel@collabora.com>
+References: <20180518185208.17722-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  2 May 2018 23:53:48 +0800
-Andy Yeh <andy.yeh@intel.com> escreveu:
+Use the vb2 context mutex to protect the vb2_queue.
+This allows to replace the ad-hoc wait_{prepare, finish}
+with vb2_ops_wait_{prepare, finish}.
 
-> From: Alan Chiang <alanx.chiang@intel.com>
-> 
-> DW9807 is a 10 bit DAC from Dongwoon, designed for linear
-> control of voice coil motor.
-> 
-> This driver creates a V4L2 subdevice and
-> provides control to set the desired focus.
-> 
-> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-> Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-> Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ drivers/media/dvb-core/dvb_vb2.c | 22 +++-------------------
+ 1 file changed, 3 insertions(+), 19 deletions(-)
 
-This adds a new warning.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
+index b811adf88afa..cd3ea44f0ae9 100644
+--- a/drivers/media/dvb-core/dvb_vb2.c
++++ b/drivers/media/dvb-core/dvb_vb2.c
+@@ -107,31 +107,14 @@ static void _stop_streaming(struct vb2_queue *vq)
+ 	spin_unlock_irqrestore(&ctx->slock, flags);
+ }
  
-    drivers/media/i2c/dw9807.c: In function 'dw9807_set_dac':
-    drivers/media/i2c/dw9807.c:81:16: warning: unused variable 'retry' [-Wunused-variable]
-      int val, ret, retry = 0;
-                    ^
-    
-Please either fix or fold the following patch.
-
-diff --git a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c
-index 28ede2b47acf..6ebb98717fb1 100644
---- a/drivers/media/i2c/dw9807.c
-+++ b/drivers/media/i2c/dw9807.c
-@@ -78,7 +78,7 @@ static int dw9807_set_dac(struct i2c_client *client, u16 data)
-        const char tx_data[3] = {
-                DW9807_MSB_ADDR, ((data >> 8) & 0x03), (data & 0xff)
-        };
--       int val, ret, retry = 0;
-+       int val, ret;
+-static void _dmxdev_lock(struct vb2_queue *vq)
+-{
+-	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
+-
+-	mutex_lock(&ctx->mutex);
+-	dprintk(3, "[%s]\n", ctx->name);
+-}
+-
+-static void _dmxdev_unlock(struct vb2_queue *vq)
+-{
+-	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
+-
+-	if (mutex_is_locked(&ctx->mutex))
+-		mutex_unlock(&ctx->mutex);
+-	dprintk(3, "[%s]\n", ctx->name);
+-}
+-
+ static const struct vb2_ops dvb_vb2_qops = {
+ 	.queue_setup		= _queue_setup,
+ 	.buf_prepare		= _buffer_prepare,
+ 	.buf_queue		= _buffer_queue,
+ 	.start_streaming	= _start_streaming,
+ 	.stop_streaming		= _stop_streaming,
+-	.wait_prepare		= _dmxdev_unlock,
+-	.wait_finish		= _dmxdev_lock,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
  
-        /*
-         * According to the datasheet, need to check the bus status before we
+ static void _fill_dmx_buffer(struct vb2_buffer *vb, void *pb)
+@@ -183,6 +166,7 @@ int dvb_vb2_init(struct dvb_vb2_ctx *ctx, const char *name, int nonblocking)
+ 	q->mem_ops = &vb2_vmalloc_memops;
+ 	q->buf_ops = &dvb_vb2_buf_ops;
+ 	q->num_buffers = 0;
++	q->lock = &ctx->mutex;
+ 	ret = vb2_core_queue_init(q);
+ 	if (ret) {
+ 		ctx->state = DVB_VB2_STATE_NONE;
+-- 
+2.16.3
