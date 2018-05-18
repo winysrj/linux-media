@@ -1,54 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43246 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937222AbeE3HE2 (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33404 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751458AbeERSx4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 03:04:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Vinod <vkoul@kernel.org>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: camera control interface
-Date: Wed, 30 May 2018 10:04:29 +0300
-Message-ID: <2593976.2pOKjEb3EO@avalon>
-In-Reply-To: <20180529082932.GH5666@vkoul-mobl>
-References: <20180529082932.GH5666@vkoul-mobl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Fri, 18 May 2018 14:53:56 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        Abylay Ospan <aospan@netup.ru>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH 09/20] s5p-g2d: Implement wait_prepare and wait_finish
+Date: Fri, 18 May 2018 15:51:57 -0300
+Message-Id: <20180518185208.17722-10-ezequiel@collabora.com>
+In-Reply-To: <20180518185208.17722-1-ezequiel@collabora.com>
+References: <20180518185208.17722-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vinod,
+This driver is currently specifying a vb2_queue lock,
+which means it straightforward to implement wait_prepare
+and wait_finish.
 
-On Tuesday, 29 May 2018 11:29:32 EEST Vinod wrote:
-> Hi folks,
-> 
-> I am writing a driver for camera control inteface which is an i2c
-> controller. So looking up the code I think it can be a v4l subdev,
-> right? Can it be an independent i2c master and not v4l subdev?
+Having these callbacks releases the queue lock while blocking,
+which improves latency by allowing for example streamoff
+or qbuf operations while waiting in dqbuf.
 
-What do you mean by "camera control interface" here ? A hardware device 
-handling communication with camera sensors ? I assume the communication bus is 
-I2C ? Is that "camera control interface" plain I2C or does it have additional 
-features ?
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ drivers/media/platform/s5p-g2d/g2d.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-If we're talking about an I2C controller a V4L2 subdev is not only unneeded, 
-but it wouldn't help. You need an I2C master.
-
-> Second the control sports GPIOs. It can support  a set of
-> synchronization primitives so it's possible to drive I2C clients and
-> GPIOs with hardware controlled timing to allow for sync control of
-> sensors hooked and also for fancy strobe. How would we represent these
-> gpios in v4l2 and allow the control, any ideas on that.
-
-Even if your main use case it related to camera, synchronization of I2C and 
-GPIO doesn't seem to be a V4L2 feature to me. It sounds that you need to 
-implement that int he I2C and GPIO subsystems.
-
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index 66aa8cf1d048..ce4280730835 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -142,6 +142,8 @@ static const struct vb2_ops g2d_qops = {
+ 	.queue_setup	= g2d_queue_setup,
+ 	.buf_prepare	= g2d_buf_prepare,
+ 	.buf_queue	= g2d_buf_queue,
++	.wait_prepare	= vb2_ops_wait_prepare,
++	.wait_finish	= vb2_ops_wait_finish,
+ };
+ 
+ static int queue_init(void *priv, struct vb2_queue *src_vq,
 -- 
-Regards,
-
-Laurent Pinchart
+2.16.3
