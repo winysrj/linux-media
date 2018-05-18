@@ -1,328 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43780 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752225AbeERUmT (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33386 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751577AbeERSxt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 16:42:19 -0400
-From: Kieran Bingham <kieran@ksquared.org.uk>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v11 10/10] media: vsp1: Move video configuration to a cached dlb
-Date: Fri, 18 May 2018 21:42:03 +0100
-Message-Id: <02b8eb289bd4af3a9717dff3a7750940588d505b.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Fri, 18 May 2018 14:53:49 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        Abylay Ospan <aospan@netup.ru>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH 06/20] omap4iss: Add video_device and vb2_queue locks
+Date: Fri, 18 May 2018 15:51:54 -0300
+Message-Id: <20180518185208.17722-7-ezequiel@collabora.com>
+In-Reply-To: <20180518185208.17722-1-ezequiel@collabora.com>
+References: <20180518185208.17722-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+video_device and vb2_queue locks are now both
+mandatory. Add them, remove driver ad-hoc locks,
+and implement wait_{prepare, finish}.
 
-We are now able to configure a pipeline directly into a local display
-list body. Take advantage of this fact, and create a cacheable body to
-store the configuration of the pipeline in the video object.
+To stay on the safe side, this commit uses a single mutex
+for both locks. Better latency can be obtained by separating
+these if needed.
 
-vsp1_video_pipeline_run() is now the last user of the pipe->dl object.
-Convert this function to use the cached video->config body and obtain a
-local display list reference.
-
-Attach the video->stream_config body to the display list when needed
-before committing to hardware.
-
-Use a flag 'configured' to know when we should attach our stream_config
-to the next outgoing display list to reconfigure the hardware in the
-event of our first frame, or the first frame following a suspend/resume
-cycle.
-
-Our video DL usage now looks like the below output:
-
-dl->body0 contains our disposable runtime configuration. Max 41.
-dl_child->body0 is our partition specific configuration. Max 12.
-dl->bodies shows our constant configuration and LUTs.
-
-  These two are LUT/CLU:
-     * dl->bodies[x]->num_entries 256 / max 256
-     * dl->bodies[x]->num_entries 4914 / max 4914
-
-Which shows that our 'constant' configuration cache is currently
-utilised to a maximum of 64 entries.
-
-trace-cmd report | \
-    grep max | sed 's/.*vsp1_dl_list_commit://g' | sort | uniq;
-
-  dl->body0->num_entries 13 / max 128
-  dl->body0->num_entries 14 / max 128
-  dl->body0->num_entries 16 / max 128
-  dl->body0->num_entries 20 / max 128
-  dl->body0->num_entries 27 / max 128
-  dl->body0->num_entries 34 / max 128
-  dl->body0->num_entries 41 / max 128
-  dl_child->body0->num_entries 10 / max 128
-  dl_child->body0->num_entries 12 / max 128
-  dl->bodies[x]->num_entries 15 / max 128
-  dl->bodies[x]->num_entries 16 / max 128
-  dl->bodies[x]->num_entries 17 / max 128
-  dl->bodies[x]->num_entries 18 / max 128
-  dl->bodies[x]->num_entries 20 / max 128
-  dl->bodies[x]->num_entries 21 / max 128
-  dl->bodies[x]->num_entries 256 / max 256
-  dl->bodies[x]->num_entries 31 / max 128
-  dl->bodies[x]->num_entries 32 / max 128
-  dl->bodies[x]->num_entries 39 / max 128
-  dl->bodies[x]->num_entries 40 / max 128
-  dl->bodies[x]->num_entries 47 / max 128
-  dl->bodies[x]->num_entries 48 / max 128
-  dl->bodies[x]->num_entries 4914 / max 4914
-  dl->bodies[x]->num_entries 55 / max 128
-  dl->bodies[x]->num_entries 56 / max 128
-  dl->bodies[x]->num_entries 63 / max 128
-  dl->bodies[x]->num_entries 64 / max 128
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
-v11:
- - Remove dlbs pool from video object.
-   Utilise the DLM pool for video->stream_config
- - Improve comments
- - clear the video->stream_config after it is released
-   object.
- - stream_config and configured flag return to the pipe object.
+ drivers/staging/media/omap4iss/iss_video.c | 32 +++++++-----------------------
+ drivers/staging/media/omap4iss/iss_video.h |  2 +-
+ 2 files changed, 8 insertions(+), 26 deletions(-)
 
-v10:
- - Removed pipe->configured flag, and use
-   pipe->state == VSP1_PIPELINE_STOPPED instead.
-
-v8:
- - Fix comments
- - Rename video->pipe_config -> video->stream_config
-
-v4:
- - Adjust pipe configured flag to be reset on resume rather than suspend
- - rename dl_child, dl_next
-
-v3:
- - 's/fragment/body/', 's/fragments/bodies/'
- - video dlb cache allocation increased from 2 to 3 dlbs
-
- drivers/media/platform/vsp1/vsp1_dl.c    | 10 +++-
- drivers/media/platform/vsp1/vsp1_dl.h    |  1 +-
- drivers/media/platform/vsp1/vsp1_pipe.h  |  6 +-
- drivers/media/platform/vsp1/vsp1_video.c | 69 +++++++++++++++----------
- 4 files changed, 56 insertions(+), 30 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index c7fa1cb088cd..0f97305de965 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -813,6 +813,11 @@ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
- 	dlm->pending = NULL;
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index a3a83424a926..380cfd230262 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -260,10 +260,7 @@ __iss_video_get_format(struct iss_video *video,
+ 	fmt.pad = pad;
+ 	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+ 
+-	mutex_lock(&video->mutex);
+ 	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+-	mutex_unlock(&video->mutex);
+-
+ 	if (ret)
+ 		return ret;
+ 
+@@ -411,6 +408,8 @@ static const struct vb2_ops iss_video_vb2ops = {
+ 	.buf_prepare	= iss_video_buf_prepare,
+ 	.buf_queue	= iss_video_buf_queue,
+ 	.buf_cleanup	= iss_video_buf_cleanup,
++	.wait_prepare	= vb2_ops_wait_prepare,
++	.wait_finish	= vb2_ops_wait_finish,
+ };
+ 
+ /*
+@@ -592,9 +591,7 @@ iss_video_get_format(struct file *file, void *fh, struct v4l2_format *format)
+ 	if (format->type != video->type)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&video->mutex);
+ 	*format = vfh->format;
+-	mutex_unlock(&video->mutex);
+ 
+ 	return 0;
+ }
+@@ -609,8 +606,6 @@ iss_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
+ 	if (format->type != video->type)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&video->mutex);
+-
+ 	/*
+ 	 * Fill the bytesperline and sizeimage fields by converting to media bus
+ 	 * format and back to pixel format.
+@@ -620,7 +615,6 @@ iss_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
+ 
+ 	vfh->format = *format;
+ 
+-	mutex_unlock(&video->mutex);
+ 	return 0;
  }
  
-+struct vsp1_dl_body *vsp1_dlm_dl_body_get(struct vsp1_dl_manager *dlm)
-+{
-+	return vsp1_dl_body_get(dlm->pool);
-+}
-+
- struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 					unsigned int index,
- 					unsigned int prealloc)
-@@ -838,13 +843,14 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 	 * Initialize the display list body and allocate DMA memory for the body
- 	 * and the optional header. Both are allocated together to avoid memory
- 	 * fragmentation, with the header located right after the body in
--	 * memory.
-+	 * memory. An extra body is allocated on top of the prealloc to account
-+	 * for the cached body used by the vsp1_video object.
- 	 */
- 	header_size = dlm->mode == VSP1_DL_MODE_HEADER
- 		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
- 		    : 0;
+@@ -741,9 +735,7 @@ iss_video_set_selection(struct file *file, void *fh, struct v4l2_selection *sel)
+ 		return -EINVAL;
  
--	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc,
-+	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc + 1,
- 					     VSP1_DL_NUM_ENTRIES, header_size);
- 	if (!dlm->pool)
- 		return NULL;
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index 216bd23029dd..7dba0469c92e 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -28,6 +28,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
- unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
-+struct vsp1_dl_body *vsp1_dlm_dl_body_get(struct vsp1_dl_manager *dlm);
+ 	sdsel.pad = pad;
+-	mutex_lock(&video->mutex);
+ 	ret = v4l2_subdev_call(subdev, pad, set_selection, NULL, &sdsel);
+-	mutex_unlock(&video->mutex);
+ 	if (!ret)
+ 		sel->r = sdsel.r;
  
- struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
- void vsp1_dl_list_put(struct vsp1_dl_list *dl);
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index f1155d20fa2d..743d8f0db45c 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -102,7 +102,8 @@ struct vsp1_partition {
-  * @uds: UDS entity, if present
-  * @uds_input: entity at the input of the UDS, if the UDS is present
-  * @entities: list of entities in the pipeline
-- * @dl: display list associated with the pipeline
-+ * @stream_config: cached stream configuration for video pipelines
-+ * @configured: when false the @stream_config shall be written to the hardware
-  * @partitions: The number of partitions used to process one frame
-  * @partition: The current partition for configuration to process
-  * @part_table: The pre-calculated partitions used by the pipeline
-@@ -139,7 +140,8 @@ struct vsp1_pipeline {
- 	 */
- 	struct list_head entities;
+@@ -873,8 +865,6 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (type != video->type)
+ 		return -EINVAL;
  
--	struct vsp1_dl_list *dl;
-+	struct vsp1_dl_body *stream_config;
-+	bool configured;
+-	mutex_lock(&video->stream_lock);
+-
+ 	/*
+ 	 * Start streaming on the pipeline. No link touching an entity in the
+ 	 * pipeline can be activated or deactivated once streaming is started.
+@@ -978,8 +968,6 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
  
- 	unsigned int partitions;
- 	struct vsp1_partition *partition;
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index c46291ff9e6b..81d47a09d7bc 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -392,42 +392,51 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
- 	struct vsp1_entity *entity;
- 	struct vsp1_dl_body *dlb;
-+	struct vsp1_dl_list *dl;
- 	unsigned int partition;
+ 	media_graph_walk_cleanup(&graph);
  
--	if (!pipe->dl)
--		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-+	dl = vsp1_dl_list_get(pipe->output->dlm);
+-	mutex_unlock(&video->stream_lock);
+-
+ 	return 0;
  
--	dlb = vsp1_dl_list_get_body0(pipe->dl);
-+	/*
-+	 * If the VSP hardware isn't configured yet (which occurs either when
-+	 * processing the first frame or after a system suspend/resume), add the
-+	 * cached stream configuration to the display list to perform a full
-+	 * initialisation.
-+	 */
-+	if (!pipe->configured)
-+		vsp1_dl_list_add_body(dl, pipe->stream_config);
-+
-+	dlb = vsp1_dl_list_get_body0(dl);
+ err_omap4iss_set_stream:
+@@ -996,8 +984,6 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ err_graph_walk_init:
+ 	media_entity_enum_cleanup(&pipe->ent_enum);
  
- 	list_for_each_entry(entity, &pipe->entities, list_pipe)
--		vsp1_entity_configure_frame(entity, pipe, pipe->dl, dlb);
-+		vsp1_entity_configure_frame(entity, pipe, dl, dlb);
- 
- 	/* Run the first partition. */
--	vsp1_video_pipeline_run_partition(pipe, pipe->dl, 0);
-+	vsp1_video_pipeline_run_partition(pipe, dl, 0);
- 
- 	/* Process consecutive partitions as necessary. */
- 	for (partition = 1; partition < pipe->partitions; ++partition) {
--		struct vsp1_dl_list *dl;
-+		struct vsp1_dl_list *dl_next;
- 
--		dl = vsp1_dl_list_get(pipe->output->dlm);
-+		dl_next = vsp1_dl_list_get(pipe->output->dlm);
- 
- 		/*
- 		 * An incomplete chain will still function, but output only
- 		 * the partitions that had a dl available. The frame end
- 		 * interrupt will be marked on the last dl in the chain.
- 		 */
--		if (!dl) {
-+		if (!dl_next) {
- 			dev_err(vsp1->dev, "Failed to obtain a dl list. Frame will be incomplete\n");
- 			break;
- 		}
- 
--		vsp1_video_pipeline_run_partition(pipe, dl, partition);
--		vsp1_dl_list_add_chain(pipe->dl, dl);
-+		vsp1_video_pipeline_run_partition(pipe, dl_next, partition);
-+		vsp1_dl_list_add_chain(dl, dl_next);
- 	}
- 
- 	/* Complete, and commit the head display list. */
--	vsp1_dl_list_commit(pipe->dl, false);
--	pipe->dl = NULL;
-+	vsp1_dl_list_commit(dl, false);
-+	pipe->configured = true;
- 
- 	vsp1_pipeline_run(pipe);
+-	mutex_unlock(&video->stream_lock);
+-
+ 	return ret;
  }
-@@ -791,7 +800,6 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_entity *entity;
--	struct vsp1_dl_body *dlb;
- 	int ret;
  
- 	/* Determine this pipelines sizes for image partitioning support. */
-@@ -799,14 +807,6 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+@@ -1013,10 +999,8 @@ iss_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (type != video->type)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&video->stream_lock);
+-
+ 	if (!vb2_is_streaming(&vfh->queue))
+-		goto done;
++		return 0;
+ 
+ 	/* Update the pipeline state. */
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+@@ -1041,8 +1025,6 @@ iss_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 		video->iss->pdata->set_constraints(video->iss, false);
+ 	media_pipeline_stop(&video->video.entity);
+ 
+-done:
+-	mutex_unlock(&video->stream_lock);
+ 	return 0;
+ }
+ 
+@@ -1137,6 +1119,7 @@ static int iss_video_open(struct file *file)
+ 	q->buf_struct_size = sizeof(struct iss_buffer);
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->dev = video->iss->dev;
++	q->lock = &video->v4l_lock;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret) {
+@@ -1238,12 +1221,11 @@ int omap4iss_video_init(struct iss_video *video, const char *name)
  	if (ret < 0)
  		return ret;
  
--	/* Prepare the display list. */
--	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
--	if (!pipe->dl)
--		return -ENOMEM;
--
--	/* Retrieve the default DLB from the list. */
--	dlb = vsp1_dl_list_get_body0(pipe->dl);
--
- 	if (pipe->uds) {
- 		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
++	mutex_init(&video->v4l_lock);
+ 	spin_lock_init(&video->qlock);
+-	mutex_init(&video->mutex);
+ 	atomic_set(&video->active, 0);
  
-@@ -828,9 +828,18 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 		}
- 	}
+ 	spin_lock_init(&video->pipe.lock);
+-	mutex_init(&video->stream_lock);
  
-+	/*
-+	 * Compute and cache the stream configuration into a body. The cached
-+	 * body will be added to the display list by vsp1_video_pipeline_run()
-+	 * whenever the pipeline needs to be fully reconfigured.
-+	 */
-+	pipe->stream_config = vsp1_dlm_dl_body_get(pipe->output->dlm);
-+	if (!pipe->stream_config)
-+		return -ENOMEM;
-+
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
--		vsp1_entity_route_setup(entity, pipe, dlb);
--		vsp1_entity_configure_stream(entity, pipe, dlb);
-+		vsp1_entity_route_setup(entity, pipe, pipe->stream_config);
-+		vsp1_entity_configure_stream(entity, pipe, pipe->stream_config);
- 	}
- 
- 	return 0;
-@@ -853,12 +862,14 @@ static void vsp1_video_cleanup_pipeline(struct vsp1_pipeline *pipe)
+ 	/* Initialize the video device. */
+ 	if (!video->ops)
+@@ -1252,6 +1234,7 @@ int omap4iss_video_init(struct iss_video *video, const char *name)
+ 	video->video.fops = &iss_video_fops;
+ 	snprintf(video->video.name, sizeof(video->video.name),
+ 		 "OMAP4 ISS %s %s", name, direction);
++	video->video.lock = &video->v4l_lock;
+ 	video->video.vfl_type = VFL_TYPE_GRABBER;
+ 	video->video.release = video_device_release_empty;
+ 	video->video.ioctl_ops = &iss_video_ioctl_ops;
+@@ -1265,8 +1248,7 @@ int omap4iss_video_init(struct iss_video *video, const char *name)
+ void omap4iss_video_cleanup(struct iss_video *video)
  {
- 	lockdep_assert_held(&pipe->lock);
- 
-+	/* Release any cached configuration from our output video. */
-+	vsp1_dl_body_put(pipe->stream_config);
-+	pipe->stream_config = NULL;
-+	pipe->configured = false;
-+
- 	/* Release our partition table allocation */
- 	kfree(pipe->part_table);
- 	pipe->part_table = NULL;
--
--	vsp1_dl_list_put(pipe->dl);
--	pipe->dl = NULL;
+ 	media_entity_cleanup(&video->video.entity);
+-	mutex_destroy(&video->stream_lock);
+-	mutex_destroy(&video->mutex);
++	mutex_destroy(&video->v4l_lock);
  }
  
- static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
-@@ -1232,6 +1243,12 @@ void vsp1_video_resume(struct vsp1_device *vsp1)
- 		if (pipe == NULL)
- 			continue;
+ int omap4iss_video_register(struct iss_video *video, struct v4l2_device *vdev)
+diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
+index d7e05d04512c..4b8e5a8073fb 100644
+--- a/drivers/staging/media/omap4iss/iss_video.h
++++ b/drivers/staging/media/omap4iss/iss_video.h
+@@ -148,8 +148,8 @@ struct iss_video {
+ 	enum v4l2_buf_type type;
+ 	struct media_pad pad;
  
-+		/*
-+		 * The hardware may have been reset during a suspend and will
-+		 * need a full reconfiguration.
-+		 */
-+		pipe->configured = false;
-+
- 		spin_lock_irqsave(&pipe->irqlock, flags);
- 		if (vsp1_pipeline_ready(pipe))
- 			vsp1_video_pipeline_run(pipe);
+-	struct mutex mutex;		/* format and crop settings */
+ 	atomic_t active;
++	struct mutex v4l_lock;
+ 
+ 	struct iss_device *iss;
+ 
 -- 
-git-series 0.9.1
+2.16.3
