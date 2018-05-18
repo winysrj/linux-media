@@ -1,192 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:37487 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751777AbeEFOUI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 10:20:08 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v5 08/14] media: ov772x: support device tree probing
-Date: Sun,  6 May 2018 23:19:23 +0900
-Message-Id: <1525616369-8843-9-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33338 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751197AbeERSxg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 14:53:36 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        Abylay Ospan <aospan@netup.ru>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [RFC PATCH v2 00/20] v4l2 core: push ioctl lock down to ioctl handler
+Date: Fri, 18 May 2018 15:51:48 -0300
+Message-Id: <20180518185208.17722-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov772x driver currently only supports legacy platform data probe.
-This change enables device tree probing.
+Here's a second spin of the series posted by Hans:
 
-Note that the platform data probe can select auto or manual edge control
-mode, but the device tree probling can only select auto edge control mode
-for now.
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg131363.html
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* v5
-- Remove unnecessary space
+This v2 adds the required driver modifications, fixing all
+drivers so they define a proper vb2_queue lock.
 
- drivers/media/i2c/ov772x.c | 64 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 45 insertions(+), 19 deletions(-)
+A only exception to this is netup_unidvb. It isn't really obvious
+to me how this driver should lock its vb2_queue. Neither it is
+clear how its vb2_queue is used by the driver in the first place.
 
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index f939e28..2b02411 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -749,13 +749,13 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_VFLIP:
- 		val = ctrl->val ? VFLIP_IMG : 0x00;
- 		priv->flag_vflip = ctrl->val;
--		if (priv->info->flags & OV772X_FLAG_VFLIP)
-+		if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
- 			val ^= VFLIP_IMG;
- 		return ov772x_mask_set(client, COM3, VFLIP_IMG, val);
- 	case V4L2_CID_HFLIP:
- 		val = ctrl->val ? HFLIP_IMG : 0x00;
- 		priv->flag_hflip = ctrl->val;
--		if (priv->info->flags & OV772X_FLAG_HFLIP)
-+		if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
- 			val ^= HFLIP_IMG;
- 		return ov772x_mask_set(client, COM3, HFLIP_IMG, val);
- 	case V4L2_CID_BAND_STOP_FILTER:
-@@ -914,19 +914,14 @@ static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
- 	*win = ov772x_select_win(mf->width, mf->height);
- }
- 
--static int ov772x_set_params(struct ov772x_priv *priv,
--			     const struct ov772x_color_format *cfmt,
--			     const struct ov772x_win_size *win)
-+static int ov772x_edgectrl(struct ov772x_priv *priv)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
--	struct v4l2_fract tpf;
- 	int ret;
--	u8  val;
- 
--	/* Reset hardware. */
--	ov772x_reset(client);
-+	if (!priv->info)
-+		return 0;
- 
--	/* Edge Ctrl. */
- 	if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
- 		/*
- 		 * Manual Edge Control Mode.
-@@ -937,19 +932,19 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 
- 		ret = ov772x_mask_set(client, DSPAUTO, EDGE_ACTRL, 0x00);
- 		if (ret < 0)
--			goto ov772x_set_fmt_error;
-+			return ret;
- 
- 		ret = ov772x_mask_set(client,
- 				      EDGE_TRSHLD, OV772X_EDGE_THRESHOLD_MASK,
- 				      priv->info->edgectrl.threshold);
- 		if (ret < 0)
--			goto ov772x_set_fmt_error;
-+			return ret;
- 
- 		ret = ov772x_mask_set(client,
- 				      EDGE_STRNGT, OV772X_EDGE_STRENGTH_MASK,
- 				      priv->info->edgectrl.strength);
- 		if (ret < 0)
--			goto ov772x_set_fmt_error;
-+			return ret;
- 
- 	} else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
- 		/*
-@@ -961,15 +956,35 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 				      EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
- 				      priv->info->edgectrl.upper);
- 		if (ret < 0)
--			goto ov772x_set_fmt_error;
-+			return ret;
- 
- 		ret = ov772x_mask_set(client,
- 				      EDGE_LOWER, OV772X_EDGE_LOWER_MASK,
- 				      priv->info->edgectrl.lower);
- 		if (ret < 0)
--			goto ov772x_set_fmt_error;
-+			return ret;
- 	}
- 
-+	return 0;
-+}
-+
-+static int ov772x_set_params(struct ov772x_priv *priv,
-+			     const struct ov772x_color_format *cfmt,
-+			     const struct ov772x_win_size *win)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-+	struct v4l2_fract tpf;
-+	int ret;
-+	u8  val;
-+
-+	/* Reset hardware. */
-+	ov772x_reset(client);
-+
-+	/* Edge Ctrl. */
-+	ret = ov772x_edgectrl(priv);
-+	if (ret < 0)
-+		return ret;
-+
- 	/* Format and window size. */
- 	ret = ov772x_write(client, HSTART, win->rect.left >> 2);
- 	if (ret < 0)
-@@ -1020,9 +1035,9 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 
- 	/* Set COM3. */
- 	val = cfmt->com3;
--	if (priv->info->flags & OV772X_FLAG_VFLIP)
-+	if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
- 		val |= VFLIP_IMG;
--	if (priv->info->flags & OV772X_FLAG_HFLIP)
-+	if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
- 		val |= HFLIP_IMG;
- 	if (priv->flag_vflip)
- 		val ^= VFLIP_IMG;
-@@ -1271,8 +1286,9 @@ static int ov772x_probe(struct i2c_client *client,
- 	struct i2c_adapter	*adapter = client->adapter;
- 	int			ret;
- 
--	if (!client->dev.platform_data) {
--		dev_err(&client->dev, "Missing ov772x platform data\n");
-+	if (!client->dev.of_node && !client->dev.platform_data) {
-+		dev_err(&client->dev,
-+			"Missing ov772x platform data for non-DT device\n");
- 		return -EINVAL;
- 	}
- 
-@@ -1370,9 +1386,19 @@ static const struct i2c_device_id ov772x_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, ov772x_id);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id ov772x_of_match[] = {
-+	{ .compatible = "ovti,ov7725", },
-+	{ .compatible = "ovti,ov7720", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, ov772x_of_match);
-+#endif
-+
- static struct i2c_driver ov772x_i2c_driver = {
- 	.driver = {
- 		.name = "ov772x",
-+		.of_match_table = of_match_ptr(ov772x_of_match),
- 	},
- 	.probe    = ov772x_probe,
- 	.remove   = ov772x_remove,
+Abylay, perhaps you can take a look at it?
+
+Why?
+----
+
+While working on the DMA fence API (aka expliciy sync framework)
+and the Request API it became clear that the core ioctl scheme
+was done at a too-high level.
+
+Being able to actually look at the struct passed as the ioctl
+argument would help a lot in decide what lock(s) to take.
+
+This patch series pushes the lock down into v4l2-ioctl.c, after
+video_usercopy() was called.
+
+This series seems to improve overall quality of drivers:
+in practice, drivers choosing to do their own locking, end up
+introducing races and/or not setting wait_prepare/wait_finish
+despite being possible to do so.
+
+Patch journal
+-------------
+
+The first patch is for the only driver that does not set
+unlocked_ioctl to video_ioctl2: pvrusb2. It actually does
+call it in its own unlocked_ioctl function.
+
+The second patch pushes the lock down.
+
+The third patch adds support for mem2mem devices by selecting
+the correct queue lock (capture vs output): this was never
+possible before.
+
+Patches 4 to 16 add the now mandatory vb2_queue lock and then
+sets wait_prepare and wait_finish hooks.
+
+Patches 17 to 19 require that queue->lock is always set. This
+means wait_prepare and wait_finish is now unused.
+
+The last patch removes the now unused wait_prepare and wait_finish.
+
+This patchset is currently based on top of the gspca vb2
+conversion series, hoping it would get merged sooner than this.
+
+Ezequiel Garcia (14):
+  usbtv: Implement wait_prepare and wait_finish
+  sta2x11: Add video_device and vb2_queue locks
+  omap4iss: Add video_device and vb2_queue locks
+  omap3isp: Add video_device and vb2_queue locks
+  mtk-mdp: Add locks for capture and output vb2_queues
+  s5p-g2d: Implement wait_prepare and wait_finish
+  staging: bcm2835-camera: Provide lock for vb2_queue
+  dvb-core: Provide lock for vb2_queue
+  venus: Add video_device and vb2_queue locks
+  davinci_vpfe: Add video_device and vb2_queue locks
+  mx_emmaprp: Implement wait_prepare and wait_finish
+  m2m-deinterlace: Implement wait_prepare and wait_finish
+  stk1160: Set the vb2_queue lock before calling vb2_queue_init
+  media: Remove wait_{prepare, finish}
+
+Hans Verkuil (6):
+  pvrusb2: replace pvr2_v4l2_ioctl by video_ioctl2
+  v4l2-core: push taking ioctl mutex down to ioctl handler.
+  v4l2-ioctl.c: use correct vb2_queue lock for m2m devices
+  videobuf2-core: require q->lock
+  videobuf2: assume q->lock is always set
+  v4l2-ioctl.c: assume queue->lock is always set
+
+ Documentation/media/kapi/v4l2-dev.rst              |  7 +-
+ drivers/input/rmi4/rmi_f54.c                       |  2 -
+ drivers/input/touchscreen/atmel_mxt_ts.c           |  2 -
+ drivers/input/touchscreen/sur40.c                  |  2 -
+ drivers/media/common/videobuf2/videobuf2-core.c    | 22 +++---
+ drivers/media/common/videobuf2/videobuf2-v4l2.c    | 41 ++--------
+ drivers/media/dvb-core/dvb_vb2.c                   | 20 +----
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |  2 -
+ drivers/media/pci/cobalt/cobalt-v4l2.c             |  2 -
+ drivers/media/pci/cx23885/cx23885-417.c            |  2 -
+ drivers/media/pci/cx23885/cx23885-dvb.c            |  2 -
+ drivers/media/pci/cx23885/cx23885-vbi.c            |  2 -
+ drivers/media/pci/cx23885/cx23885-video.c          |  2 -
+ drivers/media/pci/cx25821/cx25821-video.c          |  2 -
+ drivers/media/pci/cx88/cx88-blackbird.c            |  2 -
+ drivers/media/pci/cx88/cx88-dvb.c                  |  2 -
+ drivers/media/pci/cx88/cx88-vbi.c                  |  2 -
+ drivers/media/pci/cx88/cx88-video.c                |  2 -
+ drivers/media/pci/dt3155/dt3155.c                  |  2 -
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c           |  2 -
+ drivers/media/pci/saa7134/saa7134-empress.c        |  2 -
+ drivers/media/pci/saa7134/saa7134-ts.c             |  2 -
+ drivers/media/pci/saa7134/saa7134-vbi.c            |  2 -
+ drivers/media/pci/saa7134/saa7134-video.c          |  2 -
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |  2 -
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c         |  2 -
+ drivers/media/pci/sta2x11/sta2x11_vip.c            |  4 +
+ drivers/media/pci/tw5864/tw5864-video.c            |  2 -
+ drivers/media/pci/tw68/tw68-video.c                |  2 -
+ drivers/media/pci/tw686x/tw686x-video.c            |  2 -
+ drivers/media/platform/am437x/am437x-vpfe.c        |  2 -
+ drivers/media/platform/atmel/atmel-isc.c           |  2 -
+ drivers/media/platform/atmel/atmel-isi.c           |  2 -
+ drivers/media/platform/coda/coda-common.c          |  2 -
+ drivers/media/platform/davinci/vpbe_display.c      |  2 -
+ drivers/media/platform/davinci/vpif_capture.c      |  2 -
+ drivers/media/platform/davinci/vpif_display.c      |  2 -
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |  2 -
+ drivers/media/platform/exynos4-is/fimc-capture.c   |  2 -
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |  2 -
+ drivers/media/platform/exynos4-is/fimc-lite.c      |  2 -
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |  2 -
+ drivers/media/platform/m2m-deinterlace.c           |  2 +
+ drivers/media/platform/marvell-ccic/mcam-core.c    |  4 -
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    |  2 -
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c       | 18 +----
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c |  2 -
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |  2 -
+ drivers/media/platform/mx2_emmaprp.c               |  2 +
+ drivers/media/platform/omap3isp/ispvideo.c         | 92 +++-------------------
+ drivers/media/platform/omap3isp/ispvideo.h         |  3 +-
+ drivers/media/platform/pxa_camera.c                |  2 -
+ .../media/platform/qcom/camss-8x16/camss-video.c   |  2 -
+ drivers/media/platform/qcom/venus/core.h           |  4 +-
+ drivers/media/platform/qcom/venus/helpers.c        | 16 ++--
+ drivers/media/platform/qcom/venus/vdec.c           | 23 ++----
+ drivers/media/platform/qcom/venus/venc.c           | 17 ++--
+ drivers/media/platform/rcar-vin/rcar-dma.c         |  2 -
+ drivers/media/platform/rcar_drif.c                 |  2 -
+ drivers/media/platform/rcar_fdp1.c                 |  2 -
+ drivers/media/platform/rcar_jpu.c                  |  2 -
+ drivers/media/platform/renesas-ceu.c               |  2 -
+ drivers/media/platform/rockchip/rga/rga-buf.c      |  2 -
+ drivers/media/platform/s3c-camif/camif-capture.c   |  2 -
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |  2 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  2 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  2 -
+ drivers/media/platform/sh_veu.c                    |  2 -
+ drivers/media/platform/sh_vou.c                    |  2 -
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  2 -
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |  2 -
+ drivers/media/platform/sti/delta/delta-v4l2.c      |  4 -
+ drivers/media/platform/sti/hva/hva-v4l2.c          |  2 -
+ drivers/media/platform/stm32/stm32-dcmi.c          |  2 -
+ drivers/media/platform/ti-vpe/cal.c                |  2 -
+ drivers/media/platform/ti-vpe/vpe.c                |  2 -
+ drivers/media/platform/vim2m.c                     |  2 -
+ drivers/media/platform/vimc/vimc-capture.c         |  6 --
+ drivers/media/platform/vivid/vivid-sdr-cap.c       |  2 -
+ drivers/media/platform/vivid/vivid-vbi-cap.c       |  2 -
+ drivers/media/platform/vivid/vivid-vbi-out.c       |  2 -
+ drivers/media/platform/vivid/vivid-vid-cap.c       |  2 -
+ drivers/media/platform/vivid/vivid-vid-out.c       |  2 -
+ drivers/media/platform/vsp1/vsp1_histo.c           |  2 -
+ drivers/media/platform/vsp1/vsp1_video.c           |  2 -
+ drivers/media/platform/xilinx/xilinx-dma.c         |  2 -
+ drivers/media/usb/airspy/airspy.c                  |  2 -
+ drivers/media/usb/au0828/au0828-vbi.c              |  2 -
+ drivers/media/usb/au0828/au0828-video.c            |  2 -
+ drivers/media/usb/em28xx/em28xx-vbi.c              |  2 -
+ drivers/media/usb/em28xx/em28xx-video.c            |  2 -
+ drivers/media/usb/go7007/go7007-v4l2.c             |  2 -
+ drivers/media/usb/gspca/gspca.c                    |  2 -
+ drivers/media/usb/hackrf/hackrf.c                  |  2 -
+ drivers/media/usb/msi2500/msi2500.c                |  2 -
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           | 83 ++++++++-----------
+ drivers/media/usb/pwc/pwc-if.c                     |  2 -
+ drivers/media/usb/s2255/s2255drv.c                 |  2 -
+ drivers/media/usb/stk1160/stk1160-v4l.c            |  4 +-
+ drivers/media/usb/uvc/uvc_queue.c                  |  4 -
+ drivers/media/v4l2-core/v4l2-dev.c                 |  6 --
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 75 ++++++++++++++++--
+ drivers/media/v4l2-core/v4l2-subdev.c              | 17 +++-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    |  4 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.h    |  2 +-
+ drivers/staging/media/imx/imx-media-capture.c      |  2 -
+ drivers/staging/media/omap4iss/iss_video.c         | 30 ++-----
+ drivers/staging/media/omap4iss/iss_video.h         |  2 +-
+ .../vc04_services/bcm2835-camera/bcm2835-camera.c  | 22 +-----
+ drivers/usb/gadget/function/uvc_queue.c            |  2 -
+ include/media/v4l2-dev.h                           |  9 ---
+ include/media/v4l2-ioctl.h                         | 12 ---
+ include/media/videobuf2-core.h                     |  2 -
+ include/media/videobuf2-v4l2.h                     | 18 -----
+ samples/v4l/v4l2-pci-skeleton.c                    |  7 --
+ 115 files changed, 200 insertions(+), 546 deletions(-)
+
 -- 
-2.7.4
+2.16.3
