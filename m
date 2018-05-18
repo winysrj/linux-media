@@ -1,82 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:35689 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751405AbeEROlv (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:46511 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752026AbeERQJH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 10:41:51 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 6/9] media: rcar-vin: Link parallel input media entities
-Date: Fri, 18 May 2018 16:40:42 +0200
-Message-Id: <1526654445-10702-7-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1526654445-10702-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1526654445-10702-1-git-send-email-jacopo+renesas@jmondi.org>
+        Fri, 18 May 2018 12:09:07 -0400
+Message-ID: <1526659737.3948.19.camel@pengutronix.de>
+Subject: Re: [PATCH v5 06/12] media: dt-bindings: add bindings for i.MX7
+ media driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>, linux-clk@vger.kernel.org
+Date: Fri, 18 May 2018 18:08:57 +0200
+In-Reply-To: <20180518092806.3829-7-rui.silva@linaro.org>
+References: <20180518092806.3829-1-rui.silva@linaro.org>
+         <20180518092806.3829-7-rui.silva@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When running with media-controller link the parallel input
-media entities with the VIN entities at 'complete' callback time.
+On Fri, 2018-05-18 at 10:28 +0100, Rui Miguel Silva wrote:
+> Add bindings documentation for i.MX7 media drivers.
+> 
+> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+> ---
+>  .../devicetree/bindings/media/imx7.txt        | 125 ++++++++++++++++++
+>  1 file changed, 125 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/imx7.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/imx7.txt b/Documentation/devicetree/bindings/media/imx7.txt
+> new file mode 100644
+> index 000000000000..a26372630377
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/imx7.txt
+> @@ -0,0 +1,125 @@
+> +Freescale i.MX7 Media Video Device
+> +==================================
+> +
+> +mipi_csi2 node
+> +--------------
+> +
+> +This is the device node for the MIPI CSI-2 receiver core in i.MX7 SoC. It is
+> +compatible with previous version of Samsung D-phy.
+> +
+> +Required properties:
+> +
+> +- compatible    : "fsl,imx7-mipi-csi2";
+> +- reg           : base address and length of the register set for the device;
+> +- interrupts    : should contain MIPI CSIS interrupt;
+> +- clocks        : list of clock specifiers, see
+> +        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
+> +- clock-names   : must contain "pclk", "wrap" and "phy" entries, matching
+> +                  entries in the clock property;
+> +- power-domains : a phandle to the power domain, see
+> +          Documentation/devicetree/bindings/power/power_domain.txt for details.
+> +- reset-names   : should include following entry "mrst";
+> +- resets        : a list of phandle, should contain reset entry of
+> +                  reset-names;
+> +- phy-supply    : from the generic phy bindings, a phandle to a regulator that
+> +	          provides power to MIPI CSIS core;
+> +- bus-width     : maximum number of data lanes supported (SoC specific);
+> +
+> +Optional properties:
+> +
+> +- clock-frequency : The IP's main (system bus) clock frequency in Hz, default
+> +		    value when this property is not specified is 166 MHz;
 
-To create media links the v4l2_device should be registered first.
-Check if the device is already registered, to avoid double registrations.
+Could this be obtained from one of the clock inputs via clk_get_rate?
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 745e8ee..d13bbcf 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -478,6 +478,8 @@ static void rvin_parallel_subdevice_detach(struct rvin_dev *vin)
- static int rvin_parallel_notify_complete(struct v4l2_async_notifier *notifier)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct media_entity *source;
-+	struct media_entity *sink;
- 	int ret;
- 
- 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
-@@ -486,7 +488,26 @@ static int rvin_parallel_notify_complete(struct v4l2_async_notifier *notifier)
- 		return ret;
- 	}
- 
--	return rvin_v4l2_register(vin);
-+	if (!video_is_registered(&vin->vdev)) {
-+		ret = rvin_v4l2_register(vin);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	if (!vin->info->use_mc)
-+		return 0;
-+
-+	/* If we're running with media-controller, link the subdevs. */
-+	source = &vin->parallel->subdev->entity;
-+	sink = &vin->vdev.entity;
-+
-+	ret = media_create_pad_link(source, vin->parallel->source_pad,
-+				    sink, vin->parallel->sink_pad, 0);
-+	if (ret)
-+		vin_err(vin, "Error adding link from %s to %s: %d\n",
-+			source->name, sink->name, ret);
-+
-+	return ret;
- }
- 
- static void rvin_parallel_notify_unbind(struct v4l2_async_notifier *notifier,
-@@ -611,7 +632,8 @@ static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
- 
- 	/* Register all video nodes for the group. */
- 	for (i = 0; i < RCAR_VIN_NUM; i++) {
--		if (vin->group->vin[i]) {
-+		if (vin->group->vin[i] &&
-+		    !video_is_registered(&vin->group->vin[i]->vdev)) {
- 			ret = rvin_v4l2_register(vin->group->vin[i]);
- 			if (ret)
- 				return ret;
--- 
-2.7.4
+regards
+Philipp
