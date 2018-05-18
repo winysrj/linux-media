@@ -1,440 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:54409 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935330AbeEXUHo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 16:07:44 -0400
-Date: Thu, 24 May 2018 22:07:38 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: bingbu.cao@intel.com, linux-media@vger.kernel.org,
-        bingbu.cao@linux.intel.com, tian.shu.qiu@linux.intel.com,
-        rajmohan.mani@intel.com, mchehab@kernel.org
-Subject: Re: [PATCH v3] media: imx319: Add imx319 camera sensor driver
-Message-ID: <20180524200738.GD18369@w540>
-References: <1526886658-14417-1-git-send-email-bingbu.cao@intel.com>
- <1526963581-28655-1-git-send-email-bingbu.cao@intel.com>
- <20180522200848.GB15035@w540>
- <20180523073833.onxqj72hi23qkz42@paasikivi.fi.intel.com>
+Received: from ni.piap.pl ([195.187.100.4]:57398 "EHLO ni.piap.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751750AbeERR2h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 May 2018 13:28:37 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Tim Harvey <tharvey@gateworks.com>
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+References: <m37eobudmo.fsf@t19.piap.pl>
+        <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
+        <m3tvresqfw.fsf@t19.piap.pl>
+        <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
+Date: Fri, 18 May 2018 19:28:34 +0200
+In-Reply-To: <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com> (Steve
+        Longerbeam's message of "Fri, 11 May 2018 10:35:28 -0700")
+Message-ID: <m3fu2oswjh.fsf@t19.piap.pl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="AH+kv8CCoFf6qPuz"
-Content-Disposition: inline
-In-Reply-To: <20180523073833.onxqj72hi23qkz42@paasikivi.fi.intel.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Steve Longerbeam <slongerbeam@gmail.com> writes:
 
---AH+kv8CCoFf6qPuz
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+> Yes, the CSI on i.MX6 does not deal well with unstable bt.656 sync codes,
+> which results in vertical sync issues (scrolling or split images). The
+> ADV7180
+> will often shift the sync codes around in various situations (initial
+> power on,
+> see below, also when there is an interruption of the input analog CVBS
+> signal).
 
-Hi Sakari,
+I'm not convinced it's the sync code issue. I've compared the key
+registers (both 4.2 + your old driver vs 4.16) and this is what I got:
 
-On Wed, May 23, 2018 at 10:38:33AM +0300, Sakari Ailus wrote:
-> Hi Jacopo and Bingbu,
->
-> On Tue, May 22, 2018 at 10:08:48PM +0200, jacopo mondi wrote:
-> ...
-> > > +/* Get bayer order based on flip setting. */
-> > > +static __u32 imx319_get_format_code(struct imx319 *imx319)
-> > > +{
-> > > +	/*
-> > > +	 * Only one bayer order is supported.
-> > > +	 * It depends on the flip settings.
-> > > +	 */
-> > > +	static const __u32 codes[2][2] = {
-> > > +		{ MEDIA_BUS_FMT_SRGGB10_1X10, MEDIA_BUS_FMT_SGRBG10_1X10, },
-> > > +		{ MEDIA_BUS_FMT_SGBRG10_1X10, MEDIA_BUS_FMT_SBGGR10_1X10, },
-> > > +	};
-> > > +
-> > > +	return codes[imx319->vflip->val][imx319->hflip->val];
-> > > +}
-> >
-> > I don't have any major comment actually, this is pretty good for a
-> > first submission.
-> >
-> > This worries me a bit though. The media bus format depends on the
-> > V/HFLIP value, I assume this is an hardware limitation. But if
-> > changing the flip changes the reported media bus format, you could
-> > trigger a -EPIPE error during pipeline format validation between two
-> > streaming sessions with different flip settings. Isn't this a bit
-> > dangerous?
->
-> That's how it works on raw bayer sensors; you do have to configure the
-> entire pipeline accordingly.
->
-> What it also means is that the two controls may not be changed during
-> streaming --- this needs to be prevented by the driver, and I think it's
-> missing at the moment.
+"adv7180 2-0020":0 [fmt:UYVY2X8/720x576 field:interlaced]
+"ipu2_csi1_mux":1  [fmt:UYVY2X8/720x576 field:interlaced]
+"ipu2_csi1_mux":2  [fmt:UYVY2X8/720x576 field:interlaced]
+"ipu2_csi1":0      [fmt:UYVY2X8/720x576 field:interlaced]
+"ipu2_csi1":2      [fmt:AYUV32/720x576 field:none]
 
-Thanks for explaining. At least my comment lead to something, as my
-understanding is that VFLIP and HFLIP should be forbidden when
-the sensor is streaming
->
-> >
-> > Below some minor comments.
-> >
-> > > +
-> > > +/* Read registers up to 4 at a time */
-> > > +static int imx319_read_reg(struct imx319 *imx319, u16 reg, u32 len, u32 *val)
-> > > +{
-> > > +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> > > +	struct i2c_msg msgs[2];
-> > > +	u8 addr_buf[2];
-> > > +	u8 data_buf[4] = { 0 };
-> > > +	int ret;
-> > > +
-> > > +	if (len > 4)
-> > > +		return -EINVAL;
-> > > +
-> > > +	put_unaligned_be16(reg, addr_buf);
-> > > +	/* Write register address */
-> > > +	msgs[0].addr = client->addr;
-> > > +	msgs[0].flags = 0;
-> > > +	msgs[0].len = ARRAY_SIZE(addr_buf);
-> > > +	msgs[0].buf = addr_buf;
-> > > +
-> > > +	/* Read data from register */
-> > > +	msgs[1].addr = client->addr;
-> > > +	msgs[1].flags = I2C_M_RD;
-> > > +	msgs[1].len = len;
-> > > +	msgs[1].buf = &data_buf[4 - len];
-> > > +
-> > > +	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-> > > +	if (ret != ARRAY_SIZE(msgs))
-> > > +		return -EIO;
-> > > +
-> > > +	*val = get_unaligned_be32(data_buf);
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +/* Write registers up to 4 at a time */
-> > > +static int imx319_write_reg(struct imx319 *imx319, u16 reg, u32 len, u32 val)
-> > > +{
-> > > +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> > > +	u8 buf[6];
-> > > +
-> > > +	if (len > 4)
-> > > +		return -EINVAL;
-> > > +
-> > > +	put_unaligned_be16(reg, buf);
-> > > +	put_unaligned_be32(val << (8 * (4 - len)), buf + 2);
-> > > +	if (i2c_master_send(client, buf, len + 2) != len + 2)
-> > > +		return -EIO;
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +/* Write a list of registers */
-> > > +static int imx319_write_regs(struct imx319 *imx319,
-> > > +			      const struct imx319_reg *regs, u32 len)
-> > > +{
-> > > +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> > > +	int ret;
-> > > +	u32 i;
-> > > +
-> > > +	for (i = 0; i < len; i++) {
-> > > +		ret = imx319_write_reg(imx319, regs[i].address, 1,
-> > > +					regs[i].val);
-> >
-> > Unaligned to open parenthesis
-> >
-> > > +		if (ret) {
-> > > +			dev_err_ratelimited(
-> > > +				&client->dev,
-> > > +				"Failed to write reg 0x%4.4x. error = %d\n",
-> > > +				regs[i].address, ret);
-> >
-> > No need to break line, align to open parenthesis, please.
-> >
-> > > +
-> > > +			return ret;
-> > > +		}
-> > > +	}
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +/* Open sub-device */
-> > > +static int imx319_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> > > +{
-> > > +	struct imx319 *imx319 = to_imx319(sd);
-> > > +	struct v4l2_mbus_framefmt *try_fmt =
-> > > +		v4l2_subdev_get_try_format(sd, fh->pad, 0);
-> > > +
-> > > +	mutex_lock(&imx319->mutex);
-> > > +
-> > > +	/* Initialize try_fmt */
-> > > +	try_fmt->width = imx319->cur_mode->width;
-> > > +	try_fmt->height = imx319->cur_mode->height;
-> > > +	try_fmt->code = imx319_get_format_code(imx319);
->
-> The initial try format should reflect the default, not the current
-> configuration.
->
-> > > +	try_fmt->field = V4L2_FIELD_NONE;
-> > > +
-> > > +	mutex_unlock(&imx319->mutex);
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static int imx319_update_digital_gain(struct imx319 *imx319, u32 d_gain)
-> > > +{
-> > > +	int ret;
-> > > +
-> > > +	ret = imx319_write_reg(imx319, IMX319_REG_DPGA_USE_GLOBAL_GAIN, 1, 1);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > > +	/* Digital gain = (d_gain & 0xFF00) + (d_gain & 0xFF)/256 times */
-> > > +	return imx319_write_reg(imx319, IMX319_REG_DIG_GAIN_GLOBAL, 2, d_gain);
-> > > +}
-> > > +
-> > > +static int imx319_set_ctrl(struct v4l2_ctrl *ctrl)
-> > > +{
-> > > +	struct imx319 *imx319 = container_of(ctrl->handler,
-> > > +					     struct imx319, ctrl_handler);
-> > > +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> > > +	s64 max;
-> > > +	int ret;
-> > > +
-> > > +	/* Propagate change of current control to all related controls */
-> > > +	switch (ctrl->id) {
-> > > +	case V4L2_CID_VBLANK:
-> > > +		/* Update max exposure while meeting expected vblanking */
-> > > +		max = imx319->cur_mode->height + ctrl->val - 18;
-> > > +		__v4l2_ctrl_modify_range(imx319->exposure,
-> > > +					 imx319->exposure->minimum,
-> > > +					 max, imx319->exposure->step, max);
-> > > +		break;
-> > > +	}
-> > > +
-> > > +	/*
-> > > +	 * Applying V4L2 control value only happens
-> > > +	 * when power is up for streaming
-> > > +	 */
-> > > +	if (pm_runtime_get_if_in_use(&client->dev) == 0)
-> > > +		return 0;
-> >
-> > I assume powering is handled through ACPI somehow, I know nothing
->
-> Power management takes place though ACPI, indeed "somehow" is a good
-> description of it from a driver developer's point of view. :-) The drivers
-> simply use runtime PM to invoke it.
+There is H sync but no V sync. The encoding is wrong (I'm using NV12 but
+what I get from /dev/video* isn't NV12).
 
-:)
+IPU2_CSI1 registers are:
+                0        4        8 C 10       14       18       1C
+2a38000: 04000A20 023F02CF 023F02CF 0  0 00040030 00000000 00FF0000
+vs the old driver:
+         04000A30 027002CF 023F02CF 0  0 01040596 000D07DF 00FF0000
 
->
-> > about that, but I wonder why setting controls should be enabled only
-> > when streaming. I would have expected runtime_pm_get/put in subdevices
-> > node open/close functions not only when streaming. Am I missing something?
->
-> You can do it either way. If powering on the sensor takes a long time, then
-> doing that in the open callback may be helpful as the user space has a way
-> to keep the device powered.
+0: CSI1 Sensor Configuration (IPUx_CSI1_SENS_CONF)
+The new driver uses progressive mode while the old one - interlaced
+mode.
 
-Ok, so I assume my comment could be ignored, assuming is fine not
-being able to set control if the sensor is not streaming. Is it?
+4: CSI1 Sense Frame Size Register (IPUx_CSI1_SENS_FRM_SIZE)
+The new driver uses 575 lines in place of 624 (this probably needs to be
+checked with the ADV7180 docs, though the old version works fine).
 
->
-> >
-> > > +
-> > > +	switch (ctrl->id) {
-> > > +	case V4L2_CID_ANALOGUE_GAIN:
-> > > +		/* Analog gain = 1024/(1024 - ctrl->val) times */
-> > > +		ret = imx319_write_reg(imx319, IMX319_REG_ANALOG_GAIN,
-> > > +				       2, ctrl->val);
-> > > +		break;
-> > > +	case V4L2_CID_DIGITAL_GAIN:
-> > > +		ret = imx319_update_digital_gain(imx319, ctrl->val);
-> > > +		break;
-> > > +	case V4L2_CID_EXPOSURE:
-> > > +		ret = imx319_write_reg(imx319, IMX319_REG_EXPOSURE,
-> > > +				       2, ctrl->val);
-> > > +		break;
-> > > +	case V4L2_CID_VBLANK:
-> > > +		/* Update FLL that meets expected vertical blanking */
-> > > +		ret = imx319_write_reg(imx319, IMX319_REG_FLL, 2,
-> > > +				       imx319->cur_mode->height + ctrl->val);
-> > > +		break;
-> > > +	case V4L2_CID_TEST_PATTERN:
-> > > +		ret = imx319_write_reg(imx319, IMX319_REG_TEST_PATTERN,
-> > > +				       2, imx319_test_pattern_val[ctrl->val]);
-> > > +		break;
-> > > +	case V4L2_CID_HFLIP:
-> > > +	case V4L2_CID_VFLIP:
-> > > +		ret = imx319_write_reg(imx319, IMX319_REG_ORIENTATION, 1,
-> > > +				       imx319->hflip->val |
-> > > +				       imx319->vflip->val << 1);
-> > > +		break;
-> > > +	default:
-> > > +		ret = -EINVAL;
-> > > +		dev_info(&client->dev,
-> > > +			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
-> > > +			 ctrl->id, ctrl->val);
-> > > +		break;
-> > > +	}
-> > > +
-> > > +	pm_runtime_put(&client->dev);
-> > > +
-> > > +	return ret;
-> > > +}
-> > > +
-> > > +static const struct v4l2_ctrl_ops imx319_ctrl_ops = {
-> > > +	.s_ctrl = imx319_set_ctrl,
-> > > +};
-> > > +
-> > > +static int imx319_enum_mbus_code(struct v4l2_subdev *sd,
-> > > +				  struct v4l2_subdev_pad_config *cfg,
-> > > +				  struct v4l2_subdev_mbus_code_enum *code)
-> > > +{
-> > > +	struct imx319 *imx319 = to_imx319(sd);
-> > > +
-> > > +	if (code->index > 0)
-> > > +		return -EINVAL;
-> > > +
-> > > +	code->code = imx319_get_format_code(imx319);
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static int imx319_enum_frame_size(struct v4l2_subdev *sd,
-> > > +				   struct v4l2_subdev_pad_config *cfg,
-> > > +				   struct v4l2_subdev_frame_size_enum *fse)
-> > > +{
-> > > +	struct imx319 *imx319 = to_imx319(sd);
-> > > +
-> > > +	if (fse->index >= ARRAY_SIZE(supported_modes))
-> > > +		return -EINVAL;
-> > > +
-> > > +	if (fse->code != imx319_get_format_code(imx319))
-> > > +		return -EINVAL;
-> > > +
-> > > +	fse->min_width = supported_modes[fse->index].width;
-> > > +	fse->max_width = fse->min_width;
-> > > +	fse->min_height = supported_modes[fse->index].height;
-> > > +	fse->max_height = fse->min_height;
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static void imx319_update_pad_format(struct imx319 *imx319,
-> > > +				     const struct imx319_mode *mode,
-> > > +				     struct v4l2_subdev_format *fmt)
-> > > +{
-> > > +	fmt->format.width = mode->width;
-> > > +	fmt->format.height = mode->height;
-> > > +	fmt->format.code = imx319_get_format_code(imx319);
-> > > +	fmt->format.field = V4L2_FIELD_NONE;
-> > > +}
-> > > +
-> > > +static int imx319_do_get_pad_format(struct imx319 *imx319,
-> > > +				     struct v4l2_subdev_pad_config *cfg,
-> > > +				     struct v4l2_subdev_format *fmt)
-> > > +{
-> > > +	struct v4l2_mbus_framefmt *framefmt;
-> > > +	struct v4l2_subdev *sd = &imx319->sd;
-> > > +
-> > > +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> > > +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> > > +		fmt->format = *framefmt;
-> > > +	} else {
-> > > +		imx319_update_pad_format(imx319, imx319->cur_mode, fmt);
-> > > +	}
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static int imx319_get_pad_format(struct v4l2_subdev *sd,
-> > > +				  struct v4l2_subdev_pad_config *cfg,
-> > > +				  struct v4l2_subdev_format *fmt)
-> > > +{
-> > > +	struct imx319 *imx319 = to_imx319(sd);
-> > > +	int ret;
-> > > +
-> > > +	mutex_lock(&imx319->mutex);
-> > > +	ret = imx319_do_get_pad_format(imx319, cfg, fmt);
-> > > +	mutex_unlock(&imx319->mutex);
-> > > +
-> > > +	return ret;
-> > > +}
-> > > +
-> > > +static int
-> > > +imx319_set_pad_format(struct v4l2_subdev *sd,
-> > > +		       struct v4l2_subdev_pad_config *cfg,
-> > > +		       struct v4l2_subdev_format *fmt)
-> > > +{
-> > > +	struct imx319 *imx319 = to_imx319(sd);
-> > > +	const struct imx319_mode *mode;
-> > > +	struct v4l2_mbus_framefmt *framefmt;
-> > > +	s32 vblank_def;
-> > > +	s32 vblank_min;
-> > > +	s64 h_blank;
-> > > +	s64 pixel_rate;
-> > > +
-> > > +	mutex_lock(&imx319->mutex);
-> > > +
-> > > +	/*
-> > > +	 * Only one bayer order is supported.
-> > > +	 * It depends on the flip settings.
-> > > +	 */
-> > > +	fmt->format.code = imx319_get_format_code(imx319);
-> > > +
-> > > +	mode = v4l2_find_nearest_size(supported_modes,
-> > > +		ARRAY_SIZE(supported_modes), width, height,
-> > > +		fmt->format.width, fmt->format.height);
-> > > +	imx319_update_pad_format(imx319, mode, fmt);
-> > > +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> > > +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> > > +		*framefmt = fmt->format;
-> > > +	} else {
-> > > +		imx319->cur_mode = mode;
-> > > +		pixel_rate =
-> > > +		(link_freq_menu_items[0] * 2 * 4) / 10;
-> >
-> > This assumes a fixed link frequency and a fixed number of data lanes,
-> > and a fixed bpp value (but this is ok, as all the formats you have are
-> > 10bpp). In OF world those parameters come from DT, what about ACPI?
->
-> I presume the driver only supports a particular number of lanes (4). ACPI
-> supports _DSD properties, i.e. the same can be done on ACPI.
->
-> If the driver only supports these, then it should check this matches with
-> what the firmware (ACPI) has. The fwnode API is the same.
+14, 18: CSI1 CCIR Code Register 1 and 2 (IPUx_CSI1_CCIR_CODE_[12])
+The new driver doesn't use "Error detection and correction" and it seems
+the codes are set for progressive mode. I think this can't work.
 
-Thanks, so I assume those parameters represented in ACPI DSD nodes
-will be checked to be supported by the sensor in v2.
 
-Thanks
-   j
+With:
+"adv7180 2-0020":0 [fmt:UYVY2X8/720x576 field:interlaced]
+"ipu2_csi1_mux":1  [fmt:UYVY2X8/720x576 field:none]
+"ipu2_csi1_mux":2  [fmt:UYVY2X8/720x576 field:none]
+"ipu2_csi1":0      [fmt:UYVY2X8/720x576 field:none]
+"ipu2_csi1":2      [fmt:AYUV32/720x576 field:none]
 
->
-> --
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
+Still, V sync but no H sync. The Y/colors are good, except that
+there are two consecutive images on the screen.
+2a38000: 04000A20 023F02CF 023F02CF 0  0 00040030 00000000 00FF0000
+CSI set to progressive again. Setting the registers manually (SENS_CONF
+and SAV/EAV codes) makes the image stabilize, though there are still two
+images (split in the middle). Apparently something is simply appending
+the two field images, instead of merging them properly.
 
---AH+kv8CCoFf6qPuz
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+With:
+"adv7180 2-0020":0 [fmt:UYVY2X8/720x576 field:interlaced]
+"ipu2_csi1_mux":1  [fmt:UYVY2X8/720x576 field:interlaced]
+"ipu2_csi1_mux":2  [fmt:UYVY2X8/720x576 field:interlaced]
+"ipu2_csi1":0      [fmt:UYVY2X8/720x576 field:interlaced]
+"ipu2_csi1":2      [fmt:AYUV32/720x576 field:interlaced]
 
-iQIcBAEBAgAGBQJbBxuKAAoJEHI0Bo8WoVY8fBAP/RZCHHQIXT6FRSTjoNouJXg7
-v9F3dnqLk4y2cwy+lKCuFQWkXYoe8084w+hf0vcDPwFUNyuO1BfUZqD8HP8Zw0jZ
-O9T7An6TG9bm13dVLm1HgSegXRsBwKbCr9xKiuT8H43fkWAD7G0pQGMB8+tcKJRO
-Ob7Admt8t6MS+Jg3FIbbyjvxxDhhKZ6fqruYIKEh+XckP7C19Y4mP4XK8xKJxbKd
-O59SsgwE6zSNt+pDj37rbr2Vdez17PUuwjC/G5UQys0bNwh73MyU80UomT4tzLp6
-xJZ9lz/uV2rhubVhmSTklhqBYGbkItq7RrERNL9zDLHlxlOlkVgnyd62DTXd15Ok
-XiPxUjgaI3V8EGLrsRJal6Ou1LTIprYyqIbxjivEd+4K1bk+D1v19Y9beKge9jOV
-FUw3co/S7QDS9UdH4l6y0AohsHnhi7cj4UNorP3n3j5W4fq70moxlsIiSSj3SBoK
-5VSbyM0db2j23w805Q/fIrnkocI8FMY+i/e6sro99f5a28J7aih7YY4djV31zUyf
-vJ+AZds9gNHPXOjWlL8mtd18m9Cb5q1dbB6PIJpKlRxAlsmlCklck30sYYN7W9Lv
-vXoPLXSyyEHnryxGrCZkNip5INbeu6x7bLEZ7IuSXdv9IygthiKbYGXCrll/BwO0
-XIIvb+4lOglYuiAkPNLn
-=jLoN
------END PGP SIGNATURE-----
+2a38000: 04000A30 027002CF 023F02CF 0  0 01040596 000D07DF 00FF0000
+the CSI is set for interlaced mode, and there are two stable images
+(both fields concatenated).
 
---AH+kv8CCoFf6qPuz--
+
+The first case again (all except ipu2_csi1 set to interlaced). I've
+manually set the CSI registers and now the image is synchronized and
+stable (one complete frame this time). The problem is it's not NV12
+(nor YUV420), the colors are all green and the Y lines comes in pairs -
+valid then invalid (probably color) and so on.
+
+
+Could it be a DTS problem? I'm using imx6q-gw53xx.dtb file,
+the 8-bit ADV7180 (40 pin version) is connected to the IPU2 CSI1 DATA,
+EIM_EB3 = HSYNC, EIM_A16 = PIXCLK and EIM_D29 = VSYNC. HSYNC and VSYNC
+aren't currently used, though.
+
+I Guess I have to compare all IPU registers.
+-- 
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
