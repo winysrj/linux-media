@@ -1,132 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43886 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752202AbeERUwl (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:41073 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753334AbeERJ2c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 16:52:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran@ksquared.org.uk>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        stable@vger.kernel.org
-Subject: Re: [PATCH v11 01/10] media: v4l: vsp1: Release buffers for each video node
-Date: Fri, 18 May 2018 23:53:02 +0300
-Message-ID: <2666334.YPxzfcQE7O@avalon>
-In-Reply-To: <f05e7c227e8ab1f0c5d65ccdcb92c7c20c00594a.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com> <f05e7c227e8ab1f0c5d65ccdcb92c7c20c00594a.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Fri, 18 May 2018 05:28:32 -0400
+Received: by mail-wr0-f194.google.com with SMTP id w15-v6so909540wrp.8
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 02:28:32 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v5 04/12] clk: imx7d: reset parent for mipi csi root
+Date: Fri, 18 May 2018 10:27:58 +0100
+Message-Id: <20180518092806.3829-5-rui.silva@linaro.org>
+In-Reply-To: <20180518092806.3829-1-rui.silva@linaro.org>
+References: <20180518092806.3829-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+To guarantee that we do not get Overflow in image FIFO the outer bandwidth has
+to be faster than inputer bandwidth. For that it must be possible to set a
+faster frequency clock. So set new parent to sys_pfd3 clock for the mipi csi
+block.
 
-Thank you for the patch.
+Acked-by: Shawn Guo <shawnguo@kernel.org>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ drivers/clk/imx/clk-imx7d.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-On Friday, 18 May 2018 23:41:54 EEST Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> Commit 372b2b0399fc ("media: v4l: vsp1: Release buffers in
-> start_streaming error path") introduced a helper to clean up buffers on
-> error paths, but inadvertently changed the code such that only the
-> output WPF buffers were cleaned, rather than the video node being
-> operated on.
-> 
-> Since then vsp1_video_cleanup_pipeline() has grown to perform both video
-> node cleanup, as well as pipeline cleanup. Split the implementation into
-> two distinct functions that perform the required work, so that each
-> video node can release it's buffers correctly on streamoff. The pipe
-
-s/it's/its/
-
-> cleanup that was performed in the vsp1_video_stop_streaming() (releasing
-> the pipe->dl) is moved to the function for clarity.
-> 
-> Fixes: 372b2b0399fc ("media: v4l: vsp1: Release buffers in start_streaming
-> error path")
-> Cc: stable@vger.kernel.org # v4.13+
-
-Commit 372b2b0399fc was introduced in v4.14, should this be v4.14+ ?
-
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-No need to resubmit for this, I'll fix the commit message when applying.
-
-> ---
->  drivers/media/platform/vsp1/vsp1_video.c | 21 +++++++++++++--------
->  1 file changed, 13 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index c8c12223a267..ba89dd176a13
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -842,9 +842,8 @@ static int vsp1_video_setup_pipeline(struct
-> vsp1_pipeline *pipe) return 0;
->  }
-> 
-> -static void vsp1_video_cleanup_pipeline(struct vsp1_pipeline *pipe)
-> +static void vsp1_video_release_buffers(struct vsp1_video *video)
->  {
-> -	struct vsp1_video *video = pipe->output->video;
->  	struct vsp1_vb2_buffer *buffer;
->  	unsigned long flags;
-> 
-> @@ -854,12 +853,18 @@ static void vsp1_video_cleanup_pipeline(struct
-> vsp1_pipeline *pipe) vb2_buffer_done(&buffer->buf.vb2_buf,
-> VB2_BUF_STATE_ERROR);
->  	INIT_LIST_HEAD(&video->irqqueue);
->  	spin_unlock_irqrestore(&video->irqlock, flags);
-> +}
-> +
-> +static void vsp1_video_cleanup_pipeline(struct vsp1_pipeline *pipe)
-> +{
-> +	lockdep_assert_held(&pipe->lock);
-> 
->  	/* Release our partition table allocation */
-> -	mutex_lock(&pipe->lock);
->  	kfree(pipe->part_table);
->  	pipe->part_table = NULL;
-> -	mutex_unlock(&pipe->lock);
-> +
-> +	vsp1_dl_list_put(pipe->dl);
-> +	pipe->dl = NULL;
->  }
-> 
->  static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int
-> count) @@ -874,8 +879,9 @@ static int vsp1_video_start_streaming(struct
-> vb2_queue *vq, unsigned int count) if (pipe->stream_count ==
-> pipe->num_inputs) {
->  		ret = vsp1_video_setup_pipeline(pipe);
->  		if (ret < 0) {
-> -			mutex_unlock(&pipe->lock);
-> +			vsp1_video_release_buffers(video);
->  			vsp1_video_cleanup_pipeline(pipe);
-> +			mutex_unlock(&pipe->lock);
->  			return ret;
->  		}
-> 
-> @@ -925,13 +931,12 @@ static void vsp1_video_stop_streaming(struct vb2_queue
-> *vq) if (ret == -ETIMEDOUT)
->  			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
-> 
-> -		vsp1_dl_list_put(pipe->dl);
-> -		pipe->dl = NULL;
-> +		vsp1_video_cleanup_pipeline(pipe);
->  	}
->  	mutex_unlock(&pipe->lock);
-> 
->  	media_pipeline_stop(&video->video.entity);
-> -	vsp1_video_cleanup_pipeline(pipe);
-> +	vsp1_video_release_buffers(video);
->  	vsp1_video_pipeline_put(pipe);
->  }
-
+diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
+index f7f4db2e6fa6..27877d05faa2 100644
+--- a/drivers/clk/imx/clk-imx7d.c
++++ b/drivers/clk/imx/clk-imx7d.c
+@@ -891,6 +891,8 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
+ 	clk_set_parent(clks[IMX7D_PLL_AUDIO_MAIN_BYPASS], clks[IMX7D_PLL_AUDIO_MAIN]);
+ 	clk_set_parent(clks[IMX7D_PLL_VIDEO_MAIN_BYPASS], clks[IMX7D_PLL_VIDEO_MAIN]);
+ 
++	clk_set_parent(clks[IMX7D_MIPI_CSI_ROOT_SRC], clks[IMX7D_PLL_SYS_PFD3_CLK]);
++
+ 	/* use old gpt clk setting, gpt1 root clk must be twice as gpt counter freq */
+ 	clk_set_parent(clks[IMX7D_GPT1_ROOT_SRC], clks[IMX7D_OSC_24M_CLK]);
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.17.0
