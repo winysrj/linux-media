@@ -1,131 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:62892 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932071AbeEHK2b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 May 2018 06:28:31 -0400
-Date: Tue, 8 May 2018 13:28:26 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Yong Zhi <yong.zhi@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 05/13] media: v4l2-fwnode: Add a convenience function
- for registering subdevs with notifiers
-Message-ID: <20180508102825.xamrlnnipknsoi62@kekkonen.localdomain>
-References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
- <1521592649-7264-6-git-send-email-steve_longerbeam@mentor.com>
- <20180423071444.2rsqvlvlfvpoxpbu@paasikivi.fi.intel.com>
- <8e59e530-9d13-c1ae-5f0b-6205a7b21182@gmail.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:46232 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750713AbeESFRV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 19 May 2018 01:17:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        LMML <linux-media@vger.kernel.org>,
+        Wim Taymans <wtaymans@redhat.com>, schaller@redhat.com
+Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras on generic apps
+Date: Sat, 19 May 2018 08:17:42 +0300
+Message-ID: <2039084.mzKZ95HuWk@avalon>
+In-Reply-To: <7f9f800349eb45fb9c3a96b37f238fab0a610ee4.camel@ndufresne.ca>
+References: <20180517160708.74811cfb@vento.lan> <1568098.156aR60jyk@avalon> <7f9f800349eb45fb9c3a96b37f238fab0a610ee4.camel@ndufresne.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8e59e530-9d13-c1ae-5f0b-6205a7b21182@gmail.com>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Hi Nicolas,
 
-Again, sorry about the delay. This thread got buried in my inbox. :-(
-Please see my reply below.
+On Friday, 18 May 2018 18:15:20 EEST Nicolas Dufresne wrote:
+> Le vendredi 18 mai 2018 =E0 15:38 +0300, Laurent Pinchart a =E9crit :
+> >> Before libv4l, media support for a given device were limited to a few
+> >> apps that knew how to decode the format. There were even cases were a
+> >> proprietary app were required, as no open source decoders were
+> >> available.
+> >>=20
+> >> From my PoV, the biggest gain with libv4l is that the same group of
+> >> maintainers can ensure that the entire solution (Kernel driver and
+> >> low level userspace support) will provide everything required for an
+> >> open source app to work with it.
+> >>=20
+> >> I'm not sure how we would keep enforcing it if the pipeline setting
+> >> and control propagation logic for an specific hardware will be
+> >> delegated to PipeWire. It seems easier to keep doing it on a libv4l
+> >> (version 2) and let PipeWire to use it.
+> >=20
+> > I believe we need to first study pipewire in more details. I have no
+> > personal opinion yet as I haven't had time to investigate it. That being
+> > said, I don't think that libv4l with closed-source plugins would be much
+> > better than a closed-source pipewire plugin. What main concern once we
+> > provide a userspace camera stack API is that vendors might implement th=
+at
+> > API in a closed-source component that calls to a kernel driver
+> > implementing a custom API, with all knowledge about the camera located =
+in
+> > the closed-source component. I'm not sure how to prevent that, my best
+> > proposal would be to make V4L2 so useful that vendors wouldn't even thi=
+nk
+> > about a different solution (possibly coupled by the pressure put by
+> > platform vendors such as Google who mandate upstream kernel drivers for
+> > Chrome OS, but that's still limited as even when it comes to Google
+> > there's no such pressure on the Android side).
+>=20
+> If there is proprietary plugins, then I don't think it will make any
+> difference were this is implemented.
 
-On Mon, Apr 23, 2018 at 11:00:22AM -0700, Steve Longerbeam wrote:
-> 
-> 
-> On 04/23/2018 12:14 AM, Sakari Ailus wrote:
-> > Hi Steve,
-> > 
-> > On Tue, Mar 20, 2018 at 05:37:21PM -0700, Steve Longerbeam wrote:
-> > > Adds v4l2_async_register_fwnode_subdev(), which is a convenience function
-> > > for parsing a sub-device's fwnode port endpoints for connected remote
-> > > sub-devices, registering a sub-device notifier, and then registering
-> > > the sub-device itself.
-> > > 
-> > > Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> > > ---
-> > > Changes since v2:
-> > > - fix error-out path in v4l2_async_register_fwnode_subdev() that forgot
-> > >    to put device.
-> > > Changes since v1:
-> > > - add #include <media/v4l2-subdev.h> to v4l2-fwnode.h for
-> > >    'struct v4l2_subdev' declaration.
-> > > ---
-> > >   drivers/media/v4l2-core/v4l2-fwnode.c | 101 ++++++++++++++++++++++++++++++++++
-> > >   include/media/v4l2-fwnode.h           |  43 +++++++++++++++
-> > >   2 files changed, 144 insertions(+)
-> > > 
-> > > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > index 99198b9..d42024d 100644
-> > > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > @@ -880,6 +880,107 @@ int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
-> > >   }
-> > >   EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
-> > > +int v4l2_async_register_fwnode_subdev(
-> > > +	struct v4l2_subdev *sd, size_t asd_struct_size,
-> > > +	unsigned int *ports, unsigned int num_ports,
-> > > +	int (*parse_endpoint)(struct device *dev,
-> > > +			      struct v4l2_fwnode_endpoint *vep,
-> > > +			      struct v4l2_async_subdev *asd))
-> > > +{
-> > > +	struct v4l2_async_notifier *notifier;
-> > > +	struct device *dev = sd->dev;
-> > > +	struct fwnode_handle *fwnode;
-> > > +	unsigned int subdev_port;
-> > > +	bool is_port;
-> > > +	int ret;
-> > > +
-> > > +	if (WARN_ON(!dev))
-> > > +		return -ENODEV;
-> > > +
-> > > +	fwnode = dev_fwnode(dev);
-> > > +	if (!fwnode_device_is_available(fwnode))
-> > > +		return -ENODEV;
-> > > +
-> > > +	is_port = (is_of_node(fwnode) &&
-> > > +		   of_node_cmp(to_of_node(fwnode)->name, "port") == 0);
-> > What's the intent of this and the code below? You may not parse the graph
-> > data structure here, it should be done in the actual firmware
-> > implementation instead.
-> 
-> The i.MX6 CSI sub-device registers itself from a port fwnode, so
-> the intent of the is_port code below is to support the i.MX6 CSI.
-> 
-> I can remove the is_port checks, but it means
-> v4l2_async_register_fwnode_subdev() won't be usable by the CSI
-> sub-device.
+I tend to agree overall, although the community that develops the framework=
+ we=20
+will end up using can make a difference in that area.
 
-This won't scale. Instead, I think we'd need to separate registering
-sub-devices (through async sub-devices) and binding them with the driver
-that registered the notifier. Or at least change how that process works: a
-single sub-device can well be bound to multiple notifiers, or multiple
-times to the same notifier while it may be registered only once.
+> The difference is the feature set we expose. 3A is per device, but multip=
+le
+> streams, with per request controls is also possible.
 
-> 
-> > 
-> > Also, sub-devices generally do not match ports.
-> 
-> Yes that's generally true, sub-devices generally match to port parent
-> nodes. But I do know of one other sub-device that buck that trend.
-> The ADV748x CSI-2 output sub-devices match against endpoint nodes.
+Could you detail what you mean exactly by multiple streams ? Are you talkin=
+g=20
+about multiple independent streams coming from the same device (such as vid=
+eo=20
++ depth map, 3D video, ...) or streams created from a single source (sensor=
+)=20
+to serve different purposes (viewfinder, video capture, still image capture=
+,=20
+=2E..) ?
 
-Endpoints, yes, but not ports.
+> PipeWire gives central place to manage this, while giving multiple process
+> access to the camera streams. I think in the end, what fits better would =
+be
+> something like or the Android Camera HAL2. But we could encourage OSS by
+> maintaining a base implementation that covers all the V4L2 aspect, leaving
+> only the 3A aspect of the work to be done.
 
-> 
-> >   How sub-devices generally
-> > correspond to fwnodes is up to the device.
-> 
-> What do you think of adding a v4l2_async_register_port_fwnode_subdev(),
-> and a v4l2_async_register_endpoint_fwnode_subdev() to support such
-> sub-devices?
+Ideally that's the goal I'd like to reach, regardless of which multimedia=20
+stack we go for.
 
-The endpoint is more specific than a port, so why the port and not the
-endpoint?
+> Maybe we need to come up with an abstraction that does not prevent multi-
+> streams, but only requires 3A per vendors
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+That would be tricky to achieve, as it's usually very use-case- and ISP-
+dependent. Maybe we could come up with an interface for another vendor-
+specific component to handle this, but I fear it will be so intertwined wit=
+h=20
+the 3A implementation that it wouldn't be possible to isolate those two=20
+components.
+
+> (saying per vendors, as some of this could be Open Source by third partie=
+s).
+
+Note that in practice 3A is often tuned per-device, starting from a per-ven=
+dor=20
+implementation.
+
+> just thinking out loud now ;-P
+
+That's exactly what we need to do to start with :-)
+
+> p.s. Do we have the Intel / IPU3 folks in in the loop ? This is likely
+> the most pressing HW as it's shipping on many laptops now.
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
