@@ -1,53 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:34827 "EHLO
-        homiemail-a80.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751617AbeEBXUE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 May 2018 19:20:04 -0400
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 2/2] cec: Kconfig coding style issue
-Date: Wed,  2 May 2018 18:19:30 -0500
-Message-Id: <1525303170-6303-3-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1525303170-6303-1-git-send-email-brad@nextdimension.cc>
-References: <1525303170-6303-1-git-send-email-brad@nextdimension.cc>
+Received: from sauhun.de ([88.99.104.3]:41534 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751614AbeETGuq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 20 May 2018 02:50:46 -0400
+From: Wolfram Sang <wsa@the-dreams.de>
+To: linux-i2c@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 7/7] media: dvb-usb: don't check number of messages in the driver
+Date: Sun, 20 May 2018 08:50:38 +0200
+Message-Id: <20180520065039.7989-8-wsa@the-dreams.de>
+In-Reply-To: <20180520065039.7989-1-wsa@the-dreams.de>
+References: <20180520065039.7989-1-wsa@the-dreams.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use tabs instead of spaces and help is two-spaced after single tab.
+Since commit 1eace8344c02 ("i2c: add param sanity check to
+i2c_transfer()"), the I2C core does this check now. We can remove it
+from drivers.
 
-The incorrect spacing breaks menuconfig on older kernels.
-
-Signed-off-by: Brad Love <brad@nextdimension.cc>
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
 ---
- drivers/media/Kconfig | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 37124c3..8add62a 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -78,13 +78,13 @@ config MEDIA_SDR_SUPPORT
- 	  Say Y when you have a software defined radio device.
+Only build tested.
+
+ drivers/media/usb/dvb-usb/m920x.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb/m920x.c b/drivers/media/usb/dvb-usb/m920x.c
+index 32081c2ce0da..a6ab6688cbb3 100644
+--- a/drivers/media/usb/dvb-usb/m920x.c
++++ b/drivers/media/usb/dvb-usb/m920x.c
+@@ -255,9 +255,6 @@ static int m920x_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int nu
+ 	int i, j;
+ 	int ret = 0;
  
- config MEDIA_CEC_SUPPORT
--       bool "HDMI CEC support"
--       ---help---
--	 Enable support for HDMI CEC (Consumer Electronics Control),
--	 which is an optional HDMI feature.
-+	bool "HDMI CEC support"
-+	---help---
-+	  Enable support for HDMI CEC (Consumer Electronics Control),
-+	  which is an optional HDMI feature.
- 
--	 Say Y when you have an HDMI receiver, transmitter or a USB CEC
--	 adapter that supports HDMI CEC.
-+	  Say Y when you have an HDMI receiver, transmitter or a USB CEC
-+	  adapter that supports HDMI CEC.
- 
- source "drivers/media/cec/Kconfig"
+-	if (!num)
+-		return -EINVAL;
+-
+ 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+ 		return -EAGAIN;
  
 -- 
-2.7.4
+2.11.0
