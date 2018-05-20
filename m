@@ -1,61 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:41016 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755042AbeEaNyE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 09:54:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras on generic apps
-Date: Thu, 31 May 2018 16:54:10 +0300
-Message-ID: <1647905.XQq2LUTRUQ@avalon>
-In-Reply-To: <20180531102212.41a8848e@vento.lan>
-References: <20180517160708.74811cfb@vento.lan> <20180528104351.5cf52a24@vento.lan> <20180531102212.41a8848e@vento.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+Received: from sauhun.de ([88.99.104.3]:41518 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751021AbeETGuo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 20 May 2018 02:50:44 -0400
+From: Wolfram Sang <wsa@the-dreams.de>
+To: linux-i2c@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 4/7] media: em28xx: don't check number of messages in the driver
+Date: Sun, 20 May 2018 08:50:35 +0200
+Message-Id: <20180520065039.7989-5-wsa@the-dreams.de>
+In-Reply-To: <20180520065039.7989-1-wsa@the-dreams.de>
+References: <20180520065039.7989-1-wsa@the-dreams.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Since commit 1eace8344c02 ("i2c: add param sanity check to
+i2c_transfer()"), the I2C core does this check now. We can remove it
+from drivers.
 
-On Thursday, 31 May 2018 16:22:12 EEST Mauro Carvalho Chehab wrote:
-> Em Mon, 28 May 2018 10:43:51 -0300 Mauro Carvalho Chehab escreveu:
-> > Em Thu, 17 May 2018 16:07:08 -0300 Mauro Carvalho Chehab escreveu:
-> >> Hi all,
-> >>=20
-> >> The goal of this e-mail is to schedule a meeting in order to discuss
-> >> improvements at the media subsystem in order to support complex camera
-> >> hardware by usual apps.
-> >>=20
-> >> The main focus here is to allow supporting devices with MC-based
-> >> hardware connected to a camera.
-> >>=20
-> >> In short, my proposal is to meet with the interested parties on solving
-> >> this issue during the Open Source Summit in Japan, e. g. between
-> >> June, 19-22, in Tokyo.
-> >=20
-> > Let's schedule the meeting to happen in Tokyo, Japan at June, 19.
-> >=20
-> > Location yet to be defined, but it will either be together with
-> > OSS Japan or at Google. I'll confirm the address tomorrow.
->=20
-> More details about the meeting:
->=20
-> Date: June, 19
-> Site: Google
-> Address: =E3=80=92106-6126 Tokyo, Minato, Roppongi, 6 Chome=E2=88=9210=E2=
-=88=921 Roppongi Hills Mori
-> Tower 44F
->=20
-> Please confirm who will be attending the meeting.
->=20
-> Hoping to see you there.
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+---
 
-I will be there.
+Only build tested.
 
-=2D-=20
-Regards,
+ drivers/media/usb/em28xx/em28xx-i2c.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-Laurent Pinchart
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 6458682bc6e2..e19d6342e0d0 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -559,10 +559,6 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 		dev->cur_i2c_bus = bus;
+ 	}
+ 
+-	if (num <= 0) {
+-		rt_mutex_unlock(&dev->i2c_bus_lock);
+-		return 0;
+-	}
+ 	for (i = 0; i < num; i++) {
+ 		addr = msgs[i].addr << 1;
+ 		if (!msgs[i].len) {
+-- 
+2.11.0
