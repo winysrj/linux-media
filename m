@@ -1,116 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:12966 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751510AbeEPOH0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 10:07:26 -0400
-Date: Wed, 16 May 2018 17:07:20 +0300
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com, sadolfsson@google.com,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, fparent@baylibre.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        linux-media@vger.kernel.org
-Subject: Re: [Intel-gfx] [PATCH v2 2/5] drm/i915: hdmi: add CEC notifier to
- intel_hdmi
-Message-ID: <20180516140720.GD23723@intel.com>
-References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
- <1526395342-15481-3-git-send-email-narmstrong@baylibre.com>
- <20180515153521.GB23723@intel.com>
- <aff8c86f-b282-c901-5ef5-c5ee334aeedc@baylibre.com>
- <e0f99123-1463-c082-122e-67cf0d106e25@baylibre.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <e0f99123-1463-c082-122e-67cf0d106e25@baylibre.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:44422 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753376AbeEURCN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 13:02:13 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v10 11/16] vb2: add explicit fence user API
+Date: Mon, 21 May 2018 13:59:41 -0300
+Message-Id: <20180521165946.11778-12-ezequiel@collabora.com>
+In-Reply-To: <20180521165946.11778-1-ezequiel@collabora.com>
+References: <20180521165946.11778-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 16, 2018 at 09:40:17AM +0200, Neil Armstrong wrote:
-> On 16/05/2018 09:31, Neil Armstrong wrote:
-> > Hi Ville,
-> > 
-> > On 15/05/2018 17:35, Ville Syrjälä wrote:
-> >> On Tue, May 15, 2018 at 04:42:19PM +0200, Neil Armstrong wrote:
-> >>> This patchs adds the cec_notifier feature to the intel_hdmi part
-> >>> of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
-> >>> between each HDMI ports.
-> >>> The changes will allow the i915 HDMI code to notify EDID and HPD changes
-> >>> to an eventual CEC adapter.
-> >>>
-> >>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> >>> ---
-> >>>  drivers/gpu/drm/i915/Kconfig      |  1 +
-> >>>  drivers/gpu/drm/i915/intel_drv.h  |  2 ++
-> >>>  drivers/gpu/drm/i915/intel_hdmi.c | 12 ++++++++++++
-> >>>  3 files changed, 15 insertions(+)
-> >>>
-> > 
-> > [..]
-> > 
-> >>>  }
-> >>>  
-> >>> @@ -2031,6 +2037,8 @@ static void chv_hdmi_pre_enable(struct intel_encoder *encoder,
-> >>>  
-> >>>  static void intel_hdmi_destroy(struct drm_connector *connector)
-> >>>  {
-> >>> +	if (intel_attached_hdmi(connector)->notifier)
-> >>> +		cec_notifier_put(intel_attached_hdmi(connector)->notifier);
-> >>>  	kfree(to_intel_connector(connector)->detect_edid);
-> >>>  	drm_connector_cleanup(connector);
-> >>>  	kfree(connector);
-> >>> @@ -2358,6 +2366,10 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
-> >>>  		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
-> >>>  		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
-> >>>  	}
-> >>> +
-> >>> +	intel_hdmi->notifier = cec_notifier_get_conn(dev->dev, connector->name);
-> >>
-> >> What are we doing with the connector name here? Those are not actually
-> >> guaranteed to be stable, and any change in the connector probe order
-> >> may cause the name to change.
-> > 
-> > The i915 driver can expose multiple HDMI connectors, but each connected will
-> > have a different EDID and CEC physical address, so we will need a different notifier
-> > for each connector.
-> > 
-> > The connector name is DRM dependent, but user-space actually uses this name for
-> > operations, so I supposed it was kind of stable.
-> > 
-> > Anyway, is there another stable id/name/whatever that can be used to make a name to
-> > distinguish the HDMI connectors ?
-> 
-> Would "HDMI %c", port_name(port) be OK to use ?
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Yeah, something like seems like a reasonable approach. That does mean
-we have to be a little careful with changing enum port or port_name()
-in the future, but I guess we could just add a small function to
-generated the name/id specifically for this thing.
+Turn the reserved2 field into fence_fd that we will use to send
+an in-fence to the kernel or return an out-fence from the kernel to
+userspace.
 
-We're also going to have to think what to do with enum port and
-port_name() on ICL+ though. There we won't just have A-F but also
-TC1-TC<n>. Hmm. Looks like what we have for those ports in our
-codebase ATM is a bit wonky since we haven't even changed
-port_name() to give us the TC<n> type names.
+Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+when sending an in-fence to the kernel to be waited on, and
+V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
 
-Also we might not want "HDMI" in the identifier since the physical
-port is not HDMI specific. There are different things we could call
-these but I think we could just go with a generic "Port A-F" and
-"Port TC1-TC<n>" approach. I think something like that should work
-fine for current and upcoming hardware. And in theory that could
-then be used for other things as well which need a stable
-identifier.
+v8: return -1 if new flags are set.
+v7: minor fixes on the Documentation (Hans Verkuil)
 
-Oh, and now I recall that input subsystem at least has some kind
-of "physical path" property on devices. So I guess what we're
-dicussing is a somewhat similar idea. I think input drivers
-generally include the pci/usb/etc. device in the path as well.
-Even though we currently only ever have the one pci device it
-would seem like decent idea to include that information in our
-identifiers as well. Or what do you think?
+v6: big improvement on doc (Hans Verkuil)
 
+v5: - keep using reserved2 field for cpia2
+    - set fence_fd to 0 for now, for compat with userspace(Mauro)
+
+v4: make it a union with reserved2 and fence_fd (Hans Verkuil)
+
+v3: make the out_fence refer to the current buffer (Hans Verkuil)
+
+v2: add documentation
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ Documentation/media/uapi/v4l/buffer.rst         | 48 ++++++++++++++++++++++---
+ drivers/media/common/videobuf2/videobuf2-v4l2.c |  6 +++-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  4 +--
+ include/uapi/linux/videodev2.h                  |  8 ++++-
+ 4 files changed, 58 insertions(+), 8 deletions(-)
+
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index e2c85ddc990b..971b7453040c 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -300,11 +300,23 @@ struct v4l2_buffer
+ 	multi-planar API the application sets this to the number of
+ 	elements in the ``planes`` array. The driver will fill in the
+ 	actual number of valid elements in that array.
+-    * - __u32
+-      - ``reserved2``
++    * - __s32
++      - ``fence_fd``
+       -
+-      - A place holder for future extensions. Drivers and applications
+-	must set this to 0.
++      - Used to communicate a fence file descriptor from userspace to kernel
++	and vice-versa. On :ref:`VIDIOC_QBUF <VIDIOC_QBUF>` when sending
++	an in-fence for V4L2 to wait on, the ``V4L2_BUF_FLAG_IN_FENCE`` flag must
++	be used and this field set to the fence file descriptor of the in-fence.
++	If the in-fence is not valid ` VIDIOC_QBUF`` returns an error.
++
++        To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE``
++	must be set, the kernel will return the out-fence file descriptor in
++	this field. If it fails to create the out-fence ``VIDIOC_QBUF` returns
++        an error.
++
++	For all other ioctls V4L2 sets this field to -1 if
++	``V4L2_BUF_FLAG_IN_FENCE`` and/or ``V4L2_BUF_FLAG_OUT_FENCE`` are set,
++	otherwise this field is set to 0 for backward compatibility.
+     * - __u32
+       - ``reserved``
+       -
+@@ -648,6 +660,34 @@ Buffer Flags
+       - Start Of Exposure. The buffer timestamp has been taken when the
+ 	exposure of the frame has begun. This is only valid for the
+ 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
++    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
++
++      - ``V4L2_BUF_FLAG_IN_FENCE``
++      - 0x00200000
++      - Ask V4L2 to wait on the fence passed in the ``fence_fd`` field. The
++	buffer won't be queued to the driver until the fence signals. The order
++	in which buffers are queued is guaranteed to be preserved, so any
++	buffers queued after this buffer will also be blocked until this fence
++	signals. This flag must be set before calling ``VIDIOC_QBUF``. For
++	other ioctls the driver just reports the value of the flag.
++
++        If the fence signals the flag is cleared and not reported anymore.
++	If the fence is not valid ``VIDIOC_QBUF`` returns an error.
++    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
++
++      - ``V4L2_BUF_FLAG_OUT_FENCE``
++      - 0x00400000
++      - Request for a fence to be attached to the buffer. The driver will fill
++	in the out-fence fd in the ``fence_fd`` field when :ref:`VIDIOC_QBUF
++	<VIDIOC_QBUF>` returns. This flag must be set before calling
++	``VIDIOC_QBUF``. This flag is only an input, and is not set by the kernel.
++
++        If the creation of the out-fence fails ``VIDIOC_QBUF`` returns an
++	error.
++
++        Note that it is valid to set both ``V4L2_BUF_FLAG_IN_FENCE`` and
++        `V4L2_BUF_FLAG_OUT_FENCE`` flags. In such case, the ``fence_fd``
++        field is used to both set the in-fence and return the out-fence.
+ 
+ 
+ 
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 64503615d00b..8312f61adfa6 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -203,9 +203,13 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timestamp = ns_to_timeval(vb->timestamp);
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+-	b->reserved2 = 0;
+ 	b->reserved = 0;
+ 
++	if (b->flags & (V4L2_BUF_FLAG_IN_FENCE | V4L2_BUF_FLAG_OUT_FENCE))
++		b->fence_fd = -1;
++	else
++		b->fence_fd = 0;
++
+ 	if (q->is_multiplanar) {
+ 		/*
+ 		 * Fill in plane-related data if userspace provided an array
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 4312935f1dfc..93c752459aec 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -388,7 +388,7 @@ struct v4l2_buffer32 {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__s32			fence_fd;
+ 	__u32			reserved;
+ };
+ 
+@@ -606,7 +606,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ 	    assign_in_user(&up->timestamp.tv_usec, &kp->timestamp.tv_usec) ||
+ 	    copy_in_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
+ 	    assign_in_user(&up->sequence, &kp->sequence) ||
+-	    assign_in_user(&up->reserved2, &kp->reserved2) ||
++	    assign_in_user(&up->fence_fd, &kp->fence_fd) ||
+ 	    assign_in_user(&up->reserved, &kp->reserved) ||
+ 	    get_user(length, &kp->length) ||
+ 	    put_user(length, &up->length))
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index a8842a5ca636..1f18dc68ecab 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -934,7 +934,10 @@ struct v4l2_buffer {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	union {
++		__s32		fence_fd;
++		__u32		reserved2;
++	};
+ 	__u32			reserved;
+ };
+ 
+@@ -971,6 +974,9 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+ /* mem2mem encoder/decoder */
+ #define V4L2_BUF_FLAG_LAST			0x00100000
++/* Explicit synchronization */
++#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
++#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
 -- 
-Ville Syrjälä
-Intel
+2.16.3
