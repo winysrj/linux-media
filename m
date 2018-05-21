@@ -1,104 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:40834 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752430AbeERPS5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 11:18:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Nicolas Dufresne <nicolas@ndufresne.ca>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        LMML <linux-media@vger.kernel.org>,
-        Wim Taymans <wtaymans@redhat.com>, schaller@redhat.com
-Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras on generic apps
-Date: Fri, 18 May 2018 18:19:18 +0300
-Message-ID: <2499458.KJkn9g4ItI@avalon>
-In-Reply-To: <f2d8be6e6a1754afc253be816a0307f46c957b59.camel@ndufresne.ca>
-References: <20180517160708.74811cfb@vento.lan> <3216261.G88TfqiCiH@avalon> <f2d8be6e6a1754afc253be816a0307f46c957b59.camel@ndufresne.ca>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from mga14.intel.com ([192.55.52.115]:28373 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752669AbeEUIzQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 04:55:16 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH v14 06/36] media-request: Add support for updating request objects optimally
+Date: Mon, 21 May 2018 11:54:31 +0300
+Message-Id: <20180521085501.16861-7-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+Add a new request state (UPDATING) as well as a count for updating the
+request objects. This way, several updates may take place simultaneously
+without affecting each other. The drivers (as well as frameworks) still
+must serialise access to their own data structures; what is guaranteed by
+the new state is simply correct and optimal handling of requests.
 
-On Friday, 18 May 2018 17:22:47 EEST Nicolas Dufresne wrote:
-> Le vendredi 18 mai 2018 =E0 11:15 +0300, Laurent Pinchart a =E9crit :
-> >> I need to clarify a little bit on why we disabled libv4l2 in GStreamer,
-> >> as it's not only for performance reason, there is couple of major issu=
-es
-> >> in the libv4l2 implementation that get's in way. Just a short
-> >> list:
-> >=20
-> > Do you see any point in that list that couldn't be fixed in libv4l ?
->=20
-> Sure, most of it is features being added into the kernel uAPI but not
-> added to the emulation layer. But appart from that, libv4l will only
-> offer legacy use case, we need to think how generic userspace will be
-> able to access these camera, and leverage the per request controls,
-> multi-stream, etc. features. This is mostly what Android Camera HAL2
-> does (and it does it well), but it won't try and ensure this stays Open
-> Source in any ways. I would not mind if Android Camera HAL2 leads the
-> way, and a facilitator (something that does 90% of the work if you have
-> a proper Open Source driver) would lead the way in getting more OSS
-> drivers submitted.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-request.c |  3 ++-
+ include/media/media-request.h | 53 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+), 1 deletion(-)
 
-There are a few issues with the Android camera HAL that make implementation=
-s=20
-very painful. If we were to model a camera stack on such an API, we should =
-at=20
-least fix those. The biggest issue in my opinion is that the HAL mandates t=
-hat=20
-a request captures to a specific buffer, making implementations very comple=
-x,=20
-and requiring memcpy() from time to time when losing race conditions. It wo=
-uld=20
-be much simpler to instead require capture to any buffer from a given pool.
-
-> >>    - Crash when CREATE_BUFS is being used
->=20
-> This is a side effect of CREATE_BUFS being passed-through, implementing
-> emulation for this should be straightforward.
->=20
-> >>    - Crash in the jpeg decoder (when frames are corrupted)
->=20
-> A minimalist framing parser would detect just enough of this, and would
-> fix it.
->=20
-> >>    - App exporting DMABuf need to be aware of emulation, otherwise the
-> >>      DMABuf exported are in the orignal format
->=20
-> libv4l2 can return ENOTTY to expbufs calls in
->=20
-> >>    - RW emulation only initialize the queue on first read (causing
-> >>      userspace poll() to fail)
->=20
-> This is not fixable, only place it would be fixed is by moving this
-> emulation into VideoBuf2. That would assume someone do care about RW
-> (even though it could be nicer uAPI when dealing with muxed or byte-
-> stream type of data).
-
-I personally don't care much about R/W. I have heard that the recent=20
-implementation of mmap'ed buffer support in DVB showed impressive performan=
-ce=20
-improvements, so a R/W API isn't something I'd prioritize.
-
-> > >    - Signature of v4l2_mmap does not match mmap() (minor)
-> > >    - The colorimetry does not seem emulated when conversion
->=20
-> This one is probably tricky, special is the converter plugin API is
-> considered stable. Maybe just resetting everything to DEFAULT would
-> work ?
-
-I'd actually like to rework that API. The conversion code should be moved t=
-o a=20
-separate library that would allow its usage without a V4L2 device.
-
-> > >    - Sub-optimal locking (at least deadlocks were fixed)
->=20
-> Need more investigation really, and proper measurement.
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+index a1576cf528605..03e74d72241a0 100644
+--- a/drivers/media/media-request.c
++++ b/drivers/media/media-request.c
+@@ -22,6 +22,7 @@ static const char * const request_state[] = {
+ 	[MEDIA_REQUEST_STATE_QUEUED]	 = "queued",
+ 	[MEDIA_REQUEST_STATE_COMPLETE]	 = "complete",
+ 	[MEDIA_REQUEST_STATE_CLEANING]	 = "cleaning",
++	[MEDIA_REQUEST_STATE_UPDATING]	 = "updating",
+ };
+ 
+ static const char *
+@@ -385,7 +386,7 @@ int media_request_object_bind(struct media_request *req,
+ 
+ 	spin_lock_irqsave(&req->lock, flags);
+ 
+-	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_IDLE))
++	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_UPDATING))
+ 		goto unlock;
+ 
+ 	list_add_tail(&obj->list, &req->objects);
+diff --git a/include/media/media-request.h b/include/media/media-request.h
+index e175538d3c669..42cc6e7f6e532 100644
+--- a/include/media/media-request.h
++++ b/include/media/media-request.h
+@@ -28,6 +28,9 @@
+  * @MEDIA_REQUEST_STATE_QUEUED:		Queued
+  * @MEDIA_REQUEST_STATE_COMPLETE:	Completed, the request is done
+  * @MEDIA_REQUEST_STATE_CLEANING:	Cleaning, the request is being re-inited
++ * @MEDIA_REQUEST_STATE_UPDATING:	The request is being updated, i.e.
++ *					request objects are being added,
++ *					modified or removed
+  */
+ enum media_request_state {
+ 	MEDIA_REQUEST_STATE_IDLE,
+@@ -35,6 +38,7 @@ enum media_request_state {
+ 	MEDIA_REQUEST_STATE_QUEUED,
+ 	MEDIA_REQUEST_STATE_COMPLETE,
+ 	MEDIA_REQUEST_STATE_CLEANING,
++	MEDIA_REQUEST_STATE_UPDATING,
+ };
+ 
+ struct media_request_object;
+@@ -56,6 +60,7 @@ struct media_request {
+ 	struct kref kref;
+ 	char debug_str[TASK_COMM_LEN + 11];
+ 	enum media_request_state state;
++	refcount_t updating_count;
+ 	struct list_head objects;
+ 	unsigned int num_incomplete_objects;
+ 	struct wait_queue_head poll_wait;
+@@ -65,6 +70,54 @@ struct media_request {
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 
+ /**
++ * media_request_lock_for_update - Lock the request for updating its objects
++ *
++ * @req: The media request
++ *
++ * Use before updating a request, i.e. adding, modifying or removing a request
++ * object in it. A reference to the request must be held during the update. This
++ * usually takes place automatically through a file handle. Use
++ * @media_request_unlock_for_update when done.
++ */
++static inline int __must_check
++media_request_lock_for_update(struct media_request *req)
++{
++	unsigned long flags;
++	int ret = 0;
++
++	spin_lock_irqsave(&req->lock, flags);
++	if (req->state == MEDIA_REQUEST_STATE_IDLE ||
++	    req->state == MEDIA_REQUEST_STATE_UPDATING) {
++		req->state = MEDIA_REQUEST_STATE_UPDATING;
++		refcount_inc(&req->updating_count);
++	} else {
++		ret = -EBUSY;
++	}
++	spin_unlock_irqrestore(&req->lock, flags);
++
++	return ret;
++}
++
++/**
++ * media_request_unlock_for_update - Unlock a request previously locked for
++ *				     update
++ *
++ * @req: The media request
++ *
++ * Unlock a request that has previously been locked using
++ * @media_request_lock_for_update.
++ */
++static inline void media_request_unlock_for_update(struct media_request *req)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&req->lock, flags);
++	if (refcount_dec_and_test(&req->updating_count))
++		req->state = MEDIA_REQUEST_STATE_IDLE;
++	spin_unlock_irqrestore(&req->lock, flags);
++}
++
++/**
+  * media_request_get - Get the media request
+  *
+  * @req: The request
+-- 
+2.11.0
