@@ -1,102 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:35700 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751147AbeEGKjn (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:47602 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751161AbeEUNEb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 06:39:43 -0400
-Subject: Re: [PATCH 28/28] venus: add HEVC codec support
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
- <20180424124436.26955-29-stanimir.varbanov@linaro.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4ae458ed-97b6-b23f-88c4-0a5efd754d9d@xs4all.nl>
-Date: Mon, 7 May 2018 12:39:41 +0200
+        Mon, 21 May 2018 09:04:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        LMML <linux-media@vger.kernel.org>
+Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras on generic apps
+Date: Mon, 21 May 2018 16:04:53 +0300
+Message-ID: <2510626.AtPlJJ1Wen@avalon>
+In-Reply-To: <CAAoAYcODVNVF0dh8bzOXNn1ZJC1bsz=BzAnp9eEBkQZrKE9yfA@mail.gmail.com>
+References: <20180517160708.74811cfb@vento.lan> <2565074.bXLGL3KLfK@avalon> <CAAoAYcODVNVF0dh8bzOXNn1ZJC1bsz=BzAnp9eEBkQZrKE9yfA@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20180424124436.26955-29-stanimir.varbanov@linaro.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 24/04/18 14:44, Stanimir Varbanov wrote:
-> This add HEVC codec support for venus versions 3xx and 4xx.
-> 
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
->  drivers/media/platform/qcom/venus/helpers.c | 3 +++
->  drivers/media/platform/qcom/venus/hfi.c     | 2 ++
->  drivers/media/platform/qcom/venus/vdec.c    | 4 ++++
->  drivers/media/platform/qcom/venus/venc.c    | 4 ++++
->  4 files changed, 13 insertions(+)
-> 
-> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-> index 87dcf9973e6f..fecadba039cf 100644
-> --- a/drivers/media/platform/qcom/venus/helpers.c
-> +++ b/drivers/media/platform/qcom/venus/helpers.c
-> @@ -71,6 +71,9 @@ bool venus_helper_check_codec(struct venus_inst *inst, u32 v4l2_pixfmt)
->  	case V4L2_PIX_FMT_XVID:
->  		codec = HFI_VIDEO_CODEC_DIVX;
->  		break;
-> +	case V4L2_PIX_FMT_HEVC:
-> +		codec = HFI_VIDEO_CODEC_HEVC;
-> +		break;
->  	default:
->  		return false;
->  	}
-> diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
-> index 94ca27b0bb99..24207829982f 100644
-> --- a/drivers/media/platform/qcom/venus/hfi.c
-> +++ b/drivers/media/platform/qcom/venus/hfi.c
-> @@ -49,6 +49,8 @@ static u32 to_codec_type(u32 pixfmt)
->  		return HFI_VIDEO_CODEC_VP9;
->  	case V4L2_PIX_FMT_XVID:
->  		return HFI_VIDEO_CODEC_DIVX;
-> +	case V4L2_PIX_FMT_HEVC:
-> +		return HFI_VIDEO_CODEC_HEVC;
->  	default:
->  		return 0;
->  	}
-> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-> index 7deee104ac56..a114f421edad 100644
-> --- a/drivers/media/platform/qcom/venus/vdec.c
-> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> @@ -77,6 +77,10 @@ static const struct venus_format vdec_formats[] = {
->  		.pixfmt = V4L2_PIX_FMT_XVID,
->  		.num_planes = 1,
->  		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
-> +	}, {
-> +		.pixfmt = V4L2_PIX_FMT_HEVC,
-> +		.num_planes = 1,
-> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->  	},
->  };
->  
-> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-> index a703bce78abc..fdb76b69786f 100644
-> --- a/drivers/media/platform/qcom/venus/venc.c
-> +++ b/drivers/media/platform/qcom/venus/venc.c
-> @@ -59,6 +59,10 @@ static const struct venus_format venc_formats[] = {
->  		.pixfmt = V4L2_PIX_FMT_VP8,
->  		.num_planes = 1,
->  		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-> +	}, {
-> +		.pixfmt = V4L2_PIX_FMT_HEVC,
-> +		.num_planes = 1,
-> +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
->  	},
->  };
->  
-> 
+Hi Dave,
 
-No changes are necessary to venc_set_properties() for HEVC support?
+On Monday, 21 May 2018 15:16:19 EEST Dave Stevenson wrote:
+> On 19 May 2018 at 08:04, Laurent Pinchart wrote:
+> > On Friday, 18 May 2018 18:37:01 EEST Dave Stevenson wrote:
+> >> On 18 May 2018 at 16:05, Mauro Carvalho Chehab wrote:
+> >>> Em Fri, 18 May 2018 15:27:24 +0300
+> >> 
+> >> <snip>
+> >> 
+> >>>>> There, instead of an USB camera, the hardware is equipped with a
+> >>>>> MC-based ISP, connected to its camera. Currently, despite having
+> >>>>> a Kernel driver for it, the camera doesn't work with any
+> >>>>> userspace application.
+> >>>>> 
+> >>>>> I'm also aware of other projects that are considering the usage of
+> >>>>> mc-based devices for non-dedicated hardware.
+> >>>> 
+> >>>> What are those projects ?
+> >>> 
+> >>> Well, cheap ARM-based hardware like RPi3 already has this issue: they
+> >>> have an ISP (or some GPU firmware meant to emulate an ISP). While
+> >>> those hardware could have multiple sensors, typically they have just
+> >>> one.
+> >> 
+> >> Slight hijack, but a closely linked issue for the Pi.
+> >> The way I understand the issue of V4L2 / MC on Pi is a more
+> >> fundamental mismatch in architecture. Please correct me if I'm wrong
+> >> here.
+> >> 
+> >> The Pi CSI2 receiver peripheral always writes the incoming data to
+> >> SDRAM, and the ISP is then a memory to memory device.
+> >> 
+> >> V4L2 subdevices are not dma controllers and therefore have no buffers
+> >> allocated to them. So to support the full complexity of the pipeline
+> >> in V4L2 requires that something somewhere would have to be dequeuing
+> >> the buffers from the CSI receiver V4L2 device and queuing them to the
+> >> input of a (theoretical) ISP M2M V4L2 device, and returning them once
+> >> processed. The application only cares about the output of the ISP M2M
+> >> device.
+> > 
+> > Regardless of the software stack architecture, something running on the
+> > CPU has to perform that job. We have decided that that "something" needs
+> > to run in userspace, to avoid pushing use-case-dependent code to the
+> > kernel.
+> > 
+> > Note that this isn't specific to the RPi. The OMAP3 ISP, while integrating
+> > the CSI-2 receiver and being able to process data on the fly, can also
+> > write the raw images to memory and then process them in memory-to-memory
+> > mode. This feature is used mostly for still image capture to perform
+> > pre-processing with the CPU (or possibly GPU) on the raw images before
+> > processing them in the ISP. There's no way we could implement this fully
+> > in the kernel.
+> 
+> Sure. I was mainly flagging that having to manage buffers also needs
+> to be considered in order to make a usable system. Just configuring an
+> MC pipeline won't solve all the issues.
+> 
+> >> So I guess my question is whether there is a sane mechanism to remove
+> >> that buffer allocation and handling from the app? Without it we are
+> >> pretty much forced to hide bigger blobs of functionality to even
+> >> vaguely fit in with V4L2.
+> > 
+> > We need a way to remove that from the application, but it won't be pushed
+> > down to the kernel. These tasks should be handled by a userspace
+> > framework, transparently for the application. The purpose of this
+> > discussion is to decide on the design of the framework.
+> 
+> I'm in agreement there, but hadn't seen discussion on buffer
+> management, only MC configuration.
 
-Just checking, I kind of expected that.
+I'll take the blame for not having been clear enough. We certainly need to 
+support more than static pipeline configuration and 3A algorithms, there's a 
+need to support interactions with the device at runtime even for simple 
+capture without 3A. That's a use case I certainly want to see addressed.
 
+> >> I'm at the point where it shouldn't be a huge amount of work to create
+> >> at least a basic ISP V4L2 M2M device, but I'm not planning on doing it
+> >> if it pushes the above buffer handling onto the app because it simply
+> >> won't get used beyond demo apps. The likes of Cheese, Scratch, etc,
+> >> just won't do it.
+> >> 
+> >> 
+> >> To avoid ambiguity, the Pi has a hardware ISP block. There are other
+> >> SoCs that use either GPU code or a DSP to implement their ISP.
+> > 
+> > Is that ISP documented publicly ?
+> 
+> Not publicly, and as it's Broadcom's IP we can't release it :-(
+> 
+> What I have working is using the Broadcom MMAL API (very similar to
+> OpenMAX IL) to wrap the ISP hardware block via the VideoCore firmware.
+> Currently it has the major controls exposed (black level, digital
+> gain, white balance, CCMs, lens shading tables) and I'll add
+> additional controls as time permits or use cases require. Resizing and
+> format conversion are done based on input and output formats. Defining
+> stats regions and extracting the resulting stats is still to be done.
+> Overall it keeps all the implementation details hidden so we don't
+> break NDAs, but should allow efficient processing. It supports
+> dma-bufs in and out, so no extra copies of the data should be
+> required.
+> 
+> I'm currently finishing off a V4L2 M2M wrapper around the MMAL
+> video_encode and video_decode components, so modifying it to support
+> the ISP component shouldn't be difficult if there is value in doing
+> so. I know it's not the ideal, but our hands are tied.
+
+I won't blame you for that. My personal goal with the new framework is however 
+to create the foundation of an open-source ecosystem.
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
