@@ -1,140 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:43290 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751899AbeESDgV (ORCPT
+Received: from userp2130.oracle.com ([156.151.31.86]:47952 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750909AbeEUUdP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 23:36:21 -0400
-Message-ID: <285f8d80be4dfd765686febcb21af088@smtp-cloud7.xs4all.net>
-Date: Sat, 19 May 2018 05:36:17 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 21 May 2018 16:33:15 -0400
+Subject: Re: [Xen-devel] [RFC 1/3] xen/balloon: Allow allocating DMA buffers
+To: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>,
+        Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, matthew.d.roper@intel.com,
+        dongwon.kim@intel.com
+References: <20180517082604.14828-1-andr2000@gmail.com>
+ <20180517082604.14828-2-andr2000@gmail.com>
+ <6a108876-19b7-49d0-3de2-9e10f984736c@oracle.com>
+ <9541926e-001a-e41e-317c-dbff6d687761@gmail.com>
+ <218e2bf7-490d-f89e-9866-27b7e3dbc835@oracle.com>
+ <a08e7d0d-f7d5-6b7e-979b-8a17060482f0@gmail.com>
+ <b177a327-6a73-bb77-c69b-bc0958a05532@oracle.com>
+ <f87478c7-3523-851c-5c3a-12a9e8753bb6@epam.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <c2f0845b-ab2f-4b9b-6f46-6ddd236ad9ed@oracle.com>
+Date: Mon, 21 May 2018 16:36:15 -0400
+MIME-Version: 1.0
+In-Reply-To: <f87478c7-3523-851c-5c3a-12a9e8753bb6@epam.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 05/21/2018 03:13 PM, Oleksandr Andrushchenko wrote:
+> On 05/21/2018 09:53 PM, Boris Ostrovsky wrote:
+>> On 05/21/2018 01:32 PM, Oleksandr Andrushchenko wrote:
+>>> On 05/21/2018 07:35 PM, Boris Ostrovsky wrote:
+>>>> On 05/21/2018 01:40 AM, Oleksandr Andrushchenko wrote:
+>>>>> On 05/19/2018 01:04 AM, Boris Ostrovsky wrote:
+>>>>>> On 05/17/2018 04:26 AM, Oleksandr Andrushchenko wrote:
+>>>>>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>>>>>> A commit message would be useful.
+>>>>> Sure, v1 will have it
+>>>>>>> Signed-off-by: Oleksandr Andrushchenko
+>>>>>>> <oleksandr_andrushchenko@epam.com>
+>>>>>>>
+>>>>>>>         for (i = 0; i < nr_pages; i++) {
+>>>>>>> -        page = alloc_page(gfp);
+>>>>>>> -        if (page == NULL) {
+>>>>>>> -            nr_pages = i;
+>>>>>>> -            state = BP_EAGAIN;
+>>>>>>> -            break;
+>>>>>>> +        if (ext_pages) {
+>>>>>>> +            page = ext_pages[i];
+>>>>>>> +        } else {
+>>>>>>> +            page = alloc_page(gfp);
+>>>>>>> +            if (page == NULL) {
+>>>>>>> +                nr_pages = i;
+>>>>>>> +                state = BP_EAGAIN;
+>>>>>>> +                break;
+>>>>>>> +            }
+>>>>>>>             }
+>>>>>>>             scrub_page(page);
+>>>>>>>             list_add(&page->lru, &pages);
+>>>>>>> @@ -529,7 +565,7 @@ static enum bp_state
+>>>>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>>>>>>>         i = 0;
+>>>>>>>         list_for_each_entry_safe(page, tmp, &pages, lru) {
+>>>>>>>             /* XENMEM_decrease_reservation requires a GFN */
+>>>>>>> -        frame_list[i++] = xen_page_to_gfn(page);
+>>>>>>> +        frames[i++] = xen_page_to_gfn(page);
+>>>>>>>       #ifdef CONFIG_XEN_HAVE_PVMMU
+>>>>>>>             /*
+>>>>>>> @@ -552,18 +588,22 @@ static enum bp_state
+>>>>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>>>>>>>     #endif
+>>>>>>>             list_del(&page->lru);
+>>>>>>>     -        balloon_append(page);
+>>>>>>> +        if (!ext_pages)
+>>>>>>> +            balloon_append(page);
+>>>>>> So what you are proposing is not really ballooning. You are just
+>>>>>> piggybacking on existing interfaces, aren't you?
+>>>>> Sort of. Basically I need to {increase|decrease}_reservation, not
+>>>>> actually
+>>>>> allocating ballooned pages.
+>>>>> Do you think I can simply EXPORT_SYMBOL for
+>>>>> {increase|decrease}_reservation?
+>>>>> Any other suggestion?
+>>>> I am actually wondering how much of that code you end up reusing. You
+>>>> pretty much create new code paths in both routines and common code
+>>>> ends
+>>>> up being essentially the hypercall.
+>>> Well, I hoped that it would be easier to maintain if I modify existing
+>>> code
+>>> to support both use-cases, but I am also ok to create new routines if
+>>> this
+>>> seems to be reasonable - please let me know
+>>>>    So the question is --- would it make
+>>>> sense to do all of this separately from the balloon driver?
+>>> This can be done, but which driver will host this code then? If we
+>>> move from
+>>> the balloon driver, then this could go to either gntdev or grant-table.
+>>> What's your preference?
+>> A separate module?
+>
+>> Is there any use for this feature outside of your zero-copy DRM driver?
+> Intel's hyper dma-buf (Dongwon/Matt CC'ed), V4L/GPU at least.
+>
+> At the time I tried to upstream zcopy driver it was discussed and
+> decided that
+> it would be better if I remove all DRM specific code and move it to
+> Xen drivers.
+> Thus, this RFC.
+>
+> But it can also be implemented as a dedicated Xen dma-buf driver which
+> will have all the
+> code from this RFC + a bit more (char/misc device handling at least).
+> This will also require a dedicated user-space library, just like
+> libxengnttab.so
+> for gntdev (now I have all new IOCTLs covered there).
+>
+> If the idea of a dedicated Xen dma-buf driver seems to be more
+> attractive we
+> can work toward this solution. BTW, I do support this idea, but was not
+> sure if Xen community accepts yet another driver which duplicates
+> quite some code
+> of the existing gntdev/balloon/grant-table. And now after this RFC I
+> hope that all cons
+> and pros of both dedicated driver and gntdev/balloon/grant-table
+> extension are
+> clearly seen and we can make a decision.
 
-Results of the daily build of media_tree:
 
-date:			Sat May 19 05:00:11 CEST 2018
-media-tree git hash:	7e6b6b945272c20f6b78d319e07f27897a8373c9
-media_build git hash:	133a1df01ce7ca1c4f6b81f5023e098446e6e1dd
-v4l-utils git hash:	e2038ec6451293787b929338c2a671c732b8693d
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
+IIRC the objection for a separate module was in the context of gntdev
+was discussion, because (among other things) people didn't want to have
+yet another file in /dev/xen/
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: OK
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: WARNINGS
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: WARNINGS
-linux-4.13.16-i686: WARNINGS
-linux-4.13.16-x86_64: WARNINGS
-linux-4.14.31-i686: WARNINGS
-linux-4.14.31-x86_64: WARNINGS
-linux-4.15.14-i686: WARNINGS
-linux-4.15.14-x86_64: WARNINGS
-linux-4.16.8-i686: WARNINGS
-linux-4.16.8-x86_64: WARNINGS
-linux-4.17-rc4-i686: WARNINGS
-linux-4.17-rc4-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Here we are talking about (a new) balloon-like module which doesn't
+create any new user-visible interfaces. And as for duplicating code ---
+as I said, I am not convinced there is much of duplication.
 
-Detailed results are available here:
+I might even argue that we should add a new config option for this module.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Full logs are available here:
+-boris
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+>
+>>
+>> -boris
+> Thank you,
+> Oleksandr
+> [1]
+> https://lists.freedesktop.org/archives/dri-devel/2018-April/173163.html
