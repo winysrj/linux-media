@@ -1,83 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59620 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751219AbeENCqm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 May 2018 22:46:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 1/5] media: rcar-vin: Add support for R-Car R8A77995 SoC
-Date: Mon, 14 May 2018 05:46:55 +0300
-Message-ID: <2337294.rJBFDRl5Yn@avalon>
-In-Reply-To: <1526032781-14319-2-git-send-email-jacopo+renesas@jmondi.org>
-References: <1526032781-14319-1-git-send-email-jacopo+renesas@jmondi.org> <1526032781-14319-2-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mga11.intel.com ([192.55.52.93]:45606 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752691AbeEUIzT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 04:55:19 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v14 21/36] videobuf2-core: embed media_request_object
+Date: Mon, 21 May 2018 11:54:46 +0300
+Message-Id: <20180521085501.16861-22-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the patch.
+Make vb2_buffer a request object.
 
-On Friday, 11 May 2018 12:59:37 EEST Jacopo Mondi wrote:
-> Add R-Car R8A77995 SoC to the rcar-vin supported ones.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/videobuf2-core.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index d3072e1..e547ef7 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -985,6 +985,10 @@ static const struct rvin_group_route
-> _rcar_info_r8a77970_routes[] = { { /* Sentinel */ }
->  };
-> 
-> +static const struct rvin_group_route _rcar_info_r8a77995_routes[] = {
-> +	{ /* Sentinel */ }
-> +};
-> +
->  static const struct rvin_info rcar_info_r8a77970 = {
->  	.model = RCAR_GEN3,
->  	.use_mc = true,
-> @@ -993,6 +997,14 @@ static const struct rvin_info rcar_info_r8a77970 = {
->  	.routes = _rcar_info_r8a77970_routes,
->  };
-> 
-> +static const struct rvin_info rcar_info_r8a77995 = {
-> +	.model = RCAR_GEN3,
-> +	.use_mc = true,
-> +	.max_width = 4096,
-> +	.max_height = 4096,
-> +	.routes = _rcar_info_r8a77995_routes,
-> +};
-> +
->  static const struct of_device_id rvin_of_id_table[] = {
->  	{
->  		.compatible = "renesas,vin-r8a7778",
-> @@ -1034,6 +1046,10 @@ static const struct of_device_id rvin_of_id_table[] =
-> { .compatible = "renesas,vin-r8a77970",
->  		.data = &rcar_info_r8a77970,
->  	},
-> +	{
-> +		.compatible = "renesas,vin-r8a77995",
-> +		.data = &rcar_info_r8a77995,
-> +	},
->  	{ /* Sentinel */ },
->  };
->  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
-
-
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 224c4820a0443..3d54654c3cd48 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -17,6 +17,7 @@
+ #include <linux/poll.h>
+ #include <linux/dma-buf.h>
+ #include <linux/bitops.h>
++#include <media/media-request.h>
+ 
+ #define VB2_MAX_FRAME	(32)
+ #define VB2_MAX_PLANES	(8)
+@@ -238,6 +239,7 @@ struct vb2_queue;
+  * @num_planes:		number of planes in the buffer
+  *			on an internal driver queue.
+  * @timestamp:		frame timestamp in ns.
++ * @req_obj:		used to bind this buffer to a request
+  */
+ struct vb2_buffer {
+ 	struct vb2_queue	*vb2_queue;
+@@ -246,6 +248,7 @@ struct vb2_buffer {
+ 	unsigned int		memory;
+ 	unsigned int		num_planes;
+ 	u64			timestamp;
++	struct media_request_object	req_obj;
+ 
+ 	/* private: internal use only
+ 	 *
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
