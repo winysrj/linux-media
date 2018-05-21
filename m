@@ -1,176 +1,511 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:38967 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965921AbeEXJfb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 05:35:31 -0400
-Received: by mail-wr0-f196.google.com with SMTP id w18-v6so1836833wrn.6
-        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 02:35:30 -0700 (PDT)
-Subject: Re: [PATCH v5 4/6] mfd: cros-ec: Introduce CEC commands and events
- definitions.
-To: Hans Verkuil <hverkuil@xs4all.nl>, airlied@linux.ie,
-        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
-        seanpaul@google.com
-Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
-        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        eballetbo@gmail.com
-References: <1527152101-17278-1-git-send-email-narmstrong@baylibre.com>
- <1527152101-17278-5-git-send-email-narmstrong@baylibre.com>
- <bb0b5060-5ccc-814c-5256-53151a831178@xs4all.nl>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <22cfe7ea-ad86-080d-bfe8-dc8a410c69d9@baylibre.com>
-Date: Thu, 24 May 2018 11:35:27 +0200
-MIME-Version: 1.0
-In-Reply-To: <bb0b5060-5ccc-814c-5256-53151a831178@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mga17.intel.com ([192.55.52.151]:21564 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751116AbeEUIzR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 04:55:17 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v14 15/36] v4l2-ctrls: add core request support
+Date: Mon, 21 May 2018 11:54:40 +0300
+Message-Id: <20180521085501.16861-16-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 24/05/2018 11:11, Hans Verkuil wrote:
-> On 24/05/18 10:54, Neil Armstrong wrote:
->> The EC can expose a CEC bus, this patch adds the CEC related definitions
->> needed by the cros-ec-cec driver.
->>
->> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->> Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
->> ---
->>  include/linux/mfd/cros_ec_commands.h | 85 ++++++++++++++++++++++++++++++++++++
->>  1 file changed, 85 insertions(+)
->>
->> diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
->> index cc0768e..ea9646f 100644
->> --- a/include/linux/mfd/cros_ec_commands.h
->> +++ b/include/linux/mfd/cros_ec_commands.h
->> @@ -804,6 +804,8 @@ enum ec_feature_code {
->>  	EC_FEATURE_MOTION_SENSE_FIFO = 24,
->>  	/* EC has RTC feature that can be controlled by host commands */
->>  	EC_FEATURE_RTC = 27,
->> +	/* EC supports CEC commands */
->> +	EC_FEATURE_CEC = 35,
->>  };
->>  
->>  #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
->> @@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
->>  	/* EC sent a sysrq command */
->>  	EC_MKBP_EVENT_SYSRQ = 6,
->>  
->> +	/* Notify the AP that something happened on CEC */
->> +	EC_MKBP_CEC_EVENT = 8,
->> +
->> +	/* Send an incoming CEC message to the AP */
->> +	EC_MKBP_EVENT_CEC_MESSAGE = 9,
->> +
->>  	/* Number of MKBP events */
->>  	EC_MKBP_EVENT_COUNT,
->>  };
->> @@ -2850,6 +2858,83 @@ struct ec_params_reboot_ec {
->>  
->>  /*****************************************************************************/
->>  /*
->> + * HDMI CEC commands
->> + *
->> + * These commands are for sending and receiving message via HDMI CEC
->> + */
->> +#define MAX_CEC_MSG_LEN 16
-> 
-> Can you rename this to EC_MAX_CEC_MSG_LEN? It is way too similar to the
-> CEC_MAX_MSG_LEN defined in cec.h. Since this is a property of the EC hw/fw
-> it makes sense to prefix it accordingly.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yes, it will make sense.
+Integrate the request support. This adds the v4l2_ctrl_request_complete
+and v4l2_ctrl_request_setup functions to complete a request and (as a
+helper function) to apply a request to the hardware.
 
-> 
->> +
->> +/* CEC message from the AP to be written on the CEC bus */
->> +#define EC_CMD_CEC_WRITE_MSG 0x00B8
->> +
->> +/**
->> + * struct ec_params_cec_write - Message to write to the CEC bus
->> + * @msg: message content to write to the CEC bus
->> + */
->> +struct ec_params_cec_write {
->> +	uint8_t msg[MAX_CEC_MSG_LEN];
->> +} __packed;
->> +
->> +/* Set various CEC parameters */
->> +#define EC_CMD_CEC_SET 0x00BA
->> +
->> +/**
->> + * struct ec_params_cec_set - CEC parameters set
->> + * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
->> + * @enable: in case cmd is CEC_CMD_ENABLE, this field can be 0 to disable CEC
->> + * 	or 1 to enable CEC functionnality
->> + * @address: in case cmd is CEC_CMD_LOGICAL_ADDRESS, this field encodes the
->> + *	requested logical address between 0 and 15 or 0xff to unregister
->> + */
->> +struct ec_params_cec_set {
->> +	uint8_t cmd; /* enum cec_command */
->> +	union {
->> +		uint8_t enable;
->> +		uint8_t address;
->> +	};
->> +} __packed;
->> +
->> +/* Read various CEC parameters */
->> +#define EC_CMD_CEC_GET 0x00BB
->> +
->> +/**
->> + * struct ec_params_cec_get - CEC parameters get
->> + * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
->> + */
->> +struct ec_params_cec_get {
->> +	uint8_t cmd; /* enum cec_command */
->> +} __packed;
->> +
->> +/**
->> + * struct ec_response_cec_get - CEC parameters get response
->> + * @enable: in case cmd was CEC_CMD_ENABLE, this field will 0 if CEC is
->> + * 	disabled or 1 if CEC functionnality is enabled
->> + * @address: in case cmd was CEC_CMD_LOGICAL_ADDRESS, this will encode the
->> + *	configured logical address between 0 and 15 or 0xff if unregistered
->> + */
->> +struct ec_response_cec_get {
->> +	union {
->> +		uint8_t enable;
->> +		uint8_t address;
->> +	};
->> +} __packed;
->> +
->> +/* CEC parameters command */
->> +enum cec_command {
-> 
-> Same here: shouldn't all of this be prefixed with ec_ or EC_?
+It takes care of queuing requests and correctly chaining control values
+in the request queue.
 
-Exact, I will prefix them.
+Note that when a request is marked completed it will copy control values
+to the internal request state. This can be optimized in the future since
+this is sub-optimal when dealing with large compound and/or array controls.
 
-Thanks,
-Neil
+For the initial 'stateless codec' use-case the current implementation is
+sufficient.
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
->> +	/* CEC reading, writing and events enable */
->> +	CEC_CMD_ENABLE,
->> +	/* CEC logical address  */
->> +	CEC_CMD_LOGICAL_ADDRESS,
->> +};
->> +
->> +/* Events from CEC to AP */
->> +enum mkbp_cec_event {
->> +	EC_MKBP_CEC_SEND_OK			= BIT(0),
->> +	EC_MKBP_CEC_SEND_FAILED			= BIT(1),
->> +};
->> +
->> +/*****************************************************************************/
->> +/*
->>   * Special commands
->>   *
->>   * These do not follow the normal rules for commands.  See each command for
->>
-> 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 331 ++++++++++++++++++++++++++++++++++-
+ include/media/v4l2-ctrls.h           |  23 +++
+ 2 files changed, 348 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index da4cc1485dc43..56b986185463d 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1647,6 +1647,13 @@ static int new_to_user(struct v4l2_ext_control *c,
+ 	return ptr_to_user(c, ctrl, ctrl->p_new);
+ }
+ 
++/* Helper function: copy the request value back to the caller */
++static int req_to_user(struct v4l2_ext_control *c,
++		       struct v4l2_ctrl_ref *ref)
++{
++	return ptr_to_user(c, ref->ctrl, ref->p_req);
++}
++
+ /* Helper function: copy the initial control value back to the caller */
+ static int def_to_user(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl)
+ {
+@@ -1766,6 +1773,26 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
+ 	ptr_to_ptr(ctrl, ctrl->p_cur, ctrl->p_new);
+ }
+ 
++/* Copy the new value to the request value */
++static void new_to_req(struct v4l2_ctrl_ref *ref)
++{
++	if (!ref)
++		return;
++	ptr_to_ptr(ref->ctrl, ref->ctrl->p_new, ref->p_req);
++	ref->req = ref;
++}
++
++/* Copy the request value to the new value */
++static void req_to_new(struct v4l2_ctrl_ref *ref)
++{
++	if (!ref)
++		return;
++	if (ref->req)
++		ptr_to_ptr(ref->ctrl, ref->req->p_req, ref->ctrl->p_new);
++	else
++		ptr_to_ptr(ref->ctrl, ref->ctrl->p_cur, ref->ctrl->p_new);
++}
++
+ /* Return non-zero if one or more of the controls in the cluster has a new
+    value that differs from the current value. */
+ static int cluster_changed(struct v4l2_ctrl *master)
+@@ -1875,6 +1902,9 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
+ 	lockdep_set_class_and_name(hdl->lock, key, name);
+ 	INIT_LIST_HEAD(&hdl->ctrls);
+ 	INIT_LIST_HEAD(&hdl->ctrl_refs);
++	INIT_LIST_HEAD(&hdl->requests);
++	INIT_LIST_HEAD(&hdl->requests_queued);
++	hdl->request_is_queued = false;
+ 	hdl->nr_of_buckets = 1 + nr_of_controls_hint / 8;
+ 	hdl->buckets = kvmalloc_array(hdl->nr_of_buckets,
+ 				      sizeof(hdl->buckets[0]),
+@@ -1895,6 +1925,14 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
+ 	if (hdl == NULL || hdl->buckets == NULL)
+ 		return;
+ 
++	if (!hdl->req_obj.req && !list_empty(&hdl->requests)) {
++		struct v4l2_ctrl_handler *req, *next_req;
++
++		list_for_each_entry_safe(req, next_req, &hdl->requests, requests) {
++			media_request_object_unbind(&req->req_obj);
++			media_request_object_put(&req->req_obj);
++		}
++	}
+ 	mutex_lock(hdl->lock);
+ 	/* Free all nodes */
+ 	list_for_each_entry_safe(ref, next_ref, &hdl->ctrl_refs, node) {
+@@ -2816,6 +2854,128 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm)
+ }
+ EXPORT_SYMBOL(v4l2_querymenu);
+ 
++static int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
++				   const struct v4l2_ctrl_handler *from)
++{
++	struct v4l2_ctrl_ref *ref;
++	int err;
++
++	if (WARN_ON(!hdl || hdl == from))
++		return -EINVAL;
++
++	if (hdl->error)
++		return hdl->error;
++
++	WARN_ON(hdl->lock != &hdl->_lock);
++
++	mutex_lock(from->lock);
++	list_for_each_entry(ref, &from->ctrl_refs, node) {
++		struct v4l2_ctrl *ctrl = ref->ctrl;
++		struct v4l2_ctrl_ref *new_ref;
++
++		/* Skip refs inherited from other devices */
++		if (ref->from_other_dev)
++			continue;
++		/* And buttons */
++		if (ctrl->type == V4L2_CTRL_TYPE_BUTTON)
++			continue;
++		err = handler_new_ref(hdl, ctrl, &new_ref, false, true);
++		if (err) {
++			printk("%s: handler_new_ref on control %x (%s) returned %d\n", __func__, ctrl->id, ctrl->name, err);
++			err = 0;
++			continue;
++		}
++		if (err)
++			break;
++	}
++	mutex_unlock(from->lock);
++	return err;
++}
++
++static void v4l2_ctrl_request_queue(struct media_request_object *obj)
++{
++	struct v4l2_ctrl_handler *hdl =
++		container_of(obj, struct v4l2_ctrl_handler, req_obj);
++	struct v4l2_ctrl_handler *main_hdl = obj->priv;
++	struct v4l2_ctrl_handler *prev_hdl = NULL;
++	struct v4l2_ctrl_ref *ref_ctrl, *ref_ctrl_prev = NULL;
++
++	if (list_empty(&main_hdl->requests_queued))
++		goto queue;
++
++	prev_hdl = list_last_entry(&main_hdl->requests_queued,
++				   struct v4l2_ctrl_handler, requests_queued);
++	/*
++	 * Note: prev_hdl and hdl must contain the same list of control
++	 * references, so if any differences are detected then that is a
++	 * driver bug and the WARN_ON is triggered.
++	 */
++	mutex_lock(prev_hdl->lock);
++	ref_ctrl_prev = list_first_entry(&prev_hdl->ctrl_refs,
++					 struct v4l2_ctrl_ref, node);
++	list_for_each_entry(ref_ctrl, &hdl->ctrl_refs, node) {
++		if (ref_ctrl->req)
++			continue;
++		while (ref_ctrl_prev->ctrl->id < ref_ctrl->ctrl->id) {
++			/* Should never happen, but just in case... */
++			if (list_is_last(&ref_ctrl_prev->node,
++					 &prev_hdl->ctrl_refs))
++				break;
++			ref_ctrl_prev = list_next_entry(ref_ctrl_prev, node);
++		}
++		if (WARN_ON(ref_ctrl_prev->ctrl->id != ref_ctrl->ctrl->id))
++			break;
++		ref_ctrl->req = ref_ctrl_prev->req;
++	}
++	mutex_unlock(prev_hdl->lock);
++queue:
++	list_add_tail(&hdl->requests_queued, &main_hdl->requests_queued);
++	hdl->request_is_queued = true;
++}
++
++static void v4l2_ctrl_request_unbind(struct media_request_object *obj)
++{
++	struct v4l2_ctrl_handler *hdl =
++		container_of(obj, struct v4l2_ctrl_handler, req_obj);
++
++	list_del_init(&hdl->requests);
++	if (hdl->request_is_queued) {
++		list_del_init(&hdl->requests_queued);
++		hdl->request_is_queued = false;
++	}
++}
++
++static void v4l2_ctrl_request_release(struct media_request_object *obj)
++{
++	struct v4l2_ctrl_handler *hdl =
++		container_of(obj, struct v4l2_ctrl_handler, req_obj);
++
++	v4l2_ctrl_handler_free(hdl);
++	kfree(hdl);
++}
++
++static const struct media_request_object_ops req_ops = {
++	.queue = v4l2_ctrl_request_queue,
++	.unbind = v4l2_ctrl_request_unbind,
++	.release = v4l2_ctrl_request_release,
++};
++
++static int v4l2_ctrl_request_bind(struct media_request *req,
++			   struct v4l2_ctrl_handler *hdl,
++			   struct v4l2_ctrl_handler *from)
++{
++	int ret;
++
++	ret = v4l2_ctrl_request_clone(hdl, from);
++
++	if (!ret) {
++		ret = media_request_object_bind(req, &req_ops,
++						from, &hdl->req_obj);
++		if (!ret)
++			list_add_tail(&hdl->requests, &from->requests);
++	}
++	return ret;
++}
+ 
+ /* Some general notes on the atomic requirements of VIDIOC_G/TRY/S_EXT_CTRLS:
+ 
+@@ -2877,6 +3037,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 
+ 		if (cs->which &&
+ 		    cs->which != V4L2_CTRL_WHICH_DEF_VAL &&
++		    cs->which != V4L2_CTRL_WHICH_REQUEST_VAL &&
+ 		    V4L2_CTRL_ID2WHICH(id) != cs->which)
+ 			return -EINVAL;
+ 
+@@ -2956,13 +3117,12 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+    whether there are any controls at all. */
+ static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
+ {
+-	if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL)
++	if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL ||
++	    which == V4L2_CTRL_WHICH_REQUEST_VAL)
+ 		return 0;
+ 	return find_ref_lock(hdl, which | 1) ? 0 : -EINVAL;
+ }
+ 
+-
+-
+ /* Get extended controls. Allocates the helpers array if needed. */
+ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
+ {
+@@ -3028,8 +3188,12 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 			u32 idx = i;
+ 
+ 			do {
+-				ret = ctrl_to_user(cs->controls + idx,
+-						   helpers[idx].ref->ctrl);
++				if (helpers[idx].ref->req)
++					ret = req_to_user(cs->controls + idx,
++						helpers[idx].ref->req);
++				else
++					ret = ctrl_to_user(cs->controls + idx,
++						helpers[idx].ref->ctrl);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
+@@ -3302,7 +3466,16 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 		} while (!ret && idx);
+ 
+ 		if (!ret)
+-			ret = try_or_set_cluster(fh, master, set, 0);
++			ret = try_or_set_cluster(fh, master,
++						 !hdl->req_obj.req && set, 0);
++		if (!ret && hdl->req_obj.req && set) {
++			for (j = 0; j < master->ncontrols; j++) {
++				struct v4l2_ctrl_ref *ref =
++					find_ref(hdl, master->cluster[j]->id);
++
++				new_to_req(ref);
++			}
++		}
+ 
+ 		/* Copy the new values back to userspace. */
+ 		if (!ret) {
+@@ -3429,6 +3602,152 @@ int __v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
+ }
+ EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_string);
+ 
++void v4l2_ctrl_request_complete(struct media_request *req,
++				struct v4l2_ctrl_handler *main_hdl)
++{
++	struct media_request_object *obj;
++	struct v4l2_ctrl_handler *hdl;
++	struct v4l2_ctrl_ref *ref;
++
++	if (!req || !main_hdl)
++		return;
++
++	obj = media_request_object_find(req, &req_ops, main_hdl);
++	if (!obj)
++		return;
++	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
++
++	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
++		struct v4l2_ctrl *ctrl = ref->ctrl;
++		struct v4l2_ctrl *master = ctrl->cluster[0];
++		unsigned int i;
++
++		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
++			ref->req = ref;
++
++			v4l2_ctrl_lock(master);
++			/* g_volatile_ctrl will update the current control values */
++			for (i = 0; i < master->ncontrols; i++)
++				cur_to_new(master->cluster[i]);
++			call_op(master, g_volatile_ctrl);
++			new_to_req(ref);
++			v4l2_ctrl_unlock(master);
++			continue;
++		}
++		if (ref->req == ref)
++			continue;
++
++		v4l2_ctrl_lock(ctrl);
++		if (ref->req)
++			ptr_to_ptr(ctrl, ref->req->p_req, ref->p_req);
++		else
++			ptr_to_ptr(ctrl, ctrl->p_cur, ref->p_req);
++		v4l2_ctrl_unlock(ctrl);
++	}
++
++	WARN_ON(!hdl->request_is_queued);
++	list_del_init(&hdl->requests_queued);
++	hdl->request_is_queued = false;
++	media_request_object_complete(obj);
++	media_request_object_put(obj);
++}
++EXPORT_SYMBOL(v4l2_ctrl_request_complete);
++
++void v4l2_ctrl_request_setup(struct media_request *req,
++			     struct v4l2_ctrl_handler *main_hdl)
++{
++	struct media_request_object *obj;
++	struct v4l2_ctrl_handler *hdl;
++	struct v4l2_ctrl_ref *ref;
++
++	if (!req || !main_hdl)
++		return;
++
++	obj = media_request_object_find(req, &req_ops, main_hdl);
++	if (!obj)
++		return;
++	if (obj->completed) {
++		media_request_object_put(obj);
++		return;
++	}
++	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
++
++	mutex_lock(hdl->lock);
++
++	list_for_each_entry(ref, &hdl->ctrl_refs, node)
++		ref->done = false;
++
++	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
++		struct v4l2_ctrl *ctrl = ref->ctrl;
++		struct v4l2_ctrl *master = ctrl->cluster[0];
++		bool have_new_data = false;
++		int i;
++
++		/*
++		 * Skip if this control was already handled by a cluster.
++		 * Skip button controls and read-only controls.
++		 */
++		if (ref->done || ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
++		    (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY))
++			continue;
++
++		v4l2_ctrl_lock(master);
++		for (i = 0; i < master->ncontrols; i++) {
++			if (master->cluster[i]) {
++				struct v4l2_ctrl_ref *r =
++					find_ref(hdl, master->cluster[i]->id);
++
++				if (r->req && r == r->req) {
++					have_new_data = true;
++					break;
++				}
++			}
++		}
++		if (!have_new_data) {
++			v4l2_ctrl_unlock(master);
++			continue;
++		}
++
++		for (i = 0; i < master->ncontrols; i++) {
++			if (master->cluster[i]) {
++				struct v4l2_ctrl_ref *r =
++					find_ref(hdl, master->cluster[i]->id);
++
++				req_to_new(r);
++				master->cluster[i]->is_new = 1;
++				r->done = true;
++			}
++		}
++		/*
++		 * For volatile autoclusters that are currently in auto mode
++		 * we need to discover if it will be set to manual mode.
++		 * If so, then we have to copy the current volatile values
++		 * first since those will become the new manual values (which
++		 * may be overwritten by explicit new values from this set
++		 * of controls).
++		 */
++		if (master->is_auto && master->has_volatiles &&
++		    !is_cur_manual(master)) {
++			s32 new_auto_val = *master->p_new.p_s32;
++
++			/*
++			 * If the new value == the manual value, then copy
++			 * the current volatile values.
++			 */
++			if (new_auto_val == master->manual_mode_value)
++				update_from_auto_cluster(master);
++		}
++
++		try_or_set_cluster(NULL, master, true, 0);
++
++		v4l2_ctrl_unlock(master);
++	}
++
++	mutex_unlock(hdl->lock);
++	media_request_object_put(obj);
++}
++EXPORT_SYMBOL(v4l2_ctrl_request_setup);
++
+ void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
+ {
+ 	if (ctrl == NULL)
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 76352eb59f14a..a0f7c38d1a902 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -250,6 +250,10 @@ struct v4l2_ctrl {
+  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+  * @from_other_dev: If true, then @ctrl was defined in another
+  *		device than the &struct v4l2_ctrl_handler.
++ * @done:	If true, then this control reference is part of a
++ *		control cluster that was already set while applying
++ *		the controls in this media request object.
++ * @req:	If set, this refers to another request that sets this control.
+  * @p_req:	The request value. Only used if the control handler
+  *		is bound to a media request.
+  *
+@@ -263,6 +267,8 @@ struct v4l2_ctrl_ref {
+ 	struct v4l2_ctrl *ctrl;
+ 	struct v4l2_ctrl_helper *helper;
+ 	bool from_other_dev;
++	bool done;
++	struct v4l2_ctrl_ref *req;
+ 	union v4l2_ctrl_ptr p_req;
+ };
+ 
+@@ -287,6 +293,15 @@ struct v4l2_ctrl_ref {
+  * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
+  * @nr_of_buckets: Total number of buckets in the array.
+  * @error:	The error code of the first failed control addition.
++ * @request_is_queued: True if the request was queued.
++ * @requests:	List to keep track of open control handler request objects.
++ *		For the parent control handler (@req_obj.req == NULL) this
++ *		is the list header. When the parent control handler is
++ *		removed, it has to unbind and put all these requests since
++ *		they refer to the parent.
++ * @requests_queued: List of the queued requests. This determines the order
++ *		in which these controls are applied. Once the request is
++ *		completed it is removed from this list.
+  * @req_obj:	The &struct media_request_object, used to link into a
+  *		&struct media_request.
+  */
+@@ -301,6 +316,9 @@ struct v4l2_ctrl_handler {
+ 	void *notify_priv;
+ 	u16 nr_of_buckets;
+ 	int error;
++	bool request_is_queued;
++	struct list_head requests;
++	struct list_head requests_queued;
+ 	struct media_request_object req_obj;
+ };
+ 
+@@ -1059,6 +1077,11 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+  */
+ __poll_t v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
+ 
++void v4l2_ctrl_request_setup(struct media_request *req,
++			     struct v4l2_ctrl_handler *hdl);
++void v4l2_ctrl_request_complete(struct media_request *req,
++				struct v4l2_ctrl_handler *hdl);
++
+ /* Helpers for ioctl_ops */
+ 
+ /**
+-- 
+2.11.0
