@@ -1,106 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:35182 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965768AbeEIWrZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 18:47:25 -0400
-Received: by mail-pl0-f68.google.com with SMTP id i5-v6so102297plt.2
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 15:47:25 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 07/14] media: platform: video-mux: Register a subdev notifier
-Date: Wed,  9 May 2018 15:46:56 -0700
-Message-Id: <1525906023-827-8-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mga14.intel.com ([192.55.52.115]:28374 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752687AbeEUIzS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 04:55:18 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH v14 18/36] v4l2-ctrls: Lock the request for updating during S_EXT_CTRLS
+Date: Mon, 21 May 2018 11:54:43 +0300
+Message-Id: <20180521085501.16861-19-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse neighbor remote devices on the video muxes input ports, add them to a
-subdev notifier, and register the subdev notifier for the video mux, by
-calling v4l2_async_register_fwnode_subdev().
+Instead of checking the media request state is idle at one point, lock the
+request for updating during the S_EXT_CTRLS call. As a by-product, finding
+the request has been moved out of the v4l2_ctrls_find_req_obj() in order
+to keep request object lookups to the minimum.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-Changes since v3:
-- pass num_pads - 1 (num_input_pads) to video_mux_async_register().
-Changes since v2:
-- none
-Changes since v1:
-- add #include <linux/slab.h> for kcalloc() declaration.
----
- drivers/media/platform/video-mux.c | 36 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 35 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 67 +++++++++++++++++++++---------------
+ 1 file changed, 40 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-index 1fb8872..e54a719 100644
---- a/drivers/media/platform/video-mux.c
-+++ b/drivers/media/platform/video-mux.c
-@@ -21,8 +21,10 @@
- #include <linux/of.h>
- #include <linux/of_graph.h>
- #include <linux/platform_device.h>
-+#include <linux/slab.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index df58a23eb731a..1a99d6e238791 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -3208,9 +3208,8 @@ int __v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
  
- struct video_mux {
-@@ -207,6 +209,38 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
- 	.video = &video_mux_subdev_video_ops,
- };
- 
-+static int video_mux_parse_endpoint(struct device *dev,
-+				    struct v4l2_fwnode_endpoint *vep,
-+				    struct v4l2_async_subdev *asd)
-+{
-+	/*
-+	 * it's not an error if remote is missing on a video-mux
-+	 * input port, return -ENOTCONN to skip this endpoint with
-+	 * no error.
-+	 */
-+	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
-+}
-+
-+static int video_mux_async_register(struct video_mux *vmux,
-+				    unsigned int num_input_pads)
-+{
-+	unsigned int i, *ports;
-+	int ret;
-+
-+	ports = kcalloc(num_input_pads, sizeof(*ports), GFP_KERNEL);
-+	if (!ports)
-+		return -ENOMEM;
-+	for (i = 0; i < num_input_pads; i++)
-+		ports[i] = i;
-+
-+	ret = v4l2_async_register_fwnode_subdev(
-+		&vmux->subdev, sizeof(struct v4l2_async_subdev),
-+		ports, num_input_pads, video_mux_parse_endpoint);
-+
-+	kfree(ports);
-+	return ret;
-+}
-+
- static int video_mux_probe(struct platform_device *pdev)
+ static struct media_request_object *
+ v4l2_ctrls_find_req_obj(struct v4l2_ctrl_handler *hdl,
+-			struct media_device *mdev, s32 fd, bool set)
++			struct media_request *req, bool set)
  {
- 	struct device_node *np = pdev->dev.of_node;
-@@ -272,7 +306,7 @@ static int video_mux_probe(struct platform_device *pdev)
+-	struct media_request *req = media_request_get_by_fd(mdev, fd);
+ 	struct media_request_object *obj;
+ 	struct v4l2_ctrl_handler *new_hdl;
+ 	int ret;
+@@ -3218,36 +3217,29 @@ v4l2_ctrls_find_req_obj(struct v4l2_ctrl_handler *hdl,
+ 	if (IS_ERR(req))
+ 		return ERR_CAST(req);
  
- 	vmux->subdev.entity.ops = &video_mux_ops;
+-	if (set && atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE) {
+-		media_request_put(req);
++	if (set && WARN_ON(req->state != MEDIA_REQUEST_STATE_UPDATING))
+ 		return ERR_PTR(-EBUSY);
+-	}
  
--	return v4l2_async_register_subdev(&vmux->subdev);
-+	return video_mux_async_register(vmux, num_pads - 1);
+ 	obj = media_request_object_find(req, &req_ops, hdl);
+-	if (obj) {
+-		media_request_put(req);
++	if (obj)
+ 		return obj;
+-	}
+ 
+ 	new_hdl = kzalloc(sizeof(*new_hdl), GFP_KERNEL);
+-	if (!new_hdl) {
+-		ret = -ENOMEM;
+-		goto put;
+-	}
++	if (!new_hdl)
++		return ERR_PTR(-ENOMEM);
++
+ 	obj = &new_hdl->req_obj;
+ 	ret = v4l2_ctrl_handler_init(new_hdl, (hdl->nr_of_buckets - 1) * 8);
+ 	if (!ret)
+ 		ret = v4l2_ctrl_request_bind(req, new_hdl, hdl);
+-	if (!ret) {
+-		media_request_object_get(obj);
+-		media_request_put(req);
+-		return obj;
++	if (ret) {
++		kfree(new_hdl);
++
++		return ERR_PTR(ret);
+ 	}
+-	kfree(new_hdl);
+ 
+-put:
+-	media_request_put(req);
+-	return ERR_PTR(ret);
++	media_request_object_get(obj);
++	return obj;
  }
  
- static int video_mux_remove(struct platform_device *pdev)
+ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
+@@ -3257,11 +3249,21 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
+ 	int ret;
+ 
+ 	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
++		struct media_request *req;
++
+ 		if (!mdev || cs->request_fd < 0)
+ 			return -EINVAL;
+-		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, false);
++
++		req = media_request_get_by_fd(mdev, cs->request_fd);
++		if (!req)
++			return -ENOENT;
++
++		obj = v4l2_ctrls_find_req_obj(hdl, req, false);
++		/* Reference to the request held through obj */
++		media_request_put(req);
+ 		if (IS_ERR(obj))
+ 			return PTR_ERR(obj);
++
+ 		hdl = container_of(obj, struct v4l2_ctrl_handler,
+ 				   req_obj);
+ 	}
+@@ -3567,18 +3569,28 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh,
+ 			     struct v4l2_ext_controls *cs, bool set)
+ {
+ 	struct media_request_object *obj = NULL;
++	struct media_request *req = NULL;
+ 	int ret;
+ 
+ 	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
+ 		if (!mdev || cs->request_fd < 0)
+ 			return -EINVAL;
+-		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, true);
++
++		req = media_request_get_by_fd(mdev, cs->request_fd);
++		if (!req)
++			return -ENOENT;
++
++		ret = media_request_lock_for_update(req);
++		if (req) {
++			media_request_put(req);
++			return ret;
++		}
++
++		obj = v4l2_ctrls_find_req_obj(hdl, req, true);
++		/* Reference to the request held through obj */
++		media_request_object_put(obj);
+ 		if (IS_ERR(obj))
+ 			return PTR_ERR(obj);
+-		if (atomic_read(&obj->req->state) != MEDIA_REQUEST_STATE_IDLE) {
+-			media_request_object_put(obj);
+-			return -EBUSY;
+-		}
+ 		hdl = container_of(obj, struct v4l2_ctrl_handler,
+ 				   req_obj);
+ 	}
+@@ -3586,7 +3598,8 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh,
+ 	ret = __try_set_ext_ctrls(fh, hdl, cs, set);
+ 
+ 	if (obj)
+-		media_request_object_put(obj);
++		media_request_unlock_for_update(obj->req);
++
+ 	return ret;
+ }
+ 
 -- 
-2.7.4
+2.11.0
