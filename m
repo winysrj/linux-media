@@ -1,67 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f66.google.com ([209.85.213.66]:43221 "EHLO
-        mail-vk0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754154AbeEaJ1V (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:36108 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751195AbeEUFop (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 05:27:21 -0400
-Received: by mail-vk0-f66.google.com with SMTP id x191-v6so12918547vke.10
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 02:27:21 -0700 (PDT)
-Received: from mail-ua0-f176.google.com (mail-ua0-f176.google.com. [209.85.217.176])
-        by smtp.gmail.com with ESMTPSA id l6-v6sm3864918vki.30.2018.05.31.02.27.19
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 31 May 2018 02:27:19 -0700 (PDT)
-Received: by mail-ua0-f176.google.com with SMTP id f30-v6so12783504uab.11
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 02:27:19 -0700 (PDT)
+        Mon, 21 May 2018 01:44:45 -0400
+Subject: Re: [Xen-devel][RFC 2/3] xen/grant-table: Extend API to work with DMA
+ buffers
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180517082604.14828-1-andr2000@gmail.com>
+ <20180517082604.14828-3-andr2000@gmail.com>
+ <28532709-6c87-f048-be6a-3c4ba02ae56f@oracle.com>
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+Message-ID: <097da8bd-2cfc-0916-451d-dec3e4d2a52e@gmail.com>
+Date: Mon, 21 May 2018 08:44:40 +0300
 MIME-Version: 1.0
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org> <20180515075859.17217-26-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-26-stanimir.varbanov@linaro.org>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 31 May 2018 18:27:07 +0900
-Message-ID: <CAAFQd5BjfdyZw4cHogCK1QkxTHTfdbvH-mvkQ79sRixThr5COg@mail.gmail.com>
-Subject: Re: [PATCH v2 25/29] venus: vdec: new function for output configuration
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        vgarodia@codeaurora.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <28532709-6c87-f048-be6a-3c4ba02ae56f@oracle.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 15, 2018 at 5:01 PM Stanimir Varbanov
-<stanimir.varbanov@linaro.org> wrote:
+On 05/19/2018 01:19 AM, Boris Ostrovsky wrote:
+> On 05/17/2018 04:26 AM, Oleksandr Andrushchenko wrote:
+>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>>
+>> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>> ---
+>>   drivers/xen/grant-table.c | 49 +++++++++++++++++++++++++++++++++++++++
+>>   include/xen/grant_table.h |  7 ++++++
+>>   2 files changed, 56 insertions(+)
+>>
+>> diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
+>> index bb36b1e1dbcc..c27bcc420575 100644
+>> --- a/drivers/xen/grant-table.c
+>> +++ b/drivers/xen/grant-table.c
+>> @@ -729,6 +729,55 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
+>>   }
+>>   EXPORT_SYMBOL(gnttab_free_pages);
+>>   
+>> +int gnttab_dma_alloc_pages(struct device *dev, bool coherent,
+>> +			   int nr_pages, struct page **pages,
+>> +			   void **vaddr, dma_addr_t *dev_bus_addr)
+>> +{
+>> +	int i;
+>> +	int ret;
+>> +
+>> +	ret = alloc_dma_xenballooned_pages(dev, coherent, nr_pages, pages,
+>> +					   vaddr, dev_bus_addr);
+>> +	if (ret < 0)
+>> +		return ret;
+>> +
+>> +	for (i = 0; i < nr_pages; i++) {
+>> +#if BITS_PER_LONG < 64
+>> +		struct xen_page_foreign *foreign;
+>> +
+>> +		foreign = kzalloc(sizeof(*foreign), GFP_KERNEL);
+>> +		if (!foreign) {
+>> +			gnttab_dma_free_pages(dev, flags, nr_pages, pages,
+>> +					      *vaddr, *dev_bus_addr);
+>> +			return -ENOMEM;
+>> +		}
+>> +		set_page_private(pages[i], (unsigned long)foreign);
+>> +#endif
+>> +		SetPagePrivate(pages[i]);
+>> +	}
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL(gnttab_dma_alloc_pages);
+>> +
+>> +void gnttab_dma_free_pages(struct device *dev, bool coherent,
+>> +			   int nr_pages, struct page **pages,
+>> +			   void *vaddr, dma_addr_t dev_bus_addr)
+>> +{
+>> +	int i;
+>> +
+>> +	for (i = 0; i < nr_pages; i++) {
+>> +		if (PagePrivate(pages[i])) {
+>> +#if BITS_PER_LONG < 64
+>> +			kfree((void *)page_private(pages[i]));
+>> +#endif
+>> +			ClearPagePrivate(pages[i]);
+>> +		}
+>> +	}
+>> +	free_dma_xenballooned_pages(dev, coherent, nr_pages, pages,
+>> +				    vaddr, dev_bus_addr);
+>> +}
+>> +EXPORT_SYMBOL(gnttab_dma_free_pages);
 >
-> Make a new function vdec_output_conf() for decoder output
-> configuration. vdec_output_conf() will set properties via
-> HFI interface related to the output configuration, and
-> keep vdec_set_properties() which will set properties
-> related to decoding parameters.
+> Given that these routines look almost exactly like their non-dma
+> counterparts I wonder whether common code could be factored out.
+Yes, this can be done
+> -boris
 >
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
->  drivers/media/platform/qcom/venus/vdec.c | 35 ++++++++++++++++++--------------
->  1 file changed, 20 insertions(+), 15 deletions(-)
 >
-> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-> index 5a5e3e2fece4..3a699af0ab58 100644
-> --- a/drivers/media/platform/qcom/venus/vdec.c
-> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> @@ -545,6 +545,23 @@ static const struct v4l2_ioctl_ops vdec_ioctl_ops = {
->  static int vdec_set_properties(struct venus_inst *inst)
->  {
->         struct vdec_controls *ctr = &inst->controls.dec;
-> +       struct hfi_enable en = { .enable = 1 };
-> +       u32 ptype;
-> +       int ret;
-> +
-> +       if (ctr->post_loop_deb_mode) {
-> +               ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
-> +               en.enable = 1;
-
-en.enable was already set to 1 in the definition.
-
-Best regards,
-Tomasz
+>
+>
+>> +
+>>   /* Handling of paged out grant targets (GNTST_eagain) */
+>>   #define MAX_DELAY 256
+>>   static inline void
+>> diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
+>> index 34b1379f9777..20ee2b5ba965 100644
+>> --- a/include/xen/grant_table.h
+>> +++ b/include/xen/grant_table.h
+>> @@ -195,6 +195,13 @@ void gnttab_free_auto_xlat_frames(void);
+>>   int gnttab_alloc_pages(int nr_pages, struct page **pages);
+>>   void gnttab_free_pages(int nr_pages, struct page **pages);
+>>   
+>> +int gnttab_dma_alloc_pages(struct device *dev, bool coherent,
+>> +			   int nr_pages, struct page **pages,
+>> +			   void **vaddr, dma_addr_t *dev_bus_addr);
+>> +void gnttab_dma_free_pages(struct device *dev, bool coherent,
+>> +			   int nr_pages, struct page **pages,
+>> +			   void *vaddr, dma_addr_t dev_bus_addr);
+>> +
+>>   int gnttab_map_refs(struct gnttab_map_grant_ref *map_ops,
+>>   		    struct gnttab_map_grant_ref *kmap_ops,
+>>   		    struct page **pages, unsigned int count);
