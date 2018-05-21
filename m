@@ -1,214 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:52579 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752227AbeEGQXC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:23:02 -0400
-Received: by mail-wm0-f65.google.com with SMTP id w194so14301845wmf.2
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:23:01 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v3 13/14] media: imx7.rst: add documentation for i.MX7 media driver
-Date: Mon,  7 May 2018 17:21:51 +0100
-Message-Id: <20180507162152.2545-14-rui.silva@linaro.org>
-In-Reply-To: <20180507162152.2545-1-rui.silva@linaro.org>
-References: <20180507162152.2545-1-rui.silva@linaro.org>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:45104 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750923AbeEUIPV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 04:15:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kelly Huang <kinghuangdk17@gmail.com>
+Cc: Felipe Balbi <felipe.balbi@linux.intel.com>,
+        linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+        Paul Elder <paul.elder@pitt.edu>
+Subject: Re: Some questions about the UVC gadget
+Date: Mon, 21 May 2018 11:15:44 +0300
+Message-ID: <1888439.YyroKcJ4jt@avalon>
+In-Reply-To: <CAEjubf1oP162SEJjF6KgSheeJyvWMH3aSA5hND18Bh4SjQTvTw@mail.gmail.com>
+References: <CAEjubf29Ne0XkJoZTqYfbt5xjw2iDw9hsHRuYzCvz9nYJtLpcQ@mail.gmail.com> <17074466.0QZEqxoWO3@avalon> <CAEjubf1oP162SEJjF6KgSheeJyvWMH3aSA5hND18Bh4SjQTvTw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add rst document to describe the i.MX7 media driver and also a working example
-from the Warp7 board usage with a OV2680 sensor.
+Hello Kelly,
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- Documentation/media/v4l-drivers/imx7.rst  | 157 ++++++++++++++++++++++
- Documentation/media/v4l-drivers/index.rst |   1 +
- 2 files changed, 158 insertions(+)
- create mode 100644 Documentation/media/v4l-drivers/imx7.rst
+Sorry for the late reply, your e-mail got buried in my inbox :-/
 
-diff --git a/Documentation/media/v4l-drivers/imx7.rst b/Documentation/media/v4l-drivers/imx7.rst
-new file mode 100644
-index 000000000000..64b97b442277
---- /dev/null
-+++ b/Documentation/media/v4l-drivers/imx7.rst
-@@ -0,0 +1,157 @@
-+i.MX7 Video Capture Driver
-+==========================
-+
-+Introduction
-+------------
-+
-+The i.MX7 contrary to the i.MX5/6 family does not contain an Image Processing
-+Unit (IPU), because of that the capabilities to perform operations or
-+manipulation of the capture frames is less feature rich.
-+
-+For image capture the i.MX7 have three units:
-+- CMOS Sensor Interface (CSI)
-+- Video Multiplexer
-+- MIPI CSI-2 Receiver
-+
-+::
-+                                           |\
-+   MIPI Camera Input ---> MIPI CSI-2 --- > | \
-+                                           |  \
-+                                           | M |
-+                                           | U | ------>  CSI ---> Capture
-+                                           | X |
-+                                           |  /
-+   Parallel Camera Input ----------------> | /
-+                                           |/
-+
-+For additional information, please refer to the latest versions of the i.MX7
-+reference manual [#f1]_.
-+
-+Entities
-+--------
-+
-+imx7-mipi-csi2
-+--------------
-+
-+This is the MIPI CSI-2 recevier entity. It has one sink pad to receive the pixel
-+data from MIPI CSI-2 camera sensor. It has one source pad, corresponding to the
-+virtual channel 0. This module is compliant to previous version of Samsung
-+D-phy, and support two D-PHY Rx Data lanes.
-+
-+csi_mux
-+-------
-+
-+This is the video multiplexer. It has two sink pads to select from either camera
-+sensors with a parallel interface or from MIPI CSI-2 virtual channel 0.  It has
-+a single source pad that routes to the CSI.
-+
-+csi
-+---
-+
-+The CSI enables the chip to connect directly to external CMOS image sensor. CSI
-+can interfaces directly with Parallel and MIPI CSI-2 buses. It has 256 x 64 FIFO
-+to store received image pixel data and embedded DMA controllers to transfer data
-+from the FIFO through AHB bus.
-+
-+This entity has one sink pad that receive from the csi_mux entity and a single
-+source pad that route video frames directly to memory buffers, this pad is
-+routed to a capture device node.
-+
-+Usage Notes
-+-----------
-+
-+To aid in configuration and for backward compatibility with V4L2 applications
-+that access controls only from video device nodes, the capture device interfaces
-+inherit controls from the active entities in the current pipeline, so controls
-+can be accessed either directly from the subdev or from the active capture
-+device interface. For example, the sensor controls are available either from the
-+sensor subdevs or from the active capture device.
-+
-+Warp7 with OV2680
-+-----------------
-+
-+On this platform an OV2680 MIPI CSI-2 module is connected to the internal MIPI
-+CSI-2 receiver. The following example configures a video capture pipeline with
-+an output of 800x600, and BGGR 10 bit bayer format:
-+
-+.. code-block:: none
-+   # Setup links
-+   media-ctl -l "'ov2680 1-0036':0 -> 'imx7-mipi-csis.0':0[1]"
-+   media-ctl -l "'imx7-mipi-csis.0':1 -> 'csi_mux':1[1]"
-+   media-ctl -l "'csi_mux':2 -> 'csi':0[1]"
-+   media-ctl -l "'csi':1 -> 'csi capture':0[1]"
-+
-+   # Configure pads for pipeline
-+   media-ctl -V "'ov2680 1-0036':0 [fmt:SBGGR10_1X10/800x600 field:none]"
-+   media-ctl -V "'csi_mux':1 [fmt:SBGGR10_1X10/800x600 field:none]"
-+   media-ctl -V "'csi_mux':2 [fmt:SBGGR10_1X10/800x600 field:none]"
-+   media-ctl -V "'imx7-mipi-csis.0':0 [fmt:SBGGR10_1X10/800x600 field:none]"
-+   media-ctl -V "'csi':0 [fmt:SBGGR10_1X10/800x600 field:none]"
-+
-+After this streaming can start, the v4l2-ctl tool can be used to select any of
-+the resolutions supported by the sensor.
-+
-+.. code-block:: none
-+    root@imx7s-warp:~# media-ctl -p
-+    Media controller API version 4.17.0
-+
-+    Media device information
-+    ------------------------
-+    driver          imx-media
-+    model           imx-media
-+    serial
-+    bus info
-+    hw revision     0x0
-+    driver version  4.17.0
-+
-+    Device topology
-+    - entity 1: csi (2 pads, 2 links)
-+		type V4L2 subdev subtype Unknown flags 0
-+		device node name /dev/v4l-subdev0
-+	    pad0: Sink
-+		    [fmt:SBGGR10_1X10/800x600 field:none]
-+		    <- "csi_mux":2 [ENABLED]
-+	    pad1: Source
-+		    [fmt:SBGGR10_1X10/800x600 field:none]
-+		    -> "csi capture":0 [ENABLED]
-+
-+    - entity 4: csi capture (1 pad, 1 link)
-+		type Node subtype V4L flags 0
-+		device node name /dev/video0
-+	    pad0: Sink
-+		    <- "csi":1 [ENABLED]
-+
-+    - entity 10: csi_mux (3 pads, 2 links)
-+		type V4L2 subdev subtype Unknown flags 0
-+		device node name /dev/v4l-subdev1
-+	    pad0: Sink
-+		    [fmt:unknown/0x0]
-+	    pad1: Sink
-+		    [fmt:unknown/800x600 field:none]
-+		    <- "imx7-mipi-csis.0":1 [ENABLED]
-+	    pad2: Source
-+		    [fmt:unknown/800x600 field:none]
-+		    -> "csi":0 [ENABLED]
-+
-+    - entity 14: imx7-mipi-csis.0 (2 pads, 2 links)
-+		type V4L2 subdev subtype Unknown flags 0
-+		device node name /dev/v4l-subdev2
-+	    pad0: Sink
-+		    [fmt:SBGGR10_1X10/800x600 field:none]
-+		    <- "ov2680 1-0036":0 [ENABLED]
-+	    pad1: Source
-+		    [fmt:SBGGR10_1X10/800x600 field:none]
-+		    -> "csi_mux":1 [ENABLED]
-+
-+    - entity 17: ov2680 1-0036 (1 pad, 1 link)
-+		type V4L2 subdev subtype Sensor flags 0
-+		device node name /dev/v4l-subdev3
-+	    pad0: Source
-+		    [fmt:SBGGR10_1X10/800x600 field:none]
-+		    -> "imx7-mipi-csis.0":0 [ENABLED]
-+
-+
-+References
-+----------
-+
-+.. [#f1] https://www.nxp.com/docs/en/reference-manual/IMX7SRM.pdf
-diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-index 679238e786a7..693295bbc53f 100644
---- a/Documentation/media/v4l-drivers/index.rst
-+++ b/Documentation/media/v4l-drivers/index.rst
-@@ -44,6 +44,7 @@ For more details see the file COPYING in the source distribution of Linux.
- 	davinci-vpbe
- 	fimc
- 	imx
-+	imx7
- 	ivtv
- 	max2175
- 	meye
+On Friday, 23 February 2018 05:36:55 EEST Kelly Huang wrote:
+> Dear Mr.Pinchart,
+> 
+> > I'm afraid the Linux UVC gadget driver doesn't support H.264. While H.264
+> > support could be implemented using UVC 1.1, I wouldn't recommend this as
+> > the UVC 1.1 H.264 specification is a hack that is not and will not be
+> > supported in the Linux UVC host driver. UVC 1.5 is the way to go for
+> > H.264.
+> 
+> I have a  Logitech C920 usb camera which claims H.264 support. When I used
+> it under my usb protocol analyzer, I found that one of the CS_INTERFACE
+> descriptor had a VS_FORMAT_FRAME_BASED subtype, and the guidFormat is
+> '48323634-1000-800000AA-389B71', including the 'H264' symbols.
+> 
+> I don't know if that is the way you talked about implementing H.264 using
+> UVC 1.1? It seems that I need to rename some descriptors of the UVC gadget
+> driver and write a userspace application to fill /dev/videoX with H.264
+> streams. If so, can it work correctly?
+
+I spoke a bit too fast in my previous e-mail. H.264 support with UVC 1.1 
+should be OK, as long as you don't use the H.264 UVC 1.1 stream multiplexing 
+method that allows transmitting multiple video streams over a single endpoint.
+
+The support H.264 with UVC 1.1 you will need to create the corresponding 
+descriptors, and to implement support in the userspace helper application for 
+the H.264 extension unit (XU) defined in the UVC 1.1 specification.
+
 -- 
-2.17.0
+Regards,
+
+Laurent Pinchart
