@@ -1,70 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:58923 "EHLO
-        mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751971AbeERTwO (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:44306 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753290AbeEURBm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 15:52:14 -0400
-Subject: Re: [PATCH] gpu: ipu-v3: Fix BT1120 interlaced CCIR codes
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <20180407130428.24833-1-marex@denx.de>
- <1526658687.3948.15.camel@pengutronix.de>
-From: Marek Vasut <marex@denx.de>
-Message-ID: <cec007aa-d0b7-0802-d771-355a29751a2b@denx.de>
-Date: Fri, 18 May 2018 18:21:56 +0200
-MIME-Version: 1.0
-In-Reply-To: <1526658687.3948.15.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 21 May 2018 13:01:42 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v10 03/16] hackrf: group device capabilities
+Date: Mon, 21 May 2018 13:59:33 -0300
+Message-Id: <20180521165946.11778-4-ezequiel@collabora.com>
+In-Reply-To: <20180521165946.11778-1-ezequiel@collabora.com>
+References: <20180521165946.11778-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/18/2018 05:51 PM, Philipp Zabel wrote:
-> Hi Marek,
-> 
-> On Sat, 2018-04-07 at 15:04 +0200, Marek Vasut wrote:
->> The BT1120 interlaced CCIR codes are the same as BT656 ones
->> and different than BT656 progressive CCIR codes, fix this.
-> 
-> thank you for the patch, and sorry for the delay.
-> 
->> Signed-off-by: Marek Vasut <marex@denx.de>
->> Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
->> Cc: Philipp Zabel <p.zabel@pengutronix.de>
->> ---
->>  drivers/gpu/ipu-v3/ipu-csi.c | 8 ++++++--
->>  1 file changed, 6 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
->> index caa05b0702e1..301a729581ce 100644
->> --- a/drivers/gpu/ipu-v3/ipu-csi.c
->> +++ b/drivers/gpu/ipu-v3/ipu-csi.c
->> @@ -435,12 +435,16 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
->>  		break;
->>  	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
->>  	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
->> -	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
->> -	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
->>  		ipu_csi_write(csi, 0x40030 | CSI_CCIR_ERR_DET_EN,
->>  				   CSI_CCIR_CODE_1);
->>  		ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
->>  		break;
->> +	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
->> +	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
->> +		ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN, CSI_CCIR_CODE_1);
->> +		ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
->> +		ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
-> 
-> If these are the same as BT656 codes (so this case would be for PAL?),
-> could this just be moved up into the IPU_CSI_CLK_MODE_CCIR656_INTERLACED
-> case? Would the NTSC CCIR codes be the same as well?
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Dunno, I don't have any NTSC device to test. But the above was tested
-with a PAL device I had.
+Instead of putting V4L2_CAP_STREAMING and V4L2_CAP_READWRITE
+everywhere, set device_caps earlier with these values.
 
-I think the CCIR codes are different from BT656, although I might be wrong.
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/usb/hackrf/hackrf.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+index 7eb53517a82f..6d692fb3e8dd 100644
+--- a/drivers/media/usb/hackrf/hackrf.c
++++ b/drivers/media/usb/hackrf/hackrf.c
+@@ -909,18 +909,15 @@ static int hackrf_querycap(struct file *file, void *fh,
+ 
+ 	dev_dbg(&intf->dev, "\n");
+ 
++	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
+ 	if (vdev->vfl_dir == VFL_DIR_RX)
+-		cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER |
+-				   V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
+-
++		cap->device_caps |= V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER;
+ 	else
+-		cap->device_caps = V4L2_CAP_SDR_OUTPUT | V4L2_CAP_MODULATOR |
+-				   V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
++		cap->device_caps |= V4L2_CAP_SDR_OUTPUT | V4L2_CAP_MODULATOR;
+ 
+ 	cap->capabilities = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER |
+ 			    V4L2_CAP_SDR_OUTPUT | V4L2_CAP_MODULATOR |
+-			    V4L2_CAP_STREAMING | V4L2_CAP_READWRITE |
+-			    V4L2_CAP_DEVICE_CAPS;
++			    V4L2_CAP_DEVICE_CAPS | cap->device_caps;
+ 	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
+ 	strlcpy(cap->card, dev->rx_vdev.name, sizeof(cap->card));
+ 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
 -- 
-Best regards,
-Marek Vasut
+2.16.3
