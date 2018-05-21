@@ -1,316 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:34892 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751566AbeECNge (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 09:36:34 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 09/11] media: vsp1: Provide support for extended command pools
-Date: Thu,  3 May 2018 14:36:20 +0100
-Message-Id: <58cdbb43c0d617e28b3545060aff2019d42c148c.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:52319 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752742AbeEUOV4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 10:21:56 -0400
+Received: by mail-wm0-f67.google.com with SMTP id w194-v6so25527000wmf.2
+        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 07:21:55 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        Stefan Adolfsson <sadolfsson@chromium.org>
+Subject: [PATCH v4 3/5] mfd: cros-ec: Introduce CEC commands and events definitions.
+Date: Mon, 21 May 2018 16:21:44 +0200
+Message-Id: <1526912506-18406-4-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1526912506-18406-1-git-send-email-narmstrong@baylibre.com>
+References: <1526912506-18406-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VSPD and VSP-DL devices can provide extended display lists supporting
-extended command display list objects.
+The EC can expose a CEC bus, this patch adds the CEC related definitions
+needed by the cros-ec-cec driver.
+Having a 16 byte mkbp event size makes it possible to send CEC
+messages from the EC to the AP directly inside the mkbp event
+instead of first doing a notification and then a read.
 
-These extended commands require their own dma memory areas for a header
-and body specific to the command type.
-
-Implement a command pool to allocate all necessary memory in a single
-DMA allocation to reduce pressure on the TLB, and provide convenient
-re-usable command objects for the entities to utilise.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
+Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
+ drivers/platform/chrome/cros_ec_proto.c |  40 ++++++++++---
+ include/linux/mfd/cros_ec.h             |   2 +-
+ include/linux/mfd/cros_ec_commands.h    | 103 ++++++++++++++++++++++++++++++++
+ 3 files changed, 135 insertions(+), 10 deletions(-)
 
-v2:
- - Fix spelling typo in commit message
- - constify, and staticify the instantiation of vsp1_extended_commands
- - s/autfld_cmds/autofld_cmds/
- - staticify cmd pool functions (Thanks kbuild-bot)
----
- drivers/media/platform/vsp1/vsp1_dl.c | 191 +++++++++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_dl.h |   3 +-
- 2 files changed, 194 insertions(+)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index b64d32535edc..d33ae5f125bd 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -117,6 +117,30 @@ struct vsp1_dl_body_pool {
- };
- 
- /**
-+ * struct vsp1_cmd_pool - display list body pool
-+ * @dma: DMA address of the entries
-+ * @size: size of the full DMA memory pool in bytes
-+ * @mem: CPU memory pointer for the pool
-+ * @bodies: Array of DLB structures for the pool
-+ * @free: List of free DLB entries
-+ * @lock: Protects the pool and free list
-+ * @vsp1: the VSP1 device
-+ */
-+struct vsp1_dl_cmd_pool {
-+	/* DMA allocation */
-+	dma_addr_t dma;
-+	size_t size;
-+	void *mem;
-+
-+	struct vsp1_dl_ext_cmd *cmds;
-+	struct list_head free;
-+
-+	spinlock_t lock;
-+
-+	struct vsp1_device *vsp1;
-+};
-+
-+/**
-  * struct vsp1_dl_list - Display list
-  * @list: entry in the display list manager lists
-  * @dlm: the display list manager
-@@ -162,6 +186,7 @@ struct vsp1_dl_list {
-  * @queued: list queued to the hardware (written to the DL registers)
-  * @pending: list waiting to be queued to the hardware
-  * @pool: body pool for the display list bodies
-+ * @autofld_cmds: command pool to support auto-fld interlaced mode
-  */
- struct vsp1_dl_manager {
- 	unsigned int index;
-@@ -175,6 +200,7 @@ struct vsp1_dl_manager {
- 	struct vsp1_dl_list *pending;
- 
- 	struct vsp1_dl_body_pool *pool;
-+	struct vsp1_dl_cmd_pool *autofld_cmds;
- };
- 
- /* -----------------------------------------------------------------------------
-@@ -338,6 +364,140 @@ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
+diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
+index e7bbdf9..c4f6c44 100644
+--- a/drivers/platform/chrome/cros_ec_proto.c
++++ b/drivers/platform/chrome/cros_ec_proto.c
+@@ -504,10 +504,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
  }
+ EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
  
- /* -----------------------------------------------------------------------------
-+ * Display List Extended Command Management
-+ */
-+
-+enum vsp1_extcmd_type {
-+	VSP1_EXTCMD_AUTODISP,
-+	VSP1_EXTCMD_AUTOFLD,
-+};
-+
-+struct vsp1_extended_command_info {
-+	u16 opcode;
-+	size_t body_size;
-+} static const vsp1_extended_commands[] = {
-+	[VSP1_EXTCMD_AUTODISP] = { 0x02, 96 },
-+	[VSP1_EXTCMD_AUTOFLD]  = { 0x03, 160 },
-+};
-+
-+/**
-+ * vsp1_dl_cmd_pool_create - Create a pool of commands from a single allocation
-+ * @vsp1: The VSP1 device
-+ * @type: The command pool type
-+ * @num_commands: The quantity of commands to allocate
-+ *
-+ * Allocate a pool of commands each with enough memory to contain the private
-+ * data of each command. The allocation sizes are dependent upon the command
-+ * type.
-+ *
-+ * Return a pointer to a pool on success or NULL if memory can't be allocated.
-+ */
-+static struct vsp1_dl_cmd_pool *
-+vsp1_dl_cmd_pool_create(struct vsp1_device *vsp1, enum vsp1_extcmd_type type,
-+			unsigned int num_cmds)
++static int get_next_event_xfer(struct cros_ec_device *ec_dev,
++			       struct cros_ec_command *msg,
++			       int version, uint32_t size)
 +{
-+	struct vsp1_dl_cmd_pool *pool;
-+	unsigned int i;
-+	size_t cmd_size;
++	int ret;
 +
-+	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
-+	if (!pool)
-+		return NULL;
++	msg->version = version;
++	msg->command = EC_CMD_GET_NEXT_EVENT;
++	msg->insize = size;
++	msg->outsize = 0;
 +
-+	pool->cmds = kcalloc(num_cmds, sizeof(*pool->cmds), GFP_KERNEL);
-+	if (!pool->cmds) {
-+		kfree(pool);
-+		return NULL;
++	ret = cros_ec_cmd_xfer(ec_dev, msg);
++	if (ret > 0) {
++		ec_dev->event_size = ret - 1;
++		memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
 +	}
 +
-+	cmd_size = sizeof(struct vsp1_dl_ext_cmd_header) +
-+		   vsp1_extended_commands[type].body_size;
-+	cmd_size = ALIGN(cmd_size, 16);
-+
-+	pool->size = cmd_size * num_cmds;
-+	pool->mem = dma_alloc_wc(vsp1->bus_master, pool->size, &pool->dma,
-+				 GFP_KERNEL);
-+	if (!pool->mem) {
-+		kfree(pool->cmds);
-+		kfree(pool);
-+		return NULL;
-+	}
-+
-+	spin_lock_init(&pool->lock);
-+	INIT_LIST_HEAD(&pool->free);
-+
-+	for (i = 0; i < num_cmds; ++i) {
-+		struct vsp1_dl_ext_cmd *cmd = &pool->cmds[i];
-+		size_t cmd_offset = i * cmd_size;
-+		size_t data_offset = sizeof(struct vsp1_dl_ext_cmd_header) +
-+				     cmd_offset;
-+
-+		cmd->pool = pool;
-+		cmd->cmd_opcode = vsp1_extended_commands[type].opcode;
-+
-+		/* TODO: Auto-disp can utilise more than one command per cmd */
-+		cmd->num_cmds = 1;
-+		cmd->cmds = pool->mem + cmd_offset;
-+		cmd->cmd_dma = pool->dma + cmd_offset;
-+
-+		cmd->data = pool->mem + data_offset;
-+		cmd->data_dma = pool->dma + data_offset;
-+		cmd->data_size = vsp1_extended_commands[type].body_size;
-+
-+		list_add_tail(&cmd->free, &pool->free);
-+	}
-+
-+	return pool;
++	return ret;
 +}
 +
-+static
-+struct vsp1_dl_ext_cmd *vsp1_dl_ext_cmd_get(struct vsp1_dl_cmd_pool *pool)
-+{
-+	struct vsp1_dl_ext_cmd *cmd = NULL;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pool->lock, flags);
-+
-+	if (!list_empty(&pool->free)) {
-+		cmd = list_first_entry(&pool->free, struct vsp1_dl_ext_cmd,
-+				       free);
-+		list_del(&cmd->free);
-+	}
-+
-+	spin_unlock_irqrestore(&pool->lock, flags);
-+
-+	return cmd;
-+}
-+
-+static void vsp1_dl_ext_cmd_put(struct vsp1_dl_ext_cmd *cmd)
-+{
-+	unsigned long flags;
-+
-+	if (!cmd)
-+		return;
-+
-+	/* Reset flags, these mark data usage */
-+	cmd->flags = 0;
-+
-+	spin_lock_irqsave(&cmd->pool->lock, flags);
-+	list_add_tail(&cmd->free, &cmd->pool->free);
-+	spin_unlock_irqrestore(&cmd->pool->lock, flags);
-+}
-+
-+static void vsp1_dl_ext_cmd_pool_destroy(struct vsp1_dl_cmd_pool *pool)
-+{
-+	if (!pool)
-+		return;
-+
-+	if (pool->mem)
-+		dma_free_wc(pool->vsp1->bus_master, pool->size, pool->mem,
-+			    pool->dma);
-+
-+	kfree(pool->cmds);
-+	kfree(pool);
-+}
-+
-+/* ----------------------------------------------------------------------------
-  * Display List Transaction Management
-  */
+ static int get_next_event(struct cros_ec_device *ec_dev)
+ {
+ 	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
+ 	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
++	static int cmd_version = 1;
+ 	int ret;
  
-@@ -440,6 +600,12 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
- 
- 	vsp1_dl_list_bodies_put(dl);
- 
-+	vsp1_dl_ext_cmd_put(dl->pre_cmd);
-+	vsp1_dl_ext_cmd_put(dl->post_cmd);
-+
-+	dl->pre_cmd = NULL;
-+	dl->post_cmd = NULL;
-+
- 	/*
- 	 * body0 is reused as as an optimisation as presently every display list
- 	 * has at least one body, thus we reinitialise the entries list.
-@@ -883,6 +1049,15 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 		list_add_tail(&dl->list, &dlm->free);
+ 	if (ec_dev->suspended) {
+@@ -515,18 +536,19 @@ static int get_next_event(struct cros_ec_device *ec_dev)
+ 		return -EHOSTDOWN;
  	}
  
-+	if (vsp1_feature(vsp1, VSP1_HAS_EXT_DL)) {
-+		dlm->autofld_cmds = vsp1_dl_cmd_pool_create(vsp1,
-+					VSP1_EXTCMD_AUTOFLD, prealloc);
-+		if (!dlm->autofld_cmds) {
-+			vsp1_dlm_destroy(dlm);
-+			return NULL;
-+		}
-+	}
-+
- 	return dlm;
- }
+-	msg->version = 0;
+-	msg->command = EC_CMD_GET_NEXT_EVENT;
+-	msg->insize = sizeof(ec_dev->event_data);
+-	msg->outsize = 0;
++	if (cmd_version == 1) {
++		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
++				sizeof(struct ec_response_get_next_event_v1));
++		if (ret < 0 || msg->result != EC_RES_INVALID_VERSION)
++			return ret;
  
-@@ -899,4 +1074,20 @@ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
+-	ret = cros_ec_cmd_xfer(ec_dev, msg);
+-	if (ret > 0) {
+-		ec_dev->event_size = ret - 1;
+-		memcpy(&ec_dev->event_data, msg->data,
+-		       sizeof(ec_dev->event_data));
++		/* Fallback to version 0 for future send attempts */
++		cmd_version = 0;
  	}
  
- 	vsp1_dl_body_pool_destroy(dlm->pool);
-+	vsp1_dl_ext_cmd_pool_destroy(dlm->autofld_cmds);
-+}
++	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
++				  sizeof(struct ec_response_get_next_event));
 +
-+struct vsp1_dl_ext_cmd *vsp1_dlm_get_autofld_cmd(struct vsp1_dl_list *dl)
-+{
-+	struct vsp1_dl_manager *dlm = dl->dlm;
-+	struct vsp1_dl_ext_cmd *cmd;
-+
-+	if (dl->pre_cmd)
-+		return dl->pre_cmd;
-+
-+	cmd = vsp1_dl_ext_cmd_get(dlm->autofld_cmds);
-+	if (cmd)
-+		dl->pre_cmd = cmd;
-+
-+	return cmd;
+ 	return ret;
  }
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index aa5f4adc6617..d9621207b093 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -22,6 +22,7 @@ struct vsp1_dl_manager;
  
- /**
-  * struct vsp1_dl_ext_cmd - Extended Display command
-+ * @pool: pool to which this command belongs
-  * @free: entry in the pool of free commands list
-  * @cmd_opcode: command type opcode
-  * @flags: flags used by the command
-@@ -33,6 +34,7 @@ struct vsp1_dl_manager;
-  * @data_size: size of the @data_dma memory in bytes
-  */
- struct vsp1_dl_ext_cmd {
-+	struct vsp1_dl_cmd_pool *pool;
- 	struct list_head free;
+diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
+index f36125e..32caef3 100644
+--- a/include/linux/mfd/cros_ec.h
++++ b/include/linux/mfd/cros_ec.h
+@@ -147,7 +147,7 @@ struct cros_ec_device {
+ 	bool mkbp_event_supported;
+ 	struct blocking_notifier_head event_notifier;
  
- 	u8 cmd_opcode;
-@@ -55,6 +57,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
- unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
-+struct vsp1_dl_ext_cmd *vsp1_dlm_get_autofld_cmd(struct vsp1_dl_list *dl);
+-	struct ec_response_get_next_event event_data;
++	struct ec_response_get_next_event_v1 event_data;
+ 	int event_size;
+ 	u32 host_event_wake_mask;
+ };
+diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
+index f2edd99..9b8bc4a 100644
+--- a/include/linux/mfd/cros_ec_commands.h
++++ b/include/linux/mfd/cros_ec_commands.h
+@@ -804,6 +804,8 @@ enum ec_feature_code {
+ 	EC_FEATURE_MOTION_SENSE_FIFO = 24,
+ 	/* EC has RTC feature that can be controlled by host commands */
+ 	EC_FEATURE_RTC = 27,
++	/* EC supports CEC commands */
++	EC_FEATURE_CEC = 35,
+ };
  
- struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
- void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+ #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
+@@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
+ 	/* EC sent a sysrq command */
+ 	EC_MKBP_EVENT_SYSRQ = 6,
+ 
++	/* Notify the AP that something happened on CEC */
++	EC_MKBP_CEC_EVENT = 8,
++
++	/* Send an incoming CEC message to the AP */
++	EC_MKBP_EVENT_CEC_MESSAGE = 9,
++
+ 	/* Number of MKBP events */
+ 	EC_MKBP_EVENT_COUNT,
+ };
+@@ -2093,12 +2101,31 @@ union ec_response_get_next_data {
+ 	uint32_t   sysrq;
+ } __packed;
+ 
++union ec_response_get_next_data_v1 {
++	uint8_t   key_matrix[16];
++
++	/* Unaligned */
++	uint32_t  host_event;
++
++	uint32_t   buttons;
++	uint32_t   switches;
++	uint32_t   sysrq;
++	uint32_t   cec_events;
++	uint8_t    cec_message[16];
++} __packed;
++
+ struct ec_response_get_next_event {
+ 	uint8_t event_type;
+ 	/* Followed by event data if any */
+ 	union ec_response_get_next_data data;
+ } __packed;
+ 
++struct ec_response_get_next_event_v1 {
++	uint8_t event_type;
++	/* Followed by event data if any */
++	union ec_response_get_next_data_v1 data;
++} __packed;
++
+ /* Bit indices for buttons and switches.*/
+ /* Buttons */
+ #define EC_MKBP_POWER_BUTTON	0
+@@ -2828,6 +2855,82 @@ struct ec_params_reboot_ec {
+ /* Current version of ACPI memory address space */
+ #define EC_ACPI_MEM_VERSION_CURRENT 1
+ 
++/*****************************************************************************/
++/*
++ * HDMI CEC commands
++ *
++ * These commands are for sending and receiving message via HDMI CEC
++ */
++#define MAX_CEC_MSG_LEN 16
++
++/* CEC message from the AP to be written on the CEC bus */
++#define EC_CMD_CEC_WRITE_MSG 0x00B8
++
++/**
++ * struct ec_params_cec_write - Message to write to the CEC bus
++ * @msg: message content to write to the CEC bus
++ */
++struct ec_params_cec_write {
++	uint8_t msg[MAX_CEC_MSG_LEN];
++} __packed;
++
++/* Set various CEC parameters */
++#define EC_CMD_CEC_SET 0x00BA
++
++/**
++ * struct ec_params_cec_set - CEC parameters set
++ * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
++ * @enable: in case cmd is CEC_CMD_ENABLE, this field can be 0 to disable CEC
++ * 	or 1 to enable CEC functionnality
++ * @address: in case cmd is CEC_CMD_LOGICAL_ADDRESS, this field encodes the
++ *	requested logical address between 0 and 15 or 0xff to unregister
++ */
++struct ec_params_cec_set {
++	uint8_t cmd; /* enum cec_command */
++	union {
++		uint8_t enable;
++		uint8_t address;
++	};
++} __packed;
++
++/* Read various CEC parameters */
++#define EC_CMD_CEC_GET 0x00BB
++
++/**
++ * struct ec_params_cec_get - CEC parameters get
++ * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
++ */
++struct ec_params_cec_get {
++	uint8_t cmd; /* enum cec_command */
++} __packed;
++
++/**
++ * struct ec_response_cec_get - CEC parameters get response
++ * @enable: in case cmd was CEC_CMD_ENABLE, this field will 0 if CEC is
++ * 	disabled or 1 if CEC functionnality is enabled
++ * @address: in case cmd was CEC_CMD_LOGICAL_ADDRESS, this will encode the
++ *	configured logical address between 0 and 15 or 0xff if unregistered
++ */
++struct ec_response_cec_get {
++	union {
++		uint8_t enable;
++		uint8_t address;
++	};
++} __packed;
++
++/* CEC parameters command */
++enum cec_command {
++	/* CEC reading, writing and events enable */
++	CEC_CMD_ENABLE,
++	/* CEC logical address  */
++	CEC_CMD_LOGICAL_ADDRESS,
++};
++
++/* Events from CEC to AP */
++enum mkbp_cec_event {
++	EC_MKBP_CEC_SEND_OK			= BIT(0),
++	EC_MKBP_CEC_SEND_FAILED			= BIT(1),
++};
+ 
+ /*****************************************************************************/
+ /*
 -- 
-git-series 0.9.1
+2.7.4
