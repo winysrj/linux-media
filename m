@@ -1,80 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:41567 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752522AbeEOP3i (ORCPT
+Received: from mail-qt0-f169.google.com ([209.85.216.169]:34409 "EHLO
+        mail-qt0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750778AbeEUUaZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 11:29:38 -0400
-Subject: Re: [PATCH v2 4/5] mfd: cros_ec_dev: Add CEC sub-device registration
-To: Neil Armstrong <narmstrong@baylibre.com>, airlied@linux.ie,
-        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
-        seanpaul@google.com
-Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
-        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
-References: <1526395342-15481-1-git-send-email-narmstrong@baylibre.com>
- <1526395342-15481-5-git-send-email-narmstrong@baylibre.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <568980a1-9c22-ccdb-de43-ba88cdce4ecd@xs4all.nl>
-Date: Tue, 15 May 2018 17:29:32 +0200
+        Mon, 21 May 2018 16:30:25 -0400
+Received: by mail-qt0-f169.google.com with SMTP id m5-v6so20636508qti.1
+        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 13:30:24 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1526395342-15481-5-git-send-email-narmstrong@baylibre.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <897fac42-1456-c2ad-94be-3aee64df18d6@inbox.lv>
+References: <897fac42-1456-c2ad-94be-3aee64df18d6@inbox.lv>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Mon, 21 May 2018 23:30:24 +0300
+Message-ID: <CAHp75VfsJUSAV0TPkcSOMrZedqhcM117JFtH-xHFAJKLPDqQ9A@mail.gmail.com>
+Subject: Re: Bugfix for Tevii S650
+To: Light <light23@inbox.lv>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/15/2018 04:42 PM, Neil Armstrong wrote:
-> The EC can expose a CEC bus, thus add the cros-ec-cec MFD sub-device
-> when the CEC feature bit is present.
-> 
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
++Cc: Mauro
 
-For what it is worth (not an MFD expert):
+On Mon, May 21, 2018 at 3:01 PM, Light <light23@inbox.lv> wrote:
+> Hi,
+>
+> staring with kernel 4.1 the tevii S650 usb box is not working any more, last
+> working version was 4.0.
+>
+> The  bug was also reported here
+> https://www.spinics.net/lists/linux-media/msg121356.html
+>
+> I found a solution for it and uploaded a patch to the kernel bugzilla.
+>
+> See here: https://bugzilla.kernel.org/show_bug.cgi?id=197731
+>
+> Can somebody of the maintainers have a look on it and apply the patch to the
+> kernes sources?
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+You forget to Cc to maintainers (at least Mauro).
 
-Thanks!
-
-	Hans
-
-> ---
->  drivers/mfd/cros_ec_dev.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/drivers/mfd/cros_ec_dev.c b/drivers/mfd/cros_ec_dev.c
-> index eafd06f..57064ec 100644
-> --- a/drivers/mfd/cros_ec_dev.c
-> +++ b/drivers/mfd/cros_ec_dev.c
-> @@ -383,6 +383,18 @@ static void cros_ec_sensors_register(struct cros_ec_dev *ec)
->  	kfree(msg);
->  }
->  
-> +static void cros_ec_cec_register(struct cros_ec_dev *ec)
-> +{
-> +	int ret;
-> +	struct mfd_cell cec_cell = {
-> +		.name = "cros-ec-cec",
-> +	};
-> +
-> +	ret = mfd_add_devices(ec->dev, 0, &cec_cell, 1, NULL, 0, NULL);
-> +	if (ret)
-> +		dev_err(ec->dev, "failed to add EC CEC\n");
-> +}
-> +
->  static int ec_device_probe(struct platform_device *pdev)
->  {
->  	int retval = -ENOMEM;
-> @@ -422,6 +434,10 @@ static int ec_device_probe(struct platform_device *pdev)
->  	if (cros_ec_check_features(ec, EC_FEATURE_MOTION_SENSE))
->  		cros_ec_sensors_register(ec);
->  
-> +	/* check whether this EC handles CEC. */
-> +	if (cros_ec_check_features(ec, EC_FEATURE_CEC))
-> +		cros_ec_cec_register(ec);
-> +
->  	/* Take control of the lightbar from the EC. */
->  	lb_manual_suspend_ctrl(ec, 1);
->  
-> 
+-- 
+With Best Regards,
+Andy Shevchenko
