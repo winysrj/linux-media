@@ -1,93 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:42429 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751213AbeEPVEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 17:04:43 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Y Song <ys114321@gmail.com>
-Subject: [PATCH v3 0/2] IR decoding using BPF
-Date: Wed, 16 May 2018 22:04:39 +0100
-Message-Id: <cover.1526504511.git.sean@mess.org>
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:30991 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751019AbeEUMQY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 08:16:24 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id w4LCDcrE014301
+        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 13:16:23 +0100
+Received: from mail-pf0-f197.google.com (mail-pf0-f197.google.com [209.85.192.197])
+        by mx07-00252a01.pphosted.com with ESMTP id 2j29b0915c-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 13:16:22 +0100
+Received: by mail-pf0-f197.google.com with SMTP id 62-v6so9110447pfw.21
+        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 05:16:22 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <2565074.bXLGL3KLfK@avalon>
+References: <20180517160708.74811cfb@vento.lan> <20180518120522.79b36f77@vento.lan>
+ <CAAoAYcN-9zrbLWZULZM9emF5G8=stssQy04QgrguSYi4g6dQxw@mail.gmail.com> <2565074.bXLGL3KLfK@avalon>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Mon, 21 May 2018 13:16:19 +0100
+Message-ID: <CAAoAYcODVNVF0dh8bzOXNn1ZJC1bsz=BzAnp9eEBkQZrKE9yfA@mail.gmail.com>
+Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras
+ on generic apps
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The kernel IR decoders (drivers/media/rc/ir-*-decoder.c) support the most
-widely used IR protocols, but there are many protocols which are not
-supported[1]. For example, the lirc-remotes[2] repo has over 2700 remotes,
-many of which are not supported by rc-core. There is a "long tail" of
-unsupported IR protocols, for which lircd is need to decode the IR .
+Hi Laurent
 
-IR encoding is done in such a way that some simple circuit can decode it;
-therefore, bpf is ideal.
+On 19 May 2018 at 08:04, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Dave,
+>
+> On Friday, 18 May 2018 18:37:01 EEST Dave Stevenson wrote:
+>> On 18 May 2018 at 16:05, Mauro Carvalho Chehab wrote:
+>> > Em Fri, 18 May 2018 15:27:24 +0300
+>>
+>> <snip>
+>>
+>> >>> There, instead of an USB camera, the hardware is equipped with a
+>> >>> MC-based ISP, connected to its camera. Currently, despite having
+>> >>> a Kernel driver for it, the camera doesn't work with any
+>> >>> userspace application.
+>> >>>
+>> >>> I'm also aware of other projects that are considering the usage of
+>> >>> mc-based devices for non-dedicated hardware.
+>> >>
+>> >> What are those projects ?
+>> >
+>> > Well, cheap ARM-based hardware like RPi3 already has this issue: they
+>> > have an ISP (or some GPU firmware meant to emulate an ISP). While
+>> > those hardware could have multiple sensors, typically they have just
+>> > one.
+>>
+>> Slight hijack, but a closely linked issue for the Pi.
+>> The way I understand the issue of V4L2 / MC on Pi is a more
+>> fundamental mismatch in architecture. Please correct me if I'm wrong
+>> here.
+>>
+>> The Pi CSI2 receiver peripheral always writes the incoming data to
+>> SDRAM, and the ISP is then a memory to memory device.
+>>
+>> V4L2 subdevices are not dma controllers and therefore have no buffers
+>> allocated to them. So to support the full complexity of the pipeline
+>> in V4L2 requires that something somewhere would have to be dequeuing
+>> the buffers from the CSI receiver V4L2 device and queuing them to the
+>> input of a (theoretical) ISP M2M V4L2 device, and returning them once
+>> processed. The application only cares about the output of the ISP M2M
+>> device.
+>
+> Regardless of the software stack architecture, something running on the CPU
+> has to perform that job. We have decided that that "something" needs to run in
+> userspace, to avoid pushing use-case-dependent code to the kernel.
+>
+> Note that this isn't specific to the RPi. The OMAP3 ISP, while integrating the
+> CSI-2 receiver and being able to process data on the fly, can also write the
+> raw images to memory and then process them in memory-to-memory mode. This
+> feature is used mostly for still image capture to perform pre-processing with
+> the CPU (or possibly GPU) on the raw images before processing them in the ISP.
+> There's no way we could implement this fully in the kernel.
 
-In order to support all these protocols, here we have bpf based IR decoding.
-The idea is that user-space can define a decoder in bpf, attach it to
-the rc device through the lirc chardev.
+Sure. I was mainly flagging that having to manage buffers also needs
+to be considered in order to make a usable system. Just configuring an
+MC pipeline won't solve all the issues.
 
-Separate work is underway to extend ir-keytable to have an extensive library
-of bpf-based decoders, and a much expanded library of rc keymaps.
+>> So I guess my question is whether there is a sane mechanism to remove
+>> that buffer allocation and handling from the app? Without it we are
+>> pretty much forced to hide bigger blobs of functionality to even
+>> vaguely fit in with V4L2.
+>
+> We need a way to remove that from the application, but it won't be pushed down
+> to the kernel. These tasks should be handled by a userspace framework,
+> transparently for the application. The purpose of this discussion is to decide
+> on the design of the framework.
 
-Another future application would be to compile IRP[3] to a IR BPF program, and
-so support virtually every remote without having to write a decoder for each.
-It might also be possible to support non-button devices such as analog
-directional pads or air conditioning remote controls and decode the target
-temperature in bpf, and pass that to an input device.
+I'm in agreement there, but hadn't seen discussion on buffer
+management, only MC configuration.
 
-Thanks,
+>> I'm at the point where it shouldn't be a huge amount of work to create
+>> at least a basic ISP V4L2 M2M device, but I'm not planning on doing it
+>> if it pushes the above buffer handling onto the app because it simply
+>> won't get used beyond demo apps. The likes of Cheese, Scratch, etc,
+>> just won't do it.
+>>
+>>
+>> To avoid ambiguity, the Pi has a hardware ISP block. There are other
+>> SoCs that use either GPU code or a DSP to implement their ISP.
+>
+> Is that ISP documented publicly ?
 
-Sean Young
+Not publicly, and as it's Broadcom's IP we can't release it :-(
 
-[1] http://www.hifi-remote.com/wiki/index.php?title=DecodeIR
-[2] https://sourceforge.net/p/lirc-remotes/code/ci/master/tree/remotes/
-[3] http://www.hifi-remote.com/wiki/index.php?title=IRP_Notation
+What I have working is using the Broadcom MMAL API (very similar to
+OpenMAX IL) to wrap the ISP hardware block via the VideoCore firmware.
+Currently it has the major controls exposed (black level, digital
+gain, white balance, CCMs, lens shading tables) and I'll add
+additional controls as time permits or use cases require. Resizing and
+format conversion are done based on input and output formats. Defining
+stats regions and extracting the resulting stats is still to be done.
+Overall it keeps all the implementation details hidden so we don't
+break NDAs, but should allow efficient processing. It supports
+dma-bufs in and out, so no extra copies of the data should be
+required.
 
-Changes since v2:
- - Fixed locking issues
- - Improved self-test to cover more cases
- - Rebased on bpf-next again
+I'm currently finishing off a V4L2 M2M wrapper around the MMAL
+video_encode and video_decode components, so modifying it to support
+the ISP component shouldn't be difficult if there is value in doing
+so.
+I know it's not the ideal, but our hands are tied.
 
-Changes since v1:
- - Code review comments from Y Song <ys114321@gmail.com> and
-   Randy Dunlap <rdunlap@infradead.org>
- - Re-wrote sample bpf to be selftest
- - Renamed RAWIR_DECODER -> RAWIR_EVENT (Kconfig, context, bpf prog type)
- - Rebase on bpf-next
- - Introduced bpf_rawir_event context structure with simpler access checking
-
-Sean Young (2):
-  media: rc: introduce BPF_PROG_RAWIR_EVENT
-  bpf: add selftest for rawir_event type program
-
- drivers/media/rc/Kconfig                      |  13 +
- drivers/media/rc/Makefile                     |   1 +
- drivers/media/rc/bpf-rawir-event.c            | 363 ++++++++++++++++++
- drivers/media/rc/lirc_dev.c                   |  24 ++
- drivers/media/rc/rc-core-priv.h               |  24 ++
- drivers/media/rc/rc-ir-raw.c                  |  14 +-
- include/linux/bpf_rcdev.h                     |  30 ++
- include/linux/bpf_types.h                     |   3 +
- include/uapi/linux/bpf.h                      |  55 ++-
- kernel/bpf/syscall.c                          |   7 +
- tools/bpf/bpftool/prog.c                      |   1 +
- tools/include/uapi/linux/bpf.h                |  57 ++-
- tools/lib/bpf/libbpf.c                        |   1 +
- tools/testing/selftests/bpf/Makefile          |   8 +-
- tools/testing/selftests/bpf/bpf_helpers.h     |   6 +
- tools/testing/selftests/bpf/test_rawir.sh     |  37 ++
- .../selftests/bpf/test_rawir_event_kern.c     |  26 ++
- .../selftests/bpf/test_rawir_event_user.c     | 130 +++++++
- 18 files changed, 792 insertions(+), 8 deletions(-)
- create mode 100644 drivers/media/rc/bpf-rawir-event.c
- create mode 100644 include/linux/bpf_rcdev.h
- create mode 100755 tools/testing/selftests/bpf/test_rawir.sh
- create mode 100644 tools/testing/selftests/bpf/test_rawir_event_kern.c
- create mode 100644 tools/testing/selftests/bpf/test_rawir_event_user.c
-
--- 
-2.17.0
+  Dave
