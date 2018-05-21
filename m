@@ -1,201 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:18077 "EHLO
-        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752446AbeEQObM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 10:31:12 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 2/2] v4l: Add support for STD ioctls on subdev nodes
-Date: Thu, 17 May 2018 16:30:16 +0200
-Message-Id: <20180517143016.13501-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mga03.intel.com ([134.134.136.65]:48353 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750993AbeEUIzO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 04:55:14 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v14 01/36] uapi/linux/media.h: add request API
+Date: Mon, 21 May 2018 11:54:26 +0300
+Message-Id: <20180521085501.16861-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no way to control the standard of subdevices which are part of
-a media device. The ioctls which exists all target video devices
-explicitly and the idea is that the video device should talk to the
-subdevice. For subdevices part of a media graph this is not possible and
-the standard must be controlled on the subdev device directly.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add four new ioctls to be able to directly interact with subdevices and
-control the video standard; VIDIOC_SUBDEV_ENUMSTD, VIDIOC_SUBDEV_G_STD,
-VIDIOC_SUBDEV_S_STD and VIDIOC_SUBDEV_QUERYSTD.
+Define the public request API.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+This adds the new MEDIA_IOC_REQUEST_ALLOC ioctl to allocate a request
+and two ioctls that operate on a request in order to queue the
+contents of the request to the driver and to re-initialize the
+request.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ include/uapi/linux/media.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-* Changes since v1
-- Added VIDIOC_SUBDEV_ENUMSTD.
----
- .../media/uapi/v4l/vidioc-enumstd.rst         | 11 ++++++----
- Documentation/media/uapi/v4l/vidioc-g-std.rst | 14 ++++++++----
- .../media/uapi/v4l/vidioc-querystd.rst        | 11 ++++++----
- drivers/media/v4l2-core/v4l2-subdev.c         | 22 +++++++++++++++++++
- include/uapi/linux/v4l2-subdev.h              |  4 ++++
- 5 files changed, 50 insertions(+), 12 deletions(-)
-
-diff --git a/Documentation/media/uapi/v4l/vidioc-enumstd.rst b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
-index b7fda29f46a139a0..2644a62acd4b6822 100644
---- a/Documentation/media/uapi/v4l/vidioc-enumstd.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
-@@ -2,14 +2,14 @@
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index c7e9a5cba24ed..32883d4d22b22 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -342,11 +342,23 @@ struct media_v2_topology {
  
- .. _VIDIOC_ENUMSTD:
+ /* ioctls */
  
--********************
--ioctl VIDIOC_ENUMSTD
--********************
-+*******************************************
-+ioctl VIDIOC_ENUMSTD, VIDIOC_SUBDEV_ENUMSTD
-+*******************************************
- 
- Name
- ====
- 
--VIDIOC_ENUMSTD - Enumerate supported video standards
-+VIDIOC_ENUMSTD - VIDIOC_SUBDEV_ENUMSTD - Enumerate supported video standards
- 
- 
- Synopsis
-@@ -18,6 +18,9 @@ Synopsis
- .. c:function:: int ioctl( int fd, VIDIOC_ENUMSTD, struct v4l2_standard *argp )
-     :name: VIDIOC_ENUMSTD
- 
-+.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_ENUMSTD, struct v4l2_standard *argp )
-+    :name: VIDIOC_SUBDEV_ENUMSTD
++struct __attribute__ ((packed)) media_request_alloc {
++	__s32 fd;
++};
 +
- 
- Arguments
- =========
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-std.rst b/Documentation/media/uapi/v4l/vidioc-g-std.rst
-index 90791ab51a5371b8..8d94f0404df270db 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-std.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-std.rst
-@@ -2,14 +2,14 @@
- 
- .. _VIDIOC_G_STD:
- 
--********************************
--ioctl VIDIOC_G_STD, VIDIOC_S_STD
--********************************
-+**************************************************************************
-+ioctl VIDIOC_G_STD, VIDIOC_S_STD, VIDIOC_SUBDEV_G_STD, VIDIOC_SUBDEV_S_STD
-+**************************************************************************
- 
- Name
- ====
- 
--VIDIOC_G_STD - VIDIOC_S_STD - Query or select the video standard of the current input
-+VIDIOC_G_STD - VIDIOC_S_STD - VIDIOC_SUBDEV_G_STD - VIDIOC_SUBDEV_S_STD - Query or select the video standard of the current input
- 
- 
- Synopsis
-@@ -21,6 +21,12 @@ Synopsis
- .. c:function:: int ioctl( int fd, VIDIOC_S_STD, const v4l2_std_id *argp )
-     :name: VIDIOC_S_STD
- 
-+.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_G_STD, v4l2_std_id *argp )
-+    :name: VIDIOC_SUBDEV_G_STD
+ #define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
+ #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
+ #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
+ #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
+ #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
++#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, struct media_request_alloc)
 +
-+.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_S_STD, const v4l2_std_id *argp )
-+    :name: VIDIOC_SUBDEV_S_STD
-+
++/*
++ * These ioctls are called from the request file descriptor as returned
++ * by MEDIA_IOC_REQUEST_ALLOC.
++ */
++#define MEDIA_REQUEST_IOC_QUEUE		_IO('|',  0x80)
++#define MEDIA_REQUEST_IOC_REINIT	_IO('|',  0x81)
  
- Arguments
- =========
-diff --git a/Documentation/media/uapi/v4l/vidioc-querystd.rst b/Documentation/media/uapi/v4l/vidioc-querystd.rst
-index cf40bca19b9f8665..a8385cc7481869dd 100644
---- a/Documentation/media/uapi/v4l/vidioc-querystd.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querystd.rst
-@@ -2,14 +2,14 @@
+ #if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
  
- .. _VIDIOC_QUERYSTD:
- 
--*********************
--ioctl VIDIOC_QUERYSTD
--*********************
-+*********************************************
-+ioctl VIDIOC_QUERYSTD, VIDIOC_SUBDEV_QUERYSTD
-+*********************************************
- 
- Name
- ====
- 
--VIDIOC_QUERYSTD - Sense the video standard received by the current input
-+VIDIOC_QUERYSTD - VIDIOC_SUBDEV_QUERYSTD - Sense the video standard received by the current input
- 
- 
- Synopsis
-@@ -18,6 +18,9 @@ Synopsis
- .. c:function:: int ioctl( int fd, VIDIOC_QUERYSTD, v4l2_std_id *argp )
-     :name: VIDIOC_QUERYSTD
- 
-+.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_QUERYSTD, v4l2_std_id *argp )
-+    :name: VIDIOC_SUBDEV_QUERYSTD
-+
- 
- Arguments
- =========
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index f9eed938d3480b74..27a2c633f2323f5f 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -494,6 +494,28 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	case VIDIOC_SUBDEV_S_DV_TIMINGS:
- 		return v4l2_subdev_call(sd, video, s_dv_timings, arg);
-+
-+	case VIDIOC_SUBDEV_G_STD:
-+		return v4l2_subdev_call(sd, video, g_std, arg);
-+
-+	case VIDIOC_SUBDEV_S_STD: {
-+		v4l2_std_id *std = arg;
-+
-+		return v4l2_subdev_call(sd, video, s_std, *std);
-+	}
-+
-+	case VIDIOC_SUBDEV_ENUMSTD: {
-+		struct v4l2_standard *p = arg;
-+		v4l2_std_id id;
-+
-+		if (v4l2_subdev_call(sd, video, g_tvnorms, &id))
-+			return -EINVAL;
-+
-+		return v4l_video_std_enumstd(p, id);
-+	}
-+
-+	case VIDIOC_SUBDEV_QUERYSTD:
-+		return v4l2_subdev_call(sd, video, querystd, arg);
- #endif
- 	default:
- 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index c95a53e6743cb040..03970ce3074193e6 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -170,8 +170,12 @@ struct v4l2_subdev_selection {
- #define VIDIOC_SUBDEV_G_SELECTION		_IOWR('V', 61, struct v4l2_subdev_selection)
- #define VIDIOC_SUBDEV_S_SELECTION		_IOWR('V', 62, struct v4l2_subdev_selection)
- /* The following ioctls are identical to the ioctls in videodev2.h */
-+#define VIDIOC_SUBDEV_G_STD			_IOR('V', 23, v4l2_std_id)
-+#define VIDIOC_SUBDEV_S_STD			_IOW('V', 24, v4l2_std_id)
-+#define VIDIOC_SUBDEV_ENUMSTD			_IOWR('V', 25, struct v4l2_standard)
- #define VIDIOC_SUBDEV_G_EDID			_IOWR('V', 40, struct v4l2_edid)
- #define VIDIOC_SUBDEV_S_EDID			_IOWR('V', 41, struct v4l2_edid)
-+#define VIDIOC_SUBDEV_QUERYSTD			_IOR('V', 63, v4l2_std_id)
- #define VIDIOC_SUBDEV_S_DV_TIMINGS		_IOWR('V', 87, struct v4l2_dv_timings)
- #define VIDIOC_SUBDEV_G_DV_TIMINGS		_IOWR('V', 88, struct v4l2_dv_timings)
- #define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 98, struct v4l2_enum_dv_timings)
 -- 
-2.17.0
+2.11.0
