@@ -1,63 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f196.google.com ([209.85.217.196]:41476 "EHLO
-        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751117AbeEROXi (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:40223 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753415AbeEUR2A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 10:23:38 -0400
-Received: by mail-ua0-f196.google.com with SMTP id a3-v6so5444045uad.8
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 07:23:38 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org> <20180515075859.17217-8-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-8-stanimir.varbanov@linaro.org>
-From: Tomasz Figa <tfiga@google.com>
-Date: Fri, 18 May 2018 23:23:25 +0900
-Message-ID: <CAAFQd5Ck1x1voV3=G_3yJEh_0S-4kYkx13P00kyMRbhJ4=sSCA@mail.gmail.com>
-Subject: Re: [PATCH v2 07/29] venus: hfi_venus: add halt AXI support for Venus 4xx
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        vgarodia@codeaurora.org
-Content-Type: text/plain; charset="UTF-8"
+        Mon, 21 May 2018 13:28:00 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        horms@verge.net.au, geert@glider.be
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 3/4] media: rcar-vin: Handle CLOCKENB pin polarity
+Date: Mon, 21 May 2018 19:27:42 +0200
+Message-Id: <1526923663-8179-4-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1526923663-8179-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1526923663-8179-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 15, 2018 at 5:12 PM Stanimir Varbanov <
-stanimir.varbanov@linaro.org> wrote:
+Handle CLOCKENB pin polarity, or use HSYNC in its place if polarity is
+not specified and we're running on parallel data bus with explicit
+synchronism signals.
 
-> Add AXI halt support for version 4xx by using venus wrapper
-> registers.
+While at there, simplify the media bus handling flags logic, inspecting
+flags only if the system is running on parallel media bus type and ignore
+flags when on CSI-2. Also change comments style to remove un-necessary
+camel case and add a full stop at the end of sentences.
 
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
->   drivers/media/platform/qcom/venus/hfi_venus.c | 17 +++++++++++++++++
->   1 file changed, 17 insertions(+)
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 34 ++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 9 deletions(-)
 
-> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c
-b/drivers/media/platform/qcom/venus/hfi_venus.c
-> index 734ce11b0ed0..53546174aab8 100644
-> --- a/drivers/media/platform/qcom/venus/hfi_venus.c
-> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
-> @@ -532,6 +532,23 @@ static int venus_halt_axi(struct venus_hfi_device
-*hdev)
->          u32 val;
->          int ret;
-
-> +       if (hdev->core->res->hfi_version == HFI_VERSION_4XX) {
-> +               val = venus_readl(hdev, WRAPPER_CPU_AXI_HALT);
-> +               val |= BIT(16);
-
-Can we have the bit defined?
-
-> +               venus_writel(hdev, WRAPPER_CPU_AXI_HALT, val);
-> +
-> +               ret = readl_poll_timeout(base +
-WRAPPER_CPU_AXI_HALT_STATUS,
-> +                                        val, val & BIT(24),
-
-Ditto.
-
-Best regards,
-Tomasz
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 17f291f..ffd3d62 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -123,6 +123,8 @@
+ /* Video n Data Mode Register 2 bits */
+ #define VNDMR2_VPS		(1 << 30)
+ #define VNDMR2_HPS		(1 << 29)
++#define VNDMR2_CES		(1 << 28)
++#define VNDMR2_CHS		(1 << 23)
+ #define VNDMR2_FTEV		(1 << 17)
+ #define VNDMR2_VLV(n)		((n & 0xf) << 12)
+ 
+@@ -684,21 +686,35 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	}
+ 
+-	/* Enable VSYNC Field Toogle mode after one VSYNC input */
++	/* Enable VSYNC field toggle mode after one VSYNC input. */
+ 	if (vin->info->model == RCAR_GEN3)
+ 		dmr2 = VNDMR2_FTEV;
+ 	else
+ 		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+-	/* Hsync Signal Polarity Select */
+-	if (!vin->is_csi &&
+-	    !(vin->parallel->mbus_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+-		dmr2 |= VNDMR2_HPS;
++	/* Synchronism signal polarities: only for parallel data bus. */
++	if (!vin->is_csi) {
++		/* Hsync signal polarity select. */
++		if (!(vin->parallel->mbus_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++			dmr2 |= VNDMR2_HPS;
+ 
+-	/* Vsync Signal Polarity Select */
+-	if (!vin->is_csi &&
+-	    !(vin->parallel->mbus_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+-		dmr2 |= VNDMR2_VPS;
++		/* Vsync signal polarity select. */
++		if (!(vin->parallel->mbus_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++			dmr2 |= VNDMR2_VPS;
++
++		/*
++		 * Data enable signal polarity select.
++		 * Use HSYNC as data-enable if not specified and running
++		 * with explicit synchronizations; otherwise default 'high'
++		 * is selected.
++		 */
++		if (vin->parallel->mbus_flags & V4L2_MBUS_DATA_ACTIVE_LOW)
++			dmr2 |= VNDMR2_CES;
++		else if (!(vin->parallel->mbus_flags &
++			 V4L2_MBUS_DATA_ACTIVE_HIGH) &&
++			 vin->parallel->mbus_type == V4L2_MBUS_PARALLEL)
++			dmr2 |= VNDMR2_CHS;
++	}
+ 
+ 	/*
+ 	 * Output format
+-- 
+2.7.4
