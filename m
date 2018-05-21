@@ -1,115 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:40507 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752471AbeEOH7c (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:44348 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753286AbeEURBy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:59:32 -0400
-Received: by mail-wr0-f196.google.com with SMTP id v60-v6so14908904wrc.7
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:32 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v2 04/29] venus: hfi_cmds: add set_properties for 4xx version
-Date: Tue, 15 May 2018 10:58:34 +0300
-Message-Id: <20180515075859.17217-5-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+        Mon, 21 May 2018 13:01:54 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v10 06/16] vb2: add is_unordered callback for drivers
+Date: Mon, 21 May 2018 13:59:36 -0300
+Message-Id: <20180521165946.11778-7-ezequiel@collabora.com>
+In-Reply-To: <20180521165946.11778-1-ezequiel@collabora.com>
+References: <20180521165946.11778-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds set_properties method to handle newer 4xx properties and
-fall-back to 3xx for the rest.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Explicit synchronization benefits a lot from ordered queues, they fit
+better in a pipeline with DRM for example so create a opt-in way for
+drivers notify videobuf2 that the queue is unordered.
+
+Drivers don't need implement it if the queue is ordered.
+
+v5: rename it to vb2_ops_is_unordered() (Hans Verkuil)
+
+v4: go back to a bitfield property for the unordered property.
+
+v3: - make it bool (Hans)
+    - create vb2_ops_set_unordered() helper
+
+v2: - improve comments for is_unordered flag (Hans Verkuil)
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/platform/qcom/venus/hfi_cmds.c | 64 +++++++++++++++++++++++++++-
- 1 file changed, 63 insertions(+), 1 deletion(-)
+ drivers/media/common/videobuf2/videobuf2-core.c |  6 ++++++
+ include/media/videobuf2-core.h                  | 16 ++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
-diff --git a/drivers/media/platform/qcom/venus/hfi_cmds.c b/drivers/media/platform/qcom/venus/hfi_cmds.c
-index 1cfeb7743041..6bd287154796 100644
---- a/drivers/media/platform/qcom/venus/hfi_cmds.c
-+++ b/drivers/media/platform/qcom/venus/hfi_cmds.c
-@@ -1166,6 +1166,65 @@ pkt_session_set_property_3xx(struct hfi_session_set_property_pkt *pkt,
- 	return ret;
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index 61e7b6407586..a9a0a9d1decb 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -691,6 +691,12 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
  }
+ EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
  
-+static int
-+pkt_session_set_property_4xx(struct hfi_session_set_property_pkt *pkt,
-+			     void *cookie, u32 ptype, void *pdata)
++bool vb2_ops_is_unordered(struct vb2_queue *q)
 +{
-+	void *prop_data;
-+	int ret = 0;
-+
-+	if (!pkt || !cookie || !pdata)
-+		return -EINVAL;
-+
-+	prop_data = &pkt->data[1];
-+
-+	pkt->shdr.hdr.size = sizeof(*pkt);
-+	pkt->shdr.hdr.pkt_type = HFI_CMD_SESSION_SET_PROPERTY;
-+	pkt->shdr.session_id = hash32_ptr(cookie);
-+	pkt->num_properties = 1;
-+	pkt->data[0] = ptype;
-+
-+	/*
-+	 * Any session set property which is different in 3XX packetization
-+	 * should be added as a new case below. All unchanged session set
-+	 * properties will be handled in the default case.
-+	 */
-+	switch (ptype) {
-+	case HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL: {
-+		struct hfi_buffer_count_actual *in = pdata;
-+		struct hfi_buffer_count_actual_4xx *count = prop_data;
-+
-+		count->count_actual = in->count_actual;
-+		count->type = in->type;
-+		count->count_min_host = in->count_actual;
-+		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*count);
-+		break;
-+	}
-+	case HFI_PROPERTY_PARAM_WORK_MODE: {
-+		struct hfi_video_work_mode *in = pdata, *wm = prop_data;
-+
-+		wm->video_work_mode = in->video_work_mode;
-+		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*wm);
-+		break;
-+	}
-+	case HFI_PROPERTY_CONFIG_VIDEOCORES_USAGE: {
-+		struct hfi_videocores_usage_type *in = pdata, *cu = prop_data;
-+
-+		cu->video_core_enable_mask = in->video_core_enable_mask;
-+		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*cu);
-+		break;
-+	}
-+	case HFI_PROPERTY_CONFIG_VENC_MAX_BITRATE:
-+		/* not implemented on Venus 4xx */
-+		break;
-+	default:
-+		ret = pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
-+		break;
-+	}
-+
-+	return ret;
++	return true;
 +}
++EXPORT_SYMBOL_GPL(vb2_ops_is_unordered);
 +
- int pkt_session_get_property(struct hfi_session_get_property_pkt *pkt,
- 			     void *cookie, u32 ptype)
+ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
+ 		unsigned int *count)
  {
-@@ -1181,7 +1240,10 @@ int pkt_session_set_property(struct hfi_session_set_property_pkt *pkt,
- 	if (hfi_ver == HFI_VERSION_1XX)
- 		return pkt_session_set_property_1x(pkt, cookie, ptype, pdata);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 137f72702101..71538ae2c255 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -376,6 +376,10 @@ struct vb2_buffer {
+  *			callback by calling vb2_buffer_done() with either
+  *			%VB2_BUF_STATE_DONE or %VB2_BUF_STATE_ERROR; may use
+  *			vb2_wait_for_all_buffers() function
++ * @is_unordered:	tell if the queue is unordered, i.e. buffers can be
++ *			dequeued in a different order from how they were queued.
++ *			The default is assumed to be ordered and this function
++ *			only needs to be implemented for unordered queues.
+  * @buf_queue:		passes buffer vb to the driver; driver may start
+  *			hardware operation on this buffer; driver should give
+  *			the buffer back by calling vb2_buffer_done() function;
+@@ -399,6 +403,7 @@ struct vb2_ops {
  
--	return pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
-+	if (hfi_ver == HFI_VERSION_3XX)
-+		return pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
+ 	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
+ 	void (*stop_streaming)(struct vb2_queue *q);
++	bool (*is_unordered)(struct vb2_queue *q);
+ 
+ 	void (*buf_queue)(struct vb2_buffer *vb);
+ };
+@@ -421,6 +426,16 @@ void vb2_ops_wait_prepare(struct vb2_queue *vq);
+  */
+ void vb2_ops_wait_finish(struct vb2_queue *vq);
+ 
++/**
++ * vb2_ops_is_unordered - helper function to check if queue is unordered
++ *
++ * @vq: pointer to &struct vb2_queue
++ *
++ * This helper just returns true to notify that the driver can't deal with
++ * ordered queues.
++ */
++bool vb2_ops_is_unordered(struct vb2_queue *q);
 +
-+	return pkt_session_set_property_4xx(pkt, cookie, ptype, pdata);
- }
+ /**
+  * struct vb2_buf_ops - driver-specific callbacks.
+  *
+@@ -590,6 +605,7 @@ struct vb2_queue {
+ 	u32				cnt_wait_finish;
+ 	u32				cnt_start_streaming;
+ 	u32				cnt_stop_streaming;
++	u32				cnt_is_unordered;
+ #endif
+ };
  
- void pkt_set_version(enum hfi_version version)
 -- 
-2.14.1
+2.16.3
