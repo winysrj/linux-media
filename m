@@ -1,125 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41734 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752081AbeEGVdI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 17:33:08 -0400
-Date: Tue, 8 May 2018 00:33:05 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] [RESEND] [media] omap3isp: support 64-bit version of
- omap3isp_stat_data
-Message-ID: <20180507213305.kfxabgkdvf7xwt7m@valkosipuli.retiisi.org.uk>
-References: <20180425213044.1535393-1-arnd@arndb.de>
- <2922276.lKgGZtlCEW@avalon>
- <20180507131906.rdvcmvim5gvi5odk@valkosipuli.retiisi.org.uk>
- <CAK8P3a2+Xi8VF7B40zev1CT55HCNE92+MsPEiaGj7tOXEV57dg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a2+Xi8VF7B40zev1CT55HCNE92+MsPEiaGj7tOXEV57dg@mail.gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:21746 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751103AbeEUIzX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 04:55:23 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v14 31/36] vim2m: use workqueue
+Date: Mon, 21 May 2018 11:54:56 +0300
+Message-Id: <20180521085501.16861-32-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 07, 2018 at 04:36:45PM -0400, Arnd Bergmann wrote:
-> On Mon, May 7, 2018 at 9:19 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > On Mon, May 07, 2018 at 04:17:32PM +0300, Laurent Pinchart wrote:
-> >> On Thursday, 26 April 2018 00:30:10 EEST Arnd Bergmann wrote:
-> >> > +int omap3isp_stat_request_statistics_time32(struct ispstat *stat,
-> >> > +                                   struct omap3isp_stat_data_time32 *data)
-> >> > +{
-> >> > +   struct omap3isp_stat_data data64;
-> >> > +   int ret;
-> >> > +
-> >> > +   ret = omap3isp_stat_request_statistics(stat, &data64);
-> >> > +
-> >> > +   data->ts.tv_sec = data64.ts.tv_sec;
-> >> > +   data->ts.tv_usec = data64.ts.tv_usec;
-> >> > +   memcpy(&data->buf, &data64.buf, sizeof(*data) - sizeof(data->ts));
-> >> > +
-> >> > +   return ret;
-> >>
-> >> We could return immediately after omap3isp_stat_request_statistics() if the
-> >> function fails, but that's no big deal, the error path is clearly a cold path.
-> 
-> I looked at it again and briefly thought that it would leak kernel stack
-> data in my version and changing it would be required to avoid that,
-> but I do see now that the absence of the INFO_FL_ALWAYS_COPY
-> flag makes it safe after all.
-> 
-> I agree that returning early here would be nicer here, I'll leave it up to
-> Sakari to fold in that change if he likes.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I agree with the change; actually the data64 struct will be left untouched
-if there's an error so changing this doesn't seem to make a difference.
-Private IOCTLs have always_copy == false, so the argument struct isn't
-copied back to the kernel.
+v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
+interrupt context. Switch to a workqueue instead.
 
-The diff is here. Let me know if something went wrong...
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vim2m.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
-index dfee8eaf2226..47353fee26c3 100644
---- a/drivers/media/platform/omap3isp/ispstat.c
-+++ b/drivers/media/platform/omap3isp/ispstat.c
-@@ -519,12 +519,14 @@ int omap3isp_stat_request_statistics_time32(struct ispstat *stat,
- 	int ret;
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 9be4da3b85773..a1b0bb08668d3 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -150,6 +150,7 @@ struct vim2m_dev {
+ 	spinlock_t		irqlock;
  
- 	ret = omap3isp_stat_request_statistics(stat, &data64);
-+	if (ret)
-+		return ret;
+ 	struct timer_list	timer;
++	struct work_struct	work_run;
  
- 	data->ts.tv_sec = data64.ts.tv_sec;
- 	data->ts.tv_usec = data64.ts.tv_usec;
- 	memcpy(&data->buf, &data64.buf, sizeof(*data) - sizeof(data->ts));
- 
--	return ret;
-+	return 0;
+ 	struct v4l2_m2m_dev	*m2m_dev;
+ };
+@@ -392,9 +393,10 @@ static void device_run(void *priv)
+ 	schedule_irq(dev, ctx->transtime);
  }
  
+-static void device_isr(struct timer_list *t)
++static void device_work(struct work_struct *w)
+ {
+-	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
++	struct vim2m_dev *vim2m_dev =
++		container_of(w, struct vim2m_dev, work_run);
+ 	struct vim2m_ctx *curr_ctx;
+ 	struct vb2_v4l2_buffer *src_vb, *dst_vb;
+ 	unsigned long flags;
+@@ -426,6 +428,13 @@ static void device_isr(struct timer_list *t)
+ 	}
+ }
+ 
++static void device_isr(struct timer_list *t)
++{
++	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
++
++	schedule_work(&vim2m_dev->work_run);
++}
++
  /*
-
-> 
-> >> > @@ -165,7 +167,14 @@ struct omap3isp_h3a_aewb_config {
-> >> >   * @config_counter: Number of the configuration associated with the data.
-> >> >   */
-> >> >  struct omap3isp_stat_data {
-> >> > +#ifdef __KERNEL__
-> >> > +   struct {
-> >> > +           __s64   tv_sec;
-> >> > +           __s64   tv_usec;
-> >> > +   } ts;
-> >>
-> >> I share Sakari's comment about this method implying a little-endian system,
-> >> but as the SoCs that integrate this device are all little-endian, that's not a
-> >> problem in practice.
-> 
-> To clarify: the version I have here does *not* imply a little-endian system,
-> it is supposed to work on both little-endian and big-endian builds, and
-> endianess is not a property of the SoC either -- you should be able to
-> build a big-endian kernel and run it on OMAP3 (aside from bugs in other
-> drivers). Using 'long' here instead of __s64 would however make this
-> interface broken on big-endian builds since the glibc definition of timeval
-> does include extra padding on big-endian machines to make the structure
-> compatible between 32-bit and 64-bit ABIs.
-
-Ah, there you go. :-)
-
-> 
-> >> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>
-> >> If you agree with the small comment about header ordering, let's get this
-> >> patch finally merged.
-> >
-> > I can make the change locally in my tree, no need to resend.
-> >
-> > Thanks.
-> 
-> Thanks a lot!
-
+  * video ioctls
+  */
+@@ -806,6 +815,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+ 	struct vb2_v4l2_buffer *vbuf;
+ 	unsigned long flags;
+ 
++	flush_scheduled_work();
+ 	for (;;) {
+ 		if (V4L2_TYPE_IS_OUTPUT(q->type))
+ 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+@@ -1011,6 +1021,7 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	vfd = &dev->vfd;
+ 	vfd->lock = &dev->dev_mutex;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
++	INIT_WORK(&dev->work_run, device_work);
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	dev->mdev.dev = &pdev->dev;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.11.0
