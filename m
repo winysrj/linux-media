@@ -1,156 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f169.google.com ([209.85.128.169]:43413 "EHLO
-        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030468AbeEXJ53 (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:44292 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753065AbeEURBh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 05:57:29 -0400
-Received: by mail-wr0-f169.google.com with SMTP id r13-v6so1943349wrj.10
-        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 02:57:28 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v6 2/6] drm/i915: hdmi: add CEC notifier to intel_hdmi
-Date: Thu, 24 May 2018 11:57:17 +0200
-Message-Id: <1527155841-28494-3-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
-References: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
+        Mon, 21 May 2018 13:01:37 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v10 02/16] xilinx: regroup caps on querycap
+Date: Mon, 21 May 2018 13:59:32 -0300
+Message-Id: <20180521165946.11778-3-ezequiel@collabora.com>
+In-Reply-To: <20180521165946.11778-1-ezequiel@collabora.com>
+References: <20180521165946.11778-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchs adds the cec_notifier feature to the intel_hdmi part
-of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
-between each HDMI ports.
-The changes will allow the i915 HDMI code to notify EDID and HPD changes
-to an eventual CEC adapter.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+To better organize the code we concentrate the setting of
+V4L2_CAP_STREAMING in one place.
+
+v2: move cap->capabilities assignment down (Hans Verkuil)
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/gpu/drm/i915/Kconfig         |  1 +
- drivers/gpu/drm/i915/intel_display.h | 20 ++++++++++++++++++++
- drivers/gpu/drm/i915/intel_drv.h     |  2 ++
- drivers/gpu/drm/i915/intel_hdmi.c    | 13 +++++++++++++
- 4 files changed, 36 insertions(+)
+ drivers/media/platform/xilinx/xilinx-dma.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
-index dfd9588..2d65d56 100644
---- a/drivers/gpu/drm/i915/Kconfig
-+++ b/drivers/gpu/drm/i915/Kconfig
-@@ -23,6 +23,7 @@ config DRM_I915
- 	select SYNC_FILE
- 	select IOSF_MBI
- 	select CRC32
-+	select CEC_CORE if CEC_NOTIFIER
- 	help
- 	  Choose this option if you have a system that has "Intel Graphics
- 	  Media Accelerator" or "HD Graphics" integrated graphics,
-diff --git a/drivers/gpu/drm/i915/intel_display.h b/drivers/gpu/drm/i915/intel_display.h
-index 4e7418b..c68d1c8 100644
---- a/drivers/gpu/drm/i915/intel_display.h
-+++ b/drivers/gpu/drm/i915/intel_display.h
-@@ -126,6 +126,26 @@ enum port {
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 522cdfdd3345..d041f94be832 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -494,13 +494,15 @@ xvip_dma_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+ 	struct v4l2_fh *vfh = file->private_data;
+ 	struct xvip_dma *dma = to_xvip_dma(vfh->vdev);
  
- #define port_name(p) ((p) + 'A')
+-	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
+-			  | dma->xdev->v4l2_caps;
++	cap->device_caps = V4L2_CAP_STREAMING;
  
-+static inline const char *port_identifier(enum port port)
-+{
-+	switch (port) {
-+	case PORT_A:
-+		return "Port A";
-+	case PORT_B:
-+		return "Port B";
-+	case PORT_C:
-+		return "Port C";
-+	case PORT_D:
-+		return "Port D";
-+	case PORT_E:
-+		return "Port E";
-+	case PORT_F:
-+		return "Port F";
-+	default:
-+		return "<invalid>";
-+	}
-+}
+ 	if (dma->queue.type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
+ 	else
+-		cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++		cap->device_caps |= V4L2_CAP_VIDEO_OUTPUT;
 +
- enum dpio_channel {
- 	DPIO_CH0,
- 	DPIO_CH1
-diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
-index d436858..b50e51b 100644
---- a/drivers/gpu/drm/i915/intel_drv.h
-+++ b/drivers/gpu/drm/i915/intel_drv.h
-@@ -39,6 +39,7 @@
- #include <drm/drm_dp_mst_helper.h>
- #include <drm/drm_rect.h>
- #include <drm/drm_atomic.h>
-+#include <media/cec-notifier.h>
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS
++			  | dma->xdev->v4l2_caps;
  
- /**
-  * __wait_for - magic wait macro
-@@ -1001,6 +1002,7 @@ struct intel_hdmi {
- 	bool has_audio;
- 	bool rgb_quant_range_selectable;
- 	struct intel_connector *attached_connector;
-+	struct cec_notifier *notifier;
- };
- 
- struct intel_dp_mst_encoder;
-diff --git a/drivers/gpu/drm/i915/intel_hdmi.c b/drivers/gpu/drm/i915/intel_hdmi.c
-index 1baef4a..d522b5b 100644
---- a/drivers/gpu/drm/i915/intel_hdmi.c
-+++ b/drivers/gpu/drm/i915/intel_hdmi.c
-@@ -1868,6 +1868,8 @@ intel_hdmi_set_edid(struct drm_connector *connector)
- 		connected = true;
- 	}
- 
-+	cec_notifier_set_phys_addr_from_edid(intel_hdmi->notifier, edid);
-+
- 	return connected;
- }
- 
-@@ -1876,6 +1878,7 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
- {
- 	enum drm_connector_status status;
- 	struct drm_i915_private *dev_priv = to_i915(connector->dev);
-+	struct intel_hdmi *intel_hdmi = intel_attached_hdmi(connector);
- 
- 	DRM_DEBUG_KMS("[CONNECTOR:%d:%s]\n",
- 		      connector->base.id, connector->name);
-@@ -1891,6 +1894,9 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
- 
- 	intel_display_power_put(dev_priv, POWER_DOMAIN_GMBUS);
- 
-+	if (status != connector_status_connected)
-+		cec_notifier_phys_addr_invalidate(intel_hdmi->notifier);
-+
- 	return status;
- }
- 
-@@ -2031,6 +2037,8 @@ static void chv_hdmi_pre_enable(struct intel_encoder *encoder,
- 
- static void intel_hdmi_destroy(struct drm_connector *connector)
- {
-+	if (intel_attached_hdmi(connector)->notifier)
-+		cec_notifier_put(intel_attached_hdmi(connector)->notifier);
- 	kfree(to_intel_connector(connector)->detect_edid);
- 	drm_connector_cleanup(connector);
- 	kfree(connector);
-@@ -2358,6 +2366,11 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
- 		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
- 		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
- 	}
-+
-+	intel_hdmi->notifier = cec_notifier_get_conn(dev->dev,
-+						     port_identifier(port));
-+	if (!intel_hdmi->notifier)
-+		DRM_DEBUG_KMS("CEC notifier get failed\n");
- }
- 
- void intel_hdmi_init(struct drm_i915_private *dev_priv,
+ 	strlcpy(cap->driver, "xilinx-vipp", sizeof(cap->driver));
+ 	strlcpy(cap->card, dma->video.name, sizeof(cap->card));
 -- 
-2.7.4
+2.16.3
