@@ -1,391 +1,683 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:12861 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750882AbeERH6v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 03:58:51 -0400
-Date: Fri, 18 May 2018 15:58:32 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [ragnatech:media-tree] BUILD SUCCESS
- 8ed8bba70b4355b1ba029b151ade84475dd12991
-Message-ID: <5afe87a8.4KoaN4QXH7RBvY94%lkp@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:44432 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752986AbeEURCR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 13:02:17 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v10 12/16] vb2: add in-fence support to QBUF
+Date: Mon, 21 May 2018 13:59:42 -0300
+Message-Id: <20180521165946.11778-13-ezequiel@collabora.com>
+In-Reply-To: <20180521165946.11778-1-ezequiel@collabora.com>
+References: <20180521165946.11778-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree/branch: git://git.ragnatech.se/linux  media-tree
-branch HEAD: 8ed8bba70b4355b1ba029b151ade84475dd12991  media: imx274: remove non-indexed pointers from mode_table
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-elapsed time: 1273m
+Receive in-fence from userspace and add support for waiting on them
+before queueing the buffer to the driver. Buffers can't be queued to the
+driver before its fences signal. And a buffer can't be queued to the driver
+out of the order they were queued from userspace. That means that even if
+its fence signals it must wait for all other buffers, ahead of it in the queue,
+to signal first.
 
-configs tested: 359
+If the fence for some buffer fails we do not queue it to the driver,
+instead we mark it as error and wait until the previous buffer is done
+to notify userspace of the error. We wait here to deliver the buffers back
+to userspace in order.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+v13: - cleanup implementation.
+     - remove wrong Kconfig changes.
+     - print noisy warning on unexpected enqueue conditioin
+     - schedule a vb2_start_streaming work from the fence callback
 
-powerpc                      makalu_defconfig
-xtensa                          iss_defconfig
-arm                         axm55xx_defconfig
-m68k                             alldefconfig
-ia64                              allnoconfig
-um                                allnoconfig
-m68k                             allmodconfig
-powerpc                  storcenter_defconfig
-arm                          lpd270_defconfig
-openrisc                          allnoconfig
-arm                          iop32x_defconfig
-arm                       spear13xx_defconfig
-powerpc64                        alldefconfig
-arm                       aspeed_g4_defconfig
-parisc                              defconfig
-microblaze                    nommu_defconfig
-xtensa                generic_kc705_defconfig
-powerpc                     mpc5200_defconfig
-sh                         apsh4a3a_defconfig
-powerpc                      tqm8xx_defconfig
-sh                          landisk_defconfig
-x86_64                 randconfig-a0-05181009
-x86_64                 randconfig-a0-05181107
-x86_64                 randconfig-a0-05181147
-x86_64                 randconfig-a0-05181225
-x86_64                 randconfig-a0-05181250
-x86_64                 randconfig-a0-05181322
-x86_64                 randconfig-a0-05181425
-x86_64                             acpi-redef
-x86_64                           allyesdebian
-x86_64                                nfsroot
-m68k                          hp300_defconfig
-mips                       bmips_be_defconfig
-powerpc                         ps3_defconfig
-s390                              allnoconfig
-arm                     davinci_all_defconfig
-sh                         microdev_defconfig
-powerpc                 mpc8315_rdb_defconfig
-powerpc                    mvme5100_defconfig
-arm                        spear3xx_defconfig
-parisc                            allnoconfig
-mips                        nlm_xlr_defconfig
-sh                           se7780_defconfig
-parisc                         a500_defconfig
-powerpc                      acadia_defconfig
-m68k                             allyesconfig
-mips                malta_qemu_32r6_defconfig
-i386                   randconfig-c0-05181104
-i386                   randconfig-c0-05181219
-i386                   randconfig-c0-05181303
-i386                   randconfig-c0-05181349
-i386                   randconfig-c0-05181425
-i386                   randconfig-c0-05181512
-arm                           h5000_defconfig
-arm                        mini2440_defconfig
-mips                         tb0219_defconfig
-sh                           se7343_defconfig
-sh                        sh7785lcr_defconfig
-xtensa                       common_defconfig
-m68k                              allnoconfig
-arm                         shannon_defconfig
-sh                          urquell_defconfig
-arm64                            allyesconfig
-mips                        qi_lb60_defconfig
-x86_64                randconfig-in0-05181216
-x86_64                randconfig-in0-05181315
-x86_64                randconfig-in0-05181403
-i386                   randconfig-x010-201819
-i386                   randconfig-x011-201819
-i386                   randconfig-x012-201819
-i386                   randconfig-x013-201819
-i386                   randconfig-x014-201819
-i386                   randconfig-x015-201819
-i386                   randconfig-x016-201819
-i386                   randconfig-x017-201819
-i386                   randconfig-x018-201819
-i386                   randconfig-x019-201819
-x86_64                              fedora-25
-x86_64                                    lkp
-x86_64                                   rhel
-x86_64                               rhel-7.2
-microblaze                      mmu_defconfig
-i386                     randconfig-n0-201819
-ia64                             alldefconfig
-ia64                                defconfig
-powerpc                           allnoconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-s390                        default_defconfig
-i386                     randconfig-i0-201819
-i386                     randconfig-i1-201819
-arm                          pxa910_defconfig
-sh                          r7785rp_defconfig
-arm                          pxa168_defconfig
-arm                         s5pv210_defconfig
-arm                          iop33x_defconfig
-sh                          r7780mp_defconfig
-arm                          simpad_defconfig
-powerpc               mpc85xx_basic_defconfig
-i386                              allnoconfig
-x86_64                 randconfig-v0-05181209
-x86_64                 randconfig-v0-05181341
-x86_64                 randconfig-v0-05181357
-alpha                               defconfig
-parisc                         b180_defconfig
-parisc                        c3000_defconfig
-arm                               allnoconfig
-arm                         at91_dt_defconfig
-arm                           efm32_defconfig
-arm                          exynos_defconfig
-arm                        multi_v5_defconfig
-arm                        multi_v7_defconfig
-arm                        shmobile_defconfig
-arm                           sunxi_defconfig
-arm64                             allnoconfig
-arm64                               defconfig
-mips                      bmips_stb_defconfig
-arm                        keystone_defconfig
-h8300                    h8300h-sim_defconfig
-mips                      fuloong2e_defconfig
-sh                        edosk7760_defconfig
-m68k                          atari_defconfig
-sparc64                           allnoconfig
-mips                      maltaaprp_defconfig
-powerpc                       ep405_defconfig
-arm                            xcep_defconfig
-powerpc                 mpc8560_ads_defconfig
-x86_64                                  kexec
-x86_64                 randconfig-g0-05181120
-x86_64                 randconfig-g0-05181156
-x86_64                 randconfig-g0-05181212
-x86_64                 randconfig-g0-05181239
-openrisc                    or1ksim_defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-x86_64                 randconfig-s0-05181009
-x86_64                 randconfig-s1-05181009
-x86_64                 randconfig-s2-05181009
-arm                          nuc960_defconfig
-mips                      loongson3_defconfig
-powerpc                    ge_imp3a_defconfig
-sh                             shx3_defconfig
-arm                         cm_x300_defconfig
-mips                              allnoconfig
-sparc                            allmodconfig
-sparc                               defconfig
-arm                           u8500_defconfig
-ia64                      gensparse_defconfig
-s390                             allmodconfig
-parisc                          712_defconfig
-powerpc                         c2k_defconfig
-sh                          rsk7203_defconfig
-m68k                            q40_defconfig
-powerpc                     mpc512x_defconfig
-sh                ecovec24-romimage_defconfig
-mips                          rb532_defconfig
-mips                         rt305x_defconfig
-powerpc                 mpc8540_ads_defconfig
-sh                            migor_defconfig
-s390                          debug_defconfig
-xtensa                  audio_kc705_defconfig
-arm                         mv78xx0_defconfig
-arm                            qcom_defconfig
-parisc                generic-64bit_defconfig
-sh                            titan_defconfig
-x86_64                            allnoconfig
-powerpc                      chrp32_defconfig
-powerpc                     kmeter1_defconfig
-arm                          prima2_defconfig
-powerpc                     ksi8560_defconfig
-powerpc                   motionpro_defconfig
-arm                          ixp4xx_defconfig
-m68k                         apollo_defconfig
-powerpc                       ebony_defconfig
-powerpc                     stx_gp3_defconfig
-arm                             pxa_defconfig
-mips                          malta_defconfig
-powerpc                     tqm8541_defconfig
-arm                          tango4_defconfig
-xtensa                  nommu_kc705_defconfig
-arm                         nhk8815_defconfig
-microblaze                       allyesconfig
-x86_64                 randconfig-x010-201819
-x86_64                 randconfig-x011-201819
-x86_64                 randconfig-x012-201819
-x86_64                 randconfig-x013-201819
-x86_64                 randconfig-x014-201819
-x86_64                 randconfig-x015-201819
-x86_64                 randconfig-x016-201819
-x86_64                 randconfig-x017-201819
-x86_64                 randconfig-x018-201819
-x86_64                 randconfig-x019-201819
-i386                             alldefconfig
-i386                                defconfig
-m68k                       m5475evb_defconfig
-m68k                          multi_defconfig
-m68k                           sun3_defconfig
-i386                     randconfig-s1-201819
-i386                     randconfig-s0-201819
-x86_64                           allmodconfig
-x86_64                 randconfig-s3-05181025
-x86_64                 randconfig-s4-05181025
-x86_64                 randconfig-s5-05181025
-x86_64                 randconfig-s3-05181100
-x86_64                 randconfig-s4-05181100
-x86_64                 randconfig-s5-05181100
-x86_64                 randconfig-s3-05181126
-x86_64                 randconfig-s4-05181126
-x86_64                 randconfig-s5-05181126
-x86_64                 randconfig-s3-05181159
-x86_64                 randconfig-s4-05181159
-x86_64                 randconfig-s5-05181159
-x86_64                 randconfig-s3-05181223
-x86_64                 randconfig-s4-05181223
-x86_64                 randconfig-s5-05181223
-x86_64                 randconfig-s3-05181243
-x86_64                 randconfig-s4-05181243
-x86_64                 randconfig-s5-05181243
-x86_64                 randconfig-s3-05181306
-x86_64                 randconfig-s4-05181306
-x86_64                 randconfig-s5-05181306
-x86_64                 randconfig-s3-05181328
-x86_64                 randconfig-s4-05181328
-x86_64                 randconfig-s5-05181328
-x86_64                 randconfig-s3-05181348
-x86_64                 randconfig-s4-05181348
-x86_64                 randconfig-s5-05181348
-arm                          nuc910_defconfig
-mips                malta_kvm_guest_defconfig
-powerpc                          allmodconfig
-arm                    vt8500_v6_v7_defconfig
-powerpc64                         allnoconfig
-powerpc                       maple_defconfig
-arm                        realview_defconfig
-powerpc                         wii_defconfig
-sh                               j2_defconfig
-x86_64                           allyesconfig
-x86_64                   randconfig-i0-201819
-i386                   randconfig-b0-05181119
-i386                   randconfig-b0-05181152
-i386                   randconfig-b0-05181228
-i386                   randconfig-b0-05181309
-i386                   randconfig-b0-05181345
-i386                   randconfig-b0-05181416
-sparc64                             defconfig
-arm                         lpc32xx_defconfig
-m68k                          sun3x_defconfig
-sh                             sh03_defconfig
-arm                              allyesconfig
-powerpc                 mpc837x_mds_defconfig
-i386                             allyesconfig
-x86_64                 randconfig-b0-05181200
-x86_64                 randconfig-b0-05181307
-x86_64                 randconfig-b0-05181332
-powerpc                     akebono_defconfig
-powerpc                    amigaone_defconfig
-riscv                               defconfig
-mips                        jmr3927_defconfig
-xtensa                  cadence_csp_defconfig
-mips                     decstation_defconfig
-powerpc                      ppc40x_defconfig
-mips                        bcm47xx_defconfig
-arm                         bcm2835_defconfig
-c6x                        evmc6474_defconfig
-powerpc                      ppc6xx_defconfig
-x86_64                 randconfig-u0-05181127
-x86_64                 randconfig-u0-05181156
-x86_64                 randconfig-u0-05181214
-x86_64                 randconfig-u0-05181239
-x86_64                 randconfig-u0-05181301
-x86_64                 randconfig-u0-05181347
-c6x                        evmc6678_defconfig
-nios2                         10m50_defconfig
-powerpc                 mpc834x_itx_defconfig
-sparc                       sparc32_defconfig
-arm                           tegra_defconfig
-mips                                defconfig
-mips                       lemote2f_defconfig
-nios2                         3c120_defconfig
-arm                            u300_defconfig
-ia64                            sim_defconfig
-mips                           xway_defconfig
-parisc                        c8000_defconfig
-arm                      footbridge_defconfig
-powerpc                     skiroot_defconfig
-x86_64                randconfig-ne0-05181207
-x86_64                randconfig-ne0-05181328
-x86_64                randconfig-ne0-05181413
-powerpc                     tqm8548_defconfig
-powerpc                       holly_defconfig
-sh                              ul2_defconfig
-alpha                            alldefconfig
-c6x                        evmc6472_defconfig
-alpha                            allyesconfig
-arm                        magician_defconfig
-sh                          sdk7786_defconfig
-sh                           se7750_defconfig
-arm                         iop13xx_defconfig
-mips                             allyesconfig
-x86_64                 randconfig-h0-05181206
-x86_64                 randconfig-h0-05181237
-x86_64                 randconfig-h0-05181335
-x86_64                 randconfig-h0-05181419
-i386                   randconfig-x070-201819
-i386                   randconfig-x071-201819
-i386                   randconfig-x072-201819
-i386                   randconfig-x073-201819
-i386                   randconfig-x074-201819
-i386                   randconfig-x075-201819
-i386                   randconfig-x076-201819
-i386                   randconfig-x077-201819
-i386                   randconfig-x078-201819
-i386                   randconfig-x079-201819
-arm                     am200epdkit_defconfig
-h8300                       h8s-sim_defconfig
-sh                        edosk7705_defconfig
-i386                  randconfig-sb0-05181148
-i386                  randconfig-sb0-05181256
-i386                  randconfig-sb0-05181337
-i386                   randconfig-x008-201819
-i386                   randconfig-x006-201819
-i386                   randconfig-x000-201819
-i386                   randconfig-x004-201819
-i386                   randconfig-x009-201819
-i386                   randconfig-x003-201819
-i386                   randconfig-x001-201819
-i386                   randconfig-x005-201819
-i386                   randconfig-x002-201819
-i386                   randconfig-x007-201819
-mips                           32r2_defconfig
-mips                         64r6el_defconfig
-mips                                   jz4740
-mips                      malta_kvm_defconfig
-mips                                     txx9
-x86_64                randconfig-ws0-05181244
-x86_64                              federa-25
-arm                       imx_v4_v5_defconfig
-powerpc                 canyonlands_defconfig
-powerpc                 mpc85xx_cds_defconfig
-arm                          ks8695_defconfig
-sh                          rsk7264_defconfig
-x86_64                 randconfig-x002-201819
-x86_64                 randconfig-x006-201819
-x86_64                 randconfig-x005-201819
-x86_64                 randconfig-x001-201819
-x86_64                 randconfig-x009-201819
-x86_64                 randconfig-x004-201819
-x86_64                 randconfig-x003-201819
-x86_64                 randconfig-x000-201819
-x86_64                 randconfig-x007-201819
-x86_64                 randconfig-x008-201819
-x86_64                 randconfig-r0-05181116
-x86_64                 randconfig-r0-05181226
-microblaze                       allmodconfig
-i386                   randconfig-x0-05181103
-i386                   randconfig-x0-05181246
-i386                   randconfig-x0-05181337
-i386                   randconfig-x0-05181422
-i386                   randconfig-x0-05181450
+v12: fixed dvb_vb2.c usage of vb2_core_qbuf.
 
+v11: - minor doc/comments fixes (Hans Verkuil)
+     - reviewed the in-fence path at __fill_v4l2_buffer()
+
+v10: - rename fence to in_fence in many places
+     - handle fences signalling with error better (Hans Verkuil)
+
+v9: - improve comments and docs (Hans Verkuil)
+    - fix unlocking of vb->fence_cb_lock on vb2_core_qbuf (Hans Verkuil)
+    - move in-fences code that was in the out-fences patch here (Alex)
+
+v8: - improve comments about fences with errors
+
+v7: - get rid of the fence array stuff for ordering and just use
+      get_num_buffers_ready() (Hans)
+    - fix issue of queuing the buffer twice (Hans)
+    - avoid the dma_fence_wait() in core_qbuf() (Alex)
+    - merge preparation commit in
+
+v6: - With fences always keep the order userspace queues the buffers.
+    - Protect in_fence manipulation with a lock (Brian Starkey)
+    - check if fences have the same context before adding a fence array
+    - Fix last_fence ref unbalance in __set_in_fence() (Brian Starkey)
+    - Clean up fence if __set_in_fence() fails (Brian Starkey)
+    - treat -EINVAL from dma_fence_add_callback() (Brian Starkey)
+
+v5: - use fence_array to keep buffers ordered in vb2 core when
+      needed (Brian Starkey)
+    - keep backward compat on the reserved2 field (Brian Starkey)
+    - protect fence callback removal with lock (Brian Starkey)
+
+v4: - Add a comment about dma_fence_add_callback() not returning a
+      error (Hans)
+    - Call dma_fence_put(vb->in_fence) if fence signaled (Hans)
+    - select SYNC_FILE under config VIDEOBUF2_CORE (Hans)
+    - Move dma_fence_is_signaled() check to __enqueue_in_driver() (Hans)
+    - Remove list_for_each_entry() in __vb2_core_qbuf() (Hans)
+    - Remove if (vb->state != VB2_BUF_STATE_QUEUED) from
+      vb2_start_streaming() (Hans)
+    - set IN_FENCE flags on __fill_v4l2_buffer (Hans)
+    - Queue buffers to the driver as soon as they are ready (Hans)
+    - call fill_user_buffer() after queuing the buffer (Hans)
+    - add err: label to clean up fence
+    - add dma_fence_wait() before calling vb2_start_streaming()
+
+v3: - document fence parameter
+    - remove ternary if at vb2_qbuf() return (Mauro)
+    - do not change if conditions behaviour (Mauro)
+
+v2: - fix vb2_queue_or_prepare_buf() ret check
+    - remove check for VB2_MEMORY_DMABUF only (Javier)
+    - check num of ready buffers to start streaming
+    - when queueing, start from the first ready buffer
+    - handle queue cancel
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ drivers/media/common/videobuf2/Kconfig          |   1 +
+ drivers/media/common/videobuf2/videobuf2-core.c | 224 ++++++++++++++++++++----
+ drivers/media/common/videobuf2/videobuf2-v4l2.c |  37 +++-
+ drivers/media/dvb-core/dvb_vb2.c                |   2 +-
+ include/media/videobuf2-core.h                  |  19 +-
+ 5 files changed, 242 insertions(+), 41 deletions(-)
+
+diff --git a/drivers/media/common/videobuf2/Kconfig b/drivers/media/common/videobuf2/Kconfig
+index 17c32ea58395..27ad9e8a268b 100644
+--- a/drivers/media/common/videobuf2/Kconfig
++++ b/drivers/media/common/videobuf2/Kconfig
+@@ -1,6 +1,7 @@
+ # Used by drivers that need Videobuf2 modules
+ config VIDEOBUF2_CORE
+ 	select DMA_SHARED_BUFFER
++	select SYNC_FILE
+ 	tristate
+ 
+ config VIDEOBUF2_V4L2
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index a9a0a9d1decb..86b5ebe25263 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -27,6 +27,7 @@
+ #include <linux/kthread.h>
+ 
+ #include <media/videobuf2-core.h>
++#include <media/v4l2-ioctl.h>
+ #include <media/v4l2-mc.h>
+ 
+ #include <trace/events/vb2.h>
+@@ -189,6 +190,7 @@ module_param(debug, int, 0644);
+ 
+ static void __vb2_queue_cancel(struct vb2_queue *q);
+ static void __enqueue_in_driver(struct vb2_buffer *vb);
++static void __qbuf_work(struct work_struct *work);
+ 
+ static void __vb2_buffer_free(struct kref *kref)
+ {
+@@ -373,6 +375,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+ 		vb->index = q->num_buffers + buffer;
+ 		vb->type = q->type;
+ 		vb->memory = memory;
++		INIT_WORK(&vb->qbuf_work, __qbuf_work);
+ 		for (plane = 0; plane < num_planes; ++plane) {
+ 			vb->planes[plane].length = plane_sizes[plane];
+ 			vb->planes[plane].min_length = plane_sizes[plane];
+@@ -932,21 +935,12 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
+ }
+ EXPORT_SYMBOL_GPL(vb2_plane_cookie);
+ 
+-void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
++static void vb2_process_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	unsigned long flags;
+ 	unsigned int plane;
+ 
+-	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+-		return;
+-
+-	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+-		    state != VB2_BUF_STATE_ERROR &&
+-		    state != VB2_BUF_STATE_QUEUED &&
+-		    state != VB2_BUF_STATE_REQUEUEING))
+-		state = VB2_BUF_STATE_ERROR;
+-
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	/*
+ 	 * Although this is not a callback, it still does have to balance
+@@ -962,6 +956,9 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+ 
+ 	spin_lock_irqsave(&q->done_lock, flags);
++	if (vb->state == VB2_BUF_STATE_ACTIVE)
++		atomic_dec(&q->owned_by_drv_count);
++
+ 	if (state == VB2_BUF_STATE_QUEUED ||
+ 	    state == VB2_BUF_STATE_REQUEUEING) {
+ 		vb->state = VB2_BUF_STATE_QUEUED;
+@@ -970,7 +967,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 		list_add_tail(&vb->done_entry, &q->done_list);
+ 		vb->state = state;
+ 	}
+-	atomic_dec(&q->owned_by_drv_count);
++
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
+ 
+ 	trace_vb2_buf_done(q, vb);
+@@ -987,6 +984,47 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 		wake_up(&q->done_wq);
+ 		break;
+ 	}
++
++}
++
++void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
++{
++	struct vb2_buffer *next;
++	struct vb2_queue *q;
++
++	dprintk(4, "called done on buffer %d state: %d -> %d\n",
++			vb->index, vb->state, state);
++
++	if (vb->state == VB2_BUF_STATE_ERROR)
++		return;
++	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
++		return;
++
++	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
++		    state != VB2_BUF_STATE_ERROR &&
++		    state != VB2_BUF_STATE_QUEUED &&
++		    state != VB2_BUF_STATE_REQUEUEING))
++		state = VB2_BUF_STATE_ERROR;
++
++	vb2_process_buffer_done(vb, state);
++
++	/*
++	 * Check if there is any buffer with an in-fence error in the next
++	 * position of the queue. Buffers whose in-fence signaled with error
++	 * are not queued to the driver and kept on the queue until the buffer
++	 * before them is done.
++	 * So here we process any existing buffers with in-fence errors and
++	 * wake up userspace.
++	 */
++	q = vb->vb2_queue;
++	next = list_next_entry(vb, queued_entry);
++	list_for_each_entry_from(next, &q->queued_list, queued_entry) {
++		if (!next->in_fence || !next->in_fence->error)
++			break;
++		if (next->in_fence && next->in_fence->error &&
++		    vb->state != VB2_BUF_STATE_ERROR)
++			vb2_process_buffer_done(next, VB2_BUF_STATE_ERROR);
++	}
+ }
+ EXPORT_SYMBOL_GPL(vb2_buffer_done);
+ 
+@@ -1271,6 +1309,8 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 
++	if (WARN_ON(vb->state == VB2_BUF_STATE_ACTIVE))
++		return;
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+ 	atomic_inc(&q->owned_by_drv_count);
+ 
+@@ -1322,6 +1362,25 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+ 	return 0;
+ }
+ 
++static int __get_num_ready_buffers(struct vb2_queue *q)
++{
++	struct vb2_buffer *vb;
++	int ready_count = 0;
++
++	/*
++	 * Count num of buffers ready in front of the queued_list.
++	 * We want to stop counting when we find a buffer with an
++	 * unsignaled fence.
++	 */
++	list_for_each_entry(vb, &q->queued_list, queued_entry) {
++		if (vb->in_fence && dma_fence_get_status(vb->in_fence) == 0)
++			break;
++		ready_count++;
++	}
++
++	return ready_count;
++}
++
+ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+ {
+ 	struct vb2_buffer *vb;
+@@ -1338,7 +1397,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	if (ret)
+ 		return ret;
+ 
+-	/* Fill buffer information for the userspace */
++	/* Fill buffer information for userspace */
+ 	call_void_bufop(q, fill_user_buffer, vb, pb);
+ 
+ 	dprintk(2, "prepare of buffer %d succeeded\n", vb->index);
+@@ -1364,11 +1423,16 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 	int ret;
+ 
+ 	/*
+-	 * If any buffers were queued before streamon,
+-	 * we can now pass them to driver for processing.
++	 * Activate all buffers currently queued,
++	 * until we get an unsignaled fence.
+ 	 */
+-	list_for_each_entry(vb, &q->queued_list, queued_entry)
++	list_for_each_entry(vb, &q->queued_list, queued_entry) {
++		if (vb->state != VB2_BUF_STATE_QUEUED)
++			continue;
++		if (vb->in_fence && dma_fence_get_status(vb->in_fence) == 0)
++			break;
+ 		__enqueue_in_driver(vb);
++	}
+ 
+ 	/* Tell the driver to start streaming */
+ 	q->start_streaming_called = 1;
+@@ -1410,7 +1474,41 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 	return ret;
+ }
+ 
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
++static void __qbuf_work(struct work_struct *work)
++{
++	struct vb2_buffer *vb;
++	struct vb2_queue *q;
++
++	vb = container_of(work, struct vb2_buffer, qbuf_work);
++	q = vb->vb2_queue;
++
++	if (q->lock)
++		mutex_lock(q->lock);
++	/* By the time we run, the buffer state could have changed,
++	 * so we need to check it's in the queued state.
++	 * This is the only valid state.
++	 */
++	if (q->start_streaming_called && vb->state == VB2_BUF_STATE_QUEUED)
++		__enqueue_in_driver(vb);
++
++	if (q->streaming && !q->start_streaming_called &&
++	    __get_num_ready_buffers(q) >= q->min_buffers_needed)
++		vb2_start_streaming(q);
++
++	if (q->lock)
++		mutex_unlock(q->lock);
++	__vb2_buffer_put(vb);
++}
++
++static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb *cb)
++{
++	struct vb2_buffer *vb = container_of(cb, struct vb2_buffer, fence_cb);
++
++	schedule_work(&vb->qbuf_work);
++}
++
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct dma_fence *in_fence)
+ {
+ 	struct vb2_buffer *vb;
+ 	int ret;
+@@ -1421,16 +1519,18 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	case VB2_BUF_STATE_DEQUEUED:
+ 		ret = __buf_prepare(vb, pb);
+ 		if (ret)
+-			return ret;
++			goto err_release;
+ 		break;
+ 	case VB2_BUF_STATE_PREPARED:
+ 		break;
+ 	case VB2_BUF_STATE_PREPARING:
+ 		dprintk(1, "buffer still being prepared\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto err_release;
+ 	default:
+ 		dprintk(1, "invalid buffer state %d\n", vb->state);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto err_release;
+ 	}
+ 
+ 	/*
+@@ -1448,15 +1548,44 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	trace_vb2_qbuf(q, vb);
+ 
+ 	/*
+-	 * If already streaming, give the buffer to driver for processing.
+-	 * If not, the buffer will be given to driver on next streamon.
++	 * If the fence didn't signal yet, we setup a callback to queue
++	 * the buffer once the fence signals. If the fence already signaled,
++	 * then we lose the reference and queue the buffer.
+ 	 */
+-	if (q->start_streaming_called)
+-		__enqueue_in_driver(vb);
++	if (in_fence) {
++		WARN_ON(vb->in_fence);
++		vb->in_fence = in_fence;
++		__vb2_buffer_get(vb);
++		ret = dma_fence_add_callback(in_fence, &vb->fence_cb,
++					     vb2_qbuf_fence_cb);
++		/* is the fence signaled? */
++		if (ret == -ENOENT) {
++			if (in_fence->error)
++				/* error-signaled fence, reject this buffer */
++				goto err_release;
++			dma_fence_put(in_fence);
++			vb->in_fence = NULL;
++			__vb2_buffer_put(vb);
++		} else if (ret) {
++			goto err_release;
++		}
++	}
+ 
+-	/* Fill buffer information for the userspace */
+-	if (pb)
+-		call_void_bufop(q, fill_user_buffer, vb, pb);
++	/*
++	 * If already streaming and there is no fence to wait on
++	 * give the buffer to driver for processing.
++	 */
++	if (q->start_streaming_called) {
++		struct vb2_buffer *b;
++
++		list_for_each_entry(b, &q->queued_list, queued_entry) {
++			if (b->state != VB2_BUF_STATE_QUEUED)
++				continue;
++			if (b->in_fence && dma_fence_get_status(b->in_fence) == 0)
++				break;
++			__enqueue_in_driver(b);
++		}
++	}
+ 
+ 	/*
+ 	 * If streamon has been called, and we haven't yet called
+@@ -1465,14 +1594,32 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	 * then we can finally call start_streaming().
+ 	 */
+ 	if (q->streaming && !q->start_streaming_called &&
+-	    q->queued_count >= q->min_buffers_needed) {
++	    __get_num_ready_buffers(q) >= q->min_buffers_needed) {
+ 		ret = vb2_start_streaming(q);
+ 		if (ret)
+-			return ret;
++			goto err_release;
+ 	}
+ 
++	/* Fill buffer information for userspace */
++	if (pb)
++		call_void_bufop(q, fill_user_buffer, vb, pb);
++
+ 	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
+ 	return 0;
++
++err_release:
++	/* Fill buffer information for userspace */
++	if (pb)
++		call_void_bufop(q, fill_user_buffer, vb, pb);
++
++	if (in_fence) {
++		dma_fence_put(in_fence);
++		vb->in_fence = NULL;
++		__vb2_buffer_put(vb);
++	}
++
++	return ret;
++
+ }
+ EXPORT_SYMBOL_GPL(vb2_core_qbuf);
+ 
+@@ -1615,7 +1762,12 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ 		return;
+ 
+ 	vb->state = VB2_BUF_STATE_DEQUEUED;
+-
++	if (vb->in_fence) {
++		if (dma_fence_remove_callback(vb->in_fence, &vb->fence_cb))
++			__vb2_buffer_put(vb);
++		dma_fence_put(vb->in_fence);
++		vb->in_fence = NULL;
++	}
+ 	/* unmap DMABUF buffer */
+ 	if (q->memory == VB2_MEMORY_DMABUF)
+ 		for (i = 0; i < vb->num_planes; ++i) {
+@@ -1653,7 +1805,7 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
+ 	if (pindex)
+ 		*pindex = vb->index;
+ 
+-	/* Fill buffer information for the userspace */
++	/* Fill buffer information for userspace */
+ 	if (pb)
+ 		call_void_bufop(q, fill_user_buffer, vb, pb);
+ 
+@@ -1700,8 +1852,8 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
+ 		for (i = 0; i < q->num_buffers; ++i)
+ 			if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE) {
+-				pr_warn("driver bug: stop_streaming operation is leaving buf %p in active state\n",
+-					q->bufs[i]);
++				pr_warn("driver bug: stop_streaming operation is leaving buf[%d] 0x%p in active state\n",
++					q->bufs[i]->index, q->bufs[i]);
+ 				vb2_buffer_done(q->bufs[i], VB2_BUF_STATE_ERROR);
+ 			}
+ 		/* Must be zero now */
+@@ -1783,7 +1935,7 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
+ 	 * Tell driver to start streaming provided sufficient buffers
+ 	 * are available.
+ 	 */
+-	if (q->queued_count >= q->min_buffers_needed) {
++	if (__get_num_ready_buffers(q) >= q->min_buffers_needed) {
+ 		ret = v4l_vb2q_enable_media_source(q);
+ 		if (ret)
+ 			return ret;
+@@ -2305,7 +2457,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 		 * Queue all buffers.
+ 		 */
+ 		for (i = 0; i < q->num_buffers; i++) {
+-			ret = vb2_core_qbuf(q, i, NULL);
++			ret = vb2_core_qbuf(q, i, NULL, NULL);
+ 			if (ret)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+@@ -2484,7 +2636,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 
+ 		if (copy_timestamp)
+ 			b->timestamp = ktime_get_ns();
+-		ret = vb2_core_qbuf(q, index, NULL);
++		ret = vb2_core_qbuf(q, index, NULL, NULL);
+ 		dprintk(5, "vb2_dbuf result: %d\n", ret);
+ 		if (ret)
+ 			return ret;
+@@ -2587,7 +2739,7 @@ static int vb2_thread(void *data)
+ 		if (copy_timestamp)
+ 			vb->timestamp = ktime_get_ns();
+ 		if (!threadio->stop)
+-			ret = vb2_core_qbuf(q, vb->index, NULL);
++			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
+ 		call_void_qop(q, wait_prepare, q);
+ 		if (ret || threadio->stop)
+ 			break;
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 8312f61adfa6..ac14cc8ab1c5 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -23,6 +23,7 @@
+ #include <linux/sched.h>
+ #include <linux/freezer.h>
+ #include <linux/kthread.h>
++#include <linux/sync_file.h>
+ 
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+@@ -178,6 +179,22 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 		return -EINVAL;
+ 	}
+ 
++	if ((b->fence_fd != 0 && b->fence_fd != -1) &&
++	    !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
++		dprintk(1, "%s: fence_fd set without IN_FENCE flag\n", opname);
++		return -EINVAL;
++	}
++
++	if (b->fence_fd < 0 && (b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
++		dprintk(1, "%s: IN_FENCE flag set but no fence_fd\n", opname);
++		return -EINVAL;
++	}
++
++	if ((b->flags & V4L2_BUF_FLAG_IN_FENCE) && !q->lock) {
++		pr_warn("%s: IN_FENCE flag set, but no queue lock\n", opname);
++		b->flags &= ~V4L2_BUF_FLAG_IN_FENCE;
++	}
++
+ 	return __verify_planes_array(q->bufs[b->index], b);
+ }
+ 
+@@ -210,6 +227,11 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	else
+ 		b->fence_fd = 0;
+ 
++	if (vb->in_fence)
++		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
++	else
++		b->flags &= ~V4L2_BUF_FLAG_IN_FENCE;
++
+ 	if (q->is_multiplanar) {
+ 		/*
+ 		 * Fill in plane-related data if userspace provided an array
+@@ -566,6 +588,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
+ 
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ {
++	struct dma_fence *in_fence = NULL;
+ 	int ret;
+ 
+ 	if (vb2_fileio_is_active(q)) {
+@@ -574,7 +597,19 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	}
+ 
+ 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+-	return ret ? ret : vb2_core_qbuf(q, b->index, b);
++	if (ret)
++		return ret;
++
++	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
++		in_fence = sync_file_get_fence(b->fence_fd);
++		if (!in_fence) {
++			dprintk(1, "failed to get in-fence from fd %d\n",
++				b->fence_fd);
++			return -EINVAL;
++		}
++	}
++
++	return vb2_core_qbuf(q, b->index, b, in_fence);
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
+diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
+index b811adf88afa..7da53f10db1a 100644
+--- a/drivers/media/dvb-core/dvb_vb2.c
++++ b/drivers/media/dvb-core/dvb_vb2.c
+@@ -385,7 +385,7 @@ int dvb_vb2_qbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
+ {
+ 	int ret;
+ 
+-	ret = vb2_core_qbuf(&ctx->vb_q, b->index, b);
++	ret = vb2_core_qbuf(&ctx->vb_q, b->index, b, NULL);
+ 	if (ret) {
+ 		dprintk(1, "[%s] index=%d errno=%d\n", ctx->name,
+ 			b->index, ret);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 71538ae2c255..ddd555f59dbf 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -14,6 +14,7 @@
+ 
+ #include <linux/bitops.h>
+ #include <linux/dma-buf.h>
++#include <linux/dma-fence.h>
+ #include <linux/kref.h>
+ #include <linux/mm_types.h>
+ #include <linux/mutex.h>
+@@ -257,6 +258,10 @@ struct vb2_buffer {
+ 	 * done_entry:		entry on the list that stores all buffers ready
+ 	 *			to be dequeued to userspace
+ 	 * vb2_plane:		per-plane information; do not change
++	 * in_fence:		fence received from vb2 client to wait on before
++	 *			using the buffer (queueing to the driver)
++	 * fence_cb:		fence callback information
++	 * qbuf_work:		work for deferred qbuf operation
+ 	 */
+ 	struct kref		refcount;
+ 	enum vb2_buffer_state	state;
+@@ -264,6 +269,11 @@ struct vb2_buffer {
+ 	struct vb2_plane	planes[VB2_MAX_PLANES];
+ 	struct list_head	queued_entry;
+ 	struct list_head	done_entry;
++
++	struct dma_fence	*in_fence;
++	struct dma_fence_cb	fence_cb;
++	struct work_struct	qbuf_work;
++
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	/*
+ 	 * Counters for how often these buffer-related ops are
+@@ -488,8 +498,9 @@ struct vb2_buf_ops {
+  * @lock:	pointer to a mutex that protects the &struct vb2_queue. The
+  *		driver can set this to a mutex to let the v4l2 core serialize
+  *		the queuing ioctls. If the driver wants to handle locking
+- *		itself, then this should be set to NULL. This lock is not used
+- *		by the videobuf2 core API.
++ *		itself, then this should be set to NULL. This lock is required
++ *		by the videobuf2 core only on the fence-deferred start streaming
++ *		path.
+  * @owner:	The filehandle that 'owns' the buffers, i.e. the filehandle
+  *		that called reqbufs, create_buffers or started fileio.
+  *		This field is not used by the videobuf2 core API, but it allows
+@@ -789,6 +800,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+  * @index:	id number of the buffer
+  * @pb:		buffer structure passed from userspace to
+  *		v4l2_ioctl_ops->vidioc_qbuf handler in driver
++ * @in_fence:	in-fence to wait on before queueing the buffer
+  *
+  * Videobuf2 core helper to implement VIDIOC_QBUF() operation. It is called
+  * internally by VB2 by an API-specific handler, like ``videobuf2-v4l2.h``.
+@@ -803,7 +815,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+  *
+  * Return: returns zero on success; an error code otherwise.
+  */
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct dma_fence *in_fence);
+ 
+ /**
+  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
+-- 
+2.16.3
