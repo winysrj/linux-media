@@ -1,57 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:42671 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S968844AbeE3JNi (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:34743 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751574AbeEUOVv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 05:13:38 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: ysato@users.sourceforge.jp, dalias@libc.org,
-        laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, linux-sh@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH] media: arch: sh: migor: Fix TW9910 PDN gpio
-Date: Wed, 30 May 2018 11:13:24 +0200
-Message-Id: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org>
+        Mon, 21 May 2018 10:21:51 -0400
+Received: by mail-wr0-f193.google.com with SMTP id j1-v6so5249077wrm.1
+        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 07:21:50 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        eballetbo@gmail.com
+Subject: [PATCH v4 0/5] Add ChromeOS EC CEC Support
+Date: Mon, 21 May 2018 16:21:41 +0200
+Message-Id: <1526912506-18406-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The TW9910 PDN gpio (power down) is listed as active high in the chip
-manual. It turns out it is actually active low as when set to physical
-level 0 it actually turns the video decoder power off.
+Hi All,
 
-Without this patch applied:
-tw9910 0-0045: Product ID error 1f:2
+The new Google "Fizz" Intel-based ChromeOS device is gaining CEC support
+through it's Embedded Controller, to enable the Linux CEC Core to communicate
+with it and get the CEC Physical Address from the correct HDMI Connector, the
+following must be added/changed:
+- Add the CEC sub-device registration in the ChromeOS EC MFD Driver
+- Add the CEC related commands and events definitions into the EC MFD driver
+- Add a way to get a CEC notifier with it's (optional) connector name
+- Add the CEC notifier to the i915 HDMI driver
+- Add the proper ChromeOS EC CEC Driver
 
-With this patch applied:
-tw9910 0-0045: tw9910 Product ID b:0
+The CEC notifier with the connector name is the tricky point, since even on
+Device-Tree platforms, there is no way to distinguish between multiple HDMI
+connectors from the same DRM driver. The solution I implemented is pretty
+simple and only adds an optional connector name to eventually distinguish
+an HDMI connector notifier from another if they share the same device.
 
-Fixes: commit "186c446f4b840bd77b79d3dc951ca436cb8abe79"
+Feel free to comment this patchset !
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Changes since v3 (incorrectly reported as v2):
+ - Renamed "Chrome OS" to "ChromeOS"
+ - Updated cros_ec_commands.h new structs definitions to kernel doc format
+ - Added Reviwed-By tags
 
----
-Hi,
-   sending to both media and sh lists, as all previous CEU-related patches
-went through Hans' tree, even the board specific parts.
+Changes since v2:
+ - Add i915 port_identifier() and use this stable name as cec_notifier conn name
+ - Fixed and cleaned up the CEC commands and events handling
+ - Rebased the CEC sub-device registration on top of Enric's serie
+ - Fixed comments typo on cec driver
+ - Protected the DMI match only with PCI and DMI Kconfigs
 
-Thanks
-   j
----
- arch/sh/boards/mach-migor/setup.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes since v1:
+ - Added cec_notifier_put to intel_hdmi
+ - Fixed all small reported issues on the EC CEC driver
+ - Moved the cec_notifier_get out of the #if .. #else .. #endif
 
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index 271dfc2..3d7d004 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -359,7 +359,7 @@ static struct gpiod_lookup_table ov7725_gpios = {
- static struct gpiod_lookup_table tw9910_gpios = {
- 	.dev_id		= "0-0045",
- 	.table		= {
--		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT2, "pdn", GPIO_ACTIVE_HIGH),
-+		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT2, "pdn", GPIO_ACTIVE_LOW),
- 		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_LOW),
- 	},
- };
---
+Changes since RFC:
+ - Moved CEC sub-device registration after CEC commands and events definitions patch
+ - Removed get_notifier_get_byname
+ - Added CEC_CORE select into i915 Kconfig
+ - Removed CEC driver fallback if notifier is not configured on HW, added explicit warn
+ - Fixed CEC core return type on error
+ - Moved to cros-ec-cec media platform directory
+ - Use bus_find_device() to find the pci i915 device instead of get_notifier_get_byname()
+ - Fix Logical Address setup
+ - Added comment about HW support
+ - Removed memset of msg structures
+
+Neil Armstrong (5):
+  media: cec-notifier: Get notifier by device and connector name
+  drm/i915: hdmi: add CEC notifier to intel_hdmi
+  mfd: cros-ec: Introduce CEC commands and events definitions.
+  mfd: cros_ec_dev: Add CEC sub-device registration
+  media: platform: Add ChromeOS EC CEC driver
+
+ drivers/gpu/drm/i915/Kconfig                     |   1 +
+ drivers/gpu/drm/i915/intel_display.h             |  20 ++
+ drivers/gpu/drm/i915/intel_drv.h                 |   2 +
+ drivers/gpu/drm/i915/intel_hdmi.c                |  13 +
+ drivers/media/cec/cec-notifier.c                 |  11 +-
+ drivers/media/platform/Kconfig                   |  11 +
+ drivers/media/platform/Makefile                  |   2 +
+ drivers/media/platform/cros-ec-cec/Makefile      |   1 +
+ drivers/media/platform/cros-ec-cec/cros-ec-cec.c | 347 +++++++++++++++++++++++
+ drivers/mfd/cros_ec_dev.c                        |  16 ++
+ drivers/platform/chrome/cros_ec_proto.c          |  40 ++-
+ include/linux/mfd/cros_ec.h                      |   2 +-
+ include/linux/mfd/cros_ec_commands.h             | 103 +++++++
+ include/media/cec-notifier.h                     |  27 +-
+ 14 files changed, 580 insertions(+), 16 deletions(-)
+ create mode 100644 drivers/media/platform/cros-ec-cec/Makefile
+ create mode 100644 drivers/media/platform/cros-ec-cec/cros-ec-cec.c
+
+-- 
 2.7.4
