@@ -1,380 +1,1417 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:35943 "EHLO gofer.mess.org"
+Received: from mga11.intel.com ([192.55.52.93]:41513 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752516AbeEOSuY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 14:50:24 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Y Song <ys114321@gmail.com>
-Subject: [PATCH v2 2/2] bpf: add selftest for rawir_event type program
-Date: Tue, 15 May 2018 19:50:20 +0100
-Message-Id: <8777f7368f8a2313c96500a64871fcdd82f122d2.1526409690.git.sean@mess.org>
-In-Reply-To: <cover.1526409690.git.sean@mess.org>
-References: <cover.1526409690.git.sean@mess.org>
-In-Reply-To: <cover.1526409690.git.sean@mess.org>
-References: <cover.1526409690.git.sean@mess.org>
+        id S1751027AbeEUHIM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 03:08:12 -0400
+From: bingbu.cao@intel.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, bingbu.cao@linux.intel.com,
+        tian.shu.qiu@linux.intel.com, rajmohan.mani@intel.com,
+        mchehab@kernel.org
+Subject: [PATCH v2 2/3] media: imx258: Add imx258 camera sensor driver
+Date: Mon, 21 May 2018 15:10:36 +0800
+Message-Id: <1526886637-14378-2-git-send-email-bingbu.cao@intel.com>
+In-Reply-To: <1526886637-14378-1-git-send-email-bingbu.cao@intel.com>
+References: <1526529744-25446-1-git-send-email-bingbu.cao@intel.com>
+ <1526886637-14378-1-git-send-email-bingbu.cao@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is simple test over rc-loopback.
+From: Jason Chen <jasonx.z.chen@intel.com>
 
-Signed-off-by: Sean Young <sean@mess.org>
+Add a V4L2 sub-device driver for the Sony IMX258 image sensor.
+This is a camera sensor using the I2C bus for control and the
+CSI-2 bus for data.
+
+Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+Signed-off-by: Alan Chiang <alanx.chiang@intel.com>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- tools/bpf/bpftool/prog.c                      |  1 +
- tools/include/uapi/linux/bpf.h                | 55 +++++++++++-
- tools/lib/bpf/libbpf.c                        |  1 +
- tools/testing/selftests/bpf/Makefile          |  7 +-
- tools/testing/selftests/bpf/bpf_helpers.h     |  6 ++
- tools/testing/selftests/bpf/test_rawir.sh     | 37 ++++++++
- .../selftests/bpf/test_rawir_event_kern.c     | 26 ++++++
- .../selftests/bpf/test_rawir_event_user.c     | 90 +++++++++++++++++++
- 8 files changed, 219 insertions(+), 4 deletions(-)
- create mode 100755 tools/testing/selftests/bpf/test_rawir.sh
- create mode 100644 tools/testing/selftests/bpf/test_rawir_event_kern.c
- create mode 100644 tools/testing/selftests/bpf/test_rawir_event_user.c
+ MAINTAINERS                |    7 +
+ drivers/media/i2c/Kconfig  |   11 +
+ drivers/media/i2c/Makefile |    1 +
+ drivers/media/i2c/imx258.c | 1320 ++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 1339 insertions(+)
+ create mode 100644 drivers/media/i2c/imx258.c
 
-diff --git a/tools/bpf/bpftool/prog.c b/tools/bpf/bpftool/prog.c
-index 9bdfdf2d3fbe..8889a4ee8577 100644
---- a/tools/bpf/bpftool/prog.c
-+++ b/tools/bpf/bpftool/prog.c
-@@ -71,6 +71,7 @@ static const char * const prog_type_name[] = {
- 	[BPF_PROG_TYPE_SK_MSG]		= "sk_msg",
- 	[BPF_PROG_TYPE_RAW_TRACEPOINT]	= "raw_tracepoint",
- 	[BPF_PROG_TYPE_CGROUP_SOCK_ADDR] = "cgroup_sock_addr",
-+	[BPF_PROG_TYPE_RAWIR_EVENT]	= "rawir_event",
- };
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4d6f837b2337..e73a55a6a855 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -13069,6 +13069,13 @@ S:	Maintained
+ F:	drivers/ssb/
+ F:	include/linux/ssb/
  
- static void print_boot_time(__u64 nsecs, char *buf, unsigned int size)
-diff --git a/tools/include/uapi/linux/bpf.h b/tools/include/uapi/linux/bpf.h
-index 02e4112510f8..8ba1be825af0 100644
---- a/tools/include/uapi/linux/bpf.h
-+++ b/tools/include/uapi/linux/bpf.h
-@@ -140,6 +140,7 @@ enum bpf_prog_type {
- 	BPF_PROG_TYPE_SK_MSG,
- 	BPF_PROG_TYPE_RAW_TRACEPOINT,
- 	BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
-+	BPF_PROG_TYPE_RAWIR_EVENT,
- };
- 
- enum bpf_attach_type {
-@@ -157,6 +158,7 @@ enum bpf_attach_type {
- 	BPF_CGROUP_INET6_CONNECT,
- 	BPF_CGROUP_INET4_POST_BIND,
- 	BPF_CGROUP_INET6_POST_BIND,
-+	BPF_RAWIR_EVENT,
- 	__MAX_BPF_ATTACH_TYPE
- };
- 
-@@ -1855,6 +1857,35 @@ union bpf_attr {
-  *             Egress device index on success, 0 if packet needs to continue
-  *             up the stack for further processing or a negative error in case
-  *             of failure.
-+ *
-+ * int bpf_rc_keydown(void *ctx, u32 protocol, u32 scancode, u32 toggle)
-+ *	Description
-+ *		Report decoded scancode with toggle value. For use in
-+ *		BPF_PROG_TYPE_RAWIR_EVENT, to report a successfully
-+ *		decoded scancode. This is will generate a keydown event,
-+ *		and a keyup event once the scancode is no longer repeated.
-+ *
-+ *		*ctx* pointer to bpf_rawir_event, *protocol* is decoded
-+ *		protocol (see RC_PROTO_* enum).
-+ *
-+ *		Some protocols include a toggle bit, in case the button
-+ *		was released and pressed again between consecutive scancodes,
-+ *		copy this bit into *toggle* if it exists, else set to 0.
-+ *
-+ *     Return
-+ *		Always return 0 (for now)
-+ *
-+ * int bpf_rc_repeat(void *ctx)
-+ *	Description
-+ *		Repeat the last decoded scancode; some IR protocols like
-+ *		NEC have a special IR message for repeat last button,
-+ *		in case user is holding a button down; the scancode is
-+ *		not repeated.
-+ *
-+ *		*ctx* pointer to bpf_rawir_event.
-+ *
-+ *     Return
-+ *		Always return 0 (for now)
-  */
- #define __BPF_FUNC_MAPPER(FN)		\
- 	FN(unspec),			\
-@@ -1926,7 +1957,9 @@ union bpf_attr {
- 	FN(skb_get_xfrm_state),		\
- 	FN(get_stack),			\
- 	FN(skb_load_bytes_relative),	\
--	FN(fib_lookup),
-+	FN(fib_lookup),			\
-+	FN(rc_repeat),			\
-+	FN(rc_keydown),
- 
- /* integer value in 'imm' field of BPF_CALL instruction selects which helper
-  * function eBPF program intends to call
-@@ -1993,6 +2026,26 @@ enum bpf_hdr_start_off {
- 	BPF_HDR_START_NET,
- };
- 
-+/*
-+ * user accessible mirror of in-kernel ir_raw_event
-+ */
-+#define BPF_RAWIR_EVENT_SPACE		0
-+#define BPF_RAWIR_EVENT_PULSE		1
-+#define BPF_RAWIR_EVENT_TIMEOUT		2
-+#define BPF_RAWIR_EVENT_RESET		3
-+#define BPF_RAWIR_EVENT_CARRIER		4
-+#define BPF_RAWIR_EVENT_DUTY_CYCLE	5
++SONY IMX258 SENSOR DRIVER
++M:	Sakari Ailus <sakari.ailus@linux.intel.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/imx258.c
 +
-+struct bpf_rawir_event {
-+	union {
-+		__u32	duration;
-+		__u32	carrier;
-+		__u32	duty_cycle;
-+	};
+ SONY IMX274 SENSOR DRIVER
+ M:	Leon Luo <leonl@leopardimaging.com>
+ L:	linux-media@vger.kernel.org
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index e6a721c5e3b0..1f9d7c6aa31a 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -585,6 +585,17 @@ config VIDEO_APTINA_PLL
+ config VIDEO_SMIAPP_PLL
+ 	tristate
+ 
++config VIDEO_IMX258
++	tristate "Sony IMX258 sensor support"
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_CAMERA_SUPPORT
++	---help---
++	  This is a Video4Linux2 sensor-level driver for the Sony
++	  IMX258 camera.
 +
-+	__u32	type;
++	  To compile this driver as a module, choose M here: the
++	  module will be called imx258.
++
+ config VIDEO_IMX274
+ 	tristate "Sony IMX274 sensor support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 5cf15edacb2b..16fc34eda5cc 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -102,6 +102,7 @@ obj-$(CONFIG_VIDEO_I2C)		+= video-i2c.o
+ obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
+ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
+ obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
++obj-$(CONFIG_VIDEO_IMX258)	+= imx258.o
+ obj-$(CONFIG_VIDEO_IMX274)	+= imx274.o
+ 
+ obj-$(CONFIG_SDR_MAX2175) += max2175.o
+diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+new file mode 100644
+index 000000000000..fad3012f4fe5
+--- /dev/null
++++ b/drivers/media/i2c/imx258.c
+@@ -0,0 +1,1320 @@
++// SPDX-License-Identifier: GPL-2.0
++// Copyright (C) 2018 Intel Corporation
++
++#include <linux/acpi.h>
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++#include <asm/unaligned.h>
++
++#define IMX258_REG_VALUE_08BIT		1
++#define IMX258_REG_VALUE_16BIT		2
++
++#define IMX258_REG_MODE_SELECT		0x0100
++#define IMX258_MODE_STANDBY		0x00
++#define IMX258_MODE_STREAMING		0x01
++
++/* Chip ID */
++#define IMX258_REG_CHIP_ID		0x0016
++#define IMX258_CHIP_ID			0x0258
++
++/* V_TIMING internal */
++#define IMX258_VTS_30FPS		0x0c98
++#define IMX258_VTS_30FPS_2K		0x0638
++#define IMX258_VTS_30FPS_VGA		0x034c
++#define IMX258_VTS_MAX			0xffff
++
++/*Frame Length Line*/
++#define IMX258_FLL_MIN			0x08a6
++#define IMX258_FLL_MAX			0xffff
++#define IMX258_FLL_STEP			1
++#define IMX258_FLL_DEFAULT		0x0c98
++
++/* HBLANK control - read only */
++#define IMX258_PPL_DEFAULT		5352
++
++/* Exposure control */
++#define IMX258_REG_EXPOSURE		0x0202
++#define IMX258_EXPOSURE_MIN		4
++#define IMX258_EXPOSURE_STEP		1
++#define IMX258_EXPOSURE_DEFAULT		0x640
++#define IMX258_EXPOSURE_MAX		65535
++
++/* Analog gain control */
++#define IMX258_REG_ANALOG_GAIN		0x0204
++#define IMX258_ANA_GAIN_MIN		0
++#define IMX258_ANA_GAIN_MAX		0x1fff
++#define IMX258_ANA_GAIN_STEP		1
++#define IMX258_ANA_GAIN_DEFAULT		0x0
++
++/* Digital gain control */
++#define IMX258_REG_GR_DIGITAL_GAIN	0x020e
++#define IMX258_REG_R_DIGITAL_GAIN	0x0210
++#define IMX258_REG_B_DIGITAL_GAIN	0x0212
++#define IMX258_REG_GB_DIGITAL_GAIN	0x0214
++#define IMX258_DGTL_GAIN_MIN		0
++#define IMX258_DGTL_GAIN_MAX		4096	/* Max = 0xFFF */
++#define IMX258_DGTL_GAIN_DEFAULT	1024
++#define IMX258_DGTL_GAIN_STEP		1
++
++/* Test Pattern Control */
++#define IMX258_REG_TEST_PATTERN		0x0600
++#define IMX258_TEST_PATTERN_DISABLE	0
++#define IMX258_TEST_PATTERN_SOLID_COLOR	1
++#define IMX258_TEST_PATTERN_COLOR_BARS	2
++#define IMX258_TEST_PATTERN_GREY_COLOR	3
++#define IMX258_TEST_PATTERN_PN9		4
++
++/* Orientation */
++#define REG_MIRROR_FLIP_CONTROL		0x0101
++#define REG_CONFIG_MIRROR_FLIP		0x03
++#define REG_CONFIG_FLIP_TEST_PATTERN	0x02
++
++struct imx258_reg {
++	u16 address;
++	u8 val;
 +};
 +
- /* user accessible mirror of in-kernel sk_buff.
-  * new fields can only be added to the end of this structure
-  */
-diff --git a/tools/lib/bpf/libbpf.c b/tools/lib/bpf/libbpf.c
-index df54c4c9e48a..372269e9053d 100644
---- a/tools/lib/bpf/libbpf.c
-+++ b/tools/lib/bpf/libbpf.c
-@@ -1455,6 +1455,7 @@ static bool bpf_prog_type__needs_kver(enum bpf_prog_type type)
- 	case BPF_PROG_TYPE_CGROUP_DEVICE:
- 	case BPF_PROG_TYPE_SK_MSG:
- 	case BPF_PROG_TYPE_CGROUP_SOCK_ADDR:
-+	case BPF_PROG_TYPE_RAWIR_EVENT:
- 		return false;
- 	case BPF_PROG_TYPE_UNSPEC:
- 	case BPF_PROG_TYPE_KPROBE:
-diff --git a/tools/testing/selftests/bpf/Makefile b/tools/testing/selftests/bpf/Makefile
-index 438d4f93875b..d4b7a410c333 100644
---- a/tools/testing/selftests/bpf/Makefile
-+++ b/tools/testing/selftests/bpf/Makefile
-@@ -24,7 +24,7 @@ urandom_read: urandom_read.c
- # Order correspond to 'make run_tests' order
- TEST_GEN_PROGS = test_verifier test_tag test_maps test_lru_map test_lpm_map test_progs \
- 	test_align test_verifier_log test_dev_cgroup test_tcpbpf_user \
--	test_sock test_btf test_sockmap
-+	test_sock test_btf test_sockmap test_rawir_event_user
- 
- TEST_GEN_FILES = test_pkt_access.o test_xdp.o test_l4lb.o test_tcp_estats.o test_obj_id.o \
- 	test_pkt_md_access.o test_xdp_redirect.o test_xdp_meta.o sockmap_parse_prog.o     \
-@@ -33,7 +33,7 @@ TEST_GEN_FILES = test_pkt_access.o test_xdp.o test_l4lb.o test_tcp_estats.o test
- 	sample_map_ret0.o test_tcpbpf_kern.o test_stacktrace_build_id.o \
- 	sockmap_tcp_msg_prog.o connect4_prog.o connect6_prog.o test_adjust_tail.o \
- 	test_btf_haskv.o test_btf_nokv.o test_sockmap_kern.o test_tunnel_kern.o \
--	test_get_stack_rawtp.o
-+	test_get_stack_rawtp.o test_rawir_event_kern.o
- 
- # Order correspond to 'make run_tests' order
- TEST_PROGS := test_kmod.sh \
-@@ -42,7 +42,8 @@ TEST_PROGS := test_kmod.sh \
- 	test_xdp_meta.sh \
- 	test_offload.py \
- 	test_sock_addr.sh \
--	test_tunnel.sh
-+	test_tunnel.sh \
-+	test_rawir.sh
- 
- # Compile but not part of 'make run_tests'
- TEST_GEN_PROGS_EXTENDED = test_libbpf_open test_sock_addr
-diff --git a/tools/testing/selftests/bpf/bpf_helpers.h b/tools/testing/selftests/bpf/bpf_helpers.h
-index 2375d06c706b..641af70048bd 100644
---- a/tools/testing/selftests/bpf/bpf_helpers.h
-+++ b/tools/testing/selftests/bpf/bpf_helpers.h
-@@ -106,6 +106,12 @@ static int (*bpf_get_stack)(void *ctx, void *buf, int size, int flags) =
- static int (*bpf_fib_lookup)(void *ctx, struct bpf_fib_lookup *params,
- 			     int plen, __u32 flags) =
- 	(void *) BPF_FUNC_fib_lookup;
-+static int (*bpf_rc_repeat)(void *ctx) =
-+	(void *) BPF_FUNC_rc_repeat;
-+static int (*bpf_rc_keydown)(void *ctx, unsigned protocol, unsigned scancode,
-+			     unsigned toggle) =
-+	(void *) BPF_FUNC_rc_keydown;
++struct imx258_reg_list {
++	u32 num_of_regs;
++	const struct imx258_reg *regs;
++};
 +
- 
- /* llvm builtin functions that eBPF C program may use to
-  * emit BPF_LD_ABS and BPF_LD_IND instructions
-diff --git a/tools/testing/selftests/bpf/test_rawir.sh b/tools/testing/selftests/bpf/test_rawir.sh
-new file mode 100755
-index 000000000000..30529e829af1
---- /dev/null
-+++ b/tools/testing/selftests/bpf/test_rawir.sh
-@@ -0,0 +1,37 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
++/* Link frequency config */
++struct imx258_link_freq_config {
++	u32 pixels_per_line;
 +
-+# Test bpf_rawir_event over rc-loopback. Steps for the test:
-+#
-+# 1. Find the /dev/lircN device for rc-loopback
-+# 2. Attach bpf_rawir_event program which decodes some IR.
-+# 3. Send some IR to the same IR device; since it is loopback, this will
-+#    end up in the bpf program
-+# 4. bpf program should decode IR and report keycode
-+# 5. We can read keycode from same /dev/lirc device
++	/* PLL registers for this link frequency */
++	struct imx258_reg_list reg_list;
++};
 +
-+GREEN='\033[0;92m'
-+RED='\033[0;31m'
-+NC='\033[0m' # No Color
++/* Mode : resolution and related config&values */
++struct imx258_mode {
++	/* Frame width */
++	u32 width;
++	/* Frame height */
++	u32 height;
 +
-+modprobe rc-loopback
++	/* V-timing */
++	u32 vts_def;
++	u32 vts_min;
 +
-+for i in /sys/class/rc/rc*
-+do
-+	if grep -q DRV_NAME=rc-loopback $i/uevent
-+	then
-+		LIRCDEV=$(grep DEVNAME= $i/lirc*/uevent | sed sQDEVNAME=Q/dev/Q)
-+	fi
-+done
++	/* Index of Link frequency config to be used */
++	u32 link_freq_index;
++	/* Default register values */
++	struct imx258_reg_list reg_list;
++};
 +
-+if [ -n $LIRCDEV ];
-+then
-+	TYPE=rawir_event
-+	./test_rawir_event_user $LIRCDEV
-+	ret=$?
-+        if [ $ret -ne 0 ]; then
-+                echo -e ${RED}"FAIL: $TYPE"${NC}
-+                return 1
-+        fi
-+        echo -e ${GREEN}"PASS: $TYPE"${NC}
-+fi
-diff --git a/tools/testing/selftests/bpf/test_rawir_event_kern.c b/tools/testing/selftests/bpf/test_rawir_event_kern.c
-new file mode 100644
-index 000000000000..33ba5d30af62
---- /dev/null
-+++ b/tools/testing/selftests/bpf/test_rawir_event_kern.c
-@@ -0,0 +1,26 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// test ir decoder
-+//
-+// Copyright (C) 2018 Sean Young <sean@mess.org>
++/* 4208x3118 needs 1267Mbps/lane, 4 lanes */
++static const struct imx258_reg mipi_data_rate_1267mbps[] = {
++	{ 0x0301, 0x05 },
++	{ 0x0303, 0x02 },
++	{ 0x0305, 0x03 },
++	{ 0x0306, 0x00 },
++	{ 0x0307, 0xC6 },
++	{ 0x0309, 0x0A },
++	{ 0x030B, 0x01 },
++	{ 0x030D, 0x02 },
++	{ 0x030E, 0x00 },
++	{ 0x030F, 0xD8 },
++	{ 0x0310, 0x00 },
++	{ 0x0820, 0x13 },
++	{ 0x0821, 0x4C },
++	{ 0x0822, 0xCC },
++	{ 0x0823, 0xCC },
++};
 +
-+#include <linux/bpf.h>
-+#include "bpf_helpers.h"
++static const struct imx258_reg mipi_data_rate_640mbps[] = {
++	{ 0x0301, 0x05 },
++	{ 0x0303, 0x02 },
++	{ 0x0305, 0x03 },
++	{ 0x0306, 0x00 },
++	{ 0x0307, 0x64 },
++	{ 0x0309, 0x0A },
++	{ 0x030B, 0x01 },
++	{ 0x030D, 0x02 },
++	{ 0x030E, 0x00 },
++	{ 0x030F, 0xD8 },
++	{ 0x0310, 0x00 },
++	{ 0x0820, 0x0A },
++	{ 0x0821, 0x00 },
++	{ 0x0822, 0x00 },
++	{ 0x0823, 0x00 },
++};
 +
-+SEC("rawir_event")
-+int bpf_decoder(struct bpf_rawir_event *e)
++static const struct imx258_reg mode_4208x3118_regs[] = {
++	{ 0x0136, 0x13 },
++	{ 0x0137, 0x33 },
++	{ 0x3051, 0x00 },
++	{ 0x3052, 0x00 },
++	{ 0x4E21, 0x14 },
++	{ 0x6B11, 0xCF },
++	{ 0x7FF0, 0x08 },
++	{ 0x7FF1, 0x0F },
++	{ 0x7FF2, 0x08 },
++	{ 0x7FF3, 0x1B },
++	{ 0x7FF4, 0x23 },
++	{ 0x7FF5, 0x60 },
++	{ 0x7FF6, 0x00 },
++	{ 0x7FF7, 0x01 },
++	{ 0x7FF8, 0x00 },
++	{ 0x7FF9, 0x78 },
++	{ 0x7FFA, 0x00 },
++	{ 0x7FFB, 0x00 },
++	{ 0x7FFC, 0x00 },
++	{ 0x7FFD, 0x00 },
++	{ 0x7FFE, 0x00 },
++	{ 0x7FFF, 0x03 },
++	{ 0x7F76, 0x03 },
++	{ 0x7F77, 0xFE },
++	{ 0x7FA8, 0x03 },
++	{ 0x7FA9, 0xFE },
++	{ 0x7B24, 0x81 },
++	{ 0x7B25, 0x00 },
++	{ 0x6564, 0x07 },
++	{ 0x6B0D, 0x41 },
++	{ 0x653D, 0x04 },
++	{ 0x6B05, 0x8C },
++	{ 0x6B06, 0xF9 },
++	{ 0x6B08, 0x65 },
++	{ 0x6B09, 0xFC },
++	{ 0x6B0A, 0xCF },
++	{ 0x6B0B, 0xD2 },
++	{ 0x6700, 0x0E },
++	{ 0x6707, 0x0E },
++	{ 0x9104, 0x00 },
++	{ 0x4648, 0x7F },
++	{ 0x7420, 0x00 },
++	{ 0x7421, 0x1C },
++	{ 0x7422, 0x00 },
++	{ 0x7423, 0xD7 },
++	{ 0x5F04, 0x00 },
++	{ 0x5F05, 0xED },
++	{ 0x0112, 0x0A },
++	{ 0x0113, 0x0A },
++	{ 0x0114, 0x03 },
++	{ 0x0342, 0x14 },
++	{ 0x0343, 0xE8 },
++	{ 0x0340, 0x0C },
++	{ 0x0341, 0x50 },
++	{ 0x0344, 0x00 },
++	{ 0x0345, 0x00 },
++	{ 0x0346, 0x00 },
++	{ 0x0347, 0x00 },
++	{ 0x0348, 0x10 },
++	{ 0x0349, 0x6F },
++	{ 0x034A, 0x0C },
++	{ 0x034B, 0x2E },
++	{ 0x0381, 0x01 },
++	{ 0x0383, 0x01 },
++	{ 0x0385, 0x01 },
++	{ 0x0387, 0x01 },
++	{ 0x0900, 0x00 },
++	{ 0x0901, 0x11 },
++	{ 0x0401, 0x00 },
++	{ 0x0404, 0x00 },
++	{ 0x0405, 0x10 },
++	{ 0x0408, 0x00 },
++	{ 0x0409, 0x00 },
++	{ 0x040A, 0x00 },
++	{ 0x040B, 0x00 },
++	{ 0x040C, 0x10 },
++	{ 0x040D, 0x70 },
++	{ 0x040E, 0x0C },
++	{ 0x040F, 0x30 },
++	{ 0x3038, 0x00 },
++	{ 0x303A, 0x00 },
++	{ 0x303B, 0x10 },
++	{ 0x300D, 0x00 },
++	{ 0x034C, 0x10 },
++	{ 0x034D, 0x70 },
++	{ 0x034E, 0x0C },
++	{ 0x034F, 0x30 },
++	{ 0x0350, 0x01 },
++	{ 0x0202, 0x0C },
++	{ 0x0203, 0x46 },
++	{ 0x0204, 0x00 },
++	{ 0x0205, 0x00 },
++	{ 0x020E, 0x01 },
++	{ 0x020F, 0x00 },
++	{ 0x0210, 0x01 },
++	{ 0x0211, 0x00 },
++	{ 0x0212, 0x01 },
++	{ 0x0213, 0x00 },
++	{ 0x0214, 0x01 },
++	{ 0x0215, 0x00 },
++	{ 0x7BCD, 0x00 },
++	{ 0x94DC, 0x20 },
++	{ 0x94DD, 0x20 },
++	{ 0x94DE, 0x20 },
++	{ 0x95DC, 0x20 },
++	{ 0x95DD, 0x20 },
++	{ 0x95DE, 0x20 },
++	{ 0x7FB0, 0x00 },
++	{ 0x9010, 0x3E },
++	{ 0x9419, 0x50 },
++	{ 0x941B, 0x50 },
++	{ 0x9519, 0x50 },
++	{ 0x951B, 0x50 },
++	{ 0x3030, 0x00 },
++	{ 0x3032, 0x00 },
++	{ 0x0220, 0x00 },
++};
++
++static const struct imx258_reg mode_2104_1560_regs[] = {
++	{ 0x0136, 0x13 },
++	{ 0x0137, 0x33 },
++	{ 0x3051, 0x00 },
++	{ 0x3052, 0x00 },
++	{ 0x4E21, 0x14 },
++	{ 0x6B11, 0xCF },
++	{ 0x7FF0, 0x08 },
++	{ 0x7FF1, 0x0F },
++	{ 0x7FF2, 0x08 },
++	{ 0x7FF3, 0x1B },
++	{ 0x7FF4, 0x23 },
++	{ 0x7FF5, 0x60 },
++	{ 0x7FF6, 0x00 },
++	{ 0x7FF7, 0x01 },
++	{ 0x7FF8, 0x00 },
++	{ 0x7FF9, 0x78 },
++	{ 0x7FFA, 0x00 },
++	{ 0x7FFB, 0x00 },
++	{ 0x7FFC, 0x00 },
++	{ 0x7FFD, 0x00 },
++	{ 0x7FFE, 0x00 },
++	{ 0x7FFF, 0x03 },
++	{ 0x7F76, 0x03 },
++	{ 0x7F77, 0xFE },
++	{ 0x7FA8, 0x03 },
++	{ 0x7FA9, 0xFE },
++	{ 0x7B24, 0x81 },
++	{ 0x7B25, 0x00 },
++	{ 0x6564, 0x07 },
++	{ 0x6B0D, 0x41 },
++	{ 0x653D, 0x04 },
++	{ 0x6B05, 0x8C },
++	{ 0x6B06, 0xF9 },
++	{ 0x6B08, 0x65 },
++	{ 0x6B09, 0xFC },
++	{ 0x6B0A, 0xCF },
++	{ 0x6B0B, 0xD2 },
++	{ 0x6700, 0x0E },
++	{ 0x6707, 0x0E },
++	{ 0x9104, 0x00 },
++	{ 0x4648, 0x7F },
++	{ 0x7420, 0x00 },
++	{ 0x7421, 0x1C },
++	{ 0x7422, 0x00 },
++	{ 0x7423, 0xD7 },
++	{ 0x5F04, 0x00 },
++	{ 0x5F05, 0xED },
++	{ 0x0112, 0x0A },
++	{ 0x0113, 0x0A },
++	{ 0x0114, 0x03 },
++	{ 0x0342, 0x14 },
++	{ 0x0343, 0xE8 },
++	{ 0x0340, 0x06 },
++	{ 0x0341, 0x38 },
++	{ 0x0344, 0x00 },
++	{ 0x0345, 0x00 },
++	{ 0x0346, 0x00 },
++	{ 0x0347, 0x00 },
++	{ 0x0348, 0x10 },
++	{ 0x0349, 0x6F },
++	{ 0x034A, 0x0C },
++	{ 0x034B, 0x2E },
++	{ 0x0381, 0x01 },
++	{ 0x0383, 0x01 },
++	{ 0x0385, 0x01 },
++	{ 0x0387, 0x01 },
++	{ 0x0900, 0x01 },
++	{ 0x0901, 0x12 },
++	{ 0x0401, 0x01 },
++	{ 0x0404, 0x00 },
++	{ 0x0405, 0x20 },
++	{ 0x0408, 0x00 },
++	{ 0x0409, 0x02 },
++	{ 0x040A, 0x00 },
++	{ 0x040B, 0x00 },
++	{ 0x040C, 0x10 },
++	{ 0x040D, 0x6A },
++	{ 0x040E, 0x06 },
++	{ 0x040F, 0x18 },
++	{ 0x3038, 0x00 },
++	{ 0x303A, 0x00 },
++	{ 0x303B, 0x10 },
++	{ 0x300D, 0x00 },
++	{ 0x034C, 0x08 },
++	{ 0x034D, 0x38 },
++	{ 0x034E, 0x06 },
++	{ 0x034F, 0x18 },
++	{ 0x0350, 0x01 },
++	{ 0x0202, 0x06 },
++	{ 0x0203, 0x2E },
++	{ 0x0204, 0x00 },
++	{ 0x0205, 0x00 },
++	{ 0x020E, 0x01 },
++	{ 0x020F, 0x00 },
++	{ 0x0210, 0x01 },
++	{ 0x0211, 0x00 },
++	{ 0x0212, 0x01 },
++	{ 0x0213, 0x00 },
++	{ 0x0214, 0x01 },
++	{ 0x0215, 0x00 },
++	{ 0x7BCD, 0x01 },
++	{ 0x94DC, 0x20 },
++	{ 0x94DD, 0x20 },
++	{ 0x94DE, 0x20 },
++	{ 0x95DC, 0x20 },
++	{ 0x95DD, 0x20 },
++	{ 0x95DE, 0x20 },
++	{ 0x7FB0, 0x00 },
++	{ 0x9010, 0x3E },
++	{ 0x9419, 0x50 },
++	{ 0x941B, 0x50 },
++	{ 0x9519, 0x50 },
++	{ 0x951B, 0x50 },
++	{ 0x3030, 0x00 },
++	{ 0x3032, 0x00 },
++	{ 0x0220, 0x00 },
++};
++
++static const struct imx258_reg mode_1048_780_regs[] = {
++	{ 0x0136, 0x13 },
++	{ 0x0137, 0x33 },
++	{ 0x3051, 0x00 },
++	{ 0x3052, 0x00 },
++	{ 0x4E21, 0x14 },
++	{ 0x6B11, 0xCF },
++	{ 0x7FF0, 0x08 },
++	{ 0x7FF1, 0x0F },
++	{ 0x7FF2, 0x08 },
++	{ 0x7FF3, 0x1B },
++	{ 0x7FF4, 0x23 },
++	{ 0x7FF5, 0x60 },
++	{ 0x7FF6, 0x00 },
++	{ 0x7FF7, 0x01 },
++	{ 0x7FF8, 0x00 },
++	{ 0x7FF9, 0x78 },
++	{ 0x7FFA, 0x00 },
++	{ 0x7FFB, 0x00 },
++	{ 0x7FFC, 0x00 },
++	{ 0x7FFD, 0x00 },
++	{ 0x7FFE, 0x00 },
++	{ 0x7FFF, 0x03 },
++	{ 0x7F76, 0x03 },
++	{ 0x7F77, 0xFE },
++	{ 0x7FA8, 0x03 },
++	{ 0x7FA9, 0xFE },
++	{ 0x7B24, 0x81 },
++	{ 0x7B25, 0x00 },
++	{ 0x6564, 0x07 },
++	{ 0x6B0D, 0x41 },
++	{ 0x653D, 0x04 },
++	{ 0x6B05, 0x8C },
++	{ 0x6B06, 0xF9 },
++	{ 0x6B08, 0x65 },
++	{ 0x6B09, 0xFC },
++	{ 0x6B0A, 0xCF },
++	{ 0x6B0B, 0xD2 },
++	{ 0x6700, 0x0E },
++	{ 0x6707, 0x0E },
++	{ 0x9104, 0x00 },
++	{ 0x4648, 0x7F },
++	{ 0x7420, 0x00 },
++	{ 0x7421, 0x1C },
++	{ 0x7422, 0x00 },
++	{ 0x7423, 0xD7 },
++	{ 0x5F04, 0x00 },
++	{ 0x5F05, 0xED },
++	{ 0x0112, 0x0A },
++	{ 0x0113, 0x0A },
++	{ 0x0114, 0x03 },
++	{ 0x0342, 0x14 },
++	{ 0x0343, 0xE8 },
++	{ 0x0340, 0x03 },
++	{ 0x0341, 0x4C },
++	{ 0x0344, 0x00 },
++	{ 0x0345, 0x00 },
++	{ 0x0346, 0x00 },
++	{ 0x0347, 0x00 },
++	{ 0x0348, 0x10 },
++	{ 0x0349, 0x6F },
++	{ 0x034A, 0x0C },
++	{ 0x034B, 0x2E },
++	{ 0x0381, 0x01 },
++	{ 0x0383, 0x01 },
++	{ 0x0385, 0x01 },
++	{ 0x0387, 0x01 },
++	{ 0x0900, 0x01 },
++	{ 0x0901, 0x14 },
++	{ 0x0401, 0x01 },
++	{ 0x0404, 0x00 },
++	{ 0x0405, 0x40 },
++	{ 0x0408, 0x00 },
++	{ 0x0409, 0x06 },
++	{ 0x040A, 0x00 },
++	{ 0x040B, 0x00 },
++	{ 0x040C, 0x10 },
++	{ 0x040D, 0x64 },
++	{ 0x040E, 0x03 },
++	{ 0x040F, 0x0C },
++	{ 0x3038, 0x00 },
++	{ 0x303A, 0x00 },
++	{ 0x303B, 0x10 },
++	{ 0x300D, 0x00 },
++	{ 0x034C, 0x04 },
++	{ 0x034D, 0x18 },
++	{ 0x034E, 0x03 },
++	{ 0x034F, 0x0C },
++	{ 0x0350, 0x01 },
++	{ 0x0202, 0x03 },
++	{ 0x0203, 0x42 },
++	{ 0x0204, 0x00 },
++	{ 0x0205, 0x00 },
++	{ 0x020E, 0x01 },
++	{ 0x020F, 0x00 },
++	{ 0x0210, 0x01 },
++	{ 0x0211, 0x00 },
++	{ 0x0212, 0x01 },
++	{ 0x0213, 0x00 },
++	{ 0x0214, 0x01 },
++	{ 0x0215, 0x00 },
++	{ 0x7BCD, 0x00 },
++	{ 0x94DC, 0x20 },
++	{ 0x94DD, 0x20 },
++	{ 0x94DE, 0x20 },
++	{ 0x95DC, 0x20 },
++	{ 0x95DD, 0x20 },
++	{ 0x95DE, 0x20 },
++	{ 0x7FB0, 0x00 },
++	{ 0x9010, 0x3E },
++	{ 0x9419, 0x50 },
++	{ 0x941B, 0x50 },
++	{ 0x9519, 0x50 },
++	{ 0x951B, 0x50 },
++	{ 0x3030, 0x00 },
++	{ 0x3032, 0x00 },
++	{ 0x0220, 0x00 },
++};
++
++static const char * const imx258_test_pattern_menu[] = {
++	"Disabled",
++	"Color Bars",
++	"Solid Color",
++	"Grey Color Bars",
++	"PN9"
++};
++
++static const int imx258_test_pattern_val[] = {
++	IMX258_TEST_PATTERN_DISABLE,
++	IMX258_TEST_PATTERN_COLOR_BARS,
++	IMX258_TEST_PATTERN_SOLID_COLOR,
++	IMX258_TEST_PATTERN_GREY_COLOR,
++	IMX258_TEST_PATTERN_PN9,
++};
++
++/* Configurations for supported link frequencies */
++#define IMX258_LINK_FREQ_634MHZ	633600000ULL
++#define IMX258_LINK_FREQ_320MHZ	320000000ULL
++
++enum {
++	IMX258_LINK_FREQ_1267MBPS,
++	IMX258_LINK_FREQ_640MBPS,
++};
++
++/*
++ * pixel_rate = link_freq * data-rate * nr_of_lanes / bits_per_sample
++ * data rate => double data rate; number of lanes => 4; bits per pixel => 10
++ */
++static u64 link_freq_to_pixel_rate(u64 f)
 +{
-+	if (e->type == BPF_RAWIR_EVENT_PULSE) {
++	f *= 2 * 4;
++	do_div(f, 10);
++
++	return f;
++}
++
++/* Menu items for LINK_FREQ V4L2 control */
++static const s64 link_freq_menu_items[] = {
++	IMX258_LINK_FREQ_634MHZ,
++	IMX258_LINK_FREQ_320MHZ,
++};
++
++/* Link frequency configs */
++static const struct imx258_link_freq_config link_freq_configs[] = {
++	[IMX258_LINK_FREQ_1267MBPS] = {
++		.pixels_per_line = IMX258_PPL_DEFAULT,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mipi_data_rate_1267mbps),
++			.regs = mipi_data_rate_1267mbps,
++		}
++	},
++	[IMX258_LINK_FREQ_640MBPS] = {
++		.pixels_per_line = IMX258_PPL_DEFAULT,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mipi_data_rate_640mbps),
++			.regs = mipi_data_rate_640mbps,
++		}
++	},
++};
++
++/* Mode configs */
++static const struct imx258_mode supported_modes[] = {
++	{
++		.width = 4208,
++		.height = 3118,
++		.vts_def = IMX258_VTS_30FPS,
++		.vts_min = IMX258_VTS_30FPS,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_4208x3118_regs),
++			.regs = mode_4208x3118_regs,
++		},
++		.link_freq_index = IMX258_LINK_FREQ_1267MBPS,
++	},
++	{
++		.width = 2104,
++		.height = 1560,
++		.vts_def = IMX258_VTS_30FPS_2K,
++		.vts_min = IMX258_VTS_30FPS_2K,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_2104_1560_regs),
++			.regs = mode_2104_1560_regs,
++		},
++		.link_freq_index = IMX258_LINK_FREQ_640MBPS,
++	},
++	{
++		.width = 1048,
++		.height = 780,
++		.vts_def = IMX258_VTS_30FPS_VGA,
++		.vts_min = IMX258_VTS_30FPS_VGA,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_1048_780_regs),
++			.regs = mode_1048_780_regs,
++		},
++		.link_freq_index = IMX258_LINK_FREQ_640MBPS,
++	},
++};
++
++struct imx258 {
++	struct v4l2_subdev sd;
++	struct media_pad pad;
++
++	struct v4l2_ctrl_handler ctrl_handler;
++	/* V4L2 Controls */
++	struct v4l2_ctrl *link_freq;
++	struct v4l2_ctrl *pixel_rate;
++	struct v4l2_ctrl *vblank;
++	struct v4l2_ctrl *hblank;
++	struct v4l2_ctrl *exposure;
++
++	/* Current mode */
++	const struct imx258_mode *cur_mode;
++
++	/*
++	 * Mutex for serialized access:
++	 * Protect sensor module set pad format and start/stop streaming safely.
++	 */
++	struct mutex mutex;
++
++	/* Streaming on/off */
++	bool streaming;
++};
++
++static inline struct imx258 *to_imx258(struct v4l2_subdev *_sd)
++{
++	return container_of(_sd, struct imx258, sd);
++}
++
++/* Read registers up to 2 at a time */
++static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
++	struct i2c_msg msgs[2];
++	u8 addr_buf[2] = { reg >> 8, reg & 0xff };
++	u8 data_buf[4] = { 0, };
++	int ret;
++
++	if (len > 4)
++		return -EINVAL;
++
++	/* Write register address */
++	msgs[0].addr = client->addr;
++	msgs[0].flags = 0;
++	msgs[0].len = ARRAY_SIZE(addr_buf);
++	msgs[0].buf = addr_buf;
++
++	/* Read data from register */
++	msgs[1].addr = client->addr;
++	msgs[1].flags = I2C_M_RD;
++	msgs[1].len = len;
++	msgs[1].buf = &data_buf[4 - len];
++
++	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
++	if (ret != ARRAY_SIZE(msgs))
++		return -EIO;
++
++	*val = get_unaligned_be32(data_buf);
++
++	return 0;
++}
++
++/* Write registers up to 2 at a time */
++static int imx258_write_reg(struct imx258 *imx258, u16 reg, u32 len, u32 val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
++	u8 buf[6];
++
++	if (len > 4)
++		return -EINVAL;
++
++	put_unaligned_be16(reg, buf);
++	put_unaligned_be32(val << (8 * (4 - len)), buf + 2);
++	if (i2c_master_send(client, buf, len + 2) != len + 2)
++		return -EIO;
++
++	return 0;
++}
++
++/* Write a list of registers */
++static int imx258_write_regs(struct imx258 *imx258,
++			     const struct imx258_reg *regs, u32 len)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
++	unsigned int i;
++	int ret;
++
++	for (i = 0; i < len; i++) {
++		ret = imx258_write_reg(imx258, regs[i].address, 1,
++					regs[i].val);
++		if (ret) {
++			dev_err_ratelimited(
++				&client->dev,
++				"Failed to write reg 0x%4.4x. error = %d\n",
++				regs[i].address, ret);
++
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++/* Open sub-device */
++static int imx258_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct v4l2_mbus_framefmt *try_fmt =
++		v4l2_subdev_get_try_format(sd, fh->pad, 0);
++
++	/* Initialize try_fmt */
++	try_fmt->width = supported_modes[0].width;
++	try_fmt->height = supported_modes[0].height;
++	try_fmt->code = MEDIA_BUS_FMT_SGRBG10_1X10;
++	try_fmt->field = V4L2_FIELD_NONE;
++
++	return 0;
++}
++
++static int imx258_update_digital_gain(struct imx258 *imx258, u32 len, u32 val)
++{
++	int ret;
++
++	ret = imx258_write_reg(imx258, IMX258_REG_GR_DIGITAL_GAIN,
++				IMX258_REG_VALUE_16BIT,
++				val);
++	if (ret)
++		return ret;
++	ret = imx258_write_reg(imx258, IMX258_REG_GB_DIGITAL_GAIN,
++				IMX258_REG_VALUE_16BIT,
++				val);
++	if (ret)
++		return ret;
++	ret = imx258_write_reg(imx258, IMX258_REG_R_DIGITAL_GAIN,
++				IMX258_REG_VALUE_16BIT,
++				val);
++	if (ret)
++		return ret;
++	ret = imx258_write_reg(imx258, IMX258_REG_B_DIGITAL_GAIN,
++				IMX258_REG_VALUE_16BIT,
++				val);
++	if (ret)
++		return ret;
++	return 0;
++}
++
++static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct imx258 *imx258 =
++		container_of(ctrl->handler, struct imx258, ctrl_handler);
++	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
++	int ret = 0;
++
++	/*
++	 * Applying V4L2 control value only happens
++	 * when power is up for streaming
++	 */
++	if (pm_runtime_get_if_in_use(&client->dev) == 0)
++		return 0;
++
++	switch (ctrl->id) {
++	case V4L2_CID_ANALOGUE_GAIN:
++		ret = imx258_write_reg(imx258, IMX258_REG_ANALOG_GAIN,
++				IMX258_REG_VALUE_16BIT,
++				ctrl->val);
++		break;
++	case V4L2_CID_EXPOSURE:
++		ret = imx258_write_reg(imx258, IMX258_REG_EXPOSURE,
++				IMX258_REG_VALUE_16BIT,
++				ctrl->val);
++		break;
++	case V4L2_CID_DIGITAL_GAIN:
++		ret = imx258_update_digital_gain(imx258, IMX258_REG_VALUE_16BIT,
++				ctrl->val);
++		break;
++	case V4L2_CID_TEST_PATTERN:
++		ret = imx258_write_reg(imx258, IMX258_REG_TEST_PATTERN,
++				IMX258_REG_VALUE_16BIT,
++				imx258_test_pattern_val[ctrl->val]);
++
++		ret = imx258_write_reg(imx258, REG_MIRROR_FLIP_CONTROL,
++				IMX258_REG_VALUE_08BIT,
++				ctrl->val == imx258_test_pattern_val
++				[IMX258_TEST_PATTERN_DISABLE] ?
++				REG_CONFIG_MIRROR_FLIP :
++				REG_CONFIG_FLIP_TEST_PATTERN);
++		break;
++	default:
++		dev_info(&client->dev,
++			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
++			 ctrl->id, ctrl->val);
++		ret = -EINVAL;
++		break;
++	}
++
++	pm_runtime_put(&client->dev);
++
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops imx258_ctrl_ops = {
++	.s_ctrl = imx258_set_ctrl,
++};
++
++static int imx258_enum_mbus_code(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_mbus_code_enum *code)
++{
++	/* Only one bayer order(GRBG) is supported */
++	if (code->index > 0)
++		return -EINVAL;
++
++	code->code = MEDIA_BUS_FMT_SGRBG10_1X10;
++
++	return 0;
++}
++
++static int imx258_enum_frame_size(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_frame_size_enum *fse)
++{
++	if (fse->index >= ARRAY_SIZE(supported_modes))
++		return -EINVAL;
++
++	if (fse->code != MEDIA_BUS_FMT_SGRBG10_1X10)
++		return -EINVAL;
++
++	fse->min_width = supported_modes[fse->index].width;
++	fse->max_width = fse->min_width;
++	fse->min_height = supported_modes[fse->index].height;
++	fse->max_height = fse->min_height;
++
++	return 0;
++}
++
++static void imx258_update_pad_format(const struct imx258_mode *mode,
++				     struct v4l2_subdev_format *fmt)
++{
++	fmt->format.width = mode->width;
++	fmt->format.height = mode->height;
++	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
++	fmt->format.field = V4L2_FIELD_NONE;
++}
++
++static int __imx258_get_pad_format(struct imx258 *imx258,
++				   struct v4l2_subdev_pad_config *cfg,
++				   struct v4l2_subdev_format *fmt)
++{
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
++		fmt->format = *v4l2_subdev_get_try_format(&imx258->sd, cfg,
++							  fmt->pad);
++	else
++		imx258_update_pad_format(imx258->cur_mode, fmt);
++
++	return 0;
++}
++
++static int imx258_get_pad_format(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_format *fmt)
++{
++	struct imx258 *imx258 = to_imx258(sd);
++	int ret;
++
++	mutex_lock(&imx258->mutex);
++	ret = __imx258_get_pad_format(imx258, cfg, fmt);
++	mutex_unlock(&imx258->mutex);
++
++	return ret;
++}
++
++static int imx258_set_pad_format(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_format *fmt)
++{
++	struct imx258 *imx258 = to_imx258(sd);
++	const struct imx258_mode *mode;
++	struct v4l2_mbus_framefmt *framefmt;
++	s32 vblank_def;
++	s32 vblank_min;
++	s64 h_blank;
++	s64 pixel_rate;
++	s64 link_freq;
++
++	mutex_lock(&imx258->mutex);
++
++	/* Only one raw bayer(GBRG) order is supported */
++	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
++
++	mode = v4l2_find_nearest_size(supported_modes,
++		ARRAY_SIZE(supported_modes), width, height,
++		fmt->format.width, fmt->format.height);
++	imx258_update_pad_format(mode, fmt);
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
++		*framefmt = fmt->format;
++	} else {
++		imx258->cur_mode = mode;
++		__v4l2_ctrl_s_ctrl(imx258->link_freq, mode->link_freq_index);
++
++		link_freq = link_freq_menu_items[mode->link_freq_index];
++		pixel_rate = link_freq_to_pixel_rate(link_freq);
++		__v4l2_ctrl_s_ctrl_int64(imx258->pixel_rate, pixel_rate);
++		/* Update limits and set FPS to default */
++		vblank_def = imx258->cur_mode->vts_def -
++			     imx258->cur_mode->height;
++		vblank_min = imx258->cur_mode->vts_min -
++			     imx258->cur_mode->height;
++		__v4l2_ctrl_modify_range(
++			imx258->vblank, vblank_min,
++			IMX258_VTS_MAX - imx258->cur_mode->height, 1,
++			vblank_def);
++		__v4l2_ctrl_s_ctrl(imx258->vblank, vblank_def);
++		h_blank =
++			link_freq_configs[mode->link_freq_index].pixels_per_line
++			 - imx258->cur_mode->width;
++		__v4l2_ctrl_modify_range(imx258->hblank, h_blank,
++					 h_blank, 1, h_blank);
++	}
++
++	mutex_unlock(&imx258->mutex);
++
++	return 0;
++}
++
++/* Start streaming */
++static int imx258_start_streaming(struct imx258 *imx258)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
++	const struct imx258_reg_list *reg_list;
++	int ret, link_freq_index;
++
++	/* Setup PLL */
++	link_freq_index = imx258->cur_mode->link_freq_index;
++	reg_list = &link_freq_configs[link_freq_index].reg_list;
++	ret = imx258_write_regs(imx258, reg_list->regs, reg_list->num_of_regs);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set plls\n", __func__);
++		return ret;
++	}
++
++	/* Apply default values of current mode */
++	reg_list = &imx258->cur_mode->reg_list;
++	ret = imx258_write_regs(imx258, reg_list->regs, reg_list->num_of_regs);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set mode\n", __func__);
++		return ret;
++	}
++
++	/* Set Orientation be 180 degree */
++	ret = imx258_write_reg(imx258, REG_MIRROR_FLIP_CONTROL,
++			       IMX258_REG_VALUE_08BIT, REG_CONFIG_MIRROR_FLIP);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set orientation\n",
++			__func__);
++		return ret;
++	}
++
++	/* Apply customized values from user */
++	ret =  __v4l2_ctrl_handler_setup(imx258->sd.ctrl_handler);
++	if (ret)
++		return ret;
++
++	/* set stream on register */
++	return imx258_write_reg(imx258, IMX258_REG_MODE_SELECT,
++				IMX258_REG_VALUE_08BIT,
++				IMX258_MODE_STREAMING);
++}
++
++/* Stop streaming */
++static int imx258_stop_streaming(struct imx258 *imx258)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
++	int ret;
++
++	/* set stream off register */
++	ret = imx258_write_reg(imx258, IMX258_REG_MODE_SELECT,
++		IMX258_REG_VALUE_08BIT, IMX258_MODE_STANDBY);
++	if (ret)
++		dev_err(&client->dev, "%s failed to set stream\n", __func__);
++
++	/*
++	 * Return success even if it was an error, as there is nothing the
++	 * caller can do about it.
++	 */
++	return 0;
++}
++
++static int imx258_set_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct imx258 *imx258 = to_imx258(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int ret = 0;
++
++	mutex_lock(&imx258->mutex);
++	if (imx258->streaming == enable) {
++		mutex_unlock(&imx258->mutex);
++		return 0;
++	}
++
++	if (enable) {
++		ret = pm_runtime_get_sync(&client->dev);
++		if (ret < 0) {
++			pm_runtime_put_noidle(&client->dev);
++			goto err_unlock;
++		}
++
 +		/*
-+		 * The lirc interface is microseconds, but here we receive
-+		 * nanoseconds.
++		 * Apply default & customized values
++		 * and then start streaming.
 +		 */
-+		int microseconds = e->duration / 1000;
-+
-+		if (microseconds & 0x10000)
-+			bpf_rc_keydown(e, 0x40, microseconds & 0xffff, 0);
++		ret = imx258_start_streaming(imx258);
++		if (ret)
++			goto err_rpm_put;
++	} else {
++		imx258_stop_streaming(imx258);
++		pm_runtime_put(&client->dev);
 +	}
 +
-+	return 0;
++	imx258->streaming = enable;
++	mutex_unlock(&imx258->mutex);
++
++	return ret;
++
++err_rpm_put:
++	pm_runtime_put(&client->dev);
++err_unlock:
++	mutex_unlock(&imx258->mutex);
++
++	return ret;
 +}
 +
-+char _license[] SEC("license") = "GPL";
-diff --git a/tools/testing/selftests/bpf/test_rawir_event_user.c b/tools/testing/selftests/bpf/test_rawir_event_user.c
-new file mode 100644
-index 000000000000..0d1f711b28f1
---- /dev/null
-+++ b/tools/testing/selftests/bpf/test_rawir_event_user.c
-@@ -0,0 +1,90 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// test ir decoder
-+//
-+// Copyright (C) 2018 Sean Young <sean@mess.org>
-+
-+#include <linux/bpf.h>
-+#include <linux/lirc.h>
-+#include <assert.h>
-+#include <errno.h>
-+#include <signal.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <stdbool.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <poll.h>
-+#include <libgen.h>
-+#include <sys/resource.h>
-+#include <sys/types.h>
-+#include <sys/ioctl.h>
-+#include <sys/stat.h>
-+#include <fcntl.h>
-+
-+#include "bpf_util.h"
-+#include <bpf/bpf.h>
-+#include <bpf/libbpf.h>
-+
-+int main(int argc, char **argv)
++static int __maybe_unused imx258_suspend(struct device *dev)
 +{
-+	struct bpf_object *obj;
-+	int ret, lircfd, progfd, mode;
-+	int testir = 0x1dead;
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct imx258 *imx258 = to_imx258(sd);
 +
-+	if (argc != 2) {
-+		printf("Usage: %s /dev/lircN\n", argv[0]);
-+		return 2;
++	if (imx258->streaming)
++		imx258_stop_streaming(imx258);
++
++	return 0;
++}
++
++static int __maybe_unused imx258_resume(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct imx258 *imx258 = to_imx258(sd);
++	int ret;
++
++	if (imx258->streaming) {
++		ret = imx258_start_streaming(imx258);
++		if (ret)
++			goto error;
 +	}
 +
-+	ret = bpf_prog_load("test_rawir_event_kern.o",
-+			    BPF_PROG_TYPE_RAWIR_EVENT, &obj, &progfd);
++	return 0;
++
++error:
++	imx258_stop_streaming(imx258);
++	imx258->streaming = 0;
++	return ret;
++}
++
++/* Verify chip ID */
++static int imx258_identify_module(struct imx258 *imx258)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
++	int ret;
++	u32 val;
++
++	ret = imx258_read_reg(imx258, IMX258_REG_CHIP_ID,
++			      IMX258_REG_VALUE_16BIT, &val);
 +	if (ret) {
-+		printf("Failed to load bpf program\n");
-+		return 1;
++		dev_err(&client->dev, "failed to read chip id %x\n",
++			IMX258_CHIP_ID);
++		return ret;
 +	}
 +
-+	lircfd = open(argv[1], O_RDWR | O_NONBLOCK);
-+	if (lircfd == -1) {
-+		printf("failed to open lirc device %s: %m\n", argv[1]);
-+		return 1;
-+	}
-+
-+	mode = LIRC_MODE_SCANCODE;
-+	if (ioctl(lircfd, LIRC_SET_REC_MODE, &mode)) {
-+		printf("failed to set rec mode: %m\n");
-+		return 1;
-+	}
-+
-+	ret = bpf_prog_attach(progfd, lircfd, BPF_RAWIR_EVENT, 0);
-+	if (ret) {
-+		printf("Failed to attach bpf to lirc device: %m\n");
-+		return 1;
-+	}
-+
-+	/* Write raw IR */
-+	ret = write(lircfd, &testir, sizeof(testir));
-+	if (ret != sizeof(testir)) {
-+		printf("Failed to send test IR message: %m\n");
-+		return 1;
-+	}
-+
-+	struct pollfd pfd = { .fd = lircfd, .events = POLLIN };
-+
-+	poll(&pfd, 1, 100);
-+
-+	struct lirc_scancode lsc;
-+
-+	/* Read decoded IR */
-+	ret = read(lircfd, &lsc, sizeof(lsc));
-+	if (ret != sizeof(lsc)) {
-+		printf("Failed to read decoded IR: %m\n");
-+		return 1;
-+	}
-+
-+	if (lsc.scancode != 0xdead || lsc.rc_proto != 64) {
-+		printf("Incorrect scancode decoded\n");
-+		return 1;
++	if (val != IMX258_CHIP_ID) {
++		dev_err(&client->dev, "chip id mismatch: %x!=%x\n",
++			IMX258_CHIP_ID, val);
++		return -EIO;
 +	}
 +
 +	return 0;
 +}
++
++static const struct v4l2_subdev_video_ops imx258_video_ops = {
++	.s_stream = imx258_set_stream,
++};
++
++static const struct v4l2_subdev_pad_ops imx258_pad_ops = {
++	.enum_mbus_code = imx258_enum_mbus_code,
++	.get_fmt = imx258_get_pad_format,
++	.set_fmt = imx258_set_pad_format,
++	.enum_frame_size = imx258_enum_frame_size,
++};
++
++static const struct v4l2_subdev_ops imx258_subdev_ops = {
++	.video = &imx258_video_ops,
++	.pad = &imx258_pad_ops,
++};
++
++static const struct v4l2_subdev_internal_ops imx258_internal_ops = {
++	.open = imx258_open,
++};
++
++/* Initialize control handlers */
++static int imx258_init_controls(struct imx258 *imx258)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
++	struct v4l2_ctrl_handler *ctrl_hdlr;
++	s64 exposure_max;
++	s64 vblank_def;
++	s64 vblank_min;
++	s64 pixel_rate_min;
++	s64 pixel_rate_max;
++	int ret;
++
++	ctrl_hdlr = &imx258->ctrl_handler;
++	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 8);
++	if (ret)
++		return ret;
++
++	mutex_init(&imx258->mutex);
++	ctrl_hdlr->lock = &imx258->mutex;
++	imx258->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
++				&imx258_ctrl_ops,
++				V4L2_CID_LINK_FREQ,
++				ARRAY_SIZE(link_freq_menu_items) - 1,
++				0,
++				link_freq_menu_items);
++
++	if (imx258->link_freq)
++		imx258->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++
++	pixel_rate_max = link_freq_to_pixel_rate(link_freq_menu_items[0]);
++	pixel_rate_min = link_freq_to_pixel_rate(link_freq_menu_items[1]);
++	/* By default, PIXEL_RATE is read only */
++	imx258->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops,
++				V4L2_CID_PIXEL_RATE,
++				pixel_rate_min, pixel_rate_max,
++				1, pixel_rate_max);
++
++
++	vblank_def = imx258->cur_mode->vts_def - imx258->cur_mode->height;
++	vblank_min = imx258->cur_mode->vts_min - imx258->cur_mode->height;
++	imx258->vblank = v4l2_ctrl_new_std(
++				ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_VBLANK,
++				vblank_min,
++				IMX258_VTS_MAX - imx258->cur_mode->height, 1,
++				vblank_def);
++
++	if (imx258->vblank)
++		imx258->vblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++
++	imx258->hblank = v4l2_ctrl_new_std(
++				ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_HBLANK,
++				IMX258_PPL_DEFAULT - imx258->cur_mode->width,
++				IMX258_PPL_DEFAULT - imx258->cur_mode->width,
++				1,
++				IMX258_PPL_DEFAULT - imx258->cur_mode->width);
++
++	if (imx258->hblank)
++		imx258->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++
++	exposure_max = imx258->cur_mode->vts_def - 8;
++	imx258->exposure = v4l2_ctrl_new_std(
++				ctrl_hdlr, &imx258_ctrl_ops,
++				V4L2_CID_EXPOSURE, IMX258_EXPOSURE_MIN,
++				IMX258_EXPOSURE_MAX, IMX258_EXPOSURE_STEP,
++				IMX258_EXPOSURE_DEFAULT);
++
++	v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
++				IMX258_ANA_GAIN_MIN, IMX258_ANA_GAIN_MAX,
++				IMX258_ANA_GAIN_STEP, IMX258_ANA_GAIN_DEFAULT);
++
++	v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_DIGITAL_GAIN,
++				IMX258_DGTL_GAIN_MIN, IMX258_DGTL_GAIN_MAX,
++				IMX258_DGTL_GAIN_STEP,
++				IMX258_DGTL_GAIN_DEFAULT);
++
++	v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &imx258_ctrl_ops,
++				V4L2_CID_TEST_PATTERN,
++				ARRAY_SIZE(imx258_test_pattern_menu) - 1,
++				0, 0, imx258_test_pattern_menu);
++
++	if (ctrl_hdlr->error) {
++		ret = ctrl_hdlr->error;
++		dev_err(&client->dev, "%s control init failed (%d)\n",
++				__func__, ret);
++		goto error;
++	}
++
++	imx258->sd.ctrl_handler = ctrl_hdlr;
++
++	return 0;
++
++error:
++	v4l2_ctrl_handler_free(ctrl_hdlr);
++	mutex_destroy(&imx258->mutex);
++
++	return ret;
++}
++
++static void imx258_free_controls(struct imx258 *imx258)
++{
++	v4l2_ctrl_handler_free(imx258->sd.ctrl_handler);
++	mutex_destroy(&imx258->mutex);
++}
++
++static int imx258_probe(struct i2c_client *client)
++{
++	struct imx258 *imx258;
++	int ret;
++	u32 val = 0;
++
++	device_property_read_u32(&client->dev, "clock-frequency", &val);
++	if (val != 19200000)
++		return -EINVAL;
++
++	imx258 = devm_kzalloc(&client->dev, sizeof(*imx258), GFP_KERNEL);
++	if (!imx258)
++		return -ENOMEM;
++
++	/* Initialize subdev */
++	v4l2_i2c_subdev_init(&imx258->sd, client, &imx258_subdev_ops);
++
++	/* Check module identity */
++	ret = imx258_identify_module(imx258);
++	if (ret)
++		return ret;
++
++	/* Set default mode to max resolution */
++	imx258->cur_mode = &supported_modes[0];
++
++	ret = imx258_init_controls(imx258);
++	if (ret)
++		return ret;
++
++	/* Initialize subdev */
++	imx258->sd.internal_ops = &imx258_internal_ops;
++	imx258->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	imx258->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++
++	/* Initialize source pad */
++	imx258->pad.flags = MEDIA_PAD_FL_SOURCE;
++
++	ret = media_entity_pads_init(&imx258->sd.entity, 1, &imx258->pad);
++	if (ret)
++		goto error_handler_free;
++
++	ret = v4l2_async_register_subdev_sensor_common(&imx258->sd);
++	if (ret < 0)
++		goto error_media_entity;
++
++	pm_runtime_set_active(&client->dev);
++	pm_runtime_enable(&client->dev);
++	pm_runtime_idle(&client->dev);
++
++	return 0;
++
++error_media_entity:
++	media_entity_cleanup(&imx258->sd.entity);
++
++error_handler_free:
++	imx258_free_controls(imx258);
++
++	return ret;
++}
++
++static int imx258_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct imx258 *imx258 = to_imx258(sd);
++
++	v4l2_async_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	imx258_free_controls(imx258);
++
++	pm_runtime_disable(&client->dev);
++	pm_runtime_set_suspended(&client->dev);
++
++	return 0;
++}
++
++static const struct dev_pm_ops imx258_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(imx258_suspend, imx258_resume)
++};
++
++#ifdef CONFIG_ACPI
++static const struct acpi_device_id imx258_acpi_ids[] = {
++	{ "SONY258A" },
++	{ /* sentinel */ }
++};
++
++MODULE_DEVICE_TABLE(acpi, imx258_acpi_ids);
++#endif
++
++static struct i2c_driver imx258_i2c_driver = {
++	.driver = {
++		.name = "imx258",
++		.pm = &imx258_pm_ops,
++		.acpi_match_table = ACPI_PTR(imx258_acpi_ids),
++	},
++	.probe_new = imx258_probe,
++	.remove = imx258_remove,
++};
++
++module_i2c_driver(imx258_i2c_driver);
++
++MODULE_AUTHOR("Yeh, Andy <andy.yeh@intel.com>");
++MODULE_AUTHOR("Chiang, Alan <alanx.chiang@intel.com>");
++MODULE_AUTHOR("Chen, Jason <jasonx.z.chen@intel.com>");
++MODULE_DESCRIPTION("Sony IMX258 sensor driver");
++MODULE_LICENSE("GPL v2");
 -- 
-2.17.0
+1.9.1
