@@ -1,76 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:54456 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933732AbeE2Ma5 (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:39850 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753097AbeEURcU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 08:30:57 -0400
-Received: by mail-it0-f65.google.com with SMTP id 76-v6so2943463itx.4
-        for <linux-media@vger.kernel.org>; Tue, 29 May 2018 05:30:57 -0700 (PDT)
+        Mon, 21 May 2018 13:32:20 -0400
+Subject: Re: [Xen-devel] [RFC 1/3] xen/balloon: Allow allocating DMA buffers
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, matthew.d.roper@intel.com,
+        dongwon.kim@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180517082604.14828-1-andr2000@gmail.com>
+ <20180517082604.14828-2-andr2000@gmail.com>
+ <6a108876-19b7-49d0-3de2-9e10f984736c@oracle.com>
+ <9541926e-001a-e41e-317c-dbff6d687761@gmail.com>
+ <218e2bf7-490d-f89e-9866-27b7e3dbc835@oracle.com>
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+Message-ID: <a08e7d0d-f7d5-6b7e-979b-8a17060482f0@gmail.com>
+Date: Mon, 21 May 2018 20:32:15 +0300
 MIME-Version: 1.0
-In-Reply-To: <20180529084845.2al2dmpvjpz6eexp@sirius.home.kraxel.org>
-References: <20180525140808.12714-1-kraxel@redhat.com> <20180529082327.GF3438@phenom.ffwll.local>
- <20180529084845.2al2dmpvjpz6eexp@sirius.home.kraxel.org>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Tue, 29 May 2018 14:30:55 +0200
-Message-ID: <CAKMK7uGnxNwOUoY=kqG4hW4AZd8Fouh9GRq8Na-fRQUUvF9fZw@mail.gmail.com>
-Subject: Re: [PATCH v3] Add udmabuf misc device
-To: Gerd Hoffmann <kraxel@redhat.com>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-        David Airlie <airlied@linux.ie>,
-        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Shuah Khan <shuah@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:KERNEL SELFTEST FRAMEWORK"
-        <linux-kselftest@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <218e2bf7-490d-f89e-9866-27b7e3dbc835@oracle.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 29, 2018 at 10:48 AM, Gerd Hoffmann <kraxel@redhat.com> wrote:
->   Hi,
+On 05/21/2018 07:35 PM, Boris Ostrovsky wrote:
+> On 05/21/2018 01:40 AM, Oleksandr Andrushchenko wrote:
+>> On 05/19/2018 01:04 AM, Boris Ostrovsky wrote:
+>>> On 05/17/2018 04:26 AM, Oleksandr Andrushchenko wrote:
+>>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>>> A commit message would be useful.
+>> Sure, v1 will have it
+>>>> Signed-off-by: Oleksandr Andrushchenko
+>>>> <oleksandr_andrushchenko@epam.com>
+>>>>
+>>>>        for (i = 0; i < nr_pages; i++) {
+>>>> -        page = alloc_page(gfp);
+>>>> -        if (page == NULL) {
+>>>> -            nr_pages = i;
+>>>> -            state = BP_EAGAIN;
+>>>> -            break;
+>>>> +        if (ext_pages) {
+>>>> +            page = ext_pages[i];
+>>>> +        } else {
+>>>> +            page = alloc_page(gfp);
+>>>> +            if (page == NULL) {
+>>>> +                nr_pages = i;
+>>>> +                state = BP_EAGAIN;
+>>>> +                break;
+>>>> +            }
+>>>>            }
+>>>>            scrub_page(page);
+>>>>            list_add(&page->lru, &pages);
+>>>> @@ -529,7 +565,7 @@ static enum bp_state
+>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>>>>        i = 0;
+>>>>        list_for_each_entry_safe(page, tmp, &pages, lru) {
+>>>>            /* XENMEM_decrease_reservation requires a GFN */
+>>>> -        frame_list[i++] = xen_page_to_gfn(page);
+>>>> +        frames[i++] = xen_page_to_gfn(page);
+>>>>      #ifdef CONFIG_XEN_HAVE_PVMMU
+>>>>            /*
+>>>> @@ -552,18 +588,22 @@ static enum bp_state
+>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>>>>    #endif
+>>>>            list_del(&page->lru);
+>>>>    -        balloon_append(page);
+>>>> +        if (!ext_pages)
+>>>> +            balloon_append(page);
+>>> So what you are proposing is not really ballooning. You are just
+>>> piggybacking on existing interfaces, aren't you?
+>> Sort of. Basically I need to {increase|decrease}_reservation, not
+>> actually
+>> allocating ballooned pages.
+>> Do you think I can simply EXPORT_SYMBOL for
+>> {increase|decrease}_reservation?
+>> Any other suggestion?
 >
->> > +static void *kmap_atomic_udmabuf(struct dma_buf *buf, unsigned long page_num)
->> > +{
->> > +   struct udmabuf *ubuf = buf->priv;
->> > +   struct page *page = ubuf->pages[page_num];
->> > +
->> > +   return kmap_atomic(page);
->> > +}
->> > +
->> > +static void *kmap_udmabuf(struct dma_buf *buf, unsigned long page_num)
->> > +{
->> > +   struct udmabuf *ubuf = buf->priv;
->> > +   struct page *page = ubuf->pages[page_num];
->> > +
->> > +   return kmap(page);
->> > +}
->>
->> The above leaks like mad since no kunamp?
+> I am actually wondering how much of that code you end up reusing. You
+> pretty much create new code paths in both routines and common code ends
+> up being essentially the hypercall.
+Well, I hoped that it would be easier to maintain if I modify existing code
+to support both use-cases, but I am also ok to create new routines if this
+seems to be reasonable - please let me know
+>   So the question is --- would it make
+> sense to do all of this separately from the balloon driver?
+This can be done, but which driver will host this code then? If we move from
+the balloon driver, then this could go to either gntdev or grant-table.
+What's your preference?
 >
-> /me checks code.  Oops.  Yes.
->
-> The docs say map() is required and unmap() is not (for both atomic and
-> non-atomic cases), so I assumed there is a default implementation just
-> doing kunmap(page).  Which is not the case.  /me looks a bit surprised.
->
-> I'll fix it for v4.
->
->> Also I think we have 0 users of the kmap atomic interfaces ... so not sure
->> whether it's worth it to implement those.
->
-> Well, the docs are correct.  kmap_atomic() is required, dma-buf.c calls
-> the function pointer without checking it exists beforehand ...
-
-Frankly with the pletoria of dummy kmap functions that just return
-NULL; it might be better to move that into core dma-buf code and make
-it optional for real. Since it's indeed very surprising.
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+> -boris
+Thank you,
+Oleksandr
