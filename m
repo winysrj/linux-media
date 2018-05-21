@@ -1,149 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:47410 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751086AbeEEOvT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2018 10:51:19 -0400
-Date: Sat, 5 May 2018 11:51:09 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Akinobu Mita <akinobu.mita@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [RFC PATCH] media: i2c: add SCCB helpers
-Message-ID: <20180505115109.7fbb3323@vento.lan>
-In-Reply-To: <1524759212-10941-1-git-send-email-akinobu.mita@gmail.com>
-References: <1524759212-10941-1-git-send-email-akinobu.mita@gmail.com>
+Received: from mail-db5eur01on0068.outbound.protection.outlook.com ([104.47.2.68]:23488
+        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750773AbeEUTOA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 15:14:00 -0400
+Subject: Re: [Xen-devel] [RFC 1/3] xen/balloon: Allow allocating DMA buffers
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, matthew.d.roper@intel.com,
+        dongwon.kim@intel.com
+References: <20180517082604.14828-1-andr2000@gmail.com>
+ <20180517082604.14828-2-andr2000@gmail.com>
+ <6a108876-19b7-49d0-3de2-9e10f984736c@oracle.com>
+ <9541926e-001a-e41e-317c-dbff6d687761@gmail.com>
+ <218e2bf7-490d-f89e-9866-27b7e3dbc835@oracle.com>
+ <a08e7d0d-f7d5-6b7e-979b-8a17060482f0@gmail.com>
+ <b177a327-6a73-bb77-c69b-bc0958a05532@oracle.com>
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Message-ID: <f87478c7-3523-851c-5c3a-12a9e8753bb6@epam.com>
+Date: Mon, 21 May 2018 22:13:14 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <b177a327-6a73-bb77-c69b-bc0958a05532@oracle.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 27 Apr 2018 01:13:32 +0900
-Akinobu Mita <akinobu.mita@gmail.com> escreveu:
+On 05/21/2018 09:53 PM, Boris Ostrovsky wrote:
+> On 05/21/2018 01:32 PM, Oleksandr Andrushchenko wrote:
+>> On 05/21/2018 07:35 PM, Boris Ostrovsky wrote:
+>>> On 05/21/2018 01:40 AM, Oleksandr Andrushchenko wrote:
+>>>> On 05/19/2018 01:04 AM, Boris Ostrovsky wrote:
+>>>>> On 05/17/2018 04:26 AM, Oleksandr Andrushchenko wrote:
+>>>>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>>>>> A commit message would be useful.
+>>>> Sure, v1 will have it
+>>>>>> Signed-off-by: Oleksandr Andrushchenko
+>>>>>> <oleksandr_andrushchenko@epam.com>
+>>>>>>
+>>>>>>         for (i = 0; i < nr_pages; i++) {
+>>>>>> -        page = alloc_page(gfp);
+>>>>>> -        if (page == NULL) {
+>>>>>> -            nr_pages = i;
+>>>>>> -            state = BP_EAGAIN;
+>>>>>> -            break;
+>>>>>> +        if (ext_pages) {
+>>>>>> +            page = ext_pages[i];
+>>>>>> +        } else {
+>>>>>> +            page = alloc_page(gfp);
+>>>>>> +            if (page == NULL) {
+>>>>>> +                nr_pages = i;
+>>>>>> +                state = BP_EAGAIN;
+>>>>>> +                break;
+>>>>>> +            }
+>>>>>>             }
+>>>>>>             scrub_page(page);
+>>>>>>             list_add(&page->lru, &pages);
+>>>>>> @@ -529,7 +565,7 @@ static enum bp_state
+>>>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>>>>>>         i = 0;
+>>>>>>         list_for_each_entry_safe(page, tmp, &pages, lru) {
+>>>>>>             /* XENMEM_decrease_reservation requires a GFN */
+>>>>>> -        frame_list[i++] = xen_page_to_gfn(page);
+>>>>>> +        frames[i++] = xen_page_to_gfn(page);
+>>>>>>       #ifdef CONFIG_XEN_HAVE_PVMMU
+>>>>>>             /*
+>>>>>> @@ -552,18 +588,22 @@ static enum bp_state
+>>>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>>>>>>     #endif
+>>>>>>             list_del(&page->lru);
+>>>>>>     -        balloon_append(page);
+>>>>>> +        if (!ext_pages)
+>>>>>> +            balloon_append(page);
+>>>>> So what you are proposing is not really ballooning. You are just
+>>>>> piggybacking on existing interfaces, aren't you?
+>>>> Sort of. Basically I need to {increase|decrease}_reservation, not
+>>>> actually
+>>>> allocating ballooned pages.
+>>>> Do you think I can simply EXPORT_SYMBOL for
+>>>> {increase|decrease}_reservation?
+>>>> Any other suggestion?
+>>> I am actually wondering how much of that code you end up reusing. You
+>>> pretty much create new code paths in both routines and common code ends
+>>> up being essentially the hypercall.
+>> Well, I hoped that it would be easier to maintain if I modify existing
+>> code
+>> to support both use-cases, but I am also ok to create new routines if
+>> this
+>> seems to be reasonable - please let me know
+>>>    So the question is --- would it make
+>>> sense to do all of this separately from the balloon driver?
+>> This can be done, but which driver will host this code then? If we
+>> move from
+>> the balloon driver, then this could go to either gntdev or grant-table.
+>> What's your preference?
+> A separate module?
 
-> (This patch is in prototype stage)
-> 
-> This adds SCCB helper functions (sccb_read_byte and sccb_write_byte) that
-> are intended to be used by some of Omnivision sensor drivers.
+> Is there any use for this feature outside of your zero-copy DRM driver?
+Intel's hyper dma-buf (Dongwon/Matt CC'ed), V4L/GPU at least.
 
-What do you mean by "SCCB"? 
+At the time I tried to upstream zcopy driver it was discussed and 
+decided that
+it would be better if I remove all DRM specific code and move it to Xen 
+drivers.
+Thus, this RFC.
 
-> 
-> The ov772x driver is going to use these functions in order to make it work
-> with most i2c controllers.
-> 
-> As the ov772x device doesn't support repeated starts, this driver currently
-> requires I2C_FUNC_PROTOCOL_MANGLING that is not supported by many i2c
-> controller drivers.
-> 
-> With the sccb_read_byte() that issues two separated requests in order to
-> avoid repeated start, the driver doesn't require I2C_FUNC_PROTOCOL_MANGLING.
-> 
-> Cc: Wolfram Sang <wsa@the-dreams.de>
-> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
->  drivers/media/i2c/Kconfig  |  4 ++++
->  drivers/media/i2c/Makefile |  1 +
->  drivers/media/i2c/sccb.c   | 35 +++++++++++++++++++++++++++++++++++
->  drivers/media/i2c/sccb.h   | 14 ++++++++++++++
->  4 files changed, 54 insertions(+)
->  create mode 100644 drivers/media/i2c/sccb.c
->  create mode 100644 drivers/media/i2c/sccb.h
-> 
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index 541f0d28..19e5601 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -569,6 +569,9 @@ config VIDEO_THS8200
->  
->  comment "Camera sensor devices"
->  
-> +config SCCB
-> +	bool
-> +
->  config VIDEO_APTINA_PLL
->  	tristate
->  
-> @@ -692,6 +695,7 @@ config VIDEO_OV772X
->  	tristate "OmniVision OV772x sensor support"
->  	depends on I2C && VIDEO_V4L2
->  	depends on MEDIA_CAMERA_SUPPORT
-> +	select SCCB
->  	---help---
->  	  This is a Video4Linux2 sensor-level driver for the OmniVision
->  	  OV772x camera.
-> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-> index ea34aee..82fbd78 100644
-> --- a/drivers/media/i2c/Makefile
-> +++ b/drivers/media/i2c/Makefile
-> @@ -62,6 +62,7 @@ obj-$(CONFIG_VIDEO_VP27SMPX) += vp27smpx.o
->  obj-$(CONFIG_VIDEO_SONY_BTF_MPX) += sony-btf-mpx.o
->  obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
->  obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
-> +obj-$(CONFIG_SCCB) += sccb.o
->  obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
->  obj-$(CONFIG_VIDEO_OV2685) += ov2685.o
->  obj-$(CONFIG_VIDEO_OV5640) += ov5640.o
-> diff --git a/drivers/media/i2c/sccb.c b/drivers/media/i2c/sccb.c
-> new file mode 100644
-> index 0000000..80a3fb7
-> --- /dev/null
-> +++ b/drivers/media/i2c/sccb.c
-> @@ -0,0 +1,35 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +
-> +#include <linux/i2c.h>
-> +
-> +int sccb_read_byte(struct i2c_client *client, u8 addr)
-> +{
-> +	int ret;
-> +	u8 val;
-> +
-> +	/* Issue two separated requests in order to avoid repeated start */
-> +
-> +	ret = i2c_master_send(client, &addr, 1);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = i2c_master_recv(client, &val, 1);
-> +	if (ret < 0)
-> +		return ret;
+But it can also be implemented as a dedicated Xen dma-buf driver which 
+will have all the
+code from this RFC + a bit more (char/misc device handling at least).
+This will also require a dedicated user-space library, just like 
+libxengnttab.so
+for gntdev (now I have all new IOCTLs covered there).
 
-Handling it this way is a very bad idea, as you may have an operation
-between those two, as you're locking/unlocking for each i2c_master
-call, e. g. the code should be, instead:
+If the idea of a dedicated Xen dma-buf driver seems to be more attractive we
+can work toward this solution. BTW, I do support this idea, but was not
+sure if Xen community accepts yet another driver which duplicates quite 
+some code
+of the existing gntdev/balloon/grant-table. And now after this RFC I 
+hope that all cons
+and pros of both dedicated driver and gntdev/balloon/grant-table 
+extension are
+clearly seen and we can make a decision.
 
-	i2c_lock_adapter();
-	__i2c_transfer(); /* Send */
-	__i2c_transfer(); /* Receive */
-	i2c_unlock_adapter();
-
-Also, if the problem is just due to I2C not supporting REPEAT, IMHO,
-the best would be to add some IRC flag to indicate that.
-
-Btw, this is not the first device that doesn't support repeats.
-A good hint of drivers with similar issues is:
-
-$ git grep i2c_lock_adapter drivers/media/
-drivers/media/dvb-frontends/af9013.c:           i2c_lock_adapter(client->adapter);
-drivers/media/dvb-frontends/af9013.c:           i2c_lock_adapter(client->adapter);
-drivers/media/dvb-frontends/drxk_hard.c:        i2c_lock_adapter(state->i2c);
-drivers/media/dvb-frontends/rtl2830.c:  i2c_lock_adapter(client->adapter);
-drivers/media/dvb-frontends/rtl2830.c:  i2c_lock_adapter(client->adapter);
-drivers/media/dvb-frontends/rtl2830.c:  i2c_lock_adapter(client->adapter);
-drivers/media/dvb-frontends/tda1004x.c: i2c_lock_adapter(state->i2c);
-drivers/media/tuners/tda18271-common.c:         i2c_lock_adapter(priv->i2c_props.adap);
-drivers/media/tuners/tda18271-common.c: i2c_lock_adapter(priv->i2c_props.adap);
-
-Regards,
-Mauro
+>
+> -boris
+Thank you,
+Oleksandr
+[1] https://lists.freedesktop.org/archives/dri-devel/2018-April/173163.html
