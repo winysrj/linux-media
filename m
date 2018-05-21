@@ -1,706 +1,527 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:49971 "EHLO gofer.mess.org"
+Received: from mga17.intel.com ([192.55.52.151]:21567 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752458AbeEOSuY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 14:50:24 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Y Song <ys114321@gmail.com>
-Subject: [PATCH v2 1/2] media: rc: introduce BPF_PROG_RAWIR_EVENT
-Date: Tue, 15 May 2018 19:50:19 +0100
-Message-Id: <82363bf25c059528b93fbe542d88f147b5081424.1526409690.git.sean@mess.org>
-In-Reply-To: <cover.1526409690.git.sean@mess.org>
-References: <cover.1526409690.git.sean@mess.org>
-In-Reply-To: <cover.1526409690.git.sean@mess.org>
-References: <cover.1526409690.git.sean@mess.org>
+        id S1752670AbeEUIzU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 04:55:20 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v14 23/36] videobuf2-v4l2: integrate with media requests
+Date: Mon, 21 May 2018 11:54:48 +0300
+Message-Id: <20180521085501.16861-24-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for BPF_PROG_RAWIR_EVENT. This type of BPF program can call
-rc_keydown() to reported decoded IR scancodes, or rc_repeat() to report
-that the last key should be repeated.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The bpf program can be attached to using the bpf(BPF_PROG_ATTACH) syscall;
-the target_fd must be the /dev/lircN device.
+This implements the V4L2 part of the request support. The main
+change is that vb2_qbuf and vb2_prepare_buf now have a new
+media_device pointer. This required changes to several drivers
+that did not use the vb2_ioctl_qbuf/prepare_buf helper functions.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/rc/Kconfig           |  10 +
- drivers/media/rc/Makefile          |   1 +
- drivers/media/rc/bpf-rawir-event.c | 322 +++++++++++++++++++++++++++++
- drivers/media/rc/lirc_dev.c        |  28 +++
- drivers/media/rc/rc-core-priv.h    |  19 ++
- drivers/media/rc/rc-ir-raw.c       |   3 +
- include/linux/bpf_rcdev.h          |  30 +++
- include/linux/bpf_types.h          |   3 +
- include/uapi/linux/bpf.h           |  55 ++++-
- kernel/bpf/syscall.c               |   7 +
- 10 files changed, 477 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/rc/bpf-rawir-event.c
- create mode 100644 include/linux/bpf_rcdev.h
+ drivers/media/common/videobuf2/videobuf2-v4l2.c  | 97 +++++++++++++++++++++---
+ drivers/media/platform/omap3isp/ispvideo.c       |  2 +-
+ drivers/media/platform/s3c-camif/camif-capture.c |  4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c     |  4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c     |  4 +-
+ drivers/media/platform/soc_camera/soc_camera.c   |  4 +-
+ drivers/media/usb/uvc/uvc_queue.c                |  5 +-
+ drivers/media/usb/uvc/uvc_v4l2.c                 |  3 +-
+ drivers/media/usb/uvc/uvcvideo.h                 |  1 +
+ drivers/media/v4l2-core/v4l2-mem2mem.c           |  7 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c  |  3 +-
+ drivers/staging/media/omap4iss/iss_video.c       |  3 +-
+ drivers/usb/gadget/function/uvc_queue.c          |  2 +-
+ include/media/videobuf2-v4l2.h                   | 14 +++-
+ 14 files changed, 122 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index eb2c3b6eca7f..55747af5b978 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -25,6 +25,16 @@ config LIRC
- 	   passes raw IR to and from userspace, which is needed for
- 	   IR transmitting (aka "blasting") and for the lirc daemon.
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index b8d370b97ccaf..0a68b19b40da7 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -25,6 +25,7 @@
+ #include <linux/kthread.h>
  
-+config BPF_RAWIR_EVENT
-+	bool "Enable attaching BPF programs to lirc devices"
-+	depends on BPF_SYSCALL
-+	depends on RC_CORE=y
-+	depends on LIRC
-+	help
-+	   Enable this option to make it possible to load custom IR
-+	   decoders written in BPF. These decoders are type
-+	   BPF_PROG_TYPE_RAW_IR_EVENT.
-+
- menuconfig RC_DECODERS
- 	bool "Remote controller decoders"
- 	depends on RC_CORE
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 2e1c87066f6c..74907823bef8 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -5,6 +5,7 @@ obj-y += keymaps/
- obj-$(CONFIG_RC_CORE) += rc-core.o
- rc-core-y := rc-main.o rc-ir-raw.o
- rc-core-$(CONFIG_LIRC) += lirc_dev.o
-+rc-core-$(CONFIG_BPF_RAWIR_EVENT) += bpf-rawir-event.o
- obj-$(CONFIG_IR_NEC_DECODER) += ir-nec-decoder.o
- obj-$(CONFIG_IR_RC5_DECODER) += ir-rc5-decoder.o
- obj-$(CONFIG_IR_RC6_DECODER) += ir-rc6-decoder.o
-diff --git a/drivers/media/rc/bpf-rawir-event.c b/drivers/media/rc/bpf-rawir-event.c
-new file mode 100644
-index 000000000000..8007841977d6
---- /dev/null
-+++ b/drivers/media/rc/bpf-rawir-event.c
-@@ -0,0 +1,322 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// bpf-rawir-event.c - handles bpf
-+//
-+// Copyright (C) 2018 Sean Young <sean@mess.org>
-+
-+#include <linux/bpf.h>
-+#include <linux/filter.h>
-+#include "rc-core-priv.h"
-+
-+/*
-+ * BPF interface for raw IR
-+ */
-+const struct bpf_prog_ops rawir_event_prog_ops = {
-+};
-+
-+BPF_CALL_1(bpf_rc_repeat, struct bpf_rawir_event*, event)
-+{
-+	struct ir_raw_event_ctrl *ctrl;
-+
-+	ctrl = container_of(event, struct ir_raw_event_ctrl, bpf_rawir_event);
-+
-+	rc_repeat(ctrl->dev);
-+
-+	return 0;
-+}
-+
-+static const struct bpf_func_proto rc_repeat_proto = {
-+	.func	   = bpf_rc_repeat,
-+	.gpl_only  = true, /* rc_repeat is EXPORT_SYMBOL_GPL */
-+	.ret_type  = RET_INTEGER,
-+	.arg1_type = ARG_PTR_TO_CTX,
-+};
-+
-+BPF_CALL_4(bpf_rc_keydown, struct bpf_rawir_event*, event, u32, protocol,
-+	   u32, scancode, u32, toggle)
-+{
-+	struct ir_raw_event_ctrl *ctrl;
-+
-+	ctrl = container_of(event, struct ir_raw_event_ctrl, bpf_rawir_event);
-+
-+	rc_keydown(ctrl->dev, protocol, scancode, toggle != 0);
-+
-+	return 0;
-+}
-+
-+static const struct bpf_func_proto rc_keydown_proto = {
-+	.func	   = bpf_rc_keydown,
-+	.gpl_only  = true, /* rc_keydown is EXPORT_SYMBOL_GPL */
-+	.ret_type  = RET_INTEGER,
-+	.arg1_type = ARG_PTR_TO_CTX,
-+	.arg2_type = ARG_ANYTHING,
-+	.arg3_type = ARG_ANYTHING,
-+	.arg4_type = ARG_ANYTHING,
-+};
-+
-+static const struct bpf_func_proto *
-+rawir_event_func_proto(enum bpf_func_id func_id, const struct bpf_prog *prog)
-+{
-+	switch (func_id) {
-+	case BPF_FUNC_rc_repeat:
-+		return &rc_repeat_proto;
-+	case BPF_FUNC_rc_keydown:
-+		return &rc_keydown_proto;
-+	case BPF_FUNC_map_lookup_elem:
-+		return &bpf_map_lookup_elem_proto;
-+	case BPF_FUNC_map_update_elem:
-+		return &bpf_map_update_elem_proto;
-+	case BPF_FUNC_map_delete_elem:
-+		return &bpf_map_delete_elem_proto;
-+	case BPF_FUNC_ktime_get_ns:
-+		return &bpf_ktime_get_ns_proto;
-+	case BPF_FUNC_tail_call:
-+		return &bpf_tail_call_proto;
-+	case BPF_FUNC_get_prandom_u32:
-+		return &bpf_get_prandom_u32_proto;
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static bool rawir_event_is_valid_access(int off, int size,
-+					enum bpf_access_type type,
-+					const struct bpf_prog *prog,
-+					struct bpf_insn_access_aux *info)
-+{
-+	/* struct bpf_rawir_event has two u32 fields */
-+	if (type == BPF_WRITE)
-+		return false;
-+
-+	if (size != sizeof(__u32))
-+		return false;
-+
-+	if (!(off == offsetof(struct bpf_rawir_event, duration) ||
-+	      off == offsetof(struct bpf_rawir_event, type)))
-+		return false;
-+
-+	return true;
-+}
-+
-+const struct bpf_verifier_ops rawir_event_verifier_ops = {
-+	.get_func_proto  = rawir_event_func_proto,
-+	.is_valid_access = rawir_event_is_valid_access
-+};
-+
-+#define BPF_MAX_PROGS 64
-+
-+static int rc_dev_bpf_attach(struct rc_dev *rcdev, struct bpf_prog *prog)
-+{
-+	struct ir_raw_event_ctrl *raw;
-+	struct bpf_prog_array __rcu *old_array;
-+	struct bpf_prog_array *new_array;
-+	int ret, i, size;
-+
-+	if (rcdev->driver_type != RC_DRIVER_IR_RAW)
-+		return -EINVAL;
-+
-+	ret = mutex_lock_interruptible(&rcdev->lock);
-+	if (ret)
-+		return ret;
-+
-+	raw = rcdev->raw;
-+
-+	if (raw->progs) {
-+		size = bpf_prog_array_length(raw->progs);
-+		for (i = 0; i < size; i++) {
-+			if (prog == raw->progs->progs[i]) {
-+				ret = -EEXIST;
-+				goto out;
-+			}
-+		}
-+
-+		if (size >= BPF_MAX_PROGS) {
-+			ret = -E2BIG;
-+			goto out;
-+		}
-+	}
-+
-+	old_array = raw->progs;
-+	ret = bpf_prog_array_copy(old_array, NULL, prog, &new_array);
-+	if (ret < 0)
-+		goto out;
-+
-+	rcu_assign_pointer(raw->progs, new_array);
-+	bpf_prog_array_free(old_array);
-+out:
-+	mutex_unlock(&rcdev->lock);
-+	return ret;
-+}
-+
-+static int rc_dev_bpf_detach(struct rc_dev *rcdev, struct bpf_prog *prog)
-+{
-+	struct ir_raw_event_ctrl *raw;
-+	struct bpf_prog_array __rcu *old_array;
-+	struct bpf_prog_array *new_array;
-+	int ret;
-+
-+	if (rcdev->driver_type != RC_DRIVER_IR_RAW)
-+		return -EINVAL;
-+
-+	ret = mutex_lock_interruptible(&rcdev->lock);
-+	if (ret)
-+		return ret;
-+
-+	raw = rcdev->raw;
-+
-+	old_array = raw->progs;
-+	ret = bpf_prog_array_copy(old_array, prog, NULL, &new_array);
-+	if (ret < 0) {
-+		bpf_prog_array_delete_safe(old_array, prog);
-+	} else {
-+		rcu_assign_pointer(raw->progs, new_array);
-+		bpf_prog_array_free(old_array);
-+	}
-+
-+	bpf_prog_put(prog);
-+	mutex_unlock(&rcdev->lock);
-+	return 0;
-+}
-+
-+void rc_dev_bpf_run(struct rc_dev *rcdev, struct ir_raw_event ev)
-+{
-+	struct ir_raw_event_ctrl *raw = rcdev->raw;
-+
-+	if (!raw->progs)
-+		return;
-+
-+	if (unlikely(ev.carrier_report)) {
-+		raw->bpf_rawir_event.carrier = ev.carrier;
-+		raw->bpf_rawir_event.type = BPF_RAWIR_EVENT_CARRIER;
-+	} else {
-+		raw->bpf_rawir_event.duration = ev.duration;
-+
-+		if (ev.pulse)
-+			raw->bpf_rawir_event.type = BPF_RAWIR_EVENT_PULSE;
-+		else if (ev.timeout)
-+			raw->bpf_rawir_event.type = BPF_RAWIR_EVENT_TIMEOUT;
-+		else if (ev.reset)
-+			raw->bpf_rawir_event.type = BPF_RAWIR_EVENT_RESET;
-+		else
-+			raw->bpf_rawir_event.type = BPF_RAWIR_EVENT_SPACE;
-+	}
-+
-+	BPF_PROG_RUN_ARRAY(raw->progs, &raw->bpf_rawir_event, BPF_PROG_RUN);
-+}
-+
-+void rc_dev_bpf_put(struct rc_dev *rcdev)
-+{
-+	struct bpf_prog_array *progs = rcdev->raw->progs;
-+	int i, size;
-+
-+	if (!progs)
-+		return;
-+
-+	size = bpf_prog_array_length(progs);
-+	for (i = 0; i < size; i++)
-+		bpf_prog_put(progs->progs[i]);
-+
-+	bpf_prog_array_free(rcdev->raw->progs);
-+}
-+
-+int rc_dev_prog_attach(const union bpf_attr *attr)
-+{
-+	struct bpf_prog *prog;
-+	struct rc_dev *rcdev;
-+	int ret;
-+
-+	if (attr->attach_flags)
-+		return -EINVAL;
-+
-+	prog = bpf_prog_get_type(attr->attach_bpf_fd,
-+				 BPF_PROG_TYPE_RAWIR_EVENT);
-+	if (IS_ERR(prog))
-+		return PTR_ERR(prog);
-+
-+	rcdev = rc_dev_get_from_fd(attr->target_fd);
-+	if (IS_ERR(rcdev)) {
-+		bpf_prog_put(prog);
-+		return PTR_ERR(rcdev);
-+	}
-+
-+	ret = rc_dev_bpf_attach(rcdev, prog);
-+	if (ret)
-+		bpf_prog_put(prog);
-+
-+	put_device(&rcdev->dev);
-+
-+	return ret;
-+}
-+
-+int rc_dev_prog_detach(const union bpf_attr *attr)
-+{
-+	struct bpf_prog *prog;
-+	struct rc_dev *rcdev;
-+	int ret;
-+
-+	if (attr->attach_flags)
-+		return -EINVAL;
-+
-+	prog = bpf_prog_get_type(attr->attach_bpf_fd,
-+				 BPF_PROG_TYPE_RAWIR_EVENT);
-+	if (IS_ERR(prog))
-+		return PTR_ERR(prog);
-+
-+	rcdev = rc_dev_get_from_fd(attr->target_fd);
-+	if (IS_ERR(rcdev)) {
-+		bpf_prog_put(prog);
-+		return PTR_ERR(rcdev);
-+	}
-+
-+	ret = rc_dev_bpf_detach(rcdev, prog);
-+
-+	bpf_prog_put(prog);
-+	put_device(&rcdev->dev);
-+
-+	return ret;
-+}
-+
-+int rc_dev_prog_query(const union bpf_attr *attr, union bpf_attr __user *uattr)
-+{
-+	__u32 __user *prog_ids = u64_to_user_ptr(attr->query.prog_ids);
-+	struct bpf_prog_array *progs;
-+	struct rc_dev *rcdev;
-+	u32 cnt, flags = 0;
-+	int ret;
-+
-+	if (attr->query.query_flags)
-+		return -EINVAL;
-+
-+	rcdev = rc_dev_get_from_fd(attr->query.target_fd);
-+	if (IS_ERR(rcdev))
-+		return PTR_ERR(rcdev);
-+
-+	if (rcdev->driver_type != RC_DRIVER_IR_RAW) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	ret = mutex_lock_interruptible(&rcdev->lock);
-+	if (ret)
-+		goto out;
-+
-+	progs = rcdev->raw->progs;
-+	cnt = progs ? bpf_prog_array_length(progs) : 0;
-+
-+	if (copy_to_user(&uattr->query.prog_cnt, &cnt, sizeof(cnt))) {
-+		ret = -EFAULT;
-+		goto out;
-+	}
-+	if (copy_to_user(&uattr->query.attach_flags, &flags, sizeof(flags))) {
-+		ret = -EFAULT;
-+		goto out;
-+	}
-+
-+	if (attr->query.prog_cnt != 0 && prog_ids && cnt)
-+		ret = bpf_prog_array_copy_to_user(progs, prog_ids, cnt);
-+
-+out:
-+	mutex_unlock(&rcdev->lock);
-+	put_device(&rcdev->dev);
-+
-+	return ret;
-+}
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 24e9fbb80e81..c3028d0366d1 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -20,6 +20,7 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/device.h>
-+#include <linux/file.h>
- #include <linux/idr.h>
- #include <linux/poll.h>
- #include <linux/sched.h>
-@@ -816,4 +817,31 @@ void __exit lirc_dev_exit(void)
- 	unregister_chrdev_region(lirc_base_dev, RC_DEV_MAX);
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-common.h>
+@@ -40,10 +41,12 @@ module_param(debug, int, 0644);
+ 			pr_info("vb2-v4l2: %s: " fmt, __func__, ## arg); \
+ 	} while (0)
+ 
+-/* Flags that are set by the vb2 core */
++/* Flags that are set by us */
+ #define V4L2_BUFFER_MASK_FLAGS	(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED | \
+ 				 V4L2_BUF_FLAG_DONE | V4L2_BUF_FLAG_ERROR | \
+ 				 V4L2_BUF_FLAG_PREPARED | \
++				 V4L2_BUF_FLAG_IN_REQUEST | \
++				 V4L2_BUF_FLAG_REQUEST_FD | \
+ 				 V4L2_BUF_FLAG_TIMESTAMP_MASK)
+ /* Output buffer flags that should be passed on to the driver */
+ #define V4L2_BUFFER_OUT_FLAGS	(V4L2_BUF_FLAG_PFRAME | V4L2_BUF_FLAG_BFRAME | \
+@@ -181,6 +184,7 @@ static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b
+ 		return -EINVAL;
+ 	}
+ 	vbuf->sequence = 0;
++	vbuf->request_fd = -1;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+ 		switch (b->memory) {
+@@ -318,9 +322,12 @@ static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b
+ 	return 0;
  }
  
-+struct rc_dev *rc_dev_get_from_fd(int fd)
-+{
-+	struct rc_dev *dev;
-+	struct file *f;
-+
-+	f = fget_raw(fd);
-+	if (!f)
-+		return ERR_PTR(-EBADF);
-+
-+	if (!S_ISCHR(f->f_inode->i_mode) ||
-+	    imajor(f->f_inode) != MAJOR(lirc_base_dev)) {
-+		fput(f);
-+		return ERR_PTR(-EBADF);
-+	}
-+
-+	dev = container_of(f->f_inode->i_cdev, struct rc_dev, lirc_cdev);
-+	if (!dev->registered) {
-+		fput(f);
-+		return ERR_PTR(-ENODEV);
-+	}
-+
-+	get_device(&dev->dev);
-+	fput(f);
-+
-+	return dev;
-+}
-+
- MODULE_ALIAS("lirc_dev");
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index e0e6a17460f6..6db579f425f1 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -13,6 +13,7 @@
- #define	MAX_IR_EVENT_SIZE	512
+-static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+-				    const char *opname)
++static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *mdev,
++				    struct v4l2_buffer *b,
++				    const char *opname,
++				    struct media_request **p_req)
+ {
++	struct media_request *req;
+ 	struct vb2_v4l2_buffer *vbuf;
+ 	struct vb2_buffer *vb;
+ 	int ret;
+@@ -354,7 +361,55 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
  
- #include <linux/slab.h>
-+#include <uapi/linux/bpf.h>
- #include <media/rc-core.h>
+ 	/* Copy relevant information provided by the userspace */
+ 	memset(vbuf->planes, 0, sizeof(vbuf->planes[0]) * vb->num_planes);
+-	return vb2_fill_vb2_v4l2_buffer(vb, b);
++	ret = vb2_fill_vb2_v4l2_buffer(vb, b);
++	if (ret)
++		return ret;
++
++	if (!(b->flags & V4L2_BUF_FLAG_REQUEST_FD))
++		return 0;
++
++	/*
++	 * For proper locking when queueing a request you need to be able
++	 * to lock access to the vb2 queue, so check that there is a lock
++	 * that we can use. In addition p_req must be non-NULL.
++	 */
++	if (WARN_ON(!q->lock || !p_req))
++		return -EINVAL;
++
++	/*
++	 * Make sure this op is implemented by the driver. It's easy to forget
++	 * this callback, but is it important when canceling a buffer in a
++	 * queued request.
++	 */
++	if (WARN_ON(!q->ops->buf_request_complete))
++		return -EINVAL;
++
++	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
++		dprintk(1, "%s: buffer is not in dequeued state\n", opname);
++		return -EINVAL;
++	}
++
++	if (b->request_fd < 0) {
++		dprintk(1, "%s: request_fd < 0\n", opname);
++		return -EINVAL;
++	}
++
++	req = media_request_get_by_fd(mdev, b->request_fd);
++	if (IS_ERR(req)) {
++		dprintk(1, "%s: invalid request_fd\n", opname);
++		return PTR_ERR(req);
++	}
++
++	if (atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE) {
++		dprintk(1, "%s: request is not idle\n", opname);
++		media_request_put(req);
++		return -EBUSY;
++	}
++
++	*p_req = req;
++	vbuf->request_fd = b->request_fd;
++
++	return 0;
+ }
+ 
+ /*
+@@ -437,6 +492,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	case VB2_BUF_STATE_ACTIVE:
+ 		b->flags |= V4L2_BUF_FLAG_QUEUED;
+ 		break;
++	case VB2_BUF_STATE_IN_REQUEST:
++		b->flags |= V4L2_BUF_FLAG_IN_REQUEST;
++		break;
+ 	case VB2_BUF_STATE_ERROR:
+ 		b->flags |= V4L2_BUF_FLAG_ERROR;
+ 		/* fall through */
+@@ -455,6 +513,10 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 
+ 	if (vb2_buffer_in_use(q, vb))
+ 		b->flags |= V4L2_BUF_FLAG_MAPPED;
++	if (vbuf->request_fd >= 0) {
++		b->flags |= V4L2_BUF_FLAG_REQUEST_FD;
++		b->request_fd = vbuf->request_fd;
++	}
+ 
+ 	if (!q->is_output &&
+ 		b->flags & V4L2_BUF_FLAG_DONE &&
+@@ -533,7 +595,8 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ }
+ EXPORT_SYMBOL_GPL(vb2_reqbufs);
+ 
+-int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
++int vb2_prepare_buf(struct vb2_queue *q, struct media_device *mdev,
++		    struct v4l2_buffer *b)
+ {
+ 	int ret;
+ 
+@@ -542,9 +605,12 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		return -EBUSY;
+ 	}
+ 
+-	ret = vb2_queue_or_prepare_buf(q, b, "prepare_buf");
++	if (b->flags & V4L2_BUF_FLAG_REQUEST_FD)
++		return -EINVAL;
++
++	ret = vb2_queue_or_prepare_buf(q, mdev, b, "prepare_buf", NULL);
+ 
+-	return ret ? ret : vb2_core_prepare_buf(q, b->index, b, NULL);
++	return ret ? ret : vb2_core_prepare_buf(q, b->index, b);
+ }
+ EXPORT_SYMBOL_GPL(vb2_prepare_buf);
+ 
+@@ -602,8 +668,10 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+ }
+ EXPORT_SYMBOL_GPL(vb2_create_bufs);
+ 
+-int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
++int vb2_qbuf(struct vb2_queue *q, struct media_device *mdev,
++	     struct v4l2_buffer *b)
+ {
++	struct media_request *req = NULL;
+ 	int ret;
+ 
+ 	if (vb2_fileio_is_active(q)) {
+@@ -611,8 +679,13 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		return -EBUSY;
+ 	}
+ 
+-	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+-	return ret ? ret : vb2_core_qbuf(q, b->index, b, NULL);
++	ret = vb2_queue_or_prepare_buf(q, mdev, b, "qbuf", &req);
++	if (ret)
++		return ret;
++	ret = vb2_core_qbuf(q, b->index, b, req);
++	if (req)
++		media_request_put(req);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
+@@ -802,7 +875,7 @@ int vb2_ioctl_prepare_buf(struct file *file, void *priv,
+ 
+ 	if (vb2_queue_is_busy(vdev, file))
+ 		return -EBUSY;
+-	return vb2_prepare_buf(vdev->queue, p);
++	return vb2_prepare_buf(vdev->queue, vdev->v4l2_dev->mdev, p);
+ }
+ EXPORT_SYMBOL_GPL(vb2_ioctl_prepare_buf);
+ 
+@@ -821,7 +894,7 @@ int vb2_ioctl_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ 
+ 	if (vb2_queue_is_busy(vdev, file))
+ 		return -EBUSY;
+-	return vb2_qbuf(vdev->queue, p);
++	return vb2_qbuf(vdev->queue, vdev->v4l2_dev->mdev, p);
+ }
+ EXPORT_SYMBOL_GPL(vb2_ioctl_qbuf);
+ 
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 674e7fd3ad996..1de7b6b13f67a 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -940,7 +940,7 @@ isp_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ 	int ret;
+ 
+ 	mutex_lock(&video->queue_lock);
+-	ret = vb2_qbuf(&vfh->queue, b);
++	ret = vb2_qbuf(&vfh->queue, video->video.v4l2_dev->mdev, b);
+ 	mutex_unlock(&video->queue_lock);
+ 
+ 	return ret;
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index 9ab8e7ee2e1ed..fafb6da3e8047 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -941,7 +941,7 @@ static int s3c_camif_qbuf(struct file *file, void *priv,
+ 	if (vp->owner && vp->owner != priv)
+ 		return -EBUSY;
+ 
+-	return vb2_qbuf(&vp->vb_queue, buf);
++	return vb2_qbuf(&vp->vb_queue, vp->vdev.v4l2_dev->mdev, buf);
+ }
+ 
+ static int s3c_camif_dqbuf(struct file *file, void *priv,
+@@ -979,7 +979,7 @@ static int s3c_camif_prepare_buf(struct file *file, void *priv,
+ 				 struct v4l2_buffer *b)
+ {
+ 	struct camif_vp *vp = video_drvdata(file);
+-	return vb2_prepare_buf(&vp->vb_queue, b);
++	return vb2_prepare_buf(&vp->vb_queue, vp->vdev.v4l2_dev->mdev, b);
+ }
+ 
+ static int s3c_camif_g_selection(struct file *file, void *priv,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 5cf4d99212641..3d863e3f57981 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -632,9 +632,9 @@ static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 		return -EIO;
+ 	}
+ 	if (buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+-		return vb2_qbuf(&ctx->vq_src, buf);
++		return vb2_qbuf(&ctx->vq_src, NULL, buf);
+ 	else if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+-		return vb2_qbuf(&ctx->vq_dst, buf);
++		return vb2_qbuf(&ctx->vq_dst, NULL, buf);
+ 	return -EINVAL;
+ }
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 5c0462ca9993b..ed12d5d062e8e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1621,9 +1621,9 @@ static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 			mfc_err("Call on QBUF after EOS command\n");
+ 			return -EIO;
+ 		}
+-		return vb2_qbuf(&ctx->vq_src, buf);
++		return vb2_qbuf(&ctx->vq_src, NULL, buf);
+ 	} else if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+-		return vb2_qbuf(&ctx->vq_dst, buf);
++		return vb2_qbuf(&ctx->vq_dst, NULL, buf);
+ 	}
+ 	return -EINVAL;
+ }
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index e6787abc34ae1..08adf9a794208 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -394,7 +394,7 @@ static int soc_camera_qbuf(struct file *file, void *priv,
+ 	if (icd->streamer != file)
+ 		return -EBUSY;
+ 
+-	return vb2_qbuf(&icd->vb2_vidq, p);
++	return vb2_qbuf(&icd->vb2_vidq, NULL, p);
+ }
+ 
+ static int soc_camera_dqbuf(struct file *file, void *priv,
+@@ -430,7 +430,7 @@ static int soc_camera_prepare_buf(struct file *file, void *priv,
+ {
+ 	struct soc_camera_device *icd = file->private_data;
+ 
+-	return vb2_prepare_buf(&icd->vb2_vidq, b);
++	return vb2_prepare_buf(&icd->vb2_vidq, NULL, b);
+ }
+ 
+ static int soc_camera_expbuf(struct file *file, void *priv,
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index fecccb5e76282..8964e16f2b22d 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -300,12 +300,13 @@ int uvc_create_buffers(struct uvc_video_queue *queue,
+ 	return ret;
+ }
+ 
+-int uvc_queue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
++int uvc_queue_buffer(struct uvc_video_queue *queue,
++		     struct media_device *mdev, struct v4l2_buffer *buf)
+ {
+ 	int ret;
+ 
+ 	mutex_lock(&queue->mutex);
+-	ret = vb2_qbuf(&queue->queue, buf);
++	ret = vb2_qbuf(&queue->queue, mdev, buf);
+ 	mutex_unlock(&queue->mutex);
+ 
+ 	return ret;
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index bd32914259aed..3da5fdc002ac1 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -751,7 +751,8 @@ static int uvc_ioctl_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	if (!uvc_has_privileges(handle))
+ 		return -EBUSY;
+ 
+-	return uvc_queue_buffer(&stream->queue, buf);
++	return uvc_queue_buffer(&stream->queue,
++				stream->vdev.v4l2_dev->mdev, buf);
+ }
+ 
+ static int uvc_ioctl_expbuf(struct file *file, void *fh,
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index be5cf179228ba..bc9ed18f043c9 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -680,6 +680,7 @@ int uvc_query_buffer(struct uvc_video_queue *queue,
+ int uvc_create_buffers(struct uvc_video_queue *queue,
+ 		       struct v4l2_create_buffers *v4l2_cb);
+ int uvc_queue_buffer(struct uvc_video_queue *queue,
++		     struct media_device *mdev,
+ 		     struct v4l2_buffer *v4l2_buf);
+ int uvc_export_buffer(struct uvc_video_queue *queue,
+ 		      struct v4l2_exportbuffer *exp);
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index c4f963d96a79d..438f1b869319e 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -20,6 +20,7 @@
+ #include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-mem2mem.h>
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ 
+@@ -388,11 +389,12 @@ EXPORT_SYMBOL_GPL(v4l2_m2m_querybuf);
+ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 		  struct v4l2_buffer *buf)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct vb2_queue *vq;
+ 	int ret;
+ 
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+-	ret = vb2_qbuf(vq, buf);
++	ret = vb2_qbuf(vq, vdev->v4l2_dev->mdev, buf);
+ 	if (!ret)
+ 		v4l2_m2m_try_schedule(m2m_ctx);
+ 
+@@ -413,11 +415,12 @@ EXPORT_SYMBOL_GPL(v4l2_m2m_dqbuf);
+ int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 			 struct v4l2_buffer *buf)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct vb2_queue *vq;
+ 	int ret;
+ 
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+-	ret = vb2_prepare_buf(vq, buf);
++	ret = vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
+ 	if (!ret)
+ 		v4l2_m2m_try_schedule(m2m_ctx);
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 390fc98d07dd2..0d243a71d82c3 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -1426,7 +1426,8 @@ static int vpfe_qbuf(struct file *file, void *priv,
+ 		return -EACCES;
+ 	}
+ 
+-	return vb2_qbuf(&video->buffer_queue, p);
++	return vb2_qbuf(&video->buffer_queue,
++			video->video_dev.v4l2_dev->mdev, p);
+ }
+ 
+ /*
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index a3a83424a926c..a35d1004b5226 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -805,9 +805,10 @@ iss_video_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ static int
+ iss_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ {
++	struct iss_video *video = video_drvdata(file);
+ 	struct iss_video_fh *vfh = to_iss_video_fh(fh);
+ 
+-	return vb2_qbuf(&vfh->queue, b);
++	return vb2_qbuf(&vfh->queue, video->video.v4l2_dev->mdev, b);
+ }
+ 
+ static int
+diff --git a/drivers/usb/gadget/function/uvc_queue.c b/drivers/usb/gadget/function/uvc_queue.c
+index 9e33d5206d54a..f2497cb96abb0 100644
+--- a/drivers/usb/gadget/function/uvc_queue.c
++++ b/drivers/usb/gadget/function/uvc_queue.c
+@@ -166,7 +166,7 @@ int uvcg_queue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	ret = vb2_qbuf(&queue->queue, buf);
++	ret = vb2_qbuf(&queue->queue, NULL, buf);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+index 097bf3e6951d6..91a2b3e1a642a 100644
+--- a/include/media/videobuf2-v4l2.h
++++ b/include/media/videobuf2-v4l2.h
+@@ -32,6 +32,7 @@
+  *		&enum v4l2_field.
+  * @timecode:	frame timecode.
+  * @sequence:	sequence count of this frame.
++ * @request_fd:	the request_fd associated with this buffer
+  * @planes:	plane information (userptr/fd, length, bytesused, data_offset).
+  *
+  * Should contain enough information to be able to cover all the fields
+@@ -44,6 +45,7 @@ struct vb2_v4l2_buffer {
+ 	__u32			field;
+ 	struct v4l2_timecode	timecode;
+ 	__u32			sequence;
++	__s32			request_fd;
+ 	struct vb2_plane	planes[VB2_MAX_PLANES];
+ };
+ 
+@@ -79,6 +81,7 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create);
+  * vb2_prepare_buf() - Pass ownership of a buffer from userspace to the kernel
+  *
+  * @q:		pointer to &struct vb2_queue with videobuf2 queue.
++ * @mdev:	pointer to &struct media_device, may be NULL.
+  * @b:		buffer structure passed from userspace to
+  *		&v4l2_ioctl_ops->vidioc_prepare_buf handler in driver
+  *
+@@ -90,15 +93,19 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create);
+  * #) verifies the passed buffer,
+  * #) calls &vb2_ops->buf_prepare callback in the driver (if provided),
+  *    in which driver-specific buffer initialization can be performed.
++ * #) if @b->request_fd is non-zero and @mdev->ops->req_queue is set,
++ *    then bind the prepared buffer to the request.
+  *
+  * The return values from this function are intended to be directly returned
+  * from &v4l2_ioctl_ops->vidioc_prepare_buf handler in driver.
+  */
+-int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_prepare_buf(struct vb2_queue *q, struct media_device *mdev,
++		    struct v4l2_buffer *b);
  
  /**
-@@ -57,6 +58,11 @@ struct ir_raw_event_ctrl {
- 	/* raw decoder state follows */
- 	struct ir_raw_event prev_ev;
- 	struct ir_raw_event this_ev;
-+
-+#ifdef CONFIG_BPF_RAWIR_EVENT
-+	struct bpf_rawir_event		bpf_rawir_event;
-+	struct bpf_prog_array		*progs;
-+#endif
- 	struct nec_dec {
- 		int state;
- 		unsigned count;
-@@ -288,6 +294,7 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev);
- void ir_lirc_scancode_event(struct rc_dev *dev, struct lirc_scancode *lsc);
- int ir_lirc_register(struct rc_dev *dev);
- void ir_lirc_unregister(struct rc_dev *dev);
-+struct rc_dev *rc_dev_get_from_fd(int fd);
- #else
- static inline int lirc_dev_init(void) { return 0; }
- static inline void lirc_dev_exit(void) {}
-@@ -299,4 +306,16 @@ static inline int ir_lirc_register(struct rc_dev *dev) { return 0; }
- static inline void ir_lirc_unregister(struct rc_dev *dev) { }
- #endif
- 
-+/*
-+ * bpf interface
-+ */
-+#ifdef CONFIG_BPF_RAWIR_EVENT
-+void rc_dev_bpf_put(struct rc_dev *dev);
-+void rc_dev_bpf_run(struct rc_dev *dev, struct ir_raw_event ev);
-+#else
-+static inline void rc_dev_bpf_put(struct rc_dev *dev) { }
-+static inline void rc_dev_bpf_run(struct rc_dev *dev, struct ir_raw_event ev)
-+{ }
-+#endif
-+
- #endif /* _RC_CORE_PRIV */
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 374f83105a23..25828f15faec 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -32,6 +32,7 @@ static int ir_raw_event_thread(void *data)
- 				    handler->protocols || !handler->protocols)
- 					handler->decode(raw->dev, ev);
- 			ir_lirc_raw_event(raw->dev, ev);
-+			rc_dev_bpf_run(raw->dev, ev);
- 			raw->prev_ev = ev;
- 		}
- 		mutex_unlock(&ir_raw_handler_lock);
-@@ -623,6 +624,8 @@ void ir_raw_event_unregister(struct rc_dev *dev)
- 			handler->raw_unregister(dev);
- 	mutex_unlock(&ir_raw_handler_lock);
- 
-+	rc_dev_bpf_put(dev);
-+
- 	ir_raw_event_free(dev);
- }
- 
-diff --git a/include/linux/bpf_rcdev.h b/include/linux/bpf_rcdev.h
-new file mode 100644
-index 000000000000..17a30f30436a
---- /dev/null
-+++ b/include/linux/bpf_rcdev.h
-@@ -0,0 +1,30 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _BPF_RCDEV_H
-+#define _BPF_RCDEV_H
-+
-+#include <linux/bpf.h>
-+#include <uapi/linux/bpf.h>
-+
-+#ifdef CONFIG_BPF_RAWIR_EVENT
-+int rc_dev_prog_attach(const union bpf_attr *attr);
-+int rc_dev_prog_detach(const union bpf_attr *attr);
-+int rc_dev_prog_query(const union bpf_attr *attr, union bpf_attr __user *uattr);
-+#else
-+static inline int rc_dev_prog_attach(const union bpf_attr *attr)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline int rc_dev_prog_detach(const union bpf_attr *attr)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline int rc_dev_prog_query(const union bpf_attr *attr,
-+				    union bpf_attr __user *uattr)
-+{
-+	return -EINVAL;
-+}
-+#endif
-+
-+#endif /* _BPF_RCDEV_H */
-diff --git a/include/linux/bpf_types.h b/include/linux/bpf_types.h
-index d7df1b323082..667d1d557090 100644
---- a/include/linux/bpf_types.h
-+++ b/include/linux/bpf_types.h
-@@ -25,6 +25,9 @@ BPF_PROG_TYPE(BPF_PROG_TYPE_RAW_TRACEPOINT, raw_tracepoint)
- #ifdef CONFIG_CGROUP_BPF
- BPF_PROG_TYPE(BPF_PROG_TYPE_CGROUP_DEVICE, cg_dev)
- #endif
-+#ifdef CONFIG_BPF_RAWIR_EVENT
-+BPF_PROG_TYPE(BPF_PROG_TYPE_RAWIR_EVENT, rawir_event)
-+#endif
- 
- BPF_MAP_TYPE(BPF_MAP_TYPE_ARRAY, array_map_ops)
- BPF_MAP_TYPE(BPF_MAP_TYPE_PERCPU_ARRAY, percpu_array_map_ops)
-diff --git a/include/uapi/linux/bpf.h b/include/uapi/linux/bpf.h
-index 02e4112510f8..8ba1be825af0 100644
---- a/include/uapi/linux/bpf.h
-+++ b/include/uapi/linux/bpf.h
-@@ -140,6 +140,7 @@ enum bpf_prog_type {
- 	BPF_PROG_TYPE_SK_MSG,
- 	BPF_PROG_TYPE_RAW_TRACEPOINT,
- 	BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
-+	BPF_PROG_TYPE_RAWIR_EVENT,
- };
- 
- enum bpf_attach_type {
-@@ -157,6 +158,7 @@ enum bpf_attach_type {
- 	BPF_CGROUP_INET6_CONNECT,
- 	BPF_CGROUP_INET4_POST_BIND,
- 	BPF_CGROUP_INET6_POST_BIND,
-+	BPF_RAWIR_EVENT,
- 	__MAX_BPF_ATTACH_TYPE
- };
- 
-@@ -1855,6 +1857,35 @@ union bpf_attr {
-  *             Egress device index on success, 0 if packet needs to continue
-  *             up the stack for further processing or a negative error in case
-  *             of failure.
-+ *
-+ * int bpf_rc_keydown(void *ctx, u32 protocol, u32 scancode, u32 toggle)
-+ *	Description
-+ *		Report decoded scancode with toggle value. For use in
-+ *		BPF_PROG_TYPE_RAWIR_EVENT, to report a successfully
-+ *		decoded scancode. This is will generate a keydown event,
-+ *		and a keyup event once the scancode is no longer repeated.
-+ *
-+ *		*ctx* pointer to bpf_rawir_event, *protocol* is decoded
-+ *		protocol (see RC_PROTO_* enum).
-+ *
-+ *		Some protocols include a toggle bit, in case the button
-+ *		was released and pressed again between consecutive scancodes,
-+ *		copy this bit into *toggle* if it exists, else set to 0.
-+ *
-+ *     Return
-+ *		Always return 0 (for now)
-+ *
-+ * int bpf_rc_repeat(void *ctx)
-+ *	Description
-+ *		Repeat the last decoded scancode; some IR protocols like
-+ *		NEC have a special IR message for repeat last button,
-+ *		in case user is holding a button down; the scancode is
-+ *		not repeated.
-+ *
-+ *		*ctx* pointer to bpf_rawir_event.
-+ *
-+ *     Return
-+ *		Always return 0 (for now)
+  * vb2_qbuf() - Queue a buffer from userspace
+  * @q:		pointer to &struct vb2_queue with videobuf2 queue.
++ * @mdev:	pointer to &struct media_device, may be NULL.
+  * @b:		buffer structure passed from userspace to
+  *		&v4l2_ioctl_ops->vidioc_qbuf handler in driver
+  *
+@@ -107,6 +114,8 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
+  * This function:
+  *
+  * #) verifies the passed buffer;
++ * #) if @b->request_fd is non-zero and @mdev->ops->req_queue is set,
++ *    then bind the buffer to the request.
+  * #) if necessary, calls &vb2_ops->buf_prepare callback in the driver
+  *    (if provided), in which driver-specific buffer initialization can
+  *    be performed;
+@@ -116,7 +125,8 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
+  * The return values from this function are intended to be directly returned
+  * from &v4l2_ioctl_ops->vidioc_qbuf handler in driver.
   */
- #define __BPF_FUNC_MAPPER(FN)		\
- 	FN(unspec),			\
-@@ -1926,7 +1957,9 @@ union bpf_attr {
- 	FN(skb_get_xfrm_state),		\
- 	FN(get_stack),			\
- 	FN(skb_load_bytes_relative),	\
--	FN(fib_lookup),
-+	FN(fib_lookup),			\
-+	FN(rc_repeat),			\
-+	FN(rc_keydown),
+-int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_qbuf(struct vb2_queue *q, struct media_device *mdev,
++	     struct v4l2_buffer *b);
  
- /* integer value in 'imm' field of BPF_CALL instruction selects which helper
-  * function eBPF program intends to call
-@@ -1993,6 +2026,26 @@ enum bpf_hdr_start_off {
- 	BPF_HDR_START_NET,
- };
- 
-+/*
-+ * user accessible mirror of in-kernel ir_raw_event
-+ */
-+#define BPF_RAWIR_EVENT_SPACE		0
-+#define BPF_RAWIR_EVENT_PULSE		1
-+#define BPF_RAWIR_EVENT_TIMEOUT		2
-+#define BPF_RAWIR_EVENT_RESET		3
-+#define BPF_RAWIR_EVENT_CARRIER		4
-+#define BPF_RAWIR_EVENT_DUTY_CYCLE	5
-+
-+struct bpf_rawir_event {
-+	union {
-+		__u32	duration;
-+		__u32	carrier;
-+		__u32	duty_cycle;
-+	};
-+
-+	__u32	type;
-+};
-+
- /* user accessible mirror of in-kernel sk_buff.
-  * new fields can only be added to the end of this structure
-  */
-diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
-index e2aeb5e89f44..75c089f407c8 100644
---- a/kernel/bpf/syscall.c
-+++ b/kernel/bpf/syscall.c
-@@ -11,6 +11,7 @@
-  */
- #include <linux/bpf.h>
- #include <linux/bpf_trace.h>
-+#include <linux/bpf_rcdev.h>
- #include <linux/btf.h>
- #include <linux/syscalls.h>
- #include <linux/slab.h>
-@@ -1567,6 +1568,8 @@ static int bpf_prog_attach(const union bpf_attr *attr)
- 	case BPF_SK_SKB_STREAM_PARSER:
- 	case BPF_SK_SKB_STREAM_VERDICT:
- 		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, true);
-+	case BPF_RAWIR_EVENT:
-+		return rc_dev_prog_attach(attr);
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1637,6 +1640,8 @@ static int bpf_prog_detach(const union bpf_attr *attr)
- 	case BPF_SK_SKB_STREAM_PARSER:
- 	case BPF_SK_SKB_STREAM_VERDICT:
- 		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, false);
-+	case BPF_RAWIR_EVENT:
-+		return rc_dev_prog_detach(attr);
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1684,6 +1689,8 @@ static int bpf_prog_query(const union bpf_attr *attr,
- 	case BPF_CGROUP_SOCK_OPS:
- 	case BPF_CGROUP_DEVICE:
- 		break;
-+	case BPF_RAWIR_EVENT:
-+		return rc_dev_prog_query(attr, uattr);
- 	default:
- 		return -EINVAL;
- 	}
+ /**
+  * vb2_expbuf() - Export a buffer as a file descriptor
 -- 
-2.17.0
+2.11.0
