@@ -1,56 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:33255 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750980AbeELOoI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 May 2018 10:44:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga11.intel.com ([192.55.52.93]:45604 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752671AbeEUIzR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 04:55:17 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 0/4] gspca: convert to vb2
-Date: Sat, 12 May 2018 16:43:59 +0200
-Message-Id: <20180512144403.13576-1-hverkuil@xs4all.nl>
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH v14 16/36] v4l2-ctrls: Add documentation for control request support functions
+Date: Mon, 21 May 2018 11:54:41 +0300
+Message-Id: <20180521085501.16861-17-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add kerneldoc documentation for v4l2_ctrl_request_setup and
+v4l2_ctrl_request_complete functions.
 
-The first patch converts the gspca driver to the vb2 framework.
-It was much easier to do than I expected and it saved almost 600
-lines of gspca driver code.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/media/v4l2-ctrls.h | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-The second patch fixes v4l2-compliance warnings for g/s_parm.
-
-The third patch clears relevant fields in v4l2_streamparm in
-v4l_s_parm(). This was never done before since v4l2-compliance
-didn't check this.
-
-The final patch deletes the now unused v4l2_disable_ioctl_locking()
-function.
-
-Tested with three different gspca webcams, and tested suspend/resume
-as well.
-
-Regards,
-
-	Hans
-
-Hans Verkuil (4):
-  gspca: convert to vb2
-  gspca: fix g/s_parm handling
-  v4l2-ioctl: clear fields in s_parm
-  v4l2-ioctl: delete unused v4l2_disable_ioctl_locking
-
- drivers/media/usb/gspca/Kconfig            |   1 +
- drivers/media/usb/gspca/gspca.c            | 924 ++++-----------------
- drivers/media/usb/gspca/gspca.h            |  38 +-
- drivers/media/usb/gspca/m5602/m5602_core.c |   4 +-
- drivers/media/usb/gspca/ov534.c            |   1 -
- drivers/media/usb/gspca/topro.c            |   1 -
- drivers/media/usb/gspca/vc032x.c           |   2 +-
- drivers/media/v4l2-core/v4l2-ioctl.c       |  19 +-
- include/media/v4l2-dev.h                   |  15 -
- 9 files changed, 209 insertions(+), 796 deletions(-)
-
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index a0f7c38d1a902..d2e5653df645e 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -1077,8 +1077,34 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+  */
+ __poll_t v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
+ 
++/**
++ * v4l2_ctrl_request_setup - helper function to apply control values in a request
++ *
++ * @req: The request
++ * @hdl: The control handler
++ *
++ * This is a helper function to call the control handler's s_ctrl callback with
++ * the control values contained in the request. Do note that this approach of
++ * applying control values in a request is only applicable to memory-to-memory
++ * devices.
++ */
+ void v4l2_ctrl_request_setup(struct media_request *req,
+ 			     struct v4l2_ctrl_handler *hdl);
++
++/**
++ * v4l2_ctrl_request_complete - Complete a control handler request object
++ *
++ * @req: The request
++ * @hdl: The control handler
++ *
++ * This function is to be called on each control handler that may have had a
++ * request object associated with it, i.e. control handlers of a driver that
++ * supports requests.
++ *
++ * The function first obtains the values of any volatile controls in the control
++ * handler and attach them to the request. Then, the function completes the
++ * request object.
++ */
+ void v4l2_ctrl_request_complete(struct media_request *req,
+ 				struct v4l2_ctrl_handler *hdl);
+ 
 -- 
-2.17.0
+2.11.0
