@@ -1,83 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:49335 "EHLO gofer.mess.org"
+Received: from mga14.intel.com ([192.55.52.115]:28370 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755127AbeE0LYO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 27 May 2018 07:24:14 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Y Song <ys114321@gmail.com>,
-        Quentin Monnet <quentin.monnet@netronome.com>
-Subject: [PATCH v5 1/3] bpf: bpf_prog_array_copy() should return -ENOENT if exclude_prog not found
-Date: Sun, 27 May 2018 12:24:08 +0100
-Message-Id: <d44044258b35a965d71db5e8ee26289d0fc75ec2.1527419762.git.sean@mess.org>
-In-Reply-To: <cover.1527419762.git.sean@mess.org>
-References: <cover.1527419762.git.sean@mess.org>
-In-Reply-To: <cover.1527419762.git.sean@mess.org>
-References: <cover.1527419762.git.sean@mess.org>
+        id S1751174AbeEUIzP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 04:55:15 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH v14 07/36] media-request: Add a sanity check for the media request state
+Date: Mon, 21 May 2018 11:54:32 +0300
+Message-Id: <20180521085501.16861-8-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This makes is it possible for bpf prog detach to return -ENOENT.
+Add a sanity check for the number of the media request states equals the
+number of status strings for debug purposes. This necessitates a new
+entry in the request state enumeration, called NR_OF_MEDIA_REQUEST_STATE.
 
-Acked-by: Yonghong Song <yhs@fb.com>
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- kernel/bpf/core.c        | 11 +++++++++--
- kernel/trace/bpf_trace.c |  2 ++
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ drivers/media/media-request.c | 2 ++
+ include/media/media-request.h | 3 +++
+ 2 files changed, 5 insertions(+)
 
-diff --git a/kernel/bpf/core.c b/kernel/bpf/core.c
-index b574dddc05b8..527587de8a67 100644
---- a/kernel/bpf/core.c
-+++ b/kernel/bpf/core.c
-@@ -1616,6 +1616,7 @@ int bpf_prog_array_copy(struct bpf_prog_array __rcu *old_array,
- 	int new_prog_cnt, carry_prog_cnt = 0;
- 	struct bpf_prog **existing_prog;
- 	struct bpf_prog_array *array;
-+	bool found_exclude = false;
- 	int new_prog_idx = 0;
- 
- 	/* Figure out how many existing progs we need to carry over to
-@@ -1624,14 +1625,20 @@ int bpf_prog_array_copy(struct bpf_prog_array __rcu *old_array,
- 	if (old_array) {
- 		existing_prog = old_array->progs;
- 		for (; *existing_prog; existing_prog++) {
--			if (*existing_prog != exclude_prog &&
--			    *existing_prog != &dummy_bpf_prog.prog)
-+			if (*existing_prog == exclude_prog) {
-+				found_exclude = true;
-+				continue;
-+			}
-+			if (*existing_prog != &dummy_bpf_prog.prog)
- 				carry_prog_cnt++;
- 			if (*existing_prog == include_prog)
- 				return -EEXIST;
- 		}
- 	}
- 
-+	if (exclude_prog && !found_exclude)
-+		return -ENOENT;
+diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+index 03e74d72241a0..ef4a436f220a3 100644
+--- a/drivers/media/media-request.c
++++ b/drivers/media/media-request.c
+@@ -28,6 +28,8 @@ static const char * const request_state[] = {
+ static const char *
+ media_request_state_str(enum media_request_state state)
+ {
++	BUILD_BUG_ON(NR_OF_MEDIA_REQUEST_STATE != ARRAY_SIZE(request_state));
 +
- 	/* How many progs (not NULL) will be in the new array? */
- 	new_prog_cnt = carry_prog_cnt;
- 	if (include_prog)
-diff --git a/kernel/trace/bpf_trace.c b/kernel/trace/bpf_trace.c
-index 81fdf2fc94ac..af1486d9a0ed 100644
---- a/kernel/trace/bpf_trace.c
-+++ b/kernel/trace/bpf_trace.c
-@@ -1006,6 +1006,8 @@ void perf_event_detach_bpf_prog(struct perf_event *event)
+ 	if (WARN_ON(state >= ARRAY_SIZE(request_state)))
+ 		return "invalid";
+ 	return request_state[state];
+diff --git a/include/media/media-request.h b/include/media/media-request.h
+index 42cc6e7f6e532..7a2df18a069ce 100644
+--- a/include/media/media-request.h
++++ b/include/media/media-request.h
+@@ -31,6 +31,8 @@
+  * @MEDIA_REQUEST_STATE_UPDATING:	The request is being updated, i.e.
+  *					request objects are being added,
+  *					modified or removed
++ * @NR_OF_MEDIA_REQUEST_STATE:		The number of media request states, used
++ *					internally for sanity check purposes
+  */
+ enum media_request_state {
+ 	MEDIA_REQUEST_STATE_IDLE,
+@@ -39,6 +41,7 @@ enum media_request_state {
+ 	MEDIA_REQUEST_STATE_COMPLETE,
+ 	MEDIA_REQUEST_STATE_CLEANING,
+ 	MEDIA_REQUEST_STATE_UPDATING,
++	NR_OF_MEDIA_REQUEST_STATE,
+ };
  
- 	old_array = event->tp_event->prog_array;
- 	ret = bpf_prog_array_copy(old_array, event->prog, NULL, &new_array);
-+	if (ret == -ENOENT)
-+		goto unlock;
- 	if (ret < 0) {
- 		bpf_prog_array_delete_safe(old_array, event->prog);
- 	} else {
+ struct media_request_object;
 -- 
-2.17.0
+2.11.0
