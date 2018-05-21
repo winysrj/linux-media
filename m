@@ -1,137 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:41505 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753732AbeEOOHy (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59496 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752814AbeEUKQP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 10:07:54 -0400
-Received: by mail-lf0-f68.google.com with SMTP id m17-v6so405470lfj.8
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 07:07:53 -0700 (PDT)
-Subject: Re: [PATCH 2/5] drm/i915: hdmi: add CEC notifier to intel_hdmi
-To: Hans Verkuil <hansverk@cisco.com>, airlied@linux.ie,
-        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
-        seanpaul@google.com
-Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
-        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
-References: <1526388421-18808-1-git-send-email-narmstrong@baylibre.com>
- <1526388421-18808-3-git-send-email-narmstrong@baylibre.com>
- <b27858bd-6a87-220a-cbec-586350377175@cisco.com>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <b265fbaf-ffa2-0026-db71-11f238f12a0c@baylibre.com>
-Date: Tue, 15 May 2018 16:07:50 +0200
+        Mon, 21 May 2018 06:16:15 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id D25A6634C85
+        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 13:16:13 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1fKhrR-0001RO-KE
+        for linux-media@vger.kernel.org; Mon, 21 May 2018 13:16:13 +0300
+Date: Mon, 21 May 2018 13:16:13 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.18] Renesas R-Car CSI-2 receiver driver
+Message-ID: <20180521101613.czfpo65o32ejowib@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <b27858bd-6a87-220a-cbec-586350377175@cisco.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro,
 
-On 15/05/2018 14:56, Hans Verkuil wrote:
-> On 05/15/18 14:46, Neil Armstrong wrote:
->> This patchs adds the cec_notifier feature to the intel_hdmi part
->> of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
->> between each HDMI ports.
->> The changes will allow the i915 HDMI code to notify EDID and HPD changes
->> to an eventual CEC adapter.
-> 
-> You haven't figured yet out where to place the cec_notifier_put() call?
-> Or did you forget?
+Here's the driver for the Renesas R-Car CSI-2 receiver.
 
-I just figured it out, I was busy on the CEC driver and notifier, will re-spin a v2 with this and the other small fixes you requested.
+Please pull.
 
-Thanks,
-Neil
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->> ---
->>  drivers/gpu/drm/i915/Kconfig      |  1 +
->>  drivers/gpu/drm/i915/intel_drv.h  |  2 ++
->>  drivers/gpu/drm/i915/intel_hdmi.c | 10 ++++++++++
->>  3 files changed, 13 insertions(+)
->>
->> diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
->> index dfd9588..2d65d56 100644
->> --- a/drivers/gpu/drm/i915/Kconfig
->> +++ b/drivers/gpu/drm/i915/Kconfig
->> @@ -23,6 +23,7 @@ config DRM_I915
->>  	select SYNC_FILE
->>  	select IOSF_MBI
->>  	select CRC32
->> +	select CEC_CORE if CEC_NOTIFIER
->>  	help
->>  	  Choose this option if you have a system that has "Intel Graphics
->>  	  Media Accelerator" or "HD Graphics" integrated graphics,
->> diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
->> index d436858..b50e51b 100644
->> --- a/drivers/gpu/drm/i915/intel_drv.h
->> +++ b/drivers/gpu/drm/i915/intel_drv.h
->> @@ -39,6 +39,7 @@
->>  #include <drm/drm_dp_mst_helper.h>
->>  #include <drm/drm_rect.h>
->>  #include <drm/drm_atomic.h>
->> +#include <media/cec-notifier.h>
->>  
->>  /**
->>   * __wait_for - magic wait macro
->> @@ -1001,6 +1002,7 @@ struct intel_hdmi {
->>  	bool has_audio;
->>  	bool rgb_quant_range_selectable;
->>  	struct intel_connector *attached_connector;
->> +	struct cec_notifier *notifier;
->>  };
->>  
->>  struct intel_dp_mst_encoder;
->> diff --git a/drivers/gpu/drm/i915/intel_hdmi.c b/drivers/gpu/drm/i915/intel_hdmi.c
->> index 1baef4a..9b94d72 100644
->> --- a/drivers/gpu/drm/i915/intel_hdmi.c
->> +++ b/drivers/gpu/drm/i915/intel_hdmi.c
->> @@ -1868,6 +1868,8 @@ intel_hdmi_set_edid(struct drm_connector *connector)
->>  		connected = true;
->>  	}
->>  
->> +	cec_notifier_set_phys_addr_from_edid(intel_hdmi->notifier, edid);
->> +
->>  	return connected;
->>  }
->>  
->> @@ -1876,6 +1878,7 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
->>  {
->>  	enum drm_connector_status status;
->>  	struct drm_i915_private *dev_priv = to_i915(connector->dev);
->> +	struct intel_hdmi *intel_hdmi = intel_attached_hdmi(connector);
->>  
->>  	DRM_DEBUG_KMS("[CONNECTOR:%d:%s]\n",
->>  		      connector->base.id, connector->name);
->> @@ -1891,6 +1894,9 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
->>  
->>  	intel_display_power_put(dev_priv, POWER_DOMAIN_GMBUS);
->>  
->> +	if (status != connector_status_connected)
->> +		cec_notifier_phys_addr_invalidate(intel_hdmi->notifier);
->> +
->>  	return status;
->>  }
->>  
->> @@ -2358,6 +2364,10 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
->>  		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
->>  		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
->>  	}
->> +
->> +	intel_hdmi->notifier = cec_notifier_get_conn(dev->dev, connector->name);
->> +	if (!intel_hdmi->notifier)
->> +		DRM_DEBUG_KMS("CEC notifier get failed\n");
->>  }
->>  
->>  void intel_hdmi_init(struct drm_i915_private *dev_priv,
->>
-> 
+The following changes since commit 8ed8bba70b4355b1ba029b151ade84475dd12991:
+
+  media: imx274: remove non-indexed pointers from mode_table (2018-05-17 06:22:08 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.18-6
+
+for you to fetch changes up to defb00ec395644ba5a5423e7f59254a253c7755b:
+
+  rcar-csi2: set default format if a unsupported one is requested (2018-05-17 13:56:39 +0300)
+
+----------------------------------------------------------------
+Niklas Söderlund (3):
+      rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
+      rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver driver
+      rcar-csi2: set default format if a unsupported one is requested
+
+ .../bindings/media/renesas,rcar-csi2.txt           |  101 ++
+ MAINTAINERS                                        |    1 +
+ drivers/media/platform/rcar-vin/Kconfig            |   12 +
+ drivers/media/platform/rcar-vin/Makefile           |    1 +
+ drivers/media/platform/rcar-vin/rcar-csi2.c        | 1084 ++++++++++++++++++++
+ 5 files changed, 1199 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+ create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
