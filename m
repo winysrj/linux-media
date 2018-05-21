@@ -1,49 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46814 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750716AbeEHKyY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 May 2018 06:54:24 -0400
-Date: Tue, 8 May 2018 13:54:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv13 05/28] media-request: add media_request_object_find
-Message-ID: <20180508105422.uu47qx35zk7uyltg@valkosipuli.retiisi.org.uk>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
- <20180503145318.128315-6-hverkuil@xs4all.nl>
- <20180504124307.sddriagirmig4yf4@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180504124307.sddriagirmig4yf4@valkosipuli.retiisi.org.uk>
+Received: from mga17.intel.com ([192.55.52.151]:21564 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752666AbeEUIzQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 04:55:16 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v14 09/36] v4l2-dev: lock req_queue_mutex
+Date: Mon, 21 May 2018 11:54:34 +0300
+Message-Id: <20180521085501.16861-10-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 04, 2018 at 03:43:07PM +0300, Sakari Ailus wrote:
-> > diff --git a/include/media/media-request.h b/include/media/media-request.h
-> > index 997e096d7128..5367b4a2f91c 100644
-> > --- a/include/media/media-request.h
-> > +++ b/include/media/media-request.h
-> > @@ -196,6 +196,22 @@ static inline void media_request_object_get(struct media_request_object *obj)
-> >   */
-> >  void media_request_object_put(struct media_request_object *obj);
-> >  
-> > +/**
-> > + * media_request_object_find - Find an object in a request
-> > + *
-> > + * @ops: Find an object with this ops value
-> > + * @priv: Find an object with this priv value
-> > + *
-> > + * Both @ops and @priv must be non-NULL.
-> > + *
-> > + * Returns NULL if not found or the object pointer. The caller must
-> 
-> I'd describe the successful case first. I.e. "Returns the object pointer or
-> NULL it not found".
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Oops... "Returns the object pointer or NULL if not found".
+We need to serialize streamon/off with queueing new requests.
+These ioctls may trigger the cancellation of a streaming
+operation, and that should not be mixed with queuing a new
+request at the same time.
 
+Finally close() needs this lock since that too can trigger the
+cancellation of a streaming operation.
+
+We take the req_queue_mutex here before any other locks since
+it is a very high-level lock.
+
+[Sakari Ailus: No longer acquire req_queue_mutex for controls]
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 36 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index c4f4357e9ca41..8d4b55ac00f94 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -361,13 +361,35 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 
+ 	if (vdev->fops->unlocked_ioctl) {
+ 		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
++		struct mutex *queue_lock = NULL;
+ 
+-		if (lock && mutex_lock_interruptible(lock))
++		/*
++		 * We need to serialize streamon/off with queueing new requests.
++		 * These ioctls may trigger the cancellation of a streaming
++		 * operation, and that should not be mixed with queueing a new
++		 * request at the same time.
++		 *
++		 * Also TRY/S_EXT_CTRLS needs this lock to correctly serialize
++		 * with MEDIA_REQUEST_IOC_QUEUE.
++		 */
++		if (vdev->v4l2_dev->mdev &&
++		    (cmd == VIDIOC_STREAMON || cmd == VIDIOC_STREAMOFF))
++			queue_lock = &vdev->v4l2_dev->mdev->req_queue_mutex;
++
++		if (queue_lock && mutex_lock_interruptible(queue_lock))
++			return -ERESTARTSYS;
++
++		if (lock && mutex_lock_interruptible(lock)) {
++			if (queue_lock)
++				mutex_unlock(queue_lock);
+ 			return -ERESTARTSYS;
++		}
+ 		if (video_is_registered(vdev))
+ 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+ 		if (lock)
+ 			mutex_unlock(lock);
++		if (queue_lock)
++			mutex_unlock(queue_lock);
+ 	} else
+ 		ret = -ENOTTY;
+ 
+@@ -450,8 +472,20 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 	struct video_device *vdev = video_devdata(filp);
+ 	int ret = 0;
+ 
++	/*
++	 * We need to serialize the release() with queueing new requests.
++	 * The release() may trigger the cancellation of a streaming
++	 * operation, and that should not be mixed with queueing a new
++	 * request at the same time.
++	 */
++	if (vdev->v4l2_dev->mdev)
++		mutex_lock(&vdev->v4l2_dev->mdev->req_queue_mutex);
++
+ 	if (vdev->fops->release)
+ 		ret = vdev->fops->release(filp);
++
++	if (vdev->v4l2_dev->mdev)
++		mutex_unlock(&vdev->v4l2_dev->mdev->req_queue_mutex);
+ 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+ 		dprintk("%s: release\n",
+ 			video_device_node_name(vdev));
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.11.0
