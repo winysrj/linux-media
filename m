@@ -1,127 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:33364 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751197AbeERSxm (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:56559 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751173AbeEVIOy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 14:53:42 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
+        Tue, 22 May 2018 04:14:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH 03/20] v4l2-ioctl.c: use correct vb2_queue lock for m2m devices
-Date: Fri, 18 May 2018 15:51:51 -0300
-Message-Id: <20180518185208.17722-4-ezequiel@collabora.com>
-In-Reply-To: <20180518185208.17722-1-ezequiel@collabora.com>
-References: <20180518185208.17722-1-ezequiel@collabora.com>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+        Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 5/5] v4l2-ioctl: delete unused v4l2_disable_ioctl_locking
+Date: Tue, 22 May 2018 10:14:51 +0200
+Message-Id: <20180522081451.94794-6-hverkuil@xs4all.nl>
+In-Reply-To: <20180522081451.94794-1-hverkuil@xs4all.nl>
+References: <20180522081451.94794-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-For m2m devices the vdev->queue lock was always taken instead of the
-lock for the specific capture or output queue. Now that we pushed
-the locking down into __video_do_ioctl() we can pick the correct
-lock and improve the performance of m2m devices.
+The last user of this 'feature' was the gspca driver. Now that
+that driver has been converted to vb2 we can delete this code.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 59 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 57 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c |  2 --
+ include/media/v4l2-dev.h             | 15 ---------------
+ 2 files changed, 17 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index de1b868500f3..ee1eec136e55 100644
+index 212aac1d22c1..c23fbfe90a9e 100644
 --- a/drivers/media/v4l2-core/v4l2-ioctl.c
 +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -29,6 +29,7 @@
- #include <media/v4l2-device.h>
- #include <media/videobuf2-v4l2.h>
- #include <media/v4l2-mc.h>
-+#include <media/v4l2-mem2mem.h>
- 
- #include <trace/events/v4l2.h>
- 
-@@ -2641,10 +2642,62 @@ static bool v4l2_is_known_ioctl(unsigned int cmd)
- 	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
- }
- 
--static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
-+#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
-+static bool v4l2_ioctl_m2m_queue_is_output(unsigned int cmd, void *arg)
-+{
-+	switch (cmd) {
-+	case VIDIOC_CREATE_BUFS: {
-+		struct v4l2_create_buffers *cbufs = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(cbufs->format.type);
-+	}
-+	case VIDIOC_REQBUFS: {
-+		struct v4l2_requestbuffers *rbufs = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(rbufs->type);
-+	}
-+	case VIDIOC_QBUF:
-+	case VIDIOC_DQBUF:
-+	case VIDIOC_QUERYBUF:
-+	case VIDIOC_PREPARE_BUF: {
-+		struct v4l2_buffer *buf = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(buf->type);
-+	}
-+	case VIDIOC_EXPBUF: {
-+		struct v4l2_exportbuffer *expbuf = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(expbuf->type);
-+	}
-+	case VIDIOC_STREAMON:
-+	case VIDIOC_STREAMOFF: {
-+		int *type = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(*type);
-+	}
-+	default:
-+		return false;
-+	}
-+}
-+#endif
-+
-+static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev,
-+					 struct v4l2_fh *vfh, unsigned cmd,
-+					 void *arg)
+@@ -2666,8 +2666,6 @@ struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
  {
  	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
  		return vdev->lock;
-+#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
-+	if (vfh && vfh->m2m_ctx &&
-+	    (v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE)) {
-+		bool is_output = v4l2_ioctl_m2m_queue_is_output(cmd, arg);
-+		struct v4l2_m2m_queue_ctx *ctx = is_output ?
-+			&vfh->m2m_ctx->out_q_ctx : &vfh->m2m_ctx->cap_q_ctx;
-+
-+		if (ctx->q.lock)
-+			return ctx->q.lock;
-+	}
-+#endif
+-	if (test_bit(_IOC_NR(cmd), vdev->disable_locking))
+-		return NULL;
  	if (vdev->queue && vdev->queue->lock &&
  			(v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
  		return vdev->queue->lock;
-@@ -2692,7 +2745,7 @@ static long __video_do_ioctl(struct file *file,
- 		unsigned int cmd, void *arg)
- {
- 	struct video_device *vfd = video_devdata(file);
--	struct mutex *lock = v4l2_ioctl_get_lock(vfd, cmd);
-+	struct mutex *lock;
- 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
- 	bool write_only = false;
- 	struct v4l2_ioctl_info default_info;
-@@ -2711,6 +2764,8 @@ static long __video_do_ioctl(struct file *file,
- 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
- 		vfh = file->private_data;
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 73073f6ee48c..30423aefe7c5 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -238,7 +238,6 @@ struct v4l2_file_operations {
+  * @ioctl_ops: pointer to &struct v4l2_ioctl_ops with ioctl callbacks
+  *
+  * @valid_ioctls: bitmap with the valid ioctls for this device
+- * @disable_locking: bitmap with the ioctls that don't require locking
+  * @lock: pointer to &struct mutex serialization lock
+  *
+  * .. note::
+@@ -291,7 +290,6 @@ struct video_device
+ 	const struct v4l2_ioctl_ops *ioctl_ops;
+ 	DECLARE_BITMAP(valid_ioctls, BASE_VIDIOC_PRIVATE);
  
-+	lock = v4l2_ioctl_get_lock(vfd, vfh, cmd, arg);
-+
- 	if (lock && mutex_lock_interruptible(lock))
- 		return -ERESTARTSYS;
+-	DECLARE_BITMAP(disable_locking, BASE_VIDIOC_PRIVATE);
+ 	struct mutex *lock;
+ };
  
+@@ -446,19 +444,6 @@ void video_device_release_empty(struct video_device *vdev);
+  */
+ bool v4l2_is_known_ioctl(unsigned int cmd);
+ 
+-/** v4l2_disable_ioctl_locking - mark that a given command
+- *	shouldn't use core locking
+- *
+- * @vdev: pointer to &struct video_device
+- * @cmd: ioctl command
+- */
+-static inline void v4l2_disable_ioctl_locking(struct video_device *vdev,
+-					      unsigned int cmd)
+-{
+-	if (_IOC_NR(cmd) < BASE_VIDIOC_PRIVATE)
+-		set_bit(_IOC_NR(cmd), vdev->disable_locking);
+-}
+-
+ /**
+  * v4l2_disable_ioctl- mark that a given command isn't implemented.
+  *	shouldn't use core locking
 -- 
-2.16.3
+2.17.0
