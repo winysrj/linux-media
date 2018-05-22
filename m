@@ -1,82 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:55691 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752139AbeEOIbD (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:54903 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751605AbeEVOxL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 04:31:03 -0400
-Subject: Re: [RFC PATCH 5/5] media: platform: Add Chrome OS EC CEC driver
-To: Neil Armstrong <narmstrong@baylibre.com>, airlied@linux.ie,
-        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
-        seanpaul@google.com
-Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
-        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
-References: <1526337639-3568-1-git-send-email-narmstrong@baylibre.com>
- <1526337639-3568-6-git-send-email-narmstrong@baylibre.com>
- <f76d52b1-77bc-49dd-483c-43058d38da04@xs4all.nl>
- <ee591542-c481-3009-b3b5-725695ea9bfd@baylibre.com>
- <331d45a4-e496-d0f0-5a0b-ead2cc66da6f@xs4all.nl>
- <43b84663-da56-25fd-8e16-ba67f5a7c762@baylibre.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <809adc05-90a1-03f4-d0d6-23cd47f0da1a@xs4all.nl>
-Date: Tue, 15 May 2018 10:30:57 +0200
-MIME-Version: 1.0
-In-Reply-To: <43b84663-da56-25fd-8e16-ba67f5a7c762@baylibre.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 22 May 2018 10:53:11 -0400
+Received: by mail-wm0-f65.google.com with SMTP id f6-v6so539081wmc.4
+        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 07:53:10 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v6 05/13] clk: imx7d: reset parent for mipi csi root
+Date: Tue, 22 May 2018 15:52:37 +0100
+Message-Id: <20180522145245.3143-6-rui.silva@linaro.org>
+In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
+References: <20180522145245.3143-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/15/18 10:28, Neil Armstrong wrote:
->>>>> +	int ret;
->>>>> +
->>>>> +	cros_ec_cec = devm_kzalloc(&pdev->dev, sizeof(*cros_ec_cec),
->>>>> +				   GFP_KERNEL);
->>>>> +	if (!cros_ec_cec)
->>>>> +		return -ENOMEM;
->>>>> +
->>>>> +	platform_set_drvdata(pdev, cros_ec_cec);
->>>>> +	cros_ec_cec->cros_ec = cros_ec;
->>>>> +
->>>>> +	ret = cros_ec_cec_get_notifier(&cros_ec_cec->notify);
->>>>> +	if (ret) {
->>>>> +		dev_warn(&pdev->dev, "no CEC notifier available\n");
->>>>> +		cec_caps |= CEC_CAP_PHYS_ADDR;
->>>>
->>>> Can this happen? What hardware has this? I am strongly opposed to CEC drivers
->>>> using this capability unless there is no other option. It's a pain for userspace.
->>>
->>> It's in case an HW having a CEC capable FW but not in the cec_dmi_match_table, in this case
->>> it won't fail but still enable the CEC interface without a notifier.
->>
->> I don't think that's a good idea. CAP_PHYS_ADDR should *only* be used in situations
->> where it is truly impossible to tell which output is connected to the CEC adapter.
->> That's the case with e.g. USB CEC dongles where you have no idea how the user
->> connected the HDMI cables.
->>
->> But I assume that in this case it just means that the cec_dmi_match_table needs
->> to be updated, i.e. it is a driver bug.
-> 
-> Yep, maybe a dev_warn should be added to notify this bug ?
+To guarantee that we do not get Overflow in image FIFO the outer bandwidth has
+to be faster than inputer bandwidth. For that it must be possible to set a
+faster frequency clock. So set new parent to sys_pfd3 clock for the mipi csi
+block.
 
-Yes, a dev_warn and then return -ENODEV.
+Acked-by: Shawn Guo <shawnguo@kernel.org>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ drivers/clk/imx/clk-imx7d.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> 
->>
->> Another thing: this driver assumes that there is only one CEC adapter for only
->> one HDMI output. But what if there are more HDMI outputs? Will there be one
->> CEC adapter for each output? Or does the hardware have no provisions for that?
-> 
-> The current EC interface only exposes a single CEC interface for now, there is no
-> plan yet for multiple HDMI outputs handling.
-> 
->>
->> Something should be mentioned about this in a comment.
-> 
-> Ok
-
-Thanks!
-
-	Hans
+diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
+index f7f4db2e6fa6..27877d05faa2 100644
+--- a/drivers/clk/imx/clk-imx7d.c
++++ b/drivers/clk/imx/clk-imx7d.c
+@@ -891,6 +891,8 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
+ 	clk_set_parent(clks[IMX7D_PLL_AUDIO_MAIN_BYPASS], clks[IMX7D_PLL_AUDIO_MAIN]);
+ 	clk_set_parent(clks[IMX7D_PLL_VIDEO_MAIN_BYPASS], clks[IMX7D_PLL_VIDEO_MAIN]);
+ 
++	clk_set_parent(clks[IMX7D_MIPI_CSI_ROOT_SRC], clks[IMX7D_PLL_SYS_PFD3_CLK]);
++
+ 	/* use old gpt clk setting, gpt1 root clk must be twice as gpt counter freq */
+ 	clk_set_parent(clks[IMX7D_GPT1_ROOT_SRC], clks[IMX7D_OSC_24M_CLK]);
+ 
+-- 
+2.17.0
