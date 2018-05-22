@@ -1,85 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47506 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751118AbeEFIGJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2018 04:06:09 -0400
-Date: Sun, 6 May 2018 10:06:07 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-        nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org,
-        gshark.jeong@gmail.com, m.chehab@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org
-Subject: [PATCH] media: i2c: lm3560: add support for lm3559 chip
-Message-ID: <20180506080607.GA24212@amd>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:46605 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751036AbeEVNTZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 May 2018 09:19:25 -0400
+References: <20180517125033.18050-1-rui.silva@linaro.org> <20180517125033.18050-7-rui.silva@linaro.org> <20180518065824.csio2fgwsxo2g2ow@valkosipuli.retiisi.org.uk> <m3tvr5xt9t.fsf@linaro.org> <20180518221346.fy4264hehvjjcd4y@kekkonen.localdomain>
+From: Rui Miguel Silva <rmfrfs@gmail.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Rui Miguel Silva <rui.silva@linaro.org>,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Fabio Estevam <fabio.estevam@nxp.com>, mchehab@kernel.org,
+        Shawn Guo <shawnguo@kernel.org>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 06/12] media: dt-bindings: add bindings for i.MX7 media driver
+In-reply-to: <20180518221346.fy4264hehvjjcd4y@kekkonen.localdomain>
+Date: Tue, 22 May 2018 14:19:21 +0100
+Message-ID: <m336yjvndy.fsf@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
-Content-Disposition: inline
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
+On Fri 18 May 2018 at 22:13, Sakari Ailus wrote:
+> On Fri, May 18, 2018 at 09:27:58AM +0100, Rui Miguel Silva 
+> wrote:
+>> > > +endpoint node
+>> > > +-------------
+>> > > +
+>> > > +- data-lanes    : (required) an array specifying active 
+>> > > physical
+>> > > MIPI-CSI2
+>> > > +		    data input lanes and their mapping to 
+>> > > logical lanes; the
+>> > > +		    array's content is unused, only its 
+>> > > length is meaningful;
+>
+> Btw. do note that you may get a warning due to this from the 
+> CSI-2 bus
+> property parsing code if the lane numbers are wrong.
+>
+>> > > +
+>> > > +- fsl,csis-hs-settle : (optional) differential receiver 
+>> > > (HS-RX)
+>> > > settle time;
+>> > 
+>> > Could you calculate this, as other drivers do? It probably 
+>> > changes
+>> > depending on the device runtime configuration.
+>> 
+>> The only reference to possible values to this parameter is 
+>> given by
+>> table in [0], can you point me out the formula for imx7 in the
+>> documentation?
+>
+> I don't know imx7 but the other CSI-2 drivers need no such 
+> system specific
+> configuration.
 
---C7zPtVaVf+AK4Oqc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hum, I think there is at least one more (which this is compliant) 
+that
+also use this configuration parameter. [0]
 
+---
+Cheers,
+	Rui
 
-Add support for LM3559, as found in Motorola Droid 4 phone, for
-example. SW interface seems to be identical.
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
-index b600e03a..c4e5ed5 100644
---- a/drivers/media/i2c/lm3560.c
-+++ b/drivers/media/i2c/lm3560.c
-@@ -1,6 +1,6 @@
- /*
-  * drivers/media/i2c/lm3560.c
-- * General device driver for TI lm3560, FLASH LED Driver
-+ * General device driver for TI lm3559, lm3560, FLASH LED Driver
-  *
-  * Copyright (C) 2013 Texas Instruments
-  *
-@@ -465,6 +479,7 @@ static int lm3560_remove(struct i2c_client *client)
- }
-=20
- static const struct i2c_device_id lm3560_id_table[] =3D {
-+	{LM3559_NAME, 0},
- 	{LM3560_NAME, 0},
- 	{}
- };
-diff --git a/include/media/i2c/lm3560.h b/include/media/i2c/lm3560.h
-index a5bd310..0e2b1c7 100644
---- a/include/media/i2c/lm3560.h
-+++ b/include/media/i2c/lm3560.h
-@@ -22,6 +22,7 @@
-=20
- #include <media/v4l2-subdev.h>
-=20
-+#define LM3559_NAME	"lm3559"
- #define LM3560_NAME	"lm3560"
- #define LM3560_I2C_ADDR	(0x53)
-=20
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---C7zPtVaVf+AK4Oqc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlrut28ACgkQMOfwapXb+vLSzQCgrhkflQFo4Ddsoh2TH1C9Pm55
-EAAAoJ2IWkJqV48lRGAuyKu5wjO3vJmh
-=SrIF
------END PGP SIGNATURE-----
-
---C7zPtVaVf+AK4Oqc--
+[0]: 
+https://github.com/torvalds/linux/blob/a048a07d7f4535baa4cbad6bc024f175317ab938/Documentation/devicetree/bindings/media/samsung-mipi-csis.txt#L46
