@@ -1,175 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:21745 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752708AbeEUIzY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:24 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v14 33/36] vivid: add mc
-Date: Mon, 21 May 2018 11:54:58 +0300
-Message-Id: <20180521085501.16861-34-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:38939 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751778AbeEVOx0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 May 2018 10:53:26 -0400
+Received: by mail-wm0-f68.google.com with SMTP id f8-v6so547384wmc.4
+        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 07:53:26 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v6 11/13] ARM: dts: imx7s-warp: add ov2680 sensor node
+Date: Tue, 22 May 2018 15:52:43 +0100
+Message-Id: <20180522145245.3143-12-rui.silva@linaro.org>
+In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
+References: <20180522145245.3143-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Warp7 comes with a Omnivision OV2680 sensor, add the node here to make complete
+the camera data path for this system. Add the needed regulator to the analog
+voltage supply, the port and endpoints in mipi_csi node and the pinctrl for the
+reset gpio.
 
-Add support for the media_device to vivid. This is a prerequisite
-for request support.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- drivers/media/platform/vivid/vivid-core.c | 61 +++++++++++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-core.h |  8 ++++
- 2 files changed, 69 insertions(+)
+ arch/arm/boot/dts/imx7s-warp.dts | 44 ++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 82ec216f2ad82..69386b26d5dd1 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -657,6 +657,15 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
+index cb175ee2fc9d..bf04e13afd02 100644
+--- a/arch/arm/boot/dts/imx7s-warp.dts
++++ b/arch/arm/boot/dts/imx7s-warp.dts
+@@ -91,6 +91,14 @@
+ 		regulator-always-on;
+ 	};
  
- 	dev->inst = inst;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	dev->v4l2_dev.mdev = &dev->mdev;
++	reg_peri_3p15v: regulator-peri-3p15v {
++		compatible = "regulator-fixed";
++		regulator-name = "peri_3p15v_reg";
++		regulator-min-microvolt = <3150000>;
++		regulator-max-microvolt = <3150000>;
++		regulator-always-on;
++	};
 +
-+	/* Initialize media device */
-+	strlcpy(dev->mdev.model, VIVID_MODULE_NAME, sizeof(dev->mdev.model));
-+	dev->mdev.dev = &pdev->dev;
-+	media_device_init(&dev->mdev);
-+#endif
+ 	sound {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "imx7-sgtl5000";
+@@ -218,6 +226,27 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c2>;
+ 	status = "okay";
 +
- 	/* register v4l2_device */
- 	snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
- 			"%s-%03d", VIVID_MODULE_NAME, inst);
-@@ -1173,6 +1182,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->lock = &dev->mutex;
- 		video_set_drvdata(vfd, dev);
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+		dev->vid_cap_pad.flags = MEDIA_PAD_FL_SINK;
-+		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_cap_pad);
-+		if (ret)
-+			goto unreg_dev;
-+#endif
++	ov2680: camera@36 {
++		compatible = "ovti,ov2680";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov2680>;
++		reg = <0x36>;
++		clocks = <&osc>;
++		clock-names = "xvclk";
++		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
++		DOVDD-supply = <&sw2_reg>;
++		DVDD-supply = <&sw2_reg>;
++		AVDD-supply = <&reg_peri_3p15v>;
 +
- #ifdef CONFIG_VIDEO_VIVID_CEC
- 		if (in_type_counter[HDMI]) {
- 			struct cec_adapter *adap;
-@@ -1225,6 +1241,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->lock = &dev->mutex;
- 		video_set_drvdata(vfd, dev);
++		port {
++			ov2680_to_mipi: endpoint {
++				remote-endpoint = <&mipi_from_sensor>;
++				clock-lanes = <0>;
++				data-lanes = <1>;
++			};
++		};
++	};
+ };
  
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+		dev->vid_out_pad.flags = MEDIA_PAD_FL_SOURCE;
-+		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_out_pad);
-+		if (ret)
-+			goto unreg_dev;
-+#endif
+ &i2c4 {
+@@ -352,6 +381,15 @@
+ 	#size-cells = <0>;
+ 	fsl,csis-hs-settle = <3>;
+ 
++	port@0 {
++		reg = <0>;
 +
- #ifdef CONFIG_VIDEO_VIVID_CEC
- 		for (i = 0; i < dev->num_outputs; i++) {
- 			struct cec_adapter *adap;
-@@ -1274,6 +1297,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->tvnorms = tvnorms_cap;
- 		video_set_drvdata(vfd, dev);
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+		dev->vbi_cap_pad.flags = MEDIA_PAD_FL_SINK;
-+		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_cap_pad);
-+		if (ret)
-+			goto unreg_dev;
-+#endif
++		mipi_from_sensor: endpoint {
++			remote-endpoint = <&ov2680_to_mipi>;
++			data-lanes = <1>;
++		};
++	};
 +
- 		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_cap_nr[inst]);
- 		if (ret < 0)
- 			goto unreg_dev;
-@@ -1299,6 +1329,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->tvnorms = tvnorms_out;
- 		video_set_drvdata(vfd, dev);
+ 	port@1 {
+ 		reg = <1>;
  
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+		dev->vbi_out_pad.flags = MEDIA_PAD_FL_SOURCE;
-+		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_out_pad);
-+		if (ret)
-+			goto unreg_dev;
-+#endif
+@@ -408,6 +446,12 @@
+ 		>;
+ 	};
+ 
++	pinctrl_ov2680: ov2660grp {
++		fsl,pins = <
++			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
++		>;
++	};
 +
- 		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_out_nr[inst]);
- 		if (ret < 0)
- 			goto unreg_dev;
-@@ -1322,6 +1359,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->lock = &dev->mutex;
- 		video_set_drvdata(vfd, dev);
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+		dev->sdr_cap_pad.flags = MEDIA_PAD_FL_SINK;
-+		ret = media_entity_pads_init(&vfd->entity, 1, &dev->sdr_cap_pad);
-+		if (ret)
-+			goto unreg_dev;
-+#endif
-+
- 		ret = video_register_device(vfd, VFL_TYPE_SDR, sdr_cap_nr[inst]);
- 		if (ret < 0)
- 			goto unreg_dev;
-@@ -1368,12 +1412,25 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 					  video_device_node_name(vfd));
- 	}
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	/* Register the media device */
-+	ret = media_device_register(&dev->mdev);
-+	if (ret) {
-+		dev_err(dev->mdev.dev,
-+			"media device register failed (err=%d)\n", ret);
-+		goto unreg_dev;
-+	}
-+#endif
-+
- 	/* Now that everything is fine, let's add it to device list */
- 	vivid_devs[inst] = dev;
- 
- 	return 0;
- 
- unreg_dev:
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_device_unregister(&dev->mdev);
-+#endif
- 	video_unregister_device(&dev->radio_tx_dev);
- 	video_unregister_device(&dev->radio_rx_dev);
- 	video_unregister_device(&dev->sdr_cap_dev);
-@@ -1444,6 +1501,10 @@ static int vivid_remove(struct platform_device *pdev)
- 		if (!dev)
- 			continue;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+		media_device_unregister(&dev->mdev);
-+#endif
-+
- 		if (dev->has_vid_cap) {
- 			v4l2_info(&dev->v4l2_dev, "unregistering %s\n",
- 				video_device_node_name(&dev->vid_cap_dev));
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index 477c80a4d44c0..6ccd1f5c1d911 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -136,6 +136,14 @@ struct vivid_cec_work {
- struct vivid_dev {
- 	unsigned			inst;
- 	struct v4l2_device		v4l2_dev;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device		mdev;
-+	struct media_pad		vid_cap_pad;
-+	struct media_pad		vid_out_pad;
-+	struct media_pad		vbi_cap_pad;
-+	struct media_pad		vbi_out_pad;
-+	struct media_pad		sdr_cap_pad;
-+#endif
- 	struct v4l2_ctrl_handler	ctrl_hdl_user_gen;
- 	struct v4l2_ctrl_handler	ctrl_hdl_user_vid;
- 	struct v4l2_ctrl_handler	ctrl_hdl_user_aud;
+ 	pinctrl_sai1: sai1grp {
+ 		fsl,pins = <
+ 			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
 -- 
-2.11.0
+2.17.0
