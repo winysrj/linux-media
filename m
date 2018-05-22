@@ -1,152 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35856 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752035AbeEGQW1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:22:27 -0400
-Received: by mail-wm0-f65.google.com with SMTP id n10-v6so16407684wmc.1
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:22:27 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v3 01/14] media: staging/imx: add support to media dev for no IPU systems
-Date: Mon,  7 May 2018 17:21:39 +0100
-Message-Id: <20180507162152.2545-2-rui.silva@linaro.org>
-In-Reply-To: <20180507162152.2545-1-rui.silva@linaro.org>
-References: <20180507162152.2545-1-rui.silva@linaro.org>
+Received: from userp2130.oracle.com ([156.151.31.86]:40022 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752512AbeEVR66 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 May 2018 13:58:58 -0400
+Subject: Re: [Xen-devel] [RFC 1/3] xen/balloon: Allow allocating DMA buffers
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, matthew.d.roper@intel.com,
+        dongwon.kim@intel.com
+References: <20180517082604.14828-1-andr2000@gmail.com>
+ <20180517082604.14828-2-andr2000@gmail.com>
+ <6a108876-19b7-49d0-3de2-9e10f984736c@oracle.com>
+ <9541926e-001a-e41e-317c-dbff6d687761@gmail.com>
+ <218e2bf7-490d-f89e-9866-27b7e3dbc835@oracle.com>
+ <a08e7d0d-f7d5-6b7e-979b-8a17060482f0@gmail.com>
+ <b177a327-6a73-bb77-c69b-bc0958a05532@oracle.com>
+ <f87478c7-3523-851c-5c3a-12a9e8753bb6@epam.com>
+ <c2f0845b-ab2f-4b9b-6f46-6ddd236ad9ed@oracle.com>
+ <77c20852-b9b8-c35a-26b0-b0317e6aba09@gmail.com>
+ <f8775649-34eb-04ac-2264-609b33cdd504@oracle.com>
+ <2a88de28-27ef-8fe4-ddc1-35eb9e698567@gmail.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <afe3a9ba-ab50-5872-e044-9d8cf7034e70@oracle.com>
+Date: Tue, 22 May 2018 14:02:00 -0400
+MIME-Version: 1.0
+In-Reply-To: <2a88de28-27ef-8fe4-ddc1-35eb9e698567@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some i.MX SoC do not have IPU, like the i.MX7, add to the the media device
-infrastructure support to be used in this type of systems that do not have
-internal subdevices besides the CSI.
+On 05/22/2018 11:00 AM, Oleksandr Andrushchenko wrote:
+> On 05/22/2018 05:33 PM, Boris Ostrovsky wrote:
+>> On 05/22/2018 01:55 AM, Oleksandr Andrushchenko wrote:
+>>> On 05/21/2018 11:36 PM, Boris Ostrovsky wrote:
+>>>> On 05/21/2018 03:13 PM, Oleksandr Andrushchenko wrote:
+>>>>> On 05/21/2018 09:53 PM, Boris Ostrovsky wrote:
+>>>>>> On 05/21/2018 01:32 PM, Oleksandr Andrushchenko wrote:
+>>>>>>> On 05/21/2018 07:35 PM, Boris Ostrovsky wrote:
+>>>>>>>> On 05/21/2018 01:40 AM, Oleksandr Andrushchenko wrote:
+>>>>>>>>> On 05/19/2018 01:04 AM, Boris Ostrovsky wrote:
+>>>>>>>>>> On 05/17/2018 04:26 AM, Oleksandr Andrushchenko wrote:
+>>>>>>>>>>> From: Oleksandr Andrushchenko
+>>>>>>>>>>> <oleksandr_andrushchenko@epam.com>
+>>>>>>>>>> A commit message would be useful.
+>>>>>>>>> Sure, v1 will have it
+>>>>>>>>>>> Signed-off-by: Oleksandr Andrushchenko
+>>>>>>>>>>> <oleksandr_andrushchenko@epam.com>
+>>>>>>>>>>>
+>>>>>>>>>>>           for (i = 0; i < nr_pages; i++) {
+>>>>>>>>>>> -        page = alloc_page(gfp);
+>>>>>>>>>>> -        if (page == NULL) {
+>>>>>>>>>>> -            nr_pages = i;
+>>>>>>>>>>> -            state = BP_EAGAIN;
+>>>>>>>>>>> -            break;
+>>>>>>>>>>> +        if (ext_pages) {
+>>>>>>>>>>> +            page = ext_pages[i];
+>>>>>>>>>>> +        } else {
+>>>>>>>>>>> +            page = alloc_page(gfp);
+>>>>>>>>>>> +            if (page == NULL) {
+>>>>>>>>>>> +                nr_pages = i;
+>>>>>>>>>>> +                state = BP_EAGAIN;
+>>>>>>>>>>> +                break;
+>>>>>>>>>>> +            }
+>>>>>>>>>>>               }
+>>>>>>>>>>>               scrub_page(page);
+>>>>>>>>>>>               list_add(&page->lru, &pages);
+>>>>>>>>>>> @@ -529,7 +565,7 @@ static enum bp_state
+>>>>>>>>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>>>>>>>>>>>           i = 0;
+>>>>>>>>>>>           list_for_each_entry_safe(page, tmp, &pages, lru) {
+>>>>>>>>>>>               /* XENMEM_decrease_reservation requires a GFN */
+>>>>>>>>>>> -        frame_list[i++] = xen_page_to_gfn(page);
+>>>>>>>>>>> +        frames[i++] = xen_page_to_gfn(page);
+>>>>>>>>>>>         #ifdef CONFIG_XEN_HAVE_PVMMU
+>>>>>>>>>>>               /*
+>>>>>>>>>>> @@ -552,18 +588,22 @@ static enum bp_state
+>>>>>>>>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>>>>>>>>>>>       #endif
+>>>>>>>>>>>               list_del(&page->lru);
+>>>>>>>>>>>       -        balloon_append(page);
+>>>>>>>>>>> +        if (!ext_pages)
+>>>>>>>>>>> +            balloon_append(page);
+>>>>>>>>>> So what you are proposing is not really ballooning. You are just
+>>>>>>>>>> piggybacking on existing interfaces, aren't you?
+>>>>>>>>> Sort of. Basically I need to {increase|decrease}_reservation, not
+>>>>>>>>> actually
+>>>>>>>>> allocating ballooned pages.
+>>>>>>>>> Do you think I can simply EXPORT_SYMBOL for
+>>>>>>>>> {increase|decrease}_reservation?
+>>>>>>>>> Any other suggestion?
+>>>>>>>> I am actually wondering how much of that code you end up reusing.
+>>>>>>>> You
+>>>>>>>> pretty much create new code paths in both routines and common code
+>>>>>>>> ends
+>>>>>>>> up being essentially the hypercall.
+>>>>>>> Well, I hoped that it would be easier to maintain if I modify
+>>>>>>> existing
+>>>>>>> code
+>>>>>>> to support both use-cases, but I am also ok to create new
+>>>>>>> routines if
+>>>>>>> this
+>>>>>>> seems to be reasonable - please let me know
+>>>>>>>>      So the question is --- would it make
+>>>>>>>> sense to do all of this separately from the balloon driver?
+>>>>>>> This can be done, but which driver will host this code then? If we
+>>>>>>> move from
+>>>>>>> the balloon driver, then this could go to either gntdev or
+>>>>>>> grant-table.
+>>>>>>> What's your preference?
+>>>>>> A separate module?
+>>>>>> Is there any use for this feature outside of your zero-copy DRM
+>>>>>> driver?
+>>>>> Intel's hyper dma-buf (Dongwon/Matt CC'ed), V4L/GPU at least.
+>>>>>
+>>>>> At the time I tried to upstream zcopy driver it was discussed and
+>>>>> decided that
+>>>>> it would be better if I remove all DRM specific code and move it to
+>>>>> Xen drivers.
+>>>>> Thus, this RFC.
+>>>>>
+>>>>> But it can also be implemented as a dedicated Xen dma-buf driver
+>>>>> which
+>>>>> will have all the
+>>>>> code from this RFC + a bit more (char/misc device handling at least).
+>>>>> This will also require a dedicated user-space library, just like
+>>>>> libxengnttab.so
+>>>>> for gntdev (now I have all new IOCTLs covered there).
+>>>>>
+>>>>> If the idea of a dedicated Xen dma-buf driver seems to be more
+>>>>> attractive we
+>>>>> can work toward this solution. BTW, I do support this idea, but
+>>>>> was not
+>>>>> sure if Xen community accepts yet another driver which duplicates
+>>>>> quite some code
+>>>>> of the existing gntdev/balloon/grant-table. And now after this RFC I
+>>>>> hope that all cons
+>>>>> and pros of both dedicated driver and gntdev/balloon/grant-table
+>>>>> extension are
+>>>>> clearly seen and we can make a decision.
+>>>> IIRC the objection for a separate module was in the context of gntdev
+>>>> was discussion, because (among other things) people didn't want to
+>>>> have
+>>>> yet another file in /dev/xen/
+>>>>
+>>>> Here we are talking about (a new) balloon-like module which doesn't
+>>>> create any new user-visible interfaces. And as for duplicating code
+>>>> ---
+>>>> as I said, I am not convinced there is much of duplication.
+>>>>
+>>>> I might even argue that we should add a new config option for this
+>>>> module.
+>>> I am not quite sure I am fully following you here: so, you suggest
+>>> that we have balloon.c unchanged, but instead create a new
+>>> module (namely a file under the same folder as balloon.c, e.g.
+>>> dma-buf-reservation.c) and move those {increase|decrease}_reservation
+>>> routines (specific to dma-buf) to that new file? And make it selectable
+>>> via Kconfig? If so, then how about the changes to grant-table and
+>>> gntdev?
+>>> Those will look inconsistent then.
+>> Inconsistent with what? The changes to grant code will also be under the
+>> new config option.
+> Ah, ok.
+>
+> Option 1. We will have Kconfig option which will cover dma-buf
+> changes in balloon, 
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- drivers/staging/media/imx/imx-media-dev.c     | 38 ++++++++++++++++---
- .../staging/media/imx/imx-media-internal-sd.c |  3 ++
- drivers/staging/media/imx/imx-media.h         |  3 ++
- 3 files changed, 39 insertions(+), 5 deletions(-)
+I really don't think your changes to balloon driver belong there. The
+have nothing to do with ballooning,
 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index f67ec8e27093..b019dcefccd6 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -27,6 +27,12 @@
- #include <media/imx.h>
- #include "imx-media.h"
- 
-+static const struct of_device_id imx_media_dt_ids[];
-+
-+struct imx_media_driver_data {
-+	bool ipu_present;
-+};
-+
- static inline struct imx_media_dev *notifier2dev(struct v4l2_async_notifier *n)
- {
- 	return container_of(n, struct imx_media_dev, notifier);
-@@ -92,6 +98,9 @@ static int imx_media_get_ipu(struct imx_media_dev *imxmd,
- 	struct ipu_soc *ipu;
- 	int ipu_id;
- 
-+	if (!imxmd->ipu_present)
-+		return 0;
-+
- 	ipu = dev_get_drvdata(csi_sd->dev->parent);
- 	if (!ipu) {
- 		v4l2_err(&imxmd->v4l2_dev,
-@@ -440,6 +449,8 @@ static const struct media_device_ops imx_media_md_ops = {
- 
- static int imx_media_probe(struct platform_device *pdev)
- {
-+	const struct imx_media_driver_data *drvdata;
-+	const struct of_device_id *of_id;
- 	struct device *dev = &pdev->dev;
- 	struct device_node *node = dev->of_node;
- 	struct imx_media_dev *imxmd;
-@@ -481,16 +492,29 @@ static int imx_media_probe(struct platform_device *pdev)
- 		goto notifier_cleanup;
- 	}
- 
--	ret = imx_media_add_internal_subdevs(imxmd);
--	if (ret) {
--		v4l2_err(&imxmd->v4l2_dev,
--			 "add_internal_subdevs failed with %d\n", ret);
-+	of_id = of_match_device(imx_media_dt_ids, &pdev->dev);
-+	if (!of_id) {
-+		v4l2_err(&imxmd->v4l2_dev, "failed to find driver data\n");
- 		goto notifier_cleanup;
- 	}
- 
-+	drvdata = of_id->data;
-+
-+	imxmd->ipu_present = drvdata->ipu_present;
-+
-+	if (imxmd->ipu_present) {
-+		ret = imx_media_add_internal_subdevs(imxmd);
-+		if (ret) {
-+			v4l2_err(&imxmd->v4l2_dev,
-+				 "add_internal_subdevs failed with %d\n", ret);
-+			goto notifier_cleanup;
-+		}
-+	}
-+
- 	/* no subdevs? just bail */
- 	if (imxmd->notifier.num_subdevs == 0) {
- 		ret = -ENODEV;
-+		v4l2_err(&imxmd->v4l2_dev, "no subdevs\n");
- 		goto notifier_cleanup;
- 	}
- 
-@@ -533,8 +557,12 @@ static int imx_media_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static const struct imx_media_driver_data imx6_drvdata = {
-+	.ipu_present = true,
-+};
-+
- static const struct of_device_id imx_media_dt_ids[] = {
--	{ .compatible = "fsl,imx-capture-subsystem" },
-+	{ .compatible = "fsl,imx-capture-subsystem", .data = &imx6_drvdata },
- 	{ /* sentinel */ }
- };
- MODULE_DEVICE_TABLE(of, imx_media_dt_ids);
-diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
-index 0fdc45dbfb76..2bcdc232369a 100644
---- a/drivers/staging/media/imx/imx-media-internal-sd.c
-+++ b/drivers/staging/media/imx/imx-media-internal-sd.c
-@@ -238,6 +238,9 @@ int imx_media_create_internal_links(struct imx_media_dev *imxmd,
- 	struct media_pad *pad;
- 	int i, j, ret;
- 
-+	if (!imxmd->ipu_present)
-+		return 0;
-+
- 	intsd = find_intsd_by_grp_id(sd->grp_id);
- 	if (!intsd)
- 		return -ENODEV;
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index 44532cd5b812..d40538ecf176 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -147,6 +147,9 @@ struct imx_media_dev {
- 
- 	/* for async subdev registration */
- 	struct v4l2_async_notifier notifier;
-+
-+	/* indicator to if the system has IPU */
-+	bool ipu_present;
- };
- 
- enum codespace_sel {
--- 
-2.17.0
+> grant-table and gntdev. And for that we will
+> create dedicated routines in balloon and grant-table (copy of
+> the existing ones, but modified to fit dma-buf use-case) and
+> those under something like "#if CONFIG_XEN_DMABUF"?
+> This is relatively easy to do for balloon/grant-table, but not that
+> easy for gntdev: there still seems to be lots of code which can be
+> reused,
+> so I'll have to put lots of "#if CONFIG_XEN_DMABUF" there. Even more,
+> I change
+> interfaces of the existing gntdev routines which won't look cute with
+> #if's, IMO.
+>
+> Option 2. Try moving dma-buf related changes from balloon and
+> grant-table to a new file. Then gntdev's Kconfig concerns from above
+> will still
+> be there, but balloon/grant-table functionality will be localized in a
+> new module.
+
+I don't see a problem with leaving your code (from patch 2) where it is
+now, in grant table. It's a small change and it seems to me a single
+#ifdef/#endif would cover it, even if you factor out common code there
+as we've discussed. To my eye it logically belongs there. Just like your
+gntdev changes belong to gntdev file. (Presumably, because I haven't
+actually looked at them ;-))
+
+So my suggestion is
+- separate module for your changes in balloon.c
+- keep grant-table changes, with config option
+- keep gntdev changes, with config option. (but when you get to post
+actual patches I would appreciate if you could split this into a series
+of logical changes and not post a one giant patch).
+
+
+-boris
+
+
+>
+> I am still missing your point here?
+>
+>>
+>>> If you suggest a new kernel driver module:
+>>> IMO, there is nothing bad if we create a dedicated kernel module
+>>> (driver) for Xen dma-buf handling selectable under Kconfig option.
+>>> Yes, this will create a yet another device under /dev/xen,
+>>> but most people will never see it if we set Kconfig to default to "n".
+>>> And then we'll need user-space support for that, so Xen tools will
+>>> be extended with libxendmabuf.so or so.
+>>> This way all Xen dma-buf support can be localized at one place which
+>>> might be easier to maintain. What is more it could be totally
+>>> transparent
+>>> to most of us as Kconfig option won't be set by default (both kernel
+>>> and Xen).
+>>
+>> The downside is that we will end up having another device for doing
+>> things that are not that different from what we are already doing with
+>> existing gnttab device. Or are they?
+> Agree, but Kconfig option, IMO, won't make it look nice because
+> of gntdev changes and code reuse.
+>> -boris
+> Thank you,
+> Oleksandr
+>
+> _______________________________________________
+> Xen-devel mailing list
+> Xen-devel@lists.xenproject.org
+> https://lists.xenproject.org/mailman/listinfo/xen-devel
