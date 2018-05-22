@@ -1,47 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:50117 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751252AbeEEQJv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 5 May 2018 12:09:51 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        "Luis R. Rodriguez" <mcgrof@kernel.org>, linux-mm@kvack.org
-Subject: [PATCH 2/2] media: gp8psk: don't abuse of GFP_DMA
-Date: Sat,  5 May 2018 12:09:46 -0400
-Message-Id: <ed4fd8f165a3fcaa4459f7f78b6206fb552367fc.1525536580.git.mchehab+samsung@kernel.org>
-In-Reply-To: <dc56acf384130d9703684a239d8daa8748f63d8e.1525536580.git.mchehab+samsung@kernel.org>
-References: <dc56acf384130d9703684a239d8daa8748f63d8e.1525536580.git.mchehab+samsung@kernel.org>
-In-Reply-To: <dc56acf384130d9703684a239d8daa8748f63d8e.1525536580.git.mchehab+samsung@kernel.org>
-References: <dc56acf384130d9703684a239d8daa8748f63d8e.1525536580.git.mchehab+samsung@kernel.org>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:45294 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752939AbeEVU5u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 May 2018 16:57:50 -0400
+Date: Tue, 22 May 2018 15:57:47 -0500
+From: Rob Herring <robh@kernel.org>
+To: Simon Horman <horms+renesas@verge.net.au>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH] media: rcar-vin:  Drop unnecessary register properties
+ from example vin port
+Message-ID: <20180522205747.GA2795@rob-hp-laptop>
+References: <20180509184558.14960-1-horms+renesas@verge.net.au>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180509184558.14960-1-horms+renesas@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's s no reason why it should be using GFP_DMA there.
-This is an USB driver. Any restriction should be, instead,
-at HCI core, if any.
+On Wed, May 09, 2018 at 08:45:58PM +0200, Simon Horman wrote:
+> The example vin port node does not have an address and thus does not
+> need address-cells or address size-properties.
+> 
+> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+> ---
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 3 ---
+>  1 file changed, 3 deletions(-)
 
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: linux-mm@kvack.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/usb/dvb-usb/gp8psk.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
-index 37f062225ed2..334b9fb98112 100644
---- a/drivers/media/usb/dvb-usb/gp8psk.c
-+++ b/drivers/media/usb/dvb-usb/gp8psk.c
-@@ -148,7 +148,7 @@ static int gp8psk_load_bcm4500fw(struct dvb_usb_device *d)
- 	info("downloading bcm4500 firmware from file '%s'",bcm4500_firmware);
- 
- 	ptr = fw->data;
--	buf = kmalloc(64, GFP_KERNEL | GFP_DMA);
-+	buf = kmalloc(64, GFP_KERNEL);
- 	if (!buf) {
- 		ret = -ENOMEM;
- 		goto out_rel_fw;
--- 
-2.17.0
+Reviewed-by: Rob Herring <robh@kernel.org>
