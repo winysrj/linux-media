@@ -1,113 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:40224 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934932AbeEIUNP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 16:13:15 -0400
-Date: Wed, 9 May 2018 22:13:06 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Colin Ian King <colin.king@canonical.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH][media-next] media: ddbridge: avoid out-of-bounds write
- on array demod_in_use
-Message-ID: <20180509221306.708c2d52@lt530>
-In-Reply-To: <c7ea26b7-d743-f2bd-fd0d-41421ae2778d@canonical.com>
-References: <20180507230842.28409-1-colin.king@canonical.com>
-        <20180508123836.0b5c2f7f@lt530>
-        <c7ea26b7-d743-f2bd-fd0d-41421ae2778d@canonical.com>
+Received: from ni.piap.pl ([195.187.100.4]:48806 "EHLO ni.piap.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751060AbeEVKsr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 May 2018 06:48:47 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Tim Harvey <tharvey@gateworks.com>
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+References: <m37eobudmo.fsf@t19.piap.pl>
+        <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
+        <m3tvresqfw.fsf@t19.piap.pl>
+        <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
+        <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
+        <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
+Date: Tue, 22 May 2018 12:48:45 +0200
+In-Reply-To: <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com> (Steve
+        Longerbeam's message of "Mon, 21 May 2018 14:25:40 -0700")
+Message-ID: <m3wovwq836.fsf@t19.piap.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Colin,
+Hi,
 
-Am Tue, 8 May 2018 11:39:56 +0100
-schrieb Colin Ian King <colin.king@canonical.com>:
+Steve Longerbeam <slongerbeam@gmail.com> writes:
 
-> On 08/05/18 11:38, Daniel Scheller wrote:
-> > Hi Colin,
-> > 
-> > Am Tue,  8 May 2018 00:08:42 +0100
-> > schrieb Colin King <colin.king@canonical.com>:
-> >   
-> >> From: Colin Ian King <colin.king@canonical.com>
-> >>
-> >> In function stop there is a check to see if state->demod is a stopped
-> >> value of 0xff, however, later on, array demod_in_use is indexed with
-> >> this value causing an out-of-bounds write error.  Avoid this by only
-> >> writing to array demod_in_use if state->demod is not set to the stopped
-> >> sentinal value for this specific corner case.  Also, replace the magic
-> >> value 0xff with DEMOD_STOPPED to make code more readable.
-> >>
-> >> Detected by CoverityScan, CID#1468550 ("Out-of-bounds write")
-> >>
-> >> Fixes: daeeb1319e6f ("media: ddbridge: initial support for MCI-based MaxSX8 cards")
-> >> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> >> ---
-> >>  drivers/media/pci/ddbridge/ddbridge-mci.c | 11 +++++++----
-> >>  1 file changed, 7 insertions(+), 4 deletions(-)
-> >>
-> >> diff --git a/drivers/media/pci/ddbridge/ddbridge-mci.c b/drivers/media/pci/ddbridge/ddbridge-mci.c
-> >> index a85ff3e6b919..1f5ed53c8d35 100644
-> >> --- a/drivers/media/pci/ddbridge/ddbridge-mci.c
-> >> +++ b/drivers/media/pci/ddbridge/ddbridge-mci.c
-> >> @@ -20,6 +20,8 @@
-> >>  #include "ddbridge-io.h"
-> >>  #include "ddbridge-mci.h"
-> >>  
-> >> +#define DEMOD_STOPPED	(0xff)
-> >> +
-> >>  static LIST_HEAD(mci_list);
-> >>  
-> >>  static const u32 MCLK = (1550000000 / 12);
-> >> @@ -193,7 +195,7 @@ static int stop(struct dvb_frontend *fe)
-> >>  	u32 input = state->tuner;
-> >>  
-> >>  	memset(&cmd, 0, sizeof(cmd));
-> >> -	if (state->demod != 0xff) {
-> >> +	if (state->demod != DEMOD_STOPPED) {
-> >>  		cmd.command = MCI_CMD_STOP;
-> >>  		cmd.demod = state->demod;
-> >>  		mci_cmd(state, &cmd, NULL);
-> >> @@ -209,10 +211,11 @@ static int stop(struct dvb_frontend *fe)
-> >>  	state->base->tuner_use_count[input]--;
-> >>  	if (!state->base->tuner_use_count[input])
-> >>  		mci_set_tuner(fe, input, 0);
-> >> -	state->base->demod_in_use[state->demod] = 0;
-> >> +	if (state->demod != DEMOD_STOPPED)
-> >> +		state->base->demod_in_use[state->demod] = 0;
-> >>  	state->base->used_ldpc_bitrate[state->nr] = 0;
-> >> -	state->demod = 0xff;
-> >> -	state->base->assigned_demod[state->nr] = 0xff;
-> >> +	state->demod = DEMOD_STOPPED;
-> >> +	state->base->assigned_demod[state->nr] = DEMOD_STOPPED;
-> >>  	state->base->iq_mode = 0;
-> >>  	mutex_unlock(&state->base->tuner_lock);
-> >>  	state->started = 0;  
-> > 
-> > Thanks for the patch, or - better - pointing this out. While it's
-> > unlikely this will ever be an issue, I'm fine with changing the code
-> > like that, but I'd prefer to change it a bit differently (ie.
-> > DEMOD_STOPPED should be DEMOD_UNUSED, and I'd add defines for max.
-> > tuners and use/compare against them).  
-> 
-> Sounds like a good idea.
-> 
-> > 
-> > I'll send out a different patch that will cover the potential
-> > coverityscan problem throughout the end of the week.  
-> 
-> Great. Thanks!
+> Hi Krzysztof, I've been on vacation, just returned today. I will
+> find the time this week to attempt to reproduce your results on
+> a SabreAuto quad with the adv7180.
 
-JFYI, patch sent as part of a few other fixes and up at linux-media
-patchwork:
+Great. Please let me know if I can assist you somehow.
 
-https://patchwork.linuxtv.org/patch/49403/
+> Btw, if you just need to capture an interlaced frame (lines 0,1,2,...)
+> without motion compensation, there is no need to use the VDIC
+> path. Capturing directly from ipu2_csi1 should work, I've tested
+> this many times on a SabreAuto. But I will try to reproduce your
+> results.
 
-Best regards,
-Daniel Scheller
+That's what I was thinking. Thanks a lot.
 -- 
-https://github.com/herrnst
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
