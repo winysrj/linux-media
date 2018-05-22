@@ -1,73 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2120.oracle.com ([141.146.126.78]:40204 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752410AbeEPNLh (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:56518 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751605AbeEVRrc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 09:11:37 -0400
-Date: Wed, 16 May 2018 16:11:08 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
-Message-ID: <20180516131108.xcvsw6m4qrmqgykh@mwanda>
-References: <20180423152455.363d285c@vento.lan>
- <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
- <20180423161742.66f939ba@vento.lan>
- <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
- <20180426204241.03a42996@vento.lan>
- <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
- <20180515085953.65bfa107@vento.lan>
- <20180515141655.idzuh2jfdkuu5grs@mwanda>
- <f342d8d6-b5e6-0cbf-d002-9561b79c90e4@embeddedor.com>
- <20180515160033.156f119c@vento.lan>
+        Tue, 22 May 2018 13:47:32 -0400
+Subject: Re: [PATCH] media: video-mux: fix compliance failures
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Rui Miguel Silva <rui.silva@linaro.org>, kernel@pengutronix.de
+References: <20180522162925.16854-1-p.zabel@pengutronix.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <16e0879d-2db3-951b-fd96-636b9615a3f2@xs4all.nl>
+Date: Tue, 22 May 2018 19:47:28 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180515160033.156f119c@vento.lan>
+In-Reply-To: <20180522162925.16854-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 15, 2018 at 04:00:33PM -0300, Mauro Carvalho Chehab wrote:
-> Yeah, that's the same I'm getting from media upstream.
+On 22/05/18 18:29, Philipp Zabel wrote:
+> Limit frame sizes to the [1, UINT_MAX-1] interval, media bus formats to
+> the available list of formats, and initialize pad and try formats.
 > 
-> > drivers/media/cec/cec-pin-error-inj.c:170 cec_pin_error_inj_parse_line() 
-> > warn: potential spectre issue 'pin->error_inj_args'
+> Reported-by: Rui Miguel Silva <rui.silva@linaro.org>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/video-mux.c | 110 +++++++++++++++++++++++++++++
+>  1 file changed, 110 insertions(+)
 > 
-> This one seems a false positive, as the index var is u8 and the
-> array has 256 elements, as the userspace input from 'op' is 
-> initialized with:
-> 
-> 	u8 v;
-> 	u32 op;
-> 
-> 	if (!kstrtou8(token, 0, &v))
-> 		op = v;
+> diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+> index 1fb887293337..ade1dae706aa 100644
+> --- a/drivers/media/platform/video-mux.c
+> +++ b/drivers/media/platform/video-mux.c
+> @@ -180,6 +180,87 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
+>  	if (!source_mbusformat)
+>  		return -EINVAL;
+>  
+> +	/* No size limitations except V4L2 compliance requirements */
+> +	v4l_bound_align_image(&sdformat->format.width, 1, UINT_MAX - 1, 0,
+> +			      &sdformat->format.height, 1, UINT_MAX - 1, 0, 0);
+
+This is a bit dubious. I would pick more realistic min/max values like 16 and
+65536. UINT_MAX - 1 will overflow whenever code increments/multiplies it for some
+reason, which can cause all sorts of weird issues.
+
+> +
+> +	/* All formats except LVDS and vendor specific formats are acceptable */
+> +	switch (sdformat->format.code) {
+> +	case MEDIA_BUS_FMT_RGB444_1X12:
+> +	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
+> +	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
+> +	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
+> +	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
+> +	case MEDIA_BUS_FMT_RGB565_1X16:
+> +	case MEDIA_BUS_FMT_BGR565_2X8_BE:
+> +	case MEDIA_BUS_FMT_BGR565_2X8_LE:
+> +	case MEDIA_BUS_FMT_RGB565_2X8_BE:
+> +	case MEDIA_BUS_FMT_RGB565_2X8_LE:
+> +	case MEDIA_BUS_FMT_RGB666_1X18:
+> +	case MEDIA_BUS_FMT_RBG888_1X24:
+> +	case MEDIA_BUS_FMT_RGB666_1X24_CPADHI:
+> +	case MEDIA_BUS_FMT_BGR888_1X24:
+> +	case MEDIA_BUS_FMT_GBR888_1X24:
+> +	case MEDIA_BUS_FMT_RGB888_1X24:
+> +	case MEDIA_BUS_FMT_RGB888_2X12_BE:
+> +	case MEDIA_BUS_FMT_RGB888_2X12_LE:
+> +	case MEDIA_BUS_FMT_ARGB8888_1X32:
+> +	case MEDIA_BUS_FMT_RGB888_1X32_PADHI:
+> +	case MEDIA_BUS_FMT_RGB101010_1X30:
+> +	case MEDIA_BUS_FMT_RGB121212_1X36:
+> +	case MEDIA_BUS_FMT_RGB161616_1X48:
+> +	case MEDIA_BUS_FMT_Y8_1X8:
+> +	case MEDIA_BUS_FMT_UV8_1X8:
+> +	case MEDIA_BUS_FMT_UYVY8_1_5X8:
+> +	case MEDIA_BUS_FMT_VYUY8_1_5X8:
+> +	case MEDIA_BUS_FMT_YUYV8_1_5X8:
+> +	case MEDIA_BUS_FMT_YVYU8_1_5X8:
+> +	case MEDIA_BUS_FMT_UYVY8_2X8:
+> +	case MEDIA_BUS_FMT_VYUY8_2X8:
+> +	case MEDIA_BUS_FMT_YUYV8_2X8:
+> +	case MEDIA_BUS_FMT_YVYU8_2X8:
+> +	case MEDIA_BUS_FMT_Y10_1X10:
+> +	case MEDIA_BUS_FMT_UYVY10_2X10:
+> +	case MEDIA_BUS_FMT_VYUY10_2X10:
+> +	case MEDIA_BUS_FMT_YUYV10_2X10:
+> +	case MEDIA_BUS_FMT_YVYU10_2X10:
+> +	case MEDIA_BUS_FMT_Y12_1X12:
+> +	case MEDIA_BUS_FMT_UYVY12_2X12:
+> +	case MEDIA_BUS_FMT_VYUY12_2X12:
+> +	case MEDIA_BUS_FMT_YUYV12_2X12:
+> +	case MEDIA_BUS_FMT_YVYU12_2X12:
+> +	case MEDIA_BUS_FMT_UYVY8_1X16:
+> +	case MEDIA_BUS_FMT_VYUY8_1X16:
+> +	case MEDIA_BUS_FMT_YUYV8_1X16:
+> +	case MEDIA_BUS_FMT_YVYU8_1X16:
+> +	case MEDIA_BUS_FMT_YDYUYDYV8_1X16:
+> +	case MEDIA_BUS_FMT_UYVY10_1X20:
+> +	case MEDIA_BUS_FMT_VYUY10_1X20:
+> +	case MEDIA_BUS_FMT_YUYV10_1X20:
+> +	case MEDIA_BUS_FMT_YVYU10_1X20:
+> +	case MEDIA_BUS_FMT_VUY8_1X24:
+> +	case MEDIA_BUS_FMT_YUV8_1X24:
+> +	case MEDIA_BUS_FMT_UYYVYY8_0_5X24:
+> +	case MEDIA_BUS_FMT_UYVY12_1X24:
+> +	case MEDIA_BUS_FMT_VYUY12_1X24:
+> +	case MEDIA_BUS_FMT_YUYV12_1X24:
+> +	case MEDIA_BUS_FMT_YVYU12_1X24:
+> +	case MEDIA_BUS_FMT_YUV10_1X30:
+> +	case MEDIA_BUS_FMT_UYYVYY10_0_5X30:
+> +	case MEDIA_BUS_FMT_AYUV8_1X32:
+> +	case MEDIA_BUS_FMT_UYYVYY12_0_5X36:
+> +	case MEDIA_BUS_FMT_YUV12_1X36:
+> +	case MEDIA_BUS_FMT_YUV16_1X48:
+> +	case MEDIA_BUS_FMT_UYYVYY16_0_5X48:
+> +	case MEDIA_BUS_FMT_JPEG_1X8:
+> +	case MEDIA_BUS_FMT_AHSV8888_1X32:
+> +		break;
+> +	default:
+> +		sdformat->format.code = MEDIA_BUS_FMT_Y8_1X8;
+
+Add a break here.
+
+> +	}
+> +	if (sdformat->format.field == V4L2_FIELD_ANY)
+> +		sdformat->format.field = V4L2_FIELD_NONE;
+> +
+>  	mutex_lock(&vmux->lock);
+>  
+>  	/* Source pad mirrors active sink pad, no limitations on sink pads */
+> @@ -197,11 +278,33 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
+>  	return 0;
+>  }
+>  
+> +static int video_mux_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +	struct video_mux *vmux = v4l2_subdev_to_video_mux(sd);
+> +	struct v4l2_mbus_framefmt *mbusformat;
+> +	int i;
+> +
+> +	mutex_lock(&vmux->lock);
+> +
+> +	for (i = 0; i < sd->entity.num_pads; i++) {
+> +		mbusformat = v4l2_subdev_get_try_format(sd, fh->pad, i);
+> +		*mbusformat = vmux->format_mbus[i];
+> +	}
+> +
+> +	mutex_unlock(&vmux->lock);
+> +
+> +	return 0;
+> +}
+
+This isn't the right approach. Instead implement the init_cfg pad op.
+
+> +
+>  static const struct v4l2_subdev_pad_ops video_mux_pad_ops = {
+>  	.get_fmt = video_mux_get_format,
+>  	.set_fmt = video_mux_set_format,
+>  };
+>  
+> +static const struct v4l2_subdev_internal_ops video_mux_internal_ops = {
+> +	.open = video_mux_open,
+> +};
+
+So this can be dropped.
+
+> +
+>  static const struct v4l2_subdev_ops video_mux_subdev_ops = {
+>  	.pad = &video_mux_pad_ops,
+>  	.video = &video_mux_subdev_video_ops,
+> @@ -226,6 +329,7 @@ static int video_mux_probe(struct platform_device *pdev)
+>  	v4l2_subdev_init(&vmux->subdev, &video_mux_subdev_ops);
+>  	snprintf(vmux->subdev.name, sizeof(vmux->subdev.name), "%s", np->name);
+>  	vmux->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	vmux->subdev.internal_ops = &video_mux_internal_ops;
+>  	vmux->subdev.dev = dev;
+>  
+>  	/*
+> @@ -263,6 +367,12 @@ static int video_mux_probe(struct platform_device *pdev)
+>  	for (i = 0; i < num_pads - 1; i++)
+>  		vmux->pads[i].flags = MEDIA_PAD_FL_SINK;
+>  	vmux->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
+> +	for (i = 0; i < num_pads; i++) {
+> +		vmux->format_mbus[i].width = 1;
+> +		vmux->format_mbus[i].height = 1;
+> +		vmux->format_mbus[i].code = MEDIA_BUS_FMT_Y8_1X8;
+> +		vmux->format_mbus[i].field = V4L2_FIELD_NONE;
+> +	}
+>  
+>  	vmux->subdev.entity.function = MEDIA_ENT_F_VID_MUX;
+>  	ret = media_entity_pads_init(&vmux->subdev.entity, num_pads,
 > 
 
-It's hard to silence this because Smatch stores the current user
-controlled range list, not what it was initially.  I wrote all this code
-to detect bounds checking errors, so there wasn't any need to save the
-range list before the bounds check.  Since "op" is a u32, I can't even
-go by the type of the index....
+Regards,
 
-> > drivers/media/dvb-core/dvb_ca_en50221.c:1479 dvb_ca_en50221_io_write() 
-> > warn: potential spectre issue 'ca->slot_info' (local cap)
-> 
-> This one seems a real issue to me. Sent a patch for it.
-> 
-> > drivers/media/dvb-core/dvb_net.c:252 handle_one_ule_extension() warn: 
-> > potential spectre issue 'p->ule_next_hdr'
-> 
-> I failed to see what's wrong here, or if this is exploited. 
-
-Oh...  Huh.  This is a bug in smatch.  That line looks like:
-
-	p->ule_sndu_type = ntohs(*(__be16 *)(p->ule_next_hdr + ((p->ule_dbit ? 2 : 3) * ETH_ALEN)));
-
-Smatch see the ntohs() and marks everything inside it as untrusted
-network data.  I'll fix this.
-
-regards,
-dan carpenter
+	Hans
