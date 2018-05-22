@@ -1,153 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:39633 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752739AbeEUPz7 (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:35282 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751748AbeEVUcY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 11:55:59 -0400
-Received: by mail-wm0-f41.google.com with SMTP id f8-v6so27500808wmc.4
-        for <linux-media@vger.kernel.org>; Mon, 21 May 2018 08:55:59 -0700 (PDT)
+        Tue, 22 May 2018 16:32:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: ming_qian@realsil.com.cn
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Ana Guerrero Lopez <ana.guerrero@collabora.com>
+Subject: Re: [PATCH] media: uvcvideo: Support realtek's UVC 1.5 device
+Date: Tue, 22 May 2018 23:32:19 +0300
+Message-ID: <2510852.fx2XduE8hM@avalon>
+In-Reply-To: <1525831988-32017-1-git-send-email-ming_qian@realsil.com.cn>
+References: <1525831988-32017-1-git-send-email-ming_qian@realsil.com.cn>
 MIME-Version: 1.0
-In-Reply-To: <m3603hsa4o.fsf@t19.piap.pl>
-References: <m37eobudmo.fsf@t19.piap.pl> <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
- <m3tvresqfw.fsf@t19.piap.pl> <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
- <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Mon, 21 May 2018 08:55:57 -0700
-Message-ID: <CAJ+vNU3UAU1DRAt5iyqMg-tvYjJZpTuyW1X=kYU8j-7ND92EWw@mail.gmail.com>
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-To: =?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 21, 2018 at 1:09 AM, Krzysztof Ha=C5=82asa <khalasa@piap.pl> wr=
-ote:
-> Tested with NTSC camera, it's the same as with PAL.
-> The only case when IPU2_CSI1_SENS_CONF register is set to interlaced
-> mode (PRCTL=3D3, CCIR interlaced mode (BT.656)) is when all parts of the
-> pipeline are set to interlaced:
->
-> "adv7180 2-0020":0 [fmt:UYVY2X8/720x576 field:interlaced]
-> "ipu2_csi1_mux":1  [fmt:UYVY2X8/720x576 field:interlaced]
-> "ipu2_csi1_mux":2  [fmt:UYVY2X8/720x576 field:interlaced]
-> "ipu2_csi1":0      [fmt:UYVY2X8/720x576 field:interlaced]
-> "ipu2_csi1":2      [fmt:AYUV32/720x576 field:interlaced]
->
-> The image is stable and in sync, the "only" problem is that I get two
-> concatenated field images (in one V4L2 frame) instead of a normal
-> interlaced frame (all lines in order - 0, 1, 2, 3, 4 etc).
-> IOW I get V4L2_FIELD_ALTERNATE, V4L2_FIELD_SEQ_TB or V4L2_FIELD_SEQ_BT
-> (the data format, I don't mean the pixel format.field) while I need to
-> get V4L2_FIELD_INTERLACED, V4L2_FIELD_INTERLACED_TB or _BT.
->
->
-> If I set "ipu2_csi1":2 to field:none, the IPU2_CSI1_SENS_CONF is set to
-> progressive mode (PRCTL=3D2). It's the last element of the pipeline I can
-> configure, it's connected straight to "ipu2_csi1 capture" aka
-> /dev/videoX. I think CSI can't work with interlaced camera (and ADV7180)
-> when set to progressive, can it?
->
->
-> I wonder... perhaps to get an interlaced frame I need to route the data
-> through VDIC (ipu2_vdic, the deinterlacer)?
+Hello,
 
-Krzysztof,
+Thank you for the patch.
 
-Right, your doing a raw capture where you get both fields in one
-buffer and I'm not clear what to do with that.
+On Wednesday, 9 May 2018 05:13:08 EEST ming_qian@realsil.com.cn wrote:
+> From: ming_qian <ming_qian@realsil.com.cn>
+> 
+> The length of UVC 1.5 video control is 48, and it id 34 for UVC 1.1.
+> Change it to 48 for UVC 1.5 device,
+> and the UVC 1.5 device can be recognized.
+> 
+> More changes to the driver are needed for full UVC 1.5 compatibility.
+> However, at least the UVC 1.5 Realtek RTS5847/RTS5852 cameras have
+> been reported to work well.
 
-Here's what I've used on a GW54xx with IMX6Q and an adv7180 for NTSC.
+This patch is however not specific to Realtek devices, so I think we should
+make the subject line more generic. It's fine mentioning in the commit message
+itself that the Realtek RTS5847/RTS5852 cameras have been successfully tested.
 
-using VDIC to deinterlace:
-# adv7180 -> vdic -> ic_prpvf -> /dev/video3
-# VDIC will de-interlace using motion compensation
-media-ctl -r # reset all links
-# Setup links
-media-ctl -l '"adv7180 2-0020":0 -> "ipu2_csi1_mux":1[1]'
-media-ctl -l '"ipu2_csi1_mux":2 -> "ipu2_csi1":0[1]'
-media-ctl -l '"ipu2_csi1":1 -> "ipu2_vdic":0[1]'
-media-ctl -l '"ipu2_vdic":2 -> "ipu2_ic_prp":0[1]'
-media-ctl -l '"ipu2_ic_prp":2 -> "ipu2_ic_prpvf":0[1]'
-media-ctl -l '"ipu2_ic_prpvf":1 -> "ipu2_ic_prpvf capture":0[1]'
-# Configure pads
-media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480]"
-media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]"
-media-ctl -V "'ipu2_csi1':1 [fmt:UYVY2X8/720x480 field:interlaced]"
-media-ctl -V "'ipu2_vdic':2 [fmt:UYVY2X8/720x480 field:interlaced]"
-media-ctl -V "'ipu2_ic_prp':2 [fmt:UYVY2X8/720x480 field:none]"
-media-ctl -V "'ipu2_ic_prpvf':1 [fmt:UYVY2X8/720x480 field:none]"
-# streaming can now begin on /dev/video3
-v4l2-ctl -d3 --set-fmt-video=3Dwidth=3D720,height=3D480,pixelformat=3DUYVY
-v4l2-ctl -d3 --set-ctrl=3Ddeinterlacing_mode=3D3 # set max motion
-compensation (default)
-#^^^^ this is the default so could be skipped; also its the only value
-allowed when capturing direct from CSI
-v4l2-ctl -d3 --stream-mmap --stream-to=3D/x.raw --stream-count=3D1 # captur=
-e 1 frame
-convert -size 720x480 -depth 16 uyvy:/x.raw /var/www/html/frame.png #
-and convert
-# or stream jpeg's via gst
-gst-launch-1.0 v4l2src device=3D/dev/video3 ! "video/x-raw,format=3DUYVY"
-! jpegenc ! queue ! avimux name=3Dmux ! udpsink host=3D172.24.20.19
-port=3D5000
+> Signed-off-by: ming_qian <ming_qian@realsil.com.cn>
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index aa0082f..32dfb32 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -171,6 +171,8 @@ static int uvc_get_video_ctrl(struct uvc_streaming
+> *stream, int ret;
+> 
+>  	size = stream->dev->uvc_version >= 0x0110 ? 34 : 26;
+> +	if (stream->dev->uvc_version >= 0x0150)
+> +		size = 48;
+>  	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) &&
+>  			query == UVC_GET_DEF)
+>  		return -EIO;
+> @@ -259,6 +261,8 @@ static int uvc_set_video_ctrl(struct uvc_streaming
+> *stream, int ret;
+> 
+>  	size = stream->dev->uvc_version >= 0x0110 ? 34 : 26;
+> +	if (stream->dev->uvc_version >= 0x0150)
+> +		size = 48;
+>  	data = kzalloc(size, GFP_KERNEL);
+>  	if (data == NULL)
+>  		return -ENOMEM;
 
-or de-interlace via IDMAC:
-# PRPVF will do simple IDMAC line interweaving for de-interlacing,
-since VDIC is not involved in the pipeline, but it will only enable
-this in the IDMAC if it sees interlaced input at prpvf
-media-ctl -r # reset all links
-# Setup links
-media-ctl -l '"adv7180 2-0020":0 -> "ipu2_csi1_mux":1[1]'
-media-ctl -l '"ipu2_csi1_mux":2 -> "ipu2_csi1":0[1]'
-media-ctl -l '"ipu2_csi1":1 -> "ipu2_ic_prp":0[1]'
-media-ctl -l '"ipu2_ic_prp":2 -> "ipu2_ic_prpvf":0[1]'
-media-ctl -l '"ipu2_ic_prpvf":1 -> "ipu2_ic_prpvf capture":0[1]'
-# Configure pads
-media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480]"
-media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]"
-media-ctl -V "'ipu2_csi1':1 [fmt:UYVY2X8/720x480 field:interlaced]"
-media-ctl -V "'ipu2_ic_prp':2 [fmt:UYVY2X8/720x480 field:interlaced]"
-media-ctl -V "'ipu2_ic_prpvf':1 [fmt:UYVY2X8/720x480 field:none]"
-# streaming can now begin on /dev/video3
-v4l2-ctl -d3 --set-fmt-video=3Dwidth=3D720,height=3D480,pixelformat=3DUYVY
-v4l2-ctl -d3 --stream-mmap --stream-to=3D/x.raw --stream-count=3D1 # captur=
-e
-gst-launch-1.0 v4l2src device=3D/dev/video3 ! "video/x-raw,format=3DUYVY"
-! jpegenc ! queue ! avimux name=3Dmux ! udpsink host=3D172.24.20.19
-port=3D5000
+Instead of duplicating the computation in both functions, I think we should
+move the code to a helper function.
 
-or the following for non deinterlaced:
-# adv7180 -> ic_prp -> ic_prpenc -> /dev/video2
-media-ctl -r # reset all links
-# Setup links
-media-ctl -l '"adv7180 2-0020":0 -> "ipu2_csi1_mux":1[1]'
-media-ctl -l '"ipu2_csi1_mux":2 -> "ipu2_csi1":0[1]'
-media-ctl -l '"ipu2_csi1":1 -> "ipu2_ic_prp":0[1]'
-media-ctl -l '"ipu2_ic_prp":1 -> "ipu2_ic_prpenc":0[1]'
-media-ctl -l '"ipu2_ic_prpenc":1 -> "ipu2_ic_prpenc capture":0[1]'
-# Configure pads
-media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480]"
-media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]"
-media-ctl -V "'ipu2_csi1':1 [fmt:UYVY2X8/720x480 field:interlaced]"
-media-ctl -V "'ipu2_ic_prp':1 [fmt:UYVY2X8/720x480 field:interlaced]"
-media-ctl -V "'ipu2_ic_prpenc':1 [fmt:UYVY2X8/720x480 field:none]"
-# streaming can now begin on /dev/video2
-v4l2-ctl -d2 --set-fmt-video=3Dwidth=3D720,height=3D480,pixelformat=3DUYVY
-v4l2-ctl -d2 --stream-mmap --stream-to=3D/x.raw --stream-count=3D1 # captur=
-e
-gst-launch-1.0 v4l2src device=3D/dev/video2 ! "video/x-raw,format=3DUYVY"
-! jpegenc ! queue ! avimux name=3Dmux ! udpsink host=3D172.24.20.19
-port=3D5000
+Furthermore there are equality checks further down both functions that compare
+the size to 34, they should be updated to also support UVC 1.5.
 
-One of these days I intend to document all of this on our Gateworks
-wiki. Its complex as heck with all the board and CPU variants. I wish
-there was a tool that would auto-connect the entitites as the inputs
-and outputs change depending on CPU variant but I'm not aware of
-anything that does that yet. I'm also not very clear on all the
-possibilities - Steve is the expert on that.
+I propose the following updated patch. If you're fine with it there's no need
+to resubmit, I'll queue it for v4.19.
 
-Tim
+I have dropped the Reviewed-by and Tested-by tags as the patch has changed.
+
+commit a9c002732695eab2096580a0d1a1687bc2f95928
+Author: ming_qian <ming_qian@realsil.com.cn>
+Date:   Wed May 9 10:13:08 2018 +0800
+
+    media: uvcvideo: Support UVC 1.5 video probe & commit controls
+    
+    The length of UVC 1.5 video control is 48, and it is 34 for UVC 1.1.
+    Change it to 48 for UVC 1.5 device, and the UVC 1.5 device can be
+    recognized.
+    
+    More changes to the driver are needed for full UVC 1.5 compatibility.
+    However, at least the UVC 1.5 Realtek RTS5847/RTS5852 cameras have been
+    reported to work well.
+    
+    Cc: stable@vger.kernel.org
+    Signed-off-by: ming_qian <ming_qian@realsil.com.cn>
+    [Factor out code to helper function, update size checks]
+    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index eb9e04a59427..285b0e813b9d 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -207,14 +207,27 @@ static void uvc_fixup_video_ctrl(struct uvc_streaming *stream,
+ 	}
+ }
+ 
++static size_t uvc_video_ctrl_size(struct uvc_streaming *stream)
++{
++	/*
++	 * Return the size of the video probe and commit controls, which depends
++	 * on the protocol version.
++	 */
++	if (stream->dev->uvc_version < 0x0110)
++		return 26;
++	else if (stream->dev->uvc_version < 0x0150)
++		return 34;
++	else
++		return 48;
++}
++
+ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
+ 	struct uvc_streaming_control *ctrl, int probe, u8 query)
+ {
++	u16 size = uvc_video_ctrl_size(stream);
+ 	u8 *data;
+-	u16 size;
+ 	int ret;
+ 
+-	size = stream->dev->uvc_version >= 0x0110 ? 34 : 26;
+ 	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) &&
+ 			query == UVC_GET_DEF)
+ 		return -EIO;
+@@ -271,7 +284,7 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
+ 	ctrl->dwMaxVideoFrameSize = get_unaligned_le32(&data[18]);
+ 	ctrl->dwMaxPayloadTransferSize = get_unaligned_le32(&data[22]);
+ 
+-	if (size == 34) {
++	if (size >= 34) {
+ 		ctrl->dwClockFrequency = get_unaligned_le32(&data[26]);
+ 		ctrl->bmFramingInfo = data[30];
+ 		ctrl->bPreferedVersion = data[31];
+@@ -300,11 +313,10 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
+ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
+ 	struct uvc_streaming_control *ctrl, int probe)
+ {
++	u16 size = uvc_video_ctrl_size(stream);
+ 	u8 *data;
+-	u16 size;
+ 	int ret;
+ 
+-	size = stream->dev->uvc_version >= 0x0110 ? 34 : 26;
+ 	data = kzalloc(size, GFP_KERNEL);
+ 	if (data == NULL)
+ 		return -ENOMEM;
+@@ -321,7 +333,7 @@ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
+ 	put_unaligned_le32(ctrl->dwMaxVideoFrameSize, &data[18]);
+ 	put_unaligned_le32(ctrl->dwMaxPayloadTransferSize, &data[22]);
+ 
+-	if (size == 34) {
++	if (size >= 34) {
+ 		put_unaligned_le32(ctrl->dwClockFrequency, &data[26]);
+ 		data[30] = ctrl->bmFramingInfo;
+ 		data[31] = ctrl->bPreferedVersion;
+
+-- 
+Regards,
+
+Laurent Pinchart
