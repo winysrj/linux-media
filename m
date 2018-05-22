@@ -1,109 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:45589 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751162AbeETNtP (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:49582 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751240AbeEVIOy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 May 2018 09:49:15 -0400
-From: Dmitry Osipenko <digetx@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>
-Cc: linux-tegra@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v1] media: staging: tegra-vde: Reset memory client
-Date: Sun, 20 May 2018 16:48:45 +0300
-Message-Id: <20180520134846.31046-2-digetx@gmail.com>
-In-Reply-To: <20180520134846.31046-1-digetx@gmail.com>
-References: <20180520134846.31046-1-digetx@gmail.com>
+        Tue, 22 May 2018 04:14:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+        Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 4/5] v4l2-ioctl: clear fields in s_parm
+Date: Tue, 22 May 2018 10:14:50 +0200
+Message-Id: <20180522081451.94794-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180522081451.94794-1-hverkuil@xs4all.nl>
+References: <20180522081451.94794-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DMA requests must be blocked before resetting VDE HW, otherwise it is
-possible to get a memory corruption or a machine hang. Use the reset
-control provided by the Memory Controller to block DMA before resetting
-the VDE HW.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+Zero the reserved capture/output array.
+
+Zero the extendedmode (it is never used in drivers).
+
+Clear all flags in capture/outputmode except for V4L2_MODE_HIGHQUALITY,
+as that is the only valid flag.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/staging/media/tegra-vde/tegra-vde.c | 42 +++++++++++++++++++--
- 1 file changed, 38 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
-index 90177a59b97c..6dd3bf4481be 100644
---- a/drivers/staging/media/tegra-vde/tegra-vde.c
-+++ b/drivers/staging/media/tegra-vde/tegra-vde.c
-@@ -73,6 +73,7 @@ struct tegra_vde {
- 	struct mutex lock;
- 	struct miscdevice miscdev;
- 	struct reset_control *rst;
-+	struct reset_control *rst_mc;
- 	struct gen_pool *iram_pool;
- 	struct completion decode_completion;
- 	struct clk *clk;
-@@ -850,9 +851,23 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
- 	 * We rely on the VDE registers reset value, otherwise VDE
- 	 * causes bus lockup.
- 	 */
-+	ret = reset_control_assert(vde->rst_mc);
-+	if (ret) {
-+		dev_err(dev, "DEC start: Failed to assert MC reset: %d\n",
-+			ret);
-+		goto put_runtime_pm;
-+	}
-+
- 	ret = reset_control_reset(vde->rst);
- 	if (ret) {
--		dev_err(dev, "Failed to reset HW: %d\n", ret);
-+		dev_err(dev, "DEC start: Failed to reset HW: %d\n", ret);
-+		goto put_runtime_pm;
-+	}
-+
-+	ret = reset_control_deassert(vde->rst_mc);
-+	if (ret) {
-+		dev_err(dev, "DEC start: Failed to deassert MC reset: %d\n",
-+			ret);
- 		goto put_runtime_pm;
- 	}
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index a40dbec271f1..212aac1d22c1 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1952,7 +1952,22 @@ static int v4l_s_parm(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_streamparm *p = arg;
+ 	int ret = check_fmt(file, p->type);
  
-@@ -880,9 +895,21 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
- 		ret = timeout;
- 	}
- 
--	err = reset_control_assert(vde->rst);
--	if (err)
--		dev_err(dev, "Failed to assert HW reset: %d\n", err);
-+	/*
-+	 * At first reset memory client to avoid resetting VDE HW in the
-+	 * middle of DMA which could result into memory corruption or hang
-+	 * the whole system.
-+	 */
-+	err = reset_control_assert(vde->rst_mc);
-+	if (!err) {
-+		err = reset_control_assert(vde->rst);
-+		if (err)
-+			dev_err(dev,
-+				"DEC end: Failed to assert HW reset: %d\n",
-+				err);
+-	return ret ? ret : ops->vidioc_s_parm(file, fh, p);
++	if (ret)
++		return ret;
++
++	/* Note: extendedmode is never used in drivers */
++	if (V4L2_TYPE_IS_OUTPUT(p->type)) {
++		memset(p->parm.output.reserved, 0,
++		       sizeof(p->parm.output.reserved));
++		p->parm.output.extendedmode = 0;
++		p->parm.output.outputmode &= V4L2_MODE_HIGHQUALITY;
 +	} else {
-+		dev_err(dev, "DEC end: Failed to assert MC reset: %d\n", err);
++		memset(p->parm.capture.reserved, 0,
++		       sizeof(p->parm.capture.reserved));
++		p->parm.capture.extendedmode = 0;
++		p->parm.capture.capturemode &= V4L2_MODE_HIGHQUALITY;
 +	}
++	return ops->vidioc_s_parm(file, fh, p);
+ }
  
- put_runtime_pm:
- 	pm_runtime_mark_last_busy(dev);
-@@ -1074,6 +1101,13 @@ static int tegra_vde_probe(struct platform_device *pdev)
- 		return err;
- 	}
- 
-+	vde->rst_mc = devm_reset_control_get_optional(dev, "mc");
-+	if (IS_ERR(vde->rst_mc)) {
-+		err = PTR_ERR(vde->rst_mc);
-+		dev_err(dev, "Could not get MC reset %d\n", err);
-+		return err;
-+	}
-+
- 	irq = platform_get_irq_byname(pdev, "sync-token");
- 	if (irq < 0)
- 		return irq;
+ static int v4l_queryctrl(const struct v4l2_ioctl_ops *ops,
 -- 
 2.17.0
