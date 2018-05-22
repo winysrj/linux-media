@@ -1,253 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:47649 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752672AbeENJGv (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:51147 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750733AbeEVLHv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 05:06:51 -0400
-Date: Mon, 14 May 2018 11:06:46 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH v5 12/14] media: ov772x: avoid accessing registers under
- power saving mode
-Message-ID: <20180514090646.GD5956@w540>
-References: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
- <1525616369-8843-13-git-send-email-akinobu.mita@gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="N1GIdlSm9i+YlY4t"
-Content-Disposition: inline
-In-Reply-To: <1525616369-8843-13-git-send-email-akinobu.mita@gmail.com>
+        Tue, 22 May 2018 07:07:51 -0400
+Message-ID: <1526987269.3671.19.camel@pengutronix.de>
+Subject: Re: [PATCH] gpu: ipu-v3: Fix BT1120 interlaced CCIR codes
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Marek Vasut <marex@denx.de>, linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Tue, 22 May 2018 13:07:49 +0200
+In-Reply-To: <cec007aa-d0b7-0802-d771-355a29751a2b@denx.de>
+References: <20180407130428.24833-1-marex@denx.de>
+         <1526658687.3948.15.camel@pengutronix.de>
+         <cec007aa-d0b7-0802-d771-355a29751a2b@denx.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Marek,
 
---N1GIdlSm9i+YlY4t
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+On Fri, 2018-05-18 at 18:21 +0200, Marek Vasut wrote:
+> On 05/18/2018 05:51 PM, Philipp Zabel wrote:
+> > Hi Marek,
+> > 
+> > On Sat, 2018-04-07 at 15:04 +0200, Marek Vasut wrote:
+> > > The BT1120 interlaced CCIR codes are the same as BT656 ones
+> > > and different than BT656 progressive CCIR codes, fix this.
+> > 
+> > thank you for the patch, and sorry for the delay.
+> > 
+> > > Signed-off-by: Marek Vasut <marex@denx.de>
+> > > Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+> > > Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> > > ---
+> > >  drivers/gpu/ipu-v3/ipu-csi.c | 8 ++++++--
+> > >  1 file changed, 6 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+> > > index caa05b0702e1..301a729581ce 100644
+> > > --- a/drivers/gpu/ipu-v3/ipu-csi.c
+> > > +++ b/drivers/gpu/ipu-v3/ipu-csi.c
+> > > @@ -435,12 +435,16 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+> > >  		break;
+> > >  	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
+> > >  	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
+> > > -	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
+> > > -	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+> > >  		ipu_csi_write(csi, 0x40030 | CSI_CCIR_ERR_DET_EN,
+> > >  				   CSI_CCIR_CODE_1);
+> > >  		ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+> > >  		break;
+> > > +	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
+> > > +	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+> > > +		ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN, CSI_CCIR_CODE_1);
+> > > +		ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
+> > > +		ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+> > 
+> > If these are the same as BT656 codes (so this case would be for PAL?),
+> > could this just be moved up into the IPU_CSI_CLK_MODE_CCIR656_INTERLACED
+> > case? Would the NTSC CCIR codes be the same as well?
+> 
+> Dunno, I don't have any NTSC device to test. But the above was tested
+> with a PAL device I had.
+> 
+> I think the CCIR codes are different from BT656, although I might be wrong.
 
-Hi Akinobu,
+The driver currently has:
 
-   a small nit below
+        case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
+                if (mbus_fmt->width == 720 && mbus_fmt->height == 576) {
+                        /*
+                         * PAL case
+                         *
+                         * Field0BlankEnd = 0x6, Field0BlankStart = 0x2,
+                         * Field0ActiveEnd = 0x4, Field0ActiveStart = 0
+                         * Field1BlankEnd = 0x7, Field1BlankStart = 0x3,
+                         * Field1ActiveEnd = 0x5, Field1ActiveStart = 0x1
+                         */
+                        height = 625; /* framelines for PAL */
 
-On Sun, May 06, 2018 at 11:19:27PM +0900, Akinobu Mita wrote:
-> The set_fmt() in subdev pad ops, the s_ctrl() for subdev control handler,
-> and the s_frame_interval() in subdev video ops could be called when the
-> device is under power saving mode.  These callbacks for ov772x driver
-> cause updating H/W registers that will fail under power saving mode.
->
-> This avoids it by not apply any changes to H/W if the device is not powered
-> up.  Instead the changes will be restored right after power-up.
->
-> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
-> * v5
-> - No changes
->
->  drivers/media/i2c/ov772x.c | 79 +++++++++++++++++++++++++++++++++++++---------
->  1 file changed, 64 insertions(+), 15 deletions(-)
->
-> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-> index 9292a18..262a7e5 100644
-> --- a/drivers/media/i2c/ov772x.c
-> +++ b/drivers/media/i2c/ov772x.c
-> @@ -741,19 +741,30 @@ static int ov772x_s_frame_interval(struct v4l2_subdev *sd,
->  	struct ov772x_priv *priv = to_ov772x(sd);
->  	struct v4l2_fract *tpf = &ival->interval;
->  	unsigned int fps;
-> -	int ret;
-> +	int ret = 0;
->
->  	fps = ov772x_select_fps(priv, tpf);
->
-> -	ret = ov772x_set_frame_rate(priv, fps, priv->cfmt, priv->win);
-> -	if (ret)
-> -		return ret;
-> +	mutex_lock(&priv->lock);
-> +	/*
-> +	 * If the device is not powered up by the host driver do
-> +	 * not apply any changes to H/W at this time. Instead
-> +	 * the frame rate will be restored right after power-up.
-> +	 */
-> +	if (priv->power_count > 0) {
-> +		ret = ov772x_set_frame_rate(priv, fps, priv->cfmt, priv->win);
-> +		if (ret)
-> +			goto error;
-> +	}
->
->  	tpf->numerator = 1;
->  	tpf->denominator = fps;
->  	priv->fps = fps;
->
-> -	return 0;
-> +error:
-> +	mutex_unlock(&priv->lock);
-> +
-> +	return ret;
->  }
->
->  static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
-> @@ -765,6 +776,16 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
->  	int ret = 0;
->  	u8 val;
->
-> +	/* v4l2_ctrl_lock() locks our own mutex */
-> +
-> +	/*
-> +	 * If the device is not powered up by the host driver do
-> +	 * not apply any controls to H/W at this time. Instead
-> +	 * the controls will be restored right after power-up.
-> +	 */
-> +	if (priv->power_count == 0)
-> +		return 0;
-> +
->  	switch (ctrl->id) {
->  	case V4L2_CID_VFLIP:
->  		val = ctrl->val ? VFLIP_IMG : 0x00;
-> @@ -885,6 +906,10 @@ static int ov772x_power_off(struct ov772x_priv *priv)
->  	return 0;
->  }
->
-> +static int ov772x_set_params(struct ov772x_priv *priv,
-> +			     const struct ov772x_color_format *cfmt,
-> +			     const struct ov772x_win_size *win);
-> +
->  static int ov772x_s_power(struct v4l2_subdev *sd, int on)
->  {
->  	struct ov772x_priv *priv = to_ov772x(sd);
-> @@ -895,8 +920,20 @@ static int ov772x_s_power(struct v4l2_subdev *sd, int on)
->  	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
->  	 * update the power state.
->  	 */
-> -	if (priv->power_count == !on)
-> -		ret = on ? ov772x_power_on(priv) : ov772x_power_off(priv);
-> +	if (priv->power_count == !on) {
-> +		if (on) {
-> +			ret = ov772x_power_on(priv);
-> +			/*
-> +			 * Restore the format, the frame rate, and
-> +			 * the controls
-> +			 */
-> +			if (!ret)
-> +				ret = ov772x_set_params(priv, priv->cfmt,
-> +							priv->win);
-> +		} else {
-> +			ret = ov772x_power_off(priv);
-> +		}
-> +	}
->
->  	if (!ret) {
->  		/* Update the power count. */
-> @@ -1163,7 +1200,7 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
->  	struct v4l2_mbus_framefmt *mf = &format->format;
->  	const struct ov772x_color_format *cfmt;
->  	const struct ov772x_win_size *win;
-> -	int ret;
-> +	int ret = 0;
->
->  	if (format->pad)
->  		return -EINVAL;
-> @@ -1184,14 +1221,24 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
->  		return 0;
->  	}
->
-> -	ret = ov772x_set_params(priv, cfmt, win);
-> -	if (ret < 0)
-> -		return ret;
-> -
-> +	mutex_lock(&priv->lock);
-> +	/*
-> +	 * If the device is not powered up by the host driver do
-> +	 * not apply any changes to H/W at this time. Instead
-> +	 * the format will be restored right after power-up.
-> +	 */
-> +	if (priv->power_count > 0) {
-> +		ret = ov772x_set_params(priv, cfmt, win);
-> +		if (ret < 0)
-> +			goto error;
-> +	}
->  	priv->win = win;
->  	priv->cfmt = cfmt;
->
-> -	return 0;
-> +error:
-> +	mutex_unlock(&priv->lock);
-> +
-> +	return ret;
->  }
->
->  static int ov772x_video_probe(struct ov772x_priv *priv)
-> @@ -1201,7 +1248,7 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
->  	const char         *devname;
->  	int		    ret;
->
-> -	ret = ov772x_s_power(&priv->subdev, 1);
-> +	ret = ov772x_power_on(priv);
->  	if (ret < 0)
->  		return ret;
->
-> @@ -1241,7 +1288,7 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
->  	ret = v4l2_ctrl_handler_setup(&priv->hdl);
->
->  done:
-> -	ov772x_s_power(&priv->subdev, 0);
-> +	ov772x_power_off(priv);
->
->  	return ret;
->  }
-> @@ -1340,6 +1387,8 @@ static int ov772x_probe(struct i2c_client *client,
->
->  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
->  	v4l2_ctrl_handler_init(&priv->hdl, 3);
-> +	/* Use our mutex for the controls */
-> +	priv->hdl.lock = &priv->lock;
+                        ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN,
+                                          CSI_CCIR_CODE_1);
+                        ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
+                        ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+                } else if (mbus_fmt->width == 720 && mbus_fmt->height == 480) {                           
+                        /*
+                         * NTSC case
+                         *
+                         * Field0BlankEnd = 0x7, Field0BlankStart = 0x3,
+                         * Field0ActiveEnd = 0x5, Field0ActiveStart = 0x1
+                         * Field1BlankEnd = 0x6, Field1BlankStart = 0x2,
+                         * Field1ActiveEnd = 0x4, Field1ActiveStart = 0
+                         */
+                        height = 525; /* framelines for NTSC */
 
-Isn't this unrelated?
+                        ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
+                                          CSI_CCIR_CODE_1);
+                        ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
+                        ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+                } else {
+                        dev_err(csi->ipu->dev,
+                                "Unsupported CCIR656 interlaced video mode\n");
+                        spin_unlock_irqrestore(&csi->lock, flags);
+                        return -EINVAL;
+                }
+                break;
 
-Apart from that,
+The PAL codes are exactly the same as in your patch. That's why I wonder
+whether we should just move
+	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
+	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+up before
+        case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
+as follows:
 
-Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+----------8<----------
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index caa05b0702e1..7e96382f9cb1 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -396,6 +396,8 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+                ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+                break;
+        case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
++       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
++       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+                if (mbus_fmt->width == 720 && mbus_fmt->height == 576) {
+                        /*
+                         * PAL case
+@@ -435,8 +437,6 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+                break;
+        case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
+        case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
+-       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
+-       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+                ipu_csi_write(csi, 0x40030 | CSI_CCIR_ERR_DET_EN,
+                                   CSI_CCIR_CODE_1);
+                ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+---------->8----------
 
-Thanks
-  j
+Does this work for you?
 
-
->  	priv->vflip_ctrl = v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
->  					     V4L2_CID_VFLIP, 0, 1, 1, 0);
->  	priv->hflip_ctrl = v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
-> --
-> 2.7.4
->
-
---N1GIdlSm9i+YlY4t
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJa+VGmAAoJEHI0Bo8WoVY8oJEQAKcboDX1rRBSkzZOuud7gHlC
-BodHQSJRTAVVSMPm1sjHXfvSOMnr+yepZ38ToXtvZg8Klqtullt574N7LAvH6Moh
-4V42f8z33oJaAiyXTunb3ciw9a4PvSDNi/cWBKCswEx5nmAgYVuEd+0Q9tK9Bbw/
-pLga4Er9Ydy0Y9dSMhfp/AKKccHz56SXHMrWWZQBRSVh4PFAX8sD5Vh9fXJjHTrL
-T7sBxmzaadRRjmeGbIR+SeMrD8O+UW76vXSLjHi2DtHPM5u3rBFIPnH4mLMO/PxB
-DV4Dyz1kGcMT13z5Rvs0qfiznv6ssWY7rIKCm95P/MeTH1DXp/P+sYvEnLk7tZ9J
-bYWUgLasslambCdbw4ZGQ+Omk6FDMdP1KQnPgVVMNhO4HZFaTfw0mvIxD0Jollcb
-GtfG1Q28gWthcsWIgmNXNqV2xOTCt3cBi4y2cOQ0weL68334xlbuKSWfpcquFTbw
-FyqNPCKqUlHp5ZW6WKac3tO7ZJlJppbkxSLq8wQxunsdfvBuv8jZuy1xk66AuRmJ
-PgHtuz5y7LOD+ztNhwMKajzRZzHlyTxFqDZyrss3SaAoUlQA9qOVKYMI0EegUhXn
-oItLCI2Um51g/l2AKoEGqao2eXPQALwZtG5T95Dd6yO+yPUJKymaugGH277pa4hp
-mfRyHqA2goaY/sK+DrQc
-=zzUZ
------END PGP SIGNATURE-----
-
---N1GIdlSm9i+YlY4t--
+regards
+Philipp
