@@ -1,55 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:49107 "EHLO
-        homiemail-a58.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751133AbeEDBlJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 21:41:09 -0400
-Subject: Re: [PATCH] media: lgdt3306a: fix lgdt3306a_search()'s return type
-To: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
-        linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Brad Love <brad@nextdimension.cc>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Thomas Meyer <thomas@m3y3r.de>, linux-media@vger.kernel.org
-References: <20180424131907.5817-1-luc.vanoostenryck@gmail.com>
-From: Brad Love <brad@nextdimension.cc>
-Message-ID: <cfa44c99-3ff7-899e-ad54-af24b0ea5b04@nextdimension.cc>
-Date: Thu, 3 May 2018 20:41:07 -0500
+Received: from gofer.mess.org ([88.97.38.141]:41877 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750707AbeEVJwz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 May 2018 05:52:55 -0400
+Date: Tue, 22 May 2018 10:52:53 +0100
+From: Sean Young <sean@mess.org>
+To: just me <jod35fan@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: ir-keytable protocol setup broken and no ir events
+Message-ID: <20180522095253.6myq6gpkpllxuk2b@gofer.mess.org>
+References: <CAE1XbD34QGBnjh-Gqh_U8q5xBr7ODen5eXrcwg-7GzMHJshoww@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20180424131907.5817-1-luc.vanoostenryck@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-GB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAE1XbD34QGBnjh-Gqh_U8q5xBr7ODen5eXrcwg-7GzMHJshoww@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Brad Love <brad@nextdimension.cc>
+On Mon, May 21, 2018 at 11:37:10AM +0300, just me wrote:
+> Package: ir-keytable
+> Version: 1.14.2-1, 1.12.3-1
+> System:
+>   Host: ryzenpc Kernel: 4.16.0-rc7+ x86_64 bits: 64 Desktop: Xfce
+> 4.12.4 Distro: Debian GNU/Linux buster/sid
+> 
+> I have 3 usb dvb-t sticks: Alink DTU ( driver dvb_usb_af9035), MSI
+> DigiVox mini II (driver dvb_usb_af9015) and Realtek RTL2832U (driver
+> dvb_usb_rtl28xx)
+> 
+> None of the remote controllers does not work. They did work with Debian
+> Jessie a couple of years ago. I tested the remote controller of Alink
+> DTU with a programmable remote control and I can record events with it.
+> 
+> With ir-keytable the protocal can not be set and it shows no protocols
+> although the protocol is defined in the keytable file.
+> 
+> xfce@ryzenpc:~$ sudo ir-keytable
+> Found /sys/class/rc/rc1/ (/dev/input/event19) with:
+> Name: Realtek RTL2832U reference design
+> Driver: dvb_usb_rtl28xxu, table: rc-empty
+> Supported protocols: rc-5 rc-5-sz jvc sony nec sanyo mce_kbd
+> rc-6 sharp xmp Enabled protocols:
 
+No lirc? Would you mind posting the kernel config and dmesg please.
 
+> bus: 3, vendor/product: 0bda:2838, version: 0x0100
+> Repeat delay = 500 ms, repeat period = 125 ms
 
-On 2018-04-24 08:19, Luc Van Oostenryck wrote:
-> The method dvb_frontend_ops::search() is defined as
-> returning an 'enum dvbfe_search', but the implementation in this
-> driver returns an 'int'.
->
-> Fix this by returning 'enum dvbfe_search' in this driver too.
->
-> Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-> ---
->  drivers/media/dvb-frontends/lgdt3306a.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-> index 7eb4e1469..32de82447 100644
-> --- a/drivers/media/dvb-frontends/lgdt3306a.c
-> +++ b/drivers/media/dvb-frontends/lgdt3306a.c
-> @@ -1784,7 +1784,7 @@ static int lgdt3306a_get_tune_settings(struct dvb_frontend *fe,
->  	return 0;
->  }
->  
-> -static int lgdt3306a_search(struct dvb_frontend *fe)
-> +static enum dvbfe_search lgdt3306a_search(struct dvb_frontend *fe)
->  {
->  	enum fe_status status = 0;
->  	int ret;
+> Found /sys/class/rc/rc0/ (/dev/input/event18) with:
+> Name: ITE 9135(9006) Generic
+> Driver: dvb_usb_af9035, table: rc-it913x-v1
+> Supported protocols:
+> Enabled protocols:
+
+Very strange, it's like it hasn't detected the IR on line:
+
+https://github.com/torvalds/linux/blob/master/drivers/media/usb/dvb-usb-v2/af9035.c?utf8=%E2%9C%93#L1880
+
+> bus: 3, vendor/product: 048d:9006, version: 0x0200
+> Repeat delay = 500 ms, repeat period = 125 ms
+> 
+> 
+> xfce@ryzenpc:~$ sudo ir-keytable -p NEC -d /dev/input/event18
+> Invalid protocols selected
+> Couldn't change the IR protocols
+> 
+> xfce@ryzenpc:~$ sudo ir-keytable -p NEC -d /dev/input/event19
+> Invalid protocols selected
+> Couldn't change the IR protocols
+
+Would you mind retrying that with "sudo ir-keytable -s rc0 -p nec" (or rc1),
+I'm not sure it will work by selecting input device.
+
+> No events shown with evtest and ir-keytable -t.
+> 
+> I am using the amd-staging-drm-next kernel.  I tested also with the
+> stock Debian  kernel 4.15. I tested also with the latest Manjaro Linux.
+
+A git bisect would be ideal. I did not spot anything from looking at the
+code.
+
+Thanks,
+
+Sean
