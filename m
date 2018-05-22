@@ -1,263 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.socionext.com ([202.248.49.38]:17717 "EHLO mx.socionext.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751013AbeEQBFi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 21:05:38 -0400
-From: "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com>
-To: "'Abylay Ospan'" <aospan@netup.ru>,
-        =?utf-8?B?U3V6dWtpLCBLYXRzdWhpcm8v6Yi05pyoIOWLneWNmg==?=
-        <suzuki.katsuhiro@socionext.com>
-Cc: "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        "linux-media" <linux-media@vger.kernel.org>,
-        "Masami Hiramatsu" <masami.hiramatsu@linaro.org>,
-        "Jassi Brar" <jaswinder.singh@linaro.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>
-References: <20180516083753.15510-1-suzuki.katsuhiro@socionext.com> <CAK3bHNVH1476vtJOTR0oFpFC8bvwLecYmgJEQCGp0Y+E4=LSsA@mail.gmail.com>
-In-Reply-To: <CAK3bHNVH1476vtJOTR0oFpFC8bvwLecYmgJEQCGp0Y+E4=LSsA@mail.gmail.com>
-Subject: Re: [PATCH v2] media: helene: add I2C device probe function
-Date: Thu, 17 May 2018 10:05:33 +0900
-Message-ID: <000701d3ed7b$282e7550$788b5ff0$@socionext.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Language: ja
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:60051 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751719AbeEVDzn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 May 2018 23:55:43 -0400
+Message-ID: <8d75cb205142a3739a2d30f03ffe9fae@smtp-cloud9.xs4all.net>
+Date: Tue, 22 May 2018 05:55:41 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Abylay,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> -----Original Message-----
-> From: Abylay Ospan <aospan@netup.ru>
-> Sent: Wednesday, May 16, 2018 7:54 PM
-> To: Suzuki, Katsuhiro/鈴木 勝博 <suzuki.katsuhiro@socionext.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>; linux-media
-> <linux-media@vger.kernel.org>; Masami Hiramatsu <masami.hiramatsu@linaro.org>;
-> Jassi Brar <jaswinder.singh@linaro.org>; linux-arm-kernel@lists.infradead.org;
-> linux-kernel@vger.kernel.org
-> Subject: Re: [PATCH v2] media: helene: add I2C device probe function
-> 
-> Hi Katsuhiro,
-> 
-> Thanks for patch.
-> 
-> What is the purpose to rework helene_set_params(_t|_s) ?
-> other part of this patch looks ok for me, but not tested due to lack of spare time ;(
-> 
+Results of the daily build of media_tree:
 
-I'm using Socionext SC1501A (or MN88443x) ISDB-S/ISDB-T demodulator with this 
-tuner. This demodulator has 1 port, and can use ISDB-S or ISDB-T exclusively.
+date:			Tue May 22 05:00:12 CEST 2018
+media-tree git hash:	7e6b6b945272c20f6b78d319e07f27897a8373c9
+media_build git hash:	e274c18d3d2dfb2ab4a9b198718c0831ef078f02
+v4l-utils git hash:	e2038ec6451293787b929338c2a671c732b8693d
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2-RC1
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-So I think I cannot use ISDB-S features of this tuner if I use helene_attach(), 
-and I cannot use ISDB-T if I use helene_attach_s() too.
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: OK
+linux-git-arm64: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.101-i686: ERRORS
+linux-3.0.101-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.101-i686: ERRORS
+linux-3.2.101-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.113-i686: ERRORS
+linux-3.4.113-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.10-i686: ERRORS
+linux-3.7.10-x86_64: ERRORS
+linux-3.8.13-i686: ERRORS
+linux-3.8.13-x86_64: ERRORS
+linux-3.9.11-i686: ERRORS
+linux-3.9.11-x86_64: ERRORS
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.56-i686: ERRORS
+linux-3.16.56-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.102-i686: ERRORS
+linux-3.18.102-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.51-i686: ERRORS
+linux-4.1.51-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.109-i686: ERRORS
+linux-4.4.109-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.91-i686: ERRORS
+linux-4.9.91-x86_64: ERRORS
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: WARNINGS
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: WARNINGS
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: WARNINGS
+linux-4.13.16-i686: WARNINGS
+linux-4.13.16-x86_64: WARNINGS
+linux-4.14.31-i686: WARNINGS
+linux-4.14.31-x86_64: WARNINGS
+linux-4.15.14-i686: WARNINGS
+linux-4.15.14-x86_64: WARNINGS
+linux-4.16.8-i686: WARNINGS
+linux-4.16.8-x86_64: WARNINGS
+linux-4.17-rc4-i686: WARNINGS
+linux-4.17-rc4-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
 
-Regards,
---
-Katsuhiro Suzuki
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
+Full logs are available here:
 
-> 
-> 2018-05-16 4:37 GMT-04:00 Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com
-> <mailto:suzuki.katsuhiro@socionext.com> >:
-> 
-> 
-> 	This patch adds I2C probe function to use dvb_module_probe()
-> 	with this driver.
-> 
-> 	Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com
-> <mailto:suzuki.katsuhiro@socionext.com> >
-> 
-> 	---
-> 
-> 	Changes since v1:
-> 	  - Add documents for dvb_frontend member of helene_config
-> 	---
-> 	 drivers/media/dvb-frontends/helene.c | 88 ++++++++++++++++++++++++++--
-> 	 drivers/media/dvb-frontends/helene.h |  3 +
-> 	 2 files changed, 87 insertions(+), 4 deletions(-)
-> 
-> 	diff --git a/drivers/media/dvb-frontends/helene.c
-> b/drivers/media/dvb-frontends/helene.c
-> 	index a0d0b53c91d7..04033f0c278b 100644
-> 	--- a/drivers/media/dvb-frontends/helene.c
-> 	+++ b/drivers/media/dvb-frontends/helene.c
-> 	@@ -666,7 +666,7 @@ static int helene_set_params_s(struct dvb_frontend *fe)
-> 	        return 0;
-> 	 }
-> 
-> 	-static int helene_set_params(struct dvb_frontend *fe)
-> 	+static int helene_set_params_t(struct dvb_frontend *fe)
-> 	 {
-> 	        u8 data[MAX_WRITE_REGSIZE];
-> 	        u32 frequency;
-> 	@@ -835,6 +835,19 @@ static int helene_set_params(struct dvb_frontend *fe)
-> 	        return 0;
-> 	 }
-> 
-> 	+static int helene_set_params(struct dvb_frontend *fe)
-> 	+{
-> 	+       struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-> 	+
-> 	+       if (p->delivery_system == SYS_DVBT ||
-> 	+           p->delivery_system == SYS_DVBT2 ||
-> 	+           p->delivery_system == SYS_ISDBT ||
-> 	+           p->delivery_system == SYS_DVBC_ANNEX_A)
-> 	+               return helene_set_params_t(fe);
-> 	+
-> 	+       return helene_set_params_s(fe);
-> 	+}
-> 	+
-> 	 static int helene_get_frequency(struct dvb_frontend *fe, u32 *frequency)
-> 	 {
-> 	        struct helene_priv *priv = fe->tuner_priv;
-> 	@@ -843,7 +856,7 @@ static int helene_get_frequency(struct dvb_frontend *fe,
-> u32 *frequency)
-> 	        return 0;
-> 	 }
-> 
-> 	-static const struct dvb_tuner_ops helene_tuner_ops = {
-> 	+static const struct dvb_tuner_ops helene_tuner_ops_t = {
-> 	        .info = {
-> 	                .name = "Sony HELENE Ter tuner",
-> 	                .frequency_min = 1000000,
-> 	@@ -853,7 +866,7 @@ static const struct dvb_tuner_ops helene_tuner_ops = {
-> 	        .init = helene_init,
-> 	        .release = helene_release,
-> 	        .sleep = helene_sleep,
-> 	-       .set_params = helene_set_params,
-> 	+       .set_params = helene_set_params_t,
-> 	        .get_frequency = helene_get_frequency,
-> 	 };
-> 
-> 	@@ -871,6 +884,20 @@ static const struct dvb_tuner_ops helene_tuner_ops_s
-> = {
-> 	        .get_frequency = helene_get_frequency,
-> 	 };
-> 
-> 	+static const struct dvb_tuner_ops helene_tuner_ops = {
-> 	+       .info = {
-> 	+               .name = "Sony HELENE Sat/Ter tuner",
-> 	+               .frequency_min = 500000,
-> 	+               .frequency_max = 1200000000,
-> 	+               .frequency_step = 1000,
-> 	+       },
-> 	+       .init = helene_init,
-> 	+       .release = helene_release,
-> 	+       .sleep = helene_sleep,
-> 	+       .set_params = helene_set_params,
-> 	+       .get_frequency = helene_get_frequency,
-> 	+};
-> 	+
-> 	 /* power-on tuner
-> 	  * call once after reset
-> 	  */
-> 	@@ -1032,7 +1059,7 @@ struct dvb_frontend *helene_attach(struct
-> dvb_frontend *fe,
-> 	        if (fe->ops.i2c_gate_ctrl)
-> 	                fe->ops.i2c_gate_ctrl(fe, 0);
-> 
-> 	-       memcpy(&fe->ops.tuner_ops, &helene_tuner_ops,
-> 	+       memcpy(&fe->ops.tuner_ops, &helene_tuner_ops_t,
-> 	                        sizeof(struct dvb_tuner_ops));
-> 	        fe->tuner_priv = priv;
-> 	        dev_info(&priv->i2c->dev,
-> 	@@ -1042,6 +1069,59 @@ struct dvb_frontend *helene_attach(struct
-> dvb_frontend *fe,
-> 	 }
-> 	 EXPORT_SYMBOL(helene_attach);
-> 
-> 	+static int helene_probe(struct i2c_client *client,
-> 	+                       const struct i2c_device_id *id)
-> 	+{
-> 	+       struct helene_config *config = client->dev.platform_data;
-> 	+       struct dvb_frontend *fe = config->fe;
-> 	+       struct device *dev = &client->dev;
-> 	+       struct helene_priv *priv;
-> 	+
-> 	+       priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
-> 	+       if (!priv)
-> 	+               return -ENOMEM;
-> 	+
-> 	+       priv->i2c_address = client->addr;
-> 	+       priv->i2c = client->adapter;
-> 	+       priv->set_tuner_data = config->set_tuner_priv;
-> 	+       priv->set_tuner = config->set_tuner_callback;
-> 	+       priv->xtal = config->xtal;
-> 	+
-> 	+       if (fe->ops.i2c_gate_ctrl)
-> 	+               fe->ops.i2c_gate_ctrl(fe, 1);
-> 	+
-> 	+       if (helene_x_pon(priv) != 0)
-> 	+               return -EINVAL;
-> 	+
-> 	+       if (fe->ops.i2c_gate_ctrl)
-> 	+               fe->ops.i2c_gate_ctrl(fe, 0);
-> 	+
-> 	+       memcpy(&fe->ops.tuner_ops, &helene_tuner_ops,
-> 	+              sizeof(struct dvb_tuner_ops));
-> 	+       fe->tuner_priv = priv;
-> 	+       i2c_set_clientdata(client, priv);
-> 	+
-> 	+       dev_info(dev, "Sony HELENE attached on addr=%x at I2C adapter %p\n",
-> 	+                priv->i2c_address, priv->i2c);
-> 	+
-> 	+       return 0;
-> 	+}
-> 	+
-> 	+static const struct i2c_device_id helene_id[] = {
-> 	+       { "helene", },
-> 	+       {}
-> 	+};
-> 	+MODULE_DEVICE_TABLE(i2c, helene_id);
-> 	+
-> 	+static struct i2c_driver helene_driver = {
-> 	+       .driver = {
-> 	+               .name = "helene",
-> 	+       },
-> 	+       .probe    = helene_probe,
-> 	+       .id_table = helene_id,
-> 	+};
-> 	+module_i2c_driver(helene_driver);
-> 	+
-> 	 MODULE_DESCRIPTION("Sony HELENE Sat/Ter tuner driver");
-> 	 MODULE_AUTHOR("Abylay Ospan <aospan@netup.ru <mailto:aospan@netup.ru>
-> >");
-> 	 MODULE_LICENSE("GPL");
-> 	diff --git a/drivers/media/dvb-frontends/helene.h
-> b/drivers/media/dvb-frontends/helene.h
-> 	index c9fc81c7e4e7..8562d01bc93e 100644
-> 	--- a/drivers/media/dvb-frontends/helene.h
-> 	+++ b/drivers/media/dvb-frontends/helene.h
-> 	@@ -39,6 +39,7 @@ enum helene_xtal {
-> 	  * @set_tuner_callback:        Callback function that notifies the parent
-> driver
-> 	  *                     which tuner is active now
-> 	  * @xtal: Cristal frequency as described by &enum helene_xtal
-> 	+ * @fe: Frontend for which connects this tuner
-> 	  */
-> 	 struct helene_config {
-> 	        u8      i2c_address;
-> 	@@ -46,6 +47,8 @@ struct helene_config {
-> 	        void    *set_tuner_priv;
-> 	        int     (*set_tuner_callback)(void *, int);
-> 	        enum helene_xtal xtal;
-> 	+
-> 	+       struct dvb_frontend *fe;
-> 	 };
-> 
-> 	 #if IS_REACHABLE(CONFIG_DVB_HELENE)
-> 	--
-> 	2.17.0
-> 
-> 
-> 
-> 
-> 
-> 
-> --
-> 
-> Abylay Ospan,
-> NetUP Inc.
-> http://www.netup.tv <http://www.netup.tv/>
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
