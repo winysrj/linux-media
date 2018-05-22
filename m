@@ -1,97 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:1603 "EHLO
-        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751620AbeEMTAp (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:55457 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751199AbeEVPaG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 May 2018 15:00:45 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] media: rcar-vin: enable support for r8a77965
-Date: Sun, 13 May 2018 21:00:23 +0200
-Message-Id: <20180513190023.16170-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 22 May 2018 11:30:06 -0400
+Received: by mail-wm0-f65.google.com with SMTP id a8-v6so850689wmg.5
+        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 08:30:06 -0700 (PDT)
+Date: Tue, 22 May 2018 17:30:03 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, horms@verge.net.au,
+        geert@glider.be, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 1/4] dt-bindings: media: rcar-vin: Describe optional
+ ep properties
+Message-ID: <20180522153003.GC5115@bigcity.dyn.berto.se>
+References: <1526923663-8179-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526923663-8179-2-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <1526923663-8179-2-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the SoC specific information for Renesas r8a77965.
+Hi Jacopo,
 
-Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 48 +++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+Thanks for your patch.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index d3072e166a1ca24f..f7bfd05accbfde67 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -974,6 +974,50 @@ static const struct rvin_info rcar_info_r8a7796 = {
- 	.routes = rcar_info_r8a7796_routes,
- };
- 
-+static const struct rvin_group_route _rcar_info_r8a77965_routes[] = {
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 0, .mask = BIT(1) | BIT(4) },
-+	{ .csi = RVIN_CSI40, .channel = 1, .vin = 0, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 1, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(1) | BIT(3) },
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 1, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 2, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 2, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 2, .vin = 2, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 3, .mask = BIT(1) | BIT(2) },
-+	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 3, .vin = 3, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 4, .mask = BIT(0) | BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 4, .mask = BIT(1) | BIT(4) },
-+	{ .csi = RVIN_CSI40, .channel = 1, .vin = 4, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 5, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI40, .channel = 1, .vin = 5, .mask = BIT(1) | BIT(3) },
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 5, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 5, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 6, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 6, .mask = BIT(1) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 6, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI40, .channel = 2, .vin = 6, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 2, .vin = 6, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI40, .channel = 1, .vin = 7, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 7, .mask = BIT(1) | BIT(2) },
-+	{ .csi = RVIN_CSI40, .channel = 3, .vin = 7, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 3, .vin = 7, .mask = BIT(4) },
-+	{ /* Sentinel */ }
-+};
-+
-+static const struct rvin_info rcar_info_r8a77965 = {
-+	.model = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+	.routes = _rcar_info_r8a77965_routes,
-+};
-+
- static const struct rvin_group_route _rcar_info_r8a77970_routes[] = {
- 	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
- 	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
-@@ -1030,6 +1074,10 @@ static const struct of_device_id rvin_of_id_table[] = {
- 		.compatible = "renesas,vin-r8a7796",
- 		.data = &rcar_info_r8a7796,
- 	},
-+	{
-+		.compatible = "renesas,vin-r8a77965",
-+		.data = &rcar_info_r8a77965,
-+	},
- 	{
- 		.compatible = "renesas,vin-r8a77970",
- 		.data = &rcar_info_r8a77970,
+On 2018-05-21 19:27:40 +0200, Jacopo Mondi wrote:
+> Describe the optional properties for endpoint nodes of port@0
+> and port@1 of the R-Car VIN driver device tree bindings documentation.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> index 5c6f2a7..dab3118 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -54,6 +54,16 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+>        from external SoC pins described in video-interfaces.txt[1].
+>        Describing more then one endpoint in port 0 is invalid. Only VIN
+>        instances that are connected to external pins should have port 0.
+> +
+> +      - Optional properties for endpoint nodes of port@0:
+> +        - hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH
+> +	  respectively. Default is active high.
+> +        - vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH
+> +	  respectively. Default is active high.
+> +
+> +	If both HSYNC and VSYNC polarities are not specified, embedded
+> +	synchronization is selected.
+> +
+>      - port 1 - sub-nodes describing one or more endpoints connected to
+>        the VIN from local SoC CSI-2 receivers. The endpoint numbers must
+>        use the following schema.
+> @@ -63,6 +73,8 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+>          - Endpoint 2 - sub-node describing the endpoint connected to CSI40
+>          - Endpoint 3 - sub-node describing the endpoint connected to CSI41
+>  
+> +      Endpoint nodes of port@1 do not support any optional endpoint property.
+> +
+>  Device node example for Gen2 platforms
+>  --------------------------------------
+>  
+> @@ -113,7 +125,6 @@ Board setup example for Gen2 platforms (vin1 composite video input)
+>  
+>                  vin1ep0: endpoint {
+>                          remote-endpoint = <&adv7180>;
+> -                        bus-width = <8>;
+
+Until we have figured out if we should document or remove the bus-width 
+parameter maybe move this to 4/4 ?
+
+
+>                  };
+>          };
+>  };
+> -- 
+> 2.7.4
+> 
+
 -- 
-2.17.0
+Regards,
+Niklas Söderlund
