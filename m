@@ -1,41 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:36897 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750967AbeEFKob (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 6 May 2018 06:44:31 -0400
-From: "Jasmin J." <jasmin@anw.at>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:53048 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752884AbeEVLdR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 May 2018 07:33:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, jasmin@anw.at
-Subject: [PATCH] media: Use ktime_set() in pt1.c
-Date: Sun,  6 May 2018 12:44:22 +0200
-Message-Id: <1525603462-26734-1-git-send-email-jasmin@anw.at>
+Subject: [PATCH 0/2] cec: two CEC bugs, one in core, one in adv7511
+Date: Tue, 22 May 2018 13:33:12 +0200
+Message-Id: <20180522113314.14666-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-In commit 20a63349b142 a new variable ktime_t delay has been added.
-We decided to use the API functions to initialize ktime_t variables
-within media-tree. Thus variable delay needs to be initialized with
-ktime_set() instead of setting it directly.
+The first patch fixes an inconsistency in the cec core code where
+wrong status information could be returned if a cec message was
+canceled.
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- drivers/media/pci/pt1/pt1.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The second patch fixes a CEC adv7511 bug.
 
-diff --git a/drivers/media/pci/pt1/pt1.c b/drivers/media/pci/pt1/pt1.c
-index 55a89ea..5708f69 100644
---- a/drivers/media/pci/pt1/pt1.c
-+++ b/drivers/media/pci/pt1/pt1.c
-@@ -485,7 +485,7 @@ static int pt1_thread(void *data)
- 		if (!pt1_filter(pt1, page)) {
- 			ktime_t delay;
- 
--			delay = PT1_FETCH_DELAY * NSEC_PER_MSEC;
-+			delay = ktime_set(0, PT1_FETCH_DELAY * NSEC_PER_MSEC);
- 			set_current_state(TASK_INTERRUPTIBLE);
- 			schedule_hrtimeout_range(&delay,
- 					PT1_FETCH_DELAY_DELTA * NSEC_PER_MSEC,
+Regards,
+
+	Hans
+
+Hans Verkuil (2):
+  cec: fix wrong tx/rx_status values when canceling a msg
+  adv7511: fix incorrect clear of CEC receive interrupt
+
+ drivers/media/cec/cec-adap.c | 19 +++++++++++++------
+ drivers/media/i2c/adv7511.c  |  4 ++--
+ 2 files changed, 15 insertions(+), 8 deletions(-)
+
 -- 
-2.7.4
+2.17.0
