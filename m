@@ -1,103 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:41214 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754067AbeEaTdM (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:39554 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751390AbeEVRYx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 15:33:12 -0400
-Subject: Re: [PATCH 0/8] xen: dma-buf support for grant device
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
- <9687b6e5-808e-0c63-34c3-90e6fcbdfb2e@oracle.com>
- <bc6a2e2f-f650-86db-ac8c-1945a6183c06@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <42b9fd3b-11d7-bd56-4fe2-35d087caf123@oracle.com>
-Date: Thu, 31 May 2018 15:36:39 -0400
+        Tue, 22 May 2018 13:24:53 -0400
 MIME-Version: 1.0
-In-Reply-To: <bc6a2e2f-f650-86db-ac8c-1945a6183c06@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+In-Reply-To: <20180522135020.y3xxmtvhdui2so3t@camel2.lan>
+References: <cover.1526651592.git.sean@mess.org> <20180522135020.y3xxmtvhdui2so3t@camel2.lan>
+From: VDR User <user.vdr@gmail.com>
+Date: Tue, 22 May 2018 10:24:51 -0700
+Message-ID: <CAA7C2qjckbsteBpu9nk3Sg_RNSZx++=FdMWei5bLdJ+OK=NZaA@mail.gmail.com>
+Subject: Re: [PATCH v4 0/3] IR decoding using BPF
+To: Matthias Reichl <hias@horus.com>, Sean Young <sean@mess.org>,
+        "mailing list: linux-media" <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Y Song <ys114321@gmail.com>,
+        Quentin Monnet <quentin.monnet@netronome.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/31/2018 01:51 AM, Oleksandr Andrushchenko wrote:
-> On 05/31/2018 04:46 AM, Boris Ostrovsky wrote:
->>
->>
->> On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
->>
->>>
->>> Oleksandr Andrushchenko (8):
->>>    xen/grant-table: Make set/clear page private code shared
->>>    xen/balloon: Move common memory reservation routines to a module
->>>    xen/grant-table: Allow allocating buffers suitable for DMA
->>>    xen/gntdev: Allow mappings for DMA buffers
->>>    xen/gntdev: Add initial support for dma-buf UAPI
->>>    xen/gntdev: Implement dma-buf export functionality
->>>    xen/gntdev: Implement dma-buf import functionality
->>>    xen/gntdev: Expose gntdev's dma-buf API for in-kernel use
->>>
->>>   drivers/xen/Kconfig           |   23 +
->>>   drivers/xen/Makefile          |    1 +
->>>   drivers/xen/balloon.c         |   71 +--
->>>   drivers/xen/gntdev.c          | 1025
->>> ++++++++++++++++++++++++++++++++-
->>
->>
->> I think this calls for gntdev_dma.c.
-> I assume you mean as a separate file (part of gntdev driver)?
+Sean, I'd like to echo Matthias's appreciation for your work with this
+BPF project. I'm very much looking forward to the possibility of using
+my remotes directly with decoders generated from the existing
+lircd.conf's. Excited seeing your work progress!
 
+Cheers,
+Derek
 
-Yes, source only. The driver stays the same.
-
-
->> I only had a quick look over gntdev changes but they very much are
->> concentrated in dma-specific routines.
->>
-> I tried to do that, but there are some dependencies between the
-> gntdev.c and gntdev_dma.c,
-> so finally I decided to put it all together.
->> You essentially only share file_operations entry points with original
->> gntdev code, right?
->>
-> fops + mappings done by gntdev (struct grant_map) and I need to
-> release map on dma_buf .release
-> callback which makes some cross-dependencies between modules which
-> seemed to be not cute
-> (gntdev keeps its all structs and functions inside, so I cannot easily
-> access those w/o
-> helpers).
+On Tue, May 22, 2018 at 6:50 AM, Matthias Reichl <hias@horus.com> wrote:
+> Hi Sean,
 >
-> But I'll try one more time and move all DMA specific stuff into
-> gntdev_dma.c
-
-
-Yes, please try it. Maybe even have gntdev_common.c, gntdev_mem.c (??) 
-and gntdev_dma.c.
-
--boris
-
-
->> -boris
+> On Fri, May 18, 2018 at 03:07:27PM +0100, Sean Young wrote:
+>> The kernel IR decoders (drivers/media/rc/ir-*-decoder.c) support the most
+>> widely used IR protocols, but there are many protocols which are not
+>> supported[1]. For example, the lirc-remotes[2] repo has over 2700 remotes,
+>> many of which are not supported by rc-core. There is a "long tail" of
+>> unsupported IR protocols, for which lircd is need to decode the IR .
 >>
-> Thank you,
-> Oleksandr
+>> IR encoding is done in such a way that some simple circuit can decode it;
+>> therefore, bpf is ideal.
 >>
->>>   drivers/xen/grant-table.c     |  176 +++++-
->>>   drivers/xen/mem-reservation.c |  134 +++++
->>>   include/uapi/xen/gntdev.h     |  106 ++++
->>>   include/xen/grant_dev.h       |   37 ++
->>>   include/xen/grant_table.h     |   28 +
->>>   include/xen/mem_reservation.h |   29 +
->>>   10 files changed, 1527 insertions(+), 103 deletions(-)
->>>   create mode 100644 drivers/xen/mem-reservation.c
->>>   create mode 100644 include/xen/grant_dev.h
->>>   create mode 100644 include/xen/mem_reservation.h
->>>
+>> In order to support all these protocols, here we have bpf based IR decoding.
+>> The idea is that user-space can define a decoder in bpf, attach it to
+>> the rc device through the lirc chardev.
+>>
+>> Separate work is underway to extend ir-keytable to have an extensive library
+>> of bpf-based decoders, and a much expanded library of rc keymaps.
+>>
+>> Another future application would be to compile IRP[3] to a IR BPF program, and
+>> so support virtually every remote without having to write a decoder for each.
+>> It might also be possible to support non-button devices such as analog
+>> directional pads or air conditioning remote controls and decode the target
+>> temperature in bpf, and pass that to an input device.
 >
+> Thanks a lot, this looks like a very interesting feature to me!
+>
+> Unfortunately I don't have time to test it ATM, but please keep
+> me posted - also on ir-keytable progress - I'm rather excited
+> to give it a try.
+>
+> so long & thanks,
+>
+> Hias
+>
+>>
+>> Thanks,
+>>
+>> Sean Young
+>>
+>> [1] http://www.hifi-remote.com/wiki/index.php?title=DecodeIR
+>> [2] https://sourceforge.net/p/lirc-remotes/code/ci/master/tree/remotes/
+>> [3] http://www.hifi-remote.com/wiki/index.php?title=IRP_Notation
+>>
+>> Changes since v3:
+>>  - Implemented review comments from Quentin Monnet and Y Song (thanks!)
+>>  - More helpful and better formatted bpf helper documentation
+>>  - Changed back to bpf_prog_array rather than open-coded implementation
+>>  - scancodes can be 64 bit
+>>  - bpf gets passed values in microseconds, not nanoseconds.
+>>    microseconds is more than than enough (IR receivers support carriers upto
+>>    70kHz, at which point a single period is already 14 microseconds). Also,
+>>    this makes it much more consistent with lirc mode2.
+>>  - Since it looks much more like lirc mode2, rename the program type to
+>>    BPF_PROG_TYPE_LIRC_MODE2.
+>>  - Rebased on bpf-next
+>>
+>> Changes since v2:
+>>  - Fixed locking issues
+>>  - Improved self-test to cover more cases
+>>  - Rebased on bpf-next again
+>>
+>> Changes since v1:
+>>  - Code review comments from Y Song <ys114321@gmail.com> and
+>>    Randy Dunlap <rdunlap@infradead.org>
+>>  - Re-wrote sample bpf to be selftest
+>>  - Renamed RAWIR_DECODER -> RAWIR_EVENT (Kconfig, context, bpf prog type)
+>>  - Rebase on bpf-next
+>>  - Introduced bpf_rawir_event context structure with simpler access checking
+>>
+>> Sean Young (3):
+>>   bpf: bpf_prog_array_copy() should return -ENOENT if exclude_prog not
+>>     found
+>>   media: rc: introduce BPF_PROG_LIRC_MODE2
+>>   bpf: add selftest for lirc_mode2 type program
+>>
+>>  drivers/media/rc/Kconfig                      |  13 +
+>>  drivers/media/rc/Makefile                     |   1 +
+>>  drivers/media/rc/bpf-lirc.c                   | 308 ++++++++++++++++++
+>>  drivers/media/rc/lirc_dev.c                   |  30 ++
+>>  drivers/media/rc/rc-core-priv.h               |  22 ++
+>>  drivers/media/rc/rc-ir-raw.c                  |  12 +-
+>>  include/linux/bpf_rcdev.h                     |  30 ++
+>>  include/linux/bpf_types.h                     |   3 +
+>>  include/uapi/linux/bpf.h                      |  53 ++-
+>>  kernel/bpf/core.c                             |  11 +-
+>>  kernel/bpf/syscall.c                          |   7 +
+>>  kernel/trace/bpf_trace.c                      |   2 +
+>>  tools/bpf/bpftool/prog.c                      |   1 +
+>>  tools/include/uapi/linux/bpf.h                |  53 ++-
+>>  tools/include/uapi/linux/lirc.h               | 217 ++++++++++++
+>>  tools/lib/bpf/libbpf.c                        |   1 +
+>>  tools/testing/selftests/bpf/Makefile          |   8 +-
+>>  tools/testing/selftests/bpf/bpf_helpers.h     |   6 +
+>>  .../testing/selftests/bpf/test_lirc_mode2.sh  |  28 ++
+>>  .../selftests/bpf/test_lirc_mode2_kern.c      |  23 ++
+>>  .../selftests/bpf/test_lirc_mode2_user.c      | 154 +++++++++
+>>  21 files changed, 974 insertions(+), 9 deletions(-)
+>>  create mode 100644 drivers/media/rc/bpf-lirc.c
+>>  create mode 100644 include/linux/bpf_rcdev.h
+>>  create mode 100644 tools/include/uapi/linux/lirc.h
+>>  create mode 100755 tools/testing/selftests/bpf/test_lirc_mode2.sh
+>>  create mode 100644 tools/testing/selftests/bpf/test_lirc_mode2_kern.c
+>>  create mode 100644 tools/testing/selftests/bpf/test_lirc_mode2_user.c
+>>
+>> --
+>> 2.17.0
+>>
