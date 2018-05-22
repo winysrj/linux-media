@@ -1,51 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:33480 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752175AbeERSyS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 14:54:18 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH 19/20] v4l2-ioctl.c: assume queue->lock is always set
-Date: Fri, 18 May 2018 15:52:07 -0300
-Message-Id: <20180518185208.17722-20-ezequiel@collabora.com>
-In-Reply-To: <20180518185208.17722-1-ezequiel@collabora.com>
-References: <20180518185208.17722-1-ezequiel@collabora.com>
+Received: from smtp.anw.at ([195.234.102.72]:56124 "EHLO smtp.amw.at"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751196AbeEVO0u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 May 2018 10:26:50 -0400
+Subject: Re: cron job: media_tree daily build: ERRORS
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <8d75cb205142a3739a2d30f03ffe9fae@smtp-cloud9.xs4all.net>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <00d1da95-726a-46d3-b6e2-f18a540af579@anw.at>
+Date: Tue, 22 May 2018 16:26:48 +0200
+MIME-Version: 1.0
+In-Reply-To: <8d75cb205142a3739a2d30f03ffe9fae@smtp-cloud9.xs4all.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Hello Hans!
 
-vb2_queue now expects a valid lock pointer, so drop the checks for
-that in v4l2-ioctl.c.
+> linux-4.9.91-x86_64: ERRORS
+> /home/hans/work/build/media_build/v4l/dw9807.c:321:3: error
+The build works in my tree ... ?!?
+I can't find the file in media_tree:
+   find . -name "*9807*"
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+Can you please check if there is something wrong with your
+media_tree version which is used for the daily build.
+I have 8ed8bba70b43 as top commit.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ee1eec136e55..834e3de69992 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2694,12 +2694,11 @@ static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev,
- 		struct v4l2_m2m_queue_ctx *ctx = is_output ?
- 			&vfh->m2m_ctx->out_q_ctx : &vfh->m2m_ctx->cap_q_ctx;
- 
--		if (ctx->q.lock)
--			return ctx->q.lock;
-+		return ctx->q.lock;
- 	}
- #endif
--	if (vdev->queue && vdev->queue->lock &&
--			(v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
-+	if (vdev->queue &&
-+	    (v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
- 		return vdev->queue->lock;
- 	return vdev->lock;
- }
--- 
-2.16.3
+And another thing:
+ ./prepare_kernel.sh 3.2 x86_64
+fails with
+ fatal error: linux/compiler-gcc8.h: No such file or directory
+this leads to a build error in the daily build also.
+
+BR,
+   Jasmin
