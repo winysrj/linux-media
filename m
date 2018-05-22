@@ -1,75 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:37494 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751199AbeEVNEz (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33663 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751745AbeEVOxV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 09:04:55 -0400
-Received: by mail-wr0-f195.google.com with SMTP id i12-v6so6886799wrc.4
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 06:04:54 -0700 (PDT)
-Subject: Re: [PATCH 3/4] venus: add check to make scm calls
-To: Vikash Garodia <vgarodia@codeaurora.org>, hverkuil@xs4all.nl,
-        mchehab@kernel.org, andy.gross@linaro.org,
-        bjorn.andersson@linaro.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        acourbot@google.com
-References: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
- <1526556740-25494-4-git-send-email-vgarodia@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <9d5e12b1-40bd-adab-05f0-bdb209bf0174@linaro.org>
-Date: Tue, 22 May 2018 16:04:51 +0300
-MIME-Version: 1.0
-In-Reply-To: <1526556740-25494-4-git-send-email-vgarodia@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 22 May 2018 10:53:21 -0400
+Received: by mail-wm0-f67.google.com with SMTP id x12-v6so16881110wmc.0
+        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 07:53:21 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v6 09/13] ARM: dts: imx7s: add multiplexer controls
+Date: Tue, 22 May 2018 15:52:41 +0100
+Message-Id: <20180522145245.3143-10-rui.silva@linaro.org>
+In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
+References: <20180522145245.3143-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikash,
+The IOMUXC General Purpose Register has bitfield to control video bus
+multiplexer to control the CSI input between the MIPI-CSI2 and parallel
+interface. Add that register and mask.
 
-On 05/17/2018 02:32 PM, Vikash Garodia wrote:
-> In order to invoke scm calls, ensure that the platform
-> has the required support to invoke the scm calls in
-> secure world. This code is in preparation to add PIL
-> functionality in venus driver.
-> 
-> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> ---
->  drivers/media/platform/qcom/venus/hfi_venus.c | 26 +++++++++++++++++++-------
->  1 file changed, 19 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
-> index f61d34b..9bcce94 100644
-> --- a/drivers/media/platform/qcom/venus/hfi_venus.c
-> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
-> @@ -27,6 +27,7 @@
->  #include "hfi_msgs.h"
->  #include "hfi_venus.h"
->  #include "hfi_venus_io.h"
-> +#include "firmware.h"
->  
->  #define HFI_MASK_QHDR_TX_TYPE		0xff000000
->  #define HFI_MASK_QHDR_RX_TYPE		0x00ff0000
-> @@ -570,13 +571,19 @@ static int venus_halt_axi(struct venus_hfi_device *hdev)
->  static int venus_power_off(struct venus_hfi_device *hdev)
->  {
->  	int ret;
-> +	void __iomem *reg_base;
->  
->  	if (!hdev->power_enabled)
->  		return 0;
->  
-> -	ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
-> -	if (ret)
-> -		return ret;
-> +	if (qcom_scm_is_available()) {
-> +		ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ arch/arm/boot/dts/imx7s.dtsi | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-I think it will be clearer if we abstract qcom_scm_set_remote_state to
-something like venus_set_state(SUSPEND|RESUME) in firmware.c and export
-the functions to be used here.
-
+diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
+index 5e6d2063b143..0b0b85438869 100644
+--- a/arch/arm/boot/dts/imx7s.dtsi
++++ b/arch/arm/boot/dts/imx7s.dtsi
+@@ -520,8 +520,14 @@
+ 
+ 			gpr: iomuxc-gpr@30340000 {
+ 				compatible = "fsl,imx7d-iomuxc-gpr",
+-					"fsl,imx6q-iomuxc-gpr", "syscon";
++					"fsl,imx6q-iomuxc-gpr", "syscon", "simple-mfd";
+ 				reg = <0x30340000 0x10000>;
++
++				mux: mux-controller {
++					compatible = "mmio-mux";
++					#mux-control-cells = <0>;
++					mux-reg-masks = <0x14 0x00000010>;
++				};
+ 			};
+ 
+ 			ocotp: ocotp-ctrl@30350000 {
 -- 
-regards,
-Stan
+2.17.0
