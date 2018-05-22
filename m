@@ -1,137 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:35067 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751912AbeE3F1G (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 01:27:06 -0400
-Subject: Re: [PATCH 1/8] xen/grant-table: Make set/clear page private code
- shared
-To: Juergen Gross <jgross@suse.com>, xen-devel@lists.xenproject.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, boris.ostrovsky@oracle.com,
-        konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
- <20180525153331.31188-2-andr2000@gmail.com>
- <a43d9dd4-c826-1dab-e397-d60796de3a76@suse.com>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <089b3c85-cdc4-f8bd-0895-50b2b4aa4ca2@gmail.com>
-Date: Wed, 30 May 2018 08:27:02 +0300
+Received: from mail.horus.com ([78.46.148.228]:45167 "EHLO mail.horus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751236AbeEVNuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 May 2018 09:50:25 -0400
+Date: Tue, 22 May 2018 15:50:21 +0200
+From: Matthias Reichl <hias@horus.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Y Song <ys114321@gmail.com>,
+        Quentin Monnet <quentin.monnet@netronome.com>
+Subject: Re: [PATCH v4 0/3] IR decoding using BPF
+Message-ID: <20180522135020.y3xxmtvhdui2so3t@camel2.lan>
+References: <cover.1526651592.git.sean@mess.org>
 MIME-Version: 1.0
-In-Reply-To: <a43d9dd4-c826-1dab-e397-d60796de3a76@suse.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1526651592.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2018 07:24 AM, Juergen Gross wrote:
-> On 25/05/18 17:33, Oleksandr Andrushchenko wrote:
->> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>
->> Make set/clear page private code shared and accessible to
->> other kernel modules which can re-use these instead of open-coding.
->>
->> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->> ---
->>   drivers/xen/grant-table.c | 54 +++++++++++++++++++++++++--------------
->>   include/xen/grant_table.h |  3 +++
->>   2 files changed, 38 insertions(+), 19 deletions(-)
->>
->> diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
->> index 27be107d6480..d7488226e1f2 100644
->> --- a/drivers/xen/grant-table.c
->> +++ b/drivers/xen/grant-table.c
->> @@ -769,29 +769,18 @@ void gnttab_free_auto_xlat_frames(void)
->>   }
->>   EXPORT_SYMBOL_GPL(gnttab_free_auto_xlat_frames);
->>   
->> -/**
->> - * gnttab_alloc_pages - alloc pages suitable for grant mapping into
->> - * @nr_pages: number of pages to alloc
->> - * @pages: returns the pages
->> - */
->> -int gnttab_alloc_pages(int nr_pages, struct page **pages)
->> +int gnttab_pages_set_private(int nr_pages, struct page **pages)
->>   {
->>   	int i;
->> -	int ret;
->> -
->> -	ret = alloc_xenballooned_pages(nr_pages, pages);
->> -	if (ret < 0)
->> -		return ret;
->>   
->>   	for (i = 0; i < nr_pages; i++) {
->>   #if BITS_PER_LONG < 64
->>   		struct xen_page_foreign *foreign;
->>   
->>   		foreign = kzalloc(sizeof(*foreign), GFP_KERNEL);
->> -		if (!foreign) {
->> -			gnttab_free_pages(nr_pages, pages);
->> +		if (!foreign)
->>   			return -ENOMEM;
->> -		}
->> +
->>   		set_page_private(pages[i], (unsigned long)foreign);
->>   #endif
->>   		SetPagePrivate(pages[i]);
->> @@ -799,14 +788,30 @@ int gnttab_alloc_pages(int nr_pages, struct page **pages)
->>   
->>   	return 0;
->>   }
->> -EXPORT_SYMBOL(gnttab_alloc_pages);
->> +EXPORT_SYMBOL(gnttab_pages_set_private);
-> EXPORT_SYMBOL_GPL()
-Sure, I was confused by the fact that there are only 2 functions in the file
-which are exported as:
-  - EXPORT_SYMBOL(gnttab_alloc_pages);
-  - EXPORT_SYMBOL(gnttab_free_pages);
-and those were the base for the new 
-gnttab_pages_set_private/gnttab_pages_clear_private
-This made me think I have to retain the same EXPORT_SYMBOL for them.
-Do you want me to add one more patch into this series and change
-gnttab_alloc_pages/gnttab_free_pages to GPL as well?
->>   
->>   /**
->> - * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
->> - * @nr_pages; number of pages to free
->> - * @pages: the pages
->> + * gnttab_alloc_pages - alloc pages suitable for grant mapping into
->> + * @nr_pages: number of pages to alloc
->> + * @pages: returns the pages
->>    */
->> -void gnttab_free_pages(int nr_pages, struct page **pages)
->> +int gnttab_alloc_pages(int nr_pages, struct page **pages)
->> +{
->> +	int ret;
->> +
->> +	ret = alloc_xenballooned_pages(nr_pages, pages);
->> +	if (ret < 0)
->> +		return ret;
->> +
->> +	ret = gnttab_pages_set_private(nr_pages, pages);
->> +	if (ret < 0)
->> +		gnttab_free_pages(nr_pages, pages);
->> +
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL(gnttab_alloc_pages);
->> +
->> +void gnttab_pages_clear_private(int nr_pages, struct page **pages)
->>   {
->>   	int i;
->>   
->> @@ -818,6 +823,17 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
->>   			ClearPagePrivate(pages[i]);
->>   		}
->>   	}
->> +}
->> +EXPORT_SYMBOL(gnttab_pages_clear_private);
-> EXPORT_SYMBOL_GPL()
-Will change
->
-> Juergen
-Thank you,
-Oleksandr
+Hi Sean,
+
+On Fri, May 18, 2018 at 03:07:27PM +0100, Sean Young wrote:
+> The kernel IR decoders (drivers/media/rc/ir-*-decoder.c) support the most
+> widely used IR protocols, but there are many protocols which are not
+> supported[1]. For example, the lirc-remotes[2] repo has over 2700 remotes,
+> many of which are not supported by rc-core. There is a "long tail" of
+> unsupported IR protocols, for which lircd is need to decode the IR .
+> 
+> IR encoding is done in such a way that some simple circuit can decode it;
+> therefore, bpf is ideal.
+> 
+> In order to support all these protocols, here we have bpf based IR decoding.
+> The idea is that user-space can define a decoder in bpf, attach it to
+> the rc device through the lirc chardev.
+> 
+> Separate work is underway to extend ir-keytable to have an extensive library
+> of bpf-based decoders, and a much expanded library of rc keymaps.
+> 
+> Another future application would be to compile IRP[3] to a IR BPF program, and
+> so support virtually every remote without having to write a decoder for each.
+> It might also be possible to support non-button devices such as analog
+> directional pads or air conditioning remote controls and decode the target
+> temperature in bpf, and pass that to an input device.
+
+Thanks a lot, this looks like a very interesting feature to me!
+
+Unfortunately I don't have time to test it ATM, but please keep
+me posted - also on ir-keytable progress - I'm rather excited
+to give it a try.
+
+so long & thanks,
+
+Hias
+
+> 
+> Thanks,
+> 
+> Sean Young
+> 
+> [1] http://www.hifi-remote.com/wiki/index.php?title=DecodeIR
+> [2] https://sourceforge.net/p/lirc-remotes/code/ci/master/tree/remotes/
+> [3] http://www.hifi-remote.com/wiki/index.php?title=IRP_Notation
+> 
+> Changes since v3:
+>  - Implemented review comments from Quentin Monnet and Y Song (thanks!)
+>  - More helpful and better formatted bpf helper documentation
+>  - Changed back to bpf_prog_array rather than open-coded implementation
+>  - scancodes can be 64 bit
+>  - bpf gets passed values in microseconds, not nanoseconds.
+>    microseconds is more than than enough (IR receivers support carriers upto
+>    70kHz, at which point a single period is already 14 microseconds). Also,
+>    this makes it much more consistent with lirc mode2.
+>  - Since it looks much more like lirc mode2, rename the program type to
+>    BPF_PROG_TYPE_LIRC_MODE2.
+>  - Rebased on bpf-next
+> 
+> Changes since v2:
+>  - Fixed locking issues
+>  - Improved self-test to cover more cases
+>  - Rebased on bpf-next again
+> 
+> Changes since v1:
+>  - Code review comments from Y Song <ys114321@gmail.com> and
+>    Randy Dunlap <rdunlap@infradead.org>
+>  - Re-wrote sample bpf to be selftest
+>  - Renamed RAWIR_DECODER -> RAWIR_EVENT (Kconfig, context, bpf prog type)
+>  - Rebase on bpf-next
+>  - Introduced bpf_rawir_event context structure with simpler access checking
+> 
+> Sean Young (3):
+>   bpf: bpf_prog_array_copy() should return -ENOENT if exclude_prog not
+>     found
+>   media: rc: introduce BPF_PROG_LIRC_MODE2
+>   bpf: add selftest for lirc_mode2 type program
+> 
+>  drivers/media/rc/Kconfig                      |  13 +
+>  drivers/media/rc/Makefile                     |   1 +
+>  drivers/media/rc/bpf-lirc.c                   | 308 ++++++++++++++++++
+>  drivers/media/rc/lirc_dev.c                   |  30 ++
+>  drivers/media/rc/rc-core-priv.h               |  22 ++
+>  drivers/media/rc/rc-ir-raw.c                  |  12 +-
+>  include/linux/bpf_rcdev.h                     |  30 ++
+>  include/linux/bpf_types.h                     |   3 +
+>  include/uapi/linux/bpf.h                      |  53 ++-
+>  kernel/bpf/core.c                             |  11 +-
+>  kernel/bpf/syscall.c                          |   7 +
+>  kernel/trace/bpf_trace.c                      |   2 +
+>  tools/bpf/bpftool/prog.c                      |   1 +
+>  tools/include/uapi/linux/bpf.h                |  53 ++-
+>  tools/include/uapi/linux/lirc.h               | 217 ++++++++++++
+>  tools/lib/bpf/libbpf.c                        |   1 +
+>  tools/testing/selftests/bpf/Makefile          |   8 +-
+>  tools/testing/selftests/bpf/bpf_helpers.h     |   6 +
+>  .../testing/selftests/bpf/test_lirc_mode2.sh  |  28 ++
+>  .../selftests/bpf/test_lirc_mode2_kern.c      |  23 ++
+>  .../selftests/bpf/test_lirc_mode2_user.c      | 154 +++++++++
+>  21 files changed, 974 insertions(+), 9 deletions(-)
+>  create mode 100644 drivers/media/rc/bpf-lirc.c
+>  create mode 100644 include/linux/bpf_rcdev.h
+>  create mode 100644 tools/include/uapi/linux/lirc.h
+>  create mode 100755 tools/testing/selftests/bpf/test_lirc_mode2.sh
+>  create mode 100644 tools/testing/selftests/bpf/test_lirc_mode2_kern.c
+>  create mode 100644 tools/testing/selftests/bpf/test_lirc_mode2_user.c
+> 
+> -- 
+> 2.17.0
+> 
