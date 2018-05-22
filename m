@@ -1,116 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:44348 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753286AbeEURBy (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:39972 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751342AbeEVOxY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 13:01:54 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v10 06/16] vb2: add is_unordered callback for drivers
-Date: Mon, 21 May 2018 13:59:36 -0300
-Message-Id: <20180521165946.11778-7-ezequiel@collabora.com>
-In-Reply-To: <20180521165946.11778-1-ezequiel@collabora.com>
-References: <20180521165946.11778-1-ezequiel@collabora.com>
+        Tue, 22 May 2018 10:53:24 -0400
+Received: by mail-wm0-f66.google.com with SMTP id j5-v6so522012wme.5
+        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 07:53:23 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v6 10/13] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
+Date: Tue, 22 May 2018 15:52:42 +0100
+Message-Id: <20180522145245.3143-11-rui.silva@linaro.org>
+In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
+References: <20180522145245.3143-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+This patch adds the device tree nodes for csi, video multiplexer and mipi-csi
+besides the graph connecting the necessary endpoints to make the media capture
+entities to work in imx7 Warp board.
 
-Explicit synchronization benefits a lot from ordered queues, they fit
-better in a pipeline with DRM for example so create a opt-in way for
-drivers notify videobuf2 that the queue is unordered.
-
-Drivers don't need implement it if the queue is ordered.
-
-v5: rename it to vb2_ops_is_unordered() (Hans Verkuil)
-
-v4: go back to a bitfield property for the unordered property.
-
-v3: - make it bool (Hans)
-    - create vb2_ops_set_unordered() helper
-
-v2: - improve comments for is_unordered flag (Hans Verkuil)
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- drivers/media/common/videobuf2/videobuf2-core.c |  6 ++++++
- include/media/videobuf2-core.h                  | 16 ++++++++++++++++
- 2 files changed, 22 insertions(+)
+ arch/arm/boot/dts/imx7s-warp.dts | 51 ++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx7s.dtsi     | 27 +++++++++++++++++
+ 2 files changed, 78 insertions(+)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index 61e7b6407586..a9a0a9d1decb 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -691,6 +691,12 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
- }
- EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
- 
-+bool vb2_ops_is_unordered(struct vb2_queue *q)
-+{
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(vb2_ops_is_unordered);
-+
- int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 		unsigned int *count)
- {
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 137f72702101..71538ae2c255 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -376,6 +376,10 @@ struct vb2_buffer {
-  *			callback by calling vb2_buffer_done() with either
-  *			%VB2_BUF_STATE_DONE or %VB2_BUF_STATE_ERROR; may use
-  *			vb2_wait_for_all_buffers() function
-+ * @is_unordered:	tell if the queue is unordered, i.e. buffers can be
-+ *			dequeued in a different order from how they were queued.
-+ *			The default is assumed to be ordered and this function
-+ *			only needs to be implemented for unordered queues.
-  * @buf_queue:		passes buffer vb to the driver; driver may start
-  *			hardware operation on this buffer; driver should give
-  *			the buffer back by calling vb2_buffer_done() function;
-@@ -399,6 +403,7 @@ struct vb2_ops {
- 
- 	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
- 	void (*stop_streaming)(struct vb2_queue *q);
-+	bool (*is_unordered)(struct vb2_queue *q);
- 
- 	void (*buf_queue)(struct vb2_buffer *vb);
- };
-@@ -421,6 +426,16 @@ void vb2_ops_wait_prepare(struct vb2_queue *vq);
-  */
- void vb2_ops_wait_finish(struct vb2_queue *vq);
- 
-+/**
-+ * vb2_ops_is_unordered - helper function to check if queue is unordered
-+ *
-+ * @vq: pointer to &struct vb2_queue
-+ *
-+ * This helper just returns true to notify that the driver can't deal with
-+ * ordered queues.
-+ */
-+bool vb2_ops_is_unordered(struct vb2_queue *q);
-+
- /**
-  * struct vb2_buf_ops - driver-specific callbacks.
-  *
-@@ -590,6 +605,7 @@ struct vb2_queue {
- 	u32				cnt_wait_finish;
- 	u32				cnt_start_streaming;
- 	u32				cnt_stop_streaming;
-+	u32				cnt_is_unordered;
- #endif
+diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
+index 8a30b148534d..cb175ee2fc9d 100644
+--- a/arch/arm/boot/dts/imx7s-warp.dts
++++ b/arch/arm/boot/dts/imx7s-warp.dts
+@@ -310,6 +310,57 @@
+ 	status = "okay";
  };
  
++&gpr {
++	csi_mux {
++		compatible = "video-mux";
++		mux-controls = <&mux 0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@1 {
++			reg = <1>;
++
++			csi_mux_from_mipi_vc0: endpoint {
++				remote-endpoint = <&mipi_vc0_to_csi_mux>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi_mux_to_csi: endpoint {
++				remote-endpoint = <&csi_from_csi_mux>;
++			};
++		};
++	};
++};
++
++&csi {
++	status = "okay";
++
++	port {
++		csi_from_csi_mux: endpoint {
++			remote-endpoint = <&csi_mux_to_csi>;
++		};
++	};
++};
++
++&mipi_csi {
++	clock-frequency = <166000000>;
++	status = "okay";
++	#address-cells = <1>;
++	#size-cells = <0>;
++	fsl,csis-hs-settle = <3>;
++
++	port@1 {
++		reg = <1>;
++
++		mipi_vc0_to_csi_mux: endpoint {
++			remote-endpoint = <&csi_mux_from_mipi_vc0>;
++		};
++	};
++};
++
+ &wdog1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_wdog>;
+diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
+index 0b0b85438869..4fce2f46c766 100644
+--- a/arch/arm/boot/dts/imx7s.dtsi
++++ b/arch/arm/boot/dts/imx7s.dtsi
+@@ -46,6 +46,7 @@
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
++#include <dt-bindings/reset/imx7-reset.h>
+ #include "imx7d-pinfunc.h"
+ 
+ / {
+@@ -738,6 +739,17 @@
+ 				status = "disabled";
+ 			};
+ 
++			csi: csi@30710000 {
++				compatible = "fsl,imx7-csi";
++				reg = <0x30710000 0x10000>;
++				interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
++				clocks = <&clks IMX7D_CLK_DUMMY>,
++						<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
++						<&clks IMX7D_CLK_DUMMY>;
++				clock-names = "axi", "mclk", "dcic";
++				status = "disabled";
++			};
++
+ 			lcdif: lcdif@30730000 {
+ 				compatible = "fsl,imx7d-lcdif", "fsl,imx28-lcdif";
+ 				reg = <0x30730000 0x10000>;
+@@ -747,6 +759,21 @@
+ 				clock-names = "pix", "axi";
+ 				status = "disabled";
+ 			};
++
++			mipi_csi: mipi-csi@30750000 {
++				compatible = "fsl,imx7-mipi-csi2";
++				reg = <0x30750000 0x10000>;
++				interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
++				clocks = <&clks IMX7D_IPG_ROOT_CLK>,
++						<&clks IMX7D_MIPI_CSI_ROOT_CLK>,
++						<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
++				clock-names = "pclk", "wrap", "phy";
++				power-domains = <&pgc_mipi_phy>;
++				phy-supply = <&reg_1p0d>;
++				resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
++				reset-names = "mrst";
++				status = "disabled";
++			};
+ 		};
+ 
+ 		aips3: aips-bus@30800000 {
 -- 
-2.16.3
+2.17.0
