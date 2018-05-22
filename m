@@ -1,55 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:45606 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752691AbeEUIzT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:19 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v14 21/36] videobuf2-core: embed media_request_object
-Date: Mon, 21 May 2018 11:54:46 +0300
-Message-Id: <20180521085501.16861-22-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:33178 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752016AbeEVTub (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 May 2018 15:50:31 -0400
+Date: Tue, 22 May 2018 13:50:27 -0600
+From: Jordan Crouse <jcrouse@codeaurora.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Vikash Garodia <vgarodia@codeaurora.org>, hverkuil@xs4all.nl,
+        mchehab@kernel.org, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-soc@vger.kernel.org, acourbot@google.com
+Subject: Re: [PATCH 3/4] venus: add check to make scm calls
+Message-ID: <20180522195026.GA16550@jcrouse-lnx.qualcomm.com>
+References: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
+ <1526556740-25494-4-git-send-email-vgarodia@codeaurora.org>
+ <9d5e12b1-40bd-adab-05f0-bdb209bf0174@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9d5e12b1-40bd-adab-05f0-bdb209bf0174@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, May 22, 2018 at 04:04:51PM +0300, Stanimir Varbanov wrote:
+> Hi Vikash,
+> 
+> On 05/17/2018 02:32 PM, Vikash Garodia wrote:
+> > In order to invoke scm calls, ensure that the platform
+> > has the required support to invoke the scm calls in
+> > secure world. This code is in preparation to add PIL
+> > functionality in venus driver.
+> > 
+> > Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+> > ---
+> >  drivers/media/platform/qcom/venus/hfi_venus.c | 26 +++++++++++++++++++-------
+> >  1 file changed, 19 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
+> > index f61d34b..9bcce94 100644
+> > --- a/drivers/media/platform/qcom/venus/hfi_venus.c
+> > +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+> > @@ -27,6 +27,7 @@
+> >  #include "hfi_msgs.h"
+> >  #include "hfi_venus.h"
+> >  #include "hfi_venus_io.h"
+> > +#include "firmware.h"
+> >  
+> >  #define HFI_MASK_QHDR_TX_TYPE		0xff000000
+> >  #define HFI_MASK_QHDR_RX_TYPE		0x00ff0000
+> > @@ -570,13 +571,19 @@ static int venus_halt_axi(struct venus_hfi_device *hdev)
+> >  static int venus_power_off(struct venus_hfi_device *hdev)
+> >  {
+> >  	int ret;
+> > +	void __iomem *reg_base;
+> >  
+> >  	if (!hdev->power_enabled)
+> >  		return 0;
+> >  
+> > -	ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
+> > -	if (ret)
+> > -		return ret;
+> > +	if (qcom_scm_is_available()) {
+> > +		ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
+> 
+> I think it will be clearer if we abstract qcom_scm_set_remote_state to
+> something like venus_set_state(SUSPEND|RESUME) in firmware.c and export
+> the functions to be used here.
 
-Make vb2_buffer a request object.
+This specific function is a little odd because the SCM function got overloaded
+and used as a hardware workaround for the adreno a5xx zap shader.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/videobuf2-core.h | 3 +++
- 1 file changed, 3 insertions(+)
+When we added it for the GPU we knew the day would come that we would need it
+for Venus so we kept the name purposely generic. You can wrap if if you want
+but just know that there are other non video entities out there using it.
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 224c4820a0443..3d54654c3cd48 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -17,6 +17,7 @@
- #include <linux/poll.h>
- #include <linux/dma-buf.h>
- #include <linux/bitops.h>
-+#include <media/media-request.h>
- 
- #define VB2_MAX_FRAME	(32)
- #define VB2_MAX_PLANES	(8)
-@@ -238,6 +239,7 @@ struct vb2_queue;
-  * @num_planes:		number of planes in the buffer
-  *			on an internal driver queue.
-  * @timestamp:		frame timestamp in ns.
-+ * @req_obj:		used to bind this buffer to a request
-  */
- struct vb2_buffer {
- 	struct vb2_queue	*vb2_queue;
-@@ -246,6 +248,7 @@ struct vb2_buffer {
- 	unsigned int		memory;
- 	unsigned int		num_planes;
- 	u64			timestamp;
-+	struct media_request_object	req_obj;
- 
- 	/* private: internal use only
- 	 *
+Jordan
+
 -- 
-2.11.0
+The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
