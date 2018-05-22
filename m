@@ -1,39 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:51877 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934966AbeE2O3j (ORCPT
+Received: from mail-ua0-f195.google.com ([209.85.217.195]:44736 "EHLO
+        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751240AbeEVLE6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 10:29:39 -0400
-Date: Tue, 29 May 2018 14:12:15 +0100
-From: Simon Horman <horms@verge.net.au>
-To: Niklas =?utf-8?Q?S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v2] dt-bindings: media: rcar_vin: fix style for ports and
- endpoints
-Message-ID: <20180529131215.i75ka7rkij3ebfhg@verge.net.au>
-References: <20180528231704.13806-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 22 May 2018 07:04:58 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180528231704.13806-1-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180522090519.ghezen56unsjix62@verge.net.au>
+References: <20180520072437.9686-1-laurent.pinchart+renesas@ideasonboard.com> <20180522090519.ghezen56unsjix62@verge.net.au>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 22 May 2018 13:04:56 +0200
+Message-ID: <CAMuHMdUbjkcWsuocU-ox0y2etTsy7=WhKFKj3HDEoqyif_CtMw@mail.gmail.com>
+Subject: Re: [PATCH v2] v4l: vsp1: Fix vsp1_regs.h license header
+To: Simon Horman <horms@verge.net.au>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Nobuhiro Iwamatsu <iwamatsu@nigauri.org>,
+        Nobuhiro Iwamatsu <iwamatsu@debian.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 29, 2018 at 01:17:04AM +0200, Niklas Söderlund wrote:
-> The style for referring to ports and endpoint are wrong. Refer to them
-> using lowercase and a unit address, port@x and endpoint@x.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Reviewed-by: Rob Herring <robh@kernel.org>
+Hi Simon,
 
-Sorry, I responded to v1 before noticing there is a v2:
+On Tue, May 22, 2018 at 11:05 AM, Simon Horman <horms@verge.net.au> wrote:
+>> --- a/drivers/media/platform/vsp1/vsp1_regs.h
+>> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
+>> @@ -1,4 +1,4 @@
+>> -/* SPDX-License-Identifier: GPL-2.0 */
+>> +/* SPDX-License-Identifier: GPL-2.0+ */
+>
+> While you are changing this line, I believe the correct format is
+> to use a '//' comment.
+>
+> i.e.:
+>
+> // SPDX-License-Identifier: GPL-2.0+
 
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+Not for C header files, only for C source files.
 
-FWIW, there are some instances of = that aren't preceded by a space
-in this file.
+Gr{oetje,eeting}s,
+
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
