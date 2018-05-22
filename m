@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:52410 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751210AbeEPXEq (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:40312 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751772AbeEVOxb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 19:04:46 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] rcar-csi2: set default format if a unsupported one is requested
-Date: Thu, 17 May 2018 01:04:33 +0200
-Message-Id: <20180516230433.29194-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Tue, 22 May 2018 10:53:31 -0400
+Received: by mail-wr0-f193.google.com with SMTP id p3-v6so1940114wrn.7
+        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 07:53:31 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v6 13/13] media: staging/imx: add i.MX7 entries to TODO file
+Date: Tue, 22 May 2018 15:52:45 +0100
+Message-Id: <20180522145245.3143-14-rui.silva@linaro.org>
+In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
+References: <20180522145245.3143-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of failing the set_fmt() if a unsupported format is requested
-set a default one and return the changed format to the user.
+Add some i.MX7 related entries to TODO file.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reported-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- drivers/media/platform/rcar-vin/rcar-csi2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/media/imx/TODO | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-index e64f07fe184e7675..daef72d410a3425d 100644
---- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-@@ -613,7 +613,7 @@ static int rcsi2_set_pad_format(struct v4l2_subdev *sd,
- 	struct v4l2_mbus_framefmt *framefmt;
+diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
+index aeeb15494a49..6f29b5ca5324 100644
+--- a/drivers/staging/media/imx/TODO
++++ b/drivers/staging/media/imx/TODO
+@@ -45,3 +45,12 @@
  
- 	if (!rcsi2_code_to_fmt(format->format.code))
--		return -EINVAL;
-+		format->format.code = rcar_csi2_formats[0].code;
- 
- 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
- 		priv->mf = format->format;
+      Which means a port must not contain mixed-use endpoints, they
+      must all refer to media links between V4L2 subdevices.
++
++- i.MX7: all of the above, since it uses the imx media core
++
++- i.MX7: use Frame Interval Monitor
++
++- i.MX7: runtime testing with parallel sensor, links setup and streaming
++
++- i.MX7: runtime testing with different formats, for the time only 10-bit bayer
++  is tested
 -- 
 2.17.0
