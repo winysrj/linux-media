@@ -1,92 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:47056 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030816AbeEZBOi (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:54893 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751544AbeEVOxI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 21:14:38 -0400
-Received: by mail-qk0-f196.google.com with SMTP id k86-v6so5419954qkh.13
-        for <linux-media@vger.kernel.org>; Fri, 25 May 2018 18:14:38 -0700 (PDT)
-Message-ID: <dfa1d03adba61699314b823766d7738033b4ab90.camel@ndufresne.ca>
-Subject: Re: [PATCH 3/6] media: videodev2.h: Add macro
- V4L2_FIELD_IS_SEQUENTIAL
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Tue, 22 May 2018 10:53:08 -0400
+Received: by mail-wm0-f67.google.com with SMTP id f6-v6so538663wmc.4
+        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 07:53:07 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Fri, 25 May 2018 21:14:35 -0400
-In-Reply-To: <f5264a36-f137-d0ae-68b1-f597e3913ba7@gmail.com>
-References: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
-         <1527292416-26187-4-git-send-email-steve_longerbeam@mentor.com>
-         <a8fb7943417e74fc19f594ae880fea5f306c7be3.camel@ndufresne.ca>
-         <f5264a36-f137-d0ae-68b1-f597e3913ba7@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v6 04/13] clk: imx7d: fix mipi dphy div parent
+Date: Tue, 22 May 2018 15:52:36 +0100
+Message-Id: <20180522145245.3143-5-rui.silva@linaro.org>
+In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
+References: <20180522145245.3143-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le vendredi 25 mai 2018 à 17:19 -0700, Steve Longerbeam a écrit :
-> 
-> On 05/25/2018 05:10 PM, Nicolas Dufresne wrote:
-> > (in text this time, sorry)
-> > 
-> > Le vendredi 25 mai 2018 à 16:53 -0700, Steve Longerbeam a écrit :
-> > > Add a macro that returns true if the given field type is
-> > > 'sequential',
-> > > that is, the data is transmitted, or exists in memory, as all top
-> > > field
-> > > lines followed by all bottom field lines, or vice-versa.
-> > > 
-> > > Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> > > ---
-> > >   include/uapi/linux/videodev2.h | 4 ++++
-> > >   1 file changed, 4 insertions(+)
-> > > 
-> > > diff --git a/include/uapi/linux/videodev2.h
-> > > b/include/uapi/linux/videodev2.h
-> > > index 600877b..408ee96 100644
-> > > --- a/include/uapi/linux/videodev2.h
-> > > +++ b/include/uapi/linux/videodev2.h
-> > > @@ -126,6 +126,10 @@ enum v4l2_field {
-> > >   	 (field) == V4L2_FIELD_INTERLACED_BT ||\
-> > >   	 (field) == V4L2_FIELD_SEQ_TB ||\
-> > >   	 (field) == V4L2_FIELD_SEQ_BT)
-> > > +#define V4L2_FIELD_IS_SEQUENTIAL(field) \
-> > > +	((field) == V4L2_FIELD_SEQ_TB ||\
-> > > +	 (field) == V4L2_FIELD_SEQ_BT ||\
-> > > +	 (field) == V4L2_FIELD_ALTERNATE)
-> > 
-> > No, alternate has no place here, in alternate mode each buffers have
-> > only one field.
-> 
-> Then I misunderstand what is meant by "alternate". The name implies
-> to me that a source sends top or bottom field alternately, or top/bottom
-> fields exist in memory buffers alternately, but with no information about
-> which field came first. In other words, "alternate" is either seq-tb or 
-> seq-bt,
-> without any info about field order.
-> 
-> If it is just one field in a memory buffer, why isn't it called
-> V4L2_FIELD_TOP_OR_BOTTOM, e.g. we don't know which?
+Fix the mipi dphy root divider to mipi_dphy_pre_div, this would remove a orphan
+clock and set the correct parent.
 
-I don't see why this could be better then ALTERNATE, were buffers are
-only top or bottom fields alternatively. And even if there was another
-possible name, this is public API.
+before:
+cat clk_orphan_summary
+                                 enable  prepare  protect
+   clock                          count    count    count        rate   accuracy   phase
+----------------------------------------------------------------------------------------
+ mipi_dphy_post_div                   1        1        0           0          0 0
+    mipi_dphy_root_clk                1        1        0           0          0 0
 
-V4L2_FIELD_ALTERNATE is a mode, that will only be used with
-v4l2_pix_format or v4l2_pix_format_mplane. I should never bet set on
-the v4l2_buffer.field, instead the driver indicates the parity of the
-field by setting V42_FIELD_TOP/BOTTOM on the v4l2_buffer returned by
-DQBUF. This is a very different mode of operation compared to
-sequential, hence why I believe it is wrong to make it part of the new
-helper. So far, it's the only field value that has this asymmetric
-usage and meaning.
+cat clk_dump | grep mipi_dphy
+mipi_dphy_post_div                    1        1        0           0          0 0
+    mipi_dphy_root_clk                1        1        0           0          0 0
 
-> 
-> Steve
-> 
+after:
+cat clk_dump | grep mipi_dphy
+   mipi_dphy_src                     1        1        0    24000000          0 0
+       mipi_dphy_cg                  1        1        0    24000000          0 0
+          mipi_dphy_pre_div          1        1        0    24000000          0 0
+             mipi_dphy_post_div      1        1        0    24000000          0 0
+                mipi_dphy_root_clk   1        1        0    24000000          0 0
+
+Fixes: 8f6d8094b215 ("ARM: imx: add imx7d clk tree support")
+Acked-by: Dong Aisheng <Aisheng.dong@nxp.com>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ drivers/clk/imx/clk-imx7d.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
+index 975a20d3cc94..f7f4db2e6fa6 100644
+--- a/drivers/clk/imx/clk-imx7d.c
++++ b/drivers/clk/imx/clk-imx7d.c
+@@ -729,7 +729,7 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
+ 	clks[IMX7D_LCDIF_PIXEL_ROOT_DIV] = imx_clk_divider2("lcdif_pixel_post_div", "lcdif_pixel_pre_div", base + 0xa300, 0, 6);
+ 	clks[IMX7D_MIPI_DSI_ROOT_DIV] = imx_clk_divider2("mipi_dsi_post_div", "mipi_dsi_pre_div", base + 0xa380, 0, 6);
+ 	clks[IMX7D_MIPI_CSI_ROOT_DIV] = imx_clk_divider2("mipi_csi_post_div", "mipi_csi_pre_div", base + 0xa400, 0, 6);
+-	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_csi_dphy_div", base + 0xa480, 0, 6);
++	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_dphy_pre_div", base + 0xa480, 0, 6);
+ 	clks[IMX7D_SAI1_ROOT_DIV] = imx_clk_divider2("sai1_post_div", "sai1_pre_div", base + 0xa500, 0, 6);
+ 	clks[IMX7D_SAI2_ROOT_DIV] = imx_clk_divider2("sai2_post_div", "sai2_pre_div", base + 0xa580, 0, 6);
+ 	clks[IMX7D_SAI3_ROOT_DIV] = imx_clk_divider2("sai3_post_div", "sai3_pre_div", base + 0xa600, 0, 6);
+-- 
+2.17.0
