@@ -1,116 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:38494 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753311AbeERJ2s (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34196 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752065AbeEVMFU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 05:28:48 -0400
-Received: by mail-wr0-f194.google.com with SMTP id 94-v6so8466630wrf.5
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 02:28:48 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v5 10/12] ARM: dts: imx7s-warp: add ov2680 sensor node
-Date: Fri, 18 May 2018 10:28:04 +0100
-Message-Id: <20180518092806.3829-11-rui.silva@linaro.org>
-In-Reply-To: <20180518092806.3829-1-rui.silva@linaro.org>
-References: <20180518092806.3829-1-rui.silva@linaro.org>
+        Tue, 22 May 2018 08:05:20 -0400
+Subject: Re: [PATCH v10 11/16] vb2: add explicit fence user API
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org
+Cc: kernel@collabora.com,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20180521165946.11778-1-ezequiel@collabora.com>
+ <20180521165946.11778-12-ezequiel@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9a7d4128-571e-468c-8c03-9f35f610a87f@xs4all.nl>
+Date: Tue, 22 May 2018 14:05:16 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180521165946.11778-12-ezequiel@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Warp7 comes with a Omnivision OV2680 sensor, add the node here to make complete
-the camera data path for this system. Add the needed regulator to the analog
-voltage supply, the port and endpoints in mipi_csi node and the pinctrl for the
-reset gpio.
+On 21/05/18 18:59, Ezequiel Garcia wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> Turn the reserved2 field into fence_fd that we will use to send
+> an in-fence to the kernel or return an out-fence from the kernel to
+> userspace.
+> 
+> Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+> when sending an in-fence to the kernel to be waited on, and
+> V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
+> 
+> v8: return -1 if new flags are set.
+> v7: minor fixes on the Documentation (Hans Verkuil)
+> 
+> v6: big improvement on doc (Hans Verkuil)
+> 
+> v5: - keep using reserved2 field for cpia2
+>     - set fence_fd to 0 for now, for compat with userspace(Mauro)
+> 
+> v4: make it a union with reserved2 and fence_fd (Hans Verkuil)
+> 
+> v3: make the out_fence refer to the current buffer (Hans Verkuil)
+> 
+> v2: add documentation
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  Documentation/media/uapi/v4l/buffer.rst         | 48 ++++++++++++++++++++++---
+>  drivers/media/common/videobuf2/videobuf2-v4l2.c |  6 +++-
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  4 +--
+>  include/uapi/linux/videodev2.h                  |  8 ++++-
+>  4 files changed, 58 insertions(+), 8 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> index e2c85ddc990b..971b7453040c 100644
+> --- a/Documentation/media/uapi/v4l/buffer.rst
+> +++ b/Documentation/media/uapi/v4l/buffer.rst
+> @@ -300,11 +300,23 @@ struct v4l2_buffer
+>  	multi-planar API the application sets this to the number of
+>  	elements in the ``planes`` array. The driver will fill in the
+>  	actual number of valid elements in that array.
+> -    * - __u32
+> -      - ``reserved2``
+> +    * - __s32
+> +      - ``fence_fd``
+>        -
+> -      - A place holder for future extensions. Drivers and applications
+> -	must set this to 0.
+> +      - Used to communicate a fence file descriptor from userspace to kernel
+> +	and vice-versa. On :ref:`VIDIOC_QBUF <VIDIOC_QBUF>` when sending
+> +	an in-fence for V4L2 to wait on, the ``V4L2_BUF_FLAG_IN_FENCE`` flag must
+> +	be used and this field set to the fence file descriptor of the in-fence.
+> +	If the in-fence is not valid ` VIDIOC_QBUF`` returns an error.
+> +
+> +        To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE``
+> +	must be set, the kernel will return the out-fence file descriptor in
+> +	this field. If it fails to create the out-fence ``VIDIOC_QBUF` returns
+> +        an error.
+> +
+> +	For all other ioctls V4L2 sets this field to -1 if
+> +	``V4L2_BUF_FLAG_IN_FENCE`` and/or ``V4L2_BUF_FLAG_OUT_FENCE`` are set,
+> +	otherwise this field is set to 0 for backward compatibility.
+>      * - __u32
+>        - ``reserved``
+>        -
+> @@ -648,6 +660,34 @@ Buffer Flags
+>        - Start Of Exposure. The buffer timestamp has been taken when the
+>  	exposure of the frame has begun. This is only valid for the
+>  	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
+> +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
+> +
+> +      - ``V4L2_BUF_FLAG_IN_FENCE``
+> +      - 0x00200000
+> +      - Ask V4L2 to wait on the fence passed in the ``fence_fd`` field. The
+> +	buffer won't be queued to the driver until the fence signals. The order
+> +	in which buffers are queued is guaranteed to be preserved, so any
+> +	buffers queued after this buffer will also be blocked until this fence
+> +	signals. This flag must be set before calling ``VIDIOC_QBUF``. For
+> +	other ioctls the driver just reports the value of the flag.
+> +
+> +        If the fence signals the flag is cleared and not reported anymore.
+> +	If the fence is not valid ``VIDIOC_QBUF`` returns an error.
+> +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
+> +
+> +      - ``V4L2_BUF_FLAG_OUT_FENCE``
+> +      - 0x00400000
+> +      - Request for a fence to be attached to the buffer. The driver will fill
+> +	in the out-fence fd in the ``fence_fd`` field when :ref:`VIDIOC_QBUF
+> +	<VIDIOC_QBUF>` returns. This flag must be set before calling
+> +	``VIDIOC_QBUF``. This flag is only an input, and is not set by the kernel.
+> +
+> +        If the creation of the out-fence fails ``VIDIOC_QBUF`` returns an
+> +	error.
+> +
+> +        Note that it is valid to set both ``V4L2_BUF_FLAG_IN_FENCE`` and
+> +        `V4L2_BUF_FLAG_OUT_FENCE`` flags. In such case, the ``fence_fd``
+> +        field is used to both set the in-fence and return the out-fence.
+>  
+>  
+>  
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> index 64503615d00b..8312f61adfa6 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -203,9 +203,13 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+>  	b->timestamp = ns_to_timeval(vb->timestamp);
+>  	b->timecode = vbuf->timecode;
+>  	b->sequence = vbuf->sequence;
+> -	b->reserved2 = 0;
+>  	b->reserved = 0;
+>  
+> +	if (b->flags & (V4L2_BUF_FLAG_IN_FENCE | V4L2_BUF_FLAG_OUT_FENCE))
+> +		b->fence_fd = -1;
+> +	else
+> +		b->fence_fd = 0;
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- arch/arm/boot/dts/imx7s-warp.dts | 44 ++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+I don't see why we can't just always set fence_fd to -1.
 
-diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
-index cb175ee2fc9d..bf04e13afd02 100644
---- a/arch/arm/boot/dts/imx7s-warp.dts
-+++ b/arch/arm/boot/dts/imx7s-warp.dts
-@@ -91,6 +91,14 @@
- 		regulator-always-on;
- 	};
- 
-+	reg_peri_3p15v: regulator-peri-3p15v {
-+		compatible = "regulator-fixed";
-+		regulator-name = "peri_3p15v_reg";
-+		regulator-min-microvolt = <3150000>;
-+		regulator-max-microvolt = <3150000>;
-+		regulator-always-on;
-+	};
-+
- 	sound {
- 		compatible = "simple-audio-card";
- 		simple-audio-card,name = "imx7-sgtl5000";
-@@ -218,6 +226,27 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_i2c2>;
- 	status = "okay";
-+
-+	ov2680: camera@36 {
-+		compatible = "ovti,ov2680";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ov2680>;
-+		reg = <0x36>;
-+		clocks = <&osc>;
-+		clock-names = "xvclk";
-+		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
-+		DOVDD-supply = <&sw2_reg>;
-+		DVDD-supply = <&sw2_reg>;
-+		AVDD-supply = <&reg_peri_3p15v>;
-+
-+		port {
-+			ov2680_to_mipi: endpoint {
-+				remote-endpoint = <&mipi_from_sensor>;
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+			};
-+		};
-+	};
- };
- 
- &i2c4 {
-@@ -352,6 +381,15 @@
- 	#size-cells = <0>;
- 	fsl,csis-hs-settle = <3>;
- 
-+	port@0 {
-+		reg = <0>;
-+
-+		mipi_from_sensor: endpoint {
-+			remote-endpoint = <&ov2680_to_mipi>;
-+			data-lanes = <1>;
-+		};
-+	};
-+
- 	port@1 {
- 		reg = <1>;
- 
-@@ -408,6 +446,12 @@
- 		>;
- 	};
- 
-+	pinctrl_ov2680: ov2660grp {
-+		fsl,pins = <
-+			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
-+		>;
-+	};
-+
- 	pinctrl_sai1: sai1grp {
- 		fsl,pins = <
- 			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
--- 
-2.17.0
+There is no need for backwards compatibility that I can see.
+
+Regards,
+
+	Hans
+
+> +
+>  	if (q->is_multiplanar) {
+>  		/*
+>  		 * Fill in plane-related data if userspace provided an array
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index 4312935f1dfc..93c752459aec 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -388,7 +388,7 @@ struct v4l2_buffer32 {
+>  		__s32		fd;
+>  	} m;
+>  	__u32			length;
+> -	__u32			reserved2;
+> +	__s32			fence_fd;
+>  	__u32			reserved;
+>  };
+>  
+> @@ -606,7 +606,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
+>  	    assign_in_user(&up->timestamp.tv_usec, &kp->timestamp.tv_usec) ||
+>  	    copy_in_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
+>  	    assign_in_user(&up->sequence, &kp->sequence) ||
+> -	    assign_in_user(&up->reserved2, &kp->reserved2) ||
+> +	    assign_in_user(&up->fence_fd, &kp->fence_fd) ||
+>  	    assign_in_user(&up->reserved, &kp->reserved) ||
+>  	    get_user(length, &kp->length) ||
+>  	    put_user(length, &up->length))
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index a8842a5ca636..1f18dc68ecab 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -934,7 +934,10 @@ struct v4l2_buffer {
+>  		__s32		fd;
+>  	} m;
+>  	__u32			length;
+> -	__u32			reserved2;
+> +	union {
+> +		__s32		fence_fd;
+> +		__u32		reserved2;
+> +	};
+>  	__u32			reserved;
+>  };
+>  
+> @@ -971,6 +974,9 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+>  /* mem2mem encoder/decoder */
+>  #define V4L2_BUF_FLAG_LAST			0x00100000
+> +/* Explicit synchronization */
+> +#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
+> +#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+>  
+>  /**
+>   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+> 
