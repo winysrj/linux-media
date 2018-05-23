@@ -1,79 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay12.mail.gandi.net ([217.70.178.232]:43113 "EHLO
-        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752232AbeEKJ7t (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:40350 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753493AbeEWIhv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 05:59:49 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 0/5] rcar-vin: Add support for digital input on Gen3
-Date: Fri, 11 May 2018 11:59:36 +0200
-Message-Id: <1526032781-14319-1-git-send-email-jacopo+renesas@jmondi.org>
+        Wed, 23 May 2018 04:37:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Simon Horman <horms@verge.net.au>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Nobuhiro Iwamatsu <iwamatsu@nigauri.org>,
+        Nobuhiro Iwamatsu <iwamatsu@debian.org>
+Subject: Re: [PATCH v2] v4l: vsp1: Fix vsp1_regs.h license header
+Date: Wed, 23 May 2018 11:37:47 +0300
+Message-ID: <1905091.9toDD4m9Wz@avalon>
+In-Reply-To: <20180523083324.vvtadkkoz6ti5qi7@verge.net.au>
+References: <20180520072437.9686-1-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdUbjkcWsuocU-ox0y2etTsy7=WhKFKj3HDEoqyif_CtMw@mail.gmail.com> <20180523083324.vvtadkkoz6ti5qi7@verge.net.au>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-   this series add support for 'digital' input to the Gen3 version of rcar-vin
-driver.
+Hi Simon,
 
-'Digital' inputs (the terms comes from the existing Gen2 version of the driver)
-describe parallel video input sources connected to a VIN instance. So far, the
-Gen3-version of the driver (the media-controller compliant one) only supported
-CSI-2 inputs.
+On Wednesday, 23 May 2018 11:33:26 EEST Simon Horman wrote:
+> On Tue, May 22, 2018 at 01:04:56PM +0200, Geert Uytterhoeven wrote:
+> > On Tue, May 22, 2018 at 11:05 AM, Simon Horman <horms@verge.net.au> wrote:
+> >>> --- a/drivers/media/platform/vsp1/vsp1_regs.h
+> >>> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
+> >>> @@ -1,4 +1,4 @@
+> >>> -/* SPDX-License-Identifier: GPL-2.0 */
+> >>> +/* SPDX-License-Identifier: GPL-2.0+ */
+> >> 
+> >> While you are changing this line, I believe the correct format is
+> >> to use a '//' comment.
+> >> 
+> >> i.e.:
+> >> 
+> >> // SPDX-License-Identifier: GPL-2.0+
+> > 
+> > Not for C header files, only for C source files.
+> 
+> Wow!
 
-This series extends the device tree parsing to accept a connection on port@0,
-and parses the 'digital' subdevice, as implemented in patches [2/5] and [3/5].
+Yes, it's a mess :-( The rationale is that the assembler doesn't support C++-
+style comments, so we need to use C-style comments in header files. We should 
+really have standardized usage of C-style comments everywhere, it makes no 
+sense to me.
 
-The series has been tested on D3 Draak platform, which has an HDMI decoder
-connected to the parallel input of VIN4. To have capture operations working
-properly two additional patches have been added to the series.
-[4/5] is a general fix which should imo be included regardless of this series.
-[5/5] won't please Niklas, as it discards buffer overflow protection for
-the digital capture operations. As explained in the commit message, I had to
-fall back to use field toggling on VSYNC input to have images correctly
-captured. A possible protection against buffer overflow may be enabling
-interrupt for the FIFO overflow and stop capture at that point, but this have to
-be discussed later.
+-- 
+Regards,
 
-A separate series for the VIN4 and HDMI input enabling on Draak board has been
-sent to renesas-soc list.
-
-The vin-tests repository patches to automate capture testing have been extended
-to support D3 board and capture from HDMI output, and patches have been sent
-to Niklas.
-
-The series is based on the media-master tree, where VIN patches have been
-recently merged.
-
-Tested capturing HDMI input images on D3 and for backward compatibility on
-Salvator-X M3-W too (seems like I didn't break anything there).
-
-Patches for testing on D3 are available at:
-git://jmondi.org/linux d3/media-master/driver
-git://jmondi.org/linux d3/media-master/dts
-git://jmondi.org/linux d3/media-master/test
-git://jmondi.org/vin-tests d3
-
-Patches to test on M3-W (based on latest renesas drivers, which includes an
-older version of VIN series, but has CSI-2 driver) available at:
-git://jmondi.org/linux d3/renesas-drivers/test
-
-Thanks
-    j
-
-Jacopo Mondi (5):
-  media: rcar-vin: Add support for R-Car R8A77995 SoC
-  media: rcar-vin: Add digital input subdevice parsing
-  media: rcar-vin: [un]bind and link digital subdevice
-  media: rcar-vin: Do not use crop if not configured
-  media: rcar-vin: Use FTEV for digital input
-
- drivers/media/platform/rcar-vin/rcar-core.c | 315 +++++++++++++++++++++++-----
- drivers/media/platform/rcar-vin/rcar-dma.c  |  33 ++-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  13 ++
- 3 files changed, 305 insertions(+), 56 deletions(-)
-
---
-2.7.4
+Laurent Pinchart
