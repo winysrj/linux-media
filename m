@@ -1,75 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:53260 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751236AbeEVPcX (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54879 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754438AbeEWQTo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 11:32:23 -0400
-Received: by mail-wm0-f65.google.com with SMTP id a67-v6so903045wmf.3
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 08:32:22 -0700 (PDT)
-Date: Tue, 22 May 2018 17:32:20 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: laurent.pinchart@ideasonboard.com, horms@verge.net.au,
-        geert@glider.be, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 2/4] dt-bindings: media: rcar-vin: Document data-active
-Message-ID: <20180522153220.GD5115@bigcity.dyn.berto.se>
-References: <1526923663-8179-1-git-send-email-jacopo+renesas@jmondi.org>
- <1526923663-8179-3-git-send-email-jacopo+renesas@jmondi.org>
+        Wed, 23 May 2018 12:19:44 -0400
+Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras
+ on generic apps
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        LMML <linux-media@vger.kernel.org>,
+        Wim Taymans <wtaymans@redhat.com>, schaller@redhat.com
+References: <20180517160708.74811cfb@vento.lan>
+ <644920d91d1f69d659f233c6a52382d3f919babc.camel@ndufresne.ca>
+ <3216261.G88TfqiCiH@avalon> <20180518082447.3068c34c@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <727fc55e-970c-53c3-f286-f7e7c1035184@xs4all.nl>
+Date: Wed, 23 May 2018 18:19:37 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1526923663-8179-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <20180518082447.3068c34c@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
-
-Thanks for your patch.
-
-On 2018-05-21 19:27:41 +0200, Jacopo Mondi wrote:
-> Document 'data-active' property in R-Car VIN device tree bindings.
+On 18/05/18 13:24, Mauro Carvalho Chehab wrote:
+> One of the biggest reasons why we decided to start libv4l project,
+> in the past, was to ensure an open source solution. The problem we
+> faced on that time is to ensure that, when a new media driver were
+> added with some proprietary output format, an open source decoding
+> software were also added at libv4l.
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> This approach ensured that all non-MC cameras are supported by all
+> V4L2 applications.
 > 
-> v1 -> v2:
-> - HSYNC is used in place of data enable signal only when running with
->   explicit synchronizations.
-> - The property is no more mandatory when running with embedded
->   synchronizations, and default is selected.
-> ---
->  Documentation/devicetree/bindings/media/rcar_vin.txt | 6 ++++++
->  1 file changed, 6 insertions(+)
+> Before libv4l, media support for a given device were limited to a few 
+> apps that knew how to decode the format. There were even cases were a
+> proprietary app were required, as no open source decoders were available.
 > 
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> index dab3118..2c144b4 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -64,6 +64,12 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
->  	If both HSYNC and VSYNC polarities are not specified, embedded
->  	synchronization is selected.
->  
-> +        - data-active: data enable signal line polarity (CLKENB pin).
-> +          0/1 for LOW/HIGH respectively. If not specified and running with
-> +	  embedded synchronization, the default is active high. If not
-> +	  specified and running with explicit synchronization, HSYNC is used
-> +	  as data enable signal.
-
-This indentation looks funny :-)
-
-If you check the rest of the rcar_vin.txt file only spaces are used for
-indentation.
-
-> +
->      - port 1 - sub-nodes describing one or more endpoints connected to
->        the VIN from local SoC CSI-2 receivers. The endpoint numbers must
->        use the following schema.
-> -- 
-> 2.7.4
+> From my PoV, the biggest gain with libv4l is that the same group of
+> maintainers can ensure that the entire solution (Kernel driver and
+> low level userspace support) will provide everything required for an
+> open source app to work with it.
 > 
+> I'm not sure how we would keep enforcing it if the pipeline setting
+> and control propagation logic for an specific hardware will be
+> delegated to PipeWire. It seems easier to keep doing it on a libv4l
+> (version 2) and let PipeWire to use it.
 
--- 
+I've decided not to attend this meeting. It is not quite my core expertise
+and it is a bit too far to make it worth my time. If there are good reasons
+for me being there that I missed, then please let me know asap and I might
+reconsider this.
+
+What I would like to say though it that I think libv4l is a bit of a dead
+end and probably not suitable for adding support for this.
+
+Currently libv4l2 is too intertwined with libv4lconvert and too messy.
+Its original motivation was for converting custom formats and that is
+mostly obsolete now that UVC has standardized formats to just a few.
+
+I think a core library is needed that provides the basic functionality
+and that can be used directly by applications if they don't want to use
+v4l2_open() and friends.
+
+I.e. it should be possible for e.g. gstreamer to use this core library
+to easily configure and use the MC instead of having to call v4l2_open() etc.
+and rely on magic code to do this for them. It's simply ugly to overload
+mmap with v4l2_mmap or to emulate read() if the driver doesn't support it.
+
+We might still have a libv4l2-like library sitting on top of this, but
+perhaps with limited functionality. For example, I think it would be
+reasonable to no longer support custom formats. If an application wants
+to support that, then it should call conversion functions for the core
+library explicitly. This has the big advantage of solving the dmabuf
+and mmap issues in today's libv4l2.
+
 Regards,
-Niklas Söderlund
+
+	Hans
