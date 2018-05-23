@@ -1,128 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:57081 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751119AbeEHKsu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 May 2018 06:48:50 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.18] v2: Various fixes/improvements
-Message-ID: <b9c05ebb-6cb3-d6b3-f2e4-48720f3a05bd@xs4all.nl>
-Date: Tue, 8 May 2018 12:48:45 +0200
+Received: from mail.bugwerft.de ([46.23.86.59]:41880 "EHLO mail.bugwerft.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932313AbeEWJcC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 May 2018 05:32:02 -0400
+Subject: Re: [PATCH v3 03/12] media: ov5640: Remove the clocks registers
+ initialization
+To: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Sam Bobrowicz <sam@elite-embedded.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+ <20180517085405.10104-4-maxime.ripard@bootlin.com>
+ <0de04d7b-9c75-3e4e-4cf9-deaedeab54a4@zonque.org>
+ <CAFwsNOEkLU91qYtj=n_pd=kvvovXs6JTFiMFvwsMRvB0nY5H=g@mail.gmail.com>
+ <20180521073902.ayky27k5pcyfyyvc@flea> <20180522195437.bay6muqp3uqq5k3z@flea>
+From: Daniel Mack <daniel@zonque.org>
+Message-ID: <f4948940-c3e1-5464-c012-e4d6ca196cdd@zonque.org>
+Date: Wed, 23 May 2018 11:31:58 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20180522195437.bay6muqp3uqq5k3z@flea>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes/improvements all over the place.
+Hi Maxime,
 
-Changes since v1:
+On Tuesday, May 22, 2018 09:54 PM, Maxime Ripard wrote:
+> On Mon, May 21, 2018 at 09:39:02AM +0200, Maxime Ripard wrote:
+>> On Fri, May 18, 2018 at 07:42:34PM -0700, Sam Bobrowicz wrote:
 
-Replaced "media: media-device: fix ioctl function types" with the v2 version
-of that patch. My fault, I missed Sakari's request for a change of v1.
+>>> This set of patches is also not working for my MIPI platform (mine has
+>>> a 12 MHz external clock). I am pretty sure is isn't working because it
+>>> does not include the following, which my tests have found to be
+>>> necessary:
+>>>
+>>> 1) Setting pclk period reg in order to correct DPHY timing.
+>>> 2) Disabling of MIPI lanes when streaming not enabled.
+>>> 3) setting mipi_div to 1 when the scaler is disabled
+>>> 4) Doubling ADC clock on faster resolutions.
+>>
+>> Yeah, I left them out because I didn't think this was relevant to this
+>> patchset but should come as future improvements. However, given that
+>> it works with the parallel bus, maybe the two first are needed when
+>> adjusting the rate.
+> 
+> I've checked for the pclk period, and it's hardcoded to the same value
+> all the time, so I guess this is not the reason it doesn't work on
+> MIPI CSI anymore.
+> 
+> Daniel, could you test:
+> http://code.bulix.org/ki6kgz-339327?raw
 
-Regards,
+[Note that there's a missing parenthesis in this snippet]
 
-	Hans
+Hmm, no, that doesn't change anything. Streaming doesn't work here, even 
+if I move ov5640_load_regs() before any other initialization.
 
-The following changes since commit f10379aad39e9da8bc7d1822e251b5f0673067ef:
+One of my test setup is the following gst pipeline:
 
-  media: include/video/omapfb_dss.h: use IS_ENABLED() (2018-05-05 11:45:51 -0400)
+   gst-launch-1.0	\
+	v4l2src device=/dev/video0 ! \
+	videoconvert ! \
+	video/x-raw,format=UYVY,width=1920,height=1080 ! \
+	glimagesink
 
-are available in the Git repository at:
+With the pixel clock hard-coded to 166600000 in qcom camss, the setup 
+works on 4.14, but as I said, it broke already before this series with 
+5999f381e023 ("media: ov5640: Add horizontal and vertical
+totals").
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.18b
+Frankly, my understanding of these chips is currently limited, so I 
+don't really know where to start digging. It seems clear though that the 
+timing registers setup is necessary for other register writes to succeed.
 
-for you to fetch changes up to 171d364998d1e2373c12b93924fe63cc71586101:
+Can I help in any other way?
 
-  media: media-device: fix ioctl function types (2018-05-08 12:40:23 +0200)
 
-----------------------------------------------------------------
-Arvind Yadav (2):
-      platform: Use gpio_is_valid()
-      sta2x11: Use gpio_is_valid() and remove unnecessary check
-
-Brad Love (4):
-      em28xx: Fix DualHD broken second tuner
-      intel-ipu3: Kconfig coding style issue
-      cec: Kconfig coding style issue
-      saa7164: Fix driver name in debug output
-
-Colin Ian King (1):
-      media/usbvision: fix spelling mistake: "compresion" -> "compression"
-
-Dan Carpenter (1):
-      media: vpbe_venc: potential uninitialized variable in ven_sub_dev_init()
-
-Fengguang Wu (1):
-      media: vcodec: fix ptr_ret.cocci warnings
-
-Hans Verkuil (2):
-      cec-gpio: use GPIOD_OUT_HIGH_OPEN_DRAIN
-      v4l2-dev.h: fix doc warning
-
-Jacopo Mondi (1):
-      media: renesas-ceu: Set mbus_fmt on subdev operations
-
-Jan Luebbe (1):
-      media: imx-csi: fix burst size for 16 bit
-
-Jasmin Jessich (2):
-      media: Use ktime_set() in pt1.c
-      media: Revert cleanup ktime_set() usage
-
-Julia Lawall (1):
-      pvrusb2: delete unneeded include
-
-Niklas Söderlund (1):
-      media: entity: fix spelling for media_entity_get_fwnode_pad()
-
-Philipp Zabel (4):
-      media: coda: reuse coda_s_fmt_vid_cap to propagate format in coda_s_fmt_vid_out
-      media: coda: do not try to propagate format if capture queue busy
-      media: coda: set colorimetry on coded queue
-      media: imx: add 16-bit grayscale support
-
-Robin Murphy (1):
-      media: videobuf-dma-sg: Fix dma_{sync,unmap}_sg() calls
-
-Sami Tolvanen (1):
-      media: media-device: fix ioctl function types
-
-Simon Que (1):
-      v4l2-core: Rename array 'video_driver' to 'video_drivers'
-
-Souptick Joarder (1):
-      videobuf: Change return type to vm_fault_t
-
-Wolfram Sang (1):
-      media: platform: am437x: simplify getting .drvdata
-
- drivers/media/Kconfig                           | 12 ++++++------
- drivers/media/dvb-core/dmxdev.c                 |  2 +-
- drivers/media/media-device.c                    | 21 +++++++++++----------
- drivers/media/pci/cx88/cx88-input.c             |  6 ++++--
- drivers/media/pci/intel/ipu3/Kconfig            | 12 ++++++------
- drivers/media/pci/pt1/pt1.c                     |  2 +-
- drivers/media/pci/pt3/pt3.c                     |  2 +-
- drivers/media/pci/saa7164/saa7164-fw.c          |  3 ++-
- drivers/media/pci/sta2x11/sta2x11_vip.c         | 31 +++++++++++++++----------------
- drivers/media/platform/am437x/am437x-vpfe.c     |  6 ++----
- drivers/media/platform/cec-gpio/cec-gpio.c      |  2 +-
- drivers/media/platform/coda/coda-common.c       | 45 +++++++++++++++++++++++++++++++--------------
- drivers/media/platform/davinci/vpbe_venc.c      |  2 +-
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c |  5 +----
- drivers/media/platform/renesas-ceu.c            | 20 +++++++++++++++-----
- drivers/media/platform/via-camera.c             |  2 +-
- drivers/media/usb/em28xx/em28xx-dvb.c           |  2 +-
- drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c |  1 -
- drivers/media/usb/usbvision/usbvision-core.c    |  2 +-
- drivers/media/v4l2-core/v4l2-dev.c              | 22 +++++++++++-----------
- drivers/media/v4l2-core/videobuf-dma-sg.c       |  6 +++---
- drivers/staging/media/imx/imx-media-csi.c       |  3 ++-
- drivers/staging/media/imx/imx-media-utils.c     |  9 +++++++++
- include/media/media-entity.h                    |  2 +-
- include/media/v4l2-dev.h                        |  1 +
- 25 files changed, 128 insertions(+), 93 deletions(-)
+Thanks for all your efforts,
+Daniel
