@@ -1,61 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58892 "EHLO mail.kernel.org"
+Received: from gofer.mess.org ([88.97.38.141]:58709 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753186AbeE3H3D (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 03:29:03 -0400
-Date: Wed, 30 May 2018 12:58:58 +0530
-From: Vinod <vkoul@kernel.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
+        id S934181AbeEWTuI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 May 2018 15:50:08 -0400
+Date: Wed, 23 May 2018 20:50:05 +0100
+From: Sean Young <sean@mess.org>
+To: Daniel Borkmann <daniel@iogearbox.net>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: camera control interface
-Message-ID: <20180530072858.GP5666@vkoul-mobl>
-References: <20180529082932.GH5666@vkoul-mobl>
- <2593976.2pOKjEb3EO@avalon>
+        netdev@vger.kernel.org, Matthias Reichl <hias@horus.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Y Song <ys114321@gmail.com>,
+        Quentin Monnet <quentin.monnet@netronome.com>
+Subject: Re: [PATCH v4 0/3] IR decoding using BPF
+Message-ID: <20180523195005.nltyuyfmwko4ate2@gofer.mess.org>
+References: <cover.1526651592.git.sean@mess.org>
+ <860cf2a8-dd2e-ba78-8b98-3d8f4330f3d0@iogearbox.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <2593976.2pOKjEb3EO@avalon>
+In-Reply-To: <860cf2a8-dd2e-ba78-8b98-3d8f4330f3d0@iogearbox.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Laurent,
-
-On 30-05-18, 10:04, Laurent Pinchart wrote:
+On Wed, May 23, 2018 at 02:21:27PM +0200, Daniel Borkmann wrote:
+> On 05/18/2018 04:07 PM, Sean Young wrote:
+> > The kernel IR decoders (drivers/media/rc/ir-*-decoder.c) support the most
+> > widely used IR protocols, but there are many protocols which are not
+> > supported[1]. For example, the lirc-remotes[2] repo has over 2700 remotes,
+> > many of which are not supported by rc-core. There is a "long tail" of
+> > unsupported IR protocols, for which lircd is need to decode the IR .
 > > 
-> > I am writing a driver for camera control inteface which is an i2c
-> > controller. So looking up the code I think it can be a v4l subdev,
-> > right? Can it be an independent i2c master and not v4l subdev?
+> > IR encoding is done in such a way that some simple circuit can decode it;
+> > therefore, bpf is ideal.
+> > 
+> > In order to support all these protocols, here we have bpf based IR decoding.
+> > The idea is that user-space can define a decoder in bpf, attach it to
+> > the rc device through the lirc chardev.
+> > 
+> > Separate work is underway to extend ir-keytable to have an extensive library
+> > of bpf-based decoders, and a much expanded library of rc keymaps.
+> > 
+> > Another future application would be to compile IRP[3] to a IR BPF program, and
+> > so support virtually every remote without having to write a decoder for each.
+> > It might also be possible to support non-button devices such as analog
+> > directional pads or air conditioning remote controls and decode the target
+> > temperature in bpf, and pass that to an input device.
 > 
-> What do you mean by "camera control interface" here ? A hardware device 
-> handling communication with camera sensors ? I assume the communication bus is 
-> I2C ? Is that "camera control interface" plain I2C or does it have additional 
-> features ?
-> 
-> If we're talking about an I2C controller a V4L2 subdev is not only unneeded, 
-> but it wouldn't help. You need an I2C master.
+> Mauro, are you fine with this series going via bpf-next? How ugly would this
+> get with regards to merge conflicts wrt drivers/media/rc/?
 
-Sorry if I wasn't quite right in description, the control interface is
-indeed i2c master and gpio. The camera sensors are i2c slaves connected to
-this i2c master and gpio for sensors are connected to this as well.
-
-> > Second the control sports GPIOs. It can support  a set of
-> > synchronization primitives so it's possible to drive I2C clients and
-> > GPIOs with hardware controlled timing to allow for sync control of
-> > sensors hooked and also for fancy strobe. How would we represent these
-> > gpios in v4l2 and allow the control, any ideas on that.
-> 
-> Even if your main use case it related to camera, synchronization of I2C and 
-> GPIO doesn't seem to be a V4L2 feature to me. It sounds that you need to 
-> implement that int he I2C and GPIO subsystems.
-
-Well if a user wants to capture multiple cameras and synchronise,
-wouldn't that need sync of i2c and gpio. I understand it may not be
-supported but the question is would it be a nice feature for v4l, if so
-how to go about it?
+There are no merge conflict and as of yet, I'm not expecting any. If anything
+I suspect the bpf tree is more likely to change, so merging via bpf-next
+might make more sense.
 
 Thanks
--- 
-~Vinod
+
+Sean
+
+> 
+> Thanks,
+> Daniel
+> 
+> > Thanks,
+> > 
+> > Sean Young
+> > 
+> > [1] http://www.hifi-remote.com/wiki/index.php?title=DecodeIR
+> > [2] https://sourceforge.net/p/lirc-remotes/code/ci/master/tree/remotes/
+> > [3] http://www.hifi-remote.com/wiki/index.php?title=IRP_Notation
+> > 
+> > Changes since v3:
+> >  - Implemented review comments from Quentin Monnet and Y Song (thanks!)
+> >  - More helpful and better formatted bpf helper documentation
+> >  - Changed back to bpf_prog_array rather than open-coded implementation
+> >  - scancodes can be 64 bit
+> >  - bpf gets passed values in microseconds, not nanoseconds.
+> >    microseconds is more than than enough (IR receivers support carriers upto
+> >    70kHz, at which point a single period is already 14 microseconds). Also,
+> >    this makes it much more consistent with lirc mode2.
+> >  - Since it looks much more like lirc mode2, rename the program type to
+> >    BPF_PROG_TYPE_LIRC_MODE2.
+> >  - Rebased on bpf-next
+> > 
+> > Changes since v2:
+> >  - Fixed locking issues
+> >  - Improved self-test to cover more cases
+> >  - Rebased on bpf-next again
+> > 
+> > Changes since v1:
+> >  - Code review comments from Y Song <ys114321@gmail.com> and
+> >    Randy Dunlap <rdunlap@infradead.org>
+> >  - Re-wrote sample bpf to be selftest
+> >  - Renamed RAWIR_DECODER -> RAWIR_EVENT (Kconfig, context, bpf prog type)
+> >  - Rebase on bpf-next
+> >  - Introduced bpf_rawir_event context structure with simpler access checking
+> > 
+> > Sean Young (3):
+> >   bpf: bpf_prog_array_copy() should return -ENOENT if exclude_prog not
+> >     found
+> >   media: rc: introduce BPF_PROG_LIRC_MODE2
+> >   bpf: add selftest for lirc_mode2 type program
+> > 
+> >  drivers/media/rc/Kconfig                      |  13 +
+> >  drivers/media/rc/Makefile                     |   1 +
+> >  drivers/media/rc/bpf-lirc.c                   | 308 ++++++++++++++++++
+> >  drivers/media/rc/lirc_dev.c                   |  30 ++
+> >  drivers/media/rc/rc-core-priv.h               |  22 ++
+> >  drivers/media/rc/rc-ir-raw.c                  |  12 +-
+> >  include/linux/bpf_rcdev.h                     |  30 ++
+> >  include/linux/bpf_types.h                     |   3 +
+> >  include/uapi/linux/bpf.h                      |  53 ++-
+> >  kernel/bpf/core.c                             |  11 +-
+> >  kernel/bpf/syscall.c                          |   7 +
+> >  kernel/trace/bpf_trace.c                      |   2 +
+> >  tools/bpf/bpftool/prog.c                      |   1 +
+> >  tools/include/uapi/linux/bpf.h                |  53 ++-
+> >  tools/include/uapi/linux/lirc.h               | 217 ++++++++++++
+> >  tools/lib/bpf/libbpf.c                        |   1 +
+> >  tools/testing/selftests/bpf/Makefile          |   8 +-
+> >  tools/testing/selftests/bpf/bpf_helpers.h     |   6 +
+> >  .../testing/selftests/bpf/test_lirc_mode2.sh  |  28 ++
+> >  .../selftests/bpf/test_lirc_mode2_kern.c      |  23 ++
+> >  .../selftests/bpf/test_lirc_mode2_user.c      | 154 +++++++++
+> >  21 files changed, 974 insertions(+), 9 deletions(-)
+> >  create mode 100644 drivers/media/rc/bpf-lirc.c
+> >  create mode 100644 include/linux/bpf_rcdev.h
+> >  create mode 100644 tools/include/uapi/linux/lirc.h
+> >  create mode 100755 tools/testing/selftests/bpf/test_lirc_mode2.sh
+> >  create mode 100644 tools/testing/selftests/bpf/test_lirc_mode2_kern.c
+> >  create mode 100644 tools/testing/selftests/bpf/test_lirc_mode2_user.c
+> > 
