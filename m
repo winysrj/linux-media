@@ -1,172 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39138 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751684AbeECKMT (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:44641 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754661AbeEWQmD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 06:12:19 -0400
-Date: Thu, 3 May 2018 13:12:16 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv12 PATCH 03/29] media-request: implement media requests
-Message-ID: <20180503101216.xramu7k6a77rx27u@valkosipuli.retiisi.org.uk>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
- <20180501090051.9321-4-hverkuil@xs4all.nl>
- <20180502222404.ksvbdv656dd2r75b@valkosipuli.retiisi.org.uk>
- <9e686118-f928-fb09-f319-d9484d92b8c1@xs4all.nl>
+        Wed, 23 May 2018 12:42:03 -0400
+Date: Wed, 23 May 2018 11:42:01 -0500
+From: Rob Herring <robh@kernel.org>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH] dt-bindings: media: rcar_vin: fix style for ports and
+ endpoints
+Message-ID: <20180523164201.GA27830@rob-hp-laptop>
+References: <20180516233212.30931-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <9e686118-f928-fb09-f319-d9484d92b8c1@xs4all.nl>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180516233212.30931-1-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 03, 2018 at 10:21:32AM +0200, Hans Verkuil wrote:
-> On 03/05/18 00:24, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Tue, May 01, 2018 at 11:00:25AM +0200, Hans Verkuil wrote:
-...
-> >> +
-> >> +static int media_request_close(struct inode *inode, struct file *filp)
-> >> +{
-> >> +	struct media_request *req = filp->private_data;
-> >> +
-> >> +	media_request_put(req);
-> > 
-> > A newline would be nice here.
+On Thu, May 17, 2018 at 01:32:12AM +0200, Niklas Söderlund wrote:
+> The style for referring to ports and endpoint are wrong. Refer to them
+> using lowercase and a unit address, port@x and endpoint@x.
 > 
-> Why? I do not see it adding anything of value. Some of your other 'newline'
-> comments make it indeed more readable, but I don't see any benefit from it
-> here.
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> ---
+>  .../devicetree/bindings/media/rcar_vin.txt    | 20 +++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
 
-I'd think it's nice to have an empty line before return if it's detached
-from everything else.
-
-> 
-> > 
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static unsigned int media_request_poll(struct file *filp,
-> >> +				       struct poll_table_struct *wait)
-> >> +{
-> >> +	struct media_request *req = filp->private_data;
-> >> +	unsigned long flags;
-> >> +	unsigned int ret = 0;
-> >> +	enum media_request_state state;
-> >> +
-> >> +	if (!(poll_requested_events(wait) & POLLPRI))
-> >> +		return 0;
-> >> +
-> >> +	spin_lock_irqsave(&req->lock, flags);
-> >> +	state = atomic_read(&req->state);
-> >> +
-> >> +	if (state == MEDIA_REQUEST_STATE_COMPLETE) {
-> >> +		ret = POLLPRI;
-> >> +		goto unlock;
-> >> +	}
-> >> +	if (state == MEDIA_REQUEST_STATE_IDLE) {
-> > 
-> > Should this be just anything else than QUEUE or VALIDATING? You're missing
-> > CLEANING here, for instance.
-> 
-> I changed it to != QUEUED. I don't think it is a good idea to include VALIDATING
-> in this. It only makes sense to poll for the result if the request is fully queued.
-
-Sounds good.
-
-...
-
-> >> +	/*
-> >> +	 * If the req_validate was successful, then we mark the state as QUEUED
-> >> +	 * and call req_queue. The reason we set the state first is that this
-> >> +	 * allows req_queue to unbind or complete the queued objects in case
-> >> +	 * they are immediately 'consumed'. State changes from QUEUED to another
-> >> +	 * state can only happen if either the driver changes the state or if
-> >> +	 * the user cancels the vb2 queue. The driver can only change the state
-> >> +	 * after each object is queued through the req_queue op (and note that
-> >> +	 * that op cannot fail), so setting the state to QUEUED up front is
-> >> +	 * safe.
-> >> +	 *
-> >> +	 * The other reason for changing the state is if the vb2 queue is
-> >> +	 * canceled, and that uses the req_queue_mutex which is still locked
-> >> +	 * while req_queue is called, so that's safe as well.
-> >> +	 */
-> >> +	atomic_set(&req->state,
-> >> +		   ret ? MEDIA_REQUEST_STATE_IDLE : MEDIA_REQUEST_STATE_QUEUED);
-> >> +
-> >> +	if (!ret)
-> >> +		mdev->ops->req_queue(req);
-> >> +
-> >> +	mutex_unlock(&mdev->req_queue_mutex);
-> >> +
-> >> +	if (ret) {
-> >> +		dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
-> >> +			req->debug_str, ret);
-> >> +	} else {
-> >> +		media_request_get(req);
-> > 
-> > You'll need to get a reference before you queue the request. Otherwise it's
-> > possible that it completes before you get here, and you end up accessing
-> > released memory. The request refcount might be also under 0 before that
-> > though.
-> 
-> No, that can't happen. This function implements the QUEUE ioctl, which can only
-> be called by userspace through the request fd, so there is always at least one
-> reference open.
-
-Indeed, you're right.
-
-The curly braces are unnecessary above btw.
-
-...
-
-> >> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> >> index bcc6ec434f1f..ae846208be51 100644
-> >> --- a/include/media/media-device.h
-> >> +++ b/include/media/media-device.h
-> >> @@ -27,6 +27,7 @@
-> >>  
-> >>  struct ida;
-> >>  struct device;
-> >> +struct media_device;
-> >>  
-> >>  /**
-> >>   * struct media_entity_notify - Media Entity Notify
-> >> @@ -50,10 +51,22 @@ struct media_entity_notify {
-> >>   * struct media_device_ops - Media device operations
-> >>   * @link_notify: Link state change notification callback. This callback is
-> >>   *		 called with the graph_mutex held.
-> >> + * @req_alloc: Allocate a request
-> >> + * @req_free: Free a request
-> >> + * @req_validate: Validate a request, but do not queue yet
-> >> + * @req_queue: Queue a validated request, cannot fail. If something goes
-> >> + *	       wrong when queueing this request then it should be marked
-> >> + *	       as such internally in the driver and any related buffers
-> >> + *	       will eventually return to userspace with V4L2_BUF_FLAG_ERROR
-> >> + *	       set.
-> > 
-> > Note that this is MC; I think the reference is fine but I'd make it
-> > explicit this is V4L2, and possibly that it's an example.
-> 
-> I've changed the last line to:
-> 
-> "must eventually return to vb2 with state VB2_BUF_STATE_ERROR."
-> 
-> Since this is really a vb2 thing, not V4L2.
-> 
-> It's not an example, based on what I know this should really be done like
-> this. If reality proves to be different, then the comment will need to change.
-
-Yes, but this is not a place for VB2 documentation nor a conclusive
-document of what a failing queue operation would mean on whichever possible
-other non-MC subsystem. So the VB2 related matter here remains an example
-only.
-
-We don't seem to have other than V4L2 using MC after more than five years
-but I'd still be wary of thinking this is bound to V4L2 only.
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Reviewed-by: Rob Herring <robh@kernel.org>
