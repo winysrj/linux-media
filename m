@@ -1,111 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:44872 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752597AbeEOH7w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:59:52 -0400
-Received: by mail-wr0-f195.google.com with SMTP id y15-v6so14880762wrg.11
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:51 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v2 22/29] venus: helpers: extend set_num_bufs helper with one more argument
-Date: Tue, 15 May 2018 10:58:52 +0300
-Message-Id: <20180515075859.17217-23-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+Received: from mail.kernel.org ([198.145.29.99]:49896 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934412AbeEWT4H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 May 2018 15:56:07 -0400
+MIME-Version: 1.0
+In-Reply-To: <1709653.qERUERh18a@avalon>
+References: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526488352-898-2-git-send-email-jacopo+renesas@jmondi.org>
+ <20180523162947.GA13661@rob-hp-laptop> <1709653.qERUERh18a@avalon>
+From: Rob Herring <robh@kernel.org>
+Date: Wed, 23 May 2018 14:55:45 -0500
+Message-ID: <CAL_JsqKAku8JPC_aX40Q59QiNkO9r8qY=pCrOLF13mbQXYpTgw@mail.gmail.com>
+Subject: Re: [PATCH 1/6] dt-bindings: media: rcar-vin: Describe optional ep properties
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Simon Horman <horms@verge.net.au>, geert@glider.be,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
+        <linux-renesas-soc@vger.kernel.org>, devicetree@vger.kernel.org,
+        "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE"
+        <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend venus_helper_set_num_bufs() helper function with one more
-argument to set number of output buffers for the secondary decoder
-output.
+On Wed, May 23, 2018 at 2:38 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Rob,
+>
+> On Wednesday, 23 May 2018 19:29:47 EEST Rob Herring wrote:
+>> On Wed, May 16, 2018 at 06:32:27PM +0200, Jacopo Mondi wrote:
+>> > Describe the optional endpoint properties for endpoint nodes of port@0
+>> > and port@1 of the R-Car VIN driver device tree bindings documentation.
+>> >
+>> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+>> > ---
+>> >
+>> >  Documentation/devicetree/bindings/media/rcar_vin.txt | 13 ++++++++++++-
+>> >  1 file changed, 12 insertions(+), 1 deletion(-)
+>> >
+>> > diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt
+>> > b/Documentation/devicetree/bindings/media/rcar_vin.txt index
+>> > a19517e1..c53ce4e 100644
+>> > --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+>> > +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+>> > @@ -53,6 +53,16 @@ from local SoC CSI-2 receivers (port1) depending on
+>> > SoC.
+>> >
+>> >        from external SoC pins described in video-interfaces.txt[1].
+>> >        Describing more then one endpoint in port 0 is invalid. Only VIN
+>> >        instances that are connected to external pins should have port 0.
+>> >
+>> > +
+>> > +      - Optional properties for endpoint nodes of port@0:
+>> > +        - hsync-active: active state of the HSYNC signal, 0/1 for
+>> > LOW/HIGH
+>> > +     respectively. Default is active high.
+>> > +        - vsync-active: active state of the VSYNC signal, 0/1 for
+>> > LOW/HIGH
+>> > +     respectively. Default is active high.
+>> > +
+>> > +   If both HSYNC and VSYNC polarities are not specified, embedded
+>> > +   synchronization is selected.
+>>
+>> No need to copy-n-paste from video-interfaces.txt. Just "see
+>> video-interfaces.txt" for the description is fine.
+>
+> I would still explicitly list the properties that apply to this binding. I
+> agree that there's no need to copy & paste the description of those properties
+> though.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/helpers.c | 16 ++++++++++++++--
- drivers/media/platform/qcom/venus/helpers.h |  3 ++-
- drivers/media/platform/qcom/venus/vdec.c    |  2 +-
- drivers/media/platform/qcom/venus/venc.c    |  2 +-
- 4 files changed, 18 insertions(+), 5 deletions(-)
+Yes, that's what I meant. List each property with "see
+video-interfaces.txt" for the description of each.
 
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index adf8701a64bb..f04d16953b3a 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -513,7 +513,8 @@ int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage)
- EXPORT_SYMBOL_GPL(venus_helper_set_core_usage);
- 
- int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
--			      unsigned int output_bufs)
-+			      unsigned int output_bufs,
-+			      unsigned int output2_bufs)
- {
- 	u32 ptype = HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL;
- 	struct hfi_buffer_count_actual buf_count;
-@@ -529,7 +530,18 @@ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- 	buf_count.type = HFI_BUFFER_OUTPUT;
- 	buf_count.count_actual = output_bufs;
- 
--	return hfi_session_set_property(inst, ptype, &buf_count);
-+	ret = hfi_session_set_property(inst, ptype, &buf_count);
-+	if (ret)
-+		return ret;
-+
-+	if (output2_bufs) {
-+		buf_count.type = HFI_BUFFER_OUTPUT2;
-+		buf_count.count_actual = output2_bufs;
-+
-+		ret = hfi_session_set_property(inst, ptype, &buf_count);
-+	}
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(venus_helper_set_num_bufs);
- 
-diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index d5e727e1ecab..8ff4bd3ef958 100644
---- a/drivers/media/platform/qcom/venus/helpers.h
-+++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -41,7 +41,8 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
- int venus_helper_set_work_mode(struct venus_inst *inst, u32 mode);
- int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage);
- int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
--			      unsigned int output_bufs);
-+			      unsigned int output_bufs,
-+			      unsigned int output2_bufs);
- int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
- 				u32 buftype);
- int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index 3c7ffebe4bad..898c5edb91f5 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -758,7 +758,7 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
- 		goto deinit_sess;
- 
- 	ret = venus_helper_set_num_bufs(inst, inst->num_input_bufs,
--					VB2_MAX_FRAME);
-+					VB2_MAX_FRAME, VB2_MAX_FRAME);
- 	if (ret)
- 		goto deinit_sess;
- 
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 3b3299bff1cd..c9c40d1ce7c6 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -963,7 +963,7 @@ static int venc_start_streaming(struct vb2_queue *q, unsigned int count)
- 		goto deinit_sess;
- 
- 	ret = venus_helper_set_num_bufs(inst, inst->num_input_bufs,
--					inst->num_output_bufs);
-+					inst->num_output_bufs, 0);
- 	if (ret)
- 		goto deinit_sess;
- 
--- 
-2.14.1
+Rob
