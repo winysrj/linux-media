@@ -1,95 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:38270 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753651AbeE3RtP (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:53937 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934761AbeEWWnD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 13:49:15 -0400
-Subject: Re: [PATCH 3/8] xen/grant-table: Allow allocating buffers suitable
- for DMA
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
- <20180525153331.31188-4-andr2000@gmail.com>
- <94de6bd7-405c-c43f-0468-be71efff7552@oracle.com>
- <c2f9f6b4-03bd-225b-a42d-b071958dd899@gmail.com>
- <ab1b28b8-02b1-3501-801c-d4f523ab829f@oracle.com>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <5e6e0f5d-a417-676a-1aad-c51eb09e6dee@gmail.com>
-Date: Wed, 30 May 2018 20:49:11 +0300
+        Wed, 23 May 2018 18:43:03 -0400
+Received: by mail-wm0-f66.google.com with SMTP id a67-v6so12970106wmf.3
+        for <linux-media@vger.kernel.org>; Wed, 23 May 2018 15:43:03 -0700 (PDT)
+Date: Thu, 24 May 2018 00:43:01 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3 2/9] media: rcar-vin: Remove two empty lines
+Message-ID: <20180523224301.GG5115@bigcity.dyn.berto.se>
+References: <1526654445-10702-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526654445-10702-3-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-In-Reply-To: <ab1b28b8-02b1-3501-801c-d4f523ab829f@oracle.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+In-Reply-To: <1526654445-10702-3-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2018 06:20 PM, Boris Ostrovsky wrote:
-> On 05/30/2018 02:34 AM, Oleksandr Andrushchenko wrote:
->> On 05/29/2018 10:10 PM, Boris Ostrovsky wrote:
->>> On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
->>> +/**
->>> + * gnttab_dma_free_pages - free DMAable pages
->>> + * @args: arguments to the function
->>> + */
->>> +int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args)
->>> +{
->>> +    xen_pfn_t *frames;
->>> +    size_t size;
->>> +    int i, ret;
->>> +
->>> +    gnttab_pages_clear_private(args->nr_pages, args->pages);
->>> +
->>> +    frames = kcalloc(args->nr_pages, sizeof(*frames), GFP_KERNEL);
->>>
->>> Any way you can do it without allocating memory? One possibility is to
->>> keep allocated frames from gnttab_dma_alloc_pages(). (Not sure I like
->>> that either but it's the only thing I can think of).
->> Yes, I was also thinking about storing the allocated frames array from
->> gnttab_dma_alloc_pages(), but that seemed not to be clear enough as
->> the caller of the gnttab_dma_alloc_pages will need to store those frames
->> in some context, so we can pass them on free. But the caller doesn't
->> really
->> need the frames which might confuse, so I decided to make those
->> allocations
->> on the fly.
->> But I can still rework that to store the frames if you insist: please
->> let me know.
->
-> I would prefer not to allocate anything in the release path. Yes, I
-> realize that dragging frames array around is not necessary but IMO it's
-> better than potentially failing an allocation during a teardown. A
-> comment in the struct definition could explain the reason for having
-> this field.
-Then I would suggest we have it this way: current API requires that
-struct page **pages are allocated from outside. So, let's allocate
-the frames from outside as well. This way the caller is responsible for
-both pages and frames arrays and API looks consistent.
->
->>>
->>>> +    if (!frames)
->>>> +        return -ENOMEM;
->>>> +
->>>> +    for (i = 0; i < args->nr_pages; i++)
->>>> +        frames[i] = page_to_xen_pfn(args->pages[i]);
->>> Not xen_page_to_gfn()?
->> Well, according to [1] it should be :
->>      /* XENMEM_populate_physmap requires a PFN based on Xen
->>       * granularity.
->>       */
->>      frame_list[i] = page_to_xen_pfn(page);
->
-> Ah, yes. I was looking at decrease_reservation and automatically assumed
-> the same parameter type.
-Good, then this one is resolved
->
-> -boris
->
->
-Thank you,
-Oleksandr
+Hi Jacopo,
+
+Thanks for your work.
+
+On 2018-05-18 16:40:38 +0200, Jacopo Mondi wrote:
+> Remove un-necessary empty lines.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
+Acked-by: Niklas S�derlund <niklas.soderlund+renesas@ragnatech.se>
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 6b80f98..1aadd90 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -707,11 +707,9 @@ static int rvin_mc_parse_of_endpoint(struct device *dev,
+>  		return -EINVAL;
+>  
+>  	if (!of_device_is_available(to_of_node(asd->match.fwnode))) {
+> -
+>  		vin_dbg(vin, "OF device %pOF disabled, ignoring\n",
+>  			to_of_node(asd->match.fwnode));
+>  		return -ENOTCONN;
+> -
+>  	}
+>  
+>  	if (vin->group->csi[vep->base.id].fwnode) {
+> -- 
+> 2.7.4
+> 
+
+-- 
+Regards,
+Niklas S�derlund
