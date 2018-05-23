@@ -1,59 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:47711 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750735AbeELKzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 May 2018 06:55:33 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] media: rc: drivers should produce alternate pulse and space timing events
-Date: Sat, 12 May 2018 11:55:29 +0100
-Message-Id: <20180512105531.30482-1-sean@mess.org>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34792 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934220AbeEWTid (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 May 2018 15:38:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Rob Herring <robh@kernel.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund@ragnatech.se, horms@verge.net.au, geert@glider.be,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 1/6] dt-bindings: media: rcar-vin: Describe optional ep properties
+Date: Wed, 23 May 2018 22:38:27 +0300
+Message-ID: <1709653.qERUERh18a@avalon>
+In-Reply-To: <20180523162947.GA13661@rob-hp-laptop>
+References: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org> <1526488352-898-2-git-send-email-jacopo+renesas@jmondi.org> <20180523162947.GA13661@rob-hp-laptop>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Report an error if this is not the case or any problem with the generated
-raw events.
+Hi Rob,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/rc-ir-raw.c | 19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+On Wednesday, 23 May 2018 19:29:47 EEST Rob Herring wrote:
+> On Wed, May 16, 2018 at 06:32:27PM +0200, Jacopo Mondi wrote:
+> > Describe the optional endpoint properties for endpoint nodes of port@0
+> > and port@1 of the R-Car VIN driver device tree bindings documentation.
+> > 
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> > 
+> >  Documentation/devicetree/bindings/media/rcar_vin.txt | 13 ++++++++++++-
+> >  1 file changed, 12 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > b/Documentation/devicetree/bindings/media/rcar_vin.txt index
+> > a19517e1..c53ce4e 100644
+> > --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > @@ -53,6 +53,16 @@ from local SoC CSI-2 receivers (port1) depending on
+> > SoC.
+> > 
+> >        from external SoC pins described in video-interfaces.txt[1].
+> >        Describing more then one endpoint in port 0 is invalid. Only VIN
+> >        instances that are connected to external pins should have port 0.
+> > 
+> > +
+> > +      - Optional properties for endpoint nodes of port@0:
+> > +        - hsync-active: active state of the HSYNC signal, 0/1 for
+> > LOW/HIGH
+> > +	  respectively. Default is active high.
+> > +        - vsync-active: active state of the VSYNC signal, 0/1 for
+> > LOW/HIGH
+> > +	  respectively. Default is active high.
+> > +
+> > +	If both HSYNC and VSYNC polarities are not specified, embedded
+> > +	synchronization is selected.
+> 
+> No need to copy-n-paste from video-interfaces.txt. Just "see
+> video-interfaces.txt" for the description is fine.
 
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 2e50104ae138..49c56da9bc67 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -22,16 +22,27 @@ static int ir_raw_event_thread(void *data)
- {
- 	struct ir_raw_event ev;
- 	struct ir_raw_handler *handler;
--	struct ir_raw_event_ctrl *raw = (struct ir_raw_event_ctrl *)data;
-+	struct ir_raw_event_ctrl *raw = data;
-+	struct rc_dev *dev = raw->dev;
- 
- 	while (1) {
- 		mutex_lock(&ir_raw_handler_lock);
- 		while (kfifo_out(&raw->kfifo, &ev, 1)) {
-+			if (is_timing_event(ev)) {
-+				if (ev.duration == 0)
-+					dev_err(&dev->dev, "nonsensical timing event of duration 0");
-+				if (is_timing_event(raw->prev_ev) &&
-+				    !is_transition(&ev, &raw->prev_ev))
-+					dev_err(&dev->dev, "two consecutive events of type %s",
-+						TO_STR(ev.pulse));
-+				if (raw->prev_ev.reset && ev.pulse == 0)
-+					dev_err(&dev->dev, "timing event after reset should be pulse");
-+			}
- 			list_for_each_entry(handler, &ir_raw_handler_list, list)
--				if (raw->dev->enabled_protocols &
-+				if (dev->enabled_protocols &
- 				    handler->protocols || !handler->protocols)
--					handler->decode(raw->dev, ev);
--			ir_lirc_raw_event(raw->dev, ev);
-+					handler->decode(dev, ev);
-+			ir_lirc_raw_event(dev, ev);
- 			raw->prev_ev = ev;
- 		}
- 		mutex_unlock(&ir_raw_handler_lock);
+I would still explicitly list the properties that apply to this binding. I 
+agree that there's no need to copy & paste the description of those properties 
+though.
+
+> > +
+> > 
+> >      - port 1 - sub-nodes describing one or more endpoints connected to
+> >      
+> >        the VIN from local SoC CSI-2 receivers. The endpoint numbers must
+> >        use the following schema.
+> > 
+> > @@ -62,6 +72,8 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+> > 
+> >          - Endpoint 2 - sub-node describing the endpoint connected to
+> >          CSI40
+> >          - Endpoint 3 - sub-node describing the endpoint connected to
+> >          CSI41
+> > 
+> > +      Endpoint nodes of port@1 do not support any optional endpoint
+> > property. +
+> > 
+> >  Device node example for Gen2 platforms
+> >  --------------------------------------
+> > 
+> > @@ -112,7 +124,6 @@ Board setup example for Gen2 platforms (vin1 composite
+> > video input)> 
+> >                  vin1ep0: endpoint {
+> >                  
+> >                          remote-endpoint = <&adv7180>;
+> > 
+> > -                        bus-width = <8>;
+> > 
+> >                  };
+> >          
+> >          };
+> >  
+> >  };
+
 -- 
-2.17.0
+Regards,
+
+Laurent Pinchart
