@@ -1,126 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:36844 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752582AbeEOH7v (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.10]:45573 "EHLO
+        mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932071AbeEWLOJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:59:51 -0400
-Received: by mail-wr0-f196.google.com with SMTP id p4-v6so14930416wrh.3
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:50 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v2 21/29] venus: helpers,vdec,venc: add helpers to set work mode and core usage
-Date: Tue, 15 May 2018 10:58:51 +0300
-Message-Id: <20180515075859.17217-22-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+        Wed, 23 May 2018 07:14:09 -0400
+Subject: Re: [PATCH] gpu: ipu-v3: Fix BT1120 interlaced CCIR codes
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <20180407130428.24833-1-marex@denx.de>
+ <1526658687.3948.15.camel@pengutronix.de>
+ <cec007aa-d0b7-0802-d771-355a29751a2b@denx.de>
+ <1526987269.3671.19.camel@pengutronix.de>
+From: Marek Vasut <marex@denx.de>
+Message-ID: <ddb808f4-6e55-6dd3-72d6-def8d983f956@denx.de>
+Date: Wed, 23 May 2018 11:44:55 +0200
+MIME-Version: 1.0
+In-Reply-To: <1526987269.3671.19.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These are new properties applicable to Venus version 4xx. Add the
-helpers and call them from decoder and encoder drivers.
+On 05/22/2018 01:07 PM, Philipp Zabel wrote:
+> Hi Marek,
+> 
+> On Fri, 2018-05-18 at 18:21 +0200, Marek Vasut wrote:
+>> On 05/18/2018 05:51 PM, Philipp Zabel wrote:
+>>> Hi Marek,
+>>>
+>>> On Sat, 2018-04-07 at 15:04 +0200, Marek Vasut wrote:
+>>>> The BT1120 interlaced CCIR codes are the same as BT656 ones
+>>>> and different than BT656 progressive CCIR codes, fix this.
+>>>
+>>> thank you for the patch, and sorry for the delay.
+>>>
+>>>> Signed-off-by: Marek Vasut <marex@denx.de>
+>>>> Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+>>>> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+>>>> ---
+>>>>  drivers/gpu/ipu-v3/ipu-csi.c | 8 ++++++--
+>>>>  1 file changed, 6 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+>>>> index caa05b0702e1..301a729581ce 100644
+>>>> --- a/drivers/gpu/ipu-v3/ipu-csi.c
+>>>> +++ b/drivers/gpu/ipu-v3/ipu-csi.c
+>>>> @@ -435,12 +435,16 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+>>>>  		break;
+>>>>  	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
+>>>>  	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
+>>>> -	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
+>>>> -	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+>>>>  		ipu_csi_write(csi, 0x40030 | CSI_CCIR_ERR_DET_EN,
+>>>>  				   CSI_CCIR_CODE_1);
+>>>>  		ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+>>>>  		break;
+>>>> +	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
+>>>> +	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+>>>> +		ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN, CSI_CCIR_CODE_1);
+>>>> +		ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
+>>>> +		ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+>>>
+>>> If these are the same as BT656 codes (so this case would be for PAL?),
+>>> could this just be moved up into the IPU_CSI_CLK_MODE_CCIR656_INTERLACED
+>>> case? Would the NTSC CCIR codes be the same as well?
+>>
+>> Dunno, I don't have any NTSC device to test. But the above was tested
+>> with a PAL device I had.
+>>
+>> I think the CCIR codes are different from BT656, although I might be wrong.
+> 
+> The driver currently has:
+> 
+>         case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
+>                 if (mbus_fmt->width == 720 && mbus_fmt->height == 576) {
+>                         /*
+>                          * PAL case
+>                          *
+>                          * Field0BlankEnd = 0x6, Field0BlankStart = 0x2,
+>                          * Field0ActiveEnd = 0x4, Field0ActiveStart = 0
+>                          * Field1BlankEnd = 0x7, Field1BlankStart = 0x3,
+>                          * Field1ActiveEnd = 0x5, Field1ActiveStart = 0x1
+>                          */
+>                         height = 625; /* framelines for PAL */
+> 
+>                         ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN,
+>                                           CSI_CCIR_CODE_1);
+>                         ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
+>                         ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+>                 } else if (mbus_fmt->width == 720 && mbus_fmt->height == 480) {                           
+>                         /*
+>                          * NTSC case
+>                          *
+>                          * Field0BlankEnd = 0x7, Field0BlankStart = 0x3,
+>                          * Field0ActiveEnd = 0x5, Field0ActiveStart = 0x1
+>                          * Field1BlankEnd = 0x6, Field1BlankStart = 0x2,
+>                          * Field1ActiveEnd = 0x4, Field1ActiveStart = 0
+>                          */
+>                         height = 525; /* framelines for NTSC */
+> 
+>                         ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
+>                                           CSI_CCIR_CODE_1);
+>                         ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
+>                         ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+>                 } else {
+>                         dev_err(csi->ipu->dev,
+>                                 "Unsupported CCIR656 interlaced video mode\n");
+>                         spin_unlock_irqrestore(&csi->lock, flags);
+>                         return -EINVAL;
+>                 }
+>                 break;
+> 
+> The PAL codes are exactly the same as in your patch. That's why I wonder
+> whether we should just move
+> 	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
+> 	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+> up before
+>         case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
+> as follows:
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/helpers.c | 28 ++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/helpers.h |  2 ++
- drivers/media/platform/qcom/venus/vdec.c    |  8 ++++++++
- drivers/media/platform/qcom/venus/venc.c    |  8 ++++++++
- 4 files changed, 46 insertions(+)
+Isn't the PAL code doing some sort of resolution check too ? Although
+this would probably work in my case too.
 
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index 0d55604f7484..adf8701a64bb 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -484,6 +484,34 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
- }
- EXPORT_SYMBOL_GPL(venus_helper_set_output_resolution);
- 
-+int venus_helper_set_work_mode(struct venus_inst *inst, u32 mode)
-+{
-+	u32 ptype = HFI_PROPERTY_PARAM_WORK_MODE;
-+	struct hfi_video_work_mode wm;
-+
-+	if (!IS_V4(inst->core))
-+		return 0;
-+
-+	wm.video_work_mode = mode;
-+
-+	return hfi_session_set_property(inst, ptype, &wm);
-+}
-+EXPORT_SYMBOL_GPL(venus_helper_set_work_mode);
-+
-+int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage)
-+{
-+	u32 ptype = HFI_PROPERTY_CONFIG_VIDEOCORES_USAGE;
-+	struct hfi_videocores_usage_type cu;
-+
-+	if (!IS_V4(inst->core))
-+		return 0;
-+
-+	cu.video_core_enable_mask = usage;
-+
-+	return hfi_session_set_property(inst, ptype, &cu);
-+}
-+EXPORT_SYMBOL_GPL(venus_helper_set_core_usage);
-+
- int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- 			      unsigned int output_bufs)
- {
-diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index 79af7845efbd..d5e727e1ecab 100644
---- a/drivers/media/platform/qcom/venus/helpers.h
-+++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -38,6 +38,8 @@ int venus_helper_set_input_resolution(struct venus_inst *inst,
- int venus_helper_set_output_resolution(struct venus_inst *inst,
- 				       unsigned int width, unsigned int height,
- 				       u32 buftype);
-+int venus_helper_set_work_mode(struct venus_inst *inst, u32 mode);
-+int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage);
- int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- 			      unsigned int output_bufs);
- int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index e8e00d0650e9..3c7ffebe4bad 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -550,6 +550,14 @@ static int vdec_set_properties(struct venus_inst *inst)
- 	u32 ptype;
- 	int ret;
- 
-+	ret = venus_helper_set_work_mode(inst, VIDC_WORK_MODE_2);
-+	if (ret)
-+		return ret;
-+
-+	ret = venus_helper_set_core_usage(inst, VIDC_CORE_ID_1);
-+	if (ret)
-+		return ret;
-+
- 	if (core->res->hfi_version == HFI_VERSION_1XX) {
- 		ptype = HFI_PROPERTY_PARAM_VDEC_CONTINUE_DATA_TRANSFER;
- 		ret = hfi_session_set_property(inst, ptype, &en);
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 8970f14b3a82..3b3299bff1cd 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -643,6 +643,14 @@ static int venc_set_properties(struct venus_inst *inst)
- 	u32 ptype, rate_control, bitrate, profile = 0, level = 0;
- 	int ret;
- 
-+	ret = venus_helper_set_work_mode(inst, VIDC_WORK_MODE_2);
-+	if (ret)
-+		return ret;
-+
-+	ret = venus_helper_set_core_usage(inst, VIDC_CORE_ID_2);
-+	if (ret)
-+		return ret;
-+
- 	ptype = HFI_PROPERTY_CONFIG_FRAME_RATE;
- 	frate.buffer_type = HFI_BUFFER_OUTPUT;
- 	frate.framerate = inst->fps * (1 << 16);
+> ----------8<----------
+> diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+> index caa05b0702e1..7e96382f9cb1 100644
+> --- a/drivers/gpu/ipu-v3/ipu-csi.c
+> +++ b/drivers/gpu/ipu-v3/ipu-csi.c
+> @@ -396,6 +396,8 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+>                 ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+>                 break;
+>         case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
+> +       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
+> +       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+>                 if (mbus_fmt->width == 720 && mbus_fmt->height == 576) {
+>                         /*
+>                          * PAL case
+> @@ -435,8 +437,6 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+>                 break;
+>         case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
+>         case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
+> -       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
+> -       case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+>                 ipu_csi_write(csi, 0x40030 | CSI_CCIR_ERR_DET_EN,
+>                                    CSI_CCIR_CODE_1);
+>                 ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+> ---------->8----------
+> 
+> Does this work for you?
+
+I cannot test this anymore, but maybe it'll help someone.
+
 -- 
-2.14.1
+Best regards,
+Marek Vasut
