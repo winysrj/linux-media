@@ -1,123 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:47280 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751954AbeEGKSa (ORCPT
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:46072 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932260AbeEWKFo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 06:18:30 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.18] Various fixes/improvements
-Message-ID: <2f5b19ac-050e-35ab-0ce8-8807a83618d5@xs4all.nl>
-Date: Mon, 7 May 2018 12:18:28 +0200
+        Wed, 23 May 2018 06:05:44 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Luca Ceresoli <luca@lucaceresoli.net>,
+        Leon Luo <leonl@leopardimaging.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v3 3/7] media: imx274: get rid of mode_index
+Date: Wed, 23 May 2018 12:05:16 +0200
+Message-Id: <1527069921-21084-4-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1527069921-21084-1-git-send-email-luca@lucaceresoli.net>
+References: <1527069921-21084-1-git-send-email-luca@lucaceresoli.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes/improvements all over the place.
+After restructuring struct imx274_frmfmt, the mode_index field is
+still in use only for two dev_dbg() calls in imx274_s_stream(). Let's
+remove it and avoid duplicated information.
 
-Regards,
+Replacing the first usage requires some rather annoying but trivial
+pointer math. The other one can be removed entirely since it would
+print the same value anyway.
 
-	Hans
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-The following changes since commit f10379aad39e9da8bc7d1822e251b5f0673067ef:
+---
+Changed v2 -> v3:
+ - really fix dev_dbg() format mismatch warning for both 32 and 64 bit
 
-  media: include/video/omapfb_dss.h: use IS_ENABLED() (2018-05-05 11:45:51 -0400)
+Changed v1 -> v2:
+ - add "media: " prefix to commit message
+ - fix dev_dbg() format mismatch warning
+   ("warning: format ‘%ld’ expects argument of type ‘long int’, but argument 6 has type ‘int’")
+ - slightly improve commit message
+---
+ drivers/media/i2c/imx274.c | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.18b
-
-for you to fetch changes up to a80a3c5312359ffb8a4e744d8674dfdfae058857:
-
-  media: imx-csi: fix burst size for 16 bit (2018-05-07 11:56:46 +0200)
-
-----------------------------------------------------------------
-Arvind Yadav (2):
-      platform: Use gpio_is_valid()
-      sta2x11: Use gpio_is_valid() and remove unnecessary check
-
-Brad Love (4):
-      em28xx: Fix DualHD broken second tuner
-      intel-ipu3: Kconfig coding style issue
-      cec: Kconfig coding style issue
-      saa7164: Fix driver name in debug output
-
-Colin Ian King (1):
-      media/usbvision: fix spelling mistake: "compresion" -> "compression"
-
-Dan Carpenter (1):
-      media: vpbe_venc: potential uninitialized variable in ven_sub_dev_init()
-
-Fengguang Wu (1):
-      media: vcodec: fix ptr_ret.cocci warnings
-
-Hans Verkuil (2):
-      cec-gpio: use GPIOD_OUT_HIGH_OPEN_DRAIN
-      v4l2-dev.h: fix doc warning
-
-Jacopo Mondi (1):
-      media: renesas-ceu: Set mbus_fmt on subdev operations
-
-Jan Luebbe (1):
-      media: imx-csi: fix burst size for 16 bit
-
-Jasmin Jessich (2):
-      media: Use ktime_set() in pt1.c
-      media: Revert cleanup ktime_set() usage
-
-Julia Lawall (1):
-      pvrusb2: delete unneeded include
-
-Niklas Söderlund (1):
-      media: entity: fix spelling for media_entity_get_fwnode_pad()
-
-Philipp Zabel (4):
-      media: coda: reuse coda_s_fmt_vid_cap to propagate format in coda_s_fmt_vid_out
-      media: coda: do not try to propagate format if capture queue busy
-      media: coda: set colorimetry on coded queue
-      media: imx: add 16-bit grayscale support
-
-Robin Murphy (1):
-      media: videobuf-dma-sg: Fix dma_{sync,unmap}_sg() calls
-
-Sami Tolvanen (1):
-      media: media-device: fix ioctl function types
-
-Simon Que (1):
-      v4l2-core: Rename array 'video_driver' to 'video_drivers'
-
-Souptick Joarder (1):
-      videobuf: Change return type to vm_fault_t
-
-Wolfram Sang (1):
-      media: platform: am437x: simplify getting .drvdata
-
- drivers/media/Kconfig                           | 12 ++++++------
- drivers/media/dvb-core/dmxdev.c                 |  2 +-
- drivers/media/media-device.c                    | 21 +++++++++++----------
- drivers/media/pci/cx88/cx88-input.c             |  6 ++++--
- drivers/media/pci/intel/ipu3/Kconfig            | 12 ++++++------
- drivers/media/pci/pt1/pt1.c                     |  2 +-
- drivers/media/pci/pt3/pt3.c                     |  2 +-
- drivers/media/pci/saa7164/saa7164-fw.c          |  3 ++-
- drivers/media/pci/sta2x11/sta2x11_vip.c         | 31 +++++++++++++++----------------
- drivers/media/platform/am437x/am437x-vpfe.c     |  6 ++----
- drivers/media/platform/cec-gpio/cec-gpio.c      |  2 +-
- drivers/media/platform/coda/coda-common.c       | 45 +++++++++++++++++++++++++++++++--------------
- drivers/media/platform/davinci/vpbe_venc.c      |  2 +-
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c |  5 +----
- drivers/media/platform/renesas-ceu.c            | 20 +++++++++++++++-----
- drivers/media/platform/via-camera.c             |  2 +-
- drivers/media/usb/em28xx/em28xx-dvb.c           |  2 +-
- drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c |  1 -
- drivers/media/usb/usbvision/usbvision-core.c    |  2 +-
- drivers/media/v4l2-core/v4l2-dev.c              | 22 +++++++++++-----------
- drivers/media/v4l2-core/videobuf-dma-sg.c       |  6 +++---
- drivers/staging/media/imx/imx-media-csi.c       |  3 ++-
- drivers/staging/media/imx/imx-media-utils.c     |  9 +++++++++
- include/media/media-entity.h                    |  2 +-
- include/media/v4l2-dev.h                        |  1 +
- 25 files changed, 128 insertions(+), 93 deletions(-)
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index 2ec31ae4e60d..f075715ffced 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -553,8 +553,6 @@ struct imx274_ctrls {
+  * @reset_gpio: Pointer to reset gpio
+  * @lock: Mutex structure
+  * @mode: Parameters for the selected readout mode
+- *        (points to imx274_formats[mode_index])
+- * @mode_index: Resolution mode index
+  */
+ struct stimx274 {
+ 	struct v4l2_subdev sd;
+@@ -567,7 +565,6 @@ struct stimx274 {
+ 	struct gpio_desc *reset_gpio;
+ 	struct mutex lock; /* mutex lock for operations */
+ 	const struct imx274_frmfmt *mode;
+-	u32 mode_index;
+ };
+ 
+ /*
+@@ -880,7 +877,6 @@ static int imx274_set_fmt(struct v4l2_subdev *sd,
+ 		index = 0;
+ 	}
+ 
+-	imx274->mode_index = index;
+ 	imx274->mode = &imx274_formats[index];
+ 
+ 	if (fmt->width > IMX274_MAX_WIDTH)
+@@ -1028,8 +1024,9 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
+ 	struct stimx274 *imx274 = to_imx274(sd);
+ 	int ret = 0;
+ 
+-	dev_dbg(&imx274->client->dev, "%s : %s, mode index = %d\n", __func__,
+-		on ? "Stream Start" : "Stream Stop", imx274->mode_index);
++	dev_dbg(&imx274->client->dev, "%s : %s, mode index = %td\n", __func__,
++		on ? "Stream Start" : "Stream Stop",
++		imx274->mode - &imx274_formats[0]);
+ 
+ 	mutex_lock(&imx274->lock);
+ 
+@@ -1068,8 +1065,7 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
+ 	}
+ 
+ 	mutex_unlock(&imx274->lock);
+-	dev_dbg(&imx274->client->dev,
+-		"%s : Done: mode = %d\n", __func__, imx274->mode_index);
++	dev_dbg(&imx274->client->dev, "%s : Done\n", __func__);
+ 	return 0;
+ 
+ fail:
+@@ -1625,8 +1621,7 @@ static int imx274_probe(struct i2c_client *client,
+ 	mutex_init(&imx274->lock);
+ 
+ 	/* initialize format */
+-	imx274->mode_index = IMX274_MODE_3840X2160;
+-	imx274->mode = &imx274_formats[imx274->mode_index];
++	imx274->mode = &imx274_formats[IMX274_MODE_3840X2160];
+ 	imx274->format.width = imx274->mode->size.width;
+ 	imx274->format.height = imx274->mode->size.height;
+ 	imx274->format.field = V4L2_FIELD_NONE;
+-- 
+2.7.4
