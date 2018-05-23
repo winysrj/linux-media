@@ -1,59 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0088.outbound.protection.outlook.com ([104.47.37.88]:53216
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751987AbeECCnM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 May 2018 22:43:12 -0400
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Vishal Sagar <vishal.sagar@xilinx.com>,
-        Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-Subject: [PATCH v5 3/8] xilinx: v4l: dma: Terminate DMA when media pipeline fail to start
-Date: Wed, 2 May 2018 19:42:48 -0700
-Message-ID: <8d18eea81b7d477d3802ebf185f995082f948ac5.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
-In-Reply-To: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
-References: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
+Received: from mail-yb0-f195.google.com ([209.85.213.195]:40717 "EHLO
+        mail-yb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754725AbeEWQ3t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 May 2018 12:29:49 -0400
+Date: Wed, 23 May 2018 11:29:47 -0500
+From: Rob Herring <robh@kernel.org>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        horms@verge.net.au, geert@glider.be, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 1/6] dt-bindings: media: rcar-vin: Describe optional ep
+ properties
+Message-ID: <20180523162947.GA13661@rob-hp-laptop>
+References: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526488352-898-2-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1526488352-898-2-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vishal Sagar <vishal.sagar@xilinx.com>
+On Wed, May 16, 2018 at 06:32:27PM +0200, Jacopo Mondi wrote:
+> Describe the optional endpoint properties for endpoint nodes of port@0
+> and port@1 of the R-Car VIN driver device tree bindings documentation.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> index a19517e1..c53ce4e 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -53,6 +53,16 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+>        from external SoC pins described in video-interfaces.txt[1].
+>        Describing more then one endpoint in port 0 is invalid. Only VIN
+>        instances that are connected to external pins should have port 0.
+> +
+> +      - Optional properties for endpoint nodes of port@0:
+> +        - hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH
+> +	  respectively. Default is active high.
+> +        - vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH
+> +	  respectively. Default is active high.
+> +
+> +	If both HSYNC and VSYNC polarities are not specified, embedded
+> +	synchronization is selected.
 
-If an incorrectly configured media pipeline is started, the allocated
-dma descriptors aren't freed. This leads to kernel oops when pipeline
-is configured correctly and run subsequently.
+No need to copy-n-paste from video-interfaces.txt. Just "see 
+video-interfaces.txt" for the description is fine.
 
-This patch also replaces dmaengine_terminate_all() with
-dmaengine_terminate_sync() as the former one is deprecated.
-
-Signed-off-by: Vishal Sagar <vishal.sagar@xilinx.com>
-Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
----
- drivers/media/platform/xilinx/xilinx-dma.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 5426efe..727dc6e 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -437,6 +437,7 @@ static int xvip_dma_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	media_pipeline_stop(&dma->video.entity);
- 
- error:
-+	dmaengine_terminate_sync(dma->dma);
- 	/* Give back all queued buffers to videobuf2. */
- 	spin_lock_irq(&dma->queued_lock);
- 	list_for_each_entry_safe(buf, nbuf, &dma->queued_bufs, queue) {
-@@ -458,7 +459,7 @@ static void xvip_dma_stop_streaming(struct vb2_queue *vq)
- 	xvip_pipeline_set_stream(pipe, false);
- 
- 	/* Stop and reset the DMA engine. */
--	dmaengine_terminate_all(dma->dma);
-+	dmaengine_terminate_sync(dma->dma);
- 
- 	/* Cleanup the pipeline and mark it as being stopped. */
- 	xvip_pipeline_cleanup(pipe);
--- 
-2.7.4
+> +
+>      - port 1 - sub-nodes describing one or more endpoints connected to
+>        the VIN from local SoC CSI-2 receivers. The endpoint numbers must
+>        use the following schema.
+> @@ -62,6 +72,8 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+>          - Endpoint 2 - sub-node describing the endpoint connected to CSI40
+>          - Endpoint 3 - sub-node describing the endpoint connected to CSI41
+> 
+> +      Endpoint nodes of port@1 do not support any optional endpoint property.
+> +
+>  Device node example for Gen2 platforms
+>  --------------------------------------
+> 
+> @@ -112,7 +124,6 @@ Board setup example for Gen2 platforms (vin1 composite video input)
+> 
+>                  vin1ep0: endpoint {
+>                          remote-endpoint = <&adv7180>;
+> -                        bus-width = <8>;
+>                  };
+>          };
+>  };
+> --
+> 2.7.4
+> 
