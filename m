@@ -1,54 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:36702 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751248AbeEHKuB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 06:50:01 -0400
-Date: Tue, 8 May 2018 07:49:57 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv13 12/28] v4l2-ctrls: add core request support
-Message-ID: <20180508074957.2c8e5464@vento.lan>
-In-Reply-To: <630745ed-dcac-61f6-9683-2236fc6c2c2a@xs4all.nl>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
-        <20180503145318.128315-13-hverkuil@xs4all.nl>
-        <20180507150600.66d794c6@vento.lan>
-        <630745ed-dcac-61f6-9683-2236fc6c2c2a@xs4all.nl>
+Received: from mail.kernel.org ([198.145.29.99]:54812 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933729AbeEWUE7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 May 2018 16:04:59 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <m3in7lrnl2.fsf@gmail.com>
+References: <20180509143159.20690-1-rui.silva@linaro.org> <20180509143159.20690-2-rui.silva@linaro.org>
+ <20180518141830.GA14547@rob-hp-laptop> <m3in7lrnl2.fsf@gmail.com>
+From: Rob Herring <robh@kernel.org>
+Date: Wed, 23 May 2018 15:04:37 -0500
+Message-ID: <CAL_JsqLRfwTT9Cr9rWJNdoKJoAWkD0eiaRhkqpa9d-t3Wbvbhg@mail.gmail.com>
+Subject: Re: [PATCH v6 1/2] media: ov2680: dt: Add bindings for OV2680
+To: Rui Miguel Silva <rmfrfs@gmail.com>
+Cc: Rui Miguel Silva <rui.silva@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 8 May 2018 10:07:22 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Fri, May 18, 2018 at 10:27 AM, Rui Miguel Silva <rmfrfs@gmail.com> wrote:
+> Hi Rob,
+> On Fri 18 May 2018 at 14:18, Rob Herring wrote:
+>>
+>> On Wed, May 09, 2018 at 03:31:58PM +0100, Rui Miguel Silva wrote:
+>>>
+>>> Add device tree binding documentation for the OV2680 camera sensor.
+>>>
+>>> CC: devicetree@vger.kernel.org
+>>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>>> ---
+>>>  .../devicetree/bindings/media/i2c/ov2680.txt  | 46  +++++++++++++++++++
+>>>  1 file changed, 46 insertions(+)
+>>>  create mode 100644
+>>> Documentation/devicetree/bindings/media/i2c/ov2680.txt
+>>
+>>
+>> Please add acks/reviewed bys on new versions.
+>
+>
+> I have add this to the cover letter [0]:
+> - Removed Rob Herring Reviewed-by tag, since bindings have changed  since
+> his
+>  ack.
+>
+> But only now I notice that I did not CC the devicetree list for the all
+> series, but only for this particular patch. Sorry about that.
 
-> >> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> >> index 76352eb59f14..a0f7c38d1a90 100644
-> >> --- a/include/media/v4l2-ctrls.h
-> >> +++ b/include/media/v4l2-ctrls.h
-> >> @@ -250,6 +250,10 @@ struct v4l2_ctrl {
-> >>   *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
-> >>   * @from_other_dev: If true, then @ctrl was defined in another
-> >>   *		device than the &struct v4l2_ctrl_handler.
-> >> + * @done:	If true, then this control reference is part of a
-> >> + *		control cluster that was already set while applying
-> >> + *		the controls in this media request object.  
-> > 
-> > Hmm... I would rename it for request_done or something similar, as it
-> > seems that this applies only for requests.  
-> 
-> No, the variable name is correct (it serves the same purpose as the 'done'
-> field in struct v4l2_ctrl), but the description should be improved.
-> 
-> I also want to take another look at this: I wonder if it isn't possible to
-> use the v4l2_ctrl 'done' field for this instead of having to add a new field
-> here.
+NP. It's better to put this and revision history in the individual
+patches. I don't always read cover letters anyways.
 
-If it can use v4l2_ctrl done, it would indeed be better. Otherwise, as
-this new "done" is used only by requests, I really think that it shold
-be renamed, to let it clearer that this is the "done" that should be used
-when requests are used.
-
-Thanks,
-Mauro
+Rob
