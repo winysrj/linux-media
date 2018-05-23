@@ -1,76 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36012 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752290AbeEGN6Q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 09:58:16 -0400
-Received: by mail-wm0-f67.google.com with SMTP id n10-v6so15565456wmc.1
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 06:58:16 -0700 (PDT)
-Date: Mon, 7 May 2018 15:58:13 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Ezequiel Garcia <ezequiel@collabora.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        Gustavo Padovan <gustavo@padovan.org>, kernel@collabora.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf: Remove unneeded stubs around sync_debug
- interfaces
-Message-ID: <20180507135813.GK12521@phenom.ffwll.local>
-References: <20180504180037.10661-1-ezequiel@collabora.com>
+Received: from www62.your-server.de ([213.133.104.62]:46210 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932534AbeEWMVa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 May 2018 08:21:30 -0400
+Subject: Re: [PATCH v4 0/3] IR decoding using BPF
+To: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        netdev@vger.kernel.org, Matthias Reichl <hias@horus.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Y Song <ys114321@gmail.com>,
+        Quentin Monnet <quentin.monnet@netronome.com>
+References: <cover.1526651592.git.sean@mess.org>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <860cf2a8-dd2e-ba78-8b98-3d8f4330f3d0@iogearbox.net>
+Date: Wed, 23 May 2018 14:21:27 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180504180037.10661-1-ezequiel@collabora.com>
+In-Reply-To: <cover.1526651592.git.sean@mess.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 04, 2018 at 03:00:37PM -0300, Ezequiel Garcia wrote:
-> The sync_debug.h header is internal, and only used by
-> sw_sync.c. Therefore, SW_SYNC is always defined and there
-> is no need for the stubs. Remove them and make the code
-> simpler.
+On 05/18/2018 04:07 PM, Sean Young wrote:
+> The kernel IR decoders (drivers/media/rc/ir-*-decoder.c) support the most
+> widely used IR protocols, but there are many protocols which are not
+> supported[1]. For example, the lirc-remotes[2] repo has over 2700 remotes,
+> many of which are not supported by rc-core. There is a "long tail" of
+> unsupported IR protocols, for which lircd is need to decode the IR .
 > 
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> IR encoding is done in such a way that some simple circuit can decode it;
+> therefore, bpf is ideal.
+> 
+> In order to support all these protocols, here we have bpf based IR decoding.
+> The idea is that user-space can define a decoder in bpf, attach it to
+> the rc device through the lirc chardev.
+> 
+> Separate work is underway to extend ir-keytable to have an extensive library
+> of bpf-based decoders, and a much expanded library of rc keymaps.
+> 
+> Another future application would be to compile IRP[3] to a IR BPF program, and
+> so support virtually every remote without having to write a decoder for each.
+> It might also be possible to support non-button devices such as analog
+> directional pads or air conditioning remote controls and decode the target
+> temperature in bpf, and pass that to an input device.
 
-Applied, thanks.
--Daniel
-> ---
->  drivers/dma-buf/sync_debug.h | 10 ----------
->  1 file changed, 10 deletions(-)
-> 
-> diff --git a/drivers/dma-buf/sync_debug.h b/drivers/dma-buf/sync_debug.h
-> index d615a89f774c..05e33f937ad0 100644
-> --- a/drivers/dma-buf/sync_debug.h
-> +++ b/drivers/dma-buf/sync_debug.h
-> @@ -62,8 +62,6 @@ struct sync_pt {
->  	struct rb_node node;
->  };
->  
-> -#ifdef CONFIG_SW_SYNC
-> -
->  extern const struct file_operations sw_sync_debugfs_fops;
->  
->  void sync_timeline_debug_add(struct sync_timeline *obj);
-> @@ -72,12 +70,4 @@ void sync_file_debug_add(struct sync_file *fence);
->  void sync_file_debug_remove(struct sync_file *fence);
->  void sync_dump(void);
->  
-> -#else
-> -# define sync_timeline_debug_add(obj)
-> -# define sync_timeline_debug_remove(obj)
-> -# define sync_file_debug_add(fence)
-> -# define sync_file_debug_remove(fence)
-> -# define sync_dump()
-> -#endif
-> -
->  #endif /* _LINUX_SYNC_H */
-> -- 
-> 2.16.3
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+Mauro, are you fine with this series going via bpf-next? How ugly would this
+get with regards to merge conflicts wrt drivers/media/rc/?
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Thanks,
+Daniel
+
+> Thanks,
+> 
+> Sean Young
+> 
+> [1] http://www.hifi-remote.com/wiki/index.php?title=DecodeIR
+> [2] https://sourceforge.net/p/lirc-remotes/code/ci/master/tree/remotes/
+> [3] http://www.hifi-remote.com/wiki/index.php?title=IRP_Notation
+> 
+> Changes since v3:
+>  - Implemented review comments from Quentin Monnet and Y Song (thanks!)
+>  - More helpful and better formatted bpf helper documentation
+>  - Changed back to bpf_prog_array rather than open-coded implementation
+>  - scancodes can be 64 bit
+>  - bpf gets passed values in microseconds, not nanoseconds.
+>    microseconds is more than than enough (IR receivers support carriers upto
+>    70kHz, at which point a single period is already 14 microseconds). Also,
+>    this makes it much more consistent with lirc mode2.
+>  - Since it looks much more like lirc mode2, rename the program type to
+>    BPF_PROG_TYPE_LIRC_MODE2.
+>  - Rebased on bpf-next
+> 
+> Changes since v2:
+>  - Fixed locking issues
+>  - Improved self-test to cover more cases
+>  - Rebased on bpf-next again
+> 
+> Changes since v1:
+>  - Code review comments from Y Song <ys114321@gmail.com> and
+>    Randy Dunlap <rdunlap@infradead.org>
+>  - Re-wrote sample bpf to be selftest
+>  - Renamed RAWIR_DECODER -> RAWIR_EVENT (Kconfig, context, bpf prog type)
+>  - Rebase on bpf-next
+>  - Introduced bpf_rawir_event context structure with simpler access checking
+> 
+> Sean Young (3):
+>   bpf: bpf_prog_array_copy() should return -ENOENT if exclude_prog not
+>     found
+>   media: rc: introduce BPF_PROG_LIRC_MODE2
+>   bpf: add selftest for lirc_mode2 type program
+> 
+>  drivers/media/rc/Kconfig                      |  13 +
+>  drivers/media/rc/Makefile                     |   1 +
+>  drivers/media/rc/bpf-lirc.c                   | 308 ++++++++++++++++++
+>  drivers/media/rc/lirc_dev.c                   |  30 ++
+>  drivers/media/rc/rc-core-priv.h               |  22 ++
+>  drivers/media/rc/rc-ir-raw.c                  |  12 +-
+>  include/linux/bpf_rcdev.h                     |  30 ++
+>  include/linux/bpf_types.h                     |   3 +
+>  include/uapi/linux/bpf.h                      |  53 ++-
+>  kernel/bpf/core.c                             |  11 +-
+>  kernel/bpf/syscall.c                          |   7 +
+>  kernel/trace/bpf_trace.c                      |   2 +
+>  tools/bpf/bpftool/prog.c                      |   1 +
+>  tools/include/uapi/linux/bpf.h                |  53 ++-
+>  tools/include/uapi/linux/lirc.h               | 217 ++++++++++++
+>  tools/lib/bpf/libbpf.c                        |   1 +
+>  tools/testing/selftests/bpf/Makefile          |   8 +-
+>  tools/testing/selftests/bpf/bpf_helpers.h     |   6 +
+>  .../testing/selftests/bpf/test_lirc_mode2.sh  |  28 ++
+>  .../selftests/bpf/test_lirc_mode2_kern.c      |  23 ++
+>  .../selftests/bpf/test_lirc_mode2_user.c      | 154 +++++++++
+>  21 files changed, 974 insertions(+), 9 deletions(-)
+>  create mode 100644 drivers/media/rc/bpf-lirc.c
+>  create mode 100644 include/linux/bpf_rcdev.h
+>  create mode 100644 tools/include/uapi/linux/lirc.h
+>  create mode 100755 tools/testing/selftests/bpf/test_lirc_mode2.sh
+>  create mode 100644 tools/testing/selftests/bpf/test_lirc_mode2_kern.c
+>  create mode 100644 tools/testing/selftests/bpf/test_lirc_mode2_user.c
+> 
