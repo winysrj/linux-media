@@ -1,96 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:33043 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752524AbeEGSJ4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 14:09:56 -0400
-Received: by mail-pl0-f65.google.com with SMTP id w12-v6so209371plp.0
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 11:09:55 -0700 (PDT)
-From: Sami Tolvanen <samitolvanen@google.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:55196 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932264AbeEWKFo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 May 2018 06:05:44 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Luca Ceresoli <luca@lucaceresoli.net>,
+        Leon Luo <leonl@leopardimaging.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-kernel@vger.kernel.org,
-        Sami Tolvanen <samitolvanen@google.com>
-Subject: [PATCH v2] media: media-device: fix ioctl function types
-Date: Mon,  7 May 2018 11:09:46 -0700
-Message-Id: <20180507180946.104340-1-samitolvanen@google.com>
-In-Reply-To: <20180507104509.lq4ep22fm6h53gra@valkosipuli.retiisi.org.uk>
-References: <20180507104509.lq4ep22fm6h53gra@valkosipuli.retiisi.org.uk>
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v3 5/7] media: imx274: simplify imx274_write_table()
+Date: Wed, 23 May 2018 12:05:18 +0200
+Message-Id: <1527069921-21084-6-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1527069921-21084-1-git-send-email-luca@lucaceresoli.net>
+References: <1527069921-21084-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This change fixes function types for media device ioctls to avoid
-indirect call mismatches with Control-Flow Integrity checking.
+imx274_write_table() is a mere wrapper (and the only user) to
+imx274_regmap_util_write_table_8(). Remove this useless indirection by
+merging the two functions into one.
 
-Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
+Also get rid of the wait_ms_addr and end_addr parameters since it does
+not make any sense to give them any values other than
+IMX274_TABLE_WAIT_MS and IMX274_TABLE_END.
+
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+
 ---
- drivers/media/media-device.c | 21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+Changed v2 -> v3: nothing
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 35e81f7c0d2f1..ae59c31775557 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -54,9 +54,10 @@ static int media_device_close(struct file *filp)
- 	return 0;
+Changed v1 -> v2:
+ - add "media: " prefix to commit message
+---
+ drivers/media/i2c/imx274.c | 28 ++++++++++------------------
+ 1 file changed, 10 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index ceeec97cd330..48343c2ade83 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -597,20 +597,18 @@ static inline struct stimx274 *to_imx274(struct v4l2_subdev *sd)
  }
  
--static int media_device_get_info(struct media_device *dev,
--				 struct media_device_info *info)
-+static long media_device_get_info(struct media_device *dev, void *arg)
+ /*
+- * imx274_regmap_util_write_table_8 - Function for writing register table
+- * @regmap: Pointer to device reg map structure
+- * @table: Table containing register values
+- * @wait_ms_addr: Flag for performing delay
+- * @end_addr: Flag for incating end of table
++ * Writing a register table
++ *
++ * @priv: Pointer to device
++ * @table: Table containing register values (with optional delays)
+  *
+  * This is used to write register table into sensor's reg map.
+  *
+  * Return: 0 on success, errors otherwise
+  */
+-static int imx274_regmap_util_write_table_8(struct regmap *regmap,
+-					    const struct reg_8 table[],
+-					    u16 wait_ms_addr, u16 end_addr)
++static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
  {
-+	struct media_device_info *info = arg;
-+
- 	memset(info, 0, sizeof(*info));
++	struct regmap *regmap = priv->regmap;
+ 	int err = 0;
+ 	const struct reg_8 *next;
+ 	u8 val;
+@@ -622,8 +620,8 @@ static int imx274_regmap_util_write_table_8(struct regmap *regmap,
  
- 	if (dev->driver_name[0])
-@@ -93,9 +94,9 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
- 	return NULL;
+ 	for (next = table;; next++) {
+ 		if ((next->addr != range_start + range_count) ||
+-		    (next->addr == end_addr) ||
+-		    (next->addr == wait_ms_addr) ||
++		    (next->addr == IMX274_TABLE_END) ||
++		    (next->addr == IMX274_TABLE_WAIT_MS) ||
+ 		    (range_count == max_range_vals)) {
+ 			if (range_count == 1)
+ 				err = regmap_write(regmap,
+@@ -642,10 +640,10 @@ static int imx274_regmap_util_write_table_8(struct regmap *regmap,
+ 			range_count = 0;
+ 
+ 			/* Handle special address values */
+-			if (next->addr == end_addr)
++			if (next->addr == IMX274_TABLE_END)
+ 				break;
+ 
+-			if (next->addr == wait_ms_addr) {
++			if (next->addr == IMX274_TABLE_WAIT_MS) {
+ 				msleep_range(next->val);
+ 				continue;
+ 			}
+@@ -692,12 +690,6 @@ static inline int imx274_write_reg(struct stimx274 *priv, u16 addr, u8 val)
+ 	return err;
  }
  
--static long media_device_enum_entities(struct media_device *mdev,
--				       struct media_entity_desc *entd)
-+static long media_device_enum_entities(struct media_device *mdev, void *arg)
- {
-+	struct media_entity_desc *entd = arg;
- 	struct media_entity *ent;
- 
- 	ent = find_entity(mdev, entd->id);
-@@ -146,9 +147,9 @@ static void media_device_kpad_to_upad(const struct media_pad *kpad,
- 	upad->flags = kpad->flags;
- }
- 
--static long media_device_enum_links(struct media_device *mdev,
--				    struct media_links_enum *links)
-+static long media_device_enum_links(struct media_device *mdev, void *arg)
- {
-+	struct media_links_enum *links = arg;
- 	struct media_entity *entity;
- 
- 	entity = find_entity(mdev, links->entity);
-@@ -195,9 +196,9 @@ static long media_device_enum_links(struct media_device *mdev,
- 	return 0;
- }
- 
--static long media_device_setup_link(struct media_device *mdev,
--				    struct media_link_desc *linkd)
-+static long media_device_setup_link(struct media_device *mdev, void *arg)
- {
-+	struct media_link_desc *linkd = arg;
- 	struct media_link *link = NULL;
- 	struct media_entity *source;
- 	struct media_entity *sink;
-@@ -225,9 +226,9 @@ static long media_device_setup_link(struct media_device *mdev,
- 	return __media_entity_setup_link(link, linkd->flags);
- }
- 
--static long media_device_get_topology(struct media_device *mdev,
--				      struct media_v2_topology *topo)
-+static long media_device_get_topology(struct media_device *mdev, void *arg)
- {
-+	struct media_v2_topology *topo = arg;
- 	struct media_entity *entity;
- 	struct media_interface *intf;
- 	struct media_pad *pad;
+-static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
+-{
+-	return imx274_regmap_util_write_table_8(priv->regmap,
+-		table, IMX274_TABLE_WAIT_MS, IMX274_TABLE_END);
+-}
+-
+ /*
+  * Set mode registers to start stream.
+  * @priv: Pointer to device structure
 -- 
-2.17.0.441.gb46fe60e1d-goog
+2.7.4
