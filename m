@@ -1,58 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:43990 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754623AbeEWQhY (ORCPT
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:47981 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964963AbeEXHPO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 12:37:24 -0400
-Date: Wed, 23 May 2018 11:37:21 -0500
-From: Rob Herring <robh@kernel.org>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
-        horms@verge.net.au, geert@glider.be, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 2/6] dt-bindings: media: rcar-vin: Document data-active
-Message-ID: <20180523163721.GB16505@rob-hp-laptop>
-References: <1526488352-898-1-git-send-email-jacopo+renesas@jmondi.org>
- <1526488352-898-3-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1526488352-898-3-git-send-email-jacopo+renesas@jmondi.org>
+        Thu, 24 May 2018 03:15:14 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Subject: [PATCH v2 11/13] dmaengine: pxa: make the filter function internal
+Date: Thu, 24 May 2018 09:07:01 +0200
+Message-Id: <20180524070703.11901-12-robert.jarzmik@free.fr>
+In-Reply-To: <20180524070703.11901-1-robert.jarzmik@free.fr>
+References: <20180524070703.11901-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 16, 2018 at 06:32:28PM +0200, Jacopo Mondi wrote:
-> Document 'data-active' property in R-Car VIN device tree bindings.
-> The property is optional when running with explicit synchronization
-> (eg. BT.601) but mandatory when embedded synchronization is in use (eg.
-> BT.656) as specified by the hardware manual.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  Documentation/devicetree/bindings/media/rcar_vin.txt | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> index c53ce4e..17eac8a 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -63,6 +63,11 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
->  	If both HSYNC and VSYNC polarities are not specified, embedded
->  	synchronization is selected.
-> 
-> +        - data-active: active state of data enable signal (CLOCKENB pin).
-> +          0/1 for LOW/HIGH respectively. If not specified, use HSYNC as
-> +          data enable signal. When using embedded synchronization this
-> +          property is mandatory.
+As the pxa architecture and all its related drivers do not rely anymore
+on the filter function, thanks to the slave map conversion, make
+pxad_filter_fn() static, and remove it from the global namespace.
 
-This doesn't match the common property's definition which AIUI is for 
-the data lines' polarity. You need a new property. Perhaps a common one.
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/dma/pxa_dma.c       |  5 ++---
+ include/linux/dma/pxa-dma.h | 11 -----------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
-> +
->      - port 1 - sub-nodes describing one or more endpoints connected to
->        the VIN from local SoC CSI-2 receivers. The endpoint numbers must
->        use the following schema.
-> --
-> 2.7.4
-> 
+diff --git a/drivers/dma/pxa_dma.c b/drivers/dma/pxa_dma.c
+index 9505334f9c6e..a332ad1d7dfb 100644
+--- a/drivers/dma/pxa_dma.c
++++ b/drivers/dma/pxa_dma.c
+@@ -179,7 +179,7 @@ static unsigned int pxad_drcmr(unsigned int line)
+ 	return 0x1000 + line * 4;
+ }
+ 
+-bool pxad_filter_fn(struct dma_chan *chan, void *param);
++static bool pxad_filter_fn(struct dma_chan *chan, void *param);
+ 
+ /*
+  * Debug fs
+@@ -1496,7 +1496,7 @@ static struct platform_driver pxad_driver = {
+ 	.remove		= pxad_remove,
+ };
+ 
+-bool pxad_filter_fn(struct dma_chan *chan, void *param)
++static bool pxad_filter_fn(struct dma_chan *chan, void *param)
+ {
+ 	struct pxad_chan *c = to_pxad_chan(chan);
+ 	struct pxad_param *p = param;
+@@ -1509,7 +1509,6 @@ bool pxad_filter_fn(struct dma_chan *chan, void *param)
+ 
+ 	return true;
+ }
+-EXPORT_SYMBOL_GPL(pxad_filter_fn);
+ 
+ module_platform_driver(pxad_driver);
+ 
+diff --git a/include/linux/dma/pxa-dma.h b/include/linux/dma/pxa-dma.h
+index 9fc594f69eff..fceb5df07097 100644
+--- a/include/linux/dma/pxa-dma.h
++++ b/include/linux/dma/pxa-dma.h
+@@ -23,15 +23,4 @@ struct pxad_param {
+ 	enum pxad_chan_prio prio;
+ };
+ 
+-struct dma_chan;
+-
+-#ifdef CONFIG_PXA_DMA
+-bool pxad_filter_fn(struct dma_chan *chan, void *param);
+-#else
+-static inline bool pxad_filter_fn(struct dma_chan *chan, void *param)
+-{
+-	return false;
+-}
+-#endif
+-
+ #endif /* _PXA_DMA_H_ */
+-- 
+2.11.0
