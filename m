@@ -1,84 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:43796 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751233AbeEQIyH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 04:54:07 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:44460 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965450AbeEXIoU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 04:44:20 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v3 00/12] media: ov5640: Misc cleanup and improvements
-Date: Thu, 17 May 2018 10:53:53 +0200
-Message-Id: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+        Alexandre Courbot <acourbot@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: RFC: Request API and memory-to-memory devices
+Message-ID: <157f4fc4-eebf-41ab-1e9c-93d7baefc612@xs4all.nl>
+Date: Thu, 24 May 2018 10:44:13 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Memory-to-memory devices have one video node, one internal control handler
+but two vb2_queues (DMA engines). While often there is one buffer produced
+for every buffer consumed, but this is by no means standard. E.g. deinterlacers
+will produce on buffer for every two buffers consumed. Codecs that receive
+a bit stream and can parse it to discover the framing may have no relation
+between the number of buffers consumed and the number of buffers produced.
 
-Here is a "small" series that mostly cleans up the ov5640 driver code,
-slowly getting rid of the big data array for more understandable code
-(hopefully).
+This poses a few problems for the Request API. Requiring that a request
+contains the buffers for both output and capture queue will be difficult
+to implement, especially in the latter case where there is no relationship
+between the number of consumed and produced buffers.
 
-The biggest addition would be the clock rate computation at runtime,
-instead of relying on those arrays to setup the clock tree
-properly. As a side effect, it fixes the framerate that was off by
-around 10% on the smaller resolutions, and we now support 60fps.
+In addition, userspace can make two requests: one for the capture queue,
+one for the output queue, each with associated controls. But since the
+controls are shared between capture and output there is an issue of
+what to do when the same control is set in both requests.
 
-This also introduces a bunch of new features.
+I propose to restrict the usage of requests for m2m drivers to the output
+queue only. This keeps things simple for both kernel and userspace and
+avoids complex solutions.
 
-Let me know what you think,
-Maxime
+Requests only make sense if there is actually configuration you can apply
+for each buffer, and while that's true for the output queue, on the capture
+queue you just capture the result of whatever the device delivers. I don't
+believe there is much if anything you can or want to control per-buffer.
 
-Changes from v2:
-  - Rebased on latest Sakari PR
-  - Fixed the issues reported by Hugues: improper FPS returned for
-    formats, improper rounding of the FPS, some with his suggestions,
-    some by simplifying the logic.
-  - Expanded the clock tree comments based on the feedback from Samuel
-    Bobrowicz and Loic Poulain
-  - Merged some of the changes made by Samuel Bobrowicz to fix the
-    MIPI rate computation, fix the call sites of the
-    ov5640_set_timings function, the auto-exposure calculation call,
-    etc.
-  - Split the patches into smaller ones in order to make it more
-    readable (hopefully)
+Am I missing something? Comments?
 
-Changes from v1:
-  - Integrated Hugues' suggestions to fix v4l2-compliance
-  - Fixed the bus width with JPEG
-  - Dropped the clock rate calculation loops for something simpler as
-    suggested by Sakari
-  - Cache the exposure value instead of using the control value
-  - Rebased on top of 4.17
+Regards,
 
-Maxime Ripard (11):
-  media: ov5640: Adjust the clock based on the expected rate
-  media: ov5640: Remove the clocks registers initialization
-  media: ov5640: Remove redundant defines
-  media: ov5640: Remove redundant register setup
-  media: ov5640: Compute the clock rate at runtime
-  media: ov5640: Remove pixel clock rates
-  media: ov5640: Enhance FPS handling
-  media: ov5640: Make the return rate type more explicit
-  media: ov5640: Make the FPS clamping / rounding more extendable
-  media: ov5640: Add 60 fps support
-  media: ov5640: Remove duplicate auto-exposure setup
-
-Samuel Bobrowicz (1):
-  media: ov5640: Fix timings setup code
-
- drivers/media/i2c/ov5640.c | 701 +++++++++++++++++++++----------------
- 1 file changed, 392 insertions(+), 309 deletions(-)
-
--- 
-2.17.0
+	Hans
