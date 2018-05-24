@@ -1,134 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:35912 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751209AbeEHKpf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 06:45:35 -0400
-Date: Tue, 8 May 2018 07:45:28 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv13 06/28] v4l2-dev: lock req_queue_mutex
-Message-ID: <20180508074528.10e5c8cd@vento.lan>
-In-Reply-To: <f33821d6-3105-4ac0-ca86-36024463bec9@xs4all.nl>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
-        <20180503145318.128315-7-hverkuil@xs4all.nl>
-        <20180507142037.1a49d58b@vento.lan>
-        <f33821d6-3105-4ac0-ca86-36024463bec9@xs4all.nl>
+Received: from mail.bootlin.com ([62.4.15.54]:34473 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S970489AbeEXO7E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 10:59:04 -0400
+Date: Thu, 24 May 2018 16:59:02 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Daniel Mack <daniel@zonque.org>
+Cc: Sam Bobrowicz <sam@elite-embedded.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH v3 03/12] media: ov5640: Remove the clocks registers
+ initialization
+Message-ID: <20180524145902.2iiyp2pxzedf7ane@flea>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+ <20180517085405.10104-4-maxime.ripard@bootlin.com>
+ <0de04d7b-9c75-3e4e-4cf9-deaedeab54a4@zonque.org>
+ <CAFwsNOEkLU91qYtj=n_pd=kvvovXs6JTFiMFvwsMRvB0nY5H=g@mail.gmail.com>
+ <20180521073902.ayky27k5pcyfyyvc@flea>
+ <20180522195437.bay6muqp3uqq5k3z@flea>
+ <f4948940-c3e1-5464-c012-e4d6ca196cdd@zonque.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="lpns2gjluurk3v6u"
+Content-Disposition: inline
+In-Reply-To: <f4948940-c3e1-5464-c012-e4d6ca196cdd@zonque.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 8 May 2018 09:45:27 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> On 05/07/2018 07:20 PM, Mauro Carvalho Chehab wrote:
-> > Em Thu,  3 May 2018 16:52:56 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> We need to serialize streamon/off with queueing new requests.
-> >> These ioctls may trigger the cancellation of a streaming
-> >> operation, and that should not be mixed with queuing a new
-> >> request at the same time.
-> >>
-> >> Also TRY/S_EXT_CTRLS needs this lock to correctly serialize
-> >> with MEDIA_REQUEST_IOC_QUEUE.
-> >>
-> >> Finally close() needs this lock since that too can trigger the
-> >> cancellation of a streaming operation.
-> >>
-> >> We take the req_queue_mutex here before any other locks since
-> >> it is a very high-level lock.
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>  drivers/media/v4l2-core/v4l2-dev.c | 37 +++++++++++++++++++++++++++++-
-> >>  1 file changed, 36 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> >> index 1d0b2208e8fb..b1c9efc0ecc4 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> >> @@ -353,13 +353,36 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-> >>  
-> >>  	if (vdev->fops->unlocked_ioctl) {
-> >>  		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
-> >> +		struct mutex *queue_lock = NULL;
-> >>  
-> >> -		if (lock && mutex_lock_interruptible(lock))
-> >> +		/*
-> >> +		 * We need to serialize streamon/off with queueing new requests.
-> >> +		 * These ioctls may trigger the cancellation of a streaming
-> >> +		 * operation, and that should not be mixed with queueing a new
-> >> +		 * request at the same time.
-> >> +		 *
-> >> +		 * Also TRY/S_EXT_CTRLS needs this lock to correctly serialize
-> >> +		 * with MEDIA_REQUEST_IOC_QUEUE.
-> >> +		 */
-> >> +		if (vdev->v4l2_dev->mdev &&
-> >> +		    (cmd == VIDIOC_STREAMON || cmd == VIDIOC_STREAMOFF ||
-> >> +		     cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_TRY_EXT_CTRLS))
-> >> +			queue_lock = &vdev->v4l2_dev->mdev->req_queue_mutex;
-> >> +
-> >> +		if (queue_lock && mutex_lock_interruptible(queue_lock))
-> >> +			return -ERESTARTSYS;  
-> > 
-> > Taking both locks seems risky. Here you're taking first v4l2 lock, returned
-> > by v4l2_ioctl_get_lock(vdev, cmd), and then you're taking the req_queue lock.  
-> 
-> No,  v4l2_ioctl_get_lock() only returns a pointer to a mutex, it doesn't lock
-> anything. I think you got confused there. I'll reorganize the code a bit so
-> the call to  v4l2_ioctl_get_lock() happens after the queue_lock has been taken.
+--lpns2gjluurk3v6u
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yeah, I didn't actually look at the implementation of v4l2_ioctl_get_lock().
+On Wed, May 23, 2018 at 11:31:58AM +0200, Daniel Mack wrote:
+> Hi Maxime,
+>=20
+> On Tuesday, May 22, 2018 09:54 PM, Maxime Ripard wrote:
+> > On Mon, May 21, 2018 at 09:39:02AM +0200, Maxime Ripard wrote:
+> > > On Fri, May 18, 2018 at 07:42:34PM -0700, Sam Bobrowicz wrote:
+>=20
+> > > > This set of patches is also not working for my MIPI platform (mine =
+has
+> > > > a 12 MHz external clock). I am pretty sure is isn't working because=
+ it
+> > > > does not include the following, which my tests have found to be
+> > > > necessary:
+> > > >=20
+> > > > 1) Setting pclk period reg in order to correct DPHY timing.
+> > > > 2) Disabling of MIPI lanes when streaming not enabled.
+> > > > 3) setting mipi_div to 1 when the scaler is disabled
+> > > > 4) Doubling ADC clock on faster resolutions.
+> > >=20
+> > > Yeah, I left them out because I didn't think this was relevant to this
+> > > patchset but should come as future improvements. However, given that
+> > > it works with the parallel bus, maybe the two first are needed when
+> > > adjusting the rate.
+> >=20
+> > I've checked for the pclk period, and it's hardcoded to the same value
+> > all the time, so I guess this is not the reason it doesn't work on
+> > MIPI CSI anymore.
+> >=20
+> > Daniel, could you test:
+> > http://code.bulix.org/ki6kgz-339327?raw
+>=20
+> [Note that there's a missing parenthesis in this snippet]
 
-As we're using "_get" along this patch series to increment krefs (with is
-a sort of locking), the name here confused me. IMHO, we should rename it
-to v4l2_ioctl_return_lock() (or similar) on some future, in order to avoid
-confusion.
+Sorry :/
 
-> I'll also rename queue_lock to req_queue_lock (it's a bit more descriptive).
+> Hmm, no, that doesn't change anything. Streaming doesn't work here, even =
+if
+> I move ov5640_load_regs() before any other initialization.
+>=20
+> One of my test setup is the following gst pipeline:
+>=20
+>   gst-launch-1.0	\
+> 	v4l2src device=3D/dev/video0 ! \
+> 	videoconvert ! \
+> 	video/x-raw,format=3DUYVY,width=3D1920,height=3D1080 ! \
+> 	glimagesink
+>=20
+> With the pixel clock hard-coded to 166600000 in qcom camss, the setup wor=
+ks
+> on 4.14, but as I said, it broke already before this series with
+> 5999f381e023 ("media: ov5640: Add horizontal and vertical
+> totals").
+>=20
+> Frankly, my understanding of these chips is currently limited, so I don't
+> really know where to start digging. It seems clear though that the timing
+> registers setup is necessary for other register writes to succeed.
+>=20
+> Can I help in any other way?
 
-Agreed.
+If you feel like it, you could go through the various changes
+(especially the pclk period I guess) changes Sam pushed in the
+previous iteration to his dropbox. That's probably not going to be
+quite easy to merge though, so that's going to require some manual
+holding.
 
-> 
-> So we first take the high-level media_device req_queue_mutex if needed, and
-> then the ioctl serialization lock. Doing it the other way around will indeed
-> promptly deadlock (as I very quickly discovered after my initial implementation!).
-> 
-> So the order is:
-> 
-> 	req_queue_mutex (serialize request state changes from/to IDLE)
-> 	ioctl lock (serialize ioctls)
-> 	request->lock (spinlock)
-> 
-> The last is only held for short periods when updating the media_request struct.
-> 
-> > 
-> > It is possible to call parts of the code that only handles req_queue
-> > or v4l2 lock (for example, by mixing request API calls with non-requests
-> > one). Worse than that, there are parts of the code where the request API
-> > patches get both a mutex and a spin lock.
-> > 
-> > I didn't look too closely (nor ran any test), but I'm almost sure that
-> > there are paths where it will end by leading into dead locks.  
-> 
-> I've done extensive testing with this and actually been very careful about
-> the lock handling. It's also been tested with the cedrus driver.
+Sorry for not being able to help more than that :/
 
-I don't doubt it works using your apps, but real life can be messier:
-people could be issuing ioctls at different orders, programs can abort
-any time, closing file descriptors at random times, threads can be
-used to paralelize ioctls, etc.
+Maxime
 
-That not discarding the possibility of someone coming with some
-ingenious code meant to cause machine hangups or to exposure some
-other security flaws.
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
+--lpns2gjluurk3v6u
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
 
-Thanks,
-Mauro
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlsG0zUACgkQ0rTAlCFN
+r3RzFQ//SfAn8XAPurKkSKj7KDmuJeDEls0hLn1uj4+nRGKNEAqNDDuXC2U62dNf
+j3cnlqUEQfyYli0LegWR98CJGmtNknM6Yv/NpIFOpQ83rayGi5xBKysdpDnLlNYu
+yol7U30PtAlTTlwr6JbSgwZTj3FZ4DGnpoTjj6KjL6pCpWottnOqpffIJuJ4+4Nn
+ZEPpj1Rk79fXh9+h7+PpwkjPBH6vJ4X8Tj5IPiMIE362i0C20lOAW1ByKxe5YweT
+SJyxJtjuRlVgk3uSPkY4BwPf3Wr6vBL7B0MtcOu1ucdFndejQdjk/25Orxa8CAp6
+dwQCjmhHqz2//fBazBO0cgknvI77liRyq+SgsYvOPHggL3rUr6dTTUyhzEtI4OZQ
+g/OZL9XVa36y1Vx7d06abzQsstFOBS6S/PUM0A5PBqYEHPwhnkXCfB2JPS/FxDbx
+AM5yxNg2Z/NQZYWmbfiMBYks3vV8pQyjYoHGoCigQBWBDvvzWXpQCK3l4gx8ncnw
+cTgadN7eTTdaccuYVKTddZOxtyBxMo2F3sgHobkjQdrk22PVePQ2oakvBgWZf/Ag
+v5vaS/EiCKeOkuQ3THxrMm3fz1C4RUIteUAv66w3ZOuXkrSjzN0jYJJ+7LDe3PHS
+PoutW200iMvkNKrtQbwwF3BrkOaY/OTovqQL8+tK0JtHMvuWCDw=
+=xOHj
+-----END PGP SIGNATURE-----
+
+--lpns2gjluurk3v6u--
