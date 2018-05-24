@@ -1,126 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:39459 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932281AbeEWJjx (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:34435 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966192AbeEXW3r (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 05:39:53 -0400
-Message-ID: <1527068392.6875.6.camel@pengutronix.de>
-Subject: Re: [PATCH 2/2] media: platform: add driver for TI SCAN921226H
- video deserializer
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Jan Luebbe <jlu@pengutronix.de>, linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, devicetree@vger.kernel.org,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Date: Wed, 23 May 2018 11:39:52 +0200
-In-Reply-To: <20180504124903.6276-3-jlu@pengutronix.de>
-References: <20180504124903.6276-1-jlu@pengutronix.de>
-         <20180504124903.6276-3-jlu@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Thu, 24 May 2018 18:29:47 -0400
+Received: by mail-wr0-f196.google.com with SMTP id j1-v6so5866357wrm.1
+        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 15:29:46 -0700 (PDT)
+Date: Fri, 25 May 2018 00:29:44 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v4 5/9] media: rcar-vin: Parse parallel input on Gen3
+Message-ID: <20180524222944.GI31036@bigcity.dyn.berto.se>
+References: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1527199339-7724-6-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1527199339-7724-6-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jan,
+Hi Jacopo,
 
-Hans just pointed out a few issues in my video-mux compliance patch [1]
-that also apply to this driver, see below.
+Thanks for your work.
 
-[1] v1: https://patchwork.linuxtv.org/patch/49827/
-    v2: https://patchwork.linuxtv.org/patch/49839/
+I really like what you did with this patch in v4.
 
-On Fri, 2018-05-04 at 14:49 +0200, Jan Luebbe wrote:
-[...]
-> diff --git a/drivers/media/platform/scan921226h.c b/drivers/media/platform/scan921226h.c
-> new file mode 100644
-> index 000000000000..59fcd55ceaa2
-> --- /dev/null
-> +++ b/drivers/media/platform/scan921226h.c
-[...]
-> +static int video_des_set_format(struct v4l2_subdev *sd,
-> +			    struct v4l2_subdev_pad_config *cfg,
-> +			    struct v4l2_subdev_format *sdformat)
-> +{
-> +	struct video_des *vdes = v4l2_subdev_to_video_des(sd);
-> +	struct v4l2_mbus_framefmt *mbusformat;
-> +	struct media_pad *pad = &vdes->pads[sdformat->pad];
-> +
-> +	mbusformat = __video_des_get_pad_format(sd, cfg, sdformat->pad,
-> +					    sdformat->which);
-> +	if (!mbusformat)
-> +		return -EINVAL;
-> +
-> +	mutex_lock(&vdes->lock);
-> +
-> +	/* Source pad mirrors sink pad, no limitations on sink pads */
-> +	if ((pad->flags & MEDIA_PAD_FL_SOURCE)) {
-> +		sdformat->format = vdes->format_mbus;
-> +	} else {
-> +		/* any sizes are allowed */
-> +		v4l_bound_align_image(
-> +			&sdformat->format.width, 1, UINT_MAX-1, 0,
-> +			&sdformat->format.height, 1, UINT_MAX-1, 0,
-
-Reduce from UINT_MAX-1 to 65536 to avoid potential overflow issues.
-
-> +			0);
-> +		if (sdformat->format.field == V4L2_FIELD_ANY)
-> +			sdformat->format.field = V4L2_FIELD_NONE;
-> +		switch (sdformat->format.code) {
-> +		/* only 8 bit formats are supported */
-> +		case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
-> +		case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
-[...]
-> +		case MEDIA_BUS_FMT_JPEG_1X8:
-> +		case MEDIA_BUS_FMT_S5C_UYVY_JPEG_1X8:
-> +			break;
-> +		default:
-> +			sdformat->format.code = MEDIA_BUS_FMT_Y8_1X8;
-
-A
-			break;
-should be added here.
-
-> +		}
+On 2018-05-25 00:02:15 +0200, Jacopo Mondi wrote:
+> The rcar-vin driver so far had a mutually exclusive code path for
+> handling parallel and CSI-2 video input subdevices, with only the CSI-2
+> use case supporting media-controller. As we add support for parallel
+> inputs to Gen3 media-controller compliant code path now parse both port@0
+> and port@1, handling the media-controller use case in the parallel
+> bound/unbind notifier operations.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> 
+> ---
+> v3 -> v4:
+> - Change the mc/parallel initialization order. Initialize mc first, then
+>   parallel
+> - As a consequence no need to delay parallel notifiers registration, the
+>   media controller is set up already when parallel input got parsed,
+>   this greatly simplify the group notifier complete callback.
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 56 ++++++++++++++++++-----------
+>  1 file changed, 35 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index a799684..29619c2 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -399,6 +399,11 @@ static int rvin_parallel_subdevice_attach(struct rvin_dev *vin,
+>  	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
+>  	vin->parallel->sink_pad = ret < 0 ? 0 : ret;
+>  
+> +	if (vin->info->use_mc) {
+> +		vin->parallel->subdev = subdev;
+> +		return 0;
 > +	}
 > +
-> +	*mbusformat = sdformat->format;
+>  	/* Find compatible subdevices mbus format */
+>  	vin->mbus_code = 0;
+>  	code.index = 0;
+> @@ -460,10 +465,12 @@ static int rvin_parallel_subdevice_attach(struct rvin_dev *vin,
+>  static void rvin_parallel_subdevice_detach(struct rvin_dev *vin)
+>  {
+>  	rvin_v4l2_unregister(vin);
+> -	v4l2_ctrl_handler_free(&vin->ctrl_handler);
+> -
+> -	vin->vdev.ctrl_handler = NULL;
+>  	vin->parallel->subdev = NULL;
 > +
-> +	mutex_unlock(&vdes->lock);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_pad_ops video_des_pad_ops = {
-> +	.get_fmt = video_des_get_format,
-> +	.set_fmt = video_des_set_format,
-> +};
-> +
-> +static int video_des_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> +{
-> +	struct video_des *vdes = v4l2_subdev_to_video_des(sd);
-> +	struct v4l2_mbus_framefmt *format;
-> +
-> +	mutex_lock(&vdes->lock);
-> +
-> +	format = v4l2_subdev_get_try_format(sd, fh->pad, 0);
-> +	*format = vdes->format_mbus;
-> +	format = v4l2_subdev_get_try_format(sd, fh->pad, 1);
-> +	*format = vdes->format_mbus;
-> +
-> +	mutex_unlock(&vdes->lock);
-> +
-> +	return 0;
-> +}
+> +	if (!vin->info->use_mc) {
+> +		v4l2_ctrl_handler_free(&vin->ctrl_handler);
+> +		vin->vdev.ctrl_handler = NULL;
+> +	}
+>  }
+>  
+>  static int rvin_parallel_notify_complete(struct v4l2_async_notifier *notifier)
+> @@ -552,18 +559,18 @@ static int rvin_parallel_parse_v4l2(struct device *dev,
+>  	return 0;
+>  }
+>  
+> -static int rvin_parallel_graph_init(struct rvin_dev *vin)
+> +static int rvin_parallel_init(struct rvin_dev *vin)
+>  {
+>  	int ret;
+>  
+> -	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> -		vin->dev, &vin->notifier,
+> -		sizeof(struct rvin_parallel_entity), rvin_parallel_parse_v4l2);
+> +	ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+> +		vin->dev, &vin->notifier, sizeof(struct rvin_parallel_entity),
+> +		0, rvin_parallel_parse_v4l2);
+>  	if (ret)
+>  		return ret;
+>  
+>  	if (!vin->parallel)
+> -		return -ENODEV;
+> +		return -ENOTCONN;
 
-This should be done in the .init_cfg pad op.
+I think you still should return -ENODEV here if !vin->info->use_mc to 
+preserve Gen2 which runs without media controller behavior. How about:
+
+    return vin->info->use_mc ? -ENOTCONN : -ENODEV;
+
+>  
+>  	vin_dbg(vin, "Found parallel subdevice %pOF\n",
+>  		to_of_node(vin->parallel->asd.match.fwnode));
+> @@ -784,14 +791,8 @@ static int rvin_mc_init(struct rvin_dev *vin)
+>  {
+>  	int ret;
+>  
+> -	vin->pad.flags = MEDIA_PAD_FL_SINK;
+> -	ret = media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
+> -	if (ret)
+> -		return ret;
+> -
+> -	ret = rvin_group_get(vin);
+> -	if (ret)
+> -		return ret;
+> +	if (!vin->info->use_mc)
+> +		return 0;
+>  
+>  	ret = rvin_mc_parse_of_graph(vin);
+>  	if (ret)
+> @@ -1074,11 +1075,24 @@ static int rcar_vin_probe(struct platform_device *pdev)
+>  		return ret;
+>  
+>  	platform_set_drvdata(pdev, vin);
+> -	if (vin->info->use_mc)
+> -		ret = rvin_mc_init(vin);
+> -	else
+> -		ret = rvin_parallel_graph_init(vin);
+> -	if (ret < 0)
+> +
+> +	if (vin->info->use_mc) {
+> +		vin->pad.flags = MEDIA_PAD_FL_SINK;
+> +		ret = media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
+> +		if (ret)
+> +			return ret;
+> +
+> +		ret = rvin_group_get(vin);
+> +		if (ret)
+> +			return ret;
+> +	}
+
+I don't see why you need to move the media pad creation out of 
+rvin_mc_init(). With the reorder of the rvin_mc_init() 
+rvin_parallel_init() I would keep this in rvin_mc_init().
 
 > +
-> +static const struct v4l2_subdev_internal_ops video_des_subdev_internal_ops = {
-> +	.open = video_des_open,
-> +};
+> +	ret = rvin_mc_init(vin);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = rvin_parallel_init(vin);
+> +	if (ret < 0 && ret != -ENOTCONN)
+>  		goto error;
+>  
+>  	pm_suspend_ignore_children(&pdev->dev, true);
+> -- 
+> 2.7.4
+> 
 
-Internal ops can then be dropped.
-
-regards
-Philipp
+-- 
+Regards,
+Niklas Söderlund
