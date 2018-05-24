@@ -1,57 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:45379 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030816AbeEYXxw (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56696 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1034629AbeEXUhQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 19:53:52 -0400
-Received: by mail-pf0-f194.google.com with SMTP id c10-v6so3257036pfi.12
-        for <linux-media@vger.kernel.org>; Fri, 25 May 2018 16:53:51 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 4/6] media: imx-csi: Enable interlaced scan for field type alternate
-Date: Fri, 25 May 2018 16:53:34 -0700
-Message-Id: <1527292416-26187-5-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
+        Thu, 24 May 2018 16:37:16 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        Abylay Ospan <aospan@netup.ru>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH 14/20] mx_emmaprp: Implement wait_prepare and wait_finish
+Date: Thu, 24 May 2018 17:35:14 -0300
+Message-Id: <20180524203520.1598-15-ezequiel@collabora.com>
+In-Reply-To: <20180524203520.1598-1-ezequiel@collabora.com>
+References: <20180524203520.1598-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Interlaced scan, a.k.a. interweave, should be enabled at the CSI IDMAC
-output pad if the input field type is 'alternate' (in addition to field
-types 'seq-tb' and 'seq-bt').
+This driver is currently specifying a video_device lock,
+which means it is protecting all the ioctls (including
+queue ioctls) with a single mutex.
 
-Which brings up whether V4L2_FIELD_HAS_BOTH() macro should be used
-to determine enabling interlaced/interweave scan. That macro
-includes the 'interlaced' field types, and in those cases the data
-is already interweaved with top/bottom field lines. A heads-up for
-now that this if statement may need to call V4L2_FIELD_IS_SEQUENTIAL()
-instead, I have no sensor hardware that sends 'interlaced' data, so can't
-test.
+It's therefore straightforward to implement wait_prepare
+and wait_finish, by explicitly setting the vb2_queue lock.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Having these callbacks releases the queue lock while blocking,
+which improves latency by allowing for example streamoff
+or qbuf operations while waiting in dqbuf.
+
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/platform/mx2_emmaprp.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 9bc555c..eef3483 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -477,7 +477,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 	ipu_smfc_set_burstsize(priv->smfc, burst_size);
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index 5a8eff60e95f..7f9b356e7cc7 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -747,6 +747,8 @@ static const struct vb2_ops emmaprp_qops = {
+ 	.queue_setup	 = emmaprp_queue_setup,
+ 	.buf_prepare	 = emmaprp_buf_prepare,
+ 	.buf_queue	 = emmaprp_buf_queue,
++	.wait_prepare	 = vb2_ops_wait_prepare,
++	.wait_finish	 = vb2_ops_wait_finish,
+ };
  
- 	if (image.pix.field == V4L2_FIELD_NONE &&
--	    V4L2_FIELD_HAS_BOTH(infmt->field))
-+	    (V4L2_FIELD_HAS_BOTH(infmt->field) ||
-+	     infmt->field == V4L2_FIELD_ALTERNATE))
- 		ipu_cpmem_interlaced_scan(priv->idmac_ch,
- 					  image.pix.bytesperline);
+ static int queue_init(void *priv, struct vb2_queue *src_vq,
+@@ -763,6 +765,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->dev = ctx->dev->v4l2_dev.dev;
++	src_vq->lock = &ctx->dev->dev_mutex;
  
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -776,6 +779,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->dev = ctx->dev->v4l2_dev.dev;
++	dst_vq->lock = &ctx->dev->dev_mutex;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
 -- 
-2.7.4
+2.16.3
