@@ -1,100 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:34162 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751562AbeEDNyC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 09:54:02 -0400
-Message-ID: <1525442037.21176.659.camel@linux.intel.com>
-Subject: Re: [PATCH] media: staging: atomisp: fix a potential missing-check
- bug
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Wenwen Wang <wang6495@umn.edu>
-Cc: Kangjie Lu <kjlu@umn.edu>, Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "open list:STAGING - ATOMISP DRIVER" <linux-media@vger.kernel.org>,
-        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        open list <linux-kernel@vger.kernel.org>
-Date: Fri, 04 May 2018 16:53:57 +0300
-In-Reply-To: <1525418996-19246-1-git-send-email-wang6495@umn.edu>
-References: <1525418996-19246-1-git-send-email-wang6495@umn.edu>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:49548 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965014AbeEXHPK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 03:15:10 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Subject: [PATCH v2 09/13] ata: pata_pxa: remove the dmaengine compat need
+Date: Thu, 24 May 2018 09:06:59 +0200
+Message-Id: <20180524070703.11901-10-robert.jarzmik@free.fr>
+In-Reply-To: <20180524070703.11901-1-robert.jarzmik@free.fr>
+References: <20180524070703.11901-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2018-05-04 at 02:29 -0500, Wenwen Wang wrote:
-> At the end of atomisp_subdev_set_selection(), the function
-> atomisp_subdev_get_rect() is invoked to get the pointer to v4l2_rect.
-> Since
-> this function may return a NULL pointer, it is firstly invoked to
-> check
-> the returned pointer. If the returned pointer is not NULL, then the
-> function is invoked again to obtain the pointer and the memory content
-> at the location of the returned pointer is copied to the memory
-> location of
-> r. In most cases, the pointers returned by the two invocations are
-> same.
-> However, given that the pointer returned by the function
-> atomisp_subdev_get_rect() is not a constant, it is possible that the
-> two
-> invocations return two different pointers. For example, another thread
-> may
-> race to modify the related pointers during the two invocations. In
-> that
-> case, even if the first returned pointer is not null, the second
-> returned
-> pointer might be null, which will cause issues such as null pointer
-> dereference.
-> 
-> This patch saves the pointer returned by the first invocation and
-> removes
-> the second invocation. If the returned pointer is not NULL, the memory
-> content is copied according to the original code.
-> 
+As the pxa architecture switched towards the dmaengine slave map, the
+old compatibility mechanism to acquire the dma requestor line number and
+priority are not needed anymore.
 
-The driver will be gone soon, don't bother with it anymore.
-Thanks!
+This patch simplifies the dma resource acquisition, using the more
+generic function dma_request_slave_channel().
 
-> Signed-off-by: Wenwen Wang <wang6495@umn.edu>
-> ---
->  drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c | 6 ++++-
-> -
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git
-> a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
-> b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
-> index 49a9973..d5fa513 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
-> @@ -366,6 +366,7 @@ int atomisp_subdev_set_selection(struct
-> v4l2_subdev *sd,
->  	unsigned int i;
->  	unsigned int padding_w = pad_w;
->  	unsigned int padding_h = pad_h;
-> +	struct v4l2_rect *p;
->  
->  	stream_id = atomisp_source_pad_to_stream_id(isp_sd,
-> vdev_pad);
->  
-> @@ -536,9 +537,10 @@ int atomisp_subdev_set_selection(struct
-> v4l2_subdev *sd,
->  		ffmt[pad]->height = comp[pad]->height;
->  	}
->  
-> -	if (!atomisp_subdev_get_rect(sd, cfg, which, pad, target))
-> +	p = atomisp_subdev_get_rect(sd, cfg, which, pad, target);
-> +	if (!p)
->  		return -EINVAL;
-> -	*r = *atomisp_subdev_get_rect(sd, cfg, which, pad, target);
-> +	*r = *p;
->  
->  	dev_dbg(isp->dev, "sel actual: l %d t %d w %d h %d\n",
->  		r->left, r->top, r->width, r->height);
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Acked-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+---
+ drivers/ata/pata_pxa.c | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
+diff --git a/drivers/ata/pata_pxa.c b/drivers/ata/pata_pxa.c
+index f6c46e9a4dc0..e8b6a2e464c9 100644
+--- a/drivers/ata/pata_pxa.c
++++ b/drivers/ata/pata_pxa.c
+@@ -25,7 +25,6 @@
+ #include <linux/libata.h>
+ #include <linux/platform_device.h>
+ #include <linux/dmaengine.h>
+-#include <linux/dma/pxa-dma.h>
+ #include <linux/gpio.h>
+ #include <linux/slab.h>
+ #include <linux/completion.h>
+@@ -180,8 +179,6 @@ static int pxa_ata_probe(struct platform_device *pdev)
+ 	struct resource *irq_res;
+ 	struct pata_pxa_pdata *pdata = dev_get_platdata(&pdev->dev);
+ 	struct dma_slave_config	config;
+-	dma_cap_mask_t mask;
+-	struct pxad_param param;
+ 	int ret = 0;
+ 
+ 	/*
+@@ -278,10 +275,6 @@ static int pxa_ata_probe(struct platform_device *pdev)
+ 
+ 	ap->private_data = data;
+ 
+-	dma_cap_zero(mask);
+-	dma_cap_set(DMA_SLAVE, mask);
+-	param.prio = PXAD_PRIO_LOWEST;
+-	param.drcmr = pdata->dma_dreq;
+ 	memset(&config, 0, sizeof(config));
+ 	config.src_addr_width = DMA_SLAVE_BUSWIDTH_2_BYTES;
+ 	config.dst_addr_width = DMA_SLAVE_BUSWIDTH_2_BYTES;
+@@ -294,8 +287,7 @@ static int pxa_ata_probe(struct platform_device *pdev)
+ 	 * Request the DMA channel
+ 	 */
+ 	data->dma_chan =
+-		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-						 &param, &pdev->dev, "data");
++		dma_request_slave_channel(&pdev->dev, "data");
+ 	if (!data->dma_chan)
+ 		return -EBUSY;
+ 	ret = dmaengine_slave_config(data->dma_chan, &config);
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.11.0
