@@ -1,309 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:38976 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752253AbeEGQ2t (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:28:49 -0400
-Received: by mail-wr0-f194.google.com with SMTP id q3-v6so29386733wrj.6
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:28:48 -0700 (PDT)
-References: <20180423134750.30403-1-rui.silva@linaro.org> <20180423134750.30403-9-rui.silva@linaro.org> <20180427190606.ngpootnfzsjwg6ya@rob-hp-laptop>
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: Rob Herring <robh@kernel.org>
-Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>
-Subject: Re: [PATCH v2 08/15] media: dt-bindings: add bindings for i.MX7 media driver
-In-reply-to: <20180427190606.ngpootnfzsjwg6ya@rob-hp-laptop>
-Date: Mon, 07 May 2018 17:28:45 +0100
-Message-ID: <m3o9hr77lu.fsf@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56610 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1033098AbeEXUgv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 16:36:51 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        Abylay Ospan <aospan@netup.ru>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH 02/20] v4l2-core: push taking ioctl mutex down to ioctl handler.
+Date: Thu, 24 May 2018 17:35:02 -0300
+Message-Id: <20180524203520.1598-3-ezequiel@collabora.com>
+In-Reply-To: <20180524203520.1598-1-ezequiel@collabora.com>
+References: <20180524203520.1598-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
-Thanks for the review and sorry for the late reply.
-Meanwhile I have send v3 of this series with some of yours 
-comments
-incorporated. 
+From: Hans Verkuil <hansverk@cisco.com>
 
-On Fri 27 Apr 2018 at 19:06, Rob Herring wrote:
-> On Mon, Apr 23, 2018 at 02:47:43PM +0100, Rui Miguel Silva 
-> wrote:
->> Add bindings documentation for i.MX7 media drivers.
->> 
->> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
->> ---
->>  .../devicetree/bindings/media/imx7.txt        | 158 
->>  ++++++++++++++++++
->>  1 file changed, 158 insertions(+)
->>  create mode 100644 
->>  Documentation/devicetree/bindings/media/imx7.txt
->> 
->> diff --git a/Documentation/devicetree/bindings/media/imx7.txt 
->> b/Documentation/devicetree/bindings/media/imx7.txt
->> new file mode 100644
->> index 000000000000..7e058ea25102
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/imx7.txt
->> @@ -0,0 +1,158 @@
->> +Freescale i.MX7 Media Video Device
->> +==================================
->> +
->> +Video Media Controller node
->> +---------------------------
->> +
->> +This is the media controller node for video capture support. 
->> It is a
->> +virtual device that lists the camera serial interface nodes 
->> that the
->> +media device will control.
->> +
->> +Required properties:
->> +- compatible : "fsl,imx7-capture-subsystem";
->> +- ports      : Should contain a list of phandles pointing to 
->> camera
->> +		sensor interface port of CSI
->> +
->> +example:
->> +
->> +capture-subsystem {
->> +	compatible = "fsl,imx7-capture-subsystem";
->> +	ports = <&csi>;
->
-> Why do you need this node? Just have the driver match on the CSI 
-> node.
+The ioctl serialization mutex (vdev->lock or q->lock for vb2 queues)
+was taken at the highest level in v4l2-dev.c. This prevents more
+fine-grained locking since at that level we cannot examine the ioctl
+arguments, we can only do that after video_usercopy is called.
 
-This is for the parsing of the nodes done in imx media core, see 
-also
-the imx.txt file.
+So push the locking down to __video_do_ioctl() and subdev_do_ioctl_lock().
 
->
->> +};
->> +
->> +
->> +mipi_csi2 node
->> +--------------
->> +
->> +This is the device node for the MIPI CSI-2 receiver core in 
->> i.MX7 SoC. It is
->> +compatible with previous version of Samsung D-phy.
->
-> Compatible with Samsung?
->
->> +
->> +Required properties:
->> +
->> +- compatible    : "fsl,imx7-mipi-csi2";
->> +- reg           : base address and length of the register set 
->> for the device;
->> +- interrupts    : should contain MIPI CSIS interrupt;
->> +- clocks        : list of clock specifiers, see
->> + 
->> Documentation/devicetree/bindings/clock/clock-bindings.txt for 
->> details;
->> +- clock-names   : must contain "mipi" and "phy" entries, 
->> matching entries in the
->> +                  clock property;
->> +- power-domains : a phandle to the power domain, see
->> + 
->> Documentation/devicetree/bindings/power/power_domain.txt for 
->> details.
->> +- reset-names   : should include following entry "mrst";
->> +- resets        : a list of phandle, should contain reset 
->> entry of
->> +                  reset-names;
->> +- phy-supply    : from the generic phy bindings, a phandle to 
->> a regulator that
->> +	          provides power to VBUS;
->
-> VBUS? Copy-n-paste from USB something?
+This also allows us to make a few functions in v4l2-ioctl.c static and
+video_usercopy() is no longer exported.
 
-yeah, c-n-p error.
+The locking scheme is not changed by this patch, just pushed down.
 
->
->> +- bus-width     : maximum number of data lanes supported (SoC 
->> specific);
->
-> Don't we have a standard lanes property for CSI (or DSI)? 
-> bus-width is 
-> for parallel buses and goes in endpoint nodes. (But maybe it got 
-> used 
-> here too).
->
->> +
->> +Optional properties:
->> +
->> +- clock-frequency : The IP's main (system bus) clock frequency 
->> in Hz, default
->> +		    value when this property is not specified is 
->> 166 MHz;
->> +
->> +port node
->> +---------
->> +
->> +- reg		  : (required) can take the values 0 or 1, 
->> where 0 is the
->> +                     related sink port and port 1 should be 
->> the source one;
->> +
->> +endpoint node
->> +-------------
->> +
->> +- data-lanes    : (required) an array specifying active 
->> physical MIPI-CSI2
->> +		    data input lanes and their mapping to logical 
->> lanes; the
->> +		    array's content is unused, only its length is 
->> meaningful;
->
-> Ah yes, like this. :) So why do you need bus-width too?
-
-To guarantee that the active lanes are not bigger that the ones
-supported in the specific SoC. So, the bus-width defines the lanes
-supported and this the active ones.
-
->
->> +
->> +- csis-hs-settle : (optional) differential receiver (HS-RX) 
->> settle time;
->
-> units?
->
->> +- csis-clk-settle : (optional) D-PHY control register;
->> +- csis-wclk     : CSI-2 wrapper clock selection. If this 
->> property is present
->> +		  external clock from CMU will be used, or the bus 
->> clock if
->> +		  if it's not specified.
->
-> boolean?
-
-I dropped this in v3.
-
->
-> These 3 need vendor properties.
-
-Sure, added in v3
-
->
->> +
->> +example:
->> +
->> +	mipi_csi: mipi-csi@30750000 {
->> +                clock-frequency = <166000000>;
->> +                status = "okay";
->> +                #address-cells = <1>;
->> +                #size-cells = <0>;
->> +
->> +		compatible = "fsl,imx7-mipi-csi2";
->> +		reg = <0x30750000 0x10000>;
->> +		interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
->> +		clocks = <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
->> +				<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
->> +		clock-names = "mipi", "phy";
->> +		power-domains = <&pgc_mipi_phy>;
->> +		phy-supply = <&reg_1p0d>;
->> +		resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
->> +		reset-names = "mrst";
->> +		bus-width = <4>;
->> +		status = "disabled";
->> +
->> +                port@0 {
->> +                        reg = <0>;
->> +
->> +                        mipi_from_sensor: endpoint {
->> +                                remote-endpoint = 
->> <&ov2680_to_mipi>;
->> +                                data-lanes = <1>;
->> +                                csis-hs-settle = <3>;
->> +                                csis-clk-settle = <0>;
->> +                                csis-wclk;
->> +                        };
->> +                };
->> +
->> +                port@1 {
->> +                        reg = <1>;
->> +
->> +                        mipi_vc0_to_csi_mux: endpoint {
->> +                                remote-endpoint = 
->> <&csi_mux_from_mipi_vc0>;
->> +                        };
->> +                };
->> +	};
->> +
->> +
->> +csi node
->> +--------
->> +
->> +This is device node for the CMOS Sensor Interface (CSI) which 
->> enables the chip
->> +to connect directly to external CMOS image sensors.
->> +
->> +Required properties:
->> +
->> +- compatible    : "fsl,imx7-csi";
->> +- reg           : base address and length of the register set 
->> for the device;
->> +- interrupts    : should contain CSI interrupt;
->> +- clocks        : list of clock specifiers, see
->> + 
->> Documentation/devicetree/bindings/clock/clock-bindings.txt for 
->> details;
->> +- clock-names   : must contain "axi", "mclk" and "dcic" 
->> entries, matching
->> +                 entries in the clock property;
->> +
->> +port node
->> +---------
->> +
->> +- reg		  : (required) should be 0 for the sink 
->> port;
->> +
->> +example:
->> +
->> +		csi: csi@30710000 {
->> +                        #address-cells = <1>;
->> +                        #size-cells = <0>;
->
-> Something wrong with indentation here.
-
-Fixed the indentation.
-
->
->> +
->> +			compatible = "fsl,imx7-csi";
->> +			reg = <0x30710000 0x10000>;
->> +			interrupts = <GIC_SPI 7 
->> IRQ_TYPE_LEVEL_HIGH>;
->> +			clocks = <&clks IMX7D_CLK_DUMMY>,
->> +					<&clks 
->> IMX7D_CSI_MCLK_ROOT_CLK>,
->> +					<&clks IMX7D_CLK_DUMMY>;
->> +			clock-names = "axi", "mclk", "dcic";
->> +			status = "disabled";
->
-> Don't show status in examples.
-
-yeah, you are right. fixed.
-
->
->> +
->> +                        port@0 {
->
-> And the indentation here...
->
->
-> Same issues in the 1st example, too.
-
-ditto.
-
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
-Cheers,
-	Rui
+ drivers/media/v4l2-core/v4l2-dev.c    |  6 ------
+ drivers/media/v4l2-core/v4l2-ioctl.c  | 17 ++++++++++++++---
+ drivers/media/v4l2-core/v4l2-subdev.c | 17 ++++++++++++++++-
+ include/media/v4l2-dev.h              |  9 ---------
+ include/media/v4l2-ioctl.h            | 12 ------------
+ 5 files changed, 30 insertions(+), 31 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 1d0b2208e8fb..baf8cd549128 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -352,14 +352,8 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	int ret = -ENODEV;
+ 
+ 	if (vdev->fops->unlocked_ioctl) {
+-		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
+-
+-		if (lock && mutex_lock_interruptible(lock))
+-			return -ERESTARTSYS;
+ 		if (video_is_registered(vdev))
+ 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+-		if (lock)
+-			mutex_unlock(lock);
+ 	} else
+ 		ret = -ENOTTY;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 63de1c7134cc..de1b868500f3 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2634,14 +2634,14 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+ 
+-bool v4l2_is_known_ioctl(unsigned int cmd)
++static bool v4l2_is_known_ioctl(unsigned int cmd)
+ {
+ 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
+ 		return false;
+ 	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
+ }
+ 
+-struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
++static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd)
+ {
+ 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
+ 		return vdev->lock;
+@@ -2692,6 +2692,7 @@ static long __video_do_ioctl(struct file *file,
+ 		unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vfd = video_devdata(file);
++	struct mutex *lock = v4l2_ioctl_get_lock(vfd, cmd);
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	bool write_only = false;
+ 	struct v4l2_ioctl_info default_info;
+@@ -2710,6 +2711,14 @@ static long __video_do_ioctl(struct file *file,
+ 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
+ 		vfh = file->private_data;
+ 
++	if (lock && mutex_lock_interruptible(lock))
++		return -ERESTARTSYS;
++
++	if (!video_is_registered(vfd)) {
++		ret = -ENODEV;
++		goto unlock;
++	}
++
+ 	if (v4l2_is_known_ioctl(cmd)) {
+ 		info = &v4l2_ioctls[_IOC_NR(cmd)];
+ 
+@@ -2765,6 +2774,9 @@ static long __video_do_ioctl(struct file *file,
+ 		}
+ 	}
+ 
++unlock:
++	if (lock)
++		mutex_unlock(lock);
+ 	return ret;
+ }
+ 
+@@ -2954,7 +2966,6 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 	kvfree(mbuf);
+ 	return err;
+ }
+-EXPORT_SYMBOL(video_usercopy);
+ 
+ long video_ioctl2(struct file *file,
+ 	       unsigned int cmd, unsigned long arg)
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index f9eed938d348..6a7f7f75dfd7 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -502,10 +502,25 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	return 0;
+ }
+ 
++static long subdev_do_ioctl_lock(struct file *file, unsigned int cmd, void *arg)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct mutex *lock = vdev->lock;
++	long ret = -ENODEV;
++
++	if (lock && mutex_lock_interruptible(lock))
++		return -ERESTARTSYS;
++	if (video_is_registered(vdev))
++		ret = subdev_do_ioctl(file, cmd, arg);
++	if (lock)
++		mutex_unlock(lock);
++	return ret;
++}
++
+ static long subdev_ioctl(struct file *file, unsigned int cmd,
+ 	unsigned long arg)
+ {
+-	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
++	return video_usercopy(file, cmd, arg, subdev_do_ioctl_lock);
+ }
+ 
+ #ifdef CONFIG_COMPAT
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 4546958eeba0..3a0be40749bc 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -434,15 +434,6 @@ void video_device_release(struct video_device *vdev);
+  */
+ void video_device_release_empty(struct video_device *vdev);
+ 
+-/**
+- * v4l2_is_known_ioctl - Checks if a given cmd is a known V4L ioctl
+- *
+- * @cmd: ioctl command
+- *
+- * returns true if cmd is a known V4L2 ioctl
+- */
+-bool v4l2_is_known_ioctl(unsigned int cmd);
+-
+ /**
+  * v4l2_disable_ioctl- mark that a given command isn't implemented.
+  *	shouldn't use core locking
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index a7b3f7c75d62..a8dbf5b54b5c 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -658,18 +658,6 @@ void v4l_printk_ioctl(const char *prefix, unsigned int cmd);
+ 
+ struct video_device;
+ 
+-
+-/**
+- * v4l2_ioctl_get_lock - get the mutex (if any) that it is need to lock for
+- *	a given command.
+- *
+- * @vdev: Pointer to struct &video_device.
+- * @cmd: Ioctl name.
+- *
+- * .. note:: Internal use only. Should not be used outside V4L2 core.
+- */
+-struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned int cmd);
+-
+ /* names for fancy debug output */
+ extern const char *v4l2_field_names[];
+ extern const char *v4l2_type_names[];
+-- 
+2.16.3
