@@ -1,111 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:57117 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751848AbeEGKlj (ORCPT
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:59768 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935673AbeEXHPE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 06:41:39 -0400
-Subject: Re: [PATCH 00/28] Venus updates
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <29a88d99-537f-5fdc-9e6a-8238703ea8d1@xs4all.nl>
-Date: Mon, 7 May 2018 12:41:36 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Thu, 24 May 2018 03:15:04 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Subject: [PATCH v2 05/13] mtd: rawnand: marvell: remove the dmaengine compat need
+Date: Thu, 24 May 2018 09:06:55 +0200
+Message-Id: <20180524070703.11901-6-robert.jarzmik@free.fr>
+In-Reply-To: <20180524070703.11901-1-robert.jarzmik@free.fr>
+References: <20180524070703.11901-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 24/04/18 14:44, Stanimir Varbanov wrote:
-> Hello,
-> 
-> This patch set aims to:
-> 
-> * add initial support for Venus version 4xx (found on sdm845).
-> 
-> * introduce a common capability parser to enumerate better
->   supported uncompressed formats, capabilities by codec,
->   supported codecs and so on.
-> 
-> * also contains various cleanups, readability improvements
->   and fixes.
-> 
-> * adds HEVC codec support for the Venus versions which has
->   support for it.
-> 
-> * add multi-stream support (secondary decoder output), which
->   will give as an opportunity to use UBWC compressed formats
->   to optimize internal interconnect bandwidth on higher
->   resolutions.
+As the pxa architecture switched towards the dmaengine slave map, the
+old compatibility mechanism to acquire the dma requestor line number and
+priority are not needed anymore.
 
-I'm a bit confused about this: is this a purely driver-internal thing,
-or is this exposed somehow to userspace as well? It seems to be purely
-internal.
+This patch simplifies the dma resource acquisition, using the more
+generic function dma_request_slave_channel().
 
-Regards,
+Signed-off-by: Signed-off-by: Daniel Mack <daniel@zonque.org>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/mtd/nand/raw/marvell_nand.c | 17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-	Hans
-
-> 
-> Comments are welcome!
-> 
-> regards,
-> Stan
-> 
-> Stanimir Varbanov (28):
->   venus: hfi_msgs: correct pointer increment
->   venus: hfi: preparation to support venus 4xx
->   venus: hfi: update sequence event to handle more properties
->   venus: hfi_cmds: add set_properties for 4xx version
->   venus: hfi: support session continue for 4xx version
->   venus: hfi: handle buffer output2 type as well
->   venus: hfi_venus: add halt AXI support for Venus 4xx
->   venus: hfi_venus: add suspend function for 4xx version
->   venus: venc,vdec: adds clocks needed for venus 4xx
->   venus: vdec: call session_continue in insufficient event
->   venus: add common capability parser
->   venus: helpers: make a commmon function for power_enable
->   venus: core: delete not used flag for buffer mode
->   venus: helpers: rename a helper function and use buffer mode from caps
->   venus: add a helper function to set dynamic buffer mode
->   venus: add helper function to set actual buffer size
->   venus: delete no longer used bufmode flag from instance
->   venus: helpers: add buffer type argument to a helper
->   venus: helpers: add a new helper to set raw format
->   venus: helpers,vdec,venc: add helpers to set work mode and core usage
->   venus: helpers: extend set_num_bufs helper with one more argument
->   venus: helpers: add a helper to return opb buffer sizes
->   venus: vdec: get required input buffers as well
->   venus: vdec: new function for output configuration
->   venus: move frame size calculations in common place
->   venus: implementing multi-stream support
->   venus: add sdm845 compatible and resource data
->   venus: add HEVC codec support
-> 
->  .../devicetree/bindings/media/qcom,venus.txt       |   1 +
->  drivers/media/platform/qcom/venus/Makefile         |   3 +-
->  drivers/media/platform/qcom/venus/core.c           | 102 ++++
->  drivers/media/platform/qcom/venus/core.h           |  91 ++--
->  drivers/media/platform/qcom/venus/helpers.c        | 558 +++++++++++++++++++--
->  drivers/media/platform/qcom/venus/helpers.h        |  23 +-
->  drivers/media/platform/qcom/venus/hfi.c            |  12 +-
->  drivers/media/platform/qcom/venus/hfi.h            |   9 +
->  drivers/media/platform/qcom/venus/hfi_cmds.c       |  64 ++-
->  drivers/media/platform/qcom/venus/hfi_helper.h     | 112 ++++-
->  drivers/media/platform/qcom/venus/hfi_msgs.c       | 401 +++------------
->  drivers/media/platform/qcom/venus/hfi_parser.c     | 290 +++++++++++
->  drivers/media/platform/qcom/venus/hfi_parser.h     |  45 ++
->  drivers/media/platform/qcom/venus/hfi_venus.c      |  69 +++
->  drivers/media/platform/qcom/venus/hfi_venus_io.h   |  24 +
->  drivers/media/platform/qcom/venus/vdec.c           | 324 +++++++-----
->  drivers/media/platform/qcom/venus/venc.c           | 166 +++---
->  17 files changed, 1641 insertions(+), 653 deletions(-)
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.c
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.h
-> 
+diff --git a/drivers/mtd/nand/raw/marvell_nand.c b/drivers/mtd/nand/raw/marvell_nand.c
+index 10e953218948..f9763be078ef 100644
+--- a/drivers/mtd/nand/raw/marvell_nand.c
++++ b/drivers/mtd/nand/raw/marvell_nand.c
+@@ -2613,8 +2613,6 @@ static int marvell_nfc_init_dma(struct marvell_nfc *nfc)
+ 						    dev);
+ 	struct dma_slave_config config = {};
+ 	struct resource *r;
+-	dma_cap_mask_t mask;
+-	struct pxad_param param;
+ 	int ret;
+ 
+ 	if (!IS_ENABLED(CONFIG_PXA_DMA)) {
+@@ -2627,20 +2625,7 @@ static int marvell_nfc_init_dma(struct marvell_nfc *nfc)
+ 	if (ret)
+ 		return ret;
+ 
+-	r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+-	if (!r) {
+-		dev_err(nfc->dev, "No resource defined for data DMA\n");
+-		return -ENXIO;
+-	}
+-
+-	param.drcmr = r->start;
+-	param.prio = PXAD_PRIO_LOWEST;
+-	dma_cap_zero(mask);
+-	dma_cap_set(DMA_SLAVE, mask);
+-	nfc->dma_chan =
+-		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-						 &param, nfc->dev,
+-						 "data");
++	nfc->dma_chan =	dma_request_slave_channel(&nfc->dev, "data");
+ 	if (!nfc->dma_chan) {
+ 		dev_err(nfc->dev,
+ 			"Unable to request data DMA channel\n");
+-- 
+2.11.0
