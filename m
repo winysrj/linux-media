@@ -1,57 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:45104 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750923AbeEUIPV (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:44717 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1030465AbeEXJ51 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:15:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kelly Huang <kinghuangdk17@gmail.com>
-Cc: Felipe Balbi <felipe.balbi@linux.intel.com>,
-        linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-        Paul Elder <paul.elder@pitt.edu>
-Subject: Re: Some questions about the UVC gadget
-Date: Mon, 21 May 2018 11:15:44 +0300
-Message-ID: <1888439.YyroKcJ4jt@avalon>
-In-Reply-To: <CAEjubf1oP162SEJjF6KgSheeJyvWMH3aSA5hND18Bh4SjQTvTw@mail.gmail.com>
-References: <CAEjubf29Ne0XkJoZTqYfbt5xjw2iDw9hsHRuYzCvz9nYJtLpcQ@mail.gmail.com> <17074466.0QZEqxoWO3@avalon> <CAEjubf1oP162SEJjF6KgSheeJyvWMH3aSA5hND18Bh4SjQTvTw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Thu, 24 May 2018 05:57:27 -0400
+Received: by mail-wr0-f194.google.com with SMTP id y15-v6so1943629wrg.11
+        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 02:57:27 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        eballetbo@gmail.com
+Subject: [PATCH v6 1/6] media: cec-notifier: Get notifier by device and connector name
+Date: Thu, 24 May 2018 11:57:16 +0200
+Message-Id: <1527155841-28494-2-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
+References: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Kelly,
+In non device-tree world, we can need to get the notifier by the driver
+name directly and eventually defer probe if not yet created.
 
-Sorry for the late reply, your e-mail got buried in my inbox :-/
+This patch adds a variant of the get function by using the device name
+instead and will not create a notifier if not yet created.
 
-On Friday, 23 February 2018 05:36:55 EEST Kelly Huang wrote:
-> Dear Mr.Pinchart,
-> 
-> > I'm afraid the Linux UVC gadget driver doesn't support H.264. While H.264
-> > support could be implemented using UVC 1.1, I wouldn't recommend this as
-> > the UVC 1.1 H.264 specification is a hack that is not and will not be
-> > supported in the Linux UVC host driver. UVC 1.5 is the way to go for
-> > H.264.
-> 
-> I have a  Logitech C920 usb camera which claims H.264 support. When I used
-> it under my usb protocol analyzer, I found that one of the CS_INTERFACE
-> descriptor had a VS_FORMAT_FRAME_BASED subtype, and the guidFormat is
-> '48323634-1000-800000AA-389B71', including the 'H264' symbols.
-> 
-> I don't know if that is the way you talked about implementing H.264 using
-> UVC 1.1? It seems that I need to rename some descriptors of the UVC gadget
-> driver and write a userspace application to fill /dev/videoX with H.264
-> streams. If so, can it work correctly?
+But the i915 driver exposes at least 2 HDMI connectors, this patch also
+adds the possibility to add a connector name tied to the notifier device
+to form a tuple and associate different CEC controllers for each HDMI
+connectors.
 
-I spoke a bit too fast in my previous e-mail. H.264 support with UVC 1.1 
-should be OK, as long as you don't use the H.264 UVC 1.1 stream multiplexing 
-method that allows transmitting multiple video streams over a single endpoint.
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-notifier.c | 11 ++++++++---
+ include/media/cec-notifier.h     | 27 ++++++++++++++++++++++++---
+ 2 files changed, 32 insertions(+), 6 deletions(-)
 
-The support H.264 with UVC 1.1 you will need to create the corresponding 
-descriptors, and to implement support in the userspace helper application for 
-the H.264 extension unit (XU) defined in the UVC 1.1 specification.
-
+diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
+index 16dffa0..dd2078b 100644
+--- a/drivers/media/cec/cec-notifier.c
++++ b/drivers/media/cec/cec-notifier.c
+@@ -21,6 +21,7 @@ struct cec_notifier {
+ 	struct list_head head;
+ 	struct kref kref;
+ 	struct device *dev;
++	const char *conn;
+ 	struct cec_adapter *cec_adap;
+ 	void (*callback)(struct cec_adapter *adap, u16 pa);
+ 
+@@ -30,13 +31,14 @@ struct cec_notifier {
+ static LIST_HEAD(cec_notifiers);
+ static DEFINE_MUTEX(cec_notifiers_lock);
+ 
+-struct cec_notifier *cec_notifier_get(struct device *dev)
++struct cec_notifier *cec_notifier_get_conn(struct device *dev, const char *conn)
+ {
+ 	struct cec_notifier *n;
+ 
+ 	mutex_lock(&cec_notifiers_lock);
+ 	list_for_each_entry(n, &cec_notifiers, head) {
+-		if (n->dev == dev) {
++		if (n->dev == dev &&
++		    (!conn || !strcmp(n->conn, conn))) {
+ 			kref_get(&n->kref);
+ 			mutex_unlock(&cec_notifiers_lock);
+ 			return n;
+@@ -46,6 +48,8 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
+ 	if (!n)
+ 		goto unlock;
+ 	n->dev = dev;
++	if (conn)
++		n->conn = kstrdup(conn, GFP_KERNEL);
+ 	n->phys_addr = CEC_PHYS_ADDR_INVALID;
+ 	mutex_init(&n->lock);
+ 	kref_init(&n->kref);
+@@ -54,7 +58,7 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
+ 	mutex_unlock(&cec_notifiers_lock);
+ 	return n;
+ }
+-EXPORT_SYMBOL_GPL(cec_notifier_get);
++EXPORT_SYMBOL_GPL(cec_notifier_get_conn);
+ 
+ static void cec_notifier_release(struct kref *kref)
+ {
+@@ -62,6 +66,7 @@ static void cec_notifier_release(struct kref *kref)
+ 		container_of(kref, struct cec_notifier, kref);
+ 
+ 	list_del(&n->head);
++	kfree(n->conn);
+ 	kfree(n);
+ }
+ 
+diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
+index cf0add7..814eeef 100644
+--- a/include/media/cec-notifier.h
++++ b/include/media/cec-notifier.h
+@@ -20,8 +20,10 @@ struct cec_notifier;
+ #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
+ 
+ /**
+- * cec_notifier_get - find or create a new cec_notifier for the given device.
++ * cec_notifier_get_conn - find or create a new cec_notifier for the given
++ * device and connector tuple.
+  * @dev: device that sends the events.
++ * @conn: the connector name from which the event occurs
+  *
+  * If a notifier for device @dev already exists, then increase the refcount
+  * and return that notifier.
+@@ -31,7 +33,8 @@ struct cec_notifier;
+  *
+  * Return NULL if the memory could not be allocated.
+  */
+-struct cec_notifier *cec_notifier_get(struct device *dev);
++struct cec_notifier *cec_notifier_get_conn(struct device *dev,
++					   const char *conn);
+ 
+ /**
+  * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
+@@ -85,7 +88,8 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
+ 			       struct cec_notifier *notifier);
+ 
+ #else
+-static inline struct cec_notifier *cec_notifier_get(struct device *dev)
++static inline struct cec_notifier *cec_notifier_get_conn(struct device *dev,
++							 const char *conn)
+ {
+ 	/* A non-NULL pointer is expected on success */
+ 	return (struct cec_notifier *)0xdeadfeed;
+@@ -121,6 +125,23 @@ static inline void cec_register_cec_notifier(struct cec_adapter *adap,
+ #endif
+ 
+ /**
++ * cec_notifier_get - find or create a new cec_notifier for the given device.
++ * @dev: device that sends the events.
++ *
++ * If a notifier for device @dev already exists, then increase the refcount
++ * and return that notifier.
++ *
++ * If it doesn't exist, then allocate a new notifier struct and return a
++ * pointer to that new struct.
++ *
++ * Return NULL if the memory could not be allocated.
++ */
++static inline struct cec_notifier *cec_notifier_get(struct device *dev)
++{
++	return cec_notifier_get_conn(dev, NULL);
++}
++
++/**
+  * cec_notifier_phys_addr_invalidate() - set the physical address to INVALID
+  *
+  * @n: the CEC notifier
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
