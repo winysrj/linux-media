@@ -1,200 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.socionext.com ([202.248.49.38]:41428 "EHLO mx.socionext.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752681AbeEWA1z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 20:27:55 -0400
-From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-To: Abylay Ospan <aospan@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>,
-        Jassi Brar <jaswinder.singh@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-Subject: [PATCH v3 1/2] media: helene: add I2C device probe function
-Date: Wed, 23 May 2018 09:27:49 +0900
-Message-Id: <20180523002750.27136-1-suzuki.katsuhiro@socionext.com>
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:33007 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964979AbeEXHHr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 03:07:47 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Subject: [PATCH v2 13/13] ARM: pxa: change SSP DMA channels allocation
+Date: Thu, 24 May 2018 09:07:03 +0200
+Message-Id: <20180524070703.11901-14-robert.jarzmik@free.fr>
+In-Reply-To: <20180524070703.11901-1-robert.jarzmik@free.fr>
+References: <20180524070703.11901-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds I2C probe function to use dvb_module_probe()
-with this driver.
+Now the dma_slave_map is available for PXA architecture, switch the SSP
+device to it.
 
-Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+This specifically means that :
+- for platform data based machines, the DMA requestor channels are
+  extracted from the slave map, where pxa-ssp-dai.<N> is a 1-1 match to
+  ssp.<N>, and the channels are either "rx" or "tx".
 
+- for device tree platforms, the dma node should be hooked into the
+  pxa2xx-ac97 or pxa-ssp-dai node.
+
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
-
-Changes since v2:
-  - Nothing
-
-Changes since v1:
-  - Add documents for dvb_frontend member of helene_config
+Since v1: Removed channel names from platform_data
 ---
- drivers/media/dvb-frontends/helene.c | 88 ++++++++++++++++++++++++++--
- drivers/media/dvb-frontends/helene.h |  3 +
- 2 files changed, 87 insertions(+), 4 deletions(-)
+ arch/arm/plat-pxa/ssp.c    | 47 ----------------------------------------------
+ include/linux/pxa2xx_ssp.h |  2 --
+ sound/soc/pxa/pxa-ssp.c    |  5 ++---
+ 3 files changed, 2 insertions(+), 52 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/helene.c b/drivers/media/dvb-frontends/helene.c
-index a0d0b53c91d7..04033f0c278b 100644
---- a/drivers/media/dvb-frontends/helene.c
-+++ b/drivers/media/dvb-frontends/helene.c
-@@ -666,7 +666,7 @@ static int helene_set_params_s(struct dvb_frontend *fe)
- 	return 0;
- }
+diff --git a/arch/arm/plat-pxa/ssp.c b/arch/arm/plat-pxa/ssp.c
+index ba13f793fbce..ed36dcab80f1 100644
+--- a/arch/arm/plat-pxa/ssp.c
++++ b/arch/arm/plat-pxa/ssp.c
+@@ -127,53 +127,6 @@ static int pxa_ssp_probe(struct platform_device *pdev)
+ 	if (IS_ERR(ssp->clk))
+ 		return PTR_ERR(ssp->clk);
  
--static int helene_set_params(struct dvb_frontend *fe)
-+static int helene_set_params_t(struct dvb_frontend *fe)
- {
- 	u8 data[MAX_WRITE_REGSIZE];
- 	u32 frequency;
-@@ -835,6 +835,19 @@ static int helene_set_params(struct dvb_frontend *fe)
- 	return 0;
- }
+-	if (dev->of_node) {
+-		struct of_phandle_args dma_spec;
+-		struct device_node *np = dev->of_node;
+-		int ret;
+-
+-		/*
+-		 * FIXME: we should allocate the DMA channel from this
+-		 * context and pass the channel down to the ssp users.
+-		 * For now, we lookup the rx and tx indices manually
+-		 */
+-
+-		/* rx */
+-		ret = of_parse_phandle_with_args(np, "dmas", "#dma-cells",
+-						 0, &dma_spec);
+-
+-		if (ret) {
+-			dev_err(dev, "Can't parse dmas property\n");
+-			return -ENODEV;
+-		}
+-		ssp->drcmr_rx = dma_spec.args[0];
+-		of_node_put(dma_spec.np);
+-
+-		/* tx */
+-		ret = of_parse_phandle_with_args(np, "dmas", "#dma-cells",
+-						 1, &dma_spec);
+-		if (ret) {
+-			dev_err(dev, "Can't parse dmas property\n");
+-			return -ENODEV;
+-		}
+-		ssp->drcmr_tx = dma_spec.args[0];
+-		of_node_put(dma_spec.np);
+-	} else {
+-		res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+-		if (res == NULL) {
+-			dev_err(dev, "no SSP RX DRCMR defined\n");
+-			return -ENODEV;
+-		}
+-		ssp->drcmr_rx = res->start;
+-
+-		res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
+-		if (res == NULL) {
+-			dev_err(dev, "no SSP TX DRCMR defined\n");
+-			return -ENODEV;
+-		}
+-		ssp->drcmr_tx = res->start;
+-	}
+-
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res == NULL) {
+ 		dev_err(dev, "no memory resource defined\n");
+diff --git a/include/linux/pxa2xx_ssp.h b/include/linux/pxa2xx_ssp.h
+index 8461b18e4608..03a7ca46735b 100644
+--- a/include/linux/pxa2xx_ssp.h
++++ b/include/linux/pxa2xx_ssp.h
+@@ -212,8 +212,6 @@ struct ssp_device {
+ 	int		type;
+ 	int		use_count;
+ 	int		irq;
+-	int		drcmr_rx;
+-	int		drcmr_tx;
  
-+static int helene_set_params(struct dvb_frontend *fe)
-+{
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+
-+	if (p->delivery_system == SYS_DVBT ||
-+	    p->delivery_system == SYS_DVBT2 ||
-+	    p->delivery_system == SYS_ISDBT ||
-+	    p->delivery_system == SYS_DVBC_ANNEX_A)
-+		return helene_set_params_t(fe);
-+
-+	return helene_set_params_s(fe);
-+}
-+
- static int helene_get_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
- 	struct helene_priv *priv = fe->tuner_priv;
-@@ -843,7 +856,7 @@ static int helene_get_frequency(struct dvb_frontend *fe, u32 *frequency)
- 	return 0;
- }
- 
--static const struct dvb_tuner_ops helene_tuner_ops = {
-+static const struct dvb_tuner_ops helene_tuner_ops_t = {
- 	.info = {
- 		.name = "Sony HELENE Ter tuner",
- 		.frequency_min = 1000000,
-@@ -853,7 +866,7 @@ static const struct dvb_tuner_ops helene_tuner_ops = {
- 	.init = helene_init,
- 	.release = helene_release,
- 	.sleep = helene_sleep,
--	.set_params = helene_set_params,
-+	.set_params = helene_set_params_t,
- 	.get_frequency = helene_get_frequency,
+ 	struct device_node	*of_node;
  };
+diff --git a/sound/soc/pxa/pxa-ssp.c b/sound/soc/pxa/pxa-ssp.c
+index 0291c7cb64eb..e09368d89bbc 100644
+--- a/sound/soc/pxa/pxa-ssp.c
++++ b/sound/soc/pxa/pxa-ssp.c
+@@ -104,9 +104,8 @@ static int pxa_ssp_startup(struct snd_pcm_substream *substream,
+ 	dma = kzalloc(sizeof(struct snd_dmaengine_dai_dma_data), GFP_KERNEL);
+ 	if (!dma)
+ 		return -ENOMEM;
+-
+-	dma->filter_data = substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
+-				&ssp->drcmr_tx : &ssp->drcmr_rx;
++	dma->chan_name = substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
++		"tx" : "rx";
  
-@@ -871,6 +884,20 @@ static const struct dvb_tuner_ops helene_tuner_ops_s = {
- 	.get_frequency = helene_get_frequency,
- };
+ 	snd_soc_dai_set_dma_data(cpu_dai, substream, dma);
  
-+static const struct dvb_tuner_ops helene_tuner_ops = {
-+	.info = {
-+		.name = "Sony HELENE Sat/Ter tuner",
-+		.frequency_min = 500000,
-+		.frequency_max = 1200000000,
-+		.frequency_step = 1000,
-+	},
-+	.init = helene_init,
-+	.release = helene_release,
-+	.sleep = helene_sleep,
-+	.set_params = helene_set_params,
-+	.get_frequency = helene_get_frequency,
-+};
-+
- /* power-on tuner
-  * call once after reset
-  */
-@@ -1032,7 +1059,7 @@ struct dvb_frontend *helene_attach(struct dvb_frontend *fe,
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0);
- 
--	memcpy(&fe->ops.tuner_ops, &helene_tuner_ops,
-+	memcpy(&fe->ops.tuner_ops, &helene_tuner_ops_t,
- 			sizeof(struct dvb_tuner_ops));
- 	fe->tuner_priv = priv;
- 	dev_info(&priv->i2c->dev,
-@@ -1042,6 +1069,59 @@ struct dvb_frontend *helene_attach(struct dvb_frontend *fe,
- }
- EXPORT_SYMBOL(helene_attach);
- 
-+static int helene_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	struct helene_config *config = client->dev.platform_data;
-+	struct dvb_frontend *fe = config->fe;
-+	struct device *dev = &client->dev;
-+	struct helene_priv *priv;
-+
-+	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
-+
-+	priv->i2c_address = client->addr;
-+	priv->i2c = client->adapter;
-+	priv->set_tuner_data = config->set_tuner_priv;
-+	priv->set_tuner = config->set_tuner_callback;
-+	priv->xtal = config->xtal;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	if (helene_x_pon(priv) != 0)
-+		return -EINVAL;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	memcpy(&fe->ops.tuner_ops, &helene_tuner_ops,
-+	       sizeof(struct dvb_tuner_ops));
-+	fe->tuner_priv = priv;
-+	i2c_set_clientdata(client, priv);
-+
-+	dev_info(dev, "Sony HELENE attached on addr=%x at I2C adapter %p\n",
-+		 priv->i2c_address, priv->i2c);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id helene_id[] = {
-+	{ "helene", },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, helene_id);
-+
-+static struct i2c_driver helene_driver = {
-+	.driver = {
-+		.name = "helene",
-+	},
-+	.probe    = helene_probe,
-+	.id_table = helene_id,
-+};
-+module_i2c_driver(helene_driver);
-+
- MODULE_DESCRIPTION("Sony HELENE Sat/Ter tuner driver");
- MODULE_AUTHOR("Abylay Ospan <aospan@netup.ru>");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/helene.h b/drivers/media/dvb-frontends/helene.h
-index c9fc81c7e4e7..8562d01bc93e 100644
---- a/drivers/media/dvb-frontends/helene.h
-+++ b/drivers/media/dvb-frontends/helene.h
-@@ -39,6 +39,7 @@ enum helene_xtal {
-  * @set_tuner_callback:	Callback function that notifies the parent driver
-  *			which tuner is active now
-  * @xtal: Cristal frequency as described by &enum helene_xtal
-+ * @fe: Frontend for which connects this tuner
-  */
- struct helene_config {
- 	u8	i2c_address;
-@@ -46,6 +47,8 @@ struct helene_config {
- 	void	*set_tuner_priv;
- 	int	(*set_tuner_callback)(void *, int);
- 	enum helene_xtal xtal;
-+
-+	struct dvb_frontend *fe;
- };
- 
- #if IS_REACHABLE(CONFIG_DVB_HELENE)
 -- 
-2.17.0
+2.11.0
