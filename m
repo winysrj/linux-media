@@ -1,58 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:43507 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932252AbeENNNw (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:57671 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967779AbeEXLY2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 09:13:52 -0400
+        Thu, 24 May 2018 07:24:28 -0400
+Subject: Re: [PATCH v6 5/6] mfd: cros_ec_dev: Add CEC sub-device registration
+To: Neil Armstrong <narmstrong@baylibre.com>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        eballetbo@gmail.com
+References: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
+ <1527155841-28494-6-git-send-email-narmstrong@baylibre.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/7] go7007: fix two sparse warnings
-Date: Mon, 14 May 2018 15:13:40 +0200
-Message-Id: <20180514131346.15795-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180514131346.15795-1-hverkuil@xs4all.nl>
-References: <20180514131346.15795-1-hverkuil@xs4all.nl>
+Message-ID: <5fa2ded2-3072-6dba-dd7f-1dc39fdc4d23@xs4all.nl>
+Date: Thu, 24 May 2018 13:24:25 +0200
+MIME-Version: 1.0
+In-Reply-To: <1527155841-28494-6-git-send-email-narmstrong@baylibre.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 24/05/18 11:57, Neil Armstrong wrote:
+> The EC can expose a CEC bus, thus add the cros-ec-cec MFD sub-device
+> when the CEC feature bit is present.
+> 
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> Reviewed-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
 
-drivers/media/usb/go7007/go7007-v4l2.c:637:2: warning: 'strncpy' specified bound 32 equals destination size [-Wstringop-truncation]
-drivers/media/usb/go7007/go7007-fw.c:1507:3: warning: this statement may fall through [-Wimplicit-fallthrough=]
+For whatever it is worth:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/go7007/go7007-fw.c   | 3 +++
- drivers/media/usb/go7007/go7007-v4l2.c | 2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/usb/go7007/go7007-fw.c b/drivers/media/usb/go7007/go7007-fw.c
-index 60bf5f0644d1..87b4fc48ef09 100644
---- a/drivers/media/usb/go7007/go7007-fw.c
-+++ b/drivers/media/usb/go7007/go7007-fw.c
-@@ -1514,7 +1514,10 @@ static int do_special(struct go7007 *go, u16 type, __le16 *code, int space,
- 		case V4L2_PIX_FMT_MPEG4:
- 			return gen_mpeg4hdr_to_package(go, code, space,
- 								framelen);
-+		default:
-+			break;
- 		}
-+		break;
- 	case SPECIAL_BRC_CTRL:
- 		return brctrl_to_package(go, code, space, framelen);
- 	case SPECIAL_CONFIG:
-diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
-index 98cd57eaf36a..c55c82f70e54 100644
---- a/drivers/media/usb/go7007/go7007-v4l2.c
-+++ b/drivers/media/usb/go7007/go7007-v4l2.c
-@@ -634,7 +634,7 @@ static int vidioc_enum_input(struct file *file, void *priv,
- 	if (inp->index >= go->board_info->num_inputs)
- 		return -EINVAL;
- 
--	strncpy(inp->name, go->board_info->inputs[inp->index].name,
-+	strlcpy(inp->name, go->board_info->inputs[inp->index].name,
- 			sizeof(inp->name));
- 
- 	/* If this board has a tuner, it will be the first input */
--- 
-2.17.0
+Regards,
+
+	Hans
+
+> ---
+>  drivers/mfd/cros_ec_dev.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/drivers/mfd/cros_ec_dev.c b/drivers/mfd/cros_ec_dev.c
+> index 1d6dc5c..272969e 100644
+> --- a/drivers/mfd/cros_ec_dev.c
+> +++ b/drivers/mfd/cros_ec_dev.c
+> @@ -383,6 +383,10 @@ static void cros_ec_sensors_register(struct cros_ec_dev *ec)
+>  	kfree(msg);
+>  }
+>  
+> +static const struct mfd_cell cros_ec_cec_cells[] = {
+> +	{ .name = "cros-ec-cec" }
+> +};
+> +
+>  static const struct mfd_cell cros_ec_rtc_cells[] = {
+>  	{ .name = "cros-ec-rtc" }
+>  };
+> @@ -426,6 +430,18 @@ static int ec_device_probe(struct platform_device *pdev)
+>  	if (cros_ec_check_features(ec, EC_FEATURE_MOTION_SENSE))
+>  		cros_ec_sensors_register(ec);
+>  
+> +	/* Check whether this EC instance has CEC host command support */
+> +	if (cros_ec_check_features(ec, EC_FEATURE_CEC)) {
+> +		retval = mfd_add_devices(ec->dev, PLATFORM_DEVID_AUTO,
+> +					 cros_ec_cec_cells,
+> +					 ARRAY_SIZE(cros_ec_cec_cells),
+> +					 NULL, 0, NULL);
+> +		if (retval)
+> +			dev_err(ec->dev,
+> +				"failed to add cros-ec-cec device: %d\n",
+> +				retval);
+> +	}
+> +
+>  	/* Check whether this EC instance has RTC host command support */
+>  	if (cros_ec_check_features(ec, EC_FEATURE_RTC)) {
+>  		retval = mfd_add_devices(ec->dev, PLATFORM_DEVID_AUTO,
+> 
