@@ -1,1330 +1,897 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:43875 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751362AbeELOoI (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49502 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965664AbeEXJ0m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 May 2018 10:44:08 -0400
+        Thu, 24 May 2018 05:26:42 -0400
+Subject: Re: [PATCHv13 03/28] media-request: implement media requests
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+ <20180503145318.128315-4-hverkuil@xs4all.nl>
+ <20180504122750.bcmbhnwtpibd7425@valkosipuli.retiisi.org.uk>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/4] gspca: convert to vb2
-Date: Sat, 12 May 2018 16:44:00 +0200
-Message-Id: <20180512144403.13576-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180512144403.13576-1-hverkuil@xs4all.nl>
-References: <20180512144403.13576-1-hverkuil@xs4all.nl>
+Message-ID: <b031af39-0476-0a10-175d-b6bd2b745310@xs4all.nl>
+Date: Thu, 24 May 2018 11:26:40 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180504122750.bcmbhnwtpibd7425@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 04/05/18 14:27, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> I've read this patch a large number of times and I think also the details
+> begin to seem sound. A few comments below.
+> 
+> On Thu, May 03, 2018 at 04:52:53PM +0200, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add initial media request support:
+>>
+>> 1) Add MEDIA_IOC_REQUEST_ALLOC ioctl support to media-device.c
+>> 2) Add struct media_request to store request objects.
+>> 3) Add struct media_request_object to represent a request object.
+>> 4) Add MEDIA_REQUEST_IOC_QUEUE/REINIT ioctl support.
+>>
+>> Basic lifecycle: the application allocates a request, adds
+>> objects to it, queues the request, polls until it is completed
+>> and can then read the final values of the objects at the time
+>> of completion. When it closes the file descriptor the request
+>> memory will be freed (actually, when the last user of that request
+>> releases the request).
+>>
+>> Drivers will bind an object to a request (the 'adds objects to it'
+>> phase), when MEDIA_REQUEST_IOC_QUEUE is called the request is
+>> validated (req_validate op), then queued (the req_queue op).
+>>
+>> When done with an object it can either be unbound from the request
+>> (e.g. when the driver has finished with a vb2 buffer) or marked as
+>> completed (e.g. for controls associated with a buffer). When all
+>> objects in the request are completed (or unbound), then the request
+>> fd will signal an exception (poll).
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/Makefile        |   3 +-
+>>  drivers/media/media-device.c  |  14 ++
+>>  drivers/media/media-request.c | 407 ++++++++++++++++++++++++++++++++++
+>>  include/media/media-device.h  |  16 ++
+>>  include/media/media-request.h | 244 ++++++++++++++++++++
+>>  5 files changed, 683 insertions(+), 1 deletion(-)
+>>  create mode 100644 drivers/media/media-request.c
+>>  create mode 100644 include/media/media-request.h
+>>
+>> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+>> index 594b462ddf0e..985d35ec6b29 100644
+>> --- a/drivers/media/Makefile
+>> +++ b/drivers/media/Makefile
+>> @@ -3,7 +3,8 @@
+>>  # Makefile for the kernel multimedia device drivers.
+>>  #
+>>  
+>> -media-objs	:= media-device.o media-devnode.o media-entity.o
+>> +media-objs	:= media-device.o media-devnode.o media-entity.o \
+>> +		   media-request.o
+>>  
+>>  #
+>>  # I2C drivers should come before other drivers, otherwise they'll fail
+>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+>> index 35e81f7c0d2f..bb6a64acd3f0 100644
+>> --- a/drivers/media/media-device.c
+>> +++ b/drivers/media/media-device.c
+>> @@ -32,6 +32,7 @@
+>>  #include <media/media-device.h>
+>>  #include <media/media-devnode.h>
+>>  #include <media/media-entity.h>
+>> +#include <media/media-request.h>
+>>  
+>>  #ifdef CONFIG_MEDIA_CONTROLLER
+>>  
+>> @@ -366,6 +367,15 @@ static long media_device_get_topology(struct media_device *mdev,
+>>  	return ret;
+>>  }
+>>  
+>> +static long media_device_request_alloc(struct media_device *mdev,
+>> +				       struct media_request_alloc *alloc)
+>> +{
+>> +	if (!mdev->ops || !mdev->ops->req_validate || !mdev->ops->req_queue)
+>> +		return -ENOTTY;
+>> +
+>> +	return media_request_alloc(mdev, alloc);
+>> +}
+>> +
+>>  static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
+>>  {
+>>  	/* All media IOCTLs are _IOWR() */
+>> @@ -414,6 +424,7 @@ static const struct media_ioctl_info ioctl_info[] = {
+>>  	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
+>>  	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
+>>  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+>> +	MEDIA_IOC(REQUEST_ALLOC, media_device_request_alloc, 0),
+>>  };
+>>  
+>>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>> @@ -686,6 +697,8 @@ void media_device_init(struct media_device *mdev)
+>>  	INIT_LIST_HEAD(&mdev->pads);
+>>  	INIT_LIST_HEAD(&mdev->links);
+>>  	INIT_LIST_HEAD(&mdev->entity_notify);
+>> +
+>> +	mutex_init(&mdev->req_queue_mutex);
+>>  	mutex_init(&mdev->graph_mutex);
+>>  	ida_init(&mdev->entity_internal_idx);
+>>  
+>> @@ -699,6 +712,7 @@ void media_device_cleanup(struct media_device *mdev)
+>>  	mdev->entity_internal_idx_max = 0;
+>>  	media_graph_walk_cleanup(&mdev->pm_count_walk);
+>>  	mutex_destroy(&mdev->graph_mutex);
+>> +	mutex_destroy(&mdev->req_queue_mutex);
+>>  }
+>>  EXPORT_SYMBOL_GPL(media_device_cleanup);
+>>  
+>> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+>> new file mode 100644
+>> index 000000000000..c216c4ab628b
+>> --- /dev/null
+>> +++ b/drivers/media/media-request.c
+>> @@ -0,0 +1,407 @@
+>> +// SPDX-License-Identifier: GPL-2.0-only
+>> +/*
+>> + * Media device request objects
+>> + *
+>> + * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+>> + * Copyright (C) 2018 Intel Corporation
+>> + * Copyright (C) 2018 Google, Inc.
+>> + *
+>> + * Author: Hans Verkuil <hans.verkuil@cisco.com>
+>> + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> + */
+>> +
+>> +#include <linux/anon_inodes.h>
+>> +#include <linux/file.h>
+>> +
+>> +#include <media/media-device.h>
+>> +#include <media/media-request.h>
+>> +
+>> +static const char * const request_state[] = {
+>> +	[MEDIA_REQUEST_STATE_IDLE]	 = "idle",
+>> +	[MEDIA_REQUEST_STATE_VALIDATING] = "validating",
+>> +	[MEDIA_REQUEST_STATE_QUEUED]	 = "queued",
+>> +	[MEDIA_REQUEST_STATE_COMPLETE]	 = "complete",
+>> +	[MEDIA_REQUEST_STATE_CLEANING]	 = "cleaning",
+>> +};
+>> +
+>> +static const char *
+>> +media_request_state_str(enum media_request_state state)
+>> +{
+>> +	if (WARN_ON(state >= ARRAY_SIZE(request_state)))
+>> +		return "invalid";
+>> +	return request_state[state];
+>> +}
+>> +
+>> +static void media_request_clean(struct media_request *req)
+>> +{
+>> +	struct media_request_object *obj, *obj_safe;
+>> +
+>> +	WARN_ON(atomic_read(&req->state) != MEDIA_REQUEST_STATE_CLEANING);
+>> +
+>> +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
+>> +		media_request_object_unbind(obj);
+>> +		media_request_object_put(obj);
+>> +	}
+>> +
+>> +	req->num_incomplete_objects = 0;
+> 
+> The number of incomplete objects should be already zero here. I'd think
+> that a different number would suggest that something has gone very wrong
+> and should be complained about. How about adding
+> WARN_ON(req->num_incomplete_objects) above this line? 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/gspca/Kconfig            |   1 +
- drivers/media/usb/gspca/gspca.c            | 899 ++++-----------------
- drivers/media/usb/gspca/gspca.h            |  38 +-
- drivers/media/usb/gspca/m5602/m5602_core.c |   4 +-
- drivers/media/usb/gspca/vc032x.c           |   2 +-
- 5 files changed, 179 insertions(+), 765 deletions(-)
+Makes sense. Added.
 
-diff --git a/drivers/media/usb/gspca/Kconfig b/drivers/media/usb/gspca/Kconfig
-index bc9a439745aa..d3b6665c342d 100644
---- a/drivers/media/usb/gspca/Kconfig
-+++ b/drivers/media/usb/gspca/Kconfig
-@@ -2,6 +2,7 @@ menuconfig USB_GSPCA
- 	tristate "GSPCA based webcams"
- 	depends on VIDEO_V4L2
- 	depends on INPUT || INPUT=n
-+	select VIDEOBUF2_VMALLOC
- 	default m
- 	---help---
- 	  Say Y here if you want to enable selecting webcams based
-diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-index d29773b8f696..ca87c58359e0 100644
---- a/drivers/media/usb/gspca/gspca.c
-+++ b/drivers/media/usb/gspca/gspca.c
-@@ -82,32 +82,6 @@ static void PDEBUG_MODE(struct gspca_dev *gspca_dev, int debug, char *txt,
- #define GSPCA_MEMORY_NO 0	/* V4L2_MEMORY_xxx starts from 1 */
- #define GSPCA_MEMORY_READ 7
- 
--#define BUF_ALL_FLAGS (V4L2_BUF_FLAG_QUEUED | V4L2_BUF_FLAG_DONE)
--
--/*
-- * VMA operations.
-- */
--static void gspca_vm_open(struct vm_area_struct *vma)
--{
--	struct gspca_frame *frame = vma->vm_private_data;
--
--	frame->vma_use_count++;
--	frame->v4l2_buf.flags |= V4L2_BUF_FLAG_MAPPED;
--}
--
--static void gspca_vm_close(struct vm_area_struct *vma)
--{
--	struct gspca_frame *frame = vma->vm_private_data;
--
--	if (--frame->vma_use_count <= 0)
--		frame->v4l2_buf.flags &= ~V4L2_BUF_FLAG_MAPPED;
--}
--
--static const struct vm_operations_struct gspca_vm_ops = {
--	.open		= gspca_vm_open,
--	.close		= gspca_vm_close,
--};
--
- /*
-  * Input and interrupt endpoint handling functions
-  */
-@@ -356,7 +330,7 @@ static void isoc_irq(struct urb *urb)
- 	struct gspca_dev *gspca_dev = (struct gspca_dev *) urb->context;
- 
- 	gspca_dbg(gspca_dev, D_PACK, "isoc irq\n");
--	if (!gspca_dev->streaming)
-+	if (!vb2_start_streaming_called(&gspca_dev->queue))
- 		return;
- 	fill_frame(gspca_dev, urb);
- }
-@@ -370,7 +344,7 @@ static void bulk_irq(struct urb *urb)
- 	int st;
- 
- 	gspca_dbg(gspca_dev, D_PACK, "bulk irq\n");
--	if (!gspca_dev->streaming)
-+	if (!vb2_start_streaming_called(&gspca_dev->queue))
- 		return;
- 	switch (urb->status) {
- 	case 0:
-@@ -417,25 +391,23 @@ void gspca_frame_add(struct gspca_dev *gspca_dev,
- 			const u8 *data,
- 			int len)
- {
--	struct gspca_frame *frame;
--	int i, j;
-+	struct gspca_buffer *buf;
- 
- 	gspca_dbg(gspca_dev, D_PACK, "add t:%d l:%d\n",	packet_type, len);
- 
--	if (packet_type == FIRST_PACKET) {
--		i = atomic_read(&gspca_dev->fr_i);
-+	spin_lock(&gspca_dev->qlock);
-+	buf = list_first_entry_or_null(&gspca_dev->buf_list,
-+				       typeof(*buf), list);
-+	spin_unlock(&gspca_dev->qlock);
- 
--		/* if there are no queued buffer, discard the whole frame */
--		if (i == atomic_read(&gspca_dev->fr_q)) {
-+	if (packet_type == FIRST_PACKET) {
-+		/* if there is no queued buffer, discard the whole frame */
-+		if (!buf) {
- 			gspca_dev->last_packet_type = DISCARD_PACKET;
- 			gspca_dev->sequence++;
- 			return;
- 		}
--		j = gspca_dev->fr_queue[i];
--		frame = &gspca_dev->frame[j];
--		v4l2_get_timestamp(&frame->v4l2_buf.timestamp);
--		frame->v4l2_buf.sequence = gspca_dev->sequence++;
--		gspca_dev->image = frame->data;
-+		gspca_dev->image = vb2_plane_vaddr(&buf->vb.vb2_buf, 0);
- 		gspca_dev->image_len = 0;
- 	} else {
- 		switch (gspca_dev->last_packet_type) {
-@@ -453,10 +425,10 @@ void gspca_frame_add(struct gspca_dev *gspca_dev,
- 
- 	/* append the packet to the frame buffer */
- 	if (len > 0) {
--		if (gspca_dev->image_len + len > gspca_dev->frsz) {
-+		if (gspca_dev->image_len + len > gspca_dev->pixfmt.sizeimage) {
- 			gspca_err(gspca_dev, "frame overflow %d > %d\n",
- 				  gspca_dev->image_len + len,
--				  gspca_dev->frsz);
-+				  gspca_dev->pixfmt.sizeimage);
- 			packet_type = DISCARD_PACKET;
- 		} else {
- /* !! image is NULL only when last pkt is LAST or DISCARD
-@@ -476,80 +448,23 @@ void gspca_frame_add(struct gspca_dev *gspca_dev,
- 	 * next first packet, wake up the application and advance
- 	 * in the queue */
- 	if (packet_type == LAST_PACKET) {
--		i = atomic_read(&gspca_dev->fr_i);
--		j = gspca_dev->fr_queue[i];
--		frame = &gspca_dev->frame[j];
--		frame->v4l2_buf.bytesused = gspca_dev->image_len;
--		frame->v4l2_buf.flags = (frame->v4l2_buf.flags
--					 | V4L2_BUF_FLAG_DONE)
--					& ~V4L2_BUF_FLAG_QUEUED;
--		i = (i + 1) % GSPCA_MAX_FRAMES;
--		atomic_set(&gspca_dev->fr_i, i);
--		wake_up_interruptible(&gspca_dev->wq);	/* event = new frame */
-+		spin_lock(&gspca_dev->qlock);
-+		list_del(&buf->list);
-+		spin_unlock(&gspca_dev->qlock);
-+		buf->vb.vb2_buf.timestamp = ktime_get_ns();
-+		vb2_set_plane_payload(&buf->vb.vb2_buf, 0,
-+				      gspca_dev->image_len);
-+		buf->vb.sequence = gspca_dev->sequence++;
-+		buf->vb.field = V4L2_FIELD_NONE;
- 		gspca_dbg(gspca_dev, D_FRAM, "frame complete len:%d\n",
--			  frame->v4l2_buf.bytesused);
-+			  gspca_dev->image_len);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
- 		gspca_dev->image = NULL;
- 		gspca_dev->image_len = 0;
- 	}
- }
- EXPORT_SYMBOL(gspca_frame_add);
- 
--static int frame_alloc(struct gspca_dev *gspca_dev, struct file *file,
--			enum v4l2_memory memory, unsigned int count)
--{
--	struct gspca_frame *frame;
--	unsigned int frsz;
--	int i;
--
--	frsz = gspca_dev->pixfmt.sizeimage;
--	gspca_dbg(gspca_dev, D_STREAM, "frame alloc frsz: %d\n", frsz);
--	frsz = PAGE_ALIGN(frsz);
--	if (count >= GSPCA_MAX_FRAMES)
--		count = GSPCA_MAX_FRAMES - 1;
--	gspca_dev->frbuf = vmalloc_32(frsz * count);
--	if (!gspca_dev->frbuf) {
--		pr_err("frame alloc failed\n");
--		return -ENOMEM;
--	}
--	gspca_dev->capt_file = file;
--	gspca_dev->memory = memory;
--	gspca_dev->frsz = frsz;
--	gspca_dev->nframes = count;
--	for (i = 0; i < count; i++) {
--		frame = &gspca_dev->frame[i];
--		frame->v4l2_buf.index = i;
--		frame->v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--		frame->v4l2_buf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
--		frame->v4l2_buf.field = V4L2_FIELD_NONE;
--		frame->v4l2_buf.length = frsz;
--		frame->v4l2_buf.memory = memory;
--		frame->v4l2_buf.sequence = 0;
--		frame->data = gspca_dev->frbuf + i * frsz;
--		frame->v4l2_buf.m.offset = i * frsz;
--	}
--	atomic_set(&gspca_dev->fr_q, 0);
--	atomic_set(&gspca_dev->fr_i, 0);
--	gspca_dev->fr_o = 0;
--	return 0;
--}
--
--static void frame_free(struct gspca_dev *gspca_dev)
--{
--	int i;
--
--	gspca_dbg(gspca_dev, D_STREAM, "frame free\n");
--	if (gspca_dev->frbuf != NULL) {
--		vfree(gspca_dev->frbuf);
--		gspca_dev->frbuf = NULL;
--		for (i = 0; i < gspca_dev->nframes; i++)
--			gspca_dev->frame[i].data = NULL;
--	}
--	gspca_dev->nframes = 0;
--	gspca_dev->frsz = 0;
--	gspca_dev->capt_file = NULL;
--	gspca_dev->memory = GSPCA_MEMORY_NO;
--}
--
- static void destroy_urbs(struct gspca_dev *gspca_dev)
- {
- 	struct urb *urb;
-@@ -583,22 +498,6 @@ static int gspca_set_alt0(struct gspca_dev *gspca_dev)
- 	return ret;
- }
- 
--/* Note: both the queue and the usb locks should be held when calling this */
--static void gspca_stream_off(struct gspca_dev *gspca_dev)
--{
--	gspca_dev->streaming = 0;
--	gspca_dev->usb_err = 0;
--	if (gspca_dev->sd_desc->stopN)
--		gspca_dev->sd_desc->stopN(gspca_dev);
--	destroy_urbs(gspca_dev);
--	gspca_input_destroy_urb(gspca_dev);
--	gspca_set_alt0(gspca_dev);
--	gspca_input_create_urb(gspca_dev);
--	if (gspca_dev->sd_desc->stop0)
--		gspca_dev->sd_desc->stop0(gspca_dev);
--	gspca_dbg(gspca_dev, D_STREAM, "stream off OK\n");
--}
--
- /*
-  * look for an input transfer endpoint in an alternate setting.
-  *
-@@ -829,6 +728,22 @@ static int create_urbs(struct gspca_dev *gspca_dev,
- 	return 0;
- }
- 
-+/* Note: both the queue and the usb locks should be held when calling this */
-+static void gspca_stream_off(struct gspca_dev *gspca_dev)
-+{
-+	gspca_dev->streaming = false;
-+	gspca_dev->usb_err = 0;
-+	if (gspca_dev->sd_desc->stopN)
-+		gspca_dev->sd_desc->stopN(gspca_dev);
-+	destroy_urbs(gspca_dev);
-+	gspca_input_destroy_urb(gspca_dev);
-+	gspca_set_alt0(gspca_dev);
-+	gspca_input_create_urb(gspca_dev);
-+	if (gspca_dev->sd_desc->stop0)
-+		gspca_dev->sd_desc->stop0(gspca_dev);
-+	gspca_dbg(gspca_dev, D_STREAM, "stream off OK\n");
-+}
-+
- /*
-  * start the USB transfer
-  */
-@@ -844,7 +759,6 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
- 	gspca_dev->image = NULL;
- 	gspca_dev->image_len = 0;
- 	gspca_dev->last_packet_type = DISCARD_PACKET;
--	gspca_dev->sequence = 0;
- 
- 	gspca_dev->usb_err = 0;
- 
-@@ -924,8 +838,8 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
- 			destroy_urbs(gspca_dev);
- 			goto out;
- 		}
--		gspca_dev->streaming = 1;
- 		v4l2_ctrl_handler_setup(gspca_dev->vdev.ctrl_handler);
-+		gspca_dev->streaming = true;
- 
- 		/* some bulk transfers are started by the subdriver */
- 		if (gspca_dev->cam.bulk && gspca_dev->cam.bulk_nurbs == 0)
-@@ -1165,11 +1079,9 @@ static int vidioc_try_fmt_vid_cap(struct file *file,
- 			      struct v4l2_format *fmt)
- {
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
--	int ret;
- 
--	ret = try_fmt_vid_cap(gspca_dev, fmt);
--	if (ret < 0)
--		return ret;
-+	if (try_fmt_vid_cap(gspca_dev, fmt) < 0)
-+		return -EINVAL;
- 	return 0;
- }
- 
-@@ -1177,36 +1089,22 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 			    struct v4l2_format *fmt)
- {
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
--	int ret;
-+	int mode;
- 
--	if (mutex_lock_interruptible(&gspca_dev->queue_lock))
--		return -ERESTARTSYS;
-+	if (vb2_is_busy(&gspca_dev->queue))
-+		return -EBUSY;
- 
--	ret = try_fmt_vid_cap(gspca_dev, fmt);
--	if (ret < 0)
--		goto out;
--
--	if (gspca_dev->nframes != 0
--	    && fmt->fmt.pix.sizeimage > gspca_dev->frsz) {
--		ret = -EINVAL;
--		goto out;
--	}
-+	mode = try_fmt_vid_cap(gspca_dev, fmt);
-+	if (mode < 0)
-+		return -EINVAL;
- 
--	if (gspca_dev->streaming) {
--		ret = -EBUSY;
--		goto out;
--	}
--	gspca_dev->curr_mode = ret;
-+	gspca_dev->curr_mode = mode;
- 	if (gspca_dev->sd_desc->try_fmt)
- 		/* subdriver try_fmt can modify format parameters */
- 		gspca_dev->pixfmt = fmt->fmt.pix;
- 	else
--		gspca_dev->pixfmt = gspca_dev->cam.cam_mode[ret];
--
--	ret = 0;
--out:
--	mutex_unlock(&gspca_dev->queue_lock);
--	return ret;
-+		gspca_dev->pixfmt = gspca_dev->cam.cam_mode[mode];
-+	return 0;
- }
- 
- static int vidioc_enum_framesizes(struct file *file, void *priv,
-@@ -1281,53 +1179,6 @@ static void gspca_release(struct v4l2_device *v4l2_device)
- 	kfree(gspca_dev);
- }
- 
--static int dev_open(struct file *file)
--{
--	struct gspca_dev *gspca_dev = video_drvdata(file);
--	int ret;
--
--	gspca_dbg(gspca_dev, D_STREAM, "[%s] open\n", current->comm);
--
--	/* protect the subdriver against rmmod */
--	if (!try_module_get(gspca_dev->module))
--		return -ENODEV;
--
--	ret = v4l2_fh_open(file);
--	if (ret)
--		module_put(gspca_dev->module);
--	return ret;
--}
--
--static int dev_close(struct file *file)
--{
--	struct gspca_dev *gspca_dev = video_drvdata(file);
--
--	gspca_dbg(gspca_dev, D_STREAM, "[%s] close\n", current->comm);
--
--	/* Needed for gspca_stream_off, always lock before queue_lock! */
--	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
--		return -ERESTARTSYS;
--
--	if (mutex_lock_interruptible(&gspca_dev->queue_lock)) {
--		mutex_unlock(&gspca_dev->usb_lock);
--		return -ERESTARTSYS;
--	}
--
--	/* if the file did the capture, free the streaming resources */
--	if (gspca_dev->capt_file == file) {
--		if (gspca_dev->streaming)
--			gspca_stream_off(gspca_dev);
--		frame_free(gspca_dev);
--	}
--	module_put(gspca_dev->module);
--	mutex_unlock(&gspca_dev->queue_lock);
--	mutex_unlock(&gspca_dev->usb_lock);
--
--	gspca_dbg(gspca_dev, D_STREAM, "close done\n");
--
--	return v4l2_fh_release(file);
--}
--
- static int vidioc_querycap(struct file *file, void  *priv,
- 			   struct v4l2_capability *cap)
- {
-@@ -1377,167 +1228,9 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- {
- 	if (i > 0)
- 		return -EINVAL;
--	return (0);
--}
--
--static int vidioc_reqbufs(struct file *file, void *priv,
--			  struct v4l2_requestbuffers *rb)
--{
--	struct gspca_dev *gspca_dev = video_drvdata(file);
--	int i, ret = 0, streaming;
--
--	i = rb->memory;			/* (avoid compilation warning) */
--	switch (i) {
--	case GSPCA_MEMORY_READ:			/* (internal call) */
--	case V4L2_MEMORY_MMAP:
--	case V4L2_MEMORY_USERPTR:
--		break;
--	default:
--		return -EINVAL;
--	}
--	if (mutex_lock_interruptible(&gspca_dev->queue_lock))
--		return -ERESTARTSYS;
--
--	if (gspca_dev->memory != GSPCA_MEMORY_NO
--	    && gspca_dev->memory != GSPCA_MEMORY_READ
--	    && gspca_dev->memory != rb->memory) {
--		ret = -EBUSY;
--		goto out;
--	}
--
--	/* only one file may do the capture */
--	if (gspca_dev->capt_file != NULL
--	    && gspca_dev->capt_file != file) {
--		ret = -EBUSY;
--		goto out;
--	}
--
--	/* if allocated, the buffers must not be mapped */
--	for (i = 0; i < gspca_dev->nframes; i++) {
--		if (gspca_dev->frame[i].vma_use_count) {
--			ret = -EBUSY;
--			goto out;
--		}
--	}
--
--	/* stop streaming */
--	streaming = gspca_dev->streaming;
--	if (streaming) {
--		gspca_stream_off(gspca_dev);
--
--		/* Don't restart the stream when switching from read
--		 * to mmap mode */
--		if (gspca_dev->memory == GSPCA_MEMORY_READ)
--			streaming = 0;
--	}
--
--	/* free the previous allocated buffers, if any */
--	if (gspca_dev->nframes != 0)
--		frame_free(gspca_dev);
--	if (rb->count == 0)			/* unrequest */
--		goto out;
--	ret = frame_alloc(gspca_dev, file, rb->memory, rb->count);
--	if (ret == 0) {
--		rb->count = gspca_dev->nframes;
--		if (streaming)
--			ret = gspca_init_transfer(gspca_dev);
--	}
--out:
--	mutex_unlock(&gspca_dev->queue_lock);
--	gspca_dbg(gspca_dev, D_STREAM, "reqbufs st:%d c:%d\n", ret, rb->count);
--	return ret;
--}
--
--static int vidioc_querybuf(struct file *file, void *priv,
--			   struct v4l2_buffer *v4l2_buf)
--{
--	struct gspca_dev *gspca_dev = video_drvdata(file);
--	struct gspca_frame *frame;
--
--	if (v4l2_buf->index >= gspca_dev->nframes)
--		return -EINVAL;
--
--	frame = &gspca_dev->frame[v4l2_buf->index];
--	memcpy(v4l2_buf, &frame->v4l2_buf, sizeof *v4l2_buf);
- 	return 0;
- }
- 
--static int vidioc_streamon(struct file *file, void *priv,
--			   enum v4l2_buf_type buf_type)
--{
--	struct gspca_dev *gspca_dev = video_drvdata(file);
--	int ret;
--
--	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		return -EINVAL;
--	if (mutex_lock_interruptible(&gspca_dev->queue_lock))
--		return -ERESTARTSYS;
--
--	/* check the capture file */
--	if (gspca_dev->capt_file != file) {
--		ret = -EBUSY;
--		goto out;
--	}
--
--	if (gspca_dev->nframes == 0
--	    || !(gspca_dev->frame[0].v4l2_buf.flags & V4L2_BUF_FLAG_QUEUED)) {
--		ret = -EINVAL;
--		goto out;
--	}
--	if (!gspca_dev->streaming) {
--		ret = gspca_init_transfer(gspca_dev);
--		if (ret < 0)
--			goto out;
--	}
--	PDEBUG_MODE(gspca_dev, D_STREAM, "stream on OK",
--		    gspca_dev->pixfmt.pixelformat,
--		    gspca_dev->pixfmt.width, gspca_dev->pixfmt.height);
--	ret = 0;
--out:
--	mutex_unlock(&gspca_dev->queue_lock);
--	return ret;
--}
--
--static int vidioc_streamoff(struct file *file, void *priv,
--				enum v4l2_buf_type buf_type)
--{
--	struct gspca_dev *gspca_dev = video_drvdata(file);
--	int i, ret;
--
--	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		return -EINVAL;
--
--	if (mutex_lock_interruptible(&gspca_dev->queue_lock))
--		return -ERESTARTSYS;
--
--	if (!gspca_dev->streaming) {
--		ret = 0;
--		goto out;
--	}
--
--	/* check the capture file */
--	if (gspca_dev->capt_file != file) {
--		ret = -EBUSY;
--		goto out;
--	}
--
--	/* stop streaming */
--	gspca_stream_off(gspca_dev);
--	/* In case another thread is waiting in dqbuf */
--	wake_up_interruptible(&gspca_dev->wq);
--
--	/* empty the transfer queues */
--	for (i = 0; i < gspca_dev->nframes; i++)
--		gspca_dev->frame[i].v4l2_buf.flags &= ~BUF_ALL_FLAGS;
--	atomic_set(&gspca_dev->fr_q, 0);
--	atomic_set(&gspca_dev->fr_i, 0);
--	gspca_dev->fr_o = 0;
--	ret = 0;
--out:
--	mutex_unlock(&gspca_dev->queue_lock);
--	return ret;
--}
--
- static int vidioc_g_jpegcomp(struct file *file, void *priv,
- 			struct v4l2_jpegcompression *jpegcomp)
- {
-@@ -1561,7 +1254,7 @@ static int vidioc_g_parm(struct file *filp, void *priv,
- {
- 	struct gspca_dev *gspca_dev = video_drvdata(filp);
- 
--	parm->parm.capture.readbuffers = gspca_dev->nbufread;
-+	parm->parm.capture.readbuffers = 2;
- 
- 	if (gspca_dev->sd_desc->get_streamparm) {
- 		gspca_dev->usb_err = 0;
-@@ -1575,13 +1268,8 @@ static int vidioc_s_parm(struct file *filp, void *priv,
- 			struct v4l2_streamparm *parm)
- {
- 	struct gspca_dev *gspca_dev = video_drvdata(filp);
--	unsigned int n;
- 
--	n = parm->parm.capture.readbuffers;
--	if (n == 0 || n >= GSPCA_MAX_FRAMES)
--		parm->parm.capture.readbuffers = gspca_dev->nbufread;
--	else
--		gspca_dev->nbufread = n;
-+	parm->parm.capture.readbuffers = 2;
- 
- 	if (gspca_dev->sd_desc->set_streamparm) {
- 		gspca_dev->usb_err = 0;
-@@ -1592,418 +1280,137 @@ static int vidioc_s_parm(struct file *filp, void *priv,
- 	return 0;
- }
- 
--static int dev_mmap(struct file *file, struct vm_area_struct *vma)
--{
--	struct gspca_dev *gspca_dev = video_drvdata(file);
--	struct gspca_frame *frame;
--	struct page *page;
--	unsigned long addr, start, size;
--	int i, ret;
--
--	start = vma->vm_start;
--	size = vma->vm_end - vma->vm_start;
--	gspca_dbg(gspca_dev, D_STREAM, "mmap start:%08x size:%d\n",
--		  (int) start, (int)size);
--
--	if (mutex_lock_interruptible(&gspca_dev->queue_lock))
--		return -ERESTARTSYS;
--	if (gspca_dev->capt_file != file) {
--		ret = -EINVAL;
--		goto out;
--	}
--
--	frame = NULL;
--	for (i = 0; i < gspca_dev->nframes; ++i) {
--		if (gspca_dev->frame[i].v4l2_buf.memory != V4L2_MEMORY_MMAP) {
--			gspca_dbg(gspca_dev, D_STREAM, "mmap bad memory type\n");
--			break;
--		}
--		if ((gspca_dev->frame[i].v4l2_buf.m.offset >> PAGE_SHIFT)
--						== vma->vm_pgoff) {
--			frame = &gspca_dev->frame[i];
--			break;
--		}
--	}
--	if (frame == NULL) {
--		gspca_dbg(gspca_dev, D_STREAM, "mmap no frame buffer found\n");
--		ret = -EINVAL;
--		goto out;
--	}
--	if (size != frame->v4l2_buf.length) {
--		gspca_dbg(gspca_dev, D_STREAM, "mmap bad size\n");
--		ret = -EINVAL;
--		goto out;
--	}
--
--	/*
--	 * - VM_IO marks the area as being a mmaped region for I/O to a
--	 *   device. It also prevents the region from being core dumped.
--	 */
--	vma->vm_flags |= VM_IO;
--
--	addr = (unsigned long) frame->data;
--	while (size > 0) {
--		page = vmalloc_to_page((void *) addr);
--		ret = vm_insert_page(vma, start, page);
--		if (ret < 0)
--			goto out;
--		start += PAGE_SIZE;
--		addr += PAGE_SIZE;
--		size -= PAGE_SIZE;
--	}
--
--	vma->vm_ops = &gspca_vm_ops;
--	vma->vm_private_data = frame;
--	gspca_vm_open(vma);
--	ret = 0;
--out:
--	mutex_unlock(&gspca_dev->queue_lock);
--	return ret;
--}
--
--static int frame_ready_nolock(struct gspca_dev *gspca_dev, struct file *file,
--				enum v4l2_memory memory)
-+static int gspca_queue_setup(struct vb2_queue *vq,
-+			     unsigned int *nbuffers, unsigned int *nplanes,
-+			     unsigned int sizes[], struct device *alloc_devs[])
- {
--	if (!gspca_dev->present)
--		return -ENODEV;
--	if (gspca_dev->capt_file != file || gspca_dev->memory != memory ||
--			!gspca_dev->streaming)
--		return -EINVAL;
-+	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vq);
- 
--	/* check if a frame is ready */
--	return gspca_dev->fr_o != atomic_read(&gspca_dev->fr_i);
-+	if (*nplanes)
-+		return sizes[0] < gspca_dev->pixfmt.sizeimage ? -EINVAL : 0;
-+	*nplanes = 1;
-+	sizes[0] = gspca_dev->pixfmt.sizeimage;
-+	return 0;
- }
- 
--static int frame_ready(struct gspca_dev *gspca_dev, struct file *file,
--			enum v4l2_memory memory)
-+static int gspca_buffer_prepare(struct vb2_buffer *vb)
- {
--	int ret;
-+	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vb->vb2_queue);
-+	unsigned long size = gspca_dev->pixfmt.sizeimage;
- 
--	if (mutex_lock_interruptible(&gspca_dev->queue_lock))
--		return -ERESTARTSYS;
--	ret = frame_ready_nolock(gspca_dev, file, memory);
--	mutex_unlock(&gspca_dev->queue_lock);
--	return ret;
-+	if (vb2_plane_size(vb, 0) < size) {
-+		gspca_err(gspca_dev, "buffer too small (%lu < %lu)\n",
-+			 vb2_plane_size(vb, 0), size);
-+		return -EINVAL;
-+	}
-+	return 0;
- }
- 
--/*
-- * dequeue a video buffer
-- *
-- * If nonblock_ing is false, block until a buffer is available.
-- */
--static int vidioc_dqbuf(struct file *file, void *priv,
--			struct v4l2_buffer *v4l2_buf)
-+static void gspca_buffer_finish(struct vb2_buffer *vb)
- {
--	struct gspca_dev *gspca_dev = video_drvdata(file);
--	struct gspca_frame *frame;
--	int i, j, ret;
--
--	gspca_dbg(gspca_dev, D_FRAM, "dqbuf\n");
--
--	if (mutex_lock_interruptible(&gspca_dev->queue_lock))
--		return -ERESTARTSYS;
--
--	for (;;) {
--		ret = frame_ready_nolock(gspca_dev, file, v4l2_buf->memory);
--		if (ret < 0)
--			goto out;
--		if (ret > 0)
--			break;
--
--		mutex_unlock(&gspca_dev->queue_lock);
--
--		if (file->f_flags & O_NONBLOCK)
--			return -EAGAIN;
--
--		/* wait till a frame is ready */
--		ret = wait_event_interruptible_timeout(gspca_dev->wq,
--			frame_ready(gspca_dev, file, v4l2_buf->memory),
--			msecs_to_jiffies(3000));
--		if (ret < 0)
--			return ret;
--		if (ret == 0)
--			return -EIO;
--
--		if (mutex_lock_interruptible(&gspca_dev->queue_lock))
--			return -ERESTARTSYS;
--	}
-+	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vb->vb2_queue);
- 
--	i = gspca_dev->fr_o;
--	j = gspca_dev->fr_queue[i];
--	frame = &gspca_dev->frame[j];
--
--	gspca_dev->fr_o = (i + 1) % GSPCA_MAX_FRAMES;
--
--	frame->v4l2_buf.flags &= ~V4L2_BUF_FLAG_DONE;
--	memcpy(v4l2_buf, &frame->v4l2_buf, sizeof *v4l2_buf);
--	gspca_dbg(gspca_dev, D_FRAM, "dqbuf %d\n", j);
--	ret = 0;
--
--	if (gspca_dev->memory == V4L2_MEMORY_USERPTR) {
--		if (copy_to_user((__u8 __user *) frame->v4l2_buf.m.userptr,
--				 frame->data,
--				 frame->v4l2_buf.bytesused)) {
--			gspca_err(gspca_dev, "dqbuf cp to user failed\n");
--			ret = -EFAULT;
--		}
--	}
--out:
--	mutex_unlock(&gspca_dev->queue_lock);
--
--	if (ret == 0 && gspca_dev->sd_desc->dq_callback) {
--		mutex_lock(&gspca_dev->usb_lock);
--		gspca_dev->usb_err = 0;
--		if (gspca_dev->present)
--			gspca_dev->sd_desc->dq_callback(gspca_dev);
--		mutex_unlock(&gspca_dev->usb_lock);
--	}
-+	if (!gspca_dev->sd_desc->dq_callback)
-+		return;
- 
--	return ret;
-+	gspca_dev->usb_err = 0;
-+	gspca_dev->sd_desc->dq_callback(gspca_dev);
- }
- 
--/*
-- * queue a video buffer
-- *
-- * Attempting to queue a buffer that has already been
-- * queued will return -EINVAL.
-- */
--static int vidioc_qbuf(struct file *file, void *priv,
--			struct v4l2_buffer *v4l2_buf)
-+static void gspca_buffer_queue(struct vb2_buffer *vb)
- {
--	struct gspca_dev *gspca_dev = video_drvdata(file);
--	struct gspca_frame *frame;
--	int i, index, ret;
--
--	gspca_dbg(gspca_dev, D_FRAM, "qbuf %d\n", v4l2_buf->index);
--
--	if (mutex_lock_interruptible(&gspca_dev->queue_lock))
--		return -ERESTARTSYS;
--
--	index = v4l2_buf->index;
--	if ((unsigned) index >= gspca_dev->nframes) {
--		gspca_dbg(gspca_dev, D_FRAM,
--			  "qbuf idx %d >= %d\n", index, gspca_dev->nframes);
--		ret = -EINVAL;
--		goto out;
--	}
--	if (v4l2_buf->memory != gspca_dev->memory) {
--		gspca_dbg(gspca_dev, D_FRAM, "qbuf bad memory type\n");
--		ret = -EINVAL;
--		goto out;
--	}
--
--	frame = &gspca_dev->frame[index];
--	if (frame->v4l2_buf.flags & BUF_ALL_FLAGS) {
--		gspca_dbg(gspca_dev, D_FRAM, "qbuf bad state\n");
--		ret = -EINVAL;
--		goto out;
--	}
--
--	frame->v4l2_buf.flags |= V4L2_BUF_FLAG_QUEUED;
--
--	if (frame->v4l2_buf.memory == V4L2_MEMORY_USERPTR) {
--		frame->v4l2_buf.m.userptr = v4l2_buf->m.userptr;
--		frame->v4l2_buf.length = v4l2_buf->length;
--	}
--
--	/* put the buffer in the 'queued' queue */
--	i = atomic_read(&gspca_dev->fr_q);
--	gspca_dev->fr_queue[i] = index;
--	atomic_set(&gspca_dev->fr_q, (i + 1) % GSPCA_MAX_FRAMES);
-+	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vb->vb2_queue);
-+	struct gspca_buffer *buf = to_gspca_buffer(vb);
-+	unsigned long flags;
- 
--	v4l2_buf->flags |= V4L2_BUF_FLAG_QUEUED;
--	v4l2_buf->flags &= ~V4L2_BUF_FLAG_DONE;
--	ret = 0;
--out:
--	mutex_unlock(&gspca_dev->queue_lock);
--	return ret;
-+	spin_lock_irqsave(&gspca_dev->qlock, flags);
-+	list_add_tail(&buf->list, &gspca_dev->buf_list);
-+	spin_unlock_irqrestore(&gspca_dev->qlock, flags);
- }
- 
--/*
-- * allocate the resources for read()
-- */
--static int read_alloc(struct gspca_dev *gspca_dev,
--			struct file *file)
-+static void gspca_return_all_buffers(struct gspca_dev *gspca_dev,
-+				     enum vb2_buffer_state state)
- {
--	struct v4l2_buffer v4l2_buf;
--	int i, ret;
--
--	gspca_dbg(gspca_dev, D_STREAM, "read alloc\n");
-+	struct gspca_buffer *buf, *node;
-+	unsigned long flags;
- 
--	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
--		return -ERESTARTSYS;
--
--	if (gspca_dev->nframes == 0) {
--		struct v4l2_requestbuffers rb;
--
--		memset(&rb, 0, sizeof rb);
--		rb.count = gspca_dev->nbufread;
--		rb.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--		rb.memory = GSPCA_MEMORY_READ;
--		ret = vidioc_reqbufs(file, gspca_dev, &rb);
--		if (ret != 0) {
--			gspca_dbg(gspca_dev, D_STREAM, "read reqbuf err %d\n",
--				  ret);
--			goto out;
--		}
--		memset(&v4l2_buf, 0, sizeof v4l2_buf);
--		v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--		v4l2_buf.memory = GSPCA_MEMORY_READ;
--		for (i = 0; i < gspca_dev->nbufread; i++) {
--			v4l2_buf.index = i;
--			ret = vidioc_qbuf(file, gspca_dev, &v4l2_buf);
--			if (ret != 0) {
--				gspca_dbg(gspca_dev, D_STREAM, "read qbuf err: %d\n",
--					  ret);
--				goto out;
--			}
--		}
-+	spin_lock_irqsave(&gspca_dev->qlock, flags);
-+	list_for_each_entry_safe(buf, node, &gspca_dev->buf_list, list) {
-+		vb2_buffer_done(&buf->vb.vb2_buf, state);
-+		list_del(&buf->list);
- 	}
--
--	/* start streaming */
--	ret = vidioc_streamon(file, gspca_dev, V4L2_BUF_TYPE_VIDEO_CAPTURE);
--	if (ret != 0)
--		gspca_dbg(gspca_dev, D_STREAM, "read streamon err %d\n", ret);
--out:
--	mutex_unlock(&gspca_dev->usb_lock);
--	return ret;
-+	spin_unlock_irqrestore(&gspca_dev->qlock, flags);
- }
- 
--static __poll_t dev_poll(struct file *file, poll_table *wait)
-+static int gspca_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
--	struct gspca_dev *gspca_dev = video_drvdata(file);
--	__poll_t req_events = poll_requested_events(wait);
--	__poll_t ret = 0;
--
--	gspca_dbg(gspca_dev, D_FRAM, "poll\n");
--
--	if (req_events & EPOLLPRI)
--		ret |= v4l2_ctrl_poll(file, wait);
--
--	if (req_events & (EPOLLIN | EPOLLRDNORM)) {
--		/* if reqbufs is not done, the user would use read() */
--		if (gspca_dev->memory == GSPCA_MEMORY_NO) {
--			if (read_alloc(gspca_dev, file) != 0) {
--				ret |= EPOLLERR;
--				goto out;
--			}
--		}
--
--		poll_wait(file, &gspca_dev->wq, wait);
--
--		/* check if an image has been received */
--		if (mutex_lock_interruptible(&gspca_dev->queue_lock) != 0) {
--			ret |= EPOLLERR;
--			goto out;
--		}
--		if (gspca_dev->fr_o != atomic_read(&gspca_dev->fr_i))
--			ret |= EPOLLIN | EPOLLRDNORM;
--		mutex_unlock(&gspca_dev->queue_lock);
--	}
-+	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vq);
-+	int ret;
- 
--out:
--	if (!gspca_dev->present)
--		ret |= EPOLLHUP;
-+	gspca_dev->sequence = 0;
- 
-+	ret = gspca_init_transfer(gspca_dev);
-+	if (ret)
-+		gspca_return_all_buffers(gspca_dev, VB2_BUF_STATE_QUEUED);
- 	return ret;
- }
- 
--static ssize_t dev_read(struct file *file, char __user *data,
--		    size_t count, loff_t *ppos)
-+static void gspca_stop_streaming(struct vb2_queue *vq)
- {
--	struct gspca_dev *gspca_dev = video_drvdata(file);
--	struct gspca_frame *frame;
--	struct v4l2_buffer v4l2_buf;
--	struct timeval timestamp;
--	int n, ret, ret2;
--
--	gspca_dbg(gspca_dev, D_FRAM, "read (%zd)\n", count);
--	if (gspca_dev->memory == GSPCA_MEMORY_NO) { /* first time ? */
--		ret = read_alloc(gspca_dev, file);
--		if (ret != 0)
--			return ret;
--	}
-+	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vq);
- 
--	/* get a frame */
--	v4l2_get_timestamp(&timestamp);
--	timestamp.tv_sec--;
--	n = 2;
--	for (;;) {
--		memset(&v4l2_buf, 0, sizeof v4l2_buf);
--		v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--		v4l2_buf.memory = GSPCA_MEMORY_READ;
--		ret = vidioc_dqbuf(file, gspca_dev, &v4l2_buf);
--		if (ret != 0) {
--			gspca_dbg(gspca_dev, D_STREAM, "read dqbuf err %d\n",
--				  ret);
--			return ret;
--		}
--
--		/* if the process slept for more than 1 second,
--		 * get a newer frame */
--		frame = &gspca_dev->frame[v4l2_buf.index];
--		if (--n < 0)
--			break;			/* avoid infinite loop */
--		if (frame->v4l2_buf.timestamp.tv_sec >= timestamp.tv_sec)
--			break;
--		ret = vidioc_qbuf(file, gspca_dev, &v4l2_buf);
--		if (ret != 0) {
--			gspca_dbg(gspca_dev, D_STREAM, "read qbuf err %d\n",
--				  ret);
--			return ret;
--		}
--	}
-+	gspca_stream_off(gspca_dev);
- 
--	/* copy the frame */
--	if (count > frame->v4l2_buf.bytesused)
--		count = frame->v4l2_buf.bytesused;
--	ret = copy_to_user(data, frame->data, count);
--	if (ret != 0) {
--		gspca_err(gspca_dev, "read cp to user lack %d / %zd\n",
--			  ret, count);
--		ret = -EFAULT;
--		goto out;
--	}
--	ret = count;
--out:
--	/* in each case, requeue the buffer */
--	ret2 = vidioc_qbuf(file, gspca_dev, &v4l2_buf);
--	if (ret2 != 0)
--		return ret2;
--	return ret;
-+	/* Release all active buffers */
-+	gspca_return_all_buffers(gspca_dev, VB2_BUF_STATE_ERROR);
- }
- 
-+static const struct vb2_ops gspca_qops = {
-+	.queue_setup		= gspca_queue_setup,
-+	.buf_prepare		= gspca_buffer_prepare,
-+	.buf_finish		= gspca_buffer_finish,
-+	.buf_queue		= gspca_buffer_queue,
-+	.start_streaming	= gspca_start_streaming,
-+	.stop_streaming		= gspca_stop_streaming,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
-+};
-+
- static const struct v4l2_file_operations dev_fops = {
- 	.owner = THIS_MODULE,
--	.open = dev_open,
--	.release = dev_close,
--	.read = dev_read,
--	.mmap = dev_mmap,
-+	.open = v4l2_fh_open,
-+	.release = vb2_fop_release,
- 	.unlocked_ioctl = video_ioctl2,
--	.poll	= dev_poll,
-+	.read = vb2_fop_read,
-+	.mmap = vb2_fop_mmap,
-+	.poll = vb2_fop_poll,
- };
- 
- static const struct v4l2_ioctl_ops dev_ioctl_ops = {
- 	.vidioc_querycap	= vidioc_querycap,
--	.vidioc_dqbuf		= vidioc_dqbuf,
--	.vidioc_qbuf		= vidioc_qbuf,
- 	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
- 	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
- 	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
--	.vidioc_streamon	= vidioc_streamon,
- 	.vidioc_enum_input	= vidioc_enum_input,
- 	.vidioc_g_input		= vidioc_g_input,
- 	.vidioc_s_input		= vidioc_s_input,
--	.vidioc_reqbufs		= vidioc_reqbufs,
--	.vidioc_querybuf	= vidioc_querybuf,
--	.vidioc_streamoff	= vidioc_streamoff,
- 	.vidioc_g_jpegcomp	= vidioc_g_jpegcomp,
- 	.vidioc_s_jpegcomp	= vidioc_s_jpegcomp,
- 	.vidioc_g_parm		= vidioc_g_parm,
- 	.vidioc_s_parm		= vidioc_s_parm,
- 	.vidioc_enum_framesizes = vidioc_enum_framesizes,
- 	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
-+
-+	.vidioc_reqbufs		= vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs	= vb2_ioctl_create_bufs,
-+	.vidioc_querybuf	= vb2_ioctl_querybuf,
-+	.vidioc_qbuf		= vb2_ioctl_qbuf,
-+	.vidioc_dqbuf		= vb2_ioctl_dqbuf,
-+	.vidioc_expbuf		= vb2_ioctl_expbuf,
-+	.vidioc_streamon	= vb2_ioctl_streamon,
-+	.vidioc_streamoff	= vb2_ioctl_streamoff,
-+
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_chip_info	= vidioc_g_chip_info,
- 	.vidioc_g_register	= vidioc_g_register,
-@@ -2034,6 +1441,7 @@ int gspca_dev_probe2(struct usb_interface *intf,
- {
- 	struct gspca_dev *gspca_dev;
- 	struct usb_device *dev = interface_to_usbdev(intf);
-+	struct vb2_queue *q;
- 	int ret;
- 
- 	pr_info("%s-" GSPCA_VERSION " probing %04x:%04x\n",
-@@ -2078,20 +1486,37 @@ int gspca_dev_probe2(struct usb_interface *intf,
- 	ret = v4l2_device_register(&intf->dev, &gspca_dev->v4l2_dev);
- 	if (ret)
- 		goto out;
-+	gspca_dev->present = true;
- 	gspca_dev->sd_desc = sd_desc;
--	gspca_dev->nbufread = 2;
- 	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
- 	gspca_dev->vdev = gspca_template;
- 	gspca_dev->vdev.v4l2_dev = &gspca_dev->v4l2_dev;
- 	video_set_drvdata(&gspca_dev->vdev, gspca_dev);
- 	gspca_dev->module = module;
--	gspca_dev->present = 1;
- 
- 	mutex_init(&gspca_dev->usb_lock);
- 	gspca_dev->vdev.lock = &gspca_dev->usb_lock;
--	mutex_init(&gspca_dev->queue_lock);
- 	init_waitqueue_head(&gspca_dev->wq);
- 
-+	/* Initialize the vb2 queue */
-+	q = &gspca_dev->queue;
-+	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+	q->drv_priv = gspca_dev;
-+	q->buf_struct_size = sizeof(struct gspca_buffer);
-+	q->ops = &gspca_qops;
-+	q->mem_ops = &vb2_vmalloc_memops;
-+	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->min_buffers_needed = 2;
-+	q->lock = &gspca_dev->usb_lock;
-+	ret = vb2_queue_init(q);
-+	if (ret)
-+		goto out;
-+	gspca_dev->vdev.queue = q;
-+
-+	INIT_LIST_HEAD(&gspca_dev->buf_list);
-+	spin_lock_init(&gspca_dev->qlock);
-+
- 	/* configure the subdriver and initialize the USB device */
- 	ret = sd_desc->config(gspca_dev, id);
- 	if (ret < 0)
-@@ -2109,14 +1534,6 @@ int gspca_dev_probe2(struct usb_interface *intf,
- 	if (ret)
- 		goto out;
- 
--	/*
--	 * Don't take usb_lock for these ioctls. This improves latency if
--	 * usb_lock is taken for a long time, e.g. when changing a control
--	 * value, and a new frame is ready to be dequeued.
--	 */
--	v4l2_disable_ioctl_locking(&gspca_dev->vdev, VIDIOC_DQBUF);
--	v4l2_disable_ioctl_locking(&gspca_dev->vdev, VIDIOC_QBUF);
--	v4l2_disable_ioctl_locking(&gspca_dev->vdev, VIDIOC_QUERYBUF);
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	if (!gspca_dev->sd_desc->get_register)
- 		v4l2_disable_ioctl(&gspca_dev->vdev, VIDIOC_DBG_G_REGISTER);
-@@ -2198,8 +1615,8 @@ void gspca_disconnect(struct usb_interface *intf)
- 		  video_device_node_name(&gspca_dev->vdev));
- 
- 	mutex_lock(&gspca_dev->usb_lock);
-+	gspca_dev->present = false;
- 
--	gspca_dev->present = 0;
- 	destroy_urbs(gspca_dev);
- 
- #if IS_ENABLED(CONFIG_INPUT)
-@@ -2211,11 +1628,8 @@ void gspca_disconnect(struct usb_interface *intf)
- 	}
- #endif
- 	/* Free subdriver's streaming resources / stop sd workqueue(s) */
--	if (gspca_dev->sd_desc->stop0 && gspca_dev->streaming)
--		gspca_dev->sd_desc->stop0(gspca_dev);
--	gspca_dev->streaming = 0;
-+	vb2_queue_release(&gspca_dev->queue);
- 	gspca_dev->dev = NULL;
--	wake_up_interruptible(&gspca_dev->wq);
- 
- 	v4l2_device_disconnect(&gspca_dev->v4l2_dev);
- 	video_unregister_device(&gspca_dev->vdev);
-@@ -2234,7 +1648,7 @@ int gspca_suspend(struct usb_interface *intf, pm_message_t message)
- 
- 	gspca_input_destroy_urb(gspca_dev);
- 
--	if (!gspca_dev->streaming)
-+	if (!vb2_start_streaming_called(&gspca_dev->queue))
- 		return 0;
- 
- 	mutex_lock(&gspca_dev->usb_lock);
-@@ -2266,8 +1680,7 @@ int gspca_resume(struct usb_interface *intf)
- 	 * only write to the device registers on s_ctrl when streaming ->
- 	 * Clear streaming to avoid setting all ctrls twice.
- 	 */
--	streaming = gspca_dev->streaming;
--	gspca_dev->streaming = 0;
-+	streaming = vb2_start_streaming_called(&gspca_dev->queue);
- 	if (streaming)
- 		ret = gspca_init_transfer(gspca_dev);
- 	else
-diff --git a/drivers/media/usb/gspca/gspca.h b/drivers/media/usb/gspca/gspca.h
-index 249cb38a542f..b0ced2e14006 100644
---- a/drivers/media/usb/gspca/gspca.h
-+++ b/drivers/media/usb/gspca/gspca.h
-@@ -9,6 +9,8 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/videobuf2-v4l2.h>
-+#include <media/videobuf2-vmalloc.h>
- #include <linux/mutex.h>
- 
- 
-@@ -138,19 +140,22 @@ enum gspca_packet_type {
- 	LAST_PACKET
- };
- 
--struct gspca_frame {
--	__u8 *data;			/* frame buffer */
--	int vma_use_count;
--	struct v4l2_buffer v4l2_buf;
-+struct gspca_buffer {
-+	struct vb2_v4l2_buffer vb;
-+	struct list_head list;
- };
- 
-+static inline struct gspca_buffer *to_gspca_buffer(struct vb2_buffer *vb2)
-+{
-+	return container_of(vb2, struct gspca_buffer, vb.vb2_buf);
-+}
-+
- struct gspca_dev {
- 	struct video_device vdev;	/* !! must be the first item */
- 	struct module *module;		/* subdriver handling the device */
- 	struct v4l2_device v4l2_dev;
- 	struct usb_device *dev;
--	struct file *capt_file;		/* file doing video capture */
--					/* protected by queue_lock */
-+
- #if IS_ENABLED(CONFIG_INPUT)
- 	struct input_dev *input_dev;
- 	char phys[64];			/* physical device path */
-@@ -176,34 +181,29 @@ struct gspca_dev {
- 	struct urb *int_urb;
- #endif
- 
--	__u8 *frbuf;				/* buffer for nframes */
--	struct gspca_frame frame[GSPCA_MAX_FRAMES];
--	u8 *image;				/* image beeing filled */
--	__u32 frsz;				/* frame size */
-+	u8 *image;				/* image being filled */
- 	u32 image_len;				/* current length of image */
--	atomic_t fr_q;				/* next frame to queue */
--	atomic_t fr_i;				/* frame being filled */
--	signed char fr_queue[GSPCA_MAX_FRAMES];	/* frame queue */
--	char nframes;				/* number of frames */
--	u8 fr_o;				/* next frame to dequeue */
- 	__u8 last_packet_type;
- 	__s8 empty_packet;		/* if (-1) don't check empty packets */
--	__u8 streaming;			/* protected by both mutexes (*) */
-+	bool streaming;
- 
- 	__u8 curr_mode;			/* current camera mode */
- 	struct v4l2_pix_format pixfmt;	/* current mode parameters */
- 	__u32 sequence;			/* frame sequence number */
- 
-+	struct vb2_queue queue;
-+
-+	spinlock_t qlock;
-+	struct list_head buf_list;
-+
- 	wait_queue_head_t wq;		/* wait queue */
- 	struct mutex usb_lock;		/* usb exchange protection */
--	struct mutex queue_lock;	/* ISOC queue protection */
- 	int usb_err;			/* USB error - protected by usb_lock */
- 	u16 pkt_size;			/* ISOC packet size */
- #ifdef CONFIG_PM
- 	char frozen;			/* suspend - resume */
- #endif
--	char present;			/* device connected */
--	char nbufread;			/* number of buffers for read() */
-+	bool present;
- 	char memory;			/* memory type (V4L2_MEMORY_xxx) */
- 	__u8 iface;			/* USB interface number */
- 	__u8 alt;			/* USB alternate setting */
-diff --git a/drivers/media/usb/gspca/m5602/m5602_core.c b/drivers/media/usb/gspca/m5602/m5602_core.c
-index b83ec4285a0b..30b7cf1feedd 100644
---- a/drivers/media/usb/gspca/m5602/m5602_core.c
-+++ b/drivers/media/usb/gspca/m5602/m5602_core.c
-@@ -342,7 +342,7 @@ static void m5602_urb_complete(struct gspca_dev *gspca_dev,
- 		data += 4;
- 		len -= 4;
- 
--		if (cur_frame_len + len <= gspca_dev->frsz) {
-+		if (cur_frame_len + len <= gspca_dev->pixfmt.sizeimage) {
- 			gspca_dbg(gspca_dev, D_FRAM, "Continuing frame %d copying %d bytes\n",
- 				  sd->frame_count, len);
- 
-@@ -351,7 +351,7 @@ static void m5602_urb_complete(struct gspca_dev *gspca_dev,
- 		} else {
- 			/* Add the remaining data up to frame size */
- 			gspca_frame_add(gspca_dev, INTER_PACKET, data,
--				    gspca_dev->frsz - cur_frame_len);
-+				gspca_dev->pixfmt.sizeimage - cur_frame_len);
- 		}
- 	}
- }
-diff --git a/drivers/media/usb/gspca/vc032x.c b/drivers/media/usb/gspca/vc032x.c
-index 6b11597977c9..52d071659634 100644
---- a/drivers/media/usb/gspca/vc032x.c
-+++ b/drivers/media/usb/gspca/vc032x.c
-@@ -3642,7 +3642,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- 		int size, l;
- 
- 		l = gspca_dev->image_len;
--		size = gspca_dev->frsz;
-+		size = gspca_dev->pixfmt.sizeimage;
- 		if (len > size - l)
- 			len = size - l;
- 	}
--- 
-2.17.0
+> 
+>> +	wake_up_interruptible_all(&req->poll_wait);
+>> +}
+>> +
+>> +static void media_request_release(struct kref *kref)
+>> +{
+>> +	struct media_request *req =
+>> +		container_of(kref, struct media_request, kref);
+>> +	struct media_device *mdev = req->mdev;
+>> +
+>> +	dev_dbg(mdev->dev, "request: release %s\n", req->debug_str);
+>> +
+>> +	atomic_set(&req->state, MEDIA_REQUEST_STATE_CLEANING);
+>> +
+>> +	media_request_clean(req);
+>> +
+>> +	if (mdev->ops->req_free)
+>> +		mdev->ops->req_free(req);
+>> +	else
+>> +		kfree(req);
+>> +}
+>> +
+>> +void media_request_put(struct media_request *req)
+>> +{
+>> +	kref_put(&req->kref, media_request_release);
+>> +}
+>> +EXPORT_SYMBOL_GPL(media_request_put);
+>> +
+>> +static int media_request_close(struct inode *inode, struct file *filp)
+>> +{
+>> +	struct media_request *req = filp->private_data;
+>> +
+>> +	media_request_put(req);
+>> +	return 0;
+>> +}
+>> +
+>> +static unsigned int media_request_poll(struct file *filp,
+>> +				       struct poll_table_struct *wait)
+>> +{
+>> +	struct media_request *req = filp->private_data;
+>> +	unsigned long flags;
+>> +	unsigned int ret = 0;
+>> +	enum media_request_state state;
+>> +
+>> +	if (!(poll_requested_events(wait) & POLLPRI))
+>> +		return 0;
+>> +
+>> +	spin_lock_irqsave(&req->lock, flags);
+>> +	state = atomic_read(&req->state);
+>> +
+>> +	if (state == MEDIA_REQUEST_STATE_COMPLETE) {
+>> +		ret = POLLPRI;
+>> +		goto unlock;
+>> +	}
+>> +	if (state != MEDIA_REQUEST_STATE_QUEUED) {
+>> +		ret = POLLERR;
+>> +		goto unlock;
+>> +	}
+>> +
+>> +	poll_wait(filp, &req->poll_wait, wait);
+>> +
+>> +unlock:
+>> +	spin_unlock_irqrestore(&req->lock, flags);
+>> +	return ret;
+>> +}
+>> +
+>> +static long media_request_ioctl_queue(struct media_request *req)
+>> +{
+>> +	struct media_device *mdev = req->mdev;
+>> +	enum media_request_state state;
+>> +	unsigned long flags;
+>> +	int ret = 0;
+> 
+> ret is unconditionally assigned below, no need to initialise here.
+
+Fixed.
+
+> 
+>> +
+>> +	dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
+>> +
+>> +	/*
+>> +	 * Ensure the request that is validated will be the one that gets queued
+>> +	 * next by serialising the queueing process. This mutex is also used
+>> +	 * to serialize with canceling a vb2 queue and with setting values such
+>> +	 * as controls in a request.
+>> +	 */
+>> +	mutex_lock(&mdev->req_queue_mutex);
+>> +
+>> +	spin_lock_irqsave(&req->lock, flags);
+>> +	state = atomic_cmpxchg(&req->state, MEDIA_REQUEST_STATE_IDLE,
+>> +			       MEDIA_REQUEST_STATE_VALIDATING);
+>> +	spin_unlock_irqrestore(&req->lock, flags);
+>> +	if (state != MEDIA_REQUEST_STATE_IDLE) {
+>> +		dev_dbg(mdev->dev,
+>> +			"request: unable to queue %s, request in state %s\n",
+>> +			req->debug_str, media_request_state_str(state));
+>> +		mutex_unlock(&mdev->req_queue_mutex);
+>> +		return -EBUSY;
+>> +	}
+>> +
+>> +	ret = mdev->ops->req_validate(req);
+>> +
+>> +	/*
+>> +	 * If the req_validate was successful, then we mark the state as QUEUED
+>> +	 * and call req_queue. The reason we set the state first is that this
+>> +	 * allows req_queue to unbind or complete the queued objects in case
+>> +	 * they are immediately 'consumed'. State changes from QUEUED to another
+>> +	 * state can only happen if either the driver changes the state or if
+>> +	 * the user cancels the vb2 queue. The driver can only change the state
+>> +	 * after each object is queued through the req_queue op (and note that
+>> +	 * that op cannot fail), so setting the state to QUEUED up front is
+>> +	 * safe.
+>> +	 *
+>> +	 * The other reason for changing the state is if the vb2 queue is
+>> +	 * canceled, and that uses the req_queue_mutex which is still locked
+>> +	 * while req_queue is called, so that's safe as well.
+>> +	 */
+>> +	atomic_set(&req->state,
+>> +		   ret ? MEDIA_REQUEST_STATE_IDLE : MEDIA_REQUEST_STATE_QUEUED);
+>> +
+>> +	if (!ret)
+>> +		mdev->ops->req_queue(req);
+>> +
+>> +	mutex_unlock(&mdev->req_queue_mutex);
+>> +
+>> +	if (ret)
+>> +		dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
+>> +			req->debug_str, ret);
+>> +	else
+>> +		media_request_get(req);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static long media_request_ioctl_reinit(struct media_request *req)
+>> +{
+>> +	struct media_device *mdev = req->mdev;
+>> +	unsigned long flags;
+>> +
+>> +	spin_lock_irqsave(&req->lock, flags);
+>> +	if (atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE &&
+>> +	    atomic_read(&req->state) != MEDIA_REQUEST_STATE_COMPLETE) {
+>> +		dev_dbg(mdev->dev,
+>> +			"request: %s not in idle or complete state, cannot reinit\n",
+>> +			req->debug_str);
+>> +		spin_unlock_irqrestore(&req->lock, flags);
+>> +		return -EBUSY;
+>> +	}
+>> +	atomic_set(&req->state, MEDIA_REQUEST_STATE_CLEANING);
+>> +	spin_unlock_irqrestore(&req->lock, flags);
+>> +
+>> +	media_request_clean(req);
+>> +
+>> +	atomic_set(&req->state, MEDIA_REQUEST_STATE_IDLE);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static long media_request_ioctl(struct file *filp, unsigned int cmd,
+>> +				unsigned long arg)
+>> +{
+>> +	struct media_request *req = filp->private_data;
+>> +
+>> +	switch (cmd) {
+>> +	case MEDIA_REQUEST_IOC_QUEUE:
+>> +		return media_request_ioctl_queue(req);
+>> +	case MEDIA_REQUEST_IOC_REINIT:
+>> +		return media_request_ioctl_reinit(req);
+>> +	default:
+>> +		return -ENOIOCTLCMD;
+>> +	}
+>> +}
+>> +
+>> +static const struct file_operations request_fops = {
+>> +	.owner = THIS_MODULE,
+>> +	.poll = media_request_poll,
+>> +	.unlocked_ioctl = media_request_ioctl,
+>> +	.release = media_request_close,
+>> +};
+>> +
+>> +int media_request_alloc(struct media_device *mdev,
+>> +			struct media_request_alloc *alloc)
+>> +{
+>> +	struct media_request *req;
+>> +	struct file *filp;
+>> +	char comm[TASK_COMM_LEN];
+>> +	int fd;
+>> +	int ret;
+>> +
+>> +	/* Either both are NULL or both are non-NULL */
+>> +	if (WARN_ON(!mdev->ops->req_alloc ^ !mdev->ops->req_free))
+>> +		return -ENOMEM;
+>> +
+>> +	fd = get_unused_fd_flags(O_CLOEXEC);
+>> +	if (fd < 0)
+>> +		return fd;
+>> +
+>> +	filp = anon_inode_getfile("request", &request_fops, NULL, O_CLOEXEC);
+>> +	if (IS_ERR(filp)) {
+>> +		ret = PTR_ERR(filp);
+>> +		goto err_put_fd;
+>> +	}
+>> +
+>> +	if (mdev->ops->req_alloc)
+>> +		req = mdev->ops->req_alloc(mdev);
+>> +	else
+>> +		req = kzalloc(sizeof(*req), GFP_KERNEL);
+>> +	if (!req) {
+>> +		ret = -ENOMEM;
+>> +		goto err_fput;
+>> +	}
+>> +
+>> +	filp->private_data = req;
+>> +	req->mdev = mdev;
+>> +	atomic_set(&req->state, MEDIA_REQUEST_STATE_IDLE);
+>> +	req->num_incomplete_objects = 0;
+>> +	kref_init(&req->kref);
+>> +	INIT_LIST_HEAD(&req->objects);
+>> +	spin_lock_init(&req->lock);
+>> +	init_waitqueue_head(&req->poll_wait);
+>> +
+>> +	alloc->fd = fd;
+>> +
+>> +	get_task_comm(comm, current);
+>> +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
+>> +		 comm, fd);
+>> +	dev_dbg(mdev->dev, "request: allocated %s\n", req->debug_str);
+>> +
+>> +	fd_install(fd, filp);
+>> +
+>> +	return 0;
+>> +
+>> +err_fput:
+>> +	fput(filp);
+>> +
+>> +err_put_fd:
+>> +	put_unused_fd(fd);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static void media_request_object_release(struct kref *kref)
+>> +{
+>> +	struct media_request_object *obj =
+>> +		container_of(kref, struct media_request_object, kref);
+>> +	struct media_request *req = obj->req;
+>> +
+>> +	if (req)
+>> +		media_request_object_unbind(obj);
+>> +	obj->ops->release(obj);
+>> +}
+>> +
+>> +void media_request_object_put(struct media_request_object *obj)
+>> +{
+>> +	kref_put(&obj->kref, media_request_object_release);
+>> +}
+>> +EXPORT_SYMBOL_GPL(media_request_object_put);
+>> +
+>> +void media_request_object_init(struct media_request_object *obj)
+>> +{
+>> +	obj->ops = NULL;
+>> +	obj->req = NULL;
+>> +	obj->priv = NULL;
+>> +	obj->completed = false;
+>> +	INIT_LIST_HEAD(&obj->list);
+>> +	kref_init(&obj->kref);
+>> +}
+>> +EXPORT_SYMBOL_GPL(media_request_object_init);
+>> +
+>> +int media_request_object_bind(struct media_request *req,
+>> +			      const struct media_request_object_ops *ops,
+>> +			      void *priv,
+>> +			      struct media_request_object *obj)
+>> +{
+>> +	unsigned long flags;
+>> +	int ret = -EBUSY;
+>> +
+>> +	if (WARN_ON(!ops->release))
+>> +		return -EPERM;
+>> +
+>> +	obj->req = req;
+>> +	obj->ops = ops;
+>> +	obj->priv = priv;
+>> +
+>> +	spin_lock_irqsave(&req->lock, flags);
+>> +
+>> +	if (WARN_ON(atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE))
+>> +		goto unlock;
+> 
+> Is this worth a kernel warning, or rather how the drivers / other framework
+> bits (e.g. VB2) prevent user from binding objects to non-idle requests?
+> Even if you added a similar check to the caller, the request state could
+> well change in the meantime.
+> 
+> Perhaps add __must_check to the return value?
+
+This has already been addressed in v14 with media_request_lock_for_update().
+
+> 
+>> +
+>> +	list_add_tail(&obj->list, &req->objects);
+>> +	req->num_incomplete_objects++;
+>> +	ret = 0;
+>> +
+>> +unlock:
+>> +	spin_unlock_irqrestore(&req->lock, flags);
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(media_request_object_bind);
+>> +
+>> +void media_request_object_unbind(struct media_request_object *obj)
+>> +{
+>> +	struct media_request *req = obj->req;
+>> +	enum media_request_state state;
+>> +	unsigned long flags;
+>> +	bool completed = false;
+>> +
+>> +	if (WARN_ON(!req))
+>> +		return;
+>> +
+>> +	spin_lock_irqsave(&req->lock, flags);
+>> +	list_del(&obj->list);
+>> +	obj->req = NULL;
+>> +
+>> +	state = atomic_read(&req->state);
+>> +
+>> +	if (state == MEDIA_REQUEST_STATE_COMPLETE ||
+>> +	    state == MEDIA_REQUEST_STATE_CLEANING)
+>> +		goto unlock;
+>> +
+>> +	if (WARN_ON(state == MEDIA_REQUEST_STATE_VALIDATING))
+>> +		goto unlock;
+>> +
+>> +	if (WARN_ON(!req->num_incomplete_objects))
+>> +		goto unlock;
+>> +
+>> +	req->num_incomplete_objects--;
+>> +	if (state == MEDIA_REQUEST_STATE_QUEUED &&
+>> +	    !req->num_incomplete_objects) {
+>> +		atomic_set(&req->state, MEDIA_REQUEST_STATE_COMPLETE);
+>> +		completed = true;
+>> +		wake_up_interruptible_all(&req->poll_wait);
+>> +	}
+>> +
+>> +unlock:
+>> +	spin_unlock_irqrestore(&req->lock, flags);
+>> +	if (obj->ops->unbind)
+>> +		obj->ops->unbind(obj);
+>> +	if (completed)
+>> +		media_request_put(req);
+>> +}
+>> +EXPORT_SYMBOL_GPL(media_request_object_unbind);
+>> +
+>> +void media_request_object_complete(struct media_request_object *obj)
+>> +{
+>> +	struct media_request *req = obj->req;
+>> +	unsigned long flags;
+>> +	bool completed = false;
+>> +
+>> +	spin_lock_irqsave(&req->lock, flags);
+>> +	if (obj->completed)
+>> +		goto unlock;
+>> +	obj->completed = true;
+>> +	if (WARN_ON(!req->num_incomplete_objects) ||
+>> +	    WARN_ON(atomic_read(&req->state) != MEDIA_REQUEST_STATE_QUEUED))
+>> +		goto unlock;
+>> +
+>> +	if (!--req->num_incomplete_objects) {
+>> +		atomic_set(&req->state, MEDIA_REQUEST_STATE_COMPLETE);
+>> +		wake_up_interruptible_all(&req->poll_wait);
+>> +		completed = true;
+>> +	}
+>> +unlock:
+>> +	spin_unlock_irqrestore(&req->lock, flags);
+>> +	if (completed)
+>> +		media_request_put(req);
+>> +}
+>> +EXPORT_SYMBOL_GPL(media_request_object_complete);
+>> diff --git a/include/media/media-device.h b/include/media/media-device.h
+>> index bcc6ec434f1f..7d855823341c 100644
+>> --- a/include/media/media-device.h
+>> +++ b/include/media/media-device.h
+>> @@ -27,6 +27,7 @@
+>>  
+>>  struct ida;
+>>  struct device;
+>> +struct media_device;
+>>  
+>>  /**
+>>   * struct media_entity_notify - Media Entity Notify
+>> @@ -50,10 +51,21 @@ struct media_entity_notify {
+>>   * struct media_device_ops - Media device operations
+>>   * @link_notify: Link state change notification callback. This callback is
+>>   *		 called with the graph_mutex held.
+>> + * @req_alloc: Allocate a request
+>> + * @req_free: Free a request
+>> + * @req_validate: Validate a request, but do not queue yet
+>> + * @req_queue: Queue a validated request, cannot fail. If something goes
+>> + *	       wrong when queueing this request then it should be marked
+>> + *	       as such internally in the driver and any related buffers
+>> + *	       must eventually return to vb2 with state VB2_BUF_STATE_ERROR.
+>>   */
+>>  struct media_device_ops {
+>>  	int (*link_notify)(struct media_link *link, u32 flags,
+>>  			   unsigned int notification);
+>> +	struct media_request *(*req_alloc)(struct media_device *mdev);
+>> +	void (*req_free)(struct media_request *req);
+>> +	int (*req_validate)(struct media_request *req);
+>> +	void (*req_queue)(struct media_request *req);
+>>  };
+>>  
+>>  /**
+>> @@ -88,6 +100,8 @@ struct media_device_ops {
+>>   * @disable_source: Disable Source Handler function pointer
+>>   *
+>>   * @ops:	Operation handler callbacks
+>> + * @req_queue_mutex: Serialise the MEDIA_REQUEST_IOC_QUEUE ioctl w.r.t. this
+>> + *		     media device.
+>>   *
+>>   * This structure represents an abstract high-level media device. It allows easy
+>>   * access to entities and provides basic media device-level support. The
+>> @@ -158,6 +172,8 @@ struct media_device {
+>>  	void (*disable_source)(struct media_entity *entity);
+>>  
+>>  	const struct media_device_ops *ops;
+>> +
+>> +	struct mutex req_queue_mutex;
+>>  };
+>>  
+>>  /* We don't need to include pci.h or usb.h here */
+>> diff --git a/include/media/media-request.h b/include/media/media-request.h
+>> new file mode 100644
+>> index 000000000000..e39122dfd717
+>> --- /dev/null
+>> +++ b/include/media/media-request.h
+>> @@ -0,0 +1,244 @@
+>> +// SPDX-License-Identifier: GPL-2.0-only
+>> +/*
+>> + * Media device request objects
+>> + *
+>> + * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+>> + * Copyright (C) 2018 Intel Corporation
+>> + *
+>> + * Author: Hans Verkuil <hans.verkuil@cisco.com>
+>> + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> + */
+>> +
+>> +#ifndef MEDIA_REQUEST_H
+>> +#define MEDIA_REQUEST_H
+>> +
+>> +#include <linux/list.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/spinlock.h>
+>> +#include <linux/atomic.h>
+>> +
+>> +#include <media/media-device.h>
+>> +
+>> +/**
+>> + * enum media_request_state - media request state
+>> + *
+>> + * @MEDIA_REQUEST_STATE_IDLE:		Idle
+>> + * @MEDIA_REQUEST_STATE_VALIDATING:	Validating the request, no state changes
+>> + *					allowed
+>> + * @MEDIA_REQUEST_STATE_QUEUED:		Queued
+>> + * @MEDIA_REQUEST_STATE_COMPLETE:	Completed, the request is done
+>> + * @MEDIA_REQUEST_STATE_CLEANING:	Cleaning, the request is being re-inited
+>> + */
+>> +enum media_request_state {
+>> +	MEDIA_REQUEST_STATE_IDLE,
+>> +	MEDIA_REQUEST_STATE_VALIDATING,
+>> +	MEDIA_REQUEST_STATE_QUEUED,
+>> +	MEDIA_REQUEST_STATE_COMPLETE,
+>> +	MEDIA_REQUEST_STATE_CLEANING,
+>> +};
+>> +
+>> +struct media_request_object;
+>> +
+>> +/**
+>> + * struct media_request - Media device request
+>> + * @mdev: Media device this request belongs to
+>> + * @kref: Reference count
+>> + * @debug_str: Prefix for debug messages (process name:fd)
+>> + * @state: The state of the request
+>> + * @objects: List of @struct media_request_object request objects
+>> + * @num_objects: The number of objects in the request
+>> + * @num_incompleted_objects: The number of incomplete objects in the request
+>> + * @poll_wait: Wait queue for poll
+>> + * @lock: Serializes access to this struct
+>> + */
+>> +struct media_request {
+>> +	struct media_device *mdev;
+>> +	struct kref kref;
+>> +	char debug_str[TASK_COMM_LEN + 11];
+>> +	atomic_t state;
+>> +	struct list_head objects;
+>> +	unsigned int num_incomplete_objects;
+>> +	struct wait_queue_head poll_wait;
+>> +	spinlock_t lock;
+>> +};
+>> +
+>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>> +
+>> +/**
+>> + * media_request_get - Get the media request
+>> + *
+>> + * @req: The request
+>> + *
+>> + * Get the media request.
+>> + */
+>> +static inline void media_request_get(struct media_request *req)
+>> +{
+>> +	kref_get(&req->kref);
+>> +}
+>> +
+>> +/**
+>> + * media_request_put - Put the media request
+>> + *
+>> + * @req: The request
+>> + *
+>> + * Put the media request. The media request will be released
+>> + * when the refcount reaches 0.
+>> + */
+>> +void media_request_put(struct media_request *req);
+>> +
+>> +/**
+>> + * media_request_alloc - Allocate the media request
+>> + *
+>> + * @mdev: Media device this request belongs to
+>> + * @alloc: Store the request's file descriptor in this struct
+>> + *
+>> + * Allocated the media request and put the fd in @alloc->fd.
+>> + */
+>> +int media_request_alloc(struct media_device *mdev,
+>> +			struct media_request_alloc *alloc);
+>> +
+>> +#else
+>> +
+>> +static inline void media_request_get(struct media_request *req)
+>> +{
+>> +}
+>> +
+>> +static inline void media_request_put(struct media_request *req)
+>> +{
+>> +}
+>> +
+>> +#endif
+>> +
+>> +/**
+>> + * struct media_request_object_ops - Media request object operations
+>> + * @prepare: Validate and prepare the request object, optional.
+>> + * @unprepare: Unprepare the request object, optional.
+>> + * @queue: Queue the request object, optional.
+>> + * @unbind: Unbind the request object, optional.
+>> + * @release: Release the request object, required.
+>> + */
+>> +struct media_request_object_ops {
+>> +	int (*prepare)(struct media_request_object *object);
+>> +	void (*unprepare)(struct media_request_object *object);
+>> +	void (*queue)(struct media_request_object *object);
+>> +	void (*unbind)(struct media_request_object *object);
+>> +	void (*release)(struct media_request_object *object);
+>> +};
+>> +
+>> +/**
+>> + * struct media_request_object - An opaque object that belongs to a media
+>> + *				 request
+>> + *
+>> + * @ops: object's operations
+>> + * @priv: object's priv pointer
+>> + * @req: the request this object belongs to (can be NULL)
+>> + * @list: List entry of the object for @struct media_request
+>> + * @kref: Reference count of the object, acquire before releasing req->lock
+>> + * @completed: If true, then this object was completed.
+>> + *
+>> + * An object related to the request. This struct is embedded in the
+>> + * larger object data.
+>> + */
+>> +struct media_request_object {
+>> +	const struct media_request_object_ops *ops;
+>> +	void *priv;
+>> +	struct media_request *req;
+>> +	struct list_head list;
+>> +	struct kref kref;
+>> +	bool completed;
+>> +};
+>> +
+>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>> +
+>> +/**
+>> + * media_request_object_get - Get a media request object
+>> + *
+>> + * @obj: The object
+>> + *
+>> + * Get a media request object.
+>> + */
+>> +static inline void media_request_object_get(struct media_request_object *obj)
+>> +{
+>> +	kref_get(&obj->kref);
+>> +}
+>> +
+>> +/**
+>> + * media_request_object_put - Put a media request object
+>> + *
+>> + * @obj: The object
+>> + *
+>> + * Put a media request object. Once all references are gone, the
+>> + * object's memory is released.
+>> + */
+>> +void media_request_object_put(struct media_request_object *obj);
+>> +
+>> +/**
+>> + * media_request_object_init - Initialise a media request object
+>> + *
+>> + * Initialise a media request object. The object will be released using the
+>> + * release callback of the ops once it has no references (this function
+>> + * initialises references to one).
+>> + */
+>> +void media_request_object_init(struct media_request_object *obj);
+>> +
+>> +/**
+>> + * media_request_object_bind - Bind a media request object to a request
+> 
+> Argument documentation is missing.
+> 
+> I think you should also say that "every bound object must be unbound later
+> on".
+
+Done.
+
+> 
+>> + */
+>> +int media_request_object_bind(struct media_request *req,
+>> +			      const struct media_request_object_ops *ops,
+>> +			      void *priv,
+>> +			      struct media_request_object *obj);
+>> +
+>> +/**
+>> + * media_request_object_unbind - Unbind a media request object
+>> + *
+>> + * @obj: The object
+>> + *
+>> + * Unbind the media request object from the request.
+>> + */
+>> +void media_request_object_unbind(struct media_request_object *obj);
+>> +
+>> +/**
+>> + * media_request_object_complete - Mark the media request object as complete
+>> + *
+>> + * @obj: The object
+>> + *
+>> + * Mark the media request object as complete.
+> 
+> Add:
+> 
+> Only bound request objects may be completed.
+
+Done.
+
+> 
+>> + */
+>> +void media_request_object_complete(struct media_request_object *obj);
+>> +
+>> +#else
+>> +
+>> +static inline void media_request_object_get(struct media_request_object *obj)
+>> +{
+>> +}
+>> +
+>> +static inline void media_request_object_put(struct media_request_object *obj)
+>> +{
+>> +}
+>> +
+>> +static inline void media_request_object_init(struct media_request_object *obj)
+>> +{
+>> +	obj->ops = NULL;
+>> +	obj->req = NULL;
+>> +}
+>> +
+>> +static inline int media_request_object_bind(struct media_request *req,
+>> +			       const struct media_request_object_ops *ops,
+>> +			       void *priv,
+>> +			       struct media_request_object *obj)
+>> +{
+>> +	return 0;
+>> +}
+>> +
+>> +static inline void media_request_object_unbind(struct media_request_object *obj)
+>> +{
+>> +}
+>> +
+>> +static inline void media_request_object_complete(struct media_request_object *obj)
+>> +{
+>> +}
+>> +
+>> +#endif
+>> +
+>> +#endif
+> 
+
+Regards,
+
+	Hans
