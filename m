@@ -1,131 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:40854 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750785AbeEBDrr (ORCPT
+Received: from relay12.mail.gandi.net ([217.70.178.232]:53439 "EHLO
+        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S969667AbeEXWCg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 23:47:47 -0400
-Message-ID: <03839215ac3c0c7352f3368ad73c846b@smtp-cloud7.xs4all.net>
-Date: Wed, 02 May 2018 05:47:44 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Thu, 24 May 2018 18:02:36 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v4 3/9] media: rcar-vin: Create a group notifier
+Date: Fri, 25 May 2018 00:02:13 +0200
+Message-Id: <1527199339-7724-4-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+As CSI-2 subdevices are shared between several VIN instances, a shared
+notifier to collect the CSI-2 async subdevices is required. So far, the
+rcar-vin driver used the notifier of the last VIN instance to probe but
+with the forth-coming introduction of parallel input subdevices support
+in mc-compliant code path, each VIN may register its own notifier if any
+parallel subdevice is connected there.
 
-Results of the daily build of media_tree:
+To avoid registering a notifier twice (once for parallel subdev and one
+for the CSI-2 subdevs) create a group notifier, shared by all the VIN
+instances.
 
-date:			Wed May  2 05:00:12 CEST 2018
-media-tree git hash:	a2b2eff6ac2716f499defa590a6ec4ba379d765e
-media_build git hash:	2945d108c680b3c09c9843e001e84a9797d7f379
-v4l-utils git hash:	03e763fd4b361b2082019032fc315b7606669335
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+---
+v3 -> v4:
+- Unregister and cleanup group notifier when un-registering the VIN
+  instance whose v4l2_dev the notifier is associated to.
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 38 ++++++++++++++---------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  5 ++--
+ 2 files changed, 20 insertions(+), 23 deletions(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index bcf02de..d3aadf3 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -46,6 +46,8 @@
+  */
+ #define rvin_group_id_to_master(vin) ((vin) < 4 ? 0 : 4)
+ 
++#define v4l2_dev_to_vin(d)	container_of(d, struct rvin_dev, v4l2_dev)
++
+ /* -----------------------------------------------------------------------------
+  * Media Controller link notification
+  */
+@@ -583,7 +585,7 @@ static int rvin_parallel_graph_init(struct rvin_dev *vin)
+ 
+ static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
+ {
+-	struct rvin_dev *vin = notifier_to_vin(notifier);
++	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
+ 	const struct rvin_group_route *route;
+ 	unsigned int i;
+ 	int ret;
+@@ -649,7 +651,7 @@ static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
+ 				     struct v4l2_subdev *subdev,
+ 				     struct v4l2_async_subdev *asd)
+ {
+-	struct rvin_dev *vin = notifier_to_vin(notifier);
++	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
+ 	unsigned int i;
+ 
+ 	for (i = 0; i < RCAR_VIN_NUM; i++)
+@@ -673,7 +675,7 @@ static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
+ 				   struct v4l2_subdev *subdev,
+ 				   struct v4l2_async_subdev *asd)
+ {
+-	struct rvin_dev *vin = notifier_to_vin(notifier);
++	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
+ 	unsigned int i;
+ 
+ 	mutex_lock(&vin->group->lock);
+@@ -734,12 +736,6 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+ 
+ 	mutex_lock(&vin->group->lock);
+ 
+-	/* If there already is a notifier something has gone wrong, bail out. */
+-	if (WARN_ON(vin->group->notifier)) {
+-		mutex_unlock(&vin->group->lock);
+-		return -EINVAL;
+-	}
+-
+ 	/* If not all VIN's are registered don't register the notifier. */
+ 	for (i = 0; i < RCAR_VIN_NUM; i++)
+ 		if (vin->group->vin[i])
+@@ -751,19 +747,16 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+ 	}
+ 
+ 	/*
+-	 * Have all VIN's look for subdevices. Some subdevices will overlap
+-	 * but the parser function can handle it, so each subdevice will
+-	 * only be registered once with the notifier.
++	 * Have all VIN's look for CSI-2 subdevices. Some subdevices will
++	 * overlap but the parser function can handle it, so each subdevice
++	 * will only be registered once with the group notifier.
+ 	 */
+-
+-	vin->group->notifier = &vin->notifier;
+-
+ 	for (i = 0; i < RCAR_VIN_NUM; i++) {
+ 		if (!vin->group->vin[i])
+ 			continue;
+ 
+ 		ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+-				vin->group->vin[i]->dev, vin->group->notifier,
++				vin->group->vin[i]->dev, &vin->group->notifier,
+ 				sizeof(struct v4l2_async_subdev), 1,
+ 				rvin_mc_parse_of_endpoint);
+ 		if (ret) {
+@@ -774,9 +767,12 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+ 
+ 	mutex_unlock(&vin->group->lock);
+ 
+-	vin->group->notifier->ops = &rvin_group_notify_ops;
++	if (!vin->group->notifier.num_subdevs)
++		return 0;
+ 
+-	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
++	vin->group->notifier.ops = &rvin_group_notify_ops;
++	ret = v4l2_async_notifier_register(&vin->v4l2_dev,
++					   &vin->group->notifier);
+ 	if (ret < 0) {
+ 		vin_err(vin, "Notifier registration failed\n");
+ 		return ret;
+@@ -1114,8 +1110,10 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 
+ 	if (vin->info->use_mc) {
+ 		mutex_lock(&vin->group->lock);
+-		if (vin->group->notifier == &vin->notifier)
+-			vin->group->notifier = NULL;
++		if (&vin->v4l2_dev == vin->group->notifier.v4l2_dev) {
++			v4l2_async_notifier_unregister(&vin->group->notifier);
++			v4l2_async_notifier_cleanup(&vin->group->notifier);
++		}
+ 		mutex_unlock(&vin->group->lock);
+ 		rvin_group_put(vin);
+ 	} else {
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 755ac3c..ebb480f7 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -225,8 +225,7 @@ struct rvin_dev {
+  *
+  * @lock:		protects the count, notifier, vin and csi members
+  * @count:		number of enabled VIN instances found in DT
+- * @notifier:		pointer to the notifier of a VIN which handles the
+- *			groups async sub-devices.
++ * @notifier:		group notifier for CSI-2 async subdevices
+  * @vin:		VIN instances which are part of the group
+  * @csi:		array of pairs of fwnode and subdev pointers
+  *			to all CSI-2 subdevices.
+@@ -238,7 +237,7 @@ struct rvin_group {
+ 
+ 	struct mutex lock;
+ 	unsigned int count;
+-	struct v4l2_async_notifier *notifier;
++	struct v4l2_async_notifier notifier;
+ 	struct rvin_dev *vin[RCAR_VIN_NUM];
+ 
+ 	struct {
+-- 
+2.7.4
