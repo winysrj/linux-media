@@ -1,84 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:42164 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752568AbeEOH7t (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34396 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1031970AbeEXK1X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:59:49 -0400
-Received: by mail-wr0-f195.google.com with SMTP id v5-v6so14902789wrf.9
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:48 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v2 19/29] venus: helpers: add buffer type argument to a helper
-Date: Tue, 15 May 2018 10:58:49 +0300
-Message-Id: <20180515075859.17217-20-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+        Thu, 24 May 2018 06:27:23 -0400
+Subject: Re: [PATCHv13 12/28] v4l2-ctrls: add core request support
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+ <20180503145318.128315-13-hverkuil@xs4all.nl>
+ <20180507150600.66d794c6@vento.lan>
+ <630745ed-dcac-61f6-9683-2236fc6c2c2a@xs4all.nl>
+ <20180508074957.2c8e5464@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0702530d-0479-2345-f091-c778947e79d1@xs4all.nl>
+Date: Thu, 24 May 2018 12:27:21 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180508074957.2c8e5464@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds one more function argument to pass buffer type to
-set_output_resolution() helper function. That is a preparation
-to support secondary decoder output.
+On 08/05/18 12:49, Mauro Carvalho Chehab wrote:
+> Em Tue, 8 May 2018 10:07:22 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>>>> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+>>>> index 76352eb59f14..a0f7c38d1a90 100644
+>>>> --- a/include/media/v4l2-ctrls.h
+>>>> +++ b/include/media/v4l2-ctrls.h
+>>>> @@ -250,6 +250,10 @@ struct v4l2_ctrl {
+>>>>   *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+>>>>   * @from_other_dev: If true, then @ctrl was defined in another
+>>>>   *		device than the &struct v4l2_ctrl_handler.
+>>>> + * @done:	If true, then this control reference is part of a
+>>>> + *		control cluster that was already set while applying
+>>>> + *		the controls in this media request object.  
+>>>
+>>> Hmm... I would rename it for request_done or something similar, as it
+>>> seems that this applies only for requests.  
+>>
+>> No, the variable name is correct (it serves the same purpose as the 'done'
+>> field in struct v4l2_ctrl), but the description should be improved.
+>>
+>> I also want to take another look at this: I wonder if it isn't possible to
+>> use the v4l2_ctrl 'done' field for this instead of having to add a new field
+>> here.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/helpers.c | 5 +++--
- drivers/media/platform/qcom/venus/helpers.h | 3 ++-
- drivers/media/platform/qcom/venus/venc.c    | 3 ++-
- 3 files changed, 7 insertions(+), 4 deletions(-)
+Unfortunately, that isn't possible.
 
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index 94664a3ce3e2..5512fbfdebb9 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -456,12 +456,13 @@ int venus_helper_set_input_resolution(struct venus_inst *inst,
- EXPORT_SYMBOL_GPL(venus_helper_set_input_resolution);
- 
- int venus_helper_set_output_resolution(struct venus_inst *inst,
--				       unsigned int width, unsigned int height)
-+				       unsigned int width, unsigned int height,
-+				       u32 buftype)
- {
- 	u32 ptype = HFI_PROPERTY_PARAM_FRAME_SIZE;
- 	struct hfi_framesize fs;
- 
--	fs.buffer_type = HFI_BUFFER_OUTPUT;
-+	fs.buffer_type = buftype;
- 	fs.width = width;
- 	fs.height = height;
- 
-diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index cd306bd8978f..0de9989adcdb 100644
---- a/drivers/media/platform/qcom/venus/helpers.h
-+++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -36,7 +36,8 @@ int venus_helper_get_bufreq(struct venus_inst *inst, u32 type,
- int venus_helper_set_input_resolution(struct venus_inst *inst,
- 				      unsigned int width, unsigned int height);
- int venus_helper_set_output_resolution(struct venus_inst *inst,
--				       unsigned int width, unsigned int height);
-+				       unsigned int width, unsigned int height,
-+				       u32 buftype);
- int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- 			      unsigned int output_bufs);
- int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index f87d891325ea..8970f14b3a82 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -795,7 +795,8 @@ static int venc_init_session(struct venus_inst *inst)
- 		goto deinit;
- 
- 	ret = venus_helper_set_output_resolution(inst, inst->width,
--						 inst->height);
-+						 inst->height,
-+						 HFI_BUFFER_OUTPUT);
- 	if (ret)
- 		goto deinit;
- 
--- 
-2.14.1
+> 
+> If it can use v4l2_ctrl done, it would indeed be better. Otherwise, as
+> this new "done" is used only by requests, I really think that it shold
+> be renamed, to let it clearer that this is the "done" that should be used
+> when requests are used.
+
+I've renamed 'done' to req_done and improved (I hope) the comment.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks,
+> Mauro
+> 
