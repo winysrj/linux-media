@@ -1,89 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:34758 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934239AbeEWTfj (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35909 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965007AbeEXIzN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 15:35:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        LMML <linux-media@vger.kernel.org>,
-        Wim Taymans <wtaymans@redhat.com>, schaller@redhat.com
-Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras on generic apps
-Date: Wed, 23 May 2018 22:35:33 +0300
-Message-ID: <5437926.TNfTU9E2g4@avalon>
-In-Reply-To: <727fc55e-970c-53c3-f286-f7e7c1035184@xs4all.nl>
-References: <20180517160708.74811cfb@vento.lan> <20180518082447.3068c34c@vento.lan> <727fc55e-970c-53c3-f286-f7e7c1035184@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Thu, 24 May 2018 04:55:13 -0400
+Received: by mail-wr0-f196.google.com with SMTP id k5-v6so1617023wrn.3
+        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 01:55:13 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        eballetbo@gmail.com
+Subject: [PATCH v5 4/6] mfd: cros-ec: Introduce CEC commands and events definitions.
+Date: Thu, 24 May 2018 10:54:59 +0200
+Message-Id: <1527152101-17278-5-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1527152101-17278-1-git-send-email-narmstrong@baylibre.com>
+References: <1527152101-17278-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The EC can expose a CEC bus, this patch adds the CEC related definitions
+needed by the cros-ec-cec driver.
 
-On Wednesday, 23 May 2018 19:19:37 EEST Hans Verkuil wrote:
-> On 18/05/18 13:24, Mauro Carvalho Chehab wrote:
-> > One of the biggest reasons why we decided to start libv4l project,
-> > in the past, was to ensure an open source solution. The problem we
-> > faced on that time is to ensure that, when a new media driver were
-> > added with some proprietary output format, an open source decoding
-> > software were also added at libv4l.
-> > 
-> > This approach ensured that all non-MC cameras are supported by all
-> > V4L2 applications.
-> > 
-> > Before libv4l, media support for a given device were limited to a few
-> > apps that knew how to decode the format. There were even cases were a
-> > proprietary app were required, as no open source decoders were available.
-> > 
-> > From my PoV, the biggest gain with libv4l is that the same group of
-> > maintainers can ensure that the entire solution (Kernel driver and
-> > low level userspace support) will provide everything required for an
-> > open source app to work with it.
-> > 
-> > I'm not sure how we would keep enforcing it if the pipeline setting
-> > and control propagation logic for an specific hardware will be
-> > delegated to PipeWire. It seems easier to keep doing it on a libv4l
-> > (version 2) and let PipeWire to use it.
-> 
-> I've decided not to attend this meeting. It is not quite my core expertise
-> and it is a bit too far to make it worth my time. If there are good reasons
-> for me being there that I missed, then please let me know asap and I might
-> reconsider this.
-> 
-> What I would like to say though it that I think libv4l is a bit of a dead
-> end and probably not suitable for adding support for this.
-> 
-> Currently libv4l2 is too intertwined with libv4lconvert and too messy.
-> Its original motivation was for converting custom formats and that is
-> mostly obsolete now that UVC has standardized formats to just a few.
-> 
-> I think a core library is needed that provides the basic functionality
-> and that can be used directly by applications if they don't want to use
-> v4l2_open() and friends.
-> 
-> I.e. it should be possible for e.g. gstreamer to use this core library
-> to easily configure and use the MC instead of having to call v4l2_open()
-> etc. and rely on magic code to do this for them. It's simply ugly to
-> overload mmap with v4l2_mmap or to emulate read() if the driver doesn't
-> support it.
-> 
-> We might still have a libv4l2-like library sitting on top of this, but
-> perhaps with limited functionality. For example, I think it would be
-> reasonable to no longer support custom formats. If an application wants
-> to support that, then it should call conversion functions for the core
-> library explicitly. This has the big advantage of solving the dmabuf
-> and mmap issues in today's libv4l2.
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+---
+ include/linux/mfd/cros_ec_commands.h | 85 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 85 insertions(+)
 
-I agree with all that. I also believe we need to design a clean solution 
-without caring about the existing libv4l2 API, and then implement a 
-compatibility layer on top of our new library. The way to move away from the 
-stone age is to design a new technology for the future, and then help the past 
-climb on the bandwagon.
-
+diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
+index cc0768e..ea9646f 100644
+--- a/include/linux/mfd/cros_ec_commands.h
++++ b/include/linux/mfd/cros_ec_commands.h
+@@ -804,6 +804,8 @@ enum ec_feature_code {
+ 	EC_FEATURE_MOTION_SENSE_FIFO = 24,
+ 	/* EC has RTC feature that can be controlled by host commands */
+ 	EC_FEATURE_RTC = 27,
++	/* EC supports CEC commands */
++	EC_FEATURE_CEC = 35,
+ };
+ 
+ #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
+@@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
+ 	/* EC sent a sysrq command */
+ 	EC_MKBP_EVENT_SYSRQ = 6,
+ 
++	/* Notify the AP that something happened on CEC */
++	EC_MKBP_CEC_EVENT = 8,
++
++	/* Send an incoming CEC message to the AP */
++	EC_MKBP_EVENT_CEC_MESSAGE = 9,
++
+ 	/* Number of MKBP events */
+ 	EC_MKBP_EVENT_COUNT,
+ };
+@@ -2850,6 +2858,83 @@ struct ec_params_reboot_ec {
+ 
+ /*****************************************************************************/
+ /*
++ * HDMI CEC commands
++ *
++ * These commands are for sending and receiving message via HDMI CEC
++ */
++#define MAX_CEC_MSG_LEN 16
++
++/* CEC message from the AP to be written on the CEC bus */
++#define EC_CMD_CEC_WRITE_MSG 0x00B8
++
++/**
++ * struct ec_params_cec_write - Message to write to the CEC bus
++ * @msg: message content to write to the CEC bus
++ */
++struct ec_params_cec_write {
++	uint8_t msg[MAX_CEC_MSG_LEN];
++} __packed;
++
++/* Set various CEC parameters */
++#define EC_CMD_CEC_SET 0x00BA
++
++/**
++ * struct ec_params_cec_set - CEC parameters set
++ * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
++ * @enable: in case cmd is CEC_CMD_ENABLE, this field can be 0 to disable CEC
++ * 	or 1 to enable CEC functionnality
++ * @address: in case cmd is CEC_CMD_LOGICAL_ADDRESS, this field encodes the
++ *	requested logical address between 0 and 15 or 0xff to unregister
++ */
++struct ec_params_cec_set {
++	uint8_t cmd; /* enum cec_command */
++	union {
++		uint8_t enable;
++		uint8_t address;
++	};
++} __packed;
++
++/* Read various CEC parameters */
++#define EC_CMD_CEC_GET 0x00BB
++
++/**
++ * struct ec_params_cec_get - CEC parameters get
++ * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
++ */
++struct ec_params_cec_get {
++	uint8_t cmd; /* enum cec_command */
++} __packed;
++
++/**
++ * struct ec_response_cec_get - CEC parameters get response
++ * @enable: in case cmd was CEC_CMD_ENABLE, this field will 0 if CEC is
++ * 	disabled or 1 if CEC functionnality is enabled
++ * @address: in case cmd was CEC_CMD_LOGICAL_ADDRESS, this will encode the
++ *	configured logical address between 0 and 15 or 0xff if unregistered
++ */
++struct ec_response_cec_get {
++	union {
++		uint8_t enable;
++		uint8_t address;
++	};
++} __packed;
++
++/* CEC parameters command */
++enum cec_command {
++	/* CEC reading, writing and events enable */
++	CEC_CMD_ENABLE,
++	/* CEC logical address  */
++	CEC_CMD_LOGICAL_ADDRESS,
++};
++
++/* Events from CEC to AP */
++enum mkbp_cec_event {
++	EC_MKBP_CEC_SEND_OK			= BIT(0),
++	EC_MKBP_CEC_SEND_FAILED			= BIT(1),
++};
++
++/*****************************************************************************/
++/*
+  * Special commands
+  *
+  * These do not follow the normal rules for commands.  See each command for
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
