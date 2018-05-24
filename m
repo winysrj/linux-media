@@ -1,113 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bugwerft.de ([46.23.86.59]:49870 "EHLO mail.bugwerft.de"
+Received: from mga09.intel.com ([134.134.136.24]:59349 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752629AbeERIcq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 04:32:46 -0400
-Subject: Re: [PATCH v3 01/12] media: ov5640: Fix timings setup code
-To: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
- <20180517085405.10104-2-maxime.ripard@bootlin.com>
-From: Daniel Mack <daniel@zonque.org>
-Message-ID: <78510086-f59b-516a-1b51-02f938d41cbb@zonque.org>
-Date: Fri, 18 May 2018 10:32:43 +0200
+        id S966945AbeEXUrl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 16:47:41 -0400
+Date: Thu, 24 May 2018 23:47:34 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: bingbu.cao@intel.com, linux-media@vger.kernel.org,
+        bingbu.cao@linux.intel.com, tian.shu.qiu@linux.intel.com,
+        rajmohan.mani@intel.com, mchehab@kernel.org
+Subject: Re: [PATCH v3] media: imx319: Add imx319 camera sensor driver
+Message-ID: <20180524204733.s2ijd3t2izztvjnv@kekkonen.localdomain>
+References: <1526886658-14417-1-git-send-email-bingbu.cao@intel.com>
+ <1526963581-28655-1-git-send-email-bingbu.cao@intel.com>
+ <20180522200848.GB15035@w540>
+ <20180523073833.onxqj72hi23qkz42@paasikivi.fi.intel.com>
+ <20180524200738.GD18369@w540>
 MIME-Version: 1.0
-In-Reply-To: <20180517085405.10104-2-maxime.ripard@bootlin.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180524200738.GD18369@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Jacopo,
 
-On Thursday, May 17, 2018 10:53 AM, Maxime Ripard wrote:
-> From: Samuel Bobrowicz <sam@elite-embedded.com>
+On Thu, May 24, 2018 at 10:07:38PM +0200, jacopo mondi wrote:
+...
+> > > about that, but I wonder why setting controls should be enabled only
+> > > when streaming. I would have expected runtime_pm_get/put in subdevices
+> > > node open/close functions not only when streaming. Am I missing something?
+> >
+> > You can do it either way. If powering on the sensor takes a long time, then
+> > doing that in the open callback may be helpful as the user space has a way
+> > to keep the device powered.
 > 
-> The current code, when changing the mode and changing the scaling or
-> sampling parameters, will look at the horizontal and vertical total size,
-> which, since 5999f381e023 ("media: ov5640: Add horizontal and vertical
-> totals") has been moved from the static register initialization to after
-> the mode change.
+> Ok, so I assume my comment could be ignored, assuming is fine not
+> being able to set control if the sensor is not streaming. Is it?
+
+I'd say so. From the user's point of view, the sensor doesn't really do
+anything when it's in software standby mode.
+
+...
+
+> > > > +	mode = v4l2_find_nearest_size(supported_modes,
+> > > > +		ARRAY_SIZE(supported_modes), width, height,
+> > > > +		fmt->format.width, fmt->format.height);
+> > > > +	imx319_update_pad_format(imx319, mode, fmt);
+> > > > +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+> > > > +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
+> > > > +		*framefmt = fmt->format;
+> > > > +	} else {
+> > > > +		imx319->cur_mode = mode;
+> > > > +		pixel_rate =
+> > > > +		(link_freq_menu_items[0] * 2 * 4) / 10;
+> > >
+> > > This assumes a fixed link frequency and a fixed number of data lanes,
+> > > and a fixed bpp value (but this is ok, as all the formats you have are
+> > > 10bpp). In OF world those parameters come from DT, what about ACPI?
+> >
+> > I presume the driver only supports a particular number of lanes (4). ACPI
+> > supports _DSD properties, i.e. the same can be done on ACPI.
+> >
+> > If the driver only supports these, then it should check this matches with
+> > what the firmware (ACPI) has. The fwnode API is the same.
 > 
-> That means that the values are no longer set up before the code retrieves
-> them, which is obviously a bug.
+> Thanks, so I assume those parameters represented in ACPI DSD nodes
+> will be checked to be supported by the sensor in v2.
 
-I tried 'for-4.18-5' before your patch set now and noticed it didn't 
-work. I then bisected the regression down to the same commit that you 
-mentioned above.
+Agreed.
 
-The old code (before 5999f381e023) used to have the timing registers 
-embedded in a large register blob. Omitting them during the bulk upload 
-and writing them later doesn't work here, even if the values are the 
-same. It seems that the order in which registers are written matters.
-
-Hence your patch in this email doesn't fix it for me either. I have to 
-move ov5640_set_timings() before ov5640_load_regs() to revive my platform.
-
-One of the subsequent patches in this series introduces a new regression 
-for me, unfortunately, possibly for the same reason. I'll dig a bit more.
-
-What cameras are you testing this with? MIPI or parallel?
-
-
-Thanks,
-Daniel
-
-
-
-> Fixes: 5999f381e023 ("media: ov5640: Add horizontal and vertical totals")
-> Signed-off-by: Samuel Bobrowicz <sam@elite-embedded.com>
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->   drivers/media/i2c/ov5640.c | 12 ++++++++----
->   1 file changed, 8 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index e480e53b369b..4bd968b478db 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -1462,6 +1462,10 @@ static int ov5640_set_mode_exposure_calc(struct ov5640_dev *sensor,
->   	if (ret < 0)
->   		return ret;
->   
-> +	ret = ov5640_set_timings(sensor, mode);
-> +	if (ret < 0)
-> +		return ret;
-> +
->   	/* read capture VTS */
->   	ret = ov5640_get_vts(sensor);
->   	if (ret < 0)
-> @@ -1589,6 +1593,10 @@ static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
->   	if (ret < 0)
->   		return ret;
->   
-> +	ret = ov5640_set_timings(sensor, mode);
-> +	if (ret < 0)
-> +		return ret;
-> +
->   	/* turn auto gain/exposure back on for direct mode */
->   	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_gain, 1);
->   	if (ret)
-> @@ -1633,10 +1641,6 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
->   		ret = ov5640_set_mode_direct(sensor, mode, exposure);
->   	}
->   
-> -	if (ret < 0)
-> -		return ret;
-> -
-> -	ret = ov5640_set_timings(sensor, mode);
->   	if (ret < 0)
->   		return ret;
->   
-> 
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
