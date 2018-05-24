@@ -1,257 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43780 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751844AbeERUmL (ORCPT
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:53181 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964922AbeEXHHh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 16:42:11 -0400
-From: Kieran Bingham <kieran@ksquared.org.uk>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v11 02/10] media: vsp1: Move video suspend resume handling to video object
-Date: Fri, 18 May 2018 21:41:55 +0100
-Message-Id: <1969e3639e2a1bcfd104a1054b30f9d914fe5dfb.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Thu, 24 May 2018 03:07:37 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Subject: [PATCH v2 07/13] net: smc91x: remove the dmaengine compat need
+Date: Thu, 24 May 2018 09:06:57 +0200
+Message-Id: <20180524070703.11901-8-robert.jarzmik@free.fr>
+In-Reply-To: <20180524070703.11901-1-robert.jarzmik@free.fr>
+References: <20180524070703.11901-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+As the pxa architecture switched towards the dmaengine slave map, the
+old compatibility mechanism to acquire the dma requestor line number and
+priority are not needed anymore.
 
-The suspend and resume handlers are only utilised by video pipelines,
-yet the functions currently reside in the vsp1_pipe object.
+This patch simplifies the dma resource acquisition, using the more
+generic function dma_request_slave_channel().
 
-This causes an issue with resume, as the functions incorrectly call
-vsp1_pipeline_run() directly instead of processing the video object
-through vsp1_video_pipeline_run().
-
-Move the functions to the video object, renaming accordingly and update
-the resume handler to call vsp1_video_pipeline_run() as appropriate.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
- drivers/media/platform/vsp1/vsp1_drv.c   |  4 +-
- drivers/media/platform/vsp1/vsp1_pipe.c  | 70 +-----------------------
- drivers/media/platform/vsp1/vsp1_pipe.h  |  3 +-
- drivers/media/platform/vsp1/vsp1_video.c | 75 +++++++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_video.h |  3 +-
- 5 files changed, 80 insertions(+), 75 deletions(-)
+ drivers/net/ethernet/smsc/smc91x.c | 12 +-----------
+ drivers/net/ethernet/smsc/smc91x.h |  1 -
+ 2 files changed, 1 insertion(+), 12 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index d29f9c4baebe..5d82f6ee56ea 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -589,7 +589,7 @@ static int __maybe_unused vsp1_pm_suspend(struct device *dev)
- 	 * restarted explicitly by the DU.
- 	 */
- 	if (!vsp1->drm)
--		vsp1_pipelines_suspend(vsp1);
-+		vsp1_video_suspend(vsp1);
- 
- 	pm_runtime_force_suspend(vsp1->dev);
- 
-@@ -607,7 +607,7 @@ static int __maybe_unused vsp1_pm_resume(struct device *dev)
- 	 * restarted explicitly by the DU.
- 	 */
- 	if (!vsp1->drm)
--		vsp1_pipelines_resume(vsp1);
-+		vsp1_video_resume(vsp1);
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 6fde4c0b9844..da21f1a7cd75 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -386,73 +386,3 @@ void vsp1_pipeline_propagate_partition(struct vsp1_pipeline *pipe,
+diff --git a/drivers/net/ethernet/smsc/smc91x.c b/drivers/net/ethernet/smsc/smc91x.c
+index 080428762858..4c600f430f6d 100644
+--- a/drivers/net/ethernet/smsc/smc91x.c
++++ b/drivers/net/ethernet/smsc/smc91x.c
+@@ -2018,18 +2018,8 @@ static int smc_probe(struct net_device *dev, void __iomem *ioaddr,
+ 	lp->cfg.flags |= SMC91X_USE_DMA;
+ #  endif
+ 	if (lp->cfg.flags & SMC91X_USE_DMA) {
+-		dma_cap_mask_t mask;
+-		struct pxad_param param;
+-
+-		dma_cap_zero(mask);
+-		dma_cap_set(DMA_SLAVE, mask);
+-		param.prio = PXAD_PRIO_LOWEST;
+-		param.drcmr = -1UL;
+-
+ 		lp->dma_chan =
+-			dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-							 &param, &dev->dev,
+-							 "data");
++			dma_request_slave_channel(lp->device, "data");
  	}
- }
+ #endif
  
--void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
--{
--	unsigned long flags;
--	unsigned int i;
--	int ret;
--
--	/*
--	 * To avoid increasing the system suspend time needlessly, loop over the
--	 * pipelines twice, first to set them all to the stopping state, and
--	 * then to wait for the stop to complete.
--	 */
--	for (i = 0; i < vsp1->info->wpf_count; ++i) {
--		struct vsp1_rwpf *wpf = vsp1->wpf[i];
--		struct vsp1_pipeline *pipe;
--
--		if (wpf == NULL)
--			continue;
--
--		pipe = wpf->entity.pipe;
--		if (pipe == NULL)
--			continue;
--
--		spin_lock_irqsave(&pipe->irqlock, flags);
--		if (pipe->state == VSP1_PIPELINE_RUNNING)
--			pipe->state = VSP1_PIPELINE_STOPPING;
--		spin_unlock_irqrestore(&pipe->irqlock, flags);
--	}
--
--	for (i = 0; i < vsp1->info->wpf_count; ++i) {
--		struct vsp1_rwpf *wpf = vsp1->wpf[i];
--		struct vsp1_pipeline *pipe;
--
--		if (wpf == NULL)
--			continue;
--
--		pipe = wpf->entity.pipe;
--		if (pipe == NULL)
--			continue;
--
--		ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
--					 msecs_to_jiffies(500));
--		if (ret == 0)
--			dev_warn(vsp1->dev, "pipeline %u stop timeout\n",
--				 wpf->entity.index);
--	}
--}
--
--void vsp1_pipelines_resume(struct vsp1_device *vsp1)
--{
--	unsigned long flags;
--	unsigned int i;
--
--	/* Resume all running pipelines. */
--	for (i = 0; i < vsp1->info->wpf_count; ++i) {
--		struct vsp1_rwpf *wpf = vsp1->wpf[i];
--		struct vsp1_pipeline *pipe;
--
--		if (wpf == NULL)
--			continue;
--
--		pipe = wpf->entity.pipe;
--		if (pipe == NULL)
--			continue;
--
--		spin_lock_irqsave(&pipe->irqlock, flags);
--		if (vsp1_pipeline_ready(pipe))
--			vsp1_pipeline_run(pipe);
--		spin_unlock_irqrestore(&pipe->irqlock, flags);
--	}
--}
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 663d7fed7929..69858ba6cb31 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -164,9 +164,6 @@ void vsp1_pipeline_propagate_partition(struct vsp1_pipeline *pipe,
- 				       unsigned int index,
- 				       struct vsp1_partition_window *window);
- 
--void vsp1_pipelines_suspend(struct vsp1_device *vsp1);
--void vsp1_pipelines_resume(struct vsp1_device *vsp1);
--
- const struct vsp1_format_info *vsp1_get_format_info(struct vsp1_device *vsp1,
- 						    u32 fourcc);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index ba89dd176a13..5deb35210055 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -1171,6 +1171,81 @@ static const struct v4l2_file_operations vsp1_video_fops = {
- };
- 
- /* -----------------------------------------------------------------------------
-+ * Suspend and Resume
-+ */
-+
-+void vsp1_video_suspend(struct vsp1_device *vsp1)
-+{
-+	unsigned long flags;
-+	unsigned int i;
-+	int ret;
-+
-+	/*
-+	 * To avoid increasing the system suspend time needlessly, loop over the
-+	 * pipelines twice, first to set them all to the stopping state, and
-+	 * then to wait for the stop to complete.
-+	 */
-+	for (i = 0; i < vsp1->info->wpf_count; ++i) {
-+		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-+		struct vsp1_pipeline *pipe;
-+
-+		if (wpf == NULL)
-+			continue;
-+
-+		pipe = wpf->entity.pipe;
-+		if (pipe == NULL)
-+			continue;
-+
-+		spin_lock_irqsave(&pipe->irqlock, flags);
-+		if (pipe->state == VSP1_PIPELINE_RUNNING)
-+			pipe->state = VSP1_PIPELINE_STOPPING;
-+		spin_unlock_irqrestore(&pipe->irqlock, flags);
-+	}
-+
-+	for (i = 0; i < vsp1->info->wpf_count; ++i) {
-+		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-+		struct vsp1_pipeline *pipe;
-+
-+		if (wpf == NULL)
-+			continue;
-+
-+		pipe = wpf->entity.pipe;
-+		if (pipe == NULL)
-+			continue;
-+
-+		ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
-+					 msecs_to_jiffies(500));
-+		if (ret == 0)
-+			dev_warn(vsp1->dev, "pipeline %u stop timeout\n",
-+				 wpf->entity.index);
-+	}
-+}
-+
-+void vsp1_video_resume(struct vsp1_device *vsp1)
-+{
-+	unsigned long flags;
-+	unsigned int i;
-+
-+	/* Resume all running pipelines. */
-+	for (i = 0; i < vsp1->info->wpf_count; ++i) {
-+		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-+		struct vsp1_pipeline *pipe;
-+
-+		if (wpf == NULL)
-+			continue;
-+
-+		pipe = wpf->entity.pipe;
-+		if (pipe == NULL)
-+			continue;
-+
-+		spin_lock_irqsave(&pipe->irqlock, flags);
-+		if (vsp1_pipeline_ready(pipe))
-+			vsp1_video_pipeline_run(pipe);
-+		spin_unlock_irqrestore(&pipe->irqlock, flags);
-+	}
-+}
-+
-+/* -----------------------------------------------------------------------------
-  * Initialization and Cleanup
+diff --git a/drivers/net/ethernet/smsc/smc91x.h b/drivers/net/ethernet/smsc/smc91x.h
+index b337ee97e0c0..a27352229fc2 100644
+--- a/drivers/net/ethernet/smsc/smc91x.h
++++ b/drivers/net/ethernet/smsc/smc91x.h
+@@ -301,7 +301,6 @@ struct smc_local {
+  * as RX which can overrun memory and lose packets.
   */
+ #include <linux/dma-mapping.h>
+-#include <linux/dma/pxa-dma.h>
  
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index 75a5a65c66fe..f3cf5e2fdf5a 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -51,6 +51,9 @@ static inline struct vsp1_video *to_vsp1_video(struct video_device *vdev)
- 	return container_of(vdev, struct vsp1_video, video);
- }
- 
-+void vsp1_video_suspend(struct vsp1_device *vsp1);
-+void vsp1_video_resume(struct vsp1_device *vsp1);
-+
- struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 				     struct vsp1_rwpf *rwpf);
- void vsp1_video_cleanup(struct vsp1_video *video);
+ #ifdef SMC_insl
+ #undef SMC_insl
 -- 
-git-series 0.9.1
+2.11.0
