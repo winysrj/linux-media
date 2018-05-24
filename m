@@ -1,73 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:38834 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751481AbeEQN3f (ORCPT
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:50403 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755061AbeEXHH2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 09:29:35 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Sakari Ailus" <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 11/12] media: ov5640: Add 60 fps support
-Date: Thu, 17 May 2018 13:29:24 +0000
-Message-ID: <feb37eec-44ea-eb4a-ed59-32fe697e4bcb@st.com>
-References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
- <20180416123701.15901-12-maxime.ripard@bootlin.com>
- <1ef58196-f04a-8b75-6d01-8ec5e22bfc7f@st.com>
- <20180517085207.wvfrji3o7dlgnvq2@flea>
-In-Reply-To: <20180517085207.wvfrji3o7dlgnvq2@flea>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <5EA643658A2BF941B149381BEDE4652D@st.com>
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        Thu, 24 May 2018 03:07:28 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Subject: [PATCH v2 01/13] dmaengine: pxa: use a dma slave map
+Date: Thu, 24 May 2018 09:06:51 +0200
+Message-Id: <20180524070703.11901-2-robert.jarzmik@free.fr>
+In-Reply-To: <20180524070703.11901-1-robert.jarzmik@free.fr>
+References: <20180524070703.11901-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+In order to remove the specific knowledge of the dma mapping from PXA
+drivers, add a default slave map for pxa architectures.
 
-Thanks for fixes !
+This won't impact MMP architecture, but is aimed only at all PXA boards.
 
-No special modification of v4l2-ctl, I'm using currently v4l-utils 1.12.3.
-What output do you have ?
+This is the first step, and once all drivers are converted,
+pxad_filter_fn() will be made static, and the DMA resources removed from
+device.c.
 
-Best regards,
-Hugues.
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Vinod Koul <vkoul@kernel.org>
+---
+ drivers/dma/pxa_dma.c                 | 10 +++++++++-
+ include/linux/platform_data/mmp_dma.h |  4 ++++
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-On 05/17/2018 10:52 AM, Maxime Ripard wrote:
-> Hi Hugues,
-> 
-> On Tue, May 15, 2018 at 01:33:55PM +0000, Hugues FRUCHET wrote:
->> I've taken the whole serie and made some tests on STM32 platform using
->> DVP parallel interface.
->> Now JPEG is OK and I've not seen any regressions appart on framerate
->> control linked to this current patchset.
-> 
-> Thanks a lot for your feedback, I've (hopefully) fixed all the issues
-> you reported here, most of the time taking your fix directly, except
-> for 2 where I reworked the code instead.
-> 
->> Here are issues observed around framerate control:
->> 1) Framerate enumeration is buggy and all resolutions are claimed
->> supporting 15/30/60:
->> v4l2-ctl --list-formats-ext
->> ioctl: VIDIOC_ENUM_FMT
->>           Index       : 0
->>           Type        : Video Capture
->>           Pixel Format: 'JPEG' (compressed)
->>           Name        : JFIF JPEG
->>                   Size: Discrete 176x144
->>                           Interval: Discrete 0.067s (15.000 fps)
->>                           Interval: Discrete 0.033s (30.000 fps)
->>                           Interval: Discrete 0.017s (60.000 fps)
-> 
-> One small question though, I don't seem to have that output for
-> v4l2-ctl, is some hook needed in the v4l2 device for it to work?
-> 
-> Maxime
-> 
+diff --git a/drivers/dma/pxa_dma.c b/drivers/dma/pxa_dma.c
+index b53fb618bbf6..9505334f9c6e 100644
+--- a/drivers/dma/pxa_dma.c
++++ b/drivers/dma/pxa_dma.c
+@@ -179,6 +179,8 @@ static unsigned int pxad_drcmr(unsigned int line)
+ 	return 0x1000 + line * 4;
+ }
+ 
++bool pxad_filter_fn(struct dma_chan *chan, void *param);
++
+ /*
+  * Debug fs
+  */
+@@ -1396,9 +1398,10 @@ static int pxad_probe(struct platform_device *op)
+ {
+ 	struct pxad_device *pdev;
+ 	const struct of_device_id *of_id;
++	const struct dma_slave_map *slave_map = NULL;
+ 	struct mmp_dma_platdata *pdata = dev_get_platdata(&op->dev);
+ 	struct resource *iores;
+-	int ret, dma_channels = 0, nb_requestors = 0;
++	int ret, dma_channels = 0, nb_requestors = 0, slave_map_cnt = 0;
+ 	const enum dma_slave_buswidth widths =
+ 		DMA_SLAVE_BUSWIDTH_1_BYTE   | DMA_SLAVE_BUSWIDTH_2_BYTES |
+ 		DMA_SLAVE_BUSWIDTH_4_BYTES;
+@@ -1429,6 +1432,8 @@ static int pxad_probe(struct platform_device *op)
+ 	} else if (pdata && pdata->dma_channels) {
+ 		dma_channels = pdata->dma_channels;
+ 		nb_requestors = pdata->nb_requestors;
++		slave_map = pdata->slave_map;
++		slave_map_cnt = pdata->slave_map_cnt;
+ 	} else {
+ 		dma_channels = 32;	/* default 32 channel */
+ 	}
+@@ -1440,6 +1445,9 @@ static int pxad_probe(struct platform_device *op)
+ 	pdev->slave.device_prep_dma_memcpy = pxad_prep_memcpy;
+ 	pdev->slave.device_prep_slave_sg = pxad_prep_slave_sg;
+ 	pdev->slave.device_prep_dma_cyclic = pxad_prep_dma_cyclic;
++	pdev->slave.filter.map = slave_map;
++	pdev->slave.filter.mapcnt = slave_map_cnt;
++	pdev->slave.filter.fn = pxad_filter_fn;
+ 
+ 	pdev->slave.copy_align = PDMA_ALIGNMENT;
+ 	pdev->slave.src_addr_widths = widths;
+diff --git a/include/linux/platform_data/mmp_dma.h b/include/linux/platform_data/mmp_dma.h
+index d1397c8ed94e..6397b9c8149a 100644
+--- a/include/linux/platform_data/mmp_dma.h
++++ b/include/linux/platform_data/mmp_dma.h
+@@ -12,9 +12,13 @@
+ #ifndef MMP_DMA_H
+ #define MMP_DMA_H
+ 
++struct dma_slave_map;
++
+ struct mmp_dma_platdata {
+ 	int dma_channels;
+ 	int nb_requestors;
++	int slave_map_cnt;
++	const struct dma_slave_map *slave_map;
+ };
+ 
+ #endif /* MMP_DMA_H */
+-- 
+2.11.0
