@@ -1,168 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:55703 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753789AbeEAJA4 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36954 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S968866AbeEXLaW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 05:00:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv12 PATCH 14/29] videodev2.h: Add request_fd field to v4l2_buffer
-Date: Tue,  1 May 2018 11:00:36 +0200
-Message-Id: <20180501090051.9321-15-hverkuil@xs4all.nl>
-In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
+        Thu, 24 May 2018 07:30:22 -0400
+Received: by mail-wm0-f66.google.com with SMTP id l1-v6so4255053wmb.2
+        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 04:30:21 -0700 (PDT)
+References: <20180523092423.4386-1-p.zabel@pengutronix.de>
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Rui Miguel Silva <rui.silva@linaro.org>,
+        kernel@pengutronix.de
+Subject: Re: [PATCH v2] media: video-mux: fix compliance failures
+In-reply-to: <20180523092423.4386-1-p.zabel@pengutronix.de>
+Date: Thu, 24 May 2018 12:30:19 +0100
+Message-ID: <m3o9h570l0.fsf@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
+On Wed 23 May 2018 at 09:24, Philipp Zabel wrote:
+> Limit frame sizes to the [1, 65536] interval, media bus formats 
+> to
+> the available list of formats, and initialize pad and try 
+> formats.
+>
+> Reported-by: Rui Miguel Silva <rui.silva@linaro.org>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> Changes since v1:
+>  - Limit to [1, 65536] instead of [1, UINT_MAX - 1]
+>  - Add missing break in default case
+>  - Use .init_cfg pad op instead of .open internal op
+> ---
 
-When queuing buffers allow for passing the request that should
-be associated with this buffer.
+FWIW, in i.MX7:
+Tested-by: Rui Miguel Silva <rui.silva@linaro.org>
 
-If V4L2_BUF_FLAG_REQUEST_FD is set, then request_fd is used as
-the file descriptor.
+v4l2-compliance SHA   : 47d43b130dc6e9e0edc900759fb37649208371e4
 
-If a buffer is stored in a request, but not yet queued to the
-driver, then V4L2_BUF_FLAG_IN_REQUEST is set.
+Compliance test for device /dev/v4l-subdev1:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
- drivers/media/usb/cpia2/cpia2_v4l.c             |  2 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  9 ++++++---
- drivers/media/v4l2-core/v4l2-ioctl.c            |  4 ++--
- include/uapi/linux/videodev2.h                  | 10 +++++++++-
- 5 files changed, 19 insertions(+), 8 deletions(-)
+Media Driver Info:
+        Driver name      : imx7-csi
+        Model            : imx-media
+        Serial           : 
+        Bus info         : 
+        Media version    : 4.17.0
+        Hardware revision: 0x00000000 (0)
+        Driver version   : 4.17.0
+Interface Info:
+        ID               : 0x0300001b
+        Type             : V4L Sub-Device
+Entity Info:
+        ID               : 0x0000000a (10)
+        Name             : csi_mux
+        Function         : Video Muxer
+        Pad 0x0100000b   : Sink
+        Pad 0x0100000c   : Sink
+          Link 0x02000013: from remote pad 0x1000010 of entity 
+          'imx7-mipi-csis.0': Data, Enabled
+        Pad 0x0100000d   : Source
+          Link 0x02000015: to remote pad 0x1000002 of entity 
+          'csi': Data, Enabled
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 886a2d8d5c6c..4e9c77f21858 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -204,7 +204,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
- 	b->reserved2 = 0;
--	b->reserved = 0;
-+	b->request_fd = 0;
- 
- 	if (q->is_multiplanar) {
- 		/*
-diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-index 99f106b13280..13aee9f67d05 100644
---- a/drivers/media/usb/cpia2/cpia2_v4l.c
-+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-@@ -949,7 +949,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
- 	buf->length = cam->frame_size;
- 	buf->reserved2 = 0;
--	buf->reserved = 0;
-+	buf->request_fd = 0;
- 	memset(&buf->timecode, 0, sizeof(buf->timecode));
- 
- 	DBG("DQBUF #%d status:%d seq:%d length:%d\n", buf->index,
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index dcce86c1fe40..633465d21d04 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -482,7 +482,7 @@ struct v4l2_buffer32 {
- 	} m;
- 	__u32			length;
- 	__u32			reserved2;
--	__u32			reserved;
-+	__s32			request_fd;
- };
- 
- static int get_v4l2_plane32(struct v4l2_plane __user *p64,
-@@ -581,6 +581,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *p64,
- {
- 	u32 type;
- 	u32 length;
-+	s32 request_fd;
- 	enum v4l2_memory memory;
- 	struct v4l2_plane32 __user *uplane32;
- 	struct v4l2_plane __user *uplane;
-@@ -595,7 +596,9 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *p64,
- 	    get_user(memory, &p32->memory) ||
- 	    put_user(memory, &p64->memory) ||
- 	    get_user(length, &p32->length) ||
--	    put_user(length, &p64->length))
-+	    put_user(length, &p64->length) ||
-+	    get_user(request_fd, &p32->request_fd) ||
-+	    put_user(request_fd, &p64->request_fd))
- 		return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_OUTPUT(type))
-@@ -699,7 +702,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *p64,
- 	    copy_in_user(&p32->timecode, &p64->timecode, sizeof(p64->timecode)) ||
- 	    assign_in_user(&p32->sequence, &p64->sequence) ||
- 	    assign_in_user(&p32->reserved2, &p64->reserved2) ||
--	    assign_in_user(&p32->reserved, &p64->reserved) ||
-+	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
- 	    get_user(length, &p64->length) ||
- 	    put_user(length, &p32->length))
- 		return -EFAULT;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 56741c4a48fc..561a1fe3160b 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -437,13 +437,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
- 	const struct v4l2_plane *plane;
- 	int i;
- 
--	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
-+	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request_fd=%d, flags=0x%08x, field=%s, sequence=%d, memory=%s",
- 			p->timestamp.tv_sec / 3600,
- 			(int)(p->timestamp.tv_sec / 60) % 60,
- 			(int)(p->timestamp.tv_sec % 60),
- 			(long)p->timestamp.tv_usec,
- 			p->index,
--			prt_names(p->type, v4l2_type_names),
-+			prt_names(p->type, v4l2_type_names), p->request_fd,
- 			p->flags, prt_names(p->field, v4l2_field_names),
- 			p->sequence, prt_names(p->memory, v4l2_memory_names));
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 16b53b82496c..1f6c4b52baae 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -910,6 +910,7 @@ struct v4l2_plane {
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-  *		buffers (when type != *_MPLANE); number of elements in the
-  *		planes array for multi-plane buffers
-+ * @request_fd: fd of the request that this buffer should use
-  *
-  * Contains data exchanged by application and driver using one of the Streaming
-  * I/O methods.
-@@ -934,7 +935,10 @@ struct v4l2_buffer {
- 	} m;
- 	__u32			length;
- 	__u32			reserved2;
--	__u32			reserved;
-+	union {
-+		__s32		request_fd;
-+		__u32		reserved;
-+	};
- };
- 
- /*  Flags for 'flags' field */
-@@ -952,6 +956,8 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_BFRAME			0x00000020
- /* Buffer is ready, but the data contained within is corrupted. */
- #define V4L2_BUF_FLAG_ERROR			0x00000040
-+/* Buffer is added to an unqueued request */
-+#define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
- /* timecode field is valid */
- #define V4L2_BUF_FLAG_TIMECODE			0x00000100
- /* Buffer is prepared for queuing */
-@@ -970,6 +976,8 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
- /* mem2mem encoder/decoder */
- #define V4L2_BUF_FLAG_LAST			0x00100000
-+/* request_fd is valid */
-+#define V4L2_BUF_FLAG_REQUEST_FD		0x00800000
- 
- /**
-  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
--- 
-2.17.0
+Required ioctls:
+        test MC information (see 'Media Driver Info' above): OK
+
+Allow for multiple opens:
+        test second /dev/v4l-subdev1 open: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Sub-Device ioctls (Sink Pad 0):
+        test Try 
+        VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK 
+        (Not Supported)
+        test Try VIDIOC_SUBDEV_G/S_FMT: OK
+        test Try VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not 
+        Supported)
+        test Active 
+        VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK 
+        (Not Supported)
+        test Active VIDIOC_SUBDEV_G/S_FMT: OK
+        test Active VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not 
+        Supported)
+        test VIDIOC_SUBDEV_G/S_FRAME_INTERVAL: OK (Not Supported)
+
+Sub-Device ioctls (Sink Pad 1):
+        test Try 
+        VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK 
+        (Not Supported)
+        test Try VIDIOC_SUBDEV_G/S_FMT: OK
+        test Try VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not 
+        Supported)
+        test Active 
+        VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK 
+        (Not Supported)
+        test Active VIDIOC_SUBDEV_G/S_FMT: OK
+        test Active VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not 
+        Supported)
+        test VIDIOC_SUBDEV_G/S_FRAME_INTERVAL: OK (Not Supported)
+
+Sub-Device ioctls (Source Pad 2):
+        test Try 
+        VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK 
+        (Not Supported)
+        test Try VIDIOC_SUBDEV_G/S_FMT: OK
+        test Try VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not 
+        Supported)
+        test Active 
+        VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK 
+        (Not Supported)
+        test Active VIDIOC_SUBDEV_G/S_FMT: OK
+        test Active VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not 
+        Supported)
+        test VIDIOC_SUBDEV_G/S_FRAME_INTERVAL: OK (Not Supported)
+
+Control ioctls:
+        test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+        test VIDIOC_QUERYCTRL: OK (Not Supported)
+        test VIDIOC_G/S_CTRL: OK (Not Supported)
+        test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not 
+        Supported)
+        test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+        Standard Controls: 0 Private Controls: 0
+
+Format ioctls:
+        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not 
+        Supported)
+        test VIDIOC_G/S_PARM: OK (Not Supported)
+        test VIDIOC_G_FBUF: OK (Not Supported)
+        test VIDIOC_G_FMT: OK (Not Supported)
+        test VIDIOC_TRY_FMT: OK (Not Supported)
+        test VIDIOC_S_FMT: OK (Not Supported)
+        test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+        test Cropping: OK (Not Supported)
+        test Composing: OK (Not Supported)
+        test Scaling: OK (Not Supported)
+
+Codec ioctls:
+        test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+        test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+        test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK (Not 
+        Supported)
+        test VIDIOC_EXPBUF: OK (Not Supported)
+
+Total: 61, Succeeded: 61, Failed: 0, Warnings: 0
