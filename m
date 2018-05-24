@@ -1,158 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:28374 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752687AbeEUIzS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:18 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v14 18/36] v4l2-ctrls: Lock the request for updating during S_EXT_CTRLS
-Date: Mon, 21 May 2018 11:54:43 +0300
-Message-Id: <20180521085501.16861-19-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+Received: from smtp-1b.atlantis.sk ([80.94.52.26]:34303 "EHLO
+        smtp-1b.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966195AbeEXPO5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 11:14:57 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 3/3] gspca_zc3xx: Fix exposure with power line frequency for OV7648
+Date: Thu, 24 May 2018 17:09:31 +0200
+Message-Id: <20180524150931.26574-3-linux@rainbow-software.org>
+In-Reply-To: <20180524150931.26574-1-linux@rainbow-software.org>
+References: <20180524150931.26574-1-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of checking the media request state is idle at one point, lock the
-request for updating during the S_EXT_CTRLS call. As a by-product, finding
-the request has been moved out of the v4l2_ctrls_find_req_obj() in order
-to keep request object lookups to the minimum.
+The 50Hz and 60Hz power line frequency settings disable short (1/120s
+and 1/100s) exposure times for banding filter, causing overexposed
+image near lamps. No flicker setting enables them (when banding
+filter is disabled and they're not used).
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Seems that the logic is just the wrong way around. Fix it.
+(This bug came from the Windows driver.)
+
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 67 +++++++++++++++++++++---------------
- 1 file changed, 40 insertions(+), 27 deletions(-)
+ drivers/media/usb/gspca/zc3xx.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index df58a23eb731a..1a99d6e238791 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -3208,9 +3208,8 @@ int __v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 
- static struct media_request_object *
- v4l2_ctrls_find_req_obj(struct v4l2_ctrl_handler *hdl,
--			struct media_device *mdev, s32 fd, bool set)
-+			struct media_request *req, bool set)
- {
--	struct media_request *req = media_request_get_by_fd(mdev, fd);
- 	struct media_request_object *obj;
- 	struct v4l2_ctrl_handler *new_hdl;
- 	int ret;
-@@ -3218,36 +3217,29 @@ v4l2_ctrls_find_req_obj(struct v4l2_ctrl_handler *hdl,
- 	if (IS_ERR(req))
- 		return ERR_CAST(req);
- 
--	if (set && atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE) {
--		media_request_put(req);
-+	if (set && WARN_ON(req->state != MEDIA_REQUEST_STATE_UPDATING))
- 		return ERR_PTR(-EBUSY);
--	}
- 
- 	obj = media_request_object_find(req, &req_ops, hdl);
--	if (obj) {
--		media_request_put(req);
-+	if (obj)
- 		return obj;
--	}
- 
- 	new_hdl = kzalloc(sizeof(*new_hdl), GFP_KERNEL);
--	if (!new_hdl) {
--		ret = -ENOMEM;
--		goto put;
--	}
-+	if (!new_hdl)
-+		return ERR_PTR(-ENOMEM);
-+
- 	obj = &new_hdl->req_obj;
- 	ret = v4l2_ctrl_handler_init(new_hdl, (hdl->nr_of_buckets - 1) * 8);
- 	if (!ret)
- 		ret = v4l2_ctrl_request_bind(req, new_hdl, hdl);
--	if (!ret) {
--		media_request_object_get(obj);
--		media_request_put(req);
--		return obj;
-+	if (ret) {
-+		kfree(new_hdl);
-+
-+		return ERR_PTR(ret);
- 	}
--	kfree(new_hdl);
- 
--put:
--	media_request_put(req);
--	return ERR_PTR(ret);
-+	media_request_object_get(obj);
-+	return obj;
- }
- 
- int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-@@ -3257,11 +3249,21 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
- 	int ret;
- 
- 	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
-+		struct media_request *req;
-+
- 		if (!mdev || cs->request_fd < 0)
- 			return -EINVAL;
--		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, false);
-+
-+		req = media_request_get_by_fd(mdev, cs->request_fd);
-+		if (!req)
-+			return -ENOENT;
-+
-+		obj = v4l2_ctrls_find_req_obj(hdl, req, false);
-+		/* Reference to the request held through obj */
-+		media_request_put(req);
- 		if (IS_ERR(obj))
- 			return PTR_ERR(obj);
-+
- 		hdl = container_of(obj, struct v4l2_ctrl_handler,
- 				   req_obj);
- 	}
-@@ -3567,18 +3569,28 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh,
- 			     struct v4l2_ext_controls *cs, bool set)
- {
- 	struct media_request_object *obj = NULL;
-+	struct media_request *req = NULL;
- 	int ret;
- 
- 	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
- 		if (!mdev || cs->request_fd < 0)
- 			return -EINVAL;
--		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, true);
-+
-+		req = media_request_get_by_fd(mdev, cs->request_fd);
-+		if (!req)
-+			return -ENOENT;
-+
-+		ret = media_request_lock_for_update(req);
-+		if (req) {
-+			media_request_put(req);
-+			return ret;
-+		}
-+
-+		obj = v4l2_ctrls_find_req_obj(hdl, req, true);
-+		/* Reference to the request held through obj */
-+		media_request_object_put(obj);
- 		if (IS_ERR(obj))
- 			return PTR_ERR(obj);
--		if (atomic_read(&obj->req->state) != MEDIA_REQUEST_STATE_IDLE) {
--			media_request_object_put(obj);
--			return -EBUSY;
--		}
- 		hdl = container_of(obj, struct v4l2_ctrl_handler,
- 				   req_obj);
- 	}
-@@ -3586,7 +3598,8 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh,
- 	ret = __try_set_ext_ctrls(fh, hdl, cs, set);
- 
- 	if (obj)
--		media_request_object_put(obj);
-+		media_request_unlock_for_update(obj->req);
-+
- 	return ret;
- }
- 
+diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
+index 9a78420e8ad8..299ea70bfb67 100644
+--- a/drivers/media/usb/gspca/zc3xx.c
++++ b/drivers/media/usb/gspca/zc3xx.c
+@@ -3188,7 +3188,9 @@ static const struct usb_action ov7620_50HZ[] = {
+ 				 * don't change autoexposure */
+ 	{0xdd, 0x00, 0x0100},	/* 00,01,00,dd */
+ 	{0xaa, 0x2b, 0x0096},	/* 00,2b,96,aa */
+-	{0xaa, 0x75, 0x008a},	/* 00,75,8a,aa */
++/*	{0xaa, 0x75, 0x008a},	 * 00,75,8a,aa */
++	/* enable 1/120s & 1/100s exposures for banding filter */
++	{0xaa, 0x75, 0x008e},
+ 	{0xaa, 0x2d, 0x0005},	/* 00,2d,05,aa */
+ 	{0xa0, 0x00, ZC3XX_R190_EXPOSURELIMITHIGH},	/* 01,90,00,cc */
+ 	{0xa0, 0x04, ZC3XX_R191_EXPOSURELIMITMID},	/* 01,91,04,cc */
+@@ -3208,7 +3210,9 @@ static const struct usb_action ov7620_60HZ[] = {
+ 				 * don't change autoexposure */
+ 	{0xdd, 0x00, 0x0100},			/* 00,01,00,dd */
+ 	{0xaa, 0x2b, 0x0000},			/* 00,2b,00,aa */
+-	{0xaa, 0x75, 0x008a},			/* 00,75,8a,aa */
++/*	{0xaa, 0x75, 0x008a},			 * 00,75,8a,aa */
++	/* enable 1/120s & 1/100s exposures for banding filter */
++	{0xaa, 0x75, 0x008e},
+ 	{0xaa, 0x2d, 0x0005},			/* 00,2d,05,aa */
+ 	{0xa0, 0x00, ZC3XX_R190_EXPOSURELIMITHIGH}, /* 01,90,00,cc */
+ 	{0xa0, 0x04, ZC3XX_R191_EXPOSURELIMITMID}, /* 01,91,04,cc */
+@@ -3231,7 +3235,9 @@ static const struct usb_action ov7620_NoFliker[] = {
+ 				 * don't change autoexposure */
+ 	{0xdd, 0x00, 0x0100},			/* 00,01,00,dd */
+ 	{0xaa, 0x2b, 0x0000},			/* 00,2b,00,aa */
+-	{0xaa, 0x75, 0x008e},			/* 00,75,8e,aa */
++/*	{0xaa, 0x75, 0x008e},			 * 00,75,8e,aa */
++	/* disable 1/120s & 1/100s exposures for banding filter */
++	{0xaa, 0x75, 0x008a},
+ 	{0xaa, 0x2d, 0x0001},			/* 00,2d,01,aa */
+ 	{0xa0, 0x00, ZC3XX_R190_EXPOSURELIMITHIGH}, /* 01,90,00,cc */
+ 	{0xa0, 0x04, ZC3XX_R191_EXPOSURELIMITMID}, /* 01,91,04,cc */
 -- 
-2.11.0
+Ondrej Zary
