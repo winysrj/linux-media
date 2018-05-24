@@ -1,223 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:33215 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752137AbeENVLE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 17:11:04 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH v1 1/4] media: rc: introduce BPF_PROG_IR_DECODER
-Date: Mon, 14 May 2018 22:10:58 +0100
-Message-Id: <32a944171d5c48abf126259595b0088ce3122c91.1526331777.git.sean@mess.org>
-In-Reply-To: <cover.1526331777.git.sean@mess.org>
-References: <cover.1526331777.git.sean@mess.org>
-In-Reply-To: <cover.1526331777.git.sean@mess.org>
-References: <cover.1526331777.git.sean@mess.org>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:49802 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S967154AbeEXVD2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 17:03:28 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Subject: [PATCH] v4l: vsp1: Update LIF buffer thresholds
+Date: Fri, 25 May 2018 00:03:22 +0300
+Message-Id: <20180524210322.11402-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for BPF_PROG_IR_DECODER. This type of BPF program can call
-rc_keydown() to reported decoded IR scancodes, or rc_repeat() to report
-that the last key should be repeated.
+The LIF module has a data buffer to accommodate clock rate differences
+between the DU and the VSP. Several programmable threshold values
+control DU start of frame notification by the VSP and VSP clock
+stop/resume. The R-Car Gen2 and Gen3 datasheets recommend values for the
+different SoCs. Update the driver to use the recommended values for
+optimal operation.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Based on a BSP patch from Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
+with Gen2 and V3H/V3M updates.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/rc/Kconfig          |  8 +++
- drivers/media/rc/Makefile         |  1 +
- drivers/media/rc/ir-bpf-decoder.c | 93 +++++++++++++++++++++++++++++++
- include/linux/bpf_types.h         |  3 +
- include/uapi/linux/bpf.h          | 16 +++++-
- 5 files changed, 120 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/rc/ir-bpf-decoder.c
+ drivers/media/platform/vsp1/vsp1_lif.c | 29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index eb2c3b6eca7f..10ad6167d87c 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -120,6 +120,14 @@ config IR_IMON_DECODER
- 	   remote control and you would like to use it with a raw IR
- 	   receiver, or if you wish to use an encoder to transmit this IR.
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index 0cb63244b21a..d313fa19eecb 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -88,14 +88,35 @@ static void lif_configure_stream(struct vsp1_entity *entity,
+ {
+ 	const struct v4l2_mbus_framefmt *format;
+ 	struct vsp1_lif *lif = to_lif(&entity->subdev);
+-	unsigned int hbth = 1300;
+-	unsigned int obth = 400;
+-	unsigned int lbth = 200;
++	unsigned int hbth;
++	unsigned int obth;
++	unsigned int lbth;
  
-+config IR_BPF_DECODER
-+	bool "Enable IR raw decoder using BPF"
-+	depends on BPF_SYSCALL
-+	depends on RC_CORE=y
-+	help
-+	   Enable this option to make it possible to load custom IR
-+	   decoders written in BPF.
-+
- endif #RC_DECODERS
+ 	format = vsp1_entity_get_pad_format(&lif->entity, lif->entity.config,
+ 					    LIF_PAD_SOURCE);
  
- menuconfig RC_DEVICES
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 2e1c87066f6c..12e1118430d0 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -5,6 +5,7 @@ obj-y += keymaps/
- obj-$(CONFIG_RC_CORE) += rc-core.o
- rc-core-y := rc-main.o rc-ir-raw.o
- rc-core-$(CONFIG_LIRC) += lirc_dev.o
-+rc-core-$(CONFIG_IR_BPF_DECODER) += ir-bpf-decoder.o
- obj-$(CONFIG_IR_NEC_DECODER) += ir-nec-decoder.o
- obj-$(CONFIG_IR_RC5_DECODER) += ir-rc5-decoder.o
- obj-$(CONFIG_IR_RC6_DECODER) += ir-rc6-decoder.o
-diff --git a/drivers/media/rc/ir-bpf-decoder.c b/drivers/media/rc/ir-bpf-decoder.c
-new file mode 100644
-index 000000000000..aaa5e208b1a5
---- /dev/null
-+++ b/drivers/media/rc/ir-bpf-decoder.c
-@@ -0,0 +1,93 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// ir-bpf-decoder.c - handles bpf decoders
-+//
-+// Copyright (C) 2018 Sean Young <sean@mess.org>
+-	obth = min(obth, (format->width + 1) / 2 * format->height - 4);
++	switch (entity->vsp1->version & VI6_IP_VERSION_SOC_MASK) {
++	case VI6_IP_VERSION_MODEL_VSPD_GEN2:
++	case VI6_IP_VERSION_MODEL_VSPD_V2H:
++		hbth = 1536;
++		obth = min(128, (format->width + 1) / 2 * format->height - 4);
++		lbth = 1520;
++		break;
 +
-+#include <linux/bpf.h>
-+#include <linux/filter.h>
-+#include "rc-core-priv.h"
++	case VI6_IP_VERSION_MODEL_VSPDL_GEN3:
++	case VI6_IP_VERSION_MODEL_VSPD_V3:
++		hbth = 0;
++		obth = 1500;
++		lbth = 0;
++		break;
 +
-+/*
-+ * BPF interface for raw IR decoder
-+ */
-+const struct bpf_prog_ops ir_decoder_prog_ops = {
-+};
-+
-+BPF_CALL_1(bpf_rc_repeat, struct ir_raw_event*, event)
-+{
-+	struct ir_raw_event_ctrl *ctrl;
-+
-+	ctrl = container_of(event, struct ir_raw_event_ctrl, prev_ev);
-+
-+	rc_repeat(ctrl->dev);
-+	return 0;
-+}
-+
-+static const struct bpf_func_proto rc_repeat_proto = {
-+	.func	   = bpf_rc_repeat,
-+	.gpl_only  = true, // rc_repeat is EXPORT_SYMBOL_GPL
-+	.ret_type  = RET_VOID,
-+	.arg1_type = ARG_PTR_TO_CTX,
-+};
-+
-+BPF_CALL_4(bpf_rc_keydown, struct ir_raw_event*, event, u32, protocol,
-+	   u32, scancode, u32, toggle)
-+{
-+	struct ir_raw_event_ctrl *ctrl;
-+
-+	ctrl = container_of(event, struct ir_raw_event_ctrl, prev_ev);
-+	rc_keydown(ctrl->dev, protocol, scancode, toggle != 0);
-+	return 0;
-+}
-+
-+static const struct bpf_func_proto rc_keydown_proto = {
-+	.func	   = bpf_rc_keydown,
-+	.gpl_only  = true, // rc_keydown is EXPORT_SYMBOL_GPL
-+	.ret_type  = RET_VOID,
-+	.arg1_type = ARG_PTR_TO_CTX,
-+	.arg2_type = ARG_ANYTHING,
-+	.arg3_type = ARG_ANYTHING,
-+	.arg4_type = ARG_ANYTHING,
-+};
-+
-+static const struct bpf_func_proto *ir_decoder_func_proto(enum bpf_func_id func_id, const struct bpf_prog *prog)
-+{
-+	switch (func_id) {
-+	case BPF_FUNC_rc_repeat:
-+		return &rc_repeat_proto;
-+	case BPF_FUNC_rc_keydown:
-+		return &rc_keydown_proto;
-+	case BPF_FUNC_map_lookup_elem:
-+		return &bpf_map_lookup_elem_proto;
-+	case BPF_FUNC_map_update_elem:
-+		return &bpf_map_update_elem_proto;
-+	case BPF_FUNC_map_delete_elem:
-+		return &bpf_map_delete_elem_proto;
-+	case BPF_FUNC_ktime_get_ns:
-+		return &bpf_ktime_get_ns_proto;
-+	case BPF_FUNC_tail_call:
-+		return &bpf_tail_call_proto;
-+	case BPF_FUNC_get_prandom_u32:
-+		return &bpf_get_prandom_u32_proto;
++	case VI6_IP_VERSION_MODEL_VSPD_GEN3:
 +	default:
-+		return NULL;
++		hbth = 0;
++		obth = 3000;
++		lbth = 0;
++		break;
 +	}
-+}
-+
-+static bool ir_decoder_is_valid_access(int off, int size,
-+				       enum bpf_access_type type,
-+				       const struct bpf_prog *prog,
-+				       struct bpf_insn_access_aux *info)
-+{
-+	if (type == BPF_WRITE)
-+		return false;
-+	if (off < 0 || off + size > sizeof(struct ir_raw_event))
-+		return false;
-+
-+	return true;
-+}
-+
-+const struct bpf_verifier_ops ir_decoder_verifier_ops = {
-+	.get_func_proto  = ir_decoder_func_proto,
-+	.is_valid_access = ir_decoder_is_valid_access
-+};
-diff --git a/include/linux/bpf_types.h b/include/linux/bpf_types.h
-index 2b28fcf6f6ae..ee5355715ee0 100644
---- a/include/linux/bpf_types.h
-+++ b/include/linux/bpf_types.h
-@@ -25,6 +25,9 @@ BPF_PROG_TYPE(BPF_PROG_TYPE_RAW_TRACEPOINT, raw_tracepoint)
- #ifdef CONFIG_CGROUP_BPF
- BPF_PROG_TYPE(BPF_PROG_TYPE_CGROUP_DEVICE, cg_dev)
- #endif
-+#ifdef CONFIG_IR_BPF_DECODER
-+BPF_PROG_TYPE(BPF_PROG_TYPE_RAWIR_DECODER, ir_decoder)
-+#endif
  
- BPF_MAP_TYPE(BPF_MAP_TYPE_ARRAY, array_map_ops)
- BPF_MAP_TYPE(BPF_MAP_TYPE_PERCPU_ARRAY, percpu_array_map_ops)
-diff --git a/include/uapi/linux/bpf.h b/include/uapi/linux/bpf.h
-index c5ec89732a8d..6ad053e831c0 100644
---- a/include/uapi/linux/bpf.h
-+++ b/include/uapi/linux/bpf.h
-@@ -137,6 +137,7 @@ enum bpf_prog_type {
- 	BPF_PROG_TYPE_SK_MSG,
- 	BPF_PROG_TYPE_RAW_TRACEPOINT,
- 	BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
-+	BPF_PROG_TYPE_RAWIR_DECODER,
- };
- 
- enum bpf_attach_type {
-@@ -755,6 +756,17 @@ union bpf_attr {
-  *     @addr: pointer to struct sockaddr to bind socket to
-  *     @addr_len: length of sockaddr structure
-  *     Return: 0 on success or negative error code
-+ *
-+ * int bpf_rc_keydown(ctx, protocol, scancode, toggle)
-+ *	Report decoded scancode with toggle value
-+ *	@ctx: pointer to ctx
-+ *	@protocol: decoded protocol
-+ *	@scancode: decoded scancode
-+ *	@toggle: set to 1 if button was toggled, else 0
-+ *
-+ * int bpf_rc_repeat(ctx)
-+ *	Repeat the last decoded scancode
-+ *	@ctx: pointer to ctx
-  */
- #define __BPF_FUNC_MAPPER(FN)		\
- 	FN(unspec),			\
-@@ -821,7 +833,9 @@ union bpf_attr {
- 	FN(msg_apply_bytes),		\
- 	FN(msg_cork_bytes),		\
- 	FN(msg_pull_data),		\
--	FN(bind),
-+	FN(bind),			\
-+	FN(rc_repeat),			\
-+	FN(rc_keydown),
- 
- /* integer value in 'imm' field of BPF_CALL instruction selects which helper
-  * function eBPF program intends to call
+ 	vsp1_lif_write(lif, dlb, VI6_LIF_CSBTH,
+ 			(hbth << VI6_LIF_CSBTH_HBTH_SHIFT) |
 -- 
-2.17.0
+Regards,
+
+Laurent Pinchart
