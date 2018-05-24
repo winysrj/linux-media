@@ -1,106 +1,334 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:51543 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964892AbeEIUIK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 16:08:10 -0400
-Received: by mail-wm0-f67.google.com with SMTP id j4-v6so507408wme.1
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 13:08:09 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, mchehab+samsung@kernel.org
-Subject: [PATCH 3/4] [media] dvb-frontends/stv0910: make TS speed configurable
-Date: Wed,  9 May 2018 22:08:02 +0200
-Message-Id: <20180509200803.5253-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20180509200803.5253-1-d.scheller.oss@gmail.com>
-References: <20180509200803.5253-1-d.scheller.oss@gmail.com>
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:44347 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935664AbeEXHO7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 03:14:59 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Subject: [PATCH v2 02/13] ARM: pxa: add dma slave map
+Date: Thu, 24 May 2018 09:06:52 +0200
+Message-Id: <20180524070703.11901-3-robert.jarzmik@free.fr>
+In-Reply-To: <20180524070703.11901-1-robert.jarzmik@free.fr>
+References: <20180524070703.11901-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+In order to remove the specific knowledge of the dma mapping from PXA
+drivers, add a default slave map for pxa architectures.
 
-Add a tsspeed config option to struct stv0910_cfg which can be used by
-users of the driver to set the (parallel) TS speed (higher speeds enable
-support for higher bitrate transponders). If tsspeed isn't set in the
-config, it'll default to a sane value.
+This is the first step, and once all drivers are converted,
+pxad_filter_fn() will be made static, and the DMA resources removed from
+device.c.
 
-This commit also updates the two consumers of the stv0910 driver (ngene
-and ddbridge) to have a default tsspeed in their stv0910_cfg templates.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Richard Scobie <rascobie@slingshot.co.nz>
-Tested-by: Helmut Auer <post@helmutauer.de>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/dvb-frontends/stv0910.c      | 5 ++---
- drivers/media/dvb-frontends/stv0910.h      | 1 +
- drivers/media/pci/ddbridge/ddbridge-core.c | 1 +
- drivers/media/pci/ngene/ngene-cards.c      | 1 +
- 4 files changed, 5 insertions(+), 3 deletions(-)
+Since v1: revamped the SSP part, split into pxa25.c, pxa27x.c and
+          pxa3xx.c, and add pxa-i2s.
+---
+ arch/arm/mach-pxa/devices.c | 12 +++---------
+ arch/arm/mach-pxa/devices.h |  6 +++++-
+ arch/arm/mach-pxa/pxa25x.c  | 41 ++++++++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-pxa/pxa27x.c  | 42 +++++++++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-pxa/pxa3xx.c  | 44 +++++++++++++++++++++++++++++++++++++++++++-
+ 5 files changed, 132 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index 7e9b016b3b28..41444fa1c0bb 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -1200,7 +1200,6 @@ static int probe(struct stv *state)
- 	write_reg(state, RSTV0910_P1_TSCFGM, 0xC0); /* Manual speed */
- 	write_reg(state, RSTV0910_P1_TSCFGL, 0x20);
+diff --git a/arch/arm/mach-pxa/devices.c b/arch/arm/mach-pxa/devices.c
+index d7c9a8476d57..1e8915fc340d 100644
+--- a/arch/arm/mach-pxa/devices.c
++++ b/arch/arm/mach-pxa/devices.c
+@@ -4,6 +4,7 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
++#include <linux/dmaengine.h>
+ #include <linux/spi/pxa2xx_spi.h>
+ #include <linux/platform_data/i2c-pxa.h>
  
--	/* Speed = 67.5 MHz */
- 	write_reg(state, RSTV0910_P1_TSSPEED, state->tsspeed);
+@@ -1202,11 +1203,6 @@ void __init pxa2xx_set_spi_info(unsigned id, struct pxa2xx_spi_master *info)
+ 	platform_device_add(pd);
+ }
  
- 	write_reg(state, RSTV0910_P2_TSCFGH, state->tscfgh | 0x01);
-@@ -1208,7 +1207,6 @@ static int probe(struct stv *state)
- 	write_reg(state, RSTV0910_P2_TSCFGM, 0xC0); /* Manual speed */
- 	write_reg(state, RSTV0910_P2_TSCFGL, 0x20);
- 
--	/* Speed = 67.5 MHz */
- 	write_reg(state, RSTV0910_P2_TSSPEED, state->tsspeed);
- 
- 	/* Reset stream merger */
-@@ -1790,7 +1788,8 @@ struct dvb_frontend *stv0910_attach(struct i2c_adapter *i2c,
- 	state->tscfgh = 0x20 | (cfg->parallel ? 0 : 0x40);
- 	state->tsgeneral = (cfg->parallel == 2) ? 0x02 : 0x00;
- 	state->i2crpt = 0x0A | ((cfg->rptlvl & 0x07) << 4);
--	state->tsspeed = 0x28;
-+	/* use safe tsspeed value if unspecified through stv0910_cfg */
-+	state->tsspeed = (cfg->tsspeed ? cfg->tsspeed : 0x28);
- 	state->nr = nr;
- 	state->regoff = state->nr ? 0 : 0x200;
- 	state->search_range = 16000000;
-diff --git a/drivers/media/dvb-frontends/stv0910.h b/drivers/media/dvb-frontends/stv0910.h
-index fccd8d9b665f..f37171b7a2de 100644
---- a/drivers/media/dvb-frontends/stv0910.h
-+++ b/drivers/media/dvb-frontends/stv0910.h
-@@ -10,6 +10,7 @@ struct stv0910_cfg {
- 	u8  parallel;
- 	u8  rptlvl;
- 	u8  single;
-+	u8  tsspeed;
+-static struct mmp_dma_platdata pxa_dma_pdata = {
+-	.dma_channels	= 0,
+-	.nb_requestors	= 0,
+-};
+-
+ static struct resource pxa_dma_resource[] = {
+ 	[0] = {
+ 		.start	= 0x40000000,
+@@ -1233,9 +1229,7 @@ static struct platform_device pxa2xx_pxa_dma = {
+ 	.resource	= pxa_dma_resource,
  };
  
- #if IS_REACHABLE(CONFIG_DVB_STV0910)
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 377269c64449..6c2341642017 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1183,6 +1183,7 @@ static const struct stv0910_cfg stv0910_p = {
- 	.parallel = 1,
- 	.rptlvl   = 4,
- 	.clk      = 30000000,
-+	.tsspeed  = 0x28,
+-void __init pxa2xx_set_dmac_info(int nb_channels, int nb_requestors)
++void __init pxa2xx_set_dmac_info(struct mmp_dma_platdata *dma_pdata)
+ {
+-	pxa_dma_pdata.dma_channels = nb_channels;
+-	pxa_dma_pdata.nb_requestors = nb_requestors;
+-	pxa_register_device(&pxa2xx_pxa_dma, &pxa_dma_pdata);
++	pxa_register_device(&pxa2xx_pxa_dma, dma_pdata);
+ }
+diff --git a/arch/arm/mach-pxa/devices.h b/arch/arm/mach-pxa/devices.h
+index 11263f7c455b..498b07bc6a3e 100644
+--- a/arch/arm/mach-pxa/devices.h
++++ b/arch/arm/mach-pxa/devices.h
+@@ -1,4 +1,8 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++#define PDMA_FILTER_PARAM(_prio, _requestor) (&(struct pxad_param) { \
++	.prio = PXAD_PRIO_##_prio, .drcmr = _requestor })
++struct mmp_dma_platdata;
++
+ extern struct platform_device pxa_device_pmu;
+ extern struct platform_device pxa_device_mci;
+ extern struct platform_device pxa3xx_device_mci2;
+@@ -55,7 +59,7 @@ extern struct platform_device pxa3xx_device_gpio;
+ extern struct platform_device pxa93x_device_gpio;
+ 
+ void __init pxa_register_device(struct platform_device *dev, void *data);
+-void __init pxa2xx_set_dmac_info(int nb_channels, int nb_requestors);
++void __init pxa2xx_set_dmac_info(struct mmp_dma_platdata *dma_pdata);
+ 
+ struct i2c_pxa_platform_data;
+ extern void pxa_set_i2c_info(struct i2c_pxa_platform_data *info);
+diff --git a/arch/arm/mach-pxa/pxa25x.c b/arch/arm/mach-pxa/pxa25x.c
+index ba431fad5c47..2d61de41a9d5 100644
+--- a/arch/arm/mach-pxa/pxa25x.c
++++ b/arch/arm/mach-pxa/pxa25x.c
+@@ -16,6 +16,8 @@
+  * initialization stuff for PXA machines which can be overridden later if
+  * need be.
+  */
++#include <linux/dmaengine.h>
++#include <linux/dma/pxa-dma.h>
+ #include <linux/gpio.h>
+ #include <linux/gpio-pxa.h>
+ #include <linux/module.h>
+@@ -26,6 +28,7 @@
+ #include <linux/syscore_ops.h>
+ #include <linux/irq.h>
+ #include <linux/irqchip.h>
++#include <linux/platform_data/mmp_dma.h>
+ 
+ #include <asm/mach/map.h>
+ #include <asm/suspend.h>
+@@ -201,6 +204,42 @@ static struct platform_device *pxa25x_devices[] __initdata = {
+ 	&pxa_device_asoc_platform,
  };
  
- static const struct lnbh25_config lnbh25_cfg = {
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index 7738565193d6..7a106bc11a2b 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -327,6 +327,7 @@ static struct stv0910_cfg stv0910_p = {
- 	.parallel = 1,
- 	.rptlvl   = 4,
- 	.clk      = 30000000,
-+	.tsspeed  = 0x28,
++static const struct dma_slave_map pxa25x_slave_map[] = {
++	/* PXA25x, PXA27x and PXA3xx common entries */
++	{ "pxa2xx-ac97", "pcm_pcm_mic_mono", PDMA_FILTER_PARAM(LOWEST, 8) },
++	{ "pxa2xx-ac97", "pcm_pcm_aux_mono_in", PDMA_FILTER_PARAM(LOWEST, 9) },
++	{ "pxa2xx-ac97", "pcm_pcm_aux_mono_out",
++	  PDMA_FILTER_PARAM(LOWEST, 10) },
++	{ "pxa2xx-ac97", "pcm_pcm_stereo_in", PDMA_FILTER_PARAM(LOWEST, 11) },
++	{ "pxa2xx-ac97", "pcm_pcm_stereo_out", PDMA_FILTER_PARAM(LOWEST, 12) },
++	{ "pxa-ssp-dai.1", "rx", PDMA_FILTER_PARAM(LOWEST, 13) },
++	{ "pxa-ssp-dai.1", "tx", PDMA_FILTER_PARAM(LOWEST, 14) },
++	{ "pxa-ssp-dai.2", "rx", PDMA_FILTER_PARAM(LOWEST, 15) },
++	{ "pxa-ssp-dai.2", "tx", PDMA_FILTER_PARAM(LOWEST, 16) },
++	{ "pxa2xx-ir", "rx", PDMA_FILTER_PARAM(LOWEST, 17) },
++	{ "pxa2xx-ir", "tx", PDMA_FILTER_PARAM(LOWEST, 18) },
++	{ "pxa2xx-mci.0", "rx", PDMA_FILTER_PARAM(LOWEST, 21) },
++	{ "pxa2xx-mci.0", "tx", PDMA_FILTER_PARAM(LOWEST, 22) },
++	{ "smc911x.0", "rx", PDMA_FILTER_PARAM(LOWEST, -1) },
++	{ "smc911x.0", "tx", PDMA_FILTER_PARAM(LOWEST, -1) },
++	{ "smc91x.0", "data", PDMA_FILTER_PARAM(LOWEST, -1) },
++
++	/* PXA25x specific map */
++	{ "pxa25x-ssp.0", "rx", PDMA_FILTER_PARAM(LOWEST, 13) },
++	{ "pxa25x-ssp.0", "tx", PDMA_FILTER_PARAM(LOWEST, 14) },
++	{ "pxa25x-nssp.1", "rx", PDMA_FILTER_PARAM(LOWEST, 15) },
++	{ "pxa25x-nssp.1", "tx", PDMA_FILTER_PARAM(LOWEST, 16) },
++	{ "pxa25x-nssp.2", "rx", PDMA_FILTER_PARAM(LOWEST, 23) },
++	{ "pxa25x-nssp.2", "tx", PDMA_FILTER_PARAM(LOWEST, 24) },
++};
++
++static struct mmp_dma_platdata pxa25x_dma_pdata = {
++	.dma_channels	= 16,
++	.nb_requestors	= 40,
++	.slave_map	= pxa25x_slave_map,
++	.slave_map_cnt	= ARRAY_SIZE(pxa25x_slave_map),
++};
++
+ static int __init pxa25x_init(void)
+ {
+ 	int ret = 0;
+@@ -215,7 +254,7 @@ static int __init pxa25x_init(void)
+ 		register_syscore_ops(&pxa2xx_mfp_syscore_ops);
+ 
+ 		if (!of_have_populated_dt()) {
+-			pxa2xx_set_dmac_info(16, 40);
++			pxa2xx_set_dmac_info(&pxa25x_dma_pdata);
+ 			pxa_register_device(&pxa25x_device_gpio, &pxa25x_gpio_info);
+ 			ret = platform_add_devices(pxa25x_devices,
+ 						   ARRAY_SIZE(pxa25x_devices));
+diff --git a/arch/arm/mach-pxa/pxa27x.c b/arch/arm/mach-pxa/pxa27x.c
+index 0c06f383ad52..b44e3c4f3013 100644
+--- a/arch/arm/mach-pxa/pxa27x.c
++++ b/arch/arm/mach-pxa/pxa27x.c
+@@ -11,6 +11,8 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++#include <linux/dmaengine.h>
++#include <linux/dma/pxa-dma.h>
+ #include <linux/gpio.h>
+ #include <linux/gpio-pxa.h>
+ #include <linux/module.h>
+@@ -23,6 +25,7 @@
+ #include <linux/io.h>
+ #include <linux/irq.h>
+ #include <linux/platform_data/i2c-pxa.h>
++#include <linux/platform_data/mmp_dma.h>
+ 
+ #include <asm/mach/map.h>
+ #include <mach/hardware.h>
+@@ -297,6 +300,43 @@ static struct platform_device *devices[] __initdata = {
+ 	&pxa27x_device_pwm1,
  };
  
- static struct lnbh25_config lnbh25_cfg = {
++static const struct dma_slave_map pxa27x_slave_map[] = {
++	/* PXA25x, PXA27x and PXA3xx common entries */
++	{ "pxa2xx-ac97", "pcm_pcm_mic_mono", PDMA_FILTER_PARAM(LOWEST, 8) },
++	{ "pxa2xx-ac97", "pcm_pcm_aux_mono_in", PDMA_FILTER_PARAM(LOWEST, 9) },
++	{ "pxa2xx-ac97", "pcm_pcm_aux_mono_out",
++	  PDMA_FILTER_PARAM(LOWEST, 10) },
++	{ "pxa2xx-ac97", "pcm_pcm_stereo_in", PDMA_FILTER_PARAM(LOWEST, 11) },
++	{ "pxa2xx-ac97", "pcm_pcm_stereo_out", PDMA_FILTER_PARAM(LOWEST, 12) },
++	{ "pxa-ssp-dai.0", "rx", PDMA_FILTER_PARAM(LOWEST, 13) },
++	{ "pxa-ssp-dai.0", "tx", PDMA_FILTER_PARAM(LOWEST, 14) },
++	{ "pxa-ssp-dai.1", "rx", PDMA_FILTER_PARAM(LOWEST, 15) },
++	{ "pxa-ssp-dai.1", "tx", PDMA_FILTER_PARAM(LOWEST, 16) },
++	{ "pxa2xx-ir", "rx", PDMA_FILTER_PARAM(LOWEST, 17) },
++	{ "pxa2xx-ir", "tx", PDMA_FILTER_PARAM(LOWEST, 18) },
++	{ "pxa2xx-mci.0", "rx", PDMA_FILTER_PARAM(LOWEST, 21) },
++	{ "pxa2xx-mci.0", "tx", PDMA_FILTER_PARAM(LOWEST, 22) },
++	{ "pxa-ssp-dai.2", "rx", PDMA_FILTER_PARAM(LOWEST, 66) },
++	{ "pxa-ssp-dai.2", "tx", PDMA_FILTER_PARAM(LOWEST, 67) },
++	{ "smc911x.0", "rx", PDMA_FILTER_PARAM(LOWEST, -1) },
++	{ "smc911x.0", "tx", PDMA_FILTER_PARAM(LOWEST, -1) },
++	{ "smc91x.0", "data", PDMA_FILTER_PARAM(LOWEST, -1) },
++
++	/* PXA27x specific map */
++	{ "pxa2xx-i2s", "rx", PDMA_FILTER_PARAM(LOWEST, 2) },
++	{ "pxa2xx-i2s", "tx", PDMA_FILTER_PARAM(LOWEST, 3) },
++	{ "pxa27x-camera.0", "CI_Y", PDMA_FILTER_PARAM(HIGHEST, 68) },
++	{ "pxa27x-camera.0", "CI_U", PDMA_FILTER_PARAM(HIGHEST, 69) },
++	{ "pxa27x-camera.0", "CI_V", PDMA_FILTER_PARAM(HIGHEST, 70) },
++};
++
++static struct mmp_dma_platdata pxa27x_dma_pdata = {
++	.dma_channels	= 32,
++	.nb_requestors	= 75,
++	.slave_map	= pxa27x_slave_map,
++	.slave_map_cnt	= ARRAY_SIZE(pxa27x_slave_map),
++};
++
+ static int __init pxa27x_init(void)
+ {
+ 	int ret = 0;
+@@ -313,7 +353,7 @@ static int __init pxa27x_init(void)
+ 		if (!of_have_populated_dt()) {
+ 			pxa_register_device(&pxa27x_device_gpio,
+ 					    &pxa27x_gpio_info);
+-			pxa2xx_set_dmac_info(32, 75);
++			pxa2xx_set_dmac_info(&pxa27x_dma_pdata);
+ 			ret = platform_add_devices(devices,
+ 						   ARRAY_SIZE(devices));
+ 		}
+diff --git a/arch/arm/mach-pxa/pxa3xx.c b/arch/arm/mach-pxa/pxa3xx.c
+index 4b8a0df8ea57..b5ca4be093ec 100644
+--- a/arch/arm/mach-pxa/pxa3xx.c
++++ b/arch/arm/mach-pxa/pxa3xx.c
+@@ -12,6 +12,8 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++#include <linux/dmaengine.h>
++#include <linux/dma/pxa-dma.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+@@ -24,6 +26,7 @@
+ #include <linux/of.h>
+ #include <linux/syscore_ops.h>
+ #include <linux/platform_data/i2c-pxa.h>
++#include <linux/platform_data/mmp_dma.h>
+ 
+ #include <asm/mach/map.h>
+ #include <asm/suspend.h>
+@@ -421,6 +424,45 @@ static struct platform_device *devices[] __initdata = {
+ 	&pxa27x_device_pwm1,
+ };
+ 
++static const struct dma_slave_map pxa3xx_slave_map[] = {
++	/* PXA25x, PXA27x and PXA3xx common entries */
++	{ "pxa2xx-ac97", "pcm_pcm_mic_mono", PDMA_FILTER_PARAM(LOWEST, 8) },
++	{ "pxa2xx-ac97", "pcm_pcm_aux_mono_in", PDMA_FILTER_PARAM(LOWEST, 9) },
++	{ "pxa2xx-ac97", "pcm_pcm_aux_mono_out",
++	  PDMA_FILTER_PARAM(LOWEST, 10) },
++	{ "pxa2xx-ac97", "pcm_pcm_stereo_in", PDMA_FILTER_PARAM(LOWEST, 11) },
++	{ "pxa2xx-ac97", "pcm_pcm_stereo_out", PDMA_FILTER_PARAM(LOWEST, 12) },
++	{ "pxa-ssp-dai.0", "rx", PDMA_FILTER_PARAM(LOWEST, 13) },
++	{ "pxa-ssp-dai.0", "tx", PDMA_FILTER_PARAM(LOWEST, 14) },
++	{ "pxa-ssp-dai.1", "rx", PDMA_FILTER_PARAM(LOWEST, 15) },
++	{ "pxa-ssp-dai.1", "tx", PDMA_FILTER_PARAM(LOWEST, 16) },
++	{ "pxa2xx-ir", "rx", PDMA_FILTER_PARAM(LOWEST, 17) },
++	{ "pxa2xx-ir", "tx", PDMA_FILTER_PARAM(LOWEST, 18) },
++	{ "pxa2xx-mci.0", "rx", PDMA_FILTER_PARAM(LOWEST, 21) },
++	{ "pxa2xx-mci.0", "tx", PDMA_FILTER_PARAM(LOWEST, 22) },
++	{ "pxa-ssp-dai.2", "rx", PDMA_FILTER_PARAM(LOWEST, 66) },
++	{ "pxa-ssp-dai.2", "tx", PDMA_FILTER_PARAM(LOWEST, 67) },
++	{ "smc911x.0", "rx", PDMA_FILTER_PARAM(LOWEST, -1) },
++	{ "smc911x.0", "tx", PDMA_FILTER_PARAM(LOWEST, -1) },
++	{ "smc91x.0", "data", PDMA_FILTER_PARAM(LOWEST, -1) },
++
++	/* PXA3xx specific map */
++	{ "pxa-ssp-dai.3", "rx", PDMA_FILTER_PARAM(LOWEST, 2) },
++	{ "pxa-ssp-dai.3", "tx", PDMA_FILTER_PARAM(LOWEST, 3) },
++	{ "pxa2xx-mci.1", "rx", PDMA_FILTER_PARAM(LOWEST, 93) },
++	{ "pxa2xx-mci.1", "tx", PDMA_FILTER_PARAM(LOWEST, 94) },
++	{ "pxa3xx-nand", "data", PDMA_FILTER_PARAM(LOWEST, 97) },
++	{ "pxa2xx-mci.2", "rx", PDMA_FILTER_PARAM(LOWEST, 100) },
++	{ "pxa2xx-mci.2", "tx", PDMA_FILTER_PARAM(LOWEST, 101) },
++};
++
++static struct mmp_dma_platdata pxa3xx_dma_pdata = {
++	.dma_channels	= 32,
++	.nb_requestors	= 100,
++	.slave_map	= pxa3xx_slave_map,
++	.slave_map_cnt	= ARRAY_SIZE(pxa3xx_slave_map),
++};
++
+ static int __init pxa3xx_init(void)
+ {
+ 	int ret = 0;
+@@ -452,7 +494,7 @@ static int __init pxa3xx_init(void)
+ 		if (of_have_populated_dt())
+ 			return 0;
+ 
+-		pxa2xx_set_dmac_info(32, 100);
++		pxa2xx_set_dmac_info(&pxa3xx_dma_pdata);
+ 		ret = platform_add_devices(devices, ARRAY_SIZE(devices));
+ 		if (ret)
+ 			return ret;
 -- 
-2.16.1
+2.11.0
