@@ -1,332 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.socionext.com ([202.248.49.38]:35855 "EHLO mx.socionext.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S968835AbeE3JJx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 05:09:53 -0400
-From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>,
-        Jassi Brar <jaswinder.singh@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-Subject: [PATCH 7/8] media: uniphier: add LD11 adapter driver for ISDB
-Date: Wed, 30 May 2018 18:09:45 +0900
-Message-Id: <20180530090946.1635-8-suzuki.katsuhiro@socionext.com>
-In-Reply-To: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
-References: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56722 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1161263AbeEXUhY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 16:37:24 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        Abylay Ospan <aospan@netup.ru>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH 18/20] videobuf2: assume q->lock is always set
+Date: Thu, 24 May 2018 17:35:18 -0300
+Message-Id: <20180524203520.1598-19-ezequiel@collabora.com>
+In-Reply-To: <20180524203520.1598-1-ezequiel@collabora.com>
+References: <20180524203520.1598-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds UniPhier LD11 DVB adapter driver for ISDB-S/T
-that equipments SONY SUT-PJ series using CXD2858 tuner and Socionext
-MN884433 demodulator.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+Drop checks for q->lock. Drop calls to wait_finish/prepare, just lock/unlock
+q->lock.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- drivers/media/platform/uniphier/Kconfig       |  10 +
- drivers/media/platform/uniphier/Makefile      |   1 +
- .../platform/uniphier/ld11-mn884433-helene.c  | 265 ++++++++++++++++++
- 3 files changed, 276 insertions(+)
- create mode 100644 drivers/media/platform/uniphier/ld11-mn884433-helene.c
+ drivers/media/common/videobuf2/videobuf2-core.c | 21 ++++++++-----------
+ drivers/media/common/videobuf2/videobuf2-v4l2.c | 27 +++++++------------------
+ include/media/videobuf2-core.h                  |  2 --
+ 3 files changed, 15 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/media/platform/uniphier/Kconfig b/drivers/media/platform/uniphier/Kconfig
-index 8f3a662a391c..0fc9bbfc170b 100644
---- a/drivers/media/platform/uniphier/Kconfig
-+++ b/drivers/media/platform/uniphier/Kconfig
-@@ -15,3 +15,13 @@ config DVB_UNIPHIER_LD11
- 	  Driver for the HSC (High speed Stream Controller) for
- 	  UniPhier LD11/LD20.
- 	  Say Y when you want to support this hardware.
-+
-+config DVB_UNIPHIER_LD11_ISDB
-+	bool "Support UniPhier LD11 ISDB adapters"
-+	depends on DVB_UNIPHIER
-+	help
-+	  Driver for LD11 ISDB-S/T adapters which use
-+	  Demux: Socionext LD11 HSC
-+	  Demod: Socionext MN884433
-+	  Tuner: SONY HELENE (CXD2858ER)
-+	  Say Y when you want to support this adapters.
-diff --git a/drivers/media/platform/uniphier/Makefile b/drivers/media/platform/uniphier/Makefile
-index 9e75ad081b77..e4b06f8a37b5 100644
---- a/drivers/media/platform/uniphier/Makefile
-+++ b/drivers/media/platform/uniphier/Makefile
-@@ -8,3 +8,4 @@ ccflags-y += -Idrivers/media/dvb-frontends/
- ccflags-y += -Idrivers/media/tuners/
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index 3b89ec5e0b2f..8ca279a43549 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -462,8 +462,7 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+ 	 * counters to the kernel log.
+ 	 */
+ 	if (q->num_buffers) {
+-		bool unbalanced = q->cnt_start_streaming != q->cnt_stop_streaming ||
+-				  q->cnt_wait_prepare != q->cnt_wait_finish;
++		bool unbalanced = q->cnt_start_streaming != q->cnt_stop_streaming;
  
- uniphier-dvb-y += uniphier-adapter.o
-+uniphier-dvb-$(CONFIG_DVB_UNIPHIER_LD11_ISDB) += ld11-mn884433-helene.o
-diff --git a/drivers/media/platform/uniphier/ld11-mn884433-helene.c b/drivers/media/platform/uniphier/ld11-mn884433-helene.c
-new file mode 100644
-index 000000000000..f4f48b6a0211
---- /dev/null
-+++ b/drivers/media/platform/uniphier/ld11-mn884433-helene.c
-@@ -0,0 +1,265 @@
-+// SPDX-License-Identifier: GPL-2.0
-+//
-+// Socionext UniPhier LD11 adapter driver for ISDB.
-+// Using Socionext MN884433 ISDB-S/ISDB-T demodulator and
-+// SONY HELENE tuner.
-+//
-+// Copyright (c) 2018 Socionext Inc.
-+
-+#include <linux/clk.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/reset.h>
-+
-+#include "sc1501a.h"
-+#include "cxd2858.h"
-+#include "helene.h"
-+#include "hsc.h"
-+#include "uniphier-adapter.h"
-+
-+static struct sc1501a_config mn884433_conf[] = {
-+	{ .if_freq = LOW_IF_4MHZ, },
-+};
-+
-+static int uniphier_adapter_demod_probe(struct uniphier_adapter_priv *priv)
-+{
-+	const struct uniphier_adapter_spec *spec = priv->spec;
-+	struct device *dev = &priv->pdev->dev;
-+	struct device_node *node;
-+	int ret, i;
-+
-+	priv->demod_mclk = devm_clk_get(dev, "demod-mclk");
-+	if (IS_ERR(priv->demod_mclk)) {
-+		dev_err(dev, "Failed to request demod-mclk: %ld\n",
-+			PTR_ERR(priv->demod_mclk));
-+		return PTR_ERR(priv->demod_mclk);
-+	}
-+
-+	priv->demod_gpio = devm_gpiod_get_optional(dev, "reset-demod",
-+						   GPIOD_OUT_HIGH);
-+	if (IS_ERR(priv->demod_gpio)) {
-+		dev_err(dev, "Failed to request demod_gpio: %ld\n",
-+			PTR_ERR(priv->demod_gpio));
-+		return PTR_ERR(priv->demod_gpio);
-+	}
-+
-+	node = of_parse_phandle(dev->of_node, "demod-i2c-bus", 0);
-+	if (!node) {
-+		dev_err(dev, "Failed to parse demod-i2c-bus\n");
-+		return -ENODEV;
-+	}
-+
-+	priv->demod_i2c_adapter = of_find_i2c_adapter_by_node(node);
-+	if (!priv->demod_i2c_adapter) {
-+		dev_err(dev, "Failed to find demod i2c adapter\n");
-+		of_node_put(node);
-+		return -ENODEV;
-+	}
-+	of_node_put(node);
-+
-+	mn884433_conf[0].reset_gpio = priv->demod_gpio;
-+	for (i = 0; i < spec->adapters; i++) {
-+		struct i2c_client *c;
-+
-+		mn884433_conf[i].mclk = priv->demod_mclk;
-+		mn884433_conf[i].fe = &priv->fe[i].fe;
-+
-+		c = dvb_module_probe(spec->demod_i2c_info[i].type, NULL,
-+				     priv->demod_i2c_adapter,
-+				     spec->demod_i2c_info[i].addr,
-+				     &mn884433_conf[i]);
-+		if (!c) {
-+			dev_err(dev, "Failed to probe demod\n");
-+			ret = -ENODEV;
-+			goto err_out;
-+		}
-+		priv->fe[i].demod_i2c = c;
-+	}
-+
-+	return 0;
-+
-+err_out:
-+	for (i = 0; i < spec->adapters; i++)
-+		dvb_module_release(priv->fe[i].demod_i2c);
-+
-+	return ret;
-+}
-+
-+static struct helene_config helene_conf[] = {
-+	{ .xtal = SONY_HELENE_XTAL_16000, },
-+	{ .xtal = SONY_HELENE_XTAL_16000, },
-+};
-+
-+static int uniphier_adapter_tuner_probe(struct uniphier_adapter_priv *priv)
-+{
-+	const struct uniphier_adapter_spec *spec = priv->spec;
-+	struct device *dev = &priv->pdev->dev;
-+	struct device_node *node;
-+	int ret, i;
-+
-+	priv->tuner_gpio = devm_gpiod_get_optional(dev, "reset-tuner",
-+						   GPIOD_OUT_HIGH);
-+	if (IS_ERR(priv->tuner_gpio)) {
-+		dev_err(dev, "Failed to request tuner_gpio: %ld\n",
-+			PTR_ERR(priv->tuner_gpio));
-+		return PTR_ERR(priv->tuner_gpio);
-+	}
-+	gpiod_set_value_cansleep(priv->tuner_gpio, 0);
-+
-+	node = of_parse_phandle(dev->of_node, "tuner-i2c-bus", 0);
-+	if (!node) {
-+		dev_err(dev, "Failed to parse tuner-i2c-bus\n");
-+		return -ENODEV;
-+	}
-+
-+	priv->tuner_i2c_adapter = of_find_i2c_adapter_by_node(node);
-+	if (!priv->tuner_i2c_adapter) {
-+		dev_err(dev, "Failed to find tuner i2c adapter\n");
-+		of_node_put(node);
-+		return -ENODEV;
-+	}
-+	of_node_put(node);
-+
-+	for (i = 0; i < priv->spec->adapters; i++) {
-+		struct i2c_client *c;
-+
-+		helene_conf[i].fe = priv->fe[i].fe;
-+
-+		c = dvb_module_probe(spec->tuner_i2c_info[i].type, NULL,
-+				     priv->tuner_i2c_adapter,
-+				     spec->tuner_i2c_info[i].addr,
-+				     &helene_conf[i]);
-+		if (!c) {
-+			dev_err(dev, "Failed to probe tuner\n");
-+			ret = -ENODEV;
-+			goto err_out;
-+		}
-+		priv->fe[i].tuner_i2c = c;
-+	}
-+
-+	return 0;
-+
-+err_out:
-+	for (i = 0; i < spec->adapters; i++)
-+		dvb_module_release(priv->fe[i].tuner_i2c);
-+
-+	return ret;
-+}
-+
-+static int uniphier_adapter_probe(struct platform_device *pdev)
-+{
-+	struct uniphier_adapter_priv *priv;
-+	struct device *dev = &pdev->dev;
-+	int i, ret;
-+
-+	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
-+	priv->pdev = pdev;
-+
-+	priv->spec = of_device_get_match_data(dev);
-+	if (!priv->spec)
-+		return -EINVAL;
-+
-+	priv->fe = devm_kzalloc(dev, sizeof(*priv->fe) * priv->spec->adapters,
-+				GFP_KERNEL);
-+	if (!priv->fe)
-+		return -ENOMEM;
-+
-+	ret = uniphier_adapter_demux_probe(priv);
-+	if (ret)
-+		return ret;
-+
-+	ret = uniphier_adapter_demod_probe(priv);
-+	if (ret)
-+		return ret;
-+
-+	ret = uniphier_adapter_tuner_probe(priv);
-+	if (ret)
-+		return ret;
-+
-+	platform_set_drvdata(pdev, priv);
-+
-+	for (i = 0; i < priv->spec->adapters; i++) {
-+		priv->chip->tsif[i].fe = priv->fe[i].fe;
-+
-+		ret = hsc_register_dvb(&priv->chip->tsif[i]);
-+		if (ret) {
-+			dev_err(dev, "Failed to register adapter\n");
-+			goto err_out_if;
-+		}
-+	}
-+
-+	return 0;
-+
-+err_out_if:
-+	for (i = 0; i < priv->spec->adapters; i++)
-+		hsc_unregister_dvb(&priv->chip->tsif[i]);
-+
-+	return ret;
-+}
-+
-+static int uniphier_adapter_remove(struct platform_device *pdev)
-+{
-+	struct uniphier_adapter_priv *priv = platform_get_drvdata(pdev);
-+	int i;
-+
-+	for (i = 0; i < priv->spec->adapters; i++) {
-+		hsc_dmaif_release(&priv->chip->dmaif[i]);
-+		hsc_tsif_release(&priv->chip->tsif[i]);
-+		hsc_unregister_dvb(&priv->chip->tsif[i]);
-+		dvb_module_release(priv->fe[i].tuner_i2c);
-+		dvb_module_release(priv->fe[i].demod_i2c);
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct hsc_conf ld11_hsc_conf[] = {
-+	{
-+		.css_in = HSC_CSS_IN_SRLTS0,
-+		.css_out = HSC_CSS_OUT_TSI0,
-+		.dpll = HSC_DPLL0,
-+		.dma_out = HSC_DMA_OUT0,
-+	},
-+};
-+
-+static const struct i2c_board_info mn884433_i2c_info[] = {
-+	{ .type = "mn884433", .addr = 0x68, },
-+};
-+
-+static const struct i2c_board_info helene_i2c_info[] = {
-+	{ .type = "helene", .addr = 0x61, },
-+};
-+
-+static const struct uniphier_adapter_spec ld11_mn884433_helene_spec = {
-+	.adapters = 1,
-+	.hsc_conf = ld11_hsc_conf,
-+	.demod_i2c_info = mn884433_i2c_info,
-+	.tuner_i2c_info = helene_i2c_info,
-+};
-+
-+static const struct of_device_id uniphier_hsc_adapter_of_match[] = {
-+	{
-+		.compatible = "socionext,uniphier-ld11-mn884433-helene",
-+		.data = &ld11_mn884433_helene_spec,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, uniphier_hsc_adapter_of_match);
-+
-+static struct platform_driver uniphier_hsc_adapter_driver = {
-+	.driver = {
-+		.name = "uniphier-ld11-isdb",
-+		.of_match_table = of_match_ptr(uniphier_hsc_adapter_of_match),
-+	},
-+	.probe  = uniphier_adapter_probe,
-+	.remove = uniphier_adapter_remove,
-+};
-+module_platform_driver(uniphier_hsc_adapter_driver);
-+
-+MODULE_AUTHOR("Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>");
-+MODULE_DESCRIPTION("UniPhier LD11 adapter driver for ISDB.");
-+MODULE_LICENSE("GPL v2");
+ 		if (unbalanced || debug) {
+ 			pr_info("counters for queue %p:%s\n", q,
+@@ -471,12 +470,8 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+ 			pr_info("     setup: %u start_streaming: %u stop_streaming: %u\n",
+ 				q->cnt_queue_setup, q->cnt_start_streaming,
+ 				q->cnt_stop_streaming);
+-			pr_info("     wait_prepare: %u wait_finish: %u\n",
+-				q->cnt_wait_prepare, q->cnt_wait_finish);
+ 		}
+ 		q->cnt_queue_setup = 0;
+-		q->cnt_wait_prepare = 0;
+-		q->cnt_wait_finish = 0;
+ 		q->cnt_start_streaming = 0;
+ 		q->cnt_stop_streaming = 0;
+ 	}
+@@ -1484,10 +1479,10 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 
+ 		/*
+ 		 * We are streaming and blocking, wait for another buffer to
+-		 * become ready or for streamoff. Driver's lock is released to
++		 * become ready or for streamoff. The queue's lock is released to
+ 		 * allow streamoff or qbuf to be called while waiting.
+ 		 */
+-		call_void_qop(q, wait_prepare, q);
++		mutex_unlock(q->lock);
+ 
+ 		/*
+ 		 * All locks have been released, it is safe to sleep now.
+@@ -1501,7 +1496,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 		 * We need to reevaluate both conditions again after reacquiring
+ 		 * the locks or return an error if one occurred.
+ 		 */
+-		call_void_qop(q, wait_finish, q);
++		mutex_lock(q->lock);
+ 		if (ret) {
+ 			dprintk(1, "sleep was interrupted\n");
+ 			return ret;
+@@ -2528,10 +2523,10 @@ static int vb2_thread(void *data)
+ 			vb = q->bufs[index++];
+ 			prequeue--;
+ 		} else {
+-			call_void_qop(q, wait_finish, q);
++			mutex_lock(q->lock);
+ 			if (!threadio->stop)
+ 				ret = vb2_core_dqbuf(q, &index, NULL, 0);
+-			call_void_qop(q, wait_prepare, q);
++			mutex_unlock(q->lock);
+ 			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
+ 			if (!ret)
+ 				vb = q->bufs[index];
+@@ -2543,12 +2538,12 @@ static int vb2_thread(void *data)
+ 		if (vb->state != VB2_BUF_STATE_ERROR)
+ 			if (threadio->fnc(vb, threadio->priv))
+ 				break;
+-		call_void_qop(q, wait_finish, q);
++		mutex_lock(q->lock);
+ 		if (copy_timestamp)
+ 			vb->timestamp = ktime_get_ns();
+ 		if (!threadio->stop)
+ 			ret = vb2_core_qbuf(q, vb->index, NULL);
+-		call_void_qop(q, wait_prepare, q);
++		mutex_unlock(q->lock);
+ 		if (ret || threadio->stop)
+ 			break;
+ 	}
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 886a2d8d5c6c..7d2172468f72 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -852,9 +852,8 @@ EXPORT_SYMBOL_GPL(_vb2_fop_release);
+ int vb2_fop_release(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+-	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
+ 
+-	return _vb2_fop_release(file, lock);
++	return _vb2_fop_release(file, vdev->queue->lock);
+ }
+ EXPORT_SYMBOL_GPL(vb2_fop_release);
+ 
+@@ -862,12 +861,11 @@ ssize_t vb2_fop_write(struct file *file, const char __user *buf,
+ 		size_t count, loff_t *ppos)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+-	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
+ 	int err = -EBUSY;
+ 
+ 	if (!(vdev->queue->io_modes & VB2_WRITE))
+ 		return -EINVAL;
+-	if (lock && mutex_lock_interruptible(lock))
++	if (mutex_lock_interruptible(vdev->queue->lock))
+ 		return -ERESTARTSYS;
+ 	if (vb2_queue_is_busy(vdev, file))
+ 		goto exit;
+@@ -876,8 +874,7 @@ ssize_t vb2_fop_write(struct file *file, const char __user *buf,
+ 	if (vdev->queue->fileio)
+ 		vdev->queue->owner = file->private_data;
+ exit:
+-	if (lock)
+-		mutex_unlock(lock);
++	mutex_unlock(vdev->queue->lock);
+ 	return err;
+ }
+ EXPORT_SYMBOL_GPL(vb2_fop_write);
+@@ -886,12 +883,11 @@ ssize_t vb2_fop_read(struct file *file, char __user *buf,
+ 		size_t count, loff_t *ppos)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+-	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
+ 	int err = -EBUSY;
+ 
+ 	if (!(vdev->queue->io_modes & VB2_READ))
+ 		return -EINVAL;
+-	if (lock && mutex_lock_interruptible(lock))
++	if (mutex_lock_interruptible(vdev->queue->lock))
+ 		return -ERESTARTSYS;
+ 	if (vb2_queue_is_busy(vdev, file))
+ 		goto exit;
+@@ -900,8 +896,7 @@ ssize_t vb2_fop_read(struct file *file, char __user *buf,
+ 	if (vdev->queue->fileio)
+ 		vdev->queue->owner = file->private_data;
+ exit:
+-	if (lock)
+-		mutex_unlock(lock);
++	mutex_unlock(vdev->queue->lock);
+ 	return err;
+ }
+ EXPORT_SYMBOL_GPL(vb2_fop_read);
+@@ -910,17 +905,10 @@ __poll_t vb2_fop_poll(struct file *file, poll_table *wait)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct vb2_queue *q = vdev->queue;
+-	struct mutex *lock = q->lock ? q->lock : vdev->lock;
+ 	__poll_t res;
+ 	void *fileio;
+ 
+-	/*
+-	 * If this helper doesn't know how to lock, then you shouldn't be using
+-	 * it but you should write your own.
+-	 */
+-	WARN_ON(!lock);
+-
+-	if (lock && mutex_lock_interruptible(lock))
++	if (mutex_lock_interruptible(q->lock))
+ 		return EPOLLERR;
+ 
+ 	fileio = q->fileio;
+@@ -930,8 +918,7 @@ __poll_t vb2_fop_poll(struct file *file, poll_table *wait)
+ 	/* If fileio was started, then we have a new queue owner. */
+ 	if (!fileio && q->fileio)
+ 		q->owner = file->private_data;
+-	if (lock)
+-		mutex_unlock(lock);
++	mutex_unlock(q->lock);
+ 	return res;
+ }
+ EXPORT_SYMBOL_GPL(vb2_fop_poll);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index f6818f732f34..d4e557b4f820 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -565,8 +565,6 @@ struct vb2_queue {
+ 	 * called. Used to check for unbalanced ops.
+ 	 */
+ 	u32				cnt_queue_setup;
+-	u32				cnt_wait_prepare;
+-	u32				cnt_wait_finish;
+ 	u32				cnt_start_streaming;
+ 	u32				cnt_stop_streaming;
+ #endif
 -- 
-2.17.0
+2.16.3
