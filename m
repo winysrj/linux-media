@@ -1,136 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:28373 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752669AbeEUIzQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:16 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56592 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S967272AbeEXUgs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 16:36:48 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v14 06/36] media-request: Add support for updating request objects optimally
-Date: Mon, 21 May 2018 11:54:31 +0300
-Message-Id: <20180521085501.16861-7-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        Abylay Ospan <aospan@netup.ru>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v3 00/20] v4l2 core: push ioctl lock down to ioctl handler
+Date: Thu, 24 May 2018 17:35:00 -0300
+Message-Id: <20180524203520.1598-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new request state (UPDATING) as well as a count for updating the
-request objects. This way, several updates may take place simultaneously
-without affecting each other. The drivers (as well as frameworks) still
-must serialise access to their own data structures; what is guaranteed by
-the new state is simply correct and optimal handling of requests.
+Third spin of the series posted by Hans:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-request.c |  3 ++-
- include/media/media-request.h | 53 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 55 insertions(+), 1 deletion(-)
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg131363.html
 
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index a1576cf528605..03e74d72241a0 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -22,6 +22,7 @@ static const char * const request_state[] = {
- 	[MEDIA_REQUEST_STATE_QUEUED]	 = "queued",
- 	[MEDIA_REQUEST_STATE_COMPLETE]	 = "complete",
- 	[MEDIA_REQUEST_STATE_CLEANING]	 = "cleaning",
-+	[MEDIA_REQUEST_STATE_UPDATING]	 = "updating",
- };
- 
- static const char *
-@@ -385,7 +386,7 @@ int media_request_object_bind(struct media_request *req,
- 
- 	spin_lock_irqsave(&req->lock, flags);
- 
--	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_IDLE))
-+	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_UPDATING))
- 		goto unlock;
- 
- 	list_add_tail(&obj->list, &req->objects);
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index e175538d3c669..42cc6e7f6e532 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -28,6 +28,9 @@
-  * @MEDIA_REQUEST_STATE_QUEUED:		Queued
-  * @MEDIA_REQUEST_STATE_COMPLETE:	Completed, the request is done
-  * @MEDIA_REQUEST_STATE_CLEANING:	Cleaning, the request is being re-inited
-+ * @MEDIA_REQUEST_STATE_UPDATING:	The request is being updated, i.e.
-+ *					request objects are being added,
-+ *					modified or removed
-  */
- enum media_request_state {
- 	MEDIA_REQUEST_STATE_IDLE,
-@@ -35,6 +38,7 @@ enum media_request_state {
- 	MEDIA_REQUEST_STATE_QUEUED,
- 	MEDIA_REQUEST_STATE_COMPLETE,
- 	MEDIA_REQUEST_STATE_CLEANING,
-+	MEDIA_REQUEST_STATE_UPDATING,
- };
- 
- struct media_request_object;
-@@ -56,6 +60,7 @@ struct media_request {
- 	struct kref kref;
- 	char debug_str[TASK_COMM_LEN + 11];
- 	enum media_request_state state;
-+	refcount_t updating_count;
- 	struct list_head objects;
- 	unsigned int num_incomplete_objects;
- 	struct wait_queue_head poll_wait;
-@@ -65,6 +70,54 @@ struct media_request {
- #ifdef CONFIG_MEDIA_CONTROLLER
- 
- /**
-+ * media_request_lock_for_update - Lock the request for updating its objects
-+ *
-+ * @req: The media request
-+ *
-+ * Use before updating a request, i.e. adding, modifying or removing a request
-+ * object in it. A reference to the request must be held during the update. This
-+ * usually takes place automatically through a file handle. Use
-+ * @media_request_unlock_for_update when done.
-+ */
-+static inline int __must_check
-+media_request_lock_for_update(struct media_request *req)
-+{
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (req->state == MEDIA_REQUEST_STATE_IDLE ||
-+	    req->state == MEDIA_REQUEST_STATE_UPDATING) {
-+		req->state = MEDIA_REQUEST_STATE_UPDATING;
-+		refcount_inc(&req->updating_count);
-+	} else {
-+		ret = -EBUSY;
-+	}
-+	spin_unlock_irqrestore(&req->lock, flags);
-+
-+	return ret;
-+}
-+
-+/**
-+ * media_request_unlock_for_update - Unlock a request previously locked for
-+ *				     update
-+ *
-+ * @req: The media request
-+ *
-+ * Unlock a request that has previously been locked using
-+ * @media_request_lock_for_update.
-+ */
-+static inline void media_request_unlock_for_update(struct media_request *req)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (refcount_dec_and_test(&req->updating_count))
-+		req->state = MEDIA_REQUEST_STATE_IDLE;
-+	spin_unlock_irqrestore(&req->lock, flags);
-+}
-+
-+/**
-  * media_request_get - Get the media request
-  *
-  * @req: The request
+Changelog
+---------
+
+v3:
+Reduce changes in patches 6 and 7 for omap3isp and omap4iss
+drivers, as suggested by Hans.
+
+v2:
+Add the required driver modifications, fixing all
+drivers so they define a proper vb2_queue lock.
+
+A only exception to this is netup_unidvb. It isn't really obvious
+to me how this driver should lock its vb2_queue. Neither it is
+clear how its vb2_queue is used by the driver in the first place.
+
+Abylay, perhaps you can take a look at it?
+
+Why?
+----
+
+While working on the DMA fence API (aka expliciy sync framework)
+and the Request API it became clear that the core ioctl scheme
+was done at a too-high level.
+
+Being able to actually look at the struct passed as the ioctl
+argument would help a lot in decide what lock(s) to take.
+
+This patch series pushes the lock down into v4l2-ioctl.c, after
+video_usercopy() was called.
+
+This series seems to improve overall quality of drivers:
+in practice, drivers choosing to do their own locking, end up
+introducing races and/or not setting wait_prepare/wait_finish
+despite being possible to do so.
+
+Patch journal
+-------------
+
+The first patch is for the only driver that does not set
+unlocked_ioctl to video_ioctl2: pvrusb2. It actually does
+call it in its own unlocked_ioctl function.
+
+The second patch pushes the lock down.
+
+The third patch adds support for mem2mem devices by selecting
+the correct queue lock (capture vs output): this was never
+possible before.
+
+Patches 4 to 16 add the now mandatory vb2_queue lock and then
+sets wait_prepare and wait_finish hooks.
+
+Patches 17 to 19 require that queue->lock is always set. This
+means wait_prepare and wait_finish is now unused.
+
+The last patch removes the now unused wait_prepare and wait_finish.
+
+This patchset is still based on top of the gspca vb2
+conversion series, hoping it would get merged sooner than this.
+
+For those wanting to test this (again, on top of gspca vb2 rework),
+there's a branch here:
+
+  http://git.infradead.org/users/ezequielg/linux gspca-queue-lock-v4.17-rc6
+
+Ezequiel Garcia (14):
+  usbtv: Implement wait_prepare and wait_finish
+  sta2x11: Add video_device and vb2_queue locks
+  omap4iss: Add vb2_queue lock
+  omap3isp: Add vb2_queue lock
+  mtk-mdp: Add locks for capture and output vb2_queues
+  s5p-g2d: Implement wait_prepare and wait_finish
+  staging: bcm2835-camera: Provide lock for vb2_queue
+  dvb-core: Provide lock for vb2_queue
+  venus: Add video_device and vb2_queue locks
+  davinci_vpfe: Add video_device and vb2_queue locks
+  mx_emmaprp: Implement wait_prepare and wait_finish
+  m2m-deinterlace: Implement wait_prepare and wait_finish
+  stk1160: Set the vb2_queue lock before calling vb2_queue_init
+  media: Remove wait_{prepare, finish}
+
+Hans Verkuil (6):
+  pvrusb2: replace pvr2_v4l2_ioctl by video_ioctl2
+  v4l2-core: push taking ioctl mutex down to ioctl handler.
+  v4l2-ioctl.c: use correct vb2_queue lock for m2m devices
+  videobuf2-core: require q->lock
+  videobuf2: assume q->lock is always set
+  v4l2-ioctl.c: assume queue->lock is always set
+
+ Documentation/media/kapi/v4l2-dev.rst              |  7 +-
+ drivers/input/rmi4/rmi_f54.c                       |  2 -
+ drivers/input/touchscreen/atmel_mxt_ts.c           |  2 -
+ drivers/input/touchscreen/sur40.c                  |  2 -
+ drivers/media/common/videobuf2/videobuf2-core.c    | 22 +++---
+ drivers/media/common/videobuf2/videobuf2-v4l2.c    | 41 ++---------
+ drivers/media/dvb-core/dvb_vb2.c                   | 20 +-----
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |  2 -
+ drivers/media/pci/cobalt/cobalt-v4l2.c             |  2 -
+ drivers/media/pci/cx23885/cx23885-417.c            |  2 -
+ drivers/media/pci/cx23885/cx23885-dvb.c            |  2 -
+ drivers/media/pci/cx23885/cx23885-vbi.c            |  2 -
+ drivers/media/pci/cx23885/cx23885-video.c          |  2 -
+ drivers/media/pci/cx25821/cx25821-video.c          |  2 -
+ drivers/media/pci/cx88/cx88-blackbird.c            |  2 -
+ drivers/media/pci/cx88/cx88-dvb.c                  |  2 -
+ drivers/media/pci/cx88/cx88-vbi.c                  |  2 -
+ drivers/media/pci/cx88/cx88-video.c                |  2 -
+ drivers/media/pci/dt3155/dt3155.c                  |  2 -
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c           |  2 -
+ drivers/media/pci/saa7134/saa7134-empress.c        |  2 -
+ drivers/media/pci/saa7134/saa7134-ts.c             |  2 -
+ drivers/media/pci/saa7134/saa7134-vbi.c            |  2 -
+ drivers/media/pci/saa7134/saa7134-video.c          |  2 -
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |  2 -
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c         |  2 -
+ drivers/media/pci/sta2x11/sta2x11_vip.c            |  4 ++
+ drivers/media/pci/tw5864/tw5864-video.c            |  2 -
+ drivers/media/pci/tw68/tw68-video.c                |  2 -
+ drivers/media/pci/tw686x/tw686x-video.c            |  2 -
+ drivers/media/platform/am437x/am437x-vpfe.c        |  2 -
+ drivers/media/platform/atmel/atmel-isc.c           |  2 -
+ drivers/media/platform/atmel/atmel-isi.c           |  2 -
+ drivers/media/platform/coda/coda-common.c          |  2 -
+ drivers/media/platform/davinci/vpbe_display.c      |  2 -
+ drivers/media/platform/davinci/vpif_capture.c      |  2 -
+ drivers/media/platform/davinci/vpif_display.c      |  2 -
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |  2 -
+ drivers/media/platform/exynos4-is/fimc-capture.c   |  2 -
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |  2 -
+ drivers/media/platform/exynos4-is/fimc-lite.c      |  2 -
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |  2 -
+ drivers/media/platform/m2m-deinterlace.c           |  2 +
+ drivers/media/platform/marvell-ccic/mcam-core.c    |  4 --
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    |  2 -
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c       | 18 +----
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c |  2 -
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |  2 -
+ drivers/media/platform/mx2_emmaprp.c               |  2 +
+ drivers/media/platform/omap3isp/ispvideo.c         | 63 +++-------------
+ drivers/media/platform/omap3isp/ispvideo.h         |  1 -
+ drivers/media/platform/pxa_camera.c                |  2 -
+ .../media/platform/qcom/camss-8x16/camss-video.c   |  2 -
+ drivers/media/platform/qcom/venus/core.h           |  4 +-
+ drivers/media/platform/qcom/venus/helpers.c        | 16 ++---
+ drivers/media/platform/qcom/venus/vdec.c           | 23 +++---
+ drivers/media/platform/qcom/venus/venc.c           | 17 ++---
+ drivers/media/platform/rcar-vin/rcar-dma.c         |  2 -
+ drivers/media/platform/rcar_drif.c                 |  2 -
+ drivers/media/platform/rcar_fdp1.c                 |  2 -
+ drivers/media/platform/rcar_jpu.c                  |  2 -
+ drivers/media/platform/renesas-ceu.c               |  2 -
+ drivers/media/platform/rockchip/rga/rga-buf.c      |  2 -
+ drivers/media/platform/s3c-camif/camif-capture.c   |  2 -
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |  2 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  2 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  2 -
+ drivers/media/platform/sh_veu.c                    |  2 -
+ drivers/media/platform/sh_vou.c                    |  2 -
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  2 -
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |  2 -
+ drivers/media/platform/sti/delta/delta-v4l2.c      |  4 --
+ drivers/media/platform/sti/hva/hva-v4l2.c          |  2 -
+ drivers/media/platform/stm32/stm32-dcmi.c          |  2 -
+ drivers/media/platform/ti-vpe/cal.c                |  2 -
+ drivers/media/platform/ti-vpe/vpe.c                |  2 -
+ drivers/media/platform/vim2m.c                     |  2 -
+ drivers/media/platform/vimc/vimc-capture.c         |  6 --
+ drivers/media/platform/vivid/vivid-sdr-cap.c       |  2 -
+ drivers/media/platform/vivid/vivid-vbi-cap.c       |  2 -
+ drivers/media/platform/vivid/vivid-vbi-out.c       |  2 -
+ drivers/media/platform/vivid/vivid-vid-cap.c       |  2 -
+ drivers/media/platform/vivid/vivid-vid-out.c       |  2 -
+ drivers/media/platform/vsp1/vsp1_histo.c           |  2 -
+ drivers/media/platform/vsp1/vsp1_video.c           |  2 -
+ drivers/media/platform/xilinx/xilinx-dma.c         |  2 -
+ drivers/media/usb/airspy/airspy.c                  |  2 -
+ drivers/media/usb/au0828/au0828-vbi.c              |  2 -
+ drivers/media/usb/au0828/au0828-video.c            |  2 -
+ drivers/media/usb/em28xx/em28xx-vbi.c              |  2 -
+ drivers/media/usb/em28xx/em28xx-video.c            |  2 -
+ drivers/media/usb/go7007/go7007-v4l2.c             |  2 -
+ drivers/media/usb/gspca/gspca.c                    |  2 -
+ drivers/media/usb/hackrf/hackrf.c                  |  2 -
+ drivers/media/usb/msi2500/msi2500.c                |  2 -
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           | 83 ++++++++--------------
+ drivers/media/usb/pwc/pwc-if.c                     |  2 -
+ drivers/media/usb/s2255/s2255drv.c                 |  2 -
+ drivers/media/usb/stk1160/stk1160-v4l.c            |  4 +-
+ drivers/media/usb/uvc/uvc_queue.c                  |  4 --
+ drivers/media/v4l2-core/v4l2-dev.c                 |  6 --
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 75 +++++++++++++++++--
+ drivers/media/v4l2-core/v4l2-subdev.c              | 17 ++++-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    |  4 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.h    |  2 +-
+ drivers/staging/media/imx/imx-media-capture.c      |  2 -
+ drivers/staging/media/omap4iss/iss_video.c         | 13 +---
+ .../vc04_services/bcm2835-camera/bcm2835-camera.c  | 22 +-----
+ drivers/usb/gadget/function/uvc_queue.c            |  2 -
+ include/media/v4l2-dev.h                           |  9 ---
+ include/media/v4l2-ioctl.h                         | 12 ----
+ include/media/videobuf2-core.h                     |  2 -
+ include/media/videobuf2-v4l2.h                     | 18 -----
+ samples/v4l/v4l2-pci-skeleton.c                    |  7 --
+ 114 files changed, 192 insertions(+), 504 deletions(-)
+
 -- 
-2.11.0
+2.16.3
