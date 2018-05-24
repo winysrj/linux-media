@@ -1,50 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:46868 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754057AbeEWF1j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 01:27:39 -0400
-From: Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>
-To: alan@linux.intel.com, sakari.ailus@linux.intel.com,
-        mchehab@kernel.org, gregkh@linuxfoundation.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 6/6] media: staging: atomisp: Fix potential NULL pointer dereference
-Date: Wed, 23 May 2018 10:51:36 +0530
-Message-Id: <1527052896-30777-7-git-send-email-pankaj.laxminarayan.bharadiya@intel.com>
-In-Reply-To: <1527052896-30777-1-git-send-email-pankaj.laxminarayan.bharadiya@intel.com>
-References: <1527052896-30777-1-git-send-email-pankaj.laxminarayan.bharadiya@intel.com>
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:27195 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964919AbeEXHPB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 May 2018 03:15:01 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Subject: [PATCH v2 03/13] mmc: pxamci: remove the dmaengine compat need
+Date: Thu, 24 May 2018 09:06:53 +0200
+Message-Id: <20180524070703.11901-4-robert.jarzmik@free.fr>
+In-Reply-To: <20180524070703.11901-1-robert.jarzmik@free.fr>
+References: <20180524070703.11901-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In verify_copy_out_frame_format(), "pipe" is being dereferenced before
-it is null checked.
-Fix it by moving the "pipe" pointer dereference after it has been
-properly null checked.
+As the pxa architecture switched towards the dmaengine slave map, the
+old compatibility mechanism to acquire the dma requestor line number and
+priority are not needed anymore.
 
-Signed-off-by: Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>
+This patch simplifies the dma resource acquisition, using the more
+generic function dma_request_slave_channel().
+
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/mmc/host/pxamci.c | 29 +++--------------------------
+ 1 file changed, 3 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-index eb84d51..487e768 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-@@ -455,12 +455,14 @@ static enum ia_css_frame_format yuv422_copy_formats[] = {
- static enum ia_css_err
- verify_copy_out_frame_format(struct ia_css_pipe *pipe)
+diff --git a/drivers/mmc/host/pxamci.c b/drivers/mmc/host/pxamci.c
+index c763b404510f..6c94474e36f4 100644
+--- a/drivers/mmc/host/pxamci.c
++++ b/drivers/mmc/host/pxamci.c
+@@ -24,7 +24,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/dmaengine.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/dma/pxa-dma.h>
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/mmc/host.h>
+@@ -637,10 +636,8 @@ static int pxamci_probe(struct platform_device *pdev)
  {
--	enum ia_css_frame_format out_fmt = pipe->output_info[0].format;
-+	enum ia_css_frame_format out_fmt;
- 	unsigned int i, found = 0;
+ 	struct mmc_host *mmc;
+ 	struct pxamci_host *host = NULL;
+-	struct resource *r, *dmarx, *dmatx;
+-	struct pxad_param param_rx, param_tx;
++	struct resource *r;
+ 	int ret, irq, gpio_cd = -1, gpio_ro = -1, gpio_power = -1;
+-	dma_cap_mask_t mask;
  
- 	assert(pipe != NULL);
- 	assert(pipe->stream != NULL);
+ 	ret = pxamci_of_init(pdev);
+ 	if (ret)
+@@ -739,34 +736,14 @@ static int pxamci_probe(struct platform_device *pdev)
  
-+	out_fmt = pipe->output_info[0].format;
-+
- 	switch (pipe->stream->config.input_config.format) {
- 	case ATOMISP_INPUT_FORMAT_YUV420_8_LEGACY:
- 	case ATOMISP_INPUT_FORMAT_YUV420_8:
+ 	platform_set_drvdata(pdev, mmc);
+ 
+-	if (!pdev->dev.of_node) {
+-		dmarx = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+-		dmatx = platform_get_resource(pdev, IORESOURCE_DMA, 1);
+-		if (!dmarx || !dmatx) {
+-			ret = -ENXIO;
+-			goto out;
+-		}
+-		param_rx.prio = PXAD_PRIO_LOWEST;
+-		param_rx.drcmr = dmarx->start;
+-		param_tx.prio = PXAD_PRIO_LOWEST;
+-		param_tx.drcmr = dmatx->start;
+-	}
+-
+-	dma_cap_zero(mask);
+-	dma_cap_set(DMA_SLAVE, mask);
+-
+-	host->dma_chan_rx =
+-		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-						 &param_rx, &pdev->dev, "rx");
++	host->dma_chan_rx = dma_request_slave_channel(&pdev->dev, "rx");
+ 	if (host->dma_chan_rx == NULL) {
+ 		dev_err(&pdev->dev, "unable to request rx dma channel\n");
+ 		ret = -ENODEV;
+ 		goto out;
+ 	}
+ 
+-	host->dma_chan_tx =
+-		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-						 &param_tx,  &pdev->dev, "tx");
++	host->dma_chan_tx = dma_request_slave_channel(&pdev->dev, "tx");
+ 	if (host->dma_chan_tx == NULL) {
+ 		dev_err(&pdev->dev, "unable to request tx dma channel\n");
+ 		ret = -ENODEV;
 -- 
-2.7.4
+2.11.0
