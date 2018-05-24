@@ -1,105 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:40156 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750923AbeEUSuI (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39945 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965968AbeEXJgF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 14:50:08 -0400
-Subject: Re: [Xen-devel] [RFC 1/3] xen/balloon: Allow allocating DMA buffers
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, matthew.d.roper@intel.com,
-        dongwon.kim@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180517082604.14828-1-andr2000@gmail.com>
- <20180517082604.14828-2-andr2000@gmail.com>
- <6a108876-19b7-49d0-3de2-9e10f984736c@oracle.com>
- <9541926e-001a-e41e-317c-dbff6d687761@gmail.com>
- <218e2bf7-490d-f89e-9866-27b7e3dbc835@oracle.com>
- <a08e7d0d-f7d5-6b7e-979b-8a17060482f0@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <b177a327-6a73-bb77-c69b-bc0958a05532@oracle.com>
-Date: Mon, 21 May 2018 14:53:08 -0400
+        Thu, 24 May 2018 05:36:05 -0400
+Subject: Re: [PATCHv13 05/28] media-request: add media_request_object_find
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+ <20180503145318.128315-6-hverkuil@xs4all.nl>
+ <20180504124307.sddriagirmig4yf4@valkosipuli.retiisi.org.uk>
+ <20180507140513.5d71664b@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5a2fb4e3-2ad1-0c59-7311-132640d0a4c4@xs4all.nl>
+Date: Thu, 24 May 2018 11:36:03 +0200
 MIME-Version: 1.0
-In-Reply-To: <a08e7d0d-f7d5-6b7e-979b-8a17060482f0@gmail.com>
+In-Reply-To: <20180507140513.5d71664b@vento.lan>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
 Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/21/2018 01:32 PM, Oleksandr Andrushchenko wrote:
-> On 05/21/2018 07:35 PM, Boris Ostrovsky wrote:
->> On 05/21/2018 01:40 AM, Oleksandr Andrushchenko wrote:
->>> On 05/19/2018 01:04 AM, Boris Ostrovsky wrote:
->>>> On 05/17/2018 04:26 AM, Oleksandr Andrushchenko wrote:
->>>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>>> A commit message would be useful.
->>> Sure, v1 will have it
->>>>> Signed-off-by: Oleksandr Andrushchenko
->>>>> <oleksandr_andrushchenko@epam.com>
->>>>>
->>>>>        for (i = 0; i < nr_pages; i++) {
->>>>> -        page = alloc_page(gfp);
->>>>> -        if (page == NULL) {
->>>>> -            nr_pages = i;
->>>>> -            state = BP_EAGAIN;
->>>>> -            break;
->>>>> +        if (ext_pages) {
->>>>> +            page = ext_pages[i];
->>>>> +        } else {
->>>>> +            page = alloc_page(gfp);
->>>>> +            if (page == NULL) {
->>>>> +                nr_pages = i;
->>>>> +                state = BP_EAGAIN;
->>>>> +                break;
->>>>> +            }
->>>>>            }
->>>>>            scrub_page(page);
->>>>>            list_add(&page->lru, &pages);
->>>>> @@ -529,7 +565,7 @@ static enum bp_state
->>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
->>>>>        i = 0;
->>>>>        list_for_each_entry_safe(page, tmp, &pages, lru) {
->>>>>            /* XENMEM_decrease_reservation requires a GFN */
->>>>> -        frame_list[i++] = xen_page_to_gfn(page);
->>>>> +        frames[i++] = xen_page_to_gfn(page);
->>>>>      #ifdef CONFIG_XEN_HAVE_PVMMU
->>>>>            /*
->>>>> @@ -552,18 +588,22 @@ static enum bp_state
->>>>> decrease_reservation(unsigned long nr_pages, gfp_t gfp)
->>>>>    #endif
->>>>>            list_del(&page->lru);
->>>>>    -        balloon_append(page);
->>>>> +        if (!ext_pages)
->>>>> +            balloon_append(page);
->>>> So what you are proposing is not really ballooning. You are just
->>>> piggybacking on existing interfaces, aren't you?
->>> Sort of. Basically I need to {increase|decrease}_reservation, not
->>> actually
->>> allocating ballooned pages.
->>> Do you think I can simply EXPORT_SYMBOL for
->>> {increase|decrease}_reservation?
->>> Any other suggestion?
+On 07/05/18 19:05, Mauro Carvalho Chehab wrote:
+> Em Fri, 4 May 2018 15:43:07 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+>> On Thu, May 03, 2018 at 04:52:55PM +0200, Hans Verkuil wrote:
+>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> Add media_request_object_find to find a request object inside a
+>>> request based on ops and/or priv values.
+>>>
+>>> Objects of the same type (vb2 buffer, control handler) will have
+>>> the same ops value. And objects that refer to the same 'parent'
+>>> object (e.g. the v4l2_ctrl_handler that has the current driver
+>>> state) will have the same priv value.
+>>>
+>>> The caller has to call media_request_object_put() for the returned
+>>> object since this function increments the refcount.
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>>  drivers/media/media-request.c | 25 +++++++++++++++++++++++++
+>>>  include/media/media-request.h | 24 ++++++++++++++++++++++++
+>>>  2 files changed, 49 insertions(+)
+>>>
+>>> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+>>> index edc1c3af1959..c7e11e816e27 100644
+>>> --- a/drivers/media/media-request.c
+>>> +++ b/drivers/media/media-request.c
+>>> @@ -322,6 +322,31 @@ static void media_request_object_release(struct kref *kref)
+>>>  	obj->ops->release(obj);
+>>>  }
+>>>  
+>>> +struct media_request_object *
+>>> +media_request_object_find(struct media_request *req,
+>>> +			  const struct media_request_object_ops *ops,
+>>> +			  void *priv)
+>>> +{
+>>> +	struct media_request_object *obj;
+>>> +	struct media_request_object *found = NULL;
+>>> +	unsigned long flags;
+>>> +
+>>> +	if (WARN_ON(!ops || !priv))
+>>> +		return NULL;
+>>> +
+>>> +	spin_lock_irqsave(&req->lock, flags);
+>>> +	list_for_each_entry(obj, &req->objects, list) {
+>>> +		if (obj->ops == ops && obj->priv == priv) {
+>>> +			media_request_object_get(obj);
+>>> +			found = obj;
+>>> +			break;
+>>> +		}
+>>> +	}
+>>> +	spin_unlock_irqrestore(&req->lock, flags);
+>>> +	return found;
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(media_request_object_find);
+>>> +
+>>>  void media_request_object_put(struct media_request_object *obj)
+>>>  {
+>>>  	kref_put(&obj->kref, media_request_object_release);
+>>> diff --git a/include/media/media-request.h b/include/media/media-request.h
+>>> index 997e096d7128..5367b4a2f91c 100644
+>>> --- a/include/media/media-request.h
+>>> +++ b/include/media/media-request.h
+>>> @@ -196,6 +196,22 @@ static inline void media_request_object_get(struct media_request_object *obj)
+>>>   */
+>>>  void media_request_object_put(struct media_request_object *obj);
+>>>  
+>>> +/**
+>>> + * media_request_object_find - Find an object in a request
+>>> + *
+>>> + * @ops: Find an object with this ops value
+>>> + * @priv: Find an object with this priv value
+>>> + *
+>>> + * Both @ops and @priv must be non-NULL.
+>>> + *
+>>> + * Returns NULL if not found or the object pointer. The caller must  
 >>
->> I am actually wondering how much of that code you end up reusing. You
->> pretty much create new code paths in both routines and common code ends
->> up being essentially the hypercall.
-> Well, I hoped that it would be easier to maintain if I modify existing
-> code
-> to support both use-cases, but I am also ok to create new routines if
-> this
-> seems to be reasonable - please let me know
->>   So the question is --- would it make
->> sense to do all of this separately from the balloon driver?
-> This can be done, but which driver will host this code then? If we
-> move from
-> the balloon driver, then this could go to either gntdev or grant-table.
-> What's your preference?
+>> I'd describe the successful case first. I.e. "Returns the object pointer or
+>> NULL it not found".
+> 
+> It would be good to also tell that this routine internally uses the
+> spin lock.
 
-A separate module?
+Done.
 
-Is there any use for this feature outside of your zero-copy DRM driver?
+Regards,
 
--boris
+	Hans
+
+> 
+>>
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>
+>>> + * call media_request_object_put() once it finished using the object.
+>>> + */
+>>> +struct media_request_object *
+>>> +media_request_object_find(struct media_request *req,
+>>> +			  const struct media_request_object_ops *ops,
+>>> +			  void *priv);
+>>> +
+>>>  /**
+>>>   * media_request_object_init - Initialise a media request object
+>>>   *
+>>> @@ -241,6 +257,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
+>>>  {
+>>>  }
+>>>  
+>>> +static inline struct media_request_object *
+>>> +media_request_object_find(struct media_request *req,
+>>> +			  const struct media_request_object_ops *ops,
+>>> +			  void *priv)
+>>> +{
+>>> +	return NULL;
+>>> +}
+>>> +
+>>>  static inline void media_request_object_init(struct media_request_object *obj)
+>>>  {
+>>>  	obj->ops = NULL;  
+>>
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
