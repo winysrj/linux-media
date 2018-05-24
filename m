@@ -1,188 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:37056 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933565AbeE2Mmu (ORCPT
+Received: from relay12.mail.gandi.net ([217.70.178.232]:58469 "EHLO
+        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1161582AbeEXWCk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 08:42:50 -0400
-Date: Tue, 29 May 2018 09:42:37 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Jean Delvare <jdelvare@suse.com>
-Subject: Re: [RFC PATCH] i2c: add I2C_M_FORCE_STOP
-Message-ID: <20180529094237.08013524@vento.lan>
-In-Reply-To: <1525875877-10164-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525875877-10164-1-git-send-email-akinobu.mita@gmail.com>
+        Thu, 24 May 2018 18:02:40 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v4 7/9] media: rcar-vin: Handle parallel subdev in link_notify
+Date: Fri, 25 May 2018 00:02:17 +0200
+Message-Id: <1527199339-7724-8-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  9 May 2018 23:24:37 +0900
-Akinobu Mita <akinobu.mita@gmail.com> escreveu:
+Handle parallel subdevices in link_notify callback. If the notified link
+involves a parallel subdevice, do not change routing of the VIN-CSI-2
+devices and mark the VIN instance as using a parallel input. If the
+CSI-2 link setup succeeds instead, mark the VIN instance as using CSI-2.
 
-> This adds a new I2C_M_FORCE_STOP flag that forces a stop condition after
-> the message in a combined transaction.
-> 
-> This flag is intended to be used by the devices that don't support
-> repeated starts like SCCB (Serial Camera Control Bus) devices.
-> 
-> Here is an example usage for ov772x driver that needs to issue two
-> separated I2C messages as the ov772x device doesn't support repeated
-> starts.
-> 
-> static int ov772x_read(struct i2c_client *client, u8 addr)
-> {
->         u8 val;
->         struct i2c_msg msg[] = {
->                 {
->                         .addr = client->addr,
->                         .flags = I2C_M_FORCE_STOP,
->                         .len = 1,
->                         .buf = &addr,
->                 },
->                 {
->                         .addr = client->addr,
->                         .flags = I2C_M_RD,
->                         .len = 1,
->                         .buf = &val,
->                 },
->         };
->         int ret;
-> 
->         ret = i2c_transfer(client->adapter, msg, 2);
->         if (ret != 2)
->                 return (ret < 0) ? ret : -EIO;
-> 
->         return val;
-> }
-> 
-> This is another approach based on Mauro's advise for the initial attempt
-> (http://patchwork.ozlabs.org/patch/905192/).
-> 
-> Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> Cc: Wolfram Sang <wsa@the-dreams.de>
-> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 35 ++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
 
-Patch looks good to me.
-
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-
-
-> ---
->  drivers/i2c/i2c-core-base.c | 46 ++++++++++++++++++++++++++++++++++-----------
->  include/uapi/linux/i2c.h    |  1 +
->  2 files changed, 36 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-> index 1ba40bb..6b73484 100644
-> --- a/drivers/i2c/i2c-core-base.c
-> +++ b/drivers/i2c/i2c-core-base.c
-> @@ -1828,6 +1828,25 @@ static int i2c_check_for_quirks(struct i2c_adapter *adap, struct i2c_msg *msgs,
->  	return 0;
->  }
->  
-> +static int i2c_transfer_nolock(struct i2c_adapter *adap, struct i2c_msg *msgs,
-> +			       int num)
-> +{
-> +	unsigned long orig_jiffies;
-> +	int ret, try;
-> +
-> +	/* Retry automatically on arbitration loss */
-> +	orig_jiffies = jiffies;
-> +	for (ret = 0, try = 0; try <= adap->retries; try++) {
-> +		ret = adap->algo->master_xfer(adap, msgs, num);
-> +		if (ret != -EAGAIN)
-> +			break;
-> +		if (time_after(jiffies, orig_jiffies + adap->timeout))
-> +			break;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
->  /**
->   * __i2c_transfer - unlocked flavor of i2c_transfer
->   * @adap: Handle to I2C bus
-> @@ -1842,8 +1861,8 @@ static int i2c_check_for_quirks(struct i2c_adapter *adap, struct i2c_msg *msgs,
->   */
->  int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
->  {
-> -	unsigned long orig_jiffies;
-> -	int ret, try;
-> +	int ret;
-> +	int i, n;
->  
->  	if (WARN_ON(!msgs || num < 1))
->  		return -EINVAL;
-> @@ -1857,7 +1876,6 @@ int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
->  	 * being executed when not needed.
->  	 */
->  	if (static_branch_unlikely(&i2c_trace_msg_key)) {
-> -		int i;
->  		for (i = 0; i < num; i++)
->  			if (msgs[i].flags & I2C_M_RD)
->  				trace_i2c_read(adap, &msgs[i], i);
-> @@ -1865,18 +1883,24 @@ int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
->  				trace_i2c_write(adap, &msgs[i], i);
->  	}
->  
-> -	/* Retry automatically on arbitration loss */
-> -	orig_jiffies = jiffies;
-> -	for (ret = 0, try = 0; try <= adap->retries; try++) {
-> -		ret = adap->algo->master_xfer(adap, msgs, num);
-> -		if (ret != -EAGAIN)
-> -			break;
-> -		if (time_after(jiffies, orig_jiffies + adap->timeout))
-> +	for (i = 0; i < num; i += n) {
-> +		for (n = 0; i + n < num; n++) {
-> +			if (msgs[i + n].flags & I2C_M_FORCE_STOP) {
-> +				n++;
-> +				break;
-> +			}
-> +		}
-> +
-> +		ret = i2c_transfer_nolock(adap, &msgs[i], n);
-> +		if (ret != n) {
-> +			if (i > 0)
-> +				ret = (ret < 0) ? i : i + ret;
->  			break;
-> +		}
-> +		ret = i + n;
->  	}
->  
->  	if (static_branch_unlikely(&i2c_trace_msg_key)) {
-> -		int i;
->  		for (i = 0; i < ret; i++)
->  			if (msgs[i].flags & I2C_M_RD)
->  				trace_i2c_reply(adap, &msgs[i], i);
-> diff --git a/include/uapi/linux/i2c.h b/include/uapi/linux/i2c.h
-> index f71a175..36e8c7c 100644
-> --- a/include/uapi/linux/i2c.h
-> +++ b/include/uapi/linux/i2c.h
-> @@ -72,6 +72,7 @@ struct i2c_msg {
->  #define I2C_M_RD		0x0001	/* read data, from slave to master */
->  					/* I2C_M_RD is guaranteed to be 0x0001! */
->  #define I2C_M_TEN		0x0010	/* this is a ten bit chip address */
-> +#define I2C_M_FORCE_STOP	0x0100	/* force a stop condition after the message */
->  #define I2C_M_DMA_SAFE		0x0200	/* the buffer of this message is DMA safe */
->  					/* makes only sense in kernelspace */
->  					/* userspace buffers are copied anyway */
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index b69b375..8edf896 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -171,9 +171,37 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
+ 
+ 	/* Add the new link to the existing mask and check if it works. */
+ 	csi_id = rvin_group_entity_to_csi_id(group, link->source->entity);
++
++	if (csi_id == -ENODEV) {
++		struct v4l2_subdev *sd;
++		unsigned int i;
++
++		/*
++		 * Make sure the source entity subdevice is registered as
++		 * a parallel input of one of the enabled VINs if it is not
++		 * one of the CSI-2 subdevices.
++		 *
++		 * No hardware configuration required for parallel inputs,
++		 * we can return here.
++		 */
++		sd = media_entity_to_v4l2_subdev(link->source->entity);
++		for (i = 0; i < RCAR_VIN_NUM; i++) {
++			if (group->vin[i] && group->vin[i]->parallel &&
++			    group->vin[i]->parallel->subdev == sd) {
++				group->vin[i]->is_csi = false;
++				ret = 0;
++				goto out;
++			}
++		}
++
++		vin_err(vin, "Subdevice %s not registered to any VIN\n",
++			link->source->entity->name);
++		ret = -ENODEV;
++		goto out;
++	}
++
+ 	channel = rvin_group_csi_pad_to_channel(link->source->index);
+ 	mask_new = mask & rvin_group_get_mask(vin, csi_id, channel);
+-
+ 	vin_dbg(vin, "Try link change mask: 0x%x new: 0x%x\n", mask, mask_new);
+ 
+ 	if (!mask_new) {
+@@ -183,6 +211,11 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
+ 
+ 	/* New valid CHSEL found, set the new value. */
+ 	ret = rvin_set_channel_routing(group->vin[master_id], __ffs(mask_new));
++	if (ret)
++		goto out;
++
++	vin->is_csi = true;
++
+ out:
+ 	mutex_unlock(&group->lock);
+ 
+-- 
+2.7.4
