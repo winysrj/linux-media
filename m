@@ -1,140 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:60051 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751719AbeEVDzn (ORCPT
+Received: from smtp-1b.atlantis.sk ([80.94.52.26]:48602 "EHLO
+        smtp-1b.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964917AbeEYJIr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 23:55:43 -0400
-Message-ID: <8d75cb205142a3739a2d30f03ffe9fae@smtp-cloud9.xs4all.net>
-Date: Tue, 22 May 2018 05:55:41 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 25 May 2018 05:08:47 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 3/3 v2] gspca_zc3xx: Enable short exposure times for OV7648
+Date: Fri, 25 May 2018 11:08:43 +0200
+Message-Id: <20180525090843.31735-3-linux@rainbow-software.org>
+In-Reply-To: <20180525090843.31735-1-linux@rainbow-software.org>
+References: <20180525090843.31735-1-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The 50Hz and 60Hz power line frequency settings disable short (1/120s
+and 1/100s) exposure times for banding filter (causing overexposed
+image near lamps). No flicker setting enables them (when banding
+filter is disabled and they're not used).
 
-Results of the daily build of media_tree:
+Seems that the logic is just the wrong way around.
+(This bug came from the Windows driver.)
 
-date:			Tue May 22 05:00:12 CEST 2018
-media-tree git hash:	7e6b6b945272c20f6b78d319e07f27897a8373c9
-media_build git hash:	e274c18d3d2dfb2ab4a9b198718c0831ef078f02
-v4l-utils git hash:	e2038ec6451293787b929338c2a671c732b8693d
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/usb/gspca/zc3xx.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: OK
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: WARNINGS
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: WARNINGS
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: WARNINGS
-linux-4.13.16-i686: WARNINGS
-linux-4.13.16-x86_64: WARNINGS
-linux-4.14.31-i686: WARNINGS
-linux-4.14.31-x86_64: WARNINGS
-linux-4.15.14-i686: WARNINGS
-linux-4.15.14-x86_64: WARNINGS
-linux-4.16.8-i686: WARNINGS
-linux-4.16.8-x86_64: WARNINGS
-linux-4.17-rc4-i686: WARNINGS
-linux-4.17-rc4-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
+index c72f2d9167d9..cf21991e3d99 100644
+--- a/drivers/media/usb/gspca/zc3xx.c
++++ b/drivers/media/usb/gspca/zc3xx.c
+@@ -3186,7 +3186,8 @@ static const struct usb_action ov7620_InitialScale[] = {	/* 320x240 */
+ static const struct usb_action ov7620_50HZ[] = {
+ 	{0xdd, 0x00, 0x0100},	/* 00,01,00,dd */
+ 	{0xaa, 0x2b, 0x0096},	/* 00,2b,96,aa */
+-	{0xaa, 0x75, 0x008a},	/* 00,75,8a,aa */
++	/* enable 1/120s & 1/100s exposures for banding filter */
++	{0xaa, 0x75, 0x008e},
+ 	{0xaa, 0x2d, 0x0005},	/* 00,2d,05,aa */
+ 	{0xa0, 0x00, ZC3XX_R190_EXPOSURELIMITHIGH},	/* 01,90,00,cc */
+ 	{0xa0, 0x04, ZC3XX_R191_EXPOSURELIMITMID},	/* 01,91,04,cc */
+@@ -3202,7 +3203,8 @@ static const struct usb_action ov7620_50HZ[] = {
+ static const struct usb_action ov7620_60HZ[] = {
+ 	{0xdd, 0x00, 0x0100},			/* 00,01,00,dd */
+ 	{0xaa, 0x2b, 0x0000},			/* 00,2b,00,aa */
+-	{0xaa, 0x75, 0x008a},			/* 00,75,8a,aa */
++	/* enable 1/120s & 1/100s exposures for banding filter */
++	{0xaa, 0x75, 0x008e},
+ 	{0xaa, 0x2d, 0x0005},			/* 00,2d,05,aa */
+ 	{0xa0, 0x00, ZC3XX_R190_EXPOSURELIMITHIGH}, /* 01,90,00,cc */
+ 	{0xa0, 0x04, ZC3XX_R191_EXPOSURELIMITMID}, /* 01,91,04,cc */
+@@ -3221,7 +3223,8 @@ static const struct usb_action ov7620_60HZ[] = {
+ static const struct usb_action ov7620_NoFliker[] = {
+ 	{0xdd, 0x00, 0x0100},			/* 00,01,00,dd */
+ 	{0xaa, 0x2b, 0x0000},			/* 00,2b,00,aa */
+-	{0xaa, 0x75, 0x008e},			/* 00,75,8e,aa */
++	/* disable 1/120s & 1/100s exposures for banding filter */
++	{0xaa, 0x75, 0x008a},
+ 	{0xaa, 0x2d, 0x0001},			/* 00,2d,01,aa */
+ 	{0xa0, 0x00, ZC3XX_R190_EXPOSURELIMITHIGH}, /* 01,90,00,cc */
+ 	{0xa0, 0x04, ZC3XX_R191_EXPOSURELIMITMID}, /* 01,91,04,cc */
+-- 
+Ondrej Zary
