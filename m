@@ -1,108 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:51365 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752396AbeERKdW (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:40093 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966571AbeEYPdt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 06:33:22 -0400
-Message-ID: <1526639598.3948.3.camel@pengutronix.de>
-Subject: Re: [PATCH v5 02/12] media: staging/imx7: add imx7 CSI subdev driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>, linux-clk@vger.kernel.org
-Date: Fri, 18 May 2018 12:33:18 +0200
-In-Reply-To: <20180518092806.3829-3-rui.silva@linaro.org>
-References: <20180518092806.3829-1-rui.silva@linaro.org>
-         <20180518092806.3829-3-rui.silva@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Fri, 25 May 2018 11:33:49 -0400
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: [PATCH 3/8] xen/grant-table: Allow allocating buffers suitable for DMA
+Date: Fri, 25 May 2018 18:33:26 +0300
+Message-Id: <20180525153331.31188-4-andr2000@gmail.com>
+In-Reply-To: <20180525153331.31188-1-andr2000@gmail.com>
+References: <20180525153331.31188-1-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2018-05-18 at 10:27 +0100, Rui Miguel Silva wrote:
-> This add the media entity subdevice and control driver for the i.MX7
-> CMOS Sensor Interface.
-> 
-> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
-> ---
-[...]
-> +static int imx7_csi_probe(struct platform_device *pdev)
-> +{
-> +	struct device *dev = &pdev->dev;
-> +	struct device_node *node = dev->of_node;
-> +	struct imx7_csi *csi;
-> +	struct resource *res;
-> +	int ret;
-> +
-> +	csi = devm_kzalloc(&pdev->dev, sizeof(*csi), GFP_KERNEL);
-> +	if (!csi)
-> +		return -ENOMEM;
-> +
-> +	platform_set_drvdata(pdev, &csi->sd);
-> +	csi->dev = dev;
-> +
-> +	ret = imx7_csi_parse_dt(csi);
-> +	if (ret < 0)
-> +		return -ENODEV;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	csi->irq = platform_get_irq(pdev, 0);
-> +	if (!res || csi->irq < 0) {
-> +		dev_err(dev, "Missing platform resources data\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	csi->regbase = devm_ioremap_resource(dev, res);
-> +	if (IS_ERR(csi->regbase)) {
-> +		dev_err(dev, "Failed platform resources map\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	spin_lock_init(&csi->irqlock);
-> +	mutex_init(&csi->lock);
-> +
-> +	/* install interrupt handler */
-> +	ret = devm_request_irq(dev, csi->irq, imx7_csi_irq_handler, 0, "csi",
-> +			       (void *)csi);
-> +	if (ret < 0) {
-> +		dev_err(dev, "Request CSI IRQ failed.\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	/* add media device */
-> +	csi->imxmd = imx_media_dev_init(dev, false);
-> +	if (IS_ERR(csi->imxmd))
-> +		return PTR_ERR(csi->imxmd);
-> +
-> +	ret = imx_media_of_add_csi(csi->imxmd, node);
-> +	if (ret < 0)
-> +		goto media_cleanup;
-> +
-> +	ret = imx_media_dev_notifier_register(csi->imxmd);
-> +	if (ret < 0)
-> +		goto media_cleanup;
-> +
-> +	v4l2_subdev_init(&csi->sd, &imx7_csi_subdev_ops);
-> +	v4l2_set_subdevdata(&csi->sd, csi);
-> +	csi->sd.internal_ops = &imx7_csi_internal_ops;
-> +	csi->sd.entity.ops = &imx7_csi_entity_ops;
-> +	csi->sd.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
-> +	csi->sd.dev = &pdev->dev;
-> +	csi->sd.owner = THIS_MODULE;
-> +	csi->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	csi->sd.grp_id = IMX_MEDIA_GRP_ID_CSI0;
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-See my comments on the first patch. Since grp_id specifies an IPU CSI0,
-it would be better to use a different id here to make clear this is a
-standalone CSI as opposed to an IPU CSI.
+Extend grant table module API to allow allocating buffers that can
+be used for DMA operations and mapping foreign grant references
+on top of those.
+The resulting buffer is similar to the one allocated by the balloon
+driver in terms that proper memory reservation is made
+({increase|decrease}_reservation and VA mappings updated if needed).
+This is useful for sharing foreign buffers with HW drivers which
+cannot work with scattered buffers provided by the balloon driver,
+but require DMAable memory instead.
 
-regards
-Philipp
+Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+---
+ drivers/xen/Kconfig       |  13 ++++
+ drivers/xen/grant-table.c | 124 ++++++++++++++++++++++++++++++++++++++
+ include/xen/grant_table.h |  25 ++++++++
+ 3 files changed, 162 insertions(+)
+
+diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
+index e5d0c28372ea..3431fe210624 100644
+--- a/drivers/xen/Kconfig
++++ b/drivers/xen/Kconfig
+@@ -161,6 +161,19 @@ config XEN_GRANT_DEV_ALLOC
+ 	  to other domains. This can be used to implement frontend drivers
+ 	  or as part of an inter-domain shared memory channel.
+ 
++config XEN_GRANT_DMA_ALLOC
++	bool "Allow allocating DMA capable buffers with grant reference module"
++	depends on XEN
++	help
++	  Extends grant table module API to allow allocating DMA capable
++	  buffers and mapping foreign grant references on top of it.
++	  The resulting buffer is similar to one allocated by the balloon
++	  driver in terms that proper memory reservation is made
++	  ({increase|decrease}_reservation and VA mappings updated if needed).
++	  This is useful for sharing foreign buffers with HW drivers which
++	  cannot work with scattered buffers provided by the balloon driver,
++	  but require DMAable memory instead.
++
+ config SWIOTLB_XEN
+ 	def_bool y
+ 	select SWIOTLB
+diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
+index d7488226e1f2..06fe6e7f639c 100644
+--- a/drivers/xen/grant-table.c
++++ b/drivers/xen/grant-table.c
+@@ -45,6 +45,9 @@
+ #include <linux/workqueue.h>
+ #include <linux/ratelimit.h>
+ #include <linux/moduleparam.h>
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++#include <linux/dma-mapping.h>
++#endif
+ 
+ #include <xen/xen.h>
+ #include <xen/interface/xen.h>
+@@ -57,6 +60,7 @@
+ #ifdef CONFIG_X86
+ #include <asm/xen/cpuid.h>
+ #endif
++#include <xen/mem_reservation.h>
+ #include <asm/xen/hypercall.h>
+ #include <asm/xen/interface.h>
+ 
+@@ -811,6 +815,82 @@ int gnttab_alloc_pages(int nr_pages, struct page **pages)
+ }
+ EXPORT_SYMBOL(gnttab_alloc_pages);
+ 
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++/**
++ * gnttab_dma_alloc_pages - alloc DMAable pages suitable for grant mapping into
++ * @args: arguments to the function
++ */
++int gnttab_dma_alloc_pages(struct gnttab_dma_alloc_args *args)
++{
++	unsigned long pfn, start_pfn;
++	xen_pfn_t *frames;
++	size_t size;
++	int i, ret;
++
++	frames = kcalloc(args->nr_pages, sizeof(*frames), GFP_KERNEL);
++	if (!frames)
++		return -ENOMEM;
++
++	size = args->nr_pages << PAGE_SHIFT;
++	if (args->coherent)
++		args->vaddr = dma_alloc_coherent(args->dev, size,
++						 &args->dev_bus_addr,
++						 GFP_KERNEL | __GFP_NOWARN);
++	else
++		args->vaddr = dma_alloc_wc(args->dev, size,
++					   &args->dev_bus_addr,
++					   GFP_KERNEL | __GFP_NOWARN);
++	if (!args->vaddr) {
++		pr_err("Failed to allocate DMA buffer of size %zu\n", size);
++		ret = -ENOMEM;
++		goto fail_free_frames;
++	}
++
++	start_pfn = __phys_to_pfn(args->dev_bus_addr);
++	for (pfn = start_pfn, i = 0; pfn < start_pfn + args->nr_pages;
++			pfn++, i++) {
++		struct page *page = pfn_to_page(pfn);
++
++		args->pages[i] = page;
++		frames[i] = xen_page_to_gfn(page);
++		xenmem_reservation_scrub_page(page);
++	}
++
++	xenmem_reservation_va_mapping_reset(args->nr_pages, args->pages);
++
++	ret = xenmem_reservation_decrease(args->nr_pages, frames);
++	if (ret != args->nr_pages) {
++		pr_err("Failed to decrease reservation for DMA buffer\n");
++		xenmem_reservation_increase(ret, frames);
++		ret = -EFAULT;
++		goto fail_free_dma;
++	}
++
++	ret = gnttab_pages_set_private(args->nr_pages, args->pages);
++	if (ret < 0)
++		goto fail_clear_private;
++
++	kfree(frames);
++	return 0;
++
++fail_clear_private:
++	gnttab_pages_clear_private(args->nr_pages, args->pages);
++fail_free_dma:
++	xenmem_reservation_va_mapping_update(args->nr_pages, args->pages,
++					     frames);
++	if (args->coherent)
++		dma_free_coherent(args->dev, size,
++				  args->vaddr, args->dev_bus_addr);
++	else
++		dma_free_wc(args->dev, size,
++			    args->vaddr, args->dev_bus_addr);
++fail_free_frames:
++	kfree(frames);
++	return ret;
++}
++EXPORT_SYMBOL(gnttab_dma_alloc_pages);
++#endif
++
+ void gnttab_pages_clear_private(int nr_pages, struct page **pages)
+ {
+ 	int i;
+@@ -838,6 +918,50 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
+ }
+ EXPORT_SYMBOL(gnttab_free_pages);
+ 
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++/**
++ * gnttab_dma_free_pages - free DMAable pages
++ * @args: arguments to the function
++ */
++int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args)
++{
++	xen_pfn_t *frames;
++	size_t size;
++	int i, ret;
++
++	gnttab_pages_clear_private(args->nr_pages, args->pages);
++
++	frames = kcalloc(args->nr_pages, sizeof(*frames), GFP_KERNEL);
++	if (!frames)
++		return -ENOMEM;
++
++	for (i = 0; i < args->nr_pages; i++)
++		frames[i] = page_to_xen_pfn(args->pages[i]);
++
++	ret = xenmem_reservation_increase(args->nr_pages, frames);
++	if (ret != args->nr_pages) {
++		pr_err("Failed to decrease reservation for DMA buffer\n");
++		ret = -EFAULT;
++	} else {
++		ret = 0;
++	}
++
++	xenmem_reservation_va_mapping_update(args->nr_pages, args->pages,
++					     frames);
++
++	size = args->nr_pages << PAGE_SHIFT;
++	if (args->coherent)
++		dma_free_coherent(args->dev, size,
++				  args->vaddr, args->dev_bus_addr);
++	else
++		dma_free_wc(args->dev, size,
++			    args->vaddr, args->dev_bus_addr);
++	kfree(frames);
++	return ret;
++}
++EXPORT_SYMBOL(gnttab_dma_free_pages);
++#endif
++
+ /* Handling of paged out grant targets (GNTST_eagain) */
+ #define MAX_DELAY 256
+ static inline void
+diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
+index de03f2542bb7..982e34242b9c 100644
+--- a/include/xen/grant_table.h
++++ b/include/xen/grant_table.h
+@@ -198,6 +198,31 @@ void gnttab_free_auto_xlat_frames(void);
+ int gnttab_alloc_pages(int nr_pages, struct page **pages);
+ void gnttab_free_pages(int nr_pages, struct page **pages);
+ 
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++struct gnttab_dma_alloc_args {
++	/* Device for which DMA memory will be/was allocated. */
++	struct device *dev;
++	/*
++	 * If set then DMA buffer is coherent and write-combine otherwise.
++	 */
++	bool coherent;
++	/*
++	 * Number of entries in the @pages array, defines the size
++	 * of the DMA buffer.
++	 */
++	int nr_pages;
++	/* Array of pages @pages filled with pages of the DMA buffer. */
++	struct page **pages;
++	/* Virtual/CPU address of the DMA buffer. */
++	void *vaddr;
++	/* Bus address of the DMA buffer. */
++	dma_addr_t dev_bus_addr;
++};
++
++int gnttab_dma_alloc_pages(struct gnttab_dma_alloc_args *args);
++int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args);
++#endif
++
+ int gnttab_pages_set_private(int nr_pages, struct page **pages);
+ void gnttab_pages_clear_private(int nr_pages, struct page **pages);
+ 
+-- 
+2.17.0
