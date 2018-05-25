@@ -1,120 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:37873 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751166AbeFAAbS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 20:31:18 -0400
-Received: by mail-pg0-f66.google.com with SMTP id a13-v6so10442401pgu.4
-        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:18 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 10/10] media: imx.rst: Update doc to reflect fixes to interlaced capture
-Date: Thu, 31 May 2018 17:30:49 -0700
-Message-Id: <1527813049-3231-11-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from gofer.mess.org ([88.97.38.141]:37075 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S967385AbeEYRvq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 13:51:46 -0400
+Date: Fri, 25 May 2018 18:51:44 +0100
+From: Sean Young <sean@mess.org>
+To: =?utf-8?Q?Micha=C5=82?= Winiarski <michal.winiarski@intel.com>
+Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH 3/3] media: rc: nuvoton: Keep device enabled during reg
+ init
+Message-ID: <20180525175144.cszceaus7jb37qxc@gofer.mess.org>
+References: <20180521143803.25664-1-michal.winiarski@intel.com>
+ <20180521143803.25664-3-michal.winiarski@intel.com>
+ <20180524113140.s365usmtbnnzn6ft@gofer.mess.org>
+ <20180525133523.a42pueu4gvkx6k32@mwiniars-main.ger.corp.intel.com>
+ <20180525135941.v3eopzko4joduitx@gofer.mess.org>
+ <20180525144202.n6o47kk4e45wphbm@mwiniars-main.ger.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180525144202.n6o47kk4e45wphbm@mwiniars-main.ger.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Also add an example pipeline for unconverted capture with interweave
-on SabreAuto.
+On Fri, May 25, 2018 at 04:42:02PM +0200, Michał Winiarski wrote:
+> On Fri, May 25, 2018 at 02:59:41PM +0100, Sean Young wrote:
+> > On Fri, May 25, 2018 at 03:35:23PM +0200, Michał Winiarski wrote:
+> > > On Thu, May 24, 2018 at 12:31:40PM +0100, Sean Young wrote:
+> > > > On Mon, May 21, 2018 at 04:38:03PM +0200, Michał Winiarski wrote:
+> > > > > Doing writes when the device is disabled seems to be a NOOP.
+> > > > > Let's enable the device, write the values, and then disable it on init.
+> > > > > This changes the behavior for wake device, which is now being disabled
+> > > > > after init.
+> > > > 
+> > > > I don't have the datasheet so I might be misunderstanding this. We want
+> > > > the IR wakeup to work fine even after kernel crash/power loss, right?
+> > > 
+> > > [snip]
+> > > 
+> > > Right, that makes sense. I completely ignored this scenario.
+> > >  
+> > > > > -	/* enable the CIR WAKE logical device */
+> > > > > -	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR_WAKE);
+> > > > > +	nvt_disable_logical_dev(nvt, LOGICAL_DEV_CIR);
+> > > > 
+> > > > The way I read this is that the CIR, not CIR_WAKE, is being disabled,
+> > > > which seems contrary to what the commit message says.
+> > > > 
+> > > 
+> > > That's a typo. And by accident it makes the wake_device work correctly :)
+> > > I think that registers init logic was still broken though, operating under the
+> > > assumption that the device is enabled on module load...
+> > > 
+> > > I guess we should just remove disable(LOGICAL_DEV_CIR) from wake_regs_init.
+> > > 
+> > > Have you already included this in any non-rebasing tree?
+> > 
+> > Nothing has been applied yet.
+> > 
+> > > Should I send a v2 or fixup on top?
+> > 
+> > I don't have the hardware to test this, a v2 would be appreciated.
+> > 
+> > We're late in the release cycle and I'm wondering if this patch would also
+> > solve the nuvoton probe problem:
+> > 
+> > https://patchwork.linuxtv.org/patch/49874/
+> 
+> It causes us to go back to previous behavior (we're refcounting open/close,
+> with your patch initial open on my system is coming from kbd_connect(), so
+> userspace close() doesn't propagate to nuvoton-cir).
+> 
+> It passes my test of "load the module with debug=1, see if I'm getting
+> interrupts".
+> 
+> If there's any scenario in which->close() would be called, it's still going to
+> be broken.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- Documentation/media/v4l-drivers/imx.rst | 51 ++++++++++++++++++++++++---------
- 1 file changed, 37 insertions(+), 14 deletions(-)
+Great, thank you very much for testing that. I've created a pull request
+for the v2 version.
 
-diff --git a/Documentation/media/v4l-drivers/imx.rst b/Documentation/media/v4l-drivers/imx.rst
-index 65d3d15..4149b76 100644
---- a/Documentation/media/v4l-drivers/imx.rst
-+++ b/Documentation/media/v4l-drivers/imx.rst
-@@ -179,9 +179,10 @@ sink pad can take UYVY2X8, but the IDMAC source pad can output YUYV2X8.
- If the sink pad is receiving YUV, the output at the capture device can
- also be converted to a planar YUV format such as YUV420.
- 
--It will also perform simple de-interlace without motion compensation,
--which is activated if the sink pad's field type is an interlaced type,
--and the IDMAC source pad field type is set to none.
-+It will also perform simple interweave without motion compensation,
-+which is activated if the sink pad's field type is sequential top-bottom
-+or bottom-top or alternate, and the IDMAC source pad field type is
-+interlaced (t-b, b-t, or unqualified interlaced).
- 
- This subdev can generate the following event when enabling the second
- IDMAC source pad:
-@@ -383,13 +384,13 @@ and CSC operations and flip/rotation controls. It will receive and
- process de-interlaced frames from the ipuX_vdic if ipuX_ic_prp is
- receiving from ipuX_vdic.
- 
--Like the ipuX_csiY IDMAC source, it can perform simple de-interlace
-+Like the ipuX_csiY IDMAC source, it can perform simple interweaving
- without motion compensation. However, note that if the ipuX_vdic is
- included in the pipeline (ipuX_ic_prp is receiving from ipuX_vdic),
--it's not possible to use simple de-interlace in ipuX_ic_prpvf, since
--the ipuX_vdic has already carried out de-interlacing (with motion
--compensation) and therefore the field type output from ipuX_ic_prp can
--only be none.
-+it's not possible to use interweave in ipuX_ic_prpvf, since the
-+ipuX_vdic has already carried out de-interlacing (with motion
-+compensation) and therefore the field type output from ipuX_vdic
-+can only be none (progressive).
- 
- Capture Pipelines
- -----------------
-@@ -514,10 +515,32 @@ On the SabreAuto, an on-board ADV7180 SD decoder is connected to the
- parallel bus input on the internal video mux to IPU1 CSI0.
- 
- The following example configures a pipeline to capture from the ADV7180
-+video decoder, assuming NTSC 720x480 input signals, using simple
-+interweave (unconverted and without motion compensation). The adv7180
-+must output sequential or alternating fields (field type 'seq-tb',
-+'seq-bt', or 'alternate'):
-+
-+.. code-block:: none
-+
-+   # Setup links
-+   media-ctl -l "'adv7180 3-0021':0 -> 'ipu1_csi0_mux':1[1]"
-+   media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
-+   media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
-+   # Configure pads
-+   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
-+   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
-+   media-ctl -V "'ipu1_csi0':2 [fmt:AYUV32/720x480 field:interlaced]"
-+
-+Streaming can then begin on the capture device node at
-+"ipu1_csi0 capture". The v4l2-ctl tool can be used to select any
-+supported YUV pixelformat on the capture device node.
-+
-+This example configures a pipeline to capture from the ADV7180
- video decoder, assuming NTSC 720x480 input signals, with Motion
--Compensated de-interlacing. Pad field types assume the adv7180 outputs
--"interlaced". $outputfmt can be any format supported by the ipu1_ic_prpvf
--entity at its output pad:
-+Compensated de-interlacing. The adv7180 must output sequential or
-+alternating fields (field type 'seq-tb', 'seq-bt', or 'alternate').
-+$outputfmt can be any format supported by the ipu1_ic_prpvf entity
-+at its output pad:
- 
- .. code-block:: none
- 
-@@ -529,9 +552,9 @@ entity at its output pad:
-    media-ctl -l "'ipu1_ic_prp':2 -> 'ipu1_ic_prpvf':0[1]"
-    media-ctl -l "'ipu1_ic_prpvf':1 -> 'ipu1_ic_prpvf capture':0[1]"
-    # Configure pads
--   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480]"
--   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]"
--   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x480 field:interlaced]"
-+   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
-+   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
-+   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x480]"
-    media-ctl -V "'ipu1_vdic':2 [fmt:AYUV32/720x480 field:none]"
-    media-ctl -V "'ipu1_ic_prp':2 [fmt:AYUV32/720x480 field:none]"
-    media-ctl -V "'ipu1_ic_prpvf':1 [fmt:$outputfmt field:none]"
--- 
-2.7.4
+
+Sean
