@@ -1,38 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:54765 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752602AbeEOJyF (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:38659 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932391AbeEYGex (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 05:54:05 -0400
-Subject: Re: [PATCH 3/7] s5p-mfc: fix two sparse warnings
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <e504deb8-ce01-1bfb-a430-2b7bd4184cae@samsung.com>
-Date: Tue, 15 May 2018 11:53:57 +0200
-MIME-version: 1.0
-In-reply-to: <20180514131346.15795-4-hverkuil@xs4all.nl>
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <20180514131346.15795-1-hverkuil@xs4all.nl>
-        <CGME20180514131355epcas2p2c365c6e6832bf16e7d9f2eb5f02d72a4@epcas2p2.samsung.com>
-        <20180514131346.15795-4-hverkuil@xs4all.nl>
+        Fri, 25 May 2018 02:34:53 -0400
+Message-ID: <1527230092.4938.3.camel@pengutronix.de>
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>
+Cc: linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
+Date: Fri, 25 May 2018 08:34:52 +0200
+In-Reply-To: <f327c8f9-5aa2-b945-a356-f86ca488f6fc@gmail.com>
+References: <m37eobudmo.fsf@t19.piap.pl>
+         <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
+         <m3tvresqfw.fsf@t19.piap.pl>
+         <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
+         <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
+         <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
+         <m3h8mxqc7t.fsf@t19.piap.pl>
+         <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
+         <aad7c874-ee05-ef9b-733c-609b6928fc3c@gmail.com>
+         <f327c8f9-5aa2-b945-a356-f86ca488f6fc@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/14/2018 03:13 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> media-git/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c: In function 'vidioc_querycap':
-> media-git/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1317:2: warning: 'strncpy' output may be truncated copying 31 bytes from a string of length 31 [-Wstringop-truncation]
->   strncpy(cap->card, dev->vfd_enc->name, sizeof(cap->card) - 1);
->   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> media-git/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c: In function 'vidioc_querycap':
-> media-git/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:275:2: warning: 'strncpy' output may be truncated copying 31 bytes from a string of length 31 [-Wstringop-truncation]
->   strncpy(cap->card, dev->vfd_dec->name, sizeof(cap->card) - 1);
->   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Steve,
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+On Thu, 2018-05-24 at 14:33 -0700, Steve Longerbeam wrote:
+> Hi Krzysztof, Philipp,
+> 
+> And I can confirm that capturing planar 4:2:0 (YU12, YV12, or NV12),
+> is broken because of the call to ipu_cpmem_skip_odd_chroma_rows().
+> YU12 or NV12 images look correct again when commenting out that
+> call. Commits
+> 
+> 14330d7f08 ("media: imx: csi: enable double write reduction")
+> b54a5c2dc8 ("media: imx: prpencvf: enable double write reduction")
+> 
+> should be reverted for now, until the behavior of this bit is better 
+> understood.
+
+I think that is a bit radical. I am not aware of any problems with non-
+interlaced formats. Could we just disable them when the interlaced_scan
+bit is set?
+
+regards
+Philipp
