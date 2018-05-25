@@ -1,89 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56638 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1033131AbeEXUg7 (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:44658 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965440AbeEYPdp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 16:36:59 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 06/20] omap4iss: Add vb2_queue lock
-Date: Thu, 24 May 2018 17:35:06 -0300
-Message-Id: <20180524203520.1598-7-ezequiel@collabora.com>
-In-Reply-To: <20180524203520.1598-1-ezequiel@collabora.com>
-References: <20180524203520.1598-1-ezequiel@collabora.com>
+        Fri, 25 May 2018 11:33:45 -0400
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: [PATCH 1/8] xen/grant-table: Make set/clear page private code shared
+Date: Fri, 25 May 2018 18:33:24 +0300
+Message-Id: <20180525153331.31188-2-andr2000@gmail.com>
+In-Reply-To: <20180525153331.31188-1-andr2000@gmail.com>
+References: <20180525153331.31188-1-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vb2_queue lock is now mandatory. Add it, remove driver ad-hoc
-locks, and implement wait_{prepare, finish}.
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+Make set/clear page private code shared and accessible to
+other kernel modules which can re-use these instead of open-coding.
+
+Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 ---
- drivers/staging/media/omap4iss/iss_video.c | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ drivers/xen/grant-table.c | 54 +++++++++++++++++++++++++--------------
+ include/xen/grant_table.h |  3 +++
+ 2 files changed, 38 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index a3a83424a926..d919bae83828 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -873,8 +873,6 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	if (type != video->type)
- 		return -EINVAL;
- 
--	mutex_lock(&video->stream_lock);
--
- 	/*
- 	 * Start streaming on the pipeline. No link touching an entity in the
- 	 * pipeline can be activated or deactivated once streaming is started.
-@@ -978,8 +976,6 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 
- 	media_graph_walk_cleanup(&graph);
- 
--	mutex_unlock(&video->stream_lock);
--
- 	return 0;
- 
- err_omap4iss_set_stream:
-@@ -996,8 +992,6 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- err_graph_walk_init:
- 	media_entity_enum_cleanup(&pipe->ent_enum);
- 
--	mutex_unlock(&video->stream_lock);
--
- 	return ret;
+diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
+index 27be107d6480..d7488226e1f2 100644
+--- a/drivers/xen/grant-table.c
++++ b/drivers/xen/grant-table.c
+@@ -769,29 +769,18 @@ void gnttab_free_auto_xlat_frames(void)
  }
+ EXPORT_SYMBOL_GPL(gnttab_free_auto_xlat_frames);
  
-@@ -1013,10 +1007,8 @@ iss_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
- 	if (type != video->type)
- 		return -EINVAL;
- 
--	mutex_lock(&video->stream_lock);
+-/**
+- * gnttab_alloc_pages - alloc pages suitable for grant mapping into
+- * @nr_pages: number of pages to alloc
+- * @pages: returns the pages
+- */
+-int gnttab_alloc_pages(int nr_pages, struct page **pages)
++int gnttab_pages_set_private(int nr_pages, struct page **pages)
+ {
+ 	int i;
+-	int ret;
 -
- 	if (!vb2_is_streaming(&vfh->queue))
--		goto done;
-+		return 0;
+-	ret = alloc_xenballooned_pages(nr_pages, pages);
+-	if (ret < 0)
+-		return ret;
  
- 	/* Update the pipeline state. */
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-@@ -1041,8 +1033,6 @@ iss_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
- 		video->iss->pdata->set_constraints(video->iss, false);
- 	media_pipeline_stop(&video->video.entity);
+ 	for (i = 0; i < nr_pages; i++) {
+ #if BITS_PER_LONG < 64
+ 		struct xen_page_foreign *foreign;
  
--done:
--	mutex_unlock(&video->stream_lock);
+ 		foreign = kzalloc(sizeof(*foreign), GFP_KERNEL);
+-		if (!foreign) {
+-			gnttab_free_pages(nr_pages, pages);
++		if (!foreign)
+ 			return -ENOMEM;
+-		}
++
+ 		set_page_private(pages[i], (unsigned long)foreign);
+ #endif
+ 		SetPagePrivate(pages[i]);
+@@ -799,14 +788,30 @@ int gnttab_alloc_pages(int nr_pages, struct page **pages)
+ 
  	return 0;
  }
+-EXPORT_SYMBOL(gnttab_alloc_pages);
++EXPORT_SYMBOL(gnttab_pages_set_private);
  
-@@ -1137,6 +1127,7 @@ static int iss_video_open(struct file *file)
- 	q->buf_struct_size = sizeof(struct iss_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->dev = video->iss->dev;
-+	q->lock = &video->stream_lock;
+ /**
+- * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
+- * @nr_pages; number of pages to free
+- * @pages: the pages
++ * gnttab_alloc_pages - alloc pages suitable for grant mapping into
++ * @nr_pages: number of pages to alloc
++ * @pages: returns the pages
+  */
+-void gnttab_free_pages(int nr_pages, struct page **pages)
++int gnttab_alloc_pages(int nr_pages, struct page **pages)
++{
++	int ret;
++
++	ret = alloc_xenballooned_pages(nr_pages, pages);
++	if (ret < 0)
++		return ret;
++
++	ret = gnttab_pages_set_private(nr_pages, pages);
++	if (ret < 0)
++		gnttab_free_pages(nr_pages, pages);
++
++	return ret;
++}
++EXPORT_SYMBOL(gnttab_alloc_pages);
++
++void gnttab_pages_clear_private(int nr_pages, struct page **pages)
+ {
+ 	int i;
  
- 	ret = vb2_queue_init(q);
- 	if (ret) {
+@@ -818,6 +823,17 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
+ 			ClearPagePrivate(pages[i]);
+ 		}
+ 	}
++}
++EXPORT_SYMBOL(gnttab_pages_clear_private);
++
++/**
++ * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
++ * @nr_pages; number of pages to free
++ * @pages: the pages
++ */
++void gnttab_free_pages(int nr_pages, struct page **pages)
++{
++	gnttab_pages_clear_private(nr_pages, pages);
+ 	free_xenballooned_pages(nr_pages, pages);
+ }
+ EXPORT_SYMBOL(gnttab_free_pages);
+diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
+index 2e37741f6b8d..de03f2542bb7 100644
+--- a/include/xen/grant_table.h
++++ b/include/xen/grant_table.h
+@@ -198,6 +198,9 @@ void gnttab_free_auto_xlat_frames(void);
+ int gnttab_alloc_pages(int nr_pages, struct page **pages);
+ void gnttab_free_pages(int nr_pages, struct page **pages);
+ 
++int gnttab_pages_set_private(int nr_pages, struct page **pages);
++void gnttab_pages_clear_private(int nr_pages, struct page **pages);
++
+ int gnttab_map_refs(struct gnttab_map_grant_ref *map_ops,
+ 		    struct gnttab_map_grant_ref *kmap_ops,
+ 		    struct page **pages, unsigned int count);
 -- 
-2.16.3
+2.17.0
