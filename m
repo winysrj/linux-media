@@ -1,116 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:53941 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751001AbeEDJP5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 05:15:57 -0400
-Date: Fri, 4 May 2018 11:15:55 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: Re: [PATCH v2 09/10] ARM: dts: sun7i-a20: Add Video Engine and
- reserved memory nodes
-Message-ID: <20180504091555.idgtzey53lozj2uh@flea>
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
- <20180419154536.17846-5-paul.kocialkowski@bootlin.com>
- <20180420073908.nkcbsdxibnzkqski@flea>
- <82057e2f734137a3902d9313c228b01ceb345ee7.camel@bootlin.com>
- <20180504084008.h6p4brari3xrbv6l@flea>
- <e8cd340605ab4db8ebf2888a4fce645e8bc481d0.camel@bootlin.com>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:46427 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964823AbeEYPdo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 11:33:44 -0400
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: [PATCH 0/8] xen: dma-buf support for grant device
+Date: Fri, 25 May 2018 18:33:23 +0300
+Message-Id: <20180525153331.31188-1-andr2000@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="lg266mocsnmqmuk4"
-Content-Disposition: inline
-In-Reply-To: <e8cd340605ab4db8ebf2888a4fce645e8bc481d0.camel@bootlin.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
---lg266mocsnmqmuk4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This work is in response to my previous attempt to introduce Xen/DRM
+zero-copy driver [1] to enable Linux dma-buf API [2] for Xen based
+frontends/backends. There is also an existing hyper_dmabuf approach
+available [3] which, if reworked to utilize the proposed solution,
+can greatly benefit as well.
 
-On Fri, May 04, 2018 at 10:47:44AM +0200, Paul Kocialkowski wrote:
-> > > > > +			reg =3D <0x01c0e000 0x1000>;
-> > > > > +			memory-region =3D <&ve_memory>;
-> > > >=20
-> > > > Since you made the CMA region the default one, you don't need to
-> > > > tie
-> > > > it to that device in particular (and you can drop it being
-> > > > mandatory
-> > > > from your binding as well).
-> > >=20
-> > > What if another driver (or the system) claims memory from that zone
-> > > and
-> > > that the reserved memory ends up not being available for the VPU
-> > > anymore?
-> > >=20
-> > > Acccording to the reserved-memory documentation, the reusable
-> > > property
-> > > (that we need for dmabuf) puts a limitation that the device driver
-> > > owning the region must be able to reclaim it back.
-> > >=20
-> > > How does that work out if the CMA region is not tied to a driver in
-> > > particular?
-> >=20
-> > I'm not sure to get what you're saying. You have the property
-> > linux,cma-default in your reserved region, so the behaviour you
-> > described is what you explicitly asked for.
->=20
-> My point is that I don't see how the driver can claim back (part of) the
-> reserved area if the area is not explicitly attached to it.
->=20
-> Or is that mechanism made in a way that all drivers wishing to use the
-> reserved memory area can claim it back from the system, but there is no
-> priority (other than first-come first-served) for which drivers claims
-> it back in case two want to use the same reserved region (in a scenario
-> where there isn't enough memory to allow both drivers)?
+RFC for this series was published and discussed [9], comments addressed.
 
-This is indeed what happens. Reusable is to let the system use the
-reserved memory for things like caches that can easily be dropped when
-a driver wants to use the memory in that reserved area. Once that
-memory has been allocated, there's no claiming back, unless that
-memory segment was freed of course.
+The original rationale behind this work was to enable zero-copying
+use-cases while working with Xen para-virtual display driver [4]:
+when using Xen PV DRM frontend driver then on backend side one will
+need to do copying of display buffers' contents (filled by the
+frontend's user-space) into buffers allocated at the backend side.
+Taking into account the size of display buffers and frames per
+second it may result in unneeded huge data bus occupation and
+performance loss.
 
-Maxime
+The helper driver [4] allows implementing zero-copying use-cases
+when using Xen para-virtualized frontend display driver by implementing
+a DRM/KMS helper driver running on backend's side.
+It utilizes PRIME buffers API (implemented on top of Linux dma-buf)
+to share frontend's buffers with physical device drivers on
+backend's side:
 
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
+ - a dumb buffer created on backend's side can be shared
+   with the Xen PV frontend driver, so it directly writes
+   into backend's domain memory (into the buffer exported from
+   DRM/KMS driver of a physical display device)
+ - a dumb buffer allocated by the frontend can be imported
+   into physical device DRM/KMS driver, thus allowing to
+   achieve no copying as well
 
---lg266mocsnmqmuk4
-Content-Type: application/pgp-signature; name="signature.asc"
+Finally, it was discussed and decided ([1], [5]) that it is worth
+implementing such use-cases via extension of the existing Xen gntdev
+driver instead of introducing new DRM specific driver.
+Please note, that the support of dma-buf is Linux only,
+as dma-buf is a Linux only thing.
 
------BEGIN PGP SIGNATURE-----
+Now to the proposed solution. The changes  to the existing Xen drivers
+in the Linux kernel fall into 2 categories:
+1. DMA-able memory buffer allocation and increasing/decreasing memory
+   reservation of the pages of such a buffer.
+   This is required if we are about to share dma-buf with the hardware
+   that does require those to be allocated with dma_alloc_xxx API.
+   (It is still possible to allocate a dma-buf from any system memory,
+   e.g. system pages).
+2. Extension of the gntdev driver to enable it to import/export dma-buf’s.
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrsJMoACgkQ0rTAlCFN
-r3TOlw//aE2dU8svsZ2NIWYkNcyDnOnF0RDi5zxBPpErhmSWmQeJv5JTmvQrRrCn
-q+o195rcU613Rx1KgLr2rmR8GyP2NP7I+sTRwA7T297ycU3grJrhRXuSDu8g7ZzK
-vQPWw/3A6m3SxX3WMm3FHjrizU78V2Jr4N5VFfwgOwS30W9vL7UKxjiIQm1cqHut
-gUuklM45Mj0i2bHesS9uU3YX/z7nlAkhy16wup9RSbyCuPfKqFmLyL6sB7CJztEP
-ygw5CEOAZAUYcoVWLWQYKoFDn4/MfOmYyKc7448g5qnSToS7nC2nS9gmuY9OjLYY
-9vOP+wwCGFIAu9ikytpvRsDUQYYxwuRUxenlSRAN/TeNOlYZDHy50sT3UDklVG7G
-6pfyAm/OMDNWzT7vipCPcUenUOvQGLRsPqyhbAwEtBCc1bton20Z09UNFtfJIGs4
-Sxw4+agcrF3I1YsrL8e91oVCUqMMVcehoIkARHyuVwQuE02fA1qpE1sUvVM4T9ES
-HCmzW/KTXNRKBrzRYt5SsiS2O/v3Wem3af/kVarPXugmgpolkL7cMwRRr/A6IrnH
-j+NvpT3lXIe277Ox69YhXOMxOzLZ68JYD4AcNO1WIubD24ROi7Po4L3j83yEO5gP
-nNPSt8CI7AxobNwNWm9KnUflJS41KH3KBVOuIk0H0LZn1ucWhoI=
-=o/bZ
------END PGP SIGNATURE-----
+The first four patches are in preparation for Xen dma-buf support,
+but I consider those usable regardless of the dma-buf use-case,
+e.g. other frontend/backend kernel modules may also benefit from these
+for better code reuse:
+   0001-xen-grant-table-Make-set-clear-page-private-code-sha.patch
+   0002-xen-balloon-Move-common-memory-reservation-routines-.patch
+   0003-xen-grant-table-Allow-allocating-buffers-suitable-fo.patch
+   0004-xen-gntdev-Allow-mappings-for-DMA-buffers.patch
 
---lg266mocsnmqmuk4--
+The next three patches are Xen implementation of dma-buf as part of
+the grant device:
+   0005-xen-gntdev-Add-initial-support-for-dma-buf-UAPI.patch
+   0006-xen-gntdev-Implement-dma-buf-export-functionality.patch
+   0007-xen-gntdev-Implement-dma-buf-import-functionality.patch
+
+The last patch makes it possible for in-kernel use of Xen dma-buf API:
+  0008-xen-gntdev-Expose-gntdev-s-dma-buf-API-for-in-kernel.patch
+
+The corresponding libxengnttab changes are available at [6].
+
+All the above was tested with display backend [7] and its accompanying
+helper library [8] on Renesas ARM64 based board.
+
+*To all the communities*: I would like to ask you to review the proposed
+solution and give feedback on it, so I can improve and send final
+patches for review (this is still work in progress, but enough to start
+discussing the implementation).
+
+
+Thank you in advance,
+Oleksandr Andrushchenko
+
+[1] https://lists.freedesktop.org/archives/dri-devel/2018-April/173163.html
+[2] https://elixir.bootlin.com/linux/v4.17-rc5/source/Documentation/driver-api/dma-buf.rst
+[3] https://lists.xenproject.org/archives/html/xen-devel/2018-02/msg01202.html
+[4] https://cgit.freedesktop.org/drm/drm-misc/tree/drivers/gpu/drm/xen
+[5] https://patchwork.kernel.org/patch/10279681/
+[6] https://github.com/andr2000/xen/tree/xen_dma_buf_v1
+[7] https://github.com/andr2000/displ_be/tree/xen_dma_buf_v1
+[8] https://github.com/andr2000/libxenbe/tree/xen_dma_buf_v1
+[9] https://lkml.org/lkml/2018/5/17/215
+
+Oleksandr Andrushchenko (8):
+  xen/grant-table: Make set/clear page private code shared
+  xen/balloon: Move common memory reservation routines to a module
+  xen/grant-table: Allow allocating buffers suitable for DMA
+  xen/gntdev: Allow mappings for DMA buffers
+  xen/gntdev: Add initial support for dma-buf UAPI
+  xen/gntdev: Implement dma-buf export functionality
+  xen/gntdev: Implement dma-buf import functionality
+  xen/gntdev: Expose gntdev's dma-buf API for in-kernel use
+
+ drivers/xen/Kconfig           |   23 +
+ drivers/xen/Makefile          |    1 +
+ drivers/xen/balloon.c         |   71 +--
+ drivers/xen/gntdev.c          | 1025 ++++++++++++++++++++++++++++++++-
+ drivers/xen/grant-table.c     |  176 +++++-
+ drivers/xen/mem-reservation.c |  134 +++++
+ include/uapi/xen/gntdev.h     |  106 ++++
+ include/xen/grant_dev.h       |   37 ++
+ include/xen/grant_table.h     |   28 +
+ include/xen/mem_reservation.h |   29 +
+ 10 files changed, 1527 insertions(+), 103 deletions(-)
+ create mode 100644 drivers/xen/mem-reservation.c
+ create mode 100644 include/xen/grant_dev.h
+ create mode 100644 include/xen/mem_reservation.h
+
+-- 
+2.17.0
