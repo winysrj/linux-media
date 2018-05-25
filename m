@@ -1,90 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36622 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750934AbeEGJR4 (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.130]:37871 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965710AbeEYP0Y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 05:17:56 -0400
-Date: Mon, 7 May 2018 12:17:54 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: hans.verkuil@cisco.com, mchehab@kernel.org, robh+dt@kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Fri, 25 May 2018 11:26:24 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Brad Love <brad@nextdimension.cc>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Oleh Kravchenko <oleg@kaa.org.ua>, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/2] dt-bindings: media: i2c: Add mt9t111 image sensor
-Message-ID: <20180507091753.fectimexhgyho3vk@valkosipuli.retiisi.org.uk>
-References: <1524654014-17852-1-git-send-email-jacopo+renesas@jmondi.org>
- <1524654014-17852-2-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1524654014-17852-2-git-send-email-jacopo+renesas@jmondi.org>
+Subject: [PATCH 3/5] media: cx231xx: fix RC_CORE dependency
+Date: Fri, 25 May 2018 17:25:10 +0200
+Message-Id: <20180525152523.2821369-3-arnd@arndb.de>
+In-Reply-To: <20180525152523.2821369-1-arnd@arndb.de>
+References: <20180525152523.2821369-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+With CONFIG_RC_CORE=m and VIDEO_CX231XX=y, we get a link failure:
 
-On Wed, Apr 25, 2018 at 01:00:13PM +0200, Jacopo Mondi wrote:
-> Add device tree bindings documentation for Micron MT9T111/MT9T112 image
-> sensors.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  Documentation/devicetree/bindings/mt9t112.txt | 41 +++++++++++++++++++++++++++
->  1 file changed, 41 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/mt9t112.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/mt9t112.txt b/Documentation/devicetree/bindings/mt9t112.txt
-> new file mode 100644
-> index 0000000..cbad475
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/mt9t112.txt
-> @@ -0,0 +1,41 @@
-> +Micron 3.1Mp CMOS Digital Image Sensor
-> +--------------------------------------
-> +
-> +The Micron MT9T111 and MT9T112 are 1/4 inch 3.1Mp System-On-A-Chip (SOC) CMOS
-> +digital image sensors which support up to QXGA (2048x1536) image resolution in
-> +4/3 format.
-> +
-> +The sensors can be programmed through a two-wire serial interface and can
-> +work both in parallel data output mode as well as in MIPI CSI-2 mode.
-> +
-> +Required Properties:
-> +- compatible: shall be one of the following values
-> +  	"micron,mt9t111" for MT9T111 sensors
-> +	"micron,mt9t112" for MT9T112 sensors
-> +
-> +Optional properties:
-> +- powerdown-gpios: reference to powerdown input GPIO signal. Pin name "STANDBY".
-> +  Active level is high.
-> +
-> +The device node shall contain one 'port' sub-node with one 'endpoint' child
-> +node, modeled accordingly to bindings described in:
-> +Documentation/devicetree/bindings/media/video-interfaces.txt
-> +
-> +Example:
-> +--------
-> +
-> +	mt9t112@3d {
-> +		compatible = "micron,mt9t112";
-> +		reg = <0x3d>;
-> +
-> +		powerdown-gpios = <&gpio4 2 GPIO_ACTIVE_HIGH>;
-> +
-> +		port {
-> +			mt9t112_out: endpoint {
-> +				pclk-sample = <1>;
+drivers/media/usb/cx231xx/cx231xx-input.o: In function `cx231xx_ir_init':
+cx231xx-input.c:(.text+0xd4): undefined reference to `rc_allocate_device'
 
-Could you document pclk-sample as an endpoint property? I'd suggest making
-it optional with a default configuration.
+This narrows down the dependency so that only valid configurations
+are allowed.
 
-> +				remote-endpoint = <&ceu_in>;
-> +			};
-> +		};
-> +	};
-> +
-> +
+Fixes: 84545d2a1436 ("media: cx231xx: Remove RC_CORE dependency")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/usb/cx231xx/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
+index 0f13192634c7..9e5b3e7c3ef5 100644
+--- a/drivers/media/usb/cx231xx/Kconfig
++++ b/drivers/media/usb/cx231xx/Kconfig
+@@ -15,7 +15,7 @@ config VIDEO_CX231XX
+ 
+ config VIDEO_CX231XX_RC
+ 	bool "Conexant cx231xx Remote Controller additional support"
+-	depends on RC_CORE
++	depends on RC_CORE=y || RC_CORE=VIDEO_CX231XX
+ 	depends on VIDEO_CX231XX
+ 	default y
+ 	---help---
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.9.0
