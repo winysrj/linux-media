@@ -1,117 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0066.outbound.protection.outlook.com ([104.47.37.66]:23488
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752272AbeEGRpf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 13:45:35 -0400
-Date: Mon, 7 May 2018 10:45:06 -0700
-From: Hyun Kwon <hyun.kwon@xilinx.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Satish Kumar Nagireddy <SATISHNA@xilinx.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "michal.simek@xilinx.com" <michal.simek@xilinx.com>,
-        Hyun Kwon <hyunk@xilinx.com>
-Subject: Re: [PATCH v5 0/8] Add support for multi-planar formats and 10 bit
- formats
-Message-ID: <20180507174504.GA23132@smtp.xilinx.com>
-References: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
- <52e91f0d-e520-9de1-56f7-40cfb45dc7bc@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-In-Reply-To: <52e91f0d-e520-9de1-56f7-40cfb45dc7bc@xs4all.nl>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:45379 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1030816AbeEYXxw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 19:53:52 -0400
+Received: by mail-pf0-f194.google.com with SMTP id c10-v6so3257036pfi.12
+        for <linux-media@vger.kernel.org>; Fri, 25 May 2018 16:53:51 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 4/6] media: imx-csi: Enable interlaced scan for field type alternate
+Date: Fri, 25 May 2018 16:53:34 -0700
+Message-Id: <1527292416-26187-5-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Interlaced scan, a.k.a. interweave, should be enabled at the CSI IDMAC
+output pad if the input field type is 'alternate' (in addition to field
+types 'seq-tb' and 'seq-bt').
 
-Thanks for the comment.
+Which brings up whether V4L2_FIELD_HAS_BOTH() macro should be used
+to determine enabling interlaced/interweave scan. That macro
+includes the 'interlaced' field types, and in those cases the data
+is already interweaved with top/bottom field lines. A heads-up for
+now that this if statement may need to call V4L2_FIELD_IS_SEQUENTIAL()
+instead, I have no sensor hardware that sends 'interlaced' data, so can't
+test.
 
-On Mon, 2018-05-07 at 05:59:39 -0700, Hans Verkuil wrote:
-> Hi Satish,
-> 
-> On 03/05/18 04:42, Satish Kumar Nagireddy wrote:
-> >  The patches are for xilinx v4l. The patcheset enable support to handle multiplanar
-> >  formats and 10 bit formats. Single planar implementation is removed as mplane can
-> >  handle both.
-> 
-> If I understand the format correctly, then the planes are contiguous in memory,
-> i.e. it is a single buffer.
-> 
-> You do not need to switch to the _MPLANE API for that: that API is meant for the
-> case where the planes are not contiguous in memory but each plane has its own
-> buffer. And yes, we should have called it the _MBUFFER API or something :-(
-> 
-> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-nv12.html
-> 
-> Switching to the _MPLANE API will actually break userspace, so that's another
-> reason why you shouldn't do this. But from what I can tell, it really isn't
-> needed at all.
-> 
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Sharing some background to get your further input. :-)
-
-The Xilinx V4L driver is currently only for the soft IPs, which are
-programmable on FPGA, and those IPs are constantly updated. Initially, IPs
-didn't support _MPLANE formats, so it started with single buffer type format.
-Now, the IPs support _MPLANE formats, even though those formats are not part of
-this patch. Those formats are in downstream vendor tree and will be upstreamed
-at some point[1]. While implementing the multi-buffer formats, we had similar
-concern regarding UAPI and ended up having the module param[2]. It was there
-for a couple of Xilinx release cycles to migrate internal applications to
-_MPLANE formats and to get report if that breaks any external applications. Now
-we thought it's good time to hard-switch the driver to _MPLANE completely
-rather than keeping single buffer code, especially because it seems legal to
-support single buffer formats with _MPLANE type. If this is not the case and
-the applications with single buffer formats but without mplane formats should
-be supported, we can revive the single buffer code in one way or another.
-
-Thanks,
--hyun
-
-[1] https://github.com/Xilinx/linux-xlnx/blob/xilinx-v2018.1/drivers/media/platform/xilinx/xilinx-vip.c#L33
-[2] https://github.com/Xilinx/linux-xlnx/blob/xilinx-v2018.1/drivers/media/platform/xilinx/xilinx-vipp.c#L40
-
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> >  Patch-set has downstream changes and bug fixes. Added new media bus format
-> >  MEDIA_BUS_FMT_VYYUYY8_1X24, new pixel format V4L2_PIX_FMT_XV15 and rst
-> >  documentation.
-> > 
-> > Jeffrey Mouroux (1):
-> >   uapi: media: New fourcc code and rst for 10 bit format
-> > 
-> > Radhey Shyam Pandey (1):
-> >   v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
-> > 
-> > Rohit Athavale (1):
-> >   xilinx: v4l: dma: Update driver to allow for probe defer
-> > 
-> > Satish Kumar Nagireddy (4):
-> >   media-bus: uapi: Add YCrCb 420 media bus format and rst
-> >   v4l: xilinx: dma: Update video format descriptor
-> >   v4l: xilinx: dma: Add multi-planar support
-> >   v4l: xilinx: dma: Add support for 10 bit formats
-> > 
-> > Vishal Sagar (1):
-> >   xilinx: v4l: dma: Terminate DMA when media pipeline fail to start
-> > 
-> >  Documentation/media/uapi/v4l/pixfmt-xv15.rst    | 134 +++++++++++++++++++
-> >  Documentation/media/uapi/v4l/subdev-formats.rst |  38 +++++-
-> >  Documentation/media/uapi/v4l/yuv-formats.rst    |   1 +
-> >  drivers/media/platform/xilinx/xilinx-dma.c      | 170 +++++++++++++++---------
-> >  drivers/media/platform/xilinx/xilinx-dma.h      |   4 +-
-> >  drivers/media/platform/xilinx/xilinx-vip.c      |  37 ++++--
-> >  drivers/media/platform/xilinx/xilinx-vip.h      |  15 ++-
-> >  drivers/media/platform/xilinx/xilinx-vipp.c     |  16 +--
-> >  include/uapi/linux/media-bus-format.h           |   3 +-
-> >  include/uapi/linux/videodev2.h                  |   1 +
-> >  10 files changed, 333 insertions(+), 86 deletions(-)
-> >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-xv15.rst
-> > 
-> 
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 9bc555c..eef3483 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -477,7 +477,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	ipu_smfc_set_burstsize(priv->smfc, burst_size);
+ 
+ 	if (image.pix.field == V4L2_FIELD_NONE &&
+-	    V4L2_FIELD_HAS_BOTH(infmt->field))
++	    (V4L2_FIELD_HAS_BOTH(infmt->field) ||
++	     infmt->field == V4L2_FIELD_ALTERNATE))
+ 		ipu_cpmem_interlaced_scan(priv->idmac_ch,
+ 					  image.pix.bytesperline);
+ 
+-- 
+2.7.4
