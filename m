@@ -1,122 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:54640 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933858AbeEIK5Y (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 06:57:24 -0400
-Date: Wed, 9 May 2018 12:57:19 +0200
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [RFC PATCH] media: i2c: add SCCB helpers
-Message-ID: <20180509105719.bydr4rla23okvlbf@earth.universe>
-References: <1524759212-10941-1-git-send-email-akinobu.mita@gmail.com>
+Received: from gofer.mess.org ([88.97.38.141]:60415 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934496AbeEYN7n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 09:59:43 -0400
+Date: Fri, 25 May 2018 14:59:41 +0100
+From: Sean Young <sean@mess.org>
+To: =?utf-8?Q?Micha=C5=82?= Winiarski <michal.winiarski@intel.com>
+Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH 3/3] media: rc: nuvoton: Keep device enabled during reg
+ init
+Message-ID: <20180525135941.v3eopzko4joduitx@gofer.mess.org>
+References: <20180521143803.25664-1-michal.winiarski@intel.com>
+ <20180521143803.25664-3-michal.winiarski@intel.com>
+ <20180524113140.s365usmtbnnzn6ft@gofer.mess.org>
+ <20180525133523.a42pueu4gvkx6k32@mwiniars-main.ger.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="vp2f7cbv3yvkhsd2"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <1524759212-10941-1-git-send-email-akinobu.mita@gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180525133523.a42pueu4gvkx6k32@mwiniars-main.ger.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, May 25, 2018 at 03:35:23PM +0200, Michał Winiarski wrote:
+> On Thu, May 24, 2018 at 12:31:40PM +0100, Sean Young wrote:
+> > On Mon, May 21, 2018 at 04:38:03PM +0200, Michał Winiarski wrote:
+> > > Doing writes when the device is disabled seems to be a NOOP.
+> > > Let's enable the device, write the values, and then disable it on init.
+> > > This changes the behavior for wake device, which is now being disabled
+> > > after init.
+> > 
+> > I don't have the datasheet so I might be misunderstanding this. We want
+> > the IR wakeup to work fine even after kernel crash/power loss, right?
+> 
+> [snip]
+> 
+> Right, that makes sense. I completely ignored this scenario.
+>  
+> > > -	/* enable the CIR WAKE logical device */
+> > > -	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR_WAKE);
+> > > +	nvt_disable_logical_dev(nvt, LOGICAL_DEV_CIR);
+> > 
+> > The way I read this is that the CIR, not CIR_WAKE, is being disabled,
+> > which seems contrary to what the commit message says.
+> > 
+> 
+> That's a typo. And by accident it makes the wake_device work correctly :)
+> I think that registers init logic was still broken though, operating under the
+> assumption that the device is enabled on module load...
+> 
+> I guess we should just remove disable(LOGICAL_DEV_CIR) from wake_regs_init.
+> 
+> Have you already included this in any non-rebasing tree?
 
---vp2f7cbv3yvkhsd2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Nothing has been applied yet.
 
-Hi,
+> Should I send a v2 or fixup on top?
 
-On Fri, Apr 27, 2018 at 01:13:32AM +0900, Akinobu Mita wrote:
-> diff --git a/drivers/media/i2c/sccb.c b/drivers/media/i2c/sccb.c
-> new file mode 100644
-> index 0000000..80a3fb7
-> --- /dev/null
-> +++ b/drivers/media/i2c/sccb.c
-> @@ -0,0 +1,35 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +
-> +#include <linux/i2c.h>
-> +
-> +int sccb_read_byte(struct i2c_client *client, u8 addr)
-> +{
-> +	int ret;
-> +	u8 val;
-> +
-> +	/* Issue two separated requests in order to avoid repeated start */
-> +
-> +	ret = i2c_master_send(client, &addr, 1);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = i2c_master_recv(client, &val, 1);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return val;
-> +}
-> +EXPORT_SYMBOL_GPL(sccb_read_byte);
-> +
-> +int sccb_write_byte(struct i2c_client *client, u8 addr, u8 data)
-> +{
-> +	int ret;
-> +	unsigned char msgbuf[] = { addr, data };
-> +
-> +	ret = i2c_master_send(client, msgbuf, 2);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(sccb_write_byte);
-> diff --git a/drivers/media/i2c/sccb.h b/drivers/media/i2c/sccb.h
-> new file mode 100644
-> index 0000000..68da0e9
-> --- /dev/null
-> +++ b/drivers/media/i2c/sccb.h
-> @@ -0,0 +1,14 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/*
-> + * SCCB helper functions
-> + */
-> +
-> +#ifndef __SCCB_H__
-> +#define __SCCB_H__
-> +
-> +#include <linux/i2c.h>
-> +
-> +int sccb_read_byte(struct i2c_client *client, u8 addr);
-> +int sccb_write_byte(struct i2c_client *client, u8 addr, u8 data);
-> +
-> +#endif /* __SCCB_H__ */
+I don't have the hardware to test this, a v2 would be appreciated.
 
-The functions look very simple. Have you considered moving them into
-sccb.h as static inline?
+We're late in the release cycle and I'm wondering if this patch would also
+solve the nuvoton probe problem:
 
--- Sebastian
+https://patchwork.linuxtv.org/patch/49874/
 
---vp2f7cbv3yvkhsd2
-Content-Type: application/pgp-signature; name="signature.asc"
+Thanks,
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlry1AwACgkQ2O7X88g7
-+ppZiQ/+IOg8QZJE7UEh/JQSIT2A3UfR/KZy+EeTGmvr9QnVkm+xa6wMWXyKfxv5
-CQM/l2+f0iZkcx9sGFstdMCyUz6q0XGlck6BUAM9yltI30Fz1xBldYriyYyAAs+2
-2r3ao/hAeRxrT3/PxduzXBTJASM+56vJaP2O3YitV3MfyowmOuKu4HDYPTzSkgoC
-j1hHOkYP02p/rVUR2i7/7BNuomx9Z4TJeDo3Y26F61TDdGeYvbrDeSRyRwXiNIzm
-b2C6RMSd0Udkhd9DluZAg4OhOEKscsh35shhTcFAh3BNBs8WivQEjVeivb3ZVu/s
-i+wHwggWudbarEqUE5oB0T8zhd5lbKybSzRVaU5qldbBJFdjdWchhhcfnZNuRVFe
-lR4pYth+3o19cz21g9UKM5b4lfV4UVEEDn8hP6J3L94R/4MTagBgEykTdk2M4Nss
-F/AdJwiMMKX/2y6FwcfbJf/lniCdiKlpt2HQKwzOXMQN9O/KzHe393HNEVYCPk8L
-ioYcAj0V4Af8yCuoHMP+FKOAw67SbondY1W+VO5+IqjFXU7Zd1bZQcrpTklHhFO9
-Re1+kq3bvV9PHI07JykCf+RDVpgW+GgnFxxHOJV/Xsy9NBwDzpnNLQI2R5cDuQmm
-F1fW87mMwg941Q6OnnFh9tPVXOYBWHZSbwXZSxBu8xeMMiXgdHI=
-=daai
------END PGP SIGNATURE-----
-
---vp2f7cbv3yvkhsd2--
+Sean
