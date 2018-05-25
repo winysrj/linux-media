@@ -1,172 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:46650 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933573AbeEIQdL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 May 2018 12:33:11 -0400
-Date: Wed, 9 May 2018 17:33:01 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Ezequiel Garcia <ezequiel@collabora.com>
-Cc: linux-media@vger.kernel.org, kernel@collabora.com,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH v9 10/15] vb2: add explicit fence user API
-Message-ID: <20180509163300.GA23664@e107564-lin.cambridge.arm.com>
-References: <20180504200612.8763-1-ezequiel@collabora.com>
- <20180504200612.8763-11-ezequiel@collabora.com>
- <20180509103353.GA39838@e107564-lin.cambridge.arm.com>
- <e52f72ea1fdf491dd10a9a40bbced6d3bad66f7b.camel@collabora.com>
+Received: from bombadil.infradead.org ([198.137.202.133]:45524 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1030538AbeEYXKb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 19:10:31 -0400
+Date: Fri, 25 May 2018 20:10:27 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.18] R-Car VSP1 TLB optimisation
+Message-ID: <20180525201027.1d5c82eb@vento.lan>
+In-Reply-To: <10831984.07PNLvckhh@avalon>
+References: <10831984.07PNLvckhh@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <e52f72ea1fdf491dd10a9a40bbced6d3bad66f7b.camel@collabora.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 09, 2018 at 12:52:26PM -0300, Ezequiel Garcia wrote:
->On Wed, 2018-05-09 at 11:33 +0100, Brian Starkey wrote:
->> Hi Ezequiel,
->>
->> On Fri, May 04, 2018 at 05:06:07PM -0300, Ezequiel Garcia wrote:
->> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
->> >
->> > Turn the reserved2 field into fence_fd that we will use to send
->> > an in-fence to the kernel or return an out-fence from the kernel to
->> > userspace.
->> >
->> > Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
->> > when sending an in-fence to the kernel to be waited on, and
->> > V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
->> >
->> > v7: minor fixes on the Documentation (Hans Verkuil)
->> >
->> > v6: big improvement on doc (Hans Verkuil)
->> >
->> > v5: - keep using reserved2 field for cpia2
->> >    - set fence_fd to 0 for now, for compat with userspace(Mauro)
->> >
->> > v4: make it a union with reserved2 and fence_fd (Hans Verkuil)
->> >
->> > v3: make the out_fence refer to the current buffer (Hans Verkuil)
->> >
->> > v2: add documentation
->> >
->> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
->> > ---
->> > Documentation/media/uapi/v4l/buffer.rst         | 45 +++++++++++++++++++++++--
->> > drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
->> > drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  4 +--
->> > include/uapi/linux/videodev2.h                  |  8 ++++-
->> > 4 files changed, 52 insertions(+), 7 deletions(-)
->> >
->> > diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
->> > index e2c85ddc990b..be9719cf5745 100644
->> > --- a/Documentation/media/uapi/v4l/buffer.rst
->> > +++ b/Documentation/media/uapi/v4l/buffer.rst
->> > @@ -301,10 +301,22 @@ struct v4l2_buffer
->> > 	elements in the ``planes`` array. The driver will fill in the
->> > 	actual number of valid elements in that array.
->> >     * - __u32
->> > -      - ``reserved2``
->> > +      - ``fence_fd``
->> >       -
->> > -      - A place holder for future extensions. Drivers and applications
->> > -	must set this to 0.
->> > +      - Used to communicate a fence file descriptors from userspace to kernel
->> > +	and vice-versa. On :ref:`VIDIOC_QBUF <VIDIOC_QBUF>` when sending
->> > +	an in-fence for V4L2 to wait on, the ``V4L2_BUF_FLAG_IN_FENCE`` flag must
->> > +	be used and this field set to the fence file descriptor of the in-fence.
->> > +	If the in-fence is not valid ` VIDIOC_QBUF`` returns an error.
->> > +
->> > +        To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE``
->> > +	must be set, the kernel will return the out-fence file descriptor in
->> > +	this field. If it fails to create the out-fence ``VIDIOC_QBUF` returns
->> > +        an error.
->> > +
->> > +	For all other ioctls V4L2 sets this field to -1 if
->> > +	``V4L2_BUF_FLAG_IN_FENCE`` and/or ``V4L2_BUF_FLAG_OUT_FENCE`` are set,
->> > +	otherwise this field is set to 0 for backward compatibility.
->> >     * - __u32
->> >       - ``reserved``
->> >       -
->> > @@ -648,6 +660,33 @@ Buffer Flags
->> >       - Start Of Exposure. The buffer timestamp has been taken when the
->> > 	exposure of the frame has begun. This is only valid for the
->> > 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
->> > +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
->> > +
->> > +      - ``V4L2_BUF_FLAG_IN_FENCE``
->> > +      - 0x00200000
->> > +      - Ask V4L2 to wait on the fence passed in the ``fence_fd`` field. The
->> > +	buffer won't be queued to the driver until the fence signals. The order
->> > +	in which buffers are queued is guaranteed to be preserved, so any
->> > +	buffers queued after this buffer will also be blocked until this fence
->> > +	signals. This flag must be set before calling ``VIDIOC_QBUF``. For
->> > +	other ioctls the driver just reports the value of the flag.
->> > +
->> > +        If the fence signals the flag is cleared and not reported anymore.
->> > +	If the fence is not valid ``VIDIOC_QBUF`` returns an error.
->> > +
->> > +
->> > +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
->> > +
->> > +      - ``V4L2_BUF_FLAG_OUT_FENCE``
->> > +      - 0x00400000
->> > +      - Request for a fence to be attached to the buffer. The driver will fill
->> > +	in the out-fence fd in the ``fence_fd`` field when :ref:`VIDIOC_QBUF
->> > +	<VIDIOC_QBUF>` returns. This flag must be set before calling
->> > +	``VIDIOC_QBUF``. For other ioctls the driver just reports the value of
->> > +	the flag.
->> > +
->> > +        If the creation of the out-fence fails ``VIDIOC_QBUF`` returns an
->> > +	error.
->> >
->>
->> I commented similarly on some of the old patch-sets, and it's a minor
->> thing, but I still think the ordering of this series is off. It's
->> strange/wrong to me document all this behaviour, and expose the flags
->> to userspace, when the functionality isn't implemented yet.
->>
->> If I apply this patch to the kernel, then the kernel doesn't do what
->> the (newly added) kernel-doc says it will.
->>
->
->This has never been a problem, and it has always been the canonical
->way of doing things.
->
->First the required macros, stubs, documentation and interfaces are added,
->and then they are implemented.
+Em Sun, 20 May 2018 15:10:50 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-If you say so, I don't know what sets the standard but that seems
-kinda backwards.
+> Hi Mauro,
+> 
+> The following changes since commit 8ed8bba70b4355b1ba029b151ade84475dd12991:
+> 
+>   media: imx274: remove non-indexed pointers from mode_table (2018-05-17 
+> 06:22:08 -0400)
+> 
+> are available in the Git repository at:
+> 
+>   git://linuxtv.org/pinchartl/media.git v4l2/vsp1/next
+> 
+> for you to fetch changes up to 429f256501652c90a4ed82f2416618f82a77d37c:
+> 
+>   media: vsp1: Move video configuration to a cached dlb (2018-05-20 09:46:51 
+> +0300)
+> 
+> The branch passes the VSP and DU test suites, both on its own and when merged 
+> with the drm-next branch.
 
-I'd expect the "flick the switch, expose to userspace" to always be
-the last thing, but I'm happy to be shown examples to the contrary.
+This series added a new warning:
 
->
->I see no reason to go berserk here, unless you see an actual problem?
->Or something actually broken?
->
+drivers/media/platform/vsp1/vsp1_dl.c:69: warning: Function parameter or member 'refcnt' not described in 'vsp1_dl_body'
 
-The only "broken" thing, is as I said - I can apply this patch to a
-kernel (any kernel, because there's no dependencies in the code), and
-it won't do what the kernel-doc says it will.
+To the already existing one:
 
-Maybe I'm crazy, but shouldn't comments at least be correct at the
-point where they are added, even if they become incorrect later
-through neglect?
+drivers/media/platform/vsp1/vsp1_drm.c:336 vsp1_du_pipeline_setup_brx() error: we previously assumed 'pipe->brx' could be null (see line 244)
 
-Cheers,
--Brian
+(there's also a Spectre warning too, but I'll looking into those
+in separate).
 
->The only thing I can think of is that we should return fence_fd -1
->if the flags are set. We could do it on this patch, and be consistent
->with userspace.
->
->Regards,
->Eze
+For now, I'll apply it, but I reserve the right of not pulling any
+new patchsets that would add more warnings.
+
+
+
+> 
+> ----------------------------------------------------------------
+> Geert Uytterhoeven (1):
+>       media: vsp1: Drop OF dependency of VIDEO_RENESAS_VSP1
+> 
+> Kieran Bingham (10):
+>       media: vsp1: Release buffers for each video node
+>       media: vsp1: Move video suspend resume handling to video object
+>       media: vsp1: Reword uses of 'fragment' as 'body'
+>       media: vsp1: Protect bodies against overflow
+>       media: vsp1: Provide a body pool
+>       media: vsp1: Convert display lists to use new body pool
+>       media: vsp1: Use reference counting for bodies
+>       media: vsp1: Refactor display list configure operations
+>       media: vsp1: Adapt entities to configure into a body
+>       media: vsp1: Move video configuration to a cached dlb
+> 
+>  drivers/media/platform/Kconfig            |   2 +-
+>  drivers/media/platform/vsp1/vsp1_brx.c    |  32 ++--
+>  drivers/media/platform/vsp1/vsp1_clu.c    | 113 ++++++-----
+>  drivers/media/platform/vsp1/vsp1_clu.h    |   1 +
+>  drivers/media/platform/vsp1/vsp1_dl.c     | 388 ++++++++++++++++-------------
+>  drivers/media/platform/vsp1/vsp1_dl.h     |  21 ++-
+>  drivers/media/platform/vsp1/vsp1_drm.c    |  18 +-
+>  drivers/media/platform/vsp1/vsp1_drv.c    |   4 +-
+>  drivers/media/platform/vsp1/vsp1_entity.c |  34 +++-
+>  drivers/media/platform/vsp1/vsp1_entity.h |  45 +++--
+>  drivers/media/platform/vsp1/vsp1_hgo.c    |  26 ++-
+>  drivers/media/platform/vsp1/vsp1_hgt.c    |  28 ++-
+>  drivers/media/platform/vsp1/vsp1_hsit.c   |  20 +-
+>  drivers/media/platform/vsp1/vsp1_lif.c    |  25 ++-
+>  drivers/media/platform/vsp1/vsp1_lut.c    |  80 +++++---
+>  drivers/media/platform/vsp1/vsp1_lut.h    |   1 +
+>  drivers/media/platform/vsp1/vsp1_pipe.c   |  74 +-------
+>  drivers/media/platform/vsp1/vsp1_pipe.h   |  12 +-
+>  drivers/media/platform/vsp1/vsp1_rpf.c    | 189 ++++++++++---------
+>  drivers/media/platform/vsp1/vsp1_sru.c    |  24 +--
+>  drivers/media/platform/vsp1/vsp1_uds.c    |  73 +++----
+>  drivers/media/platform/vsp1/vsp1_uds.h    |   2 +-
+>  drivers/media/platform/vsp1/vsp1_uif.c    |  35 ++--
+>  drivers/media/platform/vsp1/vsp1_video.c  | 177 ++++++++++++-----
+>  drivers/media/platform/vsp1/vsp1_video.h  |   3 +
+>  drivers/media/platform/vsp1/vsp1_wpf.c    | 326 ++++++++++++++-------------
+>  26 files changed, 967 insertions(+), 786 deletions(-)
+> 
+
+
+
+Thanks,
+Mauro
