@@ -1,111 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:40983 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752386AbeEKLeX (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:57883 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S936185AbeEYP0k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 07:34:23 -0400
-Received: by mail-lf0-f65.google.com with SMTP id m17-v6so2308270lfj.8
-        for <linux-media@vger.kernel.org>; Fri, 11 May 2018 04:34:22 -0700 (PDT)
-Date: Fri, 11 May 2018 13:34:20 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 4/5] media: rcar-vin: Do not use crop if not configured
-Message-ID: <20180511113420.GL18974@bigcity.dyn.berto.se>
-References: <1526032781-14319-1-git-send-email-jacopo+renesas@jmondi.org>
- <1526032781-14319-5-git-send-email-jacopo+renesas@jmondi.org>
- <20180511111037.GD18974@bigcity.dyn.berto.se>
+        Fri, 25 May 2018 11:26:40 -0400
+Subject: Re: RFC: Request API and memory-to-memory devices
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+References: <157f4fc4-eebf-41ab-1e9c-93d7baefc612@xs4all.nl>
+ <20180525141655.ugmd7xki4nsqz2pg@kekkonen.localdomain>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f5db7cca-02b7-4ff7-ce4d-a1c5dcf8bf20@xs4all.nl>
+Date: Fri, 25 May 2018 17:26:36 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180511111037.GD18974@bigcity.dyn.berto.se>
+In-Reply-To: <20180525141655.ugmd7xki4nsqz2pg@kekkonen.localdomain>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi again,
+On 25/05/18 16:16, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Thu, May 24, 2018 at 10:44:13AM +0200, Hans Verkuil wrote:
+>> Memory-to-memory devices have one video node, one internal control handler
+>> but two vb2_queues (DMA engines). While often there is one buffer produced
+>> for every buffer consumed, but this is by no means standard. E.g. deinterlacers
+>> will produce on buffer for every two buffers consumed. Codecs that receive
+>> a bit stream and can parse it to discover the framing may have no relation
+>> between the number of buffers consumed and the number of buffers produced.
+> 
+> Do you have examples of such devices? I presume they're not supported in
+> the current m2m API either, are they?
+> 
+>>
+>> This poses a few problems for the Request API. Requiring that a request
+>> contains the buffers for both output and capture queue will be difficult
+>> to implement, especially in the latter case where there is no relationship
+>> between the number of consumed and produced buffers.
+>>
+>> In addition, userspace can make two requests: one for the capture queue,
+>> one for the output queue, each with associated controls. But since the
+>> controls are shared between capture and output there is an issue of
+>> what to do when the same control is set in both requests.
+> 
+> As I commented on v13, the two requests need to be handled separately in
+> this case. Mem-to-mem devices are rather special in this respect; there's
+> an established practice of matching buffers in the order they arrive from
+> the queues, but that's not how the request API is intended to work: the
+> buffers are associated to the request, and a request is processed
+> independently of other requests.
+> 
+> While that approach might work for mem-to-mem devices at least in some use
+> cases, it is not a feasible approach for other devices. As a consequence,
+> will have different API semantics between mem2mem devices and the rest. I'd
+> like to avoid that if possible: this will be similarly visible in the user
+> applications as well.
+> 
+>>
+>> I propose to restrict the usage of requests for m2m drivers to the output
+>> queue only. This keeps things simple for both kernel and userspace and
+>> avoids complex solutions.
+> 
+> If there's a convincing reason to use different API semantics, such as the
+> relationship between different buffers being unknown to the user, then
+> there very likely is a need to associate non-request data with
+> request-bound data in the driver. But it'd be better to limit it to where
+> it's really needed.
+> 
+>>
+>> Requests only make sense if there is actually configuration you can apply
+>> for each buffer, and while that's true for the output queue, on the capture
+>> queue you just capture the result of whatever the device delivers. I don't
+>> believe there is much if anything you can or want to control per-buffer.
+> 
+> May there be controls associated with the capture queue buffers?
+> 
 
-On 2018-05-11 13:10:37 +0200, Niklas Söderlund wrote:
-> Hi Jacopo,
-> 
-> Thanks for your work.
-> 
-> On 2018-05-11 11:59:40 +0200, Jacopo Mondi wrote:
-> > The crop_scale routine uses the crop rectangle memebers to configure the
-> > VIN clipping rectangle. When crop is not configured all its fields are
-> > 0s, and setting the clipping rectangle vertical and horizontal extensions
-> > to (0 - 1) causes the registers to be written with an incorrect
-> > 0xffffffff value.
-> 
-> This is an interesting find and a clear bug in my code. But I can't see 
-> how crop ever could be 0. When s_fmt is called it always resets the crop 
-> and compose width's to the requested format size.
-> 
-> I'm curious how you found this bug, I tried to reproduce it but could 
-> not. 
+In theory that could happen for m2m devices, but those controls would be different
+from controls associated with the output queue.
 
-My bad I was looking at the wrong thing, yes I can reproduce this on 
-CSI-2 capture as well. Really nice find!
+The core problem is that if there is no clear relationship between capture
+and output buffers, then you cannot add a capture and an output buffer to
+the same request. That simply wouldn't work.
 
-> This is indeed something we should fix! But I think the proper fix is 
->not allowing crop to be 0 and not treating the symptom in 
->rvin_crop_scale_comp().
-> 
-> > 
-> > Fix this by using the actual format width and height when no crop
-> > rectangle has been programmed.
-> > 
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-dma.c | 15 +++++++++------
-> >  1 file changed, 9 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > index b41ba9a..ea7a120 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > @@ -579,22 +579,25 @@ static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
-> >  
-> >  void rvin_crop_scale_comp(struct rvin_dev *vin)
-> >  {
-> > -	/* Set Start/End Pixel/Line Pre-Clip */
-> > +	u32 width = vin->crop.width ? vin->crop.left + vin->crop.width :
-> > +				      vin->format.width;
-> > +	u32 height = vin->crop.height ? vin->crop.top + vin->crop.height :
-> > +					vin->format.height;
-> > +
-> > +	/* Set Start/End Pixel/Line Pre-Clip if crop is configured. */
-> >  	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
-> > -	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
-> > +	rvin_write(vin, width - 1, VNEPPRC_REG);
-> >  
-> >  	switch (vin->format.field) {
-> >  	case V4L2_FIELD_INTERLACED:
-> >  	case V4L2_FIELD_INTERLACED_TB:
-> >  	case V4L2_FIELD_INTERLACED_BT:
-> >  		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
-> > -		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
-> > -			   VNELPRC_REG);
-> > +		rvin_write(vin, height / 2 - 1, VNELPRC_REG);
-> >  		break;
-> >  	default:
-> >  		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
-> > -		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
-> > -			   VNELPRC_REG);
-> > +		rvin_write(vin, height - 1, VNELPRC_REG);
-> >  		break;
-> >  	}
-> >  
-> > -- 
-> > 2.7.4
-> > 
-> 
-> -- 
-> Regards,
-> Niklas Söderlund
+How to signal this to the user? For m2m devices we could just specify that
+in the spec and check this in the core. As Tomasz said, m2m devices are
+already sufficiently special that I don't think this is a problem. But in
+the more generic case (complex pipelines) I cannot off-hand think of something
+elegant.
 
--- 
+I guess I would have to sleep on this a bit.
+
 Regards,
-Niklas Söderlund
+
+	Hans
