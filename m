@@ -1,310 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:45916 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964863AbeEXMvv (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33618 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934397AbeEYNmC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 08:51:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v4 10/11] media: vsp1: Support Interlaced display pipelines
-Date: Thu, 24 May 2018 15:51:46 +0300
-Message-ID: <2663986.uvcnutGSNp@avalon>
-In-Reply-To: <8e320ac8861b7fdd657a66138780c18fd66b1a19.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com> <8e320ac8861b7fdd657a66138780c18fd66b1a19.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Fri, 25 May 2018 09:42:02 -0400
+Date: Fri, 25 May 2018 15:41:59 +0200
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        andy.yeh@intel.com
+Subject: Re: [PATCH v2 2/2] smiapp: Support the "upside-down" property
+Message-ID: <20180525134159.ju7dz3dp7wtveswc@earth.universe>
+References: <20180525122726.3409-1-sakari.ailus@linux.intel.com>
+ <20180525122726.3409-3-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="dhjtmgxncbav75rz"
+Content-Disposition: inline
+In-Reply-To: <20180525122726.3409-3-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
 
-Thank you for the patch.
+--dhjtmgxncbav75rz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday, 3 May 2018 16:36:21 EEST Kieran Bingham wrote:
-> Calculate the top and bottom fields for the interlaced frames and
-> utilise the extended display list command feature to implement the
-> auto-field operations. This allows the DU to update the VSP2 registers
-> dynamically based upon the currently processing field.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
+Hi,
+
+On Fri, May 25, 2018 at 03:27:26PM +0300, Sakari Ailus wrote:
+> Use the "upside-down" property to tell that the sensor is mounted upside
+> down. This reverses the behaviour of the VFLIP and HFLIP controls as well
+> as the pixel order.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
-> v3:
->  - Pass DL through partition calls to allow autocmd's to be retrieved
->  - Document interlaced field in struct vsp1_du_atomic_config
-> 
-> v2:
->  - fix erroneous BIT value which enabled interlaced
->  - fix field handling at frame_end interrupt
-> ---
->  drivers/media/platform/vsp1/vsp1_dl.c   | 10 ++++-
->  drivers/media/platform/vsp1/vsp1_drm.c  | 11 ++++-
->  drivers/media/platform/vsp1/vsp1_regs.h |  1 +-
->  drivers/media/platform/vsp1/vsp1_rpf.c  | 71 ++++++++++++++++++++++++--
->  drivers/media/platform/vsp1/vsp1_rwpf.h |  1 +-
->  include/media/vsp1.h                    |  2 +-
->  6 files changed, 93 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
-> b/drivers/media/platform/vsp1/vsp1_dl.c index d33ae5f125bd..bbe9f3006f71
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> @@ -906,6 +906,8 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool
-> internal) */
->  unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
->  {
-> +	struct vsp1_device *vsp1 = dlm->vsp1;
-> +	u32 status = vsp1_read(vsp1, VI6_STATUS);
->  	unsigned int flags = 0;
-> 
->  	spin_lock(&dlm->lock);
-> @@ -931,6 +933,14 @@ unsigned int vsp1_dlm_irq_frame_end(struct
-> vsp1_dl_manager *dlm) goto done;
-> 
->  	/*
-> +	 * Progressive streams report only TOP fields. If we have a BOTTOM
-> +	 * field, we are interlaced, and expect the frame to complete on the
-> +	 * next frame end interrupt.
-> +	 */
-> +	if (status & VI6_STATUS_FLD_STD(dlm->index))
-> +		goto done;
-> +
-> +	/*
->  	 * The device starts processing the queued display list right after the
->  	 * frame end interrupt. The display list thus becomes active.
->  	 */
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> b/drivers/media/platform/vsp1/vsp1_drm.c index 2c3db8b8adce..cc29c9d96bb7
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -811,6 +811,17 @@ int vsp1_du_atomic_update(struct device *dev, unsigned
-> int pipe_index, return -EINVAL;
->  	}
-> 
-> +	if (!(vsp1_feature(vsp1, VSP1_HAS_EXT_DL)) && cfg->interlaced) {
 
-Nitpicking, writing the condition as
+Patch subject and description should be s/"upside-down"/"rotation"/g ?
 
-	if (cfg->interlaced && !(vsp1_feature(vsp1, VSP1_HAS_EXT_DL)))
+>  .../devicetree/bindings/media/i2c/nokia,smia.txt         |  2 ++
+>  drivers/media/i2c/smiapp/smiapp-core.c                   | 16 ++++++++++=
+++++++
+>  2 files changed, 18 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b=
+/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> index 33f10a94c381..6f509657470e 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> @@ -29,6 +29,8 @@ Optional properties
+>  - reset-gpios: XSHUTDOWN GPIO
+>  - flash-leds: See ../video-interfaces.txt
+>  - lens-focus: See ../video-interfaces.txt
+> +- rotation: Integer property; valid values are 0 (sensor mounted upright)
+> +	    and 180 (sensor mounted upside down).
+> =20
+> =20
+>  Endpoint node mandatory properties
+> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/s=
+miapp/smiapp-core.c
+> index e1f8208581aa..32286df6ab43 100644
+> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> @@ -2764,6 +2764,7 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(=
+struct device *dev)
+>  	struct v4l2_fwnode_endpoint *bus_cfg;
+>  	struct fwnode_handle *ep;
+>  	struct fwnode_handle *fwnode =3D dev_fwnode(dev);
+> +	u32 rotation;
+>  	int i;
+>  	int rval;
+> =20
+> @@ -2800,6 +2801,21 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig=
+(struct device *dev)
+> =20
+>  	dev_dbg(dev, "lanes %u\n", hwcfg->lanes);
+> =20
+> +	rval =3D fwnode_property_read_u32(fwnode, "upside-down", &rotation);
 
-would match the comment better. You can also drop the parentheses around the 
-vsp1_feature() call.
+"rotation"
 
-> +		/*
-> +		 * Interlaced support requires extended display lists to
-> +		 * provide the auto-fld feature with the DU.
-> +		 */
-> +		dev_dbg(vsp1->dev, "Interlaced unsupported on this output\n");
-
-Could we catch this in the DU driver to fail atomic test ?
-
-> +		return -EINVAL;
+> +	if (!rval) {
+> +		switch (rotation) {
+> +		case 180:
+> +			hwcfg->module_board_orient =3D
+> +				SMIAPP_MODULE_BOARD_ORIENT_180;
+> +			/* Fall through */
+> +		case 0:
+> +			break;
+> +		default:
+> +			dev_err(dev, "invalid rotation %u\n", rotation);
+> +			goto out_err;
+> +		}
 > +	}
 > +
-> +	rpf->interlaced = cfg->interlaced;
-> +
->  	rpf->fmtinfo = fmtinfo;
->  	rpf->format.num_planes = fmtinfo->planes;
->  	rpf->format.plane_fmt[0].bytesperline = cfg->pitch;
-> diff --git a/drivers/media/platform/vsp1/vsp1_regs.h
-> b/drivers/media/platform/vsp1/vsp1_regs.h index d054767570c1..a2ac65cc5155
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_regs.h
-> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
-> @@ -28,6 +28,7 @@
->  #define VI6_SRESET_SRTS(n)		(1 << (n))
-> 
->  #define VI6_STATUS			0x0038
-> +#define VI6_STATUS_FLD_STD(n)		(1 << ((n) + 28))
->  #define VI6_STATUS_SYS_ACT(n)		(1 << ((n) + 8))
-> 
->  #define VI6_WPF_IRQ_ENB(n)		(0x0048 + (n) * 12)
-> diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c
-> b/drivers/media/platform/vsp1/vsp1_rpf.c index 8fae7c485642..511b2e127820
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_rpf.c
-> +++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-> @@ -20,6 +20,20 @@
->  #define RPF_MAX_WIDTH				8190
->  #define RPF_MAX_HEIGHT				8190
-> 
-> +/* Pre extended display list command data structure */
-> +struct vsp1_extcmd_auto_fld_body {
-> +	u32 top_y0;
-> +	u32 bottom_y0;
-> +	u32 top_c0;
-> +	u32 bottom_c0;
-> +	u32 top_c1;
-> +	u32 bottom_c1;
-> +	u32 reserved0;
-> +	u32 reserved1;
-> +} __packed;
-> +
-> +#define VSP1_DL_EXT_AUTOFLD_INT		BIT(0)
+>  	/* NVM size is not mandatory */
+>  	fwnode_property_read_u32(fwnode, "nokia,nvm-size", &hwcfg->nvm_size);
 
-Should the bit definition be moved to vsp1_regs.h ?
+-- Sebastian
 
->  /* ------------------------------------------------------------------------
->   * Device Access
->   */
-> @@ -64,6 +78,14 @@ static void rpf_configure_stream(struct vsp1_entity
-> *entity, pstride |= format->plane_fmt[1].bytesperline
->  			<< VI6_RPF_SRCM_PSTRIDE_C_SHIFT;
-> 
-> +	/*
-> +	 * pstride has both STRIDE_Y and STRIDE_C, but multiplying the whole
-> +	 * of pstride by 2 is conveniently OK here as we are multiplying both
-> +	 * values.
-> +	 */
-> +	if (rpf->interlaced)
-> +		pstride *= 2;
-> +
->  	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_PSTRIDE, pstride);
-> 
->  	/* Format */
-> @@ -100,6 +122,9 @@ static void rpf_configure_stream(struct vsp1_entity
-> *entity, top = compose->top;
->  	}
-> 
-> +	if (rpf->interlaced)
-> +		top /= 2;
-> +
->  	vsp1_rpf_write(rpf, dlb, VI6_RPF_LOC,
->  		       (left << VI6_RPF_LOC_HCOORD_SHIFT) |
->  		       (top << VI6_RPF_LOC_VCOORD_SHIFT));
-> @@ -169,6 +194,31 @@ static void rpf_configure_stream(struct vsp1_entity
-> *entity,
-> 
->  }
-> 
-> +static void vsp1_rpf_configure_autofld(struct vsp1_rwpf *rpf,
-> +				       struct vsp1_dl_ext_cmd *cmd)
-> +{
-> +	const struct v4l2_pix_format_mplane *format = &rpf->format;
-> +	struct vsp1_extcmd_auto_fld_body *auto_fld = cmd->data;
-> +	u32 offset_y, offset_c;
-> +
-> +	/* Re-index our auto_fld to match the current RPF */
+--dhjtmgxncbav75rz
+Content-Type: application/pgp-signature; name="signature.asc"
 
-s/RPF/RPF./
+-----BEGIN PGP SIGNATURE-----
 
-> +	auto_fld = &auto_fld[rpf->entity.index];
-> +
-> +	auto_fld->top_y0 = rpf->mem.addr[0];
-> +	auto_fld->top_c0 = rpf->mem.addr[1];
-> +	auto_fld->top_c1 = rpf->mem.addr[2];
-> +
-> +	offset_y = format->plane_fmt[0].bytesperline;
-> +	offset_c = format->plane_fmt[1].bytesperline;
-> +
-> +	auto_fld->bottom_y0 = rpf->mem.addr[0] + offset_y;
-> +	auto_fld->bottom_c0 = rpf->mem.addr[1] + offset_c;
-> +	auto_fld->bottom_c1 = rpf->mem.addr[2] + offset_c;
-> +
-> +	cmd->flags |= VSP1_DL_EXT_AUTOFLD_INT;
-> +	cmd->flags |= BIT(16 + rpf->entity.index);
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlsIEqQACgkQ2O7X88g7
++povKQ//dol6a49oUiScNQN96wjIBLdzZERFor5/ckQqQQnEoKGWYkQM+Zi31CMW
+V/bOcOjPvlET38pyrlTsOAEeLLYrZH+Qyb84v1X5fY9l7MdAXKqdCuKkPaSiLfTB
+7JUH6je9yOX1EpdMLfD5zZUXhNJsz1joGdtDAAkswt9Pu0i9I0z9dU62mWF9x8XI
+0uZnmqIk7U6YSRhggdT0V2ke97Nh1wBK02DL7KX8mSJTrNy1KAJ9rVSlmt829H3k
+8YzA7FFSbuE5APEukOpJMUqbIJqoHwVt96m9ho3UCvb9VDRoIQGGd7mmDtxuQqCP
+byfDRGyHguzkh4BFFGSrTzbZFAp2TVckVhYB446Eb+lVRzPjfFFxS587sjuQHqXN
+Uzv35hdAi3adDiO/XpABVKHM+mY/hxPdAZKQRf6wPqkN1uwBkSGveGKlUH2O3Knl
+xAkaiRhsvDeWKsDvQssX1Vyon6SvqLvU2amOJJep9wD39nKWZc3/cfIIY+D6979G
+GsH2lLEA9bJq0QK77+xM1WrC1iJrg58Pd46nfxHUs40+JopCtcbIwP5kKjoex+lg
+NE0mzeIFWqqm9o1eP3UEq+wIuScfl42GvOyP0mNaRKMiFsvC+EP53aMo7W1i/9gL
+umuYH5vOkTGACbFeiSC0V4tlg8m+5o5on1OZH/eBYcRlm1jJPuw=
+=y4IG
+-----END PGP SIGNATURE-----
 
-Do you expect some flags to already be set ? If not, couldn't we assign the 
-value to the field instead of OR'ing it ?
-
-> +}
-> +
->  static void rpf_configure_frame(struct vsp1_entity *entity,
->  				struct vsp1_pipeline *pipe,
->  				struct vsp1_dl_list *dl,
-> @@ -192,6 +242,7 @@ static void rpf_configure_partition(struct vsp1_entity
-> *entity, struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
->  	struct vsp1_rwpf_memory mem = rpf->mem;
->  	struct vsp1_device *vsp1 = rpf->entity.vsp1;
-> +	struct vsp1_dl_ext_cmd *cmd;
->  	const struct vsp1_format_info *fmtinfo = rpf->fmtinfo;
->  	const struct v4l2_pix_format_mplane *format = &rpf->format;
->  	struct v4l2_rect crop;
-> @@ -220,6 +271,11 @@ static void rpf_configure_partition(struct vsp1_entity
-> *entity, crop.left += pipe->partition->rpf.left;
->  	}
-> 
-> +	if (rpf->interlaced) {
-> +		crop.height = round_down(crop.height / 2, fmtinfo->vsub);
-> +		crop.top = round_down(crop.top / 2, fmtinfo->vsub);
-> +	}
-> +
->  	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRC_BSIZE,
->  		       (crop.width << VI6_RPF_SRC_BSIZE_BHSIZE_SHIFT) |
->  		       (crop.height << VI6_RPF_SRC_BSIZE_BVSIZE_SHIFT));
-> @@ -248,9 +304,18 @@ static void rpf_configure_partition(struct vsp1_entity
-> *entity, fmtinfo->swap_uv)
->  		swap(mem.addr[1], mem.addr[2]);
-> 
-> -	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_Y, mem.addr[0]);
-> -	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C0, mem.addr[1]);
-> -	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C1, mem.addr[2]);
-> +	/*
-> +	 * Interlaced pipelines will use the extended pre-cmd to process
-> +	 * SRCM_ADDR_{Y,C0,C1}
-> +	 */
-> +	if (rpf->interlaced) {
-> +		cmd = vsp1_dlm_get_autofld_cmd(dl);
-
-How about moving this call to vsp1_rpf_configure_autofld() ?
-
-> +		vsp1_rpf_configure_autofld(rpf, cmd);
-> +	} else {
-> +		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_Y, mem.addr[0]);
-> +		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C0, mem.addr[1]);
-> +		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C1, mem.addr[2]);
-> +	}
->  }
-> 
->  static void rpf_partition(struct vsp1_entity *entity,
-> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h
-> b/drivers/media/platform/vsp1/vsp1_rwpf.h index 70742ecf766f..8d6e42f27908
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-> @@ -42,6 +42,7 @@ struct vsp1_rwpf {
->  	struct v4l2_pix_format_mplane format;
->  	const struct vsp1_format_info *fmtinfo;
->  	unsigned int brx_input;
-> +	bool interlaced;
-
-Shouldn't this be stored in the pipeline instead ? Interlacing is a property 
-of the whole pipeline, not of each input individually.
-
->  	unsigned int alpha;
-> 
-> diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-> index 678c24de1ac6..c10883f30980 100644
-> --- a/include/media/vsp1.h
-> +++ b/include/media/vsp1.h
-> @@ -50,6 +50,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int
-> pipe_index,
->   * @dst: destination rectangle on the display (integer coordinates)
->   * @alpha: alpha value (0: fully transparent, 255: fully opaque)
->   * @zpos: Z position of the plane (from 0 to number of planes minus 1)
-> + * @interlaced: true for interlaced pipelines
->   */
->  struct vsp1_du_atomic_config {
->  	u32 pixelformat;
-> @@ -59,6 +60,7 @@ struct vsp1_du_atomic_config {
->  	struct v4l2_rect dst;
->  	unsigned int alpha;
->  	unsigned int zpos;
-> +	bool interlaced;
-
-For the same reason shouldn't the interlaced flag be moved to 
-vsp1_du_lif_config ?
-
->  };
-> 
->  /**
-
--- 
-Regards,
-
-Laurent Pinchart
+--dhjtmgxncbav75rz--
