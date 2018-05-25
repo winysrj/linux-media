@@ -1,140 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:46976 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750811AbeEYELA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 00:11:00 -0400
-Message-ID: <dc13f038b76c67f173029b645813debf@smtp-cloud7.xs4all.net>
-Date: Fri, 25 May 2018 06:10:58 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from gofer.mess.org ([88.97.38.141]:53201 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965729AbeEYPoR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 11:44:17 -0400
+Date: Fri, 25 May 2018 16:44:15 +0100
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Subject: [GIT PULL FOR v4.18] RC fixes
+Message-ID: <20180525154415.6ncwvvcqpc5mcxrs@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+Fixes for a regression in v4.16, and broken open/close handling in the
+nuvoton driver.
 
-date:			Fri May 25 05:00:16 CEST 2018
-media-tree git hash:	8ed8bba70b4355b1ba029b151ade84475dd12991
-media_build git hash:	6d922b94bf0fcc9f0a1e52370b7d1d4fc2a59f8d
-v4l-utils git hash:	2a12796b5c22cd1a549eb8fa25db873ced811ca5
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+Thanks
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: OK
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: WARNINGS
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: WARNINGS
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: WARNINGS
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: WARNINGS
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: WARNINGS
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: WARNINGS
-linux-4.13.16-i686: WARNINGS
-linux-4.13.16-x86_64: WARNINGS
-linux-4.14.42-i686: WARNINGS
-linux-4.14.42-x86_64: WARNINGS
-linux-4.15.14-i686: WARNINGS
-linux-4.15.14-x86_64: WARNINGS
-linux-4.16.8-i686: WARNINGS
-linux-4.16.8-x86_64: WARNINGS
-linux-4.17-rc4-i686: WARNINGS
-linux-4.17-rc4-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Sean
 
-Detailed results are available here:
+The following changes since commit 8ed8bba70b4355b1ba029b151ade84475dd12991:
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+  media: imx274: remove non-indexed pointers from mode_table (2018-05-17 06:22:08 -0400)
 
-Full logs are available here:
+are available in the Git repository at:
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+  git://linuxtv.org/syoung/media_tree.git for-v4.18d
 
-The Media Infrastructure API from this daily build is here:
+for you to fetch changes up to 3b65073f8d650f2749bdac48153a126c568352b9:
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+  media: rc: ensure input/lirc device can be opened after register (2018-05-25 16:32:15 +0100)
+
+----------------------------------------------------------------
+Michał Winiarski (3):
+      media: rc: nuvoton: Tweak the interrupt enabling dance
+      media: rc: nuvoton: Keep track of users on CIR enable/disable
+      media: rc: nuvoton: Keep device enabled during reg init
+
+Sean Young (1):
+      media: rc: ensure input/lirc device can be opened after register
+
+ drivers/media/rc/nuvoton-cir.c | 89 +++++++++++++++++++-----------------------
+ drivers/media/rc/rc-main.c     |  4 +-
+ 2 files changed, 43 insertions(+), 50 deletions(-)
