@@ -1,125 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35188 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752551AbeEOH7y (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:40802 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1030721AbeEYXxu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:59:54 -0400
-Received: by mail-wr0-f196.google.com with SMTP id i14-v6so14910642wre.2
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:53 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Fri, 25 May 2018 19:53:50 -0400
+Received: by mail-pf0-f193.google.com with SMTP id f189-v6so3263683pfa.7
+        for <linux-media@vger.kernel.org>; Fri, 25 May 2018 16:53:50 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v2 24/29] venus: vdec: get required input buffers as well
-Date: Tue, 15 May 2018 10:58:54 +0300
-Message-Id: <20180515075859.17217-25-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 3/6] media: videodev2.h: Add macro V4L2_FIELD_IS_SEQUENTIAL
+Date: Fri, 25 May 2018 16:53:33 -0700
+Message-Id: <1527292416-26187-4-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rework and rename vdec_cap_num_buffers() to get the number of
-input buffers too.
+Add a macro that returns true if the given field type is 'sequential',
+that is, the data is transmitted, or exists in memory, as all top field
+lines followed by all bottom field lines, or vice-versa.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/qcom/venus/vdec.c | 41 +++++++++++++++++++-------------
- 1 file changed, 24 insertions(+), 17 deletions(-)
+ include/uapi/linux/videodev2.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index 898c5edb91f5..5a5e3e2fece4 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -603,19 +603,32 @@ static int vdec_init_session(struct venus_inst *inst)
- 	return ret;
- }
- 
--static int vdec_cap_num_buffers(struct venus_inst *inst, unsigned int *num)
-+static int vdec_num_buffers(struct venus_inst *inst, unsigned int *in_num,
-+			    unsigned int *out_num)
- {
-+	enum hfi_version ver = inst->core->res->hfi_version;
- 	struct hfi_buffer_requirements bufreq;
- 	int ret;
- 
-+	*in_num = *out_num = 0;
-+
- 	ret = vdec_init_session(inst);
- 	if (ret)
- 		return ret;
- 
-+	ret = venus_helper_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
-+	if (ret)
-+		goto deinit;
-+
-+	*in_num = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
-+
- 	ret = venus_helper_get_bufreq(inst, HFI_BUFFER_OUTPUT, &bufreq);
-+	if (ret)
-+		goto deinit;
- 
--	*num = bufreq.count_actual;
-+	*out_num = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
- 
-+deinit:
- 	hfi_session_deinit(inst);
- 
- 	return ret;
-@@ -626,7 +639,7 @@ static int vdec_queue_setup(struct vb2_queue *q,
- 			    unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct venus_inst *inst = vb2_get_drv_priv(q);
--	unsigned int p, num;
-+	unsigned int p, in_num, out_num;
- 	int ret = 0;
- 
- 	if (*num_planes) {
-@@ -649,35 +662,29 @@ static int vdec_queue_setup(struct vb2_queue *q,
- 		return 0;
- 	}
- 
-+	ret = vdec_num_buffers(inst, &in_num, &out_num);
-+	if (ret)
-+		return ret;
-+
- 	switch (q->type) {
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
- 		*num_planes = inst->fmt_out->num_planes;
- 		sizes[0] = get_framesize_compressed(inst->out_width,
- 						    inst->out_height);
- 		inst->input_buf_size = sizes[0];
-+		*num_buffers = max(*num_buffers, in_num);
- 		inst->num_input_bufs = *num_buffers;
--
--		ret = vdec_cap_num_buffers(inst, &num);
--		if (ret)
--			break;
--
--		inst->num_output_bufs = num;
-+		inst->num_output_bufs = out_num;
- 		break;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 		*num_planes = inst->fmt_cap->num_planes;
- 
--		ret = vdec_cap_num_buffers(inst, &num);
--		if (ret)
--			break;
--
--		*num_buffers = max(*num_buffers, num);
--
- 		for (p = 0; p < *num_planes; p++)
- 			sizes[p] = get_framesize_uncompressed(p, inst->width,
- 							      inst->height);
--
--		inst->num_output_bufs = *num_buffers;
- 		inst->output_buf_size = sizes[0];
-+		*num_buffers = max(*num_buffers, out_num);
-+		inst->num_output_bufs = *num_buffers;
- 		break;
- 	default:
- 		ret = -EINVAL;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 600877b..408ee96 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -126,6 +126,10 @@ enum v4l2_field {
+ 	 (field) == V4L2_FIELD_INTERLACED_BT ||\
+ 	 (field) == V4L2_FIELD_SEQ_TB ||\
+ 	 (field) == V4L2_FIELD_SEQ_BT)
++#define V4L2_FIELD_IS_SEQUENTIAL(field) \
++	((field) == V4L2_FIELD_SEQ_TB ||\
++	 (field) == V4L2_FIELD_SEQ_BT ||\
++	 (field) == V4L2_FIELD_ALTERNATE)
+ #define V4L2_FIELD_HAS_T_OR_B(field)	\
+ 	((field) == V4L2_FIELD_BOTTOM ||\
+ 	 (field) == V4L2_FIELD_TOP ||\
 -- 
-2.14.1
+2.7.4
