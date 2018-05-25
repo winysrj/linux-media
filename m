@@ -1,85 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:40347 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935047AbeEIOcO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 10:32:14 -0400
-Received: by mail-wr0-f194.google.com with SMTP id v60-v6so35831015wrc.7
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2018 07:32:13 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        devicetree@vger.kernel.org
-Subject: [PATCH v6 1/2] media: ov2680: dt: Add bindings for OV2680
-Date: Wed,  9 May 2018 15:31:58 +0100
-Message-Id: <20180509143159.20690-2-rui.silva@linaro.org>
-In-Reply-To: <20180509143159.20690-1-rui.silva@linaro.org>
-References: <20180509143159.20690-1-rui.silva@linaro.org>
+Received: from mail.bugwerft.de ([46.23.86.59]:52730 "EHLO mail.bugwerft.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S935919AbeEYH4T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 03:56:19 -0400
+Subject: Re: [PATCH v2 13/13] ARM: pxa: change SSP DMA channels allocation
+To: Robert Jarzmik <robert.jarzmik@free.fr>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        alsa-devel@alsa-project.org
+References: <20180524070703.11901-1-robert.jarzmik@free.fr>
+ <20180524070703.11901-14-robert.jarzmik@free.fr>
+From: Daniel Mack <daniel@zonque.org>
+Message-ID: <7e50d21c-c563-156f-d5d3-cd977af0e9d0@zonque.org>
+Date: Fri, 25 May 2018 09:56:13 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180524070703.11901-14-robert.jarzmik@free.fr>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for the OV2680 camera sensor.
+On Thursday, May 24, 2018 09:07 AM, Robert Jarzmik wrote:
+> Now the dma_slave_map is available for PXA architecture, switch the SSP
+> device to it.
+> 
+> This specifically means that :
+> - for platform data based machines, the DMA requestor channels are
+>    extracted from the slave map, where pxa-ssp-dai.<N> is a 1-1 match to
+>    ssp.<N>, and the channels are either "rx" or "tx".
+> 
+> - for device tree platforms, the dma node should be hooked into the
+>    pxa2xx-ac97 or pxa-ssp-dai node.
+> 
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-CC: devicetree@vger.kernel.org
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- .../devicetree/bindings/media/i2c/ov2680.txt  | 46 +++++++++++++++++++
- 1 file changed, 46 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2680.txt
+Acked-by: Daniel Mack <daniel@zonque.org>
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov2680.txt b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
-new file mode 100644
-index 000000000000..11e925ed9dad
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
-@@ -0,0 +1,46 @@
-+* Omnivision OV2680 MIPI CSI-2 sensor
-+
-+Required Properties:
-+- compatible: should be "ovti,ov2680".
-+- clocks: reference to the xvclk input clock.
-+- clock-names: should be "xvclk".
-+- DOVDD-supply: Digital I/O voltage supply.
-+- DVDD-supply: Digital core voltage supply.
-+- AVDD-supply: Analog voltage supply.
-+
-+Optional Properties:
-+- reset-gpios: reference to the GPIO connected to the powerdown/reset pin,
-+               if any. This is an active low signal to the OV2680.
-+
-+The device node must contain one 'port' child node for its digital output
-+video port, and this port must have a single endpoint in accordance with
-+ the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Endpoint node required properties for CSI-2 connection are:
-+- remote-endpoint: a phandle to the bus receiver's endpoint node.
-+- clock-lanes: should be set to <0> (clock lane on hardware lane 0).
-+- data-lanes: should be set to <1> (one CSI-2 lane supported).
-+
-+Example:
-+
-+&i2c2 {
-+	ov2680: camera-sensor@36 {
-+		compatible = "ovti,ov2680";
-+		reg = <0x36>;
-+		clocks = <&osc>;
-+		clock-names = "xvclk";
-+		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
-+		DOVDD-supply = <&sw2_reg>;
-+		DVDD-supply = <&sw2_reg>;
-+		AVDD-supply = <&reg_peri_3p15v>;
-+
-+		port {
-+			ov2680_to_mipi: endpoint {
-+				remote-endpoint = <&mipi_from_sensor>;
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+			};
-+		};
-+	};
-+};
--- 
-2.17.0
+
+We should, however, merge what's left of this management glue code into 
+the users of it, so the dma related properties can be put in the right 
+devicetree node.
+
+I'll prepare a patch for that for 4.18. This is a good preparation for 
+this round though.
+
+
+Thanks,
+Daniel
+
+
+> ---
+> Since v1: Removed channel names from platform_data
+> ---
+>   arch/arm/plat-pxa/ssp.c    | 47 ----------------------------------------------
+>   include/linux/pxa2xx_ssp.h |  2 --
+>   sound/soc/pxa/pxa-ssp.c    |  5 ++---
+>   3 files changed, 2 insertions(+), 52 deletions(-)
+> 
+> diff --git a/arch/arm/plat-pxa/ssp.c b/arch/arm/plat-pxa/ssp.c
+> index ba13f793fbce..ed36dcab80f1 100644
+> --- a/arch/arm/plat-pxa/ssp.c
+> +++ b/arch/arm/plat-pxa/ssp.c
+> @@ -127,53 +127,6 @@ static int pxa_ssp_probe(struct platform_device *pdev)
+>   	if (IS_ERR(ssp->clk))
+>   		return PTR_ERR(ssp->clk);
+>   
+> -	if (dev->of_node) {
+> -		struct of_phandle_args dma_spec;
+> -		struct device_node *np = dev->of_node;
+> -		int ret;
+> -
+> -		/*
+> -		 * FIXME: we should allocate the DMA channel from this
+> -		 * context and pass the channel down to the ssp users.
+> -		 * For now, we lookup the rx and tx indices manually
+> -		 */
+> -
+> -		/* rx */
+> -		ret = of_parse_phandle_with_args(np, "dmas", "#dma-cells",
+> -						 0, &dma_spec);
+> -
+> -		if (ret) {
+> -			dev_err(dev, "Can't parse dmas property\n");
+> -			return -ENODEV;
+> -		}
+> -		ssp->drcmr_rx = dma_spec.args[0];
+> -		of_node_put(dma_spec.np);
+> -
+> -		/* tx */
+> -		ret = of_parse_phandle_with_args(np, "dmas", "#dma-cells",
+> -						 1, &dma_spec);
+> -		if (ret) {
+> -			dev_err(dev, "Can't parse dmas property\n");
+> -			return -ENODEV;
+> -		}
+> -		ssp->drcmr_tx = dma_spec.args[0];
+> -		of_node_put(dma_spec.np);
+> -	} else {
+> -		res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+> -		if (res == NULL) {
+> -			dev_err(dev, "no SSP RX DRCMR defined\n");
+> -			return -ENODEV;
+> -		}
+> -		ssp->drcmr_rx = res->start;
+> -
+> -		res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
+> -		if (res == NULL) {
+> -			dev_err(dev, "no SSP TX DRCMR defined\n");
+> -			return -ENODEV;
+> -		}
+> -		ssp->drcmr_tx = res->start;
+> -	}
+> -
+>   	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>   	if (res == NULL) {
+>   		dev_err(dev, "no memory resource defined\n");
+> diff --git a/include/linux/pxa2xx_ssp.h b/include/linux/pxa2xx_ssp.h
+> index 8461b18e4608..03a7ca46735b 100644
+> --- a/include/linux/pxa2xx_ssp.h
+> +++ b/include/linux/pxa2xx_ssp.h
+> @@ -212,8 +212,6 @@ struct ssp_device {
+>   	int		type;
+>   	int		use_count;
+>   	int		irq;
+> -	int		drcmr_rx;
+> -	int		drcmr_tx;
+>   
+>   	struct device_node	*of_node;
+>   };
+> diff --git a/sound/soc/pxa/pxa-ssp.c b/sound/soc/pxa/pxa-ssp.c
+> index 0291c7cb64eb..e09368d89bbc 100644
+> --- a/sound/soc/pxa/pxa-ssp.c
+> +++ b/sound/soc/pxa/pxa-ssp.c
+> @@ -104,9 +104,8 @@ static int pxa_ssp_startup(struct snd_pcm_substream *substream,
+>   	dma = kzalloc(sizeof(struct snd_dmaengine_dai_dma_data), GFP_KERNEL);
+>   	if (!dma)
+>   		return -ENOMEM;
+> -
+> -	dma->filter_data = substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
+> -				&ssp->drcmr_tx : &ssp->drcmr_rx;
+> +	dma->chan_name = substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
+> +		"tx" : "rx";
+>   
+>   	snd_soc_dai_set_dma_data(cpu_dai, substream, dma);
+>   
+> 
