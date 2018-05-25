@@ -1,35 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f171.google.com ([209.85.192.171]:37411 "EHLO
-        mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755301AbeEHR1G (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 13:27:06 -0400
-Received: by mail-pf0-f171.google.com with SMTP id e9so20287398pfi.4
-        for <linux-media@vger.kernel.org>; Tue, 08 May 2018 10:27:06 -0700 (PDT)
-Date: Tue, 8 May 2018 10:27:03 -0700
-From: Sami Tolvanen <samitolvanen@google.com>
+Received: from smtp-1b.atlantis.sk ([80.94.52.26]:37029 "EHLO
+        smtp-1b.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964971AbeEYJIr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 05:08:47 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] media: v4l2-ioctl: fix function types for
- IOCTL_INFO_STD
-Message-ID: <20180508172703.GA5503@samitolvanen.mtv.corp.google.com>
-References: <44310a2b-2797-223c-fab4-0214490e5201@xs4all.nl>
- <20180507205135.88398-1-samitolvanen@google.com>
- <a627c61e-f227-297c-087e-c2a701b46a64@xs4all.nl>
- <20180508171759.GA184279@samitolvanen.mtv.corp.google.com>
- <2a04c948-82ba-c69f-891e-303db85b66a4@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2a04c948-82ba-c69f-891e-303db85b66a4@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/3 v2] gspca_zc3xx: Fix power line frequency settings for OV7648
+Date: Fri, 25 May 2018 11:08:42 +0200
+Message-Id: <20180525090843.31735-2-linux@rainbow-software.org>
+In-Reply-To: <20180525090843.31735-1-linux@rainbow-software.org>
+References: <20180525090843.31735-1-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 08, 2018 at 07:22:21PM +0200, Hans Verkuil wrote:
-> This looks good, I would just rename DEFINE_IOCTL_FNC to DEFINE_V4L_STUB_FUNC.
-> This makes it clear that it defines a v4l stub function.
+Power line frequency settings for OV7648 sensor contain autogain
+and exposure commands, affecting unrelated controls. Remove them.
 
-Sure, sounds good. I'll send v3 shortly. Thanks for the reviews!
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/usb/gspca/zc3xx.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-	Sami
+diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
+index 992918b3ad0c..c72f2d9167d9 100644
+--- a/drivers/media/usb/gspca/zc3xx.c
++++ b/drivers/media/usb/gspca/zc3xx.c
+@@ -3184,7 +3184,6 @@ static const struct usb_action ov7620_InitialScale[] = {	/* 320x240 */
+ 	{}
+ };
+ static const struct usb_action ov7620_50HZ[] = {
+-	{0xaa, 0x13, 0x00a3},	/* 00,13,a3,aa */
+ 	{0xdd, 0x00, 0x0100},	/* 00,01,00,dd */
+ 	{0xaa, 0x2b, 0x0096},	/* 00,2b,96,aa */
+ 	{0xaa, 0x75, 0x008a},	/* 00,75,8a,aa */
+@@ -3195,15 +3194,12 @@ static const struct usb_action ov7620_50HZ[] = {
+ 	{0xa0, 0x00, ZC3XX_R195_ANTIFLICKERHIGH},	/* 01,95,00,cc */
+ 	{0xa0, 0x00, ZC3XX_R196_ANTIFLICKERMID},	/* 01,96,00,cc */
+ 	{0xa0, 0x83, ZC3XX_R197_ANTIFLICKERLOW},	/* 01,97,83,cc */
+-	{0xaa, 0x10, 0x0082},				/* 00,10,82,aa */
+ 	{0xaa, 0x76, 0x0003},				/* 00,76,03,aa */
+ /*	{0xa0, 0x40, ZC3XX_R002_CLOCKSELECT},		 * 00,02,40,cc
+ 							 * if mode0 (640x480) */
+ 	{}
+ };
+ static const struct usb_action ov7620_60HZ[] = {
+-	{0xaa, 0x13, 0x00a3},			/* 00,13,a3,aa */
+-						/* (bug in zs211.inf) */
+ 	{0xdd, 0x00, 0x0100},			/* 00,01,00,dd */
+ 	{0xaa, 0x2b, 0x0000},			/* 00,2b,00,aa */
+ 	{0xaa, 0x75, 0x008a},			/* 00,75,8a,aa */
+@@ -3214,7 +3210,6 @@ static const struct usb_action ov7620_60HZ[] = {
+ 	{0xa0, 0x00, ZC3XX_R195_ANTIFLICKERHIGH}, /* 01,95,00,cc */
+ 	{0xa0, 0x00, ZC3XX_R196_ANTIFLICKERMID}, /* 01,96,00,cc */
+ 	{0xa0, 0x83, ZC3XX_R197_ANTIFLICKERLOW}, /* 01,97,83,cc */
+-	{0xaa, 0x10, 0x0020},			/* 00,10,20,aa */
+ 	{0xaa, 0x76, 0x0003},			/* 00,76,03,aa */
+ /*	{0xa0, 0x40, ZC3XX_R002_CLOCKSELECT},	 * 00,02,40,cc
+ 						 * if mode0 (640x480) */
+@@ -3224,8 +3219,6 @@ static const struct usb_action ov7620_60HZ[] = {
+ 	{}
+ };
+ static const struct usb_action ov7620_NoFliker[] = {
+-	{0xaa, 0x13, 0x00a3},			/* 00,13,a3,aa */
+-						/* (bug in zs211.inf) */
+ 	{0xdd, 0x00, 0x0100},			/* 00,01,00,dd */
+ 	{0xaa, 0x2b, 0x0000},			/* 00,2b,00,aa */
+ 	{0xaa, 0x75, 0x008e},			/* 00,75,8e,aa */
+-- 
+Ondrej Zary
