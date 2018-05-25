@@ -1,126 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:36108 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751195AbeEUFop (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 01:44:45 -0400
-Subject: Re: [Xen-devel][RFC 2/3] xen/grant-table: Extend API to work with DMA
- buffers
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180517082604.14828-1-andr2000@gmail.com>
- <20180517082604.14828-3-andr2000@gmail.com>
- <28532709-6c87-f048-be6a-3c4ba02ae56f@oracle.com>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <097da8bd-2cfc-0916-451d-dec3e4d2a52e@gmail.com>
-Date: Mon, 21 May 2018 08:44:40 +0300
+Received: from ni.piap.pl ([195.187.100.4]:49138 "EHLO ni.piap.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S935134AbeEYHS0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 03:18:26 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+References: <m37eobudmo.fsf@t19.piap.pl>
+        <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
+        <m3tvresqfw.fsf@t19.piap.pl>
+        <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
+        <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
+        <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
+        <m3h8mxqc7t.fsf@t19.piap.pl>
+        <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
+        <1527229949.4938.1.camel@pengutronix.de>
+Date: Fri, 25 May 2018 09:18:24 +0200
+In-Reply-To: <1527229949.4938.1.camel@pengutronix.de> (Philipp Zabel's message
+        of "Fri, 25 May 2018 08:32:29 +0200")
+Message-ID: <m3y3g8p5j3.fsf@t19.piap.pl>
 MIME-Version: 1.0
-In-Reply-To: <28532709-6c87-f048-be6a-3c4ba02ae56f@oracle.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/19/2018 01:19 AM, Boris Ostrovsky wrote:
-> On 05/17/2018 04:26 AM, Oleksandr Andrushchenko wrote:
->> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>
->> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->> ---
->>   drivers/xen/grant-table.c | 49 +++++++++++++++++++++++++++++++++++++++
->>   include/xen/grant_table.h |  7 ++++++
->>   2 files changed, 56 insertions(+)
->>
->> diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
->> index bb36b1e1dbcc..c27bcc420575 100644
->> --- a/drivers/xen/grant-table.c
->> +++ b/drivers/xen/grant-table.c
->> @@ -729,6 +729,55 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
->>   }
->>   EXPORT_SYMBOL(gnttab_free_pages);
->>   
->> +int gnttab_dma_alloc_pages(struct device *dev, bool coherent,
->> +			   int nr_pages, struct page **pages,
->> +			   void **vaddr, dma_addr_t *dev_bus_addr)
->> +{
->> +	int i;
->> +	int ret;
->> +
->> +	ret = alloc_dma_xenballooned_pages(dev, coherent, nr_pages, pages,
->> +					   vaddr, dev_bus_addr);
->> +	if (ret < 0)
->> +		return ret;
->> +
->> +	for (i = 0; i < nr_pages; i++) {
->> +#if BITS_PER_LONG < 64
->> +		struct xen_page_foreign *foreign;
->> +
->> +		foreign = kzalloc(sizeof(*foreign), GFP_KERNEL);
->> +		if (!foreign) {
->> +			gnttab_dma_free_pages(dev, flags, nr_pages, pages,
->> +					      *vaddr, *dev_bus_addr);
->> +			return -ENOMEM;
->> +		}
->> +		set_page_private(pages[i], (unsigned long)foreign);
->> +#endif
->> +		SetPagePrivate(pages[i]);
->> +	}
->> +	return 0;
->> +}
->> +EXPORT_SYMBOL(gnttab_dma_alloc_pages);
->> +
->> +void gnttab_dma_free_pages(struct device *dev, bool coherent,
->> +			   int nr_pages, struct page **pages,
->> +			   void *vaddr, dma_addr_t dev_bus_addr)
->> +{
->> +	int i;
->> +
->> +	for (i = 0; i < nr_pages; i++) {
->> +		if (PagePrivate(pages[i])) {
->> +#if BITS_PER_LONG < 64
->> +			kfree((void *)page_private(pages[i]));
->> +#endif
->> +			ClearPagePrivate(pages[i]);
->> +		}
->> +	}
->> +	free_dma_xenballooned_pages(dev, coherent, nr_pages, pages,
->> +				    vaddr, dev_bus_addr);
->> +}
->> +EXPORT_SYMBOL(gnttab_dma_free_pages);
->
-> Given that these routines look almost exactly like their non-dma
-> counterparts I wonder whether common code could be factored out.
-Yes, this can be done
-> -boris
->
->
->
->
->> +
->>   /* Handling of paged out grant targets (GNTST_eagain) */
->>   #define MAX_DELAY 256
->>   static inline void
->> diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
->> index 34b1379f9777..20ee2b5ba965 100644
->> --- a/include/xen/grant_table.h
->> +++ b/include/xen/grant_table.h
->> @@ -195,6 +195,13 @@ void gnttab_free_auto_xlat_frames(void);
->>   int gnttab_alloc_pages(int nr_pages, struct page **pages);
->>   void gnttab_free_pages(int nr_pages, struct page **pages);
->>   
->> +int gnttab_dma_alloc_pages(struct device *dev, bool coherent,
->> +			   int nr_pages, struct page **pages,
->> +			   void **vaddr, dma_addr_t *dev_bus_addr);
->> +void gnttab_dma_free_pages(struct device *dev, bool coherent,
->> +			   int nr_pages, struct page **pages,
->> +			   void *vaddr, dma_addr_t dev_bus_addr);
->> +
->>   int gnttab_map_refs(struct gnttab_map_grant_ref *map_ops,
->>   		    struct gnttab_map_grant_ref *kmap_ops,
->>   		    struct page **pages, unsigned int count);
+Philipp Zabel <p.zabel@pengutronix.de> writes:
+
+> Maybe scanline interlave and double write reduction can't be used at the
+> same time?
+
+Well, if it works in non-interlaced modes - it may be the case.
+
+Perhaps the data reduction is done before the field merge step. This
+would make it incompatible: in interlaced mode we need all color data
+from a field (we could potentially remove all color info from the other
+field, or use some average).
+-- 
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
