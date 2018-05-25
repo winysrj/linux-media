@@ -1,108 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:36612 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750980AbeEMJrq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 May 2018 05:47:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 2/4] gspca: fix g/s_parm handling
-Date: Sun, 13 May 2018 11:47:39 +0200
-Message-Id: <20180513094741.25096-3-hverkuil@xs4all.nl>
-In-Reply-To: <20180513094741.25096-1-hverkuil@xs4all.nl>
-References: <20180513094741.25096-1-hverkuil@xs4all.nl>
+Received: from ni.piap.pl ([195.187.100.4]:48690 "EHLO ni.piap.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934393AbeEYHHT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 03:07:19 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Tim Harvey <tharvey@gateworks.com>
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+References: <m37eobudmo.fsf@t19.piap.pl>
+        <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
+        <m3tvresqfw.fsf@t19.piap.pl>
+        <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
+        <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
+        <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
+        <m3h8mxqc7t.fsf@t19.piap.pl>
+        <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
+Date: Fri, 25 May 2018 09:07:17 +0200
+In-Reply-To: <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com> (Steve
+        Longerbeam's message of "Thu, 24 May 2018 11:12:01 -0700")
+Message-ID: <m336ygqkm2.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Steve Longerbeam <slongerbeam@gmail.com> writes:
 
-Fix v4l2-compliance error: s_parm never set V4L2_CAP_TIMEPERFRAME.
-Also various g/s_parm-related cleanups.
+>> The manual says: Reduce Double Read or Writes (RDRW):
+>> This bit is relevant for YUV4:2:0 formats. For write channels:
+>> U and V components are not written to odd rows.
+>>
+>> How could it be so? With YUV420, are they normally written?
+>
+> Well, given that this bit exists, and assuming I understand it
+> correctly (1),
+> I guess the U and V components for odd rows normally are placed on the
+> AXI bus. Which is a total waste of bus bandwidth because in 4:2:0,
+> the U and V components are the same for odd and even rows.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/usb/gspca/gspca.c | 29 ++++++++++++++++-------------
- drivers/media/usb/gspca/ov534.c |  1 -
- drivers/media/usb/gspca/topro.c |  1 -
- 3 files changed, 16 insertions(+), 15 deletions(-)
+Right. Now, the AXI bus is just a "memory bus", it's a newer version of
+the AHB. One can't simply "place data" on AXI, it must be a write to
+a specific address, and the data will end up in RAM (assuming the
+configuration is sane). How can we have two possible data formats (with
+and without the RDRW bit) with fixed image format (420-type) is beyond
+me.
 
-diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-index 96f409676ba3..a383058b0cb3 100644
---- a/drivers/media/usb/gspca/gspca.c
-+++ b/drivers/media/usb/gspca/gspca.c
-@@ -1254,14 +1254,15 @@ static int vidioc_g_parm(struct file *filp, void *priv,
- {
- 	struct gspca_dev *gspca_dev = video_drvdata(filp);
- 
--	parm->parm.capture.readbuffers = 2;
-+	parm->parm.capture.readbuffers = gspca_dev->queue.min_buffers_needed;
- 
--	if (gspca_dev->sd_desc->get_streamparm) {
--		gspca_dev->usb_err = 0;
--		gspca_dev->sd_desc->get_streamparm(gspca_dev, parm);
--		return gspca_dev->usb_err;
--	}
--	return 0;
-+	if (!gspca_dev->sd_desc->get_streamparm)
-+		return 0;
-+
-+	parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-+	gspca_dev->usb_err = 0;
-+	gspca_dev->sd_desc->get_streamparm(gspca_dev, parm);
-+	return gspca_dev->usb_err;
- }
- 
- static int vidioc_s_parm(struct file *filp, void *priv,
-@@ -1269,15 +1270,17 @@ static int vidioc_s_parm(struct file *filp, void *priv,
- {
- 	struct gspca_dev *gspca_dev = video_drvdata(filp);
- 
--	parm->parm.capture.readbuffers = 2;
-+	parm->parm.capture.readbuffers = gspca_dev->queue.min_buffers_needed;
- 
--	if (gspca_dev->sd_desc->set_streamparm) {
--		gspca_dev->usb_err = 0;
--		gspca_dev->sd_desc->set_streamparm(gspca_dev, parm);
--		return gspca_dev->usb_err;
-+	if (!gspca_dev->sd_desc->set_streamparm) {
-+		parm->parm.capture.capability = 0;
-+		return 0;
- 	}
- 
--	return 0;
-+	parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-+	gspca_dev->usb_err = 0;
-+	gspca_dev->sd_desc->set_streamparm(gspca_dev, parm);
-+	return gspca_dev->usb_err;
- }
- 
- static int gspca_queue_setup(struct vb2_queue *vq,
-diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
-index f293921a1f2b..d06dc0755b9a 100644
---- a/drivers/media/usb/gspca/ov534.c
-+++ b/drivers/media/usb/gspca/ov534.c
-@@ -1476,7 +1476,6 @@ static void sd_get_streamparm(struct gspca_dev *gspca_dev,
- 	struct v4l2_fract *tpf = &cp->timeperframe;
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
--	cp->capability |= V4L2_CAP_TIMEPERFRAME;
- 	tpf->numerator = 1;
- 	tpf->denominator = sd->frame_rate;
- }
-diff --git a/drivers/media/usb/gspca/topro.c b/drivers/media/usb/gspca/topro.c
-index 82e2be14cad8..6f3ec0366a2f 100644
---- a/drivers/media/usb/gspca/topro.c
-+++ b/drivers/media/usb/gspca/topro.c
-@@ -4780,7 +4780,6 @@ static void sd_get_streamparm(struct gspca_dev *gspca_dev,
- 	struct v4l2_fract *tpf = &cp->timeperframe;
- 	int fr, i;
- 
--	cp->capability |= V4L2_CAP_TIMEPERFRAME;
- 	tpf->numerator = 1;
- 	i = get_fr_idx(gspca_dev);
- 	if (i & 0x80) {
+> Commits
+>
+> 14330d7f08 ("media: imx: csi: enable double write reduction")
+> b54a5c2dc8 ("media: imx: prpencvf: enable double write reduction")
+>
+> should be reverted for now, until the behavior of this bit is better
+> understood.
+
+I agree.
+
+I have dumped a raw frame (720 x 480 NV12 frame size 518400 from
+interlaced NTSC camera), with the RDRW bit set.
+
+The Y plane contains, well, valid Y data (720 x 480 bytes).
+
+The color plane (360 pixels x 240 line pairs * 2 colors) has every other
+line pair zeroed. I.e., there is a 720-byte line pair filled with valid UV
+data, then there are 720 zeros (360 zeroed UV pairs). Then there is valid
+UV data and so on.
+
+Not sure what could it be for. Some weird sort of YUV 4:1:0? I guess we
+don't want it ATM.
+
+WRT ADV7180 field format:
+
+> This might be a good time to bring up the fact that the ADV7180 driver
+> is wrong
+> to set output to "interlaced". The ADV7180 does not transmit top lines
+> interlaced
+> with bottom lines. It transmits all top lines followed by all bottom
+> lines (or
+> vice-versa), i.e. it should be either V4L2_FIELD_SEQ_TB or
+> V4L2_FIELD_SEQ_BT.
+> It can also be set to V4L2_FIELD_ALTERNATE, and then it is left up to
+> downstream
+> elements to determine field order (TB or BT).
+
+Right. ADV7180, AFAIK, doesn't have the hardware (frame buffer) to get
+two interlaced fields and merge them to form a complete frame.
+It simply transforms the incoming analog signal into binary data stream.
+This issue should be fixed.
+
+Thanks for your work,
 -- 
-2.17.0
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
