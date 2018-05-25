@@ -1,65 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:45604 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752671AbeEUIzR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:17 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v14 16/36] v4l2-ctrls: Add documentation for control request support functions
-Date: Mon, 21 May 2018 11:54:41 +0300
-Message-Id: <20180521085501.16861-17-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52972 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S936015AbeEYNxB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 09:53:01 -0400
+Date: Fri, 25 May 2018 16:52:59 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        andy.yeh@intel.com
+Subject: Re: [PATCH v2 2/2] smiapp: Support the "upside-down" property
+Message-ID: <20180525135259.3d6ps76tkvztrrxg@valkosipuli.retiisi.org.uk>
+References: <20180525122726.3409-1-sakari.ailus@linux.intel.com>
+ <20180525122726.3409-3-sakari.ailus@linux.intel.com>
+ <20180525134159.ju7dz3dp7wtveswc@earth.universe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180525134159.ju7dz3dp7wtveswc@earth.universe>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add kerneldoc documentation for v4l2_ctrl_request_setup and
-v4l2_ctrl_request_complete functions.
+On Fri, May 25, 2018 at 03:41:59PM +0200, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Fri, May 25, 2018 at 03:27:26PM +0300, Sakari Ailus wrote:
+> > Use the "upside-down" property to tell that the sensor is mounted upside
+> > down. This reverses the behaviour of the VFLIP and HFLIP controls as well
+> > as the pixel order.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> 
+> Patch subject and description should be s/"upside-down"/"rotation"/g ?
+> 
+> >  .../devicetree/bindings/media/i2c/nokia,smia.txt         |  2 ++
+> >  drivers/media/i2c/smiapp/smiapp-core.c                   | 16 ++++++++++++++++
+> >  2 files changed, 18 insertions(+)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > index 33f10a94c381..6f509657470e 100644
+> > --- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > +++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > @@ -29,6 +29,8 @@ Optional properties
+> >  - reset-gpios: XSHUTDOWN GPIO
+> >  - flash-leds: See ../video-interfaces.txt
+> >  - lens-focus: See ../video-interfaces.txt
+> > +- rotation: Integer property; valid values are 0 (sensor mounted upright)
+> > +	    and 180 (sensor mounted upside down).
+> >  
+> >  
+> >  Endpoint node mandatory properties
+> > diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+> > index e1f8208581aa..32286df6ab43 100644
+> > --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> > +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> > @@ -2764,6 +2764,7 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+> >  	struct v4l2_fwnode_endpoint *bus_cfg;
+> >  	struct fwnode_handle *ep;
+> >  	struct fwnode_handle *fwnode = dev_fwnode(dev);
+> > +	u32 rotation;
+> >  	int i;
+> >  	int rval;
+> >  
+> > @@ -2800,6 +2801,21 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+> >  
+> >  	dev_dbg(dev, "lanes %u\n", hwcfg->lanes);
+> >  
+> > +	rval = fwnode_property_read_u32(fwnode, "upside-down", &rotation);
+> 
+> "rotation"
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/media/v4l2-ctrls.h | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+Thanks. Both fixed in v2.2.
 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index a0f7c38d1a902..d2e5653df645e 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -1077,8 +1077,34 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
-  */
- __poll_t v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
- 
-+/**
-+ * v4l2_ctrl_request_setup - helper function to apply control values in a request
-+ *
-+ * @req: The request
-+ * @hdl: The control handler
-+ *
-+ * This is a helper function to call the control handler's s_ctrl callback with
-+ * the control values contained in the request. Do note that this approach of
-+ * applying control values in a request is only applicable to memory-to-memory
-+ * devices.
-+ */
- void v4l2_ctrl_request_setup(struct media_request *req,
- 			     struct v4l2_ctrl_handler *hdl);
-+
-+/**
-+ * v4l2_ctrl_request_complete - Complete a control handler request object
-+ *
-+ * @req: The request
-+ * @hdl: The control handler
-+ *
-+ * This function is to be called on each control handler that may have had a
-+ * request object associated with it, i.e. control handlers of a driver that
-+ * supports requests.
-+ *
-+ * The function first obtains the values of any volatile controls in the control
-+ * handler and attach them to the request. Then, the function completes the
-+ * request object.
-+ */
- void v4l2_ctrl_request_complete(struct media_request *req,
- 				struct v4l2_ctrl_handler *hdl);
- 
 -- 
-2.11.0
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
