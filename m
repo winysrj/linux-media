@@ -1,237 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:38575 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752173AbeERNFP (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:54734 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S972052AbeEYBFm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 09:05:15 -0400
-Received: by mail-wr0-f196.google.com with SMTP id 94-v6so9138567wrf.5
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 06:05:14 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        Stefan Adolfsson <sadolfsson@chromium.org>
-Subject: [PATCH v2 3/5] mfd: cros-ec: Introduce CEC commands and events definitions.
-Date: Fri, 18 May 2018 15:05:02 +0200
-Message-Id: <1526648704-16873-4-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1526648704-16873-1-git-send-email-narmstrong@baylibre.com>
-References: <1526648704-16873-1-git-send-email-narmstrong@baylibre.com>
+        Thu, 24 May 2018 21:05:42 -0400
+Date: Thu, 24 May 2018 18:05:27 -0700
+From: Darren Hart <dvhart@infradead.org>
+To: Ana Guerrero Lopez <ana.guerrero@collabora.com>
+Cc: ming_qian@realsil.com.cn,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: media: uvcvideo: Support realtek's UVC 1.5 device
+Message-ID: <20180525010527.GD10172@fury>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180518140435.GA17444@delenn>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The EC can expose a CEC bus, this patch adds the CEC related definitions
-needed by the cros-ec-cec driver.
-Having a 16 byte mkbp event size makes it possible to send CEC
-messages from the EC to the AP directly inside the mkbp event
-instead of first doing a notification and then a read.
+On Fri, May 18, 2018 at 04:04:35PM +0200, Ana Guerrero Lopez wrote:
+> On Wed, May 09, 2018 at 10:13:08AM +0800, ming_qian@realsil.com.cn wrote:
+> > From: ming_qian <ming_qian@realsil.com.cn>
+> > 
+> > The length of UVC 1.5 video control is 48, and it id 34 for UVC 1.1.
+> > Change it to 48 for UVC 1.5 device,
+> > and the UVC 1.5 device can be recognized.
+> > 
+> > More changes to the driver are needed for full UVC 1.5 compatibility.
+> > However, at least the UVC 1.5 Realtek RTS5847/RTS5852 cameras have
+> > been reported to work well.
+> > 
+> > Signed-off-by: ming_qian <ming_qian@realsil.com.cn>
+> > Tested-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+> > Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+> > Tested-by: Josef Šimánek <josef.simanek@gmail.com>
+> 
+> It works perfectly here on 4.16.5 with a Dell XPS 9370 in Debian.
+> 
+> Tested-by: Ana Guerrero Lopez <ana.guerrero@collabora.com>
 
-Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
----
- drivers/platform/chrome/cros_ec_proto.c | 40 +++++++++++++----
- include/linux/mfd/cros_ec.h             |  2 +-
- include/linux/mfd/cros_ec_commands.h    | 80 +++++++++++++++++++++++++++++++++
- 3 files changed, 112 insertions(+), 10 deletions(-)
+I worked with Eilís Ní Fhlannagáin on social media who has also confirmed this to solve
+her camera issue with her Dell XPS 13 (I didn't get the specific model).
 
-diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
-index e7bbdf9..c4f6c44 100644
---- a/drivers/platform/chrome/cros_ec_proto.c
-+++ b/drivers/platform/chrome/cros_ec_proto.c
-@@ -504,10 +504,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
- }
- EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
- 
-+static int get_next_event_xfer(struct cros_ec_device *ec_dev,
-+			       struct cros_ec_command *msg,
-+			       int version, uint32_t size)
-+{
-+	int ret;
-+
-+	msg->version = version;
-+	msg->command = EC_CMD_GET_NEXT_EVENT;
-+	msg->insize = size;
-+	msg->outsize = 0;
-+
-+	ret = cros_ec_cmd_xfer(ec_dev, msg);
-+	if (ret > 0) {
-+		ec_dev->event_size = ret - 1;
-+		memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
-+	}
-+
-+	return ret;
-+}
-+
- static int get_next_event(struct cros_ec_device *ec_dev)
- {
- 	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
- 	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
-+	static int cmd_version = 1;
- 	int ret;
- 
- 	if (ec_dev->suspended) {
-@@ -515,18 +536,19 @@ static int get_next_event(struct cros_ec_device *ec_dev)
- 		return -EHOSTDOWN;
- 	}
- 
--	msg->version = 0;
--	msg->command = EC_CMD_GET_NEXT_EVENT;
--	msg->insize = sizeof(ec_dev->event_data);
--	msg->outsize = 0;
-+	if (cmd_version == 1) {
-+		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
-+				sizeof(struct ec_response_get_next_event_v1));
-+		if (ret < 0 || msg->result != EC_RES_INVALID_VERSION)
-+			return ret;
- 
--	ret = cros_ec_cmd_xfer(ec_dev, msg);
--	if (ret > 0) {
--		ec_dev->event_size = ret - 1;
--		memcpy(&ec_dev->event_data, msg->data,
--		       sizeof(ec_dev->event_data));
-+		/* Fallback to version 0 for future send attempts */
-+		cmd_version = 0;
- 	}
- 
-+	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
-+				  sizeof(struct ec_response_get_next_event));
-+
- 	return ret;
- }
- 
-diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
-index f36125e..32caef3 100644
---- a/include/linux/mfd/cros_ec.h
-+++ b/include/linux/mfd/cros_ec.h
-@@ -147,7 +147,7 @@ struct cros_ec_device {
- 	bool mkbp_event_supported;
- 	struct blocking_notifier_head event_notifier;
- 
--	struct ec_response_get_next_event event_data;
-+	struct ec_response_get_next_event_v1 event_data;
- 	int event_size;
- 	u32 host_event_wake_mask;
- };
-diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
-index f2edd99..16c3a2b 100644
---- a/include/linux/mfd/cros_ec_commands.h
-+++ b/include/linux/mfd/cros_ec_commands.h
-@@ -804,6 +804,8 @@ enum ec_feature_code {
- 	EC_FEATURE_MOTION_SENSE_FIFO = 24,
- 	/* EC has RTC feature that can be controlled by host commands */
- 	EC_FEATURE_RTC = 27,
-+	/* EC supports CEC commands */
-+	EC_FEATURE_CEC = 35,
- };
- 
- #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
-@@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
- 	/* EC sent a sysrq command */
- 	EC_MKBP_EVENT_SYSRQ = 6,
- 
-+	/* Notify the AP that something happened on CEC */
-+	EC_MKBP_CEC_EVENT = 8,
-+
-+	/* Send an incoming CEC message to the AP */
-+	EC_MKBP_EVENT_CEC_MESSAGE = 9,
-+
- 	/* Number of MKBP events */
- 	EC_MKBP_EVENT_COUNT,
- };
-@@ -2093,12 +2101,31 @@ union ec_response_get_next_data {
- 	uint32_t   sysrq;
- } __packed;
- 
-+union ec_response_get_next_data_v1 {
-+	uint8_t   key_matrix[16];
-+
-+	/* Unaligned */
-+	uint32_t  host_event;
-+
-+	uint32_t   buttons;
-+	uint32_t   switches;
-+	uint32_t   sysrq;
-+	uint32_t   cec_events;
-+	uint8_t    cec_message[16];
-+} __packed;
-+
- struct ec_response_get_next_event {
- 	uint8_t event_type;
- 	/* Followed by event data if any */
- 	union ec_response_get_next_data data;
- } __packed;
- 
-+struct ec_response_get_next_event_v1 {
-+	uint8_t event_type;
-+	/* Followed by event data if any */
-+	union ec_response_get_next_data_v1 data;
-+} __packed;
-+
- /* Bit indices for buttons and switches.*/
- /* Buttons */
- #define EC_MKBP_POWER_BUTTON	0
-@@ -2828,6 +2855,59 @@ struct ec_params_reboot_ec {
- /* Current version of ACPI memory address space */
- #define EC_ACPI_MEM_VERSION_CURRENT 1
- 
-+/*****************************************************************************/
-+/*
-+ * HDMI CEC commands
-+ *
-+ * These commands are for sending and receiving message via HDMI CEC
-+ */
-+#define MAX_CEC_MSG_LEN 16
-+
-+/* CEC message from the AP to be written on the CEC bus */
-+#define EC_CMD_CEC_WRITE_MSG 0x00B8
-+
-+/* Message to write to the CEC bus */
-+struct ec_params_cec_write {
-+	uint8_t msg[MAX_CEC_MSG_LEN];
-+} __packed;
-+
-+/* Set various CEC parameters */
-+#define EC_CMD_CEC_SET 0x00BA
-+
-+struct ec_params_cec_set {
-+	uint8_t cmd; /* enum cec_command */
-+	union {
-+		uint8_t enable;
-+		uint8_t address;
-+	};
-+} __packed;
-+
-+/* Read various CEC parameters */
-+#define EC_CMD_CEC_GET 0x00BB
-+
-+struct ec_params_cec_get {
-+	uint8_t cmd; /* enum cec_command */
-+} __packed;
-+
-+struct ec_response_cec_get {
-+	union {
-+		uint8_t enable;
-+		uint8_t address;
-+	};
-+} __packed;
-+
-+enum cec_command {
-+	/* CEC reading, writing and events enable */
-+	CEC_CMD_ENABLE,
-+	/* CEC logical address  */
-+	CEC_CMD_LOGICAL_ADDRESS,
-+};
-+
-+/* Events from CEC to AP */
-+enum mkbp_cec_event {
-+	EC_MKBP_CEC_SEND_OK			= 1 << 0,
-+	EC_MKBP_CEC_SEND_FAILED			= 1 << 1,
-+};
- 
- /*****************************************************************************/
- /*
+Took a looking at linux-next today, I didn't see it. Anything else needed to get
+this queued up?  We'd love to get this in the 4.18 merge window, and stable if
+possible.
+
 -- 
-2.7.4
+Darren Hart
+VMware Open Source Technology Center
