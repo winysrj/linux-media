@@ -1,78 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60234 "EHLO mail.kernel.org"
+Received: from mga05.intel.com ([192.55.52.43]:46699 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964986AbeE3HlA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 03:41:00 -0400
-Date: Wed, 30 May 2018 13:10:56 +0530
-From: Vinod <vkoul@kernel.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: camera control interface
-Message-ID: <20180530074056.GQ5666@vkoul-mobl>
-References: <20180529082932.GH5666@vkoul-mobl>
- <2593976.2pOKjEb3EO@avalon>
- <20180530072858.GP5666@vkoul-mobl>
- <2441685.2FbY4xYTJB@avalon>
+        id S936172AbeEYORB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 10:17:01 -0400
+Date: Fri, 25 May 2018 17:16:57 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+Subject: Re: RFC: Request API and memory-to-memory devices
+Message-ID: <20180525141655.ugmd7xki4nsqz2pg@kekkonen.localdomain>
+References: <157f4fc4-eebf-41ab-1e9c-93d7baefc612@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <2441685.2FbY4xYTJB@avalon>
+In-Reply-To: <157f4fc4-eebf-41ab-1e9c-93d7baefc612@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Hans,
 
-On 30-05-18, 10:31, Laurent Pinchart wrote:
-> On Wednesday, 30 May 2018 10:28:58 EEST Vinod wrote:
-> > On 30-05-18, 10:04, Laurent Pinchart wrote:
-> > >> I am writing a driver for camera control inteface which is an i2c
-> > >> controller. So looking up the code I think it can be a v4l subdev,
-> > >> right? Can it be an independent i2c master and not v4l subdev?
-> > > 
-> > > What do you mean by "camera control interface" here ? A hardware device
-> > > handling communication with camera sensors ? I assume the communication
-> > > bus is I2C ? Is that "camera control interface" plain I2C or does it have
-> > > additional features ?
-> > > 
-> > > If we're talking about an I2C controller a V4L2 subdev is not only
-> > > unneeded, but it wouldn't help. You need an I2C master.
-> > 
-> > Sorry if I wasn't quite right in description, the control interface is
-> > indeed i2c master and gpio. The camera sensors are i2c slaves connected to
-> > this i2c master and gpio for sensors are connected to this as well.
-> 
-> No worries. This clarifies the context.
-> 
-> > >> Second the control sports GPIOs. It can support  a set of
-> > >> synchronization primitives so it's possible to drive I2C clients and
-> > >> GPIOs with hardware controlled timing to allow for sync control of
-> > >> sensors hooked and also for fancy strobe. How would we represent these
-> > >> gpios in v4l2 and allow the control, any ideas on that.
-> > > 
-> > > Even if your main use case it related to camera, synchronization of I2C
-> > > and GPIO doesn't seem to be a V4L2 feature to me. It sounds that you need
-> > > to implement that int he I2C and GPIO subsystems.
-> > 
-> > Well if a user wants to capture multiple cameras and synchronise,
-> > wouldn't that need sync of i2c and gpio. I understand it may not be
-> > supported but the question is would it be a nice feature for v4l, if so
-> > how to go about it?
-> 
-> You need two parts to implement this in my opinion. First, you need a 
-> synchronized I2C + GPIO mechanism on which to base the implementation. That's 
-> not V4L2-specific and should I believe be handled in the I2C and GPIO 
-> subsystems. Then, you need to expose the concept of camera synchronization in 
-> V4L2. That part will likely require API extensions, both inside the kernel and 
-> towards userspace.
+On Thu, May 24, 2018 at 10:44:13AM +0200, Hans Verkuil wrote:
+> Memory-to-memory devices have one video node, one internal control handler
+> but two vb2_queues (DMA engines). While often there is one buffer produced
+> for every buffer consumed, but this is by no means standard. E.g. deinterlacers
+> will produce on buffer for every two buffers consumed. Codecs that receive
+> a bit stream and can parse it to discover the framing may have no relation
+> between the number of buffers consumed and the number of buffers produced.
 
-Okay thanks. So should I do a v4l subdev for i2c master or leave it in
-i2c subsystem. Does subdev make sense for gpio too.. How does one go
-about 'linking' the two?
+Do you have examples of such devices? I presume they're not supported in
+the current m2m API either, are they?
 
-Btw where is v4l userspace located?
+> 
+> This poses a few problems for the Request API. Requiring that a request
+> contains the buffers for both output and capture queue will be difficult
+> to implement, especially in the latter case where there is no relationship
+> between the number of consumed and produced buffers.
+> 
+> In addition, userspace can make two requests: one for the capture queue,
+> one for the output queue, each with associated controls. But since the
+> controls are shared between capture and output there is an issue of
+> what to do when the same control is set in both requests.
+
+As I commented on v13, the two requests need to be handled separately in
+this case. Mem-to-mem devices are rather special in this respect; there's
+an established practice of matching buffers in the order they arrive from
+the queues, but that's not how the request API is intended to work: the
+buffers are associated to the request, and a request is processed
+independently of other requests.
+
+While that approach might work for mem-to-mem devices at least in some use
+cases, it is not a feasible approach for other devices. As a consequence,
+will have different API semantics between mem2mem devices and the rest. I'd
+like to avoid that if possible: this will be similarly visible in the user
+applications as well.
+
+> 
+> I propose to restrict the usage of requests for m2m drivers to the output
+> queue only. This keeps things simple for both kernel and userspace and
+> avoids complex solutions.
+
+If there's a convincing reason to use different API semantics, such as the
+relationship between different buffers being unknown to the user, then
+there very likely is a need to associate non-request data with
+request-bound data in the driver. But it'd be better to limit it to where
+it's really needed.
+
+> 
+> Requests only make sense if there is actually configuration you can apply
+> for each buffer, and while that's true for the output queue, on the capture
+> queue you just capture the result of whatever the device delivers. I don't
+> believe there is much if anything you can or want to control per-buffer.
+
+May there be controls associated with the capture queue buffers?
 
 -- 
-~Vinod
+Sakari Ailus
+sakari.ailus@linux.intel.com
