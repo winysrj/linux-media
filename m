@@ -1,82 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:53181 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964922AbeEXHHh (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52870 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933110AbeEYNlD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 03:07:37 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        alsa-devel@alsa-project.org
-Subject: [PATCH v2 07/13] net: smc91x: remove the dmaengine compat need
-Date: Thu, 24 May 2018 09:06:57 +0200
-Message-Id: <20180524070703.11901-8-robert.jarzmik@free.fr>
-In-Reply-To: <20180524070703.11901-1-robert.jarzmik@free.fr>
-References: <20180524070703.11901-1-robert.jarzmik@free.fr>
+        Fri, 25 May 2018 09:41:03 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, andy.yeh@intel.com,
+        sebastian.reichel@collabora.co.uk
+Subject: [PATCH v2.1 2/2] smiapp: Support the "rotation" property
+Date: Fri, 25 May 2018 16:40:55 +0300
+Message-Id: <20180525134055.11121-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180525122726.3409-3-sakari.ailus@linux.intel.com>
+References: <20180525122726.3409-3-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the pxa architecture switched towards the dmaengine slave map, the
-old compatibility mechanism to acquire the dma requestor line number and
-priority are not needed anymore.
+Use the "rotation" property to tell that the sensor is mounted upside
+down. This reverses the behaviour of the VFLIP and HFLIP controls as well
+as the pixel order.
 
-This patch simplifies the dma resource acquisition, using the more
-generic function dma_request_slave_channel().
-
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/net/ethernet/smsc/smc91x.c | 12 +-----------
- drivers/net/ethernet/smsc/smc91x.h |  1 -
- 2 files changed, 1 insertion(+), 12 deletions(-)
+since v2:
 
-diff --git a/drivers/net/ethernet/smsc/smc91x.c b/drivers/net/ethernet/smsc/smc91x.c
-index 080428762858..4c600f430f6d 100644
---- a/drivers/net/ethernet/smsc/smc91x.c
-+++ b/drivers/net/ethernet/smsc/smc91x.c
-@@ -2018,18 +2018,8 @@ static int smc_probe(struct net_device *dev, void __iomem *ioaddr,
- 	lp->cfg.flags |= SMC91X_USE_DMA;
- #  endif
- 	if (lp->cfg.flags & SMC91X_USE_DMA) {
--		dma_cap_mask_t mask;
--		struct pxad_param param;
--
--		dma_cap_zero(mask);
--		dma_cap_set(DMA_SLAVE, mask);
--		param.prio = PXAD_PRIO_LOWEST;
--		param.drcmr = -1UL;
--
- 		lp->dma_chan =
--			dma_request_slave_channel_compat(mask, pxad_filter_fn,
--							 &param, &dev->dev,
--							 "data");
-+			dma_request_slave_channel(lp->device, "data");
- 	}
- #endif
+- Fix the property name in the commit message
+
+ .../devicetree/bindings/media/i2c/nokia,smia.txt         |  2 ++
+ drivers/media/i2c/smiapp/smiapp-core.c                   | 16 ++++++++++++++++
+ 2 files changed, 18 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+index 33f10a94c381..6f509657470e 100644
+--- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
++++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+@@ -29,6 +29,8 @@ Optional properties
+ - reset-gpios: XSHUTDOWN GPIO
+ - flash-leds: See ../video-interfaces.txt
+ - lens-focus: See ../video-interfaces.txt
++- rotation: Integer property; valid values are 0 (sensor mounted upright)
++	    and 180 (sensor mounted upside down).
  
-diff --git a/drivers/net/ethernet/smsc/smc91x.h b/drivers/net/ethernet/smsc/smc91x.h
-index b337ee97e0c0..a27352229fc2 100644
---- a/drivers/net/ethernet/smsc/smc91x.h
-+++ b/drivers/net/ethernet/smsc/smc91x.h
-@@ -301,7 +301,6 @@ struct smc_local {
-  * as RX which can overrun memory and lose packets.
-  */
- #include <linux/dma-mapping.h>
--#include <linux/dma/pxa-dma.h>
  
- #ifdef SMC_insl
- #undef SMC_insl
+ Endpoint node mandatory properties
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index e1f8208581aa..32286df6ab43 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2764,6 +2764,7 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ 	struct v4l2_fwnode_endpoint *bus_cfg;
+ 	struct fwnode_handle *ep;
+ 	struct fwnode_handle *fwnode = dev_fwnode(dev);
++	u32 rotation;
+ 	int i;
+ 	int rval;
+ 
+@@ -2800,6 +2801,21 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ 
+ 	dev_dbg(dev, "lanes %u\n", hwcfg->lanes);
+ 
++	rval = fwnode_property_read_u32(fwnode, "upside-down", &rotation);
++	if (!rval) {
++		switch (rotation) {
++		case 180:
++			hwcfg->module_board_orient =
++				SMIAPP_MODULE_BOARD_ORIENT_180;
++			/* Fall through */
++		case 0:
++			break;
++		default:
++			dev_err(dev, "invalid rotation %u\n", rotation);
++			goto out_err;
++		}
++	}
++
+ 	/* NVM size is not mandatory */
+ 	fwnode_property_read_u32(fwnode, "nokia,nvm-size", &hwcfg->nvm_size);
+ 
 -- 
 2.11.0
