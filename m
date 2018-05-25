@@ -1,66 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam01on0082.outbound.protection.outlook.com ([104.47.32.82]:36667
-        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751969AbeECCnL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 May 2018 22:43:11 -0400
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Rohit Athavale <rathaval@xilinx.com>,
-        Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-Subject: [PATCH v5 2/8] xilinx: v4l: dma: Update driver to allow for probe defer
-Date: Wed, 2 May 2018 19:42:47 -0700
-Message-ID: <956455000d75b749cdaadea2662d09f4a905e056.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
-In-Reply-To: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
-References: <cover.1525312401.git.satish.nagireddy.nagireddy@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:42247 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1030816AbeEYXxz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 May 2018 19:53:55 -0400
+Received: by mail-pf0-f193.google.com with SMTP id p14-v6so3261020pfh.9
+        for <linux-media@vger.kernel.org>; Fri, 25 May 2018 16:53:55 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 6/6] media: staging/imx: interweave and odd-chroma-row skip are incompatible
+Date: Fri, 25 May 2018 16:53:36 -0700
+Message-Id: <1527292416-26187-7-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rohit Athavale <rathaval@xilinx.com>
+If IDMAC interweaving is enabled in a write channel, the channel must
+write the odd chroma rows for 4:2:0 formats. Skipping writing the odd
+chroma rows produces corrupted captured 4:2:0 images when interweave
+is enabled.
 
-Update xvip_dma_init() to use dma_request_chan(), enabling probe
-deferral. Also update the cleanup routine to prevent dereferencing
-an ERR_PTR().
-
-Signed-off-by: Rohit Athavale <rathaval@xilinx.com>
-Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/xilinx/xilinx-dma.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 18 +++++++++++++-----
+ drivers/staging/media/imx/imx-media-csi.c   | 18 ++++++++++++------
+ 2 files changed, 25 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index cb20ada..5426efe 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -729,10 +729,13 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index ae453fd..b63b3f4 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -353,6 +353,7 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	struct v4l2_mbus_framefmt *infmt;
+ 	unsigned int burst_size;
+ 	struct ipu_image image;
++	bool interweave;
+ 	int ret;
  
- 	/* ... and the DMA channel. */
- 	snprintf(name, sizeof(name), "port%u", port);
--	dma->dma = dma_request_slave_channel(dma->xdev->dev, name);
--	if (dma->dma == NULL) {
--		dev_err(dma->xdev->dev, "no VDMA channel found\n");
--		ret = -ENODEV;
-+	dma->dma = dma_request_chan(dma->xdev->dev, name);
-+	if (IS_ERR(dma->dma)) {
-+		ret = PTR_ERR(dma->dma);
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(dma->xdev->dev,
-+				"No Video DMA channel found");
+ 	infmt = &priv->format_mbus[PRPENCVF_SINK_PAD];
+@@ -365,6 +366,10 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	image.rect.width = image.pix.width;
+ 	image.rect.height = image.pix.height;
+ 
++	interweave = (image.pix.field == V4L2_FIELD_NONE &&
++		      V4L2_FIELD_HAS_BOTH(infmt->field) &&
++		      channel == priv->out_ch);
 +
- 		goto error;
- 	}
+ 	if (rot_swap_width_height) {
+ 		swap(image.pix.width, image.pix.height);
+ 		swap(image.rect.width, image.rect.height);
+@@ -377,12 +382,17 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	image.phys0 = addr0;
+ 	image.phys1 = addr1;
  
-@@ -756,7 +759,7 @@ void xvip_dma_cleanup(struct xvip_dma *dma)
- 	if (video_is_registered(&dma->video))
- 		video_unregister_device(&dma->video);
+-	if (channel == priv->out_ch || channel == priv->rot_out_ch) {
++	/*
++	 * Skip writing U and V components to odd rows in the output
++	 * channels for planar 4:2:0 (but not when enabling IDMAC
++	 * interweaving, they are incompatible).
++	 */
++	if (!interweave && (channel == priv->out_ch ||
++			    channel == priv->rot_out_ch)) {
+ 		switch (image.pix.pixelformat) {
+ 		case V4L2_PIX_FMT_YUV420:
+ 		case V4L2_PIX_FMT_YVU420:
+ 		case V4L2_PIX_FMT_NV12:
+-			/* Skip writing U and V components to odd rows */
+ 			ipu_cpmem_skip_odd_chroma_rows(channel);
+ 			break;
+ 		}
+@@ -405,9 +415,7 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	if (rot_mode)
+ 		ipu_cpmem_set_rotation(channel, rot_mode);
  
--	if (dma->dma)
-+	if (!IS_ERR(dma->dma))
- 		dma_release_channel(dma->dma);
+-	if (image.pix.field == V4L2_FIELD_NONE &&
+-	    V4L2_FIELD_HAS_BOTH(infmt->field) &&
+-	    channel == priv->out_ch)
++	if (interweave)
+ 		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline);
  
- 	media_entity_cleanup(&dma->video.entity);
+ 	ret = ipu_ic_task_idma_init(priv->ic, channel,
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 6829c08..ab2de71 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -368,10 +368,10 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ {
+ 	struct imx_media_video_dev *vdev = priv->vdev;
+ 	struct v4l2_mbus_framefmt *infmt;
++	bool passthrough, interweave;
+ 	struct ipu_image image;
+ 	u32 passthrough_bits;
+ 	dma_addr_t phys[2];
+-	bool passthrough;
+ 	u32 burst_size;
+ 	int ret;
+ 
+@@ -389,6 +389,10 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	image.phys0 = phys[0];
+ 	image.phys1 = phys[1];
+ 
++	interweave = (image.pix.field == V4L2_FIELD_NONE &&
++		      (V4L2_FIELD_HAS_BOTH(infmt->field) ||
++		       infmt->field == V4L2_FIELD_ALTERNATE));
++
+ 	/*
+ 	 * Check for conditions that require the IPU to handle the
+ 	 * data internally as generic data, aka passthrough mode:
+@@ -422,8 +426,12 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 			      ((image.pix.width & 0xf) ? 8 : 16) : 32) : 64;
+ 		passthrough = is_parallel_16bit_bus(&priv->upstream_ep);
+ 		passthrough_bits = 16;
+-		/* Skip writing U and V components to odd rows */
+-		ipu_cpmem_skip_odd_chroma_rows(priv->idmac_ch);
++		/*
++		 * Skip writing U and V components to odd rows (but not
++		 * when enabling IDMAC interweaving, they are incompatible).
++		 */
++		if (!interweave)
++			ipu_cpmem_skip_odd_chroma_rows(priv->idmac_ch);
+ 		break;
+ 	case V4L2_PIX_FMT_YUYV:
+ 	case V4L2_PIX_FMT_UYVY:
+@@ -477,9 +485,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 
+ 	ipu_smfc_set_burstsize(priv->smfc, burst_size);
+ 
+-	if (image.pix.field == V4L2_FIELD_NONE &&
+-	    (V4L2_FIELD_HAS_BOTH(infmt->field) ||
+-	     infmt->field == V4L2_FIELD_ALTERNATE))
++	if (interweave)
+ 		ipu_cpmem_interlaced_scan(priv->idmac_ch,
+ 					  image.pix.bytesperline);
+ 
 -- 
 2.7.4
