@@ -1,421 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43784 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752221AbeERUmM (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:37006 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1031606AbeEZL2Y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 16:42:12 -0400
-From: Kieran Bingham <kieran@ksquared.org.uk>
+        Sat, 26 May 2018 07:28:24 -0400
+Date: Sat, 26 May 2018 08:28:18 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH v11 03/10] media: vsp1: Reword uses of 'fragment' as 'body'
-Date: Fri, 18 May 2018 21:41:56 +0100
-Message-Id: <a88ac5f21bcedfc449bb3f11899b94a84c13fea0.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [GIT PULL FOR v4.18] R-Car VSP1 TLB optimisation
+Message-ID: <20180526082818.70a369b5@vento.lan>
+In-Reply-To: <1657947.LKPPaiEoOV@avalon>
+References: <10831984.07PNLvckhh@avalon>
+        <20180525201027.1d5c82eb@vento.lan>
+        <4867226.Y05TeWaCcJ@avalon>
+        <1657947.LKPPaiEoOV@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Em Sat, 26 May 2018 03:24:00 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Throughout the codebase, the term 'fragment' is used to represent a
-display list body. This term duplicates the 'body' which is already in
-use.
+> Hi Mauro,
+>=20
+> On Saturday, 26 May 2018 02:39:16 EEST Laurent Pinchart wrote:
+> > On Saturday, 26 May 2018 02:10:27 EEST Mauro Carvalho Chehab wrote: =20
+> > > Em Sun, 20 May 2018 15:10:50 +0300 Laurent Pinchart escreveu: =20
+> > >> Hi Mauro,
+> > >>=20
+> > >> The following changes since commit
+> > >>=20
+> > >> 8ed8bba70b4355b1ba029b151ade84475dd12991:
+> > >>   media: imx274: remove non-indexed pointers from mode_table (2018-0=
+5-17
+> > >>=20
+> > >> 06:22:08 -0400)
+> > >>=20
+> > >> are available in the Git repository at:
+> > >>   git://linuxtv.org/pinchartl/media.git v4l2/vsp1/next
+> > >>=20
+> > >> for you to fetch changes up to 429f256501652c90a4ed82f2416618f82a77d=
+37c:
+> > >>   media: vsp1: Move video configuration to a cached dlb (2018-05-20
+> > >>   09:46:51 +0300)
+> > >>=20
+> > >> The branch passes the VSP and DU test suites, both on its own and wh=
+en
+> > >> merged with the drm-next branch. =20
+> > >=20
+> > > This series added a new warning:
+> > >=20
+> > > drivers/media/platform/vsp1/vsp1_dl.c:69: warning: Function parameter=
+ or
+> > > member 'refcnt' not described in 'vsp1_dl_body' =20
+> >=20
+> > We'll fix that. Kieran, as you authored the code, would you like to giv=
+e it
+> > a go ?
+> >  =20
+> > > To the already existing one:
+> > >=20
+> > > drivers/media/platform/vsp1/vsp1_drm.c:336 vsp1_du_pipeline_setup_brx=
+()
+> > > error: we previously assumed 'pipe->brx' could be null (see line 244)=
+ =20
+> >=20
+> > That's still on my todo list. I tried to give it a go but received plen=
+ty of
+> > SQL errors. How do you run smatch ? =20
+>=20
+> Nevermind, I found out what was wrong (had to specify the data directory=
+=20
+> manually).
+>=20
+> I've reproduced the issue and created a minimal test case.
+>=20
+>  1. struct vsp1_pipeline;
+>  2.  =20
+>  3. struct vsp1_entity {
+>  4.         struct vsp1_pipeline *pipe;
+>  5.         struct vsp1_entity *sink;
+>  6.         unsigned int source_pad;
+>  7. };
+>  8.=20
+>  9. struct vsp1_pipeline {
+> 10.         struct vsp1_entity *brx;
+> 11. };
+> 12.=20
+> 13. struct vsp1_brx {
+> 14.         struct vsp1_entity entity;
+> 15. };
+> 16.=20
+> 17. struct vsp1_device {
+> 18.         struct vsp1_brx *bru;
+> 19.         struct vsp1_brx *brs;
+> 20. };
+> 21.=20
+> 22. unsigned int frob(struct vsp1_device *vsp1, struct vsp1_pipeline *pip=
+e)
+> 23. {
+> 24.         struct vsp1_entity *brx;
+> 25.=20
+> 26.         if (pipe->brx)
+> 27.                 brx =3D pipe->brx;
+> 28.         else if (!vsp1->bru->entity.pipe)
+> 29.                 brx =3D &vsp1->bru->entity;
+> 30.         else
+> 31.                 brx =3D &vsp1->brs->entity;
+> 32.=20
+> 33.         if (brx !=3D pipe->brx)
+> 34.                 pipe->brx =3D brx;
+> 35.=20
+> 36.         return pipe->brx->source_pad;
+> 37. }
+>=20
+> The reason why smatch complains is that it has no guarantee that vsp1->br=
+s is=20
+> not NULL. It's quite tricky:
+>=20
+> - On line 26, smatch assumes that pipe->brx can be NULL
+> - On line 27, brx is assigned a non-NULL value (as pipe->brx is not NULL =
+due=20
+> to line 26)
+> - On line 28, smatch assumes that vsp1->bru is not NULL
+> - On line 29, brx is assigned a non-NULL value (as vsp1->bru is not NULL =
+due=20
+> to line 28)
+> - On line 31, brx is assigned a possibly NULL value (as there's no inform=
+ation=20
+> regarding vsp1->brs)
+> - On line 34, pipe->brx is not assigned a non-NULL value if brx is NULL
+> - On line 36 pipe->brx is dereferenced
+>=20
+> The problem comes from the fact that smatch assumes that vsp1->brs isn't =
+NULL.=20
+> Adding a "(void)vsp1->brs->entity;" statement on line 25 makes the warnin=
+g=20
+> disappear.
+>=20
+> So how do we know that vsp1->brs isn't NULL in the original code ?
+>=20
+>         if (pipe->num_inputs > 2)
+>                 brx =3D &vsp1->bru->entity;
+>         else if (pipe->brx && !drm_pipe->force_brx_release)
+>                 brx =3D pipe->brx;
+>         else if (!vsp1->bru->entity.pipe)
+>                 brx =3D &vsp1->bru->entity;
+>         else
+>                 brx =3D &vsp1->brs->entity;
+>=20
+> A VSP1 instance can have no brs, so in general vsp1->brs can be NULL. How=
+ever,=20
+> when that's the case, the following conditions are fulfilled.
+>=20
+> - drm_pipe->force_brx_release will be false
+> - either pipe->brx will be non-NULL, or vsp1->bru->entity.pipe will be NU=
+LL
+>=20
+> The fourth branch should thus never be taken.
 
-The datasheet references these objects as a body, therefore replace all
-mentions of a fragment with a body, along with the corresponding
-pluralised terms.
+I don't think that adding a forth branch there would solve.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_clu.c |  10 +-
- drivers/media/platform/vsp1/vsp1_dl.c  | 111 ++++++++++++--------------
- drivers/media/platform/vsp1/vsp1_dl.h  |  13 +--
- drivers/media/platform/vsp1/vsp1_lut.c |   8 +-
- 4 files changed, 70 insertions(+), 72 deletions(-)
+The thing is that Smatch knows that pipe->brx can be NULL, as the function
+explicly checks if pipe->brx !=3D NULL.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
-index 96a448e1504c..ebfbb915dcdc 100644
---- a/drivers/media/platform/vsp1/vsp1_clu.c
-+++ b/drivers/media/platform/vsp1/vsp1_clu.c
-@@ -43,19 +43,19 @@ static int clu_set_table(struct vsp1_clu *clu, struct v4l2_ctrl *ctrl)
- 	struct vsp1_dl_body *dlb;
- 	unsigned int i;
- 
--	dlb = vsp1_dl_fragment_alloc(clu->entity.vsp1, 1 + 17 * 17 * 17);
-+	dlb = vsp1_dl_body_alloc(clu->entity.vsp1, 1 + 17 * 17 * 17);
- 	if (!dlb)
- 		return -ENOMEM;
- 
--	vsp1_dl_fragment_write(dlb, VI6_CLU_ADDR, 0);
-+	vsp1_dl_body_write(dlb, VI6_CLU_ADDR, 0);
- 	for (i = 0; i < 17 * 17 * 17; ++i)
--		vsp1_dl_fragment_write(dlb, VI6_CLU_DATA, ctrl->p_new.p_u32[i]);
-+		vsp1_dl_body_write(dlb, VI6_CLU_DATA, ctrl->p_new.p_u32[i]);
- 
- 	spin_lock_irq(&clu->lock);
- 	swap(clu->clu, dlb);
- 	spin_unlock_irq(&clu->lock);
- 
--	vsp1_dl_fragment_free(dlb);
-+	vsp1_dl_body_free(dlb);
- 	return 0;
- }
- 
-@@ -211,7 +211,7 @@ static void clu_configure(struct vsp1_entity *entity,
- 		spin_unlock_irqrestore(&clu->lock, flags);
- 
- 		if (dlb)
--			vsp1_dl_list_add_fragment(dl, dlb);
-+			vsp1_dl_list_add_body(dl, dlb);
- 		break;
+When Smatch handles this if:
+
+	if (brx !=3D pipe->brx) {
+
+It wrongly assumes that this could be false if pipe->brx is NULL.
+I don't know why, as Smatch should know that brx can't be NULL.
+
+On such case, the next code to be executed would be:
+
+	format.pad =3D pipe->brx->source_pad;
+
+With would be trying to de-ref a NULL pointer.
+
+There are two ways to fix it:
+
+1) with my patch.
+
+It is based to the fact that, if pipe->brx is null, then brx won't be
+NULL. So, the logic that "Switch BRx if needed." will always be called:
+
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platfor=
+m/vsp1/vsp1_drm.c
+index 095dc48aa25a..cb6b60843400 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -185,7 +185,7 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_devic=
+e *vsp1,
+ 		brx =3D &vsp1->brs->entity;
+=20
+ 	/* Switch BRx if needed. */
+-	if (brx !=3D pipe->brx) {
++	if (brx !=3D pipe->brx || !pipe->brx) {
+ 		struct vsp1_entity *released_brx =3D NULL;
+=20
+ 		/* Release our BRx if we have one. */
+
+The code with switches BRx ensures that pipe->brx won't be null, as
+in the end, it sets:
+
+	pipe->brx =3D brx;
+
+And brx can't be NULL.
+
+=46rom my PoV, this patch has the advantage of explicitly showing
+to humans that the code inside the if statement will always be
+executed when pipe->brx is NULL.
+
+-
+
+Another way to solve would be to explicitly check if pipe->brx is still
+null before de-referencing:
+
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platfor=
+m/vsp1/vsp1_drm.c
+index edb35a5c57ea..9fe063d6df31 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -327,6 +327,9 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_devic=
+e *vsp1,
+ 		list_add_tail(&pipe->brx->list_pipe, &pipe->entities);
  	}
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 801dea475740..083da4f05c20 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -65,7 +65,7 @@ struct vsp1_dl_body {
-  * @header: display list header, NULL for headerless lists
-  * @dma: DMA address for the header
-  * @body0: first display list body
-- * @fragments: list of extra display list bodies
-+ * @bodies: list of extra display list bodies
-  * @has_chain: if true, indicates that there's a partition chain
-  * @chain: entry in the display list partition chain
-  * @internal: whether the display list is used for internal purpose
-@@ -78,7 +78,7 @@ struct vsp1_dl_list {
- 	dma_addr_t dma;
- 
- 	struct vsp1_dl_body body0;
--	struct list_head fragments;
-+	struct list_head bodies;
- 
- 	bool has_chain;
- 	struct list_head chain;
-@@ -97,13 +97,13 @@ enum vsp1_dl_mode {
-  * @mode: display list operation mode (header or headerless)
-  * @singleshot: execute the display list in single-shot mode
-  * @vsp1: the VSP1 device
-- * @lock: protects the free, active, queued, pending and gc_fragments lists
-+ * @lock: protects the free, active, queued, pending and gc_bodies lists
-  * @free: array of all free display lists
-  * @active: list currently being processed (loaded) by hardware
-  * @queued: list queued to the hardware (written to the DL registers)
-  * @pending: list waiting to be queued to the hardware
-- * @gc_work: fragments garbage collector work struct
-- * @gc_fragments: array of display list fragments waiting to be freed
-+ * @gc_work: bodies garbage collector work struct
-+ * @gc_bodies: array of display list bodies waiting to be freed
-  */
- struct vsp1_dl_manager {
- 	unsigned int index;
-@@ -118,7 +118,7 @@ struct vsp1_dl_manager {
- 	struct vsp1_dl_list *pending;
- 
- 	struct work_struct gc_work;
--	struct list_head gc_fragments;
-+	struct list_head gc_bodies;
- };
- 
- /* -----------------------------------------------------------------------------
-@@ -156,18 +156,17 @@ static void vsp1_dl_body_cleanup(struct vsp1_dl_body *dlb)
- }
- 
- /**
-- * vsp1_dl_fragment_alloc - Allocate a display list fragment
-+ * vsp1_dl_body_alloc - Allocate a display list body
-  * @vsp1: The VSP1 device
-- * @num_entries: The maximum number of entries that the fragment can contain
-+ * @num_entries: The maximum number of entries that the body can contain
-  *
-- * Allocate a display list fragment with enough memory to contain the requested
-+ * Allocate a display list body with enough memory to contain the requested
-  * number of entries.
-  *
-- * Return a pointer to a fragment on success or NULL if memory can't be
-- * allocated.
-+ * Return a pointer to a body on success or NULL if memory can't be allocated.
-  */
--struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
--					    unsigned int num_entries)
-+struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
-+					unsigned int num_entries)
- {
- 	struct vsp1_dl_body *dlb;
- 	int ret;
-@@ -186,20 +185,20 @@ struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
- }
- 
- /**
-- * vsp1_dl_fragment_free - Free a display list fragment
-- * @dlb: The fragment
-+ * vsp1_dl_body_free - Free a display list body
-+ * @dlb: The body
-  *
-- * Free the given display list fragment and the associated DMA memory.
-+ * Free the given display list body and the associated DMA memory.
-  *
-- * Fragments must only be freed explicitly if they are not added to a display
-+ * Bodies must only be freed explicitly if they are not added to a display
-  * list, as the display list will take ownership of them and free them
-- * otherwise. Manual free typically happens at cleanup time for fragments that
-+ * otherwise. Manual free typically happens at cleanup time for bodies that
-  * have been allocated but not used.
-  *
-  * Passing a NULL pointer to this function is safe, in that case no operation
-  * will be performed.
-  */
--void vsp1_dl_fragment_free(struct vsp1_dl_body *dlb)
-+void vsp1_dl_body_free(struct vsp1_dl_body *dlb)
- {
- 	if (!dlb)
- 		return;
-@@ -209,16 +208,16 @@ void vsp1_dl_fragment_free(struct vsp1_dl_body *dlb)
- }
- 
- /**
-- * vsp1_dl_fragment_write - Write a register to a display list fragment
-- * @dlb: The fragment
-+ * vsp1_dl_body_write - Write a register to a display list body
-+ * @dlb: The body
-  * @reg: The register address
-  * @data: The register value
-  *
-- * Write the given register and value to the display list fragment. The maximum
-- * number of entries that can be written in a fragment is specified when the
-- * fragment is allocated by vsp1_dl_fragment_alloc().
-+ * Write the given register and value to the display list body. The maximum
-+ * number of entries that can be written in a body is specified when the body is
-+ * allocated by vsp1_dl_body_alloc().
-  */
--void vsp1_dl_fragment_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
-+void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
- 	dlb->entries[dlb->num_entries].addr = reg;
- 	dlb->entries[dlb->num_entries].data = data;
-@@ -239,7 +238,7 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
- 	if (!dl)
- 		return NULL;
- 
--	INIT_LIST_HEAD(&dl->fragments);
-+	INIT_LIST_HEAD(&dl->bodies);
- 	dl->dlm = dlm;
- 
- 	/*
-@@ -276,7 +275,7 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
- static void vsp1_dl_list_free(struct vsp1_dl_list *dl)
- {
- 	vsp1_dl_body_cleanup(&dl->body0);
--	list_splice_init(&dl->fragments, &dl->dlm->gc_fragments);
-+	list_splice_init(&dl->bodies, &dl->dlm->gc_bodies);
- 	kfree(dl);
- }
- 
-@@ -331,13 +330,13 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
- 	dl->has_chain = false;
- 
- 	/*
--	 * We can't free fragments here as DMA memory can only be freed in
--	 * interruptible context. Move all fragments to the display list
--	 * manager's list of fragments to be freed, they will be
--	 * garbage-collected by the work queue.
-+	 * We can't free bodies here as DMA memory can only be freed in
-+	 * interruptible context. Move all bodies to the display list manager's
-+	 * list of bodies to be freed, they will be garbage-collected by the
-+	 * work queue.
- 	 */
--	if (!list_empty(&dl->fragments)) {
--		list_splice_init(&dl->fragments, &dl->dlm->gc_fragments);
-+	if (!list_empty(&dl->bodies)) {
-+		list_splice_init(&dl->bodies, &dl->dlm->gc_bodies);
- 		schedule_work(&dl->dlm->gc_work);
- 	}
- 
-@@ -378,33 +377,33 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl)
-  */
- void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
- {
--	vsp1_dl_fragment_write(&dl->body0, reg, data);
-+	vsp1_dl_body_write(&dl->body0, reg, data);
- }
- 
- /**
-- * vsp1_dl_list_add_fragment - Add a fragment to the display list
-+ * vsp1_dl_list_add_body - Add a body to the display list
-  * @dl: The display list
-- * @dlb: The fragment
-+ * @dlb: The body
-  *
-- * Add a display list body as a fragment to a display list. Registers contained
-- * in fragments are processed after registers contained in the main display
-- * list, in the order in which fragments are added.
-+ * Add a display list body to a display list. Registers contained in bodies are
-+ * processed after registers contained in the main display list, in the order in
-+ * which bodies are added.
-  *
-- * Adding a fragment to a display list passes ownership of the fragment to the
-- * list. The caller must not touch the fragment after this call, and must not
-- * free it explicitly with vsp1_dl_fragment_free().
-+ * Adding a body to a display list passes ownership of the body to the list. The
-+ * caller must not touch the body after this call, and must not free it
-+ * explicitly with vsp1_dl_body_free().
-  *
-- * Fragments are only usable for display lists in header mode. Attempt to
-- * add a fragment to a header-less display list will return an error.
-+ * Additional bodies are only usable for display lists in header mode.
-+ * Attempting to add a body to a header-less display list will return an error.
-  */
--int vsp1_dl_list_add_fragment(struct vsp1_dl_list *dl,
--			      struct vsp1_dl_body *dlb)
-+int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb)
- {
- 	/* Multi-body lists are only available in header mode. */
- 	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
- 		return -EINVAL;
- 
--	list_add_tail(&dlb->list, &dl->fragments);
-+	list_add_tail(&dlb->list, &dl->bodies);
+=20
++	if (!pipe->brx)
++		return -EINVAL;
 +
- 	return 0;
- }
- 
-@@ -453,7 +452,7 @@ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
- 	hdr->num_bytes = dl->body0.num_entries
- 		       * sizeof(*dl->header->lists);
- 
--	list_for_each_entry(dlb, &dl->fragments, list) {
-+	list_for_each_entry(dlb, &dl->bodies, list) {
- 		num_lists++;
- 		hdr++;
- 
-@@ -732,25 +731,25 @@ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
- }
- 
- /*
-- * Free all fragments awaiting to be garbage-collected.
-+ * Free all bodies awaiting to be garbage-collected.
-  *
-  * This function must be called without the display list manager lock held.
-  */
--static void vsp1_dlm_fragments_free(struct vsp1_dl_manager *dlm)
-+static void vsp1_dlm_bodies_free(struct vsp1_dl_manager *dlm)
- {
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&dlm->lock, flags);
- 
--	while (!list_empty(&dlm->gc_fragments)) {
-+	while (!list_empty(&dlm->gc_bodies)) {
- 		struct vsp1_dl_body *dlb;
- 
--		dlb = list_first_entry(&dlm->gc_fragments, struct vsp1_dl_body,
-+		dlb = list_first_entry(&dlm->gc_bodies, struct vsp1_dl_body,
- 				       list);
- 		list_del(&dlb->list);
- 
- 		spin_unlock_irqrestore(&dlm->lock, flags);
--		vsp1_dl_fragment_free(dlb);
-+		vsp1_dl_body_free(dlb);
- 		spin_lock_irqsave(&dlm->lock, flags);
- 	}
- 
-@@ -762,7 +761,7 @@ static void vsp1_dlm_garbage_collect(struct work_struct *work)
- 	struct vsp1_dl_manager *dlm =
- 		container_of(work, struct vsp1_dl_manager, gc_work);
- 
--	vsp1_dlm_fragments_free(dlm);
-+	vsp1_dlm_bodies_free(dlm);
- }
- 
- struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
-@@ -784,7 +783,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 
- 	spin_lock_init(&dlm->lock);
- 	INIT_LIST_HEAD(&dlm->free);
--	INIT_LIST_HEAD(&dlm->gc_fragments);
-+	INIT_LIST_HEAD(&dlm->gc_bodies);
- 	INIT_WORK(&dlm->gc_work, vsp1_dlm_garbage_collect);
- 
- 	for (i = 0; i < prealloc; ++i) {
-@@ -814,5 +813,5 @@ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
- 		vsp1_dl_list_free(dl);
- 	}
- 
--	vsp1_dlm_fragments_free(dlm);
-+	vsp1_dlm_bodies_free(dlm);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index e6279b1abd19..57565debe132 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -12,7 +12,7 @@
- #include <linux/types.h>
- 
- struct vsp1_device;
--struct vsp1_dl_fragment;
-+struct vsp1_dl_body;
- struct vsp1_dl_list;
- struct vsp1_dl_manager;
- 
-@@ -33,12 +33,11 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
- void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
- void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal);
- 
--struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
--					    unsigned int num_entries);
--void vsp1_dl_fragment_free(struct vsp1_dl_body *dlb);
--void vsp1_dl_fragment_write(struct vsp1_dl_body *dlb, u32 reg, u32 data);
--int vsp1_dl_list_add_fragment(struct vsp1_dl_list *dl,
--			      struct vsp1_dl_body *dlb);
-+struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
-+					unsigned int num_entries);
-+void vsp1_dl_body_free(struct vsp1_dl_body *dlb);
-+void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data);
-+int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb);
- int vsp1_dl_list_add_chain(struct vsp1_dl_list *head, struct vsp1_dl_list *dl);
- 
- #endif /* __VSP1_DL_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index f2e48a02ca7d..acbaca0f47f0 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -40,19 +40,19 @@ static int lut_set_table(struct vsp1_lut *lut, struct v4l2_ctrl *ctrl)
- 	struct vsp1_dl_body *dlb;
- 	unsigned int i;
- 
--	dlb = vsp1_dl_fragment_alloc(lut->entity.vsp1, 256);
-+	dlb = vsp1_dl_body_alloc(lut->entity.vsp1, 256);
- 	if (!dlb)
- 		return -ENOMEM;
- 
- 	for (i = 0; i < 256; ++i)
--		vsp1_dl_fragment_write(dlb, VI6_LUT_TABLE + 4 * i,
-+		vsp1_dl_body_write(dlb, VI6_LUT_TABLE + 4 * i,
- 				       ctrl->p_new.p_u32[i]);
- 
- 	spin_lock_irq(&lut->lock);
- 	swap(lut->lut, dlb);
- 	spin_unlock_irq(&lut->lock);
- 
--	vsp1_dl_fragment_free(dlb);
-+	vsp1_dl_body_free(dlb);
- 	return 0;
- }
- 
-@@ -167,7 +167,7 @@ static void lut_configure(struct vsp1_entity *entity,
- 		spin_unlock_irqrestore(&lut->lock, flags);
- 
- 		if (dlb)
--			vsp1_dl_list_add_fragment(dl, dlb);
-+			vsp1_dl_list_add_body(dl, dlb);
- 		break;
- 	}
- }
--- 
-git-series 0.9.1
+ 	/*
+ 	 * Configure the format on the BRx source and verify that it matches the
+ 	 * requested format. We don't set the media bus code as it is configured
+
+The right fix would be, instead, to fix Smatch to handle the:
+
+	if (brx !=3D pipe->brx)
+
+for the cases where one var can be NULL while the other can't be NULL,
+but, as I said before, I suspect that this can be a way more complex.
+
+Thanks,
+Mauro
