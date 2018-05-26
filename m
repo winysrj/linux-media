@@ -1,511 +1,341 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga17.intel.com ([192.55.52.151]:21564 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751116AbeEUIzR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 May 2018 04:55:17 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v14 15/36] v4l2-ctrls: add core request support
-Date: Mon, 21 May 2018 11:54:40 +0300
-Message-Id: <20180521085501.16861-16-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
-References: <20180521085501.16861-1-sakari.ailus@linux.intel.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:37344 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1032050AbeEZP5r (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 May 2018 11:57:47 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?=
+        <ville.syrjala@linux.intel.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        Sinclair Yeh <syeh@vmware.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [RFC PATCH v2 2/2] drm/tegra: plane: Implement generic colorkey property for older Tegra's
+Date: Sat, 26 May 2018 18:56:23 +0300
+Message-Id: <20180526155623.12610-3-digetx@gmail.com>
+In-Reply-To: <20180526155623.12610-1-digetx@gmail.com>
+References: <20180526155623.12610-1-digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Color keying allows to draw on top of overlapping planes, like for
+example on top of a video plane. Older Tegra's have a limited color
+keying capability, such that blending features are reduced when color
+keying is enabled. In particular dependent weighting isn't possible,
+meaning that cursors plane can't be displayed properly. In most cases
+it is more useful to display content on top of video overlay, so
+sacrificing mouse cursor in the area of three planes intersection with
+colorkey mismatch is a reasonable tradeoff.
 
-Integrate the request support. This adds the v4l2_ctrl_request_complete
-and v4l2_ctrl_request_setup functions to complete a request and (as a
-helper function) to apply a request to the hardware.
+This patch implements the generic DRM colorkey property. For the starter
+a minimal color keying support is implemented, it is enough to provide
+userspace like Opentegra Xorg driver with ability to support color keying
+by the XVideo extension.
 
-It takes care of queuing requests and correctly chaining control values
-in the request queue.
-
-Note that when a request is marked completed it will copy control values
-to the internal request state. This can be optimized in the future since
-this is sub-optimal when dealing with large compound and/or array controls.
-
-For the initial 'stateless codec' use-case the current implementation is
-sufficient.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 331 ++++++++++++++++++++++++++++++++++-
- include/media/v4l2-ctrls.h           |  23 +++
- 2 files changed, 348 insertions(+), 6 deletions(-)
+ drivers/gpu/drm/tegra/dc.c    |  31 +++++++
+ drivers/gpu/drm/tegra/dc.h    |   7 ++
+ drivers/gpu/drm/tegra/plane.c | 147 ++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/tegra/plane.h |   1 +
+ 4 files changed, 186 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index da4cc1485dc43..56b986185463d 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1647,6 +1647,13 @@ static int new_to_user(struct v4l2_ext_control *c,
- 	return ptr_to_user(c, ctrl, ctrl->p_new);
+diff --git a/drivers/gpu/drm/tegra/dc.c b/drivers/gpu/drm/tegra/dc.c
+index 31e12a9dfcb8..a5add64e40e2 100644
+--- a/drivers/gpu/drm/tegra/dc.c
++++ b/drivers/gpu/drm/tegra/dc.c
+@@ -172,6 +172,11 @@ static void tegra_plane_setup_blending_legacy(struct tegra_plane *plane)
+ 
+ 	state = to_tegra_plane_state(plane->base.state);
+ 
++	if (state->ckey_enabled) {
++		background[0] |= BLEND_COLOR_KEY_0;
++		background[2] |= BLEND_COLOR_KEY_0;
++	}
++
+ 	if (state->opaque) {
+ 		/*
+ 		 * Since custom fix-weight blending isn't utilized and weight
+@@ -776,6 +781,11 @@ static struct drm_plane *tegra_primary_plane_create(struct drm_device *drm,
+ 	drm_plane_helper_add(&plane->base, &tegra_plane_helper_funcs);
+ 	drm_plane_create_zpos_property(&plane->base, plane->index, 0, 255);
+ 
++	if (dc->soc->has_legacy_blending)
++		drm_plane_create_colorkey_properties(&plane->base,
++					BIT(DRM_PLANE_COLORKEY_MODE_DISABLED) |
++					BIT(DRM_PLANE_COLORKEY_MODE_DST));
++
+ 	return &plane->base;
  }
  
-+/* Helper function: copy the request value back to the caller */
-+static int req_to_user(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl_ref *ref)
-+{
-+	return ptr_to_user(c, ref->ctrl, ref->p_req);
-+}
+@@ -1053,6 +1063,11 @@ static struct drm_plane *tegra_dc_overlay_plane_create(struct drm_device *drm,
+ 	drm_plane_helper_add(&plane->base, &tegra_plane_helper_funcs);
+ 	drm_plane_create_zpos_property(&plane->base, plane->index, 0, 255);
+ 
++	if (dc->soc->has_legacy_blending)
++		drm_plane_create_colorkey_properties(&plane->base,
++					BIT(DRM_PLANE_COLORKEY_MODE_DISABLED) |
++					BIT(DRM_PLANE_COLORKEY_MODE_DST));
 +
- /* Helper function: copy the initial control value back to the caller */
- static int def_to_user(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl)
+ 	return &plane->base;
+ }
+ 
+@@ -1153,6 +1168,7 @@ tegra_crtc_atomic_duplicate_state(struct drm_crtc *crtc)
  {
-@@ -1766,6 +1773,26 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- 	ptr_to_ptr(ctrl, ctrl->p_cur, ctrl->p_new);
+ 	struct tegra_dc_state *state = to_dc_state(crtc->state);
+ 	struct tegra_dc_state *copy;
++	unsigned int i;
+ 
+ 	copy = kmalloc(sizeof(*copy), GFP_KERNEL);
+ 	if (!copy)
+@@ -1164,6 +1180,9 @@ tegra_crtc_atomic_duplicate_state(struct drm_crtc *crtc)
+ 	copy->div = state->div;
+ 	copy->planes = state->planes;
+ 
++	for (i = 0; i < 2; i++)
++		copy->ckey[i] = state->ckey[i];
++
+ 	return &copy->base;
  }
  
-+/* Copy the new value to the request value */
-+static void new_to_req(struct v4l2_ctrl_ref *ref)
-+{
-+	if (!ref)
-+		return;
-+	ptr_to_ptr(ref->ctrl, ref->ctrl->p_new, ref->p_req);
-+	ref->req = ref;
-+}
-+
-+/* Copy the request value to the new value */
-+static void req_to_new(struct v4l2_ctrl_ref *ref)
-+{
-+	if (!ref)
-+		return;
-+	if (ref->req)
-+		ptr_to_ptr(ref->ctrl, ref->req->p_req, ref->ctrl->p_new);
-+	else
-+		ptr_to_ptr(ref->ctrl, ref->ctrl->p_cur, ref->ctrl->p_new);
-+}
-+
- /* Return non-zero if one or more of the controls in the cluster has a new
-    value that differs from the current value. */
- static int cluster_changed(struct v4l2_ctrl *master)
-@@ -1875,6 +1902,9 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
- 	lockdep_set_class_and_name(hdl->lock, key, name);
- 	INIT_LIST_HEAD(&hdl->ctrls);
- 	INIT_LIST_HEAD(&hdl->ctrl_refs);
-+	INIT_LIST_HEAD(&hdl->requests);
-+	INIT_LIST_HEAD(&hdl->requests_queued);
-+	hdl->request_is_queued = false;
- 	hdl->nr_of_buckets = 1 + nr_of_controls_hint / 8;
- 	hdl->buckets = kvmalloc_array(hdl->nr_of_buckets,
- 				      sizeof(hdl->buckets[0]),
-@@ -1895,6 +1925,14 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
- 	if (hdl == NULL || hdl->buckets == NULL)
- 		return;
+@@ -1893,6 +1912,18 @@ static void tegra_crtc_atomic_flush(struct drm_crtc *crtc,
+ 	struct tegra_dc *dc = to_tegra_dc(crtc);
+ 	u32 value;
  
-+	if (!hdl->req_obj.req && !list_empty(&hdl->requests)) {
-+		struct v4l2_ctrl_handler *req, *next_req;
++	if (dc->soc->has_legacy_blending) {
++		tegra_dc_writel(dc,
++				state->ckey[0].lower, DC_DISP_COLOR_KEY0_LOWER);
++		tegra_dc_writel(dc,
++				state->ckey[0].upper, DC_DISP_COLOR_KEY0_UPPER);
 +
-+		list_for_each_entry_safe(req, next_req, &hdl->requests, requests) {
-+			media_request_object_unbind(&req->req_obj);
-+			media_request_object_put(&req->req_obj);
-+		}
++		tegra_dc_writel(dc,
++				state->ckey[1].lower, DC_DISP_COLOR_KEY1_LOWER);
++		tegra_dc_writel(dc,
++				state->ckey[1].upper, DC_DISP_COLOR_KEY1_UPPER);
 +	}
- 	mutex_lock(hdl->lock);
- 	/* Free all nodes */
- 	list_for_each_entry_safe(ref, next_ref, &hdl->ctrl_refs, node) {
-@@ -2816,6 +2854,128 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm)
- }
- EXPORT_SYMBOL(v4l2_querymenu);
++
+ 	value = state->planes << 8 | GENERAL_UPDATE;
+ 	tegra_dc_writel(dc, value, DC_CMD_STATE_CONTROL);
+ 	value = tegra_dc_readl(dc, DC_CMD_STATE_CONTROL);
+diff --git a/drivers/gpu/drm/tegra/dc.h b/drivers/gpu/drm/tegra/dc.h
+index e96f582ca692..8209cb7d598a 100644
+--- a/drivers/gpu/drm/tegra/dc.h
++++ b/drivers/gpu/drm/tegra/dc.h
+@@ -18,6 +18,11 @@
  
-+static int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
-+				   const struct v4l2_ctrl_handler *from)
-+{
-+	struct v4l2_ctrl_ref *ref;
-+	int err;
-+
-+	if (WARN_ON(!hdl || hdl == from))
-+		return -EINVAL;
-+
-+	if (hdl->error)
-+		return hdl->error;
-+
-+	WARN_ON(hdl->lock != &hdl->_lock);
-+
-+	mutex_lock(from->lock);
-+	list_for_each_entry(ref, &from->ctrl_refs, node) {
-+		struct v4l2_ctrl *ctrl = ref->ctrl;
-+		struct v4l2_ctrl_ref *new_ref;
-+
-+		/* Skip refs inherited from other devices */
-+		if (ref->from_other_dev)
-+			continue;
-+		/* And buttons */
-+		if (ctrl->type == V4L2_CTRL_TYPE_BUTTON)
-+			continue;
-+		err = handler_new_ref(hdl, ctrl, &new_ref, false, true);
-+		if (err) {
-+			printk("%s: handler_new_ref on control %x (%s) returned %d\n", __func__, ctrl->id, ctrl->name, err);
-+			err = 0;
-+			continue;
-+		}
-+		if (err)
-+			break;
-+	}
-+	mutex_unlock(from->lock);
-+	return err;
-+}
-+
-+static void v4l2_ctrl_request_queue(struct media_request_object *obj)
-+{
-+	struct v4l2_ctrl_handler *hdl =
-+		container_of(obj, struct v4l2_ctrl_handler, req_obj);
-+	struct v4l2_ctrl_handler *main_hdl = obj->priv;
-+	struct v4l2_ctrl_handler *prev_hdl = NULL;
-+	struct v4l2_ctrl_ref *ref_ctrl, *ref_ctrl_prev = NULL;
-+
-+	if (list_empty(&main_hdl->requests_queued))
-+		goto queue;
-+
-+	prev_hdl = list_last_entry(&main_hdl->requests_queued,
-+				   struct v4l2_ctrl_handler, requests_queued);
-+	/*
-+	 * Note: prev_hdl and hdl must contain the same list of control
-+	 * references, so if any differences are detected then that is a
-+	 * driver bug and the WARN_ON is triggered.
-+	 */
-+	mutex_lock(prev_hdl->lock);
-+	ref_ctrl_prev = list_first_entry(&prev_hdl->ctrl_refs,
-+					 struct v4l2_ctrl_ref, node);
-+	list_for_each_entry(ref_ctrl, &hdl->ctrl_refs, node) {
-+		if (ref_ctrl->req)
-+			continue;
-+		while (ref_ctrl_prev->ctrl->id < ref_ctrl->ctrl->id) {
-+			/* Should never happen, but just in case... */
-+			if (list_is_last(&ref_ctrl_prev->node,
-+					 &prev_hdl->ctrl_refs))
-+				break;
-+			ref_ctrl_prev = list_next_entry(ref_ctrl_prev, node);
-+		}
-+		if (WARN_ON(ref_ctrl_prev->ctrl->id != ref_ctrl->ctrl->id))
-+			break;
-+		ref_ctrl->req = ref_ctrl_prev->req;
-+	}
-+	mutex_unlock(prev_hdl->lock);
-+queue:
-+	list_add_tail(&hdl->requests_queued, &main_hdl->requests_queued);
-+	hdl->request_is_queued = true;
-+}
-+
-+static void v4l2_ctrl_request_unbind(struct media_request_object *obj)
-+{
-+	struct v4l2_ctrl_handler *hdl =
-+		container_of(obj, struct v4l2_ctrl_handler, req_obj);
-+
-+	list_del_init(&hdl->requests);
-+	if (hdl->request_is_queued) {
-+		list_del_init(&hdl->requests_queued);
-+		hdl->request_is_queued = false;
-+	}
-+}
-+
-+static void v4l2_ctrl_request_release(struct media_request_object *obj)
-+{
-+	struct v4l2_ctrl_handler *hdl =
-+		container_of(obj, struct v4l2_ctrl_handler, req_obj);
-+
-+	v4l2_ctrl_handler_free(hdl);
-+	kfree(hdl);
-+}
-+
-+static const struct media_request_object_ops req_ops = {
-+	.queue = v4l2_ctrl_request_queue,
-+	.unbind = v4l2_ctrl_request_unbind,
-+	.release = v4l2_ctrl_request_release,
+ struct tegra_output;
+ 
++struct tegra_dc_color_key_state {
++	u32 lower;
++	u32 upper;
 +};
 +
-+static int v4l2_ctrl_request_bind(struct media_request *req,
-+			   struct v4l2_ctrl_handler *hdl,
-+			   struct v4l2_ctrl_handler *from)
+ struct tegra_dc_state {
+ 	struct drm_crtc_state base;
+ 
+@@ -26,6 +31,8 @@ struct tegra_dc_state {
+ 	unsigned int div;
+ 
+ 	u32 planes;
++
++	struct tegra_dc_color_key_state ckey[2];
+ };
+ 
+ static inline struct tegra_dc_state *to_dc_state(struct drm_crtc_state *state)
+diff --git a/drivers/gpu/drm/tegra/plane.c b/drivers/gpu/drm/tegra/plane.c
+index 0406c2ef432c..ba08b66d2499 100644
+--- a/drivers/gpu/drm/tegra/plane.c
++++ b/drivers/gpu/drm/tegra/plane.c
+@@ -57,6 +57,7 @@ tegra_plane_atomic_duplicate_state(struct drm_plane *plane)
+ 	copy->format = state->format;
+ 	copy->swap = state->swap;
+ 	copy->opaque = state->opaque;
++	copy->ckey_enabled = state->ckey_enabled;
+ 
+ 	for (i = 0; i < 2; i++)
+ 		copy->blending[i] = state->blending[i];
+@@ -464,6 +465,148 @@ static int tegra_plane_setup_transparency(struct tegra_plane *tegra,
+ 	return 0;
+ }
+ 
++static int tegra_plane_setup_colorkey(struct tegra_plane *tegra,
++				      struct tegra_plane_state *tegra_state)
 +{
-+	int ret;
++	struct drm_plane_state *state;
++	struct drm_plane_state *new_plane;
++	struct drm_plane_state *old_plane;
++	struct drm_crtc_state *crtc_state;
++	struct drm_crtc_state *new_crtc;
++	struct tegra_dc_state *dc_state;
++	struct drm_plane *plane;
++	unsigned int mode;
++	u32 min, max;
++	u32 format;
 +
-+	ret = v4l2_ctrl_request_clone(hdl, from);
++	/* at first check if plane has the colorkey property attached */
++	if (!tegra->base.colorkey.mode_property)
++		return 0;
 +
-+	if (!ret) {
-+		ret = media_request_object_bind(req, &req_ops,
-+						from, &hdl->req_obj);
-+		if (!ret)
-+			list_add_tail(&hdl->requests, &from->requests);
++	format = tegra_state->base.colorkey.format;
++	mode = tegra_state->base.colorkey.mode;
++	min = tegra_state->base.colorkey.min;
++	max = tegra_state->base.colorkey.max;
++
++	state = &tegra_state->base;
++	old_plane = drm_atomic_get_old_plane_state(state->state, &tegra->base);
++
++	/* no need to proceed if color keying is (and was) disabled */
++	if (mode == DRM_PLANE_COLORKEY_MODE_DISABLED &&
++		(!old_plane || old_plane->colorkey.mode == mode))
++			return 0;
++
++	/*
++	 * Currently color keying implemented only for the middle plane
++	 * to simplify things, hence check the ordering.
++	 */
++	if (state->normalized_zpos != 1) {
++		if (mode == DRM_PLANE_COLORKEY_MODE_DISABLED)
++			goto update_planes;
++
++		return -EINVAL;
 +	}
-+	return ret;
-+}
- 
- /* Some general notes on the atomic requirements of VIDIOC_G/TRY/S_EXT_CTRLS:
- 
-@@ -2877,6 +3037,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 
- 		if (cs->which &&
- 		    cs->which != V4L2_CTRL_WHICH_DEF_VAL &&
-+		    cs->which != V4L2_CTRL_WHICH_REQUEST_VAL &&
- 		    V4L2_CTRL_ID2WHICH(id) != cs->which)
- 			return -EINVAL;
- 
-@@ -2956,13 +3117,12 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-    whether there are any controls at all. */
- static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
- {
--	if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL)
-+	if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL ||
-+	    which == V4L2_CTRL_WHICH_REQUEST_VAL)
- 		return 0;
- 	return find_ref_lock(hdl, which | 1) ? 0 : -EINVAL;
- }
- 
--
--
- /* Get extended controls. Allocates the helpers array if needed. */
- int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
- {
-@@ -3028,8 +3188,12 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 			u32 idx = i;
- 
- 			do {
--				ret = ctrl_to_user(cs->controls + idx,
--						   helpers[idx].ref->ctrl);
-+				if (helpers[idx].ref->req)
-+					ret = req_to_user(cs->controls + idx,
-+						helpers[idx].ref->req);
-+				else
-+					ret = ctrl_to_user(cs->controls + idx,
-+						helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
-@@ -3302,7 +3466,16 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		} while (!ret && idx);
- 
- 		if (!ret)
--			ret = try_or_set_cluster(fh, master, set, 0);
-+			ret = try_or_set_cluster(fh, master,
-+						 !hdl->req_obj.req && set, 0);
-+		if (!ret && hdl->req_obj.req && set) {
-+			for (j = 0; j < master->ncontrols; j++) {
-+				struct v4l2_ctrl_ref *ref =
-+					find_ref(hdl, master->cluster[j]->id);
 +
-+				new_to_req(ref);
-+			}
-+		}
- 
- 		/* Copy the new values back to userspace. */
- 		if (!ret) {
-@@ -3429,6 +3602,152 @@ int __v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
- }
- EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_string);
- 
-+void v4l2_ctrl_request_complete(struct media_request *req,
-+				struct v4l2_ctrl_handler *main_hdl)
-+{
-+	struct media_request_object *obj;
-+	struct v4l2_ctrl_handler *hdl;
-+	struct v4l2_ctrl_ref *ref;
++	/* validate the color key mode */
++	if (mode != DRM_PLANE_COLORKEY_MODE_DST)
++		return -EINVAL;
 +
-+	if (!req || !main_hdl)
-+		return;
++	/* validate the color key mask */
++	if ((state->colorkey.mask & 0xFFFFFF) != 0xFFFFFF)
++		return -EINVAL;
 +
-+	obj = media_request_object_find(req, &req_ops, main_hdl);
-+	if (!obj)
-+		return;
-+	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
++	/* validate the replacement mask */
++	if (state->colorkey.replacement_mask != 0)
++		return -EINVAL;
 +
-+	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
-+		struct v4l2_ctrl *ctrl = ref->ctrl;
-+		struct v4l2_ctrl *master = ctrl->cluster[0];
-+		unsigned int i;
++	/* validate the color key inversion mode */
++	if (state->colorkey.inverted_match != true)
++		return -EINVAL;
 +
-+		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
-+			ref->req = ref;
++	/*
++	 * There is no need to proceed, adding CRTC and other planes to
++	 * the atomic update, if color key value is unchanged.
++	 */
++	if (old_plane &&
++	    old_plane->colorkey.mode != DRM_PLANE_COLORKEY_MODE_DISABLED &&
++	    old_plane->colorkey.format == format &&
++	    old_plane->colorkey.min == min &&
++	    old_plane->colorkey.max == max)
++		return 0;
 +
-+			v4l2_ctrl_lock(master);
-+			/* g_volatile_ctrl will update the current control values */
-+			for (i = 0; i < master->ncontrols; i++)
-+				cur_to_new(master->cluster[i]);
-+			call_op(master, g_volatile_ctrl);
-+			new_to_req(ref);
-+			v4l2_ctrl_unlock(master);
-+			continue;
-+		}
-+		if (ref->req == ref)
++	/* validate pixel format and convert color key value if necessary */
++	switch (format) {
++	case DRM_FORMAT_XBGR8888:
++#define XBGR8888_to_XRGB8888(v)	\
++	((((v) & 0xFF0000) >> 16) | ((v) & 0x00FF00) | (((v) & 0x0000FF) << 16))
++
++		min = XBGR8888_to_XRGB8888(min);
++		max = XBGR8888_to_XRGB8888(max);
++		break;
++
++	case DRM_FORMAT_XRGB8888:
++		break;
++
++	default:
++		return -EINVAL;
++	}
++
++	/*
++	 * Tegra's HW stores the color key values within CRTC, hence adjust
++	 * planes CRTC atomic state.
++	 */
++	crtc_state = drm_atomic_get_crtc_state(state->state, state->crtc);
++	if (IS_ERR(crtc_state))
++		return PTR_ERR(crtc_state);
++
++	new_crtc = drm_atomic_get_new_crtc_state(state->state, state->crtc);
++	if (IS_ERR(new_crtc))
++		return PTR_ERR(new_crtc);
++
++	dc_state = to_dc_state(new_crtc);
++
++	/* update CRTC's color key state */
++	dc_state->ckey[0].lower = min;
++	dc_state->ckey[0].upper = max;
++
++update_planes:
++	/*
++	 * Currently the only supported color keying mode is
++	 * "dst-match-src-replace", i.e. in our case the actual matching
++	 * is performed by the underlying plane. Hence setup the color
++	 * matching for that plane and update other planes by including
++	 * them into the atomic update.
++	 */
++	drm_for_each_plane(plane, tegra->base.dev) {
++		struct tegra_plane *p = to_tegra_plane(plane);
++
++		/* skip this plane and planes on different CRTCs */
++		if (p == tegra || p->dc != tegra->dc)
 +			continue;
 +
-+		v4l2_ctrl_lock(ctrl);
-+		if (ref->req)
-+			ptr_to_ptr(ctrl, ref->req->p_req, ref->p_req);
++		state = drm_atomic_get_plane_state(state->state, plane);
++		if (IS_ERR(state))
++			return PTR_ERR(state);
++
++		new_plane = drm_atomic_get_new_plane_state(state->state, plane);
++		tegra_state = to_tegra_plane_state(new_plane);
++
++		/* skip planes hovering this plane */
++		if (new_plane->normalized_zpos > 1) {
++			tegra_state->ckey_enabled = false;
++			continue;
++		}
++
++		/* update planes color keying state */
++		if (mode == DRM_PLANE_COLORKEY_MODE_DISABLED)
++			tegra_state->ckey_enabled = false;
 +		else
-+			ptr_to_ptr(ctrl, ctrl->p_cur, ref->p_req);
-+		v4l2_ctrl_unlock(ctrl);
++			tegra_state->ckey_enabled = true;
 +	}
 +
-+	WARN_ON(!hdl->request_is_queued);
-+	list_del_init(&hdl->requests_queued);
-+	hdl->request_is_queued = false;
-+	media_request_object_complete(obj);
-+	media_request_object_put(obj);
++	return 0;
 +}
-+EXPORT_SYMBOL(v4l2_ctrl_request_complete);
 +
-+void v4l2_ctrl_request_setup(struct media_request *req,
-+			     struct v4l2_ctrl_handler *main_hdl)
-+{
-+	struct media_request_object *obj;
-+	struct v4l2_ctrl_handler *hdl;
-+	struct v4l2_ctrl_ref *ref;
-+
-+	if (!req || !main_hdl)
-+		return;
-+
-+	obj = media_request_object_find(req, &req_ops, main_hdl);
-+	if (!obj)
-+		return;
-+	if (obj->completed) {
-+		media_request_object_put(obj);
-+		return;
-+	}
-+	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
-+
-+	mutex_lock(hdl->lock);
-+
-+	list_for_each_entry(ref, &hdl->ctrl_refs, node)
-+		ref->done = false;
-+
-+	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
-+		struct v4l2_ctrl *ctrl = ref->ctrl;
-+		struct v4l2_ctrl *master = ctrl->cluster[0];
-+		bool have_new_data = false;
-+		int i;
-+
-+		/*
-+		 * Skip if this control was already handled by a cluster.
-+		 * Skip button controls and read-only controls.
-+		 */
-+		if (ref->done || ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
-+		    (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY))
-+			continue;
-+
-+		v4l2_ctrl_lock(master);
-+		for (i = 0; i < master->ncontrols; i++) {
-+			if (master->cluster[i]) {
-+				struct v4l2_ctrl_ref *r =
-+					find_ref(hdl, master->cluster[i]->id);
-+
-+				if (r->req && r == r->req) {
-+					have_new_data = true;
-+					break;
-+				}
-+			}
-+		}
-+		if (!have_new_data) {
-+			v4l2_ctrl_unlock(master);
-+			continue;
-+		}
-+
-+		for (i = 0; i < master->ncontrols; i++) {
-+			if (master->cluster[i]) {
-+				struct v4l2_ctrl_ref *r =
-+					find_ref(hdl, master->cluster[i]->id);
-+
-+				req_to_new(r);
-+				master->cluster[i]->is_new = 1;
-+				r->done = true;
-+			}
-+		}
-+		/*
-+		 * For volatile autoclusters that are currently in auto mode
-+		 * we need to discover if it will be set to manual mode.
-+		 * If so, then we have to copy the current volatile values
-+		 * first since those will become the new manual values (which
-+		 * may be overwritten by explicit new values from this set
-+		 * of controls).
-+		 */
-+		if (master->is_auto && master->has_volatiles &&
-+		    !is_cur_manual(master)) {
-+			s32 new_auto_val = *master->p_new.p_s32;
-+
-+			/*
-+			 * If the new value == the manual value, then copy
-+			 * the current volatile values.
-+			 */
-+			if (new_auto_val == master->manual_mode_value)
-+				update_from_auto_cluster(master);
-+		}
-+
-+		try_or_set_cluster(NULL, master, true, 0);
-+
-+		v4l2_ctrl_unlock(master);
-+	}
-+
-+	mutex_unlock(hdl->lock);
-+	media_request_object_put(obj);
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_request_setup);
-+
- void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
+ int tegra_plane_setup_legacy_state(struct tegra_plane *tegra,
+ 				   struct tegra_plane_state *state)
  {
- 	if (ctrl == NULL)
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 76352eb59f14a..a0f7c38d1a902 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -250,6 +250,10 @@ struct v4l2_ctrl {
-  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
-  * @from_other_dev: If true, then @ctrl was defined in another
-  *		device than the &struct v4l2_ctrl_handler.
-+ * @done:	If true, then this control reference is part of a
-+ *		control cluster that was already set while applying
-+ *		the controls in this media request object.
-+ * @req:	If set, this refers to another request that sets this control.
-  * @p_req:	The request value. Only used if the control handler
-  *		is bound to a media request.
-  *
-@@ -263,6 +267,8 @@ struct v4l2_ctrl_ref {
- 	struct v4l2_ctrl *ctrl;
- 	struct v4l2_ctrl_helper *helper;
- 	bool from_other_dev;
-+	bool done;
-+	struct v4l2_ctrl_ref *req;
- 	union v4l2_ctrl_ptr p_req;
- };
+@@ -477,5 +620,9 @@ int tegra_plane_setup_legacy_state(struct tegra_plane *tegra,
+ 	if (err < 0)
+ 		return err;
  
-@@ -287,6 +293,15 @@ struct v4l2_ctrl_ref {
-  * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
-  * @nr_of_buckets: Total number of buckets in the array.
-  * @error:	The error code of the first failed control addition.
-+ * @request_is_queued: True if the request was queued.
-+ * @requests:	List to keep track of open control handler request objects.
-+ *		For the parent control handler (@req_obj.req == NULL) this
-+ *		is the list header. When the parent control handler is
-+ *		removed, it has to unbind and put all these requests since
-+ *		they refer to the parent.
-+ * @requests_queued: List of the queued requests. This determines the order
-+ *		in which these controls are applied. Once the request is
-+ *		completed it is removed from this list.
-  * @req_obj:	The &struct media_request_object, used to link into a
-  *		&struct media_request.
-  */
-@@ -301,6 +316,9 @@ struct v4l2_ctrl_handler {
- 	void *notify_priv;
- 	u16 nr_of_buckets;
- 	int error;
-+	bool request_is_queued;
-+	struct list_head requests;
-+	struct list_head requests_queued;
- 	struct media_request_object req_obj;
- };
- 
-@@ -1059,6 +1077,11 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
-  */
- __poll_t v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
- 
-+void v4l2_ctrl_request_setup(struct media_request *req,
-+			     struct v4l2_ctrl_handler *hdl);
-+void v4l2_ctrl_request_complete(struct media_request *req,
-+				struct v4l2_ctrl_handler *hdl);
++	err = tegra_plane_setup_colorkey(tegra, state);
++	if (err < 0)
++		return err;
 +
- /* Helpers for ioctl_ops */
+ 	return 0;
+ }
+diff --git a/drivers/gpu/drm/tegra/plane.h b/drivers/gpu/drm/tegra/plane.h
+index 7360ddfafee8..617f57d98135 100644
+--- a/drivers/gpu/drm/tegra/plane.h
++++ b/drivers/gpu/drm/tegra/plane.h
+@@ -49,6 +49,7 @@ struct tegra_plane_state {
+ 	/* used for legacy blending support only */
+ 	struct tegra_plane_legacy_blending_state blending[2];
+ 	bool opaque;
++	bool ckey_enabled;
+ };
  
- /**
+ static inline struct tegra_plane_state *
 -- 
-2.11.0
+2.17.0
