@@ -1,114 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:51372 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753734AbeEAJA4 (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:38917 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754775AbeEZOed (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 05:00:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv12 PATCH 11/29] v4l2-ctrls: use ref in helper instead of ctrl
-Date: Tue,  1 May 2018 11:00:33 +0200
-Message-Id: <20180501090051.9321-12-hverkuil@xs4all.nl>
-In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
+        Sat, 26 May 2018 10:34:33 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Rob Herring <robh+dt@kernel.org>,
+        Thierry Reding <thierry.reding@gmail.com>
+Cc: linux-tegra@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v1] media: dt: bindings: tegra-vde: Document new optional Memory Client reset property
+Date: Sat, 26 May 2018 17:33:55 +0300
+Message-Id: <20180526143355.24288-1-digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Recently binding of the Memory Controller has been extended, exposing
+the Memory Client reset controls and hence it is now a reset controller.
+Tegra video-decoder device is among the Memory Controller reset users,
+document the new optional VDE HW reset property.
 
-The next patch needs the reference to a control instead of the
-control itself, so change struct v4l2_ctrl_helper accordingly.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ .../devicetree/bindings/media/nvidia,tegra-vde.txt    | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 3c1b00baa8d0..da4cc1485dc4 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -37,8 +37,8 @@
- struct v4l2_ctrl_helper {
- 	/* Pointer to the control reference of the master control */
- 	struct v4l2_ctrl_ref *mref;
--	/* The control corresponding to the v4l2_ext_control ID field. */
--	struct v4l2_ctrl *ctrl;
-+	/* The control ref corresponding to the v4l2_ext_control ID field. */
-+	struct v4l2_ctrl_ref *ref;
- 	/* v4l2_ext_control index of the next control belonging to the
- 	   same cluster, or 0 if there isn't any. */
- 	u32 next;
-@@ -2887,6 +2887,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		ref = find_ref_lock(hdl, id);
- 		if (ref == NULL)
- 			return -EINVAL;
-+		h->ref = ref;
- 		ctrl = ref->ctrl;
- 		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
- 			return -EINVAL;
-@@ -2909,7 +2910,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		}
- 		/* Store the ref to the master control of the cluster */
- 		h->mref = ref;
--		h->ctrl = ctrl;
- 		/* Initially set next to 0, meaning that there is no other
- 		   control in this helper array belonging to the same
- 		   cluster */
-@@ -2994,7 +2994,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 	cs->error_idx = cs->count;
+diff --git a/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+index 470237ed6fe5..7302e949e662 100644
+--- a/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
++++ b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+@@ -27,9 +27,15 @@ Required properties:
+   - sxe
+ - clocks : Must include the following entries:
+   - vde
+-- resets : Must include the following entries:
++- resets : Must contain an entry for each entry in reset-names.
++- reset-names : Should include the following entries:
+   - vde
  
- 	for (i = 0; !ret && i < cs->count; i++)
--		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
-+		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
- 			ret = -EACCES;
++Optional properties:
++- resets : Must contain an entry for each entry in reset-names.
++- reset-names : Must include the following entries:
++  - mc
++
+ Example:
  
- 	for (i = 0; !ret && i < cs->count; i++) {
-@@ -3029,7 +3029,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 
- 			do {
- 				ret = ctrl_to_user(cs->controls + idx,
--						   helpers[idx].ctrl);
-+						   helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
-@@ -3168,7 +3168,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
- 
- 	cs->error_idx = cs->count;
- 	for (i = 0; i < cs->count; i++) {
--		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
-+		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
- 		union v4l2_ctrl_ptr p_new;
- 
- 		cs->error_idx = i;
-@@ -3280,7 +3280,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 			do {
- 				/* Check if the auto control is part of the
- 				   list, and remember the new value. */
--				if (helpers[tmp_idx].ctrl == master)
-+				if (helpers[tmp_idx].ref->ctrl == master)
- 					new_auto_val = cs->controls[tmp_idx].value;
- 				tmp_idx = helpers[tmp_idx].next;
- 			} while (tmp_idx);
-@@ -3293,7 +3293,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		/* Copy the new caller-supplied control values.
- 		   user_to_new() sets 'is_new' to 1. */
- 		do {
--			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
-+			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
- 
- 			ret = user_to_new(cs->controls + idx, ctrl);
- 			if (!ret && ctrl->is_ptr)
-@@ -3309,7 +3309,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 			idx = i;
- 			do {
- 				ret = new_to_user(cs->controls + idx,
--						helpers[idx].ctrl);
-+						helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
+ video-codec@6001a000 {
+@@ -51,5 +57,6 @@ video-codec@6001a000 {
+ 		     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
+ 	interrupt-names = "sync-token", "bsev", "sxe";
+ 	clocks = <&tegra_car TEGRA20_CLK_VDE>;
+-	resets = <&tegra_car 61>;
++	reset-names = "vde", "mc";
++	resets = <&tegra_car 61>, <&mc TEGRA20_MC_RESET_VDE>;
+ };
 -- 
 2.17.0
