@@ -1,69 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:60437 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750750AbeENIAx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 04:00:53 -0400
-From: Fabien DESSENNE <fabien.dessenne@st.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Jean Christophe TROTIN <jean-christophe.trotin@st.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Luis R. Rodriguez" <mcgrof@kernel.org>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Are media drivers abusing of GFP_DMA? - was: Re: [LSF/MM TOPIC
- NOTES] x86 ZONE_DMA love
-Date: Mon, 14 May 2018 08:00:37 +0000
-Message-ID: <547252fc-dc74-93c6-fc77-be1bfb558787@st.com>
-References: <20180426215406.GB27853@wotan.suse.de>
- <20180505130815.53a26955@vento.lan> <3561479.qPIcrWnXEC@avalon>
- <20180507121916.4eb7f5b2@vento.lan>
-In-Reply-To: <20180507121916.4eb7f5b2@vento.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <D628BB47A8DF0541A38FCEAB49C4D57A@st.com>
-Content-Transfer-Encoding: base64
+Received: from gofer.mess.org ([88.97.38.141]:53923 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1031384AbeEZMRu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 May 2018 08:17:50 -0400
+Date: Sat, 26 May 2018 13:17:46 +0100
+From: Sean Young <sean@mess.org>
+To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
+        Matthias Reichl <hias@horus.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Y Song <ys114321@gmail.com>,
+        Quentin Monnet <quentin.monnet@netronome.com>
+Subject: Re: [PATCH v4 2/3] media: rc: introduce BPF_PROG_LIRC_MODE2
+Message-ID: <20180526121746.6epr54fgjdsl66ri@gofer.mess.org>
+References: <cover.1526651592.git.sean@mess.org>
+ <cd5140387a0f9c5ffc68d1846774f12fed45f34d.1526651592.git.sean@mess.org>
+ <20180525204509.7jsnnk2qzws3bmyd@ast-mbp>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180525204509.7jsnnk2qzws3bmyd@ast-mbp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCk9uIDA3LzA1LzE4IDE3OjE5LCBNYXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6DQo+IEVt
-IE1vbiwgMDcgTWF5IDIwMTggMTY6MjY6MDggKzAzMDANCj4gTGF1cmVudCBQaW5jaGFydCA8bGF1
-cmVudC5waW5jaGFydEBpZGVhc29uYm9hcmQuY29tPiBlc2NyZXZldToNCj4NCj4+IEhpIE1hdXJv
-LA0KPj4NCj4+IE9uIFNhdHVyZGF5LCA1IE1heSAyMDE4IDE5OjA4OjE1IEVFU1QgTWF1cm8gQ2Fy
-dmFsaG8gQ2hlaGFiIHdyb3RlOg0KPj4+IFRoZXJlIHdhcyBhIHJlY2VudCBkaXNjdXNzaW9uIGFi
-b3V0IHRoZSB1c2UvYWJ1c2Ugb2YgR0ZQX0RNQSBmbGFnIHdoZW4NCj4+PiBhbGxvY2F0aW5nIG1l
-bW9yaWVzIGF0IExTRi9NTSAyMDE4IChzZWUgTHVpcyBub3RlcyBlbmNsb3NlZCkuDQo+Pj4NCj4+
-PiBUaGUgaWRlYSBzZWVtcyB0byBiZSB0byByZW1vdmUgaXQsIHVzaW5nIENNQSBpbnN0ZWFkLiBC
-ZWZvcmUgZG9pbmcgdGhhdCwNCj4+PiBiZXR0ZXIgdG8gY2hlY2sgaWYgd2hhdCB3ZSBoYXZlIG9u
-IG1lZGlhIGlzIGFyZSB2YWxpZCB1c2UgY2FzZXMgZm9yIGl0LCBvcg0KPj4+IGlmIGl0IGlzIHRo
-ZXJlIGp1c3QgZHVlIHRvIHNvbWUgbWlzdW5kZXJzdGFuZGluZyAob3IgYmVjYXVzZSBpdCB3YXMN
-Cj4+PiBjb3BpZWQgZnJvbSBzb21lIG90aGVyIGNvZGUpLg0KPj4+DQo+Pj4gSGFucyBkZSBHb2Vk
-ZSBzZW50IHVzIHRvZGF5IGEgcGF0Y2ggc3RvcHBpbmcgYWJ1c2UgYXQgZ3NwY2EsIGFuZCBJJ20N
-Cj4+PiBhbHNvIHBvc3RpbmcgdG9kYXkgdHdvIG90aGVyIHBhdGNoZXMgbWVhbnQgdG8gc3RvcCBh
-YnVzZSBvZiBpdCBvbiBVU0INCj4+PiBkcml2ZXJzLiBTdGlsbCwgdGhlcmUgYXJlIDQgcGxhdGZv
-cm0gZHJpdmVycyB1c2luZyBpdDoNCj4+Pg0KPj4+IAkkIGdpdCBncmVwIC1sIC1FICJHRlBfRE1B
-XFxiIiBkcml2ZXJzL21lZGlhLw0KPj4+IAlkcml2ZXJzL21lZGlhL3BsYXRmb3JtL29tYXAzaXNw
-L2lzcHN0YXQuYw0KPj4+IAlkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0aS9iZGlzcC9iZGlzcC1o
-dy5jDQo+Pj4gCWRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3RpL2h2YS9odmEtbWVtLmMNCg0KSGkg
-TWF1cm8sDQoNClRoZSB0d28gU1RJIGRyaXZlcnMgKGJkaXNwLWh3LmMgYW5kIGh2YS1tZW0uYykg
-YXJlIG9ubHkgZXhwZWN0ZWQgdG8gcnVuIA0Kb24gQVJNIHBsYXRmb3Jtcywgbm90IG9uIHg4Ni4N
-ClNpbmNlIHRoaXMgdGhyZWFkIGRlYWxzIHdpdGggeDg2ICYgRE1BIHRyb3VibGUsIEkgYW0gbm90
-IHN1cmUgdGhhdCB3ZSANCmFjdHVhbGx5IGhhdmUgYSBwcm9ibGVtIGZvciB0aGUgc3RpIGRyaXZl
-cnMuDQoNClRoZXJlIGFyZSBzb21lIG90aGVyIHN0aSBkcml2ZXJzIHRoYXQgbWFrZSB1c2Ugb2Yg
-dGhpcyBHRlBfRE1BIGZsYWcgDQooZHJpdmVycy9ncHUvZHJtL3N0aS9zdGlfKi5jKSBhbmQgaXQg
-ZG9lcyBub3Qgc2VlbSB0byBiZSBhIHByb2JsZW0uDQoNCk5ldmVydGhlbGVzcyBJIGNhbiBzZWUg
-dGhhdCB0aGUgbWVkaWEgc3RpIGRyaXZlcnMgZGVwZW5kIG9uIENPTVBJTEVfVEVTVCANCih3aGlj
-aCBpcyBub3QgdGhlIGNhc2UgZm9yIHRoZSBEUk0gb25lcykuDQpXb3VsZCBpdCBiZSBhbiBhY2Nl
-cHRhYmxlIHNvbHV0aW9uIHRvIHJlbW92ZSB0aGUgQ09NUElMRV9URVNUIGRlcGVuZGVuY3k/DQoN
-CkJSDQoNCkZhYmllbg0KDQo+Pj4gCWRyaXZlcnMvbWVkaWEvc3BpL2N4ZDI4ODAtc3BpLmMNCj4+
-Pg0KPj4+IENvdWxkIHlvdSBwbGVhc2UgY2hlY2sgaWYgR0ZQX0RNQSBpcyByZWFsbHkgbmVlZGVk
-IHRoZXJlLCBvciBpZiBpdCBpcw0KPj4+IGp1c3QgYmVjYXVzZSBvZiBzb21lIGN1dC1hbmQtcGFz
-dGUgZnJvbSBzb21lIG90aGVyIHBsYWNlPw0KPj4gSSBzdGFydGVkIGxvb2tpbmcgYXQgdGhhdCBm
-b3IgdGhlIG9tYXAzaXNwIGRyaXZlciBidXQgU2FrYXJpIGJlYXQgbWUgYXQNCj4+IHN1Ym1pdHRp
-bmcgYSBwYXRjaC4gR0ZQX0RNQSBpc24ndCBuZWVkZWQgZm9yIG9tYXAzaXNwLg0KPj4NCj4gVGhh
-bmsgeW91IGJvdGggZm9yIGxvb2tpbmcgaW50byBpdC4NCj4NCj4gUmVnYXJkcywNCj4gTWF1cm8N
-Cj4NCj4NCj4NCj4gVGhhbmtzLA0KPiBNYXVybw0K
+On Fri, May 25, 2018 at 01:45:11PM -0700, Alexei Starovoitov wrote:
+> On Fri, May 18, 2018 at 03:07:29PM +0100, Sean Young wrote:
+> > Add support for BPF_PROG_LIRC_MODE2. This type of BPF program can call
+> > rc_keydown() to reported decoded IR scancodes, or rc_repeat() to report
+> > that the last key should be repeated.
+> > 
+> > The bpf program can be attached to using the bpf(BPF_PROG_ATTACH) syscall;
+> > the target_fd must be the /dev/lircN device.
+> > 
+> > Signed-off-by: Sean Young <sean@mess.org>
+> ...
+> >  enum bpf_attach_type {
+> > @@ -158,6 +159,7 @@ enum bpf_attach_type {
+> >  	BPF_CGROUP_INET6_CONNECT,
+> >  	BPF_CGROUP_INET4_POST_BIND,
+> >  	BPF_CGROUP_INET6_POST_BIND,
+> > +	BPF_LIRC_MODE2,
+> >  	__MAX_BPF_ATTACH_TYPE
+> >  };
+> >  
+> > @@ -1902,6 +1904,53 @@ union bpf_attr {
+> >   *		egress otherwise). This is the only flag supported for now.
+> >   *	Return
+> >   *		**SK_PASS** on success, or **SK_DROP** on error.
+> > + *
+> > + * int bpf_rc_keydown(void *ctx, u32 protocol, u64 scancode, u32 toggle)
+> > + *	Description
+> > + *		This helper is used in programs implementing IR decoding, to
+> > + *		report a successfully decoded key press with *scancode*,
+> > + *		*toggle* value in the given *protocol*. The scancode will be
+> > + *		translated to a keycode using the rc keymap, and reported as
+> > + *		an input key down event. After a period a key up event is
+> > + *		generated. This period can be extended by calling either
+> > + *		**bpf_rc_keydown** () with the same values, or calling
+> > + *		**bpf_rc_repeat** ().
+> > + *
+> > + *		Some protocols include a toggle bit, in case the button
+> > + *		was released and pressed again between consecutive scancodes
+> > + *
+> > + *		The *ctx* should point to the lirc sample as passed into
+> > + *		the program.
+> > + *
+> > + *		The *protocol* is the decoded protocol number (see
+> > + *		**enum rc_proto** for some predefined values).
+> > + *
+> > + *		This helper is only available is the kernel was compiled with
+> > + *		the **CONFIG_BPF_LIRC_MODE2** configuration option set to
+> > + *		"**y**".
+> > + *
+> > + *	Return
+> > + *		0
+> > + *
+> > + * int bpf_rc_repeat(void *ctx)
+> > + *	Description
+> > + *		This helper is used in programs implementing IR decoding, to
+> > + *		report a successfully decoded repeat key message. This delays
+> > + *		the generation of a key up event for previously generated
+> > + *		key down event.
+> > + *
+> > + *		Some IR protocols like NEC have a special IR message for
+> > + *		repeating last button, for when a button is held down.
+> > + *
+> > + *		The *ctx* should point to the lirc sample as passed into
+> > + *		the program.
+> > + *
+> > + *		This helper is only available is the kernel was compiled with
+> > + *		the **CONFIG_BPF_LIRC_MODE2** configuration option set to
+> > + *		"**y**".
+> 
+> Hi Sean,
+> 
+> thank you for working on this. The patch set looks good to me.
+> I'd only ask to change above two helper names to something more specific.
+> Since BPF_PROG_TYPE_LIRC_MODE2 is the name of new prog type and kconfig.
+> May be bpf_lirc2_keydown() and bpf_lirc2_repeat() ?
+
+A little history might help here.
+
+lirc and rc-core have non-obvious meanings. So, lirc was the original project
+that dealt with IR. That project was rejected from mainline because it did
+not send translated keycodes to input devices (it exposed its own interface
+for keypresses).
+
+Then rc-core was written which maps IR scancodes to keycodes (using rc
+keymaps) and sends them to the input layer. The original lirc userspace ABI
+for receiving and sending raw IR pulses and spaces was retained (mode2 as
+it was called in lirc).
+
+Reusing parts of the lirc ABI for BPF decoding raw IR makes sense, however
+dispatching decoded scancodes was never part of lirc, only rc-core. In fact,
+rc-core is reused in hdmi-cec for cec commands, which does not use lirc
+at all. So for example, if we want to process cec messages in bpf, it would
+want call rc_keydown().
+
+I don't think this lirc/rc-core duality is particularly great, but I'm
+not sure what the right answer to that is.
+
+> > @@ -1576,6 +1577,8 @@ static int bpf_prog_attach(const union bpf_attr *attr)
+> >  	case BPF_SK_SKB_STREAM_PARSER:
+> >  	case BPF_SK_SKB_STREAM_VERDICT:
+> >  		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, true);
+> > +	case BPF_LIRC_MODE2:
+> > +		return rc_dev_prog_attach(attr);
+> ...
+> > +	case BPF_LIRC_MODE2:
+> > +		return rc_dev_prog_detach(attr);
+> 
+> and similar rename for internal function names that go into bpf core.
+
+I agree with this.
+
+> Please add accumulated acks when you respin.
+
+Good point, will do.
+
+Thanks,
+
+Sean
