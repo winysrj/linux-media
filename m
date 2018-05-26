@@ -1,100 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:50254 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750930AbeEBLsD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2018 07:48:03 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH][media-next][V2] media: davinci_vpfe: fix memory leaks of params
-Date: Wed,  2 May 2018 12:48:00 +0100
-Message-Id: <20180502114800.28004-1-colin.king@canonical.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35883 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1031973AbeEZP5o (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 May 2018 11:57:44 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?=
+        <ville.syrjala@linux.intel.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        Sinclair Yeh <syeh@vmware.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [RFC PATCH v2 0/2] Implement standard color keying properties for DRM planes
+Date: Sat, 26 May 2018 18:56:21 +0300
+Message-Id: <20180526155623.12610-1-digetx@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Hello, DRM maintainers!
 
-There are memory leaks of params; when copy_to_user fails and also
-the exit via the label 'error'. Also, there is a bogos memory allocation
-check on pointer 'to' when memory allocation fails on params.
+Laurent Pinchart kindly agreed to allow me to pick up his work on
+the generic colorkey DRM plane property [0]. I've reworked the original
+patch a tad, hopefully making it flexible enough to cover various HW
+capabilities.
 
-Fix this by kfree'ing params in error exit path and jumping to this on
-the copy_to_user failure path.  Also check the to see if the allocation
-of params fails and remove the bogus null pointer checks on pointer 'to'.
+Changes I've made:
 
-Also explicitly return 0 on success rather than rval.
+	- Some code clean up and reshuffle.
 
-Detected by CoverityScan, CID#1467966 ("Resource leak")
+	- Took into account some the Ville's Syrjälä review comments to [0].
 
-Fixes: da43b6ccadcf ("[media] davinci: vpfe: dm365: add IPIPE support for media controller driver")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
+	- The number of common DRM colorkey properties grows from 4 to 9.
+	  New properties:
+		- colorkey.mask
+		- colorkey.format
+		- colorkey.inverted-match
+		- colorkey.replacement-mask
+		- colorkey.replacement-format
 
-V2: Add checks on allocation of params.  Remove bogus checks on
-    pointer 'to'. Explicitly return 0 on success. Thanks to
-    Dan Carpenter for the suggested improvements.
+	  Renamed properties:
+		- colorkey.value -> colorkey.replacement-value
 
----
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+	- colorkey.mode userspace-property ENUM's got a bit more explicit
+	  names, like "src" -> "src-match-src-replace".
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-index 95942768639c..b135e38a18b3 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-@@ -1252,12 +1252,12 @@ static const struct ipipe_module_if ipipe_modules[VPFE_IPIPE_MAX_MODULES] = {
- static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
- {
- 	struct vpfe_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
-+	struct ipipe_module_params *params;
- 	unsigned int i;
- 	int rval = 0;
- 
- 	for (i = 0; i < ARRAY_SIZE(ipipe_modules); i++) {
- 		const struct ipipe_module_if *module_if;
--		struct ipipe_module_params *params;
- 		void *from, *to;
- 		size_t size;
- 
-@@ -1269,25 +1269,31 @@ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
- 
- 		params = kmalloc(sizeof(struct ipipe_module_params),
- 				 GFP_KERNEL);
-+		if (!params) {
-+			rval = -ENOMEM;
-+			goto error;
-+		}
- 		to = (void *)params + module_if->param_offset;
- 		size = module_if->param_size;
- 
--		if (to && from && size) {
-+		if (from && size) {
- 			if (copy_from_user(to, (void __user *)from, size)) {
- 				rval = -EFAULT;
--				break;
-+				goto error;
- 			}
- 			rval = module_if->set(ipipe, to);
- 			if (rval)
- 				goto error;
--		} else if (to && !from && size) {
-+		} else if (!from && size) {
- 			rval = module_if->set(ipipe, NULL);
- 			if (rval)
- 				goto error;
- 		}
- 		kfree(params);
- 	}
-+	return 0;
- error:
-+	kfree(params);
- 	return rval;
- }
- 
+	- No driver-specific modes / properties allowed, all unsupported
+	  features are simply rejected by the drivers.
+
+This patchset includes initial colorkey property implementation for the
+older NVIDIA Tegra's.
+
+Please review, thanks.
+
+[0] https://lists.freedesktop.org/archives/dri-devel/2017-December/160510.html
+
+Dmitry Osipenko (2):
+  drm: Add generic colorkey properties
+  drm/tegra: plane: Implement generic colorkey property for older
+    Tegra's
+
+ drivers/gpu/drm/drm_atomic.c  |  36 ++++++
+ drivers/gpu/drm/drm_blend.c   | 229 ++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/tegra/dc.c    |  31 +++++
+ drivers/gpu/drm/tegra/dc.h    |   7 ++
+ drivers/gpu/drm/tegra/plane.c | 147 ++++++++++++++++++++++
+ drivers/gpu/drm/tegra/plane.h |   1 +
+ include/drm/drm_blend.h       |   3 +
+ include/drm/drm_plane.h       |  77 ++++++++++++
+ 8 files changed, 531 insertions(+)
+
 -- 
 2.17.0
