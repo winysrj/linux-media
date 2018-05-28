@@ -1,110 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:40123 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932484AbeEHImL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 04:42:11 -0400
-Subject: Re: [bug report] [media] exynos4-is: Add the FIMC-IS ISP capture
- DMA driver
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <d42c210b-4c6d-4a19-e314-21576ebb7b46@samsung.com>
-Date: Tue, 08 May 2018 10:42:05 +0200
-MIME-version: 1.0
-In-reply-to: <20180503114301.GA7576@mwanda>
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <CGME20180503114314epcas2p3a468e807db4c04b2f42b904c530d8565@epcas2p3.samsung.com>
-        <20180503114301.GA7576@mwanda>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:44148 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750710AbeE1EdI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 May 2018 00:33:08 -0400
+Message-ID: <effd4a4ab2cbbdbc64d23f7f6a2bed0a@smtp-cloud9.xs4all.net>
+Date: Mon, 28 May 2018 06:33:06 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/03/2018 01:43 PM, Dan Carpenter wrote:
-> [ This code is five years old now.  It's so weird to me that the warning
->   is showing up in my new warnings pile.  Perhaps this wasn't included
->   in my allmodconfig before?  - dan ]
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Might be, the bug found is real. The module is normally disabled anyway 
-for other reasons.
+Results of the daily build of media_tree:
 
-> Hello Sylwester Nawrocki,
-> 
-> The patch 34947b8aebe3: "[media] exynos4-is: Add the FIMC-IS ISP
-> capture DMA driver" from Dec 20, 2013, leads to the following static
-> checker warning:
-> 
-> 	drivers/media/platform/exynos4-is/fimc-isp-video.c:408 isp_video_try_fmt_mplane()
-> 	error: NULL dereference inside function '__isp_video_try_fmt(isp, &f->fmt.pix_mp, (0))()'.
-> 
-> drivers/media/platform/exynos4-is/fimc-isp-video.c
->    383  static void __isp_video_try_fmt(struct fimc_isp *isp,
->    384                                  struct v4l2_pix_format_mplane *pixm,
->    385                                  const struct fimc_fmt **fmt)
->    386  {
->    387          *fmt = fimc_isp_find_format(&pixm->pixelformat, NULL, 2);
->                 ^^^^
-> Unchecked dereference.  We're not allowed to pass a NULL "fmt".
-> 
->    388  
->    389          pixm->colorspace = V4L2_COLORSPACE_SRGB;
->    390          pixm->field = V4L2_FIELD_NONE;
->    391          pixm->num_planes = (*fmt)->memplanes;
->    392          pixm->pixelformat = (*fmt)->fourcc;
->    393          /*
->    394           * TODO: double check with the docmentation these width/height
->    395           * constraints are correct.
->    396           */
->    397          v4l_bound_align_image(&pixm->width, FIMC_ISP_SOURCE_WIDTH_MIN,
->    398                                FIMC_ISP_SOURCE_WIDTH_MAX, 3,
->    399                                &pixm->height, FIMC_ISP_SOURCE_HEIGHT_MIN,
->    400                                FIMC_ISP_SOURCE_HEIGHT_MAX, 0, 0);
->    401  }
->    402  
->    403  static int isp_video_try_fmt_mplane(struct file *file, void *fh,
->    404                                          struct v4l2_format *f)
->    405  {
->    406          struct fimc_isp *isp = video_drvdata(file);
->    407  
->    408          __isp_video_try_fmt(isp, &f->fmt.pix_mp, NULL);
->                                                          ^^^^
-> And yet here we are.
-> 
->    409          return 0;
->    410  }
+date:			Mon May 28 05:00:15 CEST 2018
+media-tree git hash:	e646e17713eeb3b6484b6d7a24ce34854123fa39
+media_build git hash:	b2f4db1adbe0cb2e42e875c16c009f1fa95d3325
+v4l-utils git hash:	2a12796b5c22cd1a549eb8fa25db873ced811ca5
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-We may need something like:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17-rc4-i686: OK
+linux-4.17-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-----8<----
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-index 55ba696b8cf4..a920164f53f1 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
-+++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-@@ -384,12 +384,17 @@ static void __isp_video_try_fmt(struct fimc_isp *isp,
-                                struct v4l2_pix_format_mplane *pixm,
-                                const struct fimc_fmt **fmt)
- {
--       *fmt = fimc_isp_find_format(&pixm->pixelformat, NULL, 2);
-+       const struct fimc_fmt *__fmt;
-+
-+       __fmt = fimc_isp_find_format(&pixm->pixelformat, NULL, 2);
-+
-+       if (fmt)
-+               *fmt = __fmt;
- 
-        pixm->colorspace = V4L2_COLORSPACE_SRGB;
-        pixm->field = V4L2_FIELD_NONE;
--       pixm->num_planes = (*fmt)->memplanes;
--       pixm->pixelformat = (*fmt)->fourcc;
-+       pixm->num_planes = __fmt->memplanes;
-+       pixm->pixelformat = __fmt->fourcc;
-        /*
-         * TODO: double check with the docmentation these width/height
-         * constraints are correct.
-----8<----
+Detailed results are available here:
 
-I will post the patch to clear the warning.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
--- 
-Thanks,
-Sylwester
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
