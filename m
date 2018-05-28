@@ -1,71 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:52848 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932154AbeEHJzG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2018 05:55:06 -0400
-Date: Tue, 8 May 2018 06:54:57 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv13 16/28] videobuf2-core: embed media_request_object
-Message-ID: <20180508065457.095df1c2@vento.lan>
-In-Reply-To: <20180503145318.128315-17-hverkuil@xs4all.nl>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
-        <20180503145318.128315-17-hverkuil@xs4all.nl>
+Received: from aserp2120.oracle.com ([141.146.126.78]:45740 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1161792AbeE1KgZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 May 2018 06:36:25 -0400
+Date: Mon, 28 May 2018 13:36:08 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [GIT PULL FOR v4.18] R-Car VSP1 TLB optimisation
+Message-ID: <20180528103608.3hwqenzdbvbopuqj@mwanda>
+References: <10831984.07PNLvckhh@avalon>
+ <20180526082818.70a369b5@vento.lan>
+ <7346563.L0Ry6hIlrs@avalon>
+ <3755894.Y1GIYirAvc@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3755894.Y1GIYirAvc@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu,  3 May 2018 16:53:06 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, May 28, 2018 at 11:31:01AM +0300, Laurent Pinchart wrote:
+> And that being said, I just tried
 > 
-> Make vb2_buffer a request object.
+>         if (pipe->num_inputs > 2)
+>                 brx = &vsp1->bru->entity;
+>         else if (pipe->brx && !drm_pipe->force_brx_release)
+>                 brx = pipe->brx;
+>         else if (!vsp1->bru->entity.pipe)
+>                 brx = &vsp1->bru->entity;
+>         else
+>                 brx = &vsp1->brs->entity;
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/media/videobuf2-core.h | 3 +++
->  1 file changed, 3 insertions(+)
+>         if (!brx)
+>                 return -EINVAL;
 > 
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 224c4820a044..3d54654c3cd4 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -17,6 +17,7 @@
->  #include <linux/poll.h>
->  #include <linux/dma-buf.h>
->  #include <linux/bitops.h>
-> +#include <media/media-request.h>
->  
->  #define VB2_MAX_FRAME	(32)
->  #define VB2_MAX_PLANES	(8)
-> @@ -238,6 +239,7 @@ struct vb2_queue;
->   * @num_planes:		number of planes in the buffer
->   *			on an internal driver queue.
->   * @timestamp:		frame timestamp in ns.
-> + * @req_obj:		used to bind this buffer to a request
->   */
->  struct vb2_buffer {
->  	struct vb2_queue	*vb2_queue;
-> @@ -246,6 +248,7 @@ struct vb2_buffer {
->  	unsigned int		memory;
->  	unsigned int		num_planes;
->  	u64			timestamp;
-> +	struct media_request_object	req_obj;
->  
->  	/* private: internal use only
->  	 *
+> and that didn't help either... Dan, would you have some light to shed on this 
+> problem ?
 
-Hmm... this has a side effect of embedding a kref at struct vb2_buffer.
-One struct can have just one kref.
+This is a problem in Smatch.
 
-I guess this is likely ok, but this is a big struct. I don't like
-the idea of having a hidden kref indirectly embedded there, as the
-lifetime of this struct will now be controlled outside vb2, with
-looks weird.
+We should be able to go backwards and say that "If we know 'brx' is
+non-NULL then let's mark &vsp1->brs->entity, vsp1->brs,
+&vsp1->bru->entity and vsp1->bru all as non-NULL as well".  But Smatch
+doesn't go backwards like that.  The information is mostly there to do
+it, but my instinct is that it's really hard to implement.
 
-Thanks,
-Mauro
+The other potential problem here is that Smatch stores comparisons and
+values separately.  In other words smatch_comparison.c has all the
+information about brx == &vsp1->bru->entity and smatch_extra.c has the
+information about if brx is NULL or non-NULL.  They don't really share
+information very well.
+
+regards,
+dan carpenter
