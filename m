@@ -1,70 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:40269 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751132AbeEMJNP (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:38386 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937817AbeE1K6k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 May 2018 05:13:15 -0400
-Subject: Re: [PATCH 1/5] media: docs: selection: fix typos
-To: Luca Ceresoli <luca@lucaceresoli.net>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-References: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e96a3e14-ccdb-a18b-816b-c4023853a4cb@xs4all.nl>
-Date: Sun, 13 May 2018 11:13:10 +0200
+        Mon, 28 May 2018 06:58:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [GIT PULL FOR v4.18] R-Car VSP1 TLB optimisation
+Date: Mon, 28 May 2018 13:58:41 +0300
+Message-ID: <5458207.P65NUnc4kr@avalon>
+In-Reply-To: <20180528103608.3hwqenzdbvbopuqj@mwanda>
+References: <10831984.07PNLvckhh@avalon> <3755894.Y1GIYirAvc@avalon> <20180528103608.3hwqenzdbvbopuqj@mwanda>
 MIME-Version: 1.0
-In-Reply-To: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/03/2018 11:15 PM, Luca Ceresoli wrote:
+Hi Dan,
 
-Please add a commit message here. Yes, it can be as simple as 'Fixed typos in the
-selection documentation.'
+On Monday, 28 May 2018 13:36:08 EEST Dan Carpenter wrote:
+> On Mon, May 28, 2018 at 11:31:01AM +0300, Laurent Pinchart wrote:
+> > And that being said, I just tried
+> > 
+> >         if (pipe->num_inputs > 2)
+> >                 brx = &vsp1->bru->entity;
+> >         else if (pipe->brx && !drm_pipe->force_brx_release)
+> >                 brx = pipe->brx;
+> >         else if (!vsp1->bru->entity.pipe)
+> >                 brx = &vsp1->bru->entity;
+> >         else
+> >                 brx = &vsp1->brs->entity;
+> >         
+> >         if (!brx)
+> >                 return -EINVAL;
+> > 
+> > and that didn't help either... Dan, would you have some light to shed on
+> > this problem ?
+> 
+> This is a problem in Smatch.
+> 
+> We should be able to go backwards and say that "If we know 'brx' is
+> non-NULL then let's mark &vsp1->brs->entity, vsp1->brs,
+> &vsp1->bru->entity and vsp1->bru all as non-NULL as well".  But Smatch
+> doesn't go backwards like that.  The information is mostly there to do
+> it, but my instinct is that it's really hard to implement.
+> 
+> The other potential problem here is that Smatch stores comparisons and
+> values separately.  In other words smatch_comparison.c has all the
+> information about brx == &vsp1->bru->entity and smatch_extra.c has the
+> information about if brx is NULL or non-NULL.  They don't really share
+> information very well.
 
+It would indeed be useful to implement, but I share your concern that this 
+would be pretty difficult.
+
+However, there's still something that puzzles me. Let's add a bit more 
+context.
+
+        if (pipe->num_inputs > 2)
+                brx = &vsp1->bru->entity;
+        else if (pipe->brx && !drm_pipe->force_brx_release)
+                brx = pipe->brx;
+        else if (!vsp1->bru->entity.pipe)
+                brx = &vsp1->bru->entity;
+        else
+                brx = &vsp1->brs->entity;
+
+1.      if (!brx)
+                return -EINVAL;
+
+2.      if (brx != pipe->brx) {
+                ...
+3.              pipe->brx = brx;
+                ...
+        }
+
+4.      format.pad = pipe->brx->source_pad
+
+
+(1) ensures that brx can't be NULL. (2) is thus always true if pipe->brx is 
+NULL. (3) then assigns a non-NULL value to pipe->brx. Smatch should thus never 
+complain about (4), even if it can't backtrack.
+
+-- 
 Regards,
 
-	Hans
-
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
-> ---
->  Documentation/media/uapi/v4l/selection-api-004.rst | 2 +-
->  Documentation/media/uapi/v4l/selection.svg         | 4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/media/uapi/v4l/selection-api-004.rst b/Documentation/media/uapi/v4l/selection-api-004.rst
-> index d782cd5b2117..0a4ddc2d71db 100644
-> --- a/Documentation/media/uapi/v4l/selection-api-004.rst
-> +++ b/Documentation/media/uapi/v4l/selection-api-004.rst
-> @@ -41,7 +41,7 @@ The driver may further adjust the requested size and/or position
->  according to hardware limitations.
->  
->  Each capture device has a default source rectangle, given by the
-> -``V4L2_SEL_TGT_CROP_DEFAULT`` target. This rectangle shall over what the
-> +``V4L2_SEL_TGT_CROP_DEFAULT`` target. This rectangle shall cover what the
->  driver writer considers the complete picture. Drivers shall set the
->  active crop rectangle to the default when the driver is first loaded,
->  but not later.
-> diff --git a/Documentation/media/uapi/v4l/selection.svg b/Documentation/media/uapi/v4l/selection.svg
-> index a93e3b59786d..911062bd2844 100644
-> --- a/Documentation/media/uapi/v4l/selection.svg
-> +++ b/Documentation/media/uapi/v4l/selection.svg
-> @@ -1128,11 +1128,11 @@
->     </text>
->    </g>
->    <text transform="matrix(.96106 0 0 1.0405 48.571 195.53)" x="2438.062" y="1368.429" enable-background="new" font-size="50" style="line-height:125%">
-> -   <tspan x="2438.062" y="1368.429">COMPOSE_BONDS</tspan>
-> +   <tspan x="2438.062" y="1368.429">COMPOSE_BOUNDS</tspan>
->    </text>
->    <g font-size="40">
->     <text transform="translate(48.571 195.53)" x="8.082" y="1438.896" enable-background="new" style="line-height:125%">
-> -    <tspan x="8.082" y="1438.896" font-size="50">CROP_BONDS</tspan>
-> +    <tspan x="8.082" y="1438.896" font-size="50">CROP_BOUNDS</tspan>
->     </text>
->     <text transform="translate(48.571 195.53)" x="1455.443" y="-26.808" enable-background="new" style="line-height:125%">
->      <tspan x="1455.443" y="-26.808" font-size="50">overscan area</tspan>
-> 
+Laurent Pinchart
