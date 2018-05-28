@@ -1,107 +1,280 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f47.google.com ([74.125.83.47]:35013 "EHLO
-        mail-pg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030651AbeEYXVX (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:56200 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754537AbeE1Nuj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 19:21:23 -0400
-Received: by mail-pg0-f47.google.com with SMTP id 15-v6so2557440pge.2
-        for <linux-media@vger.kernel.org>; Fri, 25 May 2018 16:21:22 -0700 (PDT)
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-Cc: linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
-References: <m37eobudmo.fsf@t19.piap.pl>
- <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com> <m3tvresqfw.fsf@t19.piap.pl>
- <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com> <m3fu2oswjh.fsf@t19.piap.pl>
- <m3603hsa4o.fsf@t19.piap.pl> <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
- <m3h8mxqc7t.fsf@t19.piap.pl> <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
- <1527229949.4938.1.camel@pengutronix.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <dee0fb18-faf3-12b7-3014-d5b63a8b3e38@gmail.com>
-Date: Fri, 25 May 2018 16:21:19 -0700
+        Mon, 28 May 2018 09:50:39 -0400
+Received: by mail-wm0-f66.google.com with SMTP id a8-v6so32324352wmg.5
+        for <linux-media@vger.kernel.org>; Mon, 28 May 2018 06:50:38 -0700 (PDT)
+Date: Mon, 28 May 2018 15:50:36 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v4 5/9] media: rcar-vin: Parse parallel input on Gen3
+Message-ID: <20180528135036.GB27709@bigcity.dyn.berto.se>
+References: <1527199339-7724-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1527199339-7724-6-git-send-email-jacopo+renesas@jmondi.org>
+ <20180524222944.GI31036@bigcity.dyn.berto.se>
+ <20180525115008.GL18369@w540>
 MIME-Version: 1.0
-In-Reply-To: <1527229949.4938.1.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180525115008.GL18369@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Hi Jacopo,
+
+On 2018-05-25 13:50:08 +0200, Jacopo Mondi wrote:
+> Hi Niklas,
+>    I might have another question before sending v5.
+> 
+> On Fri, May 25, 2018 at 12:29:44AM +0200, Niklas Söderlund wrote:
+> > Hi Jacopo,
+> >
+> > Thanks for your work.
+> >
+> > I really like what you did with this patch in v4.
+> >
+> > On 2018-05-25 00:02:15 +0200, Jacopo Mondi wrote:
+> > > The rcar-vin driver so far had a mutually exclusive code path for
+> > > handling parallel and CSI-2 video input subdevices, with only the CSI-2
+> > > use case supporting media-controller. As we add support for parallel
+> > > inputs to Gen3 media-controller compliant code path now parse both port@0
+> > > and port@1, handling the media-controller use case in the parallel
+> > > bound/unbind notifier operations.
+> > >
+> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > >
+> > > ---
+> > > v3 -> v4:
+> > > - Change the mc/parallel initialization order. Initialize mc first, then
+> > >   parallel
+> > > - As a consequence no need to delay parallel notifiers registration, the
+> > >   media controller is set up already when parallel input got parsed,
+> > >   this greatly simplify the group notifier complete callback.
+> > > ---
+> > >  drivers/media/platform/rcar-vin/rcar-core.c | 56 ++++++++++++++++++-----------
+> > >  1 file changed, 35 insertions(+), 21 deletions(-)
+> > >
+> > > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> > > index a799684..29619c2 100644
+> > > --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> > > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> > > @@ -399,6 +399,11 @@ static int rvin_parallel_subdevice_attach(struct rvin_dev *vin,
+> > >  	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
+> > >  	vin->parallel->sink_pad = ret < 0 ? 0 : ret;
+> > >
+> > > +	if (vin->info->use_mc) {
+> > > +		vin->parallel->subdev = subdev;
+> > > +		return 0;
+> > > +	}
+> > > +
+> > >  	/* Find compatible subdevices mbus format */
+> > >  	vin->mbus_code = 0;
+> > >  	code.index = 0;
+> > > @@ -460,10 +465,12 @@ static int rvin_parallel_subdevice_attach(struct rvin_dev *vin,
+> > >  static void rvin_parallel_subdevice_detach(struct rvin_dev *vin)
+> > >  {
+> > >  	rvin_v4l2_unregister(vin);
+> > > -	v4l2_ctrl_handler_free(&vin->ctrl_handler);
+> > > -
+> > > -	vin->vdev.ctrl_handler = NULL;
+> > >  	vin->parallel->subdev = NULL;
+> > > +
+> > > +	if (!vin->info->use_mc) {
+> > > +		v4l2_ctrl_handler_free(&vin->ctrl_handler);
+> > > +		vin->vdev.ctrl_handler = NULL;
+> > > +	}
+> > >  }
+> > >
+> > >  static int rvin_parallel_notify_complete(struct v4l2_async_notifier *notifier)
+> > > @@ -552,18 +559,18 @@ static int rvin_parallel_parse_v4l2(struct device *dev,
+> > >  	return 0;
+> > >  }
+> > >
+> > > -static int rvin_parallel_graph_init(struct rvin_dev *vin)
+> > > +static int rvin_parallel_init(struct rvin_dev *vin)
+> > >  {
+> > >  	int ret;
+> > >
+> > > -	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> > > -		vin->dev, &vin->notifier,
+> > > -		sizeof(struct rvin_parallel_entity), rvin_parallel_parse_v4l2);
+> > > +	ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+> > > +		vin->dev, &vin->notifier, sizeof(struct rvin_parallel_entity),
+> > > +		0, rvin_parallel_parse_v4l2);
+> > >  	if (ret)
+> > >  		return ret;
+> > >
+> > >  	if (!vin->parallel)
+> > > -		return -ENODEV;
+> > > +		return -ENOTCONN;
+> >
+> > I think you still should return -ENODEV here if !vin->info->use_mc to
+> > preserve Gen2 which runs without media controller behavior. How about:
+> >
+> >     return vin->info->use_mc ? -ENOTCONN : -ENODEV;
+> >
+> > >
+> > >  	vin_dbg(vin, "Found parallel subdevice %pOF\n",
+> > >  		to_of_node(vin->parallel->asd.match.fwnode));
+> > > @@ -784,14 +791,8 @@ static int rvin_mc_init(struct rvin_dev *vin)
+> > >  {
+> > >  	int ret;
+> > >
+> > > -	vin->pad.flags = MEDIA_PAD_FL_SINK;
+> > > -	ret = media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
+> > > -	if (ret)
+> > > -		return ret;
+> > > -
+> > > -	ret = rvin_group_get(vin);
+> > > -	if (ret)
+> > > -		return ret;
+> > > +	if (!vin->info->use_mc)
+> > > +		return 0;
+> > >
+> > >  	ret = rvin_mc_parse_of_graph(vin);
+> > >  	if (ret)
+> > > @@ -1074,11 +1075,24 @@ static int rcar_vin_probe(struct platform_device *pdev)
+> > >  		return ret;
+> > >
+> > >  	platform_set_drvdata(pdev, vin);
+> > > -	if (vin->info->use_mc)
+> > > -		ret = rvin_mc_init(vin);
+> > > -	else
+> > > -		ret = rvin_parallel_graph_init(vin);
+> > > -	if (ret < 0)
+> > > +
+> > > +	if (vin->info->use_mc) {
+> > > +		vin->pad.flags = MEDIA_PAD_FL_SINK;
+> > > +		ret = media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
+> > > +		if (ret)
+> > > +			return ret;
+> > > +
+> > > +		ret = rvin_group_get(vin);
+> > > +		if (ret)
+> > > +			return ret;
+> > > +	}
+> >
+> > I don't see why you need to move the media pad creation out of
+> > rvin_mc_init(). With the reorder of the rvin_mc_init()
+> > rvin_parallel_init() I would keep this in rvin_mc_init().
+> >
+> > > +
+> > > +	ret = rvin_mc_init(vin);
+> > > +	if (ret)
+> > > +		return ret;
+> > > +
+> > > +	ret = rvin_parallel_init(vin);
+> > > +	if (ret < 0 && ret != -ENOTCONN)
+> > >  		goto error;
+> > >
+> > >  	pm_suspend_ignore_children(&pdev->dev, true);
+> 
+> I've been looking at the error path handling now that the code looks
+> like this in the forthcoming v5:
+> 
+> 	if (vin->info->use_mc) {
+> 		ret = rvin_mc_init(vin);
+> 		if (ret)
+> 			goto error_dma_unregister;
+> 	}
+> 
+> 	ret = rvin_parallel_init(vin);
+> 	if (ret)
+> 		goto error_group_unregister;
+> 
+> 
+>         ...
+> 
+> 
+> error_group_unreg:
+> 	if (vin->info->use_mc) {
+> 		mutex_lock(&vin->group->lock);
+> 		if (&vin->v4l2_dev == vin->group->notifier.v4l2_dev) {
+> 			v4l2_async_notifier_unregister(&vin->group->notifier);
+> 			v4l2_async_notifier_cleanup(&vin->group->notifier);
+> 		}
+> 		mutex_unlock(&vin->group->lock);
+> 		rvin_group_put(vin);
+> 	}
+> 
+> error_dma_unreg:
+> 	rvin_dma_unregister(vin);
+> 
+> 	return ret;
+> 
+> Question is, do you think the group notifier should be unregistered
+> and cleaned up if the parallel input initialization of the VIN
+> instance whose v4l2_dev is used to register the group notifier fails?
+> 
+> I feel like it should, as the VIN instance whose v4l2_dev is used is
+> always the last probing one, so there should be no issues with other
+> VINs registering after it and finding themselves without a valid
+> notifier.
+
+I agree with you. If the parallel initialization fails everything done 
+by that particular VIN probe should be undone. So if it have registered 
+the group notifier it should unregister it.
+
+> 
+> I felt like it was better anticipating this to you instead of adding
+> this part out of the blue in v5.
+> 
+> Also, I think in both parallel input and mc notifier registration, the
+> notifier should be cleaned up to release the parsed async subdevices
+> memory allocated by
+> v4l2_async_notifier_parse_fwnode_endpoints_by_port() if the
+> sub-sequent v4l2_async_notifier_register() fails.
+
+I agree with you here as well. That this memory should be cleaned up, 
+nice catch.
+
+> 
+> That would be:
+> 
+> @@ -781,18 +782,29 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+>                                            &vin->group->notifier);
+>         if (ret < 0) {
+>                 vin_err(vin, "Notifier registration failed\n");
+> -               return ret;
+> +               goto error_clean_up_notifier;
+>         }
+> 
+>         return 0;
+> +
+> +error_clean_up_notifier:
+> +       v4l2_async_notifier_cleanup(&vin->group->notifier);
+> +
+> +       return ret;
+>  }
+> 
+> in both mc and parallel initialization functions.
+> 
+> With your ack I can send two patches on top of the currently merged VIN
+> version, and rebase my series on top eventually.
+> 
+> Sorry for the long email.
+> 
+> Thanks
+>    j
+> 
+> 
+> > > --
+> > > 2.7.4
+> > >
+> >
+> > --
+> > Regards,
+> > Niklas Söderlund
 
 
-On 05/24/2018 11:32 PM, Philipp Zabel wrote:
-> On Thu, 2018-05-24 at 11:12 -0700, Steve Longerbeam wrote:
-> [...]
->>> The following is required as well. Now the question is why we can't skip
->>> writing those odd UV rows. Anyway, with these 2 changes, I get a stable
->>> NTSC (and probably PAL) interlaced video stream.
->>>
->>> The manual says: Reduce Double Read or Writes (RDRW):
->>> This bit is relevant for YUV4:2:0 formats. For write channels:
->>> U and V components are not written to odd rows.
->>>
->>> How could it be so? With YUV420, are they normally written?
->> Well, given that this bit exists, and assuming I understand it correctly
->> (1),
->> I guess the U and V components for odd rows normally are placed on the
->> AXI bus. Which is a total waste of bus bandwidth because in 4:2:0,
->> the U and V components are the same for odd and even rows.
->>
->> In other words for writing 4:2:0 to memory, this bit should _always_ be set.
->>
->> (1) OTOH I don't really understand what this bit is trying to say.
->> Whether this bit is set or not, the data in memory is correct
->> for planar 4:2:0: y plane buffer followed by U plane of 1/4 size
->> (decimated by 2 in width and height), followed by Y plane of 1/4
->> size.
->>
->> So I assume it is saying that the IPU normally places U/V components
->> on the AXI bus for odd rows, that are identical to the even row values.
-> Whether they are identical depends on the input format.
 
-Right, this is the part I was missing, thanks for clarifying. The
-even and odd chroma rows coming into the IDMAC from the
-CSI (or IC) may not be identical if the CSI has captured 4:4:4
-(or 4:2:2 yeah? 4:2:2 is only decimated in width not height).
-
-But still, when the IDMAC has finished pixel packing/unpacking and
-is writing 4:2:0 to memory, it should always skip overwriting the even
-rows with the odd rows, whether or not it has received identical chroma
-even/odd lines from the CSI.
-
-Unless interweave is enabled :) See below.
->
-> The IDMAC always gets fed AYUV32 from the CSI or IC.
-> If the CSI captures YUV 4:2:x, odd and even lines will have the same
-> chroma values. But if the CSI captures YUV 4:4:4 (or RGB, fed through
-> the IC), we can have AYUV32 input with different chroma values on even
-> and odd lines.
-> In that case the IPU just writes the even chroma line and then
-> overwrites it with the odd line, unless the double write reduction bit
-> is set.
->
->> IOW somehow those identical odd rows are dropped before writing to
->> the U/V planes in memory.
-> potentially identical.
-
-Right.
-
->
->> Philipp please chime in if you have something to add here.
-> I suppose the bit could be used to choose to write the chroma values of
-> odd instead of even lines for 4:4:4 inputs, at the cost of increased
-> memory bandwidth usage.
->
->> Steve
->>
->>> OTOH it seems that not only UV is broken with this bit set.
->>> Y is broken as well.
-> Maybe scanline interlave and double write reduction can't be used at the
-> same time?
-
-Yes, I just verified that. I went back to the SabreLite with the
-progressive output OV5640, and double-write-reduction for
-4:2:0 capture works fine, the images are correct.
-
-Steve
+-- 
+Regards,
+Niklas Söderlund
