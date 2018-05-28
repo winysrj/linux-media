@@ -1,70 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:37788 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965606AbeEXIzP (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:41333 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1425490AbeE1Qit (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 04:55:15 -0400
-Received: by mail-wr0-f194.google.com with SMTP id i12-v6so1613019wrc.4
-        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 01:55:14 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        eballetbo@gmail.com
-Subject: [PATCH v5 5/6] mfd: cros_ec_dev: Add CEC sub-device registration
-Date: Thu, 24 May 2018 10:55:00 +0200
-Message-Id: <1527152101-17278-6-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1527152101-17278-1-git-send-email-narmstrong@baylibre.com>
-References: <1527152101-17278-1-git-send-email-narmstrong@baylibre.com>
+        Mon, 28 May 2018 12:38:49 -0400
+Subject: Re: [PATCH 4/6] media: imx-csi: Enable interlaced scan for field type
+ alternate
+To: Ian Arkver <ian.arkver.dev@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>
+References: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
+ <1527292416-26187-5-git-send-email-steve_longerbeam@mentor.com>
+ <1527490835.6846.1.camel@pengutronix.de>
+ <b8a58843-35bd-1f74-2131-4987dcb4b42c@gmail.com>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <09a689f5-faaf-2c31-0c9b-3ad3a743b450@mentor.com>
+Date: Mon, 28 May 2018 09:38:42 -0700
+MIME-Version: 1.0
+In-Reply-To: <b8a58843-35bd-1f74-2131-4987dcb4b42c@gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The EC can expose a CEC bus, thus add the cros-ec-cec MFD sub-device
-when the CEC feature bit is present.
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-Reviewed-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
----
- drivers/mfd/cros_ec_dev.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
 
-diff --git a/drivers/mfd/cros_ec_dev.c b/drivers/mfd/cros_ec_dev.c
-index 1d6dc5c..272969e 100644
---- a/drivers/mfd/cros_ec_dev.c
-+++ b/drivers/mfd/cros_ec_dev.c
-@@ -383,6 +383,10 @@ static void cros_ec_sensors_register(struct cros_ec_dev *ec)
- 	kfree(msg);
- }
- 
-+static const struct mfd_cell cros_ec_cec_cells[] = {
-+	{ .name = "cros-ec-cec" }
-+};
-+
- static const struct mfd_cell cros_ec_rtc_cells[] = {
- 	{ .name = "cros-ec-rtc" }
- };
-@@ -426,6 +430,18 @@ static int ec_device_probe(struct platform_device *pdev)
- 	if (cros_ec_check_features(ec, EC_FEATURE_MOTION_SENSE))
- 		cros_ec_sensors_register(ec);
- 
-+	/* Check whether this EC instance has CEC host command support */
-+	if (cros_ec_check_features(ec, EC_FEATURE_CEC)) {
-+		retval = mfd_add_devices(ec->dev, PLATFORM_DEVID_AUTO,
-+					 cros_ec_cec_cells,
-+					 ARRAY_SIZE(cros_ec_cec_cells),
-+					 NULL, 0, NULL);
-+		if (retval)
-+			dev_err(ec->dev,
-+				"failed to add cros-ec-cec device: %d\n",
-+				retval);
-+	}
-+
- 	/* Check whether this EC instance has RTC host command support */
- 	if (cros_ec_check_features(ec, EC_FEATURE_RTC)) {
- 		retval = mfd_add_devices(ec->dev, PLATFORM_DEVID_AUTO,
--- 
-2.7.4
+On 05/28/2018 12:59 AM, Ian Arkver wrote:
+> On 28/05/18 08:00, Philipp Zabel wrote:
+>> On Fri, 2018-05-25 at 16:53 -0700, Steve Longerbeam wrote:
+>>> Interlaced scan, a.k.a. interweave, should be enabled at the CSI IDMAC
+>>> output pad if the input field type is 'alternate' (in addition to field
+>>> types 'seq-tb' and 'seq-bt').
+>>>
+>>> Which brings up whether V4L2_FIELD_HAS_BOTH() macro should be used
+>>> to determine enabling interlaced/interweave scan. That macro
+>>> includes the 'interlaced' field types, and in those cases the data
+>>> is already interweaved with top/bottom field lines. A heads-up for
+>>> now that this if statement may need to call V4L2_FIELD_IS_SEQUENTIAL()
+>>> instead, I have no sensor hardware that sends 'interlaced' data, so 
+>>> can't
+>>> test.
+>>
+>> I agree, the check here should be IS_SEQUENTIAL || ALTERNATE, and
+>> interlaced_scan should also be enabled if image.pix.field is
+>> INTERLACED_TB/BT.
+
+Yep, in fact I have implemented that in v2. Interlace_scan will be enabled
+only if input field type is SEQUENTIAL || ALTERNATE, and output field type
+is INTERLACED_TB/BT or non-qualified INTERLACED.
+
+
+>> And for INTERLACED_TB/BT input, the logic should be inverted: then we'd
+>> have to enable interlaced_scan whenever image.pix.field is SEQ_BT/TB.
+>
+> Hi Philipp,
+>
+> If your intent here is to de-interweave the two fields back to two 
+> sequential fields, I don't believe the IDMAC operation would achieve 
+> that. It's basically line stride doubling and a line offset for the 
+> lines in the 2nd half of the incoming frame, right?
+
+I agree, I'm not sure interlaced_scan will perform the inverse (turn an 
+interlaced
+buffer into a sequential buffer). If the implementation involves a scan of
+two lines, second line with a memory offset equal to field size, and 
+doubling
+the line stride to reach the next set of two lines, then running that 
+operation
+on an interlaced buffer would not produce a sequential buffer.
+
+Steve
+
+
+>
+>>
+>>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>>> ---
+>>>   drivers/staging/media/imx/imx-media-csi.c | 3 ++-
+>>>   1 file changed, 2 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/staging/media/imx/imx-media-csi.c 
+>>> b/drivers/staging/media/imx/imx-media-csi.c
+>>> index 9bc555c..eef3483 100644
+>>> --- a/drivers/staging/media/imx/imx-media-csi.c
+>>> +++ b/drivers/staging/media/imx/imx-media-csi.c
+>>> @@ -477,7 +477,8 @@ static int csi_idmac_setup_channel(struct 
+>>> csi_priv *priv)
+>>>       ipu_smfc_set_burstsize(priv->smfc, burst_size);
+>>>         if (image.pix.field == V4L2_FIELD_NONE &&
+>>> -        V4L2_FIELD_HAS_BOTH(infmt->field))
+>>> +        (V4L2_FIELD_HAS_BOTH(infmt->field) ||
+>>> +         infmt->field == V4L2_FIELD_ALTERNATE))
+>>>           ipu_cpmem_interlaced_scan(priv->idmac_ch,
+>>>                         image.pix.bytesperline);
