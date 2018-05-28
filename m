@@ -1,215 +1,359 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:40303 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751713AbeEVOx3 (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:50253 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S940222AbeE1Qhd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 10:53:29 -0400
-Received: by mail-wr0-f193.google.com with SMTP id p3-v6so1939854wrn.7
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 07:53:28 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v6 12/13] media: imx7.rst: add documentation for i.MX7 media driver
-Date: Tue, 22 May 2018 15:52:44 +0100
-Message-Id: <20180522145245.3143-13-rui.silva@linaro.org>
-In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
-References: <20180522145245.3143-1-rui.silva@linaro.org>
+        Mon, 28 May 2018 12:37:33 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        sakari.ailus@iki.fi, mchehab@kernel.org,
+        ysato@users.sourceforge.jp, dalias@libc.org
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 3/5] arch: sh: kfr2r09: Use new renesas-ceu camera driver
+Date: Mon, 28 May 2018 18:37:09 +0200
+Message-Id: <1527525431-22852-4-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1527525431-22852-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1527525431-22852-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add rst document to describe the i.MX7 media driver and also a working
-example from the Warp7 board usage with a OV2680 sensor.
+Use the new renesas-ceu camera driver in kfr2r09 board file instead of
+the soc_camera based sh_mobile_ceu_camera driver.
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Get rid of soc_camera specific components, and move clk and gpio handling
+away from board file, registering the clock source and the enable gpios
+for driver consumption.
+
+Memory for the CEU video buffers is now reserved with membocks APIs,
+and need to be declared as dma_coherent during machine initialization to
+remove that architecture specific part from CEU driver.
+
+While at there update license to SPDX header and sort headers alphabetically.
+
+No need to udapte the clock source names, as
+commit c2f9b05fd5c1 ("media: arch: sh: ecovec: Use new renesas-ceu camera driver")
+already updated it to the new ceu driver name for all SH7724 boards (possibly
+breaking kfr2r09 before this commit).
+
+Compile tested only.
+
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- Documentation/media/v4l-drivers/imx7.rst  | 157 ++++++++++++++++++++++
- Documentation/media/v4l-drivers/index.rst |   1 +
- 2 files changed, 158 insertions(+)
- create mode 100644 Documentation/media/v4l-drivers/imx7.rst
+ arch/sh/boards/mach-kfr2r09/setup.c | 217 +++++++++++++++++-------------------
+ 1 file changed, 103 insertions(+), 114 deletions(-)
 
-diff --git a/Documentation/media/v4l-drivers/imx7.rst b/Documentation/media/v4l-drivers/imx7.rst
-new file mode 100644
-index 000000000000..cd1195d391c5
---- /dev/null
-+++ b/Documentation/media/v4l-drivers/imx7.rst
-@@ -0,0 +1,157 @@
-+i.MX7 Video Capture Driver
-+==========================
+diff --git a/arch/sh/boards/mach-kfr2r09/setup.c b/arch/sh/boards/mach-kfr2r09/setup.c
+index 6af7777..e59c577 100644
+--- a/arch/sh/boards/mach-kfr2r09/setup.c
++++ b/arch/sh/boards/mach-kfr2r09/setup.c
+@@ -1,41 +1,53 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * KFR2R09 board support code
+  *
+  * Copyright (C) 2009 Magnus Damm
+- *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file "COPYING" in the main directory of this archive
+- * for more details.
+  */
+-#include <linux/init.h>
+-#include <linux/platform_device.h>
+-#include <linux/interrupt.h>
+-#include <linux/mmc/host.h>
+-#include <linux/mfd/tmio.h>
+-#include <linux/mtd/physmap.h>
+-#include <linux/mtd/onenand.h>
 +
-+Introduction
-+------------
++#include <asm/clock.h>
++#include <asm/io.h>
++#include <asm/machvec.h>
++#include <asm/suspend.h>
 +
-+The i.MX7 contrary to the i.MX5/6 family does not contain an Image Processing
-+Unit (IPU); because of that the capabilities to perform operations or
-+manipulation of the capture frames are less feature rich.
++#include <cpu/sh7724.h>
 +
-+For image capture the i.MX7 has three units:
-+- CMOS Sensor Interface (CSI)
-+- Video Multiplexer
-+- MIPI CSI-2 Receiver
++#include <linux/clkdev.h>
+ #include <linux/delay.h>
+-#include <linux/clk.h>
++#include <linux/dma-mapping.h>
+ #include <linux/gpio.h>
++#include <linux/gpio/machine.h>
++#include <linux/i2c.h>
++#include <linux/init.h>
+ #include <linux/input.h>
+ #include <linux/input/sh_keysc.h>
+-#include <linux/i2c.h>
++#include <linux/interrupt.h>
++#include <linux/memblock.h>
++#include <linux/mfd/tmio.h>
++#include <linux/mmc/host.h>
++#include <linux/mtd/onenand.h>
++#include <linux/mtd/physmap.h>
+ #include <linux/platform_data/lv5207lp.h>
++#include <linux/platform_device.h>
+ #include <linux/regulator/fixed.h>
+ #include <linux/regulator/machine.h>
++#include <linux/sh_intc.h>
+ #include <linux/usb/r8a66597.h>
+ #include <linux/videodev2.h>
+-#include <linux/sh_intc.h>
 +
-+::
-+                                           |\
-+   MIPI Camera Input ---> MIPI CSI-2 --- > | \
-+                                           |  \
-+                                           | M |
-+                                           | U | ------>  CSI ---> Capture
-+                                           | X |
-+                                           |  /
-+   Parallel Camera Input ----------------> | /
-+                                           |/
++#include <mach/kfr2r09.h>
 +
-+For additional information, please refer to the latest versions of the i.MX7
-+reference manual [#f1]_.
++#include <media/drv-intf/renesas-ceu.h>
+ #include <media/i2c/rj54n1cb0c.h>
+-#include <media/soc_camera.h>
+-#include <media/drv-intf/sh_mobile_ceu.h>
 +
-+Entities
-+--------
+ #include <video/sh_mobile_lcdc.h>
+-#include <asm/suspend.h>
+-#include <asm/clock.h>
+-#include <asm/machvec.h>
+-#include <asm/io.h>
+-#include <cpu/sh7724.h>
+-#include <mach/kfr2r09.h>
 +
-+imx7-mipi-csi2
-+--------------
++#define CEU_BUFFER_MEMORY_SIZE		(4 << 20)
++static phys_addr_t ceu_dma_membase;
 +
-+This is the MIPI CSI-2 receiver entity. It has one sink pad to receive the pixel
-+data from MIPI CSI-2 camera sensor. It has one source pad, corresponding to the
-+virtual channel 0. This module is compliant to previous version of Samsung
-+D-phy, and supports two D-PHY Rx Data lanes.
++/* set VIO_CKO clock to 25MHz */
++#define CEU_MCLK_FREQ			25000000
++#define DRVCRB				0xA405018C
+ 
+ static struct mtd_partition kfr2r09_nor_flash_partitions[] =
+ {
+@@ -230,8 +242,17 @@ static struct platform_device kfr2r09_usb0_gadget_device = {
+ 	.resource	= kfr2r09_usb0_gadget_resources,
+ };
+ 
+-static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+-	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
++static struct ceu_platform_data ceu_pdata = {
++	.num_subdevs			= 1,
++	.subdevs = {
++		{ /* [0] = rj54n1cb0c */
++			.flags		= 0,
++			.bus_width	= 8,
++			.bus_shift	= 0,
++			.i2c_adapter_id	= 1,
++			.i2c_address	= 0x50,
++		},
++	},
+ };
+ 
+ static struct resource kfr2r09_ceu_resources[] = {
+@@ -246,109 +267,35 @@ static struct resource kfr2r09_ceu_resources[] = {
+ 		.end	= evt2irq(0x880),
+ 		.flags  = IORESOURCE_IRQ,
+ 	},
+-	[2] = {
+-		/* place holder for contiguous memory */
+-	},
+ };
+ 
+ static struct platform_device kfr2r09_ceu_device = {
+-	.name		= "sh_mobile_ceu",
++	.name		= "renesas-ceu",
+ 	.id             = 0, /* "ceu0" clock */
+ 	.num_resources	= ARRAY_SIZE(kfr2r09_ceu_resources),
+ 	.resource	= kfr2r09_ceu_resources,
+ 	.dev	= {
+-		.platform_data	= &sh_mobile_ceu_info,
++		.platform_data	= &ceu_pdata,
+ 	},
+ };
+ 
+-static struct i2c_board_info kfr2r09_i2c_camera = {
+-	I2C_BOARD_INFO("rj54n1cb0c", 0x50),
+-};
+-
+-static struct clk *camera_clk;
+-
+-/* set VIO_CKO clock to 25MHz */
+-#define CEU_MCLK_FREQ 25000000
+-
+-#define DRVCRB 0xA405018C
+-static int camera_power(struct device *dev, int mode)
+-{
+-	int ret;
+-
+-	if (mode) {
+-		long rate;
+-
+-		camera_clk = clk_get(NULL, "video_clk");
+-		if (IS_ERR(camera_clk))
+-			return PTR_ERR(camera_clk);
+-
+-		rate = clk_round_rate(camera_clk, CEU_MCLK_FREQ);
+-		ret = clk_set_rate(camera_clk, rate);
+-		if (ret < 0)
+-			goto eclkrate;
+-
+-		/* set DRVCRB
+-		 *
+-		 * use 1.8 V for VccQ_VIO
+-		 * use 2.85V for VccQ_SR
+-		 */
+-		__raw_writew((__raw_readw(DRVCRB) & ~0x0003) | 0x0001, DRVCRB);
+-
+-		/* reset clear */
+-		ret = gpio_request(GPIO_PTB4, NULL);
+-		if (ret < 0)
+-			goto eptb4;
+-		ret = gpio_request(GPIO_PTB7, NULL);
+-		if (ret < 0)
+-			goto eptb7;
+-
+-		ret = gpio_direction_output(GPIO_PTB4, 1);
+-		if (!ret)
+-			ret = gpio_direction_output(GPIO_PTB7, 1);
+-		if (ret < 0)
+-			goto egpioout;
+-		msleep(1);
+-
+-		ret = clk_enable(camera_clk);	/* start VIO_CKO */
+-		if (ret < 0)
+-			goto eclkon;
+-
+-		return 0;
+-	}
+-
+-	ret = 0;
+-
+-	clk_disable(camera_clk);
+-eclkon:
+-	gpio_set_value(GPIO_PTB7, 0);
+-egpioout:
+-	gpio_set_value(GPIO_PTB4, 0);
+-	gpio_free(GPIO_PTB7);
+-eptb7:
+-	gpio_free(GPIO_PTB4);
+-eptb4:
+-eclkrate:
+-	clk_put(camera_clk);
+-	return ret;
+-}
+-
+ static struct rj54n1_pdata rj54n1_priv = {
+ 	.mclk_freq	= CEU_MCLK_FREQ,
+ 	.ioctl_high	= false,
+ };
+ 
+-static struct soc_camera_link rj54n1_link = {
+-	.power		= camera_power,
+-	.board_info	= &kfr2r09_i2c_camera,
+-	.i2c_adapter_id	= 1,
+-	.priv		= &rj54n1_priv,
++static struct i2c_board_info kfr2r09_i2c_camera = {
++	I2C_BOARD_INFO("rj54n1cb0c", 0x50),
++	.platform_data = &rj54n1_priv,
+ };
+ 
+-static struct platform_device kfr2r09_camera = {
+-	.name	= "soc-camera-pdrv",
+-	.id	= 0,
+-	.dev	= {
+-		.platform_data = &rj54n1_link,
++static struct gpiod_lookup_table rj54n1_gpios = {
++	.dev_id		= "1-0050",
++	.table		= {
++		GPIO_LOOKUP("sh7724_pfc", GPIO_PTB4, "poweron",
++			    GPIO_ACTIVE_HIGH),
++		GPIO_LOOKUP("sh7724_pfc", GPIO_PTB7, "enable",
++			    GPIO_ACTIVE_HIGH),
+ 	},
+ };
+ 
+@@ -393,8 +340,6 @@ static struct platform_device *kfr2r09_devices[] __initdata = {
+ 	&kfr2r09_nand_flash_device,
+ 	&kfr2r09_sh_keysc_device,
+ 	&kfr2r09_sh_lcdc_device,
+-	&kfr2r09_ceu_device,
+-	&kfr2r09_camera,
+ 	&kfr2r09_sh_sdhi0_device,
+ };
+ 
+@@ -533,6 +478,8 @@ extern char kfr2r09_sdram_leave_end;
+ 
+ static int __init kfr2r09_devices_setup(void)
+ {
++	static struct clk *camera_clk;
 +
-+csi_mux
-+-------
+ 	/* register board specific self-refresh code */
+ 	sh_mobile_register_self_refresh(SUSP_SH_STANDBY | SUSP_SH_SF |
+ 					SUSP_SH_RSTANDBY,
+@@ -622,8 +569,6 @@ static int __init kfr2r09_devices_setup(void)
+ 	gpio_request(GPIO_FN_VIO0_D1, NULL);
+ 	gpio_request(GPIO_FN_VIO0_D0, NULL);
+ 
+-	platform_resource_setup_memory(&kfr2r09_ceu_device, "ceu", 4 << 20);
+-
+ 	/* SDHI0 connected to yc304 */
+ 	gpio_request(GPIO_FN_SDHI0CD, NULL);
+ 	gpio_request(GPIO_FN_SDHI0D3, NULL);
+@@ -635,6 +580,36 @@ static int __init kfr2r09_devices_setup(void)
+ 
+ 	i2c_register_board_info(0, &kfr2r09_backlight_board_info, 1);
+ 
++	/* Set camera clock frequency and register and alias for rj54n1. */
++	camera_clk = clk_get(NULL, "video_clk");
++	if (!IS_ERR(camera_clk)) {
++		clk_set_rate(camera_clk,
++			     clk_round_rate(camera_clk, CEU_MCLK_FREQ));
++		clk_put(camera_clk);
++	}
++	clk_add_alias(NULL, "1-0050", "video_clk", NULL);
 +
-+This is the video multiplexer. It has two sink pads to select from either camera
-+sensor with a parallel interface or from MIPI CSI-2 virtual channel 0.  It has
-+a single source pad that routes to the CSI.
++	/* set DRVCRB
++	 *
++	 * use 1.8 V for VccQ_VIO
++	 * use 2.85V for VccQ_SR
++	 */
++	__raw_writew((__raw_readw(DRVCRB) & ~0x0003) | 0x0001, DRVCRB);
 +
-+csi
-+---
++	gpiod_add_lookup_table(&rj54n1_gpios);
 +
-+The CSI enables the chip to connect directly to external CMOS image sensor. CSI
-+can interface directly with Parallel and MIPI CSI-2 buses. It has 256 x 64 FIFO
-+to store received image pixel data and embedded DMA controllers to transfer data
-+from the FIFO through AHB bus.
++	i2c_register_board_info(1, &kfr2r09_i2c_camera, 1);
 +
-+This entity has one sink pad that receives from the csi_mux entity and a single
-+source pad that routes video frames directly to memory buffers. This pad is
-+routed to a capture device node.
++	/* Initialize CEU platform device separately to map memory first */
++	device_initialize(&kfr2r09_ceu_device.dev);
++	arch_setup_pdev_archdata(&kfr2r09_ceu_device);
++	dma_declare_coherent_memory(&kfr2r09_ceu_device.dev,
++				    ceu_dma_membase, ceu_dma_membase,
++				    ceu_dma_membase + CEU_BUFFER_MEMORY_SIZE - 1,
++				    DMA_MEMORY_EXCLUSIVE);
 +
-+Usage Notes
-+-----------
++	platform_device_add(&kfr2r09_ceu_device);
 +
-+To aid in configuration and for backward compatibility with V4L2 applications
-+that access controls only from video device nodes, the capture device interfaces
-+inherit controls from the active entities in the current pipeline, so controls
-+can be accessed either directly from the subdev or from the active capture
-+device interface. For example, the sensor controls are available either from the
-+sensor subdevs or from the active capture device.
+ 	return platform_add_devices(kfr2r09_devices,
+ 				    ARRAY_SIZE(kfr2r09_devices));
+ }
+@@ -651,10 +626,24 @@ static int kfr2r09_mode_pins(void)
+ 	return MODE_PIN0 | MODE_PIN1 | MODE_PIN5 | MODE_PIN8;
+ }
+ 
++/* Reserve a portion of memory for CEU buffers */
++static void __init kfr2r09_mv_mem_reserve(void)
++{
++	phys_addr_t phys;
++	phys_addr_t size = CEU_BUFFER_MEMORY_SIZE;
 +
-+Warp7 with OV2680
-+-----------------
++	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
++	memblock_free(phys, size);
++	memblock_remove(phys, size);
 +
-+On this platform an OV2680 MIPI CSI-2 module is connected to the internal MIPI
-+CSI-2 receiver. The following example configures a video capture pipeline with
-+an output of 800x600, and BGGR 10 bit bayer format:
++	ceu_dma_membase = phys;
++}
 +
-+.. code-block:: none
-+   # Setup links
-+   media-ctl -l "'ov2680 1-0036':0 -> 'imx7-mipi-csis.0':0[1]"
-+   media-ctl -l "'imx7-mipi-csis.0':1 -> 'csi_mux':1[1]"
-+   media-ctl -l "'csi_mux':2 -> 'csi':0[1]"
-+   media-ctl -l "'csi':1 -> 'csi capture':0[1]"
-+
-+   # Configure pads for pipeline
-+   media-ctl -V "'ov2680 1-0036':0 [fmt:SBGGR10_1X10/800x600 field:none]"
-+   media-ctl -V "'csi_mux':1 [fmt:SBGGR10_1X10/800x600 field:none]"
-+   media-ctl -V "'csi_mux':2 [fmt:SBGGR10_1X10/800x600 field:none]"
-+   media-ctl -V "'imx7-mipi-csis.0':0 [fmt:SBGGR10_1X10/800x600 field:none]"
-+   media-ctl -V "'csi':0 [fmt:SBGGR10_1X10/800x600 field:none]"
-+
-+After this streaming can start. The v4l2-ctl tool can be used to select any of
-+the resolutions supported by the sensor.
-+
-+.. code-block:: none
-+    root@imx7s-warp:~# media-ctl -p
-+    Media controller API version 4.17.0
-+
-+    Media device information
-+    ------------------------
-+    driver          imx-media
-+    model           imx-media
-+    serial
-+    bus info
-+    hw revision     0x0
-+    driver version  4.17.0
-+
-+    Device topology
-+    - entity 1: csi (2 pads, 2 links)
-+		type V4L2 subdev subtype Unknown flags 0
-+		device node name /dev/v4l-subdev0
-+	    pad0: Sink
-+		    [fmt:SBGGR10_1X10/800x600 field:none]
-+		    <- "csi_mux":2 [ENABLED]
-+	    pad1: Source
-+		    [fmt:SBGGR10_1X10/800x600 field:none]
-+		    -> "csi capture":0 [ENABLED]
-+
-+    - entity 4: csi capture (1 pad, 1 link)
-+		type Node subtype V4L flags 0
-+		device node name /dev/video0
-+	    pad0: Sink
-+		    <- "csi":1 [ENABLED]
-+
-+    - entity 10: csi_mux (3 pads, 2 links)
-+		type V4L2 subdev subtype Unknown flags 0
-+		device node name /dev/v4l-subdev1
-+	    pad0: Sink
-+		    [fmt:unknown/0x0]
-+	    pad1: Sink
-+		    [fmt:unknown/800x600 field:none]
-+		    <- "imx7-mipi-csis.0":1 [ENABLED]
-+	    pad2: Source
-+		    [fmt:unknown/800x600 field:none]
-+		    -> "csi":0 [ENABLED]
-+
-+    - entity 14: imx7-mipi-csis.0 (2 pads, 2 links)
-+		type V4L2 subdev subtype Unknown flags 0
-+		device node name /dev/v4l-subdev2
-+	    pad0: Sink
-+		    [fmt:SBGGR10_1X10/800x600 field:none]
-+		    <- "ov2680 1-0036":0 [ENABLED]
-+	    pad1: Source
-+		    [fmt:SBGGR10_1X10/800x600 field:none]
-+		    -> "csi_mux":1 [ENABLED]
-+
-+    - entity 17: ov2680 1-0036 (1 pad, 1 link)
-+		type V4L2 subdev subtype Sensor flags 0
-+		device node name /dev/v4l-subdev3
-+	    pad0: Source
-+		    [fmt:SBGGR10_1X10/800x600 field:none]
-+		    -> "imx7-mipi-csis.0":0 [ENABLED]
-+
-+
-+References
-+----------
-+
-+.. [#f1] https://www.nxp.com/docs/en/reference-manual/IMX7SRM.pdf
-diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-index 679238e786a7..693295bbc53f 100644
---- a/Documentation/media/v4l-drivers/index.rst
-+++ b/Documentation/media/v4l-drivers/index.rst
-@@ -44,6 +44,7 @@ For more details see the file COPYING in the source distribution of Linux.
- 	davinci-vpbe
- 	fimc
- 	imx
-+	imx7
- 	ivtv
- 	max2175
- 	meye
+ /*
+  * The Machine Vector
+  */
+ static struct sh_machine_vector mv_kfr2r09 __initmv = {
+ 	.mv_name		= "kfr2r09",
+ 	.mv_mode_pins		= kfr2r09_mode_pins,
++	.mv_mem_reserve         = kfr2r09_mv_mem_reserve,
+ };
 -- 
-2.17.0
+2.7.4
