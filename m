@@ -1,245 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:36204 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753849AbeE1I2k (ORCPT
+Received: from mail-wr0-f173.google.com ([209.85.128.173]:37486 "EHLO
+        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1161997AbeE1OVj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 May 2018 04:28:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+        Mon, 28 May 2018 10:21:39 -0400
+Received: by mail-wr0-f173.google.com with SMTP id i12-v6so20585157wrc.4
+        for <linux-media@vger.kernel.org>; Mon, 28 May 2018 07:21:38 -0700 (PDT)
+Date: Mon, 28 May 2018 16:21:36 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
 To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [GIT PULL FOR v4.18] R-Car VSP1 TLB optimisation
-Date: Mon, 28 May 2018 11:28:41 +0300
-Message-ID: <7346563.L0Ry6hIlrs@avalon>
-In-Reply-To: <20180526082818.70a369b5@vento.lan>
-References: <10831984.07PNLvckhh@avalon> <1657947.LKPPaiEoOV@avalon> <20180526082818.70a369b5@vento.lan>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [ANN] Meeting to discuss improvements to support MC-based
+ cameras on generic apps
+Message-ID: <20180528142136.GA12014@bigcity.dyn.berto.se>
+References: <20180517160708.74811cfb@vento.lan>
+ <20180528104351.5cf52a24@vento.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180528104351.5cf52a24@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Mauro,
 
-On Saturday, 26 May 2018 14:28:18 EEST Mauro Carvalho Chehab wrote:
-> Em Sat, 26 May 2018 03:24:00 +0300 Laurent Pinchart escreveu:
-
-[snip]
-
-> > I've reproduced the issue and created a minimal test case.
+On 2018-05-28 10:43:51 -0300, Mauro Carvalho Chehab wrote:
+> Em Thu, 17 May 2018 16:07:08 -0300
+> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+> 
+> > Hi all,
 > > 
-> >  1. struct vsp1_pipeline;
-> >  2.
-> >  3. struct vsp1_entity {
-> >  4.         struct vsp1_pipeline *pipe;
-> >  5.         struct vsp1_entity *sink;
-> >  6.         unsigned int source_pad;
-> >  7. };
-> >  8.
-> >  9. struct vsp1_pipeline {
-> > 10.         struct vsp1_entity *brx;
-> > 11. };
-> > 12.
-> > 13. struct vsp1_brx {
-> > 14.         struct vsp1_entity entity;
-> > 15. };
-> > 16.
-> > 17. struct vsp1_device {
-> > 18.         struct vsp1_brx *bru;
-> > 19.         struct vsp1_brx *brs;
-> > 20. };
-> > 21.
-> > 22. unsigned int frob(struct vsp1_device *vsp1, struct vsp1_pipeline
-> > *pipe)
-> > 23. {
-> > 24.         struct vsp1_entity *brx;
-> > 25.
-> > 26.         if (pipe->brx)
-> > 27.                 brx = pipe->brx;
-> > 28.         else if (!vsp1->bru->entity.pipe)
-> > 29.                 brx = &vsp1->bru->entity;
-> > 30.         else
-> > 31.                 brx = &vsp1->brs->entity;
-> > 32.
-> > 33.         if (brx != pipe->brx)
-> > 34.                 pipe->brx = brx;
-> > 35.
-> > 36.         return pipe->brx->source_pad;
-> > 37. }
+> > The goal of this e-mail is to schedule a meeting in order to discuss
+> > improvements at the media subsystem in order to support complex camera
+> > hardware by usual apps.
 > > 
-> > The reason why smatch complains is that it has no guarantee that vsp1->brs
-> > is not NULL. It's quite tricky:
+> > The main focus here is to allow supporting devices with MC-based
+> > hardware connected to a camera.
 > > 
-> > - On line 26, smatch assumes that pipe->brx can be NULL
-> > - On line 27, brx is assigned a non-NULL value (as pipe->brx is not NULL
-> > due to line 26)
-> > - On line 28, smatch assumes that vsp1->bru is not NULL
-> > - On line 29, brx is assigned a non-NULL value (as vsp1->bru is not NULL
-> > due to line 28)
-> > - On line 31, brx is assigned a possibly NULL value (as there's no
-> > information regarding vsp1->brs)
-> > - On line 34, pipe->brx is not assigned a non-NULL value if brx is NULL
-> > - On line 36 pipe->brx is dereferenced
-> > 
-> > The problem comes from the fact that smatch assumes that vsp1->brs isn't
-> > NULL. Adding a "(void)vsp1->brs->entity;" statement on line 25 makes the
-> > warning disappear.
-> > 
-> > So how do we know that vsp1->brs isn't NULL in the original code ?
-> > 
-> >         if (pipe->num_inputs > 2)
-> >                 brx = &vsp1->bru->entity;
-> >         else if (pipe->brx && !drm_pipe->force_brx_release)
-> >                 brx = pipe->brx;
-> >         else if (!vsp1->bru->entity.pipe)
-> >                 brx = &vsp1->bru->entity;
-> >         else
-> >                 brx = &vsp1->brs->entity;
-> > 
-> > A VSP1 instance can have no brs, so in general vsp1->brs can be NULL.
-> > However, when that's the case, the following conditions are fulfilled.
-> > 
-> > - drm_pipe->force_brx_release will be false
-> > - either pipe->brx will be non-NULL, or vsp1->bru->entity.pipe will be
-> > NULL
-> > 
-> > The fourth branch should thus never be taken.
+> > In short, my proposal is to meet with the interested parties on solving
+> > this issue during the Open Source Summit in Japan, e. g. between
+> > June, 19-22, in Tokyo.
 > 
-> I don't think that adding a forth branch there would solve.
-> 
-> The thing is that Smatch knows that pipe->brx can be NULL, as the function
-> explicly checks if pipe->brx != NULL.
-> 
-> When Smatch handles this if:
-> 
-> 	if (brx != pipe->brx) {
-> 
-> It wrongly assumes that this could be false if pipe->brx is NULL.
-> I don't know why, as Smatch should know that brx can't be NULL.
+> Let's schedule the meeting to happen in Tokyo, Japan at June, 19.
 
-brx can be NULL here if an only if vsp1->brs is NULL (as the entity field is 
-first in the vsp1->brs structure, so &vsp1->brs->entity has the same address 
-as vsp1->brs).
+I will be in Tokyo at that time and would be happy to join.
 
-vsp1->brs can be NULL on some devices, but in that case we have the following 
-guarantees:
-
-- drm_pipe->force_brx_release will always be FALSE
-- either pipe->brx will be non-NULL or vsp1->bru->entity.pipe will be NULL
-
-So the fourth branch is never taken.
-
-The above conditions come from outside this function, and smatch can't know 
-about them. However, I don't know whether the problems comes from smatch 
-assuming that vsp1->brs can be NULL, or from somewhere else.
-
-> On such case, the next code to be executed would be:
 > 
-> 	format.pad = pipe->brx->source_pad;
+> Location yet to be defined, but it will either be together with
+> OSS Japan or at Google. I'll confirm the address tomorrow.
 > 
-> With would be trying to de-ref a NULL pointer.
+> Regards,
+> Mauro
 > 
-> There are two ways to fix it:
 > 
-> 1) with my patch.
 > 
-> It is based to the fact that, if pipe->brx is null, then brx won't be
-> NULL. So, the logic that "Switch BRx if needed." will always be called:
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> b/drivers/media/platform/vsp1/vsp1_drm.c index 095dc48aa25a..cb6b60843400
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -185,7 +185,7 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_device
-> *vsp1, brx = &vsp1->brs->entity;
-> 
->  	/* Switch BRx if needed. */
-> -	if (brx != pipe->brx) {
-> +	if (brx != pipe->brx || !pipe->brx) {
->  		struct vsp1_entity *released_brx = NULL;
-> 
->  		/* Release our BRx if we have one. */
-> 
-> The code with switches BRx ensures that pipe->brx won't be null, as
-> in the end, it sets:
-> 
-> 	pipe->brx = brx;
-> 
-> And brx can't be NULL.
-
-The reason I don't like this is because the problem originally comes from the 
-fact that smatch assumes that vsp1->brs can be NULL when it can't. I'd rather 
-modify the code in a way that explicitly tests for vsp1->brs. However, smatch 
-won't accept that happily :-/ I tried
-
-        if (pipe->num_inputs > 2)
-                brx = &vsp1->bru->entity;
-        else if (pipe->brx && !drm_pipe->force_brx_release)
-                brx = pipe->brx;
-        else if (!vsp1->bru->entity.pipe)
-                brx = &vsp1->bru->entity;
-        else if (vsp1->brs)
-                brx = &vsp1->brs->entity;
-        else
-                return -EINVAL;
-
-and I still get the same warning. I had to write the following (which is 
-obviously not correct) to silence the warning.
-
-        if (pipe->num_inputs > 2)
-                brx = &vsp1->bru->entity;
-        else if (pipe->brx)
-                brx = pipe->brx;
-        else if (!vsp1->bru->entity.pipe)
-                brx = &vsp1->bru->entity;
-        else { 
-                (void)vsp1->brs->entity;
-                brx = &vsp1->brs->entity;
-        }
-
-Both the (void)vsp1->brs->entity and the removal of the !drm_pipe-
->force_brx_release were needed, any of those on its own didn't fix the 
-problem.
-
-> From my PoV, this patch has the advantage of explicitly showing
-> to humans that the code inside the if statement will always be
-> executed when pipe->brx is NULL.
-> 
-> -
-> 
-> Another way to solve would be to explicitly check if pipe->brx is still
-> null before de-referencing:
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> b/drivers/media/platform/vsp1/vsp1_drm.c index edb35a5c57ea..9fe063d6df31
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -327,6 +327,9 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_device
-> *vsp1, list_add_tail(&pipe->brx->list_pipe, &pipe->entities);
->  	}
-> 
-> +	if (!pipe->brx)
-> +		return -EINVAL;
-> +
->  	/*
->  	 * Configure the format on the BRx source and verify that it matches the
->  	 * requested format. We don't set the media bus code as it is configured
-> 
-> The right fix would be, instead, to fix Smatch to handle the:
-> 
-> 	if (brx != pipe->brx)
-> 
-> for the cases where one var can be NULL while the other can't be NULL,
-> but, as I said before, I suspect that this can be a way more complex.
-
-I'm not sure smatch is faulty here, or at least not when it interprets the brx 
-!= pipe->brx check. The problem seems to come from the fact that is believes 
-brx can be NULL.
+> Thanks,
+> Mauro
 
 -- 
 Regards,
-
-Laurent Pinchart
+Niklas Söderlund
