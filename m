@@ -1,303 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:40898 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755070AbeEXFrz (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:36204 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753849AbeE1I2k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 01:47:55 -0400
-Received: by mail-pl0-f67.google.com with SMTP id t12-v6so348984plo.7
-        for <linux-media@vger.kernel.org>; Wed, 23 May 2018 22:47:55 -0700 (PDT)
-Date: Wed, 23 May 2018 22:47:50 -0700
-From: Benson Leung <bleung@google.com>
-To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com, sadolfsson@google.com,
-        felixe@google.com, darekm@google.com, marcheu@chromium.org,
-        fparent@baylibre.com, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org,
-        Stefan Adolfsson <sadolfsson@chromium.org>, bleung@chromium.org
-Subject: Re: [PATCH v2 3/5] mfd: cros-ec: Introduce CEC commands and events
- definitions.
-Message-ID: <20180524054750.GA245608@decatoncale.mtv.corp.google.com>
-References: <1526648704-16873-1-git-send-email-narmstrong@baylibre.com>
- <1526648704-16873-4-git-send-email-narmstrong@baylibre.com>
+        Mon, 28 May 2018 04:28:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [GIT PULL FOR v4.18] R-Car VSP1 TLB optimisation
+Date: Mon, 28 May 2018 11:28:41 +0300
+Message-ID: <7346563.L0Ry6hIlrs@avalon>
+In-Reply-To: <20180526082818.70a369b5@vento.lan>
+References: <10831984.07PNLvckhh@avalon> <1657947.LKPPaiEoOV@avalon> <20180526082818.70a369b5@vento.lan>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
-Content-Disposition: inline
-In-Reply-To: <1526648704-16873-4-git-send-email-narmstrong@baylibre.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
---9jxsPFA5p3P2qPhR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Saturday, 26 May 2018 14:28:18 EEST Mauro Carvalho Chehab wrote:
+> Em Sat, 26 May 2018 03:24:00 +0300 Laurent Pinchart escreveu:
 
-Hi Neil, Hi Stefan,
+[snip]
 
-On Fri, May 18, 2018 at 03:05:02PM +0200, Neil Armstrong wrote:
-> The EC can expose a CEC bus, this patch adds the CEC related definitions
-> needed by the cros-ec-cec driver.
-> Having a 16 byte mkbp event size makes it possible to send CEC
-> messages from the EC to the AP directly inside the mkbp event
-> instead of first doing a notification and then a read.
->=20
-> Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> > I've reproduced the issue and created a minimal test case.
+> > 
+> >  1. struct vsp1_pipeline;
+> >  2.
+> >  3. struct vsp1_entity {
+> >  4.         struct vsp1_pipeline *pipe;
+> >  5.         struct vsp1_entity *sink;
+> >  6.         unsigned int source_pad;
+> >  7. };
+> >  8.
+> >  9. struct vsp1_pipeline {
+> > 10.         struct vsp1_entity *brx;
+> > 11. };
+> > 12.
+> > 13. struct vsp1_brx {
+> > 14.         struct vsp1_entity entity;
+> > 15. };
+> > 16.
+> > 17. struct vsp1_device {
+> > 18.         struct vsp1_brx *bru;
+> > 19.         struct vsp1_brx *brs;
+> > 20. };
+> > 21.
+> > 22. unsigned int frob(struct vsp1_device *vsp1, struct vsp1_pipeline
+> > *pipe)
+> > 23. {
+> > 24.         struct vsp1_entity *brx;
+> > 25.
+> > 26.         if (pipe->brx)
+> > 27.                 brx = pipe->brx;
+> > 28.         else if (!vsp1->bru->entity.pipe)
+> > 29.                 brx = &vsp1->bru->entity;
+> > 30.         else
+> > 31.                 brx = &vsp1->brs->entity;
+> > 32.
+> > 33.         if (brx != pipe->brx)
+> > 34.                 pipe->brx = brx;
+> > 35.
+> > 36.         return pipe->brx->source_pad;
+> > 37. }
+> > 
+> > The reason why smatch complains is that it has no guarantee that vsp1->brs
+> > is not NULL. It's quite tricky:
+> > 
+> > - On line 26, smatch assumes that pipe->brx can be NULL
+> > - On line 27, brx is assigned a non-NULL value (as pipe->brx is not NULL
+> > due to line 26)
+> > - On line 28, smatch assumes that vsp1->bru is not NULL
+> > - On line 29, brx is assigned a non-NULL value (as vsp1->bru is not NULL
+> > due to line 28)
+> > - On line 31, brx is assigned a possibly NULL value (as there's no
+> > information regarding vsp1->brs)
+> > - On line 34, pipe->brx is not assigned a non-NULL value if brx is NULL
+> > - On line 36 pipe->brx is dereferenced
+> > 
+> > The problem comes from the fact that smatch assumes that vsp1->brs isn't
+> > NULL. Adding a "(void)vsp1->brs->entity;" statement on line 25 makes the
+> > warning disappear.
+> > 
+> > So how do we know that vsp1->brs isn't NULL in the original code ?
+> > 
+> >         if (pipe->num_inputs > 2)
+> >                 brx = &vsp1->bru->entity;
+> >         else if (pipe->brx && !drm_pipe->force_brx_release)
+> >                 brx = pipe->brx;
+> >         else if (!vsp1->bru->entity.pipe)
+> >                 brx = &vsp1->bru->entity;
+> >         else
+> >                 brx = &vsp1->brs->entity;
+> > 
+> > A VSP1 instance can have no brs, so in general vsp1->brs can be NULL.
+> > However, when that's the case, the following conditions are fulfilled.
+> > 
+> > - drm_pipe->force_brx_release will be false
+> > - either pipe->brx will be non-NULL, or vsp1->bru->entity.pipe will be
+> > NULL
+> > 
+> > The fourth branch should thus never be taken.
+> 
+> I don't think that adding a forth branch there would solve.
+> 
+> The thing is that Smatch knows that pipe->brx can be NULL, as the function
+> explicly checks if pipe->brx != NULL.
+> 
+> When Smatch handles this if:
+> 
+> 	if (brx != pipe->brx) {
+> 
+> It wrongly assumes that this could be false if pipe->brx is NULL.
+> I don't know why, as Smatch should know that brx can't be NULL.
 
-It looks like this change squashes together this chromeos-4.4 CL
-https://chromium-review.googlesource.com/c/chromiumos/third_party/kernel/+/=
-1061879
-and some other new changes to add cec to cros_ec_commands.
+brx can be NULL here if an only if vsp1->brs is NULL (as the entity field is 
+first in the vsp1->brs structure, so &vsp1->brs->entity has the same address 
+as vsp1->brs).
 
-Could you separate the two? One patch that's as close to Stefan's
-which introduces the 16 byte mkbp, and a second one that
-adds the HDMI CEC commands?=20
+vsp1->brs can be NULL on some devices, but in that case we have the following 
+guarantees:
 
-Thanks,
-Benson
-> ---
->  drivers/platform/chrome/cros_ec_proto.c | 40 +++++++++++++----
->  include/linux/mfd/cros_ec.h             |  2 +-
->  include/linux/mfd/cros_ec_commands.h    | 80 +++++++++++++++++++++++++++=
-++++++
->  3 files changed, 112 insertions(+), 10 deletions(-)
->=20
-> diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/c=
-hrome/cros_ec_proto.c
-> index e7bbdf9..c4f6c44 100644
-> --- a/drivers/platform/chrome/cros_ec_proto.c
-> +++ b/drivers/platform/chrome/cros_ec_proto.c
-> @@ -504,10 +504,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *=
-ec_dev,
->  }
->  EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
-> =20
-> +static int get_next_event_xfer(struct cros_ec_device *ec_dev,
-> +			       struct cros_ec_command *msg,
-> +			       int version, uint32_t size)
-> +{
-> +	int ret;
-> +
-> +	msg->version =3D version;
-> +	msg->command =3D EC_CMD_GET_NEXT_EVENT;
-> +	msg->insize =3D size;
-> +	msg->outsize =3D 0;
-> +
-> +	ret =3D cros_ec_cmd_xfer(ec_dev, msg);
-> +	if (ret > 0) {
-> +		ec_dev->event_size =3D ret - 1;
-> +		memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
->  static int get_next_event(struct cros_ec_device *ec_dev)
->  {
->  	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
->  	struct cros_ec_command *msg =3D (struct cros_ec_command *)&buffer;
-> +	static int cmd_version =3D 1;
->  	int ret;
-> =20
->  	if (ec_dev->suspended) {
-> @@ -515,18 +536,19 @@ static int get_next_event(struct cros_ec_device *ec=
-_dev)
->  		return -EHOSTDOWN;
+- drm_pipe->force_brx_release will always be FALSE
+- either pipe->brx will be non-NULL or vsp1->bru->entity.pipe will be NULL
+
+So the fourth branch is never taken.
+
+The above conditions come from outside this function, and smatch can't know 
+about them. However, I don't know whether the problems comes from smatch 
+assuming that vsp1->brs can be NULL, or from somewhere else.
+
+> On such case, the next code to be executed would be:
+> 
+> 	format.pad = pipe->brx->source_pad;
+> 
+> With would be trying to de-ref a NULL pointer.
+> 
+> There are two ways to fix it:
+> 
+> 1) with my patch.
+> 
+> It is based to the fact that, if pipe->brx is null, then brx won't be
+> NULL. So, the logic that "Switch BRx if needed." will always be called:
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+> b/drivers/media/platform/vsp1/vsp1_drm.c index 095dc48aa25a..cb6b60843400
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -185,7 +185,7 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_device
+> *vsp1, brx = &vsp1->brs->entity;
+> 
+>  	/* Switch BRx if needed. */
+> -	if (brx != pipe->brx) {
+> +	if (brx != pipe->brx || !pipe->brx) {
+>  		struct vsp1_entity *released_brx = NULL;
+> 
+>  		/* Release our BRx if we have one. */
+> 
+> The code with switches BRx ensures that pipe->brx won't be null, as
+> in the end, it sets:
+> 
+> 	pipe->brx = brx;
+> 
+> And brx can't be NULL.
+
+The reason I don't like this is because the problem originally comes from the 
+fact that smatch assumes that vsp1->brs can be NULL when it can't. I'd rather 
+modify the code in a way that explicitly tests for vsp1->brs. However, smatch 
+won't accept that happily :-/ I tried
+
+        if (pipe->num_inputs > 2)
+                brx = &vsp1->bru->entity;
+        else if (pipe->brx && !drm_pipe->force_brx_release)
+                brx = pipe->brx;
+        else if (!vsp1->bru->entity.pipe)
+                brx = &vsp1->bru->entity;
+        else if (vsp1->brs)
+                brx = &vsp1->brs->entity;
+        else
+                return -EINVAL;
+
+and I still get the same warning. I had to write the following (which is 
+obviously not correct) to silence the warning.
+
+        if (pipe->num_inputs > 2)
+                brx = &vsp1->bru->entity;
+        else if (pipe->brx)
+                brx = pipe->brx;
+        else if (!vsp1->bru->entity.pipe)
+                brx = &vsp1->bru->entity;
+        else { 
+                (void)vsp1->brs->entity;
+                brx = &vsp1->brs->entity;
+        }
+
+Both the (void)vsp1->brs->entity and the removal of the !drm_pipe-
+>force_brx_release were needed, any of those on its own didn't fix the 
+problem.
+
+> From my PoV, this patch has the advantage of explicitly showing
+> to humans that the code inside the if statement will always be
+> executed when pipe->brx is NULL.
+> 
+> -
+> 
+> Another way to solve would be to explicitly check if pipe->brx is still
+> null before de-referencing:
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+> b/drivers/media/platform/vsp1/vsp1_drm.c index edb35a5c57ea..9fe063d6df31
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -327,6 +327,9 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_device
+> *vsp1, list_add_tail(&pipe->brx->list_pipe, &pipe->entities);
 >  	}
-> =20
-> -	msg->version =3D 0;
-> -	msg->command =3D EC_CMD_GET_NEXT_EVENT;
-> -	msg->insize =3D sizeof(ec_dev->event_data);
-> -	msg->outsize =3D 0;
-> +	if (cmd_version =3D=3D 1) {
-> +		ret =3D get_next_event_xfer(ec_dev, msg, cmd_version,
-> +				sizeof(struct ec_response_get_next_event_v1));
-> +		if (ret < 0 || msg->result !=3D EC_RES_INVALID_VERSION)
-> +			return ret;
-> =20
-> -	ret =3D cros_ec_cmd_xfer(ec_dev, msg);
-> -	if (ret > 0) {
-> -		ec_dev->event_size =3D ret - 1;
-> -		memcpy(&ec_dev->event_data, msg->data,
-> -		       sizeof(ec_dev->event_data));
-> +		/* Fallback to version 0 for future send attempts */
-> +		cmd_version =3D 0;
->  	}
-> =20
-> +	ret =3D get_next_event_xfer(ec_dev, msg, cmd_version,
-> +				  sizeof(struct ec_response_get_next_event));
+> 
+> +	if (!pipe->brx)
+> +		return -EINVAL;
 > +
->  	return ret;
->  }
-> =20
-> diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
-> index f36125e..32caef3 100644
-> --- a/include/linux/mfd/cros_ec.h
-> +++ b/include/linux/mfd/cros_ec.h
-> @@ -147,7 +147,7 @@ struct cros_ec_device {
->  	bool mkbp_event_supported;
->  	struct blocking_notifier_head event_notifier;
-> =20
-> -	struct ec_response_get_next_event event_data;
-> +	struct ec_response_get_next_event_v1 event_data;
->  	int event_size;
->  	u32 host_event_wake_mask;
->  };
-> diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cro=
-s_ec_commands.h
-> index f2edd99..16c3a2b 100644
-> --- a/include/linux/mfd/cros_ec_commands.h
-> +++ b/include/linux/mfd/cros_ec_commands.h
-> @@ -804,6 +804,8 @@ enum ec_feature_code {
->  	EC_FEATURE_MOTION_SENSE_FIFO =3D 24,
->  	/* EC has RTC feature that can be controlled by host commands */
->  	EC_FEATURE_RTC =3D 27,
-> +	/* EC supports CEC commands */
-> +	EC_FEATURE_CEC =3D 35,
->  };
-> =20
->  #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
-> @@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
->  	/* EC sent a sysrq command */
->  	EC_MKBP_EVENT_SYSRQ =3D 6,
-> =20
-> +	/* Notify the AP that something happened on CEC */
-> +	EC_MKBP_CEC_EVENT =3D 8,
-> +
-> +	/* Send an incoming CEC message to the AP */
-> +	EC_MKBP_EVENT_CEC_MESSAGE =3D 9,
-> +
->  	/* Number of MKBP events */
->  	EC_MKBP_EVENT_COUNT,
->  };
-> @@ -2093,12 +2101,31 @@ union ec_response_get_next_data {
->  	uint32_t   sysrq;
->  } __packed;
-> =20
-> +union ec_response_get_next_data_v1 {
-> +	uint8_t   key_matrix[16];
-> +
-> +	/* Unaligned */
-> +	uint32_t  host_event;
-> +
-> +	uint32_t   buttons;
-> +	uint32_t   switches;
-> +	uint32_t   sysrq;
-> +	uint32_t   cec_events;
-> +	uint8_t    cec_message[16];
-> +} __packed;
-> +
->  struct ec_response_get_next_event {
->  	uint8_t event_type;
->  	/* Followed by event data if any */
->  	union ec_response_get_next_data data;
->  } __packed;
-> =20
-> +struct ec_response_get_next_event_v1 {
-> +	uint8_t event_type;
-> +	/* Followed by event data if any */
-> +	union ec_response_get_next_data_v1 data;
-> +} __packed;
-> +
->  /* Bit indices for buttons and switches.*/
->  /* Buttons */
->  #define EC_MKBP_POWER_BUTTON	0
-> @@ -2828,6 +2855,59 @@ struct ec_params_reboot_ec {
->  /* Current version of ACPI memory address space */
->  #define EC_ACPI_MEM_VERSION_CURRENT 1
-> =20
-> +/***********************************************************************=
-******/
-> +/*
-> + * HDMI CEC commands
-> + *
-> + * These commands are for sending and receiving message via HDMI CEC
-> + */
-> +#define MAX_CEC_MSG_LEN 16
-> +
-> +/* CEC message from the AP to be written on the CEC bus */
-> +#define EC_CMD_CEC_WRITE_MSG 0x00B8
-> +
-> +/* Message to write to the CEC bus */
-> +struct ec_params_cec_write {
-> +	uint8_t msg[MAX_CEC_MSG_LEN];
-> +} __packed;
-> +
-> +/* Set various CEC parameters */
-> +#define EC_CMD_CEC_SET 0x00BA
-> +
-> +struct ec_params_cec_set {
-> +	uint8_t cmd; /* enum cec_command */
-> +	union {
-> +		uint8_t enable;
-> +		uint8_t address;
-> +	};
-> +} __packed;
-> +
-> +/* Read various CEC parameters */
-> +#define EC_CMD_CEC_GET 0x00BB
-> +
-> +struct ec_params_cec_get {
-> +	uint8_t cmd; /* enum cec_command */
-> +} __packed;
-> +
-> +struct ec_response_cec_get {
-> +	union {
-> +		uint8_t enable;
-> +		uint8_t address;
-> +	};
-> +} __packed;
-> +
-> +enum cec_command {
-> +	/* CEC reading, writing and events enable */
-> +	CEC_CMD_ENABLE,
-> +	/* CEC logical address  */
-> +	CEC_CMD_LOGICAL_ADDRESS,
-> +};
-> +
-> +/* Events from CEC to AP */
-> +enum mkbp_cec_event {
-> +	EC_MKBP_CEC_SEND_OK			=3D 1 << 0,
-> +	EC_MKBP_CEC_SEND_FAILED			=3D 1 << 1,
-> +};
-> =20
->  /***********************************************************************=
-******/
->  /*
-> --=20
-> 2.7.4
->=20
+>  	/*
+>  	 * Configure the format on the BRx source and verify that it matches the
+>  	 * requested format. We don't set the media bus code as it is configured
+> 
+> The right fix would be, instead, to fix Smatch to handle the:
+> 
+> 	if (brx != pipe->brx)
+> 
+> for the cases where one var can be NULL while the other can't be NULL,
+> but, as I said before, I suspect that this can be a way more complex.
 
---=20
-Benson Leung
-Staff Software Engineer
-Chrome OS Kernel
-Google Inc.
-bleung@google.com
-Chromium OS Project
-bleung@chromium.org
+I'm not sure smatch is faulty here, or at least not when it interprets the brx 
+!= pipe->brx check. The problem seems to come from the fact that is believes 
+brx can be NULL.
 
---9jxsPFA5p3P2qPhR
-Content-Type: application/pgp-signature; name="signature.asc"
+-- 
+Regards,
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE6gYDF28Li+nEiKLaHwn1ewov5lgFAlsGUgYACgkQHwn1ewov
-5lilCQ/6AjK9oxG0+ZKxZ8hyw6p3SoHgwZ38dum0f3LMsJW7xUZXhBW8HGktLRRc
-dZtmLpa9RM69gUg8dPk16aNfFaSw+w0yqqdUoHFVmIttK/Aj8o4QPWSUnqa7Pkbb
-8Gnqa8v+PC9e2Pft9mhqkQPwDDfN5NsPDgNgnFzJwgBA5GkHjG8Q3vtZoKK/qZUw
-J8ltsrRgxwfTlAU9NYGrIBrhrPeGxSIwR/7fPBYTYdfd5B7rQ18qOoVZcBuwrUkv
-wvW+Lb72EmFl97TmSNPlxywErU4UgqBhIQkm24ejkKYXCKTQ2XsZxA7Dgukd7taH
-H7EZEpOVbVtgAUTnQ5yhpbQR+sszzGIDcEmEDzsZBdxgQa9Q1j+OXUMavnUYGCpl
-dST6g4opvtZNc3PJejwAIqjjm5XNnjK2BSYsFK3X30Paic2+2mV9jNRG3FuxwkT3
-XY27dU+8SX9VyvS9aPcJCqnzM2SpURB0ZNraoiZ9yYF2BolFV0eC8//sTD/AL6ZX
-8n2G/9PmgQGPAVOEREV9GHklLd2dDvujVvWNB4rfbjUslRW7DoE7jDl4AaYIbzr6
-thMhhxRh6MiLYIxP4a6AR64wX7Rc7X31BXAMNhhpNcz7ZQJ5GmsNy9evSpg8fmEF
-gPTHAVENIuXO4ZjPbHUilXNNKDfdTOKuLCOI3JxIo4Dm6cobgPQ=
-=QF2U
------END PGP SIGNATURE-----
-
---9jxsPFA5p3P2qPhR--
+Laurent Pinchart
