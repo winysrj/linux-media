@@ -1,250 +1,518 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:23715 "EHLO
-        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752078AbeEOA5G (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 20:57:06 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        jacopo mondi <jacopo@jmondi.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v16 0/2] rcar-csi2: add Renesas R-Car MIPI CSI-2
-Date: Tue, 15 May 2018 02:56:33 +0200
-Message-Id: <20180515005635.25715-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mga04.intel.com ([192.55.52.120]:32164 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1165183AbeE1NPI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 May 2018 09:15:08 -0400
+Date: Mon, 28 May 2018 16:15:01 +0300
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To: Dmitry Osipenko <digetx@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        Sinclair Yeh <syeh@vmware.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC PATCH v2 1/2] drm: Add generic colorkey properties
+Message-ID: <20180528131501.GK23723@intel.com>
+References: <20180526155623.12610-1-digetx@gmail.com>
+ <20180526155623.12610-2-digetx@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180526155623.12610-2-digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sat, May 26, 2018 at 06:56:22PM +0300, Dmitry Osipenko wrote:
+> Color keying is the action of replacing pixels matching a given color
+> (or range of colors) with transparent pixels in an overlay when
+> performing blitting. Depending on the hardware capabilities, the
+> matching pixel can either become fully transparent or gain adjustment
+> of the pixels component values.
+> 
+> Color keying is found in a large number of devices whose capabilities
+> often differ, but they still have enough common features in range to
+> standardize color key properties. This commit adds nine generic DRM plane
+> properties related to the color keying to cover various HW capabilities.
+> 
+> This patch is based on the initial work done by Laurent Pinchart, most of
+> credits for this patch goes to him.
+> 
+> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+> ---
+>  drivers/gpu/drm/drm_atomic.c |  36 ++++++
+>  drivers/gpu/drm/drm_blend.c  | 229 +++++++++++++++++++++++++++++++++++
+>  include/drm/drm_blend.h      |   3 +
+>  include/drm/drm_plane.h      |  77 ++++++++++++
+>  4 files changed, 345 insertions(+)
+> 
+> diff --git a/drivers/gpu/drm/drm_atomic.c b/drivers/gpu/drm/drm_atomic.c
+> index 895741e9cd7d..5b808cb68654 100644
+> --- a/drivers/gpu/drm/drm_atomic.c
+> +++ b/drivers/gpu/drm/drm_atomic.c
+> @@ -799,6 +799,24 @@ static int drm_atomic_plane_set_property(struct drm_plane *plane,
+>  		state->rotation = val;
+>  	} else if (property == plane->zpos_property) {
+>  		state->zpos = val;
+> +	} else if (property == plane->colorkey.mode_property) {
+> +		state->colorkey.mode = val;
+> +	} else if (property == plane->colorkey.min_property) {
+> +		state->colorkey.min = val;
+> +	} else if (property == plane->colorkey.max_property) {
+> +		state->colorkey.max = val;
+> +	} else if (property == plane->colorkey.format_property) {
+> +		state->colorkey.format = val;
+> +	} else if (property == plane->colorkey.mask_property) {
+> +		state->colorkey.mask = val;
+> +	} else if (property == plane->colorkey.inverted_match_property) {
+> +		state->colorkey.inverted_match = val;
+> +	} else if (property == plane->colorkey.replacement_mask_property) {
+> +		state->colorkey.replacement_mask = val;
+> +	} else if (property == plane->colorkey.replacement_value_property) {
+> +		state->colorkey.replacement_value = val;
+> +	} else if (property == plane->colorkey.replacement_format_property) {
+> +		state->colorkey.replacement_format = val;
+>  	} else if (property == plane->color_encoding_property) {
+>  		state->color_encoding = val;
+>  	} else if (property == plane->color_range_property) {
+> @@ -864,6 +882,24 @@ drm_atomic_plane_get_property(struct drm_plane *plane,
+>  		*val = state->rotation;
+>  	} else if (property == plane->zpos_property) {
+>  		*val = state->zpos;
+> +	} else if (property == plane->colorkey.mode_property) {
+> +		*val = state->colorkey.mode;
+> +	} else if (property == plane->colorkey.min_property) {
+> +		*val = state->colorkey.min;
+> +	} else if (property == plane->colorkey.max_property) {
+> +		*val = state->colorkey.max;
+> +	} else if (property == plane->colorkey.format_property) {
+> +		*val = state->colorkey.format;
+> +	} else if (property == plane->colorkey.mask_property) {
+> +		*val = state->colorkey.mask;
+> +	} else if (property == plane->colorkey.inverted_match_property) {
+> +		*val = state->colorkey.inverted_match;
+> +	} else if (property == plane->colorkey.replacement_mask_property) {
+> +		*val = state->colorkey.replacement_mask;
+> +	} else if (property == plane->colorkey.replacement_value_property) {
+> +		*val = state->colorkey.replacement_value;
+> +	} else if (property == plane->colorkey.replacement_format_property) {
+> +		*val = state->colorkey.replacement_format;
+>  	} else if (property == plane->color_encoding_property) {
+>  		*val = state->color_encoding;
+>  	} else if (property == plane->color_range_property) {
+> diff --git a/drivers/gpu/drm/drm_blend.c b/drivers/gpu/drm/drm_blend.c
+> index a16a74d7e15e..05e5632ce375 100644
+> --- a/drivers/gpu/drm/drm_blend.c
+> +++ b/drivers/gpu/drm/drm_blend.c
+> @@ -107,6 +107,11 @@
+>   *	planes. Without this property the primary plane is always below the cursor
+>   *	plane, and ordering between all other planes is undefined.
+>   *
+> + * colorkey:
+> + *	Color keying is set up with drm_plane_create_colorkey_properties().
+> + *	It adds support for replacing a range of colors with a transparent
+> + *	color in the plane.
+> + *
+>   * Note that all the property extensions described here apply either to the
+>   * plane or the CRTC (e.g. for the background color, which currently is not
+>   * exposed and assumed to be black).
+> @@ -448,3 +453,227 @@ int drm_atomic_normalize_zpos(struct drm_device *dev,
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL(drm_atomic_normalize_zpos);
+> +
+> +static const char * const plane_colorkey_mode_name[] = {
+> +	[DRM_PLANE_COLORKEY_MODE_DISABLED] = "disabled",
+> +	[DRM_PLANE_COLORKEY_MODE_SRC] = "src-match-src-replace",
+> +	[DRM_PLANE_COLORKEY_MODE_DST] = "dst-match-src-replace",
 
-This is the latest incarnation of R-Car MIPI CSI-2 receiver driver. It's
-based on top of the media-tree and are tested on Renesas Salvator-X and
-Salvator-XS together with adv7482 and the now in tree rcar-vin driver :-)
+This list seems way more limited than I was expecting, at least when
+compared to all the different props you're proposing to add.
 
-I hope this is the last incarnation of this patch-set, I do think it is
-ready for upstream consumption :-)
+> +};
+> +
+> +/**
+> + * drm_plane_create_colorkey_properties - create colorkey properties
+> + * @plane: drm plane
+> + * @supported_modes: bitmask of supported color keying modes
+> + *
+> + * This function creates the generic color keying properties and attach them to
+> + * the plane to enable color keying control for blending operations.
+> + *
+> + * Color keying is controlled through nine properties:
+> + *
+> + * colorkey.mode:
+> + *	The mode is an enumerated property that controls how color keying
+> + *	operates. The "disabled" mode that disables color keying and is
+> + *	very likely to exist if color keying is supported, it should be the
+> + *	default mode.
+> + *
+> + * colorkey.min, colorkey.max:
+> + *	These two properties specify the colors that are treated as the color
+> + *	key. Pixel whose value is in the [min, max] range is the color key
+> + *	matching pixel. The minimum and maximum values are expressed as a
+> + *	64-bit integer in AXYZ16161616 format, where A is the alpha value and
+> + *	X, Y and Z correspond to the color components of the colorkey.format.
+> + *	In most cases XYZ will be either RGB or YUV.
+> + *
+> + *	When a single color key is desired instead of a range, userspace shall
+> + *	set the min and max properties to the same value.
+> + *
+> + *	Drivers return an error from their plane atomic check if range can't be
+> + *	handled.
+> + *
+> + * colorkey.format:
+> + *	This property specifies the pixel format for the colorkey.min / max
+> + *	properties. The format is given in a form of DRM fourcc code.
 
-* Changes since v15
-- Merge struct phtw_mbps and struct phypll_hsfreqrange into a new struct 
-  which maps a mpbs value to a register value, struct rcsi2_mbps_reg.
-- Reduced number of loops and delay when waiting for LP-11 and 
-  confirmation of PHTW write as suggested by Laurent.
-- Dropped dev_dbg() printouts of the requested link speed.
-- Fix small issues in comments.
-- Remove unneeded () in for-loop condition in rcsi2_phtw_write_array().
-- Remove __refdata from declaration of 'static struct platform_driver 
-  rcar_csi2_pdrv'.
-- Update MODULE_DESCRIPTION to 'Renesas R-Car MIPI CSI-2 receiver 
-  driver'.
-- Fixed two erroneous values in hsfreqrange_h3_v3h_m3n[]. Thanks Jacopo 
-  for spotting this!
-- Max link speed for V3M and E3 are 1.125Gbps remove settings above that 
-  limit in phtw_mbps_v3m_e3. This also changed in datasheet v1.0.
-- Add review tags from Laurent and Maxime.
+Umm. Why we do even need this? This seems incompatible with your earlier
+"min/max are specified in 16bpc format" statement.
 
-* Changes since v14.
-- Data sheet update changed init sequence for PHY forcing a restructure
-  of the driver. The restructure was so big I felt compel to drop all
-  review tags :-(
-- The change was that the Renesas H3 procedure was aligned with other
-  SoC in the Gen3 family procedure. I had kept the rework as separate
-  patches and was planing to post once original driver with H3 and M3-W
-  support where merged. As review tags are dropped I chosen to squash
-  those patches into 2/2.
-- Add support for Gen3 M3-N.
-- Add support for Gen3 V3M.
-- Set PHTC_TESTCLR when stopping the PHY.
-- Revert back to the v12 and earlier phypll calculation as it turns out
-  it was correct after all.
-- Added compatible string for R8A77965 and R8A77970.
-- s/Port 0/port@0/
-- s/Port 1/port@1/
-- s/Endpoint 0/endpoint@0/
+> + *
+> + *	Drivers return an error from their plane atomic check if pixel format
+> + *	is unsupported.
+> + *
+> + * colorkey.mask:
+> + *	This property specifies the pixel components mask. Unmasked pixel
+> + *	components are not participating in the matching. This mask value is
+> + *	applied to colorkey.min / max values. The mask value is given in a
+> + *	form of DRM fourcc code corresponding to the colorkey.format property.
+> + *
+> + *	For example: userspace shall set the colorkey.mask to 0x0000ff00
+> + *	to match only the green component if colorkey.format is set to
+> + *	DRM_FORMAT_XRGB8888.
+> + *
+> + *	Drivers return an error from their plane atomic check if mask value
+> + *	can't be handled.
+> + *
+> + * colorkey.inverted-match:
+> + *	This property specifies whether the matching min-max range should
+> + *	be inverted, i.e. pixels outside of the given color range become
+> + *	the color key match.
+> + *
+> + *	Drivers return an error from their plane atomic check if inversion
+> + *	mode can't be handled.
 
-* Changes since v13
-- Change return rcar_csi2_formats + i to return &rcar_csi2_formats[i].
-- Add define for PHCLM_STOPSTATECKL.
-- Update spelling in comments.
-- Update calculation in rcar_csi2_calc_phypll() according to
-  https://linuxtv.org/downloads/v4l-dvb-apis/kapi/csi2.html. The one
-  before v14 did not take into account that 2 bits per sample is
-  transmitted.
-- Use Geert's suggestion of (1 << priv->lanes) - 1 instead of switch
-  statement to set correct number of lanes to enable.
-- Change hex constants in hsfreqrange_m3w_h3es1[] to lower case to match
-  style of rest of file.
-- Switch to %u instead of 0x%x when printing bus type.
-- Switch to %u instead of %d for priv->lanes which is unsigned.
-- Add MEDIA_BUS_FMT_YUYV8_1X16 to the list of supported formats in
-  rcar_csi2_formats[].
-- Fixed bps for MEDIA_BUS_FMT_YUYV10_2X10 to 20 and not 16.
-- Set INTSTATE after PL-11 is confirmed to match flow chart in
-  datasheet.
-- Change priv->notifier.subdevs == NULL to !priv->notifier.subdevs.
-- Add Maxime's and laurent's tags.
+Hmm. I'm trying to figure out what this means for the src vs. dst
+colorkey modes. Those pretty much already have an inverted meaning when
+compared to each other. So I can't figure out from these docs whether 
+you're supposed to use this when you want a normal dst ckey or normal
+src key semantics.
 
-* Changes since v12
-- Fixed spelling mistakes in commit messages and documentation patch,
-  thanks Laurent.
-- Mark endpoints in port 1 as optional as it is allowed to not connect a
-  VIN to the CSI-2 and instead have it only use its parallel input
-  source (for those VIN that have one).
-- Added Ack from Sakari, thanks!
-- Media bus codes are u32 not unsigned int.
-- Ignore error check for v4l2_subdev_call(sd, video, s_stream, 0)
-- Do not set subdev host data as it's not used,
-  v4l2_set_subdev_hostdata().
-- Fixed spelling errors in commit message.
-- Add SPDX header
-- Rename badly named variable tmp to vcdt_part.
-- Cache subdevice in bound callback instead of looking it up in the
-  media graph. By doing this rcar_csi2_sd_info() can be removed.
-- Print unsigned using %u not %d.
-- Call pm_runtime_enable() before calling v4l2_async_register_subdev().
-- Dropped of_match_ptr() as OF is required.
+> + *
+> + * colorkey.replacement-value:
+> + *	This property specifies the color value that replaces pixels matching
+> + *	the color key. The value is expressed in AXYZ16161616 format, where A
+> + *	is the alpha value and X, Y and Z correspond to the color components
+> + *	of the colorkey.replacement-format.
+> + *
+> + *	Drivers return an error from their plane atomic check if replacement
+> + *	value can't be handled.
+> + *
+> + * colorkey.replacement-format:
+> + *	This property specifies the pixel format for the
+> + *	colorkey.replacement-value property. The format is given in a form of
+> + *	DRM fourcc code.
 
-* Changes since v11
-- Added missing call to v4l2_async_notifier_unregister().
-- Fixed missing reg popery in bindings documentation.
-- Add Rob's ack to 01/02.
-- Dropped 'media:' prefix from patch subjects as it seems they are added
-  first when a patch is picked up by the maintainer.
-- Fixed typo in comment enpoint -> endpoint, thanks Hans.
-- Added Hans Reviewed-by to driver.
+Again this seems at odds with the 16bpc replacement-value.
 
-* Changes since v10
-- Renamed Documentation/devicetree/bindings/media/rcar-csi2.txt to
-  Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
-- Add extra newline in rcar_csi2_code_to_fmt()
-- Use locally stored format information instead of reading it from the
-  remote subdevice, Sakari pointed out that the pipeline is validated
-  before .s_stream() is called so this is safe.
-- Do not check return from media_entity_to_v4l2_subdev() in
-  rcar_csi2_start(), Sakari pointed out it can't fail. Also move logic
-  to find the remote subdevice is moved to the only user of it,
-  rcar_csi2_calc_phypll().
-- Move pm_runtime_get_sync() and pm_runtime_put() to
-  rcar_csi2_s_stream() and remove rcar_csi2_s_power().
-- Add validation of pixel code to rcar_csi2_set_pad_format().
-- Remove static rcar_csi2_notify_unbind() as it only printed a debug
-  message.
+> + *
+> + *	Drivers return an error from their plane atomic check if replacement
+> + *	pixel format is unsupported.
+> + *
+> + * colorkey.replacement-mask:
+> + *	This property specifies the pixel components mask that defines
+> + *	what components of the colorkey.replacement-value will participate in
+> + *	replacement of the pixels color. Unmasked pixel components are not
+> + *	participating in the replacement.
 
-* Changes since v9
-- Add reset property to device tree example
-- Use BIT(x) instead of (1 << x)
-- Use u16 in struct phypll_hsfreqrange to pack struct better.
-- Use unsigned int type for loop variable in rcar_csi2_code_to_fmt
-- Move fields inside struct struct rcar_csi2_info and struct rcar_csi2
-  to pack struct's tighter.
-- Use %u instead of %d when printing __u32.
-- Don't check return of platform_get_resource(), let
-  devm_ioremap_resource() handle it.
-- Store quirk workaround for r8a7795 ES1.0 in the data field of struct
-  soc_device_attribute.
+Does that mean that the data for the unmasked bits will be coming
+from the source?
 
-Changes since v8:
-- Updated bindings documentation, thanks Rob!
-- Make use of the now in media-tree sub-notifier V4L2 API
-- Add delay when resetting the IP to allow for a proper reset
-- Fix bug in s_stream error path where the usage count was off if an
-  error was hit.
-- Add support for H3 ES2.0
+> The mask value is given in a form of
+> + *	DRM fourcc code corresponding to the colorkey.replacement-format
+> + *	property.
+> + *
+> + *	For example: userspace shall set the colorkey.replacement-mask to
+> + *	0x0000ff00 to replace only the green component if
+> + *	colorkey.replacement-format is set to DRM_FORMAT_XRGB8888.
+> + *
+> + *	Userspace shall set colorkey.replacement-mask to 0 to disable the color
+> + *	replacement. In this case matching pixels become transparent.
+> + *
+> + *	Drivers return an error from their plane atomic check if replacement
+> + *	mask value can't be handled.
+> + *
+> + * Returns:
+> + * Zero on success, negative errno on failure.
+> + */
+> +int drm_plane_create_colorkey_properties(struct drm_plane *plane,
+> +					 u32 supported_modes)
+> +{
+> +	struct drm_prop_enum_list modes_list[DRM_PLANE_COLORKEY_MODES_NUM];
+> +	struct drm_property *replacement_format_prop;
+> +	struct drm_property *replacement_value_prop;
+> +	struct drm_property *replacement_mask_prop;
+> +	struct drm_property *inverted_match_prop;
+> +	struct drm_property *format_prop;
+> +	struct drm_property *mask_prop;
+> +	struct drm_property *mode_prop;
+> +	struct drm_property *min_prop;
+> +	struct drm_property *max_prop;
+> +	unsigned int modes_num = 0;
+> +	unsigned int i;
+> +
+> +	/* at least two modes should be supported */
+> +	if (!supported_modes)
+> +		return -EINVAL;
+> +
+> +	/* modes are driver-specific, build the list of supported modes */
+> +	for (i = 0; i < DRM_PLANE_COLORKEY_MODES_NUM; i++) {
+> +		if (!(supported_modes & BIT(i)))
+> +			continue;
+> +
+> +		modes_list[modes_num].name = plane_colorkey_mode_name[i];
+> +		modes_list[modes_num].type = i;
+> +		modes_num++;
+> +	}
+> +
+> +	mode_prop = drm_property_create_enum(plane->dev, 0, "colorkey.mode",
+> +					     modes_list, modes_num);
+> +	if (!mode_prop)
+> +		return -ENOMEM;
+> +
+> +	mask_prop = drm_property_create_range(plane->dev, 0, "colorkey.mask",
+> +					      0, U64_MAX);
+> +	if (!mask_prop)
+> +		goto err_destroy_mode_prop;
+> +
+> +	min_prop = drm_property_create_range(plane->dev, 0, "colorkey.min",
+> +					     0, U64_MAX);
+> +	if (!min_prop)
+> +		goto err_destroy_mask_prop;
+> +
+> +	max_prop = drm_property_create_range(plane->dev, 0, "colorkey.max",
+> +					     0, U64_MAX);
+> +	if (!max_prop)
+> +		goto err_destroy_min_prop;
+> +
+> +	format_prop = drm_property_create_range(plane->dev, 0,
+> +					"colorkey.format",
+> +					0, U32_MAX);
+> +	if (!format_prop)
+> +		goto err_destroy_max_prop;
+> +
+> +	inverted_match_prop = drm_property_create_bool(plane->dev, 0,
+> +					"colorkey.inverted-match");
+> +	if (!inverted_match_prop)
+> +		goto err_destroy_format_prop;
+> +
+> +	replacement_mask_prop = drm_property_create_range(plane->dev, 0,
+> +					"colorkey.replacement-mask",
+> +					0, U64_MAX);
+> +	if (!replacement_mask_prop)
+> +		goto err_destroy_inverted_match_prop;
+> +
+> +	replacement_value_prop = drm_property_create_range(plane->dev, 0,
+> +					"colorkey.replacement-value",
+> +					0, U64_MAX);
+> +	if (!replacement_value_prop)
+> +		goto err_destroy_replacement_mask_prop;
+> +
+> +	replacement_format_prop = drm_property_create_range(plane->dev, 0,
+> +					"colorkey.replacement-format",
+> +					0, U64_MAX);
+> +	if (!replacement_format_prop)
+> +		goto err_destroy_replacement_value_prop;
 
-Changes since v7:
-- Rebase on top of the latest incremental async patches.
-- Fix comments on DT documentation.
-- Use v4l2_ctrl_g_ctrl_int64() instead of v4l2_g_ext_ctrls().
-- Handle try formats in .set_fmt() and .get_fmt().
-- Don't call v4l2_device_register_subdev_nodes() as this is not needed
-  with the complete() callbacks synchronized.
-- Fix line over 80 chars.
-- Fix varies spelling mistakes.
+I don't think we want to add all these props for every driver/hardware.
+IMO the set of props we expose should depend on the supported set of
+colorkeying modes.
 
-Changes since v6:
-- Rebased on top of Sakaris fwnode patches.
-- Changed of RCAR_CSI2_PAD_MAX to NR_OF_RCAR_CSI2_PAD.
-- Remove assumption about unknown media bus type, thanks Sakari for
-  pointing this out.
-- Created table for supported format information instead of scattering
-  this information around the driver, thanks Sakari!
-- Small newline fixes and reduce some indentation levels
-
-Changes since v5:
-- Make use of the incremental async subnotifer and helper to map DT
-  endpoint to media pad number. This moves functionality which
-  previously in the Gen3 patches for R-Car VIN driver to this R-Car
-  CSI-2 driver. This is done in preparation to support the ADV7482
-  driver in development by Kieran which will register more then one
-  subdevice and the CSI-2 driver needs to cope wit this. Further more it
-  prepares the driver for another use-case where more then one subdevice
-  is present upstream for the CSI-2.
-- Small cleanups.
-- Add explicit include for linux/io.h, thanks Kieran.
-
-Changes since v4:
-- Match SoC part numbers and drop trailing space in documentation,
-  thanks Geert for pointing this out.
-- Clarify that the driver is a CSI-2 receiver by supervised
-  s/interface/receiver/, thanks Laurent.
-- Add entries in Kconfig and Makefile alphabetically instead of append.
-- Rename struct rcar_csi2 member swap to lane_swap.
-- Remove macros to wrap calls to dev_{dbg,info,warn,err}.
-- Add wrappers for ioread32 and iowrite32.
-- Remove unused interrupt handler, but keep checking in probe that there
-  are a interrupt define in DT.
-- Rework how to wait for LP-11 state, thanks Laurent for the great idea!
-- Remove unneeded delay in rcar_csi2_reset()
-- Remove check for duplicated lane id:s from DT parsing. Broken out to a
-  separate patch adding this check directly to v4l2_of_parse_endpoint().
-- Fixed rcar_csi2_start() to ask it's source subdevice for information
-  about pixel rate and frame format. With this change having
-  {set,get}_fmt operations became redundant, it was only used for
-  figuring out this out so dropped them.
-- Tabulated frequency settings map.
-- Dropped V4L2_SUBDEV_FL_HAS_DEVNODE it should never have been set.
-- Switched from MEDIA_ENT_F_ATV_DECODER to
-  MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER as entity function. I can't
-  find a more suitable function, and what the hardware do is to fetch
-  video from an external chip and passes it on to a another SoC internal
-  IP it's sort of a formatter.
-- Break out DT documentation and code in two patches.
-
-Changes since v3:
-- Update DT binding documentation with input from Geert Uytterhoeven,
-  thanks
-
-Changes since v2:
-- Added media control pads as this is needed by the new rcar-vin driver.
-- Update DT bindings after review comments and to add r8a7796 support.
-- Add get_fmt handler.
-- Fix media bus format error s/YUYV8/UYVY8/
-
-Changes since v1:
-- Drop dependency on a pad aware s_stream operation.
-- Use the DT bindings format "renesas,<soctype>-<device>", thanks Geert
-  for pointing this out.
-
-Niklas SÃ¶derlund (2):
-  rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
-  rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver driver
-
- .../bindings/media/renesas,rcar-csi2.txt      |  101 ++
- MAINTAINERS                                   |    1 +
- drivers/media/platform/rcar-vin/Kconfig       |   12 +
- drivers/media/platform/rcar-vin/Makefile      |    1 +
- drivers/media/platform/rcar-vin/rcar-csi2.c   | 1084 +++++++++++++++++
- 5 files changed, 1199 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
- create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
+> +
+> +	drm_object_attach_property(&plane->base, min_prop, 0);
+> +	drm_object_attach_property(&plane->base, max_prop, 0);
+> +	drm_object_attach_property(&plane->base, mode_prop, 0);
+> +	drm_object_attach_property(&plane->base, mask_prop, 0);
+> +	drm_object_attach_property(&plane->base, format_prop, 0);
+> +	drm_object_attach_property(&plane->base, inverted_match_prop, 0);
+> +	drm_object_attach_property(&plane->base, replacement_mask_prop, 0);
+> +	drm_object_attach_property(&plane->base, replacement_value_prop, 0);
+> +	drm_object_attach_property(&plane->base, replacement_format_prop, 0);
+> +
+> +	plane->colorkey.min_property = min_prop;
+> +	plane->colorkey.max_property = max_prop;
+> +	plane->colorkey.mode_property = mode_prop;
+> +	plane->colorkey.mask_property = mask_prop;
+> +	plane->colorkey.format_property = format_prop;
+> +	plane->colorkey.inverted_match_property = inverted_match_prop;
+> +	plane->colorkey.replacement_mask_property = replacement_mask_prop;
+> +	plane->colorkey.replacement_value_property = replacement_value_prop;
+> +	plane->colorkey.replacement_format_property = replacement_format_prop;
+> +
+> +	return 0;
+> +
+> +err_destroy_replacement_value_prop:
+> +	drm_property_destroy(plane->dev, replacement_value_prop);
+> +err_destroy_replacement_mask_prop:
+> +	drm_property_destroy(plane->dev, replacement_mask_prop);
+> +err_destroy_inverted_match_prop:
+> +	drm_property_destroy(plane->dev, inverted_match_prop);
+> +err_destroy_format_prop:
+> +	drm_property_destroy(plane->dev, format_prop);
+> +err_destroy_max_prop:
+> +	drm_property_destroy(plane->dev, max_prop);
+> +err_destroy_min_prop:
+> +	drm_property_destroy(plane->dev, min_prop);
+> +err_destroy_mask_prop:
+> +	drm_property_destroy(plane->dev, mask_prop);
+> +err_destroy_mode_prop:
+> +	drm_property_destroy(plane->dev, mode_prop);
+> +
+> +	return -ENOMEM;
+> +}
+> +EXPORT_SYMBOL(drm_plane_create_colorkey_properties);
+> diff --git a/include/drm/drm_blend.h b/include/drm/drm_blend.h
+> index 330c561c4c11..8e80d33b643e 100644
+> --- a/include/drm/drm_blend.h
+> +++ b/include/drm/drm_blend.h
+> @@ -52,4 +52,7 @@ int drm_plane_create_zpos_immutable_property(struct drm_plane *plane,
+>  					     unsigned int zpos);
+>  int drm_atomic_normalize_zpos(struct drm_device *dev,
+>  			      struct drm_atomic_state *state);
+> +
+> +int drm_plane_create_colorkey_properties(struct drm_plane *plane,
+> +					 u32 supported_modes);
+>  #endif
+> diff --git a/include/drm/drm_plane.h b/include/drm/drm_plane.h
+> index 26fa50c2a50e..ff7f5ebe2b79 100644
+> --- a/include/drm/drm_plane.h
+> +++ b/include/drm/drm_plane.h
+> @@ -32,6 +32,42 @@ struct drm_crtc;
+>  struct drm_printer;
+>  struct drm_modeset_acquire_ctx;
+>  
+> +/**
+> + * enum drm_plane_colorkey_mode - uapi plane colorkey mode enumeration
+> + */
+> +enum drm_plane_colorkey_mode {
+> +	/**
+> +	 * @DRM_PLANE_COLORKEY_MODE_DISABLED:
+> +	 *
+> +	 * No color matching performed in this mode. This is the default
+> +	 * common mode.
+> +	 */
+> +	DRM_PLANE_COLORKEY_MODE_DISABLED,
+> +
+> +	/**
+> +	 * @DRM_PLANE_COLORKEY_MODE_SRC:
+> +	 *
+> +	 * In this mode color matching is performed with the pixels of
+> +	 * the given plane and the matched pixels are fully (or partially)
+> +	 * replaced with the replacement color or become completely
+> +	 * transparent.
+> +	 */
+> +	DRM_PLANE_COLORKEY_MODE_SRC,
+> +
+> +	/**
+> +	 * @DRM_PLANE_COLORKEY_MODE_DST:
+> +	 *
+> +	 * In this mode color matching is performed with the pixels of the
+> +	 * planes z-positioned under the given plane and the pixels of the
+> +	 * hovering plane that are xy-positioned as the underlying
+> +	 * color-matched pixels are fully (or partially) replaced with the
+> +	 * replacement color or become completely transparent.
+> +	 */
+> +	DRM_PLANE_COLORKEY_MODE_DST,
+> +
+> +	DRM_PLANE_COLORKEY_MODES_NUM,
+> +};
+> +
+>  /**
+>   * struct drm_plane_state - mutable plane state
+>   * @plane: backpointer to the plane
+> @@ -54,6 +90,21 @@ struct drm_modeset_acquire_ctx;
+>   *	where N is the number of active planes for given crtc. Note that
+>   *	the driver must set drm_mode_config.normalize_zpos or call
+>   *	drm_atomic_normalize_zpos() to update this before it can be trusted.
+> + * @colorkey.mode: color key mode
+> + * @colorkey.min: color key range minimum. The value is stored in AXYZ16161616
+> + *	format, where A is the alpha value and X, Y and Z correspond to the
+> + *	color components of the plane's pixel format (usually RGB or YUV)
+> + * @colorkey.max: color key range maximum (in AXYZ16161616 format)
+> + * @colorkey.mask: color key mask value (in AXYZ16161616 format)
+> + * @colorkey.format: color key min/max/mask values pixel format (in
+> + * 	DRM_FORMAT_AXYZ16161616 form)
+> + * @colorkey.inverted_match: color key min-max matching range is inverted
+> + * @colorkey.replacement_mask: color key replacement mask value (in
+> + * 	AXYZ16161616 format)
+> + * @colorkey.replacement_value: color key replacement value (in
+> + * 	AXYZ16161616 format)
+> + * @colorkey.replacement_format: color key replacement value / mask
+> + *	pixel format (in DRM_FORMAT_AXYZ16161616 form)
+>   * @src: clipped source coordinates of the plane (in 16.16)
+>   * @dst: clipped destination coordinates of the plane
+>   * @state: backpointer to global drm_atomic_state
+> @@ -124,6 +175,19 @@ struct drm_plane_state {
+>  	unsigned int zpos;
+>  	unsigned int normalized_zpos;
+>  
+> +	/* Plane colorkey */
+> +	struct {
+> +		enum drm_plane_colorkey_mode mode;
+> +		u64 min;
+> +		u64 max;
+> +		u64 mask;
+> +		u32 format;
+> +		bool inverted_match;
+> +		u64 replacement_mask;
+> +		u64 replacement_value;
+> +		u32 replacement_format;
+> +	} colorkey;
+> +
+>  	/**
+>  	 * @color_encoding:
+>  	 *
+> @@ -510,6 +574,7 @@ enum drm_plane_type {
+>   * @alpha_property: alpha property for this plane
+>   * @zpos_property: zpos property for this plane
+>   * @rotation_property: rotation property for this plane
+> + * @colorkey: colorkey properties for this plane
+>   * @helper_private: mid-layer private data
+>   */
+>  struct drm_plane {
+> @@ -587,6 +652,18 @@ struct drm_plane {
+>  	struct drm_property *zpos_property;
+>  	struct drm_property *rotation_property;
+>  
+> +	struct {
+> +		struct drm_property *min_property;
+> +		struct drm_property *max_property;
+> +		struct drm_property *mode_property;
+> +		struct drm_property *mask_property;
+> +		struct drm_property *format_property;
+> +		struct drm_property *inverted_match_property;
+> +		struct drm_property *replacement_mask_property;
+> +		struct drm_property *replacement_value_property;
+> +		struct drm_property *replacement_format_property;
+> +	} colorkey;
+> +
+>  	/**
+>  	 * @color_encoding_property:
+>  	 *
+> -- 
+> 2.17.0
 
 -- 
-2.17.0
+Ville Syrjälä
+Intel
