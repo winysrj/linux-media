@@ -1,95 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:54306 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751013AbeEPXXH (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:38114 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1033596AbeE1KYZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 19:23:07 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+        Mon, 28 May 2018 06:24:25 -0400
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: mchehab@kernel.org, linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] rcar-vin: sync which hardware buffer to start capture from
-Date: Thu, 17 May 2018 01:22:18 +0200
-Message-Id: <20180516232218.27154-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH] media: vsp1: Document vsp1_dl_body refcnt
+Date: Mon, 28 May 2018 11:24:20 +0100
+Message-Id: <20180528102420.19150-1-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When starting the VIN capture procedure we are not guaranteed that the
-first buffer writing to is VnMB1 to which we assigned the first buffer
-queued. This is problematic for two reasons. Buffers might not be
-dequeued in the same order they where queued for capture. Future
-features planed for the VIN driver is support for outputing frames in
-SEQ_TB/BT format and to do that it's important that capture starts from
-the first buffer slot, VnMB1.
+In commit 2d9445db0ee9 ("media: vsp1: Use reference counting for
+bodies"), a new field was introduced to the vsp1_dl_body structure to
+account for usage tracking of the body.
 
-We are guaranteed that capturing always happens in sequence (VnMB1 ->
-VnMB2 -> VnMB3 -> VnMB1). So drop up to two frames when starting
-capturing so that the driver always returns buffers in the same order
-they are queued and prepare for SEQ_TB/BT output.
+Document the newly added field in the kerneldoc.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 16 +++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
- 2 files changed, 17 insertions(+), 1 deletion(-)
+ drivers/media/platform/vsp1/vsp1_dl.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index ac07f99e3516a620..cfe5d7a9d44ee0e1 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -856,7 +856,7 @@ static int rvin_capture_start(struct rvin_dev *vin)
- 	/* Continuous Frame Capture Mode */
- 	rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
- 
--	vin->state = RUNNING;
-+	vin->state = STARTING;
- 
- 	return 0;
- }
-@@ -910,6 +910,20 @@ static irqreturn_t rvin_irq(int irq, void *data)
- 	vnms = rvin_read(vin, VNMS_REG);
- 	slot = (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
- 
-+	/*
-+	 * To hand buffers back in a known order to userspace start
-+	 * to capture first from slot 0.
-+	 */
-+	if (vin->state == STARTING) {
-+		if (slot != 0) {
-+			vin_dbg(vin, "Starting sync slot: %d\n", slot);
-+			goto done;
-+		}
-+
-+		vin_dbg(vin, "Capture start synced!\n");
-+		vin->state = RUNNING;
-+	}
-+
- 	/* Capture frame */
- 	if (vin->queue_buf[slot]) {
- 		vin->queue_buf[slot]->field = vin->format.field;
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index c2aef789b491ab31..ff747e22d8cfb643 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -53,11 +53,13 @@ enum rvin_csi_id {
- 
- /**
-  * STOPPED  - No operation in progress
-+ * STARTING - Capture starting up
-  * RUNNING  - Operation in progress have buffers
-  * STOPPING - Stopping operation
-  */
- enum rvin_dma_state {
- 	STOPPED = 0,
-+	STARTING,
- 	RUNNING,
- 	STOPPING,
- };
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index d9b9cdd8fbe2..10a24bde2299 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -43,6 +43,7 @@ struct vsp1_dl_entry {
+  * struct vsp1_dl_body - Display list body
+  * @list: entry in the display list list of bodies
+  * @free: entry in the pool free body list
++ * @refcnt: reference tracking for the body
+  * @pool: pool to which this body belongs
+  * @vsp1: the VSP1 device
+  * @entries: array of entries
 -- 
 2.17.0
