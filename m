@@ -1,132 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f196.google.com ([209.85.217.196]:37587 "EHLO
-        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751313AbeEJJPo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 May 2018 05:15:44 -0400
-Received: by mail-ua0-f196.google.com with SMTP id i3-v6so867384uad.4
-        for <linux-media@vger.kernel.org>; Thu, 10 May 2018 02:15:44 -0700 (PDT)
-Received: from mail-vk0-f50.google.com (mail-vk0-f50.google.com. [209.85.213.50])
-        by smtp.gmail.com with ESMTPSA id 191-v6sm65431vkl.16.2018.05.10.02.15.42
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 10 May 2018 02:15:42 -0700 (PDT)
-Received: by mail-vk0-f50.google.com with SMTP id e67-v6so491431vke.7
-        for <linux-media@vger.kernel.org>; Thu, 10 May 2018 02:15:42 -0700 (PDT)
+Received: from osg.samsung.com ([64.30.133.232]:62561 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751348AbeE1Ocr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 May 2018 10:32:47 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        linux-fsdevel@vger.kernel.org
+Subject: [PATCH] media: dvb: get rid of VIDEO_SET_SPU_PALETTE
+Date: Mon, 28 May 2018 11:32:41 -0300
+Message-Id: <c1e86dc99d811e90d11181b2bf2e1237db76a5c1.1527517459.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
-References: <1525275968-17207-1-git-send-email-andy.yeh@intel.com>
- <CAAFQd5BYokHC7J8wEjT4twx7_bU1Yyv1LbN2PAK2tjmCrr2cig@mail.gmail.com>
- <5881B549BE56034BB7E7D11D6EDEA2020678E62E@PGSMSX106.gar.corp.intel.com>
- <CAAFQd5CvPCfFx6Nxb26JdSAfD_YNe=-hvyJ=iKLcTA0LpxC4_g@mail.gmail.com>
- <FA6CF6692DF0B343ABE491A46A2CD0E76C65E22D@SHSMSX101.ccr.corp.intel.com>
- <CAAFQd5BKhXiZMZf9OscrHt+SNQNC2PCguKXcNcZNPhjmrgUxzQ@mail.gmail.com> <FA6CF6692DF0B343ABE491A46A2CD0E76C65E481@SHSMSX101.ccr.corp.intel.com>
-In-Reply-To: <FA6CF6692DF0B343ABE491A46A2CD0E76C65E481@SHSMSX101.ccr.corp.intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 10 May 2018 09:15:31 +0000
-Message-ID: <CAAFQd5CEdwJ485RQEQ=aZRYtCO-HPE0NgudXKRjVDSbwpbiC5w@mail.gmail.com>
-Subject: Re: [PATCH v11] media: imx258: Add imx258 camera sensor driver
-To: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-Cc: "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
-        "Yeh, Andy" <andy.yeh@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Alan Chiang <alanx.chiang@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 10, 2018 at 6:11 PM Zheng, Jian Xu <jian.xu.zheng@intel.com>
-wrote:
+No upstream drivers use it. It doesn't make any sense to have
+a compat32 code for something that nobody uses upstream.
 
-> Hi Tomasz,
+Reported-by: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ .../media/uapi/dvb/video-set-spu-palette.rst  | 82 -------------------
+ .../media/uapi/dvb/video_function_calls.rst   |  1 -
+ Documentation/media/uapi/dvb/video_types.rst  | 18 ----
+ Documentation/media/video.h.rst.exceptions    |  1 -
+ fs/compat_ioctl.c                             |  2 -
+ include/uapi/linux/dvb/video.h                |  7 --
+ 6 files changed, 111 deletions(-)
+ delete mode 100644 Documentation/media/uapi/dvb/video-set-spu-palette.rst
 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Tomasz Figa
-> > Sent: Thursday, May 10, 2018 3:04 PM
-> > To: Zheng, Jian Xu <jian.xu.zheng@intel.com>
-> > Cc: Chen, JasonX Z <jasonx.z.chen@intel.com>; Yeh, Andy
-> > <andy.yeh@intel.com>; Linux Media Mailing List <linux-
-> > media@vger.kernel.org>; Sakari Ailus <sakari.ailus@linux.intel.com>;
-Chiang,
-> > AlanX <alanx.chiang@intel.com>
-> > Subject: Re: [PATCH v11] media: imx258: Add imx258 camera sensor driver
-> >
-> > On Thu, May 10, 2018 at 3:56 PM Zheng, Jian Xu <jian.xu.zheng@intel.com>
-> > wrote:
-> >
-> > > Hi Tomasz,
-> >
-> > > > -----Original Message-----
-> > > > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > > > owner@vger.kernel.org] On Behalf Of Tomasz Figa
-> > > > Sent: Wednesday, May 9, 2018 6:05 PM
-> > > > To: Chen, JasonX Z <jasonx.z.chen@intel.com>
-> > > > Cc: Yeh, Andy <andy.yeh@intel.com>; Linux Media Mailing List <linux-
-> > > > media@vger.kernel.org>; Sakari Ailus <sakari.ailus@linux.intel.com>;
-> > Chiang,
-> > > > AlanX <alanx.chiang@intel.com>
-> > > > Subject: Re: [PATCH v11] media: imx258: Add imx258 camera sensor
-> > > > driver
-> > > >
-> > > > Hi Jason,
-> > > >
-> > > > > IPU3 HAL has a handler to bind test_pattern mode.
-> > > > > The COLOR BAR MODE in HAL has been configured to 1 when APP
-> > > > > requests to
-> > > > output color bar image.
-> > > > > However Sony sensor's COLOR BAR MODE is designed as 2 in register
-> > table.
-> > > > (grey color bars as 1).
-> > > > > When HAL sends handler to driver to switch test pattern mode (to
-> > > > > COLOR
-> > > > BAR - val: 1), it will be grey color, since driver still set
-> > TEST_PATTERN_MODE
-> > > > reg value to 1, those it is not what we expected.
-> > > >
-> > > > > That is why we have to make an array with index to arrange the
-> > > > > order of
-> > > > the test pattern items, so driver will choose COLOR BAR correctly
-> > > > when
-> > HAL
-> > > > send test_pattern message (with 1).
-> > > > > The concept is the test_pattern_menu could be listed in driver per
-> > > > > real
-> > > > requirement, no matter how the sensor register is designed.
-> > > >
-> > > >
-> > > > V4L2 specification does not define any particular order of menu
-> > > > entries
-> > in
-> > > > V4L2_CID_TEST_PATTERN. The application should query the strings in
-> > > > the menu and determine the option it needs based on that. If it
-> > > > hardcodes particular index, it's a bug.
-> >
-> > > Is there any reason that there is no certain macro define for
-> > > different
-> > type of test pattern in v4l2?
-> > > So App will not depend on any strings where could be different on
-> > different sensor drivers.
-> >
-> > Yes. Available patterns differ significantly between one sensor and
-another,
-> > so the menu positions are considered hardware-specific.
-
-> The problem is even App queries the strings in driver, it still doesn't
-look good enough.
-> Because different driver may have different strings even for same type,
-Color Bar, for example.
-> So it's the best v4l2 could have several standardize names for test
-pattern types.
-> In this case App doesn't need to hard code test pattern strings for
-different sensors.
-
-> Do you think it makes sense?
-
-It sounds quite sensible, assuming that we can find such standard subset.
-
-IMHO a much more scale-able solution would be to have the test pattern
-strings configurable per platform.
-
-Best regards,
-Tomasz
+diff --git a/Documentation/media/uapi/dvb/video-set-spu-palette.rst b/Documentation/media/uapi/dvb/video-set-spu-palette.rst
+deleted file mode 100644
+index 51a1913d21d2..000000000000
+--- a/Documentation/media/uapi/dvb/video-set-spu-palette.rst
++++ /dev/null
+@@ -1,82 +0,0 @@
+-.. -*- coding: utf-8; mode: rst -*-
+-
+-.. _VIDEO_SET_SPU_PALETTE:
+-
+-=====================
+-VIDEO_SET_SPU_PALETTE
+-=====================
+-
+-Name
+-----
+-
+-VIDEO_SET_SPU_PALETTE
+-
+-.. attention:: This ioctl is deprecated.
+-
+-Synopsis
+---------
+-
+-.. c:function:: int ioctl(fd, VIDEO_SET_SPU_PALETTE, struct video_spu_palette *palette )
+-    :name: VIDEO_SET_SPU_PALETTE
+-
+-
+-Arguments
+----------
+-
+-.. flat-table::
+-    :header-rows:  0
+-    :stub-columns: 0
+-
+-
+-    -  .. row 1
+-
+-       -  int fd
+-
+-       -  File descriptor returned by a previous call to open().
+-
+-    -  .. row 2
+-
+-       -  int request
+-
+-       -  Equals VIDEO_SET_SPU_PALETTE for this command.
+-
+-    -  .. row 3
+-
+-       -  video_spu_palette_t \*palette
+-
+-       -  SPU palette according to section ??.
+-
+-
+-Description
+------------
+-
+-This ioctl sets the SPU color palette.
+-
+-.. c:type:: video_spu_palette
+-
+-.. code-block::c
+-
+-	typedef struct video_spu_palette {      /* SPU Palette information */
+-		int length;
+-		__u8 __user *palette;
+-	} video_spu_palette_t;
+-
+-Return Value
+-------------
+-
+-On success 0 is returned, on error -1 and the ``errno`` variable is set
+-appropriately. The generic error codes are described at the
+-:ref:`Generic Error Codes <gen-errors>` chapter.
+-
+-
+-
+-.. flat-table::
+-    :header-rows:  0
+-    :stub-columns: 0
+-
+-
+-    -  .. row 1
+-
+-       -  ``EINVAL``
+-
+-       -  input is not a valid palette or driver doesn’t handle SPU.
+diff --git a/Documentation/media/uapi/dvb/video_function_calls.rst b/Documentation/media/uapi/dvb/video_function_calls.rst
+index 68588ac7fecb..8d8383ffaeba 100644
+--- a/Documentation/media/uapi/dvb/video_function_calls.rst
++++ b/Documentation/media/uapi/dvb/video_function_calls.rst
+@@ -38,6 +38,5 @@ Video Function Calls
+     video-set-system
+     video-set-highlight
+     video-set-spu
+-    video-set-spu-palette
+     video-get-navi
+     video-set-attributes
+diff --git a/Documentation/media/uapi/dvb/video_types.rst b/Documentation/media/uapi/dvb/video_types.rst
+index 640a21de6b8a..4cfa00e5c934 100644
+--- a/Documentation/media/uapi/dvb/video_types.rst
++++ b/Documentation/media/uapi/dvb/video_types.rst
+@@ -320,24 +320,6 @@ to the following format:
+      } video_spu_t;
+ 
+ 
+-.. c:type:: video_spu_palette
+-
+-struct video_spu_palette
+-========================
+-
+-The following structure is used to set the SPU palette by calling
+-VIDEO_SPU_PALETTE:
+-
+-
+-.. code-block:: c
+-
+-     typedef
+-     struct video_spu_palette {
+-	 int length;
+-	 uint8_t *palette;
+-     } video_spu_palette_t;
+-
+-
+ .. c:type:: video_navi_pack
+ 
+ struct video_navi_pack
+diff --git a/Documentation/media/video.h.rst.exceptions b/Documentation/media/video.h.rst.exceptions
+index a91aa884ce0e..89d7c3ef2da7 100644
+--- a/Documentation/media/video.h.rst.exceptions
++++ b/Documentation/media/video.h.rst.exceptions
+@@ -36,5 +36,4 @@ replace typedef video_stream_source_t :c:type:`video_stream_source`
+ replace typedef video_play_state_t :c:type:`video_play_state`
+ replace typedef video_highlight_t :c:type:`video_highlight`
+ replace typedef video_spu_t :c:type:`video_spu`
+-replace typedef video_spu_palette_t :c:type:`video_spu_palette`
+ replace typedef video_navi_pack_t :c:type:`video_navi_pack`
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index ef80085ed564..e78ecda283d2 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -1349,8 +1349,6 @@ static long do_ioctl_trans(unsigned int cmd,
+ 		return do_video_get_event(file, cmd, argp);
+ 	case VIDEO_STILLPICTURE:
+ 		return do_video_stillpicture(file, cmd, argp);
+-	case VIDEO_SET_SPU_PALETTE:
+-		return do_video_set_spu_palette(file, cmd, argp);
+ 	}
+ 
+ 	/*
+diff --git a/include/uapi/linux/dvb/video.h b/include/uapi/linux/dvb/video.h
+index df3d7028c807..6a0c9757b7ba 100644
+--- a/include/uapi/linux/dvb/video.h
++++ b/include/uapi/linux/dvb/video.h
+@@ -186,12 +186,6 @@ typedef struct video_spu {
+ } video_spu_t;
+ 
+ 
+-typedef struct video_spu_palette {      /* SPU Palette information */
+-	int length;
+-	__u8 __user *palette;
+-} video_spu_palette_t;
+-
+-
+ typedef struct video_navi_pack {
+ 	int length;          /* 0 ... 1024 */
+ 	__u8 data[1024];
+@@ -248,7 +242,6 @@ typedef __u16 video_attributes_t;
+ #define VIDEO_SET_SYSTEM           _IO('o', 38)
+ #define VIDEO_SET_HIGHLIGHT        _IOW('o', 39, video_highlight_t)
+ #define VIDEO_SET_SPU              _IOW('o', 50, video_spu_t)
+-#define VIDEO_SET_SPU_PALETTE      _IOW('o', 51, video_spu_palette_t)
+ #define VIDEO_GET_NAVI             _IOR('o', 52, video_navi_pack_t)
+ #define VIDEO_SET_ATTRIBUTES       _IO('o', 53)
+ #define VIDEO_GET_SIZE             _IOR('o', 55, video_size_t)
+-- 
+2.17.0
