@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:46760 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030834AbeEYXxx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 19:53:53 -0400
-Received: by mail-pg0-f67.google.com with SMTP id a3-v6so2898484pgt.13
-        for <linux-media@vger.kernel.org>; Fri, 25 May 2018 16:53:53 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 5/6] media: imx-csi: Allow skipping odd chroma rows for YVU420
-Date: Fri, 25 May 2018 16:53:35 -0700
-Message-Id: <1527292416-26187-6-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1527292416-26187-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from osg.samsung.com ([64.30.133.232]:59108 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932242AbeE1R5R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 May 2018 13:57:17 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH] media: imx258: get rid of an unused var
+Date: Mon, 28 May 2018 13:57:11 -0400
+Message-Id: <66a1e187a88fcceb84a390e6ea0c35e9f7a7f252.1527530230.git.mchehab+samsung@kernel.org>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Skip writing U/V components to odd rows for YVU420 in addition to
-YUV420 and NV12.
+drivers/media/i2c/imx258.c: In function 'imx258_init_controls':
+drivers/media/i2c/imx258.c:1117:6: warning: variable 'exposure_max' set but not used [-Wunused-but-set-variable]
+  s64 exposure_max;
+      ^~~~~~~~~~~~
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/i2c/imx258.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index eef3483..6829c08 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -415,6 +415,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 		passthrough_bits = 16;
- 		break;
- 	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
- 	case V4L2_PIX_FMT_NV12:
- 		burst_size = (image.pix.width & 0x3f) ?
- 			     ((image.pix.width & 0x1f) ?
+diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+index fad3012f4fe5..f3b124723aa0 100644
+--- a/drivers/media/i2c/imx258.c
++++ b/drivers/media/i2c/imx258.c
+@@ -1114,7 +1114,6 @@ static int imx258_init_controls(struct imx258 *imx258)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+ 	struct v4l2_ctrl_handler *ctrl_hdlr;
+-	s64 exposure_max;
+ 	s64 vblank_def;
+ 	s64 vblank_min;
+ 	s64 pixel_rate_min;
+@@ -1168,7 +1167,6 @@ static int imx258_init_controls(struct imx258 *imx258)
+ 	if (imx258->hblank)
+ 		imx258->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 
+-	exposure_max = imx258->cur_mode->vts_def - 8;
+ 	imx258->exposure = v4l2_ctrl_new_std(
+ 				ctrl_hdlr, &imx258_ctrl_ops,
+ 				V4L2_CID_EXPOSURE, IMX258_EXPOSURE_MIN,
 -- 
-2.7.4
+2.17.0
