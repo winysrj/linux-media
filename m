@@ -1,51 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:63189 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750758AbeEKOQk (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:46883 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755026AbeE2IsT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 10:16:40 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 0/2] rcar-vin: Fix potential buffer overrun root cause
-Date: Fri, 11 May 2018 16:15:39 +0200
-Message-Id: <20180511141541.3164-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 29 May 2018 04:48:19 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v5 0/10] rcar-vin: Add support for parallel input on Gen3
+Date: Tue, 29 May 2018 10:47:58 +0200
+Message-Id: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello,
+   this series adds support for parallel video input to the Gen3 version of
+rcar-vin driver.
 
-Commit 015060cb7795eac3 ("media: rcar-vin: enable field toggle after a 
-set number of lines for Gen3") was an attempt to fix the issue of 
-writing outside the capture buffer for VIN Gen3. Unfortunately it only 
-fixed a symptom of a problem to such a degree I could no longer 
-reproduce it.
+Since last version one patch has been added (as anticipated by email) to clean
+up the memory reserved for notifier's async subdevices if the notifier
+registration fails ([4/10]), and two comments from Niklas has been addressed
+in [6/10], where the group notifier is now cleaned up in the error path if
+it's necessary to do that.
 
-Jacopo on the other hand working on a different setup still ran into the 
-issue. And he even figured out the root cause of the issue. When I 
-submitted the original VIN Gen3 support I had when addressing a review 
-comment missed to keep the crop and compose dimensions in sync with the 
-requested format resulting in the DMA engine not properly stopping 
-before writing outside the buffer.
+Patches 4,5 and 6 have not yet been Acked-by/Reviewed-by, all the other ones
+have at least one tag, so things looks quite good.
 
-This series reverts the incorrect fix in 1/2 and applies a correct one 
-in 2/2. I think this should be picked up for v4.18.
+Additional changelogs in single patches.
 
-Niklas Söderlund (2):
-  Revert "media: rcar-vin: enable field toggle after a set number of
-    lines for Gen3"
-  rcar-vin: fix crop and compose handling for Gen3
+Thanks
+    j
 
- drivers/media/platform/rcar-vin/rcar-dma.c  | 20 +++++---------------
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  6 ++++++
- 2 files changed, 11 insertions(+), 15 deletions(-)
+Jacopo Mondi (10):
+  media: rcar-vin: Rename 'digital' to 'parallel'
+  media: rcar-vin: Remove two empty lines
+  media: rcar-vin: Create a group notifier
+  media: rcar-vin: Cleanup notifier in error path
+  media: rcar-vin: Cache the mbus configuration flags
+  media: rcar-vin: Parse parallel input on Gen3
+  media: rcar-vin: Link parallel input media entities
+  media: rcar-vin: Handle parallel subdev in link_notify
+  media: rcar-vin: Rename _rcar_info to rcar_info
+  media: rcar-vin: Add support for R-Car R8A77995 SoC
 
--- 
-2.17.0
+ drivers/media/platform/rcar-vin/rcar-core.c | 269 +++++++++++++++++++---------
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  36 ++--
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  12 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  29 +--
+ 4 files changed, 230 insertions(+), 116 deletions(-)
+
+--
+2.7.4
