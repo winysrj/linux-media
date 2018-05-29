@@ -1,67 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:51356 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751943AbeEGOFJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 10:05:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: vsp1: cleanup a false positive warning
-Date: Mon, 07 May 2018 17:05:24 +0300
-Message-ID: <3223850.s1aV98ALtZ@avalon>
-In-Reply-To: <a1bedd480c31bcc2f48cd6d965a9bb853e8786ee.1525436031.git.mchehab+samsung@kernel.org>
-References: <a1bedd480c31bcc2f48cd6d965a9bb853e8786ee.1525436031.git.mchehab+samsung@kernel.org>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:53803 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751800AbeE2GSj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 May 2018 02:18:39 -0400
+Subject: Re: [PATCH v2] media: staging: tegra-vde: Reset memory client
+To: Dmitry Osipenko <digetx@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Thierry Reding <thierry.reding@gmail.com>
+Cc: linux-tegra@vger.kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+References: <20180526142755.22966-1-digetx@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <87260ffb-545f-4b2c-450f-25091d028187@xs4all.nl>
+Date: Tue, 29 May 2018 08:18:33 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20180526142755.22966-1-digetx@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Dmitry,
 
-Thank you for the patch.
-
-On Friday, 4 May 2018 15:13:58 EEST Mauro Carvalho Chehab wrote:
-> With the new vsp1 code changes introduced by changeset
-> f81f9adc4ee1 ("media: v4l: vsp1: Assign BRU and BRS to pipelines
-> dynamically"), smatch complains with:
-> 	drivers/media/platform/vsp1/vsp1_drm.c:262 vsp1_du_pipeline_setup_bru()
-> error: we previously assumed 'pipe->bru' could be null (see line 180)
+On 05/26/2018 04:27 PM, Dmitry Osipenko wrote:
+> DMA requests must be blocked before resetting VDE HW, otherwise it is
+> possible to get a memory corruption or a machine hang. Use the reset
+> control provided by the Memory Controller to block DMA before resetting
+> the VDE HW.
 > 
-> This is a false positive, as, if pipe->bru is NULL, the brx
-> var will be different, with ends by calling a code that will
-> set pipe->bru to another value.
-> 
-> Yet, cleaning this false positive is as easy as adding an explicit
-> check if pipe->bru is NULL.
-
-It's not very difficult indeed, but it really is a false positive. I think the 
-proposed change decreases readability, the condition currently reads as "if 
-(new brx != old brx)", why does smatch even flag that as an error ?
-
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 > ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> b/drivers/media/platform/vsp1/vsp1_drm.c index 095dc48aa25a..cb6b60843400
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -185,7 +185,7 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_device
-> *vsp1, brx = &vsp1->brs->entity;
+> Changelog:
 > 
->  	/* Switch BRx if needed. */
-> -	if (brx != pipe->brx) {
-> +	if (brx != pipe->brx || !pipe->brx) {
->  		struct vsp1_entity *released_brx = NULL;
-> 
->  		/* Release our BRx if we have one. */
+> v2:
+> 	- Reset HW even if Memory Client resetting fails.
 
--- 
+Please note that v1 has already been merged, so if you can make a v3 rebased
+on top of the latest media_tree master branch, then I'll queue that up for
+4.18.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+> 
+>  drivers/staging/media/tegra-vde/tegra-vde.c | 35 +++++++++++++++++++--
+>  1 file changed, 33 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
+> index 90177a59b97c..6f06061a40d9 100644
+> --- a/drivers/staging/media/tegra-vde/tegra-vde.c
+> +++ b/drivers/staging/media/tegra-vde/tegra-vde.c
+> @@ -73,6 +73,7 @@ struct tegra_vde {
+>  	struct mutex lock;
+>  	struct miscdevice miscdev;
+>  	struct reset_control *rst;
+> +	struct reset_control *rst_mc;
+>  	struct gen_pool *iram_pool;
+>  	struct completion decode_completion;
+>  	struct clk *clk;
+> @@ -850,9 +851,23 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
+>  	 * We rely on the VDE registers reset value, otherwise VDE
+>  	 * causes bus lockup.
+>  	 */
+> +	ret = reset_control_assert(vde->rst_mc);
+> +	if (ret) {
+> +		dev_err(dev, "DEC start: Failed to assert MC reset: %d\n",
+> +			ret);
+> +		goto put_runtime_pm;
+> +	}
+> +
+>  	ret = reset_control_reset(vde->rst);
+>  	if (ret) {
+> -		dev_err(dev, "Failed to reset HW: %d\n", ret);
+> +		dev_err(dev, "DEC start: Failed to reset HW: %d\n", ret);
+> +		goto put_runtime_pm;
+> +	}
+> +
+> +	ret = reset_control_deassert(vde->rst_mc);
+> +	if (ret) {
+> +		dev_err(dev, "DEC start: Failed to deassert MC reset: %d\n",
+> +			ret);
+>  		goto put_runtime_pm;
+>  	}
+>  
+> @@ -880,9 +895,18 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
+>  		ret = timeout;
+>  	}
+>  
+> +	/*
+> +	 * At first reset memory client to avoid resetting VDE HW in the
+> +	 * middle of DMA which could result into memory corruption or hang
+> +	 * the whole system.
+> +	 */
+> +	err = reset_control_assert(vde->rst_mc);
+> +	if (err)
+> +		dev_err(dev, "DEC end: Failed to assert MC reset: %d\n", err);
+> +
+>  	err = reset_control_assert(vde->rst);
+>  	if (err)
+> -		dev_err(dev, "Failed to assert HW reset: %d\n", err);
+> +		dev_err(dev, "DEC end: Failed to assert HW reset: %d\n", err);
+>  
+>  put_runtime_pm:
+>  	pm_runtime_mark_last_busy(dev);
+> @@ -1074,6 +1098,13 @@ static int tegra_vde_probe(struct platform_device *pdev)
+>  		return err;
+>  	}
+>  
+> +	vde->rst_mc = devm_reset_control_get_optional(dev, "mc");
+> +	if (IS_ERR(vde->rst_mc)) {
+> +		err = PTR_ERR(vde->rst_mc);
+> +		dev_err(dev, "Could not get MC reset %d\n", err);
+> +		return err;
+> +	}
+> +
+>  	irq = platform_get_irq_byname(pdev, "sync-token");
+>  	if (irq < 0)
+>  		return irq;
+> 
