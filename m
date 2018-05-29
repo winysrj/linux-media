@@ -1,84 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:37625 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752090AbeENJhP (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:48776 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932352AbeE2JCG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 05:37:15 -0400
-Message-ID: <1526290626.4936.6.camel@pengutronix.de>
-Subject: Re: [PATCH v4 00/14] media: imx: Switch to subdev notifiers
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Mon, 14 May 2018 11:37:06 +0200
-In-Reply-To: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1525906023-827-1-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Tue, 29 May 2018 05:02:06 -0400
+Subject: Re: [PATCH v5 04/10] media: rcar-vin: Cleanup notifier in error path
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+References: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1527583688-314-5-git-send-email-jacopo+renesas@jmondi.org>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+Message-ID: <d37e437a-81fa-2649-4659-5b0b05419c1f@ideasonboard.com>
+Date: Tue, 29 May 2018 10:02:01 +0100
+MIME-Version: 1.0
+In-Reply-To: <1527583688-314-5-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Hi Jacopo,
 
-thank you for the update.
+Thankyou for the patch,
 
-On Wed, 2018-05-09 at 15:46 -0700, Steve Longerbeam wrote:
-> This patchset converts the imx-media driver and its dependent
-> subdevs to use subdev notifiers.
+On 29/05/18 09:48, Jacopo Mondi wrote:
+> During the notifier initialization, memory for the list of associated async
+> subdevices is reserved during the fwnode endpoint parsing from the v4l2-async
+> framework. If the notifier registration fails, that memory should be released
+> and the notifier 'cleaned up'.
 > 
-> There are a couple shortcomings in v4l2-core that prevented
-> subdev notifiers from working correctly in imx-media:
+> Catch the notifier registration error and perform the cleanup both for the
+> group and the parallel notifiers.
 > 
-> 1. v4l2_async_notifier_fwnode_parse_endpoint() treats a fwnode
->    endpoint that is not connected to a remote device as an error.
->    But in the case of the video-mux subdev, this is not an error,
->    it is OK if some of the mux inputs have no connection. Also,
->    Documentation/devicetree/bindings/media/video-interfaces.txt explicitly
->    states that the 'remote-endpoint' property is optional. So the first
->    patch is a small modification to ignore empty endpoints in
->    v4l2_async_notifier_fwnode_parse_endpoint() and allow
->    __v4l2_async_notifier_parse_fwnode_endpoints() to continue to
->    parse the remaining port endpoints of the device.
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > 
-> 2. In the imx-media graph, multiple subdevs will encounter the same
->    upstream subdev (such as the imx6-mipi-csi2 receiver), and so
->    v4l2_async_notifier_parse_fwnode_endpoints() will add imx6-mipi-csi2
->    multiple times. This is treated as an error by
->    v4l2_async_notifier_register() later.
+> ---
+> v5:
+> - new patch
 > 
->    To get around this problem, add an v4l2_async_notifier_add_subdev()
->    which first verifies the provided asd does not already exist in the
->    given notifier asd list or in other registered notifiers. If the asd
->    exists, the function returns -EEXIST and it's up to the caller to
->    decide if that is an error (in imx-media case it is never an error).
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 14 ++++++++++++--
+>  1 file changed, 12 insertions(+), 2 deletions(-)
 > 
->    Patches 2-5 deal with adding that support.
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index d3aadf3..f7a28e9 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -573,10 +573,15 @@ static int rvin_parallel_graph_init(struct rvin_dev *vin)
+>  	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+>  	if (ret < 0) {
+>  		vin_err(vin, "Notifier registration failed\n");
+> -		return ret;
+> +		goto error_notifier_cleanup;
+>  	}
 > 
-> 3. Patch 6 adds v4l2_async_register_fwnode_subdev(), which is a
->    convenience function for parsing a subdev's fwnode port endpoints
->    for connected remote subdevs, registering a subdev notifier, and
->    then registering the sub-device itself.
-> 
-> The remaining patches update the subdev drivers to register a
-> subdev notifier with endpoint parsing, and the changes to imx-media
-> to support that.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+>  	return 0;
+> +
+> +error_notifier_cleanup:
+> +	v4l2_async_notifier_cleanup(&vin->group->notifier);
 
-Patches 07-14 (video-mux and the imx patches) are
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+Wouldn't it be less lines to just call the cleanup before the return? Or do you
+anticipate multiple paths needing to call through the clean up here ?
 
-The series is
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-on i.MX6 with Toshiba TC358743 connected via MIPI CSI-2.
+> +
+> +	return ret;
+>  }
+> 
+>  /* -----------------------------------------------------------------------------
+> @@ -775,10 +780,15 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+>  					   &vin->group->notifier);
+>  	if (ret < 0) {
+>  		vin_err(vin, "Notifier registration failed\n");
+> -		return ret;
+> +		goto error_notifier_cleanup;
+>  	}
+> 
+>  	return 0;
+> +
+> +error_notifier_cleanup:
+> +	v4l2_async_notifier_cleanup(&vin->group->notifier);
+> +
 
-regards
-Philipp
+Same here...
+
+> +	return ret;
+>  }
+> 
+>  static int rvin_mc_init(struct rvin_dev *vin)
+> --
+> 2.7.4
+> 
