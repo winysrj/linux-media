@@ -1,208 +1,405 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34196 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752065AbeEVMFU (ORCPT
+Received: from userp2120.oracle.com ([156.151.31.85]:46004 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965391AbeE2SBg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 08:05:20 -0400
-Subject: Re: [PATCH v10 11/16] vb2: add explicit fence user API
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: kernel@collabora.com,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20180521165946.11778-1-ezequiel@collabora.com>
- <20180521165946.11778-12-ezequiel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <9a7d4128-571e-468c-8c03-9f35f610a87f@xs4all.nl>
-Date: Tue, 22 May 2018 14:05:16 +0200
+        Tue, 29 May 2018 14:01:36 -0400
+Subject: Re: [PATCH 2/8] xen/balloon: Move common memory reservation routines
+ to a module
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180525153331.31188-1-andr2000@gmail.com>
+ <20180525153331.31188-3-andr2000@gmail.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <59ab73b0-967b-a82f-3b0d-95f1b0dc40a5@oracle.com>
+Date: Tue, 29 May 2018 14:04:38 -0400
 MIME-Version: 1.0
-In-Reply-To: <20180521165946.11778-12-ezequiel@collabora.com>
+In-Reply-To: <20180525153331.31188-3-andr2000@gmail.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21/05/18 18:59, Ezequiel Garcia wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Turn the reserved2 field into fence_fd that we will use to send
-> an in-fence to the kernel or return an out-fence from the kernel to
-> userspace.
-> 
-> Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
-> when sending an in-fence to the kernel to be waited on, and
-> V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
-> 
-> v8: return -1 if new flags are set.
-> v7: minor fixes on the Documentation (Hans Verkuil)
-> 
-> v6: big improvement on doc (Hans Verkuil)
-> 
-> v5: - keep using reserved2 field for cpia2
->     - set fence_fd to 0 for now, for compat with userspace(Mauro)
-> 
-> v4: make it a union with reserved2 and fence_fd (Hans Verkuil)
-> 
-> v3: make the out_fence refer to the current buffer (Hans Verkuil)
-> 
-> v2: add documentation
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
+> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>
+> Memory {increase|decrease}_reservation and VA mappings update/reset
+> code used in balloon driver can be made common, so other drivers can
+> also re-use the same functionality without open-coding.
+> Create a dedicated module 
+
+IIUIC this is not really a module, it's a common file.
+
+
+> for the shared code and export corresponding
+> symbols for other kernel modules.
+>
+> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 > ---
->  Documentation/media/uapi/v4l/buffer.rst         | 48 ++++++++++++++++++++++---
->  drivers/media/common/videobuf2/videobuf2-v4l2.c |  6 +++-
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  4 +--
->  include/uapi/linux/videodev2.h                  |  8 ++++-
->  4 files changed, 58 insertions(+), 8 deletions(-)
-> 
-> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-> index e2c85ddc990b..971b7453040c 100644
-> --- a/Documentation/media/uapi/v4l/buffer.rst
-> +++ b/Documentation/media/uapi/v4l/buffer.rst
-> @@ -300,11 +300,23 @@ struct v4l2_buffer
->  	multi-planar API the application sets this to the number of
->  	elements in the ``planes`` array. The driver will fill in the
->  	actual number of valid elements in that array.
-> -    * - __u32
-> -      - ``reserved2``
-> +    * - __s32
-> +      - ``fence_fd``
->        -
-> -      - A place holder for future extensions. Drivers and applications
-> -	must set this to 0.
-> +      - Used to communicate a fence file descriptor from userspace to kernel
-> +	and vice-versa. On :ref:`VIDIOC_QBUF <VIDIOC_QBUF>` when sending
-> +	an in-fence for V4L2 to wait on, the ``V4L2_BUF_FLAG_IN_FENCE`` flag must
-> +	be used and this field set to the fence file descriptor of the in-fence.
-> +	If the in-fence is not valid ` VIDIOC_QBUF`` returns an error.
-> +
-> +        To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE``
-> +	must be set, the kernel will return the out-fence file descriptor in
-> +	this field. If it fails to create the out-fence ``VIDIOC_QBUF` returns
-> +        an error.
-> +
-> +	For all other ioctls V4L2 sets this field to -1 if
-> +	``V4L2_BUF_FLAG_IN_FENCE`` and/or ``V4L2_BUF_FLAG_OUT_FENCE`` are set,
-> +	otherwise this field is set to 0 for backward compatibility.
->      * - __u32
->        - ``reserved``
->        -
-> @@ -648,6 +660,34 @@ Buffer Flags
->        - Start Of Exposure. The buffer timestamp has been taken when the
->  	exposure of the frame has begun. This is only valid for the
->  	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
-> +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
-> +
-> +      - ``V4L2_BUF_FLAG_IN_FENCE``
-> +      - 0x00200000
-> +      - Ask V4L2 to wait on the fence passed in the ``fence_fd`` field. The
-> +	buffer won't be queued to the driver until the fence signals. The order
-> +	in which buffers are queued is guaranteed to be preserved, so any
-> +	buffers queued after this buffer will also be blocked until this fence
-> +	signals. This flag must be set before calling ``VIDIOC_QBUF``. For
-> +	other ioctls the driver just reports the value of the flag.
-> +
-> +        If the fence signals the flag is cleared and not reported anymore.
-> +	If the fence is not valid ``VIDIOC_QBUF`` returns an error.
-> +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
-> +
-> +      - ``V4L2_BUF_FLAG_OUT_FENCE``
-> +      - 0x00400000
-> +      - Request for a fence to be attached to the buffer. The driver will fill
-> +	in the out-fence fd in the ``fence_fd`` field when :ref:`VIDIOC_QBUF
-> +	<VIDIOC_QBUF>` returns. This flag must be set before calling
-> +	``VIDIOC_QBUF``. This flag is only an input, and is not set by the kernel.
-> +
-> +        If the creation of the out-fence fails ``VIDIOC_QBUF`` returns an
-> +	error.
-> +
-> +        Note that it is valid to set both ``V4L2_BUF_FLAG_IN_FENCE`` and
-> +        `V4L2_BUF_FLAG_OUT_FENCE`` flags. In such case, the ``fence_fd``
-> +        field is used to both set the in-fence and return the out-fence.
+>  drivers/xen/Makefile          |   1 +
+>  drivers/xen/balloon.c         |  71 ++----------------
+>  drivers/xen/mem-reservation.c | 134 ++++++++++++++++++++++++++++++++++
+>  include/xen/mem_reservation.h |  29 ++++++++
+>  4 files changed, 170 insertions(+), 65 deletions(-)
+>  create mode 100644 drivers/xen/mem-reservation.c
+>  create mode 100644 include/xen/mem_reservation.h
+>
+> diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
+> index 451e833f5931..3c87b0c3aca6 100644
+> --- a/drivers/xen/Makefile
+> +++ b/drivers/xen/Makefile
+> @@ -2,6 +2,7 @@
+>  obj-$(CONFIG_HOTPLUG_CPU)		+= cpu_hotplug.o
+>  obj-$(CONFIG_X86)			+= fallback.o
+>  obj-y	+= grant-table.o features.o balloon.o manage.o preempt.o time.o
+> +obj-y	+= mem-reservation.o
+>  obj-y	+= events/
+>  obj-y	+= xenbus/
 >  
+> diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
+> index 065f0b607373..57b482d67a3a 100644
+> --- a/drivers/xen/balloon.c
+> +++ b/drivers/xen/balloon.c
+> @@ -71,6 +71,7 @@
+>  #include <xen/balloon.h>
+>  #include <xen/features.h>
+>  #include <xen/page.h>
+> +#include <xen/mem_reservation.h>
 >  
+>  static int xen_hotplug_unpopulated;
 >  
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index 64503615d00b..8312f61adfa6 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -203,9 +203,13 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  	b->timestamp = ns_to_timeval(vb->timestamp);
->  	b->timecode = vbuf->timecode;
->  	b->sequence = vbuf->sequence;
-> -	b->reserved2 = 0;
->  	b->reserved = 0;
+> @@ -157,13 +158,6 @@ static DECLARE_DELAYED_WORK(balloon_worker, balloon_process);
+>  #define GFP_BALLOON \
+>  	(GFP_HIGHUSER | __GFP_NOWARN | __GFP_NORETRY | __GFP_NOMEMALLOC)
 >  
-> +	if (b->flags & (V4L2_BUF_FLAG_IN_FENCE | V4L2_BUF_FLAG_OUT_FENCE))
-> +		b->fence_fd = -1;
-> +	else
-> +		b->fence_fd = 0;
+> -static void scrub_page(struct page *page)
+> -{
+> -#ifdef CONFIG_XEN_SCRUB_PAGES
+> -	clear_highpage(page);
+> -#endif
+> -}
+> -
+>  /* balloon_append: add the given page to the balloon. */
+>  static void __balloon_append(struct page *page)
+>  {
+> @@ -463,11 +457,6 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
+>  	int rc;
+>  	unsigned long i;
+>  	struct page   *page;
+> -	struct xen_memory_reservation reservation = {
+> -		.address_bits = 0,
+> -		.extent_order = EXTENT_ORDER,
+> -		.domid        = DOMID_SELF
+> -	};
+>  
+>  	if (nr_pages > ARRAY_SIZE(frame_list))
+>  		nr_pages = ARRAY_SIZE(frame_list);
+> @@ -486,9 +475,7 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
+>  		page = balloon_next_page(page);
+>  	}
+>  
+> -	set_xen_guest_handle(reservation.extent_start, frame_list);
+> -	reservation.nr_extents = nr_pages;
+> -	rc = HYPERVISOR_memory_op(XENMEM_populate_physmap, &reservation);
+> +	rc = xenmem_reservation_increase(nr_pages, frame_list);
+>  	if (rc <= 0)
+>  		return BP_EAGAIN;
+>  
+> @@ -496,29 +483,7 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
+>  		page = balloon_retrieve(false);
+>  		BUG_ON(page == NULL);
+>  
+> -#ifdef CONFIG_XEN_HAVE_PVMMU
+> -		/*
+> -		 * We don't support PV MMU when Linux and Xen is using
+> -		 * different page granularity.
+> -		 */
+> -		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
+> -
+> -		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
+> -			unsigned long pfn = page_to_pfn(page);
+> -
+> -			set_phys_to_machine(pfn, frame_list[i]);
+> -
+> -			/* Link back into the page tables if not highmem. */
+> -			if (!PageHighMem(page)) {
+> -				int ret;
+> -				ret = HYPERVISOR_update_va_mapping(
+> -						(unsigned long)__va(pfn << PAGE_SHIFT),
+> -						mfn_pte(frame_list[i], PAGE_KERNEL),
+> -						0);
+> -				BUG_ON(ret);
+> -			}
+> -		}
+> -#endif
+> +		xenmem_reservation_va_mapping_update(1, &page, &frame_list[i]);
 
-I don't see why we can't just always set fence_fd to -1.
 
-There is no need for backwards compatibility that I can see.
+Can you make a single call to xenmem_reservation_va_mapping_update(rc,
+...)? You need to keep track of pages but presumable they can be put
+into an array (or a list). In fact, perhaps we can have
+balloon_retrieve() return a set of pages.
 
-Regards,
 
-	Hans
+
+
+>  
+>  		/* Relinquish the page back to the allocator. */
+>  		free_reserved_page(page);
+> @@ -535,11 +500,6 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>  	unsigned long i;
+>  	struct page *page, *tmp;
+>  	int ret;
+> -	struct xen_memory_reservation reservation = {
+> -		.address_bits = 0,
+> -		.extent_order = EXTENT_ORDER,
+> -		.domid        = DOMID_SELF
+> -	};
+>  	LIST_HEAD(pages);
+>  
+>  	if (nr_pages > ARRAY_SIZE(frame_list))
+> @@ -553,7 +513,7 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>  			break;
+>  		}
+>  		adjust_managed_page_count(page, -1);
+> -		scrub_page(page);
+> +		xenmem_reservation_scrub_page(page);
+>  		list_add(&page->lru, &pages);
+>  	}
+>  
+> @@ -575,25 +535,8 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>  		/* XENMEM_decrease_reservation requires a GFN */
+>  		frame_list[i++] = xen_page_to_gfn(page);
+>  
+> -#ifdef CONFIG_XEN_HAVE_PVMMU
+> -		/*
+> -		 * We don't support PV MMU when Linux and Xen is using
+> -		 * different page granularity.
+> -		 */
+> -		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
+> -
+> -		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
+> -			unsigned long pfn = page_to_pfn(page);
+> +		xenmem_reservation_va_mapping_reset(1, &page);
+
+
+and here too.
+
+
+>  
+> -			if (!PageHighMem(page)) {
+> -				ret = HYPERVISOR_update_va_mapping(
+> -						(unsigned long)__va(pfn << PAGE_SHIFT),
+> -						__pte_ma(0), 0);
+> -				BUG_ON(ret);
+> -			}
+> -			__set_phys_to_machine(pfn, INVALID_P2M_ENTRY);
+> -		}
+> -#endif
+>  		list_del(&page->lru);
+>  
+>  		balloon_append(page);
+> @@ -601,9 +544,7 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+>  
+>  	flush_tlb_all();
+>  
+> -	set_xen_guest_handle(reservation.extent_start, frame_list);
+> -	reservation.nr_extents   = nr_pages;
+> -	ret = HYPERVISOR_memory_op(XENMEM_decrease_reservation, &reservation);
+> +	ret = xenmem_reservation_decrease(nr_pages, frame_list);
+>  	BUG_ON(ret != nr_pages);
+>  
+>  	balloon_stats.current_pages -= nr_pages;
+> diff --git a/drivers/xen/mem-reservation.c b/drivers/xen/mem-reservation.c
+> new file mode 100644
+> index 000000000000..29882e4324f5
+> --- /dev/null
+> +++ b/drivers/xen/mem-reservation.c
+> @@ -0,0 +1,134 @@
+> +// SPDX-License-Identifier: GPL-2.0 OR MIT
+
+
+Why is this "OR MIT"? The original file was licensed GPLv2 only.
+
 
 > +
->  	if (q->is_multiplanar) {
->  		/*
->  		 * Fill in plane-related data if userspace provided an array
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 4312935f1dfc..93c752459aec 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -388,7 +388,7 @@ struct v4l2_buffer32 {
->  		__s32		fd;
->  	} m;
->  	__u32			length;
-> -	__u32			reserved2;
-> +	__s32			fence_fd;
->  	__u32			reserved;
->  };
->  
-> @@ -606,7 +606,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
->  	    assign_in_user(&up->timestamp.tv_usec, &kp->timestamp.tv_usec) ||
->  	    copy_in_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
->  	    assign_in_user(&up->sequence, &kp->sequence) ||
-> -	    assign_in_user(&up->reserved2, &kp->reserved2) ||
-> +	    assign_in_user(&up->fence_fd, &kp->fence_fd) ||
->  	    assign_in_user(&up->reserved, &kp->reserved) ||
->  	    get_user(length, &kp->length) ||
->  	    put_user(length, &up->length))
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index a8842a5ca636..1f18dc68ecab 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -934,7 +934,10 @@ struct v4l2_buffer {
->  		__s32		fd;
->  	} m;
->  	__u32			length;
-> -	__u32			reserved2;
-> +	union {
-> +		__s32		fence_fd;
-> +		__u32		reserved2;
+> +/******************************************************************************
+> + * Xen memory reservation utilities.
+> + *
+> + * Copyright (c) 2003, B Dragovic
+> + * Copyright (c) 2003-2004, M Williamson, K Fraser
+> + * Copyright (c) 2005 Dan M. Smith, IBM Corporation
+> + * Copyright (c) 2010 Daniel Kiper
+> + * Copyright (c) 2018, Oleksandr Andrushchenko, EPAM Systems Inc.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/slab.h>
+> +
+> +#include <asm/tlb.h>
+> +#include <asm/xen/hypercall.h>
+> +
+> +#include <xen/interface/memory.h>
+> +#include <xen/page.h>
+> +
+> +/*
+> + * Use one extent per PAGE_SIZE to avoid to break down the page into
+> + * multiple frame.
+> + */
+> +#define EXTENT_ORDER (fls(XEN_PFN_PER_PAGE) - 1)
+> +
+> +void xenmem_reservation_scrub_page(struct page *page)
+> +{
+> +#ifdef CONFIG_XEN_SCRUB_PAGES
+> +	clear_highpage(page);
+> +#endif
+> +}
+> +EXPORT_SYMBOL(xenmem_reservation_scrub_page);
+> +
+> +void xenmem_reservation_va_mapping_update(unsigned long count,
+> +					  struct page **pages,
+> +					  xen_pfn_t *frames)
+> +{
+> +#ifdef CONFIG_XEN_HAVE_PVMMU
+> +	int i;
+> +
+> +	for (i = 0; i < count; i++) {
+> +		struct page *page;
+> +
+> +		page = pages[i];
+> +		BUG_ON(page == NULL);
+> +
+> +		/*
+> +		 * We don't support PV MMU when Linux and Xen is using
+> +		 * different page granularity.
+> +		 */
+> +		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
+> +
+> +		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
+> +			unsigned long pfn = page_to_pfn(page);
+> +
+> +			set_phys_to_machine(pfn, frames[i]);
+> +
+> +			/* Link back into the page tables if not highmem. */
+> +			if (!PageHighMem(page)) {
+> +				int ret;
+> +
+> +				ret = HYPERVISOR_update_va_mapping(
+> +						(unsigned long)__va(pfn << PAGE_SHIFT),
+> +						mfn_pte(frames[i], PAGE_KERNEL),
+> +						0);
+> +				BUG_ON(ret);
+> +			}
+> +		}
+> +	}
+> +#endif
+> +}
+> +EXPORT_SYMBOL(xenmem_reservation_va_mapping_update);
+> +
+> +void xenmem_reservation_va_mapping_reset(unsigned long count,
+> +					 struct page **pages)
+> +{
+> +#ifdef CONFIG_XEN_HAVE_PVMMU
+> +	int i;
+> +
+> +	for (i = 0; i < count; i++) {
+> +		/*
+> +		 * We don't support PV MMU when Linux and Xen is using
+> +		 * different page granularity.
+> +		 */
+> +		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
+> +
+> +		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
+> +			struct page *page = pages[i];
+> +			unsigned long pfn = page_to_pfn(page);
+> +
+> +			if (!PageHighMem(page)) {
+> +				int ret;
+> +
+> +				ret = HYPERVISOR_update_va_mapping(
+> +						(unsigned long)__va(pfn << PAGE_SHIFT),
+> +						__pte_ma(0), 0);
+> +				BUG_ON(ret);
+> +			}
+> +			__set_phys_to_machine(pfn, INVALID_P2M_ENTRY);
+> +		}
+> +	}
+> +#endif
+> +}
+> +EXPORT_SYMBOL(xenmem_reservation_va_mapping_reset);
+> +
+> +int xenmem_reservation_increase(int count, xen_pfn_t *frames)
+> +{
+> +	struct xen_memory_reservation reservation = {
+> +		.address_bits = 0,
+> +		.extent_order = EXTENT_ORDER,
+> +		.domid        = DOMID_SELF
 > +	};
->  	__u32			reserved;
->  };
->  
-> @@ -971,6 +974,9 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
->  /* mem2mem encoder/decoder */
->  #define V4L2_BUF_FLAG_LAST			0x00100000
-> +/* Explicit synchronization */
-> +#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
-> +#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
->  
->  /**
->   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
-> 
+> +
+> +	set_xen_guest_handle(reservation.extent_start, frames);
+> +	reservation.nr_extents = count;
+> +	return HYPERVISOR_memory_op(XENMEM_populate_physmap, &reservation);
+> +}
+> +EXPORT_SYMBOL(xenmem_reservation_increase);
+> +
+> +int xenmem_reservation_decrease(int count, xen_pfn_t *frames)
+> +{
+> +	struct xen_memory_reservation reservation = {
+> +		.address_bits = 0,
+> +		.extent_order = EXTENT_ORDER,
+> +		.domid        = DOMID_SELF
+> +	};
+> +
+> +	set_xen_guest_handle(reservation.extent_start, frames);
+> +	reservation.nr_extents = count;
+> +	return HYPERVISOR_memory_op(XENMEM_decrease_reservation, &reservation);
+> +}
+> +EXPORT_SYMBOL(xenmem_reservation_decrease);
+> diff --git a/include/xen/mem_reservation.h b/include/xen/mem_reservation.h
+> new file mode 100644
+> index 000000000000..9306d9b8743c
+> --- /dev/null
+> +++ b/include/xen/mem_reservation.h
+> @@ -0,0 +1,29 @@
+> +/* SPDX-License-Identifier: GPL-2.0 OR MIT */
+
+and here too.
+
+
+-boris
+
+
+> +
+> +/*
+> + * Xen memory reservation utilities.
+> + *
+> + * Copyright (c) 2003, B Dragovic
+> + * Copyright (c) 2003-2004, M Williamson, K Fraser
+> + * Copyright (c) 2005 Dan M. Smith, IBM Corporation
+> + * Copyright (c) 2010 Daniel Kiper
+> + * Copyright (c) 2018, Oleksandr Andrushchenko, EPAM Systems Inc.
+> + */
+> +
+> +#ifndef _XENMEM_RESERVATION_H
+> +#define _XENMEM_RESERVATION_H
+> +
+> +void xenmem_reservation_scrub_page(struct page *page);
+> +
+> +void xenmem_reservation_va_mapping_update(unsigned long count,
+> +					  struct page **pages,
+> +					  xen_pfn_t *frames);
+> +
+> +void xenmem_reservation_va_mapping_reset(unsigned long count,
+> +					 struct page **pages);
+> +
+> +int xenmem_reservation_increase(int count, xen_pfn_t *frames);
+> +
+> +int xenmem_reservation_decrease(int count, xen_pfn_t *frames);
+> +
+> +#endif
