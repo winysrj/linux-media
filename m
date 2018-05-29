@@ -1,142 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35600 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030474AbeEXJ5d (ORCPT
+Received: from relay11.mail.gandi.net ([217.70.178.231]:41835 "EHLO
+        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936713AbeE2PGt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 05:57:33 -0400
-Received: by mail-wr0-f196.google.com with SMTP id i14-v6so1967241wre.2
-        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 02:57:31 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        eballetbo@gmail.com
-Subject: [PATCH v6 4/6] mfd: cros-ec: Introduce CEC commands and events definitions.
-Date: Thu, 24 May 2018 11:57:19 +0200
-Message-Id: <1527155841-28494-5-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
-References: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
+        Tue, 29 May 2018 11:06:49 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        horms@verge.net.au, geert@glider.be
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        robh+dt@kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3 8/8] ARM: dts: rcar-gen2: Remove unused VIN properties
+Date: Tue, 29 May 2018 17:05:59 +0200
+Message-Id: <1527606359-19261-9-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The EC can expose a CEC bus, this patch adds the CEC related definitions
-needed by the cros-ec-cec driver.
+The 'bus-width' and 'pclk-sample' properties are not parsed by the VIN
+driver and only confuse users. Remove them in all Gen2 SoC that use
+them.
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- include/linux/mfd/cros_ec_commands.h | 81 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
+v3:
+- remove bus-width from dt-bindings example
+---
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 1 -
+ arch/arm/boot/dts/r8a7790-lager.dts                  | 3 ---
+ arch/arm/boot/dts/r8a7791-koelsch.dts                | 3 ---
+ arch/arm/boot/dts/r8a7791-porter.dts                 | 1 -
+ arch/arm/boot/dts/r8a7793-gose.dts                   | 3 ---
+ arch/arm/boot/dts/r8a7794-alt.dts                    | 1 -
+ arch/arm/boot/dts/r8a7794-silk.dts                   | 1 -
+ 7 files changed, 13 deletions(-)
 
-diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
-index cc0768e..fe33a81 100644
---- a/include/linux/mfd/cros_ec_commands.h
-+++ b/include/linux/mfd/cros_ec_commands.h
-@@ -804,6 +804,8 @@ enum ec_feature_code {
- 	EC_FEATURE_MOTION_SENSE_FIFO = 24,
- 	/* EC has RTC feature that can be controlled by host commands */
- 	EC_FEATURE_RTC = 27,
-+	/* EC supports CEC commands */
-+	EC_FEATURE_CEC = 35,
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 024c109..c6d7f60 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -128,7 +128,6 @@ Board setup example for Gen2 platforms (vin1 composite video input)
+
+                 vin1ep0: endpoint {
+                         remote-endpoint = <&adv7180>;
+-                        bus-width = <8>;
+                 };
+         };
  };
- 
- #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
-@@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
- 	/* EC sent a sysrq command */
- 	EC_MKBP_EVENT_SYSRQ = 6,
- 
-+	/* Notify the AP that something happened on CEC */
-+	EC_MKBP_EVENT_CEC_EVENT = 8,
-+
-+	/* Send an incoming CEC message to the AP */
-+	EC_MKBP_EVENT_CEC_MESSAGE = 9,
-+
- 	/* Number of MKBP events */
- 	EC_MKBP_EVENT_COUNT,
+diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+index 092610e..9cdabfcf 100644
+--- a/arch/arm/boot/dts/r8a7790-lager.dts
++++ b/arch/arm/boot/dts/r8a7790-lager.dts
+@@ -885,10 +885,8 @@
+ 	port {
+ 		vin0ep2: endpoint {
+ 			remote-endpoint = <&adv7612_out>;
+-			bus-width = <24>;
+ 			hsync-active = <0>;
+ 			vsync-active = <0>;
+-			pclk-sample = <1>;
+ 			data-active = <1>;
+ 		};
+ 	};
+@@ -904,7 +902,6 @@
+ 	port {
+ 		vin1ep0: endpoint {
+ 			remote-endpoint = <&adv7180>;
+-			bus-width = <8>;
+ 		};
+ 	};
  };
-@@ -2850,6 +2858,79 @@ struct ec_params_reboot_ec {
- 
- /*****************************************************************************/
- /*
-+ * HDMI CEC commands
-+ *
-+ * These commands are for sending and receiving message via HDMI CEC
-+ */
-+#define EC_MAX_CEC_MSG_LEN 16
-+
-+/* CEC message from the AP to be written on the CEC bus */
-+#define EC_CMD_CEC_WRITE_MSG 0x00B8
-+
-+/**
-+ * struct ec_params_cec_write - Message to write to the CEC bus
-+ * @msg: message content to write to the CEC bus
-+ */
-+struct ec_params_cec_write {
-+	uint8_t msg[EC_MAX_CEC_MSG_LEN];
-+} __packed;
-+
-+/* Set various CEC parameters */
-+#define EC_CMD_CEC_SET 0x00BA
-+
-+/**
-+ * struct ec_params_cec_set - CEC parameters set
-+ * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
-+ * @val: in case cmd is CEC_CMD_ENABLE, this field can be 0 to disable CEC
-+ *	or 1 to enable CEC functionnality, in case cmd is CEC_CMD_LOGICAL_ADDRESS,
-+ *	this field encodes the requested logical address between 0 and 15
-+ *	or 0xff to unregister
-+ */
-+struct ec_params_cec_set {
-+	uint8_t cmd; /* enum cec_command */
-+	uint8_t val;
-+} __packed;
-+
-+/* Read various CEC parameters */
-+#define EC_CMD_CEC_GET 0x00BB
-+
-+/**
-+ * struct ec_params_cec_get - CEC parameters get
-+ * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
-+ */
-+struct ec_params_cec_get {
-+	uint8_t cmd; /* enum cec_command */
-+} __packed;
-+
-+/**
-+ * struct ec_response_cec_get - CEC parameters get response
-+ * @val: in case cmd was CEC_CMD_ENABLE, this field will 0 if CEC is
-+ *	disabled or 1 if CEC functionnality is enabled,
-+ *	in case cmd was CEC_CMD_LOGICAL_ADDRESS, this will encode the
-+ *	configured logical address between 0 and 15 or 0xff if unregistered
-+ */
-+struct ec_response_cec_get {
-+	uint8_t val;
-+} __packed;
-+
-+/* CEC parameters command */
-+enum ec_cec_command {
-+	/* CEC reading, writing and events enable */
-+	CEC_CMD_ENABLE,
-+	/* CEC logical address  */
-+	CEC_CMD_LOGICAL_ADDRESS,
-+};
-+
-+/* Events from CEC to AP */
-+enum mkbp_cec_event {
-+	/* Outgoing message was acknowledged by a follower */
-+	EC_MKBP_CEC_SEND_OK			= BIT(0),
-+	/* Outgoing message was not acknowledged */
-+	EC_MKBP_CEC_SEND_FAILED			= BIT(1),
-+};
-+
-+/*****************************************************************************/
-+/*
-  * Special commands
-  *
-  * These do not follow the normal rules for commands.  See each command for
--- 
+diff --git a/arch/arm/boot/dts/r8a7791-koelsch.dts b/arch/arm/boot/dts/r8a7791-koelsch.dts
+index 8ab793d..033c9e3 100644
+--- a/arch/arm/boot/dts/r8a7791-koelsch.dts
++++ b/arch/arm/boot/dts/r8a7791-koelsch.dts
+@@ -857,10 +857,8 @@
+ 	port {
+ 		vin0ep2: endpoint {
+ 			remote-endpoint = <&adv7612_out>;
+-			bus-width = <24>;
+ 			hsync-active = <0>;
+ 			vsync-active = <0>;
+-			pclk-sample = <1>;
+ 			data-active = <1>;
+ 		};
+ 	};
+@@ -875,7 +873,6 @@
+ 	port {
+ 		vin1ep: endpoint {
+ 			remote-endpoint = <&adv7180>;
+-			bus-width = <8>;
+ 		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/r8a7791-porter.dts b/arch/arm/boot/dts/r8a7791-porter.dts
+index a01101b..c16e870 100644
+--- a/arch/arm/boot/dts/r8a7791-porter.dts
++++ b/arch/arm/boot/dts/r8a7791-porter.dts
+@@ -388,7 +388,6 @@
+ 	port {
+ 		vin0ep: endpoint {
+ 			remote-endpoint = <&adv7180>;
+-			bus-width = <8>;
+ 		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/r8a7793-gose.dts b/arch/arm/boot/dts/r8a7793-gose.dts
+index aa209f6..60aaddb 100644
+--- a/arch/arm/boot/dts/r8a7793-gose.dts
++++ b/arch/arm/boot/dts/r8a7793-gose.dts
+@@ -765,10 +765,8 @@
+ 	port {
+ 		vin0ep2: endpoint {
+ 			remote-endpoint = <&adv7612_out>;
+-			bus-width = <24>;
+ 			hsync-active = <0>;
+ 			vsync-active = <0>;
+-			pclk-sample = <1>;
+ 			data-active = <1>;
+ 		};
+ 	};
+@@ -784,7 +782,6 @@
+ 	port {
+ 		vin1ep: endpoint {
+ 			remote-endpoint = <&adv7180_out>;
+-			bus-width = <8>;
+ 		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/r8a7794-alt.dts b/arch/arm/boot/dts/r8a7794-alt.dts
+index e170275..8ed7a71 100644
+--- a/arch/arm/boot/dts/r8a7794-alt.dts
++++ b/arch/arm/boot/dts/r8a7794-alt.dts
+@@ -388,7 +388,6 @@
+ 	port {
+ 		vin0ep: endpoint {
+ 			remote-endpoint = <&adv7180>;
+-			bus-width = <8>;
+ 		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/r8a7794-silk.dts b/arch/arm/boot/dts/r8a7794-silk.dts
+index 7808aae..6adfcd6 100644
+--- a/arch/arm/boot/dts/r8a7794-silk.dts
++++ b/arch/arm/boot/dts/r8a7794-silk.dts
+@@ -477,7 +477,6 @@
+ 	port {
+ 		vin0ep: endpoint {
+ 			remote-endpoint = <&adv7180>;
+-			bus-width = <8>;
+ 		};
+ 	};
+ };
+--
 2.7.4
