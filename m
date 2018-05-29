@@ -1,160 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:57054 "EHLO
-        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751438AbeEQCBZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 22:01:25 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] v4l: Add support for STD ioctls on subdev nodes
-Date: Thu, 17 May 2018 04:00:57 +0200
-Message-Id: <20180517020057.14423-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail.bootlin.com ([62.4.15.54]:50205 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932476AbeE2J57 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 May 2018 05:57:59 -0400
+Date: Tue, 29 May 2018 11:57:57 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Yong Deng <yong.deng@magewell.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Thierry Reding <treding@nvidia.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v10 0/2] Initial Allwinner V3s CSI Support
+Message-ID: <20180529095757.qkz7jyuxza7movbc@flea.home>
+References: <20180517090224.u3ygdzjr77im2mmp@flea>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20180517090224.u3ygdzjr77im2mmp@flea>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- Documentation/media/uapi/v4l/vidioc-g-std.rst    | 14 ++++++++++----
- Documentation/media/uapi/v4l/vidioc-querystd.rst | 11 +++++++----
- drivers/media/v4l2-core/v4l2-subdev.c            | 12 ++++++++++++
- include/uapi/linux/v4l2-subdev.h                 |  3 +++
- 4 files changed, 32 insertions(+), 8 deletions(-)
+On Thu, May 17, 2018 at 11:02:24AM +0200, Maxime Ripard wrote:
+> On Fri, May 04, 2018 at 02:44:08PM +0800, Yong Deng wrote:
+> > This patchset add initial support for Allwinner V3s CSI.
+> > 
+> > Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
+> > interface and CSI1 is used for parallel interface. This is not
+> > documented in datasheet but by test and guess.
+> > 
+> > This patchset implement a v4l2 framework driver and add a binding 
+> > documentation for it. 
+> > 
+> > Currently, the driver only support the parallel interface. And has been
+> > tested with a BT1120 signal which generating from FPGA. The following
+> > fetures are not support with this patchset:
+> >   - ISP 
+> >   - MIPI-CSI2
+> >   - Master clock for camera sensor
+> >   - Power regulator for the front end IC
+> 
+> I tested it on my H3 with a parallel camera, and it still works. Thanks!
+> 
+> Hans, Sakari, any chance this might land in 4.18?
 
----
+Ping?
 
-Hi Hans,
+Maxime
 
-I have tested this on Renesas Gen3 Salvator-XS M3-N using the AFE 
-subdevice from the adv748x driver together with the R-Car VIN and CSI-2 
-pipeline.  
-
-I wrote a prototype patch for v4l2-ctl which adds three new options 
-(--get-subdev-standard, --set-subdev-standard and 
---get-subdev-detected-standard) to ease testing which I plan to submit 
-after some cleanup if this patch receives positive feedback.
-
-If you or anyone else is interested in testing this patch the v4l2-utils 
-prototype patches are available at
-
-git://git.ragnatech.se/v4l-utils#subdev-std
-
-Regards,
-// Niklas
-
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-std.rst b/Documentation/media/uapi/v4l/vidioc-g-std.rst
-index 90791ab51a5371b8..8d94f0404df270db 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-std.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-std.rst
-@@ -2,14 +2,14 @@
- 
- .. _VIDIOC_G_STD:
- 
--********************************
--ioctl VIDIOC_G_STD, VIDIOC_S_STD
--********************************
-+**************************************************************************
-+ioctl VIDIOC_G_STD, VIDIOC_S_STD, VIDIOC_SUBDEV_G_STD, VIDIOC_SUBDEV_S_STD
-+**************************************************************************
- 
- Name
- ====
- 
--VIDIOC_G_STD - VIDIOC_S_STD - Query or select the video standard of the current input
-+VIDIOC_G_STD - VIDIOC_S_STD - VIDIOC_SUBDEV_G_STD - VIDIOC_SUBDEV_S_STD - Query or select the video standard of the current input
- 
- 
- Synopsis
-@@ -21,6 +21,12 @@ Synopsis
- .. c:function:: int ioctl( int fd, VIDIOC_S_STD, const v4l2_std_id *argp )
-     :name: VIDIOC_S_STD
- 
-+.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_G_STD, v4l2_std_id *argp )
-+    :name: VIDIOC_SUBDEV_G_STD
-+
-+.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_S_STD, const v4l2_std_id *argp )
-+    :name: VIDIOC_SUBDEV_S_STD
-+
- 
- Arguments
- =========
-diff --git a/Documentation/media/uapi/v4l/vidioc-querystd.rst b/Documentation/media/uapi/v4l/vidioc-querystd.rst
-index cf40bca19b9f8665..a8385cc7481869dd 100644
---- a/Documentation/media/uapi/v4l/vidioc-querystd.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querystd.rst
-@@ -2,14 +2,14 @@
- 
- .. _VIDIOC_QUERYSTD:
- 
--*********************
--ioctl VIDIOC_QUERYSTD
--*********************
-+*********************************************
-+ioctl VIDIOC_QUERYSTD, VIDIOC_SUBDEV_QUERYSTD
-+*********************************************
- 
- Name
- ====
- 
--VIDIOC_QUERYSTD - Sense the video standard received by the current input
-+VIDIOC_QUERYSTD - VIDIOC_SUBDEV_QUERYSTD - Sense the video standard received by the current input
- 
- 
- Synopsis
-@@ -18,6 +18,9 @@ Synopsis
- .. c:function:: int ioctl( int fd, VIDIOC_QUERYSTD, v4l2_std_id *argp )
-     :name: VIDIOC_QUERYSTD
- 
-+.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_QUERYSTD, v4l2_std_id *argp )
-+    :name: VIDIOC_SUBDEV_QUERYSTD
-+
- 
- Arguments
- =========
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index f9eed938d3480b74..a156b1812e923721 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -494,6 +494,18 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	case VIDIOC_SUBDEV_S_DV_TIMINGS:
- 		return v4l2_subdev_call(sd, video, s_dv_timings, arg);
-+
-+	case VIDIOC_SUBDEV_G_STD:
-+		return v4l2_subdev_call(sd, video, g_std, arg);
-+
-+	case VIDIOC_SUBDEV_S_STD: {
-+		v4l2_std_id *std = arg;
-+
-+		return v4l2_subdev_call(sd, video, s_std, *std);
-+	}
-+
-+	case VIDIOC_SUBDEV_QUERYSTD:
-+		return v4l2_subdev_call(sd, video, querystd, arg);
- #endif
- 	default:
- 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index c95a53e6743cb040..133696a1f324ffdc 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -170,8 +170,11 @@ struct v4l2_subdev_selection {
- #define VIDIOC_SUBDEV_G_SELECTION		_IOWR('V', 61, struct v4l2_subdev_selection)
- #define VIDIOC_SUBDEV_S_SELECTION		_IOWR('V', 62, struct v4l2_subdev_selection)
- /* The following ioctls are identical to the ioctls in videodev2.h */
-+#define VIDIOC_SUBDEV_G_STD			_IOR('V', 23, v4l2_std_id)
-+#define VIDIOC_SUBDEV_S_STD			_IOW('V', 24, v4l2_std_id)
- #define VIDIOC_SUBDEV_G_EDID			_IOWR('V', 40, struct v4l2_edid)
- #define VIDIOC_SUBDEV_S_EDID			_IOWR('V', 41, struct v4l2_edid)
-+#define VIDIOC_SUBDEV_QUERYSTD			_IOR('V', 63, v4l2_std_id)
- #define VIDIOC_SUBDEV_S_DV_TIMINGS		_IOWR('V', 87, struct v4l2_dv_timings)
- #define VIDIOC_SUBDEV_G_DV_TIMINGS		_IOWR('V', 88, struct v4l2_dv_timings)
- #define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 98, struct v4l2_enum_dv_timings)
 -- 
-2.17.0
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
