@@ -1,66 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:50018 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966146AbeEXVgt (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:38051 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755410AbeE2Isa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 17:36:49 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Subject: [PATCH] v4l: vsp1: Fix YCbCr planar formats pitch calculation
-Date: Fri, 25 May 2018 00:36:42 +0300
-Message-Id: <20180524213642.14584-1-laurent.pinchart+renesas@ideasonboard.com>
+        Tue, 29 May 2018 04:48:30 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v5 08/10] media: rcar-vin: Handle parallel subdev in link_notify
+Date: Tue, 29 May 2018 10:48:06 +0200
+Message-Id: <1527583688-314-9-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Handle parallel subdevices in link_notify callback. If the notified link
+involves a parallel subdevice, do not change routing of the VIN-CSI-2
+devices and mark the VIN instance as using a parallel input. If the
+CSI-2 link setup succeeds instead, mark the VIN instance as using CSI-2.
 
-YCbCr planar formats can have different pitch values for the luma and
-chroma planes. This isn't taken into account in the driver. Fix it.
-
-Based on a BSP patch from Koji Matsuoka <koji.matsuoka.xm@renesas.com>.
-
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/platform/vsp1/vsp1_drm.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 35 ++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index edb35a5c57ea..917f60f553fc 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -771,6 +771,7 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
- 	const struct vsp1_format_info *fmtinfo;
-+	unsigned int chroma_hsub;
- 	struct vsp1_rwpf *rpf;
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 66066a0..e353ba9 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -171,9 +171,37 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
  
- 	if (rpf_index >= vsp1->info->rpf_count)
-@@ -811,10 +812,18 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
- 		return -EINVAL;
- 	}
- 
-+	/*
-+	 * Only formats with three planes can affect the chroma planes pitch.
-+	 * All formats with two planes have a horizontal subsampling value of 2,
-+	 * but combine U and V in a single chroma plane, which thus results in
-+	 * the luma plane and chroma plane having the same pitch.
-+	 */
-+	chroma_hsub = (fmtinfo->planes == 3) ? fmtinfo->hsub : 1;
+ 	/* Add the new link to the existing mask and check if it works. */
+ 	csi_id = rvin_group_entity_to_csi_id(group, link->source->entity);
 +
- 	rpf->fmtinfo = fmtinfo;
- 	rpf->format.num_planes = fmtinfo->planes;
- 	rpf->format.plane_fmt[0].bytesperline = cfg->pitch;
--	rpf->format.plane_fmt[1].bytesperline = cfg->pitch;
-+	rpf->format.plane_fmt[1].bytesperline = cfg->pitch / chroma_hsub;
- 	rpf->alpha = cfg->alpha;
++	if (csi_id == -ENODEV) {
++		struct v4l2_subdev *sd;
++		unsigned int i;
++
++		/*
++		 * Make sure the source entity subdevice is registered as
++		 * a parallel input of one of the enabled VINs if it is not
++		 * one of the CSI-2 subdevices.
++		 *
++		 * No hardware configuration required for parallel inputs,
++		 * we can return here.
++		 */
++		sd = media_entity_to_v4l2_subdev(link->source->entity);
++		for (i = 0; i < RCAR_VIN_NUM; i++) {
++			if (group->vin[i] && group->vin[i]->parallel &&
++			    group->vin[i]->parallel->subdev == sd) {
++				group->vin[i]->is_csi = false;
++				ret = 0;
++				goto out;
++			}
++		}
++
++		vin_err(vin, "Subdevice %s not registered to any VIN\n",
++			link->source->entity->name);
++		ret = -ENODEV;
++		goto out;
++	}
++
+ 	channel = rvin_group_csi_pad_to_channel(link->source->index);
+ 	mask_new = mask & rvin_group_get_mask(vin, csi_id, channel);
+-
+ 	vin_dbg(vin, "Try link change mask: 0x%x new: 0x%x\n", mask, mask_new);
  
- 	rpf->mem.addr[0] = cfg->mem[0];
+ 	if (!mask_new) {
+@@ -183,6 +211,11 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
+ 
+ 	/* New valid CHSEL found, set the new value. */
+ 	ret = rvin_set_channel_routing(group->vin[master_id], __ffs(mask_new));
++	if (ret)
++		goto out;
++
++	vin->is_csi = true;
++
+ out:
+ 	mutex_unlock(&group->lock);
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
