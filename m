@@ -1,85 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:44612 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752309AbeEPNhJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 09:37:09 -0400
-Date: Wed, 16 May 2018 10:36:56 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
-Message-ID: <20180516103656.208043d4@vento.lan>
-In-Reply-To: <20180516131108.xcvsw6m4qrmqgykh@mwanda>
-References: <20180423152455.363d285c@vento.lan>
-        <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
-        <20180423161742.66f939ba@vento.lan>
-        <99e158c0-1273-2500-da9e-b5ab31cba889@embeddedor.com>
-        <20180426204241.03a42996@vento.lan>
-        <df8010f1-6051-7ff4-5f0e-4a436e900ec5@embeddedor.com>
-        <20180515085953.65bfa107@vento.lan>
-        <20180515141655.idzuh2jfdkuu5grs@mwanda>
-        <f342d8d6-b5e6-0cbf-d002-9561b79c90e4@embeddedor.com>
-        <20180515160033.156f119c@vento.lan>
-        <20180516131108.xcvsw6m4qrmqgykh@mwanda>
+Received: from mail-sn1nam01on0079.outbound.protection.outlook.com ([104.47.32.79]:43136
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S965571AbeE2S5q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 May 2018 14:57:46 -0400
+From: Vishal Sagar <vishal.sagar@xilinx.com>
+To: <hyun.kwon@xilinx.com>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>
+CC: <sakari.ailus@linux.intel.com>, <hans.verkuil@cisco.com>,
+        <mchehab@kernel.org>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
+        <dineshk@xilinx.com>, <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        Vishal Sagar <vishal.sagar@xilinx.com>
+Subject: [PATCH 0/2] Add support for Xilinx CSI2 Receiver Subsystem
+Date: Wed, 30 May 2018 00:24:42 +0530
+Message-ID: <1527620084-94864-1-git-send-email-vishal.sagar@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 16 May 2018 16:11:08 +0300
-Dan Carpenter <dan.carpenter@oracle.com> escreveu:
+Xilinx MIPI CSI-2 Receiver Subsystem
+------------------------------------
 
-> On Tue, May 15, 2018 at 04:00:33PM -0300, Mauro Carvalho Chehab wrote:
-> > Yeah, that's the same I'm getting from media upstream.
-> >   
-> > > drivers/media/cec/cec-pin-error-inj.c:170 cec_pin_error_inj_parse_line() 
-> > > warn: potential spectre issue 'pin->error_inj_args'  
-> > 
-> > This one seems a false positive, as the index var is u8 and the
-> > array has 256 elements, as the userspace input from 'op' is 
-> > initialized with:
-> > 
-> > 	u8 v;
-> > 	u32 op;
-> > 
-> > 	if (!kstrtou8(token, 0, &v))
-> > 		op = v;
-> >   
-> 
-> It's hard to silence this because Smatch stores the current user
-> controlled range list, not what it was initially.  I wrote all this code
-> to detect bounds checking errors, so there wasn't any need to save the
-> range list before the bounds check.  Since "op" is a u32, I can't even
-> go by the type of the index....
+The Xilinx MIPI CSI-2 Receiver Subsystem Soft IP consists of a DPHY which
+gets the data, an optional I2C, a CSI-2 Receiver which parses the data and
+converts it into AXIS data.
+This stream output maybe connected to a Xilinx Video Format Bridge.
+The maximum number of lanes supported is fixed in the design.
+The number of active lanes can be programmed.
+For e.g. the design may set maximum lanes as 4 but if the camera sensor has
+only 1 lane then the active lanes shall be set as 1.
 
-Yeah, I was thinking that is would be harder to clean this up on
-smatch. I proposed a patch to the ML that simplifies the logic,
-making easier for both humans and Smatch to better understand how
-the arrays are indexed.
+The pixel format set in design acts as a filter allowing only the selected
+data type or RAW8 data packets. The D-PHY register access can be gated in
+the design. The base address of the DPHY depends on whether the internal
+Xilinx I2C controller is enabled or not in design.
 
-> 
-> > > drivers/media/dvb-core/dvb_ca_en50221.c:1479 dvb_ca_en50221_io_write() 
-> > > warn: potential spectre issue 'ca->slot_info' (local cap)  
-> > 
-> > This one seems a real issue to me. Sent a patch for it.
-> >   
-> > > drivers/media/dvb-core/dvb_net.c:252 handle_one_ule_extension() warn: 
-> > > potential spectre issue 'p->ule_next_hdr'  
-> > 
-> > I failed to see what's wrong here, or if this is exploited.   
-> 
-> Oh...  Huh.  This is a bug in smatch.  That line looks like:
-> 
-> 	p->ule_sndu_type = ntohs(*(__be16 *)(p->ule_next_hdr + ((p->ule_dbit ? 2 : 3) * ETH_ALEN)));
-> 
-> Smatch see the ntohs() and marks everything inside it as untrusted
-> network data.  I'll fix this.
+The device driver registers the MIPI CSI2 Rx Subsystem as a V4L2 sub device
+having 2 pads. The sink pad is connected to the MIPI camera sensor and
+output pad is connected to the video node.
+Refer to xlnx,csi2rxss.txt for device tree node details.
 
-Thanks!
+This driver helps configure the number of active lanes to be set, setting
+and handling interrupts and IP core enable. It logs the number of events
+occurring according to their type between streaming ON and OFF.
+It generates a v4l2 event for each short packet data received.
+The application can then dequeue this event and get the requisite data
+from the event structure.
 
-Regards,
-Mauro
+It adds new V4L2 controls which are used to get the event counter values
+and reset the subsystem.
+
+The Xilinx CSI-2 Rx Subsystem outputs an AXI4 Stream data which can be
+used for image processing. This data follows the video formats mentioned
+in Xilinx UG934 when the Video Format Bridge and pixels per clock design
+inputs are set. When the VFB is deselected then the video data width will
+either be 32 or 64 bits.
+
+Vishal Sagar (2):
+  media: dt-bindings: media: xilinx: Add Xilinx MIPI CSI-2 Rx Subsystem
+  media: v4l: xilinx: Add Xilinx MIPI CSI-2 Rx Subsystem driver
+
+ .../bindings/media/xilinx/xlnx,csi2rxss.txt        |  117 ++
+ drivers/media/platform/xilinx/Kconfig              |   12 +
+ drivers/media/platform/xilinx/Makefile             |    1 +
+ drivers/media/platform/xilinx/xilinx-csi2rxss.c    | 1751 ++++++++++++++++=
+++++
+ include/uapi/linux/xilinx-csi2rxss.h               |   25 +
+ include/uapi/linux/xilinx-v4l2-controls.h          |   14 +
+ 6 files changed, 1920 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,csi=
+2rxss.txt
+ create mode 100644 drivers/media/platform/xilinx/xilinx-csi2rxss.c
+ create mode 100644 include/uapi/linux/xilinx-csi2rxss.h
+
+--
+2.7.4
+
+This email and any attachments are intended for the sole use of the named r=
+ecipient(s) and contain(s) confidential information that may be proprietary=
+, privileged or copyrighted under applicable law. If you are not the intend=
+ed recipient, do not read, copy, or forward this email message or any attac=
+hments. Delete this email message and any attachments immediately.
