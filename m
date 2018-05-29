@@ -1,67 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:56513 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752189AbeENL2M (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:56551 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755422AbeE2Isc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 07:28:12 -0400
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Luca Ceresoli <luca@lucaceresoli.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v2 1/5] media: docs: selection: fix typos
-Date: Mon, 14 May 2018 13:27:23 +0200
-Message-Id: <1526297247-20881-1-git-send-email-luca@lucaceresoli.net>
+        Tue, 29 May 2018 04:48:32 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v5 09/10] media: rcar-vin: Rename _rcar_info to rcar_info
+Date: Tue, 29 May 2018 10:48:07 +0200
+Message-Id: <1527583688-314-10-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix typos in the selection documentation:
- - over -> cover
- - BONDS -> BOUNDS
+Remove leading underscore to align all rcar_group_route structure
+declarations.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
-
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
+ drivers/media/platform/rcar-vin/rcar-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Changed v1 -> v2:
- - add a commit message (Hans)
----
- Documentation/media/uapi/v4l/selection-api-004.rst | 2 +-
- Documentation/media/uapi/v4l/selection.svg         | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/Documentation/media/uapi/v4l/selection-api-004.rst b/Documentation/media/uapi/v4l/selection-api-004.rst
-index d782cd5b2117..0a4ddc2d71db 100644
---- a/Documentation/media/uapi/v4l/selection-api-004.rst
-+++ b/Documentation/media/uapi/v4l/selection-api-004.rst
-@@ -41,7 +41,7 @@ The driver may further adjust the requested size and/or position
- according to hardware limitations.
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index e353ba9..7869308 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -1036,7 +1036,7 @@ static const struct rvin_info rcar_info_r8a7796 = {
+ 	.routes = rcar_info_r8a7796_routes,
+ };
  
- Each capture device has a default source rectangle, given by the
--``V4L2_SEL_TGT_CROP_DEFAULT`` target. This rectangle shall over what the
-+``V4L2_SEL_TGT_CROP_DEFAULT`` target. This rectangle shall cover what the
- driver writer considers the complete picture. Drivers shall set the
- active crop rectangle to the default when the driver is first loaded,
- but not later.
-diff --git a/Documentation/media/uapi/v4l/selection.svg b/Documentation/media/uapi/v4l/selection.svg
-index a93e3b59786d..911062bd2844 100644
---- a/Documentation/media/uapi/v4l/selection.svg
-+++ b/Documentation/media/uapi/v4l/selection.svg
-@@ -1128,11 +1128,11 @@
-    </text>
-   </g>
-   <text transform="matrix(.96106 0 0 1.0405 48.571 195.53)" x="2438.062" y="1368.429" enable-background="new" font-size="50" style="line-height:125%">
--   <tspan x="2438.062" y="1368.429">COMPOSE_BONDS</tspan>
-+   <tspan x="2438.062" y="1368.429">COMPOSE_BOUNDS</tspan>
-   </text>
-   <g font-size="40">
-    <text transform="translate(48.571 195.53)" x="8.082" y="1438.896" enable-background="new" style="line-height:125%">
--    <tspan x="8.082" y="1438.896" font-size="50">CROP_BONDS</tspan>
-+    <tspan x="8.082" y="1438.896" font-size="50">CROP_BOUNDS</tspan>
-    </text>
-    <text transform="translate(48.571 195.53)" x="1455.443" y="-26.808" enable-background="new" style="line-height:125%">
-     <tspan x="1455.443" y="-26.808" font-size="50">overscan area</tspan>
+-static const struct rvin_group_route _rcar_info_r8a77970_routes[] = {
++static const struct rvin_group_route rcar_info_r8a77970_routes[] = {
+ 	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
+ 	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
+ 	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(3) },
+@@ -1052,7 +1052,7 @@ static const struct rvin_info rcar_info_r8a77970 = {
+ 	.use_mc = true,
+ 	.max_width = 4096,
+ 	.max_height = 4096,
+-	.routes = _rcar_info_r8a77970_routes,
++	.routes = rcar_info_r8a77970_routes,
+ };
+ 
+ static const struct of_device_id rvin_of_id_table[] = {
 -- 
 2.7.4
