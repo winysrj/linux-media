@@ -1,46 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:39381 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934279AbeE2N3G (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 May 2018 09:29:06 -0400
-From: Janani Sankara Babu <jananis37@gmail.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Janani Sankara Babu <jananis37@gmail.com>
-Subject: [PATCH] Staging:media:imx Fix multiple assignments in a line
-Date: Tue, 29 May 2018 19:08:22 -0400
-Message-Id: <1527635302-5701-1-git-send-email-jananis37@gmail.com>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:51528 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1755458AbeE2Iss (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 May 2018 04:48:48 -0400
+Date: Tue, 29 May 2018 10:48:45 +0200
+From: Gerd Hoffmann <kraxel@redhat.com>
+To: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Shuah Khan <shuah@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:KERNEL SELFTEST FRAMEWORK"
+        <linux-kselftest@vger.kernel.org>
+Subject: Re: [PATCH v3] Add udmabuf misc device
+Message-ID: <20180529084845.2al2dmpvjpz6eexp@sirius.home.kraxel.org>
+References: <20180525140808.12714-1-kraxel@redhat.com>
+ <20180529082327.GF3438@phenom.ffwll.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180529082327.GF3438@phenom.ffwll.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch solves multiple assignments warning shown by checkpatch
-script.
+  Hi,
 
-Signed-off-by: Janani Sankara Babu <jananis37@gmail.com>
----
- drivers/staging/media/imx/imx-media-csi.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+> > +static void *kmap_atomic_udmabuf(struct dma_buf *buf, unsigned long page_num)
+> > +{
+> > +	struct udmabuf *ubuf = buf->priv;
+> > +	struct page *page = ubuf->pages[page_num];
+> > +
+> > +	return kmap_atomic(page);
+> > +}
+> > +
+> > +static void *kmap_udmabuf(struct dma_buf *buf, unsigned long page_num)
+> > +{
+> > +	struct udmabuf *ubuf = buf->priv;
+> > +	struct page *page = ubuf->pages[page_num];
+> > +
+> > +	return kmap(page);
+> > +}
+> 
+> The above leaks like mad since no kunamp?
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index aeab05f..15068f7 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1191,10 +1191,12 @@ static int csi_enum_frame_size(struct v4l2_subdev *sd,
- 	} else {
- 		crop = __csi_get_crop(priv, cfg, fse->which);
+/me checks code.  Oops.  Yes.
 
--		fse->min_width = fse->max_width = fse->index & 1 ?
-+		fse->min_width = fse->index & 1 ?
- 			crop->width / 2 : crop->width;
--		fse->min_height = fse->max_height = fse->index & 2 ?
-+		fse->max_width = fse->min_width;
-+		fse->min_height = fse->index & 2 ?
- 			crop->height / 2 : crop->height;
-+		fse->max_height = fse->min_height;
- 	}
+The docs say map() is required and unmap() is not (for both atomic and
+non-atomic cases), so I assumed there is a default implementation just
+doing kunmap(page).  Which is not the case.  /me looks a bit surprised.
 
- 	mutex_unlock(&priv->lock);
---
-1.9.1
+I'll fix it for v4.
+
+> Also I think we have 0 users of the kmap atomic interfaces ... so not sure
+> whether it's worth it to implement those.
+
+Well, the docs are correct.  kmap_atomic() is required, dma-buf.c calls
+the function pointer without checking it exists beforehand ...
+
+cheers,
+  Gerd
