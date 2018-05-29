@@ -1,93 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:45608 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751940AbeEGIKX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 04:10:23 -0400
-Date: Mon, 7 May 2018 10:10:11 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Sam Bobrowicz <sam@elite-embedded.com>
-Cc: Loic Poulain <loic.poulain@linaro.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: Re: [PATCH v2 00/12] media: ov5640: Misc cleanup and improvements
-Message-ID: <20180507081011.kvo2vbtzhaxqcf4v@flea>
-References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
- <20180419123244.tujbrkpazbdyows6@flea>
- <CAFwsNOEV0Q2HjmaoT-m-znD-+0VSfE4tJ2vCPuNpUe2M72ErAA@mail.gmail.com>
- <3075738.A80d5ULHjc@avalon>
- <CAFwsNOECP74VKYavSo6RBzzohZ1S69=CVjSP_zYDsBXMhyxMjw@mail.gmail.com>
- <20180503151621.onuq77ph32o5euis@flea>
- <CAMZdPi-DGc4-BTyJ7Lx2tHLdGvPg__OPRsr7V1DrQwL9Cc87_A@mail.gmail.com>
- <CAFwsNOEYmcCGnBE1pLV53JxSNEzCOk0oCMw=dowaeD1ckuDuoA@mail.gmail.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:59818 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933716AbeE2Mb7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 May 2018 08:31:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: vsp1: Document vsp1_dl_body refcnt
+Date: Tue, 29 May 2018 15:32:01 +0300
+Message-ID: <2592409.Y0HWR0tUhb@avalon>
+In-Reply-To: <20180528102420.19150-1-kieran.bingham@ideasonboard.com>
+References: <20180528102420.19150-1-kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="yvty2zhvrtguciro"
-Content-Disposition: inline
-In-Reply-To: <CAFwsNOEYmcCGnBE1pLV53JxSNEzCOk0oCMw=dowaeD1ckuDuoA@mail.gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Kieran,
 
---yvty2zhvrtguciro
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patch.
 
-On Fri, May 04, 2018 at 02:13:16PM -0700, Sam Bobrowicz wrote:
-> > FYI, I've found the following document:
-> > https://community.nxp.com/servlet/JiveServlet/downloadImage/105-32914-9=
-9951/ov5640_diagram.jpg
-> >
-> > So it seems that clock tree is a bit different.
->=20
-> So that is where the Digilent RnD team got their information. I was
-> working with an ASCII representation of the same diagram, thanks for
-> providing that.
->=20
-> >
-> > So, from my understanding we need to calculate dividers so that:
-> > sclk =3D vtot * htot * fps
-> > pclk =3D sclk  * byte-per-pixel
-> > mipisclk =3D 8 * pclk / num-lanes
->=20
-> Unfortunately there are more factors at play depending on what
-> features you are using in the ISP. Easiest way for me to describe them
-> is to just complete my patches, then we can discuss further.
+On Monday, 28 May 2018 13:24:20 EEST Kieran Bingham wrote:
+> In commit 2d9445db0ee9 ("media: vsp1: Use reference counting for
+> bodies"), a new field was introduced to the vsp1_dl_body structure to
+> account for usage tracking of the body.
+> 
+> Document the newly added field in the kerneldoc.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
 
-Do we support any of those features at the moment? If not, then we
-shouldn't worry about it too much for now.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Maxime
+and taken in my tree for v4.19.
 
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
+> ---
+>  drivers/media/platform/vsp1/vsp1_dl.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
+> b/drivers/media/platform/vsp1/vsp1_dl.c index d9b9cdd8fbe2..10a24bde2299
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+> @@ -43,6 +43,7 @@ struct vsp1_dl_entry {
+>   * struct vsp1_dl_body - Display list body
+>   * @list: entry in the display list list of bodies
+>   * @free: entry in the pool free body list
+> + * @refcnt: reference tracking for the body
+>   * @pool: pool to which this body belongs
+>   * @vsp1: the VSP1 device
+>   * @entries: array of entries
 
---yvty2zhvrtguciro
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
+-- 
+Regards,
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrwCeIACgkQ0rTAlCFN
-r3SIXw/8DGSmnFmrh6IjM0ctkL9bBhr4n8PKcCmN9p60vtB5h3MUoa4kq5CjDHnk
-Qk6KM1iwQPx9neXQEblBFRiIvf602oYn45WWNrbZyEcU7hWaxFIeUeeZKzt44l+X
-FmAq1rm5ETZ0gim9nvImfXK3FXYqpS7U3TdsXAP6CRgFmpE8YoTfC/xMYAs+zZsf
-wLcrqmmQo4DrTovud8Kd75iBuzMbs05M8N36nFjAyIALr+u8+ZxstlySJImDUZym
-ZAX3CkufexoXBk9ab7QRKZCkomh1RzOhC0De/D+IMJ4mCflS4xBiJtsj8Jq9p4hq
-ASTgrIz7EfY0VcfOLyqm89xHYZ7kZURBpr9YqkUp0DNjUcIHEuFlQGxL21CQyMGx
-REc70A8evEGrD89vfeMs+Be1pUqmuH7LA3zVuGcXQ6WZwmZQGIcoH3DzNkZJuXDd
-OTCofBem+ND6slRZQXxgKMnty1U8cYi0RBCkFN4EODIe0LQJLQrH7ow4VkzUnh5O
-aIUjkiFKGIgJhq4qwsWJxX6oFsaJqS/yXD16c+Ipr1im7WVTj5lyu7tQXpQGOFzx
-b2ZQn8QZk2A5Q1M/RAd312DSENqZpJR+VlOo8Wdhq9MJ0YvXX+clir15cUdGB4N5
-a1lrO7K2mYvKSt5hzdT0ueau3GubtbwSBmwDcyiQohDvbBzttqw=
-=BGt1
------END PGP SIGNATURE-----
-
---yvty2zhvrtguciro--
+Laurent Pinchart
