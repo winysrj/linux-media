@@ -1,63 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:48154 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751086AbeEEPFT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2018 11:05:19 -0400
-Date: Sat, 5 May 2018 12:05:13 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>, Dave Airlie <airlied@gmail.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3 0/8] R-Car DU: Support CRC calculation
-Message-ID: <20180505120513.59e05e93@vento.lan>
-In-Reply-To: <5038283.TSNOrsSzts@avalon>
-References: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
-        <4411331.L07MOrSnxD@avalon>
-        <CAKMK7uG_WBvAaRDy9Co=LLa6cUcLTuWYNu7ABkUxs-NzEXNRew@mail.gmail.com>
-        <5038283.TSNOrsSzts@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from relay11.mail.gandi.net ([217.70.178.231]:37647 "EHLO
+        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935211AbeE2PGc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 May 2018 11:06:32 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        horms@verge.net.au, geert@glider.be
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        robh+dt@kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3 2/8] dt-bindings: media: Document data-enable-active property
+Date: Tue, 29 May 2018 17:05:53 +0200
+Message-Id: <1527606359-19261-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 05 May 2018 17:06:50 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Add 'data-enable-active' property to endpoint node properties list.
 
-> Hi Daniel,
-> 
-> (CC'ing Mauro)
-> 
-> On Thursday, 3 May 2018 16:45:36 EEST Daniel Vetter wrote:
-> > On Thu, May 3, 2018 at 2:06 PM, Laurent Pinchart wrote:  
-> > > Hi Dave,
-> > > 
-> > > Ping ?  
-> > 
-> > Not aware of any crc core work going on in drm, so has my ack.  
-> 
-> Thank you.
-> 
-> > Worst case we do a topic branch or something like that (since I guess you'll
-> > do a pull request anyway on the v4l side).  
-> 
-> That would unfortunately not be possible, as Mauro cherry-picks patches 
-> instead of merging pull requests. In rare cases I can ask for a pull-request 
-> to be merged as-is, but it's too late in this case as the previous pull 
-> request that this series is based on has been cherry-picked, not merged.
+The property allows to specify the polarity of the data-enable signal, which
+when in active state determinates when data lanes have to sampled for valid
+pixel data.
 
-I probably missed something, but I fail to see what's the problem.
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+v3:
+- new patch
+---
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-If DRM needs a patch that was already merged on our tree, I can gladly
-create a stable branch/tag for it - well, media master branch is stable,
-but I can add a tag there just after the patch DRM needs, in order
-to avoid them to merge from us at some random point.
-
-If otherwise we need a patch applied at DRM, they can do the same:
-create a branch/tag, and I can pull from it.
-
-Thanks,
-Mauro
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 258b8df..9839d26 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -109,6 +109,8 @@ Optional endpoint properties
+   Note, that if HSYNC and VSYNC polarities are not specified, embedded
+   synchronization may be required, where supported.
+ - data-active: similar to HSYNC and VSYNC, specifies data line polarity.
++- data-enable-active: similar to HSYNC and VSYNC, specifies the data enable
++  signal polarity.
+ - field-even-active: field signal level during the even field data transmission.
+ - pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
+   signal.
+--
+2.7.4
