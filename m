@@ -1,1409 +1,1225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:46932 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:25846 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751811AbeEDRF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 May 2018 13:05:28 -0400
-Date: Sat, 5 May 2018 01:05:00 +0800
+        id S933248AbeE2Lim (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 May 2018 07:38:42 -0400
+Date: Tue, 29 May 2018 19:37:52 +0800
 From: kbuild test robot <lkp@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org
-Subject: [linuxtv-media:master 167/207]
- drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2396:44: sparse: call with no
- type!
-Message-ID: <201805050155.wUWNEk6e%fengguang.wu@intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
+        linux-media@vger.kernel.org
+Subject: [ragnatech:media-tree 442/456]
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.o: warning: objtool:
+ pvr2_v4l2_dev_init.cold.3()+0x4a: return with modified stack frame
+Message-ID: <201805291950.0aNu9Yzf%fengguang.wu@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="WIyZ46R2i8wDzkSu"
 Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   53dcd70eb710607b2d4085ca91a433cd9feb7b41
-commit: 771f7be87ff921e9a3d744febd606af39a150e14 [167/207] media: omapfb: omapfb_dss.h: add stubs to build with COMPILE_TEST && DRM_OMAP
+
+--WIyZ46R2i8wDzkSu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+tree:   git://git.ragnatech.se/linux media-tree
+head:   a00031c159748f322f771f3c1d5ed944cba4bd30
+commit: eba09b5b3dfb1b79db4428b6f379f68db4b62056 [442/456] media: pvrusb2: replace pvr2_v4l2_ioctl by video_ioctl2
+config: x86_64-allyesconfig (attached as .config)
+compiler: gcc-8 (Debian 8.1.0-3) 8.1.0
 reproduce:
-        # apt-get install sparse
-        git checkout 771f7be87ff921e9a3d744febd606af39a150e14
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+        git checkout eba09b5b3dfb1b79db4428b6f379f68db4b62056
+        # save the attached .config to linux build tree
+        make ARCH=x86_64 
 
+All warnings (new ones prefixed by >>):
 
-sparse warnings: (new ones prefixed by >>)
-
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c:1461:32: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c:1461:32: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c:1924:25: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c:1924:25: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2396:15: sparse: undefined identifier 'omapdss_find_mgr_from_display'
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2430:20: sparse: undefined identifier 'omapdss_get_default_display_name'
->> drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2396:44: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2430:52: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c: In function 'omapfb_init_connections':
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2396:8: error: implicit declaration of function 'omapdss_find_mgr_from_display'; did you mean 'omapfb_init_display'? [-Werror=implicit-function-declaration]
-     mgr = omapdss_find_mgr_from_display(def_dssdev);
-           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-           omapfb_init_display
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2396:6: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     mgr = omapdss_find_mgr_from_display(def_dssdev);
-         ^
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c: In function 'omapfb_find_default_display':
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2430:13: error: implicit declaration of function 'omapdss_get_default_display_name'; did you mean 'omapfb_find_default_display'? [-Werror=implicit-function-declaration]
-     def_name = omapdss_get_default_display_name();
-                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                omapfb_find_default_display
-   drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2430:11: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     def_name = omapdss_get_default_display_name();
-              ^
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:45:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:66:9: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:67:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:88:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:91:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:115:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:210:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:225:13: sparse: undefined identifier 'omapdss_register_output'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:243:9: sparse: undefined identifier 'omapdss_unregister_output'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:245:9: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:246:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:249:9: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:250:13: sparse: undefined identifier 'omapdss_device_is_connected'
->> drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:45:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:66:9: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:67:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:88:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:91:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:115:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:210:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:225:36: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:243:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:245:9: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:246:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:249:9: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:250:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c: In function 'opa362_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:45:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c: In function 'opa362_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:91:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c: In function 'opa362_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:210:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:210:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:225:6: error: implicit declaration of function 'omapdss_register_output'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_output(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c: In function 'opa362_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-opa362.c:243:2: error: implicit declaration of function 'omapdss_unregister_output'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_output(&ddata->dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:39:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:58:9: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:59:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:78:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:81:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:105:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:184:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:233:13: sparse: undefined identifier 'omapdss_register_output'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:252:9: sparse: undefined identifier 'omapdss_unregister_output'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:254:9: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:255:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:258:9: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:259:13: sparse: undefined identifier 'omapdss_device_is_connected'
->> drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:39:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:58:9: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:59:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:78:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:81:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:105:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:184:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:233:36: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:252:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:254:9: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:255:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:258:9: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:259:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c: In function 'tfp410_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:39:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c: In function 'tfp410_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:81:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c: In function 'tfp410_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:184:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:184:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c: In function 'tfp410_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:233:6: error: implicit declaration of function 'omapdss_register_output'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_output(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c: In function 'tfp410_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tfp410.c:252:2: error: implicit declaration of function 'omapdss_unregister_output'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_output(&ddata->dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:208:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:272:13: sparse: undefined identifier 'omapdss_register_output'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:291:9: sparse: undefined identifier 'omapdss_unregister_output'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:293:9: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:294:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:297:9: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:298:13: sparse: undefined identifier 'omapdss_device_is_connected'
->> drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:208:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:272:36: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:291:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:293:9: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:294:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:297:9: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:298:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c: In function 'tpd_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:208:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:208:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c: In function 'tpd_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:272:6: error: implicit declaration of function 'omapdss_register_output'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_output(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c: In function 'tpd_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:291:2: error: implicit declaration of function 'omapdss_unregister_output'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_output(&ddata->dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   In file included from arch/x86/include/asm/bug.h:83:0,
-                    from include/linux/bug.h:5,
-                    from include/linux/thread_info.h:12,
-                    from arch/x86/include/asm/preempt.h:7,
-                    from include/linux/preempt.h:81,
-                    from include/linux/spinlock.h:51,
-                    from include/linux/wait.h:9,
-                    from include/linux/completion.h:12,
-                    from drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:12:
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:293:10: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     WARN_ON(omapdss_device_is_enabled(dssdev));
-             ^
-   include/asm-generic/bug.h:112:25: note: in definition of macro 'WARN_ON'
-     int __ret_warn_on = !!(condition);    46-                         ^~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c:297:10: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     WARN_ON(omapdss_device_is_connected(dssdev));
-             ^
-   include/asm-generic/bug.h:112:25: note: in definition of macro 'WARN_ON'
-     int __ret_warn_on = !!(condition);    52-                         ^~~~~~~~~
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:59:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:74:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:86:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:89:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:108:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:185:13: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:194:21: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:232:27: sparse: undefined identifier 'omapdss_default_get_resolution'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:246:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:297:13: sparse: undefined identifier 'omapdss_register_display'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:319:9: sparse: undefined identifier 'omapdss_unregister_display'
->> drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:59:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:74:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:86:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:89:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:108:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:246:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:297:37: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:319:35: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c: In function 'dvic_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:59:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c: In function 'dvic_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:89:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:232:20: error: 'omapdss_default_get_resolution' undeclared here (not in a function); did you mean 'omapdss_get_version'?
-     .get_resolution = omapdss_default_get_resolution,
-                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                       omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c: In function 'dvic_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:246:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:246:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c: In function 'dvic_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:297:6: error: implicit declaration of function 'omapdss_register_display'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_display(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c: In function 'dvic_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c:319:2: error: implicit declaration of function 'omapdss_unregister_display'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_display(&ddata->dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:60:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:77:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:91:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:94:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:115:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:200:35: sparse: undefined identifier 'omapdss_default_get_resolution'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:222:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:269:13: sparse: undefined identifier 'omapdss_register_display'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:287:9: sparse: undefined identifier 'omapdss_unregister_display'
->> drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:60:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:77:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:91:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:94:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:115:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:222:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:269:37: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:287:35: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c: In function 'hdmic_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:60:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c: In function 'hdmic_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:94:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:200:21: error: 'omapdss_default_get_resolution' undeclared here (not in a function); did you mean 'omapdss_get_version'?
-     .get_resolution  = omapdss_default_get_resolution,
-                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                        omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c: In function 'hdmic_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:222:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:222:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c: In function 'hdmic_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:269:6: error: implicit declaration of function 'omapdss_register_display'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_display(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c: In function 'hdmic_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c:287:2: error: implicit declaration of function 'omapdss_unregister_display'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_display(&ddata->dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:57:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:74:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:88:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:91:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:119:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:183:35: sparse: undefined identifier 'omapdss_default_get_resolution'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:197:14: sparse: undefined identifier 'omap_dss_find_output'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:219:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:264:13: sparse: undefined identifier 'omapdss_register_display'
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:282:9: sparse: undefined identifier 'omapdss_unregister_display'
->> drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:57:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:74:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:88:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:91:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:119:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:197:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:219:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:264:37: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:282:35: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c: In function 'tvc_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:57:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c: In function 'tvc_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:91:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:183:21: error: 'omapdss_default_get_resolution' undeclared here (not in a function); did you mean 'omapdss_get_version'?
-     .get_resolution  = omapdss_default_get_resolution,
-                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                        omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c: In function 'tvc_probe_pdata':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:197:7: error: implicit declaration of function 'omap_dss_find_output'; did you mean 'omap_dss_get_overlay'? [-Werror=implicit-function-declaration]
-     in = omap_dss_find_output(pdata->source);
-          ^~~~~~~~~~~~~~~~~~~~
-          omap_dss_get_overlay
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:197:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omap_dss_find_output(pdata->source);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c: In function 'tvc_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:219:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:219:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c: In function 'tvc_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:264:6: error: implicit declaration of function 'omapdss_register_display'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_display(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c: In function 'tvc_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c:282:2: error: implicit declaration of function 'omapdss_unregister_display'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_display(&ddata->dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:45:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:60:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:72:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:75:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:101:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:154:27: sparse: undefined identifier 'omapdss_default_get_resolution'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:167:14: sparse: undefined identifier 'omap_dss_find_output'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:179:9: sparse: undefined identifier 'videomode_to_omap_video_timings'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:225:9: sparse: undefined identifier 'videomode_to_omap_video_timings'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:227:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:277:13: sparse: undefined identifier 'omapdss_register_display'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:297:9: sparse: undefined identifier 'omapdss_unregister_display'
->> drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:45:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:60:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:72:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:75:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:101:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:167:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:179:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:225:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:227:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:277:37: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:297:35: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c: In function 'panel_dpi_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:45:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c: In function 'panel_dpi_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:75:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:154:20: error: 'omapdss_default_get_resolution' undeclared here (not in a function); did you mean 'omapdss_get_version'?
-     .get_resolution = omapdss_default_get_resolution,
-                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                       omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c: In function 'panel_dpi_probe_pdata':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:167:7: error: implicit declaration of function 'omap_dss_find_output'; did you mean 'omap_dss_get_overlay'? [-Werror=implicit-function-declaration]
-     in = omap_dss_find_output(pdata->source);
-          ^~~~~~~~~~~~~~~~~~~~
-          omap_dss_get_overlay
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:167:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omap_dss_find_output(pdata->source);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:179:2: error: implicit declaration of function 'videomode_to_omap_video_timings'; did you mean 'videomode_from_timings'? [-Werror=implicit-function-declaration]
-     videomode_to_omap_video_timings(&vm, &ddata->videomode);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     videomode_from_timings
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c: In function 'panel_dpi_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:227:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:227:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c: In function 'panel_dpi_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:277:6: error: implicit declaration of function 'omapdss_register_display'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_display(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c: In function 'panel_dpi_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dpi.c:297:2: error: implicit declaration of function 'omapdss_unregister_display'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_display(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:715:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:750:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:767:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:772:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:811:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1024:16: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1024:16: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1119:32: sparse: undefined identifier 'omapdss_default_get_recommended_bpp'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1149:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1202:13: sparse: undefined identifier 'omapdss_register_display'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1293:9: sparse: undefined identifier 'omapdss_unregister_display'
->> drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:715:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:750:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:767:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:772:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:811:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1149:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1202:37: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1293:35: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c: In function 'dsicm_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:715:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c: In function 'dsicm_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:772:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev)) {
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1119:25: error: 'omapdss_default_get_recommended_bpp' undeclared here (not in a function)
-     .get_recommended_bpp = omapdss_default_get_recommended_bpp,
-                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c: In function 'dsicm_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1149:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1149:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c: In function 'dsicm_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1202:6: error: implicit declaration of function 'omapdss_register_display'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_display(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c: In function 'dsicm_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c:1293:2: error: implicit declaration of function 'omapdss_unregister_display'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_display(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:522:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:537:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:631:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:634:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:654:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:704:27: sparse: undefined identifier 'omapdss_default_get_resolution'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:717:14: sparse: undefined identifier 'omap_dss_find_output'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:740:21: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:857:13: sparse: undefined identifier 'omapdss_register_display'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:887:9: sparse: undefined identifier 'omapdss_unregister_display'
->> drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:522:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:537:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:631:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:634:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:654:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:717:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:740:56: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:857:37: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:887:35: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c: In function 'acx565akm_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:522:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c: In function 'acx565akm_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:634:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:704:20: error: 'omapdss_default_get_resolution' undeclared here (not in a function); did you mean 'omapdss_get_version'?
-     .get_resolution = omapdss_default_get_resolution,
-                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                       omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c: In function 'acx565akm_probe_pdata':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:717:7: error: implicit declaration of function 'omap_dss_find_output'; did you mean 'omap_dss_get_overlay'? [-Werror=implicit-function-declaration]
-     in = omap_dss_find_output(pdata->source);
-          ^~~~~~~~~~~~~~~~~~~~
-          omap_dss_get_overlay
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:717:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omap_dss_find_output(pdata->source);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c: In function 'acx565akm_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:740:14: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     ddata->in = omapdss_of_find_source_for_first_ep(np);
-                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:740:12: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     ddata->in = omapdss_of_find_source_for_first_ep(np);
-               ^
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c: In function 'acx565akm_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:857:6: error: implicit declaration of function 'omapdss_register_display'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_display(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c: In function 'acx565akm_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:887:2: error: implicit declaration of function 'omapdss_unregister_display'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_display(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:126:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:143:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:155:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:158:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:185:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:239:27: sparse: undefined identifier 'omapdss_default_get_resolution'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:259:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:308:13: sparse: undefined identifier 'omapdss_register_display'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:328:9: sparse: undefined identifier 'omapdss_unregister_display'
->> drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:126:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:143:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:155:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:158:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:185:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:259:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:308:37: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:328:35: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c: In function 'lb035q02_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:126:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c: In function 'lb035q02_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:158:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:239:20: error: 'omapdss_default_get_resolution' undeclared here (not in a function); did you mean 'omapdss_get_version'?
-     .get_resolution = omapdss_default_get_resolution,
-                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                       omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c: In function 'lb035q02_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:259:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:259:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c: In function 'lb035q02_panel_spi_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:308:6: error: implicit declaration of function 'omapdss_register_display'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_display(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c: In function 'lb035q02_panel_spi_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c:328:2: error: implicit declaration of function 'omapdss_unregister_display'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_display(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:67:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:82:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:94:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:97:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:135:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:196:27: sparse: undefined identifier 'omapdss_default_get_resolution'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:252:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:292:13: sparse: undefined identifier 'omapdss_register_display'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:311:9: sparse: undefined identifier 'omapdss_unregister_display'
->> drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:67:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:82:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:94:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:97:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:135:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:252:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:292:37: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:311:35: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c: In function 'sharp_ls_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:67:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c: In function 'sharp_ls_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:97:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:196:20: error: 'omapdss_default_get_resolution' undeclared here (not in a function); did you mean 'omapdss_get_version'?
-     .get_resolution = omapdss_default_get_resolution,
-                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                       omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c: In function 'sharp_ls_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:252:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:252:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c: In function 'sharp_ls_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:292:6: error: implicit declaration of function 'omapdss_register_display'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_display(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c: In function 'sharp_ls_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c:311:2: error: implicit declaration of function 'omapdss_unregister_display'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_display(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:175:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:190:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:202:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:205:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:311:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:373:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:426:13: sparse: undefined identifier 'omapdss_register_display'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:447:9: sparse: undefined identifier 'omapdss_unregister_display'
->> drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:175:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:190:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:202:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:205:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:311:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:373:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:426:37: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:447:35: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c: In function 'td028ttec1_panel_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:175:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c: In function 'td028ttec1_panel_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:205:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c: In function 'td028ttec1_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:373:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:373:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c: In function 'td028ttec1_panel_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:426:6: error: implicit declaration of function 'omapdss_register_display'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_display(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c: In function 'td028ttec1_panel_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c:447:2: error: implicit declaration of function 'omapdss_unregister_display'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_display(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:346:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:361:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:373:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:376:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:409:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:463:27: sparse: undefined identifier 'omapdss_default_get_resolution'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:481:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:559:13: sparse: undefined identifier 'omapdss_register_display'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:584:9: sparse: undefined identifier 'omapdss_unregister_display'
->> drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:346:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:361:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:373:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:376:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:409:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:481:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:559:37: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:584:35: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c: In function 'tpo_td043_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:346:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c: In function 'tpo_td043_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:376:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:463:20: error: 'omapdss_default_get_resolution' undeclared here (not in a function); did you mean 'omapdss_get_version'?
-     .get_resolution = omapdss_default_get_resolution,
-                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                       omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c: In function 'tpo_td043_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:481:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:481:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c: In function 'tpo_td043_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:559:6: error: implicit declaration of function 'omapdss_register_display'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_display(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c: In function 'tpo_td043_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c:584:2: error: implicit declaration of function 'omapdss_unregister_display'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_display(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:126:13: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:141:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:153:14: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:156:13: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:180:14: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:231:27: sparse: undefined identifier 'omapdss_default_get_resolution'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:252:14: sparse: undefined identifier 'omapdss_of_find_source_for_first_ep'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:320:13: sparse: undefined identifier 'omapdss_register_display'
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:342:9: sparse: undefined identifier 'omapdss_unregister_display'
->> drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:126:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:141:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:153:41: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:156:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:180:39: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:252:49: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:320:37: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:342:35: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c: In function 'nec_8048_connect':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:126:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c: In function 'nec_8048_enable':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:156:6: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_enabled(dssdev))
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:231:20: error: 'omapdss_default_get_resolution' undeclared here (not in a function); did you mean 'omapdss_get_version'?
-     .get_resolution = omapdss_default_get_resolution,
-                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                       omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c: In function 'nec_8048_probe_of':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:252:7: error: implicit declaration of function 'omapdss_of_find_source_for_first_ep' [-Werror=implicit-function-declaration]
-     in = omapdss_of_find_source_for_first_ep(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:252:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     in = omapdss_of_find_source_for_first_ep(node);
-        ^
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c: In function 'nec_8048_probe':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:320:6: error: implicit declaration of function 'omapdss_register_display'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     r = omapdss_register_display(dssdev);
-         ^~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c: In function 'nec_8048_remove':
-   drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c:342:2: error: implicit declaration of function 'omapdss_unregister_display'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_display(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:552:22: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:552:22: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:553:21: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:982:16: sparse: undefined identifier 'omapdss_of_get_next_port'
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:1013:26: sparse: undefined identifier 'omapdss_of_get_next_port'
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:935:16: sparse: undefined identifier 'omapdss_of_get_next_port'
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:966:26: sparse: undefined identifier 'omapdss_of_get_next_port'
->> drivers/video/fbdev/omap2/omapfb/dss/dss.c:935:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:966:50: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:982:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:1013:50: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:118:6: error: redefinition of 'omapdss_is_initialized'
-    bool omapdss_is_initialized(void)
-         ^~~~~~~~~~~~~~~~~~~~~~
-   In file included from drivers/video/fbdev/omap2/omapfb/dss/dss.c:45:0:
-   include/video/omapfb_dss.h:868:20: note: previous definition of 'omapdss_is_initialized' was here
-    static inline bool omapdss_is_initialized(void)
-                       ^~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c: In function 'dss_init_ports':
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:935:9: error: implicit declaration of function 'omapdss_of_get_next_port'; did you mean 'omap_dss_get_next_device'? [-Werror=implicit-function-declaration]
-     port = omapdss_of_get_next_port(parent, NULL);
-            ^~~~~~~~~~~~~~~~~~~~~~~~
-            omap_dss_get_next_device
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:935:7: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     port = omapdss_of_get_next_port(parent, NULL);
-          ^
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:966:10: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-       (port = omapdss_of_get_next_port(parent, port)) != NULL);
-             ^
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c: In function 'dss_uninit_ports':
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:982:7: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     port = omapdss_of_get_next_port(parent, NULL);
-          ^
-   drivers/video/fbdev/omap2/omapfb/dss/dss.c:1013:17: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     } while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
-                    ^
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:320:25: sparse: undefined identifier 'dss_feat_get_num_mgrs'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:342:25: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:426:25: sparse: undefined identifier 'dss_feat_get_num_mgrs'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:448:25: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:719:23: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:811:25: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:1065:25: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:1205:25: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:1276:59: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:1308:33: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:1374:25: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:2181:9: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:2183:19: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:2192:9: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:2194:19: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:2224:36: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:2224:36: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:2231:28: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:2231:28: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:2302:26: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:2302:26: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:2875:27: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3560:25: sparse: undefined identifier 'dss_feat_get_num_mgrs'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3586:25: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3664:25: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3738:22: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3739:21: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3744:30: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3744:30: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3745:29: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3745:29: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:289:9: sparse: context imbalance in 'mgr_fld_write' - different lock contexts for basic block
->> drivers/video/fbdev/omap2/omapfb/dss/dispc.c:320:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:342:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:426:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:448:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:719:44: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:811:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:1065:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:1205:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:1308:54: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:1374:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3560:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3586:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:3664:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c: In function 'dispc_save_context':
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:320:18: error: implicit declaration of function 'dss_feat_get_num_mgrs'; did you mean 'dss_feat_get_param_max'? [-Werror=implicit-function-declaration]
-     for (i = 0; i < dss_feat_get_num_mgrs(); i++) {
-                     ^~~~~~~~~~~~~~~~~~~~~
-                     dss_feat_get_param_max
-   drivers/video/fbdev/omap2/omapfb/dss/dispc.c:342:18: error: implicit declaration of function 'dss_feat_get_num_ovls'; did you mean 'dss_feat_get_reg_field'? [-Werror=implicit-function-declaration]
-     for (i = 0; i < dss_feat_get_num_ovls(); i++) {
-                     ^~~~~~~~~~~~~~~~~~~~~
-                     dss_feat_get_reg_field
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/dss-of.c:178:15: sparse: undefined identifier 'omap_dss_find_output_by_port_node'
->> drivers/video/fbdev/omap2/omapfb/dss/dss-of.c:178:48: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dss-of.c: In function 'omapdss_of_find_source_for_first_ep':
-   drivers/video/fbdev/omap2/omapfb/dss/dss-of.c:178:8: error: implicit declaration of function 'omap_dss_find_output_by_port_node' [-Werror=implicit-function-declaration]
-     src = omap_dss_find_output_by_port_node(src_port);
-           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/dss/dss-of.c:178:6: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     src = omap_dss_find_output_by_port_node(src_port);
-         ^
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/manager.c:43:24: sparse: undefined identifier 'dss_feat_get_num_mgrs'
->> drivers/video/fbdev/omap2/omapfb/dss/manager.c:43:45: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/manager.c: In function 'dss_init_overlay_managers':
-   drivers/video/fbdev/omap2/omapfb/dss/manager.c:43:17: error: implicit declaration of function 'dss_feat_get_num_mgrs'; did you mean 'dss_feat_get_param_max'? [-Werror=implicit-function-declaration]
-     num_managers = dss_feat_get_num_mgrs();
-                    ^~~~~~~~~~~~~~~~~~~~~
-                    dss_feat_get_param_max
-   drivers/video/fbdev/omap2/omapfb/dss/manager.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/dss/manager.c:116:5: error: redefinition of 'omap_dss_get_num_overlay_managers'
-    int omap_dss_get_num_overlay_managers(void)
-        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   In file included from drivers/video/fbdev/omap2/omapfb/dss/manager.c:31:0:
-   include/video/omapfb_dss.h:894:19: note: previous definition of 'omap_dss_get_num_overlay_managers' was here
-    static inline int omap_dss_get_num_overlay_managers(void)
-                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/dss/manager.c:122:30: error: redefinition of 'omap_dss_get_overlay_manager'
-    struct omap_overlay_manager *omap_dss_get_overlay_manager(int num)
-                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   In file included from drivers/video/fbdev/omap2/omapfb/dss/manager.c:31:0:
-   include/video/omapfb_dss.h:897:44: note: previous definition of 'omap_dss_get_overlay_manager' was here
-    static inline struct omap_overlay_manager *omap_dss_get_overlay_manager(int num)
-                                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:66:26: sparse: undefined identifier 'omap_dss_find_device'
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:75:21: sparse: undefined identifier 'omapdss_device_is_connected'
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:81:21: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:90:21: sparse: undefined identifier 'omapdss_device_is_enabled'
->> drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:66:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:75:48: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:81:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:90:46: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c: In function 'manager_display_store':
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:66:12: error: implicit declaration of function 'omap_dss_find_device'; did you mean 'omap_dss_put_device'? [-Werror=implicit-function-declaration]
-      dssdev = omap_dss_find_device((void *)buf,
-               ^~~~~~~~~~~~~~~~~~~~
-               omap_dss_put_device
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:66:10: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-      dssdev = omap_dss_find_device((void *)buf,
-             ^
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:75:7: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-      if (omapdss_device_is_connected(dssdev)) {
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/dss/manager-sysfs.c:81:7: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-      if (omapdss_device_is_enabled(dssdev)) {
-          ^~~~~~~~~~~~~~~~~~~~~~~~~
-          movable_node_is_enabled
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/overlay.c:60:24: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/overlay.c:91:25: sparse: undefined identifier 'dss_feat_get_supported_color_modes'
->> drivers/video/fbdev/omap2/omapfb/dss/overlay.c:60:45: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/overlay.c:91:59: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/overlay.c:41:5: error: redefinition of 'omap_dss_get_num_overlays'
-    int omap_dss_get_num_overlays(void)
-        ^~~~~~~~~~~~~~~~~~~~~~~~~
-   In file included from drivers/video/fbdev/omap2/omapfb/dss/overlay.c:33:0:
-   include/video/omapfb_dss.h:900:19: note: previous definition of 'omap_dss_get_num_overlays' was here
-    static inline int omap_dss_get_num_overlays(void)
-                      ^~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/dss/overlay.c:47:22: error: redefinition of 'omap_dss_get_overlay'
-    struct omap_overlay *omap_dss_get_overlay(int num)
-                         ^~~~~~~~~~~~~~~~~~~~
-   In file included from drivers/video/fbdev/omap2/omapfb/dss/overlay.c:33:0:
-   include/video/omapfb_dss.h:903:36: note: previous definition of 'omap_dss_get_overlay' was here
-    static inline struct omap_overlay *omap_dss_get_overlay(int num)
-                                       ^~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/dss/overlay.c: In function 'dss_init_overlays':
-   drivers/video/fbdev/omap2/omapfb/dss/overlay.c:60:17: error: implicit declaration of function 'dss_feat_get_num_ovls'; did you mean 'dss_feat_get_reg_field'? [-Werror=implicit-function-declaration]
-     num_overlays = dss_feat_get_num_ovls();
-                    ^~~~~~~~~~~~~~~~~~~~~
-                    dss_feat_get_reg_field
-   drivers/video/fbdev/omap2/omapfb/dss/overlay.c:91:4: error: implicit declaration of function 'dss_feat_get_supported_color_modes'; did you mean 'dss_feat_get_supported_outputs'? [-Werror=implicit-function-declaration]
-       dss_feat_get_supported_color_modes(ovl->id);
-       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-       dss_feat_get_supported_outputs
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:854:30: sparse: undefined identifier 'dss_feat_get_num_mgrs'
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:141:30: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:264:30: sparse: undefined identifier 'dss_feat_get_num_mgrs'
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:368:30: sparse: undefined identifier 'dss_feat_get_num_mgrs'
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:892:30: sparse: undefined identifier 'dss_feat_get_num_mgrs'
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:873:30: sparse: undefined identifier 'dss_feat_get_num_mgrs'
->> drivers/video/fbdev/omap2/omapfb/dss/apply.c:141:51: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:264:51: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:368:51: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:854:51: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:873:51: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:892:51: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c: In function 'apply_init_priv':
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:141:23: error: implicit declaration of function 'dss_feat_get_num_ovls'; did you mean 'dss_feat_get_reg_field'? [-Werror=implicit-function-declaration]
-     const int num_ovls = dss_feat_get_num_ovls();
-                          ^~~~~~~~~~~~~~~~~~~~~
-                          dss_feat_get_reg_field
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c: In function 'need_isr':
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:264:23: error: implicit declaration of function 'dss_feat_get_num_mgrs'; did you mean 'dss_feat_get_param_max'? [-Werror=implicit-function-declaration]
-     const int num_mgrs = dss_feat_get_num_mgrs();
-                          ^~~~~~~~~~~~~~~~~~~~~
-                          dss_feat_get_param_max
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:1598:5: error: redefinition of 'omapdss_compat_init'
-    int omapdss_compat_init(void)
-        ^~~~~~~~~~~~~~~~~~~
-   In file included from drivers/video/fbdev/omap2/omapfb/dss/apply.c:26:0:
-   include/video/omapfb_dss.h:889:19: note: previous definition of 'omapdss_compat_init' was here
-    static inline int omapdss_compat_init(void)
-                      ^~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/dss/apply.c:1682:6: error: redefinition of 'omapdss_compat_uninit'
-    void omapdss_compat_uninit(void)
-         ^~~~~~~~~~~~~~~~~~~~~
-   In file included from drivers/video/fbdev/omap2/omapfb/dss/apply.c:26:0:
-   include/video/omapfb_dss.h:892:20: note: previous definition of 'omapdss_compat_uninit' was here
-    static inline void omapdss_compat_uninit(void) {};
-                       ^~~~~~~~~~~~~~~~~~~~~
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c:105:13: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c:244:9: sparse: undefined identifier 'dss_feat_get_num_ovls'
-   drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c:435:13: sparse: undefined identifier 'dss_feat_get_num_ovls'
->> drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c:105:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c:244:9: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c:435:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c: In function 'dispc_dump_irqs':
-   drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c:105:6: error: implicit declaration of function 'dss_feat_get_num_ovls'; did you mean 'dss_feat_get_reg_field'? [-Werror=implicit-function-declaration]
-     if (dss_feat_get_num_ovls() > 3) {
-         ^~~~~~~~~~~~~~~~~~~~~
-         dss_feat_get_reg_field
-   drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c: At top level:
-   drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c:149:5: error: redefinition of 'omap_dispc_register_isr'
-    int omap_dispc_register_isr(omap_dispc_isr_t isr, void *arg, u32 mask)
-        ^~~~~~~~~~~~~~~~~~~~~~~
-   In file included from drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c:29:0:
-   include/video/omapfb_dss.h:871:19: note: previous definition of 'omap_dispc_register_isr' was here
-    static inline int omap_dispc_register_isr(omap_dispc_isr_t isr,
-                      ^~~~~~~~~~~~~~~~~~~~~~~
-   drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c:203:5: error: redefinition of 'omap_dispc_unregister_isr'
-    int omap_dispc_unregister_isr(omap_dispc_isr_t isr, void *arg, u32 mask)
-        ^~~~~~~~~~~~~~~~~~~~~~~~~
-   In file included from drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c:29:0:
-   include/video/omapfb_dss.h:875:19: note: previous definition of 'omap_dispc_unregister_isr' was here
-    static inline int omap_dispc_unregister_isr(omap_dispc_isr_t isr,
-                      ^~~~~~~~~~~~~~~~~~~~~~~~~
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/display-sysfs.c:41:25: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/dss/display-sysfs.c:54:23: sparse: undefined identifier 'omapdss_device_is_enabled'
-   drivers/video/fbdev/omap2/omapfb/dss/display-sysfs.c:57:13: sparse: undefined identifier 'omapdss_device_is_connected'
->> drivers/video/fbdev/omap2/omapfb/dss/display-sysfs.c:40:24: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/display-sysfs.c:54:48: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/display-sysfs.c:57:40: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/display-sysfs.c: In function 'display_enabled_show':
-   drivers/video/fbdev/omap2/omapfb/dss/display-sysfs.c:41:4: error: implicit declaration of function 'omapdss_device_is_enabled'; did you mean 'movable_node_is_enabled'? [-Werror=implicit-function-declaration]
-       omapdss_device_is_enabled(dssdev));
-       ^~~~~~~~~~~~~~~~~~~~~~~~~
-       movable_node_is_enabled
-   drivers/video/fbdev/omap2/omapfb/dss/display-sysfs.c: In function 'display_enabled_store':
-   drivers/video/fbdev/omap2/omapfb/dss/display-sysfs.c:57:6: error: implicit declaration of function 'omapdss_device_is_connected' [-Werror=implicit-function-declaration]
-     if (omapdss_device_is_connected(dssdev) == false)
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:267:40: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:680:13: sparse: undefined identifier 'omapdss_output_set_device'
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:699:9: sparse: undefined identifier 'omapdss_output_unset_device'
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:732:9: sparse: undefined identifier 'omapdss_register_output'
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:740:9: sparse: undefined identifier 'omapdss_unregister_output'
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:776:9: sparse: undefined identifier 'omapdss_register_output'
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:784:9: sparse: undefined identifier 'omapdss_unregister_output'
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:860:14: sparse: undefined identifier 'omapdss_of_get_next_endpoint'
->> drivers/video/fbdev/omap2/omapfb/dss/dpi.c:680:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:699:36: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:732:32: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:740:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:776:32: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:784:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:860:42: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c: In function 'dpi_connect':
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:680:6: error: implicit declaration of function 'omapdss_output_set_device'; did you mean 'omap_dss_put_device'? [-Werror=implicit-function-declaration]
-     r = omapdss_output_set_device(dssdev, dst);
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dss_put_device
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c: In function 'dpi_disconnect':
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:699:2: error: implicit declaration of function 'omapdss_output_unset_device'; did you mean 'omap_dss_get_next_device'? [-Werror=implicit-function-declaration]
-     omapdss_output_unset_device(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dss_get_next_device
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c: In function 'dpi_init_output':
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:732:2: error: implicit declaration of function 'omapdss_register_output'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     omapdss_register_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c: In function 'dpi_uninit_output':
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:740:2: error: implicit declaration of function 'omapdss_unregister_output'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c: In function 'dpi_init_port':
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:860:7: error: implicit declaration of function 'omapdss_of_get_next_endpoint'; did you mean 'omap_dss_get_next_device'? [-Werror=implicit-function-declaration]
-     ep = omapdss_of_get_next_endpoint(port, NULL);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          omap_dss_get_next_device
-   drivers/video/fbdev/omap2/omapfb/dss/dpi.c:860:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     ep = omapdss_of_get_next_endpoint(port, NULL);
-        ^
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:748:13: sparse: undefined identifier 'omapdss_output_set_device'
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:767:9: sparse: undefined identifier 'omapdss_output_unset_device'
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:803:9: sparse: undefined identifier 'omapdss_register_output'
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:810:9: sparse: undefined identifier 'omapdss_unregister_output'
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:820:14: sparse: undefined identifier 'omapdss_of_get_first_endpoint'
->> drivers/video/fbdev/omap2/omapfb/dss/venc.c:748:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:767:36: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:803:32: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:810:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:820:43: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c: In function 'venc_connect':
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:748:6: error: implicit declaration of function 'omapdss_output_set_device'; did you mean 'omap_dss_put_device'? [-Werror=implicit-function-declaration]
-     r = omapdss_output_set_device(dssdev, dst);
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dss_put_device
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c: In function 'venc_disconnect':
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:767:2: error: implicit declaration of function 'omapdss_output_unset_device'; did you mean 'omap_dss_get_next_device'? [-Werror=implicit-function-declaration]
-     omapdss_output_unset_device(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dss_get_next_device
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c: In function 'venc_init_output':
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:803:2: error: implicit declaration of function 'omapdss_register_output'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     omapdss_register_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c: In function 'venc_uninit_output':
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:810:2: error: implicit declaration of function 'omapdss_unregister_output'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c: In function 'venc_probe_of':
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:820:7: error: implicit declaration of function 'omapdss_of_get_first_endpoint'; did you mean 'omapdss_get_version'? [-Werror=implicit-function-declaration]
-     ep = omapdss_of_get_first_endpoint(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/dss/venc.c:820:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     ep = omapdss_of_get_first_endpoint(node);
-        ^
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:99:39: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:298:13: sparse: undefined identifier 'omapdss_output_set_device'
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:317:9: sparse: undefined identifier 'omapdss_output_unset_device'
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:351:9: sparse: undefined identifier 'omapdss_register_output'
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:358:9: sparse: undefined identifier 'omapdss_unregister_output'
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:420:14: sparse: undefined identifier 'omapdss_of_get_next_endpoint'
->> drivers/video/fbdev/omap2/omapfb/dss/sdi.c:298:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:317:36: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:351:32: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:358:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:420:42: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c: In function 'sdi_connect':
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:298:6: error: implicit declaration of function 'omapdss_output_set_device'; did you mean 'omap_dss_put_device'? [-Werror=implicit-function-declaration]
-     r = omapdss_output_set_device(dssdev, dst);
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dss_put_device
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c: In function 'sdi_disconnect':
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:317:2: error: implicit declaration of function 'omapdss_output_unset_device'; did you mean 'omap_dss_get_next_device'? [-Werror=implicit-function-declaration]
-     omapdss_output_unset_device(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dss_get_next_device
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c: In function 'sdi_init_output':
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:351:2: error: implicit declaration of function 'omapdss_register_output'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     omapdss_register_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c: In function 'sdi_uninit_output':
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:358:2: error: implicit declaration of function 'omapdss_unregister_output'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c: In function 'sdi_init_port':
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:420:7: error: implicit declaration of function 'omapdss_of_get_next_endpoint'; did you mean 'omap_dss_get_next_device'? [-Werror=implicit-function-declaration]
-     ep = omapdss_of_get_next_endpoint(port, NULL);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          omap_dss_get_next_device
-   drivers/video/fbdev/omap2/omapfb/dss/sdi.c:420:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     ep = omapdss_of_get_next_endpoint(port, NULL);
-        ^
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:437:15: sparse: undefined identifier 'omap_dss_get_output'
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:3406:51: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:3409:57: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:3412:30: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:3412:30: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:3435:30: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:3445:16: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4491:19: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4491:19: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4604:23: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4608:15: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4616:23: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4622:31: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4661:23: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4667:15: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4675:23: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4681:31: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4783:19: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4783:19: sparse: expression using sizeof(void)
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4991:13: sparse: undefined identifier 'omapdss_output_set_device'
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5010:9: sparse: undefined identifier 'omapdss_output_unset_device'
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5070:9: sparse: undefined identifier 'omapdss_register_output'
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5078:9: sparse: undefined identifier 'omapdss_unregister_output'
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5092:14: sparse: undefined identifier 'omapdss_of_get_first_endpoint'
->> drivers/video/fbdev/omap2/omapfb/dss/dsi.c:437:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4991:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5010:36: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5070:32: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5078:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5092:43: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c: In function 'dsi_get_dsidev_from_id':
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:437:8: error: implicit declaration of function 'omap_dss_get_output'; did you mean 'omap_dss_get_overlay'? [-Werror=implicit-function-declaration]
-     out = omap_dss_get_output(id);
-           ^~~~~~~~~~~~~~~~~~~
-           omap_dss_get_overlay
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:437:6: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     out = omap_dss_get_output(id);
-         ^
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c: In function 'dsi_connect':
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:4991:6: error: implicit declaration of function 'omapdss_output_set_device'; did you mean 'omap_dss_put_device'? [-Werror=implicit-function-declaration]
-     r = omapdss_output_set_device(dssdev, dst);
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dss_put_device
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c: In function 'dsi_disconnect':
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5010:2: error: implicit declaration of function 'omapdss_output_unset_device'; did you mean 'omap_dss_get_next_device'? [-Werror=implicit-function-declaration]
-     omapdss_output_unset_device(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dss_get_next_device
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c: In function 'dsi_init_output':
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5070:2: error: implicit declaration of function 'omapdss_register_output'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     omapdss_register_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c: In function 'dsi_uninit_output':
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5078:2: error: implicit declaration of function 'omapdss_unregister_output'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c: In function 'dsi_probe_of':
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5092:7: error: implicit declaration of function 'omapdss_of_get_first_endpoint'; did you mean 'omapdss_get_version'? [-Werror=implicit-function-declaration]
-     ep = omapdss_of_get_first_endpoint(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/dss/dsi.c:5092:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     ep = omapdss_of_get_first_endpoint(node);
-        ^
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:441:13: sparse: undefined identifier 'omapdss_output_set_device'
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:460:9: sparse: undefined identifier 'omapdss_output_unset_device'
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:530:9: sparse: undefined identifier 'omapdss_register_output'
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:537:9: sparse: undefined identifier 'omapdss_unregister_output'
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:546:14: sparse: undefined identifier 'omapdss_of_get_first_endpoint'
->> drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:441:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:460:36: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:530:32: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:537:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:546:43: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c: In function 'hdmi_connect':
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:441:6: error: implicit declaration of function 'omapdss_output_set_device'; did you mean 'omap_dss_put_device'? [-Werror=implicit-function-declaration]
-     r = omapdss_output_set_device(dssdev, dst);
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dss_put_device
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c: In function 'hdmi_disconnect':
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:460:2: error: implicit declaration of function 'omapdss_output_unset_device'; did you mean 'omap_dss_get_next_device'? [-Werror=implicit-function-declaration]
-     omapdss_output_unset_device(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dss_get_next_device
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c: In function 'hdmi_init_output':
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:530:2: error: implicit declaration of function 'omapdss_register_output'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     omapdss_register_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c: In function 'hdmi_uninit_output':
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:537:2: error: implicit declaration of function 'omapdss_unregister_output'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c: In function 'hdmi_probe_of':
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:546:7: error: implicit declaration of function 'omapdss_of_get_first_endpoint'; did you mean 'omapdss_get_version'? [-Werror=implicit-function-declaration]
-     ep = omapdss_of_get_first_endpoint(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c:546:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     ep = omapdss_of_get_first_endpoint(node);
-        ^
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:471:13: sparse: undefined identifier 'omapdss_output_set_device'
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:490:9: sparse: undefined identifier 'omapdss_output_unset_device'
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:560:9: sparse: undefined identifier 'omapdss_register_output'
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:567:9: sparse: undefined identifier 'omapdss_unregister_output'
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:576:14: sparse: undefined identifier 'omapdss_of_get_first_endpoint'
->> drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:471:38: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:490:36: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:560:32: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:567:34: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:576:43: sparse: call with no type!
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c: In function 'hdmi_connect':
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:471:6: error: implicit declaration of function 'omapdss_output_set_device'; did you mean 'omap_dss_put_device'? [-Werror=implicit-function-declaration]
-     r = omapdss_output_set_device(dssdev, dst);
-         ^~~~~~~~~~~~~~~~~~~~~~~~~
-         omap_dss_put_device
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c: In function 'hdmi_disconnect':
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:490:2: error: implicit declaration of function 'omapdss_output_unset_device'; did you mean 'omap_dss_get_next_device'? [-Werror=implicit-function-declaration]
-     omapdss_output_unset_device(dssdev);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dss_get_next_device
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c: In function 'hdmi_init_output':
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:560:2: error: implicit declaration of function 'omapdss_register_output'; did you mean 'omap_dispc_register_isr'? [-Werror=implicit-function-declaration]
-     omapdss_register_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_register_isr
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c: In function 'hdmi_uninit_output':
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:567:2: error: implicit declaration of function 'omapdss_unregister_output'; did you mean 'omap_dispc_unregister_isr'? [-Werror=implicit-function-declaration]
-     omapdss_unregister_output(out);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~
-     omap_dispc_unregister_isr
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c: In function 'hdmi_probe_of':
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:576:7: error: implicit declaration of function 'omapdss_of_get_first_endpoint'; did you mean 'omapdss_get_version'? [-Werror=implicit-function-declaration]
-     ep = omapdss_of_get_first_endpoint(node);
-          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          omapdss_get_version
-   drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c:576:5: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     ep = omapdss_of_get_first_endpoint(node);
-        ^
-   cc1: some warnings being treated as errors
-
-vim +2396 drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-
-91ac27a68 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2010-09-23  2370  
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2371  static int omapfb_init_connections(struct omapfb2_device *fbdev,
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2372  		struct omap_dss_device *def_dssdev)
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2373  {
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2374  	int i, r;
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2375  	struct omap_overlay_manager *mgr;
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2376  
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2377  	r = def_dssdev->driver->connect(def_dssdev);
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2378  	if (r) {
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2379  		dev_err(fbdev->dev, "failed to connect default display\n");
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2380  		return r;
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2381  	}
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2382  
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2383  	for (i = 0; i < fbdev->num_displays; ++i) {
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2384  		struct omap_dss_device *dssdev = fbdev->displays[i].dssdev;
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2385  
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2386  		if (dssdev == def_dssdev)
-be8e8e1c6 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-04-23  2387  			continue;
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2388  
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2389  		/*
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2390  		 * We don't care if the connect succeeds or not. We just want to
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2391  		 * connect as many displays as possible.
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2392  		 */
-a7e71e7f9 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-05-08  2393  		dssdev->driver->connect(dssdev);
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2394  	}
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2395  
-be8e8e1c6 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2013-04-23 @2396  	mgr = omapdss_find_mgr_from_display(def_dssdev);
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2397  
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2398  	if (!mgr) {
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2399  		dev_err(fbdev->dev, "no ovl manager for the default display\n");
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2400  		return -EINVAL;
-6b6f1edfd drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-12-04  2401  	}
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2402  
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2403  	for (i = 0; i < fbdev->num_overlays; i++) {
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2404  		struct omap_overlay *ovl = fbdev->overlays[i];
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2405  
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2406  		if (ovl->manager)
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2407  			ovl->unset_manager(ovl);
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2408  
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2409  		r = ovl->set_manager(ovl, mgr);
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2410  		if (r)
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2411  			dev_warn(fbdev->dev,
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2412  					"failed to connect overlay %s to manager %s\n",
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2413  					ovl->name, mgr->name);
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2414  	}
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2415  
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2416  	return 0;
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2417  }
-5d89bcc34 drivers/video/omap2/omapfb/omapfb-main.c Tomi Valkeinen 2012-08-06  2418  
-
-:::::: The code at line 2396 was first introduced by commit
-:::::: be8e8e1c62678765868c0bc7b8b5209c38af105c OMAPDSS: add helpers to get mgr or output from display
-
-:::::: TO: Tomi Valkeinen <tomi.valkeinen@ti.com>
-:::::: CC: Tomi Valkeinen <tomi.valkeinen@ti.com>
+   drivers/media/usb/pvrusb2/pvrusb2-v4l2.o: warning: objtool: pvr2_queryctrl()+0x365: sibling call from callable instruction with modified stack frame
+   drivers/media/usb/pvrusb2/pvrusb2-v4l2.o: warning: objtool: pvr2_v4l2_dev_init()+0x29c: sibling call from callable instruction with modified stack frame
+   drivers/media/usb/pvrusb2/pvrusb2-v4l2.o: warning: objtool: pvr2_v4l2_destroy_no_lock()+0xa2: sibling call from callable instruction with modified stack frame
+   drivers/media/usb/pvrusb2/pvrusb2-v4l2.o: warning: objtool: pvr2_v4l2_release()+0xa7: sibling call from callable instruction with modified stack frame
+   drivers/media/usb/pvrusb2/pvrusb2-v4l2.o: warning: objtool: pvr2_v4l2_open()+0x76: sibling call from callable instruction with modified stack frame
+   drivers/media/usb/pvrusb2/pvrusb2-v4l2.o: warning: objtool: pvr2_v4l2_create()+0x70: sibling call from callable instruction with modified stack frame
+>> drivers/media/usb/pvrusb2/pvrusb2-v4l2.o: warning: objtool: pvr2_v4l2_dev_init.cold.3()+0x4a: return with modified stack frame
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+
+--WIyZ46R2i8wDzkSu
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
+
+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
+
+--WIyZ46R2i8wDzkSu--
