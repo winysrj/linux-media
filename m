@@ -1,190 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:38163 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751425AbeEDQcl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2018 12:32:41 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180503202931.GE19612@w540>
-References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
- <1525021993-17789-11-git-send-email-akinobu.mita@gmail.com> <20180503202931.GE19612@w540>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Sat, 5 May 2018 01:32:19 +0900
-Message-ID: <CAC5umyj_mCPEFE03_ZabC5rFfJYC1zsvO4A8WdTsg2VgMWG0+Q@mail.gmail.com>
-Subject: Re: [PATCH v4 10/14] media: ov772x: reconstruct s_frame_interval()
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: linux-media@vger.kernel.org,
-        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+Received: from bombadil.infradead.org ([198.137.202.133]:44018 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754903AbeE2Ocu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 May 2018 10:32:50 -0400
+Date: Tue, 29 May 2018 11:32:44 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org,
         Jacopo Mondi <jacopo+renesas@jmondi.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH v5 03/14] media: ov772x: allow i2c controllers without
+ I2C_FUNC_PROTOCOL_MANGLING
+Message-ID: <20180529113226.720e61fc@vento.lan>
+In-Reply-To: <20180529132929.zthorwdp2axxogvd@ninjato>
+References: <1525616369-8843-1-git-send-email-akinobu.mita@gmail.com>
+        <1525616369-8843-4-git-send-email-akinobu.mita@gmail.com>
+        <20180529095657.675a6f54@vento.lan>
+        <20180529132929.zthorwdp2axxogvd@ninjato>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-05-04 5:29 GMT+09:00 jacopo mondi <jacopo@jmondi.org>:
-> Hi Akinobu,
->    thank you for the patch
->
-> On Mon, Apr 30, 2018 at 02:13:09AM +0900, Akinobu Mita wrote:
->> This splits the s_frame_interval() in subdev video ops into selecting the
->> frame interval and setting up the registers.
->>
->> This is a preparatory change to avoid accessing registers under power
->> saving mode.
->>
->> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
->> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
->> ---
->> * v4
->> - No changes
->>
->>  drivers/media/i2c/ov772x.c | 56 +++++++++++++++++++++++++++++-----------------
->>  1 file changed, 35 insertions(+), 21 deletions(-)
->>
->> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
->> index edc013d..7ea157e 100644
->> --- a/drivers/media/i2c/ov772x.c
->> +++ b/drivers/media/i2c/ov772x.c
->> @@ -617,25 +617,16 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
->>       return 0;
->>  }
->>
->> -static int ov772x_set_frame_rate(struct ov772x_priv *priv,
->> -                              struct v4l2_fract *tpf,
->> -                              const struct ov772x_color_format *cfmt,
->> -                              const struct ov772x_win_size *win)
->> +static unsigned int ov772x_select_fps(struct ov772x_priv *priv,
->> +                              struct v4l2_fract *tpf)
->
-> Please align to the open brace, as all the other functions in the
-> driver.
+Em Tue, 29 May 2018 15:29:29 +0200
+Wolfram Sang <wsa@the-dreams.de> escreveu:
 
-OK.
+> > It is a very bad idea to replace an i2c xfer by a pair of i2c
+> > send()/recv(), as, if are there any other device at the bus managed
+> > by an independent driver, you may end by mangling i2c transfers and
+> > eventually cause device malfunctions.  
+> 
+> For I2C, this is true and a very important detail. Yet, we are talking
+> not I2C but SCCB here and SCCB demands a STOP between messages. So,
+> technically, to avoid what you describe one shouldn't mix I2C and SCCB
+> devices. I am quite aware the reality is very different, but still...
+> 
+> My preference would be to stop acting as SCCB was I2C but give it its
+> own set of functions so it becomes clear for everyone what protocol is
+> used for what device.
+> 
+> > So, IMO, the best is to push the patch you proposed that adds a
+> > new I2C flag:
+> > 
+> > 	https://patchwork.linuxtv.org/patch/49396/  
+> 
+> Sorry, but I don't like it. This makes the I2C core code very
+> unreadable. This is why I think SCCB should be exported to its own
+> realm. Which may live in i2c-core-sccb.c, no need for a seperate
+> subsystem.
 
-> Also, is it worth making a function out of this? It is called from one
-> place only... see below.
->
->>  {
->> -     struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
->> -     unsigned long fin = clk_get_rate(priv->clk);
->>       unsigned int fps = tpf->numerator ?
->>                          tpf->denominator / tpf->numerator :
->>                          tpf->denominator;
->>       unsigned int best_diff;
->> -     unsigned int fsize;
->> -     unsigned int pclk;
->>       unsigned int diff;
->>       unsigned int idx;
->>       unsigned int i;
->> -     u8 clkrc = 0;
->> -     u8 com4 = 0;
->> -     int ret;
->>
->>       /* Approximate to the closest supported frame interval. */
->>       best_diff = ~0L;
->> @@ -646,7 +637,25 @@ static int ov772x_set_frame_rate(struct ov772x_priv *priv,
->>                       best_diff = diff;
->>               }
->>       }
->> -     fps = ov772x_frame_intervals[idx];
->> +
->> +     return ov772x_frame_intervals[idx];
->> +}
->> +
->> +static int ov772x_set_frame_rate(struct ov772x_priv *priv,
->> +                              unsigned int fps,
->> +                              const struct ov772x_color_format *cfmt,
->> +                              const struct ov772x_win_size *win)
->> +{
->> +     struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
->> +     unsigned long fin = clk_get_rate(priv->clk);
->> +     unsigned int fsize;
->> +     unsigned int pclk;
->> +     unsigned int best_diff;
->
-> Please keep variable declarations sorted as in other functions in the
-> driver.
+We actually have the same issue with pure I2C devices on media.
+There are several I2C devices that don't accept repeat start.
 
-OK.
+The solution given there was hackish and varies from driver to driver.
+The most common solution were to patch the I2C xfer callback 
+function of the I2C master code in order to prevent them to do
+I2C repeated start ops, usually checking for some specific I2C
+addresses where repeated start is known to not working.
 
->> +     unsigned int diff;
->> +     unsigned int i;
->> +     u8 clkrc = 0;
->> +     u8 com4 = 0;
->> +     int ret;
->>
->>       /* Use image size (with blankings) to calculate desired pixel clock. */
->>       switch (cfmt->com7 & OFMT_MASK) {
->> @@ -711,10 +720,6 @@ static int ov772x_set_frame_rate(struct ov772x_priv *priv,
->>       if (ret < 0)
->>               return ret;
->>
->> -     tpf->numerator = 1;
->> -     tpf->denominator = fps;
->> -     priv->fps = tpf->denominator;
->> -
->>       return 0;
->>  }
->>
->> @@ -735,8 +740,20 @@ static int ov772x_s_frame_interval(struct v4l2_subdev *sd,
->>  {
->>       struct ov772x_priv *priv = to_ov772x(sd);
->>       struct v4l2_fract *tpf = &ival->interval;
->> +     unsigned int fps;
->> +     int ret;
->> +
->> +     fps = ov772x_select_fps(priv, tpf);
->
-> That's the only caller of this function. I'm fine if you want to keep
-> it as it is though.
+So, IMHO, a flag like that would be an improvement not only for
+SCCB but also for other I2C devices. Probably there would be
+other ways to do it without making the I2C core code harder to
+read.
 
-I would like to keep ov772x_select_fps() because the function name is
-self descriptive and imples it doesn't change HW registers.  So I feel
-it helps readability a bit.
-
-> Thanks
->    j
->
->
->> +
->> +     ret = ov772x_set_frame_rate(priv, fps, priv->cfmt, priv->win);
->> +     if (ret)
->> +             return ret;
->>
->> -     return ov772x_set_frame_rate(priv, tpf, priv->cfmt, priv->win);
->> +     tpf->numerator = 1;
->> +     tpf->denominator = fps;
->> +     priv->fps = fps;
->> +
->> +     return 0;
->>  }
->>
->>  static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
->> @@ -993,7 +1010,6 @@ static int ov772x_set_params(struct ov772x_priv *priv,
->>                            const struct ov772x_win_size *win)
->>  {
->>       struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
->> -     struct v4l2_fract tpf;
->>       int ret;
->>       u8  val;
->>
->> @@ -1075,9 +1091,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
->>               goto ov772x_set_fmt_error;
->>
->>       /* COM4, CLKRC: Set pixel clock and framerate. */
->> -     tpf.numerator = 1;
->> -     tpf.denominator = priv->fps;
->> -     ret = ov772x_set_frame_rate(priv, &tpf, cfmt, win);
->> +     ret = ov772x_set_frame_rate(priv, priv->fps, cfmt, win);
->>       if (ret < 0)
->>               goto ov772x_set_fmt_error;
->>
->> --
->> 2.7.4
->>
+Thanks,
+Mauro
