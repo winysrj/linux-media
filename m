@@ -1,64 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:53937 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934761AbeEWWnD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 May 2018 18:43:03 -0400
-Received: by mail-wm0-f66.google.com with SMTP id a67-v6so12970106wmf.3
-        for <linux-media@vger.kernel.org>; Wed, 23 May 2018 15:43:03 -0700 (PDT)
-Date: Thu, 24 May 2018 00:43:01 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 2/9] media: rcar-vin: Remove two empty lines
-Message-ID: <20180523224301.GG5115@bigcity.dyn.berto.se>
-References: <1526654445-10702-1-git-send-email-jacopo+renesas@jmondi.org>
- <1526654445-10702-3-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1526654445-10702-3-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:36598 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S934764AbeE2N7h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 May 2018 09:59:37 -0400
+From: Gerd Hoffmann <kraxel@redhat.com>
+To: dri-devel@lists.freedesktop.org
+Cc: Gerd Hoffmann <kraxel@redhat.com>, Daniel Vetter <daniel@ffwll.ch>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        linux-media@vger.kernel.org (open list:DMA BUFFER SHARING FRAMEWORK),
+        linaro-mm-sig@lists.linaro.org (moderated list:DMA BUFFER SHARING
+        FRAMEWORK), linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH] dma-buf: make map_atomic and map function pointers optional
+Date: Tue, 29 May 2018 15:59:18 +0200
+Message-Id: <20180529135918.19729-1-kraxel@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+So drivers don't need dummy functions just returning NULL.
 
-Thanks for your work.
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+---
+ include/linux/dma-buf.h   | 4 ++--
+ drivers/dma-buf/dma-buf.c | 4 ++++
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-On 2018-05-18 16:40:38 +0200, Jacopo Mondi wrote:
-> Remove un-necessary empty lines.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index 6b80f98..1aadd90 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -707,11 +707,9 @@ static int rvin_mc_parse_of_endpoint(struct device *dev,
->  		return -EINVAL;
->  
->  	if (!of_device_is_available(to_of_node(asd->match.fwnode))) {
-> -
->  		vin_dbg(vin, "OF device %pOF disabled, ignoring\n",
->  			to_of_node(asd->match.fwnode));
->  		return -ENOTCONN;
-> -
->  	}
->  
->  	if (vin->group->csi[vep->base.id].fwnode) {
-> -- 
-> 2.7.4
-> 
-
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index 085db2fee2..88917fa796 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -39,12 +39,12 @@ struct dma_buf_attachment;
+ 
+ /**
+  * struct dma_buf_ops - operations possible on struct dma_buf
+- * @map_atomic: maps a page from the buffer into kernel address
++ * @map_atomic: [optional] maps a page from the buffer into kernel address
+  *		space, users may not block until the subsequent unmap call.
+  *		This callback must not sleep.
+  * @unmap_atomic: [optional] unmaps a atomically mapped page from the buffer.
+  *		  This Callback must not sleep.
+- * @map: maps a page from the buffer into kernel address space.
++ * @map: [optional] maps a page from the buffer into kernel address space.
+  * @unmap: [optional] unmaps a page from the buffer.
+  * @vmap: [optional] creates a virtual mapping for the buffer into kernel
+  *	  address space. Same restrictions as for vmap and friends apply.
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index d78d5fc173..4c45e31258 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -872,6 +872,8 @@ void *dma_buf_kmap_atomic(struct dma_buf *dmabuf, unsigned long page_num)
+ {
+ 	WARN_ON(!dmabuf);
+ 
++	if (!dmabuf->ops->map_atomic)
++		return NULL;
+ 	return dmabuf->ops->map_atomic(dmabuf, page_num);
+ }
+ EXPORT_SYMBOL_GPL(dma_buf_kmap_atomic);
+@@ -907,6 +909,8 @@ void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long page_num)
+ {
+ 	WARN_ON(!dmabuf);
+ 
++	if (!dmabuf->ops->map)
++		return NULL;
+ 	return dmabuf->ops->map(dmabuf, page_num);
+ }
+ EXPORT_SYMBOL_GPL(dma_buf_kmap);
 -- 
-Regards,
-Niklas Söderlund
+2.9.3
