@@ -1,146 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35909 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965007AbeEXIzN (ORCPT
+Received: from relay11.mail.gandi.net ([217.70.178.231]:54061 "EHLO
+        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936466AbeE2PGi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 04:55:13 -0400
-Received: by mail-wr0-f196.google.com with SMTP id k5-v6so1617023wrn.3
-        for <linux-media@vger.kernel.org>; Thu, 24 May 2018 01:55:13 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        eballetbo@gmail.com
-Subject: [PATCH v5 4/6] mfd: cros-ec: Introduce CEC commands and events definitions.
-Date: Thu, 24 May 2018 10:54:59 +0200
-Message-Id: <1527152101-17278-5-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1527152101-17278-1-git-send-email-narmstrong@baylibre.com>
-References: <1527152101-17278-1-git-send-email-narmstrong@baylibre.com>
+        Tue, 29 May 2018 11:06:38 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        horms@verge.net.au, geert@glider.be
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        robh+dt@kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3 4/8] dt-bindings: media: rcar-vin: Add 'data-enable-active'
+Date: Tue, 29 May 2018 17:05:55 +0200
+Message-Id: <1527606359-19261-5-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The EC can expose a CEC bus, this patch adds the CEC related definitions
-needed by the cros-ec-cec driver.
+Describe optional endpoint property 'data-enable-active' for R-Car VIN.
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- include/linux/mfd/cros_ec_commands.h | 85 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 85 insertions(+)
+v3:
+- new patch
+---
 
-diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
-index cc0768e..ea9646f 100644
---- a/include/linux/mfd/cros_ec_commands.h
-+++ b/include/linux/mfd/cros_ec_commands.h
-@@ -804,6 +804,8 @@ enum ec_feature_code {
- 	EC_FEATURE_MOTION_SENSE_FIFO = 24,
- 	/* EC has RTC feature that can be controlled by host commands */
- 	EC_FEATURE_RTC = 27,
-+	/* EC supports CEC commands */
-+	EC_FEATURE_CEC = 35,
- };
- 
- #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
-@@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
- 	/* EC sent a sysrq command */
- 	EC_MKBP_EVENT_SYSRQ = 6,
- 
-+	/* Notify the AP that something happened on CEC */
-+	EC_MKBP_CEC_EVENT = 8,
-+
-+	/* Send an incoming CEC message to the AP */
-+	EC_MKBP_EVENT_CEC_MESSAGE = 9,
-+
- 	/* Number of MKBP events */
- 	EC_MKBP_EVENT_COUNT,
- };
-@@ -2850,6 +2858,83 @@ struct ec_params_reboot_ec {
- 
- /*****************************************************************************/
- /*
-+ * HDMI CEC commands
-+ *
-+ * These commands are for sending and receiving message via HDMI CEC
-+ */
-+#define MAX_CEC_MSG_LEN 16
-+
-+/* CEC message from the AP to be written on the CEC bus */
-+#define EC_CMD_CEC_WRITE_MSG 0x00B8
-+
-+/**
-+ * struct ec_params_cec_write - Message to write to the CEC bus
-+ * @msg: message content to write to the CEC bus
-+ */
-+struct ec_params_cec_write {
-+	uint8_t msg[MAX_CEC_MSG_LEN];
-+} __packed;
-+
-+/* Set various CEC parameters */
-+#define EC_CMD_CEC_SET 0x00BA
-+
-+/**
-+ * struct ec_params_cec_set - CEC parameters set
-+ * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
-+ * @enable: in case cmd is CEC_CMD_ENABLE, this field can be 0 to disable CEC
-+ * 	or 1 to enable CEC functionnality
-+ * @address: in case cmd is CEC_CMD_LOGICAL_ADDRESS, this field encodes the
-+ *	requested logical address between 0 and 15 or 0xff to unregister
-+ */
-+struct ec_params_cec_set {
-+	uint8_t cmd; /* enum cec_command */
-+	union {
-+		uint8_t enable;
-+		uint8_t address;
-+	};
-+} __packed;
-+
-+/* Read various CEC parameters */
-+#define EC_CMD_CEC_GET 0x00BB
-+
-+/**
-+ * struct ec_params_cec_get - CEC parameters get
-+ * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
-+ */
-+struct ec_params_cec_get {
-+	uint8_t cmd; /* enum cec_command */
-+} __packed;
-+
-+/**
-+ * struct ec_response_cec_get - CEC parameters get response
-+ * @enable: in case cmd was CEC_CMD_ENABLE, this field will 0 if CEC is
-+ * 	disabled or 1 if CEC functionnality is enabled
-+ * @address: in case cmd was CEC_CMD_LOGICAL_ADDRESS, this will encode the
-+ *	configured logical address between 0 and 15 or 0xff if unregistered
-+ */
-+struct ec_response_cec_get {
-+	union {
-+		uint8_t enable;
-+		uint8_t address;
-+	};
-+} __packed;
-+
-+/* CEC parameters command */
-+enum cec_command {
-+	/* CEC reading, writing and events enable */
-+	CEC_CMD_ENABLE,
-+	/* CEC logical address  */
-+	CEC_CMD_LOGICAL_ADDRESS,
-+};
-+
-+/* Events from CEC to AP */
-+enum mkbp_cec_event {
-+	EC_MKBP_CEC_SEND_OK			= BIT(0),
-+	EC_MKBP_CEC_SEND_FAILED			= BIT(1),
-+};
-+
-+/*****************************************************************************/
-+/*
-  * Special commands
-  *
-  * These do not follow the normal rules for commands.  See each command for
--- 
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 4d91a36..ff53226 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -58,6 +58,8 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+       - Optional properties for endpoint nodes of port@0:
+         - hsync-active: see [1] for description. Default is active high.
+         - vsync-active: see [1] for description. Default is active high.
++        - data-enable-active: polarity of CLKENB signal, see [1] for
++          description. Default is active high.
+
+         If both HSYNC and VSYNC polarities are not specified, embedded
+         synchronization is selected.
+--
 2.7.4
