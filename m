@@ -1,54 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:36070 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751481AbeENSvu (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:46003 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751091AbeE2Inp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 14:51:50 -0400
-Received: by mail-pg0-f65.google.com with SMTP id z70-v6so5863929pgz.3
-        for <linux-media@vger.kernel.org>; Mon, 14 May 2018 11:51:50 -0700 (PDT)
-Received: from [192.168.0.16] ([103.6.157.159])
-        by smtp.gmail.com with ESMTPSA id z15-v6sm15875564pgr.55.2018.05.14.11.51.48
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 14 May 2018 11:51:49 -0700 (PDT)
-To: linux-media@vger.kernel.org
-Subject: Wine Enthusiasts List
-From: Lori Grimes <lgrimes@dynamicaims.com>
-Message-ID: <890f222c-5168-4e98-f907-460af1acb2b7@dynamicaims.com>
-Date: Mon, 14 May 2018 14:36:47 -0400
+        Tue, 29 May 2018 04:43:45 -0400
+Date: Tue, 29 May 2018 10:43:26 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: vsp1: Document vsp1_dl_body refcnt
+Message-ID: <20180529084325.sgpe62mg4qedgecr@verge.net.au>
+References: <20180528102420.19150-1-kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180528102420.19150-1-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, May 28, 2018 at 11:24:20AM +0100, Kieran Bingham wrote:
+> In commit 2d9445db0ee9 ("media: vsp1: Use reference counting for
+> bodies"), a new field was introduced to the vsp1_dl_body structure to
+> account for usage tracking of the body.
+> 
+> Document the newly added field in the kerneldoc.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
 
-Hi,
-
-Would you be interested in reaching out to "Wine Enthusiasts list " from 
-USA?
-
-Our Databases:-    1.Beer Drinkers List                 2.Alcohol 
-Drinkers List
-
-                    3.Beverage Consumers                 4.Liquor 
-Drinkers List
-
-                    5.Food Enthusiasts List              6.Gift Buyers List
-
-                    7.Luxury Brand Buyers List           8.Home Owners List
-
-                    9.Spa and Resort Visitors and many more.
-
-
-All the contacts are opt-in verified, 100 percent permission based and 
-can be used for unlimited multi-channel marketing.
-
-Please let me know your thoughts towards procuring the Wine Enthusiasts 
-list.
-
-Best Regards,
-Lori Grimes
-We respect your privacy, if you do not wish to receive any further 
-emails from our end, please reply with a subject ³Leave Out².
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
