@@ -1,69 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:51718 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752121AbeE3Mh6 (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:49271 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755428AbeE2Isd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 08:37:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Subject: Re: [PATCH] media: arch: sh: migor: Fix TW9910 PDN gpio
-Date: Wed, 30 May 2018 15:38:01 +0300
-Message-ID: <14986389.IZxnRVqLam@avalon>
-In-Reply-To: <20180530122343.GA10472@w540>
-References: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org> <2981239.tGoCg7U0XF@avalon> <20180530122343.GA10472@w540>
+        Tue, 29 May 2018 04:48:33 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v5 10/10] media: rcar-vin: Add support for R-Car R8A77995 SoC
+Date: Tue, 29 May 2018 10:48:08 +0200
+Message-Id: <1527583688-314-11-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1527583688-314-1-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Add R-Car R8A77995 SoC to the rcar-vin supported ones.
 
-On Wednesday, 30 May 2018 15:23:43 EEST jacopo mondi wrote:
-> On Wed, May 30, 2018 at 02:52:31PM +0300, Laurent Pinchart wrote:
-> > On Wednesday, 30 May 2018 12:30:49 EEST Geert Uytterhoeven wrote:
-> >> On Wed, May 30, 2018 at 11:13 AM, Jacopo Mondi wrote:
-> >>> The TW9910 PDN gpio (power down) is listed as active high in the chip
-> >>> manual. It turns out it is actually active low as when set to physical
-> >>> level 0 it actually turns the video decoder power off.
-> >> 
-> >> So the picture "Typical TW9910 External Circuitry" in the datasheet,
-> >> which ties PDN to GND permanently, is wrong?
-> 
-> Also the definition of PDN pin in TW9910 manual, as reported by Laurent made
-> me think the pin had to stay in logical state 1 to have the chip powered
-> down. That's why my initial 'ACTIVE_HIGH' flag. The chip was not
-> recognized, but I thought it was a local problem of the Migo-R board I
-> was using.
-> 
-> Then one day I tried inverting the pin active state just to be sure,
-> and it started being fully operational :/
-> 
-> > The SH PTT2 line is connected directory to the TW9910 PDN signal, without
-> > any inverter on the board. The PDN signal is clearly documented as
-> > active-high in the TW9910 datasheet. Something is thus weird.
-> 
-> I suspect the 'active high' definition in datasheet is different from
-> our understanding. Their 'active' means the chip is operational, which
-> is not what one would expect from a powerdown pin.
-> 
-> > Jacopo, is it possible to measure the PDN signal on the board as close as
-> > possible to the TW9910 to see if it works as expected ?
-> 
-> Not for me. The board is in Japan and my multimeter doesn't have cables
-> that long, unfortunately.
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-How about trying that during your next trip to Japan ? :-)
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 7869308..3062171 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -1055,6 +1055,18 @@ static const struct rvin_info rcar_info_r8a77970 = {
+ 	.routes = rcar_info_r8a77970_routes,
+ };
+ 
++static const struct rvin_group_route rcar_info_r8a77995_routes[] = {
++	{ /* Sentinel */ }
++};
++
++static const struct rvin_info rcar_info_r8a77995 = {
++	.model = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++	.routes = rcar_info_r8a77995_routes,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+ 	{
+ 		.compatible = "renesas,vin-r8a7778",
+@@ -1096,6 +1108,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.compatible = "renesas,vin-r8a77970",
+ 		.data = &rcar_info_r8a77970,
+ 	},
++	{
++		.compatible = "renesas,vin-r8a77995",
++		.data = &rcar_info_r8a77995,
++	},
+ 	{ /* Sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
