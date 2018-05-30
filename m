@@ -1,68 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:35598 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752586AbeENRaB (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:46963 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937280AbeE3HQv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 May 2018 13:30:01 -0400
-Received: by mail-wr0-f194.google.com with SMTP id i14-v6so13207763wre.2
-        for <linux-media@vger.kernel.org>; Mon, 14 May 2018 10:30:00 -0700 (PDT)
-From: =?UTF-8?q?Josef=20=C5=A0im=C3=A1nek?= <josef.simanek@gmail.com>
-To: ming_qian@realsil.com.cn
-Cc: linux-media@vger.kernel.org,
-        =?UTF-8?q?Josef=20=C5=A0im=C3=A1nek?= <josef.simanek@gmail.com>
-Subject: RE: media: uvcvideo: Support realtek's UVC 1.5 device
-Date: Mon, 14 May 2018 19:29:57 +0200
-Message-Id: <20180514172957.27752-1-josef.simanek@gmail.com>
-In-Reply-To: <1525831988-32017-1-git-send-email-ming_qian@realsil.com.cn>
-References: <1525831988-32017-1-git-send-email-ming_qian@realsil.com.cn>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 30 May 2018 03:16:51 -0400
+Received: by mail-pl0-f65.google.com with SMTP id 30-v6so10510561pld.13
+        for <linux-media@vger.kernel.org>; Wed, 30 May 2018 00:16:51 -0700 (PDT)
+From: Keiichi Watanabe <keiichiw@chromium.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        Tom Saeger <tom.saeger@oracle.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mediatek@lists.infradead.org
+Subject: [PATCH v2 2/2] media: mtk-vcodec: Support VP9 profile in decoder
+Date: Wed, 30 May 2018 16:16:13 +0900
+Message-Id: <20180530071613.125768-3-keiichiw@chromium.org>
+In-Reply-To: <20180530071613.125768-1-keiichiw@chromium.org>
+References: <20180530071613.125768-1-keiichiw@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> The length of UVC 1.5 video control is 48, and it id 34 for UVC 1.1.
-> Change it to 48 for UVC 1.5 device,
-> and the UVC 1.5 device can be recognized.
-> 
-> More changes to the driver are needed for full UVC 1.5 compatibility.
-> However, at least the UVC 1.5 Realtek RTS5847/RTS5852 cameras have
-> been reported to work well.
-> 
-> Signed-off-by: ming_qian <ming_qian@realsil.com.cn>
-> Tested-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Hello! I have sucessfully tested this patch on Kernel 4.16.1 (Fedora 28) with Dell XPS 9370
-using following device (output from lsusb):
+Add V4L2_CID_MPEG_VIDEO_VP9_PROFILE control in MediaTek decoder's
+driver.
+MediaTek decoder only supports profile 0 for now.
 
-Bus 001 Device 002: ID 0bda:58f4 Realtek Semiconductor Corp.
+Signed-off-by: Keiichi Watanabe <keiichiw@chromium.org>
+---
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-You can also find related dmesg output at https://bugs.launchpad.net/dell-sputnik/+bug/1763748/comments/35
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+index 86f0a7134365..f9393504356d 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+@@ -1400,6 +1400,12 @@ int mtk_vcodec_dec_ctrls_setup(struct mtk_vcodec_ctx *ctx)
+ 				V4L2_CID_MIN_BUFFERS_FOR_CAPTURE,
+ 				0, 32, 1, 1);
+ 	ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
++	v4l2_ctrl_new_std_menu(&ctx->ctrl_hdl,
++				&mtk_vcodec_dec_ctrl_ops,
++				V4L2_CID_MPEG_VIDEO_VP9_PROFILE,
++				V4L2_MPEG_VIDEO_VP9_PROFILE_3,
++				~(1U << V4L2_MPEG_VIDEO_VP9_PROFILE_0),
++				V4L2_MPEG_VIDEO_VP9_PROFILE_0);
 
-Tested-by: Josef Šimánek <josef.simanek@gmail.com>
-> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-> index aa0082f..32dfb32 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -171,6 +171,8 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
->  	int ret;
->  
->  	size = stream->dev->uvc_version >= 0x0110 ? 34 : 26;
-> +	if (stream->dev->uvc_version >= 0x0150)
-> +		size = 48;
->  	if ((stream->dev->quirks & UVC_QUIRK_PROBE_DEF) &&
->  			query == UVC_GET_DEF)
->  		return -EIO;
-> @@ -259,6 +261,8 @@ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
->  	int ret;
->  
->  	size = stream->dev->uvc_version >= 0x0110 ? 34 : 26;
-> +	if (stream->dev->uvc_version >= 0x0150)
-> +		size = 48;
->  	data = kzalloc(size, GFP_KERNEL);
->  	if (data == NULL)
->  		return -ENOMEM;
+ 	if (ctx->ctrl_hdl.error) {
+ 		mtk_v4l2_err("Adding control failed %d",
+--
+2.17.0.921.gf22659ad46-goog
