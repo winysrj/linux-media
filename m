@@ -1,53 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33733 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752561AbeEGQXE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2018 12:23:04 -0400
-Received: by mail-wm0-f66.google.com with SMTP id x12-v6so15777328wmc.0
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2018 09:23:04 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v3 14/14] media: staging/imx: add i.MX7 entries to TODO file
-Date: Mon,  7 May 2018 17:21:52 +0100
-Message-Id: <20180507162152.2545-15-rui.silva@linaro.org>
-In-Reply-To: <20180507162152.2545-1-rui.silva@linaro.org>
-References: <20180507162152.2545-1-rui.silva@linaro.org>
+Received: from mx.socionext.com ([202.248.49.38]:35842 "EHLO mx.socionext.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S968802AbeE3JJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 May 2018 05:09:50 -0400
+From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>,
+        Jassi Brar <jaswinder.singh@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+Subject: [PATCH 1/8] media: uniphier: add DT bindings documentation for UniPhier HSC
+Date: Wed, 30 May 2018 18:09:39 +0900
+Message-Id: <20180530090946.1635-2-suzuki.katsuhiro@socionext.com>
+In-Reply-To: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
+References: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add some i.MX7 related entries to TODO file.
+This patch adds DT binding documentation for UniPhier HSC which is
+MPEG2-TS input/output and demux subsystem.
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
 ---
- drivers/staging/media/imx/TODO | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ .../bindings/media/uniphier,hsc.txt           | 38 +++++++++++++++++++
+ 1 file changed, 38 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/uniphier,hsc.txt
 
-diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
-index aeeb15494a49..6f29b5ca5324 100644
---- a/drivers/staging/media/imx/TODO
-+++ b/drivers/staging/media/imx/TODO
-@@ -45,3 +45,12 @@
- 
-      Which means a port must not contain mixed-use endpoints, they
-      must all refer to media links between V4L2 subdevices.
+diff --git a/Documentation/devicetree/bindings/media/uniphier,hsc.txt b/Documentation/devicetree/bindings/media/uniphier,hsc.txt
+new file mode 100644
+index 000000000000..4242483b2ecc
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/uniphier,hsc.txt
+@@ -0,0 +1,38 @@
++Socionext UniPhier HSC (High-speed Stream Controller)
 +
-+- i.MX7: all of the above, since it uses the imx media core
++The Socionext UniPhier HSC subsystem consists of MPEG2-TS input/output and
++demultiplexer cores in the same register space.
 +
-+- i.MX7: use Frame Interval Monitor
++This interface is support TS serial signals (clock, valid, sync, data) from
++external demodulators.
 +
-+- i.MX7: runtime testing with parallel sensor, links setup and streaming
++Required properties:
++- compatible      : should be one of the following:
++		    "socionext,uniphier-ld11-hsc"
++		    "socionext,uniphier-ld20-hsc"
++- reg             : offset and length of the register set for the device.
++- interrupts      : should contain DMA and TSI error interrupt.
++- pinctrl-names   : should be "default".
++- pinctrl-0       : defined TS serial signal pins for external demodulators.
++- clock-names     : should include following entries:
++                    "hsc", "stdmac"
++- clocks          : a list of phandle, should contain an entry for each
++                    entry in clock-names.
++- reset-names     : should include following entries:
++                    "hsc", "stdmac"
++- resets          : a list of phandle, should contain an entry for each
++                    entry in reset-names.
 +
-+- i.MX7: runtime testing with different formats, for the time only 10-bit bayer
-+  is tested
++Example:
++	hsc {
++		compatible = "socionext,uniphier-ld20-hsc";
++		reg = <0x5c000000 0x100000>;
++		interrupts = <0 100 4>, <0 101 4>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_hscin2_s>,
++			    <&pinctrl_hscin3_s>;
++		clock-names = "stdmac", "hsc";
++		clocks = <&sys_clk 8>, <&sys_clk 9>;
++		reset-names = "stdmac", "hsc";
++		resets = <&sys_rst 8>, <&sys_rst 9>;
++	};
 -- 
 2.17.0
