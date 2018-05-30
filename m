@@ -1,101 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:53465 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751007AbeECQlY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2018 12:41:24 -0400
-From: Jan Luebbe <jlu@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Jan Luebbe <jlu@pengutronix.de>, slongerbeam@gmail.com,
-        p.zabel@pengutronix.de
-Subject: [PATCH 1/2] media: imx: capture: refactor enum_/try_fmt
-Date: Thu,  3 May 2018 18:41:19 +0200
-Message-Id: <20180503164120.9912-2-jlu@pengutronix.de>
-In-Reply-To: <20180503164120.9912-1-jlu@pengutronix.de>
-References: <20180503164120.9912-1-jlu@pengutronix.de>
+Received: from userp2130.oracle.com ([156.151.31.86]:36490 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753836AbeE3PRo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 May 2018 11:17:44 -0400
+Subject: Re: [PATCH 3/8] xen/grant-table: Allow allocating buffers suitable
+ for DMA
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180525153331.31188-1-andr2000@gmail.com>
+ <20180525153331.31188-4-andr2000@gmail.com>
+ <94de6bd7-405c-c43f-0468-be71efff7552@oracle.com>
+ <c2f9f6b4-03bd-225b-a42d-b071958dd899@gmail.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <ab1b28b8-02b1-3501-801c-d4f523ab829f@oracle.com>
+Date: Wed, 30 May 2018 11:20:41 -0400
+MIME-Version: 1.0
+In-Reply-To: <c2f9f6b4-03bd-225b-a42d-b071958dd899@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-By checking and handling the internal IPU formats (ARGB or AYUV) first,
-we don't need to check whether it's a bayer format, as we can default to
-passing the input format on in all other cases.
+On 05/30/2018 02:34 AM, Oleksandr Andrushchenko wrote:
+> On 05/29/2018 10:10 PM, Boris Ostrovsky wrote:
+>> On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
 
-This simplifies handling the different configurations for RGB565 between
-parallel and MIPI CSI-2, as we don't need to check the details of the
-format anymore.
+>> +/**
+>> + * gnttab_dma_free_pages - free DMAable pages
+>> + * @args: arguments to the function
+>> + */
+>> +int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args)
+>> +{
+>> +    xen_pfn_t *frames;
+>> +    size_t size;
+>> +    int i, ret;
+>> +
+>> +    gnttab_pages_clear_private(args->nr_pages, args->pages);
+>> +
+>> +    frames = kcalloc(args->nr_pages, sizeof(*frames), GFP_KERNEL);
+>>
+>> Any way you can do it without allocating memory? One possibility is to
+>> keep allocated frames from gnttab_dma_alloc_pages(). (Not sure I like
+>> that either but it's the only thing I can think of).
+> Yes, I was also thinking about storing the allocated frames array from
+> gnttab_dma_alloc_pages(), but that seemed not to be clear enough as
+> the caller of the gnttab_dma_alloc_pages will need to store those frames
+> in some context, so we can pass them on free. But the caller doesn't
+> really
+> need the frames which might confuse, so I decided to make those
+> allocations
+> on the fly.
+> But I can still rework that to store the frames if you insist: please
+> let me know.
 
-Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
----
- drivers/staging/media/imx/imx-media-capture.c | 38 +++++++++----------
- 1 file changed, 18 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-index 0ccabe04b0e1..64c23ef92931 100644
---- a/drivers/staging/media/imx/imx-media-capture.c
-+++ b/drivers/staging/media/imx/imx-media-capture.c
-@@ -170,23 +170,22 @@ static int capture_enum_fmt_vid_cap(struct file *file, void *fh,
- 	}
- 
- 	cc_src = imx_media_find_ipu_format(fmt_src.format.code, CS_SEL_ANY);
--	if (!cc_src)
--		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
--						    CS_SEL_ANY, true);
--	if (!cc_src)
--		return -EINVAL;
--
--	if (cc_src->bayer) {
--		if (f->index != 0)
--			return -EINVAL;
--		fourcc = cc_src->fourcc;
--	} else {
-+	if (cc_src) {
- 		u32 cs_sel = (cc_src->cs == IPUV3_COLORSPACE_YUV) ?
- 			CS_SEL_YUV : CS_SEL_RGB;
- 
- 		ret = imx_media_enum_format(&fourcc, f->index, cs_sel);
- 		if (ret)
- 			return ret;
-+	} else {
-+		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
-+						    CS_SEL_ANY, true);
-+		if (WARN_ON(!cc_src))
-+			return -EINVAL;
-+
-+		if (f->index != 0)
-+			return -EINVAL;
-+		fourcc = cc_src->fourcc;
- 	}
- 
- 	f->pixelformat = fourcc;
-@@ -219,15 +218,7 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
- 		return ret;
- 
- 	cc_src = imx_media_find_ipu_format(fmt_src.format.code, CS_SEL_ANY);
--	if (!cc_src)
--		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
--						    CS_SEL_ANY, true);
--	if (!cc_src)
--		return -EINVAL;
--
--	if (cc_src->bayer) {
--		cc = cc_src;
--	} else {
-+	if (cc_src) {
- 		u32 fourcc, cs_sel;
- 
- 		cs_sel = (cc_src->cs == IPUV3_COLORSPACE_YUV) ?
-@@ -239,6 +230,13 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
- 			imx_media_enum_format(&fourcc, 0, cs_sel);
- 			cc = imx_media_find_format(fourcc, cs_sel, false);
- 		}
-+	} else {
-+		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
-+						    CS_SEL_ANY, true);
-+		if (WARN_ON(!cc_src))
-+			return -EINVAL;
-+
-+		cc = cc_src;
- 	}
- 
- 	imx_media_mbus_fmt_to_pix_fmt(&f->fmt.pix, &fmt_src.format, cc);
--- 
-2.17.0
+I would prefer not to allocate anything in the release path. Yes, I
+realize that dragging frames array around is not necessary but IMO it's
+better than potentially failing an allocation during a teardown. A
+comment in the struct definition could explain the reason for having
+this field.
+
+
+>>
+>>
+>>> +    if (!frames)
+>>> +        return -ENOMEM;
+>>> +
+>>> +    for (i = 0; i < args->nr_pages; i++)
+>>> +        frames[i] = page_to_xen_pfn(args->pages[i]);
+>>
+>> Not xen_page_to_gfn()?
+> Well, according to [1] it should be :
+>     /* XENMEM_populate_physmap requires a PFN based on Xen
+>      * granularity.
+>      */
+>     frame_list[i] = page_to_xen_pfn(page);
+
+
+Ah, yes. I was looking at decrease_reservation and automatically assumed
+the same parameter type.
+
+
+-boris
