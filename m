@@ -1,129 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:41198 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750917AbeEIFx7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2018 01:53:59 -0400
-Subject: Re: [PATCH] media: include/video/omapfb_dss.h: use IS_ENABLED()
-From: Randy Dunlap <rdunlap@infradead.org>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-        tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
-References: <201805050150.CmagcMOg%fengguang.wu@intel.com>
- <8d55f45b6aa36f5c758d191825f14cd31723b371.1525466956.git.mchehab+samsung@kernel.org>
- <a2d8c62a-0030-af35-5a0d-0090fccc6ed5@infradead.org>
- <20180505181447.2ba0ca3f@vento.lan>
- <0789b035-0e0f-0665-bd0b-3a7aae6fe9f7@infradead.org>
-Message-ID: <b6987d8e-560d-07e8-9119-19c95b6973b7@infradead.org>
-Date: Tue, 8 May 2018 22:53:57 -0700
+Received: from mga18.intel.com ([134.134.136.126]:31647 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932222AbeE3Vgx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 May 2018 17:36:53 -0400
+Date: Wed, 30 May 2018 14:34:16 -0700
+From: Dongwon Kim <dongwon.kim@intel.com>
+To: Oleksandr Andrushchenko <andr2000@gmail.com>
+Cc: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com,
+        konrad.wilk@oracle.com, daniel.vetter@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: Re: [PATCH 1/8] xen/grant-table: Make set/clear page private code
+ shared
+Message-ID: <20180530213416.GA3159@downor-Z87X-UD5H>
+References: <20180525153331.31188-1-andr2000@gmail.com>
+ <20180525153331.31188-2-andr2000@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <0789b035-0e0f-0665-bd0b-3a7aae6fe9f7@infradead.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180525153331.31188-2-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2018 03:56 PM, Randy Dunlap wrote:
-> On 05/05/2018 02:14 PM, Mauro Carvalho Chehab wrote:
->> Em Sat, 5 May 2018 10:59:23 -0700
->> Randy Dunlap <rdunlap@infradead.org> escreveu:
->>
->>> On 05/04/2018 01:49 PM, Mauro Carvalho Chehab wrote:
->>>> Just checking for ifdefs cause build issues as reported by
->>>> kernel test:
->>>>
->>>> config: openrisc-allmodconfig (attached as .config)
->>>> compiler: or1k-linux-gcc (GCC) 6.0.0 20160327 (experimental)
->>>>
->>>> All errors (new ones prefixed by >>):
->>>>
->>>>    drivers/video/fbdev/omap2/omapfb/omapfb-main.c: In function 'omapfb_init_connections':  
->>>>>> drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2396:8: error: implicit declaration of function 'omapdss_find_mgr_from_display' [-Werror=implicit-function-declaration]  
->>>>      mgr = omapdss_find_mgr_from_display(def_dssdev);
->>>>            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>>>    drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2396:6: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
->>>>      mgr = omapdss_find_mgr_from_display(def_dssdev);
->>>>          ^
->>>>    drivers/video/fbdev/omap2/omapfb/omapfb-main.c: In function 'omapfb_find_default_display':  
->>>>>> drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2430:13: error: implicit declaration of function 'omapdss_get_default_display_name' [-Werror=implicit-function-declaration]  
->>>>      def_name = omapdss_get_default_display_name();
->>>>                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>>>    drivers/video/fbdev/omap2/omapfb/omapfb-main.c:2430:11: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
->>>>      def_name = omapdss_get_default_display_name();
->>>>               ^
->>>>
->>>> So, use IS_ENABLED() instead.  
->>>
->>> Hi,
->>>
->>> I would like to test this (the change doesn't make much sense to me),
->>> but I cannot find the kernel config file nor the kernel test robot's
->>> email of this report.
->>>
->>> Please include an lkml.kernel.org/r/<message_id> reference to such emails
->>> so that interested parties can join the party.
->>
->> The message was not c/c to lkml. You can see the original here:
->>
->> https://www.mail-archive.com/linux-media@vger.kernel.org/msg130809.html
->>
->>
->>>
->>> Does this patch apply only to your media tree?  so hopefully I can see it in
->>> linux-next on Monday.
->>
->> Yes, as it is over another two patches applied there.
->>
->> If you want to test it earlier, it is in the top of the master branch:
->> 	https://git.linuxtv.org/media_tree.git
->>
->>>
->>> Thanks.
->>>
->>>> Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
->>>> Cc: Randy Dunlap <rdunlap@infradead.org>
->>>> Cc: tomi.valkeinen@ti.com
->>>> Cc: linux-omap@vger.kernel.org
->>>> Cc: linux-fbdev@vger.kernel.org
->>>> Fixes: 771f7be87ff9 ("media: omapfb: omapfb_dss.h: add stubs to build with COMPILE_TEST && DRM_OMAP")
->>>> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
->>>> ---
->>>>  include/video/omapfb_dss.h | 2 +-
->>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>
->>>> diff --git a/include/video/omapfb_dss.h b/include/video/omapfb_dss.h
->>>> index e9775144ff3b..12755d8d9b4f 100644
->>>> --- a/include/video/omapfb_dss.h
->>>> +++ b/include/video/omapfb_dss.h
->>>> @@ -778,7 +778,7 @@ struct omap_dss_driver {
->>>>  
->>>>  typedef void (*omap_dispc_isr_t) (void *arg, u32 mask);
->>>>  
->>>> -#ifdef CONFIG_FB_OMAP2
->>>> +#if IS_ENABLED(CONFIG_FB_OMAP2)
->>>>  
->>>>  enum omapdss_version omapdss_get_version(void);
->>>>  bool omapdss_is_initialized(void);
+On Fri, May 25, 2018 at 06:33:24PM +0300, Oleksandr Andrushchenko wrote:
+> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 > 
-> The patch doesn't make any sense to me.  I would like to see an
-> explanation of why this is needed, other than "it fixes the build." ;)
+> Make set/clear page private code shared and accessible to
+> other kernel modules which can re-use these instead of open-coding.
+> 
+> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+> ---
+>  drivers/xen/grant-table.c | 54 +++++++++++++++++++++++++--------------
+>  include/xen/grant_table.h |  3 +++
+>  2 files changed, 38 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
+> index 27be107d6480..d7488226e1f2 100644
+> --- a/drivers/xen/grant-table.c
+> +++ b/drivers/xen/grant-table.c
+> @@ -769,29 +769,18 @@ void gnttab_free_auto_xlat_frames(void)
+>  }
+>  EXPORT_SYMBOL_GPL(gnttab_free_auto_xlat_frames);
+>  
+> -/**
+> - * gnttab_alloc_pages - alloc pages suitable for grant mapping into
+> - * @nr_pages: number of pages to alloc
+> - * @pages: returns the pages
+> - */
+> -int gnttab_alloc_pages(int nr_pages, struct page **pages)
+> +int gnttab_pages_set_private(int nr_pages, struct page **pages)
+>  {
+>  	int i;
+> -	int ret;
+> -
+> -	ret = alloc_xenballooned_pages(nr_pages, pages);
+> -	if (ret < 0)
+> -		return ret;
+>  
+>  	for (i = 0; i < nr_pages; i++) {
+>  #if BITS_PER_LONG < 64
+>  		struct xen_page_foreign *foreign;
+>  
+>  		foreign = kzalloc(sizeof(*foreign), GFP_KERNEL);
+> -		if (!foreign) {
+> -			gnttab_free_pages(nr_pages, pages);
+> +		if (!foreign)
 
-I get it now.  Using
-#if IS_ENABLED(CONFIG_FB_OMAP2)
+Don't we have to free previously allocated "foreign"(s) if it fails in the middle
+(e.g. 0 < i && i < nr_pages - 1) before returning?
 
-is just the "modern" way of saying
-#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-
-which also builds without errors.
-
-
-
-> But it does fix the build, so:
-> Tested-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-
--- 
-~Randy
+>  			return -ENOMEM;
+> -		}
+> +
+>  		set_page_private(pages[i], (unsigned long)foreign);
+>  #endif
+>  		SetPagePrivate(pages[i]);
+> @@ -799,14 +788,30 @@ int gnttab_alloc_pages(int nr_pages, struct page **pages)
+>  
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL(gnttab_alloc_pages);
+> +EXPORT_SYMBOL(gnttab_pages_set_private);
+>  
+>  /**
+> - * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
+> - * @nr_pages; number of pages to free
+> - * @pages: the pages
+> + * gnttab_alloc_pages - alloc pages suitable for grant mapping into
+> + * @nr_pages: number of pages to alloc
+> + * @pages: returns the pages
+>   */
+> -void gnttab_free_pages(int nr_pages, struct page **pages)
+> +int gnttab_alloc_pages(int nr_pages, struct page **pages)
+> +{
+> +	int ret;
+> +
+> +	ret = alloc_xenballooned_pages(nr_pages, pages);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = gnttab_pages_set_private(nr_pages, pages);
+> +	if (ret < 0)
+> +		gnttab_free_pages(nr_pages, pages);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(gnttab_alloc_pages);
+> +
+> +void gnttab_pages_clear_private(int nr_pages, struct page **pages)
+>  {
+>  	int i;
+>  
+> @@ -818,6 +823,17 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
+>  			ClearPagePrivate(pages[i]);
+>  		}
+>  	}
+> +}
+> +EXPORT_SYMBOL(gnttab_pages_clear_private);
+> +
+> +/**
+> + * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
+> + * @nr_pages; number of pages to free
+> + * @pages: the pages
+> + */
+> +void gnttab_free_pages(int nr_pages, struct page **pages)
+> +{
+> +	gnttab_pages_clear_private(nr_pages, pages);
+>  	free_xenballooned_pages(nr_pages, pages);
+>  }
+>  EXPORT_SYMBOL(gnttab_free_pages);
+> diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
+> index 2e37741f6b8d..de03f2542bb7 100644
+> --- a/include/xen/grant_table.h
+> +++ b/include/xen/grant_table.h
+> @@ -198,6 +198,9 @@ void gnttab_free_auto_xlat_frames(void);
+>  int gnttab_alloc_pages(int nr_pages, struct page **pages);
+>  void gnttab_free_pages(int nr_pages, struct page **pages);
+>  
+> +int gnttab_pages_set_private(int nr_pages, struct page **pages);
+> +void gnttab_pages_clear_private(int nr_pages, struct page **pages);
+> +
+>  int gnttab_map_refs(struct gnttab_map_grant_ref *map_ops,
+>  		    struct gnttab_map_grant_ref *kmap_ops,
+>  		    struct page **pages, unsigned int count);
+> -- 
+> 2.17.0
+> 
