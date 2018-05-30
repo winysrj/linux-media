@@ -1,78 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43780 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:44166 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752225AbeERUmN (ORCPT
+        with ESMTP id S935895AbeE3Hwe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 16:42:13 -0400
-From: Kieran Bingham <kieran@ksquared.org.uk>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH v11 04/10] media: vsp1: Protect bodies against overflow
-Date: Fri, 18 May 2018 21:41:57 +0100
-Message-Id: <4b35530281bb2d821905718b8e3022f1c8e4f365.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Wed, 30 May 2018 03:52:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Vinod <vkoul@kernel.org>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: camera control interface
+Date: Wed, 30 May 2018 10:52:36 +0300
+Message-ID: <3520974.Kjugio0TXv@avalon>
+In-Reply-To: <20180530074056.GQ5666@vkoul-mobl>
+References: <20180529082932.GH5666@vkoul-mobl> <2441685.2FbY4xYTJB@avalon> <20180530074056.GQ5666@vkoul-mobl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Hi Vinod,
 
-The body write function relies on the code never asking it to write more
-than the entries available in the list.
+On Wednesday, 30 May 2018 10:40:56 EEST Vinod wrote:
+> On 30-05-18, 10:31, Laurent Pinchart wrote:
+> > On Wednesday, 30 May 2018 10:28:58 EEST Vinod wrote:
+> >> On 30-05-18, 10:04, Laurent Pinchart wrote:
+> >>>> I am writing a driver for camera control inteface which is an i2c
+> >>>> controller. So looking up the code I think it can be a v4l subdev,
+> >>>> right? Can it be an independent i2c master and not v4l subdev?
+> >>> 
+> >>> What do you mean by "camera control interface" here ? A hardware
+> >> device handling communication with camera sensors ? I assume the
+> >>> communication bus is I2C ? Is that "camera control interface" plain
+> >>> I2C or does it have additional features ?
+> >>> 
+> >>> If we're talking about an I2C controller a V4L2 subdev is not only
+> >>> unneeded, but it wouldn't help. You need an I2C master.
+> >> 
+> >> Sorry if I wasn't quite right in description, the control interface is
+> >> indeed i2c master and gpio. The camera sensors are i2c slaves connected
+> >> to this i2c master and gpio for sensors are connected to this as well.
+> > 
+> > No worries. This clarifies the context.
+> > 
+> >>>> Second the control sports GPIOs. It can support  a set of
+> >>>> synchronization primitives so it's possible to drive I2C clients and
+> >>>> GPIOs with hardware controlled timing to allow for sync control of
+> >>>> sensors hooked and also for fancy strobe. How would we represent
+> >>>> these gpios in v4l2 and allow the control, any ideas on that.
+> >>> 
+> >>> Even if your main use case it related to camera, synchronization of
+> >>> I2C and GPIO doesn't seem to be a V4L2 feature to me. It sounds that
+> >>> you need to implement that int he I2C and GPIO subsystems.
+> >> 
+> >> Well if a user wants to capture multiple cameras and synchronise,
+> >> wouldn't that need sync of i2c and gpio. I understand it may not be
+> >> supported but the question is would it be a nice feature for v4l, if so
+> >> how to go about it?
+> > 
+> > You need two parts to implement this in my opinion. First, you need a
+> > synchronized I2C + GPIO mechanism on which to base the implementation.
+> > That's not V4L2-specific and should I believe be handled in the I2C and
+> > GPIO subsystems. Then, you need to expose the concept of camera
+> > synchronization in V4L2. That part will likely require API extensions,
+> > both inside the kernel and towards userspace.
+> 
+> Okay thanks. So should I do a v4l subdev for i2c master or leave it in
+> i2c subsystem. Does subdev make sense for gpio too..
 
-Currently with each list body containing 256 entries, this is fine, but
-we can reduce this number greatly saving memory. In preparation of this
-add a level of protection to catch any buffer overflows.
+A V4L2 subdev doesn't make sense for any of these. Roughly speaking, a subdev 
+represent an entity in a video data pipeline (with the notable exception of 
+lens and flash controllers). I2C, GPIO and other resources (such as clocks) 
+are not part of the video data pipeline (unless video data itself transits on 
+I2C, but that's another story).
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_dl.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+> How does one go about 'linking' the two?
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 083da4f05c20..51965c30dec2 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -46,6 +46,7 @@ struct vsp1_dl_entry {
-  * @dma: DMA address of the entries
-  * @size: size of the DMA memory in bytes
-  * @num_entries: number of stored entries
-+ * @max_entries: number of entries available
-  */
- struct vsp1_dl_body {
- 	struct list_head list;
-@@ -56,6 +57,7 @@ struct vsp1_dl_body {
- 	size_t size;
- 
- 	unsigned int num_entries;
-+	unsigned int max_entries;
- };
- 
- /**
-@@ -138,6 +140,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
- 
- 	dlb->vsp1 = vsp1;
- 	dlb->size = size;
-+	dlb->max_entries = num_entries;
- 
- 	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
- 				    GFP_KERNEL);
-@@ -219,6 +222,10 @@ void vsp1_dl_body_free(struct vsp1_dl_body *dlb)
-  */
- void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
-+	if (WARN_ONCE(dlb->num_entries >= dlb->max_entries,
-+		      "DLB size exceeded (max %u)", dlb->max_entries))
-+		return;
-+
- 	dlb->entries[dlb->num_entries].addr = reg;
- 	dlb->entries[dlb->num_entries].data = data;
- 	dlb->num_entries++;
+That's what you have to invent :-)
+
+> Btw where is v4l userspace located?
+
+There's no official "V4L2 userspace". V4L2 is a kernel to userspace API. Lots 
+of applications then use that API, either directly, or through a framework as 
+GStreamer.
+
 -- 
-git-series 0.9.1
+Regards,
+
+Laurent Pinchart
