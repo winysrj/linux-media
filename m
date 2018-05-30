@@ -1,306 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay12.mail.gandi.net ([217.70.178.232]:44831 "EHLO
-        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751121AbeEBHW3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2018 03:22:29 -0400
-Date: Wed, 2 May 2018 09:22:24 +0200
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:39405 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753304AbeE3Mvh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 May 2018 08:51:37 -0400
+Date: Wed, 30 May 2018 14:51:24 +0200
 From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Dave Airlie <airlied@gmail.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v3 7/8] v4l: vsp1: Integrate DISCOM in display pipeline
-Message-ID: <20180502072224.GC17527@w540>
-References: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
- <20180428205027.18025-8-laurent.pinchart+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [PATCH] media: arch: sh: migor: Fix TW9910 PDN gpio
+Message-ID: <20180530125124.GB10472@w540>
+References: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org>
+ <2981239.tGoCg7U0XF@avalon>
+ <20180530122343.GA10472@w540>
+ <14986389.IZxnRVqLam@avalon>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="t0UkRYy7tHLRMCai"
+        protocol="application/pgp-signature"; boundary="1LKvkjL3sHcu1TtY"
 Content-Disposition: inline
-In-Reply-To: <20180428205027.18025-8-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <14986389.IZxnRVqLam@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---t0UkRYy7tHLRMCai
+--1LKvkjL3sHcu1TtY
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 
 Hi Laurent,
-    thanks for addressing comments on v2
 
-On Sat, Apr 28, 2018 at 11:50:26PM +0300, Laurent Pinchart wrote:
-> The DISCOM is used to compute CRCs on display frames. Integrate it in
-> the display pipeline at the output of the blending unit to process
-> output frames.
+On Wed, May 30, 2018 at 03:38:01PM +0300, Laurent Pinchart wrote:
+> Hi Jacopo,
 >
-> Computing CRCs on input frames is possible by positioning the DISCOM at
-> a different point in the pipeline. This use case isn't supported at the
-> moment and could be implemented by extending the API between the VSP1
-> and DU drivers if needed.
+> On Wednesday, 30 May 2018 15:23:43 EEST jacopo mondi wrote:
+> > On Wed, May 30, 2018 at 02:52:31PM +0300, Laurent Pinchart wrote:
+> > > On Wednesday, 30 May 2018 12:30:49 EEST Geert Uytterhoeven wrote:
+> > >> On Wed, May 30, 2018 at 11:13 AM, Jacopo Mondi wrote:
+> > >>> The TW9910 PDN gpio (power down) is listed as active high in the chip
+> > >>> manual. It turns out it is actually active low as when set to physical
+> > >>> level 0 it actually turns the video decoder power off.
+> > >>
+> > >> So the picture "Typical TW9910 External Circuitry" in the datasheet,
+> > >> which ties PDN to GND permanently, is wrong?
+> >
+> > Also the definition of PDN pin in TW9910 manual, as reported by Laurent made
+> > me think the pin had to stay in logical state 1 to have the chip powered
+> > down. That's why my initial 'ACTIVE_HIGH' flag. The chip was not
+> > recognized, but I thought it was a local problem of the Migo-R board I
+> > was using.
+> >
+> > Then one day I tried inverting the pin active state just to be sure,
+> > and it started being fully operational :/
+> >
+> > > The SH PTT2 line is connected directory to the TW9910 PDN signal, without
+> > > any inverter on the board. The PDN signal is clearly documented as
+> > > active-high in the TW9910 datasheet. Something is thus weird.
+> >
+> > I suspect the 'active high' definition in datasheet is different from
+> > our understanding. Their 'active' means the chip is operational, which
+> > is not what one would expect from a powerdown pin.
+> >
+> > > Jacopo, is it possible to measure the PDN signal on the board as close as
+> > > possible to the TW9910 to see if it works as expected ?
+> >
+> > Not for me. The board is in Japan and my multimeter doesn't have cables
+> > that long, unfortunately.
 >
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> How about trying that during your next trip to Japan ? :-)
 
-Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-
-Thanks
-   j
-
-> ---
-> Changes since v2:
+Ok, I'll stop looking for cables 10.000km long on amazon.
 >
-> - Reduce indentation in vsp1_du_insert_uif()
-> - Use vsp1_du_crc_config structure in vsp1_drm_pipeline
-> ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 115 ++++++++++++++++++++++++++++++++-
->  drivers/media/platform/vsp1/vsp1_drm.h |   7 ++
->  2 files changed, 119 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> index 5fc31578f9b0..08667e3640b2 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -22,6 +22,7 @@
->  #include "vsp1_lif.h"
->  #include "vsp1_pipe.h"
->  #include "vsp1_rwpf.h"
-> +#include "vsp1_uif.h"
->
->  #define BRX_NAME(e)	(e)->type == VSP1_ENTITY_BRU ? "BRU" : "BRS"
->
-> @@ -35,8 +36,13 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
->  	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
->  	bool complete = completion == VSP1_DL_FRAME_END_COMPLETED;
->
-> -	if (drm_pipe->du_complete)
-> -		drm_pipe->du_complete(drm_pipe->du_private, complete, 0);
-> +	if (drm_pipe->du_complete) {
-> +		struct vsp1_entity *uif = drm_pipe->uif;
-> +		u32 crc;
-> +
-> +		crc = uif ? vsp1_uif_get_crc(to_uif(&uif->subdev)) : 0;
-> +		drm_pipe->du_complete(drm_pipe->du_private, complete, crc);
-> +	}
->
->  	if (completion & VSP1_DL_FRAME_END_INTERNAL) {
->  		drm_pipe->force_brx_release = false;
-> @@ -48,10 +54,66 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
->   * Pipeline Configuration
->   */
->
-> +/*
-> + * Insert the UIF in the pipeline between the prev and next entities. If no UIF
-> + * is available connect the two entities directly.
-> + */
-> +static int vsp1_du_insert_uif(struct vsp1_device *vsp1,
-> +			      struct vsp1_pipeline *pipe,
-> +			      struct vsp1_entity *uif,
-> +			      struct vsp1_entity *prev, unsigned int prev_pad,
-> +			      struct vsp1_entity *next, unsigned int next_pad)
-> +{
-> +	struct v4l2_subdev_format format;
-> +	int ret;
-> +
-> +	if (!uif) {
-> +		/*
-> +		 * If there's no UIF to bee inserted connected the previous and
-> +		 * next entities directly.
-> +		 */
-> +		prev->sink = next;
-> +		prev->sink_pad = next_pad;
-> +		return 0;
-> +	}
-> +
-> +	prev->sink = uif;
-> +	prev->sink_pad = UIF_PAD_SINK;
-> +
-> +	memset(&format, 0, sizeof(format));
-> +	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> +	format.pad = prev_pad;
-> +
-> +	ret = v4l2_subdev_call(&prev->subdev, pad, get_fmt, NULL, &format);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	format.pad = UIF_PAD_SINK;
-> +
-> +	ret = v4l2_subdev_call(&uif->subdev, pad, set_fmt, NULL, &format);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on UIF sink\n",
-> +		__func__, format.format.width, format.format.height,
-> +		format.format.code);
-> +
-> +	/*
-> +	 * The UIF doesn't mangle the format between its sink and source pads,
-> +	 * so there is no need to retrieve the format on its source pad.
-> +	 */
-> +
-> +	uif->sink = next;
-> +	uif->sink_pad = next_pad;
-> +
-> +	return 0;
-> +}
-> +
->  /* Setup one RPF and the connected BRx sink pad. */
->  static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
->  				      struct vsp1_pipeline *pipe,
->  				      struct vsp1_rwpf *rpf,
-> +				      struct vsp1_entity *uif,
->  				      unsigned int brx_input)
->  {
->  	struct v4l2_subdev_selection sel;
-> @@ -122,6 +184,12 @@ static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
->  	if (ret < 0)
->  		return ret;
->
-> +	/* Insert and configure the UIF if available. */
-> +	ret = vsp1_du_insert_uif(vsp1, pipe, uif, &rpf->entity, RWPF_PAD_SOURCE,
-> +				 pipe->brx, brx_input);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	/* BRx sink, propagate the format from the RPF source. */
->  	format.pad = brx_input;
->
-> @@ -297,7 +365,10 @@ static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
->  static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
->  					struct vsp1_pipeline *pipe)
->  {
-> +	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
->  	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
-> +	struct vsp1_entity *uif;
-> +	bool use_uif = false;
->  	struct vsp1_brx *brx;
->  	unsigned int i;
->  	int ret;
-> @@ -358,7 +429,11 @@ static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
->  		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
->  			__func__, rpf->entity.index, BRX_NAME(pipe->brx), i);
->
-> -		ret = vsp1_du_pipeline_setup_rpf(vsp1, pipe, rpf, i);
-> +		uif = drm_pipe->crc.source == VSP1_DU_CRC_PLANE &&
-> +		      drm_pipe->crc.index == i ? drm_pipe->uif : NULL;
-> +		if (uif)
-> +			use_uif = true;
-> +		ret = vsp1_du_pipeline_setup_rpf(vsp1, pipe, rpf, uif, i);
->  		if (ret < 0) {
->  			dev_err(vsp1->dev,
->  				"%s: failed to setup RPF.%u\n",
-> @@ -367,6 +442,31 @@ static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
->  		}
->  	}
->
-> +	/* Insert and configure the UIF at the BRx output if available. */
-> +	uif = drm_pipe->crc.source == VSP1_DU_CRC_OUTPUT ? drm_pipe->uif : NULL;
-> +	if (uif)
-> +		use_uif = true;
-> +	ret = vsp1_du_insert_uif(vsp1, pipe, uif,
-> +				 pipe->brx, pipe->brx->source_pad,
-> +				 &pipe->output->entity, 0);
-> +	if (ret < 0)
-> +		dev_err(vsp1->dev, "%s: failed to setup UIF after %s\n",
-> +			__func__, BRX_NAME(pipe->brx));
-> +
-> +	/*
-> +	 * If the UIF is not in use schedule it for removal by setting its pipe
-> +	 * pointer to NULL, vsp1_du_pipeline_configure() will remove it from the
-> +	 * hardware pipeline and from the pipeline's list of entities. Otherwise
-> +	 * make sure it is present in the pipeline's list of entities if it
-> +	 * wasn't already.
-> +	 */
-> +	if (!use_uif) {
-> +		drm_pipe->uif->pipe = NULL;
-> +	} else if (!drm_pipe->uif->pipe) {
-> +		drm_pipe->uif->pipe = pipe;
-> +		list_add_tail(&drm_pipe->uif->list_pipe, &pipe->entities);
-> +	}
-> +
->  	return 0;
->  }
->
-> @@ -748,6 +848,8 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
->  	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
->  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
->
-> +	drm_pipe->crc = cfg->crc;
-> +
->  	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
->  	vsp1_du_pipeline_configure(pipe);
->  	mutex_unlock(&vsp1->drm->lock);
-> @@ -816,6 +918,13 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
->
->  		pipe->lif->pipe = pipe;
->  		list_add_tail(&pipe->lif->list_pipe, &pipe->entities);
-> +
-> +		/*
-> +		 * CRC computation is initially disabled, don't add the UIF to
-> +		 * the pipeline.
-> +		 */
-> +		if (i < vsp1->info->uif_count)
-> +			drm_pipe->uif = &vsp1->uif[i]->entity;
->  	}
->
->  	/* Disable all RPFs initially. */
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
-> index e5b88b28806c..8dfd274a59e2 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.h
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.h
-> @@ -13,6 +13,8 @@
->  #include <linux/videodev2.h>
->  #include <linux/wait.h>
->
-> +#include <media/vsp1.h>
-> +
->  #include "vsp1_pipe.h"
->
->  /**
-> @@ -22,6 +24,8 @@
->   * @height: output display height
->   * @force_brx_release: when set, release the BRx during the next reconfiguration
->   * @wait_queue: wait queue to wait for BRx release completion
-> + * @uif: UIF entity if available for the pipeline
-> + * @crc: CRC computation configuration
->   * @du_complete: frame completion callback for the DU driver (optional)
->   * @du_private: data to be passed to the du_complete callback
->   */
-> @@ -34,6 +38,9 @@ struct vsp1_drm_pipeline {
->  	bool force_brx_release;
->  	wait_queue_head_t wait_queue;
->
-> +	struct vsp1_entity *uif;
-> +	struct vsp1_du_crc_config crc;
-> +
->  	/* Frame synchronisation */
->  	void (*du_complete)(void *data, bool completed, u32 crc);
->  	void *du_private;
 > --
 > Regards,
 >
 > Laurent Pinchart
 >
+>
+>
 
---t0UkRYy7tHLRMCai
+--1LKvkjL3sHcu1TtY
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJa6WcwAAoJEHI0Bo8WoVY8/esP/38vUOYUHOusRNbxCHLKIq1I
-9sGGKK0fEOCSyjH15tG5LoUJAIVMSvMK1kGHRx2sIn5OeX9Z9GZ4VRHoJyqupw/D
-z5e4ffbXkyNlerXprVYhHFQ/ciDFJjKmjPxeRDuAA1FDB067jxAEBr7ij6gRILnj
-+1lf3tQJ3JwkRd/C/HSKUdLrUJqeg42u8+xvwtNp3aTz38sfbmKmSc2AIydxTImq
-2YEIoZgcY3upZA6u/qOhIBlJAQDtIsv0oAk6s7PFEgzwu8Eygdy8mmZ/Ba/uWJy2
-zxL+d7aza19Q7kiP8Ij9wyPH0l3imySXcBjwdXF2O9sS/o7lOybWjqg1X5wZAda0
-fPp3v3Ovo5zLmsxXILRAAGdXoFAWHwHTXOrEZY1eUVbYBduxz1NM0tdi7FLSAFi5
-Eq56YeZVhP7y06KP0PaJwPqzwsMRi5PbrlSoPyEcFuEulCTmV8e1yUOcU/G5NfDM
-UvSshN+2VbU7bSTEEIE6+rWpkKMDxRH3i8jZt1n4VhPdJPoHOkoUztnJu4lxxBc/
-Zb6rr1CnOAPW25RN/TkKhI+KOmXHoE1M5ianTHwgmCXGgn2KFMKEX2WvXjRn2m5E
-+n1nv+mJFS5jWCiwVOWRf1flN8o0B1PWHqnUv7XDxA5YzFp3mpHofZ8pTcX//Z8+
-IrNX+4SvUzggZfcDqs90
-=GcxM
+iQIcBAEBAgAGBQJbDp5MAAoJEHI0Bo8WoVY8QHUQAMcVg1vDw1YGbzxaH77Jq4Wi
+SJR3p0SOmO8DMrnDLa9Gcp4Bv5DNb7ldiZ9eHszdx8kuzxx4Zj9sowvw9i1c8wZF
+kXECE6TTVv0rnUszLi64ueRVHy9MMICOVzIHDIp5YdFhwoWJAhiU/RRbgRSNBw9K
+pNtQMqXFVRFLIyOenH3N3AcvqRdK+C1IXjDmdqAwEZ98dp+uS2L5AeyvqnDOS4r0
+BwQOp8wzcXoyNv/PI98KaWvqGfRaLVhVMWe7gdwuFVMijGCWMtg2EtteMbr6+zwZ
+9eNDx1nvusGcgwOaTfkAaphEMmhjMqNuU7bp2E0UwVF6+0IKfO3sAtUq1nvZhXyr
+TsDIki1mQs1h7ZA3AawUnVII92Zb9ekWJaylgARrgIfNdBq77ZnQRwROV3dHgvII
+2NxM9WxP/hqu2a5NchlkKQi+fDYBd4OhagvMP6D3lwQ5JL7nlV+Z/U9+3ex8RZJb
+xmQYlfc5ThZ3lcMc+0vnYmeOEVm93HLnRWqOINcM7zNhw0Rezb+oYSwsLZg96l30
+RC36Kh3LSsERVhfg51b9cdqhQiYi6uVPbqyyGFABBtSE4OfOJi32Q5lg/RbkS/fb
+eWoJxcVclJ+r1cZjJQucN7dzSrhzCaE67NQGzd/t08zi2q3m+uKVaYzLd32DiNzk
+KOK1HE5D94Q+lz7kwLcx
+=ptHo
 -----END PGP SIGNATURE-----
 
---t0UkRYy7tHLRMCai--
+--1LKvkjL3sHcu1TtY--
