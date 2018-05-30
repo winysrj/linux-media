@@ -1,42 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:41335 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750791AbeEPPVX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 May 2018 11:21:23 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH] media: dw9807: remove an unused var
-Date: Wed, 16 May 2018 11:21:17 -0400
-Message-Id: <7e6b6b945272c20f6b78d319e07f27897a8373c9.1526484075.git.mchehab+samsung@kernel.org>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:42671 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S968844AbeE3JNi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 May 2018 05:13:38 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: ysato@users.sourceforge.jp, dalias@libc.org,
+        laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, linux-sh@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH] media: arch: sh: migor: Fix TW9910 PDN gpio
+Date: Wed, 30 May 2018 11:13:24 +0200
+Message-Id: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/i2c/dw9807.c: In function 'dw9807_set_dac':
-drivers/media/i2c/dw9807.c:81:16: warning: unused variable 'retry' [-Wunused-variable]
-  int val, ret, retry = 0;
-                ^
+The TW9910 PDN gpio (power down) is listed as active high in the chip
+manual. It turns out it is actually active low as when set to physical
+level 0 it actually turns the video decoder power off.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Without this patch applied:
+tw9910 0-0045: Product ID error 1f:2
+
+With this patch applied:
+tw9910 0-0045: tw9910 Product ID b:0
+
+Fixes: commit "186c446f4b840bd77b79d3dc951ca436cb8abe79"
+
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
 ---
- drivers/media/i2c/dw9807.c | 2 +-
+Hi,
+   sending to both media and sh lists, as all previous CEU-related patches
+went through Hans' tree, even the board specific parts.
+
+Thanks
+   j
+---
+ arch/sh/boards/mach-migor/setup.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c
-index 28ede2b47acf..6ebb98717fb1 100644
---- a/drivers/media/i2c/dw9807.c
-+++ b/drivers/media/i2c/dw9807.c
-@@ -78,7 +78,7 @@ static int dw9807_set_dac(struct i2c_client *client, u16 data)
- 	const char tx_data[3] = {
- 		DW9807_MSB_ADDR, ((data >> 8) & 0x03), (data & 0xff)
- 	};
--	int val, ret, retry = 0;
-+	int val, ret;
- 
- 	/*
- 	 * According to the datasheet, need to check the bus status before we
--- 
-2.17.0
+diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
+index 271dfc2..3d7d004 100644
+--- a/arch/sh/boards/mach-migor/setup.c
++++ b/arch/sh/boards/mach-migor/setup.c
+@@ -359,7 +359,7 @@ static struct gpiod_lookup_table ov7725_gpios = {
+ static struct gpiod_lookup_table tw9910_gpios = {
+ 	.dev_id		= "0-0045",
+ 	.table		= {
+-		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT2, "pdn", GPIO_ACTIVE_HIGH),
++		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT2, "pdn", GPIO_ACTIVE_LOW),
+ 		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_LOW),
+ 	},
+ };
+--
+2.7.4
