@@ -1,75 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:59349 "EHLO mga09.intel.com"
+Received: from mail.kernel.org ([198.145.29.99]:58892 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S966945AbeEXUrl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 16:47:41 -0400
-Date: Thu, 24 May 2018 23:47:34 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: bingbu.cao@intel.com, linux-media@vger.kernel.org,
-        bingbu.cao@linux.intel.com, tian.shu.qiu@linux.intel.com,
-        rajmohan.mani@intel.com, mchehab@kernel.org
-Subject: Re: [PATCH v3] media: imx319: Add imx319 camera sensor driver
-Message-ID: <20180524204733.s2ijd3t2izztvjnv@kekkonen.localdomain>
-References: <1526886658-14417-1-git-send-email-bingbu.cao@intel.com>
- <1526963581-28655-1-git-send-email-bingbu.cao@intel.com>
- <20180522200848.GB15035@w540>
- <20180523073833.onxqj72hi23qkz42@paasikivi.fi.intel.com>
- <20180524200738.GD18369@w540>
+        id S1753186AbeE3H3D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 May 2018 03:29:03 -0400
+Date: Wed, 30 May 2018 12:58:58 +0530
+From: Vinod <vkoul@kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: camera control interface
+Message-ID: <20180530072858.GP5666@vkoul-mobl>
+References: <20180529082932.GH5666@vkoul-mobl>
+ <2593976.2pOKjEb3EO@avalon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180524200738.GD18369@w540>
+In-Reply-To: <2593976.2pOKjEb3EO@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Hey Laurent,
 
-On Thu, May 24, 2018 at 10:07:38PM +0200, jacopo mondi wrote:
-...
-> > > about that, but I wonder why setting controls should be enabled only
-> > > when streaming. I would have expected runtime_pm_get/put in subdevices
-> > > node open/close functions not only when streaming. Am I missing something?
-> >
-> > You can do it either way. If powering on the sensor takes a long time, then
-> > doing that in the open callback may be helpful as the user space has a way
-> > to keep the device powered.
+On 30-05-18, 10:04, Laurent Pinchart wrote:
+> > 
+> > I am writing a driver for camera control inteface which is an i2c
+> > controller. So looking up the code I think it can be a v4l subdev,
+> > right? Can it be an independent i2c master and not v4l subdev?
 > 
-> Ok, so I assume my comment could be ignored, assuming is fine not
-> being able to set control if the sensor is not streaming. Is it?
-
-I'd say so. From the user's point of view, the sensor doesn't really do
-anything when it's in software standby mode.
-
-...
-
-> > > > +	mode = v4l2_find_nearest_size(supported_modes,
-> > > > +		ARRAY_SIZE(supported_modes), width, height,
-> > > > +		fmt->format.width, fmt->format.height);
-> > > > +	imx319_update_pad_format(imx319, mode, fmt);
-> > > > +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> > > > +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> > > > +		*framefmt = fmt->format;
-> > > > +	} else {
-> > > > +		imx319->cur_mode = mode;
-> > > > +		pixel_rate =
-> > > > +		(link_freq_menu_items[0] * 2 * 4) / 10;
-> > >
-> > > This assumes a fixed link frequency and a fixed number of data lanes,
-> > > and a fixed bpp value (but this is ok, as all the formats you have are
-> > > 10bpp). In OF world those parameters come from DT, what about ACPI?
-> >
-> > I presume the driver only supports a particular number of lanes (4). ACPI
-> > supports _DSD properties, i.e. the same can be done on ACPI.
-> >
-> > If the driver only supports these, then it should check this matches with
-> > what the firmware (ACPI) has. The fwnode API is the same.
+> What do you mean by "camera control interface" here ? A hardware device 
+> handling communication with camera sensors ? I assume the communication bus is 
+> I2C ? Is that "camera control interface" plain I2C or does it have additional 
+> features ?
 > 
-> Thanks, so I assume those parameters represented in ACPI DSD nodes
-> will be checked to be supported by the sensor in v2.
+> If we're talking about an I2C controller a V4L2 subdev is not only unneeded, 
+> but it wouldn't help. You need an I2C master.
 
-Agreed.
+Sorry if I wasn't quite right in description, the control interface is
+indeed i2c master and gpio. The camera sensors are i2c slaves connected to
+this i2c master and gpio for sensors are connected to this as well.
 
+> > Second the control sports GPIOs. It can support  a set of
+> > synchronization primitives so it's possible to drive I2C clients and
+> > GPIOs with hardware controlled timing to allow for sync control of
+> > sensors hooked and also for fancy strobe. How would we represent these
+> > gpios in v4l2 and allow the control, any ideas on that.
+> 
+> Even if your main use case it related to camera, synchronization of I2C and 
+> GPIO doesn't seem to be a V4L2 feature to me. It sounds that you need to 
+> implement that int he I2C and GPIO subsystems.
+
+Well if a user wants to capture multiple cameras and synchronise,
+wouldn't that need sync of i2c and gpio. I understand it may not be
+supported but the question is would it be a nice feature for v4l, if so
+how to go about it?
+
+Thanks
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+~Vinod
