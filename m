@@ -1,113 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37836 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752086AbeEGMcY (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:36258 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935879AbeE3I3w (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 08:32:24 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id EFE98634C50
-        for <linux-media@vger.kernel.org>; Mon,  7 May 2018 15:32:22 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1fFfJW-0003gi-O6
-        for linux-media@vger.kernel.org; Mon, 07 May 2018 15:32:22 +0300
-Date: Mon, 7 May 2018 15:32:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.18] Sensor driver patches
-Message-ID: <20180507123222.5h5a6bp6reetdtdh@valkosipuli.retiisi.org.uk>
+        Wed, 30 May 2018 04:29:52 -0400
+Subject: Re: [PATCH 2/8] xen/balloon: Move common memory reservation routines
+ to a module
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180525153331.31188-1-andr2000@gmail.com>
+ <20180525153331.31188-3-andr2000@gmail.com>
+ <59ab73b0-967b-a82f-3b0d-95f1b0dc40a5@oracle.com>
+ <89de7bdb-8759-419f-63bf-8ed0d57650f0@gmail.com>
+ <edfa937b-3311-98db-2e6f-b4083598f796@oracle.com>
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+Message-ID: <6ca7f428-eede-2c14-85fe-da4a20bcea0d@gmail.com>
+Date: Wed, 30 May 2018 11:29:48 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <edfa937b-3311-98db-2e6f-b4083598f796@oracle.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 05/29/2018 11:03 PM, Boris Ostrovsky wrote:
+> On 05/29/2018 02:22 PM, Oleksandr Andrushchenko wrote:
+>> On 05/29/2018 09:04 PM, Boris Ostrovsky wrote:
+>>> On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
+>>> @@ -463,11 +457,6 @@ static enum bp_state
+>>> increase_reservation(unsigned long nr_pages)
+>>>        int rc;
+>>>        unsigned long i;
+>>>        struct page   *page;
+>>> -    struct xen_memory_reservation reservation = {
+>>> -        .address_bits = 0,
+>>> -        .extent_order = EXTENT_ORDER,
+>>> -        .domid        = DOMID_SELF
+>>> -    };
+>>>          if (nr_pages > ARRAY_SIZE(frame_list))
+>>>            nr_pages = ARRAY_SIZE(frame_list);
+>>> @@ -486,9 +475,7 @@ static enum bp_state
+>>> increase_reservation(unsigned long nr_pages)
+>>>            page = balloon_next_page(page);
+>>>        }
+>>>    -    set_xen_guest_handle(reservation.extent_start, frame_list);
+>>> -    reservation.nr_extents = nr_pages;
+>>> -    rc = HYPERVISOR_memory_op(XENMEM_populate_physmap, &reservation);
+>>> +    rc = xenmem_reservation_increase(nr_pages, frame_list);
+>>>        if (rc <= 0)
+>>>            return BP_EAGAIN;
+>>>    @@ -496,29 +483,7 @@ static enum bp_state
+>>> increase_reservation(unsigned long nr_pages)
+>>>            page = balloon_retrieve(false);
+>>>            BUG_ON(page == NULL);
+>>>    -#ifdef CONFIG_XEN_HAVE_PVMMU
+>>> -        /*
+>>> -         * We don't support PV MMU when Linux and Xen is using
+>>> -         * different page granularity.
+>>> -         */
+>>> -        BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
+>>> -
+>>> -        if (!xen_feature(XENFEAT_auto_translated_physmap)) {
+>>> -            unsigned long pfn = page_to_pfn(page);
+>>> -
+>>> -            set_phys_to_machine(pfn, frame_list[i]);
+>>> -
+>>> -            /* Link back into the page tables if not highmem. */
+>>> -            if (!PageHighMem(page)) {
+>>> -                int ret;
+>>> -                ret = HYPERVISOR_update_va_mapping(
+>>> -                        (unsigned long)__va(pfn << PAGE_SHIFT),
+>>> -                        mfn_pte(frame_list[i], PAGE_KERNEL),
+>>> -                        0);
+>>> -                BUG_ON(ret);
+>>> -            }
+>>> -        }
+>>> -#endif
+>>> +        xenmem_reservation_va_mapping_update(1, &page, &frame_list[i]);
+>>>
+>>> Can you make a single call to xenmem_reservation_va_mapping_update(rc,
+>>> ...)? You need to keep track of pages but presumable they can be put
+>>> into an array (or a list). In fact, perhaps we can have
+>>> balloon_retrieve() return a set of pages.
+>> This is actually how it is used later on for dma-buf, but I just
+>> didn't want
+>> to alter original balloon code too much, but this can be done, in
+>> order of simplicity:
+>>
+>> 1. Similar to frame_list, e.g. static array of struct page* of size
+>> ARRAY_SIZE(frame_list):
+>> more static memory is used, but no allocations
+>>
+>> 2. Allocated at run-time with kcalloc: allocation can fail
+>
+> If this is called in freeing DMA buffer code path or in error path then
+> we shouldn't do it.
+>
+>
+>> 3. Make balloon_retrieve() return a set of pages: will require
+>> list/array allocation
+>> and handling, allocation may fail, balloon_retrieve prototype change
+>
+> balloon pages are strung on the lru list. Can we keep have
+> balloon_retrieve return a list of pages on that list?
+First of all, before we go deep in details, I will highlight
+the goal of the requested change: for balloon driver we call
+xenmem_reservation_va_mapping_update(*1*, &page, &frame_list[i]);
+from increase_reservation
+and
+xenmem_reservation_va_mapping_reset(*1*, &page);
+from decrease_reservation and it seems to be not elegant because of
+that one page/frame passed while we might have multiple pages/frames
+passed at once.
 
-Here's a regular bunch of sensor and lens driver patches for 4.18. Fixes,
-cleanups and preparation for new functionality (imx274 and ov5640) as well
-as DT bindings and a new driver for ov7251 and imx258 camera sensors and
-dw9807 voice coil.
+In the balloon driver the producer of pages for increase_reservation
+is balloon_retrieve(false) and for decrease_reservation it is
+alloc_page(gfp).
+In case of decrease_reservation the page is added on the list:
+LIST_HEAD(pages);
+[...]
+list_add(&page->lru, &pages);
 
-Please pull.
+and in case of increase_reservation it is retrieved page by page
+and can be put on a list as well with the same code from
+decrease_reservation, e.g.
+LIST_HEAD(pages);
+[...]
+list_add(&page->lru, &pages);
 
+Thus, both decrease_reservation and increase_reservation may hold
+their pages on a list before calling 
+xenmem_reservation_va_mapping_{update|reset}.
 
-The following changes since commit f10379aad39e9da8bc7d1822e251b5f0673067ef:
+For that we need a prototype change:
+xenmem_reservation_va_mapping_reset(<nr_pages>, <list of pages>);
+But for xenmem_reservation_va_mapping_update it will look like:
+xenmem_reservation_va_mapping_update(<nr_pages>, <list of pages>, <array 
+of frames>)
+which seems to be inconsistent. Converting entries of the static 
+frame_list array
+into corresponding list doesn't seem to be cute as well.
 
-  media: include/video/omapfb_dss.h: use IS_ENABLED() (2018-05-05 11:45:51 -0400)
+For dma-buf use-case arrays are more preferable as dma-buf constructs 
+scatter-gather
+tables from array of pages etc. and if page list is passed then it needs 
+to be
+converted into page array anyways.
 
-are available in the git repository at:
+So, we can:
+1. Keep the prototypes as is, e.g. accept array of pages and use 
+nr_pages == 1 in
+case of balloon driver (existing code)
+2. Statically allocate struct page* array in the balloon driver and fill 
+it with pages
+when those pages are retrieved:
+static struct page *page_list[ARRAY_SIZE(frame_list)];
+which will take additional 8KiB of space on 64-bit platform, but 
+simplify things a lot.
+3. Allocate struct page *page_list[ARRAY_SIZE(frame_list)] dynamically
 
-  ssh://linuxtv.org/git/sailus/media_tree.git for-4.18-3
+As to Boris' suggestion "balloon pages are strung on the lru list. Can 
+we keep have
+balloon_retrieve return a list of pages on that list?"
+Because of alloc_xenballooned_pages' retry logic for page retireval, e.g.
+     while (pgno < nr_pages) {
+         page = balloon_retrieve(true);
+         if (page) {
+[...]
+         } else {
+             ret = add_ballooned_pages(nr_pages - pgno);
+[...]
+     }
+I wouldn't change things that much.
 
-for you to fetch changes up to 67f76c65e94ff3923e184870a37bd52e6a02d7af:
-
-  media: imx258: Add imx258 camera sensor driver (2018-05-07 13:22:26 +0300)
-
-----------------------------------------------------------------
-Akinobu Mita (2):
-      media: ov2640: make set_fmt() work in power-down mode
-      media: ov2640: make s_ctrl() work in power-down mode
-
-Alan Chiang (2):
-      media: dt-bindings: Add bindings for Dongwoon DW9807 voice coil
-      media: dw9807: Add dw9807 vcm driver
-
-Colin Ian King (1):
-      media: smiapp: fix timeout checking in smiapp_read_nvm
-
-Jason Chen (1):
-      media: imx258: Add imx258 camera sensor driver
-
-Luca Ceresoli (6):
-      media: imx274: document reset delays more clearly
-      media: imx274: fix typo in comment
-      media: imx274: slightly simplify code
-      media: imx274: remove unused data from struct imx274_frmfmt
-      media: imx274: rename and reorder register address definitions
-      media: imx274: remove non-indexed pointers from mode_table
-
-Maxime Ripard (5):
-      media: ov5640: Don't force the auto exposure state at start time
-      media: ov5640: Init properly the SCLK dividers
-      media: ov5640: Change horizontal and vertical resolutions name
-      media: ov5640: Add horizontal and vertical totals
-      media: ov5640: Program the visible resolution
-
-Myl�ne Josserand (1):
-      media: ov5640: Add light frequency control
-
-Sakari Ailus (1):
-      ov5640: Use dev_fwnode() to obtain device's fwnode
-
-Todor Tomov (3):
-      media: ov5645: Fix write_reg return code
-      dt-bindings: media: Binding document for OV7251 camera sensor
-      media: Add a driver for the ov7251 camera sensor
-
- .../bindings/media/i2c/dongwoon,dw9807.txt         |    9 +
- .../devicetree/bindings/media/i2c/ov7251.txt       |   52 +
- MAINTAINERS                                        |   14 +
- drivers/media/i2c/Kconfig                          |   33 +
- drivers/media/i2c/Makefile                         |    3 +
- drivers/media/i2c/dw9807.c                         |  329 +++++
- drivers/media/i2c/imx258.c                         | 1320 +++++++++++++++++
- drivers/media/i2c/imx274.c                         |   74 +-
- drivers/media/i2c/ov2640.c                         |  112 +-
- drivers/media/i2c/ov5640.c                         |  257 ++--
- drivers/media/i2c/ov5645.c                         |    6 +-
- drivers/media/i2c/ov7251.c                         | 1503 ++++++++++++++++++++
- drivers/media/i2c/smiapp/smiapp-core.c             |   11 +-
- 13 files changed, 3543 insertions(+), 180 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7251.txt
- create mode 100644 drivers/media/i2c/dw9807.c
- create mode 100644 drivers/media/i2c/imx258.c
- create mode 100644 drivers/media/i2c/ov7251.c
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+IMO, we can keep 1 page based API with the only overhead for balloon 
+driver of
+function calls to xenmem_reservation_va_mapping_{update|reset} for each 
+page.
+> -boris
+Thank you,
+Oleksandr
+>
+>> Could you please tell which of the above will fit better?
+>>
+>>>
