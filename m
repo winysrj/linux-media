@@ -1,62 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:52878 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752491AbeEOH7e (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:51718 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752121AbeE3Mh6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 03:59:34 -0400
-Received: by mail-wm0-f68.google.com with SMTP id w194-v6so17604356wmf.2
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 00:59:34 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v2 06/29] venus: hfi: handle buffer output2 type as well
-Date: Tue, 15 May 2018 10:58:36 +0300
-Message-Id: <20180515075859.17217-7-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+        Wed, 30 May 2018 08:37:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [PATCH] media: arch: sh: migor: Fix TW9910 PDN gpio
+Date: Wed, 30 May 2018 15:38:01 +0300
+Message-ID: <14986389.IZxnRVqLam@avalon>
+In-Reply-To: <20180530122343.GA10472@w540>
+References: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org> <2981239.tGoCg7U0XF@avalon> <20180530122343.GA10472@w540>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds handling of buffers of type OUTPUT2 which is needed to
-support Venus 4xx version.
+Hi Jacopo,
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/hfi.c      | 3 ++-
- drivers/media/platform/qcom/venus/hfi_msgs.c | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+On Wednesday, 30 May 2018 15:23:43 EEST jacopo mondi wrote:
+> On Wed, May 30, 2018 at 02:52:31PM +0300, Laurent Pinchart wrote:
+> > On Wednesday, 30 May 2018 12:30:49 EEST Geert Uytterhoeven wrote:
+> >> On Wed, May 30, 2018 at 11:13 AM, Jacopo Mondi wrote:
+> >>> The TW9910 PDN gpio (power down) is listed as active high in the chip
+> >>> manual. It turns out it is actually active low as when set to physical
+> >>> level 0 it actually turns the video decoder power off.
+> >> 
+> >> So the picture "Typical TW9910 External Circuitry" in the datasheet,
+> >> which ties PDN to GND permanently, is wrong?
+> 
+> Also the definition of PDN pin in TW9910 manual, as reported by Laurent made
+> me think the pin had to stay in logical state 1 to have the chip powered
+> down. That's why my initial 'ACTIVE_HIGH' flag. The chip was not
+> recognized, but I thought it was a local problem of the Migo-R board I
+> was using.
+> 
+> Then one day I tried inverting the pin active state just to be sure,
+> and it started being fully operational :/
+> 
+> > The SH PTT2 line is connected directory to the TW9910 PDN signal, without
+> > any inverter on the board. The PDN signal is clearly documented as
+> > active-high in the TW9910 datasheet. Something is thus weird.
+> 
+> I suspect the 'active high' definition in datasheet is different from
+> our understanding. Their 'active' means the chip is operational, which
+> is not what one would expect from a powerdown pin.
+> 
+> > Jacopo, is it possible to measure the PDN signal on the board as close as
+> > possible to the TW9910 to see if it works as expected ?
+> 
+> Not for me. The board is in Japan and my multimeter doesn't have cables
+> that long, unfortunately.
 
-diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
-index cbc6fad05e47..a570fdad0de0 100644
---- a/drivers/media/platform/qcom/venus/hfi.c
-+++ b/drivers/media/platform/qcom/venus/hfi.c
-@@ -473,7 +473,8 @@ int hfi_session_process_buf(struct venus_inst *inst, struct hfi_frame_data *fd)
- 
- 	if (fd->buffer_type == HFI_BUFFER_INPUT)
- 		return ops->session_etb(inst, fd);
--	else if (fd->buffer_type == HFI_BUFFER_OUTPUT)
-+	else if (fd->buffer_type == HFI_BUFFER_OUTPUT ||
-+		 fd->buffer_type == HFI_BUFFER_OUTPUT2)
- 		return ops->session_ftb(inst, fd);
- 
- 	return -EINVAL;
-diff --git a/drivers/media/platform/qcom/venus/hfi_msgs.c b/drivers/media/platform/qcom/venus/hfi_msgs.c
-index 5970e9b1716b..023802e62833 100644
---- a/drivers/media/platform/qcom/venus/hfi_msgs.c
-+++ b/drivers/media/platform/qcom/venus/hfi_msgs.c
-@@ -825,7 +825,8 @@ static void hfi_session_ftb_done(struct venus_core *core,
- 		error = HFI_ERR_SESSION_INVALID_PARAMETER;
- 	}
- 
--	if (buffer_type != HFI_BUFFER_OUTPUT)
-+	if (buffer_type != HFI_BUFFER_OUTPUT &&
-+	    buffer_type != HFI_BUFFER_OUTPUT2)
- 		goto done;
- 
- 	if (hfi_flags & HFI_BUFFERFLAG_EOS)
+How about trying that during your next trip to Japan ? :-)
+
 -- 
-2.14.1
+Regards,
+
+Laurent Pinchart
