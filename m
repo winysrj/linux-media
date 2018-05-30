@@ -1,98 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:40704 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755297AbeEaOla (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:36749 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751810AbeE3MX5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 May 2018 10:41:30 -0400
-Subject: Re: [PATCH 0/8] xen: dma-buf support for grant device
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
- <9687b6e5-808e-0c63-34c3-90e6fcbdfb2e@oracle.com>
- <bc6a2e2f-f650-86db-ac8c-1945a6183c06@gmail.com>
-Message-ID: <d0f55179-8edd-d0b9-d335-735c5012659c@gmail.com>
-Date: Thu, 31 May 2018 17:41:26 +0300
+        Wed, 30 May 2018 08:23:57 -0400
+Date: Wed, 30 May 2018 14:23:43 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [PATCH] media: arch: sh: migor: Fix TW9910 PDN gpio
+Message-ID: <20180530122343.GA10472@w540>
+References: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org>
+ <CAMuHMdVsV9k0OjFMkQSiKCenxfEHgcZxrMU3a5eXRaCDdeA5-A@mail.gmail.com>
+ <2981239.tGoCg7U0XF@avalon>
 MIME-Version: 1.0
-In-Reply-To: <bc6a2e2f-f650-86db-ac8c-1945a6183c06@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
+Content-Disposition: inline
+In-Reply-To: <2981239.tGoCg7U0XF@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/31/2018 08:51 AM, Oleksandr Andrushchenko wrote:
-> On 05/31/2018 04:46 AM, Boris Ostrovsky wrote:
->>
->>
->> On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
->>
->>>
->>> Oleksandr Andrushchenko (8):
->>>    xen/grant-table: Make set/clear page private code shared
->>>    xen/balloon: Move common memory reservation routines to a module
->>>    xen/grant-table: Allow allocating buffers suitable for DMA
->>>    xen/gntdev: Allow mappings for DMA buffers
->>>    xen/gntdev: Add initial support for dma-buf UAPI
->>>    xen/gntdev: Implement dma-buf export functionality
->>>    xen/gntdev: Implement dma-buf import functionality
->>>    xen/gntdev: Expose gntdev's dma-buf API for in-kernel use
->>>
->>>   drivers/xen/Kconfig           |   23 +
->>>   drivers/xen/Makefile          |    1 +
->>>   drivers/xen/balloon.c         |   71 +--
->>>   drivers/xen/gntdev.c          | 1025 
->>> ++++++++++++++++++++++++++++++++-
->>
->>
->> I think this calls for gntdev_dma.c.
-> I assume you mean as a separate file (part of gntdev driver)?
->> I only had a quick look over gntdev changes but they very much are 
->> concentrated in dma-specific routines.
->>
-> I tried to do that, but there are some dependencies between the 
-> gntdev.c and gntdev_dma.c,
-> so finally I decided to put it all together.
->> You essentially only share file_operations entry points with original 
->> gntdev code, right?
->>
-> fops + mappings done by gntdev (struct grant_map) and I need to 
-> release map on dma_buf .release
-> callback which makes some cross-dependencies between modules which 
-> seemed to be not cute
-> (gntdev keeps its all structs and functions inside, so I cannot easily 
-> access those w/o
-> helpers).
->
-> But I'll try one more time and move all DMA specific stuff into 
-> gntdev_dma.c
-Could you please take a quick look at the way I re-structured the 
-sources here [1]?
-If this is what you meant.
 
-Thank you,
-Oleksandr
->> -boris
->>
-> Thank you,
-> Oleksandr
->>
->>>   drivers/xen/grant-table.c     |  176 +++++-
->>>   drivers/xen/mem-reservation.c |  134 +++++
->>>   include/uapi/xen/gntdev.h     |  106 ++++
->>>   include/xen/grant_dev.h       |   37 ++
->>>   include/xen/grant_table.h     |   28 +
->>>   include/xen/mem_reservation.h |   29 +
->>>   10 files changed, 1527 insertions(+), 103 deletions(-)
->>>   create mode 100644 drivers/xen/mem-reservation.c
->>>   create mode 100644 include/xen/grant_dev.h
->>>   create mode 100644 include/xen/mem_reservation.h
->>>
+--gKMricLos+KVdGMg
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Hi Laurent, Geert,
+
+On Wed, May 30, 2018 at 02:52:31PM +0300, Laurent Pinchart wrote:
+> Hi Geert,
 >
-[1] 
-https://github.com/andr2000/linux/commits/xen_tip_linux_next_xen_dma_buf_v2
+> On Wednesday, 30 May 2018 12:30:49 EEST Geert Uytterhoeven wrote:
+> > Hi Jacopo,
+> >
+> > On Wed, May 30, 2018 at 11:13 AM, Jacopo Mondi wrote:
+> > > The TW9910 PDN gpio (power down) is listed as active high in the chip
+> > > manual. It turns out it is actually active low as when set to physical
+> > > level 0 it actually turns the video decoder power off.
+> >
+> > So the picture "Typical TW9910 External Circuitry" in the datasheet, which
+> > ties PDN to GND permanently, is wrong?
+
+Also the definition of PDN pin in TW9910 manual, as reported by Laurent made me
+think the pin had to stay in logical state 1 to have the chip powered
+down. That's why my initial 'ACTIVE_HIGH' flag. The chip was not
+recognized, but I thought it was a local problem of the Migo-R board I
+was using.
+
+Then one day I tried inverting the pin active state just to be sure,
+and it started being fully operational :/
+
+>
+> The SH PTT2 line is connected directory to the TW9910 PDN signal, without any
+> inverter on the board. The PDN signal is clearly documented as active-high in
+> the TW9910 datasheet. Something is thus weird.
+
+I suspect the 'active high' definition in datasheet is different from
+our understanding. Their 'active' means the chip is operational, which
+is not what one would expect from a powerdown pin.
+
+>
+> Jacopo, is it possible to measure the PDN signal on the board as close as
+> possible to the TW9910 to see if it works as expected ?
+
+Not for me. The board is in Japan and my multimeter doesn't have cables
+that long, unfortunately.
+
+Thanks
+   j
+
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+>
+>
+
+--gKMricLos+KVdGMg
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbDpfOAAoJEHI0Bo8WoVY8rPUP/2bvaGORFzFtZJnarkpmaM0Z
+rMewrP2s9s76zY5/7J5SJqNme/4nwUH36UDtSyWUC6sWsqaNs5jVWi2EYlXFuZE9
+kNaxHkBUVwJQtFUTCeMT1ahZxDbfvg4zkPvGAK9t85r2KSz5IemHXcJM4YkeTSdP
+lBQTxCPIDKNK1ENj8UZwdeH471v28lpIVrN964RoLiA8WlllqCPJ4NF5fsmxPYsg
+RghXeiKxJmxJ2SnR+kMTIk9h9WQ7CL3AaJueceHOvDtgMkNPihacPeIQhUCjPWFc
+S5Ywc0wp73++TRbcNGkGexbL8WgOmw7q4TXXt7Q/5VwvJO4y3icvRijGlJAT5s3N
+hhFmUFX6xFnMjry8e9rWWAHPPj+JLb9X7cs5wNB4+1GATgk/80hFasRoR2ChGAJq
+hXkIYoOgvkjwnoc3jWaDvRUwfNUvPTthQB92N+Av6B0TBj0+qjR/o79hWwX5r4lt
+8RCy9o644yQBzqj8OEOAfPVQ1Zeli+yP2hpO7lUuuVeJ+UUVISJ4FWqlM97YbJPo
+kGn4NNiRqW5b6tGlHcZrzEOsEtpxDuZOroGKo0Ljfk060NABdWwqY4x1jPkJ9wxh
+BvvGedCzQphvGzneqjLWL+VkxAwkAOi20EGc93NuiPrcZxYwCuJoLv35KfWCHS3s
+d+U8pVmvkqCDAd2EfaYS
+=qJZI
+-----END PGP SIGNATURE-----
+
+--gKMricLos+KVdGMg--
