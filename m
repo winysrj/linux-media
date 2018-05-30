@@ -1,320 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:40707 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966698AbeEYPd4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 11:33:56 -0400
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Subject: [PATCH 7/8] xen/gntdev: Implement dma-buf import functionality
-Date: Fri, 25 May 2018 18:33:30 +0300
-Message-Id: <20180525153331.31188-8-andr2000@gmail.com>
-In-Reply-To: <20180525153331.31188-1-andr2000@gmail.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:45214 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751794AbeE3N4V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 May 2018 09:56:21 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        linux-fsdevel@vger.kernel.org
+Subject: [PATCH v2] media: dvb: get rid of VIDEO_SET_SPU_PALETTE
+Date: Wed, 30 May 2018 10:56:14 -0300
+Message-Id: <b19293fadb838db5f5a7f28a30cb952708fe22ef.1527688565.git.mchehab+samsung@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+No upstream drivers use it. It doesn't make any sense to have
+a compat32 code for something that nobody uses upstream.
 
-1. Import a dma-buf with the file descriptor provided and export
-   granted references to the pages of that dma-buf into the array
-   of grant references.
-
-2. Add API to close all references to an imported buffer, so it can be
-   released by the owner. This is only valid for buffers created with
-   IOCTL_GNTDEV_DMABUF_IMP_TO_REFS.
-
-Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Reported-by: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/xen/gntdev.c | 237 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 234 insertions(+), 3 deletions(-)
+ .../media/uapi/dvb/video-set-spu-palette.rst  | 82 -------------------
+ .../media/uapi/dvb/video_function_calls.rst   |  1 -
+ Documentation/media/uapi/dvb/video_types.rst  | 18 ----
+ Documentation/media/video.h.rst.exceptions    |  1 -
+ fs/compat_ioctl.c                             | 30 -------
+ include/uapi/linux/dvb/video.h                |  7 --
+ 6 files changed, 139 deletions(-)
+ delete mode 100644 Documentation/media/uapi/dvb/video-set-spu-palette.rst
 
-diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
-index 52abc6cd5846..d8b6168f2cd9 100644
---- a/drivers/xen/gntdev.c
-+++ b/drivers/xen/gntdev.c
-@@ -71,6 +71,17 @@ static atomic_t pages_mapped = ATOMIC_INIT(0);
- static int use_ptemod;
- #define populate_freeable_maps use_ptemod
+diff --git a/Documentation/media/uapi/dvb/video-set-spu-palette.rst b/Documentation/media/uapi/dvb/video-set-spu-palette.rst
+deleted file mode 100644
+index 51a1913d21d2..000000000000
+--- a/Documentation/media/uapi/dvb/video-set-spu-palette.rst
++++ /dev/null
+@@ -1,82 +0,0 @@
+-.. -*- coding: utf-8; mode: rst -*-
+-
+-.. _VIDEO_SET_SPU_PALETTE:
+-
+-=====================
+-VIDEO_SET_SPU_PALETTE
+-=====================
+-
+-Name
+-----
+-
+-VIDEO_SET_SPU_PALETTE
+-
+-.. attention:: This ioctl is deprecated.
+-
+-Synopsis
+---------
+-
+-.. c:function:: int ioctl(fd, VIDEO_SET_SPU_PALETTE, struct video_spu_palette *palette )
+-    :name: VIDEO_SET_SPU_PALETTE
+-
+-
+-Arguments
+----------
+-
+-.. flat-table::
+-    :header-rows:  0
+-    :stub-columns: 0
+-
+-
+-    -  .. row 1
+-
+-       -  int fd
+-
+-       -  File descriptor returned by a previous call to open().
+-
+-    -  .. row 2
+-
+-       -  int request
+-
+-       -  Equals VIDEO_SET_SPU_PALETTE for this command.
+-
+-    -  .. row 3
+-
+-       -  video_spu_palette_t \*palette
+-
+-       -  SPU palette according to section ??.
+-
+-
+-Description
+------------
+-
+-This ioctl sets the SPU color palette.
+-
+-.. c:type:: video_spu_palette
+-
+-.. code-block::c
+-
+-	typedef struct video_spu_palette {      /* SPU Palette information */
+-		int length;
+-		__u8 __user *palette;
+-	} video_spu_palette_t;
+-
+-Return Value
+-------------
+-
+-On success 0 is returned, on error -1 and the ``errno`` variable is set
+-appropriately. The generic error codes are described at the
+-:ref:`Generic Error Codes <gen-errors>` chapter.
+-
+-
+-
+-.. flat-table::
+-    :header-rows:  0
+-    :stub-columns: 0
+-
+-
+-    -  .. row 1
+-
+-       -  ``EINVAL``
+-
+-       -  input is not a valid palette or driver doesn’t handle SPU.
+diff --git a/Documentation/media/uapi/dvb/video_function_calls.rst b/Documentation/media/uapi/dvb/video_function_calls.rst
+index 68588ac7fecb..8d8383ffaeba 100644
+--- a/Documentation/media/uapi/dvb/video_function_calls.rst
++++ b/Documentation/media/uapi/dvb/video_function_calls.rst
+@@ -38,6 +38,5 @@ Video Function Calls
+     video-set-system
+     video-set-highlight
+     video-set-spu
+-    video-set-spu-palette
+     video-get-navi
+     video-set-attributes
+diff --git a/Documentation/media/uapi/dvb/video_types.rst b/Documentation/media/uapi/dvb/video_types.rst
+index 640a21de6b8a..4cfa00e5c934 100644
+--- a/Documentation/media/uapi/dvb/video_types.rst
++++ b/Documentation/media/uapi/dvb/video_types.rst
+@@ -320,24 +320,6 @@ to the following format:
+      } video_spu_t;
  
-+#ifdef CONFIG_XEN_GNTDEV_DMABUF
-+#ifndef GRANT_INVALID_REF
-+/*
-+ * Note on usage of grant reference 0 as invalid grant reference:
-+ * grant reference 0 is valid, but never exposed to a driver,
-+ * because of the fact it is already in use/reserved by the PV console.
-+ */
-+#define GRANT_INVALID_REF	0
-+#endif
-+#endif
-+
- struct gntdev_priv {
- 	/* maps with visible offsets in the file descriptor */
- 	struct list_head maps;
-@@ -94,6 +105,8 @@ struct gntdev_priv {
- 	struct list_head dmabuf_exp_list;
- 	/* List of wait objects. */
- 	struct list_head dmabuf_exp_wait_list;
-+	/* List of imported DMA buffers. */
-+	struct list_head dmabuf_imp_list;
- 	/* This is the lock which protects dma_buf_xxx lists. */
- 	struct mutex dmabuf_lock;
- #endif
-@@ -155,6 +168,10 @@ struct xen_dmabuf {
- 		struct {
- 			/* Granted references of the imported buffer. */
- 			grant_ref_t *refs;
-+			/* Scatter-gather table of the imported buffer. */
-+			struct sg_table *sgt;
-+			/* dma-buf attachment of the imported buffer. */
-+			struct dma_buf_attachment *attach;
- 		} imp;
- 	} u;
  
-@@ -684,6 +701,7 @@ static int gntdev_open(struct inode *inode, struct file *flip)
- 	mutex_init(&priv->dmabuf_lock);
- 	INIT_LIST_HEAD(&priv->dmabuf_exp_list);
- 	INIT_LIST_HEAD(&priv->dmabuf_exp_wait_list);
-+	INIT_LIST_HEAD(&priv->dmabuf_imp_list);
- #endif
+-.. c:type:: video_spu_palette
+-
+-struct video_spu_palette
+-========================
+-
+-The following structure is used to set the SPU palette by calling
+-VIDEO_SPU_PALETTE:
+-
+-
+-.. code-block:: c
+-
+-     typedef
+-     struct video_spu_palette {
+-	 int length;
+-	 uint8_t *palette;
+-     } video_spu_palette_t;
+-
+-
+ .. c:type:: video_navi_pack
  
- 	if (use_ptemod) {
-@@ -1544,15 +1562,228 @@ static int dmabuf_exp_from_refs(struct gntdev_priv *priv, int flags,
- /* DMA buffer import support.                                         */
- /* ------------------------------------------------------------------ */
- 
--static int dmabuf_imp_release(struct gntdev_priv *priv, u32 fd)
-+static int
-+dmabuf_imp_grant_foreign_access(struct page **pages, u32 *refs,
-+				int count, int domid)
- {
--	return 0;
-+	grant_ref_t priv_gref_head;
-+	int i, ret;
-+
-+	ret = gnttab_alloc_grant_references(count, &priv_gref_head);
-+	if (ret < 0) {
-+		pr_err("Cannot allocate grant references, ret %d\n", ret);
-+		return ret;
-+	}
-+
-+	for (i = 0; i < count; i++) {
-+		int cur_ref;
-+
-+		cur_ref = gnttab_claim_grant_reference(&priv_gref_head);
-+		if (cur_ref < 0) {
-+			ret = cur_ref;
-+			pr_err("Cannot claim grant reference, ret %d\n", ret);
-+			goto out;
-+		}
-+
-+		gnttab_grant_foreign_access_ref(cur_ref, domid,
-+						xen_page_to_gfn(pages[i]), 0);
-+		refs[i] = cur_ref;
-+	}
-+
-+	ret = 0;
-+
-+out:
-+	gnttab_free_grant_references(priv_gref_head);
-+	return ret;
-+}
-+
-+static void dmabuf_imp_end_foreign_access(u32 *refs, int count)
-+{
-+	int i;
-+
-+	for (i = 0; i < count; i++)
-+		if (refs[i] != GRANT_INVALID_REF)
-+			gnttab_end_foreign_access(refs[i], 0, 0UL);
-+}
-+
-+static void dmabuf_imp_free_storage(struct xen_dmabuf *xen_dmabuf)
-+{
-+	kfree(xen_dmabuf->pages);
-+	kfree(xen_dmabuf->u.imp.refs);
-+	kfree(xen_dmabuf);
-+}
-+
-+static struct xen_dmabuf *dmabuf_imp_alloc_storage(int count)
-+{
-+	struct xen_dmabuf *xen_dmabuf;
-+	int i;
-+
-+	xen_dmabuf = kzalloc(sizeof(*xen_dmabuf), GFP_KERNEL);
-+	if (!xen_dmabuf)
-+		goto fail;
-+
-+	xen_dmabuf->u.imp.refs = kcalloc(count,
-+					 sizeof(xen_dmabuf->u.imp.refs[0]),
-+					 GFP_KERNEL);
-+	if (!xen_dmabuf->u.imp.refs)
-+		goto fail;
-+
-+	xen_dmabuf->pages = kcalloc(count,
-+				    sizeof(xen_dmabuf->pages[0]),
-+				    GFP_KERNEL);
-+	if (!xen_dmabuf->pages)
-+		goto fail;
-+
-+	xen_dmabuf->nr_pages = count;
-+
-+	for (i = 0; i < count; i++)
-+		xen_dmabuf->u.imp.refs[i] = GRANT_INVALID_REF;
-+
-+	return xen_dmabuf;
-+
-+fail:
-+	dmabuf_imp_free_storage(xen_dmabuf);
-+	return ERR_PTR(-ENOMEM);
+ struct video_navi_pack
+diff --git a/Documentation/media/video.h.rst.exceptions b/Documentation/media/video.h.rst.exceptions
+index a91aa884ce0e..89d7c3ef2da7 100644
+--- a/Documentation/media/video.h.rst.exceptions
++++ b/Documentation/media/video.h.rst.exceptions
+@@ -36,5 +36,4 @@ replace typedef video_stream_source_t :c:type:`video_stream_source`
+ replace typedef video_play_state_t :c:type:`video_play_state`
+ replace typedef video_highlight_t :c:type:`video_highlight`
+ replace typedef video_spu_t :c:type:`video_spu`
+-replace typedef video_spu_palette_t :c:type:`video_spu_palette`
+ replace typedef video_navi_pack_t :c:type:`video_navi_pack`
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index ef80085ed564..6c36b931ca90 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -200,34 +200,6 @@ static int do_video_stillpicture(struct file *file,
+ 	return err;
  }
  
- static struct xen_dmabuf *
- dmabuf_imp_to_refs(struct gntdev_priv *priv, int fd, int count, int domid)
- {
--	return ERR_PTR(-ENOMEM);
-+	struct xen_dmabuf *xen_dmabuf, *ret;
-+	struct dma_buf *dma_buf;
-+	struct dma_buf_attachment *attach;
-+	struct sg_table *sgt;
-+	struct sg_page_iter sg_iter;
-+	int i;
-+
-+	dma_buf = dma_buf_get(fd);
-+	if (IS_ERR(dma_buf))
-+		return ERR_CAST(dma_buf);
-+
-+	xen_dmabuf = dmabuf_imp_alloc_storage(count);
-+	if (IS_ERR(xen_dmabuf)) {
-+		ret = xen_dmabuf;
-+		goto fail_put;
-+	}
-+
-+	xen_dmabuf->priv = priv;
-+	xen_dmabuf->fd = fd;
-+
-+	attach = dma_buf_attach(dma_buf, priv->dma_dev);
-+	if (IS_ERR(attach)) {
-+		ret = ERR_CAST(attach);
-+		goto fail_free_obj;
-+	}
-+
-+	xen_dmabuf->u.imp.attach = attach;
-+
-+	sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
-+	if (IS_ERR(sgt)) {
-+		ret = ERR_CAST(sgt);
-+		goto fail_detach;
-+	}
-+
-+	/* Check number of pages that imported buffer has. */
-+	if (attach->dmabuf->size != xen_dmabuf->nr_pages << PAGE_SHIFT) {
-+		ret = ERR_PTR(-EINVAL);
-+		pr_err("DMA buffer has %zu pages, user-space expects %d\n",
-+		       attach->dmabuf->size, xen_dmabuf->nr_pages);
-+		goto fail_unmap;
-+	}
-+
-+	xen_dmabuf->u.imp.sgt = sgt;
-+
-+	/* Now convert sgt to array of pages and check for page validity. */
-+	i = 0;
-+	for_each_sg_page(sgt->sgl, &sg_iter, sgt->nents, 0) {
-+		struct page *page = sg_page_iter_page(&sg_iter);
-+		/*
-+		 * Check if page is valid: this can happen if we are given
-+		 * a page from VRAM or other resources which are not backed
-+		 * by a struct page.
-+		 */
-+		if (!pfn_valid(page_to_pfn(page))) {
-+			ret = ERR_PTR(-EINVAL);
-+			goto fail_unmap;
-+		}
-+
-+		xen_dmabuf->pages[i++] = page;
-+	}
-+
-+	ret = ERR_PTR(dmabuf_imp_grant_foreign_access(xen_dmabuf->pages,
-+						      xen_dmabuf->u.imp.refs,
-+						      count, domid));
-+	if (IS_ERR(ret))
-+		goto fail_end_access;
-+
-+	pr_debug("Imported DMA buffer with fd %d\n", fd);
-+
-+	mutex_lock(&priv->dmabuf_lock);
-+	list_add(&xen_dmabuf->next, &priv->dmabuf_imp_list);
-+	mutex_unlock(&priv->dmabuf_lock);
-+
-+	return xen_dmabuf;
-+
-+fail_end_access:
-+	dmabuf_imp_end_foreign_access(xen_dmabuf->u.imp.refs, count);
-+fail_unmap:
-+	dma_buf_unmap_attachment(attach, sgt, DMA_BIDIRECTIONAL);
-+fail_detach:
-+	dma_buf_detach(dma_buf, attach);
-+fail_free_obj:
-+	dmabuf_imp_free_storage(xen_dmabuf);
-+fail_put:
-+	dma_buf_put(dma_buf);
-+	return ret;
-+}
-+
-+/*
-+ * Find the hyper dma-buf by its file descriptor and remove
-+ * it from the buffer's list.
-+ */
-+static struct xen_dmabuf *
-+dmabuf_imp_find_unlink(struct gntdev_priv *priv, int fd)
-+{
-+	struct xen_dmabuf *q, *xen_dmabuf, *ret = ERR_PTR(-ENOENT);
-+
-+	mutex_lock(&priv->dmabuf_lock);
-+	list_for_each_entry_safe(xen_dmabuf, q, &priv->dmabuf_imp_list, next) {
-+		if (xen_dmabuf->fd == fd) {
-+			pr_debug("Found xen_dmabuf in the import list\n");
-+			ret = xen_dmabuf;
-+			list_del(&xen_dmabuf->next);
-+			break;
-+		}
-+	}
-+	mutex_unlock(&priv->dmabuf_lock);
-+	return ret;
-+}
-+
-+static int dmabuf_imp_release(struct gntdev_priv *priv, u32 fd)
-+{
-+	struct xen_dmabuf *xen_dmabuf;
-+	struct dma_buf_attachment *attach;
-+	struct dma_buf *dma_buf;
-+
-+	xen_dmabuf = dmabuf_imp_find_unlink(priv, fd);
-+	if (IS_ERR(xen_dmabuf))
-+		return PTR_ERR(xen_dmabuf);
-+
-+	pr_debug("Releasing DMA buffer with fd %d\n", fd);
-+
-+	attach = xen_dmabuf->u.imp.attach;
-+
-+	if (xen_dmabuf->u.imp.sgt)
-+		dma_buf_unmap_attachment(attach, xen_dmabuf->u.imp.sgt,
-+					 DMA_BIDIRECTIONAL);
-+	dma_buf = attach->dmabuf;
-+	dma_buf_detach(attach->dmabuf, attach);
-+	dma_buf_put(dma_buf);
-+
-+	dmabuf_imp_end_foreign_access(xen_dmabuf->u.imp.refs,
-+				      xen_dmabuf->nr_pages);
-+	dmabuf_imp_free_storage(xen_dmabuf);
-+	return 0;
- }
+-struct compat_video_spu_palette {
+-	int length;
+-	compat_uptr_t palette;
+-};
+-
+-static int do_video_set_spu_palette(struct file *file,
+-		unsigned int cmd, struct compat_video_spu_palette __user *up)
+-{
+-	struct video_spu_palette __user *up_native;
+-	compat_uptr_t palp;
+-	int length, err;
+-
+-	err  = get_user(palp, &up->palette);
+-	err |= get_user(length, &up->length);
+-	if (err)
+-		return -EFAULT;
+-
+-	up_native = compat_alloc_user_space(sizeof(struct video_spu_palette));
+-	err  = put_user(compat_ptr(palp), &up_native->palette);
+-	err |= put_user(length, &up_native->length);
+-	if (err)
+-		return -EFAULT;
+-
+-	err = do_ioctl(file, cmd, (unsigned long) up_native);
+-
+-	return err;
+-}
+-
+ #ifdef CONFIG_BLOCK
+ typedef struct sg_io_hdr32 {
+ 	compat_int_t interface_id;	/* [i] 'S' for SCSI generic (required) */
+@@ -1349,8 +1321,6 @@ static long do_ioctl_trans(unsigned int cmd,
+ 		return do_video_get_event(file, cmd, argp);
+ 	case VIDEO_STILLPICTURE:
+ 		return do_video_stillpicture(file, cmd, argp);
+-	case VIDEO_SET_SPU_PALETTE:
+-		return do_video_set_spu_palette(file, cmd, argp);
+ 	}
  
- /* ------------------------------------------------------------------ */
+ 	/*
+diff --git a/include/uapi/linux/dvb/video.h b/include/uapi/linux/dvb/video.h
+index df3d7028c807..6a0c9757b7ba 100644
+--- a/include/uapi/linux/dvb/video.h
++++ b/include/uapi/linux/dvb/video.h
+@@ -186,12 +186,6 @@ typedef struct video_spu {
+ } video_spu_t;
+ 
+ 
+-typedef struct video_spu_palette {      /* SPU Palette information */
+-	int length;
+-	__u8 __user *palette;
+-} video_spu_palette_t;
+-
+-
+ typedef struct video_navi_pack {
+ 	int length;          /* 0 ... 1024 */
+ 	__u8 data[1024];
+@@ -248,7 +242,6 @@ typedef __u16 video_attributes_t;
+ #define VIDEO_SET_SYSTEM           _IO('o', 38)
+ #define VIDEO_SET_HIGHLIGHT        _IOW('o', 39, video_highlight_t)
+ #define VIDEO_SET_SPU              _IOW('o', 50, video_spu_t)
+-#define VIDEO_SET_SPU_PALETTE      _IOW('o', 51, video_spu_palette_t)
+ #define VIDEO_GET_NAVI             _IOR('o', 52, video_navi_pack_t)
+ #define VIDEO_SET_ATTRIBUTES       _IO('o', 53)
+ #define VIDEO_GET_SIZE             _IOR('o', 55, video_size_t)
 -- 
 2.17.0
