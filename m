@@ -1,159 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:34303 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752950AbeEOMrS (ORCPT
+Received: from aserp2120.oracle.com ([141.146.126.78]:56334 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932108AbeE3TWb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 08:47:18 -0400
-Received: by mail-qk0-f194.google.com with SMTP id p186-v6so8692qkd.1
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2018 05:47:18 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
+        Wed, 30 May 2018 15:22:31 -0400
+Subject: Re: [PATCH 3/8] xen/grant-table: Allow allocating buffers suitable
+ for DMA
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
         dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/5] media: cec-notifier: Get notifier by device and connector name
-Date: Tue, 15 May 2018 14:46:57 +0200
-Message-Id: <1526388421-18808-2-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1526388421-18808-1-git-send-email-narmstrong@baylibre.com>
-References: <1526388421-18808-1-git-send-email-narmstrong@baylibre.com>
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180525153331.31188-1-andr2000@gmail.com>
+ <20180525153331.31188-4-andr2000@gmail.com>
+ <94de6bd7-405c-c43f-0468-be71efff7552@oracle.com>
+ <c2f9f6b4-03bd-225b-a42d-b071958dd899@gmail.com>
+ <ab1b28b8-02b1-3501-801c-d4f523ab829f@oracle.com>
+ <5e6e0f5d-a417-676a-1aad-c51eb09e6dee@gmail.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <9710e37c-8b65-3493-53b3-10c4f2230670@oracle.com>
+Date: Wed, 30 May 2018 15:25:33 -0400
+MIME-Version: 1.0
+In-Reply-To: <5e6e0f5d-a417-676a-1aad-c51eb09e6dee@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In non device-tree world, we can need to get the notifier by the driver
-name directly and eventually defer probe if not yet created.
+On 05/30/2018 01:49 PM, Oleksandr Andrushchenko wrote:
+> On 05/30/2018 06:20 PM, Boris Ostrovsky wrote:
+>> On 05/30/2018 02:34 AM, Oleksandr Andrushchenko wrote:
+>>> On 05/29/2018 10:10 PM, Boris Ostrovsky wrote:
+>>>> On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
+>>>> +/**
+>>>> + * gnttab_dma_free_pages - free DMAable pages
+>>>> + * @args: arguments to the function
+>>>> + */
+>>>> +int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args)
+>>>> +{
+>>>> +    xen_pfn_t *frames;
+>>>> +    size_t size;
+>>>> +    int i, ret;
+>>>> +
+>>>> +    gnttab_pages_clear_private(args->nr_pages, args->pages);
+>>>> +
+>>>> +    frames = kcalloc(args->nr_pages, sizeof(*frames), GFP_KERNEL);
+>>>>
+>>>> Any way you can do it without allocating memory? One possibility is to
+>>>> keep allocated frames from gnttab_dma_alloc_pages(). (Not sure I like
+>>>> that either but it's the only thing I can think of).
+>>> Yes, I was also thinking about storing the allocated frames array from
+>>> gnttab_dma_alloc_pages(), but that seemed not to be clear enough as
+>>> the caller of the gnttab_dma_alloc_pages will need to store those
+>>> frames
+>>> in some context, so we can pass them on free. But the caller doesn't
+>>> really
+>>> need the frames which might confuse, so I decided to make those
+>>> allocations
+>>> on the fly.
+>>> But I can still rework that to store the frames if you insist: please
+>>> let me know.
+>>
+>> I would prefer not to allocate anything in the release path. Yes, I
+>> realize that dragging frames array around is not necessary but IMO it's
+>> better than potentially failing an allocation during a teardown. A
+>> comment in the struct definition could explain the reason for having
+>> this field.
+> Then I would suggest we have it this way: current API requires that
+> struct page **pages are allocated from outside. So, let's allocate
+> the frames from outside as well. This way the caller is responsible for
+> both pages and frames arrays and API looks consistent.
 
-This patch adds a variant of the get function by using the device name
-instead and will not create a notifier if not yet created.
 
-But the i915 driver exposes at least 2 HDMI connectors, this patch also
-adds the possibility to add a connector name tied to the notifier device
-to form a tuple and associate different CEC controllers for each HDMI
-connectors.
+Yes, that works too.
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
----
- drivers/media/cec/cec-notifier.c | 12 +++++++++---
- include/media/cec-notifier.h     | 30 ++++++++++++++++++++++++++++--
- 2 files changed, 37 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
-index 16dffa0..7038abae1 100644
---- a/drivers/media/cec/cec-notifier.c
-+++ b/drivers/media/cec/cec-notifier.c
-@@ -21,6 +21,7 @@ struct cec_notifier {
- 	struct list_head head;
- 	struct kref kref;
- 	struct device *dev;
-+	const char *conn;
- 	struct cec_adapter *cec_adap;
- 	void (*callback)(struct cec_adapter *adap, u16 pa);
- 
-@@ -30,13 +31,14 @@ struct cec_notifier {
- static LIST_HEAD(cec_notifiers);
- static DEFINE_MUTEX(cec_notifiers_lock);
- 
--struct cec_notifier *cec_notifier_get(struct device *dev)
-+struct cec_notifier *cec_notifier_get_conn(struct device *dev, const char *conn)
- {
- 	struct cec_notifier *n;
- 
- 	mutex_lock(&cec_notifiers_lock);
- 	list_for_each_entry(n, &cec_notifiers, head) {
--		if (n->dev == dev) {
-+		if (n->dev == dev &&
-+		    (!conn || !strcmp(n->conn, conn))) {
- 			kref_get(&n->kref);
- 			mutex_unlock(&cec_notifiers_lock);
- 			return n;
-@@ -46,6 +48,8 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
- 	if (!n)
- 		goto unlock;
- 	n->dev = dev;
-+	if (conn)
-+		n->conn = kstrdup(conn, GFP_KERNEL);
- 	n->phys_addr = CEC_PHYS_ADDR_INVALID;
- 	mutex_init(&n->lock);
- 	kref_init(&n->kref);
-@@ -54,7 +58,7 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
- 	mutex_unlock(&cec_notifiers_lock);
- 	return n;
- }
--EXPORT_SYMBOL_GPL(cec_notifier_get);
-+EXPORT_SYMBOL_GPL(cec_notifier_get_conn);
- 
- static void cec_notifier_release(struct kref *kref)
- {
-@@ -62,6 +66,8 @@ static void cec_notifier_release(struct kref *kref)
- 		container_of(kref, struct cec_notifier, kref);
- 
- 	list_del(&n->head);
-+	if (n->conn)
-+		kfree(n->conn);
- 	kfree(n);
- }
- 
-diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
-index cf0add7..73f92c7 100644
---- a/include/media/cec-notifier.h
-+++ b/include/media/cec-notifier.h
-@@ -20,6 +20,23 @@ struct cec_notifier;
- #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
- 
- /**
-+ * cec_notifier_get_conn - find or create a new cec_notifier for the given
-+ * device and connector tuple.
-+ * @dev: device that sends the events.
-+ * @conn: the connector name from which the event occurs
-+ *
-+ * If a notifier for device @dev already exists, then increase the refcount
-+ * and return that notifier.
-+ *
-+ * If it doesn't exist, then allocate a new notifier struct and return a
-+ * pointer to that new struct.
-+ *
-+ * Return NULL if the memory could not be allocated.
-+ */
-+struct cec_notifier *cec_notifier_get_conn(struct device *dev,
-+					   const char *conn);
-+
-+/**
-  * cec_notifier_get - find or create a new cec_notifier for the given device.
-  * @dev: device that sends the events.
-  *
-@@ -31,7 +48,10 @@ struct cec_notifier;
-  *
-  * Return NULL if the memory could not be allocated.
-  */
--struct cec_notifier *cec_notifier_get(struct device *dev);
-+static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+{
-+	return cec_notifier_get_conn(dev, NULL);
-+}
- 
- /**
-  * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
-@@ -85,12 +105,18 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
- 			       struct cec_notifier *notifier);
- 
- #else
--static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+static inline struct cec_notifier *cec_notifier_get_conn(struct device *dev,
-+							 const char *conn)
- {
- 	/* A non-NULL pointer is expected on success */
- 	return (struct cec_notifier *)0xdeadfeed;
- }
- 
-+static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+{
-+	return cec_notifier_get_conn(dev, NULL);
-+}
-+
- static inline void cec_notifier_put(struct cec_notifier *n)
- {
- }
--- 
-2.7.4
+-boris
