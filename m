@@ -1,314 +1,332 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:46552 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751459AbeECOx1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 May 2018 10:53:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv13 13/28] v4l2-ctrls: support g/s_ext_ctrls for requests
-Date: Thu,  3 May 2018 16:53:03 +0200
-Message-Id: <20180503145318.128315-14-hverkuil@xs4all.nl>
-In-Reply-To: <20180503145318.128315-1-hverkuil@xs4all.nl>
-References: <20180503145318.128315-1-hverkuil@xs4all.nl>
+Received: from mx.socionext.com ([202.248.49.38]:35855 "EHLO mx.socionext.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S968835AbeE3JJx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 May 2018 05:09:53 -0400
+From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>,
+        Jassi Brar <jaswinder.singh@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+Subject: [PATCH 7/8] media: uniphier: add LD11 adapter driver for ISDB
+Date: Wed, 30 May 2018 18:09:45 +0900
+Message-Id: <20180530090946.1635-8-suzuki.katsuhiro@socionext.com>
+In-Reply-To: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
+References: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds UniPhier LD11 DVB adapter driver for ISDB-S/T
+that equipments SONY SUT-PJ series using CXD2858 tuner and Socionext
+MN884433 demodulator.
 
-The v4l2_g/s_ext_ctrls functions now support control handlers that
-represent requests.
-
-The v4l2_ctrls_find_req_obj() function is responsible for finding the
-request from the fd.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
 ---
- drivers/media/platform/omap3isp/ispvideo.c |   2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c       | 113 +++++++++++++++++++--
- drivers/media/v4l2-core/v4l2-ioctl.c       |  12 +--
- drivers/media/v4l2-core/v4l2-subdev.c      |   9 +-
- include/media/v4l2-ctrls.h                 |   7 +-
- 5 files changed, 124 insertions(+), 19 deletions(-)
+ drivers/media/platform/uniphier/Kconfig       |  10 +
+ drivers/media/platform/uniphier/Makefile      |   1 +
+ .../platform/uniphier/ld11-mn884433-helene.c  | 265 ++++++++++++++++++
+ 3 files changed, 276 insertions(+)
+ create mode 100644 drivers/media/platform/uniphier/ld11-mn884433-helene.c
 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 9d228eac24ea..674e7fd3ad99 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -1028,7 +1028,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
- 	ctrls.count = 1;
- 	ctrls.controls = &ctrl;
- 
--	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
-+	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, NULL, &ctrls);
- 	if (ret < 0) {
- 		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
- 			 pipe->external->name);
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 56b986185463..df58a23eb731 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -3124,7 +3124,8 @@ static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
- }
- 
- /* Get extended controls. Allocates the helpers array if needed. */
--int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
-+int __v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-+		       struct v4l2_ext_controls *cs)
- {
- 	struct v4l2_ctrl_helper helper[4];
- 	struct v4l2_ctrl_helper *helpers = helper;
-@@ -3204,6 +3205,73 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 		kvfree(helpers);
- 	return ret;
- }
+diff --git a/drivers/media/platform/uniphier/Kconfig b/drivers/media/platform/uniphier/Kconfig
+index 8f3a662a391c..0fc9bbfc170b 100644
+--- a/drivers/media/platform/uniphier/Kconfig
++++ b/drivers/media/platform/uniphier/Kconfig
+@@ -15,3 +15,13 @@ config DVB_UNIPHIER_LD11
+ 	  Driver for the HSC (High speed Stream Controller) for
+ 	  UniPhier LD11/LD20.
+ 	  Say Y when you want to support this hardware.
 +
-+static struct media_request_object *
-+v4l2_ctrls_find_req_obj(struct v4l2_ctrl_handler *hdl,
-+			struct media_device *mdev, s32 fd, bool set)
++config DVB_UNIPHIER_LD11_ISDB
++	bool "Support UniPhier LD11 ISDB adapters"
++	depends on DVB_UNIPHIER
++	help
++	  Driver for LD11 ISDB-S/T adapters which use
++	  Demux: Socionext LD11 HSC
++	  Demod: Socionext MN884433
++	  Tuner: SONY HELENE (CXD2858ER)
++	  Say Y when you want to support this adapters.
+diff --git a/drivers/media/platform/uniphier/Makefile b/drivers/media/platform/uniphier/Makefile
+index 9e75ad081b77..e4b06f8a37b5 100644
+--- a/drivers/media/platform/uniphier/Makefile
++++ b/drivers/media/platform/uniphier/Makefile
+@@ -8,3 +8,4 @@ ccflags-y += -Idrivers/media/dvb-frontends/
+ ccflags-y += -Idrivers/media/tuners/
+ 
+ uniphier-dvb-y += uniphier-adapter.o
++uniphier-dvb-$(CONFIG_DVB_UNIPHIER_LD11_ISDB) += ld11-mn884433-helene.o
+diff --git a/drivers/media/platform/uniphier/ld11-mn884433-helene.c b/drivers/media/platform/uniphier/ld11-mn884433-helene.c
+new file mode 100644
+index 000000000000..f4f48b6a0211
+--- /dev/null
++++ b/drivers/media/platform/uniphier/ld11-mn884433-helene.c
+@@ -0,0 +1,265 @@
++// SPDX-License-Identifier: GPL-2.0
++//
++// Socionext UniPhier LD11 adapter driver for ISDB.
++// Using Socionext MN884433 ISDB-S/ISDB-T demodulator and
++// SONY HELENE tuner.
++//
++// Copyright (c) 2018 Socionext Inc.
++
++#include <linux/clk.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_platform.h>
++#include <linux/reset.h>
++
++#include "sc1501a.h"
++#include "cxd2858.h"
++#include "helene.h"
++#include "hsc.h"
++#include "uniphier-adapter.h"
++
++static struct sc1501a_config mn884433_conf[] = {
++	{ .if_freq = LOW_IF_4MHZ, },
++};
++
++static int uniphier_adapter_demod_probe(struct uniphier_adapter_priv *priv)
 +{
-+	struct media_request *req = media_request_get_by_fd(mdev, fd);
-+	struct media_request_object *obj;
-+	struct v4l2_ctrl_handler *new_hdl;
-+	int ret;
++	const struct uniphier_adapter_spec *spec = priv->spec;
++	struct device *dev = &priv->pdev->dev;
++	struct device_node *node;
++	int ret, i;
 +
-+	if (IS_ERR(req))
-+		return ERR_CAST(req);
-+
-+	if (set && atomic_read(&req->state) != MEDIA_REQUEST_STATE_IDLE) {
-+		media_request_put(req);
-+		return ERR_PTR(-EBUSY);
++	priv->demod_mclk = devm_clk_get(dev, "demod-mclk");
++	if (IS_ERR(priv->demod_mclk)) {
++		dev_err(dev, "Failed to request demod-mclk: %ld\n",
++			PTR_ERR(priv->demod_mclk));
++		return PTR_ERR(priv->demod_mclk);
 +	}
 +
-+	obj = media_request_object_find(req, &req_ops, hdl);
-+	if (obj) {
-+		media_request_put(req);
-+		return obj;
++	priv->demod_gpio = devm_gpiod_get_optional(dev, "reset-demod",
++						   GPIOD_OUT_HIGH);
++	if (IS_ERR(priv->demod_gpio)) {
++		dev_err(dev, "Failed to request demod_gpio: %ld\n",
++			PTR_ERR(priv->demod_gpio));
++		return PTR_ERR(priv->demod_gpio);
 +	}
 +
-+	new_hdl = kzalloc(sizeof(*new_hdl), GFP_KERNEL);
-+	if (!new_hdl) {
-+		ret = -ENOMEM;
-+		goto put;
-+	}
-+	obj = &new_hdl->req_obj;
-+	ret = v4l2_ctrl_handler_init(new_hdl, (hdl->nr_of_buckets - 1) * 8);
-+	if (!ret)
-+		ret = v4l2_ctrl_request_bind(req, new_hdl, hdl);
-+	if (!ret) {
-+		media_request_object_get(obj);
-+		media_request_put(req);
-+		return obj;
-+	}
-+	kfree(new_hdl);
-+
-+put:
-+	media_request_put(req);
-+	return ERR_PTR(ret);
-+}
-+
-+int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-+		     struct v4l2_ext_controls *cs)
-+{
-+	struct media_request_object *obj = NULL;
-+	int ret;
-+
-+	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
-+		if (!mdev || cs->request_fd < 0)
-+			return -EINVAL;
-+		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, false);
-+		if (IS_ERR(obj))
-+			return PTR_ERR(obj);
-+		hdl = container_of(obj, struct v4l2_ctrl_handler,
-+				   req_obj);
++	node = of_parse_phandle(dev->of_node, "demod-i2c-bus", 0);
++	if (!node) {
++		dev_err(dev, "Failed to parse demod-i2c-bus\n");
++		return -ENODEV;
 +	}
 +
-+	ret = __v4l2_g_ext_ctrls(hdl, cs);
++	priv->demod_i2c_adapter = of_find_i2c_adapter_by_node(node);
++	if (!priv->demod_i2c_adapter) {
++		dev_err(dev, "Failed to find demod i2c adapter\n");
++		of_node_put(node);
++		return -ENODEV;
++	}
++	of_node_put(node);
 +
-+	if (obj)
-+		media_request_object_put(obj);
-+	return ret;
-+}
- EXPORT_SYMBOL(v4l2_g_ext_ctrls);
- 
- /* Helper function to get a single control */
-@@ -3379,9 +3447,9 @@ static void update_from_auto_cluster(struct v4l2_ctrl *master)
- }
- 
- /* Try or try-and-set controls */
--static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
--			     struct v4l2_ext_controls *cs,
--			     bool set)
-+static int __try_set_ext_ctrls(struct v4l2_fh *fh,
-+			       struct v4l2_ctrl_handler *hdl,
-+			       struct v4l2_ext_controls *cs, bool set)
- {
- 	struct v4l2_ctrl_helper helper[4];
- 	struct v4l2_ctrl_helper *helpers = helper;
-@@ -3494,16 +3562,45 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 	return ret;
- }
- 
--int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
-+static int try_set_ext_ctrls(struct v4l2_fh *fh,
-+			     struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-+			     struct v4l2_ext_controls *cs, bool set)
-+{
-+	struct media_request_object *obj = NULL;
-+	int ret;
++	mn884433_conf[0].reset_gpio = priv->demod_gpio;
++	for (i = 0; i < spec->adapters; i++) {
++		struct i2c_client *c;
 +
-+	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
-+		if (!mdev || cs->request_fd < 0)
-+			return -EINVAL;
-+		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, true);
-+		if (IS_ERR(obj))
-+			return PTR_ERR(obj);
-+		if (atomic_read(&obj->req->state) != MEDIA_REQUEST_STATE_IDLE) {
-+			media_request_object_put(obj);
-+			return -EBUSY;
++		mn884433_conf[i].mclk = priv->demod_mclk;
++		mn884433_conf[i].fe = &priv->fe[i].fe;
++
++		c = dvb_module_probe(spec->demod_i2c_info[i].type, NULL,
++				     priv->demod_i2c_adapter,
++				     spec->demod_i2c_info[i].addr,
++				     &mn884433_conf[i]);
++		if (!c) {
++			dev_err(dev, "Failed to probe demod\n");
++			ret = -ENODEV;
++			goto err_out;
 +		}
-+		hdl = container_of(obj, struct v4l2_ctrl_handler,
-+				   req_obj);
++		priv->fe[i].demod_i2c = c;
 +	}
 +
-+	ret = __try_set_ext_ctrls(fh, hdl, cs, set);
++	return 0;
 +
-+	if (obj)
-+		media_request_object_put(obj);
++err_out:
++	for (i = 0; i < spec->adapters; i++)
++		dvb_module_release(priv->fe[i].demod_i2c);
++
 +	return ret;
 +}
 +
-+int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-+		       struct v4l2_ext_controls *cs)
- {
--	return try_set_ext_ctrls(NULL, hdl, cs, false);
-+	return try_set_ext_ctrls(NULL, hdl, mdev, cs, false);
- }
- EXPORT_SYMBOL(v4l2_try_ext_ctrls);
- 
- int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
--					struct v4l2_ext_controls *cs)
-+		     struct media_device *mdev, struct v4l2_ext_controls *cs)
- {
--	return try_set_ext_ctrls(fh, hdl, cs, true);
-+	return try_set_ext_ctrls(fh, hdl, mdev, cs, true);
- }
- EXPORT_SYMBOL(v4l2_s_ext_ctrls);
- 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 9ce23e23c5bf..56741c4a48fc 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2079,9 +2079,9 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 
- 	p->error_idx = p->count;
- 	if (vfh && vfh->ctrl_handler)
--		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
-+		return v4l2_g_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (vfd->ctrl_handler)
--		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
-+		return v4l2_g_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (ops->vidioc_g_ext_ctrls == NULL)
- 		return -ENOTTY;
- 	return check_ext_ctrls(p, 0) ? ops->vidioc_g_ext_ctrls(file, fh, p) :
-@@ -2098,9 +2098,9 @@ static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 
- 	p->error_idx = p->count;
- 	if (vfh && vfh->ctrl_handler)
--		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
-+		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (vfd->ctrl_handler)
--		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, p);
-+		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (ops->vidioc_s_ext_ctrls == NULL)
- 		return -ENOTTY;
- 	return check_ext_ctrls(p, 0) ? ops->vidioc_s_ext_ctrls(file, fh, p) :
-@@ -2117,9 +2117,9 @@ static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 
- 	p->error_idx = p->count;
- 	if (vfh && vfh->ctrl_handler)
--		return v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
-+		return v4l2_try_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (vfd->ctrl_handler)
--		return v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
-+		return v4l2_try_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
- 	if (ops->vidioc_try_ext_ctrls == NULL)
- 		return -ENOTTY;
- 	return check_ext_ctrls(p, 0) ? ops->vidioc_try_ext_ctrls(file, fh, p) :
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index f9eed938d348..ce8c133e0ccd 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -222,17 +222,20 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_G_EXT_CTRLS:
- 		if (!vfh->ctrl_handler)
- 			return -ENOTTY;
--		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
-+		return v4l2_g_ext_ctrls(vfh->ctrl_handler,
-+					sd->v4l2_dev->mdev, arg);
- 
- 	case VIDIOC_S_EXT_CTRLS:
- 		if (!vfh->ctrl_handler)
- 			return -ENOTTY;
--		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
-+		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler,
-+					sd->v4l2_dev->mdev, arg);
- 
- 	case VIDIOC_TRY_EXT_CTRLS:
- 		if (!vfh->ctrl_handler)
- 			return -ENOTTY;
--		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
-+		return v4l2_try_ext_ctrls(vfh->ctrl_handler,
-+					  sd->v4l2_dev->mdev, arg);
- 
- 	case VIDIOC_DQEVENT:
- 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index a0f7c38d1a90..963c37b02363 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -1148,11 +1148,12 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
-  *	:ref:`VIDIOC_G_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
-  *
-  * @hdl: pointer to &struct v4l2_ctrl_handler
-+ * @mdev: pointer to &struct media_device
-  * @c: pointer to &struct v4l2_ext_controls
-  *
-  * If hdl == NULL then they will all return -EINVAL.
-  */
--int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-+int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
- 		     struct v4l2_ext_controls *c);
- 
- /**
-@@ -1160,11 +1161,13 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-  *	:ref:`VIDIOC_TRY_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
-  *
-  * @hdl: pointer to &struct v4l2_ctrl_handler
-+ * @mdev: pointer to &struct media_device
-  * @c: pointer to &struct v4l2_ext_controls
-  *
-  * If hdl == NULL then they will all return -EINVAL.
-  */
- int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-+		       struct media_device *mdev,
- 		       struct v4l2_ext_controls *c);
- 
- /**
-@@ -1173,11 +1176,13 @@ int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-  *
-  * @fh: pointer to &struct v4l2_fh
-  * @hdl: pointer to &struct v4l2_ctrl_handler
-+ * @mdev: pointer to &struct media_device
-  * @c: pointer to &struct v4l2_ext_controls
-  *
-  * If hdl == NULL then they will all return -EINVAL.
-  */
- int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
-+		     struct media_device *mdev,
- 		     struct v4l2_ext_controls *c);
- 
- /**
++static struct helene_config helene_conf[] = {
++	{ .xtal = SONY_HELENE_XTAL_16000, },
++	{ .xtal = SONY_HELENE_XTAL_16000, },
++};
++
++static int uniphier_adapter_tuner_probe(struct uniphier_adapter_priv *priv)
++{
++	const struct uniphier_adapter_spec *spec = priv->spec;
++	struct device *dev = &priv->pdev->dev;
++	struct device_node *node;
++	int ret, i;
++
++	priv->tuner_gpio = devm_gpiod_get_optional(dev, "reset-tuner",
++						   GPIOD_OUT_HIGH);
++	if (IS_ERR(priv->tuner_gpio)) {
++		dev_err(dev, "Failed to request tuner_gpio: %ld\n",
++			PTR_ERR(priv->tuner_gpio));
++		return PTR_ERR(priv->tuner_gpio);
++	}
++	gpiod_set_value_cansleep(priv->tuner_gpio, 0);
++
++	node = of_parse_phandle(dev->of_node, "tuner-i2c-bus", 0);
++	if (!node) {
++		dev_err(dev, "Failed to parse tuner-i2c-bus\n");
++		return -ENODEV;
++	}
++
++	priv->tuner_i2c_adapter = of_find_i2c_adapter_by_node(node);
++	if (!priv->tuner_i2c_adapter) {
++		dev_err(dev, "Failed to find tuner i2c adapter\n");
++		of_node_put(node);
++		return -ENODEV;
++	}
++	of_node_put(node);
++
++	for (i = 0; i < priv->spec->adapters; i++) {
++		struct i2c_client *c;
++
++		helene_conf[i].fe = priv->fe[i].fe;
++
++		c = dvb_module_probe(spec->tuner_i2c_info[i].type, NULL,
++				     priv->tuner_i2c_adapter,
++				     spec->tuner_i2c_info[i].addr,
++				     &helene_conf[i]);
++		if (!c) {
++			dev_err(dev, "Failed to probe tuner\n");
++			ret = -ENODEV;
++			goto err_out;
++		}
++		priv->fe[i].tuner_i2c = c;
++	}
++
++	return 0;
++
++err_out:
++	for (i = 0; i < spec->adapters; i++)
++		dvb_module_release(priv->fe[i].tuner_i2c);
++
++	return ret;
++}
++
++static int uniphier_adapter_probe(struct platform_device *pdev)
++{
++	struct uniphier_adapter_priv *priv;
++	struct device *dev = &pdev->dev;
++	int i, ret;
++
++	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++	priv->pdev = pdev;
++
++	priv->spec = of_device_get_match_data(dev);
++	if (!priv->spec)
++		return -EINVAL;
++
++	priv->fe = devm_kzalloc(dev, sizeof(*priv->fe) * priv->spec->adapters,
++				GFP_KERNEL);
++	if (!priv->fe)
++		return -ENOMEM;
++
++	ret = uniphier_adapter_demux_probe(priv);
++	if (ret)
++		return ret;
++
++	ret = uniphier_adapter_demod_probe(priv);
++	if (ret)
++		return ret;
++
++	ret = uniphier_adapter_tuner_probe(priv);
++	if (ret)
++		return ret;
++
++	platform_set_drvdata(pdev, priv);
++
++	for (i = 0; i < priv->spec->adapters; i++) {
++		priv->chip->tsif[i].fe = priv->fe[i].fe;
++
++		ret = hsc_register_dvb(&priv->chip->tsif[i]);
++		if (ret) {
++			dev_err(dev, "Failed to register adapter\n");
++			goto err_out_if;
++		}
++	}
++
++	return 0;
++
++err_out_if:
++	for (i = 0; i < priv->spec->adapters; i++)
++		hsc_unregister_dvb(&priv->chip->tsif[i]);
++
++	return ret;
++}
++
++static int uniphier_adapter_remove(struct platform_device *pdev)
++{
++	struct uniphier_adapter_priv *priv = platform_get_drvdata(pdev);
++	int i;
++
++	for (i = 0; i < priv->spec->adapters; i++) {
++		hsc_dmaif_release(&priv->chip->dmaif[i]);
++		hsc_tsif_release(&priv->chip->tsif[i]);
++		hsc_unregister_dvb(&priv->chip->tsif[i]);
++		dvb_module_release(priv->fe[i].tuner_i2c);
++		dvb_module_release(priv->fe[i].demod_i2c);
++	}
++
++	return 0;
++}
++
++static const struct hsc_conf ld11_hsc_conf[] = {
++	{
++		.css_in = HSC_CSS_IN_SRLTS0,
++		.css_out = HSC_CSS_OUT_TSI0,
++		.dpll = HSC_DPLL0,
++		.dma_out = HSC_DMA_OUT0,
++	},
++};
++
++static const struct i2c_board_info mn884433_i2c_info[] = {
++	{ .type = "mn884433", .addr = 0x68, },
++};
++
++static const struct i2c_board_info helene_i2c_info[] = {
++	{ .type = "helene", .addr = 0x61, },
++};
++
++static const struct uniphier_adapter_spec ld11_mn884433_helene_spec = {
++	.adapters = 1,
++	.hsc_conf = ld11_hsc_conf,
++	.demod_i2c_info = mn884433_i2c_info,
++	.tuner_i2c_info = helene_i2c_info,
++};
++
++static const struct of_device_id uniphier_hsc_adapter_of_match[] = {
++	{
++		.compatible = "socionext,uniphier-ld11-mn884433-helene",
++		.data = &ld11_mn884433_helene_spec,
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, uniphier_hsc_adapter_of_match);
++
++static struct platform_driver uniphier_hsc_adapter_driver = {
++	.driver = {
++		.name = "uniphier-ld11-isdb",
++		.of_match_table = of_match_ptr(uniphier_hsc_adapter_of_match),
++	},
++	.probe  = uniphier_adapter_probe,
++	.remove = uniphier_adapter_remove,
++};
++module_platform_driver(uniphier_hsc_adapter_driver);
++
++MODULE_AUTHOR("Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>");
++MODULE_DESCRIPTION("UniPhier LD11 adapter driver for ISDB.");
++MODULE_LICENSE("GPL v2");
 -- 
 2.17.0
