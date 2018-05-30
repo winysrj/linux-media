@@ -1,277 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43900 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751952AbeERUxX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 16:53:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran@ksquared.org.uk>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v11 02/10] media: vsp1: Move video suspend resume handling to video object
-Date: Fri, 18 May 2018 23:53:44 +0300
-Message-ID: <4496844.sVUn2bIkLG@avalon>
-In-Reply-To: <1969e3639e2a1bcfd104a1054b30f9d914fe5dfb.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4fb0850a617881b465a66140fdf06941777212ae.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com> <1969e3639e2a1bcfd104a1054b30f9d914fe5dfb.1526675940.git-series.kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx.socionext.com ([202.248.49.38]:35838 "EHLO mx.socionext.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S968694AbeE3JJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 May 2018 05:09:50 -0400
+From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>,
+        Jassi Brar <jaswinder.singh@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+Subject: [PATCH 0/8] add UniPhier DVB Frontend system support
+Date: Wed, 30 May 2018 18:09:38 +0900
+Message-Id: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+This series adds support for DVB Frontend system named HSC support
+for UniPhier LD11/LD20 SoCs. This driver supports MPEG2-TS serial
+signal input from external demodulator and DMA MPEG2-TS stream data
+onto memory.
 
-Thank you for the patch.
+UniPhier HSC driver provides many ports of TS input. Since the HSC
+has mixed register map for those ports. It hard to split each register
+areas.
 
-On Friday, 18 May 2018 23:41:55 EEST Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> The suspend and resume handlers are only utilised by video pipelines,
-> yet the functions currently reside in the vsp1_pipe object.
-> 
-> This causes an issue with resume, as the functions incorrectly call
-> vsp1_pipeline_run() directly instead of processing the video object
-> through vsp1_video_pipeline_run().
-> 
-> Move the functions to the video object, renaming accordingly and update
-> the resume handler to call vsp1_video_pipeline_run() as appropriate.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Katsuhiro Suzuki (8):
+  media: uniphier: add DT bindings documentation for UniPhier HSC
+  media: uniphier: add headers of HSC MPEG2-TS I/O driver
+  media: uniphier: add submodules of HSC MPEG2-TS I/O driver
+  media: uniphier: add common module of HSC MPEG2-TS I/O driver
+  media: uniphier: add LD11/LD20 HSC support
+  media: uniphier: add common module of DVB adapter drivers
+  media: uniphier: add LD11 adapter driver for ISDB
+  media: uniphier: add LD20 adapter driver for ISDB
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/vsp1/vsp1_drv.c   |  4 +-
->  drivers/media/platform/vsp1/vsp1_pipe.c  | 70 +-----------------------
->  drivers/media/platform/vsp1/vsp1_pipe.h  |  3 +-
->  drivers/media/platform/vsp1/vsp1_video.c | 75 +++++++++++++++++++++++++-
->  drivers/media/platform/vsp1/vsp1_video.h |  3 +-
->  5 files changed, 80 insertions(+), 75 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
-> b/drivers/media/platform/vsp1/vsp1_drv.c index d29f9c4baebe..5d82f6ee56ea
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drv.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
-> @@ -589,7 +589,7 @@ static int __maybe_unused vsp1_pm_suspend(struct device
-> *dev) * restarted explicitly by the DU.
->  	 */
->  	if (!vsp1->drm)
-> -		vsp1_pipelines_suspend(vsp1);
-> +		vsp1_video_suspend(vsp1);
-> 
->  	pm_runtime_force_suspend(vsp1->dev);
-> 
-> @@ -607,7 +607,7 @@ static int __maybe_unused vsp1_pm_resume(struct device
-> *dev) * restarted explicitly by the DU.
->  	 */
->  	if (!vsp1->drm)
-> -		vsp1_pipelines_resume(vsp1);
-> +		vsp1_video_resume(vsp1);
-> 
->  	return 0;
->  }
-> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c
-> b/drivers/media/platform/vsp1/vsp1_pipe.c index 6fde4c0b9844..da21f1a7cd75
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
-> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-> @@ -386,73 +386,3 @@ void vsp1_pipeline_propagate_partition(struct
-> vsp1_pipeline *pipe, }
->  }
-> 
-> -void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
-> -{
-> -	unsigned long flags;
-> -	unsigned int i;
-> -	int ret;
-> -
-> -	/*
-> -	 * To avoid increasing the system suspend time needlessly, loop over the
-> -	 * pipelines twice, first to set them all to the stopping state, and
-> -	 * then to wait for the stop to complete.
-> -	 */
-> -	for (i = 0; i < vsp1->info->wpf_count; ++i) {
-> -		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-> -		struct vsp1_pipeline *pipe;
-> -
-> -		if (wpf == NULL)
-> -			continue;
-> -
-> -		pipe = wpf->entity.pipe;
-> -		if (pipe == NULL)
-> -			continue;
-> -
-> -		spin_lock_irqsave(&pipe->irqlock, flags);
-> -		if (pipe->state == VSP1_PIPELINE_RUNNING)
-> -			pipe->state = VSP1_PIPELINE_STOPPING;
-> -		spin_unlock_irqrestore(&pipe->irqlock, flags);
-> -	}
-> -
-> -	for (i = 0; i < vsp1->info->wpf_count; ++i) {
-> -		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-> -		struct vsp1_pipeline *pipe;
-> -
-> -		if (wpf == NULL)
-> -			continue;
-> -
-> -		pipe = wpf->entity.pipe;
-> -		if (pipe == NULL)
-> -			continue;
-> -
-> -		ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
-> -					 msecs_to_jiffies(500));
-> -		if (ret == 0)
-> -			dev_warn(vsp1->dev, "pipeline %u stop timeout\n",
-> -				 wpf->entity.index);
-> -	}
-> -}
-> -
-> -void vsp1_pipelines_resume(struct vsp1_device *vsp1)
-> -{
-> -	unsigned long flags;
-> -	unsigned int i;
-> -
-> -	/* Resume all running pipelines. */
-> -	for (i = 0; i < vsp1->info->wpf_count; ++i) {
-> -		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-> -		struct vsp1_pipeline *pipe;
-> -
-> -		if (wpf == NULL)
-> -			continue;
-> -
-> -		pipe = wpf->entity.pipe;
-> -		if (pipe == NULL)
-> -			continue;
-> -
-> -		spin_lock_irqsave(&pipe->irqlock, flags);
-> -		if (vsp1_pipeline_ready(pipe))
-> -			vsp1_pipeline_run(pipe);
-> -		spin_unlock_irqrestore(&pipe->irqlock, flags);
-> -	}
-> -}
-> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
-> b/drivers/media/platform/vsp1/vsp1_pipe.h index 663d7fed7929..69858ba6cb31
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
-> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-> @@ -164,9 +164,6 @@ void vsp1_pipeline_propagate_partition(struct
-> vsp1_pipeline *pipe, unsigned int index,
->  				       struct vsp1_partition_window *window);
-> 
-> -void vsp1_pipelines_suspend(struct vsp1_device *vsp1);
-> -void vsp1_pipelines_resume(struct vsp1_device *vsp1);
-> -
->  const struct vsp1_format_info *vsp1_get_format_info(struct vsp1_device
-> *vsp1, u32 fourcc);
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index ba89dd176a13..5deb35210055
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -1171,6 +1171,81 @@ static const struct v4l2_file_operations
-> vsp1_video_fops = { };
-> 
->  /*
-> ---------------------------------------------------------------------------
-> -- + * Suspend and Resume
-> + */
-> +
-> +void vsp1_video_suspend(struct vsp1_device *vsp1)
-> +{
-> +	unsigned long flags;
-> +	unsigned int i;
-> +	int ret;
-> +
-> +	/*
-> +	 * To avoid increasing the system suspend time needlessly, loop over the
-> +	 * pipelines twice, first to set them all to the stopping state, and
-> +	 * then to wait for the stop to complete.
-> +	 */
-> +	for (i = 0; i < vsp1->info->wpf_count; ++i) {
-> +		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-> +		struct vsp1_pipeline *pipe;
-> +
-> +		if (wpf == NULL)
-> +			continue;
-> +
-> +		pipe = wpf->entity.pipe;
-> +		if (pipe == NULL)
-> +			continue;
-> +
-> +		spin_lock_irqsave(&pipe->irqlock, flags);
-> +		if (pipe->state == VSP1_PIPELINE_RUNNING)
-> +			pipe->state = VSP1_PIPELINE_STOPPING;
-> +		spin_unlock_irqrestore(&pipe->irqlock, flags);
-> +	}
-> +
-> +	for (i = 0; i < vsp1->info->wpf_count; ++i) {
-> +		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-> +		struct vsp1_pipeline *pipe;
-> +
-> +		if (wpf == NULL)
-> +			continue;
-> +
-> +		pipe = wpf->entity.pipe;
-> +		if (pipe == NULL)
-> +			continue;
-> +
-> +		ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
-> +					 msecs_to_jiffies(500));
-> +		if (ret == 0)
-> +			dev_warn(vsp1->dev, "pipeline %u stop timeout\n",
-> +				 wpf->entity.index);
-> +	}
-> +}
-> +
-> +void vsp1_video_resume(struct vsp1_device *vsp1)
-> +{
-> +	unsigned long flags;
-> +	unsigned int i;
-> +
-> +	/* Resume all running pipelines. */
-> +	for (i = 0; i < vsp1->info->wpf_count; ++i) {
-> +		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-> +		struct vsp1_pipeline *pipe;
-> +
-> +		if (wpf == NULL)
-> +			continue;
-> +
-> +		pipe = wpf->entity.pipe;
-> +		if (pipe == NULL)
-> +			continue;
-> +
-> +		spin_lock_irqsave(&pipe->irqlock, flags);
-> +		if (vsp1_pipeline_ready(pipe))
-> +			vsp1_video_pipeline_run(pipe);
-> +		spin_unlock_irqrestore(&pipe->irqlock, flags);
-> +	}
-> +}
-> +
-> +/*
-> ---------------------------------------------------------------------------
-> -- * Initialization and Cleanup
->   */
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.h
-> b/drivers/media/platform/vsp1/vsp1_video.h index 75a5a65c66fe..f3cf5e2fdf5a
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.h
-> +++ b/drivers/media/platform/vsp1/vsp1_video.h
-> @@ -51,6 +51,9 @@ static inline struct vsp1_video *to_vsp1_video(struct
-> video_device *vdev) return container_of(vdev, struct vsp1_video, video);
->  }
-> 
-> +void vsp1_video_suspend(struct vsp1_device *vsp1);
-> +void vsp1_video_resume(struct vsp1_device *vsp1);
-> +
->  struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
->  				     struct vsp1_rwpf *rwpf);
->  void vsp1_video_cleanup(struct vsp1_video *video);
-
+ .../bindings/media/uniphier,hsc.txt           |  38 ++
+ drivers/media/platform/Kconfig                |   1 +
+ drivers/media/platform/Makefile               |   2 +
+ drivers/media/platform/uniphier/Kconfig       |  37 ++
+ drivers/media/platform/uniphier/Makefile      |  12 +
+ drivers/media/platform/uniphier/hsc-core.c    | 506 ++++++++++++++++++
+ drivers/media/platform/uniphier/hsc-css.c     | 258 +++++++++
+ drivers/media/platform/uniphier/hsc-dma.c     | 302 +++++++++++
+ drivers/media/platform/uniphier/hsc-ld11.c    | 219 ++++++++
+ drivers/media/platform/uniphier/hsc-reg.h     | 491 +++++++++++++++++
+ drivers/media/platform/uniphier/hsc-ts.c      |  99 ++++
+ drivers/media/platform/uniphier/hsc-ucode.c   | 436 +++++++++++++++
+ drivers/media/platform/uniphier/hsc.h         | 480 +++++++++++++++++
+ .../platform/uniphier/ld11-mn884433-helene.c  | 265 +++++++++
+ .../platform/uniphier/ld20-mn884434-helene.c  | 274 ++++++++++
+ .../platform/uniphier/uniphier-adapter.c      |  54 ++
+ .../platform/uniphier/uniphier-adapter.h      |  42 ++
+ 17 files changed, 3516 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/uniphier,hsc.txt
+ create mode 100644 drivers/media/platform/uniphier/Kconfig
+ create mode 100644 drivers/media/platform/uniphier/Makefile
+ create mode 100644 drivers/media/platform/uniphier/hsc-core.c
+ create mode 100644 drivers/media/platform/uniphier/hsc-css.c
+ create mode 100644 drivers/media/platform/uniphier/hsc-dma.c
+ create mode 100644 drivers/media/platform/uniphier/hsc-ld11.c
+ create mode 100644 drivers/media/platform/uniphier/hsc-reg.h
+ create mode 100644 drivers/media/platform/uniphier/hsc-ts.c
+ create mode 100644 drivers/media/platform/uniphier/hsc-ucode.c
+ create mode 100644 drivers/media/platform/uniphier/hsc.h
+ create mode 100644 drivers/media/platform/uniphier/ld11-mn884433-helene.c
+ create mode 100644 drivers/media/platform/uniphier/ld20-mn884434-helene.c
+ create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.c
+ create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.h
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.17.0
