@@ -1,50 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:45285 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752317AbeEROTC (ORCPT
+Received: from mail-vk0-f67.google.com ([209.85.213.67]:45040 "EHLO
+        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965209AbeE3Jav (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 10:19:02 -0400
-Received: by mail-wr0-f196.google.com with SMTP id w3-v6so1688620wrl.12
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2018 07:19:02 -0700 (PDT)
-References: <20180518092806.3829-1-rui.silva@linaro.org> <20180518092806.3829-2-rui.silva@linaro.org> <1526639561.3948.2.camel@pengutronix.de>
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>, linux-clk@vger.kernel.org
-Subject: Re: [PATCH v5 01/12] media: staging/imx: refactor imx media device probe
-In-reply-to: <1526639561.3948.2.camel@pengutronix.de>
-Date: Fri, 18 May 2018 15:18:57 +0100
-Message-ID: <m3k1s1rqr2.fsf@linaro.org>
+        Wed, 30 May 2018 05:30:51 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+In-Reply-To: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1527671604-18768-1-git-send-email-jacopo+renesas@jmondi.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 30 May 2018 11:30:49 +0200
+Message-ID: <CAMuHMdVsV9k0OjFMkQSiKCenxfEHgcZxrMU3a5eXRaCDdeA5-A@mail.gmail.com>
+Subject: Re: [PATCH] media: arch: sh: migor: Fix TW9910 PDN gpio
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
-Thanks for the quick review.
+Hi Jacopo,
 
-On Fri 18 May 2018 at 10:32, Philipp Zabel wrote:
-> Hi Rui,
->
-> thank you for refactoring, I think this is much better than 
-> having the
-> pretend capture-subsytem device in the DT.
->
-> I would like to get rid of the ipu_present flag, if it can be 
-> done
-> reasonably. For details, see below.
+On Wed, May 30, 2018 at 11:13 AM, Jacopo Mondi
+<jacopo+renesas@jmondi.org> wrote:
+> The TW9910 PDN gpio (power down) is listed as active high in the chip
+> manual. It turns out it is actually active low as when set to physical
+> level 0 it actually turns the video decoder power off.
 
-Yes, I will try to come with something that will play along with 
-your
-comments. will be in v6.
+So the picture "Typical TW9910 External Circuitry" in the datasheet, which
+ties PDN to GND permanently, is wrong?
 
----
-Cheers,
-	Rui
+Gr{oetje,eeting}s,
+
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
