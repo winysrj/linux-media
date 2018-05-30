@@ -1,384 +1,620 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:54837 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751291AbeEVOw7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 10:52:59 -0400
-Received: by mail-wm0-f66.google.com with SMTP id f6-v6so537110wmc.4
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2018 07:52:58 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        linux-clk@vger.kernel.org, Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v6 01/13] media: staging/imx: refactor imx media device probe
-Date: Tue, 22 May 2018 15:52:33 +0100
-Message-Id: <20180522145245.3143-2-rui.silva@linaro.org>
-In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
-References: <20180522145245.3143-1-rui.silva@linaro.org>
+Received: from mga09.intel.com ([134.134.136.24]:37730 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753695AbeE3XMn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 May 2018 19:12:43 -0400
+Date: Wed, 30 May 2018 16:10:06 -0700
+From: Dongwon Kim <dongwon.kim@intel.com>
+To: Oleksandr Andrushchenko <andr2000@gmail.com>
+Cc: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com,
+        konrad.wilk@oracle.com, daniel.vetter@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: Re: [PATCH 6/8] xen/gntdev: Implement dma-buf export functionality
+Message-ID: <20180530231006.GA2929@downor-Z87X-UD5H>
+References: <20180525153331.31188-1-andr2000@gmail.com>
+ <20180525153331.31188-7-andr2000@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180525153331.31188-7-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Refactor and move media device initialization code to a new common module, so it
-can be used by other devices, this will allow for example a near to introduce
-imx7 CSI driver, to use this media device.
+On Fri, May 25, 2018 at 06:33:29PM +0300, Oleksandr Andrushchenko wrote:
+> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+> 
+> 1. Create a dma-buf from grant references provided by the foreign
+>    domain. By default dma-buf is backed by system memory pages, but
+>    by providing GNTDEV_DMA_FLAG_XXX flags it can also be created
+>    as a DMA write-combine/coherent buffer, e.g. allocated with
+>    corresponding dma_alloc_xxx API.
+>    Export the resulting buffer as a new dma-buf.
+> 
+> 2. Implement waiting for the dma-buf to be released: block until the
+>    dma-buf with the file descriptor provided is released.
+>    If within the time-out provided the buffer is not released then
+>    -ETIMEDOUT error is returned. If the buffer with the file descriptor
+>    does not exist or has already been released, then -ENOENT is returned.
+>    For valid file descriptors this must not be treated as error.
+> 
+> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+> ---
+>  drivers/xen/gntdev.c | 478 ++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 476 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+> index 9e450622af1a..52abc6cd5846 100644
+> --- a/drivers/xen/gntdev.c
+> +++ b/drivers/xen/gntdev.c
+> @@ -4,6 +4,8 @@
+>   * Device for accessing (in user-space) pages that have been granted by other
+>   * domains.
+>   *
+> + * DMA buffer implementation is based on drivers/gpu/drm/drm_prime.c.
+> + *
+>   * Copyright (c) 2006-2007, D G Murray.
+>   *           (c) 2009 Gerd Hoffmann <kraxel@redhat.com>
+>   *           (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
+> @@ -41,6 +43,9 @@
+>  #ifdef CONFIG_XEN_GRANT_DMA_ALLOC
+>  #include <linux/of_device.h>
+>  #endif
+> +#ifdef CONFIG_XEN_GNTDEV_DMABUF
+> +#include <linux/dma-buf.h>
+> +#endif
+>  
+>  #include <xen/xen.h>
+>  #include <xen/grant_table.h>
+> @@ -81,6 +86,17 @@ struct gntdev_priv {
+>  	/* Device for which DMA memory is allocated. */
+>  	struct device *dma_dev;
+>  #endif
+> +
+> +#ifdef CONFIG_XEN_GNTDEV_DMABUF
+> +	/* Private data of the hyper DMA buffers. */
+> +
+> +	/* List of exported DMA buffers. */
+> +	struct list_head dmabuf_exp_list;
+> +	/* List of wait objects. */
+> +	struct list_head dmabuf_exp_wait_list;
+> +	/* This is the lock which protects dma_buf_xxx lists. */
+> +	struct mutex dmabuf_lock;
+> +#endif
+>  };
+>  
+>  struct unmap_notify {
+> @@ -125,12 +141,38 @@ struct grant_map {
+>  
+>  #ifdef CONFIG_XEN_GNTDEV_DMABUF
+>  struct xen_dmabuf {
+> +	struct gntdev_priv *priv;
+> +	struct dma_buf *dmabuf;
+> +	struct list_head next;
+> +	int fd;
+> +
+>  	union {
+> +		struct {
+> +			/* Exported buffers are reference counted. */
+> +			struct kref refcount;
+> +			struct grant_map *map;
+> +		} exp;
+>  		struct {
+>  			/* Granted references of the imported buffer. */
+>  			grant_ref_t *refs;
+>  		} imp;
+>  	} u;
+> +
+> +	/* Number of pages this buffer has. */
+> +	int nr_pages;
+> +	/* Pages of this buffer. */
+> +	struct page **pages;
+> +};
+> +
+> +struct xen_dmabuf_wait_obj {
+> +	struct list_head next;
+> +	struct xen_dmabuf *xen_dmabuf;
+> +	struct completion completion;
+> +};
+> +
+> +struct xen_dmabuf_attachment {
+> +	struct sg_table *sgt;
+> +	enum dma_data_direction dir;
+>  };
+>  #endif
+>  
+> @@ -320,6 +362,16 @@ static void gntdev_put_map(struct gntdev_priv *priv, struct grant_map *map)
+>  	gntdev_free_map(map);
+>  }
+>  
+> +#ifdef CONFIG_XEN_GNTDEV_DMABUF
+> +static void gntdev_remove_map(struct gntdev_priv *priv, struct grant_map *map)
+> +{
+> +	mutex_lock(&priv->lock);
+> +	list_del(&map->next);
+> +	gntdev_put_map(NULL /* already removed */, map);
+> +	mutex_unlock(&priv->lock);
+> +}
+> +#endif
+> +
+>  /* ------------------------------------------------------------------ */
+>  
+>  static int find_grant_ptes(pte_t *pte, pgtable_t token,
+> @@ -628,6 +680,12 @@ static int gntdev_open(struct inode *inode, struct file *flip)
+>  	INIT_LIST_HEAD(&priv->freeable_maps);
+>  	mutex_init(&priv->lock);
+>  
+> +#ifdef CONFIG_XEN_GNTDEV_DMABUF
+> +	mutex_init(&priv->dmabuf_lock);
+> +	INIT_LIST_HEAD(&priv->dmabuf_exp_list);
+> +	INIT_LIST_HEAD(&priv->dmabuf_exp_wait_list);
+> +#endif
+> +
+>  	if (use_ptemod) {
+>  		priv->mm = get_task_mm(current);
+>  		if (!priv->mm) {
+> @@ -1053,17 +1111,433 @@ static long gntdev_ioctl_grant_copy(struct gntdev_priv *priv, void __user *u)
+>  /* DMA buffer export support.                                         */
+>  /* ------------------------------------------------------------------ */
+>  
+> +/* ------------------------------------------------------------------ */
+> +/* Implementation of wait for exported DMA buffer to be released.     */
+> +/* ------------------------------------------------------------------ */
+> +
+> +static void dmabuf_exp_release(struct kref *kref);
+> +
+> +static struct xen_dmabuf_wait_obj *
+> +dmabuf_exp_wait_obj_new(struct gntdev_priv *priv,
+> +			struct xen_dmabuf *xen_dmabuf)
+> +{
+> +	struct xen_dmabuf_wait_obj *obj;
+> +
+> +	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
+> +	if (!obj)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	init_completion(&obj->completion);
+> +	obj->xen_dmabuf = xen_dmabuf;
+> +
+> +	mutex_lock(&priv->dmabuf_lock);
+> +	list_add(&obj->next, &priv->dmabuf_exp_wait_list);
+> +	/* Put our reference and wait for xen_dmabuf's release to fire. */
+> +	kref_put(&xen_dmabuf->u.exp.refcount, dmabuf_exp_release);
+> +	mutex_unlock(&priv->dmabuf_lock);
+> +	return obj;
+> +}
+> +
+> +static void dmabuf_exp_wait_obj_free(struct gntdev_priv *priv,
+> +				     struct xen_dmabuf_wait_obj *obj)
+> +{
+> +	struct xen_dmabuf_wait_obj *cur_obj, *q;
+> +
+> +	mutex_lock(&priv->dmabuf_lock);
+> +	list_for_each_entry_safe(cur_obj, q, &priv->dmabuf_exp_wait_list, next)
+> +		if (cur_obj == obj) {
+> +			list_del(&obj->next);
+> +			kfree(obj);
+> +			break;
+> +		}
+> +	mutex_unlock(&priv->dmabuf_lock);
+> +}
+> +
+> +static int dmabuf_exp_wait_obj_wait(struct xen_dmabuf_wait_obj *obj,
+> +				    u32 wait_to_ms)
+> +{
+> +	if (wait_for_completion_timeout(&obj->completion,
+> +			msecs_to_jiffies(wait_to_ms)) <= 0)
+> +		return -ETIMEDOUT;
+> +
+> +	return 0;
+> +}
+> +
+> +static void dmabuf_exp_wait_obj_signal(struct gntdev_priv *priv,
+> +				       struct xen_dmabuf *xen_dmabuf)
+> +{
+> +	struct xen_dmabuf_wait_obj *obj, *q;
+> +
+> +	list_for_each_entry_safe(obj, q, &priv->dmabuf_exp_wait_list, next)
+> +		if (obj->xen_dmabuf == xen_dmabuf) {
+> +			pr_debug("Found xen_dmabuf in the wait list, wake\n");
+> +			complete_all(&obj->completion);
+> +		}
+> +}
+> +
+> +static struct xen_dmabuf *
+> +dmabuf_exp_wait_obj_get_by_fd(struct gntdev_priv *priv, int fd)
+> +{
+> +	struct xen_dmabuf *q, *xen_dmabuf, *ret = ERR_PTR(-ENOENT);
+> +
+> +	mutex_lock(&priv->dmabuf_lock);
+> +	list_for_each_entry_safe(xen_dmabuf, q, &priv->dmabuf_exp_list, next)
+> +		if (xen_dmabuf->fd == fd) {
+> +			pr_debug("Found xen_dmabuf in the wait list\n");
+> +			kref_get(&xen_dmabuf->u.exp.refcount);
+> +			ret = xen_dmabuf;
+> +			break;
+> +		}
+> +	mutex_unlock(&priv->dmabuf_lock);
+> +	return ret;
+> +}
+> +
+>  static int dmabuf_exp_wait_released(struct gntdev_priv *priv, int fd,
+>  				    int wait_to_ms)
+>  {
+> -	return -ETIMEDOUT;
+> +	struct xen_dmabuf *xen_dmabuf;
+> +	struct xen_dmabuf_wait_obj *obj;
+> +	int ret;
+> +
+> +	pr_debug("Will wait for dma-buf with fd %d\n", fd);
+> +	/*
+> +	 * Try to find the DMA buffer: if not found means that
+> +	 * either the buffer has already been released or file descriptor
+> +	 * provided is wrong.
+> +	 */
+> +	xen_dmabuf = dmabuf_exp_wait_obj_get_by_fd(priv, fd);
+> +	if (IS_ERR(xen_dmabuf))
+> +		return PTR_ERR(xen_dmabuf);
+> +
+> +	/*
+> +	 * xen_dmabuf still exists and is reference count locked by us now,
+> +	 * so prepare to wait: allocate wait object and add it to the wait list,
+> +	 * so we can find it on release.
+> +	 */
+> +	obj = dmabuf_exp_wait_obj_new(priv, xen_dmabuf);
+> +	if (IS_ERR(obj)) {
+> +		pr_err("Failed to setup wait object, ret %ld\n", PTR_ERR(obj));
+> +		return PTR_ERR(obj);
+> +	}
+> +
+> +	ret = dmabuf_exp_wait_obj_wait(obj, wait_to_ms);
+> +	dmabuf_exp_wait_obj_free(priv, obj);
+> +	return ret;
+> +}
+> +
+> +/* ------------------------------------------------------------------ */
+> +/* DMA buffer export support.                                         */
+> +/* ------------------------------------------------------------------ */
+> +
+> +static struct sg_table *
+> +dmabuf_pages_to_sgt(struct page **pages, unsigned int nr_pages)
+> +{
+> +	struct sg_table *sgt;
+> +	int ret;
+> +
+> +	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
+> +	if (!sgt) {
+> +		ret = -ENOMEM;
+> +		goto out;
+> +	}
+> +
+> +	ret = sg_alloc_table_from_pages(sgt, pages, nr_pages, 0,
+> +					nr_pages << PAGE_SHIFT,
+> +					GFP_KERNEL);
+> +	if (ret)
+> +		goto out;
+> +
+> +	return sgt;
+> +
+> +out:
+> +	kfree(sgt);
+> +	return ERR_PTR(ret);
+> +}
+> +
+> +static int dmabuf_exp_ops_attach(struct dma_buf *dma_buf,
+> +				 struct device *target_dev,
+> +				 struct dma_buf_attachment *attach)
+> +{
+> +	struct xen_dmabuf_attachment *xen_dmabuf_attach;
+> +
+> +	xen_dmabuf_attach = kzalloc(sizeof(*xen_dmabuf_attach), GFP_KERNEL);
+> +	if (!xen_dmabuf_attach)
+> +		return -ENOMEM;
+> +
+> +	xen_dmabuf_attach->dir = DMA_NONE;
+> +	attach->priv = xen_dmabuf_attach;
+> +	/* Might need to pin the pages of the buffer now. */
+> +	return 0;
+> +}
+> +
+> +static void dmabuf_exp_ops_detach(struct dma_buf *dma_buf,
+> +				  struct dma_buf_attachment *attach)
+> +{
+> +	struct xen_dmabuf_attachment *xen_dmabuf_attach = attach->priv;
+> +
+> +	if (xen_dmabuf_attach) {
+> +		struct sg_table *sgt = xen_dmabuf_attach->sgt;
+> +
+> +		if (sgt) {
+> +			if (xen_dmabuf_attach->dir != DMA_NONE)
+> +				dma_unmap_sg_attrs(attach->dev, sgt->sgl,
+> +						   sgt->nents,
+> +						   xen_dmabuf_attach->dir,
+> +						   DMA_ATTR_SKIP_CPU_SYNC);
+> +			sg_free_table(sgt);
+> +		}
+> +
+> +		kfree(sgt);
+> +		kfree(xen_dmabuf_attach);
+> +		attach->priv = NULL;
+> +	}
+> +	/* Might need to unpin the pages of the buffer now. */
+> +}
+> +
+> +static struct sg_table *
+> +dmabuf_exp_ops_map_dma_buf(struct dma_buf_attachment *attach,
+> +			   enum dma_data_direction dir)
+> +{
+> +	struct xen_dmabuf_attachment *xen_dmabuf_attach = attach->priv;
+> +	struct xen_dmabuf *xen_dmabuf = attach->dmabuf->priv;
+> +	struct sg_table *sgt;
+> +
+> +	pr_debug("Mapping %d pages for dev %p\n", xen_dmabuf->nr_pages,
+> +		 attach->dev);
+> +
+> +	if (WARN_ON(dir == DMA_NONE || !xen_dmabuf_attach))
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	/* Return the cached mapping when possible. */
+> +	if (xen_dmabuf_attach->dir == dir)
+> +		return xen_dmabuf_attach->sgt;
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- drivers/staging/media/imx/Makefile            |   1 +
- .../staging/media/imx/imx-media-dev-common.c  | 100 ++++++++++++++++++
- drivers/staging/media/imx/imx-media-dev.c     |  86 ++++-----------
- drivers/staging/media/imx/imx-media-of.c      |   6 +-
- drivers/staging/media/imx/imx-media.h         |  15 +++
- 5 files changed, 139 insertions(+), 69 deletions(-)
- create mode 100644 drivers/staging/media/imx/imx-media-dev-common.c
+may need to check xen_dmabuf_attach->sgt == NULL (i.e. first time mapping)?
+Also, I am not sure if this mechanism of reusing previously generated sgt
+for other mappings is universally ok for any use-cases... I don't know if
+it is acceptable as per the specification. 
 
-diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
-index 698a4210316e..a30b3033f9a3 100644
---- a/drivers/staging/media/imx/Makefile
-+++ b/drivers/staging/media/imx/Makefile
-@@ -1,5 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- imx-media-objs := imx-media-dev.o imx-media-internal-sd.o imx-media-of.o
-+imx-media-objs += imx-media-dev-common.o
- imx-media-common-objs := imx-media-utils.o imx-media-fim.o
- imx-media-ic-objs := imx-ic-common.o imx-ic-prp.o imx-ic-prpencvf.o
- 
-diff --git a/drivers/staging/media/imx/imx-media-dev-common.c b/drivers/staging/media/imx/imx-media-dev-common.c
-new file mode 100644
-index 000000000000..98aea5f94174
---- /dev/null
-+++ b/drivers/staging/media/imx/imx-media-dev-common.c
-@@ -0,0 +1,100 @@
-+// SPDX-License-Identifier: GPL
-+/*
-+ * V4L2 Media Controller Driver for Freescale common i.MX5/6/7 SOC
-+ *
-+ * Copyright (c) 2018 Linaro Ltd
-+ * Copyright (c) 2016 Mentor Graphics Inc.
-+ */
-+
-+#include <linux/of_graph.h>
-+#include <linux/of_platform.h>
-+#include "imx-media.h"
-+
-+static const struct v4l2_async_notifier_operations imx_media_subdev_ops = {
-+	.bound = imx_media_subdev_bound,
-+	.complete = imx_media_probe_complete,
-+};
-+
-+static const struct media_device_ops imx_media_md_ops = {
-+	.link_notify = imx_media_link_notify,
-+};
-+
-+struct imx_media_dev *imx_media_dev_init(struct device *dev)
-+{
-+	struct imx_media_dev *imxmd;
-+	int ret;
-+
-+	imxmd = devm_kzalloc(dev, sizeof(*imxmd), GFP_KERNEL);
-+	if (!imxmd)
-+		return ERR_PTR(-ENOMEM);
-+
-+	dev_set_drvdata(dev, imxmd);
-+
-+	strlcpy(imxmd->md.model, "imx-media", sizeof(imxmd->md.model));
-+	imxmd->md.ops = &imx_media_md_ops;
-+	imxmd->md.dev = dev;
-+
-+	mutex_init(&imxmd->mutex);
-+
-+	imxmd->v4l2_dev.mdev = &imxmd->md;
-+	strlcpy(imxmd->v4l2_dev.name, "imx-media",
-+		sizeof(imxmd->v4l2_dev.name));
-+
-+	media_device_init(&imxmd->md);
-+
-+	ret = v4l2_device_register(dev, &imxmd->v4l2_dev);
-+	if (ret < 0) {
-+		v4l2_err(&imxmd->v4l2_dev,
-+			 "Failed to register v4l2_device: %d\n", ret);
-+		goto cleanup;
-+	}
-+
-+	dev_set_drvdata(imxmd->v4l2_dev.dev, imxmd);
-+
-+	INIT_LIST_HEAD(&imxmd->vdev_list);
-+
-+	return imxmd;
-+
-+cleanup:
-+	media_device_cleanup(&imxmd->md);
-+
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL_GPL(imx_media_dev_init);
-+
-+int imx_media_dev_notifier_register(struct imx_media_dev *imxmd)
-+{
-+	int ret;
-+
-+	/* no subdevs? just bail */
-+	if (imxmd->notifier.num_subdevs == 0) {
-+		v4l2_err(&imxmd->v4l2_dev, "no subdevs\n");
-+		return -ENODEV;
-+	}
-+
-+	/* prepare the async subdev notifier and register it */
-+	imxmd->notifier.ops = &imx_media_subdev_ops;
-+	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
-+					   &imxmd->notifier);
-+	if (ret) {
-+		v4l2_err(&imxmd->v4l2_dev,
-+			 "v4l2_async_notifier_register failed with %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(imx_media_dev_notifier_register);
-+
-+void imx_media_dev_cleanup(struct imx_media_dev *imxmd)
-+{
-+	v4l2_device_unregister(&imxmd->v4l2_dev);
-+	media_device_cleanup(&imxmd->md);
-+}
-+EXPORT_SYMBOL_GPL(imx_media_dev_cleanup);
-+
-+void imx_media_dev_notifier_unregister(struct imx_media_dev *imxmd)
-+{
-+	v4l2_async_notifier_cleanup(&imxmd->notifier);
-+}
-+EXPORT_SYMBOL_GPL(imx_media_dev_notifier_unregister);
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index 7e7bd1c6c81b..70fcaf2d358a 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -107,9 +107,9 @@ static int imx_media_get_ipu(struct imx_media_dev *imxmd,
- }
- 
- /* async subdev bound notifier */
--static int imx_media_subdev_bound(struct v4l2_async_notifier *notifier,
--				  struct v4l2_subdev *sd,
--				  struct v4l2_async_subdev *asd)
-+int imx_media_subdev_bound(struct v4l2_async_notifier *notifier,
-+			   struct v4l2_subdev *sd,
-+			   struct v4l2_async_subdev *asd)
- {
- 	struct imx_media_dev *imxmd = notifier2dev(notifier);
- 	int ret = 0;
-@@ -293,7 +293,7 @@ static int imx_media_create_pad_vdev_lists(struct imx_media_dev *imxmd)
- }
- 
- /* async subdev complete notifier */
--static int imx_media_probe_complete(struct v4l2_async_notifier *notifier)
-+int imx_media_probe_complete(struct v4l2_async_notifier *notifier)
- {
- 	struct imx_media_dev *imxmd = notifier2dev(notifier);
- 	int ret;
-@@ -317,11 +317,6 @@ static int imx_media_probe_complete(struct v4l2_async_notifier *notifier)
- 	return media_device_register(&imxmd->md);
- }
- 
--static const struct v4l2_async_notifier_operations imx_media_subdev_ops = {
--	.bound = imx_media_subdev_bound,
--	.complete = imx_media_probe_complete,
--};
--
- /*
-  * adds controls to a video device from an entity subdevice.
-  * Continues upstream from the entity's sink pads.
-@@ -365,8 +360,8 @@ static int imx_media_inherit_controls(struct imx_media_dev *imxmd,
- 	return ret;
- }
- 
--static int imx_media_link_notify(struct media_link *link, u32 flags,
--				 unsigned int notification)
-+int imx_media_link_notify(struct media_link *link, u32 flags,
-+			  unsigned int notification)
- {
- 	struct media_entity *source = link->source->entity;
- 	struct imx_media_pad_vdev *pad_vdev;
-@@ -429,10 +424,6 @@ static int imx_media_link_notify(struct media_link *link, u32 flags,
- 	return ret;
- }
- 
--static const struct media_device_ops imx_media_md_ops = {
--	.link_notify = imx_media_link_notify,
--};
--
- static int imx_media_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-@@ -440,74 +431,36 @@ static int imx_media_probe(struct platform_device *pdev)
- 	struct imx_media_dev *imxmd;
- 	int ret;
- 
--	imxmd = devm_kzalloc(dev, sizeof(*imxmd), GFP_KERNEL);
--	if (!imxmd)
--		return -ENOMEM;
--
--	dev_set_drvdata(dev, imxmd);
--
--	strlcpy(imxmd->md.model, "imx-media", sizeof(imxmd->md.model));
--	imxmd->md.ops = &imx_media_md_ops;
--	imxmd->md.dev = dev;
--
--	mutex_init(&imxmd->mutex);
--
--	imxmd->v4l2_dev.mdev = &imxmd->md;
--	strlcpy(imxmd->v4l2_dev.name, "imx-media",
--		sizeof(imxmd->v4l2_dev.name));
--
--	media_device_init(&imxmd->md);
--
--	ret = v4l2_device_register(dev, &imxmd->v4l2_dev);
--	if (ret < 0) {
--		v4l2_err(&imxmd->v4l2_dev,
--			 "Failed to register v4l2_device: %d\n", ret);
--		goto cleanup;
--	}
--
--	dev_set_drvdata(imxmd->v4l2_dev.dev, imxmd);
--
--	INIT_LIST_HEAD(&imxmd->vdev_list);
-+	imxmd = imx_media_dev_init(dev);
-+	if (IS_ERR(imxmd))
-+		return PTR_ERR(imxmd);
- 
- 	ret = imx_media_add_of_subdevs(imxmd, node);
- 	if (ret) {
- 		v4l2_err(&imxmd->v4l2_dev,
- 			 "add_of_subdevs failed with %d\n", ret);
--		goto notifier_cleanup;
-+		goto dev_cleanup;
- 	}
- 
- 	ret = imx_media_add_internal_subdevs(imxmd);
- 	if (ret) {
- 		v4l2_err(&imxmd->v4l2_dev,
- 			 "add_internal_subdevs failed with %d\n", ret);
--		goto notifier_cleanup;
--	}
--
--	/* no subdevs? just bail */
--	if (imxmd->notifier.num_subdevs == 0) {
--		ret = -ENODEV;
--		goto notifier_cleanup;
-+		goto dev_cleanup;
- 	}
- 
--	/* prepare the async subdev notifier and register it */
--	imxmd->notifier.ops = &imx_media_subdev_ops;
--	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
--					   &imxmd->notifier);
--	if (ret) {
--		v4l2_err(&imxmd->v4l2_dev,
--			 "v4l2_async_notifier_register failed with %d\n", ret);
-+	ret = imx_media_dev_notifier_register(imxmd);
-+	if (ret < 0)
- 		goto del_int;
--	}
- 
- 	return 0;
- 
- del_int:
- 	imx_media_remove_internal_subdevs(imxmd);
--notifier_cleanup:
--	v4l2_async_notifier_cleanup(&imxmd->notifier);
--	v4l2_device_unregister(&imxmd->v4l2_dev);
--cleanup:
--	media_device_cleanup(&imxmd->md);
-+
-+dev_cleanup:
-+	imx_media_dev_cleanup(imxmd);
-+
- 	return ret;
- }
- 
-@@ -520,10 +473,9 @@ static int imx_media_remove(struct platform_device *pdev)
- 
- 	v4l2_async_notifier_unregister(&imxmd->notifier);
- 	imx_media_remove_internal_subdevs(imxmd);
--	v4l2_async_notifier_cleanup(&imxmd->notifier);
--	v4l2_device_unregister(&imxmd->v4l2_dev);
-+	imx_media_dev_notifier_unregister(imxmd);
- 	media_device_unregister(&imxmd->md);
--	media_device_cleanup(&imxmd->md);
-+	imx_media_dev_cleanup(imxmd);
- 
- 	return 0;
- }
-diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
-index 1c9175433ba6..a0020cc7b3f3 100644
---- a/drivers/staging/media/imx/imx-media-of.c
-+++ b/drivers/staging/media/imx/imx-media-of.c
-@@ -20,7 +20,8 @@
- #include <video/imx-ipu-v3.h>
- #include "imx-media.h"
- 
--static int of_add_csi(struct imx_media_dev *imxmd, struct device_node *csi_np)
-+int imx_media_of_add_csi(struct imx_media_dev *imxmd,
-+			 struct device_node *csi_np)
- {
- 	int ret;
- 
-@@ -45,6 +46,7 @@ static int of_add_csi(struct imx_media_dev *imxmd, struct device_node *csi_np)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(imx_media_of_add_csi);
- 
- int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
- 			     struct device_node *np)
-@@ -57,7 +59,7 @@ int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
- 		if (!csi_np)
- 			break;
- 
--		ret = of_add_csi(imxmd, csi_np);
-+		ret = imx_media_of_add_csi(imxmd, csi_np);
- 		of_node_put(csi_np);
- 		if (ret)
- 			return ret;
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index 44532cd5b812..8ec9738aced9 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -224,6 +224,19 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
- 			       struct fwnode_handle *fwnode,
- 			       struct platform_device *pdev);
- 
-+int imx_media_subdev_bound(struct v4l2_async_notifier *notifier,
-+			   struct v4l2_subdev *sd,
-+			   struct v4l2_async_subdev *asd);
-+int imx_media_link_notify(struct media_link *link, u32 flags,
-+			  unsigned int notification);
-+int imx_media_probe_complete(struct v4l2_async_notifier *notifier);
-+
-+struct imx_media_dev *imx_media_dev_init(struct device *dev);
-+int imx_media_dev_notifier_register(struct imx_media_dev *imxmd);
-+
-+void imx_media_dev_cleanup(struct imx_media_dev *imxmd);
-+void imx_media_dev_notifier_unregister(struct imx_media_dev *imxmd);
-+
- /* imx-media-fim.c */
- struct imx_media_fim;
- void imx_media_fim_eof_monitor(struct imx_media_fim *fim, ktime_t timestamp);
-@@ -247,6 +260,8 @@ int imx_media_create_of_links(struct imx_media_dev *imxmd,
- 			      struct v4l2_subdev *sd);
- int imx_media_create_csi_of_links(struct imx_media_dev *imxmd,
- 				  struct v4l2_subdev *csi);
-+int imx_media_of_add_csi(struct imx_media_dev *imxmd,
-+			 struct device_node *csi_np);
- 
- /* imx-media-capture.c */
- struct imx_media_video_dev *
--- 
-2.17.0
+> +
+> +	/*
+> +	 * Two mappings with different directions for the same attachment are
+> +	 * not allowed.
+> +	 */
+> +	if (WARN_ON(xen_dmabuf_attach->dir != DMA_NONE))
+> +		return ERR_PTR(-EBUSY);
+> +
+> +	sgt = dmabuf_pages_to_sgt(xen_dmabuf->pages, xen_dmabuf->nr_pages);
+> +	if (!IS_ERR(sgt)) {
+> +		if (!dma_map_sg_attrs(attach->dev, sgt->sgl, sgt->nents, dir,
+> +				      DMA_ATTR_SKIP_CPU_SYNC)) {
+> +			sg_free_table(sgt);
+> +			kfree(sgt);
+> +			sgt = ERR_PTR(-ENOMEM);
+> +		} else {
+> +			xen_dmabuf_attach->sgt = sgt;
+> +			xen_dmabuf_attach->dir = dir;
+> +		}
+> +	}
+> +	if (IS_ERR(sgt))
+> +		pr_err("Failed to map sg table for dev %p\n", attach->dev);
+> +	return sgt;
+> +}
+> +
+> +static void dmabuf_exp_ops_unmap_dma_buf(struct dma_buf_attachment *attach,
+> +					 struct sg_table *sgt,
+> +					 enum dma_data_direction dir)
+> +{
+> +	/* Not implemented. The unmap is done at dmabuf_exp_ops_detach(). */
+
+Not sure if it's ok to do nothing here because the spec says this function is
+mandatory and it should unmap and "release" &sg_table associated with it. 
+
+	/**
+	 * @unmap_dma_buf:
+	 *
+	 * This is called by dma_buf_unmap_attachment() and should unmap and
+	 * release the &sg_table allocated in @map_dma_buf, and it is mandatory.
+	 * It should also unpin the backing storage if this is the last mapping
+	 * of the DMA buffer, it the exporter supports backing storage
+	 * migration.
+	 */
+
+> +}
+> +
+> +static void dmabuf_exp_release(struct kref *kref)
+> +{
+> +	struct xen_dmabuf *xen_dmabuf =
+> +		container_of(kref, struct xen_dmabuf, u.exp.refcount);
+> +
+> +	dmabuf_exp_wait_obj_signal(xen_dmabuf->priv, xen_dmabuf);
+> +	list_del(&xen_dmabuf->next);
+> +	kfree(xen_dmabuf);
+> +}
+> +
+> +static void dmabuf_exp_ops_release(struct dma_buf *dma_buf)
+> +{
+> +	struct xen_dmabuf *xen_dmabuf = dma_buf->priv;
+> +	struct gntdev_priv *priv = xen_dmabuf->priv;
+> +
+> +	gntdev_remove_map(priv, xen_dmabuf->u.exp.map);
+> +	mutex_lock(&priv->dmabuf_lock);
+> +	kref_put(&xen_dmabuf->u.exp.refcount, dmabuf_exp_release);
+> +	mutex_unlock(&priv->dmabuf_lock);
+> +}
+> +
+> +static void *dmabuf_exp_ops_kmap_atomic(struct dma_buf *dma_buf,
+> +					unsigned long page_num)
+> +{
+> +	/* Not implemented. */
+> +	return NULL;
+> +}
+> +
+> +static void dmabuf_exp_ops_kunmap_atomic(struct dma_buf *dma_buf,
+> +					 unsigned long page_num, void *addr)
+> +{
+> +	/* Not implemented. */
+> +}
+> +
+> +static void *dmabuf_exp_ops_kmap(struct dma_buf *dma_buf,
+> +				 unsigned long page_num)
+> +{
+> +	/* Not implemented. */
+> +	return NULL;
+> +}
+> +
+> +static void dmabuf_exp_ops_kunmap(struct dma_buf *dma_buf,
+> +				  unsigned long page_num, void *addr)
+> +{
+> +	/* Not implemented. */
+> +}
+> +
+> +static int dmabuf_exp_ops_mmap(struct dma_buf *dma_buf,
+> +			       struct vm_area_struct *vma)
+> +{
+> +	/* Not implemented. */
+> +	return 0;
+> +}
+> +
+> +static const struct dma_buf_ops dmabuf_exp_ops =  {
+> +	.attach = dmabuf_exp_ops_attach,
+> +	.detach = dmabuf_exp_ops_detach,
+> +	.map_dma_buf = dmabuf_exp_ops_map_dma_buf,
+> +	.unmap_dma_buf = dmabuf_exp_ops_unmap_dma_buf,
+> +	.release = dmabuf_exp_ops_release,
+> +	.map = dmabuf_exp_ops_kmap,
+> +	.map_atomic = dmabuf_exp_ops_kmap_atomic,
+> +	.unmap = dmabuf_exp_ops_kunmap,
+> +	.unmap_atomic = dmabuf_exp_ops_kunmap_atomic,
+> +	.mmap = dmabuf_exp_ops_mmap,
+> +};
+> +
+> +static int dmabuf_export(struct gntdev_priv *priv, struct grant_map *map,
+> +			 int *fd)
+> +{
+> +	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
+> +	struct xen_dmabuf *xen_dmabuf;
+> +	int ret = 0;
+> +
+> +	xen_dmabuf = kzalloc(sizeof(*xen_dmabuf), GFP_KERNEL);
+> +	if (!xen_dmabuf)
+> +		return -ENOMEM;
+> +
+> +	kref_init(&xen_dmabuf->u.exp.refcount);
+> +
+> +	xen_dmabuf->priv = priv;
+> +	xen_dmabuf->nr_pages = map->count;
+> +	xen_dmabuf->pages = map->pages;
+> +	xen_dmabuf->u.exp.map = map;
+> +
+> +	exp_info.exp_name = KBUILD_MODNAME;
+> +	if (map->dma_dev->driver && map->dma_dev->driver->owner)
+> +		exp_info.owner = map->dma_dev->driver->owner;
+> +	else
+> +		exp_info.owner = THIS_MODULE;
+> +	exp_info.ops = &dmabuf_exp_ops;
+> +	exp_info.size = map->count << PAGE_SHIFT;
+> +	exp_info.flags = O_RDWR;
+> +	exp_info.priv = xen_dmabuf;
+> +
+> +	xen_dmabuf->dmabuf = dma_buf_export(&exp_info);
+> +	if (IS_ERR(xen_dmabuf->dmabuf)) {
+> +		ret = PTR_ERR(xen_dmabuf->dmabuf);
+> +		xen_dmabuf->dmabuf = NULL;
+> +		goto fail;
+> +	}
+> +
+> +	ret = dma_buf_fd(xen_dmabuf->dmabuf, O_CLOEXEC);
+> +	if (ret < 0)
+> +		goto fail;
+> +
+> +	xen_dmabuf->fd = ret;
+> +	*fd = ret;
+> +
+> +	pr_debug("Exporting DMA buffer with fd %d\n", ret);
+> +
+> +	mutex_lock(&priv->dmabuf_lock);
+> +	list_add(&xen_dmabuf->next, &priv->dmabuf_exp_list);
+> +	mutex_unlock(&priv->dmabuf_lock);
+> +	return 0;
+> +
+> +fail:
+> +	if (xen_dmabuf->dmabuf)
+> +		dma_buf_put(xen_dmabuf->dmabuf);
+> +	kfree(xen_dmabuf);
+> +	return ret;
+> +}
+> +
+> +static struct grant_map *
+> +dmabuf_exp_alloc_backing_storage(struct gntdev_priv *priv, int dmabuf_flags,
+> +				 int count)
+> +{
+> +	struct grant_map *map;
+> +
+> +	if (unlikely(count <= 0))
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	if ((dmabuf_flags & GNTDEV_DMA_FLAG_WC) &&
+> +	    (dmabuf_flags & GNTDEV_DMA_FLAG_COHERENT)) {
+> +		pr_err("Wrong dma-buf flags: either WC or coherent, not both\n");
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	map = gntdev_alloc_map(priv, count, dmabuf_flags);
+> +	if (!map)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	if (unlikely(atomic_add_return(count, &pages_mapped) > limit)) {
+> +		pr_err("can't map: over limit\n");
+> +		gntdev_put_map(NULL, map);
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +	return map;
+>  }
+
+When and how would this allocation be freed? I don't see any ioctl for freeing up
+shared pages.
+
+>  
+>  static int dmabuf_exp_from_refs(struct gntdev_priv *priv, int flags,
+>  				int count, u32 domid, u32 *refs, u32 *fd)
+>  {
+> +	struct grant_map *map;
+> +	int i, ret;
+> +
+>  	*fd = -1;
+> -	return -EINVAL;
+> +
+> +	if (use_ptemod) {
+> +		pr_err("Cannot provide dma-buf: use_ptemode %d\n",
+> +		       use_ptemod);
+> +		return -EINVAL;
+> +	}
+> +
+> +	map = dmabuf_exp_alloc_backing_storage(priv, flags, count);
+> +	if (IS_ERR(map))
+> +		return PTR_ERR(map);
+> +
+> +	for (i = 0; i < count; i++) {
+> +		map->grants[i].domid = domid;
+> +		map->grants[i].ref = refs[i];
+> +	}
+> +
+> +	mutex_lock(&priv->lock);
+> +	gntdev_add_map(priv, map);
+> +	mutex_unlock(&priv->lock);
+> +
+> +	map->flags |= GNTMAP_host_map;
+> +#if defined(CONFIG_X86)
+> +	map->flags |= GNTMAP_device_map;
+> +#endif
+> +
+> +	ret = map_grant_pages(map);
+> +	if (ret < 0)
+> +		goto out;
+> +
+> +	ret = dmabuf_export(priv, map, fd);
+> +	if (ret < 0)
+> +		goto out;
+> +
+> +	return 0;
+> +
+> +out:
+> +	gntdev_remove_map(priv, map);
+> +	return ret;
+>  }
+>  
+>  /* ------------------------------------------------------------------ */
+> -- 
+> 2.17.0
+> 
