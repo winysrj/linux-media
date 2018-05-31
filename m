@@ -1,61 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:46598 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751828AbeEAJAz (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:45868 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932653AbeEaDfE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 May 2018 05:00:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv12 PATCH 02/29] uapi/linux/media.h: add request API
-Date: Tue,  1 May 2018 11:00:24 +0200
-Message-Id: <20180501090051.9321-3-hverkuil@xs4all.nl>
-In-Reply-To: <20180501090051.9321-1-hverkuil@xs4all.nl>
-References: <20180501090051.9321-1-hverkuil@xs4all.nl>
+        Wed, 30 May 2018 23:35:04 -0400
+Date: Wed, 30 May 2018 22:35:01 -0500
+From: Rob Herring <robh@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        andy.yeh@intel.com, sebastian.reichel@collabora.co.uk
+Subject: Re: [PATCH v2.2 2/2] smiapp: Support the "rotation" property
+Message-ID: <20180531033501.GA26590@rob-hp-laptop>
+References: <20180525134055.11121-1-sakari.ailus@linux.intel.com>
+ <20180525135235.12386-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180525135235.12386-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, May 25, 2018 at 04:52:35PM +0300, Sakari Ailus wrote:
+> Use the "rotation" property to tell that the sensor is mounted upside
+> down. This reverses the behaviour of the VFLIP and HFLIP controls as well
+> as the pixel order.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> since v2.2:
+> 
+> - Fix property name in code.
+> 
+>  .../devicetree/bindings/media/i2c/nokia,smia.txt         |  2 ++
 
-Define the public request API.
+Acked-by: Rob Herring <robh@kernel.org>
 
-This adds the new MEDIA_IOC_REQUEST_ALLOC ioctl to allocate a request
-and two ioctls that operate on a request in order to queue the
-contents of the request to the driver and to re-initialize the
-request.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/media.h | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index c7e9a5cba24e..32883d4d22b2 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -342,11 +342,23 @@ struct media_v2_topology {
- 
- /* ioctls */
- 
-+struct __attribute__ ((packed)) media_request_alloc {
-+	__s32 fd;
-+};
-+
- #define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
- #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
- #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
- #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
- #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
-+#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, struct media_request_alloc)
-+
-+/*
-+ * These ioctls are called from the request file descriptor as returned
-+ * by MEDIA_IOC_REQUEST_ALLOC.
-+ */
-+#define MEDIA_REQUEST_IOC_QUEUE		_IO('|',  0x80)
-+#define MEDIA_REQUEST_IOC_REINIT	_IO('|',  0x81)
- 
- #if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
- 
--- 
-2.17.0
+>  drivers/media/i2c/smiapp/smiapp-core.c                   | 16 ++++++++++++++++
+>  2 files changed, 18 insertions(+)
