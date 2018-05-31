@@ -1,215 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56722 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1161263AbeEXUhY (ORCPT
+Received: from mail-ua0-f196.google.com ([209.85.217.196]:37194 "EHLO
+        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754103AbeEaI4c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 May 2018 16:37:24 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Abylay Ospan <aospan@netup.ru>,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH 18/20] videobuf2: assume q->lock is always set
-Date: Thu, 24 May 2018 17:35:18 -0300
-Message-Id: <20180524203520.1598-19-ezequiel@collabora.com>
-In-Reply-To: <20180524203520.1598-1-ezequiel@collabora.com>
-References: <20180524203520.1598-1-ezequiel@collabora.com>
+        Thu, 31 May 2018 04:56:32 -0400
+Received: by mail-ua0-f196.google.com with SMTP id i3-v6so14513050uad.4
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 01:56:32 -0700 (PDT)
+Received: from mail-vk0-f41.google.com (mail-vk0-f41.google.com. [209.85.213.41])
+        by smtp.gmail.com with ESMTPSA id 129-v6sm12011595vkv.43.2018.05.31.01.56.29
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 31 May 2018 01:56:30 -0700 (PDT)
+Received: by mail-vk0-f41.google.com with SMTP id o17-v6so462517vka.2
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 01:56:29 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org> <20180515075859.17217-17-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-17-stanimir.varbanov@linaro.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 31 May 2018 17:56:18 +0900
+Message-ID: <CAAFQd5B+DH3+2-7VcqJ5J4VxmftUCgS18qmfRJVzNAA+6u1NxQ@mail.gmail.com>
+Subject: Re: [PATCH v2 16/29] venus: add a helper function to set dynamic
+ buffer mode
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+On Tue, May 15, 2018 at 5:05 PM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> Adds a new helper function to set dynamic buffer mode if it is
+> supported by current HFI version.
+>
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/media/platform/qcom/venus/helpers.c | 22 ++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/helpers.h |  1 +
+>  drivers/media/platform/qcom/venus/vdec.c    | 15 +++------------
+>  3 files changed, 26 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+> index 1eda19adbf28..824ad4d2d064 100644
+> --- a/drivers/media/platform/qcom/venus/helpers.c
+> +++ b/drivers/media/platform/qcom/venus/helpers.c
+> @@ -522,6 +522,28 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
+>  }
+>  EXPORT_SYMBOL_GPL(venus_helper_set_color_format);
+>
+> +int venus_helper_set_dyn_bufmode(struct venus_inst *inst)
+> +{
+> +       u32 ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
+> +       struct hfi_buffer_alloc_mode mode;
+> +       int ret;
+> +
+> +       if (!is_dynamic_bufmode(inst))
+> +               return 0;
+> +
+> +       mode.type = HFI_BUFFER_OUTPUT;
+> +       mode.mode = HFI_BUFFER_MODE_DYNAMIC;
+> +
+> +       ret = hfi_session_set_property(inst, ptype, &mode);
+> +       if (ret)
+> +               return ret;
+> +
+> +       mode.type = HFI_BUFFER_OUTPUT2;
+> +
+> +       return hfi_session_set_property(inst, ptype, &mode);
 
-Drop checks for q->lock. Drop calls to wait_finish/prepare, just lock/unlock
-q->lock.
+The function now sets HFI_BUFFER_OUTPUT2 in addition to
+HFI_BUFFER_OUTPUT only, as set by orignal code. Is it intentional? I
+guess we could have this mentioned in commit message.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/common/videobuf2/videobuf2-core.c | 21 ++++++++-----------
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 27 +++++++------------------
- include/media/videobuf2-core.h                  |  2 --
- 3 files changed, 15 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index 3b89ec5e0b2f..8ca279a43549 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -462,8 +462,7 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 	 * counters to the kernel log.
- 	 */
- 	if (q->num_buffers) {
--		bool unbalanced = q->cnt_start_streaming != q->cnt_stop_streaming ||
--				  q->cnt_wait_prepare != q->cnt_wait_finish;
-+		bool unbalanced = q->cnt_start_streaming != q->cnt_stop_streaming;
- 
- 		if (unbalanced || debug) {
- 			pr_info("counters for queue %p:%s\n", q,
-@@ -471,12 +470,8 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 			pr_info("     setup: %u start_streaming: %u stop_streaming: %u\n",
- 				q->cnt_queue_setup, q->cnt_start_streaming,
- 				q->cnt_stop_streaming);
--			pr_info("     wait_prepare: %u wait_finish: %u\n",
--				q->cnt_wait_prepare, q->cnt_wait_finish);
- 		}
- 		q->cnt_queue_setup = 0;
--		q->cnt_wait_prepare = 0;
--		q->cnt_wait_finish = 0;
- 		q->cnt_start_streaming = 0;
- 		q->cnt_stop_streaming = 0;
- 	}
-@@ -1484,10 +1479,10 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
- 
- 		/*
- 		 * We are streaming and blocking, wait for another buffer to
--		 * become ready or for streamoff. Driver's lock is released to
-+		 * become ready or for streamoff. The queue's lock is released to
- 		 * allow streamoff or qbuf to be called while waiting.
- 		 */
--		call_void_qop(q, wait_prepare, q);
-+		mutex_unlock(q->lock);
- 
- 		/*
- 		 * All locks have been released, it is safe to sleep now.
-@@ -1501,7 +1496,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
- 		 * We need to reevaluate both conditions again after reacquiring
- 		 * the locks or return an error if one occurred.
- 		 */
--		call_void_qop(q, wait_finish, q);
-+		mutex_lock(q->lock);
- 		if (ret) {
- 			dprintk(1, "sleep was interrupted\n");
- 			return ret;
-@@ -2528,10 +2523,10 @@ static int vb2_thread(void *data)
- 			vb = q->bufs[index++];
- 			prequeue--;
- 		} else {
--			call_void_qop(q, wait_finish, q);
-+			mutex_lock(q->lock);
- 			if (!threadio->stop)
- 				ret = vb2_core_dqbuf(q, &index, NULL, 0);
--			call_void_qop(q, wait_prepare, q);
-+			mutex_unlock(q->lock);
- 			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
- 			if (!ret)
- 				vb = q->bufs[index];
-@@ -2543,12 +2538,12 @@ static int vb2_thread(void *data)
- 		if (vb->state != VB2_BUF_STATE_ERROR)
- 			if (threadio->fnc(vb, threadio->priv))
- 				break;
--		call_void_qop(q, wait_finish, q);
-+		mutex_lock(q->lock);
- 		if (copy_timestamp)
- 			vb->timestamp = ktime_get_ns();
- 		if (!threadio->stop)
- 			ret = vb2_core_qbuf(q, vb->index, NULL);
--		call_void_qop(q, wait_prepare, q);
-+		mutex_unlock(q->lock);
- 		if (ret || threadio->stop)
- 			break;
- 	}
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 886a2d8d5c6c..7d2172468f72 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -852,9 +852,8 @@ EXPORT_SYMBOL_GPL(_vb2_fop_release);
- int vb2_fop_release(struct file *file)
- {
- 	struct video_device *vdev = video_devdata(file);
--	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
- 
--	return _vb2_fop_release(file, lock);
-+	return _vb2_fop_release(file, vdev->queue->lock);
- }
- EXPORT_SYMBOL_GPL(vb2_fop_release);
- 
-@@ -862,12 +861,11 @@ ssize_t vb2_fop_write(struct file *file, const char __user *buf,
- 		size_t count, loff_t *ppos)
- {
- 	struct video_device *vdev = video_devdata(file);
--	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
- 	int err = -EBUSY;
- 
- 	if (!(vdev->queue->io_modes & VB2_WRITE))
- 		return -EINVAL;
--	if (lock && mutex_lock_interruptible(lock))
-+	if (mutex_lock_interruptible(vdev->queue->lock))
- 		return -ERESTARTSYS;
- 	if (vb2_queue_is_busy(vdev, file))
- 		goto exit;
-@@ -876,8 +874,7 @@ ssize_t vb2_fop_write(struct file *file, const char __user *buf,
- 	if (vdev->queue->fileio)
- 		vdev->queue->owner = file->private_data;
- exit:
--	if (lock)
--		mutex_unlock(lock);
-+	mutex_unlock(vdev->queue->lock);
- 	return err;
- }
- EXPORT_SYMBOL_GPL(vb2_fop_write);
-@@ -886,12 +883,11 @@ ssize_t vb2_fop_read(struct file *file, char __user *buf,
- 		size_t count, loff_t *ppos)
- {
- 	struct video_device *vdev = video_devdata(file);
--	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
- 	int err = -EBUSY;
- 
- 	if (!(vdev->queue->io_modes & VB2_READ))
- 		return -EINVAL;
--	if (lock && mutex_lock_interruptible(lock))
-+	if (mutex_lock_interruptible(vdev->queue->lock))
- 		return -ERESTARTSYS;
- 	if (vb2_queue_is_busy(vdev, file))
- 		goto exit;
-@@ -900,8 +896,7 @@ ssize_t vb2_fop_read(struct file *file, char __user *buf,
- 	if (vdev->queue->fileio)
- 		vdev->queue->owner = file->private_data;
- exit:
--	if (lock)
--		mutex_unlock(lock);
-+	mutex_unlock(vdev->queue->lock);
- 	return err;
- }
- EXPORT_SYMBOL_GPL(vb2_fop_read);
-@@ -910,17 +905,10 @@ __poll_t vb2_fop_poll(struct file *file, poll_table *wait)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct vb2_queue *q = vdev->queue;
--	struct mutex *lock = q->lock ? q->lock : vdev->lock;
- 	__poll_t res;
- 	void *fileio;
- 
--	/*
--	 * If this helper doesn't know how to lock, then you shouldn't be using
--	 * it but you should write your own.
--	 */
--	WARN_ON(!lock);
--
--	if (lock && mutex_lock_interruptible(lock))
-+	if (mutex_lock_interruptible(q->lock))
- 		return EPOLLERR;
- 
- 	fileio = q->fileio;
-@@ -930,8 +918,7 @@ __poll_t vb2_fop_poll(struct file *file, poll_table *wait)
- 	/* If fileio was started, then we have a new queue owner. */
- 	if (!fileio && q->fileio)
- 		q->owner = file->private_data;
--	if (lock)
--		mutex_unlock(lock);
-+	mutex_unlock(q->lock);
- 	return res;
- }
- EXPORT_SYMBOL_GPL(vb2_fop_poll);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f6818f732f34..d4e557b4f820 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -565,8 +565,6 @@ struct vb2_queue {
- 	 * called. Used to check for unbalanced ops.
- 	 */
- 	u32				cnt_queue_setup;
--	u32				cnt_wait_prepare;
--	u32				cnt_wait_finish;
- 	u32				cnt_start_streaming;
- 	u32				cnt_stop_streaming;
- #endif
--- 
-2.16.3
+Best regards,
+Tomasz
