@@ -1,347 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:48364 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755259AbeEAMtf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2018 08:49:35 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: mchehab@kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v8 8/8] media: vsp1: Move video configuration to a cached dlb
-Date: Tue,  1 May 2018 13:49:20 +0100
-Message-Id: <c482f86329d5dcca0021e341ff8a80f7a1e99e96.1525178613.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.bc315239d58449d3e395904b87af6c747a9f612c.1525178613.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bc315239d58449d3e395904b87af6c747a9f612c.1525178613.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.bc315239d58449d3e395904b87af6c747a9f612c.1525178613.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.bc315239d58449d3e395904b87af6c747a9f612c.1525178613.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-ua0-f196.google.com ([209.85.217.196]:36760 "EHLO
+        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753946AbeEaHeq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 31 May 2018 03:34:46 -0400
+Received: by mail-ua0-f196.google.com with SMTP id c23-v6so7822417uan.3
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 00:34:46 -0700 (PDT)
+Received: from mail-vk0-f42.google.com (mail-vk0-f42.google.com. [209.85.213.42])
+        by smtp.gmail.com with ESMTPSA id a9-v6sm7980514vke.23.2018.05.31.00.34.44
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 31 May 2018 00:34:44 -0700 (PDT)
+Received: by mail-vk0-f42.google.com with SMTP id e67-v6so12738192vke.7
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 00:34:44 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org> <20180515075859.17217-14-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180515075859.17217-14-stanimir.varbanov@linaro.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 31 May 2018 16:34:32 +0900
+Message-ID: <CAAFQd5A=P_X1eVagw_wEvq+_9nDR5iVxFHxLk-fcSKA=SWCz1A@mail.gmail.com>
+Subject: Re: [PATCH v2 13/29] venus: helpers: make a commmon function for power_enable
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We are now able to configure a pipeline directly into a local display
-list body. Take advantage of this fact, and create a cacheable body to
-store the configuration of the pipeline in the video object.
+Hi Stanimir,
 
-vsp1_video_pipeline_run() is now the last user of the pipe->dl object.
-Convert this function to use the cached video->config body and obtain a
-local display list reference.
+On Tue, May 15, 2018 at 5:06 PM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> Make common function which will enable power when enabling/disabling
+> clocks and also covers Venus 3xx/4xx versions.
+>
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/media/platform/qcom/venus/helpers.c | 51 +++++++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/helpers.h |  2 ++
+>  drivers/media/platform/qcom/venus/vdec.c    | 25 ++++----------
+>  drivers/media/platform/qcom/venus/venc.c    | 25 ++++----------
+>  4 files changed, 67 insertions(+), 36 deletions(-)
+>
+> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+> index d9065cc8a7d3..2b21f6ed7502 100644
+> --- a/drivers/media/platform/qcom/venus/helpers.c
+> +++ b/drivers/media/platform/qcom/venus/helpers.c
+> @@ -13,6 +13,7 @@
+>   *
+>   */
+>  #include <linux/clk.h>
+> +#include <linux/iopoll.h>
+>  #include <linux/list.h>
+>  #include <linux/mutex.h>
+>  #include <linux/pm_runtime.h>
+> @@ -24,6 +25,7 @@
+>  #include "core.h"
+>  #include "helpers.h"
+>  #include "hfi_helper.h"
+> +#include "hfi_venus_io.h"
+>
+>  struct intbuf {
+>         struct list_head list;
+> @@ -781,3 +783,52 @@ void venus_helper_init_instance(struct venus_inst *inst)
+>         }
+>  }
+>  EXPORT_SYMBOL_GPL(venus_helper_init_instance);
+> +
+> +int venus_helper_power_enable(struct venus_core *core, u32 session_type,
+> +                             bool enable)
+> +{
+> +       void __iomem *ctrl, *stat;
+> +       u32 val;
+> +       int ret;
+> +
+> +       if (!IS_V3(core) && !IS_V4(core))
+> +               return -EINVAL;
+> +
+> +       if (IS_V3(core)) {
+> +               if (session_type == VIDC_SESSION_TYPE_DEC)
+> +                       ctrl = core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL;
+> +               else
+> +                       ctrl = core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL;
+> +               if (enable)
+> +                       writel(0, ctrl);
+> +               else
+> +                       writel(1, ctrl);
 
-Attach the video->config body to the display list when needed before
-committing to hardware.
+nit: The value written is just !enable, but no strong preference.
 
-The pipe object is marked as un-configured when resuming from a suspend.
-This ensures that when the hardware is reset - our cached configuration
-will be re-attached to the next committed DL.
+> +
+> +               return 0;
+> +       }
+> +
+> +       if (session_type == VIDC_SESSION_TYPE_DEC) {
+> +               ctrl = core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL;
+> +               stat = core->base + WRAPPER_VCODEC0_MMCC_POWER_STATUS;
+> +       } else {
+> +               ctrl = core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL;
+> +               stat = core->base + WRAPPER_VCODEC1_MMCC_POWER_STATUS;
+> +       }
+> +
+> +       if (enable) {
+> +               writel(0, ctrl);
+> +
+> +               ret = readl_poll_timeout(stat, val, val & BIT(1), 1, 100);
+> +               if (ret)
+> +                       return ret;
+> +       } else {
+> +               writel(1, ctrl);
+> +
+> +               ret = readl_poll_timeout(stat, val, !(val & BIT(1)), 1, 100);
+> +               if (ret)
+> +                       return ret;
+> +       }
 
-Our video DL usage now looks like the below output:
+nit: The if/else could be just folded into code like below, but no
+strong preference:
 
-dl->body0 contains our disposable runtime configuration. Max 41.
-dl_child->body0 is our partition specific configuration. Max 12.
-dl->bodies shows our constant configuration and LUTs.
+writel(!enable, ctrl);
+ret = readl_poll_timeout(stat, val, !!(val & BIT(1)) == enable, 1, 100);
+if (ret)
+        return ret;
 
-  These two are LUT/CLU:
-     * dl->bodies[x]->num_entries 256 / max 256
-     * dl->bodies[x]->num_entries 4914 / max 4914
+> +
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(venus_helper_power_enable);
+> diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+> index 971392be5df5..0e64aa95624a 100644
+> --- a/drivers/media/platform/qcom/venus/helpers.h
+> +++ b/drivers/media/platform/qcom/venus/helpers.h
+> @@ -43,4 +43,6 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
+>  void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+>  void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
+>  void venus_helper_init_instance(struct venus_inst *inst);
+> +int venus_helper_power_enable(struct venus_core *core, u32 session_type,
+> +                             bool enable);
+>  #endif
+> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+> index 3b38bd1241b0..2bd81de6328a 100644
+> --- a/drivers/media/platform/qcom/venus/vdec.c
+> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> @@ -1123,26 +1123,21 @@ static int vdec_remove(struct platform_device *pdev)
+>  static __maybe_unused int vdec_runtime_suspend(struct device *dev)
+>  {
+>         struct venus_core *core = dev_get_drvdata(dev);
+> +       int ret;
+>
+>         if (IS_V1(core))
+>                 return 0;
+>
+> -       if (IS_V3(core))
+> -               writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+> -       else if (IS_V4(core))
+> -               writel(0, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
+> +       ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, true);
+>
+>         if (IS_V4(core))
+>                 clk_disable_unprepare(core->core0_bus_clk);
+>
+>         clk_disable_unprepare(core->core0_clk);
+>
+> -       if (IS_V3(core))
+> -               writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+> -       else if (IS_V4(core))
+> -               writel(1, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
+> +       ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
 
-Which shows that our 'constant' configuration cache is currently
-utilised to a maximum of 64 entries.
+If both calls return different error codes, the value of ret would
+become garbage. (Same for rest of the patch.)
 
-trace-cmd report | \
-    grep max | sed 's/.*vsp1_dl_list_commit://g' | sort | uniq;
-
-  dl->body0->num_entries 13 / max 128
-  dl->body0->num_entries 14 / max 128
-  dl->body0->num_entries 16 / max 128
-  dl->body0->num_entries 20 / max 128
-  dl->body0->num_entries 27 / max 128
-  dl->body0->num_entries 34 / max 128
-  dl->body0->num_entries 41 / max 128
-  dl_child->body0->num_entries 10 / max 128
-  dl_child->body0->num_entries 12 / max 128
-  dl->bodies[x]->num_entries 15 / max 128
-  dl->bodies[x]->num_entries 16 / max 128
-  dl->bodies[x]->num_entries 17 / max 128
-  dl->bodies[x]->num_entries 18 / max 128
-  dl->bodies[x]->num_entries 20 / max 128
-  dl->bodies[x]->num_entries 21 / max 128
-  dl->bodies[x]->num_entries 256 / max 256
-  dl->bodies[x]->num_entries 31 / max 128
-  dl->bodies[x]->num_entries 32 / max 128
-  dl->bodies[x]->num_entries 39 / max 128
-  dl->bodies[x]->num_entries 40 / max 128
-  dl->bodies[x]->num_entries 47 / max 128
-  dl->bodies[x]->num_entries 48 / max 128
-  dl->bodies[x]->num_entries 4914 / max 4914
-  dl->bodies[x]->num_entries 55 / max 128
-  dl->bodies[x]->num_entries 56 / max 128
-  dl->bodies[x]->num_entries 63 / max 128
-  dl->bodies[x]->num_entries 64 / max 128
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
-v8:
- - Fix comments
- - Rename video->pipe_config -> video->stream_config
-
-v3:
- - 's/fragment/body/', 's/fragments/bodies/'
- - video dlb cache allocation increased from 2 to 3 dlbs
-
-v4:
- - Adjust pipe configured flag to be reset on resume rather than suspend
- - rename dl_child, dl_next
-
- drivers/media/platform/vsp1/vsp1_pipe.c  |  9 +++-
- drivers/media/platform/vsp1/vsp1_pipe.h  |  5 +--
- drivers/media/platform/vsp1/vsp1_video.c | 72 +++++++++++++++----------
- drivers/media/platform/vsp1/vsp1_video.h |  2 +-
- 4 files changed, 59 insertions(+), 29 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index d06ffa01027c..70af6c9fc97f 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -230,6 +230,7 @@ void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
- 		vsp1_write(vsp1, VI6_CMD(pipe->output->entity.index),
- 			   VI6_CMD_STRCMD);
- 		pipe->state = VSP1_PIPELINE_RUNNING;
-+		pipe->configured = true;
- 	}
- 
- 	pipe->buffers_ready = 0;
-@@ -295,6 +296,8 @@ int vsp1_pipeline_stop(struct vsp1_pipeline *pipe)
- 
- 	v4l2_subdev_call(&pipe->output->entity.subdev, video, s_stream, 0);
- 
-+	pipe->configured = false;
-+
- 	return ret;
- }
- 
-@@ -451,6 +454,12 @@ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
- 			continue;
- 
- 		spin_lock_irqsave(&pipe->irqlock, flags);
-+		/*
-+		 * The hardware may have been reset during a suspend and will
-+		 * need a full reconfiguration.
-+		 */
-+		pipe->configured = false;
-+
- 		if (vsp1_pipeline_ready(pipe))
- 			vsp1_pipeline_run(pipe);
- 		spin_unlock_irqrestore(&pipe->irqlock, flags);
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index e00010693eef..7c8b30018aac 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -86,6 +86,7 @@ struct vsp1_partition {
-  * @irqlock: protects the pipeline state
-  * @state: current state
-  * @wq: wait queue to wait for state change completion
-+ * @configured: flag determining if the hardware has run since reset
-  * @frame_end: frame end interrupt handler
-  * @lock: protects the pipeline use count and stream count
-  * @kref: pipeline reference count
-@@ -102,7 +103,6 @@ struct vsp1_partition {
-  * @uds: UDS entity, if present
-  * @uds_input: entity at the input of the UDS, if the UDS is present
-  * @entities: list of entities in the pipeline
-- * @dl: display list associated with the pipeline
-  * @partitions: The number of partitions used to process one frame
-  * @partition: The current partition for configuration to process
-  * @part_table: The pre-calculated partitions used by the pipeline
-@@ -113,6 +113,7 @@ struct vsp1_pipeline {
- 	spinlock_t irqlock;
- 	enum vsp1_pipeline_state state;
- 	wait_queue_head_t wq;
-+	bool configured;
- 
- 	void (*frame_end)(struct vsp1_pipeline *pipe, unsigned int completion);
- 
-@@ -139,8 +140,6 @@ struct vsp1_pipeline {
- 	 */
- 	struct list_head entities;
- 
--	struct vsp1_dl_list *dl;
--
- 	unsigned int partitions;
- 	struct vsp1_partition *partition;
- 	struct vsp1_partition *part_table;
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index bdd9e30ed417..2cbcc20fe980 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -390,44 +390,50 @@ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
- static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+	struct vsp1_video *video = pipe->output->video;
-+	struct vsp1_dl_list *dl;
- 	struct vsp1_dl_body *dlb;
- 	struct vsp1_entity *entity;
- 	unsigned int partition;
- 
--	if (!pipe->dl)
--		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-+	dl = vsp1_dl_list_get(pipe->output->dlm);
-+
-+	/* Attach our pipe configuration to fully initialise the hardware. */
-+	if (!pipe->configured) {
-+		vsp1_dl_list_add_body(dl, video->stream_config);
-+		pipe->configured = true;
-+	}
- 
--	dlb = vsp1_dl_list_get_body0(pipe->dl);
-+	dlb = vsp1_dl_list_get_body0(dl);
- 
- 	list_for_each_entry(entity, &pipe->entities, list_pipe)
--		vsp1_entity_configure_frame(entity, pipe, pipe->dl, dlb);
-+		vsp1_entity_configure_frame(entity, pipe, dl, dlb);
- 
- 	/* Run the first partition. */
--	vsp1_video_pipeline_run_partition(pipe, pipe->dl, 0);
-+	vsp1_video_pipeline_run_partition(pipe, dl, 0);
- 
- 	/* Process consecutive partitions as necessary. */
- 	for (partition = 1; partition < pipe->partitions; ++partition) {
--		struct vsp1_dl_list *dl;
-+		struct vsp1_dl_list *dl_next;
- 
--		dl = vsp1_dl_list_get(pipe->output->dlm);
-+		dl_next = vsp1_dl_list_get(pipe->output->dlm);
- 
- 		/*
- 		 * An incomplete chain will still function, but output only
- 		 * the partitions that had a dl available. The frame end
- 		 * interrupt will be marked on the last dl in the chain.
- 		 */
--		if (!dl) {
-+		if (!dl_next) {
- 			dev_err(vsp1->dev, "Failed to obtain a dl list. Frame will be incomplete\n");
- 			break;
- 		}
- 
--		vsp1_video_pipeline_run_partition(pipe, dl, partition);
--		vsp1_dl_list_add_chain(pipe->dl, dl);
-+		vsp1_video_pipeline_run_partition(pipe, dl_next, partition);
-+		vsp1_dl_list_add_chain(dl, dl_next);
- 	}
- 
- 	/* Complete, and commit the head display list. */
--	vsp1_dl_list_commit(pipe->dl, false);
--	pipe->dl = NULL;
-+	vsp1_dl_list_commit(dl, false);
- 
- 	vsp1_pipeline_run(pipe);
- }
-@@ -790,8 +796,8 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- 
- static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- {
-+	struct vsp1_video *video = pipe->output->video;
- 	struct vsp1_entity *entity;
--	struct vsp1_dl_body *dlb;
- 	int ret;
- 
- 	/* Determine this pipelines sizes for image partitioning support. */
-@@ -799,14 +805,6 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 	if (ret < 0)
- 		return ret;
- 
--	/* Prepare the display list. */
--	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
--	if (!pipe->dl)
--		return -ENOMEM;
--
--	/* Retrieve the default DLB from the list. */
--	dlb = vsp1_dl_list_get_body0(pipe->dl);
--
- 	if (pipe->uds) {
- 		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
- 
-@@ -828,11 +826,21 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 		}
- 	}
- 
-+	/* Obtain a clean body from our pool. */
-+	video->stream_config = vsp1_dl_body_get(video->dlbs);
-+	if (!video->stream_config)
-+		return -ENOMEM;
-+
-+	/* Configure the entities into our cached pipe configuration. */
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
--		vsp1_entity_route_setup(entity, pipe, dlb);
--		vsp1_entity_configure_stream(entity, pipe, dlb);
-+		vsp1_entity_route_setup(entity, pipe, video->stream_config);
-+		vsp1_entity_configure_stream(entity, pipe,
-+					     video->stream_config);
- 	}
- 
-+	/* Ensure that our cached configuration is updated in the next DL. */
-+	pipe->configured = false;
-+
- 	return 0;
- }
- 
-@@ -842,6 +850,9 @@ static void vsp1_video_cleanup_pipeline(struct vsp1_pipeline *pipe)
- 	struct vsp1_vb2_buffer *buffer;
- 	unsigned long flags;
- 
-+	/* Release any cached configuration. */
-+	vsp1_dl_body_put(video->stream_config);
-+
- 	/* Remove all buffers from the IRQ queue. */
- 	spin_lock_irqsave(&video->irqlock, flags);
- 	list_for_each_entry(buffer, &video->irqqueue, queue)
-@@ -918,9 +929,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
- 		ret = vsp1_pipeline_stop(pipe);
- 		if (ret == -ETIMEDOUT)
- 			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
--
--		vsp1_dl_list_put(pipe->dl);
--		pipe->dl = NULL;
- 	}
- 	mutex_unlock(&pipe->lock);
- 
-@@ -1240,6 +1248,16 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 		goto error;
- 	}
- 
-+	/*
-+	 * Utilise a body pool to cache the constant configuration of the
-+	 * pipeline object.
-+	 */
-+	video->dlbs = vsp1_dl_body_pool_create(vsp1, 3, 128, 0);
-+	if (!video->dlbs) {
-+		ret = -ENOMEM;
-+		goto error;
-+	}
-+
- 	return video;
- 
- error:
-@@ -1249,6 +1267,8 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 
- void vsp1_video_cleanup(struct vsp1_video *video)
- {
-+	vsp1_dl_body_pool_destroy(video->dlbs);
-+
- 	if (video_is_registered(&video->video))
- 		video_unregister_device(&video->video);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index 75a5a65c66fe..77bbfb4a5b54 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -39,6 +39,8 @@ struct vsp1_video {
- 
- 	struct mutex lock;
- 
-+	struct vsp1_dl_body_pool *dlbs;
-+	struct vsp1_dl_body *stream_config;
- 	unsigned int pipe_index;
- 
- 	struct vb2_queue queue;
--- 
-git-series 0.9.1
+Best regards,
+Tomasz
