@@ -1,64 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f173.google.com ([209.85.128.173]:37486 "EHLO
-        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1161997AbeE1OVj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 May 2018 10:21:39 -0400
-Received: by mail-wr0-f173.google.com with SMTP id i12-v6so20585157wrc.4
-        for <linux-media@vger.kernel.org>; Mon, 28 May 2018 07:21:38 -0700 (PDT)
-Date: Mon, 28 May 2018 16:21:36 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [ANN] Meeting to discuss improvements to support MC-based
- cameras on generic apps
-Message-ID: <20180528142136.GA12014@bigcity.dyn.berto.se>
-References: <20180517160708.74811cfb@vento.lan>
- <20180528104351.5cf52a24@vento.lan>
+Received: from mout.gmx.net ([212.227.15.19]:46513 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750751AbeEaVD7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 31 May 2018 17:03:59 -0400
+Date: Thu, 31 May 2018 23:03:37 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 0/3] uvcvideo: asynchronous controls
+In-Reply-To: <1525792064-30836-1-git-send-email-guennadi.liakhovetski@intel.com>
+Message-ID: <alpine.DEB.2.20.1805312300430.32544@axis700.grange>
+References: <1525792064-30836-1-git-send-email-guennadi.liakhovetski@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180528104351.5cf52a24@vento.lan>
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Laurent,
 
-On 2018-05-28 10:43:51 -0300, Mauro Carvalho Chehab wrote:
-> Em Thu, 17 May 2018 16:07:08 -0300
-> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
-> 
-> > Hi all,
-> > 
-> > The goal of this e-mail is to schedule a meeting in order to discuss
-> > improvements at the media subsystem in order to support complex camera
-> > hardware by usual apps.
-> > 
-> > The main focus here is to allow supporting devices with MC-based
-> > hardware connected to a camera.
-> > 
-> > In short, my proposal is to meet with the interested parties on solving
-> > this issue during the Open Source Summit in Japan, e. g. between
-> > June, 19-22, in Tokyo.
-> 
-> Let's schedule the meeting to happen in Tokyo, Japan at June, 19.
+More than 3 weeks since v8 has been posted. Seems like we've missed 4.18. 
+Could you please review them ASAP to make sure we merge them into 4.19?
 
-I will be in Tokyo at that time and would be happy to join.
+Thanks
+Guennadi
 
-> 
-> Location yet to be defined, but it will either be together with
-> OSS Japan or at Google. I'll confirm the address tomorrow.
-> 
-> Regards,
-> Mauro
-> 
-> 
-> 
-> Thanks,
-> Mauro
+On Tue, 8 May 2018, Guennadi Liakhovetski wrote:
 
--- 
-Regards,
-Niklas Söderlund
+> Added a patch to remove a redundant check, addressed Laurent's
+> comments.
+> 
+> Guennadi Liakhovetski (3):
+>   uvcvideo: remove a redundant check
+>   uvcvideo: send a control event when a Control Change interrupt arrives
+>   uvcvideo: handle control pipe protocol STALLs
+> 
+>  drivers/media/usb/uvc/uvc_ctrl.c   | 168 ++++++++++++++++++++++++++++++-------
+>  drivers/media/usb/uvc/uvc_status.c | 112 ++++++++++++++++++++++---
+>  drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
+>  drivers/media/usb/uvc/uvc_video.c  |  52 ++++++++++--
+>  drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
+>  include/uapi/linux/uvcvideo.h      |   2 +
+>  6 files changed, 302 insertions(+), 51 deletions(-)
+> 
+> -- 
+> 1.9.3
+> 
+> Thanks
+> Guennadi
+> 
