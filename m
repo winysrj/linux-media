@@ -1,140 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:53029 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750810AbeEPD5E (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:38673 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755065AbeEaNVp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 23:57:04 -0400
-Message-ID: <7b205d8472bcb7f2a4ade264aa8eaa29@smtp-cloud9.xs4all.net>
-Date: Wed, 16 May 2018 05:57:02 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Thu, 31 May 2018 09:21:45 -0400
+Received: by mail-wr0-f195.google.com with SMTP id 94-v6so32972159wrf.5
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 06:21:45 -0700 (PDT)
+Subject: Re: [Intel-gfx] [PATCH v6 2/6] drm/i915: hdmi: add CEC notifier to
+ intel_hdmi
+To: Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
+Cc: felixe@google.com, seanpaul@google.com, airlied@linux.ie,
+        sadolfsson@google.com, intel-gfx@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        fparent@baylibre.com, hans.verkuil@cisco.com, bleung@google.com,
+        darekm@google.com, lee.jones@linaro.org,
+        linux-media@vger.kernel.org
+References: <1527155841-28494-1-git-send-email-narmstrong@baylibre.com>
+ <1527155841-28494-3-git-send-email-narmstrong@baylibre.com>
+ <20180530152936.GQ23723@intel.com> <20180530232605.GM2115@intel.com>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <3049784b-9422-3608-fba2-86b6c9ad1fbe@baylibre.com>
+Date: Thu, 31 May 2018 15:21:42 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180530232605.GM2115@intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 31/05/2018 01:26, Rodrigo Vivi wrote:
+> On Wed, May 30, 2018 at 06:29:36PM +0300, Ville Syrjälä wrote:
+>> On Thu, May 24, 2018 at 11:57:17AM +0200, Neil Armstrong wrote:
+>>> This patchs adds the cec_notifier feature to the intel_hdmi part
+>>> of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
+>>> between each HDMI ports.
+>>> The changes will allow the i915 HDMI code to notify EDID and HPD changes
+>>> to an eventual CEC adapter.
+>>>
+>>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+>>> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>>  drivers/gpu/drm/i915/Kconfig         |  1 +
+>>>  drivers/gpu/drm/i915/intel_display.h | 20 ++++++++++++++++++++
+>>>  drivers/gpu/drm/i915/intel_drv.h     |  2 ++
+>>>  drivers/gpu/drm/i915/intel_hdmi.c    | 13 +++++++++++++
+>>>  4 files changed, 36 insertions(+)
+>>>
+>>> diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
+>>> index dfd9588..2d65d56 100644
+>>> --- a/drivers/gpu/drm/i915/Kconfig
+>>> +++ b/drivers/gpu/drm/i915/Kconfig
+>>> @@ -23,6 +23,7 @@ config DRM_I915
+>>>  	select SYNC_FILE
+>>>  	select IOSF_MBI
+>>>  	select CRC32
+>>> +	select CEC_CORE if CEC_NOTIFIER
+>>>  	help
+>>>  	  Choose this option if you have a system that has "Intel Graphics
+>>>  	  Media Accelerator" or "HD Graphics" integrated graphics,
+>>> diff --git a/drivers/gpu/drm/i915/intel_display.h b/drivers/gpu/drm/i915/intel_display.h
+>>> index 4e7418b..c68d1c8 100644
+>>> --- a/drivers/gpu/drm/i915/intel_display.h
+>>> +++ b/drivers/gpu/drm/i915/intel_display.h
+>>> @@ -126,6 +126,26 @@ enum port {
+>>>  
+>>>  #define port_name(p) ((p) + 'A')
+>>>  
+>>> +static inline const char *port_identifier(enum port port)
+>>> +{
+>>> +	switch (port) {
+>>> +	case PORT_A:
+>>> +		return "Port A";
+>>> +	case PORT_B:
+>>> +		return "Port B";
+>>> +	case PORT_C:
+>>> +		return "Port C";
+>>> +	case PORT_D:
+>>> +		return "Port D";
+>>> +	case PORT_E:
+>>> +		return "Port E";
+>>> +	case PORT_F:
+>>> +		return "Port F";
+>>> +	default:
+>>> +		return "<invalid>";
+>>> +	}
+>>> +}
+>>
+>> Could use a comment to make it clear that this identifier is
+>> expected to remain stable since it's referenced from other drivers.
+>>
+>>> +
+>>>  enum dpio_channel {
+>>>  	DPIO_CH0,
+>>>  	DPIO_CH1
+>>> diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
+>>> index d436858..b50e51b 100644
+>>> --- a/drivers/gpu/drm/i915/intel_drv.h
+>>> +++ b/drivers/gpu/drm/i915/intel_drv.h
+>>> @@ -39,6 +39,7 @@
+>>>  #include <drm/drm_dp_mst_helper.h>
+>>>  #include <drm/drm_rect.h>
+>>>  #include <drm/drm_atomic.h>
+>>> +#include <media/cec-notifier.h>
+>>>  
+>>>  /**
+>>>   * __wait_for - magic wait macro
+>>> @@ -1001,6 +1002,7 @@ struct intel_hdmi {
+>>>  	bool has_audio;
+>>>  	bool rgb_quant_range_selectable;
+>>>  	struct intel_connector *attached_connector;
+>>> +	struct cec_notifier *notifier;
+>>
+>> "notifier" seems a bit too generic a name. "cec_notifier" would be
+>> better.
+>>
+>> Apart from that this seems OK to me
+>> Reviewed-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+> 
+> It seems that you will need to push this to other trees right?
+> Feel free to use:
+> 
+> Acked-by: Rodrigo Vivi <rodrigo.vivi@intel.com>
 
-Results of the daily build of media_tree:
+You are right, it will useful, thanks !
 
-date:			Wed May 16 05:00:12 CEST 2018
-media-tree git hash:	2a5f2705c97625aa1a4e1dd4d584eaa05392e060
-media_build git hash:	d72556c0502c096c089c99c58ee4a02a13133361
-v4l-utils git hash:	e2038ec6451293787b929338c2a671c732b8693d
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
+Neil
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: OK
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.101-i686: WARNINGS
-linux-3.0.101-x86_64: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.101-i686: WARNINGS
-linux-3.2.101-x86_64: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.113-i686: WARNINGS
-linux-3.4.113-x86_64: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.10-i686: WARNINGS
-linux-3.7.10-x86_64: WARNINGS
-linux-3.8.13-i686: WARNINGS
-linux-3.8.13-x86_64: WARNINGS
-linux-3.9.11-i686: WARNINGS
-linux-3.9.11-x86_64: WARNINGS
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: WARNINGS
-linux-3.11.10-x86_64: WARNINGS
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.79-i686: WARNINGS
-linux-3.14.79-x86_64: WARNINGS
-linux-3.15.10-i686: WARNINGS
-linux-3.15.10-x86_64: WARNINGS
-linux-3.16.56-i686: WARNINGS
-linux-3.16.56-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: WARNINGS
-linux-3.19.8-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.10-i686: WARNINGS
-linux-4.7.10-x86_64: WARNINGS
-linux-4.8.17-i686: WARNINGS
-linux-4.8.17-x86_64: WARNINGS
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: WARNINGS
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: WARNINGS
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: WARNINGS
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: WARNINGS
-linux-4.13.16-i686: WARNINGS
-linux-4.13.16-x86_64: WARNINGS
-linux-4.14.31-i686: WARNINGS
-linux-4.14.31-x86_64: WARNINGS
-linux-4.15.14-i686: WARNINGS
-linux-4.15.14-x86_64: WARNINGS
-linux-4.16.8-i686: WARNINGS
-linux-4.16.8-x86_64: WARNINGS
-linux-4.17-rc4-i686: WARNINGS
-linux-4.17-rc4-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
+>>
+>>>  };
+>>>  
+>>>  struct intel_dp_mst_encoder;
+>>> diff --git a/drivers/gpu/drm/i915/intel_hdmi.c b/drivers/gpu/drm/i915/intel_hdmi.c
+>>> index 1baef4a..d522b5b 100644
+>>> --- a/drivers/gpu/drm/i915/intel_hdmi.c
+>>> +++ b/drivers/gpu/drm/i915/intel_hdmi.c
+>>> @@ -1868,6 +1868,8 @@ intel_hdmi_set_edid(struct drm_connector *connector)
+>>>  		connected = true;
+>>>  	}
+>>>  
+>>> +	cec_notifier_set_phys_addr_from_edid(intel_hdmi->notifier, edid);
+>>> +
+>>>  	return connected;
+>>>  }
+>>>  
+>>> @@ -1876,6 +1878,7 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
+>>>  {
+>>>  	enum drm_connector_status status;
+>>>  	struct drm_i915_private *dev_priv = to_i915(connector->dev);
+>>> +	struct intel_hdmi *intel_hdmi = intel_attached_hdmi(connector);
+>>>  
+>>>  	DRM_DEBUG_KMS("[CONNECTOR:%d:%s]\n",
+>>>  		      connector->base.id, connector->name);
+>>> @@ -1891,6 +1894,9 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
+>>>  
+>>>  	intel_display_power_put(dev_priv, POWER_DOMAIN_GMBUS);
+>>>  
+>>> +	if (status != connector_status_connected)
+>>> +		cec_notifier_phys_addr_invalidate(intel_hdmi->notifier);
+>>> +
+>>>  	return status;
+>>>  }
+>>>  
+>>> @@ -2031,6 +2037,8 @@ static void chv_hdmi_pre_enable(struct intel_encoder *encoder,
+>>>  
+>>>  static void intel_hdmi_destroy(struct drm_connector *connector)
+>>>  {
+>>> +	if (intel_attached_hdmi(connector)->notifier)
+>>> +		cec_notifier_put(intel_attached_hdmi(connector)->notifier);
+>>>  	kfree(to_intel_connector(connector)->detect_edid);
+>>>  	drm_connector_cleanup(connector);
+>>>  	kfree(connector);
+>>> @@ -2358,6 +2366,11 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
+>>>  		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
+>>>  		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
+>>>  	}
+>>> +
+>>> +	intel_hdmi->notifier = cec_notifier_get_conn(dev->dev,
+>>> +						     port_identifier(port));
+>>> +	if (!intel_hdmi->notifier)
+>>> +		DRM_DEBUG_KMS("CEC notifier get failed\n");
+>>>  }
+>>>  
+>>>  void intel_hdmi_init(struct drm_i915_private *dev_priv,
+>>> -- 
+>>> 2.7.4
+>>>
+>>> _______________________________________________
+>>> Intel-gfx mailing list
+>>> Intel-gfx@lists.freedesktop.org
+>>> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
+>>
+>> -- 
+>> Ville Syrjälä
+>> Intel
+>> _______________________________________________
+>> dri-devel mailing list
+>> dri-devel@lists.freedesktop.org
+>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
