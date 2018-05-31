@@ -1,54 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41794 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965827AbeEYLDq (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38366 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751345AbeEaEKh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 May 2018 07:03:46 -0400
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: linux-firmware@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, mchehab@infradead.org,
-        linux-media@vger.kernel.org, stanimir.varbanov@linaro.org,
-        vgarodia@codeaurora.org, acourbot@google.com
-Subject: qcom: add firmware file for Venus on SDM845
-Date: Fri, 25 May 2018 16:33:29 +0530
-Message-Id: <1527246209-26685-2-git-send-email-vgarodia@codeaurora.org>
-In-Reply-To: <1527246209-26685-1-git-send-email-vgarodia@codeaurora.org>
-References: <1527246209-26685-1-git-send-email-vgarodia@codeaurora.org>
+        Thu, 31 May 2018 00:10:37 -0400
+Message-ID: <a63e2971240cd3a5fc135b471c80a056@smtp-cloud7.xs4all.net>
+Date: Thu, 31 May 2018 06:10:33 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This pull request adds firmware files for Venus h/w codec found on the Qualcomm SDM845 chipset.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The following changes since commit 2a9b2cf50fb32e36e4fc1586c2f6f1421913b553:
+Results of the daily build of media_tree:
 
-  Merge branch 'for-upstreaming-v1.7.2' of https://github.com/felix-cavium/linux-firmware (2018-05-18 08:35:22 -0400)
+date:			Thu May 31 05:00:16 CEST 2018
+media-tree git hash:	a00031c159748f322f771f3c1d5ed944cba4bd30
+media_build git hash:	b2f4db1adbe0cb2e42e875c16c009f1fa95d3325
+v4l-utils git hash:	2a12796b5c22cd1a549eb8fa25db873ced811ca5
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-are available in the git repository at:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.101-i686: ERRORS
+linux-3.0.101-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.101-i686: ERRORS
+linux-3.2.101-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.113-i686: ERRORS
+linux-3.4.113-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.10-i686: ERRORS
+linux-3.7.10-x86_64: ERRORS
+linux-3.8.13-i686: ERRORS
+linux-3.8.13-x86_64: ERRORS
+linux-3.9.11-i686: ERRORS
+linux-3.9.11-x86_64: ERRORS
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.56-i686: ERRORS
+linux-3.16.56-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.102-i686: ERRORS
+linux-3.18.102-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.51-i686: ERRORS
+linux-4.1.51-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.109-i686: ERRORS
+linux-4.4.109-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.91-i686: ERRORS
+linux-4.9.91-x86_64: ERRORS
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17-rc4-i686: OK
+linux-4.17-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
 
-  https://github.com/vgarodia/linux-firmware master
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-for you to fetch changes up to d6088b9c9d7f49d3c6c43681190889eca0abdcce:
+Full logs are available here:
 
-  qcom: add venus firmware files for v5.2 (2018-05-25 15:16:43 +0530)
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-----------------------------------------------------------------
-Vikash Garodia (1):
-      qcom: add venus firmware files for v5.2
+The Media Infrastructure API from this daily build is here:
 
- WHENCE                   |   9 +++++++++
- qcom/venus-5.2/venus.b00 | Bin 0 -> 212 bytes
- qcom/venus-5.2/venus.b01 | Bin 0 -> 6600 bytes
- qcom/venus-5.2/venus.b02 | Bin 0 -> 819552 bytes
- qcom/venus-5.2/venus.b03 | Bin 0 -> 33536 bytes
- qcom/venus-5.2/venus.b04 |   1 +
- qcom/venus-5.2/venus.mbn | Bin 0 -> 865408 bytes
- qcom/venus-5.2/venus.mdt | Bin 0 -> 6812 bytes
- 8 files changed, 10 insertions(+)
- create mode 100644 qcom/venus-5.2/venus.b00
- create mode 100644 qcom/venus-5.2/venus.b01
- create mode 100644 qcom/venus-5.2/venus.b02
- create mode 100644 qcom/venus-5.2/venus.b03
- create mode 100644 qcom/venus-5.2/venus.b04
- create mode 100644 qcom/venus-5.2/venus.mbn
- create mode 100644 qcom/venus-5.2/venus.mdt
+http://www.xs4all.nl/~hverkuil/spec/index.html
