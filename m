@@ -1,64 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:33324 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753353AbeEKPGj (ORCPT
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:37496 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932527AbeEaDN5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 11:06:39 -0400
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-To: alan@linux.intel.com, sakari.ailus@linux.intel.com,
-        mchehab@kernel.org, gregkh@linuxfoundation.org,
-        andriy.shevchenko@linux.intel.com, chen.chenchacha@foxmail.com,
-        keescook@chromium.org, arvind.yadav.cs@gmail.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH 2/3] media: staging: atomisp: Fix an error handling path in 'lm3554_probe()'
-Date: Fri, 11 May 2018 17:06:17 +0200
-Message-Id: <f762630a681c08d9903cf73243dd98416ae96a7c.1526048313.git.christophe.jaillet@wanadoo.fr>
-In-Reply-To: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
-References: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
-In-Reply-To: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
-References: <cover.1526048313.git.christophe.jaillet@wanadoo.fr>
+        Wed, 30 May 2018 23:13:57 -0400
+Date: Wed, 30 May 2018 22:13:53 -0500
+From: Rob Herring <robh@kernel.org>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        horms@verge.net.au, geert@glider.be, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3 1/8] dt-bindings: media: rcar-vin: Describe optional
+ ep properties
+Message-ID: <20180531031353.GA4440@rob-hp-laptop>
+References: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1527606359-19261-2-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1527606359-19261-2-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The use of 'fail1' and 'fail2' is not correct. Reorder these calls to
-branch at the right place of the error handling path.
+On Tue, May 29, 2018 at 05:05:52PM +0200, Jacopo Mondi wrote:
+> Describe the optional endpoint properties for endpoint nodes of port@0
+> and port@1 of the R-Car VIN driver device tree bindings documentation.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> 
+> ---
+> v2 -> v3:
+> - Do not repeat property description, just reference video-interfaces.txt
+> - Indent with spaces, not tabs as the rest of the document
+> - Do not remove (yet) the 'bus-width' property from example
+> ---
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
 
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
----
- drivers/staging/media/atomisp/i2c/atomisp-lm3554.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c b/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
-index 723fa74ff815..1e5f516f6e50 100644
---- a/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
-+++ b/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
-@@ -871,7 +871,7 @@ static int lm3554_probe(struct i2c_client *client)
- 				     ARRAY_SIZE(lm3554_controls));
- 	if (err) {
- 		dev_err(&client->dev, "error initialize a ctrl_handler.\n");
--		goto fail2;
-+		goto fail1;
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(lm3554_controls); i++)
-@@ -879,7 +879,6 @@ static int lm3554_probe(struct i2c_client *client)
- 				     NULL);
- 
- 	if (flash->ctrl_handler.error) {
--
- 		dev_err(&client->dev, "ctrl_handler error.\n");
- 		goto fail2;
- 	}
-@@ -888,7 +887,7 @@ static int lm3554_probe(struct i2c_client *client)
- 	err = media_entity_pads_init(&flash->sd.entity, 0, NULL);
- 	if (err) {
- 		dev_err(&client->dev, "error initialize a media entity.\n");
--		goto fail1;
-+		goto fail2;
- 	}
- 
- 	flash->sd.entity.function = MEDIA_ENT_F_FLASH;
--- 
-2.17.0
+Reviewed-by: Rob Herring <robh@kernel.org>
