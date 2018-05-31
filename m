@@ -1,140 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:43198 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750772AbeELEw5 (ORCPT
+Received: from mail-ua0-f195.google.com ([209.85.217.195]:41040 "EHLO
+        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753825AbeEaGu1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 May 2018 00:52:57 -0400
-Message-ID: <315975c5c25f73f1e2a32361be0bf88b@smtp-cloud9.xs4all.net>
-Date: Sat, 12 May 2018 06:52:54 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 31 May 2018 02:50:27 -0400
+Received: by mail-ua0-f195.google.com with SMTP id a3-v6so14290143uad.8
+        for <linux-media@vger.kernel.org>; Wed, 30 May 2018 23:50:26 -0700 (PDT)
+Received: from mail-vk0-f51.google.com (mail-vk0-f51.google.com. [209.85.213.51])
+        by smtp.gmail.com with ESMTPSA id k196-v6sm784474vkk.56.2018.05.30.23.50.25
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 30 May 2018 23:50:25 -0700 (PDT)
+Received: by mail-vk0-f51.google.com with SMTP id o138-v6so2594103vkd.3
+        for <linux-media@vger.kernel.org>; Wed, 30 May 2018 23:50:25 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+ <20180515075859.17217-12-stanimir.varbanov@linaro.org> <CAAFQd5BDZztVT5KT_HX8SfPuHRmXaEg2VGVCOabWqL7F9Qq6Ew@mail.gmail.com>
+ <3a892dd5-0744-c289-e258-099d531d5abd@linaro.org>
+In-Reply-To: <3a892dd5-0744-c289-e258-099d531d5abd@linaro.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 31 May 2018 15:50:13 +0900
+Message-ID: <CAAFQd5CiBcmOVPJX1x6yWUuHky6WdjSrJDMG8c_uzkbF1ud=uQ@mail.gmail.com>
+Subject: Re: [PATCH v2 11/29] venus: venc,vdec: adds clocks needed for venus 4xx
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon, May 28, 2018 at 5:47 PM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> Hi Tomasz,
+>
+> On 05/24/2018 09:11 AM, Tomasz Figa wrote:
+> > Hi Stanimir,
+> >
+> > On Tue, May 15, 2018 at 5:10 PM Stanimir Varbanov <
+> > stanimir.varbanov@linaro.org> wrote:
+> >
+> >> This extends the clocks number to support suspend and resume
+> >> on Venus version 4xx.
+> >
+> >> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> >> ---
+> >>   drivers/media/platform/qcom/venus/core.h |  4 +--
+> >>   drivers/media/platform/qcom/venus/vdec.c | 42
+> > ++++++++++++++++++++++++++------
+> >>   drivers/media/platform/qcom/venus/venc.c | 42
+> > ++++++++++++++++++++++++++------
+> >>   3 files changed, 72 insertions(+), 16 deletions(-)
+> >
+> >> diff --git a/drivers/media/platform/qcom/venus/core.h
+> > b/drivers/media/platform/qcom/venus/core.h
+> >> index 8d3e150800c9..b5b9a84e9155 100644
+> >> --- a/drivers/media/platform/qcom/venus/core.h
+> >> +++ b/drivers/media/platform/qcom/venus/core.h
+> >> @@ -92,8 +92,8 @@ struct venus_core {
+> >>          void __iomem *base;
+> >>          int irq;
+> >>          struct clk *clks[VIDC_CLKS_NUM_MAX];
+> >> -       struct clk *core0_clk;
+> >> -       struct clk *core1_clk;
+> >> +       struct clk *core0_clk, *core0_bus_clk;
+> >> +       struct clk *core1_clk, *core1_bus_clk;
+> >>          struct video_device *vdev_dec;
+> >>          struct video_device *vdev_enc;
+> >>          struct v4l2_device v4l2_dev;
+> >> diff --git a/drivers/media/platform/qcom/venus/vdec.c
+> > b/drivers/media/platform/qcom/venus/vdec.c
+> >> index 261a51adeef2..c45452634e7e 100644
+> >> --- a/drivers/media/platform/qcom/venus/vdec.c
+> >> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> >> @@ -1081,12 +1081,18 @@ static int vdec_probe(struct platform_device
+> > *pdev)
+> >>          if (!core)
+> >>                  return -EPROBE_DEFER;
+> >
+> >> -       if (core->res->hfi_version == HFI_VERSION_3XX) {
+> >> +       if (IS_V3(core) || IS_V4(core)) {
+> >>                  core->core0_clk = devm_clk_get(dev, "core");
+> >>                  if (IS_ERR(core->core0_clk))
+> >>                          return PTR_ERR(core->core0_clk);
+> >>          }
+> >
+> >> +       if (IS_V4(core)) {
+> >> +               core->core0_bus_clk = devm_clk_get(dev, "bus");
+> >> +               if (IS_ERR(core->core0_bus_clk))
+> >> +                       return PTR_ERR(core->core0_bus_clk);
+> >> +       }
+> >> +
+> >
+> > Rather than doing this conditional dance, wouldn't it make more sense to
+> > just list all the clocks in variant data struct and use clk_bulk_get()?
+>
+> Do you mean the same as it is done for venus/core.c ?
 
-Results of the daily build of media_tree:
+I mean clk_bulk_get() as in drivers/clk/clk-bulk.c. I guess
+venus/core.c would also benefit from switching to these helpers.
 
-date:			Sat May 12 05:00:12 CEST 2018
-media-tree git hash:	2a5f2705c97625aa1a4e1dd4d584eaa05392e060
-media_build git hash:	c3204c3efbd11ea5e5ba72970a036bf97ed11062
-v4l-utils git hash:	79d98edd1a27233667a6bc38d3d7f8958c2ec02c
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-3-amd64
+>
+> >
+> >>          platform_set_drvdata(pdev, core);
+> >
+> >>          vdev = video_device_alloc();
+> >> @@ -1132,12 +1138,23 @@ static __maybe_unused int
+> > vdec_runtime_suspend(struct device *dev)
+> >>   {
+> >>          struct venus_core *core = dev_get_drvdata(dev);
+> >
+> >> -       if (core->res->hfi_version == HFI_VERSION_1XX)
+> >> +       if (IS_V1(core))
+> >>                  return 0;
+> >
+> >> -       writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+> >> +       if (IS_V3(core))
+> >> +               writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+> >> +       else if (IS_V4(core))
+> >> +               writel(0, core->base +
+> > WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
+> >> +
+> >> +       if (IS_V4(core))
+> >> +               clk_disable_unprepare(core->core0_bus_clk);
+> >> +
+> >>          clk_disable_unprepare(core->core0_clk);
+> >> -       writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+> >> +
+> >> +       if (IS_V3(core))
+> >> +               writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+> >> +       else if (IS_V4(core))
+> >> +               writel(1, core->base +
+> > WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
+> >
+> > Almost every step here differs between version. I'd suggest splitting this
+> > into separate functions for both versions.
+>
+> I think it will be better to squash this patch with 13/29.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.10-i686: WARNINGS
-linux-3.7.10-x86_64: WARNINGS
-linux-3.8.13-i686: WARNINGS
-linux-3.8.13-x86_64: WARNINGS
-linux-3.9.11-i686: WARNINGS
-linux-3.9.11-x86_64: WARNINGS
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-rc4-i686: OK
-linux-4.17-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+I see. Let me review patch 13 first then.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
