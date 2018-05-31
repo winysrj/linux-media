@@ -1,826 +1,288 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay10.mail.gandi.net ([217.70.178.230]:57333 "EHLO
-        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751342AbeEVUIz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 May 2018 16:08:55 -0400
-Date: Tue, 22 May 2018 22:08:48 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: bingbu.cao@intel.com
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        bingbu.cao@linux.intel.com, tian.shu.qiu@linux.intel.com,
-        rajmohan.mani@intel.com, mchehab@kernel.org
-Subject: Re: [PATCH v3] media: imx319: Add imx319 camera sensor driver
-Message-ID: <20180522200848.GB15035@w540>
-References: <1526886658-14417-1-git-send-email-bingbu.cao@intel.com>
- <1526963581-28655-1-git-send-email-bingbu.cao@intel.com>
+Received: from mga04.intel.com ([192.55.52.120]:42669 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932621AbeEaCsq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 May 2018 22:48:46 -0400
+Date: Thu, 31 May 2018 10:48:33 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: kbuild-all@01.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+        mchehab@kernel.org, ysato@users.sourceforge.jp, dalias@libc.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/5] arch: sh: kfr2r09: Use new renesas-ceu camera driver
+Message-ID: <201805310808.IW00DJ10%fengguang.wu@intel.com>
+References: <1527525431-22852-4-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="lEGEL1/lMxI0MVQ2"
+Content-Type: multipart/mixed; boundary="uAKRQypu60I7Lcqm"
 Content-Disposition: inline
-In-Reply-To: <1526963581-28655-1-git-send-email-bingbu.cao@intel.com>
+In-Reply-To: <1527525431-22852-4-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---lEGEL1/lMxI0MVQ2
-Content-Type: text/plain; charset=utf-8
+--uAKRQypu60I7Lcqm
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Hello Bingbu,
-   thanks for the patch
+Hi Jacopo,
 
-On Tue, May 22, 2018 at 12:33:01PM +0800, bingbu.cao@intel.com wrote:
-> From: Bingbu Cao <bingbu.cao@intel.com>
->
-> Add a V4L2 sub-device driver for the Sony IMX319 image sensor.
-> This is a camera sensor using the I2C bus for control and the
-> CSI-2 bus for data.
+I love your patch! Perhaps something to improve:
 
-Could you please provide a changelog between versions? Also, I know
-using the --in-reply-to option is tempting to keep all patch version
-in a single thread, but most people finds it confusing and I rarely
-see that.
+[auto build test WARNING on linus/master]
+[also build test WARNING on v4.17-rc7 next-20180530]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
->
-> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
-> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
-> ---
->  MAINTAINERS                |    7 +
->  drivers/media/i2c/Kconfig  |   11 +
->  drivers/media/i2c/Makefile |    1 +
->  drivers/media/i2c/imx319.c | 2434 ++++++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 2453 insertions(+)
->  create mode 100644 drivers/media/i2c/imx319.c
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index e73a55a6a855..87b6c338d827 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -13084,6 +13084,13 @@ S:	Maintained
->  F:	drivers/media/i2c/imx274.c
->  F:	Documentation/devicetree/bindings/media/i2c/imx274.txt
->
-> +SONY IMX319 SENSOR DRIVER
-> +M:	Bingbu Cao <bingbu.cao@intel.com>
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +S:	Maintained
-> +F:	drivers/media/i2c/imx319.c
-> +
->  SONY MEMORYSTICK CARD SUPPORT
->  M:	Alex Dubov <oakad@yahoo.com>
->  W:	http://tifmxx.berlios.de/
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index 1f9d7c6aa31a..c3d279cc293e 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -604,6 +604,17 @@ config VIDEO_IMX274
->  	  This is a V4L2 sensor-level driver for the Sony IMX274
->  	  CMOS image sensor.
->
-> +config VIDEO_IMX319
-> +	tristate "Sony IMX319 sensor support"
-> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-> +	depends on MEDIA_CAMERA_SUPPORT
-> +	help
-> +	  This is a Video4Linux2 sensor driver for the Sony
-> +	  IMX319 camera.
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called imx319.
-> +
->  config VIDEO_OV2640
->  	tristate "OmniVision OV2640 sensor support"
->  	depends on VIDEO_V4L2 && I2C
-> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-> index 16fc34eda5cc..3adb3be4a486 100644
-> --- a/drivers/media/i2c/Makefile
-> +++ b/drivers/media/i2c/Makefile
-> @@ -104,5 +104,6 @@ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
->  obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
->  obj-$(CONFIG_VIDEO_IMX258)	+= imx258.o
->  obj-$(CONFIG_VIDEO_IMX274)	+= imx274.o
-> +obj-$(CONFIG_VIDEO_IMX319)	+= imx319.o
->
->  obj-$(CONFIG_SDR_MAX2175) += max2175.o
+url:    https://github.com/0day-ci/linux/commits/Jacopo-Mondi/Remove-sh_mobile_ceu_camera-from-arch-sh/20180530-060153
+config: sh-kfr2r09_defconfig (attached as .config)
+compiler: sh4-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
+reproduce:
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=sh 
 
-This hunk does not apply nor on media tree master nor on Linus'
-master. Could you please mention on which branch the patch is meant to
-be applied in the cover letter? Maybe it's obvious for most people here,
-but I failed to find it.
+All warnings (new ones prefixed by >>):
 
-> diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
-> new file mode 100644
-> index 000000000000..706bbafc75ec
-> --- /dev/null
-> +++ b/drivers/media/i2c/imx319.c
-> @@ -0,0 +1,2434 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +// Copyright (C) 2018 Intel Corporation
-> +
-> +#include <asm/unaligned.h>
-> +#include <linux/acpi.h>
-> +#include <linux/i2c.h>
-> +#include <linux/module.h>
-> +#include <linux/pm_runtime.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +
-> +#define IMX319_REG_MODE_SELECT		0x0100
-> +#define IMX319_MODE_STANDBY		0x00
-> +#define IMX319_MODE_STREAMING		0x01
-> +
-> +/* Chip ID */
-> +#define IMX319_REG_CHIP_ID		0x0016
-> +#define IMX319_CHIP_ID			0x0319
-> +
-> +/* V_TIMING internal */
-> +#define IMX319_REG_FLL			0x0340
-> +#define IMX319_FLL_MAX			0xffff
-> +
-> +/* Exposure control */
-> +#define IMX319_REG_EXPOSURE		0x0202
-> +#define IMX319_EXPOSURE_MIN		1
-> +#define IMX319_EXPOSURE_STEP		1
-> +#define IMX319_EXPOSURE_DEFAULT		0x04ee
-> +
-> +/* Analog gain control */
-> +#define IMX319_REG_ANALOG_GAIN		0x0204
-> +#define IMX319_ANA_GAIN_MIN		0
-> +#define IMX319_ANA_GAIN_MAX		960
-> +#define IMX319_ANA_GAIN_STEP		1
-> +#define IMX319_ANA_GAIN_DEFAULT		0
-> +
-> +/* Digital gain control */
-> +#define IMX319_REG_DPGA_USE_GLOBAL_GAIN	0x3ff9
-> +#define IMX319_REG_DIG_GAIN_GLOBAL	0x020e
-> +#define IMX319_DGTL_GAIN_MIN		256
-> +#define IMX319_DGTL_GAIN_MAX		4095
-> +#define IMX319_DGTL_GAIN_STEP		1
-> +#define IMX319_DGTL_GAIN_DEFAULT	256
-> +
-> +/* Test Pattern Control */
-> +#define IMX319_REG_TEST_PATTERN		0x0600
-> +#define IMX319_TEST_PATTERN_DISABLED		0
-> +#define IMX319_TEST_PATTERN_SOLID_COLOR		1
-> +#define IMX319_TEST_PATTERN_COLOR_BARS		2
-> +#define IMX319_TEST_PATTERN_GRAY_COLOR_BARS	3
-> +#define IMX319_TEST_PATTERN_PN9			4
-> +
-> +/* Flip Control */
-> +#define IMX319_REG_ORIENTATION		0x0101
-> +
-> +struct imx319_reg {
-> +	u16 address;
-> +	u8 val;
-> +};
-> +
-> +struct imx319_reg_list {
-> +	u32 num_of_regs;
-> +	const struct imx319_reg *regs;
-> +};
-> +
-> +/* Mode : resolution and related config&values */
-> +struct imx319_mode {
-> +	/* Frame width */
-> +	u32 width;
-> +	/* Frame height */
-> +	u32 height;
-> +
-> +	/* V-timing */
-> +	u32 fll_def;
-> +	u32 fll_min;
-> +
-> +	/* H-timing */
-> +	u32 llp;
-> +
-> +	/* Default register values */
-> +	struct imx319_reg_list reg_list;
-> +};
-> +
-> +struct imx319 {
-> +	struct v4l2_subdev sd;
-> +	struct media_pad pad;
-> +
-> +	struct v4l2_ctrl_handler ctrl_handler;
-> +	/* V4L2 Controls */
-> +	struct v4l2_ctrl *link_freq;
-> +	struct v4l2_ctrl *pixel_rate;
-> +	struct v4l2_ctrl *vblank;
-> +	struct v4l2_ctrl *hblank;
-> +	struct v4l2_ctrl *exposure;
-> +	struct v4l2_ctrl *vflip;
-> +	struct v4l2_ctrl *hflip;
-> +
-> +	/* Current mode */
-> +	const struct imx319_mode *cur_mode;
-> +
-> +	/*
-> +	 * Mutex for serialized access:
-> +	 * Protect sensor set pad format and start/stop streaming safely.
-> +	 * Protect access to sensor v4l2 controls.
-> +	 */
-> +	struct mutex mutex;
-> +
-> +	/* Streaming on/off */
-> +	bool streaming;
-> +};
-> +
+   In file included from arch/sh/boards/mach-kfr2r09/setup.c:28:0:
+>> include/linux/mtd/onenand.h:225:12: warning: 'struct mtd_oob_ops' declared inside parameter list will not be visible outside of this definition or declaration
+        struct mtd_oob_ops *ops);
+               ^~~~~~~~~~~
 
-[snip] Long tables of registers
+vim +225 include/linux/mtd/onenand.h
 
-> +/* Configurations for supported link frequencies */
-> +/* Menu items for LINK_FREQ V4L2 control */
-> +static const s64 link_freq_menu_items[] = {
-> +	360000000,
-> +};
-> +
-> +/* Mode configs */
+cd5f6346 Kyungmin Park     2005-07-11  223  
+607d1cb1 Adrian Bunk       2008-04-14  224  int onenand_bbt_read_oob(struct mtd_info *mtd, loff_t from,
+607d1cb1 Adrian Bunk       2008-04-14 @225  			 struct mtd_oob_ops *ops);
+5988af23 Rohit Hagargundgi 2009-05-12  226  unsigned onenand_block(struct onenand_chip *this, loff_t addr);
+5988af23 Rohit Hagargundgi 2009-05-12  227  loff_t onenand_addr(struct onenand_chip *this, int block);
+5988af23 Rohit Hagargundgi 2009-05-12  228  int flexonenand_region(struct mtd_info *mtd, loff_t addr);
+607d1cb1 Adrian Bunk       2008-04-14  229  
 
-[snip] Long list of modes
+:::::: The code at line 225 was first introduced by commit
+:::::: 607d1cb1042657177bf72247eeb85c0d8416bd51 [MTD] [OneNAND] proper onenand_bbt_read_oob() prototype
 
-> +
-> +static inline struct imx319 *to_imx319(struct v4l2_subdev *_sd)
-> +{
-> +	return container_of(_sd, struct imx319, sd);
-> +}
-> +
-> +/* Get bayer order based on flip setting. */
-> +static __u32 imx319_get_format_code(struct imx319 *imx319)
-> +{
-> +	/*
-> +	 * Only one bayer order is supported.
-> +	 * It depends on the flip settings.
-> +	 */
-> +	static const __u32 codes[2][2] = {
-> +		{ MEDIA_BUS_FMT_SRGGB10_1X10, MEDIA_BUS_FMT_SGRBG10_1X10, },
-> +		{ MEDIA_BUS_FMT_SGBRG10_1X10, MEDIA_BUS_FMT_SBGGR10_1X10, },
-> +	};
-> +
-> +	return codes[imx319->vflip->val][imx319->hflip->val];
-> +}
+:::::: TO: Adrian Bunk <bunk@kernel.org>
+:::::: CC: David Woodhouse <dwmw2@infradead.org>
 
-I don't have any major comment actually, this is pretty good for a
-first submission.
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-This worries me a bit though. The media bus format depends on the
-V/HFLIP value, I assume this is an hardware limitation. But if
-changing the flip changes the reported media bus format, you could
-trigger a -EPIPE error during pipeline format validation between two
-streaming sessions with different flip settings. Isn't this a bit
-dangerous?
+--uAKRQypu60I7Lcqm
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
 
-Below some minor comments.
+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
 
-> +
-> +/* Read registers up to 4 at a time */
-> +static int imx319_read_reg(struct imx319 *imx319, u16 reg, u32 len, u32 *val)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	struct i2c_msg msgs[2];
-> +	u8 addr_buf[2];
-> +	u8 data_buf[4] = { 0 };
-> +	int ret;
-> +
-> +	if (len > 4)
-> +		return -EINVAL;
-> +
-> +	put_unaligned_be16(reg, addr_buf);
-> +	/* Write register address */
-> +	msgs[0].addr = client->addr;
-> +	msgs[0].flags = 0;
-> +	msgs[0].len = ARRAY_SIZE(addr_buf);
-> +	msgs[0].buf = addr_buf;
-> +
-> +	/* Read data from register */
-> +	msgs[1].addr = client->addr;
-> +	msgs[1].flags = I2C_M_RD;
-> +	msgs[1].len = len;
-> +	msgs[1].buf = &data_buf[4 - len];
-> +
-> +	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-> +	if (ret != ARRAY_SIZE(msgs))
-> +		return -EIO;
-> +
-> +	*val = get_unaligned_be32(data_buf);
-> +
-> +	return 0;
-> +}
-> +
-> +/* Write registers up to 4 at a time */
-> +static int imx319_write_reg(struct imx319 *imx319, u16 reg, u32 len, u32 val)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	u8 buf[6];
-> +
-> +	if (len > 4)
-> +		return -EINVAL;
-> +
-> +	put_unaligned_be16(reg, buf);
-> +	put_unaligned_be32(val << (8 * (4 - len)), buf + 2);
-> +	if (i2c_master_send(client, buf, len + 2) != len + 2)
-> +		return -EIO;
-> +
-> +	return 0;
-> +}
-> +
-> +/* Write a list of registers */
-> +static int imx319_write_regs(struct imx319 *imx319,
-> +			      const struct imx319_reg *regs, u32 len)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	int ret;
-> +	u32 i;
-> +
-> +	for (i = 0; i < len; i++) {
-> +		ret = imx319_write_reg(imx319, regs[i].address, 1,
-> +					regs[i].val);
-
-Unaligned to open parenthesis
-
-> +		if (ret) {
-> +			dev_err_ratelimited(
-> +				&client->dev,
-> +				"Failed to write reg 0x%4.4x. error = %d\n",
-> +				regs[i].address, ret);
-
-No need to break line, align to open parenthesis, please.
-
-> +
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/* Open sub-device */
-> +static int imx319_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +	struct v4l2_mbus_framefmt *try_fmt =
-> +		v4l2_subdev_get_try_format(sd, fh->pad, 0);
-> +
-> +	mutex_lock(&imx319->mutex);
-> +
-> +	/* Initialize try_fmt */
-> +	try_fmt->width = imx319->cur_mode->width;
-> +	try_fmt->height = imx319->cur_mode->height;
-> +	try_fmt->code = imx319_get_format_code(imx319);
-> +	try_fmt->field = V4L2_FIELD_NONE;
-> +
-> +	mutex_unlock(&imx319->mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +static int imx319_update_digital_gain(struct imx319 *imx319, u32 d_gain)
-> +{
-> +	int ret;
-> +
-> +	ret = imx319_write_reg(imx319, IMX319_REG_DPGA_USE_GLOBAL_GAIN, 1, 1);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* Digital gain = (d_gain & 0xFF00) + (d_gain & 0xFF)/256 times */
-> +	return imx319_write_reg(imx319, IMX319_REG_DIG_GAIN_GLOBAL, 2, d_gain);
-> +}
-> +
-> +static int imx319_set_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct imx319 *imx319 = container_of(ctrl->handler,
-> +					     struct imx319, ctrl_handler);
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	s64 max;
-> +	int ret;
-> +
-> +	/* Propagate change of current control to all related controls */
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_VBLANK:
-> +		/* Update max exposure while meeting expected vblanking */
-> +		max = imx319->cur_mode->height + ctrl->val - 18;
-> +		__v4l2_ctrl_modify_range(imx319->exposure,
-> +					 imx319->exposure->minimum,
-> +					 max, imx319->exposure->step, max);
-> +		break;
-> +	}
-> +
-> +	/*
-> +	 * Applying V4L2 control value only happens
-> +	 * when power is up for streaming
-> +	 */
-> +	if (pm_runtime_get_if_in_use(&client->dev) == 0)
-> +		return 0;
-
-I assume powering is handled through ACPI somehow, I know nothing
-about that, but I wonder why setting controls should be enabled only
-when streaming. I would have expected runtime_pm_get/put in subdevices
-node open/close functions not only when streaming. Am I missing something?
-
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_ANALOGUE_GAIN:
-> +		/* Analog gain = 1024/(1024 - ctrl->val) times */
-> +		ret = imx319_write_reg(imx319, IMX319_REG_ANALOG_GAIN,
-> +				       2, ctrl->val);
-> +		break;
-> +	case V4L2_CID_DIGITAL_GAIN:
-> +		ret = imx319_update_digital_gain(imx319, ctrl->val);
-> +		break;
-> +	case V4L2_CID_EXPOSURE:
-> +		ret = imx319_write_reg(imx319, IMX319_REG_EXPOSURE,
-> +				       2, ctrl->val);
-> +		break;
-> +	case V4L2_CID_VBLANK:
-> +		/* Update FLL that meets expected vertical blanking */
-> +		ret = imx319_write_reg(imx319, IMX319_REG_FLL, 2,
-> +				       imx319->cur_mode->height + ctrl->val);
-> +		break;
-> +	case V4L2_CID_TEST_PATTERN:
-> +		ret = imx319_write_reg(imx319, IMX319_REG_TEST_PATTERN,
-> +				       2, imx319_test_pattern_val[ctrl->val]);
-> +		break;
-> +	case V4L2_CID_HFLIP:
-> +	case V4L2_CID_VFLIP:
-> +		ret = imx319_write_reg(imx319, IMX319_REG_ORIENTATION, 1,
-> +				       imx319->hflip->val |
-> +				       imx319->vflip->val << 1);
-> +		break;
-> +	default:
-> +		ret = -EINVAL;
-> +		dev_info(&client->dev,
-> +			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
-> +			 ctrl->id, ctrl->val);
-> +		break;
-> +	}
-> +
-> +	pm_runtime_put(&client->dev);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops imx319_ctrl_ops = {
-> +	.s_ctrl = imx319_set_ctrl,
-> +};
-> +
-> +static int imx319_enum_mbus_code(struct v4l2_subdev *sd,
-> +				  struct v4l2_subdev_pad_config *cfg,
-> +				  struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +
-> +	if (code->index > 0)
-> +		return -EINVAL;
-> +
-> +	code->code = imx319_get_format_code(imx319);
-> +
-> +	return 0;
-> +}
-> +
-> +static int imx319_enum_frame_size(struct v4l2_subdev *sd,
-> +				   struct v4l2_subdev_pad_config *cfg,
-> +				   struct v4l2_subdev_frame_size_enum *fse)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +
-> +	if (fse->index >= ARRAY_SIZE(supported_modes))
-> +		return -EINVAL;
-> +
-> +	if (fse->code != imx319_get_format_code(imx319))
-> +		return -EINVAL;
-> +
-> +	fse->min_width = supported_modes[fse->index].width;
-> +	fse->max_width = fse->min_width;
-> +	fse->min_height = supported_modes[fse->index].height;
-> +	fse->max_height = fse->min_height;
-> +
-> +	return 0;
-> +}
-> +
-> +static void imx319_update_pad_format(struct imx319 *imx319,
-> +				     const struct imx319_mode *mode,
-> +				     struct v4l2_subdev_format *fmt)
-> +{
-> +	fmt->format.width = mode->width;
-> +	fmt->format.height = mode->height;
-> +	fmt->format.code = imx319_get_format_code(imx319);
-> +	fmt->format.field = V4L2_FIELD_NONE;
-> +}
-> +
-> +static int imx319_do_get_pad_format(struct imx319 *imx319,
-> +				     struct v4l2_subdev_pad_config *cfg,
-> +				     struct v4l2_subdev_format *fmt)
-> +{
-> +	struct v4l2_mbus_framefmt *framefmt;
-> +	struct v4l2_subdev *sd = &imx319->sd;
-> +
-> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> +		fmt->format = *framefmt;
-> +	} else {
-> +		imx319_update_pad_format(imx319, imx319->cur_mode, fmt);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int imx319_get_pad_format(struct v4l2_subdev *sd,
-> +				  struct v4l2_subdev_pad_config *cfg,
-> +				  struct v4l2_subdev_format *fmt)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +	int ret;
-> +
-> +	mutex_lock(&imx319->mutex);
-> +	ret = imx319_do_get_pad_format(imx319, cfg, fmt);
-> +	mutex_unlock(&imx319->mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +static int
-> +imx319_set_pad_format(struct v4l2_subdev *sd,
-> +		       struct v4l2_subdev_pad_config *cfg,
-> +		       struct v4l2_subdev_format *fmt)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +	const struct imx319_mode *mode;
-> +	struct v4l2_mbus_framefmt *framefmt;
-> +	s32 vblank_def;
-> +	s32 vblank_min;
-> +	s64 h_blank;
-> +	s64 pixel_rate;
-> +
-> +	mutex_lock(&imx319->mutex);
-> +
-> +	/*
-> +	 * Only one bayer order is supported.
-> +	 * It depends on the flip settings.
-> +	 */
-> +	fmt->format.code = imx319_get_format_code(imx319);
-> +
-> +	mode = v4l2_find_nearest_size(supported_modes,
-> +		ARRAY_SIZE(supported_modes), width, height,
-> +		fmt->format.width, fmt->format.height);
-> +	imx319_update_pad_format(imx319, mode, fmt);
-> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> +		*framefmt = fmt->format;
-> +	} else {
-> +		imx319->cur_mode = mode;
-> +		pixel_rate =
-> +		(link_freq_menu_items[0] * 2 * 4) / 10;
-
-This assumes a fixed link frequency and a fixed number of data lanes,
-and a fixed bpp value (but this is ok, as all the formats you have are
-10bpp). In OF world those parameters come from DT, what about ACPI?
-
-(also, no need to break line here)
-
-> +		__v4l2_ctrl_s_ctrl_int64(imx319->pixel_rate, pixel_rate);
-> +		/* Update limits and set FPS to default */
-> +		vblank_def = imx319->cur_mode->fll_def -
-> +			     imx319->cur_mode->height;
-> +		vblank_min = imx319->cur_mode->fll_min -
-> +			     imx319->cur_mode->height;
-> +		__v4l2_ctrl_modify_range(
-> +			imx319->vblank, vblank_min,
-> +			IMX319_FLL_MAX - imx319->cur_mode->height, 1,
-> +			vblank_def);
-
-No need to line break, align to open parenthesis please, here and in
-other places below here.
-
-> +		__v4l2_ctrl_s_ctrl(imx319->vblank, vblank_def);
-> +		h_blank = mode->llp - imx319->cur_mode->width;
-> +		/*
-> +		 * Currently hblank is not changeable.
-> +		 * So FPS control is done only by vblank.
-> +		 */
-> +		__v4l2_ctrl_modify_range(imx319->hblank, h_blank,
-> +					 h_blank, 1, h_blank);
-> +	}
-> +
-> +	mutex_unlock(&imx319->mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +/* Start streaming */
-> +static int imx319_start_streaming(struct imx319 *imx319)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	const struct imx319_reg_list *reg_list;
-> +	int ret;
-> +
-> +	/* Global Setting */
-> +	reg_list = &imx319_global_setting;
-> +	ret = imx319_write_regs(imx319, reg_list->regs, reg_list->num_of_regs);
-> +	if (ret) {
-> +		dev_err(&client->dev, "%s failed to set global settings\n",
-> +			__func__);
-> +		return ret;
-> +	}
-> +
-> +	/* Apply default values of current mode */
-> +	reg_list = &imx319->cur_mode->reg_list;
-> +	ret = imx319_write_regs(imx319, reg_list->regs, reg_list->num_of_regs);
-> +	if (ret) {
-> +		dev_err(&client->dev, "%s failed to set mode\n", __func__);
-> +		return ret;
-> +	}
-> +
-> +	/* Apply customized values from user */
-> +	ret =  __v4l2_ctrl_handler_setup(imx319->sd.ctrl_handler);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return imx319_write_reg(imx319, IMX319_REG_MODE_SELECT,
-> +				1, IMX319_MODE_STREAMING);
-> +}
-> +
-> +/* Stop streaming */
-> +static int imx319_stop_streaming(struct imx319 *imx319)
-> +{
-> +	return imx319_write_reg(imx319, IMX319_REG_MODE_SELECT,
-> +				1, IMX319_MODE_STANDBY);
-> +}
-> +
-> +static int imx319_set_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	int ret = 0;
-> +
-> +	mutex_lock(&imx319->mutex);
-> +	if (imx319->streaming == enable) {
-> +		mutex_unlock(&imx319->mutex);
-> +		return 0;
-> +	}
-> +
-> +	if (enable) {
-> +		ret = pm_runtime_get_sync(&client->dev);
-> +		if (ret < 0) {
-> +			pm_runtime_put_noidle(&client->dev);
-> +			goto err_unlock;
-> +		}
-> +
-> +		/*
-> +		 * Apply default & customized values
-> +		 * and then start streaming.
-> +		 */
-> +		ret = imx319_start_streaming(imx319);
-> +		if (ret)
-> +			goto err_rpm_put;
-> +	} else {
-> +		imx319_stop_streaming(imx319);
-> +		pm_runtime_put(&client->dev);
-> +	}
-> +
-> +	imx319->streaming = enable;
-> +	mutex_unlock(&imx319->mutex);
-> +
-> +	return ret;
-> +
-> +err_rpm_put:
-> +	pm_runtime_put(&client->dev);
-> +err_unlock:
-> +	mutex_unlock(&imx319->mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +static int __maybe_unused imx319_suspend(struct device *dev)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +
-> +	if (imx319->streaming)
-> +		imx319_stop_streaming(imx319);
-> +
-> +	return 0;
-> +}
-> +
-> +static int __maybe_unused imx319_resume(struct device *dev)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +	int ret;
-> +
-> +	if (imx319->streaming) {
-> +		ret = imx319_start_streaming(imx319);
-> +		if (ret)
-> +			goto error;
-> +	}
-> +
-> +	return 0;
-> +
-> +error:
-> +	imx319_stop_streaming(imx319);
-> +	imx319->streaming = 0;
-> +	return ret;
-> +}
-> +
-> +/* Verify chip ID */
-> +static int imx319_identify_module(struct imx319 *imx319)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	int ret;
-> +	u32 val;
-> +
-> +	ret = imx319_read_reg(imx319, IMX319_REG_CHIP_ID, 2, &val);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (val != IMX319_CHIP_ID) {
-> +		dev_err(&client->dev, "chip id mismatch: %x!=%x\n",
-> +			IMX319_CHIP_ID, val);
-> +		return -EIO;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_video_ops imx319_video_ops = {
-> +	.s_stream = imx319_set_stream,
-> +};
-> +
-> +static const struct v4l2_subdev_pad_ops imx319_pad_ops = {
-> +	.enum_mbus_code = imx319_enum_mbus_code,
-> +	.get_fmt = imx319_get_pad_format,
-> +	.set_fmt = imx319_set_pad_format,
-> +	.enum_frame_size = imx319_enum_frame_size,
-> +};
-> +
-> +static const struct v4l2_subdev_ops imx319_subdev_ops = {
-> +	.video = &imx319_video_ops,
-> +	.pad = &imx319_pad_ops,
-> +};
-> +
-> +static const struct media_entity_operations imx319_subdev_entity_ops = {
-> +	.link_validate = v4l2_subdev_link_validate,
-> +};
-> +
-> +static const struct v4l2_subdev_internal_ops imx319_internal_ops = {
-> +	.open = imx319_open,
-> +};
-> +
-> +/* Initialize control handlers */
-> +static int imx319_init_controls(struct imx319 *imx319)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	struct v4l2_ctrl_handler *ctrl_hdlr;
-> +	s64 exposure_max;
-> +	s64 vblank_def;
-> +	s64 vblank_min;
-> +	s64 hblank;
-> +	s64 pixel_rate;
-> +	const struct imx319_mode *mode;
-> +	int ret;
-> +
-> +	ctrl_hdlr = &imx319->ctrl_handler;
-> +	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 10);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ctrl_hdlr->lock = &imx319->mutex;
-> +	imx319->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
-> +				&imx319_ctrl_ops,
-> +				V4L2_CID_LINK_FREQ,
-> +				0,
-> +				0,
-> +				link_freq_menu_items);
-
-In this function seems like you lost alignment and are breaking lines
-when not necessary. Could you please have a look?
-
-Seems like apart a few questions, I only have minor comments then...
-
-Thanks
-   j
-
-
---lEGEL1/lMxI0MVQ2
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbBHjQAAoJEHI0Bo8WoVY8NSAQAJGsQLdP/6kO2u5f8Hh3gVdv
-S3F06dMTE+S60MLVclRnCTSOoT936GwNpnIfauceaovu/6gr7AyRou8Q1SWv7/q+
-wZoy225tbuseiqGlRbhgc0Eqb7bN3KcQ6tiDD68ZgQRpbC9JwLDYN/WcJFeiZL/L
-Z02bBdFZShbFdzMt9te21BtsFgh1lGM6MDnwGbPaoZW6WoYVe8Nr/qy+BbnFVaU2
-fvQLEz+iS/1Yzi0x5PbbR4yoBJPWDMS0Zxjg+p+W9Yqb0Vc0ODifhSOuYc6OD+cO
-rlXcjMDgbWhDKo/+B34ab11/HJ20sugE5iZrA/vo+j/tpuFPaEHzIoA5xAOWe5nj
-ujve9fvEci2XEdig3ldCKbkPGBGxfaE4vDlzpOuML92flNoEE8o9cxNalW2jSY99
-C91d7QKeOzpks035yWXvIQYARSwFUlWXTnrjCxAvttZblGKtXKTolgcOTq5ID0qZ
-OamU8AOcgT9HOK38+LqSD0RKljpJRf8KcaU/sy1UyFtDNJcjn1vPWxp0us3ItTqE
-ZKvqzRV5ToDhxH4Wu32+AhGmlCPcbBpJDGcJun+krRQyYnSwZ+IrsG0bFA6PC+ol
-Omk6jFi/6Y8n6u81U/5drakuZ6zbV7Gr+vv7gBszn+mjT4rhwT6KEe9/LNtR5+vr
-hs2SD+Iy1Fde02xj5ep7
-=tiTE
------END PGP SIGNATURE-----
-
---lEGEL1/lMxI0MVQ2--
+--uAKRQypu60I7Lcqm--
