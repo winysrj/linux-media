@@ -1,48 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:36416 "EHLO
-        homiemail-a44.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752560AbeEROGd (ORCPT
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:46469 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932527AbeEaDOx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 May 2018 10:06:33 -0400
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH] atomisp driver has been removed from staging
-Date: Fri, 18 May 2018 09:06:30 -0500
-Message-Id: <1526652391-18898-1-git-send-email-brad@nextdimension.cc>
+        Wed, 30 May 2018 23:14:53 -0400
+Date: Wed, 30 May 2018 22:14:51 -0500
+From: Rob Herring <robh@kernel.org>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        horms@verge.net.au, geert@glider.be, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3 2/8] dt-bindings: media: Document data-enable-active
+ property
+Message-ID: <20180531031451.GA5215@rob-hp-laptop>
+References: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1527606359-19261-3-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1527606359-19261-3-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Nuked completely, no backport required now.
+On Tue, May 29, 2018 at 05:05:53PM +0200, Jacopo Mondi wrote:
+> Add 'data-enable-active' property to endpoint node properties list.
+> 
+> The property allows to specify the polarity of the data-enable signal, which
+> when in active state determinates when data lanes have to sampled for valid
+> pixel data.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+> v3:
+> - new patch
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
+>  1 file changed, 2 insertions(+)
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- backports/v4.10_sched_signal.patch | 13 -------------
- 1 file changed, 13 deletions(-)
-
-diff --git a/backports/v4.10_sched_signal.patch b/backports/v4.10_sched_signal.patch
-index d32b2f4..c9876c2 100644
---- a/backports/v4.10_sched_signal.patch
-+++ b/backports/v4.10_sched_signal.patch
-@@ -257,19 +257,6 @@ index add2edb..8eb0f49 100644
-  #include <linux/slab.h>
-  #include <linux/interrupt.h>
-  
--diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
--index a6620d2..887f147 100644
----- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
--+++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
--@@ -34,7 +34,7 @@
-- #include <linux/errno.h>
-- #include <linux/io.h>
-- #include <asm/current.h>
---#include <linux/sched/signal.h>
--+#include <linux/sched.h>
-- #include <linux/file.h>
-- 
-- #include <asm/set_memory.h>
- diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
- index a7b3f7c..a63034b 100644
- --- a/include/media/v4l2-ioctl.h
--- 
-2.7.4
+Reviewed-by: Rob Herring <robh@kernel.org>
