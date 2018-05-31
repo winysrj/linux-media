@@ -1,62 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:45969 "EHLO
-        homiemail-a124.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751033AbeELPbn (ORCPT
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:42137 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932653AbeEaDdd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 May 2018 11:31:43 -0400
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org, jasmin@anw.at, hverkuil@xs4all.nl
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH] kernel version limitation fixup
-Date: Sat, 12 May 2018 10:31:34 -0500
-Message-Id: <1526139094-14932-1-git-send-email-brad@nextdimension.cc>
+        Wed, 30 May 2018 23:33:33 -0400
+Date: Wed, 30 May 2018 22:33:31 -0500
+From: Rob Herring <robh@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        andy.yeh@intel.com, sebastian.reichel@collabora.co.uk
+Subject: Re: [PATCH v2 1/2] dt-bindings: media: Define "rotation" property
+ for sensors
+Message-ID: <20180531033331.GA25703@rob-hp-laptop>
+References: <20180525122726.3409-1-sakari.ailus@linux.intel.com>
+ <20180525122726.3409-2-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180525122726.3409-2-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes: 95ee4c285022 ("Disable additional drivers requiring gpio/consumer.h")
+On Fri, May 25, 2018 at 03:27:25PM +0300, Sakari Ailus wrote:
+> Sensors are occasionally mounted upside down to systems such as mobile
+> phones or tablets. In order to use such a sensor without having to turn
+> every image upside down, most camera sensors support reversing the readout
+> order by setting both horizontal and vertical flipping.
+> 
+> This patch documents the "rotation" property for camera sensors, mirroring
+> what is defined for displays in
+> Documentation/devicetree/bindings/display/panel/panel.txt .
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 4 ++++
+>  1 file changed, 4 insertions(+)
 
-Duplicate entries in 3.13.0 removed, they exist in 3.17.0 and
-cause build failure any earlier.
-
-The four remaining drivers from the commit were moved to
-3.17.0 after determining they too require GPIOD_OUT_LOW/HIGH.
-
-Reported-by: Jasmin Jessich <jasmin@anw.at>
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- v4l/versions.txt | 13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
-
-diff --git a/v4l/versions.txt b/v4l/versions.txt
-index ecd2ea4..167d0d3 100644
---- a/v4l/versions.txt
-+++ b/v4l/versions.txt
-@@ -93,6 +93,10 @@ VIDEO_OV9650
- VIDEO_OV2685
- VIDEO_TW9910
- SOC_CAMERA_TW9910
-+VIDEO_MT9T112
-+SOC_CAMERA_MT9T112
-+VIDEO_OV772X
-+SOC_CAMERA_OV772X
- # needs component_match_add
- VIDEO_VIMC
- 
-@@ -111,15 +115,6 @@ VIDEO_VIM2M
- [3.13.0]
- # needs gpio/consumer.h
- RADIO_SI4713
--VIDEO_OV2685
--VIDEO_OV5695
--VIDEO_OV9650
--VIDEO_MT9T112
--SOC_CAMERA_MT9T112
--VIDEO_OV772X
--SOC_CAMERA_OV772X
--VIDEO_TW9910
--SOC_CAMERA_TW9910
- 
- [3.12.0]
- # BIN_ATTR_RW was changed
--- 
-2.7.4
+Reviewed-by: Rob Herring <robh@kernel.org>
