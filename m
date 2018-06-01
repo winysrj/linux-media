@@ -1,113 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:44991 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751354AbeFAWQD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 18:16:03 -0400
-Received: by mail-wr0-f195.google.com with SMTP id y15-v6so37606061wrg.11
-        for <linux-media@vger.kernel.org>; Fri, 01 Jun 2018 15:16:02 -0700 (PDT)
-Subject: Re: [PATCH v2 1/5] media: venus: add a routine to reset ARM9
-To: Vikash Garodia <vgarodia@codeaurora.org>, hverkuil@xs4all.nl,
-        mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
-        andy.gross@linaro.org, bjorn.andersson@linaro.org,
-        stanimir.varbanov@linaro.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, acourbot@chromium.org
-References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
- <1527884768-22392-2-git-send-email-vgarodia@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <894ab678-bc1d-da04-b552-d53301bd3980@linaro.org>
-Date: Sat, 2 Jun 2018 01:15:59 +0300
-MIME-Version: 1.0
-In-Reply-To: <1527884768-22392-2-git-send-email-vgarodia@codeaurora.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:43549 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751092AbeFALlo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 07:41:44 -0400
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: [PATCH v2 2/9] xen/grant-table: Make set/clear page private code shared
+Date: Fri,  1 Jun 2018 14:41:25 +0300
+Message-Id: <20180601114132.22596-3-andr2000@gmail.com>
+In-Reply-To: <20180601114132.22596-1-andr2000@gmail.com>
+References: <20180601114132.22596-1-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikash,
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-On  1.06.2018 23:26, Vikash Garodia wrote:
-> Add a new routine to reset the ARM9 and brings it
-> out of reset. This is in preparation to add PIL
-> functionality in venus driver.
+Make set/clear page private code shared and accessible to
+other kernel modules which can re-use these instead of open-coding.
 
-please squash this patch with 4/5. I don't see a reason to add a 
-function which is not used. Shouldn't this produce gcc warnings?
+Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+---
+ drivers/xen/grant-table.c | 54 +++++++++++++++++++++++++--------------
+ include/xen/grant_table.h |  3 +++
+ 2 files changed, 38 insertions(+), 19 deletions(-)
 
-> 
-> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> ---
->   drivers/media/platform/qcom/venus/firmware.c     | 26 ++++++++++++++++++++++++
->   drivers/media/platform/qcom/venus/hfi_venus_io.h |  5 +++++
->   2 files changed, 31 insertions(+)
-> 
-> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-> index 521d4b3..7d89b5a 100644
-> --- a/drivers/media/platform/qcom/venus/firmware.c
-> +++ b/drivers/media/platform/qcom/venus/firmware.c
-> @@ -14,6 +14,7 @@
->   
->   #include <linux/device.h>
->   #include <linux/firmware.h>
-> +#include <linux/delay.h>
->   #include <linux/kernel.h>
->   #include <linux/io.h>
->   #include <linux/of.h>
-> @@ -22,11 +23,36 @@
->   #include <linux/sizes.h>
->   #include <linux/soc/qcom/mdt_loader.h>
->   
-> +#include "core.h"
->   #include "firmware.h"
-> +#include "hfi_venus_io.h"
->   
->   #define VENUS_PAS_ID			9
->   #define VENUS_FW_MEM_SIZE		(6 * SZ_1M)
->   
-> +static void venus_reset_hw(struct venus_core *core)
-
-can we rename this to venus_reset_cpu? reset_hw sounds like we reset 
-vcodec IPs, so I think we can be more exact here.
-
-> +{
-> +	void __iomem *reg_base = core->base;
-
-just 'base', please.
-
-> +
-> +	writel(0, reg_base + WRAPPER_FW_START_ADDR);
-> +	writel(VENUS_FW_MEM_SIZE, reg_base + WRAPPER_FW_END_ADDR);
-> +	writel(0, reg_base + WRAPPER_CPA_START_ADDR);
-> +	writel(VENUS_FW_MEM_SIZE, reg_base + WRAPPER_CPA_END_ADDR);
-> +	writel(0x0, reg_base + WRAPPER_CPU_CGC_DIS);
-> +	writel(0x0, reg_base + WRAPPER_CPU_CLOCK_CONFIG);
-> +
-> +	/* Make sure all register writes are committed. */
-> +	mb();
-
-the comment says "register writes" hence shouldn't this be wmb? Also if 
-we are going to have explicit memory barrier why not use writel_relaxed?
-
-> +
-> +	/*
-> +	 * Need to wait 10 cycles of internal clocks before bringing ARM9
-
-Do we know what is the minimum frequency of the internal ARM9 clocks? 
-I.e does 1us is enough for all venus versions.
-
-> +	 * out of reset.
-> +	 */
-> +	udelay(1);
-> +
-> +	/* Bring Arm9 out of reset */
-
-ARM9
-
-> +	writel_relaxed(0, reg_base + WRAPPER_A9SS_SW_RESET);
-
-in my opinion we should have a wmb here too
-
-regards,
-Stan
+diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
+index ba36ff3e4903..dbb48a89e987 100644
+--- a/drivers/xen/grant-table.c
++++ b/drivers/xen/grant-table.c
+@@ -769,29 +769,18 @@ void gnttab_free_auto_xlat_frames(void)
+ }
+ EXPORT_SYMBOL_GPL(gnttab_free_auto_xlat_frames);
+ 
+-/**
+- * gnttab_alloc_pages - alloc pages suitable for grant mapping into
+- * @nr_pages: number of pages to alloc
+- * @pages: returns the pages
+- */
+-int gnttab_alloc_pages(int nr_pages, struct page **pages)
++int gnttab_pages_set_private(int nr_pages, struct page **pages)
+ {
+ 	int i;
+-	int ret;
+-
+-	ret = alloc_xenballooned_pages(nr_pages, pages);
+-	if (ret < 0)
+-		return ret;
+ 
+ 	for (i = 0; i < nr_pages; i++) {
+ #if BITS_PER_LONG < 64
+ 		struct xen_page_foreign *foreign;
+ 
+ 		foreign = kzalloc(sizeof(*foreign), GFP_KERNEL);
+-		if (!foreign) {
+-			gnttab_free_pages(nr_pages, pages);
++		if (!foreign)
+ 			return -ENOMEM;
+-		}
++
+ 		set_page_private(pages[i], (unsigned long)foreign);
+ #endif
+ 		SetPagePrivate(pages[i]);
+@@ -799,14 +788,30 @@ int gnttab_alloc_pages(int nr_pages, struct page **pages)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(gnttab_alloc_pages);
++EXPORT_SYMBOL_GPL(gnttab_pages_set_private);
+ 
+ /**
+- * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
+- * @nr_pages; number of pages to free
+- * @pages: the pages
++ * gnttab_alloc_pages - alloc pages suitable for grant mapping into
++ * @nr_pages: number of pages to alloc
++ * @pages: returns the pages
+  */
+-void gnttab_free_pages(int nr_pages, struct page **pages)
++int gnttab_alloc_pages(int nr_pages, struct page **pages)
++{
++	int ret;
++
++	ret = alloc_xenballooned_pages(nr_pages, pages);
++	if (ret < 0)
++		return ret;
++
++	ret = gnttab_pages_set_private(nr_pages, pages);
++	if (ret < 0)
++		gnttab_free_pages(nr_pages, pages);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gnttab_alloc_pages);
++
++void gnttab_pages_clear_private(int nr_pages, struct page **pages)
+ {
+ 	int i;
+ 
+@@ -818,6 +823,17 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
+ 			ClearPagePrivate(pages[i]);
+ 		}
+ 	}
++}
++EXPORT_SYMBOL_GPL(gnttab_pages_clear_private);
++
++/**
++ * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
++ * @nr_pages; number of pages to free
++ * @pages: the pages
++ */
++void gnttab_free_pages(int nr_pages, struct page **pages)
++{
++	gnttab_pages_clear_private(nr_pages, pages);
+ 	free_xenballooned_pages(nr_pages, pages);
+ }
+ EXPORT_SYMBOL_GPL(gnttab_free_pages);
+diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
+index 2e37741f6b8d..de03f2542bb7 100644
+--- a/include/xen/grant_table.h
++++ b/include/xen/grant_table.h
+@@ -198,6 +198,9 @@ void gnttab_free_auto_xlat_frames(void);
+ int gnttab_alloc_pages(int nr_pages, struct page **pages);
+ void gnttab_free_pages(int nr_pages, struct page **pages);
+ 
++int gnttab_pages_set_private(int nr_pages, struct page **pages);
++void gnttab_pages_clear_private(int nr_pages, struct page **pages);
++
+ int gnttab_map_refs(struct gnttab_map_grant_ref *map_ops,
+ 		    struct gnttab_map_grant_ref *kmap_ops,
+ 		    struct page **pages, unsigned int count);
+-- 
+2.17.0
