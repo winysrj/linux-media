@@ -1,136 +1,334 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:51079 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751342AbeFANo3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 09:44:29 -0400
-Message-ID: <1527860665.5913.13.camel@pengutronix.de>
-Subject: Re: [PATCH v2 10/10] media: imx.rst: Update doc to reflect fixes to
- interlaced capture
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Fri, 01 Jun 2018 15:44:25 +0200
-In-Reply-To: <1527813049-3231-11-git-send-email-steve_longerbeam@mentor.com>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-         <1527813049-3231-11-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:35172 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751937AbeFALlx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 07:41:53 -0400
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: [PATCH v2 8/9] xen/gntdev: Implement dma-buf import functionality
+Date: Fri,  1 Jun 2018 14:41:31 +0300
+Message-Id: <20180601114132.22596-9-andr2000@gmail.com>
+In-Reply-To: <20180601114132.22596-1-andr2000@gmail.com>
+References: <20180601114132.22596-1-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-05-31 at 17:30 -0700, Steve Longerbeam wrote:
-> Also add an example pipeline for unconverted capture with interweave
-> on SabreAuto.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  Documentation/media/v4l-drivers/imx.rst | 51 ++++++++++++++++++++++++---------
->  1 file changed, 37 insertions(+), 14 deletions(-)
-> 
-> diff --git a/Documentation/media/v4l-drivers/imx.rst b/Documentation/media/v4l-drivers/imx.rst
-> index 65d3d15..4149b76 100644
-> --- a/Documentation/media/v4l-drivers/imx.rst
-> +++ b/Documentation/media/v4l-drivers/imx.rst
-> @@ -179,9 +179,10 @@ sink pad can take UYVY2X8, but the IDMAC source pad can output YUYV2X8.
->  If the sink pad is receiving YUV, the output at the capture device can
->  also be converted to a planar YUV format such as YUV420.
->  
-> -It will also perform simple de-interlace without motion compensation,
-> -which is activated if the sink pad's field type is an interlaced type,
-> -and the IDMAC source pad field type is set to none.
-> +It will also perform simple interweave without motion compensation,
-> +which is activated if the sink pad's field type is sequential top-bottom
-> +or bottom-top or alternate, and the IDMAC source pad field type is
-> +interlaced (t-b, b-t, or unqualified interlaced).
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-I think sink pad alternate behaviour should be equal to sink pad top-
-bottom for PAL and sink pad bottom-top for NTSC. If we agree on this, we
-should mention that here.
+1. Import a dma-buf with the file descriptor provided and export
+   granted references to the pages of that dma-buf into the array
+   of grant references.
 
->  This subdev can generate the following event when enabling the second
->  IDMAC source pad:
-> @@ -383,13 +384,13 @@ and CSC operations and flip/rotation controls. It will receive and
->  process de-interlaced frames from the ipuX_vdic if ipuX_ic_prp is
->  receiving from ipuX_vdic.
->  
-> -Like the ipuX_csiY IDMAC source, it can perform simple de-interlace
-> +Like the ipuX_csiY IDMAC source, it can perform simple interweaving
->  without motion compensation. However, note that if the ipuX_vdic is
->  included in the pipeline (ipuX_ic_prp is receiving from ipuX_vdic),
-> -it's not possible to use simple de-interlace in ipuX_ic_prpvf, since
-> -the ipuX_vdic has already carried out de-interlacing (with motion
-> -compensation) and therefore the field type output from ipuX_ic_prp can
-> -only be none.
-> +it's not possible to use interweave in ipuX_ic_prpvf, since the
-> +ipuX_vdic has already carried out de-interlacing (with motion
-> +compensation) and therefore the field type output from ipuX_vdic
-> +can only be none (progressive).
->  
->  Capture Pipelines
->  -----------------
-> @@ -514,10 +515,32 @@ On the SabreAuto, an on-board ADV7180 SD decoder is connected to the
->  parallel bus input on the internal video mux to IPU1 CSI0.
->  
->  The following example configures a pipeline to capture from the ADV7180
-> +video decoder, assuming NTSC 720x480 input signals, using simple
-> +interweave (unconverted and without motion compensation). The adv7180
-> +must output sequential or alternating fields (field type 'seq-tb',
-> +'seq-bt', or 'alternate'):
-> +
-> +.. code-block:: none
-> +
-> +   # Setup links
-> +   media-ctl -l "'adv7180 3-0021':0 -> 'ipu1_csi0_mux':1[1]"
-> +   media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
-> +   media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
-> +   # Configure pads
-> +   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
-> +   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
-> +   media-ctl -V "'ipu1_csi0':2 [fmt:AYUV32/720x480 field:interlaced]"
+2. Add API to close all references to an imported buffer, so it can be
+   released by the owner. This is only valid for buffers created with
+   IOCTL_GNTDEV_DMABUF_IMP_TO_REFS.
 
-Could the example suggest using interlaced-bt to be explicit here?
-Actually, I don't think we should allow interlaced on the CSI src pads
-at all in this case. Technically it always writes either seq-tb or seq-
-bt into the smfc, never interlaced (unless the input is already
-interlaced).
+Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+---
+ drivers/xen/gntdev-dmabuf.c | 243 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 241 insertions(+), 2 deletions(-)
 
-> +Streaming can then begin on the capture device node at
-> +"ipu1_csi0 capture". The v4l2-ctl tool can be used to select any
-> +supported YUV pixelformat on the capture device node.
-> +
-> +This example configures a pipeline to capture from the ADV7180
->  video decoder, assuming NTSC 720x480 input signals, with Motion
-> -Compensated de-interlacing. Pad field types assume the adv7180 outputs
-> -"interlaced". $outputfmt can be any format supported by the ipu1_ic_prpvf
-> -entity at its output pad:
-> +Compensated de-interlacing. The adv7180 must output sequential or
-> +alternating fields (field type 'seq-tb', 'seq-bt', or 'alternate').
-> +$outputfmt can be any format supported by the ipu1_ic_prpvf entity
-> +at its output pad:
->  
->  .. code-block:: none
->  
-> @@ -529,9 +552,9 @@ entity at its output pad:
->     media-ctl -l "'ipu1_ic_prp':2 -> 'ipu1_ic_prpvf':0[1]"
->     media-ctl -l "'ipu1_ic_prpvf':1 -> 'ipu1_ic_prpvf capture':0[1]"
->     # Configure pads
-> -   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480]"
-> -   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]"
-> -   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x480 field:interlaced]"
-> +   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
-> +   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
-> +   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x480]"
->     media-ctl -V "'ipu1_vdic':2 [fmt:AYUV32/720x480 field:none]"
->     media-ctl -V "'ipu1_ic_prp':2 [fmt:AYUV32/720x480 field:none]"
->     media-ctl -V "'ipu1_ic_prpvf':1 [fmt:$outputfmt field:none]"
-
-This looks good to me.
-
-regards
-Philipp
+diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
+index f612468879b4..b5569a220f03 100644
+--- a/drivers/xen/gntdev-dmabuf.c
++++ b/drivers/xen/gntdev-dmabuf.c
+@@ -11,8 +11,20 @@
+ #include <linux/dma-buf.h>
+ #include <linux/slab.h>
+ 
++#include <xen/xen.h>
++#include <xen/grant_table.h>
++
+ #include "gntdev-dmabuf.h"
+ 
++#ifndef GRANT_INVALID_REF
++/*
++ * Note on usage of grant reference 0 as invalid grant reference:
++ * grant reference 0 is valid, but never exposed to a driver,
++ * because of the fact it is already in use/reserved by the PV console.
++ */
++#define GRANT_INVALID_REF	0
++#endif
++
+ struct gntdev_dmabuf {
+ 	struct gntdev_dmabuf_priv *priv;
+ 	struct dma_buf *dmabuf;
+@@ -29,6 +41,14 @@ struct gntdev_dmabuf {
+ 			void (*release)(struct gntdev_priv *priv,
+ 					struct grant_map *map);
+ 		} exp;
++		struct {
++			/* Granted references of the imported buffer. */
++			grant_ref_t *refs;
++			/* Scatter-gather table of the imported buffer. */
++			struct sg_table *sgt;
++			/* dma-buf attachment of the imported buffer. */
++			struct dma_buf_attachment *attach;
++		} imp;
+ 	} u;
+ 
+ 	/* Number of pages this buffer has. */
+@@ -53,6 +73,8 @@ struct gntdev_dmabuf_priv {
+ 	struct list_head exp_list;
+ 	/* List of wait objects. */
+ 	struct list_head exp_wait_list;
++	/* List of imported DMA buffers. */
++	struct list_head imp_list;
+ 	/* This is the lock which protects dma_buf_xxx lists. */
+ 	struct mutex lock;
+ };
+@@ -424,21 +446,237 @@ int gntdev_dmabuf_exp_from_pages(struct gntdev_dmabuf_export_args *args)
+ /* DMA buffer import support.                                         */
+ /* ------------------------------------------------------------------ */
+ 
++static int
++dmabuf_imp_grant_foreign_access(struct page **pages, u32 *refs,
++				int count, int domid)
++{
++	grant_ref_t priv_gref_head;
++	int i, ret;
++
++	ret = gnttab_alloc_grant_references(count, &priv_gref_head);
++	if (ret < 0) {
++		pr_err("Cannot allocate grant references, ret %d\n", ret);
++		return ret;
++	}
++
++	for (i = 0; i < count; i++) {
++		int cur_ref;
++
++		cur_ref = gnttab_claim_grant_reference(&priv_gref_head);
++		if (cur_ref < 0) {
++			ret = cur_ref;
++			pr_err("Cannot claim grant reference, ret %d\n", ret);
++			goto out;
++		}
++
++		gnttab_grant_foreign_access_ref(cur_ref, domid,
++						xen_page_to_gfn(pages[i]), 0);
++		refs[i] = cur_ref;
++	}
++
++	ret = 0;
++
++out:
++	gnttab_free_grant_references(priv_gref_head);
++	return ret;
++}
++
++static void dmabuf_imp_end_foreign_access(u32 *refs, int count)
++{
++	int i;
++
++	for (i = 0; i < count; i++)
++		if (refs[i] != GRANT_INVALID_REF)
++			gnttab_end_foreign_access(refs[i], 0, 0UL);
++}
++
++static void dmabuf_imp_free_storage(struct gntdev_dmabuf *gntdev_dmabuf)
++{
++	kfree(gntdev_dmabuf->pages);
++	kfree(gntdev_dmabuf->u.imp.refs);
++	kfree(gntdev_dmabuf);
++}
++
++static struct gntdev_dmabuf *dmabuf_imp_alloc_storage(int count)
++{
++	struct gntdev_dmabuf *gntdev_dmabuf;
++	int i;
++
++	gntdev_dmabuf = kzalloc(sizeof(*gntdev_dmabuf), GFP_KERNEL);
++	if (!gntdev_dmabuf)
++		goto fail;
++
++	gntdev_dmabuf->u.imp.refs = kcalloc(count,
++					    sizeof(gntdev_dmabuf->u.imp.refs[0]),
++					    GFP_KERNEL);
++	if (!gntdev_dmabuf->u.imp.refs)
++		goto fail;
++
++	gntdev_dmabuf->pages = kcalloc(count,
++				       sizeof(gntdev_dmabuf->pages[0]),
++				       GFP_KERNEL);
++	if (!gntdev_dmabuf->pages)
++		goto fail;
++
++	gntdev_dmabuf->nr_pages = count;
++
++	for (i = 0; i < count; i++)
++		gntdev_dmabuf->u.imp.refs[i] = GRANT_INVALID_REF;
++
++	return gntdev_dmabuf;
++
++fail:
++	dmabuf_imp_free_storage(gntdev_dmabuf);
++	return ERR_PTR(-ENOMEM);
++}
++
+ struct gntdev_dmabuf *
+ gntdev_dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
+ 			  int fd, int count, int domid)
+ {
+-	return ERR_PTR(-ENOMEM);
++	struct gntdev_dmabuf *gntdev_dmabuf, *ret;
++	struct dma_buf *dma_buf;
++	struct dma_buf_attachment *attach;
++	struct sg_table *sgt;
++	struct sg_page_iter sg_iter;
++	int i;
++
++	dma_buf = dma_buf_get(fd);
++	if (IS_ERR(dma_buf))
++		return ERR_CAST(dma_buf);
++
++	gntdev_dmabuf = dmabuf_imp_alloc_storage(count);
++	if (IS_ERR(gntdev_dmabuf)) {
++		ret = gntdev_dmabuf;
++		goto fail_put;
++}
++
++	gntdev_dmabuf->priv = priv;
++	gntdev_dmabuf->fd = fd;
++
++	attach = dma_buf_attach(dma_buf, dev);
++	if (IS_ERR(attach)) {
++		ret = ERR_CAST(attach);
++		goto fail_free_obj;
++	}
++
++	gntdev_dmabuf->u.imp.attach = attach;
++
++	sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
++	if (IS_ERR(sgt)) {
++		ret = ERR_CAST(sgt);
++		goto fail_detach;
++	}
++
++	/* Check number of pages that imported buffer has. */
++	if (attach->dmabuf->size != gntdev_dmabuf->nr_pages << PAGE_SHIFT) {
++		ret = ERR_PTR(-EINVAL);
++		pr_err("DMA buffer has %zu pages, user-space expects %d\n",
++		       attach->dmabuf->size, gntdev_dmabuf->nr_pages);
++		goto fail_unmap;
++	}
++
++	gntdev_dmabuf->u.imp.sgt = sgt;
++
++	/* Now convert sgt to array of pages and check for page validity. */
++	i = 0;
++	for_each_sg_page(sgt->sgl, &sg_iter, sgt->nents, 0) {
++		struct page *page = sg_page_iter_page(&sg_iter);
++		/*
++		 * Check if page is valid: this can happen if we are given
++		 * a page from VRAM or other resources which are not backed
++		 * by a struct page.
++		 */
++		if (!pfn_valid(page_to_pfn(page))) {
++			ret = ERR_PTR(-EINVAL);
++			goto fail_unmap;
++		}
++
++		gntdev_dmabuf->pages[i++] = page;
++	}
++
++	ret = ERR_PTR(dmabuf_imp_grant_foreign_access(gntdev_dmabuf->pages,
++						      gntdev_dmabuf->u.imp.refs,
++						      count, domid));
++	if (IS_ERR(ret))
++		goto fail_end_access;
++
++	pr_debug("Imported DMA buffer with fd %d\n", fd);
++
++	mutex_lock(&priv->lock);
++	list_add(&gntdev_dmabuf->next, &priv->imp_list);
++	mutex_unlock(&priv->lock);
++
++	return gntdev_dmabuf;
++
++fail_end_access:
++	dmabuf_imp_end_foreign_access(gntdev_dmabuf->u.imp.refs, count);
++fail_unmap:
++	dma_buf_unmap_attachment(attach, sgt, DMA_BIDIRECTIONAL);
++fail_detach:
++	dma_buf_detach(dma_buf, attach);
++fail_free_obj:
++	dmabuf_imp_free_storage(gntdev_dmabuf);
++fail_put:
++	dma_buf_put(dma_buf);
++	return ret;
+ }
+ 
+ u32 *gntdev_dmabuf_imp_get_refs(struct gntdev_dmabuf *gntdev_dmabuf)
+ {
++	if (gntdev_dmabuf)
++		return gntdev_dmabuf->u.imp.refs;
++
+ 	return NULL;
+ }
+ 
++/*
++ * Find the hyper dma-buf by its file descriptor and remove
++ * it from the buffer's list.
++ */
++static struct gntdev_dmabuf *
++dmabuf_imp_find_unlink(struct gntdev_dmabuf_priv *priv, int fd)
++{
++	struct gntdev_dmabuf *q, *gntdev_dmabuf, *ret = ERR_PTR(-ENOENT);
++
++	mutex_lock(&priv->lock);
++	list_for_each_entry_safe(gntdev_dmabuf, q, &priv->imp_list, next) {
++		if (gntdev_dmabuf->fd == fd) {
++			pr_debug("Found gntdev_dmabuf in the import list\n");
++			ret = gntdev_dmabuf;
++			list_del(&gntdev_dmabuf->next);
++			break;
++		}
++	}
++	mutex_unlock(&priv->lock);
++	return ret;
++}
++
+ int gntdev_dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd)
+ {
+-	return -EINVAL;
++	struct gntdev_dmabuf *gntdev_dmabuf;
++	struct dma_buf_attachment *attach;
++	struct dma_buf *dma_buf;
++
++	gntdev_dmabuf = dmabuf_imp_find_unlink(priv, fd);
++	if (IS_ERR(gntdev_dmabuf))
++		return PTR_ERR(gntdev_dmabuf);
++
++	pr_debug("Releasing DMA buffer with fd %d\n", fd);
++
++	attach = gntdev_dmabuf->u.imp.attach;
++
++	if (gntdev_dmabuf->u.imp.sgt)
++		dma_buf_unmap_attachment(attach, gntdev_dmabuf->u.imp.sgt,
++					 DMA_BIDIRECTIONAL);
++	dma_buf = attach->dmabuf;
++	dma_buf_detach(attach->dmabuf, attach);
++	dma_buf_put(dma_buf);
++
++	dmabuf_imp_end_foreign_access(gntdev_dmabuf->u.imp.refs,
++				      gntdev_dmabuf->nr_pages);
++	dmabuf_imp_free_storage(gntdev_dmabuf);
++	return 0;
+ }
+ 
+ struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
+@@ -452,6 +690,7 @@ struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
+ 	mutex_init(&priv->lock);
+ 	INIT_LIST_HEAD(&priv->exp_list);
+ 	INIT_LIST_HEAD(&priv->exp_wait_list);
++	INIT_LIST_HEAD(&priv->imp_list);
+ 
+ 	return priv;
+ }
+-- 
+2.17.0
