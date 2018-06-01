@@ -1,116 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33638 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750938AbeEQMvR (ORCPT
+Received: from mail-pf0-f174.google.com ([209.85.192.174]:37791 "EHLO
+        mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750736AbeFAAbB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 May 2018 08:51:17 -0400
-Received: by mail-wm0-f68.google.com with SMTP id x12-v6so5334264wmc.0
-        for <linux-media@vger.kernel.org>; Thu, 17 May 2018 05:51:17 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
+        Thu, 31 May 2018 20:31:01 -0400
+Received: by mail-pf0-f174.google.com with SMTP id e9-v6so11596920pfi.4
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:01 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v4 10/12] ARM: dts: imx7s-warp: add ov2680 sensor node
-Date: Thu, 17 May 2018 13:50:31 +0100
-Message-Id: <20180517125033.18050-11-rui.silva@linaro.org>
-In-Reply-To: <20180517125033.18050-1-rui.silva@linaro.org>
-References: <20180517125033.18050-1-rui.silva@linaro.org>
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 00/10] imx-media: Fixes for interlaced capture
+Date: Thu, 31 May 2018 17:30:39 -0700
+Message-Id: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Warp7 comes with a Omnivision OV2680 sensor, add the node here to make complete
-the camera data path for this system. Add the needed regulator to the analog
-voltage supply, the port and endpoints in mipi_csi node and the pinctrl for the
-reset gpio.
+A set of patches that fixes some bugs with capturing from an
+interlaced source, and incompatibilites between IDMAC interlace
+interweaving and 4:2:0 data write reduction.
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- arch/arm/boot/dts/imx7s-warp.dts | 44 ++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+History:
+v2:
+- update media driver doc.
+- enable idmac interweave only if input field is sequential/alternate,
+  and output field is 'interlaced*'.
+- move field try logic out of *try_fmt and into separate function.
+- fix bug with resetting crop/compose rectangles.
+- add a patch that fixes a field order bug in VDIC indirect mode.
+- remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
+  Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
+- add macro V4L2_FIELD_IS_INTERLACED().
+  
+Steve Longerbeam (10):
+  media: imx-csi: Pass sink pad field to ipu_csi_init_interface
+  gpu: ipu-csi: Check for field type alternate
+  media: videodev2.h: Add macros V4L2_FIELD_IS_{INTERLACED|SEQUENTIAL}
+  media: imx: interweave only for sequential input/interlaced output
+    fields
+  media: imx: interweave and odd-chroma-row skip are incompatible
+  media: imx: Fix field setting logic in try_fmt
+  media: imx-csi: Allow skipping odd chroma rows for YVU420
+  media: imx: vdic: rely on VDIC for correct field order
+  media: imx-csi: Move crop/compose reset after filling default mbus
+    fields
+  media: imx.rst: Update doc to reflect fixes to interlaced capture
 
-diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
-index cb175ee2fc9d..bf04e13afd02 100644
---- a/arch/arm/boot/dts/imx7s-warp.dts
-+++ b/arch/arm/boot/dts/imx7s-warp.dts
-@@ -91,6 +91,14 @@
- 		regulator-always-on;
- 	};
- 
-+	reg_peri_3p15v: regulator-peri-3p15v {
-+		compatible = "regulator-fixed";
-+		regulator-name = "peri_3p15v_reg";
-+		regulator-min-microvolt = <3150000>;
-+		regulator-max-microvolt = <3150000>;
-+		regulator-always-on;
-+	};
-+
- 	sound {
- 		compatible = "simple-audio-card";
- 		simple-audio-card,name = "imx7-sgtl5000";
-@@ -218,6 +226,27 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_i2c2>;
- 	status = "okay";
-+
-+	ov2680: camera@36 {
-+		compatible = "ovti,ov2680";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ov2680>;
-+		reg = <0x36>;
-+		clocks = <&osc>;
-+		clock-names = "xvclk";
-+		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
-+		DOVDD-supply = <&sw2_reg>;
-+		DVDD-supply = <&sw2_reg>;
-+		AVDD-supply = <&reg_peri_3p15v>;
-+
-+		port {
-+			ov2680_to_mipi: endpoint {
-+				remote-endpoint = <&mipi_from_sensor>;
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+			};
-+		};
-+	};
- };
- 
- &i2c4 {
-@@ -352,6 +381,15 @@
- 	#size-cells = <0>;
- 	fsl,csis-hs-settle = <3>;
- 
-+	port@0 {
-+		reg = <0>;
-+
-+		mipi_from_sensor: endpoint {
-+			remote-endpoint = <&ov2680_to_mipi>;
-+			data-lanes = <1>;
-+		};
-+	};
-+
- 	port@1 {
- 		reg = <1>;
- 
-@@ -408,6 +446,12 @@
- 		>;
- 	};
- 
-+	pinctrl_ov2680: ov2660grp {
-+		fsl,pins = <
-+			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
-+		>;
-+	};
-+
- 	pinctrl_sai1: sai1grp {
- 		fsl,pins = <
- 			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
+ Documentation/media/v4l-drivers/imx.rst     |  51 +++++++++----
+ drivers/gpu/ipu-v3/ipu-csi.c                |   3 +-
+ drivers/staging/media/imx/imx-ic-prpencvf.c |  51 +++++++++++--
+ drivers/staging/media/imx/imx-media-csi.c   | 114 ++++++++++++++++++----------
+ drivers/staging/media/imx/imx-media-vdic.c  |  12 +--
+ include/uapi/linux/videodev2.h              |   7 ++
+ 6 files changed, 165 insertions(+), 73 deletions(-)
+
 -- 
-2.17.0
+2.7.4
