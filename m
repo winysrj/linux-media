@@ -1,48 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:51853 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932514AbeE1P57 (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:44098 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751194AbeFAAbO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 May 2018 11:57:59 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: marvel-ccic: mmp: select VIDEOBUF2_VMALLOC/DMA_CONTIG
-Date: Mon, 28 May 2018 17:57:00 +0200
-Message-Id: <20180528155750.2932996-1-arnd@arndb.de>
+        Thu, 31 May 2018 20:31:14 -0400
+Received: by mail-pl0-f65.google.com with SMTP id z9-v6so10882453plk.11
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:14 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 08/10] media: imx: vdic: rely on VDIC for correct field order
+Date: Thu, 31 May 2018 17:30:47 -0700
+Message-Id: <1527813049-3231-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Testing randconfig builds after the return of the mmp ccic driver shows
-a link error in some configurations:
+prepare_vdi_in_buffers() was setting up the dma pointers as if the
+VDIC is always programmed to receive the fields in bottom-top order,
+i.e. as if ipu_vdi_set_field_order() only programs BT order in the VDIC.
+But that's not true, ipu_vdi_set_field_order() is working correctly.
 
-drivers/media/platform/marvell-ccic/mcam-core.o: In function `mccic_register':
-mcam-core.c:(.text+0x2e48): undefined reference to `vb2_dma_contig_memops'
+So fix prepare_vdi_in_buffers() to give the VDIC the fields in whatever
+order they were received by the video source, and rely on the VDIC to
+sort out which is top and which is bottom.
 
-A closer look at the mcam-core.c file reveals that we need to select
-both VIDEOBUF2_DMA_CONTIG and VIDEOBUF2_VMALLOC, as already do for
-VIDEO_CAFE_CCIC.
-
-Fixes: 0a9c643c8faa ("media: marvel-ccic: re-enable mmp-driver build")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/marvell-ccic/Kconfig | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/staging/media/imx/imx-media-vdic.c | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/platform/marvell-ccic/Kconfig b/drivers/media/platform/marvell-ccic/Kconfig
-index 21dacef7c2fc..13cc6f2159d3 100644
---- a/drivers/media/platform/marvell-ccic/Kconfig
-+++ b/drivers/media/platform/marvell-ccic/Kconfig
-@@ -18,6 +18,8 @@ config VIDEO_MMP_CAMERA
- 	depends on ARCH_MMP || COMPILE_TEST
- 	select VIDEO_OV7670
- 	select I2C_GPIO
-+	select VIDEOBUF2_VMALLOC
-+	select VIDEOBUF2_DMA_CONTIG
- 	select VIDEOBUF2_DMA_SG
- 	---help---
- 	  This is a Video4Linux2 driver for the integrated camera
+diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
+index 482250d..4a89071 100644
+--- a/drivers/staging/media/imx/imx-media-vdic.c
++++ b/drivers/staging/media/imx/imx-media-vdic.c
+@@ -219,26 +219,18 @@ static void __maybe_unused prepare_vdi_in_buffers(struct vdic_priv *priv,
+ 
+ 	switch (priv->fieldtype) {
+ 	case V4L2_FIELD_SEQ_TB:
+-		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0);
+-		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + fs;
+-		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
+-		break;
+ 	case V4L2_FIELD_SEQ_BT:
+ 		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0) + fs;
+ 		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
+ 		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + fs;
+ 		break;
++	case V4L2_FIELD_INTERLACED_TB:
+ 	case V4L2_FIELD_INTERLACED_BT:
++	case V4L2_FIELD_INTERLACED:
+ 		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0) + is;
+ 		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
+ 		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + is;
+ 		break;
+-	default:
+-		/* assume V4L2_FIELD_INTERLACED_TB */
+-		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0);
+-		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + is;
+-		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
+-		break;
+ 	}
+ 
+ 	ipu_cpmem_set_buffer(priv->vdi_in_ch_p, 0, prev_phys);
 -- 
-2.9.0
+2.7.4
