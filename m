@@ -1,59 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:33806 "EHLO mail.ispras.ru"
+Received: from mga05.intel.com ([192.55.52.43]:32475 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751436AbeFBWLx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 2 Jun 2018 18:11:53 -0400
-Subject: Re: [SIL2review] [PATCH] media: tc358743: release device_node in
- tc358743_probe_of()
-To: Nicholas Mc Guire <der.herr@hofr.at>
-Cc: Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        ldv-project@linuxtesting.org, sil2review@lists.osadl.org,
-        linux-kernel@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>,
-        linux-media@vger.kernel.org
-References: <1527285240-12762-1-git-send-email-khoroshilov@ispras.ru>
- <20180526143834.GA28325@osadl.at>
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Message-ID: <a89812ad-8cbb-129f-4bb2-0c1d92d28598@ispras.ru>
-Date: Sun, 3 Jun 2018 01:11:49 +0300
+        id S1750766AbeFAJmL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Jun 2018 05:42:11 -0400
+Date: Fri, 1 Jun 2018 12:42:07 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: bingbu.cao@intel.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        tian.shu.qiu@intel.com, rajmohan.mani@intel.com, tfiga@chromium.org
+Subject: Re: [RESEND PATCH V2 2/2] media: ak7375: Add ak7375 lens voice coil
+ driver
+Message-ID: <20180601094207.355n2vzpscsgwyc6@paasikivi.fi.intel.com>
+References: <1527242135-22866-1-git-send-email-bingbu.cao@intel.com>
+ <1527242135-22866-2-git-send-email-bingbu.cao@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20180526143834.GA28325@osadl.at>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1527242135-22866-2-git-send-email-bingbu.cao@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26.05.2018 17:38, Nicholas Mc Guire wrote:
-> On Sat, May 26, 2018 at 12:54:00AM +0300, Alexey Khoroshilov wrote:
->> of_graph_get_next_endpoint() returns device_node with refcnt increased,
->> but these is no of_node_put() for it.
-> 
-> I think this is correct - but would it not be simpler to do
-> 
->    endpoint = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(ep));
->    of_node_put(ep);
->    if (IS_ERR(endpoint)) {
->    ....
-> 
-> As the of_node_put(np) actually is unconditional anyway I think this
-> should be semantically equivalent.
+On Fri, May 25, 2018 at 05:55:35PM +0800, bingbu.cao@intel.com wrote:
+> +static int ak7375_i2c_write(struct ak7375_device *ak7375,
+> +	u8 addr, u16 data, int size)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&ak7375->sd);
+> +	int ret;
+> +	u8 buf[3];
+> +
+> +	if (size != 1 && size != 2)
+> +		return -EINVAL;
+> +	buf[0] = addr;
+> +	buf[2] = data & 0xff;
+> +	if (size == 2)
+> +		buf[1] = data >> 8;
+> +	ret = i2c_master_send(client, (const char *)buf, size + 1);
 
-You are right. But the same is true for
-v4l2_fwnode_endpoint_free(endpoint);
-that is already correctly handled by the driver.
-So, I have preferred to follow the same pattern.
+I don't have a data datasheet for this thing, but it looks like buf[1] will
+be undefined for writes the size of which is 1. And this what appears to be
+written to the device as well...
 
+> +	if (ret < 0)
+> +		return ret;
+> +	if (ret != size + 1)
+> +		return -EIO;
+> +	return 0;
+> +}
 
-> 
->>
->> The patch adds one on error and normal paths.
->>
->> Found by Linux Driver Verification project (linuxtesting.org).
->>
->> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
-> Reviewed-by: Nicholas Mc Guire <der.herr@hofr.at>
-
-
-Thank you,
-Alexey
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
