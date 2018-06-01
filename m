@@ -1,113 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:37991 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750868AbeFDMKz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 08:10:55 -0400
-Date: Mon, 4 Jun 2018 14:09:41 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Philipp Zabel <philipp.zabel@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v4 6/6] media: uvcvideo: Move decode processing to process
- context
-In-Reply-To: <cae511f90085701e7093ce39dc8dabf8fc16b844.1522168131.git-series.kieran.bingham@ideasonboard.com>
-Message-ID: <alpine.DEB.2.20.1806041407450.23116@axis700.grange>
-References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com> <cae511f90085701e7093ce39dc8dabf8fc16b844.1522168131.git-series.kieran.bingham@ideasonboard.com>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34110 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750974AbeFAIii (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Jun 2018 04:38:38 -0400
+Subject: Re: [PATCH v7 3/6] mfd: cros-ec: Increase maximum mkbp event size
+To: Neil Armstrong <narmstrong@baylibre.com>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        eballetbo@gmail.com, Stefan Adolfsson <sadolfsson@chromium.org>
+References: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
+ <1527841154-24832-4-git-send-email-narmstrong@baylibre.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f6005be9-bd87-e741-8a61-f91c95a0ab88@xs4all.nl>
+Date: Fri, 1 Jun 2018 10:38:31 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1527841154-24832-4-git-send-email-narmstrong@baylibre.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+On 06/01/2018 10:19 AM, Neil Armstrong wrote:
+> Having a 16 byte mkbp event size makes it possible to send CEC
+> messages from the EC to the AP directly inside the mkbp event
+> instead of first doing a notification and then a read.
+> 
+> Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
 
-I've got a question:
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Tue, 27 Mar 2018, Kieran Bingham wrote:
+Regards,
 
-> Newer high definition cameras, and cameras with multiple lenses such as
-> the range of stereo-vision cameras now available have ever increasing
-> data rates.
-> 
-> The inclusion of a variable length packet header in URB packets mean
-> that we must memcpy the frame data out to our destination 'manually'.
-> This can result in data rates of up to 2 gigabits per second being
-> processed.
-> 
-> To improve efficiency, and maximise throughput, handle the URB decode
-> processing through a work queue to move it from interrupt context, and
-> allow multiple processors to work on URBs in parallel.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
-> 
+	Hans
+
 > ---
-> v2:
->  - Lock full critical section of usb_submit_urb()
+>  drivers/platform/chrome/cros_ec_proto.c | 40 +++++++++++++++++++++++++--------
+>  include/linux/mfd/cros_ec.h             |  2 +-
+>  include/linux/mfd/cros_ec_commands.h    | 19 ++++++++++++++++
+>  3 files changed, 51 insertions(+), 10 deletions(-)
 > 
-> v3:
->  - Fix race on submitting uvc_video_decode_data_work() to work queue.
->  - Rename uvc_decode_op -> uvc_copy_op (Generic to encode/decode)
->  - Rename decodes -> copy_operations
->  - Don't queue work if there is no async task
->  - obtain copy op structure directly in uvc_video_decode_data()
->  - uvc_video_decode_data_work() -> uvc_video_copy_data_work()
-> 
-> v4:
->  - Provide for_each_uvc_urb()
->  - Simplify fix for shutdown race to flush queue before freeing URBs
->  - Rebase to v4.16-rc4 (linux-media/master) adjusting for metadata
->    conflicts.
-> 
->  drivers/media/usb/uvc/uvc_video.c | 107 ++++++++++++++++++++++++-------
->  drivers/media/usb/uvc/uvcvideo.h  |  28 ++++++++-
->  2 files changed, 111 insertions(+), 24 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-> index 7dd0dcb457f3..a62e8caf367c 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1042,21 +1042,54 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
->  	return data[0];
+> diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
+> index e7bbdf9..c4f6c44 100644
+> --- a/drivers/platform/chrome/cros_ec_proto.c
+> +++ b/drivers/platform/chrome/cros_ec_proto.c
+> @@ -504,10 +504,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
 >  }
+>  EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
 >  
-> -static void uvc_video_decode_data(struct uvc_streaming *stream,
-> +/*
-> + * uvc_video_decode_data_work: Asynchronous memcpy processing
-> + *
-> + * Perform memcpy tasks in process context, with completion handlers
-> + * to return the URB, and buffer handles.
-> + */
-> +static void uvc_video_copy_data_work(struct work_struct *work)
+> +static int get_next_event_xfer(struct cros_ec_device *ec_dev,
+> +			       struct cros_ec_command *msg,
+> +			       int version, uint32_t size)
 > +{
-> +	struct uvc_urb *uvc_urb = container_of(work, struct uvc_urb, work);
-> +	unsigned int i;
 > +	int ret;
 > +
-> +	for (i = 0; i < uvc_urb->async_operations; i++) {
-> +		struct uvc_copy_op *op = &uvc_urb->copy_operations[i];
+> +	msg->version = version;
+> +	msg->command = EC_CMD_GET_NEXT_EVENT;
+> +	msg->insize = size;
+> +	msg->outsize = 0;
 > +
-> +		memcpy(op->dst, op->src, op->len);
-> +
-> +		/* Release reference taken on this buffer */
-> +		uvc_queue_buffer_release(op->buf);
+> +	ret = cros_ec_cmd_xfer(ec_dev, msg);
+> +	if (ret > 0) {
+> +		ec_dev->event_size = ret - 1;
+> +		memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
 > +	}
 > +
-> +	ret = usb_submit_urb(uvc_urb->urb, GFP_ATOMIC);
-
-Does this still have to be ATOMIC now that it's called from a work queue 
-context?
-
-> +	if (ret < 0)
-> +		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
-> +			   ret);
+> +	return ret;
 > +}
-
-[snip]
-
-Thannks
-Guennadi
+> +
+>  static int get_next_event(struct cros_ec_device *ec_dev)
+>  {
+>  	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
+>  	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
+> +	static int cmd_version = 1;
+>  	int ret;
+>  
+>  	if (ec_dev->suspended) {
+> @@ -515,18 +536,19 @@ static int get_next_event(struct cros_ec_device *ec_dev)
+>  		return -EHOSTDOWN;
+>  	}
+>  
+> -	msg->version = 0;
+> -	msg->command = EC_CMD_GET_NEXT_EVENT;
+> -	msg->insize = sizeof(ec_dev->event_data);
+> -	msg->outsize = 0;
+> +	if (cmd_version == 1) {
+> +		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
+> +				sizeof(struct ec_response_get_next_event_v1));
+> +		if (ret < 0 || msg->result != EC_RES_INVALID_VERSION)
+> +			return ret;
+>  
+> -	ret = cros_ec_cmd_xfer(ec_dev, msg);
+> -	if (ret > 0) {
+> -		ec_dev->event_size = ret - 1;
+> -		memcpy(&ec_dev->event_data, msg->data,
+> -		       sizeof(ec_dev->event_data));
+> +		/* Fallback to version 0 for future send attempts */
+> +		cmd_version = 0;
+>  	}
+>  
+> +	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
+> +				  sizeof(struct ec_response_get_next_event));
+> +
+>  	return ret;
+>  }
+>  
+> diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
+> index f36125e..32caef3 100644
+> --- a/include/linux/mfd/cros_ec.h
+> +++ b/include/linux/mfd/cros_ec.h
+> @@ -147,7 +147,7 @@ struct cros_ec_device {
+>  	bool mkbp_event_supported;
+>  	struct blocking_notifier_head event_notifier;
+>  
+> -	struct ec_response_get_next_event event_data;
+> +	struct ec_response_get_next_event_v1 event_data;
+>  	int event_size;
+>  	u32 host_event_wake_mask;
+>  };
+> diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
+> index f2edd99..cc0768e 100644
+> --- a/include/linux/mfd/cros_ec_commands.h
+> +++ b/include/linux/mfd/cros_ec_commands.h
+> @@ -2093,12 +2093,31 @@ union ec_response_get_next_data {
+>  	uint32_t   sysrq;
+>  } __packed;
+>  
+> +union ec_response_get_next_data_v1 {
+> +	uint8_t   key_matrix[16];
+> +
+> +	/* Unaligned */
+> +	uint32_t  host_event;
+> +
+> +	uint32_t   buttons;
+> +	uint32_t   switches;
+> +	uint32_t   sysrq;
+> +	uint32_t   cec_events;
+> +	uint8_t    cec_message[16];
+> +} __packed;
+> +
+>  struct ec_response_get_next_event {
+>  	uint8_t event_type;
+>  	/* Followed by event data if any */
+>  	union ec_response_get_next_data data;
+>  } __packed;
+>  
+> +struct ec_response_get_next_event_v1 {
+> +	uint8_t event_type;
+> +	/* Followed by event data if any */
+> +	union ec_response_get_next_data_v1 data;
+> +} __packed;
+> +
+>  /* Bit indices for buttons and switches.*/
+>  /* Buttons */
+>  #define EC_MKBP_POWER_BUTTON	0
+> 
