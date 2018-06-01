@@ -1,415 +1,509 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:36531 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751747AbeFELxv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2018 07:53:51 -0400
-Message-ID: <1528199628.4074.15.camel@pengutronix.de>
-Subject: Re: [RFC PATCH 2/2] media: docs-rst: Add encoder UAPI specification
- to Codec Interfaces
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        =?UTF-8?Q?Pawe=C5=82_O=C5=9Bciak?= <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Kamil Debski <kamil@wypas.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Tue, 05 Jun 2018 13:53:48 +0200
-In-Reply-To: <20180605103328.176255-3-tfiga@chromium.org>
-References: <20180605103328.176255-1-tfiga@chromium.org>
-         <20180605103328.176255-3-tfiga@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:35168 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751737AbeFALlv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 07:41:51 -0400
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: [PATCH v2 6/9] xen/gntdev: Add initial support for dma-buf UAPI
+Date: Fri,  1 Jun 2018 14:41:29 +0300
+Message-Id: <20180601114132.22596-7-andr2000@gmail.com>
+In-Reply-To: <20180601114132.22596-1-andr2000@gmail.com>
+References: <20180601114132.22596-1-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2018-06-05 at 19:33 +0900, Tomasz Figa wrote:
-> Due to complexity of the video encoding process, the V4L2 drivers of
-> stateful encoder hardware require specific sequencies of V4L2 API calls
-> to be followed. These include capability enumeration, initialization,
-> encoding, encode parameters change and flush.
-> 
-> Specifics of the above have been discussed during Media Workshops at
-> LinuxCon Europe 2012 in Barcelona and then later Embedded Linux
-> Conference Europe 2014 in Düsseldorf. The de facto Codec API that
-> originated at those events was later implemented by the drivers we already
-> have merged in mainline, such as s5p-mfc or mtk-vcodec.
-> 
-> The only thing missing was the real specification included as a part of
-> Linux Media documentation. Fix it now and document the encoder part of
-> the Codec API.
-> 
-> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> ---
->  Documentation/media/uapi/v4l/dev-codec.rst | 313 +++++++++++++++++++++
->  1 file changed, 313 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/dev-codec.rst b/Documentation/media/uapi/v4l/dev-codec.rst
-> index 0483b10c205e..325a51bb09df 100644
-> --- a/Documentation/media/uapi/v4l/dev-codec.rst
-> +++ b/Documentation/media/uapi/v4l/dev-codec.rst
-> @@ -805,3 +805,316 @@ of the driver.
->  To summarize, setting formats and allocation must always start with the
->  OUTPUT queue and the OUTPUT queue is the master that governs the set of
->  supported formats for the CAPTURE queue.
-> +
-> +Encoder
-> +=======
-> +
-> +Querying capabilities
-> +---------------------
-> +
-> +1. To enumerate the set of coded formats supported by the driver, the
-> +   client uses :c:func:`VIDIOC_ENUM_FMT` for CAPTURE. The driver must always
-> +   return the full set of supported formats, irrespective of the
-> +   format set on the OUTPUT queue.
-> +
-> +2. To enumerate the set of supported raw formats, the client uses
-> +   :c:func:`VIDIOC_ENUM_FMT` for OUTPUT queue. The driver must return only
-> +   the formats supported for the format currently set on the
-> +   CAPTURE queue.
-> +   In order to enumerate raw formats supported by a given coded
-> +   format, the client must first set that coded format on the
-> +   CAPTURE queue and then enumerate the OUTPUT queue.
-> +
-> +3. The client may use :c:func:`VIDIOC_ENUM_FRAMESIZES` to detect supported
-> +   resolutions for a given format, passing its fourcc in
-> +   :c:type:`v4l2_frmivalenum` ``pixel_format``.
-> +
-> +   a. Values returned from :c:func:`VIDIOC_ENUM_FRAMESIZES` for coded formats
-> +      must be maximums for given coded format for all supported raw
-> +      formats.
-> +
-> +   b. Values returned from :c:func:`VIDIOC_ENUM_FRAMESIZES` for raw formats must
-> +      be maximums for given raw format for all supported coded
-> +      formats.
-> +
-> +   c. The client should derive the supported resolution for a
-> +      combination of coded+raw format by calculating the
-> +      intersection of resolutions returned from calls to
-> +      :c:func:`VIDIOC_ENUM_FRAMESIZES` for the given coded and raw formats.
-> +
-> +4. Supported profiles and levels for given format, if applicable, may be
-> +   queried using their respective controls via :c:func:`VIDIOC_QUERYCTRL`.
-> +
-> +5. The client may use :c:func:`VIDIOC_ENUM_FRAMEINTERVALS` to enumerate maximum
-> +   supported framerates by the driver/hardware for a given
-> +   format+resolution combination.
-> +
-> +6. Any additional encoder capabilities may be discovered by querying
-> +   their respective controls.
-> +
-> +.. note::
-> +
-> +   Full format enumeration requires enumerating all raw formats
-> +   on the OUTPUT queue for all possible (enumerated) coded formats on
-> +   CAPTURE queue (setting each format on the CAPTURE queue before each
-> +   enumeration on the OUTPUT queue.
-> +
-> +Initialization
-> +--------------
-> +
-> +1. (optional) Enumerate supported formats and resolutions. See
-> +   capability enumeration.
-> +
-> +2. Set a coded format on the CAPTURE queue via :c:func:`VIDIOC_S_FMT`
-> +
-> +   a. Required fields:
-> +
-> +      i.  type = CAPTURE
-> +
-> +      ii. fmt.pix_mp.pixelformat set to a coded format to be produced
-> +
-> +   b. Return values:
-> +
-> +      i.  EINVAL: unsupported format.
-> +
-> +      ii. Others: per spec
-> +
-> +   c. Return fields:
-> +
-> +      i. fmt.pix_mp.width, fmt.pix_mp.height should be 0.
-> +
-> +   .. note::
-> +
-> +      After a coded format is set, the set of raw formats
-> +      supported as source on the OUTPUT queue may change.
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-So setting CAPTURE potentially also changes OUTPUT format?
+Add UAPI and IOCTLs for dma-buf grant device driver extension:
+the extension allows userspace processes and kernel modules to
+use Xen backed dma-buf implementation. With this extension grant
+references to the pages of an imported dma-buf can be exported
+for other domain use and grant references coming from a foreign
+domain can be converted into a local dma-buf for local export.
+Implement basic initialization and stubs for Xen DMA buffers'
+support.
 
-If the encoded stream supports colorimetry information, should that
-information be taken from the CAPTURE queue?
+Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+---
+ drivers/xen/Kconfig         |  10 +++
+ drivers/xen/Makefile        |   1 +
+ drivers/xen/gntdev-dmabuf.c |  75 +++++++++++++++++++
+ drivers/xen/gntdev-dmabuf.h |  41 +++++++++++
+ drivers/xen/gntdev.c        | 142 ++++++++++++++++++++++++++++++++++++
+ include/uapi/xen/gntdev.h   |  91 +++++++++++++++++++++++
+ 6 files changed, 360 insertions(+)
+ create mode 100644 drivers/xen/gntdev-dmabuf.c
+ create mode 100644 drivers/xen/gntdev-dmabuf.h
 
-> +3. (optional) Enumerate supported OUTPUT formats (raw formats for
-> +   source) for the selected coded format via :c:func:`VIDIOC_ENUM_FMT`.
-> +
-> +   a. Required fields:
-> +
-> +      i.  type = OUTPUT
-> +
-> +      ii. index = per spec
-> +
-> +   b. Return values: per spec
-> +
-> +   c. Return fields:
-> +
-> +      i. pixelformat: raw format supported for the coded format
-> +         currently selected on the OUTPUT queue.
-> +
-> +4. Set a raw format on the OUTPUT queue and visible resolution for the
-> +   source raw frames via :c:func:`VIDIOC_S_FMT` on the OUTPUT queue.
-
-Isn't this optional? If S_FMT(CAP) already sets OUTPUT to a valid
-format, just G_FMT(OUT) should be valid here as well.
-
-> +
-> +   a. Required fields:
-> +
-> +      i.   type = OUTPUT
-> +
-> +      ii.  fmt.pix_mp.pixelformat = raw format to be used as source of
-> +           encode
-> +
-> +      iii. fmt.pix_mp.width, fmt.pix_mp.height = input resolution
-> +           for the source raw frames
-
-These are specific to multiplanar drivers. The same should apply to
-singleplanar drivers.
-
-> +
-> +      iv.  num_planes: set to number of planes for pixelformat.
-> +
-> +      v.   For each plane p = [0, num_planes-1]:
-> +           plane_fmt[p].sizeimage, plane_fmt[p].bytesperline: as
-> +           per spec for input resolution.
-> +
-> +   b. Return values: as per spec.
-> +
-> +   c. Return fields:
-> +
-> +      i.  fmt.pix_mp.width, fmt.pix_mp.height = may be adjusted by
-> +          driver to match alignment requirements, as required by the
-> +          currently selected formats.
-> +
-> +      ii. For each plane p = [0, num_planes-1]:
-> +          plane_fmt[p].sizeimage, plane_fmt[p].bytesperline: as
-> +          per spec for the adjusted input resolution.
-> +
-> +   d. Setting the input resolution will reset visible resolution to the
-> +      adjusted input resolution rounded up to the closest visible
-> +      resolution supported by the driver. Similarly, coded size will
-> +      be reset to input resolution rounded up to the closest coded
-> +      resolution supported by the driver (typically a multiple of
-> +      macroblock size).
-> +
-> +5. (optional) Set visible size for the stream metadata via
-> +   :c:func:`VIDIOC_S_SELECTION` on the OUTPUT queue.
-> +
-> +   a. Required fields:
-> +
-> +      i.   type = OUTPUT
-> +
-> +      ii.  target = ``V4L2_SEL_TGT_CROP``
-> +
-> +      iii. r.left, r.top, r.width, r.height: visible rectangle; this
-> +           must fit within coded resolution returned from
-> +           :c:func:`VIDIOC_S_FMT`.
-> +
-> +   b. Return values: as per spec.
-> +
-> +   c. Return fields:
-> +
-> +      i. r.left, r.top, r.width, r.height: visible rectangle adjusted by
-> +         the driver to match internal constraints.
-> +
-> +   d. This resolution must be used as the visible resolution in the
-> +      stream metadata.
-> +
-> +   .. note::
-> +
-> +      The driver might not support arbitrary values of the
-> +      crop rectangle and will adjust it to the closest supported
-> +      one.
-> +
-> +6. Allocate buffers for both OUTPUT and CAPTURE queues via
-> +   :c:func:`VIDIOC_REQBUFS`. This may be performed in any order.
-> +
-> +   a. Required fields:
-> +
-> +      i.   count = n, where n > 0.
-> +
-> +      ii.  type = OUTPUT or CAPTURE
-> +
-> +      iii. memory = as per spec
-> +
-> +   b. Return values: Per spec.
-> +
-> +   c. Return fields:
-> +
-> +      i. count: adjusted to allocated number of buffers
-> +
-> +   d. The driver must adjust count to minimum of required number of
-> +      buffers for given format and count passed. The client must
-> +      check this value after the ioctl returns to get the number of
-> +      buffers actually allocated.
-> +
-> +   .. note::
-> +
-> +      Passing count = 1 is useful for letting the driver choose the
-> +      minimum according to the selected format/hardware
-> +      requirements.
-> +
-> +   .. note::
-> +
-> +      To allocate more than minimum number of buffers (for pipeline
-> +      depth), use G_CTRL(``V4L2_CID_MIN_BUFFERS_FOR_OUTPUT)`` or
-> +      G_CTRL(``V4L2_CID_MIN_BUFFERS_FOR_CAPTURE)``, respectively,
-> +      to get the minimum number of buffers required by the
-> +      driver/format, and pass the obtained value plus the number of
-> +      additional buffers needed in count field to :c:func:`VIDIOC_REQBUFS`.
-> +
-> +7. Begin streaming on both OUTPUT and CAPTURE queues via
-> +   :c:func:`VIDIOC_STREAMON`. This may be performed in any order.
-
-Actual encoding starts once both queues are streaming and stops as soon
-as the first queue receives STREAMOFF?
-
-> +Encoding
-> +--------
-> +
-> +This state is reached after a successful initialization sequence. In
-> +this state, client queues and dequeues buffers to both queues via
-> +:c:func:`VIDIOC_QBUF` and :c:func:`VIDIOC_DQBUF`, as per spec.
-> +
-> +Both queues operate independently. The client may queue and dequeue
-> +buffers to queues in any order and at any rate, also at a rate different
-> +for each queue. The client may queue buffers within the same queue in
-> +any order (V4L2 index-wise). It is recommended for the client to operate
-> +the queues independently for best performance.
-> +
-> +Source OUTPUT buffers must contain full raw frames in the selected
-> +OUTPUT format, exactly one frame per buffer.
-> +
-> +Encoding parameter changes
-> +--------------------------
-> +
-> +The client is allowed to use :c:func:`VIDIOC_S_CTRL` to change encoder
-> +parameters at any time. The driver must apply the new setting starting
-> +at the next frame queued to it.
-> +
-> +This specifically means that if the driver maintains a queue of buffers
-> +to be encoded and at the time of the call to :c:func:`VIDIOC_S_CTRL` not all the
-> +buffers in the queue are processed yet, the driver must not apply the
-> +change immediately, but schedule it for when the next buffer queued
-> +after the :c:func:`VIDIOC_S_CTRL` starts being processed.
-
-Does this mean that hardware that doesn't support changing parameters at
-runtime at all must stop streaming and restart streaming internally with
-every parameter change? Or is it acceptable to not allow the controls to
-be changed during streaming?
-
-> +Flush
-> +-----
-> +
-> +Flush is the process of draining the CAPTURE queue of any remaining
-> +buffers. After the flush sequence is complete, the client has received
-> +all encoded frames for all OUTPUT buffers queued before the sequence was
-> +started.
-> +
-> +1. Begin flush by issuing :c:func:`VIDIOC_ENCODER_CMD`.
-> +
-> +   a. Required fields:
-> +
-> +      i. cmd = ``V4L2_ENC_CMD_STOP``
-> +
-> +2. The driver must process and encode as normal all OUTPUT buffers
-> +   queued by the client before the :c:func:`VIDIOC_ENCODER_CMD` was issued.
-> +
-> +3. Once all OUTPUT buffers queued before ``V4L2_ENC_CMD_STOP`` are
-> +   processed:
-> +
-> +   a. Once all decoded frames (if any) are ready to be dequeued on the
-> +      CAPTURE queue, the driver must send a ``V4L2_EVENT_EOS``. The
-> +      driver must also set ``V4L2_BUF_FLAG_LAST`` in
-> +      :c:type:`v4l2_buffer` ``flags`` field on the buffer on the CAPTURE queue
-> +      containing the last frame (if any) produced as a result of
-> +      processing the OUTPUT buffers queued before
-> +      ``V4L2_ENC_CMD_STOP``. If no more frames are left to be
-> +      returned at the point of handling ``V4L2_ENC_CMD_STOP``, the
-> +      driver must return an empty buffer (with
-> +      :c:type:`v4l2_buffer` ``bytesused`` = 0) as the last buffer with
-> +      ``V4L2_BUF_FLAG_LAST`` set instead.
-> +      Any attempts to dequeue more buffers beyond the buffer
-> +      marked with ``V4L2_BUF_FLAG_LAST`` will result in a -EPIPE
-> +      error from :c:func:`VIDIOC_DQBUF`.
-> +
-> +4. At this point, encoding is paused and the driver will accept, but not
-> +   process any newly queued OUTPUT buffers until the client issues
-> +   ``V4L2_ENC_CMD_START`` or :c:func:`VIDIOC_STREAMON`.
-> +
-> +Once the flush sequence is initiated, the client needs to drive it to
-> +completion, as described by the above steps, unless it aborts the
-> +process by issuing :c:func:`VIDIOC_STREAMOFF` on OUTPUT queue. The client is not
-> +allowed to issue ``V4L2_ENC_CMD_START`` or ``V4L2_ENC_CMD_STOP`` again
-> +while the flush sequence is in progress.
-> +
-> +Issuing :c:func:`VIDIOC_STREAMON` on OUTPUT queue will implicitly restart
-> +encoding.
-
-Only if CAPTURE is already streaming?
-
->  :c:func:`VIDIOC_STREAMON` and :c:func:`VIDIOC_STREAMOFF` on CAPTURE queue will
-> +not affect the flush sequence, allowing the client to change CAPTURE
-> +buffer set if needed.
-> +
-> +Commit points
-> +-------------
-> +
-> +Setting formats and allocating buffers triggers changes in the behavior
-> +of the driver.
-> +
-> +1. Setting format on CAPTURE queue may change the set of formats
-> +   supported/advertised on the OUTPUT queue. It also must change the
-> +   format currently selected on OUTPUT queue if it is not supported
-> +   by the newly selected CAPTURE format to a supported one.
-
-Should TRY_FMT on the OUTPUT queue only return formats that can be
-transformed into the currently set format on the capture queue?
-(That is, after setting colorimetry on the CAPTURE queue, will
-TRY_FMT(OUT) always return that colorimetry?)
-
-> +2. Enumerating formats on OUTPUT queue must only return OUTPUT formats
-> +   supported for the CAPTURE format currently set.
-> +
-> +3. Setting/changing format on OUTPUT queue does not change formats
-> +   available on CAPTURE queue. An attempt to set OUTPUT format that
-> +   is not supported for the currently selected CAPTURE format must
-> +   result in an error (-EINVAL) from :c:func:`VIDIOC_S_FMT`.
-
-Same as for decoding, is this limited to pixel format? Why isn't the
-pixel format corrected to a supported choice? What about
-width/height/colorimetry?
-
-> +4. Enumerating formats on CAPTURE queue always returns a full set of
-> +   supported coded formats, irrespective of the current format
-> +   selected on OUTPUT queue.
-> +
-> +5. After allocating buffers on a queue, it is not possible to change
-> +   format on it.
-> +
-> +In summary, the CAPTURE (coded format) queue is the master that governs
-> +the set of supported formats for the OUTPUT queue.
-
-regards
-Philipp
+diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
+index 39536ddfbce4..52d64e4b6b81 100644
+--- a/drivers/xen/Kconfig
++++ b/drivers/xen/Kconfig
+@@ -152,6 +152,16 @@ config XEN_GNTDEV
+ 	help
+ 	  Allows userspace processes to use grants.
+ 
++config XEN_GNTDEV_DMABUF
++	bool "Add support for dma-buf grant access device driver extension"
++	depends on XEN_GNTDEV && XEN_GRANT_DMA_ALLOC && DMA_SHARED_BUFFER
++	help
++	  Allows userspace processes and kernel modules to use Xen backed
++	  dma-buf implementation. With this extension grant references to
++	  the pages of an imported dma-buf can be exported for other domain
++	  use and grant references coming from a foreign domain can be
++	  converted into a local dma-buf for local export.
++
+ config XEN_GRANT_DEV_ALLOC
+ 	tristate "User-space grant reference allocator driver"
+ 	depends on XEN
+diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
+index 3c87b0c3aca6..33afb7b2b227 100644
+--- a/drivers/xen/Makefile
++++ b/drivers/xen/Makefile
+@@ -41,5 +41,6 @@ obj-$(CONFIG_XEN_PVCALLS_BACKEND)	+= pvcalls-back.o
+ obj-$(CONFIG_XEN_PVCALLS_FRONTEND)	+= pvcalls-front.o
+ xen-evtchn-y				:= evtchn.o
+ xen-gntdev-y				:= gntdev.o
++xen-gntdev-$(CONFIG_XEN_GNTDEV_DMABUF)	+= gntdev-dmabuf.o
+ xen-gntalloc-y				:= gntalloc.o
+ xen-privcmd-y				:= privcmd.o
+diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
+new file mode 100644
+index 000000000000..6bedd1387bd9
+--- /dev/null
++++ b/drivers/xen/gntdev-dmabuf.c
+@@ -0,0 +1,75 @@
++// SPDX-License-Identifier: GPL-2.0
++
++/*
++ * Xen dma-buf functionality for gntdev.
++ *
++ * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
++ */
++
++#include <linux/slab.h>
++
++#include "gntdev-dmabuf.h"
++
++struct gntdev_dmabuf_priv {
++	int dummy;
++};
++
++/* ------------------------------------------------------------------ */
++/* DMA buffer export support.                                         */
++/* ------------------------------------------------------------------ */
++
++/* ------------------------------------------------------------------ */
++/* Implementation of wait for exported DMA buffer to be released.     */
++/* ------------------------------------------------------------------ */
++
++int gntdev_dmabuf_exp_wait_released(struct gntdev_dmabuf_priv *priv, int fd,
++				    int wait_to_ms)
++{
++	return -EINVAL;
++}
++
++/* ------------------------------------------------------------------ */
++/* DMA buffer export support.                                         */
++/* ------------------------------------------------------------------ */
++
++int gntdev_dmabuf_exp_from_pages(struct gntdev_dmabuf_export_args *args)
++{
++	return -EINVAL;
++}
++
++/* ------------------------------------------------------------------ */
++/* DMA buffer import support.                                         */
++/* ------------------------------------------------------------------ */
++
++struct gntdev_dmabuf *
++gntdev_dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
++			  int fd, int count, int domid)
++{
++	return ERR_PTR(-ENOMEM);
++}
++
++u32 *gntdev_dmabuf_imp_get_refs(struct gntdev_dmabuf *gntdev_dmabuf)
++{
++	return NULL;
++}
++
++int gntdev_dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd)
++{
++	return -EINVAL;
++}
++
++struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
++{
++	struct gntdev_dmabuf_priv *priv;
++
++	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return ERR_PTR(-ENOMEM);
++
++	return priv;
++}
++
++void gntdev_dmabuf_fini(struct gntdev_dmabuf_priv *priv)
++{
++	kfree(priv);
++}
+diff --git a/drivers/xen/gntdev-dmabuf.h b/drivers/xen/gntdev-dmabuf.h
+new file mode 100644
+index 000000000000..040b2de904ac
+--- /dev/null
++++ b/drivers/xen/gntdev-dmabuf.h
+@@ -0,0 +1,41 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++/*
++ * Xen dma-buf functionality for gntdev.
++ *
++ * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
++ */
++
++#ifndef _GNTDEV_DMABUF_H
++#define _GNTDEV_DMABUF_H
++
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/types.h>
++
++struct gntdev_dmabuf_priv;
++struct gntdev_dmabuf;
++struct device;
++
++struct gntdev_dmabuf_export_args {
++	int dummy;
++};
++
++struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void);
++
++void gntdev_dmabuf_fini(struct gntdev_dmabuf_priv *priv);
++
++int gntdev_dmabuf_exp_from_pages(struct gntdev_dmabuf_export_args *args);
++
++int gntdev_dmabuf_exp_wait_released(struct gntdev_dmabuf_priv *priv, int fd,
++				    int wait_to_ms);
++
++struct gntdev_dmabuf *
++gntdev_dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
++			  int fd, int count, int domid);
++
++u32 *gntdev_dmabuf_imp_get_refs(struct gntdev_dmabuf *gntdev_dmabuf);
++
++int gntdev_dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd);
++
++#endif
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+index 9813fc440c70..7d58dfb3e5e8 100644
+--- a/drivers/xen/gntdev.c
++++ b/drivers/xen/gntdev.c
+@@ -6,6 +6,7 @@
+  *
+  * Copyright (c) 2006-2007, D G Murray.
+  *           (c) 2009 Gerd Hoffmann <kraxel@redhat.com>
++ *           (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+@@ -50,6 +51,10 @@
+ #include <asm/xen/hypervisor.h>
+ #include <asm/xen/hypercall.h>
+ 
++#ifdef CONFIG_XEN_GNTDEV_DMABUF
++#include "gntdev-dmabuf.h"
++#endif
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Derek G. Murray <Derek.Murray@cl.cam.ac.uk>, "
+ 	      "Gerd Hoffmann <kraxel@redhat.com>");
+@@ -80,6 +85,10 @@ struct gntdev_priv {
+ 	/* Device for which DMA memory is allocated. */
+ 	struct device *dma_dev;
+ #endif
++
++#ifdef CONFIG_XEN_GNTDEV_DMABUF
++	struct gntdev_dmabuf_priv *dmabuf_priv;
++#endif
+ };
+ 
+ struct unmap_notify {
+@@ -615,6 +624,15 @@ static int gntdev_open(struct inode *inode, struct file *flip)
+ 	INIT_LIST_HEAD(&priv->freeable_maps);
+ 	mutex_init(&priv->lock);
+ 
++#ifdef CONFIG_XEN_GNTDEV_DMABUF
++	priv->dmabuf_priv = gntdev_dmabuf_init();
++	if (IS_ERR(priv->dmabuf_priv)) {
++		ret = PTR_ERR(priv->dmabuf_priv);
++		kfree(priv);
++		return ret;
++	}
++#endif
++
+ 	if (use_ptemod) {
+ 		priv->mm = get_task_mm(current);
+ 		if (!priv->mm) {
+@@ -664,8 +682,13 @@ static int gntdev_release(struct inode *inode, struct file *flip)
+ 	WARN_ON(!list_empty(&priv->freeable_maps));
+ 	mutex_unlock(&priv->lock);
+ 
++#ifdef CONFIG_XEN_GNTDEV_DMABUF
++	gntdev_dmabuf_fini(priv->dmabuf_priv);
++#endif
++
+ 	if (use_ptemod)
+ 		mmu_notifier_unregister(&priv->mn, priv->mm);
++
+ 	kfree(priv);
+ 	return 0;
+ }
+@@ -1035,6 +1058,111 @@ static long gntdev_ioctl_grant_copy(struct gntdev_priv *priv, void __user *u)
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_XEN_GNTDEV_DMABUF
++/* ------------------------------------------------------------------ */
++/* DMA buffer export support.                                         */
++/* ------------------------------------------------------------------ */
++
++int gntdev_dmabuf_exp_from_refs(struct gntdev_priv *priv, int flags,
++				int count, u32 domid, u32 *refs, u32 *fd)
++{
++	/* XXX: this will need to work with gntdev's map, so leave it here. */
++	*fd = -1;
++	return -EINVAL;
++}
++
++/* ------------------------------------------------------------------ */
++/* DMA buffer IOCTL support.                                          */
++/* ------------------------------------------------------------------ */
++
++static long
++gntdev_ioctl_dmabuf_exp_from_refs(struct gntdev_priv *priv,
++				  struct ioctl_gntdev_dmabuf_exp_from_refs __user *u)
++{
++	struct ioctl_gntdev_dmabuf_exp_from_refs op;
++	u32 *refs;
++	long ret;
++
++	if (copy_from_user(&op, u, sizeof(op)) != 0)
++		return -EFAULT;
++
++	refs = kcalloc(op.count, sizeof(*refs), GFP_KERNEL);
++	if (!refs)
++		return -ENOMEM;
++
++	if (copy_from_user(refs, u->refs, sizeof(*refs) * op.count) != 0) {
++		ret = -EFAULT;
++		goto out;
++	}
++
++	ret = gntdev_dmabuf_exp_from_refs(priv, op.flags, op.count,
++					  op.domid, refs, &op.fd);
++	if (ret)
++		goto out;
++
++	if (copy_to_user(u, &op, sizeof(op)) != 0)
++		ret = -EFAULT;
++
++out:
++	kfree(refs);
++	return ret;
++}
++
++static long
++gntdev_ioctl_dmabuf_exp_wait_released(struct gntdev_priv *priv,
++				      struct ioctl_gntdev_dmabuf_exp_wait_released __user *u)
++{
++	struct ioctl_gntdev_dmabuf_exp_wait_released op;
++
++	if (copy_from_user(&op, u, sizeof(op)) != 0)
++		return -EFAULT;
++
++	return gntdev_dmabuf_exp_wait_released(priv->dmabuf_priv, op.fd,
++					       op.wait_to_ms);
++}
++
++static long
++gntdev_ioctl_dmabuf_imp_to_refs(struct gntdev_priv *priv,
++				struct ioctl_gntdev_dmabuf_imp_to_refs __user *u)
++{
++	struct ioctl_gntdev_dmabuf_imp_to_refs op;
++	struct gntdev_dmabuf *gntdev_dmabuf;
++	long ret;
++
++	if (copy_from_user(&op, u, sizeof(op)) != 0)
++		return -EFAULT;
++
++	gntdev_dmabuf = gntdev_dmabuf_imp_to_refs(priv->dmabuf_priv,
++						  priv->dma_dev, op.fd,
++						  op.count, op.domid);
++	if (IS_ERR(gntdev_dmabuf))
++		return PTR_ERR(gntdev_dmabuf);
++
++	if (copy_to_user(u->refs, gntdev_dmabuf_imp_get_refs(gntdev_dmabuf),
++			 sizeof(*u->refs) * op.count) != 0) {
++		ret = -EFAULT;
++		goto out_release;
++	}
++	return 0;
++
++out_release:
++	gntdev_dmabuf_imp_release(priv->dmabuf_priv, op.fd);
++	return ret;
++}
++
++static long
++gntdev_ioctl_dmabuf_imp_release(struct gntdev_priv *priv,
++				struct ioctl_gntdev_dmabuf_imp_release __user *u)
++{
++	struct ioctl_gntdev_dmabuf_imp_release op;
++
++	if (copy_from_user(&op, u, sizeof(op)) != 0)
++		return -EFAULT;
++
++	return gntdev_dmabuf_imp_release(priv->dmabuf_priv, op.fd);
++}
++#endif
++
+ static long gntdev_ioctl(struct file *flip,
+ 			 unsigned int cmd, unsigned long arg)
+ {
+@@ -1057,6 +1185,20 @@ static long gntdev_ioctl(struct file *flip,
+ 	case IOCTL_GNTDEV_GRANT_COPY:
+ 		return gntdev_ioctl_grant_copy(priv, ptr);
+ 
++#ifdef CONFIG_XEN_GNTDEV_DMABUF
++	case IOCTL_GNTDEV_DMABUF_EXP_FROM_REFS:
++		return gntdev_ioctl_dmabuf_exp_from_refs(priv, ptr);
++
++	case IOCTL_GNTDEV_DMABUF_EXP_WAIT_RELEASED:
++		return gntdev_ioctl_dmabuf_exp_wait_released(priv, ptr);
++
++	case IOCTL_GNTDEV_DMABUF_IMP_TO_REFS:
++		return gntdev_ioctl_dmabuf_imp_to_refs(priv, ptr);
++
++	case IOCTL_GNTDEV_DMABUF_IMP_RELEASE:
++		return gntdev_ioctl_dmabuf_imp_release(priv, ptr);
++#endif
++
+ 	default:
+ 		pr_debug("priv %p, unknown cmd %x\n", priv, cmd);
+ 		return -ENOIOCTLCMD;
+diff --git a/include/uapi/xen/gntdev.h b/include/uapi/xen/gntdev.h
+index 4b9d498a31d4..fe4423e518c6 100644
+--- a/include/uapi/xen/gntdev.h
++++ b/include/uapi/xen/gntdev.h
+@@ -5,6 +5,7 @@
+  * Interface to /dev/xen/gntdev.
+  * 
+  * Copyright (c) 2007, D G Murray
++ * Copyright (c) 2018, Oleksandr Andrushchenko, EPAM Systems Inc.
+  * 
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License version 2
+@@ -215,4 +216,94 @@ struct ioctl_gntdev_grant_copy {
+  */
+ #define GNTDEV_DMA_FLAG_COHERENT	(1 << 1)
+ 
++/*
++ * Create a dma-buf [1] from grant references @refs of count @count provided
++ * by the foreign domain @domid with flags @flags.
++ *
++ * By default dma-buf is backed by system memory pages, but by providing
++ * one of the GNTDEV_DMA_FLAG_XXX flags it can also be created as
++ * a DMA write-combine or coherent buffer, e.g. allocated with dma_alloc_wc/
++ * dma_alloc_coherent.
++ *
++ * Returns 0 if dma-buf was successfully created and the corresponding
++ * dma-buf's file descriptor is returned in @fd.
++ *
++ * [1] Documentation/driver-api/dma-buf.rst
++ */
++
++#define IOCTL_GNTDEV_DMABUF_EXP_FROM_REFS \
++	_IOC(_IOC_NONE, 'G', 9, \
++	     sizeof(struct ioctl_gntdev_dmabuf_exp_from_refs))
++struct ioctl_gntdev_dmabuf_exp_from_refs {
++	/* IN parameters. */
++	/* Specific options for this dma-buf: see GNTDEV_DMA_FLAG_XXX. */
++	__u32 flags;
++	/* Number of grant references in @refs array. */
++	__u32 count;
++	/* OUT parameters. */
++	/* File descriptor of the dma-buf. */
++	__u32 fd;
++	/* The domain ID of the grant references to be mapped. */
++	__u32 domid;
++	/* Variable IN parameter. */
++	/* Array of grant references of size @count. */
++	__u32 refs[1];
++};
++
++/*
++ * This will block until the dma-buf with the file descriptor @fd is
++ * released. This is only valid for buffers created with
++ * IOCTL_GNTDEV_DMABUF_EXP_FROM_REFS.
++ *
++ * If within @wait_to_ms milliseconds the buffer is not released
++ * then -ETIMEDOUT error is returned.
++ * If the buffer with the file descriptor @fd does not exist or has already
++ * been released, then -ENOENT is returned. For valid file descriptors
++ * this must not be treated as error.
++ */
++#define IOCTL_GNTDEV_DMABUF_EXP_WAIT_RELEASED \
++	_IOC(_IOC_NONE, 'G', 10, \
++	     sizeof(struct ioctl_gntdev_dmabuf_exp_wait_released))
++struct ioctl_gntdev_dmabuf_exp_wait_released {
++	/* IN parameters */
++	__u32 fd;
++	__u32 wait_to_ms;
++};
++
++/*
++ * Import a dma-buf with file descriptor @fd and export granted references
++ * to the pages of that dma-buf into array @refs of size @count.
++ */
++#define IOCTL_GNTDEV_DMABUF_IMP_TO_REFS \
++	_IOC(_IOC_NONE, 'G', 11, \
++	     sizeof(struct ioctl_gntdev_dmabuf_imp_to_refs))
++struct ioctl_gntdev_dmabuf_imp_to_refs {
++	/* IN parameters. */
++	/* File descriptor of the dma-buf. */
++	__u32 fd;
++	/* Number of grant references in @refs array. */
++	__u32 count;
++	/* The domain ID for which references to be granted. */
++	__u32 domid;
++	/* Reserved - must be zero. */
++	__u32 reserved;
++	/* OUT parameters. */
++	/* Array of grant references of size @count. */
++	__u32 refs[1];
++};
++
++/*
++ * This will close all references to the imported buffer with file descriptor
++ * @fd, so it can be released by the owner. This is only valid for buffers
++ * created with IOCTL_GNTDEV_DMABUF_IMP_TO_REFS.
++ */
++#define IOCTL_GNTDEV_DMABUF_IMP_RELEASE \
++	_IOC(_IOC_NONE, 'G', 12, \
++	     sizeof(struct ioctl_gntdev_dmabuf_imp_release))
++struct ioctl_gntdev_dmabuf_imp_release {
++	/* IN parameters */
++	__u32 fd;
++	__u32 reserved;
++};
++
+ #endif /* __LINUX_PUBLIC_GNTDEV_H__ */
+-- 
+2.17.0
