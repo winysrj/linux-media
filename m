@@ -1,51 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:55285 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752757AbeFDLrB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 07:47:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv15 06/35] v4l2-device.h: add v4l2_device_supports_requests() helper
-Date: Mon,  4 Jun 2018 13:46:19 +0200
-Message-Id: <20180604114648.26159-7-hverkuil@xs4all.nl>
-In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
-References: <20180604114648.26159-1-hverkuil@xs4all.nl>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:51079 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751342AbeFANo3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 09:44:29 -0400
+Message-ID: <1527860665.5913.13.camel@pengutronix.de>
+Subject: Re: [PATCH v2 10/10] media: imx.rst: Update doc to reflect fixes to
+ interlaced capture
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Fri, 01 Jun 2018 15:44:25 +0200
+In-Reply-To: <1527813049-3231-11-git-send-email-steve_longerbeam@mentor.com>
+References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+         <1527813049-3231-11-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, 2018-05-31 at 17:30 -0700, Steve Longerbeam wrote:
+> Also add an example pipeline for unconverted capture with interweave
+> on SabreAuto.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  Documentation/media/v4l-drivers/imx.rst | 51 ++++++++++++++++++++++++---------
+>  1 file changed, 37 insertions(+), 14 deletions(-)
+> 
+> diff --git a/Documentation/media/v4l-drivers/imx.rst b/Documentation/media/v4l-drivers/imx.rst
+> index 65d3d15..4149b76 100644
+> --- a/Documentation/media/v4l-drivers/imx.rst
+> +++ b/Documentation/media/v4l-drivers/imx.rst
+> @@ -179,9 +179,10 @@ sink pad can take UYVY2X8, but the IDMAC source pad can output YUYV2X8.
+>  If the sink pad is receiving YUV, the output at the capture device can
+>  also be converted to a planar YUV format such as YUV420.
+>  
+> -It will also perform simple de-interlace without motion compensation,
+> -which is activated if the sink pad's field type is an interlaced type,
+> -and the IDMAC source pad field type is set to none.
+> +It will also perform simple interweave without motion compensation,
+> +which is activated if the sink pad's field type is sequential top-bottom
+> +or bottom-top or alternate, and the IDMAC source pad field type is
+> +interlaced (t-b, b-t, or unqualified interlaced).
 
-Add a simple helper function that tests if the driver supports
-the request API.
+I think sink pad alternate behaviour should be equal to sink pad top-
+bottom for PAL and sink pad bottom-top for NTSC. If we agree on this, we
+should mention that here.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/v4l2-device.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+>  This subdev can generate the following event when enabling the second
+>  IDMAC source pad:
+> @@ -383,13 +384,13 @@ and CSC operations and flip/rotation controls. It will receive and
+>  process de-interlaced frames from the ipuX_vdic if ipuX_ic_prp is
+>  receiving from ipuX_vdic.
+>  
+> -Like the ipuX_csiY IDMAC source, it can perform simple de-interlace
+> +Like the ipuX_csiY IDMAC source, it can perform simple interweaving
+>  without motion compensation. However, note that if the ipuX_vdic is
+>  included in the pipeline (ipuX_ic_prp is receiving from ipuX_vdic),
+> -it's not possible to use simple de-interlace in ipuX_ic_prpvf, since
+> -the ipuX_vdic has already carried out de-interlacing (with motion
+> -compensation) and therefore the field type output from ipuX_ic_prp can
+> -only be none.
+> +it's not possible to use interweave in ipuX_ic_prpvf, since the
+> +ipuX_vdic has already carried out de-interlacing (with motion
+> +compensation) and therefore the field type output from ipuX_vdic
+> +can only be none (progressive).
+>  
+>  Capture Pipelines
+>  -----------------
+> @@ -514,10 +515,32 @@ On the SabreAuto, an on-board ADV7180 SD decoder is connected to the
+>  parallel bus input on the internal video mux to IPU1 CSI0.
+>  
+>  The following example configures a pipeline to capture from the ADV7180
+> +video decoder, assuming NTSC 720x480 input signals, using simple
+> +interweave (unconverted and without motion compensation). The adv7180
+> +must output sequential or alternating fields (field type 'seq-tb',
+> +'seq-bt', or 'alternate'):
+> +
+> +.. code-block:: none
+> +
+> +   # Setup links
+> +   media-ctl -l "'adv7180 3-0021':0 -> 'ipu1_csi0_mux':1[1]"
+> +   media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
+> +   media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
+> +   # Configure pads
+> +   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
+> +   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
+> +   media-ctl -V "'ipu1_csi0':2 [fmt:AYUV32/720x480 field:interlaced]"
 
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index b330e4a08a6b..ac7677a183ff 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -211,6 +211,17 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 		sd->v4l2_dev->notify(sd, notification, arg);
- }
- 
-+/**
-+ * v4l2_device_supports_requests - Test if requests are supported.
-+ *
-+ * @v4l2_dev: pointer to struct v4l2_device
-+ */
-+static inline bool v4l2_device_supports_requests(struct v4l2_device *v4l2_dev)
-+{
-+	return v4l2_dev->mdev && v4l2_dev->mdev->ops &&
-+	       v4l2_dev->mdev->ops->req_queue;
-+}
-+
- /* Helper macros to iterate over all subdevs. */
- 
- /**
--- 
-2.17.0
+Could the example suggest using interlaced-bt to be explicit here?
+Actually, I don't think we should allow interlaced on the CSI src pads
+at all in this case. Technically it always writes either seq-tb or seq-
+bt into the smfc, never interlaced (unless the input is already
+interlaced).
+
+> +Streaming can then begin on the capture device node at
+> +"ipu1_csi0 capture". The v4l2-ctl tool can be used to select any
+> +supported YUV pixelformat on the capture device node.
+> +
+> +This example configures a pipeline to capture from the ADV7180
+>  video decoder, assuming NTSC 720x480 input signals, with Motion
+> -Compensated de-interlacing. Pad field types assume the adv7180 outputs
+> -"interlaced". $outputfmt can be any format supported by the ipu1_ic_prpvf
+> -entity at its output pad:
+> +Compensated de-interlacing. The adv7180 must output sequential or
+> +alternating fields (field type 'seq-tb', 'seq-bt', or 'alternate').
+> +$outputfmt can be any format supported by the ipu1_ic_prpvf entity
+> +at its output pad:
+>  
+>  .. code-block:: none
+>  
+> @@ -529,9 +552,9 @@ entity at its output pad:
+>     media-ctl -l "'ipu1_ic_prp':2 -> 'ipu1_ic_prpvf':0[1]"
+>     media-ctl -l "'ipu1_ic_prpvf':1 -> 'ipu1_ic_prpvf capture':0[1]"
+>     # Configure pads
+> -   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480]"
+> -   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]"
+> -   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x480 field:interlaced]"
+> +   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
+> +   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
+> +   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x480]"
+>     media-ctl -V "'ipu1_vdic':2 [fmt:AYUV32/720x480 field:none]"
+>     media-ctl -V "'ipu1_ic_prp':2 [fmt:AYUV32/720x480 field:none]"
+>     media-ctl -V "'ipu1_ic_prpvf':1 [fmt:$outputfmt field:none]"
+
+This looks good to me.
+
+regards
+Philipp
