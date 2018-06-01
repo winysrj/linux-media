@@ -1,37 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:36723 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752453AbeFDMr6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 08:47:58 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for v4.18] media/radio/Kconfig: add back RADIO_ISA
-Message-ID: <dd581ad9-6dd2-a6a7-4c03-bfff17c2cfdf@xs4all.nl>
-Date: Mon, 4 Jun 2018 14:47:53 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from smtp.codeaurora.org ([198.145.29.96]:53032 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752572AbeFAU0h (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 16:26:37 -0400
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: hverkuil@xs4all.nl, mchehab@kernel.org, robh@kernel.org,
+        mark.rutland@arm.com, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org, stanimir.varbanov@linaro.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, vgarodia@codeaurora.org,
+        acourbot@chromium.org
+Subject: [PATCH v2 0/5] Venus updates - PIL 
+Date: Sat,  2 Jun 2018 01:56:03 +0530
+Message-Id: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch 258c524bdaab inadvertently removed the 'select RADIO_ISA' line for
-the RADIO_RTRACK.
+Hello,
 
-Fixes: 258c524bdaab ("radio: allow building ISA drivers with COMPILE_TEST")
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 8fa403c7149e..39b04ad924c0 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -257,6 +257,7 @@ config RADIO_RTRACK
- 	tristate "AIMSlab RadioTrack (aka RadioReveal) support"
- 	depends on ISA || COMPILE_TEST
- 	depends on VIDEO_V4L2
-+	select RADIO_ISA
- 	---help---
- 	  Choose Y here if you have one of these FM radio cards, and then fill
- 	  in the port address below.
+Here is v2 with following comments addressed:
+
+* drop 1/4 patch from v1 and use relevant api to load
+  firmware without PAS.
+* add some details on ARM9 role in video hardware.
+* abstract scm calls to set hardware state.
+* remove setting aperture range for firmware and vcodec
+  context banks.
+* add misc code review comments related to return
+  handling, unwanted cast, etc.
+
+Comments are welcome!
+
+Vikash Garodia (5):
+  media: venus: add a routine to reset ARM9
+  media: venus: add a routine to set venus state
+  venus: add check to make scm calls
+  media: venus: add no TZ boot and shutdown routine
+  venus: register separate driver for firmware device
+
+ .../devicetree/bindings/media/qcom,venus.txt       |   8 +-
+ drivers/media/platform/qcom/venus/core.c           |  58 +++++-
+ drivers/media/platform/qcom/venus/core.h           |  10 +
+ drivers/media/platform/qcom/venus/firmware.c       | 217 ++++++++++++++++++---
+ drivers/media/platform/qcom/venus/firmware.h       |  12 +-
+ drivers/media/platform/qcom/venus/hfi_venus.c      |  13 +-
+ drivers/media/platform/qcom/venus/hfi_venus_io.h   |   5 +
+ 7 files changed, 275 insertions(+), 48 deletions(-)
+
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
