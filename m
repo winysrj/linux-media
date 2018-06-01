@@ -1,153 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:41924 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750981AbeFAIT1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 04:19:27 -0400
-Received: by mail-wr0-f195.google.com with SMTP id u12-v6so35408609wrn.8
-        for <linux-media@vger.kernel.org>; Fri, 01 Jun 2018 01:19:26 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        eballetbo@gmail.com, Stefan Adolfsson <sadolfsson@chromium.org>
-Subject: [PATCH v7 3/6] mfd: cros-ec: Increase maximum mkbp event size
-Date: Fri,  1 Jun 2018 10:19:11 +0200
-Message-Id: <1527841154-24832-4-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
-References: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
+Received: from mail.netline.ch ([148.251.143.178]:36170 "EHLO
+        netline-mail3.netline.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753369AbeFAPag (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 11:30:36 -0400
+Subject: Re: [PATCH 1/5] dma_buf: remove device parameter from attach callback
+To: christian.koenig@amd.com
+Cc: linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+References: <20180601120020.11520-1-christian.koenig@amd.com>
+ <651a24e0-ac58-e5cb-d95f-c9a88bf552dc@gmail.com>
+ <df02be8b-530e-b691-35f1-ed657d71a508@daenzer.net>
+ <64e8f2dd-5b09-397f-05ac-67646dfb5394@gmail.com>
+From: =?UTF-8?Q?Michel_D=c3=a4nzer?= <michel@daenzer.net>
+Message-ID: <2abb36c3-cb6e-ec08-2144-265301ef18dd@daenzer.net>
+Date: Fri, 1 Jun 2018 17:30:28 +0200
+MIME-Version: 1.0
+In-Reply-To: <64e8f2dd-5b09-397f-05ac-67646dfb5394@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-CA
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Having a 16 byte mkbp event size makes it possible to send CEC
-messages from the EC to the AP directly inside the mkbp event
-instead of first doing a notification and then a read.
+On 2018-06-01 05:17 PM, Christian König wrote:
+> Am 01.06.2018 um 16:02 schrieb Michel Dänzer:
+>> On 2018-06-01 02:11 PM, Christian König wrote:
+>>> Sorry, accidentally send this series without a cover letter.
+>>>
+>>> This is a cleanup to the DMA-buf interface, which is also a prerequisite
+>>> to unpinned DMA-buf operation.
+>>>
+>>> Patch #1 and #2 just remove unused functionality and clean up callback
+>>> parameters.
+>>>
+>>> Patch #3 and #4 introduce taking the reservation lock during
+>>> mapping/unmapping of DMA-bufs.
+>>>
+>>> This introduces a common lock where both exporter as well as importer
+>>> can then use in the future for unpinned DMA-buf operation.
+>>>
+>>> This of course means that exporters should now not take this reservation
+>>> lock manually any more. The DRM drivers don't seem to actually do that,
+>>> but I'm not 100% sure about other implementations.
+>>>
+>>> Patch #5 then makes use of the new lock to simplify the DMA-buf import
+>>> handling in amdgpu.
+>> Please rebase this series on top of
+>> https://patchwork.freedesktop.org/patch/226311/ and update the
+>> documentation in amdgpu_prime.c as needed in each patch.
+> 
+> Sure. In this case can we get your patches committed to
+> amd-staging-drm-next ASAP?
 
-Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
----
- drivers/platform/chrome/cros_ec_proto.c | 40 +++++++++++++++++++++++++--------
- include/linux/mfd/cros_ec.h             |  2 +-
- include/linux/mfd/cros_ec_commands.h    | 19 ++++++++++++++++
- 3 files changed, 51 insertions(+), 10 deletions(-)
+Sure, done.
 
-diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
-index e7bbdf9..c4f6c44 100644
---- a/drivers/platform/chrome/cros_ec_proto.c
-+++ b/drivers/platform/chrome/cros_ec_proto.c
-@@ -504,10 +504,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
- }
- EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
- 
-+static int get_next_event_xfer(struct cros_ec_device *ec_dev,
-+			       struct cros_ec_command *msg,
-+			       int version, uint32_t size)
-+{
-+	int ret;
-+
-+	msg->version = version;
-+	msg->command = EC_CMD_GET_NEXT_EVENT;
-+	msg->insize = size;
-+	msg->outsize = 0;
-+
-+	ret = cros_ec_cmd_xfer(ec_dev, msg);
-+	if (ret > 0) {
-+		ec_dev->event_size = ret - 1;
-+		memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
-+	}
-+
-+	return ret;
-+}
-+
- static int get_next_event(struct cros_ec_device *ec_dev)
- {
- 	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
- 	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
-+	static int cmd_version = 1;
- 	int ret;
- 
- 	if (ec_dev->suspended) {
-@@ -515,18 +536,19 @@ static int get_next_event(struct cros_ec_device *ec_dev)
- 		return -EHOSTDOWN;
- 	}
- 
--	msg->version = 0;
--	msg->command = EC_CMD_GET_NEXT_EVENT;
--	msg->insize = sizeof(ec_dev->event_data);
--	msg->outsize = 0;
-+	if (cmd_version == 1) {
-+		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
-+				sizeof(struct ec_response_get_next_event_v1));
-+		if (ret < 0 || msg->result != EC_RES_INVALID_VERSION)
-+			return ret;
- 
--	ret = cros_ec_cmd_xfer(ec_dev, msg);
--	if (ret > 0) {
--		ec_dev->event_size = ret - 1;
--		memcpy(&ec_dev->event_data, msg->data,
--		       sizeof(ec_dev->event_data));
-+		/* Fallback to version 0 for future send attempts */
-+		cmd_version = 0;
- 	}
- 
-+	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
-+				  sizeof(struct ec_response_get_next_event));
-+
- 	return ret;
- }
- 
-diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
-index f36125e..32caef3 100644
---- a/include/linux/mfd/cros_ec.h
-+++ b/include/linux/mfd/cros_ec.h
-@@ -147,7 +147,7 @@ struct cros_ec_device {
- 	bool mkbp_event_supported;
- 	struct blocking_notifier_head event_notifier;
- 
--	struct ec_response_get_next_event event_data;
-+	struct ec_response_get_next_event_v1 event_data;
- 	int event_size;
- 	u32 host_event_wake_mask;
- };
-diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
-index f2edd99..cc0768e 100644
---- a/include/linux/mfd/cros_ec_commands.h
-+++ b/include/linux/mfd/cros_ec_commands.h
-@@ -2093,12 +2093,31 @@ union ec_response_get_next_data {
- 	uint32_t   sysrq;
- } __packed;
- 
-+union ec_response_get_next_data_v1 {
-+	uint8_t   key_matrix[16];
-+
-+	/* Unaligned */
-+	uint32_t  host_event;
-+
-+	uint32_t   buttons;
-+	uint32_t   switches;
-+	uint32_t   sysrq;
-+	uint32_t   cec_events;
-+	uint8_t    cec_message[16];
-+} __packed;
-+
- struct ec_response_get_next_event {
- 	uint8_t event_type;
- 	/* Followed by event data if any */
- 	union ec_response_get_next_data data;
- } __packed;
- 
-+struct ec_response_get_next_event_v1 {
-+	uint8_t event_type;
-+	/* Followed by event data if any */
-+	union ec_response_get_next_data_v1 data;
-+} __packed;
-+
- /* Bit indices for buttons and switches.*/
- /* Buttons */
- #define EC_MKBP_POWER_BUTTON	0
+
 -- 
-2.7.4
+Earthling Michel Dänzer               |               http://www.amd.com
+Libre software enthusiast             |             Mesa and X developer
