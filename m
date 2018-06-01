@@ -1,334 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:35172 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751937AbeFALlx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 07:41:53 -0400
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Subject: [PATCH v2 8/9] xen/gntdev: Implement dma-buf import functionality
-Date: Fri,  1 Jun 2018 14:41:31 +0300
-Message-Id: <20180601114132.22596-9-andr2000@gmail.com>
-In-Reply-To: <20180601114132.22596-1-andr2000@gmail.com>
-References: <20180601114132.22596-1-andr2000@gmail.com>
+Received: from ni.piap.pl ([195.187.100.4]:42850 "EHLO ni.piap.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750766AbeFAKCe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Jun 2018 06:02:34 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+References: <m37eobudmo.fsf@t19.piap.pl>
+        <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
+        <m3tvresqfw.fsf@t19.piap.pl>
+        <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
+        <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
+        <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
+        <m3h8mxqc7t.fsf@t19.piap.pl>
+        <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
+        <1527229949.4938.1.camel@pengutronix.de> <m3y3g8p5j3.fsf@t19.piap.pl>
+        <1e11fa9a-8fa6-c746-7ee1-a64666bfc44e@gmail.com>
+        <m3lgc2q5vl.fsf@t19.piap.pl>
+        <06b9dd3d-3b7d-d34d-5263-411c99ab1a8b@gmail.com>
+        <m38t81plry.fsf@t19.piap.pl>
+        <4f49cf44-431d-1971-e5c5-d66381a6970e@gmail.com>
+        <m336y9ouc4.fsf@t19.piap.pl>
+        <6923fcd4-317e-d6a6-7975-47a8c712f8f9@gmail.com>
+Date: Fri, 01 Jun 2018 12:02:31 +0200
+In-Reply-To: <6923fcd4-317e-d6a6-7975-47a8c712f8f9@gmail.com> (Steve
+        Longerbeam's message of "Wed, 30 May 2018 13:56:34 -0700")
+Message-ID: <m3sh66omdk.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Steve Longerbeam <slongerbeam@gmail.com> writes:
 
-1. Import a dma-buf with the file descriptor provided and export
-   granted references to the pages of that dma-buf into the array
-   of grant references.
+> I tend to agree, I've found conflicting info out there regarding
+> PAL vs. NTSC field order. And I've never liked having to guess
+> at input analog standard based on input # lines. I will go ahead
+> and remove the field order override code.
 
-2. Add API to close all references to an imported buffer, so it can be
-   released by the owner. This is only valid for buffers created with
-   IOCTL_GNTDEV_DMABUF_IMP_TO_REFS.
+I've merged your current fix-csi-interlaced.2 branch (2018-06-01
+00:06:45 UTC 22ad9f30454b6e46979edf6f8122243591910a3e) along with
+"media: adv7180: fix field type" commit and NTSC camera:
 
-Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
----
- drivers/xen/gntdev-dmabuf.c | 243 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 241 insertions(+), 2 deletions(-)
+media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480 field:alternate]"
+media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480]"
+media-ctl -V "'ipu2_csi1':2 [fmt:AYUV32/720x480 field:interlaced/-bt/-tb]"
 
-diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
-index f612468879b4..b5569a220f03 100644
---- a/drivers/xen/gntdev-dmabuf.c
-+++ b/drivers/xen/gntdev-dmabuf.c
-@@ -11,8 +11,20 @@
- #include <linux/dma-buf.h>
- #include <linux/slab.h>
- 
-+#include <xen/xen.h>
-+#include <xen/grant_table.h>
-+
- #include "gntdev-dmabuf.h"
- 
-+#ifndef GRANT_INVALID_REF
-+/*
-+ * Note on usage of grant reference 0 as invalid grant reference:
-+ * grant reference 0 is valid, but never exposed to a driver,
-+ * because of the fact it is already in use/reserved by the PV console.
-+ */
-+#define GRANT_INVALID_REF	0
-+#endif
-+
- struct gntdev_dmabuf {
- 	struct gntdev_dmabuf_priv *priv;
- 	struct dma_buf *dmabuf;
-@@ -29,6 +41,14 @@ struct gntdev_dmabuf {
- 			void (*release)(struct gntdev_priv *priv,
- 					struct grant_map *map);
- 		} exp;
-+		struct {
-+			/* Granted references of the imported buffer. */
-+			grant_ref_t *refs;
-+			/* Scatter-gather table of the imported buffer. */
-+			struct sg_table *sgt;
-+			/* dma-buf attachment of the imported buffer. */
-+			struct dma_buf_attachment *attach;
-+		} imp;
- 	} u;
- 
- 	/* Number of pages this buffer has. */
-@@ -53,6 +73,8 @@ struct gntdev_dmabuf_priv {
- 	struct list_head exp_list;
- 	/* List of wait objects. */
- 	struct list_head exp_wait_list;
-+	/* List of imported DMA buffers. */
-+	struct list_head imp_list;
- 	/* This is the lock which protects dma_buf_xxx lists. */
- 	struct mutex lock;
- };
-@@ -424,21 +446,237 @@ int gntdev_dmabuf_exp_from_pages(struct gntdev_dmabuf_export_args *args)
- /* DMA buffer import support.                                         */
- /* ------------------------------------------------------------------ */
- 
-+static int
-+dmabuf_imp_grant_foreign_access(struct page **pages, u32 *refs,
-+				int count, int domid)
-+{
-+	grant_ref_t priv_gref_head;
-+	int i, ret;
-+
-+	ret = gnttab_alloc_grant_references(count, &priv_gref_head);
-+	if (ret < 0) {
-+		pr_err("Cannot allocate grant references, ret %d\n", ret);
-+		return ret;
-+	}
-+
-+	for (i = 0; i < count; i++) {
-+		int cur_ref;
-+
-+		cur_ref = gnttab_claim_grant_reference(&priv_gref_head);
-+		if (cur_ref < 0) {
-+			ret = cur_ref;
-+			pr_err("Cannot claim grant reference, ret %d\n", ret);
-+			goto out;
-+		}
-+
-+		gnttab_grant_foreign_access_ref(cur_ref, domid,
-+						xen_page_to_gfn(pages[i]), 0);
-+		refs[i] = cur_ref;
-+	}
-+
-+	ret = 0;
-+
-+out:
-+	gnttab_free_grant_references(priv_gref_head);
-+	return ret;
-+}
-+
-+static void dmabuf_imp_end_foreign_access(u32 *refs, int count)
-+{
-+	int i;
-+
-+	for (i = 0; i < count; i++)
-+		if (refs[i] != GRANT_INVALID_REF)
-+			gnttab_end_foreign_access(refs[i], 0, 0UL);
-+}
-+
-+static void dmabuf_imp_free_storage(struct gntdev_dmabuf *gntdev_dmabuf)
-+{
-+	kfree(gntdev_dmabuf->pages);
-+	kfree(gntdev_dmabuf->u.imp.refs);
-+	kfree(gntdev_dmabuf);
-+}
-+
-+static struct gntdev_dmabuf *dmabuf_imp_alloc_storage(int count)
-+{
-+	struct gntdev_dmabuf *gntdev_dmabuf;
-+	int i;
-+
-+	gntdev_dmabuf = kzalloc(sizeof(*gntdev_dmabuf), GFP_KERNEL);
-+	if (!gntdev_dmabuf)
-+		goto fail;
-+
-+	gntdev_dmabuf->u.imp.refs = kcalloc(count,
-+					    sizeof(gntdev_dmabuf->u.imp.refs[0]),
-+					    GFP_KERNEL);
-+	if (!gntdev_dmabuf->u.imp.refs)
-+		goto fail;
-+
-+	gntdev_dmabuf->pages = kcalloc(count,
-+				       sizeof(gntdev_dmabuf->pages[0]),
-+				       GFP_KERNEL);
-+	if (!gntdev_dmabuf->pages)
-+		goto fail;
-+
-+	gntdev_dmabuf->nr_pages = count;
-+
-+	for (i = 0; i < count; i++)
-+		gntdev_dmabuf->u.imp.refs[i] = GRANT_INVALID_REF;
-+
-+	return gntdev_dmabuf;
-+
-+fail:
-+	dmabuf_imp_free_storage(gntdev_dmabuf);
-+	return ERR_PTR(-ENOMEM);
-+}
-+
- struct gntdev_dmabuf *
- gntdev_dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
- 			  int fd, int count, int domid)
- {
--	return ERR_PTR(-ENOMEM);
-+	struct gntdev_dmabuf *gntdev_dmabuf, *ret;
-+	struct dma_buf *dma_buf;
-+	struct dma_buf_attachment *attach;
-+	struct sg_table *sgt;
-+	struct sg_page_iter sg_iter;
-+	int i;
-+
-+	dma_buf = dma_buf_get(fd);
-+	if (IS_ERR(dma_buf))
-+		return ERR_CAST(dma_buf);
-+
-+	gntdev_dmabuf = dmabuf_imp_alloc_storage(count);
-+	if (IS_ERR(gntdev_dmabuf)) {
-+		ret = gntdev_dmabuf;
-+		goto fail_put;
-+}
-+
-+	gntdev_dmabuf->priv = priv;
-+	gntdev_dmabuf->fd = fd;
-+
-+	attach = dma_buf_attach(dma_buf, dev);
-+	if (IS_ERR(attach)) {
-+		ret = ERR_CAST(attach);
-+		goto fail_free_obj;
-+	}
-+
-+	gntdev_dmabuf->u.imp.attach = attach;
-+
-+	sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
-+	if (IS_ERR(sgt)) {
-+		ret = ERR_CAST(sgt);
-+		goto fail_detach;
-+	}
-+
-+	/* Check number of pages that imported buffer has. */
-+	if (attach->dmabuf->size != gntdev_dmabuf->nr_pages << PAGE_SHIFT) {
-+		ret = ERR_PTR(-EINVAL);
-+		pr_err("DMA buffer has %zu pages, user-space expects %d\n",
-+		       attach->dmabuf->size, gntdev_dmabuf->nr_pages);
-+		goto fail_unmap;
-+	}
-+
-+	gntdev_dmabuf->u.imp.sgt = sgt;
-+
-+	/* Now convert sgt to array of pages and check for page validity. */
-+	i = 0;
-+	for_each_sg_page(sgt->sgl, &sg_iter, sgt->nents, 0) {
-+		struct page *page = sg_page_iter_page(&sg_iter);
-+		/*
-+		 * Check if page is valid: this can happen if we are given
-+		 * a page from VRAM or other resources which are not backed
-+		 * by a struct page.
-+		 */
-+		if (!pfn_valid(page_to_pfn(page))) {
-+			ret = ERR_PTR(-EINVAL);
-+			goto fail_unmap;
-+		}
-+
-+		gntdev_dmabuf->pages[i++] = page;
-+	}
-+
-+	ret = ERR_PTR(dmabuf_imp_grant_foreign_access(gntdev_dmabuf->pages,
-+						      gntdev_dmabuf->u.imp.refs,
-+						      count, domid));
-+	if (IS_ERR(ret))
-+		goto fail_end_access;
-+
-+	pr_debug("Imported DMA buffer with fd %d\n", fd);
-+
-+	mutex_lock(&priv->lock);
-+	list_add(&gntdev_dmabuf->next, &priv->imp_list);
-+	mutex_unlock(&priv->lock);
-+
-+	return gntdev_dmabuf;
-+
-+fail_end_access:
-+	dmabuf_imp_end_foreign_access(gntdev_dmabuf->u.imp.refs, count);
-+fail_unmap:
-+	dma_buf_unmap_attachment(attach, sgt, DMA_BIDIRECTIONAL);
-+fail_detach:
-+	dma_buf_detach(dma_buf, attach);
-+fail_free_obj:
-+	dmabuf_imp_free_storage(gntdev_dmabuf);
-+fail_put:
-+	dma_buf_put(dma_buf);
-+	return ret;
- }
- 
- u32 *gntdev_dmabuf_imp_get_refs(struct gntdev_dmabuf *gntdev_dmabuf)
- {
-+	if (gntdev_dmabuf)
-+		return gntdev_dmabuf->u.imp.refs;
-+
- 	return NULL;
- }
- 
-+/*
-+ * Find the hyper dma-buf by its file descriptor and remove
-+ * it from the buffer's list.
-+ */
-+static struct gntdev_dmabuf *
-+dmabuf_imp_find_unlink(struct gntdev_dmabuf_priv *priv, int fd)
-+{
-+	struct gntdev_dmabuf *q, *gntdev_dmabuf, *ret = ERR_PTR(-ENOENT);
-+
-+	mutex_lock(&priv->lock);
-+	list_for_each_entry_safe(gntdev_dmabuf, q, &priv->imp_list, next) {
-+		if (gntdev_dmabuf->fd == fd) {
-+			pr_debug("Found gntdev_dmabuf in the import list\n");
-+			ret = gntdev_dmabuf;
-+			list_del(&gntdev_dmabuf->next);
-+			break;
-+		}
-+	}
-+	mutex_unlock(&priv->lock);
-+	return ret;
-+}
-+
- int gntdev_dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd)
- {
--	return -EINVAL;
-+	struct gntdev_dmabuf *gntdev_dmabuf;
-+	struct dma_buf_attachment *attach;
-+	struct dma_buf *dma_buf;
-+
-+	gntdev_dmabuf = dmabuf_imp_find_unlink(priv, fd);
-+	if (IS_ERR(gntdev_dmabuf))
-+		return PTR_ERR(gntdev_dmabuf);
-+
-+	pr_debug("Releasing DMA buffer with fd %d\n", fd);
-+
-+	attach = gntdev_dmabuf->u.imp.attach;
-+
-+	if (gntdev_dmabuf->u.imp.sgt)
-+		dma_buf_unmap_attachment(attach, gntdev_dmabuf->u.imp.sgt,
-+					 DMA_BIDIRECTIONAL);
-+	dma_buf = attach->dmabuf;
-+	dma_buf_detach(attach->dmabuf, attach);
-+	dma_buf_put(dma_buf);
-+
-+	dmabuf_imp_end_foreign_access(gntdev_dmabuf->u.imp.refs,
-+				      gntdev_dmabuf->nr_pages);
-+	dmabuf_imp_free_storage(gntdev_dmabuf);
-+	return 0;
- }
- 
- struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
-@@ -452,6 +690,7 @@ struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
- 	mutex_init(&priv->lock);
- 	INIT_LIST_HEAD(&priv->exp_list);
- 	INIT_LIST_HEAD(&priv->exp_wait_list);
-+	INIT_LIST_HEAD(&priv->imp_list);
- 
- 	return priv;
- }
+correctly sets:
+
+"adv7180 2-0020":0 [fmt:UYVY2X8/720x480 field:alternate]
+"ipu2_csi1_mux":1  [fmt:UYVY2X8/720x480 field:alternate]
+"ipu2_csi1_mux":2  [fmt:UYVY2X8/720x480 field:alternate]
+"ipu2_csi1":0      [fmt:UYVY2X8/720x480 field:alternate]
+"ipu2_csi1":2      [fmt:AYUV32/720x480 field:interlaced/-bt/-tb]
+
+but all 3 cases seem to produce top-first interlaced frames.
+The CCIR_CODE_* register dump shows no differences:
+2a38014: 010D07DF 00040596 00FF0000
+
+...it's because the code in drivers/gpu/ipu-v3/ipu-csi.c still sets the
+registers depending on the height of the image. Hovewer, I'm using 480
+lines here, so it should be B-T instead. My guess is the CSI is skipping
+the first incomplete line (half-line - the first visible line has full
+length) and BT becomes TB.
+
+It seems writing to the CCIR_CODE_[12] registers does the trick, though
+(the captured frames aren't correct and have the lines swapped in pairs
+because t/b field pointers aren't correctly set).
 -- 
-2.17.0
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
