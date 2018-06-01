@@ -1,113 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f196.google.com ([209.85.217.196]:43876 "EHLO
-        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752054AbeEOF1R (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:39311 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751068AbeFAAbQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 May 2018 01:27:17 -0400
-MIME-Version: 1.0
-In-Reply-To: <6ecdbd01b8c42c8784f2235c1e5109dac3dd86a5.1526331777.git.sean@mess.org>
-References: <cover.1526331777.git.sean@mess.org> <6ecdbd01b8c42c8784f2235c1e5109dac3dd86a5.1526331777.git.sean@mess.org>
-From: Y Song <ys114321@gmail.com>
-Date: Mon, 14 May 2018 22:26:35 -0700
-Message-ID: <CAH3MdRW7F40dxoZg2QMi6D0fd+f2UDwxb4Jo-V0MfVWJ=eLnmQ@mail.gmail.com>
-Subject: Re: [PATCH v1 3/4] media: rc bpf: move ir_raw_event to uapi
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
+        Thu, 31 May 2018 20:31:16 -0400
+Received: by mail-pg0-f68.google.com with SMTP id w12-v6so9233068pgc.6
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:16 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        netdev <netdev@vger.kernel.org>,
-        Matthias Reichl <hias@horus.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset="UTF-8"
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 09/10] media: imx-csi: Move crop/compose reset after filling default mbus fields
+Date: Thu, 31 May 2018 17:30:48 -0700
+Message-Id: <1527813049-3231-10-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 14, 2018 at 2:11 PM, Sean Young <sean@mess.org> wrote:
-> The context provided to a BPF_PROG_RAWIR_DECODER is a struct ir_raw_event;
-> ensure user space has a a definition.
->
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  include/media/rc-core.h        | 19 +------------------
->  include/uapi/linux/bpf_rcdev.h | 24 ++++++++++++++++++++++++
+If caller passes un-initialized field type V4L2_FIELD_ANY to CSI
+sink pad, the reset CSI crop window would not be correct, because
+the crop window depends on the current input field type. To fix move
+the reset of crop and compose windows to after the call to
+imx_media_fill_default_mbus_fields().
 
-Patch #2 already referenced this file. So if Patches #1 and #2
-applied, there will be
-a compilation error. Could you re-arrange your patchset so that after
-sequentially
-applying each patch, there is no compilation error?
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
->  2 files changed, 25 insertions(+), 18 deletions(-)
->  create mode 100644 include/uapi/linux/bpf_rcdev.h
->
-> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-> index 6742fd86ff65..5d31e31d8ade 100644
-> --- a/include/media/rc-core.h
-> +++ b/include/media/rc-core.h
-> @@ -21,6 +21,7 @@
->  #include <linux/kfifo.h>
->  #include <linux/time.h>
->  #include <linux/timer.h>
-> +#include <uapi/linux/bpf_rcdev.h>
->  #include <media/rc-map.h>
->
->  /**
-> @@ -299,24 +300,6 @@ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_proto protocol,
->  void rc_keyup(struct rc_dev *dev);
->  u32 rc_g_keycode_from_table(struct rc_dev *dev, u32 scancode);
->
-> -/*
-> - * From rc-raw.c
-> - * The Raw interface is specific to InfraRed. It may be a good idea to
-> - * split it later into a separate header.
-> - */
-> -struct ir_raw_event {
-> -       union {
-> -               u32             duration;
-> -               u32             carrier;
-> -       };
-> -       u8                      duty_cycle;
-> -
-> -       unsigned                pulse:1;
-> -       unsigned                reset:1;
-> -       unsigned                timeout:1;
-> -       unsigned                carrier_report:1;
-> -};
-> -
->  #define DEFINE_IR_RAW_EVENT(event) struct ir_raw_event event = {}
->
->  static inline void init_ir_raw_event(struct ir_raw_event *ev)
-> diff --git a/include/uapi/linux/bpf_rcdev.h b/include/uapi/linux/bpf_rcdev.h
-> new file mode 100644
-> index 000000000000..d8629ff2b960
-> --- /dev/null
-> +++ b/include/uapi/linux/bpf_rcdev.h
-> @@ -0,0 +1,24 @@
-> +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-> +/* Copyright (c) 2018 Sean Young <sean@mess.org>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of version 2 of the GNU General Public
-> + * License as published by the Free Software Foundation.
-> + */
-> +#ifndef _UAPI__LINUX_BPF_RCDEV_H__
-> +#define _UAPI__LINUX_BPF_RCDEV_H__
-> +
-> +struct ir_raw_event {
-> +       union {
-> +               __u32           duration;
-> +               __u32           carrier;
-> +       };
-> +       __u8                    duty_cycle;
-> +
-> +       unsigned                pulse:1;
-> +       unsigned                reset:1;
-> +       unsigned                timeout:1;
-> +       unsigned                carrier_report:1;
-> +};
-> +
-> +#endif /* _UAPI__LINUX_BPF_RCDEV_H__ */
-> --
-> 2.17.0
->
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index c878a00..471130a 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -1358,17 +1358,6 @@ static void csi_try_fmt(struct csi_priv *priv,
+ 				      W_ALIGN, &sdformat->format.height,
+ 				      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
+ 
+-		/* Reset crop and compose rectangles */
+-		crop->left = 0;
+-		crop->top = 0;
+-		crop->width = sdformat->format.width;
+-		crop->height = sdformat->format.height;
+-		csi_try_crop(priv, crop, cfg, &sdformat->format, upstream_ep);
+-		compose->left = 0;
+-		compose->top = 0;
+-		compose->width = crop->width;
+-		compose->height = crop->height;
+-
+ 		*cc = imx_media_find_mbus_format(sdformat->format.code,
+ 						 CS_SEL_ANY, true);
+ 		if (!*cc) {
+@@ -1385,6 +1374,17 @@ static void csi_try_fmt(struct csi_priv *priv,
+ 			&sdformat->format, infmt,
+ 			priv->active_output_pad == CSI_SRC_PAD_DIRECT);
+ 
++		/* Reset crop and compose rectangles */
++		crop->left = 0;
++		crop->top = 0;
++		crop->width = sdformat->format.width;
++		crop->height = sdformat->format.height;
++		csi_try_crop(priv, crop, cfg, &sdformat->format, upstream_ep);
++		compose->left = 0;
++		compose->top = 0;
++		compose->width = crop->width;
++		compose->height = crop->height;
++
+ 		break;
+ 	}
+ }
+-- 
+2.7.4
