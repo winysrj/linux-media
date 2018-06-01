@@ -1,80 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2120.oracle.com ([141.146.126.78]:56334 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932108AbeE3TWb (ORCPT
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:36617 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751012AbeFAAbN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 May 2018 15:22:31 -0400
-Subject: Re: [PATCH 3/8] xen/grant-table: Allow allocating buffers suitable
- for DMA
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180525153331.31188-1-andr2000@gmail.com>
- <20180525153331.31188-4-andr2000@gmail.com>
- <94de6bd7-405c-c43f-0468-be71efff7552@oracle.com>
- <c2f9f6b4-03bd-225b-a42d-b071958dd899@gmail.com>
- <ab1b28b8-02b1-3501-801c-d4f523ab829f@oracle.com>
- <5e6e0f5d-a417-676a-1aad-c51eb09e6dee@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <9710e37c-8b65-3493-53b3-10c4f2230670@oracle.com>
-Date: Wed, 30 May 2018 15:25:33 -0400
-MIME-Version: 1.0
-In-Reply-To: <5e6e0f5d-a417-676a-1aad-c51eb09e6dee@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+        Thu, 31 May 2018 20:31:13 -0400
+Received: by mail-pl0-f66.google.com with SMTP id v24-v6so14225305plo.3
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:13 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 07/10] media: imx-csi: Allow skipping odd chroma rows for YVU420
+Date: Thu, 31 May 2018 17:30:46 -0700
+Message-Id: <1527813049-3231-8-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2018 01:49 PM, Oleksandr Andrushchenko wrote:
-> On 05/30/2018 06:20 PM, Boris Ostrovsky wrote:
->> On 05/30/2018 02:34 AM, Oleksandr Andrushchenko wrote:
->>> On 05/29/2018 10:10 PM, Boris Ostrovsky wrote:
->>>> On 05/25/2018 11:33 AM, Oleksandr Andrushchenko wrote:
->>>> +/**
->>>> + * gnttab_dma_free_pages - free DMAable pages
->>>> + * @args: arguments to the function
->>>> + */
->>>> +int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args)
->>>> +{
->>>> +    xen_pfn_t *frames;
->>>> +    size_t size;
->>>> +    int i, ret;
->>>> +
->>>> +    gnttab_pages_clear_private(args->nr_pages, args->pages);
->>>> +
->>>> +    frames = kcalloc(args->nr_pages, sizeof(*frames), GFP_KERNEL);
->>>>
->>>> Any way you can do it without allocating memory? One possibility is to
->>>> keep allocated frames from gnttab_dma_alloc_pages(). (Not sure I like
->>>> that either but it's the only thing I can think of).
->>> Yes, I was also thinking about storing the allocated frames array from
->>> gnttab_dma_alloc_pages(), but that seemed not to be clear enough as
->>> the caller of the gnttab_dma_alloc_pages will need to store those
->>> frames
->>> in some context, so we can pass them on free. But the caller doesn't
->>> really
->>> need the frames which might confuse, so I decided to make those
->>> allocations
->>> on the fly.
->>> But I can still rework that to store the frames if you insist: please
->>> let me know.
->>
->> I would prefer not to allocate anything in the release path. Yes, I
->> realize that dragging frames array around is not necessary but IMO it's
->> better than potentially failing an allocation during a teardown. A
->> comment in the struct definition could explain the reason for having
->> this field.
-> Then I would suggest we have it this way: current API requires that
-> struct page **pages are allocated from outside. So, let's allocate
-> the frames from outside as well. This way the caller is responsible for
-> both pages and frames arrays and API looks consistent.
+Skip writing U/V components to odd rows for YVU420 in addition to
+YUV420 and NV12.
 
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Yes, that works too.
-
--boris
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 6101e2ed..c878a00 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -430,6 +430,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 		passthrough_bits = 16;
+ 		break;
+ 	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YVU420:
+ 	case V4L2_PIX_FMT_NV12:
+ 		burst_size = (image.pix.width & 0x3f) ?
+ 			     ((image.pix.width & 0x1f) ?
+-- 
+2.7.4
