@@ -1,133 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:50740 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752569AbeFDMeZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 08:34:25 -0400
-Subject: Re: [PATCH v4 6/6] media: uvcvideo: Move decode processing to process
- context
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Philipp Zabel <philipp.zabel@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
- <cae511f90085701e7093ce39dc8dabf8fc16b844.1522168131.git-series.kieran.bingham@ideasonboard.com>
- <alpine.DEB.2.20.1806041407450.23116@axis700.grange>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <3af3db58-6764-ae75-0138-ab7f1a085d1f@ideasonboard.com>
-Date: Mon, 4 Jun 2018 13:34:18 +0100
+Received: from mga18.intel.com ([134.134.136.126]:60483 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750844AbeFAJeU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Jun 2018 05:34:20 -0400
+Date: Fri, 1 Jun 2018 12:34:16 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: bingbu.cao@intel.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        tian.shu.qiu@intel.com, rajmohan.mani@intel.com, tfiga@chromium.org
+Subject: Re: [RESEND PATCH V2 2/2] media: ak7375: Add ak7375 lens voice coil
+ driver
+Message-ID: <20180601093416.i5mnos5titb5ggiz@paasikivi.fi.intel.com>
+References: <1527242135-22866-1-git-send-email-bingbu.cao@intel.com>
+ <1527242135-22866-2-git-send-email-bingbu.cao@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.20.1806041407450.23116@axis700.grange>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1527242135-22866-2-git-send-email-bingbu.cao@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Bingbu,
 
-Thank you for reviewing / taking a look through the series.
+A few comments below.
 
-On 04/06/18 13:09, Guennadi Liakhovetski wrote:
-> Hi Kieran,
+On Fri, May 25, 2018 at 05:55:35PM +0800, bingbu.cao@intel.com wrote:
+> From: Bingbu Cao <bingbu.cao@intel.com>
 > 
-> I've got a question:
+> Add a V4L2 sub-device driver for the ak7375 lens voice coil.
+> This is a voice coil module using the I2C bus to control the
+> focus position.
 > 
-> On Tue, 27 Mar 2018, Kieran Bingham wrote:
+> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
+> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+> ---
+>  MAINTAINERS                |   8 ++
+>  drivers/media/i2c/Kconfig  |  10 ++
+>  drivers/media/i2c/Makefile |   1 +
+>  drivers/media/i2c/ak7375.c | 278 +++++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 297 insertions(+)
+>  create mode 100644 drivers/media/i2c/ak7375.c
 > 
->> Newer high definition cameras, and cameras with multiple lenses such as
->> the range of stereo-vision cameras now available have ever increasing
->> data rates.
->>
->> The inclusion of a variable length packet header in URB packets mean
->> that we must memcpy the frame data out to our destination 'manually'.
->> This can result in data rates of up to 2 gigabits per second being
->> processed.
->>
->> To improve efficiency, and maximise throughput, handle the URB decode
->> processing through a work queue to move it from interrupt context, and
->> allow multiple processors to work on URBs in parallel.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
->>
->> ---
->> v2:
->>  - Lock full critical section of usb_submit_urb()
->>
->> v3:
->>  - Fix race on submitting uvc_video_decode_data_work() to work queue.
->>  - Rename uvc_decode_op -> uvc_copy_op (Generic to encode/decode)
->>  - Rename decodes -> copy_operations
->>  - Don't queue work if there is no async task
->>  - obtain copy op structure directly in uvc_video_decode_data()
->>  - uvc_video_decode_data_work() -> uvc_video_copy_data_work()
->>
->> v4:
->>  - Provide for_each_uvc_urb()
->>  - Simplify fix for shutdown race to flush queue before freeing URBs
->>  - Rebase to v4.16-rc4 (linux-media/master) adjusting for metadata
->>    conflicts.
->>
->>  drivers/media/usb/uvc/uvc_video.c | 107 ++++++++++++++++++++++++-------
->>  drivers/media/usb/uvc/uvcvideo.h  |  28 ++++++++-
->>  2 files changed, 111 insertions(+), 24 deletions(-)
->>
->> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
->> index 7dd0dcb457f3..a62e8caf367c 100644
->> --- a/drivers/media/usb/uvc/uvc_video.c
->> +++ b/drivers/media/usb/uvc/uvc_video.c
->> @@ -1042,21 +1042,54 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
->>  	return data[0];
->>  }
->>  
->> -static void uvc_video_decode_data(struct uvc_streaming *stream,
->> +/*
->> + * uvc_video_decode_data_work: Asynchronous memcpy processing
->> + *
->> + * Perform memcpy tasks in process context, with completion handlers
->> + * to return the URB, and buffer handles.
->> + */
->> +static void uvc_video_copy_data_work(struct work_struct *work)
->> +{
->> +	struct uvc_urb *uvc_urb = container_of(work, struct uvc_urb, work);
->> +	unsigned int i;
->> +	int ret;
->> +
->> +	for (i = 0; i < uvc_urb->async_operations; i++) {
->> +		struct uvc_copy_op *op = &uvc_urb->copy_operations[i];
->> +
->> +		memcpy(op->dst, op->src, op->len);
->> +
->> +		/* Release reference taken on this buffer */
->> +		uvc_queue_buffer_release(op->buf);
->> +	}
->> +
->> +	ret = usb_submit_urb(uvc_urb->urb, GFP_ATOMIC);
-> 
-> Does this still have to be ATOMIC now that it's called from a work queue 
-> context?
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index ea362219c4aa..20379a7baca0 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -625,6 +625,14 @@ T:	git git://linuxtv.org/anttip/media_tree.git
+>  S:	Maintained
+>  F:	drivers/media/usb/airspy/
+>  
+> +AKM AK7375 LENS VOICE COIL DRIVER
+> +M:	Tianshu Qiu <tian.shu.qiu@intel.com>
+> +L:	linux-media@vger.kernel.org
+> +T:	git git://linuxtv.org/media_tree.git
+> +S:	Maintained
+> +F:	drivers/media/i2c/ak7375.c
+> +F:	Documentation/devicetree/bindings/media/i2c/akm,ak7375.txt
 
-I think you're right.
-This could very likely be changed to GFP_KERNEL.
+The name of the file also needs to match. Currently it doesn't. How about
+"asahi-kasei,ak7375.txt"?
 
-Does this series impact anything on your async-controls series ?
+Could you also move the MAINTAINERS entry to the patch adding the DT
+bindings?
 
---
-Kieran
+> +
+>  ALACRITECH GIGABIT ETHERNET DRIVER
+>  M:	Lino Sanfilippo <LinoSanfilippo@gmx.de>
+>  S:	Maintained
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 341452fe98df..ff3cb5afb0e1 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -326,6 +326,16 @@ config VIDEO_AD5820
+>  	  This is a driver for the AD5820 camera lens voice coil.
+>  	  It is used for example in Nokia N900 (RX-51).
+>  
+> +config VIDEO_AK7375
+> +	tristate "AK7375 lens voice coil support"
+> +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+> +	depends on VIDEO_V4L2_SUBDEV_API
+> +	help
+> +	  This is a driver for the AK7375 camera lens voice coil.
+> +	  AK7375 is a 12 bit DAC with 120mA output current sink
+> +	  capability. This is designed for linear control of
+> +	  voice coil motors, controlled via I2C serial interface.
+> +
+>  config VIDEO_DW9714
+>  	tristate "DW9714 lens voice coil support"
+>  	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> index d679d57cd3b3..05b97e319ea9 100644
+> --- a/drivers/media/i2c/Makefile
+> +++ b/drivers/media/i2c/Makefile
+> @@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7127) += saa7127.o
+>  obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
+>  obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
+>  obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
+> +obj-$(CONFIG_VIDEO_AK7375)  += ak7375.o
+>  obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
+>  obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
+>  obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
+> diff --git a/drivers/media/i2c/ak7375.c b/drivers/media/i2c/ak7375.c
+> new file mode 100644
+> index 000000000000..012e673e9ced
+> --- /dev/null
+> +++ b/drivers/media/i2c/ak7375.c
 
+...
 
-> 
->> +	if (ret < 0)
->> +		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
->> +			   ret);
->> +}
-> 
-> [snip]
-> 
-> Thannks
-> Guennadi
-> 
+> +static const struct of_device_id ak7375_of_table[] = {
+> +	{ .compatible = "akm,ak7375" },
+
+"asahi-kasei,ak7375"
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
