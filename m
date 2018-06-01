@@ -1,140 +1,388 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:41106 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750865AbeFDESs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 00:18:48 -0400
-Message-ID: <804628fc4b02944314e35443a9a0cdf1@smtp-cloud7.xs4all.net>
-Date: Mon, 04 Jun 2018 06:18:44 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:37345 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751879AbeFALlq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 07:41:46 -0400
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: [PATCH v2 3/9] xen/balloon: Share common memory reservation routines
+Date: Fri,  1 Jun 2018 14:41:26 +0300
+Message-Id: <20180601114132.22596-4-andr2000@gmail.com>
+In-Reply-To: <20180601114132.22596-1-andr2000@gmail.com>
+References: <20180601114132.22596-1-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-Results of the daily build of media_tree:
+Memory {increase|decrease}_reservation and VA mappings update/reset
+code used in balloon driver can be made common, so other drivers can
+also re-use the same functionality without open-coding.
+Create a dedicated file for the shared code and export corresponding
+symbols for other kernel modules.
 
-date:			Mon Jun  4 05:00:14 CEST 2018
-media-tree git hash:	a00031c159748f322f771f3c1d5ed944cba4bd30
-media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
-v4l-utils git hash:	034fdb4bc2dd380a3c77c0b82c03c99c222ddef4
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+---
+ drivers/xen/Makefile          |   1 +
+ drivers/xen/balloon.c         |  71 ++------------------
+ drivers/xen/mem-reservation.c | 120 ++++++++++++++++++++++++++++++++++
+ include/xen/mem-reservation.h |  65 ++++++++++++++++++
+ 4 files changed, 192 insertions(+), 65 deletions(-)
+ create mode 100644 drivers/xen/mem-reservation.c
+ create mode 100644 include/xen/mem-reservation.h
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-rc4-i686: OK
-linux-4.17-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
+index 451e833f5931..3c87b0c3aca6 100644
+--- a/drivers/xen/Makefile
++++ b/drivers/xen/Makefile
+@@ -2,6 +2,7 @@
+ obj-$(CONFIG_HOTPLUG_CPU)		+= cpu_hotplug.o
+ obj-$(CONFIG_X86)			+= fallback.o
+ obj-y	+= grant-table.o features.o balloon.o manage.o preempt.o time.o
++obj-y	+= mem-reservation.o
+ obj-y	+= events/
+ obj-y	+= xenbus/
+ 
+diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
+index 065f0b607373..bdbce4257b65 100644
+--- a/drivers/xen/balloon.c
++++ b/drivers/xen/balloon.c
+@@ -71,6 +71,7 @@
+ #include <xen/balloon.h>
+ #include <xen/features.h>
+ #include <xen/page.h>
++#include <xen/mem-reservation.h>
+ 
+ static int xen_hotplug_unpopulated;
+ 
+@@ -157,13 +158,6 @@ static DECLARE_DELAYED_WORK(balloon_worker, balloon_process);
+ #define GFP_BALLOON \
+ 	(GFP_HIGHUSER | __GFP_NOWARN | __GFP_NORETRY | __GFP_NOMEMALLOC)
+ 
+-static void scrub_page(struct page *page)
+-{
+-#ifdef CONFIG_XEN_SCRUB_PAGES
+-	clear_highpage(page);
+-#endif
+-}
+-
+ /* balloon_append: add the given page to the balloon. */
+ static void __balloon_append(struct page *page)
+ {
+@@ -463,11 +457,6 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
+ 	int rc;
+ 	unsigned long i;
+ 	struct page   *page;
+-	struct xen_memory_reservation reservation = {
+-		.address_bits = 0,
+-		.extent_order = EXTENT_ORDER,
+-		.domid        = DOMID_SELF
+-	};
+ 
+ 	if (nr_pages > ARRAY_SIZE(frame_list))
+ 		nr_pages = ARRAY_SIZE(frame_list);
+@@ -486,9 +475,7 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
+ 		page = balloon_next_page(page);
+ 	}
+ 
+-	set_xen_guest_handle(reservation.extent_start, frame_list);
+-	reservation.nr_extents = nr_pages;
+-	rc = HYPERVISOR_memory_op(XENMEM_populate_physmap, &reservation);
++	rc = xenmem_reservation_increase(nr_pages, frame_list);
+ 	if (rc <= 0)
+ 		return BP_EAGAIN;
+ 
+@@ -496,29 +483,7 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
+ 		page = balloon_retrieve(false);
+ 		BUG_ON(page == NULL);
+ 
+-#ifdef CONFIG_XEN_HAVE_PVMMU
+-		/*
+-		 * We don't support PV MMU when Linux and Xen is using
+-		 * different page granularity.
+-		 */
+-		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
+-
+-		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
+-			unsigned long pfn = page_to_pfn(page);
+-
+-			set_phys_to_machine(pfn, frame_list[i]);
+-
+-			/* Link back into the page tables if not highmem. */
+-			if (!PageHighMem(page)) {
+-				int ret;
+-				ret = HYPERVISOR_update_va_mapping(
+-						(unsigned long)__va(pfn << PAGE_SHIFT),
+-						mfn_pte(frame_list[i], PAGE_KERNEL),
+-						0);
+-				BUG_ON(ret);
+-			}
+-		}
+-#endif
++		xenmem_reservation_va_mapping_update(1, &page, &frame_list[i]);
+ 
+ 		/* Relinquish the page back to the allocator. */
+ 		free_reserved_page(page);
+@@ -535,11 +500,6 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+ 	unsigned long i;
+ 	struct page *page, *tmp;
+ 	int ret;
+-	struct xen_memory_reservation reservation = {
+-		.address_bits = 0,
+-		.extent_order = EXTENT_ORDER,
+-		.domid        = DOMID_SELF
+-	};
+ 	LIST_HEAD(pages);
+ 
+ 	if (nr_pages > ARRAY_SIZE(frame_list))
+@@ -553,7 +513,7 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+ 			break;
+ 		}
+ 		adjust_managed_page_count(page, -1);
+-		scrub_page(page);
++		xenmem_reservation_scrub_page(page);
+ 		list_add(&page->lru, &pages);
+ 	}
+ 
+@@ -575,25 +535,8 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+ 		/* XENMEM_decrease_reservation requires a GFN */
+ 		frame_list[i++] = xen_page_to_gfn(page);
+ 
+-#ifdef CONFIG_XEN_HAVE_PVMMU
+-		/*
+-		 * We don't support PV MMU when Linux and Xen is using
+-		 * different page granularity.
+-		 */
+-		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
+-
+-		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
+-			unsigned long pfn = page_to_pfn(page);
++		xenmem_reservation_va_mapping_reset(1, &page);
+ 
+-			if (!PageHighMem(page)) {
+-				ret = HYPERVISOR_update_va_mapping(
+-						(unsigned long)__va(pfn << PAGE_SHIFT),
+-						__pte_ma(0), 0);
+-				BUG_ON(ret);
+-			}
+-			__set_phys_to_machine(pfn, INVALID_P2M_ENTRY);
+-		}
+-#endif
+ 		list_del(&page->lru);
+ 
+ 		balloon_append(page);
+@@ -601,9 +544,7 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
+ 
+ 	flush_tlb_all();
+ 
+-	set_xen_guest_handle(reservation.extent_start, frame_list);
+-	reservation.nr_extents   = nr_pages;
+-	ret = HYPERVISOR_memory_op(XENMEM_decrease_reservation, &reservation);
++	ret = xenmem_reservation_decrease(nr_pages, frame_list);
+ 	BUG_ON(ret != nr_pages);
+ 
+ 	balloon_stats.current_pages -= nr_pages;
+diff --git a/drivers/xen/mem-reservation.c b/drivers/xen/mem-reservation.c
+new file mode 100644
+index 000000000000..5388df852a21
+--- /dev/null
++++ b/drivers/xen/mem-reservation.c
+@@ -0,0 +1,120 @@
++// SPDX-License-Identifier: GPL-2.0
++
++/******************************************************************************
++ * Xen memory reservation utilities.
++ *
++ * Copyright (c) 2003, B Dragovic
++ * Copyright (c) 2003-2004, M Williamson, K Fraser
++ * Copyright (c) 2005 Dan M. Smith, IBM Corporation
++ * Copyright (c) 2010 Daniel Kiper
++ * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
++ */
++
++#include <xen/mem-reservation.h>
++
++/*
++ * Use one extent per PAGE_SIZE to avoid to break down the page into
++ * multiple frame.
++ */
++#define EXTENT_ORDER (fls(XEN_PFN_PER_PAGE) - 1)
++
++#ifdef CONFIG_XEN_SCRUB_PAGES
++void xenmem_reservation_scrub_page(struct page *page)
++{
++	clear_highpage(page);
++}
++EXPORT_SYMBOL_GPL(xenmem_reservation_scrub_page);
++#endif
++
++#ifdef CONFIG_XEN_HAVE_PVMMU
++void __xenmem_reservation_va_mapping_update(unsigned long count,
++					    struct page **pages,
++					    xen_pfn_t *frames)
++{
++	int i;
++
++	for (i = 0; i < count; i++) {
++		struct page *page = pages[i];
++		unsigned long pfn = page_to_pfn(page);
++
++		BUG_ON(page == NULL);
++
++		/*
++		 * We don't support PV MMU when Linux and Xen is using
++		 * different page granularity.
++		 */
++		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
++
++
++		set_phys_to_machine(pfn, frames[i]);
++
++		/* Link back into the page tables if not highmem. */
++		if (!PageHighMem(page)) {
++			int ret;
++
++			ret = HYPERVISOR_update_va_mapping(
++					(unsigned long)__va(pfn << PAGE_SHIFT),
++					mfn_pte(frames[i], PAGE_KERNEL),
++					0);
++			BUG_ON(ret);
++		}
++	}
++}
++EXPORT_SYMBOL_GPL(__xenmem_reservation_va_mapping_update);
++
++void __xenmem_reservation_va_mapping_reset(unsigned long count,
++					   struct page **pages)
++{
++	int i;
++
++	for (i = 0; i < count; i++) {
++		struct page *page = pages[i];
++		unsigned long pfn = page_to_pfn(page);
++
++		/*
++		 * We don't support PV MMU when Linux and Xen is using
++		 * different page granularity.
++		 */
++		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
++
++		if (!PageHighMem(page)) {
++			int ret;
++
++			ret = HYPERVISOR_update_va_mapping(
++					(unsigned long)__va(pfn << PAGE_SHIFT),
++					__pte_ma(0), 0);
++			BUG_ON(ret);
++		}
++		__set_phys_to_machine(pfn, INVALID_P2M_ENTRY);
++	}
++}
++EXPORT_SYMBOL_GPL(__xenmem_reservation_va_mapping_reset);
++#endif /* CONFIG_XEN_HAVE_PVMMU */
++
++int xenmem_reservation_increase(int count, xen_pfn_t *frames)
++{
++	struct xen_memory_reservation reservation = {
++		.address_bits = 0,
++		.extent_order = EXTENT_ORDER,
++		.domid        = DOMID_SELF
++	};
++
++	set_xen_guest_handle(reservation.extent_start, frames);
++	reservation.nr_extents = count;
++	return HYPERVISOR_memory_op(XENMEM_populate_physmap, &reservation);
++}
++EXPORT_SYMBOL_GPL(xenmem_reservation_increase);
++
++int xenmem_reservation_decrease(int count, xen_pfn_t *frames)
++{
++	struct xen_memory_reservation reservation = {
++		.address_bits = 0,
++		.extent_order = EXTENT_ORDER,
++		.domid        = DOMID_SELF
++	};
++
++	set_xen_guest_handle(reservation.extent_start, frames);
++	reservation.nr_extents = count;
++	return HYPERVISOR_memory_op(XENMEM_decrease_reservation, &reservation);
++}
++EXPORT_SYMBOL_GPL(xenmem_reservation_decrease);
+diff --git a/include/xen/mem-reservation.h b/include/xen/mem-reservation.h
+new file mode 100644
+index 000000000000..a727d65a1e61
+--- /dev/null
++++ b/include/xen/mem-reservation.h
+@@ -0,0 +1,65 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++/*
++ * Xen memory reservation utilities.
++ *
++ * Copyright (c) 2003, B Dragovic
++ * Copyright (c) 2003-2004, M Williamson, K Fraser
++ * Copyright (c) 2005 Dan M. Smith, IBM Corporation
++ * Copyright (c) 2010 Daniel Kiper
++ * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
++ */
++
++#ifndef _XENMEM_RESERVATION_H
++#define _XENMEM_RESERVATION_H
++
++#include <linux/kernel.h>
++#include <linux/slab.h>
++
++#include <asm/xen/hypercall.h>
++#include <asm/tlb.h>
++
++#include <xen/interface/memory.h>
++#include <xen/page.h>
++
++#ifdef CONFIG_XEN_SCRUB_PAGES
++void xenmem_reservation_scrub_page(struct page *page);
++#else
++static inline void xenmem_reservation_scrub_page(struct page *page)
++{
++}
++#endif
++
++#ifdef CONFIG_XEN_HAVE_PVMMU
++void __xenmem_reservation_va_mapping_update(unsigned long count,
++					    struct page **pages,
++					    xen_pfn_t *frames);
++
++void __xenmem_reservation_va_mapping_reset(unsigned long count,
++					   struct page **pages);
++#endif
++
++static inline void xenmem_reservation_va_mapping_update(unsigned long count,
++							struct page **pages,
++							xen_pfn_t *frames)
++{
++#ifdef CONFIG_XEN_HAVE_PVMMU
++	if (!xen_feature(XENFEAT_auto_translated_physmap))
++		__xenmem_reservation_va_mapping_update(count, pages, frames);
++#endif
++}
++
++static inline void xenmem_reservation_va_mapping_reset(unsigned long count,
++						       struct page **pages)
++{
++#ifdef CONFIG_XEN_HAVE_PVMMU
++	if (!xen_feature(XENFEAT_auto_translated_physmap))
++		__xenmem_reservation_va_mapping_reset(count, pages);
++#endif
++}
++
++int xenmem_reservation_increase(int count, xen_pfn_t *frames);
++
++int xenmem_reservation_decrease(int count, xen_pfn_t *frames);
++
++#endif
+-- 
+2.17.0
