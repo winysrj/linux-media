@@ -1,54 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:23997 "EHLO
-        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753177AbeEKOmE (ORCPT
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:42512 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750736AbeFAAbD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 May 2018 10:42:04 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 0/2] Fix potential buffer overrun root cause
-Date: Fri, 11 May 2018 16:41:24 +0200
-Message-Id: <20180511144126.24804-1-niklas.soderlund+renesas@ragnatech.se>
+        Thu, 31 May 2018 20:31:03 -0400
+Received: by mail-pl0-f68.google.com with SMTP id u6-v6so14225345pls.9
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:03 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 01/10] media: imx-csi: Pass sink pad field to ipu_csi_init_interface
+Date: Thu, 31 May 2018 17:30:40 -0700
+Message-Id: <1527813049-3231-2-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The output pad's field type was being passed to ipu_csi_init_interface(),
+in order to deal with field type 'alternate' at the sink pad, which
+is not understood by ipu_csi_init_interface().
 
-Commit 015060cb7795eac3 ("media: rcar-vin: enable field toggle after a
-set number of lines for Gen3") was an attempt to fix the issue of
-writing outside the capture buffer for VIN Gen3. Unfortunately it only
-fixed a symptom of a problem to such a degree I could no longer
-reproduce it.
+Remove that code and pass the sink pad field to ipu_csi_init_interface().
+The latter function will have to explicity deal with field type 'alternate'
+when setting up the CSI interface for BT.656 busses.
 
-Jacopo on the other hand working on a different setup still ran into the
-issue. And he even figured out the root cause of the issue. When I
-submitted the original VIN Gen3 support I had when addressing a review
-comment missed to keep the crop and compose dimensions in sync with the
-requested format resulting in the DMA engine not properly stopping
-before writing outside the buffer.
+Reported-by: Krzysztof Hałasa <khalasa@piap.pl>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-This series reverts the incorrect fix in 1/2 and applies a correct one
-in 2/2. I think this should be picked up for v4.18.
-
-* Changes since v1
-- Add commit message to 1/2.
-
-Niklas Söderlund (2):
-  Revert "media: rcar-vin: enable field toggle after a set number of
-    lines for Gen3"
-  rcar-vin: fix crop and compose handling for Gen3
-
- drivers/media/platform/rcar-vin/rcar-dma.c  | 20 +++++---------------
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  6 ++++++
- 2 files changed, 11 insertions(+), 15 deletions(-)
-
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 95d7805..9bc555c 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -629,12 +629,10 @@ static void csi_idmac_stop(struct csi_priv *priv)
+ /* Update the CSI whole sensor and active windows */
+ static int csi_setup(struct csi_priv *priv)
+ {
+-	struct v4l2_mbus_framefmt *infmt, *outfmt;
++	struct v4l2_mbus_framefmt *infmt;
+ 	struct v4l2_mbus_config mbus_cfg;
+-	struct v4l2_mbus_framefmt if_fmt;
+ 
+ 	infmt = &priv->format_mbus[CSI_SINK_PAD];
+-	outfmt = &priv->format_mbus[priv->active_output_pad];
+ 
+ 	/* compose mbus_config from the upstream endpoint */
+ 	mbus_cfg.type = priv->upstream_ep.bus_type;
+@@ -642,20 +640,13 @@ static int csi_setup(struct csi_priv *priv)
+ 		priv->upstream_ep.bus.mipi_csi2.flags :
+ 		priv->upstream_ep.bus.parallel.flags;
+ 
+-	/*
+-	 * we need to pass input frame to CSI interface, but
+-	 * with translated field type from output format
+-	 */
+-	if_fmt = *infmt;
+-	if_fmt.field = outfmt->field;
+-
+ 	ipu_csi_set_window(priv->csi, &priv->crop);
+ 
+ 	ipu_csi_set_downsize(priv->csi,
+ 			     priv->crop.width == 2 * priv->compose.width,
+ 			     priv->crop.height == 2 * priv->compose.height);
+ 
+-	ipu_csi_init_interface(priv->csi, &mbus_cfg, &if_fmt);
++	ipu_csi_init_interface(priv->csi, &mbus_cfg, infmt);
+ 
+ 	ipu_csi_set_dest(priv->csi, priv->dest);
+ 
 -- 
-2.17.0
+2.7.4
