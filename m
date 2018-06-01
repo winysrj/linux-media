@@ -1,101 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37614 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751960AbeEGLiu (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:38896 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750974AbeFAAbI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 May 2018 07:38:50 -0400
-Date: Mon, 7 May 2018 14:38:47 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Alan Cox <gnomes@lxorguk.ukuu.org.uk>, linux-media@vger.kernel.org,
-        andriy.shevchenko@intel.com
-Subject: Re: atomisp: drop from staging ?
-Message-ID: <20180507113847.dfam3eiu3yxbflwa@valkosipuli.retiisi.org.uk>
-References: <20180429011837.68859797@alans-desktop>
- <20180430094100.rbppnbpw5pnuoth4@valkosipuli.retiisi.org.uk>
- <20180503083049.nidmolfegklwnsqr@valkosipuli.retiisi.org.uk>
- <20180504111730.5ef8bdf8@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180504111730.5ef8bdf8@vento.lan>
+        Thu, 31 May 2018 20:31:08 -0400
+Received: by mail-pg0-f67.google.com with SMTP id c9-v6so7624294pgf.5
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2018 17:31:08 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 04/10] media: imx: interweave only for sequential input/interlaced output fields
+Date: Thu, 31 May 2018 17:30:43 -0700
+Message-Id: <1527813049-3231-5-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 04, 2018 at 11:17:30AM -0300, Mauro Carvalho Chehab wrote:
-> Em Thu, 3 May 2018 11:30:50 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > On Mon, Apr 30, 2018 at 12:41:00PM +0300, Sakari Ailus wrote:
-> > > Hi Alan,
-> > > 
-> > > On Sun, Apr 29, 2018 at 01:18:37AM +0100, Alan Cox wrote:  
-> > > > 
-> > > > I think this is going to be the best option. When I started cleaning up
-> > > > the atomisp code I had time to work on it. Then spectre/meltdown
-> > > > happened (which btw is why the updating suddenly and mysteriously stopped
-> > > > last summer).
-> > > > 
-> > > > I no longer have time to work on it and it's becoming evident that the
-> > > > world of speculative side channel is going to be mean that I am
-> > > > not going to get time in the forseeable future despite me trying to find
-> > > > space to get back into atomisp cleaning up. It sucks because we made some
-> > > > good initial progress but shit happens.
-> > > > 
-> > > > There are at this point (unsurprisngly ;)) no other volunteers I can
-> > > > find crazy enough to take this on.  
-> > > 
-> > > The driver has been in the staging tree for quite some time now and is a
-> > > regular target of cleanup patches but little has been done to address the
-> > > growing list of entries in the associated TODO file to get it out of
-> > > staging. Beyond this, I don't have the hardware but as far as I understand,
-> > > the driver is not functional in its current state.
-> > > 
-> > > I agree with removing the driver. It can always be brought back if someone
-> > > wishes to continue working it.
-> > > 
-> > > I can send patches to remove it.  
-> > 
-> > The patch didn't make it to the list likely because it was too big --- even
-> > with -D option to git format-patch!
-> > 
-> > It's here:
-> > 
-> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=atomisp-no-more>
-> 
-> I really hate remove things like that, but atomisp is on real bad shape.
-> I'm wandering if at least the sensor drivers could be converted before
-> dropping it.
+IDMAC interlaced scan, a.k.a. interweave, should be enabled at the
+IDMAC output pads only if the input field type is 'seq-bt' or 'seq-tb',
+and the IDMAC output pad field type is 'interlaced*'. Move this
+determination to a new macro idmac_interweave().
 
-The sensor drivers depend on atomisp specific interfaces and these drivers
-cannot be readily used with another bridge / ISP --- also consider the
-hardware likely isn't available either. One option could be to leave them
-in the staging tree, but the probability they'd eventually be considered
-dead code and removed as-is is very high.
+V4L2_FIELD_HAS_BOTH() macro should not be used on the input to determine
+enabling interlaced/interweave scan. That macro includes the 'interlaced'
+field types, and in those cases the data is already interweaved with
+top/bottom field lines.
 
-Most of the value in these drivers are likely the register lists but if the
-sensors are used elsewhere, these register lists could well be different
-due to different external clock frequencies etc.
+The CSI will capture whole frames when the source specifies alternate
+field mode. So the CSI also enables interweave at the IDMAC output pad
+for alternate input field type.
 
-I'd prefer removing them as well. If someone wishes to continue working on
-the atomisp driver and / or the sensor drivers, the patch can always be
-reverted.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 22 ++++++++++++++++++----
+ drivers/staging/media/imx/imx-media-csi.c   | 22 ++++++++++++++++++----
+ 2 files changed, 36 insertions(+), 8 deletions(-)
 
-> 
-> That's said, I don't have atomisp hardware either, and, even if I had,
-> I probably won't have enough time to fix it. So, if you all won't be
-> able to do any work on it any time soon, and that's what you want
-> for now, I'm ok with removing it.
-> 
-> Sakari,
-> 
-> Please send me a pull request with the driver removal patch and I'll
-> apply it.
-
-I will.
-
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index ae453fd..894db21 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -132,6 +132,18 @@ static inline struct prp_priv *sd_to_priv(struct v4l2_subdev *sd)
+ 	return ic_priv->task_priv;
+ }
+ 
++/*
++ * If the field type at IDMAC output pad is interlaced, and
++ * the input is sequential fields, the IDMAC output channel
++ * can accommodate by interweaving.
++ */
++static inline bool idmac_interweave(enum v4l2_field outfield,
++				    enum v4l2_field infield)
++{
++	return V4L2_FIELD_IS_INTERLACED(outfield) &&
++		V4L2_FIELD_IS_SEQUENTIAL(infield);
++}
++
+ static void prp_put_ipu_resources(struct prp_priv *priv)
+ {
+ 	if (priv->ic)
+@@ -353,6 +365,7 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	struct v4l2_mbus_framefmt *infmt;
+ 	unsigned int burst_size;
+ 	struct ipu_image image;
++	bool interweave;
+ 	int ret;
+ 
+ 	infmt = &priv->format_mbus[PRPENCVF_SINK_PAD];
+@@ -365,6 +378,9 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	image.rect.width = image.pix.width;
+ 	image.rect.height = image.pix.height;
+ 
++	interweave = (idmac_interweave(image.pix.field, infmt->field) &&
++		      channel == priv->out_ch);
++
+ 	if (rot_swap_width_height) {
+ 		swap(image.pix.width, image.pix.height);
+ 		swap(image.rect.width, image.rect.height);
+@@ -405,9 +421,7 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	if (rot_mode)
+ 		ipu_cpmem_set_rotation(channel, rot_mode);
+ 
+-	if (image.pix.field == V4L2_FIELD_NONE &&
+-	    V4L2_FIELD_HAS_BOTH(infmt->field) &&
+-	    channel == priv->out_ch)
++	if (interweave)
+ 		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline);
+ 
+ 	ret = ipu_ic_task_idma_init(priv->ic, channel,
+@@ -833,7 +847,7 @@ static void prp_try_fmt(struct prp_priv *priv,
+ 	infmt = __prp_get_fmt(priv, cfg, PRPENCVF_SINK_PAD, sdformat->which);
+ 
+ 	if (sdformat->pad == PRPENCVF_SRC_PAD) {
+-		if (sdformat->format.field != V4L2_FIELD_NONE)
++		if (!V4L2_FIELD_IS_INTERLACED(sdformat->format.field))
+ 			sdformat->format.field = infmt->field;
+ 
+ 		prp_bound_align_output(&sdformat->format, infmt,
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 9bc555c..2c77ef9 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -128,6 +128,19 @@ static inline bool is_parallel_16bit_bus(struct v4l2_fwnode_endpoint *ep)
+ }
+ 
+ /*
++ * If the field type at IDMAC output pad is interlaced, and
++ * the input is sequential or alternating fields, the IDMAC
++ * output channel can accommodate by interweaving.
++ */
++static inline bool idmac_interweave(enum v4l2_field outfield,
++				    enum v4l2_field infield)
++{
++	return V4L2_FIELD_IS_INTERLACED(outfield) &&
++		(V4L2_FIELD_IS_SEQUENTIAL(infield) ||
++		 infield == V4L2_FIELD_ALTERNATE);
++}
++
++/*
+  * Parses the fwnode endpoint from the source pad of the entity
+  * connected to this CSI. This will either be the entity directly
+  * upstream from the CSI-2 receiver, or directly upstream from the
+@@ -368,10 +381,10 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ {
+ 	struct imx_media_video_dev *vdev = priv->vdev;
+ 	struct v4l2_mbus_framefmt *infmt;
++	bool passthrough, interweave;
+ 	struct ipu_image image;
+ 	u32 passthrough_bits;
+ 	dma_addr_t phys[2];
+-	bool passthrough;
+ 	u32 burst_size;
+ 	int ret;
+ 
+@@ -389,6 +402,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	image.phys0 = phys[0];
+ 	image.phys1 = phys[1];
+ 
++	interweave = idmac_interweave(image.pix.field, infmt->field);
++
+ 	/*
+ 	 * Check for conditions that require the IPU to handle the
+ 	 * data internally as generic data, aka passthrough mode:
+@@ -476,8 +491,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 
+ 	ipu_smfc_set_burstsize(priv->smfc, burst_size);
+ 
+-	if (image.pix.field == V4L2_FIELD_NONE &&
+-	    V4L2_FIELD_HAS_BOTH(infmt->field))
++	if (interweave)
+ 		ipu_cpmem_interlaced_scan(priv->idmac_ch,
+ 					  image.pix.bytesperline);
+ 
+@@ -1294,7 +1308,7 @@ static void csi_try_fmt(struct csi_priv *priv,
+ 		}
+ 
+ 		if (sdformat->pad == CSI_SRC_PAD_DIRECT ||
+-		    sdformat->format.field != V4L2_FIELD_NONE)
++		    !V4L2_FIELD_IS_INTERLACED(sdformat->format.field))
+ 			sdformat->format.field = infmt->field;
+ 
+ 		/*
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
