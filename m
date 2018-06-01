@@ -1,388 +1,534 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:37345 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751879AbeFALlq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 07:41:46 -0400
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Subject: [PATCH v2 3/9] xen/balloon: Share common memory reservation routines
-Date: Fri,  1 Jun 2018 14:41:26 +0300
-Message-Id: <20180601114132.22596-4-andr2000@gmail.com>
-In-Reply-To: <20180601114132.22596-1-andr2000@gmail.com>
-References: <20180601114132.22596-1-andr2000@gmail.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:32952 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750793AbeFAGx2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 02:53:28 -0400
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Fri, 01 Jun 2018 12:23:25 +0530
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: hverkuil@xs4all.nl, mchehab@kernel.org, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-soc@vger.kernel.org, acourbot@google.com
+Subject: Re: [PATCH 4/4] media: venus: add PIL support
+In-Reply-To: <3822394c-b304-15c3-c978-ee39589308eb@linaro.org>
+References: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
+ <1526556740-25494-5-git-send-email-vgarodia@codeaurora.org>
+ <3822394c-b304-15c3-c978-ee39589308eb@linaro.org>
+Message-ID: <4af8ef54b889097e6df210bc062f1de8@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Hi Stan,
 
-Memory {increase|decrease}_reservation and VA mappings update/reset
-code used in balloon driver can be made common, so other drivers can
-also re-use the same functionality without open-coding.
-Create a dedicated file for the shared code and export corresponding
-symbols for other kernel modules.
+On 2018-05-22 18:32, Stanimir Varbanov wrote:
+> Hi Vikash,
+> 
+> On 05/17/2018 02:32 PM, Vikash Garodia wrote:
+>> This adds support to load the video firmware
+>> and bring ARM9 out of reset. This is useful
+>> for platforms which does not have trustzone
+>> to reset the ARM9.
+>> 
+>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+>> ---
+>>  .../devicetree/bindings/media/qcom,venus.txt       |   8 +-
+>>  drivers/media/platform/qcom/venus/core.c           |  67 +++++++--
+>>  drivers/media/platform/qcom/venus/core.h           |   6 +
+>>  drivers/media/platform/qcom/venus/firmware.c       | 163 
+>> +++++++++++++++++----
+>>  drivers/media/platform/qcom/venus/firmware.h       |  10 +-
+>>  5 files changed, 217 insertions(+), 37 deletions(-)
+>> 
+>> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt 
+>> b/Documentation/devicetree/bindings/media/qcom,venus.txt
+>> index 00d0d1b..0ff0f2d 100644
+>> --- a/Documentation/devicetree/bindings/media/qcom,venus.txt
+>> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+> 
+> for this change in DT binding you have to cc devicetree ML. And 
+> probably
+> it could be separate patch.
 
-Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
----
- drivers/xen/Makefile          |   1 +
- drivers/xen/balloon.c         |  71 ++------------------
- drivers/xen/mem-reservation.c | 120 ++++++++++++++++++++++++++++++++++
- include/xen/mem-reservation.h |  65 ++++++++++++++++++
- 4 files changed, 192 insertions(+), 65 deletions(-)
- create mode 100644 drivers/xen/mem-reservation.c
- create mode 100644 include/xen/mem-reservation.h
+Will keep it as a separate patch and add the DT reviewers.
 
-diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
-index 451e833f5931..3c87b0c3aca6 100644
---- a/drivers/xen/Makefile
-+++ b/drivers/xen/Makefile
-@@ -2,6 +2,7 @@
- obj-$(CONFIG_HOTPLUG_CPU)		+= cpu_hotplug.o
- obj-$(CONFIG_X86)			+= fallback.o
- obj-y	+= grant-table.o features.o balloon.o manage.o preempt.o time.o
-+obj-y	+= mem-reservation.o
- obj-y	+= events/
- obj-y	+= xenbus/
- 
-diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
-index 065f0b607373..bdbce4257b65 100644
---- a/drivers/xen/balloon.c
-+++ b/drivers/xen/balloon.c
-@@ -71,6 +71,7 @@
- #include <xen/balloon.h>
- #include <xen/features.h>
- #include <xen/page.h>
-+#include <xen/mem-reservation.h>
- 
- static int xen_hotplug_unpopulated;
- 
-@@ -157,13 +158,6 @@ static DECLARE_DELAYED_WORK(balloon_worker, balloon_process);
- #define GFP_BALLOON \
- 	(GFP_HIGHUSER | __GFP_NOWARN | __GFP_NORETRY | __GFP_NOMEMALLOC)
- 
--static void scrub_page(struct page *page)
--{
--#ifdef CONFIG_XEN_SCRUB_PAGES
--	clear_highpage(page);
--#endif
--}
--
- /* balloon_append: add the given page to the balloon. */
- static void __balloon_append(struct page *page)
- {
-@@ -463,11 +457,6 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
- 	int rc;
- 	unsigned long i;
- 	struct page   *page;
--	struct xen_memory_reservation reservation = {
--		.address_bits = 0,
--		.extent_order = EXTENT_ORDER,
--		.domid        = DOMID_SELF
--	};
- 
- 	if (nr_pages > ARRAY_SIZE(frame_list))
- 		nr_pages = ARRAY_SIZE(frame_list);
-@@ -486,9 +475,7 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
- 		page = balloon_next_page(page);
- 	}
- 
--	set_xen_guest_handle(reservation.extent_start, frame_list);
--	reservation.nr_extents = nr_pages;
--	rc = HYPERVISOR_memory_op(XENMEM_populate_physmap, &reservation);
-+	rc = xenmem_reservation_increase(nr_pages, frame_list);
- 	if (rc <= 0)
- 		return BP_EAGAIN;
- 
-@@ -496,29 +483,7 @@ static enum bp_state increase_reservation(unsigned long nr_pages)
- 		page = balloon_retrieve(false);
- 		BUG_ON(page == NULL);
- 
--#ifdef CONFIG_XEN_HAVE_PVMMU
--		/*
--		 * We don't support PV MMU when Linux and Xen is using
--		 * different page granularity.
--		 */
--		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
--
--		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
--			unsigned long pfn = page_to_pfn(page);
--
--			set_phys_to_machine(pfn, frame_list[i]);
--
--			/* Link back into the page tables if not highmem. */
--			if (!PageHighMem(page)) {
--				int ret;
--				ret = HYPERVISOR_update_va_mapping(
--						(unsigned long)__va(pfn << PAGE_SHIFT),
--						mfn_pte(frame_list[i], PAGE_KERNEL),
--						0);
--				BUG_ON(ret);
--			}
--		}
--#endif
-+		xenmem_reservation_va_mapping_update(1, &page, &frame_list[i]);
- 
- 		/* Relinquish the page back to the allocator. */
- 		free_reserved_page(page);
-@@ -535,11 +500,6 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
- 	unsigned long i;
- 	struct page *page, *tmp;
- 	int ret;
--	struct xen_memory_reservation reservation = {
--		.address_bits = 0,
--		.extent_order = EXTENT_ORDER,
--		.domid        = DOMID_SELF
--	};
- 	LIST_HEAD(pages);
- 
- 	if (nr_pages > ARRAY_SIZE(frame_list))
-@@ -553,7 +513,7 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
- 			break;
- 		}
- 		adjust_managed_page_count(page, -1);
--		scrub_page(page);
-+		xenmem_reservation_scrub_page(page);
- 		list_add(&page->lru, &pages);
- 	}
- 
-@@ -575,25 +535,8 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
- 		/* XENMEM_decrease_reservation requires a GFN */
- 		frame_list[i++] = xen_page_to_gfn(page);
- 
--#ifdef CONFIG_XEN_HAVE_PVMMU
--		/*
--		 * We don't support PV MMU when Linux and Xen is using
--		 * different page granularity.
--		 */
--		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
--
--		if (!xen_feature(XENFEAT_auto_translated_physmap)) {
--			unsigned long pfn = page_to_pfn(page);
-+		xenmem_reservation_va_mapping_reset(1, &page);
- 
--			if (!PageHighMem(page)) {
--				ret = HYPERVISOR_update_va_mapping(
--						(unsigned long)__va(pfn << PAGE_SHIFT),
--						__pte_ma(0), 0);
--				BUG_ON(ret);
--			}
--			__set_phys_to_machine(pfn, INVALID_P2M_ENTRY);
--		}
--#endif
- 		list_del(&page->lru);
- 
- 		balloon_append(page);
-@@ -601,9 +544,7 @@ static enum bp_state decrease_reservation(unsigned long nr_pages, gfp_t gfp)
- 
- 	flush_tlb_all();
- 
--	set_xen_guest_handle(reservation.extent_start, frame_list);
--	reservation.nr_extents   = nr_pages;
--	ret = HYPERVISOR_memory_op(XENMEM_decrease_reservation, &reservation);
-+	ret = xenmem_reservation_decrease(nr_pages, frame_list);
- 	BUG_ON(ret != nr_pages);
- 
- 	balloon_stats.current_pages -= nr_pages;
-diff --git a/drivers/xen/mem-reservation.c b/drivers/xen/mem-reservation.c
-new file mode 100644
-index 000000000000..5388df852a21
---- /dev/null
-+++ b/drivers/xen/mem-reservation.c
-@@ -0,0 +1,120 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+/******************************************************************************
-+ * Xen memory reservation utilities.
-+ *
-+ * Copyright (c) 2003, B Dragovic
-+ * Copyright (c) 2003-2004, M Williamson, K Fraser
-+ * Copyright (c) 2005 Dan M. Smith, IBM Corporation
-+ * Copyright (c) 2010 Daniel Kiper
-+ * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
-+ */
-+
-+#include <xen/mem-reservation.h>
-+
-+/*
-+ * Use one extent per PAGE_SIZE to avoid to break down the page into
-+ * multiple frame.
-+ */
-+#define EXTENT_ORDER (fls(XEN_PFN_PER_PAGE) - 1)
-+
-+#ifdef CONFIG_XEN_SCRUB_PAGES
-+void xenmem_reservation_scrub_page(struct page *page)
-+{
-+	clear_highpage(page);
-+}
-+EXPORT_SYMBOL_GPL(xenmem_reservation_scrub_page);
-+#endif
-+
-+#ifdef CONFIG_XEN_HAVE_PVMMU
-+void __xenmem_reservation_va_mapping_update(unsigned long count,
-+					    struct page **pages,
-+					    xen_pfn_t *frames)
-+{
-+	int i;
-+
-+	for (i = 0; i < count; i++) {
-+		struct page *page = pages[i];
-+		unsigned long pfn = page_to_pfn(page);
-+
-+		BUG_ON(page == NULL);
-+
-+		/*
-+		 * We don't support PV MMU when Linux and Xen is using
-+		 * different page granularity.
-+		 */
-+		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
-+
-+
-+		set_phys_to_machine(pfn, frames[i]);
-+
-+		/* Link back into the page tables if not highmem. */
-+		if (!PageHighMem(page)) {
-+			int ret;
-+
-+			ret = HYPERVISOR_update_va_mapping(
-+					(unsigned long)__va(pfn << PAGE_SHIFT),
-+					mfn_pte(frames[i], PAGE_KERNEL),
-+					0);
-+			BUG_ON(ret);
-+		}
-+	}
-+}
-+EXPORT_SYMBOL_GPL(__xenmem_reservation_va_mapping_update);
-+
-+void __xenmem_reservation_va_mapping_reset(unsigned long count,
-+					   struct page **pages)
-+{
-+	int i;
-+
-+	for (i = 0; i < count; i++) {
-+		struct page *page = pages[i];
-+		unsigned long pfn = page_to_pfn(page);
-+
-+		/*
-+		 * We don't support PV MMU when Linux and Xen is using
-+		 * different page granularity.
-+		 */
-+		BUILD_BUG_ON(XEN_PAGE_SIZE != PAGE_SIZE);
-+
-+		if (!PageHighMem(page)) {
-+			int ret;
-+
-+			ret = HYPERVISOR_update_va_mapping(
-+					(unsigned long)__va(pfn << PAGE_SHIFT),
-+					__pte_ma(0), 0);
-+			BUG_ON(ret);
-+		}
-+		__set_phys_to_machine(pfn, INVALID_P2M_ENTRY);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(__xenmem_reservation_va_mapping_reset);
-+#endif /* CONFIG_XEN_HAVE_PVMMU */
-+
-+int xenmem_reservation_increase(int count, xen_pfn_t *frames)
-+{
-+	struct xen_memory_reservation reservation = {
-+		.address_bits = 0,
-+		.extent_order = EXTENT_ORDER,
-+		.domid        = DOMID_SELF
-+	};
-+
-+	set_xen_guest_handle(reservation.extent_start, frames);
-+	reservation.nr_extents = count;
-+	return HYPERVISOR_memory_op(XENMEM_populate_physmap, &reservation);
-+}
-+EXPORT_SYMBOL_GPL(xenmem_reservation_increase);
-+
-+int xenmem_reservation_decrease(int count, xen_pfn_t *frames)
-+{
-+	struct xen_memory_reservation reservation = {
-+		.address_bits = 0,
-+		.extent_order = EXTENT_ORDER,
-+		.domid        = DOMID_SELF
-+	};
-+
-+	set_xen_guest_handle(reservation.extent_start, frames);
-+	reservation.nr_extents = count;
-+	return HYPERVISOR_memory_op(XENMEM_decrease_reservation, &reservation);
-+}
-+EXPORT_SYMBOL_GPL(xenmem_reservation_decrease);
-diff --git a/include/xen/mem-reservation.h b/include/xen/mem-reservation.h
-new file mode 100644
-index 000000000000..a727d65a1e61
---- /dev/null
-+++ b/include/xen/mem-reservation.h
-@@ -0,0 +1,65 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+/*
-+ * Xen memory reservation utilities.
-+ *
-+ * Copyright (c) 2003, B Dragovic
-+ * Copyright (c) 2003-2004, M Williamson, K Fraser
-+ * Copyright (c) 2005 Dan M. Smith, IBM Corporation
-+ * Copyright (c) 2010 Daniel Kiper
-+ * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
-+ */
-+
-+#ifndef _XENMEM_RESERVATION_H
-+#define _XENMEM_RESERVATION_H
-+
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+
-+#include <asm/xen/hypercall.h>
-+#include <asm/tlb.h>
-+
-+#include <xen/interface/memory.h>
-+#include <xen/page.h>
-+
-+#ifdef CONFIG_XEN_SCRUB_PAGES
-+void xenmem_reservation_scrub_page(struct page *page);
-+#else
-+static inline void xenmem_reservation_scrub_page(struct page *page)
-+{
-+}
-+#endif
-+
-+#ifdef CONFIG_XEN_HAVE_PVMMU
-+void __xenmem_reservation_va_mapping_update(unsigned long count,
-+					    struct page **pages,
-+					    xen_pfn_t *frames);
-+
-+void __xenmem_reservation_va_mapping_reset(unsigned long count,
-+					   struct page **pages);
-+#endif
-+
-+static inline void xenmem_reservation_va_mapping_update(unsigned long count,
-+							struct page **pages,
-+							xen_pfn_t *frames)
-+{
-+#ifdef CONFIG_XEN_HAVE_PVMMU
-+	if (!xen_feature(XENFEAT_auto_translated_physmap))
-+		__xenmem_reservation_va_mapping_update(count, pages, frames);
-+#endif
-+}
-+
-+static inline void xenmem_reservation_va_mapping_reset(unsigned long count,
-+						       struct page **pages)
-+{
-+#ifdef CONFIG_XEN_HAVE_PVMMU
-+	if (!xen_feature(XENFEAT_auto_translated_physmap))
-+		__xenmem_reservation_va_mapping_reset(count, pages);
-+#endif
-+}
-+
-+int xenmem_reservation_increase(int count, xen_pfn_t *frames);
-+
-+int xenmem_reservation_decrease(int count, xen_pfn_t *frames);
-+
-+#endif
--- 
-2.17.0
+>> @@ -53,7 +53,7 @@
+>> 
+>>  * Subnodes
+>>  The Venus video-codec node must contain two subnodes representing
+>> -video-decoder and video-encoder.
+>> +video-decoder and video-encoder, one optional firmware subnode.
+>> 
+>>  Every of video-encoder or video-decoder subnode should have:
+>> 
+>> @@ -79,6 +79,8 @@ Every of video-encoder or video-decoder subnode 
+>> should have:
+>>  		    power domain which is responsible for collapsing
+>>  		    and restoring power to the subcore.
+>> 
+>> +The firmware sub node must contain the iommus specifiers for ARM9.
+>> +
+>>  * An Example
+>>  	video-codec@1d00000 {
+>>  		compatible = "qcom,msm8916-venus";
+>> @@ -105,4 +107,8 @@ Every of video-encoder or video-decoder subnode 
+>> should have:
+>>  			clock-names = "core";
+>>  			power-domains = <&mmcc VENUS_CORE1_GDSC>;
+>>  		};
+>> +		firmware {
+> 
+> venus-firmware
+Ok.
+
+>> +			compatible = "qcom,venus-pil-no-tz";
+> 
+> this should be following the other subnodes compatible names:
+> 
+> compatible = "venus-firmware";
+
+Probably "venus-firmware-no-tz". Want to keep "-no-tz" explicitly as 
+this node
+is not needed for TZ based PIL.
+
+>> +			iommus = <&apps_smmu 0x10b2 0x0>;
+>> +		}
+>>  	};
+>> diff --git a/drivers/media/platform/qcom/venus/core.c 
+>> b/drivers/media/platform/qcom/venus/core.c
+>> index 1308488..16910558 100644
+>> --- a/drivers/media/platform/qcom/venus/core.c
+>> +++ b/drivers/media/platform/qcom/venus/core.c
+>> @@ -22,6 +22,7 @@
+>>  #include <linux/slab.h>
+>>  #include <linux/types.h>
+>>  #include <linux/pm_runtime.h>
+>> +#include <linux/iommu.h>
+>>  #include <media/videobuf2-v4l2.h>
+>>  #include <media/v4l2-mem2mem.h>
+>>  #include <media/v4l2-ioctl.h>
+>> @@ -30,6 +31,7 @@
+>>  #include "vdec.h"
+>>  #include "venc.h"
+>>  #include "firmware.h"
+>> +#include "hfi_venus.h"
+>> 
+>>  static void venus_event_notify(struct venus_core *core, u32 event)
+>>  {
+>> @@ -76,7 +78,7 @@ static void venus_sys_error_handler(struct 
+>> work_struct *work)
+>>  	hfi_core_deinit(core, true);
+>>  	hfi_destroy(core);
+>>  	mutex_lock(&core->lock);
+>> -	venus_shutdown(core->dev);
+>> +	venus_shutdown(core);
+>> 
+>>  	pm_runtime_put_sync(core->dev);
+>> 
+>> @@ -84,7 +86,7 @@ static void venus_sys_error_handler(struct 
+>> work_struct *work)
+>> 
+>>  	pm_runtime_get_sync(core->dev);
+>> 
+>> -	ret |= venus_boot(core->dev, core->res->fwname);
+>> +	ret |= venus_boot(core);
+>> 
+>>  	ret |= hfi_core_resume(core, true);
+>> 
+>> @@ -179,6 +181,20 @@ static u32 to_v4l2_codec_type(u32 codec)
+>>  	}
+>>  }
+>> 
+>> +static int store_firmware_dev(struct device *dev, void *data)
+>> +{
+>> +	struct venus_core *core;
+>> +
+>> +	core = (struct venus_core *)data;
+>> +	if (!core)
+>> +		return -EINVAL;
+>> +
+>> +	if (of_device_is_compatible(dev->of_node, "qcom,venus-pil-no-tz"))
+>> +		core->fw.dev = dev;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>>  static int venus_enumerate_codecs(struct venus_core *core, u32 type)
+>>  {
+>>  	const struct hfi_inst_ops dummy_ops = {};
+>> @@ -229,6 +245,7 @@ static int venus_probe(struct platform_device 
+>> *pdev)
+>>  	struct device *dev = &pdev->dev;
+>>  	struct venus_core *core;
+>>  	struct resource *r;
+>> +	struct iommu_domain *iommu_domain;
+>>  	int ret;
+>> 
+>>  	core = devm_kzalloc(dev, sizeof(*core), GFP_KERNEL);
+>> @@ -279,7 +296,14 @@ static int venus_probe(struct platform_device 
+>> *pdev)
+>>  	if (ret < 0)
+>>  		goto err_runtime_disable;
+>> 
+>> -	ret = venus_boot(dev, core->res->fwname);
+>> +	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
+>> +	if (ret)
+>> +		goto err_runtime_disable;
+>> +
+>> +	/* Attempt to register child devices */
+> 
+> This comment is wrong, the child devices are created by
+> of_platform_populate above.
+
+Good catch. Intend was to mention something like "Attempt to store 
+firmware
+device". Will correct it.
+
+>> +	ret = device_for_each_child(dev, core, store_firmware_dev);
+> 
+> Why we need these complex gymnastics to get struct device pointer when
+> that could be done in venus_firmware .probe method?
+> 
+> I think the answer is because you want to avoid having 
+> venus-firmware.ko
+> (because you have to have separate struct device for iommu SID). In 
+> that
+> case it would be better to make venus-firmware.ko.
+
+I can have the venus firmware .probe method without venus-firmware.ko. I 
+had
+the probe method initially, but since it was just storing the device 
+pointer,
+i am doing it while iterating over the child nodes.
+
+>> +
+>> +	ret = venus_boot(core);
+>>  	if (ret)
+>>  		goto err_runtime_disable;
+>> 
+>> @@ -303,14 +327,17 @@ static int venus_probe(struct platform_device 
+>> *pdev)
+>>  	if (ret)
+>>  		goto err_core_deinit;
+>> 
+>> -	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
+>> +	ret = pm_runtime_put_sync(dev);
+>>  	if (ret)
+>>  		goto err_dev_unregister;
+>> 
+>> -	ret = pm_runtime_put_sync(dev);
+>> -	if (ret)
+>> +	iommu_domain = iommu_get_domain_for_dev(dev);
+>> +	if (!iommu_domain)
+>>  		goto err_dev_unregister;
+>> 
+>> +	iommu_domain->geometry.aperture_start = VENUS_FW_MEM_SIZE;
+>> +	iommu_domain->geometry.aperture_end = VENUS_MAX_MEM_REGION;
+> 
+> I don't think that is needed for this struct device (Venus DT node
+> struct device). And also why aperture_start is on 6th MB? I think that
+> this iommu domain is for venus_non_secure iommu context_bank.
+
+ARM9 cannot accept iova as 0x0 for data buffers. The range is from 
+firmware
+end address(VENUS_FW_MEM_SIZE) till 3.5 GB. When the driver programs the
+register for firmware start and end address, and provides a buffer 
+having
+iova in the firmware range, it would end up generating a different SID 
+and
+would lead to issues.
+
+> Those geometry parameters are checked/used only from dma-iommu.c. They
+> are checked before entering on venus_probe and only when
+> geometry.force_aperture is true. So updating those params here doesn't
+> make any sense to iommu?
+
+I am not very sure on this part. We can stay with 
+dma_set_mask_and_coherent
+to keep the upper limit check. For lower limit, we can keep it as a TODO
+for future.
+
+>> +
+>>  	return 0;
+>> 
+>>  err_dev_unregister:
+>> @@ -318,7 +345,7 @@ static int venus_probe(struct platform_device 
+>> *pdev)
+>>  err_core_deinit:
+>>  	hfi_core_deinit(core, false);
+>>  err_venus_shutdown:
+>> -	venus_shutdown(dev);
+>> +	venus_shutdown(core);
+>>  err_runtime_disable:
+>>  	pm_runtime_set_suspended(dev);
+>>  	pm_runtime_disable(dev);
+>> @@ -339,7 +366,7 @@ static int venus_remove(struct platform_device 
+>> *pdev)
+>>  	WARN_ON(ret);
+>> 
+>>  	hfi_destroy(core);
+>> -	venus_shutdown(dev);
+>> +	venus_shutdown(core);
+>>  	of_platform_depopulate(dev);
+>> 
+>>  	pm_runtime_put_sync(dev);
+>> @@ -483,7 +510,29 @@ static __maybe_unused int 
+>> venus_runtime_resume(struct device *dev)
+>>  		.pm = &venus_pm_ops,
+>>  	},
+>>  };
+>> -module_platform_driver(qcom_venus_driver);
+>> +
+>> +static int __init venus_init(void)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = platform_driver_register(&qcom_video_firmware_driver);
+>> +	if (ret)
+>> +		return ret;
+> 
+> I think that this shouldn't be here, it is clear that firmware loader
+> code should be on separate device/driver (even outside of venus DT 
+> node).
+> 
+This is needed to register the driver with platform bus. Otherwise iommu 
+group
+for firmware device will not be created and iommu_domain_alloc would 
+fail.
+
+>> +
+>> +	ret = platform_driver_register(&qcom_venus_driver);
+>> +	if (ret)
+>> +		platform_driver_unregister(&qcom_video_firmware_driver);
+>> +
+>> +	return ret;
+>> +}
+>> +module_init(venus_init);
+>> +
+>> +static void __exit venus_exit(void)
+>> +{
+>> +	platform_driver_unregister(&qcom_venus_driver);
+>> +	platform_driver_unregister(&qcom_video_firmware_driver);
+>> +}
+>> +module_exit(venus_exit);
+>> 
+>>  MODULE_ALIAS("platform:qcom-venus");
+>>  MODULE_DESCRIPTION("Qualcomm Venus video encoder and decoder 
+>> driver");
+>> diff --git a/drivers/media/platform/qcom/venus/core.h 
+>> b/drivers/media/platform/qcom/venus/core.h
+>> index 85e66e2..68fc8af 100644
+>> --- a/drivers/media/platform/qcom/venus/core.h
+>> +++ b/drivers/media/platform/qcom/venus/core.h
+>> @@ -80,6 +80,11 @@ struct venus_caps {
+>>  	bool valid;
+>>  };
+>> 
+>> +struct video_firmware {
+>> +	struct device *dev;
+>> +	dma_addr_t iova;
+>> +	struct iommu_domain *iommu_domain;
+>> +};
+>>  /**
+>>   * struct venus_core - holds core parameters valid for all instances
+>>   *
+>> @@ -124,6 +129,7 @@ struct venus_core {
+>>  	struct device *dev;
+>>  	struct device *dev_dec;
+>>  	struct device *dev_enc;
+>> +	struct video_firmware fw;
+>>  	struct mutex lock;
+>>  	struct list_head instances;
+>>  	atomic_t insts_count;
+>> diff --git a/drivers/media/platform/qcom/venus/firmware.c 
+>> b/drivers/media/platform/qcom/venus/firmware.c
+>> index 8f25375..614c805 100644
+>> --- a/drivers/media/platform/qcom/venus/firmware.c
+>> +++ b/drivers/media/platform/qcom/venus/firmware.c
+>> @@ -12,8 +12,12 @@
+>>   *
+>>   */
+>> 
+>> +#include <linux/module.h>
+>> +#include <linux/of_device.h>
+>> +#include <linux/platform_device.h>
+>>  #include <linux/device.h>
+>>  #include <linux/firmware.h>
+>> +#include <linux/iommu.h>
+>>  #include <linux/delay.h>
+>>  #include <linux/kernel.h>
+>>  #include <linux/io.h>
+>> @@ -27,8 +31,10 @@
+>>  #include "firmware.h"
+>>  #include "hfi_venus_io.h"
+>> 
+>> -#define VENUS_PAS_ID			9
+>> -#define VENUS_FW_MEM_SIZE		(6 * SZ_1M)
+>> +static const struct of_device_id firmware_dt_match[] = {
+>> +	{ .compatible = "qcom,venus-pil-no-tz" },
+>> +	{ }
+>> +};
+>> 
+>>  void venus_reset_hw(struct venus_core *core)
+>>  {
+>> @@ -53,40 +59,37 @@ void venus_reset_hw(struct venus_core *core)
+>>  	/* Bring Arm9 out of reset */
+>>  	writel_relaxed(0, reg_base + WRAPPER_A9SS_SW_RESET);
+>>  }
+>> -int venus_boot(struct device *dev, const char *fwname)
+>> +EXPORT_SYMBOL_GPL(venus_reset_hw);
+>> +
+>> +int venus_load_fw(struct device *dev, const char *fwname,
+>> +		phys_addr_t *mem_phys, size_t *mem_size)
+>>  {
+>>  	const struct firmware *mdt;
+>>  	struct device_node *node;
+>> -	phys_addr_t mem_phys;
+>>  	struct resource r;
+>>  	ssize_t fw_size;
+>> -	size_t mem_size;
+>>  	void *mem_va;
+>>  	int ret;
+>> 
+>> -	if (!IS_ENABLED(CONFIG_QCOM_MDT_LOADER) || !qcom_scm_is_available())
+>> -		return -EPROBE_DEFER;
+>> -
+>>  	node = of_parse_phandle(dev->of_node, "memory-region", 0);
+>>  	if (!node) {
+>>  		dev_err(dev, "no memory-region specified\n");
+>>  		return -EINVAL;
+>>  	}
+>> -
+>>  	ret = of_address_to_resource(node, 0, &r);
+>>  	if (ret)
+>>  		return ret;
+>> 
+>> -	mem_phys = r.start;
+>> -	mem_size = resource_size(&r);
+>> +	*mem_phys = r.start;
+>> +	*mem_size = resource_size(&r);
+>> 
+>> -	if (mem_size < VENUS_FW_MEM_SIZE)
+>> +	if (*mem_size < VENUS_FW_MEM_SIZE)
+>>  		return -EINVAL;
+>> 
+>> -	mem_va = memremap(r.start, mem_size, MEMREMAP_WC);
+>> +	mem_va = memremap(r.start, *mem_size, MEMREMAP_WC);
+>>  	if (!mem_va) {
+>>  		dev_err(dev, "unable to map memory region: %pa+%zx\n",
+>> -			&r.start, mem_size);
+>> +			&r.start, *mem_size);
+>>  		return -ENOMEM;
+>>  	}
+>> 
+>> @@ -101,24 +104,134 @@ int venus_boot(struct device *dev, const char 
+>> *fwname)
+>>  		goto err_unmap;
+>>  	}
+>> 
+>> -	ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va, 
+>> mem_phys,
+>> -			    mem_size, NULL);
+>> +	ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va, 
+>> *mem_phys,
+>> +			    *mem_size, NULL);
+>> 
+>>  	release_firmware(mdt);
+>> 
+>> -	if (ret)
+>> -		goto err_unmap;
+>> -
+>> -	ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
+>> -	if (ret)
+>> -		goto err_unmap;
+>> -
+>>  err_unmap:
+>>  	memunmap(mem_va);
+>>  	return ret;
+>>  }
+>> 
+>> -int venus_shutdown(struct device *dev)
+>> +int venus_boot_noTZ(struct venus_core *core, phys_addr_t mem_phys,
+>> +							size_t mem_size)
+>>  {
+>> -	return qcom_scm_pas_shutdown(VENUS_PAS_ID);
+>> +	struct iommu_domain *iommu;
+>> +	struct device *dev;
+>> +	int ret;
+>> +
+>> +	if (!core->fw.dev)
+>> +		return -EPROBE_DEFER;
+>> +
+>> +	dev = core->fw.dev;
+>> +
+>> +	iommu = iommu_domain_alloc(&platform_bus_type);
+>> +	if (!iommu) {
+>> +		dev_err(dev, "Failed to allocate iommu domain\n");
+>> +		return -ENOMEM;
+>> +	}
+>> +
+>> +	iommu->geometry.aperture_start = 0x0;
+>> +	iommu->geometry.aperture_end = VENUS_FW_MEM_SIZE;
+> 
+> The same comment for geometry params as for venus_probe is valid here.
+As this is used only for firmware context bank, i can remove these
+explicit iommu configuration.
+
+>> +
+>> +	ret = iommu_attach_device(iommu, dev);
+>> +	if (ret) {
+>> +		dev_err(dev, "could not attach device\n");
+>> +		goto err_attach;
+>> +	}
+>> +
+>> +	ret = iommu_map(iommu, core->fw.iova, mem_phys, mem_size,
+>> +			IOMMU_READ|IOMMU_WRITE|IOMMU_PRIV);
+> 
+> iova is not initialized and is zero, maybe we don't need that variable
+> in the venus_firmware structure?
+
+As the iova will be always zero here, i can hard-code as well.
+
+>> +	if (ret) {
+>> +		dev_err(dev, "could not map video firmware region\n");
+>> +		goto err_map;
+>> +	}
+>> +	core->fw.iommu_domain = iommu;
+>> +	venus_reset_hw(core);
+>> +
+>> +	return 0;
+>> +
+>> +err_map:
+>> +	iommu_detach_device(iommu, dev);
+>> +err_attach:
+>> +	iommu_domain_free(iommu);
+>> +	return ret;
+>>  }
+>> +
+>> +int venus_shutdown_noTZ(struct venus_core *core)
+>> +{
+>> +	struct iommu_domain *iommu;
+>> +	u32 reg;
+>> +	struct device *dev = core->fw.dev;
+>> +	void __iomem *reg_base = core->base;
+>> +
+>> +	/* Assert the reset to ARM9 */
+>> +	reg = readl_relaxed(reg_base + WRAPPER_A9SS_SW_RESET);
+>> +	reg |= BIT(4);
+>> +	writel_relaxed(reg, reg_base + WRAPPER_A9SS_SW_RESET);
+>> +
+>> +	/* Make sure reset is asserted before the mapping is removed */
+>> +	mb();
+>> +
+>> +	iommu = core->fw.iommu_domain;
+>> +
+>> +	iommu_unmap(iommu, core->fw.iova, VENUS_FW_MEM_SIZE);
+>> +	iommu_detach_device(iommu, dev);
+>> +	iommu_domain_free(iommu);
+> 
+> check iommu APIs for errors.
+Ok.
