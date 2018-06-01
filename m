@@ -1,235 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:40159 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751889AbeFALls (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 07:41:48 -0400
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Subject: [PATCH v2 4/9] xen/grant-table: Allow allocating buffers suitable for DMA
-Date: Fri,  1 Jun 2018 14:41:27 +0300
-Message-Id: <20180601114132.22596-5-andr2000@gmail.com>
-In-Reply-To: <20180601114132.22596-1-andr2000@gmail.com>
-References: <20180601114132.22596-1-andr2000@gmail.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:54886 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753658AbeFAU1K (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 16:27:10 -0400
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: hverkuil@xs4all.nl, mchehab@kernel.org, robh@kernel.org,
+        mark.rutland@arm.com, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org, stanimir.varbanov@linaro.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, vgarodia@codeaurora.org,
+        acourbot@chromium.org
+Subject: [PATCH v2 5/5] venus: register separate driver for firmware device
+Date: Sat,  2 Jun 2018 01:56:08 +0530
+Message-Id: <1527884768-22392-6-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
+References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+A separate child device is added for video firmware.
+This is needed to
+[1] configure the firmware context bank with the desired SID.
+[2] ensure that the iova for firmware region is from 0x0.
 
-Extend grant table module API to allow allocating buffers that can
-be used for DMA operations and mapping foreign grant references
-on top of those.
-The resulting buffer is similar to the one allocated by the balloon
-driver in terms that proper memory reservation is made
-({increase|decrease}_reservation and VA mappings updated if needed).
-This is useful for sharing foreign buffers with HW drivers which
-cannot work with scattered buffers provided by the balloon driver,
-but require DMAable memory instead.
-
-Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
 ---
- drivers/xen/Kconfig       |  13 +++++
- drivers/xen/grant-table.c | 109 ++++++++++++++++++++++++++++++++++++++
- include/xen/grant_table.h |  18 +++++++
- 3 files changed, 140 insertions(+)
+ .../devicetree/bindings/media/qcom,venus.txt       |  8 +++-
+ drivers/media/platform/qcom/venus/core.c           | 48 +++++++++++++++++++---
+ drivers/media/platform/qcom/venus/firmware.c       | 20 ++++++++-
+ drivers/media/platform/qcom/venus/firmware.h       |  2 +
+ 4 files changed, 71 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
-index e5d0c28372ea..39536ddfbce4 100644
---- a/drivers/xen/Kconfig
-+++ b/drivers/xen/Kconfig
-@@ -161,6 +161,19 @@ config XEN_GRANT_DEV_ALLOC
- 	  to other domains. This can be used to implement frontend drivers
- 	  or as part of an inter-domain shared memory channel.
+diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
+index 00d0d1b..701cbe8 100644
+--- a/Documentation/devicetree/bindings/media/qcom,venus.txt
++++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+@@ -53,7 +53,7 @@
  
-+config XEN_GRANT_DMA_ALLOC
-+	bool "Allow allocating DMA capable buffers with grant reference module"
-+	depends on XEN && HAS_DMA
-+	help
-+	  Extends grant table module API to allow allocating DMA capable
-+	  buffers and mapping foreign grant references on top of it.
-+	  The resulting buffer is similar to one allocated by the balloon
-+	  driver in terms that proper memory reservation is made
-+	  ({increase|decrease}_reservation and VA mappings updated if needed).
-+	  This is useful for sharing foreign buffers with HW drivers which
-+	  cannot work with scattered buffers provided by the balloon driver,
-+	  but require DMAable memory instead.
+ * Subnodes
+ The Venus video-codec node must contain two subnodes representing
+-video-decoder and video-encoder.
++video-decoder and video-encoder, one optional firmware subnode.
+ 
+ Every of video-encoder or video-decoder subnode should have:
+ 
+@@ -79,6 +79,8 @@ Every of video-encoder or video-decoder subnode should have:
+ 		    power domain which is responsible for collapsing
+ 		    and restoring power to the subcore.
+ 
++The firmware sub node must contain the iommus specifiers for ARM9.
 +
- config SWIOTLB_XEN
- 	def_bool y
- 	select SWIOTLB
-diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
-index dbb48a89e987..5658e58d9cc6 100644
---- a/drivers/xen/grant-table.c
-+++ b/drivers/xen/grant-table.c
-@@ -45,6 +45,9 @@
- #include <linux/workqueue.h>
- #include <linux/ratelimit.h>
- #include <linux/moduleparam.h>
-+#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-+#include <linux/dma-mapping.h>
-+#endif
- 
- #include <xen/xen.h>
- #include <xen/interface/xen.h>
-@@ -57,6 +60,7 @@
- #ifdef CONFIG_X86
- #include <asm/xen/cpuid.h>
- #endif
-+#include <xen/mem-reservation.h>
- #include <asm/xen/hypercall.h>
- #include <asm/xen/interface.h>
- 
-@@ -811,6 +815,73 @@ int gnttab_alloc_pages(int nr_pages, struct page **pages)
+ * An Example
+ 	video-codec@1d00000 {
+ 		compatible = "qcom,msm8916-venus";
+@@ -105,4 +107,8 @@ Every of video-encoder or video-decoder subnode should have:
+ 			clock-names = "core";
+ 			power-domains = <&mmcc VENUS_CORE1_GDSC>;
+ 		};
++		venus-firmware {
++			compatible = "qcom,venus-firmware-no-tz";
++			iommus = <&apps_smmu 0x10b2 0x0>;
++		}
+ 	};
+diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+index 101612b..5cfb3c2 100644
+--- a/drivers/media/platform/qcom/venus/core.c
++++ b/drivers/media/platform/qcom/venus/core.c
+@@ -179,6 +179,19 @@ static u32 to_v4l2_codec_type(u32 codec)
+ 	}
  }
- EXPORT_SYMBOL_GPL(gnttab_alloc_pages);
  
-+#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-+/**
-+ * gnttab_dma_alloc_pages - alloc DMAable pages suitable for grant mapping into
-+ * @args: arguments to the function
-+ */
-+int gnttab_dma_alloc_pages(struct gnttab_dma_alloc_args *args)
++static int store_firmware_dev(struct device *dev, void *data)
 +{
-+	unsigned long pfn, start_pfn;
-+	size_t size;
-+	int i, ret;
++	struct venus_core *core = data;
 +
-+	size = args->nr_pages << PAGE_SHIFT;
-+	if (args->coherent)
-+		args->vaddr = dma_alloc_coherent(args->dev, size,
-+						 &args->dev_bus_addr,
-+						 GFP_KERNEL | __GFP_NOWARN);
-+	else
-+		args->vaddr = dma_alloc_wc(args->dev, size,
-+					   &args->dev_bus_addr,
-+					   GFP_KERNEL | __GFP_NOWARN);
-+	if (!args->vaddr) {
-+		pr_err("Failed to allocate DMA buffer of size %zu\n", size);
-+		return -ENOMEM;
-+	}
++	if (!core)
++		return -EINVAL;
 +
-+	start_pfn = __phys_to_pfn(args->dev_bus_addr);
-+	for (pfn = start_pfn, i = 0; pfn < start_pfn + args->nr_pages;
-+			pfn++, i++) {
-+		struct page *page = pfn_to_page(pfn);
-+
-+		args->pages[i] = page;
-+		args->frames[i] = xen_page_to_gfn(page);
-+		xenmem_reservation_scrub_page(page);
-+	}
-+
-+	xenmem_reservation_va_mapping_reset(args->nr_pages, args->pages);
-+
-+	ret = xenmem_reservation_decrease(args->nr_pages, args->frames);
-+	if (ret != args->nr_pages) {
-+		pr_err("Failed to decrease reservation for DMA buffer\n");
-+		ret = -EFAULT;
-+		goto fail_free_dma;
-+	}
-+
-+	ret = gnttab_pages_set_private(args->nr_pages, args->pages);
-+	if (ret < 0)
-+		goto fail_clear_private;
++	if (of_device_is_compatible(dev->of_node, "qcom,venus-firmware-no-tz"))
++		core->fw.dev = dev;
 +
 +	return 0;
-+
-+fail_clear_private:
-+	gnttab_pages_clear_private(args->nr_pages, args->pages);
-+fail_free_dma:
-+	xenmem_reservation_increase(args->nr_pages, args->frames);
-+	xenmem_reservation_va_mapping_update(args->nr_pages, args->pages,
-+					     args->frames);
-+	if (args->coherent)
-+		dma_free_coherent(args->dev, size,
-+				  args->vaddr, args->dev_bus_addr);
-+	else
-+		dma_free_wc(args->dev, size,
-+			    args->vaddr, args->dev_bus_addr);
-+	return ret;
 +}
-+EXPORT_SYMBOL_GPL(gnttab_dma_alloc_pages);
-+#endif
 +
- void gnttab_pages_clear_private(int nr_pages, struct page **pages)
+ static int venus_enumerate_codecs(struct venus_core *core, u32 type)
  {
- 	int i;
-@@ -838,6 +909,44 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
- }
- EXPORT_SYMBOL_GPL(gnttab_free_pages);
+ 	const struct hfi_inst_ops dummy_ops = {};
+@@ -279,6 +292,13 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_runtime_disable;
  
-+#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-+/**
-+ * gnttab_dma_free_pages - free DMAable pages
-+ * @args: arguments to the function
-+ */
-+int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args)
++	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
++	if (ret)
++		goto err_runtime_disable;
++
++	/* Attempt to store firmware device */
++	device_for_each_child(dev, core, store_firmware_dev);
++
+ 	ret = venus_boot(core);
+ 	if (ret)
+ 		goto err_runtime_disable;
+@@ -303,10 +323,6 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto err_core_deinit;
+ 
+-	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
+-	if (ret)
+-		goto err_dev_unregister;
+-
+ 	ret = pm_runtime_put_sync(dev);
+ 	if (ret)
+ 		goto err_dev_unregister;
+@@ -483,7 +499,29 @@ static __maybe_unused int venus_runtime_resume(struct device *dev)
+ 		.pm = &venus_pm_ops,
+ 	},
+ };
+-module_platform_driver(qcom_venus_driver);
++
++static int __init venus_init(void)
 +{
-+	size_t size;
-+	int i, ret;
++	int ret;
 +
-+	gnttab_pages_clear_private(args->nr_pages, args->pages);
++	ret = platform_driver_register(&qcom_video_firmware_driver);
++	if (ret)
++		return ret;
 +
-+	for (i = 0; i < args->nr_pages; i++)
-+		args->frames[i] = page_to_xen_pfn(args->pages[i]);
++	ret = platform_driver_register(&qcom_venus_driver);
++	if (ret)
++		platform_driver_unregister(&qcom_video_firmware_driver);
 +
-+	ret = xenmem_reservation_increase(args->nr_pages, args->frames);
-+	if (ret != args->nr_pages) {
-+		pr_err("Failed to decrease reservation for DMA buffer\n");
-+		ret = -EFAULT;
-+	} else {
-+		ret = 0;
-+	}
-+
-+	xenmem_reservation_va_mapping_update(args->nr_pages, args->pages,
-+					     args->frames);
-+
-+	size = args->nr_pages << PAGE_SHIFT;
-+	if (args->coherent)
-+		dma_free_coherent(args->dev, size,
-+				  args->vaddr, args->dev_bus_addr);
-+	else
-+		dma_free_wc(args->dev, size,
-+			    args->vaddr, args->dev_bus_addr);
 +	return ret;
 +}
-+EXPORT_SYMBOL_GPL(gnttab_dma_free_pages);
-+#endif
++module_init(venus_init);
 +
- /* Handling of paged out grant targets (GNTST_eagain) */
- #define MAX_DELAY 256
- static inline void
-diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
-index de03f2542bb7..9bc5bc07d4d3 100644
---- a/include/xen/grant_table.h
-+++ b/include/xen/grant_table.h
-@@ -198,6 +198,24 @@ void gnttab_free_auto_xlat_frames(void);
- int gnttab_alloc_pages(int nr_pages, struct page **pages);
- void gnttab_free_pages(int nr_pages, struct page **pages);
++static void __exit venus_exit(void)
++{
++	platform_driver_unregister(&qcom_venus_driver);
++	platform_driver_unregister(&qcom_video_firmware_driver);
++}
++module_exit(venus_exit);
  
-+#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-+struct gnttab_dma_alloc_args {
-+	/* Device for which DMA memory will be/was allocated. */
-+	struct device *dev;
-+	/* If set then DMA buffer is coherent and write-combine otherwise. */
-+	bool coherent;
+ MODULE_ALIAS("platform:qcom-venus");
+ MODULE_DESCRIPTION("Qualcomm Venus video encoder and decoder driver");
+diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+index 058d544..ed29d10 100644
+--- a/drivers/media/platform/qcom/venus/firmware.c
++++ b/drivers/media/platform/qcom/venus/firmware.c
+@@ -12,6 +12,7 @@
+  *
+  */
+ 
++#include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/device.h>
+ #include <linux/firmware.h>
+@@ -124,7 +125,7 @@ static int venus_load_fw(struct device *dev, const char *fwname,
+ 	}
+ 	if (qcom_scm_is_available())
+ 		ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va,
+-				*mem_phys, *mem_size);
++				*mem_phys, *mem_size, NULL);
+ 	else
+ 		ret = qcom_mdt_load_no_init(dev, mdt, fwname, VENUS_PAS_ID,
+ 				mem_va, *mem_phys, *mem_size, NULL);
+@@ -243,3 +244,20 @@ int venus_shutdown(struct venus_core *core)
+ 
+ 	return ret;
+ }
 +
-+	int nr_pages;
-+	struct page **pages;
-+	xen_pfn_t *frames;
-+	void *vaddr;
-+	dma_addr_t dev_bus_addr;
++static const struct of_device_id firmware_dt_match[] = {
++	{ .compatible = "qcom,venus-firmware-no-tz" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, firmware_dt_match);
++
++struct platform_driver qcom_video_firmware_driver = {
++	.driver = {
++			.name = "qcom-video-firmware",
++			.of_match_table = firmware_dt_match,
++	},
 +};
 +
-+int gnttab_dma_alloc_pages(struct gnttab_dma_alloc_args *args);
-+int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args);
-+#endif
-+
- int gnttab_pages_set_private(int nr_pages, struct page **pages);
- void gnttab_pages_clear_private(int nr_pages, struct page **pages);
++MODULE_ALIAS("platform:qcom-video-firmware");
++MODULE_DESCRIPTION("Qualcomm Venus firmware driver");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
+index 67fdd89..23c0409 100644
+--- a/drivers/media/platform/qcom/venus/firmware.h
++++ b/drivers/media/platform/qcom/venus/firmware.h
+@@ -21,6 +21,8 @@
  
+ struct device;
+ 
++extern struct platform_driver qcom_video_firmware_driver;
++
+ int venus_boot(struct venus_core *core);
+ int venus_shutdown(struct venus_core *core);
+ int venus_set_hw_state(enum tzbsp_video_state, struct venus_core *core);
 -- 
-2.17.0
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
