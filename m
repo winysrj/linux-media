@@ -1,153 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:37747 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751378AbeFAMA0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 08:00:26 -0400
-Received: by mail-wr0-f194.google.com with SMTP id d8-v6so4900141wro.4
-        for <linux-media@vger.kernel.org>; Fri, 01 Jun 2018 05:00:25 -0700 (PDT)
-From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
-        <ckoenig.leichtzumerken@gmail.com>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-Cc: sumit.semwal@linaro.org
-Subject: [PATCH 4/5] dma-buf: add dma_buf_(un)map_attachment_locked variants
-Date: Fri,  1 Jun 2018 14:00:19 +0200
-Message-Id: <20180601120020.11520-4-christian.koenig@amd.com>
-In-Reply-To: <20180601120020.11520-1-christian.koenig@amd.com>
-References: <20180601120020.11520-1-christian.koenig@amd.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:51901 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751342AbeFANwo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 09:52:44 -0400
+Message-ID: <1527861161.5913.14.camel@pengutronix.de>
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>
+Cc: linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
+Date: Fri, 01 Jun 2018 15:52:41 +0200
+In-Reply-To: <dee0fb18-faf3-12b7-3014-d5b63a8b3e38@gmail.com>
+References: <m37eobudmo.fsf@t19.piap.pl>
+         <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
+         <m3tvresqfw.fsf@t19.piap.pl>
+         <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
+         <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
+         <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
+         <m3h8mxqc7t.fsf@t19.piap.pl>
+         <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
+         <1527229949.4938.1.camel@pengutronix.de>
+         <dee0fb18-faf3-12b7-3014-d5b63a8b3e38@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add function variants which can be called with the reservation lock
-already held.
+On Fri, 2018-05-25 at 16:21 -0700, Steve Longerbeam wrote:
+> Hi Philipp,
+> 
+> On 05/24/2018 11:32 PM, Philipp Zabel wrote:
+> > On Thu, 2018-05-24 at 11:12 -0700, Steve Longerbeam wrote:
+> > [...]
+> > > > The following is required as well. Now the question is why we can't skip
+> > > > writing those odd UV rows. Anyway, with these 2 changes, I get a stable
+> > > > NTSC (and probably PAL) interlaced video stream.
+> > > > 
+> > > > The manual says: Reduce Double Read or Writes (RDRW):
+> > > > This bit is relevant for YUV4:2:0 formats. For write channels:
+> > > > U and V components are not written to odd rows.
+> > > > 
+> > > > How could it be so? With YUV420, are they normally written?
+> > > 
+> > > Well, given that this bit exists, and assuming I understand it correctly
+> > > (1),
+> > > I guess the U and V components for odd rows normally are placed on the
+> > > AXI bus. Which is a total waste of bus bandwidth because in 4:2:0,
+> > > the U and V components are the same for odd and even rows.
+> > > 
+> > > In other words for writing 4:2:0 to memory, this bit should _always_ be set.
+> > > 
+> > > (1) OTOH I don't really understand what this bit is trying to say.
+> > > Whether this bit is set or not, the data in memory is correct
+> > > for planar 4:2:0: y plane buffer followed by U plane of 1/4 size
+> > > (decimated by 2 in width and height), followed by Y plane of 1/4
+> > > size.
+> > > 
+> > > So I assume it is saying that the IPU normally places U/V components
+> > > on the AXI bus for odd rows, that are identical to the even row values.
+> > 
+> > Whether they are identical depends on the input format.
+> 
+> Right, this is the part I was missing, thanks for clarifying. The
+> even and odd chroma rows coming into the IDMAC from the
+> CSI (or IC) may not be identical if the CSI has captured 4:4:4
+> (or 4:2:2 yeah? 4:2:2 is only decimated in width not height).
 
-Signed-off-by: Christian König <christian.koenig@amd.com>
----
- drivers/dma-buf/dma-buf.c | 60 ++++++++++++++++++++++++++++++++++++++++++-----
- include/linux/dma-buf.h   |  5 ++++
- 2 files changed, 59 insertions(+), 6 deletions(-)
+Oh right, the MEDIA_BUS_FMT_YUYV variants are pretty common, they have
+chroma for all the lines. Actually, that is my default test case (1080p
+YUYV from TC358743), usually written to NV12 so it can be encoded.
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index 4f0708cb58a7..3371509b468e 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -606,6 +606,38 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
- }
- EXPORT_SYMBOL_GPL(dma_buf_detach);
- 
-+/**
-+ * dma_buf_map_attachment_locked - Maps the buffer into _device_ address space
-+ * with the reservation lock held. Is a wrapper for map_dma_buf() of the
-+ *
-+ * Returns the scatterlist table of the attachment;
-+ * dma_buf_ops.
-+ * @attach:	[in]	attachment whose scatterlist is to be returned
-+ * @direction:	[in]	direction of DMA transfer
-+ *
-+ * Returns sg_table containing the scatterlist to be returned; returns ERR_PTR
-+ * on error. May return -EINTR if it is interrupted by a signal.
-+ *
-+ * A mapping must be unmapped by using dma_buf_unmap_attachment(). Note that
-+ * the underlying backing storage is pinned for as long as a mapping exists,
-+ * therefore users/importers should not hold onto a mapping for undue amounts of
-+ * time.
-+ */
-+struct sg_table *
-+dma_buf_map_attachment_locked(struct dma_buf_attachment *attach,
-+			      enum dma_data_direction direction)
-+{
-+	struct sg_table *sg_table;
-+
-+	might_sleep();
-+	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
-+	if (!sg_table)
-+		sg_table = ERR_PTR(-ENOMEM);
-+
-+	return sg_table;
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_map_attachment_locked);
-+
- /**
-  * dma_buf_map_attachment - Returns the scatterlist table of the attachment;
-  * mapped into _device_ address space. Is a wrapper for map_dma_buf() of the
-@@ -626,13 +658,12 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
- {
- 	struct sg_table *sg_table;
- 
--	might_sleep();
- 
- 	if (WARN_ON(!attach || !attach->dmabuf))
- 		return ERR_PTR(-EINVAL);
- 
- 	reservation_object_lock(attach->dmabuf->resv, NULL);
--	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
-+	sg_table = dma_buf_map_attachment_locked(attach, direction);
- 	reservation_object_unlock(attach->dmabuf->resv);
- 	if (!sg_table)
- 		sg_table = ERR_PTR(-ENOMEM);
-@@ -641,6 +672,26 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
- }
- EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
- 
-+/**
-+ * dma_buf_unmap_attachment_locked - unmaps the buffer with reservation lock
-+ * held, should deallocate the associated scatterlist. Is a wrapper for
-+ * unmap_dma_buf() of dma_buf_ops.
-+ * @attach:	[in]	attachment to unmap buffer from
-+ * @sg_table:	[in]	scatterlist info of the buffer to unmap
-+ * @direction:  [in]    direction of DMA transfer
-+ *
-+ * This unmaps a DMA mapping for @attached obtained by dma_buf_map_attachment().
-+ */
-+void dma_buf_unmap_attachment_locked(struct dma_buf_attachment *attach,
-+				     struct sg_table *sg_table,
-+				     enum dma_data_direction direction)
-+{
-+	might_sleep();
-+	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table,
-+						direction);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment_locked);
-+
- /**
-  * dma_buf_unmap_attachment - unmaps and decreases usecount of the buffer;might
-  * deallocate the scatterlist associated. Is a wrapper for unmap_dma_buf() of
-@@ -655,14 +706,11 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- 				struct sg_table *sg_table,
- 				enum dma_data_direction direction)
- {
--	might_sleep();
--
- 	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
- 		return;
- 
- 	reservation_object_lock(attach->dmabuf->resv, NULL);
--	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table,
--						direction);
-+	dma_buf_unmap_attachment_locked(attach, sg_table, direction);
- 	reservation_object_unlock(attach->dmabuf->resv);
- }
- EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index d2ba7a027a78..968777e8c662 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -388,8 +388,13 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags);
- struct dma_buf *dma_buf_get(int fd);
- void dma_buf_put(struct dma_buf *dmabuf);
- 
-+struct sg_table *dma_buf_map_attachment_locked(struct dma_buf_attachment *,
-+					       enum dma_data_direction);
- struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
- 					enum dma_data_direction);
-+void dma_buf_unmap_attachment_locked(struct dma_buf_attachment *,
-+				     struct sg_table *,
-+				     enum dma_data_direction);
- void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
- 				enum dma_data_direction);
- int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
--- 
-2.14.1
+> But still, when the IDMAC has finished pixel packing/unpacking and
+> is writing 4:2:0 to memory, it should always skip overwriting the even
+> rows with the odd rows, whether or not it has received identical chroma
+> even/odd lines from the CSI.
+> 
+> Unless interweave is enabled :) See below.
+
+Agreed.
+
+regards
+Philipp
