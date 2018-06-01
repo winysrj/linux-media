@@ -1,94 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46128 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752946AbeFDMw2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 08:52:28 -0400
-MIME-Version: 1.0
-References: <1527246209-26685-1-git-send-email-vgarodia@codeaurora.org>
- <1527246209-26685-2-git-send-email-vgarodia@codeaurora.org>
- <CA+5PVA67tow+prVC55XF4=CbRGXJvPi2SuCMyhRyuw5qt8T6_Q@mail.gmail.com> <bcb4ba3ccd3b139ce03b6736d8d07cbe@codeaurora.org>
-In-Reply-To: <bcb4ba3ccd3b139ce03b6736d8d07cbe@codeaurora.org>
-From: Josh Boyer <jwboyer@kernel.org>
-Date: Mon, 4 Jun 2018 08:52:14 -0400
-Message-ID: <CA+5PVA5OETGW0JWMrrDhp-eFpgBMQ9Ud2sed_z67Qj4biXTnVw@mail.gmail.com>
-Subject: Re: qcom: add firmware file for Venus on SDM845
-To: vgarodia@codeaurora.org
-Cc: Linux Firmware <linux-firmware@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Alexandre Courbot <acourbot@google.com>,
-        linux-media-owner@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from 178.115.242.59.static.drei.at ([178.115.242.59]:53545 "EHLO
+        mail.osadl.at" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1751910AbeFAMsl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 08:48:41 -0400
+From: Nicholas Mc Guire <hofrat@opentech.at>
+To: Ludovic Desroches <ludovic.desroches@microchip.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, Nicholas Mc Guire <hofrat@osadl.org>
+Subject: [PATCH] media: atmel-isi: drop unnecessary while loop
+Date: Fri,  1 Jun 2018 12:46:14 +0000
+Message-Id: <1527857174-24616-1-git-send-email-hofrat@opentech.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, May 26, 2018 at 4:18 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
->
-> Hi Josh,
->
-> On 2018-05-25 17:34, Josh Boyer wrote:
-> > On Fri, May 25, 2018 at 7:03 AM Vikash Garodia
-> > <vgarodia@codeaurora.org>
-> > wrote:
-> >
-> >> This pull request adds firmware files for Venus h/w codec found on the
-> > Qualcomm SDM845 chipset.
-> >
-> >> The following changes since commit
-> > 2a9b2cf50fb32e36e4fc1586c2f6f1421913b553:
-> >
-> >>    Merge branch 'for-upstreaming-v1.7.2' of
-> > https://github.com/felix-cavium/linux-firmware (2018-05-18 08:35:22
-> > -0400)
-> >
-> >> are available in the git repository at:
-> >
-> >
-> >>    https://github.com/vgarodia/linux-firmware master
-> >
-> >> for you to fetch changes up to
-> >> d6088b9c9d7f49d3c6c43681190889eca0abdcce:
-> >
-> >>    qcom: add venus firmware files for v5.2 (2018-05-25 15:16:43 +0530)
-> >
-> >> ----------------------------------------------------------------
-> >> Vikash Garodia (1):
-> >>        qcom: add venus firmware files for v5.2
-> >
-> >>   WHENCE                   |   9 +++++++++
-> >>   qcom/venus-5.2/venus.b00 | Bin 0 -> 212 bytes
-> >>   qcom/venus-5.2/venus.b01 | Bin 0 -> 6600 bytes
-> >>   qcom/venus-5.2/venus.b02 | Bin 0 -> 819552 bytes
-> >>   qcom/venus-5.2/venus.b03 | Bin 0 -> 33536 bytes
-> >>   qcom/venus-5.2/venus.b04 |   1 +
-> >>   qcom/venus-5.2/venus.mbn | Bin 0 -> 865408 bytes
-> >>   qcom/venus-5.2/venus.mdt | Bin 0 -> 6812 bytes
-> >>   8 files changed, 10 insertions(+)
-> >>   create mode 100644 qcom/venus-5.2/venus.b00
-> >>   create mode 100644 qcom/venus-5.2/venus.b01
-> >>   create mode 100644 qcom/venus-5.2/venus.b02
-> >>   create mode 100644 qcom/venus-5.2/venus.b03
-> >>   create mode 100644 qcom/venus-5.2/venus.b04
-> >>   create mode 100644 qcom/venus-5.2/venus.mbn
-> >>   create mode 100644 qcom/venus-5.2/venus.mdt
-> >
-> > The venus.mbn file isn't mentioned in WHENCE:
-> >
-> > [jwboyer@vader linux-firmware]$ ./check_whence.py
-> > E: qcom/venus-5.2/venus.mbn not listed in WHENCE
-> > [jwboyer@vader linux-firmware]$
-> >
-> > Can you fix that up and let me know when to re-pull?
-> I have fixed the error and is ready to be re-pulled from the same git
-> repository.
-> I have noted the process to run check_whence.py before uploading the
-> firmwares.
->
-> Do i need to resend the pull request as the end commit is now changed to
-> 7602644358157e4b89960472b6d59ffcc040ca52 ?
+From: Nicholas Mc Guire <hofrat@osadl.org>
 
-Nope.  Pulled and pushed out now.  Thanks.
+As there is no way this can loop it actually makes no sense to have
+a while(1){} around the body - all three possible paths end in a return
+statement. 
 
-josh
+Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+Fixes: commit c1d82b895380 "[media] atmel-isi: move out of soc_camera to atmel"
+---
+
+The diff output is unfortunately not that readable - essentially only
+the outer while(1){ } was removed. 
+
+Patch was compile tested with: x86_64_defconfig + CONFIG_MEDIA_SUPPORT=y
+MEDIA_CAMERA_SUPPORT=y, CONFIG_MEDIA_CONTROLLER=y, V4L_PLATFORM_DRIVERS=y
+OF=y, CONFIG_COMPILE_TEST=y, CONFIG_VIDEO_ATMEL_ISI=y
+
+Compile testing atmel-isi.c shows some sparse warnings. Seems to be due to
+sizeof operator being applied to a union (not related to the function being
+changed though).
+
+Patch is against 4.17-rc7 (localversion-next is next-20180531)
+
+ drivers/media/platform/atmel/atmel-isi.c | 28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+index e5be21a..85fc7b9 100644
+--- a/drivers/media/platform/atmel/atmel-isi.c
++++ b/drivers/media/platform/atmel/atmel-isi.c
+@@ -1106,23 +1106,21 @@ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
+ 	struct device_node *ep = NULL;
+ 	struct device_node *remote;
+ 
+-	while (1) {
+-		ep = of_graph_get_next_endpoint(node, ep);
+-		if (!ep)
+-			return -EINVAL;
+-
+-		remote = of_graph_get_remote_port_parent(ep);
+-		if (!remote) {
+-			of_node_put(ep);
+-			return -EINVAL;
+-		}
++	ep = of_graph_get_next_endpoint(node, ep);
++	if (!ep)
++		return -EINVAL;
+ 
+-		/* Remote node to connect */
+-		isi->entity.node = remote;
+-		isi->entity.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		isi->entity.asd.match.fwnode = of_fwnode_handle(remote);
+-		return 0;
++	remote = of_graph_get_remote_port_parent(ep);
++	if (!remote) {
++		of_node_put(ep);
++		return -EINVAL;
+ 	}
++
++	/* Remote node to connect */
++	isi->entity.node = remote;
++	isi->entity.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
++	isi->entity.asd.match.fwnode = of_fwnode_handle(remote);
++	return 0;
+ }
+ 
+ static int isi_graph_init(struct atmel_isi *isi)
+-- 
+2.1.4
