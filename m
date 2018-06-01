@@ -1,164 +1,275 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f194.google.com ([209.85.217.194]:42793 "EHLO
-        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753277AbeFDNSs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 09:18:48 -0400
-Received: by mail-ua0-f194.google.com with SMTP id x18-v6so15328196uaj.9
-        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2018 06:18:47 -0700 (PDT)
-Received: from mail-ua0-f173.google.com (mail-ua0-f173.google.com. [209.85.217.173])
-        by smtp.gmail.com with ESMTPSA id n134-v6sm4069456vkf.7.2018.06.04.06.18.46
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 04 Jun 2018 06:18:46 -0700 (PDT)
-Received: by mail-ua0-f173.google.com with SMTP id m21-v6so754134uan.0
-        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2018 06:18:46 -0700 (PDT)
-MIME-Version: 1.0
-References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org> <1527884768-22392-6-git-send-email-vgarodia@codeaurora.org>
-In-Reply-To: <1527884768-22392-6-git-send-email-vgarodia@codeaurora.org>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Mon, 4 Jun 2018 22:18:34 +0900
-Message-ID: <CAAFQd5D39CkA=GucUs7YOHwsdj0gbk55BiY_gSvArY_RH4uDkg@mail.gmail.com>
-Subject: Re: [PATCH v2 5/5] venus: register separate driver for firmware device
-To: vgarodia@codeaurora.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, andy.gross@linaro.org,
-        bjorn.andersson@linaro.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:43578 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751938AbeFALlz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 07:41:55 -0400
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: [PATCH v2 9/9] xen/gntdev: Expose gntdev's dma-buf API for in-kernel use
+Date: Fri,  1 Jun 2018 14:41:32 +0300
+Message-Id: <20180601114132.22596-10-andr2000@gmail.com>
+In-Reply-To: <20180601114132.22596-1-andr2000@gmail.com>
+References: <20180601114132.22596-1-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikash,
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-On Sat, Jun 2, 2018 at 5:27 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
->
-> A separate child device is added for video firmware.
-> This is needed to
-> [1] configure the firmware context bank with the desired SID.
-> [2] ensure that the iova for firmware region is from 0x0.
->
-> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> ---
->  .../devicetree/bindings/media/qcom,venus.txt       |  8 +++-
->  drivers/media/platform/qcom/venus/core.c           | 48 +++++++++++++++++++---
->  drivers/media/platform/qcom/venus/firmware.c       | 20 ++++++++-
->  drivers/media/platform/qcom/venus/firmware.h       |  2 +
->  4 files changed, 71 insertions(+), 7 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> index 00d0d1b..701cbe8 100644
-> --- a/Documentation/devicetree/bindings/media/qcom,venus.txt
-> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> @@ -53,7 +53,7 @@
->
->  * Subnodes
->  The Venus video-codec node must contain two subnodes representing
-> -video-decoder and video-encoder.
-> +video-decoder and video-encoder, one optional firmware subnode.
->
->  Every of video-encoder or video-decoder subnode should have:
->
-> @@ -79,6 +79,8 @@ Every of video-encoder or video-decoder subnode should have:
->                     power domain which is responsible for collapsing
->                     and restoring power to the subcore.
->
-> +The firmware sub node must contain the iommus specifiers for ARM9.
+Allow creating grant device context for use by kernel modules which
+require functionality, provided by gntdev. Export symbols for dma-buf
+API provided by the module.
 
-Please document the compatible string here as well.
+Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+---
+ drivers/xen/gntdev-dmabuf.c |  6 +++
+ drivers/xen/gntdev.c        | 92 +++++++++++++++++++++++--------------
+ include/xen/grant_dev.h     | 37 +++++++++++++++
+ 3 files changed, 101 insertions(+), 34 deletions(-)
+ create mode 100644 include/xen/grant_dev.h
 
-> +
->  * An Example
->         video-codec@1d00000 {
->                 compatible = "qcom,msm8916-venus";
-> @@ -105,4 +107,8 @@ Every of video-encoder or video-decoder subnode should have:
->                         clock-names = "core";
->                         power-domains = <&mmcc VENUS_CORE1_GDSC>;
->                 };
-> +               venus-firmware {
-> +                       compatible = "qcom,venus-firmware-no-tz";
-
-I don't think "-no-tz" should be mentioned here in DT, since it's a
-firmware/software detail.
-
-> +                       iommus = <&apps_smmu 0x10b2 0x0>;
-> +               }
->         };
-> diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-> index 101612b..5cfb3c2 100644
-> --- a/drivers/media/platform/qcom/venus/core.c
-> +++ b/drivers/media/platform/qcom/venus/core.c
-> @@ -179,6 +179,19 @@ static u32 to_v4l2_codec_type(u32 codec)
->         }
->  }
->
-> +static int store_firmware_dev(struct device *dev, void *data)
-> +{
-> +       struct venus_core *core = data;
-> +
-> +       if (!core)
-> +               return -EINVAL;
-> +
-
-No need to check this AFAICT.
-
-> +       if (of_device_is_compatible(dev->of_node, "qcom,venus-firmware-no-tz"))
-> +               core->fw.dev = dev;
-> +
-> +       return 0;
-> +}
-> +
->  static int venus_enumerate_codecs(struct venus_core *core, u32 type)
->  {
->         const struct hfi_inst_ops dummy_ops = {};
-> @@ -279,6 +292,13 @@ static int venus_probe(struct platform_device *pdev)
->         if (ret < 0)
->                 goto err_runtime_disable;
->
-> +       ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
-> +       if (ret)
-> +               goto err_runtime_disable;
-> +
-> +       /* Attempt to store firmware device */
-> +       device_for_each_child(dev, core, store_firmware_dev);
-> +
->         ret = venus_boot(core);
->         if (ret)
->                 goto err_runtime_disable;
-> @@ -303,10 +323,6 @@ static int venus_probe(struct platform_device *pdev)
->         if (ret)
->                 goto err_core_deinit;
->
-> -       ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
-> -       if (ret)
-> -               goto err_dev_unregister;
-> -
->         ret = pm_runtime_put_sync(dev);
->         if (ret)
->                 goto err_dev_unregister;
-> @@ -483,7 +499,29 @@ static __maybe_unused int venus_runtime_resume(struct device *dev)
->                 .pm = &venus_pm_ops,
->         },
->  };
-> -module_platform_driver(qcom_venus_driver);
-> +
-> +static int __init venus_init(void)
-> +{
-> +       int ret;
-> +
-> +       ret = platform_driver_register(&qcom_video_firmware_driver);
-> +       if (ret)
-> +               return ret;
-
-Do we really need this firmware driver? As far as I can see, the
-approach used here should work even without any driver bound to the
-firmware device.
-
-Best regards,
-Tomasz
+diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
+index b5569a220f03..3890ac9dfab6 100644
+--- a/drivers/xen/gntdev-dmabuf.c
++++ b/drivers/xen/gntdev-dmabuf.c
+@@ -196,6 +196,7 @@ int gntdev_dmabuf_exp_wait_released(struct gntdev_dmabuf_priv *priv, int fd,
+ 	dmabuf_exp_wait_obj_free(priv, obj);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(gntdev_dmabuf_exp_wait_released);
+ 
+ /* ------------------------------------------------------------------ */
+ /* DMA buffer export support.                                         */
+@@ -621,6 +622,7 @@ gntdev_dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
+ 	dma_buf_put(dma_buf);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(gntdev_dmabuf_imp_to_refs);
+ 
+ u32 *gntdev_dmabuf_imp_get_refs(struct gntdev_dmabuf *gntdev_dmabuf)
+ {
+@@ -629,6 +631,7 @@ u32 *gntdev_dmabuf_imp_get_refs(struct gntdev_dmabuf *gntdev_dmabuf)
+ 
+ 	return NULL;
+ }
++EXPORT_SYMBOL_GPL(gntdev_dmabuf_imp_get_refs);
+ 
+ /*
+  * Find the hyper dma-buf by its file descriptor and remove
+@@ -678,6 +681,7 @@ int gntdev_dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd)
+ 	dmabuf_imp_free_storage(gntdev_dmabuf);
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(gntdev_dmabuf_imp_release);
+ 
+ struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
+ {
+@@ -694,8 +698,10 @@ struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
+ 
+ 	return priv;
+ }
++EXPORT_SYMBOL_GPL(gntdev_dmabuf_init);
+ 
+ void gntdev_dmabuf_fini(struct gntdev_dmabuf_priv *priv)
+ {
+ 	kfree(priv);
+ }
++EXPORT_SYMBOL_GPL(gntdev_dmabuf_fini);
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+index cf255d45f20f..63902f5298c9 100644
+--- a/drivers/xen/gntdev.c
++++ b/drivers/xen/gntdev.c
+@@ -621,14 +621,37 @@ static const struct mmu_notifier_ops gntdev_mmu_ops = {
+ 
+ /* ------------------------------------------------------------------ */
+ 
+-static int gntdev_open(struct inode *inode, struct file *flip)
++void gntdev_free_context(struct gntdev_priv *priv)
++{
++	struct grant_map *map;
++
++	pr_debug("priv %p\n", priv);
++
++	mutex_lock(&priv->lock);
++	while (!list_empty(&priv->maps)) {
++		map = list_entry(priv->maps.next, struct grant_map, next);
++		list_del(&map->next);
++		gntdev_put_map(NULL /* already removed */, map);
++	}
++	WARN_ON(!list_empty(&priv->freeable_maps));
++
++	mutex_unlock(&priv->lock);
++
++#ifdef CONFIG_XEN_GNTDEV_DMABUF
++	gntdev_dmabuf_fini(priv->dmabuf_priv);
++#endif
++
++	kfree(priv);
++}
++EXPORT_SYMBOL_GPL(gntdev_free_context);
++
++struct gntdev_priv *gntdev_alloc_context(struct device *dev)
+ {
+ 	struct gntdev_priv *priv;
+-	int ret = 0;
+ 
+ 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	INIT_LIST_HEAD(&priv->maps);
+ 	INIT_LIST_HEAD(&priv->freeable_maps);
+@@ -637,12 +660,40 @@ static int gntdev_open(struct inode *inode, struct file *flip)
+ #ifdef CONFIG_XEN_GNTDEV_DMABUF
+ 	priv->dmabuf_priv = gntdev_dmabuf_init();
+ 	if (IS_ERR(priv->dmabuf_priv)) {
+-		ret = PTR_ERR(priv->dmabuf_priv);
++		struct gntdev_priv *ret;
++
++		ret = ERR_CAST(priv->dmabuf_priv);
+ 		kfree(priv);
+ 		return ret;
+ 	}
+ #endif
+ 
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++	priv->dma_dev = dev;
++
++	/*
++	 * The device is not spawn from a device tree, so arch_setup_dma_ops
++	 * is not called, thus leaving the device with dummy DMA ops.
++	 * Fix this call of_dma_configure() with a NULL node to set
++	 * default DMA ops.
++	 */
++	of_dma_configure(priv->dma_dev, NULL);
++#endif
++	pr_debug("priv %p\n", priv);
++
++	return priv;
++}
++EXPORT_SYMBOL_GPL(gntdev_alloc_context);
++
++static int gntdev_open(struct inode *inode, struct file *flip)
++{
++	struct gntdev_priv *priv;
++	int ret = 0;
++
++	priv = gntdev_alloc_context(gntdev_miscdev.this_device);
++	if (IS_ERR(priv))
++		return PTR_ERR(priv);
++
+ 	if (use_ptemod) {
+ 		priv->mm = get_task_mm(current);
+ 		if (!priv->mm) {
+@@ -655,23 +706,11 @@ static int gntdev_open(struct inode *inode, struct file *flip)
+ 	}
+ 
+ 	if (ret) {
+-		kfree(priv);
++		gntdev_free_context(priv);
+ 		return ret;
+ 	}
+ 
+ 	flip->private_data = priv;
+-#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
+-	priv->dma_dev = gntdev_miscdev.this_device;
+-
+-	/*
+-	 * The device is not spawn from a device tree, so arch_setup_dma_ops
+-	 * is not called, thus leaving the device with dummy DMA ops.
+-	 * Fix this call of_dma_configure() with a NULL node to set
+-	 * default DMA ops.
+-	 */
+-	of_dma_configure(priv->dma_dev, NULL);
+-#endif
+-	pr_debug("priv %p\n", priv);
+ 
+ 	return 0;
+ }
+@@ -679,27 +718,11 @@ static int gntdev_open(struct inode *inode, struct file *flip)
+ static int gntdev_release(struct inode *inode, struct file *flip)
+ {
+ 	struct gntdev_priv *priv = flip->private_data;
+-	struct grant_map *map;
+-
+-	pr_debug("priv %p\n", priv);
+-
+-	mutex_lock(&priv->lock);
+-	while (!list_empty(&priv->maps)) {
+-		map = list_entry(priv->maps.next, struct grant_map, next);
+-		list_del(&map->next);
+-		gntdev_put_map(NULL /* already removed */, map);
+-	}
+-	WARN_ON(!list_empty(&priv->freeable_maps));
+-	mutex_unlock(&priv->lock);
+-
+-#ifdef CONFIG_XEN_GNTDEV_DMABUF
+-	gntdev_dmabuf_fini(priv->dmabuf_priv);
+-#endif
+ 
+ 	if (use_ptemod)
+ 		mmu_notifier_unregister(&priv->mn, priv->mm);
+ 
+-	kfree(priv);
++	gntdev_free_context(priv);
+ 	return 0;
+ }
+ 
+@@ -1156,6 +1179,7 @@ int gntdev_dmabuf_exp_from_refs(struct gntdev_priv *priv, int flags,
+ 	gntdev_remove_map(priv, map);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(gntdev_dmabuf_exp_from_refs);
+ 
+ /* ------------------------------------------------------------------ */
+ /* DMA buffer IOCTL support.                                          */
+diff --git a/include/xen/grant_dev.h b/include/xen/grant_dev.h
+new file mode 100644
+index 000000000000..b7d0abd1ab16
+--- /dev/null
++++ b/include/xen/grant_dev.h
+@@ -0,0 +1,37 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++/*
++ * Grant device kernel API
++ *
++ * Copyright (C) 2018 EPAM Systems Inc.
++ *
++ * Author: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
++ */
++
++#ifndef _GRANT_DEV_H
++#define _GRANT_DEV_H
++
++#include <linux/types.h>
++
++struct device;
++struct gntdev_priv;
++#ifdef CONFIG_XEN_GNTDEV_DMABUF
++struct xen_dmabuf;
++#endif
++
++struct gntdev_priv *gntdev_alloc_context(struct device *dev);
++void gntdev_free_context(struct gntdev_priv *priv);
++
++#ifdef CONFIG_XEN_GNTDEV_DMABUF
++int gntdev_dmabuf_exp_from_refs(struct gntdev_priv *priv, int flags,
++				int count, u32 domid, u32 *refs, u32 *fd);
++int gntdev_dmabuf_exp_wait_released(struct gntdev_priv *priv, int fd,
++				    int wait_to_ms);
++
++struct xen_dmabuf *gntdev_dmabuf_imp_to_refs(struct gntdev_priv *priv,
++					     int fd, int count, int domid);
++u32 *gntdev_dmabuf_imp_get_refs(struct xen_dmabuf *xen_dmabuf);
++int gntdev_dmabuf_imp_release(struct gntdev_priv *priv, u32 fd);
++#endif
++
++#endif
+-- 
+2.17.0
