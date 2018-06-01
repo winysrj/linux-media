@@ -1,51 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:60611 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750997AbeFDIij (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 04:38:39 -0400
-Message-ID: <1528101517.5808.8.camel@pengutronix.de>
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <pza@pengutronix.de>
-Cc: Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
-        linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
-Date: Mon, 04 Jun 2018 10:38:37 +0200
-In-Reply-To: <3db739a8-8482-688c-e26d-69095087444a@gmail.com>
-References: <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
-         <1527229949.4938.1.camel@pengutronix.de> <m3y3g8p5j3.fsf@t19.piap.pl>
-         <1e11fa9a-8fa6-c746-7ee1-a64666bfc44e@gmail.com>
-         <m3lgc2q5vl.fsf@t19.piap.pl>
-         <06b9dd3d-3b7d-d34d-5263-411c99ab1a8b@gmail.com>
-         <m38t81plry.fsf@t19.piap.pl>
-         <4f49cf44-431d-1971-e5c5-d66381a6970e@gmail.com>
-         <m336y9ouc4.fsf@t19.piap.pl>
-         <6923fcd4-317e-d6a6-7975-47a8c712f8f9@gmail.com>
-         <20180531062911.pkl2pracmyvhsldz@pengutronix.de>
-         <3db739a8-8482-688c-e26d-69095087444a@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp.codeaurora.org ([198.145.29.96]:53674 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753601AbeFAU06 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 16:26:58 -0400
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: hverkuil@xs4all.nl, mchehab@kernel.org, robh@kernel.org,
+        mark.rutland@arm.com, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org, stanimir.varbanov@linaro.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, vgarodia@codeaurora.org,
+        acourbot@chromium.org
+Subject: [PATCH v2 3/5] venus: add check to make scm calls
+Date: Sat,  2 Jun 2018 01:56:06 +0530
+Message-Id: <1527884768-22392-4-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
+References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2018-06-02 at 10:33 -0700, Steve Longerbeam wrote:
-[...]
-> As I said in the other thread, I think we should put this off to some
-> other time, and remove the code in ipu_csi_init_interface() that
-> inverts field order according to frame size. This way, CSI will not
-> be lying to userspace when we tell it the order is BT but the CSI
-> has actually inverted that to TB.
-> 
-> Also I have concerns about the CSI capturing field 1 _before_ field
-> 0 for NTSC. Doesn't that mean the CSI will drop the B-field in the
-> first captured frame on stream on, and thereafter mix fields from
-> different adjacent frames?
+Split the boot api into firmware load and hardware
+boot. Also add the checks to invoke scm calls only
+if the platform has the required support.
 
-Yes, that is only a problem for 29.97 Hz progressive source material.
-For real 59.94 Hz interlaced source material it does not matter which
-two consecutive fields are displayed together as long as we get the
-top/bottom ordering right.
+Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+---
+ drivers/media/platform/qcom/venus/core.c     |  4 +-
+ drivers/media/platform/qcom/venus/firmware.c | 65 ++++++++++++++++++----------
+ drivers/media/platform/qcom/venus/firmware.h |  2 +-
+ 3 files changed, 45 insertions(+), 26 deletions(-)
 
-regards
-Philipp
+diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+index 1308488..9a95f9a 100644
+--- a/drivers/media/platform/qcom/venus/core.c
++++ b/drivers/media/platform/qcom/venus/core.c
+@@ -84,7 +84,7 @@ static void venus_sys_error_handler(struct work_struct *work)
+ 
+ 	pm_runtime_get_sync(core->dev);
+ 
+-	ret |= venus_boot(core->dev, core->res->fwname);
++	ret |= venus_boot(core);
+ 
+ 	ret |= hfi_core_resume(core, true);
+ 
+@@ -279,7 +279,7 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_runtime_disable;
+ 
+-	ret = venus_boot(dev, core->res->fwname);
++	ret = venus_boot(core);
+ 	if (ret)
+ 		goto err_runtime_disable;
+ 
+diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+index b4664ed..cb7f48ef 100644
+--- a/drivers/media/platform/qcom/venus/firmware.c
++++ b/drivers/media/platform/qcom/venus/firmware.c
+@@ -81,40 +81,35 @@ int venus_set_hw_state(enum tzbsp_video_state state, struct venus_core *core)
+ }
+ EXPORT_SYMBOL_GPL(venus_set_hw_state);
+ 
+-int venus_boot(struct device *dev, const char *fwname)
++static int venus_load_fw(struct device *dev, const char *fwname,
++		phys_addr_t *mem_phys, size_t *mem_size)
+ {
+ 	const struct firmware *mdt;
+ 	struct device_node *node;
+-	phys_addr_t mem_phys;
+ 	struct resource r;
+ 	ssize_t fw_size;
+-	size_t mem_size;
+ 	void *mem_va;
+ 	int ret;
+ 
+-	if (!IS_ENABLED(CONFIG_QCOM_MDT_LOADER) || !qcom_scm_is_available())
+-		return -EPROBE_DEFER;
+-
+ 	node = of_parse_phandle(dev->of_node, "memory-region", 0);
+ 	if (!node) {
+ 		dev_err(dev, "no memory-region specified\n");
+ 		return -EINVAL;
+ 	}
+-
+ 	ret = of_address_to_resource(node, 0, &r);
+ 	if (ret)
+ 		return ret;
+ 
+-	mem_phys = r.start;
+-	mem_size = resource_size(&r);
++	*mem_phys = r.start;
++	*mem_size = resource_size(&r);
+ 
+-	if (mem_size < VENUS_FW_MEM_SIZE)
++	if (*mem_size < VENUS_FW_MEM_SIZE)
+ 		return -EINVAL;
+ 
+-	mem_va = memremap(r.start, mem_size, MEMREMAP_WC);
++	mem_va = memremap(r.start, *mem_size, MEMREMAP_WC);
+ 	if (!mem_va) {
+ 		dev_err(dev, "unable to map memory region: %pa+%zx\n",
+-			&r.start, mem_size);
++			&r.start, *mem_size);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -128,25 +123,49 @@ int venus_boot(struct device *dev, const char *fwname)
+ 		release_firmware(mdt);
+ 		goto err_unmap;
+ 	}
+-
+-	ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va, mem_phys,
+-			    mem_size);
++	if (qcom_scm_is_available())
++		ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va,
++				*mem_phys, *mem_size, NULL);
++	else
++		ret = qcom_mdt_load_no_init(dev, mdt, fwname, VENUS_PAS_ID,
++				mem_va, *mem_phys, *mem_size, NULL);
+ 
+ 	release_firmware(mdt);
+ 
+-	if (ret)
+-		goto err_unmap;
+-
+-	ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
+-	if (ret)
+-		goto err_unmap;
+-
+ err_unmap:
+ 	memunmap(mem_va);
+ 	return ret;
+ }
++int venus_boot(struct venus_core *core)
++{
++	phys_addr_t mem_phys;
++	size_t mem_size;
++	int ret;
++	struct device *dev;
++
++	if (!IS_ENABLED(CONFIG_QCOM_MDT_LOADER))
++		return -EPROBE_DEFER;
++
++	dev = core->dev;
++
++	ret = venus_load_fw(dev, core->res->fwname, &mem_phys, &mem_size);
++	if (ret) {
++		dev_err(dev, "fail to load video firmware\n");
++		return -EINVAL;
++	}
++
++	if (qcom_scm_is_available())
++		ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(venus_boot);
+ 
+ int venus_shutdown(struct device *dev)
+ {
+-	return qcom_scm_pas_shutdown(VENUS_PAS_ID);
++	int ret = 0;
++
++	if (qcom_scm_is_available())
++		ret = qcom_scm_pas_shutdown(VENUS_PAS_ID);
++	return ret;
+ }
+diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
+index 1336729..0916826 100644
+--- a/drivers/media/platform/qcom/venus/firmware.h
++++ b/drivers/media/platform/qcom/venus/firmware.h
+@@ -16,7 +16,7 @@
+ 
+ struct device;
+ 
+-int venus_boot(struct device *dev, const char *fwname);
++int venus_boot(struct venus_core *core);
+ int venus_shutdown(struct device *dev);
+ int venus_set_hw_state(enum tzbsp_video_state, struct venus_core *core);
+ 
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
