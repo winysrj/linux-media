@@ -1,151 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:49303 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751098AbeFEA4u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 20:56:50 -0400
-Subject: Re: [PATCH v2 04/10] media: imx: interweave only for sequential
- input/interlaced output fields
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-media@vger.kernel.org>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
- <1527813049-3231-5-git-send-email-steve_longerbeam@mentor.com>
- <1527860010.5913.8.camel@pengutronix.de> <m3k1rfnmfr.fsf@t19.piap.pl>
- <1528100849.5808.2.camel@pengutronix.de>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <c9fcc11a-9f0f-0764-cb8e-66fc9c09d7f4@mentor.com>
-Date: Mon, 4 Jun 2018 17:56:44 -0700
-MIME-Version: 1.0
-In-Reply-To: <1528100849.5808.2.camel@pengutronix.de>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:41924 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750981AbeFAIT1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 04:19:27 -0400
+Received: by mail-wr0-f195.google.com with SMTP id u12-v6so35408609wrn.8
+        for <linux-media@vger.kernel.org>; Fri, 01 Jun 2018 01:19:26 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        eballetbo@gmail.com, Stefan Adolfsson <sadolfsson@chromium.org>
+Subject: [PATCH v7 3/6] mfd: cros-ec: Increase maximum mkbp event size
+Date: Fri,  1 Jun 2018 10:19:11 +0200
+Message-Id: <1527841154-24832-4-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
+References: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Having a 16 byte mkbp event size makes it possible to send CEC
+messages from the EC to the AP directly inside the mkbp event
+instead of first doing a notification and then a read.
 
+Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+---
+ drivers/platform/chrome/cros_ec_proto.c | 40 +++++++++++++++++++++++++--------
+ include/linux/mfd/cros_ec.h             |  2 +-
+ include/linux/mfd/cros_ec_commands.h    | 19 ++++++++++++++++
+ 3 files changed, 51 insertions(+), 10 deletions(-)
 
-On 06/04/2018 01:27 AM, Philipp Zabel wrote:
-> On Mon, 2018-06-04 at 07:35 +0200, Krzysztof Hałasa wrote:
->> Philipp Zabel <p.zabel@pengutronix.de> writes:
->>
->>> This is ok in this patch, but we can't use this check in the following
->>> TRY_FMT patch as there is no way to interweave
->>> SEQ_TB -> INTERLACED_BT (because in SEQ_TB the B field is newer than T,
->>> but in INTERLACED_BT it has to be older) or SEQ_BT -> INTERLACED_TB (the
->>> other way around).
->> Actually we can do SEQ_TB -> INTERLACED_BT and SEQ_BT -> INTERLACED_TB
->> rather easily. We only need to skip a single field at start :-)
->> That's what CCIR_CODE_* registers do.
->>
->> To be honest, SEQ_TB and SEQ_BT are precisely the same thing
->> (i.e., SEQUENTIAL). It's up to the user to say which field is the first.
->> There is the progressive sensor exception, though, and the TB/BT could
->> be a hint for downstream elements (i.e., setting the default field
->> order).
->>
->> But I think we should be able to request INTERLACED_TB or INTERLACED_BT
->> (with any analog signal on input) and the CCIR_CODE registers should be
->> set accordingly. This should all magically work fine.
-> The CSI subdevice itself can't interweave at all, this is done in the
-> IDMAC.
-> In my opinion the CSI subdev should allow the following src -> sink
-> field transformations for BT.656:
->
-> none -> none
-> seq-tb -> seq-tb
-> seq-tb -> seq-bt
-> seq-bt -> seq-bt
-> seq-bt -> seq-tb
-> alternate -> seq-tb
-> alternate -> seq-bt
-> interlaced -> interlaced
-> interlaced-tb -> interlaced-tb
-> interlaced-bt -> interlaced-bt
->
-> The capture video device should then additionally allow selecting
-> the field order that can be produced by IDMAC interweaving:
-> INTERLACED_TB if the pad is seq-tb and INTERLACED_BT if the pad is seq-
-> bt, as that is what the IDMAC can convert.
-
-Good idea. This is also in-line with how planar YUV is selected
-at the capture interface instead of at the CSI/PRPENCVF source
-pad.
-
-Philipp, Krzysztof, please see branch fix-csi-interlaced.3 in my github
-mediatree fork. I've implemented the above and it works great for
-both NTSC and PAL sources to the ADV7180.
-
->
-> seq-tb -> seq-tb and seq-bt -> seq-bt should always capture field 0
-> first, as we currently do for PAL.
-> seq->tb -> seq-bt and seq-bt -> seq-tb should always capture field 1
-> first, as we currently do for NTSC.
-> alternate -> seq-tb and alternate -> seq-bt should match seq-tb -> * for
-> PAL and seq-bt -> * for NTSC.
-
-Yes, I had already implemented this idea yesterday, I've added it
-to branch fix-csi-interlaced.3. The CSI will swap field capture
-(field 1 first, then field 2, by inverting F bit in CCIR registers) if
-the field order input to the CSI is different from the requested
-output field order.
-
-Philipp, a word about the idea of using negative ILO line stride and
-an extra line added to EBA start address, for interweaving. I believe
-the result of this is to also invert field order when interweaving
-'seq-bt/tb', which would produce 'interlaced-tb/bt' in memory.
-
-I don't think this is necessary now, because field order swapping
-can already be done earlier at the CSI sink->src using the CCIR registers.
-For example here is a pipeline for an NTSC adv7180 source that swapped
-NTSC 'seq-bt' (well assumed NTSC 'seq-bt' since adv7180 is 'alternate') to
-'seq-tb' at the CSI source pad:
-
-'adv7180 3-0021':0
-         [fmt:UYVY8_2X8/720x480 field:alternate colorspace:smpte170m]
-'ipu1_csi0_mux':1
-         [fmt:UYVY8_2X8/720x480 field:alternate colorspace:smpte170m]
-'ipu1_csi0_mux':2
-         [fmt:UYVY8_2X8/720x480 field:alternate colorspace:smpte170m]
-'ipu1_csi0':0
-         [fmt:UYVY8_2X8/720x480@1/30 field:alternate ...]
-          crop.bounds:(0,0)/720x480
-          crop:(0,2)/720x480
-          compose.bounds:(0,0)/720x480
-          compose:(0,0)/720x480]
-'ipu1_csi0':2
-         [fmt:AYUV8_1X32/720x480@1/30 field:seq-tb ...]
-
-And at the capture interface:
-
-# v4l2-ctl -d4 -V
-Format Video Capture:
-     Width/Height      : 720/480
-     Pixel Format      : 'YV12'
-     Field             : Interlaced Top-Bottom
-     Bytes per Line    : 1440
-     Size Image        : 691200
-     Colorspace        : SMPTE 170M
-     Transfer Function : Rec. 709
-     YCbCr/HSV Encoding: ITU-R 601
-     Quantization      : Limited Range
-     Flags             :
-
-So we've accomplished 'seq-bt' -> 'interlaced-tb' without needing
-to swap field order using the modified interweave idea.
-
-I've run tests for both PAL and NTSC inputs to the adv7180 on SabreAuto,
-and the results are consistent:
-
-NTSC seq-bt -> interlaced-tb produces good interweave images as expected
-NTSC seq-bt -> interlaced-bt produces interweave images with a "mauve" 
-artifact as expected
-PAL seq-tb -> interlaced-tb produces good interweave images as expected
-PAL seq-tb -> interlaced-bt produces interweave images with a "mauve" 
-artifact as expected
-
-Steve
+diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
+index e7bbdf9..c4f6c44 100644
+--- a/drivers/platform/chrome/cros_ec_proto.c
++++ b/drivers/platform/chrome/cros_ec_proto.c
+@@ -504,10 +504,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
+ }
+ EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
+ 
++static int get_next_event_xfer(struct cros_ec_device *ec_dev,
++			       struct cros_ec_command *msg,
++			       int version, uint32_t size)
++{
++	int ret;
++
++	msg->version = version;
++	msg->command = EC_CMD_GET_NEXT_EVENT;
++	msg->insize = size;
++	msg->outsize = 0;
++
++	ret = cros_ec_cmd_xfer(ec_dev, msg);
++	if (ret > 0) {
++		ec_dev->event_size = ret - 1;
++		memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
++	}
++
++	return ret;
++}
++
+ static int get_next_event(struct cros_ec_device *ec_dev)
+ {
+ 	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
+ 	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
++	static int cmd_version = 1;
+ 	int ret;
+ 
+ 	if (ec_dev->suspended) {
+@@ -515,18 +536,19 @@ static int get_next_event(struct cros_ec_device *ec_dev)
+ 		return -EHOSTDOWN;
+ 	}
+ 
+-	msg->version = 0;
+-	msg->command = EC_CMD_GET_NEXT_EVENT;
+-	msg->insize = sizeof(ec_dev->event_data);
+-	msg->outsize = 0;
++	if (cmd_version == 1) {
++		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
++				sizeof(struct ec_response_get_next_event_v1));
++		if (ret < 0 || msg->result != EC_RES_INVALID_VERSION)
++			return ret;
+ 
+-	ret = cros_ec_cmd_xfer(ec_dev, msg);
+-	if (ret > 0) {
+-		ec_dev->event_size = ret - 1;
+-		memcpy(&ec_dev->event_data, msg->data,
+-		       sizeof(ec_dev->event_data));
++		/* Fallback to version 0 for future send attempts */
++		cmd_version = 0;
+ 	}
+ 
++	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
++				  sizeof(struct ec_response_get_next_event));
++
+ 	return ret;
+ }
+ 
+diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
+index f36125e..32caef3 100644
+--- a/include/linux/mfd/cros_ec.h
++++ b/include/linux/mfd/cros_ec.h
+@@ -147,7 +147,7 @@ struct cros_ec_device {
+ 	bool mkbp_event_supported;
+ 	struct blocking_notifier_head event_notifier;
+ 
+-	struct ec_response_get_next_event event_data;
++	struct ec_response_get_next_event_v1 event_data;
+ 	int event_size;
+ 	u32 host_event_wake_mask;
+ };
+diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
+index f2edd99..cc0768e 100644
+--- a/include/linux/mfd/cros_ec_commands.h
++++ b/include/linux/mfd/cros_ec_commands.h
+@@ -2093,12 +2093,31 @@ union ec_response_get_next_data {
+ 	uint32_t   sysrq;
+ } __packed;
+ 
++union ec_response_get_next_data_v1 {
++	uint8_t   key_matrix[16];
++
++	/* Unaligned */
++	uint32_t  host_event;
++
++	uint32_t   buttons;
++	uint32_t   switches;
++	uint32_t   sysrq;
++	uint32_t   cec_events;
++	uint8_t    cec_message[16];
++} __packed;
++
+ struct ec_response_get_next_event {
+ 	uint8_t event_type;
+ 	/* Followed by event data if any */
+ 	union ec_response_get_next_data data;
+ } __packed;
+ 
++struct ec_response_get_next_event_v1 {
++	uint8_t event_type;
++	/* Followed by event data if any */
++	union ec_response_get_next_data_v1 data;
++} __packed;
++
+ /* Bit indices for buttons and switches.*/
+ /* Buttons */
+ #define EC_MKBP_POWER_BUTTON	0
+-- 
+2.7.4
