@@ -1,190 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:39104 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750852AbeFAVXA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 17:23:00 -0400
-Date: Fri, 1 Jun 2018 15:22:53 -0600
-From: Jordan Crouse <jcrouse@codeaurora.org>
-To: Vikash Garodia <vgarodia@codeaurora.org>
-Cc: hverkuil@xs4all.nl, mchehab@kernel.org, robh@kernel.org,
-        mark.rutland@arm.com, andy.gross@linaro.org,
-        bjorn.andersson@linaro.org, stanimir.varbanov@linaro.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, acourbot@chromium.org
-Subject: Re: [PATCH v2 3/5] venus: add check to make scm calls
-Message-ID: <20180601212253.GE11565@jcrouse-lnx.qualcomm.com>
-References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
- <1527884768-22392-4-git-send-email-vgarodia@codeaurora.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1527884768-22392-4-git-send-email-vgarodia@codeaurora.org>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:35948 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751425AbeFAIT2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 04:19:28 -0400
+Received: by mail-wr0-f194.google.com with SMTP id f16-v6so20118209wrm.3
+        for <linux-media@vger.kernel.org>; Fri, 01 Jun 2018 01:19:28 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        eballetbo@gmail.com
+Subject: [PATCH v7 4/6] mfd: cros-ec: Introduce CEC commands and events definitions.
+Date: Fri,  1 Jun 2018 10:19:12 +0200
+Message-Id: <1527841154-24832-5-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
+References: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jun 02, 2018 at 01:56:06AM +0530, Vikash Garodia wrote:
-> Split the boot api into firmware load and hardware
-> boot. Also add the checks to invoke scm calls only
-> if the platform has the required support.
-> 
-> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> ---
->  drivers/media/platform/qcom/venus/core.c     |  4 +-
->  drivers/media/platform/qcom/venus/firmware.c | 65 ++++++++++++++++++----------
->  drivers/media/platform/qcom/venus/firmware.h |  2 +-
->  3 files changed, 45 insertions(+), 26 deletions(-)
-> 
-> diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-> index 1308488..9a95f9a 100644
-> --- a/drivers/media/platform/qcom/venus/core.c
-> +++ b/drivers/media/platform/qcom/venus/core.c
-> @@ -84,7 +84,7 @@ static void venus_sys_error_handler(struct work_struct *work)
->  
->  	pm_runtime_get_sync(core->dev);
->  
-> -	ret |= venus_boot(core->dev, core->res->fwname);
-> +	ret |= venus_boot(core);
->  
->  	ret |= hfi_core_resume(core, true);
->  
-> @@ -279,7 +279,7 @@ static int venus_probe(struct platform_device *pdev)
->  	if (ret < 0)
->  		goto err_runtime_disable;
->  
-> -	ret = venus_boot(dev, core->res->fwname);
-> +	ret = venus_boot(core);
->  	if (ret)
->  		goto err_runtime_disable;
->  
-> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-> index b4664ed..cb7f48ef 100644
-> --- a/drivers/media/platform/qcom/venus/firmware.c
-> +++ b/drivers/media/platform/qcom/venus/firmware.c
-> @@ -81,40 +81,35 @@ int venus_set_hw_state(enum tzbsp_video_state state, struct venus_core *core)
->  }
->  EXPORT_SYMBOL_GPL(venus_set_hw_state);
->  
-> -int venus_boot(struct device *dev, const char *fwname)
-> +static int venus_load_fw(struct device *dev, const char *fwname,
-> +		phys_addr_t *mem_phys, size_t *mem_size)
->  {
->  	const struct firmware *mdt;
->  	struct device_node *node;
-> -	phys_addr_t mem_phys;
->  	struct resource r;
->  	ssize_t fw_size;
-> -	size_t mem_size;
->  	void *mem_va;
->  	int ret;
->  
-> -	if (!IS_ENABLED(CONFIG_QCOM_MDT_LOADER) || !qcom_scm_is_available())
-> -		return -EPROBE_DEFER;
-> -
->  	node = of_parse_phandle(dev->of_node, "memory-region", 0);
->  	if (!node) {
->  		dev_err(dev, "no memory-region specified\n");
->  		return -EINVAL;
->  	}
-> -
+The EC can expose a CEC bus, this patch adds the CEC related definitions
+needed by the cros-ec-cec driver.
 
-Unrelated whitespace change.  Not needed.
->  	ret = of_address_to_resource(node, 0, &r);
->  	if (ret)
->  		return ret;
->  
-> -	mem_phys = r.start;
-> -	mem_size = resource_size(&r);
-> +	*mem_phys = r.start;
-> +	*mem_size = resource_size(&r);
->  
-> -	if (mem_size < VENUS_FW_MEM_SIZE)
-> +	if (*mem_size < VENUS_FW_MEM_SIZE)
->  		return -EINVAL;
->  
-> -	mem_va = memremap(r.start, mem_size, MEMREMAP_WC);
-> +	mem_va = memremap(r.start, *mem_size, MEMREMAP_WC);
->  	if (!mem_va) {
->  		dev_err(dev, "unable to map memory region: %pa+%zx\n",
-> -			&r.start, mem_size);
-> +			&r.start, *mem_size);
->  		return -ENOMEM;
->  	}
->  
-> @@ -128,25 +123,49 @@ int venus_boot(struct device *dev, const char *fwname)
->  		release_firmware(mdt);
->  		goto err_unmap;
->  	}
-> -
-> -	ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va, mem_phys,
-> -			    mem_size);
-> +	if (qcom_scm_is_available())
-> +		ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va,
-> +				*mem_phys, *mem_size, NULL);
-> +	else
-> +		ret = qcom_mdt_load_no_init(dev, mdt, fwname, VENUS_PAS_ID,
-> +				mem_va, *mem_phys, *mem_size, NULL);
->  
->  	release_firmware(mdt);
->  
-> -	if (ret)
-> -		goto err_unmap;
-> -
-> -	ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
-> -	if (ret)
-> -		goto err_unmap;
-> -
->  err_unmap:
->  	memunmap(mem_va);
->  	return ret;
->  }
-> +int venus_boot(struct venus_core *core)
-> +{
-> +	phys_addr_t mem_phys;
-> +	size_t mem_size;
-> +	int ret;
-> +	struct device *dev;
-> +
-> +	if (!IS_ENABLED(CONFIG_QCOM_MDT_LOADER))
-> +		return -EPROBE_DEFER;
-> +
-> +	dev = core->dev;
-> +
-> +	ret = venus_load_fw(dev, core->res->fwname, &mem_phys, &mem_size);
-> +	if (ret) {
-> +		dev_err(dev, "fail to load video firmware\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (qcom_scm_is_available())
-> +		ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(venus_boot);
->  
->  int venus_shutdown(struct device *dev)
->  {
-> -	return qcom_scm_pas_shutdown(VENUS_PAS_ID);
-> +	int ret = 0;
-> +
-> +	if (qcom_scm_is_available())
-> +		ret = qcom_scm_pas_shutdown(VENUS_PAS_ID);
-> +	return ret;
->  }
-> diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
-> index 1336729..0916826 100644
-> --- a/drivers/media/platform/qcom/venus/firmware.h
-> +++ b/drivers/media/platform/qcom/venus/firmware.h
-> @@ -16,7 +16,7 @@
->  
->  struct device;
->  
-> -int venus_boot(struct device *dev, const char *fwname);
-> +int venus_boot(struct venus_core *core);
->  int venus_shutdown(struct device *dev);
->  int venus_set_hw_state(enum tzbsp_video_state, struct venus_core *core);
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/linux/mfd/cros_ec_commands.h | 81 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
 
+diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
+index cc0768e..fe33a81 100644
+--- a/include/linux/mfd/cros_ec_commands.h
++++ b/include/linux/mfd/cros_ec_commands.h
+@@ -804,6 +804,8 @@ enum ec_feature_code {
+ 	EC_FEATURE_MOTION_SENSE_FIFO = 24,
+ 	/* EC has RTC feature that can be controlled by host commands */
+ 	EC_FEATURE_RTC = 27,
++	/* EC supports CEC commands */
++	EC_FEATURE_CEC = 35,
+ };
+ 
+ #define EC_FEATURE_MASK_0(event_code) (1UL << (event_code % 32))
+@@ -2078,6 +2080,12 @@ enum ec_mkbp_event {
+ 	/* EC sent a sysrq command */
+ 	EC_MKBP_EVENT_SYSRQ = 6,
+ 
++	/* Notify the AP that something happened on CEC */
++	EC_MKBP_EVENT_CEC_EVENT = 8,
++
++	/* Send an incoming CEC message to the AP */
++	EC_MKBP_EVENT_CEC_MESSAGE = 9,
++
+ 	/* Number of MKBP events */
+ 	EC_MKBP_EVENT_COUNT,
+ };
+@@ -2850,6 +2858,79 @@ struct ec_params_reboot_ec {
+ 
+ /*****************************************************************************/
+ /*
++ * HDMI CEC commands
++ *
++ * These commands are for sending and receiving message via HDMI CEC
++ */
++#define EC_MAX_CEC_MSG_LEN 16
++
++/* CEC message from the AP to be written on the CEC bus */
++#define EC_CMD_CEC_WRITE_MSG 0x00B8
++
++/**
++ * struct ec_params_cec_write - Message to write to the CEC bus
++ * @msg: message content to write to the CEC bus
++ */
++struct ec_params_cec_write {
++	uint8_t msg[EC_MAX_CEC_MSG_LEN];
++} __packed;
++
++/* Set various CEC parameters */
++#define EC_CMD_CEC_SET 0x00BA
++
++/**
++ * struct ec_params_cec_set - CEC parameters set
++ * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
++ * @val: in case cmd is CEC_CMD_ENABLE, this field can be 0 to disable CEC
++ *	or 1 to enable CEC functionality, in case cmd is CEC_CMD_LOGICAL_ADDRESS,
++ *	this field encodes the requested logical address between 0 and 15
++ *	or 0xff to unregister
++ */
++struct ec_params_cec_set {
++	uint8_t cmd; /* enum cec_command */
++	uint8_t val;
++} __packed;
++
++/* Read various CEC parameters */
++#define EC_CMD_CEC_GET 0x00BB
++
++/**
++ * struct ec_params_cec_get - CEC parameters get
++ * @cmd: parameter type, can be CEC_CMD_ENABLE or CEC_CMD_LOGICAL_ADDRESS
++ */
++struct ec_params_cec_get {
++	uint8_t cmd; /* enum cec_command */
++} __packed;
++
++/**
++ * struct ec_response_cec_get - CEC parameters get response
++ * @val: in case cmd was CEC_CMD_ENABLE, this field will 0 if CEC is
++ *	disabled or 1 if CEC functionality is enabled,
++ *	in case cmd was CEC_CMD_LOGICAL_ADDRESS, this will encode the
++ *	configured logical address between 0 and 15 or 0xff if unregistered
++ */
++struct ec_response_cec_get {
++	uint8_t val;
++} __packed;
++
++/* CEC parameters command */
++enum ec_cec_command {
++	/* CEC reading, writing and events enable */
++	CEC_CMD_ENABLE,
++	/* CEC logical address  */
++	CEC_CMD_LOGICAL_ADDRESS,
++};
++
++/* Events from CEC to AP */
++enum mkbp_cec_event {
++	/* Outgoing message was acknowledged by a follower */
++	EC_MKBP_CEC_SEND_OK			= BIT(0),
++	/* Outgoing message was not acknowledged */
++	EC_MKBP_CEC_SEND_FAILED			= BIT(1),
++};
++
++/*****************************************************************************/
++/*
+  * Special commands
+  *
+  * These do not follow the normal rules for commands.  See each command for
 -- 
-The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+2.7.4
