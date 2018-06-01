@@ -1,496 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:38679 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750827AbeFBVBr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2018 17:01:47 -0400
-Date: Sat, 2 Jun 2018 23:01:45 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
-        sre@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
- pipeline
-Message-ID: <20180602210145.GB20439@amd>
-References: <20180316205512.GA6069@amd>
- <c2a7e1f3-589d-7186-2a85-545bfa1c4536@xs4all.nl>
- <20180319102354.GA12557@amd>
- <20180319074715.5b700405@vento.lan>
- <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
- <20180319120043.GA20451@amd>
- <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
- <20180319095544.7e235a3e@vento.lan>
- <20180515200117.GA21673@amd>
- <20180515190314.2909e3be@vento.lan>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="U+BazGySraz5kW0T"
-Content-Disposition: inline
-In-Reply-To: <20180515190314.2909e3be@vento.lan>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:38514 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750869AbeFAITY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 04:19:24 -0400
+Received: by mail-wr0-f196.google.com with SMTP id 94-v6so35410258wrf.5
+        for <linux-media@vger.kernel.org>; Fri, 01 Jun 2018 01:19:24 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
+        olof@lixom.net, seanpaul@google.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
+        felixe@google.com, bleung@google.com, darekm@google.com,
+        marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        eballetbo@gmail.com
+Subject: [PATCH v7 1/6] media: cec-notifier: Get notifier by device and connector name
+Date: Fri,  1 Jun 2018 10:19:09 +0200
+Message-Id: <1527841154-24832-2-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
+References: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+In non device-tree world, we can need to get the notifier by the driver
+name directly and eventually defer probe if not yet created.
 
---U+BazGySraz5kW0T
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch adds a variant of the get function by using the device name
+instead and will not create a notifier if not yet created.
 
-Hi!
+But the i915 driver exposes at least 2 HDMI connectors, this patch also
+adds the possibility to add a connector name tied to the notifier device
+to form a tuple and associate different CEC controllers for each HDMI
+connectors.
 
-Ok, can I get any comments on this one?
-v4l2_open_complex("/file/with/descriptor", 0) can be used to open
-whole pipeline at once, and work if it as if it was one device.
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-notifier.c | 11 ++++++++---
+ include/media/cec-notifier.h     | 27 ++++++++++++++++++++++++---
+ 2 files changed, 32 insertions(+), 6 deletions(-)
 
-Thanks,
-								Pavel
-
-diff --git a/lib/include/libv4l2.h b/lib/include/libv4l2.h
-index ea1870d..f170c3d 100644
---- a/lib/include/libv4l2.h
-+++ b/lib/include/libv4l2.h
-@@ -109,6 +109,12 @@ LIBV4L_PUBLIC int v4l2_get_control(int fd, int cid);
-    (note the fd is left open in this case). */
- LIBV4L_PUBLIC int v4l2_fd_open(int fd, int v4l2_flags);
-=20
-+/* v4l2_open_complex: open complex pipeline. Name of pipeline descriptor
-+   is passed to v4l2_open_complex(). It opens devices described there and
-+   handles mapping controls between devices.=20
-+ */ =20
-+LIBV4L_PUBLIC int v4l2_open_complex(char *name, int v4l2_flags);
-+
- #ifdef __cplusplus
+diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
+index 16dffa0..dd2078b 100644
+--- a/drivers/media/cec/cec-notifier.c
++++ b/drivers/media/cec/cec-notifier.c
+@@ -21,6 +21,7 @@ struct cec_notifier {
+ 	struct list_head head;
+ 	struct kref kref;
+ 	struct device *dev;
++	const char *conn;
+ 	struct cec_adapter *cec_adap;
+ 	void (*callback)(struct cec_adapter *adap, u16 pa);
+ 
+@@ -30,13 +31,14 @@ struct cec_notifier {
+ static LIST_HEAD(cec_notifiers);
+ static DEFINE_MUTEX(cec_notifiers_lock);
+ 
+-struct cec_notifier *cec_notifier_get(struct device *dev)
++struct cec_notifier *cec_notifier_get_conn(struct device *dev, const char *conn)
+ {
+ 	struct cec_notifier *n;
+ 
+ 	mutex_lock(&cec_notifiers_lock);
+ 	list_for_each_entry(n, &cec_notifiers, head) {
+-		if (n->dev == dev) {
++		if (n->dev == dev &&
++		    (!conn || !strcmp(n->conn, conn))) {
+ 			kref_get(&n->kref);
+ 			mutex_unlock(&cec_notifiers_lock);
+ 			return n;
+@@ -46,6 +48,8 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
+ 	if (!n)
+ 		goto unlock;
+ 	n->dev = dev;
++	if (conn)
++		n->conn = kstrdup(conn, GFP_KERNEL);
+ 	n->phys_addr = CEC_PHYS_ADDR_INVALID;
+ 	mutex_init(&n->lock);
+ 	kref_init(&n->kref);
+@@ -54,7 +58,7 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
+ 	mutex_unlock(&cec_notifiers_lock);
+ 	return n;
  }
- #endif /* __cplusplus */
-diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
-index 1924c91..1ee697a 100644
---- a/lib/libv4l2/libv4l2-priv.h
-+++ b/lib/libv4l2/libv4l2-priv.h
-@@ -104,6 +104,7 @@ struct v4l2_dev_info {
- 	void *plugin_library;
- 	void *dev_ops_priv;
- 	const struct libv4l_dev_ops *dev_ops;
-+	struct v4l2_controls_map *map;
- };
-=20
- /* From v4l2-plugin.c */
-@@ -130,4 +131,20 @@ static inline void v4l2_plugin_cleanup(void *plugin_li=
-b, void *plugin_priv,
- extern const char *v4l2_ioctls[];
- void v4l2_log_ioctl(unsigned long int request, void *arg, int result);
-=20
-+
-+struct v4l2_control_map {
-+	unsigned long control;
-+	int fd;
-+};
-+
-+struct v4l2_controls_map {
-+	int main_fd;
-+	int num_fds;
-+	int num_controls;
-+	struct v4l2_control_map map[];
-+};
-+
-+int v4l2_open_pipeline(struct v4l2_controls_map *map, int v4l2_flags);
-+LIBV4L_PUBLIC int v4l2_get_fd_for_control(int fd, unsigned long control);
-+
+-EXPORT_SYMBOL_GPL(cec_notifier_get);
++EXPORT_SYMBOL_GPL(cec_notifier_get_conn);
+ 
+ static void cec_notifier_release(struct kref *kref)
+ {
+@@ -62,6 +66,7 @@ static void cec_notifier_release(struct kref *kref)
+ 		container_of(kref, struct cec_notifier, kref);
+ 
+ 	list_del(&n->head);
++	kfree(n->conn);
+ 	kfree(n);
+ }
+ 
+diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
+index cf0add7..814eeef 100644
+--- a/include/media/cec-notifier.h
++++ b/include/media/cec-notifier.h
+@@ -20,8 +20,10 @@ struct cec_notifier;
+ #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
+ 
+ /**
+- * cec_notifier_get - find or create a new cec_notifier for the given device.
++ * cec_notifier_get_conn - find or create a new cec_notifier for the given
++ * device and connector tuple.
+  * @dev: device that sends the events.
++ * @conn: the connector name from which the event occurs
+  *
+  * If a notifier for device @dev already exists, then increase the refcount
+  * and return that notifier.
+@@ -31,7 +33,8 @@ struct cec_notifier;
+  *
+  * Return NULL if the memory could not be allocated.
+  */
+-struct cec_notifier *cec_notifier_get(struct device *dev);
++struct cec_notifier *cec_notifier_get_conn(struct device *dev,
++					   const char *conn);
+ 
+ /**
+  * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
+@@ -85,7 +88,8 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
+ 			       struct cec_notifier *notifier);
+ 
+ #else
+-static inline struct cec_notifier *cec_notifier_get(struct device *dev)
++static inline struct cec_notifier *cec_notifier_get_conn(struct device *dev,
++							 const char *conn)
+ {
+ 	/* A non-NULL pointer is expected on success */
+ 	return (struct cec_notifier *)0xdeadfeed;
+@@ -121,6 +125,23 @@ static inline void cec_register_cec_notifier(struct cec_adapter *adap,
  #endif
-diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-index 2db25d1..39f69db 100644
---- a/lib/libv4l2/libv4l2.c
-+++ b/lib/libv4l2/libv4l2.c
-@@ -70,6 +70,8 @@
- #include <sys/types.h>
- #include <sys/mman.h>
- #include <sys/stat.h>
-+#include <dirent.h>
-+
- #include "libv4l2.h"
- #include "libv4l2-priv.h"
- #include "libv4l-plugin.h"
-@@ -787,6 +789,8 @@ no_capture:
- 	if (index >=3D devices_used)
- 		devices_used =3D index + 1;
-=20
-+	devices[index].map =3D NULL;
-+
- 	/* Note we always tell v4lconvert to optimize src fmt selection for
- 	   our default fps, the only exception is the app explicitly selecting
- 	   a frame rate using the S_PARM ioctl after a S_FMT */
-@@ -1056,12 +1060,47 @@ static int v4l2_s_fmt(int index, struct v4l2_format=
- *dest_fmt)
- 	return 0;
- }
-=20
-+int v4l2_get_fd_for_control(int fd, unsigned long control)
+ 
+ /**
++ * cec_notifier_get - find or create a new cec_notifier for the given device.
++ * @dev: device that sends the events.
++ *
++ * If a notifier for device @dev already exists, then increase the refcount
++ * and return that notifier.
++ *
++ * If it doesn't exist, then allocate a new notifier struct and return a
++ * pointer to that new struct.
++ *
++ * Return NULL if the memory could not be allocated.
++ */
++static inline struct cec_notifier *cec_notifier_get(struct device *dev)
 +{
-+	int index =3D v4l2_get_index(fd);
-+	struct v4l2_controls_map *map;
-+	int lo =3D 0;
-+	int hi;
-+
-+	if (index < 0)
-+		return fd;
-+
-+	map =3D devices[index].map;
-+	if (!map)
-+		return fd;
-+	hi =3D map->num_controls;
-+
-+	while (lo < hi) {
-+		int i =3D (lo + hi) / 2;
-+		if (map->map[i].control =3D=3D control) {
-+			return map->map[i].fd;
-+		}
-+		if (map->map[i].control > control) {
-+			hi =3D i;
-+			continue;
-+		}
-+		if (map->map[i].control < control) {
-+			lo =3D i+1;
-+			continue;
-+		}
-+		printf("Bad: impossible condition in binary search\n");
-+		exit(1);
-+	}
-+	return fd;
++	return cec_notifier_get_conn(dev, NULL);
 +}
 +
- int v4l2_ioctl(int fd, unsigned long int request, ...)
- {
- 	void *arg;
- 	va_list ap;
- 	int result, index, saved_err;
--	int is_capture_request =3D 0, stream_needs_locking =3D 0;
-+	int is_capture_request =3D 0, stream_needs_locking =3D 0,=20
-+	    is_subdev_request =3D 0;
-=20
- 	va_start(ap, request);
- 	arg =3D va_arg(ap, void *);
-@@ -1076,18 +1115,20 @@ int v4l2_ioctl(int fd, unsigned long int request, .=
-=2E.)
- 	   ioctl, causing it to get sign extended, depending upon this behavior */
- 	request =3D (unsigned int)request;
-=20
-+	/* FIXME */
- 	if (devices[index].convert =3D=3D NULL)
- 		goto no_capture_request;
-=20
- 	/* Is this a capture request and do we need to take the stream lock? */
- 	switch (request) {
--	case VIDIOC_QUERYCAP:
- 	case VIDIOC_QUERYCTRL:
- 	case VIDIOC_G_CTRL:
- 	case VIDIOC_S_CTRL:
- 	case VIDIOC_G_EXT_CTRLS:
--	case VIDIOC_TRY_EXT_CTRLS:
- 	case VIDIOC_S_EXT_CTRLS:
-+		is_subdev_request =3D 1;
-+	case VIDIOC_QUERYCAP:
-+	case VIDIOC_TRY_EXT_CTRLS:
- 	case VIDIOC_ENUM_FRAMESIZES:
- 	case VIDIOC_ENUM_FRAMEINTERVALS:
- 		is_capture_request =3D 1;
-@@ -1151,10 +1192,15 @@ int v4l2_ioctl(int fd, unsigned long int request, .=
-=2E.)
- 	}
-=20
- 	if (!is_capture_request) {
-+	  int sub_fd;
- no_capture_request:
-+		  sub_fd =3D fd;
-+		if (is_subdev_request) {
-+		  sub_fd =3D v4l2_get_fd_for_control(index, ((struct v4l2_queryctrl *) a=
-rg)->id);
-+		}
- 		result =3D devices[index].dev_ops->ioctl(
- 				devices[index].dev_ops_priv,
--				fd, request, arg);
-+				sub_fd, request, arg);
- 		saved_err =3D errno;
- 		v4l2_log_ioctl(request, arg, result);
- 		errno =3D saved_err;
-@@ -1782,3 +1828,195 @@ int v4l2_get_control(int fd, int cid)
- 			(qctrl.maximum - qctrl.minimum) / 2) /
- 		(qctrl.maximum - qctrl.minimum);
- }
-+
-+
-+int v4l2_open_pipeline(struct v4l2_controls_map *map, int v4l2_flags)
-+{
-+	int index;
-+	int i;
-+
-+	for (i=3D0; i<map->num_controls; i++) {
-+		if (map->map[i].fd <=3D 0) {
-+			V4L2_LOG_ERR("v4l2_open_pipeline: Bad fd in map.\n");
-+			return -1;
-+		}
-+		if (i>=3D1 && map->map[i].control <=3D map->map[i-1].control) {
-+			V4L2_LOG_ERR("v4l2_open_pipeline: Controls not sorted.\n");
-+			return -1;
-+		}
-+	}
-+
-+	i =3D v4l2_fd_open(map->main_fd, v4l2_flags);
-+	index =3D v4l2_get_index(map->main_fd);
-+	devices[index].map =3D map;
-+	return i;
-+}
-+
-+static void scan_devices(char **device_names, int *device_fds, int num)
-+{
-+	struct dirent **namelist;
-+	int n;
-+	char *class_v4l =3D "/sys/class/video4linux";
-+
-+	n =3D scandir(class_v4l, &namelist, NULL, alphasort);
-+	if (n < 0) {
-+		perror("scandir");
-+		return;
-+	}
-+=09
-+	while (n--) {
-+		if (namelist[n]->d_name[0] !=3D '.') {
-+			char filename[1024], content[1024];
-+			sprintf(filename, "%s/%s/name", class_v4l, namelist[n]->d_name);
-+			FILE *f =3D fopen(filename, "r");
-+			if (!f) {
-+				printf("Strange, can't open %s", filename);
-+			} else {
-+				fgets(content, 1024, f);
-+				fclose(f);
-+
-+				int i;
-+				for (i =3D num-1; i >=3D0; i--) {
-+					if (!strcmp(content, device_names[i])) {
-+						sprintf(filename, "/dev/%s", namelist[n]->d_name);
-+						device_fds[i] =3D open(filename, O_RDWR);
-+						if (device_fds[i] < 0) {
-+							V4L2_LOG_ERR("Error opening %s: %m\n", filename);
-+						}
-+					}
-+				}
-+			}
-+		}
-+		free(namelist[n]);
-+	}
-+	free(namelist);
-+ =20
-+}
-+
-+int v4l2_open_complex(char *name, int v4l2_flags)
-+{
-+#define perr(s) V4L2_LOG_ERR("open_complex: " s "\n")
-+#define BUF 256
-+	FILE *f =3D fopen(name, "r");
-+
-+	int res =3D -1;
-+	char buf[BUF];
-+	int version, num_modes, num_devices, num_controls;
-+	int dev, control;
-+
-+	if (!f) {
-+		perr("open of .cv file failed: %m");
-+		goto err;
-+	}
-+
-+	if (fscanf(f, "Complex Video: %d\n", &version) !=3D 1) {
-+		perr(".cv file does not have required header");
-+		goto close;
-+	}
-+
-+	if (version !=3D 0) {
-+		perr(".cv file has unknown version");
-+		goto close;
-+	}
-+ =20
-+	if (fscanf(f, "#modes: %d\n", &num_modes) !=3D 1) {
-+		perr("could not parse modes");
-+		goto close;
-+	}
-+
-+	if (num_modes !=3D 1) {
-+		perr("only single mode is supported for now");
-+		goto close;
-+	}
-+
-+	if (fscanf(f, "Mode: %s\n", buf) !=3D 1) {
-+		perr("could not parse mode name");
-+		goto close;
-+	}
-+
-+	if (fscanf(f, " #devices: %d\n", &num_devices) !=3D 1) {
-+		perr("could not parse number of devices");
-+		goto close;
-+	}
-+#define MAX_DEVICES 16
-+	char *device_names[MAX_DEVICES] =3D { NULL, };
-+	int device_fds[MAX_DEVICES];
-+	if (num_devices > MAX_DEVICES) {
-+		perr("too many devices");
-+		goto close;
-+	}
-+ =20
-+	for (dev =3D 0; dev < num_devices; dev++) {
-+		int tmp;
-+		if (fscanf(f, "%d: ", &tmp) !=3D 1) {
-+			perr("could not parse device");
-+			goto free_devices;
-+		}
-+		if (tmp !=3D dev) {
-+			perr("bad device number");
-+			goto free_devices;
-+		}
-+		fgets(buf, BUF, f);
-+		device_names[dev] =3D strdup(buf);
-+		device_fds[dev] =3D -1;
-+	}
-+
-+	scan_devices(device_names, device_fds, num_devices);
-+
-+	for (dev =3D 0; dev < num_devices; dev++) {
-+		if (device_fds[dev] =3D=3D -1) {
-+			perr("Could not open all required devices");
-+			goto close_devices;
-+		}
-+	}
-+
-+	if (fscanf(f, " #controls: %d\n", &num_controls) !=3D 1) {
-+		perr("can not parse number of controls");
-+		goto close_devices;
-+	}
-+
-+	struct v4l2_controls_map *map =3D malloc(sizeof(struct v4l2_controls_map)=
- +
-+					       num_controls*sizeof(struct v4l2_control_map));
-+
-+	map->num_controls =3D num_controls;
-+	map->num_fds =3D num_devices;
-+	map->main_fd =3D device_fds[0];
-+ =20
-+	for (control =3D 0; control < num_controls; control++) {
-+		unsigned long num;
-+		int dev;
-+		if (fscanf(f, "0x%lx: %d\n", &num, &dev) !=3D 2) {
-+			perr("could not parse control");
-+			goto free_map;
-+		}
-+		if ((dev < 0) || (dev >=3D num_devices)) {
-+			perr("device out of range");
-+			goto free_map;
-+		}
-+		map->map[control].control =3D num;
-+		map->map[control].fd =3D device_fds[dev];
-+	}
-+	if (fscanf(f, "%s", buf) > 0) {
-+		perr("junk at end of file");
-+		goto free_map;
-+	}
-+
-+	res =3D v4l2_open_pipeline(map, v4l2_flags);
-+
-+	if (res < 0) {
-+free_map:
-+		free(map);
-+close_devices:
-+		for (dev =3D 0; dev < num_devices; dev++)
-+			close(device_fds[dev]);
-+	}
-+free_devices:
-+	for (dev =3D 0; dev < num_devices; dev++) {
-+		free(device_names[dev]);
-+	}
-+close:
-+	fclose(f);
-+err:
-+	return res;
-+}
-+
-diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/=
-control/libv4lcontrol.c
-index 59f28b1..c1e6f93 100644
---- a/lib/libv4lconvert/control/libv4lcontrol.c
-+++ b/lib/libv4lconvert/control/libv4lcontrol.c
-@@ -863,6 +863,7 @@ int v4lcontrol_vidioc_queryctrl(struct v4lcontrol_data =
-*data, void *arg)
- 	struct v4l2_queryctrl *ctrl =3D arg;
- 	int retval;
- 	uint32_t orig_id =3D ctrl->id;
-+	int fd;
-=20
- 	/* if we have an exact match return it */
- 	for (i =3D 0; i < V4LCONTROL_COUNT; i++)
-@@ -872,8 +873,9 @@ int v4lcontrol_vidioc_queryctrl(struct v4lcontrol_data =
-*data, void *arg)
- 			return 0;
- 		}
-=20
-+	fd =3D v4l2_get_fd_for_control(data->fd, ctrl->id);
- 	/* find out what the kernel driver would respond. */
--	retval =3D data->dev_ops->ioctl(data->dev_ops_priv, data->fd,
-+	retval =3D data->dev_ops->ioctl(data->dev_ops_priv, fd,
- 			VIDIOC_QUERYCTRL, arg);
-=20
- 	if ((data->priv_flags & V4LCONTROL_SUPPORTS_NEXT_CTRL) &&
-@@ -903,6 +905,7 @@ int v4lcontrol_vidioc_g_ctrl(struct v4lcontrol_data *da=
-ta, void *arg)
- {
- 	int i;
- 	struct v4l2_control *ctrl =3D arg;
-+	int fd;
-=20
- 	for (i =3D 0; i < V4LCONTROL_COUNT; i++)
- 		if ((data->controls & (1 << i)) &&
-@@ -911,7 +914,8 @@ int v4lcontrol_vidioc_g_ctrl(struct v4lcontrol_data *da=
-ta, void *arg)
- 			return 0;
- 		}
-=20
--	return data->dev_ops->ioctl(data->dev_ops_priv, data->fd,
-+	fd =3D v4l2_get_fd_for_control(data->fd, ctrl->id);
-+	return data->dev_ops->ioctl(data->dev_ops_priv, fd,
- 			VIDIOC_G_CTRL, arg);
- }
-=20
-@@ -994,6 +998,7 @@ int v4lcontrol_vidioc_s_ctrl(struct v4lcontrol_data *da=
-ta, void *arg)
- {
- 	int i;
- 	struct v4l2_control *ctrl =3D arg;
-+	int fd;
-=20
- 	for (i =3D 0; i < V4LCONTROL_COUNT; i++)
- 		if ((data->controls & (1 << i)) &&
-@@ -1008,7 +1013,8 @@ int v4lcontrol_vidioc_s_ctrl(struct v4lcontrol_data *=
-data, void *arg)
- 			return 0;
- 		}
-=20
--	return data->dev_ops->ioctl(data->dev_ops_priv, data->fd,
-+	fd =3D v4l2_get_fd_for_control(data->fd, ctrl->id);
-+	return data->dev_ops->ioctl(data->dev_ops_priv, fd,
- 			VIDIOC_S_CTRL, arg);
- }
-=20
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---U+BazGySraz5kW0T
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlsTBbkACgkQMOfwapXb+vJKCACghFog42AUb9NhqX81iJoscQ2e
-kGoAoLXOsnBs6vlReS6dErM5jcXyKniM
-=jXed
------END PGP SIGNATURE-----
-
---U+BazGySraz5kW0T--
++/**
+  * cec_notifier_phys_addr_invalidate() - set the physical address to INVALID
+  *
+  * @n: the CEC notifier
+-- 
+2.7.4
