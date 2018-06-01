@@ -1,171 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35268 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965328AbeF0P2b (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 11:28:31 -0400
-Received: by mail-wm0-f65.google.com with SMTP id z137-v6so5987721wmc.0
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:30 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:47595 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751293AbeFANWg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 09:22:36 -0400
+Message-ID: <1527859350.5913.4.camel@pengutronix.de>
+Subject: Re: [PATCH v2 01/10] media: imx-csi: Pass sink pad field to
+ ipu_csi_init_interface
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v4 27/27] venus: add HEVC codec support
-Date: Wed, 27 Jun 2018 18:27:25 +0300
-Message-Id: <20180627152725.9783-28-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
-References: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Fri, 01 Jun 2018 15:22:30 +0200
+In-Reply-To: <1527813049-3231-2-git-send-email-steve_longerbeam@mentor.com>
+References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+         <1527813049-3231-2-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This add HEVC codec support for venus versions 3xx and 4xx.
+On Thu, 2018-05-31 at 17:30 -0700, Steve Longerbeam wrote:
+> The output pad's field type was being passed to ipu_csi_init_interface(),
+> in order to deal with field type 'alternate' at the sink pad, which
+> is not understood by ipu_csi_init_interface().
+> 
+> Remove that code and pass the sink pad field to ipu_csi_init_interface().
+> The latter function will have to explicity deal with field type 'alternate'
+> when setting up the CSI interface for BT.656 busses.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
----
- drivers/media/platform/qcom/venus/core.h    |  2 ++
- drivers/media/platform/qcom/venus/helpers.c |  3 ++
- drivers/media/platform/qcom/venus/hfi.c     |  2 ++
- drivers/media/platform/qcom/venus/vdec.c    |  4 +++
- drivers/media/platform/qcom/venus/venc.c    | 49 +++++++++++++++++++++++++++++
- 5 files changed, 60 insertions(+)
+I fear this won't be enough. If we want to capture
+sink:ALTERNATE/SEQ_TB/SEQ_BT -> src:SEQ_TB we have to configure the CSI
+differently than if we want to capture
+ALTERNATE/SEQ_TB/SEQ_BT -> src:SEQ_BT. (And differently for NTSC and
+PAL). For NTSC sink:ALTERNATE should behave like sink:SEQ_BT, and for
+PAL sink:ALTERNATE should behave like sink:SEQ_TB.
 
-diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-index 8cc49f30a363..2f02365f4818 100644
---- a/drivers/media/platform/qcom/venus/core.h
-+++ b/drivers/media/platform/qcom/venus/core.h
-@@ -190,10 +190,12 @@ struct venc_controls {
- 		u32 mpeg4;
- 		u32 h264;
- 		u32 vpx;
-+		u32 hevc;
- 	} profile;
- 	struct {
- 		u32 mpeg4;
- 		u32 h264;
-+		u32 hevc;
- 	} level;
- };
- 
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index a0c7ef5f9125..2da88aec5a21 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -71,6 +71,9 @@ bool venus_helper_check_codec(struct venus_inst *inst, u32 v4l2_pixfmt)
- 	case V4L2_PIX_FMT_XVID:
- 		codec = HFI_VIDEO_CODEC_DIVX;
- 		break;
-+	case V4L2_PIX_FMT_HEVC:
-+		codec = HFI_VIDEO_CODEC_HEVC;
-+		break;
- 	default:
- 		return false;
- 	}
-diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
-index 94ca27b0bb99..24207829982f 100644
---- a/drivers/media/platform/qcom/venus/hfi.c
-+++ b/drivers/media/platform/qcom/venus/hfi.c
-@@ -49,6 +49,8 @@ static u32 to_codec_type(u32 pixfmt)
- 		return HFI_VIDEO_CODEC_VP9;
- 	case V4L2_PIX_FMT_XVID:
- 		return HFI_VIDEO_CODEC_DIVX;
-+	case V4L2_PIX_FMT_HEVC:
-+		return HFI_VIDEO_CODEC_HEVC;
- 	default:
- 		return 0;
- 	}
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index 9d509b3c1c7a..d079aebff550 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -77,6 +77,10 @@ static const struct venus_format vdec_formats[] = {
- 		.pixfmt = V4L2_PIX_FMT_XVID,
- 		.num_planes = 1,
- 		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
-+	}, {
-+		.pixfmt = V4L2_PIX_FMT_HEVC,
-+		.num_planes = 1,
-+		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
- 	},
- };
- 
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index be5dc3a2eb28..a2c6a4b7ac43 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -59,6 +59,10 @@ static const struct venus_format venc_formats[] = {
- 		.pixfmt = V4L2_PIX_FMT_VP8,
- 		.num_planes = 1,
- 		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-+	}, {
-+		.pixfmt = V4L2_PIX_FMT_HEVC,
-+		.num_planes = 1,
-+		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
- 	},
- };
- 
-@@ -220,6 +224,46 @@ static int venc_v4l2_to_hfi(int id, int value)
- 		case V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY:
- 			return HFI_H264_DB_MODE_SKIP_SLICE_BOUNDARY;
- 		}
-+	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
-+		switch (value) {
-+		case V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN:
-+		default:
-+			return HFI_HEVC_PROFILE_MAIN;
-+		case V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE:
-+			return HFI_HEVC_PROFILE_MAIN_STILL_PIC;
-+		case V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_10:
-+			return HFI_HEVC_PROFILE_MAIN10;
-+		}
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-+		switch (value) {
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_1:
-+		default:
-+			return HFI_HEVC_LEVEL_1;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_2:
-+			return HFI_HEVC_LEVEL_2;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1:
-+			return HFI_HEVC_LEVEL_21;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_3:
-+			return HFI_HEVC_LEVEL_3;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1:
-+			return HFI_HEVC_LEVEL_31;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_4:
-+			return HFI_HEVC_LEVEL_4;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1:
-+			return HFI_HEVC_LEVEL_41;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_5:
-+			return HFI_HEVC_LEVEL_5;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1:
-+			return HFI_HEVC_LEVEL_51;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2:
-+			return HFI_HEVC_LEVEL_52;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_6:
-+			return HFI_HEVC_LEVEL_6;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1:
-+			return HFI_HEVC_LEVEL_61;
-+		case V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2:
-+			return HFI_HEVC_LEVEL_62;
-+		}
- 	}
- 
- 	return 0;
-@@ -744,6 +788,11 @@ static int venc_set_properties(struct venus_inst *inst)
- 	} else if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_H263) {
- 		profile = 0;
- 		level = 0;
-+	} else if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_HEVC) {
-+		profile = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_HEVC_PROFILE,
-+					   ctr->profile.hevc);
-+		level = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_HEVC_LEVEL,
-+					 ctr->level.hevc);
- 	}
- 
- 	ptype = HFI_PROPERTY_PARAM_PROFILE_LEVEL_CURRENT;
--- 
-2.14.1
+Interweaving SEQ_TB to INTERLACED_TB should work right now, but to
+interweave SEQ_BT to INTERLACED_BT, we need to add one line offset to
+the frame start and use a negative interlaced scanline offset.
+
+regards
+Philipp
+
+> Reported-by: Krzysztof Hałasa <khalasa@piap.pl>
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  drivers/staging/media/imx/imx-media-csi.c | 13 ++-----------
+>  1 file changed, 2 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index 95d7805..9bc555c 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -629,12 +629,10 @@ static void csi_idmac_stop(struct csi_priv *priv)
+>  /* Update the CSI whole sensor and active windows */
+>  static int csi_setup(struct csi_priv *priv)
+>  {
+> -	struct v4l2_mbus_framefmt *infmt, *outfmt;
+> +	struct v4l2_mbus_framefmt *infmt;
+>  	struct v4l2_mbus_config mbus_cfg;
+> -	struct v4l2_mbus_framefmt if_fmt;
+>  
+>  	infmt = &priv->format_mbus[CSI_SINK_PAD];
+> -	outfmt = &priv->format_mbus[priv->active_output_pad];
+>  
+>  	/* compose mbus_config from the upstream endpoint */
+>  	mbus_cfg.type = priv->upstream_ep.bus_type;
+> @@ -642,20 +640,13 @@ static int csi_setup(struct csi_priv *priv)
+>  		priv->upstream_ep.bus.mipi_csi2.flags :
+>  		priv->upstream_ep.bus.parallel.flags;
+>  
+> -	/*
+> -	 * we need to pass input frame to CSI interface, but
+> -	 * with translated field type from output format
+> -	 */
+> -	if_fmt = *infmt;
+> -	if_fmt.field = outfmt->field;
+> -
+>  	ipu_csi_set_window(priv->csi, &priv->crop);
+>  
+>  	ipu_csi_set_downsize(priv->csi,
+>  			     priv->crop.width == 2 * priv->compose.width,
+>  			     priv->crop.height == 2 * priv->compose.height);
+>  
+> -	ipu_csi_init_interface(priv->csi, &mbus_cfg, &if_fmt);
+> +	ipu_csi_init_interface(priv->csi, &mbus_cfg, infmt);
+>  
+>  	ipu_csi_set_dest(priv->csi, priv->dest);
+>  
