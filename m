@@ -1,241 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:52419 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752793AbeFDLrF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 07:47:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv15 17/35] vb2: drop VB2_BUF_STATE_PREPARED, use bool prepared/synced instead
-Date: Mon,  4 Jun 2018 13:46:30 +0200
-Message-Id: <20180604114648.26159-18-hverkuil@xs4all.nl>
-In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
-References: <20180604114648.26159-1-hverkuil@xs4all.nl>
+Received: from mail-io0-f173.google.com ([209.85.223.173]:36161 "EHLO
+        mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750771AbeFAHbE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 03:31:04 -0400
+Received: by mail-io0-f173.google.com with SMTP id d73-v6so28663014iog.3
+        for <linux-media@vger.kernel.org>; Fri, 01 Jun 2018 00:31:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <8f75d52e-851f-df50-7046-6d858d09c8a8@xs4all.nl>
+References: <20180517160708.74811cfb@vento.lan> <20180528104351.5cf52a24@vento.lan>
+ <20180531102212.41a8848e@vento.lan> <f2b70cc5-d7b8-1462-969c-a0557c778801@xs4all.nl>
+ <8f75d52e-851f-df50-7046-6d858d09c8a8@xs4all.nl>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Date: Fri, 1 Jun 2018 09:31:03 +0200
+Message-ID: <CABxcv==tJcMp32Vdcz-H+LSrLDdfHY-NnHE+V1AdJ3zzQXVvXA@mail.gmail.com>
+Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras
+ on generic apps
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        LMML <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, May 31, 2018 at 4:19 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 05/31/18 15:58, Hans Verkuil wrote:
+>> On 05/31/18 15:22, Mauro Carvalho Chehab wrote:
+>>> Em Mon, 28 May 2018 10:43:51 -0300
+>>> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+>>>
+>>>> Em Thu, 17 May 2018 16:07:08 -0300
+>>>> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+>>>>
+>>>>> Hi all,
+>>>>>
+>>>>> The goal of this e-mail is to schedule a meeting in order to discuss
+>>>>> improvements at the media subsystem in order to support complex camer=
+a
+>>>>> hardware by usual apps.
+>>>>>
+>>>>> The main focus here is to allow supporting devices with MC-based
+>>>>> hardware connected to a camera.
+>>>>>
+>>>>> In short, my proposal is to meet with the interested parties on solvi=
+ng
+>>>>> this issue during the Open Source Summit in Japan, e. g. between
+>>>>> June, 19-22, in Tokyo.
+>>>>
+>>>> Let's schedule the meeting to happen in Tokyo, Japan at June, 19.
+>>>>
+>>>> Location yet to be defined, but it will either be together with
+>>>> OSS Japan or at Google. I'll confirm the address tomorrow.
+>>>
+>>> More details about the meeting:
+>>>
+>>> Date: June, 19
+>>> Site: Google
+>>> Address: =E3=80=92106-6126 Tokyo, Minato, Roppongi, 6 Chome=E2=88=9210=
+=E2=88=921 Roppongi Hills Mori Tower 44F
+>>>
+>>> Please confirm who will be attending the meeting.
+>>
+>> I plan to attend the meeting via Google Hangouts.
+>
+> Well, the afternoon part of the meeting at least :-)
+>
 
-The PREPARED state becomes a problem with the request API: a buffer
-could be PREPARED but dequeued, or PREPARED and in state IN_REQUEST.
+I also plan to attend via Google Hangouts. At least the hours that are
+reasonable on my timezone.
 
-PREPARED is really not a state as such, but more a property of the
-buffer. So make new 'prepared' and 'synced' bools instead to remember
-whether the buffer is prepared and/or synced or not.
-
-V4L2_BUF_FLAG_PREPARED is only set if the buffer is both synced and
-prepared and in the DEQUEUED state.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../media/common/videobuf2/videobuf2-core.c   | 38 +++++++++++++------
- .../media/common/videobuf2/videobuf2-v4l2.c   | 16 +++++---
- include/media/videobuf2-core.h                |  6 ++-
- 3 files changed, 40 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index c25bad134ba3..997673b62afc 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -682,7 +682,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 		}
- 
- 		/*
--		 * Call queue_cancel to clean up any buffers in the PREPARED or
-+		 * Call queue_cancel to clean up any buffers in the
- 		 * QUEUED state which is possible if buffers were prepared or
- 		 * queued without ever calling STREAMON.
- 		 */
-@@ -921,6 +921,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 		/* sync buffers */
- 		for (plane = 0; plane < vb->num_planes; ++plane)
- 			call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-+		vb->synced = false;
- 	}
- 
- 	spin_lock_irqsave(&q->done_lock, flags);
-@@ -1239,6 +1240,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- static int __buf_prepare(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	enum vb2_buffer_state orig_state = vb->state;
- 	unsigned int plane;
- 	int ret;
- 
-@@ -1247,6 +1249,10 @@ static int __buf_prepare(struct vb2_buffer *vb)
- 		return -EIO;
- 	}
- 
-+	if (vb->prepared)
-+		return 0;
-+	WARN_ON(vb->synced);
-+
- 	vb->state = VB2_BUF_STATE_PREPARING;
- 
- 	switch (q->memory) {
-@@ -1262,11 +1268,12 @@ static int __buf_prepare(struct vb2_buffer *vb)
- 	default:
- 		WARN(1, "Invalid queue type\n");
- 		ret = -EINVAL;
-+		break;
- 	}
- 
- 	if (ret) {
- 		dprintk(1, "buffer preparation failed: %d\n", ret);
--		vb->state = VB2_BUF_STATE_DEQUEUED;
-+		vb->state = orig_state;
- 		return ret;
- 	}
- 
-@@ -1274,7 +1281,9 @@ static int __buf_prepare(struct vb2_buffer *vb)
- 	for (plane = 0; plane < vb->num_planes; ++plane)
- 		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
- 
--	vb->state = VB2_BUF_STATE_PREPARED;
-+	vb->synced = true;
-+	vb->prepared = true;
-+	vb->state = orig_state;
- 
- 	return 0;
- }
-@@ -1290,6 +1299,10 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- 			vb->state);
- 		return -EINVAL;
- 	}
-+	if (vb->prepared) {
-+		dprintk(1, "buffer already prepared\n");
-+		return -EINVAL;
-+	}
- 
- 	ret = __buf_prepare(vb);
- 	if (ret)
-@@ -1376,11 +1389,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DEQUEUED:
--		ret = __buf_prepare(vb);
--		if (ret)
--			return ret;
--		break;
--	case VB2_BUF_STATE_PREPARED:
-+		if (!vb->prepared) {
-+			ret = __buf_prepare(vb);
-+			if (ret)
-+				return ret;
-+		}
- 		break;
- 	case VB2_BUF_STATE_PREPARING:
- 		dprintk(1, "buffer still being prepared\n");
-@@ -1606,6 +1619,7 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
- 	}
- 
- 	call_void_vb_qop(vb, buf_finish, vb);
-+	vb->prepared = false;
- 
- 	if (pindex)
- 		*pindex = vb->index;
-@@ -1694,18 +1708,18 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	for (i = 0; i < q->num_buffers; ++i) {
- 		struct vb2_buffer *vb = q->bufs[i];
- 
--		if (vb->state == VB2_BUF_STATE_PREPARED ||
--		    vb->state == VB2_BUF_STATE_QUEUED) {
-+		if (vb->synced) {
- 			unsigned int plane;
- 
- 			for (plane = 0; plane < vb->num_planes; ++plane)
- 				call_void_memop(vb, finish,
- 						vb->planes[plane].mem_priv);
-+			vb->synced = false;
- 		}
- 
--		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
--			vb->state = VB2_BUF_STATE_PREPARED;
-+		if (vb->prepared) {
- 			call_void_vb_qop(vb, buf_finish, vb);
-+			vb->prepared = false;
- 		}
- 		__vb2_dqbuf(vb);
- 	}
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 360dc4e7d413..a677e2c26247 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -352,9 +352,13 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 	if (ret)
- 		return ret;
- 
--	/* Copy relevant information provided by the userspace */
--	memset(vbuf->planes, 0, sizeof(vbuf->planes[0]) * vb->num_planes);
--	return vb2_fill_vb2_v4l2_buffer(vb, b);
-+	if (!vb->prepared) {
-+		/* Copy relevant information provided by the userspace */
-+		memset(vbuf->planes, 0,
-+		       sizeof(vbuf->planes[0]) * vb->num_planes);
-+		ret = vb2_fill_vb2_v4l2_buffer(vb, b);
-+	}
-+	return ret;
- }
- 
- /*
-@@ -443,9 +447,6 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	case VB2_BUF_STATE_DONE:
- 		b->flags |= V4L2_BUF_FLAG_DONE;
- 		break;
--	case VB2_BUF_STATE_PREPARED:
--		b->flags |= V4L2_BUF_FLAG_PREPARED;
--		break;
- 	case VB2_BUF_STATE_PREPARING:
- 	case VB2_BUF_STATE_DEQUEUED:
- 	case VB2_BUF_STATE_REQUEUEING:
-@@ -453,6 +454,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 		break;
- 	}
- 
-+	if (vb->state == VB2_BUF_STATE_DEQUEUED && vb->synced && vb->prepared)
-+		b->flags |= V4L2_BUF_FLAG_PREPARED;
-+
- 	if (vb2_buffer_in_use(q, vb))
- 		b->flags |= V4L2_BUF_FLAG_MAPPED;
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 224c4820a044..5e760d5f280a 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -204,7 +204,6 @@ enum vb2_io_modes {
-  * enum vb2_buffer_state - current video buffer state.
-  * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control.
-  * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf.
-- * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver.
-  * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver.
-  * @VB2_BUF_STATE_REQUEUEING:	re-queue a buffer to the driver.
-  * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
-@@ -218,7 +217,6 @@ enum vb2_io_modes {
- enum vb2_buffer_state {
- 	VB2_BUF_STATE_DEQUEUED,
- 	VB2_BUF_STATE_PREPARING,
--	VB2_BUF_STATE_PREPARED,
- 	VB2_BUF_STATE_QUEUED,
- 	VB2_BUF_STATE_REQUEUEING,
- 	VB2_BUF_STATE_ACTIVE,
-@@ -250,6 +248,8 @@ struct vb2_buffer {
- 	/* private: internal use only
- 	 *
- 	 * state:		current buffer state; do not change
-+	 * synced:		this buffer has been synced
-+	 * prepared:		this buffer has been prepared
- 	 * queued_entry:	entry on the queued buffers list, which holds
- 	 *			all buffers queued from userspace
- 	 * done_entry:		entry on the list that stores all buffers ready
-@@ -257,6 +257,8 @@ struct vb2_buffer {
- 	 * vb2_plane:		per-plane information; do not change
- 	 */
- 	enum vb2_buffer_state	state;
-+	bool			synced;
-+	bool			prepared;
- 
- 	struct vb2_plane	planes[VB2_MAX_PLANES];
- 	struct list_head	queued_entry;
--- 
-2.17.0
+Best regards,
+Javier
