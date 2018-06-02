@@ -1,116 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:45464 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752755AbeFDLrB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 07:47:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCHv15 07/35] v4l2-dev: lock req_queue_mutex
-Date: Mon,  4 Jun 2018 13:46:20 +0200
-Message-Id: <20180604114648.26159-8-hverkuil@xs4all.nl>
-In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
-References: <20180604114648.26159-1-hverkuil@xs4all.nl>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:44095 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751718AbeFBQcx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2018 12:32:53 -0400
+Received: by mail-qt0-f193.google.com with SMTP id d3-v6so35927198qtp.11
+        for <linux-media@vger.kernel.org>; Sat, 02 Jun 2018 09:32:53 -0700 (PDT)
+Subject: Re: [PATCH v2 06/10] media: imx: Fix field setting logic in try_fmt
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+ <1527813049-3231-7-git-send-email-steve_longerbeam@mentor.com>
+ <1527860095.5913.10.camel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <3acbaa61-3e0c-1573-7495-8407c50768af@gmail.com>
+Date: Sat, 2 Jun 2018 09:32:50 -0700
+MIME-Version: 1.0
+In-Reply-To: <1527860095.5913.10.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-We need to serialize streamon/off with queueing new requests.
-These ioctls may trigger the cancellation of a streaming
-operation, and that should not be mixed with queuing a new
-request at the same time.
 
-Finally close() needs this lock since that too can trigger the
-cancellation of a streaming operation.
+On 06/01/2018 06:34 AM, Philipp Zabel wrote:
+> On Thu, 2018-05-31 at 17:30 -0700, Steve Longerbeam wrote:
+>> The logic for setting field type in try_fmt at CSI and PRPENCVF
+>> entities wasn't quite right. The behavior should be:
+>>
+>> - No restrictions on field type at sink pads (except ANY, which is filled
+>>    with current sink pad field by imx_media_fill_default_mbus_fields()).
+>>
+>> - At IDMAC output pads, if the caller asks for an interlaced output, and
+>>    the input is sequential fields, the IDMAC output channel can accommodate
+>>    by interweaving. The CSI can also interweave if input is alternate
+>>    fields.
+>>
+>> - If final source pad field type is alternate, translate to seq_bt or
+>>    seq_tb. But the field order translation was backwards, SD NTSC is BT
+>>    order, SD PAL is TB.
+>>
+>> Move this logic to new functions csi_try_field() and prp_try_field().
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>> ---
+>>   drivers/staging/media/imx/imx-ic-prpencvf.c | 22 +++++++++++--
+>>   drivers/staging/media/imx/imx-media-csi.c   | 50 +++++++++++++++++++++--------
+>>   2 files changed, 56 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+>> index 7e1e0c3..1002eb1 100644
+>> --- a/drivers/staging/media/imx/imx-ic-prpencvf.c
+>> +++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+>> @@ -833,6 +833,21 @@ static int prp_get_fmt(struct v4l2_subdev *sd,
+>>   	return ret;
+>>   }
+>>   
+>> +static void prp_try_field(struct prp_priv *priv,
+>> +			  struct v4l2_subdev_pad_config *cfg,
+>> +			  struct v4l2_subdev_format *sdformat)
+>> +{
+>> +	struct v4l2_mbus_framefmt *infmt =
+>> +		__prp_get_fmt(priv, cfg, PRPENCVF_SINK_PAD, sdformat->which);
+>> +
+>> +	/* no restrictions on sink pad field type */
+>> +	if (sdformat->pad == PRPENCVF_SINK_PAD)
+>> +		return;
+>> +
+>> +	if (!idmac_interweave(sdformat->format.field, infmt->field))
+>> +		sdformat->format.field = infmt->field;
+> This is not strict enough. As I wrote in reply to patch 4, we can only
+> do SEQ_TB -> INTERLACED_TB and SEQ_BT -> INTERLACED_BT interweaving.
 
-We take the req_queue_mutex here before any other locks since
-it is a very high-level lock.
+Agreed.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-dev.c   | 13 +++++++++++++
- drivers/media/v4l2-core/v4l2-ioctl.c | 22 +++++++++++++++++++++-
- 2 files changed, 34 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 4ffd7d60a901..d23e82ab1e27 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -444,8 +444,21 @@ static int v4l2_release(struct inode *inode, struct file *filp)
- 	struct video_device *vdev = video_devdata(filp);
- 	int ret = 0;
- 
-+	/*
-+	 * We need to serialize the release() with queueing new requests.
-+	 * The release() may trigger the cancellation of a streaming
-+	 * operation, and that should not be mixed with queueing a new
-+	 * request at the same time.
-+	 */
-+	if (v4l2_device_supports_requests(vdev->v4l2_dev))
-+		mutex_lock(&vdev->v4l2_dev->mdev->req_queue_mutex);
-+
- 	if (vdev->fops->release)
- 		ret = vdev->fops->release(filp);
-+
-+	if (v4l2_device_supports_requests(vdev->v4l2_dev))
-+		mutex_unlock(&vdev->v4l2_dev->mdev->req_queue_mutex);
-+
- 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
- 		dprintk("%s: release\n",
- 			video_device_node_name(vdev));
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 965fd301f617..27a893aa0664 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2714,6 +2714,7 @@ static long __video_do_ioctl(struct file *file,
- 		unsigned int cmd, void *arg)
- {
- 	struct video_device *vfd = video_devdata(file);
-+	struct mutex *req_queue_lock = NULL;
- 	struct mutex *lock; /* ioctl serialization mutex */
- 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
- 	bool write_only = false;
-@@ -2733,10 +2734,27 @@ static long __video_do_ioctl(struct file *file,
- 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
- 		vfh = file->private_data;
- 
-+	/*
-+	 * We need to serialize streamon/off with queueing new requests.
-+	 * These ioctls may trigger the cancellation of a streaming
-+	 * operation, and that should not be mixed with queueing a new
-+	 * request at the same time.
-+	 */
-+	if (v4l2_device_supports_requests(vfd->v4l2_dev) &&
-+	    (cmd == VIDIOC_STREAMON || cmd == VIDIOC_STREAMOFF)) {
-+		req_queue_lock = &vfd->v4l2_dev->mdev->req_queue_mutex;
-+
-+		if (req_queue_lock && mutex_lock_interruptible(req_queue_lock))
-+			return -ERESTARTSYS;
-+	}
-+
- 	lock = v4l2_ioctl_get_lock(vfd, cmd);
- 
--	if (lock && mutex_lock_interruptible(lock))
-+	if (lock && mutex_lock_interruptible(lock)) {
-+		if (req_queue_lock)
-+			mutex_unlock(req_queue_lock);
- 		return -ERESTARTSYS;
-+	}
- 
- 	if (!video_is_registered(vfd)) {
- 		ret = -ENODEV;
-@@ -2795,6 +2813,8 @@ static long __video_do_ioctl(struct file *file,
- unlock:
- 	if (lock)
- 		mutex_unlock(lock);
-+	if (req_queue_lock)
-+		mutex_unlock(req_queue_lock);
- 	return ret;
- }
- 
--- 
-2.17.0
+Steve
