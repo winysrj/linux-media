@@ -1,98 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:40022 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752770AbeFDLrC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 07:47:02 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv15 11/35] v4l2-ctrls: alloc memory for p_req
-Date: Mon,  4 Jun 2018 13:46:24 +0200
-Message-Id: <20180604114648.26159-12-hverkuil@xs4all.nl>
-In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
-References: <20180604114648.26159-1-hverkuil@xs4all.nl>
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:35707 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751802AbeFBW4u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2018 18:56:50 -0400
+Subject: Re: [RFC PATCH v2 1/2] drm: Add generic colorkey properties
+To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        Sinclair Yeh <syeh@vmware.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20180526155623.12610-1-digetx@gmail.com>
+ <20180526155623.12610-2-digetx@gmail.com> <20180529071742.GM23723@intel.com>
+From: Dmitry Osipenko <digetx@gmail.com>
+Message-ID: <b7d985dc-84de-2243-80dd-02a1571a02b6@gmail.com>
+Date: Sun, 3 Jun 2018 01:56:46 +0300
+MIME-Version: 1.0
+In-Reply-To: <20180529071742.GM23723@intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 29.05.2018 10:17, Ville Syrjälä wrote:
+> On Sat, May 26, 2018 at 06:56:22PM +0300, Dmitry Osipenko wrote:
+>> Color keying is the action of replacing pixels matching a given color
+>> (or range of colors) with transparent pixels in an overlay when
+>> performing blitting. Depending on the hardware capabilities, the
+>> matching pixel can either become fully transparent or gain adjustment
+>> of the pixels component values.
+>>
+>> Color keying is found in a large number of devices whose capabilities
+>> often differ, but they still have enough common features in range to
+>> standardize color key properties. This commit adds nine generic DRM plane
+>> properties related to the color keying to cover various HW capabilities.
+>>
+>> This patch is based on the initial work done by Laurent Pinchart, most of
+>> credits for this patch goes to him.
+>>
+>> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+>> ---
+>>  drivers/gpu/drm/drm_atomic.c |  36 ++++++
+>>  drivers/gpu/drm/drm_blend.c  | 229 +++++++++++++++++++++++++++++++++++
+>>  include/drm/drm_blend.h      |   3 +
+>>  include/drm/drm_plane.h      |  77 ++++++++++++
+>>  4 files changed, 345 insertions(+)
+>>
+>> diff --git a/drivers/gpu/drm/drm_atomic.c b/drivers/gpu/drm/drm_atomic.c
+>> index 895741e9cd7d..5b808cb68654 100644
+>> @@ -124,6 +175,19 @@ struct drm_plane_state {
+>>  	unsigned int zpos;
+>>  	unsigned int normalized_zpos;
+>>  
+>> +	/* Plane colorkey */
+>> +	struct {
+>> +		enum drm_plane_colorkey_mode mode;
+>> +		u64 min;
+>> +		u64 max;
+>> +		u64 mask;
+>> +		u32 format;
+>> +		bool inverted_match;
+>> +		u64 replacement_mask;
+>> +		u64 replacement_value;
+>> +		u32 replacement_format;
+>> +	} colorkey;
+> 
+> After a quick stab at implementing this for i915 I came to the
+> conclusion that I'd like this struct to have a name so that I can pass
+> it around/consult it easily without having to mess about with the entire
+> plane state.
+> 
+> One extra question that came up is how are we going to define the
+> destination color key? Is it to be a) enabled on the plane that has the
+> colorkey painted on it, or is it to be b) enabled on a plane that sits
+> above the plane that is going to be covering up the colorkey? Modern
+> Intel hardware defines it the a) way, whereas older hw used the b)
+> method. Thinking about it I do think the a) method seems nicer because
+> it removes the ambiguity as to which plane's pixels are going to be
+> compared again the colorkey. So kinda matches the src colorkey case
+> better.
+> 
+> Oh and this also brings up the question as to which other plane(s) are
+> taking part in the colorkey process. Looks like on modern Intel hw it's
+> supposed to be just the plane immediately above the plane with
+> dst keying enabled. On some really old hw there were some more
+> complicated rules as to which pair of planes are involved. On middle
+> aged hw the situation is simpler a there are only ever two
+> (non-cursor) planes on the same crtc. The cursor doesn't seem to
+> participate in the colorkeing ever. Not sure there's a sane way to
+> fully abstract this all.
+> 
+> I should probably poke at the hardware a bit more to figure out how
+> this really works when there are more than two active planes on the
+> crtc. <day later> I did poke at one particular class of hw which is
+> a bit of a mix of old and middle aged hw, and there it seems I can
+> also do dst colorkeying the a) way. And in this case there are three
+> planes taking part in the dst colorkey match (the primary that
+> has the colorkey painted on it, and two overlay planes that cover
+> up the matched pixels). So for that case definitely the a) approach
+> in the uapi would make more sense as trying to specify conflicting
+> dst colorkey settings for each of the overlay planes wouldn't make
+> any sense. I'll need to poke at the modern hw a bit more still...
+> 
 
-To store request data the handler_new_ref() allocates memory
-for it if needed.
+Color keying mode must explicitly define the expected behavior. It is up to a
+driver to enable HW color keying for an appropriate plane, or whatever needs to
+be done to provide the behavior.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index d09f49530d9e..3c1b00baa8d0 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1997,13 +1997,18 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
- /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
- static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 			   struct v4l2_ctrl *ctrl,
--			   bool from_other_dev)
-+			   struct v4l2_ctrl_ref **ctrl_ref,
-+			   bool from_other_dev, bool allocate_req)
- {
- 	struct v4l2_ctrl_ref *ref;
- 	struct v4l2_ctrl_ref *new_ref;
- 	u32 id = ctrl->id;
- 	u32 class_ctrl = V4L2_CTRL_ID2WHICH(id) | 1;
- 	int bucket = id % hdl->nr_of_buckets;	/* which bucket to use */
-+	unsigned int sz_extra = 0;
-+
-+	if (ctrl_ref)
-+		*ctrl_ref = NULL;
- 
- 	/*
- 	 * Automatically add the control class if it is not yet present and
-@@ -2017,11 +2022,16 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 	if (hdl->error)
- 		return hdl->error;
- 
--	new_ref = kzalloc(sizeof(*new_ref), GFP_KERNEL);
-+	if (allocate_req)
-+		sz_extra = ctrl->elems * ctrl->elem_size;
-+	new_ref = kzalloc(sizeof(*new_ref) + sz_extra, GFP_KERNEL);
- 	if (!new_ref)
- 		return handler_set_err(hdl, -ENOMEM);
- 	new_ref->ctrl = ctrl;
- 	new_ref->from_other_dev = from_other_dev;
-+	if (sz_extra)
-+		new_ref->p_req.p = &new_ref[1];
-+
- 	if (ctrl->handler == hdl) {
- 		/* By default each control starts in a cluster of its own.
- 		   new_ref->ctrl is basically a cluster array with one
-@@ -2061,6 +2071,8 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 	/* Insert the control node in the hash */
- 	new_ref->next = hdl->buckets[bucket];
- 	hdl->buckets[bucket] = new_ref;
-+	if (ctrl_ref)
-+		*ctrl_ref = new_ref;
- 
- unlock:
- 	mutex_unlock(hdl->lock);
-@@ -2202,7 +2214,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
- 	}
- 
--	if (handler_new_ref(hdl, ctrl, false)) {
-+	if (handler_new_ref(hdl, ctrl, NULL, false, false)) {
- 		kvfree(ctrl);
- 		return NULL;
- 	}
-@@ -2395,7 +2407,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 		/* Filter any unwanted controls */
- 		if (filter && !filter(ctrl))
- 			continue;
--		ret = handler_new_ref(hdl, ctrl, from_other_dev);
-+		ret = handler_new_ref(hdl, ctrl, NULL, from_other_dev, false);
- 		if (ret)
- 			break;
- 	}
--- 
-2.17.0
+After some more considering, I've reduced the color keying properties and modes
+to a bare-and-practical minimum, also taking into account your comments. I'll
+send out a new version of the patch later today, let's continue discussion there.
