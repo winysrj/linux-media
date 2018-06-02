@@ -1,103 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:42869 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751469AbeFYIXF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Jun 2018 04:23:05 -0400
-Received: by mail-ed1-f66.google.com with SMTP id g12-v6so216648edi.9
-        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2018 01:23:05 -0700 (PDT)
-Date: Mon, 25 Jun 2018 10:22:31 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Christian =?iso-8859-1?Q?K=F6nig?=
-        <ckoenig.leichtzumerken@gmail.com>
-Cc: daniel@ffwll.ch, sumit.semwal@linaro.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org
-Subject: Re: [PATCH 2/4] dma-buf: lock the reservation object during
- (un)map_dma_buf v2
-Message-ID: <20180625082231.GM2958@phenom.ffwll.local>
-References: <20180622141103.1787-1-christian.koenig@amd.com>
- <20180622141103.1787-3-christian.koenig@amd.com>
+Received: from mail-pl0-f52.google.com ([209.85.160.52]:34058 "EHLO
+        mail-pl0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750831AbeFBRpk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2018 13:45:40 -0400
+Received: by mail-pl0-f52.google.com with SMTP id ay10-v6so17143310plb.1
+        for <linux-media@vger.kernel.org>; Sat, 02 Jun 2018 10:45:40 -0700 (PDT)
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
+Cc: linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
+References: <m37eobudmo.fsf@t19.piap.pl>
+ <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com> <m3tvresqfw.fsf@t19.piap.pl>
+ <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com> <m3fu2oswjh.fsf@t19.piap.pl>
+ <m3603hsa4o.fsf@t19.piap.pl> <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
+ <m3h8mxqc7t.fsf@t19.piap.pl> <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
+ <1527229949.4938.1.camel@pengutronix.de> <m3y3g8p5j3.fsf@t19.piap.pl>
+ <1e11fa9a-8fa6-c746-7ee1-a64666bfc44e@gmail.com> <m3lgc2q5vl.fsf@t19.piap.pl>
+ <06b9dd3d-3b7d-d34d-5263-411c99ab1a8b@gmail.com> <m38t81plry.fsf@t19.piap.pl>
+ <4f49cf44-431d-1971-e5c5-d66381a6970e@gmail.com> <m336y9ouc4.fsf@t19.piap.pl>
+ <6923fcd4-317e-d6a6-7975-47a8c712f8f9@gmail.com> <m3sh66omdk.fsf@t19.piap.pl>
+ <1527858788.5913.2.camel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <05703b20-3280-3bdd-c438-dfce8e475aaa@gmail.com>
+Date: Sat, 2 Jun 2018 10:45:37 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <1527858788.5913.2.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180622141103.1787-3-christian.koenig@amd.com>
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 22, 2018 at 04:11:01PM +0200, Christian K�nig wrote:
-> First step towards unpinned DMA buf operation.
-> 
-> I've checked the DRM drivers to potential locking of the reservation
-> object, but essentially we need to audit all implementations of the
-> dma_buf _ops for this to work.
-> 
-> v2: reordered
-> 
-> Signed-off-by: Christian K�nig <christian.koenig@amd.com>
 
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 
-> ---
->  drivers/dma-buf/dma-buf.c | 9 ++++++---
->  include/linux/dma-buf.h   | 4 ++++
->  2 files changed, 10 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index dc94e76e2e2a..49f23b791eb8 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -665,7 +665,9 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
->  	if (WARN_ON(!attach || !attach->dmabuf))
->  		return ERR_PTR(-EINVAL);
->  
-> -	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
-> +	reservation_object_lock(attach->dmabuf->resv, NULL);
-> +	sg_table = dma_buf_map_attachment_locked(attach, direction);
-> +	reservation_object_unlock(attach->dmabuf->resv);
->  	if (!sg_table)
->  		sg_table = ERR_PTR(-ENOMEM);
->  
-> @@ -715,8 +717,9 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
->  	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
->  		return;
->  
-> -	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table,
-> -						direction);
-> +	reservation_object_lock(attach->dmabuf->resv, NULL);
-> +	dma_buf_unmap_attachment_locked(attach, sg_table, direction);
-> +	reservation_object_unlock(attach->dmabuf->resv);
->  }
->  EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
->  
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index a25e754ae2f7..024658d1f22e 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -118,6 +118,8 @@ struct dma_buf_ops {
->  	 * any other kind of sharing that the exporter might wish to make
->  	 * available to buffer-users.
->  	 *
-> +	 * This is called with the dmabuf->resv object locked.
-> +	 *
->  	 * Returns:
->  	 *
->  	 * A &sg_table scatter list of or the backing storage of the DMA buffer,
-> @@ -138,6 +140,8 @@ struct dma_buf_ops {
->  	 * It should also unpin the backing storage if this is the last mapping
->  	 * of the DMA buffer, it the exporter supports backing storage
->  	 * migration.
-> +	 *
-> +	 * This is called with the dmabuf->resv object locked.
->  	 */
->  	void (*unmap_dma_buf)(struct dma_buf_attachment *,
->  			      struct sg_table *,
-> -- 
-> 2.14.1
-> 
+On 06/01/2018 06:13 AM, Philipp Zabel wrote:
+> Hi Krzysztof,
+>
+> On Fri, 2018-06-01 at 12:02 +0200, Krzysztof Hałasa wrote:
+>> Steve Longerbeam <slongerbeam@gmail.com> writes:
+>>
+>>> I tend to agree, I've found conflicting info out there regarding
+>>> PAL vs. NTSC field order. And I've never liked having to guess
+>>> at input analog standard based on input # lines. I will go ahead
+>>> and remove the field order override code.
+>> I've merged your current fix-csi-interlaced.2 branch (2018-06-01
+>> 00:06:45 UTC 22ad9f30454b6e46979edf6f8122243591910a3e) along with
+>> "media: adv7180: fix field type" commit and NTSC camera:
+>>
+>> media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480 field:alternate]"
+>> media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480]"
+>> media-ctl -V "'ipu2_csi1':2 [fmt:AYUV32/720x480 field:interlaced/-bt/-tb]"
+>>
+>> correctly sets:
+>>
+>> "adv7180 2-0020":0 [fmt:UYVY2X8/720x480 field:alternate]
+>> "ipu2_csi1_mux":1  [fmt:UYVY2X8/720x480 field:alternate]
+>> "ipu2_csi1_mux":2  [fmt:UYVY2X8/720x480 field:alternate]
+>> "ipu2_csi1":0      [fmt:UYVY2X8/720x480 field:alternate]
+>> "ipu2_csi1":2      [fmt:AYUV32/720x480 field:interlaced/-bt/-tb]
+>>
+>> but all 3 cases seem to produce top-first interlaced frames.
+>> The CCIR_CODE_* register dump shows no differences:
+>> 2a38014: 010D07DF 00040596 00FF0000
+>>
+>> ...it's because the code in drivers/gpu/ipu-v3/ipu-csi.c still sets the
+>> registers depending on the height of the image.
+> Exactly.
+>
+>>   Hovewer, I'm using 480
+>> lines here, so it should be B-T instead.
+> My understanding is that the CCIR codes for height == 480 (NTSC)
+> currently capture the second field (top) first, assuming that for NTSC
+> the EAV/SAV codes are bottom-field-first.
+>
+> So the CSI captures SEQ_TB for both PAL and NTSC: The three-bit values
+> in CCIR_CODE_2/3 are in H,V,F order, and the NTSC case has F=1 for the
+> field that is captured first, where F=1 is the field that is marked as
+> second field on the wire, so top. Which means that the captured frame
+> has two fields captured across frame boundaries, which might be
+> problematic if the source data was originally progressive.
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+I agree, for NTSC the CSI will drop the first B field and start capturing
+at the T field, and then capture fields across frame boundaries. At
+least, that is if we understand how these CCIR registers work: the
+CSI will look for H-S-V codes for the start and end of active and blanking
+lines, that match the codes written to CCIR_CODE_1/2 for fields 0/1.
+
+I think this must be legacy code from a Freescale BSP requirement
+that the CSI must always capture in T-B order. We should remove this
+code, so that the CSI always captures field 0 followed by field 1, 
+irrespective
+of field affinity, as in:
+
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index 5450a2d..b8b9b6d 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -398,41 +398,20 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+                 break;
+         case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
+                 if (mbus_fmt->width == 720 && mbus_fmt->height == 576) {
+-                       /*
+-                        * PAL case
+-                        *
+-                        * Field0BlankEnd = 0x6, Field0BlankStart = 0x2,
+-                        * Field0ActiveEnd = 0x4, Field0ActiveStart = 0
+-                        * Field1BlankEnd = 0x7, Field1BlankStart = 0x3,
+-                        * Field1ActiveEnd = 0x5, Field1ActiveStart = 0x1
+-                        */
+                         height = 625; /* framelines for PAL */
+-
+-                       ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN,
+-                                         CSI_CCIR_CODE_1);
+-                       ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
+-                       ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+                 } else if (mbus_fmt->width == 720 && mbus_fmt->height 
+== 480) {
+-                       /*
+-                        * NTSC case
+-                        *
+-                        * Field0BlankEnd = 0x7, Field0BlankStart = 0x3,
+-                        * Field0ActiveEnd = 0x5, Field0ActiveStart = 0x1
+-                        * Field1BlankEnd = 0x6, Field1BlankStart = 0x2,
+-                        * Field1ActiveEnd = 0x4, Field1ActiveStart = 0
+-                        */
+                         height = 525; /* framelines for NTSC */
+-
+-                       ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
+-                                         CSI_CCIR_CODE_1);
+-                       ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
+-                       ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+                 } else {
+                         dev_err(csi->ipu->dev,
+                                 "Unsupported CCIR656 interlaced video 
+mode\n");
+                         spin_unlock_irqrestore(&csi->lock, flags);
+                         return -EINVAL;
+                 }
++
++               ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN,
++                             CSI_CCIR_CODE_1);
++               ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
++               ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+                 break;
+         case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
+         case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
