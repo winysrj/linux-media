@@ -1,104 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:34885 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751293AbeFALlS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 07:41:18 -0400
-Received: by mail-it0-f66.google.com with SMTP id a3-v6so1466237itd.0
-        for <linux-media@vger.kernel.org>; Fri, 01 Jun 2018 04:41:18 -0700 (PDT)
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:34325 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751750AbeFBQbB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2018 12:31:01 -0400
+Received: by mail-qt0-f194.google.com with SMTP id d3-v6so1465661qto.1
+        for <linux-media@vger.kernel.org>; Sat, 02 Jun 2018 09:31:01 -0700 (PDT)
+Subject: Re: [PATCH v2 01/10] media: imx-csi: Pass sink pad field to
+ ipu_csi_init_interface
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+ <1527813049-3231-2-git-send-email-steve_longerbeam@mentor.com>
+ <1527859350.5913.4.camel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <bbae0a24-7ab6-1361-f15c-068f32482f1f@gmail.com>
+Date: Sat, 2 Jun 2018 09:30:57 -0700
 MIME-Version: 1.0
-In-Reply-To: <20180601095322.hdxcpmj4tfonaq4g@valkosipuli.retiisi.org.uk>
-References: <CAMty3ZAMjCKv1BtLnobRZUzp=9Xu1gY5+R3Zi-JuobAJZQrXxg@mail.gmail.com>
- <20180531190659.xdp4q2cjro33aihq@pengutronix.de> <CAMty3ZCeR3uEx8oy18-Ur7ma7pciKUf_myDk6_SpWvxc6DvygQ@mail.gmail.com>
- <20180601095322.hdxcpmj4tfonaq4g@valkosipuli.retiisi.org.uk>
-From: Jagan Teki <jagan@amarulasolutions.com>
-Date: Fri, 1 Jun 2018 17:11:16 +0530
-Message-ID: <CAMty3ZBCrrj=GJzGWR8tp5e2ZEAgADFT9OQ_THAALOW_Bay1LA@mail.gmail.com>
-Subject: Re: i.MX6 MIPI-CSI2 OV5640 Camera testing on Mainline Linux
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Philipp Zabel <pza@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Discussion of the development of and with GStreamer
-        <gstreamer-devel@lists.freedesktop.org>,
-        linux-media@vger.kernel.org,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <1527859350.5913.4.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 1, 2018 at 3:23 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> On Fri, Jun 01, 2018 at 10:49:56AM +0530, Jagan Teki wrote:
->> Hi Philipp,
+
+
+On 06/01/2018 06:22 AM, Philipp Zabel wrote:
+> On Thu, 2018-05-31 at 17:30 -0700, Steve Longerbeam wrote:
+>> The output pad's field type was being passed to ipu_csi_init_interface(),
+>> in order to deal with field type 'alternate' at the sink pad, which
+>> is not understood by ipu_csi_init_interface().
 >>
->> On Fri, Jun 1, 2018 at 12:36 AM, Philipp Zabel <pza@pengutronix.de> wrote:
->> > Hi Jagan,
->> >
->> > On Thu, May 31, 2018 at 08:39:20PM +0530, Jagan Teki wrote:
->> >> Hi All,
->> >>
->> >> I'm trying to verify MIPI-CSI2 OV5640 camera on i.MX6 platform with
->> >> Mainline Linux.
->> >>
->> >> I've followed these[1] instructions to configure MC links and pads
->> >> based on the probing details from dmesg and trying to capture
->> >> ipu1_ic_prpenc capture (/dev/video1) but it's not working.
->> >>
->> >> Can anyone help me to verify whether I configured all the details
->> >> properly if not please suggest.
->> >>
->> >> I'm pasting full log here, so-that anyone can comment in line and dt
->> >> changes are at [2]
->> >>
->> >> Log:
->> >> -----
->> > [...]
->> >> # media-ctl -l "'ov5640 2-003c':0 -> 'imx6-mipi-csi2':0[1]"
->> >> # media-ctl -l "'imx6-mipi-csi2':2 -> 'ipu1_csi1':0[1]"
->> >> # media-ctl -l "'ipu1_csi1':1 -> 'ipu1_ic_prp':0[1]"
->> >> # media-ctl -l "'ipu1_ic_prp':1 -> 'ipu1_ic_prpenc':0[1]"
->> >> # media-ctl -l "'ipu1_ic_prpenc':1 -> 'ipu1_ic_prpenc capture':0[1]"
->> >
->> > Here you configure a pipeline that ends at ipu1 prpenc capture ...
->> >
->> >> # med# media-ctl -p
->> > [...]
->> >> - entity 18: ipu1_ic_prpenc capture (1 pad, 1 link)
->> >>              type Node subtype V4L flags 0
->> >>              device node name /dev/video0
->> >
->> > ... which is /dev/video0 ...
->> >
->> > [...]
->> >> - entity 27: ipu1_ic_prpvf capture (1 pad, 1 link)
->> >>              type Node subtype V4L flags 0
->> >>              device node name /dev/video1
->> >
->> > ... not /dev/video1 ...
->>
->> True, thanks for pointing it.
->>
->> I actually tried even on video0 which I forgot to post the log [4].
->> Now I understand I'm trying for wrong device to capture look like
->> video0 which is ipu1 prepenc firing kernel oops. I'm trying to debug
->> this and let me know if have any suggestion to look into.
->>
->> [   56.800074] imx6-mipi-csi2: LP-11 timeout, phy_state = 0x000002b0
->> [   57.369660] ipu1_ic_prpenc: EOF timeout
->> [   57.849692] ipu1_ic_prpenc: wait last EOF timeout
->> [   57.855703] ipu1_ic_prpenc: pipeline start failed with -110
+>> Remove that code and pass the sink pad field to ipu_csi_init_interface().
+>> The latter function will have to explicity deal with field type 'alternate'
+>> when setting up the CSI interface for BT.656 busses.
+> I fear this won't be enough. If we want to capture
+> sink:ALTERNATE/SEQ_TB/SEQ_BT -> src:SEQ_TB we have to configure the CSI
+> differently than if we want to capture
+> ALTERNATE/SEQ_TB/SEQ_BT -> src:SEQ_BT. (And differently for NTSC and
+> PAL). For NTSC sink:ALTERNATE should behave like sink:SEQ_BT, and for
+> PAL sink:ALTERNATE should behave like sink:SEQ_TB.
+
+I think we should return to enforcing field order to userspace that
+matches field order from the source, which is what I had implemented
+previously. I agree with you that we should put off allowing inverting
+field order.
+
 >
-> I don't have the hardware but this looks like the host cannot detect the
-> LP-11 state on the sensor (both wires high?). Some sensors cannot do this
-> without starting streaming at the same time. I'd expect the same if there
-> are problems in lane configuration etc.
+> Interweaving SEQ_TB to INTERLACED_TB should work right now, but to
+> interweave SEQ_BT to INTERLACED_BT, we need to add one line offset to
+> the frame start and use a negative interlaced scanline offset.
 
-You mean the lane configurations in hardware? but this sensor is
-working with imx kernel. what do you mean by wires here? lanes.
+Is that because ipu_csi_init_interface() is inverting the F-bit for
+NTSC? I think we should remove that code, I will comment on
+that in another thread.
 
-Jagan.
+Steve
 
--- 
-Jagan Teki
-Senior Linux Kernel Engineer | Amarula Solutions
-U-Boot, Linux | Upstream Maintainer
-Hyderabad, India.
+
+>
+>
+>
+>> Reported-by: Krzysztof Hałasa <khalasa@piap.pl>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>> ---
+>>   drivers/staging/media/imx/imx-media-csi.c | 13 ++-----------
+>>   1 file changed, 2 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+>> index 95d7805..9bc555c 100644
+>> --- a/drivers/staging/media/imx/imx-media-csi.c
+>> +++ b/drivers/staging/media/imx/imx-media-csi.c
+>> @@ -629,12 +629,10 @@ static void csi_idmac_stop(struct csi_priv *priv)
+>>   /* Update the CSI whole sensor and active windows */
+>>   static int csi_setup(struct csi_priv *priv)
+>>   {
+>> -	struct v4l2_mbus_framefmt *infmt, *outfmt;
+>> +	struct v4l2_mbus_framefmt *infmt;
+>>   	struct v4l2_mbus_config mbus_cfg;
+>> -	struct v4l2_mbus_framefmt if_fmt;
+>>   
+>>   	infmt = &priv->format_mbus[CSI_SINK_PAD];
+>> -	outfmt = &priv->format_mbus[priv->active_output_pad];
+>>   
+>>   	/* compose mbus_config from the upstream endpoint */
+>>   	mbus_cfg.type = priv->upstream_ep.bus_type;
+>> @@ -642,20 +640,13 @@ static int csi_setup(struct csi_priv *priv)
+>>   		priv->upstream_ep.bus.mipi_csi2.flags :
+>>   		priv->upstream_ep.bus.parallel.flags;
+>>   
+>> -	/*
+>> -	 * we need to pass input frame to CSI interface, but
+>> -	 * with translated field type from output format
+>> -	 */
+>> -	if_fmt = *infmt;
+>> -	if_fmt.field = outfmt->field;
+>> -
+>>   	ipu_csi_set_window(priv->csi, &priv->crop);
+>>   
+>>   	ipu_csi_set_downsize(priv->csi,
+>>   			     priv->crop.width == 2 * priv->compose.width,
+>>   			     priv->crop.height == 2 * priv->compose.height);
+>>   
+>> -	ipu_csi_init_interface(priv->csi, &mbus_cfg, &if_fmt);
+>> +	ipu_csi_init_interface(priv->csi, &mbus_cfg, infmt);
+>>   
+>>   	ipu_csi_set_dest(priv->csi, priv->dest);
+>>   
