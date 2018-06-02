@@ -1,140 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:39594 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750748AbeFBEPG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 2 Jun 2018 00:15:06 -0400
-Message-ID: <cf95531347316c7a4ae277b6447109a4@smtp-cloud7.xs4all.net>
-Date: Sat, 02 Jun 2018 06:15:03 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from conssluserg-04.nifty.com ([210.131.2.83]:21635 "EHLO
+        conssluserg-04.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750952AbeFBMAD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2018 08:00:03 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180530090946.1635-4-suzuki.katsuhiro@socionext.com>
+References: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com> <20180530090946.1635-4-suzuki.katsuhiro@socionext.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Sat, 2 Jun 2018 20:59:00 +0900
+Message-ID: <CAK7LNASZwdiuWjaZ-AokQYPpU-uH8RZZxL2kGPG=EckmCKCx9g@mail.gmail.com>
+Subject: Re: [PATCH 3/8] media: uniphier: add submodules of HSC MPEG2-TS I/O driver
+To: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        linux-media@vger.kernel.org,
+        Masami Hiramatsu <masami.hiramatsu@linaro.org>,
+        Jassi Brar <jaswinder.singh@linaro.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+2018-05-30 18:09 GMT+09:00 Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>:
+> This patch adds submodules of HSC for UniPhier SoCs.
+> These work as follows:
+>   ucode: Load uCode and start subsystems
+>   css  : Switch stream path
+>   ts   : Receive MPEG2-TS clock and signal
+>   dma  : Transfer MPEG2-TS data bytes to main memory
+>
+> Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+> ---
+>  drivers/media/platform/uniphier/Makefile    |   3 +
+>  drivers/media/platform/uniphier/hsc-css.c   | 258 ++++++++++++
+>  drivers/media/platform/uniphier/hsc-dma.c   | 302 ++++++++++++++
+>  drivers/media/platform/uniphier/hsc-ts.c    |  99 +++++
+>  drivers/media/platform/uniphier/hsc-ucode.c | 436 ++++++++++++++++++++
+>  5 files changed, 1098 insertions(+)
+>  create mode 100644 drivers/media/platform/uniphier/hsc-css.c
+>  create mode 100644 drivers/media/platform/uniphier/hsc-dma.c
+>  create mode 100644 drivers/media/platform/uniphier/hsc-ts.c
+>  create mode 100644 drivers/media/platform/uniphier/hsc-ucode.c
+>
+> diff --git a/drivers/media/platform/uniphier/Makefile b/drivers/media/platform/uniphier/Makefile
+> index f66554cd5c45..92536bc56b31 100644
+> --- a/drivers/media/platform/uniphier/Makefile
+> +++ b/drivers/media/platform/uniphier/Makefile
+> @@ -1 +1,4 @@
+>  # SPDX-License-Identifier: GPL-2.0
+> +uniphier-dvb-y += hsc-ucode.o hsc-css.o hsc-ts.o hsc-dma.o
+> +
+> +obj-$(CONFIG_DVB_UNIPHIER) += uniphier-dvb.o
 
-Results of the daily build of media_tree:
 
-date:			Sat Jun  2 05:00:14 CEST 2018
-media-tree git hash:	a00031c159748f322f771f3c1d5ed944cba4bd30
-media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
-v4l-utils git hash:	034fdb4bc2dd380a3c77c0b82c03c99c222ddef4
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-rc4-i686: OK
-linux-4.17-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+If you claim this driver is tristate,
+you need to do compile-test with =m.
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+I see the following warning for allmodconfig.
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+  CC [M]  drivers/media/platform/uniphier/hsc-ucode.o
+  CC [M]  drivers/media/platform/uniphier/hsc-css.o
+  CC [M]  drivers/media/platform/uniphier/hsc-ts.o
+  CC [M]  drivers/media/platform/uniphier/hsc-dma.o
+  LD [M]  drivers/media/platform/uniphier/uniphier-dvb.o
+WARNING: modpost: missing MODULE_LICENSE() in
+drivers/media/platform/uniphier/uniphier-dvb.o
+see include/linux/module.h for more information
 
-The Media Infrastructure API from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+
+
+
+
+
+
+
+
+-- 
+Best Regards
+Masahiro Yamada
