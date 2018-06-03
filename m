@@ -1,79 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2130.oracle.com ([141.146.126.79]:42288 "EHLO
-        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750853AbeFDQeU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 12:34:20 -0400
-Subject: Re: [PATCH v2 3/9] xen/balloon: Share common memory reservation
- routines
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180601114132.22596-1-andr2000@gmail.com>
- <20180601114132.22596-4-andr2000@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <4fd46fd8-f936-1514-06e4-34c5d3ed8960@oracle.com>
-Date: Mon, 4 Jun 2018 12:37:48 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180601114132.22596-4-andr2000@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:33079 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751218AbeFCOOh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Jun 2018 10:14:37 -0400
+Received: by mail-pl0-f67.google.com with SMTP id n10-v6so18034262plp.0
+        for <linux-media@vger.kernel.org>; Sun, 03 Jun 2018 07:14:37 -0700 (PDT)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH] media: pxa_camera: ignore -ENOIOCTLCMD from v4l2_subdev_call for s_power
+Date: Sun,  3 Jun 2018 23:14:25 +0900
+Message-Id: <1528035265-14404-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
-> diff --git a/include/xen/mem-reservation.h b/include/xen/mem-reservation.h
-> new file mode 100644
-> index 000000000000..a727d65a1e61
-> --- /dev/null
-> +++ b/include/xen/mem-reservation.h
-> @@ -0,0 +1,65 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +
-> +/*
-> + * Xen memory reservation utilities.
-> + *
-> + * Copyright (c) 2003, B Dragovic
-> + * Copyright (c) 2003-2004, M Williamson, K Fraser
-> + * Copyright (c) 2005 Dan M. Smith, IBM Corporation
-> + * Copyright (c) 2010 Daniel Kiper
-> + * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
-> + */
-> +
-> +#ifndef _XENMEM_RESERVATION_H
-> +#define _XENMEM_RESERVATION_H
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/slab.h>
-> +
-> +#include <asm/xen/hypercall.h>
-> +#include <asm/tlb.h>
-> +
-> +#include <xen/interface/memory.h>
-> +#include <xen/page.h>
-> +
-> +#ifdef CONFIG_XEN_SCRUB_PAGES
-> +void xenmem_reservation_scrub_page(struct page *page);
-> +#else
-> +static inline void xenmem_reservation_scrub_page(struct page *page)
-> +{
-> +}
-> +#endif
+When the subdevice doesn't provide s_power core ops callback, the
+v4l2_subdev_call for s_power returns -ENOIOCTLCMD.  If the subdevice
+doesn't have the special handling for its power saving mode, the s_power
+isn't required.  So -ENOIOCTLCMD from the v4l2_subdev_call should be
+ignored.
 
+Actually the -ENOIOCTLCMD is ignored in this driver's suspend/resume,
+but the others treat the -ENOIOCTLCMD as an error.
 
-Given that this is a wrapper around a single call I'd prefer
+This prepares a wrapper function to ignore -ENOIOCTLCMD and replaces
+all s_power calls with it.
 
-inline void xenmem_reservation_scrub_page(struct page *page)
-{
-#ifdef CONFIG_XEN_SCRUB_PAGES
-    clear_highpage(page);
-#endif
-}
+This also adds warning message when s_power() is failed.
 
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+ drivers/media/platform/pxa_camera.c | 35 +++++++++++++++++++++++------------
+ 1 file changed, 23 insertions(+), 12 deletions(-)
 
-
--boris
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index c792cb1..4d5a26b 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -2030,6 +2030,22 @@ static int pxac_vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ 	return 0;
+ }
+ 
++static int pxac_sensor_set_power(struct pxa_camera_dev *pcdev, int on)
++{
++	int ret;
++
++	ret = sensor_call(pcdev, core, s_power, on);
++	if (ret == -ENOIOCTLCMD)
++		ret = 0;
++	if (ret) {
++		dev_warn(pcdev_to_dev(pcdev),
++			 "Failed to put subdevice in %s mode: %d\n",
++			 on ? "normal operation" : "power saving", ret);
++	}
++
++	return ret;
++}
++
+ static int pxac_fops_camera_open(struct file *filp)
+ {
+ 	struct pxa_camera_dev *pcdev = video_drvdata(filp);
+@@ -2043,7 +2059,7 @@ static int pxac_fops_camera_open(struct file *filp)
+ 	if (!v4l2_fh_is_singular_file(filp))
+ 		goto out;
+ 
+-	ret = sensor_call(pcdev, core, s_power, 1);
++	ret = pxac_sensor_set_power(pcdev, 1);
+ 	if (ret)
+ 		v4l2_fh_release(filp);
+ out:
+@@ -2064,7 +2080,7 @@ static int pxac_fops_camera_release(struct file *filp)
+ 	ret = _vb2_fop_release(filp, NULL);
+ 
+ 	if (fh_singular)
+-		ret = sensor_call(pcdev, core, s_power, 0);
++		ret = pxac_sensor_set_power(pcdev, 0);
+ 
+ 	mutex_unlock(&pcdev->mlock);
+ 
+@@ -2167,7 +2183,7 @@ static int pxa_camera_sensor_bound(struct v4l2_async_notifier *notifier,
+ 	pix->pixelformat = pcdev->current_fmt->host_fmt->fourcc;
+ 	v4l2_fill_mbus_format(mf, pix, pcdev->current_fmt->code);
+ 
+-	err = sensor_call(pcdev, core, s_power, 1);
++	err = pxac_sensor_set_power(pcdev, 1);
+ 	if (err)
+ 		goto out;
+ 
+@@ -2194,7 +2210,7 @@ static int pxa_camera_sensor_bound(struct v4l2_async_notifier *notifier,
+ 	}
+ 
+ out_sensor_poweroff:
+-	err = sensor_call(pcdev, core, s_power, 0);
++	err = pxac_sensor_set_power(pcdev, 0);
+ out:
+ 	mutex_unlock(&pcdev->mlock);
+ 	return err;
+@@ -2249,11 +2265,8 @@ static int pxa_camera_suspend(struct device *dev)
+ 	pcdev->save_cicr[i++] = __raw_readl(pcdev->base + CICR3);
+ 	pcdev->save_cicr[i++] = __raw_readl(pcdev->base + CICR4);
+ 
+-	if (pcdev->sensor) {
+-		ret = sensor_call(pcdev, core, s_power, 0);
+-		if (ret == -ENOIOCTLCMD)
+-			ret = 0;
+-	}
++	if (pcdev->sensor)
++		ret = pxac_sensor_set_power(pcdev, 0);
+ 
+ 	return ret;
+ }
+@@ -2270,9 +2283,7 @@ static int pxa_camera_resume(struct device *dev)
+ 	__raw_writel(pcdev->save_cicr[i++], pcdev->base + CICR4);
+ 
+ 	if (pcdev->sensor) {
+-		ret = sensor_call(pcdev, core, s_power, 1);
+-		if (ret == -ENOIOCTLCMD)
+-			ret = 0;
++		ret = pxac_sensor_set_power(pcdev, 1);
+ 	}
+ 
+ 	/* Restart frame capture if active buffer exists */
+-- 
+2.7.4
