@@ -1,57 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:36303 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751693AbeFALlm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 07:41:42 -0400
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Subject: [PATCH v2 1/9] xen/grant-table: Export gnttab_{alloc|free}_pages as GPL
-Date: Fri,  1 Jun 2018 14:41:24 +0300
-Message-Id: <20180601114132.22596-2-andr2000@gmail.com>
-In-Reply-To: <20180601114132.22596-1-andr2000@gmail.com>
-References: <20180601114132.22596-1-andr2000@gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:2001 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751978AbeFDI5i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 04:57:38 -0400
+From: bingbu.cao@intel.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, tfiga@google.com, jacopo@jmondi.org,
+        rajmohan.mani@intel.com, bingbu.cao@linux.intel.com,
+        tian.shu.qiu@intel.com, jian.xu.zheng@intel.com
+Subject: [PATCH v3 1/2] dt-bindings: Add bindings for AKM ak7375 voice coil lens
+Date: Mon,  4 Jun 2018 17:00:18 +0800
+Message-Id: <1528102819-10485-1-git-send-email-bingbu.cao@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+From: Bingbu Cao <bingbu.cao@intel.com>
 
-Only gnttab_{alloc|free}_pages are exported as EXPORT_SYMBOL
-while all the rest are exported as EXPORT_SYMBOL_GPL, thus
-effectively making it not possible for non-GPL driver modules
-to use grant table module. Export gnttab_{alloc|free}_pages as
-EXPORT_SYMBOL_GPL so all the exports are aligned.
+Add device tree bindings for asahi-kasei ak7375 voice coil lens
+driver. This chip is used to drive a lens in a camera module.
 
-Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
+Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+
 ---
- drivers/xen/grant-table.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Changes since v1:
+    - add the MAINTAINERS change
+    - correct the vendor prefix from akm to asahi-kasei
+---
+---
+ Documentation/devicetree/bindings/media/i2c/ak7375.txt | 8 ++++++++
+ MAINTAINERS                                            | 8 ++++++++
+ 2 files changed, 16 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ak7375.txt
 
-diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
-index 27be107d6480..ba36ff3e4903 100644
---- a/drivers/xen/grant-table.c
-+++ b/drivers/xen/grant-table.c
-@@ -799,7 +799,7 @@ int gnttab_alloc_pages(int nr_pages, struct page **pages)
+diff --git a/Documentation/devicetree/bindings/media/i2c/ak7375.txt b/Documentation/devicetree/bindings/media/i2c/ak7375.txt
+new file mode 100644
+index 000000000000..aa3e24b41241
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ak7375.txt
+@@ -0,0 +1,8 @@
++Asahi Kasei Microdevices AK7375 voice coil lens driver
++
++AK7375 is a camera voice coil lens.
++
++Mandatory properties:
++
++- compatible: "asahi-kasei,ak7375"
++- reg: I2C slave address
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ea362219c4aa..ad68d75abc84 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2258,6 +2258,14 @@ L:	linux-leds@vger.kernel.org
+ S:	Maintained
+ F:	drivers/leds/leds-as3645a.c
  
- 	return 0;
- }
--EXPORT_SYMBOL(gnttab_alloc_pages);
-+EXPORT_SYMBOL_GPL(gnttab_alloc_pages);
- 
- /**
-  * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
-@@ -820,7 +820,7 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
- 	}
- 	free_xenballooned_pages(nr_pages, pages);
- }
--EXPORT_SYMBOL(gnttab_free_pages);
-+EXPORT_SYMBOL_GPL(gnttab_free_pages);
- 
- /* Handling of paged out grant targets (GNTST_eagain) */
- #define MAX_DELAY 256
++ASAHI KASEI AK7375 LENS VOICE COIL DRIVER
++M:	Tianshu Qiu <tian.shu.qiu@intel.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/ak7375.c
++F:	Documentation/devicetree/bindings/media/i2c/ak7375.txt
++
+ ASAHI KASEI AK8974 DRIVER
+ M:	Linus Walleij <linus.walleij@linaro.org>
+ L:	linux-iio@vger.kernel.org
 -- 
-2.17.0
+1.9.1
