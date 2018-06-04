@@ -1,100 +1,329 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f66.google.com ([209.85.213.66]:45937 "EHLO
-        mail-vk0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751502AbeFEIXY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2018 04:23:24 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180605081222.GL10472@w540>
-References: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
- <1527606359-19261-9-git-send-email-jacopo+renesas@jmondi.org>
- <20180604122325.GH19674@bigcity.dyn.berto.se> <20180605074938.mljwmgpjlplvkp2v@verge.net.au>
- <20180605081222.GL10472@w540>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 5 Jun 2018 10:23:22 +0200
-Message-ID: <CAMuHMdXVF_OZCXJ449TJdm3f7ECMabgpRoWEBSmxJ=7f0zA_7Q@mail.gmail.com>
-Subject: Re: [PATCH v3 8/8] ARM: dts: rcar-gen2: Remove unused VIN properties
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Simon Horman <horms@verge.net.au>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:45464 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752736AbeFDLrE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 07:47:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 14/35] v4l2-ctrls: support g/s_ext_ctrls for requests
+Date: Mon,  4 Jun 2018 13:46:27 +0200
+Message-Id: <20180604114648.26159-15-hverkuil@xs4all.nl>
+In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
+References: <20180604114648.26159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Tue, Jun 5, 2018 at 10:12 AM, jacopo mondi <jacopo@jmondi.org> wrote:
-> On Tue, Jun 05, 2018 at 09:49:38AM +0200, Simon Horman wrote:
->> On Mon, Jun 04, 2018 at 02:23:25PM +0200, Niklas S=C3=B6derlund wrote:
->> > On 2018-05-29 17:05:59 +0200, Jacopo Mondi wrote:
->> > > The 'bus-width' and 'pclk-sample' properties are not parsed by the V=
-IN
->> > > driver and only confuse users. Remove them in all Gen2 SoC that use
->> > > them.
->> > >
->> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
->> >
->> > The more I think about this the more I lean towards that this patch
->> > should be dropped. The properties accurately describes the hardware an=
-d
->> > I think there is value in that. That the driver currently don't parse =
-or
->> > make use of them don't in my view reduce there value. Maybe you should
->> > break out this patch to a separate series?
->>
->> I also think there is value in describing the hardware not the state of =
-the
->> driver at this time.  Is there any missmatch between these properties an=
-d
->> the bindings?
->
-> Niklas and I discussed a bit offline on this yesterday. My main
-> concern, and sorry for being pedant on this, is that changing those
-> properties value does not change the interface behaviour, and this
-> could cause troubles when integrating image sensor not known to be
-> working on the VIN interface.
->
-> This said, the documentation of those (and all other) properties is in th=
-e
-> generic "video-interfaces.txt" file and it is my understanding, but I thi=
-nk
-> Laurent and Rob agree on this as well from their replies to my previous s=
-eries,
-> that each driver should list which properties it actually supports, as
+The v4l2_g/s_ext_ctrls functions now support control handlers that
+represent requests.
 
-s/driver/device-specific binding/
+The v4l2_ctrls_find_req_obj() function is responsible for finding the
+request from the fd.
 
-> some aspects are very implementation specific, like default values and
-> what happens if the property is not specified [1]. Nonetheless, all
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/omap3isp/ispvideo.c |   2 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c       | 128 +++++++++++++++++++--
+ drivers/media/v4l2-core/v4l2-ioctl.c       |  12 +-
+ drivers/media/v4l2-core/v4l2-subdev.c      |   9 +-
+ include/media/v4l2-ctrls.h                 |   7 +-
+ 5 files changed, 139 insertions(+), 19 deletions(-)
 
-In se defaults are not (Linux) implementation-specific, but fixed in the
-DT bindings.
-
-> properties describing hardware features and documented in the generic
-> file should be accepted in DTS, as those aims to be OS-independent and
-> even independent from the single driver implementation.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---=20
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 9d228eac24ea..674e7fd3ad99 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1028,7 +1028,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+ 	ctrls.count = 1;
+ 	ctrls.controls = &ctrl;
+ 
+-	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
++	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, NULL, &ctrls);
+ 	if (ret < 0) {
+ 		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
+ 			 pipe->external->name);
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index bd4818507486..ab5e8827fde0 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -3124,7 +3124,8 @@ static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
+ }
+ 
+ /* Get extended controls. Allocates the helpers array if needed. */
+-int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
++int __v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
++		       struct v4l2_ext_controls *cs)
+ {
+ 	struct v4l2_ctrl_helper helper[4];
+ 	struct v4l2_ctrl_helper *helpers = helper;
+@@ -3204,6 +3205,77 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 		kvfree(helpers);
+ 	return ret;
+ }
++
++static struct media_request_object *
++v4l2_ctrls_find_req_obj(struct v4l2_ctrl_handler *hdl,
++			struct media_request *req, bool set)
++{
++	struct media_request_object *obj;
++	struct v4l2_ctrl_handler *new_hdl;
++	int ret;
++
++	if (IS_ERR(req))
++		return ERR_CAST(req);
++
++	if (set && WARN_ON(req->state != MEDIA_REQUEST_STATE_UPDATING))
++		return ERR_PTR(-EBUSY);
++
++	obj = media_request_object_find(req, &req_ops, hdl);
++	if (obj)
++		return obj;
++	if (!set)
++		return ERR_PTR(-ENOENT);
++
++	new_hdl = kzalloc(sizeof(*new_hdl), GFP_KERNEL);
++	if (!new_hdl)
++		return ERR_PTR(-ENOMEM);
++
++	obj = &new_hdl->req_obj;
++	ret = v4l2_ctrl_handler_init(new_hdl, (hdl->nr_of_buckets - 1) * 8);
++	if (!ret)
++		ret = v4l2_ctrl_request_bind(req, new_hdl, hdl);
++	if (ret) {
++		kfree(new_hdl);
++
++		return ERR_PTR(ret);
++	}
++
++	media_request_object_get(obj);
++	return obj;
++}
++
++int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
++		     struct v4l2_ext_controls *cs)
++{
++	struct media_request_object *obj = NULL;
++	int ret;
++
++	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
++		struct media_request *req;
++
++		if (!mdev || cs->request_fd < 0)
++			return -EINVAL;
++
++		req = media_request_get_by_fd(mdev, cs->request_fd);
++		if (IS_ERR(req))
++			return PTR_ERR(req);
++
++		obj = v4l2_ctrls_find_req_obj(hdl, req, false);
++		/* Reference to the request held through obj */
++		media_request_put(req);
++		if (IS_ERR(obj))
++			return PTR_ERR(obj);
++
++		hdl = container_of(obj, struct v4l2_ctrl_handler,
++				   req_obj);
++	}
++
++	ret = __v4l2_g_ext_ctrls(hdl, cs);
++
++	if (obj)
++		media_request_object_put(obj);
++	return ret;
++}
+ EXPORT_SYMBOL(v4l2_g_ext_ctrls);
+ 
+ /* Helper function to get a single control */
+@@ -3379,9 +3451,9 @@ static void update_from_auto_cluster(struct v4l2_ctrl *master)
+ }
+ 
+ /* Try or try-and-set controls */
+-static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+-			     struct v4l2_ext_controls *cs,
+-			     bool set)
++static int __try_set_ext_ctrls(struct v4l2_fh *fh,
++			       struct v4l2_ctrl_handler *hdl,
++			       struct v4l2_ext_controls *cs, bool set)
+ {
+ 	struct v4l2_ctrl_helper helper[4];
+ 	struct v4l2_ctrl_helper *helpers = helper;
+@@ -3494,16 +3566,56 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 	return ret;
+ }
+ 
+-int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
++static int try_set_ext_ctrls(struct v4l2_fh *fh,
++			     struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
++			     struct v4l2_ext_controls *cs, bool set)
++{
++	struct media_request_object *obj = NULL;
++	struct media_request *req = NULL;
++	int ret;
++
++	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
++		if (!mdev || cs->request_fd < 0)
++			return -EINVAL;
++
++		req = media_request_get_by_fd(mdev, cs->request_fd);
++		if (IS_ERR(req))
++			return PTR_ERR(req);
++
++		ret = media_request_lock_for_update(req);
++		if (ret) {
++			media_request_put(req);
++			return ret;
++		}
++
++		obj = v4l2_ctrls_find_req_obj(hdl, req, set);
++		/* Reference to the request held through obj */
++		media_request_put(req);
++		if (IS_ERR(obj))
++			return PTR_ERR(obj);
++		hdl = container_of(obj, struct v4l2_ctrl_handler,
++				   req_obj);
++	}
++
++	ret = __try_set_ext_ctrls(fh, hdl, cs, set);
++
++	if (obj)
++		media_request_unlock_for_update(obj->req);
++
++	return ret;
++}
++
++int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
++		       struct v4l2_ext_controls *cs)
+ {
+-	return try_set_ext_ctrls(NULL, hdl, cs, false);
++	return try_set_ext_ctrls(NULL, hdl, mdev, cs, false);
+ }
+ EXPORT_SYMBOL(v4l2_try_ext_ctrls);
+ 
+ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+-					struct v4l2_ext_controls *cs)
++		     struct media_device *mdev, struct v4l2_ext_controls *cs)
+ {
+-	return try_set_ext_ctrls(fh, hdl, cs, true);
++	return try_set_ext_ctrls(fh, hdl, mdev, cs, true);
+ }
+ EXPORT_SYMBOL(v4l2_s_ext_ctrls);
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 3fa66103ffd0..fd3ea7e504e3 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2094,9 +2094,9 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 
+ 	p->error_idx = p->count;
+ 	if (vfh && vfh->ctrl_handler)
+-		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
++		return v4l2_g_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (vfd->ctrl_handler)
+-		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
++		return v4l2_g_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (ops->vidioc_g_ext_ctrls == NULL)
+ 		return -ENOTTY;
+ 	return check_ext_ctrls(p, 0) ? ops->vidioc_g_ext_ctrls(file, fh, p) :
+@@ -2113,9 +2113,9 @@ static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 
+ 	p->error_idx = p->count;
+ 	if (vfh && vfh->ctrl_handler)
+-		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
++		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (vfd->ctrl_handler)
+-		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, p);
++		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (ops->vidioc_s_ext_ctrls == NULL)
+ 		return -ENOTTY;
+ 	return check_ext_ctrls(p, 0) ? ops->vidioc_s_ext_ctrls(file, fh, p) :
+@@ -2132,9 +2132,9 @@ static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 
+ 	p->error_idx = p->count;
+ 	if (vfh && vfh->ctrl_handler)
+-		return v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
++		return v4l2_try_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (vfd->ctrl_handler)
+-		return v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
++		return v4l2_try_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (ops->vidioc_try_ext_ctrls == NULL)
+ 		return -ENOTTY;
+ 	return check_ext_ctrls(p, 0) ? ops->vidioc_try_ext_ctrls(file, fh, p) :
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 6a7f7f75dfd7..b9cff2389eae 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -222,17 +222,20 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_G_EXT_CTRLS:
+ 		if (!vfh->ctrl_handler)
+ 			return -ENOTTY;
+-		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
++		return v4l2_g_ext_ctrls(vfh->ctrl_handler,
++					sd->v4l2_dev->mdev, arg);
+ 
+ 	case VIDIOC_S_EXT_CTRLS:
+ 		if (!vfh->ctrl_handler)
+ 			return -ENOTTY;
+-		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
++		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler,
++					sd->v4l2_dev->mdev, arg);
+ 
+ 	case VIDIOC_TRY_EXT_CTRLS:
+ 		if (!vfh->ctrl_handler)
+ 			return -ENOTTY;
+-		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
++		return v4l2_try_ext_ctrls(vfh->ctrl_handler,
++					  sd->v4l2_dev->mdev, arg);
+ 
+ 	case VIDIOC_DQEVENT:
+ 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 65eade646156..de70cc3a1b80 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -1179,11 +1179,12 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+  *	:ref:`VIDIOC_G_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
+  *
+  * @hdl: pointer to &struct v4l2_ctrl_handler
++ * @mdev: pointer to &struct media_device
+  * @c: pointer to &struct v4l2_ext_controls
+  *
+  * If hdl == NULL then they will all return -EINVAL.
+  */
+-int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
++int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
+ 		     struct v4l2_ext_controls *c);
+ 
+ /**
+@@ -1191,11 +1192,13 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+  *	:ref:`VIDIOC_TRY_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
+  *
+  * @hdl: pointer to &struct v4l2_ctrl_handler
++ * @mdev: pointer to &struct media_device
+  * @c: pointer to &struct v4l2_ext_controls
+  *
+  * If hdl == NULL then they will all return -EINVAL.
+  */
+ int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
++		       struct media_device *mdev,
+ 		       struct v4l2_ext_controls *c);
+ 
+ /**
+@@ -1204,11 +1207,13 @@ int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+  *
+  * @fh: pointer to &struct v4l2_fh
+  * @hdl: pointer to &struct v4l2_ctrl_handler
++ * @mdev: pointer to &struct media_device
+  * @c: pointer to &struct v4l2_ext_controls
+  *
+  * If hdl == NULL then they will all return -EINVAL.
+  */
+ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
++		     struct media_device *mdev,
+ 		     struct v4l2_ext_controls *c);
+ 
+ /**
+-- 
+2.17.0
