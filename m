@@ -1,52 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.netline.ch ([148.251.143.178]:33308 "EHLO
-        netline-mail3.netline.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751346AbeFAOHg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 10:07:36 -0400
-Subject: Re: [PATCH 1/5] dma_buf: remove device parameter from attach callback
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
-References: <20180601120020.11520-1-christian.koenig@amd.com>
- <651a24e0-ac58-e5cb-d95f-c9a88bf552dc@gmail.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-From: =?UTF-8?Q?Michel_D=c3=a4nzer?= <michel@daenzer.net>
-Message-ID: <df02be8b-530e-b691-35f1-ed657d71a508@daenzer.net>
-Date: Fri, 1 Jun 2018 16:02:17 +0200
+Received: from esa3.microchip.iphmx.com ([68.232.153.233]:11746 "EHLO
+        esa3.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753023AbeFDNc4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 09:32:56 -0400
+Date: Mon, 4 Jun 2018 15:31:58 +0200
+From: Ludovic Desroches <ludovic.desroches@microchip.com>
+To: Nicholas Mc Guire <hofrat@opentech.at>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        <linux-media@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        Nicholas Mc Guire <hofrat@osadl.org>
+Subject: Re: [PATCH] media: atmel-isi: move of_node_put() to cover success
+ branch as well
+Message-ID: <20180604133158.jnys4jliy4d7rwpi@rfolt0960.corp.atmel.com>
+References: <1527859814-30410-1-git-send-email-hofrat@opentech.at>
 MIME-Version: 1.0
-In-Reply-To: <651a24e0-ac58-e5cb-d95f-c9a88bf552dc@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-CA
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <1527859814-30410-1-git-send-email-hofrat@opentech.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-06-01 02:11 PM, Christian König wrote:
-> Sorry, accidentally send this series without a cover letter.
+On Fri, Jun 01, 2018 at 01:30:14PM +0000, Nicholas Mc Guire wrote:
+> From: Nicholas Mc Guire <hofrat@osadl.org>
 > 
-> This is a cleanup to the DMA-buf interface, which is also a prerequisite
-> to unpinned DMA-buf operation.
+> The of_node_put() was only covering the error branch but missed the 
+> success branch so the refcount for ep which 
+> of_graph_get_remote_port_parent() incremented on success would was
+> not being decremented.
 > 
-> Patch #1 and #2 just remove unused functionality and clean up callback
-> parameters.
-> 
-> Patch #3 and #4 introduce taking the reservation lock during
-> mapping/unmapping of DMA-bufs.
-> 
-> This introduces a common lock where both exporter as well as importer
-> can then use in the future for unpinned DMA-buf operation.
-> 
-> This of course means that exporters should now not take this reservation
-> lock manually any more. The DRM drivers don't seem to actually do that,
-> but I'm not 100% sure about other implementations.
-> 
-> Patch #5 then makes use of the new lock to simplify the DMA-buf import
-> handling in amdgpu.
+> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+Acked-by: Ludovic Desroches <ludovic.desroches@microchip.com>
 
-Please rebase this series on top of
-https://patchwork.freedesktop.org/patch/226311/ and update the
-documentation in amdgpu_prime.c as needed in each patch.
+Thanks
 
-
--- 
-Earthling Michel Dänzer               |               http://www.amd.com
-Libre software enthusiast             |             Mesa and X developer
+> ---
+> 
+> This patch is on top of: "media: atmel-isi: drop unnecessary while loop"
+> 
+> Patch was compile tested with: x86_64_defconfig + CONFIG_MEDIA_SUPPORT=y
+> MEDIA_CAMERA_SUPPORT=y, CONFIG_MEDIA_CONTROLLER=y, V4L_PLATFORM_DRIVERS=y
+> OF=y, CONFIG_COMPILE_TEST=y, CONFIG_VIDEO_ATMEL_ISI=y
+> 
+> Compile testing atmel-isi.c shows some sparse warnings. Seems to be due to
+> sizeof operator being applied to a union (not related to the function being
+> changed though).
+> 
+> Patch is against 4.17-rc7 (localversion-next is next-20180531)
+> 
+>  drivers/media/platform/atmel/atmel-isi.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+> index 85fc7b9..e8db4df 100644
+> --- a/drivers/media/platform/atmel/atmel-isi.c
+> +++ b/drivers/media/platform/atmel/atmel-isi.c
+> @@ -1111,10 +1111,9 @@ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
+>  		return -EINVAL;
+>  
+>  	remote = of_graph_get_remote_port_parent(ep);
+> -	if (!remote) {
+> -		of_node_put(ep);
+> +	of_node_put(ep);
+> +	if (!remote)
+>  		return -EINVAL;
+> -	}
+>  
+>  	/* Remote node to connect */
+>  	isi->entity.node = remote;
+> -- 
+> 2.1.4
+> 
