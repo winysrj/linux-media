@@ -1,46 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:49864 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750723AbeFDFZU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 01:25:20 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v2 01/10] media: imx-csi: Pass sink pad field to ipu_csi_init_interface
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-        <1527813049-3231-2-git-send-email-steve_longerbeam@mentor.com>
-        <1527859350.5913.4.camel@pengutronix.de>
-        <bbae0a24-7ab6-1361-f15c-068f32482f1f@gmail.com>
-Date: Mon, 04 Jun 2018 07:25:17 +0200
-In-Reply-To: <bbae0a24-7ab6-1361-f15c-068f32482f1f@gmail.com> (Steve
-        Longerbeam's message of "Sat, 2 Jun 2018 09:30:57 -0700")
-Message-ID: <m3o9grnmwy.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:60996 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752770AbeFDLrF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 07:47:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 19/35] vb2: add init_buffer buffer op
+Date: Mon,  4 Jun 2018 13:46:32 +0200
+Message-Id: <20180604114648.26159-20-hverkuil@xs4all.nl>
+In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
+References: <20180604114648.26159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steve Longerbeam <slongerbeam@gmail.com> writes:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> I think we should return to enforcing field order to userspace that
-> matches field order from the source, which is what I had implemented
-> previously. I agree with you that we should put off allowing inverting
-> field order.
+We need to initialize the request_fd field in struct vb2_v4l2_buffer
+to -1 instead of the default of 0. So we need to add a new op that
+is called when struct vb2_v4l2_buffer is allocated.
 
-There is no any particular field order at the source, most of the time.
-The odd field is followed by the even field, and so on, sure. But there
-is no "first" and "second" field, any field can be the "first".
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/common/videobuf2/videobuf2-core.c | 2 ++
+ include/media/videobuf2-core.h                  | 4 ++++
+ 2 files changed, 6 insertions(+)
 
-The exception to this is a camera with a progressive sensor - both
-"fields" are taken at the same time and transmitted one after the other,
-so in this case the order is defined (by the camera, e.g. B-T on DV even
-with PAL version). But this isn't exactly PAL/NTSC.
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index 997673b62afc..a9e958df8324 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -356,6 +356,8 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+ 			vb->planes[plane].length = plane_sizes[plane];
+ 			vb->planes[plane].min_length = plane_sizes[plane];
+ 		}
++		call_void_bufop(q, init_buffer, vb);
++
+ 		q->bufs[vb->index] = vb;
+ 
+ 		/* Allocate video buffer memory for the MMAP type */
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 5e760d5f280a..cbda3968d018 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -408,6 +408,9 @@ struct vb2_ops {
+  * @verify_planes_array: Verify that a given user space structure contains
+  *			enough planes for the buffer. This is called
+  *			for each dequeued buffer.
++ * @init_buffer:	given a &vb2_buffer initialize the extra data after
++ *			struct vb2_buffer.
++ *			For V4L2 this is a &struct vb2_v4l2_buffer.
+  * @fill_user_buffer:	given a &vb2_buffer fill in the userspace structure.
+  *			For V4L2 this is a &struct v4l2_buffer.
+  * @fill_vb2_buffer:	given a userspace structure, fill in the &vb2_buffer.
+@@ -418,6 +421,7 @@ struct vb2_ops {
+  */
+ struct vb2_buf_ops {
+ 	int (*verify_planes_array)(struct vb2_buffer *vb, const void *pb);
++	void (*init_buffer)(struct vb2_buffer *vb);
+ 	void (*fill_user_buffer)(struct vb2_buffer *vb, void *pb);
+ 	int (*fill_vb2_buffer)(struct vb2_buffer *vb, struct vb2_plane *planes);
+ 	void (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
 -- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+2.17.0
