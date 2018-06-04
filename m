@@ -1,164 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34110 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750974AbeFAIii (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Jun 2018 04:38:38 -0400
-Subject: Re: [PATCH v7 3/6] mfd: cros-ec: Increase maximum mkbp event size
-To: Neil Armstrong <narmstrong@baylibre.com>, airlied@linux.ie,
-        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
-        seanpaul@google.com
-Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
-        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        eballetbo@gmail.com, Stefan Adolfsson <sadolfsson@chromium.org>
-References: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
- <1527841154-24832-4-git-send-email-narmstrong@baylibre.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f6005be9-bd87-e741-8a61-f91c95a0ab88@xs4all.nl>
-Date: Fri, 1 Jun 2018 10:38:31 +0200
+Received: from mx.socionext.com ([202.248.49.38]:35203 "EHLO mx.socionext.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751211AbeFDBya (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 3 Jun 2018 21:54:30 -0400
+From: "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com>
+To: "'Masahiro Yamada'" <yamada.masahiro@socionext.com>,
+        =?utf-8?B?U3V6dWtpLCBLYXRzdWhpcm8v6Yi05pyoIOWLneWNmg==?=
+        <suzuki.katsuhiro@socionext.com>
+Cc: "Mauro Carvalho Chehab" <mchehab+samsung@kernel.org>,
+        <linux-media@vger.kernel.org>,
+        "Masami Hiramatsu" <masami.hiramatsu@linaro.org>,
+        "Jassi Brar" <jaswinder.singh@linaro.org>,
+        "linux-arm-kernel" <linux-arm-kernel@lists.infradead.org>,
+        "Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>
+References: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com> <20180530090946.1635-7-suzuki.katsuhiro@socionext.com> <CAK7LNAS8JT8+MAuH+eYUJ3Xa4r07=ecJS0E=SX-tgmV7db_FKw@mail.gmail.com> <005d01d3fb98$20711900$61534b00$@socionext.com> <CAK7LNAQT-yigu83t7xOF_4-G1_0DX9OXz_YhJ3SAMH_CkGJcrw@mail.gmail.com>
+In-Reply-To: <CAK7LNAQT-yigu83t7xOF_4-G1_0DX9OXz_YhJ3SAMH_CkGJcrw@mail.gmail.com>
+Subject: Re: [PATCH 6/8] media: uniphier: add common module of DVB adapter drivers
+Date: Mon, 4 Jun 2018 10:54:24 +0900
+Message-ID: <005e01d3fba6$f7192700$e54b7500$@socionext.com>
 MIME-Version: 1.0
-In-Reply-To: <1527841154-24832-4-git-send-email-narmstrong@baylibre.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Language: ja
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/01/2018 10:19 AM, Neil Armstrong wrote:
-> Having a 16 byte mkbp event size makes it possible to send CEC
-> messages from the EC to the AP directly inside the mkbp event
-> instead of first doing a notification and then a read.
-> 
-> Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Hello Yamada-san,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> -----Original Message-----
+> From: Masahiro Yamada <yamada.masahiro@socionext.com>
+> Sent: Monday, June 4, 2018 9:53 AM
+> To: Suzuki, Katsuhiro/鈴木 勝博 <suzuki.katsuhiro@socionext.com>
+> Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>;
+> linux-media@vger.kernel.org; Masami Hiramatsu <masami.hiramatsu@linaro.org>;
+> Jassi Brar <jaswinder.singh@linaro.org>; linux-arm-kernel
+> <linux-arm-kernel@lists.infradead.org>; Linux Kernel Mailing List
+> <linux-kernel@vger.kernel.org>
+> Subject: Re: [PATCH 6/8] media: uniphier: add common module of DVB adapter drivers
+> 
+> 2018-06-04 9:08 GMT+09:00 Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>:
+> > Hello Yamada-san,
+> >
+> >> -----Original Message-----
+> >> From: Masahiro Yamada <yamada.masahiro@socionext.com>
+> >> Sent: Saturday, June 2, 2018 9:00 PM
+> >> To: Suzuki, Katsuhiro/鈴木 勝博 <suzuki.katsuhiro@socionext.com>
+> >> Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>;
+> >> linux-media@vger.kernel.org; Masami Hiramatsu <masami.hiramatsu@linaro.org>;
+> >> Jassi Brar <jaswinder.singh@linaro.org>; linux-arm-kernel
+> >> <linux-arm-kernel@lists.infradead.org>; Linux Kernel Mailing List
+> >> <linux-kernel@vger.kernel.org>
+> >> Subject: Re: [PATCH 6/8] media: uniphier: add common module of DVB adapter drivers
+> >>
+> >> 2018-05-30 18:09 GMT+09:00 Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>:
+> >> > This patch adds common module for UniPhier DVB adapter drivers
+> >> > that equipments tuners and demod that connected by I2C and
+> >> > UniPhier demux.
+> >> >
+> >> > Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+> >> > ---
+> >> >  drivers/media/platform/uniphier/Makefile      |  5 ++
+> >> >  drivers/media/platform/uniphier/hsc-core.c    |  8 ---
+> >> >  .../platform/uniphier/uniphier-adapter.c      | 54 +++++++++++++++++++
+> >> >  .../platform/uniphier/uniphier-adapter.h      | 42 +++++++++++++++
+> >> >  4 files changed, 101 insertions(+), 8 deletions(-)
+> >> >  create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.c
+> >> >  create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.h
+> >> >
+> >> > diff --git a/drivers/media/platform/uniphier/Makefile
+> >> b/drivers/media/platform/uniphier/Makefile
+> >> > index 0622f04d9e68..9e75ad081b77 100644
+> >> > --- a/drivers/media/platform/uniphier/Makefile
+> >> > +++ b/drivers/media/platform/uniphier/Makefile
+> >> > @@ -3,3 +3,8 @@ uniphier-dvb-y += hsc-core.o hsc-ucode.o hsc-css.o hsc-ts.o
+> >> hsc-dma.o
+> >> >  uniphier-dvb-$(CONFIG_DVB_UNIPHIER_LD11) += hsc-ld11.o
+> >> >
+> >> >  obj-$(CONFIG_DVB_UNIPHIER) += uniphier-dvb.o
+> >> > +
+> >> > +ccflags-y += -Idrivers/media/dvb-frontends/
+> >> > +ccflags-y += -Idrivers/media/tuners/
+> >>
+> >>
+> >> Please add $(srctree)/ like
+> >>
+> >> ccflags-y += -I$(srctree)/drivers/media/dvb-frontends/
+> >> ccflags-y += -I$(srctree)/drivers/media/tuners/
+> >>
+> >>
+> >> Currently, it works $(srctree)/,
+> >> but I really want to rip off the build system hack.
+> >
+> > Thanks, I agree with your opinion, but other Makefiles in drivers/media use
+> > same hack. I don't know other way to include headers of demodulators and
+> > tuners...
+> >
+> > Do you have any good ideas?
+> >
+> >
+> 
+> 
+> My suggestion is to add '$(srctree)/'.
+> 
+> For clarification,
+> 
+> 
+> 
+> Bad:
+> 
+> ccflags-y += -Idrivers/media/dvb-frontends/
+> ccflags-y += -Idrivers/media/tuners/
+> 
+> 
+> 
+> Good:
+> 
+> ccflags-y += -I$(srctree)/drivers/media/dvb-frontends/
+> ccflags-y += -I$(srctree)/drivers/media/tuners/
+> 
+> 
+
+OK, I understand.
+
+
+> 
+> 
+> 
+> I want to fix this tree-wide,
+> then remove the 'addtree' from scripts/Kbuild.include
+> but I have not been able to find time for that.
+> 
+> This is a new file, so just suggested to add '$(srctree)/'
+> 
+> 
+> 
+> If you want to know the context:
+> https://patchwork.kernel.org/patch/9632347/
+> 
+
+Thank you, that's interesting issue...
+
 
 Regards,
+--
+Katsuhiro Suzuki
 
-	Hans
 
-> ---
->  drivers/platform/chrome/cros_ec_proto.c | 40 +++++++++++++++++++++++++--------
->  include/linux/mfd/cros_ec.h             |  2 +-
->  include/linux/mfd/cros_ec_commands.h    | 19 ++++++++++++++++
->  3 files changed, 51 insertions(+), 10 deletions(-)
 > 
-> diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
-> index e7bbdf9..c4f6c44 100644
-> --- a/drivers/platform/chrome/cros_ec_proto.c
-> +++ b/drivers/platform/chrome/cros_ec_proto.c
-> @@ -504,10 +504,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
->  }
->  EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
->  
-> +static int get_next_event_xfer(struct cros_ec_device *ec_dev,
-> +			       struct cros_ec_command *msg,
-> +			       int version, uint32_t size)
-> +{
-> +	int ret;
-> +
-> +	msg->version = version;
-> +	msg->command = EC_CMD_GET_NEXT_EVENT;
-> +	msg->insize = size;
-> +	msg->outsize = 0;
-> +
-> +	ret = cros_ec_cmd_xfer(ec_dev, msg);
-> +	if (ret > 0) {
-> +		ec_dev->event_size = ret - 1;
-> +		memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
->  static int get_next_event(struct cros_ec_device *ec_dev)
->  {
->  	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
->  	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
-> +	static int cmd_version = 1;
->  	int ret;
->  
->  	if (ec_dev->suspended) {
-> @@ -515,18 +536,19 @@ static int get_next_event(struct cros_ec_device *ec_dev)
->  		return -EHOSTDOWN;
->  	}
->  
-> -	msg->version = 0;
-> -	msg->command = EC_CMD_GET_NEXT_EVENT;
-> -	msg->insize = sizeof(ec_dev->event_data);
-> -	msg->outsize = 0;
-> +	if (cmd_version == 1) {
-> +		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
-> +				sizeof(struct ec_response_get_next_event_v1));
-> +		if (ret < 0 || msg->result != EC_RES_INVALID_VERSION)
-> +			return ret;
->  
-> -	ret = cros_ec_cmd_xfer(ec_dev, msg);
-> -	if (ret > 0) {
-> -		ec_dev->event_size = ret - 1;
-> -		memcpy(&ec_dev->event_data, msg->data,
-> -		       sizeof(ec_dev->event_data));
-> +		/* Fallback to version 0 for future send attempts */
-> +		cmd_version = 0;
->  	}
->  
-> +	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
-> +				  sizeof(struct ec_response_get_next_event));
-> +
->  	return ret;
->  }
->  
-> diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
-> index f36125e..32caef3 100644
-> --- a/include/linux/mfd/cros_ec.h
-> +++ b/include/linux/mfd/cros_ec.h
-> @@ -147,7 +147,7 @@ struct cros_ec_device {
->  	bool mkbp_event_supported;
->  	struct blocking_notifier_head event_notifier;
->  
-> -	struct ec_response_get_next_event event_data;
-> +	struct ec_response_get_next_event_v1 event_data;
->  	int event_size;
->  	u32 host_event_wake_mask;
->  };
-> diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
-> index f2edd99..cc0768e 100644
-> --- a/include/linux/mfd/cros_ec_commands.h
-> +++ b/include/linux/mfd/cros_ec_commands.h
-> @@ -2093,12 +2093,31 @@ union ec_response_get_next_data {
->  	uint32_t   sysrq;
->  } __packed;
->  
-> +union ec_response_get_next_data_v1 {
-> +	uint8_t   key_matrix[16];
-> +
-> +	/* Unaligned */
-> +	uint32_t  host_event;
-> +
-> +	uint32_t   buttons;
-> +	uint32_t   switches;
-> +	uint32_t   sysrq;
-> +	uint32_t   cec_events;
-> +	uint8_t    cec_message[16];
-> +} __packed;
-> +
->  struct ec_response_get_next_event {
->  	uint8_t event_type;
->  	/* Followed by event data if any */
->  	union ec_response_get_next_data data;
->  } __packed;
->  
-> +struct ec_response_get_next_event_v1 {
-> +	uint8_t event_type;
-> +	/* Followed by event data if any */
-> +	union ec_response_get_next_data_v1 data;
-> +} __packed;
-> +
->  /* Bit indices for buttons and switches.*/
->  /* Buttons */
->  #define EC_MKBP_POWER_BUTTON	0
-> 
+> --
+> Best Regards
+> Masahiro Yamada
