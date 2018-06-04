@@ -1,162 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:35141 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751092AbeFALll (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 07:41:41 -0400
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Subject: [PATCH v2 0/9] xen: dma-buf support for grant device
-Date: Fri,  1 Jun 2018 14:41:23 +0300
-Message-Id: <20180601114132.22596-1-andr2000@gmail.com>
+Received: from mail-ua0-f194.google.com ([209.85.217.194]:40218 "EHLO
+        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753150AbeFDNJU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 09:09:20 -0400
+Received: by mail-ua0-f194.google.com with SMTP id g9-v6so22048936uak.7
+        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2018 06:09:19 -0700 (PDT)
+Received: from mail-vk0-f47.google.com (mail-vk0-f47.google.com. [209.85.213.47])
+        by smtp.gmail.com with ESMTPSA id v73-v6sm4241350vkd.40.2018.06.04.06.09.16
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 04 Jun 2018 06:09:17 -0700 (PDT)
+Received: by mail-vk0-f47.google.com with SMTP id x4-v6so2991476vkx.11
+        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2018 06:09:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org> <1527884768-22392-5-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1527884768-22392-5-git-send-email-vgarodia@codeaurora.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Mon, 4 Jun 2018 22:09:05 +0900
+Message-ID: <CAAFQd5AKy8X0Dd47fOKxTUaLuErtWv005_AGbB=O5SP+F+rrgA@mail.gmail.com>
+Subject: Re: [PATCH v2 4/5] media: venus: add no TZ boot and shutdown routine
+To: vgarodia@codeaurora.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Will Deacon <will.deacon@arm.com>,
+        Robin Murphy <robin.murphy@arm.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Hi Vikash,
 
-This work is in response to my previous attempt to introduce Xen/DRM
-zero-copy driver [1] to enable Linux dma-buf API [2] for Xen based
-frontends/backends. There is also an existing hyper_dmabuf approach
-available [3] which, if reworked to utilize the proposed solution,
-can greatly benefit as well.
+On Sat, Jun 2, 2018 at 5:27 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+[snip]
+> +int venus_boot_noTZ(struct venus_core *core, phys_addr_t mem_phys,
+> +                                                       size_t mem_size)
+> +{
+> +       struct iommu_domain *iommu;
+> +       struct device *dev;
+> +       int ret;
+> +
+> +       if (!core->fw.dev)
+> +               return -EPROBE_DEFER;
 
-RFC for this series was published and discussed [9], comments addressed.
+Is it really possible that the device appears after the probe is retried?
 
-The original rationale behind this work was to enable zero-copying
-use-cases while working with Xen para-virtual display driver [4]:
-when using Xen PV DRM frontend driver then on backend side one will
-need to do copying of display buffers' contents (filled by the
-frontend's user-space) into buffers allocated at the backend side.
-Taking into account the size of display buffers and frames per
-second it may result in unneeded huge data bus occupation and
-performance loss.
+> +
+> +       dev = core->fw.dev;
+> +
+> +       iommu = iommu_domain_alloc(&platform_bus_type);
+> +       if (!iommu) {
+> +               dev_err(dev, "Failed to allocate iommu domain\n");
+> +               return -ENOMEM;
+> +       }
+> +
+> +       ret = iommu_attach_device(iommu, dev);
+> +       if (ret) {
+> +               dev_err(dev, "could not attach device\n");
+> +               goto err_attach;
+> +       }
+> +
+> +       ret = iommu_map(iommu, VENUS_FW_START_ADDR, mem_phys, mem_size,
+> +                       IOMMU_READ|IOMMU_WRITE|IOMMU_PRIV);
+> +       if (ret) {
+> +               dev_err(dev, "could not map video firmware region\n");
+> +               goto err_map;
+> +       }
 
-The helper driver [4] allows implementing zero-copying use-cases
-when using Xen para-virtualized frontend display driver by implementing
-a DRM/KMS helper driver running on backend's side.
-It utilizes PRIME buffers API (implemented on top of Linux dma-buf)
-to share frontend's buffers with physical device drivers on
-backend's side:
+I'm not very familiar with translation capabilities of ARM SMMU, so
+that might be an elementary question, but could you explain how this
+works? Will this make the firmware device (transfers with firmware
+PASID) use different page directory from the main device (all the
+other PASIDs; used with DMA mapping API)?
 
- - a dumb buffer created on backend's side can be shared
-   with the Xen PV frontend driver, so it directly writes
-   into backend's domain memory (into the buffer exported from
-   DRM/KMS driver of a physical display device)
- - a dumb buffer allocated by the frontend can be imported
-   into physical device DRM/KMS driver, thus allowing to
-   achieve no copying as well
++Will and Robin, just in case.
 
-Finally, it was discussed and decided ([1], [5]) that it is worth
-implementing such use-cases via extension of the existing Xen gntdev
-driver instead of introducing new DRM specific driver.
-Please note, that the support of dma-buf is Linux only,
-as dma-buf is a Linux only thing.
+> +       core->fw.iommu_domain = iommu;
+> +       venus_reset_hw(core);
+> +
+> +       return 0;
+> +
+> +err_map:
+> +       iommu_detach_device(iommu, dev);
+> +err_attach:
+> +       iommu_domain_free(iommu);
+> +       return ret;
+> +}
+[snip]
+> diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
+> index 0916826..67fdd89 100644
+> --- a/drivers/media/platform/qcom/venus/firmware.h
+> +++ b/drivers/media/platform/qcom/venus/firmware.h
+> @@ -14,10 +14,15 @@
+>  #ifndef __VENUS_FIRMWARE_H__
+>  #define __VENUS_FIRMWARE_H__
+>
+> +#define VENUS_PAS_ID                   9
 
-Now to the proposed solution. The changes  to the existing Xen drivers
-in the Linux kernel fall into 2 categories:
-1. DMA-able memory buffer allocation and increasing/decreasing memory
-   reservation of the pages of such a buffer.
-   This is required if we are about to share dma-buf with the hardware
-   that does require those to be allocated with dma_alloc_xxx API.
-   (It is still possible to allocate a dma-buf from any system memory,
-   e.g. system pages).
-2. Extension of the gntdev driver to enable it to import/export dma-buf’s.
+Shouldn't this normally be given in DT?
 
-The first five patches are in preparation for Xen dma-buf support,
-but I consider those usable regardless of the dma-buf use-case,
-e.g. other frontend/backend kernel modules may also benefit from these
-for better code reuse:
-    0001-xen-grant-table-Export-gnttab_-alloc-free-_pages-as-.patch
-    0002-xen-grant-table-Make-set-clear-page-private-code-sha.patch
-    0003-xen-balloon-Share-common-memory-reservation-routines.patch
-    0004-xen-grant-table-Allow-allocating-buffers-suitable-fo.patch
-    0005-xen-gntdev-Allow-mappings-for-DMA-buffers.patch
-
-The next three patches are Xen implementation of dma-buf as part of
-the grant device:
-    0006-xen-gntdev-Add-initial-support-for-dma-buf-UAPI.patch
-    0007-xen-gntdev-Implement-dma-buf-export-functionality.patch
-    0008-xen-gntdev-Implement-dma-buf-import-functionality.patch
-
-The last patch makes it possible for in-kernel use of Xen dma-buf API:
-    0009-xen-gntdev-Expose-gntdev-s-dma-buf-API-for-in-kernel.patch
-
-The corresponding libxengnttab changes are available at [6].
-
-All the above was tested with display backend [7] and its accompanying
-helper library [8] on Renesas ARM64 based board.
-Basic balloon tests on x86.
-
-*To all the communities*: I would like to ask you to review the proposed
-solution and give feedback on it, so I can improve and send final
-patches for review (this is still work in progress, but enough to start
-discussing the implementation).
-
-Thank you in advance,
-Oleksandr Andrushchenko
-
-[1] https://lists.freedesktop.org/archives/dri-devel/2018-April/173163.html
-[2] https://elixir.bootlin.com/linux/v4.17-rc5/source/Documentation/driver-api/dma-buf.rst
-[3] https://lists.xenproject.org/archives/html/xen-devel/2018-02/msg01202.html
-[4] https://cgit.freedesktop.org/drm/drm-misc/tree/drivers/gpu/drm/xen
-[5] https://patchwork.kernel.org/patch/10279681/
-[6] https://github.com/andr2000/xen/tree/xen_dma_buf_v1
-[7] https://github.com/andr2000/displ_be/tree/xen_dma_buf_v1
-[8] https://github.com/andr2000/libxenbe/tree/xen_dma_buf_v1
-[9] https://lkml.org/lkml/2018/5/17/215
-
-Changes since v1:
-*****************
-- Define GNTDEV_DMA_FLAG_XXX starting from bit 0
-- Rename mem_reservation.h to mem-reservation.h
-- Remove usless comments
-- Change licenses from GPLv2 OR MIT to GPLv2 only
-- Make xenmem_reservation_va_mapping_{update|clear} inline
-- Change EXPORT_SYMBOL to EXPORT_SYMBOL_GPL for new functions
-- Make gnttab_dma_{alloc|free}_pages to request frames array
-  be allocated outside
-- Fixe gnttab_dma_alloc_pages fail path (added xenmem_reservation_increase)
-- Move most of dma-buf from gntdev.c to gntdev-dmabuf.c
-- Add required dependencies to Kconfig
-- Rework "#ifdef CONFIG_XEN_XXX" for if/else
-- Export gnttab_{alloc|free}_pages as GPL symbols (patch 1)
-
-Oleksandr Andrushchenko (9):
-  xen/grant-table: Export gnttab_{alloc|free}_pages as GPL
-  xen/grant-table: Make set/clear page private code shared
-  xen/balloon: Share common memory reservation routines
-  xen/grant-table: Allow allocating buffers suitable for DMA
-  xen/gntdev: Allow mappings for DMA buffers
-  xen/gntdev: Add initial support for dma-buf UAPI
-  xen/gntdev: Implement dma-buf export functionality
-  xen/gntdev: Implement dma-buf import functionality
-  xen/gntdev: Expose gntdev's dma-buf API for in-kernel use
-
- drivers/xen/Kconfig           |  23 ++
- drivers/xen/Makefile          |   2 +
- drivers/xen/balloon.c         |  71 +---
- drivers/xen/gntdev-dmabuf.c   | 707 ++++++++++++++++++++++++++++++++++
- drivers/xen/gntdev-dmabuf.h   |  48 +++
- drivers/xen/gntdev.c          | 387 ++++++++++++++++++-
- drivers/xen/grant-table.c     | 165 +++++++-
- drivers/xen/mem-reservation.c | 120 ++++++
- include/uapi/xen/gntdev.h     | 106 +++++
- include/xen/grant_dev.h       |  37 ++
- include/xen/grant_table.h     |  21 +
- include/xen/mem-reservation.h |  65 ++++
- 12 files changed, 1647 insertions(+), 105 deletions(-)
- create mode 100644 drivers/xen/gntdev-dmabuf.c
- create mode 100644 drivers/xen/gntdev-dmabuf.h
- create mode 100644 drivers/xen/mem-reservation.c
- create mode 100644 include/xen/grant_dev.h
- create mode 100644 include/xen/mem-reservation.h
-
--- 
-2.17.0
+Best regards,
+Tomasz
