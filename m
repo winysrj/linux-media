@@ -1,412 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:52524 "EHLO mga05.intel.com"
+Received: from mail.bootlin.com ([62.4.15.54]:54271 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751042AbeFEAXa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 20:23:30 -0400
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: "Cao, Bingbu" <bingbu.cao@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "tfiga@google.com" <tfiga@google.com>,
-        "jacopo@jmondi.org" <jacopo@jmondi.org>,
-        "bingbu.cao@linux.intel.com" <bingbu.cao@linux.intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-Subject: RE: [PATCH v3 2/2] media: ak7375: Add ak7375 lens voice coil driver
-Date: Tue, 5 Jun 2018 00:23:27 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A597308954A@FMSMSX114.amr.corp.intel.com>
-References: <1528102819-10485-1-git-send-email-bingbu.cao@intel.com>
- <1528102819-10485-2-git-send-email-bingbu.cao@intel.com>
-In-Reply-To: <1528102819-10485-2-git-send-email-bingbu.cao@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1751086AbeFDQWd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 12:22:33 -0400
+Date: Mon, 4 Jun 2018 18:22:31 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Daniel Mack <daniel@zonque.org>,
+        Sam Bobrowicz <sam@elite-embedded.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH v3 03/12] media: ov5640: Remove the clocks registers
+ initialization
+Message-ID: <20180604162231.xqtgurg2m3t6hxdj@flea>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+ <20180517085405.10104-4-maxime.ripard@bootlin.com>
+ <0de04d7b-9c75-3e4e-4cf9-deaedeab54a4@zonque.org>
+ <CAFwsNOEkLU91qYtj=n_pd=kvvovXs6JTFiMFvwsMRvB0nY5H=g@mail.gmail.com>
+ <20180521073902.ayky27k5pcyfyyvc@flea>
+ <CAFwsNOFPogtuk396e7gRJfVkAujAbkmCJxPdhGmp1Gvf0u3XSA@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="r4ntgryetr7ritfz"
+Content-Disposition: inline
+In-Reply-To: <CAFwsNOFPogtuk396e7gRJfVkAujAbkmCJxPdhGmp1Gvf0u3XSA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bingbu,
 
-Please see a couple of comments below.
+--r4ntgryetr7ritfz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: Cao, Bingbu
-> Sent: Monday, June 04, 2018 2:00 AM
-> To: linux-media@vger.kernel.org
-> Cc: sakari.ailus@linux.intel.com; tfiga@google.com; jacopo@jmondi.org;
-> Mani, Rajmohan <rajmohan.mani@intel.com>; bingbu.cao@linux.intel.com;
-> Qiu, Tian Shu <tian.shu.qiu@intel.com>; Zheng, Jian Xu
-> <jian.xu.zheng@intel.com>
-> Subject: [PATCH v3 2/2] media: ak7375: Add ak7375 lens voice coil driver
-> 
-> From: Bingbu Cao <bingbu.cao@intel.com>
-> 
-> Add a v4l2 sub-device driver for the ak7375 lens voice coil.
-> This is a voice coil module using the i2c bus to control the focus position.
-> 
-> ak7375 can write multiple bytes of data at a time. If more data is received
-> instead of the stop condition after receiving one byte of data, the address
-> inside the chip is automatically incremented and the data is written into the
-> next address.
-> 
-> The ak7375 can control the position with 12 bits value and consists of two 8 bit
-> registers show as below:
-> register 0x00(AK7375_REG_POSITION):
->     +---+---+---+---+---+---+---+---+
->     |D11|D10|D09|D08|D07|D06|D05|D04|
->     +---+---+---+---+---+---+---+---+
-> register 0x01:
->     +---+---+---+---+---+---+---+---+
->     |D03|D02|D01|D00|---|---|---|---|
->     +---+---+---+---+---+---+---+---+
-> 
-> This driver support :
->     - set ak7375 to standby mode once suspend and
->       turn it back to active if resume
->     - set the position via V4L2_CID_FOCUS_ABSOLUTE ctrl
-> 
-> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
-> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
-> 
-> ---
-> Changes from v1:
->     - correct i2c write
->     - add media_entity_pads_init() into probe
->     - move the MAINTAINERs change into dt-bindings change
->     - correct the compatible string
-> ---
-> ---
->  drivers/media/i2c/Kconfig  |  10 ++
->  drivers/media/i2c/Makefile |   1 +
->  drivers/media/i2c/ak7375.c | 278
-> +++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 289 insertions(+)
->  create mode 100644 drivers/media/i2c/ak7375.c
-> 
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig index
-> 341452fe98df..ff3cb5afb0e1 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -326,6 +326,16 @@ config VIDEO_AD5820
->  	  This is a driver for the AD5820 camera lens voice coil.
->  	  It is used for example in Nokia N900 (RX-51).
-> 
-> +config VIDEO_AK7375
-> +	tristate "AK7375 lens voice coil support"
-> +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-> +	depends on VIDEO_V4L2_SUBDEV_API
-> +	help
-> +	  This is a driver for the AK7375 camera lens voice coil.
-> +	  AK7375 is a 12 bit DAC with 120mA output current sink
-> +	  capability. This is designed for linear control of
-> +	  voice coil motors, controlled via I2C serial interface.
-> +
->  config VIDEO_DW9714
->  	tristate "DW9714 lens voice coil support"
->  	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER diff --git
-> a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile index
-> d679d57cd3b3..05b97e319ea9 100644
-> --- a/drivers/media/i2c/Makefile
-> +++ b/drivers/media/i2c/Makefile
-> @@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7127) += saa7127.o
->  obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
->  obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
->  obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
-> +obj-$(CONFIG_VIDEO_AK7375)  += ak7375.o
->  obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
->  obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
->  obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o diff --git
-> a/drivers/media/i2c/ak7375.c b/drivers/media/i2c/ak7375.c new file mode
-> 100644 index 000000000000..94bcadae4258
-> --- /dev/null
-> +++ b/drivers/media/i2c/ak7375.c
-> @@ -0,0 +1,278 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +// Copyright (C) 2018 Intel Corporation
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/delay.h>
-> +#include <linux/i2c.h>
-> +#include <linux/module.h>
-> +#include <linux/pm_runtime.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +
-> +#define AK7375_MAX_FOCUS_POS	4095
-> +/*
-> + * This sets the minimum granularity for the focus positions.
-> + * A value of 1 gives maximum accuracy for a desired focus position  */
-> +#define AK7375_FOCUS_STEPS	1
-> +/*
-> + * This acts as the minimum granularity of lens movement.
-> + * Keep this value power of 2, so the control steps can be
-> + * uniformly adjusted for gradual lens movement, with desired
-> + * number of control steps.
-> + */
-> +#define AK7375_CTRL_STEPS	64
-> +#define AK7375_CTRL_DELAY_US	1000
-> +
-> +#define AK7375_REG_POSITION	0x0
-> +#define AK7375_REG_CONT		0x2
-> +#define AK7375_MODE_ACTIVE	0x0
-> +#define AK7375_MODE_STANDBY	0x40
-> +
-> +/* ak7375 device structure */
-> +struct ak7375_device {
-> +	struct v4l2_ctrl_handler ctrls_vcm;
-> +	struct v4l2_subdev sd;
-> +	struct v4l2_ctrl *focus;
-> +};
-> +
-> +static inline struct ak7375_device *to_ak7375_vcm(struct v4l2_ctrl
-> +*ctrl) {
-> +	return container_of(ctrl->handler, struct ak7375_device, ctrls_vcm); }
-> +
-> +static inline struct ak7375_device *sd_to_ak7375_vcm(struct v4l2_subdev
-> +*subdev) {
-> +	return container_of(subdev, struct ak7375_device, sd); }
-> +
-> +static int ak7375_i2c_write(struct ak7375_device *ak7375,
-> +	u8 addr, u16 data, int size)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&ak7375->sd);
-> +	int ret;
-> +	u8 buf[3];
-> +
-> +	if (size != 1 && size != 2)
-> +		return -EINVAL;
-> +	buf[0] = addr;
-> +	buf[size] = data & 0xff;
-> +	if (size == 2)
-> +		buf[1] = (data >> 8) & 0xff;
-> +	ret = i2c_master_send(client, (const char *)buf, size + 1);
-> +	if (ret < 0)
-> +		return ret;
-> +	if (ret != size + 1)
-> +		return -EIO;
-> +	return 0;
-> +}
-> +
-> +static int ak7375_set_ctrl(struct v4l2_ctrl *ctrl) {
-> +	struct ak7375_device *dev_vcm = to_ak7375_vcm(ctrl);
-> +
-> +	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE)
-> +		return ak7375_i2c_write(dev_vcm, AK7375_REG_POSITION,
-> +					ctrl->val << 4, 2);
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops ak7375_vcm_ctrl_ops = {
-> +	.s_ctrl = ak7375_set_ctrl,
-> +};
-> +
-> +static int ak7375_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh
-> +*fh) {
-> +	int rval;
-> +
-> +	rval = pm_runtime_get_sync(sd->dev);
-> +	if (rval < 0) {
-> +		pm_runtime_put_noidle(sd->dev);
-> +		return rval;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ak7375_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh
-> +*fh) {
-> +	pm_runtime_put(sd->dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_internal_ops ak7375_int_ops = {
-> +	.open = ak7375_open,
-> +	.close = ak7375_close,
-> +};
-> +
-> +static const struct v4l2_subdev_ops ak7375_ops = { };
-> +
-> +static void ak7375_subdev_cleanup(struct ak7375_device *ak7375_dev) {
-> +	v4l2_async_unregister_subdev(&ak7375_dev->sd);
-> +	v4l2_ctrl_handler_free(&ak7375_dev->ctrls_vcm);
-> +	media_entity_cleanup(&ak7375_dev->sd.entity);
-> +}
-> +
-> +static int ak7375_init_controls(struct ak7375_device *dev_vcm) {
-> +	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
-> +	const struct v4l2_ctrl_ops *ops = &ak7375_vcm_ctrl_ops;
-> +
-> +	v4l2_ctrl_handler_init(hdl, 1);
-> +
-> +	dev_vcm->focus = v4l2_ctrl_new_std(hdl, ops,
-> V4L2_CID_FOCUS_ABSOLUTE,
-> +		0, AK7375_MAX_FOCUS_POS, AK7375_FOCUS_STEPS, 0);
-> +
-> +	if (hdl->error)
-> +		dev_err(dev_vcm->sd.dev, "%s fail error: 0x%x\n",
-> +			__func__, hdl->error);
-> +	dev_vcm->sd.ctrl_handler = hdl;
-> +	return hdl->error;
-> +}
-> +
-> +static int ak7375_probe(struct i2c_client *client) {
-> +	struct ak7375_device *ak7375_dev;
-> +	int val;
-> +
-> +	ak7375_dev = devm_kzalloc(&client->dev, sizeof(*ak7375_dev),
-> +				  GFP_KERNEL);
-> +	if (!ak7375_dev)
-> +		return -ENOMEM;
-> +
-> +	v4l2_i2c_subdev_init(&ak7375_dev->sd, client, &ak7375_ops);
-> +	ak7375_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	ak7375_dev->sd.internal_ops = &ak7375_int_ops;
-> +	ak7375_dev->sd.entity.function = MEDIA_ENT_F_LENS;
-> +
-> +	val = ak7375_init_controls(ak7375_dev);
-> +	if (val)
-> +		goto err_cleanup;
-> +
-> +	val = media_entity_pads_init(&ak7375_dev->sd.entity, 0, NULL);
-> +	if (val < 0)
-> +		goto err_cleanup;
-> +
-> +	val = v4l2_async_register_subdev(&ak7375_dev->sd);
-> +	if (val < 0)
-> +		goto err_cleanup;
-> +
-> +	pm_runtime_set_active(&client->dev);
-> +	pm_runtime_enable(&client->dev);
-> +	pm_runtime_idle(&client->dev);
-> +
-> +	return 0;
-> +
-> +err_cleanup:
-> +	v4l2_ctrl_handler_free(&ak7375_dev->ctrls_vcm);
-> +	media_entity_cleanup(&ak7375_dev->sd.entity);
-> +	dev_err(&client->dev, "Probe failed: %d\n", val);
-> +	return val;
-> +}
-> +
-> +static int ak7375_remove(struct i2c_client *client) {
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
-> +
-> +	ak7375_subdev_cleanup(ak7375_dev);
-> +	pm_runtime_disable(&client->dev);
-> +	pm_runtime_set_suspended(&client->dev);
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * This function sets the vcm position, so it consumes least current
-> + * The lens position is gradually moved in units of AK7375_CTRL_STEPS,
-> + * to make the movements smoothly.
-> + */
-> +static int __maybe_unused ak7375_vcm_suspend(struct device *dev) {
-> +
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
-> +	int ret, val;
-> +
+Hi Sam,
 
-AK7375 enters stand-by mode after power-on, per data sheet.
+On Fri, Jun 01, 2018 at 04:05:58PM -0700, Sam Bobrowicz wrote:
+> >> On May 21, 2018, at 12:39 AM, Maxime Ripard <maxime.ripard@bootlin.com=
+> wrote:
+> >>
+> >>> On Fri, May 18, 2018 at 07:42:34PM -0700, Sam Bobrowicz wrote:
+> >>>> On Fri, May 18, 2018 at 3:35 AM, Daniel Mack <daniel@zonque.org> wro=
+te:
+> >>>> On Thursday, May 17, 2018 10:53 AM, Maxime Ripard wrote:
+> >>>>
+> >>>> Part of the hardcoded initialization sequence is to set up the proper
+> >>>> clock
+> >>>> dividers. However, this is now done dynamically through proper code =
+and as
+> >>>> such, the static one is now redundant.
+> >>>>
+> >>>> Let's remove it.
+> >>>>
+> >>>> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> >>>> ---
+> >>>
+> >>>
+> >>> [...]
+> >>>
+> >>>> @@ -625,8 +623,8 @@ static const struct reg_value
+> >>>> ov5640_setting_30fps_1080P_1920_1080[] =3D {
+> >>>>       {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, =
+0},
+> >>>>       {0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, =
+0},
+> >>>>       {0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, =
+0},
+> >>>> -       {0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0}, {0x3035, 0x11, 0=
+, 0},
+> >>>> -       {0x3036, 0x54, 0, 0}, {0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0=
+, 0},
+> >>>> +       {0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0},
+> >>>> +       {0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
+> >>>
+> >>>
+> >>> This is the mode that I'm testing with. Previously, the hard-coded re=
+gisters
+> >>> here were:
+> >>>
+> >>> OV5640_REG_SC_PLL_CTRL1 (0x3035) =3D 0x11
+> >>> OV5640_REG_SC_PLL_CTRL2 (0x3036) =3D 0x54
+> >>> OV5640_REG_SC_PLL_CTRL3 (0x3037) =3D 0x07
+> >>>
+> >>> Your new code that calculates the clock rates dynamically ends up with
+> >>> different values however:
+> >>>
+> >>> OV5640_REG_SC_PLL_CTRL1 (0x3035) =3D 0x11
+> >>> OV5640_REG_SC_PLL_CTRL2 (0x3036) =3D 0xa8
+> >>> OV5640_REG_SC_PLL_CTRL3 (0x3037) =3D 0x03
+> >>>
+> >>> Interestingly, leaving the hard-coded values in the array *and* letti=
+ng
+> >>> ov5640_set_mipi_pclk() do its thing later still works. So again it se=
+ems
+> >>> that writes to registers after 0x3035/0x3036/0x3037 seem to depend on=
+ the
+> >>> values of these timing registers. You might need to leave these value=
+s as
+> >>> dummies in the array. Confusing.
+> >>>
+> >>> Any idea?
+> >>
+> >> This set of patches is also not working for my MIPI platform (mine has
+> >> a 12 MHz external clock). I am pretty sure is isn't working because it
+> >> does not include the following, which my tests have found to be
+> >> necessary:
+> >>
+> >> 1) Setting pclk period reg in order to correct DPHY timing.
+> >> 2) Disabling of MIPI lanes when streaming not enabled.
+> >> 3) setting mipi_div to 1 when the scaler is disabled
+> >> 4) Doubling ADC clock on faster resolutions.
+> >
+> > Yeah, I left them out because I didn't think this was relevant to this
+> > patchset but should come as future improvements. However, given that
+> > it works with the parallel bus, maybe the two first are needed when
+> > adjusting the rate.
+> >
+> I agree that 1-4 are separate improvements to MIPI mode that may not
+> affect all modules. They do break mine, but that has been true since
+> the driver was released (mainly because of my 12 MHz clock and more
+> stringent CSI RX requirements). So it makes sense for me to address
+> them in a follow-up series. But I do think that we should get the
+> clock generation a little closer to what I know works for MIPI so we
+> don't break things for people that do have MIPI working.
 
-When the driver gets probed and this PM function is called, AK7375 should
-still be in stand-by mode (as active mode is set only in ak7375_vcm_resume).
+I guess it's already a bit too late for that :/
 
-Per the data sheet, the vcm should be set to "active" mode, for the magnet
-to move (which uses AK7375_REG_POSITION values).
+> > The mipi divider however seems to be a bit more complicated than you
+> > report here. It is indeed set to 1 when the scaler is enabled (all
+> > resolutions > 1280 * 960), but it's also set to 4 in some cases
+> > (640x480@30, 320x240@30, 176x144@30). I couldn't really find any
+> > relationship between the resolution/framerate and whether to use a
+> > divider of 2 or 4.
+>=20
+> I didn't notice the divide by 4, interesting. I have a theory
+> though... it could be that the constraint of PCLK relative to SCLK is:
+>=20
+> SCLK*(cpp/scaler ratio)<=3DPCLK<=3D ?
+> cpp=3DComponents/pixel (1 for JPEG, 2 for YUV, e.g.)
+>=20
+> Since the scaler is in auto mode, the scaler ratio might automatically
+> change depending on the resolution selected, something like (using int
+> math):
+>=20
+> (hTotal/hActive) * (vTotal/vActive) =3D scaler ratio
+>=20
+> If SCLK is responsible for reading the data into the scaler, and PCLK
+> is responsible for reading data out to the physical interface, this
+> would make sense. It will require more experiments to verify any of
+> this, though, and unfortunately I don't have a lot of time to put into
+> this right now.
 
-> +	for (val = ak7375_dev->focus->val & ~(AK7375_CTRL_STEPS - 1);
-> +	     val >= 0; val -= AK7375_CTRL_STEPS) {
-> +		ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_POSITION,
-> +				       val << 4, 2);
-> +		if (ret)
-> +			dev_err_once(dev, "%s I2C failure: %d\n",
-> +				     __func__, ret);
-> +		usleep_range(AK7375_CTRL_DELAY_US,
-> AK7375_CTRL_DELAY_US + 10);
-> +	}
-> +
-> +	ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_CONT,
-> +			       AK7375_MODE_STANDBY, 1);
-> +	if (ret) {
-> +		dev_err(dev, "%s I2C failure: %d\n", __func__, ret);
-> +		return ret;
+To be honest, I really couldn't find any correlation. Some have
+different dividers for the two framerates (15 and 30), which wouldn't
+make sense in your case, and doubling the resolution doesn't always
+result in increasing that divider either.
 
-I think we should proceed with the suspend, without returning the
-error code (just like how it is done for REG_POSITION writes a little
-earlier), as it might not be worth preventing the system suspend for
-this issue.
+> On my platform I have also run into an upper bound for PCLK, where it
+> seems that PCLK must be <=3D SCLK when the scaler is enabled. I think
+> this may have to do with some of my platform's idiosyncrasies, so I'm
+> not ready to say that it needs to be addressed in this series. But if
+> others run into it while testing MIPI, you should consider
+> implementing #3 above to address it.
+>=20
+> > And the faster resolutions were working already, so I guess the ADC
+> > clock is already fast enough with a 24MHz oscillator?
+>=20
+> That's my theory. It seems to have pretty loose requirements as long
+> as it is fast enough, which is why I did the simple 2x solution. It
+> doesn't need to be addressed here though. If anyone runs into images
+> that are all black or bluish, this is a possible culprit.
+>=20
+> I'm back, sorry for the delay. Here is a patch that should fix a few
+> things for MIPI users. Just apply it directly after applying the
+> series. Someone else should definitely verify this on a different MIPI
+> platform.
+>=20
+> https://nofile.io/f/W8J3thK7pOp/clock_fixes.patch
+>=20
+> These are the noteworthy changes I made.
+>=20
+> *Added writes to init blob for 0x3034 (bit div) and 0x3037 (pll r
+> div). This is because bit div and pll root div never get written to
+> the expected values (8 and 2), so they remain as defaults (10 and 1).
+> It would also be possible to modify set_mipi_pclk to just write these
+> values there, but I didn't wan't to mess with your functions too much.
+>=20
+> *Change MIPI SCLK constraint in comments to match the notes found
+> here: https://community.nxp.com/servlet/JiveServlet/downloadImage/105-329=
+14-99951/ov5640_diagram.jpg.
+> It seems that the pixels are serialized into components when they
+> cross from SCLK to PCLK, so the MIPI serial clock does not care about
+> cpp, only bpc (bits/component).
+>=20
+> *Lower MIPI DIV to 1 for now. It may be necessary to conditionally set
+> it later if people are still having trouble, but always using 2 will
+> make PCLK<SCLK*cpp, and definitely break non-scaled resolutions.
+>=20
+> *MIPI div register doesn't need a -1. When set to zero, it actually
+> divides by 16.
+>=20
+> Also, FYI, I've made some improvements to my clock configuration
+> spreadsheet and incorporated a register dump function into set_mode
+> that prints the relevant registers so they can be copied into the
+> spreadsheet for interpretation. Just let me know if anyone wants it.
 
-> +	}
-> +	return 0;
-> +}
-> +
+Thanks!
 
-> +/*
-> + * This function sets the vcm position to the value set by the user
-> + * through v4l2_ctrl_ops s_ctrl handler
-> + * The lens position is gradually moved in units of AK7375_CTRL_STEPS,
-> + * to make the movements smoothly.
-> + */
-> +static int __maybe_unused ak7375_vcm_resume(struct device *dev) {
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
-> +	int ret, val;
-> +
-> +	ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_CONT,
-> +		AK7375_MODE_ACTIVE, 1);
-> +	if (ret) {
-> +		dev_err(dev, "%s I2C failure: %d\n", __func__, ret);
-> +		return ret;
-> +	}
-> +
-> +	for (val = ak7375_dev->focus->val % AK7375_CTRL_STEPS;
-> +	     val <= ak7375_dev->focus->val;
-> +	     val += AK7375_CTRL_STEPS) {
-> +		ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_POSITION,
-> +				       val << 4, 2);
-> +		if (ret)
-> +			dev_err_ratelimited(dev, "%s I2C failure: %d\n",
-> +						__func__, ret);
-> +		usleep_range(AK7375_CTRL_DELAY_US,
-> AK7375_CTRL_DELAY_US + 10);
-> +	}
-> +	return 0;
-> +}
-> +
-> +static const struct of_device_id ak7375_of_table[] = {
-> +	{ .compatible = "asahi-kasei,ak7375" },
-> +	{ /* sentinel */ }
-> +};
-> +MODULE_DEVICE_TABLE(of, ak7375_of_table);
-> +
-> +static const struct dev_pm_ops ak7375_pm_ops = {
-> +	SET_SYSTEM_SLEEP_PM_OPS(ak7375_vcm_suspend,
-> ak7375_vcm_resume)
-> +	SET_RUNTIME_PM_OPS(ak7375_vcm_suspend, ak7375_vcm_resume,
-> NULL) };
-> +
-> +static struct i2c_driver ak7375_i2c_driver = {
-> +	.driver = {
-> +		.name = "ak7375",
-> +		.pm = &ak7375_pm_ops,
-> +		.of_match_table = ak7375_of_table,
-> +	},
-> +	.probe_new = ak7375_probe,
-> +	.remove = ak7375_remove,
-> +};
-> +module_i2c_driver(ak7375_i2c_driver);
-> +
-> +MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
-> +MODULE_AUTHOR("Bingbu Cao <bingbu.cao@intel.com>");
-> +MODULE_DESCRIPTION("AK7375 VCM driver"); MODULE_LICENSE("GPL v2");
-> --
-> 1.9.1
+Daniel, is this fixing your issue?
+
+Maxime
+
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--r4ntgryetr7ritfz
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlsVZ0YACgkQ0rTAlCFN
+r3Q9IQ//ZHZPaZ53rUOUvA/Q7gYbTZmG2Q6KCLqOKLd0L9w0fG339Zw4eiHhOxG4
+LeKUrK97afIoNwpJvmACmsM/7GNOljT0XpyBYuw4hzLOtWIGkG6Stjj4u8NVSE+5
+CW5lmSxOnYxQEGSGkq3Al8vDNuuV7wj+IXTsH6wACvBDSsV2mwrIDDSPwkvfZGRt
+BRzznYErxCTZlJx0zD2JrEUq0FwGghqd9W1tjfzci06cVxVFLCmZEPr4TlRIfyst
+Y7vFVjHqCkdGwq5gByoI1bTMbFXUVEo4x3Oz5NDOhtGPP5jM5BBFiPijqdXDxxz2
+qjMgIzI75KT7kYmdg3OJ3KSWZv+i3p8Zx8atQjiXd509O05D879qsuWYq4lP/NnZ
+PBSNmanykiZWGchyKMIdNcc2tkMyhKu+RygqjoUV0GcUNOeJQ2Wbwjxs9SbTeM1I
+4dxeK8gSvsUgUOlOoII3obQ6klyehmI+Ll+SoBjzvy5tMhU2TllNTmMVGdD+Oibl
+weu73kjlF8/rChUA0Znms0IQp4rwWFSUoqkOqWKv7dKT0YCiXdJkURPIwiheRXKq
+KtlrD5yCZ40BNH9dgFsw7j/ZepkooXDMLt0vKqSGT4PbSDr3mPMpojtJzJiu5rhr
+Af6jixSkKg1rhD7sY7JZqeRbmBK4EdTBQeXQF2gyN9UIb+9guyE=
+=fR2V
+-----END PGP SIGNATURE-----
+
+--r4ntgryetr7ritfz--
