@@ -1,87 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 178.115.242.59.static.drei.at ([178.115.242.59]:53545 "EHLO
-        mail.osadl.at" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1751910AbeFAMsl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 08:48:41 -0400
-From: Nicholas Mc Guire <hofrat@opentech.at>
-To: Ludovic Desroches <ludovic.desroches@microchip.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH] media: atmel-isi: drop unnecessary while loop
-Date: Fri,  1 Jun 2018 12:46:14 +0000
-Message-Id: <1527857174-24616-1-git-send-email-hofrat@opentech.at>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:55285 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752848AbeFDLrH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 07:47:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 30/35] vim2m: add media device
+Date: Mon,  4 Jun 2018 13:46:43 +0200
+Message-Id: <20180604114648.26159-31-hverkuil@xs4all.nl>
+In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
+References: <20180604114648.26159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Nicholas Mc Guire <hofrat@osadl.org>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-As there is no way this can loop it actually makes no sense to have
-a while(1){} around the body - all three possible paths end in a return
-statement. 
+Request API requires a media node. Add one to the vim2m driver so we can
+use requests with it.
 
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
-Fixes: commit c1d82b895380 "[media] atmel-isi: move out of soc_camera to atmel"
+This probably needs a bit more work to correctly represent m2m
+hardware in the media topology.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ drivers/media/platform/vim2m.c | 42 ++++++++++++++++++++++++++++++----
+ 1 file changed, 37 insertions(+), 5 deletions(-)
 
-The diff output is unfortunately not that readable - essentially only
-the outer while(1){ } was removed. 
-
-Patch was compile tested with: x86_64_defconfig + CONFIG_MEDIA_SUPPORT=y
-MEDIA_CAMERA_SUPPORT=y, CONFIG_MEDIA_CONTROLLER=y, V4L_PLATFORM_DRIVERS=y
-OF=y, CONFIG_COMPILE_TEST=y, CONFIG_VIDEO_ATMEL_ISI=y
-
-Compile testing atmel-isi.c shows some sparse warnings. Seems to be due to
-sizeof operator being applied to a union (not related to the function being
-changed though).
-
-Patch is against 4.17-rc7 (localversion-next is next-20180531)
-
- drivers/media/platform/atmel/atmel-isi.c | 28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
-index e5be21a..85fc7b9 100644
---- a/drivers/media/platform/atmel/atmel-isi.c
-+++ b/drivers/media/platform/atmel/atmel-isi.c
-@@ -1106,23 +1106,21 @@ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
- 	struct device_node *ep = NULL;
- 	struct device_node *remote;
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 065483e62db4..9be4da3b8577 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -140,6 +140,10 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
+ struct vim2m_dev {
+ 	struct v4l2_device	v4l2_dev;
+ 	struct video_device	vfd;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device	mdev;
++	struct media_pad	pad[2];
++#endif
  
--	while (1) {
--		ep = of_graph_get_next_endpoint(node, ep);
--		if (!ep)
--			return -EINVAL;
+ 	atomic_t		num_inst;
+ 	struct mutex		dev_mutex;
+@@ -1000,11 +1004,6 @@ static int vim2m_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	spin_lock_init(&dev->irqlock);
 -
--		remote = of_graph_get_remote_port_parent(ep);
--		if (!remote) {
--			of_node_put(ep);
--			return -EINVAL;
--		}
-+	ep = of_graph_get_next_endpoint(node, ep);
-+	if (!ep)
-+		return -EINVAL;
+-	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+-	if (ret)
+-		return ret;
+-
+ 	atomic_set(&dev->num_inst, 0);
+ 	mutex_init(&dev->dev_mutex);
  
--		/* Remote node to connect */
--		isi->entity.node = remote;
--		isi->entity.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
--		isi->entity.asd.match.fwnode = of_fwnode_handle(remote);
--		return 0;
-+	remote = of_graph_get_remote_port_parent(ep);
-+	if (!remote) {
-+		of_node_put(ep);
-+		return -EINVAL;
- 	}
+@@ -1013,6 +1012,22 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	vfd->lock = &dev->dev_mutex;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	dev->mdev.dev = &pdev->dev;
++	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
++	media_device_init(&dev->mdev);
++	dev->v4l2_dev.mdev = &dev->mdev;
++	dev->pad[0].flags = MEDIA_PAD_FL_SINK;
++	dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_pads_init(&vfd->entity, 2, dev->pad);
++	if (ret)
++		return ret;
++#endif
 +
-+	/* Remote node to connect */
-+	isi->entity.node = remote;
-+	isi->entity.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-+	isi->entity.asd.match.fwnode = of_fwnode_handle(remote);
-+	return 0;
- }
++	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
++	if (ret)
++		goto unreg_media;
++
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+ 	if (ret) {
+ 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
+@@ -1034,6 +1049,13 @@ static int vim2m_probe(struct platform_device *pdev)
+ 		goto err_m2m;
+ 	}
  
- static int isi_graph_init(struct atmel_isi *isi)
++#ifdef CONFIG_MEDIA_CONTROLLER
++	/* Register the media device node */
++	ret = media_device_register(&dev->mdev);
++	if (ret)
++		goto err_m2m;
++#endif
++
+ 	return 0;
+ 
+ err_m2m:
+@@ -1041,6 +1063,10 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	video_unregister_device(&dev->vfd);
+ unreg_dev:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
++unreg_media:
++#ifdef CONFIG_MEDIA_CONTROLLER
++	media_device_unregister(&dev->mdev);
++#endif
+ 
+ 	return ret;
+ }
+@@ -1050,6 +1076,12 @@ static int vim2m_remove(struct platform_device *pdev)
+ 	struct vim2m_dev *dev = platform_get_drvdata(pdev);
+ 
+ 	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++	media_device_unregister(&dev->mdev);
++	media_device_cleanup(&dev->mdev);
++#endif
++
+ 	v4l2_m2m_release(dev->m2m_dev);
+ 	del_timer_sync(&dev->timer);
+ 	video_unregister_device(&dev->vfd);
 -- 
-2.1.4
+2.17.0
