@@ -1,140 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:58478 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750760AbeFAE4z (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:55285 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752787AbeFDLrF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Jun 2018 00:56:55 -0400
-Message-ID: <1a91fecaf28f2b32f40d435acefd156a@smtp-cloud8.xs4all.net>
-Date: Fri, 01 Jun 2018 06:56:53 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Mon, 4 Jun 2018 07:47:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 18/35] videodev2.h: Add request_fd field to v4l2_buffer
+Date: Mon,  4 Jun 2018 13:46:31 +0200
+Message-Id: <20180604114648.26159-19-hverkuil@xs4all.nl>
+In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
+References: <20180604114648.26159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+When queuing buffers allow for passing the request that should
+be associated with this buffer.
 
-date:			Fri Jun  1 05:00:14 CEST 2018
-media-tree git hash:	a00031c159748f322f771f3c1d5ed944cba4bd30
-media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
-v4l-utils git hash:	2a12796b5c22cd1a549eb8fa25db873ced811ca5
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+If V4L2_BUF_FLAG_REQUEST_FD is set, then request_fd is used as
+the file descriptor.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-rc4-i686: OK
-linux-4.17-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+If a buffer is stored in a request, but not yet queued to the
+driver, then V4L2_BUF_FLAG_IN_REQUEST is set.
 
-Detailed results are available here:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
+ drivers/media/usb/cpia2/cpia2_v4l.c             |  2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  9 ++++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c            |  4 ++--
+ include/uapi/linux/videodev2.h                  | 10 +++++++++-
+ 5 files changed, 19 insertions(+), 8 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index a677e2c26247..64905d87465c 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -384,7 +384,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+ 	b->reserved2 = 0;
+-	b->reserved = 0;
++	b->request_fd = 0;
+ 
+ 	if (q->is_multiplanar) {
+ 		/*
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index 99f106b13280..13aee9f67d05 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -949,7 +949,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+ 	buf->length = cam->frame_size;
+ 	buf->reserved2 = 0;
+-	buf->reserved = 0;
++	buf->request_fd = 0;
+ 	memset(&buf->timecode, 0, sizeof(buf->timecode));
+ 
+ 	DBG("DQBUF #%d status:%d seq:%d length:%d\n", buf->index,
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index dcce86c1fe40..633465d21d04 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -482,7 +482,7 @@ struct v4l2_buffer32 {
+ 	} m;
+ 	__u32			length;
+ 	__u32			reserved2;
+-	__u32			reserved;
++	__s32			request_fd;
+ };
+ 
+ static int get_v4l2_plane32(struct v4l2_plane __user *p64,
+@@ -581,6 +581,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *p64,
+ {
+ 	u32 type;
+ 	u32 length;
++	s32 request_fd;
+ 	enum v4l2_memory memory;
+ 	struct v4l2_plane32 __user *uplane32;
+ 	struct v4l2_plane __user *uplane;
+@@ -595,7 +596,9 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *p64,
+ 	    get_user(memory, &p32->memory) ||
+ 	    put_user(memory, &p64->memory) ||
+ 	    get_user(length, &p32->length) ||
+-	    put_user(length, &p64->length))
++	    put_user(length, &p64->length) ||
++	    get_user(request_fd, &p32->request_fd) ||
++	    put_user(request_fd, &p64->request_fd))
+ 		return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_OUTPUT(type))
+@@ -699,7 +702,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *p64,
+ 	    copy_in_user(&p32->timecode, &p64->timecode, sizeof(p64->timecode)) ||
+ 	    assign_in_user(&p32->sequence, &p64->sequence) ||
+ 	    assign_in_user(&p32->reserved2, &p64->reserved2) ||
+-	    assign_in_user(&p32->reserved, &p64->reserved) ||
++	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
+ 	    get_user(length, &p64->length) ||
+ 	    put_user(length, &p32->length))
+ 		return -EFAULT;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index fd3ea7e504e3..eeae589b44ef 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -437,13 +437,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
+ 	const struct v4l2_plane *plane;
+ 	int i;
+ 
+-	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
++	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request_fd=%d, flags=0x%08x, field=%s, sequence=%d, memory=%s",
+ 			p->timestamp.tv_sec / 3600,
+ 			(int)(p->timestamp.tv_sec / 60) % 60,
+ 			(int)(p->timestamp.tv_sec % 60),
+ 			(long)p->timestamp.tv_usec,
+ 			p->index,
+-			prt_names(p->type, v4l2_type_names),
++			prt_names(p->type, v4l2_type_names), p->request_fd,
+ 			p->flags, prt_names(p->field, v4l2_field_names),
+ 			p->sequence, prt_names(p->memory, v4l2_memory_names));
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 16b53b82496c..1f6c4b52baae 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -910,6 +910,7 @@ struct v4l2_plane {
+  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+  *		buffers (when type != *_MPLANE); number of elements in the
+  *		planes array for multi-plane buffers
++ * @request_fd: fd of the request that this buffer should use
+  *
+  * Contains data exchanged by application and driver using one of the Streaming
+  * I/O methods.
+@@ -934,7 +935,10 @@ struct v4l2_buffer {
+ 	} m;
+ 	__u32			length;
+ 	__u32			reserved2;
+-	__u32			reserved;
++	union {
++		__s32		request_fd;
++		__u32		reserved;
++	};
+ };
+ 
+ /*  Flags for 'flags' field */
+@@ -952,6 +956,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_BFRAME			0x00000020
+ /* Buffer is ready, but the data contained within is corrupted. */
+ #define V4L2_BUF_FLAG_ERROR			0x00000040
++/* Buffer is added to an unqueued request */
++#define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
+ /* timecode field is valid */
+ #define V4L2_BUF_FLAG_TIMECODE			0x00000100
+ /* Buffer is prepared for queuing */
+@@ -970,6 +976,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+ /* mem2mem encoder/decoder */
+ #define V4L2_BUF_FLAG_LAST			0x00100000
++/* request_fd is valid */
++#define V4L2_BUF_FLAG_REQUEST_FD		0x00800000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+-- 
+2.17.0
