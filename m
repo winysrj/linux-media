@@ -1,100 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa5.microchip.iphmx.com ([216.71.150.166]:51317 "EHLO
-        esa5.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753057AbeFDN2j (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 09:28:39 -0400
-Date: Mon, 4 Jun 2018 15:27:36 +0200
-From: Ludovic Desroches <ludovic.desroches@microchip.com>
-To: Nicholas Mc Guire <hofrat@opentech.at>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>,
-        Nicholas Mc Guire <hofrat@osadl.org>
-Subject: Re: [PATCH] media: atmel-isi: drop unnecessary while loop
-Message-ID: <20180604132736.zay3ae5we6d7adsk@rfolt0960.corp.atmel.com>
-References: <1527857174-24616-1-git-send-email-hofrat@opentech.at>
+Received: from kirsty.vergenet.net ([202.4.237.240]:51014 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751782AbeFDJx2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 05:53:28 -0400
+Date: Mon, 4 Jun 2018 11:53:09 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        geert@glider.be, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 4/4] ARM: dts: rcar-gen2: Remove unused VIN properties
+Message-ID: <20180604095308.pnlmd4aalxceuozq@verge.net.au>
+References: <1526923663-8179-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526923663-8179-5-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1527857174-24616-1-git-send-email-hofrat@opentech.at>
+In-Reply-To: <1526923663-8179-5-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 01, 2018 at 12:46:14PM +0000, Nicholas Mc Guire wrote:
-> From: Nicholas Mc Guire <hofrat@osadl.org>
-> 
-> As there is no way this can loop it actually makes no sense to have
-> a while(1){} around the body - all three possible paths end in a return
-> statement. 
-> 
-> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
-> Fixes: commit c1d82b895380 "[media] atmel-isi: move out of soc_camera to atmel"
-Acked-by: Ludovic Desroches <ludovic.desroches@microchip.com>
+On Mon, May 21, 2018 at 07:27:43PM +0200, Jacopo Mondi wrote:
 
-Thanks.
+> The 'bus-width' and 'pclk-sample' properties are not parsed by the VIN
+> driver and only confuse users. Remove them in all Gen2 SoC that use
+> them.
 
+I think that the rational for removing properties (or not) is their
+presence in the bindings as DT should describe the hardware and not the
+current state of the driver implementation.
+
+I see that 'bus-width' may be removed from the binding, as per discussion
+in a different sub-thread. I'd like that discussion to reach a conclusion
+before considering that part of this patch any further.
+
+And I'd appreciate Niklas's feedback on the 'pclk-sample' portion.
+
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > ---
+>  arch/arm/boot/dts/r8a7790-lager.dts   | 3 ---
+>  arch/arm/boot/dts/r8a7791-koelsch.dts | 3 ---
+>  arch/arm/boot/dts/r8a7791-porter.dts  | 1 -
+>  arch/arm/boot/dts/r8a7793-gose.dts    | 3 ---
+>  arch/arm/boot/dts/r8a7794-alt.dts     | 1 -
+>  arch/arm/boot/dts/r8a7794-silk.dts    | 1 -
+>  6 files changed, 12 deletions(-)
 > 
-> The diff output is unfortunately not that readable - essentially only
-> the outer while(1){ } was removed. 
-> 
-> Patch was compile tested with: x86_64_defconfig + CONFIG_MEDIA_SUPPORT=y
-> MEDIA_CAMERA_SUPPORT=y, CONFIG_MEDIA_CONTROLLER=y, V4L_PLATFORM_DRIVERS=y
-> OF=y, CONFIG_COMPILE_TEST=y, CONFIG_VIDEO_ATMEL_ISI=y
-> 
-> Compile testing atmel-isi.c shows some sparse warnings. Seems to be due to
-> sizeof operator being applied to a union (not related to the function being
-> changed though).
-> 
-> Patch is against 4.17-rc7 (localversion-next is next-20180531)
-> 
->  drivers/media/platform/atmel/atmel-isi.c | 28 +++++++++++++---------------
->  1 file changed, 13 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
-> index e5be21a..85fc7b9 100644
-> --- a/drivers/media/platform/atmel/atmel-isi.c
-> +++ b/drivers/media/platform/atmel/atmel-isi.c
-> @@ -1106,23 +1106,21 @@ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
->  	struct device_node *ep = NULL;
->  	struct device_node *remote;
->  
-> -	while (1) {
-> -		ep = of_graph_get_next_endpoint(node, ep);
-> -		if (!ep)
-> -			return -EINVAL;
-> -
-> -		remote = of_graph_get_remote_port_parent(ep);
-> -		if (!remote) {
-> -			of_node_put(ep);
-> -			return -EINVAL;
-> -		}
-> +	ep = of_graph_get_next_endpoint(node, ep);
-> +	if (!ep)
-> +		return -EINVAL;
->  
-> -		/* Remote node to connect */
-> -		isi->entity.node = remote;
-> -		isi->entity.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-> -		isi->entity.asd.match.fwnode = of_fwnode_handle(remote);
-> -		return 0;
-> +	remote = of_graph_get_remote_port_parent(ep);
-> +	if (!remote) {
-> +		of_node_put(ep);
-> +		return -EINVAL;
->  	}
-> +
-> +	/* Remote node to connect */
-> +	isi->entity.node = remote;
-> +	isi->entity.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-> +	isi->entity.asd.match.fwnode = of_fwnode_handle(remote);
-> +	return 0;
->  }
->  
->  static int isi_graph_init(struct atmel_isi *isi)
+> diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+> index 092610e..9cdabfcf 100644
+> --- a/arch/arm/boot/dts/r8a7790-lager.dts
+> +++ b/arch/arm/boot/dts/r8a7790-lager.dts
+> @@ -885,10 +885,8 @@
+>  	port {
+>  		vin0ep2: endpoint {
+>  			remote-endpoint = <&adv7612_out>;
+> -			bus-width = <24>;
+>  			hsync-active = <0>;
+>  			vsync-active = <0>;
+> -			pclk-sample = <1>;
+>  			data-active = <1>;
+>  		};
+>  	};
+> @@ -904,7 +902,6 @@
+>  	port {
+>  		vin1ep0: endpoint {
+>  			remote-endpoint = <&adv7180>;
+> -			bus-width = <8>;
+>  		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/r8a7791-koelsch.dts b/arch/arm/boot/dts/r8a7791-koelsch.dts
+> index 8ab793d..033c9e3 100644
+> --- a/arch/arm/boot/dts/r8a7791-koelsch.dts
+> +++ b/arch/arm/boot/dts/r8a7791-koelsch.dts
+> @@ -857,10 +857,8 @@
+>  	port {
+>  		vin0ep2: endpoint {
+>  			remote-endpoint = <&adv7612_out>;
+> -			bus-width = <24>;
+>  			hsync-active = <0>;
+>  			vsync-active = <0>;
+> -			pclk-sample = <1>;
+>  			data-active = <1>;
+>  		};
+>  	};
+> @@ -875,7 +873,6 @@
+>  	port {
+>  		vin1ep: endpoint {
+>  			remote-endpoint = <&adv7180>;
+> -			bus-width = <8>;
+>  		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/r8a7791-porter.dts b/arch/arm/boot/dts/r8a7791-porter.dts
+> index a01101b..c16e870 100644
+> --- a/arch/arm/boot/dts/r8a7791-porter.dts
+> +++ b/arch/arm/boot/dts/r8a7791-porter.dts
+> @@ -388,7 +388,6 @@
+>  	port {
+>  		vin0ep: endpoint {
+>  			remote-endpoint = <&adv7180>;
+> -			bus-width = <8>;
+>  		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/r8a7793-gose.dts b/arch/arm/boot/dts/r8a7793-gose.dts
+> index aa209f6..60aaddb 100644
+> --- a/arch/arm/boot/dts/r8a7793-gose.dts
+> +++ b/arch/arm/boot/dts/r8a7793-gose.dts
+> @@ -765,10 +765,8 @@
+>  	port {
+>  		vin0ep2: endpoint {
+>  			remote-endpoint = <&adv7612_out>;
+> -			bus-width = <24>;
+>  			hsync-active = <0>;
+>  			vsync-active = <0>;
+> -			pclk-sample = <1>;
+>  			data-active = <1>;
+>  		};
+>  	};
+> @@ -784,7 +782,6 @@
+>  	port {
+>  		vin1ep: endpoint {
+>  			remote-endpoint = <&adv7180_out>;
+> -			bus-width = <8>;
+>  		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/r8a7794-alt.dts b/arch/arm/boot/dts/r8a7794-alt.dts
+> index e170275..8ed7a71 100644
+> --- a/arch/arm/boot/dts/r8a7794-alt.dts
+> +++ b/arch/arm/boot/dts/r8a7794-alt.dts
+> @@ -388,7 +388,6 @@
+>  	port {
+>  		vin0ep: endpoint {
+>  			remote-endpoint = <&adv7180>;
+> -			bus-width = <8>;
+>  		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/r8a7794-silk.dts b/arch/arm/boot/dts/r8a7794-silk.dts
+> index 7808aae..6adfcd6 100644
+> --- a/arch/arm/boot/dts/r8a7794-silk.dts
+> +++ b/arch/arm/boot/dts/r8a7794-silk.dts
+> @@ -477,7 +477,6 @@
+>  	port {
+>  		vin0ep: endpoint {
+>  			remote-endpoint = <&adv7180>;
+> -			bus-width = <8>;
+>  		};
+>  	};
+>  };
 > -- 
-> 2.1.4
+> 2.7.4
 > 
