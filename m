@@ -1,108 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:35274 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752284AbeFENeN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2018 09:34:13 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org, m.szyprowski@samsung.com,
-        b.zolnierkie@samsung.com,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH] s5p-mfc: Fix buffer look up in s5p_mfc_handle_frame_{new,
- copy_time} functions
-Date: Tue, 05 Jun 2018 15:33:59 +0200
-Message-id: <20180605133359.10203-1-s.nawrocki@samsung.com>
-References: <CGME20180605133410epcas1p36084a2286fb9e7ad27d6488cc6b99b4e@epcas1p3.samsung.com>
+Received: from mail.horus.com ([78.46.148.228]:49599 "EHLO mail.horus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750934AbeFDRre (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 13:47:34 -0400
+Date: Mon, 4 Jun 2018 19:47:30 +0200
+From: Matthias Reichl <hias@horus.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Y Song <ys114321@gmail.com>,
+        Quentin Monnet <quentin.monnet@netronome.com>
+Subject: Re: [PATCH v5 2/3] media: rc: introduce BPF_PROG_LIRC_MODE2
+Message-ID: <20180604174730.sctfoklq7klswebp@camel2.lan>
+References: <cover.1527419762.git.sean@mess.org>
+ <9f2c54d4956f962f44fcda739a824397ddea132c.1527419762.git.sean@mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9f2c54d4956f962f44fcda739a824397ddea132c.1527419762.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Look up of buffers in s5p_mfc_handle_frame_new, s5p_mfc_handle_frame_copy_time
-functions is not working properly for DMA addresses above 2 GiB. As a result
-flags and timestamp of returned buffers are not set correctly and it breaks
-operation of GStreamer/OMX plugins which rely on the CAPTURE buffer queue
-flags.
+Hi Sean,
 
-Due to improper return type of the get_dec_y_adr, get_dspl_y_adr callbacks
-and sign bit extension these callbacks return incorrect address values,
-e.g. 0xfffffffffefc0000 instead of 0x00000000fefc0000. Then the statement:
+I finally found the time to test your patch series and noticed
+2 issues - comments are inline
 
-"if (vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0) == dec_y_addr)"
+On Sun, May 27, 2018 at 12:24:09PM +0100, Sean Young wrote:
+> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+> index eb2c3b6eca7f..d5b35a6ba899 100644
+> --- a/drivers/media/rc/Kconfig
+> +++ b/drivers/media/rc/Kconfig
+> @@ -25,6 +25,19 @@ config LIRC
+>  	   passes raw IR to and from userspace, which is needed for
+>  	   IR transmitting (aka "blasting") and for the lirc daemon.
+>  
+> +config BPF_LIRC_MODE2
+> +	bool "Support for eBPF programs attached to lirc devices"
+> +	depends on BPF_SYSCALL
+> +	depends on RC_CORE=y
 
-is always false, which breaks looking up capture queue buffers.
+Requiring rc-core to be built into the kernel could become
+problematic in the future for people using media_build.
 
-To ensure proper matching by address u32 type is used for the DMA
-addresses. This should work on all related SoCs, since the MFC DMA
-address width is not larger than 32-bit.
+Currently the whole media tree (including rc-core) can be built
+as modules so DVB and IR drivers can be replaced by newer versions.
+But with rc-core in the kernel things could easily break if internal
+data structures are changed.
 
-Changes done in this patch are minimal as there is a larger patch series
-pending refactoring the whole driver.
+Maybe we should add a small layer with a stable API/ABI between
+bpf-lirc and rc-core to decouple them? Or would it be possible
+to build rc-core with bpf support as a module?
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+> +	depends on LIRC
+> +	help
+> +	   Allow attaching eBPF programs to a lirc device using the bpf(2)
+> +	   syscall command BPF_PROG_ATTACH. This is supported for raw IR
+> +	   receivers.
+> +
+> +	   These eBPF programs can be used to decode IR into scancodes, for
+> +	   IR protocols not supported by the kernel decoders.
+> +
+>  menuconfig RC_DECODERS
+>  	bool "Remote controller decoders"
+>  	depends on RC_CORE
+> [...]
+> diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
+> index 388d4feda348..3c104113d040 100644
+> --- a/kernel/bpf/syscall.c
+> +++ b/kernel/bpf/syscall.c
+> @@ -11,6 +11,7 @@
+>   */
+>  #include <linux/bpf.h>
+>  #include <linux/bpf_trace.h>
+> +#include <linux/bpf_lirc.h>
+>  #include <linux/btf.h>
+>  #include <linux/syscalls.h>
+>  #include <linux/slab.h>
+> @@ -1578,6 +1579,8 @@ static int bpf_prog_attach(const union bpf_attr *attr)
+>  	case BPF_SK_SKB_STREAM_PARSER:
+>  	case BPF_SK_SKB_STREAM_VERDICT:
+>  		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, true);
+> +	case BPF_LIRC_MODE2:
+> +		return lirc_prog_attach(attr);
+>  	default:
+>  		return -EINVAL;
+>  	}
+> @@ -1648,6 +1651,8 @@ static int bpf_prog_detach(const union bpf_attr *attr)
+>  	case BPF_SK_SKB_STREAM_PARSER:
+>  	case BPF_SK_SKB_STREAM_VERDICT:
+>  		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, false);
+> +	case BPF_LIRC_MODE2:
+> +		return lirc_prog_detach(attr);
+>  	default:
+>  		return -EINVAL;
+>  	}
+> @@ -1695,6 +1700,8 @@ static int bpf_prog_query(const union bpf_attr *attr,
+>  	case BPF_CGROUP_SOCK_OPS:
+>  	case BPF_CGROUP_DEVICE:
+>  		break;
+> +	case BPF_LIRC_MODE2:
+> +		return lirc_prog_query(attr, uattr);
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index a80251ed3143..780548dd650e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -254,24 +254,24 @@ static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
- static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
- {
- 	struct s5p_mfc_dev *dev = ctx->dev;
--	struct s5p_mfc_buf  *dst_buf, *src_buf;
--	size_t dec_y_addr;
-+	struct s5p_mfc_buf *dst_buf, *src_buf;
-+	u32 dec_y_addr;
- 	unsigned int frame_type;
- 
- 	/* Make sure we actually have a new frame before continuing. */
- 	frame_type = s5p_mfc_hw_call(dev->mfc_ops, get_dec_frame_type, dev);
- 	if (frame_type == S5P_FIMV_DECODE_FRAME_SKIPPED)
- 		return;
--	dec_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
-+	dec_y_addr = (u32)s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
- 
- 	/* Copy timestamp / timecode from decoded src to dst and set
- 	   appropriate flags. */
- 	src_buf = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
- 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
--		if (vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0)
--				== dec_y_addr) {
--			dst_buf->b->timecode =
--						src_buf->b->timecode;
-+		u32 addr = (u32)vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0);
-+
-+		if (addr == dec_y_addr) {
-+			dst_buf->b->timecode = src_buf->b->timecode;
- 			dst_buf->b->vb2_buf.timestamp =
- 						src_buf->b->vb2_buf.timestamp;
- 			dst_buf->b->flags &=
-@@ -307,10 +307,10 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
- {
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 	struct s5p_mfc_buf  *dst_buf;
--	size_t dspl_y_addr;
-+	u32 dspl_y_addr;
- 	unsigned int frame_type;
- 
--	dspl_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dspl_y_adr, dev);
-+	dspl_y_addr = (u32)s5p_mfc_hw_call(dev->mfc_ops, get_dspl_y_adr, dev);
- 	if (IS_MFCV6_PLUS(dev))
- 		frame_type = s5p_mfc_hw_call(dev->mfc_ops,
- 			get_disp_frame_type, ctx);
-@@ -329,9 +329,10 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
- 	/* The MFC returns address of the buffer, now we have to
- 	 * check which videobuf does it correspond to */
- 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
-+		u32 addr = (u32)vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0);
-+
- 		/* Check if this is the buffer we're looking for */
--		if (vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0)
--				== dspl_y_addr) {
-+		if (addr == dspl_y_addr) {
- 			list_del(&dst_buf->list);
- 			ctx->dst_queue_cnt--;
- 			dst_buf->b->sequence = ctx->sequence;
--- 
-2.14.2
+When testing this patch series I was wondering why I always got
+-EINVAL when trying to query the registered programs.
+
+Closer inspection revealed that bpf_prog_attach/detach/query and
+calls to them in the bpf syscall are in "#ifdef CONFIG_CGROUP_BPF"
+blocks - and as I built the kernel without CONFIG_CGROUP_BPF
+BPF_PROG_ATTACH/DETACH/QUERY weren't handled in the syscall switch
+and I got -EINVAL from the bpf syscall function.
+
+I haven't checked in detail yet, but it looks to me like
+bpf_prog_attach/detach/query could always be built (or when
+either cgroup bpf or lirc bpf are enabled) and the #ifdefs moved
+inside the switch(). So lirc bpf could be used without cgroup bpf.
+Or am I missing something?
+
+so long,
+
+Hias
+>  	default:
+>  		return -EINVAL;
+>  	}
+> -- 
+> 2.17.0
+> 
