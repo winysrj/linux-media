@@ -1,52 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ex13-edg-ou-002.vmware.com ([208.91.0.190]:47383 "EHLO
-        EX13-EDG-OU-002.vmware.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751093AbeFDVCN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 17:02:13 -0400
-From: Nadav Amit <namit@vmware.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: Nadav Amit <namit@vmware.com>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: [PATCH] usb: fix uvc_alloc_entity() allocation alignment
-Date: Mon, 4 Jun 2018 06:47:13 -0700
-Message-ID: <20180604134713.101064-1-namit@vmware.com>
+Received: from aserp2130.oracle.com ([141.146.126.79]:42288 "EHLO
+        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750853AbeFDQeU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 12:34:20 -0400
+Subject: Re: [PATCH v2 3/9] xen/balloon: Share common memory reservation
+ routines
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180601114132.22596-1-andr2000@gmail.com>
+ <20180601114132.22596-4-andr2000@gmail.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <4fd46fd8-f936-1514-06e4-34c5d3ed8960@oracle.com>
+Date: Mon, 4 Jun 2018 12:37:48 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20180601114132.22596-4-andr2000@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The use of ALIGN() in uvc_alloc_entity() is incorrect, since the size of
-(entity->pads) is not a power of two. As a stop-gap, until a better
-solution is adapted, use roundup() instead.
+On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
+> diff --git a/include/xen/mem-reservation.h b/include/xen/mem-reservation.h
+> new file mode 100644
+> index 000000000000..a727d65a1e61
+> --- /dev/null
+> +++ b/include/xen/mem-reservation.h
+> @@ -0,0 +1,65 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +
+> +/*
+> + * Xen memory reservation utilities.
+> + *
+> + * Copyright (c) 2003, B Dragovic
+> + * Copyright (c) 2003-2004, M Williamson, K Fraser
+> + * Copyright (c) 2005 Dan M. Smith, IBM Corporation
+> + * Copyright (c) 2010 Daniel Kiper
+> + * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
+> + */
+> +
+> +#ifndef _XENMEM_RESERVATION_H
+> +#define _XENMEM_RESERVATION_H
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/slab.h>
+> +
+> +#include <asm/xen/hypercall.h>
+> +#include <asm/tlb.h>
+> +
+> +#include <xen/interface/memory.h>
+> +#include <xen/page.h>
+> +
+> +#ifdef CONFIG_XEN_SCRUB_PAGES
+> +void xenmem_reservation_scrub_page(struct page *page);
+> +#else
+> +static inline void xenmem_reservation_scrub_page(struct page *page)
+> +{
+> +}
+> +#endif
 
-Found by a static assertion. Compile-tested only.
 
-Fixes: 4ffc2d89f38a ("uvcvideo: Register subdevices for each entity")
+Given that this is a wrapper around a single call I'd prefer
 
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+inline void xenmem_reservation_scrub_page(struct page *page)
+{
+#ifdef CONFIG_XEN_SCRUB_PAGES
+    clear_highpage(page);
+#endif
+}
 
-Signed-off-by: Nadav Amit <namit@vmware.com>
----
- drivers/media/usb/uvc/uvc_driver.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 2469b49b2b30..6b989d41c034 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -909,7 +909,7 @@ static struct uvc_entity *uvc_alloc_entity(u16 type, u8 id,
- 	unsigned int size;
- 	unsigned int i;
- 
--	extra_size = ALIGN(extra_size, sizeof(*entity->pads));
-+	extra_size = roundup(extra_size, sizeof(*entity->pads));
- 	num_inputs = (type & UVC_TERM_OUTPUT) ? num_pads : num_pads - 1;
- 	size = sizeof(*entity) + extra_size + sizeof(*entity->pads) * num_pads
- 	     + num_inputs;
--- 
-2.17.0
+
+-boris
