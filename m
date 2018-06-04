@@ -1,83 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:44095 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751718AbeFBQcx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2018 12:32:53 -0400
-Received: by mail-qt0-f193.google.com with SMTP id d3-v6so35927198qtp.11
-        for <linux-media@vger.kernel.org>; Sat, 02 Jun 2018 09:32:53 -0700 (PDT)
-Subject: Re: [PATCH v2 06/10] media: imx: Fix field setting logic in try_fmt
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
- <1527813049-3231-7-git-send-email-steve_longerbeam@mentor.com>
- <1527860095.5913.10.camel@pengutronix.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <3acbaa61-3e0c-1573-7495-8407c50768af@gmail.com>
-Date: Sat, 2 Jun 2018 09:32:50 -0700
-MIME-Version: 1.0
-In-Reply-To: <1527860095.5913.10.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:40022 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752770AbeFDLrC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 07:47:02 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 11/35] v4l2-ctrls: alloc memory for p_req
+Date: Mon,  4 Jun 2018 13:46:24 +0200
+Message-Id: <20180604114648.26159-12-hverkuil@xs4all.nl>
+In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
+References: <20180604114648.26159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+To store request data the handler_new_ref() allocates memory
+for it if needed.
 
-On 06/01/2018 06:34 AM, Philipp Zabel wrote:
-> On Thu, 2018-05-31 at 17:30 -0700, Steve Longerbeam wrote:
->> The logic for setting field type in try_fmt at CSI and PRPENCVF
->> entities wasn't quite right. The behavior should be:
->>
->> - No restrictions on field type at sink pads (except ANY, which is filled
->>    with current sink pad field by imx_media_fill_default_mbus_fields()).
->>
->> - At IDMAC output pads, if the caller asks for an interlaced output, and
->>    the input is sequential fields, the IDMAC output channel can accommodate
->>    by interweaving. The CSI can also interweave if input is alternate
->>    fields.
->>
->> - If final source pad field type is alternate, translate to seq_bt or
->>    seq_tb. But the field order translation was backwards, SD NTSC is BT
->>    order, SD PAL is TB.
->>
->> Move this logic to new functions csi_try_field() and prp_try_field().
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>   drivers/staging/media/imx/imx-ic-prpencvf.c | 22 +++++++++++--
->>   drivers/staging/media/imx/imx-media-csi.c   | 50 +++++++++++++++++++++--------
->>   2 files changed, 56 insertions(+), 16 deletions(-)
->>
->> diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
->> index 7e1e0c3..1002eb1 100644
->> --- a/drivers/staging/media/imx/imx-ic-prpencvf.c
->> +++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
->> @@ -833,6 +833,21 @@ static int prp_get_fmt(struct v4l2_subdev *sd,
->>   	return ret;
->>   }
->>   
->> +static void prp_try_field(struct prp_priv *priv,
->> +			  struct v4l2_subdev_pad_config *cfg,
->> +			  struct v4l2_subdev_format *sdformat)
->> +{
->> +	struct v4l2_mbus_framefmt *infmt =
->> +		__prp_get_fmt(priv, cfg, PRPENCVF_SINK_PAD, sdformat->which);
->> +
->> +	/* no restrictions on sink pad field type */
->> +	if (sdformat->pad == PRPENCVF_SINK_PAD)
->> +		return;
->> +
->> +	if (!idmac_interweave(sdformat->format.field, infmt->field))
->> +		sdformat->format.field = infmt->field;
-> This is not strict enough. As I wrote in reply to patch 4, we can only
-> do SEQ_TB -> INTERLACED_TB and SEQ_BT -> INTERLACED_BT interweaving.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-Agreed.
-
-Steve
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index d09f49530d9e..3c1b00baa8d0 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1997,13 +1997,18 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
+ /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
+ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 			   struct v4l2_ctrl *ctrl,
+-			   bool from_other_dev)
++			   struct v4l2_ctrl_ref **ctrl_ref,
++			   bool from_other_dev, bool allocate_req)
+ {
+ 	struct v4l2_ctrl_ref *ref;
+ 	struct v4l2_ctrl_ref *new_ref;
+ 	u32 id = ctrl->id;
+ 	u32 class_ctrl = V4L2_CTRL_ID2WHICH(id) | 1;
+ 	int bucket = id % hdl->nr_of_buckets;	/* which bucket to use */
++	unsigned int sz_extra = 0;
++
++	if (ctrl_ref)
++		*ctrl_ref = NULL;
+ 
+ 	/*
+ 	 * Automatically add the control class if it is not yet present and
+@@ -2017,11 +2022,16 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	if (hdl->error)
+ 		return hdl->error;
+ 
+-	new_ref = kzalloc(sizeof(*new_ref), GFP_KERNEL);
++	if (allocate_req)
++		sz_extra = ctrl->elems * ctrl->elem_size;
++	new_ref = kzalloc(sizeof(*new_ref) + sz_extra, GFP_KERNEL);
+ 	if (!new_ref)
+ 		return handler_set_err(hdl, -ENOMEM);
+ 	new_ref->ctrl = ctrl;
+ 	new_ref->from_other_dev = from_other_dev;
++	if (sz_extra)
++		new_ref->p_req.p = &new_ref[1];
++
+ 	if (ctrl->handler == hdl) {
+ 		/* By default each control starts in a cluster of its own.
+ 		   new_ref->ctrl is basically a cluster array with one
+@@ -2061,6 +2071,8 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	/* Insert the control node in the hash */
+ 	new_ref->next = hdl->buckets[bucket];
+ 	hdl->buckets[bucket] = new_ref;
++	if (ctrl_ref)
++		*ctrl_ref = new_ref;
+ 
+ unlock:
+ 	mutex_unlock(hdl->lock);
+@@ -2202,7 +2214,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
+ 	}
+ 
+-	if (handler_new_ref(hdl, ctrl, false)) {
++	if (handler_new_ref(hdl, ctrl, NULL, false, false)) {
+ 		kvfree(ctrl);
+ 		return NULL;
+ 	}
+@@ -2395,7 +2407,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 		/* Filter any unwanted controls */
+ 		if (filter && !filter(ctrl))
+ 			continue;
+-		ret = handler_new_ref(hdl, ctrl, from_other_dev);
++		ret = handler_new_ref(hdl, ctrl, NULL, from_other_dev, false);
+ 		if (ret)
+ 			break;
+ 	}
+-- 
+2.17.0
