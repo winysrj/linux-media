@@ -1,259 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2120.oracle.com ([156.151.31.85]:43728 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750915AbeFDUq2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 16:46:28 -0400
-Subject: Re: [PATCH v2 6/9] xen/gntdev: Add initial support for dma-buf UAPI
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180601114132.22596-1-andr2000@gmail.com>
- <20180601114132.22596-7-andr2000@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <29c1f1fb-2d52-e3df-adce-44fdee135413@oracle.com>
-Date: Mon, 4 Jun 2018 16:49:58 -0400
+Received: from ex13-edg-ou-002.vmware.com ([208.91.0.190]:47383 "EHLO
+        EX13-EDG-OU-002.vmware.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751093AbeFDVCN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 17:02:13 -0400
+From: Nadav Amit <namit@vmware.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: Nadav Amit <namit@vmware.com>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+Subject: [PATCH] usb: fix uvc_alloc_entity() allocation alignment
+Date: Mon, 4 Jun 2018 06:47:13 -0700
+Message-ID: <20180604134713.101064-1-namit@vmware.com>
 MIME-Version: 1.0
-In-Reply-To: <20180601114132.22596-7-andr2000@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
-> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->
-> Add UAPI and IOCTLs for dma-buf grant device driver extension:
-> the extension allows userspace processes and kernel modules to
-> use Xen backed dma-buf implementation. With this extension grant
-> references to the pages of an imported dma-buf can be exported
-> for other domain use and grant references coming from a foreign
-> domain can be converted into a local dma-buf for local export.
-> Implement basic initialization and stubs for Xen DMA buffers'
-> support.
+The use of ALIGN() in uvc_alloc_entity() is incorrect, since the size of
+(entity->pads) is not a power of two. As a stop-gap, until a better
+solution is adapted, use roundup() instead.
 
+Found by a static assertion. Compile-tested only.
 
-It would be very helpful if people advocating for this interface
-reviewed it as well.
+Fixes: 4ffc2d89f38a ("uvcvideo: Register subdevices for each entity")
 
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
->
-> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-> ---
->  drivers/xen/Kconfig         |  10 +++
->  drivers/xen/Makefile        |   1 +
->  drivers/xen/gntdev-dmabuf.c |  75 +++++++++++++++++++
->  drivers/xen/gntdev-dmabuf.h |  41 +++++++++++
->  drivers/xen/gntdev.c        | 142 ++++++++++++++++++++++++++++++++++++
->  include/uapi/xen/gntdev.h   |  91 +++++++++++++++++++++++
->  6 files changed, 360 insertions(+)
->  create mode 100644 drivers/xen/gntdev-dmabuf.c
->  create mode 100644 drivers/xen/gntdev-dmabuf.h
->
-> diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
-> index 39536ddfbce4..52d64e4b6b81 100644
-> --- a/drivers/xen/Kconfig
-> +++ b/drivers/xen/Kconfig
-> @@ -152,6 +152,16 @@ config XEN_GNTDEV
->  	help
->  	  Allows userspace processes to use grants.
->  
-> +config XEN_GNTDEV_DMABUF
-> +	bool "Add support for dma-buf grant access device driver extension"
-> +	depends on XEN_GNTDEV && XEN_GRANT_DMA_ALLOC && DMA_SHARED_BUFFER
+Signed-off-by: Nadav Amit <namit@vmware.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-Is there a reason to have XEN_GRANT_DMA_ALLOC without XEN_GNTDEV_DMABUF?
-
-
-> +	help
-> +	  Allows userspace processes and kernel modules to use Xen backed
-> +	  dma-buf implementation. With this extension grant references to
-> +	  the pages of an imported dma-buf can be exported for other domain
-> +	  use and grant references coming from a foreign domain can be
-> +	  converted into a local dma-buf for local export.
-> +
->  config XEN_GRANT_DEV_ALLOC
->  	tristate "User-space grant reference allocator driver"
->  	depends on XEN
-> diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
-> index 3c87b0c3aca6..33afb7b2b227 100644
-> --- a/drivers/xen/Makefile
-> +++ b/drivers/xen/Makefile
-> @@ -41,5 +41,6 @@ obj-$(CONFIG_XEN_PVCALLS_BACKEND)	+= pvcalls-back.o
->  obj-$(CONFIG_XEN_PVCALLS_FRONTEND)	+= pvcalls-front.o
->  xen-evtchn-y				:= evtchn.o
->  xen-gntdev-y				:= gntdev.o
-> +xen-gntdev-$(CONFIG_XEN_GNTDEV_DMABUF)	+= gntdev-dmabuf.o
->  xen-gntalloc-y				:= gntalloc.o
->  xen-privcmd-y				:= privcmd.o
-> diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
-> new file mode 100644
-> index 000000000000..6bedd1387bd9
-> --- /dev/null
-> +++ b/drivers/xen/gntdev-dmabuf.c
-> @@ -0,0 +1,75 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +
-> +/*
-> + * Xen dma-buf functionality for gntdev.
-> + *
-> + * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
-> + */
-> +
-> +#include <linux/slab.h>
-> +
-> +#include "gntdev-dmabuf.h"
-> +
-> +struct gntdev_dmabuf_priv {
-> +	int dummy;
-> +};
-> +
-> +/* ------------------------------------------------------------------ */
-> +/* DMA buffer export support.                                         */
-> +/* ------------------------------------------------------------------ */
-> +
-> +/* ------------------------------------------------------------------ */
-> +/* Implementation of wait for exported DMA buffer to be released.     */
-> +/* ------------------------------------------------------------------ */
-
-Why this comment style?
-
-> +
-> +int gntdev_dmabuf_exp_wait_released(struct gntdev_dmabuf_priv *priv, int fd,
-> +				    int wait_to_ms)
-> +{
-> +	return -EINVAL;
-> +}
-> +
-> +/* ------------------------------------------------------------------ */
-> +/* DMA buffer export support.                                         */
-> +/* ------------------------------------------------------------------ */
-> +
-> +int gntdev_dmabuf_exp_from_pages(struct gntdev_dmabuf_export_args *args)
-> +{
-> +	return -EINVAL;
-> +}
-> +
-> +/* ------------------------------------------------------------------ */
-> +/* DMA buffer import support.                                         */
-> +/* ------------------------------------------------------------------ */
-> +
-> +struct gntdev_dmabuf *
-> +gntdev_dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
-> +			  int fd, int count, int domid)
-> +{
-> +	return ERR_PTR(-ENOMEM);
-> +}
-> +
-> +u32 *gntdev_dmabuf_imp_get_refs(struct gntdev_dmabuf *gntdev_dmabuf)
-> +{
-> +	return NULL;
-> +}
-> +
-> +int gntdev_dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd)
-> +{
-> +	return -EINVAL;
-> +}
-> +
-> +struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
-> +{
-> +	struct gntdev_dmabuf_priv *priv;
-> +
-> +	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-> +	if (!priv)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	return priv;
-> +}
-> +
-> +void gntdev_dmabuf_fini(struct gntdev_dmabuf_priv *priv)
-> +{
-> +	kfree(priv);
-> +}
-> diff --git a/drivers/xen/gntdev-dmabuf.h b/drivers/xen/gntdev-dmabuf.h
-> new file mode 100644
-> index 000000000000..040b2de904ac
-> --- /dev/null
-> +++ b/drivers/xen/gntdev-dmabuf.h
-> @@ -0,0 +1,41 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +
-> +/*
-> + * Xen dma-buf functionality for gntdev.
-> + *
-> + * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
-> + */
-> +
-> +#ifndef _GNTDEV_DMABUF_H
-> +#define _GNTDEV_DMABUF_H
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/errno.h>
-> +#include <linux/types.h>
-> +
-> +struct gntdev_dmabuf_priv;
-> +struct gntdev_dmabuf;
-> +struct device;
-> +
-> +struct gntdev_dmabuf_export_args {
-> +	int dummy;
-> +};
-
-
-Please define the full structure (at least what you have in the next
-patch) here.
-
-
-> +
-> +struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void);
-> +
-> +void gntdev_dmabuf_fini(struct gntdev_dmabuf_priv *priv);
-> +
-> +int gntdev_dmabuf_exp_from_pages(struct gntdev_dmabuf_export_args *args);
-> +
-> +int gntdev_dmabuf_exp_wait_released(struct gntdev_dmabuf_priv *priv, int fd,
-> +				    int wait_to_ms);
-> +
-> +struct gntdev_dmabuf *
-> +gntdev_dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
-> +			  int fd, int count, int domid);
-> +
-> +u32 *gntdev_dmabuf_imp_get_refs(struct gntdev_dmabuf *gntdev_dmabuf);
-> +
-> +int gntdev_dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd);
-> +
-> +#endif
-> diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
-> index 9813fc440c70..7d58dfb3e5e8 100644
-> --- a/drivers/xen/gntdev.c
-> +++ b/drivers/xen/gntdev.c
-
-...
-
->  
-> +#ifdef CONFIG_XEN_GNTDEV_DMABUF
-
-This code belongs in gntdev-dmabuf.c.
-
-> +/* ------------------------------------------------------------------ */
-> +/* DMA buffer export support.                                         */
-> +/* ------------------------------------------------------------------ */
-> +
-> +int gntdev_dmabuf_exp_from_refs(struct gntdev_priv *priv, int flags,
-> +				int count, u32 domid, u32 *refs, u32 *fd)
-> +{
-> +	/* XXX: this will need to work with gntdev's map, so leave it here. */
-
-This doesn't help understanding what's going on (at least to me) and is
-removed in the next patch. So no need for this comment.
-
--boris
-
-> +	*fd = -1;
-> +	return -EINVAL;
-> +}
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 2469b49b2b30..6b989d41c034 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -909,7 +909,7 @@ static struct uvc_entity *uvc_alloc_entity(u16 type, u8 id,
+ 	unsigned int size;
+ 	unsigned int i;
+ 
+-	extra_size = ALIGN(extra_size, sizeof(*entity->pads));
++	extra_size = roundup(extra_size, sizeof(*entity->pads));
+ 	num_inputs = (type & UVC_TERM_OUTPUT) ? num_pads : num_pads - 1;
+ 	size = sizeof(*entity) + extra_size + sizeof(*entity->pads) * num_pads
+ 	     + num_inputs;
+-- 
+2.17.0
