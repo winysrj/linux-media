@@ -1,253 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:59646 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750779AbeFDSmc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 14:42:32 -0400
-Subject: Re: [PATCH v2 4/9] xen/grant-table: Allow allocating buffers suitable
- for DMA
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180601114132.22596-1-andr2000@gmail.com>
- <20180601114132.22596-5-andr2000@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <9214078e-6e94-e31b-6b36-c066e1aa5e40@oracle.com>
-Date: Mon, 4 Jun 2018 14:46:03 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180601114132.22596-5-andr2000@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:39402 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752758AbeFDLrB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 07:47:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 08/35] videodev2.h: add request_fd field to v4l2_ext_controls
+Date: Mon,  4 Jun 2018 13:46:21 +0200
+Message-Id: <20180604114648.26159-9-hverkuil@xs4all.nl>
+In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
+References: <20180604114648.26159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
-> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->
-> Extend grant table module API to allow allocating buffers that can
-> be used for DMA operations and mapping foreign grant references
-> on top of those.
-> The resulting buffer is similar to the one allocated by the balloon
-> driver in terms that proper memory reservation is made
-> ({increase|decrease}_reservation and VA mappings updated if needed).
-> This is useful for sharing foreign buffers with HW drivers which
-> cannot work with scattered buffers provided by the balloon driver,
-> but require DMAable memory instead.
->
-> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-> ---
->  drivers/xen/Kconfig       |  13 +++++
->  drivers/xen/grant-table.c | 109 ++++++++++++++++++++++++++++++++++++++
->  include/xen/grant_table.h |  18 +++++++
->  3 files changed, 140 insertions(+)
->
-> diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
-> index e5d0c28372ea..39536ddfbce4 100644
-> --- a/drivers/xen/Kconfig
-> +++ b/drivers/xen/Kconfig
-> @@ -161,6 +161,19 @@ config XEN_GRANT_DEV_ALLOC
->  	  to other domains. This can be used to implement frontend drivers
->  	  or as part of an inter-domain shared memory channel.
->  
-> +config XEN_GRANT_DMA_ALLOC
-> +	bool "Allow allocating DMA capable buffers with grant reference module"
-> +	depends on XEN && HAS_DMA
-> +	help
-> +	  Extends grant table module API to allow allocating DMA capable
-> +	  buffers and mapping foreign grant references on top of it.
-> +	  The resulting buffer is similar to one allocated by the balloon
-> +	  driver in terms that proper memory reservation is made
-> +	  ({increase|decrease}_reservation and VA mappings updated if needed).
-> +	  This is useful for sharing foreign buffers with HW drivers which
-> +	  cannot work with scattered buffers provided by the balloon driver,
-> +	  but require DMAable memory instead.
-> +
->  config SWIOTLB_XEN
->  	def_bool y
->  	select SWIOTLB
-> diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
-> index dbb48a89e987..5658e58d9cc6 100644
-> --- a/drivers/xen/grant-table.c
-> +++ b/drivers/xen/grant-table.c
-> @@ -45,6 +45,9 @@
->  #include <linux/workqueue.h>
->  #include <linux/ratelimit.h>
->  #include <linux/moduleparam.h>
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +#include <linux/dma-mapping.h>
-> +#endif
->  
->  #include <xen/xen.h>
->  #include <xen/interface/xen.h>
-> @@ -57,6 +60,7 @@
->  #ifdef CONFIG_X86
->  #include <asm/xen/cpuid.h>
->  #endif
-> +#include <xen/mem-reservation.h>
->  #include <asm/xen/hypercall.h>
->  #include <asm/xen/interface.h>
->  
-> @@ -811,6 +815,73 @@ int gnttab_alloc_pages(int nr_pages, struct page **pages)
->  }
->  EXPORT_SYMBOL_GPL(gnttab_alloc_pages);
->  
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +/**
-> + * gnttab_dma_alloc_pages - alloc DMAable pages suitable for grant mapping into
-> + * @args: arguments to the function
-> + */
-> +int gnttab_dma_alloc_pages(struct gnttab_dma_alloc_args *args)
-> +{
-> +	unsigned long pfn, start_pfn;
-> +	size_t size;
-> +	int i, ret;
-> +
-> +	size = args->nr_pages << PAGE_SHIFT;
-> +	if (args->coherent)
-> +		args->vaddr = dma_alloc_coherent(args->dev, size,
-> +						 &args->dev_bus_addr,
-> +						 GFP_KERNEL | __GFP_NOWARN);
-> +	else
-> +		args->vaddr = dma_alloc_wc(args->dev, size,
-> +					   &args->dev_bus_addr,
-> +					   GFP_KERNEL | __GFP_NOWARN);
-> +	if (!args->vaddr) {
-> +		pr_err("Failed to allocate DMA buffer of size %zu\n", size);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	start_pfn = __phys_to_pfn(args->dev_bus_addr);
-> +	for (pfn = start_pfn, i = 0; pfn < start_pfn + args->nr_pages;
-> +			pfn++, i++) {
-> +		struct page *page = pfn_to_page(pfn);
-> +
-> +		args->pages[i] = page;
-> +		args->frames[i] = xen_page_to_gfn(page);
-> +		xenmem_reservation_scrub_page(page);
-> +	}
-> +
-> +	xenmem_reservation_va_mapping_reset(args->nr_pages, args->pages);
-> +
-> +	ret = xenmem_reservation_decrease(args->nr_pages, args->frames);
-> +	if (ret != args->nr_pages) {
-> +		pr_err("Failed to decrease reservation for DMA buffer\n");
-> +		ret = -EFAULT;
-> +		goto fail_free_dma;
-> +	}
-> +
-> +	ret = gnttab_pages_set_private(args->nr_pages, args->pages);
-> +	if (ret < 0)
-> +		goto fail_clear_private;
-> +
-> +	return 0;
-> +
-> +fail_clear_private:
-> +	gnttab_pages_clear_private(args->nr_pages, args->pages);
-> +fail_free_dma:
-> +	xenmem_reservation_increase(args->nr_pages, args->frames);
-> +	xenmem_reservation_va_mapping_update(args->nr_pages, args->pages,
-> +					     args->frames);
-> +	if (args->coherent)
-> +		dma_free_coherent(args->dev, size,
-> +				  args->vaddr, args->dev_bus_addr);
-> +	else
-> +		dma_free_wc(args->dev, size,
-> +			    args->vaddr, args->dev_bus_addr);
-> +	return ret;
-> +}
+From: Alexandre Courbot <acourbot@chromium.org>
 
+If 'which' is V4L2_CTRL_WHICH_REQUEST_VAL, then the 'request_fd' field
+can be used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
 
-Would it be possible to call gnttab_dma_free_pages() here?
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
+ include/uapi/linux/videodev2.h                | 4 +++-
+ 3 files changed, 10 insertions(+), 5 deletions(-)
 
-
-> +EXPORT_SYMBOL_GPL(gnttab_dma_alloc_pages);
-> +#endif
-> +
->  void gnttab_pages_clear_private(int nr_pages, struct page **pages)
->  {
->  	int i;
-> @@ -838,6 +909,44 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
->  }
->  EXPORT_SYMBOL_GPL(gnttab_free_pages);
->  
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-
-I'd move this after (or before) gnttab_dma_alloc_page() to keep both
-inside a single ifdef block.
-
--boris
-
-
-> +/**
-> + * gnttab_dma_free_pages - free DMAable pages
-> + * @args: arguments to the function
-> + */
-> +int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args)
-> +{
-> +	size_t size;
-> +	int i, ret;
-> +
-> +	gnttab_pages_clear_private(args->nr_pages, args->pages);
-> +
-> +	for (i = 0; i < args->nr_pages; i++)
-> +		args->frames[i] = page_to_xen_pfn(args->pages[i]);
-> +
-> +	ret = xenmem_reservation_increase(args->nr_pages, args->frames);
-> +	if (ret != args->nr_pages) {
-> +		pr_err("Failed to decrease reservation for DMA buffer\n");
-> +		ret = -EFAULT;
-> +	} else {
-> +		ret = 0;
-> +	}
-> +
-> +	xenmem_reservation_va_mapping_update(args->nr_pages, args->pages,
-> +					     args->frames);
-> +
-> +	size = args->nr_pages << PAGE_SHIFT;
-> +	if (args->coherent)
-> +		dma_free_coherent(args->dev, size,
-> +				  args->vaddr, args->dev_bus_addr);
-> +	else
-> +		dma_free_wc(args->dev, size,
-> +			    args->vaddr, args->dev_bus_addr);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(gnttab_dma_free_pages);
-> +#endif
-> +
->  /* Handling of paged out grant targets (GNTST_eagain) */
->  #define MAX_DELAY 256
->  static inline void
-> diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
-> index de03f2542bb7..9bc5bc07d4d3 100644
-> --- a/include/xen/grant_table.h
-> +++ b/include/xen/grant_table.h
-> @@ -198,6 +198,24 @@ void gnttab_free_auto_xlat_frames(void);
->  int gnttab_alloc_pages(int nr_pages, struct page **pages);
->  void gnttab_free_pages(int nr_pages, struct page **pages);
->  
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +struct gnttab_dma_alloc_args {
-> +	/* Device for which DMA memory will be/was allocated. */
-> +	struct device *dev;
-> +	/* If set then DMA buffer is coherent and write-combine otherwise. */
-> +	bool coherent;
-> +
-> +	int nr_pages;
-> +	struct page **pages;
-> +	xen_pfn_t *frames;
-> +	void *vaddr;
-> +	dma_addr_t dev_bus_addr;
-> +};
-> +
-> +int gnttab_dma_alloc_pages(struct gnttab_dma_alloc_args *args);
-> +int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args);
-> +#endif
-> +
->  int gnttab_pages_set_private(int nr_pages, struct page **pages);
->  void gnttab_pages_clear_private(int nr_pages, struct page **pages);
->  
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 6481212fda77..dcce86c1fe40 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -834,7 +834,8 @@ struct v4l2_ext_controls32 {
+ 	__u32 which;
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
+ };
+ 
+@@ -909,6 +910,7 @@ static int get_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &p32->count) ||
+ 	    put_user(count, &p64->count) ||
+ 	    assign_in_user(&p64->error_idx, &p32->error_idx) ||
++	    assign_in_user(&p64->request_fd, &p32->request_fd) ||
+ 	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
+ 		return -EFAULT;
+ 
+@@ -974,6 +976,7 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &p64->count) ||
+ 	    put_user(count, &p32->count) ||
+ 	    assign_in_user(&p32->error_idx, &p64->error_idx) ||
++	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
+ 	    copy_in_user(p32->reserved, p64->reserved, sizeof(p32->reserved)) ||
+ 	    get_user(kcontrols, &p64->controls))
+ 		return -EFAULT;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 27a893aa0664..3fa66103ffd0 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -553,8 +553,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
+ 	const struct v4l2_ext_controls *p = arg;
+ 	int i;
+ 
+-	pr_cont("which=0x%x, count=%d, error_idx=%d",
+-			p->which, p->count, p->error_idx);
++	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
++			p->which, p->count, p->error_idx, p->request_fd);
+ 	for (i = 0; i < p->count; i++) {
+ 		if (!p->controls[i].size)
+ 			pr_cont(", id/val=0x%x/0x%x",
+@@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+ 	__u32 i;
+ 
+ 	/* zero the reserved fields */
+-	c->reserved[0] = c->reserved[1] = 0;
++	c->reserved[0] = 0;
+ 	for (i = 0; i < c->count; i++)
+ 		c->controls[i].reserved2[0] = 0;
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 600877be5c22..16b53b82496c 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1592,7 +1592,8 @@ struct v4l2_ext_controls {
+ 	};
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	struct v4l2_ext_control *controls;
+ };
+ 
+@@ -1605,6 +1606,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_MAX_DIMS	  (4)
+ #define V4L2_CTRL_WHICH_CUR_VAL   0
+ #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
++#define V4L2_CTRL_WHICH_REQUEST_VAL 0x0f010000
+ 
+ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_INTEGER	     = 1,
+-- 
+2.17.0
