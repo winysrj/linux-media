@@ -1,153 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.socionext.com ([202.248.49.38]:35203 "EHLO mx.socionext.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751211AbeFDBya (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 3 Jun 2018 21:54:30 -0400
-From: "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com>
-To: "'Masahiro Yamada'" <yamada.masahiro@socionext.com>,
-        =?utf-8?B?U3V6dWtpLCBLYXRzdWhpcm8v6Yi05pyoIOWLneWNmg==?=
-        <suzuki.katsuhiro@socionext.com>
-Cc: "Mauro Carvalho Chehab" <mchehab+samsung@kernel.org>,
-        <linux-media@vger.kernel.org>,
-        "Masami Hiramatsu" <masami.hiramatsu@linaro.org>,
-        "Jassi Brar" <jaswinder.singh@linaro.org>,
-        "linux-arm-kernel" <linux-arm-kernel@lists.infradead.org>,
-        "Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>
-References: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com> <20180530090946.1635-7-suzuki.katsuhiro@socionext.com> <CAK7LNAS8JT8+MAuH+eYUJ3Xa4r07=ecJS0E=SX-tgmV7db_FKw@mail.gmail.com> <005d01d3fb98$20711900$61534b00$@socionext.com> <CAK7LNAQT-yigu83t7xOF_4-G1_0DX9OXz_YhJ3SAMH_CkGJcrw@mail.gmail.com>
-In-Reply-To: <CAK7LNAQT-yigu83t7xOF_4-G1_0DX9OXz_YhJ3SAMH_CkGJcrw@mail.gmail.com>
-Subject: Re: [PATCH 6/8] media: uniphier: add common module of DVB adapter drivers
-Date: Mon, 4 Jun 2018 10:54:24 +0900
-Message-ID: <005e01d3fba6$f7192700$e54b7500$@socionext.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Language: ja
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:46092 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752832AbeFDLrG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 07:47:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 24/35] videobuf2-v4l2: add vb2_request_queue/validate helpers
+Date: Mon,  4 Jun 2018 13:46:37 +0200
+Message-Id: <20180604114648.26159-25-hverkuil@xs4all.nl>
+In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
+References: <20180604114648.26159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Yamada-san,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> -----Original Message-----
-> From: Masahiro Yamada <yamada.masahiro@socionext.com>
-> Sent: Monday, June 4, 2018 9:53 AM
-> To: Suzuki, Katsuhiro/鈴木 勝博 <suzuki.katsuhiro@socionext.com>
-> Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>;
-> linux-media@vger.kernel.org; Masami Hiramatsu <masami.hiramatsu@linaro.org>;
-> Jassi Brar <jaswinder.singh@linaro.org>; linux-arm-kernel
-> <linux-arm-kernel@lists.infradead.org>; Linux Kernel Mailing List
-> <linux-kernel@vger.kernel.org>
-> Subject: Re: [PATCH 6/8] media: uniphier: add common module of DVB adapter drivers
-> 
-> 2018-06-04 9:08 GMT+09:00 Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>:
-> > Hello Yamada-san,
-> >
-> >> -----Original Message-----
-> >> From: Masahiro Yamada <yamada.masahiro@socionext.com>
-> >> Sent: Saturday, June 2, 2018 9:00 PM
-> >> To: Suzuki, Katsuhiro/鈴木 勝博 <suzuki.katsuhiro@socionext.com>
-> >> Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>;
-> >> linux-media@vger.kernel.org; Masami Hiramatsu <masami.hiramatsu@linaro.org>;
-> >> Jassi Brar <jaswinder.singh@linaro.org>; linux-arm-kernel
-> >> <linux-arm-kernel@lists.infradead.org>; Linux Kernel Mailing List
-> >> <linux-kernel@vger.kernel.org>
-> >> Subject: Re: [PATCH 6/8] media: uniphier: add common module of DVB adapter drivers
-> >>
-> >> 2018-05-30 18:09 GMT+09:00 Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>:
-> >> > This patch adds common module for UniPhier DVB adapter drivers
-> >> > that equipments tuners and demod that connected by I2C and
-> >> > UniPhier demux.
-> >> >
-> >> > Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-> >> > ---
-> >> >  drivers/media/platform/uniphier/Makefile      |  5 ++
-> >> >  drivers/media/platform/uniphier/hsc-core.c    |  8 ---
-> >> >  .../platform/uniphier/uniphier-adapter.c      | 54 +++++++++++++++++++
-> >> >  .../platform/uniphier/uniphier-adapter.h      | 42 +++++++++++++++
-> >> >  4 files changed, 101 insertions(+), 8 deletions(-)
-> >> >  create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.c
-> >> >  create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.h
-> >> >
-> >> > diff --git a/drivers/media/platform/uniphier/Makefile
-> >> b/drivers/media/platform/uniphier/Makefile
-> >> > index 0622f04d9e68..9e75ad081b77 100644
-> >> > --- a/drivers/media/platform/uniphier/Makefile
-> >> > +++ b/drivers/media/platform/uniphier/Makefile
-> >> > @@ -3,3 +3,8 @@ uniphier-dvb-y += hsc-core.o hsc-ucode.o hsc-css.o hsc-ts.o
-> >> hsc-dma.o
-> >> >  uniphier-dvb-$(CONFIG_DVB_UNIPHIER_LD11) += hsc-ld11.o
-> >> >
-> >> >  obj-$(CONFIG_DVB_UNIPHIER) += uniphier-dvb.o
-> >> > +
-> >> > +ccflags-y += -Idrivers/media/dvb-frontends/
-> >> > +ccflags-y += -Idrivers/media/tuners/
-> >>
-> >>
-> >> Please add $(srctree)/ like
-> >>
-> >> ccflags-y += -I$(srctree)/drivers/media/dvb-frontends/
-> >> ccflags-y += -I$(srctree)/drivers/media/tuners/
-> >>
-> >>
-> >> Currently, it works $(srctree)/,
-> >> but I really want to rip off the build system hack.
-> >
-> > Thanks, I agree with your opinion, but other Makefiles in drivers/media use
-> > same hack. I don't know other way to include headers of demodulators and
-> > tuners...
-> >
-> > Do you have any good ideas?
-> >
-> >
-> 
-> 
-> My suggestion is to add '$(srctree)/'.
-> 
-> For clarification,
-> 
-> 
-> 
-> Bad:
-> 
-> ccflags-y += -Idrivers/media/dvb-frontends/
-> ccflags-y += -Idrivers/media/tuners/
-> 
-> 
-> 
-> Good:
-> 
-> ccflags-y += -I$(srctree)/drivers/media/dvb-frontends/
-> ccflags-y += -I$(srctree)/drivers/media/tuners/
-> 
-> 
+The generic vb2_request_validate helper function checks if
+there are buffers in the request and if so, prepares (validates)
+all objects in the request.
 
-OK, I understand.
+The generic vb2_request_queue helper function queues all buffer
+objects in the validated request.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../media/common/videobuf2/videobuf2-v4l2.c   | 38 +++++++++++++++++++
+ include/media/videobuf2-v4l2.h                |  4 ++
+ 2 files changed, 42 insertions(+)
 
-> 
-> 
-> 
-> I want to fix this tree-wide,
-> then remove the 'addtree' from scripts/Kbuild.include
-> but I have not been able to find time for that.
-> 
-> This is a new file, so just suggested to add '$(srctree)/'
-> 
-> 
-> 
-> If you want to know the context:
-> https://patchwork.kernel.org/patch/9632347/
-> 
-
-Thank you, that's interesting issue...
-
-
-Regards,
---
-Katsuhiro Suzuki
-
-
-> 
-> --
-> Best Regards
-> Masahiro Yamada
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 9c652afa62ab..499b2ab3d1fa 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -1100,6 +1100,44 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
+ }
+ EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
+ 
++int vb2_request_validate(struct media_request *req)
++{
++	struct media_request_object *obj;
++	int ret = 0;
++
++	if (!vb2_request_has_buffers(req))
++		return -ENOENT;
++
++	list_for_each_entry(obj, &req->objects, list) {
++		if (!obj->ops->prepare)
++			continue;
++
++		ret = obj->ops->prepare(obj);
++		if (ret)
++			break;
++	}
++
++	if (ret) {
++		list_for_each_entry_continue_reverse(obj, &req->objects, list)
++			if (obj->ops->unprepare)
++				obj->ops->unprepare(obj);
++		return ret;
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_request_validate);
++
++void vb2_request_queue(struct media_request *req)
++{
++	struct media_request_object *obj;
++
++	list_for_each_entry(obj, &req->objects, list) {
++		if (obj->ops->queue)
++			obj->ops->queue(obj);
++	}
++}
++EXPORT_SYMBOL_GPL(vb2_request_queue);
++
+ MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
+ MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+index 91a2b3e1a642..727855463838 100644
+--- a/include/media/videobuf2-v4l2.h
++++ b/include/media/videobuf2-v4l2.h
+@@ -303,4 +303,8 @@ void vb2_ops_wait_prepare(struct vb2_queue *vq);
+  */
+ void vb2_ops_wait_finish(struct vb2_queue *vq);
+ 
++struct media_request;
++int vb2_request_validate(struct media_request *req);
++void vb2_request_queue(struct media_request *req);
++
+ #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
+-- 
+2.17.0
