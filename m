@@ -1,216 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:53015 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S967334AbeF1QWB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 12:22:01 -0400
-From: Marco Felsch <m.felsch@pengutronix.de>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: p.zabel@pengutronix.de, afshin.nasser@gmail.com,
-        javierm@redhat.com, sakari.ailus@linux.intel.com,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, kernel@pengutronix.de
-Subject: [PATCH 06/22] [media] tvp5150: add FORMAT_TRY support for get/set selection handlers
-Date: Thu, 28 Jun 2018 18:20:38 +0200
-Message-Id: <20180628162054.25613-7-m.felsch@pengutronix.de>
-In-Reply-To: <20180628162054.25613-1-m.felsch@pengutronix.de>
-References: <20180628162054.25613-1-m.felsch@pengutronix.de>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:34306 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750868AbeFDLb5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 07:31:57 -0400
+Received: by mail-lf0-f67.google.com with SMTP id o9-v6so24631527lfk.1
+        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2018 04:31:56 -0700 (PDT)
+Date: Mon, 4 Jun 2018 13:31:54 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Simon Horman <horms@verge.net.au>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, geert@glider.be,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 4/4] ARM: dts: rcar-gen2: Remove unused VIN properties
+Message-ID: <20180604113154.GC19674@bigcity.dyn.berto.se>
+References: <1526923663-8179-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1526923663-8179-5-git-send-email-jacopo+renesas@jmondi.org>
+ <20180604095308.pnlmd4aalxceuozq@verge.net.au>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180604095308.pnlmd4aalxceuozq@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit 10d5509c8d50 ("[media] v4l2: remove g/s_crop from video ops")
-the 'which' field for set/get_selection must be FORMAT_ACTIVE. There is
-no way to try different selections. The patch adds a helper function to
-select the correct selection memory space (sub-device file handle or
-driver state) which will be set/returned.
+Hi Simon,
 
-The TVP5150 AVID will be updated if the 'which' field is FORMAT_ACTIVE
-and the requested selection rectangle differs from the already set one.
+On 2018-06-04 11:53:09 +0200, Simon Horman wrote:
+> On Mon, May 21, 2018 at 07:27:43PM +0200, Jacopo Mondi wrote:
+> 
+> > The 'bus-width' and 'pclk-sample' properties are not parsed by the VIN
+> > driver and only confuse users. Remove them in all Gen2 SoC that use
+> > them.
+> 
+> I think that the rational for removing properties (or not) is their
+> presence in the bindings as DT should describe the hardware and not the
+> current state of the driver implementation.
+> 
+> I see that 'bus-width' may be removed from the binding, as per discussion
+> in a different sub-thread. I'd like that discussion to reach a conclusion
+> before considering that part of this patch any further.
+> 
+> And I'd appreciate Niklas's feedback on the 'pclk-sample' portion.
 
-Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
----
- drivers/media/i2c/tvp5150.c | 107 ++++++++++++++++++++++++------------
- 1 file changed, 73 insertions(+), 34 deletions(-)
+My thoughts on 'pclk-sample' is the same as for 'bus-width', they 
+describe the hardware. So we either should keep or remove both. As our 
+discussion in the other thread I'm leaning towards that both should be 
+kept.
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index d150487cc2d1..29eaf8166f25 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -18,6 +18,7 @@
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-fwnode.h>
- #include <media/v4l2-mc.h>
-+#include <media/v4l2-rect.h>
- 
- #include "tvp5150_reg.h"
- 
-@@ -846,20 +847,38 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
- 	}
- }
- 
-+static struct v4l2_rect *
-+__tvp5150_get_pad_crop(struct tvp5150 *decoder,
-+		       struct v4l2_subdev_pad_config *cfg, unsigned int pad,
-+		       enum v4l2_subdev_format_whence which)
-+{
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_crop(&decoder->sd, cfg, pad);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &decoder->rect;
-+	default:
-+		return NULL;
-+	}
-+}
-+
- static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
- 		struct v4l2_subdev_pad_config *cfg,
- 		struct v4l2_subdev_format *format)
- {
- 	struct v4l2_mbus_framefmt *f;
-+	struct v4l2_rect *__crop;
- 	struct tvp5150 *decoder = to_tvp5150(sd);
- 
- 	if (!format || (format->pad != DEMOD_PAD_VID_OUT))
- 		return -EINVAL;
- 
- 	f = &format->format;
-+	__crop = __tvp5150_get_pad_crop(decoder, cfg, format->pad,
-+					format->which);
- 
--	f->width = decoder->rect.width;
--	f->height = decoder->rect.height / 2;
-+	f->width = __crop->width;
-+	f->height = __crop->height / 2;
- 
- 	f->code = MEDIA_BUS_FMT_UYVY8_2X8;
- 	f->field = V4L2_FIELD_ALTERNATE;
-@@ -870,17 +889,51 @@ static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+unsigned int tvp5150_get_hmax(struct v4l2_subdev *sd)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	v4l2_std_id std;
-+
-+	/* Calculate height based on current standard */
-+	if (decoder->norm == V4L2_STD_ALL)
-+		std = tvp5150_read_std(sd);
-+	else
-+		std = decoder->norm;
-+
-+	return (std & V4L2_STD_525_60) ?
-+		TVP5150_V_MAX_525_60 : TVP5150_V_MAX_OTHERS;
-+}
-+
-+static inline void
-+__tvp5150_set_selection(struct v4l2_subdev *sd, struct v4l2_rect rect)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	unsigned int hmax = tvp5150_get_hmax(sd);
-+
-+	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, rect.top);
-+	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP,
-+		     rect.top + rect.height - hmax);
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_MSB,
-+		     rect.left >> TVP5150_CROP_SHIFT);
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_LSB,
-+		     rect.left | (1 << TVP5150_CROP_SHIFT));
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_MSB,
-+		     (rect.left + rect.width - TVP5150_MAX_CROP_LEFT) >>
-+		     TVP5150_CROP_SHIFT);
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_LSB,
-+		     rect.left + rect.width - TVP5150_MAX_CROP_LEFT);
-+}
-+
- static int tvp5150_set_selection(struct v4l2_subdev *sd,
- 				 struct v4l2_subdev_pad_config *cfg,
- 				 struct v4l2_subdev_selection *sel)
- {
- 	struct tvp5150 *decoder = to_tvp5150(sd);
- 	struct v4l2_rect rect = sel->r;
--	v4l2_std_id std;
--	int hmax;
-+	struct v4l2_rect *__crop;
-+	unsigned int hmax;
- 
--	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE ||
--	    sel->target != V4L2_SEL_TGT_CROP)
-+	if (sel->target != V4L2_SEL_TGT_CROP)
- 		return -EINVAL;
- 
- 	dev_dbg_lvl(sd->dev, 1, debug, "%s left=%d, top=%d, width=%d, height=%d\n",
-@@ -889,17 +942,7 @@ static int tvp5150_set_selection(struct v4l2_subdev *sd,
- 	/* tvp5150 has some special limits */
- 	rect.left = clamp(rect.left, 0, TVP5150_MAX_CROP_LEFT);
- 	rect.top = clamp(rect.top, 0, TVP5150_MAX_CROP_TOP);
--
--	/* Calculate height based on current standard */
--	if (decoder->norm == V4L2_STD_ALL)
--		std = tvp5150_read_std(sd);
--	else
--		std = decoder->norm;
--
--	if (std & V4L2_STD_525_60)
--		hmax = TVP5150_V_MAX_525_60;
--	else
--		hmax = TVP5150_V_MAX_OTHERS;
-+	hmax = tvp5150_get_hmax(sd);
- 
- 	/*
- 	 * alignments:
-@@ -912,20 +955,18 @@ static int tvp5150_set_selection(struct v4l2_subdev *sd,
- 			      hmax - TVP5150_MAX_CROP_TOP - rect.top,
- 			      hmax - rect.top, 0, 0);
- 
--	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, rect.top);
--	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP,
--		      rect.top + rect.height - hmax);
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_MSB,
--		      rect.left >> TVP5150_CROP_SHIFT);
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_LSB,
--		      rect.left | (1 << TVP5150_CROP_SHIFT));
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_MSB,
--		      (rect.left + rect.width - TVP5150_MAX_CROP_LEFT) >>
--		      TVP5150_CROP_SHIFT);
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_LSB,
--		      rect.left + rect.width - TVP5150_MAX_CROP_LEFT);
-+	__crop = __tvp5150_get_pad_crop(decoder, cfg, sel->pad,
-+						  sel->which);
-+
-+	/*
-+	 * Update output image size if the selection (crop) rectangle size or
-+	 * position has been modified.
-+	 */
-+	if (!v4l2_rect_equal(&rect, __crop))
-+		if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+			__tvp5150_set_selection(sd, rect);
- 
--	decoder->rect = rect;
-+	*__crop = rect;
- 
- 	return 0;
- }
-@@ -937,9 +978,6 @@ static int tvp5150_get_selection(struct v4l2_subdev *sd,
- 	struct tvp5150 *decoder = container_of(sd, struct tvp5150, sd);
- 	v4l2_std_id std;
- 
--	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
--		return -EINVAL;
--
- 	switch (sel->target) {
- 	case V4L2_SEL_TGT_CROP_BOUNDS:
- 	case V4L2_SEL_TGT_CROP_DEFAULT:
-@@ -958,7 +996,8 @@ static int tvp5150_get_selection(struct v4l2_subdev *sd,
- 			sel->r.height = TVP5150_V_MAX_OTHERS;
- 		return 0;
- 	case V4L2_SEL_TGT_CROP:
--		sel->r = decoder->rect;
-+		sel->r = *__tvp5150_get_pad_crop(decoder, cfg, sel->pad,
-+						      sel->which);
- 		return 0;
- 	default:
- 		return -EINVAL;
+> 
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  arch/arm/boot/dts/r8a7790-lager.dts   | 3 ---
+> >  arch/arm/boot/dts/r8a7791-koelsch.dts | 3 ---
+> >  arch/arm/boot/dts/r8a7791-porter.dts  | 1 -
+> >  arch/arm/boot/dts/r8a7793-gose.dts    | 3 ---
+> >  arch/arm/boot/dts/r8a7794-alt.dts     | 1 -
+> >  arch/arm/boot/dts/r8a7794-silk.dts    | 1 -
+> >  6 files changed, 12 deletions(-)
+> > 
+> > diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+> > index 092610e..9cdabfcf 100644
+> > --- a/arch/arm/boot/dts/r8a7790-lager.dts
+> > +++ b/arch/arm/boot/dts/r8a7790-lager.dts
+> > @@ -885,10 +885,8 @@
+> >  	port {
+> >  		vin0ep2: endpoint {
+> >  			remote-endpoint = <&adv7612_out>;
+> > -			bus-width = <24>;
+> >  			hsync-active = <0>;
+> >  			vsync-active = <0>;
+> > -			pclk-sample = <1>;
+> >  			data-active = <1>;
+> >  		};
+> >  	};
+> > @@ -904,7 +902,6 @@
+> >  	port {
+> >  		vin1ep0: endpoint {
+> >  			remote-endpoint = <&adv7180>;
+> > -			bus-width = <8>;
+> >  		};
+> >  	};
+> >  };
+> > diff --git a/arch/arm/boot/dts/r8a7791-koelsch.dts b/arch/arm/boot/dts/r8a7791-koelsch.dts
+> > index 8ab793d..033c9e3 100644
+> > --- a/arch/arm/boot/dts/r8a7791-koelsch.dts
+> > +++ b/arch/arm/boot/dts/r8a7791-koelsch.dts
+> > @@ -857,10 +857,8 @@
+> >  	port {
+> >  		vin0ep2: endpoint {
+> >  			remote-endpoint = <&adv7612_out>;
+> > -			bus-width = <24>;
+> >  			hsync-active = <0>;
+> >  			vsync-active = <0>;
+> > -			pclk-sample = <1>;
+> >  			data-active = <1>;
+> >  		};
+> >  	};
+> > @@ -875,7 +873,6 @@
+> >  	port {
+> >  		vin1ep: endpoint {
+> >  			remote-endpoint = <&adv7180>;
+> > -			bus-width = <8>;
+> >  		};
+> >  	};
+> >  };
+> > diff --git a/arch/arm/boot/dts/r8a7791-porter.dts b/arch/arm/boot/dts/r8a7791-porter.dts
+> > index a01101b..c16e870 100644
+> > --- a/arch/arm/boot/dts/r8a7791-porter.dts
+> > +++ b/arch/arm/boot/dts/r8a7791-porter.dts
+> > @@ -388,7 +388,6 @@
+> >  	port {
+> >  		vin0ep: endpoint {
+> >  			remote-endpoint = <&adv7180>;
+> > -			bus-width = <8>;
+> >  		};
+> >  	};
+> >  };
+> > diff --git a/arch/arm/boot/dts/r8a7793-gose.dts b/arch/arm/boot/dts/r8a7793-gose.dts
+> > index aa209f6..60aaddb 100644
+> > --- a/arch/arm/boot/dts/r8a7793-gose.dts
+> > +++ b/arch/arm/boot/dts/r8a7793-gose.dts
+> > @@ -765,10 +765,8 @@
+> >  	port {
+> >  		vin0ep2: endpoint {
+> >  			remote-endpoint = <&adv7612_out>;
+> > -			bus-width = <24>;
+> >  			hsync-active = <0>;
+> >  			vsync-active = <0>;
+> > -			pclk-sample = <1>;
+> >  			data-active = <1>;
+> >  		};
+> >  	};
+> > @@ -784,7 +782,6 @@
+> >  	port {
+> >  		vin1ep: endpoint {
+> >  			remote-endpoint = <&adv7180_out>;
+> > -			bus-width = <8>;
+> >  		};
+> >  	};
+> >  };
+> > diff --git a/arch/arm/boot/dts/r8a7794-alt.dts b/arch/arm/boot/dts/r8a7794-alt.dts
+> > index e170275..8ed7a71 100644
+> > --- a/arch/arm/boot/dts/r8a7794-alt.dts
+> > +++ b/arch/arm/boot/dts/r8a7794-alt.dts
+> > @@ -388,7 +388,6 @@
+> >  	port {
+> >  		vin0ep: endpoint {
+> >  			remote-endpoint = <&adv7180>;
+> > -			bus-width = <8>;
+> >  		};
+> >  	};
+> >  };
+> > diff --git a/arch/arm/boot/dts/r8a7794-silk.dts b/arch/arm/boot/dts/r8a7794-silk.dts
+> > index 7808aae..6adfcd6 100644
+> > --- a/arch/arm/boot/dts/r8a7794-silk.dts
+> > +++ b/arch/arm/boot/dts/r8a7794-silk.dts
+> > @@ -477,7 +477,6 @@
+> >  	port {
+> >  		vin0ep: endpoint {
+> >  			remote-endpoint = <&adv7180>;
+> > -			bus-width = <8>;
+> >  		};
+> >  	};
+> >  };
+> > -- 
+> > 2.7.4
+> > 
+
 -- 
-2.17.1
+Regards,
+Niklas Söderlund
