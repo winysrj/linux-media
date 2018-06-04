@@ -1,120 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:55285 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752848AbeFDLrH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 07:47:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv15 30/35] vim2m: add media device
-Date: Mon,  4 Jun 2018 13:46:43 +0200
-Message-Id: <20180604114648.26159-31-hverkuil@xs4all.nl>
-In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
-References: <20180604114648.26159-1-hverkuil@xs4all.nl>
+Received: from conssluserg-04.nifty.com ([210.131.2.83]:20979 "EHLO
+        conssluserg-04.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751550AbeFDAxd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Jun 2018 20:53:33 -0400
+MIME-Version: 1.0
+In-Reply-To: <005d01d3fb98$20711900$61534b00$@socionext.com>
+References: <20180530090946.1635-1-suzuki.katsuhiro@socionext.com>
+ <20180530090946.1635-7-suzuki.katsuhiro@socionext.com> <CAK7LNAS8JT8+MAuH+eYUJ3Xa4r07=ecJS0E=SX-tgmV7db_FKw@mail.gmail.com>
+ <005d01d3fb98$20711900$61534b00$@socionext.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Mon, 4 Jun 2018 09:52:39 +0900
+Message-ID: <CAK7LNAQT-yigu83t7xOF_4-G1_0DX9OXz_YhJ3SAMH_CkGJcrw@mail.gmail.com>
+Subject: Re: [PATCH 6/8] media: uniphier: add common module of DVB adapter drivers
+To: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        linux-media@vger.kernel.org,
+        Masami Hiramatsu <masami.hiramatsu@linaro.org>,
+        Jassi Brar <jaswinder.singh@linaro.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+2018-06-04 9:08 GMT+09:00 Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>=
+:
+> Hello Yamada-san,
+>
+>> -----Original Message-----
+>> From: Masahiro Yamada <yamada.masahiro@socionext.com>
+>> Sent: Saturday, June 2, 2018 9:00 PM
+>> To: Suzuki, Katsuhiro/=E9=88=B4=E6=9C=A8 =E5=8B=9D=E5=8D=9A <suzuki.kats=
+uhiro@socionext.com>
+>> Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>;
+>> linux-media@vger.kernel.org; Masami Hiramatsu <masami.hiramatsu@linaro.o=
+rg>;
+>> Jassi Brar <jaswinder.singh@linaro.org>; linux-arm-kernel
+>> <linux-arm-kernel@lists.infradead.org>; Linux Kernel Mailing List
+>> <linux-kernel@vger.kernel.org>
+>> Subject: Re: [PATCH 6/8] media: uniphier: add common module of DVB adapt=
+er drivers
+>>
+>> 2018-05-30 18:09 GMT+09:00 Katsuhiro Suzuki <suzuki.katsuhiro@socionext.=
+com>:
+>> > This patch adds common module for UniPhier DVB adapter drivers
+>> > that equipments tuners and demod that connected by I2C and
+>> > UniPhier demux.
+>> >
+>> > Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+>> > ---
+>> >  drivers/media/platform/uniphier/Makefile      |  5 ++
+>> >  drivers/media/platform/uniphier/hsc-core.c    |  8 ---
+>> >  .../platform/uniphier/uniphier-adapter.c      | 54 ++++++++++++++++++=
++
+>> >  .../platform/uniphier/uniphier-adapter.h      | 42 +++++++++++++++
+>> >  4 files changed, 101 insertions(+), 8 deletions(-)
+>> >  create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.c
+>> >  create mode 100644 drivers/media/platform/uniphier/uniphier-adapter.h
+>> >
+>> > diff --git a/drivers/media/platform/uniphier/Makefile
+>> b/drivers/media/platform/uniphier/Makefile
+>> > index 0622f04d9e68..9e75ad081b77 100644
+>> > --- a/drivers/media/platform/uniphier/Makefile
+>> > +++ b/drivers/media/platform/uniphier/Makefile
+>> > @@ -3,3 +3,8 @@ uniphier-dvb-y +=3D hsc-core.o hsc-ucode.o hsc-css.o h=
+sc-ts.o
+>> hsc-dma.o
+>> >  uniphier-dvb-$(CONFIG_DVB_UNIPHIER_LD11) +=3D hsc-ld11.o
+>> >
+>> >  obj-$(CONFIG_DVB_UNIPHIER) +=3D uniphier-dvb.o
+>> > +
+>> > +ccflags-y +=3D -Idrivers/media/dvb-frontends/
+>> > +ccflags-y +=3D -Idrivers/media/tuners/
+>>
+>>
+>> Please add $(srctree)/ like
+>>
+>> ccflags-y +=3D -I$(srctree)/drivers/media/dvb-frontends/
+>> ccflags-y +=3D -I$(srctree)/drivers/media/tuners/
+>>
+>>
+>> Currently, it works $(srctree)/,
+>> but I really want to rip off the build system hack.
+>
+> Thanks, I agree with your opinion, but other Makefiles in drivers/media u=
+se
+> same hack. I don't know other way to include headers of demodulators and
+> tuners...
+>
+> Do you have any good ideas?
+>
+>
 
-Request API requires a media node. Add one to the vim2m driver so we can
-use requests with it.
 
-This probably needs a bit more work to correctly represent m2m
-hardware in the media topology.
+My suggestion is to add '$(srctree)/'.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vim2m.c | 42 ++++++++++++++++++++++++++++++----
- 1 file changed, 37 insertions(+), 5 deletions(-)
+For clarification,
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 065483e62db4..9be4da3b8577 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -140,6 +140,10 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
- struct vim2m_dev {
- 	struct v4l2_device	v4l2_dev;
- 	struct video_device	vfd;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device	mdev;
-+	struct media_pad	pad[2];
-+#endif
- 
- 	atomic_t		num_inst;
- 	struct mutex		dev_mutex;
-@@ -1000,11 +1004,6 @@ static int vim2m_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	spin_lock_init(&dev->irqlock);
--
--	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
--	if (ret)
--		return ret;
--
- 	atomic_set(&dev->num_inst, 0);
- 	mutex_init(&dev->dev_mutex);
- 
-@@ -1013,6 +1012,22 @@ static int vim2m_probe(struct platform_device *pdev)
- 	vfd->lock = &dev->dev_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	dev->mdev.dev = &pdev->dev;
-+	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
-+	media_device_init(&dev->mdev);
-+	dev->v4l2_dev.mdev = &dev->mdev;
-+	dev->pad[0].flags = MEDIA_PAD_FL_SINK;
-+	dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_pads_init(&vfd->entity, 2, dev->pad);
-+	if (ret)
-+		return ret;
-+#endif
-+
-+	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-+	if (ret)
-+		goto unreg_media;
-+
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
-@@ -1034,6 +1049,13 @@ static int vim2m_probe(struct platform_device *pdev)
- 		goto err_m2m;
- 	}
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	/* Register the media device node */
-+	ret = media_device_register(&dev->mdev);
-+	if (ret)
-+		goto err_m2m;
-+#endif
-+
- 	return 0;
- 
- err_m2m:
-@@ -1041,6 +1063,10 @@ static int vim2m_probe(struct platform_device *pdev)
- 	video_unregister_device(&dev->vfd);
- unreg_dev:
- 	v4l2_device_unregister(&dev->v4l2_dev);
-+unreg_media:
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_device_unregister(&dev->mdev);
-+#endif
- 
- 	return ret;
- }
-@@ -1050,6 +1076,12 @@ static int vim2m_remove(struct platform_device *pdev)
- 	struct vim2m_dev *dev = platform_get_drvdata(pdev);
- 
- 	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_device_unregister(&dev->mdev);
-+	media_device_cleanup(&dev->mdev);
-+#endif
-+
- 	v4l2_m2m_release(dev->m2m_dev);
- 	del_timer_sync(&dev->timer);
- 	video_unregister_device(&dev->vfd);
--- 
-2.17.0
+
+
+Bad:
+
+ccflags-y +=3D -Idrivers/media/dvb-frontends/
+ccflags-y +=3D -Idrivers/media/tuners/
+
+
+
+Good:
+
+ccflags-y +=3D -I$(srctree)/drivers/media/dvb-frontends/
+ccflags-y +=3D -I$(srctree)/drivers/media/tuners/
+
+
+
+
+
+I want to fix this tree-wide,
+then remove the 'addtree' from scripts/Kbuild.include
+but I have not been able to find time for that.
+
+This is a new file, so just suggested to add '$(srctree)/'
+
+
+
+If you want to know the context:
+https://patchwork.kernel.org/patch/9632347/
+
+
+--=20
+Best Regards
+Masahiro Yamada
