@@ -1,16 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:53953 "EHLO
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:49046 "EHLO
         lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752736AbeFDLrA (ORCPT
+        by vger.kernel.org with ESMTP id S1752854AbeFDLrI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 07:47:00 -0400
+        Mon, 4 Jun 2018 07:47:08 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCHv15 02/35] media-request: implement media requests
-Date: Mon,  4 Jun 2018 13:46:15 +0200
-Message-Id: <20180604114648.26159-3-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 34/35] vivid: add request support
+Date: Mon,  4 Jun 2018 13:46:47 +0200
+Message-Id: <20180604114648.26159-35-hverkuil@xs4all.nl>
 In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
 References: <20180604114648.26159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -18,931 +17,335 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add initial media request support:
-
-1) Add MEDIA_IOC_REQUEST_ALLOC ioctl support to media-device.c
-2) Add struct media_request to store request objects.
-3) Add struct media_request_object to represent a request object.
-4) Add MEDIA_REQUEST_IOC_QUEUE/REINIT ioctl support.
-
-Basic lifecycle: the application allocates a request, adds
-objects to it, queues the request, polls until it is completed
-and can then read the final values of the objects at the time
-of completion. When it closes the file descriptor the request
-memory will be freed (actually, when the last user of that request
-releases the request).
-
-Drivers will bind an object to a request (the 'adds objects to it'
-phase), when MEDIA_REQUEST_IOC_QUEUE is called the request is
-validated (req_validate op), then queued (the req_queue op).
-
-When done with an object it can either be unbound from the request
-(e.g. when the driver has finished with a vb2 buffer) or marked as
-completed (e.g. for controls associated with a buffer). When all
-objects in the request are completed (or unbound), then the request
-fd will signal an exception (poll).
+Add support for requests to vivid.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Co-developed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Co-developed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Co-developed-by: Alexandre Courbot <acourbot@chromium.org>
 ---
- drivers/media/Makefile        |   3 +-
- drivers/media/media-device.c  |  14 ++
- drivers/media/media-request.c | 421 ++++++++++++++++++++++++++++++++++
- include/media/media-device.h  |  24 ++
- include/media/media-request.h | 326 ++++++++++++++++++++++++++
- 5 files changed, 787 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/media-request.c
- create mode 100644 include/media/media-request.h
+ drivers/media/platform/vivid/vivid-core.c        |  8 ++++++++
+ drivers/media/platform/vivid/vivid-kthread-cap.c | 12 ++++++++++++
+ drivers/media/platform/vivid/vivid-kthread-out.c | 12 ++++++++++++
+ drivers/media/platform/vivid/vivid-sdr-cap.c     | 16 ++++++++++++++++
+ drivers/media/platform/vivid/vivid-vbi-cap.c     | 10 ++++++++++
+ drivers/media/platform/vivid/vivid-vbi-out.c     | 10 ++++++++++
+ drivers/media/platform/vivid/vivid-vid-cap.c     | 10 ++++++++++
+ drivers/media/platform/vivid/vivid-vid-out.c     | 10 ++++++++++
+ 8 files changed, 88 insertions(+)
 
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index 594b462ddf0e..985d35ec6b29 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -3,7 +3,8 @@
- # Makefile for the kernel multimedia device drivers.
- #
- 
--media-objs	:= media-device.o media-devnode.o media-entity.o
-+media-objs	:= media-device.o media-devnode.o media-entity.o \
-+		   media-request.o
- 
- #
- # I2C drivers should come before other drivers, otherwise they'll fail
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index ae59c3177555..1119c1058e73 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -32,6 +32,7 @@
- #include <media/media-device.h>
- #include <media/media-devnode.h>
- #include <media/media-entity.h>
-+#include <media/media-request.h>
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
- 
-@@ -367,6 +368,15 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
- 	return ret;
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 69386b26d5dd..a84c7e37c22b 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -627,6 +627,13 @@ static void vivid_dev_release(struct v4l2_device *v4l2_dev)
+ 	kfree(dev);
  }
  
-+static long media_device_request_alloc(struct media_device *mdev,
-+				       struct media_request_alloc *alloc)
-+{
-+	if (!mdev->ops || !mdev->ops->req_validate || !mdev->ops->req_queue)
-+		return -ENOTTY;
++#ifdef CONFIG_MEDIA_CONTROLLER
++static const struct media_device_ops vivid_media_ops = {
++	.req_validate = vb2_request_validate,
++	.req_queue = vb2_request_queue,
++};
++#endif
 +
-+	return media_request_alloc(mdev, alloc);
-+}
-+
- static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
+ static int vivid_create_instance(struct platform_device *pdev, int inst)
  {
- 	/* All media IOCTLs are _IOWR() */
-@@ -415,6 +425,7 @@ static const struct media_ioctl_info ioctl_info[] = {
- 	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
- 	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
- 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
-+	MEDIA_IOC(REQUEST_ALLOC, media_device_request_alloc, 0),
- };
+ 	static const struct v4l2_dv_timings def_dv_timings =
+@@ -664,6 +671,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 	strlcpy(dev->mdev.model, VIVID_MODULE_NAME, sizeof(dev->mdev.model));
+ 	dev->mdev.dev = &pdev->dev;
+ 	media_device_init(&dev->mdev);
++	dev->mdev.ops = &vivid_media_ops;
+ #endif
  
- static long media_device_ioctl(struct file *filp, unsigned int cmd,
-@@ -687,6 +698,8 @@ void media_device_init(struct media_device *mdev)
- 	INIT_LIST_HEAD(&mdev->pads);
- 	INIT_LIST_HEAD(&mdev->links);
- 	INIT_LIST_HEAD(&mdev->entity_notify);
-+
-+	mutex_init(&mdev->req_queue_mutex);
- 	mutex_init(&mdev->graph_mutex);
- 	ida_init(&mdev->entity_internal_idx);
+ 	/* register v4l2_device */
+diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
+index 3fdb280c36ca..c192b4b1b9de 100644
+--- a/drivers/media/platform/vivid/vivid-kthread-cap.c
++++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
+@@ -703,6 +703,8 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
+ 		goto update_mv;
  
-@@ -700,6 +713,7 @@ void media_device_cleanup(struct media_device *mdev)
- 	mdev->entity_internal_idx_max = 0;
- 	media_graph_walk_cleanup(&mdev->pm_count_walk);
- 	mutex_destroy(&mdev->graph_mutex);
-+	mutex_destroy(&mdev->req_queue_mutex);
+ 	if (vid_cap_buf) {
++		v4l2_ctrl_request_setup(vid_cap_buf->vb.vb2_buf.req_obj.req,
++					&dev->ctrl_hdl_vid_cap);
+ 		/* Fill buffer */
+ 		vivid_fillbuff(dev, vid_cap_buf);
+ 		dprintk(dev, 1, "filled buffer %d\n",
+@@ -713,6 +715,8 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
+ 			dev->fb_cap.fmt.pixelformat == dev->fmt_cap->fourcc)
+ 			vivid_overlay(dev, vid_cap_buf);
+ 
++		v4l2_ctrl_request_complete(vid_cap_buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_vid_cap);
+ 		vb2_buffer_done(&vid_cap_buf->vb.vb2_buf, dev->dqbuf_error ?
+ 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 		dprintk(dev, 2, "vid_cap buffer %d done\n",
+@@ -720,10 +724,14 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
+ 	}
+ 
+ 	if (vbi_cap_buf) {
++		v4l2_ctrl_request_setup(vbi_cap_buf->vb.vb2_buf.req_obj.req,
++					&dev->ctrl_hdl_vbi_cap);
+ 		if (dev->stream_sliced_vbi_cap)
+ 			vivid_sliced_vbi_cap_process(dev, vbi_cap_buf);
+ 		else
+ 			vivid_raw_vbi_cap_process(dev, vbi_cap_buf);
++		v4l2_ctrl_request_complete(vbi_cap_buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_vbi_cap);
+ 		vb2_buffer_done(&vbi_cap_buf->vb.vb2_buf, dev->dqbuf_error ?
+ 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 		dprintk(dev, 2, "vbi_cap %d done\n",
+@@ -891,6 +899,8 @@ void vivid_stop_generating_vid_cap(struct vivid_dev *dev, bool *pstreaming)
+ 			buf = list_entry(dev->vid_cap_active.next,
+ 					 struct vivid_buffer, list);
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vid_cap);
+ 			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+ 			dprintk(dev, 2, "vid_cap buffer %d done\n",
+ 				buf->vb.vb2_buf.index);
+@@ -904,6 +914,8 @@ void vivid_stop_generating_vid_cap(struct vivid_dev *dev, bool *pstreaming)
+ 			buf = list_entry(dev->vbi_cap_active.next,
+ 					 struct vivid_buffer, list);
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vbi_cap);
+ 			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+ 			dprintk(dev, 2, "vbi_cap buffer %d done\n",
+ 				buf->vb.vb2_buf.index);
+diff --git a/drivers/media/platform/vivid/vivid-kthread-out.c b/drivers/media/platform/vivid/vivid-kthread-out.c
+index 9981e7548019..5a14810eeb69 100644
+--- a/drivers/media/platform/vivid/vivid-kthread-out.c
++++ b/drivers/media/platform/vivid/vivid-kthread-out.c
+@@ -75,6 +75,10 @@ static void vivid_thread_vid_out_tick(struct vivid_dev *dev)
+ 		return;
+ 
+ 	if (vid_out_buf) {
++		v4l2_ctrl_request_setup(vid_out_buf->vb.vb2_buf.req_obj.req,
++					&dev->ctrl_hdl_vid_out);
++		v4l2_ctrl_request_complete(vid_out_buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_vid_out);
+ 		vid_out_buf->vb.sequence = dev->vid_out_seq_count;
+ 		if (dev->field_out == V4L2_FIELD_ALTERNATE) {
+ 			/*
+@@ -92,6 +96,10 @@ static void vivid_thread_vid_out_tick(struct vivid_dev *dev)
+ 	}
+ 
+ 	if (vbi_out_buf) {
++		v4l2_ctrl_request_setup(vbi_out_buf->vb.vb2_buf.req_obj.req,
++					&dev->ctrl_hdl_vbi_out);
++		v4l2_ctrl_request_complete(vbi_out_buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_vbi_out);
+ 		if (dev->stream_sliced_vbi_out)
+ 			vivid_sliced_vbi_out_process(dev, vbi_out_buf);
+ 
+@@ -262,6 +270,8 @@ void vivid_stop_generating_vid_out(struct vivid_dev *dev, bool *pstreaming)
+ 			buf = list_entry(dev->vid_out_active.next,
+ 					 struct vivid_buffer, list);
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vid_out);
+ 			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+ 			dprintk(dev, 2, "vid_out buffer %d done\n",
+ 				buf->vb.vb2_buf.index);
+@@ -275,6 +285,8 @@ void vivid_stop_generating_vid_out(struct vivid_dev *dev, bool *pstreaming)
+ 			buf = list_entry(dev->vbi_out_active.next,
+ 					 struct vivid_buffer, list);
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vbi_out);
+ 			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+ 			dprintk(dev, 2, "vbi_out buffer %d done\n",
+ 				buf->vb.vb2_buf.index);
+diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
+index cfb7cb4d37a8..76cf8810a974 100644
+--- a/drivers/media/platform/vivid/vivid-sdr-cap.c
++++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
+@@ -102,6 +102,10 @@ static void vivid_thread_sdr_cap_tick(struct vivid_dev *dev)
+ 
+ 	if (sdr_cap_buf) {
+ 		sdr_cap_buf->vb.sequence = dev->sdr_cap_seq_count;
++		v4l2_ctrl_request_setup(sdr_cap_buf->vb.vb2_buf.req_obj.req,
++					&dev->ctrl_hdl_sdr_cap);
++		v4l2_ctrl_request_complete(sdr_cap_buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_sdr_cap);
+ 		vivid_sdr_cap_process(dev, sdr_cap_buf);
+ 		sdr_cap_buf->vb.vb2_buf.timestamp =
+ 			ktime_get_ns() + dev->time_wrap_offset;
+@@ -272,6 +276,8 @@ static int sdr_cap_start_streaming(struct vb2_queue *vq, unsigned count)
+ 
+ 		list_for_each_entry_safe(buf, tmp, &dev->sdr_cap_active, list) {
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_sdr_cap);
+ 			vb2_buffer_done(&buf->vb.vb2_buf,
+ 					VB2_BUF_STATE_QUEUED);
+ 		}
+@@ -293,6 +299,8 @@ static void sdr_cap_stop_streaming(struct vb2_queue *vq)
+ 		buf = list_entry(dev->sdr_cap_active.next,
+ 				struct vivid_buffer, list);
+ 		list_del(&buf->list);
++		v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++					   &dev->ctrl_hdl_sdr_cap);
+ 		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+ 	}
+ 
+@@ -303,12 +311,20 @@ static void sdr_cap_stop_streaming(struct vb2_queue *vq)
+ 	mutex_lock(&dev->mutex);
  }
- EXPORT_SYMBOL_GPL(media_device_cleanup);
  
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-new file mode 100644
-index 000000000000..09823235e4c8
---- /dev/null
-+++ b/drivers/media/media-request.c
-@@ -0,0 +1,421 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Media device request objects
-+ *
-+ * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ * Copyright (C) 2018 Intel Corporation
-+ * Copyright (C) 2018 Google, Inc.
-+ *
-+ * Author: Hans Verkuil <hans.verkuil@cisco.com>
-+ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-+ */
-+
-+#include <linux/anon_inodes.h>
-+#include <linux/file.h>
-+#include <linux/refcount.h>
-+
-+#include <media/media-device.h>
-+#include <media/media-request.h>
-+
-+static const char * const request_state[] = {
-+	[MEDIA_REQUEST_STATE_IDLE]	 = "idle",
-+	[MEDIA_REQUEST_STATE_VALIDATING] = "validating",
-+	[MEDIA_REQUEST_STATE_QUEUED]	 = "queued",
-+	[MEDIA_REQUEST_STATE_COMPLETE]	 = "complete",
-+	[MEDIA_REQUEST_STATE_CLEANING]	 = "cleaning",
-+	[MEDIA_REQUEST_STATE_UPDATING]	 = "updating",
-+};
-+
-+static const char *
-+media_request_state_str(enum media_request_state state)
++static void sdr_cap_buf_request_complete(struct vb2_buffer *vb)
 +{
-+	BUILD_BUG_ON(ARRAY_SIZE(request_state) != NR_OF_MEDIA_REQUEST_STATE);
++	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
 +
-+	if (WARN_ON(state >= ARRAY_SIZE(request_state)))
-+		return "invalid";
-+	return request_state[state];
++	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_sdr_cap);
 +}
 +
-+static void media_request_clean(struct media_request *req)
-+{
-+	struct media_request_object *obj, *obj_safe;
-+
-+	/* Just a sanity check. No other code path is allowed to change this. */
-+	WARN_ON(req->state != MEDIA_REQUEST_STATE_CLEANING);
-+	WARN_ON(refcount_read(&req->updating_count));
-+
-+	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
-+		media_request_object_unbind(obj);
-+		media_request_object_put(obj);
-+	}
-+
-+	refcount_set(&req->updating_count, 0);
-+	WARN_ON(req->num_incomplete_objects);
-+	req->num_incomplete_objects = 0;
-+	wake_up_interruptible_all(&req->poll_wait);
-+}
-+
-+static void media_request_release(struct kref *kref)
-+{
-+	struct media_request *req =
-+		container_of(kref, struct media_request, kref);
-+	struct media_device *mdev = req->mdev;
-+
-+	dev_dbg(mdev->dev, "request: release %s\n", req->debug_str);
-+
-+	/* No other users, no need for a spinlock */
-+	req->state = MEDIA_REQUEST_STATE_CLEANING;
-+
-+	media_request_clean(req);
-+
-+	if (mdev->ops->req_free)
-+		mdev->ops->req_free(req);
-+	else
-+		kfree(req);
-+}
-+
-+void media_request_put(struct media_request *req)
-+{
-+	kref_put(&req->kref, media_request_release);
-+}
-+EXPORT_SYMBOL_GPL(media_request_put);
-+
-+static int media_request_close(struct inode *inode, struct file *filp)
-+{
-+	struct media_request *req = filp->private_data;
-+
-+	media_request_put(req);
-+	return 0;
-+}
-+
-+static unsigned int media_request_poll(struct file *filp,
-+				       struct poll_table_struct *wait)
-+{
-+	struct media_request *req = filp->private_data;
-+	unsigned long flags;
-+	unsigned int ret = 0;
-+
-+	if (!(poll_requested_events(wait) & POLLPRI))
-+		return 0;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (req->state == MEDIA_REQUEST_STATE_COMPLETE) {
-+		ret = POLLPRI;
-+		goto unlock;
-+	}
-+	if (req->state != MEDIA_REQUEST_STATE_QUEUED) {
-+		ret = POLLERR;
-+		goto unlock;
-+	}
-+
-+	poll_wait(filp, &req->poll_wait, wait);
-+
-+unlock:
-+	spin_unlock_irqrestore(&req->lock, flags);
-+	return ret;
-+}
-+
-+static long media_request_ioctl_queue(struct media_request *req)
-+{
-+	struct media_device *mdev = req->mdev;
-+	enum media_request_state state;
-+	unsigned long flags;
-+	int ret;
-+
-+	dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
-+
-+	/*
-+	 * Ensure the request that is validated will be the one that gets queued
-+	 * next by serialising the queueing process. This mutex is also used
-+	 * to serialize with canceling a vb2 queue and with setting values such
-+	 * as controls in a request.
-+	 */
-+	mutex_lock(&mdev->req_queue_mutex);
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (req->state == MEDIA_REQUEST_STATE_IDLE)
-+		req->state = MEDIA_REQUEST_STATE_VALIDATING;
-+	state = req->state;
-+	spin_unlock_irqrestore(&req->lock, flags);
-+	if (state != MEDIA_REQUEST_STATE_VALIDATING) {
-+		dev_dbg(mdev->dev,
-+			"request: unable to queue %s, request in state %s\n",
-+			req->debug_str, media_request_state_str(state));
-+		mutex_unlock(&mdev->req_queue_mutex);
-+		return -EBUSY;
-+	}
-+
-+	ret = mdev->ops->req_validate(req);
-+
-+	/*
-+	 * If the req_validate was successful, then we mark the state as QUEUED
-+	 * and call req_queue. The reason we set the state first is that this
-+	 * allows req_queue to unbind or complete the queued objects in case
-+	 * they are immediately 'consumed'. State changes from QUEUED to another
-+	 * state can only happen if either the driver changes the state or if
-+	 * the user cancels the vb2 queue. The driver can only change the state
-+	 * after each object is queued through the req_queue op (and note that
-+	 * that op cannot fail), so setting the state to QUEUED up front is
-+	 * safe.
-+	 *
-+	 * The other reason for changing the state is if the vb2 queue is
-+	 * canceled, and that uses the req_queue_mutex which is still locked
-+	 * while req_queue is called, so that's safe as well.
-+	 */
-+	spin_lock_irqsave(&req->lock, flags);
-+	req->state = ret ? MEDIA_REQUEST_STATE_IDLE
-+			 : MEDIA_REQUEST_STATE_QUEUED;
-+	spin_unlock_irqrestore(&req->lock, flags);
-+
-+	if (!ret)
-+		mdev->ops->req_queue(req);
-+
-+	mutex_unlock(&mdev->req_queue_mutex);
-+
-+	if (ret)
-+		dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
-+			req->debug_str, ret);
-+	else
-+		media_request_get(req);
-+
-+	return ret;
-+}
-+
-+static long media_request_ioctl_reinit(struct media_request *req)
-+{
-+	struct media_device *mdev = req->mdev;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (req->state != MEDIA_REQUEST_STATE_IDLE &&
-+	    req->state != MEDIA_REQUEST_STATE_COMPLETE) {
-+		dev_dbg(mdev->dev,
-+			"request: %s not in idle or complete state, cannot reinit\n",
-+			req->debug_str);
-+		spin_unlock_irqrestore(&req->lock, flags);
-+		return -EBUSY;
-+	}
-+	req->state = MEDIA_REQUEST_STATE_CLEANING;
-+	spin_unlock_irqrestore(&req->lock, flags);
-+
-+	media_request_clean(req);
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	req->state = MEDIA_REQUEST_STATE_IDLE;
-+	spin_unlock_irqrestore(&req->lock, flags);
-+
-+	return 0;
-+}
-+
-+static long media_request_ioctl(struct file *filp, unsigned int cmd,
-+				unsigned long arg)
-+{
-+	struct media_request *req = filp->private_data;
-+
-+	switch (cmd) {
-+	case MEDIA_REQUEST_IOC_QUEUE:
-+		return media_request_ioctl_queue(req);
-+	case MEDIA_REQUEST_IOC_REINIT:
-+		return media_request_ioctl_reinit(req);
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+}
-+
-+static const struct file_operations request_fops = {
-+	.owner = THIS_MODULE,
-+	.poll = media_request_poll,
-+	.unlocked_ioctl = media_request_ioctl,
-+	.release = media_request_close,
-+};
-+
-+int media_request_alloc(struct media_device *mdev,
-+			struct media_request_alloc *alloc)
-+{
-+	struct media_request *req;
-+	struct file *filp;
-+	char comm[TASK_COMM_LEN];
-+	int fd;
-+	int ret;
-+
-+	/* Either both are NULL or both are non-NULL */
-+	if (WARN_ON(!mdev->ops->req_alloc ^ !mdev->ops->req_free))
-+		return -ENOMEM;
-+
-+	fd = get_unused_fd_flags(O_CLOEXEC);
-+	if (fd < 0)
-+		return fd;
-+
-+	filp = anon_inode_getfile("request", &request_fops, NULL, O_CLOEXEC);
-+	if (IS_ERR(filp)) {
-+		ret = PTR_ERR(filp);
-+		goto err_put_fd;
-+	}
-+
-+	if (mdev->ops->req_alloc)
-+		req = mdev->ops->req_alloc(mdev);
-+	else
-+		req = kzalloc(sizeof(*req), GFP_KERNEL);
-+	if (!req) {
-+		ret = -ENOMEM;
-+		goto err_fput;
-+	}
-+
-+	filp->private_data = req;
-+	req->mdev = mdev;
-+	req->state = MEDIA_REQUEST_STATE_IDLE;
-+	req->num_incomplete_objects = 0;
-+	kref_init(&req->kref);
-+	INIT_LIST_HEAD(&req->objects);
-+	spin_lock_init(&req->lock);
-+	init_waitqueue_head(&req->poll_wait);
-+	refcount_set(&req->updating_count, 0);
-+
-+	alloc->fd = fd;
-+
-+	get_task_comm(comm, current);
-+	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
-+		 comm, fd);
-+	dev_dbg(mdev->dev, "request: allocated %s\n", req->debug_str);
-+
-+	fd_install(fd, filp);
-+
-+	return 0;
-+
-+err_fput:
-+	fput(filp);
-+
-+err_put_fd:
-+	put_unused_fd(fd);
-+
-+	return ret;
-+}
-+
-+static void media_request_object_release(struct kref *kref)
-+{
-+	struct media_request_object *obj =
-+		container_of(kref, struct media_request_object, kref);
-+	struct media_request *req = obj->req;
-+
-+	if (req)
-+		media_request_object_unbind(obj);
-+	obj->ops->release(obj);
-+}
-+
-+void media_request_object_put(struct media_request_object *obj)
-+{
-+	kref_put(&obj->kref, media_request_object_release);
-+}
-+EXPORT_SYMBOL_GPL(media_request_object_put);
-+
-+void media_request_object_init(struct media_request_object *obj)
-+{
-+	obj->ops = NULL;
-+	obj->req = NULL;
-+	obj->priv = NULL;
-+	obj->completed = false;
-+	INIT_LIST_HEAD(&obj->list);
-+	kref_init(&obj->kref);
-+}
-+EXPORT_SYMBOL_GPL(media_request_object_init);
-+
-+int media_request_object_bind(struct media_request *req,
-+			      const struct media_request_object_ops *ops,
-+			      void *priv,
-+			      struct media_request_object *obj)
-+{
-+	unsigned long flags;
-+	int ret = -EBUSY;
-+
-+	if (WARN_ON(!ops->release))
-+		return -EPERM;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+
-+	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_UPDATING))
-+		goto unlock;
-+
-+	obj->req = req;
-+	obj->ops = ops;
-+	obj->priv = priv;
-+
-+	list_add_tail(&obj->list, &req->objects);
-+	req->num_incomplete_objects++;
-+	ret = 0;
-+
-+unlock:
-+	spin_unlock_irqrestore(&req->lock, flags);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(media_request_object_bind);
-+
-+void media_request_object_unbind(struct media_request_object *obj)
-+{
-+	struct media_request *req = obj->req;
-+	unsigned long flags;
-+	bool completed = false;
-+
-+	if (WARN_ON(!req))
-+		return;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	list_del(&obj->list);
-+	obj->req = NULL;
-+
-+	if (req->state == MEDIA_REQUEST_STATE_COMPLETE)
-+		goto unlock;
-+
-+	if (WARN_ON(req->state == MEDIA_REQUEST_STATE_VALIDATING))
-+		goto unlock;
-+
-+	if (req->state == MEDIA_REQUEST_STATE_CLEANING) {
-+		if (!obj->completed)
-+			req->num_incomplete_objects--;
-+		goto unlock;
-+	}
-+
-+	if (WARN_ON(!req->num_incomplete_objects))
-+		goto unlock;
-+
-+	req->num_incomplete_objects--;
-+	if (req->state == MEDIA_REQUEST_STATE_QUEUED &&
-+	    !req->num_incomplete_objects) {
-+		req->state = MEDIA_REQUEST_STATE_COMPLETE;
-+		completed = true;
-+		wake_up_interruptible_all(&req->poll_wait);
-+	}
-+
-+unlock:
-+	spin_unlock_irqrestore(&req->lock, flags);
-+	if (obj->ops->unbind)
-+		obj->ops->unbind(obj);
-+	if (completed)
-+		media_request_put(req);
-+}
-+EXPORT_SYMBOL_GPL(media_request_object_unbind);
-+
-+void media_request_object_complete(struct media_request_object *obj)
-+{
-+	struct media_request *req = obj->req;
-+	unsigned long flags;
-+	bool completed = false;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (obj->completed)
-+		goto unlock;
-+	obj->completed = true;
-+	if (WARN_ON(!req->num_incomplete_objects) ||
-+	    WARN_ON(req->state != MEDIA_REQUEST_STATE_QUEUED))
-+		goto unlock;
-+
-+	if (!--req->num_incomplete_objects) {
-+		req->state = MEDIA_REQUEST_STATE_COMPLETE;
-+		wake_up_interruptible_all(&req->poll_wait);
-+		completed = true;
-+	}
-+unlock:
-+	spin_unlock_irqrestore(&req->lock, flags);
-+	if (completed)
-+		media_request_put(req);
-+}
-+EXPORT_SYMBOL_GPL(media_request_object_complete);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index bcc6ec434f1f..cf52a74bada9 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -27,6 +27,7 @@
- 
- struct ida;
- struct device;
-+struct media_device;
- 
- /**
-  * struct media_entity_notify - Media Entity Notify
-@@ -50,10 +51,26 @@ struct media_entity_notify {
-  * struct media_device_ops - Media device operations
-  * @link_notify: Link state change notification callback. This callback is
-  *		 called with the graph_mutex held.
-+ * @req_alloc: Allocate a request. Set this if you need to allocate a struct
-+ *	       larger then struct media_request. @req_alloc and @req_free must
-+ *	       either both be set or both be NULL.
-+ * @req_free: Free a request. Set this if @req_alloc was set as well, leave
-+ *	      to NULL otherwise.
-+ * @req_validate: Validate a request, but do not queue yet. The req_queue_mutex
-+ *	          lock is held when this op is called.
-+ * @req_queue: Queue a validated request, cannot fail. If something goes
-+ *	       wrong when queueing this request then it should be marked
-+ *	       as such internally in the driver and any related buffers
-+ *	       must eventually return to vb2 with state VB2_BUF_STATE_ERROR.
-+ *	       The req_queue_mutex lock is held when this op is called.
-  */
- struct media_device_ops {
- 	int (*link_notify)(struct media_link *link, u32 flags,
- 			   unsigned int notification);
-+	struct media_request *(*req_alloc)(struct media_device *mdev);
-+	void (*req_free)(struct media_request *req);
-+	int (*req_validate)(struct media_request *req);
-+	void (*req_queue)(struct media_request *req);
+ const struct vb2_ops vivid_sdr_cap_qops = {
+ 	.queue_setup		= sdr_cap_queue_setup,
+ 	.buf_prepare		= sdr_cap_buf_prepare,
+ 	.buf_queue		= sdr_cap_buf_queue,
+ 	.start_streaming	= sdr_cap_start_streaming,
+ 	.stop_streaming		= sdr_cap_stop_streaming,
++	.buf_request_complete	= sdr_cap_buf_request_complete,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
  };
+diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
+index 92a852955173..903cebeb5ce5 100644
+--- a/drivers/media/platform/vivid/vivid-vbi-cap.c
++++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
+@@ -204,6 +204,8 @@ static int vbi_cap_start_streaming(struct vb2_queue *vq, unsigned count)
  
- /**
-@@ -87,7 +104,12 @@ struct media_device_ops {
-  * @enable_source: Enable Source Handler function pointer
-  * @disable_source: Disable Source Handler function pointer
-  *
-+ * @req_queue_mutex: Serialise validating and queueing requests in order to
-+ *		     guarantee exclusive access to the state of the device on
-+ *		     the tip of the request queue.
-  * @ops:	Operation handler callbacks
-+ * @req_queue_mutex: Serialise the MEDIA_REQUEST_IOC_QUEUE ioctl w.r.t.
-+ *		     other operations that stop or start streaming.
-  *
-  * This structure represents an abstract high-level media device. It allows easy
-  * access to entities and provides basic media device-level support. The
-@@ -158,6 +180,8 @@ struct media_device {
- 	void (*disable_source)(struct media_entity *entity);
+ 		list_for_each_entry_safe(buf, tmp, &dev->vbi_cap_active, list) {
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vbi_cap);
+ 			vb2_buffer_done(&buf->vb.vb2_buf,
+ 					VB2_BUF_STATE_QUEUED);
+ 		}
+@@ -220,12 +222,20 @@ static void vbi_cap_stop_streaming(struct vb2_queue *vq)
+ 	vivid_stop_generating_vid_cap(dev, &dev->vbi_cap_streaming);
+ }
  
- 	const struct media_device_ops *ops;
++static void vbi_cap_buf_request_complete(struct vb2_buffer *vb)
++{
++	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
 +
-+	struct mutex req_queue_mutex;
++	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vbi_cap);
++}
++
+ const struct vb2_ops vivid_vbi_cap_qops = {
+ 	.queue_setup		= vbi_cap_queue_setup,
+ 	.buf_prepare		= vbi_cap_buf_prepare,
+ 	.buf_queue		= vbi_cap_buf_queue,
+ 	.start_streaming	= vbi_cap_start_streaming,
+ 	.stop_streaming		= vbi_cap_stop_streaming,
++	.buf_request_complete	= vbi_cap_buf_request_complete,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
  };
+diff --git a/drivers/media/platform/vivid/vivid-vbi-out.c b/drivers/media/platform/vivid/vivid-vbi-out.c
+index 69486c130a7e..9357c07e30d6 100644
+--- a/drivers/media/platform/vivid/vivid-vbi-out.c
++++ b/drivers/media/platform/vivid/vivid-vbi-out.c
+@@ -96,6 +96,8 @@ static int vbi_out_start_streaming(struct vb2_queue *vq, unsigned count)
  
- /* We don't need to include pci.h or usb.h here */
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-new file mode 100644
-index 000000000000..8acd2627835c
---- /dev/null
-+++ b/include/media/media-request.h
-@@ -0,0 +1,326 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Media device request objects
-+ *
-+ * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ * Copyright (C) 2018 Intel Corporation
-+ *
-+ * Author: Hans Verkuil <hans.verkuil@cisco.com>
-+ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-+ */
-+
-+#ifndef MEDIA_REQUEST_H
-+#define MEDIA_REQUEST_H
-+
-+#include <linux/list.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+#include <linux/refcount.h>
-+
-+#include <media/media-device.h>
-+
-+/**
-+ * enum media_request_state - media request state
-+ *
-+ * @MEDIA_REQUEST_STATE_IDLE:		Idle
-+ * @MEDIA_REQUEST_STATE_VALIDATING:	Validating the request, no state changes
-+ *					allowed
-+ * @MEDIA_REQUEST_STATE_QUEUED:		Queued
-+ * @MEDIA_REQUEST_STATE_COMPLETE:	Completed, the request is done
-+ * @MEDIA_REQUEST_STATE_CLEANING:	Cleaning, the request is being re-inited
-+ * @MEDIA_REQUEST_STATE_UPDATING:	The request is being updated, i.e.
-+ *					request objects are being added,
-+ *					modified or removed
-+ * @NR_OF_MEDIA_REQUEST_STATE:		The number of media request states, used
-+ *					internally for sanity check purposes
-+ */
-+enum media_request_state {
-+	MEDIA_REQUEST_STATE_IDLE,
-+	MEDIA_REQUEST_STATE_VALIDATING,
-+	MEDIA_REQUEST_STATE_QUEUED,
-+	MEDIA_REQUEST_STATE_COMPLETE,
-+	MEDIA_REQUEST_STATE_CLEANING,
-+	MEDIA_REQUEST_STATE_UPDATING,
-+	NR_OF_MEDIA_REQUEST_STATE,
-+};
-+
-+struct media_request_object;
-+
-+/**
-+ * struct media_request - Media device request
-+ * @mdev: Media device this request belongs to
-+ * @kref: Reference count
-+ * @debug_str: Prefix for debug messages (process name:fd)
-+ * @state: The state of the request
-+ * @updating_count: count the number of request updates that are in progress
-+ * @objects: List of @struct media_request_object request objects
-+ * @num_incomplete_objects: The number of incomplete objects in the request
-+ * @poll_wait: Wait queue for poll
-+ * @lock: Serializes access to this struct
-+ */
-+struct media_request {
-+	struct media_device *mdev;
-+	struct kref kref;
-+	char debug_str[TASK_COMM_LEN + 11];
-+	enum media_request_state state;
-+	refcount_t updating_count;
-+	struct list_head objects;
-+	unsigned int num_incomplete_objects;
-+	struct wait_queue_head poll_wait;
-+	spinlock_t lock;
-+};
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+
-+/**
-+ * media_request_lock_for_update - Lock the request for updating its objects
-+ *
-+ * @req: The media request
-+ *
-+ * Use before updating a request, i.e. adding, modifying or removing a request
-+ * object in it. A reference to the request must be held during the update. This
-+ * usually takes place automatically through a file handle. Use
-+ * @media_request_unlock_for_update when done.
-+ */
-+static inline int __must_check
-+media_request_lock_for_update(struct media_request *req)
+ 		list_for_each_entry_safe(buf, tmp, &dev->vbi_out_active, list) {
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vbi_out);
+ 			vb2_buffer_done(&buf->vb.vb2_buf,
+ 					VB2_BUF_STATE_QUEUED);
+ 		}
+@@ -115,12 +117,20 @@ static void vbi_out_stop_streaming(struct vb2_queue *vq)
+ 	dev->vbi_out_have_cc[1] = false;
+ }
+ 
++static void vbi_out_buf_request_complete(struct vb2_buffer *vb)
 +{
-+	unsigned long flags;
-+	int ret = 0;
++	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
 +
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (req->state == MEDIA_REQUEST_STATE_IDLE ||
-+	    req->state == MEDIA_REQUEST_STATE_UPDATING) {
-+		req->state = MEDIA_REQUEST_STATE_UPDATING;
-+		refcount_inc(&req->updating_count);
-+	} else {
-+		ret = -EBUSY;
-+	}
-+	spin_unlock_irqrestore(&req->lock, flags);
-+
-+	return ret;
++	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vbi_out);
 +}
 +
-+/**
-+ * media_request_unlock_for_update - Unlock a request previously locked for
-+ *				     update
-+ *
-+ * @req: The media request
-+ *
-+ * Unlock a request that has previously been locked using
-+ * @media_request_lock_for_update.
-+ */
-+static inline void media_request_unlock_for_update(struct media_request *req)
+ const struct vb2_ops vivid_vbi_out_qops = {
+ 	.queue_setup		= vbi_out_queue_setup,
+ 	.buf_prepare		= vbi_out_buf_prepare,
+ 	.buf_queue		= vbi_out_buf_queue,
+ 	.start_streaming	= vbi_out_start_streaming,
+ 	.stop_streaming		= vbi_out_stop_streaming,
++	.buf_request_complete	= vbi_out_buf_request_complete,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 1599159f2574..b2aad441a071 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -240,6 +240,8 @@ static int vid_cap_start_streaming(struct vb2_queue *vq, unsigned count)
+ 
+ 		list_for_each_entry_safe(buf, tmp, &dev->vid_cap_active, list) {
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vid_cap);
+ 			vb2_buffer_done(&buf->vb.vb2_buf,
+ 					VB2_BUF_STATE_QUEUED);
+ 		}
+@@ -257,6 +259,13 @@ static void vid_cap_stop_streaming(struct vb2_queue *vq)
+ 	dev->can_loop_video = false;
+ }
+ 
++static void vid_cap_buf_request_complete(struct vb2_buffer *vb)
 +{
-+	unsigned long flags;
++	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
 +
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (refcount_dec_and_test(&req->updating_count))
-+		req->state = MEDIA_REQUEST_STATE_IDLE;
-+	spin_unlock_irqrestore(&req->lock, flags);
++	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vid_cap);
 +}
 +
-+/**
-+ * media_request_get - Get the media request
-+ *
-+ * @req: The media request
-+ *
-+ * Get the media request.
-+ */
-+static inline void media_request_get(struct media_request *req)
+ const struct vb2_ops vivid_vid_cap_qops = {
+ 	.queue_setup		= vid_cap_queue_setup,
+ 	.buf_prepare		= vid_cap_buf_prepare,
+@@ -264,6 +273,7 @@ const struct vb2_ops vivid_vid_cap_qops = {
+ 	.buf_queue		= vid_cap_buf_queue,
+ 	.start_streaming	= vid_cap_start_streaming,
+ 	.stop_streaming		= vid_cap_stop_streaming,
++	.buf_request_complete	= vid_cap_buf_request_complete,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index 51fec66d8d45..423a67133f28 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -162,6 +162,8 @@ static int vid_out_start_streaming(struct vb2_queue *vq, unsigned count)
+ 
+ 		list_for_each_entry_safe(buf, tmp, &dev->vid_out_active, list) {
+ 			list_del(&buf->list);
++			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
++						   &dev->ctrl_hdl_vid_out);
+ 			vb2_buffer_done(&buf->vb.vb2_buf,
+ 					VB2_BUF_STATE_QUEUED);
+ 		}
+@@ -179,12 +181,20 @@ static void vid_out_stop_streaming(struct vb2_queue *vq)
+ 	dev->can_loop_video = false;
+ }
+ 
++static void vid_out_buf_request_complete(struct vb2_buffer *vb)
 +{
-+	kref_get(&req->kref);
++	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
++
++	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vid_out);
 +}
 +
-+/**
-+ * media_request_put - Put the media request
-+ *
-+ * @req: The media request
-+ *
-+ * Put the media request. The media request will be released
-+ * when the refcount reaches 0.
-+ */
-+void media_request_put(struct media_request *req);
-+
-+/**
-+ * media_request_alloc - Allocate the media request
-+ *
-+ * @mdev: Media device this request belongs to
-+ * @alloc: Store the request's file descriptor in this struct
-+ *
-+ * Allocated the media request and put the fd in @alloc->fd.
-+ */
-+int media_request_alloc(struct media_device *mdev,
-+			struct media_request_alloc *alloc);
-+
-+#else
-+
-+static inline void media_request_get(struct media_request *req)
-+{
-+}
-+
-+static inline void media_request_put(struct media_request *req)
-+{
-+}
-+
-+#endif
-+
-+/**
-+ * struct media_request_object_ops - Media request object operations
-+ * @prepare: Validate and prepare the request object, optional.
-+ * @unprepare: Unprepare the request object, optional.
-+ * @queue: Queue the request object, optional.
-+ * @unbind: Unbind the request object, optional.
-+ * @release: Release the request object, required.
-+ */
-+struct media_request_object_ops {
-+	int (*prepare)(struct media_request_object *object);
-+	void (*unprepare)(struct media_request_object *object);
-+	void (*queue)(struct media_request_object *object);
-+	void (*unbind)(struct media_request_object *object);
-+	void (*release)(struct media_request_object *object);
-+};
-+
-+/**
-+ * struct media_request_object - An opaque object that belongs to a media
-+ *				 request
-+ *
-+ * @ops: object's operations
-+ * @priv: object's priv pointer
-+ * @req: the request this object belongs to (can be NULL)
-+ * @list: List entry of the object for @struct media_request
-+ * @kref: Reference count of the object, acquire before releasing req->lock
-+ * @completed: If true, then this object was completed.
-+ *
-+ * An object related to the request. This struct is always embedded in
-+ * another struct that contains the actual data for this request object.
-+ */
-+struct media_request_object {
-+	const struct media_request_object_ops *ops;
-+	void *priv;
-+	struct media_request *req;
-+	struct list_head list;
-+	struct kref kref;
-+	bool completed;
-+};
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+
-+/**
-+ * media_request_object_get - Get a media request object
-+ *
-+ * @obj: The object
-+ *
-+ * Get a media request object.
-+ */
-+static inline void media_request_object_get(struct media_request_object *obj)
-+{
-+	kref_get(&obj->kref);
-+}
-+
-+/**
-+ * media_request_object_put - Put a media request object
-+ *
-+ * @obj: The object
-+ *
-+ * Put a media request object. Once all references are gone, the
-+ * object's memory is released.
-+ */
-+void media_request_object_put(struct media_request_object *obj);
-+
-+/**
-+ * media_request_object_init - Initialise a media request object
-+ *
-+ * @obj: The object
-+ *
-+ * Initialise a media request object. The object will be released using the
-+ * release callback of the ops once it has no references (this function
-+ * initialises references to one).
-+ */
-+void media_request_object_init(struct media_request_object *obj);
-+
-+/**
-+ * media_request_object_bind - Bind a media request object to a request
-+ *
-+ * @req: The media request
-+ * @ops: The object ops for this object
-+ * @priv: A driver-specific priv pointer associated with this object
-+ * @obj: The object
-+ *
-+ * Bind this object to the request and set the ops and priv values of
-+ * the object so it can be found later with media_request_object_find().
-+ *
-+ * Every bound object must be unbound or completed by the kernel at some
-+ * point in time, otherwise the request will never complete. When the
-+ * request is released all completed objects will be unbound by the
-+ * request core code.
-+ */
-+int media_request_object_bind(struct media_request *req,
-+			      const struct media_request_object_ops *ops,
-+			      void *priv,
-+			      struct media_request_object *obj);
-+
-+/**
-+ * media_request_object_unbind - Unbind a media request object
-+ *
-+ * @obj: The object
-+ *
-+ * Unbind the media request object from the request.
-+ */
-+void media_request_object_unbind(struct media_request_object *obj);
-+
-+/**
-+ * media_request_object_complete - Mark the media request object as complete
-+ *
-+ * @obj: The object
-+ *
-+ * Mark the media request object as complete. Only bound objects can
-+ * be completed.
-+ */
-+void media_request_object_complete(struct media_request_object *obj);
-+
-+#else
-+
-+static inline int __must_check
-+media_request_lock_for_update(struct media_request *req)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline void media_request_unlock_for_update(struct media_request *req)
-+{
-+}
-+
-+static inline void media_request_object_get(struct media_request_object *obj)
-+{
-+}
-+
-+static inline void media_request_object_put(struct media_request_object *obj)
-+{
-+}
-+
-+static inline void media_request_object_init(struct media_request_object *obj)
-+{
-+	obj->ops = NULL;
-+	obj->req = NULL;
-+}
-+
-+static inline int media_request_object_bind(struct media_request *req,
-+			       const struct media_request_object_ops *ops,
-+			       void *priv,
-+			       struct media_request_object *obj)
-+{
-+	return 0;
-+}
-+
-+static inline void media_request_object_unbind(struct media_request_object *obj)
-+{
-+}
-+
-+static inline void media_request_object_complete(struct media_request_object *obj)
-+{
-+}
-+
-+#endif
-+
-+#endif
+ const struct vb2_ops vivid_vid_out_qops = {
+ 	.queue_setup		= vid_out_queue_setup,
+ 	.buf_prepare		= vid_out_buf_prepare,
+ 	.buf_queue		= vid_out_buf_queue,
+ 	.start_streaming	= vid_out_start_streaming,
+ 	.stop_streaming		= vid_out_stop_streaming,
++	.buf_request_complete	= vid_out_buf_request_complete,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
 -- 
 2.17.0
