@@ -1,93 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41384 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750740AbeFAVcl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 17:32:41 -0400
-Date: Fri, 1 Jun 2018 15:32:36 -0600
-From: Jordan Crouse <jcrouse@codeaurora.org>
-To: Vikash Garodia <vgarodia@codeaurora.org>
-Cc: hverkuil@xs4all.nl, mchehab@kernel.org, robh@kernel.org,
-        mark.rutland@arm.com, andy.gross@linaro.org,
-        bjorn.andersson@linaro.org, stanimir.varbanov@linaro.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, acourbot@chromium.org
-Subject: Re: [PATCH v2 5/5] venus: register separate driver for firmware
- device
-Message-ID: <20180601213236.GG11565@jcrouse-lnx.qualcomm.com>
-References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
- <1527884768-22392-6-git-send-email-vgarodia@codeaurora.org>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:35117 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750868AbeFDMTg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 08:19:36 -0400
+Received: by mail-lf0-f67.google.com with SMTP id y72-v6so24846169lfd.2
+        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2018 05:19:36 -0700 (PDT)
+Date: Mon, 4 Jun 2018 14:19:33 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, horms@verge.net.au,
+        geert@glider.be, mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3 6/8] dt-bindings: rcar-vin: Add 'hsync-as-de' custom
+ prop
+Message-ID: <20180604121933.GG19674@bigcity.dyn.berto.se>
+References: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1527606359-19261-7-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <1527884768-22392-6-git-send-email-vgarodia@codeaurora.org>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1527606359-19261-7-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jun 02, 2018 at 01:56:08AM +0530, Vikash Garodia wrote:
-> A separate child device is added for video firmware.
-> This is needed to
-> [1] configure the firmware context bank with the desired SID.
-> [2] ensure that the iova for firmware region is from 0x0.
+Hi Jacopo,
+
+Thanks for your work.
+
+On 2018-05-29 17:05:57 +0200, Jacopo Mondi wrote:
+> Document the boolean custom property 'renesas,hsync-as-de' that indicates
+> that the HSYNC signal is internally used as data-enable, when the
+> CLKENB signal is not connected.
 > 
-> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+> As this is a VIN specificity create a custom property specific to the R-Car
+> VIN driver.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > ---
->  .../devicetree/bindings/media/qcom,venus.txt       |  8 +++-
->  drivers/media/platform/qcom/venus/core.c           | 48 +++++++++++++++++++---
->  drivers/media/platform/qcom/venus/firmware.c       | 20 ++++++++-
->  drivers/media/platform/qcom/venus/firmware.h       |  2 +
->  4 files changed, 71 insertions(+), 7 deletions(-)
+> v3:
+> - new patch
+> ---
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> index 00d0d1b..701cbe8 100644
-> --- a/Documentation/devicetree/bindings/media/qcom,venus.txt
-> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> @@ -53,7 +53,7 @@
->  
->  * Subnodes
->  The Venus video-codec node must contain two subnodes representing
-> -video-decoder and video-encoder.
-> +video-decoder and video-encoder, one optional firmware subnode.
->  
->  Every of video-encoder or video-decoder subnode should have:
->  
-> @@ -79,6 +79,8 @@ Every of video-encoder or video-decoder subnode should have:
->  		    power domain which is responsible for collapsing
->  		    and restoring power to the subcore.
->  
-> +The firmware sub node must contain the iommus specifiers for ARM9.
-> +
->  * An Example
->  	video-codec@1d00000 {
->  		compatible = "qcom,msm8916-venus";
-> @@ -105,4 +107,8 @@ Every of video-encoder or video-decoder subnode should have:
->  			clock-names = "core";
->  			power-domains = <&mmcc VENUS_CORE1_GDSC>;
->  		};
-> +		venus-firmware {
-> +			compatible = "qcom,venus-firmware-no-tz";
-> +			iommus = <&apps_smmu 0x10b2 0x0>;
-> +		}
->  	};
-> diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-> index 101612b..5cfb3c2 100644
-> --- a/drivers/media/platform/qcom/venus/core.c
-> +++ b/drivers/media/platform/qcom/venus/core.c
-> @@ -179,6 +179,19 @@ static u32 to_v4l2_codec_type(u32 codec)
->  	}
->  }
->  
-> +static int store_firmware_dev(struct device *dev, void *data)
-> +{
-> +	struct venus_core *core = data;
-> +
-> +	if (!core)
-> +		return -EINVAL;
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> index ff53226..024c109 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -60,6 +60,9 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+>          - vsync-active: see [1] for description. Default is active high.
+>          - data-enable-active: polarity of CLKENB signal, see [1] for
+>            description. Default is active high.
+> +        - renesas,hsync-as-de: a boolean property to indicate that HSYNC signal
+> +          is internally used as data-enable when the CLKENB signal is
+> +          not available.
 
-Core is not going to be null here - you don't need to check it.
+I'm not sure I like this, is there really a need to add a custom 
+property for this? The datasheet states that when the CLKENB pin is not 
+connected the driver should enable 'Clock Enable Hsync Select (CHS)'.  
+With the new generic property 'data-enable-active' which describes the 
+polarity of the CLKENB pin we also gain the knowledge if the CLKENB pin 
+is connected or not.
 
-<snip>
+I propose we drop this custom property and instead let the driver check 
+if the CLKENB polarity is described or not and use that to determine if 
+CHS bit should be set or not. IMHO that is much simpler then having two 
+properties describing the same pin.
+
+> 
+>          If both HSYNC and VSYNC polarities are not specified, embedded
+>          synchronization is selected.
+> --
+> 2.7.4
+> 
 
 -- 
-The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Regards,
+Niklas Söderlund
