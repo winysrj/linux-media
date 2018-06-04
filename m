@@ -1,91 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:35886 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934701AbeFOTIG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 15:08:06 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v4 09/17] davinci_vpfe: Add video_device and vb2_queue locks
-Date: Fri, 15 Jun 2018 16:07:29 -0300
-Message-Id: <20180615190737.24139-10-ezequiel@collabora.com>
-In-Reply-To: <20180615190737.24139-1-ezequiel@collabora.com>
-References: <20180615190737.24139-1-ezequiel@collabora.com>
+Received: from ni.piap.pl ([195.187.100.4]:57516 "EHLO ni.piap.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751274AbeFDI6V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 04:58:21 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+References: <m37eobudmo.fsf@t19.piap.pl> <m3tvresqfw.fsf@t19.piap.pl>
+        <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
+        <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
+        <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
+        <m3h8mxqc7t.fsf@t19.piap.pl>
+        <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
+        <1527229949.4938.1.camel@pengutronix.de> <m3y3g8p5j3.fsf@t19.piap.pl>
+        <1e11fa9a-8fa6-c746-7ee1-a64666bfc44e@gmail.com>
+        <m3lgc2q5vl.fsf@t19.piap.pl>
+        <06b9dd3d-3b7d-d34d-5263-411c99ab1a8b@gmail.com>
+        <m38t81plry.fsf@t19.piap.pl>
+        <4f49cf44-431d-1971-e5c5-d66381a6970e@gmail.com>
+        <m336y9ouc4.fsf@t19.piap.pl>
+        <6923fcd4-317e-d6a6-7975-47a8c712f8f9@gmail.com>
+        <m3sh66omdk.fsf@t19.piap.pl> <1527858788.5913.2.camel@pengutronix.de>
+        <05703b20-3280-3bdd-c438-dfce8e475aaa@gmail.com>
+        <1528102047.5808.11.camel@pengutronix.de>
+Date: Mon, 04 Jun 2018 10:58:18 +0200
+In-Reply-To: <1528102047.5808.11.camel@pengutronix.de> (Philipp Zabel's
+        message of "Mon, 04 Jun 2018 10:47:27 +0200")
+Message-ID: <m3zi0blyhh.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, this driver does not serialize its video4linux
-ioctls, which is a bug, as race conditions might appear.
+I've just tested the PAL setup: in currect situation (v4.17 + Steve's
+fix-csi-interlaced.2 + "media: adv7180: fix field type" + a small cheap
+PAL camera) the following produces bottom-first interlaced frames:
 
-In addition, video_device and vb2_queue locks are now both
-mandatory. Add them, and implement wait_prepare and
-wait_finish.
+media-ctl -r -l '"adv7180 2-0020":0->"ipu2_csi1_mux":1[1],
+                 "ipu2_csi1_mux":2->"ipu2_csi1":0[1],
+                 "ipu2_csi1":2->"ipu2_csi1 capture":0[1]'
 
-To stay on the safe side, this commit uses a single mutex
-for both locks. Better latency can be obtained by separating
-these if needed.
+media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x576 field:alternate]"
+media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x576]"
+media-ctl -V "'ipu2_csi1':2 [fmt:AYUV32/720x576 field:interlaced]"
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 6 +++++-
- drivers/staging/media/davinci_vpfe/vpfe_video.h | 2 +-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+"adv7180 2-0020":0 [fmt:UYVY2X8/720x576 field:alternate]
+"ipu2_csi1_mux":1  [fmt:UYVY2X8/720x576 field:alternate]
+"ipu2_csi1_mux":2  [fmt:UYVY2X8/720x576 field:alternate]
+"ipu2_csi1":0      [fmt:UYVY2X8/720x576 field:alternate]
+"ipu2_csi1":2      [fmt:AYUV32/720x576 field:interlaced]
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 390fc98d07dd..1269a983455e 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -1312,6 +1312,8 @@ static const struct vb2_ops video_qops = {
- 	.stop_streaming		= vpfe_stop_streaming,
- 	.buf_cleanup		= vpfe_buf_cleanup,
- 	.buf_queue		= vpfe_buffer_queue,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
- 
- /*
-@@ -1357,6 +1359,7 @@ static int vpfe_reqbufs(struct file *file, void *priv,
- 	q->buf_struct_size = sizeof(struct vpfe_cap_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->dev = vpfe_dev->pdev;
-+	q->lock = &video->lock;
- 
- 	ret = vb2_queue_init(q);
- 	if (ret) {
-@@ -1598,17 +1601,18 @@ int vpfe_video_init(struct vpfe_video_device *video, const char *name)
- 		return -EINVAL;
- 	}
- 	/* Initialize field of video device */
-+	mutex_init(&video->lock);
- 	video->video_dev.release = video_device_release;
- 	video->video_dev.fops = &vpfe_fops;
- 	video->video_dev.ioctl_ops = &vpfe_ioctl_ops;
- 	video->video_dev.minor = -1;
- 	video->video_dev.tvnorms = 0;
-+	video->video_dev.lock = &video->lock;
- 	snprintf(video->video_dev.name, sizeof(video->video_dev.name),
- 		 "DAVINCI VIDEO %s %s", name, direction);
- 
- 	spin_lock_init(&video->irqlock);
- 	spin_lock_init(&video->dma_queue_lock);
--	mutex_init(&video->lock);
- 	ret = media_entity_pads_init(&video->video_dev.entity,
- 				1, &video->pad);
- 	if (ret < 0)
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-index 22136d3dadcb..4bbd219e8329 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-@@ -128,7 +128,7 @@ struct vpfe_video_device {
- 	spinlock_t				irqlock;
- 	/* IRQ lock for DMA queue */
- 	spinlock_t				dma_queue_lock;
--	/* lock used to access this structure */
-+	/* lock used to serialize all video4linux ioctls */
- 	struct mutex				lock;
- 	/* number of users performing IO */
- 	u32					io_usrs;
+I think it would be great if these changes make their way upstream.
+The details could be refined then.
 -- 
-2.17.1
+Krzysztof Halasa
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
