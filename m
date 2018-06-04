@@ -1,53 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:53032 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752572AbeFAU0h (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 16:26:37 -0400
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: hverkuil@xs4all.nl, mchehab@kernel.org, robh@kernel.org,
-        mark.rutland@arm.com, andy.gross@linaro.org,
-        bjorn.andersson@linaro.org, stanimir.varbanov@linaro.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, vgarodia@codeaurora.org,
-        acourbot@chromium.org
-Subject: [PATCH v2 0/5] Venus updates - PIL 
-Date: Sat,  2 Jun 2018 01:56:03 +0530
-Message-Id: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
+Received: from userp2120.oracle.com ([156.151.31.85]:50856 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751396AbeFDWck (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 18:32:40 -0400
+Subject: Re: [PATCH v2 9/9] xen/gntdev: Expose gntdev's dma-buf API for
+ in-kernel use
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180601114132.22596-1-andr2000@gmail.com>
+ <20180601114132.22596-10-andr2000@gmail.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <86f5b340-856c-204f-4ba7-dd51f1e92639@oracle.com>
+Date: Mon, 4 Jun 2018 18:36:11 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180601114132.22596-10-andr2000@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
+> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>
+> Allow creating grant device context for use by kernel modules which
+> require functionality, provided by gntdev. Export symbols for dma-buf
+> API provided by the module.
 
-Here is v2 with following comments addressed:
+Can you give an example of who'd be using these interfaces?
 
-* drop 1/4 patch from v1 and use relevant api to load
-  firmware without PAS.
-* add some details on ARM9 role in video hardware.
-* abstract scm calls to set hardware state.
-* remove setting aperture range for firmware and vcodec
-  context banks.
-* add misc code review comments related to return
-  handling, unwanted cast, etc.
 
-Comments are welcome!
-
-Vikash Garodia (5):
-  media: venus: add a routine to reset ARM9
-  media: venus: add a routine to set venus state
-  venus: add check to make scm calls
-  media: venus: add no TZ boot and shutdown routine
-  venus: register separate driver for firmware device
-
- .../devicetree/bindings/media/qcom,venus.txt       |   8 +-
- drivers/media/platform/qcom/venus/core.c           |  58 +++++-
- drivers/media/platform/qcom/venus/core.h           |  10 +
- drivers/media/platform/qcom/venus/firmware.c       | 217 ++++++++++++++++++---
- drivers/media/platform/qcom/venus/firmware.h       |  12 +-
- drivers/media/platform/qcom/venus/hfi_venus.c      |  13 +-
- drivers/media/platform/qcom/venus/hfi_venus_io.h   |   5 +
- 7 files changed, 275 insertions(+), 48 deletions(-)
-
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
+-boris
