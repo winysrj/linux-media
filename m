@@ -1,56 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:42756 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753563AbeFDOei (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 10:34:38 -0400
-Message-ID: <3706c4e9a9cdadfac4a40fdd9c3b15c94a338de1.camel@collabora.com>
-Subject: Re: [PATCH 0/2] rockchip/rga: A fix and a cleanup
-From: Ezequiel Garcia <ezequiel@collabora.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:51312 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752607AbeFDLrC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 07:47:02 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Heiko Stuebner <heiko@sntech.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        linux-rockchip@lists.infradead.org
-Date: Mon, 04 Jun 2018 11:34:30 -0300
-In-Reply-To: <20180601194952.17440-1-ezequiel@collabora.com>
-References: <20180601194952.17440-1-ezequiel@collabora.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [PATCHv15 10/35] v4l2-ctrls: prepare internal structs for request API
+Date: Mon,  4 Jun 2018 13:46:23 +0200
+Message-Id: <20180604114648.26159-11-hverkuil@xs4all.nl>
+In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
+References: <20180604114648.26159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ccing Jacob at the right address.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Perhaps we should fix the MAINTAINERS file.
+Embed and initialize a media_request_object in struct v4l2_ctrl_handler.
 
-On Fri, 2018-06-01 at 16:49 -0300, Ezequiel Garcia wrote:
-> Decided to test v4l2transform filters and found these two
-> issues.
-> 
-> Without the first commit, start_streaming fails. The second
-> commit is just a cleanup, removing a seemingly redundant
-> operation.
-> 
-> Tested on RK3288 Radxa Rock2 with these kind of pipelines:
-> 
-> gst-launch-1.0 videotestsrc ! video/x-
-> raw,width=640,height=480,framerate=30/1,format=RGB !
-> v4l2video0convert ! video/x-
-> raw,width=1920,height=1080,framerate=30/1,format=NV16 ! fakesink
-> 
-> gst-launch-1.0 v4l2src device=/dev/video1 ! video/x-
-> raw,width=640,height=480,framerate=30/1,format=RGB !
-> v4l2video0convert ! video/x-
-> raw,width=1920,height=1080,framerate=30/1,format=NV16 ! kmssink
-> 
-> Ezequiel Garcia (2):
->   rockchip/rga: Fix broken .start_streaming
->   rockchip/rga: Remove unrequired wait in .job_abort
-> 
->  drivers/media/platform/rockchip/rga/rga-buf.c | 44 +++++++++------
-> ----
->  drivers/media/platform/rockchip/rga/rga.c     | 13 +-----
->  drivers/media/platform/rockchip/rga/rga.h     |  2 -
->  3 files changed, 23 insertions(+), 36 deletions(-)
-> 
+Add a p_req field to struct v4l2_ctrl_ref that will store the
+request value.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c |  1 +
+ include/media/v4l2-ctrls.h           | 10 ++++++++++
+ 2 files changed, 11 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index aa1dd2015e84..d09f49530d9e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1880,6 +1880,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
+ 				      sizeof(hdl->buckets[0]),
+ 				      GFP_KERNEL | __GFP_ZERO);
+ 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
++	media_request_object_init(&hdl->req_obj);
+ 	return hdl->error;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index d26b8ddebb56..847d6f543e4a 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -20,6 +20,7 @@
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
++#include <media/media-request.h>
+ 
+ /* forward references */
+ struct file;
+@@ -249,6 +250,11 @@ struct v4l2_ctrl {
+  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+  * @from_other_dev: If true, then @ctrl was defined in another
+  *		device than the &struct v4l2_ctrl_handler.
++ * @p_req:	If the control handler containing this control reference
++ *		is bound to a media request, then this points to the
++ *		value of the control that should be applied when the request
++ *		is executed, or to the value of the control at the time
++ *		that the request was completed.
+  *
+  * Each control handler has a list of these refs. The list_head is used to
+  * keep a sorted-by-control-ID list of all controls, while the next pointer
+@@ -260,6 +266,7 @@ struct v4l2_ctrl_ref {
+ 	struct v4l2_ctrl *ctrl;
+ 	struct v4l2_ctrl_helper *helper;
+ 	bool from_other_dev;
++	union v4l2_ctrl_ptr p_req;
+ };
+ 
+ /**
+@@ -283,6 +290,8 @@ struct v4l2_ctrl_ref {
+  * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
+  * @nr_of_buckets: Total number of buckets in the array.
+  * @error:	The error code of the first failed control addition.
++ * @req_obj:	The &struct media_request_object, used to link into a
++ *		&struct media_request. This request object has a refcount.
+  */
+ struct v4l2_ctrl_handler {
+ 	struct mutex _lock;
+@@ -295,6 +304,7 @@ struct v4l2_ctrl_handler {
+ 	void *notify_priv;
+ 	u16 nr_of_buckets;
+ 	int error;
++	struct media_request_object req_obj;
+ };
+ 
+ /**
+-- 
+2.17.0
