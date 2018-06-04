@@ -1,254 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2120.oracle.com ([141.146.126.78]:55390 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750950AbeFDUJS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 16:09:18 -0400
-Subject: Re: [PATCH v2 5/9] xen/gntdev: Allow mappings for DMA buffers
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180601114132.22596-1-andr2000@gmail.com>
- <20180601114132.22596-6-andr2000@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <64facf05-0a51-c3d9-9d3b-780893248628@oracle.com>
-Date: Mon, 4 Jun 2018 16:12:45 -0400
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:36855 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752017AbeFDLmz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 07:42:55 -0400
+Subject: Re: RFC: Request API and memory-to-memory devices
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+References: <157f4fc4-eebf-41ab-1e9c-93d7baefc612@xs4all.nl>
+ <20180525141655.ugmd7xki4nsqz2pg@kekkonen.localdomain>
+ <f5db7cca-02b7-4ff7-ce4d-a1c5dcf8bf20@xs4all.nl>
+Message-ID: <d30da2aa-b270-7d27-b46a-19982847586e@xs4all.nl>
+Date: Mon, 4 Jun 2018 13:42:49 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180601114132.22596-6-andr2000@gmail.com>
+In-Reply-To: <f5db7cca-02b7-4ff7-ce4d-a1c5dcf8bf20@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
-> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->
-> Allow mappings for DMA backed  buffers if grant table module
-> supports such: this extends grant device to not only map buffers
-> made of balloon pages, but also from buffers allocated with
-> dma_alloc_xxx.
->
-> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-> ---
->  drivers/xen/gntdev.c      | 99 ++++++++++++++++++++++++++++++++++++++-
->  include/uapi/xen/gntdev.h | 15 ++++++
->  2 files changed, 112 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
-> index bd56653b9bbc..9813fc440c70 100644
-> --- a/drivers/xen/gntdev.c
-> +++ b/drivers/xen/gntdev.c
-> @@ -37,6 +37,9 @@
->  #include <linux/slab.h>
->  #include <linux/highmem.h>
->  #include <linux/refcount.h>
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +#include <linux/of_device.h>
-> +#endif
->  
->  #include <xen/xen.h>
->  #include <xen/grant_table.h>
-> @@ -72,6 +75,11 @@ struct gntdev_priv {
->  	struct mutex lock;
->  	struct mm_struct *mm;
->  	struct mmu_notifier mn;
-> +
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +	/* Device for which DMA memory is allocated. */
-> +	struct device *dma_dev;
-> +#endif
->  };
->  
->  struct unmap_notify {
-> @@ -96,10 +104,27 @@ struct grant_map {
->  	struct gnttab_unmap_grant_ref *kunmap_ops;
->  	struct page **pages;
->  	unsigned long pages_vm_start;
-> +
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +	/*
-> +	 * If dmabuf_vaddr is not NULL then this mapping is backed by DMA
-> +	 * capable memory.
-> +	 */
-> +
-> +	struct device *dma_dev;
-> +	/* Flags used to create this DMA buffer: GNTDEV_DMA_FLAG_XXX. */
-> +	int dma_flags;
-> +	void *dma_vaddr;
-> +	dma_addr_t dma_bus_addr;
-> +	/* This is required for gnttab_dma_{alloc|free}_pages. */
+On 05/25/2018 05:26 PM, Hans Verkuil wrote:
+> On 25/05/18 16:16, Sakari Ailus wrote:
+>> Hi Hans,
+>>
+>> On Thu, May 24, 2018 at 10:44:13AM +0200, Hans Verkuil wrote:
+>>> Memory-to-memory devices have one video node, one internal control handler
+>>> but two vb2_queues (DMA engines). While often there is one buffer produced
+>>> for every buffer consumed, but this is by no means standard. E.g. deinterlacers
+>>> will produce on buffer for every two buffers consumed. Codecs that receive
+>>> a bit stream and can parse it to discover the framing may have no relation
+>>> between the number of buffers consumed and the number of buffers produced.
+>>
+>> Do you have examples of such devices? I presume they're not supported in
+>> the current m2m API either, are they?
+>>
+>>>
+>>> This poses a few problems for the Request API. Requiring that a request
+>>> contains the buffers for both output and capture queue will be difficult
+>>> to implement, especially in the latter case where there is no relationship
+>>> between the number of consumed and produced buffers.
+>>>
+>>> In addition, userspace can make two requests: one for the capture queue,
+>>> one for the output queue, each with associated controls. But since the
+>>> controls are shared between capture and output there is an issue of
+>>> what to do when the same control is set in both requests.
+>>
+>> As I commented on v13, the two requests need to be handled separately in
+>> this case. Mem-to-mem devices are rather special in this respect; there's
+>> an established practice of matching buffers in the order they arrive from
+>> the queues, but that's not how the request API is intended to work: the
+>> buffers are associated to the request, and a request is processed
+>> independently of other requests.
+>>
+>> While that approach might work for mem-to-mem devices at least in some use
+>> cases, it is not a feasible approach for other devices. As a consequence,
+>> will have different API semantics between mem2mem devices and the rest. I'd
+>> like to avoid that if possible: this will be similarly visible in the user
+>> applications as well.
+>>
+>>>
+>>> I propose to restrict the usage of requests for m2m drivers to the output
+>>> queue only. This keeps things simple for both kernel and userspace and
+>>> avoids complex solutions.
+>>
+>> If there's a convincing reason to use different API semantics, such as the
+>> relationship between different buffers being unknown to the user, then
+>> there very likely is a need to associate non-request data with
+>> request-bound data in the driver. But it'd be better to limit it to where
+>> it's really needed.
+>>
+>>>
+>>> Requests only make sense if there is actually configuration you can apply
+>>> for each buffer, and while that's true for the output queue, on the capture
+>>> queue you just capture the result of whatever the device delivers. I don't
+>>> believe there is much if anything you can or want to control per-buffer.
+>>
+>> May there be controls associated with the capture queue buffers?
+>>
+> 
+> In theory that could happen for m2m devices, but those controls would be different
+> from controls associated with the output queue.
+> 
+> The core problem is that if there is no clear relationship between capture
+> and output buffers, then you cannot add a capture and an output buffer to
+> the same request. That simply wouldn't work.
+> 
+> How to signal this to the user? For m2m devices we could just specify that
+> in the spec and check this in the core. As Tomasz said, m2m devices are
+> already sufficiently special that I don't think this is a problem. But in
+> the more generic case (complex pipelines) I cannot off-hand think of something
+> elegant.
+> 
+> I guess I would have to sleep on this a bit.
 
-How about
+After thinking this over I believe that the only way this can be exposed to
+userspace is via the media controller. How exactly I do not know, but since this
+depends on the topology the MC is the only place you can provide such information
+to the user.
 
-/* Needed to avoid allocation in gnttab_dma_free_pages(). */
+For now I will just disable the use of requests for the capture queue of an m2m
+device. This can always be relaxed in the future once we figured out how to
+present this in the MC.
 
-> +	xen_pfn_t *frames;
-> +#endif
->  };
->  
->  static int unmap_grant_pages(struct grant_map *map, int offset, int pages);
->  
-> +static struct miscdevice gntdev_miscdev;
-> +
->  /* ------------------------------------------------------------------ */
->  
->  static void gntdev_print_maps(struct gntdev_priv *priv,
-> @@ -121,8 +146,27 @@ static void gntdev_free_map(struct grant_map *map)
->  	if (map == NULL)
->  		return;
->  
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +	if (map->dma_vaddr) {
-> +		struct gnttab_dma_alloc_args args;
-> +
-> +		args.dev = map->dma_dev;
-> +		args.coherent = map->dma_flags & GNTDEV_DMA_FLAG_COHERENT;
-> +		args.nr_pages = map->count;
-> +		args.pages = map->pages;
-> +		args.frames = map->frames;
-> +		args.vaddr = map->dma_vaddr;
-> +		args.dev_bus_addr = map->dma_bus_addr;
-> +
-> +		gnttab_dma_free_pages(&args);
-> +	} else
-> +#endif
->  	if (map->pages)
->  		gnttab_free_pages(map->count, map->pages);
-> +
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +	kfree(map->frames);
-> +#endif
+Regards,
 
-
-Can this be done under if (map->dma_vaddr) ? In other words, is it
-possible for dma_vaddr to be NULL and still have unallocated frames pointer?
-
-
->  	kfree(map->pages);
->  	kfree(map->grants);
->  	kfree(map->map_ops);
-> @@ -132,7 +176,8 @@ static void gntdev_free_map(struct grant_map *map)
->  	kfree(map);
->  }
->  
-> -static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count)
-> +static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count,
-> +					  int dma_flags)
->  {
->  	struct grant_map *add;
->  	int i;
-> @@ -155,6 +200,37 @@ static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count)
->  	    NULL == add->pages)
->  		goto err;
->  
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +	add->dma_flags = dma_flags;
-> +
-> +	/*
-> +	 * Check if this mapping is requested to be backed
-> +	 * by a DMA buffer.
-> +	 */
-> +	if (dma_flags & (GNTDEV_DMA_FLAG_WC | GNTDEV_DMA_FLAG_COHERENT)) {
-> +		struct gnttab_dma_alloc_args args;
-> +
-> +		add->frames = kcalloc(count, sizeof(add->frames[0]),
-> +				      GFP_KERNEL);
-> +		if (!add->frames)
-> +			goto err;
-> +
-> +		/* Remember the device, so we can free DMA memory. */
-> +		add->dma_dev = priv->dma_dev;
-> +
-> +		args.dev = priv->dma_dev;
-> +		args.coherent = dma_flags & GNTDEV_DMA_FLAG_COHERENT;
-> +		args.nr_pages = count;
-> +		args.pages = add->pages;
-> +		args.frames = add->frames;
-> +
-> +		if (gnttab_dma_alloc_pages(&args))
-> +			goto err;
-> +
-> +		add->dma_vaddr = args.vaddr;
-> +		add->dma_bus_addr = args.dev_bus_addr;
-> +	} else
-> +#endif
->  	if (gnttab_alloc_pages(count, add->pages))
->  		goto err;
->  
-> @@ -325,6 +401,14 @@ static int map_grant_pages(struct grant_map *map)
->  		map->unmap_ops[i].handle = map->map_ops[i].handle;
->  		if (use_ptemod)
->  			map->kunmap_ops[i].handle = map->kmap_ops[i].handle;
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +		else if (map->dma_vaddr) {
-> +			unsigned long mfn;
-> +
-> +			mfn = __pfn_to_mfn(page_to_pfn(map->pages[i]));
-
-
-Not pfn_to_mfn()?
-
-
--boris
-
-> +			map->unmap_ops[i].dev_bus_addr = __pfn_to_phys(mfn);
-> +		}
-> +#endif
->  	}
->  	return err;
->  }
-> @@ -548,6 +632,17 @@ static int gntdev_open(struct inode *inode, struct file *flip)
->  	}
->  
->  	flip->private_data = priv;
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +	priv->dma_dev = gntdev_miscdev.this_device;
-> +
-> +	/*
-> +	 * The device is not spawn from a device tree, so arch_setup_dma_ops
-> +	 * is not called, thus leaving the device with dummy DMA ops.
-> +	 * Fix this call of_dma_configure() with a NULL node to set
-> +	 * default DMA ops.
-> +	 */
-> +	of_dma_configure(priv->dma_dev, NULL);
-> +#endif
->  	pr_debug("priv %p\n", priv);
->  
->  	return 0;
-> @@ -589,7 +684,7 @@ static long gntdev_ioctl_map_grant_ref(struct gntdev_priv *priv,
->  		return -EINVAL;
->  
->  	err = -ENOMEM;
-> -	map = gntdev_alloc_map(priv, op.count);
-> +	map = gntdev_alloc_map(priv, op.count, 0 /* This is not a dma-buf. */);
->  	if (!map)
->  		return err;
->  
-> diff --git a/include/uapi/xen/gntdev.h b/include/uapi/xen/gntdev.h
-> index 6d1163456c03..4b9d498a31d4 100644
-> --- a/include/uapi/xen/gntdev.h
-> +++ b/include/uapi/xen/gntdev.h
-> @@ -200,4 +200,19 @@ struct ioctl_gntdev_grant_copy {
->  /* Send an interrupt on the indicated event channel */
->  #define UNMAP_NOTIFY_SEND_EVENT 0x2
->  
-> +/*
-> + * Flags to be used while requesting memory mapping's backing storage
-> + * to be allocated with DMA API.
-> + */
-> +
-> +/*
-> + * The buffer is backed with memory allocated with dma_alloc_wc.
-> + */
-> +#define GNTDEV_DMA_FLAG_WC		(1 << 0)
-> +
-> +/*
-> + * The buffer is backed with memory allocated with dma_alloc_coherent.
-> + */
-> +#define GNTDEV_DMA_FLAG_COHERENT	(1 << 1)
-> +
->  #endif /* __LINUX_PUBLIC_GNTDEV_H__ */
+	Hans
