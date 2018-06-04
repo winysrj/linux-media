@@ -1,74 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f173.google.com ([209.85.223.173]:36161 "EHLO
-        mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750771AbeFAHbE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 03:31:04 -0400
-Received: by mail-io0-f173.google.com with SMTP id d73-v6so28663014iog.3
-        for <linux-media@vger.kernel.org>; Fri, 01 Jun 2018 00:31:04 -0700 (PDT)
+Received: from userp2130.oracle.com ([156.151.31.86]:50244 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750985AbeFDPjt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 11:39:49 -0400
+Subject: Re: [PATCH v2 2/9] xen/grant-table: Make set/clear page private code
+ shared
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180601114132.22596-1-andr2000@gmail.com>
+ <20180601114132.22596-3-andr2000@gmail.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <835e8070-39d4-67b4-689a-aab2979b0c70@oracle.com>
+Date: Mon, 4 Jun 2018 11:43:16 -0400
 MIME-Version: 1.0
-In-Reply-To: <8f75d52e-851f-df50-7046-6d858d09c8a8@xs4all.nl>
-References: <20180517160708.74811cfb@vento.lan> <20180528104351.5cf52a24@vento.lan>
- <20180531102212.41a8848e@vento.lan> <f2b70cc5-d7b8-1462-969c-a0557c778801@xs4all.nl>
- <8f75d52e-851f-df50-7046-6d858d09c8a8@xs4all.nl>
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Date: Fri, 1 Jun 2018 09:31:03 +0200
-Message-ID: <CABxcv==tJcMp32Vdcz-H+LSrLDdfHY-NnHE+V1AdJ3zzQXVvXA@mail.gmail.com>
-Subject: Re: [ANN] Meeting to discuss improvements to support MC-based cameras
- on generic apps
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        LMML <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20180601114132.22596-3-andr2000@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 31, 2018 at 4:19 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 05/31/18 15:58, Hans Verkuil wrote:
->> On 05/31/18 15:22, Mauro Carvalho Chehab wrote:
->>> Em Mon, 28 May 2018 10:43:51 -0300
->>> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
->>>
->>>> Em Thu, 17 May 2018 16:07:08 -0300
->>>> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
->>>>
->>>>> Hi all,
->>>>>
->>>>> The goal of this e-mail is to schedule a meeting in order to discuss
->>>>> improvements at the media subsystem in order to support complex camer=
-a
->>>>> hardware by usual apps.
->>>>>
->>>>> The main focus here is to allow supporting devices with MC-based
->>>>> hardware connected to a camera.
->>>>>
->>>>> In short, my proposal is to meet with the interested parties on solvi=
-ng
->>>>> this issue during the Open Source Summit in Japan, e. g. between
->>>>> June, 19-22, in Tokyo.
->>>>
->>>> Let's schedule the meeting to happen in Tokyo, Japan at June, 19.
->>>>
->>>> Location yet to be defined, but it will either be together with
->>>> OSS Japan or at Google. I'll confirm the address tomorrow.
->>>
->>> More details about the meeting:
->>>
->>> Date: June, 19
->>> Site: Google
->>> Address: =E3=80=92106-6126 Tokyo, Minato, Roppongi, 6 Chome=E2=88=9210=
-=E2=88=921 Roppongi Hills Mori Tower 44F
->>>
->>> Please confirm who will be attending the meeting.
->>
->> I plan to attend the meeting via Google Hangouts.
+On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
+> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 >
-> Well, the afternoon part of the meeting at least :-)
+> Make set/clear page private code shared and accessible to
+> other kernel modules which can re-use these instead of open-coding.
 >
+> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-I also plan to attend via Google Hangouts. At least the hours that are
-reasonable on my timezone.
-
-Best regards,
-Javier
+Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
