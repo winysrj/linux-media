@@ -1,157 +1,361 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:57807 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751626AbeFDIra (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 04:47:30 -0400
-Message-ID: <1528102047.5808.11.camel@pengutronix.de>
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>
-Cc: linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
-Date: Mon, 04 Jun 2018 10:47:27 +0200
-In-Reply-To: <05703b20-3280-3bdd-c438-dfce8e475aaa@gmail.com>
-References: <m37eobudmo.fsf@t19.piap.pl>
-         <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
-         <m3tvresqfw.fsf@t19.piap.pl>
-         <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
-         <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
-         <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
-         <m3h8mxqc7t.fsf@t19.piap.pl>
-         <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
-         <1527229949.4938.1.camel@pengutronix.de> <m3y3g8p5j3.fsf@t19.piap.pl>
-         <1e11fa9a-8fa6-c746-7ee1-a64666bfc44e@gmail.com>
-         <m3lgc2q5vl.fsf@t19.piap.pl>
-         <06b9dd3d-3b7d-d34d-5263-411c99ab1a8b@gmail.com>
-         <m38t81plry.fsf@t19.piap.pl>
-         <4f49cf44-431d-1971-e5c5-d66381a6970e@gmail.com>
-         <m336y9ouc4.fsf@t19.piap.pl>
-         <6923fcd4-317e-d6a6-7975-47a8c712f8f9@gmail.com>
-         <m3sh66omdk.fsf@t19.piap.pl> <1527858788.5913.2.camel@pengutronix.de>
-         <05703b20-3280-3bdd-c438-dfce8e475aaa@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:50658 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752811AbeFDLrG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 07:47:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 21/35] videobuf2-core: integrate with media requests
+Date: Mon,  4 Jun 2018 13:46:34 +0200
+Message-Id: <20180604114648.26159-22-hverkuil@xs4all.nl>
+In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
+References: <20180604114648.26159-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2018-06-02 at 10:45 -0700, Steve Longerbeam wrote:
-> 
-> On 06/01/2018 06:13 AM, Philipp Zabel wrote:
-> > Hi Krzysztof,
-> > 
-> > On Fri, 2018-06-01 at 12:02 +0200, Krzysztof Hałasa wrote:
-> > > Steve Longerbeam <slongerbeam@gmail.com> writes:
-> > > 
-> > > > I tend to agree, I've found conflicting info out there regarding
-> > > > PAL vs. NTSC field order. And I've never liked having to guess
-> > > > at input analog standard based on input # lines. I will go ahead
-> > > > and remove the field order override code.
-> > > 
-> > > I've merged your current fix-csi-interlaced.2 branch (2018-06-01
-> > > 00:06:45 UTC 22ad9f30454b6e46979edf6f8122243591910a3e) along with
-> > > "media: adv7180: fix field type" commit and NTSC camera:
-> > > 
-> > > media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480 field:alternate]"
-> > > media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480]"
-> > > media-ctl -V "'ipu2_csi1':2 [fmt:AYUV32/720x480 field:interlaced/-bt/-tb]"
-> > > 
-> > > correctly sets:
-> > > 
-> > > "adv7180 2-0020":0 [fmt:UYVY2X8/720x480 field:alternate]
-> > > "ipu2_csi1_mux":1  [fmt:UYVY2X8/720x480 field:alternate]
-> > > "ipu2_csi1_mux":2  [fmt:UYVY2X8/720x480 field:alternate]
-> > > "ipu2_csi1":0      [fmt:UYVY2X8/720x480 field:alternate]
-> > > "ipu2_csi1":2      [fmt:AYUV32/720x480 field:interlaced/-bt/-tb]
-> > > 
-> > > but all 3 cases seem to produce top-first interlaced frames.
-> > > The CCIR_CODE_* register dump shows no differences:
-> > > 2a38014: 010D07DF 00040596 00FF0000
-> > > 
-> > > ...it's because the code in drivers/gpu/ipu-v3/ipu-csi.c still sets the
-> > > registers depending on the height of the image.
-> > 
-> > Exactly.
-> > 
-> > >   Hovewer, I'm using 480
-> > > lines here, so it should be B-T instead.
-> > 
-> > My understanding is that the CCIR codes for height == 480 (NTSC)
-> > currently capture the second field (top) first, assuming that for NTSC
-> > the EAV/SAV codes are bottom-field-first.
-> > 
-> > So the CSI captures SEQ_TB for both PAL and NTSC: The three-bit values
-> > in CCIR_CODE_2/3 are in H,V,F order, and the NTSC case has F=1 for the
-> > field that is captured first, where F=1 is the field that is marked as
-> > second field on the wire, so top. Which means that the captured frame
-> > has two fields captured across frame boundaries, which might be
-> > problematic if the source data was originally progressive.
-> 
-> I agree, for NTSC the CSI will drop the first B field and start capturing
-> at the T field, and then capture fields across frame boundaries. At
-> least, that is if we understand how these CCIR registers work: the
-> CSI will look for H-S-V codes for the start and end of active and blanking
-> lines, that match the codes written to CCIR_CODE_1/2 for fields 0/1.
-> 
-> I think this must be legacy code from a Freescale BSP requirement
-> that the CSI must always capture in T-B order. We should remove this
-> code, so that the CSI always captures field 0 followed by field 1, 
-> irrespective
-> of field affinity, as in:
-> 
-> diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
-> index 5450a2d..b8b9b6d 100644
-> --- a/drivers/gpu/ipu-v3/ipu-csi.c
-> +++ b/drivers/gpu/ipu-v3/ipu-csi.c
-> @@ -398,41 +398,20 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
->                  break;
->          case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
->                  if (mbus_fmt->width == 720 && mbus_fmt->height == 576) {
-> -                       /*
-> -                        * PAL case
-> -                        *
-> -                        * Field0BlankEnd = 0x6, Field0BlankStart = 0x2,
-> -                        * Field0ActiveEnd = 0x4, Field0ActiveStart = 0
-> -                        * Field1BlankEnd = 0x7, Field1BlankStart = 0x3,
-> -                        * Field1ActiveEnd = 0x5, Field1ActiveStart = 0x1
-> -                        */
->                          height = 625; /* framelines for PAL */
-> -
-> -                       ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN,
-> -                                         CSI_CCIR_CODE_1);
-> -                       ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
-> -                       ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
->                  } else if (mbus_fmt->width == 720 && mbus_fmt->height 
-> == 480) {
-> -                       /*
-> -                        * NTSC case
-> -                        *
-> -                        * Field0BlankEnd = 0x7, Field0BlankStart = 0x3,
-> -                        * Field0ActiveEnd = 0x5, Field0ActiveStart = 0x1
-> -                        * Field1BlankEnd = 0x6, Field1BlankStart = 0x2,
-> -                        * Field1ActiveEnd = 0x4, Field1ActiveStart = 0
-> -                        */
->                          height = 525; /* framelines for NTSC */
-> -
-> -                       ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
-> -                                         CSI_CCIR_CODE_1);
-> -                       ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
-> -                       ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
->                  } else {
->                          dev_err(csi->ipu->dev,
->                                  "Unsupported CCIR656 interlaced video 
-> mode\n");
->                          spin_unlock_irqrestore(&csi->lock, flags);
->                          return -EINVAL;
->                  }
-> +
-> +               ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN,
-> +                             CSI_CCIR_CODE_1);
-> +               ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
-> +               ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This will require a negative interlace offset in the IDMAC to produce
-seq-bt -> interlaced-bt for NTSC.
+Buffers can now be prepared or queued for a request.
 
-regards
-Philipp
+A buffer is unbound from the request at vb2_buffer_done time or
+when the queue is cancelled.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../media/common/videobuf2/videobuf2-core.c   | 133 +++++++++++++++++-
+ .../media/common/videobuf2/videobuf2-v4l2.c   |   4 +-
+ drivers/media/dvb-core/dvb_vb2.c              |   2 +-
+ include/media/videobuf2-core.h                |  18 ++-
+ 4 files changed, 147 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index a9e958df8324..6d423bc5a1a1 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -499,8 +499,9 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+ 			pr_info("     buf_init: %u buf_cleanup: %u buf_prepare: %u buf_finish: %u\n",
+ 				vb->cnt_buf_init, vb->cnt_buf_cleanup,
+ 				vb->cnt_buf_prepare, vb->cnt_buf_finish);
+-			pr_info("     buf_queue: %u buf_done: %u\n",
+-				vb->cnt_buf_queue, vb->cnt_buf_done);
++			pr_info("     buf_queue: %u buf_done: %u buf_request_complete: %u\n",
++				vb->cnt_buf_queue, vb->cnt_buf_done,
++				vb->cnt_buf_request_complete);
+ 			pr_info("     alloc: %u put: %u prepare: %u finish: %u mmap: %u\n",
+ 				vb->cnt_mem_alloc, vb->cnt_mem_put,
+ 				vb->cnt_mem_prepare, vb->cnt_mem_finish,
+@@ -936,6 +937,14 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 		vb->state = state;
+ 	}
+ 	atomic_dec(&q->owned_by_drv_count);
++
++	if (vb->req_obj.req) {
++		/* This is not supported at the moment */
++		WARN_ON(state == VB2_BUF_STATE_REQUEUEING);
++		media_request_object_unbind(&vb->req_obj);
++		media_request_object_put(&vb->req_obj);
++	}
++
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
+ 
+ 	trace_vb2_buf_done(q, vb);
+@@ -1290,6 +1299,60 @@ static int __buf_prepare(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
++static int vb2_req_prepare(struct media_request_object *obj)
++{
++	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
++	int ret;
++
++	if (WARN_ON(vb->state != VB2_BUF_STATE_IN_REQUEST))
++		return -EINVAL;
++
++	mutex_lock(vb->vb2_queue->lock);
++	ret = __buf_prepare(vb);
++	mutex_unlock(vb->vb2_queue->lock);
++	return ret;
++}
++
++static void __vb2_dqbuf(struct vb2_buffer *vb);
++
++static void vb2_req_unprepare(struct media_request_object *obj)
++{
++	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
++
++	mutex_lock(vb->vb2_queue->lock);
++	__vb2_dqbuf(vb);
++	vb->state = VB2_BUF_STATE_IN_REQUEST;
++	mutex_unlock(vb->vb2_queue->lock);
++	WARN_ON(!vb->req_obj.req);
++}
++
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct media_request *req);
++
++static void vb2_req_queue(struct media_request_object *obj)
++{
++	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
++
++	mutex_lock(vb->vb2_queue->lock);
++	vb2_core_qbuf(vb->vb2_queue, vb->index, NULL, NULL);
++	mutex_unlock(vb->vb2_queue->lock);
++}
++
++static void vb2_req_release(struct media_request_object *obj)
++{
++	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
++
++	if (vb->state == VB2_BUF_STATE_IN_REQUEST)
++		vb->state = VB2_BUF_STATE_DEQUEUED;
++}
++
++static const struct media_request_object_ops vb2_core_req_ops = {
++	.prepare = vb2_req_prepare,
++	.unprepare = vb2_req_unprepare,
++	.queue = vb2_req_queue,
++	.release = vb2_req_release,
++};
++
+ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+ {
+ 	struct vb2_buffer *vb;
+@@ -1315,7 +1378,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+ 
+ 	dprintk(2, "prepare of buffer %d succeeded\n", vb->index);
+ 
+-	return ret;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
+ 
+@@ -1382,15 +1445,47 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 	return ret;
+ }
+ 
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct media_request *req)
+ {
+ 	struct vb2_buffer *vb;
+ 	int ret;
+ 
+ 	vb = q->bufs[index];
+ 
++	if (req) {
++		int ret;
++
++		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
++			dprintk(1, "buffer %d not in dequeued state\n",
++				vb->index);
++			return -EINVAL;
++		}
++
++		media_request_object_init(&vb->req_obj);
++
++		/* Make sure the request is in a safe state for updating. */
++		ret = media_request_lock_for_update(req);
++		if (ret)
++			return ret;
++		ret = media_request_object_bind(req, &vb2_core_req_ops,
++						q, &vb->req_obj);
++		media_request_unlock_for_update(req);
++		if (ret)
++			return ret;
++
++		vb->state = VB2_BUF_STATE_IN_REQUEST;
++		/* Fill buffer information for the userspace */
++		if (pb)
++			call_void_bufop(q, fill_user_buffer, vb, pb);
++
++		dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
++		return 0;
++	}
++
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DEQUEUED:
++	case VB2_BUF_STATE_IN_REQUEST:
+ 		if (!vb->prepared) {
+ 			ret = __buf_prepare(vb);
+ 			if (ret)
+@@ -1596,6 +1691,11 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ 			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
+ 			vb->planes[i].dbuf_mapped = 0;
+ 		}
++	if (vb->req_obj.req) {
++		media_request_object_unbind(&vb->req_obj);
++		media_request_object_put(&vb->req_obj);
++	}
++	call_void_bufop(q, init_buffer, vb);
+ }
+ 
+ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
+@@ -1709,6 +1809,25 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	 */
+ 	for (i = 0; i < q->num_buffers; ++i) {
+ 		struct vb2_buffer *vb = q->bufs[i];
++		struct media_request *req = vb->req_obj.req;
++
++		/*
++		 * If a request is associated with this buffer, then
++		 * call buf_request_cancel() to give the driver to complete()
++		 * related request objects. Otherwise those objects would
++		 * never complete.
++		 */
++		if (req) {
++			enum media_request_state state;
++			unsigned long flags;
++
++			spin_lock_irqsave(&req->lock, flags);
++			state = req->state;
++			spin_unlock_irqrestore(&req->lock, flags);
++
++			if (state == MEDIA_REQUEST_STATE_QUEUED)
++				call_void_vb_qop(vb, buf_request_complete, vb);
++		}
+ 
+ 		if (vb->synced) {
+ 			unsigned int plane;
+@@ -2278,7 +2397,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 		 * Queue all buffers.
+ 		 */
+ 		for (i = 0; i < q->num_buffers; i++) {
+-			ret = vb2_core_qbuf(q, i, NULL);
++			ret = vb2_core_qbuf(q, i, NULL, NULL);
+ 			if (ret)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+@@ -2457,7 +2576,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 
+ 		if (copy_timestamp)
+ 			b->timestamp = ktime_get_ns();
+-		ret = vb2_core_qbuf(q, index, NULL);
++		ret = vb2_core_qbuf(q, index, NULL, NULL);
+ 		dprintk(5, "vb2_dbuf result: %d\n", ret);
+ 		if (ret)
+ 			return ret;
+@@ -2560,7 +2679,7 @@ static int vb2_thread(void *data)
+ 		if (copy_timestamp)
+ 			vb->timestamp = ktime_get_ns();
+ 		if (!threadio->stop)
+-			ret = vb2_core_qbuf(q, vb->index, NULL);
++			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
+ 		call_void_qop(q, wait_prepare, q);
+ 		if (ret || threadio->stop)
+ 			break;
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 64905d87465c..ea9db4b3f59a 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -441,6 +441,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	case VB2_BUF_STATE_ACTIVE:
+ 		b->flags |= V4L2_BUF_FLAG_QUEUED;
+ 		break;
++	case VB2_BUF_STATE_IN_REQUEST:
++		break;
+ 	case VB2_BUF_STATE_ERROR:
+ 		b->flags |= V4L2_BUF_FLAG_ERROR;
+ 		/* fall through */
+@@ -619,7 +621,7 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	}
+ 
+ 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+-	return ret ? ret : vb2_core_qbuf(q, b->index, b);
++	return ret ? ret : vb2_core_qbuf(q, b->index, b, NULL);
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
+diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
+index da6a8cec7d42..f1e7f0536028 100644
+--- a/drivers/media/dvb-core/dvb_vb2.c
++++ b/drivers/media/dvb-core/dvb_vb2.c
+@@ -384,7 +384,7 @@ int dvb_vb2_qbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
+ {
+ 	int ret;
+ 
+-	ret = vb2_core_qbuf(&ctx->vb_q, b->index, b);
++	ret = vb2_core_qbuf(&ctx->vb_q, b->index, b, NULL);
+ 	if (ret) {
+ 		dprintk(1, "[%s] index=%d errno=%d\n", ctx->name,
+ 			b->index, ret);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index df92dcdeabb3..8a8d7732d182 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -204,6 +204,7 @@ enum vb2_io_modes {
+ /**
+  * enum vb2_buffer_state - current video buffer state.
+  * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control.
++ * @VB2_BUF_STATE_IN_REQUEST:	buffer is queued in media request.
+  * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf.
+  * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver.
+  * @VB2_BUF_STATE_REQUEUEING:	re-queue a buffer to the driver.
+@@ -217,6 +218,7 @@ enum vb2_io_modes {
+  */
+ enum vb2_buffer_state {
+ 	VB2_BUF_STATE_DEQUEUED,
++	VB2_BUF_STATE_IN_REQUEST,
+ 	VB2_BUF_STATE_PREPARING,
+ 	VB2_BUF_STATE_QUEUED,
+ 	VB2_BUF_STATE_REQUEUEING,
+@@ -293,6 +295,7 @@ struct vb2_buffer {
+ 	u32		cnt_buf_finish;
+ 	u32		cnt_buf_cleanup;
+ 	u32		cnt_buf_queue;
++	u32		cnt_buf_request_complete;
+ 
+ 	/* This counts the number of calls to vb2_buffer_done() */
+ 	u32		cnt_buf_done;
+@@ -386,6 +389,11 @@ struct vb2_buffer {
+  *			ioctl; might be called before @start_streaming callback
+  *			if user pre-queued buffers before calling
+  *			VIDIOC_STREAMON().
++ * @buf_request_complete: a buffer that was never queued to the driver but is
++ *			associated with a queued request was canceled.
++ *			The driver will have to mark associated objects in the
++ *			request as completed; required if requests are
++ *			supported.
+  */
+ struct vb2_ops {
+ 	int (*queue_setup)(struct vb2_queue *q,
+@@ -404,6 +412,8 @@ struct vb2_ops {
+ 	void (*stop_streaming)(struct vb2_queue *q);
+ 
+ 	void (*buf_queue)(struct vb2_buffer *vb);
++
++	void (*buf_request_complete)(struct vb2_buffer *vb);
+ };
+ 
+ /**
+@@ -761,12 +771,17 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+  * @index:	id number of the buffer
+  * @pb:		buffer structure passed from userspace to
+  *		v4l2_ioctl_ops->vidioc_qbuf handler in driver
++ * @req:	pointer to &struct media_request, may be NULL.
+  *
+  * Videobuf2 core helper to implement VIDIOC_QBUF() operation. It is called
+  * internally by VB2 by an API-specific handler, like ``videobuf2-v4l2.h``.
+  *
+  * This function:
+  *
++ * #) If @req is non-NULL, then the buffer will be bound to this
++ *    media request and it returns. The buffer will be prepared and
++ *    queued to the driver (i.e. the next two steps) when the request
++ *    itself is queued.
+  * #) if necessary, calls &vb2_ops->buf_prepare callback in the driver
+  *    (if provided), in which driver-specific buffer initialization can
+  *    be performed;
+@@ -775,7 +790,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+  *
+  * Return: returns zero on success; an error code otherwise.
+  */
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct media_request *req);
+ 
+ /**
+  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
+-- 
+2.17.0
