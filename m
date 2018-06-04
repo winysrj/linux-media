@@ -1,46 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:50530 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751798AbeFDFwR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 01:52:17 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 10/10] media: imx.rst: Update doc to reflect fixes to interlaced capture
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-        <1527813049-3231-11-git-send-email-steve_longerbeam@mentor.com>
-        <1527860665.5913.13.camel@pengutronix.de>
-        <fc9933d7-93d0-1e0c-ca63-70a4f3faf618@mentor.com>
-Date: Mon, 04 Jun 2018 07:52:16 +0200
-In-Reply-To: <fc9933d7-93d0-1e0c-ca63-70a4f3faf618@mentor.com> (Steve
-        Longerbeam's message of "Sat, 2 Jun 2018 11:44:24 -0700")
-Message-ID: <m3fu23nlnz.fsf@t19.piap.pl>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:33614 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751590AbeFDMKn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 08:10:43 -0400
+Received: by mail-lf0-f68.google.com with SMTP id y20-v6so24828713lfy.0
+        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2018 05:10:43 -0700 (PDT)
+Date: Mon, 4 Jun 2018 14:10:41 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, horms@verge.net.au,
+        geert@glider.be, mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3 4/8] dt-bindings: media: rcar-vin: Add
+ 'data-enable-active'
+Message-ID: <20180604121041.GE19674@bigcity.dyn.berto.se>
+References: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1527606359-19261-5-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1527606359-19261-5-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steve Longerbeam <steve_longerbeam@mentor.com> writes:
+Hi Jacopo,
 
-> Hmm, if the sink is 'alternate', and the requested source is
-> 'interlaced*', perhaps we should allow the source to be
-> 'interlaced*' and not override it. For example, if requested
-> is 'interlaced-tb', let it be that. IOW assume user knows something
-> we don't about the original field order, or is experimenting
-> with finding the correct field order.
+Thanks for your patch.
 
-Yes, this is clearly possible. In fact the analog signal doesn't carry
-information about the field order (if any). The video editing/encoding
-software does motion estimation for this, and there is no other way
-(given that the video material can change from progressive to interlaced
-and vice versa, and probably can change the field order, at any time).
+On 2018-05-29 17:05:55 +0200, Jacopo Mondi wrote:
+> Describe optional endpoint property 'data-enable-active' for R-Car VIN.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+> ---
+> v3:
+> - new patch
+> ---
+> 
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> index 4d91a36..ff53226 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -58,6 +58,8 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+>        - Optional properties for endpoint nodes of port@0:
+>          - hsync-active: see [1] for description. Default is active high.
+>          - vsync-active: see [1] for description. Default is active high.
+> +        - data-enable-active: polarity of CLKENB signal, see [1] for
+> +          description. Default is active high.
+> 
+>          If both HSYNC and VSYNC polarities are not specified, embedded
+>          synchronization is selected.
+> --
+> 2.7.4
+> 
+
 -- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+Regards,
+Niklas Söderlund
