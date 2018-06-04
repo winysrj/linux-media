@@ -1,534 +1,481 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:32952 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750793AbeFAGx2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 02:53:28 -0400
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:43406 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750759AbeFDRLT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 13:11:19 -0400
+Received: by mail-pf0-f194.google.com with SMTP id j20-v6so16345033pff.10
+        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2018 10:11:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Fri, 01 Jun 2018 12:23:25 +0530
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: hverkuil@xs4all.nl, mchehab@kernel.org, andy.gross@linaro.org,
-        bjorn.andersson@linaro.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-soc@vger.kernel.org, acourbot@google.com
-Subject: Re: [PATCH 4/4] media: venus: add PIL support
-In-Reply-To: <3822394c-b304-15c3-c978-ee39589308eb@linaro.org>
-References: <1526556740-25494-1-git-send-email-vgarodia@codeaurora.org>
- <1526556740-25494-5-git-send-email-vgarodia@codeaurora.org>
- <3822394c-b304-15c3-c978-ee39589308eb@linaro.org>
-Message-ID: <4af8ef54b889097e6df210bc062f1de8@codeaurora.org>
+In-Reply-To: <20180604114648.26159-10-hverkuil@xs4all.nl>
+References: <20180604114648.26159-1-hverkuil@xs4all.nl> <20180604114648.26159-10-hverkuil@xs4all.nl>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Date: Mon, 4 Jun 2018 14:11:18 -0300
+Message-ID: <CAAEAJfCamABrqkcnbuGO-DR4crFzCks-yW=ENKLgUSw-YLGguA@mail.gmail.com>
+Subject: Re: [PATCHv15 09/35] v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stan,
+On 4 June 2018 at 08:46, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Add a 'bool from_other_dev' argument: set to true if the two
+> handlers refer to different devices (e.g. it is true when
+> inheriting controls from a subdev into a main v4l2 bridge
+> driver).
+>
+> This will be used later when implementing support for the
+> request API since we need to skip such controls.
+>
+> TODO: check drivers/staging/media/imx/imx-media-fim.c change.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+> ---
+>  drivers/media/dvb-frontends/rtl2832_sdr.c     |  5 +-
+>  drivers/media/pci/bt8xx/bttv-driver.c         |  2 +-
+>  drivers/media/pci/cx23885/cx23885-417.c       |  2 +-
+>  drivers/media/pci/cx88/cx88-blackbird.c       |  2 +-
+>  drivers/media/pci/cx88/cx88-video.c           |  2 +-
+>  drivers/media/pci/saa7134/saa7134-empress.c   |  4 +-
+>  drivers/media/pci/saa7134/saa7134-video.c     |  2 +-
+>  .../media/platform/exynos4-is/fimc-capture.c  |  2 +-
+>  drivers/media/platform/rcar-vin/rcar-core.c   |  2 +-
+>  drivers/media/platform/rcar_drif.c            |  2 +-
+>  .../media/platform/soc_camera/soc_camera.c    |  3 +-
+>  drivers/media/platform/vivid/vivid-ctrls.c    | 46 +++++++++----------
+>  drivers/media/usb/cx231xx/cx231xx-417.c       |  2 +-
+>  drivers/media/usb/cx231xx/cx231xx-video.c     |  4 +-
+>  drivers/media/usb/msi2500/msi2500.c           |  2 +-
+>  drivers/media/usb/tm6000/tm6000-video.c       |  2 +-
+>  drivers/media/v4l2-core/v4l2-ctrls.c          | 11 +++--
+>  drivers/media/v4l2-core/v4l2-device.c         |  3 +-
+>  drivers/staging/media/imx/imx-media-dev.c     |  2 +-
+>  drivers/staging/media/imx/imx-media-fim.c     |  2 +-
+>  include/media/v4l2-ctrls.h                    |  8 +++-
+>  21 files changed, 61 insertions(+), 49 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dv=
+b-frontends/rtl2832_sdr.c
+> index c6e78d870ccd..6064d28224e8 100644
+> --- a/drivers/media/dvb-frontends/rtl2832_sdr.c
+> +++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
+> @@ -1394,7 +1394,8 @@ static int rtl2832_sdr_probe(struct platform_device=
+ *pdev)
+>         case RTL2832_SDR_TUNER_E4000:
+>                 v4l2_ctrl_handler_init(&dev->hdl, 9);
+>                 if (subdev)
+> -                       v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_han=
+dler, NULL);
+> +                       v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_han=
+dler,
+> +                                             NULL, true);
+>                 break;
+>         case RTL2832_SDR_TUNER_R820T:
+>         case RTL2832_SDR_TUNER_R828D:
+> @@ -1423,7 +1424,7 @@ static int rtl2832_sdr_probe(struct platform_device=
+ *pdev)
+>                 v4l2_ctrl_handler_init(&dev->hdl, 2);
+>                 if (subdev)
+>                         v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_han=
+dler,
+> -                                             NULL);
+> +                                             NULL, true);
+>                 break;
+>         default:
+>                 v4l2_ctrl_handler_init(&dev->hdl, 0);
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt=
+8xx/bttv-driver.c
+> index de3f44b8dec6..9341ef6e154f 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -4211,7 +4211,7 @@ static int bttv_probe(struct pci_dev *dev, const st=
+ruct pci_device_id *pci_id)
+>         /* register video4linux + input */
+>         if (!bttv_tvcards[btv->c.type].no_video) {
+>                 v4l2_ctrl_add_handler(&btv->radio_ctrl_handler, hdl,
+> -                               v4l2_ctrl_radio_filter);
+> +                               v4l2_ctrl_radio_filter, false);
+>                 if (btv->radio_ctrl_handler.error) {
+>                         result =3D btv->radio_ctrl_handler.error;
+>                         goto fail2;
+> diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/=
+cx23885/cx23885-417.c
+> index a71f3c7569ce..762823871c78 100644
+> --- a/drivers/media/pci/cx23885/cx23885-417.c
+> +++ b/drivers/media/pci/cx23885/cx23885-417.c
+> @@ -1527,7 +1527,7 @@ int cx23885_417_register(struct cx23885_dev *dev)
+>         dev->cxhdl.priv =3D dev;
+>         dev->cxhdl.func =3D cx23885_api_func;
+>         cx2341x_handler_set_50hz(&dev->cxhdl, tsport->height =3D=3D 576);
+> -       v4l2_ctrl_add_handler(&dev->ctrl_handler, &dev->cxhdl.hdl, NULL);
+> +       v4l2_ctrl_add_handler(&dev->ctrl_handler, &dev->cxhdl.hdl, NULL, =
+false);
+>
+>         /* Allocate and initialize V4L video device */
+>         dev->v4l_device =3D cx23885_video_dev_alloc(tsport,
+> diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/=
+cx88/cx88-blackbird.c
+> index 7a4876cf9f08..722dd101c9b0 100644
+> --- a/drivers/media/pci/cx88/cx88-blackbird.c
+> +++ b/drivers/media/pci/cx88/cx88-blackbird.c
+> @@ -1183,7 +1183,7 @@ static int cx8802_blackbird_probe(struct cx8802_dri=
+ver *drv)
+>         err =3D cx2341x_handler_init(&dev->cxhdl, 36);
+>         if (err)
+>                 goto fail_core;
+> -       v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl, NULL);
+> +       v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl, NULL, fa=
+lse);
+>
+>         /* blackbird stuff */
+>         pr_info("cx23416 based mpeg encoder (blackbird reference design)\=
+n");
+> diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88=
+/cx88-video.c
+> index 7b113bad70d2..85e2b6c9fb1c 100644
+> --- a/drivers/media/pci/cx88/cx88-video.c
+> +++ b/drivers/media/pci/cx88/cx88-video.c
+> @@ -1378,7 +1378,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+>                 if (vc->id =3D=3D V4L2_CID_CHROMA_AGC)
+>                         core->chroma_agc =3D vc;
+>         }
+> -       v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL);
+> +       v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL, f=
+alse);
+>
+>         /* load and configure helper modules */
+>
+> diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/=
+pci/saa7134/saa7134-empress.c
+> index 66acfd35ffc6..fc75ce00dbf8 100644
+> --- a/drivers/media/pci/saa7134/saa7134-empress.c
+> +++ b/drivers/media/pci/saa7134/saa7134-empress.c
+> @@ -265,9 +265,9 @@ static int empress_init(struct saa7134_dev *dev)
+>                  "%s empress (%s)", dev->name,
+>                  saa7134_boards[dev->board].name);
+>         v4l2_ctrl_handler_init(hdl, 21);
+> -       v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filte=
+r);
+> +       v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filte=
+r, false);
+>         if (dev->empress_sd)
+> -               v4l2_ctrl_add_handler(hdl, dev->empress_sd->ctrl_handler,=
+ NULL);
+> +               v4l2_ctrl_add_handler(hdl, dev->empress_sd->ctrl_handler,=
+ NULL, true);
+>         if (hdl->error) {
+>                 video_device_release(dev->empress_dev);
+>                 return hdl->error;
+> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pc=
+i/saa7134/saa7134-video.c
+> index 1a50ec9d084f..41d46488d22e 100644
+> --- a/drivers/media/pci/saa7134/saa7134-video.c
+> +++ b/drivers/media/pci/saa7134/saa7134-video.c
+> @@ -2136,7 +2136,7 @@ int saa7134_video_init1(struct saa7134_dev *dev)
+>                 hdl =3D &dev->radio_ctrl_handler;
+>                 v4l2_ctrl_handler_init(hdl, 2);
+>                 v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler,
+> -                               v4l2_ctrl_radio_filter);
+> +                               v4l2_ctrl_radio_filter, false);
+>                 if (hdl->error)
+>                         return hdl->error;
+>         }
+> diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/m=
+edia/platform/exynos4-is/fimc-capture.c
+> index a3cdac188190..2164375f0ee0 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-capture.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+> @@ -1424,7 +1424,7 @@ static int fimc_link_setup(struct media_entity *ent=
+ity,
+>                 return 0;
+>
+>         return v4l2_ctrl_add_handler(&vc->ctx->ctrls.handler,
+> -                                    sensor->ctrl_handler, NULL);
+> +                                    sensor->ctrl_handler, NULL, true);
+>  }
+>
+>  static const struct media_entity_operations fimc_sd_media_ops =3D {
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/=
+platform/rcar-vin/rcar-core.c
+> index d3072e166a1c..2c115c6651b0 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -442,7 +442,7 @@ static int rvin_digital_subdevice_attach(struct rvin_=
+dev *vin,
+>                 return ret;
+>
+>         ret =3D v4l2_ctrl_add_handler(&vin->ctrl_handler, subdev->ctrl_ha=
+ndler,
+> -                                   NULL);
+> +                                   NULL, true);
+>         if (ret < 0) {
+>                 v4l2_ctrl_handler_free(&vin->ctrl_handler);
+>                 return ret;
+> diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/=
+rcar_drif.c
+> index dc7e280c91b4..159c7d2c2066 100644
+> --- a/drivers/media/platform/rcar_drif.c
+> +++ b/drivers/media/platform/rcar_drif.c
+> @@ -1168,7 +1168,7 @@ static int rcar_drif_notify_complete(struct v4l2_as=
+ync_notifier *notifier)
+>         }
+>
+>         ret =3D v4l2_ctrl_add_handler(&sdr->ctrl_hdl,
+> -                                   sdr->ep.subdev->ctrl_handler, NULL);
+> +                                   sdr->ep.subdev->ctrl_handler, NULL, t=
+rue);
+>         if (ret) {
+>                 rdrif_err(sdr, "failed: ctrl add hdlr ret %d\n", ret);
+>                 goto error;
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/med=
+ia/platform/soc_camera/soc_camera.c
+> index 69f0d8e80bd8..e6787abc34ae 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -1180,7 +1180,8 @@ static int soc_camera_probe_finish(struct soc_camer=
+a_device *icd)
+>
+>         v4l2_subdev_call(sd, video, g_tvnorms, &icd->vdev->tvnorms);
+>
+> -       ret =3D v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handle=
+r, NULL);
+> +       ret =3D v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handle=
+r,
+> +                                   NULL, true);
+>         if (ret < 0)
+>                 return ret;
+>
+> diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/p=
+latform/vivid/vivid-ctrls.c
+> index 6b0bfa091592..f369b94ad7ff 100644
+> --- a/drivers/media/platform/vivid/vivid-ctrls.c
+> +++ b/drivers/media/platform/vivid/vivid-ctrls.c
+> @@ -1662,59 +1662,59 @@ int vivid_create_controls(struct vivid_dev *dev, =
+bool show_ccs_cap,
+>                 v4l2_ctrl_auto_cluster(2, &dev->autogain, 0, true);
+>
+>         if (dev->has_vid_cap) {
+> -               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_gen, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_vid, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL);
+> +               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_gen, NULL, fa=
+lse);
+> +               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_vid, NULL, fa=
+lse);
+> +               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL, fa=
+lse);
+> +               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL, f=
+alse);
+> +               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL, fa=
+lse);
+> +               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL, fa=
+lse);
+> +               v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL, false);
+>                 if (hdl_vid_cap->error)
+>                         return hdl_vid_cap->error;
+>                 dev->vid_cap_dev.ctrl_handler =3D hdl_vid_cap;
+>         }
+>         if (dev->has_vid_out) {
+> -               v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL);
+> +               v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL, fa=
+lse);
+> +               v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL, fa=
+lse);
+> +               v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL, f=
+alse);
+> +               v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL, false);
+>                 if (hdl_vid_out->error)
+>                         return hdl_vid_out->error;
+>                 dev->vid_out_dev.ctrl_handler =3D hdl_vid_out;
+>         }
+>         if (dev->has_vbi_cap) {
+> -               v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_user_gen, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_streaming, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_sdtv_cap, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_loop_cap, NULL);
+> +               v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_user_gen, NULL, fa=
+lse);
+> +               v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_streaming, NULL, f=
+alse);
+> +               v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_sdtv_cap, NULL, fa=
+lse);
+> +               v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_loop_cap, NULL, fa=
+lse);
+>                 if (hdl_vbi_cap->error)
+>                         return hdl_vbi_cap->error;
+>                 dev->vbi_cap_dev.ctrl_handler =3D hdl_vbi_cap;
+>         }
+>         if (dev->has_vbi_out) {
+> -               v4l2_ctrl_add_handler(hdl_vbi_out, hdl_user_gen, NULL);
+> -               v4l2_ctrl_add_handler(hdl_vbi_out, hdl_streaming, NULL);
+> +               v4l2_ctrl_add_handler(hdl_vbi_out, hdl_user_gen, NULL, fa=
+lse);
+> +               v4l2_ctrl_add_handler(hdl_vbi_out, hdl_streaming, NULL, f=
+alse);
+>                 if (hdl_vbi_out->error)
+>                         return hdl_vbi_out->error;
+>                 dev->vbi_out_dev.ctrl_handler =3D hdl_vbi_out;
+>         }
+>         if (dev->has_radio_rx) {
+> -               v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_gen, NULL);
+> -               v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_aud, NULL);
+> +               v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_gen, NULL, f=
+alse);
+> +               v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_aud, NULL, f=
+alse);
+>                 if (hdl_radio_rx->error)
+>                         return hdl_radio_rx->error;
+>                 dev->radio_rx_dev.ctrl_handler =3D hdl_radio_rx;
+>         }
+>         if (dev->has_radio_tx) {
+> -               v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_gen, NULL);
+> -               v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_aud, NULL);
+> +               v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_gen, NULL, f=
+alse);
+> +               v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_aud, NULL, f=
+alse);
+>                 if (hdl_radio_tx->error)
+>                         return hdl_radio_tx->error;
+>                 dev->radio_tx_dev.ctrl_handler =3D hdl_radio_tx;
+>         }
+>         if (dev->has_sdr_cap) {
+> -               v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_user_gen, NULL);
+> -               v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_streaming, NULL);
+> +               v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_user_gen, NULL, fa=
+lse);
+> +               v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_streaming, NULL, f=
+alse);
+>                 if (hdl_sdr_cap->error)
+>                         return hdl_sdr_cap->error;
+>                 dev->sdr_cap_dev.ctrl_handler =3D hdl_sdr_cap;
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/=
+cx231xx/cx231xx-417.c
+> index 2f3b0564d676..e3cb9eefd36a 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-417.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+> @@ -1992,7 +1992,7 @@ int cx231xx_417_register(struct cx231xx *dev)
+>         dev->mpeg_ctrl_handler.ops =3D &cx231xx_ops;
+>         if (dev->sd_cx25840)
+>                 v4l2_ctrl_add_handler(&dev->mpeg_ctrl_handler.hdl,
+> -                               dev->sd_cx25840->ctrl_handler, NULL);
+> +                               dev->sd_cx25840->ctrl_handler, NULL, fals=
+e);
+>         if (dev->mpeg_ctrl_handler.hdl.error) {
+>                 err =3D dev->mpeg_ctrl_handler.hdl.error;
+>                 dprintk(3, "%s: can't add cx25840 controls\n", dev->name)=
+;
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/us=
+b/cx231xx/cx231xx-video.c
+> index f7fcd733a2ca..2dedb18f63a0 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+> @@ -2204,10 +2204,10 @@ int cx231xx_register_analog_devices(struct cx231x=
+x *dev)
+>
+>         if (dev->sd_cx25840) {
+>                 v4l2_ctrl_add_handler(&dev->ctrl_handler,
+> -                               dev->sd_cx25840->ctrl_handler, NULL);
+> +                               dev->sd_cx25840->ctrl_handler, NULL, true=
+);
+>                 v4l2_ctrl_add_handler(&dev->radio_ctrl_handler,
+>                                 dev->sd_cx25840->ctrl_handler,
+> -                               v4l2_ctrl_radio_filter);
+> +                               v4l2_ctrl_radio_filter, true);
+>         }
+>
+>         if (dev->ctrl_handler.error)
+> diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2=
+500/msi2500.c
+> index 65ef755adfdc..4aacd77a5d58 100644
+> --- a/drivers/media/usb/msi2500/msi2500.c
+> +++ b/drivers/media/usb/msi2500/msi2500.c
+> @@ -1278,7 +1278,7 @@ static int msi2500_probe(struct usb_interface *intf=
+,
+>         }
+>
+>         /* currently all controls are from subdev */
+> -       v4l2_ctrl_add_handler(&dev->hdl, sd->ctrl_handler, NULL);
+> +       v4l2_ctrl_add_handler(&dev->hdl, sd->ctrl_handler, NULL, true);
+>
+>         dev->v4l2_dev.ctrl_handler =3D &dev->hdl;
+>         dev->vdev.v4l2_dev =3D &dev->v4l2_dev;
+> diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/=
+tm6000/tm6000-video.c
+> index aa85fe31c835..d2850ce13e76 100644
+> --- a/drivers/media/usb/tm6000/tm6000-video.c
+> +++ b/drivers/media/usb/tm6000/tm6000-video.c
+> @@ -1622,7 +1622,7 @@ int tm6000_v4l2_register(struct tm6000_core *dev)
+>         v4l2_ctrl_new_std(&dev->ctrl_handler, &tm6000_ctrl_ops,
+>                         V4L2_CID_HUE, -128, 127, 1, 0);
+>         v4l2_ctrl_add_handler(&dev->ctrl_handler,
+> -                       &dev->radio_ctrl_handler, NULL);
+> +                       &dev->radio_ctrl_handler, NULL, false);
+>
+>         if (dev->radio_ctrl_handler.error)
+>                 ret =3D dev->radio_ctrl_handler.error;
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-co=
+re/v4l2-ctrls.c
+> index d29e45516eb7..aa1dd2015e84 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1995,7 +1995,8 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
+>
+>  /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
+>  static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+> -                          struct v4l2_ctrl *ctrl)
+> +                          struct v4l2_ctrl *ctrl,
+> +                          bool from_other_dev)
+>  {
+>         struct v4l2_ctrl_ref *ref;
+>         struct v4l2_ctrl_ref *new_ref;
+> @@ -2019,6 +2020,7 @@ static int handler_new_ref(struct v4l2_ctrl_handler=
+ *hdl,
+>         if (!new_ref)
+>                 return handler_set_err(hdl, -ENOMEM);
+>         new_ref->ctrl =3D ctrl;
+> +       new_ref->from_other_dev =3D from_other_dev;
+>         if (ctrl->handler =3D=3D hdl) {
+>                 /* By default each control starts in a cluster of its own=
+.
+>                    new_ref->ctrl is basically a cluster array with one
+> @@ -2199,7 +2201,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_=
+ctrl_handler *hdl,
+>                 ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
+>         }
+>
+> -       if (handler_new_ref(hdl, ctrl)) {
+> +       if (handler_new_ref(hdl, ctrl, false)) {
+>                 kvfree(ctrl);
+>                 return NULL;
+>         }
+> @@ -2368,7 +2370,8 @@ EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
+>  /* Add the controls from another handler to our own. */
+>  int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+>                           struct v4l2_ctrl_handler *add,
+> -                         bool (*filter)(const struct v4l2_ctrl *ctrl))
+> +                         bool (*filter)(const struct v4l2_ctrl *ctrl),
+> +                         bool from_other_dev)
 
-On 2018-05-22 18:32, Stanimir Varbanov wrote:
-> Hi Vikash,
-> 
-> On 05/17/2018 02:32 PM, Vikash Garodia wrote:
->> This adds support to load the video firmware
->> and bring ARM9 out of reset. This is useful
->> for platforms which does not have trustzone
->> to reset the ARM9.
->> 
->> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
->> ---
->>  .../devicetree/bindings/media/qcom,venus.txt       |   8 +-
->>  drivers/media/platform/qcom/venus/core.c           |  67 +++++++--
->>  drivers/media/platform/qcom/venus/core.h           |   6 +
->>  drivers/media/platform/qcom/venus/firmware.c       | 163 
->> +++++++++++++++++----
->>  drivers/media/platform/qcom/venus/firmware.h       |  10 +-
->>  5 files changed, 217 insertions(+), 37 deletions(-)
->> 
->> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt 
->> b/Documentation/devicetree/bindings/media/qcom,venus.txt
->> index 00d0d1b..0ff0f2d 100644
->> --- a/Documentation/devicetree/bindings/media/qcom,venus.txt
->> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> 
-> for this change in DT binding you have to cc devicetree ML. And 
-> probably
-> it could be separate patch.
+I am wondering if it would make the patch less invasive,
+and the code cleaner, to rename this to v4l2_ctrl_add_handler_ex().
+v4l2_ctrl_add_handler would then default from_other_dev to false.
 
-Will keep it as a separate patch and add the DT reviewers.
-
->> @@ -53,7 +53,7 @@
->> 
->>  * Subnodes
->>  The Venus video-codec node must contain two subnodes representing
->> -video-decoder and video-encoder.
->> +video-decoder and video-encoder, one optional firmware subnode.
->> 
->>  Every of video-encoder or video-decoder subnode should have:
->> 
->> @@ -79,6 +79,8 @@ Every of video-encoder or video-decoder subnode 
->> should have:
->>  		    power domain which is responsible for collapsing
->>  		    and restoring power to the subcore.
->> 
->> +The firmware sub node must contain the iommus specifiers for ARM9.
->> +
->>  * An Example
->>  	video-codec@1d00000 {
->>  		compatible = "qcom,msm8916-venus";
->> @@ -105,4 +107,8 @@ Every of video-encoder or video-decoder subnode 
->> should have:
->>  			clock-names = "core";
->>  			power-domains = <&mmcc VENUS_CORE1_GDSC>;
->>  		};
->> +		firmware {
-> 
-> venus-firmware
-Ok.
-
->> +			compatible = "qcom,venus-pil-no-tz";
-> 
-> this should be following the other subnodes compatible names:
-> 
-> compatible = "venus-firmware";
-
-Probably "venus-firmware-no-tz". Want to keep "-no-tz" explicitly as 
-this node
-is not needed for TZ based PIL.
-
->> +			iommus = <&apps_smmu 0x10b2 0x0>;
->> +		}
->>  	};
->> diff --git a/drivers/media/platform/qcom/venus/core.c 
->> b/drivers/media/platform/qcom/venus/core.c
->> index 1308488..16910558 100644
->> --- a/drivers/media/platform/qcom/venus/core.c
->> +++ b/drivers/media/platform/qcom/venus/core.c
->> @@ -22,6 +22,7 @@
->>  #include <linux/slab.h>
->>  #include <linux/types.h>
->>  #include <linux/pm_runtime.h>
->> +#include <linux/iommu.h>
->>  #include <media/videobuf2-v4l2.h>
->>  #include <media/v4l2-mem2mem.h>
->>  #include <media/v4l2-ioctl.h>
->> @@ -30,6 +31,7 @@
->>  #include "vdec.h"
->>  #include "venc.h"
->>  #include "firmware.h"
->> +#include "hfi_venus.h"
->> 
->>  static void venus_event_notify(struct venus_core *core, u32 event)
->>  {
->> @@ -76,7 +78,7 @@ static void venus_sys_error_handler(struct 
->> work_struct *work)
->>  	hfi_core_deinit(core, true);
->>  	hfi_destroy(core);
->>  	mutex_lock(&core->lock);
->> -	venus_shutdown(core->dev);
->> +	venus_shutdown(core);
->> 
->>  	pm_runtime_put_sync(core->dev);
->> 
->> @@ -84,7 +86,7 @@ static void venus_sys_error_handler(struct 
->> work_struct *work)
->> 
->>  	pm_runtime_get_sync(core->dev);
->> 
->> -	ret |= venus_boot(core->dev, core->res->fwname);
->> +	ret |= venus_boot(core);
->> 
->>  	ret |= hfi_core_resume(core, true);
->> 
->> @@ -179,6 +181,20 @@ static u32 to_v4l2_codec_type(u32 codec)
->>  	}
->>  }
->> 
->> +static int store_firmware_dev(struct device *dev, void *data)
->> +{
->> +	struct venus_core *core;
->> +
->> +	core = (struct venus_core *)data;
->> +	if (!core)
->> +		return -EINVAL;
->> +
->> +	if (of_device_is_compatible(dev->of_node, "qcom,venus-pil-no-tz"))
->> +		core->fw.dev = dev;
->> +
->> +	return 0;
->> +}
->> +
->>  static int venus_enumerate_codecs(struct venus_core *core, u32 type)
->>  {
->>  	const struct hfi_inst_ops dummy_ops = {};
->> @@ -229,6 +245,7 @@ static int venus_probe(struct platform_device 
->> *pdev)
->>  	struct device *dev = &pdev->dev;
->>  	struct venus_core *core;
->>  	struct resource *r;
->> +	struct iommu_domain *iommu_domain;
->>  	int ret;
->> 
->>  	core = devm_kzalloc(dev, sizeof(*core), GFP_KERNEL);
->> @@ -279,7 +296,14 @@ static int venus_probe(struct platform_device 
->> *pdev)
->>  	if (ret < 0)
->>  		goto err_runtime_disable;
->> 
->> -	ret = venus_boot(dev, core->res->fwname);
->> +	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
->> +	if (ret)
->> +		goto err_runtime_disable;
->> +
->> +	/* Attempt to register child devices */
-> 
-> This comment is wrong, the child devices are created by
-> of_platform_populate above.
-
-Good catch. Intend was to mention something like "Attempt to store 
-firmware
-device". Will correct it.
-
->> +	ret = device_for_each_child(dev, core, store_firmware_dev);
-> 
-> Why we need these complex gymnastics to get struct device pointer when
-> that could be done in venus_firmware .probe method?
-> 
-> I think the answer is because you want to avoid having 
-> venus-firmware.ko
-> (because you have to have separate struct device for iommu SID). In 
-> that
-> case it would be better to make venus-firmware.ko.
-
-I can have the venus firmware .probe method without venus-firmware.ko. I 
-had
-the probe method initially, but since it was just storing the device 
-pointer,
-i am doing it while iterating over the child nodes.
-
->> +
->> +	ret = venus_boot(core);
->>  	if (ret)
->>  		goto err_runtime_disable;
->> 
->> @@ -303,14 +327,17 @@ static int venus_probe(struct platform_device 
->> *pdev)
->>  	if (ret)
->>  		goto err_core_deinit;
->> 
->> -	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
->> +	ret = pm_runtime_put_sync(dev);
->>  	if (ret)
->>  		goto err_dev_unregister;
->> 
->> -	ret = pm_runtime_put_sync(dev);
->> -	if (ret)
->> +	iommu_domain = iommu_get_domain_for_dev(dev);
->> +	if (!iommu_domain)
->>  		goto err_dev_unregister;
->> 
->> +	iommu_domain->geometry.aperture_start = VENUS_FW_MEM_SIZE;
->> +	iommu_domain->geometry.aperture_end = VENUS_MAX_MEM_REGION;
-> 
-> I don't think that is needed for this struct device (Venus DT node
-> struct device). And also why aperture_start is on 6th MB? I think that
-> this iommu domain is for venus_non_secure iommu context_bank.
-
-ARM9 cannot accept iova as 0x0 for data buffers. The range is from 
-firmware
-end address(VENUS_FW_MEM_SIZE) till 3.5 GB. When the driver programs the
-register for firmware start and end address, and provides a buffer 
-having
-iova in the firmware range, it would end up generating a different SID 
-and
-would lead to issues.
-
-> Those geometry parameters are checked/used only from dma-iommu.c. They
-> are checked before entering on venus_probe and only when
-> geometry.force_aperture is true. So updating those params here doesn't
-> make any sense to iommu?
-
-I am not very sure on this part. We can stay with 
-dma_set_mask_and_coherent
-to keep the upper limit check. For lower limit, we can keep it as a TODO
-for future.
-
->> +
->>  	return 0;
->> 
->>  err_dev_unregister:
->> @@ -318,7 +345,7 @@ static int venus_probe(struct platform_device 
->> *pdev)
->>  err_core_deinit:
->>  	hfi_core_deinit(core, false);
->>  err_venus_shutdown:
->> -	venus_shutdown(dev);
->> +	venus_shutdown(core);
->>  err_runtime_disable:
->>  	pm_runtime_set_suspended(dev);
->>  	pm_runtime_disable(dev);
->> @@ -339,7 +366,7 @@ static int venus_remove(struct platform_device 
->> *pdev)
->>  	WARN_ON(ret);
->> 
->>  	hfi_destroy(core);
->> -	venus_shutdown(dev);
->> +	venus_shutdown(core);
->>  	of_platform_depopulate(dev);
->> 
->>  	pm_runtime_put_sync(dev);
->> @@ -483,7 +510,29 @@ static __maybe_unused int 
->> venus_runtime_resume(struct device *dev)
->>  		.pm = &venus_pm_ops,
->>  	},
->>  };
->> -module_platform_driver(qcom_venus_driver);
->> +
->> +static int __init venus_init(void)
->> +{
->> +	int ret;
->> +
->> +	ret = platform_driver_register(&qcom_video_firmware_driver);
->> +	if (ret)
->> +		return ret;
-> 
-> I think that this shouldn't be here, it is clear that firmware loader
-> code should be on separate device/driver (even outside of venus DT 
-> node).
-> 
-This is needed to register the driver with platform bus. Otherwise iommu 
-group
-for firmware device will not be created and iommu_domain_alloc would 
-fail.
-
->> +
->> +	ret = platform_driver_register(&qcom_venus_driver);
->> +	if (ret)
->> +		platform_driver_unregister(&qcom_video_firmware_driver);
->> +
->> +	return ret;
->> +}
->> +module_init(venus_init);
->> +
->> +static void __exit venus_exit(void)
->> +{
->> +	platform_driver_unregister(&qcom_venus_driver);
->> +	platform_driver_unregister(&qcom_video_firmware_driver);
->> +}
->> +module_exit(venus_exit);
->> 
->>  MODULE_ALIAS("platform:qcom-venus");
->>  MODULE_DESCRIPTION("Qualcomm Venus video encoder and decoder 
->> driver");
->> diff --git a/drivers/media/platform/qcom/venus/core.h 
->> b/drivers/media/platform/qcom/venus/core.h
->> index 85e66e2..68fc8af 100644
->> --- a/drivers/media/platform/qcom/venus/core.h
->> +++ b/drivers/media/platform/qcom/venus/core.h
->> @@ -80,6 +80,11 @@ struct venus_caps {
->>  	bool valid;
->>  };
->> 
->> +struct video_firmware {
->> +	struct device *dev;
->> +	dma_addr_t iova;
->> +	struct iommu_domain *iommu_domain;
->> +};
->>  /**
->>   * struct venus_core - holds core parameters valid for all instances
->>   *
->> @@ -124,6 +129,7 @@ struct venus_core {
->>  	struct device *dev;
->>  	struct device *dev_dec;
->>  	struct device *dev_enc;
->> +	struct video_firmware fw;
->>  	struct mutex lock;
->>  	struct list_head instances;
->>  	atomic_t insts_count;
->> diff --git a/drivers/media/platform/qcom/venus/firmware.c 
->> b/drivers/media/platform/qcom/venus/firmware.c
->> index 8f25375..614c805 100644
->> --- a/drivers/media/platform/qcom/venus/firmware.c
->> +++ b/drivers/media/platform/qcom/venus/firmware.c
->> @@ -12,8 +12,12 @@
->>   *
->>   */
->> 
->> +#include <linux/module.h>
->> +#include <linux/of_device.h>
->> +#include <linux/platform_device.h>
->>  #include <linux/device.h>
->>  #include <linux/firmware.h>
->> +#include <linux/iommu.h>
->>  #include <linux/delay.h>
->>  #include <linux/kernel.h>
->>  #include <linux/io.h>
->> @@ -27,8 +31,10 @@
->>  #include "firmware.h"
->>  #include "hfi_venus_io.h"
->> 
->> -#define VENUS_PAS_ID			9
->> -#define VENUS_FW_MEM_SIZE		(6 * SZ_1M)
->> +static const struct of_device_id firmware_dt_match[] = {
->> +	{ .compatible = "qcom,venus-pil-no-tz" },
->> +	{ }
->> +};
->> 
->>  void venus_reset_hw(struct venus_core *core)
->>  {
->> @@ -53,40 +59,37 @@ void venus_reset_hw(struct venus_core *core)
->>  	/* Bring Arm9 out of reset */
->>  	writel_relaxed(0, reg_base + WRAPPER_A9SS_SW_RESET);
->>  }
->> -int venus_boot(struct device *dev, const char *fwname)
->> +EXPORT_SYMBOL_GPL(venus_reset_hw);
->> +
->> +int venus_load_fw(struct device *dev, const char *fwname,
->> +		phys_addr_t *mem_phys, size_t *mem_size)
->>  {
->>  	const struct firmware *mdt;
->>  	struct device_node *node;
->> -	phys_addr_t mem_phys;
->>  	struct resource r;
->>  	ssize_t fw_size;
->> -	size_t mem_size;
->>  	void *mem_va;
->>  	int ret;
->> 
->> -	if (!IS_ENABLED(CONFIG_QCOM_MDT_LOADER) || !qcom_scm_is_available())
->> -		return -EPROBE_DEFER;
->> -
->>  	node = of_parse_phandle(dev->of_node, "memory-region", 0);
->>  	if (!node) {
->>  		dev_err(dev, "no memory-region specified\n");
->>  		return -EINVAL;
->>  	}
->> -
->>  	ret = of_address_to_resource(node, 0, &r);
->>  	if (ret)
->>  		return ret;
->> 
->> -	mem_phys = r.start;
->> -	mem_size = resource_size(&r);
->> +	*mem_phys = r.start;
->> +	*mem_size = resource_size(&r);
->> 
->> -	if (mem_size < VENUS_FW_MEM_SIZE)
->> +	if (*mem_size < VENUS_FW_MEM_SIZE)
->>  		return -EINVAL;
->> 
->> -	mem_va = memremap(r.start, mem_size, MEMREMAP_WC);
->> +	mem_va = memremap(r.start, *mem_size, MEMREMAP_WC);
->>  	if (!mem_va) {
->>  		dev_err(dev, "unable to map memory region: %pa+%zx\n",
->> -			&r.start, mem_size);
->> +			&r.start, *mem_size);
->>  		return -ENOMEM;
->>  	}
->> 
->> @@ -101,24 +104,134 @@ int venus_boot(struct device *dev, const char 
->> *fwname)
->>  		goto err_unmap;
->>  	}
->> 
->> -	ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va, 
->> mem_phys,
->> -			    mem_size, NULL);
->> +	ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va, 
->> *mem_phys,
->> +			    *mem_size, NULL);
->> 
->>  	release_firmware(mdt);
->> 
->> -	if (ret)
->> -		goto err_unmap;
->> -
->> -	ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
->> -	if (ret)
->> -		goto err_unmap;
->> -
->>  err_unmap:
->>  	memunmap(mem_va);
->>  	return ret;
->>  }
->> 
->> -int venus_shutdown(struct device *dev)
->> +int venus_boot_noTZ(struct venus_core *core, phys_addr_t mem_phys,
->> +							size_t mem_size)
->>  {
->> -	return qcom_scm_pas_shutdown(VENUS_PAS_ID);
->> +	struct iommu_domain *iommu;
->> +	struct device *dev;
->> +	int ret;
->> +
->> +	if (!core->fw.dev)
->> +		return -EPROBE_DEFER;
->> +
->> +	dev = core->fw.dev;
->> +
->> +	iommu = iommu_domain_alloc(&platform_bus_type);
->> +	if (!iommu) {
->> +		dev_err(dev, "Failed to allocate iommu domain\n");
->> +		return -ENOMEM;
->> +	}
->> +
->> +	iommu->geometry.aperture_start = 0x0;
->> +	iommu->geometry.aperture_end = VENUS_FW_MEM_SIZE;
-> 
-> The same comment for geometry params as for venus_probe is valid here.
-As this is used only for firmware context bank, i can remove these
-explicit iommu configuration.
-
->> +
->> +	ret = iommu_attach_device(iommu, dev);
->> +	if (ret) {
->> +		dev_err(dev, "could not attach device\n");
->> +		goto err_attach;
->> +	}
->> +
->> +	ret = iommu_map(iommu, core->fw.iova, mem_phys, mem_size,
->> +			IOMMU_READ|IOMMU_WRITE|IOMMU_PRIV);
-> 
-> iova is not initialized and is zero, maybe we don't need that variable
-> in the venus_firmware structure?
-
-As the iova will be always zero here, i can hard-code as well.
-
->> +	if (ret) {
->> +		dev_err(dev, "could not map video firmware region\n");
->> +		goto err_map;
->> +	}
->> +	core->fw.iommu_domain = iommu;
->> +	venus_reset_hw(core);
->> +
->> +	return 0;
->> +
->> +err_map:
->> +	iommu_detach_device(iommu, dev);
->> +err_attach:
->> +	iommu_domain_free(iommu);
->> +	return ret;
->>  }
->> +
->> +int venus_shutdown_noTZ(struct venus_core *core)
->> +{
->> +	struct iommu_domain *iommu;
->> +	u32 reg;
->> +	struct device *dev = core->fw.dev;
->> +	void __iomem *reg_base = core->base;
->> +
->> +	/* Assert the reset to ARM9 */
->> +	reg = readl_relaxed(reg_base + WRAPPER_A9SS_SW_RESET);
->> +	reg |= BIT(4);
->> +	writel_relaxed(reg, reg_base + WRAPPER_A9SS_SW_RESET);
->> +
->> +	/* Make sure reset is asserted before the mapping is removed */
->> +	mb();
->> +
->> +	iommu = core->fw.iommu_domain;
->> +
->> +	iommu_unmap(iommu, core->fw.iova, VENUS_FW_MEM_SIZE);
->> +	iommu_detach_device(iommu, dev);
->> +	iommu_domain_free(iommu);
-> 
-> check iommu APIs for errors.
-Ok.
+In fact -but not related to this patch- given the number of users
+setting a non-NULL filter, we could even consider v4l2_ctrl_add_handler
+to set a NULL filter.
+--=20
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
