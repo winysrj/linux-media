@@ -1,67 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:33992 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754303AbeFTQAn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 12:00:43 -0400
-Date: Wed, 20 Jun 2018 10:00:41 -0600
-From: Rob Herring <robh@kernel.org>
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Marco Franchi <marco.franchi@nxp.com>,
-        Icenowy Zheng <icenowy@aosc.io>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Tom Saeger <tom.saeger@oracle.com>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "David S . Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Sami Tolvanen <samitolvanen@google.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi@googlegroups.com,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Randy Li <ayaka@soulik.info>
-Subject: Re: [PATCH v4 05/19] dt-bindings: sram: sunxi: Add A33 binding for
- the C1 SRAM region
-Message-ID: <20180620160041.GA20371@rob-hp-laptop>
-References: <20180618145843.14631-1-paul.kocialkowski@bootlin.com>
- <20180618145843.14631-6-paul.kocialkowski@bootlin.com>
+Received: from ni.piap.pl ([195.187.100.4]:54412 "EHLO ni.piap.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751916AbeFDHdN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Jun 2018 03:33:13 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+References: <m37eobudmo.fsf@t19.piap.pl>
+        <b6e7ba76-09a4-2b6a-3c73-0e3ef92ca8bf@gmail.com>
+        <m3tvresqfw.fsf@t19.piap.pl>
+        <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
+        <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
+        <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
+        <m3h8mxqc7t.fsf@t19.piap.pl>
+        <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
+        <1527229949.4938.1.camel@pengutronix.de> <m3y3g8p5j3.fsf@t19.piap.pl>
+        <1e11fa9a-8fa6-c746-7ee1-a64666bfc44e@gmail.com>
+        <m3lgc2q5vl.fsf@t19.piap.pl>
+        <06b9dd3d-3b7d-d34d-5263-411c99ab1a8b@gmail.com>
+        <m38t81plry.fsf@t19.piap.pl>
+        <4f49cf44-431d-1971-e5c5-d66381a6970e@gmail.com>
+        <m336y9ouc4.fsf@t19.piap.pl>
+        <6923fcd4-317e-d6a6-7975-47a8c712f8f9@gmail.com>
+        <m3sh66omdk.fsf@t19.piap.pl> <1527858788.5913.2.camel@pengutronix.de>
+        <05703b20-3280-3bdd-c438-dfce8e475aaa@gmail.com>
+Date: Mon, 04 Jun 2018 09:33:12 +0200
+In-Reply-To: <05703b20-3280-3bdd-c438-dfce8e475aaa@gmail.com> (Steve
+        Longerbeam's message of "Sat, 2 Jun 2018 10:45:37 -0700")
+Message-ID: <m34lijngzr.fsf@t19.piap.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180618145843.14631-6-paul.kocialkowski@bootlin.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 18, 2018 at 04:58:29PM +0200, Paul Kocialkowski wrote:
-> This introduces a dedicated binding for the C1 SRAM region for the A33
-> sunxi platform.
-> 
-> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Steve Longerbeam <slongerbeam@gmail.com> writes:
 
-Acked-by: Rob Herring <robh@kernel.org>
+> I think this must be legacy code from a Freescale BSP requirement
+> that the CSI must always capture in T-B order. We should remove this
+> code, so that the CSI always captures field 0 followed by field 1,
+> irrespective
+> of field affinity,
+
+Well it now seems we could do just that.
+-- 
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
