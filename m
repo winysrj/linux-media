@@ -1,96 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40992 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750740AbeFAJxY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Jun 2018 05:53:24 -0400
-Date: Fri, 1 Jun 2018 12:53:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jagan Teki <jagan@amarulasolutions.com>
-Cc: Philipp Zabel <pza@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Discussion of the development of and with GStreamer
-        <gstreamer-devel@lists.freedesktop.org>,
-        linux-media@vger.kernel.org,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: i.MX6 MIPI-CSI2 OV5640 Camera testing on Mainline Linux
-Message-ID: <20180601095322.hdxcpmj4tfonaq4g@valkosipuli.retiisi.org.uk>
-References: <CAMty3ZAMjCKv1BtLnobRZUzp=9Xu1gY5+R3Zi-JuobAJZQrXxg@mail.gmail.com>
- <20180531190659.xdp4q2cjro33aihq@pengutronix.de>
- <CAMty3ZCeR3uEx8oy18-Ur7ma7pciKUf_myDk6_SpWvxc6DvygQ@mail.gmail.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34882 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751531AbeFEIpM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2018 04:45:12 -0400
+Received: by mail-wm0-f66.google.com with SMTP id j15-v6so3470606wme.0
+        for <linux-media@vger.kernel.org>; Tue, 05 Jun 2018 01:45:12 -0700 (PDT)
+Subject: Re: [PATCH v2 5/5] venus: register separate driver for firmware
+ device
+To: Tomasz Figa <tfiga@chromium.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: vgarodia@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Arnd Bergmann <arnd@arndb.de>
+References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
+ <1527884768-22392-6-git-send-email-vgarodia@codeaurora.org>
+ <CAAFQd5D39CkA=GucUs7YOHwsdj0gbk55BiY_gSvArY_RH4uDkg@mail.gmail.com>
+ <2cf4f7e8-f9e6-d62b-45a8-2c348af4aafe@linaro.org>
+ <CAAFQd5BFq+pdEpBmpw5QsO+m+fsAhexhqA_uJg1G39Mpv5E3HQ@mail.gmail.com>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <fd74c277-e8d3-a026-fbd2-914a029e8efe@linaro.org>
+Date: Tue, 5 Jun 2018 11:45:08 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMty3ZCeR3uEx8oy18-Ur7ma7pciKUf_myDk6_SpWvxc6DvygQ@mail.gmail.com>
+In-Reply-To: <CAAFQd5BFq+pdEpBmpw5QsO+m+fsAhexhqA_uJg1G39Mpv5E3HQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 01, 2018 at 10:49:56AM +0530, Jagan Teki wrote:
-> Hi Philipp,
-> 
-> On Fri, Jun 1, 2018 at 12:36 AM, Philipp Zabel <pza@pengutronix.de> wrote:
-> > Hi Jagan,
-> >
-> > On Thu, May 31, 2018 at 08:39:20PM +0530, Jagan Teki wrote:
-> >> Hi All,
-> >>
-> >> I'm trying to verify MIPI-CSI2 OV5640 camera on i.MX6 platform with
-> >> Mainline Linux.
-> >>
-> >> I've followed these[1] instructions to configure MC links and pads
-> >> based on the probing details from dmesg and trying to capture
-> >> ipu1_ic_prpenc capture (/dev/video1) but it's not working.
-> >>
-> >> Can anyone help me to verify whether I configured all the details
-> >> properly if not please suggest.
-> >>
-> >> I'm pasting full log here, so-that anyone can comment in line and dt
-> >> changes are at [2]
-> >>
-> >> Log:
-> >> -----
-> > [...]
-> >> # media-ctl -l "'ov5640 2-003c':0 -> 'imx6-mipi-csi2':0[1]"
-> >> # media-ctl -l "'imx6-mipi-csi2':2 -> 'ipu1_csi1':0[1]"
-> >> # media-ctl -l "'ipu1_csi1':1 -> 'ipu1_ic_prp':0[1]"
-> >> # media-ctl -l "'ipu1_ic_prp':1 -> 'ipu1_ic_prpenc':0[1]"
-> >> # media-ctl -l "'ipu1_ic_prpenc':1 -> 'ipu1_ic_prpenc capture':0[1]"
-> >
-> > Here you configure a pipeline that ends at ipu1 prpenc capture ...
-> >
-> >> # med# media-ctl -p
-> > [...]
-> >> - entity 18: ipu1_ic_prpenc capture (1 pad, 1 link)
-> >>              type Node subtype V4L flags 0
-> >>              device node name /dev/video0
-> >
-> > ... which is /dev/video0 ...
-> >
-> > [...]
-> >> - entity 27: ipu1_ic_prpvf capture (1 pad, 1 link)
-> >>              type Node subtype V4L flags 0
-> >>              device node name /dev/video1
-> >
-> > ... not /dev/video1 ...
-> 
-> True, thanks for pointing it.
-> 
-> I actually tried even on video0 which I forgot to post the log [4].
-> Now I understand I'm trying for wrong device to capture look like
-> video0 which is ipu1 prepenc firing kernel oops. I'm trying to debug
-> this and let me know if have any suggestion to look into.
-> 
-> [   56.800074] imx6-mipi-csi2: LP-11 timeout, phy_state = 0x000002b0
-> [   57.369660] ipu1_ic_prpenc: EOF timeout
-> [   57.849692] ipu1_ic_prpenc: wait last EOF timeout
-> [   57.855703] ipu1_ic_prpenc: pipeline start failed with -110
+Cc: Arnd
 
-I don't have the hardware but this looks like the host cannot detect the
-LP-11 state on the sensor (both wires high?). Some sensors cannot do this
-without starting streaming at the same time. I'd expect the same if there
-are problems in lane configuration etc.
+On 06/05/2018 07:08 AM, Tomasz Figa wrote:
+> On Mon, Jun 4, 2018 at 10:56 PM Stanimir Varbanov
+> <stanimir.varbanov@linaro.org> wrote:
+>>
+>> Hi Tomasz,
+>>
+>> On 06/04/2018 04:18 PM, Tomasz Figa wrote:
+>>> Hi Vikash,
+>>>
+>>> On Sat, Jun 2, 2018 at 5:27 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+>>>> +static int __init venus_init(void)
+>>>> +{
+>>>> +       int ret;
+>>>> +
+>>>> +       ret = platform_driver_register(&qcom_video_firmware_driver);
+>>>> +       if (ret)
+>>>> +               return ret;
+>>>
+>>> Do we really need this firmware driver? As far as I can see, the
+>>> approach used here should work even without any driver bound to the
+>>> firmware device.
+>>
+>> We need device/driver bind because we need to call dma_configure() which
+>> internally doing iommus sID parsing.
+> 
+> I can see some drivers calling of_dma_configure() directly:
+> https://elixir.bootlin.com/linux/latest/ident/of_dma_configure
+> 
+> I'm not sure if it's more elegant, but should at least require less code.
+
+I think that in this case of non-TZ where we do iommu mapping by hand we
+can use shared-dma-pool reserved memory see how venus_boot has been
+implemented in the beginning [1].
+
+Arnd what do you think?
+
+Some background, we have a use-case where the memory for firmware needs
+to be mapped by the venus driver by hand instead of TZ firmware calls.
+I.e. we want to support both, iommu mapping from the driver and mapping
+done by TZ firmware. How we will differentiate what mapping (TZ or
+non-TZ) will be used is a separate issue.
+
+> 
+> By the way, can we really assume that probe of firmware platform
+> device really completes before we call venus_boot()?
+
+I'd say we cannot.
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+regards,
+Stan
+
+[1] https://lkml.org/lkml/2017/4/28/214
