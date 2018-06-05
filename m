@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:15315 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750723AbeFDGd2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 02:33:28 -0400
-Subject: Re: [RESEND PATCH V2 2/2] media: ak7375: Add ak7375 lens voice coil
- driver
-To: Sakari Ailus <sakari.ailus@linux.intel.com>, bingbu.cao@intel.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        tian.shu.qiu@intel.com, rajmohan.mani@intel.com, tfiga@chromium.org
-References: <1527242135-22866-1-git-send-email-bingbu.cao@intel.com>
- <1527242135-22866-2-git-send-email-bingbu.cao@intel.com>
- <20180601094207.355n2vzpscsgwyc6@paasikivi.fi.intel.com>
-From: Bing Bu Cao <bingbu.cao@linux.intel.com>
-Message-ID: <e898d6bc-f9d3-3f0b-6e93-2e8dd99a047f@linux.intel.com>
-Date: Mon, 4 Jun 2018 14:36:10 +0800
-MIME-Version: 1.0
-In-Reply-To: <20180601094207.355n2vzpscsgwyc6@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:37431 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750951AbeFEEvC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2018 00:51:02 -0400
+Received: by mail-pl0-f65.google.com with SMTP id 31-v6so736616plc.4
+        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2018 21:51:01 -0700 (PDT)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [PATCH] media: venus: keep resolution when adjusting format
+Date: Tue,  5 Jun 2018 13:50:46 +0900
+Message-Id: <20180605045046.200011-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+When checking a format for validity, the resolution is reset to 1280x720
+whenever the pixel format is not supported. This behavior can mislead
+user-space into believing that this is the only resolution supported,
+and looks strange considering that if we try/set the same format with
+just the pixel format changed to a valid one, the call will this time
+succeed without altering the resolution.
 
+Resolution is managed independently of the pixel format, so remove this
+reset.
 
-On 2018年06月01日 17:42, Sakari Ailus wrote:
-> On Fri, May 25, 2018 at 05:55:35PM +0800, bingbu.cao@intel.com wrote:
->> +static int ak7375_i2c_write(struct ak7375_device *ak7375,
->> +	u8 addr, u16 data, int size)
->> +{
->> +	struct i2c_client *client = v4l2_get_subdevdata(&ak7375->sd);
->> +	int ret;
->> +	u8 buf[3];
->> +
->> +	if (size != 1 && size != 2)
->> +		return -EINVAL;
->> +	buf[0] = addr;
->> +	buf[2] = data & 0xff;
->> +	if (size == 2)
->> +		buf[1] = data >> 8;
->> +	ret = i2c_master_send(client, (const char *)buf, size + 1);
-> I don't have a data datasheet for this thing, but it looks like buf[1] will
-> be undefined for writes the size of which is 1. And this what appears to be
-> written to the device as well...
-I check the datasheet once again and find out that the logic here for 
-size==1 is
-not correct, I will change it in next version. Thanks.
-Here is the write section in datasheet:
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/platform/qcom/venus/vdec.c | 2 --
+ drivers/media/platform/qcom/venus/venc.c | 2 --
+ 2 files changed, 4 deletions(-)
 
-------
-After receiving the second byte (register address), AK7375 generates an 
-acknowledge then receives the third
-byte. The third and the following bytes represent control data. Control 
-data consists of 8 bits and is based on
-the MSB-first configuration.
-AK7375 can write multiple bytes of data at a time. After reception of 
-the third byte (control data), AK7375
-generates an acknowledge then receives the next data. If additional data 
-is received instead of the stop
-condition after receiving one byte of data, the address counter inside 
-the LSI chip is automatically
-incremented and the data is written at the next address.
-------
-
->
->> +	if (ret < 0)
->> +		return ret;
->> +	if (ret != size + 1)
->> +		return -EIO;
->> +	return 0;
->> +}
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 49bbd1861d3a..f89a91d43cc9 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -173,8 +173,6 @@ vdec_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+ 		else
+ 			return NULL;
+ 		fmt = find_format(inst, pixmp->pixelformat, f->type);
+-		pixmp->width = 1280;
+-		pixmp->height = 720;
+ 	}
+ 
+ 	pixmp->width = clamp(pixmp->width, inst->cap_width.min,
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index 6b2ce479584e..11dafc7848c5 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -297,8 +297,6 @@ venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+ 		else
+ 			return NULL;
+ 		fmt = find_format(inst, pixmp->pixelformat, f->type);
+-		pixmp->width = 1280;
+-		pixmp->height = 720;
+ 	}
+ 
+ 	pixmp->width = clamp(pixmp->width, inst->cap_width.min,
+-- 
+2.17.1.1185.g55be947832-goog
