@@ -1,147 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:37462 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751031AbeFBR6j (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2018 13:58:39 -0400
-Received: by mail-pl0-f68.google.com with SMTP id 31-v6so7226916plc.4
-        for <linux-media@vger.kernel.org>; Sat, 02 Jun 2018 10:58:39 -0700 (PDT)
-Subject: Re: [PATCH v2 10/10] media: imx.rst: Update doc to reflect fixes to
- interlaced capture
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
- <1527813049-3231-11-git-send-email-steve_longerbeam@mentor.com>
- <1527860665.5913.13.camel@pengutronix.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <87255e12-a257-28fa-4965-b040da5043d2@gmail.com>
-Date: Sat, 2 Jun 2018 10:58:35 -0700
-MIME-Version: 1.0
-In-Reply-To: <1527860665.5913.13.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:35899 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750788AbeFEEkG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Jun 2018 00:40:06 -0400
+Message-ID: <6207a8eddfc86c85dc6e1570813f3a05@smtp-cloud9.xs4all.net>
+Date: Tue, 05 Jun 2018 06:40:03 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 06/01/2018 06:44 AM, Philipp Zabel wrote:
-> On Thu, 2018-05-31 at 17:30 -0700, Steve Longerbeam wrote:
->> Also add an example pipeline for unconverted capture with interweave
->> on SabreAuto.
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>   Documentation/media/v4l-drivers/imx.rst | 51 ++++++++++++++++++++++++---------
->>   1 file changed, 37 insertions(+), 14 deletions(-)
->>
->> diff --git a/Documentation/media/v4l-drivers/imx.rst b/Documentation/media/v4l-drivers/imx.rst
->> index 65d3d15..4149b76 100644
->> --- a/Documentation/media/v4l-drivers/imx.rst
->> +++ b/Documentation/media/v4l-drivers/imx.rst
->> @@ -179,9 +179,10 @@ sink pad can take UYVY2X8, but the IDMAC source pad can output YUYV2X8.
->>   If the sink pad is receiving YUV, the output at the capture device can
->>   also be converted to a planar YUV format such as YUV420.
->>   
->> -It will also perform simple de-interlace without motion compensation,
->> -which is activated if the sink pad's field type is an interlaced type,
->> -and the IDMAC source pad field type is set to none.
->> +It will also perform simple interweave without motion compensation,
->> +which is activated if the sink pad's field type is sequential top-bottom
->> +or bottom-top or alternate, and the IDMAC source pad field type is
->> +interlaced (t-b, b-t, or unqualified interlaced).
-> I think sink pad alternate behaviour should be equal to sink pad top-
-> bottom for PAL and sink pad bottom-top for NTSC. If we agree on this, we
-> should mention that here.
+date:			Tue Jun  5 05:00:18 CEST 2018
+media-tree git hash:	a00031c159748f322f771f3c1d5ed944cba4bd30
+media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
+v4l-utils git hash:	88f31856e566df6e4d38eaff94c422fbb536febb
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-Agreed.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17-i686: OK
+linux-4.17-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
->
->>   This subdev can generate the following event when enabling the second
->>   IDMAC source pad:
->> @@ -383,13 +384,13 @@ and CSC operations and flip/rotation controls. It will receive and
->>   process de-interlaced frames from the ipuX_vdic if ipuX_ic_prp is
->>   receiving from ipuX_vdic.
->>   
->> -Like the ipuX_csiY IDMAC source, it can perform simple de-interlace
->> +Like the ipuX_csiY IDMAC source, it can perform simple interweaving
->>   without motion compensation. However, note that if the ipuX_vdic is
->>   included in the pipeline (ipuX_ic_prp is receiving from ipuX_vdic),
->> -it's not possible to use simple de-interlace in ipuX_ic_prpvf, since
->> -the ipuX_vdic has already carried out de-interlacing (with motion
->> -compensation) and therefore the field type output from ipuX_ic_prp can
->> -only be none.
->> +it's not possible to use interweave in ipuX_ic_prpvf, since the
->> +ipuX_vdic has already carried out de-interlacing (with motion
->> +compensation) and therefore the field type output from ipuX_vdic
->> +can only be none (progressive).
->>   
->>   Capture Pipelines
->>   -----------------
->> @@ -514,10 +515,32 @@ On the SabreAuto, an on-board ADV7180 SD decoder is connected to the
->>   parallel bus input on the internal video mux to IPU1 CSI0.
->>   
->>   The following example configures a pipeline to capture from the ADV7180
->> +video decoder, assuming NTSC 720x480 input signals, using simple
->> +interweave (unconverted and without motion compensation). The adv7180
->> +must output sequential or alternating fields (field type 'seq-tb',
->> +'seq-bt', or 'alternate'):
->> +
->> +.. code-block:: none
->> +
->> +   # Setup links
->> +   media-ctl -l "'adv7180 3-0021':0 -> 'ipu1_csi0_mux':1[1]"
->> +   media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
->> +   media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
->> +   # Configure pads
->> +   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
->> +   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
->> +   media-ctl -V "'ipu1_csi0':2 [fmt:AYUV32/720x480 field:interlaced]"
-> Could the example suggest using interlaced-bt to be explicit here?
-> Actually, I don't think we should allow interlaced on the CSI src pads
-> at all in this case. Technically it always writes either seq-tb or seq-
-> bt into the smfc, never interlaced (unless the input is already
-> interlaced).
+Detailed results are available here:
 
-Agreed, I'll make that change in v3 and update the doc.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Steve
+Full logs are available here:
 
->> +Streaming can then begin on the capture device node at
->> +"ipu1_csi0 capture". The v4l2-ctl tool can be used to select any
->> +supported YUV pixelformat on the capture device node.
->> +
->> +This example configures a pipeline to capture from the ADV7180
->>   video decoder, assuming NTSC 720x480 input signals, with Motion
->> -Compensated de-interlacing. Pad field types assume the adv7180 outputs
->> -"interlaced". $outputfmt can be any format supported by the ipu1_ic_prpvf
->> -entity at its output pad:
->> +Compensated de-interlacing. The adv7180 must output sequential or
->> +alternating fields (field type 'seq-tb', 'seq-bt', or 'alternate').
->> +$outputfmt can be any format supported by the ipu1_ic_prpvf entity
->> +at its output pad:
->>   
->>   .. code-block:: none
->>   
->> @@ -529,9 +552,9 @@ entity at its output pad:
->>      media-ctl -l "'ipu1_ic_prp':2 -> 'ipu1_ic_prpvf':0[1]"
->>      media-ctl -l "'ipu1_ic_prpvf':1 -> 'ipu1_ic_prpvf capture':0[1]"
->>      # Configure pads
->> -   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480]"
->> -   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]"
->> -   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x480 field:interlaced]"
->> +   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
->> +   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
->> +   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x480]"
->>      media-ctl -V "'ipu1_vdic':2 [fmt:AYUV32/720x480 field:none]"
->>      media-ctl -V "'ipu1_ic_prp':2 [fmt:AYUV32/720x480 field:none]"
->>      media-ctl -V "'ipu1_ic_prpvf':1 [fmt:$outputfmt field:none]"
-> This looks good to me.
->
-> regards
-> Philipp
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
