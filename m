@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:34358 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34360 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752865AbeFEXem (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2018 19:34:42 -0400
+        with ESMTP id S1752732AbeFEXeo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2018 19:34:44 -0400
 From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -12,9 +12,9 @@ Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Subject: [RFC PATCH v1 2/4] media: i2c: Add MAX9286 driver
-Date: Wed,  6 Jun 2018 00:34:33 +0100
-Message-Id: <20180605233435.18102-3-kieran.bingham+renesas@ideasonboard.com>
+Subject: [RFC PATCH v1 4/4] media: i2c: Add RDACM20 driver
+Date: Wed,  6 Jun 2018 00:34:35 +0100
+Message-Id: <20180605233435.18102-5-kieran.bingham+renesas@ideasonboard.com>
 In-Reply-To: <20180605233435.18102-1-kieran.bingham+renesas@ideasonboard.com>
 References: <20180605233435.18102-1-kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
@@ -23,90 +23,1049 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MAX9286 is a 4-channel GMSL deserializer with coax or STP input and
-CSI-2 output. The device supports multicamera streaming applications,
-and features the ability to synchronise the attached cameras.
+The RDACM20 is a GMSL camera supporting 1280x800 resolution images
+developed by IMI based on an Omnivision 10635 sensor and a Maxim MAX9271
+GMSL serializer.
 
-CSI-2 output can be configured with 1 to 4 lanes, and a control channel
-is supported over I2C, which implements an I2C mux to facilitate
-communications with connected cameras across the reverse control
-channel.
+The GMSL link carries power, control (I2C) and video data over a
+single coax cable.
 
 Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- MAINTAINERS                 |   10 +
- drivers/media/i2c/Kconfig   |   11 +
- drivers/media/i2c/Makefile  |    1 +
- drivers/media/i2c/max9286.c | 1185 +++++++++++++++++++++++++++++++++++
- 4 files changed, 1207 insertions(+)
- create mode 100644 drivers/media/i2c/max9286.c
+ MAINTAINERS                         |  10 +
+ drivers/media/i2c/Kconfig           |  11 +
+ drivers/media/i2c/Makefile          |   1 +
+ drivers/media/i2c/rdacm20-ov10635.h | 953 ++++++++++++++++++++++++++++
+ drivers/media/i2c/rdacm20.c         | 635 ++++++++++++++++++
+ 5 files changed, 1610 insertions(+)
+ create mode 100644 drivers/media/i2c/rdacm20-ov10635.h
+ create mode 100644 drivers/media/i2c/rdacm20.c
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index a38e24a3702e..0b280695c228 100644
+index 0b280695c228..818bf66fa808 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -8609,6 +8609,16 @@ F:	Documentation/devicetree/bindings/i2c/max6697.txt
- F:	drivers/hwmon/max6697.c
- F:	include/linux/platform_data/max6697.h
+@@ -11832,6 +11832,16 @@ S:	Supported
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-rcu.git
+ F:	tools/testing/selftests/rcutorture
  
-+MAX9286 QUAD GMSL DESERIALIZER DRIVER
++RDACM20 Camera Sensor
 +M	Jacopo Mondi <jacopo+renesas@jmondi.org>
 +M:	Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 +M:	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 +M:	Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 +L:	linux-media@vger.kernel.org
 +S:	Maintained
-+F:	Documentation/devicetree/bindings/media/i2c/max9286.txt
-+F:	drivers/media/i2c/max9286.c
++F:	Documentation/devicetree/bindings/media/i2c/rdacm20.txt
++F:	drivers/media/i2c/rdacm20*
 +
- MAX9860 MONO AUDIO VOICE CODEC DRIVER
- M:	Peter Rosin <peda@axentia.se>
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
+ RDC R-321X SoC
+ M:	Florian Fainelli <florian@openwrt.org>
+ S:	Maintained
 diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 341452fe98df..523ec67d64e7 100644
+index 523ec67d64e7..921c8290461e 100644
 --- a/drivers/media/i2c/Kconfig
 +++ b/drivers/media/i2c/Kconfig
-@@ -452,6 +452,17 @@ config VIDEO_VPX3220
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called vpx3220.
+@@ -911,6 +911,17 @@ config VIDEO_S5C73M3
+ 	  This is a V4L2 sensor-level driver for Samsung S5C73M3
+ 	  8 Mpixel camera.
  
-+config VIDEO_MAX9286
-+	tristate "Maxim MAX9286 GMSL deserializer support"
-+	depends on I2C && I2C_MUX
-+	depends on VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
++config VIDEO_RDACM20
++	tristate "IMI RDACM20 camera support"
++	depends on I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
 +	select V4L2_FWNODE
 +	help
-+	  This driver supports the Maxim MAX9286 GMSL deserializer.
++	  This driver supports the IMI RDACM20 GMSL camera, used in
++	  ADAS systems.
 +
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called max9286.
++	  This camera should be used in conjunction with a GMSL
++	  deserialiser such as the MAX9286.
 +
- comment "Video and audio decoders"
+ comment "Flash devices"
  
- config VIDEO_SAA717X
+ config VIDEO_ADP1653
 diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index d679d57cd3b3..9142204f3f25 100644
+index 9142204f3f25..0cf4cd7460a9 100644
 --- a/drivers/media/i2c/Makefile
 +++ b/drivers/media/i2c/Makefile
-@@ -103,5 +103,6 @@ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
- obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
+@@ -104,5 +104,6 @@ obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
  obj-$(CONFIG_VIDEO_IMX258)	+= imx258.o
  obj-$(CONFIG_VIDEO_IMX274)	+= imx274.o
-+obj-$(CONFIG_VIDEO_MAX9286)	+= max9286.o
+ obj-$(CONFIG_VIDEO_MAX9286)	+= max9286.o
++obj-$(CONFIG_VIDEO_RDACM20)	+= rdacm20.o
  
  obj-$(CONFIG_SDR_MAX2175) += max2175.o
-diff --git a/drivers/media/i2c/max9286.c b/drivers/media/i2c/max9286.c
+diff --git a/drivers/media/i2c/rdacm20-ov10635.h b/drivers/media/i2c/rdacm20-ov10635.h
 new file mode 100644
-index 000000000000..1a2064ede6f0
+index 000000000000..3c53a3262ee2
 --- /dev/null
-+++ b/drivers/media/i2c/max9286.c
-@@ -0,0 +1,1185 @@
++++ b/drivers/media/i2c/rdacm20-ov10635.h
+@@ -0,0 +1,953 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++/*
++ * IMI RDACM20 camera OV10635 sensor register initialization values
++ *
++ * Copyright (C) 2017-2018 Jacopo Mondi
++ * Copyright (C) 2017-2018 Kieran Bingham
++ * Copyright (C) 2017-2018 Laurent Pinchart
++ * Copyright (C) 2017-2018 Niklas Söderlund
++ * Copyright (C) 2016 Renesas Electronics Corporation
++ * Copyright (C) 2015 Cogent Embedded, Inc.
++ *
++ */
++
++/*
++ * Generated by the OmniVision ov10635 sensor camera wizard for
++ * 1280x800@30/UYVY/BT601/8bit.
++ */
++
++#ifndef __RDACM20_OV10635_H__
++#define __RDACM20_OV10635_H__
++
++#define OV10635_SENSOR_WIDTH		1312
++#define OV10635_SENSOR_HEIGHT		814
++
++#define OV10635_MAX_WIDTH		1280
++#define OV10635_MAX_HEIGHT		800
++
++/* VTS = PCLK / FPS / HTS / 2 (= 88MHz / 1572 / 30 / 2) */
++#define OV10635_HTS			1572
++/* FPS = 29,9998 */
++#define OV10635_VTS			933
++
++struct ov10635_reg {
++	u16	reg;
++	u8	val;
++};
++
++static const struct ov10635_reg ov10635_regs_wizard[] = {
++	{ 0x301b, 0xff },
++	{ 0x301c, 0xff },
++	{ 0x301a, 0xff },
++	{ 0x3011, 0x42 },
++	{ 0x6900, 0x0c },
++	{ 0x6901, 0x19 },
++	{ 0x3503, 0x10 },
++	{ 0x3025, 0x03 },
++	{ 0x3003, 0x16 },
++	{ 0x3004, 0x30 },
++	{ 0x3005, 0x40 },
++	{ 0x3006, 0x91 },
++	{ 0x3600, 0x74 },
++	{ 0x3601, 0x2b },
++	{ 0x3612, 0x00 },
++	{ 0x3611, 0x67 },
++	{ 0x3633, 0xca },
++	{ 0x3602, 0xaf },
++	{ 0x3603, 0x04 },
++	{ 0x3630, 0x28 },
++	{ 0x3631, 0x16 },
++	{ 0x3714, 0x10 },
++	{ 0x371d, 0x01 },
++	{ 0x4300, 0x3a },
++	{ 0x3007, 0x01 },
++	{ 0x3024, 0x03 },
++	{ 0x3020, 0x0a },
++	{ 0x3702, 0x0d },
++	{ 0x3703, 0x20 },
++	{ 0x3704, 0x15 },
++	{ 0x3709, 0xa8 },
++	{ 0x370c, 0xc7 },
++	{ 0x370d, 0x80 },
++	{ 0x3712, 0x00 },
++	{ 0x3713, 0x20 },
++	{ 0x3715, 0x04 },
++	{ 0x381d, 0x40 },
++	{ 0x381c, 0x00 },
++	{ 0x3822, 0x50 },
++	{ 0x3824, 0x10 },
++	{ 0x3815, 0x8c },
++	{ 0x3804, 0x05 },
++	{ 0x3805, 0x1f },
++	{ 0x3800, 0x00 },
++	{ 0x3801, 0x00 },
++	{ 0x3806, 0x03 },
++	{ 0x3807, 0x28 },
++	{ 0x3802, 0x00 },
++	{ 0x3803, 0x07 },
++	{ 0x3808, 0x05 },
++	{ 0x3809, 0x00 },
++	{ 0x380a, 0x03 },
++	{ 0x380b, 0x20 },
++	{ 0x380c, OV10635_HTS >> 8 },
++	{ 0x380d, OV10635_HTS & 0xff },
++	{ 0x380e, OV10635_VTS >> 8 },
++	{ 0x380f, OV10635_VTS & 0xff },
++	{ 0x3813, 0x02 },
++	{ 0x3811, 0x08 },
++	{ 0x381f, 0x0c },
++	{ 0x3819, 0x04 },
++	{ 0x3804, 0x01 },
++	{ 0x3805, 0x00 },
++	{ 0x3828, 0x03 },
++	{ 0x3829, 0x10 },
++	{ 0x382a, 0x10 },
++	{ 0x3621, 0x63 },
++	{ 0x5005, 0x08 },
++	{ 0x56d5, 0x00 },
++	{ 0x56d6, 0x80 },
++	{ 0x56d7, 0x00 },
++	{ 0x56d8, 0x00 },
++	{ 0x56d9, 0x00 },
++	{ 0x56da, 0x80 },
++	{ 0x56db, 0x00 },
++	{ 0x56dc, 0x00 },
++	{ 0x56e8, 0x00 },
++	{ 0x56e9, 0x7f },
++	{ 0x56ea, 0x00 },
++	{ 0x56eb, 0x7f },
++	{ 0x5100, 0x00 },
++	{ 0x5101, 0x80 },
++	{ 0x5102, 0x00 },
++	{ 0x5103, 0x80 },
++	{ 0x5104, 0x00 },
++	{ 0x5105, 0x80 },
++	{ 0x5106, 0x00 },
++	{ 0x5107, 0x80 },
++	{ 0x5108, 0x00 },
++	{ 0x5109, 0x00 },
++	{ 0x510a, 0x00 },
++	{ 0x510b, 0x00 },
++	{ 0x510c, 0x00 },
++	{ 0x510d, 0x00 },
++	{ 0x510e, 0x00 },
++	{ 0x510f, 0x00 },
++	{ 0x5110, 0x00 },
++	{ 0x5111, 0x80 },
++	{ 0x5112, 0x00 },
++	{ 0x5113, 0x80 },
++	{ 0x5114, 0x00 },
++	{ 0x5115, 0x80 },
++	{ 0x5116, 0x00 },
++	{ 0x5117, 0x80 },
++	{ 0x5118, 0x00 },
++	{ 0x5119, 0x00 },
++	{ 0x511a, 0x00 },
++	{ 0x511b, 0x00 },
++	{ 0x511c, 0x00 },
++	{ 0x511d, 0x00 },
++	{ 0x511e, 0x00 },
++	{ 0x511f, 0x00 },
++	{ 0x56d0, 0x00 },
++	{ 0x5006, 0x04 },
++	{ 0x5608, 0x05 },
++	{ 0x52d7, 0x06 },
++	{ 0x528d, 0x08 },
++	{ 0x5293, 0x12 },
++	{ 0x52d3, 0x12 },
++	{ 0x5288, 0x06 },
++	{ 0x5289, 0x20 },
++	{ 0x52c8, 0x06 },
++	{ 0x52c9, 0x20 },
++	{ 0x52cd, 0x04 },
++	{ 0x5381, 0x00 },
++	{ 0x5382, 0xff },
++	{ 0x5589, 0x76 },
++	{ 0x558a, 0x47 },
++	{ 0x558b, 0xef },
++	{ 0x558c, 0xc9 },
++	{ 0x558d, 0x49 },
++	{ 0x558e, 0x30 },
++	{ 0x558f, 0x67 },
++	{ 0x5590, 0x3f },
++	{ 0x5591, 0xf0 },
++	{ 0x5592, 0x10 },
++	{ 0x55a2, 0x6d },
++	{ 0x55a3, 0x55 },
++	{ 0x55a4, 0xc3 },
++	{ 0x55a5, 0xb5 },
++	{ 0x55a6, 0x43 },
++	{ 0x55a7, 0x38 },
++	{ 0x55a8, 0x5f },
++	{ 0x55a9, 0x4b },
++	{ 0x55aa, 0xf0 },
++	{ 0x55ab, 0x10 },
++	{ 0x5581, 0x52 },
++	{ 0x5300, 0x01 },
++	{ 0x5301, 0x00 },
++	{ 0x5302, 0x00 },
++	{ 0x5303, 0x0e },
++	{ 0x5304, 0x00 },
++	{ 0x5305, 0x0e },
++	{ 0x5306, 0x00 },
++	{ 0x5307, 0x36 },
++	{ 0x5308, 0x00 },
++	{ 0x5309, 0xd9 },
++	{ 0x530a, 0x00 },
++	{ 0x530b, 0x0f },
++	{ 0x530c, 0x00 },
++	{ 0x530d, 0x2c },
++	{ 0x530e, 0x00 },
++	{ 0x530f, 0x59 },
++	{ 0x5310, 0x00 },
++	{ 0x5311, 0x7b },
++	{ 0x5312, 0x00 },
++	{ 0x5313, 0x22 },
++	{ 0x5314, 0x00 },
++	{ 0x5315, 0xd5 },
++	{ 0x5316, 0x00 },
++	{ 0x5317, 0x13 },
++	{ 0x5318, 0x00 },
++	{ 0x5319, 0x18 },
++	{ 0x531a, 0x00 },
++	{ 0x531b, 0x26 },
++	{ 0x531c, 0x00 },
++	{ 0x531d, 0xdc },
++	{ 0x531e, 0x00 },
++	{ 0x531f, 0x02 },
++	{ 0x5320, 0x00 },
++	{ 0x5321, 0x24 },
++	{ 0x5322, 0x00 },
++	{ 0x5323, 0x56 },
++	{ 0x5324, 0x00 },
++	{ 0x5325, 0x85 },
++	{ 0x5326, 0x00 },
++	{ 0x5327, 0x20 },
++	{ 0x5609, 0x01 },
++	{ 0x560a, 0x40 },
++	{ 0x560b, 0x01 },
++	{ 0x560c, 0x40 },
++	{ 0x560d, 0x00 },
++	{ 0x560e, 0xfa },
++	{ 0x560f, 0x00 },
++	{ 0x5610, 0xfa },
++	{ 0x5611, 0x02 },
++	{ 0x5612, 0x80 },
++	{ 0x5613, 0x02 },
++	{ 0x5614, 0x80 },
++	{ 0x5615, 0x01 },
++	{ 0x5616, 0x2c },
++	{ 0x5617, 0x01 },
++	{ 0x5618, 0x2c },
++	{ 0x563b, 0x01 },
++	{ 0x563c, 0x01 },
++	{ 0x563d, 0x01 },
++	{ 0x563e, 0x01 },
++	{ 0x563f, 0x03 },
++	{ 0x5640, 0x03 },
++	{ 0x5641, 0x03 },
++	{ 0x5642, 0x05 },
++	{ 0x5643, 0x09 },
++	{ 0x5644, 0x05 },
++	{ 0x5645, 0x05 },
++	{ 0x5646, 0x05 },
++	{ 0x5647, 0x05 },
++	{ 0x5651, 0x00 },
++	{ 0x5652, 0x80 },
++	{ 0x521a, 0x01 },
++	{ 0x521b, 0x03 },
++	{ 0x521c, 0x06 },
++	{ 0x521d, 0x0a },
++	{ 0x521e, 0x0e },
++	{ 0x521f, 0x12 },
++	{ 0x5220, 0x16 },
++	{ 0x5223, 0x02 },
++	{ 0x5225, 0x04 },
++	{ 0x5227, 0x08 },
++	{ 0x5229, 0x0c },
++	{ 0x522b, 0x12 },
++	{ 0x522d, 0x18 },
++	{ 0x522f, 0x1e },
++	{ 0x5241, 0x04 },
++	{ 0x5242, 0x01 },
++	{ 0x5243, 0x03 },
++	{ 0x5244, 0x06 },
++	{ 0x5245, 0x0a },
++	{ 0x5246, 0x0e },
++	{ 0x5247, 0x12 },
++	{ 0x5248, 0x16 },
++	{ 0x524a, 0x03 },
++	{ 0x524c, 0x04 },
++	{ 0x524e, 0x08 },
++	{ 0x5250, 0x0c },
++	{ 0x5252, 0x12 },
++	{ 0x5254, 0x18 },
++	{ 0x5256, 0x1e },
++	/* fifo_line_length = 2*hts */
++	{ 0x4606, (2 * OV10635_HTS) >> 8 },
++	{ 0x4607, (2 * OV10635_HTS) & 0xff },
++	/* fifo_hsync_start = 2*(hts - xres) */
++	{ 0x460a, (2 * (OV10635_HTS - OV10635_MAX_WIDTH)) >> 8 },
++	{ 0x460b, (2 * (OV10635_HTS - OV10635_MAX_WIDTH)) & 0xff },
++	{ 0x460c, 0x00 },
++	{ 0x4620, 0x0e },
++	/* BT601: 0x08 is also acceptable as HS/VS mode */
++	{ 0x4700, 0x04 },
++	{ 0x4701, 0x00 },
++	{ 0x4702, 0x01 },
++	{ 0x4004, 0x04 },
++	{ 0x4005, 0x18 },
++	{ 0x4001, 0x06 },
++	{ 0x4050, 0x22 },
++	{ 0x4051, 0x24 },
++	{ 0x4052, 0x02 },
++	{ 0x4057, 0x9c },
++	{ 0x405a, 0x00 },
++	{ 0x4202, 0x02 },
++	{ 0x3023, 0x10 },
++	{ 0x0100, 0x01 },
++	{ 0x0100, 0x01 },
++	{ 0x6f10, 0x07 },
++	{ 0x6f11, 0x82 },
++	{ 0x6f12, 0x04 },
++	{ 0x6f13, 0x00 },
++	{ 0xd000, 0x19 },
++	{ 0xd001, 0xa0 },
++	{ 0xd002, 0x00 },
++	{ 0xd003, 0x01 },
++	{ 0xd004, 0xa9 },
++	{ 0xd005, 0xad },
++	{ 0xd006, 0x10 },
++	{ 0xd007, 0x40 },
++	{ 0xd008, 0x44 },
++	{ 0xd009, 0x00 },
++	{ 0xd00a, 0x68 },
++	{ 0xd00b, 0x00 },
++	{ 0xd00c, 0x15 },
++	{ 0xd00d, 0x00 },
++	{ 0xd00e, 0x00 },
++	{ 0xd00f, 0x00 },
++	{ 0xd040, 0x9c },
++	{ 0xd041, 0x21 },
++	{ 0xd042, 0xff },
++	{ 0xd043, 0xf8 },
++	{ 0xd044, 0xd4 },
++	{ 0xd045, 0x01 },
++	{ 0xd046, 0x48 },
++	{ 0xd047, 0x00 },
++	{ 0xd048, 0xd4 },
++	{ 0xd049, 0x01 },
++	{ 0xd04a, 0x50 },
++	{ 0xd04b, 0x04 },
++	{ 0xd04c, 0x18 },
++	{ 0xd04d, 0x60 },
++	{ 0xd04e, 0x00 },
++	{ 0xd04f, 0x01 },
++	{ 0xd050, 0xa8 },
++	{ 0xd051, 0x63 },
++	{ 0xd052, 0x02 },
++	{ 0xd053, 0xa4 },
++	{ 0xd054, 0x85 },
++	{ 0xd055, 0x43 },
++	{ 0xd056, 0x00 },
++	{ 0xd057, 0x00 },
++	{ 0xd058, 0x18 },
++	{ 0xd059, 0x60 },
++	{ 0xd05a, 0x00 },
++	{ 0xd05b, 0x01 },
++	{ 0xd05c, 0xa8 },
++	{ 0xd05d, 0x63 },
++	{ 0xd05e, 0x03 },
++	{ 0xd05f, 0xf0 },
++	{ 0xd060, 0x98 },
++	{ 0xd061, 0xa3 },
++	{ 0xd062, 0x00 },
++	{ 0xd063, 0x00 },
++	{ 0xd064, 0x8c },
++	{ 0xd065, 0x6a },
++	{ 0xd066, 0x00 },
++	{ 0xd067, 0x6e },
++	{ 0xd068, 0xe5 },
++	{ 0xd069, 0x85 },
++	{ 0xd06a, 0x18 },
++	{ 0xd06b, 0x00 },
++	{ 0xd06c, 0x10 },
++	{ 0xd06d, 0x00 },
++	{ 0xd06e, 0x00 },
++	{ 0xd06f, 0x10 },
++	{ 0xd070, 0x9c },
++	{ 0xd071, 0x80 },
++	{ 0xd072, 0x00 },
++	{ 0xd073, 0x03 },
++	{ 0xd074, 0x18 },
++	{ 0xd075, 0x60 },
++	{ 0xd076, 0x00 },
++	{ 0xd077, 0x01 },
++	{ 0xd078, 0xa8 },
++	{ 0xd079, 0x63 },
++	{ 0xd07a, 0x07 },
++	{ 0xd07b, 0x80 },
++	{ 0xd07c, 0x07 },
++	{ 0xd07d, 0xff },
++	{ 0xd07e, 0xf9 },
++	{ 0xd07f, 0x03 },
++	{ 0xd080, 0x8c },
++	{ 0xd081, 0x63 },
++	{ 0xd082, 0x00 },
++	{ 0xd083, 0x00 },
++	{ 0xd084, 0xa5 },
++	{ 0xd085, 0x6b },
++	{ 0xd086, 0x00 },
++	{ 0xd087, 0xff },
++	{ 0xd088, 0x18 },
++	{ 0xd089, 0x80 },
++	{ 0xd08a, 0x00 },
++	{ 0xd08b, 0x01 },
++	{ 0xd08c, 0xa8 },
++	{ 0xd08d, 0x84 },
++	{ 0xd08e, 0x01 },
++	{ 0xd08f, 0x04 },
++	{ 0xd090, 0xe1 },
++	{ 0xd091, 0x6b },
++	{ 0xd092, 0x58 },
++	{ 0xd093, 0x00 },
++	{ 0xd094, 0x94 },
++	{ 0xd095, 0x6a },
++	{ 0xd096, 0x00 },
++	{ 0xd097, 0x70 },
++	{ 0xd098, 0xe1 },
++	{ 0xd099, 0x6b },
++	{ 0xd09a, 0x20 },
++	{ 0xd09b, 0x00 },
++	{ 0xd09c, 0x95 },
++	{ 0xd09d, 0x6b },
++	{ 0xd09e, 0x00 },
++	{ 0xd09f, 0x00 },
++	{ 0xd0a0, 0xe4 },
++	{ 0xd0a1, 0x8b },
++	{ 0xd0a2, 0x18 },
++	{ 0xd0a3, 0x00 },
++	{ 0xd0a4, 0x0c },
++	{ 0xd0a5, 0x00 },
++	{ 0xd0a6, 0x00 },
++	{ 0xd0a7, 0x23 },
++	{ 0xd0a8, 0x15 },
++	{ 0xd0a9, 0x00 },
++	{ 0xd0aa, 0x00 },
++	{ 0xd0ab, 0x00 },
++	{ 0xd0ac, 0x18 },
++	{ 0xd0ad, 0x60 },
++	{ 0xd0ae, 0x80 },
++	{ 0xd0af, 0x06 },
++	{ 0xd0b0, 0xa8 },
++	{ 0xd0b1, 0x83 },
++	{ 0xd0b2, 0x40 },
++	{ 0xd0b3, 0x08 },
++	{ 0xd0b4, 0xa8 },
++	{ 0xd0b5, 0xe3 },
++	{ 0xd0b6, 0x38 },
++	{ 0xd0b7, 0x2a },
++	{ 0xd0b8, 0xa8 },
++	{ 0xd0b9, 0xc3 },
++	{ 0xd0ba, 0x40 },
++	{ 0xd0bb, 0x09 },
++	{ 0xd0bc, 0xa8 },
++	{ 0xd0bd, 0xa3 },
++	{ 0xd0be, 0x38 },
++	{ 0xd0bf, 0x29 },
++	{ 0xd0c0, 0x8c },
++	{ 0xd0c1, 0x65 },
++	{ 0xd0c2, 0x00 },
++	{ 0xd0c3, 0x00 },
++	{ 0xd0c4, 0xd8 },
++	{ 0xd0c5, 0x04 },
++	{ 0xd0c6, 0x18 },
++	{ 0xd0c7, 0x00 },
++	{ 0xd0c8, 0x8c },
++	{ 0xd0c9, 0x67 },
++	{ 0xd0ca, 0x00 },
++	{ 0xd0cb, 0x00 },
++	{ 0xd0cc, 0xd8 },
++	{ 0xd0cd, 0x06 },
++	{ 0xd0ce, 0x18 },
++	{ 0xd0cf, 0x00 },
++	{ 0xd0d0, 0x18 },
++	{ 0xd0d1, 0x60 },
++	{ 0xd0d2, 0x80 },
++	{ 0xd0d3, 0x06 },
++	{ 0xd0d4, 0xa8 },
++	{ 0xd0d5, 0xe3 },
++	{ 0xd0d6, 0x67 },
++	{ 0xd0d7, 0x02 },
++	{ 0xd0d8, 0xa9 },
++	{ 0xd0d9, 0x03 },
++	{ 0xd0da, 0x67 },
++	{ 0xd0db, 0x03 },
++	{ 0xd0dc, 0xa8 },
++	{ 0xd0dd, 0xc3 },
++	{ 0xd0de, 0x3d },
++	{ 0xd0df, 0x05 },
++	{ 0xd0e0, 0x8c },
++	{ 0xd0e1, 0x66 },
++	{ 0xd0e2, 0x00 },
++	{ 0xd0e3, 0x00 },
++	{ 0xd0e4, 0xb8 },
++	{ 0xd0e5, 0x63 },
++	{ 0xd0e6, 0x00 },
++	{ 0xd0e7, 0x18 },
++	{ 0xd0e8, 0xb8 },
++	{ 0xd0e9, 0x63 },
++	{ 0xd0ea, 0x00 },
++	{ 0xd0eb, 0x98 },
++	{ 0xd0ec, 0xbc },
++	{ 0xd0ed, 0x03 },
++	{ 0xd0ee, 0x00 },
++	{ 0xd0ef, 0x00 },
++	{ 0xd0f0, 0x10 },
++	{ 0xd0f1, 0x00 },
++	{ 0xd0f2, 0x00 },
++	{ 0xd0f3, 0x16 },
++	{ 0xd0f4, 0xb8 },
++	{ 0xd0f5, 0x83 },
++	{ 0xd0f6, 0x00 },
++	{ 0xd0f7, 0x19 },
++	{ 0xd0f8, 0x8c },
++	{ 0xd0f9, 0x67 },
++	{ 0xd0fa, 0x00 },
++	{ 0xd0fb, 0x00 },
++	{ 0xd0fc, 0xb8 },
++	{ 0xd0fd, 0xa4 },
++	{ 0xd0fe, 0x00 },
++	{ 0xd0ff, 0x98 },
++	{ 0xd100, 0xb8 },
++	{ 0xd101, 0x83 },
++	{ 0xd102, 0x00 },
++	{ 0xd103, 0x08 },
++	{ 0xd104, 0x8c },
++	{ 0xd105, 0x68 },
++	{ 0xd106, 0x00 },
++	{ 0xd107, 0x00 },
++	{ 0xd108, 0xe0 },
++	{ 0xd109, 0x63 },
++	{ 0xd10a, 0x20 },
++	{ 0xd10b, 0x04 },
++	{ 0xd10c, 0xe0 },
++	{ 0xd10d, 0x65 },
++	{ 0xd10e, 0x18 },
++	{ 0xd10f, 0x00 },
++	{ 0xd110, 0xa4 },
++	{ 0xd111, 0x83 },
++	{ 0xd112, 0xff },
++	{ 0xd113, 0xff },
++	{ 0xd114, 0xb8 },
++	{ 0xd115, 0x64 },
++	{ 0xd116, 0x00 },
++	{ 0xd117, 0x48 },
++	{ 0xd118, 0xd8 },
++	{ 0xd119, 0x07 },
++	{ 0xd11a, 0x18 },
++	{ 0xd11b, 0x00 },
++	{ 0xd11c, 0xd8 },
++	{ 0xd11d, 0x08 },
++	{ 0xd11e, 0x20 },
++	{ 0xd11f, 0x00 },
++	{ 0xd120, 0x9c },
++	{ 0xd121, 0x60 },
++	{ 0xd122, 0x00 },
++	{ 0xd123, 0x00 },
++	{ 0xd124, 0xd8 },
++	{ 0xd125, 0x06 },
++	{ 0xd126, 0x18 },
++	{ 0xd127, 0x00 },
++	{ 0xd128, 0x00 },
++	{ 0xd129, 0x00 },
++	{ 0xd12a, 0x00 },
++	{ 0xd12b, 0x08 },
++	{ 0xd12c, 0x15 },
++	{ 0xd12d, 0x00 },
++	{ 0xd12e, 0x00 },
++	{ 0xd12f, 0x00 },
++	{ 0xd130, 0x8c },
++	{ 0xd131, 0x6a },
++	{ 0xd132, 0x00 },
++	{ 0xd133, 0x76 },
++	{ 0xd134, 0xbc },
++	{ 0xd135, 0x23 },
++	{ 0xd136, 0x00 },
++	{ 0xd137, 0x00 },
++	{ 0xd138, 0x13 },
++	{ 0xd139, 0xff },
++	{ 0xd13a, 0xff },
++	{ 0xd13b, 0xe6 },
++	{ 0xd13c, 0x18 },
++	{ 0xd13d, 0x60 },
++	{ 0xd13e, 0x80 },
++	{ 0xd13f, 0x06 },
++	{ 0xd140, 0x03 },
++	{ 0xd141, 0xff },
++	{ 0xd142, 0xff },
++	{ 0xd143, 0xdd },
++	{ 0xd144, 0xa8 },
++	{ 0xd145, 0x83 },
++	{ 0xd146, 0x40 },
++	{ 0xd147, 0x08 },
++	{ 0xd148, 0x85 },
++	{ 0xd149, 0x21 },
++	{ 0xd14a, 0x00 },
++	{ 0xd14b, 0x00 },
++	{ 0xd14c, 0x85 },
++	{ 0xd14d, 0x41 },
++	{ 0xd14e, 0x00 },
++	{ 0xd14f, 0x04 },
++	{ 0xd150, 0x44 },
++	{ 0xd151, 0x00 },
++	{ 0xd152, 0x48 },
++	{ 0xd153, 0x00 },
++	{ 0xd154, 0x9c },
++	{ 0xd155, 0x21 },
++	{ 0xd156, 0x00 },
++	{ 0xd157, 0x08 },
++	{ 0x6f0e, 0x03 },
++	{ 0x6f0f, 0x00 },
++	{ 0x460e, 0x08 },
++	{ 0x460f, 0x01 },
++	{ 0x4610, 0x00 },
++	{ 0x4611, 0x01 },
++	{ 0x4612, 0x00 },
++	{ 0x4613, 0x01 },
++	/* 8 bits */
++	{ 0x4605, 0x08 },
++	/* Swap data bits order [9:0] -> [0:9] */
++	{ 0x4709, 0x10 },
++	{ 0x4608, 0x00 },
++	{ 0x4609, 0x08 },
++	{ 0x6804, 0x00 },
++	{ 0x6805, 0x06 },
++	{ 0x6806, 0x00 },
++	{ 0x5120, 0x00 },
++	{ 0x3510, 0x00 },
++	{ 0x3504, 0x00 },
++	{ 0x6800, 0x00 },
++	{ 0x6f0d, 0x01 },
++	/* PCLK falling edge */
++	{ 0x4708, 0x01 },
++	{ 0x5000, 0xff },
++	{ 0x5001, 0xbf },
++	{ 0x5002, 0x7e },
++	{ 0x503d, 0x00 },
++	{ 0xc450, 0x01 },
++	{ 0xc452, 0x04 },
++	{ 0xc453, 0x00 },
++	{ 0xc454, 0x00 },
++	{ 0xc455, 0x01 },
++	{ 0xc456, 0x01 },
++	{ 0xc457, 0x00 },
++	{ 0xc458, 0x00 },
++	{ 0xc459, 0x00 },
++	{ 0xc45b, 0x00 },
++	{ 0xc45c, 0x01 },
++	{ 0xc45d, 0x00 },
++	{ 0xc45e, 0x00 },
++	{ 0xc45f, 0x00 },
++	{ 0xc460, 0x00 },
++	{ 0xc461, 0x01 },
++	{ 0xc462, 0x01 },
++	{ 0xc464, 0x03 },
++	{ 0xc465, 0x00 },
++	{ 0xc466, 0x8a },
++	{ 0xc467, 0x00 },
++	{ 0xc468, 0x86 },
++	{ 0xc469, 0x00 },
++	{ 0xc46a, 0x40 },
++	{ 0xc46b, 0x50 },
++	{ 0xc46c, 0x30 },
++	{ 0xc46d, 0x28 },
++	{ 0xc46e, 0x60 },
++	{ 0xc46f, 0x40 },
++	{ 0xc47c, 0x01 },
++	{ 0xc47d, 0x38 },
++	{ 0xc47e, 0x00 },
++	{ 0xc47f, 0x00 },
++	{ 0xc480, 0x00 },
++	{ 0xc481, 0xff },
++	{ 0xc482, 0x00 },
++	{ 0xc483, 0x40 },
++	{ 0xc484, 0x00 },
++	{ 0xc485, 0x18 },
++	{ 0xc486, 0x00 },
++	{ 0xc487, 0x18 },
++	{ 0xc488, (OV10635_VTS - 8) * 16 >> 8},
++	{ 0xc489, (OV10635_VTS - 8) * 16 & 0xff},
++	{ 0xc48a, (OV10635_VTS - 8) * 16 >> 8},
++	{ 0xc48b, (OV10635_VTS - 8) * 16 & 0xff},
++	{ 0xc48c, 0x00 },
++	{ 0xc48d, 0x04 },
++	{ 0xc48e, 0x00 },
++	{ 0xc48f, 0x04 },
++	{ 0xc490, 0x03 },
++	{ 0xc492, 0x20 },
++	{ 0xc493, 0x08 },
++	{ 0xc498, 0x02 },
++	{ 0xc499, 0x00 },
++	{ 0xc49a, 0x02 },
++	{ 0xc49b, 0x00 },
++	{ 0xc49c, 0x02 },
++	{ 0xc49d, 0x00 },
++	{ 0xc49e, 0x02 },
++	{ 0xc49f, 0x60 },
++	{ 0xc4a0, 0x03 },
++	{ 0xc4a1, 0x00 },
++	{ 0xc4a2, 0x04 },
++	{ 0xc4a3, 0x00 },
++	{ 0xc4a4, 0x00 },
++	{ 0xc4a5, 0x10 },
++	{ 0xc4a6, 0x00 },
++	{ 0xc4a7, 0x40 },
++	{ 0xc4a8, 0x00 },
++	{ 0xc4a9, 0x80 },
++	{ 0xc4aa, 0x0d },
++	{ 0xc4ab, 0x00 },
++	{ 0xc4ac, 0x0f },
++	{ 0xc4ad, 0xc0 },
++	{ 0xc4b4, 0x01 },
++	{ 0xc4b5, 0x01 },
++	{ 0xc4b6, 0x00 },
++	{ 0xc4b7, 0x01 },
++	{ 0xc4b8, 0x00 },
++	{ 0xc4b9, 0x01 },
++	{ 0xc4ba, 0x01 },
++	{ 0xc4bb, 0x00 },
++	{ 0xc4bc, 0x01 },
++	{ 0xc4bd, 0x60 },
++	{ 0xc4be, 0x02 },
++	{ 0xc4bf, 0x33 },
++	{ 0xc4c8, 0x03 },
++	{ 0xc4c9, 0xd0 },
++	{ 0xc4ca, 0x0e },
++	{ 0xc4cb, 0x00 },
++	{ 0xc4cc, 0x0e },
++	{ 0xc4cd, 0x51 },
++	{ 0xc4ce, 0x0e },
++	{ 0xc4cf, 0x51 },
++	{ 0xc4d0, 0x04 },
++	{ 0xc4d1, 0x80 },
++	{ 0xc4e0, 0x04 },
++	{ 0xc4e1, 0x02 },
++	{ 0xc4e2, 0x01 },
++	{ 0xc4e4, 0x10 },
++	{ 0xc4e5, 0x20 },
++	{ 0xc4e6, 0x30 },
++	{ 0xc4e7, 0x40 },
++	{ 0xc4e8, 0x50 },
++	{ 0xc4e9, 0x60 },
++	{ 0xc4ea, 0x70 },
++	{ 0xc4eb, 0x80 },
++	{ 0xc4ec, 0x90 },
++	{ 0xc4ed, 0xa0 },
++	{ 0xc4ee, 0xb0 },
++	{ 0xc4ef, 0xc0 },
++	{ 0xc4f0, 0xd0 },
++	{ 0xc4f1, 0xe0 },
++	{ 0xc4f2, 0xf0 },
++	{ 0xc4f3, 0x80 },
++	{ 0xc4f4, 0x00 },
++	{ 0xc4f5, 0x20 },
++	{ 0xc4f6, 0x02 },
++	{ 0xc4f7, 0x00 },
++	{ 0xc4f8, 0x00 },
++	{ 0xc4f9, 0x00 },
++	{ 0xc4fa, 0x00 },
++	{ 0xc4fb, 0x01 },
++	{ 0xc4fc, 0x01 },
++	{ 0xc4fd, 0x00 },
++	{ 0xc4fe, 0x04 },
++	{ 0xc4ff, 0x02 },
++	{ 0xc500, 0x48 },
++	{ 0xc501, 0x74 },
++	{ 0xc502, 0x58 },
++	{ 0xc503, 0x80 },
++	{ 0xc504, 0x05 },
++	{ 0xc505, 0x80 },
++	{ 0xc506, 0x03 },
++	{ 0xc507, 0x80 },
++	{ 0xc508, 0x01 },
++	{ 0xc509, 0xc0 },
++	{ 0xc50a, 0x01 },
++	{ 0xc50b, 0xa0 },
++	{ 0xc50c, 0x01 },
++	{ 0xc50d, 0x2c },
++	{ 0xc50e, 0x01 },
++	{ 0xc50f, 0x0a },
++	{ 0xc510, 0x00 },
++	{ 0xc511, 0x00 },
++	{ 0xc512, 0xe5 },
++	{ 0xc513, 0x14 },
++	{ 0xc514, 0x04 },
++	{ 0xc515, 0x00 },
++	{ 0xc518, OV10635_VTS >> 8},
++	{ 0xc519, OV10635_VTS & 0xff},
++	{ 0xc51a, OV10635_HTS >> 8},
++	{ 0xc51b, OV10635_HTS & 0xff},
++	{ 0xc2e0, 0x00 },
++	{ 0xc2e1, 0x51 },
++	{ 0xc2e2, 0x00 },
++	{ 0xc2e3, 0xd6 },
++	{ 0xc2e4, 0x01 },
++	{ 0xc2e5, 0x5e },
++	{ 0xc2e9, 0x01 },
++	{ 0xc2ea, 0x7a },
++	{ 0xc2eb, 0x90 },
++	{ 0xc2ed, 0x00 },
++	{ 0xc2ee, 0x7a },
++	{ 0xc2ef, 0x64 },
++	{ 0xc308, 0x00 },
++	{ 0xc309, 0x00 },
++	{ 0xc30a, 0x00 },
++	{ 0xc30c, 0x00 },
++	{ 0xc30d, 0x01 },
++	{ 0xc30e, 0x00 },
++	{ 0xc30f, 0x00 },
++	{ 0xc310, 0x01 },
++	{ 0xc311, 0x60 },
++	{ 0xc312, 0xff },
++	{ 0xc313, 0x08 },
++	{ 0xc314, 0x01 },
++	{ 0xc315, 0x00 },
++	{ 0xc316, 0xff },
++	{ 0xc317, 0x0b },
++	{ 0xc318, 0x00 },
++	{ 0xc319, 0x0c },
++	{ 0xc31a, 0x00 },
++	{ 0xc31b, 0xe0 },
++	{ 0xc31c, 0x00 },
++	{ 0xc31d, 0x14 },
++	{ 0xc31e, 0x00 },
++	{ 0xc31f, 0xc5 },
++	{ 0xc320, 0xff },
++	{ 0xc321, 0x4b },
++	{ 0xc322, 0xff },
++	{ 0xc323, 0xf0 },
++	{ 0xc324, 0xff },
++	{ 0xc325, 0xe8 },
++	{ 0xc326, 0x00 },
++	{ 0xc327, 0x46 },
++	{ 0xc328, 0xff },
++	{ 0xc329, 0xd2 },
++	{ 0xc32a, 0xff },
++	{ 0xc32b, 0xe4 },
++	{ 0xc32c, 0xff },
++	{ 0xc32d, 0xbb },
++	{ 0xc32e, 0x00 },
++	{ 0xc32f, 0x61 },
++	{ 0xc330, 0xff },
++	{ 0xc331, 0xf9 },
++	{ 0xc332, 0x00 },
++	{ 0xc333, 0xd9 },
++	{ 0xc334, 0x00 },
++	{ 0xc335, 0x2e },
++	{ 0xc336, 0x00 },
++	{ 0xc337, 0xb1 },
++	{ 0xc338, 0xff },
++	{ 0xc339, 0x64 },
++	{ 0xc33a, 0xff },
++	{ 0xc33b, 0xeb },
++	{ 0xc33c, 0xff },
++	{ 0xc33d, 0xe8 },
++	{ 0xc33e, 0x00 },
++	{ 0xc33f, 0x48 },
++	{ 0xc340, 0xff },
++	{ 0xc341, 0xd0 },
++	{ 0xc342, 0xff },
++	{ 0xc343, 0xed },
++	{ 0xc344, 0xff },
++	{ 0xc345, 0xad },
++	{ 0xc346, 0x00 },
++	{ 0xc347, 0x66 },
++	{ 0xc348, 0x01 },
++	{ 0xc349, 0x00 },
++	{ 0x6700, 0x04 },
++	{ 0x6701, 0x7b },
++	{ 0x6702, 0xfd },
++	{ 0x6703, 0xf9 },
++	{ 0x6704, 0x3d },
++	{ 0x6705, 0x71 },
++	{ 0x6706, 0x78 },
++	{ 0x6708, 0x05 },
++	{ 0x6f06, 0x6f },
++	{ 0x6f07, 0x00 },
++	{ 0x6f0a, 0x6f },
++	{ 0x6f0b, 0x00 },
++	{ 0x6f00, 0x03 },
++	{ 0xc34c, 0x01 },
++	{ 0xc34d, 0x00 },
++	{ 0xc34e, 0x46 },
++	{ 0xc34f, 0x55 },
++	{ 0xc350, 0x00 },
++	{ 0xc351, 0x40 },
++	{ 0xc352, 0x00 },
++	{ 0xc353, 0xff },
++	{ 0xc354, 0x04 },
++	{ 0xc355, 0x08 },
++	{ 0xc356, 0x01 },
++	{ 0xc357, 0xef },
++	{ 0xc358, 0x30 },
++	{ 0xc359, 0x01 },
++	{ 0xc35a, 0x64 },
++	{ 0xc35b, 0x46 },
++	{ 0xc35c, 0x00 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0x3042, 0xf0 },
++	{ 0xc261, 0x01 },
++	{ 0x301b, 0xf0 },
++	{ 0x301c, 0xf0 },
++	{ 0x301a, 0xf0 },
++	{ 0x6f00, 0xc3 },
++	{ 0xc46a, 0x30 },
++	{ 0xc46d, 0x20 },
++	{ 0xc464, 0x84 },
++	{ 0xc465, 0x00 },
++	{ 0x6f00, 0x03 },
++	{ 0x6f00, 0x43 },
++	{ 0x381c, 0x00 },
++	{ 0x381d, 0x40 },
++	{ 0xc454, 0x01 },
++	{ 0x6f00, 0xc3 },
++	{ 0xc454, 0x00 },
++	{ 0xc4b1, 0x02 },
++	{ 0xc4b2, 0x01 },
++	{ 0xc4b3, 0x03 },
++	{ 0x6f00, 0x03 },
++	{ 0x6f00, 0x43 },
++	/* enable FSIN (FRAMESYNC input) functionality */
++	{ 0x3832, (0x0d + 2 * 0x20 + 0x15 + 38) >> 8 },
++	{ 0x3833, (0x0d + 2 * 0x20 + 0x15 + 38) & 0xff },
++	{ 0x3834, OV10635_VTS >> 8 },
++	{ 0x3835, OV10635_VTS & 0xff },
++	{ 0x302e, 0x01 },
++};
++
++#endif /* __RDACM20_OV10635_H__ */
+diff --git a/drivers/media/i2c/rdacm20.c b/drivers/media/i2c/rdacm20.c
+new file mode 100644
+index 000000000000..352c54902d1c
+--- /dev/null
++++ b/drivers/media/i2c/rdacm20.c
+@@ -0,0 +1,635 @@
 +// SPDX-License-Identifier: GPL-2.0+
 +/*
-+ * Maxim MAX9286 GMSL Deserializer Driver
++ * IMI RDACM20 GMSL Camera Driver
 + *
 + * Copyright (C) 2017-2018 Jacopo Mondi
 + * Copyright (C) 2017-2018 Kieran Bingham
@@ -116,201 +1075,139 @@ index 000000000000..1a2064ede6f0
 + * Copyright (C) 2015 Cogent Embedded, Inc.
 + */
 +
++/*
++ * The camera is mode of an Omnivision OV10635 sensor connected to a Maxim
++ * MAX9271 GMSL serializer.
++ */
++
 +#include <linux/delay.h>
-+#include <linux/device.h>
 +#include <linux/fwnode.h>
++#include <linux/init.h>
 +#include <linux/i2c.h>
-+#include <linux/i2c-mux.h>
 +#include <linux/module.h>
-+#include <linux/of_graph.h>
-+#include <linux/regulator/consumer.h>
 +#include <linux/slab.h>
++#include <linux/videodev2.h>
 +
 +#include <media/v4l2-async.h>
 +#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
 +#include <media/v4l2-subdev.h>
 +
-+/* Register 0x00 */
-+#define MAX9286_MSTLINKSEL_AUTO		(7 << 5)
-+#define MAX9286_MSTLINKSEL(n)		((n) << 5)
-+#define MAX9286_EN_VS_GEN		BIT(4)
-+#define MAX9286_LINKEN(n)		(1 << (n))
-+/* Register 0x01 */
-+#define MAX9286_FSYNCMODE_ECU		(3 << 6)
-+#define MAX9286_FSYNCMODE_EXT		(2 << 6)
-+#define MAX9286_FSYNCMODE_INT_OUT	(1 << 6)
-+#define MAX9286_FSYNCMODE_INT_HIZ	(0 << 6)
-+#define MAX9286_GPIEN			BIT(5)
-+#define MAX9286_ENLMO_RSTFSYNC		BIT(2)
-+#define MAX9286_FSYNCMETH_AUTO		(2 << 0)
-+#define MAX9286_FSYNCMETH_SEMI_AUTO	(1 << 0)
-+#define MAX9286_FSYNCMETH_MANUAL	(0 << 0)
-+#define MAX9286_REG_FSYNC_PERIOD_L	0x06
-+#define MAX9286_REG_FSYNC_PERIOD_M	0x07
-+#define MAX9286_REG_FSYNC_PERIOD_H	0x08
-+/* Register 0x0a */
-+#define MAX9286_FWDCCEN(n)		(1 << ((n) + 4))
-+#define MAX9286_REVCCEN(n)		(1 << (n))
-+/* Register 0x0c */
-+#define MAX9286_HVEN			BIT(7)
-+#define MAX9286_EDC_6BIT_HAMMING	(2 << 5)
-+#define MAX9286_EDC_6BIT_CRC		(1 << 5)
-+#define MAX9286_EDC_1BIT_PARITY		(0 << 5)
-+#define MAX9286_DESEL			BIT(4)
-+#define MAX9286_INVVS			BIT(3)
-+#define MAX9286_INVHS			BIT(2)
-+#define MAX9286_HVSRC_D0		(2 << 0)
-+#define MAX9286_HVSRC_D14		(1 << 0)
-+#define MAX9286_HVSRC_D18		(0 << 0)
-+/* Register 0x12 */
-+#define MAX9286_CSILANECNT(n)		(((n) - 1) << 6)
-+#define MAX9286_CSIDBL			BIT(5)
-+#define MAX9286_DBL			BIT(4)
-+#define MAX9286_DATATYPE_USER_8BIT	(11 << 0)
-+#define MAX9286_DATATYPE_USER_YUV_12BIT	(10 << 0)
-+#define MAX9286_DATATYPE_USER_24BIT	(9 << 0)
-+#define MAX9286_DATATYPE_RAW14		(8 << 0)
-+#define MAX9286_DATATYPE_RAW11		(7 << 0)
-+#define MAX9286_DATATYPE_RAW10		(6 << 0)
-+#define MAX9286_DATATYPE_RAW8		(5 << 0)
-+#define MAX9286_DATATYPE_YUV422_10BIT	(4 << 0)
-+#define MAX9286_DATATYPE_YUV422_8BIT	(3 << 0)
-+#define MAX9286_DATATYPE_RGB555		(2 << 0)
-+#define MAX9286_DATATYPE_RGB565		(1 << 0)
-+#define MAX9286_DATATYPE_RGB888		(0 << 0)
++#include "rdacm20-ov10635.h"
++
++#define RDACM20_SENSOR_HARD_RESET
++
++#define MAX9271_I2C_ADDRESS		0x40
++
++/* Register 0x04 */
++#define MAX9271_SEREN			BIT(7)
++#define MAX9271_CLINKEN			BIT(6)
++#define MAX9271_PRBSEN			BIT(5)
++#define MAX9271_SLEEP			BIT(4)
++#define MAX9271_INTTYPE_I2C		(0 << 2)
++#define MAX9271_INTTYPE_UART		(1 << 2)
++#define MAX9271_INTTYPE_NONE		(2 << 2)
++#define MAX9271_REVCCEN			BIT(1)
++#define MAX9271_FWDCCEN			BIT(0)
++/* Register 0x07 */
++#define MAX9271_DBL			BIT(7)
++#define MAX9271_DRS			BIT(6)
++#define MAX9271_BWS			BIT(5)
++#define MAX9271_ES			BIT(4)
++#define MAX9271_HVEN			BIT(2)
++#define MAX9271_EDC_1BIT_PARITY		(0 << 0)
++#define MAX9271_EDC_6BIT_CRC		(1 << 0)
++#define MAX9271_EDC_6BIT_HAMMING	(2 << 0)
++/* Register 0x08 */
++#define MAX9271_INVVS			BIT(7)
++#define MAX9271_INVHS			BIT(6)
++#define MAX9271_REV_LOGAIN		BIT(3)
++#define MAX9271_REV_HIVTH		BIT(0)
++/* Register 0x09 */
++#define MAX9271_ID			0x09
++/* Register 0x0d */
++#define MAX9271_I2CLOCACK		BIT(7)
++#define MAX9271_I2CSLVSH_1046NS_469NS	(3 << 5)
++#define MAX9271_I2CSLVSH_938NS_352NS	(2 << 5)
++#define MAX9271_I2CSLVSH_469NS_234NS	(1 << 5)
++#define MAX9271_I2CSLVSH_352NS_117NS	(0 << 5)
++#define MAX9271_I2CMSTBT_837KBPS	(7 << 2)
++#define MAX9271_I2CMSTBT_533KBPS	(6 << 2)
++#define MAX9271_I2CMSTBT_339KBPS	(5 << 2)
++#define MAX9271_I2CMSTBT_173KBPS	(4 << 2)
++#define MAX9271_I2CMSTBT_105KBPS	(3 << 2)
++#define MAX9271_I2CMSTBT_84KBPS		(2 << 2)
++#define MAX9271_I2CMSTBT_28KBPS		(1 << 2)
++#define MAX9271_I2CMSTBT_8KBPS		(0 << 2)
++#define MAX9271_I2CSLVTO_NONE		(3 << 0)
++#define MAX9271_I2CSLVTO_1024US		(2 << 0)
++#define MAX9271_I2CSLVTO_256US		(1 << 0)
++#define MAX9271_I2CSLVTO_64US		(0 << 0)
++/* Register 0x0f */
++#define MAX9271_GPIO5OUT		BIT(5)
++#define MAX9271_GPIO4OUT		BIT(4)
++#define MAX9271_GPIO3OUT		BIT(3)
++#define MAX9271_GPIO2OUT		BIT(2)
++#define MAX9271_GPIO1OUT		BIT(1)
++#define MAX9271_SETGPO			BIT(0)
 +/* Register 0x15 */
-+#define MAX9286_VC(n)			((n) << 5)
-+#define MAX9286_VCTYPE			BIT(4)
-+#define MAX9286_CSIOUTEN		BIT(3)
-+#define MAX9286_0X15_RESV		(3 << 0)
-+/* Register 0x1b */
-+#define MAX9286_SWITCHIN(n)		(1 << ((n) + 4))
-+#define MAX9286_ENEQ(n)			(1 << (n))
-+/* Register 0x27 */
-+#define MAX9286_LOCKED			BIT(7)
-+/* Register 0x31 */
-+#define MAX9286_FSYNC_LOCKED		BIT(6)
-+/* Register 0x34 */
-+#define MAX9286_I2CLOCACK		BIT(7)
-+#define MAX9286_I2CSLVSH_1046NS_469NS	(3 << 5)
-+#define MAX9286_I2CSLVSH_938NS_352NS	(2 << 5)
-+#define MAX9286_I2CSLVSH_469NS_234NS	(1 << 5)
-+#define MAX9286_I2CSLVSH_352NS_117NS	(0 << 5)
-+#define MAX9286_I2CMSTBT_837KBPS	(7 << 2)
-+#define MAX9286_I2CMSTBT_533KBPS	(6 << 2)
-+#define MAX9286_I2CMSTBT_339KBPS	(5 << 2)
-+#define MAX9286_I2CMSTBT_173KBPS	(4 << 2)
-+#define MAX9286_I2CMSTBT_105KBPS	(3 << 2)
-+#define MAX9286_I2CMSTBT_84KBPS		(2 << 2)
-+#define MAX9286_I2CMSTBT_28KBPS		(1 << 2)
-+#define MAX9286_I2CMSTBT_8KBPS		(0 << 2)
-+#define MAX9286_I2CSLVTO_NONE		(3 << 0)
-+#define MAX9286_I2CSLVTO_1024US		(2 << 0)
-+#define MAX9286_I2CSLVTO_256US		(1 << 0)
-+#define MAX9286_I2CSLVTO_64US		(0 << 0)
-+/* Register 0x3b */
-+#define MAX9286_REV_TRF(n)		((n) << 4)
-+#define MAX9286_REV_AMP(n)		((((n) - 30) / 10) << 1) /* in mV */
-+#define MAX9286_REV_AMP_X		BIT(0)
-+/* Register 0x3f */
-+#define MAX9286_EN_REV_CFG		BIT(6)
-+#define MAX9286_REV_FLEN(n)		((n) - 20)
-+/* Register 0x49 */
-+#define MAX9286_VIDEO_DETECT_MASK	0x0f
-+/* Register 0x69 */
-+#define MAX9286_LFLTBMONMASKED		BIT(7)
-+#define MAX9286_LOCKMONMASKED		BIT(6)
-+#define MAX9286_AUTOCOMBACKEN		BIT(5)
-+#define MAX9286_AUTOMASKEN		BIT(4)
-+#define MAX9286_MASKLINK(n)		((n) << 0)
++#define MAX9271_PCLKDET			BIT(0)
 +
-+#define MAX9286_NUM_GMSL		4
-+#define MAX9286_N_SINKS			4
-+#define MAX9286_N_PADS			5
-+#define MAX9286_SRC_PAD			4
-+
-+#define MAXIM_I2C_I2C_SPEED_400KHZ	MAX9286_I2CMSTBT_339KBPS
-+#define MAXIM_I2C_I2C_SPEED_100KHZ	MAX9286_I2CMSTBT_105KBPS
++#define MAXIM_I2C_I2C_SPEED_400KHZ	MAX9271_I2CMSTBT_339KBPS
++#define MAXIM_I2C_I2C_SPEED_100KHZ	MAX9271_I2CMSTBT_105KBPS
 +#define MAXIM_I2C_SPEED			MAXIM_I2C_I2C_SPEED_100KHZ
 +
-+struct max9286_source {
-+	struct v4l2_async_subdev asd;
-+	struct v4l2_subdev *sd;
-+	struct fwnode_handle *fwnode;
++#define OV10635_I2C_ADDRESS		0x30
++
++#define OV10635_SOFTWARE_RESET		0x0103
++#define OV10635_PID			0x300a
++#define OV10635_VER			0x300b
++#define OV10635_SC_CMMN_SCCB_ID		0x300c
++#define OV10635_SC_CMMN_SCCB_ID_SELECT	BIT(0)
++#define OV10635_VERSION			0xa635
++
++#define OV10635_WIDTH			1280
++#define OV10635_HEIGHT			800
++#define OV10635_FORMAT			MEDIA_BUS_FMT_UYVY8_2X8
++/* #define OV10635_FORMAT			MEDIA_BUS_FMT_UYVY10_2X10 */
++
++struct rdacm20_device {
++	struct i2c_client		*client;
++	struct i2c_client		*sensor;
++	struct v4l2_subdev		sd;
++	struct media_pad		pad;
++	struct v4l2_ctrl_handler	ctrls;
 +};
 +
-+#define asd_to_max9286_source(_asd) \
-+	container_of(_asd, struct max9286_source, asd)
-+
-+struct max9286_device {
-+	struct i2c_client *client;
-+	struct v4l2_subdev sd;
-+	struct media_pad pads[MAX9286_N_PADS];
-+	struct regulator *regulator;
-+	bool poc_enabled;
-+	int streaming;
-+
-+	struct i2c_mux_core *mux;
-+	unsigned int mux_channel;
-+
-+	struct v4l2_ctrl_handler ctrls;
-+
-+	struct v4l2_mbus_framefmt fmt[MAX9286_N_SINKS];
-+
-+	unsigned int nsources;
-+	unsigned int source_mask;
-+	unsigned int route_mask;
-+	unsigned int csi2_data_lanes;
-+	struct max9286_source sources[MAX9286_NUM_GMSL];
-+	struct v4l2_async_subdev *subdevs[MAX9286_NUM_GMSL];
-+	struct v4l2_async_notifier notifier;
-+};
-+
-+static struct max9286_source *next_source(struct max9286_device *max9286,
-+					  struct max9286_source *source)
++static inline struct rdacm20_device *sd_to_rdacm20(struct v4l2_subdev *sd)
 +{
-+	if (!source)
-+		source = &max9286->sources[0];
-+	else
-+		source++;
-+
-+	for (; source < &max9286->sources[MAX9286_NUM_GMSL]; source++) {
-+		if (source->fwnode)
-+			return source;
-+	}
-+
-+	return NULL;
++	return container_of(sd, struct rdacm20_device, sd);
 +}
 +
-+#define for_each_source(max9286, source) \
-+	for (source = NULL; (source = next_source(max9286, source)); )
++static inline struct rdacm20_device *i2c_to_rdacm20(struct i2c_client *client)
++{
++	return sd_to_rdacm20(i2c_get_clientdata(client));
++}
 +
-+#define to_index(max9286, source) (source - &max9286->sources[0])
-+
-+#define sd_to_max9286(_sd) container_of(_sd, struct max9286_device, sd)
-+
-+/* -----------------------------------------------------------------------------
-+ * I2C IO
-+ */
-+
-+static int max9286_read(struct max9286_device *dev, u8 reg)
++static int max9271_read(struct rdacm20_device *dev, u8 reg)
 +{
 +	int ret;
 +
++	dev_dbg(&dev->client->dev, "%s(0x%02x)\n", __func__, reg);
++
 +	ret = i2c_smbus_read_byte_data(dev->client, reg);
 +	if (ret < 0)
-+		dev_err(&dev->client->dev,
++		dev_dbg(&dev->client->dev,
 +			"%s: register 0x%02x read failed (%d)\n",
 +			__func__, reg, ret);
 +
 +	return ret;
 +}
 +
-+static int max9286_write(struct max9286_device *dev, u8 reg, u8 val)
++static int max9271_write(struct rdacm20_device *dev, u8 reg, u8 val)
 +{
 +	int ret;
++
++	dev_dbg(&dev->client->dev, "%s(0x%02x, 0x%02x)\n", __func__, reg, val);
 +
 +	ret = i2c_smbus_write_byte_data(dev->client, reg, val);
 +	if (ret < 0)
@@ -321,856 +1218,365 @@ index 000000000000..1a2064ede6f0
 +	return ret;
 +}
 +
-+/* -----------------------------------------------------------------------------
-+ * I2C Multiplexer
-+ */
-+
-+static int max9286_i2c_mux_close(struct max9286_device *dev)
++static int ov10635_read16(struct rdacm20_device *dev, u16 reg)
 +{
-+
-+	/* FIXME: See note in max9286_i2c_mux_select() */
-+	if (dev->streaming)
-+		return 0;
-+	/*
-+	 * Ensure that both the forward and reverse channel are disabled on the
-+	 * mux, and that the channel ID is invalidated to ensure we reconfigure
-+	 * on the next select call.
-+	 */
-+	dev->mux_channel = -1;
-+	max9286_write(dev, 0x0a, 0x00);
-+	usleep_range(3000, 5000);
-+
-+	return 0;
-+}
-+
-+static int max9286_i2c_mux_select(struct i2c_mux_core *muxc, u32 chan)
-+{
-+	struct max9286_device *dev = i2c_mux_priv(muxc);
-+
-+	/*
-+	 * FIXME: This state keeping is a hack and do the job. It should
-+	 * be should be reworked. One option to consider is that once all
-+	 * cameras are programmed the mux selection logic should be disabled
-+	 * and all all reverse and forward channels enable all the time.
-+	 *
-+	 * In any case this logic with a int that have two states should be
-+	 * reworked!
-+	 */
-+	if (dev->streaming == 1) {
-+		max9286_write(dev, 0x0a, 0xff);
-+		dev->streaming = 2;
-+		return 0;
-+	} else if (dev->streaming == 2) {
-+		return 0;
-+	}
-+
-+	if (dev->mux_channel == chan)
-+		return 0;
-+
-+	dev->mux_channel = chan;
-+
-+	max9286_write(dev, 0x0a, MAX9286_FWDCCEN(chan) | MAX9286_REVCCEN(chan));
-+
-+	/*
-+	 * We must sleep after any change to the forward or reverse channel
-+	 * configuration.
-+	 */
-+	usleep_range(3000, 5000);
-+
-+	return 0;
-+}
-+
-+static int max9286_i2c_mux_init(struct max9286_device *dev)
-+{
-+	struct max9286_source *source;
++	u8 buf[2] = { reg >> 8, reg & 0xff };
 +	int ret;
 +
-+	if (!i2c_check_functionality(dev->client->adapter,
-+				     I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
-+		return -ENODEV;
++	ret = i2c_master_send(dev->sensor, buf, 2);
++	if (ret == 2)
++		ret = i2c_master_recv(dev->sensor, buf, 2);
 +
-+	dev->mux = i2c_mux_alloc(dev->client->adapter, &dev->client->dev,
-+				 dev->nsources, 0, I2C_MUX_LOCKED,
-+				 max9286_i2c_mux_select, NULL);
-+	if (!dev->mux)
-+		return -ENOMEM;
-+
-+	dev->mux->priv = dev;
-+
-+	for_each_source(dev, source) {
-+		unsigned int index = to_index(dev, source);
-+
-+		ret = i2c_mux_add_adapter(dev->mux, 0, index, 0);
-+		if (ret < 0)
-+			goto error;
++	if (ret < 0) {
++		dev_dbg(&dev->client->dev,
++			"%s: register 0x%04x read failed (%d)\n",
++			__func__, reg, ret);
++		return ret;
 +	}
 +
-+	return 0;
++	return (buf[0] << 8) | buf[1];
++}
 +
-+error:
-+	i2c_mux_del_adapters(dev->mux);
++static int __ov10635_write(struct rdacm20_device *dev, u16 reg, u8 val)
++{
++	u8 buf[3] = { reg >> 8, reg & 0xff, val };
++	int ret;
++
++	dev_dbg(&dev->client->dev, "%s(0x%04x, 0x%02x)\n", __func__, reg, val);
++
++	ret = i2c_master_send(dev->sensor, buf, 3);
++	return ret < 0 ? ret : 0;
++}
++
++static int ov10635_write(struct rdacm20_device *dev, u16 reg, u8 val)
++{
++	int ret;
++
++	ret = __ov10635_write(dev, reg, val);
++	if (ret < 0)
++		dev_err(&dev->client->dev,
++			"%s: register 0x%04x write failed (%d)\n",
++			__func__, reg, ret);
++
 +	return ret;
 +}
 +
-+static void max9286_configure_i2c(struct max9286_device *dev, bool localack)
++static int ov10635_set_regs(struct rdacm20_device *dev,
++			    const struct ov10635_reg *regs,
++			    unsigned int nr_regs)
 +{
-+	u8 config = MAX9286_I2CSLVSH_469NS_234NS | MAX9286_I2CSLVTO_1024US |
-+		    MAXIM_I2C_SPEED;
-+
-+	if (localack)
-+		config |= MAX9286_I2CLOCACK;
-+
-+	max9286_write(dev, 0x34, config);
-+	usleep_range(3000, 5000);
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdev
-+ */
-+
-+static int max9286_notify_bound(struct v4l2_async_notifier *notifier,
-+				struct v4l2_subdev *subdev,
-+				struct v4l2_async_subdev *asd)
-+{
-+	struct max9286_device *dev = sd_to_max9286(notifier->sd);
-+	struct max9286_source *source = asd_to_max9286_source(asd);
-+	unsigned int index = to_index(dev, source);
-+	unsigned int src_pad;
++	unsigned int i;
 +	int ret;
 +
-+	ret = media_entity_get_fwnode_pad(&subdev->entity,
-+					  source->fwnode,
-+					  MEDIA_PAD_FL_SOURCE);
-+	if (ret < 0) {
-+		dev_err(&dev->client->dev,
-+			"Failed to find pad for %s\n", subdev->name);
-+		return ret;
++	for (i = 0; i < nr_regs; i++) {
++		ret = __ov10635_write(dev, regs[i].reg, regs[i].val);
++		if (ret) {
++			dev_err(&dev->client->dev,
++				"%s: register %u (0x%04x) write failed (%d)\n",
++				__func__, i, regs[i].reg, ret);
++			return ret;
++		}
 +	}
-+
-+	source->sd = subdev;
-+	src_pad = ret;
-+
-+	ret = media_create_pad_link(&source->sd->entity, src_pad,
-+				    &dev->sd.entity, index,
-+				    MEDIA_LNK_FL_ENABLED |
-+				    MEDIA_LNK_FL_IMMUTABLE);
-+	if (ret) {
-+		dev_err(&dev->client->dev,
-+			"Unable to link %s:%u -> %s:%u\n",
-+			source->sd->name, src_pad, dev->sd.name, index);
-+		return ret;
-+	}
-+
-+	dev_dbg(&dev->client->dev, "Bound %s pad: %u on index %u\n",
-+		subdev->name, src_pad, index);
 +
 +	return 0;
 +}
-+
-+static void max9286_notify_unbind(struct v4l2_async_notifier *notifier,
-+				  struct v4l2_subdev *subdev,
-+				  struct v4l2_async_subdev *asd)
-+{
-+	struct max9286_source *source = asd_to_max9286_source(asd);
-+
-+	source->sd = NULL;
-+}
-+
-+static const struct v4l2_async_notifier_operations max9286_notify_ops = {
-+	.bound = max9286_notify_bound,
-+	.unbind = max9286_notify_unbind,
-+};
 +
 +/*
-+ * max9286_check_video_links() - Make sure video links are detected and locked
++ * rdacm20_pclk_detect() - Detect valid pixel clock from image sensor
 + *
-+ * Performs safety checks on video link status. Make sure they are detected
-+ * and all enabled links are locked.
++ * Wait up to 10ms for a valid pixel clock.
 + *
-+ * Returns 0 for success, -EIO for errors.
++ * Returns 0 for success, < 0 for pixel clock not properly detected
 + */
-+static int max9286_check_video_links(struct max9286_device *dev)
++static int rdacm20_pclk_detect(struct rdacm20_device *dev)
 +{
 +	unsigned int i;
 +	int ret;
 +
-+	/*
-+	 * Make sure valid video links are detected.
-+	 * The delay is not characterized in de-serializer manual, wait up
-+	 * to 5 ms.
-+	 */
-+	for (i = 0; i < 10; i++) {
-+		ret = max9286_read(dev, 0x49);
++	for (i = 0; i < 100; i++) {
++		ret = max9271_read(dev, 0x15);
 +		if (ret < 0)
-+			return -EIO;
++			return ret;
 +
-+		if ((ret & MAX9286_VIDEO_DETECT_MASK) == dev->source_mask)
-+			break;
++		if (ret & MAX9271_PCLKDET)
++			return 0;
 +
-+		usleep_range(350, 500);
++		usleep_range(50, 100);
 +	}
 +
-+	if (i == 10) {
-+		dev_err(&dev->client->dev,
-+			"Unable to detect video links: 0x%2x\n", ret);
-+		return -EIO;
-+	}
-+
-+	/* Make sure all enabled links are locked (4ms max). */
-+	for (i = 0; i < 10; i++) {
-+		ret = max9286_read(dev, 0x27);
-+		if (ret < 0)
-+			return -EIO;
-+
-+		if (ret & MAX9286_LOCKED)
-+			break;
-+
-+		usleep_range(350, 450);
-+	}
-+
-+	if (i == 10) {
-+		dev_err(&dev->client->dev, "Not all enabled links locked\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
++	dev_err(&dev->client->dev, "Unable to detect valid pixel clock\n");
++	return -EIO;
 +}
 +
-+static int max9286_s_stream(struct v4l2_subdev *sd, int enable)
++static int rdacm20_s_stream(struct v4l2_subdev *sd, int enable)
 +{
-+	struct max9286_device *dev = sd_to_max9286(sd);
-+	struct max9286_source *source;
-+	unsigned int i;
-+	bool sync = false;
++	struct rdacm20_device *dev = sd_to_rdacm20(sd);
 +	int ret;
 +
 +	if (enable) {
-+		/* FIXME: See note in max9286_i2c_mux_select() */
-+		dev->streaming = 1;
-+
-+		/* Start all cameras. */
-+		for_each_source(dev, source) {
-+			ret = v4l2_subdev_call(source->sd, video, s_stream, 1);
-+			if (ret)
-+				return ret;
-+		}
-+
-+		ret = max9286_check_video_links(dev);
++		ret = rdacm20_pclk_detect(dev);
 +		if (ret)
 +			return ret;
 +
-+		/*
-+		 * Wait until frame synchronization is locked.
-+		 *
-+		 * Manual says frame sync locking should take ~6 VTS.
-+		 * From pratical experience at least 8 are required. Give
-+		 * 12 complete frames time (~33ms at 30 fps) to achieve frame
-+		 * locking before returning error.
-+		 */
-+		for (i = 0; i < 36; i++) {
-+			if (max9286_read(dev, 0x31) & MAX9286_FSYNC_LOCKED) {
-+				sync = true;
-+				break;
-+			}
-+			usleep_range(9000, 11000);
-+		}
-+
-+		if (!sync) {
-+			dev_err(&dev->client->dev,
-+				"Failed to get frame synchronization\n");
-+			return -EINVAL;
-+		}
-+
-+		/*
-+		 * Enable CSI output, VC set according to link number.
-+		 * Bit 7 must be set (chip manual says it's 0 and reserved).
-+		 */
-+		max9286_write(dev, 0x15, 0x80 | MAX9286_VCTYPE |
-+			      MAX9286_CSIOUTEN | MAX9286_0X15_RESV);
++		/* Enable the serial link. */
++		max9271_write(dev, 0x04, MAX9271_SEREN | MAX9271_REVCCEN |
++			      MAX9271_FWDCCEN);
 +	} else {
-+		max9286_write(dev, 0x15, MAX9286_VCTYPE | MAX9286_0X15_RESV);
-+
-+		/* Stop all cameras. */
-+		for_each_source(dev, source)
-+			v4l2_subdev_call(source->sd, video, s_stream, 0);
-+
-+		/* FIXME: See note in max9286_i2c_mux_select() */
-+		dev->streaming = 0;
++		/* Disable the serial link. */
++		max9271_write(dev, 0x04, MAX9271_CLINKEN | MAX9271_REVCCEN |
++			      MAX9271_FWDCCEN);
 +	}
 +
 +	return 0;
 +}
 +
-+static int max9286_enum_mbus_code(struct v4l2_subdev *sd,
++static int rdacm20_g_mbus_config(struct v4l2_subdev *sd,
++				 struct v4l2_mbus_config *cfg)
++{
++	cfg->flags = V4L2_MBUS_CSI2_1_LANE | V4L2_MBUS_CSI2_CHANNEL_0 |
++		     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
++	cfg->type = V4L2_MBUS_CSI2;
++
++	return 0;
++}
++
++static int rdacm20_enum_mbus_code(struct v4l2_subdev *sd,
 +				  struct v4l2_subdev_pad_config *cfg,
 +				  struct v4l2_subdev_mbus_code_enum *code)
 +{
 +	if (code->pad || code->index > 0)
 +		return -EINVAL;
 +
-+	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
++	code->code = OV10635_FORMAT;
 +
 +	return 0;
 +}
 +
-+static struct v4l2_mbus_framefmt *
-+max9286_get_pad_format(struct max9286_device *dev,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       unsigned int pad, u32 which)
-+{
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_format(&dev->sd, cfg, pad);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &dev->fmt[pad];
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static int max9286_set_fmt(struct v4l2_subdev *sd,
++static int rdacm20_get_fmt(struct v4l2_subdev *sd,
 +			   struct v4l2_subdev_pad_config *cfg,
 +			   struct v4l2_subdev_format *format)
 +{
-+	struct max9286_device *dev = sd_to_max9286(sd);
-+	struct v4l2_mbus_framefmt *cfg_fmt;
++	struct v4l2_mbus_framefmt *mf = &format->format;
 +
-+	if (format->pad >= MAX9286_SRC_PAD)
++	if (format->pad)
 +		return -EINVAL;
 +
-+	/* Refuse non YUV422 formats as we hardcode DT to 8 bit YUV422 */
-+	switch (format->format.code) {
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
-+	case MEDIA_BUS_FMT_VYUY8_2X8:
-+	case MEDIA_BUS_FMT_YUYV8_2X8:
-+	case MEDIA_BUS_FMT_YVYU8_2X8:
-+		break;
-+	default:
-+		format->format.code = MEDIA_BUS_FMT_YUYV8_2X8;
-+		break;
-+	}
-+
-+	cfg_fmt = max9286_get_pad_format(dev, cfg, format->pad, format->which);
-+	if (!cfg_fmt)
-+		return -EINVAL;
-+
-+	*cfg_fmt = format->format;
++	mf->width		= OV10635_WIDTH;
++	mf->height		= OV10635_HEIGHT;
++	mf->code		= OV10635_FORMAT;
++	mf->colorspace		= V4L2_COLORSPACE_RAW;
++	mf->field		= V4L2_FIELD_NONE;
++	mf->ycbcr_enc		= V4L2_YCBCR_ENC_601;
++	mf->quantization	= V4L2_QUANTIZATION_FULL_RANGE;
++	mf->xfer_func		= V4L2_XFER_FUNC_NONE;
 +
 +	return 0;
 +}
 +
-+static int max9286_get_fmt(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_pad_config *cfg,
-+			   struct v4l2_subdev_format *format)
-+{
-+	struct max9286_device *dev = sd_to_max9286(sd);
-+	struct v4l2_mbus_framefmt *cfg_fmt;
-+
-+	if (format->pad >= MAX9286_SRC_PAD)
-+		return -EINVAL;
-+
-+	cfg_fmt = max9286_get_pad_format(dev, cfg, format->pad, format->which);
-+	if (!cfg_fmt)
-+		return -EINVAL;
-+
-+	format->format = *cfg_fmt;
-+
-+	return 0;
-+}
-+
-+static int max9286_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
-+			   struct v4l2_mbus_frame_desc *fd)
-+{
-+	struct max9286_device *dev = sd_to_max9286(sd);
-+	struct max9286_source *source;
-+	unsigned int i = 0;
-+
-+	memset(fd, 0, sizeof(*fd));
-+
-+	for_each_source(dev, source) {
-+		unsigned int index = to_index(dev, source);
-+
-+		fd->entry[i].stream = i;
-+		fd->entry[i].bus.csi2.channel = index;
-+		fd->entry[i].bus.csi2.data_type = 0x1e;
-+		i++;
-+	}
-+
-+	fd->type = V4L2_MBUS_FRAME_DESC_TYPE_CSI2;
-+	fd->num_entries = dev->nsources;
-+
-+	return 0;
-+}
-+
-+static int max9286_get_routing(struct v4l2_subdev *sd,
-+				 struct v4l2_subdev_routing *routing)
-+{
-+	struct max9286_device *dev = sd_to_max9286(sd);
-+	struct v4l2_subdev_route *r = routing->routes;
-+	struct max9286_source *source;
-+
-+	/* There is one route per sink pad. */
-+	if (routing->num_routes < dev->nsources) {
-+		routing->num_routes = dev->nsources;
-+		return -ENOSPC;
-+	}
-+
-+	routing->num_routes = dev->nsources;
-+
-+	for_each_source(dev, source) {
-+		unsigned int index = to_index(dev, source);
-+
-+		r->sink_pad = index;
-+		r->sink_stream = 0;
-+		r->source_pad = MAX9286_SRC_PAD;
-+		r->source_stream = index;
-+		r->flags = dev->route_mask & BIT(index) ?
-+			V4L2_SUBDEV_ROUTE_FL_ACTIVE : 0;
-+		r++;
-+	}
-+
-+	return 0;
-+}
-+
-+static int max9286_set_routing(struct v4l2_subdev *sd,
-+			       struct v4l2_subdev_routing *routing)
-+{
-+
-+	struct max9286_device *dev = sd_to_max9286(sd);
-+	struct v4l2_subdev_route *r = routing->routes;
-+	unsigned int i;
-+
-+	if (routing->num_routes > dev->nsources)
-+		return -ENOSPC;
-+
-+	for (i = 0; i < routing->num_routes; i++) {
-+		if (r->sink_pad >= MAX9286_SRC_PAD ||
-+		    r->sink_stream != 0 ||
-+		    r->source_pad != MAX9286_SRC_PAD ||
-+		    r->source_stream != r->sink_pad)
-+			return -EINVAL;
-+
-+		if (r->flags & V4L2_SUBDEV_ROUTE_FL_ACTIVE)
-+			dev->route_mask |= BIT(r->sink_pad);
-+		else
-+			dev->route_mask &= ~BIT(r->sink_pad);
-+
-+		r++;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_video_ops max9286_video_ops = {
-+	.s_stream	= max9286_s_stream,
++static struct v4l2_subdev_video_ops rdacm20_video_ops = {
++	.s_stream	= rdacm20_s_stream,
++	.g_mbus_config	= rdacm20_g_mbus_config,
 +};
 +
-+static const struct v4l2_subdev_pad_ops max9286_pad_ops = {
-+	.enum_mbus_code = max9286_enum_mbus_code,
-+	.get_fmt	= max9286_get_fmt,
-+	.set_fmt	= max9286_set_fmt,
-+	.get_frame_desc = max9286_get_frame_desc,
-+	.get_routing	= max9286_get_routing,
-+	.set_routing	= max9286_set_routing,
++static const struct v4l2_subdev_pad_ops rdacm20_subdev_pad_ops = {
++	.enum_mbus_code = rdacm20_enum_mbus_code,
++	.get_fmt	= rdacm20_get_fmt,
++	.set_fmt	= rdacm20_get_fmt,
 +};
 +
-+static const struct v4l2_subdev_ops max9286_subdev_ops = {
-+	.video		= &max9286_video_ops,
-+	.pad		= &max9286_pad_ops,
++static struct v4l2_subdev_ops rdacm20_subdev_ops = {
++	.video		= &rdacm20_video_ops,
++	.pad		= &rdacm20_subdev_pad_ops,
 +};
 +
-+static void max9286_init_format(struct v4l2_mbus_framefmt *fmt)
-+{
-+	fmt->width		= 1280;
-+	fmt->height		= 800;
-+	fmt->code		= MEDIA_BUS_FMT_UYVY8_2X8;
-+	fmt->colorspace		= V4L2_COLORSPACE_SRGB;
-+	fmt->field		= V4L2_FIELD_NONE;
-+	fmt->ycbcr_enc		= V4L2_YCBCR_ENC_DEFAULT;
-+	fmt->quantization	= V4L2_QUANTIZATION_DEFAULT;
-+	fmt->xfer_func		= V4L2_XFER_FUNC_DEFAULT;
-+}
-+
-+static int max9286_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
-+{
-+	struct v4l2_mbus_framefmt *format;
-+	unsigned int i;
-+
-+	for (i = 0; i < MAX9286_N_SINKS; i++) {
-+		format = v4l2_subdev_get_try_format(subdev, fh->pad, i);
-+		max9286_init_format(format);
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops max9286_subdev_internal_ops = {
-+	.open = max9286_open,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Probe/Remove
-+ */
-+
-+static int max9286_setup(struct max9286_device *dev)
++static int max9271_configure_i2c(struct rdacm20_device *dev)
 +{
 +	/*
-+	 * Link ordering values for all enabled links combinations. Orders must
-+	 * be assigned sequentially from 0 to the number of enabled links
-+	 * without leaving any hole for disabled links. We thus assign orders to
-+	 * enabled links first, and use the remaining order values for disabled
-+	 * links are all links must have a different order value;
-+	 */
-+	static const u8 link_order[] = {
-+		(3 << 6) | (2 << 4) | (1 << 2) | (0 << 0), /* xxxx */
-+		(3 << 6) | (2 << 4) | (1 << 2) | (0 << 0), /* xxx0 */
-+		(3 << 6) | (2 << 4) | (0 << 2) | (1 << 0), /* xx0x */
-+		(3 << 6) | (2 << 4) | (1 << 2) | (0 << 0), /* xx10 */
-+		(3 << 6) | (0 << 4) | (2 << 2) | (1 << 0), /* x0xx */
-+		(3 << 6) | (1 << 4) | (2 << 2) | (0 << 0), /* x1x0 */
-+		(3 << 6) | (1 << 4) | (0 << 2) | (2 << 0), /* x10x */
-+		(3 << 6) | (1 << 4) | (1 << 2) | (0 << 0), /* x210 */
-+		(0 << 6) | (3 << 4) | (2 << 2) | (1 << 0), /* 0xxx */
-+		(1 << 6) | (3 << 4) | (2 << 2) | (0 << 0), /* 1xx0 */
-+		(1 << 6) | (3 << 4) | (0 << 2) | (2 << 0), /* 1x0x */
-+		(2 << 6) | (3 << 4) | (1 << 2) | (0 << 0), /* 2x10 */
-+		(1 << 6) | (0 << 4) | (3 << 2) | (2 << 0), /* 10xx */
-+		(2 << 6) | (1 << 4) | (3 << 2) | (0 << 0), /* 21x0 */
-+		(2 << 6) | (1 << 4) | (0 << 2) | (3 << 0), /* 210x */
-+		(3 << 6) | (2 << 4) | (1 << 2) | (0 << 0), /* 3210 */
-+	};
-+
-+	/*
-+	 * Set the I2C bus speed.
++	 * Configure the I2C bus:
 +	 *
-+	 * Enable I2C Local Acknowledge during the probe sequences of the camera
-+	 * only. This should be disabled after the mux is initialised.
++	 * - Enable high thresholds on the reverse channel
++	 * - Disable artificial ACK and set I2C speed
 +	 */
-+	max9286_configure_i2c(dev, true);
++	max9271_write(dev, 0x08, MAX9271_REV_HIVTH);
++	usleep_range(5000, 8000);
 +
-+	/*
-+	 * Reverse channel setup.
-+	 *
-+	 * - Enable custom reverse channel configuration (through register 0x3f)
-+	 *   and set the first pulse length to 35 clock cycles.
-+	 * - Increase the reverse channel amplitude to 170mV to accommodate the
-+	 *   high threshold enabled by the serializer driver.
-+	 */
-+	max9286_write(dev, 0x3f, MAX9286_EN_REV_CFG | MAX9286_REV_FLEN(35));
-+	max9286_write(dev, 0x3b, MAX9286_REV_TRF(1) | MAX9286_REV_AMP(70) |
-+		      MAX9286_REV_AMP_X);
-+
-+	/*
-+	 * Enable GMSL links, mask unused ones and autodetect link
-+	 * used as CSI clock source.
-+	 */
-+	max9286_write(dev, 0x00, MAX9286_MSTLINKSEL_AUTO | dev->route_mask);
-+	max9286_write(dev, 0x0b, link_order[dev->route_mask]);
-+	max9286_write(dev, 0x69, (0xf & ~dev->route_mask));
-+
-+	/*
-+	 * Video format setup:
-+	 * Disable CSI output, VC is set accordingly to Link number.
-+	 */
-+	max9286_write(dev, 0x15, MAX9286_VCTYPE | MAX9286_0X15_RESV);
-+
-+	/* Enable CSI-2 Lane D0-D3 only, DBL mode, YUV422 8-bit. */
-+	max9286_write(dev, 0x12, MAX9286_CSIDBL	| MAX9286_DBL |
-+		      MAX9286_CSILANECNT(dev->csi2_data_lanes) |
-+		      MAX9286_DATATYPE_YUV422_8BIT);
-+
-+	/* Automatic: FRAMESYNC taken from the slowest Link. */
-+	max9286_write(dev, 0x01, MAX9286_FSYNCMODE_INT_HIZ |
-+		      MAX9286_FSYNCMETH_AUTO);
-+
-+	/* Enable HS/VS encoding, use D14/15 for HS/VS, invert VS. */
-+	max9286_write(dev, 0x0c, MAX9286_HVEN | MAX9286_INVVS |
-+		      MAX9286_HVSRC_D14);
-+
-+	/*
-+	 * Wait for 2ms to allow the link to resynchronize after the
-+	 * configuration change.
-+	 */
-+	usleep_range(2000, 5000);
++	max9271_write(dev, 0x0d, MAX9271_I2CSLVSH_469NS_234NS |
++		      MAX9271_I2CSLVTO_1024US | MAXIM_I2C_SPEED);
++	usleep_range(5000, 8000);
 +
 +	return 0;
 +}
 +
-+static const struct of_device_id max9286_dt_ids[] = {
-+	{ .compatible = "maxim,max9286" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, max9286_dt_ids);
-+
-+static int max9286_init(struct device *dev, void *data)
++static int max9271_configure_gmsl_link(struct rdacm20_device *dev)
 +{
-+	struct max9286_device *max9286;
-+	struct i2c_client *client;
-+	struct device_node *ep;
-+	unsigned int i;
++	/*
++	 * Disable the serial link and enable the configuration link to allow
++	 * the control channel to operate in a low-speed mode in the absence of
++	 * the serial link clock.
++	 */
++	max9271_write(dev, 0x04, MAX9271_CLINKEN | MAX9271_REVCCEN |
++		      MAX9271_FWDCCEN);
++
++	/*
++	 * The serializer temporarily disables the reverse control channel for
++	 * 350µs after starting/stopping the forward serial link, but the
++	 * deserializer synchronization time isn't clearly documented.
++	 *
++	 * According to the serializer datasheet we should wait 3ms, while
++	 * according to the deserializer datasheet we should wait 5ms.
++	 *
++	 * Short delays here appear to show bit-errors in the writes following.
++	 * Therefore a conservative delay seems best here.
++	 */
++	usleep_range(5000, 8000);
++
++	/*
++	 * Configure the GMSL link:
++	 *
++	 * - Double input mode, high data rate, 24-bit mode
++	 * - Latch input data on PCLKIN rising edge
++	 * - Enable HS/VS encoding
++	 * - 1-bit parity error detection
++	 */
++	max9271_write(dev, 0x07, MAX9271_DBL | MAX9271_HVEN |
++		      MAX9271_EDC_1BIT_PARITY);
++	usleep_range(5000, 8000);
++
++	return 0;
++}
++
++static int max9271_verify_id(struct rdacm20_device *dev)
++{
 +	int ret;
 +
-+	/* Skip non-max9286 devices. */
-+	if (!dev->of_node || !of_match_node(max9286_dt_ids, dev->of_node))
-+		return 0;
-+
-+	client = to_i2c_client(dev);
-+	max9286 = i2c_get_clientdata(client);
-+
-+	/* Enable the bus power. */
-+	ret = regulator_enable(max9286->regulator);
++	ret = max9271_read(dev, 0x1e);
 +	if (ret < 0) {
-+		dev_err(&client->dev, "Unable to turn PoC on\n");
++		dev_err(&dev->client->dev, "MAX9271 ID read failed (%d)\n",
++			ret);
 +		return ret;
 +	}
 +
-+	max9286->poc_enabled = true;
-+
-+	ret = max9286_setup(max9286);
-+	if (ret) {
-+		dev_err(dev, "Unable to setup max9286\n");
-+		goto err_regulator;
++	if (ret != MAX9271_ID) {
++		dev_err(&dev->client->dev, "MAX9271 ID mismatch (0x%02x)\n",
++			ret);
++		return -ENXIO;
 +	}
-+
-+	v4l2_i2c_subdev_init(&max9286->sd, client, &max9286_subdev_ops);
-+	max9286->sd.internal_ops = &max9286_subdev_internal_ops;
-+	max9286->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+	v4l2_ctrl_handler_init(&max9286->ctrls, 1);
-+	/*
-+	 * FIXME: Compute the real pixel rate. The 50 MP/s value comes from the
-+	 * hardcoded frequency in the BSP CSI-2 receiver driver.
-+	 */
-+	v4l2_ctrl_new_std(&max9286->ctrls, NULL, V4L2_CID_PIXEL_RATE,
-+			  50000000, 50000000, 1, 50000000);
-+	max9286->sd.ctrl_handler = &max9286->ctrls;
-+	ret = max9286->ctrls.error;
-+	if (ret)
-+		goto err_regulator;
-+
-+	max9286->sd.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
-+
-+	max9286->pads[MAX9286_SRC_PAD].flags = MEDIA_PAD_FL_SOURCE;
-+	for (i = 0; i < MAX9286_SRC_PAD; i++)
-+		max9286->pads[i].flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_pads_init(&max9286->sd.entity, MAX9286_N_PADS,
-+				     max9286->pads);
-+	if (ret)
-+		goto err_regulator;
-+
-+	ep = of_graph_get_endpoint_by_regs(dev->of_node, MAX9286_SRC_PAD, -1);
-+	if (!ep) {
-+		dev_err(dev, "Unable to retrieve endpoint on \"port@4\"\n");
-+		ret = -ENOENT;
-+		goto err_regulator;
-+	}
-+	max9286->sd.fwnode = of_fwnode_handle(ep);
-+
-+	ret = v4l2_async_register_subdev(&max9286->sd);
-+	if (ret < 0) {
-+		dev_err(dev, "Unable to register subdevice\n");
-+		goto err_put_node;
-+	}
-+
-+	ret = max9286_i2c_mux_init(max9286);
-+	if (ret) {
-+		dev_err(dev, "Unable to initialize I2C multiplexer\n");
-+		goto err_subdev_unregister;
-+	}
-+
-+	/*
-+	 * Re-configure I2C with local acknowledge disabled after cameras
-+	 * have probed.
-+	 */
-+	max9286_configure_i2c(max9286, false);
-+
-+	/* Leave the mux channels disabled until they are selected. */
-+	max9286_i2c_mux_close(max9286);
 +
 +	return 0;
-+
-+err_subdev_unregister:
-+	v4l2_async_unregister_subdev(&max9286->sd);
-+	max9286_i2c_mux_close(max9286);
-+err_put_node:
-+	of_node_put(ep);
-+err_regulator:
-+	regulator_disable(max9286->regulator);
-+	max9286->poc_enabled = false;
-+
-+	return ret;
 +}
 +
-+static int max9286_is_bound(struct device *dev, void *data)
++static int max9271_configure_address(struct rdacm20_device *dev, u8 addr)
 +{
-+	struct device *this = data;
 +	int ret;
 +
-+	if (dev == this)
-+		return 0;
-+
-+	/* Skip non-max9286 devices. */
-+	if (!dev->of_node || !of_match_node(max9286_dt_ids, dev->of_node))
-+		return 0;
-+
-+	ret = device_is_bound(dev);
-+	if (!ret)
-+		return -EPROBE_DEFER;
++	/* Change the MAX9271 I2C address. */
++	ret = max9271_write(dev, 0x00, addr << 1);
++	if (ret < 0) {
++		dev_err(&dev->client->dev,
++			"MAX9271 I2C address change failed (%d)\n", ret);
++		return ret;
++	}
++	dev->client->addr = addr;
++	usleep_range(3500, 5000);
 +
 +	return 0;
 +}
 +
-+static struct device_node *max9286_get_i2c_by_id(struct device_node *parent,
-+						 u32 id)
++static int rdacm20_initialize(struct rdacm20_device *dev)
 +{
-+	struct device_node *child;
++	u32 addrs[2];
++	int ret;
 +
-+	for_each_child_of_node(parent, child) {
-+		u32 i2c_id = 0;
-+
-+		if (of_node_cmp(child->name, "i2c") != 0)
-+			continue;
-+		of_property_read_u32(child, "reg", &i2c_id);
-+		if (id == i2c_id)
-+			return child;
++	ret = of_property_read_u32_array(dev->client->dev.of_node, "reg",
++					 addrs, ARRAY_SIZE(addrs));
++	if (ret < 0) {
++		dev_err(&dev->client->dev, "Invalid DT reg property\n");
++		return -EINVAL;
 +	}
-+
-+	return NULL;
-+}
-+
-+static int max9286_check_i2c_bus_by_id(struct device *dev, int id)
-+{
-+	struct device_node *i2c_np;
-+
-+	i2c_np = max9286_get_i2c_by_id(dev->of_node, id);
-+	if (!i2c_np) {
-+		dev_err(dev, "Failed to find corresponding i2c@%u\n", id);
-+		return -ENODEV;
-+	}
-+
-+	if (!of_device_is_available(i2c_np)) {
-+		dev_dbg(dev, "Skipping port %u with disabled I2C bus\n", id);
-+		of_node_put(i2c_np);
-+		return -ENODEV;
-+	}
-+
-+	of_node_put(i2c_np);
-+
-+	return 0;
-+}
-+
-+static void max9286_cleanup_dt(struct max9286_device *max9286)
-+{
-+	struct max9286_source *source;
 +
 +	/*
-+	 * Not strictly part of the DT, but the notifier is registered during
-+	 * max9286_parse_dt(), and the notifier holds references to the fwnodes
-+	 * thus the cleanup is here to mirror the registration.
++	 * FIXME: The MAX9271 boots at a default address that we will change to
++	 * the address specified in DT. Set the client address back to the
++	 * default for initial communication.
 +	 */
-+	v4l2_async_notifier_unregister(&max9286->notifier);
++	dev->client->addr = MAX9271_I2C_ADDRESS;
 +
-+	for_each_source(max9286, source) {
-+		fwnode_handle_put(source->fwnode);
-+		source->fwnode = NULL;
-+	}
-+}
++	/* Verify communication with the MAX9271. */
++	i2c_smbus_read_byte(dev->client);	/* ping to wake-up */
 +
-+static int max9286_parse_dt(struct max9286_device *max9286)
-+{
-+	struct device *dev = &max9286->client->dev;
-+	struct device_node *ep_np = NULL;
++	/*
++	 *  Ensure that we have a good link configuration before attempting to
++	 *  identify the device.
++	 */
++	max9271_configure_i2c(dev);
++	max9271_configure_gmsl_link(dev);
 +
-+	for_each_endpoint_of_node(dev->of_node, ep_np) {
-+		struct max9286_source *source;
-+		struct of_endpoint ep;
++	ret = max9271_verify_id(dev);
++	if (ret < 0)
++		return ret;
 +
-+		of_graph_parse_endpoint(ep_np, &ep);
-+		dev_dbg(dev, "Endpoint %pOF on port %d",
-+			ep.local_node, ep.port);
++	ret = max9271_configure_address(dev, addrs[0]);
++	if (ret < 0)
++		return ret;
 +
-+		if (ep.port > MAX9286_NUM_GMSL) {
-+			dev_err(dev, "Invalid endpoint %s on port %d",
-+				of_node_full_name(ep.local_node),
-+				ep.port);
-+
-+			continue;
-+		}
-+
-+		/* For the source endpoint just parse the bus configuration. */
-+		if (ep.port == MAX9286_SRC_PAD) {
-+			struct v4l2_fwnode_endpoint *vep;
-+
-+			vep = v4l2_fwnode_endpoint_alloc_parse(
-+					of_fwnode_handle(ep_np));
-+			if (IS_ERR(vep))
-+				return PTR_ERR(vep);
-+
-+			if (vep->bus_type != V4L2_MBUS_CSI2) {
-+				dev_err(dev,
-+					"Media bus %u type not supported\n",
-+					vep->bus_type);
-+				v4l2_fwnode_endpoint_free(vep);
-+				return -EINVAL;
-+			}
-+
-+			max9286->csi2_data_lanes =
-+				vep->bus.mipi_csi2.num_data_lanes;
-+			v4l2_fwnode_endpoint_free(vep);
-+
-+			continue;
-+		}
-+
-+		/* Skip if the corresponding GMSL link is unavailable. */
-+		if (max9286_check_i2c_bus_by_id(dev, ep.port))
-+			continue;
-+
-+		if (max9286->sources[ep.port].fwnode) {
-+			dev_err(dev,
-+				"Multiple port endpoints are not supported: %d",
-+				ep.port);
-+
-+			continue;
-+		}
-+
-+		source = &max9286->sources[ep.port];
-+		source->fwnode = fwnode_graph_get_remote_endpoint(
-+						of_fwnode_handle(ep_np));
-+		if (!source->fwnode) {
-+			dev_err(dev,
-+				"Endpoint %pOF has no remote endpoint connection\n",
-+				ep.local_node);
-+
-+			continue;
-+		}
-+
-+		source->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		source->asd.match.fwnode = source->fwnode;
-+
-+		max9286->subdevs[max9286->nsources] = &source->asd;
-+		max9286->source_mask |= BIT(ep.port);
-+		max9286->nsources++;
++	/* Reset and verify communication with the OV10635. */
++#ifdef RDACM20_SENSOR_HARD_RESET
++	/* Cycle the OV10635 reset signal connected to the MAX9271 GPIO1. */
++	max9271_write(dev, 0x0f, 0xff & ~(MAX9271_GPIO1OUT | MAX9271_SETGPO));
++	mdelay(10);
++	max9271_write(dev, 0x0f, 0xff & ~MAX9271_SETGPO);
++	mdelay(10);
++#else
++	/* Perform a software reset. */
++	ret = ov10635_write(dev, OV10635_SOFTWARE_RESET, 1);
++	if (ret < 0) {
++		dev_err(&dev->client->dev, "OV10635 reset failed (%d)\n", ret);
++		return -ENXIO;
 +	}
 +
-+	/* Do not register the subdev notifier if there are no devices. */
-+	if (!max9286->nsources)
-+		return 0;
++	udelay(100);
++#endif
 +
-+	max9286->route_mask = max9286->source_mask;
++	ret = ov10635_read16(dev, OV10635_PID);
++	if (ret < 0) {
++		dev_err(&dev->client->dev, "OV10635 ID read failed (%d)\n",
++			ret);
++		return -ENXIO;
++	}
 +
-+	max9286->notifier.ops = &max9286_notify_ops;
-+	max9286->notifier.subdevs = max9286->subdevs;
-+	max9286->notifier.num_subdevs = max9286->nsources;
++	if (ret != OV10635_VERSION) {
++		dev_err(&dev->client->dev, "OV10635 ID mismatch (0x%04x)\n",
++			ret);
++		return -ENXIO;
++	}
 +
-+	return v4l2_async_subdev_notifier_register(&max9286->sd,
-+						   &max9286->notifier);
++	dev_info(&dev->client->dev, "Identified MAX9271 + OV10635 device\n");
++
++	/* Change the sensor I2C address. */
++	ret = ov10635_write(dev, OV10635_SC_CMMN_SCCB_ID,
++			    (addrs[1] << 1) | OV10635_SC_CMMN_SCCB_ID_SELECT);
++	if (ret < 0) {
++		dev_err(&dev->client->dev,
++			"OV10635 I2C address change failed (%d)\n", ret);
++		return ret;
++	}
++	dev->sensor->addr = addrs[1];
++	usleep_range(3500, 5000);
++
++	/* Program the 0V10635 initial configuration. */
++	ret = ov10635_set_regs(dev, ov10635_regs_wizard,
++			       ARRAY_SIZE(ov10635_regs_wizard));
++	if (ret)
++		return ret;
++
++	return 0;
 +}
 +
-+static int max9286_probe(struct i2c_client *client,
++static int rdacm20_probe(struct i2c_client *client,
 +			 const struct i2c_device_id *did)
 +{
-+	struct max9286_device *dev;
-+	unsigned int i;
++	struct rdacm20_device *dev;
++	struct fwnode_handle *ep;
 +	int ret;
 +
 +	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
@@ -1178,115 +1584,118 @@ index 000000000000..1a2064ede6f0
 +		return -ENOMEM;
 +
 +	dev->client = client;
-+	i2c_set_clientdata(client, dev);
 +
-+	for (i = 0; i < MAX9286_N_SINKS; i++)
-+		max9286_init_format(&dev->fmt[i]);
-+
-+	ret = max9286_parse_dt(dev);
-+	if (ret)
-+		return ret;
-+
-+	dev->regulator = regulator_get(&client->dev, "poc");
-+	if (IS_ERR(dev->regulator)) {
-+		if (PTR_ERR(dev->regulator) != -EPROBE_DEFER)
-+			dev_err(&client->dev,
-+				"Unable to get PoC regulator (%ld)\n",
-+				PTR_ERR(dev->regulator));
-+		ret = PTR_ERR(dev->regulator);
-+		goto err_free;
++	/* Create the dummy I2C client for the sensor. */
++	dev->sensor = i2c_new_dummy(client->adapter, OV10635_I2C_ADDRESS);
++	if (!dev->sensor) {
++		ret = -ENXIO;
++		goto error;
 +	}
 +
-+	/*
-+	 * We can have multiple MAX9286 instances on the same physical I2C
-+	 * bus, and I2C children behind ports of separate MAX9286 instances
-+	 * having the same I2C address. As the MAX9286 starts by default with
-+	 * all ports enabled, we need to disable all ports on all MAX9286
-+	 * instances before proceeding to further initialize the devices and
-+	 * instantiate children.
-+	 *
-+	 * Start by just disabling all channels on the current device. Then,
-+	 * if all other MAX9286 on the parent bus have been probed, proceed
-+	 * to initialize them all, including the current one.
-+	 */
-+	max9286_i2c_mux_close(dev);
-+
-+	/*
-+	 * The MAX9286 initialises with auto-acknowledge enabled by default.
-+	 * This means that if multiple MAX9286 devices are connected to an I2C
-+	 * bus, another MAX9286 could ack I2C transfers meant for a device on
-+	 * the other side of the GMSL links for this MAX9286 (such as a
-+	 * MAX9271). To prevent that disable auto-acknowledge early on; it
-+	 * will be enabled later as needed.
-+	 */
-+	max9286_configure_i2c(dev, false);
-+
-+	ret = device_for_each_child(client->dev.parent, &client->dev,
-+				    max9286_is_bound);
-+	if (ret)
-+		return 0;
-+
-+	dev_dbg(&client->dev,
-+		"All max9286 probed: start initialization sequence\n");
-+	ret = device_for_each_child(client->dev.parent, NULL,
-+				    max9286_init);
++	/* Initialize the hardware. */
++	ret = rdacm20_initialize(dev);
 +	if (ret < 0)
-+		goto err_regulator;
++		goto error;
 +
-+	/* Leave the mux channels disabled until they are selected. */
-+	max9286_i2c_mux_close(dev);
++	/* Initialize and register the subdevice. */
++	v4l2_i2c_subdev_init(&dev->sd, client, &rdacm20_subdev_ops);
++	dev->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++	v4l2_ctrl_handler_init(&dev->ctrls, 1);
++	/*
++	 * FIXME: Compute the real pixel rate. The 50 MP/s value comes from the
++	 * hardcoded frequency in the BSP CSI-2 receiver driver.
++	 */
++	v4l2_ctrl_new_std(&dev->ctrls, NULL, V4L2_CID_PIXEL_RATE, 50000000,
++			  50000000, 1, 50000000);
++	dev->sd.ctrl_handler = &dev->ctrls;
++
++	ret = dev->ctrls.error;
++	if (ret)
++		goto error;
++
++	dev->pad.flags = MEDIA_PAD_FL_SOURCE;
++	dev->sd.entity.flags |= MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&dev->sd.entity, 1, &dev->pad);
++	if (ret < 0)
++		goto error;
++
++	ep = fwnode_graph_get_next_endpoint(dev_fwnode(&client->dev), NULL);
++	if (!ep) {
++		dev_err(&client->dev,
++			"Unable to get endpoint in node %pOF: %ld\n",
++			client->dev.of_node, PTR_ERR(ep));
++		ret = -ENOENT;
++		goto error;
++	}
++	dev->sd.fwnode = ep;
++
++	ret = v4l2_async_register_subdev(&dev->sd);
++	if (ret)
++		goto error_put_node;
 +
 +	return 0;
 +
-+err_regulator:
-+	regulator_put(dev->regulator);
-+	max9286_i2c_mux_close(dev);
-+	max9286_configure_i2c(dev, false);
-+err_free:
-+	max9286_cleanup_dt(dev);
++error_put_node:
++	fwnode_handle_put(ep);
++error:
++	media_entity_cleanup(&dev->sd.entity);
++	if (dev->sensor)
++		i2c_unregister_device(dev->sensor);
 +	kfree(dev);
++
++	dev_err(&client->dev, "probe failed\n");
 +
 +	return ret;
 +}
 +
-+static int max9286_remove(struct i2c_client *client)
++static int rdacm20_remove(struct i2c_client *client)
 +{
-+	struct max9286_device *dev = i2c_get_clientdata(client);
-+
-+	i2c_mux_del_adapters(dev->mux);
++	struct rdacm20_device *dev = i2c_to_rdacm20(client);
 +
 +	fwnode_handle_put(dev->sd.fwnode);
 +	v4l2_async_unregister_subdev(&dev->sd);
-+
-+	if (dev->poc_enabled)
-+		regulator_disable(dev->regulator);
-+	regulator_put(dev->regulator);
-+
-+	max9286_cleanup_dt(dev);
++	media_entity_cleanup(&dev->sd.entity);
++	i2c_unregister_device(dev->sensor);
 +	kfree(dev);
 +
 +	return 0;
 +}
 +
-+static const struct i2c_device_id max9286_id[] = {
-+	{ "max9286", 0 },
++static void rdacm20_shutdown(struct i2c_client *client)
++{
++	struct rdacm20_device *dev = i2c_to_rdacm20(client);
++
++	/* make sure stream off during shutdown (reset/reboot) */
++	rdacm20_s_stream(&dev->sd, 0);
++}
++
++static const struct i2c_device_id rdacm20_id[] = {
++	{ "rdacm20", 0 },
 +	{ }
 +};
-+MODULE_DEVICE_TABLE(i2c, max9286_id);
++MODULE_DEVICE_TABLE(i2c, rdacm20_id);
 +
-+static struct i2c_driver max9286_i2c_driver = {
++static const struct of_device_id rdacm20_of_ids[] = {
++	{ .compatible = "imi,rdacm20", },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, rdacm20_of_ids);
++
++static struct i2c_driver rdacm20_i2c_driver = {
 +	.driver	= {
-+		.name		= "max9286",
-+		.of_match_table	= of_match_ptr(max9286_dt_ids),
++		.name	= "rdacm20",
++		.of_match_table = rdacm20_of_ids,
 +	},
-+	.probe		= max9286_probe,
-+	.remove		= max9286_remove,
-+	.id_table	= max9286_id,
++	.probe		= rdacm20_probe,
++	.remove		= rdacm20_remove,
++	.shutdown	= rdacm20_shutdown,
++	.id_table	= rdacm20_id,
 +};
 +
-+module_i2c_driver(max9286_i2c_driver);
++module_i2c_driver(rdacm20_i2c_driver);
 +
-+MODULE_DESCRIPTION("Maxim MAX9286 GMSL Deserializer Driver");
++MODULE_DESCRIPTION("SoC Camera driver for MAX9286<->MAX9271<->OV10635");
 +MODULE_AUTHOR("Vladimir Barinov");
 +MODULE_LICENSE("GPL");
 -- 
