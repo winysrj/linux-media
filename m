@@ -1,80 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:35797 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750899AbeFDI1e (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2018 04:27:34 -0400
-Message-ID: <1528100849.5808.2.camel@pengutronix.de>
-Subject: Re: [PATCH v2 04/10] media: imx: interweave only for sequential
- input/interlaced output fields
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Mon, 04 Jun 2018 10:27:29 +0200
-In-Reply-To: <m3k1rfnmfr.fsf@t19.piap.pl>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-         <1527813049-3231-5-git-send-email-steve_longerbeam@mentor.com>
-         <1527860010.5913.8.camel@pengutronix.de> <m3k1rfnmfr.fsf@t19.piap.pl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail.kernel.org ([198.145.29.99]:39652 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751520AbeFELDg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Jun 2018 07:03:36 -0400
+Date: Tue, 5 Jun 2018 16:33:27 +0530
+From: Vinod <vkoul@kernel.org>
+To: Vikash Garodia <vgarodia@codeaurora.org>
+Cc: hverkuil@xs4all.nl, mchehab@kernel.org, robh@kernel.org,
+        mark.rutland@arm.com, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org, stanimir.varbanov@linaro.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, acourbot@chromium.org
+Subject: Re: [PATCH v2 2/5] media: venus: add a routine to set venus state
+Message-ID: <20180605110327.GU16230@vkoul-mobl>
+References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
+ <1527884768-22392-3-git-send-email-vgarodia@codeaurora.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1527884768-22392-3-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-06-04 at 07:35 +0200, Krzysztof Hałasa wrote:
-> Philipp Zabel <p.zabel@pengutronix.de> writes:
-> 
-> > This is ok in this patch, but we can't use this check in the following
-> > TRY_FMT patch as there is no way to interweave
-> > SEQ_TB -> INTERLACED_BT (because in SEQ_TB the B field is newer than T,
-> > but in INTERLACED_BT it has to be older) or SEQ_BT -> INTERLACED_TB (the
-> > other way around).
-> 
-> Actually we can do SEQ_TB -> INTERLACED_BT and SEQ_BT -> INTERLACED_TB
-> rather easily. We only need to skip a single field at start :-)
-> That's what CCIR_CODE_* registers do.
-> 
-> To be honest, SEQ_TB and SEQ_BT are precisely the same thing
-> (i.e., SEQUENTIAL). It's up to the user to say which field is the first.
-> There is the progressive sensor exception, though, and the TB/BT could
-> be a hint for downstream elements (i.e., setting the default field
-> order).
-> 
-> But I think we should be able to request INTERLACED_TB or INTERLACED_BT
-> (with any analog signal on input) and the CCIR_CODE registers should be
-> set accordingly. This should all magically work fine.
+On 02-06-18, 01:56, Vikash Garodia wrote:
 
-The CSI subdevice itself can't interweave at all, this is done in the
-IDMAC.
-In my opinion the CSI subdev should allow the following src -> sink
-field transformations for BT.656:
+> +int venus_set_hw_state(enum tzbsp_video_state state, struct venus_core *core)
+> +{
+> +	int ret;
 
-none -> none
-seq-tb -> seq-tb
-seq-tb -> seq-bt
-seq-bt -> seq-bt
-seq-bt -> seq-tb
-alternate -> seq-tb
-alternate -> seq-bt
-interlaced -> interlaced
-interlaced-tb -> interlaced-tb
-interlaced-bt -> interlaced-bt
+this should be init to 0 ...
 
-The capture video device should then additionally allow selecting
-the field order that can be produced by IDMAC interweaving:
-INTERLACED_TB if the pad is seq-tb and INTERLACED_BT if the pad is seq-
-bt, as that is what the IDMAC can convert.
+> +	struct device *dev = core->dev;
+> +	void __iomem *reg_base = core->base;
+> +
+> +	switch (state) {
+> +	case TZBSP_VIDEO_SUSPEND:
+> +		if (qcom_scm_is_available())
+> +			ret = qcom_scm_set_remote_state(TZBSP_VIDEO_SUSPEND, 0);
+> +		else
+> +			writel_relaxed(1, reg_base + WRAPPER_A9SS_SW_RESET);
+> +		break;
+> +	case TZBSP_VIDEO_RESUME:
+> +		if (qcom_scm_is_available())
+> +			ret = qcom_scm_set_remote_state(TZBSP_VIDEO_RESUME, 0);
+> +		else
+> +			venus_reset_hw(core);
+> +		break;
+> +	default:
 
-seq-tb -> seq-tb and seq-bt -> seq-bt should always capture field 0
-first, as we currently do for PAL.
-seq->tb -> seq-bt and seq-bt -> seq-tb should always capture field 1
-first, as we currently do for NTSC.
-alternate -> seq-tb and alternate -> seq-bt should match seq-tb -> * for
-PAL and seq-bt -> * for NTSC.
-The interlaced* -> interlaced* would be handled as progressive.
+if it is default, ret contains garbage
 
-regards
-Philipp
+> +		dev_err(dev, "invalid state\n");
+> +		break;
+> +	}
+> +	return ret;
+
+and that is returned.
+
+Compiler should complain about these ...
+
+> -enum tzbsp_video_state {
+> -	TZBSP_VIDEO_STATE_SUSPEND = 0,
+> -	TZBSP_VIDEO_STATE_RESUME
+> -};
+
+ah you are moving existing defines, please mention this in changelog.
+Till this line I was expecting additions...
+-- 
+~Vinod
