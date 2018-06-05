@@ -1,56 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:49097 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751501AbeFAN0m (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 09:26:42 -0400
-Message-ID: <1527859598.5913.6.camel@pengutronix.de>
-Subject: Re: [PATCH v2 02/10] gpu: ipu-csi: Check for field type alternate
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Fri, 01 Jun 2018 15:26:38 +0200
-In-Reply-To: <1527813049-3231-3-git-send-email-steve_longerbeam@mentor.com>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-         <1527813049-3231-3-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kernel.org ([198.145.29.99]:36970 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751386AbeFEK51 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Jun 2018 06:57:27 -0400
+Date: Tue, 5 Jun 2018 16:27:16 +0530
+From: Vinod <vkoul@kernel.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Vikash Garodia <vgarodia@codeaurora.org>, hverkuil@xs4all.nl,
+        mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
+        andy.gross@linaro.org, bjorn.andersson@linaro.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, acourbot@chromium.org
+Subject: Re: [PATCH v2 1/5] media: venus: add a routine to reset ARM9
+Message-ID: <20180605105716.GT16230@vkoul-mobl>
+References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
+ <1527884768-22392-2-git-send-email-vgarodia@codeaurora.org>
+ <894ab678-bc1d-da04-b552-d53301bd3980@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <894ab678-bc1d-da04-b552-d53301bd3980@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
-
-On Thu, 2018-05-31 at 17:30 -0700, Steve Longerbeam wrote:
-> When the CSI is receiving from a bt.656 bus, include a check for
-> field type 'alternate' when determining whether to set CSI clock
-> mode to CCIR656_INTERLACED or CCIR656_PROGRESSIVE.
+On 02-06-18, 01:15, Stanimir Varbanov wrote:
+> Hi Vikash,
 > 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  drivers/gpu/ipu-v3/ipu-csi.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+> On  1.06.2018 23:26, Vikash Garodia wrote:
+> > Add a new routine to reset the ARM9 and brings it
+> > out of reset. This is in preparation to add PIL
+> > functionality in venus driver.
 > 
-> diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
-> index caa05b0..5450a2d 100644
-> --- a/drivers/gpu/ipu-v3/ipu-csi.c
-> +++ b/drivers/gpu/ipu-v3/ipu-csi.c
-> @@ -339,7 +339,8 @@ static void fill_csi_bus_cfg(struct ipu_csi_bus_config *csicfg,
->  		break;
->  	case V4L2_MBUS_BT656:
->  		csicfg->ext_vsync = 0;
-> -		if (V4L2_FIELD_HAS_BOTH(mbus_fmt->field))
-> +		if (V4L2_FIELD_HAS_BOTH(mbus_fmt->field) ||
-> +		    mbus_fmt->field == V4L2_FIELD_ALTERNATE)
->  			csicfg->clk_mode = IPU_CSI_CLK_MODE_CCIR656_INTERLACED;
->  		else
->  			csicfg->clk_mode = IPU_CSI_CLK_MODE_CCIR656_PROGRESSIVE;
+> please squash this patch with 4/5. I don't see a reason to add a function
+> which is not used. Shouldn't this produce gcc warnings?
 
-Thank you, applied to imx-drm/next.
+Yes this would but in a multi patch series that is okay as subsequent
+patches would use that and end result in no warning.
 
-regards
-Philipp
+Splitting logically is good and typical practice in kernel to add the
+routine followed by usages..
+
+-- 
+~Vinod
