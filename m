@@ -1,125 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay11.mail.gandi.net ([217.70.178.231]:36055 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751481AbeFEIMc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2018 04:12:32 -0400
-Date: Tue, 5 Jun 2018 10:12:22 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Simon Horman <horms@verge.net.au>
-Cc: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, geert@glider.be,
-        mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, robh+dt@kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 8/8] ARM: dts: rcar-gen2: Remove unused VIN properties
-Message-ID: <20180605081222.GL10472@w540>
-References: <1527606359-19261-1-git-send-email-jacopo+renesas@jmondi.org>
- <1527606359-19261-9-git-send-email-jacopo+renesas@jmondi.org>
- <20180604122325.GH19674@bigcity.dyn.berto.se>
- <20180605074938.mljwmgpjlplvkp2v@verge.net.au>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34480 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751296AbeFEJBs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2018 05:01:48 -0400
+Subject: Re: [RFC/RFT PATCH 0/6] Asynchronous UVC
+To: Troy Kisky <troy.kisky@boundarydevices.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+Cc: Olivier BRAUN <olivier.braun@stereolabs.com>,
+        kieran.bingham@ideasonboard.com,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <cover.67dff754d6d314373ac0a04777b3b1d785fc5dd4.1515010476.git-series.kieran.bingham@ideasonboard.com>
+ <b18d0633-cb04-639b-4ade-55b6839da0b3@boundarydevices.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <239ae307-9c8d-ab95-34c0-3a179d2899bd@ideasonboard.com>
+Date: Tue, 5 Jun 2018 10:01:43 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="RNRUMt0ZF5Yaq/Aq"
-Content-Disposition: inline
-In-Reply-To: <20180605074938.mljwmgpjlplvkp2v@verge.net.au>
+In-Reply-To: <b18d0633-cb04-639b-4ade-55b6839da0b3@boundarydevices.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Troy
 
---RNRUMt0ZF5Yaq/Aq
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 03/01/18 21:13, Troy Kisky wrote:
+> On 1/3/2018 12:32 PM, Kieran Bingham wrote:
+>> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+>>
+>> The Linux UVC driver has long provided adequate performance capabilities for
+>> web-cams and low data rate video devices in Linux while resolutions were low.
+>>
+>> Modern USB cameras are now capable of high data rates thanks to USB3 with
+>> 1080p, and even 4k capture resolutions supported.
+>>
+>> Cameras such as the Stereolabs ZED or the Logitech Brio can generate more data
+>> than an embedded ARM core is able to process on a single core, resulting in
+>> frame loss.
+>>
+>> A large part of this performance impact is from the requirement to
+>> ‘memcpy’ frames out from URB packets to destination frames. This unfortunate
+>> requirement is due to the UVC protocol allowing a variable length header, and
+>> thus it is not possible to provide the target frame buffers directly.
+> 
+> 
+> I have a rather large patch that does provide frame buffers directly for bulk
+> cameras. It cannot be used with ISOC cameras.  But it is currently for 4.1.
+> I'll be porting it to 4.9 in a few days if you'd like to see it.
 
-Hi Simon,
 
-On Tue, Jun 05, 2018 at 09:49:38AM +0200, Simon Horman wrote:
-> On Mon, Jun 04, 2018 at 02:23:25PM +0200, Niklas S=C3=B6derlund wrote:
-> > Hi Jacopo,
-> >
-> > Thanks for your work.
-> >
-> > On 2018-05-29 17:05:59 +0200, Jacopo Mondi wrote:
-> > > The 'bus-width' and 'pclk-sample' properties are not parsed by the VIN
-> > > driver and only confuse users. Remove them in all Gen2 SoC that use
-> > > them.
-> > >
-> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> >
-> > The more I think about this the more I lean towards that this patch
-> > should be dropped. The properties accurately describes the hardware and
-> > I think there is value in that. That the driver currently don't parse or
-> > make use of them don't in my view reduce there value. Maybe you should
-> > break out this patch to a separate series?
->
-> I also think there is value in describing the hardware not the state of t=
-he
-> driver at this time.  Is there any missmatch between these properties and
-> the bindings?
+How did you get on with this porting activity?
 
-Niklas and I discussed a bit offline on this yesterday. My main
-concern, and sorry for being pedant on this, is that changing those
-properties value does not change the interface behaviour, and this
-could cause troubles when integrating image sensor not known to be
-working on the VIN interface.
+Is it possible to share any of this work with the mailing lists ?
 
-This said, the documentation of those (and all other) properties is in the
-generic "video-interfaces.txt" file and it is my understanding, but I think
-Laurent and Rob agree on this as well from their replies to my previous ser=
-ies,
-that each driver should list which properties it actually supports, as
-some aspects are very implementation specific, like default values and
-what happens if the property is not specified [1]. Nonetheless, all
-properties describing hardware features and documented in the generic
-file should be accepted in DTS, as those aims to be OS-independent and
-even independent from the single driver implementation.
+(If you have not ported to v4.9 - I think it would be useful even to post the
+v4.1 patch and we can look at what's needed for getting it ported to mainline)
 
-A possible middle-ground would be documenting in the VIN device tree
-bindings description properties whose values actually affect the VIN
-interface configuration and state in bindings that all generic properties
-described in 'video-interfaces.txt' are valid ones but if not
-explicitly listed there their value won't affect the interface
-configuration. Niklas suggested this, and I quite like the fact it
-makes clear that, say, changing the 'pclk-sample' property won't
-change how the VIN interface would sample data but at the same time
-allows for extensive description of the hardware.
+--
+Regards
 
-Would something like this work in your opinion?
+Kieran
 
-As a consequence, this patch should be dropped as Niklas and you
-suggested.
 
-Thanks
-   j
-
-[1] Ie. An interface that supports BT.656 encoding will use it if
-'hsync-active' and 'vsync-active' are not specified. One that does not
-support embedded synchronization would instead use defaults for those
-two properties. This is specific to the single interface (or even the
-single driver implementation actually) and should be listed in the single
-driver's bindings description imo.
-
---RNRUMt0ZF5Yaq/Aq
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbFkXlAAoJEHI0Bo8WoVY8KhcQAJUL6ug4xkvU0gsP/lLtKDPV
-hV7G9VpjtOeN4LBpBEjdLb4wxrcsvUv97S8wu5TzGtiwoNwXZOp1+I7fFvP3sJ5h
-W57kWkPmYAoKAHJeenNaAk5Lq9wMNg/zqwq7ujE6o+ioqGUH7hirh99H4I220XmW
-KCFfvm477tT1OL5y8V6hRXMJPLjYKJ6yA0XABjBfSiHr3cTZhqxSw7stXNeS1yfA
-3A6HhrxivRD4YLM2BO5eWS6Ja1/NrFXaOcvESE1DpItJ3CpxJy8rFXkpb02cNw8x
-yoRRvSOeY7Aoycs3KCDJFErcSif7CL+pxn4YbmxWMJuXR8vbDjHyhvaMog7qr9jr
-ADlqSf7pB3u8G7K8MwZy/P0gaTNfdANAEVRcHaXTLMGQdCCWOsEQQ00Mq95fMIZM
-IZL9YVjsLEJByj/I6LDuoM9fABb3Zxb43YVD2fErV29St1pFSGEFl8w20rngcHPy
-XXsgCPkEsiR0+2XZsuT+C/gTZf9c4FQWdlaSmyfMNP4EmLHBsTW9r9+FKEhY6tir
-KV12XPZSXr5j7zpH0yE1Me0ztpdURTSnDk0om+X+z0Xs74NnAZq5MjLbN0jLqhMq
-fKGdLEHRc147xZAx/1U+qo/n0CsuFv+wl7st8UcSgnL/In1BJ+TmHXK2Dyi6zk5G
-WScx8jfe/TOYAbbLmfIz
-=4MDZ
------END PGP SIGNATURE-----
-
---RNRUMt0ZF5Yaq/Aq--
+> 
+> BR
+> Troy
+> 
+> 
+>>
+>> Extra throughput is possible by moving the actual memcpy actions to a work
+>> queue, and moving the memcpy out of interrupt context and allowing work tasks
+>> to be scheduled across multiple cores.
+>>
+>> This series has been tested on both the ZED and Brio cameras on arm64
+>> platforms, however due to the intrinsic changes in the driver I would like to
+>> see it tested with other devices and other platforms, so I'd appreciate if
+>> anyone can test this on a range of USB cameras.
+>>
+>> Kieran Bingham (6):
+>>   uvcvideo: Refactor URB descriptors
+>>   uvcvideo: Convert decode functions to use new context structure
+>>   uvcvideo: Protect queue internals with helper
+>>   uvcvideo: queue: Simplify spin-lock usage
+>>   uvcvideo: queue: Support asynchronous buffer handling
+>>   uvcvideo: Move decode processing to process context
+>>
+>>  drivers/media/usb/uvc/uvc_isight.c |   4 +-
+>>  drivers/media/usb/uvc/uvc_queue.c  | 115 ++++++++++++++----
+>>  drivers/media/usb/uvc/uvc_video.c  | 191 ++++++++++++++++++++++--------
+>>  drivers/media/usb/uvc/uvcvideo.h   |  56 +++++++--
+>>  4 files changed, 289 insertions(+), 77 deletions(-)
+>>
+>> base-commit: 6f0e5fd39143a59c22d60e7befc4f33f22aeed2f
+>>
+> 
