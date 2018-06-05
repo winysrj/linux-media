@@ -1,95 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:51312 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752607AbeFDLrC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 07:47:02 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mailout2.samsung.com ([203.254.224.25]:35274 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752284AbeFENeN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2018 09:34:13 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [PATCHv15 10/35] v4l2-ctrls: prepare internal structs for request API
-Date: Mon,  4 Jun 2018 13:46:23 +0200
-Message-Id: <20180604114648.26159-11-hverkuil@xs4all.nl>
-In-Reply-To: <20180604114648.26159-1-hverkuil@xs4all.nl>
-References: <20180604114648.26159-1-hverkuil@xs4all.nl>
+Cc: linux-samsung-soc@vger.kernel.org, m.szyprowski@samsung.com,
+        b.zolnierkie@samsung.com,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] s5p-mfc: Fix buffer look up in s5p_mfc_handle_frame_{new,
+ copy_time} functions
+Date: Tue, 05 Jun 2018 15:33:59 +0200
+Message-id: <20180605133359.10203-1-s.nawrocki@samsung.com>
+References: <CGME20180605133410epcas1p36084a2286fb9e7ad27d6488cc6b99b4e@epcas1p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Look up of buffers in s5p_mfc_handle_frame_new, s5p_mfc_handle_frame_copy_time
+functions is not working properly for DMA addresses above 2 GiB. As a result
+flags and timestamp of returned buffers are not set correctly and it breaks
+operation of GStreamer/OMX plugins which rely on the CAPTURE buffer queue
+flags.
 
-Embed and initialize a media_request_object in struct v4l2_ctrl_handler.
+Due to improper return type of the get_dec_y_adr, get_dspl_y_adr callbacks
+and sign bit extension these callbacks return incorrect address values,
+e.g. 0xfffffffffefc0000 instead of 0x00000000fefc0000. Then the statement:
 
-Add a p_req field to struct v4l2_ctrl_ref that will store the
-request value.
+"if (vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0) == dec_y_addr)"
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+is always false, which breaks looking up capture queue buffers.
+
+To ensure proper matching by address u32 type is used for the DMA
+addresses. This should work on all related SoCs, since the MFC DMA
+address width is not larger than 32-bit.
+
+Changes done in this patch are minimal as there is a larger patch series
+pending refactoring the whole driver.
+
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c |  1 +
- include/media/v4l2-ctrls.h           | 10 ++++++++++
- 2 files changed, 11 insertions(+)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index aa1dd2015e84..d09f49530d9e 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1880,6 +1880,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
- 				      sizeof(hdl->buckets[0]),
- 				      GFP_KERNEL | __GFP_ZERO);
- 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
-+	media_request_object_init(&hdl->req_obj);
- 	return hdl->error;
- }
- EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index d26b8ddebb56..847d6f543e4a 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -20,6 +20,7 @@
- #include <linux/list.h>
- #include <linux/mutex.h>
- #include <linux/videodev2.h>
-+#include <media/media-request.h>
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index a80251ed3143..780548dd650e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -254,24 +254,24 @@ static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
+ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+-	struct s5p_mfc_buf  *dst_buf, *src_buf;
+-	size_t dec_y_addr;
++	struct s5p_mfc_buf *dst_buf, *src_buf;
++	u32 dec_y_addr;
+ 	unsigned int frame_type;
  
- /* forward references */
- struct file;
-@@ -249,6 +250,11 @@ struct v4l2_ctrl {
-  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
-  * @from_other_dev: If true, then @ctrl was defined in another
-  *		device than the &struct v4l2_ctrl_handler.
-+ * @p_req:	If the control handler containing this control reference
-+ *		is bound to a media request, then this points to the
-+ *		value of the control that should be applied when the request
-+ *		is executed, or to the value of the control at the time
-+ *		that the request was completed.
-  *
-  * Each control handler has a list of these refs. The list_head is used to
-  * keep a sorted-by-control-ID list of all controls, while the next pointer
-@@ -260,6 +266,7 @@ struct v4l2_ctrl_ref {
- 	struct v4l2_ctrl *ctrl;
- 	struct v4l2_ctrl_helper *helper;
- 	bool from_other_dev;
-+	union v4l2_ctrl_ptr p_req;
- };
+ 	/* Make sure we actually have a new frame before continuing. */
+ 	frame_type = s5p_mfc_hw_call(dev->mfc_ops, get_dec_frame_type, dev);
+ 	if (frame_type == S5P_FIMV_DECODE_FRAME_SKIPPED)
+ 		return;
+-	dec_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
++	dec_y_addr = (u32)s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
  
- /**
-@@ -283,6 +290,8 @@ struct v4l2_ctrl_ref {
-  * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
-  * @nr_of_buckets: Total number of buckets in the array.
-  * @error:	The error code of the first failed control addition.
-+ * @req_obj:	The &struct media_request_object, used to link into a
-+ *		&struct media_request. This request object has a refcount.
-  */
- struct v4l2_ctrl_handler {
- 	struct mutex _lock;
-@@ -295,6 +304,7 @@ struct v4l2_ctrl_handler {
- 	void *notify_priv;
- 	u16 nr_of_buckets;
- 	int error;
-+	struct media_request_object req_obj;
- };
+ 	/* Copy timestamp / timecode from decoded src to dst and set
+ 	   appropriate flags. */
+ 	src_buf = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+ 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
+-		if (vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0)
+-				== dec_y_addr) {
+-			dst_buf->b->timecode =
+-						src_buf->b->timecode;
++		u32 addr = (u32)vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0);
++
++		if (addr == dec_y_addr) {
++			dst_buf->b->timecode = src_buf->b->timecode;
+ 			dst_buf->b->vb2_buf.timestamp =
+ 						src_buf->b->vb2_buf.timestamp;
+ 			dst_buf->b->flags &=
+@@ -307,10 +307,10 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	struct s5p_mfc_buf  *dst_buf;
+-	size_t dspl_y_addr;
++	u32 dspl_y_addr;
+ 	unsigned int frame_type;
  
- /**
+-	dspl_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dspl_y_adr, dev);
++	dspl_y_addr = (u32)s5p_mfc_hw_call(dev->mfc_ops, get_dspl_y_adr, dev);
+ 	if (IS_MFCV6_PLUS(dev))
+ 		frame_type = s5p_mfc_hw_call(dev->mfc_ops,
+ 			get_disp_frame_type, ctx);
+@@ -329,9 +329,10 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
+ 	/* The MFC returns address of the buffer, now we have to
+ 	 * check which videobuf does it correspond to */
+ 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
++		u32 addr = (u32)vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0);
++
+ 		/* Check if this is the buffer we're looking for */
+-		if (vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0)
+-				== dspl_y_addr) {
++		if (addr == dspl_y_addr) {
+ 			list_del(&dst_buf->list);
+ 			ctx->dst_queue_cnt--;
+ 			dst_buf->b->sequence = ctx->sequence;
 -- 
-2.17.0
+2.14.2
