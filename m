@@ -1,39 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:59148 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936117AbeF2VAL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 17:00:11 -0400
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RESEND][PATCH v6 1/6] ivtv: zero-initialize cx25840 platform data
-Date: Fri, 29 Jun 2018 22:59:58 +0200
-Message-Id: <6165cab2bc2db2deb2edc9c0b7ab5e3b1623ac7b.1530305665.git.mail@maciej.szmigiero.name>
-In-Reply-To: <cover.1530305665.git.mail@maciej.szmigiero.name>
-References: <cover.1530305665.git.mail@maciej.szmigiero.name>
+Received: from aserp2120.oracle.com ([141.146.126.78]:37874 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752006AbeFFVGO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 17:06:14 -0400
+Subject: Re: [PATCH v2 3/9] xen/balloon: Share common memory reservation
+ routines
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180601114132.22596-1-andr2000@gmail.com>
+ <20180601114132.22596-4-andr2000@gmail.com>
+ <4fd46fd8-f936-1514-06e4-34c5d3ed8960@oracle.com>
+ <05e361c2-c7f3-2f57-908c-e2c9b98b18e7@gmail.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <6cba4317-b517-3e12-ba1b-3ccbe414ada0@oracle.com>
+Date: Wed, 6 Jun 2018 17:09:50 -0400
+MIME-Version: 1.0
+In-Reply-To: <05e361c2-c7f3-2f57-908c-e2c9b98b18e7@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need to zero-initialize cx25840 platform data structure to make sure
-that its future members do not contain random stack garbage.
+On 06/06/2018 03:24 AM, Oleksandr Andrushchenko wrote:
+> On 06/04/2018 07:37 PM, Boris Ostrovsky wrote:
+>> On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
+>>> diff --git a/include/xen/mem-reservation.h
+>>> b/include/xen/mem-reservation.h
+>>> new file mode 100644
+>>> index 000000000000..a727d65a1e61
+>>> --- /dev/null
+>>> +++ b/include/xen/mem-reservation.h
+>>> @@ -0,0 +1,65 @@
+>>> +/* SPDX-License-Identifier: GPL-2.0 */
+>>> +
+>>> +/*
+>>> + * Xen memory reservation utilities.
+>>> + *
+>>> + * Copyright (c) 2003, B Dragovic
+>>> + * Copyright (c) 2003-2004, M Williamson, K Fraser
+>>> + * Copyright (c) 2005 Dan M. Smith, IBM Corporation
+>>> + * Copyright (c) 2010 Daniel Kiper
+>>> + * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
+>>> + */
+>>> +
+>>> +#ifndef _XENMEM_RESERVATION_H
+>>> +#define _XENMEM_RESERVATION_H
+>>> +
+>>> +#include <linux/kernel.h>
+>>> +#include <linux/slab.h>
+>>> +
+>>> +#include <asm/xen/hypercall.h>
+>>> +#include <asm/tlb.h>
+>>> +
+>>> +#include <xen/interface/memory.h>
+>>> +#include <xen/page.h>
+>>> +
+>>> +#ifdef CONFIG_XEN_SCRUB_PAGES
+>>> +void xenmem_reservation_scrub_page(struct page *page);
+>>> +#else
+>>> +static inline void xenmem_reservation_scrub_page(struct page *page)
+>>> +{
+>>> +}
+>>> +#endif
+>>
+>> Given that this is a wrapper around a single call I'd prefer
+>>
+>> inline void xenmem_reservation_scrub_page(struct page *page)
+>> {
+>> #ifdef CONFIG_XEN_SCRUB_PAGES
+>>      clear_highpage(page);
+>> #endif
+>> }
+> Unfortunately this can't be done because of
+> EXPORT_SYMBOL_GPL(xenmem_reservation_scrub_page);
+> which is obviously cannot be used for static inline functions.
 
-Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
----
- drivers/media/pci/ivtv/ivtv-i2c.c | 1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/pci/ivtv/ivtv-i2c.c b/drivers/media/pci/ivtv/ivtv-i2c.c
-index 522cd111e399..e9ce54dd5e01 100644
---- a/drivers/media/pci/ivtv/ivtv-i2c.c
-+++ b/drivers/media/pci/ivtv/ivtv-i2c.c
-@@ -293,6 +293,7 @@ int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
- 			.platform_data = &pdata,
- 		};
- 
-+		memset(&pdata, 0, sizeof(pdata));
- 		pdata.pvr150_workaround = itv->pvr150_workaround;
- 		sd = v4l2_i2c_new_subdev_board(&itv->v4l2_dev, adap,
- 				&cx25840_info, NULL);
+
+Why do you need to export it? It's an inline defined in the header file.
+Just like clear_highpage().
+
+
+-boris
+
+> So, I'll keep it as is.
+>>
+>>
+>> -boris
+>>
+>>
+> Thank you,
+> Oleksandr
