@@ -1,270 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:32988 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932253AbeFFJGG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 05:06:06 -0400
-Subject: Re: [PATCH v2 6/9] xen/gntdev: Add initial support for dma-buf UAPI
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180601114132.22596-1-andr2000@gmail.com>
- <20180601114132.22596-7-andr2000@gmail.com>
- <29c1f1fb-2d52-e3df-adce-44fdee135413@oracle.com>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <d2bbda68-af74-58b1-36a6-d8af47ad8beb@gmail.com>
-Date: Wed, 6 Jun 2018 12:06:02 +0300
-MIME-Version: 1.0
-In-Reply-To: <29c1f1fb-2d52-e3df-adce-44fdee135413@oracle.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:36365 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932253AbeFFJFs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 05:05:48 -0400
+Message-ID: <1528275940.3438.1.camel@pengutronix.de>
+Subject: Re: [PATCH v2 04/10] media: imx: interweave only for sequential
+ input/interlaced output fields
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Date: Wed, 06 Jun 2018 11:05:40 +0200
+In-Reply-To: <98b3cd1e-32ff-e7bb-b2ba-7b622aa983b6@mentor.com>
+References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+         <1527813049-3231-5-git-send-email-steve_longerbeam@mentor.com>
+         <1527860010.5913.8.camel@pengutronix.de> <m3k1rfnmfr.fsf@t19.piap.pl>
+         <1528100849.5808.2.camel@pengutronix.de>
+         <c9fcc11a-9f0f-0764-cb8e-66fc9c09d7f4@mentor.com>
+         <1528186075.4074.1.camel@pengutronix.de>
+         <98b3cd1e-32ff-e7bb-b2ba-7b622aa983b6@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/04/2018 11:49 PM, Boris Ostrovsky wrote:
-> On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
->> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>
->> Add UAPI and IOCTLs for dma-buf grant device driver extension:
->> the extension allows userspace processes and kernel modules to
->> use Xen backed dma-buf implementation. With this extension grant
->> references to the pages of an imported dma-buf can be exported
->> for other domain use and grant references coming from a foreign
->> domain can be converted into a local dma-buf for local export.
->> Implement basic initialization and stubs for Xen DMA buffers'
->> support.
->
-> It would be very helpful if people advocating for this interface
-> reviewed it as well.
-I would also love to see their comments here ;)
->
->> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->> ---
->>   drivers/xen/Kconfig         |  10 +++
->>   drivers/xen/Makefile        |   1 +
->>   drivers/xen/gntdev-dmabuf.c |  75 +++++++++++++++++++
->>   drivers/xen/gntdev-dmabuf.h |  41 +++++++++++
->>   drivers/xen/gntdev.c        | 142 ++++++++++++++++++++++++++++++++++++
->>   include/uapi/xen/gntdev.h   |  91 +++++++++++++++++++++++
->>   6 files changed, 360 insertions(+)
->>   create mode 100644 drivers/xen/gntdev-dmabuf.c
->>   create mode 100644 drivers/xen/gntdev-dmabuf.h
->>
->> diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
->> index 39536ddfbce4..52d64e4b6b81 100644
->> --- a/drivers/xen/Kconfig
->> +++ b/drivers/xen/Kconfig
->> @@ -152,6 +152,16 @@ config XEN_GNTDEV
->>   	help
->>   	  Allows userspace processes to use grants.
->>   
->> +config XEN_GNTDEV_DMABUF
->> +	bool "Add support for dma-buf grant access device driver extension"
->> +	depends on XEN_GNTDEV && XEN_GRANT_DMA_ALLOC && DMA_SHARED_BUFFER
->
-> Is there a reason to have XEN_GRANT_DMA_ALLOC without XEN_GNTDEV_DMABUF?
-One can use grant-table's DMA API without using dma-buf at all, e.g.
-dma-buf is sort of functionality on top of DMA allocated memory.
-We have a use-case for a driver domain (guest domain in fact)
-backed with IOMMU and still requiring allocations created as
-contiguous/DMA memory, so those buffers can be passed around to
-drivers expecting DMA-only buffers.
-So, IMO this is a valid use-case "to have XEN_GRANT_DMA_ALLOC
-without XEN_GNTDEV_DMABUF"
->
->> +	help
->> +	  Allows userspace processes and kernel modules to use Xen backed
->> +	  dma-buf implementation. With this extension grant references to
->> +	  the pages of an imported dma-buf can be exported for other domain
->> +	  use and grant references coming from a foreign domain can be
->> +	  converted into a local dma-buf for local export.
->> +
->>   config XEN_GRANT_DEV_ALLOC
->>   	tristate "User-space grant reference allocator driver"
->>   	depends on XEN
->> diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
->> index 3c87b0c3aca6..33afb7b2b227 100644
->> --- a/drivers/xen/Makefile
->> +++ b/drivers/xen/Makefile
->> @@ -41,5 +41,6 @@ obj-$(CONFIG_XEN_PVCALLS_BACKEND)	+= pvcalls-back.o
->>   obj-$(CONFIG_XEN_PVCALLS_FRONTEND)	+= pvcalls-front.o
->>   xen-evtchn-y				:= evtchn.o
->>   xen-gntdev-y				:= gntdev.o
->> +xen-gntdev-$(CONFIG_XEN_GNTDEV_DMABUF)	+= gntdev-dmabuf.o
->>   xen-gntalloc-y				:= gntalloc.o
->>   xen-privcmd-y				:= privcmd.o
->> diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
->> new file mode 100644
->> index 000000000000..6bedd1387bd9
->> --- /dev/null
->> +++ b/drivers/xen/gntdev-dmabuf.c
->> @@ -0,0 +1,75 @@
->> +// SPDX-License-Identifier: GPL-2.0
->> +
->> +/*
->> + * Xen dma-buf functionality for gntdev.
->> + *
->> + * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
->> + */
->> +
->> +#include <linux/slab.h>
->> +
->> +#include "gntdev-dmabuf.h"
->> +
->> +struct gntdev_dmabuf_priv {
->> +	int dummy;
->> +};
->> +
->> +/* ------------------------------------------------------------------ */
->> +/* DMA buffer export support.                                         */
->> +/* ------------------------------------------------------------------ */
->> +
->> +/* ------------------------------------------------------------------ */
->> +/* Implementation of wait for exported DMA buffer to be released.     */
->> +/* ------------------------------------------------------------------ */
-> Why this comment style?
-Just a copy-paste from gntdev, will change to usual /*..*/
->
->> +
->> +int gntdev_dmabuf_exp_wait_released(struct gntdev_dmabuf_priv *priv, int fd,
->> +				    int wait_to_ms)
->> +{
->> +	return -EINVAL;
->> +}
->> +
->> +/* ------------------------------------------------------------------ */
->> +/* DMA buffer export support.                                         */
->> +/* ------------------------------------------------------------------ */
->> +
->> +int gntdev_dmabuf_exp_from_pages(struct gntdev_dmabuf_export_args *args)
->> +{
->> +	return -EINVAL;
->> +}
->> +
->> +/* ------------------------------------------------------------------ */
->> +/* DMA buffer import support.                                         */
->> +/* ------------------------------------------------------------------ */
->> +
->> +struct gntdev_dmabuf *
->> +gntdev_dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
->> +			  int fd, int count, int domid)
->> +{
->> +	return ERR_PTR(-ENOMEM);
->> +}
->> +
->> +u32 *gntdev_dmabuf_imp_get_refs(struct gntdev_dmabuf *gntdev_dmabuf)
->> +{
->> +	return NULL;
->> +}
->> +
->> +int gntdev_dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd)
->> +{
->> +	return -EINVAL;
->> +}
->> +
->> +struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
->> +{
->> +	struct gntdev_dmabuf_priv *priv;
->> +
->> +	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
->> +	if (!priv)
->> +		return ERR_PTR(-ENOMEM);
->> +
->> +	return priv;
->> +}
->> +
->> +void gntdev_dmabuf_fini(struct gntdev_dmabuf_priv *priv)
->> +{
->> +	kfree(priv);
->> +}
->> diff --git a/drivers/xen/gntdev-dmabuf.h b/drivers/xen/gntdev-dmabuf.h
->> new file mode 100644
->> index 000000000000..040b2de904ac
->> --- /dev/null
->> +++ b/drivers/xen/gntdev-dmabuf.h
->> @@ -0,0 +1,41 @@
->> +/* SPDX-License-Identifier: GPL-2.0 */
->> +
->> +/*
->> + * Xen dma-buf functionality for gntdev.
->> + *
->> + * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
->> + */
->> +
->> +#ifndef _GNTDEV_DMABUF_H
->> +#define _GNTDEV_DMABUF_H
->> +
->> +#include <linux/kernel.h>
->> +#include <linux/errno.h>
->> +#include <linux/types.h>
->> +
->> +struct gntdev_dmabuf_priv;
->> +struct gntdev_dmabuf;
->> +struct device;
->> +
->> +struct gntdev_dmabuf_export_args {
->> +	int dummy;
->> +};
->
-> Please define the full structure (at least what you have in the next
-> patch) here.
-Ok, will define what I have in the next patch, but won't
-initialize anything until the next patch. Will this work for you?
->
->> +
->> +struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void);
->> +
->> +void gntdev_dmabuf_fini(struct gntdev_dmabuf_priv *priv);
->> +
->> +int gntdev_dmabuf_exp_from_pages(struct gntdev_dmabuf_export_args *args);
->> +
->> +int gntdev_dmabuf_exp_wait_released(struct gntdev_dmabuf_priv *priv, int fd,
->> +				    int wait_to_ms);
->> +
->> +struct gntdev_dmabuf *
->> +gntdev_dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
->> +			  int fd, int count, int domid);
->> +
->> +u32 *gntdev_dmabuf_imp_get_refs(struct gntdev_dmabuf *gntdev_dmabuf);
->> +
->> +int gntdev_dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd);
->> +
->> +#endif
->> diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
->> index 9813fc440c70..7d58dfb3e5e8 100644
->> --- a/drivers/xen/gntdev.c
->> +++ b/drivers/xen/gntdev.c
-> ...
->
->>   
->> +#ifdef CONFIG_XEN_GNTDEV_DMABUF
-> This code belongs in gntdev-dmabuf.c.
-The reason I have this code here is that it is heavily
-tied to gntdev's internal functionality, e.g. map/unmap.
-I do not want to extend gntdev's API, so gntdev-dmabuf can
-access these. What is more dma-buf doesn't need to know about
-maps done by gntdev as there is no use of that information
-in gntdev-dmabuf. So, it seems more naturally to have
-dma-buf's related map/unmap code where it is: in gntdev.
->
->> +/* ------------------------------------------------------------------ */
->> +/* DMA buffer export support.                                         */
->> +/* ------------------------------------------------------------------ */
->> +
->> +int gntdev_dmabuf_exp_from_refs(struct gntdev_priv *priv, int flags,
->> +				int count, u32 domid, u32 *refs, u32 *fd)
->> +{
->> +	/* XXX: this will need to work with gntdev's map, so leave it here. */
-> This doesn't help understanding what's going on (at least to me) and is
-> removed in the next patch. So no need for this comment.
-Will remove the comment
-> -boris
->
->> +	*fd = -1;
->> +	return -EINVAL;
->> +}
->
+Hi Steve,
+
+On Tue, 2018-06-05 at 12:00 -0700, Steve Longerbeam wrote:
+> > I'm probably misunderstanding you, so at the risk of overexplaining:
+> > There is no way we can ever produce a correct interlaced-tb frame in
+> > memory from a seq-bt frame output by the CSI, as the interweaving step
+> > only has access to a single frame.
+> 
+> I don't follow you, yes the interweaving step only has access to
+> a single frame, but why would interweave need access to another
+> frame to carry out seq-bt -> interlaced-tb ? See below...
+
+A seq-bt frame has a bottom field (first in memory) with an older
+timestamp than the top field (second in memory). Without access to a
+second input frame we can only ever produce an interlaced frame where
+the bottom lines are older than the top lines, which is interlaced-bt.
+
+interlaced-tb requires the top lines to have the older timestamp, and
+the bottom lines to be newer.
+
+> > A seq-tb PAL frame has the older top field in lines 0-287 and the newer
+> > bottom field in lines 288-576. From that interlaced-tb can be written
+> > via 0-287 -> 0,2,4,...,286 and 288-575 -> 1,3,5,...,287 [1]. This is
+> > what interweaving does if the interlace offset is set to positive line
+> > stride.
+> 
+> Right, that was my understanding as well. And how interweave
+> actually works in the IDMAC to achieve the above is :
+> 
+> By turning on SO bit in cpmem, the IDMAC will write the first one-half
+> lines of the frame received by the IDMAC channel to memory, starting
+> at the EBA address, with a line stride equal to cpmem SLY. When it
+> completes writing out the first half lines of the frame, the IDMAC begins
+> to write the lines from the second half of frame to memory, but starts
+> again at EBA address, and with an offset equal to cpmem ILO.
+> 
+> So by setting SO=1, SLY=2*linestride, and ILO=linestride, we achieve
+> interweave where:
+> 
+> lines from first half of frame are written to lines 0,2,4,...,HEIGHT-2 
+> in memory, and
+> lines from the second half of the frame are written to lines 
+> 1,3,...,HEIGHT-1 in memory.
+> 
+> So this setting achieves seq-bt -> interlaced-bt
+
+This is incorrect. Since the bottom field comes first in memory, with
+this setting the bottom lines are written to where the top lines should
+be and the top lines end up where the bottom lines should be.
+
+Since odd and even lines are switched, this will not produce a correct
+frame.
+
+>  or seq-tb -> interlaced-tb,
+
+This is correct.
+
+>  e.g.
+> interweave *does not change field order*, bottom lines 1,3,,, are written to
+> 0,2,4,,, in memory if IDMAC receives seq-bt, or top lines 0,2,4,,, are 
+> written to
+> 0,2,4,,, in memory if IDMAC receives seq-tb.
+
+Of course we can't change field order, we are arguing the same point
+here. I think our misunderstanding comes from the definition of
+interlaced-bt [1]:
+
+  "Images contain both fields, interleaved line by line, top field
+   first. The bottom field is transmitted first."
+
+[1] https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/field-order.html?highlight=field#enum-v4l2-field
+
+The BT or TB part of the v4l2_field enums refer to the order in time,
+not to the order in memory.
+
+> And by setting SO=1, SLY=2*linestride, ILO=-linestride, and adding one
+> linestride to EBA:
+> 
+> lines from first half of the frame are written to lines 1,3,...,HEIGHT-1 
+> in memory, and
+> lines from the second half of the frame are written to lines 
+> 0,2,...,HEIGHT-2 in memory.
+> 
+> So this achieves  seq-bt -> interlaced-tb
+
+No this is seq-bt -> interlaced-bt
+
+>  or seq-tb -> interlaced-bt, 
+
+and this again produces an incorrect frame.
+
+> e.g. field order has been swapped in memory.
+> 
+> 
+> > A seq-bt NTSC frame has the older bottom field in lines 0-239 and the
+> > newer top field in lines 240-439. We can create an interlaced-bt frame
+> > from that by writing 0-239 -> 1,3,5,...,239 and 240-439 -> 0,2,4,...,238
+> > [2]. This can be achieved by offsetting EBA by +stride and setting ILO
+> > to -stride.
+> 
+> Agreed except that this is seq-bt -> interlaced-tb, not
+> seq-bt -> interlaced-bt:
+
+No, see above.
+
+> Bottom lines = 1,3,5,...,H-1
+> Top lines = 0,2,4,...,H-2
+
+Yes, but the bottom lines are older, so this is interlaced-bt.
+
+> So seq-bt is written as interlaced-tb to memory:
+> 
+> Bottom lines = 1,3,5,...,H-1 go to memory lines 1,3,5,...H-1
+> Top lines = 0,2,4,...,H-2 go to memory lines 0,2,4,...,H-2.
+> 
+> So this is TB order in memory.
+
+All V4L2 interlaced variants are stored in TB order, which allows to
+just display them as a progressive frame. The V4L2_FIELD_INTERLACED
+description is not clear on that, but the V4L2_FIELD_INTERLACED_TB/BT
+descriptions explicitly state TB order in memory.
+
+So that is seq-bt or alternate on the CSI sink pad, seq-tb on the CSI
+
+> Well sure, we could use the negative ILO idea to swap field order
+> (for a second time) at the CSI src pad to capture interface, e.g.
+> seq-bt at CSI sink -> seq-tb at CSI src -> interlaced-bt at capture
+> interface.
+
+Yes, we swap field order (in memory), as that's how we get a correct
+frame. Bot none of this can switch field order in time, BT is always
+bottom first, top later, and TB is always top first, bottom later.
+
+> But I don't see the need for doing that. If the user wishes to swap
+> field order, it can do that at the CSI source pad. Why swap field
+> order for a second time? But sure we could provide that ability.
+
+But that swaps field order in time (in the sense that first we have
+bottom-top order in time and then we capture fields from to consecutive
+frames such that we get top-bottom order in time), which is different.
+
+> > > PAL seq-tb -> interlaced-tb produces good interweave images as expected
+> > > PAL seq-tb -> interlaced-bt produces interweave images with a "mauve"
+> > > artifact as expected
+> > 
+> > Same as above, with negative ILO we should be able to do field switching
+> > in the CSI, setting the sink pad to alternate or seq-tb, the src pad to
+> > seq-bt, and create proper interlaced-bt from that in the IDMAC.
+> 
+> seq-bt at src pad to interlaced-bt in memory doesn't require negative
+> ILO as I explained above.
+
+This is not correct. Writing seq-bt with SO=1, ILO=stride, SLY=2*stride
+causes an incorrect frame with switched odd and even lines.
+
+regards
+Philipp
