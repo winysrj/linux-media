@@ -1,354 +1,359 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43812 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751912AbeFFNv4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 09:51:56 -0400
-Subject: Re: [RFC] media: renesas-ceu: Add media-controller support
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <1528291333-20562-1-git-send-email-jacopo+renesas@jmondi.org>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <e90d1516-88f0-8f7f-3c57-535aaf6491f2@ideasonboard.com>
-Date: Wed, 6 Jun 2018 14:51:49 +0100
+Received: from mail-ua0-f180.google.com ([209.85.217.180]:39291 "EHLO
+        mail-ua0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750734AbeFFETx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 00:19:53 -0400
+Received: by mail-ua0-f180.google.com with SMTP id n4-v6so3196074uad.6
+        for <linux-media@vger.kernel.org>; Tue, 05 Jun 2018 21:19:53 -0700 (PDT)
+Received: from mail-ua0-f179.google.com (mail-ua0-f179.google.com. [209.85.217.179])
+        by smtp.gmail.com with ESMTPSA id s62-v6sm8747531vke.21.2018.06.05.21.19.51
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 05 Jun 2018 21:19:51 -0700 (PDT)
+Received: by mail-ua0-f179.google.com with SMTP id l11-v6so2418886uak.7
+        for <linux-media@vger.kernel.org>; Tue, 05 Jun 2018 21:19:51 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1528291333-20562-1-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="gFsFfI6OfJojyvw5OZmo2RRWeekfvYd1w"
+References: <20180604103303.6a6b792b@vento.lan>
+In-Reply-To: <20180604103303.6a6b792b@vento.lan>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 6 Jun 2018 13:19:39 +0900
+Message-ID: <CAAFQd5A13oivxg-m2vpPxBjBAsn8NLJx4_ups2p+j0uHaoiOng@mail.gmail.com>
+Subject: Re: [ANN v2] Complex Camera Workshop - Tokyo - Jun, 19
+To: mchehab+samsung@kernel.org
+Cc: linux-media@vger.kernel.org, javier@dowhile0.org,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        kieran.bingham@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        jian.xu.zheng@intel.com, dave.stevenson@raspberrypi.org,
+        sw0312.kim@samsung.com, inki.dae@samsung.com, nicolas@ndufresne.ca
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---gFsFfI6OfJojyvw5OZmo2RRWeekfvYd1w
-Content-Type: multipart/mixed; boundary="UtMrcBuyu1rmRotu2n7nN7AlAKUrlsgdm";
- protected-headers="v1"
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>, niklas.soderlund@ragnatech.se,
- laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Message-ID: <e90d1516-88f0-8f7f-3c57-535aaf6491f2@ideasonboard.com>
-Subject: Re: [RFC] media: renesas-ceu: Add media-controller support
-References: <1528291333-20562-1-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1528291333-20562-1-git-send-email-jacopo+renesas@jmondi.org>
+On Mon, Jun 4, 2018 at 10:33 PM Mauro Carvalho Chehab
+<mchehab+samsung@kernel.org> wrote:
+>
+> Hi all,
+>
+> I consolidated hopefully all comments I receive on the past announcement
+> with regards to the complex camera workshop we're planning to happen in
+> Tokyo, just before the Open Source Summit in Japan.
+>
+> The main focus of the workshop is to allow supporting devices with MC-bas=
+ed
+> hardware connected to a camera.
+>
+> I'm enclosing a detailed description of the problem, in order to
+> allow the interested parties to be at the same page.
+>
+> We need to work towards an agenda for the meeting.
+>
+> From my side, I think we should have at least the following topics at
+> the agenda:
+>
+> - a quick review about what's currently at libv4l2;
+> - a presentation about PipeWire solution;
+> - a discussion with the requirements for the new solution;
+> - a discussion about how we'll address - who will do what.
 
---UtMrcBuyu1rmRotu2n7nN7AlAKUrlsgdm
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
+I believe Intel's Jian Xu would be able to give us some brief
+introduction to IPU3 hardware architecture and possibly also upcoming
+hardware generations as well.
 
-Hi Jacopo,
+My experience with existing generations of ISPs from other vendors is
+that the main principles of operation are very similar to the model
+represented by IPU3 and very much different to the OMAP3 example
+mentioned by Mauro below. I further commented on it below.
 
-On 06/06/18 14:22, Jacopo Mondi wrote:
-> Add initial support for media controller framework to the renesas-ceu d=
-river.
->=20
-> Adding media-controller support allows to operate sensors that expose a=
-dvanced
-> functionalities through the v4l2-subdev APIs.
->=20
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+>
+> Comments? Suggestions?
+>
+> Are there anyone else planning to either be there physically or via
+> Google Hangouts?
+>
+> Tomaz,
+>
+> Do you have any limit about the number of people that could join us
+> via Google Hangouts?
+>
+
+Technically, Hangouts should be able to work with really huge
+multi-party conferences. There is obviously some limitation on client
+side, since thumbnails of participants need to be decoded at real
+time, so even if the resolution is low, if the client is very slow,
+there might be some really bad frame drop happening on client side.
+
+However, I often have meetings with around 8 parties and it tends to
+work fine. We can also disable video of all participants, who don't
+need to present anything at the moment and the problem would go away
+completely.
+
+>
+> Regards,
+> Mauro
+>
 > ---
-> Hello,
->    I'm in the process of adding support to a sensor driver that exposes=
- advanced
-> functionalities through the v4l2-subdev APIs.
->=20
-> In order to operate on it, I had to add initial media-controller suppor=
-t to the
-> host driver (renesas-ceu) to have the subdevice video nodes properly cr=
-eated.
->=20
-> The current implementation allows to create and operate on the media gr=
-aph, but
-> the result is a lot of #ifdef in the driver code I don't see in any oth=
-er
-> mainline platform driver.
+>
+> 1. Introduction
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>
+> 1.1 V4L2 Kernel aspects
+> -----------------------
+>
+> The media subsystem supports two types of devices:
+>
+> - "traditional" media hardware, supported via V4L2 API. On such hardware,
+>   opening a single device node (usually /dev/video0) is enough to control
+>   the entire device. We call it as devnode-based devices.
+>   An application sometimes may need to use multiple video nodes with
+>   devnode-based drivers to capture multiple streams in parallel
+>   (when the hardware allows it of course). That's quite common for
+>   Analog TV devices, where both /dev/video0 and /dev/vbi0 are opened
+>   at the same time.
+>
+> - Media-controller based devices. On those devices, there are typically
+>   several /dev/video? nodes and several /dev/v4l2-subdev? nodes, plus
+>   a media controller device node (usually /dev/media0).
+>   We call it as mc-based devices. Controlling the hardware require
+>   opening the media device (/dev/media0), setup the pipeline and adjust
+>   the sub-devices via /dev/v4l2-subdev?. Only streaming is controlled
+>   by /dev/video?.
+>
+> In other words, both configuration and streaming go through the video
+> device node on devnode-based drivers, while video device nodes are used
+> used for streaming on mc-based drivers.
+>
+> With devnode-based drivers, "standard" media applications, including open
+> source ones (Camorama, Cheese, Xawtv, Firefox, Chromium, ...) and closed
+> source ones (Skype, Chrome, ...) support devnode-based devices[1]. Also,
+> when just one media device is connected, the streaming/control device
+> is typically /dev/video0.
+>
+> [1] It should be noticed that closed-source applications tend to have
+> various bugs that prevent them from working properly on many devnode-base=
+d
+> devices. Due to that, some additional blocks were requred at libv4l to
+> support some of them. Skype is a good example, as we had to include a
+> software scaler in libv4l to make it happy. So in practice not everything
+> works smoothly with closed-source applications with devnode-based drivers=
+.
+> A few such adjustments were also made on some drivers and/or libv4l, in
+> order to fulfill some open-source app requirements.
+>
+> Support for mc-based devices currently require an specialized application
+> in order to prepare the device for its usage (setup pipelines, adjust
+> hardware controls, etc). Once pipeline is set, the streaming goes via
+> /dev/video?, although usually some /dev/v4l2-subdev? devnodes should also
+> be opened, in order to implement algorithms designed to make video qualit=
+y
+> reasonable.
 
-I thought I saw a patch fly by which removed the need for #ifdef
-MEDIA_CONTROLLER by allowing the mdev to exist and be NULL.
+To further complicate the problem, on many modern imaging subsystems
+(Intel IPU3, Rockchip RKISP1), there is more than 1 video output
+(CAPTURE device), for example:
+1) full resolution capture stream and
+2) downscaled preview stream.
 
-However I can't find that now, so maybe I was confused by something else =
-- and I
-see that in the latest RequestAPI series, [0], [1], non-mc drivers are ge=
-tting
-MC support out of necessity and this is wrapped in #ifdefs.
+Moreover, many ISPs also produce per-frame metadata (statistics) for
+3A algorithms, which then produces per-frame metadata (parameters) for
+processing of next frame. These would be also exposed as /dev/video?
+nodes with respective V4L2_BUF_TYPE_META_* queues.
 
-So I think for the moment, it's fine.
+It is complicated even more on systems with separate input (e.g. CSI2)
+and processing (ISP) hardware, such as Intel IPU3. In such case, the
+raw frames captured from the CSI2 interface directly are not usable
+for end-user applications. This means that some component in userspace
+needs to forward the raw frames to the ISP and only the output of the
+ISP can be passed to the application.
 
-[0] https://www.mail-archive.com/linux-media@vger.kernel.org/msg132623.ht=
-ml
-[1] https://www.mail-archive.com/linux-media@vger.kernel.org/msg132634.ht=
-ml
+> On such devices, it is not uncommon that the device used by the
+> application to be a random number (on OMAP3 driver, typically, is either
+> /dev/video4 or /dev/video6).
+>
+> One example of such hardware is at the OMAP3-based hardware:
+>
+>         http://www.infradead.org/~mchehab/mc-next-gen/omap3-igepv2-with-t=
+vp5150.png
+>
+> On the picture, there's a graph with the hardware blocks in blue/dark/blu=
+e
+> and the corresponding devnode interfaces in yellow.
+>
+> The mc-based approach was taken when support for Nokia N9/N900 cameras
+> was added (with has OMAP3 SoC). It is required because the camera hardwar=
+e
+> on SoC comes with a media processor (ISP), with does a lot more than just
+> capturing, allowing complex algorithms to enhance image quality in runtim=
+e.
+> Those algorithms are known as 3A - an acronym for 3 other acronyms:
+>
+>         - AE (Auto Exposure);
+>         - AF (Auto Focus);
+>         - AWB (Auto White Balance).
+>
+> The main reason that drove the MC design is that the 3A algorithms (that =
+is
+> the 3A control loop, and sometimes part of the image processing itself) o=
+ften
+> need to run, at least partially, on the CPU. As a kernel-space implementa=
+tion
+> wasn't possible, we needed a lower-level UAPI.
+>
+> Setting a camera with such ISPs are harder because the pipelines to be
+> set actually depends the requirements for those 3A algorithms to run.
+> Also, usually, the 3A algorithms use some chipset-specific userspace API,
+> that exports some image properties, calculated by the ISP, to speed up
+> the convergence of those algorithms.
+>
+> Btw, usually, the 3A algorithms are IP-protected, provided by vendors
+> as binary only blobs, although there are a few OSS implementations.
+>
+> Part of the problem is that, so far, there isn't a proper userspace API
+> to implement 3A libraries. Once we have an userspace camera stack, we
+> hope that we'll gradually increase the number and quality of open-source
+> 3A stacks.
+>
+[snip]
+>
+> 2.2 Modern hardware is starting to come with "complex" camera ISP
+> -----------------------------------------------------------------
+>
+> While mc-based devices were limited to SoC, it was easy to
+> "delegate" the task of talking with the hardware to the
+> embedded hardware designers.
+>
+> However, this is changing. Dell Latitude 5285 laptop is a standard
+> PC with an i3-core, i5-core or i7-core CPU, with comes with the
+> Intel IMU3 ISP hardware[2].
 
---
-Kieran
+IPU3 :)
 
+>
+> [2] https://www.spinics.net/lists/linux-usb/msg167478.html
+>
+> There, instead of an USB camera, the hardware is equipped with a
+> MC-based ISP, connected to its camera. Currently, despite having
+> a Kernel driver for it, the camera doesn't work with any
+> userspace application.
+>
+> I'm also aware of other projects that are considering the usage of
+> mc-based devices for non-dedicated hardware.
+>
+[snip]
+>
+> 3.2 libv4l2 support for 3A algorithms
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>
+> The 3A algorithm handing is highly dependent on the hardware. The
+> idea here is to allow libv4l to have a set of 3A algorithms that
+> will be specific to certain mc-based hardware.
+>
+> One requirement, if we want vendor stacks to use our solution, is that
+> it should allow allow external closed-source algorithms to run as well.
+>
+> The 3A library API must be standardized, to allow the closed-source
+> vendor implementation to be replaced by an open-source implementation
+> should someone have the time and energy (and qualifications) to write
+> one.
+>
+> Sandboxed execution of the 3A library must be possible as closed-source
+> can't always be blindly trusted. This includes the ability to wrap the
+> library in a daemon should the platform's multimedia stack wishes
+> and to avoid any direct access to the kernel devices by the 3A library
+> itself (all accesses should be marshaled by the camera stack).
+>
+> Please note that this daemon is *not* a camera daemon that would
+> communicates with the V4L2 driver through a custom back channel.
+>
+> The decision to run the 3A library in a sandboxed process or to call
+> it directly from the camera stack should be left to the camera stack
+> and to the platform integrator, and should not be visible by the 3A
+> library.
+>
+> The 3A library must be usable on major Linux-based camera stacks (the
+> Android and Chrome OS camera HALs are certainly important targets,
+> more can be added) unmodified, which will allow usage of the vendor
+> binary provided for Chrome OS or Android on regular Linux systems.
 
-> As there are more media-controller specificities to be supported (eg. s=
-et_fmt
-> that should not call into the subdev operations etc) before going too f=
-ar I
-> decided to send this out to collect suggestions.
->=20
-> What is the best way to add media-controller support to a non-mc driver=
-?
->=20
-> Ideally I would like this to continue working with all sensor drivers, =
-and thus
-> I see a few ways of doing this:
->=20
-> - Keep using #ifdef CONFIG_MEDIA_CONTROLLER, but I don't see it in any =
-other
->   driver in mainline
-> - Add a media-controller compatible string, and decide at runtime if we=
- should
->   use media-controller or not (similar to what VIN driver does)
-> - Make the driver media controller only, but I fear 'old-style' sensor =
-driver
->   won't be usable anymore with this new version.
->=20
-> Any pointer/opinion is welcome.
->=20
-> Thanks
->   j
-> ---
->  drivers/media/platform/renesas-ceu.c | 111 +++++++++++++++++++++++++++=
-++++++++
->  1 file changed, 111 insertions(+)
->=20
-> diff --git a/drivers/media/platform/renesas-ceu.c b/drivers/media/platf=
-orm/renesas-ceu.c
-> index 46b0639..5911f097 100644
-> --- a/drivers/media/platform/renesas-ceu.c
-> +++ b/drivers/media/platform/renesas-ceu.c
-> @@ -39,6 +39,7 @@
->  #include <media/v4l2-fwnode.h>
->  #include <media/v4l2-image-sizes.h>
->  #include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-mc.h>
->  #include <media/v4l2-mediabus.h>
->  #include <media/videobuf2-dma-contig.h>
->=20
-> @@ -158,6 +159,9 @@ struct ceu_subdev {
->  	/* per-subdevice mbus configuration options */
->  	unsigned int mbus_flags;
->  	struct ceu_mbus_fmt mbus_fmt;
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	int source_pad;
-> +#endif
->  };
->=20
->  static struct ceu_subdev *to_ceu_subdev(struct v4l2_async_subdev *asd)=
+This is quite an interesting idea and it would be really useful if it
+could be done. I'm kind of worried, though, about Android in
+particular, since the execution environment in Android differs
+significantly from a regular Linux distributions (including Chrome OS,
+which is not so far from such), namely:
+- different libc (bionic) and dynamic linker - I guess this could be
+solved by static linking?
+- dedicated toolchains - perhaps not much of a problem if the per-arch
+ABI is the same?
 
-> @@ -173,6 +177,11 @@ struct ceu_device {
->  	struct video_device	vdev;
->  	struct v4l2_device	v4l2_dev;
->=20
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct media_device	mdev;
-> +	struct media_pad	pad;
-> +#endif
-> +
->  	/* subdevices descriptors */
->  	struct ceu_subdev	*subdevs;
->  	/* the subdevice currently in use */
-> @@ -1381,6 +1390,60 @@ static void ceu_vdev_release(struct video_device=
- *vdev)
->  	kfree(ceudev);
->  }
->=20
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +static int ceu_find_pad(struct v4l2_subdev *sd, int direction)
-> +{
-> +	unsigned int pad;
-> +
-> +	if (sd->entity.num_pads <=3D 1)
-> +		return 0;
-> +
-> +	for (pad =3D 0; pad < sd->entity.num_pads; pad++)
-> +		if (sd->entity.pads[pad].flags & direction)
-> +			return pad;
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static int ceu_notify_complete_mc(struct ceu_device *ceudev)
-> +{
-> +	struct video_device *vdev =3D &ceudev->vdev;
-> +	struct media_entity *source;
-> +	struct media_entity *sink;
-> +
-> +	unsigned int i;
-> +	int ret;
-> +
-> +	ret =3D media_device_register(&ceudev->mdev);
-> +	if (ret) {
-> +		v4l2_err(vdev->v4l2_dev,
-> +			 "media_device_register failed : %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	ret =3D v4l2_device_register_subdev_nodes(&ceudev->v4l2_dev);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* Link subdev's first available source pad to CEU sink one. */
-> +	for (i =3D 0; i < ceudev->num_sd; i++) {
-> +		int source_pad =3D ceudev->subdevs[i].source_pad;
-> +
-> +		if (source_pad < 0)
-> +			continue;
-> +
-> +		source =3D &ceudev->subdevs[i].v4l2_sd->entity;
-> +		sink =3D &vdev->entity;
-> +
-> +		ret =3D media_create_pad_link(source, source_pad, sink, 0, 0);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	return 0;
-> +}
-> +#endif
-> +
->  static int ceu_notify_bound(struct v4l2_async_notifier *notifier,
->  			    struct v4l2_subdev *v4l2_sd,
->  			    struct v4l2_async_subdev *asd)
-> @@ -1392,6 +1455,11 @@ static int ceu_notify_bound(struct v4l2_async_no=
-tifier *notifier,
->  	ceu_sd->v4l2_sd =3D v4l2_sd;
->  	ceudev->num_sd++;
->=20
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	/* Cache the entity source pad for later link creation. */
-> +	ceu_sd->source_pad =3D ceu_find_pad(v4l2_sd, MEDIA_PAD_FL_SOURCE);
-> +#endif
-> +
->  	return 0;
->  }
->=20
-> @@ -1459,6 +1527,14 @@ static int ceu_notify_complete(struct v4l2_async=
-_notifier *notifier)
->  		return ret;
->  	}
->=20
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	ret =3D ceu_notify_complete_mc(ceudev);
-> +	if (ret) {
-> +		video_unregister_device(&ceudev->vdev);
-> +		return ret;
-> +	}
-> +#endif
-> +
->  	return 0;
->  }
->=20
-> @@ -1467,6 +1543,12 @@ static const struct v4l2_async_notifier_operatio=
-ns ceu_notify_ops =3D {
->  	.complete	=3D ceu_notify_complete,
->  };
->=20
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +static const struct media_device_ops ceu_media_ops =3D {
-> +	.link_notify =3D v4l2_pipeline_link_notify,
-> +};
-> +#endif
-> +
->  /*
->   * ceu_init_async_subdevs() - Initialize CEU subdevices and async_subd=
-evs in
->   *			      ceu device. Both DT and platform data parsing use
-> @@ -1631,6 +1713,9 @@ static int ceu_probe(struct platform_device *pdev=
-)
->  	struct device *dev =3D &pdev->dev;
->  	const struct ceu_data *ceu_data;
->  	struct ceu_device *ceudev;
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct media_device *mdev;
-> +#endif
->  	struct resource *res;
->  	unsigned int irq;
->  	int num_subdevs;
-> @@ -1670,6 +1755,24 @@ static int ceu_probe(struct platform_device *pde=
-v)
->=20
->  	pm_runtime_enable(dev);
->=20
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	mdev =3D &ceudev->mdev;
-> +	mdev->dev =3D dev;
-> +	mdev->ops =3D &ceu_media_ops;
-> +	strlcpy(mdev->driver_name, KBUILD_MODNAME, sizeof(mdev->driver_name))=
-;
-> +	strlcpy(mdev->model, KBUILD_MODNAME, sizeof(mdev->model));
-> +	snprintf(mdev->bus_info, sizeof(mdev->bus_info), "platform:%s",
-> +		 dev_name(mdev->dev));
-> +
-> +	media_device_init(mdev);
-> +	ceudev->v4l2_dev.mdev =3D mdev;
-> +
-> +	ceudev->pad.flags =3D MEDIA_PAD_FL_SINK;
-> +	ret =3D media_entity_pads_init(&ceudev->vdev.entity, 1, &ceudev->pad)=
-;
-> +	if (ret)
-> +		goto error_pm_disable;
-> +#endif
-> +
->  	ret =3D v4l2_device_register(dev, &ceudev->v4l2_dev);
->  	if (ret)
->  		goto error_pm_disable;
-> @@ -1709,6 +1812,9 @@ static int ceu_probe(struct platform_device *pdev=
-)
->  	v4l2_device_unregister(&ceudev->v4l2_dev);
->  error_pm_disable:
->  	pm_runtime_disable(dev);
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	media_device_cleanup(&ceudev->mdev);
-> +#endif
->  error_free_ceudev:
->  	kfree(ceudev);
->=20
-> @@ -1723,6 +1829,11 @@ static int ceu_remove(struct platform_device *pd=
-ev)
->=20
->  	v4l2_async_notifier_unregister(&ceudev->notifier);
->=20
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	media_device_cleanup(&ceudev->mdev);
-> +	media_device_unregister(&ceudev->mdev);
-> +#endif
-> +
->  	v4l2_device_unregister(&ceudev->v4l2_dev);
->=20
->  	video_unregister_device(&ceudev->vdev);
-> --
-> 2.7.4
->=20
+>
+> It would make sense to design a modular camera stack, and try to make
+> most components as platform-independent as possible. This should include:
+>
+> - the kernel drivers (V4L2-compliant and usable without any closed-source
+>   userspace component);
+> - the 3A library
+> - any other component that could be shared (for instance a possible
+>   request API library).
+>
+> The rest of the code will mostly be glue around those components to
+> integrate them in a particular camera stack, and should be as
+> platform-agnostic as possible.
+>
+> In the case of the Android camera HAL, ideally it would be a glue that
+> could be used with different camera vendors (probably with some kind of
+> vendor-specific configuration, or possibly with a separate vendor-specifi=
+c
+> component to handle pipeline configuration).
+>
+> 4 Complex camera workshop
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+>
+> The workshop will be happening in Tokyo, Japan, at Jun, 19, at the
+> google offices. The location is:
+>
+> =E3=80=92106-6126 Tokyo, Minato, Roppongi, 6 Chome=E2=88=9210=E2=88=921 R=
+oppongi Hills Mori Tower 44F
 
+Nearest station exits:
+- Hibiya line Roppongi station exit 1c (recommended)
+- Oedo line Roppongi station exit 3 (and few minutes walk)
 
---UtMrcBuyu1rmRotu2n7nN7AlAKUrlsgdm--
+>
+> 4.1 Physical Attendees
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>
+> Tomasz Figa <tfiga@google.com>
+> Mauro Carvalho Chehab <Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> Kieran Bingham <kieran.bingham@ideasonboard.com>
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Niklas S=C3=B6derlund <niklas.soderlund@ragnatech.se>
+> Zheng, Jian Xu Zheng <jian.xu.zheng@intel.com>
+>
+> Anywone else?
 
---gFsFfI6OfJojyvw5OZmo2RRWeekfvYd1w
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Looking at latest reply in this thread:
 
------BEGIN PGP SIGNATURE-----
+jacopo mondi <jacopo@jmondi.org>
 
-iQIzBAEBCgAdFiEEkC3XmD+9KP3jctR6oR5GchCkYf0FAlsX5vYACgkQoR5GchCk
-Yf1iWxAAlX7nkLLlf1LZRwUiD7zpB6ysNLDT6R2fDtjsWXc2kDpZiaOQccTd8uDK
-8frcTy7JZVGYgf+imBXDoCu1iFcvMPJrQBf7pztlrabbL2Zm2ab0WNxULS4zg4zl
-t8iAAHu5OqfKGUaUGBU5TPMYuI35qpEbTKT8lHSXGoEFlnR019c8jj+I6VV7j71r
-4HPynkyxdHe8ytA1T2jCOheQw/9DNH29VSDhOIqJHu8nc/UkcPFRt3QKHlAfZDfu
-0KhpxY9JMawXHDu1g2ksQJdKJN0LeGyNWKqnlGNemMmqmpOEufhabk7R+D58svE7
-R/Oo1dSJrxGQy56ayJT3tBLwmXs5++9RhgAikY718t37jAts1PERz5E0M+jzuMEn
-ORN8K3YndiW+TfuUiovGSIEf1o8ZD+h6m1X9aft3nsI2vmXQGU/De5TEWlIpvE3o
-gwLhoOh0dnZYscfj41zpEhyiSNHICVODiW7Ep5Qx1Ne151vCl28j9X1U8uDJuxyk
-NMXYQvyRSg6pfQOvzlFD9ZAVyaahDczrKYsG3okh+97Vn0FuwRo7EP2qF4kqzJ3O
-ZEnLh2e7Go7f1KIRKdB3Fu8rk+Wn4Gj7wNY1uY5A/a06+w073ebL6rtKKYXQ3cm8
-5MbgAMXPRy2dwyMegH5kO89OdwPhNL3nUu44Gc7uFknJh+52ioo=
-=i8Z/
------END PGP SIGNATURE-----
+Anyone else, please tell me beforehand (at least 1-2 days before), as
+I need to take care of building access, since it's a multi-tenant
+office building. I'll contact each attendee separately with further
+details by email.
 
---gFsFfI6OfJojyvw5OZmo2RRWeekfvYd1w--
+>
+> 4.2. Attendees Via Google Hangouts
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>
+> Hans Verkuil <hverkuil@xs4all.nl> - Via Google Hangouts - maybe only on a=
+fternoon
+> Javier Martinez Canillas <javier@dowhile0.org> - Via Google Hangouts - on=
+ly on reasonable TZ-compatible-hours
+
+What time zone would that be? I guess we could try to tweak the agenda
+to take this into account.
+
+Best regards.
+Tomasz
