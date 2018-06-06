@@ -1,56 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:46850 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932097AbeFFG0K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Jun 2018 02:26:10 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 04/10] media: imx: interweave only for sequential input/interlaced output fields
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-        <1527813049-3231-5-git-send-email-steve_longerbeam@mentor.com>
-        <1527860010.5913.8.camel@pengutronix.de> <m3k1rfnmfr.fsf@t19.piap.pl>
-        <1528100849.5808.2.camel@pengutronix.de>
-        <c9fcc11a-9f0f-0764-cb8e-66fc9c09d7f4@mentor.com>
-Date: Wed, 06 Jun 2018 08:26:08 +0200
-In-Reply-To: <c9fcc11a-9f0f-0764-cb8e-66fc9c09d7f4@mentor.com> (Steve
-        Longerbeam's message of "Mon, 4 Jun 2018 17:56:44 -0700")
-Message-ID: <m37encmnwf.fsf@t19.piap.pl>
+Received: from mail-ua0-f193.google.com ([209.85.217.193]:34968 "EHLO
+        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932103AbeFFGem (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 02:34:42 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20180605233435.18102-2-kieran.bingham+renesas@ideasonboard.com>
+References: <20180605233435.18102-1-kieran.bingham+renesas@ideasonboard.com> <20180605233435.18102-2-kieran.bingham+renesas@ideasonboard.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 6 Jun 2018 08:34:41 +0200
+Message-ID: <CAMuHMdUYbEK36E4hD+nVDfM5_nuY8SubkgBCtcYuSy+eZLNt5Q@mail.gmail.com>
+Subject: Re: [RFC PATCH v1 1/4] media: dt-bindings: max9286: add device tree binding
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Jacopo Mondi <jacopo@jmondi.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steve Longerbeam <steve_longerbeam@mentor.com> writes:
+Hi Kieran,
 
-> Yes, I had already implemented this idea yesterday, I've added it
-> to branch fix-csi-interlaced.3. The CSI will swap field capture
-> (field 1 first, then field 2, by inverting F bit in CCIR registers) if
-> the field order input to the CSI is different from the requested
-> output field order.
+On Wed, Jun 6, 2018 at 1:34 AM, Kieran Bingham
+<kieran.bingham+renesas@ideasonboard.com> wrote:
+> Provide device tree binding documentation for the MAX9286 Quad GMSL
+> deserialiser.
+>
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-It seems the fix-csi-interlaced.2 was a bit better.
+Thanks for your patch!
 
-Now I do:
-media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x576 field:alternate]"
-media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x576]"
-media-ctl -V "'ipu2_csi1':2 [fmt:AYUV32/720x576 field:interlaced]"
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/max9286.txt
+> @@ -0,0 +1,75 @@
+> +* Maxim Integrated MAX9286 GMSL Quad 1.5Gbps GMSL Deserializer
+> +
+> +Required Properties:
+> + - compatible: Shall be "maxim,max9286"
+> +
+> +The following required properties are defined externally in
+> +Documentation/devicetree/bindings/i2c/i2c-mux.txt:
+> + - Standard I2C mux properties.
+> + - I2C child bus nodes.
+> +
+> +A maximum of 4 I2C child nodes can be specified on the MAX9286, to
+> +correspond with a maximum of 4 input devices.
+> +
+> +The device node must contain one 'port' child node per device input and output
+> +port, in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
+> +are numbered as follows.
+> +
+> +      Port        Type
+> +    ----------------------
+> +       0          sink
+> +       1          sink
+> +       2          sink
+> +       3          sink
+> +       4          source
 
-and get:
-"adv7180 2-0020":0 [fmt:UYVY2X8/720x576 field:alternate]
-"ipu2_csi1_mux":1  [fmt:UYVY2X8/720x576 field:alternate]
-"ipu2_csi1_mux":2  [fmt:UYVY2X8/720x576 field:alternate]
-"ipu2_csi1":0      [fmt:UYVY2X8/720x576 field:alternate]
-"ipu2_csi1":2      [fmt:AYUV32/720x576 field:seq-tb]
+I assume the source and at least one sink are thus mandatory?
 
-Needless to say, the output isn't an interlaced frame.
+Would it make sense to use port 0 for the source?
+This would simplify extending the binding to devices with more input
+ports later.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
 -- 
-Krzysztof Halasa
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
