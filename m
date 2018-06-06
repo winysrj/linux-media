@@ -1,71 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:35429 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933145AbeFFQoX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 12:44:23 -0400
-Received: by mail-pg0-f66.google.com with SMTP id 15-v6so3288704pge.2
-        for <linux-media@vger.kernel.org>; Wed, 06 Jun 2018 09:44:23 -0700 (PDT)
-Date: Wed, 6 Jun 2018 09:46:28 -0700
-From: Bjorn Andersson <bjorn.andersson@linaro.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Tomasz Figa <tfiga@chromium.org>, vgarodia@codeaurora.org,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, andy.gross@linaro.org,
+Received: from bombadil.infradead.org ([198.137.202.133]:51216 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752005AbeFFQ5P (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 12:57:15 -0400
+Date: Wed, 6 Jun 2018 13:57:01 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Tomasz Figa <tfiga@chromium.org>, mchehab@s-opensource.com,
+        Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
+        sre@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: Re: [PATCH v2 5/5] venus: register separate driver for firmware
- device
-Message-ID: <20180606164628.GF510@tuxbook-pro>
-References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
- <1527884768-22392-6-git-send-email-vgarodia@codeaurora.org>
- <CAAFQd5D39CkA=GucUs7YOHwsdj0gbk55BiY_gSvArY_RH4uDkg@mail.gmail.com>
- <2cf4f7e8-f9e6-d62b-45a8-2c348af4aafe@linaro.org>
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Message-ID: <20180606135620.38668a3f@coco.lan>
+In-Reply-To: <20180606100150.GA32299@amd>
+References: <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
+        <20180319120043.GA20451@amd>
+        <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
+        <20180319095544.7e235a3e@vento.lan>
+        <20180515200117.GA21673@amd>
+        <20180515190314.2909e3be@vento.lan>
+        <20180602210145.GB20439@amd>
+        <CAAFQd5ACz1DNW07-vk6rCffC0aNcUG_9+YVNK9HmOTg0+-3yzg@mail.gmail.com>
+        <20180606084612.GB18743@amd>
+        <CAAFQd5CGKd=jP+h5b7HwSgd5HBoQFUX8Vd6pKLzzJFtCSukBLg@mail.gmail.com>
+        <20180606100150.GA32299@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2cf4f7e8-f9e6-d62b-45a8-2c348af4aafe@linaro.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 04 Jun 06:56 PDT 2018, Stanimir Varbanov wrote:
-> On 06/04/2018 04:18 PM, Tomasz Figa wrote:
-> > On Sat, Jun 2, 2018 at 5:27 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
-[..]
-> >> +               venus-firmware {
-> >> +                       compatible = "qcom,venus-firmware-no-tz";
+Em Wed, 6 Jun 2018 12:01:50 +0200
+Pavel Machek <pavel@ucw.cz> escreveu:
+
+> Hi!
+> 
+> > > > Who would be calling this function?
+> > > >
+> > > > The scenario that I could think of is:
+> > > > - legacy app would call open(/dev/video?), which would be handled by
+> > > > libv4l open hook (v4l2_open()?),  
+> > >
+> > > I don't think that kind of legacy apps is in use any more. I'd prefer
+> > > not to deal with them.  
 > > 
-> > I don't think "-no-tz" should be mentioned here in DT, since it's a
-> > firmware/software detail.
+> > In another thread ("[ANN v2] Complex Camera Workshop - Tokyo - Jun,
+> > 19"), Mauro has mentioned a number of those:
+> > 
+> > "open source ones (Camorama, Cheese, Xawtv, Firefox, Chromium, ...) and closed
+> > source ones (Skype, Chrome, ...)"  
 > 
-> I have to agree with Tomasz, non-tz or tz is a software detail and it
-> shouldn't be reflected in compatible string.
+> Yep, ok. Still would prefer not to deal with them.
+
+I guess we'll end by needing to handle them. Anyway, now that PCs are
+starting to come with complex cameras[1], we'll need to address this
+with a focus on adding support for existing apps.
+
+[1] we had a report from one specific model but I heard from a reliable
+source that there are already other devices with similar issues.
+
+> (Opening additional fds behind application's back is quite nasty,
+> those apps should really switch to v4l2_ variants).
+
+Only closed source apps use the LD_PRELOAD hack. All the others
+use v4l2_ variants, but, as Nicolas mentioned at the other
+thread, there are a number of problems with the current approach.
+
+Perhaps is time for us to not be limited to the current ABI, writing
+a new API from scratch, and then adding a compatibility layer to be
+used by apps that rely on v4l2_ variants, in order to avoid breaking
+the ABI and keep providing LD_PRELOAD. We can then convert the apps
+we use/care most to use the new ABI.
+
 > 
-
-While it is software, the alternative boot and security configuration
-does imply different requirements on how the driver deals with the
-hardware. I'm not sure how you expect the kernel to be informed about
-the abilities of the boot/security capabilities if it's not passed
-through DT.
-
-
-In the other cases of firmware loading for co-processors this means that
-a number of additional resources (clocks, resets) needs to be specified
-in the DT node; something it seems like Venus doesn't have to do.
-
-> Also I'm not sure but what will happen if this video-firmware subnode is
-> not added, do you expect that backward compatibility is satisfied for
-> older venus versions?
+> > > > - v4l2_open() would check if given /dev/video? figures in its list of
+> > > > complex pipelines, for example by calling v4l2_open_complex() and
+> > > > seeing if it succeeds,  
+> > >
+> > > I'd rather not have v4l2_open_complex() called on devices. We could
+> > > test if argument is regular file and then call it... But again, that's
+> > > next step.
+> > >  
+> > > > - if it succeeds, the resulting fd would represent the complex
+> > > > pipeline, otherwise it would just open the requested node directly.  
+> > 
+> > What's the answer to my original question of who would be calling
+> > v4l2_open_complex(), then?  
 > 
+> Application ready to deal with additional fds being
+> opened. contrib/test/sdlcam will be the first one.
+> 
+> We may do some magic to do v4l2_open_complex() in v4l2_open(), but I
+> believe that should be separate step.
 
-I do expect that the driver should be possible to run on a 845 with the
-normal TZ based security model we've seen on e.g. 820. I don't know the
-details of Venus well enough to see if this differentiation would be
-sufficient.
+In order to avoid breaking the ABI for existing apps, v4l2_open() should
+internally call v4l2_open_complex() (or whatever we call it at the new
+API design).
 
-Regards,
-Bjorn
+> > > >  - handling metadata CAPTURE and OUTPUT buffers controlling the 3A
+> > > > feedback loop - this might be optional if all we need is just ability
+> > > > to capture some frames, but required for getting good quality,
+> > > >  - actually mapping legacy controls into the above metadata,  
+> > >
+> > > I'm not sure what 3A is. If you mean hardware histograms and friends,
+> > > yes, it would be nice to support that, but, again, statistics can be
+> > > computed in software.  
+> > 
+> > Auto-exposure, auto-white-balance, auto-focus. In complex camera
+> > subsystems these need to be done in software. On most hardware
+> > platforms, ISP provides necessary input data (statistics) and software
+> > calculates required processing parameters.  
+> 
+> Ok, so... statistics support would be nice, but that is really
+> separate problem.
+> 
+> v4l2 already contains auto-exposure and auto-white-balance. I have
+> patches for auto-focus. But hardware statistics are not used.
+
+Feel free to submit the auto-focus patches anytime. With all 3A
+algos there (even on a non-optimal way using hw stats), it will
+make easier for us when designing a solution that would work for
+both IMAP3 and ISP (and likely be generic enough for other hardware).
+
+For the full complex hardware solution, though, it is probably better
+to fork v4l-utils into a separate project, in order to do the development
+without affecting current users of it, merging it back only after we'll
+be sure that existing apps will keep working with v4l2_foo() functions
+and LD_PRELOAD.
+
+Anyway, this is something that it makes sense to discuss during the
+Complex Camera Workshop.
+
+> > > Yes, we'll need something more advanced.
+> > >
+> > > But.. we also need something to run the devices today, so that kernel
+> > > drivers can be tested and do not bitrot. That's why I'm doing this
+> > > work.  
+> > 
+> > I guess the most important bit I missed then is what is the intended
+> > use case for this. It seems to be related to my earlier, unanswered
+> > question about who would be calliing v4l2_open_complex(), though.
+> > 
+> > What userspace applications would be used for this testing?  
+> 
+> Main use case is kernel testing.
+> 
+> Secondary use case is taking .jpg photos using sdlcam.
+
+If a v4l2_complex_open() will, for now, be something that we don't
+export publicly, using it only for the tools already at libv4l2,
+I don't see much troubles on adding it, but I would hate to have to
+stick with this ABI. Otherwise, we should analyze it after having
+a bigger picture. So, better to wait for the Complex Camera
+Workshop before adding this.
+
+Btw, would you be able to join us there (either locally or
+remotely via Google Hangouts)?
+ 
+> Test apps such as qv4l2 would be nice to have, and maybe I'll
+> experiment with capturing video somehow one day. I'm pretty sure it
+> will not be easy.
+
+Capture video is a must have for PCs. The final solution should
+take it into account.
+
+> 
+> Oh and I guess a link to how well it works? See
+> https://www.youtube.com/watch?v=fH6zuK2OOVU .
+> 
+> Best regards,
+> 								Pavel
+
+Thanks,
+Mauro
