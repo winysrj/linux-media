@@ -1,97 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f68.google.com ([209.85.213.68]:45711 "EHLO
-        mail-vk0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751034AbeFFLRM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 07:17:12 -0400
-Received: by mail-vk0-f68.google.com with SMTP id n134-v6so3407879vke.12
-        for <linux-media@vger.kernel.org>; Wed, 06 Jun 2018 04:17:11 -0700 (PDT)
-Received: from mail-vk0-f44.google.com (mail-vk0-f44.google.com. [209.85.213.44])
-        by smtp.gmail.com with ESMTPSA id x13-v6sm3031571uan.5.2018.06.06.04.17.09
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 06 Jun 2018 04:17:09 -0700 (PDT)
-Received: by mail-vk0-f44.google.com with SMTP id b134-v6so3402928vke.13
-        for <linux-media@vger.kernel.org>; Wed, 06 Jun 2018 04:17:09 -0700 (PDT)
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:52091 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751700AbeFFLYr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 07:24:47 -0400
+Received: by mail-wm0-f68.google.com with SMTP id r15-v6so10802731wmc.1
+        for <linux-media@vger.kernel.org>; Wed, 06 Jun 2018 04:24:46 -0700 (PDT)
+Subject: Re: [PATCH 1/5] dma_buf: remove device parameter from attach callback
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
+Cc: sumit.semwal@linaro.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Chris Wilson <chris@chris-wilson.co.uk>
+References: <20180601120020.11520-1-christian.koenig@amd.com>
+Message-ID: <fb8b0275-4b0b-20d7-59ba-4bdc28de782b@gmail.com>
+Date: Wed, 6 Jun 2018 13:24:43 +0200
 MIME-Version: 1.0
-References: <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
- <20180319120043.GA20451@amd> <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
- <20180319095544.7e235a3e@vento.lan> <20180515200117.GA21673@amd>
- <20180515190314.2909e3be@vento.lan> <20180602210145.GB20439@amd>
- <CAAFQd5ACz1DNW07-vk6rCffC0aNcUG_9+YVNK9HmOTg0+-3yzg@mail.gmail.com>
- <20180606084612.GB18743@amd> <CAAFQd5CGKd=jP+h5b7HwSgd5HBoQFUX8Vd6pKLzzJFtCSukBLg@mail.gmail.com>
- <20180606105116.GA4328@amd>
-In-Reply-To: <20180606105116.GA4328@amd>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 6 Jun 2018 20:16:56 +0900
-Message-ID: <CAAFQd5Cy+77D-hr1k7QVrxaGhsGqM8rrqCKAk9Z+GoHEG=Q_mw@mail.gmail.com>
-Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex pipeline
-To: Pavel Machek <pavel@ucw.cz>
-Cc: mchehab+samsung@kernel.org, mchehab@s-opensource.com,
-        Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
-        sre@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20180601120020.11520-1-christian.koenig@amd.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 6, 2018 at 7:51 PM Pavel Machek <pavel@ucw.cz> wrote:
->
-> HI!
->
-> > > > Thanks for coming up with this proposal. Please see my comments below.
-> > > >
-> > > > > Ok, can I get any comments on this one?
-> > > > > v4l2_open_complex("/file/with/descriptor", 0) can be used to open
-> > > > > whole pipeline at once, and work if it as if it was one device.
-> > > >
-> > > > I'm not convinced if we should really be piggy backing on libv4l, but
-> > > > it's just a matter of where we put the code added by your patch, so
-> > > > let's put that aside.
-> > >
-> > > There was some talk about this before, and libv4l2 is what we came
-> > > with. Only libv4l2 is in position to propagate controls to right
-> > > devices.
-> > >
-> > > > Who would be calling this function?
-> > > >
-> > > > The scenario that I could think of is:
-> > > > - legacy app would call open(/dev/video?), which would be handled by
-> > > > libv4l open hook (v4l2_open()?),
-> > >
-> > > I don't think that kind of legacy apps is in use any more. I'd prefer
-> > > not to deal with them.
-> >
-> > In another thread ("[ANN v2] Complex Camera Workshop - Tokyo - Jun,
-> > 19"), Mauro has mentioned a number of those:
-> >
-> > "open source ones (Camorama, Cheese, Xawtv, Firefox, Chromium, ...) and closed
-> > source ones (Skype, Chrome, ...)"
->
-> Thanks for thread pointer... I may be able to get in using hangouts.
->
-> Anyway, there's big difference between open("/dev/video0") and
-> v4l2_open("/dev/video0"). I don't care about the first one, but yes we
-> should be able to support the second one eventually.
->
-> And I don't think Mauro says apps like Camorama are of open() kind.
+Just a gentle ping.
 
-I don't think there is much difference between open() and v4l2_open(),
-since the former can be changed to the latter using LD_PRELOAD.
+Daniel, Chris and all the other usual suspects for infrastructure stuff: 
+What do you think about that?
 
-If we simply add v4l2_open_complex() to libv4l, we would have to get
-developers of the applications (regardless of whether they use open()
-or v4l2_open()) to also support v4l2_open_complex(). For testing
-purposes of kernel developers it would work indeed, but I wonder if it
-goes anywhere beyond that.
+The cleanup patches are rather obvious correct, but #3 could result in 
+some fallout.
 
-If all we need is some code to be able to test kernel camera drivers,
-I don't think there is any big problem in adding v4l2_open_complex()
-to libv4l. However, we must either ensure that either:
-a) it's not going to be widely used
-OR
-b) it is designed well enough to cover the complex cases I mentioned
-and which are likely to represent most of the hardware in the wild.
+I really think it is the right thing in the long term.
 
-Best regards,
-Tomasz
+Regards,
+Christian.
+
+Am 01.06.2018 um 14:00 schrieb Christian König:
+> The device parameter is completely unused because it is available in the
+> attachment structure as well.
+>
+> Signed-off-by: Christian König <christian.koenig@amd.com>
+> ---
+>   drivers/dma-buf/dma-buf.c                             | 2 +-
+>   drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c             | 3 +--
+>   drivers/gpu/drm/drm_prime.c                           | 3 +--
+>   drivers/gpu/drm/udl/udl_dmabuf.c                      | 1 -
+>   drivers/gpu/drm/vmwgfx/vmwgfx_prime.c                 | 1 -
+>   drivers/media/common/videobuf2/videobuf2-dma-contig.c | 2 +-
+>   drivers/media/common/videobuf2/videobuf2-dma-sg.c     | 2 +-
+>   drivers/media/common/videobuf2/videobuf2-vmalloc.c    | 2 +-
+>   include/drm/drm_prime.h                               | 2 +-
+>   include/linux/dma-buf.h                               | 3 +--
+>   10 files changed, 8 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index d78d5fc173dc..e99a8d19991b 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -568,7 +568,7 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+>   	mutex_lock(&dmabuf->lock);
+>   
+>   	if (dmabuf->ops->attach) {
+> -		ret = dmabuf->ops->attach(dmabuf, dev, attach);
+> +		ret = dmabuf->ops->attach(dmabuf, attach);
+>   		if (ret)
+>   			goto err_attach;
+>   	}
+> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
+> index 4683626b065f..f1500f1ec0f5 100644
+> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
+> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
+> @@ -133,7 +133,6 @@ amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
+>   }
+>   
+>   static int amdgpu_gem_map_attach(struct dma_buf *dma_buf,
+> -				 struct device *target_dev,
+>   				 struct dma_buf_attachment *attach)
+>   {
+>   	struct drm_gem_object *obj = dma_buf->priv;
+> @@ -141,7 +140,7 @@ static int amdgpu_gem_map_attach(struct dma_buf *dma_buf,
+>   	struct amdgpu_device *adev = amdgpu_ttm_adev(bo->tbo.bdev);
+>   	long r;
+>   
+> -	r = drm_gem_map_attach(dma_buf, target_dev, attach);
+> +	r = drm_gem_map_attach(dma_buf, attach);
+>   	if (r)
+>   		return r;
+>   
+> diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
+> index 7856a9b3f8a8..4a3a232fea67 100644
+> --- a/drivers/gpu/drm/drm_prime.c
+> +++ b/drivers/gpu/drm/drm_prime.c
+> @@ -186,7 +186,6 @@ static int drm_prime_lookup_buf_handle(struct drm_prime_file_private *prime_fpri
+>   /**
+>    * drm_gem_map_attach - dma_buf attach implementation for GEM
+>    * @dma_buf: buffer to attach device to
+> - * @target_dev: not used
+>    * @attach: buffer attachment data
+>    *
+>    * Allocates &drm_prime_attachment and calls &drm_driver.gem_prime_pin for
+> @@ -195,7 +194,7 @@ static int drm_prime_lookup_buf_handle(struct drm_prime_file_private *prime_fpri
+>    *
+>    * Returns 0 on success, negative error code on failure.
+>    */
+> -int drm_gem_map_attach(struct dma_buf *dma_buf, struct device *target_dev,
+> +int drm_gem_map_attach(struct dma_buf *dma_buf,
+>   		       struct dma_buf_attachment *attach)
+>   {
+>   	struct drm_prime_attachment *prime_attach;
+> diff --git a/drivers/gpu/drm/udl/udl_dmabuf.c b/drivers/gpu/drm/udl/udl_dmabuf.c
+> index 2867ed155ff6..5fdc8bdc2026 100644
+> --- a/drivers/gpu/drm/udl/udl_dmabuf.c
+> +++ b/drivers/gpu/drm/udl/udl_dmabuf.c
+> @@ -29,7 +29,6 @@ struct udl_drm_dmabuf_attachment {
+>   };
+>   
+>   static int udl_attach_dma_buf(struct dma_buf *dmabuf,
+> -			      struct device *dev,
+>   			      struct dma_buf_attachment *attach)
+>   {
+>   	struct udl_drm_dmabuf_attachment *udl_attach;
+> diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c b/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
+> index 0d42a46521fc..fbffb37ccf42 100644
+> --- a/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
+> +++ b/drivers/gpu/drm/vmwgfx/vmwgfx_prime.c
+> @@ -40,7 +40,6 @@
+>    */
+>   
+>   static int vmw_prime_map_attach(struct dma_buf *dma_buf,
+> -				struct device *target_dev,
+>   				struct dma_buf_attachment *attach)
+>   {
+>   	return -ENOSYS;
+> diff --git a/drivers/media/common/videobuf2/videobuf2-dma-contig.c b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+> index f1178f6f434d..12d0072c52c2 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+> @@ -222,7 +222,7 @@ struct vb2_dc_attachment {
+>   	enum dma_data_direction dma_dir;
+>   };
+>   
+> -static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
+> +static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf,
+>   	struct dma_buf_attachment *dbuf_attach)
+>   {
+>   	struct vb2_dc_attachment *attach;
+> diff --git a/drivers/media/common/videobuf2/videobuf2-dma-sg.c b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+> index 753ed3138dcc..cf94765e593f 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+> @@ -371,7 +371,7 @@ struct vb2_dma_sg_attachment {
+>   	enum dma_data_direction dma_dir;
+>   };
+>   
+> -static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
+> +static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf,
+>   	struct dma_buf_attachment *dbuf_attach)
+>   {
+>   	struct vb2_dma_sg_attachment *attach;
+> diff --git a/drivers/media/common/videobuf2/videobuf2-vmalloc.c b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+> index 3a7c80cd1a17..298ffb9ecdae 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+> @@ -209,7 +209,7 @@ struct vb2_vmalloc_attachment {
+>   	enum dma_data_direction dma_dir;
+>   };
+>   
+> -static int vb2_vmalloc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
+> +static int vb2_vmalloc_dmabuf_ops_attach(struct dma_buf *dbuf,
+>   	struct dma_buf_attachment *dbuf_attach)
+>   {
+>   	struct vb2_vmalloc_attachment *attach;
+> diff --git a/include/drm/drm_prime.h b/include/drm/drm_prime.h
+> index 4d5f5d6cf6a6..ef338151cea8 100644
+> --- a/include/drm/drm_prime.h
+> +++ b/include/drm/drm_prime.h
+> @@ -82,7 +82,7 @@ int drm_gem_prime_fd_to_handle(struct drm_device *dev,
+>   struct dma_buf *drm_gem_dmabuf_export(struct drm_device *dev,
+>   				      struct dma_buf_export_info *exp_info);
+>   void drm_gem_dmabuf_release(struct dma_buf *dma_buf);
+> -int drm_gem_map_attach(struct dma_buf *dma_buf, struct device *target_dev,
+> +int drm_gem_map_attach(struct dma_buf *dma_buf,
+>   		       struct dma_buf_attachment *attach);
+>   void drm_gem_map_detach(struct dma_buf *dma_buf,
+>   			struct dma_buf_attachment *attach);
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> index 085db2fee2d7..346caf77937f 100644
+> --- a/include/linux/dma-buf.h
+> +++ b/include/linux/dma-buf.h
+> @@ -77,8 +77,7 @@ struct dma_buf_ops {
+>   	 * to signal that backing storage is already allocated and incompatible
+>   	 * with the requirements of requesting device.
+>   	 */
+> -	int (*attach)(struct dma_buf *, struct device *,
+> -		      struct dma_buf_attachment *);
+> +	int (*attach)(struct dma_buf *, struct dma_buf_attachment *);
+>   
+>   	/**
+>   	 * @detach:
