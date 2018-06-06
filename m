@@ -1,232 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from heliosphere.sirena.org.uk ([172.104.155.198]:59556 "EHLO
-        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932119AbeF2LHs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 07:07:48 -0400
-From: Mark Brown <broonie@kernel.org>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Daniel Mack <daniel@zonque.org>, Mark Brown <broonie@kernel.org>,
-        Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        alsa-devel@alsa-project.org, netdev@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, linux-mtd@lists.infradead.org,
-        dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: Applied "ASoC: pxa: remove the dmaengine compat need" to the asoc tree
-In-Reply-To: <20180524070703.11901-9-robert.jarzmik@free.fr>
-Message-Id: <E1fYrFT-0002gi-9G@debutante>
-Date: Fri, 29 Jun 2018 12:07:31 +0100
+Received: from ni.piap.pl ([195.187.100.4]:45074 "EHLO ni.piap.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752135AbeFFFsv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 6 Jun 2018 01:48:51 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 04/10] media: imx: interweave only for sequential input/interlaced output fields
+References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
+        <1527813049-3231-5-git-send-email-steve_longerbeam@mentor.com>
+        <1527860010.5913.8.camel@pengutronix.de> <m3k1rfnmfr.fsf@t19.piap.pl>
+        <1528100849.5808.2.camel@pengutronix.de>
+        <c9fcc11a-9f0f-0764-cb8e-66fc9c09d7f4@mentor.com>
+        <1528186075.4074.1.camel@pengutronix.de>
+        <98b3cd1e-32ff-e7bb-b2ba-7b622aa983b6@mentor.com>
+Date: Wed, 06 Jun 2018 07:48:48 +0200
+In-Reply-To: <98b3cd1e-32ff-e7bb-b2ba-7b622aa983b6@mentor.com> (Steve
+        Longerbeam's message of "Tue, 5 Jun 2018 12:00:52 -0700")
+Message-ID: <m3bmcompmn.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch
+Steve Longerbeam <steve_longerbeam@mentor.com> writes:
 
-   ASoC: pxa: remove the dmaengine compat need
+> I don't follow you, yes the interweaving step only has access to
+> a single frame, but why would interweave need access to another
+> frame to carry out seq-bt -> interlaced-tb ? See below...
 
-has been applied to the asoc tree at
+You can't to that.
+You can delay the input stream (skip one field) so the bottom-first
+becomes top-first (or top-first - bottom-first), probably with some loss
+of chroma quality, but you can't reorder odd and even lines.
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
+To convert (anything)-bt -> (anything)-tb you need two consecutive
+fields, the top one and then the bottom one. If the input is *-bt, this
+means two "frames" (if the word "frame" is applicable at this point).
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
-
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
->From 8f54061d001ad2da24dba89fc48adbbf4c85222b Mon Sep 17 00:00:00 2001
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Thu, 28 Jun 2018 22:08:37 +0200
-Subject: [PATCH] ASoC: pxa: remove the dmaengine compat need
-
-As the pxa architecture switched towards the dmaengine slave map, the
-old compatibility mechanism to acquire the dma requestor line number and
-priority are not needed anymore.
-
-This patch simplifies the dma resource acquisition, using the more
-generic function dma_request_slave_channel().
-
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Signed-off-by: Daniel Mack <daniel@zonque.org>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- sound/arm/pxa2xx-ac97.c     | 14 ++------------
- sound/arm/pxa2xx-pcm-lib.c  |  6 +++---
- sound/soc/pxa/pxa2xx-ac97.c | 32 +++++---------------------------
- sound/soc/pxa/pxa2xx-i2s.c  |  6 ++----
- 4 files changed, 12 insertions(+), 46 deletions(-)
-
-diff --git a/sound/arm/pxa2xx-ac97.c b/sound/arm/pxa2xx-ac97.c
-index 4bc244c40f80..236a63cdaf9f 100644
---- a/sound/arm/pxa2xx-ac97.c
-+++ b/sound/arm/pxa2xx-ac97.c
-@@ -63,28 +63,18 @@ static struct snd_ac97_bus_ops pxa2xx_ac97_ops = {
- 	.reset	= pxa2xx_ac97_legacy_reset,
- };
- 
--static struct pxad_param pxa2xx_ac97_pcm_out_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 12,
--};
--
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_out = {
- 	.addr		= __PREG(PCDR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "pcm_pcm_stereo_out",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_ac97_pcm_out_req,
--};
--
--static struct pxad_param pxa2xx_ac97_pcm_in_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 11,
- };
- 
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_in = {
- 	.addr		= __PREG(PCDR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "pcm_pcm_stereo_in",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_ac97_pcm_in_req,
- };
- 
- static struct snd_pcm *pxa2xx_ac97_pcm;
-diff --git a/sound/arm/pxa2xx-pcm-lib.c b/sound/arm/pxa2xx-pcm-lib.c
-index e8da3b8ee721..dcbe7ecc1835 100644
---- a/sound/arm/pxa2xx-pcm-lib.c
-+++ b/sound/arm/pxa2xx-pcm-lib.c
-@@ -125,9 +125,9 @@ int __pxa2xx_pcm_open(struct snd_pcm_substream *substream)
- 	if (ret < 0)
- 		return ret;
- 
--	return snd_dmaengine_pcm_open_request_chan(substream,
--					pxad_filter_fn,
--					dma_params->filter_data);
-+	return snd_dmaengine_pcm_open(
-+		substream, dma_request_slave_channel(rtd->cpu_dai->dev,
-+						     dma_params->chan_name));
- }
- EXPORT_SYMBOL(__pxa2xx_pcm_open);
- 
-diff --git a/sound/soc/pxa/pxa2xx-ac97.c b/sound/soc/pxa/pxa2xx-ac97.c
-index 5738a0abcd6a..c52b33802bf2 100644
---- a/sound/soc/pxa/pxa2xx-ac97.c
-+++ b/sound/soc/pxa/pxa2xx-ac97.c
-@@ -68,61 +68,39 @@ static struct snd_ac97_bus_ops pxa2xx_ac97_ops = {
- 	.reset	= pxa2xx_ac97_cold_reset,
- };
- 
--static struct pxad_param pxa2xx_ac97_pcm_stereo_in_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 11,
--};
--
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_stereo_in = {
- 	.addr		= __PREG(PCDR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "pcm_pcm_stereo_in",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_ac97_pcm_stereo_in_req,
--};
--
--static struct pxad_param pxa2xx_ac97_pcm_stereo_out_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 12,
- };
- 
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_stereo_out = {
- 	.addr		= __PREG(PCDR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "pcm_pcm_stereo_out",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_ac97_pcm_stereo_out_req,
- };
- 
--static struct pxad_param pxa2xx_ac97_pcm_aux_mono_out_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 10,
--};
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_aux_mono_out = {
- 	.addr		= __PREG(MODR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
-+	.chan_name	= "pcm_aux_mono_out",
- 	.maxburst	= 16,
--	.filter_data	= &pxa2xx_ac97_pcm_aux_mono_out_req,
- };
- 
--static struct pxad_param pxa2xx_ac97_pcm_aux_mono_in_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 9,
--};
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_aux_mono_in = {
- 	.addr		= __PREG(MODR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
-+	.chan_name	= "pcm_aux_mono_in",
- 	.maxburst	= 16,
--	.filter_data	= &pxa2xx_ac97_pcm_aux_mono_in_req,
- };
- 
--static struct pxad_param pxa2xx_ac97_pcm_aux_mic_mono_req = {
--	.prio = PXAD_PRIO_LOWEST,
--	.drcmr = 8,
--};
- static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_mic_mono_in = {
- 	.addr		= __PREG(MCDR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
-+	.chan_name	= "pcm_aux_mic_mono",
- 	.maxburst	= 16,
--	.filter_data	= &pxa2xx_ac97_pcm_aux_mic_mono_req,
- };
- 
- static int pxa2xx_ac97_hifi_startup(struct snd_pcm_substream *substream,
-diff --git a/sound/soc/pxa/pxa2xx-i2s.c b/sound/soc/pxa/pxa2xx-i2s.c
-index 3fb60baf6eab..e7184de0de04 100644
---- a/sound/soc/pxa/pxa2xx-i2s.c
-+++ b/sound/soc/pxa/pxa2xx-i2s.c
-@@ -82,20 +82,18 @@ static struct pxa_i2s_port pxa_i2s;
- static struct clk *clk_i2s;
- static int clk_ena = 0;
- 
--static unsigned long pxa2xx_i2s_pcm_stereo_out_req = 3;
- static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_out = {
- 	.addr		= __PREG(SADR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "tx",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_i2s_pcm_stereo_out_req,
- };
- 
--static unsigned long pxa2xx_i2s_pcm_stereo_in_req = 2;
- static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_in = {
- 	.addr		= __PREG(SADR),
- 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
-+	.chan_name	= "rx",
- 	.maxburst	= 32,
--	.filter_data	= &pxa2xx_i2s_pcm_stereo_in_req,
- };
- 
- static int pxa2xx_i2s_startup(struct snd_pcm_substream *substream,
+CCIR_CODE_* registers are fine, though. They don't change the geometry,
+the just skip a single field (sort of, actually they sync to the
+required field).
 -- 
-2.18.0.rc2
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
