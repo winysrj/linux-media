@@ -1,385 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:39061 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752850AbeFFVJp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Jun 2018 17:09:45 -0400
-Date: Wed, 6 Jun 2018 22:09:40 +0100
-From: Sean Young <sean@mess.org>
-To: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Matthias Reichl <hias@horus.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        netdev@vger.kernel.org,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Y Song <ys114321@gmail.com>,
-        Quentin Monnet <quentin.monnet@netronome.com>
-Subject: [PATCH] bpf: attach type BPF_LIRC_MODE2 should not depend on
- CONFIG_BPF_CGROUP
-Message-ID: <20180606210939.q3vviyc4b2h6gu3c@gofer.mess.org>
-References: <cover.1527419762.git.sean@mess.org>
- <9f2c54d4956f962f44fcda739a824397ddea132c.1527419762.git.sean@mess.org>
- <20180604174730.sctfoklq7klswebp@camel2.lan>
- <20180605101629.yffyp64o7adg6hu5@gofer.mess.org>
- <04cc36e7-4597-dc57-4ad7-71afcc17244a@iogearbox.net>
+Received: from aserp2130.oracle.com ([141.146.126.79]:49336 "EHLO
+        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751885AbeFFVQN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 17:16:13 -0400
+Subject: Re: [Xen-devel] [PATCH v2 5/9] xen/gntdev: Allow mappings for DMA
+ buffers
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, matthew.d.roper@intel.com,
+        dongwon.kim@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180601114132.22596-1-andr2000@gmail.com>
+ <20180601114132.22596-6-andr2000@gmail.com>
+ <64facf05-0a51-c3d9-9d3b-780893248628@oracle.com>
+ <84217eac-b83b-710f-39ab-c93cad65bf9a@gmail.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <a172746d-7a97-159f-71a7-511b2d239089@oracle.com>
+Date: Wed, 6 Jun 2018 17:19:51 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <04cc36e7-4597-dc57-4ad7-71afcc17244a@iogearbox.net>
+In-Reply-To: <84217eac-b83b-710f-39ab-c93cad65bf9a@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Compile bpf_prog_{attach,detach,query} even if CONFIG_BPF_CGROUP is not
-set.
+On 06/06/2018 04:14 AM, Oleksandr Andrushchenko wrote:
+> On 06/04/2018 11:12 PM, Boris Ostrovsky wrote:
+>> On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- include/linux/bpf-cgroup.h |  31 +++++++++++
- kernel/bpf/cgroup.c        | 110 +++++++++++++++++++++++++++++++++++++
- kernel/bpf/syscall.c       | 105 ++---------------------------------
- 3 files changed, 145 insertions(+), 101 deletions(-)
+>> @@ -121,8 +146,27 @@ static void gntdev_free_map(struct grant_map *map)
+>>       if (map == NULL)
+>>           return;
+>>   +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
+>> +    if (map->dma_vaddr) {
+>> +        struct gnttab_dma_alloc_args args;
+>> +
+>> +        args.dev = map->dma_dev;
+>> +        args.coherent = map->dma_flags & GNTDEV_DMA_FLAG_COHERENT;
+>> +        args.nr_pages = map->count;
+>> +        args.pages = map->pages;
+>> +        args.frames = map->frames;
+>> +        args.vaddr = map->dma_vaddr;
+>> +        args.dev_bus_addr = map->dma_bus_addr;
+>> +
+>> +        gnttab_dma_free_pages(&args);
+>> +    } else
+>> +#endif
+>>       if (map->pages)
+>>           gnttab_free_pages(map->count, map->pages);
+>> +
+>> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
+>> +    kfree(map->frames);
+>> +#endif
+>>
+>> Can this be done under if (map->dma_vaddr) ?
+>
+>>   In other words, is it
+>> possible for dma_vaddr to be NULL and still have unallocated frames
+>> pointer?
+> It is possible to have vaddr == NULL and frames != NULL as we
+> allocate frames outside of gnttab_dma_alloc_pages which
+> may fail. Calling kfree on NULL pointer is safe,
 
-diff --git a/include/linux/bpf-cgroup.h b/include/linux/bpf-cgroup.h
-index 975fb4cf1bb7..ee67cd35f426 100644
---- a/include/linux/bpf-cgroup.h
-+++ b/include/linux/bpf-cgroup.h
-@@ -188,12 +188,43 @@ int __cgroup_bpf_check_dev_permission(short dev_type, u32 major, u32 minor,
- 									      \
- 	__ret;								      \
- })
-+int sockmap_get_from_fd(const union bpf_attr *attr, int type, bool attach);
-+int cgroup_bpf_prog_attach(const union bpf_attr *attr,
-+			   enum bpf_prog_type ptype);
-+int cgroup_bpf_prog_detach(const union bpf_attr *attr,
-+			   enum bpf_prog_type ptype);
-+int cgroup_bpf_prog_query(const union bpf_attr *attr,
-+			  union bpf_attr __user *uattr);
- #else
- 
- struct cgroup_bpf {};
- static inline void cgroup_bpf_put(struct cgroup *cgrp) {}
- static inline int cgroup_bpf_inherit(struct cgroup *cgrp) { return 0; }
- 
-+static inline int sockmap_get_from_fd(const union bpf_attr *attr,
-+				      int type, bool attach)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline int cgroup_bpf_prog_attach(const union bpf_attr *attr,
-+					 enum bpf_prog_type ptype)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline int cgroup_bpf_prog_detach(const union bpf_attr *attr,
-+					 enum bpf_prog_type ptype)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline int cgroup_bpf_prog_query(const union bpf_attr *attr,
-+					union bpf_attr __user *uattr)
-+{
-+	return -EINVAL;
-+}
-+
- #define cgroup_bpf_enabled (0)
- #define BPF_CGROUP_PRE_CONNECT_ENABLED(sk) (0)
- #define BPF_CGROUP_RUN_PROG_INET_INGRESS(sk,skb) ({ 0; })
-diff --git a/kernel/bpf/cgroup.c b/kernel/bpf/cgroup.c
-index f7c00bd6f8e4..d6e18f9dc0c4 100644
---- a/kernel/bpf/cgroup.c
-+++ b/kernel/bpf/cgroup.c
-@@ -428,6 +428,116 @@ int __cgroup_bpf_query(struct cgroup *cgrp, const union bpf_attr *attr,
- 	return ret;
- }
- 
-+int bpf_prog_attach_check_attach_type(const struct bpf_prog *prog,
-+				      enum bpf_attach_type attach_type)
-+{
-+	switch (prog->type) {
-+	case BPF_PROG_TYPE_CGROUP_SOCK:
-+	case BPF_PROG_TYPE_CGROUP_SOCK_ADDR:
-+		return attach_type == prog->expected_attach_type ? 0 : -EINVAL;
-+	default:
-+		return 0;
-+	}
-+}
-+
-+int sockmap_get_from_fd(const union bpf_attr *attr, int type, bool attach)
-+{
-+	struct bpf_prog *prog = NULL;
-+	int ufd = attr->target_fd;
-+	struct bpf_map *map;
-+	struct fd f;
-+	int err;
-+
-+	f = fdget(ufd);
-+	map = __bpf_map_get(f);
-+	if (IS_ERR(map))
-+		return PTR_ERR(map);
-+
-+	if (attach) {
-+		prog = bpf_prog_get_type(attr->attach_bpf_fd, type);
-+		if (IS_ERR(prog)) {
-+			fdput(f);
-+			return PTR_ERR(prog);
-+		}
-+	}
-+
-+	err = sock_map_prog(map, prog, attr->attach_type);
-+	if (err) {
-+		fdput(f);
-+		if (prog)
-+			bpf_prog_put(prog);
-+		return err;
-+	}
-+
-+	fdput(f);
-+	return 0;
-+}
-+
-+int cgroup_bpf_prog_attach(const union bpf_attr *attr, enum bpf_prog_type ptype)
-+{
-+	struct bpf_prog *prog;
-+	struct cgroup *cgrp;
-+	int ret;
-+
-+	prog = bpf_prog_get_type(attr->attach_bpf_fd, ptype);
-+	if (IS_ERR(prog))
-+		return PTR_ERR(prog);
-+
-+	if (bpf_prog_attach_check_attach_type(prog, attr->attach_type)) {
-+		bpf_prog_put(prog);
-+		return -EINVAL;
-+	}
-+
-+	cgrp = cgroup_get_from_fd(attr->target_fd);
-+	if (IS_ERR(cgrp)) {
-+		bpf_prog_put(prog);
-+		return PTR_ERR(cgrp);
-+	}
-+
-+	ret = cgroup_bpf_attach(cgrp, prog, attr->attach_type,
-+				attr->attach_flags);
-+	if (ret)
-+		bpf_prog_put(prog);
-+	cgroup_put(cgrp);
-+
-+	return ret;
-+}
-+
-+int cgroup_bpf_prog_detach(const union bpf_attr *attr, enum bpf_prog_type ptype)
-+{
-+	struct bpf_prog *prog;
-+	struct cgroup *cgrp;
-+	int ret;
-+
-+	cgrp = cgroup_get_from_fd(attr->target_fd);
-+	if (IS_ERR(cgrp))
-+		return PTR_ERR(cgrp);
-+
-+	prog = bpf_prog_get_type(attr->attach_bpf_fd, ptype);
-+	if (IS_ERR(prog))
-+		prog = NULL;
-+
-+	ret = cgroup_bpf_detach(cgrp, prog, attr->attach_type, 0);
-+	if (prog)
-+		bpf_prog_put(prog);
-+	cgroup_put(cgrp);
-+	return ret;
-+}
-+
-+int cgroup_bpf_prog_query(const union bpf_attr *attr,
-+			  union bpf_attr __user *uattr)
-+{
-+	struct cgroup *cgrp;
-+	int ret;
-+
-+	cgrp = cgroup_get_from_fd(attr->query.target_fd);
-+	if (IS_ERR(cgrp))
-+		return PTR_ERR(cgrp);
-+	ret = cgroup_bpf_query(cgrp, attr, uattr);
-+	cgroup_put(cgrp);
-+	return ret;
-+}
-+
- /**
-  * __cgroup_bpf_run_filter_skb() - Run a program for packet filtering
-  * @sk: The socket sending or receiving traffic
-diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
-index 0fa20624707f..52fa44856623 100644
---- a/kernel/bpf/syscall.c
-+++ b/kernel/bpf/syscall.c
-@@ -1489,65 +1489,14 @@ static int bpf_raw_tracepoint_open(const union bpf_attr *attr)
- 	return err;
- }
- 
--#ifdef CONFIG_CGROUP_BPF
--
--static int bpf_prog_attach_check_attach_type(const struct bpf_prog *prog,
--					     enum bpf_attach_type attach_type)
--{
--	switch (prog->type) {
--	case BPF_PROG_TYPE_CGROUP_SOCK:
--	case BPF_PROG_TYPE_CGROUP_SOCK_ADDR:
--		return attach_type == prog->expected_attach_type ? 0 : -EINVAL;
--	default:
--		return 0;
--	}
--}
--
- #define BPF_PROG_ATTACH_LAST_FIELD attach_flags
- 
--static int sockmap_get_from_fd(const union bpf_attr *attr,
--			       int type, bool attach)
--{
--	struct bpf_prog *prog = NULL;
--	int ufd = attr->target_fd;
--	struct bpf_map *map;
--	struct fd f;
--	int err;
--
--	f = fdget(ufd);
--	map = __bpf_map_get(f);
--	if (IS_ERR(map))
--		return PTR_ERR(map);
--
--	if (attach) {
--		prog = bpf_prog_get_type(attr->attach_bpf_fd, type);
--		if (IS_ERR(prog)) {
--			fdput(f);
--			return PTR_ERR(prog);
--		}
--	}
--
--	err = sock_map_prog(map, prog, attr->attach_type);
--	if (err) {
--		fdput(f);
--		if (prog)
--			bpf_prog_put(prog);
--		return err;
--	}
--
--	fdput(f);
--	return 0;
--}
--
- #define BPF_F_ATTACH_MASK \
- 	(BPF_F_ALLOW_OVERRIDE | BPF_F_ALLOW_MULTI)
- 
- static int bpf_prog_attach(const union bpf_attr *attr)
- {
- 	enum bpf_prog_type ptype;
--	struct bpf_prog *prog;
--	struct cgroup *cgrp;
--	int ret;
- 
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EPERM;
-@@ -1593,28 +1542,7 @@ static int bpf_prog_attach(const union bpf_attr *attr)
- 		return -EINVAL;
- 	}
- 
--	prog = bpf_prog_get_type(attr->attach_bpf_fd, ptype);
--	if (IS_ERR(prog))
--		return PTR_ERR(prog);
--
--	if (bpf_prog_attach_check_attach_type(prog, attr->attach_type)) {
--		bpf_prog_put(prog);
--		return -EINVAL;
--	}
--
--	cgrp = cgroup_get_from_fd(attr->target_fd);
--	if (IS_ERR(cgrp)) {
--		bpf_prog_put(prog);
--		return PTR_ERR(cgrp);
--	}
--
--	ret = cgroup_bpf_attach(cgrp, prog, attr->attach_type,
--				attr->attach_flags);
--	if (ret)
--		bpf_prog_put(prog);
--	cgroup_put(cgrp);
--
--	return ret;
-+	return cgroup_bpf_prog_attach(attr, ptype);
- }
- 
- #define BPF_PROG_DETACH_LAST_FIELD attach_type
-@@ -1622,9 +1550,6 @@ static int bpf_prog_attach(const union bpf_attr *attr)
- static int bpf_prog_detach(const union bpf_attr *attr)
- {
- 	enum bpf_prog_type ptype;
--	struct bpf_prog *prog;
--	struct cgroup *cgrp;
--	int ret;
- 
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EPERM;
-@@ -1667,19 +1592,7 @@ static int bpf_prog_detach(const union bpf_attr *attr)
- 		return -EINVAL;
- 	}
- 
--	cgrp = cgroup_get_from_fd(attr->target_fd);
--	if (IS_ERR(cgrp))
--		return PTR_ERR(cgrp);
--
--	prog = bpf_prog_get_type(attr->attach_bpf_fd, ptype);
--	if (IS_ERR(prog))
--		prog = NULL;
--
--	ret = cgroup_bpf_detach(cgrp, prog, attr->attach_type, 0);
--	if (prog)
--		bpf_prog_put(prog);
--	cgroup_put(cgrp);
--	return ret;
-+	return cgroup_bpf_prog_detach(attr, ptype);
- }
- 
- #define BPF_PROG_QUERY_LAST_FIELD query.prog_cnt
-@@ -1687,9 +1600,6 @@ static int bpf_prog_detach(const union bpf_attr *attr)
- static int bpf_prog_query(const union bpf_attr *attr,
- 			  union bpf_attr __user *uattr)
- {
--	struct cgroup *cgrp;
--	int ret;
--
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EPERM;
- 	if (CHECK_ATTR(BPF_PROG_QUERY))
-@@ -1717,14 +1627,9 @@ static int bpf_prog_query(const union bpf_attr *attr,
- 	default:
- 		return -EINVAL;
- 	}
--	cgrp = cgroup_get_from_fd(attr->query.target_fd);
--	if (IS_ERR(cgrp))
--		return PTR_ERR(cgrp);
--	ret = cgroup_bpf_query(cgrp, attr, uattr);
--	cgroup_put(cgrp);
--	return ret;
-+
-+	return cgroup_bpf_prog_query(attr, uattr);
- }
--#endif /* CONFIG_CGROUP_BPF */
- 
- #define BPF_PROG_TEST_RUN_LAST_FIELD test.duration
- 
-@@ -2371,7 +2276,6 @@ SYSCALL_DEFINE3(bpf, int, cmd, union bpf_attr __user *, uattr, unsigned int, siz
- 	case BPF_OBJ_GET:
- 		err = bpf_obj_get(&attr);
- 		break;
--#ifdef CONFIG_CGROUP_BPF
- 	case BPF_PROG_ATTACH:
- 		err = bpf_prog_attach(&attr);
- 		break;
-@@ -2381,7 +2285,6 @@ SYSCALL_DEFINE3(bpf, int, cmd, union bpf_attr __user *, uattr, unsigned int, siz
- 	case BPF_PROG_QUERY:
- 		err = bpf_prog_query(&attr, uattr);
- 		break;
--#endif
- 	case BPF_PROG_TEST_RUN:
- 		err = bpf_prog_test_run(&attr, uattr);
- 		break;
--- 
-2.17.1
+
+I am not questioning safety of the code, I would like avoid another ifdef.
+
+
+> so
+> I see no reason to change this code.
+>>
+>>>       kfree(map->pages);
+>>>       kfree(map->grants);
+>>>       kfree(map->map_ops);
+>>> @@ -132,7 +176,8 @@ static void gntdev_free_map(struct grant_map *map)
+>>>       kfree(map);
+>>>   }
+>>>   -static struct grant_map *gntdev_alloc_map(struct gntdev_priv
+>>> *priv, int count)
+>>> +static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv,
+>>> int count,
+>>> +                      int dma_flags)
+>>>   {
+>>>       struct grant_map *add;
+>>>       int i;
+>>> @@ -155,6 +200,37 @@ static struct grant_map
+>>> *gntdev_alloc_map(struct gntdev_priv *priv, int count)
+>>>           NULL == add->pages)
+>>>           goto err;
+>>>   +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
+>>> +    add->dma_flags = dma_flags;
+>>> +
+>>> +    /*
+>>> +     * Check if this mapping is requested to be backed
+>>> +     * by a DMA buffer.
+>>> +     */
+>>> +    if (dma_flags & (GNTDEV_DMA_FLAG_WC | GNTDEV_DMA_FLAG_COHERENT)) {
+>>> +        struct gnttab_dma_alloc_args args;
+>>> +
+>>> +        add->frames = kcalloc(count, sizeof(add->frames[0]),
+>>> +                      GFP_KERNEL);
+>>> +        if (!add->frames)
+>>> +            goto err;
+>>> +
+>>> +        /* Remember the device, so we can free DMA memory. */
+>>> +        add->dma_dev = priv->dma_dev;
+>>> +
+>>> +        args.dev = priv->dma_dev;
+>>> +        args.coherent = dma_flags & GNTDEV_DMA_FLAG_COHERENT;
+>>> +        args.nr_pages = count;
+>>> +        args.pages = add->pages;
+>>> +        args.frames = add->frames;
+>>> +
+>>> +        if (gnttab_dma_alloc_pages(&args))
+>>> +            goto err;
+>>> +
+>>> +        add->dma_vaddr = args.vaddr;
+>>> +        add->dma_bus_addr = args.dev_bus_addr;
+>>> +    } else
+>>> +#endif
+>>>       if (gnttab_alloc_pages(count, add->pages))
+>>>           goto err;
+>>>   @@ -325,6 +401,14 @@ static int map_grant_pages(struct grant_map
+>>> *map)
+>>>           map->unmap_ops[i].handle = map->map_ops[i].handle;
+>>>           if (use_ptemod)
+>>>               map->kunmap_ops[i].handle = map->kmap_ops[i].handle;
+>>> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
+>>> +        else if (map->dma_vaddr) {
+>>> +            unsigned long mfn;
+>>> +
+>>> +            mfn = __pfn_to_mfn(page_to_pfn(map->pages[i]));
+>>
+>> Not pfn_to_mfn()?
+> I'd love to, but pfn_to_mfn is only defined for x86, not ARM: [1] and [2]
+> Thus,
+>
+> drivers/xen/gntdev.c:408:10: error: implicit declaration of function
+> ‘pfn_to_mfn’ [-Werror=implicit-function-declaration]
+>     mfn = pfn_to_mfn(page_to_pfn(map->pages[i]));
+>
+> So, I'll keep __pfn_to_mfn
+
+
+How will this work on non-PV x86?
+
+-boris
