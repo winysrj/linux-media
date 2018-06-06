@@ -1,180 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:46291 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932395AbeFFJkM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 05:40:12 -0400
-Message-ID: <1528278003.3438.3.camel@pengutronix.de>
-Subject: Re: [RFC PATCH 2/2] media: docs-rst: Add encoder UAPI specification
- to Codec Interfaces
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43219 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752385AbeFFKBy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 06:01:54 -0400
+Date: Wed, 6 Jun 2018 12:01:50 +0200
+From: Pavel Machek <pavel@ucw.cz>
 To: Tomasz Figa <tfiga@chromium.org>
-Cc: Pawel Osciak <posciak@chromium.org>,
+Cc: mchehab+samsung@kernel.org, mchehab@s-opensource.com,
+        Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
+        sre@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
-        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-        jtp.park@samsung.com,
-        Tiffany Lin =?UTF-8?Q?=28=E6=9E=97=E6=85=A7=E7=8F=8A=29?=
-        <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen =?UTF-8?Q?=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?=
-        <andrew-ct.chen@mediatek.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        todor.tomov@linaro.org, nicolas@ndufresne.ca,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Wed, 06 Jun 2018 11:40:03 +0200
-In-Reply-To: <CAAFQd5DqHj65AdzfYmvHWkqHnZntiiA2AhAfgHbLA3AuWvsOTQ@mail.gmail.com>
-References: <20180605103328.176255-1-tfiga@chromium.org>
-         <20180605103328.176255-3-tfiga@chromium.org>
-         <1528199628.4074.15.camel@pengutronix.de>
-         <CAAFQd5DYu+Oehr1UUvvdmWk7toO0i_=NFgvZcAKQ8ZURKy51fA@mail.gmail.com>
-         <1528208578.4074.19.camel@pengutronix.de>
-         <CAAFQd5DqHj65AdzfYmvHWkqHnZntiiA2AhAfgHbLA3AuWvsOTQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Message-ID: <20180606100150.GA32299@amd>
+References: <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
+ <20180319120043.GA20451@amd>
+ <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
+ <20180319095544.7e235a3e@vento.lan>
+ <20180515200117.GA21673@amd>
+ <20180515190314.2909e3be@vento.lan>
+ <20180602210145.GB20439@amd>
+ <CAAFQd5ACz1DNW07-vk6rCffC0aNcUG_9+YVNK9HmOTg0+-3yzg@mail.gmail.com>
+ <20180606084612.GB18743@amd>
+ <CAAFQd5CGKd=jP+h5b7HwSgd5HBoQFUX8Vd6pKLzzJFtCSukBLg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5CGKd=jP+h5b7HwSgd5HBoQFUX8Vd6pKLzzJFtCSukBLg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2018-06-06 at 18:17 +0900, Tomasz Figa wrote:
-> On Tue, Jun 5, 2018 at 11:23 PM Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > 
-> > On Tue, 2018-06-05 at 21:31 +0900, Tomasz Figa wrote:
-> > [...]
-> > > +Initialization
-> > > > > +--------------
-> > > > > +
-> > > > > +1. (optional) Enumerate supported formats and resolutions. See
-> > > > > +   capability enumeration.
-> > > > > +
-> > > > > +2. Set a coded format on the CAPTURE queue via :c:func:`VIDIOC_S_FMT`
-> > > > > +
-> > > > > +   a. Required fields:
-> > > > > +
-> > > > > +      i.  type = CAPTURE
-> > > > > +
-> > > > > +      ii. fmt.pix_mp.pixelformat set to a coded format to be produced
-> > > > > +
-> > > > > +   b. Return values:
-> > > > > +
-> > > > > +      i.  EINVAL: unsupported format.
-> > > > > +
-> > > > > +      ii. Others: per spec
-> > > > > +
-> > > > > +   c. Return fields:
-> > > > > +
-> > > > > +      i. fmt.pix_mp.width, fmt.pix_mp.height should be 0.
-> > > > > +
-> > > > > +   .. note::
-> > > > > +
-> > > > > +      After a coded format is set, the set of raw formats
-> > > > > +      supported as source on the OUTPUT queue may change.
-> > > > 
-> > > > So setting CAPTURE potentially also changes OUTPUT format?
-> > > 
-> > > Yes, but at this point userspace hasn't yet set the desired format.
-> > > 
-> > > > If the encoded stream supports colorimetry information, should that
-> > > > information be taken from the CAPTURE queue?
-> > > 
-> > > What's colorimetry? Is it something that is included in
-> > > v4l2_pix_format(_mplane)? Is it something that can vary between raw
-> > > input and encoded output?
-> > 
-> > FTR, yes, I meant the colorspace, ycbcr_enc, quantization, and xfer_func
-> > fields of the v4l2_pix_format(_mplane) structs. GStreamer uses the term
-> > "colorimetry" to pull these fields together into a single parameter.
-> > 
-> > The codecs usually don't care at all about this information, except some
-> > streams (such as h.264 in the VUI parameters section of the SPS header)
-> > may optionally contain a representation of these fields, so it may be
-> > desirable to let encoders write the configured colorimetry or to let
-> > decoders return the detected colorimetry via G_FMT(CAP) after a source
-> > change event.
-> > 
-> > I think it could be useful to enforce the same colorimetry on CAPTURE
-> > and OUTPUT queue if the hardware doesn't do any colorspace conversion.
-> 
-> After thinking a bit more on this, I guess it wouldn't overly
-> complicate things if we require that the values from OUTPUT queue are
-> copied to CAPTURE queue, if the stream doesn't include such
-> information or the hardware just can't parse them.
 
-And for encoders it would be copied from CAPTURE queue to OUTPUT queue?
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Also, userspace
-> that can't parse them wouldn't have to do anything, as the colorspace
-> default on OUTPUT would be V4L2_COLORSPACE_DEFAULT and if hardware
-> can't parse it either, it would just be propagated to CAPTURE.
+Hi!
 
-I wonder if this wouldn't change the meaning of V4L2_COLORSPACE_DEFAULT?
-Documentation/media/uapi/v4l/colorspaces-defs.rst states:
+> > > Who would be calling this function?
+> > >
+> > > The scenario that I could think of is:
+> > > - legacy app would call open(/dev/video?), which would be handled by
+> > > libv4l open hook (v4l2_open()?),
+> >
+> > I don't think that kind of legacy apps is in use any more. I'd prefer
+> > not to deal with them.
+>=20
+> In another thread ("[ANN v2] Complex Camera Workshop - Tokyo - Jun,
+> 19"), Mauro has mentioned a number of those:
+>=20
+> "open source ones (Camorama, Cheese, Xawtv, Firefox, Chromium, ...) and c=
+losed
+> source ones (Skype, Chrome, ...)"
 
-      - The default colorspace. This can be used by applications to let
-        the driver fill in the colorspace.
+Yep, ok. Still would prefer not to deal with them.
 
-This sounds to me like it is intended to be used by the application
-only, like V4L2_FIELD_ANY. If we let decoders return
-V4L2_COLORSPACE_DEFAULT on the CAPTURE queue to indicate they have no
-idea about colorspace, it should be mentioned explicitly and maybe
-clarify in colorspaces-defs.rst as well.
+(Opening additional fds behind application's back is quite nasty,
+those apps should really switch to v4l2_ variants).
 
-[...]
-> > > > > +Encoding parameter changes
-> > > > > +--------------------------
-> > > > > +
-> > > > > +The client is allowed to use :c:func:`VIDIOC_S_CTRL` to change encoder
-> > > > > +parameters at any time. The driver must apply the new setting starting
-> > > > > +at the next frame queued to it.
-> > > > > +
-> > > > > +This specifically means that if the driver maintains a queue of buffers
-> > > > > +to be encoded and at the time of the call to :c:func:`VIDIOC_S_CTRL` not all the
-> > > > > +buffers in the queue are processed yet, the driver must not apply the
-> > > > > +change immediately, but schedule it for when the next buffer queued
-> > > > > +after the :c:func:`VIDIOC_S_CTRL` starts being processed.
-> > > > 
-> > > > Does this mean that hardware that doesn't support changing parameters at
-> > > > runtime at all must stop streaming and restart streaming internally with
-> > > > every parameter change? Or is it acceptable to not allow the controls to
-> > > > be changed during streaming?
-> > > 
-> > > That's a good question. I'd be leaning towards the latter (not allow),
-> > > as to keep kernel code simple, but maybe we could have others
-> > > (especially Pawel) comment on this.
-> > 
-> > Same here.
-> 
-> Same as where? :)
+> > > - v4l2_open() would check if given /dev/video? figures in its list of
+> > > complex pipelines, for example by calling v4l2_open_complex() and
+> > > seeing if it succeeds,
+> >
+> > I'd rather not have v4l2_open_complex() called on devices. We could
+> > test if argument is regular file and then call it... But again, that's
+> > next step.
+> >
+> > > - if it succeeds, the resulting fd would represent the complex
+> > > pipeline, otherwise it would just open the requested node directly.
+>=20
+> What's the answer to my original question of who would be calling
+> v4l2_open_complex(), then?
 
-I'd be leaning towards the latter (not allow) as well.
+Application ready to deal with additional fds being
+opened. contrib/test/sdlcam will be the first one.
 
-> > [...]
-> > > > > +2. Enumerating formats on OUTPUT queue must only return OUTPUT formats
-> > > > > +   supported for the CAPTURE format currently set.
-> > > > > +
-> > > > > +3. Setting/changing format on OUTPUT queue does not change formats
-> > > > > +   available on CAPTURE queue. An attempt to set OUTPUT format that
-> > > > > +   is not supported for the currently selected CAPTURE format must
-> > > > > +   result in an error (-EINVAL) from :c:func:`VIDIOC_S_FMT`.
-> > > > 
-> > > > Same as for decoding, is this limited to pixel format? Why isn't the
-> > > > pixel format corrected to a supported choice? What about
-> > > > width/height/colorimetry?
-> > > 
-> > > Width/height/colorimetry(Do you mean color space?) is a part of
-> > > v4l2_pix_format(_mplane). I believe that's what this point was about.
-> > 
-> > Yes. My question was more about whether this should return -EINVAL or
-> > whether TRY_FMT/S_FMT should change the parameters to valid values.
-> 
-> As per the standard semantics of TRY_/S_FMT, they should adjust the
-> format on given queue. We only require that the state on other queue
-> is left intact.
+We may do some magic to do v4l2_open_complex() in v4l2_open(), but I
+believe that should be separate step.
 
-This contradicts 3. above, which says S_FMT(OUT) should instead return
--EINVAL if the format doesn't match.
+> > >  - handling metadata CAPTURE and OUTPUT buffers controlling the 3A
+> > > feedback loop - this might be optional if all we need is just ability
+> > > to capture some frames, but required for getting good quality,
+> > >  - actually mapping legacy controls into the above metadata,
+> >
+> > I'm not sure what 3A is. If you mean hardware histograms and friends,
+> > yes, it would be nice to support that, but, again, statistics can be
+> > computed in software.
+>=20
+> Auto-exposure, auto-white-balance, auto-focus. In complex camera
+> subsystems these need to be done in software. On most hardware
+> platforms, ISP provides necessary input data (statistics) and software
+> calculates required processing parameters.
 
-regards
-Philipp
+Ok, so... statistics support would be nice, but that is really
+separate problem.
+
+v4l2 already contains auto-exposure and auto-white-balance. I have
+patches for auto-focus. But hardware statistics are not used.
+
+> > Yes, we'll need something more advanced.
+> >
+> > But.. we also need something to run the devices today, so that kernel
+> > drivers can be tested and do not bitrot. That's why I'm doing this
+> > work.
+>=20
+> I guess the most important bit I missed then is what is the intended
+> use case for this. It seems to be related to my earlier, unanswered
+> question about who would be calliing v4l2_open_complex(), though.
+>=20
+> What userspace applications would be used for this testing?
+
+Main use case is kernel testing.
+
+Secondary use case is taking .jpg photos using sdlcam.
+
+Test apps such as qv4l2 would be nice to have, and maybe I'll
+experiment with capturing video somehow one day. I'm pretty sure it
+will not be easy.
+
+Oh and I guess a link to how well it works? See
+https://www.youtube.com/watch?v=3DfH6zuK2OOVU .
+
+Best regards,
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--cWoXeonUoKmBZSoM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlsXsQ4ACgkQMOfwapXb+vL2OACffTo29PgatISAO9x/ENv6c4Xj
+yH8AoKUVtdLNRwPALlmdGmbPsBVP4J70
+=JPd2
+-----END PGP SIGNATURE-----
+
+--cWoXeonUoKmBZSoM--
