@@ -1,53 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:45074 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752135AbeFFFsv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Jun 2018 01:48:51 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 04/10] media: imx: interweave only for sequential input/interlaced output fields
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-        <1527813049-3231-5-git-send-email-steve_longerbeam@mentor.com>
-        <1527860010.5913.8.camel@pengutronix.de> <m3k1rfnmfr.fsf@t19.piap.pl>
-        <1528100849.5808.2.camel@pengutronix.de>
-        <c9fcc11a-9f0f-0764-cb8e-66fc9c09d7f4@mentor.com>
-        <1528186075.4074.1.camel@pengutronix.de>
-        <98b3cd1e-32ff-e7bb-b2ba-7b622aa983b6@mentor.com>
-Date: Wed, 06 Jun 2018 07:48:48 +0200
-In-Reply-To: <98b3cd1e-32ff-e7bb-b2ba-7b622aa983b6@mentor.com> (Steve
-        Longerbeam's message of "Tue, 5 Jun 2018 12:00:52 -0700")
-Message-ID: <m3bmcompmn.fsf@t19.piap.pl>
+Received: from mail-ua0-f195.google.com ([209.85.217.195]:38314 "EHLO
+        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752135AbeFFFtM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 01:49:12 -0400
+Received: by mail-ua0-f195.google.com with SMTP id 59-v6so3304597uas.5
+        for <linux-media@vger.kernel.org>; Tue, 05 Jun 2018 22:49:12 -0700 (PDT)
+Received: from mail-ua0-f180.google.com (mail-ua0-f180.google.com. [209.85.217.180])
+        by smtp.gmail.com with ESMTPSA id h47-v6sm49763066uaa.13.2018.06.05.22.49.11
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 05 Jun 2018 22:49:11 -0700 (PDT)
+Received: by mail-ua0-f180.google.com with SMTP id x18-v6so3293610uaj.9
+        for <linux-media@vger.kernel.org>; Tue, 05 Jun 2018 22:49:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
+ <1527884768-22392-6-git-send-email-vgarodia@codeaurora.org>
+ <CAAFQd5D39CkA=GucUs7YOHwsdj0gbk55BiY_gSvArY_RH4uDkg@mail.gmail.com>
+ <2cf4f7e8-f9e6-d62b-45a8-2c348af4aafe@linaro.org> <CAAFQd5BFq+pdEpBmpw5QsO+m+fsAhexhqA_uJg1G39Mpv5E3HQ@mail.gmail.com>
+ <fd74c277-e8d3-a026-fbd2-914a029e8efe@linaro.org>
+In-Reply-To: <fd74c277-e8d3-a026-fbd2-914a029e8efe@linaro.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 6 Jun 2018 14:41:38 +0900
+Message-ID: <CAAFQd5AtjVdB2uZrvYs=VBr-0XfwmUc4NhD1yHv9L4sAOtZD2Q@mail.gmail.com>
+Subject: Re: [PATCH v2 5/5] venus: register separate driver for firmware device
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: vgarodia@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Andy Gross <andy.gross@linaro.org>, bjorn.andersson@linaro.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steve Longerbeam <steve_longerbeam@mentor.com> writes:
+On Tue, Jun 5, 2018 at 5:45 PM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> Cc: Arnd
+>
+> On 06/05/2018 07:08 AM, Tomasz Figa wrote:
+> > On Mon, Jun 4, 2018 at 10:56 PM Stanimir Varbanov
+> > <stanimir.varbanov@linaro.org> wrote:
+> >>
+> >> Hi Tomasz,
+> >>
+> >> On 06/04/2018 04:18 PM, Tomasz Figa wrote:
+> >>> Hi Vikash,
+> >>>
+> >>> On Sat, Jun 2, 2018 at 5:27 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+> >>>> +static int __init venus_init(void)
+> >>>> +{
+> >>>> +       int ret;
+> >>>> +
+> >>>> +       ret = platform_driver_register(&qcom_video_firmware_driver);
+> >>>> +       if (ret)
+> >>>> +               return ret;
+> >>>
+> >>> Do we really need this firmware driver? As far as I can see, the
+> >>> approach used here should work even without any driver bound to the
+> >>> firmware device.
+> >>
+> >> We need device/driver bind because we need to call dma_configure() which
+> >> internally doing iommus sID parsing.
+> >
+> > I can see some drivers calling of_dma_configure() directly:
+> > https://elixir.bootlin.com/linux/latest/ident/of_dma_configure
+> >
+> > I'm not sure if it's more elegant, but should at least require less code.
+>
+> I think that in this case of non-TZ where we do iommu mapping by hand we
+> can use shared-dma-pool reserved memory see how venus_boot has been
+> implemented in the beginning [1].
 
-> I don't follow you, yes the interweaving step only has access to
-> a single frame, but why would interweave need access to another
-> frame to carry out seq-bt -> interlaced-tb ? See below...
+I might have misunderstood something, but wasn't the shared-dma-pool
+about reserving physical memory, while the venus firmware problem is
+about reserving certain range of IOVA?
 
-You can't to that.
-You can delay the input stream (skip one field) so the bottom-first
-becomes top-first (or top-first - bottom-first), probably with some loss
-of chroma quality, but you can't reorder odd and even lines.
+>
+> Arnd what do you think?
+>
+> Some background, we have a use-case where the memory for firmware needs
+> to be mapped by the venus driver by hand instead of TZ firmware calls.
+> I.e. we want to support both, iommu mapping from the driver and mapping
+> done by TZ firmware. How we will differentiate what mapping (TZ or
+> non-TZ) will be used is a separate issue.
+>
+> >
+> > By the way, can we really assume that probe of firmware platform
+> > device really completes before we call venus_boot()?
+>
+> I'd say we cannot.
 
-To convert (anything)-bt -> (anything)-tb you need two consecutive
-fields, the top one and then the bottom one. If the input is *-bt, this
-means two "frames" (if the word "frame" is applicable at this point).
+Looking at current implementation in driver core,
+of_platform_populate() would actually trigger a synchronous probe, so
+I guess it could work. However, I'm not sure if this is a general
+guarantee here or it's an implementation detail that shouldn't be
+relied on.
 
-CCIR_CODE_* registers are fine, though. They don't change the geometry,
-the just skip a single field (sort of, actually they sync to the
-required field).
--- 
-Krzysztof Halasa
+If we end up really need to have this platform_driver, I guess we
+could call platform_driver_probe() after of_platform_populate(),
+rather than pre-registering the driver. That seems to be the way to
+ensure that the probe is synchronous and we can also check that a
+matching device was found by the return value.
 
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+Best regards,
+Tomasz
