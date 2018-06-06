@@ -1,97 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f193.google.com ([209.85.217.193]:33399 "EHLO
-        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750813AbeFFEqc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 00:46:32 -0400
-Received: by mail-ua0-f193.google.com with SMTP id m21-v6so3234698uan.0
-        for <linux-media@vger.kernel.org>; Tue, 05 Jun 2018 21:46:32 -0700 (PDT)
-MIME-Version: 1.0
-References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
- <1527884768-22392-6-git-send-email-vgarodia@codeaurora.org> <20180605210758.GA19888@rob-hp-laptop>
-In-Reply-To: <20180605210758.GA19888@rob-hp-laptop>
-From: Tomasz Figa <tfiga@google.com>
-Date: Wed, 6 Jun 2018 13:46:20 +0900
-Message-ID: <CAAFQd5DGKnU15pjF2+eyMUaSuE0FCr2FMF90WrJb+kXt80xBCw@mail.gmail.com>
-Subject: Re: [PATCH v2 5/5] venus: register separate driver for firmware device
-To: Rob Herring <robh@kernel.org>
-Cc: vgarodia@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Andy Gross <andy.gross@linaro.org>, bjorn.andersson@linaro.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:55218 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750803AbeFFFRR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 6 Jun 2018 01:17:17 -0400
+Message-ID: <04eb3b9435585adf21885b1b4037cf29@smtp-cloud8.xs4all.net>
+Date: Wed, 06 Jun 2018 07:17:14 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Wed, Jun 6, 2018 at 6:08 AM Rob Herring <robh@kernel.org> wrote:
->
-> On Sat, Jun 02, 2018 at 01:56:08AM +0530, Vikash Garodia wrote:
-> > A separate child device is added for video firmware.
-> > This is needed to
-> > [1] configure the firmware context bank with the desired SID.
-> > [2] ensure that the iova for firmware region is from 0x0.
-> >
-> > Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> > ---
-> >  .../devicetree/bindings/media/qcom,venus.txt       |  8 +++-
-> >  drivers/media/platform/qcom/venus/core.c           | 48 +++++++++++++++++++---
-> >  drivers/media/platform/qcom/venus/firmware.c       | 20 ++++++++-
-> >  drivers/media/platform/qcom/venus/firmware.h       |  2 +
-> >  4 files changed, 71 insertions(+), 7 deletions(-)
-> >
-> > diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> > index 00d0d1b..701cbe8 100644
-> > --- a/Documentation/devicetree/bindings/media/qcom,venus.txt
-> > +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> > @@ -53,7 +53,7 @@
-> >
-> >  * Subnodes
-> >  The Venus video-codec node must contain two subnodes representing
-> > -video-decoder and video-encoder.
-> > +video-decoder and video-encoder, one optional firmware subnode.
-> >
-> >  Every of video-encoder or video-decoder subnode should have:
-> >
-> > @@ -79,6 +79,8 @@ Every of video-encoder or video-decoder subnode should have:
-> >                   power domain which is responsible for collapsing
-> >                   and restoring power to the subcore.
-> >
-> > +The firmware sub node must contain the iommus specifiers for ARM9.
-> > +
-> >  * An Example
-> >       video-codec@1d00000 {
-> >               compatible = "qcom,msm8916-venus";
-> > @@ -105,4 +107,8 @@ Every of video-encoder or video-decoder subnode should have:
-> >                       clock-names = "core";
-> >                       power-domains = <&mmcc VENUS_CORE1_GDSC>;
-> >               };
-> > +             venus-firmware {
-> > +                     compatible = "qcom,venus-firmware-no-tz";
-> > +                     iommus = <&apps_smmu 0x10b2 0x0>;
->
-> This mostly looks like you are adding a node in order to create a
-> platform device. DT is not the only way to create platform devices and
-> shouldn't be used when the device is not really a separate h/w device.
-> Plus it seems like it is debatable that you even need a driver.
->
-> For iommus, just move it up to the parent (or add to existing prop).
+Results of the daily build of media_tree:
 
-As far as I understood the issue from reading this series and also
-talking a bit with Stanimir, there are multiple (physical?) ports from
-the Venus hardware block and that includes one dedicated for firmware
-loading, which has IOVA range restrictions up to 6 MiBs or something
-like that.
+date:			Wed Jun  6 05:00:18 CEST 2018
+media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
+media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
+v4l-utils git hash:	88f31856e566df6e4d38eaff94c422fbb536febb
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-If we add the firmware port to the iommus property of the main node,
-we would bind it to the same IOVA address space as the other ports and
-so it would be part of the main full 32-bit IOMMU domain.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17-i686: OK
+linux-4.17-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Best regards,
-Tomasz
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
