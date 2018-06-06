@@ -1,542 +1,378 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:34924 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964966AbeFOQYe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 12:24:34 -0400
-Message-ID: <7641c73146ce5d8db73912d7625c7830f9c08615.camel@collabora.com>
-Subject: Re: [RFC 1/2] media: add helpers for memory-to-memory media
- controller
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from mail-io0-f180.google.com ([209.85.223.180]:35406 "EHLO
+        mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932392AbeFFIlw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 04:41:52 -0400
+Received: by mail-io0-f180.google.com with SMTP id u4-v6so6709934iof.2
+        for <linux-media@vger.kernel.org>; Wed, 06 Jun 2018 01:41:52 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAAFQd5A13oivxg-m2vpPxBjBAsn8NLJx4_ups2p+j0uHaoiOng@mail.gmail.com>
+References: <20180604103303.6a6b792b@vento.lan> <CAAFQd5A13oivxg-m2vpPxBjBAsn8NLJx4_ups2p+j0uHaoiOng@mail.gmail.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Date: Wed, 6 Jun 2018 10:41:50 +0200
+Message-ID: <CABxcv=nB6W++w1SJhu3W4zv9TRtUuX+WypFVsOaKq71BTFPeAQ@mail.gmail.com>
+Subject: Re: [ANN v2] Complex Camera Workshop - Tokyo - Jun, 19
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        kernel@collabora.com
-Date: Fri, 15 Jun 2018 13:22:56 -0300
-In-Reply-To: <8f9244b1-b547-5e4c-cc89-793d8e9b427c@xs4all.nl>
-References: <20180612104827.11565-1-ezequiel@collabora.com>
-         <20180612104827.11565-2-ezequiel@collabora.com>
-         <8f9244b1-b547-5e4c-cc89-793d8e9b427c@xs4all.nl>
+        kieran.bingham@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        jian.xu.zheng@intel.com, dave.stevenson@raspberrypi.org,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>, nicolas@ndufresne.ca,
+        wim.taymans@gmail.com, Mario.Limonciello@dell.com
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+[adding Wim Taymans and Mario Limonciello to CC who said that they may
+also join via Hangous]
 
-Thanks for the review.
+On Wed, Jun 6, 2018 at 6:19 AM, Tomasz Figa <tfiga@chromium.org> wrote:
+> On Mon, Jun 4, 2018 at 10:33 PM Mauro Carvalho Chehab
+> <mchehab+samsung@kernel.org> wrote:
+>>
+>> Hi all,
+>>
+>> I consolidated hopefully all comments I receive on the past announcement
+>> with regards to the complex camera workshop we're planning to happen in
+>> Tokyo, just before the Open Source Summit in Japan.
+>>
+>> The main focus of the workshop is to allow supporting devices with MC-ba=
+sed
+>> hardware connected to a camera.
+>>
+>> I'm enclosing a detailed description of the problem, in order to
+>> allow the interested parties to be at the same page.
+>>
+>> We need to work towards an agenda for the meeting.
+>>
+>> From my side, I think we should have at least the following topics at
+>> the agenda:
+>>
+>> - a quick review about what's currently at libv4l2;
+>> - a presentation about PipeWire solution;
 
-On Fri, 2018-06-15 at 11:24 +0200, Hans Verkuil wrote:
-> On 12/06/18 12:48, Ezequiel Garcia wrote:
-> > A memory-to-memory pipeline device consists in three
-> > entities: two DMA engine and one video processing entities.
-> > The DMA engine entities are linked to a V4L interface.
-> > 
-> > This commit add a new v4l2_m2m_{un}register_media_controller
-> > API to register this topology.
-> > 
-> > For instance, a typical mem2mem device topology would
-> > look like this:
-> > 
-> > - entity 1: input (1 pad, 1 link)
-> >             type Node subtype Unknown flags 0
-> > 	pad0: Source
-> > 		-> "proc":1 [ENABLED,IMMUTABLE]
-> > 
-> > - entity 3: proc (2 pads, 2 links)
-> >             type Node subtype Unknown flags 0
-> > 	pad0: Source
-> > 		-> "output":0 [ENABLED,IMMUTABLE]
-> > 	pad1: Sink
-> > 		<- "input":0 [ENABLED,IMMUTABLE]
-> > 
-> > - entity 6: output (1 pad, 1 link)
-> >             type Node subtype Unknown flags 0
-> > 	pad0: Sink
-> > 		<- "proc":0 [ENABLED,IMMUTABLE]
-> > 
-> > Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Suggested-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-dev.c     |  23 ++--
-> >  drivers/media/v4l2-core/v4l2-mem2mem.c | 157 +++++++++++++++++++++++++
-> >  include/media/media-entity.h           |   4 +
-> >  include/media/v4l2-dev.h               |   2 +
-> >  include/media/v4l2-mem2mem.h           |   5 +
-> >  include/uapi/linux/media.h             |   2 +
-> >  6 files changed, 186 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> > index 4ffd7d60a901..ec8f20f0fdc5 100644
-> > --- a/drivers/media/v4l2-core/v4l2-dev.c
-> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> > @@ -202,7 +202,7 @@ static void v4l2_device_release(struct device *cd)
-> >  	mutex_unlock(&videodev_lock);
-> >  
-> >  #if defined(CONFIG_MEDIA_CONTROLLER)
-> > -	if (v4l2_dev->mdev) {
-> > +	if (v4l2_dev->mdev && vdev->vfl_type != VFL_TYPE_MEM2MEM) {
-> 
-> As mentioned this should be vfl_dir != VFL_DIR_M2M. No need for a new VFL_TYPE.
-> 
+Wim mentioned that he could do this.
 
-Right.
+>> - a discussion with the requirements for the new solution;
+>> - a discussion about how we'll address - who will do what.
+>
+> I believe Intel's Jian Xu would be able to give us some brief
+> introduction to IPU3 hardware architecture and possibly also upcoming
+> hardware generations as well.
+>
+> My experience with existing generations of ISPs from other vendors is
+> that the main principles of operation are very similar to the model
+> represented by IPU3 and very much different to the OMAP3 example
+> mentioned by Mauro below. I further commented on it below.
+>
+>>
+>> Comments? Suggestions?
+>>
+>> Are there anyone else planning to either be there physically or via
+>> Google Hangouts?
+>>
+>> Tomaz,
+>>
+>> Do you have any limit about the number of people that could join us
+>> via Google Hangouts?
+>>
+>
+> Technically, Hangouts should be able to work with really huge
+> multi-party conferences. There is obviously some limitation on client
+> side, since thumbnails of participants need to be decoded at real
+> time, so even if the resolution is low, if the client is very slow,
+> there might be some really bad frame drop happening on client side.
+>
+> However, I often have meetings with around 8 parties and it tends to
+> work fine. We can also disable video of all participants, who don't
+> need to present anything at the moment and the problem would go away
+> completely.
+>
+>>
+>> Regards,
+>> Mauro
+>>
+>> ---
+>>
+>> 1. Introduction
+>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>
+>> 1.1 V4L2 Kernel aspects
+>> -----------------------
+>>
+>> The media subsystem supports two types of devices:
+>>
+>> - "traditional" media hardware, supported via V4L2 API. On such hardware=
+,
+>>   opening a single device node (usually /dev/video0) is enough to contro=
+l
+>>   the entire device. We call it as devnode-based devices.
+>>   An application sometimes may need to use multiple video nodes with
+>>   devnode-based drivers to capture multiple streams in parallel
+>>   (when the hardware allows it of course). That's quite common for
+>>   Analog TV devices, where both /dev/video0 and /dev/vbi0 are opened
+>>   at the same time.
+>>
+>> - Media-controller based devices. On those devices, there are typically
+>>   several /dev/video? nodes and several /dev/v4l2-subdev? nodes, plus
+>>   a media controller device node (usually /dev/media0).
+>>   We call it as mc-based devices. Controlling the hardware require
+>>   opening the media device (/dev/media0), setup the pipeline and adjust
+>>   the sub-devices via /dev/v4l2-subdev?. Only streaming is controlled
+>>   by /dev/video?.
+>>
+>> In other words, both configuration and streaming go through the video
+>> device node on devnode-based drivers, while video device nodes are used
+>> used for streaming on mc-based drivers.
+>>
+>> With devnode-based drivers, "standard" media applications, including ope=
+n
+>> source ones (Camorama, Cheese, Xawtv, Firefox, Chromium, ...) and closed
+>> source ones (Skype, Chrome, ...) support devnode-based devices[1]. Also,
+>> when just one media device is connected, the streaming/control device
+>> is typically /dev/video0.
+>>
+>> [1] It should be noticed that closed-source applications tend to have
+>> various bugs that prevent them from working properly on many devnode-bas=
+ed
+>> devices. Due to that, some additional blocks were requred at libv4l to
+>> support some of them. Skype is a good example, as we had to include a
+>> software scaler in libv4l to make it happy. So in practice not everythin=
+g
+>> works smoothly with closed-source applications with devnode-based driver=
+s.
+>> A few such adjustments were also made on some drivers and/or libv4l, in
+>> order to fulfill some open-source app requirements.
+>>
+>> Support for mc-based devices currently require an specialized applicatio=
+n
+>> in order to prepare the device for its usage (setup pipelines, adjust
+>> hardware controls, etc). Once pipeline is set, the streaming goes via
+>> /dev/video?, although usually some /dev/v4l2-subdev? devnodes should als=
+o
+>> be opened, in order to implement algorithms designed to make video quali=
+ty
+>> reasonable.
+>
+> To further complicate the problem, on many modern imaging subsystems
+> (Intel IPU3, Rockchip RKISP1), there is more than 1 video output
+> (CAPTURE device), for example:
+> 1) full resolution capture stream and
+> 2) downscaled preview stream.
+>
+> Moreover, many ISPs also produce per-frame metadata (statistics) for
+> 3A algorithms, which then produces per-frame metadata (parameters) for
+> processing of next frame. These would be also exposed as /dev/video?
+> nodes with respective V4L2_BUF_TYPE_META_* queues.
+>
+> It is complicated even more on systems with separate input (e.g. CSI2)
+> and processing (ISP) hardware, such as Intel IPU3. In such case, the
+> raw frames captured from the CSI2 interface directly are not usable
+> for end-user applications. This means that some component in userspace
+> needs to forward the raw frames to the ISP and only the output of the
+> ISP can be passed to the application.
+>
+>> On such devices, it is not uncommon that the device used by the
+>> application to be a random number (on OMAP3 driver, typically, is either
+>> /dev/video4 or /dev/video6).
+>>
+>> One example of such hardware is at the OMAP3-based hardware:
+>>
+>>         http://www.infradead.org/~mchehab/mc-next-gen/omap3-igepv2-with-=
+tvp5150.png
+>>
+>> On the picture, there's a graph with the hardware blocks in blue/dark/bl=
+ue
+>> and the corresponding devnode interfaces in yellow.
+>>
+>> The mc-based approach was taken when support for Nokia N9/N900 cameras
+>> was added (with has OMAP3 SoC). It is required because the camera hardwa=
+re
+>> on SoC comes with a media processor (ISP), with does a lot more than jus=
+t
+>> capturing, allowing complex algorithms to enhance image quality in runti=
+me.
+>> Those algorithms are known as 3A - an acronym for 3 other acronyms:
+>>
+>>         - AE (Auto Exposure);
+>>         - AF (Auto Focus);
+>>         - AWB (Auto White Balance).
+>>
+>> The main reason that drove the MC design is that the 3A algorithms (that=
+ is
+>> the 3A control loop, and sometimes part of the image processing itself) =
+often
+>> need to run, at least partially, on the CPU. As a kernel-space implement=
+ation
+>> wasn't possible, we needed a lower-level UAPI.
+>>
+>> Setting a camera with such ISPs are harder because the pipelines to be
+>> set actually depends the requirements for those 3A algorithms to run.
+>> Also, usually, the 3A algorithms use some chipset-specific userspace API=
+,
+>> that exports some image properties, calculated by the ISP, to speed up
+>> the convergence of those algorithms.
+>>
+>> Btw, usually, the 3A algorithms are IP-protected, provided by vendors
+>> as binary only blobs, although there are a few OSS implementations.
+>>
+>> Part of the problem is that, so far, there isn't a proper userspace API
+>> to implement 3A libraries. Once we have an userspace camera stack, we
+>> hope that we'll gradually increase the number and quality of open-source
+>> 3A stacks.
+>>
+> [snip]
+>>
+>> 2.2 Modern hardware is starting to come with "complex" camera ISP
+>> -----------------------------------------------------------------
+>>
+>> While mc-based devices were limited to SoC, it was easy to
+>> "delegate" the task of talking with the hardware to the
+>> embedded hardware designers.
+>>
+>> However, this is changing. Dell Latitude 5285 laptop is a standard
+>> PC with an i3-core, i5-core or i7-core CPU, with comes with the
+>> Intel IMU3 ISP hardware[2].
+>
+> IPU3 :)
+>
+>>
+>> [2] https://www.spinics.net/lists/linux-usb/msg167478.html
+>>
+>> There, instead of an USB camera, the hardware is equipped with a
+>> MC-based ISP, connected to its camera. Currently, despite having
+>> a Kernel driver for it, the camera doesn't work with any
+>> userspace application.
+>>
+>> I'm also aware of other projects that are considering the usage of
+>> mc-based devices for non-dedicated hardware.
+>>
+> [snip]
+>>
+>> 3.2 libv4l2 support for 3A algorithms
+>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>
+>> The 3A algorithm handing is highly dependent on the hardware. The
+>> idea here is to allow libv4l to have a set of 3A algorithms that
+>> will be specific to certain mc-based hardware.
+>>
+>> One requirement, if we want vendor stacks to use our solution, is that
+>> it should allow allow external closed-source algorithms to run as well.
+>>
+>> The 3A library API must be standardized, to allow the closed-source
+>> vendor implementation to be replaced by an open-source implementation
+>> should someone have the time and energy (and qualifications) to write
+>> one.
+>>
+>> Sandboxed execution of the 3A library must be possible as closed-source
+>> can't always be blindly trusted. This includes the ability to wrap the
+>> library in a daemon should the platform's multimedia stack wishes
+>> and to avoid any direct access to the kernel devices by the 3A library
+>> itself (all accesses should be marshaled by the camera stack).
+>>
+>> Please note that this daemon is *not* a camera daemon that would
+>> communicates with the V4L2 driver through a custom back channel.
+>>
+>> The decision to run the 3A library in a sandboxed process or to call
+>> it directly from the camera stack should be left to the camera stack
+>> and to the platform integrator, and should not be visible by the 3A
+>> library.
+>>
+>> The 3A library must be usable on major Linux-based camera stacks (the
+>> Android and Chrome OS camera HALs are certainly important targets,
+>> more can be added) unmodified, which will allow usage of the vendor
+>> binary provided for Chrome OS or Android on regular Linux systems.
+>
+> This is quite an interesting idea and it would be really useful if it
+> could be done. I'm kind of worried, though, about Android in
+> particular, since the execution environment in Android differs
+> significantly from a regular Linux distributions (including Chrome OS,
+> which is not so far from such), namely:
+> - different libc (bionic) and dynamic linker - I guess this could be
+> solved by static linking?
+> - dedicated toolchains - perhaps not much of a problem if the per-arch
+> ABI is the same?
+>
+>>
+>> It would make sense to design a modular camera stack, and try to make
+>> most components as platform-independent as possible. This should include=
+:
+>>
+>> - the kernel drivers (V4L2-compliant and usable without any closed-sourc=
+e
+>>   userspace component);
+>> - the 3A library
+>> - any other component that could be shared (for instance a possible
+>>   request API library).
+>>
+>> The rest of the code will mostly be glue around those components to
+>> integrate them in a particular camera stack, and should be as
+>> platform-agnostic as possible.
+>>
+>> In the case of the Android camera HAL, ideally it would be a glue that
+>> could be used with different camera vendors (probably with some kind of
+>> vendor-specific configuration, or possibly with a separate vendor-specif=
+ic
+>> component to handle pipeline configuration).
+>>
+>> 4 Complex camera workshop
+>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+>>
+>> The workshop will be happening in Tokyo, Japan, at Jun, 19, at the
+>> google offices. The location is:
+>>
+>> =E3=80=92106-6126 Tokyo, Minato, Roppongi, 6 Chome=E2=88=9210=E2=88=921 =
+Roppongi Hills Mori Tower 44F
+>
+> Nearest station exits:
+> - Hibiya line Roppongi station exit 1c (recommended)
+> - Oedo line Roppongi station exit 3 (and few minutes walk)
+>
+>>
+>> 4.1 Physical Attendees
+>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>
+>> Tomasz Figa <tfiga@google.com>
+>> Mauro Carvalho Chehab <Mauro Carvalho Chehab <mchehab+samsung@kernel.org=
+>
+>> Kieran Bingham <kieran.bingham@ideasonboard.com>
+>> Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Niklas S=C3=B6derlund <niklas.soderlund@ragnatech.se>
+>> Zheng, Jian Xu Zheng <jian.xu.zheng@intel.com>
+>>
+>> Anywone else?
+>
+> Looking at latest reply in this thread:
+>
+> jacopo mondi <jacopo@jmondi.org>
+>
+> Anyone else, please tell me beforehand (at least 1-2 days before), as
+> I need to take care of building access, since it's a multi-tenant
+> office building. I'll contact each attendee separately with further
+> details by email.
+>
+>>
+>> 4.2. Attendees Via Google Hangouts
+>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>
+>> Hans Verkuil <hverkuil@xs4all.nl> - Via Google Hangouts - maybe only on =
+afternoon
+>> Javier Martinez Canillas <javier@dowhile0.org> - Via Google Hangouts - o=
+nly on reasonable TZ-compatible-hours
+>
+> What time zone would that be? I guess we could try to tweak the agenda
+> to take this into account.
+>
 
-> >  		/* Remove interfaces and interface links */
-> >  		media_devnode_remove(vdev->intf_devnode);
-> >  		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
-> > @@ -530,6 +530,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
-> >  	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
-> >  	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
-> >  	bool is_tch = vdev->vfl_type == VFL_TYPE_TOUCH;
-> > +	bool is_m2m = vdev->vfl_type == VFL_TYPE_MEM2MEM;
-> 
-> And that means that this is also no longer needed.
-> 
+Wim, Nicolas and myself are in CEST (UTC +2). The best time for Wim to
+do the PipeWire presentation would be 10:30 am CEST.
 
-Right, it should be simplified a lot. I hated to introduce
-a new type, just thought it was the cleaner way.
-
-> >  	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
-> >  	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
-> >  
-> > @@ -576,7 +577,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
-> >  	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
-> >  		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
-> >  
-> > -	if (is_vid || is_tch) {
-> > +	if (is_vid || is_m2m || is_tch) {
-> >  		/* video and metadata specific ioctls */
-> >  		if ((is_rx && (ops->vidioc_enum_fmt_vid_cap ||
-> >  			       ops->vidioc_enum_fmt_vid_cap_mplane ||
-> > @@ -669,7 +670,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
-> >  			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
-> >  	}
-> >  
-> > -	if (is_vid || is_vbi || is_sdr || is_tch) {
-> > +	if (is_vid || is_m2m || is_vbi || is_sdr || is_tch) {
-> >  		/* ioctls valid for video, metadata, vbi or sdr */
-> >  		SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
-> >  		SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
-> > @@ -682,7 +683,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
-> >  		SET_VALID_IOCTL(ops, VIDIOC_STREAMOFF, vidioc_streamoff);
-> >  	}
-> >  
-> > -	if (is_vid || is_vbi || is_tch) {
-> > +	if (is_vid || is_m2m || is_vbi || is_tch) {
-> >  		/* ioctls valid for video or vbi */
-> >  		if (ops->vidioc_s_std)
-> >  			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
-> > @@ -733,7 +734,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
-> >  			BASE_VIDIOC_PRIVATE);
-> >  }
-> >  
-> > -static int video_register_media_controller(struct video_device *vdev, int type)
-> > +static int video_register_media_controller(struct video_device *vdev)
-> >  {
-> >  #if defined(CONFIG_MEDIA_CONTROLLER)
-> >  	u32 intf_type;
-> > @@ -745,7 +746,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
-> >  	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
-> >  	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
-> >  
-> > -	switch (type) {
-> > +	switch (vdev->vfl_type) {
-> >  	case VFL_TYPE_GRABBER:
-> >  		intf_type = MEDIA_INTF_T_V4L_VIDEO;
-> >  		vdev->entity.function = MEDIA_ENT_F_IO_V4L;
-> > @@ -774,6 +775,10 @@ static int video_register_media_controller(struct video_device *vdev, int type)
-> >  		intf_type = MEDIA_INTF_T_V4L_SUBDEV;
-> >  		/* Entity will be created via v4l2_device_register_subdev() */
-> >  		break;
-> > +	case VFL_TYPE_MEM2MEM:
-> > +		/* Memory-to-memory devices are more complex and use
-> > +		 * their own function to register.
-> > +		 */
-> >  	default:
-> >  		return 0;
-> >  	}
-> > @@ -869,6 +874,10 @@ int __video_register_device(struct video_device *vdev,
-> >  	case VFL_TYPE_TOUCH:
-> >  		name_base = "v4l-touch";
-> >  		break;
-> > +	case VFL_TYPE_MEM2MEM:
-> > +		/* Maintain this name for backwards compatibility */
-> > +		name_base = "video";
-> > +		break;
-> >  	default:
-> >  		pr_err("%s called with unknown type: %d\n",
-> >  		       __func__, type);
-> > @@ -993,7 +1002,7 @@ int __video_register_device(struct video_device *vdev,
-> >  	v4l2_device_get(vdev->v4l2_dev);
-> >  
-> >  	/* Part 5: Register the entity. */
-> > -	ret = video_register_media_controller(vdev, type);
-> > +	ret = video_register_media_controller(vdev);
-> >  
-> >  	/* Part 6: Activate this minor. The char device can now be used. */
-> >  	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
-> > diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> > index c4f963d96a79..0505b65bfa68 100644
-> > --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> > +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> > @@ -17,9 +17,11 @@
-> >  #include <linux/sched.h>
-> >  #include <linux/slab.h>
-> >  
-> > +#include <media/media-device.h>
-> >  #include <media/videobuf2-v4l2.h>
-> >  #include <media/v4l2-mem2mem.h>
-> >  #include <media/v4l2-dev.h>
-> > +#include <media/v4l2-device.h>
-> >  #include <media/v4l2-fh.h>
-> >  #include <media/v4l2-event.h>
-> >  
-> > @@ -50,6 +52,11 @@ module_param(debug, bool, 0644);
-> >   * offsets but for different queues */
-> >  #define DST_QUEUE_OFF_BASE	(1 << 30)
-> >  
-> > +struct v4l2_m2m_entity {
-> > +	struct media_entity entity;
-> > +	struct media_pad pads[2];
-> > +	char name[64];
-> > +};
-> >  
-> >  /**
-> >   * struct v4l2_m2m_dev - per-device context
-> > @@ -60,6 +67,10 @@ module_param(debug, bool, 0644);
-> >   */
-> >  struct v4l2_m2m_dev {
-> >  	struct v4l2_m2m_ctx	*curr_ctx;
-> > +#ifdef CONFIG_MEDIA_CONTROLLER
-> > +	struct v4l2_m2m_entity	entities[3];
-> > +	struct media_intf_devnode *intf_devnode;
-> > +#endif
-> >  
-> >  	struct list_head	job_queue;
-> >  	spinlock_t		job_spinlock;
-> > @@ -595,6 +606,152 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-> >  }
-> >  EXPORT_SYMBOL(v4l2_m2m_mmap);
-> >  
-> > +void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
-> > +{
-> > +	int i;
-> > +
-> > +	media_remove_intf_links(&m2m_dev->intf_devnode->intf);
-> > +	media_devnode_remove(m2m_dev->intf_devnode);
-> > +
-> > +	for (i = 0; i < 3; i++)
-> 
-> ARRAY_SIZE? Or use a define.
-> 
-
-Ugh, yes, you are right.
-
-> > +		media_entity_remove_links(&m2m_dev->entities[i].entity);
-> > +	for (i = 0; i < 3; i++)
-> 
-> Ditto.
-> 
-> > +		media_device_unregister_entity(&m2m_dev->entities[i].entity);
-> > +}
-> > +EXPORT_SYMBOL_GPL(v4l2_m2m_unregister_media_controller);
-> > +
-> > +#define MEM2MEM_ENT_TYPE_INPUT	1
-> > +#define MEM2MEM_ENT_TYPE_OUTPUT	2
-> > +#define MEM2MEM_ENT_TYPE_PROC	3
-> > +
-> > +static int v4l2_m2m_register_entity(struct media_device *mdev,
-> > +		struct v4l2_m2m_entity *m2m_entity, int type)
-> > +{
-> > +	unsigned int function;
-> > +	int num_pads;
-> > +	int ret;
-> > +
-> > +	switch (type) {
-> > +	case MEM2MEM_ENT_TYPE_INPUT:
-> > +		function = MEDIA_ENT_F_IO_DMAENGINE;
-> > +		m2m_entity->pads[0].flags = MEDIA_PAD_FL_SOURCE;
-> > +		strlcpy(m2m_entity->name, "input", sizeof(m2m_entity->name));
-> > +		num_pads = 1;
-> > +		break;
-> > +	case MEM2MEM_ENT_TYPE_OUTPUT:
-> > +		function = MEDIA_ENT_F_IO_DMAENGINE;
-> > +		m2m_entity->pads[0].flags = MEDIA_PAD_FL_SINK;
-> > +		strlcpy(m2m_entity->name, "output", sizeof(m2m_entity->name));
-> 
-> Either use "capture" and "output" (to conform to the V4L2_BUF_TYPE naming) or
-> "source" and "sink".
-> 
-
-Right.
-
-> > +		num_pads = 1;
-> > +		break;
-> > +	case MEM2MEM_ENT_TYPE_PROC:
-> > +		function = MEDIA_ENT_F_PROC_VIDEO_TRANSFORM;
-> > +		m2m_entity->pads[0].flags = MEDIA_PAD_FL_SOURCE;
-> > +		m2m_entity->pads[1].flags = MEDIA_PAD_FL_SINK;
-> > +		strlcpy(m2m_entity->name, "proc", sizeof(m2m_entity->name));
-> > +		num_pads = 2;
-> > +		break;
-> > +	default:
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	ret = media_entity_pads_init(&m2m_entity->entity, num_pads, m2m_entity->pads);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	m2m_entity->entity.obj_type = MEDIA_ENTITY_TYPE_MEM2MEM;
-> > +	m2m_entity->entity.function = function;
-> > +	m2m_entity->entity.name = m2m_entity->name;
-> 
-> Why not just strlcpy into the m2m_entity->entity.name field? Then you can
-> drop m2m_entity->name. Or am I missing something?
-> 
-
-Hm, I think you are right.
-
-> > +	ret = media_device_register_entity(mdev, &m2m_entity->entity);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev, struct video_device *vdev)
-> > +{
-> > +#if defined(CONFIG_MEDIA_CONTROLLER)
-> > +	struct media_device *mdev = vdev->v4l2_dev->mdev;
-> > +	struct media_link *link;
-> > +	int ret;
-> > +
-> > +	if (!mdev)
-> > +		return 0;
-> > +
-> > +	/* A memory-to-memory device consists in two
-> > +	 * DMA engine and one video processing entities.
-> > +	 * The DMA engine entities are linked to a V4L interface
-> > +	 */
-> > +
-> > +	/* Create the three entities with their pads */
-> > +	ret = v4l2_m2m_register_entity(mdev, &m2m_dev->entities[0], MEM2MEM_ENT_TYPE_INPUT);
-> > +	if (ret)
-> > +		return ret;
-> > +	ret = v4l2_m2m_register_entity(mdev, &m2m_dev->entities[1], MEM2MEM_ENT_TYPE_PROC);
-> > +	if (ret)
-> > +		goto err_rel_entity0;
-> > +	ret = v4l2_m2m_register_entity(mdev, &m2m_dev->entities[2], MEM2MEM_ENT_TYPE_OUTPUT);
-> > +	if (ret)
-> > +		goto err_rel_entity1;
-> > +
-> > +	/* Connect the three entities */
-> > +        ret = media_create_pad_link(&m2m_dev->entities[0].entity, 0,
-> > +			&m2m_dev->entities[1].entity, 1,
-> > +                        MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-> 
-> Weird indentation.
-> 
-> > +	if (ret)
-> > +		goto err_rel_entity2;
-> > +
-> > +        ret = media_create_pad_link(&m2m_dev->entities[1].entity, 0,
-> > +			&m2m_dev->entities[2].entity, 0,
-> > +                        MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-> 
-> Ditto.
-> 
-> > +	if (ret)
-> > +		goto err_rm_links0;
-> > +
-> > +	/* Create video interface */
-> > +	m2m_dev->intf_devnode = media_devnode_create(mdev, MEDIA_INTF_T_V4L_VIDEO, 0, VIDEO_MAJOR, vdev->minor);
-> > +	if (!m2m_dev->intf_devnode) {
-> > +		ret = -ENOMEM;
-> > +		goto err_rm_links1;
-> > +	}
-> > +
-> > +	/* Connect the two DMA engines to the interface */
-> > +	link = media_create_intf_link(&m2m_dev->entities[0].entity, &m2m_dev->intf_devnode->intf,
-> > +				MEDIA_LNK_FL_ENABLED);
-> > +	if (!link) {
-> > +		ret = -ENOMEM;
-> > +		goto err_rm_devnode;
-> > +	}
-> > +
-> > +	link = media_create_intf_link(&m2m_dev->entities[1].entity, &m2m_dev->intf_devnode->intf,
-> > +				MEDIA_LNK_FL_ENABLED);
-> > +	if (!link) {
-> > +		ret = -ENOMEM;
-> > +		goto err_rm_intf_link;
-> > +	}
-> > +	return 0;
-> > +
-> > +err_rm_intf_link:
-> > +	media_remove_intf_links(&m2m_dev->intf_devnode->intf);
-> > +err_rm_devnode:
-> > +	media_devnode_remove(m2m_dev->intf_devnode);
-> > +err_rm_links1:
-> > +	media_entity_remove_links(&m2m_dev->entities[2].entity);
-> > +err_rm_links0:
-> > +	media_entity_remove_links(&m2m_dev->entities[1].entity);
-> > +	media_entity_remove_links(&m2m_dev->entities[0].entity);
-> > +err_rel_entity2:
-> > +	media_device_unregister_entity(&m2m_dev->entities[2].entity);
-> > +err_rel_entity1:
-> > +	media_device_unregister_entity(&m2m_dev->entities[1].entity);
-> > +err_rel_entity0:
-> > +	media_device_unregister_entity(&m2m_dev->entities[0].entity);
-> > +	return ret;
-> > +#endif
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(v4l2_m2m_register_media_controller);
-> > +
-> >  struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops)
-> >  {
-> >  	struct v4l2_m2m_dev *m2m_dev;
-> 
-> Looking at this code I think it would be much cleaner if you drop the array
-> and make it explicit instead:
-> 
-> struct v4l2_m2m_entities {
-> 	struct media_entity source;
-> 	struct media_pad source_pad;
-> 	struct media_entity sink;
-> 	struct media_pad sink_pad;
-> 	struct media_entity proc;
-> 	struct media_pad proc_pads[2];
-> };
-> 
-> I think this will simplify the code quite a bit.
-> 
-> Note: one of these media_entity structs can be removed since struct video_device
-> already has an entity you can use. It probably makes the most sense to assign
-> that one the role of the sink or source entity.
-> 
-> Perhaps it might be easiest to change e.g. struct media_entity source to
-> 'struct media_entity *source' and have it point to &vdev->entity.
-> 
-> Up to you.
-> 
-
-Right, I'll take a look.
-
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index 3aa3d58d1d58..ff6fbe8333e1 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -206,6 +206,9 @@ struct media_entity_operations {
-> >   *	The entity is embedded in a struct video_device instance.
-> >   * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
-> >   *	The entity is embedded in a struct v4l2_subdev instance.
-> > + * @MEDIA_ENTITY_TYPE_V4L2_MEM2MEM:
-> > + *	The entity is not embedded in any struct, but part of
-> > + *	a memory-to-memory topology.
-> 
-> I see no need for this. An M2M device is of type VIDEO_DEVICE, no need to
-> change that.
-> 
-
-Well, the problem is that this type is used to cast the media_entity
-using container_of macro, by means of is_media_entity_v4l2_video_device
-and is_media_entity_v4l2_subdev.
-
-So, by using one these types we'd be breaking that assumption. 
-
-> >   *
-> >   * Media entity objects are often not instantiated directly, but the media
-> >   * entity structure is inherited by (through embedding) other subsystem-specific
-> > @@ -222,6 +225,7 @@ enum media_entity_type {
-> >  	MEDIA_ENTITY_TYPE_BASE,
-> >  	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
-> >  	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
-> > +	MEDIA_ENTITY_TYPE_MEM2MEM,
-> >  };
-> >  
-> >  /**
-> > diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> > index 456ac13eca1d..a9df949bb9c3 100644
-> > --- a/include/media/v4l2-dev.h
-> > +++ b/include/media/v4l2-dev.h
-> > @@ -30,6 +30,7 @@
-> >   * @VFL_TYPE_SUBDEV:	for V4L2 subdevices
-> >   * @VFL_TYPE_SDR:	for Software Defined Radio tuners
-> >   * @VFL_TYPE_TOUCH:	for touch sensors
-> > + * @VFL_TYPE_MEM2MEM:	for mem2mem devices
-> >   * @VFL_TYPE_MAX:	number of VFL types, must always be last in the enum
-> >   */
-> >  enum vfl_devnode_type {
-> > @@ -39,6 +40,7 @@ enum vfl_devnode_type {
-> >  	VFL_TYPE_SUBDEV,
-> >  	VFL_TYPE_SDR,
-> >  	VFL_TYPE_TOUCH,
-> > +	VFL_TYPE_MEM2MEM,
-> >  	VFL_TYPE_MAX /* Shall be the last one */
-> >  };
-> >  
-> > diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-> > index 3d07ba3a8262..9dfe9bd23f89 100644
-> > --- a/include/media/v4l2-mem2mem.h
-> > +++ b/include/media/v4l2-mem2mem.h
-> > @@ -53,6 +53,7 @@ struct v4l2_m2m_ops {
-> >  	void (*unlock)(void *priv);
-> >  };
-> >  
-> > +struct video_device;
-> >  struct v4l2_m2m_dev;
-> >  
-> >  /**
-> > @@ -328,6 +329,10 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-> >   */
-> >  struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops);
-> >  
-> > +int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev, struct video_device *vdev);
-> > +
-> > +void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev);
-> > +
-> >  /**
-> >   * v4l2_m2m_release() - cleans up and frees a m2m_dev structure
-> >   *
-> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> > index c7e9a5cba24e..becb7db77f6a 100644
-> > --- a/include/uapi/linux/media.h
-> > +++ b/include/uapi/linux/media.h
-> > @@ -81,6 +81,7 @@ struct media_device_info {
-> >  #define MEDIA_ENT_F_IO_DTV			(MEDIA_ENT_F_BASE + 0x01001)
-> >  #define MEDIA_ENT_F_IO_VBI			(MEDIA_ENT_F_BASE + 0x01002)
-> >  #define MEDIA_ENT_F_IO_SWRADIO			(MEDIA_ENT_F_BASE + 0x01003)
-> > +#define MEDIA_ENT_F_IO_DMAENGINE		(MEDIA_ENT_F_BASE + 0x01004)
-> 
-> Drop this as well. Just stick to MEDIA_ENT_F_IO_V4L which is what we've decided to
-> call such entities (for better or worse).
-> 
-
-Will do.
-
-> >  
-> >  /*
-> >   * Sensor functions
-> > @@ -132,6 +133,7 @@ struct media_device_info {
-> >  #define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
-> >  #define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
-> >  #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
-> > +#define MEDIA_ENT_F_PROC_VIDEO_TRANSFORM	(MEDIA_ENT_F_BASE + 0x4007)
-> 
-> I think we need to be a bit more specific here:
-> 
-> #define MEDIA_ENT_F_PROC_VIDEO_DECODER
-> #define MEDIA_ENT_F_PROC_VIDEO_ENCODER
-> #define MEDIA_ENT_F_PROC_VIDEO_DEINTERLACER
-> // others?
-> 
-
-OK. And what about "composite" devices that can encode and perform
-other transforms, e.g. scale, rotation, etc. 
-
-Regards,
-Eze
+Best regards,
+Javier
