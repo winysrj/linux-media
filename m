@@ -1,68 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:39263 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751714AbeFFMjC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 08:39:02 -0400
-Subject: Re: [PATCH v2 8/9] xen/gntdev: Implement dma-buf import functionality
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180601114132.22596-1-andr2000@gmail.com>
- <20180601114132.22596-9-andr2000@gmail.com>
- <7ef4f26e-4225-ea7e-8183-9a6c3fe69345@oracle.com>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <8676e1d7-3179-5fc0-08fb-02373df4101b@gmail.com>
-Date: Wed, 6 Jun 2018 15:38:58 +0300
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:10878
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752120AbeFFMmA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 6 Jun 2018 08:42:00 -0400
+Date: Wed, 6 Jun 2018 21:41:53 +0900 (JST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: mchehab@kernel.org, hans.verkuil@cisco.com
+cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: unnecessary tests?
+Message-ID: <alpine.DEB.2.20.1806062139460.4445@hadrien>
 MIME-Version: 1.0
-In-Reply-To: <7ef4f26e-4225-ea7e-8183-9a6c3fe69345@oracle.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/05/2018 01:28 AM, Boris Ostrovsky wrote:
-> On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
->>   /* ------------------------------------------------------------------ */
->>   
->> +static int
->> +dmabuf_imp_grant_foreign_access(struct page **pages, u32 *refs,
->> +				int count, int domid)
->> +{
->> +	grant_ref_t priv_gref_head;
->> +	int i, ret;
->> +
->> +	ret = gnttab_alloc_grant_references(count, &priv_gref_head);
->> +	if (ret < 0) {
->> +		pr_err("Cannot allocate grant references, ret %d\n", ret);
->> +		return ret;
->> +	}
->> +
->> +	for (i = 0; i < count; i++) {
->> +		int cur_ref;
->> +
->> +		cur_ref = gnttab_claim_grant_reference(&priv_gref_head);
->> +		if (cur_ref < 0) {
->> +			ret = cur_ref;
->> +			pr_err("Cannot claim grant reference, ret %d\n", ret);
->> +			goto out;
->> +		}
->> +
->> +		gnttab_grant_foreign_access_ref(cur_ref, domid,
->> +						xen_page_to_gfn(pages[i]), 0);
->> +		refs[i] = cur_ref;
->> +	}
->> +
->> +	ret = 0;
-> return 0?
-My bad, thank you
->> +
->> +out:
->> +	gnttab_free_grant_references(priv_gref_head);
->> +	return ret;
->> +}
->> +
+In the file drivers/media/tuners/mxl5005s.c, the function MXL_BlockInit
+contains:
+
+       status += MXL_ControlWrite(fe,
+               RFSYN_EN_CHP_HIGAIN, state->Mode ? 1 : 1);
+       status += MXL_ControlWrite(fe, EN_CHP_LIN_B, state->Mode ? 0 : 0);
+
+Could the second arguments just be 1 and 0, respectively?  It's true that
+the preceeding call contains state->Mode, but in a more useful way, so
+perhaps it could be useful for uniformity?
+
+thanks,
+julia
