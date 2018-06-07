@@ -1,141 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:35098 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755491AbeF3Dll (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 23:41:41 -0400
-Message-ID: <885ca0951a4f90d3d78358f6dcb3ec24@smtp-cloud8.xs4all.net>
-Date: Sat, 30 Jun 2018 05:41:38 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mga06.intel.com ([134.134.136.31]:9347 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753066AbeFGDrt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 6 Jun 2018 23:47:49 -0400
+From: bingbu.cao@intel.com
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, tfiga@google.com, jacopo@jmondi.org,
+        rajmohan.mani@intel.com, bingbu.cao@linux.intel.com,
+        tian.shu.qiu@intel.com, jian.xu.zheng@intel.com
+Subject: [PATCH v4 1/2] dt-bindings: Add bindings for AKM ak7375 voice coil lens
+Date: Thu,  7 Jun 2018 11:50:32 +0800
+Message-Id: <1528343433-2475-1-git-send-email-bingbu.cao@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Bingbu Cao <bingbu.cao@intel.com>
 
-Results of the daily build of media_tree:
+Add device tree bindings for AKM ak7375 voice coil lens
+driver. This chip is used to drive a lens in a camera module.
 
-date:			Sat Jun 30 05:00:16 CEST 2018
-media-tree git hash:	3c4a737267e89aafa6308c6c456d2ebea3fcd085
-media_build git hash:	26d102795c91f8593a4f74f96b955f9a8b81dbc3
-v4l-utils git hash:	0898d1d4dbcfe2fc94f80de4f9de2b2994ccea99
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
+Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: ERRORS
-linux-4.13.16-x86_64: ERRORS
-linux-4.14.42-i686: ERRORS
-linux-4.14.42-x86_64: ERRORS
-linux-4.15.14-i686: ERRORS
-linux-4.15.14-x86_64: ERRORS
-linux-4.16.8-i686: ERRORS
-linux-4.16.8-x86_64: ERRORS
-linux-4.17.2-i686: ERRORS
-linux-4.17.2-x86_64: ERRORS
-linux-4.18-rc1-i686: ERRORS
-linux-4.18-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
+---
+Changes since v1:
+    - add the MAINTAINERS change
+    - correct the vendor prefix from akm to asahi-kasei
+---
+---
+ Documentation/devicetree/bindings/media/i2c/ak7375.txt | 8 ++++++++
+ MAINTAINERS                                            | 8 ++++++++
+ 2 files changed, 16 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ak7375.txt
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/Documentation/devicetree/bindings/media/i2c/ak7375.txt b/Documentation/devicetree/bindings/media/i2c/ak7375.txt
+new file mode 100644
+index 000000000000..aa3e24b41241
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ak7375.txt
+@@ -0,0 +1,8 @@
++Asahi Kasei Microdevices AK7375 voice coil lens driver
++
++AK7375 is a camera voice coil lens.
++
++Mandatory properties:
++
++- compatible: "asahi-kasei,ak7375"
++- reg: I2C slave address
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ea362219c4aa..ad68d75abc84 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2258,6 +2258,14 @@ L:	linux-leds@vger.kernel.org
+ S:	Maintained
+ F:	drivers/leds/leds-as3645a.c
+ 
++ASAHI KASEI AK7375 LENS VOICE COIL DRIVER
++M:	Tianshu Qiu <tian.shu.qiu@intel.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/ak7375.c
++F:	Documentation/devicetree/bindings/media/i2c/ak7375.txt
++
+ ASAHI KASEI AK8974 DRIVER
+ M:	Linus Walleij <linus.walleij@linaro.org>
+ L:	linux-iio@vger.kernel.org
+-- 
+1.9.1
