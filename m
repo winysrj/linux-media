@@ -1,71 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2120.oracle.com ([141.146.126.78]:52382 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751990AbeFGW00 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2018 18:26:26 -0400
-Subject: Re: [PATCH v2 7/9] xen/gntdev: Implement dma-buf export functionality
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180601114132.22596-1-andr2000@gmail.com>
- <20180601114132.22596-8-andr2000@gmail.com>
- <96dd30f5-6ac6-498f-06e7-352e46994576@oracle.com>
- <117e05b3-69f6-b879-50d9-0cddd8e4c313@gmail.com>
- <4b37bbe1-6c5c-1941-bac0-2c7ba88af3e3@oracle.com>
- <d83a356c-f7a5-bce1-cafd-a52e736570fb@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <b7f27688-f627-3fd9-9298-e02e6f35ca1e@oracle.com>
-Date: Thu, 7 Jun 2018 18:30:06 -0400
+Received: from www62.your-server.de ([213.133.104.62]:46632 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752156AbeFGWkN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2018 18:40:13 -0400
+Subject: Re: [PATCH] bpf: attach type BPF_LIRC_MODE2 should not depend on
+ CONFIG_BPF_CGROUP
+To: Y Song <ys114321@gmail.com>, Sean Young <sean@mess.org>
+Cc: Matthias Reichl <hias@horus.com>, linux-media@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Quentin Monnet <quentin.monnet@netronome.com>
+References: <cover.1527419762.git.sean@mess.org>
+ <9f2c54d4956f962f44fcda739a824397ddea132c.1527419762.git.sean@mess.org>
+ <20180604174730.sctfoklq7klswebp@camel2.lan>
+ <20180605101629.yffyp64o7adg6hu5@gofer.mess.org>
+ <04cc36e7-4597-dc57-4ad7-71afcc17244a@iogearbox.net>
+ <20180606210939.q3vviyc4b2h6gu3c@gofer.mess.org>
+ <CAH3MdRXE8=dE25Sj3TPDzVh7ytnvCkUDvCDzZkEZe0N84dy-Zw@mail.gmail.com>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <34406f72-722d-9c23-327f-b7c5d7a3090c@iogearbox.net>
+Date: Fri, 8 Jun 2018 00:40:10 +0200
 MIME-Version: 1.0
-In-Reply-To: <d83a356c-f7a5-bce1-cafd-a52e736570fb@gmail.com>
+In-Reply-To: <CAH3MdRXE8=dE25Sj3TPDzVh7ytnvCkUDvCDzZkEZe0N84dy-Zw@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
 Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/07/2018 04:44 AM, Oleksandr Andrushchenko wrote:
-> On 06/07/2018 12:48 AM, Boris Ostrovsky wrote:
->> On 06/06/2018 08:10 AM, Oleksandr Andrushchenko wrote:
->>> On 06/05/2018 01:07 AM, Boris Ostrovsky wrote:
->>>> On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
->>
->>>> +
->>>> +static struct sg_table *
->>>> +dmabuf_exp_ops_map_dma_buf(struct dma_buf_attachment *attach,
->>>> +               enum dma_data_direction dir)
->>>> +{
->>>> +    struct gntdev_dmabuf_attachment *gntdev_dmabuf_attach =
->>>> attach->priv;
->>>> +    struct gntdev_dmabuf *gntdev_dmabuf = attach->dmabuf->priv;
->>>> +    struct sg_table *sgt;
->>>> +
->>>> +    pr_debug("Mapping %d pages for dev %p\n",
->>>> gntdev_dmabuf->nr_pages,
->>>> +         attach->dev);
->>>> +
->>>> +    if (WARN_ON(dir == DMA_NONE || !gntdev_dmabuf_attach))
->>>>
->>>> WARN_ON_ONCE. Here and elsewhere.
->>> Why? The UAPI may be used by different applications, thus we might
->>> lose warnings for some of them. Having WARN_ON will show problems
->>> for multiple users, not for the first one.
->>> Does this make sense to still use WARN_ON?
->>
->> Just as with pr_err call somewhere else the concern here is that
->> userland (which I think is where this is eventually called from?) may
->> intentionally trigger the error, flooding the log.
->>
->> And even this is not directly called from userland there is still a
->> possibility of triggering this error multiple times.
-> Ok, will use WARN_ON_ONCE
+On 06/07/2018 08:14 PM, Y Song wrote:
+> On Wed, Jun 6, 2018 at 2:09 PM, Sean Young <sean@mess.org> wrote:
+>> Compile bpf_prog_{attach,detach,query} even if CONFIG_BPF_CGROUP is not
+>> set.
+> 
+> It should be CONFIG_CGROUP_BPF here. The same for subject line.
+> Today, if CONFIG_CGROUP_BPF is not defined. Users will get an -EINVAL
+> if they try to attach/detach/query.
+> 
+> I am not sure what is the motivation behind this change. Could you explain more?
 
+Motivation was that lirc2 progs are not related to cgroups at all and there
+are users that have compiled it out, yet it uses BPF_PROG_ATTACH/DETACH for
+managing them. This definitely needs to be more clearly explained in the
+changelog, agree.
 
-In fact, is there a reason to use WARN at all? Does this condition
-indicate some sort of internal inconsistency/error?
-
--boris
+>> Signed-off-by: Sean Young <sean@mess.org>
+>> ---
+>>  include/linux/bpf-cgroup.h |  31 +++++++++++
+>>  kernel/bpf/cgroup.c        | 110 +++++++++++++++++++++++++++++++++++++
+>>  kernel/bpf/syscall.c       | 105 ++---------------------------------
+>>  3 files changed, 145 insertions(+), 101 deletions(-)
+>>[...]
