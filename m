@@ -1,111 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:57034 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752568AbeFGK2x (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2018 06:28:53 -0400
-Date: Thu, 7 Jun 2018 07:28:43 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        javier@dowhile0.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        kieran.bingham@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        dave.stevenson@raspberrypi.org,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>, nicolas@ndufresne.ca
-Subject: Re: [ANN v2] Complex Camera Workshop - Tokyo - Jun, 19
-Message-ID: <20180607072843.4be20fc6@coco.lan>
-In-Reply-To: <CAAFQd5CauqcqX-hWgn3BaKyCRtB=yZ0UUwtJmQm+YUN2FFf1PA@mail.gmail.com>
-References: <20180604103303.6a6b792b@vento.lan>
-        <CAAFQd5A13oivxg-m2vpPxBjBAsn8NLJx4_ups2p+j0uHaoiOng@mail.gmail.com>
-        <20180606132610.5615f46f@coco.lan>
-        <CAAFQd5CauqcqX-hWgn3BaKyCRtB=yZ0UUwtJmQm+YUN2FFf1PA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:52843 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752590AbeFGKce (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2018 06:32:34 -0400
+Message-ID: <1528367543.3308.6.camel@pengutronix.de>
+Subject: Re: [RFC PATCH 2/2] media: docs-rst: Add encoder UAPI specification
+ to Codec Interfaces
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>, Tomasz Figa <tfiga@chromium.org>
+Cc: Pawel Osciak <posciak@chromium.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
+        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        jtp.park@samsung.com,
+        Tiffany Lin =?UTF-8?Q?=28=E6=9E=97=E6=85=A7=E7=8F=8A=29?=
+        <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen =?UTF-8?Q?=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?=
+        <andrew-ct.chen@mediatek.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        todor.tomov@linaro.org, nicolas@ndufresne.ca,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Thu, 07 Jun 2018 12:32:23 +0200
+In-Reply-To: <41fd04f2-fc44-1792-81e6-a3d4d384adc5@xs4all.nl>
+References: <20180605103328.176255-1-tfiga@chromium.org>
+         <20180605103328.176255-3-tfiga@chromium.org>
+         <1528199628.4074.15.camel@pengutronix.de>
+         <CAAFQd5DYu+Oehr1UUvvdmWk7toO0i_=NFgvZcAKQ8ZURKy51fA@mail.gmail.com>
+         <1528208578.4074.19.camel@pengutronix.de>
+         <CAAFQd5DqHj65AdzfYmvHWkqHnZntiiA2AhAfgHbLA3AuWvsOTQ@mail.gmail.com>
+         <1528278003.3438.3.camel@pengutronix.de>
+         <CAAFQd5A2hsgrmwJ3bgv6EDKqqy5Y86CnMcktrWa+YihWGjxtHg@mail.gmail.com>
+         <41fd04f2-fc44-1792-81e6-a3d4d384adc5@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 7 Jun 2018 16:47:50 +0900
-Tomasz Figa <tfiga@chromium.org> escreveu:
-
-> On Thu, Jun 7, 2018 at 1:26 AM Mauro Carvalho Chehab
-> <mchehab+samsung@kernel.org> wrote:
-> >
-> > Em Wed, 6 Jun 2018 13:19:39 +0900
-> > Tomasz Figa <tfiga@chromium.org> escreveu:
-> >  
-> > > On Mon, Jun 4, 2018 at 10:33 PM Mauro Carvalho Chehab
-> > > <mchehab+samsung@kernel.org> wrote:  
-> [snip]
-> > > > 3.2 libv4l2 support for 3A algorithms
-> > > > =====================================
-> > > >
-> > > > The 3A algorithm handing is highly dependent on the hardware. The
-> > > > idea here is to allow libv4l to have a set of 3A algorithms that
-> > > > will be specific to certain mc-based hardware.
-> > > >
-> > > > One requirement, if we want vendor stacks to use our solution, is that
-> > > > it should allow allow external closed-source algorithms to run as well.
-> > > >
-> > > > The 3A library API must be standardized, to allow the closed-source
-> > > > vendor implementation to be replaced by an open-source implementation
-> > > > should someone have the time and energy (and qualifications) to write
-> > > > one.
-> > > >
-> > > > Sandboxed execution of the 3A library must be possible as closed-source
-> > > > can't always be blindly trusted. This includes the ability to wrap the
-> > > > library in a daemon should the platform's multimedia stack wishes
-> > > > and to avoid any direct access to the kernel devices by the 3A library
-> > > > itself (all accesses should be marshaled by the camera stack).
-> > > >
-> > > > Please note that this daemon is *not* a camera daemon that would
-> > > > communicates with the V4L2 driver through a custom back channel.
-> > > >
-> > > > The decision to run the 3A library in a sandboxed process or to call
-> > > > it directly from the camera stack should be left to the camera stack
-> > > > and to the platform integrator, and should not be visible by the 3A
-> > > > library.
-> > > >
-> > > > The 3A library must be usable on major Linux-based camera stacks (the
-> > > > Android and Chrome OS camera HALs are certainly important targets,
-> > > > more can be added) unmodified, which will allow usage of the vendor
-> > > > binary provided for Chrome OS or Android on regular Linux systems.  
-> > >
-> > > This is quite an interesting idea and it would be really useful if it
-> > > could be done. I'm kind of worried, though, about Android in
-> > > particular, since the execution environment in Android differs
-> > > significantly from a regular Linux distributions (including Chrome OS,
-> > > which is not so far from such), namely:
-> > > - different libc (bionic) and dynamic linker - I guess this could be
-> > > solved by static linking?  
-> >
-> > Static link is one possible solution. IMHO, we should try to make it
-> > use just a C library (if possible) and be sure that it will also compile
-> > with bionic/ulibc in order to make it easier to be used by Android and
-> > other embedded distros.
-> >  
-> > > - dedicated toolchains - perhaps not much of a problem if the per-arch
-> > > ABI is the same?  
-> >
-> > Depending on library dependency, we could likely make it work with more
-> > than one toolchain. I guess acconfig works with Android, right?
-> > If so, it could auto-adjust to the different toolchains everywhere.  
+On Thu, 2018-06-07 at 09:27 +0200, Hans Verkuil wrote:
+[...]
+> > > > > I think it could be useful to enforce the same colorimetry on CAPTURE
+> > > > > and OUTPUT queue if the hardware doesn't do any colorspace conversion.
+> > > > 
+> > > > After thinking a bit more on this, I guess it wouldn't overly
+> > > > complicate things if we require that the values from OUTPUT queue are
+> > > > copied to CAPTURE queue, if the stream doesn't include such
+> > > > information or the hardware just can't parse them.
+> > > 
+> > > And for encoders it would be copied from CAPTURE queue to OUTPUT queue?
+> > > 
+> > 
+> > I guess iy would be from OUTPUT to CAPTURE for encoders as well, since
+> > the colorimetry of OUTPUT is ultimately defined by the raw frames that
+> > userspace is going to be feeding to the encoder.
 > 
-> That works for open source libraries obviously. I was thinking more
-> about the closed source 3A libraries coming from Android, since we
-> can't recompile them.
+> Correct. All mem2mem drivers should just copy the colorimetry from the
+> output buffers to the capture buffers, unless the decoder hardware is able to
+> extract that data from the stream, in which case it can overwrite it for
+> the capture buffer.
+> 
+> Currently colorspace converters are not supported since the V4L2 API does
+> not provide a way to let userspace define colorimetry for the capture queue.
 
-Ah! It probably makes sense to place them on some sandboxed environment.
-If we're using that, it probably makes sense to have them running
-on a sort of daemon with a sockets-based API.
+Oh, I never realized this limitation [1] ...
 
-If we're willing to do that, it doesn't really matter how the 3A
-was implemented. It can even be in Java. All it matters is to have
-a way to plug the library to it. A config file could provide such
-link, telling what 3A library should be used (and, eventually, what
-commands should be used to start/stop the daemon).
+ "Image colorspace, from enum v4l2_colorspace. This information
+  supplements the pixelformat and must be set by the driver for capture
+  streams and by the application for output streams, see Colorspaces."
 
-Thanks,
-Mauro
+[1] https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-v4l2.html
+
+It's just a bit unintuitive that the initialization sequence requires to
+set S_FMT(CAP) first and then S_FMT(OUT) but with colorspace there is
+information that flows the opposite way.
+
+> I have a patch to add a new v4l2_format flag for that since forever, but
+> since we do not have any drivers that can do this in the kernel it has never
+> been upstreamed.
+
+Has this patch been posted some time? I think we could add a mem2mem
+device to imx-media with support for linear transformations.
+
+regards
+Philipp
