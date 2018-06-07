@@ -1,104 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:51328 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752880AbeFGHWA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Jun 2018 03:22:00 -0400
-Subject: Re: [RFC PATCH 1/2] media: docs-rst: Add decoder UAPI specification
- to Codec Interfaces
-To: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Tomasz Figa <tfiga@chromium.org>
-Cc: LMML <linux-media@vger.kernel.org>, linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?B?UGF3ZcWCIE/Fm2NpYWs=?= <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Kamil Debski <kamil@wypas.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20180605103328.176255-1-tfiga@chromium.org>
- <20180605103328.176255-2-tfiga@chromium.org>
- <CAAoAYcOJ5Q2rHqGEmcStxxXj423a3ddKOSzvwRV6R5-UxhM+Hg@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b767d9d7-5a26-f6f8-3978-81e8d60769c2@xs4all.nl>
-Date: Thu, 7 Jun 2018 09:21:49 +0200
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49566 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753304AbeFGHZi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2018 03:25:38 -0400
+Date: Thu, 7 Jun 2018 09:25:36 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: mchehab+samsung@kernel.org, mchehab@s-opensource.com,
+        Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
+        sre@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Message-ID: <20180607072536.GA12569@amd>
+References: <20180319102354.GA12557@amd>
+ <20180319074715.5b700405@vento.lan>
+ <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
+ <20180319120043.GA20451@amd>
+ <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
+ <20180319095544.7e235a3e@vento.lan>
+ <20180515200117.GA21673@amd>
+ <20180515190314.2909e3be@vento.lan>
+ <20180602210145.GB20439@amd>
+ <CAAFQd5ACz1DNW07-vk6rCffC0aNcUG_9+YVNK9HmOTg0+-3yzg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAoAYcOJ5Q2rHqGEmcStxxXj423a3ddKOSzvwRV6R5-UxhM+Hg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5ACz1DNW07-vk6rCffC0aNcUG_9+YVNK9HmOTg0+-3yzg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/05/2018 03:10 PM, Dave Stevenson wrote:
-> Hi Tomasz.
-> 
-> Thanks for formalising this.
-> I'm working on a stateful V4L2 codec driver on the Raspberry Pi and
-> was having to deduce various implementation details from other
-> drivers. I know how much we all tend to hate having to write
-> documentation, but it is useful to have.
-> 
-> On 5 June 2018 at 11:33, Tomasz Figa <tfiga@chromium.org> wrote:
->> Due to complexity of the video decoding process, the V4L2 drivers of
->> stateful decoder hardware require specific sequencies of V4L2 API calls
->> to be followed. These include capability enumeration, initialization,
->> decoding, seek, pause, dynamic resolution change, flush and end of
->> stream.
->>
->> Specifics of the above have been discussed during Media Workshops at
->> LinuxCon Europe 2012 in Barcelona and then later Embedded Linux
->> Conference Europe 2014 in Düsseldorf. The de facto Codec API that
->> originated at those events was later implemented by the drivers we already
->> have merged in mainline, such as s5p-mfc or mtk-vcodec.
->>
->> The only thing missing was the real specification included as a part of
->> Linux Media documentation. Fix it now and document the decoder part of
->> the Codec API.
->>
->> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
->> ---
->>  Documentation/media/uapi/v4l/dev-codec.rst | 771 +++++++++++++++++++++
->>  Documentation/media/uapi/v4l/v4l2.rst      |  14 +-
->>  2 files changed, 784 insertions(+), 1 deletion(-)
->>
->> diff --git a/Documentation/media/uapi/v4l/dev-codec.rst b/Documentation/media/uapi/v4l/dev-codec.rst
->> index c61e938bd8dc..0483b10c205e 100644
->> --- a/Documentation/media/uapi/v4l/dev-codec.rst
->> +++ b/Documentation/media/uapi/v4l/dev-codec.rst
->> @@ -34,3 +34,774 @@ the codec and reprogram it whenever another file handler gets access.
->>  This is different from the usual video node behavior where the video
->>  properties are global to the device (i.e. changing something through one
->>  file handle is visible through another file handle).
-> 
-> I know this isn't part of the changes, but raises a question in
-> v4l2-compliance (so probably one for Hans).
-> testUnlimitedOpens tries opening the device 100 times. On a normal
-> device this isn't a significant overhead, but when you're allocating
-> resources on a per instance basis it quickly adds up.
-> Internally I have state that has a limit of 64 codec instances (either
-> encode or decode), so either I allocate at start_streaming and fail on
-> the 65th one, or I fail on open. I generally take the view that
-> failing early is a good thing.
-> Opinions? Is 100 instances of an M2M device really sensible?
 
-Resources should not be allocated by the driver until needed (i.e. the
-queue_setup op is a good place for that).
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It is perfectly legal to open a video node just to call QUERYCAP to
-see what it is, and I don't expect that to allocate any hardware resources.
-And if I want to open it 100 times, then that should just work.
+Hi!
 
-It is *always* wrong to limit the number of open arbitrarily.
+> I guess that could give some basic camera functionality on OMAP3-like har=
+dware.
 
-Regards,
+Yeah, and that is the goal.
 
-	Hans
+> For most of the current generation of imaging subsystems (e.g. Intel
+> IPU3, Rockchip RKISP1) it's not enough. The reason is that there is
+> more to be handled by userspace than just setting controls:
+>  - configuring pixel formats, resolutions, crops, etc. through the
+> whole pipeline - I guess that could be preconfigured per use case
+> inside the configuration file, though,
+>  - forwarding buffers between capture and processing pipelines, i.e.
+> DQBUF raw frame from CSI2 video node and QBUF to ISP video node,
+>  - handling metadata CAPTURE and OUTPUT buffers controlling the 3A
+> feedback loop - this might be optional if all we need is just ability
+> to capture some frames, but required for getting good quality,
+>  - actually mapping legacy controls into the above metadata,
+
+I just wanted to add few things:
+
+It seems IPU3 and RKISP1 is really similar to what I have on
+N900. Forwarding frames between parts of processing pipeline is not
+neccessary, but the other parts are there.
+
+There are also two points where you can gather the image data, either
+(almost) raw GRBG10 data from the sensor, or scaled YUV data ready for
+display. [And how to display that data without CPU involvement is
+another, rather big, topic.]
+
+Anyway, legacy applications expect simple webcams with bad pictures,
+low resolution, and no AF support. And we should be able to provide
+them with just that.
+
+Best regards,
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--oyUTqETQ0mS9luUI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlsY3fAACgkQMOfwapXb+vI+3wCfaJuFZW1w9MomzGPLPcFeZTYD
+6KIAoLl6DUqD+m9N51w932mPBSbBJVkT
+=f3p9
+-----END PGP SIGNATURE-----
+
+--oyUTqETQ0mS9luUI--
