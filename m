@@ -1,88 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:52843 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:60431 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752590AbeFGKce (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2018 06:32:34 -0400
-Message-ID: <1528367543.3308.6.camel@pengutronix.de>
+        with ESMTP id S1753088AbeFGKkD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2018 06:40:03 -0400
+Message-ID: <1528367999.3308.7.camel@pengutronix.de>
 Subject: Re: [RFC PATCH 2/2] media: docs-rst: Add encoder UAPI specification
  to Codec Interfaces
 From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>, Tomasz Figa <tfiga@chromium.org>
-Cc: Pawel Osciak <posciak@chromium.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
-        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-        jtp.park@samsung.com,
-        Tiffany Lin =?UTF-8?Q?=28=E6=9E=97=E6=85=A7=E7=8F=8A=29?=
-        <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen =?UTF-8?Q?=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?=
-        <andrew-ct.chen@mediatek.com>,
+        =?UTF-8?Q?Pawe=C5=82_O=C5=9Bciak?= <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Kamil Debski <kamil@wypas.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        todor.tomov@linaro.org, nicolas@ndufresne.ca,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
         Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Thu, 07 Jun 2018 12:32:23 +0200
-In-Reply-To: <41fd04f2-fc44-1792-81e6-a3d4d384adc5@xs4all.nl>
+Date: Thu, 07 Jun 2018 12:39:59 +0200
+In-Reply-To: <32e8a7b8-5629-c089-7375-0513512784ff@xs4all.nl>
 References: <20180605103328.176255-1-tfiga@chromium.org>
          <20180605103328.176255-3-tfiga@chromium.org>
-         <1528199628.4074.15.camel@pengutronix.de>
-         <CAAFQd5DYu+Oehr1UUvvdmWk7toO0i_=NFgvZcAKQ8ZURKy51fA@mail.gmail.com>
-         <1528208578.4074.19.camel@pengutronix.de>
-         <CAAFQd5DqHj65AdzfYmvHWkqHnZntiiA2AhAfgHbLA3AuWvsOTQ@mail.gmail.com>
-         <1528278003.3438.3.camel@pengutronix.de>
-         <CAAFQd5A2hsgrmwJ3bgv6EDKqqy5Y86CnMcktrWa+YihWGjxtHg@mail.gmail.com>
-         <41fd04f2-fc44-1792-81e6-a3d4d384adc5@xs4all.nl>
+         <32e8a7b8-5629-c089-7375-0513512784ff@xs4all.nl>
 Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-06-07 at 09:27 +0200, Hans Verkuil wrote:
+On Thu, 2018-06-07 at 11:21 +0200, Hans Verkuil wrote:
 [...]
-> > > > > I think it could be useful to enforce the same colorimetry on CAPTURE
-> > > > > and OUTPUT queue if the hardware doesn't do any colorspace conversion.
-> > > > 
-> > > > After thinking a bit more on this, I guess it wouldn't overly
-> > > > complicate things if we require that the values from OUTPUT queue are
-> > > > copied to CAPTURE queue, if the stream doesn't include such
-> > > > information or the hardware just can't parse them.
-> > > 
-> > > And for encoders it would be copied from CAPTURE queue to OUTPUT queue?
-> > > 
-> > 
-> > I guess iy would be from OUTPUT to CAPTURE for encoders as well, since
-> > the colorimetry of OUTPUT is ultimately defined by the raw frames that
-> > userspace is going to be feeding to the encoder.
+> > +Encoder
+> > +=======
+[...]
+> > +Initialization
+> > +--------------
+> > +
+> > +1. (optional) Enumerate supported formats and resolutions. See
+> > +   capability enumeration.
+> > +
+> > +2. Set a coded format on the CAPTURE queue via :c:func:`VIDIOC_S_FMT`
+> > +
+> > +   a. Required fields:
+> > +
+> > +      i.  type = CAPTURE
+> > +
+> > +      ii. fmt.pix_mp.pixelformat set to a coded format to be produced
+> > +
+> > +   b. Return values:
+> > +
+> > +      i.  EINVAL: unsupported format.
 > 
-> Correct. All mem2mem drivers should just copy the colorimetry from the
-> output buffers to the capture buffers, unless the decoder hardware is able to
-> extract that data from the stream, in which case it can overwrite it for
-> the capture buffer.
+> I'm still not sure about returning an error in this case.
+>
+> And what should TRY_FMT do?
+
+Also the documentation currently states in [1]:
+
+  Drivers should not return an error code unless the type field is
+ 
+invalid, this is a mechanism to fathom device capabilities and to
+ 
+approach parameters acceptable for both the application and driver. 
+
+[1] https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/vidioc-g-fmt.html
+
+> Do you know what current codecs do? Return EINVAL or replace with a supported format?
+
+At least coda replaces incorrect pixelformat with a supported format.
+
+> It would be nice to standardize on one rule or another.
 > 
-> Currently colorspace converters are not supported since the V4L2 API does
-> not provide a way to let userspace define colorimetry for the capture queue.
+> The spec says that it should always return a valid format, but not all drivers adhere
+> to that. Perhaps we need to add a flag to let the driver signal the behavior of S_FMT
+> to userspace.
+> 
+> This is a long-standing issue with S_FMT, actually.
+> 
+[...]
+> > +Encoding parameter changes
+> > +--------------------------
+> > +
+> > +The client is allowed to use :c:func:`VIDIOC_S_CTRL` to change encoder
+> > +parameters at any time. The driver must apply the new setting starting
+> > +at the next frame queued to it.
+> > +
+> > +This specifically means that if the driver maintains a queue of buffers
+> > +to be encoded and at the time of the call to :c:func:`VIDIOC_S_CTRL` not all the
+> > +buffers in the queue are processed yet, the driver must not apply the
+> > +change immediately, but schedule it for when the next buffer queued
+> > +after the :c:func:`VIDIOC_S_CTRL` starts being processed.
+> 
+> Is this what drivers do today? I thought it was applied immediately?
+> This sounds like something for which you need the Request API.
 
-Oh, I never realized this limitation [1] ...
+coda currently doesn't support dynamically changing controls at all.
 
- "Image colorspace, from enum v4l2_colorspace. This information
-  supplements the pixelformat and must be set by the driver for capture
-  streams and by the application for output streams, see Colorspaces."
+> > +
+> > +Flush
+> > +-----
+> > +
+> > +Flush is the process of draining the CAPTURE queue of any remaining
+> > +buffers. After the flush sequence is complete, the client has received
+> > +all encoded frames for all OUTPUT buffers queued before the sequence was
+> > +started.
+> > +
+> > +1. Begin flush by issuing :c:func:`VIDIOC_ENCODER_CMD`.
+> > +
+> > +   a. Required fields:
+> > +
+> > +      i. cmd = ``V4L2_ENC_CMD_STOP``
+> > +
+> > +2. The driver must process and encode as normal all OUTPUT buffers
+> > +   queued by the client before the :c:func:`VIDIOC_ENCODER_CMD` was issued.
+> 
+> Note: TRY_ENCODER_CMD should also be supported, likely via a standard helper
+> in v4l2-mem2mem.c.
 
-[1] https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-v4l2.html
-
-It's just a bit unintuitive that the initialization sequence requires to
-set S_FMT(CAP) first and then S_FMT(OUT) but with colorspace there is
-information that flows the opposite way.
-
-> I have a patch to add a new v4l2_format flag for that since forever, but
-> since we do not have any drivers that can do this in the kernel it has never
-> been upstreamed.
-
-Has this patch been posted some time? I think we could add a mem2mem
-device to imx-media with support for linear transformations.
+TRY_ENCODER_CMD can be used to check whether the hardware supports
+things like V4L2_ENC_CMD_STOP_AT_GOP_END, I don't think this will be the
+same for all codecs.
 
 regards
 Philipp
