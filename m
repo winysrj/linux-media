@@ -1,44 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f171.google.com ([209.85.216.171]:46054 "EHLO
-        mail-qt0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933302AbeFGPaU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2018 11:30:20 -0400
-Received: by mail-qt0-f171.google.com with SMTP id i18-v6so10242785qtp.12
-        for <linux-media@vger.kernel.org>; Thu, 07 Jun 2018 08:30:20 -0700 (PDT)
-Message-ID: <60598c40ee42167d955dc9f3bab2d79144050a36.camel@ndufresne.ca>
-Subject: Re: Bug: media device controller node not removed when uvc device
- is unplugged
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Torleiv Sundre <torleiv@huddly.com>, linux-media@vger.kernel.org
-Date: Thu, 07 Jun 2018 11:30:18 -0400
-In-Reply-To: <fc69c83d-fbd6-d955-2e07-3960c052cb49@huddly.com>
-References: <fc69c83d-fbd6-d955-2e07-3960c052cb49@huddly.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail.bootlin.com ([62.4.15.54]:50056 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933959AbeFGPgr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Jun 2018 11:36:47 -0400
+Date: Thu, 7 Jun 2018 17:36:46 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Jagan Teki <jagan@amarulasolutions.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-media@vger.kernel.org,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        Neil Armstrong <narmstrong@baylibre.com>
+Subject: Re: "media: ov5640: Add horizontal and vertical totals" regression
+ issue on i.MX6QDL
+Message-ID: <20180607153646.jlif4hukbyfkvjfx@flea>
+References: <CAMty3ZCjNHUeHAJCDjoTHh_w1nNkUFTLjbp1=sYuF2DRiz-E-g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <CAMty3ZCjNHUeHAJCDjoTHh_w1nNkUFTLjbp1=sYuF2DRiz-E-g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le jeudi 07 juin 2018 à 14:07 +0200, Torleiv Sundre a écrit :
+On Thu, Jun 07, 2018 at 08:02:28PM +0530, Jagan Teki wrote:
 > Hi,
 > 
-> Every time I plug in a UVC camera, a media controller node is created at 
-> /dev/media<N>.
+> ov5640 camera is breaking with below commit on i.MXQDL platform.
 > 
-> In Ubuntu 17.10, running kernel 4.13.0-43, the media controller device 
-> node is removed when the UVC camera is unplugged.
+>     commit 476dec012f4c6545b0b7599cd9adba2ed819ad3b
+>     Author: Maxime Ripard <maxime.ripard@bootlin.com>
+>     Date:   Mon Apr 16 08:36:55 2018 -0400
 > 
-> In Ubuntu 18.10, running kernel 4.15.0-22, the media controller device 
-> node is not removed. For every time I plug the device, a new device node 
-> with incremented minor number is created, leaving me with a growing list 
-> of media controller device nodes. If I repeat for long enough, I get the 
-> following error:
-> "media: could not get a free minor"
-> I also tried building a kernel from mainline, with the same result.
+>     media: ov5640: Add horizontal and vertical totals
 > 
-> I'm running on x86_64.
+>     All the initialization arrays are changing the horizontal and vertical
+>     totals for some value.
+> 
+>     In order to clean up the driver, and since we're going to need that value
+>     later on, let's introduce in the ov5640_mode_info structure the horizontal
+>     and vertical total sizes, and move these out of the bytes array.
+> 
+>     Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+>     Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> 
+> We have reproduced as below [1] and along with ipu1_csi0 pipeline. I
+> haven't debug further please let us know how to move further.
+> 
+> media-ctl --links "'ov5640 2-003c':0->'imx6-mipi-csi2':0[1]"
+> media-ctl --links "'imx6-mipi-csi2':1->'ipu1_csi0_mux':0[1]"
+> media-ctl --links "'ipu1_csi0_mux':2->'ipu1_csi0':0[1]"
+> media-ctl --links "'ipu1_csi0':2->'ipu1_csi0 capture':0[1]"
+> 
+> media-ctl --set-v4l2 "'ov5640 2-003c':0[fmt:UYVY2X8/640x480 field:none]"
+> media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY2X8/640x480 field:none]"
+> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/640x480 field:none]"
+> media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:AYUV32/640x480 field:none]"
+> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/640x480 field:none]"
+> 
+> [1] https://lkml.org/lkml/2018/5/31/543
 
-I also observe this on 4.17.
+Yeah, this has already been reported as part as this serie:
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg131655.html
 
-> 
-> Torleiv Sundre
+and some suggestions have been done here:
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg132570.html
+
+Feel free to help debug this.
+
+Maxime
+
+-- 
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
