@@ -1,56 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:46632 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752156AbeFGWkN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2018 18:40:13 -0400
-Subject: Re: [PATCH] bpf: attach type BPF_LIRC_MODE2 should not depend on
- CONFIG_BPF_CGROUP
-To: Y Song <ys114321@gmail.com>, Sean Young <sean@mess.org>
-Cc: Matthias Reichl <hias@horus.com>, linux-media@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Quentin Monnet <quentin.monnet@netronome.com>
-References: <cover.1527419762.git.sean@mess.org>
- <9f2c54d4956f962f44fcda739a824397ddea132c.1527419762.git.sean@mess.org>
- <20180604174730.sctfoklq7klswebp@camel2.lan>
- <20180605101629.yffyp64o7adg6hu5@gofer.mess.org>
- <04cc36e7-4597-dc57-4ad7-71afcc17244a@iogearbox.net>
- <20180606210939.q3vviyc4b2h6gu3c@gofer.mess.org>
- <CAH3MdRXE8=dE25Sj3TPDzVh7ytnvCkUDvCDzZkEZe0N84dy-Zw@mail.gmail.com>
-From: Daniel Borkmann <daniel@iogearbox.net>
-Message-ID: <34406f72-722d-9c23-327f-b7c5d7a3090c@iogearbox.net>
-Date: Fri, 8 Jun 2018 00:40:10 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAH3MdRXE8=dE25Sj3TPDzVh7ytnvCkUDvCDzZkEZe0N84dy-Zw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:52493 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750704AbeFHENm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Jun 2018 00:13:42 -0400
+Message-ID: <1827e74117952f8960badb4bace517e8@smtp-cloud9.xs4all.net>
+Date: Fri, 08 Jun 2018 06:13:40 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/07/2018 08:14 PM, Y Song wrote:
-> On Wed, Jun 6, 2018 at 2:09 PM, Sean Young <sean@mess.org> wrote:
->> Compile bpf_prog_{attach,detach,query} even if CONFIG_BPF_CGROUP is not
->> set.
-> 
-> It should be CONFIG_CGROUP_BPF here. The same for subject line.
-> Today, if CONFIG_CGROUP_BPF is not defined. Users will get an -EINVAL
-> if they try to attach/detach/query.
-> 
-> I am not sure what is the motivation behind this change. Could you explain more?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Motivation was that lirc2 progs are not related to cgroups at all and there
-are users that have compiled it out, yet it uses BPF_PROG_ATTACH/DETACH for
-managing them. This definitely needs to be more clearly explained in the
-changelog, agree.
+Results of the daily build of media_tree:
 
->> Signed-off-by: Sean Young <sean@mess.org>
->> ---
->>  include/linux/bpf-cgroup.h |  31 +++++++++++
->>  kernel/bpf/cgroup.c        | 110 +++++++++++++++++++++++++++++++++++++
->>  kernel/bpf/syscall.c       | 105 ++---------------------------------
->>  3 files changed, 145 insertions(+), 101 deletions(-)
->>[...]
+date:			Fri Jun  8 05:00:18 CEST 2018
+media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
+media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
+v4l-utils git hash:	c3b46c2c53d7d815a53c902cfb2ddd96c3732c5b
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17-i686: OK
+linux-4.17-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
