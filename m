@@ -1,128 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36688 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751898AbeFHINq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Jun 2018 04:13:46 -0400
-Subject: Re: [PATCH v2] media: v4l: Add new 10-bit packed grayscale format
-To: Todor Tomov <todor.tomov@linaro.org>, sakari.ailus@iki.fi,
-        mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1525769177-6328-1-git-send-email-todor.tomov@linaro.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6411f254-cc4f-43b2-868f-bcf2d6e6f0eb@xs4all.nl>
-Date: Fri, 8 Jun 2018 10:13:41 +0200
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:53938 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751138AbeFHIR1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2018 04:17:27 -0400
+Received: by mail-wm0-f67.google.com with SMTP id x6-v6so1763818wmc.3
+        for <linux-media@vger.kernel.org>; Fri, 08 Jun 2018 01:17:26 -0700 (PDT)
+Subject: Re: [PATCH v7 0/6] Add ChromeOS EC CEC Support
+To: Hans Verkuil <hverkuil@xs4all.nl>, airlied@linux.ie,
+        hans.verkuil@cisco.com, lee.jones@linaro.org, olof@lixom.net,
+        seanpaul@google.com
+Cc: sadolfsson@google.com, felixe@google.com, bleung@google.com,
+        darekm@google.com, marcheu@chromium.org, fparent@baylibre.com,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        eballetbo@gmail.com
+References: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
+ <04598b47-5099-6695-da43-6e7148145cfa@xs4all.nl>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <55c2c02d-5675-0821-97ec-6a805659b807@baylibre.com>
+Date: Fri, 8 Jun 2018 10:17:23 +0200
 MIME-Version: 1.0
-In-Reply-To: <1525769177-6328-1-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <04598b47-5099-6695-da43-6e7148145cfa@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2018 10:46 AM, Todor Tomov wrote:
-> The new format will be called V4L2_PIX_FMT_Y10P.
-> It is similar to the V4L2_PIX_FMT_SBGGR10P family formats
-> but V4L2_PIX_FMT_Y10P is a grayscale format.
+Hi Hans,
+
+On 08/06/2018 09:53, Hans Verkuil wrote:
+> On 06/01/2018 10:19 AM, Neil Armstrong wrote:
+>> Hi All,
+>>
+>> The new Google "Fizz" Intel-based ChromeOS device is gaining CEC support
+>> through it's Embedded Controller, to enable the Linux CEC Core to communicate
+>> with it and get the CEC Physical Address from the correct HDMI Connector, the
+>> following must be added/changed:
+>> - Add the CEC sub-device registration in the ChromeOS EC MFD Driver
+>> - Add the CEC related commands and events definitions into the EC MFD driver
+>> - Add a way to get a CEC notifier with it's (optional) connector name
+>> - Add the CEC notifier to the i915 HDMI driver
+>> - Add the proper ChromeOS EC CEC Driver
+>>
+>> The CEC notifier with the connector name is the tricky point, since even on
+>> Device-Tree platforms, there is no way to distinguish between multiple HDMI
+>> connectors from the same DRM driver. The solution I implemented is pretty
+>> simple and only adds an optional connector name to eventually distinguish
+>> an HDMI connector notifier from another if they share the same device.
 > 
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-
-I see no patch adding support for this to a driver. We don't like adding new
-defines without a driver that needs it.
-
-Is it possible to add support for this to a mainlined driver? Or is it going to
-be used by a new driver?
-
-Regards,
-
-	Hans
-
-> ---
+> This looks good to me, which brings me to the next question: how to merge
+> this?
 > 
-> v2:
-> - doc: improved bit-packed representation: added bit positions for LSB bits;
-> - doc: improved bit-packed representation: added table column widths.
+> It touches on three subsystems (media, drm, mfd), so that makes this
+> tricky.
 > 
->  Documentation/media/uapi/v4l/pixfmt-y10p.rst | 33 ++++++++++++++++++++++++++++
->  Documentation/media/uapi/v4l/yuv-formats.rst |  1 +
->  drivers/media/v4l2-core/v4l2-ioctl.c         |  1 +
->  include/uapi/linux/videodev2.h               |  1 +
->  4 files changed, 36 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-y10p.rst
+> I think there are two options: either the whole series goes through the
+> media tree, or patches 1+2 go through drm and 3-6 through media. If there
+> is a high chance of conflicts in the mfd code, then it is also an option to
+> have patches 3-6 go through the mfd subsystem.
+
+I think patches 3-6 should go in the mfd tree, Lee is used to handle this,
+then I think the rest could go in the media tree.
+
+Lee, do you think it would be possible to have an immutable branch with patches 3-6 ?
+
+Could we have an immutable branch from media tree with patch 1 to be merged in
+the i915 tree for patch 2 ?
+
+Or patch 1+2 could me merged into the i915 tree and generate an immutable branch
+for media to merge the mfd branch + patch 7 ?
+
+Neil
+
 > 
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-y10p.rst b/Documentation/media/uapi/v4l/pixfmt-y10p.rst
-> new file mode 100644
-> index 0000000..13b5713
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-y10p.rst
-> @@ -0,0 +1,33 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _V4L2-PIX-FMT-Y10P:
-> +
-> +******************************
-> +V4L2_PIX_FMT_Y10P ('Y10P')
-> +******************************
-> +
-> +Grey-scale image as a MIPI RAW10 packed array
-> +
-> +
-> +Description
-> +===========
-> +
-> +This is a packed grey-scale image format with a depth of 10 bits per
-> +pixel. Every four consecutive pixels are packed into 5 bytes. Each of
-> +the first 4 bytes contain the 8 high order bits of the pixels, and
-> +the 5th byte contains the 2 least significants bits of each pixel,
-> +in the same order.
-> +
-> +**Bit-packed representation.**
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +    :widths: 8 8 8 8 64
-> +
-> +    * - Y'\ :sub:`00[9:2]`
-> +      - Y'\ :sub:`01[9:2]`
-> +      - Y'\ :sub:`02[9:2]`
-> +      - Y'\ :sub:`03[9:2]`
-> +      - Y'\ :sub:`03[1:0]`\ (bits 7--6) Y'\ :sub:`02[1:0]`\ (bits 5--4)
-> +	Y'\ :sub:`01[1:0]`\ (bits 3--2) Y'\ :sub:`00[1:0]`\ (bits 1--0)
-> diff --git a/Documentation/media/uapi/v4l/yuv-formats.rst b/Documentation/media/uapi/v4l/yuv-formats.rst
-> index 3334ea4..9ab0592 100644
-> --- a/Documentation/media/uapi/v4l/yuv-formats.rst
-> +++ b/Documentation/media/uapi/v4l/yuv-formats.rst
-> @@ -29,6 +29,7 @@ to brightness information.
->      pixfmt-y10
->      pixfmt-y12
->      pixfmt-y10b
-> +    pixfmt-y10p
->      pixfmt-y16
->      pixfmt-y16-be
->      pixfmt-y8i
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index de5d96d..dececea 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1147,6 +1147,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
->  	case V4L2_PIX_FMT_Y16:		descr = "16-bit Greyscale"; break;
->  	case V4L2_PIX_FMT_Y16_BE:	descr = "16-bit Greyscale BE"; break;
->  	case V4L2_PIX_FMT_Y10BPACK:	descr = "10-bit Greyscale (Packed)"; break;
-> +	case V4L2_PIX_FMT_Y10P:		descr = "10-bit Greyscale (MIPI Packed)"; break;
->  	case V4L2_PIX_FMT_Y8I:		descr = "Interleaved 8-bit Greyscale"; break;
->  	case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit Greyscale"; break;
->  	case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 600877b..b24ab720 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -522,6 +522,7 @@ struct v4l2_pix_format {
->  
->  /* Grey bit-packed formats */
->  #define V4L2_PIX_FMT_Y10BPACK    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
-> +#define V4L2_PIX_FMT_Y10P    v4l2_fourcc('Y', '1', '0', 'P') /* 10  Greyscale, MIPI RAW10 packed */
->  
->  /* Palette formats */
->  #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
+> Any opinions?
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>
+>> Feel free to comment this patchset !
+>>
+>> Changes since v6:
+>> - Added stable identifier comment in intel_display.h
+>> - Renamed to cec_notifier in intel_hdmi.c/intel_drv.h
+>> - Added Acked-by/Reviewed-By tags
+>>
+>> Changes since v5:
+>>  - Small fixups on include/linux/mfd/cros_ec_commands.h
+>>  - Fixed on cros-ec-cec driver accordingly
+>>  - Added Reviewed-By tags
+>>
+>> Changes since v4:
+>>  - Split patch 3 to move the mkbp event size change into a separate patch
+>>
+>> Changes since v3 (incorrectly reported as v2):
+>>  - Renamed "Chrome OS" to "ChromeOS"
+>>  - Updated cros_ec_commands.h new structs definitions to kernel doc format
+>>  - Added Reviewed-By tags
+>>
+>> Changes since v2:
+>>  - Add i915 port_identifier() and use this stable name as cec_notifier conn name
+>>  - Fixed and cleaned up the CEC commands and events handling
+>>  - Rebased the CEC sub-device registration on top of Enric's serie
+>>  - Fixed comments typo on cec driver
+>>  - Protected the DMI match only with PCI and DMI Kconfigs
+>>
+>> Changes since v1:
+>>  - Added cec_notifier_put to intel_hdmi
+>>  - Fixed all small reported issues on the EC CEC driver
+>>  - Moved the cec_notifier_get out of the #if .. #else .. #endif
+>>
+>> Changes since RFC:
+>>  - Moved CEC sub-device registration after CEC commands and events definitions patch
+>>  - Removed get_notifier_get_byname
+>>  - Added CEC_CORE select into i915 Kconfig
+>>  - Removed CEC driver fallback if notifier is not configured on HW, added explicit warn
+>>  - Fixed CEC core return type on error
+>>  - Moved to cros-ec-cec media platform directory
+>>  - Use bus_find_device() to find the pci i915 device instead of get_notifier_get_byname()
+>>  - Fix Logical Address setup
+>>  - Added comment about HW support
+>>  - Removed memset of msg structures
+>>
+>> Neil Armstrong (6):
+>>   media: cec-notifier: Get notifier by device and connector name
+>>   drm/i915: hdmi: add CEC notifier to intel_hdmi
+>>   mfd: cros-ec: Increase maximum mkbp event size
+>>   mfd: cros-ec: Introduce CEC commands and events definitions.
+>>   mfd: cros_ec_dev: Add CEC sub-device registration
+>>   media: platform: Add ChromeOS EC CEC driver
+>>
+>>  drivers/gpu/drm/i915/Kconfig                     |   1 +
+>>  drivers/gpu/drm/i915/intel_display.h             |  24 ++
+>>  drivers/gpu/drm/i915/intel_drv.h                 |   2 +
+>>  drivers/gpu/drm/i915/intel_hdmi.c                |  13 +
+>>  drivers/media/cec/cec-notifier.c                 |  11 +-
+>>  drivers/media/platform/Kconfig                   |  11 +
+>>  drivers/media/platform/Makefile                  |   2 +
+>>  drivers/media/platform/cros-ec-cec/Makefile      |   1 +
+>>  drivers/media/platform/cros-ec-cec/cros-ec-cec.c | 347 +++++++++++++++++++++++
+>>  drivers/mfd/cros_ec_dev.c                        |  16 ++
+>>  drivers/platform/chrome/cros_ec_proto.c          |  40 ++-
+>>  include/linux/mfd/cros_ec.h                      |   2 +-
+>>  include/linux/mfd/cros_ec_commands.h             | 100 +++++++
+>>  include/media/cec-notifier.h                     |  27 +-
+>>  14 files changed, 581 insertions(+), 16 deletions(-)
+>>  create mode 100644 drivers/media/platform/cros-ec-cec/Makefile
+>>  create mode 100644 drivers/media/platform/cros-ec-cec/cros-ec-cec.c
+>>
 > 
