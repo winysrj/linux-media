@@ -1,58 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:58372 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751184AbeFHMdz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2018 08:33:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Torleiv Sundre <torleiv@huddly.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Bug: media device controller node not removed when uvc device is unplugged
-Date: Fri, 08 Jun 2018 15:34:10 +0300
-Message-ID: <1907945.zi1qWH88q7@avalon>
-In-Reply-To: <fc69c83d-fbd6-d955-2e07-3960c052cb49@huddly.com>
-References: <fc69c83d-fbd6-d955-2e07-3960c052cb49@huddly.com>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:37952 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751604AbeFHM4H (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2018 08:56:07 -0400
+Received: by mail-wr0-f196.google.com with SMTP id e18-v6so5058713wrs.5
+        for <linux-media@vger.kernel.org>; Fri, 08 Jun 2018 05:56:07 -0700 (PDT)
+Subject: Re: [PATCH v2 1/2] media: v4l2-ctrl: Add control for VP9 profile
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        linux-arm-kernel@lists.infradead.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Tom Saeger <tom.saeger@oracle.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mediatek@lists.infradead.org
+References: <20180530071613.125768-1-keiichiw@chromium.org>
+ <20180530071613.125768-2-keiichiw@chromium.org>
+ <a16dca32-4198-72c1-cf22-83f18a8cfcb6@xs4all.nl>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <bd56e330-91d2-dfde-4cfb-40b466953dad@linaro.org>
+Date: Fri, 8 Jun 2018 15:56:03 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <a16dca32-4198-72c1-cf22-83f18a8cfcb6@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Torleiv,
+Hi Hans,
 
-On Thursday, 7 June 2018 15:07:24 EEST Torleiv Sundre wrote:
-> Hi,
+On 06/08/2018 12:29 PM, Hans Verkuil wrote:
+> On 05/30/2018 09:16 AM, Keiichi Watanabe wrote:
+>> Add a new control V4L2_CID_MPEG_VIDEO_VP9_PROFILE for selecting desired
+>> profile for VP9 encoder and querying for supported profiles by VP9 encoder
+>> or decoder.
+>>
+>> An existing control V4L2_CID_MPEG_VIDEO_VPX_PROFILE cannot be
+>> used for querying since it is not a menu control but an integer
+>> control, which cannot return an arbitrary set of supported profiles.
+>>
+>> The new control V4L2_CID_MPEG_VIDEO_VP9_PROFILE is a menu control as
+>> with controls for other codec profiles. (e.g. H264)
 > 
-> Every time I plug in a UVC camera, a media controller node is created at
-> /dev/media<N>.
+> Please ignore my reply to patch 2/2. I looked at this a bit more and what you
+> should do is to change the type of V4L2_CID_MPEG_VIDEO_VPX_PROFILE to enum.
 > 
-> In Ubuntu 17.10, running kernel 4.13.0-43, the media controller device
-> node is removed when the UVC camera is unplugged.
+> All other codec profile controls are all enums, so the fact that VPX_PROFILE
+> isn't is a bug. Changing the type should not cause any problems since the same
+> control value is used when you set the control.
 > 
-> In Ubuntu 18.10, running kernel 4.15.0-22, the media controller device
-> node is not removed. For every time I plug the device, a new device node
-> with incremented minor number is created, leaving me with a growing list
-> of media controller device nodes. If I repeat for long enough, I get the
-> following error:
-> "media: could not get a free minor"
-> I also tried building a kernel from mainline, with the same result.
+> Sylwester: I see that s5p-mfc uses this control, but it is explicitly added
+> as an integer type control, so the s5p-mfc driver should not be affected by
+> changing the type of this control.
+> 
+> Stanimir: this will slightly change the venus driver, but since it is a very
+> recent driver I think we can get away with changing the core type of the
+> VPX_PROFILE control. I think that's better than ending up with two controls
+> that do the same thing.
 
-Thank you for the report. I'm sorry about that :-S It's a known issue, and a 
-fix is already present in Linus' tree, on its way to v4.18-rc1.
-
-commit f9ffcb0a21e1fa8e64d09ed613d884e054ae8191
-Author: Philipp Zabel <philipp.zabel@gmail.com>
-Date:   Mon May 21 06:24:58 2018 -0400
-
-    media: uvcvideo: Fix driver reference counting
-
-It should then get backported to stable releases.
-
-If you have time, could you try to apply that commit on top of mainline and 
-see if it fixes the problem for you ?
-
-> I'm running on x86_64.
+I agree. Actually the changes shouldn't be so much in venus driver.
 
 -- 
-Regards,
-
-Laurent Pinchart
+regards,
+Stan
