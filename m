@@ -1,42 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:42452 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751025AbeFHN0S (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2018 09:26:18 -0400
-Message-ID: <fc4b8760c8f61fcee758b28574d25bd0143f90ce.camel@collabora.com>
-Subject: Re: [PATCH v3 00/20] v4l2 core: push ioctl lock down to ioctl
- handler
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Abylay Ospan <aospan@netup.ru>
-Date: Fri, 08 Jun 2018 10:24:44 -0300
-In-Reply-To: <bcb16fa2-e915-9329-de37-3bbdddd84f30@xs4all.nl>
-References: <20180524203520.1598-1-ezequiel@collabora.com>
-         <bcb16fa2-e915-9329-de37-3bbdddd84f30@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:51436 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751862AbeFHOjv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Jun 2018 10:39:51 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.19] Convert last soc-camera users, rcar fixes,
+ subdev std support
+Message-ID: <37763018-a00b-806f-82b6-41835b2ea3ec@xs4all.nl>
+Date: Fri, 8 Jun 2018 16:39:43 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2018-06-08 at 14:11 +0200, Hans Verkuil wrote:
-> Hi Ezequiel,
-> 
-> On 05/24/2018 10:35 PM, Ezequiel Garcia wrote:
-> > Third spin of the series posted by Hans:
-> > 
-> > https://www.mail-archive.com/linux-media@vger.kernel.org/msg131363.html
-> 
-> Can you rebase this? Several patches have already been merged, so it would
-> be nice to have a new clean v4. Can you also move patch 11/20 (dvb-core) to
-> after patch 16/20? It makes it a bit easier for me to apply the patches before
-> that since the dvb patch needs an Ack from Mauro at the very least.
-> 
-> But I can take the v4l patches, that should be no problem.
-> 
-> 
+Hi Mauro,
 
-No problem.
+This pull requests converts the last users of soc-camera (thanks, Jacopo!),
+has a few rcar fixes and adds support for SDTV to v4l2-subdev (HDTV was
+supported, but not SDTV).
 
-Thanks,
-Eze
+Regards,
+
+	Hans
+
+The following changes since commit f2809d20b9250c675fca8268a0f6274277cca7ff:
+
+  media: omap2: fix compile-testing with FB_OMAP2=m (2018-06-05 09:56:56 -0400)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.19b
+
+for you to fetch changes up to eae1c8802533c940e2a6ca55db4b3aa0a3d0759f:
+
+  v4l: Add support for STD ioctls on subdev nodes (2018-06-08 16:38:43 +0200)
+
+----------------------------------------------------------------
+Jacopo Mondi (5):
+      media: i2c: Copy rj54n1cb0c soc_camera sensor driver
+      media: i2c: rj54n1: Remove soc_camera dependencies
+      arch: sh: kfr2r09: Use new renesas-ceu camera driver
+      arch: sh: ms7724se: Use new renesas-ceu camera driver
+      arch: sh: ap325rxa: Use new renesas-ceu camera driver
+
+Niklas Söderlund (6):
+      media: dt-bindings: media: rcar_vin: add support for r8a77965
+      dt-bindings: media: rcar_vin: fix style for ports and endpoints
+      rcar-vin: sync which hardware buffer to start capture from
+      media: rcar-vin: enable support for r8a77965
+      v4l2-ioctl: create helper to fill in v4l2_standard for ENUMSTD
+      v4l: Add support for STD ioctls on subdev nodes
+
+ Documentation/devicetree/bindings/media/rcar_vin.txt |   21 +-
+ Documentation/media/uapi/v4l/vidioc-enumstd.rst      |   11 +-
+ Documentation/media/uapi/v4l/vidioc-g-std.rst        |   14 +-
+ Documentation/media/uapi/v4l/vidioc-querystd.rst     |   11 +-
+ MAINTAINERS                                          |    8 +
+ arch/sh/boards/mach-ap325rxa/setup.c                 |  282 +++------
+ arch/sh/boards/mach-kfr2r09/setup.c                  |  217 ++++---
+ arch/sh/boards/mach-se/7724/setup.c                  |  120 ++--
+ arch/sh/kernel/cpu/sh4a/clock-sh7723.c               |    2 +-
+ drivers/media/i2c/Kconfig                            |   11 +
+ drivers/media/i2c/Makefile                           |    1 +
+ drivers/media/i2c/rj54n1cb0c.c                       | 1437 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-core.c          |   48 ++
+ drivers/media/platform/rcar-vin/rcar-dma.c           |   16 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h           |    2 +
+ drivers/media/v4l2-core/v4l2-ioctl.c                 |   66 ++-
+ drivers/media/v4l2-core/v4l2-subdev.c                |   22 +
+ include/media/v4l2-ioctl.h                           |   15 +-
+ include/uapi/linux/v4l2-subdev.h                     |    4 +
+ 19 files changed, 1895 insertions(+), 413 deletions(-)
+ create mode 100644 drivers/media/i2c/rj54n1cb0c.c
