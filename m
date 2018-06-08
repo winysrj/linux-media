@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:44799 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752650AbeFHLem (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2018 07:34:42 -0400
-Subject: Re: [PATCH v2 7/9] xen/gntdev: Implement dma-buf export functionality
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:44301 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751056AbeFHLif (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2018 07:38:35 -0400
+Subject: Re: [PATCH v2 6/9] xen/gntdev: Add initial support for dma-buf UAPI
 To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
         xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
         dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
@@ -12,62 +12,136 @@ Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
         matthew.d.roper@intel.com,
         Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 References: <20180601114132.22596-1-andr2000@gmail.com>
- <20180601114132.22596-8-andr2000@gmail.com>
- <96dd30f5-6ac6-498f-06e7-352e46994576@oracle.com>
- <117e05b3-69f6-b879-50d9-0cddd8e4c313@gmail.com>
- <4b37bbe1-6c5c-1941-bac0-2c7ba88af3e3@oracle.com>
- <d83a356c-f7a5-bce1-cafd-a52e736570fb@gmail.com>
- <b7f27688-f627-3fd9-9298-e02e6f35ca1e@oracle.com>
+ <20180601114132.22596-7-andr2000@gmail.com>
+ <29c1f1fb-2d52-e3df-adce-44fdee135413@oracle.com>
+ <d2bbda68-af74-58b1-36a6-d8af47ad8beb@gmail.com>
+ <7c73fae9-2dac-f3e8-bad8-0dadb73ad7af@oracle.com>
+ <4e15c758-a314-9fdc-1d70-4a465137a6f9@gmail.com>
+ <41d794ce-a318-b2f1-5ad7-e9500175bdc8@oracle.com>
 From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <0c820b7d-d9e5-8a60-b9fc-86eb3ca81df8@gmail.com>
-Date: Fri, 8 Jun 2018 14:34:39 +0300
+Message-ID: <113e3bf5-1e20-2ea0-9ad4-06e5d83df905@gmail.com>
+Date: Fri, 8 Jun 2018 14:38:31 +0300
 MIME-Version: 1.0
-In-Reply-To: <b7f27688-f627-3fd9-9298-e02e6f35ca1e@oracle.com>
+In-Reply-To: <41d794ce-a318-b2f1-5ad7-e9500175bdc8@oracle.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/08/2018 01:30 AM, Boris Ostrovsky wrote:
-> On 06/07/2018 04:44 AM, Oleksandr Andrushchenko wrote:
->> On 06/07/2018 12:48 AM, Boris Ostrovsky wrote:
->>> On 06/06/2018 08:10 AM, Oleksandr Andrushchenko wrote:
->>>> On 06/05/2018 01:07 AM, Boris Ostrovsky wrote:
->>>>> On 06/01/2018 07:41 AM, Oleksandr Andrushchenko wrote:
->>>>> +
->>>>> +static struct sg_table *
->>>>> +dmabuf_exp_ops_map_dma_buf(struct dma_buf_attachment *attach,
->>>>> +               enum dma_data_direction dir)
->>>>> +{
->>>>> +    struct gntdev_dmabuf_attachment *gntdev_dmabuf_attach =
->>>>> attach->priv;
->>>>> +    struct gntdev_dmabuf *gntdev_dmabuf = attach->dmabuf->priv;
->>>>> +    struct sg_table *sgt;
->>>>> +
->>>>> +    pr_debug("Mapping %d pages for dev %p\n",
->>>>> gntdev_dmabuf->nr_pages,
->>>>> +         attach->dev);
->>>>> +
->>>>> +    if (WARN_ON(dir == DMA_NONE || !gntdev_dmabuf_attach))
+On 06/08/2018 01:26 AM, Boris Ostrovsky wrote:
+> On 06/07/2018 03:17 AM, Oleksandr Andrushchenko wrote:
+>> On 06/07/2018 12:32 AM, Boris Ostrovsky wrote:
+>>> On 06/06/2018 05:06 AM, Oleksandr Andrushchenko wrote:
+>>>> On 06/04/2018 11:49 PM, Boris Ostrovsky wrote:
+>>>>>> diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+>>>>>> index 9813fc440c70..7d58dfb3e5e8 100644
+>>>>>> --- a/drivers/xen/gntdev.c
+>>>>>> +++ b/drivers/xen/gntdev.c
+>>>>> ...
 >>>>>
->>>>> WARN_ON_ONCE. Here and elsewhere.
->>>> Why? The UAPI may be used by different applications, thus we might
->>>> lose warnings for some of them. Having WARN_ON will show problems
->>>> for multiple users, not for the first one.
->>>> Does this make sense to still use WARN_ON?
->>> Just as with pr_err call somewhere else the concern here is that
->>> userland (which I think is where this is eventually called from?) may
->>> intentionally trigger the error, flooding the log.
->>>
->>> And even this is not directly called from userland there is still a
->>> possibility of triggering this error multiple times.
->> Ok, will use WARN_ON_ONCE
+>>>>>>     +#ifdef CONFIG_XEN_GNTDEV_DMABUF
+>>>>> This code belongs in gntdev-dmabuf.c.
+>>>> The reason I have this code here is that it is heavily
+>>>> tied to gntdev's internal functionality, e.g. map/unmap.
+>>>> I do not want to extend gntdev's API, so gntdev-dmabuf can
+>>>> access these. What is more dma-buf doesn't need to know about
+>>>> maps done by gntdev as there is no use of that information
+>>>> in gntdev-dmabuf. So, it seems more naturally to have
+>>>> dma-buf's related map/unmap code where it is: in gntdev.
+>>> Sorry, I don't follow. Why would this require extending the API? It's
+>>> just moving routines to a different file that is linked to the same
+>>> module.
+>> I do understand your intention here and tried to avoid dma-buf
+>> related code in gntdev.c as much as possible. So, let me explain
+>> my decision in more detail.
+>>
+>> There are 2 use-cases we have: dma-buf import and export.
+>>
+>> While importing a dma-buf all the dma-buf related functionality can
+>> easily be kept inside gntdev-dmabuf.c w/o any issue as all we need
+>> from gntdev.c is dev, dma_buf_fd, count and domid for that.
+>>
+>> But in case of dma-buf export we need to:
+>> 1. struct grant_map *map = gntdev_alloc_map(priv, count, dmabuf_flags);
+>> 2. gntdev_add_map(priv, map);
+>> 3. Set map->flags
+>> 4. ret = map_grant_pages(map);
+>> 5. And only now we are all set to export the new dma-buf from
+>> *map->pages*
+>>
+>> So, until 5) we use private gtndev.c's API not exported to outside world:
+>> a. struct grant_map
+>> b. static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv,
+>> int count,
+>>                        int dma_flags)
+>> c. static void gntdev_add_map(struct gntdev_priv *priv, struct
+>> grant_map *add)
+>> d. static int map_grant_pages(struct grant_map *map)
+>>
+>> Thus, all the above cannot be accessed from gntdev-dmabuf.c
+>> This is why I say that gntdev.c's API will need to be extended to
+>> provide the above
+>> a-d if we want all dma-buf export code to leave in gntdev-dmabuf.c.
 >
-> In fact, is there a reason to use WARN at all? Does this condition
-> indicate some sort of internal inconsistency/error?
-Well, the corresponding errors are anyways handled, so I will remove WARN
+>
+> I still don't understand why you feel this would be extending the API.
+> These routines and the struct can be declared in local header file and
+> this header file will not be visible to anyone but gntdev.c and
+> gntdev-dmabuf.c.
+Ok, this is what I meant: I will need to move private structures
+and some function prototypes from gntdev.c into a header file,
+thus extending its API: before the header nothing were exposed.
+Sorry for not being clear here.
+>   You can, for example, put this into gntdev-dmabuf.h
+> (and then rename it to something else, like gntdev-common.h).
+Sure, I will move all I need into that shared header
+>
+>
+>> But that doesn't seem good to me and what is more a-d are really
+>> gntdev.c's
+>> functionality, not dma-buf's which only needs pages and doesn't really
+>> care from
+>> where those come.
+>> That was the reason I partitioned export into 2 chunks: gntdev +
+>> gntdev-dmabuf.
+>>
+>> You might also ask why importing side does Xen related things
+>> (granting references+)
+>> in gntdev-dmabuf, not gntdev so it is consistent with the dma-buf
+>> exporter?
+>> This is because importer uses grant-table's API which seems to be not
+>> natural for gntdev.c,
+>> so it can leave in gntdev-dmabuf.c which has a use-case for that,
+>> while gntdev
+>> remains the same.
+>
+> Yet another reason why this code should be moved: importing and
+> exporting functionalities logically belong together. The fat that they
+> are implemented using different methods is not relevant IMO.
+>
+> If you have code which is under ifdef CONFIG_GNTDEV_DMABUF and you have
+> file called gntdev-dmabuf.c it sort of implies that this code should
+> live in that file (unless that code is intertwined with other code,
+> which is not the case here).
+Ok, will move as discussed above
+>
 > -boris
+Thank you,
+Oleksandr
 >
 >
->
+>>> Since this is under CONFIG_XEN_GNTDEV_DMABUF then why shouldn't it be in
+>>> gntdev-dmabuf.c? In my view that's the file where all dma-related
+>>> "stuff" lives.
+>> Agree, but IMO grant_map stuff for dma-buf importer is right in its
+>> place in gntdev.c
+>> and all the rest of dma-buf specifics live in gntdev-dmabuf.c as they
+>> should
+>>> -boris
+>>>
+>>>
+>>> -boris
+>>>
+>> Thank you,
+>> Oleksandr
