@@ -1,73 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.osadl.org ([62.245.132.105]:46520 "EHLO www.osadl.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753516AbeFJQR4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 10 Jun 2018 12:17:56 -0400
-From: Nicholas Mc Guire <hofrat@osadl.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Niklas Soderlund <niklas.soderlund+renesas@ragnatech.se>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH] media: stm32-dcmi: simplify of_node_put usage
-Date: Sun, 10 Jun 2018 17:23:53 +0200
-Message-Id: <1528644233-10371-1-git-send-email-hofrat@osadl.org>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:39803 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753580AbeFJSfT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 10 Jun 2018 14:35:19 -0400
+Received: by mail-lf0-f67.google.com with SMTP id t134-v6so27255762lff.6
+        for <linux-media@vger.kernel.org>; Sun, 10 Jun 2018 11:35:18 -0700 (PDT)
+From: Sylwester Nawrocki <sylwester.nawrocki@gmail.com>
+Subject: Re: [PATCH] media: s3c-camif: ignore -ENOIOCTLCMD from
+ v4l2_subdev_call for s_power
+To: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1528645321-19020-1-git-send-email-akinobu.mita@gmail.com>
+Message-ID: <6adf6a84-b542-dc88-2c6f-d70915c31aa0@gmail.com>
+Date: Sun, 10 Jun 2018 20:35:15 +0200
+MIME-Version: 1.0
+In-Reply-To: <1528645321-19020-1-git-send-email-akinobu.mita@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This does not fix any bug - this is just a code simplification. As
-np is not used after passing it to v4l2_fwnode_endpoint_parse() its
-refcount can be decremented immediately and at one location.
+On 06/10/2018 05:42 PM, Akinobu Mita wrote:
+> When the subdevice doesn't provide s_power core ops callback, the
+> v4l2_subdev_call for s_power returns -ENOIOCTLCMD.  If the subdevice
+> doesn't have the special handling for its power saving mode, the s_power
+> isn't required.  So -ENOIOCTLCMD from the v4l2_subdev_call should be
+> ignored.
 
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
----
+> Signed-off-by: Akinobu Mita<akinobu.mita@gmail.com>
 
-Issue found during code reading.
-
-Patch was compile tested with: x86_64_defconfig, MEDIA_SUPPORT=y
-MEDIA_CAMERA_SUPPORT=y, V4L_PLATFORM_DRIVERS=y, OF=y, COMPILE_TEST=y
-CONFIG_VIDEO_STM32_DCMI=y
-(There are a few sparse warnings - but unrelated to the lines changed)
-
-Patch is against 4.17.0 (localversion-next is next-20180608)
-
- drivers/media/platform/stm32/stm32-dcmi.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 2e1933d..0b61042 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -1696,23 +1696,20 @@ static int dcmi_probe(struct platform_device *pdev)
- 	}
- 
- 	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(np), &ep);
-+	of_node_put(np);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Could not parse the endpoint\n");
--		of_node_put(np);
- 		return -ENODEV;
- 	}
- 
- 	if (ep.bus_type == V4L2_MBUS_CSI2) {
- 		dev_err(&pdev->dev, "CSI bus not supported\n");
--		of_node_put(np);
- 		return -ENODEV;
- 	}
- 	dcmi->bus.flags = ep.bus.parallel.flags;
- 	dcmi->bus.bus_width = ep.bus.parallel.bus_width;
- 	dcmi->bus.data_shift = ep.bus.parallel.data_shift;
- 
--	of_node_put(np);
--
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq <= 0) {
- 		dev_err(&pdev->dev, "Could not get irq\n");
--- 
-2.1.4
+Acked-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
