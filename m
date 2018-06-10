@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:46214 "EHLO
-        homiemail-a116.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932905AbeFLPGh (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:38217 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750744AbeFJOte (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Jun 2018 11:06:37 -0400
-Subject: Re: [PATCH] cx231xx: Increase USB bridge bandwidth
-To: Matthias Schwarzott <zzam@gentoo.org>,
-        Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org,
-        mchehab@s-opensource.com
-References: <1522699141-11464-1-git-send-email-brad@nextdimension.cc>
- <72df1973-b58c-3bf2-c010-c7c4ea6130e5@gentoo.org>
-From: Brad Love <brad@nextdimension.cc>
-Message-ID: <9f491971-06a2-b2bf-29e2-80fc152b0f8d@nextdimension.cc>
-Date: Tue, 12 Jun 2018 10:06:35 -0500
-MIME-Version: 1.0
-In-Reply-To: <72df1973-b58c-3bf2-c010-c7c4ea6130e5@gentoo.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-GB
+        Sun, 10 Jun 2018 10:49:34 -0400
+Received: by mail-pl0-f65.google.com with SMTP id b14-v6so10872920pls.5
+        for <linux-media@vger.kernel.org>; Sun, 10 Jun 2018 07:49:34 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH] dvb-frontends/dvb-pll: fix module ref-counting
+Date: Sun, 10 Jun 2018 23:49:15 +0900
+Message-Id: <20180610144915.7882-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matthias,
+From: Akihiro Tsukada <tskd08@gmail.com>
 
+dvb-pll module was 'put' twice on exit:
+once by dvb_frontend_detach() and another by dvb_module_release().
 
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+ drivers/media/dvb-frontends/dvb-pll.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-On 2018-06-05 13:04, Matthias Schwarzott wrote:
-> Am 02.04.2018 um 21:59 schrieb Brad Love:
->> The cx231xx USB bridge has issue streaming QAM256 DVB-C channels.
->> QAM64 channels were fine, but QAM256 channels produced corrupted
->> transport streams.
->>
->> cx231xx alt mode 4 does not provide enough bandwidth to acommodate
->> QAM256 DVB-C channels, most likely DVB-T2 channels would break up
->> as well. Alt mode 5 increases bridge bandwidth to 90Mbps, and
->> fixes QAM256 DVB-C streaming.
->>
-> Hi Brad,
->
-> I read through the media commits applied in the last weeks.
->
-> This patch looks so simple and yet resolves the (for me) unexplainable
-> behaviour of the Hauppauge WinTV-HVR-930C-HD. DVB-C reception did only
-> produce garbage, but the the same demod driver (si2165) does work
-> perfectly in a PCI device.
->
-> Thank you for fixing this issue.
->
-> Regards
-> Matthias
-
-Happy to get this fixed for you :) If you know of any other outstanding
-issues
-with Hauppauge hardware, feel free to point me at them.
-
-Cheers,
-
-Brad
+diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
+index e3894ff403d..4a663420190 100644
+--- a/drivers/media/dvb-frontends/dvb-pll.c
++++ b/drivers/media/dvb-frontends/dvb-pll.c
+@@ -884,6 +884,17 @@ dvb_pll_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	if (!dvb_pll_attach(fe, client->addr, client->adapter, desc_id))
+ 		return -ENOMEM;
+ 
++	/*
++	 * Unset tuner_ops.release (== dvb_pll_release)
++	 * which has been just set in the above dvb_pll_attach(),
++	 * because if tuner_ops.release was left defined,
++	 * this module would be 'put' twice on exit:
++	 * once by dvb_frontend_detach() and another by dvb_module_release().
++	 *
++	 * dvb_pll_release is instead executed in the i2c driver's .remove(),
++	 * keeping dvb_pll_attach untouched for legacy (dvb_attach) drivers.
++	 */
++	fe->ops.tuner_ops.release = NULL;
+ 	dev_info(&client->dev, "DVB Simple Tuner attached.\n");
+ 	return 0;
+ }
+-- 
+2.17.1
