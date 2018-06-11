@@ -1,19 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr40070.outbound.protection.outlook.com ([40.107.4.70]:21599
-        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753786AbeFKRRA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Jun 2018 13:17:00 -0400
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:54292 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933401AbeFKRly (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Jun 2018 13:41:54 -0400
 Subject: Re: [Xen-devel] [PATCH v2 5/9] xen/gntdev: Allow mappings for DMA
  buffers
 To: Stefano Stabellini <sstabellini@kernel.org>,
         Oleksandr Andrushchenko <andr2000@gmail.com>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        "Oleksandr_Andrushchenko@epam.com" <Oleksandr_Andrushchenko@epam.com>,
         xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
         dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
         jgross@suse.com, konrad.wilk@oracle.com, daniel.vetter@intel.com,
-        matthew.d.roper@intel.com, dongwon.kim@intel.com,
-        julien.grall@arm.com
+        matthew.d.roper@intel.com, dongwon.kim@intel.com
 References: <20180601114132.22596-1-andr2000@gmail.com>
  <20180601114132.22596-6-andr2000@gmail.com>
  <64facf05-0a51-c3d9-9d3b-780893248628@oracle.com>
@@ -26,18 +25,20 @@ References: <20180601114132.22596-1-andr2000@gmail.com>
  <c6e1820a-fb57-b213-aa2f-05787dae06ad@oracle.com>
  <06eff3fe-3ffc-47f6-6bd6-d8f2f823b382@gmail.com>
  <alpine.DEB.2.10.1806110949050.14695@sstabellini-ThinkPad-X260>
-From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Message-ID: <baab493d-bcba-f053-4b48-0f97fb5723b2@epam.com>
-Date: Mon, 11 Jun 2018 20:16:14 +0300
+From: Julien Grall <julien.grall@arm.com>
+Message-ID: <a58b5309-c742-eefb-182c-17ff2aa05bd6@arm.com>
+Date: Mon, 11 Jun 2018 18:41:43 +0100
 MIME-Version: 1.0
 In-Reply-To: <alpine.DEB.2.10.1806110949050.14695@sstabellini-ThinkPad-X260>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
 Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/11/2018 07:51 PM, Stefano Stabellini wrote:
+Hi Stefano,
+
+On 06/11/2018 05:51 PM, Stefano Stabellini wrote:
 > On Mon, 11 Jun 2018, Oleksandr Andrushchenko wrote:
 >> On 06/08/2018 10:21 PM, Boris Ostrovsky wrote:
 >>> On 06/08/2018 01:59 PM, Stefano Stabellini wrote:
@@ -90,8 +91,10 @@ On 06/11/2018 07:51 PM, Stefano Stabellini wrote:
 >>>> pfn_to_bfn in drivers/xen/swiotlb-xen.c. Otherwise, if you don't care
 >>>> about other mapped grants, you can just use pfn_to_gfn, that always
 >>>> returns pfn.
+>>>
 >>> I think then this code needs to use pfn_to_bfn().
 >> Ok
+>>>
 >>>
 >>>> Also, for your information, we support different page granularities in
 >>>> Linux as a Xen guest, see the comment at include/xen/arm/page.h:
@@ -118,21 +121,25 @@ On 06/11/2018 07:51 PM, Stefano Stabellini wrote:
 >>>> remember correctly gntdev.c is the only remaining driver that doesn't
 >>>> support 64K pages yet, so you don't have to deal with it if you don't
 >>>> want to.
+>>>
 >>> I believe somewhere in this series there is a test for PAGE_SIZE vs.
 >>> XEN_PAGE_SIZE. Right, Oleksandr?
 >> Not in gntdev. You might have seen this in xen-drmfront/xen-sndfront,
 >> but I didn't touch gntdev for that. Do you want me to add yet another patch
 >> in the series to check for that?
+> 
 > gntdev.c is already not capable of handling PAGE_SIZE != XEN_PAGE_SIZE,
 > so you are not going to break anything that is not already broken :-) If
 > your new gntdev.c code relies on PAGE_SIZE == XEN_PAGE_SIZE, it might be
 > good to add an in-code comment about it, just to make it easier to fix
 > the whole of gntdev.c in the future.
->
-Yes, I just mean I can add something like [1] as a separate patch to the 
-series,
-so we are on the safe side here
->
->>> Thanks for the explanation.
-[1] 
-https://cgit.freedesktop.org/drm/drm-misc/tree/drivers/gpu/drm/xen/xen_drm_front.c#n813
+
+Well, I think gntdev is capable of handling PAGE_SIZE != XEN_PAGE_SIZE.
+Let's imagine Linux is built with 64K pages. gntdev will map each grant 
+at a 64K alignment. Although, I am not sure if patches for QEMU ever 
+make it upstream (I think it is in Centos).
+
+Cheers,
+
+-- 
+Julien Grall
