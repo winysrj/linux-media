@@ -1,53 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:33163 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932953AbeFKLgP (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:39073 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754184AbeFKMUe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Jun 2018 07:36:15 -0400
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: Luca Ceresoli <luca@lucaceresoli.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v4 4/8] media: imx274: actually use IMX274_DEFAULT_MODE
-Date: Mon, 11 Jun 2018 13:35:35 +0200
-Message-Id: <1528716939-17015-5-git-send-email-luca@lucaceresoli.net>
-In-Reply-To: <1528716939-17015-1-git-send-email-luca@lucaceresoli.net>
-References: <1528716939-17015-1-git-send-email-luca@lucaceresoli.net>
+        Mon, 11 Jun 2018 08:20:34 -0400
+Subject: Re: Fwd: Re: [PATCHv5 0/3] drm/i915: add DisplayPort
+ CEC-Tunneling-over-AUX support
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: ville.syrjala@linux.intel.com
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+References: <b6ac8671-7b66-977e-1322-f31e08d76436@xs4all.nl>
+ <7ec14da2-7aed-906e-3d55-8af1907aaf0c@xs4all.nl>
+ <20180112163027.GG10981@intel.com>
+ <e7c4e82c-e563-834b-8708-42efa222e7d3@xs4all.nl>
+ <20180112175218.GJ10981@intel.com>
+ <47a32832-4a4e-c66b-2d7f-f8f7a6093ada@xs4all.nl>
+ <9e28a8fe-c792-df98-012d-f7d02ad1e9b2@xs4all.nl>
+ <89934a2a-1a2f-4ea8-f9b8-16e5c575a8f6@xs4all.nl>
+Message-ID: <23ff8abe-db62-c8e4-ff0a-1bcb9b0b98a8@xs4all.nl>
+Date: Mon, 11 Jun 2018 14:20:29 +0200
+MIME-Version: 1.0
+In-Reply-To: <89934a2a-1a2f-4ea8-f9b8-16e5c575a8f6@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IMX274_DEFAULT_MODE is defined but not used. Start using it, so the
-default can be more easily changed without digging into the code.
+Hi Ville,
 
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+I finally found some time to dig deeper into when a CEC device should be registered.
 
----
-Changed v3 -> v4: nothing
+Since it's been a long while since we discussed this let me just recap the situation
+and then propose three solutions:
+CEC is implemented for DP-to-HDMI branch devices through DPCD CEC registers. When
+HPD is high we can read these registers and check if CEC is supported or not.
 
-Changed v2 -> v3: nothing
+If an external USB-C/DP/mini-DP to HDMI adapter is used, then when the HPD goes low
+you lose access to the DPCD registers since that is (I think) powered by the HPD.
 
-Changed v1 -> v2:
- - add "media: " prefix to commit message
----
- drivers/media/i2c/imx274.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+If an integrated branch device is used (such as for the HDMI connector on the NUC)
+the DPCD registers will remain available even if the display is disconnected.
 
-diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index f075715ffced..ceeec97cd330 100644
---- a/drivers/media/i2c/imx274.c
-+++ b/drivers/media/i2c/imx274.c
-@@ -1621,7 +1621,7 @@ static int imx274_probe(struct i2c_client *client,
- 	mutex_init(&imx274->lock);
- 
- 	/* initialize format */
--	imx274->mode = &imx274_formats[IMX274_MODE_3840X2160];
-+	imx274->mode = &imx274_formats[IMX274_DEFAULT_MODE];
- 	imx274->format.width = imx274->mode->size.width;
- 	imx274->format.height = imx274->mode->size.height;
- 	imx274->format.field = V4L2_FIELD_NONE;
--- 
-2.7.4
+The problem is with external adapters since if the HPD goes low you do not know
+if the adapter has been disconnected, or if the display just pulled the HPD low for a
+short time (updating the EDID, HDCP changes). In the latter case you do not want to
+unregister and reregister the cec device.
+
+I see three options:
+
+1) register a cec device when a connector is registered and keep it for the life time
+of the connector. If HPD goes low, or the branch device doesn't support CEC, then just
+set the physical address of the CEC adapter to f.f.f.f.
+
+This is simple, but the disadvantage is that there is a CEC device around, even if the
+branch device doesn't support CEC.
+
+2) register a cec device when HPD goes high and if a branch device that supports CEC is
+detected. Unregister the cec device when the HPD goes low and stays low for more than
+a second. This prevents a cec device from disappearing whenever the display toggles
+the HPD. It does require a delayed workqueue to handle this delay.
+
+It would be nice if there is a way to avoid a delayed workqueue, but I didn't see
+anything in the i915 code.
+
+3) A hybrid option where the cec device is only registered when a CEC capable branch
+device is detected, but then we keep it for the remaining lifetime of the connector.
+This avoids the delayed workqueue, and avoids creating cec devices if the branch
+device doesn't support CEC. But once it is created it won't be removed until the
+connector is also unregistered.
+
+I'm leaning towards the second or third option.
+
+Opinions? Other ideas?
+
+Regards,
+
+	Hans
