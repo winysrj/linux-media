@@ -1,151 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47488 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932515AbeFKKK0 (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:41367 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932745AbeFKKRM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Jun 2018 06:10:26 -0400
-Date: Mon, 11 Jun 2018 13:10:23 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: Re: [PATCH 2/2] media: ov5640: add support of module orientation
-Message-ID: <20180611101023.3dzihbwvwcopiqdh@valkosipuli.retiisi.org.uk>
-References: <1528709357-7251-1-git-send-email-hugues.fruchet@st.com>
- <1528709357-7251-3-git-send-email-hugues.fruchet@st.com>
+        Mon, 11 Jun 2018 06:17:12 -0400
+Subject: Re: [PATCH v7 0/6] Add ChromeOS EC CEC Support
+To: Neil Armstrong <narmstrong@baylibre.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        Hans Verkuil <hansverk@cisco.com>
+Cc: airlied@linux.ie, hans.verkuil@cisco.com, olof@lixom.net,
+        seanpaul@google.com, sadolfsson@google.com, felixe@google.com,
+        bleung@google.com, darekm@google.com, marcheu@chromium.org,
+        fparent@baylibre.com, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, eballetbo@gmail.com
+References: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
+ <04598b47-5099-6695-da43-6e7148145cfa@xs4all.nl>
+ <55c2c02d-5675-0821-97ec-6a805659b807@baylibre.com>
+ <898f025f-9c59-be61-a2b4-5fbbcbc659c2@cisco.com> <20180611060308.GB5278@dell>
+ <87562fc8-6c5b-1c9d-4ee4-fd17b652087f@baylibre.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f1c53c6d-a431-6dd2-8fb1-904fd9c8c7c4@xs4all.nl>
+Date: Mon, 11 Jun 2018 12:17:08 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1528709357-7251-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <87562fc8-6c5b-1c9d-4ee4-fd17b652087f@baylibre.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 11, 2018 at 11:29:17AM +0200, Hugues Fruchet wrote:
-> Add support of module being physically mounted upside down.
-> In this case, mirror and flip are enabled to fix captured images
-> orientation.
+On 11/06/18 10:56, Neil Armstrong wrote:
+> Hi Lee,
 > 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  .../devicetree/bindings/media/i2c/ov5640.txt       |  3 +++
->  drivers/media/i2c/ov5640.c                         | 28 ++++++++++++++++++++--
->  2 files changed, 29 insertions(+), 2 deletions(-)
+> On 11/06/2018 08:03, Lee Jones wrote:
+>> On Fri, 08 Jun 2018, Hans Verkuil wrote:
+>>> On 08/06/18 10:17, Neil Armstrong wrote:
+>>>> On 08/06/2018 09:53, Hans Verkuil wrote:
+>>>>> On 06/01/2018 10:19 AM, Neil Armstrong wrote:
+>>>>>> Hi All,
+>>>>>>
+>>>>>> The new Google "Fizz" Intel-based ChromeOS device is gaining CEC support
+>>>>>> through it's Embedded Controller, to enable the Linux CEC Core to communicate
+>>>>>> with it and get the CEC Physical Address from the correct HDMI Connector, the
+>>>>>> following must be added/changed:
+>>>>>> - Add the CEC sub-device registration in the ChromeOS EC MFD Driver
+>>>>>> - Add the CEC related commands and events definitions into the EC MFD driver
+>>>>>> - Add a way to get a CEC notifier with it's (optional) connector name
+>>>>>> - Add the CEC notifier to the i915 HDMI driver
+>>>>>> - Add the proper ChromeOS EC CEC Driver
+>>>>>>
+>>>>>> The CEC notifier with the connector name is the tricky point, since even on
+>>>>>> Device-Tree platforms, there is no way to distinguish between multiple HDMI
+>>>>>> connectors from the same DRM driver. The solution I implemented is pretty
+>>>>>> simple and only adds an optional connector name to eventually distinguish
+>>>>>> an HDMI connector notifier from another if they share the same device.
+>>>>>
+>>>>> This looks good to me, which brings me to the next question: how to merge
+>>>>> this?
+>>>>>
+>>>>> It touches on three subsystems (media, drm, mfd), so that makes this
+>>>>> tricky.
+>>>>>
+>>>>> I think there are two options: either the whole series goes through the
+>>>>> media tree, or patches 1+2 go through drm and 3-6 through media. If there
+>>>>> is a high chance of conflicts in the mfd code, then it is also an option to
+>>>>> have patches 3-6 go through the mfd subsystem.
+>>>>
+>>>> I think patches 3-6 should go in the mfd tree, Lee is used to handle this,
+>>>> then I think the rest could go in the media tree.
+>>>>
+>>>> Lee, do you think it would be possible to have an immutable branch with patches 3-6 ?
+>>>>
+>>>> Could we have an immutable branch from media tree with patch 1 to be merged in
+>>>> the i915 tree for patch 2 ?
+>>>>
+>>>> Or patch 1+2 could me merged into the i915 tree and generate an immutable branch
+>>>
+>>> I think patches 1+2 can just go to the i915 tree. The i915 driver changes often,
+>>> so going through that tree makes sense. The cec-notifier code is unlikely to change,
+>>> and I am fine with that patch going through i915.
+>>>
+>>>> for media to merge the mfd branch + patch 7 ?
+>>>
+>>> Patch 7? I only count 6?
+>>>
+>>> If 1+2 go through drm and 3-6 go through mfd, then media isn't affected at all.
+>>> There is chance of a conflict when this is eventually pushed to mainline for
+>>> the media Kconfig, but that's all.
+>>
+>> What are the *build* dependencies within the set?
 > 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-> index 8e36da0..f76eb7e 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-> @@ -13,6 +13,8 @@ Optional Properties:
->  	       This is an active low signal to the OV5640.
->  - powerdown-gpios: reference to the GPIO connected to the powerdown pin,
->  		   if any. This is an active high signal to the OV5640.
-> +- rotation: integer property; valid values are 0 (sensor mounted upright)
-> +	    and 180 (sensor mounted upside down).
->  
->  The device node must contain one 'port' child node for its digital output
->  video port, in accordance with the video interface bindings defined in
-> @@ -51,6 +53,7 @@ Examples:
->  		DVDD-supply = <&vgen2_reg>;  /* 1.5v */
->  		powerdown-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
->  		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
-> +		rotation = <180>;
->  
->  		port {
->  			/* MIPI CSI-2 bus endpoint */
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 41039e5..5529b14 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -215,6 +215,7 @@ struct ov5640_dev {
->  	struct regulator_bulk_data supplies[OV5640_NUM_SUPPLIES];
->  	struct gpio_desc *reset_gpio;
->  	struct gpio_desc *pwdn_gpio;
-> +	bool   upside_down;
->  
->  	/* lock to protect all members below */
->  	struct mutex lock;
-> @@ -2222,6 +2223,8 @@ static int ov5640_set_ctrl_light_freq(struct ov5640_dev *sensor, int value)
->  static int ov5640_set_ctrl_hflip(struct ov5640_dev *sensor, int value)
->  {
->  	/*
-> +	 * If sensor is mounted upside down, mirror logic is inversed.
-> +	 *
->  	 * Sensor is a BSI (Back Side Illuminated) one,
->  	 * so image captured is physically mirrored.
->  	 * This is why mirror logic is inversed in
-> @@ -2235,11 +2238,14 @@ static int ov5640_set_ctrl_hflip(struct ov5640_dev *sensor, int value)
->  	 */
->  	return ov5640_mod_reg(sensor, OV5640_REG_TIMING_TC_REG21,
->  			      BIT(2) | BIT(1),
-> -			      (!value) ? (BIT(2) | BIT(1)) : 0);
-> +			      (!(value ^ sensor->upside_down)) ?
-> +			      (BIT(2) | BIT(1)) : 0);
->  }
->  
->  static int ov5640_set_ctrl_vflip(struct ov5640_dev *sensor, int value)
->  {
-> +	/* If sensor is mounted upside down, flip logic is inversed */
-> +
->  	/*
->  	 * TIMING TC REG20:
->  	 * - [2]:	ISP vflip
-> @@ -2247,7 +2253,8 @@ static int ov5640_set_ctrl_vflip(struct ov5640_dev *sensor, int value)
->  	 */
->  	return ov5640_mod_reg(sensor, OV5640_REG_TIMING_TC_REG20,
->  			      BIT(2) | BIT(1),
-> -			      value ? (BIT(2) | BIT(1)) : 0);
-> +			      (value ^ sensor->upside_down) ?
-> +			      (BIT(2) | BIT(1)) : 0);
->  }
->  
->  static int ov5640_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-> @@ -2625,6 +2632,7 @@ static int ov5640_probe(struct i2c_client *client,
->  	struct fwnode_handle *endpoint;
->  	struct ov5640_dev *sensor;
->  	struct v4l2_mbus_framefmt *fmt;
-> +	u32 rotation;
->  	int ret;
->  
->  	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
-> @@ -2650,6 +2658,22 @@ static int ov5640_probe(struct i2c_client *client,
->  
->  	sensor->ae_target = 52;
->  
-> +	/* optional indication of physical rotation of sensor */
-> +	ret = fwnode_property_read_u32(of_fwnode_handle(client->dev.of_node),
+> Here are the hard the build dependency :
+> 
+> Patch 2 depends on Patch 1
+> Patch 5 depends on Patch 4
+> Patch 6 depends on Patches 1 & 4
 
-Instead of of_fwnode_handle(), please use dev_fwnode(&client->dev) --- as the
-driver already does elsewhere.
+Ah, I missed the dependency of patch 6 on patch 1. So the whole series needs
+to be merged as a single unit.
 
-I can make the change if you're happy with that; the patches seem fine
-otherwise.
+> 
+>>
+>> I'd be happy to send out a pull-request for either all of the patches,
+>> or just the MFD changes once I've had chance to review them.
+>>
+> 
+> Great, thanks !
+> 
+> Neil
+> 
 
-> +				       "rotation", &rotation);
-> +	if (!ret) {
-> +		switch (rotation) {
-> +		case 180:
-> +			sensor->upside_down = true;
-> +			/* fall through */
-> +		case 0:
-> +			break;
-> +		default:
-> +			dev_warn(dev, "%u degrees rotation is not supported, ignoring...\n",
-> +				 rotation);
-> +		}
-> +	}
-> +
->  	endpoint = fwnode_graph_get_next_endpoint(dev_fwnode(&client->dev),
->  						  NULL);
->  	if (!endpoint) {
+I'm OK if this goes through the mfd tree.
 
--- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+	Hans
