@@ -1,52 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [103.7.28.223] ([103.7.28.223]:50360 "EHLO smtpbg64.qq.com"
-        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753886AbeFKCLA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 10 Jun 2018 22:11:00 -0400
-From: "=?ISO-8859-1?B?SmFjb2IgQ2hlbg==?=" <jacob-chen@iotwrt.com>
-To: "=?ISO-8859-1?B?RXplcXVpZWwgR2FyY2lh?=" <ezequiel@collabora.com>,
-        "=?ISO-8859-1?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
-Cc: "=?ISO-8859-1?B?aGVpa28=?=" <heiko@sntech.de>,
-        "=?ISO-8859-1?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?=" <mchehab@kernel.org>,
-        "=?ISO-8859-1?B?bGludXgtcm9ja2NoaXA=?="
-        <linux-rockchip@lists.infradead.org>,
-        "=?ISO-8859-1?B?amFjb2JjaGVuMTEw?=" <jacobchen110@gmail.com>,
-        "=?ISO-8859-1?B?aGFucy52ZXJrdWls?=" <hans.verkuil@cisco.com>
-Subject: Re:  [PATCH 0/2] rockchip/rga: A fix and a cleanup
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="ISO-8859-1"
-Content-Transfer-Encoding: base64
-Date: Mon, 11 Jun 2018 10:02:42 +0800
-Message-ID: <tencent_7145303C52804A69C5DCA429C5EBE474240A@qq.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:8803 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932512AbeFKJ3u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Jun 2018 05:29:50 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        "Hugues Fruchet" <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH 2/2] media: ov5640: add support of module orientation
+Date: Mon, 11 Jun 2018 11:29:17 +0200
+Message-ID: <1528709357-7251-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1528709357-7251-1-git-send-email-hugues.fruchet@st.com>
+References: <1528709357-7251-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgRXplcXVpZWwsCgo+IENjaW5nIEphY29iIGF0IHRoZSByaWdodCBhZGRyZXNzLkNjaW5n
-IEphY29iIGF0IHRoZSByaWdodCBhZGRyZXNzLgo+IAo+IFBlcmhhcHMgd2Ugc2hvdWxkIGZp
-eCB0aGUgTUFJTlRBSU5FUlMgZmlsZS4KPiAKPiBPbiBGcmksIDIwMTgtMDYtMDEgYXQgMTY6
-NDkgLTAzMDAsIEV6ZXF1aWVsIEdhcmNpYSB3cm90ZToKPiA+IERlY2lkZWQgdG8gdGVzdCB2
-NGwydHJhbnNmb3JtIGZpbHRlcnMgYW5kIGZvdW5kIHRoZXNlIHR3bwo+ID4gaXNzdWVzLgo+
-ID4gCj4gPiBXaXRob3V0IHRoZSBmaXJzdCBjb21taXQsIHN0YXJ0X3N0cmVhbWluZyBmYWls
-cy4gVGhlIHNlY29uZAo+ID4gY29tbWl0IGlzIGp1c3QgYSBjbGVhbnVwLCByZW1vdmluZyBh
-IHNlZW1pbmdseSByZWR1bmRhbnQKPiA+IG9wZXJhdGlvbi4KPiA+IAo+ID4gVGVzdGVkIG9u
-IFJLMzI4OCBSYWR4YSBSb2NrMiB3aXRoIHRoZXNlIGtpbmQgb2YgcGlwZWxpbmVzOgo+ID4g
-Cj4gPiBnc3QtbGF1bmNoLTEuMCB2aWRlb3Rlc3RzcmMgISB2aWRlby94LQo+ID4gcmF3LHdp
-ZHRoPTY0MCxoZWlnaHQ9NDgwLGZyYW1lcmF0ZT0zMC8xLGZvcm1hdD1SR0IgIQo+ID4gdjRs
-MnZpZGVvMGNvbnZlcnQgISB2aWRlby94LQo+ID4gcmF3LHdpZHRoPTE5MjAsaGVpZ2h0PTEw
-ODAsZnJhbWVyYXRlPTMwLzEsZm9ybWF0PU5WMTYgISBmYWtlc2luawo+ID4gCj4gPiBnc3Qt
-bGF1bmNoLTEuMCB2NGwyc3JjIGRldmljZT0vZGV2L3ZpZGVvMSAhIHZpZGVvL3gtCj4gPiBy
-YXcsd2lkdGg9NjQwLGhlaWdodD00ODAsZnJhbWVyYXRlPTMwLzEsZm9ybWF0PVJHQiAhCj4g
-PiB2NGwydmlkZW8wY29udmVydCAhIHZpZGVvL3gtCj4gPiByYXcsd2lkdGg9MTkyMCxoZWln
-aHQ9MTA4MCxmcmFtZXJhdGU9MzAvMSxmb3JtYXQ9TlYxNiAhIGttc3NpbmsKPiA+IAo+ID4g
-RXplcXVpZWwgR2FyY2lhICgyKToKPiA+ICAgcm9ja2NoaXAvcmdhOiBGaXggYnJva2VuIC5z
-dGFydF9zdHJlYW1pbmcKPiA+ICAgcm9ja2NoaXAvcmdhOiBSZW1vdmUgdW5yZXF1aXJlZCB3
-YWl0IGluIC5qb2JfYWJvcnQKPiA+IAo+ID4gIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vcm9j
-a2NoaXAvcmdhL3JnYS1idWYuYyB8IDQ0ICsrKysrKysrKy0tLS0tLQo+ID4gLS0tLQo+ID4g
-IGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vcm9ja2NoaXAvcmdhL3JnYS5jICAgICB8IDEzICst
-LS0tLQo+ID4gIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vcm9ja2NoaXAvcmdhL3JnYS5oICAg
-ICB8ICAyIC0KPiA+ICAzIGZpbGVzIGNoYW5nZWQsIDIzIGluc2VydGlvbnMoKyksIDM2IGRl
-bGV0aW9ucygtKQo+ID4gCgpUbyBib3RoIHBhdGNoZXMsClJldmlld2VkLWJ5OiBKYWNvYiBD
-aGVuPGphY29iLWNoZW5AaW90d3J0LmNvbT4KCkl0IHNlZW1zIHRoZSBjdXJyZW50IGpvYl9h
-Ym9ydCB3aWxsIGFsc28gY2F1c2UgdW5uZWNlc3Nhcnkgd2FpdCB3aGVuIHVzaW5nIG11bHRp
-LWluc3RhbmNlLg==
+Add support of module being physically mounted upside down.
+In this case, mirror and flip are enabled to fix captured images
+orientation.
+
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ .../devicetree/bindings/media/i2c/ov5640.txt       |  3 +++
+ drivers/media/i2c/ov5640.c                         | 28 ++++++++++++++++++++--
+ 2 files changed, 29 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+index 8e36da0..f76eb7e 100644
+--- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
++++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+@@ -13,6 +13,8 @@ Optional Properties:
+ 	       This is an active low signal to the OV5640.
+ - powerdown-gpios: reference to the GPIO connected to the powerdown pin,
+ 		   if any. This is an active high signal to the OV5640.
++- rotation: integer property; valid values are 0 (sensor mounted upright)
++	    and 180 (sensor mounted upside down).
+ 
+ The device node must contain one 'port' child node for its digital output
+ video port, in accordance with the video interface bindings defined in
+@@ -51,6 +53,7 @@ Examples:
+ 		DVDD-supply = <&vgen2_reg>;  /* 1.5v */
+ 		powerdown-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
+ 		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
++		rotation = <180>;
+ 
+ 		port {
+ 			/* MIPI CSI-2 bus endpoint */
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 41039e5..5529b14 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -215,6 +215,7 @@ struct ov5640_dev {
+ 	struct regulator_bulk_data supplies[OV5640_NUM_SUPPLIES];
+ 	struct gpio_desc *reset_gpio;
+ 	struct gpio_desc *pwdn_gpio;
++	bool   upside_down;
+ 
+ 	/* lock to protect all members below */
+ 	struct mutex lock;
+@@ -2222,6 +2223,8 @@ static int ov5640_set_ctrl_light_freq(struct ov5640_dev *sensor, int value)
+ static int ov5640_set_ctrl_hflip(struct ov5640_dev *sensor, int value)
+ {
+ 	/*
++	 * If sensor is mounted upside down, mirror logic is inversed.
++	 *
+ 	 * Sensor is a BSI (Back Side Illuminated) one,
+ 	 * so image captured is physically mirrored.
+ 	 * This is why mirror logic is inversed in
+@@ -2235,11 +2238,14 @@ static int ov5640_set_ctrl_hflip(struct ov5640_dev *sensor, int value)
+ 	 */
+ 	return ov5640_mod_reg(sensor, OV5640_REG_TIMING_TC_REG21,
+ 			      BIT(2) | BIT(1),
+-			      (!value) ? (BIT(2) | BIT(1)) : 0);
++			      (!(value ^ sensor->upside_down)) ?
++			      (BIT(2) | BIT(1)) : 0);
+ }
+ 
+ static int ov5640_set_ctrl_vflip(struct ov5640_dev *sensor, int value)
+ {
++	/* If sensor is mounted upside down, flip logic is inversed */
++
+ 	/*
+ 	 * TIMING TC REG20:
+ 	 * - [2]:	ISP vflip
+@@ -2247,7 +2253,8 @@ static int ov5640_set_ctrl_vflip(struct ov5640_dev *sensor, int value)
+ 	 */
+ 	return ov5640_mod_reg(sensor, OV5640_REG_TIMING_TC_REG20,
+ 			      BIT(2) | BIT(1),
+-			      value ? (BIT(2) | BIT(1)) : 0);
++			      (value ^ sensor->upside_down) ?
++			      (BIT(2) | BIT(1)) : 0);
+ }
+ 
+ static int ov5640_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+@@ -2625,6 +2632,7 @@ static int ov5640_probe(struct i2c_client *client,
+ 	struct fwnode_handle *endpoint;
+ 	struct ov5640_dev *sensor;
+ 	struct v4l2_mbus_framefmt *fmt;
++	u32 rotation;
+ 	int ret;
+ 
+ 	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
+@@ -2650,6 +2658,22 @@ static int ov5640_probe(struct i2c_client *client,
+ 
+ 	sensor->ae_target = 52;
+ 
++	/* optional indication of physical rotation of sensor */
++	ret = fwnode_property_read_u32(of_fwnode_handle(client->dev.of_node),
++				       "rotation", &rotation);
++	if (!ret) {
++		switch (rotation) {
++		case 180:
++			sensor->upside_down = true;
++			/* fall through */
++		case 0:
++			break;
++		default:
++			dev_warn(dev, "%u degrees rotation is not supported, ignoring...\n",
++				 rotation);
++		}
++	}
++
+ 	endpoint = fwnode_graph_get_next_endpoint(dev_fwnode(&client->dev),
+ 						  NULL);
+ 	if (!endpoint) {
+-- 
+1.9.1
