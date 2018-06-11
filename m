@@ -1,70 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:9347 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753066AbeFGDrt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Jun 2018 23:47:49 -0400
-From: bingbu.cao@intel.com
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, tfiga@google.com, jacopo@jmondi.org,
-        rajmohan.mani@intel.com, bingbu.cao@linux.intel.com,
-        tian.shu.qiu@intel.com, jian.xu.zheng@intel.com
-Subject: [PATCH v4 1/2] dt-bindings: Add bindings for AKM ak7375 voice coil lens
-Date: Thu,  7 Jun 2018 11:50:32 +0800
-Message-Id: <1528343433-2475-1-git-send-email-bingbu.cao@intel.com>
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:47205 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932958AbeFKLgQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Jun 2018 07:36:16 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Luca Ceresoli <luca@lucaceresoli.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Leon Luo <leonl@leopardimaging.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v4 7/8] media: imx274: fix typo
+Date: Mon, 11 Jun 2018 13:35:38 +0200
+Message-Id: <1528716939-17015-8-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1528716939-17015-1-git-send-email-luca@lucaceresoli.net>
+References: <1528716939-17015-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Bingbu Cao <bingbu.cao@intel.com>
+pd -> pad
 
-Add device tree bindings for AKM ak7375 voice coil lens
-driver. This chip is used to drive a lens in a camera module.
-
-Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
-Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 ---
-Changes since v1:
-    - add the MAINTAINERS change
-    - correct the vendor prefix from akm to asahi-kasei
+Changed v3 -> v4: nothing
 ---
----
- Documentation/devicetree/bindings/media/i2c/ak7375.txt | 8 ++++++++
- MAINTAINERS                                            | 8 ++++++++
- 2 files changed, 16 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ak7375.txt
+ drivers/media/i2c/imx274.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ak7375.txt b/Documentation/devicetree/bindings/media/i2c/ak7375.txt
-new file mode 100644
-index 000000000000..aa3e24b41241
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ak7375.txt
-@@ -0,0 +1,8 @@
-+Asahi Kasei Microdevices AK7375 voice coil lens driver
-+
-+AK7375 is a camera voice coil lens.
-+
-+Mandatory properties:
-+
-+- compatible: "asahi-kasei,ak7375"
-+- reg: I2C slave address
-diff --git a/MAINTAINERS b/MAINTAINERS
-index ea362219c4aa..ad68d75abc84 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2258,6 +2258,14 @@ L:	linux-leds@vger.kernel.org
- S:	Maintained
- F:	drivers/leds/leds-as3645a.c
- 
-+ASAHI KASEI AK7375 LENS VOICE COIL DRIVER
-+M:	Tianshu Qiu <tian.shu.qiu@intel.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/ak7375.c
-+F:	Documentation/devicetree/bindings/media/i2c/ak7375.txt
-+
- ASAHI KASEI AK8974 DRIVER
- M:	Linus Walleij <linus.walleij@linaro.org>
- L:	linux-iio@vger.kernel.org
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index e5ba19b97083..2c13961e9764 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -544,7 +544,7 @@ struct imx274_ctrls {
+ /*
+  * struct stim274 - imx274 device structure
+  * @sd: V4L2 subdevice structure
+- * @pd: Media pad structure
++ * @pad: Media pad structure
+  * @client: Pointer to I2C client
+  * @ctrls: imx274 control structure
+  * @format: V4L2 media bus frame format structure
 -- 
-1.9.1
+2.7.4
