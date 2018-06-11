@@ -1,79 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:39073 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754184AbeFKMUe (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48508 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932668AbeFKMr6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Jun 2018 08:20:34 -0400
-Subject: Re: Fwd: Re: [PATCHv5 0/3] drm/i915: add DisplayPort
- CEC-Tunneling-over-AUX support
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: ville.syrjala@linux.intel.com
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-References: <b6ac8671-7b66-977e-1322-f31e08d76436@xs4all.nl>
- <7ec14da2-7aed-906e-3d55-8af1907aaf0c@xs4all.nl>
- <20180112163027.GG10981@intel.com>
- <e7c4e82c-e563-834b-8708-42efa222e7d3@xs4all.nl>
- <20180112175218.GJ10981@intel.com>
- <47a32832-4a4e-c66b-2d7f-f8f7a6093ada@xs4all.nl>
- <9e28a8fe-c792-df98-012d-f7d02ad1e9b2@xs4all.nl>
- <89934a2a-1a2f-4ea8-f9b8-16e5c575a8f6@xs4all.nl>
-Message-ID: <23ff8abe-db62-c8e4-ff0a-1bcb9b0b98a8@xs4all.nl>
-Date: Mon, 11 Jun 2018 14:20:29 +0200
+        Mon, 11 Jun 2018 08:47:58 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 7A61B634C83
+        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2018 15:47:56 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1fSMEm-0001O4-9P
+        for linux-media@vger.kernel.org; Mon, 11 Jun 2018 15:47:56 +0300
+Date: Mon, 11 Jun 2018 15:47:56 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.19] Add "rotation" property for sensors, use it
+Message-ID: <20180611124755.2uqbpjbvlltz2lkc@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <89934a2a-1a2f-4ea8-f9b8-16e5c575a8f6@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ville,
+Hi Mauro,
 
-I finally found some time to dig deeper into when a CEC device should be registered.
+This pull request adds the "rotation" property already used for display
+panels for sensors. Support for the property is added to the smiapp and
+ov5640 drivers.
 
-Since it's been a long while since we discussed this let me just recap the situation
-and then propose three solutions:
-CEC is implemented for DP-to-HDMI branch devices through DPCD CEC registers. When
-HPD is high we can read these registers and check if CEC is supported or not.
+Please pull.
 
-If an external USB-C/DP/mini-DP to HDMI adapter is used, then when the HPD goes low
-you lose access to the DPCD registers since that is (I think) powered by the HPD.
 
-If an integrated branch device is used (such as for the HDMI connector on the NUC)
-the DPCD registers will remain available even if the display is disconnected.
+The following changes since commit f2809d20b9250c675fca8268a0f6274277cca7ff:
 
-The problem is with external adapters since if the HPD goes low you do not know
-if the adapter has been disconnected, or if the display just pulled the HPD low for a
-short time (updating the EDID, HDCP changes). In the latter case you do not want to
-unregister and reregister the cec device.
+  media: omap2: fix compile-testing with FB_OMAP2=m (2018-06-05 09:56:56 -0400)
 
-I see three options:
+are available in the git repository at:
 
-1) register a cec device when a connector is registered and keep it for the life time
-of the connector. If HPD goes low, or the branch device doesn't support CEC, then just
-set the physical address of the CEC adapter to f.f.f.f.
+  ssh://linuxtv.org/git/sailus/media_tree.git v4l2-rotation
 
-This is simple, but the disadvantage is that there is a CEC device around, even if the
-branch device doesn't support CEC.
+for you to fetch changes up to 8cb64987a0db499b61de3c76732ff34823fb5dc7:
 
-2) register a cec device when HPD goes high and if a branch device that supports CEC is
-detected. Unregister the cec device when the HPD goes low and stays low for more than
-a second. This prevents a cec device from disappearing whenever the display toggles
-the HPD. It does require a delayed workqueue to handle this delay.
+  media: ov5640: add support of module orientation (2018-06-11 15:45:23 +0300)
 
-It would be nice if there is a way to avoid a delayed workqueue, but I didn't see
-anything in the i915 code.
+----------------------------------------------------------------
+Hugues Fruchet (2):
+      media: ov5640: add HFLIP/VFLIP controls support
+      media: ov5640: add support of module orientation
 
-3) A hybrid option where the cec device is only registered when a CEC capable branch
-device is detected, but then we keep it for the remaining lifetime of the connector.
-This avoids the delayed workqueue, and avoids creating cec devices if the branch
-device doesn't support CEC. But once it is created it won't be removed until the
-connector is also unregistered.
+Sakari Ailus (2):
+      dt-bindings: media: Define "rotation" property for sensors
+      smiapp: Support the "rotation" property
 
-I'm leaning towards the second or third option.
+ .../devicetree/bindings/media/i2c/nokia,smia.txt   |   2 +
+ .../devicetree/bindings/media/i2c/ov5640.txt       |   3 +
+ .../devicetree/bindings/media/video-interfaces.txt |   4 +
+ drivers/media/i2c/ov5640.c                         | 127 ++++++++++++++++++---
+ drivers/media/i2c/smiapp/smiapp-core.c             |  16 +++
+ 5 files changed, 134 insertions(+), 18 deletions(-)
 
-Opinions? Other ideas?
-
-Regards,
-
-	Hans
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
