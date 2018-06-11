@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:7985 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932702AbeFKJwq (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:5591 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932453AbeFKJuv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Jun 2018 05:52:46 -0400
+        Mon, 11 Jun 2018 05:50:51 -0400
 From: Hugues Fruchet <hugues.fruchet@st.com>
 To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
         Alexandre Torgue <alexandre.torgue@st.com>,
@@ -15,96 +15,86 @@ CC: <linux-media@vger.kernel.org>,
         Benjamin Gaignard <benjamin.gaignard@linaro.org>,
         Yannick Fertre <yannick.fertre@st.com>,
         Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH] media: stm32-dcmi: revisit stop streaming ops
-Date: Mon, 11 Jun 2018 11:52:17 +0200
-Message-ID: <1528710737-8946-1-git-send-email-hugues.fruchet@st.com>
+Subject: [PATCH] media: stm32-dcmi: code cleanup
+Date: Mon, 11 Jun 2018 11:50:09 +0200
+Message-ID: <1528710609-8501-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do not wait for interrupt completion when stopping streaming,
-stopping sensor and disabling interruptions are enough.
+Minor non-functional fixes around comments, variable namings
+and trace point enhancement.
 
 Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/platform/stm32/stm32-dcmi.c | 29 +----------------------------
- 1 file changed, 1 insertion(+), 28 deletions(-)
+ drivers/media/platform/stm32/stm32-dcmi.c | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 581ded0..f0134a6 100644
+index c55e6b5..b796334 100644
 --- a/drivers/media/platform/stm32/stm32-dcmi.c
 +++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -87,7 +87,6 @@ enum state {
- 	STOPPED = 0,
- 	WAIT_FOR_BUFFER,
- 	RUNNING,
--	STOPPING,
- };
- 
- #define MIN_WIDTH	16U
-@@ -432,18 +431,6 @@ static irqreturn_t dcmi_irq_thread(int irq, void *arg)
- 
- 	spin_lock_irq(&dcmi->irqlock);
- 
--	/* Stop capture is required */
--	if (dcmi->state == STOPPING) {
--		reg_clear(dcmi->regs, DCMI_IER, IT_FRAME | IT_OVR | IT_ERR);
--
--		dcmi->state = STOPPED;
--
--		complete(&dcmi->complete);
--
--		spin_unlock_irq(&dcmi->irqlock);
--		return IRQ_HANDLED;
--	}
--
- 	if ((dcmi->misr & IT_OVR) || (dcmi->misr & IT_ERR)) {
- 		dcmi->errors_count++;
- 		if (dcmi->misr & IT_OVR)
-@@ -701,8 +688,6 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
+@@ -249,13 +249,12 @@ static int dcmi_restart_capture(struct stm32_dcmi *dcmi)
+ static void dcmi_dma_callback(void *param)
  {
- 	struct stm32_dcmi *dcmi = vb2_get_drv_priv(vq);
- 	struct dcmi_buf *buf, *node;
--	unsigned long time_ms = msecs_to_jiffies(TIMEOUT_MS);
--	long timeout;
- 	int ret;
+ 	struct stm32_dcmi *dcmi = (struct stm32_dcmi *)param;
+-	struct dma_chan *chan = dcmi->dma_chan;
+ 	struct dma_tx_state state;
+ 	enum dma_status status;
+ 	struct dcmi_buf *buf = dcmi->active;
  
- 	/* Disable stream on the sub device */
-@@ -712,13 +697,6 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
- 			__func__, ret);
+ 	/* Check DMA status */
+-	status = dmaengine_tx_status(chan, dcmi->dma_cookie, &state);
++	status = dmaengine_tx_status(dcmi->dma_chan, dcmi->dma_cookie, &state);
  
- 	spin_lock_irq(&dcmi->irqlock);
--	dcmi->state = STOPPING;
--	spin_unlock_irq(&dcmi->irqlock);
--
--	timeout = wait_for_completion_interruptible_timeout(&dcmi->complete,
--							    time_ms);
--
--	spin_lock_irq(&dcmi->irqlock);
- 
- 	/* Disable interruptions */
- 	reg_clear(dcmi->regs, DCMI_IER, IT_FRAME | IT_OVR | IT_ERR);
-@@ -726,12 +704,6 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
- 	/* Disable DCMI */
- 	reg_clear(dcmi->regs, DCMI_CR, CR_ENABLE);
- 
--	if (!timeout) {
--		dev_err(dcmi->dev, "%s: Timeout during stop streaming\n",
--			__func__);
--		dcmi->state = STOPPED;
--	}
--
- 	/* Return all queued buffers to vb2 in ERROR state */
- 	list_for_each_entry_safe(buf, node, &dcmi->buffers, list) {
- 		list_del_init(&buf->list);
-@@ -739,6 +711,7 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
+ 	switch (status) {
+ 	case DMA_IN_PROGRESS:
+@@ -309,10 +308,11 @@ static int dcmi_start_dma(struct stm32_dcmi *dcmi,
+ 	/* Prepare a DMA transaction */
+ 	desc = dmaengine_prep_slave_single(dcmi->dma_chan, buf->paddr,
+ 					   buf->size,
+-					   DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT);
++					   DMA_DEV_TO_MEM,
++					   DMA_PREP_INTERRUPT);
+ 	if (!desc) {
+-		dev_err(dcmi->dev, "%s: DMA dmaengine_prep_slave_single failed for buffer size %zu\n",
+-			__func__, buf->size);
++		dev_err(dcmi->dev, "%s: DMA dmaengine_prep_slave_single failed for buffer phy=%pad size=%zu\n",
++			__func__, &buf->paddr, buf->size);
+ 		return -EINVAL;
  	}
  
- 	dcmi->active = NULL;
-+	dcmi->state = STOPPED;
+@@ -378,7 +378,6 @@ static void dcmi_process_jpeg(struct stm32_dcmi *dcmi)
+ {
+ 	struct dma_tx_state state;
+ 	enum dma_status status;
+-	struct dma_chan *chan = dcmi->dma_chan;
+ 	struct dcmi_buf *buf = dcmi->active;
  
- 	spin_unlock_irq(&dcmi->irqlock);
+ 	if (!buf)
+@@ -386,8 +385,7 @@ static void dcmi_process_jpeg(struct stm32_dcmi *dcmi)
  
+ 	/*
+ 	 * Because of variable JPEG buffer size sent by sensor,
+-	 * DMA transfer never completes due to transfer size
+-	 * never reached.
++	 * DMA transfer never completes due to transfer size never reached.
+ 	 * In order to ensure that all the JPEG data are transferred
+ 	 * in active buffer memory, DMA is drained.
+ 	 * Then DMA tx status gives the amount of data transferred
+@@ -396,10 +394,10 @@ static void dcmi_process_jpeg(struct stm32_dcmi *dcmi)
+ 	 */
+ 
+ 	/* Drain DMA */
+-	dmaengine_synchronize(chan);
++	dmaengine_synchronize(dcmi->dma_chan);
+ 
+ 	/* Get DMA residue to get JPEG size */
+-	status = dmaengine_tx_status(chan, dcmi->dma_cookie, &state);
++	status = dmaengine_tx_status(dcmi->dma_chan, dcmi->dma_cookie, &state);
+ 	if (status != DMA_ERROR && state.residue < buf->size) {
+ 		/* Return JPEG buffer to V4L2 with received JPEG buffer size */
+ 		dcmi_buffer_done(dcmi, buf, buf->size - state.residue, 0);
 -- 
 1.9.1
