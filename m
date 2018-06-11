@@ -1,72 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:39245 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753539AbeFKAId (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 10 Jun 2018 20:08:33 -0400
-Received: by mail-pg0-f67.google.com with SMTP id w12-v6so8896554pgc.6
-        for <linux-media@vger.kernel.org>; Sun, 10 Jun 2018 17:08:33 -0700 (PDT)
-Subject: Re: [PATCH] gpu: ipu-v3: Allow negative offsets for interlaced
- scanning
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
-        kernel@pengutronix.de
-References: <20180601131316.18728-1-p.zabel@pengutronix.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <ebada35f-23c1-6ca4-5228-d3d91bad48bc@gmail.com>
-Date: Sun, 10 Jun 2018 17:08:30 -0700
-MIME-Version: 1.0
-In-Reply-To: <20180601131316.18728-1-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from [103.7.28.223] ([103.7.28.223]:50360 "EHLO smtpbg64.qq.com"
+        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753886AbeFKCLA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 10 Jun 2018 22:11:00 -0400
+From: "=?ISO-8859-1?B?SmFjb2IgQ2hlbg==?=" <jacob-chen@iotwrt.com>
+To: "=?ISO-8859-1?B?RXplcXVpZWwgR2FyY2lh?=" <ezequiel@collabora.com>,
+        "=?ISO-8859-1?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
+Cc: "=?ISO-8859-1?B?aGVpa28=?=" <heiko@sntech.de>,
+        "=?ISO-8859-1?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?=" <mchehab@kernel.org>,
+        "=?ISO-8859-1?B?bGludXgtcm9ja2NoaXA=?="
+        <linux-rockchip@lists.infradead.org>,
+        "=?ISO-8859-1?B?amFjb2JjaGVuMTEw?=" <jacobchen110@gmail.com>,
+        "=?ISO-8859-1?B?aGFucy52ZXJrdWls?=" <hans.verkuil@cisco.com>
+Subject: Re:  [PATCH 0/2] rockchip/rga: A fix and a cleanup
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="ISO-8859-1"
+Content-Transfer-Encoding: base64
+Date: Mon, 11 Jun 2018 10:02:42 +0800
+Message-ID: <tencent_7145303C52804A69C5DCA429C5EBE474240A@qq.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
-
-
-On 06/01/2018 06:13 AM, Philipp Zabel wrote:
-> The IPU also supports interlaced buffers that start with the bottom field.
-> To achieve this, the the base address EBA has to be increased by a stride
-> length and the interlace offset ILO has to be set to the negative stride.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->   drivers/gpu/ipu-v3/ipu-cpmem.c | 8 +++++++-
->   1 file changed, 7 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
-> index 9f2d9ec42add..c1028f38c553 100644
-> --- a/drivers/gpu/ipu-v3/ipu-cpmem.c
-> +++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
-> @@ -269,8 +269,14 @@ EXPORT_SYMBOL_GPL(ipu_cpmem_set_uv_offset);
->   
->   void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride)
->   {
-> +	u32 ilo;
-> +
->   	ipu_ch_param_write_field(ch, IPU_FIELD_SO, 1);
-> -	ipu_ch_param_write_field(ch, IPU_FIELD_ILO, stride / 8);
-> +	if (stride >= 0)
-> +		ilo = stride / 8;
-> +	else
-> +		ilo = 0x100000 - (-stride / 8);
-> +	ipu_ch_param_write_field(ch, IPU_FIELD_ILO, ilo);
->   	ipu_ch_param_write_field(ch, IPU_FIELD_SLY, (stride * 2) - 1);
-
-This should be "(-stride * 2) - 1" for SLY when stride is negative.
-
-After fixing that, interweaving seq-bt -> interlaced-bt works fine for
-packed pixel formats, but there is still some problem for planar.
-
-I haven't tracked down the issue with planar yet, but the corresponding
-changes to imx-media that allow interweaving with line swapping are at
-
-e9dd81da20 ("media: imx: Allow interweave with top/bottom lines swapped")
-
-in branch fix-csi-interlaced.3 in my media-tree fork on github. Please 
-have a
-look and let me know if you see anything obvious.
-
-Steve
+SGkgRXplcXVpZWwsCgo+IENjaW5nIEphY29iIGF0IHRoZSByaWdodCBhZGRyZXNzLkNjaW5n
+IEphY29iIGF0IHRoZSByaWdodCBhZGRyZXNzLgo+IAo+IFBlcmhhcHMgd2Ugc2hvdWxkIGZp
+eCB0aGUgTUFJTlRBSU5FUlMgZmlsZS4KPiAKPiBPbiBGcmksIDIwMTgtMDYtMDEgYXQgMTY6
+NDkgLTAzMDAsIEV6ZXF1aWVsIEdhcmNpYSB3cm90ZToKPiA+IERlY2lkZWQgdG8gdGVzdCB2
+NGwydHJhbnNmb3JtIGZpbHRlcnMgYW5kIGZvdW5kIHRoZXNlIHR3bwo+ID4gaXNzdWVzLgo+
+ID4gCj4gPiBXaXRob3V0IHRoZSBmaXJzdCBjb21taXQsIHN0YXJ0X3N0cmVhbWluZyBmYWls
+cy4gVGhlIHNlY29uZAo+ID4gY29tbWl0IGlzIGp1c3QgYSBjbGVhbnVwLCByZW1vdmluZyBh
+IHNlZW1pbmdseSByZWR1bmRhbnQKPiA+IG9wZXJhdGlvbi4KPiA+IAo+ID4gVGVzdGVkIG9u
+IFJLMzI4OCBSYWR4YSBSb2NrMiB3aXRoIHRoZXNlIGtpbmQgb2YgcGlwZWxpbmVzOgo+ID4g
+Cj4gPiBnc3QtbGF1bmNoLTEuMCB2aWRlb3Rlc3RzcmMgISB2aWRlby94LQo+ID4gcmF3LHdp
+ZHRoPTY0MCxoZWlnaHQ9NDgwLGZyYW1lcmF0ZT0zMC8xLGZvcm1hdD1SR0IgIQo+ID4gdjRs
+MnZpZGVvMGNvbnZlcnQgISB2aWRlby94LQo+ID4gcmF3LHdpZHRoPTE5MjAsaGVpZ2h0PTEw
+ODAsZnJhbWVyYXRlPTMwLzEsZm9ybWF0PU5WMTYgISBmYWtlc2luawo+ID4gCj4gPiBnc3Qt
+bGF1bmNoLTEuMCB2NGwyc3JjIGRldmljZT0vZGV2L3ZpZGVvMSAhIHZpZGVvL3gtCj4gPiBy
+YXcsd2lkdGg9NjQwLGhlaWdodD00ODAsZnJhbWVyYXRlPTMwLzEsZm9ybWF0PVJHQiAhCj4g
+PiB2NGwydmlkZW8wY29udmVydCAhIHZpZGVvL3gtCj4gPiByYXcsd2lkdGg9MTkyMCxoZWln
+aHQ9MTA4MCxmcmFtZXJhdGU9MzAvMSxmb3JtYXQ9TlYxNiAhIGttc3NpbmsKPiA+IAo+ID4g
+RXplcXVpZWwgR2FyY2lhICgyKToKPiA+ICAgcm9ja2NoaXAvcmdhOiBGaXggYnJva2VuIC5z
+dGFydF9zdHJlYW1pbmcKPiA+ICAgcm9ja2NoaXAvcmdhOiBSZW1vdmUgdW5yZXF1aXJlZCB3
+YWl0IGluIC5qb2JfYWJvcnQKPiA+IAo+ID4gIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vcm9j
+a2NoaXAvcmdhL3JnYS1idWYuYyB8IDQ0ICsrKysrKysrKy0tLS0tLQo+ID4gLS0tLQo+ID4g
+IGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vcm9ja2NoaXAvcmdhL3JnYS5jICAgICB8IDEzICst
+LS0tLQo+ID4gIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vcm9ja2NoaXAvcmdhL3JnYS5oICAg
+ICB8ICAyIC0KPiA+ICAzIGZpbGVzIGNoYW5nZWQsIDIzIGluc2VydGlvbnMoKyksIDM2IGRl
+bGV0aW9ucygtKQo+ID4gCgpUbyBib3RoIHBhdGNoZXMsClJldmlld2VkLWJ5OiBKYWNvYiBD
+aGVuPGphY29iLWNoZW5AaW90d3J0LmNvbT4KCkl0IHNlZW1zIHRoZSBjdXJyZW50IGpvYl9h
+Ym9ydCB3aWxsIGFsc28gY2F1c2UgdW5uZWNlc3Nhcnkgd2FpdCB3aGVuIHVzaW5nIG11bHRp
+LWluc3RhbmNlLg==
