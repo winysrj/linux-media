@@ -1,118 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:41615 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932517AbeFKKTg (ORCPT
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:35419 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932956AbeFKLgQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Jun 2018 06:19:36 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mon, 11 Jun 2018 07:36:16 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Luca Ceresoli <luca@lucaceresoli.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Leon Luo <leonl@leopardimaging.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: Re: [PATCH 2/2] media: ov5640: add support of module orientation
-Date: Mon, 11 Jun 2018 10:19:25 +0000
-Message-ID: <fe88c2e1-123b-7d31-6eb7-25a682ea116f@st.com>
-References: <1528709357-7251-1-git-send-email-hugues.fruchet@st.com>
- <1528709357-7251-3-git-send-email-hugues.fruchet@st.com>
- <20180611101023.3dzihbwvwcopiqdh@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20180611101023.3dzihbwvwcopiqdh@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <7C88D1882750304C89B540BA7BE10EDC@st.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v4 5/8] media: imx274: simplify imx274_write_table()
+Date: Mon, 11 Jun 2018 13:35:36 +0200
+Message-Id: <1528716939-17015-6-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1528716939-17015-1-git-send-email-luca@lucaceresoli.net>
+References: <1528716939-17015-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgU2FrYXJpLA0KDQpJJ20gZmluZSB3aXRoIHRoZSBjaGFuZ2UgdG8gZGV2X2Z3bm9kZSgmY2xp
-ZW50LT5kZXYpLg0KDQpNYW55IHRoYW5rcyBTYWthcmksDQoNCkh1Z3Vlcy4NCg0KT24gMDYvMTEv
-MjAxOCAxMjoxMCBQTSwgU2FrYXJpIEFpbHVzIHdyb3RlOg0KPiBPbiBNb24sIEp1biAxMSwgMjAx
-OCBhdCAxMToyOToxN0FNICswMjAwLCBIdWd1ZXMgRnJ1Y2hldCB3cm90ZToNCj4+IEFkZCBzdXBw
-b3J0IG9mIG1vZHVsZSBiZWluZyBwaHlzaWNhbGx5IG1vdW50ZWQgdXBzaWRlIGRvd24uDQo+PiBJ
-biB0aGlzIGNhc2UsIG1pcnJvciBhbmQgZmxpcCBhcmUgZW5hYmxlZCB0byBmaXggY2FwdHVyZWQg
-aW1hZ2VzDQo+PiBvcmllbnRhdGlvbi4NCj4+DQo+PiBTaWduZWQtb2ZmLWJ5OiBIdWd1ZXMgRnJ1
-Y2hldCA8aHVndWVzLmZydWNoZXRAc3QuY29tPg0KPj4gLS0tDQo+PiAgIC4uLi9kZXZpY2V0cmVl
-L2JpbmRpbmdzL21lZGlhL2kyYy9vdjU2NDAudHh0ICAgICAgIHwgIDMgKysrDQo+PiAgIGRyaXZl
-cnMvbWVkaWEvaTJjL292NTY0MC5jICAgICAgICAgICAgICAgICAgICAgICAgIHwgMjggKysrKysr
-KysrKysrKysrKysrKystLQ0KPj4gICAyIGZpbGVzIGNoYW5nZWQsIDI5IGluc2VydGlvbnMoKyks
-IDIgZGVsZXRpb25zKC0pDQo+Pg0KPj4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vZGV2aWNl
-dHJlZS9iaW5kaW5ncy9tZWRpYS9pMmMvb3Y1NjQwLnR4dCBiL0RvY3VtZW50YXRpb24vZGV2aWNl
-dHJlZS9iaW5kaW5ncy9tZWRpYS9pMmMvb3Y1NjQwLnR4dA0KPj4gaW5kZXggOGUzNmRhMC4uZjc2
-ZWI3ZSAxMDA2NDQNCj4+IC0tLSBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9t
-ZWRpYS9pMmMvb3Y1NjQwLnR4dA0KPj4gKysrIGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2Jp
-bmRpbmdzL21lZGlhL2kyYy9vdjU2NDAudHh0DQo+PiBAQCAtMTMsNiArMTMsOCBAQCBPcHRpb25h
-bCBQcm9wZXJ0aWVzOg0KPj4gICAJICAgICAgIFRoaXMgaXMgYW4gYWN0aXZlIGxvdyBzaWduYWwg
-dG8gdGhlIE9WNTY0MC4NCj4+ICAgLSBwb3dlcmRvd24tZ3Bpb3M6IHJlZmVyZW5jZSB0byB0aGUg
-R1BJTyBjb25uZWN0ZWQgdG8gdGhlIHBvd2VyZG93biBwaW4sDQo+PiAgIAkJICAgaWYgYW55LiBU
-aGlzIGlzIGFuIGFjdGl2ZSBoaWdoIHNpZ25hbCB0byB0aGUgT1Y1NjQwLg0KPj4gKy0gcm90YXRp
-b246IGludGVnZXIgcHJvcGVydHk7IHZhbGlkIHZhbHVlcyBhcmUgMCAoc2Vuc29yIG1vdW50ZWQg
-dXByaWdodCkNCj4+ICsJICAgIGFuZCAxODAgKHNlbnNvciBtb3VudGVkIHVwc2lkZSBkb3duKS4N
-Cj4+ICAgDQo+PiAgIFRoZSBkZXZpY2Ugbm9kZSBtdXN0IGNvbnRhaW4gb25lICdwb3J0JyBjaGls
-ZCBub2RlIGZvciBpdHMgZGlnaXRhbCBvdXRwdXQNCj4+ICAgdmlkZW8gcG9ydCwgaW4gYWNjb3Jk
-YW5jZSB3aXRoIHRoZSB2aWRlbyBpbnRlcmZhY2UgYmluZGluZ3MgZGVmaW5lZCBpbg0KPj4gQEAg
-LTUxLDYgKzUzLDcgQEAgRXhhbXBsZXM6DQo+PiAgIAkJRFZERC1zdXBwbHkgPSA8JnZnZW4yX3Jl
-Zz47ICAvKiAxLjV2ICovDQo+PiAgIAkJcG93ZXJkb3duLWdwaW9zID0gPCZncGlvMSAxOSBHUElP
-X0FDVElWRV9ISUdIPjsNCj4+ICAgCQlyZXNldC1ncGlvcyA9IDwmZ3BpbzEgMjAgR1BJT19BQ1RJ
-VkVfTE9XPjsNCj4+ICsJCXJvdGF0aW9uID0gPDE4MD47DQo+PiAgIA0KPj4gICAJCXBvcnQgew0K
-Pj4gICAJCQkvKiBNSVBJIENTSS0yIGJ1cyBlbmRwb2ludCAqLw0KPj4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+
-IGluZGV4IDQxMDM5ZTUuLjU1MjliMTQgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlhL2ky
-Yy9vdjU2NDAuYw0KPj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+IEBAIC0y
-MTUsNiArMjE1LDcgQEAgc3RydWN0IG92NTY0MF9kZXYgew0KPj4gICAJc3RydWN0IHJlZ3VsYXRv
-cl9idWxrX2RhdGEgc3VwcGxpZXNbT1Y1NjQwX05VTV9TVVBQTElFU107DQo+PiAgIAlzdHJ1Y3Qg
-Z3Bpb19kZXNjICpyZXNldF9ncGlvOw0KPj4gICAJc3RydWN0IGdwaW9fZGVzYyAqcHdkbl9ncGlv
-Ow0KPj4gKwlib29sICAgdXBzaWRlX2Rvd247DQo+PiAgIA0KPj4gICAJLyogbG9jayB0byBwcm90
-ZWN0IGFsbCBtZW1iZXJzIGJlbG93ICovDQo+PiAgIAlzdHJ1Y3QgbXV0ZXggbG9jazsNCj4+IEBA
-IC0yMjIyLDYgKzIyMjMsOCBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRfY3RybF9saWdodF9mcmVx
-KHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsIGludCB2YWx1ZSkNCj4+ICAgc3RhdGljIGludCBv
-djU2NDBfc2V0X2N0cmxfaGZsaXAoc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciwgaW50IHZhbHVl
-KQ0KPj4gICB7DQo+PiAgIAkvKg0KPj4gKwkgKiBJZiBzZW5zb3IgaXMgbW91bnRlZCB1cHNpZGUg
-ZG93biwgbWlycm9yIGxvZ2ljIGlzIGludmVyc2VkLg0KPj4gKwkgKg0KPj4gICAJICogU2Vuc29y
-IGlzIGEgQlNJIChCYWNrIFNpZGUgSWxsdW1pbmF0ZWQpIG9uZSwNCj4+ICAgCSAqIHNvIGltYWdl
-IGNhcHR1cmVkIGlzIHBoeXNpY2FsbHkgbWlycm9yZWQuDQo+PiAgIAkgKiBUaGlzIGlzIHdoeSBt
-aXJyb3IgbG9naWMgaXMgaW52ZXJzZWQgaW4NCj4+IEBAIC0yMjM1LDExICsyMjM4LDE0IEBAIHN0
-YXRpYyBpbnQgb3Y1NjQwX3NldF9jdHJsX2hmbGlwKHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3Is
-IGludCB2YWx1ZSkNCj4+ICAgCSAqLw0KPj4gICAJcmV0dXJuIG92NTY0MF9tb2RfcmVnKHNlbnNv
-ciwgT1Y1NjQwX1JFR19USU1JTkdfVENfUkVHMjEsDQo+PiAgIAkJCSAgICAgIEJJVCgyKSB8IEJJ
-VCgxKSwNCj4+IC0JCQkgICAgICAoIXZhbHVlKSA/IChCSVQoMikgfCBCSVQoMSkpIDogMCk7DQo+
-PiArCQkJICAgICAgKCEodmFsdWUgXiBzZW5zb3ItPnVwc2lkZV9kb3duKSkgPw0KPj4gKwkJCSAg
-ICAgIChCSVQoMikgfCBCSVQoMSkpIDogMCk7DQo+PiAgIH0NCj4+ICAgDQo+PiAgIHN0YXRpYyBp
-bnQgb3Y1NjQwX3NldF9jdHJsX3ZmbGlwKHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsIGludCB2
-YWx1ZSkNCj4+ICAgew0KPj4gKwkvKiBJZiBzZW5zb3IgaXMgbW91bnRlZCB1cHNpZGUgZG93biwg
-ZmxpcCBsb2dpYyBpcyBpbnZlcnNlZCAqLw0KPj4gKw0KPj4gICAJLyoNCj4+ICAgCSAqIFRJTUlO
-RyBUQyBSRUcyMDoNCj4+ICAgCSAqIC0gWzJdOglJU1AgdmZsaXANCj4+IEBAIC0yMjQ3LDcgKzIy
-NTMsOCBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRfY3RybF92ZmxpcChzdHJ1Y3Qgb3Y1NjQwX2Rl
-diAqc2Vuc29yLCBpbnQgdmFsdWUpDQo+PiAgIAkgKi8NCj4+ICAgCXJldHVybiBvdjU2NDBfbW9k
-X3JlZyhzZW5zb3IsIE9WNTY0MF9SRUdfVElNSU5HX1RDX1JFRzIwLA0KPj4gICAJCQkgICAgICBC
-SVQoMikgfCBCSVQoMSksDQo+PiAtCQkJICAgICAgdmFsdWUgPyAoQklUKDIpIHwgQklUKDEpKSA6
-IDApOw0KPj4gKwkJCSAgICAgICh2YWx1ZSBeIHNlbnNvci0+dXBzaWRlX2Rvd24pID8NCj4+ICsJ
-CQkgICAgICAoQklUKDIpIHwgQklUKDEpKSA6IDApOw0KPj4gICB9DQo+PiAgIA0KPj4gICBzdGF0
-aWMgaW50IG92NTY0MF9nX3ZvbGF0aWxlX2N0cmwoc3RydWN0IHY0bDJfY3RybCAqY3RybCkNCj4+
-IEBAIC0yNjI1LDYgKzI2MzIsNyBAQCBzdGF0aWMgaW50IG92NTY0MF9wcm9iZShzdHJ1Y3QgaTJj
-X2NsaWVudCAqY2xpZW50LA0KPj4gICAJc3RydWN0IGZ3bm9kZV9oYW5kbGUgKmVuZHBvaW50Ow0K
-Pj4gICAJc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvcjsNCj4+ICAgCXN0cnVjdCB2NGwyX21idXNf
-ZnJhbWVmbXQgKmZtdDsNCj4+ICsJdTMyIHJvdGF0aW9uOw0KPj4gICAJaW50IHJldDsNCj4+ICAg
-DQo+PiAgIAlzZW5zb3IgPSBkZXZtX2t6YWxsb2MoZGV2LCBzaXplb2YoKnNlbnNvciksIEdGUF9L
-RVJORUwpOw0KPj4gQEAgLTI2NTAsNiArMjY1OCwyMiBAQCBzdGF0aWMgaW50IG92NTY0MF9wcm9i
-ZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LA0KPj4gICANCj4+ICAgCXNlbnNvci0+YWVfdGFy
-Z2V0ID0gNTI7DQo+PiAgIA0KPj4gKwkvKiBvcHRpb25hbCBpbmRpY2F0aW9uIG9mIHBoeXNpY2Fs
-IHJvdGF0aW9uIG9mIHNlbnNvciAqLw0KPj4gKwlyZXQgPSBmd25vZGVfcHJvcGVydHlfcmVhZF91
-MzIob2ZfZndub2RlX2hhbmRsZShjbGllbnQtPmRldi5vZl9ub2RlKSwNCj4gDQo+IEluc3RlYWQg
-b2Ygb2ZfZndub2RlX2hhbmRsZSgpLCBwbGVhc2UgdXNlIGRldl9md25vZGUoJmNsaWVudC0+ZGV2
-KSAtLS0gYXMgdGhlDQo+IGRyaXZlciBhbHJlYWR5IGRvZXMgZWxzZXdoZXJlLg0KPiANCj4gSSBj
-YW4gbWFrZSB0aGUgY2hhbmdlIGlmIHlvdSdyZSBoYXBweSB3aXRoIHRoYXQ7IHRoZSBwYXRjaGVz
-IHNlZW0gZmluZQ0KPiBvdGhlcndpc2UuDQo+IA0KPj4gKwkJCQkgICAgICAgInJvdGF0aW9uIiwg
-JnJvdGF0aW9uKTsNCj4+ICsJaWYgKCFyZXQpIHsNCj4+ICsJCXN3aXRjaCAocm90YXRpb24pIHsN
-Cj4+ICsJCWNhc2UgMTgwOg0KPj4gKwkJCXNlbnNvci0+dXBzaWRlX2Rvd24gPSB0cnVlOw0KPj4g
-KwkJCS8qIGZhbGwgdGhyb3VnaCAqLw0KPj4gKwkJY2FzZSAwOg0KPj4gKwkJCWJyZWFrOw0KPj4g
-KwkJZGVmYXVsdDoNCj4+ICsJCQlkZXZfd2FybihkZXYsICIldSBkZWdyZWVzIHJvdGF0aW9uIGlz
-IG5vdCBzdXBwb3J0ZWQsIGlnbm9yaW5nLi4uXG4iLA0KPj4gKwkJCQkgcm90YXRpb24pOw0KPj4g
-KwkJfQ0KPj4gKwl9DQo+PiArDQo+PiAgIAllbmRwb2ludCA9IGZ3bm9kZV9ncmFwaF9nZXRfbmV4
-dF9lbmRwb2ludChkZXZfZndub2RlKCZjbGllbnQtPmRldiksDQo+PiAgIAkJCQkJCSAgTlVMTCk7
-DQo+PiAgIAlpZiAoIWVuZHBvaW50KSB7DQo+IA==
+imx274_write_table() is a mere wrapper (and the only user) to
+imx274_regmap_util_write_table_8(). Remove this useless indirection by
+merging the two functions into one.
+
+Also get rid of the wait_ms_addr and end_addr parameters since it does
+not make any sense to give them any values other than
+IMX274_TABLE_WAIT_MS and IMX274_TABLE_END.
+
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+---
+Changed v3 -> v4: nothing
+
+Changed v2 -> v3: nothing
+
+Changed v1 -> v2:
+ - add "media: " prefix to commit message
+---
+ drivers/media/i2c/imx274.c | 28 ++++++++++------------------
+ 1 file changed, 10 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index ceeec97cd330..48343c2ade83 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -597,20 +597,18 @@ static inline struct stimx274 *to_imx274(struct v4l2_subdev *sd)
+ }
+ 
+ /*
+- * imx274_regmap_util_write_table_8 - Function for writing register table
+- * @regmap: Pointer to device reg map structure
+- * @table: Table containing register values
+- * @wait_ms_addr: Flag for performing delay
+- * @end_addr: Flag for incating end of table
++ * Writing a register table
++ *
++ * @priv: Pointer to device
++ * @table: Table containing register values (with optional delays)
+  *
+  * This is used to write register table into sensor's reg map.
+  *
+  * Return: 0 on success, errors otherwise
+  */
+-static int imx274_regmap_util_write_table_8(struct regmap *regmap,
+-					    const struct reg_8 table[],
+-					    u16 wait_ms_addr, u16 end_addr)
++static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
+ {
++	struct regmap *regmap = priv->regmap;
+ 	int err = 0;
+ 	const struct reg_8 *next;
+ 	u8 val;
+@@ -622,8 +620,8 @@ static int imx274_regmap_util_write_table_8(struct regmap *regmap,
+ 
+ 	for (next = table;; next++) {
+ 		if ((next->addr != range_start + range_count) ||
+-		    (next->addr == end_addr) ||
+-		    (next->addr == wait_ms_addr) ||
++		    (next->addr == IMX274_TABLE_END) ||
++		    (next->addr == IMX274_TABLE_WAIT_MS) ||
+ 		    (range_count == max_range_vals)) {
+ 			if (range_count == 1)
+ 				err = regmap_write(regmap,
+@@ -642,10 +640,10 @@ static int imx274_regmap_util_write_table_8(struct regmap *regmap,
+ 			range_count = 0;
+ 
+ 			/* Handle special address values */
+-			if (next->addr == end_addr)
++			if (next->addr == IMX274_TABLE_END)
+ 				break;
+ 
+-			if (next->addr == wait_ms_addr) {
++			if (next->addr == IMX274_TABLE_WAIT_MS) {
+ 				msleep_range(next->val);
+ 				continue;
+ 			}
+@@ -692,12 +690,6 @@ static inline int imx274_write_reg(struct stimx274 *priv, u16 addr, u8 val)
+ 	return err;
+ }
+ 
+-static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
+-{
+-	return imx274_regmap_util_write_table_8(priv->regmap,
+-		table, IMX274_TABLE_WAIT_MS, IMX274_TABLE_END);
+-}
+-
+ /*
+  * Set mode registers to start stream.
+  * @priv: Pointer to device structure
+-- 
+2.7.4
