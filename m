@@ -1,107 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48530 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932516AbeFKMvR (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:40585 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932607AbeFKNNS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Jun 2018 08:51:17 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 06824634C83
-        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2018 15:51:16 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1fSMHz-0001OC-Oz
-        for linux-media@vger.kernel.org; Mon, 11 Jun 2018 15:51:15 +0300
-Date: Mon, 11 Jun 2018 15:51:15 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.19] Sensor, lens and ISP driver patches
-Message-ID: <20180611125115.zevzd73vurbimqsm@valkosipuli.retiisi.org.uk>
+        Mon, 11 Jun 2018 09:13:18 -0400
+Subject: Re: [Xen-devel] [PATCH v2 5/9] xen/gntdev: Allow mappings for DMA
+ buffers
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        "Oleksandr_Andrushchenko@epam.com" <Oleksandr_Andrushchenko@epam.com>
+Cc: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com, daniel.vetter@intel.com,
+        matthew.d.roper@intel.com, dongwon.kim@intel.com,
+        julien.grall@arm.com
+References: <20180601114132.22596-1-andr2000@gmail.com>
+ <20180601114132.22596-6-andr2000@gmail.com>
+ <64facf05-0a51-c3d9-9d3b-780893248628@oracle.com>
+ <84217eac-b83b-710f-39ab-c93cad65bf9a@gmail.com>
+ <a172746d-7a97-159f-71a7-511b2d239089@oracle.com>
+ <30fa03c0-1b75-c0b1-b14f-8b52ea584e20@gmail.com>
+ <78dc2fc4-cdac-05b7-2c34-22b69e7e009c@oracle.com>
+ <4be24882-185d-01e3-6aa1-751e341433c7@gmail.com>
+ <alpine.DEB.2.10.1806081025030.14699@sstabellini-ThinkPad-X260>
+ <c6e1820a-fb57-b213-aa2f-05787dae06ad@oracle.com>
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+Message-ID: <06eff3fe-3ffc-47f6-6bd6-d8f2f823b382@gmail.com>
+Date: Mon, 11 Jun 2018 16:13:13 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <c6e1820a-fb57-b213-aa2f-05787dae06ad@oracle.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-Here's the usual bunch of sensor, lens and ISP driver patches. In
-particular, there are new drivers for ov2680 sensor and dw9807 VCM lens
-controller part.
-
-Please pull.
-
-
-The following changes since commit f2809d20b9250c675fca8268a0f6274277cca7ff:
-
-  media: omap2: fix compile-testing with FB_OMAP2=m (2018-06-05 09:56:56 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git for-4.19-1
-
-for you to fetch changes up to 4fdefee7567a2e1f6ae09ca3e184851062bc3fa5:
-
-  media: soc_camera: ov772x: correct setting of banding filter (2018-06-11 15:45:57 +0300)
-
-----------------------------------------------------------------
-Akinobu Mita (14):
-      media: ov772x: allow i2c controllers without I2C_FUNC_PROTOCOL_MANGLING
-      media: ov772x: add checks for register read errors
-      media: ov772x: add media controller support
-      media: ov772x: use generic names for reset and powerdown gpios
-      media: ov772x: omit consumer ID when getting clock reference
-      media: ov772x: support device tree probing
-      media: ov772x: handle nested s_power() calls
-      media: ov772x: reconstruct s_frame_interval()
-      media: ov772x: use v4l2_ctrl to get current control value
-      media: ov772x: avoid accessing registers under power saving mode
-      media: ov772x: make set_fmt() and s_frame_interval() return -EBUSY while streaming
-      media: ov772x: create subdevice device node
-      media: s3c-camif: ignore -ENOIOCTLCMD from v4l2_subdev_call for s_power
-      media: soc_camera: ov772x: correct setting of banding filter
-
-Alan Chiang (2):
-      media: dt-bindings: Add bindings for Dongwoon DW9807 voice coil
-      media: dw9807: Add dw9807 vcm driver
-
-Arnd Bergmann (3):
-      media: omap3isp: fix warning for !CONFIG_PM
-      media: v4l: cadence: include linux/slab.h
-      media: v4l: cadence: add VIDEO_V4L2 dependency
-
-Javier Martinez Canillas (1):
-      media: omap3isp: zero-initialize the isp cam_xclk{a,b} initial data
-
-Rui Miguel Silva (2):
-      media: ov2680: dt: Add bindings for OV2680
-      media: ov2680: Add Omnivision OV2680 sensor driver
-
-Yong Zhi (1):
-      MAINTAINERS: Update entry for Intel IPU3 cio2 driver
-
- .../bindings/media/i2c/dongwoon,dw9807.txt         |    9 +
- .../devicetree/bindings/media/i2c/ov2680.txt       |   46 +
- MAINTAINERS                                        |   10 +
- arch/sh/boards/mach-migor/setup.c                  |    7 +-
- drivers/media/i2c/Kconfig                          |   22 +
- drivers/media/i2c/Makefile                         |    2 +
- drivers/media/i2c/dw9807.c                         |  329 ++++++
- drivers/media/i2c/ov2680.c                         | 1169 ++++++++++++++++++++
- drivers/media/i2c/ov772x.c                         |  353 ++++--
- drivers/media/i2c/soc_camera/ov772x.c              |    2 +-
- drivers/media/platform/cadence/Kconfig             |    2 +
- drivers/media/platform/cadence/cdns-csi2rx.c       |    1 +
- drivers/media/platform/cadence/cdns-csi2tx.c       |    1 +
- drivers/media/platform/omap3isp/isp.c              |    6 +-
- drivers/media/platform/s3c-camif/camif-capture.c   |    2 +
- 15 files changed, 1861 insertions(+), 100 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2680.txt
- create mode 100644 drivers/media/i2c/dw9807.c
- create mode 100644 drivers/media/i2c/ov2680.c
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+On 06/08/2018 10:21 PM, Boris Ostrovsky wrote:
+> On 06/08/2018 01:59 PM, Stefano Stabellini wrote:
+>>>>>>>>>      @@ -325,6 +401,14 @@ static int map_grant_pages(struct
+>>>>>>>>> grant_map
+>>>>>>>>> *map)
+>>>>>>>>>              map->unmap_ops[i].handle = map->map_ops[i].handle;
+>>>>>>>>>              if (use_ptemod)
+>>>>>>>>>                  map->kunmap_ops[i].handle =
+>>>>>>>>> map->kmap_ops[i].handle;
+>>>>>>>>> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
+>>>>>>>>> +        else if (map->dma_vaddr) {
+>>>>>>>>> +            unsigned long mfn;
+>>>>>>>>> +
+>>>>>>>>> +            mfn = __pfn_to_mfn(page_to_pfn(map->pages[i]));
+>>>>>>>> Not pfn_to_mfn()?
+>>>>>>> I'd love to, but pfn_to_mfn is only defined for x86, not ARM: [1]
+>>>>>>> and [2]
+>>>>>>> Thus,
+>>>>>>>
+>>>>>>> drivers/xen/gntdev.c:408:10: error: implicit declaration of function
+>>>>>>> ‘pfn_to_mfn’ [-Werror=implicit-function-declaration]
+>>>>>>>        mfn = pfn_to_mfn(page_to_pfn(map->pages[i]));
+>>>>>>>
+>>>>>>> So, I'll keep __pfn_to_mfn
+>>>>>> How will this work on non-PV x86?
+>>>>> So, you mean I need:
+>>>>> #ifdef CONFIG_X86
+>>>>> mfn = pfn_to_mfn(page_to_pfn(map->pages[i]));
+>>>>> #else
+>>>>> mfn = __pfn_to_mfn(page_to_pfn(map->pages[i]));
+>>>>> #endif
+>>>>>
+>>>> I'd rather fix it in ARM code. Stefano, why does ARM uses the
+>>>> underscored version?
+>>> Do you want me to add one more patch for ARM to wrap __pfn_to_mfn
+>>> with static inline for ARM? e.g.
+>>> static inline ...pfn_to_mfn(...)
+>>> {
+>>>      __pfn_to_mfn();
+>>> }
+>> A Xen on ARM guest doesn't actually know the mfns behind its own
+>> pseudo-physical pages. This is why we stopped using pfn_to_mfn and
+>> started using pfn_to_bfn instead, which will generally return "pfn",
+>> unless the page is a foreign grant. See include/xen/arm/page.h.
+>> pfn_to_bfn was also introduced on x86. For example, see the usage of
+>> pfn_to_bfn in drivers/xen/swiotlb-xen.c. Otherwise, if you don't care
+>> about other mapped grants, you can just use pfn_to_gfn, that always
+>> returns pfn.
+>
+> I think then this code needs to use pfn_to_bfn().
+Ok
+>
+>
+>> Also, for your information, we support different page granularities in
+>> Linux as a Xen guest, see the comment at include/xen/arm/page.h:
+>>
+>>    /*
+>>     * The pseudo-physical frame (pfn) used in all the helpers is always based
+>>     * on Xen page granularity (i.e 4KB).
+>>     *
+>>     * A Linux page may be split across multiple non-contiguous Xen page so we
+>>     * have to keep track with frame based on 4KB page granularity.
+>>     *
+>>     * PV drivers should never make a direct usage of those helpers (particularly
+>>     * pfn_to_gfn and gfn_to_pfn).
+>>     */
+>>
+>> A Linux page could be 64K, but a Xen page is always 4K. A granted page
+>> is also 4K. We have helpers to take into account the offsets to map
+>> multiple Xen grants in a single Linux page, see for example
+>> drivers/xen/grant-table.c:gnttab_foreach_grant. Most PV drivers have
+>> been converted to be able to work with 64K pages correctly, but if I
+>> remember correctly gntdev.c is the only remaining driver that doesn't
+>> support 64K pages yet, so you don't have to deal with it if you don't
+>> want to.
+>
+> I believe somewhere in this series there is a test for PAGE_SIZE vs.
+> XEN_PAGE_SIZE. Right, Oleksandr?
+Not in gntdev. You might have seen this in xen-drmfront/xen-sndfront,
+but I didn't touch gntdev for that. Do you want me to add yet another patch
+in the series to check for that?
+> Thanks for the explanation.
+>
+> -boris
+Thank you,
+Oleksandr
