@@ -1,47 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:34650 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754285AbeFLJmD (ORCPT
+Received: from relay10.mail.gandi.net ([217.70.178.230]:55513 "EHLO
+        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754286AbeFLJnm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Jun 2018 05:42:03 -0400
-From: Colin King <colin.king@canonical.com>
-To: Andy Walls <awalls@md.metrocast.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH][V2] [media] cx18: remove redundant zero check on retval
-Date: Tue, 12 Jun 2018 10:42:00 +0100
-Message-Id: <20180612094200.11545-1-colin.king@canonical.com>
+        Tue, 12 Jun 2018 05:43:42 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v6 0/10] rcar-vin: Add support for parallel input on Gen3
+Date: Tue, 12 Jun 2018 11:43:22 +0200
+Message-Id: <1528796612-7387-1-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Hello,
+   this series adds support for parallel video input to the Gen3 version of
+rcar-vin driver.
 
-The check for a zero retval is redundant as all paths that lead to
-this point have set retval to an error return value that is non-zero.
-Remove the redundant check.
+Few changes compared to v5, closing a few comments from Kieran and Niklas,
+and fixed the label names I forgot to change in previous version.
 
-Detected by CoverityScan, CID#102589 ("Logically dead code")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/pci/cx18/cx18-driver.c | 2 --
- 1 file changed, 2 deletions(-)
+Changlog in the individual patches when relevant.
 
-diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
-index 8f314ca320c7..0c389a3fb4e5 100644
---- a/drivers/media/pci/cx18/cx18-driver.c
-+++ b/drivers/media/pci/cx18/cx18-driver.c
-@@ -1134,8 +1134,6 @@ static int cx18_probe(struct pci_dev *pci_dev,
- free_workqueues:
- 	destroy_workqueue(cx->in_work_queue);
- err:
--	if (retval == 0)
--		retval = -ENODEV;
- 	CX18_ERR("Error %d on initialization\n", retval);
- 
- 	v4l2_device_unregister(&cx->v4l2_dev);
--- 
-2.17.0
+A few patches have not yet been acked-by, but things look smooth and we
+should be close to have this finalized.
+
+Thanks
+   j
+
+Jacopo Mondi (10):
+  media: rcar-vin: Rename 'digital' to 'parallel'
+  media: rcar-vin: Remove two empty lines
+  media: rcar-vin: Create a group notifier
+  media: rcar-vin: Cleanup notifier in error path
+  media: rcar-vin: Cache the mbus configuration flags
+  media: rcar-vin: Parse parallel input on Gen3
+  media: rcar-vin: Link parallel input media entities
+  media: rcar-vin: Handle parallel subdev in link_notify
+  media: rcar-vin: Rename _rcar_info to rcar_info
+  media: rcar-vin: Add support for R-Car R8A77995 SoC
+
+ drivers/media/platform/rcar-vin/rcar-core.c | 265 ++++++++++++++++++----------
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  36 ++--
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  12 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  29 +--
+ 4 files changed, 223 insertions(+), 119 deletions(-)
+
+--
+2.7.4
