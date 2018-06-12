@@ -1,50 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:46334 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751615AbeFLFr3 (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:48779 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933251AbeFLIlk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Jun 2018 01:47:29 -0400
-From: Zhouyang Jia <jiazhouyang09@gmail.com>
-Cc: Zhouyang Jia <jiazhouyang09@gmail.com>,
+        Tue, 12 Jun 2018 04:41:40 -0400
+Message-ID: <1528792895.5280.7.camel@pengutronix.de>
+Subject: Re: [PATCH v4 2/2] media: staging/imx: fill vb2_v4l2_buffer
+ sequence entry
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Peter Seiderer <ps.report@gmx.net>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Colin Ian King <colin.king@canonical.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2] media: tm6000: add error handling for dvb_register_adapter
-Date: Tue, 12 Jun 2018 13:47:20 +0800
-Message-Id: <1528782443-43329-1-git-send-email-jiazhouyang09@gmail.com>
-In-Reply-To: <1528691962-31010-1-git-send-email-jiazhouyang09@gmail.com>
-References: <1528691962-31010-1-git-send-email-jiazhouyang09@gmail.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Date: Tue, 12 Jun 2018 10:41:35 +0200
+In-Reply-To: <20180611224833.64a89c80@gmx.net>
+References: <20180315191323.6028-1-ps.report@gmx.net>
+         <20180315191323.6028-2-ps.report@gmx.net>
+         <892dd00e-83bc-7781-6684-603ff89378cd@gmail.com>
+         <20180611224833.64a89c80@gmx.net>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When dvb_register_adapter fails, the lack of error-handling code may
-cause unexpected results.
+Hi,
 
-This patch adds error-handling code after calling dvb_register_adapter.
+On Mon, 2018-06-11 at 22:48 +0200, Peter Seiderer wrote:
+> Hello *,
+> 
+> On Fri, 16 Mar 2018 10:05:44 -0700, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> 
+> > Reviewed-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> 
+> Ping? Anybody taking this one?
 
-Signed-off-by: Zhouyang Jia <jiazhouyang09@gmail.com>
----
- drivers/media/usb/tm6000/tm6000-dvb.c | 5 +++++
- 1 file changed, 5 insertions(+)
+The patches have been marked not applicable in patchwork [1][2].
+They do apply on media_tree master.
 
-diff --git a/drivers/media/usb/tm6000/tm6000-dvb.c b/drivers/media/usb/tm6000/tm6000-dvb.c
-index c811fc6..2e69486 100644
---- a/drivers/media/usb/tm6000/tm6000-dvb.c
-+++ b/drivers/media/usb/tm6000/tm6000-dvb.c
-@@ -266,6 +266,11 @@ static int register_dvb(struct tm6000_core *dev)
- 
- 	ret = dvb_register_adapter(&dvb->adapter, "Trident TVMaster 6000 DVB-T",
- 					THIS_MODULE, &dev->udev->dev, adapter_nr);
-+	if (ret < 0) {
-+		printk(KERN_ERR "tm6000: couldn't register the adapter!\n");
-+		goto err;
-+	}
-+
- 	dvb->adapter.priv = dev;
- 
- 	if (dvb->frontend) {
--- 
-2.7.4
+[1] https://patchwork.linuxtv.org/patch/47946/
+[2] https://patchwork.linuxtv.org/patch/47947/
+
+regards
+Philipp
