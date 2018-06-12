@@ -1,96 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:54341 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933469AbeFLR1z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Jun 2018 13:27:55 -0400
-Received: by mail-wm0-f68.google.com with SMTP id o13-v6so372201wmf.4
-        for <linux-media@vger.kernel.org>; Tue, 12 Jun 2018 10:27:54 -0700 (PDT)
-From: Javier Martinez Canillas <javierm@redhat.com>
-Subject: Re: [PATCH] gpu: ipu-v3: Allow negative offsets for interlaced
- scanning
-To: Steve Longerbeam <slongerbeam@gmail.com>,
+Received: from www.osadl.org ([62.245.132.105]:58259 "EHLO www.osadl.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932976AbeFLRYr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Jun 2018 13:24:47 -0400
+From: Nicholas Mc Guire <hofrat@osadl.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org
-Cc: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
-        kernel@pengutronix.de
-References: <20180601131316.18728-1-p.zabel@pengutronix.de>
- <ebada35f-23c1-6ca4-5228-d3d91bad48bc@gmail.com>
- <1528708771.3818.7.camel@pengutronix.de>
- <6780e24e-891d-3583-6e38-d1abd69c8a0d@gmail.com>
-Message-ID: <2aff8f80-aa79-6718-6183-6e49088ae498@redhat.com>
-Date: Tue, 12 Jun 2018 19:27:51 +0200
-MIME-Version: 1.0
-In-Reply-To: <6780e24e-891d-3583-6e38-d1abd69c8a0d@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Niklas Soderlund <niklas.soderlund+renesas@ragnatech.se>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, Nicholas Mc Guire <hofrat@osadl.org>
+Subject: [PATCH] media: stm32-dcmi: simplify of_node_put usage
+Date: Tue, 12 Jun 2018 19:23:16 +0200
+Message-Id: <1528824196-19149-1-git-send-email-hofrat@osadl.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+This does not fix any bug - this is just a code simplification. As
+np is not used after passing it to v4l2_fwnode_endpoint_parse() its
+refcount can be decremented immediately and at one location.
 
-On 06/11/2018 11:06 PM, Steve Longerbeam wrote:
+Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+---
 
-[snip]
+Issue found during code reading.
 
->>
->> I've been made aware [1] that recently V4L2_FIELD_ALTERNATE has been
->> clarified [2] to specify that v4l2_mbus_fmt.height should contain the
->> number of lines per field, not per frame:
-> 
-> Yep! That was nagging at me as well. I noticed at least one other
-> platform (omap3isp) that doubles the source pad frame height
+Patch was compile tested with: x86_64_defconfig, MEDIA_SUPPORT=y
+MEDIA_CAMERA_SUPPORT=y, V4L_PLATFORM_DRIVERS=y, OF=y, COMPILE_TEST=y
+CONFIG_VIDEO_STM32_DCMI=y
+(There are a few sparse warnings - but unrelated to the lines changed)
 
-Coincidentally I noticed this problem when testing on a board with an
-omap3isp. This is the pipeline setup I've been using for a long time: 
+Patch is against 4.17.0 (localversion-next is next-20180608)
 
-$ media-ctl -l '"tvp5150 1-005c":1->"OMAP3 ISP CCDC":0[1]'
-$ media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-$ media-ctl -V '"OMAP3 ISP CCDC":0 [UYVY2X8 720x240 field:alternate]'
-$ media-ctl -V '"OMAP3 ISP CCDC":1 [UYVY 720x480 field:interlaced-tb]'
+ drivers/media/platform/stm32/stm32-dcmi.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-> when the sensor reports ALTERNATE field mode, to capture a
-> whole frame. Makes sense. I think the crop height will need to
-
-As you said, the ISP doubles the source pad height, and so the sink
-pad is meant to have half of the frame height and this should match
-the camera sensor height. But since the tvp5150 had the full frame
-height (720x480) in its source pad, this didn't match the CCDC sink
-pads height which lead to .link_validate callback to return -EPIPE:
-
-ioctl(3, VIDIOC_STREAMON, 0xbeabea18)   = -1 EPIPE (Broken pipe)
-
-After the revert, link validation / STREAMON works correctly and the
-following is what the relevant media entities look like in the graph:
-
-- entity 15: OMAP3 ISP CCDC (3 pads, 9 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev2
-        pad0: Sink
-                [fmt:UYVY2X8/720x240 field:alternate]
-                <- "OMAP3 ISP CCP2":1 []
-                <- "OMAP3 ISP CSI2a":1 []
-                <- "tvp5150 1-005c":1 [ENABLED]
-        pad1: Source
-                [fmt:UYVY/720x480 field:interlaced-tb
-                 crop.bounds:(0,0)/720x240
-                 crop:(0,0)/720x240]
-                -> "OMAP3 ISP CCDC output":0 [ENABLED]
-                -> "OMAP3 ISP resizer":0 []
-
-- entity 81: tvp5150 1-005c (4 pads, 1 link)
-             type V4L2 subdev subtype Decoder flags 0
-             device node name /dev/v4l-subdev8
-        pad0: Sink
-        pad1: Source
-                [fmt:UYVY2X8/720x240 field:alternate
-                 crop.bounds:(0,0)/720x480
-                 crop:(0,0)/720x480]
-                -> "OMAP3 ISP CCDC":0 [ENABLED]
-
-Best regards,
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+index 2e1933d..0b61042 100644
+--- a/drivers/media/platform/stm32/stm32-dcmi.c
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -1696,23 +1696,20 @@ static int dcmi_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(np), &ep);
++	of_node_put(np);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Could not parse the endpoint\n");
+-		of_node_put(np);
+ 		return -ENODEV;
+ 	}
+ 
+ 	if (ep.bus_type == V4L2_MBUS_CSI2) {
+ 		dev_err(&pdev->dev, "CSI bus not supported\n");
+-		of_node_put(np);
+ 		return -ENODEV;
+ 	}
+ 	dcmi->bus.flags = ep.bus.parallel.flags;
+ 	dcmi->bus.bus_width = ep.bus.parallel.bus_width;
+ 	dcmi->bus.data_shift = ep.bus.parallel.data_shift;
+ 
+-	of_node_put(np);
+-
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq <= 0) {
+ 		dev_err(&pdev->dev, "Could not get irq\n");
 -- 
-Javier Martinez Canillas
-Software Engineer - Desktop Hardware Enablement
-Red Hat
+2.1.4
