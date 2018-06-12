@@ -1,113 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:38350 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752665AbeFLKti (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:36029 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753909AbeFLLSg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Jun 2018 06:49:38 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
+        Tue, 12 Jun 2018 07:18:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        kernel@collabora.com, Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [RFC 2/2] vim2m: add media device
-Date: Tue, 12 Jun 2018 07:48:27 -0300
-Message-Id: <20180612104827.11565-3-ezequiel@collabora.com>
-In-Reply-To: <20180612104827.11565-1-ezequiel@collabora.com>
-References: <20180612104827.11565-1-ezequiel@collabora.com>
+Cc: dri-devel@lists.freedesktop.org, ville.syrjala@linux.intel.com,
+        Sean Paul <seanpaul@chromium.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Carlos Santa <carlos.santa@intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv6 3/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
+Date: Tue, 12 Jun 2018 13:18:31 +0200
+Message-Id: <20180612111831.58210-4-hverkuil@xs4all.nl>
+In-Reply-To: <20180612111831.58210-1-hverkuil@xs4all.nl>
+References: <20180612111831.58210-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Request API requires a media node. Add one to the vim2m driver so we can
-use requests with it.
+Implement support for this DisplayPort feature.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/media/platform/vim2m.c | 41 +++++++++++++++++++++++++++++-----
- 1 file changed, 36 insertions(+), 5 deletions(-)
+ drivers/gpu/drm/i915/intel_dp.c | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 065483e62db4..3b521c4f6def 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -140,6 +140,9 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
- struct vim2m_dev {
- 	struct v4l2_device	v4l2_dev;
- 	struct video_device	vfd;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device	mdev;
-+#endif
- 
- 	atomic_t		num_inst;
- 	struct mutex		dev_mutex;
-@@ -1013,10 +1016,10 @@ static int vim2m_probe(struct platform_device *pdev)
- 	vfd->lock = &dev->dev_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
- 
--	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-+	ret = video_register_device(vfd, VFL_TYPE_MEM2MEM, 0);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
--		goto unreg_dev;
-+		goto unreg_v4l2;
+diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+index 9a4a51e79fa1..f176af2c0bd6 100644
+--- a/drivers/gpu/drm/i915/intel_dp.c
++++ b/drivers/gpu/drm/i915/intel_dp.c
+@@ -4471,6 +4471,9 @@ intel_dp_short_pulse(struct intel_dp *intel_dp)
+ 			DRM_DEBUG_DRIVER("CP or sink specific irq unhandled\n");
  	}
  
- 	video_set_drvdata(vfd, dev);
-@@ -1031,15 +1034,38 @@ static int vim2m_probe(struct platform_device *pdev)
- 	if (IS_ERR(dev->m2m_dev)) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
- 		ret = PTR_ERR(dev->m2m_dev);
--		goto err_m2m;
-+		goto unreg_dev;
-+	}
++	/* Handle CEC interrupts, if any */
++	drm_dp_cec_irq(&intel_dp->aux);
 +
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	dev->mdev.dev = &pdev->dev;
-+	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
-+	media_device_init(&dev->mdev);
-+	dev->v4l2_dev.mdev = &dev->mdev;
+ 	/* defer to the hotplug work for link retraining if needed */
+ 	if (intel_dp_needs_link_retrain(intel_dp))
+ 		return false;
+@@ -4785,6 +4788,7 @@ intel_dp_set_edid(struct intel_dp *intel_dp)
+ 	intel_connector->detect_edid = edid;
+ 
+ 	intel_dp->has_audio = drm_detect_monitor_audio(edid);
++	drm_dp_cec_set_edid(&intel_dp->aux, edid);
+ }
+ 
+ static void
+@@ -4792,6 +4796,7 @@ intel_dp_unset_edid(struct intel_dp *intel_dp)
+ {
+ 	struct intel_connector *intel_connector = intel_dp->attached_connector;
+ 
++	drm_dp_cec_unset_edid(&intel_dp->aux);
+ 	kfree(intel_connector->detect_edid);
+ 	intel_connector->detect_edid = NULL;
+ 
+@@ -4980,6 +4985,7 @@ static int
+ intel_dp_connector_register(struct drm_connector *connector)
+ {
+ 	struct intel_dp *intel_dp = intel_attached_dp(connector);
++	struct drm_device *dev = connector->dev;
+ 	int ret;
+ 
+ 	ret = intel_connector_register(connector);
+@@ -4992,13 +4998,20 @@ intel_dp_connector_register(struct drm_connector *connector)
+ 		      intel_dp->aux.name, connector->kdev->kobj.name);
+ 
+ 	intel_dp->aux.dev = connector->kdev;
+-	return drm_dp_aux_register(&intel_dp->aux);
++	ret = drm_dp_aux_register(&intel_dp->aux);
++	if (!ret)
++		drm_dp_cec_register_connector(&intel_dp->aux,
++					      connector->name, dev->dev);
++	return ret;
+ }
+ 
+ static void
+ intel_dp_connector_unregister(struct drm_connector *connector)
+ {
+-	drm_dp_aux_unregister(&intel_attached_dp(connector)->aux);
++	struct intel_dp *intel_dp = intel_attached_dp(connector);
 +
-+	ret = v4l2_m2m_register_media_controller(dev->m2m_dev, vfd);
-+	if (ret) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem media controller\n");
-+		goto unreg_m2m;
- 	}
++	drm_dp_cec_unregister_connector(&intel_dp->aux);
++	drm_dp_aux_unregister(&intel_dp->aux);
+ 	intel_connector_unregister(connector);
+ }
  
-+	ret = media_device_register(&dev->mdev);
-+	if (ret) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to register mem2mem media device\n");
-+		goto unreg_m2m_mc;
-+	}
-+#endif
- 	return 0;
- 
--err_m2m:
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+unreg_m2m_mc:
-+	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
-+unreg_m2m:
- 	v4l2_m2m_release(dev->m2m_dev);
--	video_unregister_device(&dev->vfd);
-+#endif
- unreg_dev:
-+	video_unregister_device(&dev->vfd);
-+unreg_v4l2:
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 
- 	return ret;
-@@ -1050,6 +1076,11 @@ static int vim2m_remove(struct platform_device *pdev)
- 	struct vim2m_dev *dev = platform_get_drvdata(pdev);
- 
- 	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
-+	media_device_cleanup(&dev->mdev);
-+#endif
- 	v4l2_m2m_release(dev->m2m_dev);
- 	del_timer_sync(&dev->timer);
- 	video_unregister_device(&dev->vfd);
 -- 
-2.17.1
+2.17.0
