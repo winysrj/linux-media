@@ -1,91 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.37.59]:40481 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933448AbeFLNpc (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:43849 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933088AbeFLNmO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Jun 2018 09:45:32 -0400
-Subject: Re: [PATCH v10 4/4] [media] platform: Add Synopsys DesignWare HDMI RX
- Controller Driver
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-References: <cover.1513013948.git.joabreu@synopsys.com>
- <5f9eedfd6f91ed73ef0bb6d3977588d01478909f.1513013948.git.joabreu@synopsys.com>
- <108e2c3c-243f-cd67-2df7-57541b28ca39@xs4all.nl>
- <635e7d70-0edb-7506-c268-9ebbae1eb39e@synopsys.com>
- <ca5b3cf7-c7d0-36d4-08ac-32a7a00afd7d@xs4all.nl>
- <f5341c4b-43e2-12f6-9c9f-2385d47bb2fd@synopsys.com>
- <86a5787d-6ed6-7674-35f9-c77341b4c36b@xs4all.nl>
- <3c15b537-33b3-f786-369e-5d82ab9eeb9c@synopsys.com>
- <ed3dabc0-66b2-d069-99f9-75b742709e9f@xs4all.nl>
-CC: Joao Pinto <Joao.Pinto@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Sylwester Nawrocki" <snawrocki@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Philippe Ombredanne <pombredanne@nexb.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <dbfa5d85-0cac-caab-07aa-0d048c68cea0@synopsys.com>
-Date: Tue, 12 Jun 2018 14:45:24 +0100
-MIME-Version: 1.0
-In-Reply-To: <ed3dabc0-66b2-d069-99f9-75b742709e9f@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+        Tue, 12 Jun 2018 09:42:14 -0400
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: [PATCH v3 2/9] xen/grant-table: Make set/clear page private code shared
+Date: Tue, 12 Jun 2018 16:41:53 +0300
+Message-Id: <20180612134200.17456-3-andr2000@gmail.com>
+In-Reply-To: <20180612134200.17456-1-andr2000@gmail.com>
+References: <20180612134200.17456-1-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-On 08-06-2018 08:41, Hans Verkuil wrote:
-> Hi Jose,
->
-> I have not seen any updates for this series. What is the status? I thought we
-> were close to merging this...
+Make set/clear page private code shared and accessible to
+other kernel modules which can re-use these instead of open-coding.
 
-Good to hear from you! Hope you are doing fine! :)
+Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+---
+ drivers/xen/grant-table.c | 54 +++++++++++++++++++++++++--------------
+ include/xen/grant_table.h |  3 +++
+ 2 files changed, 38 insertions(+), 19 deletions(-)
 
-A colleague of mine is working on this right now. We expect to
-send a new series with some more features added.
-
-Thanks and Best Regards,
-Jose Miguel Abreu
-
->
-> Regards,
->
-> 	Hans
->
-> On 12/15/2017 12:23 PM, Jose Abreu wrote:
->> Hi Hans,
->>
->> On 13-12-2017 20:49, Hans Verkuil wrote:
->>> On 13/12/17 15:00, Jose Abreu wrote:
->>>> Indeed. I compared the values with the spec and they are not
->>>> correct. Even hsync is wrong. I already corrected in the code the
->>>> hsync but regarding interlace I'm not seeing an easy way to do
->>>> this without using interrupts in each vsync because the register
->>>> I was toggling does not behave as I expected (I misunderstood the
->>>> databook). Maybe we should not detect interlaced modes for now?
->>>> Or not fill the il_ fields?
->>> As I mentioned above you as long as you get a good backporch value you
->>> can deduce from whether it is an odd or even number to which field it
->>> belongs and fill in the other values. So I think you only need to read
->>> these values for one field.
->>>
->>> Filling in good values here (at least as far as is possible since not all
->>> hardware can give it) will help debugging issues, even if you otherwise do
->>> not support interlaced.
->> Ok, I will fill the fields.
->>
->> Until the end of January I will be quite busy in another project
->> so if you could review the remaining patches of this series I
->> would appreciate very much ... This way when I have the time I
->> can code all the changes and send them at once.
->>
->> Thanks and Best Regards,
->> Jose Miguel Abreu
->>
->>> Regards,
->>>
->>> 	Hans
->>
+diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
+index ba36ff3e4903..dbb48a89e987 100644
+--- a/drivers/xen/grant-table.c
++++ b/drivers/xen/grant-table.c
+@@ -769,29 +769,18 @@ void gnttab_free_auto_xlat_frames(void)
+ }
+ EXPORT_SYMBOL_GPL(gnttab_free_auto_xlat_frames);
+ 
+-/**
+- * gnttab_alloc_pages - alloc pages suitable for grant mapping into
+- * @nr_pages: number of pages to alloc
+- * @pages: returns the pages
+- */
+-int gnttab_alloc_pages(int nr_pages, struct page **pages)
++int gnttab_pages_set_private(int nr_pages, struct page **pages)
+ {
+ 	int i;
+-	int ret;
+-
+-	ret = alloc_xenballooned_pages(nr_pages, pages);
+-	if (ret < 0)
+-		return ret;
+ 
+ 	for (i = 0; i < nr_pages; i++) {
+ #if BITS_PER_LONG < 64
+ 		struct xen_page_foreign *foreign;
+ 
+ 		foreign = kzalloc(sizeof(*foreign), GFP_KERNEL);
+-		if (!foreign) {
+-			gnttab_free_pages(nr_pages, pages);
++		if (!foreign)
+ 			return -ENOMEM;
+-		}
++
+ 		set_page_private(pages[i], (unsigned long)foreign);
+ #endif
+ 		SetPagePrivate(pages[i]);
+@@ -799,14 +788,30 @@ int gnttab_alloc_pages(int nr_pages, struct page **pages)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(gnttab_alloc_pages);
++EXPORT_SYMBOL_GPL(gnttab_pages_set_private);
+ 
+ /**
+- * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
+- * @nr_pages; number of pages to free
+- * @pages: the pages
++ * gnttab_alloc_pages - alloc pages suitable for grant mapping into
++ * @nr_pages: number of pages to alloc
++ * @pages: returns the pages
+  */
+-void gnttab_free_pages(int nr_pages, struct page **pages)
++int gnttab_alloc_pages(int nr_pages, struct page **pages)
++{
++	int ret;
++
++	ret = alloc_xenballooned_pages(nr_pages, pages);
++	if (ret < 0)
++		return ret;
++
++	ret = gnttab_pages_set_private(nr_pages, pages);
++	if (ret < 0)
++		gnttab_free_pages(nr_pages, pages);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gnttab_alloc_pages);
++
++void gnttab_pages_clear_private(int nr_pages, struct page **pages)
+ {
+ 	int i;
+ 
+@@ -818,6 +823,17 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
+ 			ClearPagePrivate(pages[i]);
+ 		}
+ 	}
++}
++EXPORT_SYMBOL_GPL(gnttab_pages_clear_private);
++
++/**
++ * gnttab_free_pages - free pages allocated by gnttab_alloc_pages()
++ * @nr_pages; number of pages to free
++ * @pages: the pages
++ */
++void gnttab_free_pages(int nr_pages, struct page **pages)
++{
++	gnttab_pages_clear_private(nr_pages, pages);
+ 	free_xenballooned_pages(nr_pages, pages);
+ }
+ EXPORT_SYMBOL_GPL(gnttab_free_pages);
+diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
+index 2e37741f6b8d..de03f2542bb7 100644
+--- a/include/xen/grant_table.h
++++ b/include/xen/grant_table.h
+@@ -198,6 +198,9 @@ void gnttab_free_auto_xlat_frames(void);
+ int gnttab_alloc_pages(int nr_pages, struct page **pages);
+ void gnttab_free_pages(int nr_pages, struct page **pages);
+ 
++int gnttab_pages_set_private(int nr_pages, struct page **pages);
++void gnttab_pages_clear_private(int nr_pages, struct page **pages);
++
+ int gnttab_map_refs(struct gnttab_map_grant_ref *map_ops,
+ 		    struct gnttab_map_grant_ref *kmap_ops,
+ 		    struct page **pages, unsigned int count);
+-- 
+2.17.1
