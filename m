@@ -1,80 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:47034 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752452AbeFKPKw (ORCPT
+Received: from mail-io0-f193.google.com ([209.85.223.193]:36366 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754056AbeFLPfK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Jun 2018 11:10:52 -0400
-From: Colin King <colin.king@canonical.com>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Andy Walls <awalls@md.metrocast.net>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, linux-media@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] cx18: remove redundant zero check on retval
-Date: Mon, 11 Jun 2018 16:10:45 +0100
-Message-Id: <20180611151045.22535-1-colin.king@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        Tue, 12 Jun 2018 11:35:10 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [RFC PATCH v2] media: i2c: add SCCB helpers
+Date: Wed, 13 Jun 2018 00:34:46 +0900
+Message-Id: <1528817686-7067-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+(This is 2nd version of SCCB helpers patch.  After 1st version was
+submitted, I sent alternative patch titled "i2c: add I2C_M_FORCE_STOP".
+But it wasn't accepted because it makes the I2C core code unreadable.
+I couldn't find out a way to untangle it, so I returned to the original
+approach.)
 
-The check for a zero retval is redundant as all paths that lead to
-this point have set retval to an error return value that is non-zero.
-Remove the redundant check.
+This adds Serial Camera Control Bus (SCCB) helper functions (sccb_read_byte
+and sccb_write_byte) that are intended to be used by some of Omnivision
+sensor drivers.
 
-Detected by CoverityScan, CID#102589 ("Logically dead code")
+The ov772x driver is going to use these functions in order to make it work
+with most i2c controllers.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+As the ov772x device doesn't support repeated starts, this driver currently
+requires I2C_FUNC_PROTOCOL_MANGLING that is not supported by many i2c
+controller drivers.
+
+With the sccb_read_byte() that issues two separated requests in order to
+avoid repeated start, the driver doesn't require I2C_FUNC_PROTOCOL_MANGLING.
+
+Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Wolfram Sang <wsa@the-dreams.de>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/media/firewire/firedtv-fw.c  | 3 +++
- drivers/media/pci/cx18/cx18-driver.c | 2 --
- drivers/regulator/vctrl-regulator.c  | 2 +-
- 3 files changed, 4 insertions(+), 3 deletions(-)
+* v2
+- Convert all helpers into static inline functions, and remove C source
+  and Kconfig option.
+- Acquire i2c adapter lock while issuing two requests for sccb_read_byte
 
-diff --git a/drivers/media/firewire/firedtv-fw.c b/drivers/media/firewire/firedtv-fw.c
-index 92f4112d2e37..eed55be21836 100644
---- a/drivers/media/firewire/firedtv-fw.c
-+++ b/drivers/media/firewire/firedtv-fw.c
-@@ -271,6 +271,9 @@ static int node_probe(struct fw_unit *unit, const struct ieee1394_device_id *id)
- 
- 	name_len = fw_csr_string(unit->directory, CSR_MODEL,
- 				 name, sizeof(name));
-+	if (name_len < 0)
-+		return name_len;
+ drivers/media/i2c/sccb.h | 74 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 74 insertions(+)
+ create mode 100644 drivers/media/i2c/sccb.h
+
+diff --git a/drivers/media/i2c/sccb.h b/drivers/media/i2c/sccb.h
+new file mode 100644
+index 0000000..a531fdc
+--- /dev/null
++++ b/drivers/media/i2c/sccb.h
+@@ -0,0 +1,74 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Serial Camera Control Bus (SCCB) helper functions
++ */
 +
- 	for (i = ARRAY_SIZE(model_names); --i; )
- 		if (strlen(model_names[i]) <= name_len &&
- 		    strncmp(name, model_names[i], name_len) == 0)
-diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
-index 8f314ca320c7..0c389a3fb4e5 100644
---- a/drivers/media/pci/cx18/cx18-driver.c
-+++ b/drivers/media/pci/cx18/cx18-driver.c
-@@ -1134,8 +1134,6 @@ static int cx18_probe(struct pci_dev *pci_dev,
- free_workqueues:
- 	destroy_workqueue(cx->in_work_queue);
- err:
--	if (retval == 0)
--		retval = -ENODEV;
- 	CX18_ERR("Error %d on initialization\n", retval);
- 
- 	v4l2_device_unregister(&cx->v4l2_dev);
-diff --git a/drivers/regulator/vctrl-regulator.c b/drivers/regulator/vctrl-regulator.c
-index 78de002037c7..044e5a5ca163 100644
---- a/drivers/regulator/vctrl-regulator.c
-+++ b/drivers/regulator/vctrl-regulator.c
-@@ -340,7 +340,7 @@ static int vctrl_init_vtable(struct platform_device *pdev)
- 		}
- 	}
- 
--	if (rdesc->n_voltages == 0) {
-+	if (rdesc->n_voltages <= 0) {
- 		dev_err(&pdev->dev, "invalid configuration\n");
- 		return -EINVAL;
- 	}
++#ifndef __SCCB_H__
++#define __SCCB_H__
++
++#include <linux/i2c.h>
++
++/**
++ * sccb_read_byte - Read data from SCCB slave device
++ * @client: Handle to slave device
++ * @addr: Register to be read from
++ *
++ * This executes the 2-phase write transmission cycle that is followed by a
++ * 2-phase read transmission cycle, returning negative errno else a data byte
++ * received from the device.
++ */
++static inline int sccb_read_byte(struct i2c_client *client, u8 addr)
++{
++	u8 val;
++	struct i2c_msg msg[] = {
++		{
++			.addr = client->addr,
++			.len = 1,
++			.buf = &addr,
++		},
++		{
++			.addr = client->addr,
++			.flags = I2C_M_RD,
++			.len = 1,
++			.buf = &val,
++		},
++	};
++	int ret;
++	int i;
++
++	i2c_lock_adapter(client->adapter);
++
++	/* Issue two separated requests in order to avoid repeated start */
++	for (i = 0; i < 2; i++) {
++		ret = __i2c_transfer(client->adapter, &msg[i], 1);
++		if (ret != 1)
++			break;
++	}
++
++	i2c_unlock_adapter(client->adapter);
++
++	return i == 2 ? val : ret;
++}
++
++/**
++ * sccb_write_byte - Write data to SCCB slave device
++ * @client: Handle to slave device
++ * @addr: Register to write to
++ * @data: Value to be written
++ *
++ * This executes the SCCB 3-phase write transmission cycle, returning negative
++ * errno else zero on success.
++ */
++static inline int sccb_write_byte(struct i2c_client *client, u8 addr, u8 data)
++{
++	int ret;
++	unsigned char msgbuf[] = { addr, data };
++
++	ret = i2c_master_send(client, msgbuf, 2);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++#endif /* __SCCB_H__ */
 -- 
-2.17.0
+2.7.4
