@@ -1,148 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay10.mail.gandi.net ([217.70.178.230]:52577 "EHLO
+Received: from relay10.mail.gandi.net ([217.70.178.230]:48963 "EHLO
         relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933295AbeFLJnv (ORCPT
+        with ESMTP id S933386AbeFLJny (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Jun 2018 05:43:51 -0400
+        Tue, 12 Jun 2018 05:43:54 -0400
 From: Jacopo Mondi <jacopo+renesas@jmondi.org>
 To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
 Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
         linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v6 06/10] media: rcar-vin: Parse parallel input on Gen3
-Date: Tue, 12 Jun 2018 11:43:28 +0200
-Message-Id: <1528796612-7387-7-git-send-email-jacopo+renesas@jmondi.org>
+Subject: [PATCH v6 08/10] media: rcar-vin: Handle parallel subdev in link_notify
+Date: Tue, 12 Jun 2018 11:43:30 +0200
+Message-Id: <1528796612-7387-9-git-send-email-jacopo+renesas@jmondi.org>
 In-Reply-To: <1528796612-7387-1-git-send-email-jacopo+renesas@jmondi.org>
 References: <1528796612-7387-1-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rcar-vin driver so far had a mutually exclusive code path for
-handling parallel and CSI-2 video input subdevices, with only the CSI-2
-use case supporting media-controller. As we add support for parallel
-inputs to Gen3 media-controller compliant code path now parse both port@0
-and port@1, handling the media-controller use case in the parallel
-bound/unbind notifier operations.
+Handle parallel subdevices in link_notify callback. If the notified link
+involves a parallel subdevice, do not change routing of the VIN-CSI-2
+devices and mark the VIN instance as using a parallel input. If the
+CSI-2 link setup succeeds instead, mark the VIN instance as using CSI-2.
 
 Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
-r5 -> r6:
-- Fix 'error_group_unregister' and 'error_dma_unregister' label names
-
-v4 -> v5:
-- Re-group rvin_mc_init() function
-- Add error_group_unreg error path to clean up group registration
-- Change rvin_parallel_init() return type to make sure Gen2 works as before
-
-v3 -> v4:
-- Change the mc/parallel initialization order. Initialize mc first, then
-  parallel
-- As a consequence no need to delay parallel notifiers registration, the
-  media controller is set up already when parallel input got parsed,
-  this greatly simplify the group notifier complete callback.
----
-
- drivers/media/platform/rcar-vin/rcar-core.c | 53 +++++++++++++++++++++--------
- 1 file changed, 38 insertions(+), 15 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 35 ++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 39bb193..91ccaf8 100644
+index 98fe121..8950af1 100644
 --- a/drivers/media/platform/rcar-vin/rcar-core.c
 +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -397,6 +397,11 @@ static int rvin_parallel_subdevice_attach(struct rvin_dev *vin,
- 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
- 	vin->parallel->sink_pad = ret < 0 ? 0 : ret;
-
-+	if (vin->info->use_mc) {
-+		vin->parallel->subdev = subdev;
-+		return 0;
-+	}
+@@ -171,9 +171,37 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
+ 
+ 	/* Add the new link to the existing mask and check if it works. */
+ 	csi_id = rvin_group_entity_to_csi_id(group, link->source->entity);
 +
- 	/* Find compatible subdevices mbus format */
- 	vin->mbus_code = 0;
- 	code.index = 0;
-@@ -458,10 +463,12 @@ static int rvin_parallel_subdevice_attach(struct rvin_dev *vin,
- static void rvin_parallel_subdevice_detach(struct rvin_dev *vin)
- {
- 	rvin_v4l2_unregister(vin);
--	v4l2_ctrl_handler_free(&vin->ctrl_handler);
--
--	vin->vdev.ctrl_handler = NULL;
- 	vin->parallel->subdev = NULL;
++	if (csi_id == -ENODEV) {
++		struct v4l2_subdev *sd;
++		unsigned int i;
 +
-+	if (!vin->info->use_mc) {
-+		v4l2_ctrl_handler_free(&vin->ctrl_handler);
-+		vin->vdev.ctrl_handler = NULL;
-+	}
- }
-
- static int rvin_parallel_notify_complete(struct v4l2_async_notifier *notifier)
-@@ -550,18 +557,19 @@ static int rvin_parallel_parse_v4l2(struct device *dev,
- 	return 0;
- }
-
--static int rvin_parallel_graph_init(struct rvin_dev *vin)
-+static int rvin_parallel_init(struct rvin_dev *vin)
- {
- 	int ret;
-
--	ret = v4l2_async_notifier_parse_fwnode_endpoints(
--		vin->dev, &vin->notifier,
--		sizeof(struct rvin_parallel_entity), rvin_parallel_parse_v4l2);
-+	ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
-+		vin->dev, &vin->notifier, sizeof(struct rvin_parallel_entity),
-+		0, rvin_parallel_parse_v4l2);
- 	if (ret)
- 		return ret;
-
-+	/* If using mc, it's fine not to have any input registered. */
- 	if (!vin->parallel)
--		return -ENODEV;
-+		return vin->info->use_mc ? 0 : -ENODEV;
-
- 	vin_dbg(vin, "Found parallel subdevice %pOF\n",
- 		to_of_node(vin->parallel->asd.match.fwnode));
-@@ -1074,20 +1082,35 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 		return ret;
-
- 	platform_set_drvdata(pdev, vin);
--	if (vin->info->use_mc)
-+
-+	if (vin->info->use_mc) {
- 		ret = rvin_mc_init(vin);
--	else
--		ret = rvin_parallel_graph_init(vin);
--	if (ret < 0)
--		goto error;
-+		if (ret)
-+			goto error_dma_unregister;
-+	}
-+
-+	ret = rvin_parallel_init(vin);
-+	if (ret)
-+		goto error_group_unregister;
-
- 	pm_suspend_ignore_children(&pdev->dev, true);
- 	pm_runtime_enable(&pdev->dev);
-
- 	return 0;
--error:
-+
-+error_group_unregister:
-+	if (vin->info->use_mc) {
-+		mutex_lock(&vin->group->lock);
-+		if (&vin->v4l2_dev == vin->group->notifier.v4l2_dev) {
-+			v4l2_async_notifier_unregister(&vin->group->notifier);
-+			v4l2_async_notifier_cleanup(&vin->group->notifier);
++		/*
++		 * Make sure the source entity subdevice is registered as
++		 * a parallel input of one of the enabled VINs if it is not
++		 * one of the CSI-2 subdevices.
++		 *
++		 * No hardware configuration required for parallel inputs,
++		 * we can return here.
++		 */
++		sd = media_entity_to_v4l2_subdev(link->source->entity);
++		for (i = 0; i < RCAR_VIN_NUM; i++) {
++			if (group->vin[i] && group->vin[i]->parallel &&
++			    group->vin[i]->parallel->subdev == sd) {
++				group->vin[i]->is_csi = false;
++				ret = 0;
++				goto out;
++			}
 +		}
-+		mutex_unlock(&vin->group->lock);
-+		rvin_group_put(vin);
++
++		vin_err(vin, "Subdevice %s not registered to any VIN\n",
++			link->source->entity->name);
++		ret = -ENODEV;
++		goto out;
 +	}
 +
-+error_dma_unregister:
- 	rvin_dma_unregister(vin);
--	v4l2_async_notifier_cleanup(&vin->notifier);
-
- 	return ret;
- }
---
+ 	channel = rvin_group_csi_pad_to_channel(link->source->index);
+ 	mask_new = mask & rvin_group_get_mask(vin, csi_id, channel);
+-
+ 	vin_dbg(vin, "Try link change mask: 0x%x new: 0x%x\n", mask, mask_new);
+ 
+ 	if (!mask_new) {
+@@ -183,6 +211,11 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
+ 
+ 	/* New valid CHSEL found, set the new value. */
+ 	ret = rvin_set_channel_routing(group->vin[master_id], __ffs(mask_new));
++	if (ret)
++		goto out;
++
++	vin->is_csi = true;
++
+ out:
+ 	mutex_unlock(&group->lock);
+ 
+-- 
 2.7.4
