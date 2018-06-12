@@ -1,192 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:40018 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933638AbeFLQ2R (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:50805 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933733AbeFLQnk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Jun 2018 12:28:17 -0400
-Date: Tue, 12 Jun 2018 18:28:12 +0200
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [RFC PATCH v2] media: i2c: add SCCB helpers
-Message-ID: <20180612162812.7w4o4pnhqrr62ze6@earth.universe>
-References: <1528817686-7067-1-git-send-email-akinobu.mita@gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="yanlvuhd76bjoglc"
-Content-Disposition: inline
-In-Reply-To: <1528817686-7067-1-git-send-email-akinobu.mita@gmail.com>
+        Tue, 12 Jun 2018 12:43:40 -0400
+Message-ID: <1528821817.5280.10.camel@pengutronix.de>
+Subject: Re: [PATCH] gpu: ipu-v3: Allow negative offsets for interlaced
+ scanning
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+Cc: Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
+        kernel@pengutronix.de,
+        Javier Martinez Canillas <javierm@redhat.com>
+Date: Tue, 12 Jun 2018 18:43:37 +0200
+In-Reply-To: <6780e24e-891d-3583-6e38-d1abd69c8a0d@gmail.com>
+References: <20180601131316.18728-1-p.zabel@pengutronix.de>
+         <ebada35f-23c1-6ca4-5228-d3d91bad48bc@gmail.com>
+         <1528708771.3818.7.camel@pengutronix.de>
+         <6780e24e-891d-3583-6e38-d1abd69c8a0d@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 2018-06-11 at 14:06 -0700, Steve Longerbeam wrote:
+> 
+> On 06/11/2018 02:19 AM, Philipp Zabel wrote:
+> > Hi Steve,
+> > 
+> > On Sun, 2018-06-10 at 17:08 -0700, Steve Longerbeam wrote:
+> > > Hi Philipp,
+> > > 
+> > > On 06/01/2018 06:13 AM, Philipp Zabel wrote:
+> > > > The IPU also supports interlaced buffers that start with the bottom field.
+> > > > To achieve this, the the base address EBA has to be increased by a stride
+> > > > length and the interlace offset ILO has to be set to the negative stride.
+> > > > 
+> > > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > > > ---
+> > > >    drivers/gpu/ipu-v3/ipu-cpmem.c | 8 +++++++-
+> > > >    1 file changed, 7 insertions(+), 1 deletion(-)
+> > > > 
+> > > > diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
+> > > > index 9f2d9ec42add..c1028f38c553 100644
+> > > > --- a/drivers/gpu/ipu-v3/ipu-cpmem.c
+> > > > +++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
+> > > > @@ -269,8 +269,14 @@ EXPORT_SYMBOL_GPL(ipu_cpmem_set_uv_offset);
+> > > >    
+> > > >    void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride)
+> > > >    {
+> > > > +	u32 ilo;
+> > > > +
+> > > >    	ipu_ch_param_write_field(ch, IPU_FIELD_SO, 1);
+> > > > -	ipu_ch_param_write_field(ch, IPU_FIELD_ILO, stride / 8);
+> > > > +	if (stride >= 0)
+> > > > +		ilo = stride / 8;
+> > > > +	else
+> > > > +		ilo = 0x100000 - (-stride / 8);
+> > > > +	ipu_ch_param_write_field(ch, IPU_FIELD_ILO, ilo);
+> > > >    	ipu_ch_param_write_field(ch, IPU_FIELD_SLY, (stride * 2) - 1);
+> > > 
+> > > This should be "(-stride * 2) - 1" for SLY when stride is negative.
+> > > 
+> > > After fixing that, interweaving seq-bt -> interlaced-bt works fine for
+> > > packed pixel formats,
+> > 
+> > Ouch, thanks.
+> > 
+> > >   but there is still some problem for planar.
+> > > I haven't tracked down the issue with planar yet,
+> > 
+> > Just with the negative stride line?
+> 
+> Correct, planar is broken (bad colors in captured frames) when
+> negative stride is enabled for interweave. Planar works fine otherwise.
+> 
+> >   Only for YUV420 or also for NV12?
+> 
+> I tested YV12 (three planes YUV420). I can't remember if I tested
+> NV12 (two planes). I'm currently not able to test as I'm away from
+> the hardware but I will try on Wednesday.
+> 
+> > The problem could be that we also have to change UBO/VBO for planar
+> > formats with a chroma stride (SLUV) that is half the luma stride (SLY)
+> > when we move both Y and U/V frame start by a line length.
+> 
+> Right, and I think I am doing that, by setting image.rect.top = 1
+> before calling ipu_cpmem_set_image(). And when dequeuing a
+> new v4l2_buffer, I am adding one luma stride to the buffer address
+> when calling ipu_cpmem_set_buffer() (grep for interweave_offset).
 
---yanlvuhd76bjoglc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Oh, ok. Yes, that looks superficially correct, if a bit intransparent.
 
-Hi,
+> > >   but the corresponding
+> > > changes to imx-media that allow interweaving with line swapping are at
+> > > 
+> > > e9dd81da20 ("media: imx: Allow interweave with top/bottom lines swapped")
+> > > 
+> > > in branch fix-csi-interlaced.3 in my media-tree fork on github. Please
+> > > have a
+> > > look and let me know if you see anything obvious.
+> > 
+> > In commit a19126a80d13 ("gpu: ipu-csi: Swap fields according to
+> > input/output field types"), swap_fields = true is only set for
+> > seq-bt -> seq-tb and seq-tb -> seq-bt. I think it should also be
+> > enabled for alternate -> seq-bt (PAL) and alternate -> seq-tb (NTSC).
+> 
+> It is, see ipu_csi_translate_field() -- it will translate alternate
+> to seq-bt or seq-tb before determining swap_fields.
 
-On Wed, Jun 13, 2018 at 12:34:46AM +0900, Akinobu Mita wrote:
-> (This is 2nd version of SCCB helpers patch.  After 1st version was
-> submitted, I sent alternative patch titled "i2c: add I2C_M_FORCE_STOP".
-> But it wasn't accepted because it makes the I2C core code unreadable.
-> I couldn't find out a way to untangle it, so I returned to the original
-> approach.)
->=20
-> This adds Serial Camera Control Bus (SCCB) helper functions (sccb_read_by=
-te
-> and sccb_write_byte) that are intended to be used by some of Omnivision
-> sensor drivers.
->=20
-> The ov772x driver is going to use these functions in order to make it work
-> with most i2c controllers.
->=20
-> As the ov772x device doesn't support repeated starts, this driver current=
-ly
-> requires I2C_FUNC_PROTOCOL_MANGLING that is not supported by many i2c
-> controller drivers.
->=20
-> With the sccb_read_byte() that issues two separated requests in order to
-> avoid repeated start, the driver doesn't require I2C_FUNC_PROTOCOL_MANGLI=
-NG.
->=20
-> Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> Cc: Wolfram Sang <wsa@the-dreams.de>
-> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
+Right, I missed that too.
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> > 
+> > I've been made aware [1] that recently V4L2_FIELD_ALTERNATE has been
+> > clarified [2] to specify that v4l2_mbus_fmt.height should contain the
+> > number of lines per field, not per frame:
+> 
+> Yep! That was nagging at me as well. I noticed at least one other
+> platform (omap3isp) that doubles the source pad frame height
+> when the sensor reports ALTERNATE field mode, to capture a
+> whole frame. Makes sense. I think the crop height will need to
+> be doubled from the sink height in imx-media-csi.c to support
+> ALTERNATE.
 
--- Sebastian
+Yes.
 
-> * v2
-> - Convert all helpers into static inline functions, and remove C source
->   and Kconfig option.
-> - Acquire i2c adapter lock while issuing two requests for sccb_read_byte
->=20
->  drivers/media/i2c/sccb.h | 74 ++++++++++++++++++++++++++++++++++++++++++=
-++++++
->  1 file changed, 74 insertions(+)
->  create mode 100644 drivers/media/i2c/sccb.h
->=20
-> diff --git a/drivers/media/i2c/sccb.h b/drivers/media/i2c/sccb.h
-> new file mode 100644
-> index 0000000..a531fdc
-> --- /dev/null
-> +++ b/drivers/media/i2c/sccb.h
-> @@ -0,0 +1,74 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/*
-> + * Serial Camera Control Bus (SCCB) helper functions
-> + */
-> +
-> +#ifndef __SCCB_H__
-> +#define __SCCB_H__
-> +
-> +#include <linux/i2c.h>
-> +
-> +/**
-> + * sccb_read_byte - Read data from SCCB slave device
-> + * @client: Handle to slave device
-> + * @addr: Register to be read from
-> + *
-> + * This executes the 2-phase write transmission cycle that is followed b=
-y a
-> + * 2-phase read transmission cycle, returning negative errno else a data=
- byte
-> + * received from the device.
-> + */
-> +static inline int sccb_read_byte(struct i2c_client *client, u8 addr)
-> +{
-> +	u8 val;
-> +	struct i2c_msg msg[] =3D {
-> +		{
-> +			.addr =3D client->addr,
-> +			.len =3D 1,
-> +			.buf =3D &addr,
-> +		},
-> +		{
-> +			.addr =3D client->addr,
-> +			.flags =3D I2C_M_RD,
-> +			.len =3D 1,
-> +			.buf =3D &val,
-> +		},
-> +	};
-> +	int ret;
-> +	int i;
-> +
-> +	i2c_lock_adapter(client->adapter);
-> +
-> +	/* Issue two separated requests in order to avoid repeated start */
-> +	for (i =3D 0; i < 2; i++) {
-> +		ret =3D __i2c_transfer(client->adapter, &msg[i], 1);
-> +		if (ret !=3D 1)
-> +			break;
-> +	}
-> +
-> +	i2c_unlock_adapter(client->adapter);
-> +
-> +	return i =3D=3D 2 ? val : ret;
-> +}
-> +
-> +/**
-> + * sccb_write_byte - Write data to SCCB slave device
-> + * @client: Handle to slave device
-> + * @addr: Register to write to
-> + * @data: Value to be written
-> + *
-> + * This executes the SCCB 3-phase write transmission cycle, returning ne=
-gative
-> + * errno else zero on success.
-> + */
-> +static inline int sccb_write_byte(struct i2c_client *client, u8 addr, u8=
- data)
-> +{
-> +	int ret;
-> +	unsigned char msgbuf[] =3D { addr, data };
-> +
-> +	ret =3D i2c_master_send(client, msgbuf, 2);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +
-> +#endif /* __SCCB_H__ */
-> --=20
-> 2.7.4
->=20
+> That also means sink height can't be used to
+> guess at input video standard (480 becomes 240 for NTSC).
 
---yanlvuhd76bjoglc
-Content-Type: application/pgp-signature; name="signature.asc"
+Well, the v4l2_std_id heuristic in ipu_csi_set_bt_interlaced_codes just
+needs to check infmt->field == ALTERNATE.
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlsf9JkACgkQ2O7X88g7
-+pq2FQ//a40f5EXy3lYRn5iIxdm1AZ3f1yuhwMr7tn5EGbDTyyhIT8e6A6CeNFg+
-QFU1bK38MgwVcfOwxOKA7oyw+SNAETsl7yYRSxbo9eI7jbJgp7mrVFby/pbhvhFo
-/IIHjQQMdaX7n3MU9B852XvvpByt5FL1y3ipc2W0aWcxSr7WnksioSKJTT3tXzlT
-S1P7xtGbcUuDTaIlpy4jsfDbE+nVDqtjtiG3ba6Z64elE+NPXLavVkpg8WJpKN0o
-2quPMGsWVARJvtU/tcmfXQa1IkImJ2IbmKSsIUhTDfJGhStvMInw171JoQ4kKaWs
-Nth6QXXXPwkc1fwZ/s2BTCcmctngCAJwAk4a6F7UMUaADNG25Q/4yVDRR2uRHgDw
-d5iiwGk79QQX1QV7lPmdd9aB82oJ5Y4XRHkzt+ckbav6pJIdzHNqnF8Pm04QzG8H
-clJlEQB8//OyCbm1mBac2pBLc9jesgt1VFVjdyQ3FCdBeRZhXeOy0mwvdhb2OGsB
-lFgeOV6ilACb0qSvB3z9XI5kRsxPPjnDRvZWWP0I6xrVXCF4FkQQJUGUU2zVUHhz
-XCqQ2AqmZzrLNGE3blpFWO+ZexbRKylNw3RlEMPk7AMY6d7LxZVsylcudFhzkRUA
-cy07eE0PMzHvIr1HSrGOCtc2d/fEt+hJZ8L37EGUEwqC/XjVIJ0=
-=0HON
------END PGP SIGNATURE-----
-
---yanlvuhd76bjoglc--
+regards
+Philipp
