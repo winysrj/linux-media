@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:44849 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933834AbeFLNmU (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:45990 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933203AbeFLNmR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Jun 2018 09:42:20 -0400
+        Tue, 12 Jun 2018 09:42:17 -0400
 From: Oleksandr Andrushchenko <andr2000@gmail.com>
 To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
         dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
@@ -11,9 +11,9 @@ To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
 Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
         matthew.d.roper@intel.com,
         Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Subject: [PATCH v3 6/9] xen/gntdev: Make private routines/structures accessible
-Date: Tue, 12 Jun 2018 16:41:57 +0300
-Message-Id: <20180612134200.17456-7-andr2000@gmail.com>
+Subject: [PATCH v3 4/9] xen/grant-table: Allow allocating buffers suitable for DMA
+Date: Tue, 12 Jun 2018 16:41:55 +0300
+Message-Id: <20180612134200.17456-5-andr2000@gmail.com>
 In-Reply-To: <20180612134200.17456-1-andr2000@gmail.com>
 References: <20180612134200.17456-1-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -21,456 +21,197 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-This is in preparation for adding support of DMA buffer
-functionality: make map/unmap related code and structures, used
-privately by gntdev, ready for dma-buf extension, which will re-use
-these. Rename corresponding structures as those become non-private
-to gntdev now.
+Extend grant table module API to allow allocating buffers that can
+be used for DMA operations and mapping foreign grant references
+on top of those.
+The resulting buffer is similar to the one allocated by the balloon
+driver in terms that proper memory reservation is made
+({increase|decrease}_reservation and VA mappings updated if needed).
+This is useful for sharing foreign buffers with HW drivers which
+cannot work with scattered buffers provided by the balloon driver,
+but require DMAable memory instead.
 
 Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 ---
- drivers/xen/gntdev-common.h |  86 +++++++++++++++++++++++
- drivers/xen/gntdev.c        | 132 ++++++++++++------------------------
- 2 files changed, 128 insertions(+), 90 deletions(-)
- create mode 100644 drivers/xen/gntdev-common.h
+ drivers/xen/Kconfig       | 13 ++++++
+ drivers/xen/grant-table.c | 97 +++++++++++++++++++++++++++++++++++++++
+ include/xen/grant_table.h | 18 ++++++++
+ 3 files changed, 128 insertions(+)
 
-diff --git a/drivers/xen/gntdev-common.h b/drivers/xen/gntdev-common.h
-new file mode 100644
-index 000000000000..7a9845a6bee9
---- /dev/null
-+++ b/drivers/xen/gntdev-common.h
-@@ -0,0 +1,86 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
+diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
+index e5d0c28372ea..39536ddfbce4 100644
+--- a/drivers/xen/Kconfig
++++ b/drivers/xen/Kconfig
+@@ -161,6 +161,19 @@ config XEN_GRANT_DEV_ALLOC
+ 	  to other domains. This can be used to implement frontend drivers
+ 	  or as part of an inter-domain shared memory channel.
+ 
++config XEN_GRANT_DMA_ALLOC
++	bool "Allow allocating DMA capable buffers with grant reference module"
++	depends on XEN && HAS_DMA
++	help
++	  Extends grant table module API to allow allocating DMA capable
++	  buffers and mapping foreign grant references on top of it.
++	  The resulting buffer is similar to one allocated by the balloon
++	  driver in terms that proper memory reservation is made
++	  ({increase|decrease}_reservation and VA mappings updated if needed).
++	  This is useful for sharing foreign buffers with HW drivers which
++	  cannot work with scattered buffers provided by the balloon driver,
++	  but require DMAable memory instead.
 +
-+/*
-+ * Common functionality of grant device.
-+ *
-+ * Copyright (c) 2006-2007, D G Murray.
-+ *           (c) 2009 Gerd Hoffmann <kraxel@redhat.com>
-+ *           (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
-+ */
-+
-+#ifndef _GNTDEV_COMMON_H
-+#define _GNTDEV_COMMON_H
-+
-+#include <linux/mm.h>
-+#include <linux/mman.h>
-+#include <linux/mmu_notifier.h>
-+#include <linux/types.h>
-+
-+struct gntdev_priv {
-+	/* maps with visible offsets in the file descriptor */
-+	struct list_head maps;
-+	/* maps that are not visible; will be freed on munmap.
-+	 * Only populated if populate_freeable_maps == 1 */
-+	struct list_head freeable_maps;
-+	/* lock protects maps and freeable_maps */
-+	struct mutex lock;
-+	struct mm_struct *mm;
-+	struct mmu_notifier mn;
-+
+ config SWIOTLB_XEN
+ 	def_bool y
+ 	select SWIOTLB
+diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
+index dbb48a89e987..26ed498b5e6d 100644
+--- a/drivers/xen/grant-table.c
++++ b/drivers/xen/grant-table.c
+@@ -45,6 +45,9 @@
+ #include <linux/workqueue.h>
+ #include <linux/ratelimit.h>
+ #include <linux/moduleparam.h>
 +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-+	/* Device for which DMA memory is allocated. */
-+	struct device *dma_dev;
++#include <linux/dma-mapping.h>
 +#endif
-+};
-+
-+struct gntdev_unmap_notify {
-+	int flags;
-+	/* Address relative to the start of the gntdev_grant_map */
-+	int addr;
-+	int event;
-+};
-+
-+struct gntdev_grant_map {
-+	struct list_head next;
-+	struct vm_area_struct *vma;
-+	int index;
-+	int count;
-+	int flags;
-+	refcount_t users;
-+	struct gntdev_unmap_notify notify;
-+	struct ioctl_gntdev_grant_ref *grants;
-+	struct gnttab_map_grant_ref   *map_ops;
-+	struct gnttab_unmap_grant_ref *unmap_ops;
-+	struct gnttab_map_grant_ref   *kmap_ops;
-+	struct gnttab_unmap_grant_ref *kunmap_ops;
-+	struct page **pages;
-+	unsigned long pages_vm_start;
-+
-+#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-+	/*
-+	 * If dmabuf_vaddr is not NULL then this mapping is backed by DMA
-+	 * capable memory.
-+	 */
-+
-+	struct device *dma_dev;
-+	/* Flags used to create this DMA buffer: GNTDEV_DMA_FLAG_XXX. */
-+	int dma_flags;
-+	void *dma_vaddr;
-+	dma_addr_t dma_bus_addr;
-+	/* Needed to avoid allocation in gnttab_dma_free_pages(). */
-+	xen_pfn_t *frames;
-+#endif
-+};
-+
-+struct gntdev_grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count,
-+					  int dma_flags);
-+
-+void gntdev_add_map(struct gntdev_priv *priv, struct gntdev_grant_map *add);
-+
-+void gntdev_put_map(struct gntdev_priv *priv, struct gntdev_grant_map *map);
-+
-+bool gntdev_account_mapped_pages(int count);
-+
-+int gntdev_map_grant_pages(struct gntdev_grant_map *map);
-+
-+#endif
-diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
-index d6b79ad1cd6f..a09db23e9663 100644
---- a/drivers/xen/gntdev.c
-+++ b/drivers/xen/gntdev.c
-@@ -6,6 +6,7 @@
-  *
-  * Copyright (c) 2006-2007, D G Murray.
-  *           (c) 2009 Gerd Hoffmann <kraxel@redhat.com>
-+ *           (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-@@ -26,10 +27,6 @@
- #include <linux/init.h>
- #include <linux/miscdevice.h>
- #include <linux/fs.h>
--#include <linux/mm.h>
--#include <linux/mman.h>
--#include <linux/mmu_notifier.h>
--#include <linux/types.h>
- #include <linux/uaccess.h>
- #include <linux/sched.h>
- #include <linux/sched/mm.h>
-@@ -50,6 +47,8 @@
- #include <asm/xen/hypervisor.h>
+ 
+ #include <xen/xen.h>
+ #include <xen/interface/xen.h>
+@@ -57,6 +60,7 @@
+ #ifdef CONFIG_X86
+ #include <asm/xen/cpuid.h>
+ #endif
++#include <xen/mem-reservation.h>
  #include <asm/xen/hypercall.h>
+ #include <asm/xen/interface.h>
  
-+#include "gntdev-common.h"
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Derek G. Murray <Derek.Murray@cl.cam.ac.uk>, "
- 	      "Gerd Hoffmann <kraxel@redhat.com>");
-@@ -65,73 +64,23 @@ static atomic_t pages_mapped = ATOMIC_INIT(0);
- static int use_ptemod;
- #define populate_freeable_maps use_ptemod
+@@ -838,6 +842,99 @@ void gnttab_free_pages(int nr_pages, struct page **pages)
+ }
+ EXPORT_SYMBOL_GPL(gnttab_free_pages);
  
--struct gntdev_priv {
--	/* maps with visible offsets in the file descriptor */
--	struct list_head maps;
--	/* maps that are not visible; will be freed on munmap.
--	 * Only populated if populate_freeable_maps == 1 */
--	struct list_head freeable_maps;
--	/* lock protects maps and freeable_maps */
--	struct mutex lock;
--	struct mm_struct *mm;
--	struct mmu_notifier mn;
--
--#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
--	/* Device for which DMA memory is allocated. */
--	struct device *dma_dev;
--#endif
--};
--
--struct unmap_notify {
--	int flags;
--	/* Address relative to the start of the grant_map */
--	int addr;
--	int event;
--};
--
--struct grant_map {
--	struct list_head next;
--	struct vm_area_struct *vma;
--	int index;
--	int count;
--	int flags;
--	refcount_t users;
--	struct unmap_notify notify;
--	struct ioctl_gntdev_grant_ref *grants;
--	struct gnttab_map_grant_ref   *map_ops;
--	struct gnttab_unmap_grant_ref *unmap_ops;
--	struct gnttab_map_grant_ref   *kmap_ops;
--	struct gnttab_unmap_grant_ref *kunmap_ops;
--	struct page **pages;
--	unsigned long pages_vm_start;
--
--#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
--	/*
--	 * If dmabuf_vaddr is not NULL then this mapping is backed by DMA
--	 * capable memory.
--	 */
--
--	struct device *dma_dev;
--	/* Flags used to create this DMA buffer: GNTDEV_DMA_FLAG_XXX. */
--	int dma_flags;
--	void *dma_vaddr;
--	dma_addr_t dma_bus_addr;
--	/* Needed to avoid allocation in gnttab_dma_free_pages(). */
--	xen_pfn_t *frames;
--#endif
--};
--
--static int unmap_grant_pages(struct grant_map *map, int offset, int pages);
-+static int unmap_grant_pages(struct gntdev_grant_map *map,
-+			     int offset, int pages);
- 
- static struct miscdevice gntdev_miscdev;
- 
- /* ------------------------------------------------------------------ */
- 
-+bool gntdev_account_mapped_pages(int count)
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++/**
++ * gnttab_dma_alloc_pages - alloc DMAable pages suitable for grant mapping into
++ * @args: arguments to the function
++ */
++int gnttab_dma_alloc_pages(struct gnttab_dma_alloc_args *args)
 +{
-+	return atomic_add_return(count, &pages_mapped) > limit;
-+}
++	unsigned long pfn, start_pfn;
++	size_t size;
++	int i, ret;
 +
- static void gntdev_print_maps(struct gntdev_priv *priv,
- 			      char *text, int text_index)
- {
- #ifdef DEBUG
--	struct grant_map *map;
-+	struct gntdev_grant_map *map;
++	size = args->nr_pages << PAGE_SHIFT;
++	if (args->coherent)
++		args->vaddr = dma_alloc_coherent(args->dev, size,
++						 &args->dev_bus_addr,
++						 GFP_KERNEL | __GFP_NOWARN);
++	else
++		args->vaddr = dma_alloc_wc(args->dev, size,
++					   &args->dev_bus_addr,
++					   GFP_KERNEL | __GFP_NOWARN);
++	if (!args->vaddr) {
++		pr_debug("Failed to allocate DMA buffer of size %zu\n", size);
++		return -ENOMEM;
++	}
++
++	start_pfn = __phys_to_pfn(args->dev_bus_addr);
++	for (pfn = start_pfn, i = 0; pfn < start_pfn + args->nr_pages;
++			pfn++, i++) {
++		struct page *page = pfn_to_page(pfn);
++
++		args->pages[i] = page;
++		args->frames[i] = xen_page_to_gfn(page);
++		xenmem_reservation_scrub_page(page);
++	}
++
++	xenmem_reservation_va_mapping_reset(args->nr_pages, args->pages);
++
++	ret = xenmem_reservation_decrease(args->nr_pages, args->frames);
++	if (ret != args->nr_pages) {
++		pr_debug("Failed to decrease reservation for DMA buffer\n");
++		ret = -EFAULT;
++		goto fail;
++	}
++
++	ret = gnttab_pages_set_private(args->nr_pages, args->pages);
++	if (ret < 0)
++		goto fail;
++
++	return 0;
++
++fail:
++	gnttab_dma_free_pages(args);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gnttab_dma_alloc_pages);
++
++/**
++ * gnttab_dma_free_pages - free DMAable pages
++ * @args: arguments to the function
++ */
++int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args)
++{
++	size_t size;
++	int i, ret;
++
++	gnttab_pages_clear_private(args->nr_pages, args->pages);
++
++	for (i = 0; i < args->nr_pages; i++)
++		args->frames[i] = page_to_xen_pfn(args->pages[i]);
++
++	ret = xenmem_reservation_increase(args->nr_pages, args->frames);
++	if (ret != args->nr_pages) {
++		pr_debug("Failed to decrease reservation for DMA buffer\n");
++		ret = -EFAULT;
++	} else {
++		ret = 0;
++	}
++
++	xenmem_reservation_va_mapping_update(args->nr_pages, args->pages,
++					     args->frames);
++
++	size = args->nr_pages << PAGE_SHIFT;
++	if (args->coherent)
++		dma_free_coherent(args->dev, size,
++				  args->vaddr, args->dev_bus_addr);
++	else
++		dma_free_wc(args->dev, size,
++			    args->vaddr, args->dev_bus_addr);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gnttab_dma_free_pages);
++#endif
++
+ /* Handling of paged out grant targets (GNTST_eagain) */
+ #define MAX_DELAY 256
+ static inline void
+diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
+index de03f2542bb7..9bc5bc07d4d3 100644
+--- a/include/xen/grant_table.h
++++ b/include/xen/grant_table.h
+@@ -198,6 +198,24 @@ void gnttab_free_auto_xlat_frames(void);
+ int gnttab_alloc_pages(int nr_pages, struct page **pages);
+ void gnttab_free_pages(int nr_pages, struct page **pages);
  
- 	pr_debug("%s: maps list (priv %p)\n", __func__, priv);
- 	list_for_each_entry(map, &priv->maps, next)
-@@ -141,7 +90,7 @@ static void gntdev_print_maps(struct gntdev_priv *priv,
- #endif
- }
- 
--static void gntdev_free_map(struct grant_map *map)
-+static void gntdev_free_map(struct gntdev_grant_map *map)
- {
- 	if (map == NULL)
- 		return;
-@@ -176,13 +125,13 @@ static void gntdev_free_map(struct grant_map *map)
- 	kfree(map);
- }
- 
--static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count,
-+struct gntdev_grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count,
- 					  int dma_flags)
- {
--	struct grant_map *add;
-+	struct gntdev_grant_map *add;
- 	int i;
- 
--	add = kzalloc(sizeof(struct grant_map), GFP_KERNEL);
-+	add = kzalloc(sizeof(struct gntdev_grant_map), GFP_KERNEL);
- 	if (NULL == add)
- 		return NULL;
- 
-@@ -252,9 +201,9 @@ static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count,
- 	return NULL;
- }
- 
--static void gntdev_add_map(struct gntdev_priv *priv, struct grant_map *add)
-+void gntdev_add_map(struct gntdev_priv *priv, struct gntdev_grant_map *add)
- {
--	struct grant_map *map;
-+	struct gntdev_grant_map *map;
- 
- 	list_for_each_entry(map, &priv->maps, next) {
- 		if (add->index + add->count < map->index) {
-@@ -269,10 +218,10 @@ static void gntdev_add_map(struct gntdev_priv *priv, struct grant_map *add)
- 	gntdev_print_maps(priv, "[new]", add->index);
- }
- 
--static struct grant_map *gntdev_find_map_index(struct gntdev_priv *priv,
-+static struct gntdev_grant_map *gntdev_find_map_index(struct gntdev_priv *priv,
- 		int index, int count)
- {
--	struct grant_map *map;
-+	struct gntdev_grant_map *map;
- 
- 	list_for_each_entry(map, &priv->maps, next) {
- 		if (map->index != index)
-@@ -284,7 +233,7 @@ static struct grant_map *gntdev_find_map_index(struct gntdev_priv *priv,
- 	return NULL;
- }
- 
--static void gntdev_put_map(struct gntdev_priv *priv, struct grant_map *map)
-+void gntdev_put_map(struct gntdev_priv *priv, struct gntdev_grant_map *map)
- {
- 	if (!map)
- 		return;
-@@ -315,7 +264,7 @@ static void gntdev_put_map(struct gntdev_priv *priv, struct grant_map *map)
- static int find_grant_ptes(pte_t *pte, pgtable_t token,
- 		unsigned long addr, void *data)
- {
--	struct grant_map *map = data;
-+	struct gntdev_grant_map *map = data;
- 	unsigned int pgnr = (addr - map->vma->vm_start) >> PAGE_SHIFT;
- 	int flags = map->flags | GNTMAP_application_map | GNTMAP_contains_pte;
- 	u64 pte_maddr;
-@@ -348,7 +297,7 @@ static int set_grant_ptes_as_special(pte_t *pte, pgtable_t token,
- }
- #endif
- 
--static int map_grant_pages(struct grant_map *map)
-+int gntdev_map_grant_pages(struct gntdev_grant_map *map)
- {
- 	int i, err = 0;
- 
-@@ -413,7 +362,8 @@ static int map_grant_pages(struct grant_map *map)
- 	return err;
- }
- 
--static int __unmap_grant_pages(struct grant_map *map, int offset, int pages)
-+static int __unmap_grant_pages(struct gntdev_grant_map *map, int offset,
-+			       int pages)
- {
- 	int i, err = 0;
- 	struct gntab_unmap_queue_data unmap_data;
-@@ -448,7 +398,8 @@ static int __unmap_grant_pages(struct grant_map *map, int offset, int pages)
- 	return err;
- }
- 
--static int unmap_grant_pages(struct grant_map *map, int offset, int pages)
-+static int unmap_grant_pages(struct gntdev_grant_map *map, int offset,
-+			     int pages)
- {
- 	int range, err = 0;
- 
-@@ -480,7 +431,7 @@ static int unmap_grant_pages(struct grant_map *map, int offset, int pages)
- 
- static void gntdev_vma_open(struct vm_area_struct *vma)
- {
--	struct grant_map *map = vma->vm_private_data;
-+	struct gntdev_grant_map *map = vma->vm_private_data;
- 
- 	pr_debug("gntdev_vma_open %p\n", vma);
- 	refcount_inc(&map->users);
-@@ -488,7 +439,7 @@ static void gntdev_vma_open(struct vm_area_struct *vma)
- 
- static void gntdev_vma_close(struct vm_area_struct *vma)
- {
--	struct grant_map *map = vma->vm_private_data;
-+	struct gntdev_grant_map *map = vma->vm_private_data;
- 	struct file *file = vma->vm_file;
- 	struct gntdev_priv *priv = file->private_data;
- 
-@@ -512,7 +463,7 @@ static void gntdev_vma_close(struct vm_area_struct *vma)
- static struct page *gntdev_vma_find_special_page(struct vm_area_struct *vma,
- 						 unsigned long addr)
- {
--	struct grant_map *map = vma->vm_private_data;
-+	struct gntdev_grant_map *map = vma->vm_private_data;
- 
- 	return map->pages[(addr - map->pages_vm_start) >> PAGE_SHIFT];
- }
-@@ -525,7 +476,7 @@ static const struct vm_operations_struct gntdev_vmops = {
- 
- /* ------------------------------------------------------------------ */
- 
--static void unmap_if_in_range(struct grant_map *map,
-+static void unmap_if_in_range(struct gntdev_grant_map *map,
- 			      unsigned long start, unsigned long end)
- {
- 	unsigned long mstart, mend;
-@@ -554,7 +505,7 @@ static void mn_invl_range_start(struct mmu_notifier *mn,
- 				unsigned long start, unsigned long end)
- {
- 	struct gntdev_priv *priv = container_of(mn, struct gntdev_priv, mn);
--	struct grant_map *map;
-+	struct gntdev_grant_map *map;
- 
- 	mutex_lock(&priv->lock);
- 	list_for_each_entry(map, &priv->maps, next) {
-@@ -570,7 +521,7 @@ static void mn_release(struct mmu_notifier *mn,
- 		       struct mm_struct *mm)
- {
- 	struct gntdev_priv *priv = container_of(mn, struct gntdev_priv, mn);
--	struct grant_map *map;
-+	struct gntdev_grant_map *map;
- 	int err;
- 
- 	mutex_lock(&priv->lock);
-@@ -651,13 +602,14 @@ static int gntdev_open(struct inode *inode, struct file *flip)
- static int gntdev_release(struct inode *inode, struct file *flip)
- {
- 	struct gntdev_priv *priv = flip->private_data;
--	struct grant_map *map;
-+	struct gntdev_grant_map *map;
- 
- 	pr_debug("priv %p\n", priv);
- 
- 	mutex_lock(&priv->lock);
- 	while (!list_empty(&priv->maps)) {
--		map = list_entry(priv->maps.next, struct grant_map, next);
-+		map = list_entry(priv->maps.next,
-+				 struct gntdev_grant_map, next);
- 		list_del(&map->next);
- 		gntdev_put_map(NULL /* already removed */, map);
- 	}
-@@ -674,7 +626,7 @@ static long gntdev_ioctl_map_grant_ref(struct gntdev_priv *priv,
- 				       struct ioctl_gntdev_map_grant_ref __user *u)
- {
- 	struct ioctl_gntdev_map_grant_ref op;
--	struct grant_map *map;
-+	struct gntdev_grant_map *map;
- 	int err;
- 
- 	if (copy_from_user(&op, u, sizeof(op)) != 0)
-@@ -688,7 +640,7 @@ static long gntdev_ioctl_map_grant_ref(struct gntdev_priv *priv,
- 	if (!map)
- 		return err;
- 
--	if (unlikely(atomic_add_return(op.count, &pages_mapped) > limit)) {
-+	if (unlikely(gntdev_account_mapped_pages(op.count))) {
- 		pr_debug("can't map: over limit\n");
- 		gntdev_put_map(NULL, map);
- 		return err;
-@@ -715,7 +667,7 @@ static long gntdev_ioctl_unmap_grant_ref(struct gntdev_priv *priv,
- 					 struct ioctl_gntdev_unmap_grant_ref __user *u)
- {
- 	struct ioctl_gntdev_unmap_grant_ref op;
--	struct grant_map *map;
-+	struct gntdev_grant_map *map;
- 	int err = -ENOENT;
- 
- 	if (copy_from_user(&op, u, sizeof(op)) != 0)
-@@ -741,7 +693,7 @@ static long gntdev_ioctl_get_offset_for_vaddr(struct gntdev_priv *priv,
- {
- 	struct ioctl_gntdev_get_offset_for_vaddr op;
- 	struct vm_area_struct *vma;
--	struct grant_map *map;
-+	struct gntdev_grant_map *map;
- 	int rv = -EINVAL;
- 
- 	if (copy_from_user(&op, u, sizeof(op)) != 0)
-@@ -772,7 +724,7 @@ static long gntdev_ioctl_get_offset_for_vaddr(struct gntdev_priv *priv,
- static long gntdev_ioctl_notify(struct gntdev_priv *priv, void __user *u)
- {
- 	struct ioctl_gntdev_unmap_notify op;
--	struct grant_map *map;
-+	struct gntdev_grant_map *map;
- 	int rc;
- 	int out_flags;
- 	unsigned int out_event;
-@@ -1070,7 +1022,7 @@ static int gntdev_mmap(struct file *flip, struct vm_area_struct *vma)
- 	struct gntdev_priv *priv = flip->private_data;
- 	int index = vma->vm_pgoff;
- 	int count = vma_pages(vma);
--	struct grant_map *map;
-+	struct gntdev_grant_map *map;
- 	int i, err = -EINVAL;
- 
- 	if ((vma->vm_flags & VM_WRITE) && !(vma->vm_flags & VM_SHARED))
-@@ -1127,7 +1079,7 @@ static int gntdev_mmap(struct file *flip, struct vm_area_struct *vma)
- 		}
- 	}
- 
--	err = map_grant_pages(map);
-+	err = gntdev_map_grant_pages(map);
- 	if (err)
- 		goto out_put_map;
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++struct gnttab_dma_alloc_args {
++	/* Device for which DMA memory will be/was allocated. */
++	struct device *dev;
++	/* If set then DMA buffer is coherent and write-combine otherwise. */
++	bool coherent;
++
++	int nr_pages;
++	struct page **pages;
++	xen_pfn_t *frames;
++	void *vaddr;
++	dma_addr_t dev_bus_addr;
++};
++
++int gnttab_dma_alloc_pages(struct gnttab_dma_alloc_args *args);
++int gnttab_dma_free_pages(struct gnttab_dma_alloc_args *args);
++#endif
++
+ int gnttab_pages_set_private(int nr_pages, struct page **pages);
+ void gnttab_pages_clear_private(int nr_pages, struct page **pages);
  
 -- 
 2.17.1
