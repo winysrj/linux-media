@@ -1,77 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.socionext.com ([202.248.49.38]:10382 "EHLO mx.socionext.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752759AbeFNH1g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 03:27:36 -0400
-From: "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com>
-To: "Abylay Ospan" <aospan@netup.ru>,
-        "Mauro Carvalho Chehab" <mchehab+samsung@kernel.org>,
-        <linux-media@vger.kernel.org>
-Cc: "Masami Hiramatsu" <masami.hiramatsu@linaro.org>,
-        "Jassi Brar" <jaswinder.singh@linaro.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>,
-        =?iso-2022-jp?B?U3V6dWtpLCBLYXRzdWhpcm8vGyRCTmtMWhsoQiAbJEI+IUduGyhC?=
-        <suzuki.katsuhiro@socionext.com>
-References: <20180529010640.18604-1-suzuki.katsuhiro@socionext.com>
-In-Reply-To: <20180529010640.18604-1-suzuki.katsuhiro@socionext.com>
-Subject: Re: [RESEND PATCH] media: helene: fix tuning frequency of satellite
-Date: Thu, 14 Jun 2018 16:27:31 +0900
-Message-ID: <00c701d403b1$28015e20$78041a60$@socionext.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="iso-2022-jp"
-Content-Transfer-Encoding: 7bit
-Content-Language: ja
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:38340 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752665AbeFLKtd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Jun 2018 06:49:33 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        kernel@collabora.com, Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [RFC 0/2] Memory-to-memory media controller topology
+Date: Tue, 12 Jun 2018 07:48:25 -0300
+Message-Id: <20180612104827.11565-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+As discussed on IRC, memory-to-memory need to be modeled
+properly in order to be supported by the media controller
+framework, and thus to support the Request API.
 
-This patch is wrong, I got a mistake.
+This RFC is a first draft on the memory-to-memory
+media controller topology.
 
-DTV_FREQUENCY for satellite delivery systems, the frequency is in 'kHz' not 'Hz',
-so original code is correct. 
+The topology looks like this:
 
-Please forget this patch. Sorry for confusing...
+Device topology
+- entity 1: input (1 pad, 1 link)
+            type Node subtype Unknown flags 0
+	pad0: Source
+		-> "proc":1 [ENABLED,IMMUTABLE]
 
+- entity 3: proc (2 pads, 2 links)
+            type Node subtype Unknown flags 0
+	pad0: Source
+		-> "output":0 [ENABLED,IMMUTABLE]
+	pad1: Sink
+		<- "input":0 [ENABLED,IMMUTABLE]
 
-Regards,
---
-Katsuhiro Suzuki
+- entity 6: output (1 pad, 1 link)
+            type Node subtype Unknown flags 0
+	pad0: Sink
+		<- "proc":0 [ENABLED,IMMUTABLE]
 
-> -----Original Message-----
-> From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-> Sent: Tuesday, May 29, 2018 10:07 AM
-> To: Abylay Ospan <aospan@netup.ru>; Mauro Carvalho Chehab
-> <mchehab+samsung@kernel.org>; linux-media@vger.kernel.org
-> Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>; Jassi Brar
-> <jaswinder.singh@linaro.org>; linux-arm-kernel@lists.infradead.org;
-> linux-kernel@vger.kernel.org; Suzuki, Katsuhiro/鈴木 勝博
-> <suzuki.katsuhiro@socionext.com>
-> Subject: [RESEND PATCH] media: helene: fix tuning frequency of satellite
-> 
-> This patch fixes tuning frequency of satellite to kHz. That as same
-> as terrestrial one.
-> 
-> Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-> ---
->  drivers/media/dvb-frontends/helene.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/helene.c
-> b/drivers/media/dvb-frontends/helene.c
-> index 04033f0c278b..0a4f312c4368 100644
-> --- a/drivers/media/dvb-frontends/helene.c
-> +++ b/drivers/media/dvb-frontends/helene.c
-> @@ -523,7 +523,7 @@ static int helene_set_params_s(struct dvb_frontend *fe)
->  	enum helene_tv_system_t tv_system;
->  	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
->  	struct helene_priv *priv = fe->tuner_priv;
-> -	int frequencykHz = p->frequency;
-> +	int frequencykHz = p->frequency / 1000;
->  	uint32_t frequency4kHz = 0;
->  	u32 symbol_rate = p->symbol_rate/1000;
-> 
-> --
-> 2.17.0
+The first commit introduces a register/unregister API,
+that creates/destroys all the entities and pads needed,
+and links them.
+
+The second commit uses this API to support the vim2m driver.
+
+Notes
+-----
+
+* A new device node type is introduced VFL_TYPE_MEM2MEM,
+  this is mostly done so the video4linux core doesn't
+  try to register other media controller entities.
+
+* Also, a new media entity type is introduced. Memory-to-memory
+  devices have a multi-entity description and so can't
+  be simply embedded in other structs, or cast from other structs.
+
+Ezequiel Garcia (1):
+  media: add helpers for memory-to-memory media controller
+
+Hans Verkuil (1):
+  vim2m: add media device
+
+ drivers/media/platform/vim2m.c         |  41 ++++++-
+ drivers/media/v4l2-core/v4l2-dev.c     |  23 ++--
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 157 +++++++++++++++++++++++++
+ include/media/media-entity.h           |   4 +
+ include/media/v4l2-dev.h               |   2 +
+ include/media/v4l2-mem2mem.h           |   5 +
+ include/uapi/linux/media.h             |   2 +
+ 7 files changed, 222 insertions(+), 12 deletions(-)
+
+-- 
+2.17.1
