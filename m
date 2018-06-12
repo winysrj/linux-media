@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:37415 "EHLO
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:52369 "EHLO
         relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932712AbeFLO0a (ORCPT
+        with ESMTP id S932712AbeFLO0d (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Jun 2018 10:26:30 -0400
+        Tue, 12 Jun 2018 10:26:33 -0400
 From: Jacopo Mondi <jacopo+renesas@jmondi.org>
 To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
         horms@verge.net.au, geert@glider.be
@@ -12,49 +12,54 @@ Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
         robh+dt@kernel.org, devicetree@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
         linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v4 0/6] media: rcar-vin: Brush endpoint properties
-Date: Tue, 12 Jun 2018 16:26:00 +0200
-Message-Id: <1528813566-17927-1-git-send-email-jacopo+renesas@jmondi.org>
+Subject: [PATCH v4 1/6] dt-bindings: media: rcar-vin: Describe optional ep properties
+Date: Tue, 12 Jun 2018 16:26:01 +0200
+Message-Id: <1528813566-17927-2-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1528813566-17927-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1528813566-17927-1-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-  4th round for the VIN endpoint brushing series.
+Describe the optional endpoint properties for endpoint nodes of port@0
+and port@1 of the R-Car VIN driver device tree bindings documentation.
 
-Slightly enlarged the linux-media receiver list, as this new version
-introduces a common property in 'video-interfaces.txt'.
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Rob Herring <robh@kernel.org>
+---
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Compared to v3 I have dropped the last controversial parts:
-
-- The custom 'renesas,hsync-as-de' property has been dropped: do not handle
-  CHS bit for the moment.
-- Do not remove properties not parsed by the driver and not listed in the
-  interface bindings from Gen2 boards. As this lead to a long discussion, I
-  have now proposed a patch to clearly state that properties not listed in the
-  interface bindings can be optionally specified, but they don't affect the
-  interface behaviour. To avoid more discussions this patch may be dropped
-  and things will stay the way they are now.
-
-For the common 'data-enable-active' property, I guess with Rob's ack we should
-be fine there and I hope the rest of the series won't slow down its acceptance.
-
-Thanks
-   j
-
-Jacopo Mondi (6):
-  dt-bindings: media: rcar-vin: Describe optional ep properties
-  dt-bindings: media: Document data-enable-active property
-  media: v4l2-fwnode: parse 'data-enable-active' prop
-  dt-bindings: media: rcar-vin: Add 'data-enable-active'
-  media: rcar-vin: Handle data-enable polarity
-  dt-bindings: media: rcar-vin: Clarify optional props
-
- Documentation/devicetree/bindings/media/rcar_vin.txt   | 18 ++++++++++++++++++
- .../devicetree/bindings/media/video-interfaces.txt     |  2 ++
- drivers/media/platform/rcar-vin/rcar-dma.c             |  5 +++++
- drivers/media/v4l2-core/v4l2-fwnode.c                  |  4 ++++
- include/media/v4l2-mediabus.h                          |  2 ++
- 5 files changed, 31 insertions(+)
-
---
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index a19517e1..87f93ec 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -53,6 +53,14 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+       from external SoC pins described in video-interfaces.txt[1].
+       Describing more then one endpoint in port 0 is invalid. Only VIN
+       instances that are connected to external pins should have port 0.
++
++      - Optional properties for endpoint nodes of port@0:
++        - hsync-active: see [1] for description. Default is active high.
++        - vsync-active: see [1] for description. Default is active high.
++
++        If both HSYNC and VSYNC polarities are not specified, embedded
++        synchronization is selected.
++
+     - port 1 - sub-nodes describing one or more endpoints connected to
+       the VIN from local SoC CSI-2 receivers. The endpoint numbers must
+       use the following schema.
+@@ -62,6 +70,8 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+         - Endpoint 2 - sub-node describing the endpoint connected to CSI40
+         - Endpoint 3 - sub-node describing the endpoint connected to CSI41
+ 
++      Endpoint nodes of port@1 do not support any optional endpoint property.
++
+ Device node example for Gen2 platforms
+ --------------------------------------
+ 
+-- 
 2.7.4
