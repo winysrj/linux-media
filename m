@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:38988 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935981AbeFMPJQ (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:53626 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936000AbeFMPJU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 11:09:16 -0400
-Received: by mail-wr0-f196.google.com with SMTP id w7-v6so3140266wrn.6
-        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2018 08:09:15 -0700 (PDT)
+        Wed, 13 Jun 2018 11:09:20 -0400
+Received: by mail-wm0-f65.google.com with SMTP id x6-v6so5319345wmc.3
+        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2018 08:09:19 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,65 +14,54 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Vikash Garodia <vgarodia@codeaurora.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v3 07/27] venus: hfi_venus: add halt AXI support for Venus 4xx
-Date: Wed, 13 Jun 2018 18:07:41 +0300
-Message-Id: <20180613150801.11702-8-stanimir.varbanov@linaro.org>
+Subject: [PATCH v3 09/27] venus: hfi_venus: move set of default properties to core init
+Date: Wed, 13 Jun 2018 18:07:43 +0300
+Message-Id: <20180613150801.11702-10-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180613150801.11702-1-stanimir.varbanov@linaro.org>
 References: <20180613150801.11702-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add AXI halt support for version 4xx by using venus wrapper
-registers.
+This moves setting of default properties (firmware debug, idle
+indicator and low power mode) from session init to core init.
+All of those properties are need to be enabled/disabled early
+so that they could be used before the clients are even initialized.
+
+The other reason is to set idle indicator property early before
+we enter into venus_suspend function where we need to check for
+ARM9 WFI.
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/platform/qcom/venus/hfi_venus.c    | 18 ++++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_venus_io.h |  2 ++
- 2 files changed, 20 insertions(+)
+ drivers/media/platform/qcom/venus/hfi_venus.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
-index 734ce11b0ed0..784b3ad1a9f6 100644
+index 72a8547eab39..7a83e967a8ea 100644
 --- a/drivers/media/platform/qcom/venus/hfi_venus.c
 +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
-@@ -532,6 +532,24 @@ static int venus_halt_axi(struct venus_hfi_device *hdev)
- 	u32 val;
+@@ -1091,6 +1091,10 @@ static int venus_core_init(struct venus_core *core)
+ 	if (ret)
+ 		dev_warn(dev, "failed to send image version pkt to fw\n");
+ 
++	ret = venus_sys_set_default_properties(hdev);
++	if (ret)
++		return ret;
++
+ 	return 0;
+ }
+ 
+@@ -1135,10 +1139,6 @@ static int venus_session_init(struct venus_inst *inst, u32 session_type,
+ 	struct hfi_session_init_pkt pkt;
  	int ret;
  
-+	if (IS_V4(hdev->core)) {
-+		val = venus_readl(hdev, WRAPPER_CPU_AXI_HALT);
-+		val |= WRAPPER_CPU_AXI_HALT_HALT;
-+		venus_writel(hdev, WRAPPER_CPU_AXI_HALT, val);
-+
-+		ret = readl_poll_timeout(base + WRAPPER_CPU_AXI_HALT_STATUS,
-+					 val,
-+					 val & WRAPPER_CPU_AXI_HALT_STATUS_IDLE,
-+					 POLL_INTERVAL_US,
-+					 VBIF_AXI_HALT_ACK_TIMEOUT_US);
-+		if (ret) {
-+			dev_err(dev, "AXI bus port halt timeout\n");
-+			return ret;
-+		}
-+
-+		return 0;
-+	}
-+
- 	/* Halt AXI and AXI IMEM VBIF Access */
- 	val = venus_readl(hdev, VBIF_AXI_HALT_CTRL0);
- 	val |= VBIF_AXI_HALT_CTRL0_HALT_REQ;
-diff --git a/drivers/media/platform/qcom/venus/hfi_venus_io.h b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-index d327b5cea334..c0b18de1e396 100644
---- a/drivers/media/platform/qcom/venus/hfi_venus_io.h
-+++ b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-@@ -104,7 +104,9 @@
- 
- #define WRAPPER_CPU_CLOCK_CONFIG		(WRAPPER_BASE + 0x2000)
- #define WRAPPER_CPU_AXI_HALT			(WRAPPER_BASE + 0x2008)
-+#define WRAPPER_CPU_AXI_HALT_HALT		BIT(16)
- #define WRAPPER_CPU_AXI_HALT_STATUS		(WRAPPER_BASE + 0x200c)
-+#define WRAPPER_CPU_AXI_HALT_STATUS_IDLE	BIT(24)
- 
- #define WRAPPER_CPU_CGC_DIS			(WRAPPER_BASE + 0x2010)
- #define WRAPPER_CPU_STATUS			(WRAPPER_BASE + 0x2014)
+-	ret = venus_sys_set_default_properties(hdev);
+-	if (ret)
+-		return ret;
+-
+ 	ret = pkt_session_init(&pkt, inst, session_type, codec);
+ 	if (ret)
+ 		goto err;
 -- 
 2.14.1
