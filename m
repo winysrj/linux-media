@@ -1,93 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr70071.outbound.protection.outlook.com ([40.107.7.71]:52379
-        "EHLO EUR04-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S933618AbeFMIRZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 04:17:25 -0400
-Subject: Re: [PATCH v3 7/9] xen/gntdev: Add initial support for dma-buf UAPI
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com
-References: <20180612134200.17456-1-andr2000@gmail.com>
- <20180612134200.17456-8-andr2000@gmail.com>
- <916e91c9-0710-0afb-2f49-4a7c7b4c02b5@oracle.com>
-From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
-Message-ID: <96c72c58-c41d-5140-804e-5d4f03934b06@epam.com>
-Date: Wed, 13 Jun 2018 11:17:17 +0300
-MIME-Version: 1.0
-In-Reply-To: <916e91c9-0710-0afb-2f49-4a7c7b4c02b5@oracle.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:36196 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754475AbeFMIKR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Jun 2018 04:10:17 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Rob Herring <robh@kernel.org>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: Re: [PATCH 2/2] media: ov5640: add support of module orientation
+Date: Wed, 13 Jun 2018 08:10:02 +0000
+Message-ID: <0701a0f6-bc39-1754-55e2-1de9b9394b5b@st.com>
+References: <1528709357-7251-1-git-send-email-hugues.fruchet@st.com>
+ <1528709357-7251-3-git-send-email-hugues.fruchet@st.com>
+ <20180612220628.GA18467@rob-hp-laptop>
+In-Reply-To: <20180612220628.GA18467@rob-hp-laptop>
 Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <B5918F1678A0F74FB02965DD628498AF@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/13/2018 04:49 AM, Boris Ostrovsky wrote:
->
->
-> On 06/12/2018 09:41 AM, Oleksandr Andrushchenko wrote:
->
->> diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
->> index a09db23e9663..e82660d81d7e 100644
->> --- a/drivers/xen/gntdev.c
->> +++ b/drivers/xen/gntdev.c
->> @@ -48,6 +48,9 @@
->>   #include <asm/xen/hypercall.h>
->>     #include "gntdev-common.h"
->> +#ifdef CONFIG_XEN_GNTDEV_DMABUF
->> +#include "gntdev-dmabuf.h"
->> +#endif
->>     MODULE_LICENSE("GPL");
->>   MODULE_AUTHOR("Derek G. Murray <Derek.Murray@cl.cam.ac.uk>, "
->> @@ -566,6 +569,15 @@ static int gntdev_open(struct inode *inode, 
->> struct file *flip)
->>       INIT_LIST_HEAD(&priv->freeable_maps);
->>       mutex_init(&priv->lock);
->>   +#ifdef CONFIG_XEN_GNTDEV_DMABUF
->> +    priv->dmabuf_priv = gntdev_dmabuf_init();
->> +    if (IS_ERR(priv->dmabuf_priv)) {
->> +        ret = PTR_ERR(priv->dmabuf_priv);
->> +        kfree(priv);
->> +        return ret;
->> +    }
->> +#endif
->> +
->>       if (use_ptemod) {
->>           priv->mm = get_task_mm(current);
->>           if (!priv->mm) {
->> @@ -616,8 +628,13 @@ static int gntdev_release(struct inode *inode, 
->> struct file *flip)
->>       WARN_ON(!list_empty(&priv->freeable_maps));
->>       mutex_unlock(&priv->lock);
->>   +#ifdef CONFIG_XEN_GNTDEV_DMABUF
->> +    gntdev_dmabuf_fini(priv->dmabuf_priv);
->> +#endif
->> +
->>       if (use_ptemod)
->>           mmu_notifier_unregister(&priv->mn, priv->mm);
->> +
->>       kfree(priv);
->>       return 0;
->>   }
->> @@ -987,6 +1004,107 @@ static long gntdev_ioctl_grant_copy(struct 
->> gntdev_priv *priv, void __user *u)
->>       return ret;
->>   }
->>   +#ifdef CONFIG_XEN_GNTDEV_DMABUF
->> +static long
->> +gntdev_ioctl_dmabuf_exp_from_refs(struct gntdev_priv *priv,
->> +                  struct ioctl_gntdev_dmabuf_exp_from_refs __user *u)
->
->
-> Didn't we agree that this code moves to gntdev-dmabuf.c ?
->
-Sure, didn't think we want IOCTL's code to be moved as well,
-but that does make sense - will move all
-> -boris
->
-Thank you,
-Oleksandr
+SGkgUm9iLCB0aGFua3MgZm9yIHJldmlldywNCg0KT24gMDYvMTMvMjAxOCAxMjowNiBBTSwgUm9i
+IEhlcnJpbmcgd3JvdGU6DQo+IE9uIE1vbiwgSnVuIDExLCAyMDE4IGF0IDExOjI5OjE3QU0gKzAy
+MDAsIEh1Z3VlcyBGcnVjaGV0IHdyb3RlOg0KPj4gQWRkIHN1cHBvcnQgb2YgbW9kdWxlIGJlaW5n
+IHBoeXNpY2FsbHkgbW91bnRlZCB1cHNpZGUgZG93bi4NCj4+IEluIHRoaXMgY2FzZSwgbWlycm9y
+IGFuZCBmbGlwIGFyZSBlbmFibGVkIHRvIGZpeCBjYXB0dXJlZCBpbWFnZXMNCj4+IG9yaWVudGF0
+aW9uLg0KPj4NCj4+IFNpZ25lZC1vZmYtYnk6IEh1Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hl
+dEBzdC5jb20+DQo+PiAtLS0NCj4+ICAgLi4uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJj
+L292NTY0MC50eHQgICAgICAgfCAgMyArKysNCj4gDQo+IFBsZWFzZSBzcGxpdCBiaW5kaW5ncyB0
+byBzZXBhcmF0ZSBwYXRjaGVzLg0KDQpPSywgd2lsbCBkbyBpbiBuZXh0IHBhdGNoc2V0Lg0KDQo+
+IA0KPj4gICBkcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYyAgICAgICAgICAgICAgICAgICAgICAg
+ICB8IDI4ICsrKysrKysrKysrKysrKysrKysrLS0NCj4+ICAgMiBmaWxlcyBjaGFuZ2VkLCAyOSBp
+bnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPj4NCj4+IGRpZmYgLS1naXQgYS9Eb2N1bWVu
+dGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJjL292NTY0MC50eHQgYi9Eb2N1bWVu
+dGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJjL292NTY0MC50eHQNCj4+IGluZGV4
+IDhlMzZkYTAuLmY3NmViN2UgMTAwNjQ0DQo+PiAtLS0gYS9Eb2N1bWVudGF0aW9uL2RldmljZXRy
+ZWUvYmluZGluZ3MvbWVkaWEvaTJjL292NTY0MC50eHQNCj4+ICsrKyBiL0RvY3VtZW50YXRpb24v
+ZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9pMmMvb3Y1NjQwLnR4dA0KPj4gQEAgLTEzLDYgKzEz
+LDggQEAgT3B0aW9uYWwgUHJvcGVydGllczoNCj4+ICAgCSAgICAgICBUaGlzIGlzIGFuIGFjdGl2
+ZSBsb3cgc2lnbmFsIHRvIHRoZSBPVjU2NDAuDQo+PiAgIC0gcG93ZXJkb3duLWdwaW9zOiByZWZl
+cmVuY2UgdG8gdGhlIEdQSU8gY29ubmVjdGVkIHRvIHRoZSBwb3dlcmRvd24gcGluLA0KPj4gICAJ
+CSAgIGlmIGFueS4gVGhpcyBpcyBhbiBhY3RpdmUgaGlnaCBzaWduYWwgdG8gdGhlIE9WNTY0MC4N
+Cj4+ICstIHJvdGF0aW9uOiBpbnRlZ2VyIHByb3BlcnR5OyB2YWxpZCB2YWx1ZXMgYXJlIDAgKHNl
+bnNvciBtb3VudGVkIHVwcmlnaHQpDQo+PiArCSAgICBhbmQgMTgwIChzZW5zb3IgbW91bnRlZCB1
+cHNpZGUgZG93bikuDQo+IA0KPiBEaWRuJ3Qgd2UganVzdCBhZGQgdGhpcyBhcyBhIGNvbW1vbiBw
+cm9wZXJ0eT8gSWYgc28sIGp1c3QgcmVmZXJlbmNlIHRoZQ0KPiBjb21tb24gZGVmaW5pdGlvbi4g
+SWYgbm90LCBpdCBuZWVkcyBhIGNvbW1vbiBkZWZpbml0aW9uLg0KPiANCg0KQSBjb21tb24gZGVm
+aW5pdGlvbiBoYXMgYmVlbiBpbnRyb2R1Y2VkIGJ5IFNha2FyaSwgSSdtIHJldXNpbmcgaXQsIHNl
+ZToNCmh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwu
+b3JnL21zZzEzMjUxNy5odG1sDQoNCkkgd291bGQgc28gcHJvcG9zZToNCiA+PiArLSByb3RhdGlv
+bjogYXMgZGVmaW5lZCBpbg0KID4+ICsJRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdz
+L21lZGlhL3ZpZGVvLWludGVyZmFjZXMudHh0Lg0KDQoNCkJlc3QgcmVnYXJkcywNCkh1Z3Vlcy4=
