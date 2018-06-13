@@ -1,140 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:40178 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933226AbeFME0v (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 00:26:51 -0400
-Message-ID: <a79fbb41ffe9ad9a8f385ce174efe6a1@smtp-cloud7.xs4all.net>
-Date: Wed, 13 Jun 2018 06:26:48 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mail-eopbgr70071.outbound.protection.outlook.com ([40.107.7.71]:23436
+        "EHLO EUR04-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754377AbeFMG0a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Jun 2018 02:26:30 -0400
+Subject: Re: [PATCH v3 3/9] xen/balloon: Share common memory reservation
+ routines
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com
+References: <20180612134200.17456-1-andr2000@gmail.com>
+ <20180612134200.17456-4-andr2000@gmail.com>
+ <d63f0cf5-5154-f2a3-155e-fdb6dd0959e2@oracle.com>
+From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
+Message-ID: <cbaeec5c-0d69-881c-2b42-54855e53015a@epam.com>
+Date: Wed, 13 Jun 2018 09:26:18 +0300
+MIME-Version: 1.0
+In-Reply-To: <d63f0cf5-5154-f2a3-155e-fdb6dd0959e2@oracle.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
-
-Results of the daily build of media_tree:
-
-date:			Wed Jun 13 05:00:21 CEST 2018
-media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
-media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
-v4l-utils git hash:	c3b46c2c53d7d815a53c902cfb2ddd96c3732c5b
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-i686: OK
-linux-4.17-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+On 06/13/2018 03:47 AM, Boris Ostrovsky wrote:
+>
+>
+> On 06/12/2018 09:41 AM, Oleksandr Andrushchenko wrote:
+>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>
+>> diff --git a/include/xen/mem-reservation.h 
+>> b/include/xen/mem-reservation.h
+>> new file mode 100644
+>> index 000000000000..e0939387278d
+>> --- /dev/null
+>> +++ b/include/xen/mem-reservation.h
+>> @@ -0,0 +1,64 @@
+>> +/* SPDX-License-Identifier: GPL-2.0 */
+>> +
+>> +/*
+>> + * Xen memory reservation utilities.
+>> + *
+>> + * Copyright (c) 2003, B Dragovic
+>> + * Copyright (c) 2003-2004, M Williamson, K Fraser
+>> + * Copyright (c) 2005 Dan M. Smith, IBM Corporation
+>> + * Copyright (c) 2010 Daniel Kiper
+>> + * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
+>> + */
+>> +
+>> +#ifndef _XENMEM_RESERVATION_H
+>> +#define _XENMEM_RESERVATION_H
+>> +
+>> +#include <linux/kernel.h>
+>> +#include <linux/slab.h>
+>> +
+>> +#include <asm/xen/hypercall.h>
+>> +#include <asm/tlb.h>
+>> +
+>> +#include <xen/interface/memory.h>
+>> +#include <xen/page.h>
+>
+>
+> I should have noticed this in the previous post but I suspect most of 
+> these includes belong in the C file. For example, there is no reason 
+> for hypercall.h here.
+>
+Yes, it seems that the header can only have
+#include <xen/page.h>
+Will move the rest into the .c file
+> -boris
+>
+>
+>> +
+>> +static inline void xenmem_reservation_scrub_page(struct page *page)
+>> +{
+>> +#ifdef CONFIG_XEN_SCRUB_PAGES
+>> +    clear_highpage(page);
+>> +#endif
+>> +}
+>> +
+>> +#ifdef CONFIG_XEN_HAVE_PVMMU
+>> +void __xenmem_reservation_va_mapping_update(unsigned long count,
+>> +                        struct page **pages,
+>> +                        xen_pfn_t *frames);
+>> +
+>> +void __xenmem_reservation_va_mapping_reset(unsigned long count,
+>> +                       struct page **pages);
+>> +#endif
+>> +
+>> +static inline void xenmem_reservation_va_mapping_update(unsigned 
+>> long count,
+>> +                            struct page **pages,
+>> +                            xen_pfn_t *frames)
+>> +{
+>> +#ifdef CONFIG_XEN_HAVE_PVMMU
+>> +    if (!xen_feature(XENFEAT_auto_translated_physmap))
+>> +        __xenmem_reservation_va_mapping_update(count, pages, frames);
+>> +#endif
+>> +}
+>> +
+>> +static inline void xenmem_reservation_va_mapping_reset(unsigned long 
+>> count,
+>> +                               struct page **pages)
+>> +{
+>> +#ifdef CONFIG_XEN_HAVE_PVMMU
+>> +    if (!xen_feature(XENFEAT_auto_translated_physmap))
+>> +        __xenmem_reservation_va_mapping_reset(count, pages);
+>> +#endif
+>> +}
+>> +
+>> +int xenmem_reservation_increase(int count, xen_pfn_t *frames);
+>> +
+>> +int xenmem_reservation_decrease(int count, xen_pfn_t *frames);
+>> +
+>> +#endif
+>>
