@@ -1,135 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:58538 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935494AbeFMMCT (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37688 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S935261AbeFMMLS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 08:02:19 -0400
-Subject: Re: [PATCH v3 3/9] xen/balloon: Share common memory reservation
- routines
-To: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>,
-        Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com
-References: <20180612134200.17456-1-andr2000@gmail.com>
- <20180612134200.17456-4-andr2000@gmail.com>
- <d63f0cf5-5154-f2a3-155e-fdb6dd0959e2@oracle.com>
- <cbaeec5c-0d69-881c-2b42-54855e53015a@epam.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <b79713a9-3a2d-6465-3b22-622bfb7a4d3e@oracle.com>
-Date: Wed, 13 Jun 2018 08:02:05 -0400
+        Wed, 13 Jun 2018 08:11:18 -0400
+Date: Wed, 13 Jun 2018 15:11:15 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hugues FRUCHET <hugues.fruchet@st.com>
+Cc: Rob Herring <robh@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: Re: [PATCH 2/2] media: ov5640: add support of module orientation
+Message-ID: <20180613121115.jnnbtxxegdbzss3j@valkosipuli.retiisi.org.uk>
+References: <1528709357-7251-1-git-send-email-hugues.fruchet@st.com>
+ <1528709357-7251-3-git-send-email-hugues.fruchet@st.com>
+ <20180612220628.GA18467@rob-hp-laptop>
+ <0701a0f6-bc39-1754-55e2-1de9b9394b5b@st.com>
+ <20180613082438.j7w5knhxtjcdjxng@valkosipuli.retiisi.org.uk>
+ <c109edf3-53f0-d80a-5d06-f56b49284045@st.com>
 MIME-Version: 1.0
-In-Reply-To: <cbaeec5c-0d69-881c-2b42-54855e53015a@epam.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c109edf3-53f0-d80a-5d06-f56b49284045@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 06/13/2018 02:26 AM, Oleksandr Andrushchenko wrote:
-> On 06/13/2018 03:47 AM, Boris Ostrovsky wrote:
->>
->>
->> On 06/12/2018 09:41 AM, Oleksandr Andrushchenko wrote:
->>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>
->>> diff --git a/include/xen/mem-reservation.h 
->>> b/include/xen/mem-reservation.h
->>> new file mode 100644
->>> index 000000000000..e0939387278d
->>> --- /dev/null
->>> +++ b/include/xen/mem-reservation.h
->>> @@ -0,0 +1,64 @@
->>> +/* SPDX-License-Identifier: GPL-2.0 */
->>> +
->>> +/*
->>> + * Xen memory reservation utilities.
->>> + *
->>> + * Copyright (c) 2003, B Dragovic
->>> + * Copyright (c) 2003-2004, M Williamson, K Fraser
->>> + * Copyright (c) 2005 Dan M. Smith, IBM Corporation
->>> + * Copyright (c) 2010 Daniel Kiper
->>> + * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
->>> + */
->>> +
->>> +#ifndef _XENMEM_RESERVATION_H
->>> +#define _XENMEM_RESERVATION_H
->>> +
->>> +#include <linux/kernel.h>
->>> +#include <linux/slab.h>
->>> +
->>> +#include <asm/xen/hypercall.h>
->>> +#include <asm/tlb.h>
->>> +
->>> +#include <xen/interface/memory.h>
->>> +#include <xen/page.h>
->>
->>
->> I should have noticed this in the previous post but I suspect most of 
->> these includes belong in the C file. For example, there is no reason 
->> for hypercall.h here.
->>
-> Yes, it seems that the header can only have
-> #include <xen/page.h>
-> Will move the rest into the .c file
-
-
-You may need something for clear_highpage() and maybe for Xen feature 
-flags. But you'll find out for sure when you try to build. ;-)
-
--boris
-
-
-
->> -boris
->>
->>
->>> +
->>> +static inline void xenmem_reservation_scrub_page(struct page *page)
->>> +{
->>> +#ifdef CONFIG_XEN_SCRUB_PAGES
->>> +    clear_highpage(page);
->>> +#endif
->>> +}
->>> +
->>> +#ifdef CONFIG_XEN_HAVE_PVMMU
->>> +void __xenmem_reservation_va_mapping_update(unsigned long count,
->>> +                        struct page **pages,
->>> +                        xen_pfn_t *frames);
->>> +
->>> +void __xenmem_reservation_va_mapping_reset(unsigned long count,
->>> +                       struct page **pages);
->>> +#endif
->>> +
->>> +static inline void xenmem_reservation_va_mapping_update(unsigned 
->>> long count,
->>> +                            struct page **pages,
->>> +                            xen_pfn_t *frames)
->>> +{
->>> +#ifdef CONFIG_XEN_HAVE_PVMMU
->>> +    if (!xen_feature(XENFEAT_auto_translated_physmap))
->>> +        __xenmem_reservation_va_mapping_update(count, pages, frames);
->>> +#endif
->>> +}
->>> +
->>> +static inline void xenmem_reservation_va_mapping_reset(unsigned long 
->>> count,
->>> +                               struct page **pages)
->>> +{
->>> +#ifdef CONFIG_XEN_HAVE_PVMMU
->>> +    if (!xen_feature(XENFEAT_auto_translated_physmap))
->>> +        __xenmem_reservation_va_mapping_reset(count, pages);
->>> +#endif
->>> +}
->>> +
->>> +int xenmem_reservation_increase(int count, xen_pfn_t *frames);
->>> +
->>> +int xenmem_reservation_decrease(int count, xen_pfn_t *frames);
->>> +
->>> +#endif
->>>
+On Wed, Jun 13, 2018 at 10:09:58AM +0000, Hugues FRUCHET wrote:
+> Hi Sakari, Rob,
 > 
+> Find a new proposal below:
+> 
+> On 06/13/2018 10:24 AM, Sakari Ailus wrote:
+> > On Wed, Jun 13, 2018 at 08:10:02AM +0000, Hugues FRUCHET wrote:
+> >> Hi Rob, thanks for review,
+> >>
+> >> On 06/13/2018 12:06 AM, Rob Herring wrote:
+> >>> On Mon, Jun 11, 2018 at 11:29:17AM +0200, Hugues Fruchet wrote:
+> >>>> Add support of module being physically mounted upside down.
+> >>>> In this case, mirror and flip are enabled to fix captured images
+> >>>> orientation.
+> >>>>
+> >>>> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> >>>> ---
+> >>>>    .../devicetree/bindings/media/i2c/ov5640.txt       |  3 +++
+> >>>
+> >>> Please split bindings to separate patches.
+> >>
+> >> OK, will do in next patchset.
+> >>
+> >>>
+> >>>>    drivers/media/i2c/ov5640.c                         | 28 ++++++++++++++++++++--
+> >>>>    2 files changed, 29 insertions(+), 2 deletions(-)
+> >>>>
+> >>>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> >>>> index 8e36da0..f76eb7e 100644
+> >>>> --- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> >>>> +++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> >>>> @@ -13,6 +13,8 @@ Optional Properties:
+> >>>>    	       This is an active low signal to the OV5640.
+> >>>>    - powerdown-gpios: reference to the GPIO connected to the powerdown pin,
+> >>>>    		   if any. This is an active high signal to the OV5640.
+> >>>> +- rotation: integer property; valid values are 0 (sensor mounted upright)
+> >>>> +	    and 180 (sensor mounted upside down).
+> >>>
+> >>> Didn't we just add this as a common property? If so, just reference the
+> >>> common definition. If not, it needs a common definition.
+> >>>
+> >>
+> >> A common definition has been introduced by Sakari, I'm reusing it, see:
+> >> https://www.mail-archive.com/linux-media@vger.kernel.org/msg132517.html
+> >>
+> >> I would so propose:
+> >>   >> +- rotation: as defined in
+> >>   >> +	Documentation/devicetree/bindings/media/video-interfaces.txt.
+> > 
+> > Shouldn't the description still include the valid values? As far as I can
+> > tell, these are ultimately device specific albeit more or less the same for
+> > *this kind* of sensors.
+> 
+> Yes you're right, let's put both together:
+> +- rotation: as defined in
+> +	Documentation/devicetree/bindings/media/video-interfaces.txt,
+> +	valid values are 0 (sensor mounted upright) and 180 (sensor
+> +	mounted upside down).
+
+I'll improve the description for smiapp as well.
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
