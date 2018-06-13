@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr70071.outbound.protection.outlook.com ([40.107.7.71]:23436
-        "EHLO EUR04-HE1-obe.outbound.protection.outlook.com"
+Received: from mail-ve1eur01on0085.outbound.protection.outlook.com ([104.47.1.85]:18560
+        "EHLO EUR01-VE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754377AbeFMG0a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 02:26:30 -0400
+        id S1754398AbeFMGvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Jun 2018 02:51:00 -0400
 Subject: Re: [PATCH v3 3/9] xen/balloon: Share common memory reservation
  routines
 To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
@@ -15,107 +15,84 @@ Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
         matthew.d.roper@intel.com
 References: <20180612134200.17456-1-andr2000@gmail.com>
  <20180612134200.17456-4-andr2000@gmail.com>
- <d63f0cf5-5154-f2a3-155e-fdb6dd0959e2@oracle.com>
+ <124f3832-63b4-021d-0c6f-470229c7a056@oracle.com>
 From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
-Message-ID: <cbaeec5c-0d69-881c-2b42-54855e53015a@epam.com>
-Date: Wed, 13 Jun 2018 09:26:18 +0300
+Message-ID: <1817fea9-36fe-b14b-f266-8e40a5ed6169@epam.com>
+Date: Wed, 13 Jun 2018 09:50:52 +0300
 MIME-Version: 1.0
-In-Reply-To: <d63f0cf5-5154-f2a3-155e-fdb6dd0959e2@oracle.com>
+In-Reply-To: <124f3832-63b4-021d-0c6f-470229c7a056@oracle.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/13/2018 03:47 AM, Boris Ostrovsky wrote:
+On 06/13/2018 04:07 AM, Boris Ostrovsky wrote:
 >
 >
 > On 06/12/2018 09:41 AM, Oleksandr Andrushchenko wrote:
->> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->
->> diff --git a/include/xen/mem-reservation.h 
->> b/include/xen/mem-reservation.h
->> new file mode 100644
->> index 000000000000..e0939387278d
->> --- /dev/null
->> +++ b/include/xen/mem-reservation.h
->> @@ -0,0 +1,64 @@
->> +/* SPDX-License-Identifier: GPL-2.0 */
->> +
->> +/*
->> + * Xen memory reservation utilities.
->> + *
->> + * Copyright (c) 2003, B Dragovic
->> + * Copyright (c) 2003-2004, M Williamson, K Fraser
->> + * Copyright (c) 2005 Dan M. Smith, IBM Corporation
->> + * Copyright (c) 2010 Daniel Kiper
->> + * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
->> + */
->> +
->> +#ifndef _XENMEM_RESERVATION_H
->> +#define _XENMEM_RESERVATION_H
->> +
->> +#include <linux/kernel.h>
->> +#include <linux/slab.h>
->> +
->> +#include <asm/xen/hypercall.h>
->> +#include <asm/tlb.h>
->> +
->> +#include <xen/interface/memory.h>
->> +#include <xen/page.h>
 >
 >
-> I should have noticed this in the previous post but I suspect most of 
-> these includes belong in the C file. For example, there is no reason 
-> for hypercall.h here.
 >
-Yes, it seems that the header can only have
-#include <xen/page.h>
-Will move the rest into the .c file
+> One more thing: please add a comment here saying that frames array is 
+> array of PFNs (in Xen granularity), which is what 
+> XENMEM_populate_physmap requires. And remove (or update to name the 
+> actual call you are making) the corresponding comment in 
+> increase_reservation().
+>
+I will remove corresponding comments from the balloon's 
+{increase|decrease}_reservation
+and move those into xenmem_reservation{increase|decrease} where they 
+belong now.
+I will also put a comment close to xenmem_reservation{increase|decrease}:
+
+/* @frames is an array of PFNs */
+int xenmem_reservation_increase(int count, xen_pfn_t *frames)
+{
+     [...]
+}
+
+/* @frames is an array of GFNs */
+int xenmem_reservation_decrease(int count, xen_pfn_t *frames)
+{
+     [...]
+}
+>
+>> +
+>> +int xenmem_reservation_increase(int count, xen_pfn_t *frames)
+>> +{
+>> +    struct xen_memory_reservation reservation = {
+>> +        .address_bits = 0,
+>> +        .extent_order = EXTENT_ORDER,
+>> +        .domid        = DOMID_SELF
+>> +    };
+>> +
+>> +    set_xen_guest_handle(reservation.extent_start, frames);
+>> +    reservation.nr_extents = count;
+>> +    return HYPERVISOR_memory_op(XENMEM_populate_physmap, &reservation);
+>> +}
+>> +EXPORT_SYMBOL_GPL(xenmem_reservation_increase);
+>
+>
+> And similarly, here we are requesting GFNs, and update 
+> decrease_reservation().
+>
+Please see above
+>
 > -boris
 >
->
+Thank you,
+Oleksandr
 >> +
->> +static inline void xenmem_reservation_scrub_page(struct page *page)
+>> +int xenmem_reservation_decrease(int count, xen_pfn_t *frames)
 >> +{
->> +#ifdef CONFIG_XEN_SCRUB_PAGES
->> +    clear_highpage(page);
->> +#endif
->> +}
+>> +    struct xen_memory_reservation reservation = {
+>> +        .address_bits = 0,
+>> +        .extent_order = EXTENT_ORDER,
+>> +        .domid        = DOMID_SELF
+>> +    };
 >> +
->> +#ifdef CONFIG_XEN_HAVE_PVMMU
->> +void __xenmem_reservation_va_mapping_update(unsigned long count,
->> +                        struct page **pages,
->> +                        xen_pfn_t *frames);
->> +
->> +void __xenmem_reservation_va_mapping_reset(unsigned long count,
->> +                       struct page **pages);
->> +#endif
->> +
->> +static inline void xenmem_reservation_va_mapping_update(unsigned 
->> long count,
->> +                            struct page **pages,
->> +                            xen_pfn_t *frames)
->> +{
->> +#ifdef CONFIG_XEN_HAVE_PVMMU
->> +    if (!xen_feature(XENFEAT_auto_translated_physmap))
->> +        __xenmem_reservation_va_mapping_update(count, pages, frames);
->> +#endif
->> +}
->> +
->> +static inline void xenmem_reservation_va_mapping_reset(unsigned long 
->> count,
->> +                               struct page **pages)
->> +{
->> +#ifdef CONFIG_XEN_HAVE_PVMMU
->> +    if (!xen_feature(XENFEAT_auto_translated_physmap))
->> +        __xenmem_reservation_va_mapping_reset(count, pages);
->> +#endif
->> +}
->> +
->> +int xenmem_reservation_increase(int count, xen_pfn_t *frames);
->> +
->> +int xenmem_reservation_decrease(int count, xen_pfn_t *frames);
->> +
->> +#endif
->>
+>> +    set_xen_guest_handle(reservation.extent_start, frames);
+>> +    reservation.nr_extents = count;
+>> +    return HYPERVISOR_memory_op(XENMEM_decrease_reservation, 
+>> &reservation);
