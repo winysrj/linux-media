@@ -1,83 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36052 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754487AbeFMIYm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 04:24:42 -0400
-Date: Wed, 13 Jun 2018 11:24:38 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hugues FRUCHET <hugues.fruchet@st.com>
-Cc: Rob Herring <robh@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: Re: [PATCH 2/2] media: ov5640: add support of module orientation
-Message-ID: <20180613082438.j7w5knhxtjcdjxng@valkosipuli.retiisi.org.uk>
-References: <1528709357-7251-1-git-send-email-hugues.fruchet@st.com>
- <1528709357-7251-3-git-send-email-hugues.fruchet@st.com>
- <20180612220628.GA18467@rob-hp-laptop>
- <0701a0f6-bc39-1754-55e2-1de9b9394b5b@st.com>
+Received: from mail-eopbgr70071.outbound.protection.outlook.com ([40.107.7.71]:52379
+        "EHLO EUR04-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S933618AbeFMIRZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Jun 2018 04:17:25 -0400
+Subject: Re: [PATCH v3 7/9] xen/gntdev: Add initial support for dma-buf UAPI
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com
+References: <20180612134200.17456-1-andr2000@gmail.com>
+ <20180612134200.17456-8-andr2000@gmail.com>
+ <916e91c9-0710-0afb-2f49-4a7c7b4c02b5@oracle.com>
+From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
+Message-ID: <96c72c58-c41d-5140-804e-5d4f03934b06@epam.com>
+Date: Wed, 13 Jun 2018 11:17:17 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0701a0f6-bc39-1754-55e2-1de9b9394b5b@st.com>
+In-Reply-To: <916e91c9-0710-0afb-2f49-4a7c7b4c02b5@oracle.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 13, 2018 at 08:10:02AM +0000, Hugues FRUCHET wrote:
-> Hi Rob, thanks for review,
-> 
-> On 06/13/2018 12:06 AM, Rob Herring wrote:
-> > On Mon, Jun 11, 2018 at 11:29:17AM +0200, Hugues Fruchet wrote:
-> >> Add support of module being physically mounted upside down.
-> >> In this case, mirror and flip are enabled to fix captured images
-> >> orientation.
-> >>
-> >> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> >> ---
-> >>   .../devicetree/bindings/media/i2c/ov5640.txt       |  3 +++
-> > 
-> > Please split bindings to separate patches.
-> 
-> OK, will do in next patchset.
-> 
-> > 
-> >>   drivers/media/i2c/ov5640.c                         | 28 ++++++++++++++++++++--
-> >>   2 files changed, 29 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-> >> index 8e36da0..f76eb7e 100644
-> >> --- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-> >> +++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-> >> @@ -13,6 +13,8 @@ Optional Properties:
-> >>   	       This is an active low signal to the OV5640.
-> >>   - powerdown-gpios: reference to the GPIO connected to the powerdown pin,
-> >>   		   if any. This is an active high signal to the OV5640.
-> >> +- rotation: integer property; valid values are 0 (sensor mounted upright)
-> >> +	    and 180 (sensor mounted upside down).
-> > 
-> > Didn't we just add this as a common property? If so, just reference the
-> > common definition. If not, it needs a common definition.
-> > 
-> 
-> A common definition has been introduced by Sakari, I'm reusing it, see:
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg132517.html
-> 
-> I would so propose:
->  >> +- rotation: as defined in
->  >> +	Documentation/devicetree/bindings/media/video-interfaces.txt.
-
-Shouldn't the description still include the valid values? As far as I can
-tell, these are ultimately device specific albeit more or less the same for
-*this kind* of sensors.
-
-The file already contains a reference to video-interfaces.txt.
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+On 06/13/2018 04:49 AM, Boris Ostrovsky wrote:
+>
+>
+> On 06/12/2018 09:41 AM, Oleksandr Andrushchenko wrote:
+>
+>> diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+>> index a09db23e9663..e82660d81d7e 100644
+>> --- a/drivers/xen/gntdev.c
+>> +++ b/drivers/xen/gntdev.c
+>> @@ -48,6 +48,9 @@
+>>   #include <asm/xen/hypercall.h>
+>>     #include "gntdev-common.h"
+>> +#ifdef CONFIG_XEN_GNTDEV_DMABUF
+>> +#include "gntdev-dmabuf.h"
+>> +#endif
+>>     MODULE_LICENSE("GPL");
+>>   MODULE_AUTHOR("Derek G. Murray <Derek.Murray@cl.cam.ac.uk>, "
+>> @@ -566,6 +569,15 @@ static int gntdev_open(struct inode *inode, 
+>> struct file *flip)
+>>       INIT_LIST_HEAD(&priv->freeable_maps);
+>>       mutex_init(&priv->lock);
+>>   +#ifdef CONFIG_XEN_GNTDEV_DMABUF
+>> +    priv->dmabuf_priv = gntdev_dmabuf_init();
+>> +    if (IS_ERR(priv->dmabuf_priv)) {
+>> +        ret = PTR_ERR(priv->dmabuf_priv);
+>> +        kfree(priv);
+>> +        return ret;
+>> +    }
+>> +#endif
+>> +
+>>       if (use_ptemod) {
+>>           priv->mm = get_task_mm(current);
+>>           if (!priv->mm) {
+>> @@ -616,8 +628,13 @@ static int gntdev_release(struct inode *inode, 
+>> struct file *flip)
+>>       WARN_ON(!list_empty(&priv->freeable_maps));
+>>       mutex_unlock(&priv->lock);
+>>   +#ifdef CONFIG_XEN_GNTDEV_DMABUF
+>> +    gntdev_dmabuf_fini(priv->dmabuf_priv);
+>> +#endif
+>> +
+>>       if (use_ptemod)
+>>           mmu_notifier_unregister(&priv->mn, priv->mm);
+>> +
+>>       kfree(priv);
+>>       return 0;
+>>   }
+>> @@ -987,6 +1004,107 @@ static long gntdev_ioctl_grant_copy(struct 
+>> gntdev_priv *priv, void __user *u)
+>>       return ret;
+>>   }
+>>   +#ifdef CONFIG_XEN_GNTDEV_DMABUF
+>> +static long
+>> +gntdev_ioctl_dmabuf_exp_from_refs(struct gntdev_priv *priv,
+>> +                  struct ioctl_gntdev_dmabuf_exp_from_refs __user *u)
+>
+>
+> Didn't we agree that this code moves to gntdev-dmabuf.c ?
+>
+Sure, didn't think we want IOCTL's code to be moved as well,
+but that does make sense - will move all
+> -boris
+>
+Thank you,
+Oleksandr
