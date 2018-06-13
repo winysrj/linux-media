@@ -1,148 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-he1eur01on0064.outbound.protection.outlook.com ([104.47.0.64]:62638
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+Received: from mail-eopbgr690086.outbound.protection.outlook.com ([40.107.69.86]:47184
+        "EHLO NAM04-CO1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S935244AbeFMM12 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 08:27:28 -0400
-Subject: Re: [PATCH v3 3/9] xen/balloon: Share common memory reservation
- routines
-From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com
-References: <20180612134200.17456-1-andr2000@gmail.com>
- <20180612134200.17456-4-andr2000@gmail.com>
- <d63f0cf5-5154-f2a3-155e-fdb6dd0959e2@oracle.com>
- <cbaeec5c-0d69-881c-2b42-54855e53015a@epam.com>
- <b79713a9-3a2d-6465-3b22-622bfb7a4d3e@oracle.com>
- <cceefb52-d1bf-c6cd-1b73-489015602f57@epam.com>
-Message-ID: <f1537e68-d50b-924c-fe29-3d0d0eb9cae0@epam.com>
-Date: Wed, 13 Jun 2018 15:27:20 +0300
+        id S935183AbeFMOGD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Jun 2018 10:06:03 -0400
+Subject: Re: [PATCH 1/2] locking: Implement an algorithm choice for Wound-Wait
+ mutexes
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        Ingo Molnar <mingo@redhat.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>,
+        David Airlie <airlied@linux.ie>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        Josh Triplett <josh@joshtriplett.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org
+References: <20180613074745.14750-1-thellstrom@vmware.com>
+ <20180613074745.14750-2-thellstrom@vmware.com>
+ <20180613095012.GW12198@hirez.programming.kicks-ass.net>
+ <69f3dee9-4782-bc90-3ee2-813ac6835c4a@vmware.com>
+ <20180613131000.GX12198@hirez.programming.kicks-ass.net>
+From: Thomas Hellstrom <thellstrom@vmware.com>
+Message-ID: <9afd482d-7082-fa17-5e34-179a652376e5@vmware.com>
+Date: Wed, 13 Jun 2018 16:05:43 +0200
 MIME-Version: 1.0
-In-Reply-To: <cceefb52-d1bf-c6cd-1b73-489015602f57@epam.com>
+In-Reply-To: <20180613131000.GX12198@hirez.programming.kicks-ass.net>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/13/2018 03:03 PM, Oleksandr Andrushchenko wrote:
-> On 06/13/2018 03:02 PM, Boris Ostrovsky wrote:
->>
->>
->> On 06/13/2018 02:26 AM, Oleksandr Andrushchenko wrote:
->>> On 06/13/2018 03:47 AM, Boris Ostrovsky wrote:
->>>>
->>>>
->>>> On 06/12/2018 09:41 AM, Oleksandr Andrushchenko wrote:
->>>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>>>
->>>>> diff --git a/include/xen/mem-reservation.h 
->>>>> b/include/xen/mem-reservation.h
->>>>> new file mode 100644
->>>>> index 000000000000..e0939387278d
->>>>> --- /dev/null
->>>>> +++ b/include/xen/mem-reservation.h
->>>>> @@ -0,0 +1,64 @@
->>>>> +/* SPDX-License-Identifier: GPL-2.0 */
->>>>> +
->>>>> +/*
->>>>> + * Xen memory reservation utilities.
->>>>> + *
->>>>> + * Copyright (c) 2003, B Dragovic
->>>>> + * Copyright (c) 2003-2004, M Williamson, K Fraser
->>>>> + * Copyright (c) 2005 Dan M. Smith, IBM Corporation
->>>>> + * Copyright (c) 2010 Daniel Kiper
->>>>> + * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
->>>>> + */
->>>>> +
->>>>> +#ifndef _XENMEM_RESERVATION_H
->>>>> +#define _XENMEM_RESERVATION_H
->>>>> +
->>>>> +#include <linux/kernel.h>
->>>>> +#include <linux/slab.h>
->>>>> +
->>>>> +#include <asm/xen/hypercall.h>
->>>>> +#include <asm/tlb.h>
->>>>> +
->>>>> +#include <xen/interface/memory.h>
->>>>> +#include <xen/page.h>
->>>>
->>>>
->>>> I should have noticed this in the previous post but I suspect most 
->>>> of these includes belong in the C file. For example, there is no 
->>>> reason for hypercall.h here.
->>>>
->>> Yes, it seems that the header can only have
->>> #include <xen/page.h>
->>> Will move the rest into the .c file
->>
->>
->> You may need something for clear_highpage() and maybe for Xen feature 
->> flags. But you'll find out for sure when you try to build. ;-)
->>
-> #include <asm/tlb.h>
->
-Or even
-#include <linux/highmem.h>
-according to [1]
-> ;)
->> -boris
->>
->>
->>
->>>> -boris
->>>>
->>>>
->>>>> +
->>>>> +static inline void xenmem_reservation_scrub_page(struct page *page)
->>>>> +{
->>>>> +#ifdef CONFIG_XEN_SCRUB_PAGES
->>>>> +    clear_highpage(page);
->>>>> +#endif
->>>>> +}
->>>>> +
->>>>> +#ifdef CONFIG_XEN_HAVE_PVMMU
->>>>> +void __xenmem_reservation_va_mapping_update(unsigned long count,
->>>>> +                        struct page **pages,
->>>>> +                        xen_pfn_t *frames);
->>>>> +
->>>>> +void __xenmem_reservation_va_mapping_reset(unsigned long count,
->>>>> +                       struct page **pages);
->>>>> +#endif
->>>>> +
->>>>> +static inline void xenmem_reservation_va_mapping_update(unsigned 
->>>>> long count,
->>>>> +                            struct page **pages,
->>>>> +                            xen_pfn_t *frames)
->>>>> +{
->>>>> +#ifdef CONFIG_XEN_HAVE_PVMMU
->>>>> +    if (!xen_feature(XENFEAT_auto_translated_physmap))
->>>>> +        __xenmem_reservation_va_mapping_update(count, pages, 
->>>>> frames);
->>>>> +#endif
->>>>> +}
->>>>> +
->>>>> +static inline void xenmem_reservation_va_mapping_reset(unsigned 
->>>>> long count,
->>>>> +                               struct page **pages)
->>>>> +{
->>>>> +#ifdef CONFIG_XEN_HAVE_PVMMU
->>>>> +    if (!xen_feature(XENFEAT_auto_translated_physmap))
->>>>> +        __xenmem_reservation_va_mapping_reset(count, pages);
->>>>> +#endif
->>>>> +}
->>>>> +
->>>>> +int xenmem_reservation_increase(int count, xen_pfn_t *frames);
->>>>> +
->>>>> +int xenmem_reservation_decrease(int count, xen_pfn_t *frames);
->>>>> +
->>>>> +#endif
->>>>>
+On 06/13/2018 03:10 PM, Peter Zijlstra wrote:
+> On Wed, Jun 13, 2018 at 12:40:29PM +0200, Thomas Hellstrom wrote:
+>> On 06/13/2018 11:50 AM, Peter Zijlstra wrote:
+>>>> +
+>>>> +	lockdep_assert_held(&lock->wait_lock);
+>>>> +
+>>>> +	if (owner && hold_ctx && __ww_ctx_stamp_after(hold_ctx, ww_ctx) &&
+>>>> +	    ww_ctx->acquired > 0) {
+>>>> +		WRITE_ONCE(hold_ctx->wounded, true);
+>>>> +		if (owner != current) {
+>>>> +			/*
+>>>> +			 * wake_up_process() inserts a write memory barrier to
+>>> It does no such thing. But yes, it does ensure the wakee sees all prior
+>>> stores IFF the wakeup happened.
 >>>
+>>>> +			 * make sure owner sees it is wounded before
+>>>> +			 * TASK_RUNNING in case it's sleeping on another
+>>>> +			 * ww_mutex. Note that owner points to a valid
+>>>> +			 * task_struct as long as we hold the wait_lock.
+>>>> +			 */
+>>> What exactly are you trying to say here ?
+>>>
+>>> I'm thinking this is the pairing barrier to the smp_mb() below, with
+>>> your list_empty() thing? Might make sense to write a single coherent
+>>> comment and refer to the other location.
+>> So what I'm trying to say here is that wake_up_process() ensures that the
+>> owner, if in !TASK_RUNNING, sees the write to hold_ctx->wounded before the
+>> transition to TASK_RUNNING. This was how I interpreted "woken up" in the
+>> wake up process documentation.
+> There is documentation!? :-) Aaah, you mean that kerneldoc comment with
+> wake_up_process() ? Yeah, that needs fixing. /me puts on endless todo
+> list.
 >
-[1] https://elixir.bootlin.com/linux/v4.17.1/ident/clear_highpage
+> Anyway, wakeup providing that ordering isn't something that needs a
+> comment of that size; and I think the only comment here is that we care
+> about the ordering and a reference to the site(s) that pairs with it.
+>
+> Maybe something like:
+>
+> 	/*
+> 	 * __ww_mutex_lock_check_stamp() will observe our wounded store.
+> 	 */
+
+Yes.
+
+Actually, I just found the set_current_state() kerneldoc which explains 
+the built-in barrier pairing with wake_up_xxx. Perhaps I also should 
+mention that as well. Looks like the use WRITE_ONCE() and READ_ONCE() 
+can be dropped as well.
+
+>>>> -	if (likely(!(atomic_long_read(&lock->base.owner) & MUTEX_FLAG_WAITERS)))
+>>>> +	if (likely(list_empty(&lock->base.wait_list)))
+>>>>    		return;
+>>>>    	/*
+>>>> @@ -653,6 +695,17 @@ __ww_mutex_lock_check_stamp(struct mutex *lock, struct mutex_waiter *waiter,
+>>>>    	struct ww_acquire_ctx *hold_ctx = READ_ONCE(ww->ctx);
+>>>>    	struct mutex_waiter *cur;
+>>>> +	/*
+>>>> +	 * If we miss a wounded == true here, we will have a pending
+>>> Explain how we can miss that.
+>> This is actually the pairing location of the wake_up_process() comment /
+>> code discussed above. Here we should have !TASK_RUNNING, and let's say
+>> ctx->wounded is set by another process immediately after we've read it (we
+>> "miss" it). At that point there must be a pending wake-up-process() for us
+>> and we'll pick up the set value of wounded on the next iteration after
+>> returning from schedule().
+> Right, so that's when the above wakeup isn't the one waking us.
+>
+>
+>>> I can't say I'm a fan. I'm already cursing the ww_mutex stuff every time
+>>> I have to look at it, and you just made it worse spagethi.
+>> Well, I can't speak for the current ww implementation except I didn't think
+>> it was too hard to understand for a first time reader.
+>>
+>> Admittedly the Wound-Wait path makes it worse since it's a preemptive
+>> algorithm and we need to touch other processes a acquire contexts and worry
+>> about ordering.
+>>
+>> So, assuming your review comments are fixed up, is that a solid NAK or do
+>> you have any suggestion that would make you more comfortable with the code?
+>> like splitting out ww-stuff to a separate file?
+> Nah, not a NAK, but we should look at whan can be done to improve code.
+> Maybe add a few more comments that explain why. Part of the problem with
+> ww_mutex is always that I forget exactly how they work and mutex.c
+> doesn't have much useful comments in (most of those are in ww_mutex.h
+> and I always forget to look there).
+
+Understood.
+
+>
+> Also; I'm not at all sure about the exact difference between what we
+> have and what you propose. I did read the documentation part (I really
+> should not have to) but it just doesn't jive.
+>
+> I suspect you're using preemption entirely different from what we
+> usually call a preemption.
+
+I think that perhaps requires a good understanding of the difference of 
+the algorithms in question before looking at the implementation. I put a 
+short explanation and some URLs to CS websites describing the two 
+algorithms and their pros and cons in the patch series introductory 
+message. I'll forward that.
+
+In short, with Wait-Die (before the patch) it's the process _taking_ the 
+contended lock that backs off if necessary. No preemption required. With 
+Wound-Wait, it's the process _holding_ the contended lock that gets 
+wounded (preempted), and it needs to back off at its own discretion but 
+no later than when it's going to sleep on another ww mutex. That point 
+is where we intercept the preemption request. We're preempting the 
+transaction rather than the process.
+
+
+>
+>
+> Also, __ww_ctx_stamp_after() is crap; did we want to write:
+>
+> 	return (signed long)(a->stamp - b->stamp) > 0;
+>
+> or something?
+>
+>
+Hmm. Yes it indeed looks odd. Seems like the above code should do the trick.
+
+/Thomas
