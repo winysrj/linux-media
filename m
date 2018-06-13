@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:52327 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:52367 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935606AbeFMOHS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 10:07:18 -0400
+        id S935781AbeFMOHU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Jun 2018 10:07:20 -0400
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: hans.verkuil@cisco.com, acourbot@chromium.org,
         sakari.ailus@linux.intel.com,
@@ -15,64 +15,84 @@ Cc: tfiga@chromium.org, posciak@chromium.org,
         linux-sunxi@googlegroups.com,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH 2/9] media: cedrus: Add wrappers around container_of for our buffers
-Date: Wed, 13 Jun 2018 16:07:07 +0200
-Message-Id: <20180613140714.1686-3-maxime.ripard@bootlin.com>
+Subject: [PATCH 5/9] media: cedrus: Remove MPEG1 support
+Date: Wed, 13 Jun 2018 16:07:10 +0200
+Message-Id: <20180613140714.1686-6-maxime.ripard@bootlin.com>
 In-Reply-To: <20180613140714.1686-1-maxime.ripard@bootlin.com>
 References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cedrus driver sub-classes the vb2_v4l2_buffer structure, but doesn't
-provide any function to wrap around the proper container_of call that needs
-to be duplicated in every calling site.
-
-Add wrappers to make sure its opaque to the users and they don't have to
-care anymore.
+The MPEG1 codec is obsolete, and that code hasn't been tested either. Since
+it stands in the way of further refactoring, remove it entirely.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- .../platform/sunxi/cedrus/sunxi_cedrus_common.h      | 12 ++++++++++++
- .../media/platform/sunxi/cedrus/sunxi_cedrus_hw.c    |  4 ++--
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.c   | 4 +---
+ drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c | 8 ++------
+ drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.h | 2 +-
+ 3 files changed, 4 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-index ee6883ef9cb7..b1ed1c8cb130 100644
---- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-@@ -89,6 +89,18 @@ struct sunxi_cedrus_buffer {
- 	struct list_head list;
- };
+diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.c b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.c
+index c19acf9626c4..f274408ab5a7 100644
+--- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.c
++++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.c
+@@ -80,7 +80,6 @@ void sunxi_cedrus_device_run(void *priv)
+ 	struct sunxi_cedrus_run run = { 0 };
+ 	struct media_request *src_req, *dst_req;
+ 	unsigned long flags;
+-	bool mpeg1 = false;
  
-+static inline
-+struct sunxi_cedrus_buffer *vb2_v4l2_to_cedrus_buffer(const struct vb2_v4l2_buffer *p)
-+{
-+	return container_of(p, struct sunxi_cedrus_buffer, vb);
-+}
-+
-+static inline
-+struct sunxi_cedrus_buffer *vb2_to_cedrus_buffer(const struct vb2_buffer *p)
-+{
-+	return vb2_v4l2_to_cedrus_buffer(to_vb2_v4l2_buffer(p));
-+}
-+
- struct sunxi_cedrus_dev {
- 	struct v4l2_device v4l2_dev;
- 	struct video_device vfd;
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
-index 5783bd985855..fc688a5c1ea3 100644
---- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
-@@ -108,8 +108,8 @@ static irqreturn_t sunxi_cedrus_ve_irq(int irq, void *dev_id)
- 		return IRQ_HANDLED;
- 	}
+ 	run.src = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ 	if (!run.src) {
+@@ -123,7 +122,6 @@ void sunxi_cedrus_device_run(void *priv)
+ 		run.mpeg2.hdr = get_ctrl_ptr(ctx, SUNXI_CEDRUS_CTRL_DEC_MPEG2_FRAME_HDR);
+ 		sunxi_cedrus_mpeg2_setup(ctx, &run);
  
--	src_buffer = container_of(src_vb, struct sunxi_cedrus_buffer, vb);
--	dst_buffer = container_of(dst_vb, struct sunxi_cedrus_buffer, vb);
-+	src_buffer = vb2_v4l2_to_cedrus_buffer(src_vb);
-+	dst_buffer = vb2_v4l2_to_cedrus_buffer(dst_vb);
+-		mpeg1 = run.mpeg2.hdr->type == MPEG1;
+ 		break;
  
- 	/* First bit of MPEG_STATUS indicates success. */
- 	if (ctx->job_abort || !(status & 0x01))
+ 	default:
+@@ -146,7 +144,7 @@ void sunxi_cedrus_device_run(void *priv)
+ 
+ 	if (!ctx->job_abort) {
+ 		if (ctx->vpu_src_fmt->fourcc == V4L2_PIX_FMT_MPEG2_FRAME)
+-			sunxi_cedrus_mpeg2_trigger(ctx, mpeg1);
++			sunxi_cedrus_mpeg2_trigger(ctx);
+ 	} else {
+ 		v4l2_m2m_buf_done(run.src, VB2_BUF_STATE_ERROR);
+ 		v4l2_m2m_buf_done(run.dst, VB2_BUF_STATE_ERROR);
+diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
+index 85e6fc2fbdb2..d1d7a3cfce0d 100644
+--- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
++++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
+@@ -148,13 +148,9 @@ void sunxi_cedrus_mpeg2_setup(struct sunxi_cedrus_ctx *ctx,
+ 	sunxi_cedrus_write(dev, src_buf_addr + VBV_SIZE - 1, VE_MPEG_VLD_END);
+ }
+ 
+-void sunxi_cedrus_mpeg2_trigger(struct sunxi_cedrus_ctx *ctx, bool mpeg1)
++void sunxi_cedrus_mpeg2_trigger(struct sunxi_cedrus_ctx *ctx)
+ {
+ 	struct sunxi_cedrus_dev *dev = ctx->dev;
+ 
+-	/* Trigger MPEG engine. */
+-	if (mpeg1)
+-		sunxi_cedrus_write(dev, VE_TRIG_MPEG1, VE_MPEG_TRIGGER);
+-	else
+-		sunxi_cedrus_write(dev, VE_TRIG_MPEG2, VE_MPEG_TRIGGER);
++	sunxi_cedrus_write(dev, VE_TRIG_MPEG2, VE_MPEG_TRIGGER);
+ }
+diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.h b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.h
+index b572001d47f2..4c380becfa1a 100644
+--- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.h
++++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.h
+@@ -28,6 +28,6 @@ struct sunxi_cedrus_run;
+ 
+ void sunxi_cedrus_mpeg2_setup(struct sunxi_cedrus_ctx *ctx,
+ 			      struct sunxi_cedrus_run *run);
+-void sunxi_cedrus_mpeg2_trigger(struct sunxi_cedrus_ctx *ctx, bool mpeg1);
++void sunxi_cedrus_mpeg2_trigger(struct sunxi_cedrus_ctx *ctx);
+ 
+ #endif
 -- 
 2.17.0
