@@ -1,271 +1,697 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0057.outbound.protection.outlook.com ([104.47.34.57]:2224
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
+Received: from mail-eopbgr40088.outbound.protection.outlook.com ([40.107.4.88]:63655
+        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S934508AbeFMKlA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 06:41:00 -0400
-Subject: Re: [PATCH 1/2] locking: Implement an algorithm choice for Wound-Wait
- mutexes
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        Ingo Molnar <mingo@redhat.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        David Airlie <airlied@linux.ie>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org
-References: <20180613074745.14750-1-thellstrom@vmware.com>
- <20180613074745.14750-2-thellstrom@vmware.com>
- <20180613095012.GW12198@hirez.programming.kicks-ass.net>
-From: Thomas Hellstrom <thellstrom@vmware.com>
-Message-ID: <69f3dee9-4782-bc90-3ee2-813ac6835c4a@vmware.com>
-Date: Wed, 13 Jun 2018 12:40:29 +0200
+        id S935244AbeFML5V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Jun 2018 07:57:21 -0400
+Subject: Re: [PATCH v3 8/9] xen/gntdev: Implement dma-buf export functionality
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com
+References: <20180612134200.17456-1-andr2000@gmail.com>
+ <20180612134200.17456-9-andr2000@gmail.com>
+ <bd5adb0e-af98-528f-d6f9-9d5888ff2412@oracle.com>
+From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
+Message-ID: <5c50f951-47db-782d-1ac2-162892f7ec91@epam.com>
+Date: Wed, 13 Jun 2018 14:57:13 +0300
 MIME-Version: 1.0
-In-Reply-To: <20180613095012.GW12198@hirez.programming.kicks-ass.net>
+In-Reply-To: <bd5adb0e-af98-528f-d6f9-9d5888ff2412@oracle.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/13/2018 11:50 AM, Peter Zijlstra wrote:
+On 06/13/2018 05:58 AM, Boris Ostrovsky wrote:
 >
+>
+> On 06/12/2018 09:41 AM, Oleksandr Andrushchenko wrote:
+>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>>
+>> 1. Create a dma-buf from grant references provided by the foreign
+>>     domain. By default dma-buf is backed by system memory pages, but
+>>     by providing GNTDEV_DMA_FLAG_XXX flags it can also be created
+>>     as a DMA write-combine/coherent buffer, e.g. allocated with
+>>     corresponding dma_alloc_xxx API.
+>>     Export the resulting buffer as a new dma-buf.
+>>
+>> 2. Implement waiting for the dma-buf to be released: block until the
+>>     dma-buf with the file descriptor provided is released.
+>>     If within the time-out provided the buffer is not released then
+>>     -ETIMEDOUT error is returned. If the buffer with the file descriptor
+>>     does not exist or has already been released, then -ENOENT is
+>>     returned. For valid file descriptors this must not be treated as
+>>     error.
+>>
+>> 3. Make gntdev's common code and structures available to dma-buf.
+>>
+>> Signed-off-by: Oleksandr Andrushchenko 
+>> <oleksandr_andrushchenko@epam.com>
+>> ---
+>>   drivers/xen/gntdev-common.h |   4 +
+>>   drivers/xen/gntdev-dmabuf.c | 470 +++++++++++++++++++++++++++++++++++-
+>>   drivers/xen/gntdev.c        |  10 +
+>>   3 files changed, 482 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/xen/gntdev-common.h b/drivers/xen/gntdev-common.h
+>> index a3408fd39b07..72f80dbce861 100644
+>> --- a/drivers/xen/gntdev-common.h
+>> +++ b/drivers/xen/gntdev-common.h
+>> @@ -89,4 +89,8 @@ bool gntdev_account_mapped_pages(int count);
+>>     int gntdev_map_grant_pages(struct gntdev_grant_map *map);
+>>   +#ifdef CONFIG_XEN_GNTDEV_DMABUF
+>> +void gntdev_remove_map(struct gntdev_priv *priv, struct 
+>> gntdev_grant_map *map);
+>> +#endif
 >> +
->> +	lockdep_assert_held(&lock->wait_lock);
+>>   #endif
+>> diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
+>> index dc57c6a25525..84cba67c6ad7 100644
+>> --- a/drivers/xen/gntdev-dmabuf.c
+>> +++ b/drivers/xen/gntdev-dmabuf.c
+>> @@ -3,13 +3,53 @@
+>>   /*
+>>    * Xen dma-buf functionality for gntdev.
+>>    *
+>> + * DMA buffer implementation is based on drivers/gpu/drm/drm_prime.c.
+>> + *
+>>    * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
+>>    */
+>>   +#include <linux/dma-buf.h>
+>>   #include <linux/slab.h>
+>>   +#include <xen/grant_table.h>
+>> +#include <xen/gntdev.h>
 >> +
->> +	if (owner && hold_ctx && __ww_ctx_stamp_after(hold_ctx, ww_ctx) &&
->> +	    ww_ctx->acquired > 0) {
->> +		WRITE_ONCE(hold_ctx->wounded, true);
->> +		if (owner != current) {
->> +			/*
->> +			 * wake_up_process() inserts a write memory barrier to
-> It does no such thing. But yes, it does ensure the wakee sees all prior
-> stores IFF the wakeup happened.
->
->> +			 * make sure owner sees it is wounded before
->> +			 * TASK_RUNNING in case it's sleeping on another
->> +			 * ww_mutex. Note that owner points to a valid
->> +			 * task_struct as long as we hold the wait_lock.
->> +			 */
-> What exactly are you trying to say here ?
->
-> I'm thinking this is the pairing barrier to the smp_mb() below, with
-> your list_empty() thing? Might make sense to write a single coherent
-> comment and refer to the other location.
-
-So what I'm trying to say here is that wake_up_process() ensures that 
-the owner, if in !TASK_RUNNING, sees the write to hold_ctx->wounded 
-before the transition to TASK_RUNNING. This was how I interpreted "woken 
-up" in the wake up process documentation.
-
->
->> +			wake_up_process(owner);
->> +		}
->> +		return true;
->> +	}
+>> +#include "gntdev-common.h"
+>>   #include "gntdev-dmabuf.h"
+>>   +struct gntdev_dmabuf {
+>> +    struct gntdev_dmabuf_priv *priv;
+>> +    struct dma_buf *dmabuf;
+>> +    struct list_head next;
+>> +    int fd;
 >> +
->> +	return false;
+>> +    union {
+>> +        struct {
+>> +            /* Exported buffers are reference counted. */
+>> +            struct kref refcount;
+>> +
+>> +            struct gntdev_priv *priv;
+>> +            struct gntdev_grant_map *map;
+>> +        } exp;
+>> +    } u;
+>> +
+>> +    /* Number of pages this buffer has. */
+>> +    int nr_pages;
+>> +    /* Pages of this buffer. */
+>> +    struct page **pages;
+>> +};
+>> +
+>> +struct gntdev_dmabuf_wait_obj {
+>> +    struct list_head next;
+>> +    struct gntdev_dmabuf *gntdev_dmabuf;
+>> +    struct completion completion;
+>> +};
+>> +
+>> +struct gntdev_dmabuf_attachment {
+>> +    struct sg_table *sgt;
+>> +    enum dma_data_direction dir;
+>> +};
+>> +
+>>   struct gntdev_dmabuf_priv {
+>>       /* List of exported DMA buffers. */
+>>       struct list_head exp_list;
+>> @@ -23,17 +63,439 @@ struct gntdev_dmabuf_priv {
+>>     /* Implementation of wait for exported DMA buffer to be released. */
+>>   +static void dmabuf_exp_release(struct kref *kref);
+>> +
+>> +static struct gntdev_dmabuf_wait_obj *
+>> +dmabuf_exp_wait_obj_new(struct gntdev_dmabuf_priv *priv,
+>> +            struct gntdev_dmabuf *gntdev_dmabuf)
+>> +{
+>> +    struct gntdev_dmabuf_wait_obj *obj;
+>> +
+>> +    obj = kzalloc(sizeof(*obj), GFP_KERNEL);
+>> +    if (!obj)
+>> +        return ERR_PTR(-ENOMEM);
+>> +
+>> +    init_completion(&obj->completion);
+>> +    obj->gntdev_dmabuf = gntdev_dmabuf;
+>> +
+>> +    mutex_lock(&priv->lock);
+>> +    list_add(&obj->next, &priv->exp_wait_list);
+>> +    /* Put our reference and wait for gntdev_dmabuf's release to 
+>> fire. */
+>> +    kref_put(&gntdev_dmabuf->u.exp.refcount, dmabuf_exp_release);
+>> +    mutex_unlock(&priv->lock);
+>> +    return obj;
 >> +}
 >> +
->>   /*
->>    * Wake up any waiters that may have to back off when the lock is held by the
->>    * given context.
->>    *
->>    * Due to the invariants on the wait list, this can only affect the first
->> - * waiter with a context.
->> + * waiter with a context, unless the Wound-Wait algorithm is used where
->> + * also subsequent waiters with a context main wound the lock holder.
->>    *
->>    * The current task must not be on the wait list.
->>    */
->> @@ -303,6 +338,7 @@ static void __sched
->>   __ww_mutex_wakeup_for_backoff(struct mutex *lock, struct ww_acquire_ctx *ww_ctx)
->>   {
->>   	struct mutex_waiter *cur;
->> +	bool is_wait_die = ww_ctx->ww_class->is_wait_die;
->>   
->>   	lockdep_assert_held(&lock->wait_lock);
->>   
->> @@ -310,13 +346,14 @@ __ww_mutex_wakeup_for_backoff(struct mutex *lock, struct ww_acquire_ctx *ww_ctx)
->>   		if (!cur->ww_ctx)
->>   			continue;
->>   
->> -		if (cur->ww_ctx->acquired > 0 &&
->> +		if (is_wait_die && cur->ww_ctx->acquired > 0 &&
->>   		    __ww_ctx_stamp_after(cur->ww_ctx, ww_ctx)) {
->>   			debug_mutex_wake_waiter(lock, cur);
->>   			wake_up_process(cur->task);
->>   		}
->>   
->> -		break;
->> +		if (is_wait_die || __ww_mutex_wound(lock, cur->ww_ctx, ww_ctx))
->> +			break;
->>   	}
->>   }
->>   
->> @@ -338,12 +375,17 @@ ww_mutex_set_context_fastpath(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
->>   	 * and keep spinning, or it will acquire wait_lock, add itself
->>   	 * to waiter list and sleep.
->>   	 */
->> -	smp_mb(); /* ^^^ */
->> +	smp_mb(); /* See comments above and below. */
->>   
->>   	/*
->> -	 * Check if lock is contended, if not there is nobody to wake up
->> +	 * Check if lock is contended, if not there is nobody to wake up.
->> +	 * Checking MUTEX_FLAG_WAITERS is not enough here,
-> That seems like a superfluous thing to say. It makes sense in the
-> context of this patch because we change the FLAG check into a list
-> check, but the resulting comment/code looks odd.
->
->> 							   since we need to
->> +	 * order against the lock->ctx check in __ww_mutex_wound called from
->> +	 * __ww_mutex_add_waiter. We can use list_empty without taking the
->> +	 * wait_lock, given the memory barrier above and the list_empty
->> +	 * documentation.
-> I don't trust documentation. Please reason about implementation.
-
-Will do.
-
->>   	 */
->> -	if (likely(!(atomic_long_read(&lock->base.owner) & MUTEX_FLAG_WAITERS)))
->> +	if (likely(list_empty(&lock->base.wait_list)))
->>   		return;
->>   
->>   	/*
->> @@ -653,6 +695,17 @@ __ww_mutex_lock_check_stamp(struct mutex *lock, struct mutex_waiter *waiter,
->>   	struct ww_acquire_ctx *hold_ctx = READ_ONCE(ww->ctx);
->>   	struct mutex_waiter *cur;
->>   
->> +	/*
->> +	 * If we miss a wounded == true here, we will have a pending
-> Explain how we can miss that.
-
-This is actually the pairing location of the wake_up_process() comment / 
-code discussed above. Here we should have !TASK_RUNNING, and let's say 
-ctx->wounded is set by another process immediately after we've read it 
-(we "miss" it). At that point there must be a pending wake-up-process() 
-for us and we'll pick up the set value of wounded on the next iteration 
-after returning from schedule().
-
->
->> +	 * TASK_RUNNING and pick it up on the next schedule fall-through.
->> +	 */
->> +	if (!ctx->ww_class->is_wait_die) {
->> +		if (READ_ONCE(ctx->wounded))
->> +			goto deadlock;
->> +		else
->> +			return 0;
->> +	}
+>> +static void dmabuf_exp_wait_obj_free(struct gntdev_dmabuf_priv *priv,
+>> +                     struct gntdev_dmabuf_wait_obj *obj)
+>> +{
+>> +    struct gntdev_dmabuf_wait_obj *cur_obj, *q;
 >> +
->>   	if (hold_ctx && __ww_ctx_stamp_after(ctx, hold_ctx))
->>   		goto deadlock;
->>   
->> @@ -683,12 +736,15 @@ __ww_mutex_add_waiter(struct mutex_waiter *waiter,
->>   {
->>   	struct mutex_waiter *cur;
->>   	struct list_head *pos;
->> +	bool is_wait_die;
->>   
->>   	if (!ww_ctx) {
->>   		list_add_tail(&waiter->list, &lock->wait_list);
->>   		return 0;
->>   	}
->>   
->> +	is_wait_die = ww_ctx->ww_class->is_wait_die;
->> +
->>   	/*
->>   	 * Add the waiter before the first waiter with a higher stamp.
->>   	 * Waiters without a context are skipped to avoid starving
->> @@ -701,7 +757,7 @@ __ww_mutex_add_waiter(struct mutex_waiter *waiter,
->>   
->>   		if (__ww_ctx_stamp_after(ww_ctx, cur->ww_ctx)) {
->>   			/* Back off immediately if necessary. */
->> -			if (ww_ctx->acquired > 0) {
->> +			if (is_wait_die && ww_ctx->acquired > 0) {
->>   #ifdef CONFIG_DEBUG_MUTEXES
->>   				struct ww_mutex *ww;
->>   
->> @@ -721,13 +777,26 @@ __ww_mutex_add_waiter(struct mutex_waiter *waiter,
->>   		 * Wake up the waiter so that it gets a chance to back
->>   		 * off.
->>   		 */
->> -		if (cur->ww_ctx->acquired > 0) {
->> +		if (is_wait_die && cur->ww_ctx->acquired > 0) {
->>   			debug_mutex_wake_waiter(lock, cur);
->>   			wake_up_process(cur->task);
->>   		}
->>   	}
->>   
->>   	list_add_tail(&waiter->list, pos);
->> +	if (!is_wait_die) {
->> +		struct ww_mutex *ww = container_of(lock, struct ww_mutex, base);
->> +
->> +		/*
->> +		 * Make sure a racing lock taker sees a non-empty waiting list
->> +		 * before we read ww->ctx, so that if we miss ww->ctx, the
->> +		 * racing lock taker will call __ww_mutex_wake_up_for_backoff()
->> +		 * and wound itself.
->> +		 */
->> +		smp_mb();
->> +		__ww_mutex_wound(lock, ww_ctx, ww->ctx);
->> +	}
->> +
->>   	return 0;
->>   }
->>   
->> @@ -750,6 +819,14 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
->>   	if (use_ww_ctx && ww_ctx) {
->>   		if (unlikely(ww_ctx == READ_ONCE(ww->ctx)))
->>   			return -EALREADY;
->> +
->> +		/*
->> +		 * Reset the wounded flag after a backoff.
->> +		 * No other process can race and wound us here since they
->> +		 * can't have a valid owner pointer at this time
->> +		 */
->> +		if (ww_ctx->acquired == 0)
->> +			ww_ctx->wounded = false;
->>   	}
->>   
->>   	preempt_disable();
->> @@ -858,6 +935,11 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
->>   acquired:
->>   	__set_current_state(TASK_RUNNING);
->>   
->> +	/* We stole the lock. Need to check wounded status. */
->> +	if (use_ww_ctx && ww_ctx && !ww_ctx->ww_class->is_wait_die &&
->> +	    !__mutex_waiter_is_first(lock, &waiter))
->> +		__ww_mutex_wakeup_for_backoff(lock, ww_ctx);
->> +
->>   	mutex_remove_waiter(lock, &waiter, current);
->>   	if (likely(list_empty(&lock->wait_list)))
->>   		__mutex_clear_flag(lock, MUTEX_FLAGS);
-> I can't say I'm a fan. I'm already cursing the ww_mutex stuff every time
-> I have to look at it, and you just made it worse spagethi.
+>> +    mutex_lock(&priv->lock);
+>> +    list_for_each_entry_safe(cur_obj, q, &priv->exp_wait_list, next)
+>> +        if (cur_obj == obj) {
+>> +            list_del(&obj->next);
+>> +            kfree(obj);
+>> +            break;
+>> +        }
+>> +    mutex_unlock(&priv->lock);
 >
 >
+> Do we really need to walk the list?
+>
+It can be deleted without walking the list and no reason to do that walk.
+Just an example of over-engineering here, thank you for spotting this.
+> And if we do, do we need the safe variant of the walk? We are holding 
+> the lock. Here and elsewhere.
+>
+You are perfectly right. I will not use safe variant of the walk, no 
+need for that
+>
+>> +}
+>> +
+>> +static int dmabuf_exp_wait_obj_wait(struct gntdev_dmabuf_wait_obj *obj,
+>> +                    u32 wait_to_ms)
+>> +{
+>> +    if (wait_for_completion_timeout(&obj->completion,
+>> +            msecs_to_jiffies(wait_to_ms)) <= 0)
+>> +        return -ETIMEDOUT;
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static void dmabuf_exp_wait_obj_signal(struct gntdev_dmabuf_priv *priv,
+>> +                       struct gntdev_dmabuf *gntdev_dmabuf)
+>> +{
+>> +    struct gntdev_dmabuf_wait_obj *obj, *q;
+>> +
+>> +    list_for_each_entry_safe(obj, q, &priv->exp_wait_list, next)
+>> +        if (obj->gntdev_dmabuf == gntdev_dmabuf) {
+>> +            pr_debug("Found gntdev_dmabuf in the wait list, wake\n");
+>> +            complete_all(&obj->completion);
+>> +            break;
+>> +        }
+>> +}
+>> +
+>> +static struct gntdev_dmabuf *
+>> +dmabuf_exp_wait_obj_get_by_fd(struct gntdev_dmabuf_priv *priv, int fd)
+>
+>
+> The name of this routine implies (to me) that we are getting a wait 
+> object but IIUIC we are getting a gntdev_dmabuf that we are going to 
+> later associate with a wait object.
+>
+How about dmabuf_exp_wait_obj_get_dmabuf_by_fd?
+I would like to keep function prefixes, e.g. dmabuf_exp_wait_obj_
+just to show to which functionality a routine belongs.
+>
+>> +{
+>> +    struct gntdev_dmabuf *q, *gntdev_dmabuf, *ret = ERR_PTR(-ENOENT);
+>> +
+>> +    mutex_lock(&priv->lock);
+>> +    list_for_each_entry_safe(gntdev_dmabuf, q, &priv->exp_list, next)
+>> +        if (gntdev_dmabuf->fd == fd) {
+>> +            pr_debug("Found gntdev_dmabuf in the wait list\n");
+>> +            kref_get(&gntdev_dmabuf->u.exp.refcount);
+>> +            ret = gntdev_dmabuf;
+>> +            break;
+>> +        }
+>> +    mutex_unlock(&priv->lock);
+>> +    return ret;
+>> +}
+>> +
+>>   int gntdev_dmabuf_exp_wait_released(struct gntdev_dmabuf_priv 
+>> *priv, int fd,
+>>                       int wait_to_ms)
+>>   {
+>> -    return -EINVAL;
+>> +    struct gntdev_dmabuf *gntdev_dmabuf;
+>> +    struct gntdev_dmabuf_wait_obj *obj;
+>> +    int ret;
+>> +
+>> +    pr_debug("Will wait for dma-buf with fd %d\n", fd);
+>> +    /*
+>> +     * Try to find the DMA buffer: if not found means that
+>> +     * either the buffer has already been released or file descriptor
+>> +     * provided is wrong.
+>> +     */
+>> +    gntdev_dmabuf = dmabuf_exp_wait_obj_get_by_fd(priv, fd);
+>> +    if (IS_ERR(gntdev_dmabuf))
+>> +        return PTR_ERR(gntdev_dmabuf);
+>> +
+>> +    /*
+>> +     * gntdev_dmabuf still exists and is reference count locked by 
+>> us now,
+>> +     * so prepare to wait: allocate wait object and add it to the 
+>> wait list,
+>> +     * so we can find it on release.
+>> +     */
+>> +    obj = dmabuf_exp_wait_obj_new(priv, gntdev_dmabuf);
+>> +    if (IS_ERR(obj))
+>> +        return PTR_ERR(obj);
+>> +
+>> +    ret = dmabuf_exp_wait_obj_wait(obj, wait_to_ms);
+>> +    dmabuf_exp_wait_obj_free(priv, obj);
+>> +    return ret;
+>> +}
+>> +
+>> +/* DMA buffer export support. */
+>> +
+>> +static struct sg_table *
+>> +dmabuf_pages_to_sgt(struct page **pages, unsigned int nr_pages)
+>> +{
+>> +    struct sg_table *sgt;
+>> +    int ret;
+>> +
+>> +    sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
+>> +    if (!sgt) {
+>> +        ret = -ENOMEM;
+>> +        goto out;
+>> +    }
+>> +
+>> +    ret = sg_alloc_table_from_pages(sgt, pages, nr_pages, 0,
+>> +                    nr_pages << PAGE_SHIFT,
+>> +                    GFP_KERNEL);
+>> +    if (ret)
+>> +        goto out;
+>> +
+>> +    return sgt;
+>> +
+>> +out:
+>> +    kfree(sgt);
+>> +    return ERR_PTR(ret);
+>> +}
+>> +
+>> +static int dmabuf_exp_ops_attach(struct dma_buf *dma_buf,
+>> +                 struct device *target_dev,
+>> +                 struct dma_buf_attachment *attach)
+>> +{
+>> +    struct gntdev_dmabuf_attachment *gntdev_dmabuf_attach;
+>> +
+>> +    gntdev_dmabuf_attach = kzalloc(sizeof(*gntdev_dmabuf_attach),
+>> +                       GFP_KERNEL);
+>> +    if (!gntdev_dmabuf_attach)
+>> +        return -ENOMEM;
+>> +
+>> +    gntdev_dmabuf_attach->dir = DMA_NONE;
+>> +    attach->priv = gntdev_dmabuf_attach;
+>> +    return 0;
+>> +}
+>> +
+>> +static void dmabuf_exp_ops_detach(struct dma_buf *dma_buf,
+>> +                  struct dma_buf_attachment *attach)
+>> +{
+>> +    struct gntdev_dmabuf_attachment *gntdev_dmabuf_attach = 
+>> attach->priv;
+>> +
+>> +    if (gntdev_dmabuf_attach) {
+>> +        struct sg_table *sgt = gntdev_dmabuf_attach->sgt;
+>> +
+>> +        if (sgt) {
+>> +            if (gntdev_dmabuf_attach->dir != DMA_NONE)
+>> +                dma_unmap_sg_attrs(attach->dev, sgt->sgl,
+>> +                           sgt->nents,
+>> +                           gntdev_dmabuf_attach->dir,
+>> +                           DMA_ATTR_SKIP_CPU_SYNC);
+>> +            sg_free_table(sgt);
+>> +        }
+>> +
+>> +        kfree(sgt);
+>> +        kfree(gntdev_dmabuf_attach);
+>> +        attach->priv = NULL;
+>> +    }
+>> +}
+>> +
+>> +static struct sg_table *
+>> +dmabuf_exp_ops_map_dma_buf(struct dma_buf_attachment *attach,
+>> +               enum dma_data_direction dir)
+>> +{
+>> +    struct gntdev_dmabuf_attachment *gntdev_dmabuf_attach = 
+>> attach->priv;
+>> +    struct gntdev_dmabuf *gntdev_dmabuf = attach->dmabuf->priv;
+>> +    struct sg_table *sgt;
+>> +
+>> +    pr_debug("Mapping %d pages for dev %p\n", gntdev_dmabuf->nr_pages,
+>> +         attach->dev);
+>> +
+>> +    if (dir == DMA_NONE || !gntdev_dmabuf_attach)
+>> +        return ERR_PTR(-EINVAL);
+>> +
+>> +    /* Return the cached mapping when possible. */
+>> +    if (gntdev_dmabuf_attach->dir == dir)
+>> +        return gntdev_dmabuf_attach->sgt;
+>> +
+>> +    /*
+>> +     * Two mappings with different directions for the same 
+>> attachment are
+>> +     * not allowed.
+>> +     */
+>> +    if (gntdev_dmabuf_attach->dir != DMA_NONE)
+>> +        return ERR_PTR(-EBUSY);
+>> +
+>> +    sgt = dmabuf_pages_to_sgt(gntdev_dmabuf->pages,
+>> +                  gntdev_dmabuf->nr_pages);
+>> +    if (!IS_ERR(sgt)) {
+>> +        if (!dma_map_sg_attrs(attach->dev, sgt->sgl, sgt->nents, dir,
+>> +                      DMA_ATTR_SKIP_CPU_SYNC)) {
+>> +            sg_free_table(sgt);
+>> +            kfree(sgt);
+>> +            sgt = ERR_PTR(-ENOMEM);
+>> +        } else {
+>> +            gntdev_dmabuf_attach->sgt = sgt;
+>> +            gntdev_dmabuf_attach->dir = dir;
+>> +        }
+>> +    }
+>> +    if (IS_ERR(sgt))
+>> +        pr_debug("Failed to map sg table for dev %p\n", attach->dev);
+>> +    return sgt;
+>> +}
+>> +
+>> +static void dmabuf_exp_ops_unmap_dma_buf(struct dma_buf_attachment 
+>> *attach,
+>> +                     struct sg_table *sgt,
+>> +                     enum dma_data_direction dir)
+>> +{
+>> +    /* Not implemented. The unmap is done at 
+>> dmabuf_exp_ops_detach(). */
+>> +}
+>> +
+>> +static void dmabuf_exp_release(struct kref *kref)
+>> +{
+>> +    struct gntdev_dmabuf *gntdev_dmabuf =
+>> +        container_of(kref, struct gntdev_dmabuf, u.exp.refcount);
+>> +
+>> +    dmabuf_exp_wait_obj_signal(gntdev_dmabuf->priv, gntdev_dmabuf);
+>> +    list_del(&gntdev_dmabuf->next);
+>> +    kfree(gntdev_dmabuf);
+>> +}
+>> +
+>> +static void dmabuf_exp_ops_release(struct dma_buf *dma_buf)
+>> +{
+>> +    struct gntdev_dmabuf *gntdev_dmabuf = dma_buf->priv;
+>> +    struct gntdev_dmabuf_priv *priv = gntdev_dmabuf->priv;
+>> +
+>> +    gntdev_remove_map(gntdev_dmabuf->u.exp.priv, 
+>> gntdev_dmabuf->u.exp.map);
+>> +    mutex_lock(&priv->lock);
+>> +    kref_put(&gntdev_dmabuf->u.exp.refcount, dmabuf_exp_release);
+>> +    mutex_unlock(&priv->lock);
+>> +}
+>> +
+>> +static void *dmabuf_exp_ops_kmap_atomic(struct dma_buf *dma_buf,
+>> +                    unsigned long page_num)
+>> +{
+>> +    /* Not implemented. */
+>> +    return NULL;
+>> +}
+>> +
+>> +static void dmabuf_exp_ops_kunmap_atomic(struct dma_buf *dma_buf,
+>> +                     unsigned long page_num, void *addr)
+>> +{
+>> +    /* Not implemented. */
+>> +}
+>> +
+>> +static void *dmabuf_exp_ops_kmap(struct dma_buf *dma_buf,
+>> +                 unsigned long page_num)
+>> +{
+>> +    /* Not implemented. */
+>> +    return NULL;
+>> +}
+>> +
+>> +static void dmabuf_exp_ops_kunmap(struct dma_buf *dma_buf,
+>> +                  unsigned long page_num, void *addr)
+>> +{
+>> +    /* Not implemented. */
+>> +}
+>> +
+>> +static int dmabuf_exp_ops_mmap(struct dma_buf *dma_buf,
+>> +                   struct vm_area_struct *vma)
+>> +{
+>> +    /* Not implemented. */
+>> +    return 0;
+>> +}
+>> +
+>> +static const struct dma_buf_ops dmabuf_exp_ops =  {
+>> +    .attach = dmabuf_exp_ops_attach,
+>> +    .detach = dmabuf_exp_ops_detach,
+>> +    .map_dma_buf = dmabuf_exp_ops_map_dma_buf,
+>> +    .unmap_dma_buf = dmabuf_exp_ops_unmap_dma_buf,
+>> +    .release = dmabuf_exp_ops_release,
+>> +    .map = dmabuf_exp_ops_kmap,
+>> +    .map_atomic = dmabuf_exp_ops_kmap_atomic,
+>> +    .unmap = dmabuf_exp_ops_kunmap,
+>> +    .unmap_atomic = dmabuf_exp_ops_kunmap_atomic,
+>> +    .mmap = dmabuf_exp_ops_mmap,
+>> +};
+>> +
+>> +struct gntdev_dmabuf_export_args {
+>> +    struct gntdev_priv *priv;
+>> +    struct gntdev_grant_map *map;
+>> +    struct gntdev_dmabuf_priv *dmabuf_priv;
+>> +    struct device *dev;
+>> +    int count;
+>> +    struct page **pages;
+>> +    u32 fd;
+>> +};
+>> +
+>> +static int dmabuf_exp_from_pages(struct gntdev_dmabuf_export_args 
+>> *args)
+>> +{
+>> +    DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
+>> +    struct gntdev_dmabuf *gntdev_dmabuf;
+>> +    int ret = 0;
+>
+>
+> Not necessary.
+>
+Will remove =0;
+>> +
+>> +    gntdev_dmabuf = kzalloc(sizeof(*gntdev_dmabuf), GFP_KERNEL);
+>> +    if (!gntdev_dmabuf)
+>> +        return -ENOMEM;
+>> +
+>> +    kref_init(&gntdev_dmabuf->u.exp.refcount);
+>> +
+>> +    gntdev_dmabuf->priv = args->dmabuf_priv;
+>> +    gntdev_dmabuf->nr_pages = args->count;
+>> +    gntdev_dmabuf->pages = args->pages;
+>> +    gntdev_dmabuf->u.exp.priv = args->priv;
+>> +    gntdev_dmabuf->u.exp.map = args->map;
+>> +
+>> +    exp_info.exp_name = KBUILD_MODNAME;
+>> +    if (args->dev->driver && args->dev->driver->owner)
+>> +        exp_info.owner = args->dev->driver->owner;
+>> +    else
+>> +        exp_info.owner = THIS_MODULE;
+>> +    exp_info.ops = &dmabuf_exp_ops;
+>> +    exp_info.size = args->count << PAGE_SHIFT;
+>> +    exp_info.flags = O_RDWR;
+>> +    exp_info.priv = gntdev_dmabuf;
+>> +
+>> +    gntdev_dmabuf->dmabuf = dma_buf_export(&exp_info);
+>> +    if (IS_ERR(gntdev_dmabuf->dmabuf)) {
+>> +        ret = PTR_ERR(gntdev_dmabuf->dmabuf);
+>> +        gntdev_dmabuf->dmabuf = NULL;
+>> +        goto fail;
+>> +    }
+>> +
+>> +    ret = dma_buf_fd(gntdev_dmabuf->dmabuf, O_CLOEXEC);
+>> +    if (ret < 0)
+>> +        goto fail;
+>> +
+>> +    gntdev_dmabuf->fd = ret;
+>> +    args->fd = ret;
+>> +
+>> +    pr_debug("Exporting DMA buffer with fd %d\n", ret);
+>> +
+>> +    mutex_lock(&args->dmabuf_priv->lock);
+>> +    list_add(&gntdev_dmabuf->next, &args->dmabuf_priv->exp_list);
+>> +    mutex_unlock(&args->dmabuf_priv->lock);
+>> +    return 0;
+>> +
+>> +fail:
+>> +    if (gntdev_dmabuf->dmabuf)
+>> +        dma_buf_put(gntdev_dmabuf->dmabuf);
+>> +    kfree(gntdev_dmabuf);
+>> +    return ret;
+>> +}
+>> +
+>> +static struct gntdev_grant_map *
+>> +dmabuf_exp_alloc_backing_storage(struct gntdev_priv *priv, int 
+>> dmabuf_flags,
+>> +                 int count)
+>> +{
+>> +    struct gntdev_grant_map *map;
+>> +
+>> +    if (unlikely(count <= 0))
+>> +        return ERR_PTR(-EINVAL);
+>> +
+>> +    if ((dmabuf_flags & GNTDEV_DMA_FLAG_WC) &&
+>> +        (dmabuf_flags & GNTDEV_DMA_FLAG_COHERENT)) {
+>> +        pr_debug("Wrong dma-buf flags: either WC or coherent, not 
+>> both\n");
+>
+> Why not just print the value of the flags?
+Will print hex value of the flags
+>
+>> +        return ERR_PTR(-EINVAL);
+>> +    }
+>> +
+>> +    map = gntdev_alloc_map(priv, count, dmabuf_flags);
+>> +    if (!map)
+>> +        return ERR_PTR(-ENOMEM);
+>> +
+>> +    if (unlikely(gntdev_account_mapped_pages(count))) {
+>> +        pr_debug("can't map: over limit\n");
+>
+>
+> I think printing @count value here would be useful.
+>
+Will add
+>
+>> +        gntdev_put_map(NULL, map);
+>> +        return ERR_PTR(-ENOMEM);
+>> +    }
+>> +    return map;
+>>   }
+>>     int gntdev_dmabuf_exp_from_refs(struct gntdev_priv *priv, int flags,
+>>                   int count, u32 domid, u32 *refs, u32 *fd)
+>>   {
+>> +    struct gntdev_grant_map *map;
+>> +    struct gntdev_dmabuf_export_args args;
+>> +    int i, ret;
+>> +
+>>       *fd = -1;
+>
+>
+> Is this still needed?
+No, will remove. I was thinking here about if user-space ignores
+IOCTL return value and tries to use the fd so it fails on -1.
+But, ok, no reason to fix user-space bugs in the kernel
+>
+>> -    return -EINVAL;
+>> +
+>> +    map = dmabuf_exp_alloc_backing_storage(priv, flags, count);
+>> +    if (IS_ERR(map))
+>> +        return PTR_ERR(map);
+>> +
+>> +    for (i = 0; i < count; i++) {
+>> +        map->grants[i].domid = domid;
+>> +        map->grants[i].ref = refs[i];
+>> +    }
+>> +
+>> +    mutex_lock(&priv->lock);
+>> +    gntdev_add_map(priv, map);
+>> +    mutex_unlock(&priv->lock);
+>> +
+>> +    map->flags |= GNTMAP_host_map;
+>> +#if defined(CONFIG_X86)
+>> +    map->flags |= GNTMAP_device_map;
+>> +#endif
+>> +
+>> +    ret = gntdev_map_grant_pages(map);
+>> +    if (ret < 0)
+>> +        goto out;
+>> +
+>> +    args.priv = priv;
+>> +    args.map = map;
+>> +    args.dev = priv->dma_dev;
+>> +    args.dmabuf_priv = priv->dmabuf_priv;
+>> +    args.count = map->count;
+>> +    args.pages = map->pages;
+>> +
+>> +    ret = dmabuf_exp_from_pages(&args);
+>> +    if (ret < 0)
+>> +        goto out;
+>> +
+>> +    *fd = args.fd;
+>> +    return 0;
+>> +
+>> +out:
+>> +    gntdev_remove_map(priv, map);
+>> +    return ret;
+>>   }
+>>     /* DMA buffer import support. */
+>> @@ -63,6 +525,10 @@ struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
+>>       if (!priv)
+>>           return ERR_PTR(-ENOMEM);
+>>   +    mutex_init(&priv->lock);
+>> +    INIT_LIST_HEAD(&priv->exp_list);
+>> +    INIT_LIST_HEAD(&priv->exp_wait_list);
+>> +
+>>       return priv;
+>>   }
+>>   diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+>> index e82660d81d7e..5f93cd534840 100644
+>> --- a/drivers/xen/gntdev.c
+>> +++ b/drivers/xen/gntdev.c
+>> @@ -262,6 +262,16 @@ void gntdev_put_map(struct gntdev_priv *priv, 
+>> struct gntdev_grant_map *map)
+>>       gntdev_free_map(map);
+>>   }
+>>   +#ifdef CONFIG_XEN_GNTDEV_DMABUF
+>> +void gntdev_remove_map(struct gntdev_priv *priv, struct 
+>> gntdev_grant_map *map)
+>> +{
+>> +    mutex_lock(&priv->lock);
+>> +    list_del(&map->next);
+>> +    gntdev_put_map(NULL /* already removed */, map);
+>
+>
+> Why not pass call gntdev_put_map(priv, map) and then not have this 
+> routine at all?
+>
+Well, I wish I could, but the main difference when calling 
+gntdev_put_map(priv, map)
+with priv != NULL and my code is that:
 
-Thanks for the review.
+void gntdev_put_map(struct gntdev_priv *priv, struct gntdev_grant_map *map)
+{
+     [...]
+     if (populate_freeable_maps && priv) {
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         mutex_lock(&priv->lock);
+         list_del(&map->next);
+         mutex_unlock(&priv->lock);
+     }
+     [...]
+}
 
-Well, I can't speak for the current ww implementation except I didn't 
-think it was too hard to understand for a first time reader.
+and
 
-Admittedly the Wound-Wait path makes it worse since it's a preemptive 
-algorithm and we need to touch other processes a acquire contexts and 
-worry about ordering.
+#define populate_freeable_maps use_ptemod
+                                ^^^^^^^^^^
+which means the map will never be removed from the list in my case
+because use_ptemod == false for dma-buf.
+This is why I do that by hand, e.g. remove the item from the list
+and then pass NULL for priv.
 
-So, assuming your review comments are fixed up, is that a solid NAK or 
-do you have any suggestion that would make you more comfortable with the 
-code? like splitting out ww-stuff to a separate file?
+Also, I will remove gntdev_remove_map as I can now access
+priv->lock and gntdev_put_map directly form gntdev-dmabuf.c
 
-/Thomas
+> I really dislike the fact that we are taking a lock here that 
+> gntdev_put_map() takes as well, although not with NULL argument. (And 
+> yes, I see that gntdev_release() does it too.)
+>
+This can be re-factored later I guess?
+>
+> -boris
+>
+Thank you,
+Oleksandr
+>
+>> +    mutex_unlock(&priv->lock);
+>> +}
+>> +#endif
+>> +
+>>   /* 
+>> ------------------------------------------------------------------ */
+>>     static int find_grant_ptes(pte_t *pte, pgtable_t token,
+>>
