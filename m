@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:38291 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935983AbeFMPJS (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:38988 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935981AbeFMPJQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 11:09:18 -0400
-Received: by mail-wr0-f193.google.com with SMTP id e18-v6so3153352wrs.5
-        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2018 08:09:17 -0700 (PDT)
+        Wed, 13 Jun 2018 11:09:16 -0400
+Received: by mail-wr0-f196.google.com with SMTP id w7-v6so3140266wrn.6
+        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2018 08:09:15 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,133 +14,65 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Vikash Garodia <vgarodia@codeaurora.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v3 08/27] venus: hfi_venus: fix suspend function for venus 3xx versions
-Date: Wed, 13 Jun 2018 18:07:42 +0300
-Message-Id: <20180613150801.11702-9-stanimir.varbanov@linaro.org>
+Subject: [PATCH v3 07/27] venus: hfi_venus: add halt AXI support for Venus 4xx
+Date: Wed, 13 Jun 2018 18:07:41 +0300
+Message-Id: <20180613150801.11702-8-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180613150801.11702-1-stanimir.varbanov@linaro.org>
 References: <20180613150801.11702-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes the suspend function for Venus 3xx versions by
-add a check for WFI (wait for interrupt) bit. This bit
-is on when the ARM9 is idle and entered in low power mode.
+Add AXI halt support for version 4xx by using venus wrapper
+registers.
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/platform/qcom/venus/hfi_venus.c    | 72 ++++++++++++++++--------
- drivers/media/platform/qcom/venus/hfi_venus_io.h |  1 +
- 2 files changed, 51 insertions(+), 22 deletions(-)
+ drivers/media/platform/qcom/venus/hfi_venus.c    | 18 ++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_venus_io.h |  2 ++
+ 2 files changed, 20 insertions(+)
 
 diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
-index 784b3ad1a9f6..72a8547eab39 100644
+index 734ce11b0ed0..784b3ad1a9f6 100644
 --- a/drivers/media/platform/qcom/venus/hfi_venus.c
 +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
-@@ -1444,13 +1444,40 @@ static int venus_suspend_1xx(struct venus_core *core)
- 	return 0;
- }
- 
-+static bool venus_cpu_and_video_core_idle(struct venus_hfi_device *hdev)
-+{
-+	u32 ctrl_status, cpu_status;
-+
-+	cpu_status = venus_readl(hdev, WRAPPER_CPU_STATUS);
-+	ctrl_status = venus_readl(hdev, CPU_CS_SCIACMDARG0);
-+
-+	if (cpu_status & WRAPPER_CPU_STATUS_WFI &&
-+	    ctrl_status & CPU_CS_SCIACMDARG0_INIT_IDLE_MSG_MASK)
-+		return true;
-+
-+	return false;
-+}
-+
-+static bool venus_cpu_idle_and_pc_ready(struct venus_hfi_device *hdev)
-+{
-+	u32 ctrl_status, cpu_status;
-+
-+	cpu_status = venus_readl(hdev, WRAPPER_CPU_STATUS);
-+	ctrl_status = venus_readl(hdev, CPU_CS_SCIACMDARG0);
-+
-+	if (cpu_status & WRAPPER_CPU_STATUS_WFI &&
-+	    ctrl_status & CPU_CS_SCIACMDARG0_PC_READY)
-+		return true;
-+
-+	return false;
-+}
-+
- static int venus_suspend_3xx(struct venus_core *core)
- {
- 	struct venus_hfi_device *hdev = to_hfi_priv(core);
- 	struct device *dev = core->dev;
--	u32 ctrl_status, wfi_status;
-+	bool val;
+@@ -532,6 +532,24 @@ static int venus_halt_axi(struct venus_hfi_device *hdev)
+ 	u32 val;
  	int ret;
--	int cnt = 100;
  
- 	if (!hdev->power_enabled || hdev->suspended)
- 		return 0;
-@@ -1464,29 +1491,30 @@ static int venus_suspend_3xx(struct venus_core *core)
- 		return -EINVAL;
- 	}
- 
--	ctrl_status = venus_readl(hdev, CPU_CS_SCIACMDARG0);
--	if (!(ctrl_status & CPU_CS_SCIACMDARG0_PC_READY)) {
--		wfi_status = venus_readl(hdev, WRAPPER_CPU_STATUS);
--		ctrl_status = venus_readl(hdev, CPU_CS_SCIACMDARG0);
--
--		ret = venus_prepare_power_collapse(hdev, false);
--		if (ret) {
--			dev_err(dev, "prepare for power collapse fail (%d)\n",
--				ret);
--			return ret;
--		}
-+	/*
-+	 * Power collapse sequence for Venus 3xx and 4xx versions:
-+	 * 1. Check for ARM9 and video core to be idle by checking WFI bit
-+	 *    (bit 0) in CPU status register and by checking Idle (bit 30) in
-+	 *    Control status register for video core.
-+	 * 2. Send a command to prepare for power collapse.
-+	 * 3. Check for WFI and PC_READY bits.
-+	 */
-+	ret = readx_poll_timeout(venus_cpu_and_video_core_idle, hdev, val, val,
-+				 1500, 100 * 1500);
-+	if (ret)
-+		return ret;
- 
--		cnt = 100;
--		while (cnt--) {
--			wfi_status = venus_readl(hdev, WRAPPER_CPU_STATUS);
--			ctrl_status = venus_readl(hdev, CPU_CS_SCIACMDARG0);
--			if (ctrl_status & CPU_CS_SCIACMDARG0_PC_READY &&
--			    wfi_status & BIT(0))
--				break;
--			usleep_range(1000, 1500);
--		}
-+	ret = venus_prepare_power_collapse(hdev, false);
-+	if (ret) {
-+		dev_err(dev, "prepare for power collapse fail (%d)\n", ret);
-+		return ret;
- 	}
- 
-+	ret = readx_poll_timeout(venus_cpu_idle_and_pc_ready, hdev, val, val,
-+				 1500, 100 * 1500);
-+	if (ret)
-+		return ret;
++	if (IS_V4(hdev->core)) {
++		val = venus_readl(hdev, WRAPPER_CPU_AXI_HALT);
++		val |= WRAPPER_CPU_AXI_HALT_HALT;
++		venus_writel(hdev, WRAPPER_CPU_AXI_HALT, val);
 +
- 	mutex_lock(&hdev->lock);
- 
- 	ret = venus_power_off(hdev);
++		ret = readl_poll_timeout(base + WRAPPER_CPU_AXI_HALT_STATUS,
++					 val,
++					 val & WRAPPER_CPU_AXI_HALT_STATUS_IDLE,
++					 POLL_INTERVAL_US,
++					 VBIF_AXI_HALT_ACK_TIMEOUT_US);
++		if (ret) {
++			dev_err(dev, "AXI bus port halt timeout\n");
++			return ret;
++		}
++
++		return 0;
++	}
++
+ 	/* Halt AXI and AXI IMEM VBIF Access */
+ 	val = venus_readl(hdev, VBIF_AXI_HALT_CTRL0);
+ 	val |= VBIF_AXI_HALT_CTRL0_HALT_REQ;
 diff --git a/drivers/media/platform/qcom/venus/hfi_venus_io.h b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-index c0b18de1e396..def0926a6dee 100644
+index d327b5cea334..c0b18de1e396 100644
 --- a/drivers/media/platform/qcom/venus/hfi_venus_io.h
 +++ b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-@@ -110,6 +110,7 @@
+@@ -104,7 +104,9 @@
+ 
+ #define WRAPPER_CPU_CLOCK_CONFIG		(WRAPPER_BASE + 0x2000)
+ #define WRAPPER_CPU_AXI_HALT			(WRAPPER_BASE + 0x2008)
++#define WRAPPER_CPU_AXI_HALT_HALT		BIT(16)
+ #define WRAPPER_CPU_AXI_HALT_STATUS		(WRAPPER_BASE + 0x200c)
++#define WRAPPER_CPU_AXI_HALT_STATUS_IDLE	BIT(24)
  
  #define WRAPPER_CPU_CGC_DIS			(WRAPPER_BASE + 0x2010)
  #define WRAPPER_CPU_STATUS			(WRAPPER_BASE + 0x2014)
-+#define WRAPPER_CPU_STATUS_WFI			BIT(0)
- #define WRAPPER_SW_RESET			(WRAPPER_BASE + 0x3000)
- 
- /* Venus 4xx */
 -- 
 2.14.1
