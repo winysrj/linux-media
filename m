@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35848 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935972AbeFMPJO (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:40535 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936010AbeFMPJV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 11:09:14 -0400
-Received: by mail-wm0-f65.google.com with SMTP id v131-v6so6111430wma.1
-        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2018 08:09:13 -0700 (PDT)
+        Wed, 13 Jun 2018 11:09:21 -0400
+Received: by mail-wr0-f194.google.com with SMTP id l41-v6so3135452wre.7
+        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2018 08:09:21 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,51 +14,52 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Vikash Garodia <vgarodia@codeaurora.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v3 06/27] venus: hfi: handle buffer output2 type as well
-Date: Wed, 13 Jun 2018 18:07:40 +0300
-Message-Id: <20180613150801.11702-7-stanimir.varbanov@linaro.org>
+Subject: [PATCH v3 10/27] venus: hfi_venus: add suspend functionality for Venus 4xx
+Date: Wed, 13 Jun 2018 18:07:44 +0300
+Message-Id: <20180613150801.11702-11-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180613150801.11702-1-stanimir.varbanov@linaro.org>
 References: <20180613150801.11702-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds handling of buffers of type OUTPUT2 which is needed to
-support Venus 4xx version.
+This adds suspend (power collapse) functionality by reusing
+the suspend function for Venus 3xx and also enables idle indicator
+property for Venus 4xx (where it is disabled by default).
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/platform/qcom/venus/hfi.c      | 3 ++-
- drivers/media/platform/qcom/venus/hfi_msgs.c | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/platform/qcom/venus/hfi_venus.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
-index cbc6fad05e47..a570fdad0de0 100644
---- a/drivers/media/platform/qcom/venus/hfi.c
-+++ b/drivers/media/platform/qcom/venus/hfi.c
-@@ -473,7 +473,8 @@ int hfi_session_process_buf(struct venus_inst *inst, struct hfi_frame_data *fd)
+diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
+index 7a83e967a8ea..9366dae16b0a 100644
+--- a/drivers/media/platform/qcom/venus/hfi_venus.c
++++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+@@ -879,6 +879,14 @@ static int venus_sys_set_default_properties(struct venus_hfi_device *hdev)
+ 	if (ret)
+ 		dev_warn(dev, "setting fw debug msg ON failed (%d)\n", ret);
  
- 	if (fd->buffer_type == HFI_BUFFER_INPUT)
- 		return ops->session_etb(inst, fd);
--	else if (fd->buffer_type == HFI_BUFFER_OUTPUT)
-+	else if (fd->buffer_type == HFI_BUFFER_OUTPUT ||
-+		 fd->buffer_type == HFI_BUFFER_OUTPUT2)
- 		return ops->session_ftb(inst, fd);
++	/*
++	 * Idle indicator is disabled by default on some 4xx firmware versions,
++	 * enable it explicitly in order to make suspend functional by checking
++	 * WFI (wait-for-interrupt) bit.
++	 */
++	if (IS_V4(hdev->core))
++		venus_sys_idle_indicator = true;
++
+ 	ret = venus_sys_set_idle_message(hdev, venus_sys_idle_indicator);
+ 	if (ret)
+ 		dev_warn(dev, "setting idle response ON failed (%d)\n", ret);
+@@ -1533,7 +1541,8 @@ static int venus_suspend_3xx(struct venus_core *core)
  
- 	return -EINVAL;
-diff --git a/drivers/media/platform/qcom/venus/hfi_msgs.c b/drivers/media/platform/qcom/venus/hfi_msgs.c
-index 54cd41e5837c..c0f3bef8299f 100644
---- a/drivers/media/platform/qcom/venus/hfi_msgs.c
-+++ b/drivers/media/platform/qcom/venus/hfi_msgs.c
-@@ -823,7 +823,8 @@ static void hfi_session_ftb_done(struct venus_core *core,
- 		error = HFI_ERR_SESSION_INVALID_PARAMETER;
- 	}
+ static int venus_suspend(struct venus_core *core)
+ {
+-	if (core->res->hfi_version == HFI_VERSION_3XX)
++	if (core->res->hfi_version == HFI_VERSION_3XX ||
++	    core->res->hfi_version == HFI_VERSION_4XX)
+ 		return venus_suspend_3xx(core);
  
--	if (buffer_type != HFI_BUFFER_OUTPUT)
-+	if (buffer_type != HFI_BUFFER_OUTPUT &&
-+	    buffer_type != HFI_BUFFER_OUTPUT2)
- 		goto done;
- 
- 	if (hfi_flags & HFI_BUFFERFLAG_EOS)
+ 	return venus_suspend_1xx(core);
 -- 
 2.14.1
