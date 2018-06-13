@@ -1,71 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db5eur01on0071.outbound.protection.outlook.com ([104.47.2.71]:13088
-        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S934418AbeFMJEz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 05:04:55 -0400
-Subject: Re: [PATCH v3 9/9] xen/gntdev: Implement dma-buf import functionality
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com
-References: <20180612134200.17456-1-andr2000@gmail.com>
- <20180612134200.17456-10-andr2000@gmail.com>
- <b08fdccf-2f1b-a902-f00b-a4cecf44a1b1@oracle.com>
-From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
-Message-ID: <cca7b9dd-a0c6-8052-c294-9e6c5d65e9eb@epam.com>
-Date: Wed, 13 Jun 2018 12:04:49 +0300
+Received: from relay8-d.mail.gandi.net ([217.70.183.201]:59161 "EHLO
+        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934150AbeFMIzJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Jun 2018 04:55:09 -0400
+Date: Wed, 13 Jun 2018 10:54:55 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        horms@verge.net.au, geert@glider.be, mchehab@kernel.org,
+        hans.verkuil@cisco.com, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v4 6/6] dt-bindings: media: rcar-vin: Clarify optional
+ props
+Message-ID: <20180613085455.GC4952@w540>
+References: <1528813566-17927-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1528813566-17927-7-git-send-email-jacopo+renesas@jmondi.org>
+ <20180612154553.kgqnqkwv3y6srivg@kekkonen.localdomain>
 MIME-Version: 1.0
-In-Reply-To: <b08fdccf-2f1b-a902-f00b-a4cecf44a1b1@oracle.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="BQPnanjtCNWHyqYD"
+Content-Disposition: inline
+In-Reply-To: <20180612154553.kgqnqkwv3y6srivg@kekkonen.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/13/2018 06:14 AM, Boris Ostrovsky wrote:
+
+--BQPnanjtCNWHyqYD
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Hi Sakari,
+
+On Tue, Jun 12, 2018 at 06:45:53PM +0300, Sakari Ailus wrote:
+> Hi Jacopo,
 >
+> On Tue, Jun 12, 2018 at 04:26:06PM +0200, Jacopo Mondi wrote:
+> > Add a note to the R-Car VIN interface bindings to clarify that all
+> > properties listed as generic properties in video-interfaces.txt can
+> > be included in port@0 endpoint, but if not explicitly listed in the
+> > interface bindings documentation, they do not modify it behaviour.
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  Documentation/devicetree/bindings/media/rcar_vin.txt | 6 ++++++
+> >  1 file changed, 6 insertions(+)
+> >
+> > diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > index 8130849..03544c7 100644
+> > --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > @@ -55,6 +55,12 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+> >        instances that are connected to external pins should have port 0.
+> >
+> >        - Optional properties for endpoint nodes of port@0:
+> > +
+> > +        All properties described in [1] and which apply to the selected
+> > +        media bus type could be optionally listed here to better describe
+> > +        the current hardware configuration, but only the following ones do
+> > +        actually modify the VIN interface behaviour:
+> > +
 >
-> On 06/12/2018 09:42 AM, Oleksandr Andrushchenko wrote:
+> I don't think this should be needed. You should only have properties that
+> describe the hardware configuration in a given system.
 >
->>   int gntdev_dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd)
->>   {
->> -    return -EINVAL;
->> +    struct gntdev_dmabuf *gntdev_dmabuf;
->> +    struct dma_buf_attachment *attach;
->> +    struct dma_buf *dma_buf;
->> +
->> +    gntdev_dmabuf = dmabuf_imp_find_unlink(priv, fd);
->> +    if (IS_ERR(gntdev_dmabuf))
->> +        return PTR_ERR(gntdev_dmabuf);
->> +
->> +    pr_debug("Releasing DMA buffer with fd %d\n", fd);
->> +
->> +    attach = gntdev_dmabuf->u.imp.attach;
->> +
->> +    if (gntdev_dmabuf->u.imp.sgt)
->> +        dma_buf_unmap_attachment(attach, gntdev_dmabuf->u.imp.sgt,
->> +                     DMA_BIDIRECTIONAL);
->> +    dma_buf = attach->dmabuf;
->> +    dma_buf_detach(attach->dmabuf, attach);
->> +    dma_buf_put(dma_buf);
->> +
->> +    dmabuf_imp_end_foreign_access(gntdev_dmabuf->u.imp.refs,
->> +                      gntdev_dmabuf->nr_pages);
+
+There has been quite some debate on this, and please bear with me
+here for re-proposing it: I started by removing properties in some DT
+files for older Renesas board which listed endpoint properties not
+documented in the VIN's bindings and not parsed by the VIN driver [1]
+Niklas (but Simon and Geert seems to agree here) opposed to that
+patch, as those properties where described in 'video-interfaces.txt' and
+even if not parsed by the current driver implementation, they actually
+describe hardware. I rebated that only properties listed in the device
+bindings documentation should actually be used, and having properties
+not parsed by the driver confuses users, which may expect changing
+them modifies the interface configuration, which does not happens at
+the moment.
+
+This came out as a middle ground from a discussion with Niklas. As
+stated in the cover letter if this patch makes someone uncomfortable, feel
+free to drop it not to hold back the rest of the series which has been
+well received instead.
+
+Thanks
+   j
+
+[1] https://www.spinics.net/lists/arm-kernel/msg656302.html
+
+> >          - hsync-active: see [1] for description. Default is active high.
+> >          - vsync-active: see [1] for description. Default is active high.
+> >          - data-enable-active: polarity of CLKENB signal, see [1] for
+> > --
+> > 2.7.4
+> >
 >
->
->
-> Should you first end foreign access, before doing anything?
->
-I am rolling back in reverse order here, so I think we first need
-to finish local activities with the buffer and then end foreign
-access.
-> -boris
->
->
->> + dmabuf_imp_free_storage(gntdev_dmabuf);
->> +    return 0;
->>   }
+> --
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
+
+--BQPnanjtCNWHyqYD
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbINvfAAoJEHI0Bo8WoVY860oP/3rcThxRrX7Jg1BEvvHG9TO9
+Hm4m9hR0+jhSaAiKYOsaGVdTcsvN3Y6PJ4SNfqiR7QXpkNq+QGY/XRkMGPX59vMS
+z1QaAQM/RgGu7OM0tyJ3nU3tnzmEqb6YIi9FeRPYLmDMRqywUC28qLxKyNLEBUWa
+AJ3QMFzBzROHVZSPLw4fV90zZOzlZPNcR0vLKS3j93S/nrBnOvwBwuztVHUVMnyE
+PNhD6GGYVZ9XiWTEyG/6vles1fDFtSKIiN7NrmL/OWCFx1kdoX1JdEdygpyszwjQ
+5+RhVfXl/oUy/oPoR9gh3+t0cDdE4O70G+MMUt4IOKjEVr41Ti7/eWGF9hpaGkF0
+hYCtKgl1U8eAmwlaybnIWDAVnuNEe2TFyEXmwx8N8PRQ7eSZBhK5leWNrLidsub3
+LTNTxBYy5fpnjHNQEivcTmkKiyh2TUHTUEiGbgCdzE/luhkxWXILJnNcr7si8fLy
+d8dcSjxfUYd/WeeBS5BCSroxnR6Cs9LzYeh4V3y0wUKFfpu//3zdlz0KLqvg/Y3o
+u4iHBIYBl8PwX3HIo3wR/9zJOwkoo865aucvlm8+oMvhf23cd1l3PTsy+aGOiWR4
+ehXr+x1Xd5d3un7lkdT+12o/+eVmcQjvWrnfKrQRNrwITgGjAUAeHR6Bp4WqYZKP
+6lk4qIpMerFDGteEOjkH
+=Xx+b
+-----END PGP SIGNATURE-----
+
+--BQPnanjtCNWHyqYD--
