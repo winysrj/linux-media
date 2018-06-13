@@ -1,105 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr50045.outbound.protection.outlook.com ([40.107.5.45]:58159
-        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754487AbeFMHX0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 03:23:26 -0400
-Subject: Re: [PATCH v3 6/9] xen/gntdev: Make private routines/structures
- accessible
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com
-References: <20180612134200.17456-1-andr2000@gmail.com>
- <20180612134200.17456-7-andr2000@gmail.com>
- <fc339230-f1e1-303b-1b82-0bd23d7b69b3@oracle.com>
-From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
-Message-ID: <ac1f47e6-9d90-ae6b-5596-00a8b3607d96@epam.com>
-Date: Wed, 13 Jun 2018 10:23:18 +0300
+Received: from mail.kernel.org ([198.145.29.99]:48028 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754472AbeFMHyg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Jun 2018 03:54:36 -0400
+Date: Wed, 13 Jun 2018 09:54:11 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>,
+        David Airlie <airlied@linux.ie>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        Josh Triplett <josh@joshtriplett.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org
+Subject: Re: [PATCH 1/2] locking: Implement an algorithm choice for
+ Wound-Wait mutexes
+Message-ID: <20180613075411.GA17681@kroah.com>
+References: <20180613074745.14750-1-thellstrom@vmware.com>
+ <20180613074745.14750-2-thellstrom@vmware.com>
 MIME-Version: 1.0
-In-Reply-To: <fc339230-f1e1-303b-1b82-0bd23d7b69b3@oracle.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180613074745.14750-2-thellstrom@vmware.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/13/2018 04:38 AM, Boris Ostrovsky wrote:
->
->
-> On 06/12/2018 09:41 AM, Oleksandr Andrushchenko wrote:
->> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>
->> This is in preparation for adding support of DMA buffer
->> functionality: make map/unmap related code and structures, used
->> privately by gntdev, ready for dma-buf extension, which will re-use
->> these. Rename corresponding structures as those become non-private
->> to gntdev now.
->>
->> Signed-off-by: Oleksandr Andrushchenko 
->> <oleksandr_andrushchenko@epam.com>
->> ---
->>   drivers/xen/gntdev-common.h |  86 +++++++++++++++++++++++
->>   drivers/xen/gntdev.c        | 132 ++++++++++++------------------------
->>   2 files changed, 128 insertions(+), 90 deletions(-)
->>   create mode 100644 drivers/xen/gntdev-common.h
->>
->> diff --git a/drivers/xen/gntdev-common.h b/drivers/xen/gntdev-common.h
->> new file mode 100644
->> index 000000000000..7a9845a6bee9
->> --- /dev/null
->> +++ b/drivers/xen/gntdev-common.h
->> @@ -0,0 +1,86 @@
->> +/* SPDX-License-Identifier: GPL-2.0 */
->> +
->> +/*
->> + * Common functionality of grant device.
->> + *
->> + * Copyright (c) 2006-2007, D G Murray.
->> + *           (c) 2009 Gerd Hoffmann <kraxel@redhat.com>
->> + *           (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
->> + */
->> +
->> +#ifndef _GNTDEV_COMMON_H
->> +#define _GNTDEV_COMMON_H
->> +
->> +#include <linux/mm.h>
->> +#include <linux/mman.h>
->> +#include <linux/mmu_notifier.h>
->> +#include <linux/types.h>
->> +
->> +struct gntdev_priv {
->> +    /* maps with visible offsets in the file descriptor */
->> +    struct list_head maps;
->> +    /* maps that are not visible; will be freed on munmap.
->> +     * Only populated if populate_freeable_maps == 1 */
->
->
-> Since you are touching this code please fix comment style.
->
-I saw that while running checkpatch, but was not sure if I have to touch
-those as they seemed to be not related to the change itself.
-But I'll make sure all the comments are consistent.
->
->> +    struct list_head freeable_maps;
->> +    /* lock protects maps and freeable_maps */
->> +    struct mutex lock;
->> +    struct mm_struct *mm;
->> +    struct mmu_notifier mn;
->> +
->> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
->> +    /* Device for which DMA memory is allocated. */
->> +    struct device *dma_dev;
->> +#endif
->> +};
->
->
-> With that fixed,
->
-> Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
->
-Thank you,
-Oleksandr
+On Wed, Jun 13, 2018 at 09:47:44AM +0200, Thomas Hellstrom wrote:
+>  -----
+>  
+> +The algorithm (Wait-Die vs Wound-Wait) is chosen using the _is_wait_die
+> +argument to DEFINE_WW_CLASS(). As a rough rule of thumb, use Wound-Wait iff you
+> +typically expect the number of simultaneous competing transactions to be small,
+> +and the rollback cost can be substantial.
+> +
+>  Three different ways to acquire locks within the same w/w class. Common
+>  definitions for methods #1 and #2:
+>  
+> -static DEFINE_WW_CLASS(ww_class);
+> +static DEFINE_WW_CLASS(ww_class, false);
+
+Minor nit on the api here.  Having a "flag" is a royal pain.  You have
+to go and look up exactly what that "true/false" means every time you
+run across it in code to figure out what it means.  Don't do that if at
+all possible.
+
+Make a new api:
+	DEFINE_WW_CLASS_DIE(ww_class);
+instead that then wraps that boolean internally to switch between the
+different types.  That way the api is "self-documenting" and we all know
+what is going on without having to dig through a header file.
+
+thanks,
+
+greg k-h
