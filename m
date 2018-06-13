@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:40535 "EHLO
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:45105 "EHLO
         mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936010AbeFMPJV (ORCPT
+        with ESMTP id S936032AbeFMPJ0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 11:09:21 -0400
-Received: by mail-wr0-f194.google.com with SMTP id l41-v6so3135452wre.7
-        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2018 08:09:21 -0700 (PDT)
+        Wed, 13 Jun 2018 11:09:26 -0400
+Received: by mail-wr0-f194.google.com with SMTP id o12-v6so3129424wrm.12
+        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2018 08:09:26 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,52 +14,68 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Vikash Garodia <vgarodia@codeaurora.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v3 10/27] venus: hfi_venus: add suspend functionality for Venus 4xx
-Date: Wed, 13 Jun 2018 18:07:44 +0300
-Message-Id: <20180613150801.11702-11-stanimir.varbanov@linaro.org>
+Subject: [PATCH v3 13/27] venus: helpers: rename a helper function and use buffer mode from caps
+Date: Wed, 13 Jun 2018 18:07:47 +0300
+Message-Id: <20180613150801.11702-14-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180613150801.11702-1-stanimir.varbanov@linaro.org>
 References: <20180613150801.11702-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds suspend (power collapse) functionality by reusing
-the suspend function for Venus 3xx and also enables idle indicator
-property for Venus 4xx (where it is disabled by default).
+Rename is_reg_unreg_needed() to better name is_dynamic_bufmode() and
+use buffer mode from enumerated per codec capabilities.
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/platform/qcom/venus/hfi_venus.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/media/platform/qcom/venus/helpers.c | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
-index 7a83e967a8ea..9366dae16b0a 100644
---- a/drivers/media/platform/qcom/venus/hfi_venus.c
-+++ b/drivers/media/platform/qcom/venus/hfi_venus.c
-@@ -879,6 +879,14 @@ static int venus_sys_set_default_properties(struct venus_hfi_device *hdev)
- 	if (ret)
- 		dev_warn(dev, "setting fw debug msg ON failed (%d)\n", ret);
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index 228084e72fb7..03121dbb4175 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -354,18 +354,16 @@ session_process_buf(struct venus_inst *inst, struct vb2_v4l2_buffer *vbuf)
+ 	return 0;
+ }
  
-+	/*
-+	 * Idle indicator is disabled by default on some 4xx firmware versions,
-+	 * enable it explicitly in order to make suspend functional by checking
-+	 * WFI (wait-for-interrupt) bit.
-+	 */
-+	if (IS_V4(hdev->core))
-+		venus_sys_idle_indicator = true;
-+
- 	ret = venus_sys_set_idle_message(hdev, venus_sys_idle_indicator);
- 	if (ret)
- 		dev_warn(dev, "setting idle response ON failed (%d)\n", ret);
-@@ -1533,7 +1541,8 @@ static int venus_suspend_3xx(struct venus_core *core)
- 
- static int venus_suspend(struct venus_core *core)
+-static inline int is_reg_unreg_needed(struct venus_inst *inst)
++static bool is_dynamic_bufmode(struct venus_inst *inst)
  {
--	if (core->res->hfi_version == HFI_VERSION_3XX)
-+	if (core->res->hfi_version == HFI_VERSION_3XX ||
-+	    core->res->hfi_version == HFI_VERSION_4XX)
- 		return venus_suspend_3xx(core);
+-	if (inst->session_type == VIDC_SESSION_TYPE_DEC &&
+-	    inst->core->res->hfi_version == HFI_VERSION_3XX)
+-		return 0;
++	struct venus_core *core = inst->core;
++	struct venus_caps *caps;
  
- 	return venus_suspend_1xx(core);
+-	if (inst->session_type == VIDC_SESSION_TYPE_DEC &&
+-	    inst->cap_bufs_mode_dynamic &&
+-	    inst->core->res->hfi_version == HFI_VERSION_1XX)
++	caps = venus_caps_by_codec(core, inst->hfi_codec, inst->session_type);
++	if (!caps)
+ 		return 0;
+ 
+-	return 1;
++	return caps->cap_bufs_mode_dynamic;
+ }
+ 
+ static int session_unregister_bufs(struct venus_inst *inst)
+@@ -374,7 +372,7 @@ static int session_unregister_bufs(struct venus_inst *inst)
+ 	struct hfi_buffer_desc bd;
+ 	int ret = 0;
+ 
+-	if (!is_reg_unreg_needed(inst))
++	if (is_dynamic_bufmode(inst))
+ 		return 0;
+ 
+ 	list_for_each_entry_safe(buf, n, &inst->registeredbufs, reg_list) {
+@@ -394,7 +392,7 @@ static int session_register_bufs(struct venus_inst *inst)
+ 	struct venus_buffer *buf;
+ 	int ret = 0;
+ 
+-	if (!is_reg_unreg_needed(inst))
++	if (is_dynamic_bufmode(inst))
+ 		return 0;
+ 
+ 	list_for_each_entry(buf, &inst->registeredbufs, reg_list) {
 -- 
 2.14.1
