@@ -1,333 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:55320 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:55324 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755269AbeFNPfr (ORCPT
+        with ESMTP id S1755269AbeFNPft (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 11:35:47 -0400
+        Thu, 14 Jun 2018 11:35:49 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
         Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 1/3] mem2mem: Remove unused v4l2_m2m_ops .lock/.unlock
-Date: Thu, 14 Jun 2018 12:34:03 -0300
-Message-Id: <20180614153405.5697-2-ezequiel@collabora.com>
+Subject: [PATCH 2/3] mem2mem: Make .job_abort optional
+Date: Thu, 14 Jun 2018 12:34:04 -0300
+Message-Id: <20180614153405.5697-3-ezequiel@collabora.com>
 In-Reply-To: <20180614153405.5697-1-ezequiel@collabora.com>
 References: <20180614153405.5697-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit f1a81afc98e3 ("[media] m2m: fix bad unlock balance")
-removed the last use of v4l2_m2m_ops.lock and
-v4l2_m2m_ops.unlock hooks. They are not actually
-used anymore. Remove them.
+Implementing job_abort() does not make sense on some drivers.
+This is not a problem, as the abort is not required to
+wait for the job to finish. Quite the opposite, drivers
+are encouraged not to wait.
+
+Demote v4l2_m2m_ops.job_abort from required to optional, and
+clean all drivers with dummy or wrong implementations.
 
 Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/media/platform/coda/coda-common.c          | 26 ++++------------------
- drivers/media/platform/m2m-deinterlace.c           | 20 ++---------------
- drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 18 ---------------
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 16 -------------
- drivers/media/platform/mx2_emmaprp.c               | 16 -------------
- drivers/media/platform/sti/delta/delta-v4l2.c      | 18 ---------------
- drivers/media/platform/ti-vpe/vpe.c                | 19 ----------------
- include/media/v4l2-mem2mem.h                       |  6 -----
- 8 files changed, 6 insertions(+), 133 deletions(-)
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c |  5 -----
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c    |  5 -----
+ drivers/media/platform/rcar_jpu.c               | 16 ----------------
+ drivers/media/platform/rockchip/rga/rga.c       |  6 ------
+ drivers/media/platform/s5p-g2d/g2d.c            | 14 --------------
+ drivers/media/platform/s5p-jpeg/jpeg-core.c     |  7 -------
+ drivers/media/v4l2-core/v4l2-mem2mem.c          |  6 +++---
+ include/media/v4l2-mem2mem.h                    |  2 +-
+ 8 files changed, 4 insertions(+), 57 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index c7631e117dd3..b86d704ae10c 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1297,28 +1297,10 @@ static void coda_job_abort(void *priv)
- 		 "Aborting task\n");
+diff --git a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+index 328e8f650d9b..4f24da8afecc 100644
+--- a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
++++ b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+@@ -861,14 +861,9 @@ static int mtk_jpeg_job_ready(void *priv)
+ 	return (ctx->state == MTK_JPEG_RUNNING) ? 1 : 0;
  }
  
--static void coda_lock(void *m2m_priv)
+-static void mtk_jpeg_job_abort(void *priv)
 -{
--	struct coda_ctx *ctx = m2m_priv;
--	struct coda_dev *pcdev = ctx->dev;
--
--	mutex_lock(&pcdev->dev_mutex);
 -}
 -
--static void coda_unlock(void *m2m_priv)
--{
--	struct coda_ctx *ctx = m2m_priv;
--	struct coda_dev *pcdev = ctx->dev;
--
--	mutex_unlock(&pcdev->dev_mutex);
--}
--
- static const struct v4l2_m2m_ops coda_m2m_ops = {
- 	.device_run	= coda_device_run,
- 	.job_ready	= coda_job_ready,
- 	.job_abort	= coda_job_abort,
--	.lock		= coda_lock,
--	.unlock		= coda_unlock,
+ static const struct v4l2_m2m_ops mtk_jpeg_m2m_ops = {
+ 	.device_run = mtk_jpeg_device_run,
+ 	.job_ready  = mtk_jpeg_job_ready,
+-	.job_abort  = mtk_jpeg_job_abort,
  };
  
- static void set_default_params(struct coda_ctx *ctx)
-@@ -2092,9 +2074,9 @@ static int coda_open(struct file *file)
- 	INIT_LIST_HEAD(&ctx->buffer_meta_list);
- 	spin_lock_init(&ctx->buffer_meta_lock);
- 
--	coda_lock(ctx);
-+	mutex_lock(&dev->dev_mutex);
- 	list_add(&ctx->list, &dev->instances);
--	coda_unlock(ctx);
-+	mutex_unlock(&dev->dev_mutex);
- 
- 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Created instance %d (%p)\n",
- 		 ctx->idx, ctx);
-@@ -2142,9 +2124,9 @@ static int coda_release(struct file *file)
- 		flush_work(&ctx->seq_end_work);
- 	}
- 
--	coda_lock(ctx);
-+	mutex_lock(&dev->dev_mutex);
- 	list_del(&ctx->list);
--	coda_unlock(ctx);
-+	mutex_unlock(&dev->dev_mutex);
- 
- 	if (ctx->dev->devtype->product == CODA_DX6)
- 		coda_free_aux_buf(dev, &ctx->workbuf);
-diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-index 1e4195144f39..734619d5954d 100644
---- a/drivers/media/platform/m2m-deinterlace.c
-+++ b/drivers/media/platform/m2m-deinterlace.c
-@@ -181,20 +181,6 @@ static void deinterlace_job_abort(void *priv)
- 	v4l2_m2m_job_finish(pcdev->m2m_dev, ctx->m2m_ctx);
+ static int mtk_jpeg_queue_init(void *priv, struct vb2_queue *src_vq,
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+index 583d47724ee8..1198e19060a2 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+@@ -455,10 +455,6 @@ static void mtk_mdp_m2m_stop_streaming(struct vb2_queue *q)
+ 	pm_runtime_put(&ctx->mdp_dev->pdev->dev);
  }
  
--static void deinterlace_lock(void *priv)
+-static void mtk_mdp_m2m_job_abort(void *priv)
 -{
--	struct deinterlace_ctx *ctx = priv;
--	struct deinterlace_dev *pcdev = ctx->dev;
--	mutex_lock(&pcdev->dev_mutex);
 -}
 -
--static void deinterlace_unlock(void *priv)
--{
--	struct deinterlace_ctx *ctx = priv;
--	struct deinterlace_dev *pcdev = ctx->dev;
--	mutex_unlock(&pcdev->dev_mutex);
--}
--
- static void dma_callback(void *data)
- {
- 	struct deinterlace_ctx *curr_ctx = data;
-@@ -956,9 +942,9 @@ static __poll_t deinterlace_poll(struct file *file,
- 	struct deinterlace_ctx *ctx = file->private_data;
- 	__poll_t ret;
+ /* The color format (num_planes) must be already configured. */
+ static void mtk_mdp_prepare_addr(struct mtk_mdp_ctx *ctx,
+ 				 struct vb2_buffer *vb,
+@@ -1227,7 +1223,6 @@ static const struct v4l2_file_operations mtk_mdp_m2m_fops = {
  
--	deinterlace_lock(ctx);
-+	mutex_lock(&ctx->dev->dev_mutex);
- 	ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
--	deinterlace_unlock(ctx);
-+	mutex_unlock(&ctx->dev->dev_mutex);
- 
- 	return ret;
- }
-@@ -992,8 +978,6 @@ static const struct v4l2_m2m_ops m2m_ops = {
- 	.device_run	= deinterlace_device_run,
- 	.job_ready	= deinterlace_job_ready,
- 	.job_abort	= deinterlace_job_abort,
--	.lock		= deinterlace_lock,
--	.unlock		= deinterlace_unlock,
+ static const struct v4l2_m2m_ops mtk_mdp_m2m_ops = {
+ 	.device_run	= mtk_mdp_m2m_device_run,
+-	.job_abort	= mtk_mdp_m2m_job_abort,
  };
  
- static int deinterlace_probe(struct platform_device *pdev)
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-index 86f0a7134365..5523edadb86c 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-@@ -1411,28 +1411,10 @@ int mtk_vcodec_dec_ctrls_setup(struct mtk_vcodec_ctx *ctx)
- 	return 0;
+ int mtk_mdp_register_m2m_device(struct mtk_mdp_dev *mdp)
+diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
+index 8b44a849ab41..10d24ddcea5f 100644
+--- a/drivers/media/platform/rcar_jpu.c
++++ b/drivers/media/platform/rcar_jpu.c
+@@ -198,7 +198,6 @@
+  * @vfd_decoder: video device node for decoder mem2mem mode
+  * @m2m_dev: v4l2 mem2mem device data
+  * @curr: pointer to current context
+- * @irq_queue:	interrupt handler waitqueue
+  * @regs: JPEG IP registers mapping
+  * @irq: JPEG IP irq
+  * @clk: JPEG IP clock
+@@ -213,7 +212,6 @@ struct jpu {
+ 	struct video_device	vfd_decoder;
+ 	struct v4l2_m2m_dev	*m2m_dev;
+ 	struct jpu_ctx		*curr;
+-	wait_queue_head_t	irq_queue;
+ 
+ 	void __iomem		*regs;
+ 	unsigned int		irq;
+@@ -1499,19 +1497,9 @@ static int jpu_job_ready(void *priv)
+ 	return 1;
  }
  
--static void m2mops_vdec_lock(void *m2m_priv)
+-static void jpu_job_abort(void *priv)
 -{
--	struct mtk_vcodec_ctx *ctx = m2m_priv;
+-	struct jpu_ctx *ctx = priv;
 -
--	mtk_v4l2_debug(3, "[%d]", ctx->id);
--	mutex_lock(&ctx->dev->dev_mutex);
+-	if (!wait_event_timeout(ctx->jpu->irq_queue, !ctx->jpu->curr,
+-				msecs_to_jiffies(JPU_JOB_TIMEOUT)))
+-		jpu_cleanup(ctx, true);
 -}
 -
--static void m2mops_vdec_unlock(void *m2m_priv)
--{
--	struct mtk_vcodec_ctx *ctx = m2m_priv;
--
--	mtk_v4l2_debug(3, "[%d]", ctx->id);
--	mutex_unlock(&ctx->dev->dev_mutex);
--}
--
- const struct v4l2_m2m_ops mtk_vdec_m2m_ops = {
- 	.device_run	= m2mops_vdec_device_run,
- 	.job_ready	= m2mops_vdec_job_ready,
- 	.job_abort	= m2mops_vdec_job_abort,
--	.lock		= m2mops_vdec_lock,
--	.unlock		= m2mops_vdec_unlock,
- };
- 
- static const struct vb2_ops mtk_vdec_vb2_ops = {
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-index 1b1a28abbf1f..6ad408514a99 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-@@ -1181,26 +1181,10 @@ static void m2mops_venc_job_abort(void *priv)
- 	ctx->state = MTK_STATE_ABORT;
- }
- 
--static void m2mops_venc_lock(void *m2m_priv)
--{
--	struct mtk_vcodec_ctx *ctx = m2m_priv;
--
--	mutex_lock(&ctx->dev->dev_mutex);
--}
--
--static void m2mops_venc_unlock(void *m2m_priv)
--{
--	struct mtk_vcodec_ctx *ctx = m2m_priv;
--
--	mutex_unlock(&ctx->dev->dev_mutex);
--}
--
- const struct v4l2_m2m_ops mtk_venc_m2m_ops = {
- 	.device_run	= m2mops_venc_device_run,
- 	.job_ready	= m2mops_venc_job_ready,
- 	.job_abort	= m2mops_venc_job_abort,
--	.lock		= m2mops_venc_lock,
--	.unlock		= m2mops_venc_unlock,
- };
- 
- void mtk_vcodec_enc_set_default_params(struct mtk_vcodec_ctx *ctx)
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index 5a8eff60e95f..6dddb76c0b41 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -250,20 +250,6 @@ static void emmaprp_job_abort(void *priv)
- 	v4l2_m2m_job_finish(pcdev->m2m_dev, ctx->m2m_ctx);
- }
- 
--static void emmaprp_lock(void *priv)
--{
--	struct emmaprp_ctx *ctx = priv;
--	struct emmaprp_dev *pcdev = ctx->dev;
--	mutex_lock(&pcdev->dev_mutex);
--}
--
--static void emmaprp_unlock(void *priv)
--{
--	struct emmaprp_ctx *ctx = priv;
--	struct emmaprp_dev *pcdev = ctx->dev;
--	mutex_unlock(&pcdev->dev_mutex);
--}
--
- static inline void emmaprp_dump_regs(struct emmaprp_dev *pcdev)
- {
- 	dprintk(pcdev,
-@@ -885,8 +871,6 @@ static const struct video_device emmaprp_videodev = {
- static const struct v4l2_m2m_ops m2m_ops = {
- 	.device_run	= emmaprp_device_run,
- 	.job_abort	= emmaprp_job_abort,
--	.lock		= emmaprp_lock,
--	.unlock		= emmaprp_unlock,
- };
- 
- static int emmaprp_probe(struct platform_device *pdev)
-diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
-index 232d508c5b66..0b42acd4e3a6 100644
---- a/drivers/media/platform/sti/delta/delta-v4l2.c
-+++ b/drivers/media/platform/sti/delta/delta-v4l2.c
-@@ -339,22 +339,6 @@ static void register_decoders(struct delta_dev *delta)
- 	}
- }
- 
--static void delta_lock(void *priv)
--{
--	struct delta_ctx *ctx = priv;
--	struct delta_dev *delta = ctx->dev;
--
--	mutex_lock(&delta->lock);
--}
--
--static void delta_unlock(void *priv)
--{
--	struct delta_ctx *ctx = priv;
--	struct delta_dev *delta = ctx->dev;
--
--	mutex_unlock(&delta->lock);
--}
--
- static int delta_open_decoder(struct delta_ctx *ctx, u32 streamformat,
- 			      u32 pixelformat, const struct delta_dec **pdec)
- {
-@@ -1099,8 +1083,6 @@ static const struct v4l2_m2m_ops delta_m2m_ops = {
- 	.device_run     = delta_device_run,
- 	.job_ready	= delta_job_ready,
- 	.job_abort      = delta_job_abort,
--	.lock		= delta_lock,
--	.unlock		= delta_unlock,
+ static const struct v4l2_m2m_ops jpu_m2m_ops = {
+ 	.device_run	= jpu_device_run,
+ 	.job_ready	= jpu_job_ready,
+-	.job_abort	= jpu_job_abort,
  };
  
  /*
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index e395aa85c8ad..32f33c968cf1 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -953,23 +953,6 @@ static void job_abort(void *priv)
- 	ctx->aborting = 1;
+@@ -1592,9 +1580,6 @@ static irqreturn_t jpu_irq_handler(int irq, void *dev_id)
+ 
+ 	v4l2_m2m_job_finish(jpu->m2m_dev, curr_ctx->fh.m2m_ctx);
+ 
+-	/* ...wakeup abort routine if needed */
+-	wake_up(&jpu->irq_queue);
+-
+ 	return IRQ_HANDLED;
+ 
+ handled:
+@@ -1628,7 +1613,6 @@ static int jpu_probe(struct platform_device *pdev)
+ 	if (!jpu)
+ 		return -ENOMEM;
+ 
+-	init_waitqueue_head(&jpu->irq_queue);
+ 	mutex_init(&jpu->mutex);
+ 	spin_lock_init(&jpu->lock);
+ 	jpu->dev = &pdev->dev;
+diff --git a/drivers/media/platform/rockchip/rga/rga.c b/drivers/media/platform/rockchip/rga/rga.c
+index 5a5a6139e18a..d833bb32a538 100644
+--- a/drivers/media/platform/rockchip/rga/rga.c
++++ b/drivers/media/platform/rockchip/rga/rga.c
+@@ -39,11 +39,6 @@
+ static int debug;
+ module_param(debug, int, 0644);
+ 
+-static void job_abort(void *prv)
+-{
+-	/* Can't do anything rational here */
+-}
+-
+ static void device_run(void *prv)
+ {
+ 	struct rga_ctx *ctx = prv;
+@@ -104,7 +99,6 @@ static irqreturn_t rga_isr(int irq, void *prv)
+ 
+ static struct v4l2_m2m_ops rga_m2m_ops = {
+ 	.device_run = device_run,
+-	.job_abort = job_abort,
+ };
+ 
+ static int
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index 66aa8cf1d048..49cc2a70d1f3 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -481,19 +481,6 @@ static int vidioc_s_crop(struct file *file, void *prv, const struct v4l2_crop *c
+ 	return 0;
  }
  
--/*
-- * Lock access to the device
-- */
--static void vpe_lock(void *priv)
+-static void job_abort(void *prv)
 -{
--	struct vpe_ctx *ctx = priv;
--	struct vpe_dev *dev = ctx->dev;
--	mutex_lock(&dev->dev_mutex);
+-	struct g2d_ctx *ctx = prv;
+-	struct g2d_dev *dev = ctx->dev;
+-
+-	if (dev->curr == NULL) /* No job currently running */
+-		return;
+-
+-	wait_event_timeout(dev->irq_queue,
+-			   dev->curr == NULL,
+-			   msecs_to_jiffies(G2D_TIMEOUT));
 -}
 -
--static void vpe_unlock(void *priv)
--{
--	struct vpe_ctx *ctx = priv;
--	struct vpe_dev *dev = ctx->dev;
--	mutex_unlock(&dev->dev_mutex);
--}
--
- static void vpe_dump_regs(struct vpe_dev *dev)
+ static void device_run(void *prv)
  {
- #define DUMPREG(r) vpe_dbg(dev, "%-35s %08x\n", #r, read_reg(dev, VPE_##r))
-@@ -2434,8 +2417,6 @@ static const struct v4l2_m2m_ops m2m_ops = {
+ 	struct g2d_ctx *ctx = prv;
+@@ -613,7 +600,6 @@ static const struct video_device g2d_videodev = {
+ 
+ static const struct v4l2_m2m_ops g2d_m2m_ops = {
  	.device_run	= device_run,
- 	.job_ready	= job_ready,
- 	.job_abort	= job_abort,
--	.lock		= vpe_lock,
--	.unlock		= vpe_unlock,
+-	.job_abort	= job_abort,
  };
  
- static int vpe_runtime_get(struct platform_device *pdev)
+ static const struct of_device_id exynos_g2d_match[];
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 79b63da27f53..04fd2e0493c0 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2467,26 +2467,19 @@ static int s5p_jpeg_job_ready(void *priv)
+ 	return 1;
+ }
+ 
+-static void s5p_jpeg_job_abort(void *priv)
+-{
+-}
+-
+ static struct v4l2_m2m_ops s5p_jpeg_m2m_ops = {
+ 	.device_run	= s5p_jpeg_device_run,
+ 	.job_ready	= s5p_jpeg_job_ready,
+-	.job_abort	= s5p_jpeg_job_abort,
+ };
+ 
+ static struct v4l2_m2m_ops exynos3250_jpeg_m2m_ops = {
+ 	.device_run	= exynos3250_jpeg_device_run,
+ 	.job_ready	= s5p_jpeg_job_ready,
+-	.job_abort	= s5p_jpeg_job_abort,
+ };
+ 
+ static struct v4l2_m2m_ops exynos4_jpeg_m2m_ops = {
+ 	.device_run	= exynos4_jpeg_device_run,
+ 	.job_ready	= s5p_jpeg_job_ready,
+-	.job_abort	= s5p_jpeg_job_abort,
+ };
+ 
+ /*
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index c4f963d96a79..7bae19ca611e 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -300,7 +300,8 @@ static void v4l2_m2m_cancel_job(struct v4l2_m2m_ctx *m2m_ctx)
+ 	m2m_ctx->job_flags |= TRANS_ABORT;
+ 	if (m2m_ctx->job_flags & TRANS_RUNNING) {
+ 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+-		m2m_dev->m2m_ops->job_abort(m2m_ctx->priv);
++		if (m2m_dev->m2m_ops->job_abort)
++			m2m_dev->m2m_ops->job_abort(m2m_ctx->priv);
+ 		dprintk("m2m_ctx %p running, will wait to complete", m2m_ctx);
+ 		wait_event(m2m_ctx->finished,
+ 				!(m2m_ctx->job_flags & TRANS_RUNNING));
+@@ -599,8 +600,7 @@ struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops)
+ {
+ 	struct v4l2_m2m_dev *m2m_dev;
+ 
+-	if (!m2m_ops || WARN_ON(!m2m_ops->device_run) ||
+-			WARN_ON(!m2m_ops->job_abort))
++	if (!m2m_ops || WARN_ON(!m2m_ops->device_run))
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	m2m_dev = kzalloc(sizeof *m2m_dev, GFP_KERNEL);
 diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index 3d07ba3a8262..8f4b208cfee7 100644
+index 8f4b208cfee7..c2d817d3ff42 100644
 --- a/include/media/v4l2-mem2mem.h
 +++ b/include/media/v4l2-mem2mem.h
-@@ -40,17 +40,11 @@
-  *		v4l2_m2m_job_finish() (as if the transaction ended normally).
-  *		This function does not have to (and will usually not) wait
-  *		until the device enters a state when it can be stopped.
-- * @lock:	optional. Define a driver's own lock callback, instead of using
-- *		&v4l2_m2m_ctx->q_lock.
-- * @unlock:	optional. Define a driver's own unlock callback, instead of
-- *		using &v4l2_m2m_ctx->q_lock.
-  */
- struct v4l2_m2m_ops {
- 	void (*device_run)(void *priv);
- 	int (*job_ready)(void *priv);
- 	void (*job_abort)(void *priv);
--	void (*lock)(void *priv);
--	void (*unlock)(void *priv);
- };
- 
- struct v4l2_m2m_dev;
+@@ -32,7 +32,7 @@
+  *		assumed that one source and one destination buffer are all
+  *		that is required for the driver to perform one full transaction.
+  *		This method may not sleep.
+- * @job_abort:	required. Informs the driver that it has to abort the currently
++ * @job_abort:	optional. Informs the driver that it has to abort the currently
+  *		running transaction as soon as possible (i.e. as soon as it can
+  *		stop the device safely; e.g. in the next interrupt handler),
+  *		even if the transaction would not have been finished by then.
 -- 
 2.16.3
