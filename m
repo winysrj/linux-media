@@ -1,56 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr00045.outbound.protection.outlook.com ([40.107.0.45]:54912
-        "EHLO EUR02-AM5-obe.outbound.protection.outlook.com"
+Received: from mail-eopbgr700043.outbound.protection.outlook.com ([40.107.70.43]:27136
+        "EHLO NAM04-SN1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752781AbeFNHAa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 03:00:30 -0400
-Subject: Re: [PATCH v3 5/9] xen/gntdev: Allow mappings for DMA buffers
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com
-References: <20180612134200.17456-1-andr2000@gmail.com>
- <20180612134200.17456-6-andr2000@gmail.com>
-From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
-Message-ID: <58836503-87be-2693-4665-4b0a55a170d3@epam.com>
-Date: Thu, 14 Jun 2018 10:00:22 +0300
+        id S1752892AbeFNHaF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 03:30:05 -0400
+From: Thomas Hellstrom <thellstrom@vmware.com>
+To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>,
+        David Airlie <airlied@linux.ie>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        Josh Triplett <josh@joshtriplett.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org
+Subject: [PATCH v2 0/2] locking,drm: Fix ww mutex naming / algorithm inconsistency
+Date: Thu, 14 Jun 2018 09:29:20 +0200
+Message-Id: <20180614072922.8114-1-thellstrom@vmware.com>
 MIME-Version: 1.0
-In-Reply-To: <20180612134200.17456-6-andr2000@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-@@ -548,6 +632,17 @@ static int gntdev_open(struct inode *inode, struct 
-file *flip)
->   	}
->   
->   	flip->private_data = priv;
-> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
-> +	priv->dma_dev = gntdev_miscdev.this_device;
-> +
-> +	/*
-> +	 * The device is not spawn from a device tree, so arch_setup_dma_ops
-> +	 * is not called, thus leaving the device with dummy DMA ops.
-> +	 * Fix this call of_dma_configure() with a NULL node to set
-> +	 * default DMA ops.
-> +	 */
-> +	of_dma_configure(priv->dma_dev, NULL);
-Please note, that the code above will need a change while
-applying to the mainline kernel because of API changes [1].
-Unfortunately, current Xen tip kernel tree is v4.17-rc5 based,
-so I cannot make the change in this patch now.
+This is a small fallout from a work to allow batching WW mutex locks and
+unlocks.
 
-The change is trivial and requires:
--of_dma_configure(priv->dma_dev, NULL);
-+of_dma_configure(priv->dma_dev, NULL, true);
-> +#endif
->   	pr_debug("priv %p\n", priv);
->   
->   	return 0;
->
-[1] 
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=3d6ce86ee79465e1b1b6e287f8ea26b553fc768e
+Our Wound-Wait mutexes actually don't use the Wound-Wait algorithm but
+the Wait-Die algorithm. One could perhaps rename those mutexes tree-wide to
+"Wait-Die mutexes" or "Deadlock Avoidance mutexes". Another approach suggested
+here is to implement also the "Wound-Wait" algorithm as a per-WW-class
+choice, as it has advantages in some cases. See for example
+
+http://www.mathcs.emory.edu/~cheung/Courses/554/Syllabus/8-recv+serial/deadlock-compare.html
+
+Now Wound-Wait is a preemptive algorithm, and the preemption is implemented
+using a lazy scheme: If a wounded transaction is about to go to sleep on
+a contended WW mutex, we return -EDEADLK. That is sufficient for deadlock
+prevention. Since with WW mutexes we also require the aborted transaction to
+sleep waiting to lock the WW mutex it was aborted on, this choice also provides
+a suitable WW mutex to sleep on. If we were to return -EDEADLK on the first
+WW mutex lock after the transaction was wounded whether the WW mutex was
+contended or not, the transaction might frequently be restarted without a wait,
+which is far from optimal. Note also that with the lazy preemption scheme,
+contrary to Wait-Die there will be no rollbacks on lock contention of locks
+held by a transaction that has completed its locking sequence.
+
+The modeset locks are then changed from Wait-Die to Wound-Wait since the
+typical locking pattern of those locks very well matches the criterion for
+a substantial reduction in the number of rollbacks. For reservation objects,
+the benefit is more unclear at this point and they remain using Wait-Die.
+
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Sean Paul <seanpaul@chromium.org>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-doc@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: linaro-mm-sig@lists.linaro.org
+
+v2:
+  Updated DEFINE_WW_CLASS() API, minor code- and comment fixes as
+  detailed in each patch.
