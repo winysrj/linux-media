@@ -1,139 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:45507 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754965AbeFNQ0T (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 12:26:19 -0400
-Received: by mail-qt0-f196.google.com with SMTP id i18-v6so6312004qtp.12
-        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2018 09:26:19 -0700 (PDT)
-Subject: Re: [PATCH] gpu: ipu-v3: Allow negative offsets for interlaced
- scanning
-To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-Cc: Javier Martinez Canillas <javierm@redhat.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org, kernel@pengutronix.de
-References: <20180601131316.18728-1-p.zabel@pengutronix.de>
- <ebada35f-23c1-6ca4-5228-d3d91bad48bc@gmail.com>
- <1528708771.3818.7.camel@pengutronix.de>
- <6780e24e-891d-3583-6e38-d1abd69c8a0d@gmail.com>
- <2aff8f80-aa79-6718-6183-6e49088ae498@redhat.com>
- <f6e7eaa3-355e-a5d9-1be5-e5db08a99897@gmail.com> <m3h8m5yaeh.fsf@t19.piap.pl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <798b8ad7-2fce-8408-b1c4-c2954f524d23@gmail.com>
-Date: Thu, 14 Jun 2018 09:26:16 -0700
+Received: from mail.bootlin.com ([62.4.15.54]:56728 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755227AbeFNQhU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 12:37:20 -0400
+Date: Thu, 14 Jun 2018 18:37:17 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
+        linux-sunxi@googlegroups.com, thomas.petazzoni@bootlin.com
+Subject: Re: [PATCH 0/9] media: cedrus: Add H264 decoding support
+Message-ID: <20180614163717.hqxeiwn63vvnk5xg@flea>
+References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
+ <CAAFQd5A-GMBnNnRCfm0-51R9rn_pWw+UC3r-JX-_BE3cdznqig@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <m3h8m5yaeh.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <CAAFQd5A-GMBnNnRCfm0-51R9rn_pWw+UC3r-JX-_BE3cdznqig@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Krzysztof,
+Hi Tomasz,
 
+On Thu, Jun 14, 2018 at 10:00:43PM +0900, Tomasz Figa wrote:
+> Hi Maxime,
+> 
+> On Wed, Jun 13, 2018 at 11:07 PM Maxime Ripard
+> <maxime.ripard@bootlin.com> wrote:
+> >
+> > Hi,
+> >
+> > Here is a preliminary version of the H264 decoding support in the
+> > cedrus driver.
+> 
+> Thanks for the series! Let me reply inline to some of the points raised here.
+> 
+> > As you might already know, the cedrus driver relies on the Request
+> > API, and is a reverse engineered driver for the video decoding engine
+> > found on the Allwinner SoCs.
+> >
+> > This work has been possible thanks to the work done by the people
+> > behind libvdpau-sunxi found here:
+> > https://github.com/linux-sunxi/libvdpau-sunxi/
+> >
+> > This driver is based on the last version of the cedrus driver sent by
+> > Paul, based on Request API v13 sent by Hans:
+> > https://lkml.org/lkml/2018/5/7/316
+> 
+> Just FYI, there is v15 already. :)
 
-On 06/14/2018 02:39 AM, Krzysztof Hałasa wrote:
-> Reporting from the field :-)
->
-> The fix-csi-interlaced.3 branch is still a bit off the track I guess:
+Yeah, we know, Paul is currently working on rebasing to that version :)
 
-Yes, it's still a WIP. A couple things are remaining:
+> > This driver has been tested only with baseline profile videos, and is
+> > missing a few key features to decode videos with higher profiles.
+> > This has been tested using our cedrus-frame-test tool, which should be
+> > a quite generic v4l2-to-drm decoder using the request API to
+> > demonstrate the video decoding:
+> > https://github.com/free-electrons/cedrus-frame-test/, branch h264
+> >
+> > However, sending this preliminary version, I'd really like to start a
+> > discussion and get some feedback on the user-space API for the H264
+> > controls exposed through the request API.
+> >
+> > I've been using the controls currently integrated into ChromeOS that
+> > have a working version of this particular setup. However, these
+> > controls have a number of shortcomings and inconsistencies with other
+> > decoding API. I've worked with libva so far, but I've noticed already
+> > that:
+> 
+> Note that these controls are supposed to be defined exactly like the
+> bitstream headers deserialized into C structs in memory. I believe
+> Pawel (on CC) defined them based on the actual H264 specification.
+> 
+> >   - The kernel UAPI expects to have the nal_ref_idc variable, while
+> >     libva only exposes whether that frame is a reference frame or
+> >     not. I've looked at the rockchip driver in the ChromeOS tree, and
+> >     our own driver, and they both need only the information about
+> >     whether the frame is a reference one or not, so maybe we should
+> >     change this?
+> 
+> The fact that 2 drivers only need partial information doesn't mean
+> that we should ignore the data being already in the bitstream. IMHO
+> this API should to provide all the metadata available in the stream to
+> the kernel driver, as a replacement for bitstream parsing in firmware
+> (or in kernel... yuck).
 
-- fix interweave with negative offsets for planar pixel formats.
-- update the doc again.
+The point is more that libva will only pass the result of (nal_ref_idc
+!= 0). So in the libva plugin, you won't be able to fill the proper
+value to the kernel, since you don't have access to it.
 
+> >   - The H264 bitstream exposes the picture default reference list (for
+> >     both list 0 and list 1), the slice reference list and an override
+> >     flag. The libva will only pass the reference list to be used (so
+> >     either the picture default's or the slice's) depending on the
+> >     override flag. The kernel UAPI wants the picture default reference
+> >     list and the slice reference list, but doesn't expose the override
+> >     flag, which prevents us from configuring properly the
+> >     hardware. Our video decoding engine needs the three information,
+> >     but we can easily adapt to having only one. However, having two
+> >     doesn't really work for us.
+> 
+> Where does the override flag come from? If it's in the bitstream, then
+> I guess it was just missed when creating the structures.
 
->     media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/576 field:seq-tb]"
->     media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x576]"
->     media-ctl -V "'ipu2_csi1':2 [fmt:AYUV32/720x576 field:interlaced-tb]"
->
-> does:
-> "adv7180 2-0020":0 [fmt:UYVY2X8/720x576 field:alternate]
-> "ipu2_csi1_mux":1  [fmt:UYVY2X8/720x576 field:alternate]
-> "ipu2_csi1_mux":2  [fmt:UYVY2X8/720x576 field:alternate]
-> "ipu2_csi1":0      [fmt:UYVY2X8/720x576 field:alternate
->                   crop.bounds:(0,0)/720x1152
->                   crop:(0,0)/720x1152
->                   compose.bounds:(0,0)/720x1152
->                   compose:(0,0)/720x1152]
-> "ipu2_csi1":2      [fmt:AYUV32/720x1152 field:seq-tb]
->
-> ... and not interlaced[-*], as with fix-csi-interlaced.2.
+It's in the bitstream yeah. I'll add it then.
 
-Right, the selection of interweave is moved to the capture devices,
-so the following will enable interweave:
+Maxime
 
-v4l2-ctl -dN --set-fmt-video=field=interlaced_tb
-
-
->
-> The double heights are funny, too - probably an ADV7180 issue.
-
-That's because it's been confirmed that for sources that
-report ALTERNATE, mbus format height must be the number
-of lines per field, not the total frame lines.
-
-See
-
-0018147c964e ("media: v4l: doc: Clarify v4l2_mbus_fmt height definition")
-
-So the patch to adv7180 needs to be modified to report # field lines.
-
-Try the following:
-
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -503,6 +503,9 @@ static int adv7180_set_power(struct adv7180_state 
-*state, bool on)
-          }
-      }
-
-+    if (on)
-+        msleep(500);
-+
-      return 0;
-  }
-
-@@ -643,6 +646,8 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
-      fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
-      fmt->width = 720;
-      fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-+    if (fmt->field == V4L2_FIELD_ALTERNATE)
-+        fmt->height /= 2;
-
-      return 0;
-  }
-@@ -694,8 +699,8 @@ static int adv7180_get_pad_format(struct v4l2_subdev 
-*sd,
-      if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-          format->format = *v4l2_subdev_get_try_format(sd, cfg, 0);
-      } else {
--        adv7180_mbus_fmt(sd, &format->format);
-          format->format.field = state->field;
-+        adv7180_mbus_fmt(sd, &format->format);
-      }
-
-      return 0;
-@@ -712,10 +717,10 @@ static int adv7180_set_pad_format(struct 
-v4l2_subdev *sd,
-      switch (format->format.field) {
-      case V4L2_FIELD_NONE:
-          if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
--            format->format.field = V4L2_FIELD_INTERLACED;
-+            format->format.field = V4L2_FIELD_ALTERNATE;
-          break;
-      default:
--        format->format.field = V4L2_FIELD_INTERLACED;
-+        format->format.field = V4L2_FIELD_ALTERNATE;
-          break;
-      }
-
-@@ -1291,7 +1296,7 @@ static int adv7180_probe(struct i2c_client *client,
-          return -ENOMEM;
-
-      state->client = client;
--    state->field = V4L2_FIELD_INTERLACED;
-+    state->field = V4L2_FIELD_ALTERNATE;
-      state->chip_info = (struct adv7180_chip_info *)id->driver_data;
-
-      state->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
+-- 
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
