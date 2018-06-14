@@ -1,64 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0064.outbound.protection.outlook.com ([104.47.34.64]:3680
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1755252AbeFNNnU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 09:43:20 -0400
-Subject: Re: [PATCH v2 1/2] locking: Implement an algorithm choice for
- Wound-Wait mutexes
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Peter Zijlstra <peterz@infradead.org>,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        Ingo Molnar <mingo@redhat.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        David Airlie <airlied@linux.ie>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org
-References: <20180614072922.8114-1-thellstrom@vmware.com>
- <20180614072922.8114-2-thellstrom@vmware.com>
- <20180614113604.GZ12198@hirez.programming.kicks-ass.net>
- <7eb10c22-57b3-1472-0a77-7f787f612217@vmware.com>
- <20180614132905.GA7841@bombadil.infradead.org>
-From: Thomas Hellstrom <thellstrom@vmware.com>
-Message-ID: <425f4d5b-d414-de46-f388-55f1e6821ba6@vmware.com>
-Date: Thu, 14 Jun 2018 15:43:04 +0200
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33897 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754967AbeFNNrr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 09:47:47 -0400
+Date: Thu, 14 Jun 2018 15:47:46 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Javier Martinez Canillas <javierm@redhat.com>
+Cc: linux-kernel@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: omap3isp: zero-initialize the isp cam_xclk{a,b}
+ initial data
+Message-ID: <20180614134746.GA3893@amd>
+References: <20180609083912.27807-1-javierm@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20180614132905.GA7841@bombadil.infradead.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
+Content-Disposition: inline
+In-Reply-To: <20180609083912.27807-1-javierm@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/14/2018 03:29 PM, Matthew Wilcox wrote:
-> On Thu, Jun 14, 2018 at 01:54:15PM +0200, Thomas Hellstrom wrote:
->> On 06/14/2018 01:36 PM, Peter Zijlstra wrote:
->>> Currently you don't allow mixing WD and WW contexts (which is not
->>> immediately obvious from the above code), and the above hard relies on
->>> that. Are there sensible use cases for mixing them? IOW will your
->>> current restriction stand without hassle?
->> Contexts _must_ agree on the algorithm used to resolve deadlocks. With
->> Wait-Die, for example, older transactions will wait if a lock is held by a
->> younger transaction and with Wound-Wait, younger transactions will wait if a
->> lock is held by an older transaction so there is no way of mixing them.
-> Maybe the compiler should be enforcing that; ie make it a different type?
 
-It's intended to be enforced by storing the algorithm choice in the 
-WW_MUTEX_CLASS which must be common for an acquire context and the 
-ww_mutexes it acquires. However, I don't think there is a check that 
-that holds. I guess we could add it as a DEBUG_MUTEX test in 
-ww_mutex_lock().
+--C7zPtVaVf+AK4Oqc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
+On Sat 2018-06-09 10:39:12, Javier Martinez Canillas wrote:
+> The struct clk_init_data defined in isp_xclk_init() is a variable in the
+> stack but it's not explicitly zero-initialized. Because of that, in some
+> cases the data structure contains values that confuses the clk framework.
+>=20
+> For example if the flags member has the CLK_IS_CRITICAL bit set, the clk
+> framework will wrongly prepare the clock on registration. This leads to
+> the isp_xclk_prepare() callback to be called which in turn calls to the
+> omap3isp_get() function that increments the isp device reference counter.
+>=20
+> Since this omap3isp_get() call is unexpected, this leads to an unbalanced
+> omap3isp_get() call that prevents the requested IRQ to be later enabled,
+> due the refcount not being 0 when the correct omap3isp_get() call happens.
+>=20
+> Fixes: 9b28ee3c9122 ("[media] omap3isp: Use the common clock framework")
+> Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
 
-Thomas
+Tested-by: Pavel Machek <pavel@ucw.cz>
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--C7zPtVaVf+AK4Oqc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlsicgIACgkQMOfwapXb+vIc+QCaA08BHdkBq3L8yBjYX29F9SY+
+icQAnRv0bf7Aoyg1VCD/4+s73ttzV7i/
+=Cwz9
+-----END PGP SIGNATURE-----
+
+--C7zPtVaVf+AK4Oqc--
