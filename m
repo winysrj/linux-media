@@ -1,125 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:50130 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755127AbeFNNCe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 09:02:34 -0400
-Message-ID: <2d9de70f50bbf358592c3e219a3e4890bb0806d6.camel@bootlin.com>
-Subject: Re: [PATCH v3 02/14] drivers: soc: sunxi: Add dedicated compatibles
- for the A13, A20 and A33
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
+Received: from mail-dm3nam03on0060.outbound.protection.outlook.com ([104.47.41.60]:52125
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1755010AbeFNNTS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 09:19:18 -0400
+Subject: Re: [PATCH v2 1/2] locking: Implement an algorithm choice for
+ Wound-Wait mutexes
+From: Thomas Hellstrom <thellstrom@vmware.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        Ingo Molnar <mingo@redhat.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>,
+        David Airlie <airlied@linux.ie>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        Josh Triplett <josh@joshtriplett.org>,
         Thomas Gleixner <tglx@linutronix.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Alexandre Courbot <gnurou@gmail.com>,
-        Florent Revest <florent.revest@free-electrons.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Randy Li <ayaka@soulik.info>
-Date: Thu, 14 Jun 2018 15:02:31 +0200
-In-Reply-To: <20180511102033.i6jtzljbvkg47wz3@flea>
-References: <20180507124500.20434-1-paul.kocialkowski@bootlin.com>
-         <20180507124500.20434-3-paul.kocialkowski@bootlin.com>
-         <CAGb2v67An8RSCKEDSgW_jY7m8iw22K4rRHb02q67decmCBcjhg@mail.gmail.com>
-         <20180511102033.i6jtzljbvkg47wz3@flea>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-NuyhO5kvTiC4yiicAtYf"
-Mime-Version: 1.0
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org
+References: <20180614072922.8114-1-thellstrom@vmware.com>
+ <20180614072922.8114-2-thellstrom@vmware.com>
+ <20180614124129.GA12198@hirez.programming.kicks-ass.net>
+ <3d73590a-13de-9164-4b32-9d7da6a1055b@vmware.com>
+Message-ID: <cf725c06-e0cc-d28b-d3f3-62fe59e565fe@vmware.com>
+Date: Thu, 14 Jun 2018 15:18:56 +0200
+MIME-Version: 1.0
+In-Reply-To: <3d73590a-13de-9164-4b32-9d7da6a1055b@vmware.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 06/14/2018 02:48 PM, Thomas Hellstrom wrote:
+> Hi, Peter,
+>
+> On 06/14/2018 02:41 PM, Peter Zijlstra wrote:
+>> On Thu, Jun 14, 2018 at 09:29:21AM +0200, Thomas Hellstrom wrote:
+>>> +static bool __ww_mutex_wound(struct mutex *lock,
+>>> +                 struct ww_acquire_ctx *ww_ctx,
+>>> +                 struct ww_acquire_ctx *hold_ctx)
+>>> +{
+>>> +    struct task_struct *owner = __mutex_owner(lock);
+>>> +
+>>> +    lockdep_assert_held(&lock->wait_lock);
+>>> +
+>>> +    if (owner && hold_ctx && __ww_ctx_stamp_after(hold_ctx, ww_ctx) &&
+>>> +        ww_ctx->acquired > 0) {
+>>> +        hold_ctx->wounded = 1;
+>>> +
+>>> +        /*
+>>> +         * wake_up_process() paired with set_current_state() inserts
+>>> +         * sufficient barriers to make sure @owner either sees it's
+>>> +         * wounded or has a wakeup pending to re-read the wounded
+>>> +         * state.
+>>> +         *
+>>> +         * The value of hold_ctx->wounded in
+>>> +         * __ww_mutex_lock_check_stamp();
+>>> +         */
+>>> +        if (owner != current)
+>>> +            wake_up_process(owner);
+>>> +
+>>> +        return true;
+>>> +    }
+>>> +
+>>> +    return false;
+>>> +}
+>>> @@ -338,12 +377,18 @@ ww_mutex_set_context_fastpath(struct ww_mutex 
+>>> *lock, struct ww_acquire_ctx *ctx)
+>>>        * and keep spinning, or it will acquire wait_lock, add itself
+>>>        * to waiter list and sleep.
+>>>        */
+>>> -    smp_mb(); /* ^^^ */
+>>> +    smp_mb(); /* See comments above and below. */
+>>>         /*
+>>> -     * Check if lock is contended, if not there is nobody to wake up
+>>> +     * Check if lock is contended, if not there is nobody to wake up.
+>>> +     * We can use list_empty() unlocked here since it only compares a
+>>> +     * list_head field pointer to the address of the list head
+>>> +     * itself, similarly to how list_empty() can be considered 
+>>> RCU-safe.
+>>> +     * The memory barrier above pairs with the memory barrier in
+>>> +     * __ww_mutex_add_waiter and makes sure lock->ctx is visible 
+>>> before
+>>> +     * we check for waiters.
+>>>        */
+>>> -    if (likely(!(atomic_long_read(&lock->base.owner) & 
+>>> MUTEX_FLAG_WAITERS)))
+>>> +    if (likely(list_empty(&lock->base.wait_list)))
+>>>           return;
+>> OK, so what happens is that if we see !empty list, we take wait_lock,
+>> if we end up in __ww_mutex_wound() we must really have !empty wait-list.
+>>
+>> It can however still see !owner because __mutex_unlock_slowpath() can
+>> clear the owner field. But if owner is set, it must stay valid because
+>> FLAG_WAITERS and we're holding wait_lock.
+>
+> If __ww_mutex_wound() is called from ww_mutex_set_context_fastpath() 
+> owner is the current process so we can never see !owner. However if 
+> __ww_mutex_wound() is called from __ww_mutex_add_waiter() then the 
+> above is true.
 
---=-NuyhO5kvTiC4yiicAtYf
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Or actually it was intended to be true, but FLAG_WAITERS is set too 
+late. It needs to be moved to just after we actually add the waiter to 
+the list.
 
-Hi,
+Then the hunk that replaces a FLAG_WAITERS read with a lockless 
+list_empty() can also be ditched.
 
-On Fri, 2018-05-11 at 12:20 +0200, Maxime Ripard wrote:
-> On Thu, May 10, 2018 at 10:05:33PM -0700, Chen-Yu Tsai wrote:
-> > On Mon, May 7, 2018 at 5:44 AM, Paul Kocialkowski
-> > <paul.kocialkowski@bootlin.com> wrote:
-> > > This introduces platform-specific compatibles for the A13, A20 and A3=
-3
-> > > SRAM driver. No particular adaptation for these platforms is required=
- at
-> > > this point, although this might become the case in the future.
-> > >=20
-> > > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> > > ---
-> > >  drivers/soc/sunxi/sunxi_sram.c | 3 +++
-> > >  1 file changed, 3 insertions(+)
-> > >=20
-> > > diff --git a/drivers/soc/sunxi/sunxi_sram.c b/drivers/soc/sunxi/sunxi=
-_sram.c
-> > > index 74cb81f37bd6..43ebc3bd33f2 100644
-> > > --- a/drivers/soc/sunxi/sunxi_sram.c
-> > > +++ b/drivers/soc/sunxi/sunxi_sram.c
-> > > @@ -315,6 +315,9 @@ static int sunxi_sram_probe(struct platform_devic=
-e *pdev)
-> > >=20
-> > >  static const struct of_device_id sunxi_sram_dt_match[] =3D {
-> > >         { .compatible =3D "allwinner,sun4i-a10-sram-controller" },
-> > > +       { .compatible =3D "allwinner,sun5i-a13-sram-controller" },
-> > > +       { .compatible =3D "allwinner,sun7i-a20-sram-controller" },
-> > > +       { .compatible =3D "allwinner,sun8i-a33-sram-controller" },
-> >=20
-> > We should probably name these "system-controller". Maxime?
+/Thomas
 
-Would you like me to make that change for v4 of this series, or have it
-a separate follow-up patch outside of this series?
 
-> This would make sense yes, but we don't really need to add the A20 one
-> to the driver, it's exactly the same than the A10.
-
-Noted, I'll ditch the a20 compatible from the next revison of the
-series.
-
-Thanks for the feedback,
-
-Paul
-
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
---=-NuyhO5kvTiC4yiicAtYf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlsiZ2cACgkQ3cLmz3+f
-v9FTYgf/Z9ccTpj1p9hC/kdcYrczKVXwwfvmVYxuNppZNMbwJs5Cx0+9tFM++wKk
-tunZP5oe7FvYLZT+RZz0uy6xhxYxvByNGzm1oqquCELEksl8UqY1TUFUjqTYEftk
-6o+ldMq4D36PZe6B16F+gSBaJUHbdGvzf1ZcgGJDj87k1eU8QaVAvfT9SQQ9viA9
-R7tnMPdroU1wEP+9Y95ExH1R0qZZ6WIhnGv5YEw6Jn4AhgxAL7JKHzW2sBL76To+
-3fOQsTMxBRKGG93zLMESn21OujSgtPm4pIPBH37551qPJLcvSDe4k8t82DE059Ee
-C8mQrYcPsGQrJfDvGzQqh6tiaHiUSA==
-=sdUU
------END PGP SIGNATURE-----
-
---=-NuyhO5kvTiC4yiicAtYf--
+>
+>>
+>> So the wake_up_process() is in fact safe.
+>>
+>> Let me put that in a comment.
+>
+>
+> Thanks,
+>
+> Thomas
+>
+>
