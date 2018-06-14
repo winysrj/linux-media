@@ -1,100 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:33714 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754809AbeFNMls (ORCPT
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:41105 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755163AbeFNNA6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 08:41:48 -0400
-Date: Thu, 14 Jun 2018 14:41:29 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        Ingo Molnar <mingo@redhat.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        David Airlie <airlied@linux.ie>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org
-Subject: Re: [PATCH v2 1/2] locking: Implement an algorithm choice for
- Wound-Wait mutexes
-Message-ID: <20180614124129.GA12198@hirez.programming.kicks-ass.net>
-References: <20180614072922.8114-1-thellstrom@vmware.com>
- <20180614072922.8114-2-thellstrom@vmware.com>
+        Thu, 14 Jun 2018 09:00:58 -0400
+Received: by mail-yw0-f195.google.com with SMTP id s201-v6so2090689ywg.8
+        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2018 06:00:58 -0700 (PDT)
+Received: from mail-yw0-f178.google.com (mail-yw0-f178.google.com. [209.85.161.178])
+        by smtp.gmail.com with ESMTPSA id a67-v6sm1972929ywa.20.2018.06.14.06.00.55
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 14 Jun 2018 06:00:56 -0700 (PDT)
+Received: by mail-yw0-f178.google.com with SMTP id s201-v6so2090652ywg.8
+        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2018 06:00:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180614072922.8114-2-thellstrom@vmware.com>
+References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
+In-Reply-To: <20180613140714.1686-1-maxime.ripard@bootlin.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 14 Jun 2018 22:00:43 +0900
+Message-ID: <CAAFQd5A-GMBnNnRCfm0-51R9rn_pWw+UC3r-JX-_BE3cdznqig@mail.gmail.com>
+Subject: Re: [PATCH 0/9] media: cedrus: Add H264 decoding support
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
+        linux-sunxi@googlegroups.com, thomas.petazzoni@bootlin.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 14, 2018 at 09:29:21AM +0200, Thomas Hellstrom wrote:
-> +static bool __ww_mutex_wound(struct mutex *lock,
-> +			     struct ww_acquire_ctx *ww_ctx,
-> +			     struct ww_acquire_ctx *hold_ctx)
-> +{
-> +	struct task_struct *owner = __mutex_owner(lock);
-> +
-> +	lockdep_assert_held(&lock->wait_lock);
-> +
-> +	if (owner && hold_ctx && __ww_ctx_stamp_after(hold_ctx, ww_ctx) &&
-> +	    ww_ctx->acquired > 0) {
-> +		hold_ctx->wounded = 1;
-> +
-> +		/*
-> +		 * wake_up_process() paired with set_current_state() inserts
-> +		 * sufficient barriers to make sure @owner either sees it's
-> +		 * wounded or has a wakeup pending to re-read the wounded
-> +		 * state.
-> +		 *
-> +		 * The value of hold_ctx->wounded in
-> +		 * __ww_mutex_lock_check_stamp();
-> +		 */
-> +		if (owner != current)
-> +			wake_up_process(owner);
-> +
-> +		return true;
-> +	}
-> +
-> +	return false;
-> +}
+Hi Maxime,
 
-> @@ -338,12 +377,18 @@ ww_mutex_set_context_fastpath(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
->  	 * and keep spinning, or it will acquire wait_lock, add itself
->  	 * to waiter list and sleep.
->  	 */
-> -	smp_mb(); /* ^^^ */
-> +	smp_mb(); /* See comments above and below. */
->  
->  	/*
-> -	 * Check if lock is contended, if not there is nobody to wake up
-> +	 * Check if lock is contended, if not there is nobody to wake up.
-> +	 * We can use list_empty() unlocked here since it only compares a
-> +	 * list_head field pointer to the address of the list head
-> +	 * itself, similarly to how list_empty() can be considered RCU-safe.
-> +	 * The memory barrier above pairs with the memory barrier in
-> +	 * __ww_mutex_add_waiter and makes sure lock->ctx is visible before
-> +	 * we check for waiters.
->  	 */
-> -	if (likely(!(atomic_long_read(&lock->base.owner) & MUTEX_FLAG_WAITERS)))
-> +	if (likely(list_empty(&lock->base.wait_list)))
->  		return;
->  
+On Wed, Jun 13, 2018 at 11:07 PM Maxime Ripard
+<maxime.ripard@bootlin.com> wrote:
+>
+> Hi,
+>
+> Here is a preliminary version of the H264 decoding support in the
+> cedrus driver.
 
-OK, so what happens is that if we see !empty list, we take wait_lock,
-if we end up in __ww_mutex_wound() we must really have !empty wait-list.
+Thanks for the series! Let me reply inline to some of the points raised here.
 
-It can however still see !owner because __mutex_unlock_slowpath() can
-clear the owner field. But if owner is set, it must stay valid because
-FLAG_WAITERS and we're holding wait_lock.
+>
+> As you might already know, the cedrus driver relies on the Request
+> API, and is a reverse engineered driver for the video decoding engine
+> found on the Allwinner SoCs.
+>
+> This work has been possible thanks to the work done by the people
+> behind libvdpau-sunxi found here:
+> https://github.com/linux-sunxi/libvdpau-sunxi/
+>
+> This driver is based on the last version of the cedrus driver sent by
+> Paul, based on Request API v13 sent by Hans:
+> https://lkml.org/lkml/2018/5/7/316
 
-So the wake_up_process() is in fact safe.
+Just FYI, there is v15 already. :)
 
-Let me put that in a comment.
+>
+> This driver has been tested only with baseline profile videos, and is
+> missing a few key features to decode videos with higher profiles.
+> This has been tested using our cedrus-frame-test tool, which should be
+> a quite generic v4l2-to-drm decoder using the request API to
+> demonstrate the video decoding:
+> https://github.com/free-electrons/cedrus-frame-test/, branch h264
+>
+> However, sending this preliminary version, I'd really like to start a
+> discussion and get some feedback on the user-space API for the H264
+> controls exposed through the request API.
+>
+> I've been using the controls currently integrated into ChromeOS that
+> have a working version of this particular setup. However, these
+> controls have a number of shortcomings and inconsistencies with other
+> decoding API. I've worked with libva so far, but I've noticed already
+> that:
+
+Note that these controls are supposed to be defined exactly like the
+bitstream headers deserialized into C structs in memory. I believe
+Pawel (on CC) defined them based on the actual H264 specification.
+
+>   - The kernel UAPI expects to have the nal_ref_idc variable, while
+>     libva only exposes whether that frame is a reference frame or
+>     not. I've looked at the rockchip driver in the ChromeOS tree, and
+>     our own driver, and they both need only the information about
+>     whether the frame is a reference one or not, so maybe we should
+>     change this?
+
+The fact that 2 drivers only need partial information doesn't mean
+that we should ignore the data being already in the bitstream. IMHO
+this API should to provide all the metadata available in the stream to
+the kernel driver, as a replacement for bitstream parsing in firmware
+(or in kernel... yuck).
+
+>   - The H264 bitstream exposes the picture default reference list (for
+>     both list 0 and list 1), the slice reference list and an override
+>     flag. The libva will only pass the reference list to be used (so
+>     either the picture default's or the slice's) depending on the
+>     override flag. The kernel UAPI wants the picture default reference
+>     list and the slice reference list, but doesn't expose the override
+>     flag, which prevents us from configuring properly the
+>     hardware. Our video decoding engine needs the three information,
+>     but we can easily adapt to having only one. However, having two
+>     doesn't really work for us.
+
+Where does the override flag come from? If it's in the bitstream, then
+I guess it was just missed when creating the structures.
+
+Best regards,
+Tomasz
