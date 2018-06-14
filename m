@@ -1,13 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:41874 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754810AbeFNKwH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 06:52:07 -0400
-Date: Thu, 14 Jun 2018 12:51:51 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Thomas Hellstrom <thellstrom@vmware.com>
+Received: from mail-cys01nam02on0042.outbound.protection.outlook.com ([104.47.37.42]:43648
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754782AbeFNLK3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 07:10:29 -0400
+Subject: Re: [PATCH v2 1/2] locking: Implement an algorithm choice for
+ Wound-Wait mutexes
+To: Andrea Parri <andrea.parri@amarulasolutions.com>
 Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        Peter Zijlstra <peterz@infradead.org>,
         Ingo Molnar <mingo@redhat.com>,
         Jonathan Corbet <corbet@lwn.net>,
         Gustavo Padovan <gustavo@padovan.org>,
@@ -23,284 +24,336 @@ Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
         linaro-mm-sig@lists.linaro.org
-Subject: Re: [PATCH 1/2] locking: Implement an algorithm choice for
- Wound-Wait mutexes
-Message-ID: <20180614105151.GY12198@hirez.programming.kicks-ass.net>
-References: <20180613074745.14750-1-thellstrom@vmware.com>
- <20180613074745.14750-2-thellstrom@vmware.com>
- <20180613095012.GW12198@hirez.programming.kicks-ass.net>
- <69f3dee9-4782-bc90-3ee2-813ac6835c4a@vmware.com>
- <20180613131000.GX12198@hirez.programming.kicks-ass.net>
- <9afd482d-7082-fa17-5e34-179a652376e5@vmware.com>
+References: <20180614072922.8114-1-thellstrom@vmware.com>
+ <20180614072922.8114-2-thellstrom@vmware.com> <20180614103852.GA18216@andrea>
+From: Thomas Hellstrom <thellstrom@vmware.com>
+Message-ID: <b84a5ef9-6cd1-7dc9-a51d-cb195cdea83c@vmware.com>
+Date: Thu, 14 Jun 2018 13:10:07 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9afd482d-7082-fa17-5e34-179a652376e5@vmware.com>
+In-Reply-To: <20180614103852.GA18216@andrea>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 13, 2018 at 04:05:43PM +0200, Thomas Hellstrom wrote:
-> In short, with Wait-Die (before the patch) it's the process _taking_ the
-> contended lock that backs off if necessary. No preemption required. With
-> Wound-Wait, it's the process _holding_ the contended lock that gets wounded
-> (preempted), and it needs to back off at its own discretion but no later
-> than when it's going to sleep on another ww mutex. That point is where we
-> intercept the preemption request. We're preempting the transaction rather
-> than the process.
+On 06/14/2018 12:38 PM, Andrea Parri wrote:
+> Hi Thomas,
+>
+> On Thu, Jun 14, 2018 at 09:29:21AM +0200, Thomas Hellstrom wrote:
+>> The current Wound-Wait mutex algorithm is actually not Wound-Wait but
+>> Wait-Die. Implement also Wound-Wait as a per-ww-class choice. Wound-Wait
+>> is, contrary to Wait-Die a preemptive algorithm and is known to generate
+>> fewer backoffs. Testing reveals that this is true if the
+>> number of simultaneous contending transactions is small.
+>> As the number of simultaneous contending threads increases, Wait-Wound
+>> becomes inferior to Wait-Die in terms of elapsed time.
+>> Possibly due to the larger number of held locks of sleeping transactions.
+>>
+>> Update documentation and callers.
+>>
+>> Timings using git://people.freedesktop.org/~thomash/ww_mutex_test
+>> tag patch-18-06-14
+>>
+>> Each thread runs 100000 batches of lock / unlock 800 ww mutexes randomly
+>> chosen out of 100000. Four core Intel x86_64:
+>>
+>> Algorithm    #threads       Rollbacks  time
+>> Wound-Wait   4              ~100       ~17s.
+>> Wait-Die     4              ~150000    ~19s.
+>> Wound-Wait   16             ~360000    ~109s.
+>> Wait-Die     16             ~450000    ~82s.
+>>
+>> Cc: Peter Zijlstra <peterz@infradead.org>
+>> Cc: Ingo Molnar <mingo@redhat.com>
+>> Cc: Jonathan Corbet <corbet@lwn.net>
+>> Cc: Gustavo Padovan <gustavo@padovan.org>
+>> Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+>> Cc: Sean Paul <seanpaul@chromium.org>
+>> Cc: David Airlie <airlied@linux.ie>
+>> Cc: Davidlohr Bueso <dave@stgolabs.net>
+>> Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+>> Cc: Josh Triplett <josh@joshtriplett.org>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> Cc: Kate Stewart <kstewart@linuxfoundation.org>
+>> Cc: Philippe Ombredanne <pombredanne@nexb.com>
+>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>> Cc: linux-doc@vger.kernel.org
+>> Cc: linux-media@vger.kernel.org
+>> Cc: linaro-mm-sig@lists.linaro.org
+>> Signed-off-by: Thomas Hellstrom <thellstrom@vmware.com>
+>>
+>> ---
+>> v2:
+>> * Update API according to review comment by Greg Kroah-Hartman.
+>> * Address review comments by Peter Zijlstra:
+>>    - Avoid _Bool in composites
+>>    - Fix typo
+>>    - Use __mutex_owner() where applicable
+>>    - Rely on built-in barriers for the main loop exit condition,
+>>      struct ww_acquire_ctx::wounded. Update code comments.
+>>    - Explain unlocked use of list_empty().
+>> ---
+>>   Documentation/locking/ww-mutex-design.txt |  54 ++++++++++++----
+>>   drivers/dma-buf/reservation.c             |   2 +-
+>>   drivers/gpu/drm/drm_modeset_lock.c        |   2 +-
+>>   include/linux/ww_mutex.h                  |  19 ++++--
+>>   kernel/locking/locktorture.c              |   2 +-
+>>   kernel/locking/mutex.c                    | 103 +++++++++++++++++++++++++++---
+>>   kernel/locking/test-ww_mutex.c            |   2 +-
+>>   lib/locking-selftest.c                    |   2 +-
+>>   8 files changed, 156 insertions(+), 30 deletions(-)
+>>
+>> diff --git a/Documentation/locking/ww-mutex-design.txt b/Documentation/locking/ww-mutex-design.txt
+>> index 34c3a1b50b9a..b9597def9581 100644
+>> --- a/Documentation/locking/ww-mutex-design.txt
+>> +++ b/Documentation/locking/ww-mutex-design.txt
+>> @@ -1,4 +1,4 @@
+>> -Wait/Wound Deadlock-Proof Mutex Design
+>> +Wound/Wait Deadlock-Proof Mutex Design
+>>   ======================================
+>>   
+>>   Please read mutex-design.txt first, as it applies to wait/wound mutexes too.
+>> @@ -32,10 +32,23 @@ the oldest task) wins, and the one with the higher reservation id (i.e. the
+>>   younger task) unlocks all of the buffers that it has already locked, and then
+>>   tries again.
+>>   
+>> -In the RDBMS literature this deadlock handling approach is called wait/wound:
+>> -The older tasks waits until it can acquire the contended lock. The younger tasks
+>> -needs to back off and drop all the locks it is currently holding, i.e. the
+>> -younger task is wounded.
+>> +In the RDBMS literature, a reservation ticket is associated with a transaction.
+>> +and the deadlock handling approach is called Wait-Die. The name is based on
+>> +the actions of a locking thread when it encounters an already locked mutex.
+>> +If the transaction holding the lock is younger, the locking transaction waits.
+>> +If the transaction holding the lock is older, the locking transaction backs off
+>> +and dies. Hence Wait-Die.
+>> +There is also another algorithm called Wound-Wait:
+>> +If the transaction holding the lock is younger, the locking transaction
+>> +preempts the transaction holding the lock, requiring it to back off. It
+>> +Wounds the other transaction.
+>> +If the transaction holding the lock is older, it waits for the other
+>> +transaction. Hence Wound-Wait.
+>> +The two algorithms are both fair in that a transaction will eventually succeed.
+>> +However, the Wound-Wait algorithm is typically stated to generate fewer backoffs
+>> +compared to Wait-Die, but is, on the other hand, associated with more work than
+>> +Wait-Die when recovering from a backoff. Wound-Wait is also a preemptive
+>> +algorithm which requires a reliable way to preempt another transaction.
+>>   
+>>   Concepts
+>>   --------
+>> @@ -47,10 +60,12 @@ Acquire context: To ensure eventual forward progress it is important the a task
+>>   trying to acquire locks doesn't grab a new reservation id, but keeps the one it
+>>   acquired when starting the lock acquisition. This ticket is stored in the
+>>   acquire context. Furthermore the acquire context keeps track of debugging state
+>> -to catch w/w mutex interface abuse.
+>> +to catch w/w mutex interface abuse. An acquire context is representing a
+>> +transaction.
+>>   
+>>   W/w class: In contrast to normal mutexes the lock class needs to be explicit for
+>> -w/w mutexes, since it is required to initialize the acquire context.
+>> +w/w mutexes, since it is required to initialize the acquire context. The lock
+>> +class also specifies what algorithm to use, Wound-Wait or Wait-Die.
+>>   
+>>   Furthermore there are three different class of w/w lock acquire functions:
+>>   
+>> @@ -90,6 +105,12 @@ provided.
+>>   Usage
+>>   -----
+>>   
+>> +The algorithm (Wait-Die vs Wound-Wait) is chosen by using either
+>> +DEFINE_WW_CLASS_WDIE() for Wait-Die or DEFINE_WW_CLASS() for Wound-Wait.
+>> +As a rough rule of thumb, use Wound-Wait iff you typically expect the number
+>> +of simultaneous competing transactions to be small, and the rollback cost can
+>> +be substantial.
+>> +
+>>   Three different ways to acquire locks within the same w/w class. Common
+>>   definitions for methods #1 and #2:
+>>   
+>> @@ -312,12 +333,23 @@ Design:
+>>     We maintain the following invariants for the wait list:
+>>     (1) Waiters with an acquire context are sorted by stamp order; waiters
+>>         without an acquire context are interspersed in FIFO order.
+>> -  (2) Among waiters with contexts, only the first one can have other locks
+>> -      acquired already (ctx->acquired > 0). Note that this waiter may come
+>> -      after other waiters without contexts in the list.
+>> +  (2) For Wait-Die, among waiters with contexts, only the first one can have
+>> +      other locks acquired already (ctx->acquired > 0). Note that this waiter
+>> +      may come after other waiters without contexts in the list.
+>> +
+>> +  The Wound-Wait preemption is implemented with a lazy-preemption scheme:
+>> +  The wounded status of the transaction is checked only when there is
+>> +  contention for a new lock and hence a true chance of deadlock. In that
+>> +  situation, if the transaction is wounded, it backs off, clears the
+>> +  wounded status and retries. A great benefit of implementing preemption in
+>> +  this way is that the wounded transaction can identify a contending lock to
+>> +  wait for before restarting the transaction. Just blindly restarting the
+>> +  transaction would likely make the transaction end up in a situation where
+>> +  it would have to back off again.
+>>   
+>>     In general, not much contention is expected. The locks are typically used to
+>> -  serialize access to resources for devices.
+>> +  serialize access to resources for devices, and optimization focus should
+>> +  therefore be directed towards the uncontended cases.
+>>   
+>>   Lockdep:
+>>     Special care has been taken to warn for as many cases of api abuse
+>> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+>> index 314eb1071cce..b94a4bab2ecd 100644
+>> --- a/drivers/dma-buf/reservation.c
+>> +++ b/drivers/dma-buf/reservation.c
+>> @@ -46,7 +46,7 @@
+>>    * write-side updates.
+>>    */
+>>   
+>> -DEFINE_WW_CLASS(reservation_ww_class);
+>> +DEFINE_WW_CLASS_WDIE(reservation_ww_class);
+>>   EXPORT_SYMBOL(reservation_ww_class);
+>>   
+>>   struct lock_class_key reservation_seqcount_class;
+>> diff --git a/drivers/gpu/drm/drm_modeset_lock.c b/drivers/gpu/drm/drm_modeset_lock.c
+>> index 8a5100685875..ff00a814f617 100644
+>> --- a/drivers/gpu/drm/drm_modeset_lock.c
+>> +++ b/drivers/gpu/drm/drm_modeset_lock.c
+>> @@ -70,7 +70,7 @@
+>>    * lists and lookup data structures.
+>>    */
+>>   
+>> -static DEFINE_WW_CLASS(crtc_ww_class);
+>> +static DEFINE_WW_CLASS_WDIE(crtc_ww_class);
+>>   
+>>   /**
+>>    * drm_modeset_lock_all - take all modeset locks
+>> diff --git a/include/linux/ww_mutex.h b/include/linux/ww_mutex.h
+>> index 39fda195bf78..3880813b7db5 100644
+>> --- a/include/linux/ww_mutex.h
+>> +++ b/include/linux/ww_mutex.h
+>> @@ -8,6 +8,8 @@
+>>    *
+>>    * Wound/wait implementation:
+>>    *  Copyright (C) 2013 Canonical Ltd.
+>> + * Choice of algorithm:
+>> + *  Copyright (C) 2018 WMWare Inc.
+>>    *
+>>    * This file contains the main data structure and API definitions.
+>>    */
+>> @@ -23,15 +25,17 @@ struct ww_class {
+>>   	struct lock_class_key mutex_key;
+>>   	const char *acquire_name;
+>>   	const char *mutex_name;
+>> +	unsigned int is_wait_die;
+>>   };
+>>   
+>>   struct ww_acquire_ctx {
+>>   	struct task_struct *task;
+>>   	unsigned long stamp;
+>>   	unsigned acquired;
+>> +	unsigned int wounded;
+>> +	struct ww_class *ww_class;
+>>   #ifdef CONFIG_DEBUG_MUTEXES
+>>   	unsigned done_acquire;
+>> -	struct ww_class *ww_class;
+>>   	struct ww_mutex *contending_lock;
+>>   #endif
+>>   #ifdef CONFIG_DEBUG_LOCK_ALLOC
+>> @@ -58,17 +62,21 @@ struct ww_mutex {
+>>   # define __WW_CLASS_MUTEX_INITIALIZER(lockname, class)
+>>   #endif
+>>   
+>> -#define __WW_CLASS_INITIALIZER(ww_class) \
+>> +#define __WW_CLASS_INITIALIZER(ww_class, _is_wait_die)	    \
+>>   		{ .stamp = ATOMIC_LONG_INIT(0) \
+>>   		, .acquire_name = #ww_class "_acquire" \
+>> -		, .mutex_name = #ww_class "_mutex" }
+>> +		, .mutex_name = #ww_class "_mutex" \
+>> +		, .is_wait_die = _is_wait_die }
+>>   
+>>   #define __WW_MUTEX_INITIALIZER(lockname, class) \
+>>   		{ .base =  __MUTEX_INITIALIZER(lockname.base) \
+>>   		__WW_CLASS_MUTEX_INITIALIZER(lockname, class) }
+>>   
+>>   #define DEFINE_WW_CLASS(classname) \
+>> -	struct ww_class classname = __WW_CLASS_INITIALIZER(classname)
+>> +	struct ww_class classname = __WW_CLASS_INITIALIZER(classname, 0)
+>> +
+>> +#define DEFINE_WW_CLASS_WDIE(classname)	\
+>> +	struct ww_class classname = __WW_CLASS_INITIALIZER(classname, 1)
+>>   
+>>   #define DEFINE_WW_MUTEX(mutexname, ww_class) \
+>>   	struct ww_mutex mutexname = __WW_MUTEX_INITIALIZER(mutexname, ww_class)
+>> @@ -123,8 +131,9 @@ static inline void ww_acquire_init(struct ww_acquire_ctx *ctx,
+>>   	ctx->task = current;
+>>   	ctx->stamp = atomic_long_inc_return_relaxed(&ww_class->stamp);
+>>   	ctx->acquired = 0;
+>> -#ifdef CONFIG_DEBUG_MUTEXES
+>>   	ctx->ww_class = ww_class;
+>> +	ctx->wounded = false;
+>> +#ifdef CONFIG_DEBUG_MUTEXES
+>>   	ctx->done_acquire = 0;
+>>   	ctx->contending_lock = NULL;
+>>   #endif
+>> diff --git a/kernel/locking/locktorture.c b/kernel/locking/locktorture.c
+>> index 6850ffd69125..e861c1bf0e1e 100644
+>> --- a/kernel/locking/locktorture.c
+>> +++ b/kernel/locking/locktorture.c
+>> @@ -365,7 +365,7 @@ static struct lock_torture_ops mutex_lock_ops = {
+>>   };
+>>   
+>>   #include <linux/ww_mutex.h>
+>> -static DEFINE_WW_CLASS(torture_ww_class);
+>> +static DEFINE_WW_CLASS_WDIE(torture_ww_class);
+>>   static DEFINE_WW_MUTEX(torture_ww_mutex_0, &torture_ww_class);
+>>   static DEFINE_WW_MUTEX(torture_ww_mutex_1, &torture_ww_class);
+>>   static DEFINE_WW_MUTEX(torture_ww_mutex_2, &torture_ww_class);
+>> diff --git a/kernel/locking/mutex.c b/kernel/locking/mutex.c
+>> index 2048359f33d2..ffa00b5aaf03 100644
+>> --- a/kernel/locking/mutex.c
+>> +++ b/kernel/locking/mutex.c
+>> @@ -290,12 +290,49 @@ __ww_ctx_stamp_after(struct ww_acquire_ctx *a, struct ww_acquire_ctx *b)
+>>   	       (a->stamp != b->stamp || a > b);
+>>   }
+>>   
+>> +/*
+>> + * Wound the lock holder transaction if it's younger than the contending
+>> + * transaction, and there is a possibility of a deadlock.
+>> + * Also if the lock holder transaction isn't the current transaction,
+>> + * make sure it's woken up in case it's sleeping on another ww mutex.
+>> + */
+>> +static bool __ww_mutex_wound(struct mutex *lock,
+>> +			     struct ww_acquire_ctx *ww_ctx,
+>> +			     struct ww_acquire_ctx *hold_ctx)
+>> +{
+>> +	struct task_struct *owner = __mutex_owner(lock);
+>> +
+>> +	lockdep_assert_held(&lock->wait_lock);
+>> +
+>> +	if (owner && hold_ctx && __ww_ctx_stamp_after(hold_ctx, ww_ctx) &&
+>> +	    ww_ctx->acquired > 0) {
+>> +		hold_ctx->wounded = 1;
+>> +
+>> +		/*
+>> +		 * wake_up_process() paired with set_current_state() inserts
+>> +		 * sufficient barriers to make sure @owner either sees it's
+>> +		 * wounded or has a wakeup pending to re-read the wounded
+>> +		 * state.
+> IIUC, "sufficient barriers" = full memory barriers (here).  (You may
+> want to be more specific.)
 
-This:
+Thanks for reviewing!
+OK. What about if someone relaxes that in the future? I mean, what we 
+care about in this code is just that we have sufficient barriers for 
+that statement to be true, regardless what type of barriers those really 
+are?
+>
+>> +		 *
+>> +		 * The value of hold_ctx->wounded in
+>> +		 * __ww_mutex_lock_check_stamp();
+> Missing parts/incomplete sentence?
 
-  Wait-die:
-    The newer transactions are killed when:
-      It (= the newer transaction) makes a reqeust for a lock being held
-      by an older transactions
+Oops. I'll fix in next version.
 
-  Wound-wait:
-    The newer transactions are killed when:
-      An older transaction makes a request for a lock being held by the
-      newer transactions
 
-Would make for an excellent comment somewhere. No talking about
-preemption, although I think I know what you mean with it, that is not
-how preemption is normally used.
-
-In scheduling speak preemption is when we pick a runnable (but !running)
-task to run instead of the current running task.  In this case however,
-our T2 is blocked on a lock acquisition (one owned by our T1) and T1 is
-the only runnable task. Only when T1's progress is inhibited by T2 (T1
-wants a lock held by T2) do we wound/wake T2.
-
-In any case, I had a little look at the current ww_mutex code and ended
-up with the below patch that hopefully clarifies things a little.
-
----
-diff --git a/kernel/locking/mutex.c b/kernel/locking/mutex.c
-index f44f658ae629..a20c04619b2a 100644
---- a/kernel/locking/mutex.c
-+++ b/kernel/locking/mutex.c
-@@ -244,6 +244,10 @@ void __sched mutex_lock(struct mutex *lock)
- EXPORT_SYMBOL(mutex_lock);
- #endif
- 
-+/*
-+ * Associate the ww_mutex @ww with the context @ww_ctx under which we acquired
-+ * it.
-+ */
- static __always_inline void
- ww_mutex_lock_acquired(struct ww_mutex *ww, struct ww_acquire_ctx *ww_ctx)
- {
-@@ -282,26 +286,36 @@ ww_mutex_lock_acquired(struct ww_mutex *ww, struct ww_acquire_ctx *ww_ctx)
- 	DEBUG_LOCKS_WARN_ON(ww_ctx->ww_class != ww->ww_class);
- #endif
- 	ww_ctx->acquired++;
-+	lock->ctx = ctx;
- }
- 
-+/*
-+ * Determine if context @a is 'after' context @b. IOW, @a should be wounded in
-+ * favour of @b.
-+ */
- static inline bool __sched
- __ww_ctx_stamp_after(struct ww_acquire_ctx *a, struct ww_acquire_ctx *b)
- {
--	return a->stamp - b->stamp <= LONG_MAX &&
--	       (a->stamp != b->stamp || a > b);
-+
-+	return (signed long)(a->stamp - b->stamp) > 0;
- }
- 
- /*
-- * Wake up any waiters that may have to back off when the lock is held by the
-- * given context.
-+ * We just acquired @lock under @ww_ctx, if there are later contexts waiting
-+ * behind us on the wait-list, wake them up so they can wound themselves.
-  *
-- * Due to the invariants on the wait list, this can only affect the first
-- * waiter with a context.
-+ * See __ww_mutex_add_waiter() for the list-order construction; basically the
-+ * list is ordered by stamp smallest (oldest) first, so if there is a later
-+ * (younger) stamp on the list behind us, wake it so it can wound itself.
-+ *
-+ * Because __ww_mutex_add_waiter() and __ww_mutex_check_stamp() wake any
-+ * but the earliest context, this can only affect the first waiter (with a
-+ * context).
-  *
-  * The current task must not be on the wait list.
-  */
- static void __sched
--__ww_mutex_wakeup_for_backoff(struct mutex *lock, struct ww_acquire_ctx *ww_ctx)
-+__ww_mutex_wakeup_for_wound(struct mutex *lock, struct ww_acquire_ctx *ww_ctx)
- {
- 	struct mutex_waiter *cur;
- 
-@@ -322,16 +336,14 @@ __ww_mutex_wakeup_for_backoff(struct mutex *lock, struct ww_acquire_ctx *ww_ctx)
- }
- 
- /*
-- * After acquiring lock with fastpath or when we lost out in contested
-- * slowpath, set ctx and wake up any waiters so they can recheck.
-+ * After acquiring lock with fastpath, where we do not hold wait_lock, set ctx
-+ * and wake up any waiters so they can recheck.
-  */
- static __always_inline void
- ww_mutex_set_context_fastpath(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
- {
- 	ww_mutex_lock_acquired(lock, ctx);
- 
--	lock->ctx = ctx;
--
- 	/*
- 	 * The lock->ctx update should be visible on all cores before
- 	 * the atomic read is done, otherwise contended waiters might be
-@@ -352,25 +364,10 @@ ww_mutex_set_context_fastpath(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
- 	 * so they can see the new lock->ctx.
- 	 */
- 	spin_lock(&lock->base.wait_lock);
--	__ww_mutex_wakeup_for_backoff(&lock->base, ctx);
-+	__ww_mutex_wakeup_for_wound(&lock->base, ctx);
- 	spin_unlock(&lock->base.wait_lock);
- }
- 
--/*
-- * After acquiring lock in the slowpath set ctx.
-- *
-- * Unlike for the fast path, the caller ensures that waiters are woken up where
-- * necessary.
-- *
-- * Callers must hold the mutex wait_lock.
-- */
--static __always_inline void
--ww_mutex_set_context_slowpath(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
--{
--	ww_mutex_lock_acquired(lock, ctx);
--	lock->ctx = ctx;
--}
--
- #ifdef CONFIG_MUTEX_SPIN_ON_OWNER
- 
- static inline
-@@ -646,20 +643,30 @@ void __sched ww_mutex_unlock(struct ww_mutex *lock)
- }
- EXPORT_SYMBOL(ww_mutex_unlock);
- 
-+/*
-+ * Check the wound condition for the current lock acquire.  If we're trying to
-+ * acquire a lock already held by an older context, wound ourselves.
-+ *
-+ * Since __ww_mutex_add_waiter() orders the wait-list on stamp, we only have to
-+ * look at waiters before us in the wait-list.
-+ */
- static inline int __sched
--__ww_mutex_lock_check_stamp(struct mutex *lock, struct mutex_waiter *waiter,
-+__ww_mutex_check_stamp(struct mutex *lock, struct mutex_waiter *waiter,
- 			    struct ww_acquire_ctx *ctx)
- {
- 	struct ww_mutex *ww = container_of(lock, struct ww_mutex, base);
- 	struct ww_acquire_ctx *hold_ctx = READ_ONCE(ww->ctx);
- 	struct mutex_waiter *cur;
- 
-+	if (ctx->acquired == 0)
-+		return 0;
-+
- 	if (hold_ctx && __ww_ctx_stamp_after(ctx, hold_ctx))
- 		goto deadlock;
- 
- 	/*
- 	 * If there is a waiter in front of us that has a context, then its
--	 * stamp is earlier than ours and we must back off.
-+	 * stamp is earlier than ours and we must wound ourself.
- 	 */
- 	cur = waiter;
- 	list_for_each_entry_continue_reverse(cur, &lock->wait_list, list) {
-@@ -677,6 +684,14 @@ __ww_mutex_lock_check_stamp(struct mutex *lock, struct mutex_waiter *waiter,
- 	return -EDEADLK;
- }
- 
-+/*
-+ * Add @waiter to the wait-list, keep the wait-list ordered by stamp, smallest
-+ * first. Such that older contexts are preferred to acquire the lock over
-+ * younger contexts.
-+ *
-+ * Furthermore, wound ourself immediately when possible (there are older
-+ * contexts already waiting) to avoid unnecessary waiting.
-+ */
- static inline int __sched
- __ww_mutex_add_waiter(struct mutex_waiter *waiter,
- 		      struct mutex *lock,
-@@ -700,8 +715,12 @@ __ww_mutex_add_waiter(struct mutex_waiter *waiter,
- 		if (!cur->ww_ctx)
- 			continue;
- 
-+		/*
-+		 * If we find an older context waiting, there is no point in
-+		 * queueing behind it, as we'd have to wound ourselves the
-+		 * moment it would acquire the lock.
-+		 */
- 		if (__ww_ctx_stamp_after(ww_ctx, cur->ww_ctx)) {
--			/* Back off immediately if necessary. */
- 			if (ww_ctx->acquired > 0) {
- #ifdef CONFIG_DEBUG_MUTEXES
- 				struct ww_mutex *ww;
-@@ -719,8 +738,9 @@ __ww_mutex_add_waiter(struct mutex_waiter *waiter,
- 		pos = &cur->list;
- 
- 		/*
--		 * Wake up the waiter so that it gets a chance to back
--		 * off.
-+		 * When we enqueued an older context, wake all younger
-+		 * contexts such that they can wound themselves, see
-+		 * __ww_mutex_check_stamp().
- 		 */
- 		if (cur->ww_ctx->acquired > 0) {
- 			debug_mutex_wake_waiter(lock, cur);
-@@ -772,7 +792,7 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
- 	 */
- 	if (__mutex_trylock(lock)) {
- 		if (use_ww_ctx && ww_ctx)
--			__ww_mutex_wakeup_for_backoff(lock, ww_ctx);
-+			__ww_mutex_wakeup_for_wound(lock, ww_ctx);
- 
- 		goto skip_wait;
- 	}
-@@ -790,10 +810,10 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
- 		waiter.ww_ctx = MUTEX_POISON_WW_CTX;
- #endif
- 	} else {
--		/* Add in stamp order, waking up waiters that must back off. */
-+		/* Add in stamp order, waking up waiters that must wound themselves. */
- 		ret = __ww_mutex_add_waiter(&waiter, lock, ww_ctx);
- 		if (ret)
--			goto err_early_backoff;
-+			goto err_early_wound;
- 
- 		waiter.ww_ctx = ww_ctx;
- 	}
-@@ -824,8 +844,8 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
- 			goto err;
- 		}
- 
--		if (use_ww_ctx && ww_ctx && ww_ctx->acquired > 0) {
--			ret = __ww_mutex_lock_check_stamp(lock, &waiter, ww_ctx);
-+		if (use_ww_ctx && ww_ctx) {
-+			ret = __ww_mutex_check_stamp(lock, &waiter, ww_ctx);
- 			if (ret)
- 				goto err;
- 		}
-@@ -870,7 +890,7 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
- 	lock_acquired(&lock->dep_map, ip);
- 
- 	if (use_ww_ctx && ww_ctx)
--		ww_mutex_set_context_slowpath(ww, ww_ctx);
-+		ww_mutex_lock_acquired(ww, ww_ctx);
- 
- 	spin_unlock(&lock->wait_lock);
- 	preempt_enable();
-@@ -879,7 +899,7 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
- err:
- 	__set_current_state(TASK_RUNNING);
- 	mutex_remove_waiter(lock, &waiter, current);
--err_early_backoff:
-+err_early_wound:
- 	spin_unlock(&lock->wait_lock);
- 	debug_mutex_free_waiter(&waiter);
- 	mutex_release(&lock->dep_map, 1, ip);
+>
+>    Andrea
+Thanks,
+Thomas
