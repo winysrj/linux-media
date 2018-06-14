@@ -1,103 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr730072.outbound.protection.outlook.com ([40.107.73.72]:7072
-        "EHLO NAM05-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754967AbeFNMJT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 08:09:19 -0400
-From: Thomas Hellstrom <thellstrom@vmware.com>
-Subject: Re: [PATCH v2 1/2] locking: Implement an algorithm choice for
- Wound-Wait mutexes
-To: Andrea Parri <andrea.parri@amarulasolutions.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        David Airlie <airlied@linux.ie>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org
-References: <20180614072922.8114-1-thellstrom@vmware.com>
- <20180614072922.8114-2-thellstrom@vmware.com> <20180614103852.GA18216@andrea>
- <b84a5ef9-6cd1-7dc9-a51d-cb195cdea83c@vmware.com>
- <20180614114944.GA18651@andrea>
-Message-ID: <9c2bdfa1-745a-e618-5429-4305a095847f@vmware.com>
-Date: Thu, 14 Jun 2018 14:08:54 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180614114944.GA18651@andrea>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46556 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754809AbeFNM3m (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 08:29:42 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org
+Subject: [PATCH v3 1/2] dt-bindings: smia: Add "rotation" property
+Date: Thu, 14 Jun 2018 15:29:38 +0300
+Message-Id: <20180614122939.21257-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180614122939.21257-1-sakari.ailus@linux.intel.com>
+References: <20180614122939.21257-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Resending hopefully better formatted..
+Add the rotation property to list of optional properties for the smia
+sensors.
 
-
-On 06/14/2018 01:49 PM, Andrea Parri wrote:
-> [...]
->
->>>> +		/*
->>>> +		 * wake_up_process() paired with set_current_state() inserts
->>>> +		 * sufficient barriers to make sure @owner either sees it's
->>>> +		 * wounded or has a wakeup pending to re-read the wounded
->>>> +		 * state.
->>> IIUC, "sufficient barriers" = full memory barriers (here).  (You may
->>> want to be more specific.)
->> Thanks for reviewing!
->> OK. What about if someone relaxes that in the future?
-> This is actually one of my main concerns ;-)  as, IIUC, those barriers are
-> not only sufficient but also necessary: anything "less than a full barrier"
-> (in either wake_up_process() or set_current_state()) would _not_ guarantee
-> the "condition" above unless I'm misunderstanding it.
->
-> But am I misunderstanding it?  Which barriers/guarantee do you _need_ from
-> the above mentioned pairing? (hence my comment...)
->
->    Andrea
-
-No you are probably not misunderstanding me at all. My comment 
-originated from the reading of the kerneldoc of set_current_state()
-
-/*
-* set_current_state() includes a barrier so that the write of current->state
-* is correctly serialised wrt the caller's subsequent test of whether to
-* actually sleep:
-*
-* for (;;) {
-* set_current_state(TASK_UNINTERRUPTIBLE);
-* if (!need_sleep)
-* break;
-*
-* schedule();
-* }
-* __set_current_state(TASK_RUNNING);
-*
-* If the caller does not need such serialisation (because, for instance, the
-* condition test and condition change and wakeup are under the same 
-lock) then
-* use __set_current_state().
-*
-* The above is typically ordered against the wakeup, which does:
-*
-* need_sleep = false;
-* wake_up_state(p, TASK_UNINTERRUPTIBLE);
-*
-* Where wake_up_state() (and all other wakeup primitives) imply enough
-* barriers to order the store of the variable against wakeup.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
-*/
+ Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 3 +++
+ 1 file changed, 3 insertions(+)
 
-And with ctx->wounded := !need_sleep this exactly matches what's 
-happening in my code. So what I was trying to say in the comment was 
-that this above contract is sufficient to guarantee the "condition" 
-above, whitout me actually knowing exactly what barriers are required. 
-Thanks, Thomas
+diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+index 33f10a94c381..8ee7c7972ac7 100644
+--- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
++++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+@@ -29,6 +29,9 @@ Optional properties
+ - reset-gpios: XSHUTDOWN GPIO
+ - flash-leds: See ../video-interfaces.txt
+ - lens-focus: See ../video-interfaces.txt
++- rotation: Integer property; valid values are 0 (sensor mounted upright)
++	    and 180 (sensor mounted upside down). See
++	    ../video-interfaces.txt .
+ 
+ 
+ Endpoint node mandatory properties
+-- 
+2.11.0
