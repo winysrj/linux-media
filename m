@@ -1,16 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:46492 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755123AbeFNLtw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 07:49:52 -0400
-Received: by mail-wr0-f194.google.com with SMTP id v13-v6so6078447wrp.13
-        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2018 04:49:51 -0700 (PDT)
-Date: Thu, 14 Jun 2018 13:49:44 +0200
-From: Andrea Parri <andrea.parri@amarulasolutions.com>
-To: Thomas Hellstrom <thellstrom@vmware.com>
+Received: from mail-sn1nam01on0043.outbound.protection.outlook.com ([104.47.32.43]:15384
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1755173AbeFNLtA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 07:49:00 -0400
+Subject: Re: [PATCH 1/2] locking: Implement an algorithm choice for Wound-Wait
+ mutexes
+To: Peter Zijlstra <peterz@infradead.org>
 Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        Peter Zijlstra <peterz@infradead.org>,
         Ingo Molnar <mingo@redhat.com>,
         Jonathan Corbet <corbet@lwn.net>,
         Gustavo Padovan <gustavo@padovan.org>,
@@ -26,39 +23,173 @@ Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
         linaro-mm-sig@lists.linaro.org
-Subject: Re: [PATCH v2 1/2] locking: Implement an algorithm choice for
- Wound-Wait mutexes
-Message-ID: <20180614114944.GA18651@andrea>
-References: <20180614072922.8114-1-thellstrom@vmware.com>
- <20180614072922.8114-2-thellstrom@vmware.com>
- <20180614103852.GA18216@andrea>
- <b84a5ef9-6cd1-7dc9-a51d-cb195cdea83c@vmware.com>
+References: <20180613074745.14750-1-thellstrom@vmware.com>
+ <20180613074745.14750-2-thellstrom@vmware.com>
+ <20180613095012.GW12198@hirez.programming.kicks-ass.net>
+ <69f3dee9-4782-bc90-3ee2-813ac6835c4a@vmware.com>
+ <20180613131000.GX12198@hirez.programming.kicks-ass.net>
+ <9afd482d-7082-fa17-5e34-179a652376e5@vmware.com>
+ <20180614105151.GY12198@hirez.programming.kicks-ass.net>
+From: Thomas Hellstrom <thellstrom@vmware.com>
+Message-ID: <dd0c5e50-ac14-912c-d31c-c2341fdd2864@vmware.com>
+Date: Thu, 14 Jun 2018 13:48:39 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b84a5ef9-6cd1-7dc9-a51d-cb195cdea83c@vmware.com>
+In-Reply-To: <20180614105151.GY12198@hirez.programming.kicks-ass.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[...]
+On 06/14/2018 12:51 PM, Peter Zijlstra wrote:
+> On Wed, Jun 13, 2018 at 04:05:43PM +0200, Thomas Hellstrom wrote:
+>> In short, with Wait-Die (before the patch) it's the process _taking_ the
+>> contended lock that backs off if necessary. No preemption required. With
+>> Wound-Wait, it's the process _holding_ the contended lock that gets wounded
+>> (preempted), and it needs to back off at its own discretion but no later
+>> than when it's going to sleep on another ww mutex. That point is where we
+>> intercept the preemption request. We're preempting the transaction rather
+>> than the process.
+> This:
+>
+>    Wait-die:
+>      The newer transactions are killed when:
+>        It (= the newer transaction) makes a reqeust for a lock being held
+>        by an older transactions
+>
+>    Wound-wait:
+>      The newer transactions are killed when:
+>        An older transaction makes a request for a lock being held by the
+>        newer transactions
+>
+> Would make for an excellent comment somewhere. No talking about
+> preemption, although I think I know what you mean with it, that is not
+> how preemption is normally used.
 
-> >>+		/*
-> >>+		 * wake_up_process() paired with set_current_state() inserts
-> >>+		 * sufficient barriers to make sure @owner either sees it's
-> >>+		 * wounded or has a wakeup pending to re-read the wounded
-> >>+		 * state.
-> >IIUC, "sufficient barriers" = full memory barriers (here).  (You may
-> >want to be more specific.)
-> 
-> Thanks for reviewing!
-> OK. What about if someone relaxes that in the future?
+Ok. I'll incorporate something along this line. Unfortunately that last 
+statement is not fully true. It should read
+"The newer transactions are wounded when:", not "killed" when.
 
-This is actually one of my main concerns ;-)  as, IIUC, those barriers are
-not only sufficient but also necessary: anything "less than a full barrier"
-(in either wake_up_process() or set_current_state()) would _not_ guarantee
-the "condition" above unless I'm misunderstanding it.
+The literature makes a distinction between "killed" and "wounded". In 
+our context, "Killed" is when a transaction actually receives an 
+-EDEADLK and needs to back off. "Wounded" is when someone (typically 
+another transaction) requests a transaction to kill itself. A wound will 
+often, but not always, lead to a kill. If the wounded transaction has 
+finished its locking sequence, or has the opportunity to grab 
+uncontended ww mutexes or steal contended (non-handoff) ww mutexes to 
+finish its transaction it will do so and never kill itself.
 
-But am I misunderstanding it?  Which barriers/guarantee do you _need_ from
-the above mentioned pairing? (hence my comment...)
 
-  Andrea
+
+>
+> In scheduling speak preemption is when we pick a runnable (but !running)
+> task to run instead of the current running task.  In this case however,
+> our T2 is blocked on a lock acquisition (one owned by our T1) and T1 is
+> the only runnable task. Only when T1's progress is inhibited by T2 (T1
+> wants a lock held by T2) do we wound/wake T2.
+
+Indeed. The preemption spoken about in the Wound-Wait litterature means 
+that a transaction preempts another transaction when it wounds it. In 
+distributed computing my understanding is that the preempted transaction 
+is aborted instantly and restarted after a random delay. Of course, we 
+have no means of mapping wounding to process preemption in the linux 
+kernel, so that's why I referred to it as "lazy preemption". In process 
+analogy "wounded" wound roughly correspond to (need_resched() == true), 
+and returning -EDEADLK would correspond to voluntary preemption.
+
+
+
+>
+> In any case, I had a little look at the current ww_mutex code and ended
+> up with the below patch that hopefully clarifies things a little.
+>
+> ---
+> diff --git a/kernel/locking/mutex.c b/kernel/locking/mutex.c
+> index f44f658ae629..a20c04619b2a 100644
+> --- a/kernel/locking/mutex.c
+> +++ b/kernel/locking/mutex.c
+> @@ -244,6 +244,10 @@ void __sched mutex_lock(struct mutex *lock)
+>   EXPORT_SYMBOL(mutex_lock);
+>   #endif
+>   
+> +/*
+> + * Associate the ww_mutex @ww with the context @ww_ctx under which we acquired
+> + * it.
+> + */
+
+IMO use of "acquire_context" or "context" is a little unfortunate when 
+the literature uses "transaction",
+but otherwise fine.
+
+
+>   static __always_inline void
+>   ww_mutex_lock_acquired(struct ww_mutex *ww, struct ww_acquire_ctx *ww_ctx)
+>   {
+> @@ -282,26 +286,36 @@ ww_mutex_lock_acquired(struct ww_mutex *ww, struct ww_acquire_ctx *ww_ctx)
+>   	DEBUG_LOCKS_WARN_ON(ww_ctx->ww_class != ww->ww_class);
+>   #endif
+>   	ww_ctx->acquired++;
+> +	lock->ctx = ctx;
+>   }
+>   
+> +/*
+> + * Determine if context @a is 'after' context @b. IOW, @a should be wounded in
+> + * favour of @b.
+> + */
+
+So "wounded" should never really be used with Wait-Die
+"Determine whether context @a represents a younger transaction than 
+context @b"?
+
+>   static inline bool __sched
+>   __ww_ctx_stamp_after(struct ww_acquire_ctx *a, struct ww_acquire_ctx *b)
+>   {
+> -	return a->stamp - b->stamp <= LONG_MAX &&
+> -	       (a->stamp != b->stamp || a > b);
+> +
+> +	return (signed long)(a->stamp - b->stamp) > 0;
+>   }
+>   
+>   /*
+> - * Wake up any waiters that may have to back off when the lock is held by the
+> - * given context.
+> + * We just acquired @lock under @ww_ctx, if there are later contexts waiting
+> + * behind us on the wait-list, wake them up so they can wound themselves.
+
+Actually for Wait-Die, Back off or "Die" is the correct terminology.
+
+>    *
+> - * Due to the invariants on the wait list, this can only affect the first
+> - * waiter with a context.
+> + * See __ww_mutex_add_waiter() for the list-order construction; basically the
+> + * list is ordered by stamp smallest (oldest) first, so if there is a later
+> + * (younger) stamp on the list behind us, wake it so it can wound itself.
+> + *
+> + * Because __ww_mutex_add_waiter() and __ww_mutex_check_stamp() wake any
+> + * but the earliest context, this can only affect the first waiter (with a
+> + * context).
+
+The wait list invariants are stated in 
+Documentation/locking/ww-mutex-design.txt.
+Perhaps we could copy those into the code to make the comment more 
+understandable:
+"  We maintain the following invariants for the wait list:
+   (1) Waiters with an acquire context are sorted by stamp order; waiters
+       without an acquire context are interspersed in FIFO order.
+   (2) For Wait-Die, among waiters with contexts, only the first one can 
+have
+       other locks acquired already (ctx->acquired > 0). Note that this 
+waiter
+       may come after other waiters without contexts in the list."
+
+>    *
+>    * The current task must not be on the wait list.
+>    */
+>   static void __sched
+> -__ww_mutex_wakeup_for_backoff(struct mutex *lock, struct ww_acquire_ctx *ww_ctx)
+> +__ww_mutex_wakeup_for_wound(struct mutex *lock, struct ww_acquire_ctx *ww_ctx)
+
+Again, "wound" is unsuitable for Wait-Die. + numerous additional places.
+
+Thanks,
+Thomas
