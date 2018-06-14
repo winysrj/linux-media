@@ -1,94 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:37925 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754621AbeFNJMC (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:55231 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750924AbeFNEME (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 05:12:02 -0400
-Received: by mail-lf0-f66.google.com with SMTP id i83-v6so8267004lfh.5
-        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2018 02:12:02 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <9cb304df-c600-918a-1c73-8daa9644f9c3@linaro.org>
-References: <20180614074652.162796-1-keiichiw@chromium.org>
- <20180614074652.162796-3-keiichiw@chromium.org> <9cb304df-c600-918a-1c73-8daa9644f9c3@linaro.org>
-From: Keiichi Watanabe <keiichiw@chromium.org>
-Date: Thu, 14 Jun 2018 18:12:00 +0900
-Message-ID: <CAD90VcZT7M+egaBYXMdyGHUNq4wXmog9qFw3RjiPJ6cNszfkvA@mail.gmail.com>
-Subject: Re: [PATCH v3 2/3] media: v4l2-ctrl: Add control for VP9 profile
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 14 Jun 2018 00:12:04 -0400
+Message-ID: <beffb37bf5eaf12b3e51fdc660f31c4c@smtp-cloud9.xs4all.net>
+Date: Thu, 14 Jun 2018 06:12:01 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stanimir,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Thu, Jun 14, 2018 at 5:06 PM, Stanimir Varbanov
-<stanimir.varbanov@linaro.org> wrote:
-> Hi Keiichi,
->
-> On 06/14/2018 10:46 AM, Keiichi Watanabe wrote:
->> Add a new control V4L2_CID_MPEG_VIDEO_VP9_PROFILE for VP9
->> profiles. This control allows to select a desired profile for VP9
->> encoder and query for supported profiles by VP9 encoder/decoder.
->>
->> Though this control is similar to V4L2_CID_MPEG_VIDEO_VP8_PROFILE, we need to
->> separate this control from it because supported profiles usually differ between
->> VP8 and VP9.
->>
->> Signed-off-by: Keiichi Watanabe <keiichiw@chromium.org>
->> ---
->>  .../media/uapi/v4l/extended-controls.rst      | 25 +++++++++++++++++++
->>  drivers/media/v4l2-core/v4l2-ctrls.c          | 11 ++++++++
->>  include/uapi/linux/v4l2-controls.h            |  7 ++++++
->>  3 files changed, 43 insertions(+)
->>
->> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
->> index de99eafb0872..095b42e9d6fe 100644
->> --- a/Documentation/media/uapi/v4l/extended-controls.rst
->> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
->> @@ -1980,6 +1980,31 @@ enum v4l2_mpeg_video_vp8_profile -
->>      * - ``V4L2_MPEG_VIDEO_VP8_PROFILE_3``
->>        - Profile 3
->>
->> +.. _v4l2-mpeg-video-vp9-profile:
->> +
->> +``V4L2_CID_MPEG_VIDEO_VP9_PROFILE``
->> +    (enum)
->> +
->> +enum v4l2_mpeg_video_vp9_profile -
->
+Results of the daily build of media_tree:
 
-> what about vp9 levels, shouldn't we add them too? Or we will add it when
-> there is a user.
->
-It sounds good, but I don't think we should include them in this
-series of patches now.
-As you said, we can add them when someone wants to use them.
+date:			Thu Jun 14 05:00:14 CEST 2018
+media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
+media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
+v4l-utils git hash:	c3b46c2c53d7d815a53c902cfb2ddd96c3732c5b
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-Best regards,
-Keiichi
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17-i686: OK
+linux-4.17-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
->
-> --
-> regards,
-> Stan
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
