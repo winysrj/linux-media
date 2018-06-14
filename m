@@ -1,428 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46888 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754959AbeFNNCp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 09:02:45 -0400
-Date: Thu, 14 Jun 2018 16:02:42 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: bingbu.cao@intel.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        sakari.ailus@linux.intel.com, tfiga@google.com, jacopo@jmondi.org,
-        rajmohan.mani@intel.com, bingbu.cao@linux.intel.com,
-        tian.shu.qiu@intel.com, jian.xu.zheng@intel.com
-Subject: Re: [PATCH v4 2/2] media: ak7375: Add ak7375 lens voice coil driver
-Message-ID: <20180614130242.eyr4fafmlynrra6l@valkosipuli.retiisi.org.uk>
-References: <1528343433-2475-1-git-send-email-bingbu.cao@intel.com>
- <1528343433-2475-2-git-send-email-bingbu.cao@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1528343433-2475-2-git-send-email-bingbu.cao@intel.com>
+Received: from mail.bootlin.com ([62.4.15.54]:50130 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755127AbeFNNCe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 09:02:34 -0400
+Message-ID: <2d9de70f50bbf358592c3e219a3e4890bb0806d6.camel@bootlin.com>
+Subject: Re: [PATCH v3 02/14] drivers: soc: sunxi: Add dedicated compatibles
+ for the A13, A20 and A33
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Alexandre Courbot <gnurou@gmail.com>,
+        Florent Revest <florent.revest@free-electrons.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Randy Li <ayaka@soulik.info>
+Date: Thu, 14 Jun 2018 15:02:31 +0200
+In-Reply-To: <20180511102033.i6jtzljbvkg47wz3@flea>
+References: <20180507124500.20434-1-paul.kocialkowski@bootlin.com>
+         <20180507124500.20434-3-paul.kocialkowski@bootlin.com>
+         <CAGb2v67An8RSCKEDSgW_jY7m8iw22K4rRHb02q67decmCBcjhg@mail.gmail.com>
+         <20180511102033.i6jtzljbvkg47wz3@flea>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-NuyhO5kvTiC4yiicAtYf"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bingbu,
 
-Thanks for the update. A few comments below; then I think we're done...
+--=-NuyhO5kvTiC4yiicAtYf
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 07, 2018 at 11:50:33AM +0800, bingbu.cao@intel.com wrote:
-> From: Bingbu Cao <bingbu.cao@intel.com>
-> 
-> Add a v4l2 sub-device driver for the ak7375 lens voice coil.
-> This is a voice coil module using the i2c bus to control the
-> focus position.
-> 
-> ak7375 can write multiple bytes of data at a time. If more
-> data is received instead of the stop condition after receiving
-> one byte of data, the address inside the chip is automatically
-> incremented and the data is written into the next address.
-> 
-> The ak7375 can control the position with 12 bits value and
-> consists of two 8 bit registers show as below:
-> register 0x00(AK7375_REG_POSITION):
->     +---+---+---+---+---+---+---+---+
->     |D11|D10|D09|D08|D07|D06|D05|D04|
->     +---+---+---+---+---+---+---+---+
-> register 0x01:
->     +---+---+---+---+---+---+---+---+
->     |D03|D02|D01|D00|---|---|---|---|
->     +---+---+---+---+---+---+---+---+
-> 
-> This driver support :
->     - set ak7375 to standby mode once suspend and
->       turn it back to active if resume
->     - set the position via V4L2_CID_FOCUS_ABSOLUTE ctrl
-> 
-> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
-> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
-> 
-> ---
-> Changes from v1 -> v3:
->     - correct i2c write
->     - add media_entity_pads_init() into probe
->     - move the MAINTAINERs change into dt-binding change
->     - correct the compatible stringa
-> Changes since v3:
->     - add active flag to indicate the mode
-> ---
-> ---
->  drivers/media/i2c/Kconfig  |  10 ++
->  drivers/media/i2c/Makefile |   1 +
->  drivers/media/i2c/ak7375.c | 289 +++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 300 insertions(+)
->  create mode 100644 drivers/media/i2c/ak7375.c
-> 
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index 341452fe98df..ff3cb5afb0e1 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -326,6 +326,16 @@ config VIDEO_AD5820
->  	  This is a driver for the AD5820 camera lens voice coil.
->  	  It is used for example in Nokia N900 (RX-51).
->  
-> +config VIDEO_AK7375
-> +	tristate "AK7375 lens voice coil support"
-> +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-> +	depends on VIDEO_V4L2_SUBDEV_API
-> +	help
-> +	  This is a driver for the AK7375 camera lens voice coil.
-> +	  AK7375 is a 12 bit DAC with 120mA output current sink
-> +	  capability. This is designed for linear control of
-> +	  voice coil motors, controlled via I2C serial interface.
-> +
->  config VIDEO_DW9714
->  	tristate "DW9714 lens voice coil support"
->  	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-> index d679d57cd3b3..05b97e319ea9 100644
-> --- a/drivers/media/i2c/Makefile
-> +++ b/drivers/media/i2c/Makefile
-> @@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7127) += saa7127.o
->  obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
->  obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
->  obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
-> +obj-$(CONFIG_VIDEO_AK7375)  += ak7375.o
->  obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
->  obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
->  obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
-> diff --git a/drivers/media/i2c/ak7375.c b/drivers/media/i2c/ak7375.c
-> new file mode 100644
-> index 000000000000..e716821cf438
-> --- /dev/null
-> +++ b/drivers/media/i2c/ak7375.c
-> @@ -0,0 +1,289 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +// Copyright (C) 2018 Intel Corporation
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/delay.h>
-> +#include <linux/i2c.h>
-> +#include <linux/module.h>
-> +#include <linux/pm_runtime.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +
-> +#define AK7375_MAX_FOCUS_POS	4095
-> +/*
-> + * This sets the minimum granularity for the focus positions.
-> + * A value of 1 gives maximum accuracy for a desired focus position
-> + */
-> +#define AK7375_FOCUS_STEPS	1
-> +/*
-> + * This acts as the minimum granularity of lens movement.
-> + * Keep this value power of 2, so the control steps can be
-> + * uniformly adjusted for gradual lens movement, with desired
-> + * number of control steps.
-> + */
-> +#define AK7375_CTRL_STEPS	64
-> +#define AK7375_CTRL_DELAY_US	1000
-> +
-> +#define AK7375_REG_POSITION	0x0
-> +#define AK7375_REG_CONT		0x2
-> +#define AK7375_MODE_ACTIVE	0x0
-> +#define AK7375_MODE_STANDBY	0x40
-> +
-> +/* ak7375 device structure */
-> +struct ak7375_device {
-> +	struct v4l2_ctrl_handler ctrls_vcm;
-> +	struct v4l2_subdev sd;
-> +	struct v4l2_ctrl *focus;
-> +	/* active or standby mode */
-> +	bool active;
-> +};
-> +
-> +static inline struct ak7375_device *to_ak7375_vcm(struct v4l2_ctrl *ctrl)
-> +{
-> +	return container_of(ctrl->handler, struct ak7375_device, ctrls_vcm);
-> +}
-> +
-> +static inline struct ak7375_device *sd_to_ak7375_vcm(struct v4l2_subdev *subdev)
-> +{
-> +	return container_of(subdev, struct ak7375_device, sd);
-> +}
-> +
-> +static int ak7375_i2c_write(struct ak7375_device *ak7375,
-> +	u8 addr, u16 data, int size)
+Hi,
 
-unsigned int size
+On Fri, 2018-05-11 at 12:20 +0200, Maxime Ripard wrote:
+> On Thu, May 10, 2018 at 10:05:33PM -0700, Chen-Yu Tsai wrote:
+> > On Mon, May 7, 2018 at 5:44 AM, Paul Kocialkowski
+> > <paul.kocialkowski@bootlin.com> wrote:
+> > > This introduces platform-specific compatibles for the A13, A20 and A3=
+3
+> > > SRAM driver. No particular adaptation for these platforms is required=
+ at
+> > > this point, although this might become the case in the future.
+> > >=20
+> > > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> > > ---
+> > >  drivers/soc/sunxi/sunxi_sram.c | 3 +++
+> > >  1 file changed, 3 insertions(+)
+> > >=20
+> > > diff --git a/drivers/soc/sunxi/sunxi_sram.c b/drivers/soc/sunxi/sunxi=
+_sram.c
+> > > index 74cb81f37bd6..43ebc3bd33f2 100644
+> > > --- a/drivers/soc/sunxi/sunxi_sram.c
+> > > +++ b/drivers/soc/sunxi/sunxi_sram.c
+> > > @@ -315,6 +315,9 @@ static int sunxi_sram_probe(struct platform_devic=
+e *pdev)
+> > >=20
+> > >  static const struct of_device_id sunxi_sram_dt_match[] =3D {
+> > >         { .compatible =3D "allwinner,sun4i-a10-sram-controller" },
+> > > +       { .compatible =3D "allwinner,sun5i-a13-sram-controller" },
+> > > +       { .compatible =3D "allwinner,sun7i-a20-sram-controller" },
+> > > +       { .compatible =3D "allwinner,sun8i-a33-sram-controller" },
+> >=20
+> > We should probably name these "system-controller". Maxime?
 
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&ak7375->sd);
-> +	int ret;
-> +	u8 buf[3];
+Would you like me to make that change for v4 of this series, or have it
+a separate follow-up patch outside of this series?
 
-ret would be better declared after buf.
+> This would make sense yes, but we don't really need to add the A20 one
+> to the driver, it's exactly the same than the A10.
 
-> +
-> +	if (size != 1 && size != 2)
-> +		return -EINVAL;
-> +	buf[0] = addr;
-> +	buf[size] = data & 0xff;
-> +	if (size == 2)
-> +		buf[1] = (data >> 8) & 0xff;
-> +	ret = i2c_master_send(client, (const char *)buf, size + 1);
-> +	if (ret < 0)
-> +		return ret;
-> +	if (ret != size + 1)
-> +		return -EIO;
-> +	return 0;
-> +}
-> +
-> +static int ak7375_set_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct ak7375_device *dev_vcm = to_ak7375_vcm(ctrl);
-> +
-> +	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE)
-> +		return ak7375_i2c_write(dev_vcm, AK7375_REG_POSITION,
-> +					ctrl->val << 4, 2);
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops ak7375_vcm_ctrl_ops = {
-> +	.s_ctrl = ak7375_set_ctrl,
-> +};
-> +
-> +static int ak7375_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> +{
-> +	int rval;
+Noted, I'll ditch the a20 compatible from the next revison of the
+series.
 
-Please name variables for integer return values consistently. The driver
-now uses ret, rval and val.
+Thanks for the feedback,
 
-> +
-> +	rval = pm_runtime_get_sync(sd->dev);
-> +	if (rval < 0) {
-> +		pm_runtime_put_noidle(sd->dev);
-> +		return rval;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ak7375_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> +{
-> +	pm_runtime_put(sd->dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_internal_ops ak7375_int_ops = {
-> +	.open = ak7375_open,
-> +	.close = ak7375_close,
-> +};
-> +
-> +static const struct v4l2_subdev_ops ak7375_ops = { };
-> +
-> +static void ak7375_subdev_cleanup(struct ak7375_device *ak7375_dev)
-> +{
-> +	v4l2_async_unregister_subdev(&ak7375_dev->sd);
-> +	v4l2_ctrl_handler_free(&ak7375_dev->ctrls_vcm);
-> +	media_entity_cleanup(&ak7375_dev->sd.entity);
-> +}
-> +
-> +static int ak7375_init_controls(struct ak7375_device *dev_vcm)
-> +{
-> +	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
-> +	const struct v4l2_ctrl_ops *ops = &ak7375_vcm_ctrl_ops;
-> +
-> +	v4l2_ctrl_handler_init(hdl, 1);
-> +
-> +	dev_vcm->focus = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
-> +		0, AK7375_MAX_FOCUS_POS, AK7375_FOCUS_STEPS, 0);
-> +
-> +	if (hdl->error)
-> +		dev_err(dev_vcm->sd.dev, "%s fail error: 0x%x\n",
-> +			__func__, hdl->error);
-> +	dev_vcm->sd.ctrl_handler = hdl;
+Paul
 
-Newline here?
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+--=-NuyhO5kvTiC4yiicAtYf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-> +	return hdl->error;
-> +}
-> +
-> +static int ak7375_probe(struct i2c_client *client)
-> +{
-> +	struct ak7375_device *ak7375_dev;
-> +	int val;
-> +
-> +	ak7375_dev = devm_kzalloc(&client->dev, sizeof(*ak7375_dev),
-> +				  GFP_KERNEL);
-> +	if (!ak7375_dev)
-> +		return -ENOMEM;
-> +
-> +	v4l2_i2c_subdev_init(&ak7375_dev->sd, client, &ak7375_ops);
-> +	ak7375_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	ak7375_dev->sd.internal_ops = &ak7375_int_ops;
-> +	ak7375_dev->sd.entity.function = MEDIA_ENT_F_LENS;
-> +
-> +	val = ak7375_init_controls(ak7375_dev);
-> +	if (val)
-> +		goto err_cleanup;
-> +
-> +	val = media_entity_pads_init(&ak7375_dev->sd.entity, 0, NULL);
-> +	if (val < 0)
-> +		goto err_cleanup;
-> +
-> +	val = v4l2_async_register_subdev(&ak7375_dev->sd);
-> +	if (val < 0)
-> +		goto err_cleanup;
-> +
-> +	pm_runtime_set_active(&client->dev);
-> +	pm_runtime_enable(&client->dev);
-> +	pm_runtime_idle(&client->dev);
-> +
-> +	return 0;
-> +
-> +err_cleanup:
-> +	v4l2_ctrl_handler_free(&ak7375_dev->ctrls_vcm);
-> +	media_entity_cleanup(&ak7375_dev->sd.entity);
-> +	dev_err(&client->dev, "Probe failed: %d\n", val);
+-----BEGIN PGP SIGNATURE-----
 
-Here, too.
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlsiZ2cACgkQ3cLmz3+f
+v9FTYgf/Z9ccTpj1p9hC/kdcYrczKVXwwfvmVYxuNppZNMbwJs5Cx0+9tFM++wKk
+tunZP5oe7FvYLZT+RZz0uy6xhxYxvByNGzm1oqquCELEksl8UqY1TUFUjqTYEftk
+6o+ldMq4D36PZe6B16F+gSBaJUHbdGvzf1ZcgGJDj87k1eU8QaVAvfT9SQQ9viA9
+R7tnMPdroU1wEP+9Y95ExH1R0qZZ6WIhnGv5YEw6Jn4AhgxAL7JKHzW2sBL76To+
+3fOQsTMxBRKGG93zLMESn21OujSgtPm4pIPBH37551qPJLcvSDe4k8t82DE059Ee
+C8mQrYcPsGQrJfDvGzQqh6tiaHiUSA==
+=sdUU
+-----END PGP SIGNATURE-----
 
-> +	return val;
-> +}
-> +
-> +static int ak7375_remove(struct i2c_client *client)
-> +{
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
-> +
-> +	ak7375_subdev_cleanup(ak7375_dev);
-> +	pm_runtime_disable(&client->dev);
-> +	pm_runtime_set_suspended(&client->dev);
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * This function sets the vcm position, so it consumes least current
-> + * The lens position is gradually moved in units of AK7375_CTRL_STEPS,
-> + * to make the movements smoothly.
-> + */
-> +static int __maybe_unused ak7375_vcm_suspend(struct device *dev)
-> +{
-> +
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
-> +	int ret, val;
-> +
-> +	if (!ak7375_dev->active)
-> +		return 0;
-> +
-> +	for (val = ak7375_dev->focus->val & ~(AK7375_CTRL_STEPS - 1);
-> +	     val >= 0; val -= AK7375_CTRL_STEPS) {
-> +		ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_POSITION,
-> +				       val << 4, 2);
-> +		if (ret)
-> +			dev_err_once(dev, "%s I2C failure: %d\n",
-> +				     __func__, ret);
-> +		usleep_range(AK7375_CTRL_DELAY_US, AK7375_CTRL_DELAY_US + 10);
-> +	}
-> +
-> +	ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_CONT,
-> +			       AK7375_MODE_STANDBY, 1);
-> +	if (ret)
-> +		dev_err(dev, "%s I2C failure: %d\n", __func__, ret);
-> +
-> +	ak7375_dev->active = false;
-
-Newline?
-
-> +	return 0;
-> +}
-> +
-> +/*
-> + * This function sets the vcm position to the value set by the user
-> + * through v4l2_ctrl_ops s_ctrl handler
-> + * The lens position is gradually moved in units of AK7375_CTRL_STEPS,
-> + * to make the movements smoothly.
-> + */
-> +static int __maybe_unused ak7375_vcm_resume(struct device *dev)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
-> +	int ret, val;
-> +
-> +	if (ak7375_dev->active)
-> +		return 0;
-> +
-> +	ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_CONT,
-> +		AK7375_MODE_ACTIVE, 1);
-> +	if (ret) {
-> +		dev_err(dev, "%s I2C failure: %d\n", __func__, ret);
-> +		return ret;
-> +	}
-> +
-> +	for (val = ak7375_dev->focus->val % AK7375_CTRL_STEPS;
-> +	     val <= ak7375_dev->focus->val;
-> +	     val += AK7375_CTRL_STEPS) {
-> +		ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_POSITION,
-> +				       val << 4, 2);
-> +		if (ret)
-> +			dev_err_ratelimited(dev, "%s I2C failure: %d\n",
-> +						__func__, ret);
-> +		usleep_range(AK7375_CTRL_DELAY_US, AK7375_CTRL_DELAY_US + 10);
-> +	}
-> +
-> +	ak7375_dev->active = true;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct of_device_id ak7375_of_table[] = {
-> +	{ .compatible = "asahi-kasei,ak7375" },
-> +	{ /* sentinel */ }
-> +};
-> +MODULE_DEVICE_TABLE(of, ak7375_of_table);
-> +
-> +static const struct dev_pm_ops ak7375_pm_ops = {
-> +	SET_SYSTEM_SLEEP_PM_OPS(ak7375_vcm_suspend, ak7375_vcm_resume)
-> +	SET_RUNTIME_PM_OPS(ak7375_vcm_suspend, ak7375_vcm_resume, NULL)
-> +};
-> +
-> +static struct i2c_driver ak7375_i2c_driver = {
-> +	.driver = {
-> +		.name = "ak7375",
-> +		.pm = &ak7375_pm_ops,
-> +		.of_match_table = ak7375_of_table,
-> +	},
-> +	.probe_new = ak7375_probe,
-> +	.remove = ak7375_remove,
-> +};
-> +module_i2c_driver(ak7375_i2c_driver);
-> +
-> +MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
-> +MODULE_AUTHOR("Bingbu Cao <bingbu.cao@intel.com>");
-> +MODULE_DESCRIPTION("AK7375 VCM driver");
-> +MODULE_LICENSE("GPL v2");
-
-
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+--=-NuyhO5kvTiC4yiicAtYf--
