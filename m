@@ -1,65 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from michel.telenet-ops.be ([195.130.137.88]:35220 "EHLO
-        michel.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755084AbeFNPSc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 11:18:32 -0400
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+Received: from sauhun.de ([88.99.104.3]:51980 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755285AbeFNPeF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 11:34:05 -0400
+Date: Fri, 15 Jun 2018 00:33:58 +0900
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
+        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Simon Horman <horms@verge.net.au>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH/RFC 2/2] arm64: dts: renesas: salvator-common: Fix adv7482 decimal unit addresses
-Date: Thu, 14 Jun 2018 15:48:08 +0200
-Message-Id: <1528984088-24801-3-git-send-email-geert+renesas@glider.be>
-In-Reply-To: <1528984088-24801-1-git-send-email-geert+renesas@glider.be>
-References: <1528984088-24801-1-git-send-email-geert+renesas@glider.be>
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [RFC PATCH v2] media: i2c: add SCCB helpers
+Message-ID: <20180614153357.vgz4umv2aqudghm3@ninjato>
+References: <1528817686-7067-1-git-send-email-akinobu.mita@gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ogt4kb64h2rsdv5p"
+Content-Disposition: inline
+In-Reply-To: <1528817686-7067-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With recent dtc and W=1:
 
-    ...salvator-x.dtb: Warning (graph_port): /soc/i2c@e66d8000/video-receiver@70/port@10: graph node unit address error, expected "a"
-    ...salvator-x.dtb: Warning (graph_port): /soc/i2c@e66d8000/video-receiver@70/port@11: graph node unit address error, expected "b"
+--ogt4kb64h2rsdv5p
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Unit addresses are always hexadecimal (without prefix), while the bases
-of reg property values depend on their prefixes.
+On Wed, Jun 13, 2018 at 12:34:46AM +0900, Akinobu Mita wrote:
+> (This is 2nd version of SCCB helpers patch.  After 1st version was
+> submitted, I sent alternative patch titled "i2c: add I2C_M_FORCE_STOP".
+> But it wasn't accepted because it makes the I2C core code unreadable.
+> I couldn't find out a way to untangle it, so I returned to the original
+> approach.)
+>=20
+> This adds Serial Camera Control Bus (SCCB) helper functions (sccb_read_by=
+te
+> and sccb_write_byte) that are intended to be used by some of Omnivision
+> sensor drivers.
+>=20
+> The ov772x driver is going to use these functions in order to make it work
+> with most i2c controllers.
+>=20
+> As the ov772x device doesn't support repeated starts, this driver current=
+ly
+> requires I2C_FUNC_PROTOCOL_MANGLING that is not supported by many i2c
+> controller drivers.
+>=20
+> With the sccb_read_byte() that issues two separated requests in order to
+> avoid repeated start, the driver doesn't require I2C_FUNC_PROTOCOL_MANGLI=
+NG.
 
-Fixes: 908001d778eba06e ("arm64: dts: renesas: salvator-common: Add ADV7482 support")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
- arch/arm64/boot/dts/renesas/salvator-common.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+=46rom a first glance, this looks like my preferred solution so far.
+Thanks for doing it! Let me sleep a bit over it for a thorough review...
 
-diff --git a/arch/arm64/boot/dts/renesas/salvator-common.dtsi b/arch/arm64/boot/dts/renesas/salvator-common.dtsi
-index 320250d708c3bbab..47088206cc052a15 100644
---- a/arch/arm64/boot/dts/renesas/salvator-common.dtsi
-+++ b/arch/arm64/boot/dts/renesas/salvator-common.dtsi
-@@ -437,7 +437,7 @@
- 			};
- 		};
- 
--		port@10 {
-+		port@a {
- 			reg = <10>;
- 
- 			adv7482_txa: endpoint {
-@@ -447,7 +447,7 @@
- 			};
- 		};
- 
--		port@11 {
-+		port@b {
- 			reg = <11>;
- 
- 			adv7482_txb: endpoint {
--- 
-2.7.4
+> --- /dev/null
+> +++ b/drivers/media/i2c/sccb.h
+
+I'd prefer this file to be in the i2c realm. Maybe
+'include/linux/i2c-sccb.h" or something. I will come back to this.
+
+
+--ogt4kb64h2rsdv5p
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlsiiuAACgkQFA3kzBSg
+KbZw1BAAiOEK85Tbx4HkWj6fKtMEgE0MW5T8BtJUeKdY292zuETTYAYfYv+IEFDO
+cWzCUYhr8D/uIoHIyV/ACNLmJWJizNSbNmOcghUS+Nm4JoYMA0JfoopKqFFbyBOh
+P2sC9jMsyJfQAw9MaPYUWME5mmcWDXs1wCebtxvcssdIv+AP8UE2KpGG2mcC/Mbe
+vP6MkbjifZ20q9JNcbcg8HgTp/8132XScJjBpJBIeT7JBsYlVobyzCULX8Fy4V6w
+DY8eJwT9gUf+5wQyavIH7PrL9WtiNs/z0Rgpqh0opROTAEwN+zG4QXRGpi4dKM8x
+L6pGFHCZQN+gPQn2c/qxUVJvSp5tH8ZAcyTKa5JChEmgXBYtBVUnb0hPI1Z47IIR
+ggAb+n/EW2CJhG0kRDu5p+tKQ2RH3O88nzw/nCtvZKpeukpO+Xf0u9+ORuQpNPtO
+h3IcXfjWURCA/mkZH8426aMEEMRYE5FTDpI9zdtPxGR/4HgKWB9mqSX8u0ntGGHb
+kPnFOFx0WrAsGfVQoQS3YZ9sFuP8WPrnicGllAi7pf6ny6l4Ki5qYAroaTNx5c4j
+XPrDTy+acjeCH/RypPOA2xWn+J84ZyCrqsZswVdTET1evJWfzBgf9tUQ6wF4hWFA
+M8A4BQU0vGFh1p8icQGpK6HIl72Z8VKSt9mCz1EZqBibXlqJgrg=
+=to7b
+-----END PGP SIGNATURE-----
+
+--ogt4kb64h2rsdv5p--
