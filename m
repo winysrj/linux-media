@@ -1,38 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-he1eur01on0059.outbound.protection.outlook.com ([104.47.0.59]:7296
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+Received: from mail-eopbgr00045.outbound.protection.outlook.com ([40.107.0.45]:54912
+        "EHLO EUR02-AM5-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752813AbeFNGrL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 02:47:11 -0400
-Subject: Re: [PATCH v3 0/9] xen: dma-buf support for grant device
-To: jgross@suse.com, boris.ostrovsky@oracle.com
-Cc: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        id S1752781AbeFNHAa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 03:00:30 -0400
+Subject: Re: [PATCH v3 5/9] xen/gntdev: Allow mappings for DMA buffers
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
         xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
         dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        konrad.wilk@oracle.com, daniel.vetter@intel.com,
-        dongwon.kim@intel.com, matthew.d.roper@intel.com
+        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com
 References: <20180612134200.17456-1-andr2000@gmail.com>
+ <20180612134200.17456-6-andr2000@gmail.com>
 From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
-Message-ID: <1088db4b-cf75-817f-2112-41b96006cd3d@epam.com>
-Date: Thu, 14 Jun 2018 09:47:02 +0300
+Message-ID: <58836503-87be-2693-4665-4b0a55a170d3@epam.com>
+Date: Thu, 14 Jun 2018 10:00:22 +0300
 MIME-Version: 1.0
-In-Reply-To: <20180612134200.17456-1-andr2000@gmail.com>
+In-Reply-To: <20180612134200.17456-6-andr2000@gmail.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Boris!
+@@ -548,6 +632,17 @@ static int gntdev_open(struct inode *inode, struct 
+file *flip)
+>   	}
+>   
+>   	flip->private_data = priv;
+> +#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
+> +	priv->dma_dev = gntdev_miscdev.this_device;
+> +
+> +	/*
+> +	 * The device is not spawn from a device tree, so arch_setup_dma_ops
+> +	 * is not called, thus leaving the device with dummy DMA ops.
+> +	 * Fix this call of_dma_configure() with a NULL node to set
+> +	 * default DMA ops.
+> +	 */
+> +	of_dma_configure(priv->dma_dev, NULL);
+Please note, that the code above will need a change while
+applying to the mainline kernel because of API changes [1].
+Unfortunately, current Xen tip kernel tree is v4.17-rc5 based,
+so I cannot make the change in this patch now.
 
-It seems that I have resolved all the issues now which
-were mainly cleanup and code movement and 5 of 9 patches
-already have r-b's. Do you, as the primary reviewer of the
-series, think I can push (hopefully) the final version
-of the patches? Just in case you want to look at v4 it is at [1].
-
-Thank you,
-Oleksandr
-
+The change is trivial and requires:
+-of_dma_configure(priv->dma_dev, NULL);
++of_dma_configure(priv->dma_dev, NULL, true);
+> +#endif
+>   	pr_debug("priv %p\n", priv);
+>   
+>   	return 0;
+>
 [1] 
-https://github.com/andr2000/linux/commits/xen_tip_linux_next_xen_dma_buf_v4
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=3d6ce86ee79465e1b1b6e287f8ea26b553fc768e
