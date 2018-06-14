@@ -1,14 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0060.outbound.protection.outlook.com ([104.47.41.60]:52125
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1755010AbeFNNTS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 09:19:18 -0400
-Subject: Re: [PATCH v2 1/2] locking: Implement an algorithm choice for
- Wound-Wait mutexes
-From: Thomas Hellstrom <thellstrom@vmware.com>
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+Received: from bombadil.infradead.org ([198.137.202.133]:41892 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755092AbeFNN3K (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 09:29:10 -0400
+Date: Thu, 14 Jun 2018 06:29:05 -0700
+From: Matthew Wilcox <willy@infradead.org>
+To: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: Peter Zijlstra <peterz@infradead.org>,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         Ingo Molnar <mingo@redhat.com>,
         Jonathan Corbet <corbet@lwn.net>,
         Gustavo Padovan <gustavo@padovan.org>,
@@ -24,108 +24,30 @@ Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
         linaro-mm-sig@lists.linaro.org
+Subject: Re: [PATCH v2 1/2] locking: Implement an algorithm choice for
+ Wound-Wait mutexes
+Message-ID: <20180614132905.GA7841@bombadil.infradead.org>
 References: <20180614072922.8114-1-thellstrom@vmware.com>
  <20180614072922.8114-2-thellstrom@vmware.com>
- <20180614124129.GA12198@hirez.programming.kicks-ass.net>
- <3d73590a-13de-9164-4b32-9d7da6a1055b@vmware.com>
-Message-ID: <cf725c06-e0cc-d28b-d3f3-62fe59e565fe@vmware.com>
-Date: Thu, 14 Jun 2018 15:18:56 +0200
+ <20180614113604.GZ12198@hirez.programming.kicks-ass.net>
+ <7eb10c22-57b3-1472-0a77-7f787f612217@vmware.com>
 MIME-Version: 1.0
-In-Reply-To: <3d73590a-13de-9164-4b32-9d7da6a1055b@vmware.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7eb10c22-57b3-1472-0a77-7f787f612217@vmware.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/14/2018 02:48 PM, Thomas Hellstrom wrote:
-> Hi, Peter,
->
-> On 06/14/2018 02:41 PM, Peter Zijlstra wrote:
->> On Thu, Jun 14, 2018 at 09:29:21AM +0200, Thomas Hellstrom wrote:
->>> +static bool __ww_mutex_wound(struct mutex *lock,
->>> +                 struct ww_acquire_ctx *ww_ctx,
->>> +                 struct ww_acquire_ctx *hold_ctx)
->>> +{
->>> +    struct task_struct *owner = __mutex_owner(lock);
->>> +
->>> +    lockdep_assert_held(&lock->wait_lock);
->>> +
->>> +    if (owner && hold_ctx && __ww_ctx_stamp_after(hold_ctx, ww_ctx) &&
->>> +        ww_ctx->acquired > 0) {
->>> +        hold_ctx->wounded = 1;
->>> +
->>> +        /*
->>> +         * wake_up_process() paired with set_current_state() inserts
->>> +         * sufficient barriers to make sure @owner either sees it's
->>> +         * wounded or has a wakeup pending to re-read the wounded
->>> +         * state.
->>> +         *
->>> +         * The value of hold_ctx->wounded in
->>> +         * __ww_mutex_lock_check_stamp();
->>> +         */
->>> +        if (owner != current)
->>> +            wake_up_process(owner);
->>> +
->>> +        return true;
->>> +    }
->>> +
->>> +    return false;
->>> +}
->>> @@ -338,12 +377,18 @@ ww_mutex_set_context_fastpath(struct ww_mutex 
->>> *lock, struct ww_acquire_ctx *ctx)
->>>        * and keep spinning, or it will acquire wait_lock, add itself
->>>        * to waiter list and sleep.
->>>        */
->>> -    smp_mb(); /* ^^^ */
->>> +    smp_mb(); /* See comments above and below. */
->>>         /*
->>> -     * Check if lock is contended, if not there is nobody to wake up
->>> +     * Check if lock is contended, if not there is nobody to wake up.
->>> +     * We can use list_empty() unlocked here since it only compares a
->>> +     * list_head field pointer to the address of the list head
->>> +     * itself, similarly to how list_empty() can be considered 
->>> RCU-safe.
->>> +     * The memory barrier above pairs with the memory barrier in
->>> +     * __ww_mutex_add_waiter and makes sure lock->ctx is visible 
->>> before
->>> +     * we check for waiters.
->>>        */
->>> -    if (likely(!(atomic_long_read(&lock->base.owner) & 
->>> MUTEX_FLAG_WAITERS)))
->>> +    if (likely(list_empty(&lock->base.wait_list)))
->>>           return;
->> OK, so what happens is that if we see !empty list, we take wait_lock,
->> if we end up in __ww_mutex_wound() we must really have !empty wait-list.
->>
->> It can however still see !owner because __mutex_unlock_slowpath() can
->> clear the owner field. But if owner is set, it must stay valid because
->> FLAG_WAITERS and we're holding wait_lock.
->
-> If __ww_mutex_wound() is called from ww_mutex_set_context_fastpath() 
-> owner is the current process so we can never see !owner. However if 
-> __ww_mutex_wound() is called from __ww_mutex_add_waiter() then the 
-> above is true.
+On Thu, Jun 14, 2018 at 01:54:15PM +0200, Thomas Hellstrom wrote:
+> On 06/14/2018 01:36 PM, Peter Zijlstra wrote:
+> > Currently you don't allow mixing WD and WW contexts (which is not
+> > immediately obvious from the above code), and the above hard relies on
+> > that. Are there sensible use cases for mixing them? IOW will your
+> > current restriction stand without hassle?
+> 
+> Contexts _must_ agree on the algorithm used to resolve deadlocks. With
+> Wait-Die, for example, older transactions will wait if a lock is held by a
+> younger transaction and with Wound-Wait, younger transactions will wait if a
+> lock is held by an older transaction so there is no way of mixing them.
 
-Or actually it was intended to be true, but FLAG_WAITERS is set too 
-late. It needs to be moved to just after we actually add the waiter to 
-the list.
-
-Then the hunk that replaces a FLAG_WAITERS read with a lockless 
-list_empty() can also be ditched.
-
-/Thomas
-
-
->
->>
->> So the wake_up_process() is in fact safe.
->>
->> Let me put that in a comment.
->
->
-> Thanks,
->
-> Thomas
->
->
+Maybe the compiler should be enforcing that; ie make it a different type?
