@@ -1,1521 +1,542 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:45144 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936212AbeFONTt (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:34924 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964966AbeFOQYe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 09:19:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/3] Documentation/media/uapi/mediactl: redo tables
-Date: Fri, 15 Jun 2018 15:19:44 +0200
-Message-Id: <20180615131946.79802-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180615131946.79802-1-hverkuil@xs4all.nl>
-References: <20180615131946.79802-1-hverkuil@xs4all.nl>
+        Fri, 15 Jun 2018 12:24:34 -0400
+Message-ID: <7641c73146ce5d8db73912d7625c7830f9c08615.camel@collabora.com>
+Subject: Re: [RFC 1/2] media: add helpers for memory-to-memory media
+ controller
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        kernel@collabora.com
+Date: Fri, 15 Jun 2018 13:22:56 -0300
+In-Reply-To: <8f9244b1-b547-5e4c-cc89-793d8e9b427c@xs4all.nl>
+References: <20180612104827.11565-1-ezequiel@collabora.com>
+         <20180612104827.11565-2-ezequiel@collabora.com>
+         <8f9244b1-b547-5e4c-cc89-793d8e9b427c@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-Drop the '-  .. row 1' lines to make it easier to add new rows to
-the tables in the future without having to renumber these lines.
+Thanks for the review.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../uapi/mediactl/media-ioc-device-info.rst   |  48 +-
- .../uapi/mediactl/media-ioc-enum-entities.rst |  83 +--
- .../uapi/mediactl/media-ioc-enum-links.rst    |  70 +--
- .../uapi/mediactl/media-ioc-g-topology.rst    | 204 ++-----
- .../media/uapi/mediactl/media-types.rst       | 499 +++++-------------
- 5 files changed, 185 insertions(+), 719 deletions(-)
+On Fri, 2018-06-15 at 11:24 +0200, Hans Verkuil wrote:
+> On 12/06/18 12:48, Ezequiel Garcia wrote:
+> > A memory-to-memory pipeline device consists in three
+> > entities: two DMA engine and one video processing entities.
+> > The DMA engine entities are linked to a V4L interface.
+> > 
+> > This commit add a new v4l2_m2m_{un}register_media_controller
+> > API to register this topology.
+> > 
+> > For instance, a typical mem2mem device topology would
+> > look like this:
+> > 
+> > - entity 1: input (1 pad, 1 link)
+> >             type Node subtype Unknown flags 0
+> > 	pad0: Source
+> > 		-> "proc":1 [ENABLED,IMMUTABLE]
+> > 
+> > - entity 3: proc (2 pads, 2 links)
+> >             type Node subtype Unknown flags 0
+> > 	pad0: Source
+> > 		-> "output":0 [ENABLED,IMMUTABLE]
+> > 	pad1: Sink
+> > 		<- "input":0 [ENABLED,IMMUTABLE]
+> > 
+> > - entity 6: output (1 pad, 1 link)
+> >             type Node subtype Unknown flags 0
+> > 	pad0: Sink
+> > 		<- "proc":0 [ENABLED,IMMUTABLE]
+> > 
+> > Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Suggested-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-dev.c     |  23 ++--
+> >  drivers/media/v4l2-core/v4l2-mem2mem.c | 157 +++++++++++++++++++++++++
+> >  include/media/media-entity.h           |   4 +
+> >  include/media/v4l2-dev.h               |   2 +
+> >  include/media/v4l2-mem2mem.h           |   5 +
+> >  include/uapi/linux/media.h             |   2 +
+> >  6 files changed, 186 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> > index 4ffd7d60a901..ec8f20f0fdc5 100644
+> > --- a/drivers/media/v4l2-core/v4l2-dev.c
+> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> > @@ -202,7 +202,7 @@ static void v4l2_device_release(struct device *cd)
+> >  	mutex_unlock(&videodev_lock);
+> >  
+> >  #if defined(CONFIG_MEDIA_CONTROLLER)
+> > -	if (v4l2_dev->mdev) {
+> > +	if (v4l2_dev->mdev && vdev->vfl_type != VFL_TYPE_MEM2MEM) {
+> 
+> As mentioned this should be vfl_dir != VFL_DIR_M2M. No need for a new VFL_TYPE.
+> 
 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-device-info.rst b/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
-index f690f9afc470..649cb3d9e058 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
-@@ -48,12 +48,8 @@ ioctl never fails.
-     :widths:       1 1 2
- 
- 
--    -  .. row 1
--
--       -  char
--
-+    *  -  char
-        -  ``driver``\ [16]
--
-        -  Name of the driver implementing the media API as a NUL-terminated
- 	  ASCII string. The driver version is stored in the
- 	  ``driver_version`` field.
-@@ -62,66 +58,38 @@ ioctl never fails.
- 	  the driver identity. It is also useful to work around known bugs,
- 	  or to identify drivers in error reports.
- 
--    -  .. row 2
--
--       -  char
--
-+    *  -  char
-        -  ``model``\ [32]
--
-        -  Device model name as a NUL-terminated UTF-8 string. The device
- 	  version is stored in the ``device_version`` field and is not be
- 	  appended to the model name.
- 
--    -  .. row 3
--
--       -  char
--
-+    *  -  char
-        -  ``serial``\ [40]
--
-        -  Serial number as a NUL-terminated ASCII string.
- 
--    -  .. row 4
--
--       -  char
--
-+    *  -  char
-        -  ``bus_info``\ [32]
--
-        -  Location of the device in the system as a NUL-terminated ASCII
- 	  string. This includes the bus type name (PCI, USB, ...) and a
- 	  bus-specific identifier.
- 
--    -  .. row 5
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``media_version``
--
-        -  Media API version, formatted with the ``KERNEL_VERSION()`` macro.
- 
--    -  .. row 6
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``hw_revision``
--
-        -  Hardware device revision in a driver-specific format.
- 
--    -  .. row 7
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``driver_version``
--
-        -  Media device driver version, formatted with the
- 	  ``KERNEL_VERSION()`` macro. Together with the ``driver`` field
- 	  this identifies a particular driver.
- 
--    -  .. row 8
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved``\ [31]
--
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
- 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst b/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst
-index 582fda488810..961466ae821d 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst
-@@ -58,142 +58,87 @@ id's until they get an error.
-     :stub-columns: 0
-     :widths: 1 1 1 1 8
- 
--
--    -  .. row 1
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``id``
--
-        -
-        -
-        -  Entity id, set by the application. When the id is or'ed with
- 	  ``MEDIA_ENT_ID_FLAG_NEXT``, the driver clears the flag and returns
- 	  the first entity with a larger id.
- 
--    -  .. row 2
--
--       -  char
--
-+    *  -  char
-        -  ``name``\ [32]
--
-        -
-        -
-        -  Entity name as an UTF-8 NULL-terminated string.
- 
--    -  .. row 3
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``type``
--
-        -
-        -
-        -  Entity type, see :ref:`media-entity-functions` for details.
- 
--    -  .. row 4
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``revision``
--
-        -
-        -
-        -  Entity revision. Always zero (obsolete)
- 
--    -  .. row 5
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``flags``
--
-        -
-        -
-        -  Entity flags, see :ref:`media-entity-flag` for details.
- 
--    -  .. row 6
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``group_id``
--
-        -
-        -
-        -  Entity group ID. Always zero (obsolete)
- 
--    -  .. row 7
--
--       -  __u16
--
-+    *  -  __u16
-        -  ``pads``
--
-        -
-        -
-        -  Number of pads
- 
--    -  .. row 8
--
--       -  __u16
--
-+    *  -  __u16
-        -  ``links``
--
-        -
-        -
-        -  Total number of outbound links. Inbound links are not counted in
- 	  this field.
- 
--    -  .. row 9
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved[4]``
--
-        -
-        -
-        -  Reserved for future extensions. Drivers and applications must set
-           the array to zero.
- 
--    -  .. row 10
--
--       -  union
--
--    -  .. row 11
-+    *  -  union
- 
--       -
-+    *  -
-        -  struct
--
-        -  ``dev``
--
-        -
-        -  Valid for (sub-)devices that create a single device node.
- 
--    -  .. row 12
--
--       -
-+    *  -
-        -
-        -  __u32
--
-        -  ``major``
--
-        -  Device node major number.
- 
--    -  .. row 13
--
--       -
-+    *  -
-        -
-        -  __u32
--
-        -  ``minor``
--
-        -  Device node minor number.
- 
--    -  .. row 14
--
--       -
-+    *  -
-        -  __u8
--
-        -  ``raw``\ [184]
--
-        -
-        -
- 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst b/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst
-index 256168b3c3be..17abdeed1a9c 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst
-@@ -62,35 +62,21 @@ returned during the enumeration process.
-     :stub-columns: 0
-     :widths:       1 1 2
- 
--
--    -  .. row 1
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``entity``
--
-        -  Entity id, set by the application.
- 
--    -  .. row 2
--
--       -  struct :c:type:`media_pad_desc`
--
-+    *  -  struct :c:type:`media_pad_desc`
-        -  \*\ ``pads``
--
-        -  Pointer to a pads array allocated by the application. Ignored if
- 	  NULL.
- 
--    -  .. row 3
--
--       -  struct :c:type:`media_link_desc`
--
-+    *  -  struct :c:type:`media_link_desc`
-        -  \*\ ``links``
--
-        -  Pointer to a links array allocated by the application. Ignored if
- 	  NULL.
- 
- 
--
- .. c:type:: media_pad_desc
- 
- .. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
-@@ -100,37 +86,20 @@ returned during the enumeration process.
-     :stub-columns: 0
-     :widths:       1 1 2
- 
--
--    -  .. row 1
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``entity``
--
-        -  ID of the entity this pad belongs to.
- 
--    -  .. row 2
--
--       -  __u16
--
-+    *  -  __u16
-        -  ``index``
--
-        -  0-based pad index.
- 
--    -  .. row 3
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``flags``
--
-        -  Pad flags, see :ref:`media-pad-flag` for more details.
- 
--    -  .. row 4
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved[2]``
--
-        -  Reserved for future extensions. Drivers and applications must set
-           the array to zero.
- 
-@@ -145,37 +114,20 @@ returned during the enumeration process.
-     :stub-columns: 0
-     :widths:       1 1 2
- 
--
--    -  .. row 1
--
--       -  struct :c:type:`media_pad_desc`
--
-+    *  -  struct :c:type:`media_pad_desc`
-        -  ``source``
--
-        -  Pad at the origin of this link.
- 
--    -  .. row 2
--
--       -  struct :c:type:`media_pad_desc`
--
-+    *  -  struct :c:type:`media_pad_desc`
-        -  ``sink``
--
-        -  Pad at the target of this link.
- 
--    -  .. row 3
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``flags``
--
-        -  Link flags, see :ref:`media-link-flag` for more details.
- 
--    -  .. row 4
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved[4]``
--
-        -  Reserved for future extensions. Drivers and applications must set
-           the array to zero.
- 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-index c4055ddf070a..a3f259f83b25 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-@@ -55,119 +55,66 @@ desired arrays with the media graph elements.
-     :stub-columns: 0
-     :widths: 1 2 8
- 
--
--    -  .. row 1
--
--       -  __u64
--
-+    *  -  __u64
-        -  ``topology_version``
--
-        -  Version of the media graph topology. When the graph is created,
- 	  this field starts with zero. Every time a graph element is added
- 	  or removed, this field is incremented.
- 
--    -  .. row 2
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``num_entities``
--
-        -  Number of entities in the graph
- 
--    -  .. row 3
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved1``
--
-        -  Applications and drivers shall set this to 0.
- 
--    -  .. row 4
--
--       -  __u64
--
-+    *  -  __u64
-        -  ``ptr_entities``
--
-        -  A pointer to a memory area where the entities array will be
- 	  stored, converted to a 64-bits integer. It can be zero. if zero,
- 	  the ioctl won't store the entities. It will just update
- 	  ``num_entities``
- 
--    -  .. row 5
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``num_interfaces``
--
-        -  Number of interfaces in the graph
- 
--    -  .. row 6
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved2``
--
-        -  Applications and drivers shall set this to 0.
- 
--    -  .. row 7
--
--       -  __u64
--
-+    *  -  __u64
-        -  ``ptr_interfaces``
--
-        -  A pointer to a memory area where the interfaces array will be
- 	  stored, converted to a 64-bits integer. It can be zero. if zero,
- 	  the ioctl won't store the interfaces. It will just update
- 	  ``num_interfaces``
- 
--    -  .. row 8
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``num_pads``
--
-        -  Total number of pads in the graph
- 
--    -  .. row 9
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved3``
--
-        -  Applications and drivers shall set this to 0.
- 
--    -  .. row 10
--
--       -  __u64
--
-+    *  -  __u64
-        -  ``ptr_pads``
--
-        -  A pointer to a memory area where the pads array will be stored,
- 	  converted to a 64-bits integer. It can be zero. if zero, the ioctl
- 	  won't store the pads. It will just update ``num_pads``
- 
--    -  .. row 11
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``num_links``
--
-        -  Total number of data and interface links in the graph
- 
--    -  .. row 12
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved4``
--
-        -  Applications and drivers shall set this to 0.
- 
--    -  .. row 13
--
--       -  __u64
--
-+    *  -  __u64
-        -  ``ptr_links``
--
-        -  A pointer to a memory area where the links array will be stored,
- 	  converted to a 64-bits integer. It can be zero. if zero, the ioctl
- 	  won't store the links. It will just update ``num_links``
-@@ -182,37 +129,20 @@ desired arrays with the media graph elements.
-     :stub-columns: 0
-     :widths: 1 2 8
- 
--
--    -  .. row 1
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``id``
--
-        -  Unique ID for the entity.
- 
--    -  .. row 2
--
--       -  char
--
-+    *  -  char
-        -  ``name``\ [64]
--
-        -  Entity name as an UTF-8 NULL-terminated string.
- 
--    -  .. row 3
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``function``
--
-        -  Entity main function, see :ref:`media-entity-functions` for details.
- 
--    -  .. row 4
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved``\ [6]
--
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
- 
-@@ -226,45 +156,25 @@ desired arrays with the media graph elements.
-     :stub-columns: 0
-     :widths: 1 2 8
- 
--    -  .. row 1
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``id``
--
-        -  Unique ID for the interface.
- 
--    -  .. row 2
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``intf_type``
--
-        -  Interface type, see :ref:`media-intf-type` for details.
- 
--    -  .. row 3
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``flags``
--
-        -  Interface flags. Currently unused.
- 
--    -  .. row 4
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved``\ [9]
--
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
- 
--    -  .. row 5
--
--       -  struct media_v2_intf_devnode
--
-+    *  -  struct media_v2_intf_devnode
-        -  ``devnode``
--
-        -  Used only for device node interfaces. See
- 	  :c:type:`media_v2_intf_devnode` for details..
- 
-@@ -278,24 +188,14 @@ desired arrays with the media graph elements.
-     :stub-columns: 0
-     :widths: 1 2 8
- 
--
--    -  .. row 1
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``major``
--
-        -  Device node major number.
- 
--    -  .. row 2
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``minor``
--
-        -  Device node minor number.
- 
--
- .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
- 
- .. c:type:: media_v2_pad
-@@ -305,37 +205,20 @@ desired arrays with the media graph elements.
-     :stub-columns: 0
-     :widths: 1 2 8
- 
--
--    -  .. row 1
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``id``
--
-        -  Unique ID for the pad.
- 
--    -  .. row 2
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``entity_id``
--
-        -  Unique ID for the entity where this pad belongs.
- 
--    -  .. row 3
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``flags``
--
-        -  Pad flags, see :ref:`media-pad-flag` for more details.
- 
--    -  .. row 4
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved``\ [5]
--
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
- 
-@@ -349,49 +232,28 @@ desired arrays with the media graph elements.
-     :stub-columns: 0
-     :widths: 1 2 8
- 
--
--    -  .. row 1
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``id``
--
-        -  Unique ID for the link.
- 
--    -  .. row 2
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``source_id``
--
-        -  On pad to pad links: unique ID for the source pad.
- 
- 	  On interface to entity links: unique ID for the interface.
- 
--    -  .. row 3
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``sink_id``
--
-        -  On pad to pad links: unique ID for the sink pad.
- 
- 	  On interface to entity links: unique ID for the entity.
- 
--    -  .. row 4
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``flags``
--
-        -  Link flags, see :ref:`media-link-flag` for more details.
- 
--    -  .. row 5
--
--       -  __u32
--
-+    *  -  __u32
-        -  ``reserved``\ [6]
--
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
- 
-diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-index 2dda14bd89b7..96910cf2eaaa 100644
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -8,6 +8,38 @@ Types and flags used to represent the media graph elements
- ..  tabularcolumns:: |p{8.2cm}|p{10.3cm}|
- 
- .. _media-entity-functions:
-+.. _MEDIA-ENT-F-UNKNOWN:
-+.. _MEDIA-ENT-F-V4L2-SUBDEV-UNKNOWN:
-+.. _MEDIA-ENT-F-IO-V4L:
-+.. _MEDIA-ENT-F-IO-VBI:
-+.. _MEDIA-ENT-F-IO-SWRADIO:
-+.. _MEDIA-ENT-F-IO-DTV:
-+.. _MEDIA-ENT-F-DTV-DEMOD:
-+.. _MEDIA-ENT-F-TS-DEMUX:
-+.. _MEDIA-ENT-F-DTV-CA:
-+.. _MEDIA-ENT-F-DTV-NET-DECAP:
-+.. _MEDIA-ENT-F-CONN-RF:
-+.. _MEDIA-ENT-F-CONN-SVIDEO:
-+.. _MEDIA-ENT-F-CONN-COMPOSITE:
-+.. _MEDIA-ENT-F-CAM-SENSOR:
-+.. _MEDIA-ENT-F-FLASH:
-+.. _MEDIA-ENT-F-LENS:
-+.. _MEDIA-ENT-F-ATV-DECODER:
-+.. _MEDIA-ENT-F-TUNER:
-+.. _MEDIA-ENT-F-IF-VID-DECODER:
-+.. _MEDIA-ENT-F-IF-AUD-DECODER:
-+.. _MEDIA-ENT-F-AUDIO-CAPTURE:
-+.. _MEDIA-ENT-F-AUDIO-PLAYBACK:
-+.. _MEDIA-ENT-F-AUDIO-MIXER:
-+.. _MEDIA-ENT-F-PROC-VIDEO-COMPOSER:
-+.. _MEDIA-ENT-F-PROC-VIDEO-PIXEL-FORMATTER:
-+.. _MEDIA-ENT-F-PROC-VIDEO-PIXEL-ENC-CONV:
-+.. _MEDIA-ENT-F-PROC-VIDEO-LUT:
-+.. _MEDIA-ENT-F-PROC-VIDEO-SCALER:
-+.. _MEDIA-ENT-F-PROC-VIDEO-STATISTICS:
-+.. _MEDIA-ENT-F-VID-MUX:
-+.. _MEDIA-ENT-F-VID-IF-BRIDGE:
-+.. _MEDIA-ENT-F-DTV-DECODER:
- 
- .. cssclass:: longtable
- 
-@@ -15,139 +47,56 @@ Types and flags used to represent the media graph elements
-     :header-rows:  0
-     :stub-columns: 0
- 
--
--    -  .. row 1
--
--       .. _MEDIA-ENT-F-UNKNOWN:
--       .. _MEDIA-ENT-F-V4L2-SUBDEV-UNKNOWN:
--
--       -  ``MEDIA_ENT_F_UNKNOWN`` and
--
-+    *  -  ``MEDIA_ENT_F_UNKNOWN`` and
- 	  ``MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN``
--
-        -  Unknown entity. That generally indicates that a driver didn't
- 	  initialize properly the entity, which is a Kernel bug
- 
--    -  .. row 2
--
--       ..  _MEDIA-ENT-F-IO-V4L:
--
--       -  ``MEDIA_ENT_F_IO_V4L``
--
-+    *  -  ``MEDIA_ENT_F_IO_V4L``
-        -  Data streaming input and/or output entity.
- 
--    -  .. row 3
--
--       ..  _MEDIA-ENT-F-IO-VBI:
--
--       -  ``MEDIA_ENT_F_IO_VBI``
--
-+    *  -  ``MEDIA_ENT_F_IO_VBI``
-        -  V4L VBI streaming input or output entity
- 
--    -  .. row 4
--
--       ..  _MEDIA-ENT-F-IO-SWRADIO:
--
--       -  ``MEDIA_ENT_F_IO_SWRADIO``
--
-+    *  -  ``MEDIA_ENT_F_IO_SWRADIO``
-        -  V4L Software Digital Radio (SDR) streaming input or output entity
- 
--    -  .. row 5
--
--       ..  _MEDIA-ENT-F-IO-DTV:
--
--       -  ``MEDIA_ENT_F_IO_DTV``
--
-+    *  -  ``MEDIA_ENT_F_IO_DTV``
-        -  DVB Digital TV streaming input or output entity
- 
--    -  .. row 6
--
--       ..  _MEDIA-ENT-F-DTV-DEMOD:
--
--       -  ``MEDIA_ENT_F_DTV_DEMOD``
--
-+    *  -  ``MEDIA_ENT_F_DTV_DEMOD``
-        -  Digital TV demodulator entity.
- 
--    -  .. row 7
--
--       ..  _MEDIA-ENT-F-TS-DEMUX:
--
--       -  ``MEDIA_ENT_F_TS_DEMUX``
--
-+    *  -  ``MEDIA_ENT_F_TS_DEMUX``
-        -  MPEG Transport stream demux entity. Could be implemented on
- 	  hardware or in Kernelspace by the Linux DVB subsystem.
- 
--    -  .. row 8
--
--       ..  _MEDIA-ENT-F-DTV-CA:
--
--       -  ``MEDIA_ENT_F_DTV_CA``
--
-+    *  -  ``MEDIA_ENT_F_DTV_CA``
-        -  Digital TV Conditional Access module (CAM) entity
- 
--    -  .. row 9
--
--       ..  _MEDIA-ENT-F-DTV-NET-DECAP:
--
--       -  ``MEDIA_ENT_F_DTV_NET_DECAP``
--
-+    *  -  ``MEDIA_ENT_F_DTV_NET_DECAP``
-        -  Digital TV network ULE/MLE desencapsulation entity. Could be
- 	  implemented on hardware or in Kernelspace
- 
--    -  .. row 10
--
--       ..  _MEDIA-ENT-F-CONN-RF:
--
--       -  ``MEDIA_ENT_F_CONN_RF``
--
-+    *  -  ``MEDIA_ENT_F_CONN_RF``
-        -  Connector for a Radio Frequency (RF) signal.
- 
--    -  .. row 11
--
--       ..  _MEDIA-ENT-F-CONN-SVIDEO:
--
--       -  ``MEDIA_ENT_F_CONN_SVIDEO``
--
-+    *  -  ``MEDIA_ENT_F_CONN_SVIDEO``
-        -  Connector for a S-Video signal.
- 
--    -  .. row 12
--
--       ..  _MEDIA-ENT-F-CONN-COMPOSITE:
--
--       -  ``MEDIA_ENT_F_CONN_COMPOSITE``
--
-+    *  -  ``MEDIA_ENT_F_CONN_COMPOSITE``
-        -  Connector for a RGB composite signal.
- 
--    -  .. row 13
--
--       ..  _MEDIA-ENT-F-CAM-SENSOR:
--
--       -  ``MEDIA_ENT_F_CAM_SENSOR``
--
-+    *  -  ``MEDIA_ENT_F_CAM_SENSOR``
-        -  Camera video sensor entity.
- 
--    -  .. row 14
--
--       ..  _MEDIA-ENT-F-FLASH:
--
--       -  ``MEDIA_ENT_F_FLASH``
--
-+    *  -  ``MEDIA_ENT_F_FLASH``
-        -  Flash controller entity.
- 
--    -  .. row 15
--
--       ..  _MEDIA-ENT-F-LENS:
--
--       -  ``MEDIA_ENT_F_LENS``
--
-+    *  -  ``MEDIA_ENT_F_LENS``
-        -  Lens controller entity.
- 
--    -  .. row 16
--
--       ..  _MEDIA-ENT-F-ATV-DECODER:
--
--       -  ``MEDIA_ENT_F_ATV_DECODER``
--
-+    *  -  ``MEDIA_ENT_F_ATV_DECODER``
-        -  Analog video decoder, the basic function of the video decoder is
- 	  to accept analogue video from a wide variety of sources such as
- 	  broadcast, DVD players, cameras and video cassette recorders, in
-@@ -155,36 +104,21 @@ Types and flags used to represent the media graph elements
- 	  its component parts, luminance and chrominance, and output it in
- 	  some digital video standard, with appropriate timing signals.
- 
--    -  .. row 17
--
--       ..  _MEDIA-ENT-F-TUNER:
--
--       -  ``MEDIA_ENT_F_TUNER``
--
-+    *  -  ``MEDIA_ENT_F_TUNER``
-        -  Digital TV, analog TV, radio and/or software radio tuner, with
- 	  consists on a PLL tuning stage that converts radio frequency (RF)
- 	  signal into an Intermediate Frequency (IF). Modern tuners have
- 	  internally IF-PLL decoders for audio and video, but older models
- 	  have those stages implemented on separate entities.
- 
--    -  .. row 18
--
--       ..  _MEDIA-ENT-F-IF-VID-DECODER:
--
--       -  ``MEDIA_ENT_F_IF_VID_DECODER``
--
-+    *  -  ``MEDIA_ENT_F_IF_VID_DECODER``
-        -  IF-PLL video decoder. It receives the IF from a PLL and decodes
- 	  the analog TV video signal. This is commonly found on some very
- 	  old analog tuners, like Philips MK3 designs. They all contain a
- 	  tda9887 (or some software compatible similar chip, like tda9885).
- 	  Those devices use a different I2C address than the tuner PLL.
- 
--    -  .. row 19
--
--       ..  _MEDIA-ENT-F-IF-AUD-DECODER:
--
--       -  ``MEDIA_ENT_F_IF_AUD_DECODER``
--
-+    *  -  ``MEDIA_ENT_F_IF_AUD_DECODER``
-        -  IF-PLL sound decoder. It receives the IF from a PLL and decodes
- 	  the analog TV audio signal. This is commonly found on some very
- 	  old analog hardware, like Micronas msp3400, Philips tda9840,
-@@ -192,36 +126,16 @@ Types and flags used to represent the media graph elements
- 	  tuner PLL and should be controlled together with the IF-PLL video
- 	  decoder.
- 
--    -  .. row 20
--
--       ..  _MEDIA-ENT-F-AUDIO-CAPTURE:
--
--       -  ``MEDIA_ENT_F_AUDIO_CAPTURE``
--
-+    *  -  ``MEDIA_ENT_F_AUDIO_CAPTURE``
-        -  Audio Capture Function Entity.
- 
--    -  .. row 21
--
--       ..  _MEDIA-ENT-F-AUDIO-PLAYBACK:
--
--       -  ``MEDIA_ENT_F_AUDIO_PLAYBACK``
--
-+    *  -  ``MEDIA_ENT_F_AUDIO_PLAYBACK``
-        -  Audio Playback Function Entity.
- 
--    -  .. row 22
--
--       ..  _MEDIA-ENT-F-AUDIO-MIXER:
--
--       -  ``MEDIA_ENT_F_AUDIO_MIXER``
--
-+    *  -  ``MEDIA_ENT_F_AUDIO_MIXER``
-        -  Audio Mixer Function Entity.
- 
--    -  .. row 23
--
--       ..  _MEDIA-ENT-F-PROC-VIDEO-COMPOSER:
--
--       -  ``MEDIA_ENT_F_PROC_VIDEO_COMPOSER``
--
-+    *  -  ``MEDIA_ENT_F_PROC_VIDEO_COMPOSER``
-        -  Video composer (blender). An entity capable of video
- 	  composing must have at least two sink pads and one source
- 	  pad, and composes input video frames onto output video
-@@ -229,12 +143,7 @@ Types and flags used to represent the media graph elements
- 	  color keying, raster operations (ROP), stitching or any other
- 	  means.
- 
--    -  ..  row 24
--
--       ..  _MEDIA-ENT-F-PROC-VIDEO-PIXEL-FORMATTER:
--
--       -  ``MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER``
--
-+    *  -  ``MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER``
-        -  Video pixel formatter. An entity capable of pixel formatting
- 	  must have at least one sink pad and one source pad. Read
- 	  pixel formatters read pixels from memory and perform a subset
-@@ -243,12 +152,7 @@ Types and flags used to represent the media graph elements
- 	  a subset of dithering, pixel encoding conversion and packing
- 	  and write pixels to memory.
- 
--    -  ..  row 25
--
--       ..  _MEDIA-ENT-F-PROC-VIDEO-PIXEL-ENC-CONV:
--
--       -  ``MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV``
--
-+    *  -  ``MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV``
-        -  Video pixel encoding converter. An entity capable of pixel
- 	  enconding conversion must have at least one sink pad and one
- 	  source pad, and convert the encoding of pixels received on
-@@ -257,12 +161,7 @@ Types and flags used to represent the media graph elements
- 	  to RGB to/from HSV, RGB to/from YUV and CFA (Bayer) to RGB
- 	  conversions.
- 
--    -  ..  row 26
--
--       ..  _MEDIA-ENT-F-PROC-VIDEO-LUT:
--
--       -  ``MEDIA_ENT_F_PROC_VIDEO_LUT``
--
-+    *  -  ``MEDIA_ENT_F_PROC_VIDEO_LUT``
-        -  Video look-up table. An entity capable of video lookup table
- 	  processing must have one sink pad and one source pad. It uses
- 	  the values of the pixels received on its sink pad to look up
-@@ -271,12 +170,7 @@ Types and flags used to represent the media graph elements
- 	  separately or combine them for multi-dimensional table
- 	  lookups.
- 
--    -  ..  row 27
--
--       ..  _MEDIA-ENT-F-PROC-VIDEO-SCALER:
--
--       -  ``MEDIA_ENT_F_PROC_VIDEO_SCALER``
--
-+    *  -  ``MEDIA_ENT_F_PROC_VIDEO_SCALER``
-        -  Video scaler. An entity capable of video scaling must have
- 	  at least one sink pad and one source pad, and scale the
- 	  video frame(s) received on its sink pad(s) to a different
-@@ -287,46 +181,26 @@ Types and flags used to represent the media graph elements
- 	  sub-sampling (occasionally also referred to as skipping) are
- 	  considered as scaling.
- 
--    -  ..  row 28
--
--       ..  _MEDIA-ENT-F-PROC-VIDEO-STATISTICS:
--
--       -  ``MEDIA_ENT_F_PROC_VIDEO_STATISTICS``
--
-+    *  -  ``MEDIA_ENT_F_PROC_VIDEO_STATISTICS``
-        -  Video statistics computation (histogram, 3A, etc.). An entity
- 	  capable of statistics computation must have one sink pad and
- 	  one source pad. It computes statistics over the frames
- 	  received on its sink pad and outputs the statistics data on
- 	  its source pad.
- 
--    -  ..  row 29
--
--       ..  _MEDIA-ENT-F-VID-MUX:
--
--       -  ``MEDIA_ENT_F_VID_MUX``
--
-+    *  -  ``MEDIA_ENT_F_VID_MUX``
-        - Video multiplexer. An entity capable of multiplexing must have at
-          least two sink pads and one source pad, and must pass the video
-          frame(s) received from the active sink pad to the source pad.
- 
--    -  ..  row 30
--
--       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
--
--       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
--
-+    *  -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
-        - Video interface bridge. A video interface bridge entity must have at
-          least one sink pad and at least one source pad. It receives video
-          frames on its sink pad from an input video bus of one type (HDMI, eDP,
-          MIPI CSI-2, etc.), and outputs them on its source pad to an output
-          video bus of another type (eDP, MIPI CSI-2, parallel, etc.).
- 
--    -  ..  row 31
--
--       ..  _MEDIA-ENT-F-DTV-DECODER:
--
--       -  ``MEDIA_ENT_F_DTV_DECODER``
--
-+    *  -  ``MEDIA_ENT_F_DTV_DECODER``
-        -  Digital video decoder. The basic function of the video decoder is
- 	  to accept digital video from a wide variety of sources
- 	  and output it in some digital video standard, with appropriate
-@@ -335,263 +209,145 @@ Types and flags used to represent the media graph elements
- ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
- .. _media-entity-flag:
-+.. _MEDIA-ENT-FL-DEFAULT:
-+.. _MEDIA-ENT-FL-CONNECTOR:
- 
- .. flat-table:: Media entity flags
-     :header-rows:  0
-     :stub-columns: 0
- 
--
--    -  .. row 1
--
--       ..  _MEDIA-ENT-FL-DEFAULT:
--
--       -  ``MEDIA_ENT_FL_DEFAULT``
--
-+    *  -  ``MEDIA_ENT_FL_DEFAULT``
-        -  Default entity for its type. Used to discover the default audio,
- 	  VBI and video devices, the default camera sensor, etc.
- 
--    -  .. row 2
--
--       ..  _MEDIA-ENT-FL-CONNECTOR:
--
--       -  ``MEDIA_ENT_FL_CONNECTOR``
--
-+    *  -  ``MEDIA_ENT_FL_CONNECTOR``
-        -  The entity represents a connector.
- 
- 
- ..  tabularcolumns:: |p{6.5cm}|p{6.0cm}|p{5.0cm}|
- 
- .. _media-intf-type:
-+.. _MEDIA-INTF-T-DVB-FE:
-+.. _MEDIA-INTF-T-DVB-DEMUX:
-+.. _MEDIA-INTF-T-DVB-DVR:
-+.. _MEDIA-INTF-T-DVB-CA:
-+.. _MEDIA-INTF-T-DVB-NET:
-+.. _MEDIA-INTF-T-V4L-VIDEO:
-+.. _MEDIA-INTF-T-V4L-VBI:
-+.. _MEDIA-INTF-T-V4L-RADIO:
-+.. _MEDIA-INTF-T-V4L-SUBDEV:
-+.. _MEDIA-INTF-T-V4L-SWRADIO:
-+.. _MEDIA-INTF-T-V4L-TOUCH:
-+.. _MEDIA-INTF-T-ALSA-PCM-CAPTURE:
-+.. _MEDIA-INTF-T-ALSA-PCM-PLAYBACK:
-+.. _MEDIA-INTF-T-ALSA-CONTROL:
-+.. _MEDIA-INTF-T-ALSA-COMPRESS:
-+.. _MEDIA-INTF-T-ALSA-RAWMIDI:
-+.. _MEDIA-INTF-T-ALSA-HWDEP:
-+.. _MEDIA-INTF-T-ALSA-SEQUENCER:
-+.. _MEDIA-INTF-T-ALSA-TIMER:
- 
- .. flat-table:: Media interface types
-     :header-rows:  0
-     :stub-columns: 0
- 
--
--    -  .. row 1
--
--       ..  _MEDIA-INTF-T-DVB-FE:
--
--       -  ``MEDIA_INTF_T_DVB_FE``
--
-+    *  -  ``MEDIA_INTF_T_DVB_FE``
-        -  Device node interface for the Digital TV frontend
--
-        -  typically, /dev/dvb/adapter?/frontend?
- 
--    -  .. row 2
--
--       ..  _MEDIA-INTF-T-DVB-DEMUX:
--
--       -  ``MEDIA_INTF_T_DVB_DEMUX``
--
-+    *  -  ``MEDIA_INTF_T_DVB_DEMUX``
-        -  Device node interface for the Digital TV demux
--
-        -  typically, /dev/dvb/adapter?/demux?
- 
--    -  .. row 3
--
--       ..  _MEDIA-INTF-T-DVB-DVR:
--
--       -  ``MEDIA_INTF_T_DVB_DVR``
--
-+    *  -  ``MEDIA_INTF_T_DVB_DVR``
-        -  Device node interface for the Digital TV DVR
--
-        -  typically, /dev/dvb/adapter?/dvr?
- 
--    -  .. row 4
--
--       ..  _MEDIA-INTF-T-DVB-CA:
--
--       -  ``MEDIA_INTF_T_DVB_CA``
--
-+    *  -  ``MEDIA_INTF_T_DVB_CA``
-        -  Device node interface for the Digital TV Conditional Access
--
-        -  typically, /dev/dvb/adapter?/ca?
- 
--    -  .. row 5
--
--       ..  _MEDIA-INTF-T-DVB-NET:
--
--       -  ``MEDIA_INTF_T_DVB_NET``
--
-+    *  -  ``MEDIA_INTF_T_DVB_NET``
-        -  Device node interface for the Digital TV network control
--
-        -  typically, /dev/dvb/adapter?/net?
- 
--    -  .. row 6
--
--       ..  _MEDIA-INTF-T-V4L-VIDEO:
--
--       -  ``MEDIA_INTF_T_V4L_VIDEO``
--
-+    *  -  ``MEDIA_INTF_T_V4L_VIDEO``
-        -  Device node interface for video (V4L)
--
-        -  typically, /dev/video?
- 
--    -  .. row 7
--
--       ..  _MEDIA-INTF-T-V4L-VBI:
--
--       -  ``MEDIA_INTF_T_V4L_VBI``
--
-+    *  -  ``MEDIA_INTF_T_V4L_VBI``
-        -  Device node interface for VBI (V4L)
--
-        -  typically, /dev/vbi?
- 
--    -  .. row 8
--
--       ..  _MEDIA-INTF-T-V4L-RADIO:
--
--       -  ``MEDIA_INTF_T_V4L_RADIO``
--
-+    *  -  ``MEDIA_INTF_T_V4L_RADIO``
-        -  Device node interface for radio (V4L)
--
-        -  typically, /dev/radio?
- 
--    -  .. row 9
--
--       ..  _MEDIA-INTF-T-V4L-SUBDEV:
--
--       -  ``MEDIA_INTF_T_V4L_SUBDEV``
--
-+    *  -  ``MEDIA_INTF_T_V4L_SUBDEV``
-        -  Device node interface for a V4L subdevice
--
-        -  typically, /dev/v4l-subdev?
- 
--    -  .. row 10
--
--       ..  _MEDIA-INTF-T-V4L-SWRADIO:
--
--       -  ``MEDIA_INTF_T_V4L_SWRADIO``
--
-+    *  -  ``MEDIA_INTF_T_V4L_SWRADIO``
-        -  Device node interface for Software Defined Radio (V4L)
--
-        -  typically, /dev/swradio?
- 
--    -  .. row 11
--
--       ..  _MEDIA-INTF-T-V4L-TOUCH:
--
--       -  ``MEDIA_INTF_T_V4L_TOUCH``
--
-+    *  -  ``MEDIA_INTF_T_V4L_TOUCH``
-        -  Device node interface for Touch device (V4L)
--
-        -  typically, /dev/v4l-touch?
- 
--    -  .. row 12
--
--       ..  _MEDIA-INTF-T-ALSA-PCM-CAPTURE:
--
--       -  ``MEDIA_INTF_T_ALSA_PCM_CAPTURE``
--
-+    *  -  ``MEDIA_INTF_T_ALSA_PCM_CAPTURE``
-        -  Device node interface for ALSA PCM Capture
--
-        -  typically, /dev/snd/pcmC?D?c
- 
--    -  .. row 13
--
--       ..  _MEDIA-INTF-T-ALSA-PCM-PLAYBACK:
--
--       -  ``MEDIA_INTF_T_ALSA_PCM_PLAYBACK``
--
-+    *  -  ``MEDIA_INTF_T_ALSA_PCM_PLAYBACK``
-        -  Device node interface for ALSA PCM Playback
--
-        -  typically, /dev/snd/pcmC?D?p
- 
--    -  .. row 14
--
--       ..  _MEDIA-INTF-T-ALSA-CONTROL:
--
--       -  ``MEDIA_INTF_T_ALSA_CONTROL``
--
-+    *  -  ``MEDIA_INTF_T_ALSA_CONTROL``
-        -  Device node interface for ALSA Control
--
-        -  typically, /dev/snd/controlC?
- 
--    -  .. row 15
--
--       ..  _MEDIA-INTF-T-ALSA-COMPRESS:
--
--       -  ``MEDIA_INTF_T_ALSA_COMPRESS``
--
-+    *  -  ``MEDIA_INTF_T_ALSA_COMPRESS``
-        -  Device node interface for ALSA Compress
--
-        -  typically, /dev/snd/compr?
- 
--    -  .. row 16
--
--       ..  _MEDIA-INTF-T-ALSA-RAWMIDI:
--
--       -  ``MEDIA_INTF_T_ALSA_RAWMIDI``
--
-+    *  -  ``MEDIA_INTF_T_ALSA_RAWMIDI``
-        -  Device node interface for ALSA Raw MIDI
--
-        -  typically, /dev/snd/midi?
- 
--    -  .. row 17
--
--       ..  _MEDIA-INTF-T-ALSA-HWDEP:
--
--       -  ``MEDIA_INTF_T_ALSA_HWDEP``
--
-+    *  -  ``MEDIA_INTF_T_ALSA_HWDEP``
-        -  Device node interface for ALSA Hardware Dependent
--
-        -  typically, /dev/snd/hwC?D?
- 
--    -  .. row 18
--
--       ..  _MEDIA-INTF-T-ALSA-SEQUENCER:
--
--       -  ``MEDIA_INTF_T_ALSA_SEQUENCER``
--
-+    *  -  ``MEDIA_INTF_T_ALSA_SEQUENCER``
-        -  Device node interface for ALSA Sequencer
--
-        -  typically, /dev/snd/seq
- 
--    -  .. row 19
--
--       ..  _MEDIA-INTF-T-ALSA-TIMER:
--
--       -  ``MEDIA_INTF_T_ALSA_TIMER``
--
-+    *  -  ``MEDIA_INTF_T_ALSA_TIMER``
-        -  Device node interface for ALSA Timer
--
-        -  typically, /dev/snd/timer
- 
- 
- .. tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
- .. _media-pad-flag:
-+.. _MEDIA-PAD-FL-SINK:
-+.. _MEDIA-PAD-FL-SOURCE:
-+.. _MEDIA-PAD-FL-MUST-CONNECT:
- 
- .. flat-table:: Media pad flags
-     :header-rows:  0
-     :stub-columns: 0
- 
--
--    -  .. row 1
--
--       ..  _MEDIA-PAD-FL-SINK:
--
--       -  ``MEDIA_PAD_FL_SINK``
--
-+    *  -  ``MEDIA_PAD_FL_SINK``
-        -  Input pad, relative to the entity. Input pads sink data and are
- 	  targets of links.
- 
--    -  .. row 2
--
--       ..  _MEDIA-PAD-FL-SOURCE:
--
--       -  ``MEDIA_PAD_FL_SOURCE``
--
-+    *  -  ``MEDIA_PAD_FL_SOURCE``
-        -  Output pad, relative to the entity. Output pads source data and
- 	  are origins of links.
- 
--    -  .. row 3
--
--       ..  _MEDIA-PAD-FL-MUST-CONNECT:
--
--       -  ``MEDIA_PAD_FL_MUST_CONNECT``
--
-+    *  -  ``MEDIA_PAD_FL_MUST_CONNECT``
-        -  If this flag is set and the pad is linked to any other pad, then
- 	  at least one of those links must be enabled for the entity to be
- 	  able to stream. There could be temporary reasons (e.g. device
-@@ -606,46 +362,29 @@ must be set for every pad.
- .. tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
- .. _media-link-flag:
-+.. _MEDIA-LNK-FL-ENABLED:
-+.. _MEDIA-LNK-FL-IMMUTABLE:
-+.. _MEDIA-LNK-FL-DYNAMIC:
-+.. _MEDIA-LNK-FL-LINK-TYPE:
- 
- .. flat-table:: Media link flags
-     :header-rows:  0
-     :stub-columns: 0
- 
--
--    -  .. row 1
--
--       ..  _MEDIA-LNK-FL-ENABLED:
--
--       -  ``MEDIA_LNK_FL_ENABLED``
--
-+    *  -  ``MEDIA_LNK_FL_ENABLED``
-        -  The link is enabled and can be used to transfer media data. When
- 	  two or more links target a sink pad, only one of them can be
- 	  enabled at a time.
- 
--    -  .. row 2
--
--       ..  _MEDIA-LNK-FL-IMMUTABLE:
--
--       -  ``MEDIA_LNK_FL_IMMUTABLE``
--
-+    *  -  ``MEDIA_LNK_FL_IMMUTABLE``
-        -  The link enabled state can't be modified at runtime. An immutable
- 	  link is always enabled.
- 
--    -  .. row 3
--
--       ..  _MEDIA-LNK-FL-DYNAMIC:
--
--       -  ``MEDIA_LNK_FL_DYNAMIC``
--
-+    *  -  ``MEDIA_LNK_FL_DYNAMIC``
-        -  The link enabled state can be modified during streaming. This flag
- 	  is set by drivers and is read-only for applications.
- 
--    -  .. row 4
--
--       ..  _MEDIA-LNK-FL-LINK-TYPE:
--
--       -  ``MEDIA_LNK_FL_LINK_TYPE``
--
-+    *  -  ``MEDIA_LNK_FL_LINK_TYPE``
-        -  This is a bitmask that defines the type of the link. Currently,
- 	  two types of links are supported:
- 
--- 
-2.17.0
+Right.
+
+> >  		/* Remove interfaces and interface links */
+> >  		media_devnode_remove(vdev->intf_devnode);
+> >  		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+> > @@ -530,6 +530,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+> >  	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
+> >  	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
+> >  	bool is_tch = vdev->vfl_type == VFL_TYPE_TOUCH;
+> > +	bool is_m2m = vdev->vfl_type == VFL_TYPE_MEM2MEM;
+> 
+> And that means that this is also no longer needed.
+> 
+
+Right, it should be simplified a lot. I hated to introduce
+a new type, just thought it was the cleaner way.
+
+> >  	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
+> >  	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
+> >  
+> > @@ -576,7 +577,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+> >  	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
+> >  		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
+> >  
+> > -	if (is_vid || is_tch) {
+> > +	if (is_vid || is_m2m || is_tch) {
+> >  		/* video and metadata specific ioctls */
+> >  		if ((is_rx && (ops->vidioc_enum_fmt_vid_cap ||
+> >  			       ops->vidioc_enum_fmt_vid_cap_mplane ||
+> > @@ -669,7 +670,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+> >  			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+> >  	}
+> >  
+> > -	if (is_vid || is_vbi || is_sdr || is_tch) {
+> > +	if (is_vid || is_m2m || is_vbi || is_sdr || is_tch) {
+> >  		/* ioctls valid for video, metadata, vbi or sdr */
+> >  		SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
+> >  		SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
+> > @@ -682,7 +683,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+> >  		SET_VALID_IOCTL(ops, VIDIOC_STREAMOFF, vidioc_streamoff);
+> >  	}
+> >  
+> > -	if (is_vid || is_vbi || is_tch) {
+> > +	if (is_vid || is_m2m || is_vbi || is_tch) {
+> >  		/* ioctls valid for video or vbi */
+> >  		if (ops->vidioc_s_std)
+> >  			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
+> > @@ -733,7 +734,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+> >  			BASE_VIDIOC_PRIVATE);
+> >  }
+> >  
+> > -static int video_register_media_controller(struct video_device *vdev, int type)
+> > +static int video_register_media_controller(struct video_device *vdev)
+> >  {
+> >  #if defined(CONFIG_MEDIA_CONTROLLER)
+> >  	u32 intf_type;
+> > @@ -745,7 +746,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+> >  	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
+> >  	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
+> >  
+> > -	switch (type) {
+> > +	switch (vdev->vfl_type) {
+> >  	case VFL_TYPE_GRABBER:
+> >  		intf_type = MEDIA_INTF_T_V4L_VIDEO;
+> >  		vdev->entity.function = MEDIA_ENT_F_IO_V4L;
+> > @@ -774,6 +775,10 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+> >  		intf_type = MEDIA_INTF_T_V4L_SUBDEV;
+> >  		/* Entity will be created via v4l2_device_register_subdev() */
+> >  		break;
+> > +	case VFL_TYPE_MEM2MEM:
+> > +		/* Memory-to-memory devices are more complex and use
+> > +		 * their own function to register.
+> > +		 */
+> >  	default:
+> >  		return 0;
+> >  	}
+> > @@ -869,6 +874,10 @@ int __video_register_device(struct video_device *vdev,
+> >  	case VFL_TYPE_TOUCH:
+> >  		name_base = "v4l-touch";
+> >  		break;
+> > +	case VFL_TYPE_MEM2MEM:
+> > +		/* Maintain this name for backwards compatibility */
+> > +		name_base = "video";
+> > +		break;
+> >  	default:
+> >  		pr_err("%s called with unknown type: %d\n",
+> >  		       __func__, type);
+> > @@ -993,7 +1002,7 @@ int __video_register_device(struct video_device *vdev,
+> >  	v4l2_device_get(vdev->v4l2_dev);
+> >  
+> >  	/* Part 5: Register the entity. */
+> > -	ret = video_register_media_controller(vdev, type);
+> > +	ret = video_register_media_controller(vdev);
+> >  
+> >  	/* Part 6: Activate this minor. The char device can now be used. */
+> >  	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
+> > diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> > index c4f963d96a79..0505b65bfa68 100644
+> > --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+> > +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> > @@ -17,9 +17,11 @@
+> >  #include <linux/sched.h>
+> >  #include <linux/slab.h>
+> >  
+> > +#include <media/media-device.h>
+> >  #include <media/videobuf2-v4l2.h>
+> >  #include <media/v4l2-mem2mem.h>
+> >  #include <media/v4l2-dev.h>
+> > +#include <media/v4l2-device.h>
+> >  #include <media/v4l2-fh.h>
+> >  #include <media/v4l2-event.h>
+> >  
+> > @@ -50,6 +52,11 @@ module_param(debug, bool, 0644);
+> >   * offsets but for different queues */
+> >  #define DST_QUEUE_OFF_BASE	(1 << 30)
+> >  
+> > +struct v4l2_m2m_entity {
+> > +	struct media_entity entity;
+> > +	struct media_pad pads[2];
+> > +	char name[64];
+> > +};
+> >  
+> >  /**
+> >   * struct v4l2_m2m_dev - per-device context
+> > @@ -60,6 +67,10 @@ module_param(debug, bool, 0644);
+> >   */
+> >  struct v4l2_m2m_dev {
+> >  	struct v4l2_m2m_ctx	*curr_ctx;
+> > +#ifdef CONFIG_MEDIA_CONTROLLER
+> > +	struct v4l2_m2m_entity	entities[3];
+> > +	struct media_intf_devnode *intf_devnode;
+> > +#endif
+> >  
+> >  	struct list_head	job_queue;
+> >  	spinlock_t		job_spinlock;
+> > @@ -595,6 +606,152 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+> >  }
+> >  EXPORT_SYMBOL(v4l2_m2m_mmap);
+> >  
+> > +void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
+> > +{
+> > +	int i;
+> > +
+> > +	media_remove_intf_links(&m2m_dev->intf_devnode->intf);
+> > +	media_devnode_remove(m2m_dev->intf_devnode);
+> > +
+> > +	for (i = 0; i < 3; i++)
+> 
+> ARRAY_SIZE? Or use a define.
+> 
+
+Ugh, yes, you are right.
+
+> > +		media_entity_remove_links(&m2m_dev->entities[i].entity);
+> > +	for (i = 0; i < 3; i++)
+> 
+> Ditto.
+> 
+> > +		media_device_unregister_entity(&m2m_dev->entities[i].entity);
+> > +}
+> > +EXPORT_SYMBOL_GPL(v4l2_m2m_unregister_media_controller);
+> > +
+> > +#define MEM2MEM_ENT_TYPE_INPUT	1
+> > +#define MEM2MEM_ENT_TYPE_OUTPUT	2
+> > +#define MEM2MEM_ENT_TYPE_PROC	3
+> > +
+> > +static int v4l2_m2m_register_entity(struct media_device *mdev,
+> > +		struct v4l2_m2m_entity *m2m_entity, int type)
+> > +{
+> > +	unsigned int function;
+> > +	int num_pads;
+> > +	int ret;
+> > +
+> > +	switch (type) {
+> > +	case MEM2MEM_ENT_TYPE_INPUT:
+> > +		function = MEDIA_ENT_F_IO_DMAENGINE;
+> > +		m2m_entity->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+> > +		strlcpy(m2m_entity->name, "input", sizeof(m2m_entity->name));
+> > +		num_pads = 1;
+> > +		break;
+> > +	case MEM2MEM_ENT_TYPE_OUTPUT:
+> > +		function = MEDIA_ENT_F_IO_DMAENGINE;
+> > +		m2m_entity->pads[0].flags = MEDIA_PAD_FL_SINK;
+> > +		strlcpy(m2m_entity->name, "output", sizeof(m2m_entity->name));
+> 
+> Either use "capture" and "output" (to conform to the V4L2_BUF_TYPE naming) or
+> "source" and "sink".
+> 
+
+Right.
+
+> > +		num_pads = 1;
+> > +		break;
+> > +	case MEM2MEM_ENT_TYPE_PROC:
+> > +		function = MEDIA_ENT_F_PROC_VIDEO_TRANSFORM;
+> > +		m2m_entity->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+> > +		m2m_entity->pads[1].flags = MEDIA_PAD_FL_SINK;
+> > +		strlcpy(m2m_entity->name, "proc", sizeof(m2m_entity->name));
+> > +		num_pads = 2;
+> > +		break;
+> > +	default:
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	ret = media_entity_pads_init(&m2m_entity->entity, num_pads, m2m_entity->pads);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	m2m_entity->entity.obj_type = MEDIA_ENTITY_TYPE_MEM2MEM;
+> > +	m2m_entity->entity.function = function;
+> > +	m2m_entity->entity.name = m2m_entity->name;
+> 
+> Why not just strlcpy into the m2m_entity->entity.name field? Then you can
+> drop m2m_entity->name. Or am I missing something?
+> 
+
+Hm, I think you are right.
+
+> > +	ret = media_device_register_entity(mdev, &m2m_entity->entity);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev, struct video_device *vdev)
+> > +{
+> > +#if defined(CONFIG_MEDIA_CONTROLLER)
+> > +	struct media_device *mdev = vdev->v4l2_dev->mdev;
+> > +	struct media_link *link;
+> > +	int ret;
+> > +
+> > +	if (!mdev)
+> > +		return 0;
+> > +
+> > +	/* A memory-to-memory device consists in two
+> > +	 * DMA engine and one video processing entities.
+> > +	 * The DMA engine entities are linked to a V4L interface
+> > +	 */
+> > +
+> > +	/* Create the three entities with their pads */
+> > +	ret = v4l2_m2m_register_entity(mdev, &m2m_dev->entities[0], MEM2MEM_ENT_TYPE_INPUT);
+> > +	if (ret)
+> > +		return ret;
+> > +	ret = v4l2_m2m_register_entity(mdev, &m2m_dev->entities[1], MEM2MEM_ENT_TYPE_PROC);
+> > +	if (ret)
+> > +		goto err_rel_entity0;
+> > +	ret = v4l2_m2m_register_entity(mdev, &m2m_dev->entities[2], MEM2MEM_ENT_TYPE_OUTPUT);
+> > +	if (ret)
+> > +		goto err_rel_entity1;
+> > +
+> > +	/* Connect the three entities */
+> > +        ret = media_create_pad_link(&m2m_dev->entities[0].entity, 0,
+> > +			&m2m_dev->entities[1].entity, 1,
+> > +                        MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
+> 
+> Weird indentation.
+> 
+> > +	if (ret)
+> > +		goto err_rel_entity2;
+> > +
+> > +        ret = media_create_pad_link(&m2m_dev->entities[1].entity, 0,
+> > +			&m2m_dev->entities[2].entity, 0,
+> > +                        MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
+> 
+> Ditto.
+> 
+> > +	if (ret)
+> > +		goto err_rm_links0;
+> > +
+> > +	/* Create video interface */
+> > +	m2m_dev->intf_devnode = media_devnode_create(mdev, MEDIA_INTF_T_V4L_VIDEO, 0, VIDEO_MAJOR, vdev->minor);
+> > +	if (!m2m_dev->intf_devnode) {
+> > +		ret = -ENOMEM;
+> > +		goto err_rm_links1;
+> > +	}
+> > +
+> > +	/* Connect the two DMA engines to the interface */
+> > +	link = media_create_intf_link(&m2m_dev->entities[0].entity, &m2m_dev->intf_devnode->intf,
+> > +				MEDIA_LNK_FL_ENABLED);
+> > +	if (!link) {
+> > +		ret = -ENOMEM;
+> > +		goto err_rm_devnode;
+> > +	}
+> > +
+> > +	link = media_create_intf_link(&m2m_dev->entities[1].entity, &m2m_dev->intf_devnode->intf,
+> > +				MEDIA_LNK_FL_ENABLED);
+> > +	if (!link) {
+> > +		ret = -ENOMEM;
+> > +		goto err_rm_intf_link;
+> > +	}
+> > +	return 0;
+> > +
+> > +err_rm_intf_link:
+> > +	media_remove_intf_links(&m2m_dev->intf_devnode->intf);
+> > +err_rm_devnode:
+> > +	media_devnode_remove(m2m_dev->intf_devnode);
+> > +err_rm_links1:
+> > +	media_entity_remove_links(&m2m_dev->entities[2].entity);
+> > +err_rm_links0:
+> > +	media_entity_remove_links(&m2m_dev->entities[1].entity);
+> > +	media_entity_remove_links(&m2m_dev->entities[0].entity);
+> > +err_rel_entity2:
+> > +	media_device_unregister_entity(&m2m_dev->entities[2].entity);
+> > +err_rel_entity1:
+> > +	media_device_unregister_entity(&m2m_dev->entities[1].entity);
+> > +err_rel_entity0:
+> > +	media_device_unregister_entity(&m2m_dev->entities[0].entity);
+> > +	return ret;
+> > +#endif
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(v4l2_m2m_register_media_controller);
+> > +
+> >  struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops)
+> >  {
+> >  	struct v4l2_m2m_dev *m2m_dev;
+> 
+> Looking at this code I think it would be much cleaner if you drop the array
+> and make it explicit instead:
+> 
+> struct v4l2_m2m_entities {
+> 	struct media_entity source;
+> 	struct media_pad source_pad;
+> 	struct media_entity sink;
+> 	struct media_pad sink_pad;
+> 	struct media_entity proc;
+> 	struct media_pad proc_pads[2];
+> };
+> 
+> I think this will simplify the code quite a bit.
+> 
+> Note: one of these media_entity structs can be removed since struct video_device
+> already has an entity you can use. It probably makes the most sense to assign
+> that one the role of the sink or source entity.
+> 
+> Perhaps it might be easiest to change e.g. struct media_entity source to
+> 'struct media_entity *source' and have it point to &vdev->entity.
+> 
+> Up to you.
+> 
+
+Right, I'll take a look.
+
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index 3aa3d58d1d58..ff6fbe8333e1 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -206,6 +206,9 @@ struct media_entity_operations {
+> >   *	The entity is embedded in a struct video_device instance.
+> >   * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
+> >   *	The entity is embedded in a struct v4l2_subdev instance.
+> > + * @MEDIA_ENTITY_TYPE_V4L2_MEM2MEM:
+> > + *	The entity is not embedded in any struct, but part of
+> > + *	a memory-to-memory topology.
+> 
+> I see no need for this. An M2M device is of type VIDEO_DEVICE, no need to
+> change that.
+> 
+
+Well, the problem is that this type is used to cast the media_entity
+using container_of macro, by means of is_media_entity_v4l2_video_device
+and is_media_entity_v4l2_subdev.
+
+So, by using one these types we'd be breaking that assumption. 
+
+> >   *
+> >   * Media entity objects are often not instantiated directly, but the media
+> >   * entity structure is inherited by (through embedding) other subsystem-specific
+> > @@ -222,6 +225,7 @@ enum media_entity_type {
+> >  	MEDIA_ENTITY_TYPE_BASE,
+> >  	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
+> >  	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
+> > +	MEDIA_ENTITY_TYPE_MEM2MEM,
+> >  };
+> >  
+> >  /**
+> > diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> > index 456ac13eca1d..a9df949bb9c3 100644
+> > --- a/include/media/v4l2-dev.h
+> > +++ b/include/media/v4l2-dev.h
+> > @@ -30,6 +30,7 @@
+> >   * @VFL_TYPE_SUBDEV:	for V4L2 subdevices
+> >   * @VFL_TYPE_SDR:	for Software Defined Radio tuners
+> >   * @VFL_TYPE_TOUCH:	for touch sensors
+> > + * @VFL_TYPE_MEM2MEM:	for mem2mem devices
+> >   * @VFL_TYPE_MAX:	number of VFL types, must always be last in the enum
+> >   */
+> >  enum vfl_devnode_type {
+> > @@ -39,6 +40,7 @@ enum vfl_devnode_type {
+> >  	VFL_TYPE_SUBDEV,
+> >  	VFL_TYPE_SDR,
+> >  	VFL_TYPE_TOUCH,
+> > +	VFL_TYPE_MEM2MEM,
+> >  	VFL_TYPE_MAX /* Shall be the last one */
+> >  };
+> >  
+> > diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+> > index 3d07ba3a8262..9dfe9bd23f89 100644
+> > --- a/include/media/v4l2-mem2mem.h
+> > +++ b/include/media/v4l2-mem2mem.h
+> > @@ -53,6 +53,7 @@ struct v4l2_m2m_ops {
+> >  	void (*unlock)(void *priv);
+> >  };
+> >  
+> > +struct video_device;
+> >  struct v4l2_m2m_dev;
+> >  
+> >  /**
+> > @@ -328,6 +329,10 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+> >   */
+> >  struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops);
+> >  
+> > +int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev, struct video_device *vdev);
+> > +
+> > +void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev);
+> > +
+> >  /**
+> >   * v4l2_m2m_release() - cleans up and frees a m2m_dev structure
+> >   *
+> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> > index c7e9a5cba24e..becb7db77f6a 100644
+> > --- a/include/uapi/linux/media.h
+> > +++ b/include/uapi/linux/media.h
+> > @@ -81,6 +81,7 @@ struct media_device_info {
+> >  #define MEDIA_ENT_F_IO_DTV			(MEDIA_ENT_F_BASE + 0x01001)
+> >  #define MEDIA_ENT_F_IO_VBI			(MEDIA_ENT_F_BASE + 0x01002)
+> >  #define MEDIA_ENT_F_IO_SWRADIO			(MEDIA_ENT_F_BASE + 0x01003)
+> > +#define MEDIA_ENT_F_IO_DMAENGINE		(MEDIA_ENT_F_BASE + 0x01004)
+> 
+> Drop this as well. Just stick to MEDIA_ENT_F_IO_V4L which is what we've decided to
+> call such entities (for better or worse).
+> 
+
+Will do.
+
+> >  
+> >  /*
+> >   * Sensor functions
+> > @@ -132,6 +133,7 @@ struct media_device_info {
+> >  #define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
+> >  #define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
+> >  #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
+> > +#define MEDIA_ENT_F_PROC_VIDEO_TRANSFORM	(MEDIA_ENT_F_BASE + 0x4007)
+> 
+> I think we need to be a bit more specific here:
+> 
+> #define MEDIA_ENT_F_PROC_VIDEO_DECODER
+> #define MEDIA_ENT_F_PROC_VIDEO_ENCODER
+> #define MEDIA_ENT_F_PROC_VIDEO_DEINTERLACER
+> // others?
+> 
+
+OK. And what about "composite" devices that can encode and perform
+other transforms, e.g. scale, rotation, etc. 
+
+Regards,
+Eze
