@@ -1,50 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:42050 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933771AbeFONTs (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:51047 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S936211AbeFONTs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 15 Jun 2018 09:19:48 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 0/3] media: doc fixes, drop __NEED_MEDIA_LEGACY_API
-Date: Fri, 15 Jun 2018 15:19:43 +0200
-Message-Id: <20180615131946.79802-1-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/3] subdev-formats.rst: fix incorrect types
+Date: Fri, 15 Jun 2018 15:19:45 +0200
+Message-Id: <20180615131946.79802-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180615131946.79802-1-hverkuil@xs4all.nl>
+References: <20180615131946.79802-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch series drops the '-  .. row 1' lines in the mediactl
-documentation (the last media docs that used this), fixes incorrect
-types in subdev-formats.rst and removes the __NEED_MEDIA_LEGACY_API
-define.
+The ycbcr_enc, quantization and xfer_func fields are __u16 and not enums.
 
-The last two patches were also the first two patches in this older
-patch series:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/v4l/subdev-formats.rst | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg129417.html
-
-These three should be uncontroversial and they simplify the other
-media patches in that older patch series.
-
-Regards,
-
-	Hans
-
-Hans Verkuil (3):
-  Documentation/media/uapi/mediactl: redo tables
-  subdev-formats.rst: fix incorrect types
-  media.h: remove __NEED_MEDIA_LEGACY_API
-
- .../uapi/mediactl/media-ioc-device-info.rst   |  48 +-
- .../uapi/mediactl/media-ioc-enum-entities.rst |  83 +--
- .../uapi/mediactl/media-ioc-enum-links.rst    |  70 +--
- .../uapi/mediactl/media-ioc-g-topology.rst    | 204 ++-----
- .../media/uapi/mediactl/media-types.rst       | 499 +++++-------------
- .../media/uapi/v4l/subdev-formats.rst         |  15 +-
- drivers/media/media-device.c                  |  13 +-
- include/uapi/linux/media.h                    |   2 +-
- 8 files changed, 205 insertions(+), 729 deletions(-)
-
+diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+index 9fcabe7f9367..a4739f79d9c3 100644
+--- a/Documentation/media/uapi/v4l/subdev-formats.rst
++++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+@@ -37,19 +37,22 @@ Media Bus Formats
+       - Image colorspace, from enum
+ 	:c:type:`v4l2_colorspace`. See
+ 	:ref:`colorspaces` for details.
+-    * - enum :c:type:`v4l2_ycbcr_encoding`
++    * - __u16
+       - ``ycbcr_enc``
+-      - This information supplements the ``colorspace`` and must be set by
++      - Y'CbCr encoding, from enum :c:type:`v4l2_ycbcr_encoding`.
++        This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+-    * - enum :c:type:`v4l2_quantization`
++    * - __u16
+       - ``quantization``
+-      - This information supplements the ``colorspace`` and must be set by
++      - Quantization range, from enum :c:type:`v4l2_quantization`.
++        This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+-    * - enum :c:type:`v4l2_xfer_func`
++    * - __u16
+       - ``xfer_func``
+-      - This information supplements the ``colorspace`` and must be set by
++      - Transfer function, from enum :c:type:`v4l2_xfer_func`.
++        This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+     * - __u16
 -- 
 2.17.0
