@@ -1,66 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:36186 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:36206 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966117AbeFOUCC (ORCPT
+        with ESMTP id S966117AbeFOUGA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 16:02:02 -0400
-Message-ID: <fc1baaa51043a2b3fb0d8e801061faef3cac8777.camel@collabora.com>
-Subject: Re: [RFC 2/2] vim2m: add media device
+        Fri, 15 Jun 2018 16:06:00 -0400
+Message-ID: <d2d1d0938384a54bf1c268c83a2684c618bc4af9.camel@collabora.com>
+Subject: Re: [RFC 0/2] Memory-to-memory media controller topology
 From: Ezequiel Garcia <ezequiel@collabora.com>
-To: emil.velikov@collabora.com
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         kernel@collabora.com
-Date: Fri, 15 Jun 2018 17:01:53 -0300
-In-Reply-To: <20180612194440.GB20814@arch-x1c3.cbg.collabora.co.uk>
+Date: Fri, 15 Jun 2018 17:05:52 -0300
+In-Reply-To: <46417cb4adca9289841287c8590b0ce92059298f.camel@collabora.com>
 References: <20180612104827.11565-1-ezequiel@collabora.com>
-         <20180612104827.11565-3-ezequiel@collabora.com>
-         <20180612194440.GB20814@arch-x1c3.cbg.collabora.co.uk>
+         <46417cb4adca9289841287c8590b0ce92059298f.camel@collabora.com>
 Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2018-06-12 at 20:44 +0100, emil.velikov@collabora.com wrote:
-> Hi Ezequiel,  
+On Tue, 2018-06-12 at 10:42 -0400, Nicolas Dufresne wrote:
+> Le mardi 12 juin 2018 à 07:48 -0300, Ezequiel Garcia a écrit :
+> > As discussed on IRC, memory-to-memory need to be modeled
+> > properly in order to be supported by the media controller
+> > framework, and thus to support the Request API.
+> > 
+> > This RFC is a first draft on the memory-to-memory
+> > media controller topology.
+> > 
+> > The topology looks like this:
+> > 
+> > Device topology
+> > - entity 1: input (1 pad, 1 link)
+> >             type Node subtype Unknown flags 0
+> > 	pad0: Source
+> > 		-> "proc":1 [ENABLED,IMMUTABLE]
+> > 
+> > - entity 3: proc (2 pads, 2 links)
+> >             type Node subtype Unknown flags 0
+> > 	pad0: Source
+> > 		-> "output":0 [ENABLED,IMMUTABLE]
+> > 	pad1: Sink
+> > 		<- "input":0 [ENABLED,IMMUTABLE]
+> > 
+> > - entity 6: output (1 pad, 1 link)
+> >             type Node subtype Unknown flags 0
+> > 	pad0: Sink
+> > 		<- "proc":0 [ENABLED,IMMUTABLE]
 > 
-> On Tue, Jun 12, 2018 at 07:48:27AM -0300, Ezequiel Garcia wrote:
-> 
-> > @@ -1013,10 +1016,10 @@ static int vim2m_probe(struct
-> > platform_device *pdev)
-> >  	vfd->lock = &dev->dev_mutex;
-> >  	vfd->v4l2_dev = &dev->v4l2_dev;
-> >  
-> > -	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-> > +	ret = video_register_device(vfd, VFL_TYPE_MEM2MEM, 0);
-> 
-> Shouldn't the original type be used when building without
-> CONFIG_MEDIA_CONTROLLER?
+> Will the end result have "device node name /dev/..." on both entity 1
+> and 6 ? 
+
+No. There is just one devnode /dev/videoX, which is accepts
+both CAPTURE and OUTPUT directions.
+
+> I got told that in the long run, one should be able to map a
+> device (/dev/mediaN) to it's nodes (/dev/video*). In a way that if we
+> keep going this way, all the media devices can be enumerated from
+> media
+> node rather then a mixed between media nodes and orphaned video
+> nodes.
 > 
 
-No, the idea was to introduce a new type for mem2mem,
-mainly to avoid the video2linux core from registering
-mc entities.
+Yes, that is the idea I think. For instance, for devices with
+multiple audio and video channels, there is currently no
+clean way to discover them and correlate e.g. video devices
+to audio devices.
 
-Anyway, Hans dislikes this and suggested to drop it.
-
-> 
-> > @@ -1050,6 +1076,11 @@ static int vim2m_remove(struct
-> > platform_device *pdev)
-> >  	struct vim2m_dev *dev = platform_get_drvdata(pdev);
-> >  
-> >  	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
-> > +
-> > +#ifdef CONFIG_MEDIA_CONTROLLER
-> 
-> Gut suggests that media_device_unregister() should be called here.
-> 
-> Then again my experience in media/ is limited so I could be miles off
-> ;-)
-> 
-
-Good catch, it seems it's indeed missing.
-
-Thanks,
-Eze
+Not that this series help on that either :) 
