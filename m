@@ -1,423 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:14882 "EHLO mga06.intel.com"
+Received: from mga18.intel.com ([134.134.136.126]:27017 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965441AbeFODaW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 23:30:22 -0400
-Subject: Re: [PATCH v4 2/2] media: ak7375: Add ak7375 lens voice coil driver
-To: Sakari Ailus <sakari.ailus@iki.fi>, bingbu.cao@intel.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        sakari.ailus@linux.intel.com, tfiga@google.com, jacopo@jmondi.org,
-        rajmohan.mani@intel.com, tian.shu.qiu@intel.com,
-        jian.xu.zheng@intel.com
-References: <1528343433-2475-1-git-send-email-bingbu.cao@intel.com>
- <1528343433-2475-2-git-send-email-bingbu.cao@intel.com>
- <20180614130242.eyr4fafmlynrra6l@valkosipuli.retiisi.org.uk>
-From: Bing Bu Cao <bingbu.cao@linux.intel.com>
-Message-ID: <cf2e49d8-5f28-7a0d-f173-63ba7701ced6@linux.intel.com>
-Date: Fri, 15 Jun 2018 11:33:11 +0800
+        id S965467AbeFOD7j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Jun 2018 23:59:39 -0400
+Date: Fri, 15 Jun 2018 11:59:03 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: kbuild-all@01.org, sakari.ailus@linux.intel.com,
+        linux-media@vger.kernel.org, tfiga@chromium.org,
+        mchehab@kernel.org, hans.verkuil@cisco.com,
+        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
+        jian.xu.zheng@intel.com, jerry.w.hu@intel.com, chao.c.li@intel.com,
+        tian.shu.qiu@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: Re: [PATCH v1 2/2] v4l: Document Intel IPU3 meta data uAPI
+Message-ID: <201806151121.2x8UIyMp%fengguang.wu@intel.com>
+References: <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20180614130242.eyr4fafmlynrra6l@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: multipart/mixed; boundary="rwEMma7ioTxnRzrJ"
+Content-Disposition: inline
+In-Reply-To: <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--rwEMma7ioTxnRzrJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 2018年06月14日 21:02, Sakari Ailus wrote:
-> Hi Bingbu,
->
-> Thanks for the update. A few comments below; then I think we're done...
->
-> On Thu, Jun 07, 2018 at 11:50:33AM +0800, bingbu.cao@intel.com wrote:
->> From: Bingbu Cao <bingbu.cao@intel.com>
->>
->> Add a v4l2 sub-device driver for the ak7375 lens voice coil.
->> This is a voice coil module using the i2c bus to control the
->> focus position.
->>
->> ak7375 can write multiple bytes of data at a time. If more
->> data is received instead of the stop condition after receiving
->> one byte of data, the address inside the chip is automatically
->> incremented and the data is written into the next address.
->>
->> The ak7375 can control the position with 12 bits value and
->> consists of two 8 bit registers show as below:
->> register 0x00(AK7375_REG_POSITION):
->>     +---+---+---+---+---+---+---+---+
->>     |D11|D10|D09|D08|D07|D06|D05|D04|
->>     +---+---+---+---+---+---+---+---+
->> register 0x01:
->>     +---+---+---+---+---+---+---+---+
->>     |D03|D02|D01|D00|---|---|---|---|
->>     +---+---+---+---+---+---+---+---+
->>
->> This driver support :
->>     - set ak7375 to standby mode once suspend and
->>       turn it back to active if resume
->>     - set the position via V4L2_CID_FOCUS_ABSOLUTE ctrl
->>
->> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
->> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
->>
->> ---
->> Changes from v1 -> v3:
->>     - correct i2c write
->>     - add media_entity_pads_init() into probe
->>     - move the MAINTAINERs change into dt-binding change
->>     - correct the compatible stringa
->> Changes since v3:
->>     - add active flag to indicate the mode
->> ---
->> ---
->>  drivers/media/i2c/Kconfig  |  10 ++
->>  drivers/media/i2c/Makefile |   1 +
->>  drivers/media/i2c/ak7375.c | 289 +++++++++++++++++++++++++++++++++++++++++++++
->>  3 files changed, 300 insertions(+)
->>  create mode 100644 drivers/media/i2c/ak7375.c
->>
->> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
->> index 341452fe98df..ff3cb5afb0e1 100644
->> --- a/drivers/media/i2c/Kconfig
->> +++ b/drivers/media/i2c/Kconfig
->> @@ -326,6 +326,16 @@ config VIDEO_AD5820
->>  	  This is a driver for the AD5820 camera lens voice coil.
->>  	  It is used for example in Nokia N900 (RX-51).
->>  
->> +config VIDEO_AK7375
->> +	tristate "AK7375 lens voice coil support"
->> +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
->> +	depends on VIDEO_V4L2_SUBDEV_API
->> +	help
->> +	  This is a driver for the AK7375 camera lens voice coil.
->> +	  AK7375 is a 12 bit DAC with 120mA output current sink
->> +	  capability. This is designed for linear control of
->> +	  voice coil motors, controlled via I2C serial interface.
->> +
->>  config VIDEO_DW9714
->>  	tristate "DW9714 lens voice coil support"
->>  	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
->> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
->> index d679d57cd3b3..05b97e319ea9 100644
->> --- a/drivers/media/i2c/Makefile
->> +++ b/drivers/media/i2c/Makefile
->> @@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7127) += saa7127.o
->>  obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
->>  obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
->>  obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
->> +obj-$(CONFIG_VIDEO_AK7375)  += ak7375.o
->>  obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
->>  obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
->>  obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
->> diff --git a/drivers/media/i2c/ak7375.c b/drivers/media/i2c/ak7375.c
->> new file mode 100644
->> index 000000000000..e716821cf438
->> --- /dev/null
->> +++ b/drivers/media/i2c/ak7375.c
->> @@ -0,0 +1,289 @@
->> +// SPDX-License-Identifier: GPL-2.0
->> +// Copyright (C) 2018 Intel Corporation
->> +
->> +#include <linux/acpi.h>
->> +#include <linux/delay.h>
->> +#include <linux/i2c.h>
->> +#include <linux/module.h>
->> +#include <linux/pm_runtime.h>
->> +#include <media/v4l2-ctrls.h>
->> +#include <media/v4l2-device.h>
->> +
->> +#define AK7375_MAX_FOCUS_POS	4095
->> +/*
->> + * This sets the minimum granularity for the focus positions.
->> + * A value of 1 gives maximum accuracy for a desired focus position
->> + */
->> +#define AK7375_FOCUS_STEPS	1
->> +/*
->> + * This acts as the minimum granularity of lens movement.
->> + * Keep this value power of 2, so the control steps can be
->> + * uniformly adjusted for gradual lens movement, with desired
->> + * number of control steps.
->> + */
->> +#define AK7375_CTRL_STEPS	64
->> +#define AK7375_CTRL_DELAY_US	1000
->> +
->> +#define AK7375_REG_POSITION	0x0
->> +#define AK7375_REG_CONT		0x2
->> +#define AK7375_MODE_ACTIVE	0x0
->> +#define AK7375_MODE_STANDBY	0x40
->> +
->> +/* ak7375 device structure */
->> +struct ak7375_device {
->> +	struct v4l2_ctrl_handler ctrls_vcm;
->> +	struct v4l2_subdev sd;
->> +	struct v4l2_ctrl *focus;
->> +	/* active or standby mode */
->> +	bool active;
->> +};
->> +
->> +static inline struct ak7375_device *to_ak7375_vcm(struct v4l2_ctrl *ctrl)
->> +{
->> +	return container_of(ctrl->handler, struct ak7375_device, ctrls_vcm);
->> +}
->> +
->> +static inline struct ak7375_device *sd_to_ak7375_vcm(struct v4l2_subdev *subdev)
->> +{
->> +	return container_of(subdev, struct ak7375_device, sd);
->> +}
->> +
->> +static int ak7375_i2c_write(struct ak7375_device *ak7375,
->> +	u8 addr, u16 data, int size)
-> unsigned int size
->
->> +{
->> +	struct i2c_client *client = v4l2_get_subdevdata(&ak7375->sd);
->> +	int ret;
->> +	u8 buf[3];
-> ret would be better declared after buf.
->
->> +
->> +	if (size != 1 && size != 2)
->> +		return -EINVAL;
->> +	buf[0] = addr;
->> +	buf[size] = data & 0xff;
->> +	if (size == 2)
->> +		buf[1] = (data >> 8) & 0xff;
->> +	ret = i2c_master_send(client, (const char *)buf, size + 1);
->> +	if (ret < 0)
->> +		return ret;
->> +	if (ret != size + 1)
->> +		return -EIO;
->> +	return 0;
->> +}
->> +
->> +static int ak7375_set_ctrl(struct v4l2_ctrl *ctrl)
->> +{
->> +	struct ak7375_device *dev_vcm = to_ak7375_vcm(ctrl);
->> +
->> +	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE)
->> +		return ak7375_i2c_write(dev_vcm, AK7375_REG_POSITION,
->> +					ctrl->val << 4, 2);
->> +
->> +	return -EINVAL;
->> +}
->> +
->> +static const struct v4l2_ctrl_ops ak7375_vcm_ctrl_ops = {
->> +	.s_ctrl = ak7375_set_ctrl,
->> +};
->> +
->> +static int ak7375_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
->> +{
->> +	int rval;
-> Please name variables for integer return values consistently. The driver
-> now uses ret, rval and val.
->
->> +
->> +	rval = pm_runtime_get_sync(sd->dev);
->> +	if (rval < 0) {
->> +		pm_runtime_put_noidle(sd->dev);
->> +		return rval;
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +static int ak7375_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
->> +{
->> +	pm_runtime_put(sd->dev);
->> +
->> +	return 0;
->> +}
->> +
->> +static const struct v4l2_subdev_internal_ops ak7375_int_ops = {
->> +	.open = ak7375_open,
->> +	.close = ak7375_close,
->> +};
->> +
->> +static const struct v4l2_subdev_ops ak7375_ops = { };
->> +
->> +static void ak7375_subdev_cleanup(struct ak7375_device *ak7375_dev)
->> +{
->> +	v4l2_async_unregister_subdev(&ak7375_dev->sd);
->> +	v4l2_ctrl_handler_free(&ak7375_dev->ctrls_vcm);
->> +	media_entity_cleanup(&ak7375_dev->sd.entity);
->> +}
->> +
->> +static int ak7375_init_controls(struct ak7375_device *dev_vcm)
->> +{
->> +	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
->> +	const struct v4l2_ctrl_ops *ops = &ak7375_vcm_ctrl_ops;
->> +
->> +	v4l2_ctrl_handler_init(hdl, 1);
->> +
->> +	dev_vcm->focus = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
->> +		0, AK7375_MAX_FOCUS_POS, AK7375_FOCUS_STEPS, 0);
->> +
->> +	if (hdl->error)
->> +		dev_err(dev_vcm->sd.dev, "%s fail error: 0x%x\n",
->> +			__func__, hdl->error);
->> +	dev_vcm->sd.ctrl_handler = hdl;
-> Newline here?
->
->> +	return hdl->error;
->> +}
->> +
->> +static int ak7375_probe(struct i2c_client *client)
->> +{
->> +	struct ak7375_device *ak7375_dev;
->> +	int val;
->> +
->> +	ak7375_dev = devm_kzalloc(&client->dev, sizeof(*ak7375_dev),
->> +				  GFP_KERNEL);
->> +	if (!ak7375_dev)
->> +		return -ENOMEM;
->> +
->> +	v4l2_i2c_subdev_init(&ak7375_dev->sd, client, &ak7375_ops);
->> +	ak7375_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->> +	ak7375_dev->sd.internal_ops = &ak7375_int_ops;
->> +	ak7375_dev->sd.entity.function = MEDIA_ENT_F_LENS;
->> +
->> +	val = ak7375_init_controls(ak7375_dev);
->> +	if (val)
->> +		goto err_cleanup;
->> +
->> +	val = media_entity_pads_init(&ak7375_dev->sd.entity, 0, NULL);
->> +	if (val < 0)
->> +		goto err_cleanup;
->> +
->> +	val = v4l2_async_register_subdev(&ak7375_dev->sd);
->> +	if (val < 0)
->> +		goto err_cleanup;
->> +
->> +	pm_runtime_set_active(&client->dev);
->> +	pm_runtime_enable(&client->dev);
->> +	pm_runtime_idle(&client->dev);
->> +
->> +	return 0;
->> +
->> +err_cleanup:
->> +	v4l2_ctrl_handler_free(&ak7375_dev->ctrls_vcm);
->> +	media_entity_cleanup(&ak7375_dev->sd.entity);
->> +	dev_err(&client->dev, "Probe failed: %d\n", val);
-> Here, too.
->
->> +	return val;
->> +}
->> +
->> +static int ak7375_remove(struct i2c_client *client)
->> +{
->> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->> +	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
->> +
->> +	ak7375_subdev_cleanup(ak7375_dev);
->> +	pm_runtime_disable(&client->dev);
->> +	pm_runtime_set_suspended(&client->dev);
->> +
->> +	return 0;
->> +}
->> +
->> +/*
->> + * This function sets the vcm position, so it consumes least current
->> + * The lens position is gradually moved in units of AK7375_CTRL_STEPS,
->> + * to make the movements smoothly.
->> + */
->> +static int __maybe_unused ak7375_vcm_suspend(struct device *dev)
->> +{
->> +
->> +	struct i2c_client *client = to_i2c_client(dev);
->> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->> +	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
->> +	int ret, val;
->> +
->> +	if (!ak7375_dev->active)
->> +		return 0;
->> +
->> +	for (val = ak7375_dev->focus->val & ~(AK7375_CTRL_STEPS - 1);
->> +	     val >= 0; val -= AK7375_CTRL_STEPS) {
->> +		ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_POSITION,
->> +				       val << 4, 2);
->> +		if (ret)
->> +			dev_err_once(dev, "%s I2C failure: %d\n",
->> +				     __func__, ret);
->> +		usleep_range(AK7375_CTRL_DELAY_US, AK7375_CTRL_DELAY_US + 10);
->> +	}
->> +
->> +	ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_CONT,
->> +			       AK7375_MODE_STANDBY, 1);
->> +	if (ret)
->> +		dev_err(dev, "%s I2C failure: %d\n", __func__, ret);
->> +
->> +	ak7375_dev->active = false;
-> Newline?
->
->> +	return 0;
->> +}
->> +
->> +/*
->> + * This function sets the vcm position to the value set by the user
->> + * through v4l2_ctrl_ops s_ctrl handler
->> + * The lens position is gradually moved in units of AK7375_CTRL_STEPS,
->> + * to make the movements smoothly.
->> + */
->> +static int __maybe_unused ak7375_vcm_resume(struct device *dev)
->> +{
->> +	struct i2c_client *client = to_i2c_client(dev);
->> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->> +	struct ak7375_device *ak7375_dev = sd_to_ak7375_vcm(sd);
->> +	int ret, val;
->> +
->> +	if (ak7375_dev->active)
->> +		return 0;
->> +
->> +	ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_CONT,
->> +		AK7375_MODE_ACTIVE, 1);
->> +	if (ret) {
->> +		dev_err(dev, "%s I2C failure: %d\n", __func__, ret);
->> +		return ret;
->> +	}
->> +
->> +	for (val = ak7375_dev->focus->val % AK7375_CTRL_STEPS;
->> +	     val <= ak7375_dev->focus->val;
->> +	     val += AK7375_CTRL_STEPS) {
->> +		ret = ak7375_i2c_write(ak7375_dev, AK7375_REG_POSITION,
->> +				       val << 4, 2);
->> +		if (ret)
->> +			dev_err_ratelimited(dev, "%s I2C failure: %d\n",
->> +						__func__, ret);
->> +		usleep_range(AK7375_CTRL_DELAY_US, AK7375_CTRL_DELAY_US + 10);
->> +	}
->> +
->> +	ak7375_dev->active = true;
->> +
->> +	return 0;
->> +}
->> +
->> +static const struct of_device_id ak7375_of_table[] = {
->> +	{ .compatible = "asahi-kasei,ak7375" },
->> +	{ /* sentinel */ }
->> +};
->> +MODULE_DEVICE_TABLE(of, ak7375_of_table);
->> +
->> +static const struct dev_pm_ops ak7375_pm_ops = {
->> +	SET_SYSTEM_SLEEP_PM_OPS(ak7375_vcm_suspend, ak7375_vcm_resume)
->> +	SET_RUNTIME_PM_OPS(ak7375_vcm_suspend, ak7375_vcm_resume, NULL)
->> +};
->> +
->> +static struct i2c_driver ak7375_i2c_driver = {
->> +	.driver = {
->> +		.name = "ak7375",
->> +		.pm = &ak7375_pm_ops,
->> +		.of_match_table = ak7375_of_table,
->> +	},
->> +	.probe_new = ak7375_probe,
->> +	.remove = ak7375_remove,
->> +};
->> +module_i2c_driver(ak7375_i2c_driver);
->> +
->> +MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
->> +MODULE_AUTHOR("Bingbu Cao <bingbu.cao@intel.com>");
->> +MODULE_DESCRIPTION("AK7375 VCM driver");
->> +MODULE_LICENSE("GPL v2");
->
->
-Acks for all the comments, I will fix asap.
+Hi Yong,
+
+I love your patch! Yet something to improve:
+
+[auto build test ERROR on linus/master]
+[also build test ERROR on v4.17 next-20180614]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Yong-Zhi/doc-rst-Add-Intel-IPU3-documentation/20180615-113101
+config: i386-tinyconfig (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
+
+All errors (new ones prefixed by >>):
+
+>> ./usr/include/linux/intel-ipu3.h:7: included file 'linux/bitmap.h' is not exported
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+
+--rwEMma7ioTxnRzrJ
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
+
+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
+
+--rwEMma7ioTxnRzrJ--
