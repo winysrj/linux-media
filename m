@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:33126 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755856AbeFOG2S (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:34720 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755801AbeFOG2M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 02:28:18 -0400
+        Fri, 15 Jun 2018 02:28:12 -0400
 From: Oleksandr Andrushchenko <andr2000@gmail.com>
 To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
         dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
@@ -11,9 +11,9 @@ To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
 Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
         matthew.d.roper@intel.com,
         Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Subject: [PATCH v4 9/9] xen/gntdev: Implement dma-buf import functionality
-Date: Fri, 15 Jun 2018 09:27:53 +0300
-Message-Id: <20180615062753.9229-10-andr2000@gmail.com>
+Subject: [PATCH v4 5/9] xen/gntdev: Allow mappings for DMA buffers
+Date: Fri, 15 Jun 2018 09:27:49 +0300
+Message-Id: <20180615062753.9229-6-andr2000@gmail.com>
 In-Reply-To: <20180615062753.9229-1-andr2000@gmail.com>
 References: <20180615062753.9229-1-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -21,314 +21,213 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-1. Import a dma-buf with the file descriptor provided and export
-   granted references to the pages of that dma-buf into the array
-   of grant references.
-
-2. Add API to close all references to an imported buffer, so it can be
-   released by the owner. This is only valid for buffers created with
-   IOCTL_GNTDEV_DMABUF_IMP_TO_REFS.
+Allow mappings for DMA backed  buffers if grant table module
+supports such: this extends grant device to not only map buffers
+made of balloon pages, but also from buffers allocated with
+dma_alloc_xxx.
 
 Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 ---
- drivers/xen/gntdev-dmabuf.c | 239 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 234 insertions(+), 5 deletions(-)
+ drivers/xen/gntdev.c      | 99 ++++++++++++++++++++++++++++++++++++++-
+ include/uapi/xen/gntdev.h | 15 ++++++
+ 2 files changed, 112 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
-index 07a98aa52cab..de1f32026203 100644
---- a/drivers/xen/gntdev-dmabuf.c
-+++ b/drivers/xen/gntdev-dmabuf.c
-@@ -21,6 +21,15 @@
- #include "gntdev-common.h"
- #include "gntdev-dmabuf.h"
- 
-+#ifndef GRANT_INVALID_REF
-+/*
-+ * Note on usage of grant reference 0 as invalid grant reference:
-+ * grant reference 0 is valid, but never exposed to a driver,
-+ * because of the fact it is already in use/reserved by the PV console.
-+ */
-+#define GRANT_INVALID_REF	0
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+index bd56653b9bbc..0ec670d1d4e7 100644
+--- a/drivers/xen/gntdev.c
++++ b/drivers/xen/gntdev.c
+@@ -37,6 +37,9 @@
+ #include <linux/slab.h>
+ #include <linux/highmem.h>
+ #include <linux/refcount.h>
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++#include <linux/of_device.h>
 +#endif
-+
- struct gntdev_dmabuf {
- 	struct gntdev_dmabuf_priv *priv;
- 	struct dma_buf *dmabuf;
-@@ -35,6 +44,14 @@ struct gntdev_dmabuf {
- 			struct gntdev_priv *priv;
- 			struct gntdev_grant_map *map;
- 		} exp;
-+		struct {
-+			/* Granted references of the imported buffer. */
-+			grant_ref_t *refs;
-+			/* Scatter-gather table of the imported buffer. */
-+			struct sg_table *sgt;
-+			/* dma-buf attachment of the imported buffer. */
-+			struct dma_buf_attachment *attach;
-+		} imp;
- 	} u;
  
- 	/* Number of pages this buffer has. */
-@@ -59,6 +76,8 @@ struct gntdev_dmabuf_priv {
- 	struct list_head exp_list;
- 	/* List of wait objects. */
- 	struct list_head exp_wait_list;
-+	/* List of imported DMA buffers. */
-+	struct list_head imp_list;
- 	/* This is the lock which protects dma_buf_xxx lists. */
+ #include <xen/xen.h>
+ #include <xen/grant_table.h>
+@@ -72,6 +75,11 @@ struct gntdev_priv {
  	struct mutex lock;
+ 	struct mm_struct *mm;
+ 	struct mmu_notifier mn;
++
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++	/* Device for which DMA memory is allocated. */
++	struct device *dma_dev;
++#endif
  };
-@@ -506,21 +525,230 @@ static int dmabuf_exp_from_refs(struct gntdev_priv *priv, int flags,
  
- /* DMA buffer import support. */
+ struct unmap_notify {
+@@ -96,10 +104,27 @@ struct grant_map {
+ 	struct gnttab_unmap_grant_ref *kunmap_ops;
+ 	struct page **pages;
+ 	unsigned long pages_vm_start;
++
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++	/*
++	 * If dmabuf_vaddr is not NULL then this mapping is backed by DMA
++	 * capable memory.
++	 */
++
++	struct device *dma_dev;
++	/* Flags used to create this DMA buffer: GNTDEV_DMA_FLAG_XXX. */
++	int dma_flags;
++	void *dma_vaddr;
++	dma_addr_t dma_bus_addr;
++	/* Needed to avoid allocation in gnttab_dma_free_pages(). */
++	xen_pfn_t *frames;
++#endif
+ };
  
-+static int
-+dmabuf_imp_grant_foreign_access(struct page **pages, u32 *refs,
-+				int count, int domid)
-+{
-+	grant_ref_t priv_gref_head;
-+	int i, ret;
+ static int unmap_grant_pages(struct grant_map *map, int offset, int pages);
+ 
++static struct miscdevice gntdev_miscdev;
 +
-+	ret = gnttab_alloc_grant_references(count, &priv_gref_head);
-+	if (ret < 0) {
-+		pr_debug("Cannot allocate grant references, ret %d\n", ret);
-+		return ret;
-+	}
+ /* ------------------------------------------------------------------ */
+ 
+ static void gntdev_print_maps(struct gntdev_priv *priv,
+@@ -121,8 +146,27 @@ static void gntdev_free_map(struct grant_map *map)
+ 	if (map == NULL)
+ 		return;
+ 
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++	if (map->dma_vaddr) {
++		struct gnttab_dma_alloc_args args;
 +
-+	for (i = 0; i < count; i++) {
-+		int cur_ref;
++		args.dev = map->dma_dev;
++		args.coherent = !!(map->dma_flags & GNTDEV_DMA_FLAG_COHERENT);
++		args.nr_pages = map->count;
++		args.pages = map->pages;
++		args.frames = map->frames;
++		args.vaddr = map->dma_vaddr;
++		args.dev_bus_addr = map->dma_bus_addr;
 +
-+		cur_ref = gnttab_claim_grant_reference(&priv_gref_head);
-+		if (cur_ref < 0) {
-+			ret = cur_ref;
-+			pr_debug("Cannot claim grant reference, ret %d\n", ret);
-+			goto out;
-+		}
++		gnttab_dma_free_pages(&args);
++	} else
++#endif
+ 	if (map->pages)
+ 		gnttab_free_pages(map->count, map->pages);
 +
-+		gnttab_grant_foreign_access_ref(cur_ref, domid,
-+						xen_page_to_gfn(pages[i]), 0);
-+		refs[i] = cur_ref;
-+	}
-+
-+	return 0;
-+
-+out:
-+	gnttab_free_grant_references(priv_gref_head);
-+	return ret;
-+}
-+
-+static void dmabuf_imp_end_foreign_access(u32 *refs, int count)
-+{
-+	int i;
-+
-+	for (i = 0; i < count; i++)
-+		if (refs[i] != GRANT_INVALID_REF)
-+			gnttab_end_foreign_access(refs[i], 0, 0UL);
-+}
-+
-+static void dmabuf_imp_free_storage(struct gntdev_dmabuf *gntdev_dmabuf)
-+{
-+	kfree(gntdev_dmabuf->pages);
-+	kfree(gntdev_dmabuf->u.imp.refs);
-+	kfree(gntdev_dmabuf);
-+}
-+
-+static struct gntdev_dmabuf *dmabuf_imp_alloc_storage(int count)
-+{
-+	struct gntdev_dmabuf *gntdev_dmabuf;
-+	int i;
-+
-+	gntdev_dmabuf = kzalloc(sizeof(*gntdev_dmabuf), GFP_KERNEL);
-+	if (!gntdev_dmabuf)
-+		goto fail;
-+
-+	gntdev_dmabuf->u.imp.refs = kcalloc(count,
-+					    sizeof(gntdev_dmabuf->u.imp.refs[0]),
-+					    GFP_KERNEL);
-+	if (!gntdev_dmabuf->u.imp.refs)
-+		goto fail;
-+
-+	gntdev_dmabuf->pages = kcalloc(count,
-+				       sizeof(gntdev_dmabuf->pages[0]),
-+				       GFP_KERNEL);
-+	if (!gntdev_dmabuf->pages)
-+		goto fail;
-+
-+	gntdev_dmabuf->nr_pages = count;
-+
-+	for (i = 0; i < count; i++)
-+		gntdev_dmabuf->u.imp.refs[i] = GRANT_INVALID_REF;
-+
-+	return gntdev_dmabuf;
-+
-+fail:
-+	dmabuf_imp_free_storage(gntdev_dmabuf);
-+	return ERR_PTR(-ENOMEM);
-+}
-+
- static struct gntdev_dmabuf *
- dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
- 		   int fd, int count, int domid)
- {
--	return ERR_PTR(-ENOMEM);
-+	struct gntdev_dmabuf *gntdev_dmabuf, *ret;
-+	struct dma_buf *dma_buf;
-+	struct dma_buf_attachment *attach;
-+	struct sg_table *sgt;
-+	struct sg_page_iter sg_iter;
-+	int i;
-+
-+	dma_buf = dma_buf_get(fd);
-+	if (IS_ERR(dma_buf))
-+		return ERR_CAST(dma_buf);
-+
-+	gntdev_dmabuf = dmabuf_imp_alloc_storage(count);
-+	if (IS_ERR(gntdev_dmabuf)) {
-+		ret = gntdev_dmabuf;
-+		goto fail_put;
-+	}
-+
-+	gntdev_dmabuf->priv = priv;
-+	gntdev_dmabuf->fd = fd;
-+
-+	attach = dma_buf_attach(dma_buf, dev);
-+	if (IS_ERR(attach)) {
-+		ret = ERR_CAST(attach);
-+		goto fail_free_obj;
-+	}
-+
-+	gntdev_dmabuf->u.imp.attach = attach;
-+
-+	sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
-+	if (IS_ERR(sgt)) {
-+		ret = ERR_CAST(sgt);
-+		goto fail_detach;
-+	}
-+
-+	/* Check number of pages that imported buffer has. */
-+	if (attach->dmabuf->size != gntdev_dmabuf->nr_pages << PAGE_SHIFT) {
-+		ret = ERR_PTR(-EINVAL);
-+		pr_debug("DMA buffer has %zu pages, user-space expects %d\n",
-+			 attach->dmabuf->size, gntdev_dmabuf->nr_pages);
-+		goto fail_unmap;
-+	}
-+
-+	gntdev_dmabuf->u.imp.sgt = sgt;
-+
-+	/* Now convert sgt to array of pages and check for page validity. */
-+	i = 0;
-+	for_each_sg_page(sgt->sgl, &sg_iter, sgt->nents, 0) {
-+		struct page *page = sg_page_iter_page(&sg_iter);
-+		/*
-+		 * Check if page is valid: this can happen if we are given
-+		 * a page from VRAM or other resources which are not backed
-+		 * by a struct page.
-+		 */
-+		if (!pfn_valid(page_to_pfn(page))) {
-+			ret = ERR_PTR(-EINVAL);
-+			goto fail_unmap;
-+		}
-+
-+		gntdev_dmabuf->pages[i++] = page;
-+	}
-+
-+	ret = ERR_PTR(dmabuf_imp_grant_foreign_access(gntdev_dmabuf->pages,
-+						      gntdev_dmabuf->u.imp.refs,
-+						      count, domid));
-+	if (IS_ERR(ret))
-+		goto fail_end_access;
-+
-+	pr_debug("Imported DMA buffer with fd %d\n", fd);
-+
-+	mutex_lock(&priv->lock);
-+	list_add(&gntdev_dmabuf->next, &priv->imp_list);
-+	mutex_unlock(&priv->lock);
-+
-+	return gntdev_dmabuf;
-+
-+fail_end_access:
-+	dmabuf_imp_end_foreign_access(gntdev_dmabuf->u.imp.refs, count);
-+fail_unmap:
-+	dma_buf_unmap_attachment(attach, sgt, DMA_BIDIRECTIONAL);
-+fail_detach:
-+	dma_buf_detach(dma_buf, attach);
-+fail_free_obj:
-+	dmabuf_imp_free_storage(gntdev_dmabuf);
-+fail_put:
-+	dma_buf_put(dma_buf);
-+	return ret;
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++	kfree(map->frames);
++#endif
+ 	kfree(map->pages);
+ 	kfree(map->grants);
+ 	kfree(map->map_ops);
+@@ -132,7 +176,8 @@ static void gntdev_free_map(struct grant_map *map)
+ 	kfree(map);
  }
  
--static u32 *dmabuf_imp_get_refs(struct gntdev_dmabuf *gntdev_dmabuf)
+-static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count)
++static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count,
++					  int dma_flags)
+ {
+ 	struct grant_map *add;
+ 	int i;
+@@ -155,6 +200,37 @@ static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count)
+ 	    NULL == add->pages)
+ 		goto err;
+ 
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++	add->dma_flags = dma_flags;
++
++	/*
++	 * Check if this mapping is requested to be backed
++	 * by a DMA buffer.
++	 */
++	if (dma_flags & (GNTDEV_DMA_FLAG_WC | GNTDEV_DMA_FLAG_COHERENT)) {
++		struct gnttab_dma_alloc_args args;
++
++		add->frames = kcalloc(count, sizeof(add->frames[0]),
++				      GFP_KERNEL);
++		if (!add->frames)
++			goto err;
++
++		/* Remember the device, so we can free DMA memory. */
++		add->dma_dev = priv->dma_dev;
++
++		args.dev = priv->dma_dev;
++		args.coherent = !!(dma_flags & GNTDEV_DMA_FLAG_COHERENT);
++		args.nr_pages = count;
++		args.pages = add->pages;
++		args.frames = add->frames;
++
++		if (gnttab_dma_alloc_pages(&args))
++			goto err;
++
++		add->dma_vaddr = args.vaddr;
++		add->dma_bus_addr = args.dev_bus_addr;
++	} else
++#endif
+ 	if (gnttab_alloc_pages(count, add->pages))
+ 		goto err;
+ 
+@@ -325,6 +401,14 @@ static int map_grant_pages(struct grant_map *map)
+ 		map->unmap_ops[i].handle = map->map_ops[i].handle;
+ 		if (use_ptemod)
+ 			map->kunmap_ops[i].handle = map->kmap_ops[i].handle;
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++		else if (map->dma_vaddr) {
++			unsigned long bfn;
++
++			bfn = pfn_to_bfn(page_to_pfn(map->pages[i]));
++			map->unmap_ops[i].dev_bus_addr = __pfn_to_phys(bfn);
++		}
++#endif
+ 	}
+ 	return err;
+ }
+@@ -548,6 +632,17 @@ static int gntdev_open(struct inode *inode, struct file *flip)
+ 	}
+ 
+ 	flip->private_data = priv;
++#ifdef CONFIG_XEN_GRANT_DMA_ALLOC
++	priv->dma_dev = gntdev_miscdev.this_device;
++
++	/*
++	 * The device is not spawn from a device tree, so arch_setup_dma_ops
++	 * is not called, thus leaving the device with dummy DMA ops.
++	 * Fix this by calling of_dma_configure() with a NULL node to set
++	 * default DMA ops.
++	 */
++	of_dma_configure(priv->dma_dev, NULL);
++#endif
+ 	pr_debug("priv %p\n", priv);
+ 
+ 	return 0;
+@@ -589,7 +684,7 @@ static long gntdev_ioctl_map_grant_ref(struct gntdev_priv *priv,
+ 		return -EINVAL;
+ 
+ 	err = -ENOMEM;
+-	map = gntdev_alloc_map(priv, op.count);
++	map = gntdev_alloc_map(priv, op.count, 0 /* This is not a dma-buf. */);
+ 	if (!map)
+ 		return err;
+ 
+diff --git a/include/uapi/xen/gntdev.h b/include/uapi/xen/gntdev.h
+index 6d1163456c03..4b9d498a31d4 100644
+--- a/include/uapi/xen/gntdev.h
++++ b/include/uapi/xen/gntdev.h
+@@ -200,4 +200,19 @@ struct ioctl_gntdev_grant_copy {
+ /* Send an interrupt on the indicated event channel */
+ #define UNMAP_NOTIFY_SEND_EVENT 0x2
+ 
 +/*
-+ * Find the hyper dma-buf by its file descriptor and remove
-+ * it from the buffer's list.
++ * Flags to be used while requesting memory mapping's backing storage
++ * to be allocated with DMA API.
 + */
-+static struct gntdev_dmabuf *
-+dmabuf_imp_find_unlink(struct gntdev_dmabuf_priv *priv, int fd)
- {
--	return NULL;
-+	struct gntdev_dmabuf *q, *gntdev_dmabuf, *ret = ERR_PTR(-ENOENT);
 +
-+	mutex_lock(&priv->lock);
-+	list_for_each_entry_safe(gntdev_dmabuf, q, &priv->imp_list, next) {
-+		if (gntdev_dmabuf->fd == fd) {
-+			pr_debug("Found gntdev_dmabuf in the import list\n");
-+			ret = gntdev_dmabuf;
-+			list_del(&gntdev_dmabuf->next);
-+			break;
-+		}
-+	}
-+	mutex_unlock(&priv->lock);
-+	return ret;
- }
- 
- static int dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd)
- {
--	return -EINVAL;
-+	struct gntdev_dmabuf *gntdev_dmabuf;
-+	struct dma_buf_attachment *attach;
-+	struct dma_buf *dma_buf;
++/*
++ * The buffer is backed with memory allocated with dma_alloc_wc.
++ */
++#define GNTDEV_DMA_FLAG_WC		(1 << 0)
 +
-+	gntdev_dmabuf = dmabuf_imp_find_unlink(priv, fd);
-+	if (IS_ERR(gntdev_dmabuf))
-+		return PTR_ERR(gntdev_dmabuf);
++/*
++ * The buffer is backed with memory allocated with dma_alloc_coherent.
++ */
++#define GNTDEV_DMA_FLAG_COHERENT	(1 << 1)
 +
-+	pr_debug("Releasing DMA buffer with fd %d\n", fd);
-+
-+	dmabuf_imp_end_foreign_access(gntdev_dmabuf->u.imp.refs,
-+				      gntdev_dmabuf->nr_pages);
-+
-+	attach = gntdev_dmabuf->u.imp.attach;
-+
-+	if (gntdev_dmabuf->u.imp.sgt)
-+		dma_buf_unmap_attachment(attach, gntdev_dmabuf->u.imp.sgt,
-+					 DMA_BIDIRECTIONAL);
-+	dma_buf = attach->dmabuf;
-+	dma_buf_detach(attach->dmabuf, attach);
-+	dma_buf_put(dma_buf);
-+
-+	dmabuf_imp_free_storage(gntdev_dmabuf);
-+	return 0;
- }
- 
- /* DMA buffer IOCTL support. */
-@@ -597,7 +825,7 @@ long gntdev_ioctl_dmabuf_imp_to_refs(struct gntdev_priv *priv,
- 	if (IS_ERR(gntdev_dmabuf))
- 		return PTR_ERR(gntdev_dmabuf);
- 
--	if (copy_to_user(u->refs, dmabuf_imp_get_refs(gntdev_dmabuf),
-+	if (copy_to_user(u->refs, gntdev_dmabuf->u.imp.refs,
- 			 sizeof(*u->refs) * op.count) != 0) {
- 		ret = -EFAULT;
- 		goto out_release;
-@@ -631,6 +859,7 @@ struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
- 	mutex_init(&priv->lock);
- 	INIT_LIST_HEAD(&priv->exp_list);
- 	INIT_LIST_HEAD(&priv->exp_wait_list);
-+	INIT_LIST_HEAD(&priv->imp_list);
- 
- 	return priv;
- }
+ #endif /* __LINUX_PUBLIC_GNTDEV_H__ */
 -- 
 2.17.1
