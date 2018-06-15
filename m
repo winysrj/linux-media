@@ -1,60 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:57516 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751274AbeFDI6V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Jun 2018 04:58:21 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org, Tim Harvey <tharvey@gateworks.com>
-Subject: Re: i.MX6 IPU CSI analog video input on Ventana
-References: <m37eobudmo.fsf@t19.piap.pl> <m3tvresqfw.fsf@t19.piap.pl>
-        <08726c4a-fb60-c37a-75d3-9a0ca164280d@gmail.com>
-        <m3fu2oswjh.fsf@t19.piap.pl> <m3603hsa4o.fsf@t19.piap.pl>
-        <db162792-22c2-7225-97a9-d18b0d2a5b9c@gmail.com>
-        <m3h8mxqc7t.fsf@t19.piap.pl>
-        <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
-        <1527229949.4938.1.camel@pengutronix.de> <m3y3g8p5j3.fsf@t19.piap.pl>
-        <1e11fa9a-8fa6-c746-7ee1-a64666bfc44e@gmail.com>
-        <m3lgc2q5vl.fsf@t19.piap.pl>
-        <06b9dd3d-3b7d-d34d-5263-411c99ab1a8b@gmail.com>
-        <m38t81plry.fsf@t19.piap.pl>
-        <4f49cf44-431d-1971-e5c5-d66381a6970e@gmail.com>
-        <m336y9ouc4.fsf@t19.piap.pl>
-        <6923fcd4-317e-d6a6-7975-47a8c712f8f9@gmail.com>
-        <m3sh66omdk.fsf@t19.piap.pl> <1527858788.5913.2.camel@pengutronix.de>
-        <05703b20-3280-3bdd-c438-dfce8e475aaa@gmail.com>
-        <1528102047.5808.11.camel@pengutronix.de>
-Date: Mon, 04 Jun 2018 10:58:18 +0200
-In-Reply-To: <1528102047.5808.11.camel@pengutronix.de> (Philipp Zabel's
-        message of "Mon, 04 Jun 2018 10:47:27 +0200")
-Message-ID: <m3zi0blyhh.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:35890 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934701AbeFOTII (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Jun 2018 15:08:08 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v4 10/17] mx_emmaprp: Implement wait_prepare and wait_finish
+Date: Fri, 15 Jun 2018 16:07:30 -0300
+Message-Id: <20180615190737.24139-11-ezequiel@collabora.com>
+In-Reply-To: <20180615190737.24139-1-ezequiel@collabora.com>
+References: <20180615190737.24139-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've just tested the PAL setup: in currect situation (v4.17 + Steve's
-fix-csi-interlaced.2 + "media: adv7180: fix field type" + a small cheap
-PAL camera) the following produces bottom-first interlaced frames:
+This driver is currently specifying a video_device lock,
+which means it is protecting all the ioctls (including
+queue ioctls) with a single mutex.
 
-media-ctl -r -l '"adv7180 2-0020":0->"ipu2_csi1_mux":1[1],
-                 "ipu2_csi1_mux":2->"ipu2_csi1":0[1],
-                 "ipu2_csi1":2->"ipu2_csi1 capture":0[1]'
+It's therefore straightforward to implement wait_prepare
+and wait_finish, by explicitly setting the vb2_queue lock.
 
-media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x576 field:alternate]"
-media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x576]"
-media-ctl -V "'ipu2_csi1':2 [fmt:AYUV32/720x576 field:interlaced]"
+Having these callbacks releases the queue lock while blocking,
+which improves latency by allowing for example streamoff
+or qbuf operations while waiting in dqbuf.
 
-"adv7180 2-0020":0 [fmt:UYVY2X8/720x576 field:alternate]
-"ipu2_csi1_mux":1  [fmt:UYVY2X8/720x576 field:alternate]
-"ipu2_csi1_mux":2  [fmt:UYVY2X8/720x576 field:alternate]
-"ipu2_csi1":0      [fmt:UYVY2X8/720x576 field:alternate]
-"ipu2_csi1":2      [fmt:AYUV32/720x576 field:interlaced]
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ drivers/media/platform/mx2_emmaprp.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-I think it would be great if these changes make their way upstream.
-The details could be refined then.
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index 5a8eff60e95f..7f9b356e7cc7 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -747,6 +747,8 @@ static const struct vb2_ops emmaprp_qops = {
+ 	.queue_setup	 = emmaprp_queue_setup,
+ 	.buf_prepare	 = emmaprp_buf_prepare,
+ 	.buf_queue	 = emmaprp_buf_queue,
++	.wait_prepare	 = vb2_ops_wait_prepare,
++	.wait_finish	 = vb2_ops_wait_finish,
+ };
+ 
+ static int queue_init(void *priv, struct vb2_queue *src_vq,
+@@ -763,6 +765,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->dev = ctx->dev->v4l2_dev.dev;
++	src_vq->lock = &ctx->dev->dev_mutex;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -776,6 +779,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->dev = ctx->dev->v4l2_dev.dev;
++	dst_vq->lock = &ctx->dev->dev_mutex;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
 -- 
-Krzysztof Halasa
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+2.17.1
