@@ -1,127 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:35856 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:35858 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934701AbeFOTHv (ORCPT
+        with ESMTP id S934701AbeFOTHx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 15:07:51 -0400
+        Fri, 15 Jun 2018 15:07:53 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH v4 01/17] v4l2-ioctl.c: use correct vb2_queue lock for m2m devices
-Date: Fri, 15 Jun 2018 16:07:21 -0300
-Message-Id: <20180615190737.24139-2-ezequiel@collabora.com>
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v4 02/17] sta2x11: Add video_device and vb2_queue locks
+Date: Fri, 15 Jun 2018 16:07:22 -0300
+Message-Id: <20180615190737.24139-3-ezequiel@collabora.com>
 In-Reply-To: <20180615190737.24139-1-ezequiel@collabora.com>
 References: <20180615190737.24139-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Currently, this driver does not serialize its video4linux
+ioctls, which is a bug, as race conditions might appear.
 
-For m2m devices the vdev->queue lock was always taken instead of the
-lock for the specific capture or output queue. Now that we pushed
-the locking down into __video_do_ioctl() we can pick the correct
-lock and improve the performance of m2m devices.
+In addition, video_device and vb2_queue locks are now both
+mandatory. Add them, and implement wait_prepare and
+wait_finish.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+To stay on the safe side, this commit uses a single mutex
+for both locks. Better latency can be obtained by separating
+these if needed.
+
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 59 ++++++++++++++++++++++++++--
- 1 file changed, 55 insertions(+), 4 deletions(-)
+ drivers/media/pci/sta2x11/sta2x11_vip.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index dd210067151f..db835578e21f 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -29,6 +29,7 @@
- #include <media/v4l2-device.h>
- #include <media/videobuf2-v4l2.h>
- #include <media/v4l2-mc.h>
-+#include <media/v4l2-mem2mem.h>
+diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+index 069c4a853346..da2b2a2292d0 100644
+--- a/drivers/media/pci/sta2x11/sta2x11_vip.c
++++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+@@ -145,6 +145,7 @@ struct sta2x11_vip {
+ 	unsigned int sequence;
+ 	struct vip_buffer *active; /* current active buffer */
+ 	spinlock_t lock; /* Used in videobuf2 callback */
++	struct mutex v4l_lock;
  
- #include <trace/events/v4l2.h>
+ 	/* Interrupt counters */
+ 	int tcount, bcount;
+@@ -385,6 +386,8 @@ static const struct vb2_ops vip_video_qops = {
+ 	.buf_queue		= buffer_queue,
+ 	.start_streaming	= start_streaming,
+ 	.stop_streaming		= stop_streaming,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
  
-@@ -2662,11 +2663,62 @@ static bool v4l2_is_known_ioctl(unsigned int cmd)
- 	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
- }
  
-+#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
-+static bool v4l2_ioctl_m2m_queue_is_output(unsigned int cmd, void *arg)
-+{
-+	switch (cmd) {
-+	case VIDIOC_CREATE_BUFS: {
-+		struct v4l2_create_buffers *cbufs = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(cbufs->format.type);
-+	}
-+	case VIDIOC_REQBUFS: {
-+		struct v4l2_requestbuffers *rbufs = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(rbufs->type);
-+	}
-+	case VIDIOC_QBUF:
-+	case VIDIOC_DQBUF:
-+	case VIDIOC_QUERYBUF:
-+	case VIDIOC_PREPARE_BUF: {
-+		struct v4l2_buffer *buf = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(buf->type);
-+	}
-+	case VIDIOC_EXPBUF: {
-+		struct v4l2_exportbuffer *expbuf = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(expbuf->type);
-+	}
-+	case VIDIOC_STREAMON:
-+	case VIDIOC_STREAMOFF: {
-+		int *type = arg;
-+
-+		return V4L2_TYPE_IS_OUTPUT(*type);
-+	}
-+	default:
-+		return false;
-+	}
-+}
-+#endif
-+
- static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev,
--					 unsigned int cmd)
-+					 struct v4l2_fh *vfh, unsigned cmd,
-+					 void *arg)
- {
- 	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
- 		return vdev->lock;
-+#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
-+	if (vfh && vfh->m2m_ctx &&
-+	    (v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE)) {
-+		bool is_output = v4l2_ioctl_m2m_queue_is_output(cmd, arg);
-+		struct v4l2_m2m_queue_ctx *ctx = is_output ?
-+			&vfh->m2m_ctx->out_q_ctx : &vfh->m2m_ctx->cap_q_ctx;
-+
-+		if (ctx->q.lock)
-+			return ctx->q.lock;
-+	}
-+#endif
- 	if (vdev->queue && vdev->queue->lock &&
- 			(v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE))
- 		return vdev->queue->lock;
-@@ -2714,7 +2766,7 @@ static long __video_do_ioctl(struct file *file,
- 		unsigned int cmd, void *arg)
- {
- 	struct video_device *vfd = video_devdata(file);
--	struct mutex *lock; /* ioctl serialization mutex */
-+	struct mutex *lock;
- 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
- 	bool write_only = false;
- 	struct v4l2_ioctl_info default_info;
-@@ -2733,8 +2785,7 @@ static long __video_do_ioctl(struct file *file,
- 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
- 		vfh = file->private_data;
+@@ -870,6 +873,7 @@ static int sta2x11_vip_init_buffer(struct sta2x11_vip *vip)
+ 	vip->vb_vidq.mem_ops = &vb2_dma_contig_memops;
+ 	vip->vb_vidq.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	vip->vb_vidq.dev = &vip->pdev->dev;
++	vip->vb_vidq.lock = &vip->v4l_lock;
+ 	err = vb2_queue_init(&vip->vb_vidq);
+ 	if (err)
+ 		return err;
+@@ -1034,6 +1038,7 @@ static int sta2x11_vip_init_one(struct pci_dev *pdev,
+ 	vip->std = V4L2_STD_PAL;
+ 	vip->format = formats_50[0];
+ 	vip->config = config;
++	mutex_init(&vip->v4l_lock);
  
--	lock = v4l2_ioctl_get_lock(vfd, cmd);
--
-+	lock = v4l2_ioctl_get_lock(vfd, vfh, cmd, arg);
- 	if (lock && mutex_lock_interruptible(lock))
- 		return -ERESTARTSYS;
+ 	ret = sta2x11_vip_init_controls(vip);
+ 	if (ret)
+@@ -1080,6 +1085,7 @@ static int sta2x11_vip_init_one(struct pci_dev *pdev,
+ 	vip->video_dev = video_dev_template;
+ 	vip->video_dev.v4l2_dev = &vip->v4l2_dev;
+ 	vip->video_dev.queue = &vip->vb_vidq;
++	vip->video_dev.lock = &vip->v4l_lock;
+ 	video_set_drvdata(&vip->video_dev, vip);
  
+ 	ret = video_register_device(&vip->video_dev, VFL_TYPE_GRABBER, -1);
 -- 
 2.17.1
