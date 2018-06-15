@@ -1,140 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:56629 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750742AbeFOELI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 00:11:08 -0400
-Message-ID: <28a1b3cb557f216d34c7c4a563728192@smtp-cloud7.xs4all.net>
-Date: Fri, 15 Jun 2018 06:11:06 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mail-he1eur01on0115.outbound.protection.outlook.com ([104.47.0.115]:13136
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752527AbeFOEjz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Jun 2018 00:39:55 -0400
+Subject: Re: [RFC PATCH v2] media: i2c: add SCCB helpers
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
+        linux-i2c@vger.kernel.org,
+        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <1528817686-7067-1-git-send-email-akinobu.mita@gmail.com>
+ <843b1253-67ec-883f-9683-134528320791@axentia.se>
+ <be2c81ed-c37a-c178-0c8e-7029474ff316@axentia.se>
+ <20180614154139.eu7fznytzf4rkt4g@ninjato>
+From: Peter Rosin <peda@axentia.se>
+Message-ID: <55f65c0d-662d-bd6a-67eb-84796fa5fa1b@axentia.se>
+Date: Fri, 15 Jun 2018 06:39:45 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180614154139.eu7fznytzf4rkt4g@ninjato>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 2018-06-14 17:41, Wolfram Sang wrote:
+> 
+>> So, maybe the easier thing to do is change i2c_lock_adapter to only
+>> lock the segment, and then have the callers beneath drivers/i2c/
+>> (plus the above mlx90614 driver) that really want to lock the root
+>> adapter instead of the segment adapter call a new function named
+>> i2c_lock_root (or something like that). Admittedly, that will be
+>> a few more trivial changes, but all but one will be under the I2C
+>> umbrella and thus require less interaction.
+>>
+>> Wolfram, what do you think?
+> 
+> It sounds tempting, yet I am concerned about regressions. From that
+> point of view, it is safer to introduce i2c_lock_segment() and convert the
+> users which would benefit from that. How many drivers would be affected?
 
-Results of the daily build of media_tree:
+Right, there is also the aspect that changing a function like this
+might surprise people. Maybe i2c_lock_adapter should be killed and
+all callers changed to one of i2c_lock_segment and i2c_lock_root?
+It's not that much churn...
 
-date:			Fri Jun 15 05:00:18 CEST 2018
-media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
-media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
-v4l-utils git hash:	c3b46c2c53d7d815a53c902cfb2ddd96c3732c5b
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+Current callers (I didn't hunt the very latest sources, nor -next)
+of i2c_lock_adapter are:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-i686: OK
-linux-4.17-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+drivers/i2c/i2c-core-slave.c
+	Locks the adapter during (un)registration of the slave. Should
+	keep locking the root adapter.
 
-Detailed results are available here:
+drivers/i2c/busses/i2c-brcmstb.c
+	Locks the adapter during suspend/resume. Should keep locking
+	the root adapter.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+drivers/i2c/busses/i2c-davinci.c
+	Locks the adapter if/when the CPU frequency changes. Should
+	keep locking the root adapter.
 
-Full logs are available here:
+drivers/i2c/busses/i2c-gpio.c
+	Locks the adapter while twiddling the lines from debugfs. Should
+	keep locking the root adapter.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+drivers/i2c/busses/i2c-s3c2410.c
+	Locks the adapter if/when the CPU frequency changes.Should keep
+	locking the root adapter.
 
-The Media Infrastructure API from this daily build is here:
+drivers/i2c/busses/i2c-sprd.c
+	Locks the adapter during suspend/resume. Should keep locking
+	the root adapter.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+drivers/i2c/busses/i2c-tegra.c
+	Locks the adapter during suspend/resume. Should keep locking
+	the root adapter.
+
+drivers/i2c/muxes/i2c-mux-pca9541.c
+	Locks the adapter during probe to make I2C transfers. Should
+ 	only need to lock the segment.
+
+drivers/iio/temperature/mlx90614.c
+	Mentioned previously up-thread, suspend/resume apparently does
+	nasty things with the bus. Should probably keep locking the root
+	adapter.
+
+drivers/char/tpm/tpm_i2c_infineon.c
+	Does a bunch of __i2c_transfer calls inside the locked regions
+	(and some sleeping). Should only need to lock the segment.
+
+drivers/input/touchscreen/rohm_bu21023.c
+	Does a couple of __i2c_transfer calls inside the locked region.
+	Should only need to lock the segment.
+
+drivers/media/dvb-frontends/af9013.c
+	Does a one or two __i2c_transfer calls inside the locked regions.
+	Should only need to lock the segment.
+
+drivers/media/dvb-frontends/drxk_hard.c
+	This one is a bit hairy. It does all sorts of things inside the
+	locked region. And it is a bit hard to say if the root adapter
+	really needs to be locked.
+
+drivers/media/dvb-frontends/rtl2830.c
+	Does regmap accesses inside the locked regions, with the regmap
+	ops overridden to use __i2c_transfer. Should only need to lock
+	the segment.
+
+drivers/media/dvb-frontends/tda1004x.c
+	Does a bunch of __i2c_transfer calls inside the locked region.
+	Should only need to lock the segment.
+
+drivers/media/tuners/tda18271-common.c
+	Seems to opens a gate in conjunction with locking the adapter.
+	So, I'm a bit uncertain what will happen on the other side of
+	that gate if there is any stray thing happening on the I2C
+	bus.
+
+drivers/mfd/88pm860x-i2c.c
+	Does a bunch of adap->algo->master_xfer calls inside the locked
+	regions. Should only need to lock the segment (and should probably
+	be using __i2c_transfer).
+
+So, drxk_hard.c and tda18271-common.c are a bit uncertain. However, since
+these drivers do make calls to __i2c_transfer from inside their locked
+regions, both drivers will deadlock if the chips sit downstream from a
+mux-locked I2C mux. And if they don't, locking the segment and the
+adapter are equivalent. So, the risk of regressions are nil AFAICT. Famous
+last words...
+
+Cheers,
+Peter
