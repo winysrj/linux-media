@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db5eur01on0133.outbound.protection.outlook.com ([104.47.2.133]:10720
+Received: from mail-db5eur01on0094.outbound.protection.outlook.com ([104.47.2.94]:38179
         "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S936211AbeFOKPy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 06:15:54 -0400
+        id S936247AbeFOKQI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Jun 2018 06:16:08 -0400
 From: Peter Rosin <peda@axentia.se>
 To: linux-kernel@vger.kernel.org
 Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
@@ -41,9 +41,9 @@ Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
         linux-media@vger.kernel.org
-Subject: [PATCH 05/11] media: af9013: switch to i2c_lock_segment
-Date: Fri, 15 Jun 2018 12:15:00 +0200
-Message-Id: <20180615101506.8012-6-peda@axentia.se>
+Subject: [PATCH 09/11] media: tda18271: switch to i2c_lock_segment
+Date: Fri, 15 Jun 2018 12:15:04 +0200
+Message-Id: <20180615101506.8012-10-peda@axentia.se>
 In-Reply-To: <20180615101506.8012-1-peda@axentia.se>
 References: <20180615101506.8012-1-peda@axentia.se>
 MIME-Version: 1.0
@@ -58,38 +58,48 @@ the two locking variants are equivalent.
 
 Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/dvb-frontends/af9013.c | 8 ++++----
+ drivers/media/tuners/tda18271-common.c | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-index 482bce49819a..a504697ff557 100644
---- a/drivers/media/dvb-frontends/af9013.c
-+++ b/drivers/media/dvb-frontends/af9013.c
-@@ -1312,10 +1312,10 @@ static int af9013_wregs(struct i2c_client *client, u8 cmd, u16 reg,
- 	memcpy(&buf[3], val, len);
+diff --git a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
+index 7e81cd887c13..93cce2bcd601 100644
+--- a/drivers/media/tuners/tda18271-common.c
++++ b/drivers/media/tuners/tda18271-common.c
+@@ -225,7 +225,7 @@ static int __tda18271_write_regs(struct dvb_frontend *fe, int idx, int len,
+ 	 */
+ 	if (lock_i2c) {
+ 		tda18271_i2c_gate_ctrl(fe, 1);
+-		i2c_lock_adapter(priv->i2c_props.adap);
++		i2c_lock_segment(priv->i2c_props.adap);
+ 	}
+ 	while (len) {
+ 		if (max > len)
+@@ -246,7 +246,7 @@ static int __tda18271_write_regs(struct dvb_frontend *fe, int idx, int len,
+ 		len -= max;
+ 	}
+ 	if (lock_i2c) {
+-		i2c_unlock_adapter(priv->i2c_props.adap);
++		i2c_unlock_segment(priv->i2c_props.adap);
+ 		tda18271_i2c_gate_ctrl(fe, 0);
+ 	}
  
- 	if (lock)
--		i2c_lock_adapter(client->adapter);
-+		i2c_lock_segment(client->adapter);
- 	ret = __i2c_transfer(client->adapter, msg, 1);
- 	if (lock)
--		i2c_unlock_adapter(client->adapter);
-+		i2c_unlock_segment(client->adapter);
- 	if (ret < 0) {
- 		goto err;
- 	} else if (ret != 1) {
-@@ -1353,10 +1353,10 @@ static int af9013_rregs(struct i2c_client *client, u8 cmd, u16 reg,
- 	buf[2] = cmd;
+@@ -300,7 +300,7 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+ 	 * as those could cause bad things
+ 	 */
+ 	tda18271_i2c_gate_ctrl(fe, 1);
+-	i2c_lock_adapter(priv->i2c_props.adap);
++	i2c_lock_segment(priv->i2c_props.adap);
  
- 	if (lock)
--		i2c_lock_adapter(client->adapter);
-+		i2c_lock_segment(client->adapter);
- 	ret = __i2c_transfer(client->adapter, msg, 2);
- 	if (lock)
--		i2c_unlock_adapter(client->adapter);
-+		i2c_unlock_segment(client->adapter);
- 	if (ret < 0) {
- 		goto err;
- 	} else if (ret != 2) {
+ 	/* initialize registers */
+ 	switch (priv->id) {
+@@ -516,7 +516,7 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+ 	/* synchronize */
+ 	__tda18271_write_regs(fe, R_EP1, 1, false);
+ 
+-	i2c_unlock_adapter(priv->i2c_props.adap);
++	i2c_unlock_segment(priv->i2c_props.adap);
+ 	tda18271_i2c_gate_ctrl(fe, 0);
+ 
+ 	return 0;
 -- 
 2.11.0
