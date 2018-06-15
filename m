@@ -1,177 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:27017 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965467AbeFOD7j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 23:59:39 -0400
-Date: Fri, 15 Jun 2018 11:59:03 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: kbuild-all@01.org, sakari.ailus@linux.intel.com,
-        linux-media@vger.kernel.org, tfiga@chromium.org,
-        mchehab@kernel.org, hans.verkuil@cisco.com,
-        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
-        jian.xu.zheng@intel.com, jerry.w.hu@intel.com, chao.c.li@intel.com,
-        tian.shu.qiu@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: Re: [PATCH v1 2/2] v4l: Document Intel IPU3 meta data uAPI
-Message-ID: <201806151121.2x8UIyMp%fengguang.wu@intel.com>
-References: <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="rwEMma7ioTxnRzrJ"
-Content-Disposition: inline
-In-Reply-To: <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:56629 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750742AbeFOELI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Jun 2018 00:11:08 -0400
+Message-ID: <28a1b3cb557f216d34c7c4a563728192@smtp-cloud7.xs4all.net>
+Date: Fri, 15 Jun 2018 06:11:06 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---rwEMma7ioTxnRzrJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Results of the daily build of media_tree:
 
-Hi Yong,
+date:			Fri Jun 15 05:00:18 CEST 2018
+media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
+media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
+v4l-utils git hash:	c3b46c2c53d7d815a53c902cfb2ddd96c3732c5b
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-I love your patch! Yet something to improve:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17-i686: OK
+linux-4.17-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-[auto build test ERROR on linus/master]
-[also build test ERROR on v4.17 next-20180614]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+Detailed results are available here:
 
-url:    https://github.com/0day-ci/linux/commits/Yong-Zhi/doc-rst-Add-Intel-IPU3-documentation/20180615-113101
-config: i386-tinyconfig (attached as .config)
-compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=i386 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-All errors (new ones prefixed by >>):
+Full logs are available here:
 
->> ./usr/include/linux/intel-ipu3.h:7: included file 'linux/bitmap.h' is not exported
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+The Media Infrastructure API from this daily build is here:
 
---rwEMma7ioTxnRzrJ
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
-
-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
-
---rwEMma7ioTxnRzrJ--
+http://www.xs4all.nl/~hverkuil/spec/index.html
