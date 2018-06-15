@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db5eur01on0094.outbound.protection.outlook.com ([104.47.2.94]:38179
+Received: from mail-db5eur01on0122.outbound.protection.outlook.com ([104.47.2.122]:4422
         "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S936215AbeFOKP6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 06:15:58 -0400
+        id S965553AbeFOKPo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Jun 2018 06:15:44 -0400
 From: Peter Rosin <peda@axentia.se>
 To: linux-kernel@vger.kernel.org
 Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
@@ -41,9 +41,9 @@ Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
         linux-media@vger.kernel.org
-Subject: [PATCH 06/11] media: drxk_hard: switch to i2c_lock_segment
-Date: Fri, 15 Jun 2018 12:15:01 +0200
-Message-Id: <20180615101506.8012-7-peda@axentia.se>
+Subject: [PATCH 02/11] tpm/tpm_i2c_infineon: switch to i2c_lock_segment
+Date: Fri, 15 Jun 2018 12:14:57 +0200
+Message-Id: <20180615101506.8012-3-peda@axentia.se>
 In-Reply-To: <20180615101506.8012-1-peda@axentia.se>
 References: <20180615101506.8012-1-peda@axentia.se>
 MIME-Version: 1.0
@@ -58,30 +58,48 @@ the two locking variants are equivalent.
 
 Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/dvb-frontends/drxk_hard.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/tpm/tpm_i2c_infineon.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
-index 5a26ad93be10..10e6bb158712 100644
---- a/drivers/media/dvb-frontends/drxk_hard.c
-+++ b/drivers/media/dvb-frontends/drxk_hard.c
-@@ -213,7 +213,7 @@ static inline u32 log10times100(u32 value)
+diff --git a/drivers/char/tpm/tpm_i2c_infineon.c b/drivers/char/tpm/tpm_i2c_infineon.c
+index 6116cd05e228..b2889405b4fa 100644
+--- a/drivers/char/tpm/tpm_i2c_infineon.c
++++ b/drivers/char/tpm/tpm_i2c_infineon.c
+@@ -117,7 +117,7 @@ static int iic_tpm_read(u8 addr, u8 *buffer, size_t len)
+ 	/* Lock the adapter for the duration of the whole sequence. */
+ 	if (!tpm_dev.client->adapter->algo->master_xfer)
+ 		return -EOPNOTSUPP;
+-	i2c_lock_adapter(tpm_dev.client->adapter);
++	i2c_lock_segment(tpm_dev.client->adapter);
  
- static int drxk_i2c_lock(struct drxk_state *state)
- {
--	i2c_lock_adapter(state->i2c);
-+	i2c_lock_segment(state->i2c);
- 	state->drxk_i2c_exclusive_lock = true;
+ 	if (tpm_dev.chip_type == SLB9645) {
+ 		/* use a combined read for newer chips
+@@ -192,7 +192,7 @@ static int iic_tpm_read(u8 addr, u8 *buffer, size_t len)
+ 	}
  
- 	return 0;
-@@ -224,7 +224,7 @@ static void drxk_i2c_unlock(struct drxk_state *state)
- 	if (!state->drxk_i2c_exclusive_lock)
- 		return;
+ out:
+-	i2c_unlock_adapter(tpm_dev.client->adapter);
++	i2c_unlock_segment(tpm_dev.client->adapter);
+ 	/* take care of 'guard time' */
+ 	usleep_range(SLEEP_DURATION_LOW, SLEEP_DURATION_HI);
  
--	i2c_unlock_adapter(state->i2c);
-+	i2c_unlock_segment(state->i2c);
- 	state->drxk_i2c_exclusive_lock = false;
- }
+@@ -224,7 +224,7 @@ static int iic_tpm_write_generic(u8 addr, u8 *buffer, size_t len,
+ 
+ 	if (!tpm_dev.client->adapter->algo->master_xfer)
+ 		return -EOPNOTSUPP;
+-	i2c_lock_adapter(tpm_dev.client->adapter);
++	i2c_lock_segment(tpm_dev.client->adapter);
+ 
+ 	/* prepend the 'register address' to the buffer */
+ 	tpm_dev.buf[0] = addr;
+@@ -243,7 +243,7 @@ static int iic_tpm_write_generic(u8 addr, u8 *buffer, size_t len,
+ 		usleep_range(sleep_low, sleep_hi);
+ 	}
+ 
+-	i2c_unlock_adapter(tpm_dev.client->adapter);
++	i2c_unlock_segment(tpm_dev.client->adapter);
+ 	/* take care of 'guard time' */
+ 	usleep_range(SLEEP_DURATION_LOW, SLEEP_DURATION_HI);
  
 -- 
 2.11.0
