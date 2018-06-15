@@ -1,42 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor4.renesas.com ([210.160.252.174]:61369 "EHLO
-        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S965957AbeFOQfF (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:58162 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964992AbeFOQqm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 12:35:05 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v4 09/26] media: max2175: fix location of driver's
- companion documentation
-Date: Fri, 15 Jun 2018 16:34:59 +0000
-Message-ID: <TY2PR01MB19625E3B383DEAB9E66A9D39C37C0@TY2PR01MB1962.jpnprd01.prod.outlook.com>
-References: <cover.1529079119.git.mchehab+samsung@kernel.org>
- <83d51717aad227a9cdfc117b1d82cdb3746aee6f.1529079120.git.mchehab+samsung@kernel.org>
-In-Reply-To: <83d51717aad227a9cdfc117b1d82cdb3746aee6f.1529079120.git.mchehab+samsung@kernel.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
+        Fri, 15 Jun 2018 12:46:42 -0400
+Date: Fri, 15 Jun 2018 18:46:04 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        Ingo Molnar <mingo@redhat.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>,
+        David Airlie <airlied@linux.ie>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        Josh Triplett <josh@joshtriplett.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, stern@rowland.harvard.edu
+Subject: Re: [PATCH v3 2/2] locking: Implement an algorithm choice for
+ Wound-Wait mutexes
+Message-ID: <20180615164604.GD2458@hirez.programming.kicks-ass.net>
+References: <20180615120827.3989-1-thellstrom@vmware.com>
+ <20180615120827.3989-2-thellstrom@vmware.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180615120827.3989-2-thellstrom@vmware.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Fri, Jun 15, 2018 at 02:08:27PM +0200, Thomas Hellstrom wrote:
 
-Thank you for fixing this.
+> @@ -772,6 +856,25 @@ __ww_mutex_add_waiter(struct mutex_waiter *waiter,
+>  	}
+>  
+>  	list_add_tail(&waiter->list, pos);
+> +	if (__mutex_waiter_is_first(lock, waiter))
+> +		__mutex_set_flag(lock, MUTEX_FLAG_WAITERS);
+> +
+> +	/*
+> +	 * Wound-Wait: if we're blocking on a mutex owned by a younger context,
+> +	 * wound that such that we might proceed.
+> +	 */
+> +	if (!is_wait_die) {
+> +		struct ww_mutex *ww = container_of(lock, struct ww_mutex, base);
+> +
+> +		/*
+> +		 * See ww_mutex_set_context_fastpath(). Orders setting
+> +		 * MUTEX_FLAG_WAITERS (atomic operation) vs the ww->ctx load,
+> +		 * such that either we or the fastpath will wound @ww->ctx.
+> +		 */
+> +		smp_mb__after_atomic();
+> +
+> +		__ww_mutex_wound(lock, ww_ctx, ww->ctx);
+> +	}
 
-> Subject: [PATCH v4 09/26] media: max2175: fix location of driver's
-> companion documentation
->=20
-> There's a missing ".rst" at the doc's file name.
->=20
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+I think we want the smp_mb__after_atomic() in the same branch as
+__mutex_set_flag(). So something like:
 
-Acked-by: Ramesh Shanmugasundaram <Ramesh.shanmugasundaram@bp.renesas.com>
+	if (__mutex_waiter_is_first()) {
+		__mutex_set_flag();
+		if (!is_wait_die)
+			smp_mb__after_atomic();
+	}
 
-Thanks,
-Ramesh
+Or possibly even without the !is_wait_die. The rules for
+smp_mb__*_atomic() are such that we want it unconditional after an
+atomic, otherwise the semantics get too fuzzy.
+
+Alan (rightfully) complained about that a while ago when he was auditing
+users.
