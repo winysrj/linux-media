@@ -2,8 +2,8 @@ Return-path: <linux-media-owner@vger.kernel.org>
 Received: from mail-db5eur01on0094.outbound.protection.outlook.com ([104.47.2.94]:38179
         "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S936247AbeFOKQI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 06:16:08 -0400
+        id S965689AbeFOKQL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Jun 2018 06:16:11 -0400
 From: Peter Rosin <peda@axentia.se>
 To: linux-kernel@vger.kernel.org
 Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
@@ -41,9 +41,9 @@ Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
         linux-media@vger.kernel.org
-Subject: [PATCH 09/11] media: tda18271: switch to i2c_lock_segment
-Date: Fri, 15 Jun 2018 12:15:04 +0200
-Message-Id: <20180615101506.8012-10-peda@axentia.se>
+Subject: [PATCH 10/11] mfd: 88pm860x-i2c: switch to i2c_lock_segment
+Date: Fri, 15 Jun 2018 12:15:05 +0200
+Message-Id: <20180615101506.8012-11-peda@axentia.se>
 In-Reply-To: <20180615101506.8012-1-peda@axentia.se>
 References: <20180615101506.8012-1-peda@axentia.se>
 MIME-Version: 1.0
@@ -58,48 +58,46 @@ the two locking variants are equivalent.
 
 Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/tuners/tda18271-common.c | 8 ++++----
+ drivers/mfd/88pm860x-i2c.c | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
-index 7e81cd887c13..93cce2bcd601 100644
---- a/drivers/media/tuners/tda18271-common.c
-+++ b/drivers/media/tuners/tda18271-common.c
-@@ -225,7 +225,7 @@ static int __tda18271_write_regs(struct dvb_frontend *fe, int idx, int len,
- 	 */
- 	if (lock_i2c) {
- 		tda18271_i2c_gate_ctrl(fe, 1);
--		i2c_lock_adapter(priv->i2c_props.adap);
-+		i2c_lock_segment(priv->i2c_props.adap);
- 	}
- 	while (len) {
- 		if (max > len)
-@@ -246,7 +246,7 @@ static int __tda18271_write_regs(struct dvb_frontend *fe, int idx, int len,
- 		len -= max;
- 	}
- 	if (lock_i2c) {
--		i2c_unlock_adapter(priv->i2c_props.adap);
-+		i2c_unlock_segment(priv->i2c_props.adap);
- 		tda18271_i2c_gate_ctrl(fe, 0);
- 	}
+diff --git a/drivers/mfd/88pm860x-i2c.c b/drivers/mfd/88pm860x-i2c.c
+index 84e313107233..8e54fc2dc29c 100644
+--- a/drivers/mfd/88pm860x-i2c.c
++++ b/drivers/mfd/88pm860x-i2c.c
+@@ -146,14 +146,14 @@ int pm860x_page_reg_write(struct i2c_client *i2c, int reg,
+ 	unsigned char zero;
+ 	int ret;
  
-@@ -300,7 +300,7 @@ int tda18271_init_regs(struct dvb_frontend *fe)
- 	 * as those could cause bad things
- 	 */
- 	tda18271_i2c_gate_ctrl(fe, 1);
--	i2c_lock_adapter(priv->i2c_props.adap);
-+	i2c_lock_segment(priv->i2c_props.adap);
+-	i2c_lock_adapter(i2c->adapter);
++	i2c_lock_segment(i2c->adapter);
+ 	read_device(i2c, 0xFA, 0, &zero);
+ 	read_device(i2c, 0xFB, 0, &zero);
+ 	read_device(i2c, 0xFF, 0, &zero);
+ 	ret = write_device(i2c, reg, 1, &data);
+ 	read_device(i2c, 0xFE, 0, &zero);
+ 	read_device(i2c, 0xFC, 0, &zero);
+-	i2c_unlock_adapter(i2c->adapter);
++	i2c_unlock_segment(i2c->adapter);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(pm860x_page_reg_write);
+@@ -164,14 +164,14 @@ int pm860x_page_bulk_read(struct i2c_client *i2c, int reg,
+ 	unsigned char zero = 0;
+ 	int ret;
  
- 	/* initialize registers */
- 	switch (priv->id) {
-@@ -516,7 +516,7 @@ int tda18271_init_regs(struct dvb_frontend *fe)
- 	/* synchronize */
- 	__tda18271_write_regs(fe, R_EP1, 1, false);
- 
--	i2c_unlock_adapter(priv->i2c_props.adap);
-+	i2c_unlock_segment(priv->i2c_props.adap);
- 	tda18271_i2c_gate_ctrl(fe, 0);
- 
- 	return 0;
+-	i2c_lock_adapter(i2c->adapter);
++	i2c_lock_segment(i2c->adapter);
+ 	read_device(i2c, 0xfa, 0, &zero);
+ 	read_device(i2c, 0xfb, 0, &zero);
+ 	read_device(i2c, 0xff, 0, &zero);
+ 	ret = read_device(i2c, reg, count, buf);
+ 	read_device(i2c, 0xFE, 0, &zero);
+ 	read_device(i2c, 0xFC, 0, &zero);
+-	i2c_unlock_adapter(i2c->adapter);
++	i2c_unlock_segment(i2c->adapter);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(pm860x_page_bulk_read);
 -- 
 2.11.0
