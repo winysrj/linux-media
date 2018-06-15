@@ -1,50 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:59518 "EHLO
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:40311 "EHLO
         lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755792AbeFOIBb (ORCPT
+        by vger.kernel.org with ESMTP id S933986AbeFOInF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 04:01:31 -0400
-Subject: Re: [PATCH v3 00/20] v4l2 core: push ioctl lock down to ioctl handler
+        Fri, 15 Jun 2018 04:43:05 -0400
+Subject: Re: [PATCH 2/3] mem2mem: Make .job_abort optional
 To: Ezequiel Garcia <ezequiel@collabora.com>,
         linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Abylay Ospan <aospan@netup.ru>
-References: <20180524203520.1598-1-ezequiel@collabora.com>
- <bcb16fa2-e915-9329-de37-3bbdddd84f30@xs4all.nl>
- <fc4b8760c8f61fcee758b28574d25bd0143f90ce.camel@collabora.com>
+Cc: kernel@collabora.com
+References: <20180614153405.5697-1-ezequiel@collabora.com>
+ <20180614153405.5697-3-ezequiel@collabora.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ea748445-2987-0f15-0230-53cc6f54a204@xs4all.nl>
-Date: Fri, 15 Jun 2018 10:01:27 +0200
+Message-ID: <326c082b-44e7-60d7-9d36-2d5f4713709f@xs4all.nl>
+Date: Fri, 15 Jun 2018 10:43:02 +0200
 MIME-Version: 1.0
-In-Reply-To: <fc4b8760c8f61fcee758b28574d25bd0143f90ce.camel@collabora.com>
+In-Reply-To: <20180614153405.5697-3-ezequiel@collabora.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/06/18 15:24, Ezequiel Garcia wrote:
-> On Fri, 2018-06-08 at 14:11 +0200, Hans Verkuil wrote:
->> Hi Ezequiel,
->>
->> On 05/24/2018 10:35 PM, Ezequiel Garcia wrote:
->>> Third spin of the series posted by Hans:
->>>
->>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg131363.html
->>
->> Can you rebase this? Several patches have already been merged, so it would
->> be nice to have a new clean v4. Can you also move patch 11/20 (dvb-core) to
->> after patch 16/20? It makes it a bit easier for me to apply the patches before
->> that since the dvb patch needs an Ack from Mauro at the very least.
->>
->> But I can take the v4l patches, that should be no problem.
->>
->>
+On 14/06/18 17:34, Ezequiel Garcia wrote:
+> Implementing job_abort() does not make sense on some drivers.
+> This is not a problem, as the abort is not required to
+> wait for the job to finish. Quite the opposite, drivers
+> are encouraged not to wait.
 > 
-> No problem.
+> Demote v4l2_m2m_ops.job_abort from required to optional, and
+> clean all drivers with dummy or wrong implementations.
 
-Haven't seen a v4 yet. I'm processing patches today and Monday, so if I have
-a clean patch series I can merge most of it quickly.
+Can you split off the rcar_jpu.c and g2d.c changes into separate patches?
+The others are trivial, but those two need a more precise commit log and
+I would like to have Acks of the driver maintainers before merging.
+
+I'm going to take the first and third patches of this series, so you
+only have to post a v2 for this patch.
 
 Regards,
 
 	Hans
+
+> 
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> ---
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c |  5 -----
+>  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c    |  5 -----
+>  drivers/media/platform/rcar_jpu.c               | 16 ----------------
+>  drivers/media/platform/rockchip/rga/rga.c       |  6 ------
+>  drivers/media/platform/s5p-g2d/g2d.c            | 14 --------------
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c     |  7 -------
+>  drivers/media/v4l2-core/v4l2-mem2mem.c          |  6 +++---
+>  include/media/v4l2-mem2mem.h                    |  2 +-
+>  8 files changed, 4 insertions(+), 57 deletions(-)
+> 
+> diff --git a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+> index 328e8f650d9b..4f24da8afecc 100644
+> --- a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+> +++ b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+> @@ -861,14 +861,9 @@ static int mtk_jpeg_job_ready(void *priv)
+>  	return (ctx->state == MTK_JPEG_RUNNING) ? 1 : 0;
+>  }
+>  
+> -static void mtk_jpeg_job_abort(void *priv)
+> -{
+> -}
+> -
+>  static const struct v4l2_m2m_ops mtk_jpeg_m2m_ops = {
+>  	.device_run = mtk_jpeg_device_run,
+>  	.job_ready  = mtk_jpeg_job_ready,
+> -	.job_abort  = mtk_jpeg_job_abort,
+>  };
+>  
+>  static int mtk_jpeg_queue_init(void *priv, struct vb2_queue *src_vq,
+> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> index 583d47724ee8..1198e19060a2 100644
+> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> @@ -455,10 +455,6 @@ static void mtk_mdp_m2m_stop_streaming(struct vb2_queue *q)
+>  	pm_runtime_put(&ctx->mdp_dev->pdev->dev);
+>  }
+>  
+> -static void mtk_mdp_m2m_job_abort(void *priv)
+> -{
+> -}
+> -
+>  /* The color format (num_planes) must be already configured. */
+>  static void mtk_mdp_prepare_addr(struct mtk_mdp_ctx *ctx,
+>  				 struct vb2_buffer *vb,
+> @@ -1227,7 +1223,6 @@ static const struct v4l2_file_operations mtk_mdp_m2m_fops = {
+>  
+>  static const struct v4l2_m2m_ops mtk_mdp_m2m_ops = {
+>  	.device_run	= mtk_mdp_m2m_device_run,
+> -	.job_abort	= mtk_mdp_m2m_job_abort,
+>  };
+>  
+>  int mtk_mdp_register_m2m_device(struct mtk_mdp_dev *mdp)
+> diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
+> index 8b44a849ab41..10d24ddcea5f 100644
+> --- a/drivers/media/platform/rcar_jpu.c
+> +++ b/drivers/media/platform/rcar_jpu.c
+> @@ -198,7 +198,6 @@
+>   * @vfd_decoder: video device node for decoder mem2mem mode
+>   * @m2m_dev: v4l2 mem2mem device data
+>   * @curr: pointer to current context
+> - * @irq_queue:	interrupt handler waitqueue
+>   * @regs: JPEG IP registers mapping
+>   * @irq: JPEG IP irq
+>   * @clk: JPEG IP clock
+> @@ -213,7 +212,6 @@ struct jpu {
+>  	struct video_device	vfd_decoder;
+>  	struct v4l2_m2m_dev	*m2m_dev;
+>  	struct jpu_ctx		*curr;
+> -	wait_queue_head_t	irq_queue;
+>  
+>  	void __iomem		*regs;
+>  	unsigned int		irq;
+> @@ -1499,19 +1497,9 @@ static int jpu_job_ready(void *priv)
+>  	return 1;
+>  }
+>  
+> -static void jpu_job_abort(void *priv)
+> -{
+> -	struct jpu_ctx *ctx = priv;
+> -
+> -	if (!wait_event_timeout(ctx->jpu->irq_queue, !ctx->jpu->curr,
+> -				msecs_to_jiffies(JPU_JOB_TIMEOUT)))
+> -		jpu_cleanup(ctx, true);
+> -}
+> -
+>  static const struct v4l2_m2m_ops jpu_m2m_ops = {
+>  	.device_run	= jpu_device_run,
+>  	.job_ready	= jpu_job_ready,
+> -	.job_abort	= jpu_job_abort,
+>  };
+>  
+>  /*
+> @@ -1592,9 +1580,6 @@ static irqreturn_t jpu_irq_handler(int irq, void *dev_id)
+>  
+>  	v4l2_m2m_job_finish(jpu->m2m_dev, curr_ctx->fh.m2m_ctx);
+>  
+> -	/* ...wakeup abort routine if needed */
+> -	wake_up(&jpu->irq_queue);
+> -
+>  	return IRQ_HANDLED;
+>  
+>  handled:
+> @@ -1628,7 +1613,6 @@ static int jpu_probe(struct platform_device *pdev)
+>  	if (!jpu)
+>  		return -ENOMEM;
+>  
+> -	init_waitqueue_head(&jpu->irq_queue);
+>  	mutex_init(&jpu->mutex);
+>  	spin_lock_init(&jpu->lock);
+>  	jpu->dev = &pdev->dev;
+> diff --git a/drivers/media/platform/rockchip/rga/rga.c b/drivers/media/platform/rockchip/rga/rga.c
+> index 5a5a6139e18a..d833bb32a538 100644
+> --- a/drivers/media/platform/rockchip/rga/rga.c
+> +++ b/drivers/media/platform/rockchip/rga/rga.c
+> @@ -39,11 +39,6 @@
+>  static int debug;
+>  module_param(debug, int, 0644);
+>  
+> -static void job_abort(void *prv)
+> -{
+> -	/* Can't do anything rational here */
+> -}
+> -
+>  static void device_run(void *prv)
+>  {
+>  	struct rga_ctx *ctx = prv;
+> @@ -104,7 +99,6 @@ static irqreturn_t rga_isr(int irq, void *prv)
+>  
+>  static struct v4l2_m2m_ops rga_m2m_ops = {
+>  	.device_run = device_run,
+> -	.job_abort = job_abort,
+>  };
+>  
+>  static int
+> diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+> index 66aa8cf1d048..49cc2a70d1f3 100644
+> --- a/drivers/media/platform/s5p-g2d/g2d.c
+> +++ b/drivers/media/platform/s5p-g2d/g2d.c
+> @@ -481,19 +481,6 @@ static int vidioc_s_crop(struct file *file, void *prv, const struct v4l2_crop *c
+>  	return 0;
+>  }
+>  
+> -static void job_abort(void *prv)
+> -{
+> -	struct g2d_ctx *ctx = prv;
+> -	struct g2d_dev *dev = ctx->dev;
+> -
+> -	if (dev->curr == NULL) /* No job currently running */
+> -		return;
+> -
+> -	wait_event_timeout(dev->irq_queue,
+> -			   dev->curr == NULL,
+> -			   msecs_to_jiffies(G2D_TIMEOUT));
+> -}
+> -
+>  static void device_run(void *prv)
+>  {
+>  	struct g2d_ctx *ctx = prv;
+> @@ -613,7 +600,6 @@ static const struct video_device g2d_videodev = {
+>  
+>  static const struct v4l2_m2m_ops g2d_m2m_ops = {
+>  	.device_run	= device_run,
+> -	.job_abort	= job_abort,
+>  };
+>  
+>  static const struct of_device_id exynos_g2d_match[];
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 79b63da27f53..04fd2e0493c0 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -2467,26 +2467,19 @@ static int s5p_jpeg_job_ready(void *priv)
+>  	return 1;
+>  }
+>  
+> -static void s5p_jpeg_job_abort(void *priv)
+> -{
+> -}
+> -
+>  static struct v4l2_m2m_ops s5p_jpeg_m2m_ops = {
+>  	.device_run	= s5p_jpeg_device_run,
+>  	.job_ready	= s5p_jpeg_job_ready,
+> -	.job_abort	= s5p_jpeg_job_abort,
+>  };
+>  
+>  static struct v4l2_m2m_ops exynos3250_jpeg_m2m_ops = {
+>  	.device_run	= exynos3250_jpeg_device_run,
+>  	.job_ready	= s5p_jpeg_job_ready,
+> -	.job_abort	= s5p_jpeg_job_abort,
+>  };
+>  
+>  static struct v4l2_m2m_ops exynos4_jpeg_m2m_ops = {
+>  	.device_run	= exynos4_jpeg_device_run,
+>  	.job_ready	= s5p_jpeg_job_ready,
+> -	.job_abort	= s5p_jpeg_job_abort,
+>  };
+>  
+>  /*
+> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> index c4f963d96a79..7bae19ca611e 100644
+> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> @@ -300,7 +300,8 @@ static void v4l2_m2m_cancel_job(struct v4l2_m2m_ctx *m2m_ctx)
+>  	m2m_ctx->job_flags |= TRANS_ABORT;
+>  	if (m2m_ctx->job_flags & TRANS_RUNNING) {
+>  		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+> -		m2m_dev->m2m_ops->job_abort(m2m_ctx->priv);
+> +		if (m2m_dev->m2m_ops->job_abort)
+> +			m2m_dev->m2m_ops->job_abort(m2m_ctx->priv);
+>  		dprintk("m2m_ctx %p running, will wait to complete", m2m_ctx);
+>  		wait_event(m2m_ctx->finished,
+>  				!(m2m_ctx->job_flags & TRANS_RUNNING));
+> @@ -599,8 +600,7 @@ struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops)
+>  {
+>  	struct v4l2_m2m_dev *m2m_dev;
+>  
+> -	if (!m2m_ops || WARN_ON(!m2m_ops->device_run) ||
+> -			WARN_ON(!m2m_ops->job_abort))
+> +	if (!m2m_ops || WARN_ON(!m2m_ops->device_run))
+>  		return ERR_PTR(-EINVAL);
+>  
+>  	m2m_dev = kzalloc(sizeof *m2m_dev, GFP_KERNEL);
+> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+> index 8f4b208cfee7..c2d817d3ff42 100644
+> --- a/include/media/v4l2-mem2mem.h
+> +++ b/include/media/v4l2-mem2mem.h
+> @@ -32,7 +32,7 @@
+>   *		assumed that one source and one destination buffer are all
+>   *		that is required for the driver to perform one full transaction.
+>   *		This method may not sleep.
+> - * @job_abort:	required. Informs the driver that it has to abort the currently
+> + * @job_abort:	optional. Informs the driver that it has to abort the currently
+>   *		running transaction as soon as possible (i.e. as soon as it can
+>   *		stop the device safely; e.g. in the next interrupt handler),
+>   *		even if the transaction would not have been finished by then.
+> 
