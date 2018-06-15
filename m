@@ -1,79 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fireflyinternet.com ([109.228.58.192]:62634 "EHLO
-        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752057AbeF0Luz (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:46598 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755819AbeFOIKt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 07:50:55 -0400
-Content-Type: text/plain; charset="utf-8"
+        Fri, 15 Jun 2018 04:10:49 -0400
+Subject: Re: [PATCH] media: fsl-viu: Use proper check for presence of
+ {out,in}_be32()
+To: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linuxppc-dev@lists.ozlabs.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1528451328-21316-1-git-send-email-geert@linux-m68k.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5948eb0d-410d-5bc6-a0f3-ffcaa4b3f975@xs4all.nl>
+Date: Fri, 15 Jun 2018 10:10:43 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-To: =?utf-8?q?Michel_D=C3=A4nzer?= <michel@daenzer.net>,
-        "Sumit Semwal" <sumit.semwal@linaro.org>
-From: Chris Wilson <chris@chris-wilson.co.uk>
-In-Reply-To: <20180626143147.14296-1-michel@daenzer.net>
-Cc: linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org,
-        =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
-References: <20180626143147.14296-1-michel@daenzer.net>
-Message-ID: <153010024207.8693.14587899562244751472@mail.alporthouse.com>
-Subject: Re: [PATCH] dma-buf: Move BUG_ON from _add_shared_fence to
- _add_shared_inplace
-Date: Wed, 27 Jun 2018 12:50:42 +0100
+In-Reply-To: <1528451328-21316-1-git-send-email-geert@linux-m68k.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quoting Michel Dänzer (2018-06-26 15:31:47)
-> From: Michel Dänzer <michel.daenzer@amd.com>
+On 08/06/18 11:48, Geert Uytterhoeven wrote:
+> When compile-testing on m68k or microblaze:
 > 
-> Fixes the BUG_ON spuriously triggering under the following
-> circumstances:
+>     drivers/media/platform/fsl-viu.c:41:1: warning: "out_be32" redefined
+>     drivers/media/platform/fsl-viu.c:42:1: warning: "in_be32" redefined
 > 
-> * ttm_eu_reserve_buffers processes a list containing multiple BOs using
->   the same reservation object, so it calls
->   reservation_object_reserve_shared with that reservation object once
->   for each such BO.
-> * In reservation_object_reserve_shared, old->shared_count ==
->   old->shared_max - 1, so obj->staged is freed in preparation of an
->   in-place update.
-> * ttm_eu_fence_buffer_objects calls reservation_object_add_shared_fence
->   once for each of the BOs above, always with the same fence.
-> * The first call adds the fence in the remaining free slot, after which
->   old->shared_count == old->shared_max.
+> Fix this by replacing the check for PowerPC by checks for the presence
+> of {out,in}_be32().
 > 
-> In the next call to reservation_object_add_shared_fence, the BUG_ON
-> triggers. However, nothing bad would happen in
-> reservation_object_add_shared_inplace, since the fence is already in the
-> reservation object.
+> As PowerPC implements the be32 accessors using inline functions instead
+> of macros, identity definions are added for all accessors to make the
+> above checks work.
 > 
-> Prevent this by moving the BUG_ON to where an overflow would actually
-> happen (e.g. if a buggy caller didn't call
-> reservation_object_reserve_shared before).
-> 
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Michel Dänzer <michel.daenzer@amd.com>
+> Fixes: 29d750686331a1a9 ("media: fsl-viu: allow building it with COMPILE_TEST")
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-I've convinced myself (or rather have not found a valid argument
-against) that being able to call reserve_shared + add_shared multiple
-times for the same fence is an intended part of reservation_object API 
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I'd double check with Christian though.
+Should this go through the media tree or powerpc tree? Either way works for me.
 
-Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Regards,
 
->  drivers/dma-buf/reservation.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+	Hans
+
+> ---
+> Compile-tested on m68k, microblaze, and powerpc.
+> Assembler output before/after compared for powerpc.
+> ---
+>  arch/powerpc/include/asm/io.h    | 14 ++++++++++++++
+>  drivers/media/platform/fsl-viu.c |  4 +++-
+>  2 files changed, 17 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-> index 314eb1071cce..532545b9488e 100644
-> --- a/drivers/dma-buf/reservation.c
-> +++ b/drivers/dma-buf/reservation.c
-> @@ -141,6 +141,7 @@ reservation_object_add_shared_inplace(struct reservation_object *obj,
->         if (signaled) {
->                 RCU_INIT_POINTER(fobj->shared[signaled_idx], fence);
->         } else {
-> +               BUG_ON(fobj->shared_count >= fobj->shared_max);
-
-Personally I would just let kasan detect this and throw away the BUG_ON
-or at least move it behind some DMABUF_BUG_ON().
--Chris
+> diff --git a/arch/powerpc/include/asm/io.h b/arch/powerpc/include/asm/io.h
+> index e0331e7545685c5f..3741183ae09349f1 100644
+> --- a/arch/powerpc/include/asm/io.h
+> +++ b/arch/powerpc/include/asm/io.h
+> @@ -222,6 +222,20 @@ static inline void out_be64(volatile u64 __iomem *addr, u64 val)
+>  #endif
+>  #endif /* __powerpc64__ */
+>  
+> +#define in_be16 in_be16
+> +#define in_be32 in_be32
+> +#define in_be64 in_be64
+> +#define in_le16 in_le16
+> +#define in_le32 in_le32
+> +#define in_le64 in_le64
+> +
+> +#define out_be16 out_be16
+> +#define out_be32 out_be32
+> +#define out_be64 out_be64
+> +#define out_le16 out_le16
+> +#define out_le32 out_le32
+> +#define out_le64 out_le64
+> +
+>  /*
+>   * Low level IO stream instructions are defined out of line for now
+>   */
+> diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+> index e41510ce69a40815..5d5e030c9c980647 100644
+> --- a/drivers/media/platform/fsl-viu.c
+> +++ b/drivers/media/platform/fsl-viu.c
+> @@ -37,8 +37,10 @@
+>  #define VIU_VERSION		"0.5.1"
+>  
+>  /* Allow building this driver with COMPILE_TEST */
+> -#ifndef CONFIG_PPC
+> +#ifndef out_be32
+>  #define out_be32(v, a)	iowrite32be(a, (void __iomem *)v)
+> +#endif
+> +#ifndef in_be32
+>  #define in_be32(a)	ioread32be((void __iomem *)a)
+>  #endif
+>  
+> 
