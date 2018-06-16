@@ -1,140 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:50997 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750855AbeFPELH (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:37051 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751407AbeFPEax (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Jun 2018 00:11:07 -0400
-Message-ID: <7f7e33e7ef95172f012f4fe714ba54a6@smtp-cloud8.xs4all.net>
-Date: Sat, 16 Jun 2018 06:11:05 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Sat, 16 Jun 2018 00:30:53 -0400
+From: "JoonHwan.Kim" <spilit464@gmail.com>
+To: alan@linux.intel.com, sakari.ailus@linux.intel.com,
+        mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com,
+        aishpant@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH] media: staging: atomisp: add a blank line after declarations
+Date: Sat, 16 Jun 2018 13:30:48 +0900
+Message-ID: <2750553.3y1WJKmnP5@joonhwan-virtualbox>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+fix checkpatch.pl warning:
+  * Missing a blank line after declarations
 
-Results of the daily build of media_tree:
+Signed-off-by: Joonhwan Kim <spilit464@gmail.com>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-date:			Sat Jun 16 05:00:24 CEST 2018
-media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
-media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
-v4l-utils git hash:	c3b46c2c53d7d815a53c902cfb2ddd96c3732c5b
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-i686: OK
-linux-4.17-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
+index 61bd550dafb9..4c8ff1c90f63 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
+@@ -1194,6 +1194,7 @@ static int atomisp_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	 */
+ 	if (buf->memory == V4L2_MEMORY_USERPTR) {
+ 		struct hrt_userbuffer_attr attributes;
++
+ 		vb = pipe->capq.bufs[buf->index];
+ 		vm_mem = vb->priv;
+ 		if (!vm_mem) {
+@@ -1557,6 +1558,7 @@ int atomisp_stream_on_master_slave_sensor(struct atomisp_device *isp,
+ 	 */
+ 	for (i = 0; i < isp->num_of_streams; i++) {
+ 		int sensor_index = isp->asd[i].input_curr;
++
+ 		if (isp->inputs[sensor_index].camera_caps->
+ 				sensor[isp->asd[i].sensor_curr].is_slave)
+ 			slave = sensor_index;
+@@ -1643,6 +1645,7 @@ static void atomisp_pause_buffer_event(struct atomisp_device *isp)
+ 
+ 	for (i = 0; i < isp->num_of_streams; i++) {
+ 		int sensor_index = isp->asd[i].input_curr;
++
+ 		if (isp->inputs[sensor_index].camera_caps->
+ 				sensor[isp->asd[i].sensor_curr].is_slave) {
+ 			v4l2_event_queue(isp->asd[i].subdev.devnode, &event);
+@@ -1656,6 +1659,7 @@ static void atomisp_pause_buffer_event(struct atomisp_device *isp)
+ /* invalidate. SW workaround for this is to set burst length */
+ /* manually to 128 in case of 13MPx snapshot and to 1 otherwise. */
+ static void atomisp_dma_burst_len_cfg(struct atomisp_sub_device *asd)
++
+ {
+ 
+ 	struct v4l2_mbus_framefmt *sink;
+@@ -2138,6 +2142,7 @@ int __atomisp_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (isp->sw_contex.power_state == ATOM_ISP_POWER_UP) {
+ 		unsigned int i;
+ 		bool recreate_streams[MAX_STREAM_NUM] = {0};
++
+ 		if (isp->isp_timeout)
+ 			dev_err(isp->dev, "%s: Resetting with WA activated",
+ 				__func__);
+-- 
+2.17.1
