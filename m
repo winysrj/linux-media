@@ -1,67 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:48616 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753345AbeFOXNg (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:50997 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750855AbeFPELH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 19:13:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
-        linux-i2c@vger.kernel.org,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [RFC PATCH v2] media: i2c: add SCCB helpers
-Date: Sat, 16 Jun 2018 02:13:51 +0300
-Message-ID: <2528868.S4lOAQh8Yk@avalon>
-In-Reply-To: <20180614153357.vgz4umv2aqudghm3@ninjato>
-References: <1528817686-7067-1-git-send-email-akinobu.mita@gmail.com> <20180614153357.vgz4umv2aqudghm3@ninjato>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Sat, 16 Jun 2018 00:11:07 -0400
+Message-ID: <7f7e33e7ef95172f012f4fe714ba54a6@smtp-cloud8.xs4all.net>
+Date: Sat, 16 Jun 2018 06:11:05 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Thursday, 14 June 2018 18:33:58 EEST Wolfram Sang wrote:
-> On Wed, Jun 13, 2018 at 12:34:46AM +0900, Akinobu Mita wrote:
-> > (This is 2nd version of SCCB helpers patch.  After 1st version was
-> > submitted, I sent alternative patch titled "i2c: add I2C_M_FORCE_STOP".
-> > But it wasn't accepted because it makes the I2C core code unreadable.
-> > I couldn't find out a way to untangle it, so I returned to the original
-> > approach.)
-> > 
-> > This adds Serial Camera Control Bus (SCCB) helper functions
-> > (sccb_read_byte and sccb_write_byte) that are intended to be used by some
-> > of Omnivision sensor drivers.
-> > 
-> > The ov772x driver is going to use these functions in order to make it work
-> > with most i2c controllers.
-> > 
-> > As the ov772x device doesn't support repeated starts, this driver
-> > currently requires I2C_FUNC_PROTOCOL_MANGLING that is not supported by
-> > many i2c controller drivers.
-> > 
-> > With the sccb_read_byte() that issues two separated requests in order to
-> > avoid repeated start, the driver doesn't require
-> > I2C_FUNC_PROTOCOL_MANGLING.
-> 
-> From a first glance, this looks like my preferred solution so far.
-> Thanks for doing it! Let me sleep a bit over it for a thorough review...
-> 
-> > --- /dev/null
-> > +++ b/drivers/media/i2c/sccb.h
-> 
-> I'd prefer this file to be in the i2c realm. Maybe
-> 'include/linux/i2c-sccb.h" or something. I will come back to this.
+Results of the daily build of media_tree:
 
-And while at it, I think we also need a .c file, the functions (and especially 
-sccb_read_byte()) should not be static inline.
+date:			Sat Jun 16 05:00:24 CEST 2018
+media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
+media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
+v4l-utils git hash:	c3b46c2c53d7d815a53c902cfb2ddd96c3732c5b
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
--- 
-Regards,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17-i686: OK
+linux-4.17-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Laurent Pinchart
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
