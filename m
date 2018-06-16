@@ -1,73 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2120.oracle.com ([156.151.31.85]:43248 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932741AbeFPMqj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Jun 2018 08:46:39 -0400
-Date: Sat, 16 Jun 2018 15:46:21 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: =?utf-8?B?6rmA7KSA7ZmY?= <spilit464@gmail.com>
-Cc: alan@linux.intel.com, sakari.ailus@linux.intel.com,
-        mchehab@kernel.org, devel@driverdev.osuosl.org,
-        Greg KH <gregkh@linuxfoundation.org>,
-        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-        andriy.shevchenko@linux.intel.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: staging: atomisp: add a blank line after
- declarations
-Message-ID: <20180616124621.onqmaamidzjdyzlj@mwanda>
-References: <2750553.3y1WJKmnP5@joonhwan-virtualbox>
- <20180616090609.s5s4q2ri7e2x24oo@mwanda>
- <CAO-p-6CXp1LNMciC2WsT4S-+oubh6SLYHs+4rfmQP9m88F12iA@mail.gmail.com>
+Received: from mout.gmx.net ([212.227.15.15]:35777 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932542AbeFPTEY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Jun 2018 15:04:24 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAO-p-6CXp1LNMciC2WsT4S-+oubh6SLYHs+4rfmQP9m88F12iA@mail.gmail.com>
+Message-ID: <trinity-cafeb225-0ac3-4459-8801-092eb770afe0-1529175862331@3c-app-gmx-bs34>
+From: "Robert Schlabbach" <Robert.Schlabbach@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/1] media: em28xx: explicitly disable TS packet filter
+Content-Type: text/plain; charset=UTF-8
+Date: Sat, 16 Jun 2018 21:04:22 +0200
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jun 16, 2018 at 07:20:54PM +0900, 김준환 wrote:
-> Thank you for attention :)
-> 
-> I knew what I forgot before doing contribute
-> 
-> I updated it 'TODAY' and I'll never repeat this mistake again!
-> 
+The em28xx driver never touched the EM2874 register bits that control
+the transport stream packet filters, leaving them at whatever default
+the firmware has set. E.g. the Pinnacle 290e disables them by default,
+while the Hauppauge WinTV dualHD enables discarding NULL packets by
+default.
 
-No rush.
+However, some applications require NULL packets, e.g. to determine the
+load in DOCSIS segments, so discarding NULL packets is undesired for
+such applications.
 
-This is a tiny mistake and doesn't affect runtime at all and we're all
-human.  The thing to do is figure out which are avoidable mistakes,
-right?
+This patch simply extends the bit mask when starting or stopping the
+transport stream packet capture, so that the filter bits are cleared.
+It has been verified that this makes the Hauppauge WinTV dualHD pass
+an unfiltered DVB-C stream including NULL packets, which it didn't
+before.
 
-Like for me, when I was starting out I wrote some patches that added
-some allocations but I forgot to add the kfree().  So then I made a QC
-script that runs some static checkers over my patches and if I add any
-line with "alloc" in it then my QC script asks me:
+Signed-off-by: Robert Schlabbach <Robert.Schlabbach@gmx.net>
+---
+ drivers/media/usb/em28xx/em28xx-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-if git diff $fullname | grep ^+ | grep -qi alloc ; then
-    qc "Have you freed all your mallocs?"
-    qc "Have you checked all your mallocs for NULL returns?"
-fi
-
-And a couple weeks ago, I accidentally introduced a bug, which someone
-caught during review, because I removed a cast that I thought was
-unnecessary.
-
-	for (i = 0; i < (int)limit; i++) {
-
-I thought limit couldn't be negative but I was wrong.  So I wrote a
-static checker test for that so I'll never do it again.  And I found
-some similar bugs in other people's code and fixed those.  Static
-analysis is sort of my thing but anyone could do it really.  Or ask
-Julia and I to write a check.  But most people have the hardware and
-could write a test program to trigger the bug and add it to their QC
-process.
-
-So making mistakes is fine and it's part of learning.  You should
-definitely take the time to figure out where you went wrong and if it's
-preventable.  But no one really gets annoyed about mistakes because it's
-just part of life and being human.
-
-regards,
-dan carpenter
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index f70845e..45b2477 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -655,12 +655,12 @@ int em28xx_capture_start(struct em28xx *dev, int start)
+ 			rc = em28xx_write_reg_bits(dev,
+ 						   EM2874_R5F_TS_ENABLE,
+ 						   start ? EM2874_TS1_CAPTURE_ENABLE : 0x00,
+-						   EM2874_TS1_CAPTURE_ENABLE);
++						   EM2874_TS1_CAPTURE_ENABLE | EM2874_TS1_FILTER_ENABLE | EM2874_TS1_NULL_DISCARD);
+ 		else
+ 			rc = em28xx_write_reg_bits(dev,
+ 						   EM2874_R5F_TS_ENABLE,
+ 						   start ? EM2874_TS2_CAPTURE_ENABLE : 0x00,
+-						   EM2874_TS2_CAPTURE_ENABLE);
++						   EM2874_TS2_CAPTURE_ENABLE | EM2874_TS2_FILTER_ENABLE | EM2874_TS2_NULL_DISCARD);
+ 	} else {
+ 		/* FIXME: which is the best order? */
+ 		/* video registers are sampled by VREF */
+-- 
+2.7.4
