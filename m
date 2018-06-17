@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:48615 "EHLO
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:39478 "EHLO
         smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934567AbeFQRDI (ORCPT
+        with ESMTP id S934728AbeFQRDK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Jun 2018 13:03:08 -0400
+        Sun, 17 Jun 2018 13:03:10 -0400
 From: Robert Jarzmik <robert.jarzmik@free.fr>
 To: Daniel Mack <daniel@zonque.org>,
         Haojian Zhuang <haojian.zhuang@gmail.com>,
@@ -28,9 +28,9 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
         linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
         alsa-devel@alsa-project.org
-Subject: [PATCH v3 06/14] mtd: rawnand: marvell: remove the dmaengine compat need
-Date: Sun, 17 Jun 2018 19:02:09 +0200
-Message-Id: <20180617170217.24177-7-robert.jarzmik@free.fr>
+Subject: [PATCH v3 07/14] net: smc911x: remove the dmaengine compat need
+Date: Sun, 17 Jun 2018 19:02:10 +0200
+Message-Id: <20180617170217.24177-8-robert.jarzmik@free.fr>
 In-Reply-To: <20180617170217.24177-1-robert.jarzmik@free.fr>
 References: <20180617170217.24177-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
@@ -43,47 +43,50 @@ priority are not needed anymore.
 This patch simplifies the dma resource acquisition, using the more
 generic function dma_request_slave_channel().
 
-Signed-off-by: Signed-off-by: Daniel Mack <daniel@zonque.org>
 Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Acked-by: Miquel Raynal <miquel.raynal@bootlin.com>
 ---
- drivers/mtd/nand/raw/marvell_nand.c | 17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+Since v2: converted to NULL filter function and NULL dma parameter call
+---
+ drivers/net/ethernet/smsc/smc911x.c | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/mtd/nand/raw/marvell_nand.c b/drivers/mtd/nand/raw/marvell_nand.c
-index 10e953218948..64618254d6de 100644
---- a/drivers/mtd/nand/raw/marvell_nand.c
-+++ b/drivers/mtd/nand/raw/marvell_nand.c
-@@ -2613,8 +2613,6 @@ static int marvell_nfc_init_dma(struct marvell_nfc *nfc)
- 						    dev);
- 	struct dma_slave_config config = {};
- 	struct resource *r;
--	dma_cap_mask_t mask;
+diff --git a/drivers/net/ethernet/smsc/smc911x.c b/drivers/net/ethernet/smsc/smc911x.c
+index 05157442a980..b1b53f6c452f 100644
+--- a/drivers/net/ethernet/smsc/smc911x.c
++++ b/drivers/net/ethernet/smsc/smc911x.c
+@@ -74,7 +74,6 @@ static const char version[] =
+ #include <linux/skbuff.h>
+ 
+ #include <linux/dmaengine.h>
+-#include <linux/dma/pxa-dma.h>
+ 
+ #include <asm/io.h>
+ 
+@@ -1795,7 +1794,6 @@ static int smc911x_probe(struct net_device *dev)
+ #ifdef SMC_USE_DMA
+ 	struct dma_slave_config	config;
+ 	dma_cap_mask_t mask;
 -	struct pxad_param param;
- 	int ret;
+ #endif
  
- 	if (!IS_ENABLED(CONFIG_PXA_DMA)) {
-@@ -2627,20 +2625,7 @@ static int marvell_nfc_init_dma(struct marvell_nfc *nfc)
- 	if (ret)
- 		return ret;
+ 	DBG(SMC_DEBUG_FUNC, dev, "--> %s\n", __func__);
+@@ -1971,15 +1969,8 @@ static int smc911x_probe(struct net_device *dev)
  
--	r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
--	if (!r) {
--		dev_err(nfc->dev, "No resource defined for data DMA\n");
--		return -ENXIO;
--	}
--
--	param.drcmr = r->start;
+ 	dma_cap_zero(mask);
+ 	dma_cap_set(DMA_SLAVE, mask);
 -	param.prio = PXAD_PRIO_LOWEST;
--	dma_cap_zero(mask);
--	dma_cap_set(DMA_SLAVE, mask);
--	nfc->dma_chan =
+-	param.drcmr = -1UL;
+-
+-	lp->rxdma =
 -		dma_request_slave_channel_compat(mask, pxad_filter_fn,
--						 &param, nfc->dev,
--						 "data");
-+	nfc->dma_chan =	dma_request_slave_channel(nfc->dev, "data");
- 	if (!nfc->dma_chan) {
- 		dev_err(nfc->dev,
- 			"Unable to request data DMA channel\n");
+-						 &param, &dev->dev, "rx");
+-	lp->txdma =
+-		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-						 &param, &dev->dev, "tx");
++	lp->rxdma = dma_request_channel(mask, NULL, NULL);
++	lp->txdma = dma_request_channel(mask, NULL, NULL);
+ 	lp->rxdma_active = 0;
+ 	lp->txdma_active = 0;
+ 
 -- 
 2.11.0
