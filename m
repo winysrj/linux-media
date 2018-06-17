@@ -1,41 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:35037 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932542AbeFPTaT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Jun 2018 15:30:19 -0400
-MIME-Version: 1.0
-Message-ID: <trinity-432fc36d-a67e-4ad0-907f-a0d43099c7b6-1529177417851@3c-app-gmx-bs45>
-From: "Robert Schlabbach" <Robert.Schlabbach@gmx.net>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] media: em28xx: explicitly disable TS packet filter
-Content-Type: text/plain; charset=UTF-8
-Date: Sat, 16 Jun 2018 21:30:17 +0200
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:44134 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756932AbeFQAcC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Jun 2018 20:32:02 -0400
+Message-ID: <eb07f5fa149bc56775a2e7bc3695f581ac2c0135.camel@collabora.com>
+Subject: Re: [RFC 0/2] Memory-to-memory media controller topology
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        kernel@collabora.com
+Date: Sat, 16 Jun 2018 20:31:58 -0400
+In-Reply-To: <d2d1d0938384a54bf1c268c83a2684c618bc4af9.camel@collabora.com>
+References: <20180612104827.11565-1-ezequiel@collabora.com>
+                 <46417cb4adca9289841287c8590b0ce92059298f.camel@collabora.com>
+         <d2d1d0938384a54bf1c268c83a2684c618bc4af9.camel@collabora.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-88lbedzBOV+Qo6VNf+aL"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry, scrap that patch. I missed that the register is already explicitly set
-in em28xx.h for the WinTV dualHD:
 
-static const struct em28xx_reg_seq hauppauge_dualhd_dvb[] = {
-	{EM2874_R80_GPIO_P0_CTRL,      0xff, 0xff,      0},
-	{0x0d,                         0xff, 0xff,    200},
-	{0x50,                         0x04, 0xff,    300},
-	{EM2874_R80_GPIO_P0_CTRL,      0xbf, 0xff,    100}, /* demod 1 reset */
-	{EM2874_R80_GPIO_P0_CTRL,      0xff, 0xff,    100},
-	{EM2874_R80_GPIO_P0_CTRL,      0xdf, 0xff,    100}, /* demod 2 reset */
-	{EM2874_R80_GPIO_P0_CTRL,      0xff, 0xff,    100},
-	{EM2874_R5F_TS_ENABLE,         0x44, 0xff,     50},
-	{EM2874_R5D_TS1_PKT_SIZE,      0x05, 0xff,     50},
-	{EM2874_R5E_TS2_PKT_SIZE,      0x05, 0xff,     50},
-	{-1,                             -1,   -1,     -1},
-};
+--=-88lbedzBOV+Qo6VNf+aL
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Is there a reason to enable discarding NULL packets? As I wrote before, my
-application needs NULL packets, so I have to patch the driver to make it
-work.
+Le vendredi 15 juin 2018 =C3=A0 17:05 -0300, Ezequiel Garcia a =C3=A9crit :
+> > Will the end result have "device node name /dev/..." on both entity
+> > 1
+> > and 6 ?=20
+>=20
+> No. There is just one devnode /dev/videoX, which is accepts
+> both CAPTURE and OUTPUT directions.
 
-Should I submit a patch to change above initialization, or is there a better
-solution, such as application control whether NULL packets are desired or not?
+My question is more ifthe dev node path will be provided somehow,
+because it's not displayed in this topology=C3=A9
 
-Best Regards,
--Robert Schlabbach
+Nicolas
+--=-88lbedzBOV+Qo6VNf+aL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWyWr/gAKCRBxUwItrAao
+HIUFAKCKlI0TEphtNdNmc4zFnYt5lkLuEwCfUKQiIivwvYNCvkYu79UAHqb+GXk=
+=bckY
+-----END PGP SIGNATURE-----
+
+--=-88lbedzBOV+Qo6VNf+aL--
