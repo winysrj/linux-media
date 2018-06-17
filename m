@@ -1,110 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:33860 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753206AbeFQOgw (ORCPT
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:39121 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934448AbeFQRDE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Jun 2018 10:36:52 -0400
-From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-To: hverkuil@xs4all.nl, mchehab@kernel.org
-Cc: rostedt@goodmis.org, mingo@redhat.com, isely@pobox.com,
-        bhumirks@gmail.com, colin.king@canonical.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Subject: [PATCH 1/2] Add TRACE_EVENTs in pwc_isoc_handler()
-Date: Sun, 17 Jun 2018 17:36:24 +0300
-Message-Id: <20180617143625.32133-1-matwey@sai.msu.ru>
+        Sun, 17 Jun 2018 13:03:04 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Miquel Raynal <miquel.raynal@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        alsa-devel@alsa-project.org, Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH v3 03/14] dmaengine: pxa: add a default requestor policy
+Date: Sun, 17 Jun 2018 19:02:06 +0200
+Message-Id: <20180617170217.24177-4-robert.jarzmik@free.fr>
+In-Reply-To: <20180617170217.24177-1-robert.jarzmik@free.fr>
+References: <20180617170217.24177-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
----
- drivers/media/usb/pwc/pwc-if.c |  7 +++++++
- include/trace/events/pwc.h     | 45 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 52 insertions(+)
- create mode 100644 include/trace/events/pwc.h
+As what former drcmr -1 value meant, add a this as a default to each
+channel, ie. that by default no requestor line is used.
 
-diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-index 54b036d39c5b..5775d1f60668 100644
---- a/drivers/media/usb/pwc/pwc-if.c
-+++ b/drivers/media/usb/pwc/pwc-if.c
-@@ -57,6 +57,9 @@
-    - Pham Thanh Nam: webcam snapshot button as an event input device
- */
+This is specifically used for network drivers smc91x and smc911x, and
+needed for their port to slave maps.
+
+Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Acked-by: Vinod Koul <vkoul@kernel.org>
+---
+Since v1: changed -1 to U32_MAX
+---
+ drivers/dma/pxa_dma.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/dma/pxa_dma.c b/drivers/dma/pxa_dma.c
+index 9505334f9c6e..b31c28b67ad3 100644
+--- a/drivers/dma/pxa_dma.c
++++ b/drivers/dma/pxa_dma.c
+@@ -762,6 +762,8 @@ static void pxad_free_chan_resources(struct dma_chan *dchan)
+ 	dma_pool_destroy(chan->desc_pool);
+ 	chan->desc_pool = NULL;
  
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/pwc.h>
-+
- #include <linux/errno.h>
- #include <linux/init.h>
- #include <linux/mm.h>
-@@ -260,6 +263,8 @@ static void pwc_isoc_handler(struct urb *urb)
- 	int i, fst, flen;
- 	unsigned char *iso_buf = NULL;
++	chan->drcmr = U32_MAX;
++	chan->prio = PXAD_PRIO_LOWEST;
+ }
  
-+	trace_pwc_handler_enter(urb);
+ static void pxad_free_desc(struct virt_dma_desc *vd)
+@@ -1386,6 +1388,9 @@ static int pxad_init_dmadev(struct platform_device *op,
+ 		c = devm_kzalloc(&op->dev, sizeof(*c), GFP_KERNEL);
+ 		if (!c)
+ 			return -ENOMEM;
 +
- 	if (urb->status == -ENOENT || urb->status == -ECONNRESET ||
- 	    urb->status == -ESHUTDOWN) {
- 		PWC_DEBUG_OPEN("URB (%p) unlinked %ssynchronously.\n",
-@@ -347,6 +352,8 @@ static void pwc_isoc_handler(struct urb *urb)
- 		pdev->vlast_packet_size = flen;
- 	}
- 
-+	trace_pwc_handler_exit(urb);
-+
- handler_end:
- 	i = usb_submit_urb(urb, GFP_ATOMIC);
- 	if (i != 0)
-diff --git a/include/trace/events/pwc.h b/include/trace/events/pwc.h
-new file mode 100644
-index 000000000000..b13d2118bb7a
---- /dev/null
-+++ b/include/trace/events/pwc.h
-@@ -0,0 +1,45 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#if !defined(_TRACE_PWC_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_PWC_H
-+
-+#include <linux/usb.h>
-+#include <linux/tracepoint.h>
-+
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM pwc
-+
-+TRACE_EVENT(pwc_handler_enter,
-+	TP_PROTO(struct urb *urb),
-+	TP_ARGS(urb),
-+	TP_STRUCT__entry(
-+		__field(struct urb*, urb)
-+		__field(int, urb__status)
-+		__field(u32, urb__actual_length)
-+	),
-+	TP_fast_assign(
-+		__entry->urb = urb;
-+		__entry->urb__status = urb->status;
-+		__entry->urb__actual_length = urb->actual_length;
-+	),
-+	TP_printk("urb=%p (status=%d actual_length=%u)",
-+		__entry->urb,
-+		__entry->urb__status,
-+		__entry->urb__actual_length)
-+);
-+
-+TRACE_EVENT(pwc_handler_exit,
-+	TP_PROTO(struct urb *urb),
-+	TP_ARGS(urb),
-+	TP_STRUCT__entry(
-+		__field(struct urb*, urb)
-+	),
-+	TP_fast_assign(
-+		__entry->urb = urb;
-+	),
-+	TP_printk("urb=%p", __entry->urb)
-+);
-+
-+#endif /* _TRACE_PWC_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
++		c->drcmr = U32_MAX;
++		c->prio = PXAD_PRIO_LOWEST;
+ 		c->vc.desc_free = pxad_free_desc;
+ 		vchan_init(&c->vc, &pdev->slave);
+ 		init_waitqueue_head(&c->wq_state);
 -- 
-2.16.0-rc1
+2.11.0
