@@ -1,73 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.osadl.org ([62.245.132.105]:58259 "EHLO www.osadl.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932976AbeFLRYr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Jun 2018 13:24:47 -0400
-From: Nicholas Mc Guire <hofrat@osadl.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Niklas Soderlund <niklas.soderlund+renesas@ragnatech.se>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH] media: stm32-dcmi: simplify of_node_put usage
-Date: Tue, 12 Jun 2018 19:23:16 +0200
-Message-Id: <1528824196-19149-1-git-send-email-hofrat@osadl.org>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:44234 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752077AbeFQOgy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Jun 2018 10:36:54 -0400
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+To: hverkuil@xs4all.nl, mchehab@kernel.org
+Cc: rostedt@goodmis.org, mingo@redhat.com, isely@pobox.com,
+        bhumirks@gmail.com, colin.king@canonical.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Subject: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for ISO transfer
+Date: Sun, 17 Jun 2018 17:36:25 +0300
+Message-Id: <20180617143625.32133-2-matwey@sai.msu.ru>
+In-Reply-To: <20180617143625.32133-1-matwey@sai.msu.ru>
+References: <20180617143625.32133-1-matwey@sai.msu.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This does not fix any bug - this is just a code simplification. As
-np is not used after passing it to v4l2_fwnode_endpoint_parse() its
-refcount can be decremented immediately and at one location.
+DMA cocherency slows the transfer down on systems without hardware
+coherent DMA.
 
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+Based on previous commit the following performance benchmarks have been
+carried out. Average memcpy() data transfer rate (rate) and handler
+completion time (time) have been measured when running video stream at
+640x480 resolution at 10fps.
+
+x86_64 based system (Intel Core i5-3470). This platform has hardware
+coherent DMA support and proposed change doesn't make big difference here.
+
+ * kmalloc:            rate = (4.4 +- 1.0) GBps
+                       time = (2.4 +- 1.2) usec
+ * usb_alloc_coherent: rate = (4.1 +- 0.9) GBps
+                       time = (2.5 +- 1.0) usec
+
+We see that the measurements agree well within error ranges in this case.
+So no performance downgrade is introduced.
+
+armv7l based system (TI AM335x BeagleBone Black). This platform has no
+hardware coherent DMA support. DMA coherence is implemented via disabled
+page caching that slows down memcpy() due to memory controller behaviour.
+
+ * kmalloc:            rate =  (190 +-  30) MBps
+                       time =   (50 +-  10) usec
+ * usb_alloc_coherent: rate =   (33 +-   4) MBps
+                       time = (3000 +- 400) usec
+
+Note, that quantative difference leads (this commit leads to 5 times
+acceleration) to qualitative behavior change in this case. As it was
+stated before, the video stream can not be successfully received at AM335x
+platforms with MUSB based USB host controller due to performance issues
+[1].
+
+[1] https://www.spinics.net/lists/linux-usb/msg165735.html
+
+Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
 ---
+ drivers/media/usb/pwc/pwc-if.c | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-Issue found during code reading.
-
-Patch was compile tested with: x86_64_defconfig, MEDIA_SUPPORT=y
-MEDIA_CAMERA_SUPPORT=y, V4L_PLATFORM_DRIVERS=y, OF=y, COMPILE_TEST=y
-CONFIG_VIDEO_STM32_DCMI=y
-(There are a few sparse warnings - but unrelated to the lines changed)
-
-Patch is against 4.17.0 (localversion-next is next-20180608)
-
- drivers/media/platform/stm32/stm32-dcmi.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 2e1933d..0b61042 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -1696,23 +1696,20 @@ static int dcmi_probe(struct platform_device *pdev)
- 	}
- 
- 	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(np), &ep);
-+	of_node_put(np);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Could not parse the endpoint\n");
--		of_node_put(np);
- 		return -ENODEV;
- 	}
- 
- 	if (ep.bus_type == V4L2_MBUS_CSI2) {
- 		dev_err(&pdev->dev, "CSI bus not supported\n");
--		of_node_put(np);
- 		return -ENODEV;
- 	}
- 	dcmi->bus.flags = ep.bus.parallel.flags;
- 	dcmi->bus.bus_width = ep.bus.parallel.bus_width;
- 	dcmi->bus.data_shift = ep.bus.parallel.data_shift;
- 
--	of_node_put(np);
--
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq <= 0) {
- 		dev_err(&pdev->dev, "Could not get irq\n");
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index 5775d1f60668..6a3cd9680a7f 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -427,11 +427,8 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+ 		urb->interval = 1; // devik
+ 		urb->dev = udev;
+ 		urb->pipe = usb_rcvisocpipe(udev, pdev->vendpoint);
+-		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-		urb->transfer_buffer = usb_alloc_coherent(udev,
+-							  ISO_BUFFER_SIZE,
+-							  GFP_KERNEL,
+-							  &urb->transfer_dma);
++		urb->transfer_flags = URB_ISO_ASAP;
++		urb->transfer_buffer = kmalloc(ISO_BUFFER_SIZE, GFP_KERNEL);
+ 		if (urb->transfer_buffer == NULL) {
+ 			PWC_ERROR("Failed to allocate urb buffer %d\n", i);
+ 			pwc_isoc_cleanup(pdev);
+@@ -491,10 +488,7 @@ static void pwc_iso_free(struct pwc_device *pdev)
+ 		if (pdev->urbs[i]) {
+ 			PWC_DEBUG_MEMORY("Freeing URB\n");
+ 			if (pdev->urbs[i]->transfer_buffer) {
+-				usb_free_coherent(pdev->udev,
+-					pdev->urbs[i]->transfer_buffer_length,
+-					pdev->urbs[i]->transfer_buffer,
+-					pdev->urbs[i]->transfer_dma);
++				kfree(pdev->urbs[i]->transfer_buffer);
+ 			}
+ 			usb_free_urb(pdev->urbs[i]);
+ 			pdev->urbs[i] = NULL;
 -- 
-2.1.4
+2.16.0-rc1
