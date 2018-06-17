@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:39121 "EHLO
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:57556 "EHLO
         smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934448AbeFQRDE (ORCPT
+        with ESMTP id S934504AbeFQRDF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Jun 2018 13:03:04 -0400
+        Sun, 17 Jun 2018 13:03:05 -0400
 From: Robert Jarzmik <robert.jarzmik@free.fr>
 To: Daniel Mack <daniel@zonque.org>,
         Haojian Zhuang <haojian.zhuang@gmail.com>,
@@ -27,52 +27,88 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
         linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
         linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        alsa-devel@alsa-project.org, Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH v3 03/14] dmaengine: pxa: add a default requestor policy
-Date: Sun, 17 Jun 2018 19:02:06 +0200
-Message-Id: <20180617170217.24177-4-robert.jarzmik@free.fr>
+        alsa-devel@alsa-project.org
+Subject: [PATCH v3 04/14] mmc: pxamci: remove the dmaengine compat need
+Date: Sun, 17 Jun 2018 19:02:07 +0200
+Message-Id: <20180617170217.24177-5-robert.jarzmik@free.fr>
 In-Reply-To: <20180617170217.24177-1-robert.jarzmik@free.fr>
 References: <20180617170217.24177-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As what former drcmr -1 value meant, add a this as a default to each
-channel, ie. that by default no requestor line is used.
+As the pxa architecture switched towards the dmaengine slave map, the
+old compatibility mechanism to acquire the dma requestor line number and
+priority are not needed anymore.
 
-This is specifically used for network drivers smc91x and smc911x, and
-needed for their port to slave maps.
+This patch simplifies the dma resource acquisition, using the more
+generic function dma_request_slave_channel().
 
-Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Acked-by: Vinod Koul <vkoul@kernel.org>
+Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 ---
-Since v1: changed -1 to U32_MAX
----
- drivers/dma/pxa_dma.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/mmc/host/pxamci.c | 29 +++--------------------------
+ 1 file changed, 3 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/dma/pxa_dma.c b/drivers/dma/pxa_dma.c
-index 9505334f9c6e..b31c28b67ad3 100644
---- a/drivers/dma/pxa_dma.c
-+++ b/drivers/dma/pxa_dma.c
-@@ -762,6 +762,8 @@ static void pxad_free_chan_resources(struct dma_chan *dchan)
- 	dma_pool_destroy(chan->desc_pool);
- 	chan->desc_pool = NULL;
+diff --git a/drivers/mmc/host/pxamci.c b/drivers/mmc/host/pxamci.c
+index c763b404510f..6c94474e36f4 100644
+--- a/drivers/mmc/host/pxamci.c
++++ b/drivers/mmc/host/pxamci.c
+@@ -24,7 +24,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/dmaengine.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/dma/pxa-dma.h>
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/mmc/host.h>
+@@ -637,10 +636,8 @@ static int pxamci_probe(struct platform_device *pdev)
+ {
+ 	struct mmc_host *mmc;
+ 	struct pxamci_host *host = NULL;
+-	struct resource *r, *dmarx, *dmatx;
+-	struct pxad_param param_rx, param_tx;
++	struct resource *r;
+ 	int ret, irq, gpio_cd = -1, gpio_ro = -1, gpio_power = -1;
+-	dma_cap_mask_t mask;
  
-+	chan->drcmr = U32_MAX;
-+	chan->prio = PXAD_PRIO_LOWEST;
- }
+ 	ret = pxamci_of_init(pdev);
+ 	if (ret)
+@@ -739,34 +736,14 @@ static int pxamci_probe(struct platform_device *pdev)
  
- static void pxad_free_desc(struct virt_dma_desc *vd)
-@@ -1386,6 +1388,9 @@ static int pxad_init_dmadev(struct platform_device *op,
- 		c = devm_kzalloc(&op->dev, sizeof(*c), GFP_KERNEL);
- 		if (!c)
- 			return -ENOMEM;
-+
-+		c->drcmr = U32_MAX;
-+		c->prio = PXAD_PRIO_LOWEST;
- 		c->vc.desc_free = pxad_free_desc;
- 		vchan_init(&c->vc, &pdev->slave);
- 		init_waitqueue_head(&c->wq_state);
+ 	platform_set_drvdata(pdev, mmc);
+ 
+-	if (!pdev->dev.of_node) {
+-		dmarx = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+-		dmatx = platform_get_resource(pdev, IORESOURCE_DMA, 1);
+-		if (!dmarx || !dmatx) {
+-			ret = -ENXIO;
+-			goto out;
+-		}
+-		param_rx.prio = PXAD_PRIO_LOWEST;
+-		param_rx.drcmr = dmarx->start;
+-		param_tx.prio = PXAD_PRIO_LOWEST;
+-		param_tx.drcmr = dmatx->start;
+-	}
+-
+-	dma_cap_zero(mask);
+-	dma_cap_set(DMA_SLAVE, mask);
+-
+-	host->dma_chan_rx =
+-		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-						 &param_rx, &pdev->dev, "rx");
++	host->dma_chan_rx = dma_request_slave_channel(&pdev->dev, "rx");
+ 	if (host->dma_chan_rx == NULL) {
+ 		dev_err(&pdev->dev, "unable to request rx dma channel\n");
+ 		ret = -ENODEV;
+ 		goto out;
+ 	}
+ 
+-	host->dma_chan_tx =
+-		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-						 &param_tx,  &pdev->dev, "tx");
++	host->dma_chan_tx = dma_request_slave_channel(&pdev->dev, "tx");
+ 	if (host->dma_chan_tx == NULL) {
+ 		dev_err(&pdev->dev, "unable to request tx dma channel\n");
+ 		ret = -ENODEV;
 -- 
 2.11.0
