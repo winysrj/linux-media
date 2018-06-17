@@ -1,13 +1,12 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:32761 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936790AbeFQRDY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Jun 2018 13:03:24 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Daniel Mack <daniel@zonque.org>,
+Received: from mail.bugwerft.de ([46.23.86.59]:34452 "EHLO mail.bugwerft.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933374AbeFQSMw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Jun 2018 14:12:52 -0400
+Subject: Re: [PATCH v3 06/14] mtd: rawnand: marvell: remove the dmaengine
+ compat need
+To: Robert Jarzmik <robert.jarzmik@free.fr>,
         Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
         Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
         Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -28,123 +27,74 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
         linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
         alsa-devel@alsa-project.org
-Subject: [PATCH v3 14/14] ARM: pxa: change SSP DMA channels allocation
-Date: Sun, 17 Jun 2018 19:02:17 +0200
-Message-Id: <20180617170217.24177-15-robert.jarzmik@free.fr>
-In-Reply-To: <20180617170217.24177-1-robert.jarzmik@free.fr>
 References: <20180617170217.24177-1-robert.jarzmik@free.fr>
+ <20180617170217.24177-7-robert.jarzmik@free.fr>
+From: Daniel Mack <daniel@zonque.org>
+Message-ID: <3a2a8951-f380-af99-bf97-6ff722404410@zonque.org>
+Date: Sun, 17 Jun 2018 20:12:49 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180617170217.24177-7-robert.jarzmik@free.fr>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now the dma_slave_map is available for PXA architecture, switch the SSP
-device to it.
+On Sunday, June 17, 2018 07:02 PM, Robert Jarzmik wrote:
+> As the pxa architecture switched towards the dmaengine slave map, the
+> old compatibility mechanism to acquire the dma requestor line number and
+> priority are not needed anymore.
+> 
+> This patch simplifies the dma resource acquisition, using the more
+> generic function dma_request_slave_channel().
+> 
+> Signed-off-by: Signed-off-by: Daniel Mack <daniel@zonque.org>
 
-This specifically means that :
-- for platform data based machines, the DMA requestor channels are
-  extracted from the slave map, where pxa-ssp-dai.<N> is a 1-1 match to
-  ssp.<N>, and the channels are either "rx" or "tx".
+Something went wrong here, but you can simply fix that when applying the 
+series :)
 
-- for device tree platforms, the dma node should be hooked into the
-  pxa2xx-ac97 or pxa-ssp-dai node.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Acked-by: Daniel Mack <daniel@zonque.org>
+Daniel
 
----
-Since v1: Removed channel names from platform_data
-Since v2: Added Daniel's ack
----
- arch/arm/plat-pxa/ssp.c    | 47 ----------------------------------------------
- include/linux/pxa2xx_ssp.h |  2 --
- sound/soc/pxa/pxa-ssp.c    |  5 ++---
- 3 files changed, 2 insertions(+), 52 deletions(-)
-
-diff --git a/arch/arm/plat-pxa/ssp.c b/arch/arm/plat-pxa/ssp.c
-index ba13f793fbce..ed36dcab80f1 100644
---- a/arch/arm/plat-pxa/ssp.c
-+++ b/arch/arm/plat-pxa/ssp.c
-@@ -127,53 +127,6 @@ static int pxa_ssp_probe(struct platform_device *pdev)
- 	if (IS_ERR(ssp->clk))
- 		return PTR_ERR(ssp->clk);
- 
--	if (dev->of_node) {
--		struct of_phandle_args dma_spec;
--		struct device_node *np = dev->of_node;
--		int ret;
--
--		/*
--		 * FIXME: we should allocate the DMA channel from this
--		 * context and pass the channel down to the ssp users.
--		 * For now, we lookup the rx and tx indices manually
--		 */
--
--		/* rx */
--		ret = of_parse_phandle_with_args(np, "dmas", "#dma-cells",
--						 0, &dma_spec);
--
--		if (ret) {
--			dev_err(dev, "Can't parse dmas property\n");
--			return -ENODEV;
--		}
--		ssp->drcmr_rx = dma_spec.args[0];
--		of_node_put(dma_spec.np);
--
--		/* tx */
--		ret = of_parse_phandle_with_args(np, "dmas", "#dma-cells",
--						 1, &dma_spec);
--		if (ret) {
--			dev_err(dev, "Can't parse dmas property\n");
--			return -ENODEV;
--		}
--		ssp->drcmr_tx = dma_spec.args[0];
--		of_node_put(dma_spec.np);
--	} else {
--		res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
--		if (res == NULL) {
--			dev_err(dev, "no SSP RX DRCMR defined\n");
--			return -ENODEV;
--		}
--		ssp->drcmr_rx = res->start;
--
--		res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
--		if (res == NULL) {
--			dev_err(dev, "no SSP TX DRCMR defined\n");
--			return -ENODEV;
--		}
--		ssp->drcmr_tx = res->start;
--	}
--
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res == NULL) {
- 		dev_err(dev, "no memory resource defined\n");
-diff --git a/include/linux/pxa2xx_ssp.h b/include/linux/pxa2xx_ssp.h
-index 8461b18e4608..03a7ca46735b 100644
---- a/include/linux/pxa2xx_ssp.h
-+++ b/include/linux/pxa2xx_ssp.h
-@@ -212,8 +212,6 @@ struct ssp_device {
- 	int		type;
- 	int		use_count;
- 	int		irq;
--	int		drcmr_rx;
--	int		drcmr_tx;
- 
- 	struct device_node	*of_node;
- };
-diff --git a/sound/soc/pxa/pxa-ssp.c b/sound/soc/pxa/pxa-ssp.c
-index 0291c7cb64eb..e09368d89bbc 100644
---- a/sound/soc/pxa/pxa-ssp.c
-+++ b/sound/soc/pxa/pxa-ssp.c
-@@ -104,9 +104,8 @@ static int pxa_ssp_startup(struct snd_pcm_substream *substream,
- 	dma = kzalloc(sizeof(struct snd_dmaengine_dai_dma_data), GFP_KERNEL);
- 	if (!dma)
- 		return -ENOMEM;
--
--	dma->filter_data = substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
--				&ssp->drcmr_tx : &ssp->drcmr_rx;
-+	dma->chan_name = substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
-+		"tx" : "rx";
- 
- 	snd_soc_dai_set_dma_data(cpu_dai, substream, dma);
- 
--- 
-2.11.0
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> Acked-by: Miquel Raynal <miquel.raynal@bootlin.com>
+> ---
+>   drivers/mtd/nand/raw/marvell_nand.c | 17 +----------------
+>   1 file changed, 1 insertion(+), 16 deletions(-)
+> 
+> diff --git a/drivers/mtd/nand/raw/marvell_nand.c b/drivers/mtd/nand/raw/marvell_nand.c
+> index 10e953218948..64618254d6de 100644
+> --- a/drivers/mtd/nand/raw/marvell_nand.c
+> +++ b/drivers/mtd/nand/raw/marvell_nand.c
+> @@ -2613,8 +2613,6 @@ static int marvell_nfc_init_dma(struct marvell_nfc *nfc)
+>   						    dev);
+>   	struct dma_slave_config config = {};
+>   	struct resource *r;
+> -	dma_cap_mask_t mask;
+> -	struct pxad_param param;
+>   	int ret;
+>   
+>   	if (!IS_ENABLED(CONFIG_PXA_DMA)) {
+> @@ -2627,20 +2625,7 @@ static int marvell_nfc_init_dma(struct marvell_nfc *nfc)
+>   	if (ret)
+>   		return ret;
+>   
+> -	r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+> -	if (!r) {
+> -		dev_err(nfc->dev, "No resource defined for data DMA\n");
+> -		return -ENXIO;
+> -	}
+> -
+> -	param.drcmr = r->start;
+> -	param.prio = PXAD_PRIO_LOWEST;
+> -	dma_cap_zero(mask);
+> -	dma_cap_set(DMA_SLAVE, mask);
+> -	nfc->dma_chan =
+> -		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+> -						 &param, nfc->dev,
+> -						 "data");
+> +	nfc->dma_chan =	dma_request_slave_channel(nfc->dev, "data");
+>   	if (!nfc->dma_chan) {
+>   		dev_err(nfc->dev,
+>   			"Unable to request data DMA channel\n");
+> 
