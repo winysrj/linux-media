@@ -1,470 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:40209 "EHLO gofer.mess.org"
+Received: from mga14.intel.com ([192.55.52.115]:36279 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932762AbeFRRMT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 13:12:19 -0400
-Date: Mon, 18 Jun 2018 18:12:16 +0100
-From: Sean Young <sean@mess.org>
-To: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Y Song <ys114321@gmail.com>, Matthias Reichl <hias@horus.com>,
+        id S935743AbeFRSrX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Jun 2018 14:47:23 -0400
+Date: Tue, 19 Jun 2018 02:46:29 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Sean Young <sean@mess.org>
+Cc: kbuild-all@01.org, Daniel Borkmann <daniel@iogearbox.net>,
+        Y Song <ys114321@gmail.com>, Matthias Reichl <hias@horus.com>,
         linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
         Alexei Starovoitov <ast@kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         netdev <netdev@vger.kernel.org>,
         Devin Heitmueller <dheitmueller@kernellabs.com>,
         Quentin Monnet <quentin.monnet@netronome.com>
-Subject: [PATCH v3] bpf: attach type BPF_LIRC_MODE2 should not depend on
+Subject: Re: [PATCH v3] bpf: attach type BPF_LIRC_MODE2 should not depend on
  CONFIG_CGROUP_BPF
-Message-ID: <20180618171216.gearpr755pm3wot7@gofer.mess.org>
-References: <cover.1527419762.git.sean@mess.org>
- <9f2c54d4956f962f44fcda739a824397ddea132c.1527419762.git.sean@mess.org>
- <20180604174730.sctfoklq7klswebp@camel2.lan>
- <20180605101629.yffyp64o7adg6hu5@gofer.mess.org>
- <04cc36e7-4597-dc57-4ad7-71afcc17244a@iogearbox.net>
- <20180606210939.q3vviyc4b2h6gu3c@gofer.mess.org>
- <CAH3MdRXE8=dE25Sj3TPDzVh7ytnvCkUDvCDzZkEZe0N84dy-Zw@mail.gmail.com>
- <34406f72-722d-9c23-327f-b7c5d7a3090c@iogearbox.net>
- <20180614184207.khwcmwmj4duous4c@gofer.mess.org>
- <d2613314-406e-dd7d-1cf0-b5a78a155e3b@iogearbox.net>
+Message-ID: <201806190203.kfm0Xhda%fengguang.wu@intel.com>
+References: <20180618171216.gearpr755pm3wot7@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="+HP7ph2BbKc20aGI"
 Content-Disposition: inline
-In-Reply-To: <d2613314-406e-dd7d-1cf0-b5a78a155e3b@iogearbox.net>
+In-Reply-To: <20180618171216.gearpr755pm3wot7@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the kernel is compiled with CONFIG_CGROUP_BPF not enabled, it is not
-possible to attach, detach or query IR BPF programs to /dev/lircN devices,
-making them impossible to use. For embedded devices, it should be possible
-to use IR decoding without cgroups or CONFIG_CGROUP_BPF enabled.
 
-This change requires some refactoring, since bpf_prog_{attach,detach,query}
-functions are now always compiled, but their code paths for cgroups need
-moving out. Rather than a #ifdef CONFIG_CGROUP_BPF in kernel/bpf/syscall.c,
-moving them to kernel/bpf/cgroup.c and kernel/bpf/sockmap.c does not
-require #ifdefs since that is already conditionally compiled.
+--+HP7ph2BbKc20aGI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Sean Young <sean@mess.org>
+Hi Sean,
+
+I love your patch! Yet something to improve:
+
+[auto build test ERROR on linus/master]
+[also build test ERROR on v4.18-rc1 next-20180618]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Sean-Young/bpf-attach-type-BPF_LIRC_MODE2-should-not-depend-on-CONFIG_CGROUP_BPF/20180619-023056
+config: i386-tinyconfig (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
+
+All errors (new ones prefixed by >>):
+
+   In file included from kernel///events/core.c:45:0:
+>> include/linux/bpf.h:710:1: error: expected identifier or '(' before '{' token
+    {
+    ^
+
+vim +710 include/linux/bpf.h
+
+   707	
+   708	int sockmap_get_from_fd(const union bpf_attr *attr, int type,
+   709				struct bpf_prog *prog);
+ > 710	{
+   711		return -EINVAL;
+   712	}
+   713	#endif
+   714	
+
 ---
- drivers/media/rc/bpf-lirc.c | 14 +-----
- include/linux/bpf-cgroup.h  | 26 ++++++++++
- include/linux/bpf.h         |  8 +++
- include/linux/bpf_lirc.h    |  5 +-
- kernel/bpf/cgroup.c         | 52 ++++++++++++++++++++
- kernel/bpf/sockmap.c        | 18 +++++++
- kernel/bpf/syscall.c        | 98 ++++++++-----------------------------
- 7 files changed, 130 insertions(+), 91 deletions(-)
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-diff --git a/drivers/media/rc/bpf-lirc.c b/drivers/media/rc/bpf-lirc.c
-index 40826bba06b6..fcfab6635f9c 100644
---- a/drivers/media/rc/bpf-lirc.c
-+++ b/drivers/media/rc/bpf-lirc.c
-@@ -207,29 +207,19 @@ void lirc_bpf_free(struct rc_dev *rcdev)
- 	bpf_prog_array_free(rcdev->raw->progs);
- }
- 
--int lirc_prog_attach(const union bpf_attr *attr)
-+int lirc_prog_attach(const union bpf_attr *attr, struct bpf_prog *prog)
- {
--	struct bpf_prog *prog;
- 	struct rc_dev *rcdev;
- 	int ret;
- 
- 	if (attr->attach_flags)
- 		return -EINVAL;
- 
--	prog = bpf_prog_get_type(attr->attach_bpf_fd,
--				 BPF_PROG_TYPE_LIRC_MODE2);
--	if (IS_ERR(prog))
--		return PTR_ERR(prog);
--
- 	rcdev = rc_dev_get_from_fd(attr->target_fd);
--	if (IS_ERR(rcdev)) {
--		bpf_prog_put(prog);
-+	if (IS_ERR(rcdev))
- 		return PTR_ERR(rcdev);
--	}
- 
- 	ret = lirc_bpf_attach(rcdev, prog);
--	if (ret)
--		bpf_prog_put(prog);
- 
- 	put_device(&rcdev->dev);
- 
-diff --git a/include/linux/bpf-cgroup.h b/include/linux/bpf-cgroup.h
-index 975fb4cf1bb7..79795c5fa7c3 100644
---- a/include/linux/bpf-cgroup.h
-+++ b/include/linux/bpf-cgroup.h
-@@ -188,12 +188,38 @@ int __cgroup_bpf_check_dev_permission(short dev_type, u32 major, u32 minor,
- 									      \
- 	__ret;								      \
- })
-+int cgroup_bpf_prog_attach(const union bpf_attr *attr,
-+			   enum bpf_prog_type ptype, struct bpf_prog *prog);
-+int cgroup_bpf_prog_detach(const union bpf_attr *attr,
-+			   enum bpf_prog_type ptype);
-+int cgroup_bpf_prog_query(const union bpf_attr *attr,
-+			  union bpf_attr __user *uattr);
- #else
- 
-+struct bpf_prog;
- struct cgroup_bpf {};
- static inline void cgroup_bpf_put(struct cgroup *cgrp) {}
- static inline int cgroup_bpf_inherit(struct cgroup *cgrp) { return 0; }
- 
-+static inline int cgroup_bpf_prog_attach(const union bpf_attr *attr,
-+					 enum bpf_prog_type ptype,
-+					 struct bpf_prog *prog)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline int cgroup_bpf_prog_detach(const union bpf_attr *attr,
-+					 enum bpf_prog_type ptype)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline int cgroup_bpf_prog_query(const union bpf_attr *attr,
-+					union bpf_attr __user *uattr)
-+{
-+	return -EINVAL;
-+}
-+
- #define cgroup_bpf_enabled (0)
- #define BPF_CGROUP_PRE_CONNECT_ENABLED(sk) (0)
- #define BPF_CGROUP_RUN_PROG_INET_INGRESS(sk,skb) ({ 0; })
-diff --git a/include/linux/bpf.h b/include/linux/bpf.h
-index 995c3b1e59bf..ac4c73d29f96 100644
---- a/include/linux/bpf.h
-+++ b/include/linux/bpf.h
-@@ -684,6 +684,8 @@ static inline void bpf_map_offload_map_free(struct bpf_map *map)
- struct sock  *__sock_map_lookup_elem(struct bpf_map *map, u32 key);
- struct sock  *__sock_hash_lookup_elem(struct bpf_map *map, void *key);
- int sock_map_prog(struct bpf_map *map, struct bpf_prog *prog, u32 type);
-+int sockmap_get_from_fd(const union bpf_attr *attr, int type,
-+			struct bpf_prog *prog);
- #else
- static inline struct sock  *__sock_map_lookup_elem(struct bpf_map *map, u32 key)
- {
-@@ -702,6 +704,12 @@ static inline int sock_map_prog(struct bpf_map *map,
- {
- 	return -EOPNOTSUPP;
- }
-+
-+int sockmap_get_from_fd(const union bpf_attr *attr, int type,
-+			struct bpf_prog *prog);
-+{
-+	return -EINVAL;
-+}
- #endif
- 
- #if defined(CONFIG_XDP_SOCKETS)
-diff --git a/include/linux/bpf_lirc.h b/include/linux/bpf_lirc.h
-index 5f8a4283092d..9d9ff755ec29 100644
---- a/include/linux/bpf_lirc.h
-+++ b/include/linux/bpf_lirc.h
-@@ -5,11 +5,12 @@
- #include <uapi/linux/bpf.h>
- 
- #ifdef CONFIG_BPF_LIRC_MODE2
--int lirc_prog_attach(const union bpf_attr *attr);
-+int lirc_prog_attach(const union bpf_attr *attr, struct bpf_prog *prog);
- int lirc_prog_detach(const union bpf_attr *attr);
- int lirc_prog_query(const union bpf_attr *attr, union bpf_attr __user *uattr);
- #else
--static inline int lirc_prog_attach(const union bpf_attr *attr)
-+static inline int lirc_prog_attach(const union bpf_attr *attr,
-+				   struct bpf_prog *prog)
- {
- 	return -EINVAL;
- }
-diff --git a/kernel/bpf/cgroup.c b/kernel/bpf/cgroup.c
-index f7c00bd6f8e4..f0ae8a3d01f9 100644
---- a/kernel/bpf/cgroup.c
-+++ b/kernel/bpf/cgroup.c
-@@ -428,6 +428,58 @@ int __cgroup_bpf_query(struct cgroup *cgrp, const union bpf_attr *attr,
- 	return ret;
- }
- 
-+int cgroup_bpf_prog_attach(const union bpf_attr *attr,
-+			   enum bpf_prog_type ptype, struct bpf_prog *prog)
-+{
-+	struct cgroup *cgrp;
-+	int ret;
-+
-+	cgrp = cgroup_get_from_fd(attr->target_fd);
-+	if (IS_ERR(cgrp))
-+		return PTR_ERR(cgrp);
-+
-+	ret = cgroup_bpf_attach(cgrp, prog, attr->attach_type,
-+				attr->attach_flags);
-+	cgroup_put(cgrp);
-+
-+	return ret;
-+}
-+
-+int cgroup_bpf_prog_detach(const union bpf_attr *attr, enum bpf_prog_type ptype)
-+{
-+	struct bpf_prog *prog;
-+	struct cgroup *cgrp;
-+	int ret;
-+
-+	cgrp = cgroup_get_from_fd(attr->target_fd);
-+	if (IS_ERR(cgrp))
-+		return PTR_ERR(cgrp);
-+
-+	prog = bpf_prog_get_type(attr->attach_bpf_fd, ptype);
-+	if (IS_ERR(prog))
-+		prog = NULL;
-+
-+	ret = cgroup_bpf_detach(cgrp, prog, attr->attach_type, 0);
-+	if (prog)
-+		bpf_prog_put(prog);
-+	cgroup_put(cgrp);
-+	return ret;
-+}
-+
-+int cgroup_bpf_prog_query(const union bpf_attr *attr,
-+			  union bpf_attr __user *uattr)
-+{
-+	struct cgroup *cgrp;
-+	int ret;
-+
-+	cgrp = cgroup_get_from_fd(attr->query.target_fd);
-+	if (IS_ERR(cgrp))
-+		return PTR_ERR(cgrp);
-+	ret = cgroup_bpf_query(cgrp, attr, uattr);
-+	cgroup_put(cgrp);
-+	return ret;
-+}
-+
- /**
-  * __cgroup_bpf_run_filter_skb() - Run a program for packet filtering
-  * @sk: The socket sending or receiving traffic
-diff --git a/kernel/bpf/sockmap.c b/kernel/bpf/sockmap.c
-index 52a91d816c0e..81d0c55a77aa 100644
---- a/kernel/bpf/sockmap.c
-+++ b/kernel/bpf/sockmap.c
-@@ -1915,6 +1915,24 @@ int sock_map_prog(struct bpf_map *map, struct bpf_prog *prog, u32 type)
- 	return 0;
- }
- 
-+int sockmap_get_from_fd(const union bpf_attr *attr, int type,
-+			struct bpf_prog *prog)
-+{
-+	int ufd = attr->target_fd;
-+	struct bpf_map *map;
-+	struct fd f;
-+	int err;
-+
-+	f = fdget(ufd);
-+	map = __bpf_map_get(f);
-+	if (IS_ERR(map))
-+		return PTR_ERR(map);
-+
-+	err = sock_map_prog(map, prog, attr->attach_type);
-+	fdput(f);
-+	return err;
-+}
-+
- static void *sock_map_lookup(struct bpf_map *map, void *key)
- {
- 	return NULL;
-diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
-index 0fa20624707f..93993c03c9ac 100644
---- a/kernel/bpf/syscall.c
-+++ b/kernel/bpf/syscall.c
-@@ -1489,8 +1489,6 @@ static int bpf_raw_tracepoint_open(const union bpf_attr *attr)
- 	return err;
- }
- 
--#ifdef CONFIG_CGROUP_BPF
--
- static int bpf_prog_attach_check_attach_type(const struct bpf_prog *prog,
- 					     enum bpf_attach_type attach_type)
- {
-@@ -1505,40 +1503,6 @@ static int bpf_prog_attach_check_attach_type(const struct bpf_prog *prog,
- 
- #define BPF_PROG_ATTACH_LAST_FIELD attach_flags
- 
--static int sockmap_get_from_fd(const union bpf_attr *attr,
--			       int type, bool attach)
--{
--	struct bpf_prog *prog = NULL;
--	int ufd = attr->target_fd;
--	struct bpf_map *map;
--	struct fd f;
--	int err;
--
--	f = fdget(ufd);
--	map = __bpf_map_get(f);
--	if (IS_ERR(map))
--		return PTR_ERR(map);
--
--	if (attach) {
--		prog = bpf_prog_get_type(attr->attach_bpf_fd, type);
--		if (IS_ERR(prog)) {
--			fdput(f);
--			return PTR_ERR(prog);
--		}
--	}
--
--	err = sock_map_prog(map, prog, attr->attach_type);
--	if (err) {
--		fdput(f);
--		if (prog)
--			bpf_prog_put(prog);
--		return err;
--	}
--
--	fdput(f);
--	return 0;
--}
--
- #define BPF_F_ATTACH_MASK \
- 	(BPF_F_ALLOW_OVERRIDE | BPF_F_ALLOW_MULTI)
- 
-@@ -1546,7 +1510,6 @@ static int bpf_prog_attach(const union bpf_attr *attr)
- {
- 	enum bpf_prog_type ptype;
- 	struct bpf_prog *prog;
--	struct cgroup *cgrp;
- 	int ret;
- 
- 	if (!capable(CAP_NET_ADMIN))
-@@ -1583,12 +1546,15 @@ static int bpf_prog_attach(const union bpf_attr *attr)
- 		ptype = BPF_PROG_TYPE_CGROUP_DEVICE;
- 		break;
- 	case BPF_SK_MSG_VERDICT:
--		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_MSG, true);
-+		ptype = BPF_PROG_TYPE_SK_MSG;
-+		break;
- 	case BPF_SK_SKB_STREAM_PARSER:
- 	case BPF_SK_SKB_STREAM_VERDICT:
--		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, true);
-+		ptype = BPF_PROG_TYPE_SK_SKB;
-+		break;
- 	case BPF_LIRC_MODE2:
--		return lirc_prog_attach(attr);
-+		ptype = BPF_PROG_TYPE_LIRC_MODE2;
-+		break;
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1602,17 +1568,20 @@ static int bpf_prog_attach(const union bpf_attr *attr)
- 		return -EINVAL;
- 	}
- 
--	cgrp = cgroup_get_from_fd(attr->target_fd);
--	if (IS_ERR(cgrp)) {
--		bpf_prog_put(prog);
--		return PTR_ERR(cgrp);
-+	switch (ptype) {
-+	case BPF_PROG_TYPE_SK_SKB:
-+	case BPF_PROG_TYPE_SK_MSG:
-+		ret = sockmap_get_from_fd(attr, ptype, prog);
-+		break;
-+	case BPF_PROG_TYPE_LIRC_MODE2:
-+		ret = lirc_prog_attach(attr, prog);
-+		break;
-+	default:
-+		ret = cgroup_bpf_prog_attach(attr, ptype, prog);
- 	}
- 
--	ret = cgroup_bpf_attach(cgrp, prog, attr->attach_type,
--				attr->attach_flags);
- 	if (ret)
- 		bpf_prog_put(prog);
--	cgroup_put(cgrp);
- 
- 	return ret;
- }
-@@ -1622,9 +1591,6 @@ static int bpf_prog_attach(const union bpf_attr *attr)
- static int bpf_prog_detach(const union bpf_attr *attr)
- {
- 	enum bpf_prog_type ptype;
--	struct bpf_prog *prog;
--	struct cgroup *cgrp;
--	int ret;
- 
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EPERM;
-@@ -1657,29 +1623,17 @@ static int bpf_prog_detach(const union bpf_attr *attr)
- 		ptype = BPF_PROG_TYPE_CGROUP_DEVICE;
- 		break;
- 	case BPF_SK_MSG_VERDICT:
--		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_MSG, false);
-+		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_MSG, NULL);
- 	case BPF_SK_SKB_STREAM_PARSER:
- 	case BPF_SK_SKB_STREAM_VERDICT:
--		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, false);
-+		return sockmap_get_from_fd(attr, BPF_PROG_TYPE_SK_SKB, NULL);
- 	case BPF_LIRC_MODE2:
- 		return lirc_prog_detach(attr);
- 	default:
- 		return -EINVAL;
- 	}
- 
--	cgrp = cgroup_get_from_fd(attr->target_fd);
--	if (IS_ERR(cgrp))
--		return PTR_ERR(cgrp);
--
--	prog = bpf_prog_get_type(attr->attach_bpf_fd, ptype);
--	if (IS_ERR(prog))
--		prog = NULL;
--
--	ret = cgroup_bpf_detach(cgrp, prog, attr->attach_type, 0);
--	if (prog)
--		bpf_prog_put(prog);
--	cgroup_put(cgrp);
--	return ret;
-+	return cgroup_bpf_prog_detach(attr, ptype);
- }
- 
- #define BPF_PROG_QUERY_LAST_FIELD query.prog_cnt
-@@ -1687,9 +1641,6 @@ static int bpf_prog_detach(const union bpf_attr *attr)
- static int bpf_prog_query(const union bpf_attr *attr,
- 			  union bpf_attr __user *uattr)
- {
--	struct cgroup *cgrp;
--	int ret;
--
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EPERM;
- 	if (CHECK_ATTR(BPF_PROG_QUERY))
-@@ -1717,14 +1668,9 @@ static int bpf_prog_query(const union bpf_attr *attr,
- 	default:
- 		return -EINVAL;
- 	}
--	cgrp = cgroup_get_from_fd(attr->query.target_fd);
--	if (IS_ERR(cgrp))
--		return PTR_ERR(cgrp);
--	ret = cgroup_bpf_query(cgrp, attr, uattr);
--	cgroup_put(cgrp);
--	return ret;
-+
-+	return cgroup_bpf_prog_query(attr, uattr);
- }
--#endif /* CONFIG_CGROUP_BPF */
- 
- #define BPF_PROG_TEST_RUN_LAST_FIELD test.duration
- 
-@@ -2371,7 +2317,6 @@ SYSCALL_DEFINE3(bpf, int, cmd, union bpf_attr __user *, uattr, unsigned int, siz
- 	case BPF_OBJ_GET:
- 		err = bpf_obj_get(&attr);
- 		break;
--#ifdef CONFIG_CGROUP_BPF
- 	case BPF_PROG_ATTACH:
- 		err = bpf_prog_attach(&attr);
- 		break;
-@@ -2381,7 +2326,6 @@ SYSCALL_DEFINE3(bpf, int, cmd, union bpf_attr __user *, uattr, unsigned int, siz
- 	case BPF_PROG_QUERY:
- 		err = bpf_prog_query(&attr, uattr);
- 		break;
--#endif
- 	case BPF_PROG_TEST_RUN:
- 		err = bpf_prog_test_run(&attr, uattr);
- 		break;
--- 
-2.17.1
+--+HP7ph2BbKc20aGI
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
+
+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
+
+--+HP7ph2BbKc20aGI--
