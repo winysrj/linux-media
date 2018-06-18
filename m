@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:41154 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:41268 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935319AbeFRPAO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 11:00:14 -0400
+        id S935323AbeFRPAR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Jun 2018 11:00:17 -0400
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
@@ -45,30 +45,32 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-sunxi@googlegroups.com,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: [PATCH v4 02/19] dt-bindings: sram: sunxi: Add A10 binding for the C1 SRAM region
-Date: Mon, 18 Jun 2018 16:58:26 +0200
-Message-Id: <20180618145843.14631-3-paul.kocialkowski@bootlin.com>
+Subject: [PATCH v4 04/19] dt-bindings: sram: sunxi: Add A20 binding for the C1 SRAM region
+Date: Mon, 18 Jun 2018 16:58:28 +0200
+Message-Id: <20180618145843.14631-5-paul.kocialkowski@bootlin.com>
 In-Reply-To: <20180618145843.14631-1-paul.kocialkowski@bootlin.com>
 References: <20180618145843.14631-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This introduces a dedicated binding for the C1 SRAM region for the A10
+This introduces a dedicated binding for the C1 SRAM region for the A20
 sunxi platform.
 
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
 diff --git a/Documentation/devicetree/bindings/sram/sunxi-sram.txt b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
-index 19cc0b892672..5af5bafd5572 100644
+index ddc82cbd7f4d..221fa7b42c18 100644
 --- a/Documentation/devicetree/bindings/sram/sunxi-sram.txt
 +++ b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
-@@ -29,6 +29,7 @@ once again the representation described in the mmio-sram binding.
+@@ -35,6 +35,9 @@ The valid sections compatible for A10 are:
+ The valid sections compatible for A13 are:
+     - allwinner,sun5i-a13-sram-c1
  
- The valid sections compatible for A10 are:
-     - allwinner,sun4i-a10-sram-a3-a4
-+    - allwinner,sun4i-a10-sram-c1
-     - allwinner,sun4i-a10-sram-d
- 
++The valid sections compatible for A20 are:
++    - allwinner,sun7i-a20-sram-c1
++
  The valid sections compatible for A64 are:
+     - allwinner,sun50i-a64-sram-c
+ 
 -- 
 2.17.0
