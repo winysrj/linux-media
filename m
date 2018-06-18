@@ -1,94 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:42138 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966580AbeFRJTk (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:39307 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934168AbeFRJu2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 05:19:40 -0400
-Date: Mon, 18 Jun 2018 18:19:29 +0900
-In-Reply-To: <CAAFQd5AKG0Fb9Q7dqzso+vZ6ZxwJW1WYVuiLY9XBTwWvjwu6Gg@mail.gmail.com>
-References: <20180604103303.6a6b792b@vento.lan> <9250AAB0-E704-4FC2-9399-94C996A72E45@ideasonboard.com> <CAAFQd5AKG0Fb9Q7dqzso+vZ6ZxwJW1WYVuiLY9XBTwWvjwu6Gg@mail.gmail.com>
+        Mon, 18 Jun 2018 05:50:28 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Nicholas Mc Guire <hofrat@osadl.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Philipp Zabel" <p.zabel@pengutronix.de>,
+        Niklas Soderlund <niklas.soderlund+renesas@ragnatech.se>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 2/2] media: stm32-dcmi: add mandatory of_node_put() in
+ success path
+Date: Mon, 18 Jun 2018 09:49:44 +0000
+Message-ID: <7f3ca88b-e1b0-ea2c-da02-63da5cdc9e09@st.com>
+References: <1528824138-19089-1-git-send-email-hofrat@osadl.org>
+ <1528824138-19089-2-git-send-email-hofrat@osadl.org>
+In-Reply-To: <1528824138-19089-2-git-send-email-hofrat@osadl.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <ED13F2B41F034A4AA7F6E8862EA2BF13@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Subject: Re: [ANN v2] Complex Camera Workshop - Tokyo - Jun, 19
-To: Tomasz Figa <tfiga@google.com>
-CC: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        javier@dowhile0.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?ISO-8859-1?Q?Niklas_S=F6derlund?= <niklas.soderlund@ragnatech.se>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        dave.stevenson@raspberrypi.org,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>
-From: Paul Elder <paul.elder@ideasonboard.com>
-Message-ID: <7E43D9DF-35E4-46CF-ABDC-6EC5098F42F3@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-
-On June 18, 2018 6:00:47 PM GMT+09:00, Tomasz Figa <tfiga@google=2Ecom> wr=
-ote:
->Hi Paul,
->
->On Mon, Jun 18, 2018 at 5:42 PM Paul Elder
-><paul=2Eelder@ideasonboard=2Ecom> wrote:
->>
->>
->>
->> Hello all,
->>
->> On June 4, 2018 10:33:03 PM GMT+09:00, Mauro Carvalho Chehab
-><mchehab+samsung@kernel=2Eorg> wrote:
->> >Hi all,
->> >
->> >I consolidated hopefully all comments I receive on the past
->> >announcement
->> >with regards to the complex camera workshop we're planning to happen
->in
->> >Tokyo, just before the Open Source Summit in Japan=2E
->> >
->> >The main focus of the workshop is to allow supporting devices with
->> >MC-based
->> >hardware connected to a camera=2E
->> >
->> >I'm enclosing a detailed description of the problem, in order to
->> >allow the interested parties to be at the same page=2E
->> >
->> >We need to work towards an agenda for the meeting=2E
->> >
->> >From my side, I think we should have at least the following topics
->at
->> >the agenda:
->> >
->> >- a quick review about what's currently at libv4l2;
->> >- a presentation about PipeWire solution;
->> >- a discussion with the requirements for the new solution;
->> >- a discussion about how we'll address - who will do what=2E
->> >
->> >Comments? Suggestions?
->> >
->> >Are there anyone else planning to either be there physically or via
->> >Google Hangouts?
->> >
->> My name is Paul Elder=2E I am a university student studying computer
->science, and I am interested in complex camera support in Linux=2E
->>
->> If it's not too late, could I join this meeting as well please, as I
->am in Tokyo?
->
->Done=2E You should have received 3 further emails with necessary
->invitations=2E
-
-Thank you=2E
-I have only received two: =E6=9D=A5=E8=A8=AA=E8=80=85=E4=BA=8B=E5=89=8D=E7=
-=99=BB=E9=8C=B2=E3=81=AE=E3=81=94=E6=A1=88=E5=86=85, and the Google invitat=
-ion=2E
-
-Paul
-
---=20
-Sent from my Android device with K-9 Mail=2E Please excuse my brevity=2E
+SGkgTmljaG9sYXMsDQpUaGFua3MgZm9yIHBhdGNoLg0KQlIsDQpIdWd1ZXMuDQoNCk9uIDA2LzEy
+LzIwMTggMDc6MjIgUE0sIE5pY2hvbGFzIE1jIEd1aXJlIHdyb3RlOg0KPiBUaGUgZW5kcG9pbnQg
+YWxsb2NhdGVkIGJ5IG9mX2dyYXBoX2dldF9uZXh0X2VuZHBvaW50KCkgbmVlZHMgYW4gb2Zfbm9k
+ZV9wdXQoKQ0KPiBpbiBib3RoIGVycm9yIGFuZCBzdWNjZXNzIHBhdGguIEFzICBlcCAgaXMgbm90
+IHVzZWQgdGhlIHJlZmNvdW50IGRlY3JlbWVudA0KPiBjYW4gYmUgcmlnaHQgYWZ0ZXIgdGhlIGxh
+c3QgdXNlIG9mICBlcC4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IE5pY2hvbGFzIE1jIEd1aXJlIDxo
+b2ZyYXRAb3NhZGwub3JnPg0KQWNrZWQtYnk6IEh1Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hl
+dEBzdC5jb20+DQoNCj4gRml4ZXM6IGNvbW1pdCAzNzQwNGY5MWVmOGIgKCJbbWVkaWFdIHN0bTMy
+LWRjbWk6IFNUTTMyIERDTUkgY2FtZXJhIGludGVyZmFjZSBkcml2ZXIiKQ0KPiAtLS0NCj4gDQo+
+IFByb2JsZW0gbG9jYXRlZCB3aXRoIGFuIGV4cGVyaW1lbnRhbCBjb2NjaW5lbGxlIHNjcmlwdA0K
+PiANCj4gUGF0Y2ggd2FzIGNvbXBpbGUgdGVzdGVkIHdpdGg6IHg4Nl82NF9kZWZjb25maWcsIE1F
+RElBX1NVUFBPUlQ9eQ0KPiBNRURJQV9DQU1FUkFfU1VQUE9SVD15LCBWNExfUExBVEZPUk1fRFJJ
+VkVSUz15LCBPRj15LCBDT01QSUxFX1RFU1Q9eQ0KPiBDT05GSUdfVklERU9fU1RNMzJfRENNST15
+DQo+IChUaGVyZSBhcmUgYSBudW1iZXIgb2Ygc3BhcnNlIHdhcm5pbmdzIC0gbm90IHJlbGF0ZWQg
+dG8gdGhlIGNoYW5nZXMgdGhvdWdoKQ0KPiANCj4gUGF0Y2ggaXMgb24gdG9wIG9mICJbUEFUQ0gg
+MS8yXSBtZWRpYTogc3RtMzItZGNtaTogZHJvcCB1bm5lY2VlYXJ5IHdoaWxlKDEpDQo+IGxvb3Ai
+IGFnYWluc3QgNC4xNy4wIChsb2NhbHZlcnNpb24tbmV4dCBpcyBuZXh0LTIwMTgwNjA4KQ0KPiAN
+Cj4gICBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0bTMyL3N0bTMyLWRjbWkuYyB8IDUgKystLS0N
+Cj4gICAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KPiAN
+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3RtMzIvc3RtMzItZGNtaS5j
+IGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdG0zMi9zdG0zMi1kY21pLmMNCj4gaW5kZXggNzBi
+ODFkMi4uNTQyZDE0OCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdG0z
+Mi9zdG0zMi1kY21pLmMNCj4gKysrIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdG0zMi9zdG0z
+Mi1kY21pLmMNCj4gQEAgLTE2MTAsMTAgKzE2MTAsOSBAQCBzdGF0aWMgaW50IGRjbWlfZ3JhcGhf
+cGFyc2Uoc3RydWN0IHN0bTMyX2RjbWkgKmRjbWksIHN0cnVjdCBkZXZpY2Vfbm9kZSAqbm9kZSkN
+Cj4gICAJCXJldHVybiAtRUlOVkFMOw0KPiAgIA0KPiAgIAlyZW1vdGUgPSBvZl9ncmFwaF9nZXRf
+cmVtb3RlX3BvcnRfcGFyZW50KGVwKTsNCj4gLQlpZiAoIXJlbW90ZSkgew0KPiAtCQlvZl9ub2Rl
+X3B1dChlcCk7DQo+ICsJb2Zfbm9kZV9wdXQoZXApOw0KPiArCWlmICghcmVtb3RlKQ0KPiAgIAkJ
+cmV0dXJuIC1FSU5WQUw7DQo+IC0JfQ0KPiAgIA0KPiAgIAkvKiBSZW1vdGUgbm9kZSB0byBjb25u
+ZWN0ICovDQo+ICAgCWRjbWktPmVudGl0eS5ub2RlID0gcmVtb3RlOw0KPiA=
