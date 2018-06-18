@@ -1,218 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36231 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965150AbeFRI3B (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:55220 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S966799AbeFRJMr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 04:29:01 -0400
-Received: by mail-wm0-f66.google.com with SMTP id v131-v6so13843392wma.1
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2018 01:29:01 -0700 (PDT)
-Date: Mon, 18 Jun 2018 10:28:57 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Christian =?iso-8859-1?Q?K=F6nig?=
-        <ckoenig.leichtzumerken@gmail.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-Subject: Re: [PATCH 5/5] drm/amdgpu: add independent DMA-buf export v3
-Message-ID: <20180618082857.GY3438@phenom.ffwll.local>
-References: <20180601120020.11520-1-christian.koenig@amd.com>
- <20180601120020.11520-5-christian.koenig@amd.com>
+        Mon, 18 Jun 2018 05:12:47 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] media/i2c: add missing entity functions
+Message-ID: <ca8b3893-78ed-07bb-a954-099c9b28830c@xs4all.nl>
+Date: Mon, 18 Jun 2018 11:12:43 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180601120020.11520-5-christian.koenig@amd.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 01, 2018 at 02:00:20PM +0200, Christian König wrote:
-> The caching of SGT's done by the DRM code is actually quite harmful and
-> should probably removed altogether in the long term.
+Several drivers in media/i2c do not set the entity function.
+Correct this.
 
-Hm, why is it harmful? We've done it because it's expensive, and people
-started screaming about the overhead ... hence the caching. Doing an
-amdgpu copypasta seems like working around issues in shared code.
--Daniel
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c              | 1 +
+ drivers/media/i2c/adv7842.c              | 1 +
+ drivers/media/i2c/et8ek8/et8ek8_driver.c | 1 +
+ drivers/media/i2c/mt9m032.c              | 1 +
+ drivers/media/i2c/mt9p031.c              | 1 +
+ drivers/media/i2c/mt9t001.c              | 1 +
+ drivers/media/i2c/mt9v032.c              | 1 +
+ 7 files changed, 7 insertions(+)
 
-> 
-> Start by providing a separate DMA-buf export implementation in amdgpu. This is
-> also a prerequisite of unpinned DMA-buf handling.
-> 
-> v2: fix unintended recursion, remove debugging leftovers
-> v3: split out from unpinned DMA-buf work
-> 
-> Signed-off-by: Christian König <christian.koenig@amd.com>
-> ---
->  drivers/gpu/drm/amd/amdgpu/amdgpu.h       |  1 -
->  drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c   |  1 -
->  drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c | 73 ++++++++++++++-----------------
->  3 files changed, 32 insertions(+), 43 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-> index 2d7500921c0b..93dc57d74fc2 100644
-> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-> @@ -373,7 +373,6 @@ int amdgpu_gem_object_open(struct drm_gem_object *obj,
->  void amdgpu_gem_object_close(struct drm_gem_object *obj,
->  				struct drm_file *file_priv);
->  unsigned long amdgpu_gem_timeout(uint64_t timeout_ns);
-> -struct sg_table *amdgpu_gem_prime_get_sg_table(struct drm_gem_object *obj);
->  struct drm_gem_object *
->  amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
->  				 struct dma_buf_attachment *attach,
-> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-> index b0bf2f24da48..270b8ad927ea 100644
-> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-> @@ -907,7 +907,6 @@ static struct drm_driver kms_driver = {
->  	.gem_prime_export = amdgpu_gem_prime_export,
->  	.gem_prime_import = amdgpu_gem_prime_import,
->  	.gem_prime_res_obj = amdgpu_gem_prime_res_obj,
-> -	.gem_prime_get_sg_table = amdgpu_gem_prime_get_sg_table,
->  	.gem_prime_import_sg_table = amdgpu_gem_prime_import_sg_table,
->  	.gem_prime_vmap = amdgpu_gem_prime_vmap,
->  	.gem_prime_vunmap = amdgpu_gem_prime_vunmap,
-> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-> index a156b3891a3f..0c5a75b06648 100644
-> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-> @@ -32,14 +32,6 @@
->  
->  static const struct dma_buf_ops amdgpu_dmabuf_ops;
->  
-> -struct sg_table *amdgpu_gem_prime_get_sg_table(struct drm_gem_object *obj)
-> -{
-> -	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
-> -	int npages = bo->tbo.num_pages;
-> -
-> -	return drm_prime_pages_to_sg(bo->tbo.ttm->pages, npages);
-> -}
-> -
->  void *amdgpu_gem_prime_vmap(struct drm_gem_object *obj)
->  {
->  	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
-> @@ -132,23 +124,17 @@ amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
->  	return ERR_PTR(ret);
->  }
->  
-> -static int amdgpu_gem_map_attach(struct dma_buf *dma_buf,
-> -				 struct dma_buf_attachment *attach)
-> +static struct sg_table *
-> +amdgpu_gem_map_dma_buf(struct dma_buf_attachment *attach,
-> +		       enum dma_data_direction dir)
->  {
-> +	struct dma_buf *dma_buf = attach->dmabuf;
->  	struct drm_gem_object *obj = dma_buf->priv;
->  	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
->  	struct amdgpu_device *adev = amdgpu_ttm_adev(bo->tbo.bdev);
-> +	struct sg_table *sgt;
->  	long r;
->  
-> -	r = drm_gem_map_attach(dma_buf, attach);
-> -	if (r)
-> -		return r;
-> -
-> -	r = amdgpu_bo_reserve(bo, false);
-> -	if (unlikely(r != 0))
-> -		goto error_detach;
-> -
-> -
->  	if (attach->dev->driver != adev->dev->driver) {
->  		/*
->  		 * Wait for all shared fences to complete before we switch to future
-> @@ -159,46 +145,53 @@ static int amdgpu_gem_map_attach(struct dma_buf *dma_buf,
->  							MAX_SCHEDULE_TIMEOUT);
->  		if (unlikely(r < 0)) {
->  			DRM_DEBUG_PRIME("Fence wait failed: %li\n", r);
-> -			goto error_unreserve;
-> +			return ERR_PTR(r);
->  		}
->  	}
->  
->  	/* pin buffer into GTT */
->  	r = amdgpu_bo_pin(bo, AMDGPU_GEM_DOMAIN_GTT, NULL);
->  	if (r)
-> -		goto error_unreserve;
-> +		return ERR_PTR(r);
-> +
-> +	sgt = drm_prime_pages_to_sg(bo->tbo.ttm->pages, bo->tbo.num_pages);
-> +	if (IS_ERR(sgt))
-> +		return sgt;
-> +
-> +	if (!dma_map_sg_attrs(attach->dev, sgt->sgl, sgt->nents, dir,
-> +			      DMA_ATTR_SKIP_CPU_SYNC))
-> +		goto error_free;
->  
->  	if (attach->dev->driver != adev->dev->driver)
->  		bo->prime_shared_count++;
->  
-> -error_unreserve:
-> -	amdgpu_bo_unreserve(bo);
-> +	return sgt;
->  
-> -error_detach:
-> -	if (r)
-> -		drm_gem_map_detach(dma_buf, attach);
-> -	return r;
-> +error_free:
-> +	sg_free_table(sgt);
-> +	kfree(sgt);
-> +	return ERR_PTR(-ENOMEM);
->  }
->  
-> -static void amdgpu_gem_map_detach(struct dma_buf *dma_buf,
-> -				  struct dma_buf_attachment *attach)
-> +static void amdgpu_gem_unmap_dma_buf(struct dma_buf_attachment *attach,
-> +				     struct sg_table *sgt,
-> +				     enum dma_data_direction dir)
->  {
-> +	struct dma_buf *dma_buf = attach->dmabuf;
->  	struct drm_gem_object *obj = dma_buf->priv;
->  	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
->  	struct amdgpu_device *adev = amdgpu_ttm_adev(bo->tbo.bdev);
-> -	int ret = 0;
-> -
-> -	ret = amdgpu_bo_reserve(bo, true);
-> -	if (unlikely(ret != 0))
-> -		goto error;
->  
->  	amdgpu_bo_unpin(bo);
-> +
->  	if (attach->dev->driver != adev->dev->driver && bo->prime_shared_count)
->  		bo->prime_shared_count--;
-> -	amdgpu_bo_unreserve(bo);
->  
-> -error:
-> -	drm_gem_map_detach(dma_buf, attach);
-> +	if (sgt) {
-> +		dma_unmap_sg(attach->dev, sgt->sgl, sgt->nents, dir);
-> +		sg_free_table(sgt);
-> +		kfree(sgt);
-> +	}
->  }
->  
->  struct reservation_object *amdgpu_gem_prime_res_obj(struct drm_gem_object *obj)
-> @@ -237,10 +230,8 @@ static int amdgpu_gem_begin_cpu_access(struct dma_buf *dma_buf,
->  }
->  
->  static const struct dma_buf_ops amdgpu_dmabuf_ops = {
-> -	.attach = amdgpu_gem_map_attach,
-> -	.detach = amdgpu_gem_map_detach,
-> -	.map_dma_buf = drm_gem_map_dma_buf,
-> -	.unmap_dma_buf = drm_gem_unmap_dma_buf,
-> +	.map_dma_buf = amdgpu_gem_map_dma_buf,
-> +	.unmap_dma_buf = amdgpu_gem_unmap_dma_buf,
->  	.release = drm_gem_dmabuf_release,
->  	.begin_cpu_access = amdgpu_gem_begin_cpu_access,
->  	.map = drm_gem_dmabuf_kmap,
-> -- 
-> 2.14.1
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index cac2081e876e..f2df509e34f0 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -3502,6 +3502,7 @@ static int adv76xx_probe(struct i2c_client *client,
+ 	for (i = 0; i < state->source_pad; ++i)
+ 		state->pads[i].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[state->source_pad].flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.function = MEDIA_ENT_F_DTV_DECODER;
 
+ 	err = media_entity_pads_init(&sd->entity, state->source_pad + 1,
+ 				state->pads);
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index fddac32e5051..56da071f99cb 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -3541,6 +3541,7 @@ static int adv7842_probe(struct i2c_client *client,
+ 	INIT_DELAYED_WORK(&state->delayed_work_enable_hotplug,
+ 			adv7842_delayed_work_enable_hotplug);
+
++	sd->entity.function = MEDIA_ENT_F_DTV_DECODER;
+ 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
+ 	if (err)
+diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+index e9eff9039ef5..37ef38947e01 100644
+--- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
++++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+@@ -1446,6 +1446,7 @@ static int et8ek8_probe(struct i2c_client *client,
+ 	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	sensor->subdev.internal_ops = &et8ek8_internal_ops;
+
++	sensor->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+ 	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	ret = media_entity_pads_init(&sensor->subdev.entity, 1, &sensor->pad);
+ 	if (ret < 0) {
+diff --git a/drivers/media/i2c/mt9m032.c b/drivers/media/i2c/mt9m032.c
+index 6a9e068462fd..b385f2b632ad 100644
+--- a/drivers/media/i2c/mt9m032.c
++++ b/drivers/media/i2c/mt9m032.c
+@@ -793,6 +793,7 @@ static int mt9m032_probe(struct i2c_client *client,
+ 	v4l2_ctrl_cluster(2, &sensor->hflip);
+
+ 	sensor->subdev.ctrl_handler = &sensor->ctrls;
++	sensor->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+ 	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	ret = media_entity_pads_init(&sensor->subdev.entity, 1, &sensor->pad);
+ 	if (ret < 0)
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index 91d822fc4443..715be3632b01 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -1111,6 +1111,7 @@ static int mt9p031_probe(struct i2c_client *client,
+ 	v4l2_i2c_subdev_init(&mt9p031->subdev, client, &mt9p031_subdev_ops);
+ 	mt9p031->subdev.internal_ops = &mt9p031_subdev_internal_ops;
+
++	mt9p031->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+ 	mt9p031->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	ret = media_entity_pads_init(&mt9p031->subdev.entity, 1, &mt9p031->pad);
+ 	if (ret < 0)
+diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
+index 9d981d9f5686..f683d2cb0486 100644
+--- a/drivers/media/i2c/mt9t001.c
++++ b/drivers/media/i2c/mt9t001.c
+@@ -943,6 +943,7 @@ static int mt9t001_probe(struct i2c_client *client,
+ 	mt9t001->subdev.internal_ops = &mt9t001_subdev_internal_ops;
+ 	mt9t001->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+
++	mt9t001->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+ 	mt9t001->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	ret = media_entity_pads_init(&mt9t001->subdev.entity, 1, &mt9t001->pad);
+
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index 4de63b2df334..f74730d24d8f 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -1162,6 +1162,7 @@ static int mt9v032_probe(struct i2c_client *client,
+ 	mt9v032->subdev.internal_ops = &mt9v032_subdev_internal_ops;
+ 	mt9v032->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+
++	mt9v032->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+ 	mt9v032->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	ret = media_entity_pads_init(&mt9v032->subdev.entity, 1, &mt9v032->pad);
+ 	if (ret < 0)
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.17.0
