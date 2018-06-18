@@ -1,178 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:40272 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S968005AbeFRIf7 (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:41746 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966886AbeFRIqY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 04:35:59 -0400
-Received: by mail-wr0-f194.google.com with SMTP id l41-v6so15845757wre.7
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2018 01:35:59 -0700 (PDT)
-Subject: Re: [PATCH v7 3/6] mfd: cros-ec: Increase maximum mkbp event size
-To: Lee Jones <lee.jones@linaro.org>
-Cc: airlied@linux.ie, hans.verkuil@cisco.com, olof@lixom.net,
-        seanpaul@google.com, sadolfsson@google.com, felixe@google.com,
-        bleung@google.com, darekm@google.com, marcheu@chromium.org,
-        fparent@baylibre.com, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, eballetbo@gmail.com,
-        Stefan Adolfsson <sadolfsson@chromium.org>
-References: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
- <1527841154-24832-4-git-send-email-narmstrong@baylibre.com>
- <20180618074443.GK31141@dell>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <017e4688-4036-e606-7220-2e472afa0aac@baylibre.com>
-Date: Mon, 18 Jun 2018 10:35:56 +0200
+        Mon, 18 Jun 2018 04:46:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Paul Elder <paul.elder@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        LMML <linux-media@vger.kernel.org>,
+        Javier Martinez Canillas <javier@dowhile0.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Tomasz Figa <tfiga@google.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>
+Subject: Re: [ANN v2] Complex Camera Workshop - Tokyo - Jun, 19
+Date: Mon, 18 Jun 2018 11:46:37 +0300
+Message-ID: <10550271.GYYXTENWNy@avalon>
+In-Reply-To: <9250AAB0-E704-4FC2-9399-94C996A72E45@ideasonboard.com>
+References: <20180604103303.6a6b792b@vento.lan> <9250AAB0-E704-4FC2-9399-94C996A72E45@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20180618074443.GK31141@dell>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lee,
+Hello,
 
-On 18/06/2018 09:44, Lee Jones wrote:
-> On Fri, 01 Jun 2018, Neil Armstrong wrote:
+On Monday, 18 June 2018 11:42:37 EEST Paul Elder wrote:
+> On June 4, 2018 10:33:03 PM GMT+09:00, Mauro Carvalho Chehab  wrote:
+> > Hi all,
+> >
+> > I consolidated hopefully all comments I receive on the past announcement
+> > with regards to the complex camera workshop we're planning to happen in
+> > Tokyo, just before the Open Source Summit in Japan.
+> >
+> > The main focus of the workshop is to allow supporting devices with
+> > MC-based hardware connected to a camera.
+> >
+> > I'm enclosing a detailed description of the problem, in order to
+> > allow the interested parties to be at the same page.
+> >
+> > We need to work towards an agenda for the meeting.
+> >
+> > From my side, I think we should have at least the following topics at
+> > the agenda:
+> >
+> > - a quick review about what's currently at libv4l2;
+> > - a presentation about PipeWire solution;
+> > - a discussion with the requirements for the new solution;
+> > - a discussion about how we'll address - who will do what.
+> >
+> > Comments? Suggestions?
+> >
+> > Are there anyone else planning to either be there physically or via
+> > Google Hangouts?
 > 
->> Having a 16 byte mkbp event size makes it possible to send CEC
->> messages from the EC to the AP directly inside the mkbp event
->> instead of first doing a notification and then a read.
->>
->> Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
->> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->> Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
->> ---
->>  drivers/platform/chrome/cros_ec_proto.c | 40 +++++++++++++++++++++++++--------
->>  include/linux/mfd/cros_ec.h             |  2 +-
->>  include/linux/mfd/cros_ec_commands.h    | 19 ++++++++++++++++
->>  3 files changed, 51 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
->> index e7bbdf9..c4f6c44 100644
->> --- a/drivers/platform/chrome/cros_ec_proto.c
->> +++ b/drivers/platform/chrome/cros_ec_proto.c
->> @@ -504,10 +504,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
->>  }
->>  EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
->>  
->> +static int get_next_event_xfer(struct cros_ec_device *ec_dev,
->> +			       struct cros_ec_command *msg,
->> +			       int version, uint32_t size)
->> +{
->> +	int ret;
->> +
->> +	msg->version = version;
->> +	msg->command = EC_CMD_GET_NEXT_EVENT;
->> +	msg->insize = size;
->> +	msg->outsize = 0;
->> +
->> +	ret = cros_ec_cmd_xfer(ec_dev, msg);
->> +	if (ret > 0) {
->> +		ec_dev->event_size = ret - 1;
->> +		memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
->> +	}
->> +
->> +	return ret;
->> +}
->> +
->>  static int get_next_event(struct cros_ec_device *ec_dev)
->>  {
->>  	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
->>  	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
->> +	static int cmd_version = 1;
->>  	int ret;
->>  
->>  	if (ec_dev->suspended) {
->> @@ -515,18 +536,19 @@ static int get_next_event(struct cros_ec_device *ec_dev)
->>  		return -EHOSTDOWN;
->>  	}
->>  
->> -	msg->version = 0;
->> -	msg->command = EC_CMD_GET_NEXT_EVENT;
->> -	msg->insize = sizeof(ec_dev->event_data);
->> -	msg->outsize = 0;
->> +	if (cmd_version == 1) {
->> +		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
->> +				sizeof(struct ec_response_get_next_event_v1));
->> +		if (ret < 0 || msg->result != EC_RES_INVALID_VERSION)
->> +			return ret;
->>  
->> -	ret = cros_ec_cmd_xfer(ec_dev, msg);
->> -	if (ret > 0) {
->> -		ec_dev->event_size = ret - 1;
->> -		memcpy(&ec_dev->event_data, msg->data,
->> -		       sizeof(ec_dev->event_data));
->> +		/* Fallback to version 0 for future send attempts */
->> +		cmd_version = 0;
->>  	}
->>  
->> +	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
->> +				  sizeof(struct ec_response_get_next_event));
->> +
->>  	return ret;
->>  }
->>  
->> diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
->> index f36125e..32caef3 100644
->> --- a/include/linux/mfd/cros_ec.h
->> +++ b/include/linux/mfd/cros_ec.h
->> @@ -147,7 +147,7 @@ struct cros_ec_device {
->>  	bool mkbp_event_supported;
->>  	struct blocking_notifier_head event_notifier;
->>  
->> -	struct ec_response_get_next_event event_data;
->> +	struct ec_response_get_next_event_v1 event_data;
->>  	int event_size;
->>  	u32 host_event_wake_mask;
->>  };
->> diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
->> index f2edd99..cc0768e 100644
->> --- a/include/linux/mfd/cros_ec_commands.h
->> +++ b/include/linux/mfd/cros_ec_commands.h
->> @@ -2093,12 +2093,31 @@ union ec_response_get_next_data {
->>  	uint32_t   sysrq;
->>  } __packed;
->>  
->> +union ec_response_get_next_data_v1 {
->> +	uint8_t   key_matrix[16];
->> +
->> +	/* Unaligned */
+> My name is Paul Elder. I am a university student studying computer science,
+> and I am interested in complex camera support in Linux.
 > 
-> That's funny!
-> 
->> +	uint32_t  host_event;
->> +
->> +	uint32_t   buttons;
->> +	uint32_t   switches;
->> +	uint32_t   sysrq;
->> +	uint32_t   cec_events;
->> +	uint8_t    cec_message[16];
-> 
-> Since there are some whitespace alignment issues in here.
-> 
->> +} __packed;
-> 
-> How come these guys have kerneldoc headers?
+> If it's not too late, could I join this meeting as well please, as I am in
+> Tokyo?
 
-Can you explicit what should be changed here ?
+For the record, Paul is working with Kieran and me on V4L2 (and UVC in 
+particular).
 
-Thanks,
-Neil
+-- 
+Regards,
 
-> 
->>  struct ec_response_get_next_event {
->>  	uint8_t event_type;
->>  	/* Followed by event data if any */
->>  	union ec_response_get_next_data data;
->>  } __packed;
->>  
->> +struct ec_response_get_next_event_v1 {
->> +	uint8_t event_type;
->> +	/* Followed by event data if any */
->> +	union ec_response_get_next_data_v1 data;
->> +} __packed;
->> +
->>  /* Bit indices for buttons and switches.*/
->>  /* Buttons */
->>  #define EC_MKBP_POWER_BUTTON	0
-> 
+Laurent Pinchart
