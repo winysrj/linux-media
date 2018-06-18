@@ -1,259 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f195.google.com ([209.85.213.195]:38304 "EHLO
-        mail-yb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754895AbeFRHIt (ORCPT
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:40653 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754551AbeFRHKz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 03:08:49 -0400
-Received: by mail-yb0-f195.google.com with SMTP id q62-v6so5599615ybg.5
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2018 00:08:49 -0700 (PDT)
-Received: from mail-yw0-f172.google.com (mail-yw0-f172.google.com. [209.85.161.172])
-        by smtp.gmail.com with ESMTPSA id g62-v6sm6026209ywh.34.2018.06.18.00.08.46
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 18 Jun 2018 00:08:47 -0700 (PDT)
-Received: by mail-yw0-f172.google.com with SMTP id p129-v6so5301970ywg.7
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2018 00:08:46 -0700 (PDT)
+        Mon, 18 Jun 2018 03:10:55 -0400
 MIME-Version: 1.0
-References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com> <1522376100-22098-5-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1522376100-22098-5-git-send-email-yong.zhi@intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Mon, 18 Jun 2018 16:08:34 +0900
-Message-ID: <CAAFQd5C1nKr+hEVREF99sYBy7Nb8Y8TuimHVgn6r6Sz6b--+Dg@mail.gmail.com>
-Subject: Re: [PATCH v6 04/12] intel-ipu3: Implement DMA mapping functions
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+In-Reply-To: <c02f92a8998fc62d3e3d48aa154fbaa7e223dd10.camel@collabora.com>
+References: <20180617143625.32133-1-matwey@sai.msu.ru> <20180617143625.32133-2-matwey@sai.msu.ru>
+ <c02f92a8998fc62d3e3d48aa154fbaa7e223dd10.camel@collabora.com>
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Date: Mon, 18 Jun 2018 10:10:34 +0300
+Message-ID: <CAJs94EavBDcFHpd0KcCZJTgWf0JC=AEDY=X8b3P2nZvt8mBCPA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
+ ISO transfer
+To: Ezequiel Garcia <ezequiel@collabora.com>
+Cc: hverkuil@xs4all.nl, mchehab@kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        rostedt@goodmis.org, mingo@redhat.com, isely@pobox.com,
+        bhumirks@gmail.com, colin.king@canonical.com,
+        linux-media@vger.kernel.org,
+        open list <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 30, 2018 at 11:15 AM Yong Zhi <yong.zhi@intel.com> wrote:
+Hi Ezequiel,
+
+2018-06-18 8:11 GMT+03:00 Ezequiel Garcia <ezequiel@collabora.com>:
+> + Laurent
 >
-> From: Tomasz Figa <tfiga@chromium.org>
+> On Sun, 2018-06-17 at 17:36 +0300, Matwey V. Kornilov wrote:
+>> DMA cocherency slows the transfer down on systems without hardware
+>> coherent DMA.
+>>
+>> Based on previous commit the following performance benchmarks have been
+>> carried out. Average memcpy() data transfer rate (rate) and handler
+>> completion time (time) have been measured when running video stream at
+>> 640x480 resolution at 10fps.
+>>
+>> x86_64 based system (Intel Core i5-3470). This platform has hardware
+>> coherent DMA support and proposed change doesn't make big difference here.
+>>
+>>  * kmalloc:            rate = (4.4 +- 1.0) GBps
+>>                        time = (2.4 +- 1.2) usec
+>>  * usb_alloc_coherent: rate = (4.1 +- 0.9) GBps
+>>                        time = (2.5 +- 1.0) usec
+>>
+>> We see that the measurements agree well within error ranges in this case.
+>> So no performance downgrade is introduced.
+>>
+>> armv7l based system (TI AM335x BeagleBone Black). This platform has no
+>> hardware coherent DMA support. DMA coherence is implemented via disabled
+>> page caching that slows down memcpy() due to memory controller behaviour.
+>>
+>>  * kmalloc:            rate =  (190 +-  30) MBps
+>>                        time =   (50 +-  10) usec
+>>  * usb_alloc_coherent: rate =   (33 +-   4) MBps
+>>                        time = (3000 +- 400) usec
+>>
+>> Note, that quantative difference leads (this commit leads to 5 times
+>> acceleration) to qualitative behavior change in this case. As it was
+>> stated before, the video stream can not be successfully received at AM335x
+>> platforms with MUSB based USB host controller due to performance issues
+>> [1].
+>>
+>> [1] https://www.spinics.net/lists/linux-usb/msg165735.html
+>>
 >
-> This driver uses IOVA space for buffer mapping through IPU3 MMU
-> to transfer data between imaging pipelines and system DDR.
+> This is quite interesting! I have receive similar complaints
+> from users wanting to use stk1160 on BBB and Raspberrys,
+> without much luck on either, due to insufficient isoc bandwidth.
 >
-> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> ---
->  drivers/media/pci/intel/ipu3/ipu3-css-pool.h |  36 ++++
->  drivers/media/pci/intel/ipu3/ipu3-dmamap.c   | 280 +++++++++++++++++++++++++++
->  drivers/media/pci/intel/ipu3/ipu3-dmamap.h   |  22 +++
->  drivers/media/pci/intel/ipu3/ipu3.h          | 151 +++++++++++++++
->  4 files changed, 489 insertions(+)
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.h
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.h
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3.h
+> I'm guessing other ARM platforms could be suffering
+> from the same issue.
 >
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.h b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-> new file mode 100644
-> index 000000000000..4b22e0856232
-> --- /dev/null
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-> @@ -0,0 +1,36 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/* Copyright (C) 2018 Intel Corporation */
-> +
-> +#ifndef __IPU3_UTIL_H
-> +#define __IPU3_UTIL_H
-> +
-> +struct device;
-> +
-> +#define IPU3_CSS_POOL_SIZE             4
-> +
-> +struct ipu3_css_map {
-> +       size_t size;
-> +       void *vaddr;
-> +       dma_addr_t daddr;
-> +       struct vm_struct *vma;
-> +};
-> +
-> +struct ipu3_css_pool {
-> +       struct {
-> +               struct ipu3_css_map param;
-> +               long framenum;
-> +       } entry[IPU3_CSS_POOL_SIZE];
-> +       unsigned int last; /* Latest entry */
+> Note that stk1160 and uvcvideo drivers use kmalloc on platforms
+> where DMA_NONCOHERENT is defined, but this is not the case
+> on ARM platforms.
 
-It's not clear what "Latest entry" means here. Since these structs are
-a part of the interface exposed by this header, could you write proper
-kerneldoc comments for all fields in both of them?
+There are some ARMv7 platforms that have coherent DMA (for instance
+Broadcome Horthstar Plus series), but the most of them don't have. It
+is defined in device tree file, and there is no way to recover this
+information at runtime in USB perepherial driver.
 
-> +};
-> +
-> +int ipu3_css_dma_buffer_resize(struct device *dev, struct ipu3_css_map *map,
-> +                              size_t size);
-> +void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool);
-> +int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
-> +                      size_t size);
-> +int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum);
-> +void ipu3_css_pool_put(struct ipu3_css_pool *pool);
-> +const struct ipu3_css_map *ipu3_css_pool_last(struct ipu3_css_pool *pool,
-> +                                             unsigned int last);
-> +
-> +#endif
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-dmamap.c b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
-> new file mode 100644
-> index 000000000000..b2bc5d00debc
-> --- /dev/null
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
-> @@ -0,0 +1,280 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Copyright (C) 2018 Intel Corporation
-> + * Copyright (C) 2018 Google, Inc.
+>
+> So, what is the benefit of using consistent
+> for these URBs, as opposed to streaming?
 
-Would you mind changing as below?
+I don't know, I think there is no real benefit and all we see is a
+consequence of copy-pasta when some webcam drivers were inspired by
+others and development priparily was going at x86 platforms. It would
+be great if somebody corrected me here. DMA Coherence is quite strong
+property and I cannot figure out how can it help when streaming video.
+The CPU host always reads from the buffer and never writes to.
+Hardware perepherial always writes to and never reads from. Moreover,
+buffer access is mutually exclusive and separated in time by Interrupt
+fireing and URB starting (when we reuse existing URB for new request).
+Only single one memory barrier is really required here.
 
-Copyright 2018 Google LLC.
+I understand that there are cases when DMA coherence is really needed,
+for instane VirtIO VRing when we accessing same data structure in both
+directions from the both sides, but this has nothing common with our
+case.
 
-> + *
-> + * Author: Tomasz Figa <tfiga@chromium.org>
-> + * Author: Yong Zhi <yong.zhi@intel.com>
-> + */
-> +
-> +#include <linux/vmalloc.h>
-> +
-> +#include "ipu3.h"
-> +#include "ipu3-css-pool.h"
-> +#include "ipu3-mmu.h"
-> +
-> +/*
-> + * Free a buffer allocated by ipu3_dmamap_alloc_buffer()
-> + */
-> +static void ipu3_dmamap_free_buffer(struct page **pages,
-> +                                   size_t size)
-> +{
-> +       int count = size >> PAGE_SHIFT;
-> +
-> +       while (count--)
-> +               __free_page(pages[count]);
-> +       kvfree(pages);
-> +}
-> +
-> +/*
-> + * Based on the implementation of __iommu_dma_alloc_pages()
-> + * defined in drivers/iommu/dma-iommu.c
-> + */
-> +static struct page **ipu3_dmamap_alloc_buffer(size_t size,
-> +                                             unsigned long order_mask,
-> +                                             gfp_t gfp)
-> +{
-> +       struct page **pages;
-> +       unsigned int i = 0, count = size >> PAGE_SHIFT;
-> +       const gfp_t high_order_gfp = __GFP_NOWARN | __GFP_NORETRY;
-> +
-> +       /* Allocate mem for array of page ptrs */
-> +       pages = kvmalloc_array(count, sizeof(struct page *), GFP_KERNEL);
+>
+> If the choice is simply platform dependent,
+> can't we somehow detect which mapping should
+> be prefered?
 
-sizeof(*pages) to ensure that the right type is used regardless of declaration.
+Now, we don't have this way.
 
-> +
+>
+>> Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
+>> ---
+>>  drivers/media/usb/pwc/pwc-if.c | 12 +++---------
+>>  1 file changed, 3 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+>> index 5775d1f60668..6a3cd9680a7f 100644
+>> --- a/drivers/media/usb/pwc/pwc-if.c
+>> +++ b/drivers/media/usb/pwc/pwc-if.c
+>> @@ -427,11 +427,8 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+>>               urb->interval = 1; // devik
+>>               urb->dev = udev;
+>>               urb->pipe = usb_rcvisocpipe(udev, pdev->vendpoint);
+>> -             urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+>> -             urb->transfer_buffer = usb_alloc_coherent(udev,
+>> -                                                       ISO_BUFFER_SIZE,
+>> -                                                       GFP_KERNEL,
+>> -                                                       &urb->transfer_dma);
+>> +             urb->transfer_flags = URB_ISO_ASAP;
+>> +             urb->transfer_buffer = kmalloc(ISO_BUFFER_SIZE, GFP_KERNEL);
+>>               if (urb->transfer_buffer == NULL) {
+>>                       PWC_ERROR("Failed to allocate urb buffer %d\n", i);
+>>                       pwc_isoc_cleanup(pdev);
+>> @@ -491,10 +488,7 @@ static void pwc_iso_free(struct pwc_device *pdev)
+>>               if (pdev->urbs[i]) {
+>>                       PWC_DEBUG_MEMORY("Freeing URB\n");
+>>                       if (pdev->urbs[i]->transfer_buffer) {
+>> -                             usb_free_coherent(pdev->udev,
+>> -                                     pdev->urbs[i]->transfer_buffer_length,
+>> -                                     pdev->urbs[i]->transfer_buffer,
+>> -                                     pdev->urbs[i]->transfer_dma);
+>> +                             kfree(pdev->urbs[i]->transfer_buffer);
+>>                       }
+>>                       usb_free_urb(pdev->urbs[i]);
+>>                       pdev->urbs[i] = NULL;
+>
 
-No need for this blank line.
 
-> +       if (!pages)
-> +               return NULL;
-[snip]
-> +/**
-> + * ipu3_dmamap_alloc - allocate and map a buffer into KVA
-> + * @dev: struct device pointer
-> + * @map: struct to store mapping variables
-> + * @len: size required
-> + *
-> + * Return KVA on success or NULL on failure
-> + */
-> +void *ipu3_dmamap_alloc(struct device *dev, struct ipu3_css_map *map,
-> +                       size_t len)
-> +{
-> +       struct imgu_device *imgu = dev_get_drvdata(dev);
 
-Wouldn't it make more sense to just pass struct imgu_device pointer to
-all the functions in this file directly?
-
-> +       unsigned long shift = iova_shift(&imgu->iova_domain);
-> +       unsigned int alloc_sizes = imgu->mmu->pgsize_bitmap;
-> +       size_t size = PAGE_ALIGN(len);
-> +       struct page **pages;
-> +       dma_addr_t iovaddr;
-> +       struct iova *iova;
-> +       int i, rval;
-> +
-> +       if (WARN_ON(!dev))
-> +               return NULL;
-
-Isn't this impossible to happen?
-
-> +
-> +       dev_dbg(dev, "%s: allocating %zu\n", __func__, size);
-> +
-> +       iova = alloc_iova(&imgu->iova_domain, size >> shift,
-> +                         imgu->mmu->aperture_end >> shift, 0);
-> +       if (!iova)
-> +               return NULL;
-[snip]
-> +void ipu3_dmamap_exit(struct device *dev)
-> +{
-> +       struct imgu_device *imgu = dev_get_drvdata(dev);
-> +
-> +       put_iova_domain(&imgu->iova_domain);
-> +       iova_cache_put();
-> +       imgu->mmu = NULL;
-
-We can't set mmu to NULL here, because ipu3_mmu module is the owner of
-it and it will be still dereferenced in ipu3_mmu_exit(). (This might
-be fixed in your tree already as per
-https://chromium-review.googlesource.com/c/chromiumos/third_party/kernel/+/1084522)
-
-> +}
-[snip]
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3.h b/drivers/media/pci/intel/ipu3/ipu3.h
-> new file mode 100644
-> index 000000000000..2ba6fa58e41c
-> --- /dev/null
-> +++ b/drivers/media/pci/intel/ipu3/ipu3.h
-> @@ -0,0 +1,151 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/* Copyright (C) 2018 Intel Corporation */
-> +
-> +#ifndef __IPU3_H
-> +#define __IPU3_H
-> +
-> +#include <linux/iova.h>
-> +#include <linux/pci.h>
-> +
-> +#include <media/v4l2-device.h>
-> +#include <media/videobuf2-dma-sg.h>
-> +
-> +#include "ipu3-css.h"
-> +
-> +#define IMGU_NAME                      "ipu3-imgu"
-> +
-> +/*
-> + * The semantics of the driver is that whenever there is a buffer available in
-> + * master queue, the driver queues a buffer also to all other active nodes.
-> + * If user space hasn't provided a buffer to all other video nodes first,
-> + * the driver gets an internal dummy buffer and queues it.
-> + */
-> +#define IMGU_QUEUE_MASTER              IPU3_CSS_QUEUE_IN
-> +#define IMGU_QUEUE_FIRST_INPUT         IPU3_CSS_QUEUE_OUT
-> +#define IMGU_MAX_QUEUE_DEPTH           (2 + 2)
-> +
-> +#define IMGU_NODE_IN                   0 /* Input RAW image */
-> +#define IMGU_NODE_PARAMS               1 /* Input parameters */
-> +#define IMGU_NODE_OUT                  2 /* Main output for still or video */
-> +#define IMGU_NODE_VF                   3 /* Preview */
-> +#define IMGU_NODE_PV                   4 /* Postview for still capture */
-> +#define IMGU_NODE_STAT_3A              5 /* 3A statistics */
-> +#define IMGU_NODE_NUM                  6
-
-Does this file really belong to this patch?
-
-Best regards,
-Tomasz
+-- 
+With best regards,
+Matwey V. Kornilov.
+Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+119234, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
