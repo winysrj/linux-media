@@ -1,91 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0075.outbound.protection.outlook.com ([104.47.34.75]:27969
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
+Received: from mail-eopbgr80134.outbound.protection.outlook.com ([40.107.8.134]:65248
+        "EHLO EUR04-VI1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S933381AbeFRLf0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 07:35:26 -0400
-Subject: Re: [PATCH v3 2/2] locking: Implement an algorithm choice for
- Wound-Wait mutexes
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        Ingo Molnar <mingo@redhat.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        David Airlie <airlied@linux.ie>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
+        id S933337AbeFRLc7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Jun 2018 07:32:59 -0400
+Subject: Re: [PATCH 01/11] i2c: add helpers for locking the I2C segment
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-kernel@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>,
+        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org, stern@rowland.harvard.edu
-References: <20180615120827.3989-1-thellstrom@vmware.com>
- <20180615120827.3989-2-thellstrom@vmware.com>
- <20180615164604.GD2458@hirez.programming.kicks-ass.net>
-From: Thomas Hellstrom <thellstrom@vmware.com>
-Message-ID: <88ca74e5-0d26-4e18-7596-229d12f4afc4@vmware.com>
-Date: Mon, 18 Jun 2018 13:35:06 +0200
+        Brian Norris <computersforpeace@gmail.com>,
+        Gregory Fong <gregory.0xf0@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        bcm-kernel-feedback-list@broadcom.com,
+        Sekhar Nori <nsekhar@ti.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Haavard Skinnemoen <hskinnemoen@gmail.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang@linaro.org>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Laxman Dewangan <ldewangan@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        linux-integrity@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org
+References: <20180615101506.8012-1-peda@axentia.se>
+ <20180615101506.8012-2-peda@axentia.se>
+ <20180618110502.cb5s24srp4frahm6@ninjato>
+From: Peter Rosin <peda@axentia.se>
+Message-ID: <b860025e-3d4b-f333-80b4-3831dd969757@axentia.se>
+Date: Mon, 18 Jun 2018 13:32:47 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180615164604.GD2458@hirez.programming.kicks-ass.net>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20180618110502.cb5s24srp4frahm6@ninjato>
+Content-Type: text/plain; charset=windows-1252
 Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/15/2018 06:46 PM, Peter Zijlstra wrote:
-> On Fri, Jun 15, 2018 at 02:08:27PM +0200, Thomas Hellstrom wrote:
->
->> @@ -772,6 +856,25 @@ __ww_mutex_add_waiter(struct mutex_waiter *waiter,
->>   	}
->>   
->>   	list_add_tail(&waiter->list, pos);
->> +	if (__mutex_waiter_is_first(lock, waiter))
->> +		__mutex_set_flag(lock, MUTEX_FLAG_WAITERS);
+On 2018-06-18 13:05, Wolfram Sang wrote:
+> 
+>> +static inline void
+>> +i2c_lock_segment(struct i2c_adapter *adapter)
+>> +{
+>> +	i2c_lock_bus(adapter, I2C_LOCK_SEGMENT);
+>> +}
 >> +
->> +	/*
->> +	 * Wound-Wait: if we're blocking on a mutex owned by a younger context,
->> +	 * wound that such that we might proceed.
->> +	 */
->> +	if (!is_wait_die) {
->> +		struct ww_mutex *ww = container_of(lock, struct ww_mutex, base);
+>> +static inline int
+>> +i2c_trylock_segment(struct i2c_adapter *adapter)
+>> +{
+>> +	return i2c_trylock_bus(adapter, I2C_LOCK_SEGMENT);
+>> +}
 >> +
->> +		/*
->> +		 * See ww_mutex_set_context_fastpath(). Orders setting
->> +		 * MUTEX_FLAG_WAITERS (atomic operation) vs the ww->ctx load,
->> +		 * such that either we or the fastpath will wound @ww->ctx.
->> +		 */
->> +		smp_mb__after_atomic();
->> +
->> +		__ww_mutex_wound(lock, ww_ctx, ww->ctx);
->> +	}
-> I think we want the smp_mb__after_atomic() in the same branch as
-> __mutex_set_flag(). So something like:
->
-> 	if (__mutex_waiter_is_first()) {
-> 		__mutex_set_flag();
-> 		if (!is_wait_die)
-> 			smp_mb__after_atomic();
-> 	}
->
-> Or possibly even without the !is_wait_die. The rules for
-> smp_mb__*_atomic() are such that we want it unconditional after an
-> atomic, otherwise the semantics get too fuzzy.
->
-> Alan (rightfully) complained about that a while ago when he was auditing
-> users.
->
->
-Hmm, yes that's understandable, although I must admit that when one of 
-the accesses we want to order is actually an atomic this shouldn't 
-really be causing much confusion.
+>> +static inline void
+>> +i2c_unlock_segment(struct i2c_adapter *adapter)
+>> +{
+>> +	i2c_unlock_bus(adapter, I2C_LOCK_SEGMENT);
+>> +}
+> 
+> I wonder if i2c_lock_segment() and i2c_lock_root_adapter() are really
+> more readable and convenient than i2c_lock_bus() with the flag. I think
+> the flags have speaking names, too.
+> 
+> Is that an idea to remove these functions altogether and start using
+> i2c_lock_bus()?
 
-But I'll think I'll change it back to an smp_mb() then. It's in a 
-slowpath, and awkward constructs around smp_mb__after_atomic() might be 
-causing grief in the future.
+That would be fine with me. I don't have a strong opinion and agree that
+both are readable enough...
 
-/Thomas
+It would make for a reduction of the number of lines so that's nice, but
+the macro in drivers/i2c/busses/i2c-gpio.c (patch 11) would not fit in
+the current \-width (or whatever you'd call that line of backslashes to
+the right in a multi-line macro).
+
+Does anyone have a strong opinion?
+
+Cheers,
+Peter
