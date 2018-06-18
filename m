@@ -1,115 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33822 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751560AbeFRMnO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 08:43:14 -0400
-Received: by mail-wr0-f193.google.com with SMTP id a12-v6so16705362wro.1
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2018 05:43:13 -0700 (PDT)
-Reply-To: christian.koenig@amd.com
-Subject: Re: [PATCH 3/5] dma-buf: lock the reservation object during
- (un)map_dma_buf
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-References: <20180601120020.11520-1-christian.koenig@amd.com>
- <20180601120020.11520-3-christian.koenig@amd.com>
- <20180618082224.GW3438@phenom.ffwll.local>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
-Message-ID: <832d4f04-ced2-ce9f-723d-d611e8241e07@gmail.com>
-Date: Mon, 18 Jun 2018 14:43:11 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180618082224.GW3438@phenom.ffwll.local>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mga17.intel.com ([192.55.52.151]:24465 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934674AbeFRO4u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Jun 2018 10:56:50 -0400
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+Subject: RE: [PATCH v6 03/12] intel-ipu3: mmu: Implement driver
+Date: Mon, 18 Jun 2018 14:56:38 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D341DB032@ORSMSX106.amr.corp.intel.com>
+References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
+ <1522376100-22098-4-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5A-sSubuGK0gFDnTr9+cF5D6-KJPgM-O0Uv=AJv6cztCQ@mail.gmail.com>
+In-Reply-To: <CAAFQd5A-sSubuGK0gFDnTr9+cF5D6-KJPgM-O0Uv=AJv6cztCQ@mail.gmail.com>
 Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 18.06.2018 um 10:22 schrieb Daniel Vetter:
-> On Fri, Jun 01, 2018 at 02:00:18PM +0200, Christian König wrote:
->> First step towards unpinned DMA buf operation.
->>
->> I've checked the DRM drivers to potential locking of the reservation
->> object, but essentially we need to audit all implementations of the
->> dma_buf _ops for this to work.
->>
->> Signed-off-by: Christian König <christian.koenig@amd.com>
-> Agreed in principle, but I expect a fireworks show with just this patch
-> applied. It's not just that we need to audit all the implementations of
-> dma-buf-ops, we also need to audit all the callers.
-
-Ah, yeah of course a good point.
-
-> No idea yet how to go about merging this, but for a start might be good to
-> throw this at the intel-gfx CI (just Cc: the intel-gfx mailing lists, but
-> make sure your series applies without amd-staging-next stuff which isn't
-> in drm.git yet).
-
-Ok, going to incorporate all your other comments as well and then send 
-the next round of this with CCing intel-gfx as well.
-
-Thanks for the review,
-Christian.
-
-> -Daniel
->
->> ---
->>   drivers/dma-buf/dma-buf.c | 4 ++++
->>   include/linux/dma-buf.h   | 4 ++++
->>   2 files changed, 8 insertions(+)
->>
->> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
->> index e4c657d9fad7..4f0708cb58a7 100644
->> --- a/drivers/dma-buf/dma-buf.c
->> +++ b/drivers/dma-buf/dma-buf.c
->> @@ -631,7 +631,9 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
->>   	if (WARN_ON(!attach || !attach->dmabuf))
->>   		return ERR_PTR(-EINVAL);
->>   
->> +	reservation_object_lock(attach->dmabuf->resv, NULL);
->>   	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
->> +	reservation_object_unlock(attach->dmabuf->resv);
->>   	if (!sg_table)
->>   		sg_table = ERR_PTR(-ENOMEM);
->>   
->> @@ -658,8 +660,10 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
->>   	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
->>   		return;
->>   
->> +	reservation_object_lock(attach->dmabuf->resv, NULL);
->>   	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table,
->>   						direction);
->> +	reservation_object_unlock(attach->dmabuf->resv);
->>   }
->>   EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
->>   
->> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
->> index d17cadd76802..d2ba7a027a78 100644
->> --- a/include/linux/dma-buf.h
->> +++ b/include/linux/dma-buf.h
->> @@ -118,6 +118,8 @@ struct dma_buf_ops {
->>   	 * any other kind of sharing that the exporter might wish to make
->>   	 * available to buffer-users.
->>   	 *
->> +	 * This is called with the dmabuf->resv object locked.
->> +	 *
->>   	 * Returns:
->>   	 *
->>   	 * A &sg_table scatter list of or the backing storage of the DMA buffer,
->> @@ -138,6 +140,8 @@ struct dma_buf_ops {
->>   	 * It should also unpin the backing storage if this is the last mapping
->>   	 * of the DMA buffer, it the exporter supports backing storage
->>   	 * migration.
->> +	 *
->> +	 * This is called with the dmabuf->resv object locked.
->>   	 */
->>   	void (*unmap_dma_buf)(struct dma_buf_attachment *,
->>   			      struct sg_table *,
->> -- 
->> 2.14.1
->>
->> _______________________________________________
->> dri-devel mailing list
->> dri-devel@lists.freedesktop.org
->> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+SGksIFRvbWFzeiwNCg0KVGhhbmtzIGZvciB0aGUgY29kZSByZXZpZXcuDQoNCj4gLS0tLS1Pcmln
+aW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVG9tYXN6IEZpZ2EgW21haWx0bzp0ZmlnYUBjaHJv
+bWl1bS5vcmddDQo+IFNlbnQ6IFN1bmRheSwgSnVuZSAxNywgMjAxOCAxMTo0NiBQTQ0KPiBUbzog
+WmhpLCBZb25nIDx5b25nLnpoaUBpbnRlbC5jb20+DQo+IENjOiBMaW51eCBNZWRpYSBNYWlsaW5n
+IExpc3QgPGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZz47IFNha2FyaSBBaWx1cw0KPiA8c2Fr
+YXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbT47IE1hbmksIFJham1vaGFuDQo+IDxyYWptb2hhbi5t
+YW5pQGludGVsLmNvbT47IFRvaXZvbmVuLCBUdXVra2ENCj4gPHR1dWtrYS50b2l2b25lbkBpbnRl
+bC5jb20+OyBIdSwgSmVycnkgVyA8amVycnkudy5odUBpbnRlbC5jb20+OyBaaGVuZywNCj4gSmlh
+biBYdSA8amlhbi54dS56aGVuZ0BpbnRlbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjYg
+MDMvMTJdIGludGVsLWlwdTM6IG1tdTogSW1wbGVtZW50IGRyaXZlcg0KPiANCj4gT24gRnJpLCBN
+YXIgMzAsIDIwMTggYXQgMTE6MTUgQU0gWW9uZyBaaGkgPHlvbmcuemhpQGludGVsLmNvbT4gd3Jv
+dGU6DQo+ID4NCj4gPiBGcm9tOiBUb21hc3ogRmlnYSA8dGZpZ2FAY2hyb21pdW0ub3JnPg0KPiA+
+DQo+ID4gVGhpcyBkcml2ZXIgdHJhbnNsYXRlcyBJTyB2aXJ0dWFsIGFkZHJlc3MgdG8gcGh5c2lj
+YWwgYWRkcmVzcyBiYXNlZCBvbg0KPiA+IHR3byBsZXZlbHMgcGFnZSB0YWJsZXMuDQo+ID4NCj4g
+PiBTaWduZWQtb2ZmLWJ5OiBUb21hc3ogRmlnYSA8dGZpZ2FAY2hyb21pdW0ub3JnPg0KPiA+IFNp
+Z25lZC1vZmYtYnk6IFlvbmcgWmhpIDx5b25nLnpoaUBpbnRlbC5jb20+DQo+ID4gLS0tDQo+ID4g
+IGRyaXZlcnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvaXB1My1tbXUuYyB8IDU2MA0KPiA+ICsrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4gZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwv
+aXB1My9pcHUzLW1tdS5oIHwgIDI4ICsrDQo+ID4gIDIgZmlsZXMgY2hhbmdlZCwgNTg4IGluc2Vy
+dGlvbnMoKykNCj4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvbWVkaWEvcGNpL2ludGVs
+L2lwdTMvaXB1My1tbXUuYw0KPiA+ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9tZWRpYS9w
+Y2kvaW50ZWwvaXB1My9pcHUzLW1tdS5oDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
+ZWRpYS9wY2kvaW50ZWwvaXB1My9pcHUzLW1tdS5jDQo+ID4gYi9kcml2ZXJzL21lZGlhL3BjaS9p
+bnRlbC9pcHUzL2lwdTMtbW11LmMNCj4gPiBuZXcgZmlsZSBtb2RlIDEwMDY0NA0KPiA+IGluZGV4
+IDAwMDAwMDAwMDAwMC4uYTRiM2UxNjgwYmJiDQo+ID4gLS0tIC9kZXYvbnVsbA0KPiA+ICsrKyBi
+L2RyaXZlcnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvaXB1My1tbXUuYw0KPiA+IEBAIC0wLDAgKzEs
+NTYwIEBADQo+ID4gKy8vIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBHUEwtMi4wDQo+ID4gKy8q
+DQo+ID4gKyAqIENvcHlyaWdodCAoYykgMjAxOCBJbnRlbCBDb3Jwb3JhdGlvbi4NCj4gPiArICog
+Q29weXJpZ2h0IChDKSAyMDE4IEdvb2dsZSwgSW5jLg0KPiANCj4gSSBmb2xsb3dlZCB3cm9uZyBn
+dWlkZSB3aGVuIGFkZGluZyB0aGlzIG9uZS4gQ291bGQgeW91IGZpeCBpdCB1cCB0byB0aGUNCj4g
+Zm9sbG93aW5nPw0KPiANCj4gQ29weXJpZ2h0IDIwMTggR29vZ2xlIExMQy4NCj4gDQoNClN1cmUs
+IHdpbGwgZG8uDQoNCj4gW3NuaXBdDQo+ID4gKy8qKg0KPiA+ICsgKiBpcHUzX21tdV9leGl0KCkg
+LSBjbGVhbiB1cCBJUFUzIE1NVSBibG9jaw0KPiA+ICsgKiBAbW11OiBJUFUzIE1NVSBwcml2YXRl
+IGRhdGENCj4gPiArICovDQo+ID4gK3ZvaWQgaXB1M19tbXVfZXhpdChzdHJ1Y3QgaXB1M19tbXVf
+aW5mbyAqaW5mbykgew0KPiA+ICsgICAgICAgc3RydWN0IGlwdTNfbW11ICptbXUgPSB0b19pcHUz
+X21tdShpbmZvKTsNCj4gPiArDQo+ID4gKyAgICAgICAvKiBXZSBhcmUgZ29pbmcgdG8gZnJlZSBv
+dXIgcGFnZSB0YWJsZXMsIG5vIG1vcmUgbWVtb3J5IGFjY2Vzcy4gKi8NCj4gPiArICAgICAgIGlw
+dTNfbW11X3NldF9oYWx0KG1tdSwgdHJ1ZSk7DQo+ID4gKyAgICAgICBpcHUzX21tdV90bGJfaW52
+YWxpZGF0ZShtbXUpOw0KPiA+ICsNCj4gPiArICAgICAgIGlwdTNfbW11X2ZyZWVfcGFnZV90YWJs
+ZShtbXUtPmwxcHQpOw0KPiA+ICsgICAgICAgdmZyZWUobW11LT5sMnB0cyk7DQo+ID4gKyAgICAg
+ICBpcHUzX21tdV9mcmVlX3BhZ2VfdGFibGUobW11LT5kdW1teV9sMnB0KTsNCj4gPiArICAgICAg
+IGtmcmVlKG1tdS0+ZHVtbXlfcGFnZSk7DQo+IA0KPiBTaG91bGQgYmUgZnJlZV9wYWdlKCkuIChN
+aWdodCBiZSBhbHJlYWR5IGluY2x1ZGVkIGluIHlvdXIgdHJlZSBhcyBwZXINCj4gaHR0cHM6Ly9j
+aHJvbWl1bS0NCj4gcmV2aWV3Lmdvb2dsZXNvdXJjZS5jb20vYy9jaHJvbWl1bW9zL3RoaXJkX3Bh
+cnR5L2tlcm5lbC8rLzEwODQ1MjIpDQo+IA0KDQpZZXMsIHdpbGwgYWRkIGFib3ZlIGZpeCB0byBu
+ZXh0IHVwc3RyZWFtIHZlcnNpb24uIA0KDQo+ID4gKyAgICAgICBrZnJlZShtbXUpOw0KPiA+ICt9
+DQo+ID4gKw0KPiA+ICt2b2lkIGlwdTNfbW11X3N1c3BlbmQoc3RydWN0IGlwdTNfbW11X2luZm8g
+KmluZm8pIHsNCj4gPiArICAgICAgIHN0cnVjdCBpcHUzX21tdSAqbW11ID0gdG9faXB1M19tbXUo
+aW5mbyk7DQo+ID4gKw0KPiA+ICsgICAgICAgaXB1M19tbXVfc2V0X2hhbHQobW11LCB0cnVlKTsN
+Cj4gPiArfQ0KPiA+ICsNCj4gPiArdm9pZCBpcHUzX21tdV9yZXN1bWUoc3RydWN0IGlwdTNfbW11
+X2luZm8gKmluZm8pIHsNCj4gPiArICAgICAgIHN0cnVjdCBpcHUzX21tdSAqbW11ID0gdG9faXB1
+M19tbXUoaW5mbyk7DQo+ID4gKyAgICAgICB1MzIgcHRldmFsOw0KPiA+ICsNCj4gPiArICAgICAg
+IGlwdTNfbW11X3NldF9oYWx0KG1tdSwgdHJ1ZSk7DQo+ID4gKw0KPiA+ICsgICAgICAgcHRldmFs
+ID0gSVBVM19BRERSMlBURSh2aXJ0X3RvX3BoeXMobW11LT5sMXB0KSk7DQo+ID4gKyAgICAgICB3
+cml0ZWwocHRldmFsLCBtbXUtPmJhc2UgKyBSRUdfTDFfUEhZUyk7DQo+ID4gKw0KPiA+ICsgICAg
+ICAgaXB1M19tbXVfdGxiX2ludmFsaWRhdGUobW11KTsNCj4gPiArICAgICAgIGlwdTNfbW11X3Nl
+dF9oYWx0KG1tdSwgZmFsc2UpOyB9DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvcGNp
+L2ludGVsL2lwdTMvaXB1My1tbXUuaA0KPiA+IGIvZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1
+My9pcHUzLW1tdS5oDQo+ID4gbmV3IGZpbGUgbW9kZSAxMDA2NDQNCj4gPiBpbmRleCAwMDAwMDAw
+MDAwMDAuLjQ5NzYxODdjMThmNg0KPiA+IC0tLSAvZGV2L251bGwNCj4gPiArKysgYi9kcml2ZXJz
+L21lZGlhL3BjaS9pbnRlbC9pcHUzL2lwdTMtbW11LmgNCj4gPiBAQCAtMCwwICsxLDI4IEBADQo+
+ID4gKy8qIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBHUEwtMi4wICovDQo+ID4gKy8qIENvcHly
+aWdodCAoQykgMjAxOCBJbnRlbCBDb3Jwb3JhdGlvbiAqLw0KPiA+ICsvKiBDb3B5cmlnaHQgKEMp
+IDIwMTggR29vZ2xlLCBJbmMuICovDQo+ID4gKw0KPiA+ICsjaWZuZGVmIF9fSVBVM19NTVVfSA0K
+PiA+ICsjZGVmaW5lIF9fSVBVM19NTVVfSA0KPiA+ICsNCj4gPiArc3RydWN0IGlwdTNfbW11X2lu
+Zm8gew0KPiA+ICsgICAgICAgZG1hX2FkZHJfdCBhcGVydHVyZV9zdGFydDsgLyogRmlyc3QgYWRk
+cmVzcyB0aGF0IGNhbiBiZSBtYXBwZWQNCj4gKi8NCj4gPiArICAgICAgIGRtYV9hZGRyX3QgYXBl
+cnR1cmVfZW5kOyAgIC8qIExhc3QgYWRkcmVzcyB0aGF0IGNhbiBiZSBtYXBwZWQNCj4gKi8NCj4g
+PiArICAgICAgIHVuc2lnbmVkIGxvbmcgcGdzaXplX2JpdG1hcDsgICAgLyogQml0bWFwIG9mIHBh
+Z2Ugc2l6ZXMgaW4gdXNlICovDQo+IA0KPiBJZiBkb2N1bWVudGluZyB0aGUgZmllbGRzLCB3aHkg
+bm90IHVzZSBhIGtlcm5lbGRvYyBjb21tZW50IGFib3ZlIHRoZQ0KPiBzdHJ1Y3QgaW5zdGVhZD8N
+Cj4gDQoNCkFjay4NCg0KPiBCZXN0IHJlZ2FyZHMsDQo+IFRvbWFzeg0K
