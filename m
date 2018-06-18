@@ -1,257 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:39050 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754865AbeFRHbv (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:40604 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754655AbeFRHor (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 03:31:51 -0400
-Subject: Re: [PATCH v4 04/17] omap3isp: Add vb2_queue lock
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com
-References: <20180615190737.24139-1-ezequiel@collabora.com>
- <20180615190737.24139-5-ezequiel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d0d27ee4-1a83-baa6-9982-ba18add79bc8@xs4all.nl>
-Date: Mon, 18 Jun 2018 09:31:46 +0200
+        Mon, 18 Jun 2018 03:44:47 -0400
+Received: by mail-wm0-f68.google.com with SMTP id n5-v6so13551540wmc.5
+        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2018 00:44:47 -0700 (PDT)
+Date: Mon, 18 Jun 2018 08:44:43 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Neil Armstrong <narmstrong@baylibre.com>
+Cc: airlied@linux.ie, hans.verkuil@cisco.com, olof@lixom.net,
+        seanpaul@google.com, sadolfsson@google.com, felixe@google.com,
+        bleung@google.com, darekm@google.com, marcheu@chromium.org,
+        fparent@baylibre.com, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, eballetbo@gmail.com,
+        Stefan Adolfsson <sadolfsson@chromium.org>
+Subject: Re: [PATCH v7 3/6] mfd: cros-ec: Increase maximum mkbp event size
+Message-ID: <20180618074443.GK31141@dell>
+References: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
+ <1527841154-24832-4-git-send-email-narmstrong@baylibre.com>
 MIME-Version: 1.0
-In-Reply-To: <20180615190737.24139-5-ezequiel@collabora.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1527841154-24832-4-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/15/2018 09:07 PM, Ezequiel Garcia wrote:
-> vb2_queue locks is now mandatory. Add it, remove driver ad-hoc locks,
-> and implement wait_{prepare, finish}.
+On Fri, 01 Jun 2018, Neil Armstrong wrote:
 
-You are also removing stream_lock, but that is not mentioned here.
-
-This needs an improved commit log.
-
-Regards,
-
-	Hans
-
+> Having a 16 byte mkbp event size makes it possible to send CEC
+> messages from the EC to the AP directly inside the mkbp event
+> instead of first doing a notification and then a read.
 > 
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
 > ---
->  drivers/media/platform/omap3isp/ispvideo.c | 65 ++++------------------
->  drivers/media/platform/omap3isp/ispvideo.h |  1 -
->  2 files changed, 11 insertions(+), 55 deletions(-)
+>  drivers/platform/chrome/cros_ec_proto.c | 40 +++++++++++++++++++++++++--------
+>  include/linux/mfd/cros_ec.h             |  2 +-
+>  include/linux/mfd/cros_ec_commands.h    | 19 ++++++++++++++++
+>  3 files changed, 51 insertions(+), 10 deletions(-)
 > 
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-> index 9d228eac24ea..f835aeb9ddc5 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -496,6 +496,8 @@ static const struct vb2_ops isp_video_queue_ops = {
->  	.buf_prepare = isp_video_buffer_prepare,
->  	.buf_queue = isp_video_buffer_queue,
->  	.start_streaming = isp_video_start_streaming,
-> +	.wait_prepare = vb2_ops_wait_prepare,
-> +	.wait_finish = vb2_ops_wait_finish,
->  };
->  
->  /*
-> @@ -628,11 +630,8 @@ void omap3isp_video_resume(struct isp_video *video, int continuous)
->  {
->  	struct isp_buffer *buf = NULL;
->  
-> -	if (continuous && video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> -		mutex_lock(&video->queue_lock);
-> +	if (continuous && video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
->  		vb2_discard_done(video->queue);
-> -		mutex_unlock(&video->queue_lock);
-> -	}
->  
->  	if (!list_empty(&video->dmaqueue)) {
->  		buf = list_first_entry(&video->dmaqueue,
-> @@ -909,13 +908,8 @@ isp_video_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *rb)
->  {
->  	struct isp_video_fh *vfh = to_isp_video_fh(fh);
->  	struct isp_video *video = video_drvdata(file);
-> -	int ret;
-> -
-> -	mutex_lock(&video->queue_lock);
-> -	ret = vb2_reqbufs(&vfh->queue, rb);
-> -	mutex_unlock(&video->queue_lock);
->  
-> -	return ret;
-> +	return vb2_reqbufs(&vfh->queue, rb);
+> diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
+> index e7bbdf9..c4f6c44 100644
+> --- a/drivers/platform/chrome/cros_ec_proto.c
+> +++ b/drivers/platform/chrome/cros_ec_proto.c
+> @@ -504,10 +504,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
 >  }
+>  EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
 >  
->  static int
-> @@ -923,13 +917,8 @@ isp_video_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
+> +static int get_next_event_xfer(struct cros_ec_device *ec_dev,
+> +			       struct cros_ec_command *msg,
+> +			       int version, uint32_t size)
+> +{
+> +	int ret;
+> +
+> +	msg->version = version;
+> +	msg->command = EC_CMD_GET_NEXT_EVENT;
+> +	msg->insize = size;
+> +	msg->outsize = 0;
+> +
+> +	ret = cros_ec_cmd_xfer(ec_dev, msg);
+> +	if (ret > 0) {
+> +		ec_dev->event_size = ret - 1;
+> +		memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  static int get_next_event(struct cros_ec_device *ec_dev)
 >  {
->  	struct isp_video_fh *vfh = to_isp_video_fh(fh);
->  	struct isp_video *video = video_drvdata(file);
-> -	int ret;
+>  	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
+>  	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
+> +	static int cmd_version = 1;
+>  	int ret;
 >  
-> -	mutex_lock(&video->queue_lock);
-> -	ret = vb2_querybuf(&vfh->queue, b);
-> -	mutex_unlock(&video->queue_lock);
-> -
-> -	return ret;
-> +	return vb2_querybuf(&vfh->queue, b);
->  }
+>  	if (ec_dev->suspended) {
+> @@ -515,18 +536,19 @@ static int get_next_event(struct cros_ec_device *ec_dev)
+>  		return -EHOSTDOWN;
+>  	}
 >  
->  static int
-> @@ -937,13 +926,8 @@ isp_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
->  {
->  	struct isp_video_fh *vfh = to_isp_video_fh(fh);
->  	struct isp_video *video = video_drvdata(file);
-> -	int ret;
+> -	msg->version = 0;
+> -	msg->command = EC_CMD_GET_NEXT_EVENT;
+> -	msg->insize = sizeof(ec_dev->event_data);
+> -	msg->outsize = 0;
+> +	if (cmd_version == 1) {
+> +		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
+> +				sizeof(struct ec_response_get_next_event_v1));
+> +		if (ret < 0 || msg->result != EC_RES_INVALID_VERSION)
+> +			return ret;
 >  
-> -	mutex_lock(&video->queue_lock);
-> -	ret = vb2_qbuf(&vfh->queue, b);
-> -	mutex_unlock(&video->queue_lock);
-> -
-> -	return ret;
-> +	return vb2_qbuf(&vfh->queue, b);
->  }
+> -	ret = cros_ec_cmd_xfer(ec_dev, msg);
+> -	if (ret > 0) {
+> -		ec_dev->event_size = ret - 1;
+> -		memcpy(&ec_dev->event_data, msg->data,
+> -		       sizeof(ec_dev->event_data));
+> +		/* Fallback to version 0 for future send attempts */
+> +		cmd_version = 0;
+>  	}
 >  
->  static int
-> @@ -951,13 +935,8 @@ isp_video_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
->  {
->  	struct isp_video_fh *vfh = to_isp_video_fh(fh);
->  	struct isp_video *video = video_drvdata(file);
-> -	int ret;
->  
-> -	mutex_lock(&video->queue_lock);
-> -	ret = vb2_dqbuf(&vfh->queue, b, file->f_flags & O_NONBLOCK);
-> -	mutex_unlock(&video->queue_lock);
-> -
-> -	return ret;
-> +	return vb2_dqbuf(&vfh->queue, b, file->f_flags & O_NONBLOCK);
->  }
->  
->  static int isp_video_check_external_subdevs(struct isp_video *video,
-> @@ -1096,8 +1075,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  	if (type != video->type)
->  		return -EINVAL;
->  
-> -	mutex_lock(&video->stream_lock);
-> -
->  	/* Start streaming on the pipeline. No link touching an entity in the
->  	 * pipeline can be activated or deactivated once streaming is started.
->  	 */
-> @@ -1106,7 +1083,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  
->  	ret = media_entity_enum_init(&pipe->ent_enum, &video->isp->media_dev);
->  	if (ret)
-> -		goto err_enum_init;
-> +		return ret;
->  
->  	/* TODO: Implement PM QoS */
->  	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
-> @@ -1158,14 +1135,10 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  	atomic_set(&pipe->frame_number, -1);
->  	pipe->field = vfh->format.fmt.pix.field;
->  
-> -	mutex_lock(&video->queue_lock);
->  	ret = vb2_streamon(&vfh->queue, type);
-> -	mutex_unlock(&video->queue_lock);
->  	if (ret < 0)
->  		goto err_check_format;
->  
-> -	mutex_unlock(&video->stream_lock);
-> -
->  	return 0;
->  
->  err_check_format:
-> @@ -1184,9 +1157,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  
->  	media_entity_enum_cleanup(&pipe->ent_enum);
->  
-> -err_enum_init:
-> -	mutex_unlock(&video->stream_lock);
-> -
+> +	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
+> +				  sizeof(struct ec_response_get_next_event));
+> +
 >  	return ret;
 >  }
 >  
-> @@ -1203,15 +1173,10 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
->  	if (type != video->type)
->  		return -EINVAL;
+> diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
+> index f36125e..32caef3 100644
+> --- a/include/linux/mfd/cros_ec.h
+> +++ b/include/linux/mfd/cros_ec.h
+> @@ -147,7 +147,7 @@ struct cros_ec_device {
+>  	bool mkbp_event_supported;
+>  	struct blocking_notifier_head event_notifier;
 >  
-> -	mutex_lock(&video->stream_lock);
-> -
->  	/* Make sure we're not streaming yet. */
-> -	mutex_lock(&video->queue_lock);
->  	streaming = vb2_is_streaming(&vfh->queue);
-> -	mutex_unlock(&video->queue_lock);
-> -
->  	if (!streaming)
-> -		goto done;
-> +		return 0;
+> -	struct ec_response_get_next_event event_data;
+> +	struct ec_response_get_next_event_v1 event_data;
+>  	int event_size;
+>  	u32 host_event_wake_mask;
+>  };
+> diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
+> index f2edd99..cc0768e 100644
+> --- a/include/linux/mfd/cros_ec_commands.h
+> +++ b/include/linux/mfd/cros_ec_commands.h
+> @@ -2093,12 +2093,31 @@ union ec_response_get_next_data {
+>  	uint32_t   sysrq;
+>  } __packed;
 >  
->  	/* Update the pipeline state. */
->  	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> @@ -1229,19 +1194,13 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
->  	omap3isp_pipeline_set_stream(pipe, ISP_PIPELINE_STREAM_STOPPED);
->  	omap3isp_video_cancel_stream(video);
+> +union ec_response_get_next_data_v1 {
+> +	uint8_t   key_matrix[16];
+> +
+> +	/* Unaligned */
+
+That's funny!
+
+> +	uint32_t  host_event;
+> +
+> +	uint32_t   buttons;
+> +	uint32_t   switches;
+> +	uint32_t   sysrq;
+> +	uint32_t   cec_events;
+> +	uint8_t    cec_message[16];
+
+Since there are some whitespace alignment issues in here.
+
+> +} __packed;
+
+How come these guys have kerneldoc headers?
+
+>  struct ec_response_get_next_event {
+>  	uint8_t event_type;
+>  	/* Followed by event data if any */
+>  	union ec_response_get_next_data data;
+>  } __packed;
 >  
-> -	mutex_lock(&video->queue_lock);
->  	vb2_streamoff(&vfh->queue, type);
-> -	mutex_unlock(&video->queue_lock);
->  	video->queue = NULL;
->  	video->error = false;
->  
->  	/* TODO: Implement PM QoS */
->  	media_pipeline_stop(&video->video.entity);
-> -
->  	media_entity_enum_cleanup(&pipe->ent_enum);
-> -
-> -done:
-> -	mutex_unlock(&video->stream_lock);
->  	return 0;
->  }
->  
-> @@ -1333,6 +1292,7 @@ static int isp_video_open(struct file *file)
->  	queue->buf_struct_size = sizeof(struct isp_buffer);
->  	queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	queue->dev = video->isp->dev;
-> +	queue->lock = &video->queue_lock;
->  
->  	ret = vb2_queue_init(&handle->queue);
->  	if (ret < 0) {
-> @@ -1363,10 +1323,9 @@ static int isp_video_release(struct file *file)
->  	struct v4l2_fh *vfh = file->private_data;
->  	struct isp_video_fh *handle = to_isp_video_fh(vfh);
->  
-> +	mutex_lock(&video->queue_lock);
->  	/* Disable streaming and free the buffers queue resources. */
->  	isp_video_streamoff(file, vfh, video->type);
-> -
-> -	mutex_lock(&video->queue_lock);
->  	vb2_queue_release(&handle->queue);
->  	mutex_unlock(&video->queue_lock);
->  
-> @@ -1449,7 +1408,6 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
->  	atomic_set(&video->active, 0);
->  
->  	spin_lock_init(&video->pipe.lock);
-> -	mutex_init(&video->stream_lock);
->  	mutex_init(&video->queue_lock);
->  	spin_lock_init(&video->irqlock);
->  
-> @@ -1474,7 +1432,6 @@ void omap3isp_video_cleanup(struct isp_video *video)
->  {
->  	media_entity_cleanup(&video->video.entity);
->  	mutex_destroy(&video->queue_lock);
-> -	mutex_destroy(&video->stream_lock);
->  	mutex_destroy(&video->mutex);
->  }
->  
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
-> index f6a2082b4a0a..5a8fba85e0eb 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.h
-> +++ b/drivers/media/platform/omap3isp/ispvideo.h
-> @@ -167,7 +167,6 @@ struct isp_video {
->  
->  	/* Pipeline state */
->  	struct isp_pipeline pipe;
-> -	struct mutex stream_lock;	/* pipeline and stream states */
->  	bool error;
->  
->  	/* Video buffers queue */
-> 
+> +struct ec_response_get_next_event_v1 {
+> +	uint8_t event_type;
+> +	/* Followed by event data if any */
+> +	union ec_response_get_next_data_v1 data;
+> +} __packed;
+> +
+>  /* Bit indices for buttons and switches.*/
+>  /* Buttons */
+>  #define EC_MKBP_POWER_BUTTON	0
+
+-- 
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
