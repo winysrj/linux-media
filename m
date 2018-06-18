@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:46380 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:46270 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933036AbeFRQDl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 12:03:41 -0400
-Date: Mon, 18 Jun 2018 18:02:50 +0200
+        id S1751704AbeFRQCD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Jun 2018 12:02:03 -0400
+Date: Mon, 18 Jun 2018 18:01:50 +0200
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
@@ -45,48 +45,45 @@ Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-sunxi@googlegroups.com,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: Re: [PATCH v4 01/19] dt-bindings: sram: sunxi: Add A13, A20 and A33
- SRAM controller bindings
-Message-ID: <20180618160250.ik44c3gcbdxylmyd@flea>
+Subject: Re: [PATCH v4 03/19] dt-bindings: sram: sunxi: Add A13 binding for
+ the C1 SRAM region
+Message-ID: <20180618160150.cowgucupmsm47tl7@flea>
 References: <20180618145843.14631-1-paul.kocialkowski@bootlin.com>
- <20180618145843.14631-2-paul.kocialkowski@bootlin.com>
+ <20180618145843.14631-4-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="dhcros4rwsnjx5pm"
+        protocol="application/pgp-signature"; boundary="4bghc2ietqyeucl6"
 Content-Disposition: inline
-In-Reply-To: <20180618145843.14631-2-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180618145843.14631-4-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---dhcros4rwsnjx5pm
+--4bghc2ietqyeucl6
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 18, 2018 at 04:58:25PM +0200, Paul Kocialkowski wrote:
-> This introduces dedicated bindings for the SRAM controllers found on the
-> A13, A20 and A33 sunxi platforms.
+On Mon, Jun 18, 2018 at 04:58:27PM +0200, Paul Kocialkowski wrote:
+> This introduces a dedicated binding for the C1 SRAM region for the A13
+> sunxi platform.
 >=20
 > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-
-Explaining why you need to add these new compatibles would be great.
-
+>=20
 > diff --git a/Documentation/devicetree/bindings/sram/sunxi-sram.txt b/Docu=
 mentation/devicetree/bindings/sram/sunxi-sram.txt
-> index d087f04a4d7f..19cc0b892672 100644
+> index 5af5bafd5572..ddc82cbd7f4d 100644
 > --- a/Documentation/devicetree/bindings/sram/sunxi-sram.txt
 > +++ b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
-> @@ -11,6 +11,9 @@ Controller Node
->  Required properties:
->  - compatible : should be:
->      - "allwinner,sun4i-a10-sram-controller"
-> +    - "allwinner,sun5i-a13-sram-controller"
-> +    - "allwinner,sun7i-a20-sram-controller"
-> +    - "allwinner,sun8i-a33-sram-controller"
+> @@ -32,6 +32,9 @@ The valid sections compatible for A10 are:
+>      - allwinner,sun4i-a10-sram-c1
+>      - allwinner,sun4i-a10-sram-d
+> =20
+> +The valid sections compatible for A13 are:
+> +    - allwinner,sun5i-a13-sram-c1
 
-And I think Chen-Yu asked you to rename this compatible to
--system-controller for the previous iteration?
+It supports more SRAM than that, namely the SRAM A3-A4, C1 and D, at
+least.
 
 Maxime
 
@@ -95,24 +92,24 @@ Maxime Ripard, Bootlin (formerly Free Electrons)
 Embedded Linux and Kernel engineering
 https://bootlin.com
 
---dhcros4rwsnjx5pm
+--4bghc2ietqyeucl6
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlsn16kACgkQ0rTAlCFN
-r3TWxg//a3+WkZe+uYoDymoAWFta2KXmEVuk4QL0Rq9r/B9tlwcpApjlC6l+EL0B
-v+Raoj7mTvAR6xubG8JAyCWMuhnQtEuFiJXUaOTy7EHb4So7BMag7W7dR5Y14tdi
-OidnEnykgxMQFcfReKuXReM5WasXs3mdq780oaMXfV0P6Oo4mW63GyXBRc3QosKO
-g1hgruXQF/goR9LfIFGkJe0Z0+X0jZ81z2kpTKby12/X6dG6ZwoHUPe06oSOFIhk
-QlcIydIsX27EqrAaU3FBpJGdlgSOo2YsntOVaZGorYnNXHFflDNGDPl3CK97CiYc
-gvACa9GJHCxUT3GI3fDE3qmqih5jbD0Ti8Zp9coVcYTHdniAG9KdhpD1XPHcZh/H
-yEUOVV2+cJUmagIyGNXe/UXHCIApjl2UCwcukp4aB7llgkaTDv4ubEOyLEtB47zC
-+lU4XZFKReoZvH130luDyWpNOZrqwM8yD9isWwkFVTsLahEMrCXXtzZVpO/gc63/
-kY3KXB3n+1qSUlcVoa3+/FM7PVLUqjKF4A++bZUcaE4vmBpqVz8d5sa3NnWUxlM3
-y/oYdBiPmhOPmynK9iFf7f/f7hU5PwHsNt7IwniW1qGzarSs3EKLrpiVEemUlkC0
-EQZYFFJ6hpES5Fm9LzG7xu7lLI96KydYgd/8HQLhjRDsAjVpln4=
-=SUBL
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlsn124ACgkQ0rTAlCFN
+r3SvQA/+Iw9jjksH/IgnN9KPIcnWIeqr9rZC6PInBUCNmGP+bJ79yYFB2U6rbuHd
+OUseTfvdNHrHoe73LXn4HOIUIdMxjSLQzvY9sAMyr0OEeg66/ZcqG7NhgIJWr4JI
+zTMpC1jCDPAFTumhHhAZUeMRBPlvEy27PAYXWBbMJ5WWCO81FBSh7KBIN0yU1T6S
+C9YtDAnZTeOsnIvrPwKlWBD06vXjpNfohBTapbpaJefmByZ3ayR+U50N5i7pgewN
+IJOJWgEATcAP4vkDkxgykkNMxXPJ1B9/yxttEahindbUMES5MCfejiuA8sjqcdW6
+wOncBz6FhRBQX6YsBb2vtQY623tUiEVITp9q2578TF+5aCdtKwnsNh+3AoN+DcaM
+irmW9VG6c2Sx1DzHrjBixjFPqtJV7ncl0AuhRLhHCmbQPut8VbgiJw3gvfdsh+d4
+sjdGT6x/mBcKyGdA9t++dzojFqgDUuEagLjEvBDoDOygTmah8URiP7UQWO9nl0ct
+ojnG505c1qaaIBhcX7I4wpVsPFIu5m6MYzI7bl1FSmAnWtNuD0x+i8oLyZ7zw0YR
+UdqlTf0mipMevdBqhsXdAsZ74rgcydPkEfS02GIBF0A8T8PXtr6HWuEY6/IwszTi
++z49dL8gYUhEBY3zcNIxqMmRKkWUU2oJvM9p4MHjWbYptlqiEvo=
+=2GOu
 -----END PGP SIGNATURE-----
 
---dhcros4rwsnjx5pm--
+--4bghc2ietqyeucl6--
