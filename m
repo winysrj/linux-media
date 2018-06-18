@@ -1,119 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:51402 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751207AbeFRFNG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 01:13:06 -0400
-Message-ID: <c02f92a8998fc62d3e3d48aa154fbaa7e223dd10.camel@collabora.com>
-Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
- ISO transfer
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: "Matwey V. Kornilov" <matwey@sai.msu.ru>, hverkuil@xs4all.nl,
-        mchehab@kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: rostedt@goodmis.org, mingo@redhat.com, isely@pobox.com,
-        bhumirks@gmail.com, colin.king@canonical.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Mon, 18 Jun 2018 02:11:25 -0300
-In-Reply-To: <20180617143625.32133-2-matwey@sai.msu.ru>
-References: <20180617143625.32133-1-matwey@sai.msu.ru>
-         <20180617143625.32133-2-matwey@sai.msu.ru>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-he1eur01on0089.outbound.protection.outlook.com ([104.47.0.89]:39840
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754724AbeFRGLs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Jun 2018 02:11:48 -0400
+Subject: Re: [PATCH v4 0/9] xen: dma-buf support for grant device
+To: jgross@suse.com, boris.ostrovsky@oracle.com
+Cc: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        konrad.wilk@oracle.com, daniel.vetter@intel.com,
+        dongwon.kim@intel.com, matthew.d.roper@intel.com
+References: <20180615062753.9229-1-andr2000@gmail.com>
+From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
+Message-ID: <c5ef52fe-3a71-7a90-0723-6dcb18c564c7@epam.com>
+Date: Mon, 18 Jun 2018 09:11:33 +0300
+MIME-Version: 1.0
+In-Reply-To: <20180615062753.9229-1-andr2000@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-+ Laurent
+Boris, Juergen!
 
-On Sun, 2018-06-17 at 17:36 +0300, Matwey V. Kornilov wrote:
-> DMA cocherency slows the transfer down on systems without hardware
-> coherent DMA.
-> 
-> Based on previous commit the following performance benchmarks have been
-> carried out. Average memcpy() data transfer rate (rate) and handler
-> completion time (time) have been measured when running video stream at
-> 640x480 resolution at 10fps.
-> 
-> x86_64 based system (Intel Core i5-3470). This platform has hardware
-> coherent DMA support and proposed change doesn't make big difference here.
-> 
->  * kmalloc:            rate = (4.4 +- 1.0) GBps
->                        time = (2.4 +- 1.2) usec
->  * usb_alloc_coherent: rate = (4.1 +- 0.9) GBps
->                        time = (2.5 +- 1.0) usec
-> 
-> We see that the measurements agree well within error ranges in this case.
-> So no performance downgrade is introduced.
-> 
-> armv7l based system (TI AM335x BeagleBone Black). This platform has no
-> hardware coherent DMA support. DMA coherence is implemented via disabled
-> page caching that slows down memcpy() due to memory controller behaviour.
-> 
->  * kmalloc:            rate =  (190 +-  30) MBps
->                        time =   (50 +-  10) usec
->  * usb_alloc_coherent: rate =   (33 +-   4) MBps
->                        time = (3000 +- 400) usec
-> 
-> Note, that quantative difference leads (this commit leads to 5 times
-> acceleration) to qualitative behavior change in this case. As it was
-> stated before, the video stream can not be successfully received at AM335x
-> platforms with MUSB based USB host controller due to performance issues
-> [1].
-> 
-> [1] https://www.spinics.net/lists/linux-usb/msg165735.html
-> 
+Thank you so much for your comments and time spent on this
+series. Appreciate that very much!
 
-This is quite interesting! I have receive similar complaints
-from users wanting to use stk1160 on BBB and Raspberrys,
-without much luck on either, due to insufficient isoc bandwidth.
+Thank you,
+Oleksandr
 
-I'm guessing other ARM platforms could be suffering
-from the same issue.
-
-Note that stk1160 and uvcvideo drivers use kmalloc on platforms
-where DMA_NONCOHERENT is defined, but this is not the case
-on ARM platforms.
-
-So, what is the benefit of using consistent 
-for these URBs, as opposed to streaming?
-
-If the choice is simply platform dependent,
-can't we somehow detect which mapping should
-be prefered?
-
-> Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
-> ---
->  drivers/media/usb/pwc/pwc-if.c | 12 +++---------
->  1 file changed, 3 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-> index 5775d1f60668..6a3cd9680a7f 100644
-> --- a/drivers/media/usb/pwc/pwc-if.c
-> +++ b/drivers/media/usb/pwc/pwc-if.c
-> @@ -427,11 +427,8 @@ static int pwc_isoc_init(struct pwc_device *pdev)
->  		urb->interval = 1; // devik
->  		urb->dev = udev;
->  		urb->pipe = usb_rcvisocpipe(udev, pdev->vendpoint);
-> -		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
-> -		urb->transfer_buffer = usb_alloc_coherent(udev,
-> -							  ISO_BUFFER_SIZE,
-> -							  GFP_KERNEL,
-> -							  &urb->transfer_dma);
-> +		urb->transfer_flags = URB_ISO_ASAP;
-> +		urb->transfer_buffer = kmalloc(ISO_BUFFER_SIZE, GFP_KERNEL);
->  		if (urb->transfer_buffer == NULL) {
->  			PWC_ERROR("Failed to allocate urb buffer %d\n", i);
->  			pwc_isoc_cleanup(pdev);
-> @@ -491,10 +488,7 @@ static void pwc_iso_free(struct pwc_device *pdev)
->  		if (pdev->urbs[i]) {
->  			PWC_DEBUG_MEMORY("Freeing URB\n");
->  			if (pdev->urbs[i]->transfer_buffer) {
-> -				usb_free_coherent(pdev->udev,
-> -					pdev->urbs[i]->transfer_buffer_length,
-> -					pdev->urbs[i]->transfer_buffer,
-> -					pdev->urbs[i]->transfer_dma);
-> +				kfree(pdev->urbs[i]->transfer_buffer);
->  			}
->  			usb_free_urb(pdev->urbs[i]);
->  			pdev->urbs[i] = NULL;
+On 06/15/2018 09:27 AM, Oleksandr Andrushchenko wrote:
+> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>
+> This work is in response to my previous attempt to introduce Xen/DRM
+> zero-copy driver [1] to enable Linux dma-buf API [2] for Xen based
+> frontends/backends. There is also an existing hyper_dmabuf approach
+> available [3] which, if reworked to utilize the proposed solution,
+> can greatly benefit as well.
+>
+> RFC for this series was published and discussed [9], comments addressed.
+>
+> The original rationale behind this work was to enable zero-copying
+> use-cases while working with Xen para-virtual display driver [4]:
+> when using Xen PV DRM frontend driver then on backend side one will
+> need to do copying of display buffers' contents (filled by the
+> frontend's user-space) into buffers allocated at the backend side.
+> Taking into account the size of display buffers and frames per
+> second it may result in unneeded huge data bus occupation and
+> performance loss.
+>
+> The helper driver [4] allows implementing zero-copying use-cases
+> when using Xen para-virtualized frontend display driver by implementing
+> a DRM/KMS helper driver running on backend's side.
+> It utilizes PRIME buffers API (implemented on top of Linux dma-buf)
+> to share frontend's buffers with physical device drivers on
+> backend's side:
+>
+>   - a dumb buffer created on backend's side can be shared
+>     with the Xen PV frontend driver, so it directly writes
+>     into backend's domain memory (into the buffer exported from
+>     DRM/KMS driver of a physical display device)
+>   - a dumb buffer allocated by the frontend can be imported
+>     into physical device DRM/KMS driver, thus allowing to
+>     achieve no copying as well
+>
+> Finally, it was discussed and decided ([1], [5]) that it is worth
+> implementing such use-cases via extension of the existing Xen gntdev
+> driver instead of introducing new DRM specific driver.
+> Please note, that the support of dma-buf is Linux only,
+> as dma-buf is a Linux only thing.
+>
+> Now to the proposed solution. The changes  to the existing Xen drivers
+> in the Linux kernel fall into 2 categories:
+> 1. DMA-able memory buffer allocation and increasing/decreasing memory
+>     reservation of the pages of such a buffer.
+>     This is required if we are about to share dma-buf with the hardware
+>     that does require those to be allocated with dma_alloc_xxx API.
+>     (It is still possible to allocate a dma-buf from any system memory,
+>     e.g. system pages).
+> 2. Extension of the gntdev driver to enable it to import/export dma-buf’s.
+>
+> The first six patches are in preparation for Xen dma-buf support,
+> but I consider those usable regardless of the dma-buf use-case,
+> e.g. other frontend/backend kernel modules may also benefit from these
+> for better code reuse:
+>      0001-xen-grant-table-Export-gnttab_-alloc-free-_pages-as-.patch
+>      0002-xen-grant-table-Make-set-clear-page-private-code-sha.patch
+>      0003-xen-balloon-Share-common-memory-reservation-routines.patch
+>      0004-xen-grant-table-Allow-allocating-buffers-suitable-fo.patch
+>      0005-xen-gntdev-Allow-mappings-for-DMA-buffers.patch
+>      0006-xen-gntdev-Make-private-routines-structures-accessib.patch
+>
+> The next three patches are Xen implementation of dma-buf as part of
+> the grant device:
+>      0007-xen-gntdev-Add-initial-support-for-dma-buf-UAPI.patch
+>      0008-xen-gntdev-Implement-dma-buf-export-functionality.patch
+>      0009-xen-gntdev-Implement-dma-buf-import-functionality.patch
+>
+> The corresponding libxengnttab changes are available at [6].
+>
+> All the above was tested with display backend [7] and its accompanying
+> helper library [8] on Renesas ARM64 based board.
+> Basic balloon tests on x86.
+>
+> *To all the communities*: I would like to ask you to review the proposed
+> solution and give feedback on it, so I can improve and send final
+> patches for review (this is still work in progress, but enough to start
+> discussing the implementation).
+>
+> Thank you in advance,
+> Oleksandr Andrushchenko
+>
+> [1] https://lists.freedesktop.org/archives/dri-devel/2018-April/173163.html
+> [2] https://elixir.bootlin.com/linux/v4.17-rc5/source/Documentation/driver-api/dma-buf.rst
+> [3] https://lists.xenproject.org/archives/html/xen-devel/2018-02/msg01202.html
+> [4] https://cgit.freedesktop.org/drm/drm-misc/tree/drivers/gpu/drm/xen
+> [5] https://patchwork.kernel.org/patch/10279681/
+> [6] https://github.com/andr2000/xen/tree/xen_dma_buf_v1
+> [7] https://github.com/andr2000/displ_be/tree/xen_dma_buf_v1
+> [8] https://github.com/andr2000/libxenbe/tree/xen_dma_buf_v1
+> [9] https://lkml.org/lkml/2018/5/17/215
+>
+> Changes since v3:
+> *****************
+> - added r-b tags
+> - minor fixes
+> - removed gntdev_remove_map as it can be coded directly now
+> - moved IOCTL code to gntdev-dmabuf.c
+> - removed usless wait list walks and changed some walks to use
+>    normal version of list iterators instead of safe ones as
+>    we run under a lock anyways
+> - cleaned up comments, descriptions, pr_debug messages
+>
+> Changes since v2:
+> *****************
+> - fixed missed break in dmabuf_exp_wait_obj_signal
+> - re-worked debug and error messages, be less verbose
+> - removed patch for making gntdev functions available to other drivers
+> - removed WARN_ON's in dma-buf code
+> - moved all dma-buf related code into gntdev-dmabuf
+> - introduced gntdev-common.h with common structures and function prototypes
+> - added additional checks for number of grants in IOCTLs
+> - gnttab patch cleanup
+> - made xenmem_reservation_scrub_page defined in the header as inline
+> - fixed __pfn_to_mfn use to pfn_to_bfn
+> - no changes to patches 1-2
+>
+> Changes since v1:
+> *****************
+> - Define GNTDEV_DMA_FLAG_XXX starting from bit 0
+> - Rename mem_reservation.h to mem-reservation.h
+> - Remove usless comments
+> - Change licenses from GPLv2 OR MIT to GPLv2 only
+> - Make xenmem_reservation_va_mapping_{update|clear} inline
+> - Change EXPORT_SYMBOL to EXPORT_SYMBOL_GPL for new functions
+> - Make gnttab_dma_{alloc|free}_pages to request frames array
+>    be allocated outside
+> - Fixe gnttab_dma_alloc_pages fail path (added xenmem_reservation_increase)
+> - Move most of dma-buf from gntdev.c to gntdev-dmabuf.c
+> - Add required dependencies to Kconfig
+> - Rework "#ifdef CONFIG_XEN_XXX" for if/else
+> - Export gnttab_{alloc|free}_pages as GPL symbols (patch 1)
+>
+> Oleksandr Andrushchenko (9):
+>    xen/grant-table: Export gnttab_{alloc|free}_pages as GPL
+>    xen/grant-table: Make set/clear page private code shared
+>    xen/balloon: Share common memory reservation routines
+>    xen/grant-table: Allow allocating buffers suitable for DMA
+>    xen/gntdev: Allow mappings for DMA buffers
+>    xen/gntdev: Make private routines/structures accessible
+>    xen/gntdev: Add initial support for dma-buf UAPI
+>    xen/gntdev: Implement dma-buf export functionality
+>    xen/gntdev: Implement dma-buf import functionality
+>
+>   drivers/xen/Kconfig           |  24 +
+>   drivers/xen/Makefile          |   2 +
+>   drivers/xen/balloon.c         |  75 +--
+>   drivers/xen/gntdev-common.h   |  94 ++++
+>   drivers/xen/gntdev-dmabuf.c   | 870 ++++++++++++++++++++++++++++++++++
+>   drivers/xen/gntdev-dmabuf.h   |  33 ++
+>   drivers/xen/gntdev.c          | 220 ++++++---
+>   drivers/xen/grant-table.c     | 153 +++++-
+>   drivers/xen/mem-reservation.c | 118 +++++
+>   include/uapi/xen/gntdev.h     | 106 +++++
+>   include/xen/grant_table.h     |  21 +
+>   include/xen/mem-reservation.h |  59 +++
+>   12 files changed, 1615 insertions(+), 160 deletions(-)
+>   create mode 100644 drivers/xen/gntdev-common.h
+>   create mode 100644 drivers/xen/gntdev-dmabuf.c
+>   create mode 100644 drivers/xen/gntdev-dmabuf.h
+>   create mode 100644 drivers/xen/mem-reservation.c
+>   create mode 100644 include/xen/mem-reservation.h
+>
