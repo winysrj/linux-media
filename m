@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:41124 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:41211 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934944AbeFRPAN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 11:00:13 -0400
+        id S935321AbeFRPAP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Jun 2018 11:00:15 -0400
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
@@ -45,32 +45,32 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-sunxi@googlegroups.com,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: [PATCH v4 01/19] dt-bindings: sram: sunxi: Add A13, A20 and A33 SRAM controller bindings
-Date: Mon, 18 Jun 2018 16:58:25 +0200
-Message-Id: <20180618145843.14631-2-paul.kocialkowski@bootlin.com>
+Subject: [PATCH v4 03/19] dt-bindings: sram: sunxi: Add A13 binding for the C1 SRAM region
+Date: Mon, 18 Jun 2018 16:58:27 +0200
+Message-Id: <20180618145843.14631-4-paul.kocialkowski@bootlin.com>
 In-Reply-To: <20180618145843.14631-1-paul.kocialkowski@bootlin.com>
 References: <20180618145843.14631-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This introduces dedicated bindings for the SRAM controllers found on the
-A13, A20 and A33 sunxi platforms.
+This introduces a dedicated binding for the C1 SRAM region for the A13
+sunxi platform.
 
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
 diff --git a/Documentation/devicetree/bindings/sram/sunxi-sram.txt b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
-index d087f04a4d7f..19cc0b892672 100644
+index 5af5bafd5572..ddc82cbd7f4d 100644
 --- a/Documentation/devicetree/bindings/sram/sunxi-sram.txt
 +++ b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
-@@ -11,6 +11,9 @@ Controller Node
- Required properties:
- - compatible : should be:
-     - "allwinner,sun4i-a10-sram-controller"
-+    - "allwinner,sun5i-a13-sram-controller"
-+    - "allwinner,sun7i-a20-sram-controller"
-+    - "allwinner,sun8i-a33-sram-controller"
-     - "allwinner,sun50i-a64-sram-controller"
- - reg : sram controller register offset + length
+@@ -32,6 +32,9 @@ The valid sections compatible for A10 are:
+     - allwinner,sun4i-a10-sram-c1
+     - allwinner,sun4i-a10-sram-d
+ 
++The valid sections compatible for A13 are:
++    - allwinner,sun5i-a13-sram-c1
++
+ The valid sections compatible for A64 are:
+     - allwinner,sun50i-a64-sram-c
  
 -- 
 2.17.0
