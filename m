@@ -1,196 +1,500 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-he1eur01on0089.outbound.protection.outlook.com ([104.47.0.89]:39840
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754724AbeFRGLs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 02:11:48 -0400
-Subject: Re: [PATCH v4 0/9] xen: dma-buf support for grant device
-To: jgross@suse.com, boris.ostrovsky@oracle.com
-Cc: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        konrad.wilk@oracle.com, daniel.vetter@intel.com,
-        dongwon.kim@intel.com, matthew.d.roper@intel.com
-References: <20180615062753.9229-1-andr2000@gmail.com>
-From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
-Message-ID: <c5ef52fe-3a71-7a90-0723-6dcb18c564c7@epam.com>
-Date: Mon, 18 Jun 2018 09:11:33 +0300
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:43829 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753758AbeFRGJT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Jun 2018 02:09:19 -0400
+Received: by mail-yw0-f195.google.com with SMTP id r19-v6so5257731ywc.10
+        for <linux-media@vger.kernel.org>; Sun, 17 Jun 2018 23:09:19 -0700 (PDT)
+Received: from mail-yb0-f171.google.com (mail-yb0-f171.google.com. [209.85.213.171])
+        by smtp.gmail.com with ESMTPSA id n204-v6sm5583032ywb.72.2018.06.17.23.09.17
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 17 Jun 2018 23:09:17 -0700 (PDT)
+Received: by mail-yb0-f171.google.com with SMTP id d123-v6so5551460ybh.9
+        for <linux-media@vger.kernel.org>; Sun, 17 Jun 2018 23:09:17 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20180615062753.9229-1-andr2000@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com> <1522376100-22098-3-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1522376100-22098-3-git-send-email-yong.zhi@intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Mon, 18 Jun 2018 15:09:05 +0900
+Message-ID: <CAAFQd5A8wQVTdnwOM6X-P3J=TUv2RHOCZdWWjBd=MA7fTp5tDA@mail.gmail.com>
+Subject: Re: [PATCH v6 02/12] intel-ipu3: Add user space API definitions
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Boris, Juergen!
+Hi Yong,
 
-Thank you so much for your comments and time spent on this
-series. Appreciate that very much!
+On Fri, Mar 30, 2018 at 11:15 AM Yong Zhi <yong.zhi@intel.com> wrote:
+>
+> Define the structures and macros to be used by public.
+>
+> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> ---
+>  include/uapi/linux/intel-ipu3.h | 1403 +++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 1403 insertions(+)
+>  create mode 100644 include/uapi/linux/intel-ipu3.h
+>
 
-Thank you,
-Oleksandr
+Since we'll need 1 more resend with latest fixes from Chromium tree
+and recently posted documentation anyway, let me do some more
+nitpicking inline, so we can end up with slightly cleaner code. :)
 
-On 06/15/2018 09:27 AM, Oleksandr Andrushchenko wrote:
-> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->
-> This work is in response to my previous attempt to introduce Xen/DRM
-> zero-copy driver [1] to enable Linux dma-buf API [2] for Xen based
-> frontends/backends. There is also an existing hyper_dmabuf approach
-> available [3] which, if reworked to utilize the proposed solution,
-> can greatly benefit as well.
->
-> RFC for this series was published and discussed [9], comments addressed.
->
-> The original rationale behind this work was to enable zero-copying
-> use-cases while working with Xen para-virtual display driver [4]:
-> when using Xen PV DRM frontend driver then on backend side one will
-> need to do copying of display buffers' contents (filled by the
-> frontend's user-space) into buffers allocated at the backend side.
-> Taking into account the size of display buffers and frames per
-> second it may result in unneeded huge data bus occupation and
-> performance loss.
->
-> The helper driver [4] allows implementing zero-copying use-cases
-> when using Xen para-virtualized frontend display driver by implementing
-> a DRM/KMS helper driver running on backend's side.
-> It utilizes PRIME buffers API (implemented on top of Linux dma-buf)
-> to share frontend's buffers with physical device drivers on
-> backend's side:
->
->   - a dumb buffer created on backend's side can be shared
->     with the Xen PV frontend driver, so it directly writes
->     into backend's domain memory (into the buffer exported from
->     DRM/KMS driver of a physical display device)
->   - a dumb buffer allocated by the frontend can be imported
->     into physical device DRM/KMS driver, thus allowing to
->     achieve no copying as well
->
-> Finally, it was discussed and decided ([1], [5]) that it is worth
-> implementing such use-cases via extension of the existing Xen gntdev
-> driver instead of introducing new DRM specific driver.
-> Please note, that the support of dma-buf is Linux only,
-> as dma-buf is a Linux only thing.
->
-> Now to the proposed solution. The changes  to the existing Xen drivers
-> in the Linux kernel fall into 2 categories:
-> 1. DMA-able memory buffer allocation and increasing/decreasing memory
->     reservation of the pages of such a buffer.
->     This is required if we are about to share dma-buf with the hardware
->     that does require those to be allocated with dma_alloc_xxx API.
->     (It is still possible to allocate a dma-buf from any system memory,
->     e.g. system pages).
-> 2. Extension of the gntdev driver to enable it to import/export dma-buf’s.
->
-> The first six patches are in preparation for Xen dma-buf support,
-> but I consider those usable regardless of the dma-buf use-case,
-> e.g. other frontend/backend kernel modules may also benefit from these
-> for better code reuse:
->      0001-xen-grant-table-Export-gnttab_-alloc-free-_pages-as-.patch
->      0002-xen-grant-table-Make-set-clear-page-private-code-sha.patch
->      0003-xen-balloon-Share-common-memory-reservation-routines.patch
->      0004-xen-grant-table-Allow-allocating-buffers-suitable-fo.patch
->      0005-xen-gntdev-Allow-mappings-for-DMA-buffers.patch
->      0006-xen-gntdev-Make-private-routines-structures-accessib.patch
->
-> The next three patches are Xen implementation of dma-buf as part of
-> the grant device:
->      0007-xen-gntdev-Add-initial-support-for-dma-buf-UAPI.patch
->      0008-xen-gntdev-Implement-dma-buf-export-functionality.patch
->      0009-xen-gntdev-Implement-dma-buf-import-functionality.patch
->
-> The corresponding libxengnttab changes are available at [6].
->
-> All the above was tested with display backend [7] and its accompanying
-> helper library [8] on Renesas ARM64 based board.
-> Basic balloon tests on x86.
->
-> *To all the communities*: I would like to ask you to review the proposed
-> solution and give feedback on it, so I can improve and send final
-> patches for review (this is still work in progress, but enough to start
-> discussing the implementation).
->
-> Thank you in advance,
-> Oleksandr Andrushchenko
->
-> [1] https://lists.freedesktop.org/archives/dri-devel/2018-April/173163.html
-> [2] https://elixir.bootlin.com/linux/v4.17-rc5/source/Documentation/driver-api/dma-buf.rst
-> [3] https://lists.xenproject.org/archives/html/xen-devel/2018-02/msg01202.html
-> [4] https://cgit.freedesktop.org/drm/drm-misc/tree/drivers/gpu/drm/xen
-> [5] https://patchwork.kernel.org/patch/10279681/
-> [6] https://github.com/andr2000/xen/tree/xen_dma_buf_v1
-> [7] https://github.com/andr2000/displ_be/tree/xen_dma_buf_v1
-> [8] https://github.com/andr2000/libxenbe/tree/xen_dma_buf_v1
-> [9] https://lkml.org/lkml/2018/5/17/215
->
-> Changes since v3:
-> *****************
-> - added r-b tags
-> - minor fixes
-> - removed gntdev_remove_map as it can be coded directly now
-> - moved IOCTL code to gntdev-dmabuf.c
-> - removed usless wait list walks and changed some walks to use
->    normal version of list iterators instead of safe ones as
->    we run under a lock anyways
-> - cleaned up comments, descriptions, pr_debug messages
->
-> Changes since v2:
-> *****************
-> - fixed missed break in dmabuf_exp_wait_obj_signal
-> - re-worked debug and error messages, be less verbose
-> - removed patch for making gntdev functions available to other drivers
-> - removed WARN_ON's in dma-buf code
-> - moved all dma-buf related code into gntdev-dmabuf
-> - introduced gntdev-common.h with common structures and function prototypes
-> - added additional checks for number of grants in IOCTLs
-> - gnttab patch cleanup
-> - made xenmem_reservation_scrub_page defined in the header as inline
-> - fixed __pfn_to_mfn use to pfn_to_bfn
-> - no changes to patches 1-2
->
-> Changes since v1:
-> *****************
-> - Define GNTDEV_DMA_FLAG_XXX starting from bit 0
-> - Rename mem_reservation.h to mem-reservation.h
-> - Remove usless comments
-> - Change licenses from GPLv2 OR MIT to GPLv2 only
-> - Make xenmem_reservation_va_mapping_{update|clear} inline
-> - Change EXPORT_SYMBOL to EXPORT_SYMBOL_GPL for new functions
-> - Make gnttab_dma_{alloc|free}_pages to request frames array
->    be allocated outside
-> - Fixe gnttab_dma_alloc_pages fail path (added xenmem_reservation_increase)
-> - Move most of dma-buf from gntdev.c to gntdev-dmabuf.c
-> - Add required dependencies to Kconfig
-> - Rework "#ifdef CONFIG_XEN_XXX" for if/else
-> - Export gnttab_{alloc|free}_pages as GPL symbols (patch 1)
->
-> Oleksandr Andrushchenko (9):
->    xen/grant-table: Export gnttab_{alloc|free}_pages as GPL
->    xen/grant-table: Make set/clear page private code shared
->    xen/balloon: Share common memory reservation routines
->    xen/grant-table: Allow allocating buffers suitable for DMA
->    xen/gntdev: Allow mappings for DMA buffers
->    xen/gntdev: Make private routines/structures accessible
->    xen/gntdev: Add initial support for dma-buf UAPI
->    xen/gntdev: Implement dma-buf export functionality
->    xen/gntdev: Implement dma-buf import functionality
->
->   drivers/xen/Kconfig           |  24 +
->   drivers/xen/Makefile          |   2 +
->   drivers/xen/balloon.c         |  75 +--
->   drivers/xen/gntdev-common.h   |  94 ++++
->   drivers/xen/gntdev-dmabuf.c   | 870 ++++++++++++++++++++++++++++++++++
->   drivers/xen/gntdev-dmabuf.h   |  33 ++
->   drivers/xen/gntdev.c          | 220 ++++++---
->   drivers/xen/grant-table.c     | 153 +++++-
->   drivers/xen/mem-reservation.c | 118 +++++
->   include/uapi/xen/gntdev.h     | 106 +++++
->   include/xen/grant_table.h     |  21 +
->   include/xen/mem-reservation.h |  59 +++
->   12 files changed, 1615 insertions(+), 160 deletions(-)
->   create mode 100644 drivers/xen/gntdev-common.h
->   create mode 100644 drivers/xen/gntdev-dmabuf.c
->   create mode 100644 drivers/xen/gntdev-dmabuf.h
->   create mode 100644 drivers/xen/mem-reservation.c
->   create mode 100644 include/xen/mem-reservation.h
->
+> diff --git a/include/uapi/linux/intel-ipu3.h b/include/uapi/linux/intel-ipu3.h
+> new file mode 100644
+> index 000000000000..694ef0c8d7a7
+> --- /dev/null
+> +++ b/include/uapi/linux/intel-ipu3.h
+> @@ -0,0 +1,1403 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/* Copyright (C) 2018 Intel Corporation */
+> +
+> +#ifndef __IPU3_UAPI_H
+> +#define __IPU3_UAPI_H
+> +
+> +#include <linux/types.h>
+> +
+> +#define IPU3_UAPI_ISP_VEC_ELEMS                                64
+> +
+> +#define IMGU_ABI_PAD   __aligned(IPU3_UAPI_ISP_WORD_BYTES)
+
+This seems unused.
+
+> +#define IPU3_ALIGN     __attribute__((aligned(IPU3_UAPI_ISP_WORD_BYTES)))
+
+Any reason to mix both __aligned() and  __attribute__((aligned()))?
+
+> +
+> +#define IPU3_UAPI_ISP_WORD_BYTES                       32
+
+It would make sense to define this above IPU3_ALIGN(), which references it.
+
+> +#define IPU3_UAPI_MAX_STRIPES                          2
+> +
+> +/******************* ipu3_uapi_stats_3a *******************/
+> +
+> +#define IPU3_UAPI_MAX_BUBBLE_SIZE                      10
+> +
+> +#define IPU3_UAPI_AE_COLORS                            4
+> +#define IPU3_UAPI_AE_BINS                              256
+> +
+> +#define IPU3_UAPI_AWB_MD_ITEM_SIZE                     8
+> +#define IPU3_UAPI_AWB_MAX_SETS                         60
+> +#define IPU3_UAPI_AWB_SET_SIZE                         0x500
+
+Why not just decimal 1280?
+
+> +#define IPU3_UAPI_AWB_SPARE_FOR_BUBBLES \
+> +       (IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> +        IPU3_UAPI_AWB_MD_ITEM_SIZE)
+> +#define IPU3_UAPI_AWB_MAX_BUFFER_SIZE \
+> +       (IPU3_UAPI_AWB_MAX_SETS * \
+> +        (IPU3_UAPI_AWB_SET_SIZE + IPU3_UAPI_AWB_SPARE_FOR_BUBBLES))
+> +
+> +#define IPU3_UAPI_AF_MAX_SETS                          24
+> +#define IPU3_UAPI_AF_MD_ITEM_SIZE                      4
+> +#define IPU3_UAPI_AF_SPARE_FOR_BUBBLES \
+> +       (IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> +        IPU3_UAPI_AF_MD_ITEM_SIZE)
+> +#define IPU3_UAPI_AF_Y_TABLE_SET_SIZE                  0x80
+
+Why not just decimal 128?
+
+> +#define IPU3_UAPI_AF_Y_TABLE_MAX_SIZE \
+> +       (IPU3_UAPI_AF_MAX_SETS * \
+> +        (IPU3_UAPI_AF_Y_TABLE_SET_SIZE + IPU3_UAPI_AF_SPARE_FOR_BUBBLES) * \
+> +        IPU3_UAPI_MAX_STRIPES)
+> +
+> +#define IPU3_UAPI_AWB_FR_MAX_SETS                      24
+> +#define IPU3_UAPI_AWB_FR_MD_ITEM_SIZE                  8
+> +#define IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE                        0x100
+
+Why not just decimal 256?
+
+> +#define IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES \
+> +       (IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> +        IPU3_UAPI_AWB_FR_MD_ITEM_SIZE)
+> +#define IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE \
+> +       (IPU3_UAPI_AWB_FR_MAX_SETS * \
+> +       (IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE + \
+> +        IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES) * IPU3_UAPI_MAX_STRIPES)
+[snip]
+> +struct ipu3_uapi_af_filter_config {
+> +       struct {
+> +               __u8 a1;
+> +               __u8 a2;
+> +               __u8 a3;
+> +               __u8 a4;
+> +       } y1_coeff_0;
+> +       struct {
+> +               __u8 a5;
+> +               __u8 a6;
+> +               __u8 a7;
+> +               __u8 a8;
+> +       } y1_coeff_1;
+> +       struct {
+> +               __u8 a9;
+> +               __u8 a10;
+> +               __u8 a11;
+> +               __u8 a12;
+> +       } y1_coeff_2;
+
+Why these aren't just __u8 y1_coeff[12]?
+
+> +
+> +       __u32 y1_sign_vec;
+> +
+> +       struct {
+> +               __u8 a1;
+> +               __u8 a2;
+> +               __u8 a3;
+> +               __u8 a4;
+> +       } y2_coeff_0;
+> +       struct {
+> +               __u8 a5;
+> +               __u8 a6;
+> +               __u8 a7;
+> +               __u8 a8;
+> +       } y2_coeff_1;
+> +       struct {
+> +               __u8 a9;
+> +               __u8 a10;
+> +               __u8 a11;
+> +               __u8 a12;
+> +       } y2_coeff_2;
+
+Ditto.
+
+> +
+> +       __u32 y2_sign_vec;
+> +
+> +       struct {
+> +               __u8 y_gen_rate_gr;     /* 6 bits */
+> +               __u8 y_gen_rate_r;
+> +               __u8 y_gen_rate_b;
+> +               __u8 y_gen_rate_gb;
+> +       } y_calc;
+
+Why not just call the struct "y_gen_rate" and then fields "gr", "r",
+"b", "gb"? It would make any code referencing them much shorter.
+
+> +
+> +       struct {
+> +               __u32 __reserved0:8;
+> +               __u32 y1_nf:4;
+> +               __u32 __reserved1:4;
+> +               __u32 y2_nf:4;
+> +               __u32 __reserved2:12;
+> +       } nf;
+
+Similarly here, is there any need to repeat "nf" inside the struct?
+
+> +} __packed;
+> +
+> +struct ipu3_uapi_af_meta_data {
+> +       __u8 y_table[IPU3_UAPI_AF_Y_TABLE_MAX_SIZE] IPU3_ALIGN;
+> +} __packed;
+[snip]
+> +/******************* ipu3_uapi_acc_param *******************/
+> +
+> +#define IPU3_UAPI_BNR_LUT_SIZE                         32
+> +
+> +/* number of elements in gamma correction LUT */
+> +#define IPU3_UAPI_GAMMA_CORR_LUT_ENTRIES               256
+> +
+> +#define IPU3_UAPI_SHD_MAX_CELLS_PER_SET                        146
+> +/* largest grid is 73x56 */
+
+The relation between the comment above and the values defined here is
+not clear to me.
+
+> +#define IPU3_UAPI_SHD_MAX_CFG_SETS                     28
+[snip]
+> +struct ipu3_uapi_bnr_static_config {
+> +       struct ipu3_uapi_bnr_static_config_wb_gains_config wb_gains;
+> +       struct ipu3_uapi_bnr_static_config_wb_gains_thr_config wb_gains_thr;
+> +       struct ipu3_uapi_bnr_static_config_thr_coeffs_config thr_coeffs;
+> +       struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config thr_ctrl_shd;
+> +       struct ipu3_uapi_bnr_static_config_opt_center_config opt_center;
+> +       struct ipu3_uapi_bnr_static_config_lut_config lut;
+> +       struct ipu3_uapi_bnr_static_config_bp_ctrl_config bp_ctrl;
+> +       struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config dn_detect_ctrl;
+> +       __u32 column_size;      /* 0x44 */
+
+What's the meaning of this number?
+
+> +       struct ipu3_uapi_bnr_static_config_opt_center_sqr_config opt_center_sqr;
+> +} __packed;
+> +
+> +struct ipu3_uapi_bnr_static_config_green_disparity {
+> +       __u32 gd_red:6;
+> +       __u32 __reserved0:2;
+> +       __u32 gd_green:6;
+> +       __u32 __reserved1:2;
+> +       __u32 gd_blue:6;
+> +       __u32 __reserved2:10;
+> +       __u32 gd_black:14;
+> +       __u32 __reserved3:2;
+> +       __u32 gd_shading:7;
+> +       __u32 __reserved4:1;
+> +       __u32 gd_support:2;
+> +       __u32 __reserved5:1;
+> +       __u32 gd_clip:1;                        /* central weights variables */
+> +       __u32 gd_central_weight:4;
+> +} __packed;
+> +
+> +struct ipu3_uapi_dm_config {
+> +       /* DWORD0 */
+
+Is there any meaning behind this comment?
+
+> +       __u32 dm_en:1;
+> +       __u32 ch_ar_en:1;
+> +       __u32 fcc_en:1;
+> +       __u32 __reserved0:13;
+> +       __u32 frame_width:16;
+> +
+> +       /* DWORD1 */
+
+Ditto.
+
+> +       __u32 gamma_sc:5;
+> +       __u32 __reserved1:3;
+> +       __u32 lc_ctrl:5;
+> +       __u32 __reserved2:3;
+> +       __u32 cr_param1:5;
+> +       __u32 __reserved3:3;
+> +       __u32 cr_param2:5;
+> +       __u32 __reserved4:3;
+> +
+> +       /* DWORD2 */
+
+Ditto.
+
+> +       __u32 coring_param:5;
+> +       __u32 __reserved5:27;
+> +} __packed;
+[snip]
+> +/* Bayer shading correction */
+> +
+> +struct ipu3_uapi_shd_grid_config {
+> +       /* reg 0 */
+
+What's the meaning behind this comment?
+
+> +       __u8 width;
+> +       __u8 height;
+> +       __u8 block_width_log2:3;
+> +       __u8 __reserved0:1;
+> +       __u8 block_height_log2:3;
+> +       __u8 __reserved1:1;
+> +       __u8 grid_height_per_slice;
+> +       /* reg 1 */
+
+Ditto.
+
+> +       __s16 x_start;                  /* 13 bits */
+> +       __s16 y_start;
+> +} __packed;
+> +
+> +struct ipu3_uapi_shd_general_config {
+> +       __u32 init_set_vrt_offst_ul:8;
+> +       __u32 shd_enable:1;
+> +       /* aka 'gf' */
+
+What's the meaning of this comment?
+
+> +       __u32 gain_factor:2;
+> +       __u32 __reserved:21;
+> +} __packed;
+> +
+> +struct ipu3_uapi_shd_black_level_config {
+> +       __s16 bl_r;                     /* 12 bits */
+> +       __s16 bl_gr;
+> +#define IPU3_UAPI_SHD_BLGR_NF_SHIFT    13      /* Normalization shift aka nf */
+> +#define IPU3_UAPI_SHD_BLGR_NF_MASK     0x7
+> +       __s16 bl_gb;                    /* 12 bits */
+> +       __s16 bl_b;
+> +} __packed;
+> +
+> +struct ipu3_uapi_shd_config_static {
+> +       /* B0: Fixed order: one transfer to GAC */
+
+It's not clear to me what this comment means.
+
+> +       struct ipu3_uapi_shd_grid_config grid;
+> +       struct ipu3_uapi_shd_general_config general;
+> +       struct ipu3_uapi_shd_black_level_config black_level;
+> +} __packed;
+> +
+> +struct ipu3_uapi_shd_lut {
+> +       struct {
+> +               struct {
+> +                       __u16 r;
+> +                       __u16 gr;
+> +               } r_and_gr[IPU3_UAPI_SHD_MAX_CELLS_PER_SET];
+> +               __u8 __reserved1[24];
+> +               struct {
+> +                       __u16 gb;
+> +                       __u16 b;
+> +               } gb_and_b[IPU3_UAPI_SHD_MAX_CELLS_PER_SET];
+> +               __u8 __reserved2[24];
+> +       } sets[IPU3_UAPI_SHD_MAX_CFG_SETS];
+> +} __packed;
+> +
+> +struct ipu3_uapi_shd_config {
+> +       struct ipu3_uapi_shd_config_static shd IPU3_ALIGN;
+> +       struct ipu3_uapi_shd_lut shd_lut IPU3_ALIGN;
+> +} __packed;
+> +
+> +/* Image Enhancement Filter and Denoise */
+> +
+> +struct ipu3_uapi_iefd_cux2 {
+> +       __u32 x0:9;
+> +       __u32 x1:9;
+> +       __u32 a01:9;
+> +       __u32 b01:5;                            /* NOTE: hardcoded to zero */
+
+No need for such long spacing to the comment.
+
+> +} __packed;
+[snip]
+> +struct ipu3_uapi_unsharp_coef0 {
+> +       __u32 c00:9;                    /* Coeff11 */
+> +       __u32 c01:9;                    /* Coeff12 */
+> +       __u32 c02:9;                    /* Coeff13 */
+
+No need for such wide spacing.
+
+> +       __u32 __reserved:5;
+> +} __packed;
+> +
+> +struct ipu3_uapi_unsharp_coef1 {
+> +       __u32 c11:9;                    /* Coeff22 */
+> +       __u32 c12:9;                    /* Coeff23 */
+> +       __u32 c22:9;                    /* Coeff33 */
+
+Ditto.
+
+> +       __u32 __reserved:5;
+> +} __packed;
+[snip]
+> +struct ipu3_uapi_bds_hor_ctrl1 {
+> +       __u32 hor_crop_start:13;
+> +       __u32 __reserved0:3;
+> +       __u32 hor_crop_end:13;
+> +       __u32 __reserved1:1;
+> +       __u32 hor_crop_en:1;
+> +       __u32 __reserved2:1;
+> +} __packed;
+
+The struct name includes "hor" already, so no need to include it in
+fields names.
+
+> +
+> +struct ipu3_uapi_bds_hor_ctrl2 {
+> +       __u32 input_frame_height:13;
+> +       __u32 __reserved0:19;
+> +} __packed;
+> +
+> +struct ipu3_uapi_bds_hor {
+> +       struct ipu3_uapi_bds_hor_ctrl0 hor_ctrl0;
+> +       struct ipu3_uapi_bds_ptrn_arr hor_ptrn_arr;
+> +       struct ipu3_uapi_bds_phase_arr hor_phase_arr;
+> +       struct ipu3_uapi_bds_hor_ctrl1 hor_ctrl1;
+> +       struct ipu3_uapi_bds_hor_ctrl2 hor_ctrl2;
+> +} __packed;
+
+Same here. Code that wants to access an example field needs to do it
+like "[...]bds.hor.hor_ctrl1.hor_crop_en". Without repeating "hor" at
+every level, it could be just "[...]bds.hor.ctrl1.crop_en".
+
+> +
+> +struct ipu3_uapi_bds_ver_ctrl0 {
+> +       __u32 sample_patrn_length:9;
+> +       __u32 __reserved0:3;
+> +       __u32 ver_ds_en:1;
+
+Is there a need to include "ver" in the name?
+
+> +       __u32 min_clip_val:1;
+> +       __u32 max_clip_val:2;
+> +       __u32 __reserved1:16;
+> +} __packed;
+> +
+> +struct ipu3_uapi_bds_ver_ctrl1 {
+> +       __u32 out_frame_width:13;
+> +       __u32 __reserved0:3;
+> +       __u32 out_frame_height:13;
+> +       __u32 __reserved1:3;
+> +} __packed;
+> +
+> +struct ipu3_uapi_bds_ver {
+> +       struct ipu3_uapi_bds_ver_ctrl0 ver_ctrl0;
+> +       struct ipu3_uapi_bds_ptrn_arr ver_ptrn_arr;
+> +       struct ipu3_uapi_bds_phase_arr ver_phase_arr;
+> +       struct ipu3_uapi_bds_ver_ctrl1 ver_ctrl1;
+
+Is there a need to include "ver" in field names?
+
+> +
+
+Unnecessary blank line.
+
+> +} __packed;
+> +
+[snip]
+> +struct ipu3_uapi_anr_beta {
+> +       __u16 beta_gr;                                  /* 11 bits */
+> +       __u16 beta_r;
+> +       __u16 beta_b;
+> +       __u16 beta_gb;
+> +} __packed;
+
+Is there a need to include "beta" in field names?
+
+[snip]
+> +struct ipu3_uapi_isp_lin_vmem_params {
+> +       __s16 lin_lutlow_gr[IPU3_UAPI_LIN_LUT_SIZE];
+> +       __s16 lin_lutlow_r[IPU3_UAPI_LIN_LUT_SIZE];
+> +       __s16 lin_lutlow_b[IPU3_UAPI_LIN_LUT_SIZE];
+> +       __s16 lin_lutlow_gb[IPU3_UAPI_LIN_LUT_SIZE];
+> +       __s16 lin_lutdif_gr[IPU3_UAPI_LIN_LUT_SIZE];
+> +       __s16 lin_lutdif_r[IPU3_UAPI_LIN_LUT_SIZE];
+> +       __s16 lin_lutdif_b[IPU3_UAPI_LIN_LUT_SIZE];
+> +       __s16 lin_lutdif_gb[IPU3_UAPI_LIN_LUT_SIZE];
+
+Is there a need to include "lin" in field names?
+
+> +} __packed;
+> +
+> +/* Temporal Noise Reduction VMEM parameters */
+> +
+> +#define IPU3_UAPI_ISP_TNR3_VMEM_LEN    9
+> +
+> +struct ipu3_uapi_isp_tnr3_vmem_params {
+> +       __u16 slope[IPU3_UAPI_ISP_TNR3_VMEM_LEN];
+> +       __u16 __reserved1[IPU3_UAPI_ISP_VEC_ELEMS
+> +                                               - IPU3_UAPI_ISP_TNR3_VMEM_LEN];
+
+Something wrong with indentation here. Maybe it could make sense to
+define the length of padding as a macro, in addition to
+IPU3_UAPI_ISP_TNR3_VMEM_LEN?
+
+> +       __u16 sigma[IPU3_UAPI_ISP_TNR3_VMEM_LEN];
+> +       __u16 __reserved2[IPU3_UAPI_ISP_VEC_ELEMS
+> +                                               - IPU3_UAPI_ISP_TNR3_VMEM_LEN];
+
+Ditto.
+
+Best regards,
+Tomasz
