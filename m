@@ -1,69 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:51118 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936775AbeFRJMW (ORCPT
+Received: from mail-yb0-f169.google.com ([209.85.213.169]:42792 "EHLO
+        mail-yb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966965AbeFRJBA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 05:12:22 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] adv7180/tvp514x/tvp7002: fix entity function
-Message-ID: <753c771a-4628-7462-9d95-05e7771c89c8@xs4all.nl>
-Date: Mon, 18 Jun 2018 11:12:18 +0200
+        Mon, 18 Jun 2018 05:01:00 -0400
+Received: by mail-yb0-f169.google.com with SMTP id d123-v6so5682626ybh.9
+        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2018 02:01:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <20180604103303.6a6b792b@vento.lan> <9250AAB0-E704-4FC2-9399-94C996A72E45@ideasonboard.com>
+In-Reply-To: <9250AAB0-E704-4FC2-9399-94C996A72E45@ideasonboard.com>
+From: Tomasz Figa <tfiga@google.com>
+Date: Mon, 18 Jun 2018 18:00:47 +0900
+Message-ID: <CAAFQd5AKG0Fb9Q7dqzso+vZ6ZxwJW1WYVuiLY9XBTwWvjwu6Gg@mail.gmail.com>
+Subject: Re: [ANN v2] Complex Camera Workshop - Tokyo - Jun, 19
+To: Paul Elder <paul.elder@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        javier@dowhile0.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        dave.stevenson@raspberrypi.org,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The entity function was ORed with the flags field instead of
-assigned to the function field. Correct this.
+Hi Paul,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7180.c | 2 +-
- drivers/media/i2c/tvp514x.c | 2 +-
- drivers/media/i2c/tvp7002.c | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+On Mon, Jun 18, 2018 at 5:42 PM Paul Elder <paul.elder@ideasonboard.com> wrote:
+>
+>
+>
+> Hello all,
+>
+> On June 4, 2018 10:33:03 PM GMT+09:00, Mauro Carvalho Chehab <mchehab+samsung@kernel.org> wrote:
+> >Hi all,
+> >
+> >I consolidated hopefully all comments I receive on the past
+> >announcement
+> >with regards to the complex camera workshop we're planning to happen in
+> >Tokyo, just before the Open Source Summit in Japan.
+> >
+> >The main focus of the workshop is to allow supporting devices with
+> >MC-based
+> >hardware connected to a camera.
+> >
+> >I'm enclosing a detailed description of the problem, in order to
+> >allow the interested parties to be at the same page.
+> >
+> >We need to work towards an agenda for the meeting.
+> >
+> >From my side, I think we should have at least the following topics at
+> >the agenda:
+> >
+> >- a quick review about what's currently at libv4l2;
+> >- a presentation about PipeWire solution;
+> >- a discussion with the requirements for the new solution;
+> >- a discussion about how we'll address - who will do what.
+> >
+> >Comments? Suggestions?
+> >
+> >Are there anyone else planning to either be there physically or via
+> >Google Hangouts?
+> >
+> My name is Paul Elder. I am a university student studying computer science, and I am interested in complex camera support in Linux.
+>
+> If it's not too late, could I join this meeting as well please, as I am in Tokyo?
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 25d24a3f10a7..a727d7f806a1 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -1335,7 +1335,7 @@ static int adv7180_probe(struct i2c_client *client,
- 		goto err_unregister_vpp_client;
+Done. You should have received 3 further emails with necessary invitations.
 
- 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.flags |= MEDIA_ENT_F_ATV_DECODER;
-+	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 	ret = media_entity_pads_init(&sd->entity, 1, &state->pad);
- 	if (ret)
- 		goto err_free_ctrl;
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index 6a9890531d01..675b9ae212ab 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -1084,7 +1084,7 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--	decoder->sd.entity.flags |= MEDIA_ENT_F_ATV_DECODER;
-+	decoder->sd.entity.function = MEDIA_ENT_F_ATV_DECODER;
-
- 	ret = media_entity_pads_init(&decoder->sd.entity, 1, &decoder->pad);
- 	if (ret < 0) {
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 4599b7e28a8d..4f5c627579c7 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -1010,7 +1010,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	device->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--	device->sd.entity.flags |= MEDIA_ENT_F_ATV_DECODER;
-+	device->sd.entity.function = MEDIA_ENT_F_ATV_DECODER;
-
- 	error = media_entity_pads_init(&device->sd.entity, 1, &device->pad);
- 	if (error < 0)
--- 
-2.17.0
+Best regards,
+Tomasz
