@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:41386 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:41154 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935382AbeFRPAV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Jun 2018 11:00:21 -0400
+        id S935319AbeFRPAO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Jun 2018 11:00:14 -0400
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
@@ -45,47 +45,30 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-sunxi@googlegroups.com,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: [PATCH v4 11/19] ARM: sun7i-a20: Add support for the C1 SRAM region with the SRAM controller
-Date: Mon, 18 Jun 2018 16:58:35 +0200
-Message-Id: <20180618145843.14631-12-paul.kocialkowski@bootlin.com>
+Subject: [PATCH v4 02/19] dt-bindings: sram: sunxi: Add A10 binding for the C1 SRAM region
+Date: Mon, 18 Jun 2018 16:58:26 +0200
+Message-Id: <20180618145843.14631-3-paul.kocialkowski@bootlin.com>
 In-Reply-To: <20180618145843.14631-1-paul.kocialkowski@bootlin.com>
 References: <20180618145843.14631-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Maxime Ripard <maxime.ripard@bootlin.com>
+This introduces a dedicated binding for the C1 SRAM region for the A10
+sunxi platform.
 
-This adds support for the C1 SRAM region (to be used with the SRAM
-controller driver) for the A20 platform. The region is shared
-between the Video Engine and the CPU.
-
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
-diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
-index f64eab4ce6f1..9afd82f9ec79 100644
---- a/arch/arm/boot/dts/sun7i-a20.dtsi
-+++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-@@ -274,6 +274,20 @@
- 					status = "disabled";
- 				};
- 			};
-+
-+			sram_c: sram@1d00000 {
-+				compatible = "mmio-sram";
-+				reg = <0x01d00000 0xd00000>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				ranges = <0 0x01d00000 0xd00000>;
-+
-+				ve_sram: sram-section@0 {
-+					compatible = "allwinner,sun7i-a20-sram-c1",
-+						     "allwinner,sun4i-a10-sram-c1";
-+					reg = <0x000000 0x80000>;
-+				};
-+			};
- 		};
+diff --git a/Documentation/devicetree/bindings/sram/sunxi-sram.txt b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
+index 19cc0b892672..5af5bafd5572 100644
+--- a/Documentation/devicetree/bindings/sram/sunxi-sram.txt
++++ b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
+@@ -29,6 +29,7 @@ once again the representation described in the mmio-sram binding.
  
- 		nmi_intc: interrupt-controller@1c00030 {
+ The valid sections compatible for A10 are:
+     - allwinner,sun4i-a10-sram-a3-a4
++    - allwinner,sun4i-a10-sram-c1
+     - allwinner,sun4i-a10-sram-d
+ 
+ The valid sections compatible for A64 are:
 -- 
 2.17.0
