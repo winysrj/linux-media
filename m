@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:35532 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937535AbeFSJpv (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:56026 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755270AbeFSJou (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Jun 2018 05:45:51 -0400
-Date: Tue, 19 Jun 2018 11:45:00 +0200
+        Tue, 19 Jun 2018 05:44:50 -0400
+Date: Tue, 19 Jun 2018 11:44:09 +0200
 From: Peter Zijlstra <peterz@infradead.org>
 To: Thomas Hellstrom <thellstrom@vmware.com>
 Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
@@ -24,41 +24,23 @@ Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
         linaro-mm-sig@lists.linaro.org
-Subject: Re: [PATCH v4 2/3] locking: Implement an algorithm choice for
- Wound-Wait mutexes
-Message-ID: <20180619094500.GL2458@hirez.programming.kicks-ass.net>
+Subject: Re: [PATCH 1/3] locking: WW mutex cleanup
+Message-ID: <20180619094409.GK2458@hirez.programming.kicks-ass.net>
 References: <20180619082445.11062-1-thellstrom@vmware.com>
- <20180619082445.11062-3-thellstrom@vmware.com>
+ <20180619082445.11062-2-thellstrom@vmware.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180619082445.11062-3-thellstrom@vmware.com>
+In-Reply-To: <20180619082445.11062-2-thellstrom@vmware.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 19, 2018 at 10:24:44AM +0200, Thomas Hellstrom wrote:
-> The current Wound-Wait mutex algorithm is actually not Wound-Wait but
-> Wait-Die. Implement also Wound-Wait as a per-ww-class choice. Wound-Wait
-> is, contrary to Wait-Die a preemptive algorithm and is known to generate
-> fewer backoffs. Testing reveals that this is true if the
-> number of simultaneous contending transactions is small.
-> As the number of simultaneous contending threads increases, Wait-Wound
-> becomes inferior to Wait-Die in terms of elapsed time.
-> Possibly due to the larger number of held locks of sleeping transactions.
+On Tue, Jun 19, 2018 at 10:24:43AM +0200, Thomas Hellstrom wrote:
+> From: Peter Ziljstra <peterz@infradead.org>
 > 
-> Update documentation and callers.
-> 
-> Timings using git://people.freedesktop.org/~thomash/ww_mutex_test
-> tag patch-18-06-15
-> 
-> Each thread runs 100000 batches of lock / unlock 800 ww mutexes randomly
-> chosen out of 100000. Four core Intel x86_64:
-> 
-> Algorithm    #threads       Rollbacks  time
-> Wound-Wait   4              ~100       ~17s.
-> Wait-Die     4              ~150000    ~19s.
-> Wound-Wait   16             ~360000    ~109s.
-> Wait-Die     16             ~450000    ~82s.
+> Make the WW mutex code more readable by adding comments, splitting up
+> functions and pointing out that we're actually using the Wait-Die
+> algorithm.
 > 
 > Cc: Ingo Molnar <mingo@redhat.com>
 > Cc: Jonathan Corbet <corbet@lwn.net>
@@ -76,18 +58,12 @@ On Tue, Jun 19, 2018 at 10:24:44AM +0200, Thomas Hellstrom wrote:
 > Cc: linux-doc@vger.kernel.org
 > Cc: linux-media@vger.kernel.org
 > Cc: linaro-mm-sig@lists.linaro.org
-> Co-authored-by: Peter Zijlstra <peterz@infradead.org>
+> Co-authored-by: Thomas Hellstrom <thellstrom@vmware.com>
 > Signed-off-by: Thomas Hellstrom <thellstrom@vmware.com>
-> 
 > ---
->  Documentation/locking/ww-mutex-design.txt |  57 +++++++++--
->  drivers/dma-buf/reservation.c             |   2 +-
->  drivers/gpu/drm/drm_modeset_lock.c        |   2 +-
->  include/linux/ww_mutex.h                  |  17 ++-
->  kernel/locking/locktorture.c              |   2 +-
->  kernel/locking/mutex.c                    | 165 +++++++++++++++++++++++++++---
->  kernel/locking/test-ww_mutex.c            |   2 +-
->  lib/locking-selftest.c                    |   2 +-
->  8 files changed, 213 insertions(+), 36 deletions(-)
+>  Documentation/locking/ww-mutex-design.txt |  12 +-
+>  include/linux/ww_mutex.h                  |  28 ++---
+>  kernel/locking/mutex.c                    | 202 ++++++++++++++++++------------
+>  3 files changed, 145 insertions(+), 97 deletions(-)
 
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
