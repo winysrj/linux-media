@@ -1,298 +1,636 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:24508 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S937267AbeFSI3H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Jun 2018 04:29:07 -0400
-Date: Tue, 19 Jun 2018 16:28:07 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Akhil P Oommen <akhilpo@codeaurora.org>
-Cc: kbuild-all@01.org, sumit.semwal@linaro.org, gustavo@padovan.org,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        linux-kernel@vger.kernel.org, jcrouse@codeaurora.org,
-        smasetty@codeaurora.org, linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH] dma-buf/fence: Take refcount on the module that owns the
- fence
-Message-ID: <201806191548.9bHqcNqo%fengguang.wu@intel.com>
-References: <1529388605-10044-1-git-send-email-akhilpo@codeaurora.org>
+Received: from mail-co1nam03on0057.outbound.protection.outlook.com ([104.47.40.57]:50284
+        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756648AbeFSI0J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Jun 2018 04:26:09 -0400
+From: Thomas Hellstrom <thellstrom@vmware.com>
+To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        peterz@infradead.org
+Cc: linux-graphics-maintainer@vmware.com, pv-drivers@vmware.com,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        Ingo Molnar <mingo@redhat.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>,
+        David Airlie <airlied@linux.ie>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        Josh Triplett <josh@joshtriplett.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org
+Subject: [PATCH v4 2/3] locking: Implement an algorithm choice for Wound-Wait mutexes
+Date: Tue, 19 Jun 2018 10:24:44 +0200
+Message-Id: <20180619082445.11062-3-thellstrom@vmware.com>
+In-Reply-To: <20180619082445.11062-1-thellstrom@vmware.com>
+References: <20180619082445.11062-1-thellstrom@vmware.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="T4sUOijqQbZv57TR"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1529388605-10044-1-git-send-email-akhilpo@codeaurora.org>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The current Wound-Wait mutex algorithm is actually not Wound-Wait but
+Wait-Die. Implement also Wound-Wait as a per-ww-class choice. Wound-Wait
+is, contrary to Wait-Die a preemptive algorithm and is known to generate
+fewer backoffs. Testing reveals that this is true if the
+number of simultaneous contending transactions is small.
+As the number of simultaneous contending threads increases, Wait-Wound
+becomes inferior to Wait-Die in terms of elapsed time.
+Possibly due to the larger number of held locks of sleeping transactions.
 
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Update documentation and callers.
 
-Hi Akhil,
+Timings using git://people.freedesktop.org/~thomash/ww_mutex_test
+tag patch-18-06-15
 
-Thank you for the patch! Perhaps something to improve:
+Each thread runs 100000 batches of lock / unlock 800 ww mutexes randomly
+chosen out of 100000. Four core Intel x86_64:
 
-[auto build test WARNING on linus/master]
-[also build test WARNING on v4.18-rc1 next-20180618]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+Algorithm    #threads       Rollbacks  time
+Wound-Wait   4              ~100       ~17s.
+Wait-Die     4              ~150000    ~19s.
+Wound-Wait   16             ~360000    ~109s.
+Wait-Die     16             ~450000    ~82s.
 
-url:    https://github.com/0day-ci/linux/commits/Akhil-P-Oommen/dma-buf-fence-Take-refcount-on-the-module-that-owns-the-fence/20180619-142309
-reproduce: make htmldocs
-
-All warnings (new ones prefixed by >>):
-
-   WARNING: convert(1) not found, for SVG to PDF conversion install ImageMagick (https://www.imagemagick.org)
-   mm/mempool.c:228: warning: Function parameter or member 'pool' not described in 'mempool_init'
-   include/net/cfg80211.h:4279: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4279: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4279: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4279: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4279: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
-   include/net/cfg80211.h:4279: warning: Function parameter or member 'wext.bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4279: warning: Function parameter or member 'wext.ssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4279: warning: Function parameter or member 'wext.default_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4279: warning: Function parameter or member 'wext.default_mgmt_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4279: warning: Function parameter or member 'wext.prev_bssid_valid' not described in 'wireless_dev'
-   include/net/mac80211.h:2282: warning: Function parameter or member 'radiotap_timestamp.units_pos' not described in 'ieee80211_hw'
-   include/net/mac80211.h:2282: warning: Function parameter or member 'radiotap_timestamp.accuracy' not described in 'ieee80211_hw'
-   include/net/mac80211.h:955: warning: Function parameter or member 'control.rates' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'control.rts_cts_rate_idx' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'control.use_rts' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'control.use_cts_prot' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'control.short_preamble' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'control.skip_table' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'control.jiffies' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'control.vif' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'control.hw_key' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'control.flags' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'control.enqueue_time' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'ack' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'ack.cookie' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'status.rates' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'status.ack_signal' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'status.ampdu_ack_len' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'status.ampdu_len' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'status.antenna' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'status.tx_time' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'status.is_valid_ack_signal' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'status.status_driver_data' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'driver_rates' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'pad' not described in 'ieee80211_tx_info'
-   include/net/mac80211.h:955: warning: Function parameter or member 'rate_driver_data' not described in 'ieee80211_tx_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'rx_stats_avg' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'rx_stats_avg.signal' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'rx_stats_avg.chain_signal' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'status_stats.filtered' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'status_stats.retry_failed' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'status_stats.retry_count' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'status_stats.lost_packets' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'status_stats.last_tdls_pkt_time' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'status_stats.msdu_retries' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'status_stats.msdu_failed' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'status_stats.last_ack' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'status_stats.last_ack_signal' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'status_stats.ack_signal_filled' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'status_stats.avg_ack_signal' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'tx_stats.packets' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'tx_stats.bytes' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'tx_stats.last_rate' not described in 'sta_info'
-   net/mac80211/sta_info.h:588: warning: Function parameter or member 'tx_stats.msdu' not described in 'sta_info'
-   kernel/sched/fair.c:3760: warning: Function parameter or member 'flags' not described in 'attach_entity_load_avg'
-   include/linux/device.h:93: warning: bad line: this bus.
-   include/linux/dma-buf.h:307: warning: Function parameter or member 'cb_excl.cb' not described in 'dma_buf'
-   include/linux/dma-buf.h:307: warning: Function parameter or member 'cb_excl.poll' not described in 'dma_buf'
-   include/linux/dma-buf.h:307: warning: Function parameter or member 'cb_excl.active' not described in 'dma_buf'
-   include/linux/dma-buf.h:307: warning: Function parameter or member 'cb_shared.cb' not described in 'dma_buf'
-   include/linux/dma-buf.h:307: warning: Function parameter or member 'cb_shared.poll' not described in 'dma_buf'
-   include/linux/dma-buf.h:307: warning: Function parameter or member 'cb_shared.active' not described in 'dma_buf'
->> drivers/dma-buf/dma-fence.c:567: warning: Function parameter or member 'module' not described in '_dma_fence_init'
-   include/linux/dma-fence-array.h:54: warning: Function parameter or member 'work' not described in 'dma_fence_array'
-   include/linux/gpio/driver.h:142: warning: Function parameter or member 'request_key' not described in 'gpio_irq_chip'
-   include/linux/iio/hw-consumer.h:1: warning: no structured comments found
-   include/linux/device.h:94: warning: bad line: this bus.
-   include/linux/input/sparse-keymap.h:46: warning: Function parameter or member 'sw' not described in 'key_entry'
-   include/linux/regulator/driver.h:227: warning: Function parameter or member 'resume_early' not described in 'regulator_ops'
-   drivers/regulator/core.c:4465: warning: Excess function parameter 'state' description in 'regulator_suspend_late'
-   arch/s390/include/asm/cio.h:245: warning: Function parameter or member 'esw.esw0' not described in 'irb'
-   arch/s390/include/asm/cio.h:245: warning: Function parameter or member 'esw.esw1' not described in 'irb'
-   arch/s390/include/asm/cio.h:245: warning: Function parameter or member 'esw.esw2' not described in 'irb'
-   arch/s390/include/asm/cio.h:245: warning: Function parameter or member 'esw.esw3' not described in 'irb'
-   arch/s390/include/asm/cio.h:245: warning: Function parameter or member 'esw.eadm' not described in 'irb'
-   drivers/usb/dwc3/gadget.c:510: warning: Excess function parameter 'dwc' description in 'dwc3_gadget_start_config'
-   include/drm/drm_drv.h:610: warning: Function parameter or member 'gem_prime_pin' not described in 'drm_driver'
-   include/drm/drm_drv.h:610: warning: Function parameter or member 'gem_prime_unpin' not described in 'drm_driver'
-   include/drm/drm_drv.h:610: warning: Function parameter or member 'gem_prime_res_obj' not described in 'drm_driver'
-   include/drm/drm_drv.h:610: warning: Function parameter or member 'gem_prime_get_sg_table' not described in 'drm_driver'
-   include/drm/drm_drv.h:610: warning: Function parameter or member 'gem_prime_import_sg_table' not described in 'drm_driver'
-   include/drm/drm_drv.h:610: warning: Function parameter or member 'gem_prime_vmap' not described in 'drm_driver'
-   include/drm/drm_drv.h:610: warning: Function parameter or member 'gem_prime_vunmap' not described in 'drm_driver'
-   include/drm/drm_drv.h:610: warning: Function parameter or member 'gem_prime_mmap' not described in 'drm_driver'
-   drivers/gpu/drm/i915/i915_vma.h:48: warning: cannot understand function prototype: 'struct i915_vma '
-   drivers/gpu/drm/i915/i915_vma.h:1: warning: no structured comments found
-   include/drm/tinydrm/tinydrm.h:34: warning: Function parameter or member 'fb_dirty' not described in 'tinydrm_device'
-   drivers/gpu/drm/tinydrm/mipi-dbi.c:272: warning: Function parameter or member 'crtc_state' not described in 'mipi_dbi_enable_flush'
-   drivers/gpu/drm/tinydrm/mipi-dbi.c:272: warning: Function parameter or member 'plane_state' not described in 'mipi_dbi_enable_flush'
-
-vim +567 drivers/dma-buf/dma-fence.c
-
-a519435a drivers/dma-buf/fence.c     Christian König   2015-10-20  545  
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  546  /**
-f54d1867 drivers/dma-buf/dma-fence.c Chris Wilson      2016-10-25  547   * dma_fence_init - Initialize a custom fence.
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  548   * @fence:	[in]	the fence to initialize
-f54d1867 drivers/dma-buf/dma-fence.c Chris Wilson      2016-10-25  549   * @ops:	[in]	the dma_fence_ops for operations on this fence
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  550   * @lock:	[in]	the irqsafe spinlock to use for locking this fence
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  551   * @context:	[in]	the execution context this fence is run on
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  552   * @seqno:	[in]	a linear increasing sequence number for this context
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  553   *
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  554   * Initializes an allocated fence, the caller doesn't have to keep its
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  555   * refcount after committing with this fence, but it will need to hold a
-f54d1867 drivers/dma-buf/dma-fence.c Chris Wilson      2016-10-25  556   * refcount again if dma_fence_ops.enable_signaling gets called. This can
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  557   * be used for other implementing other types of fence.
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  558   *
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  559   * context and seqno are used for easy comparison between fences, allowing
-f54d1867 drivers/dma-buf/dma-fence.c Chris Wilson      2016-10-25  560   * to check which fence is later by simply using dma_fence_later.
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  561   */
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  562  void
-9c7d6561 drivers/dma-buf/dma-fence.c Akhil P Oommen    2018-06-19  563  _dma_fence_init(struct module *module, struct dma_fence *fence,
-9c7d6561 drivers/dma-buf/dma-fence.c Akhil P Oommen    2018-06-19  564  		const struct dma_fence_ops *ops, spinlock_t *lock,
-9c7d6561 drivers/dma-buf/dma-fence.c Akhil P Oommen    2018-06-19  565  		u64 context, unsigned seqno)
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01  566  {
-e941759c drivers/dma-buf/fence.c     Maarten Lankhorst 2014-07-01 @567  	BUG_ON(!lock);
-
-:::::: The code at line 567 was first introduced by commit
-:::::: e941759c74a44d6ac2eed21bb0a38b21fe4559e2 fence: dma-buf cross-device synchronization (v18)
-
-:::::: TO: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-:::::: CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Sean Paul <seanpaul@chromium.org>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-doc@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: linaro-mm-sig@lists.linaro.org
+Co-authored-by: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Thomas Hellstrom <thellstrom@vmware.com>
 
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+v2:
+* Update API according to review comment by Greg Kroah-Hartman.
+* Address review comments by Peter Zijlstra:
+  - Avoid _Bool in composites
+  - Fix typo
+  - Use __mutex_owner() where applicable
+  - Rely on built-in barriers for the main loop exit condition,
+    struct ww_acquire_ctx::wounded. Update code comments.
+  - Explain unlocked use of list_empty().
+v3:
+* Adapt to and incorporate cleanup by Peter Zijlstra
+* Remove unlocked use of list_empty().
+v4:
+* Move code related to adding a waiter to the lock waiter list to a
+  separate function.
+---
+ Documentation/locking/ww-mutex-design.txt |  57 +++++++++--
+ drivers/dma-buf/reservation.c             |   2 +-
+ drivers/gpu/drm/drm_modeset_lock.c        |   2 +-
+ include/linux/ww_mutex.h                  |  17 ++-
+ kernel/locking/locktorture.c              |   2 +-
+ kernel/locking/mutex.c                    | 165 +++++++++++++++++++++++++++---
+ kernel/locking/test-ww_mutex.c            |   2 +-
+ lib/locking-selftest.c                    |   2 +-
+ 8 files changed, 213 insertions(+), 36 deletions(-)
 
---T4sUOijqQbZv57TR
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
-
-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
-wLkznaYa6LO+GjQg/VFcmf+34nGX6lkAAA==
-
---T4sUOijqQbZv57TR--
+diff --git a/Documentation/locking/ww-mutex-design.txt b/Documentation/locking/ww-mutex-design.txt
+index 2fd7f2a2af21..f0ed7c30e695 100644
+--- a/Documentation/locking/ww-mutex-design.txt
++++ b/Documentation/locking/ww-mutex-design.txt
+@@ -1,4 +1,4 @@
+-Wait/Wound Deadlock-Proof Mutex Design
++Wound/Wait Deadlock-Proof Mutex Design
+ ======================================
+ 
+ Please read mutex-design.txt first, as it applies to wait/wound mutexes too.
+@@ -32,10 +32,26 @@ the oldest task) wins, and the one with the higher reservation id (i.e. the
+ younger task) unlocks all of the buffers that it has already locked, and then
+ tries again.
+ 
+-In the RDBMS literature this deadlock handling approach is called wait/die:
+-The older tasks waits until it can acquire the contended lock. The younger tasks
+-needs to back off and drop all the locks it is currently holding, i.e. the
+-younger task dies.
++In the RDBMS literature, a reservation ticket is associated with a transaction.
++and the deadlock handling approach is called Wait-Die. The name is based on
++the actions of a locking thread when it encounters an already locked mutex.
++If the transaction holding the lock is younger, the locking transaction waits.
++If the transaction holding the lock is older, the locking transaction backs off
++and dies. Hence Wait-Die.
++There is also another algorithm called Wound-Wait:
++If the transaction holding the lock is younger, the locking transaction
++wounds the transaction holding the lock, requesting it to die.
++If the transaction holding the lock is older, it waits for the other
++transaction. Hence Wound-Wait.
++The two algorithms are both fair in that a transaction will eventually succeed.
++However, the Wound-Wait algorithm is typically stated to generate fewer backoffs
++compared to Wait-Die, but is, on the other hand, associated with more work than
++Wait-Die when recovering from a backoff. Wound-Wait is also a preemptive
++algorithm in that transactions are wounded by other transactions, and that
++requires a reliable way to pick up up the wounded condition and preempt the
++running transaction. Note that this is not the same as process preemption. A
++Wound-Wait transaction is considered preempted when it dies (returning
++-EDEADLK) following a wound.
+ 
+ Concepts
+ --------
+@@ -47,10 +63,12 @@ Acquire context: To ensure eventual forward progress it is important the a task
+ trying to acquire locks doesn't grab a new reservation id, but keeps the one it
+ acquired when starting the lock acquisition. This ticket is stored in the
+ acquire context. Furthermore the acquire context keeps track of debugging state
+-to catch w/w mutex interface abuse.
++to catch w/w mutex interface abuse. An acquire context is representing a
++transaction.
+ 
+ W/w class: In contrast to normal mutexes the lock class needs to be explicit for
+-w/w mutexes, since it is required to initialize the acquire context.
++w/w mutexes, since it is required to initialize the acquire context. The lock
++class also specifies what algorithm to use, Wound-Wait or Wait-Die.
+ 
+ Furthermore there are three different class of w/w lock acquire functions:
+ 
+@@ -90,6 +108,12 @@ provided.
+ Usage
+ -----
+ 
++The algorithm (Wait-Die vs Wound-Wait) is chosen by using either
++DEFINE_WW_CLASS() (Wound-Wait) or DEFINE_WD_CLASS() (Wait-Die)
++As a rough rule of thumb, use Wound-Wait iff you
++expect the number of simultaneous competing transactions to be typically small,
++and you want to reduce the number of rollbacks.
++
+ Three different ways to acquire locks within the same w/w class. Common
+ definitions for methods #1 and #2:
+ 
+@@ -312,12 +336,23 @@ Design:
+   We maintain the following invariants for the wait list:
+   (1) Waiters with an acquire context are sorted by stamp order; waiters
+       without an acquire context are interspersed in FIFO order.
+-  (2) Among waiters with contexts, only the first one can have other locks
+-      acquired already (ctx->acquired > 0). Note that this waiter may come
+-      after other waiters without contexts in the list.
++  (2) For Wait-Die, among waiters with contexts, only the first one can have
++      other locks acquired already (ctx->acquired > 0). Note that this waiter
++      may come after other waiters without contexts in the list.
++
++  The Wound-Wait preemption is implemented with a lazy-preemption scheme:
++  The wounded status of the transaction is checked only when there is
++  contention for a new lock and hence a true chance of deadlock. In that
++  situation, if the transaction is wounded, it backs off, clears the
++  wounded status and retries. A great benefit of implementing preemption in
++  this way is that the wounded transaction can identify a contending lock to
++  wait for before restarting the transaction. Just blindly restarting the
++  transaction would likely make the transaction end up in a situation where
++  it would have to back off again.
+ 
+   In general, not much contention is expected. The locks are typically used to
+-  serialize access to resources for devices.
++  serialize access to resources for devices, and optimization focus should
++  therefore be directed towards the uncontended cases.
+ 
+ Lockdep:
+   Special care has been taken to warn for as many cases of api abuse
+diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+index 314eb1071cce..20bf90f4ee63 100644
+--- a/drivers/dma-buf/reservation.c
++++ b/drivers/dma-buf/reservation.c
+@@ -46,7 +46,7 @@
+  * write-side updates.
+  */
+ 
+-DEFINE_WW_CLASS(reservation_ww_class);
++DEFINE_WD_CLASS(reservation_ww_class);
+ EXPORT_SYMBOL(reservation_ww_class);
+ 
+ struct lock_class_key reservation_seqcount_class;
+diff --git a/drivers/gpu/drm/drm_modeset_lock.c b/drivers/gpu/drm/drm_modeset_lock.c
+index 8a5100685875..638be2eb67b4 100644
+--- a/drivers/gpu/drm/drm_modeset_lock.c
++++ b/drivers/gpu/drm/drm_modeset_lock.c
+@@ -70,7 +70,7 @@
+  * lists and lookup data structures.
+  */
+ 
+-static DEFINE_WW_CLASS(crtc_ww_class);
++static DEFINE_WD_CLASS(crtc_ww_class);
+ 
+ /**
+  * drm_modeset_lock_all - take all modeset locks
+diff --git a/include/linux/ww_mutex.h b/include/linux/ww_mutex.h
+index f82fce2229c8..3af7c0e03be5 100644
+--- a/include/linux/ww_mutex.h
++++ b/include/linux/ww_mutex.h
+@@ -8,6 +8,8 @@
+  *
+  * Wait/Die implementation:
+  *  Copyright (C) 2013 Canonical Ltd.
++ * Choice of algorithm:
++ *  Copyright (C) 2018 WMWare Inc.
+  *
+  * This file contains the main data structure and API definitions.
+  */
+@@ -23,12 +25,15 @@ struct ww_class {
+ 	struct lock_class_key mutex_key;
+ 	const char *acquire_name;
+ 	const char *mutex_name;
++	unsigned int is_wait_die;
+ };
+ 
+ struct ww_acquire_ctx {
+ 	struct task_struct *task;
+ 	unsigned long stamp;
+ 	unsigned int acquired;
++	unsigned short wounded;
++	unsigned short is_wait_die;
+ #ifdef CONFIG_DEBUG_MUTEXES
+ 	unsigned int done_acquire;
+ 	struct ww_class *ww_class;
+@@ -58,17 +63,21 @@ struct ww_mutex {
+ # define __WW_CLASS_MUTEX_INITIALIZER(lockname, class)
+ #endif
+ 
+-#define __WW_CLASS_INITIALIZER(ww_class) \
++#define __WW_CLASS_INITIALIZER(ww_class, _is_wait_die)	    \
+ 		{ .stamp = ATOMIC_LONG_INIT(0) \
+ 		, .acquire_name = #ww_class "_acquire" \
+-		, .mutex_name = #ww_class "_mutex" }
++		, .mutex_name = #ww_class "_mutex" \
++		, .is_wait_die = _is_wait_die }
+ 
+ #define __WW_MUTEX_INITIALIZER(lockname, class) \
+ 		{ .base =  __MUTEX_INITIALIZER(lockname.base) \
+ 		__WW_CLASS_MUTEX_INITIALIZER(lockname, class) }
+ 
++#define DEFINE_WD_CLASS(classname) \
++	struct ww_class classname = __WW_CLASS_INITIALIZER(classname, 1)
++
+ #define DEFINE_WW_CLASS(classname) \
+-	struct ww_class classname = __WW_CLASS_INITIALIZER(classname)
++	struct ww_class classname = __WW_CLASS_INITIALIZER(classname, 0)
+ 
+ #define DEFINE_WW_MUTEX(mutexname, ww_class) \
+ 	struct ww_mutex mutexname = __WW_MUTEX_INITIALIZER(mutexname, ww_class)
+@@ -123,6 +132,8 @@ static inline void ww_acquire_init(struct ww_acquire_ctx *ctx,
+ 	ctx->task = current;
+ 	ctx->stamp = atomic_long_inc_return_relaxed(&ww_class->stamp);
+ 	ctx->acquired = 0;
++	ctx->wounded = false;
++	ctx->is_wait_die = ww_class->is_wait_die;
+ #ifdef CONFIG_DEBUG_MUTEXES
+ 	ctx->ww_class = ww_class;
+ 	ctx->done_acquire = 0;
+diff --git a/kernel/locking/locktorture.c b/kernel/locking/locktorture.c
+index 6850ffd69125..907e0325892c 100644
+--- a/kernel/locking/locktorture.c
++++ b/kernel/locking/locktorture.c
+@@ -365,7 +365,7 @@ static struct lock_torture_ops mutex_lock_ops = {
+ };
+ 
+ #include <linux/ww_mutex.h>
+-static DEFINE_WW_CLASS(torture_ww_class);
++static DEFINE_WD_CLASS(torture_ww_class);
+ static DEFINE_WW_MUTEX(torture_ww_mutex_0, &torture_ww_class);
+ static DEFINE_WW_MUTEX(torture_ww_mutex_1, &torture_ww_class);
+ static DEFINE_WW_MUTEX(torture_ww_mutex_2, &torture_ww_class);
+diff --git a/kernel/locking/mutex.c b/kernel/locking/mutex.c
+index 412b4fc08235..8ca83a5e3d24 100644
+--- a/kernel/locking/mutex.c
++++ b/kernel/locking/mutex.c
+@@ -172,6 +172,21 @@ static inline bool __mutex_waiter_is_first(struct mutex *lock, struct mutex_wait
+ 	return list_first_entry(&lock->wait_list, struct mutex_waiter, list) == waiter;
+ }
+ 
++/*
++ * Add @waiter to a given location in the lock wait_list and set the
++ * FLAG_WAITERS flag if it's the first waiter.
++ */
++static void __sched
++__mutex_add_waiter(struct mutex *lock, struct mutex_waiter *waiter,
++		   struct list_head *list)
++{
++	debug_mutex_add_waiter(lock, waiter, current);
++
++	list_add_tail(&waiter->list, list);
++	if (__mutex_waiter_is_first(lock, waiter))
++		__mutex_set_flag(lock, MUTEX_FLAG_WAITERS);
++}
++
+ /*
+  * Give up ownership to a specific task, when @task = NULL, this is equivalent
+  * to a regular unlock. Sets PICKUP on a handoff, clears HANDOF, preserves
+@@ -248,6 +263,11 @@ EXPORT_SYMBOL(mutex_lock);
+  *   The newer transactions are killed when:
+  *     It (the new transaction) makes a request for a lock being held
+  *     by an older transaction.
++ *
++ * Wound-Wait:
++ *   The newer transactions are wounded when:
++ *     An older transaction makes a request for a lock being held by
++ *     the newer transaction.
+  */
+ 
+ /*
+@@ -319,6 +339,9 @@ static bool __sched
+ __ww_mutex_die(struct mutex *lock, struct mutex_waiter *waiter,
+ 	       struct ww_acquire_ctx *ww_ctx)
+ {
++	if (!ww_ctx->is_wait_die)
++		return false;
++
+ 	if (waiter->ww_ctx->acquired > 0 &&
+ 			__ww_ctx_stamp_after(waiter->ww_ctx, ww_ctx)) {
+ 		debug_mutex_wake_waiter(lock, waiter);
+@@ -328,13 +351,65 @@ __ww_mutex_die(struct mutex *lock, struct mutex_waiter *waiter,
+ 	return true;
+ }
+ 
++/*
++ * Wound-Wait; wound a younger @hold_ctx if it holds the lock.
++ *
++ * Wound the lock holder if there are waiters with older transactions than
++ * the lock holders. Even if multiple waiters may wound the lock holder,
++ * it's sufficient that only one does.
++ */
++static bool __ww_mutex_wound(struct mutex *lock,
++			     struct ww_acquire_ctx *ww_ctx,
++			     struct ww_acquire_ctx *hold_ctx)
++{
++	struct task_struct *owner = __mutex_owner(lock);
++
++	lockdep_assert_held(&lock->wait_lock);
++
++	/*
++	 * Possible through __ww_mutex_add_waiter() when we race with
++	 * ww_mutex_set_context_fastpath(). In that case we'll get here again
++	 * through __ww_mutex_check_waiters().
++	 */
++	if (!hold_ctx)
++		return false;
++
++	/*
++	 * Can have !owner because of __mutex_unlock_slowpath(), but if owner,
++	 * it cannot go away because we'll have FLAG_WAITERS set and hold
++	 * wait_lock.
++	 */
++	if (!owner)
++		return false;
++
++	if (ww_ctx->acquired > 0 && __ww_ctx_stamp_after(hold_ctx, ww_ctx)) {
++		hold_ctx->wounded = 1;
++
++		/*
++		 * wake_up_process() paired with set_current_state()
++		 * inserts sufficient barriers to make sure @owner either sees
++		 * it's wounded in __ww_mutex_lock_check_stamp() or has a
++		 * wakeup pending to re-read the wounded state.
++		 */
++		if (owner != current)
++			wake_up_process(owner);
++
++		return true;
++	}
++
++	return false;
++}
++
+ /*
+  * We just acquired @lock under @ww_ctx, if there are later contexts waiting
+- * behind us on the wait-list, check if they need to die.
++ * behind us on the wait-list, check if they need to die, or wound us.
+  *
+  * See __ww_mutex_add_waiter() for the list-order construction; basically the
+  * list is ordered by stamp, smallest (oldest) first.
+  *
++ * This relies on never mixing wait-die/wound-wait on the same wait-list;
++ * which is currently ensured by that being a ww_class property.
++ *
+  * The current task must not be on the wait list.
+  */
+ static void __sched
+@@ -348,7 +423,8 @@ __ww_mutex_check_waiters(struct mutex *lock, struct ww_acquire_ctx *ww_ctx)
+ 		if (!cur->ww_ctx)
+ 			continue;
+ 
+-		if (__ww_mutex_die(lock, cur, ww_ctx))
++		if (__ww_mutex_die(lock, cur, ww_ctx) ||
++		    __ww_mutex_wound(lock, cur->ww_ctx, ww_ctx))
+ 			break;
+ 	}
+ }
+@@ -369,17 +445,23 @@ ww_mutex_set_context_fastpath(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
+ 	 * and keep spinning, or it will acquire wait_lock, add itself
+ 	 * to waiter list and sleep.
+ 	 */
+-	smp_mb(); /* ^^^ */
++	smp_mb(); /* See comments above and below. */
+ 
+ 	/*
+-	 * Check if lock is contended, if not there is nobody to wake up
++	 * [W] ww->ctx = ctx	    [W] MUTEX_FLAG_WAITERS
++	 *     MB		        MB
++	 * [R] MUTEX_FLAG_WAITERS   [R] ww->ctx
++	 *
++	 * The memory barrier above pairs with the memory barrier in
++	 * __ww_mutex_add_waiter() and makes sure we either observe ww->ctx
++	 * and/or !empty list.
+ 	 */
+ 	if (likely(!(atomic_long_read(&lock->base.owner) & MUTEX_FLAG_WAITERS)))
+ 		return;
+ 
+ 	/*
+ 	 * Uh oh, we raced in fastpath, check if any of the waiters need to
+-	 * die.
++	 * die or wound us.
+ 	 */
+ 	spin_lock(&lock->base.wait_lock);
+ 	__ww_mutex_check_waiters(&lock->base, ctx);
+@@ -681,7 +763,9 @@ __ww_mutex_kill(struct mutex *lock, struct ww_acquire_ctx *ww_ctx)
+ 
+ 
+ /*
+- * Check whether we need to kill the transaction for the current lock acquire.
++ * Check the wound condition for the current lock acquire.
++ *
++ * Wound-Wait: If we're wounded, kill ourself.
+  *
+  * Wait-Die: If we're trying to acquire a lock already held by an older
+  *           context, kill ourselves.
+@@ -700,6 +784,13 @@ __ww_mutex_check_kill(struct mutex *lock, struct mutex_waiter *waiter,
+ 	if (ctx->acquired == 0)
+ 		return 0;
+ 
++	if (!ctx->is_wait_die) {
++		if (ctx->wounded)
++			return __ww_mutex_kill(lock, ctx);
++
++		return 0;
++	}
++
+ 	if (hold_ctx && __ww_ctx_stamp_after(ctx, hold_ctx))
+ 		return __ww_mutex_kill(lock, ctx);
+ 
+@@ -726,7 +817,8 @@ __ww_mutex_check_kill(struct mutex *lock, struct mutex_waiter *waiter,
+  * Waiters without context are interspersed in FIFO order.
+  *
+  * Furthermore, for Wait-Die kill ourself immediately when possible (there are
+- * older contexts already waiting) to avoid unnecessary waiting.
++ * older contexts already waiting) to avoid unnecessary waiting and for
++ * Wound-Wait ensure we wound the owning context when it is younger.
+  */
+ static inline int __sched
+ __ww_mutex_add_waiter(struct mutex_waiter *waiter,
+@@ -735,16 +827,21 @@ __ww_mutex_add_waiter(struct mutex_waiter *waiter,
+ {
+ 	struct mutex_waiter *cur;
+ 	struct list_head *pos;
++	bool is_wait_die;
+ 
+ 	if (!ww_ctx) {
+-		list_add_tail(&waiter->list, &lock->wait_list);
++		__mutex_add_waiter(lock, waiter, &lock->wait_list);
+ 		return 0;
+ 	}
+ 
++	is_wait_die = ww_ctx->is_wait_die;
++
+ 	/*
+ 	 * Add the waiter before the first waiter with a higher stamp.
+ 	 * Waiters without a context are skipped to avoid starving
+-	 * them. Wait-Die waiters may die here.
++	 * them. Wait-Die waiters may die here. Wound-Wait waiters
++	 * never die here, but they are sorted in stamp order and
++	 * may wound the lock holder.
+ 	 */
+ 	pos = &lock->wait_list;
+ 	list_for_each_entry_reverse(cur, &lock->wait_list, list) {
+@@ -757,10 +854,12 @@ __ww_mutex_add_waiter(struct mutex_waiter *waiter,
+ 			 * is no point in queueing behind it, as we'd have to
+ 			 * die the moment it would acquire the lock.
+ 			 */
+-			int ret = __ww_mutex_kill(lock, ww_ctx);
++			if (is_wait_die) {
++				int ret = __ww_mutex_kill(lock, ww_ctx);
+ 
+-			if (ret)
+-				return ret;
++				if (ret)
++					return ret;
++			}
+ 
+ 			break;
+ 		}
+@@ -771,7 +870,23 @@ __ww_mutex_add_waiter(struct mutex_waiter *waiter,
+ 		__ww_mutex_die(lock, cur, ww_ctx);
+ 	}
+ 
+-	list_add_tail(&waiter->list, pos);
++	__mutex_add_waiter(lock, waiter, pos);
++
++	/*
++	 * Wound-Wait: if we're blocking on a mutex owned by a younger context,
++	 * wound that such that we might proceed.
++	 */
++	if (!is_wait_die) {
++		struct ww_mutex *ww = container_of(lock, struct ww_mutex, base);
++
++		/*
++		 * See ww_mutex_set_context_fastpath(). Orders setting
++		 * MUTEX_FLAG_WAITERS vs the ww->ctx load,
++		 * such that either we or the fastpath will wound @ww->ctx.
++		 */
++		smp_mb();
++		__ww_mutex_wound(lock, ww_ctx, ww->ctx);
++	}
+ 
+ 	return 0;
+ }
+@@ -795,6 +910,14 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
+ 	if (use_ww_ctx && ww_ctx) {
+ 		if (unlikely(ww_ctx == READ_ONCE(ww->ctx)))
+ 			return -EALREADY;
++
++		/*
++		 * Reset the wounded flag after a kill. No other process can
++		 * race and wound us here since they can't have a valid owner
++		 * pointer if we don't have any locks held.
++		 */
++		if (ww_ctx->acquired == 0)
++			ww_ctx->wounded = 0;
+ 	}
+ 
+ 	preempt_disable();
+@@ -828,7 +951,8 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
+ 
+ 	if (!use_ww_ctx) {
+ 		/* add waiting tasks to the end of the waitqueue (FIFO): */
+-		list_add_tail(&waiter.list, &lock->wait_list);
++		__mutex_add_waiter(lock, &waiter, &lock->wait_list);
++
+ 
+ #ifdef CONFIG_DEBUG_MUTEXES
+ 		waiter.ww_ctx = MUTEX_POISON_WW_CTX;
+@@ -847,9 +971,6 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
+ 
+ 	waiter.task = current;
+ 
+-	if (__mutex_waiter_is_first(lock, &waiter))
+-		__mutex_set_flag(lock, MUTEX_FLAG_WAITERS);
+-
+ 	set_current_state(state);
+ 	for (;;) {
+ 		/*
+@@ -906,6 +1027,16 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
+ acquired:
+ 	__set_current_state(TASK_RUNNING);
+ 
++	if (use_ww_ctx && ww_ctx) {
++		/*
++		 * Wound-Wait; we stole the lock (!first_waiter), check the
++		 * waiters as anyone might want to wound us.
++		 */
++		if (!ww_ctx->is_wait_die &&
++		    !__mutex_waiter_is_first(lock, &waiter))
++			__ww_mutex_check_waiters(lock, ww_ctx);
++	}
++
+ 	mutex_remove_waiter(lock, &waiter, current);
+ 	if (likely(list_empty(&lock->wait_list)))
+ 		__mutex_clear_flag(lock, MUTEX_FLAGS);
+diff --git a/kernel/locking/test-ww_mutex.c b/kernel/locking/test-ww_mutex.c
+index 0e4cd64ad2c0..5b915b370d5a 100644
+--- a/kernel/locking/test-ww_mutex.c
++++ b/kernel/locking/test-ww_mutex.c
+@@ -26,7 +26,7 @@
+ #include <linux/slab.h>
+ #include <linux/ww_mutex.h>
+ 
+-static DEFINE_WW_CLASS(ww_class);
++static DEFINE_WD_CLASS(ww_class);
+ struct workqueue_struct *wq;
+ 
+ struct test_mutex {
+diff --git a/lib/locking-selftest.c b/lib/locking-selftest.c
+index b5c1293ce147..1e1bbf171eca 100644
+--- a/lib/locking-selftest.c
++++ b/lib/locking-selftest.c
+@@ -29,7 +29,7 @@
+  */
+ static unsigned int debug_locks_verbose;
+ 
+-static DEFINE_WW_CLASS(ww_lockdep);
++static DEFINE_WD_CLASS(ww_lockdep);
+ 
+ static int __init setup_debug_locks_verbose(char *str)
+ {
+-- 
+2.14.3
