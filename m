@@ -1,116 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:44615 "EHLO gofer.mess.org"
+Received: from mga12.intel.com ([192.55.52.136]:9811 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757224AbeFSM55 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Jun 2018 08:57:57 -0400
-Date: Tue, 19 Jun 2018 13:57:55 +0100
-From: Sean Young <sean@mess.org>
-To: Jerome Brunet <jbrunet@baylibre.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        "open list:ARM/Amlogic Meson..." <linux-amlogic@lists.infradead.org>
-Subject: Re: [1/3] media: rc: drivers should produce alternate pulse and
- space timing events
-Message-ID: <20180619125755.cd3tyfgsx5yqjohw@gofer.mess.org>
-References: <20180512105531.30482-1-sean@mess.org>
- <1529410092.28510.20.camel@baylibre.com>
+        id S937770AbeFSM4i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Jun 2018 08:56:38 -0400
+Date: Tue, 19 Jun 2018 15:56:18 +0300
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+To: Peter Rosin <peda@axentia.se>
+Cc: linux-kernel@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Gregory Fong <gregory.0xf0@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        bcm-kernel-feedback-list@broadcom.com,
+        Sekhar Nori <nsekhar@ti.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Haavard Skinnemoen <hskinnemoen@gmail.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang@linaro.org>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Laxman Dewangan <ldewangan@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        linux-integrity@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 02/11] tpm/tpm_i2c_infineon: switch to i2c_lock_segment
+Message-ID: <20180619125618.GB5609@linux.intel.com>
+References: <20180615101506.8012-1-peda@axentia.se>
+ <20180615101506.8012-3-peda@axentia.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1529410092.28510.20.camel@baylibre.com>
+In-Reply-To: <20180615101506.8012-3-peda@axentia.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 19, 2018 at 02:08:12PM +0200, Jerome Brunet wrote:
-> On Sat, 2018-05-12 at 11:55 +0100, Sean Young wrote:
-> > Report an error if this is not the case or any problem with the generated
-> > raw events.
+On Fri, Jun 15, 2018 at 12:14:57PM +0200, Peter Rosin wrote:
+> Locking the root adapter for __i2c_transfer will deadlock if the
+> device sits behind a mux-locked I2C mux. Switch to the finer-grained
+> i2c_lock_segment. If the device does not sit behind a mux-locked mux,
+> the two locking variants are equivalent.
 > 
-> Hi,
-> 
-> Since the inclusion of this patch, every 3 to 15 seconds, I get the following
-> message: 
-> 
->  "rc rc0: two consecutive events of type space"
-> 
-> on the console of amlogic s400 platform (arch/arm64/boot/dts/amlogic/meson-axg-
-> s400.dts). I don't know much about ir protocol and surely there is something
-> worth investigating in the related driver, but ...
-> 
-> > 
-> > Signed-off-by: Sean Young <sean@mess.org>
-> > ---
-> >  drivers/media/rc/rc-ir-raw.c | 19 +++++++++++++++----
-> >  1 file changed, 15 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-> > index 2e50104ae138..49c56da9bc67 100644
-> > --- a/drivers/media/rc/rc-ir-raw.c
-> > +++ b/drivers/media/rc/rc-ir-raw.c
-> > @@ -22,16 +22,27 @@ static int ir_raw_event_thread(void *data)
-> >  {
-> >  	struct ir_raw_event ev;
-> >  	struct ir_raw_handler *handler;
-> > -	struct ir_raw_event_ctrl *raw = (struct ir_raw_event_ctrl *)data;
-> > +	struct ir_raw_event_ctrl *raw = data;
-> > +	struct rc_dev *dev = raw->dev;
-> >  
-> >  	while (1) {
-> >  		mutex_lock(&ir_raw_handler_lock);
-> >  		while (kfifo_out(&raw->kfifo, &ev, 1)) {
-> > +			if (is_timing_event(ev)) {
-> > +				if (ev.duration == 0)
-> > +					dev_err(&dev->dev, "nonsensical timing event of duration 0");
-> > +				if (is_timing_event(raw->prev_ev) &&
-> > +				    !is_transition(&ev, &raw->prev_ev))
-> > +					dev_err(&dev->dev, "two consecutive events of type %s",
-> > +						TO_STR(ev.pulse));
-> > +				if (raw->prev_ev.reset && ev.pulse == 0)
-> > +					dev_err(&dev->dev, "timing event after reset should be pulse");
-> > +			}
-> 
-> ... considering that we continue the processing as if nothing happened, is it
-> really an error ? 
-> 
-> Could we consider something less invasive ? like dev_dbg() or dev_warn_once() ?
+> Signed-off-by: Peter Rosin <peda@axentia.se>
 
-Maybe it should be dev_warn(). The fact that it is not dev_warn_once() means
-that we now know this occurs regularly.
+Can you quickly explain (or give a reference) the difference with these
+functions? Not an expert in this area. Thanks.
 
-Would you mind testing the following patch please?
-
-Thanks
-
-Sean
-
->From 6a44fbe4738d230b9cf378777e7e9a93e5fda726 Mon Sep 17 00:00:00 2001
-From: Sean Young <sean@mess.org>
-Date: Tue, 19 Jun 2018 13:50:36 +0100
-Subject: [PATCH] media: rc: meson: rc rc0: two consecutive events of type
- space
-
-The meson generates one edge per interrupt. The duration is encoded in 12
-bits of 10 microseconds, so it can only encoding a maximum of 40
-milliseconds. As a result, it can produce multiple space events.
-
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/meson-ir.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-index f449b35d25e7..9747426719b2 100644
---- a/drivers/media/rc/meson-ir.c
-+++ b/drivers/media/rc/meson-ir.c
-@@ -97,7 +97,8 @@ static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
- 	status = readl_relaxed(ir->reg + IR_DEC_STATUS);
- 	rawir.pulse = !!(status & STATUS_IR_DEC_IN);
- 
--	ir_raw_event_store_with_timeout(ir->rc, &rawir);
-+	if (ir_raw_event_store_with_filter(ir->rc, &rawir))
-+		ir_raw_event_handle(ir->rc);
- 
- 	spin_unlock(&ir->lock);
- 
--- 
-2.17.1
+/Jarkko
