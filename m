@@ -1,87 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:50525 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937592AbeFSMIO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Jun 2018 08:08:14 -0400
-Received: by mail-wm0-f65.google.com with SMTP id e16-v6so19492473wmd.0
-        for <linux-media@vger.kernel.org>; Tue, 19 Jun 2018 05:08:14 -0700 (PDT)
-Message-ID: <1529410092.28510.20.camel@baylibre.com>
-Subject: Re: [1/3] media: rc: drivers should produce alternate pulse and
- space timing events
-From: Jerome Brunet <jbrunet@baylibre.com>
-To: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: "open list:ARM/Amlogic Meson..." <linux-amlogic@lists.infradead.org>
-Date: Tue, 19 Jun 2018 14:08:12 +0200
-In-Reply-To: <20180512105531.30482-1-sean@mess.org>
-References: <20180512105531.30482-1-sean@mess.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mail-eopbgr10120.outbound.protection.outlook.com ([40.107.1.120]:22368
+        "EHLO EUR02-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S965740AbeFSNGK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Jun 2018 09:06:10 -0400
+Subject: Re: [PATCH 02/11] tpm/tpm_i2c_infineon: switch to i2c_lock_segment
+To: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Gregory Fong <gregory.0xf0@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        bcm-kernel-feedback-list@broadcom.com,
+        Sekhar Nori <nsekhar@ti.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Haavard Skinnemoen <hskinnemoen@gmail.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang@linaro.org>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Laxman Dewangan <ldewangan@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        linux-integrity@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org
+References: <20180615101506.8012-1-peda@axentia.se>
+ <20180615101506.8012-3-peda@axentia.se>
+ <20180619125618.GB5609@linux.intel.com>
+From: Peter Rosin <peda@axentia.se>
+Message-ID: <eb583028-dfcb-7f1b-c2a1-236ad4c5c2b5@axentia.se>
+Date: Tue, 19 Jun 2018 15:05:50 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180619125618.GB5609@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2018-05-12 at 11:55 +0100, Sean Young wrote:
-> Report an error if this is not the case or any problem with the generated
-> raw events.
-
-Hi,
-
-Since the inclusion of this patch, every 3 to 15 seconds, I get the following
-message: 
-
- "rc rc0: two consecutive events of type space"
-
-on the console of amlogic s400 platform (arch/arm64/boot/dts/amlogic/meson-axg-
-s400.dts). I don't know much about ir protocol and surely there is something
-worth investigating in the related driver, but ...
-
+On 2018-06-19 14:56, Jarkko Sakkinen wrote:
+> On Fri, Jun 15, 2018 at 12:14:57PM +0200, Peter Rosin wrote:
+>> Locking the root adapter for __i2c_transfer will deadlock if the
+>> device sits behind a mux-locked I2C mux. Switch to the finer-grained
+>> i2c_lock_segment. If the device does not sit behind a mux-locked mux,
+>> the two locking variants are equivalent.
+>>
+>> Signed-off-by: Peter Rosin <peda@axentia.se>
 > 
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/rc/rc-ir-raw.c | 19 +++++++++++++++----
->  1 file changed, 15 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-> index 2e50104ae138..49c56da9bc67 100644
-> --- a/drivers/media/rc/rc-ir-raw.c
-> +++ b/drivers/media/rc/rc-ir-raw.c
-> @@ -22,16 +22,27 @@ static int ir_raw_event_thread(void *data)
->  {
->  	struct ir_raw_event ev;
->  	struct ir_raw_handler *handler;
-> -	struct ir_raw_event_ctrl *raw = (struct ir_raw_event_ctrl *)data;
-> +	struct ir_raw_event_ctrl *raw = data;
-> +	struct rc_dev *dev = raw->dev;
->  
->  	while (1) {
->  		mutex_lock(&ir_raw_handler_lock);
->  		while (kfifo_out(&raw->kfifo, &ev, 1)) {
-> +			if (is_timing_event(ev)) {
-> +				if (ev.duration == 0)
-> +					dev_err(&dev->dev, "nonsensical timing event of duration 0");
-> +				if (is_timing_event(raw->prev_ev) &&
-> +				    !is_transition(&ev, &raw->prev_ev))
-> +					dev_err(&dev->dev, "two consecutive events of type %s",
-> +						TO_STR(ev.pulse));
-> +				if (raw->prev_ev.reset && ev.pulse == 0)
-> +					dev_err(&dev->dev, "timing event after reset should be pulse");
-> +			}
+> Can you quickly explain (or give a reference) the difference with these
+> functions? Not an expert in this area. Thanks.
 
-... considering that we continue the processing as if nothing happened, is it
-really an error ? 
+There are some words in the cover letter. If you need more, there's
+always Documentation/i2c/i2c-topology. Hope that helps, otherwise I'll
+try to explain better...
 
-Could we consider something less invasive ? like dev_dbg() or dev_warn_once() ?
-
->  			list_for_each_entry(handler, &ir_raw_handler_list, list)
-> -				if (raw->dev->enabled_protocols &
-> +				if (dev->enabled_protocols &
->  				    handler->protocols || !handler->protocols)
-> -					handler->decode(raw->dev, ev);
-> -			ir_lirc_raw_event(raw->dev, ev);
-> +					handler->decode(dev, ev);
-> +			ir_lirc_raw_event(dev, ev);
->  			raw->prev_ev = ev;
->  		}
->  		mutex_unlock(&ir_raw_handler_lock);
+Cheers,
+Peter
