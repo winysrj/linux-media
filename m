@@ -1,80 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:38722 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937591AbeFSLCe (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:57583 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937408AbeFSLpb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Jun 2018 07:02:34 -0400
-Date: Tue, 19 Jun 2018 13:02:05 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-graphics-maintainer@vmware.com, pv-drivers@vmware.com,
-        Ingo Molnar <mingo@redhat.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        David Airlie <airlied@linux.ie>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org
-Subject: Re: [PATCH 1/3] locking: WW mutex cleanup
-Message-ID: <20180619110205.GE2476@hirez.programming.kicks-ass.net>
-References: <20180619082445.11062-1-thellstrom@vmware.com>
- <20180619082445.11062-2-thellstrom@vmware.com>
- <20180619094409.GK2458@hirez.programming.kicks-ass.net>
- <8ea67e74-5ed4-2157-8e51-43f15047b3e4@vmware.com>
+        Tue, 19 Jun 2018 07:45:31 -0400
+Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
+        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20180619114529euoutp022b1f285beb4b7a740bf70e75056849a0~5jSLrjse22116021160euoutp02c
+        for <linux-media@vger.kernel.org>; Tue, 19 Jun 2018 11:45:29 +0000 (GMT)
+Subject: Re: dynamic reservation and allocation of physically contiguous
+ memory using CMA
+To: "Amit Chandra (amichand)" <amichand@cisco.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-samsung-soc@vger.kernel.org"
+        <linux-samsung-soc@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-mm@kvack.org" <linux-mm@kvack.org>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Date: Tue, 19 Jun 2018 13:45:26 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8ea67e74-5ed4-2157-8e51-43f15047b3e4@vmware.com>
+In-Reply-To: <DF0025E0-5C00-4566-82D2-F3599F206210@cisco.com>
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Message-Id: <20180619114527eucas1p154dc59055086a514a0423fc4cfb0b8c8~5jSJigH_r0719907199eucas1p1N@eucas1p1.samsung.com>
+Content-Type: text/plain; charset="utf-8"
+References: <CGME20180618182314epcas1p37a2b1ba6db9a829c07abf55ca0d3d50d@epcas1p3.samsung.com>
+        <DF0025E0-5C00-4566-82D2-F3599F206210@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 19, 2018 at 12:44:52PM +0200, Thomas Hellstrom wrote:
-> On 06/19/2018 11:44 AM, Peter Zijlstra wrote:
-> > On Tue, Jun 19, 2018 at 10:24:43AM +0200, Thomas Hellstrom wrote:
-> > > From: Peter Ziljstra <peterz@infradead.org>
-> > > 
-> > > Make the WW mutex code more readable by adding comments, splitting up
-> > > functions and pointing out that we're actually using the Wait-Die
-> > > algorithm.
-> > > 
-> > > Cc: Ingo Molnar <mingo@redhat.com>
-> > > Cc: Jonathan Corbet <corbet@lwn.net>
-> > > Cc: Gustavo Padovan <gustavo@padovan.org>
-> > > Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-> > > Cc: Sean Paul <seanpaul@chromium.org>
-> > > Cc: David Airlie <airlied@linux.ie>
-> > > Cc: Davidlohr Bueso <dave@stgolabs.net>
-> > > Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-> > > Cc: Josh Triplett <josh@joshtriplett.org>
-> > > Cc: Thomas Gleixner <tglx@linutronix.de>
-> > > Cc: Kate Stewart <kstewart@linuxfoundation.org>
-> > > Cc: Philippe Ombredanne <pombredanne@nexb.com>
-> > > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > > Cc: linux-doc@vger.kernel.org
-> > > Cc: linux-media@vger.kernel.org
-> > > Cc: linaro-mm-sig@lists.linaro.org
-> > > Co-authored-by: Thomas Hellstrom <thellstrom@vmware.com>
-> > > Signed-off-by: Thomas Hellstrom <thellstrom@vmware.com>
-> > > ---
-> > >   Documentation/locking/ww-mutex-design.txt |  12 +-
-> > >   include/linux/ww_mutex.h                  |  28 ++---
-> > >   kernel/locking/mutex.c                    | 202 ++++++++++++++++++------------
-> > >   3 files changed, 145 insertions(+), 97 deletions(-)
-> > Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> 
-> Hi Peter,
-> 
-> Do you want to add a SOB, since you're the main author?
+Hi Amit,
 
-Sure, here goes:
+On 2018-06-18 20:23, Amit Chandra (amichand) wrote:
+>
+> Hi experts,
+>
+> I had a question related to CMA. I have been trying to use the CMA 
+> infra to reserve and allocate physically contiguous memory dynamically 
+> at runtime.
+>
+> I built a custom kernel based on linux-4.14.47 to invoke the cma 
+> initialization apis at runtime from kernel loadable module.
+>
+> I invoke cma_declare_contiguous() followed by cma_init_reserved_areas().
+>
+> cma_declare_contiguous throws no surprises and succeeds. The issue 
+> happens when cma_init_reserved_areas() is invoked post that.
+>
+> Here is the kernel log snippet post that call:
+>
+> Jun 15 03:30:31 ubuntu-quickstart kernel: [  384.593218] cma: 
+> cma_declare_contiguous(size 0x0000000200000000, base 
+> 0x0000000000000000, limit 0x0000000000000000 alignment 0x0000000000000000)
+>
+> Jun 15 03:30:31 ubuntu-quickstart kernel: [  384.593228] cma: Reserved 
+> 8192 MiB at 0x0000001d4d000000
+>
+> Jun 15 03:30:31 ubuntu-quickstart kernel: [  384.593345] BUG: Bad page 
+> state in process insmod  pfn:1d4d000
+>
+> Jun 15 03:30:31 ubuntu-quickstart kernel: [  384.595758] 
+> page:ffffefc335340000 count:0 mapcount:-127 mapping:          (null) 
+> index:0x0
+>
+> Jun 15 03:30:31 ubuntu-quickstart kernel: [  384.599193] flags: 
+> 0x57fffc000000000()
+>
+> Jun 15 03:30:31 ubuntu-quickstart kernel: [  384.600751] raw: 
+> 057fffc000000000 0000000000000000 0000000000000000 00000000ffffff80
+>
+> Jun 15 03:30:31 ubuntu-quickstart kernel: [  384.603946] raw: 
+> ffffefc335330020 ffffefc335350020 000000000000000a 0000000000000000
+>
+> Jun 15 03:30:31 ubuntu-quickstart kernel: [  384.607152] page dumped 
+> because: nonzero mapcount
+>
+> I am having a hard time trying to understand why the mapcount is less 
+> than 0 here. I figured this is happening in the call to __free_pages() 
+> from init_cma_reserved_pageblock().
+>
+> Any pointers here would be really helpful. If I am missing any step 
+> for cma reservation, please do let me know.
+>
+> Thanks in advance.
+>
 
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+CMA initialization is possible only on very early boot stage. CMA will 
+not work as dynamic module.
+
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
