@@ -1,104 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:36973 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750718AbeFSEEw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Jun 2018 00:04:52 -0400
-Date: Tue, 19 Jun 2018 07:04:32 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] media: ov5645: Report number of skip frames
-Message-ID: <20180619040432.xbcrkgof6rycg3db@kekkonen.localdomain>
-References: <1529309219-27404-1-git-send-email-todor.tomov@linaro.org>
- <1529309219-27404-2-git-send-email-todor.tomov@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1529309219-27404-2-git-send-email-todor.tomov@linaro.org>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:51696 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750961AbeFSEjo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Jun 2018 00:39:44 -0400
+Message-ID: <56df79bb9764c367088ce599d93882ba@smtp-cloud9.xs4all.net>
+Date: Tue, 19 Jun 2018 06:39:42 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Mon, Jun 18, 2018 at 11:06:59AM +0300, Todor Tomov wrote:
-> The OV5645 supports automatic exposure (AE) and automatic white
-> balance (AWB). When streaming is started it takes up to 5 frames
-> until the AE and AWB converge and output a frame with good quality.
+Results of the daily build of media_tree:
 
-The frames aren't bad as such; it's just that the AE hasn't converged yet.
-I presume the number of the frames needed depends on the lighting
-conditions.
+date:			Tue Jun 19 05:00:17 CEST 2018
+media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
+media_build git hash:	26d102795c91f8593a4f74f96b955f9a8b81dbc3
+v4l-utils git hash:	c3b46c2c53d7d815a53c902cfb2ddd96c3732c5b
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-The g_skip_frames is intended to tell the frames really are bad, i.e.
-distorted or broken somehow.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17.2-i686: OK
+linux-4.17.2-x86_64: OK
+linux-4.18-rc1-i686: ERRORS
+linux-4.18-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-I wouldn't discard them on the grounds of unconverged exposure. If we did,
-then on which other grounds should the frames be discarded as well? Does
-the white balance and focus need to be converged as well before considering
-the frames good, for instance?
+Detailed results are available here:
 
-If you need this, I'd use a control instead to tell AE has converged.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-I wonder what others think.
+Full logs are available here:
 
-> 
-> Implement g_skip_frames to report number of frames to be skipped
-> when streaming is started.
-> 
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> ---
->  drivers/media/i2c/ov5645.c | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/ov5645.c b/drivers/media/i2c/ov5645.c
-> index 1722cda..00bc3c0 100644
-> --- a/drivers/media/i2c/ov5645.c
-> +++ b/drivers/media/i2c/ov5645.c
-> @@ -70,6 +70,9 @@
->  #define OV5645_SDE_SAT_U		0x5583
->  #define OV5645_SDE_SAT_V		0x5584
->  
-> +/* Number of frames needed for AE and AWB to converge */
-> +#define OV5645_NUM_OF_SKIP_FRAMES 5
-> +
->  struct reg_value {
->  	u16 reg;
->  	u8 val;
-> @@ -1071,6 +1074,13 @@ static int ov5645_s_stream(struct v4l2_subdev *subdev, int enable)
->  	return 0;
->  }
->  
-> +static int ov5645_get_skip_frames(struct v4l2_subdev *sd, u32 *frames)
-> +{
-> +	*frames = OV5645_NUM_OF_SKIP_FRAMES;
-> +
-> +	return 0;
-> +}
-> +
->  static const struct v4l2_subdev_core_ops ov5645_core_ops = {
->  	.s_power = ov5645_s_power,
->  };
-> @@ -1088,10 +1098,15 @@ static const struct v4l2_subdev_pad_ops ov5645_subdev_pad_ops = {
->  	.get_selection = ov5645_get_selection,
->  };
->  
-> +static const struct v4l2_subdev_sensor_ops ov5645_sensor_ops = {
-> +	.g_skip_frames = ov5645_get_skip_frames,
-> +};
-> +
->  static const struct v4l2_subdev_ops ov5645_subdev_ops = {
->  	.core = &ov5645_core_ops,
->  	.video = &ov5645_video_ops,
->  	.pad = &ov5645_subdev_pad_ops,
-> +	.sensor = &ov5645_sensor_ops,
->  };
->  
->  static int ov5645_probe(struct i2c_client *client,
-> -- 
-> 2.7.4
-> 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
