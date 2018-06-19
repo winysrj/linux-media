@@ -1,101 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33462 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S967134AbeFSSkF (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:39770 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1030446AbeFSSuU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Jun 2018 14:40:05 -0400
-Date: Tue, 19 Jun 2018 11:40:00 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Peter Rosin <peda@axentia.se>
-Cc: linux-kernel@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>,
-        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Gregory Fong <gregory.0xf0@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        bcm-kernel-feedback-list@broadcom.com,
-        Sekhar Nori <nsekhar@ti.com>,
-        Kevin Hilman <khilman@kernel.org>,
-        Haavard Skinnemoen <hskinnemoen@gmail.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Orson Zhai <orsonzhai@gmail.com>,
-        Baolin Wang <baolin.wang@linaro.org>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Laxman Dewangan <ldewangan@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Antti Palosaari <crope@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Lee Jones <lee.jones@linaro.org>,
-        linux-integrity@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 04/11] input: rohm_bu21023: switch to i2c_lock_segment
-Message-ID: <20180619184000.GJ71788@dtor-ws>
-References: <20180615101506.8012-1-peda@axentia.se>
- <20180615101506.8012-5-peda@axentia.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180615101506.8012-5-peda@axentia.se>
+        Tue, 19 Jun 2018 14:50:20 -0400
+Received: by mail-wm0-f66.google.com with SMTP id p11-v6so2293004wmc.4
+        for <linux-media@vger.kernel.org>; Tue, 19 Jun 2018 11:50:20 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: mchehab@kernel.org, mchehab@s-opensource.com, rjkm@metzlerbros.de,
+        mvoelkel@DigitalDevices.de
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v3 0/9] DD drivers: cleanup licensing
+Date: Tue, 19 Jun 2018 20:50:07 +0200
+Message-Id: <20180619185016.24402-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 15, 2018 at 12:14:59PM +0200, Peter Rosin wrote:
-> Locking the root adapter for __i2c_transfer will deadlock if the
-> device sits behind a mux-locked I2C mux. Switch to the finer-grained
-> i2c_lock_segment. If the device does not sit behind a mux-locked mux,
-> the two locking variants are equivalent.
-> 
-> Signed-off-by: Peter Rosin <peda@axentia.se>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Upstream committed a change to the dddvb driver package ([1]) that makes
+things clear everything is licensed under the terms of the GPLv2-only.
+So, apply the MODULE_LICENSE change to ddbridge, mxl5xx, stv0910 and
+stv6111, and, as things are sorted now, apply SPDX license identifiers,
+add missing header boilerplates in the DVB frontend drivers and fix up
+a few cosmetics throughout the boilerplates.
 
-I'm OK with it going through Wolfram's tree; I do not think I'd need an
-immutable branch for this even...
+One note re checkpatch and the order of the patches: I wanted to add
+missing boilerplates where needed first before adding SPDX tags, so
+checkpatch complains missing/malformed SPDX tags on those patches. Also,
+I didn't want to touch the mxl5xx_regs more than needed, so checkpatch
+moans about >80 columns in that patch/file.
 
-> ---
->  drivers/input/touchscreen/rohm_bu21023.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/input/touchscreen/rohm_bu21023.c b/drivers/input/touchscreen/rohm_bu21023.c
-> index bda0500c9b57..22d79db07234 100644
-> --- a/drivers/input/touchscreen/rohm_bu21023.c
-> +++ b/drivers/input/touchscreen/rohm_bu21023.c
-> @@ -304,7 +304,7 @@ static int rohm_i2c_burst_read(struct i2c_client *client, u8 start, void *buf,
->  	msg[1].len = len;
->  	msg[1].buf = buf;
->  
-> -	i2c_lock_adapter(adap);
-> +	i2c_lock_segment(adap);
->  
->  	for (i = 0; i < 2; i++) {
->  		if (__i2c_transfer(adap, &msg[i], 1) < 0) {
-> @@ -313,7 +313,7 @@ static int rohm_i2c_burst_read(struct i2c_client *client, u8 start, void *buf,
->  		}
->  	}
->  
-> -	i2c_unlock_adapter(adap);
-> +	i2c_unlock_segment(adap);
->  
->  	return ret;
->  }
-> -- 
-> 2.11.0
-> 
+Ralph/Manfred: Although all license related things should be clear by
+now, please be so kind and send Acks (or complaints, if any) on these
+patches so we can finally get rid of any mismatches in the in-kernel
+drivers.
 
-Thanks.
+Changed in v3:
+* (there was only one version posted so far but this is nonetheless
+  the third iteration overall)
+* Split up changes into more patches as requested by GregKH
+* Note the change in the upstream driver package
+
+[1] https://github.com/DigitalDevices/dddvb/commit/3db30defab4bd5429f6563b084a215b83da01ea0
+
+Daniel Scheller (9):
+  [media] mxl5xx/stv0910/stv6111/ddbridge: fix MODULE_LICENSE to 'GPL
+    v2'
+  [media] ddbridge: add SPDX license identifiers
+  [media] ddbridge: header/boilerplate cleanups and cosmetics
+  [media] dvb-frontends/mxl5xx: cleanup and fix licensing boilerplates
+  [media] dvb-frontends/mxl5xx: add SPDX license identifier
+  [media] dvb-frontends/stv0910: cleanup and fix licensing boilerplates
+  [media] dvb-frontends/stv0910: add SPDX license identifier
+  [media] dvb-frontends/stv6111: cleanup and fix licensing boilerplates
+  [media] dvb-frontends/stv6111: add SPDX license identifier
+
+ drivers/media/dvb-frontends/mxl5xx.c       |  6 +++---
+ drivers/media/dvb-frontends/mxl5xx.h       | 22 ++++++++++++++++++++++
+ drivers/media/dvb-frontends/mxl5xx_defs.h  |  6 ++++++
+ drivers/media/dvb-frontends/mxl5xx_regs.h  |  4 ++--
+ drivers/media/dvb-frontends/stv0910.c      |  5 +++--
+ drivers/media/dvb-frontends/stv0910.h      | 18 ++++++++++++++++++
+ drivers/media/dvb-frontends/stv0910_regs.h |  3 ++-
+ drivers/media/dvb-frontends/stv6111.c      |  6 +++---
+ drivers/media/dvb-frontends/stv6111.h      | 16 ++++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-ci.c   |  6 ++----
+ drivers/media/pci/ddbridge/ddbridge-ci.h   |  6 ++----
+ drivers/media/pci/ddbridge/ddbridge-core.c |  8 ++------
+ drivers/media/pci/ddbridge/ddbridge-hw.c   |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-hw.h   |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-i2c.c  |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-i2c.h  |  6 +++---
+ drivers/media/pci/ddbridge/ddbridge-io.h   |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-main.c |  6 +++---
+ drivers/media/pci/ddbridge/ddbridge-max.c  |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-max.h  |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-regs.h |  7 ++-----
+ drivers/media/pci/ddbridge/ddbridge.h      |  7 ++-----
+ 22 files changed, 103 insertions(+), 53 deletions(-)
 
 -- 
-Dmitry
+2.16.4
