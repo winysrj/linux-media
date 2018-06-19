@@ -1,142 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:51696 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750961AbeFSEjo (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:48262 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755611AbeFSGKP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Jun 2018 00:39:44 -0400
-Message-ID: <56df79bb9764c367088ce599d93882ba@smtp-cloud9.xs4all.net>
-Date: Tue, 19 Jun 2018 06:39:42 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 19 Jun 2018 02:10:15 -0400
+From: Akhil P Oommen <akhilpo@codeaurora.org>
+To: sumit.semwal@linaro.org, gustavo@padovan.org
+Cc: linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+        linux-kernel@vger.kernel.org, jcrouse@codeaurora.org,
+        smasetty@codeaurora.org, linux-arm-msm@vger.kernel.org
+Subject: [PATCH] dma-buf/fence: Take refcount on the module that owns the fence
+Date: Tue, 19 Jun 2018 11:40:05 +0530
+Message-Id: <1529388605-10044-1-git-send-email-akhilpo@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Each fence object holds function pointers of the module that initialized
+it. Allowing the module to unload before this fence's release is
+catastrophic. So, keep a refcount on the module until the fence is
+released.
 
-Results of the daily build of media_tree:
+Signed-off-by: Akhil P Oommen <akhilpo@codeaurora.org>
+---
+ drivers/dma-buf/dma-fence.c | 15 ++++++++++++---
+ include/linux/dma-fence.h   | 10 ++++++++--
+ 2 files changed, 20 insertions(+), 5 deletions(-)
 
-date:			Tue Jun 19 05:00:17 CEST 2018
-media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
-media_build git hash:	26d102795c91f8593a4f74f96b955f9a8b81dbc3
-v4l-utils git hash:	c3b46c2c53d7d815a53c902cfb2ddd96c3732c5b
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17.2-i686: OK
-linux-4.17.2-x86_64: OK
-linux-4.18-rc1-i686: ERRORS
-linux-4.18-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-fence.c
+index 4edb9fd..0be8053 100644
+--- a/drivers/dma-buf/dma-fence.c
++++ b/drivers/dma-buf/dma-fence.c
+@@ -18,6 +18,7 @@
+  * more details.
+  */
+ 
++#include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
+ #include <linux/atomic.h>
+@@ -168,6 +169,7 @@ void dma_fence_release(struct kref *kref)
+ {
+ 	struct dma_fence *fence =
+ 		container_of(kref, struct dma_fence, refcount);
++	struct module *module = fence->owner;
+ 
+ 	trace_dma_fence_destroy(fence);
+ 
+@@ -178,6 +180,8 @@ void dma_fence_release(struct kref *kref)
+ 		fence->ops->release(fence);
+ 	else
+ 		dma_fence_free(fence);
++
++	module_put(module);
+ }
+ EXPORT_SYMBOL(dma_fence_release);
+ 
+@@ -556,8 +560,9 @@ struct default_wait_cb {
+  * to check which fence is later by simply using dma_fence_later.
+  */
+ void
+-dma_fence_init(struct dma_fence *fence, const struct dma_fence_ops *ops,
+-	       spinlock_t *lock, u64 context, unsigned seqno)
++_dma_fence_init(struct module *module, struct dma_fence *fence,
++		const struct dma_fence_ops *ops, spinlock_t *lock,
++		u64 context, unsigned seqno)
+ {
+ 	BUG_ON(!lock);
+ 	BUG_ON(!ops || !ops->wait || !ops->enable_signaling ||
+@@ -571,7 +576,11 @@ struct default_wait_cb {
+ 	fence->seqno = seqno;
+ 	fence->flags = 0UL;
+ 	fence->error = 0;
++	fence->owner = module;
++
++	if (!try_module_get(module))
++		fence->owner = NULL;
+ 
+ 	trace_dma_fence_init(fence);
+ }
+-EXPORT_SYMBOL(dma_fence_init);
++EXPORT_SYMBOL(_dma_fence_init);
+diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
+index eb9b05a..8159125 100644
+--- a/include/linux/dma-fence.h
++++ b/include/linux/dma-fence.h
+@@ -36,6 +36,8 @@
+ 
+ /**
+  * struct dma_fence - software synchronization primitive
++ * @owner: the module that contains fence_ops functions.
++ *	   Usually THIS_MODULE.
+  * @refcount: refcount for this fence
+  * @ops: dma_fence_ops associated with this fence
+  * @rcu: used for releasing fence with kfree_rcu
+@@ -71,6 +73,7 @@
+  * been completed, or never called at all.
+  */
+ struct dma_fence {
++	struct module *owner;
+ 	struct kref refcount;
+ 	const struct dma_fence_ops *ops;
+ 	struct rcu_head rcu;
+@@ -249,8 +252,11 @@ struct dma_fence_ops {
+ 				   char *str, int size);
+ };
+ 
+-void dma_fence_init(struct dma_fence *fence, const struct dma_fence_ops *ops,
+-		    spinlock_t *lock, u64 context, unsigned seqno);
++#define dma_fence_init(fence, ops, lock, context, seqno) _dma_fence_init( \
++		THIS_MODULE, fence, ops, lock, context, seqno)
++void _dma_fence_init(struct module *module, struct dma_fence *fence,
++		const struct dma_fence_ops *ops, spinlock_t *lock, u64 context,
++		unsigned seqno);
+ 
+ void dma_fence_release(struct kref *kref);
+ void dma_fence_free(struct dma_fence *fence);
+-- 
+1.9.1
