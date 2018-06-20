@@ -1,100 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:47747 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753386AbeFTIlO (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:36786 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754166AbeFTI2f (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 04:41:14 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v3] media: ov5640: fix frame interval enumeration
-Date: Wed, 20 Jun 2018 10:40:57 +0200
-Message-ID: <1529484057-2361-1-git-send-email-hugues.fruchet@st.com>
+        Wed, 20 Jun 2018 04:28:35 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20180619123329.52bf6216@gandalf.local.home>
+References: <20180617143625.32133-1-matwey@sai.msu.ru> <20180618145854.2092c6e0@gandalf.local.home>
+ <CAJs94EZAAuUS4rznPDmD=1aD8B72P0mLft+YDoNs+74pRXr+KA@mail.gmail.com> <20180619123329.52bf6216@gandalf.local.home>
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Date: Wed, 20 Jun 2018 11:05:51 +0300
+Message-ID: <CAJs94EZTyfh7vuNt3Dsz6wYdhwc93Np6-UbpDKFupHKaHqxgJQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] Add TRACE_EVENTs in pwc_isoc_handler()
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: hverkuil@xs4all.nl, mchehab@kernel.org, mingo@redhat.com,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        linux-media@vger.kernel.org,
+        open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver must reject frame interval enumeration of unsupported resolution.
-This was detected by v4l2-compliance format ioctl test:
-v4l2-compliance Format ioctls:
-    info: found 2 frameintervals for pixel format 4745504a and size 176x144
-  fail: v4l2-test-formats.cpp(123):
-                           found frame intervals for invalid size 177x144
-    test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
+2018-06-19 19:33 GMT+03:00 Steven Rostedt <rostedt@goodmis.org>:
+> On Tue, 19 Jun 2018 19:23:04 +0300
+> "Matwey V. Kornilov" <matwey@sai.msu.ru> wrote:
+>
+>> Hi Steven,
+>>
+>> Thank you for valuable comments.
+>>
+>> This is for measuring performance of URB completion callback inside PWC driver.
+>> What do you think about moving events to __usb_hcd_giveback_urb() in
+>> order to make this more generic? Like the following:
+>>
+>>         local_irq_save(flags);
+>> // trace urb complete enter
+>>         urb->complete(urb);
+>> // trace urb complete exit
+>>         local_irq_restore(flags);
+>>
+>>
+>
+> If that can work for you, I'm fine with that. Trace events may be
+> cheap, but they do come with some cost. I'd like to have all trace
+> events be as valuable as possible, and limit the "special case" ones.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
-version 2:
-  - revisit patch according to Mauro comments:
-    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg127380.html
+What is the cost for events? I suppose one conditional check when
+trace is disabled? There is already similar debugging stuff related to
+usbmon in __usb_hcd_giveback_urb(), so I don't think that another
+conditional check will hurt performance dramatically there. When
+discussing second patch in this series I see that the issue that it is
+intended to resolve may be common to other USB media drivers.
 
-version 3:
-  - revisit patch using v4l2_find_nearest_size() helper as per Sakari suggestion:
-    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg128186.html
 
- drivers/media/i2c/ov5640.c | 34 ++++++++++++++++------------------
- 1 file changed, 16 insertions(+), 18 deletions(-)
+>
+> -- Steve
+>
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index f6e40cc..e4b68e3 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1389,24 +1389,16 @@ static int ov5640_set_timings(struct ov5640_dev *sensor,
- ov5640_find_mode(struct ov5640_dev *sensor, enum ov5640_frame_rate fr,
- 		 int width, int height, bool nearest)
- {
--	const struct ov5640_mode_info *mode = NULL;
--	int i;
--
--	for (i = OV5640_NUM_MODES - 1; i >= 0; i--) {
--		mode = &ov5640_mode_data[fr][i];
--
--		if (!mode->reg_data)
--			continue;
-+	const struct ov5640_mode_info *mode;
- 
--		if ((nearest && mode->hact <= width &&
--		     mode->vact <= height) ||
--		    (!nearest && mode->hact == width &&
--		     mode->vact == height))
--			break;
--	}
-+	mode = v4l2_find_nearest_size(ov5640_mode_data[fr],
-+				      ARRAY_SIZE(ov5640_mode_data[fr]),
-+				      hact, vact,
-+				      width, height);
- 
--	if (nearest && i < 0)
--		mode = &ov5640_mode_data[fr][0];
-+	if (!mode ||
-+	    (!nearest && (mode->hact != width || mode->vact != height)))
-+		return NULL;
- 
- 	return mode;
- }
-@@ -2435,8 +2427,14 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
- 
- 	sensor->current_fr = frame_rate;
- 	sensor->frame_interval = fi->interval;
--	sensor->current_mode = ov5640_find_mode(sensor, frame_rate, mode->hact,
--						mode->vact, true);
-+	mode = ov5640_find_mode(sensor, frame_rate, mode->hact,
-+				mode->vact, true);
-+	if (!mode) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	sensor->current_mode = mode;
- 	sensor->pending_mode_change = true;
- out:
- 	mutex_unlock(&sensor->lock);
+
+
 -- 
-1.9.1
+With best regards,
+Matwey V. Kornilov.
+Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+119234, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
