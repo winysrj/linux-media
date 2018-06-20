@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:59940 "EHLO
+Received: from Galois.linutronix.de ([146.0.238.70]:59939 "EHLO
         Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752914AbeFTLBo (ORCPT
+        with ESMTP id S1752787AbeFTLBn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 07:01:44 -0400
+        Wed, 20 Jun 2018 07:01:43 -0400
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-usb@vger.kernel.org, tglx@linutronix.de,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
         Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 24/27] media: usbtv: use usb_fill_int_urb()
-Date: Wed, 20 Jun 2018 13:01:02 +0200
-Message-Id: <20180620110105.19955-25-bigeasy@linutronix.de>
+Subject: [PATCH 23/27] media: usbtv: use irqsave() in USB's complete callback
+Date: Wed, 20 Jun 2018 13:01:01 +0200
+Message-Id: <20180620110105.19955-24-bigeasy@linutronix.de>
 In-Reply-To: <20180620110105.19955-1-bigeasy@linutronix.de>
 References: <20180620110105.19955-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
@@ -20,57 +20,48 @@ Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using usb_fill_int_urb() helps to find code which initializes an URB. A
-grep for members of the struct (like ->complete) reveal lots of other
-things, too.
+The USB completion callback does not disable interrupts while acquiring
+the lock. We want to remove the local_irq_disable() invocation from
+__usb_hcd_giveback_urb() and therefore it is required for the callback
+handler to disable the interrupts while acquiring the lock.
+The callback may be invoked either in IRQ or BH context depending on the
+USB host controller.
+Use the _irqsave() variant of the locking primitives.
 
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/media/usb/usbtv/usbtv-video.c | 18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ drivers/media/usb/usbtv/usbtv-audio.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbt=
-v/usbtv-video.c
-index 36a9a4017185..2be4935b7afe 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -496,26 +496,24 @@ static struct urb *usbtv_setup_iso_transfer(struct us=
-btv *usbtv)
- {
- 	struct urb *ip;
- 	int size =3D usbtv->iso_size;
-+	void *buf;
- 	int i;
+diff --git a/drivers/media/usb/usbtv/usbtv-audio.c b/drivers/media/usb/usbt=
+v/usbtv-audio.c
+index 2c2ca77fa01f..4ce38246ed64 100644
+--- a/drivers/media/usb/usbtv/usbtv-audio.c
++++ b/drivers/media/usb/usbtv/usbtv-audio.c
+@@ -126,6 +126,7 @@ static void usbtv_audio_urb_received(struct urb *urb)
+ 	struct snd_pcm_runtime *runtime =3D substream->runtime;
+ 	size_t i, frame_bytes, chunk_length, buffer_pos, period_pos;
+ 	int period_elapsed;
++	unsigned long flags;
+ 	void *urb_current;
 =20
- 	ip =3D usb_alloc_urb(USBTV_ISOC_PACKETS, GFP_KERNEL);
- 	if (ip =3D=3D NULL)
- 		return NULL;
-=20
--	ip->dev =3D usbtv->udev;
--	ip->context =3D usbtv;
--	ip->pipe =3D usb_rcvisocpipe(usbtv->udev, USBTV_VIDEO_ENDP);
--	ip->interval =3D 1;
--	ip->transfer_flags =3D URB_ISO_ASAP;
--	ip->transfer_buffer =3D kcalloc(USBTV_ISOC_PACKETS, size,
--						GFP_KERNEL);
--	if (!ip->transfer_buffer) {
-+	buf =3D kcalloc(USBTV_ISOC_PACKETS, size, GFP_KERNEL);
-+	if (!buf) {
- 		usb_free_urb(ip);
- 		return NULL;
+ 	switch (urb->status) {
+@@ -179,12 +180,12 @@ static void usbtv_audio_urb_received(struct urb *urb)
+ 		}
  	}
--	ip->complete =3D usbtv_iso_cb;
-+	usb_fill_int_urb(ip, usbtv->udev,
-+			 usb_rcvisocpipe(usbtv->udev, USBTV_VIDEO_ENDP),
-+			 buf, size * USBTV_ISOC_PACKETS, usbtv_iso_cb,
-+			 usbtv, 1);
-+	ip->transfer_flags =3D URB_ISO_ASAP;
- 	ip->number_of_packets =3D USBTV_ISOC_PACKETS;
--	ip->transfer_buffer_length =3D size * USBTV_ISOC_PACKETS;
- 	for (i =3D 0; i < USBTV_ISOC_PACKETS; i++) {
- 		ip->iso_frame_desc[i].offset =3D size * i;
- 		ip->iso_frame_desc[i].length =3D size;
+=20
+-	snd_pcm_stream_lock(substream);
++	snd_pcm_stream_lock_irqsave(substream, flags);
+=20
+ 	chip->snd_buffer_pos =3D buffer_pos;
+ 	chip->snd_period_pos =3D period_pos;
+=20
+-	snd_pcm_stream_unlock(substream);
++	snd_pcm_stream_unlock_irqrestore(substream, flags);
+=20
+ 	if (period_elapsed)
+ 		snd_pcm_period_elapsed(substream);
 --=20
 2.17.1
