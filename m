@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:59887 "EHLO
+Received: from Galois.linutronix.de ([146.0.238.70]:59892 "EHLO
         Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752806AbeFTLB0 (ORCPT
+        with ESMTP id S1754061AbeFTLB2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 07:01:26 -0400
+        Wed, 20 Jun 2018 07:01:28 -0400
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-usb@vger.kernel.org, tglx@linutronix.de,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 02/27] media: cpia2_usb: use usb_fill_int_urb()
-Date: Wed, 20 Jun 2018 13:00:40 +0200
-Message-Id: <20180620110105.19955-3-bigeasy@linutronix.de>
+Subject: [PATCH 05/27] media: dvb-usb: use usb_fill_int_urb()
+Date: Wed, 20 Jun 2018 13:00:43 +0200
+Message-Id: <20180620110105.19955-6-bigeasy@linutronix.de>
 In-Reply-To: <20180620110105.19955-1-bigeasy@linutronix.de>
 References: <20180620110105.19955-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
@@ -26,33 +26,37 @@ of other things, too.
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/media/usb/cpia2/cpia2_usb.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/media/usb/dvb-usb/usb-urb.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/usb/cpia2/cpia2_usb.c b/drivers/media/usb/cpia2/=
-cpia2_usb.c
-index a771e0a52610..6f94bdcc4111 100644
---- a/drivers/media/usb/cpia2/cpia2_usb.c
-+++ b/drivers/media/usb/cpia2/cpia2_usb.c
-@@ -689,16 +689,11 @@ static int submit_urbs(struct camera_data *cam)
+diff --git a/drivers/media/usb/dvb-usb/usb-urb.c b/drivers/media/usb/dvb-us=
+b/usb-urb.c
+index 5e05963f4220..3c6b88e0a437 100644
+--- a/drivers/media/usb/dvb-usb/usb-urb.c
++++ b/drivers/media/usb/dvb-usb/usb-urb.c
+@@ -187,16 +187,14 @@ static int usb_isoc_urb_init(struct usb_data_stream *=
+stream)
  		}
 =20
- 		cam->sbuf[i].urb =3D urb;
--		urb->dev =3D cam->dev;
-+		usb_fill_int_urb(urb, cam->dev, usb_rcvisocpipe(cam->dev, 1),
-+				 cam->sbuf[i].data, FRAME_SIZE_PER_DESC *
-+				 FRAMES_PER_DESC, cpia2_usb_complete, cam, 1);
- 		urb->context =3D cam;
--		urb->pipe =3D usb_rcvisocpipe(cam->dev, 1 /*ISOC endpoint*/);
- 		urb->transfer_flags =3D URB_ISO_ASAP;
--		urb->transfer_buffer =3D cam->sbuf[i].data;
--		urb->complete =3D cpia2_usb_complete;
--		urb->number_of_packets =3D FRAMES_PER_DESC;
--		urb->interval =3D 1;
--		urb->transfer_buffer_length =3D
--			FRAME_SIZE_PER_DESC * FRAMES_PER_DESC;
+ 		urb =3D stream->urb_list[i];
+-
+-		urb->dev =3D stream->udev;
+-		urb->context =3D stream;
+-		urb->complete =3D usb_urb_complete;
+-		urb->pipe =3D usb_rcvisocpipe(stream->udev,stream->props.endpoint);
++		usb_fill_int_urb(urb, stream->udev,
++				 usb_rcvisocpipe(stream->udev,
++						 stream->props.endpoint),
++				 stream->buf_list[i], stream->buf_size,
++				 usb_urb_complete, stream,
++				 stream->props.u.isoc.interval);
+ 		urb->transfer_flags =3D URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-		urb->interval =3D stream->props.u.isoc.interval;
+ 		urb->number_of_packets =3D stream->props.u.isoc.framesperurb;
+-		urb->transfer_buffer_length =3D stream->buf_size;
+-		urb->transfer_buffer =3D stream->buf_list[i];
+ 		urb->transfer_dma =3D stream->dma_addr[i];
 =20
- 		for (fx =3D 0; fx < FRAMES_PER_DESC; fx++) {
- 			urb->iso_frame_desc[fx].offset =3D
+ 		for (j =3D 0; j < stream->props.u.isoc.framesperurb; j++) {
 --=20
 2.17.1
