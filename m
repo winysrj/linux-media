@@ -1,91 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:45458 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752171AbeFTBau (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:41050 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750968AbeFTEVm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Jun 2018 21:30:50 -0400
-Received: by mail-qt0-f196.google.com with SMTP id i18-v6so1606931qtp.12
-        for <linux-media@vger.kernel.org>; Tue, 19 Jun 2018 18:30:49 -0700 (PDT)
-Subject: Re: [PATCH] gpu: ipu-v3: Allow negative offsets for interlaced
- scanning
-To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-Cc: Javier Martinez Canillas <javierm@redhat.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org, kernel@pengutronix.de
-References: <20180601131316.18728-1-p.zabel@pengutronix.de>
- <ebada35f-23c1-6ca4-5228-d3d91bad48bc@gmail.com>
- <1528708771.3818.7.camel@pengutronix.de>
- <6780e24e-891d-3583-6e38-d1abd69c8a0d@gmail.com>
- <2aff8f80-aa79-6718-6183-6e49088ae498@redhat.com>
- <f6e7eaa3-355e-a5d9-1be5-e5db08a99897@gmail.com> <m3h8m5yaeh.fsf@t19.piap.pl>
- <798b8ad7-2fce-8408-b1c4-c2954f524d23@gmail.com> <m336xoxxcd.fsf@t19.piap.pl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <20db0ee3-1202-67fd-84b9-d6e0255dec06@gmail.com>
-Date: Tue, 19 Jun 2018 18:30:46 -0700
-MIME-Version: 1.0
-In-Reply-To: <m336xoxxcd.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+        Wed, 20 Jun 2018 00:21:42 -0400
+Message-ID: <a0204afcb78d1f543a7c5eb430fa6a51@smtp-cloud9.xs4all.net>
+Date: Wed, 20 Jun 2018 06:21:39 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp, Krzysztof,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 06/15/2018 01:33 AM, Krzysztof Hałasa wrote:
-> Steve Longerbeam <slongerbeam@gmail.com> writes:
->
->> Right, the selection of interweave is moved to the capture devices,
->> so the following will enable interweave:
->>
->> v4l2-ctl -dN --set-fmt-video=field=interlaced_tb
-> and
->
->> So the patch to adv7180 needs to be modified to report # field lines.
->>
->> Try the following:
->>
->> --- a/drivers/media/i2c/adv7180.c
->> +++ b/drivers/media/i2c/adv7180.c
-> With this patch, fix-csi-interlaced.3 seems to work for me.
-> "ipu2_csi1":2 reports [fmt:AYUV32/720x576 field:seq-tb], but the
-> /dev/videoX shows (when requested) 720 x 576 NV12 interlaced, top field
-> first, and I'm getting valid output.
->
-> Thanks for your work.
+date:			Wed Jun 20 05:00:13 CEST 2018
+media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
+media_build git hash:	26d102795c91f8593a4f74f96b955f9a8b81dbc3
+v4l-utils git hash:	c3b46c2c53d7d815a53c902cfb2ddd96c3732c5b
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-I've found some time to diagnose the behavior of interweave with B/T line
-swapping (to support interlaced-bt) with planar formats.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17.2-i686: OK
+linux-4.17.2-x86_64: OK
+linux-4.18-rc1-i686: ERRORS
+linux-4.18-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-There are a couple problems (one known and one unknown):
+Detailed results are available here:
 
-1. This requires 32 pixel alignment to meet the IDMAC 8-byte alignment
-     of the planar U/V buffer offsets, and 32 pixel alignment precludes
-     capturing raw NTSC/PAL at 720 pixel line stride.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-2. Even with 32 pixel aligned frames, for example by using the prpenc scaler
-     to generate 704 pixel strides from 720, the colors are still wrong when
-     capturing interlaced-bt. I thought for sure this must be because we 
-also
-     need to double the SLUV line strides in addition to doubling SLY 
-line stride.
-     But I tried this and the results are that it works only for YUV 
-4:2:2. For 4:2:0
-     it causes system hard lockups. (Aside note: interweave without line 
-swap
-     apparently has never worked for 4:2:2, even when doubling SLUV, so it's
-     quite bizarre to me why 4:2:2 interweave _with_ line swap _does_ work
-     after doubling SLUV).
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-For these reasons I think we should disallow interlaced-bt with planar 
-formats.
+The Media Infrastructure API from this daily build is here:
 
-If the user needs NTSC interlaced capture with planar, the fields can be 
-swapped at
-the CSI, by selecting seq-tb at the CSI source pad, which allows for 
-interlaced-tb
-at the capture interface, which doesn't require interweave line swapping.
-
-Steve
+http://www.xs4all.nl/~hverkuil/spec/index.html
