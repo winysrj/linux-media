@@ -1,70 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:59948 "EHLO
+Received: from Galois.linutronix.de ([146.0.238.70]:59940 "EHLO
         Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754173AbeFTLBq (ORCPT
+        with ESMTP id S1752914AbeFTLBo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 07:01:46 -0400
+        Wed, 20 Jun 2018 07:01:44 -0400
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-usb@vger.kernel.org, tglx@linutronix.de,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 27/27] media: uvcvideo: use usb_fill_int_urb()
-Date: Wed, 20 Jun 2018 13:01:05 +0200
-Message-Id: <20180620110105.19955-28-bigeasy@linutronix.de>
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 24/27] media: usbtv: use usb_fill_int_urb()
+Date: Wed, 20 Jun 2018 13:01:02 +0200
+Message-Id: <20180620110105.19955-25-bigeasy@linutronix.de>
 In-Reply-To: <20180620110105.19955-1-bigeasy@linutronix.de>
 References: <20180620110105.19955-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using usb_fill_int_urb() helps to find code which initializes an
-URB. A grep for members of the struct (like ->complete) reveal lots
-of other things, too.
-usb_fill_int_urb() also checks bInterval to be in the 1…16 range on
-HS/SS.
+Using usb_fill_int_urb() helps to find code which initializes an URB. A
+grep for members of the struct (like ->complete) reveal lots of other
+things, too.
 
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/media/usb/uvc/uvc_video.c | 14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/media/usb/usbtv/usbtv-video.c | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index a88b2e51a666..79e7a827ed44 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1619,21 +1619,19 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
- 			return -ENOMEM;
- 		}
- 
--		urb->dev = stream->dev->udev;
--		urb->context = stream;
--		urb->pipe = usb_rcvisocpipe(stream->dev->udev,
--				ep->desc.bEndpointAddress);
-+		usb_fill_int_urb(urb, stream->dev->udev,
-+				 usb_rcvisocpipe(stream->dev->udev,
-+						 ep->desc.bEndpointAddress),
-+				 stream->urb_buffer[i], size,
-+				 uvc_video_complete, stream,
-+				 ep->desc.bInterval);
- #ifndef CONFIG_DMA_NONCOHERENT
- 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
- 		urb->transfer_dma = stream->urb_dma[i];
- #else
- 		urb->transfer_flags = URB_ISO_ASAP;
- #endif
--		urb->interval = ep->desc.bInterval;
--		urb->transfer_buffer = stream->urb_buffer[i];
--		urb->complete = uvc_video_complete;
- 		urb->number_of_packets = npackets;
--		urb->transfer_buffer_length = size;
- 
- 		for (j = 0; j < npackets; ++j) {
- 			urb->iso_frame_desc[j].offset = j * psize;
--- 
+diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbt=
+v/usbtv-video.c
+index 36a9a4017185..2be4935b7afe 100644
+--- a/drivers/media/usb/usbtv/usbtv-video.c
++++ b/drivers/media/usb/usbtv/usbtv-video.c
+@@ -496,26 +496,24 @@ static struct urb *usbtv_setup_iso_transfer(struct us=
+btv *usbtv)
+ {
+ 	struct urb *ip;
+ 	int size =3D usbtv->iso_size;
++	void *buf;
+ 	int i;
+=20
+ 	ip =3D usb_alloc_urb(USBTV_ISOC_PACKETS, GFP_KERNEL);
+ 	if (ip =3D=3D NULL)
+ 		return NULL;
+=20
+-	ip->dev =3D usbtv->udev;
+-	ip->context =3D usbtv;
+-	ip->pipe =3D usb_rcvisocpipe(usbtv->udev, USBTV_VIDEO_ENDP);
+-	ip->interval =3D 1;
+-	ip->transfer_flags =3D URB_ISO_ASAP;
+-	ip->transfer_buffer =3D kcalloc(USBTV_ISOC_PACKETS, size,
+-						GFP_KERNEL);
+-	if (!ip->transfer_buffer) {
++	buf =3D kcalloc(USBTV_ISOC_PACKETS, size, GFP_KERNEL);
++	if (!buf) {
+ 		usb_free_urb(ip);
+ 		return NULL;
+ 	}
+-	ip->complete =3D usbtv_iso_cb;
++	usb_fill_int_urb(ip, usbtv->udev,
++			 usb_rcvisocpipe(usbtv->udev, USBTV_VIDEO_ENDP),
++			 buf, size * USBTV_ISOC_PACKETS, usbtv_iso_cb,
++			 usbtv, 1);
++	ip->transfer_flags =3D URB_ISO_ASAP;
+ 	ip->number_of_packets =3D USBTV_ISOC_PACKETS;
+-	ip->transfer_buffer_length =3D size * USBTV_ISOC_PACKETS;
+ 	for (i =3D 0; i < USBTV_ISOC_PACKETS; i++) {
+ 		ip->iso_frame_desc[i].offset =3D size * i;
+ 		ip->iso_frame_desc[i].length =3D size;
+--=20
 2.17.1
