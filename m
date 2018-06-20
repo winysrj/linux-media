@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-he1eur01on0099.outbound.protection.outlook.com ([104.47.0.99]:18750
+Received: from mail-he1eur01on0104.outbound.protection.outlook.com ([104.47.0.104]:19840
         "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754122AbeFTFSu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 01:18:50 -0400
+        id S932154AbeFTFS7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Jun 2018 01:18:59 -0400
 From: Peter Rosin <peda@axentia.se>
 To: linux-kernel@vger.kernel.org
 Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
@@ -37,9 +37,9 @@ Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-iio@vger.kernel.org,
         linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 06/10] media: rtl2830: switch to i2c_lock_bus(..., I2C_LOCK_SEGMENT)
-Date: Wed, 20 Jun 2018 07:17:59 +0200
-Message-Id: <20180620051803.12206-7-peda@axentia.se>
+Subject: [PATCH v2 08/10] media: tda18271: switch to i2c_lock_bus(..., I2C_LOCK_SEGMENT)
+Date: Wed, 20 Jun 2018 07:18:01 +0200
+Message-Id: <20180620051803.12206-9-peda@axentia.se>
 In-Reply-To: <20180620051803.12206-1-peda@axentia.se>
 References: <20180620051803.12206-1-peda@axentia.se>
 MIME-Version: 1.0
@@ -54,48 +54,48 @@ sit behind a mux-locked mux, the two locking variants are equivalent.
 
 Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/dvb-frontends/rtl2830.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/tuners/tda18271-common.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index 7bbfe11d11ed..91d12e6a03d5 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -24,9 +24,9 @@ static int rtl2830_bulk_write(struct i2c_client *client, unsigned int reg,
- 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret;
+diff --git a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
+index 7e81cd887c13..054b3b747dae 100644
+--- a/drivers/media/tuners/tda18271-common.c
++++ b/drivers/media/tuners/tda18271-common.c
+@@ -225,7 +225,7 @@ static int __tda18271_write_regs(struct dvb_frontend *fe, int idx, int len,
+ 	 */
+ 	if (lock_i2c) {
+ 		tda18271_i2c_gate_ctrl(fe, 1);
+-		i2c_lock_adapter(priv->i2c_props.adap);
++		i2c_lock_bus(priv->i2c_props.adap, I2C_LOCK_SEGMENT);
+ 	}
+ 	while (len) {
+ 		if (max > len)
+@@ -246,7 +246,7 @@ static int __tda18271_write_regs(struct dvb_frontend *fe, int idx, int len,
+ 		len -= max;
+ 	}
+ 	if (lock_i2c) {
+-		i2c_unlock_adapter(priv->i2c_props.adap);
++		i2c_unlock_bus(priv->i2c_props.adap, I2C_LOCK_SEGMENT);
+ 		tda18271_i2c_gate_ctrl(fe, 0);
+ 	}
  
--	i2c_lock_adapter(client->adapter);
-+	i2c_lock_bus(client->adapter, I2C_LOCK_SEGMENT);
- 	ret = regmap_bulk_write(dev->regmap, reg, val, val_count);
--	i2c_unlock_adapter(client->adapter);
-+	i2c_unlock_bus(client->adapter, I2C_LOCK_SEGMENT);
- 	return ret;
- }
+@@ -300,7 +300,7 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+ 	 * as those could cause bad things
+ 	 */
+ 	tda18271_i2c_gate_ctrl(fe, 1);
+-	i2c_lock_adapter(priv->i2c_props.adap);
++	i2c_lock_bus(priv->i2c_props.adap, I2C_LOCK_SEGMENT);
  
-@@ -36,9 +36,9 @@ static int rtl2830_update_bits(struct i2c_client *client, unsigned int reg,
- 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret;
+ 	/* initialize registers */
+ 	switch (priv->id) {
+@@ -516,7 +516,7 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+ 	/* synchronize */
+ 	__tda18271_write_regs(fe, R_EP1, 1, false);
  
--	i2c_lock_adapter(client->adapter);
-+	i2c_lock_bus(client->adapter, I2C_LOCK_SEGMENT);
- 	ret = regmap_update_bits(dev->regmap, reg, mask, val);
--	i2c_unlock_adapter(client->adapter);
-+	i2c_unlock_bus(client->adapter, I2C_LOCK_SEGMENT);
- 	return ret;
- }
+-	i2c_unlock_adapter(priv->i2c_props.adap);
++	i2c_unlock_bus(priv->i2c_props.adap, I2C_LOCK_SEGMENT);
+ 	tda18271_i2c_gate_ctrl(fe, 0);
  
-@@ -48,9 +48,9 @@ static int rtl2830_bulk_read(struct i2c_client *client, unsigned int reg,
- 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret;
- 
--	i2c_lock_adapter(client->adapter);
-+	i2c_lock_bus(client->adapter, I2C_LOCK_SEGMENT);
- 	ret = regmap_bulk_read(dev->regmap, reg, val, val_count);
--	i2c_unlock_adapter(client->adapter);
-+	i2c_unlock_bus(client->adapter, I2C_LOCK_SEGMENT);
- 	return ret;
- }
- 
+ 	return 0;
 -- 
 2.11.0
