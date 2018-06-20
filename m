@@ -1,90 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr50127.outbound.protection.outlook.com ([40.107.5.127]:55107
-        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1756803AbeFSVaE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Jun 2018 17:30:04 -0400
-Subject: Re: [PATCH 01/11] i2c: add helpers for locking the I2C segment
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-kernel@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>,
-        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Gregory Fong <gregory.0xf0@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        bcm-kernel-feedback-list@broadcom.com,
-        Sekhar Nori <nsekhar@ti.com>,
-        Kevin Hilman <khilman@kernel.org>,
-        Haavard Skinnemoen <hskinnemoen@gmail.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Orson Zhai <orsonzhai@gmail.com>,
-        Baolin Wang <baolin.wang@linaro.org>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Laxman Dewangan <ldewangan@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Antti Palosaari <crope@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Lee Jones <lee.jones@linaro.org>,
-        linux-integrity@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-media@vger.kernel.org
-References: <20180615101506.8012-1-peda@axentia.se>
- <20180615101506.8012-2-peda@axentia.se>
- <20180618110502.cb5s24srp4frahm6@ninjato>
- <b860025e-3d4b-f333-80b4-3831dd969757@axentia.se>
- <20180618115444.pgjmfntp767zuvmw@ninjato>
-From: Peter Rosin <peda@axentia.se>
-Message-ID: <4a721b58-d718-68c0-cca5-23b5b21ef100@axentia.se>
-Date: Tue, 19 Jun 2018 23:29:51 +0200
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:45458 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752171AbeFTBau (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Jun 2018 21:30:50 -0400
+Received: by mail-qt0-f196.google.com with SMTP id i18-v6so1606931qtp.12
+        for <linux-media@vger.kernel.org>; Tue, 19 Jun 2018 18:30:49 -0700 (PDT)
+Subject: Re: [PATCH] gpu: ipu-v3: Allow negative offsets for interlaced
+ scanning
+To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
+Cc: Javier Martinez Canillas <javierm@redhat.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org, kernel@pengutronix.de
+References: <20180601131316.18728-1-p.zabel@pengutronix.de>
+ <ebada35f-23c1-6ca4-5228-d3d91bad48bc@gmail.com>
+ <1528708771.3818.7.camel@pengutronix.de>
+ <6780e24e-891d-3583-6e38-d1abd69c8a0d@gmail.com>
+ <2aff8f80-aa79-6718-6183-6e49088ae498@redhat.com>
+ <f6e7eaa3-355e-a5d9-1be5-e5db08a99897@gmail.com> <m3h8m5yaeh.fsf@t19.piap.pl>
+ <798b8ad7-2fce-8408-b1c4-c2954f524d23@gmail.com> <m336xoxxcd.fsf@t19.piap.pl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <20db0ee3-1202-67fd-84b9-d6e0255dec06@gmail.com>
+Date: Tue, 19 Jun 2018 18:30:46 -0700
 MIME-Version: 1.0
-In-Reply-To: <20180618115444.pgjmfntp767zuvmw@ninjato>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <m336xoxxcd.fsf@t19.piap.pl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-06-18 13:54, Wolfram Sang wrote:
-> 
->>> I wonder if i2c_lock_segment() and i2c_lock_root_adapter() are really
->>> more readable and convenient than i2c_lock_bus() with the flag. I think
->>> the flags have speaking names, too.
->>>
->>> Is that an idea to remove these functions altogether and start using
->>> i2c_lock_bus()?
->>
->> That would be fine with me. I don't have a strong opinion and agree that
->> both are readable enough...
->>
->> It would make for a reduction of the number of lines so that's nice, but
->> the macro in drivers/i2c/busses/i2c-gpio.c (patch 11) would not fit in
->> the current \-width (or whatever you'd call that line of backslashes to
->> the right in a multi-line macro).
->>
->> Does anyone have a strong opinion?
-> 
-> I have a strong opinion on making i2c.h less bloated. And yes, less
-> number of lines is nice, too. I think that surely pays off the
-> whitespace exception.
+Hi Philipp, Krzysztof,
 
-Ok, I have rebased onto v4.18-rc1, killed the i2c-tegra hunk and converted
-i2c_lock_root(foo) over to i2c_lock_bus(foo, I2C_LOCK_ROOT_ADAPTER) and
-i2c_lock_segment(foo) over to i2c_lock_bus(foo, I2C_LOCK_SEGMENT). And I
-of course killed a bunch of locking helpers in i2c.h.
 
-I doing build tests now, will post a v2 in the morning.
+On 06/15/2018 01:33 AM, Krzysztof Hałasa wrote:
+> Steve Longerbeam <slongerbeam@gmail.com> writes:
+>
+>> Right, the selection of interweave is moved to the capture devices,
+>> so the following will enable interweave:
+>>
+>> v4l2-ctl -dN --set-fmt-video=field=interlaced_tb
+> and
+>
+>> So the patch to adv7180 needs to be modified to report # field lines.
+>>
+>> Try the following:
+>>
+>> --- a/drivers/media/i2c/adv7180.c
+>> +++ b/drivers/media/i2c/adv7180.c
+> With this patch, fix-csi-interlaced.3 seems to work for me.
+> "ipu2_csi1":2 reports [fmt:AYUV32/720x576 field:seq-tb], but the
+> /dev/videoX shows (when requested) 720 x 576 NV12 interlaced, top field
+> first, and I'm getting valid output.
+>
+> Thanks for your work.
 
-Cheers,
-Peter
+I've found some time to diagnose the behavior of interweave with B/T line
+swapping (to support interlaced-bt) with planar formats.
+
+There are a couple problems (one known and one unknown):
+
+1. This requires 32 pixel alignment to meet the IDMAC 8-byte alignment
+     of the planar U/V buffer offsets, and 32 pixel alignment precludes
+     capturing raw NTSC/PAL at 720 pixel line stride.
+
+2. Even with 32 pixel aligned frames, for example by using the prpenc scaler
+     to generate 704 pixel strides from 720, the colors are still wrong when
+     capturing interlaced-bt. I thought for sure this must be because we 
+also
+     need to double the SLUV line strides in addition to doubling SLY 
+line stride.
+     But I tried this and the results are that it works only for YUV 
+4:2:2. For 4:2:0
+     it causes system hard lockups. (Aside note: interweave without line 
+swap
+     apparently has never worked for 4:2:2, even when doubling SLUV, so it's
+     quite bizarre to me why 4:2:2 interweave _with_ line swap _does_ work
+     after doubling SLUV).
+
+
+For these reasons I think we should disallow interlaced-bt with planar 
+formats.
+
+If the user needs NTSC interlaced capture with planar, the fields can be 
+swapped at
+the CSI, by selecting seq-tb at the CSI source pad, which allows for 
+interlaced-tb
+at the capture interface, which doesn't require interweave line swapping.
+
+Steve
