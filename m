@@ -2,8 +2,8 @@ Return-path: <linux-media-owner@vger.kernel.org>
 Received: from mail-ve1eur01on0090.outbound.protection.outlook.com ([104.47.1.90]:31456
         "EHLO EUR01-VE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754050AbeFTFSf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 01:18:35 -0400
+        id S1754023AbeFTFSa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Jun 2018 01:18:30 -0400
 From: Peter Rosin <peda@axentia.se>
 To: linux-kernel@vger.kernel.org
 Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
@@ -37,9 +37,9 @@ Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-iio@vger.kernel.org,
         linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 03/10] input: rohm_bu21023: switch to i2c_lock_bus(..., I2C_LOCK_SEGMENT)
-Date: Wed, 20 Jun 2018 07:17:56 +0200
-Message-Id: <20180620051803.12206-4-peda@axentia.se>
+Subject: [PATCH v2 02/10] i2c: mux: pca9541: switch to i2c_lock_bus(..., I2C_LOCK_SEGMENT)
+Date: Wed, 20 Jun 2018 07:17:55 +0200
+Message-Id: <20180620051803.12206-3-peda@axentia.se>
 In-Reply-To: <20180620051803.12206-1-peda@axentia.se>
 References: <20180620051803.12206-1-peda@axentia.se>
 MIME-Version: 1.0
@@ -54,30 +54,27 @@ sit behind a mux-locked mux, the two locking variants are equivalent.
 
 Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/input/touchscreen/rohm_bu21023.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/muxes/i2c-mux-pca9541.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/input/touchscreen/rohm_bu21023.c b/drivers/input/touchscreen/rohm_bu21023.c
-index bda0500c9b57..714affdd742f 100644
---- a/drivers/input/touchscreen/rohm_bu21023.c
-+++ b/drivers/input/touchscreen/rohm_bu21023.c
-@@ -304,7 +304,7 @@ static int rohm_i2c_burst_read(struct i2c_client *client, u8 start, void *buf,
- 	msg[1].len = len;
- 	msg[1].buf = buf;
+diff --git a/drivers/i2c/muxes/i2c-mux-pca9541.c b/drivers/i2c/muxes/i2c-mux-pca9541.c
+index 6a39adaf433f..bc7c8cee5a8c 100644
+--- a/drivers/i2c/muxes/i2c-mux-pca9541.c
++++ b/drivers/i2c/muxes/i2c-mux-pca9541.c
+@@ -345,11 +345,11 @@ static int pca9541_probe(struct i2c_client *client,
  
+ 	/*
+ 	 * I2C accesses are unprotected here.
+-	 * We have to lock the adapter before releasing the bus.
++	 * We have to lock the I2C segment before releasing the bus.
+ 	 */
 -	i2c_lock_adapter(adap);
 +	i2c_lock_bus(adap, I2C_LOCK_SEGMENT);
- 
- 	for (i = 0; i < 2; i++) {
- 		if (__i2c_transfer(adap, &msg[i], 1) < 0) {
-@@ -313,7 +313,7 @@ static int rohm_i2c_burst_read(struct i2c_client *client, u8 start, void *buf,
- 		}
- 	}
- 
+ 	pca9541_release_bus(client);
 -	i2c_unlock_adapter(adap);
 +	i2c_unlock_bus(adap, I2C_LOCK_SEGMENT);
  
- 	return ret;
- }
+ 	/* Create mux adapter */
+ 
 -- 
 2.11.0
