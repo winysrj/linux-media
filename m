@@ -1,18 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:59916 "EHLO
+Received: from Galois.linutronix.de ([146.0.238.70]:59930 "EHLO
         Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752914AbeFTLBg (ORCPT
+        with ESMTP id S1754171AbeFTLBk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 07:01:36 -0400
+        Wed, 20 Jun 2018 07:01:40 -0400
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-usb@vger.kernel.org, tglx@linutronix.de,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 15/27] media: msi2500: use usb_fill_int_urb()
-Date: Wed, 20 Jun 2018 13:00:53 +0200
-Message-Id: <20180620110105.19955-16-bigeasy@linutronix.de>
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 20/27] media: ttusb-budget: use usb_fill_int_urb()
+Date: Wed, 20 Jun 2018 13:00:58 +0200
+Message-Id: <20180620110105.19955-21-bigeasy@linutronix.de>
 In-Reply-To: <20180620110105.19955-1-bigeasy@linutronix.de>
 References: <20180620110105.19955-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
@@ -24,57 +23,37 @@ Using usb_fill_int_urb() helps to find code which initializes an URB. A
 grep for members of the struct (like ->complete) reveal lots of other
 things, too.
 
-Cc: Antti Palosaari <crope@iki.fi>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/media/usb/msi2500/msi2500.c | 21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi250=
-0/msi2500.c
-index 65ef755adfdc..7ac6284248ce 100644
---- a/drivers/media/usb/msi2500/msi2500.c
-+++ b/drivers/media/usb/msi2500/msi2500.c
-@@ -507,6 +507,8 @@ static int msi2500_isoc_init(struct msi2500_dev *dev)
+diff --git a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c b/drivers/me=
+dia/usb/ttusb-budget/dvb-ttusb-budget.c
+index eed56895c2b9..493fb44586e9 100644
+--- a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
++++ b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
+@@ -846,16 +846,12 @@ static int ttusb_start_iso_xfer(struct ttusb *ttusb)
+ 		int frame_offset =3D 0;
+ 		struct urb *urb =3D ttusb->iso_urb[i];
 =20
- 	/* Allocate and init Isochronuous urbs */
- 	for (i =3D 0; i < MAX_ISO_BUFS; i++) {
-+		void *buf;
-+
- 		urb =3D usb_alloc_urb(ISO_FRAMES_PER_DESC, GFP_KERNEL);
- 		if (urb =3D=3D NULL) {
- 			msi2500_isoc_cleanup(dev);
-@@ -515,22 +517,19 @@ static int msi2500_isoc_init(struct msi2500_dev *dev)
- 		dev->urbs[i] =3D urb;
- 		dev_dbg(dev->dev, "Allocated URB at 0x%p\n", urb);
-=20
+-		urb->dev =3D ttusb->dev;
+-		urb->context =3D ttusb;
+-		urb->complete =3D ttusb_iso_irq;
+-		urb->pipe =3D ttusb->isoc_in_pipe;
++		usb_fill_int_urb(urb, ttusb->dev, ttusb->isoc_in_pipe,
++				 ttusb->iso_buffer + buffer_offset,
++				 ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF,
++				 ttusb_iso_irq, ttusb, 1);
+ 		urb->transfer_flags =3D URB_ISO_ASAP;
 -		urb->interval =3D 1;
--		urb->dev =3D dev->udev;
--		urb->pipe =3D usb_rcvisocpipe(dev->udev, 0x81);
--		urb->transfer_flags =3D URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
--		urb->transfer_buffer =3D usb_alloc_coherent(dev->udev,
--				ISO_BUFFER_SIZE,
--				GFP_KERNEL, &urb->transfer_dma);
--		if (urb->transfer_buffer =3D=3D NULL) {
-+
-+		buf =3D usb_alloc_coherent(dev->udev, ISO_BUFFER_SIZE, GFP_KERNEL,
-+					 &urb->transfer_dma);
-+		if (buf =3D=3D NULL) {
- 			dev_err(dev->dev,
- 				"Failed to allocate urb buffer %d\n", i);
- 			msi2500_isoc_cleanup(dev);
- 			return -ENOMEM;
- 		}
--		urb->transfer_buffer_length =3D ISO_BUFFER_SIZE;
--		urb->complete =3D msi2500_isoc_handler;
--		urb->context =3D dev;
-+		usb_fill_int_urb(urb, dev->udev,
-+				 usb_rcvisocpipe(dev->udev, 0x81), buf,
-+				 ISO_BUFFER_SIZE, msi2500_isoc_handler, dev, 1);
-+		urb->transfer_flags =3D URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
- 		urb->start_frame =3D 0;
- 		urb->number_of_packets =3D ISO_FRAMES_PER_DESC;
- 		for (j =3D 0; j < ISO_FRAMES_PER_DESC; j++) {
+ 		urb->number_of_packets =3D FRAMES_PER_ISO_BUF;
+-		urb->transfer_buffer_length =3D
+-		    ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF;
+-		urb->transfer_buffer =3D ttusb->iso_buffer + buffer_offset;
+ 		buffer_offset +=3D ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF;
+=20
+ 		for (j =3D 0; j < FRAMES_PER_ISO_BUF; j++) {
 --=20
 2.17.1
