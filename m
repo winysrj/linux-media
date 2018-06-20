@@ -1,114 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:50929 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932308AbeFTIyP (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:47747 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753386AbeFTIlO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 04:54:15 -0400
-Message-ID: <1529484851.4008.1.camel@pengutronix.de>
-Subject: Re: [PATCH] gpu: ipu-v3: Allow negative offsets for interlaced
- scanning
-From: Philipp Zabel <p.zabel@pengutronix.de>
+        Wed, 20 Jun 2018 04:41:14 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
 To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>
-Cc: Javier Martinez Canillas <javierm@redhat.com>,
-        linux-media@vger.kernel.org, kernel@pengutronix.de
-Date: Wed, 20 Jun 2018 10:54:11 +0200
-In-Reply-To: <20db0ee3-1202-67fd-84b9-d6e0255dec06@gmail.com>
-References: <20180601131316.18728-1-p.zabel@pengutronix.de>
-         <ebada35f-23c1-6ca4-5228-d3d91bad48bc@gmail.com>
-         <1528708771.3818.7.camel@pengutronix.de>
-         <6780e24e-891d-3583-6e38-d1abd69c8a0d@gmail.com>
-         <2aff8f80-aa79-6718-6183-6e49088ae498@redhat.com>
-         <f6e7eaa3-355e-a5d9-1be5-e5db08a99897@gmail.com>
-         <m3h8m5yaeh.fsf@t19.piap.pl>
-         <798b8ad7-2fce-8408-b1c4-c2954f524d23@gmail.com>
-         <m336xoxxcd.fsf@t19.piap.pl>
-         <20db0ee3-1202-67fd-84b9-d6e0255dec06@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v3] media: ov5640: fix frame interval enumeration
+Date: Wed, 20 Jun 2018 10:40:57 +0200
+Message-ID: <1529484057-2361-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Driver must reject frame interval enumeration of unsupported resolution.
+This was detected by v4l2-compliance format ioctl test:
+v4l2-compliance Format ioctls:
+    info: found 2 frameintervals for pixel format 4745504a and size 176x144
+  fail: v4l2-test-formats.cpp(123):
+                           found frame intervals for invalid size 177x144
+    test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
 
-On Tue, 2018-06-19 at 18:30 -0700, Steve Longerbeam wrote:
-> Hi Philipp, Krzysztof,
-> 
-> On 06/15/2018 01:33 AM, Krzysztof Hałasa wrote:
-> > Steve Longerbeam <slongerbeam@gmail.com> writes:
-> > 
-> > > Right, the selection of interweave is moved to the capture devices,
-> > > so the following will enable interweave:
-> > > 
-> > > v4l2-ctl -dN --set-fmt-video=field=interlaced_tb
-> > 
-> > and
-> > 
-> > > So the patch to adv7180 needs to be modified to report # field lines.
-> > > 
-> > > Try the following:
-> > > 
-> > > --- a/drivers/media/i2c/adv7180.c
-> > > +++ b/drivers/media/i2c/adv7180.c
-> > 
-> > With this patch, fix-csi-interlaced.3 seems to work for me.
-> > "ipu2_csi1":2 reports [fmt:AYUV32/720x576 field:seq-tb], but the
-> > /dev/videoX shows (when requested) 720 x 576 NV12 interlaced, top field
-> > first, and I'm getting valid output.
-> > 
-> > Thanks for your work.
-> 
-> I've found some time to diagnose the behavior of interweave with B/T line
-> swapping (to support interlaced-bt) with planar formats.
-> 
-> There are a couple problems (one known and one unknown):
-> 
-> 1. This requires 32 pixel alignment to meet the IDMAC 8-byte alignment
->      of the planar U/V buffer offsets, and 32 pixel alignment precludes
->      capturing raw NTSC/PAL at 720 pixel line stride.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+version 2:
+  - revisit patch according to Mauro comments:
+    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg127380.html
 
-What needs to be aligned to multiples of 32 pixels?
+version 3:
+  - revisit patch using v4l2_find_nearest_size() helper as per Sakari suggestion:
+    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg128186.html
 
-I thought 8 pixel width alignment should be good enough for NV12/NV16,
-for which luma and chroma strides are equal to the width in pixels, and
-16 pixel alignment for YUV420/YVU420/YUV422P, where chroma stride is
-half the width in pixels.
+ drivers/media/i2c/ov5640.c | 34 ++++++++++++++++------------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
-> 2. Even with 32 pixel aligned frames, for example by using the prpenc scaler
->      to generate 704 pixel strides from 720, the colors are still wrong when
->      capturing interlaced-bt.
-
-As a side note, we can't properly scale seq-tb/bt direct input from the
-CSI vertically with the IC, as the bottom line of the first field will
-be blended with the top line of the second field...
-
->  I thought for sure this must be because we 
-> also
->      need to double the SLUV line strides in addition to doubling SLY 
-> line stride.
->      But I tried this and the results are that it works only for YUV 
-> 4:2:2. For 4:2:0
->      it causes system hard lockups. (Aside note: interweave without line 
-> swap
->      apparently has never worked for 4:2:2, even when doubling SLUV, so it's
->      quite bizarre to me why 4:2:2 interweave _with_ line swap _does_ work
->      after doubling SLUV).
-
-When you say 4:2:2 you only mean YUV422P, not NV16 or YUYV/UYVY ?
-
-> For these reasons I think we should disallow interlaced-bt with planar 
-> formats.
-
-Does that include NV12/NV16? Capturing to NV12 could be desirable if at
-all possible, because the result can be encoded by the CODA. The other
-formats are bandwidth inefficient anyway.
-
-> If the user needs NTSC interlaced capture with planar, the fields can be 
-> swapped at
-> the CSI, by selecting seq-tb at the CSI source pad, which allows for 
-> interlaced-tb
-> at the capture interface, which doesn't require interweave line swapping.
-
-regards
-Philipp
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index f6e40cc..e4b68e3 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1389,24 +1389,16 @@ static int ov5640_set_timings(struct ov5640_dev *sensor,
+ ov5640_find_mode(struct ov5640_dev *sensor, enum ov5640_frame_rate fr,
+ 		 int width, int height, bool nearest)
+ {
+-	const struct ov5640_mode_info *mode = NULL;
+-	int i;
+-
+-	for (i = OV5640_NUM_MODES - 1; i >= 0; i--) {
+-		mode = &ov5640_mode_data[fr][i];
+-
+-		if (!mode->reg_data)
+-			continue;
++	const struct ov5640_mode_info *mode;
+ 
+-		if ((nearest && mode->hact <= width &&
+-		     mode->vact <= height) ||
+-		    (!nearest && mode->hact == width &&
+-		     mode->vact == height))
+-			break;
+-	}
++	mode = v4l2_find_nearest_size(ov5640_mode_data[fr],
++				      ARRAY_SIZE(ov5640_mode_data[fr]),
++				      hact, vact,
++				      width, height);
+ 
+-	if (nearest && i < 0)
+-		mode = &ov5640_mode_data[fr][0];
++	if (!mode ||
++	    (!nearest && (mode->hact != width || mode->vact != height)))
++		return NULL;
+ 
+ 	return mode;
+ }
+@@ -2435,8 +2427,14 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
+ 
+ 	sensor->current_fr = frame_rate;
+ 	sensor->frame_interval = fi->interval;
+-	sensor->current_mode = ov5640_find_mode(sensor, frame_rate, mode->hact,
+-						mode->vact, true);
++	mode = ov5640_find_mode(sensor, frame_rate, mode->hact,
++				mode->vact, true);
++	if (!mode) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	sensor->current_mode = mode;
+ 	sensor->pending_mode_change = true;
+ out:
+ 	mutex_unlock(&sensor->lock);
+-- 
+1.9.1
