@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-he1eur01on0104.outbound.protection.outlook.com ([104.47.0.104]:19840
+Received: from mail-he1eur01on0138.outbound.protection.outlook.com ([104.47.0.138]:45380
         "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S932269AbeFTFTD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 01:19:03 -0400
+        id S932149AbeFTFSz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Jun 2018 01:18:55 -0400
 From: Peter Rosin <peda@axentia.se>
 To: linux-kernel@vger.kernel.org
 Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
@@ -37,9 +37,9 @@ Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-iio@vger.kernel.org,
         linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 09/10] mfd: 88pm860x-i2c: switch to i2c_lock_bus(..., I2C_LOCK_SEGMENT)
-Date: Wed, 20 Jun 2018 07:18:02 +0200
-Message-Id: <20180620051803.12206-10-peda@axentia.se>
+Subject: [PATCH v2 07/10] media: tda1004x: switch to i2c_lock_bus(..., I2C_LOCK_SEGMENT)
+Date: Wed, 20 Jun 2018 07:18:00 +0200
+Message-Id: <20180620051803.12206-8-peda@axentia.se>
 In-Reply-To: <20180620051803.12206-1-peda@axentia.se>
 References: <20180620051803.12206-1-peda@axentia.se>
 MIME-Version: 1.0
@@ -54,46 +54,38 @@ sit behind a mux-locked mux, the two locking variants are equivalent.
 
 Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/mfd/88pm860x-i2c.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/dvb-frontends/tda1004x.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mfd/88pm860x-i2c.c b/drivers/mfd/88pm860x-i2c.c
-index 84e313107233..7b9052ea7413 100644
---- a/drivers/mfd/88pm860x-i2c.c
-+++ b/drivers/mfd/88pm860x-i2c.c
-@@ -146,14 +146,14 @@ int pm860x_page_reg_write(struct i2c_client *i2c, int reg,
- 	unsigned char zero;
- 	int ret;
+diff --git a/drivers/media/dvb-frontends/tda1004x.c b/drivers/media/dvb-frontends/tda1004x.c
+index 7dcfb4a4b2d0..9d3261bf5090 100644
+--- a/drivers/media/dvb-frontends/tda1004x.c
++++ b/drivers/media/dvb-frontends/tda1004x.c
+@@ -329,7 +329,7 @@ static int tda1004x_do_upload(struct tda1004x_state *state,
+ 	tda1004x_write_byteI(state, dspCodeCounterReg, 0);
+ 	fw_msg.addr = state->config->demod_address;
  
--	i2c_lock_adapter(i2c->adapter);
-+	i2c_lock_bus(i2c->adapter, I2C_LOCK_SEGMENT);
- 	read_device(i2c, 0xFA, 0, &zero);
- 	read_device(i2c, 0xFB, 0, &zero);
- 	read_device(i2c, 0xFF, 0, &zero);
- 	ret = write_device(i2c, reg, 1, &data);
- 	read_device(i2c, 0xFE, 0, &zero);
- 	read_device(i2c, 0xFC, 0, &zero);
--	i2c_unlock_adapter(i2c->adapter);
-+	i2c_unlock_bus(i2c->adapter, I2C_LOCK_SEGMENT);
- 	return ret;
- }
- EXPORT_SYMBOL(pm860x_page_reg_write);
-@@ -164,14 +164,14 @@ int pm860x_page_bulk_read(struct i2c_client *i2c, int reg,
- 	unsigned char zero = 0;
- 	int ret;
+-	i2c_lock_adapter(state->i2c);
++	i2c_lock_bus(state->i2c, I2C_LOCK_SEGMENT);
+ 	buf[0] = dspCodeInReg;
+ 	while (pos != len) {
+ 		// work out how much to send this time
+@@ -342,14 +342,14 @@ static int tda1004x_do_upload(struct tda1004x_state *state,
+ 		fw_msg.len = tx_size + 1;
+ 		if (__i2c_transfer(state->i2c, &fw_msg, 1) != 1) {
+ 			printk(KERN_ERR "tda1004x: Error during firmware upload\n");
+-			i2c_unlock_adapter(state->i2c);
++			i2c_unlock_bus(state->i2c, I2C_LOCK_SEGMENT);
+ 			return -EIO;
+ 		}
+ 		pos += tx_size;
  
--	i2c_lock_adapter(i2c->adapter);
-+	i2c_lock_bus(i2c->adapter, I2C_LOCK_SEGMENT);
- 	read_device(i2c, 0xfa, 0, &zero);
- 	read_device(i2c, 0xfb, 0, &zero);
- 	read_device(i2c, 0xff, 0, &zero);
- 	ret = read_device(i2c, reg, count, buf);
- 	read_device(i2c, 0xFE, 0, &zero);
- 	read_device(i2c, 0xFC, 0, &zero);
--	i2c_unlock_adapter(i2c->adapter);
-+	i2c_unlock_bus(i2c->adapter, I2C_LOCK_SEGMENT);
- 	return ret;
- }
- EXPORT_SYMBOL(pm860x_page_bulk_read);
+ 		dprintk("%s: fw_pos=0x%x\n", __func__, pos);
+ 	}
+-	i2c_unlock_adapter(state->i2c);
++	i2c_unlock_bus(state->i2c, I2C_LOCK_SEGMENT);
+ 
+ 	/* give the DSP a chance to settle 03/10/05 Hac */
+ 	msleep(100);
 -- 
 2.11.0
