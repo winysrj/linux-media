@@ -1,18 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:59935 "EHLO
+Received: from Galois.linutronix.de ([146.0.238.70]:59933 "EHLO
         Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754177AbeFTLBm (ORCPT
+        with ESMTP id S1752787AbeFTLBl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 07:01:42 -0400
+        Wed, 20 Jun 2018 07:01:41 -0400
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-usb@vger.kernel.org, tglx@linutronix.de,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Sean Young <sean@mess.org>
-Subject: [PATCH 22/27] media: ttusbir: use usb_fill_int_urb()
-Date: Wed, 20 Jun 2018 13:01:00 +0200
-Message-Id: <20180620110105.19955-23-bigeasy@linutronix.de>
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 21/27] media: ttusb-dec: use usb_fill_int_urb()
+Date: Wed, 20 Jun 2018 13:00:59 +0200
+Message-Id: <20180620110105.19955-22-bigeasy@linutronix.de>
 In-Reply-To: <20180620110105.19955-1-bigeasy@linutronix.de>
 References: <20180620110105.19955-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
@@ -20,46 +19,43 @@ Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using usb_fill_int_urb() helps to find code which initializes an
-URB. A grep for members of the struct (like ->complete) reveal lots
-of other things, too.
+Using usb_fill_int_urb() helps to find code which initializes an URB. A
+grep for members of the struct (like ->complete) reveal lots of other
+things, too.
 
-Cc: Sean Young <sean@mess.org>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/media/rc/ttusbir.c | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/media/usb/ttusb-dec/ttusb_dec.c | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
-index aafea3c5170b..6a7c9b50ff5a 100644
---- a/drivers/media/rc/ttusbir.c
-+++ b/drivers/media/rc/ttusbir.c
-@@ -257,10 +257,6 @@ static int ttusbir_probe(struct usb_interface *intf,
- 			goto out;
- 		}
+diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/tt=
+usb-dec/ttusb_dec.c
+index 44ca66cb9b8f..4c094364873d 100644
+--- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
++++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
+@@ -858,16 +858,13 @@ static void ttusb_dec_setup_urbs(struct ttusb_dec *de=
+c)
+ 		int frame_offset =3D 0;
+ 		struct urb *urb =3D dec->iso_urb[i];
 =20
--		urb->dev =3D tt->udev;
--		urb->context =3D tt;
--		urb->pipe =3D usb_rcvisocpipe(tt->udev, tt->iso_in_endp);
+-		urb->dev =3D dec->udev;
+-		urb->context =3D dec;
+-		urb->complete =3D ttusb_dec_process_urb;
+-		urb->pipe =3D dec->in_pipe;
++		usb_fill_int_urb(urb, dec->udev, dec->in_pipe,
++				 dec->iso_buffer + buffer_offset,
++				 ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF,
++				 ttusb_dec_process_urb, dec, 1);
++
+ 		urb->transfer_flags =3D URB_ISO_ASAP;
 -		urb->interval =3D 1;
- 		buffer =3D usb_alloc_coherent(tt->udev, 128, GFP_KERNEL,
- 						&urb->transfer_dma);
- 		if (!buffer) {
-@@ -268,11 +264,11 @@ static int ttusbir_probe(struct usb_interface *intf,
- 			ret =3D -ENOMEM;
- 			goto out;
- 		}
-+		usb_fill_int_urb(urb, tt->udev,
-+				 usb_rcvisocpipe(tt->udev, tt->iso_in_endp),
-+				 buffer, 128, ttusbir_urb_complete, tt, 1);
- 		urb->transfer_flags =3D URB_NO_TRANSFER_DMA_MAP | URB_ISO_ASAP;
--		urb->transfer_buffer =3D buffer;
--		urb->complete =3D ttusbir_urb_complete;
- 		urb->number_of_packets =3D 8;
--		urb->transfer_buffer_length =3D 128;
+ 		urb->number_of_packets =3D FRAMES_PER_ISO_BUF;
+-		urb->transfer_buffer_length =3D ISO_FRAME_SIZE *
+-					      FRAMES_PER_ISO_BUF;
+-		urb->transfer_buffer =3D dec->iso_buffer + buffer_offset;
+ 		buffer_offset +=3D ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF;
 =20
- 		for (j =3D 0; j < 8; j++) {
- 			urb->iso_frame_desc[j].offset =3D j * 16;
+ 		for (j =3D 0; j < FRAMES_PER_ISO_BUF; j++) {
 --=20
 2.17.1
