@@ -1,124 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:60306 "EHLO
-        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753569AbeFTNVs (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:37486 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754046AbeFTOEY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 09:21:48 -0400
-Date: Wed, 20 Jun 2018 15:21:44 +0200
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-usb@vger.kernel.org, tglx@linutronix.de
-Subject: Re: [PATCH 27/27] media: uvcvideo: use usb_fill_int_urb()
-Message-ID: <20180620132144.5cdu2ydlqre4ijg6@linutronix.de>
-References: <20180620110105.19955-1-bigeasy@linutronix.de>
- <20180620110105.19955-28-bigeasy@linutronix.de>
- <3925059.Md1u3KRT1n@avalon>
+        Wed, 20 Jun 2018 10:04:24 -0400
+Received: by mail-wm0-f65.google.com with SMTP id r125-v6so7169855wmg.2
+        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2018 07:04:24 -0700 (PDT)
+Reply-To: christian.koenig@amd.com
+Subject: Re: [PATCH 2/5] dma-buf: remove kmap_atomic interface
+To: Daniel Vetter <daniel@ffwll.ch>,
+        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Cc: "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+References: <20180601120020.11520-1-christian.koenig@amd.com>
+ <20180601120020.11520-2-christian.koenig@amd.com>
+ <20180618081845.GV3438@phenom.ffwll.local>
+ <2bcb34c3-b729-e3ea-fb8c-2471e4ed56d6@amd.com>
+ <CAKMK7uEvhMF92ifA=7xQ=9GR3NofZNExCDTHZTtikmujJTZ89A@mail.gmail.com>
+ <c0552d8a-1c64-c99b-6ef8-83e253c49d30@gmail.com>
+ <CAKMK7uHHZn=H6px-yiXy7tVmmQy6GHrwGtG+B7or1ThsrriFDA@mail.gmail.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <5d337ffc-6c4c-dafb-abb2-151d9d4aeaea@gmail.com>
+Date: Wed, 20 Jun 2018 16:04:20 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <3925059.Md1u3KRT1n@avalon>
+In-Reply-To: <CAKMK7uHHZn=H6px-yiXy7tVmmQy6GHrwGtG+B7or1ThsrriFDA@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------A5D8D9BBDF0CC7F56BB3F0B4"
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-06-20 14:55:23 [+0300], Laurent Pinchart wrote:
-> Hi Sebastian,
-Hi Laurent,
+This is a multi-part message in MIME format.
+--------------A5D8D9BBDF0CC7F56BB3F0B4
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-> Thank you for the patch.
-> 
-> On Wednesday, 20 June 2018 14:01:05 EEST Sebastian Andrzej Siewior wrote:
-> > Using usb_fill_int_urb() helps to find code which initializes an
-> > URB. A grep for members of the struct (like ->complete) reveal lots
-> > of other things, too.
-> > usb_fill_int_urb() also checks bInterval to be in the 1…16 range on
-> > HS/SS.
-> > 
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> > ---
-> >  drivers/media/usb/uvc/uvc_video.c | 14 ++++++--------
-> >  1 file changed, 6 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/drivers/media/usb/uvc/uvc_video.c
-> > b/drivers/media/usb/uvc/uvc_video.c index a88b2e51a666..79e7a827ed44 100644
-> > --- a/drivers/media/usb/uvc/uvc_video.c
-> > +++ b/drivers/media/usb/uvc/uvc_video.c
-> > @@ -1619,21 +1619,19 @@ static int uvc_init_video_isoc(struct uvc_streaming
-> > *stream, return -ENOMEM;
-> >  		}
-> > 
-> > -		urb->dev = stream->dev->udev;
-> > -		urb->context = stream;
-> > -		urb->pipe = usb_rcvisocpipe(stream->dev->udev,
-> > -				ep->desc.bEndpointAddress);
-> > +		usb_fill_int_urb(urb, stream->dev->udev,
-> > +				 usb_rcvisocpipe(stream->dev->udev,
-> > +						 ep->desc.bEndpointAddress),
-> > +				 stream->urb_buffer[i], size,
-> > +				 uvc_video_complete, stream,
-> > +				 ep->desc.bInterval);
-> 
-> You're filling an isoc URB with usb_fill_int_urb(), which is explicitly 
-> documented as usable to fill an interrupt URB. Shouldn't we create a 
-> usb_fill_isoc_urb() function ? It could just be an alias for 
-> usb_fill_int_urb() if isoc and interrupt URBs don't need to be treated 
-> differently. Alternatively, I'd be fine using usb_fill_int_urb() if the 
-> function documentation's was updated to mention isoc URBs as well.
+Am 20.06.2018 um 14:52 schrieb Daniel Vetter:
+> On Wed, Jun 20, 2018 at 2:46 PM, Christian König
+> <ckoenig.leichtzumerken@gmail.com> wrote:
+>> [SNIP]
+>>> Go ahead, that's the point of commit rights. dim might complain if you
+>>> cherry picked them and didn't pick them up using dim apply though ...
+>>
+>> I've fixed up the Link tags, but when I try "dim push-branch drm-misc-next"
+>> I only get the error message "error: dst ref refs/heads/drm-misc-next
+>> receives from more than one src."
+>>
+>> Any idea what is going wrong here?
+> Sounds like multiple upstreams for your local drm-misc-next branch,
+> and git then can't decide which one to pick. If you delete the branch
+> and create it using dim checkout drm-misc-next this shouldn't happen.
+> We're trying to fit into existing check-outs and branches, but if you
+> set things up slightly different than dim would have you're off script
+> and there's limited support for that.
+>
+> Alternative check out your .git/config and remove the other upstreams.
+> Or attach your git config if this isn't the issue (I'm just doing some
+> guessing here).
 
-I thought I read it there but I couldn't find it. And then I found it in
-Documentation/driver-api/usb/URB.rst:
-| you specify. You can use the :c:func:`usb_fill_int_urb` macro to fill
-| most ISO transfer fields.
+I've tried to delete my drm-misc-next branch and recreate it, but that 
+doesn't seem to help.
 
-So you simply asking that the kerneldoc of usb_fill_int_urb() is
-extended to mention isoc, too?
+Attached is my .git/config, but at least on first glance it looks ok as 
+well.
 
-> >  #ifndef CONFIG_DMA_NONCOHERENT
-> >  		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
-> >  		urb->transfer_dma = stream->urb_dma[i];
-> >  #else
-> >  		urb->transfer_flags = URB_ISO_ASAP;
-> >  #endif
-> > -		urb->interval = ep->desc.bInterval;
-> 
-> Unless I'm mistaken this introduces a change in behaviour for HS and SS, and 
-> should thus be documented in the commit message. 
-I did:
+Any ideas?
 
-| usb_fill_int_urb() also checks bInterval to be in the 1…16 range on
-| HS/SS.
+Thanks,
+Christian.
 
-so this wasn't enough?
+> -Daniel
+>
+>
 
-> I suspect that this is the 
-> real reason for this patch. I'd thus update the subject line to describe this 
-> fix, and the body of the message to explain why using usb_fill_int_urb() is 
-> the proper fix.
 
-Actually no. I was looking for all the ->complete handlers and most of
-them used usb_fill_… except a few. And while moving to the function I
-was checking if everything stays the same (and mentioned ->interval
-since ->start_frame is documented as a return parameter).
+--------------A5D8D9BBDF0CC7F56BB3F0B4
+Content-Type: text/plain; charset=UTF-8;
+ name="config"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="config"
 
-So here you are asking for a description update which explicit says
-bug-fix?
-
-> > -		urb->transfer_buffer = stream->urb_buffer[i];
-> > -		urb->complete = uvc_video_complete;
-> >  		urb->number_of_packets = npackets;
-> > -		urb->transfer_buffer_length = size;
-> 
-> usb_fill_int_urb() sets urb->start_frame to -1. Does that impact us in any way 
-> ?
-
-It should not. The documentation says:
-|  * @start_frame: Returns the initial frame for isochronous transfers.
-
-> >  		for (j = 0; j < npackets; ++j) {
-> >  			urb->iso_frame_desc[j].offset = j * psize;
-
-Sebastian
+W2NvcmVdCglyZXBvc2l0b3J5Zm9ybWF0dmVyc2lvbiA9IDAKCWZpbGVtb2RlID0gdHJ1ZQoJ
+YmFyZSA9IGZhbHNlCglsb2dhbGxyZWZ1cGRhdGVzID0gdHJ1ZQpbcmVtb3RlICJvcmlnaW4i
+XQoJdXJsID0gZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0
+L3RvcnZhbGRzL2xpbnV4LmdpdAoJZmV0Y2ggPSArcmVmcy9oZWFkcy8qOnJlZnMvcmVtb3Rl
+cy9vcmlnaW4vKgpbYnJhbmNoICJtYXN0ZXIiXQoJcmVtb3RlID0gb3JpZ2luCgltZXJnZSA9
+IHJlZnMvaGVhZHMvbWFzdGVyCltyZW1vdGUgImRybS10aXAiXQoJdXJsID0gc3NoOi8vZ2l0
+LmZyZWVkZXNrdG9wLm9yZy9naXQvZHJtLXRpcAoJZmV0Y2ggPSArcmVmcy9oZWFkcy8qOnJl
+ZnMvcmVtb3Rlcy9kcm0tdGlwLyoKW2JyYW5jaCAibWFpbnRhaW5lci10b29scyJdCglyZW1v
+dGUgPSBkcm0tdGlwCgltZXJnZSA9IHJlZnMvaGVhZHMvbWFpbnRhaW5lci10b29scwpbYnJh
+bmNoICJyZXJlcmUtY2FjaGUiXQoJcmVtb3RlID0gZHJtLXRpcAoJbWVyZ2UgPSByZWZzL2hl
+YWRzL3JlcmVyZS1jYWNoZQpbYnJhbmNoICJkcm0tdGlwIl0KCXJlbW90ZSA9IGRybS10aXAK
+CW1lcmdlID0gcmVmcy9oZWFkcy9kcm0tdGlwCltyZW1vdGUgImFpcmxpZWQiXQoJdXJsID0g
+Z2l0Oi8vcGVvcGxlLmZyZWVkZXNrdG9wLm9yZy9+YWlybGllZC9saW51eAoJZmV0Y2ggPSAr
+cmVmcy9oZWFkcy8qOnJlZnMvcmVtb3Rlcy9haXJsaWVkLyoKW3JlbW90ZSAic291bmQiXQoJ
+dXJsID0gZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3Rp
+d2FpL3NvdW5kLmdpdAoJZmV0Y2ggPSArcmVmcy9oZWFkcy8qOnJlZnMvcmVtb3Rlcy9zb3Vu
+ZC8qCltyZW1vdGUgImRybS1pbnRlbCJdCgl1cmwgPSBzc2g6Ly9naXQuZnJlZWRlc2t0b3Au
+b3JnL2dpdC9kcm0vZHJtLWludGVsCglmZXRjaCA9ICtyZWZzL2hlYWRzLyo6cmVmcy9yZW1v
+dGVzL2RybS1pbnRlbC8qCltyZW1vdGUgImRybS1hbWQiXQoJdXJsID0gc3NoOi8vZ2l0LmZy
+ZWVkZXNrdG9wLm9yZy9naXQvZHJtL2RybS1hbWQKCWZldGNoID0gK3JlZnMvaGVhZHMvKjpy
+ZWZzL3JlbW90ZXMvZHJtLWFtZC8qCltyZW1vdGUgImRybSJdCgl1cmwgPSBzc2g6Ly9naXQu
+ZnJlZWRlc2t0b3Aub3JnL2dpdC9kcm0vZHJtCglmZXRjaCA9ICtyZWZzL2hlYWRzLyo6cmVm
+cy9yZW1vdGVzL2RybS8qCltyZW1vdGUgImRybS1taXNjIl0KCXVybCA9IHNzaDovL2dpdC5m
+cmVlZGVza3RvcC5vcmcvZ2l0L2RybS9kcm0tbWlzYwoJZmV0Y2ggPSArcmVmcy9oZWFkcy8q
+OnJlZnMvcmVtb3Rlcy9kcm0tbWlzYy8qCltyZW1vdGUgImJha2VyIl0KCXVybCA9IHNzaDov
+L2Jha2VyLmxvY2FsL3Vzci9zcmMvbGludXgKCWZldGNoID0gK3JlZnMvaGVhZHMvKjpyZWZz
+L3JlbW90ZXMvYmFrZXIvKgpbYnJhbmNoICJkcm0tbWlzYy1uZXh0Il0KCXJlbW90ZSA9IGRy
+bS1taXNjCgltZXJnZSA9IHJlZnMvaGVhZHMvZHJtLW1pc2MtbmV4dAo=
+--------------A5D8D9BBDF0CC7F56BB3F0B4--
