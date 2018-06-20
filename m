@@ -1,162 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:45526 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752798AbeFTOOi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 10:14:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-usb@vger.kernel.org, tglx@linutronix.de
-Subject: Re: [PATCH 27/27] media: uvcvideo: use usb_fill_int_urb()
-Date: Wed, 20 Jun 2018 17:14:53 +0300
-Message-ID: <18211658.4PQ3SEps0f@avalon>
-In-Reply-To: <20180620132144.5cdu2ydlqre4ijg6@linutronix.de>
-References: <20180620110105.19955-1-bigeasy@linutronix.de> <3925059.Md1u3KRT1n@avalon> <20180620132144.5cdu2ydlqre4ijg6@linutronix.de>
+Received: from mail-bl2nam02on0066.outbound.protection.outlook.com ([104.47.38.66]:65173
+        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752838AbeFTOVs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Jun 2018 10:21:48 -0400
+Subject: Re: [PATCH 2/5] dma-buf: remove kmap_atomic interface
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+References: <20180601120020.11520-1-christian.koenig@amd.com>
+ <20180601120020.11520-2-christian.koenig@amd.com>
+ <20180618081845.GV3438@phenom.ffwll.local>
+ <2bcb34c3-b729-e3ea-fb8c-2471e4ed56d6@amd.com>
+ <CAKMK7uEvhMF92ifA=7xQ=9GR3NofZNExCDTHZTtikmujJTZ89A@mail.gmail.com>
+ <c0552d8a-1c64-c99b-6ef8-83e253c49d30@gmail.com>
+ <CAKMK7uHHZn=H6px-yiXy7tVmmQy6GHrwGtG+B7or1ThsrriFDA@mail.gmail.com>
+ <5d337ffc-6c4c-dafb-abb2-151d9d4aeaea@gmail.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <3994b9d0-85fe-6495-5528-282f7b46a53f@amd.com>
+Date: Wed, 20 Jun 2018 16:21:37 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <5d337ffc-6c4c-dafb-abb2-151d9d4aeaea@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sebastian,
+Am 20.06.2018 um 16:04 schrieb Christian König:
+> Am 20.06.2018 um 14:52 schrieb Daniel Vetter:
+>> On Wed, Jun 20, 2018 at 2:46 PM, Christian König
+>> <ckoenig.leichtzumerken@gmail.com> wrote:
+>>> [SNIP]
+>>>> Go ahead, that's the point of commit rights. dim might complain if you
+>>>> cherry picked them and didn't pick them up using dim apply though ...
+>>>
+>>> I've fixed up the Link tags, but when I try "dim push-branch 
+>>> drm-misc-next"
+>>> I only get the error message "error: dst ref refs/heads/drm-misc-next
+>>> receives from more than one src."
+>>>
+>>> Any idea what is going wrong here?
+>> Sounds like multiple upstreams for your local drm-misc-next branch,
+>> and git then can't decide which one to pick. If you delete the branch
+>> and create it using dim checkout drm-misc-next this shouldn't happen.
+>> We're trying to fit into existing check-outs and branches, but if you
+>> set things up slightly different than dim would have you're off script
+>> and there's limited support for that.
+>>
+>> Alternative check out your .git/config and remove the other upstreams.
+>> Or attach your git config if this isn't the issue (I'm just doing some
+>> guessing here).
+>
+> I've tried to delete my drm-misc-next branch and recreate it, but that 
+> doesn't seem to help.
+>
+> Attached is my .git/config, but at least on first glance it looks ok 
+> as well.
+>
+> Any ideas?
 
-On Wednesday, 20 June 2018 16:21:44 EEST Sebastian Andrzej Siewior wrote:
-> On 2018-06-20 14:55:23 [+0300], Laurent Pinchart wrote:
-> > Hi Sebastian,
->=20
-> Hi Laurent,
->=20
-> > Thank you for the patch.
-> >=20
-> > On Wednesday, 20 June 2018 14:01:05 EEST Sebastian Andrzej Siewior wrot=
-e:
-> > > Using usb_fill_int_urb() helps to find code which initializes an
-> > > URB. A grep for members of the struct (like ->complete) reveal lots
-> > > of other things, too.
-> > > usb_fill_int_urb() also checks bInterval to be in the 1=E2=80=A616 ra=
-nge on
-> > > HS/SS.
-> > >=20
-> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> > > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> > > ---
-> > >=20
-> > >  drivers/media/usb/uvc/uvc_video.c | 14 ++++++--------
-> > >  1 file changed, 6 insertions(+), 8 deletions(-)
-> > >=20
-> > > diff --git a/drivers/media/usb/uvc/uvc_video.c
-> > > b/drivers/media/usb/uvc/uvc_video.c index a88b2e51a666..79e7a827ed44
-> > > 100644
-> > > --- a/drivers/media/usb/uvc/uvc_video.c
-> > > +++ b/drivers/media/usb/uvc/uvc_video.c
-> > > @@ -1619,21 +1619,19 @@ static int uvc_init_video_isoc(struct
-> > > uvc_streaming *stream,
-> > >  			return -ENOMEM;
-> > >  		}
-> > >=20
-> > > -		urb->dev =3D stream->dev->udev;
-> > > -		urb->context =3D stream;
-> > > -		urb->pipe =3D usb_rcvisocpipe(stream->dev->udev,
-> > > -				ep->desc.bEndpointAddress);
-> > > +		usb_fill_int_urb(urb, stream->dev->udev,
-> > > +				 usb_rcvisocpipe(stream->dev->udev,
-> > > +						 ep->desc.bEndpointAddress),
-> > > +				 stream->urb_buffer[i], size,
-> > > +				 uvc_video_complete, stream,
-> > > +				 ep->desc.bInterval);
-> >=20
-> > You're filling an isoc URB with usb_fill_int_urb(), which is explicitly
-> > documented as usable to fill an interrupt URB. Shouldn't we create a
-> > usb_fill_isoc_urb() function ? It could just be an alias for
-> > usb_fill_int_urb() if isoc and interrupt URBs don't need to be treated
-> > differently. Alternatively, I'd be fine using usb_fill_int_urb() if the
-> > function documentation's was updated to mention isoc URBs as well.
->=20
-> I thought I read it there but I couldn't find it. And then I found it in
->=20
-> Documentation/driver-api/usb/URB.rst:
-> | you specify. You can use the :c:func:`usb_fill_int_urb` macro to fill
-> | most ISO transfer fields.
->=20
-> So you simply asking that the kerneldoc of usb_fill_int_urb() is
-> extended to mention isoc, too?
+Ok that seems to be a bug in dim.
 
-That would be nice I think.
+"bash -x dim push drm-misc-next" looks like it tries to push the branch 
+drm-misc-next twice to the drm-misc remote: git push drm-misc 
+drm-misc-next drm-misc-next
 
-> > >  #ifndef CONFIG_DMA_NONCOHERENT
-> > >  		urb->transfer_flags =3D URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
-> > >  		urb->transfer_dma =3D stream->urb_dma[i];
-> > >  #else
-> > > =20
-> > >  #endif
-> > > -		urb->interval =3D ep->desc.bInterval;
-> >=20
-> > Unless I'm mistaken this introduces a change in behaviour for HS and SS,
-> > and should thus be documented in the commit message.
->=20
-> I did:
-> | usb_fill_int_urb() also checks bInterval to be in the 1=E2=80=A616 rang=
-e on
-> | HS/SS.
->=20
-> so this wasn't enough?
+When I try that manually I get the same result, but "git push drm-misc 
+drm-misc-next" just seemed to work fine.
 
-This sounds to me like a sanity check, while the patch effectively changes =
-the=20
-code as follows for HS and SS:
+Let's hope that I haven't messed things up totally on the server now.
 
-=2D		urb->interval =3D ep->desc.bInterval;
-+		urb->interval =3D 1 << (ep->desc.bInterval - 1);
+Christian.
 
-I believe the change is correct, although it would be nice if you could=20
-double-check, as the documentation of the function states:
-
- * @interval: what to set the urb interval to, encoded like
- *      the endpoint descriptor's bInterval value.
-
-> > I suspect that this is the real reason for this patch. I'd thus update =
-the
-> > subject line to describe this fix, and the body of the message to expla=
-in
-> > why using usb_fill_int_urb() is the proper fix.
->=20
-> Actually no. I was looking for all the ->complete handlers and most of
-> them used usb_fill_=E2=80=A6 except a few. And while moving to the functi=
-on I
-> was checking if everything stays the same (and mentioned ->interval
-> since ->start_frame is documented as a return parameter).
->=20
-> So here you are asking for a description update which explicit says
-> bug-fix?
-
-I'd like that, as it seems to be a bugfix, not just a code cleanup without =
-any=20
-behavioural change.
-
-> > > -		urb->transfer_buffer =3D stream->urb_buffer[i];
-> > > -		urb->complete =3D uvc_video_complete;
-> > >=20
-> > >  		urb->number_of_packets =3D npackets;
-> > >=20
-> > > -		urb->transfer_buffer_length =3D size;
-> >=20
-> > usb_fill_int_urb() sets urb->start_frame to -1. Does that impact us in =
-any
-> > way ?
->=20
-> It should not. The documentation says:
-> |  * @start_frame: Returns the initial frame for isochronous transfers.
-
-Thanks for checking.
-
-> > >  		for (j =3D 0; j < npackets; ++j) {
-> > >  	=09
-> > >  			urb->iso_frame_desc[j].offset =3D j * psize;
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+>
+> Thanks,
+> Christian.
+>
+>> -Daniel
+>>
+>>
+>
