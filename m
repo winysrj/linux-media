@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve1eur01on0114.outbound.protection.outlook.com ([104.47.1.114]:17318
+Received: from mail-ve1eur01on0090.outbound.protection.outlook.com ([104.47.1.90]:31456
         "EHLO EUR01-VE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753879AbeFTFSj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 01:18:39 -0400
+        id S1754050AbeFTFSf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Jun 2018 01:18:35 -0400
 From: Peter Rosin <peda@axentia.se>
 To: linux-kernel@vger.kernel.org
 Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
@@ -37,9 +37,9 @@ Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-iio@vger.kernel.org,
         linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 04/10] media: af9013: switch to i2c_lock_bus(..., I2C_LOCK_SEGMENT)
-Date: Wed, 20 Jun 2018 07:17:57 +0200
-Message-Id: <20180620051803.12206-5-peda@axentia.se>
+Subject: [PATCH v2 03/10] input: rohm_bu21023: switch to i2c_lock_bus(..., I2C_LOCK_SEGMENT)
+Date: Wed, 20 Jun 2018 07:17:56 +0200
+Message-Id: <20180620051803.12206-4-peda@axentia.se>
 In-Reply-To: <20180620051803.12206-1-peda@axentia.se>
 References: <20180620051803.12206-1-peda@axentia.se>
 MIME-Version: 1.0
@@ -54,38 +54,30 @@ sit behind a mux-locked mux, the two locking variants are equivalent.
 
 Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/dvb-frontends/af9013.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/input/touchscreen/rohm_bu21023.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-index 482bce49819a..99361c113bca 100644
---- a/drivers/media/dvb-frontends/af9013.c
-+++ b/drivers/media/dvb-frontends/af9013.c
-@@ -1312,10 +1312,10 @@ static int af9013_wregs(struct i2c_client *client, u8 cmd, u16 reg,
- 	memcpy(&buf[3], val, len);
+diff --git a/drivers/input/touchscreen/rohm_bu21023.c b/drivers/input/touchscreen/rohm_bu21023.c
+index bda0500c9b57..714affdd742f 100644
+--- a/drivers/input/touchscreen/rohm_bu21023.c
++++ b/drivers/input/touchscreen/rohm_bu21023.c
+@@ -304,7 +304,7 @@ static int rohm_i2c_burst_read(struct i2c_client *client, u8 start, void *buf,
+ 	msg[1].len = len;
+ 	msg[1].buf = buf;
  
- 	if (lock)
--		i2c_lock_adapter(client->adapter);
-+		i2c_lock_bus(client->adapter, I2C_LOCK_SEGMENT);
- 	ret = __i2c_transfer(client->adapter, msg, 1);
- 	if (lock)
--		i2c_unlock_adapter(client->adapter);
-+		i2c_unlock_bus(client->adapter, I2C_LOCK_SEGMENT);
- 	if (ret < 0) {
- 		goto err;
- 	} else if (ret != 1) {
-@@ -1353,10 +1353,10 @@ static int af9013_rregs(struct i2c_client *client, u8 cmd, u16 reg,
- 	buf[2] = cmd;
+-	i2c_lock_adapter(adap);
++	i2c_lock_bus(adap, I2C_LOCK_SEGMENT);
  
- 	if (lock)
--		i2c_lock_adapter(client->adapter);
-+		i2c_lock_bus(client->adapter, I2C_LOCK_SEGMENT);
- 	ret = __i2c_transfer(client->adapter, msg, 2);
- 	if (lock)
--		i2c_unlock_adapter(client->adapter);
-+		i2c_unlock_bus(client->adapter, I2C_LOCK_SEGMENT);
- 	if (ret < 0) {
- 		goto err;
- 	} else if (ret != 2) {
+ 	for (i = 0; i < 2; i++) {
+ 		if (__i2c_transfer(adap, &msg[i], 1) < 0) {
+@@ -313,7 +313,7 @@ static int rohm_i2c_burst_read(struct i2c_client *client, u8 start, void *buf,
+ 		}
+ 	}
+ 
+-	i2c_unlock_adapter(adap);
++	i2c_unlock_bus(adap, I2C_LOCK_SEGMENT);
+ 
+ 	return ret;
+ }
 -- 
 2.11.0
