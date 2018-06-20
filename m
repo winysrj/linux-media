@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:59904 "EHLO
+Received: from Galois.linutronix.de ([146.0.238.70]:59916 "EHLO
         Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753893AbeFTLBd (ORCPT
+        with ESMTP id S1752914AbeFTLBg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 07:01:33 -0400
+        Wed, 20 Jun 2018 07:01:36 -0400
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-usb@vger.kernel.org, tglx@linutronix.de,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 10/27] media: go7007: use irqsave() in USB's complete callback
-Date: Wed, 20 Jun 2018 13:00:48 +0200
-Message-Id: <20180620110105.19955-11-bigeasy@linutronix.de>
+        Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 15/27] media: msi2500: use usb_fill_int_urb()
+Date: Wed, 20 Jun 2018 13:00:53 +0200
+Message-Id: <20180620110105.19955-16-bigeasy@linutronix.de>
 In-Reply-To: <20180620110105.19955-1-bigeasy@linutronix.de>
 References: <20180620110105.19955-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
@@ -20,105 +20,61 @@ Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The USB completion callback does not disable interrupts while acquiring
-the lock. We want to remove the local_irq_disable() invocation from
-__usb_hcd_giveback_urb() and therefore it is required for the callback
-handler to disable the interrupts while acquiring the lock.
-The callback may be invoked either in IRQ or BH context depending on the
-USB host controller.
-Use the _irqsave() variant of the locking primitives.
+Using usb_fill_int_urb() helps to find code which initializes an URB. A
+grep for members of the struct (like ->complete) reveal lots of other
+things, too.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Antti Palosaari <crope@iki.fi>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/media/usb/go7007/go7007-driver.c |  9 +++++----
- drivers/media/usb/go7007/snd-go7007.c    | 11 ++++++-----
- 2 files changed, 11 insertions(+), 9 deletions(-)
+ drivers/media/usb/msi2500/msi2500.c | 21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/usb/go7007/go7007-driver.c b/drivers/media/usb/g=
-o7007/go7007-driver.c
-index 05b1126f263e..62aeebcdd7f7 100644
---- a/drivers/media/usb/go7007/go7007-driver.c
-+++ b/drivers/media/usb/go7007/go7007-driver.c
-@@ -448,13 +448,14 @@ static struct go7007_buffer *frame_boundary(struct go=
-7007 *go, struct go7007_buf
- {
- 	u32 *bytesused;
- 	struct go7007_buffer *vb_tmp =3D NULL;
-+	unsigned long flags;
+diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi250=
+0/msi2500.c
+index 65ef755adfdc..7ac6284248ce 100644
+--- a/drivers/media/usb/msi2500/msi2500.c
++++ b/drivers/media/usb/msi2500/msi2500.c
+@@ -507,6 +507,8 @@ static int msi2500_isoc_init(struct msi2500_dev *dev)
 =20
- 	if (vb =3D=3D NULL) {
--		spin_lock(&go->spinlock);
-+		spin_lock_irqsave(&go->spinlock, flags);
- 		if (!list_empty(&go->vidq_active))
- 			vb =3D go->active_buf =3D
- 				list_first_entry(&go->vidq_active, struct go7007_buffer, list);
--		spin_unlock(&go->spinlock);
-+		spin_unlock_irqrestore(&go->spinlock, flags);
- 		go->next_seq++;
- 		return vb;
- 	}
-@@ -468,7 +469,7 @@ static struct go7007_buffer *frame_boundary(struct go70=
-07 *go, struct go7007_buf
+ 	/* Allocate and init Isochronuous urbs */
+ 	for (i =3D 0; i < MAX_ISO_BUFS; i++) {
++		void *buf;
++
+ 		urb =3D usb_alloc_urb(ISO_FRAMES_PER_DESC, GFP_KERNEL);
+ 		if (urb =3D=3D NULL) {
+ 			msi2500_isoc_cleanup(dev);
+@@ -515,22 +517,19 @@ static int msi2500_isoc_init(struct msi2500_dev *dev)
+ 		dev->urbs[i] =3D urb;
+ 		dev_dbg(dev->dev, "Allocated URB at 0x%p\n", urb);
 =20
- 	vb->vb.vb2_buf.timestamp =3D ktime_get_ns();
- 	vb_tmp =3D vb;
--	spin_lock(&go->spinlock);
-+	spin_lock_irqsave(&go->spinlock, flags);
- 	list_del(&vb->list);
- 	if (list_empty(&go->vidq_active))
- 		vb =3D NULL;
-@@ -476,7 +477,7 @@ static struct go7007_buffer *frame_boundary(struct go70=
-07 *go, struct go7007_buf
- 		vb =3D list_first_entry(&go->vidq_active,
- 				struct go7007_buffer, list);
- 	go->active_buf =3D vb;
--	spin_unlock(&go->spinlock);
-+	spin_unlock_irqrestore(&go->spinlock, flags);
- 	vb2_buffer_done(&vb_tmp->vb.vb2_buf, VB2_BUF_STATE_DONE);
- 	return vb;
- }
-diff --git a/drivers/media/usb/go7007/snd-go7007.c b/drivers/media/usb/go70=
-07/snd-go7007.c
-index f84a2130f033..137fc253b122 100644
---- a/drivers/media/usb/go7007/snd-go7007.c
-+++ b/drivers/media/usb/go7007/snd-go7007.c
-@@ -75,13 +75,14 @@ static void parse_audio_stream_data(struct go7007 *go, =
-u8 *buf, int length)
- 	struct go7007_snd *gosnd =3D go->snd_context;
- 	struct snd_pcm_runtime *runtime =3D gosnd->substream->runtime;
- 	int frames =3D bytes_to_frames(runtime, length);
-+	unsigned long flags;
-=20
--	spin_lock(&gosnd->lock);
-+	spin_lock_irqsave(&gosnd->lock, flags);
- 	gosnd->hw_ptr +=3D frames;
- 	if (gosnd->hw_ptr >=3D runtime->buffer_size)
- 		gosnd->hw_ptr -=3D runtime->buffer_size;
- 	gosnd->avail +=3D frames;
--	spin_unlock(&gosnd->lock);
-+	spin_unlock_irqrestore(&gosnd->lock, flags);
- 	if (gosnd->w_idx + length > runtime->dma_bytes) {
- 		int cpy =3D runtime->dma_bytes - gosnd->w_idx;
-=20
-@@ -92,13 +93,13 @@ static void parse_audio_stream_data(struct go7007 *go, =
-u8 *buf, int length)
- 	}
- 	memcpy(runtime->dma_area + gosnd->w_idx, buf, length);
- 	gosnd->w_idx +=3D length;
--	spin_lock(&gosnd->lock);
-+	spin_lock_irqsave(&gosnd->lock, flags);
- 	if (gosnd->avail < runtime->period_size) {
--		spin_unlock(&gosnd->lock);
-+		spin_unlock_irqrestore(&gosnd->lock, flags);
- 		return;
- 	}
- 	gosnd->avail -=3D runtime->period_size;
--	spin_unlock(&gosnd->lock);
-+	spin_unlock_irqrestore(&gosnd->lock, flags);
- 	if (gosnd->capturing)
- 		snd_pcm_period_elapsed(gosnd->substream);
- }
+-		urb->interval =3D 1;
+-		urb->dev =3D dev->udev;
+-		urb->pipe =3D usb_rcvisocpipe(dev->udev, 0x81);
+-		urb->transfer_flags =3D URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-		urb->transfer_buffer =3D usb_alloc_coherent(dev->udev,
+-				ISO_BUFFER_SIZE,
+-				GFP_KERNEL, &urb->transfer_dma);
+-		if (urb->transfer_buffer =3D=3D NULL) {
++
++		buf =3D usb_alloc_coherent(dev->udev, ISO_BUFFER_SIZE, GFP_KERNEL,
++					 &urb->transfer_dma);
++		if (buf =3D=3D NULL) {
+ 			dev_err(dev->dev,
+ 				"Failed to allocate urb buffer %d\n", i);
+ 			msi2500_isoc_cleanup(dev);
+ 			return -ENOMEM;
+ 		}
+-		urb->transfer_buffer_length =3D ISO_BUFFER_SIZE;
+-		urb->complete =3D msi2500_isoc_handler;
+-		urb->context =3D dev;
++		usb_fill_int_urb(urb, dev->udev,
++				 usb_rcvisocpipe(dev->udev, 0x81), buf,
++				 ISO_BUFFER_SIZE, msi2500_isoc_handler, dev, 1);
++		urb->transfer_flags =3D URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+ 		urb->start_frame =3D 0;
+ 		urb->number_of_packets =3D ISO_FRAMES_PER_DESC;
+ 		for (j =3D 0; j < ISO_FRAMES_PER_DESC; j++) {
 --=20
 2.17.1
