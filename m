@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve1eur01on0091.outbound.protection.outlook.com ([104.47.1.91]:13952
-        "EHLO EUR01-VE1-obe.outbound.protection.outlook.com"
+Received: from mail-he1eur01on0099.outbound.protection.outlook.com ([104.47.0.99]:18750
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754075AbeFTFSo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 01:18:44 -0400
+        id S1754122AbeFTFSu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Jun 2018 01:18:50 -0400
 From: Peter Rosin <peda@axentia.se>
 To: linux-kernel@vger.kernel.org
 Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
@@ -37,9 +37,9 @@ Cc: Peter Rosin <peda@axentia.se>, Peter Huewe <peterhuewe@gmx.de>,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-iio@vger.kernel.org,
         linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 05/10] media: drxk_hard: switch to i2c_lock_bus(..., I2C_LOCK_SEGMENT)
-Date: Wed, 20 Jun 2018 07:17:58 +0200
-Message-Id: <20180620051803.12206-6-peda@axentia.se>
+Subject: [PATCH v2 06/10] media: rtl2830: switch to i2c_lock_bus(..., I2C_LOCK_SEGMENT)
+Date: Wed, 20 Jun 2018 07:17:59 +0200
+Message-Id: <20180620051803.12206-7-peda@axentia.se>
 In-Reply-To: <20180620051803.12206-1-peda@axentia.se>
 References: <20180620051803.12206-1-peda@axentia.se>
 MIME-Version: 1.0
@@ -54,29 +54,47 @@ sit behind a mux-locked mux, the two locking variants are equivalent.
 
 Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/dvb-frontends/drxk_hard.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/dvb-frontends/rtl2830.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
-index 5a26ad93be10..29c36f95d624 100644
---- a/drivers/media/dvb-frontends/drxk_hard.c
-+++ b/drivers/media/dvb-frontends/drxk_hard.c
-@@ -213,7 +213,7 @@ static inline u32 log10times100(u32 value)
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index 7bbfe11d11ed..91d12e6a03d5 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -24,9 +24,9 @@ static int rtl2830_bulk_write(struct i2c_client *client, unsigned int reg,
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
  
- static int drxk_i2c_lock(struct drxk_state *state)
- {
--	i2c_lock_adapter(state->i2c);
-+	i2c_lock_bus(state->i2c, I2C_LOCK_SEGMENT);
- 	state->drxk_i2c_exclusive_lock = true;
+-	i2c_lock_adapter(client->adapter);
++	i2c_lock_bus(client->adapter, I2C_LOCK_SEGMENT);
+ 	ret = regmap_bulk_write(dev->regmap, reg, val, val_count);
+-	i2c_unlock_adapter(client->adapter);
++	i2c_unlock_bus(client->adapter, I2C_LOCK_SEGMENT);
+ 	return ret;
+ }
  
- 	return 0;
-@@ -224,7 +224,7 @@ static void drxk_i2c_unlock(struct drxk_state *state)
- 	if (!state->drxk_i2c_exclusive_lock)
- 		return;
+@@ -36,9 +36,9 @@ static int rtl2830_update_bits(struct i2c_client *client, unsigned int reg,
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
  
--	i2c_unlock_adapter(state->i2c);
-+	i2c_unlock_bus(state->i2c, I2C_LOCK_SEGMENT);
- 	state->drxk_i2c_exclusive_lock = false;
+-	i2c_lock_adapter(client->adapter);
++	i2c_lock_bus(client->adapter, I2C_LOCK_SEGMENT);
+ 	ret = regmap_update_bits(dev->regmap, reg, mask, val);
+-	i2c_unlock_adapter(client->adapter);
++	i2c_unlock_bus(client->adapter, I2C_LOCK_SEGMENT);
+ 	return ret;
+ }
+ 
+@@ -48,9 +48,9 @@ static int rtl2830_bulk_read(struct i2c_client *client, unsigned int reg,
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+ 
+-	i2c_lock_adapter(client->adapter);
++	i2c_lock_bus(client->adapter, I2C_LOCK_SEGMENT);
+ 	ret = regmap_bulk_read(dev->regmap, reg, val, val_count);
+-	i2c_unlock_adapter(client->adapter);
++	i2c_unlock_bus(client->adapter, I2C_LOCK_SEGMENT);
+ 	return ret;
  }
  
 -- 
