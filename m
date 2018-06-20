@@ -1,20 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:47784 "HELO
+Received: from iolanthe.rowland.org ([192.131.102.54]:47756 "HELO
         iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1754192AbeFTPkV (ORCPT
+        with SMTP id S1754419AbeFTPfH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 11:40:21 -0400
-Date: Wed, 20 Jun 2018 11:40:20 -0400 (EDT)
+        Wed, 20 Jun 2018 11:35:07 -0400
+Date: Wed, 20 Jun 2018 11:35:05 -0400 (EDT)
 From: Alan Stern <stern@rowland.harvard.edu>
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-usb@vger.kernel.org>, <tglx@linutronix.de>
-Subject: Re: [PATCH 27/27 v2] media: uvcvideo: use usb_fill_int_urb() for
- the ->intarval value
-In-Reply-To: <20180620152122.ebstiwvdpbhgsbrs@linutronix.de>
-Message-ID: <Pine.LNX.4.44L0.1806201135580.1758-100000@iolanthe.rowland.org>
+        <linux-usb@vger.kernel.org>, <tglx@linutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] USB: note that usb_fill_int_urb() can be used used for
+ ISOC urbs.
+In-Reply-To: <20180620152007.xapqkv4ww2hnmvkq@linutronix.de>
+Message-ID: <Pine.LNX.4.44L0.1806201127290.1758-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
@@ -22,65 +23,54 @@ List-ID: <linux-media.vger.kernel.org>
 
 On Wed, 20 Jun 2018, Sebastian Andrzej Siewior wrote:
 
-> uvc_init_video_isoc() assigns
-> 	urb->interval = p->desc.bInterval;
+> Laurent suggested that the kerneldoc documentation could state that
+> usb_fill_int_urb() can also be used for the initialisation of an
+> isochronous urb. The USB documentation in
+> Documentation/driver-api/usb/URB.rst already mentions this, some drivers
+> do so and there is no explicit usb_fill_iso_urb().
 > 
-> for the interval. This is correct for FS/LS.
-
-That's a strange thing to say.  For one thing, LS devices don't support 
-isochronous transfers at all.  And while this assignment would be 
-correct for FS interrupt URBs, it is wrong for FS isochronous URBs.
-
-> For HS/SS the bInterval
-> value is using a logarithmic encoding. The usb_fill_int_urb() function
-> takes this into account while settings the ->interval member.
-> ->start_frame is set to -1 on init and should be filled by the HC on
-> completion of the URB.
+> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> ---
+> On 2018-06-20 17:14:53 [+0300], Laurent Pinchart wrote:
+> > > So you simply asking that the kerneldoc of usb_fill_int_urb() is
+> > > extended to mention isoc, too?
+> > 
+> > That would be nice I think.
 > 
-> Use usb_fill_int_urb() to fill the members of the struct urb.
+> here it is.
+> 
+>  include/linux/usb.h | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/linux/usb.h b/include/linux/usb.h
+> index 4cdd515a4385..c3a8bd586121 100644
+> --- a/include/linux/usb.h
+> +++ b/include/linux/usb.h
+> @@ -1657,7 +1657,8 @@ static inline void usb_fill_bulk_urb(struct urb *urb,
+>   *	the endpoint descriptor's bInterval value.
+>   *
+>   * Initializes a interrupt urb with the proper information needed to submit
+> - * it to a device.
+> + * it to a device. This function can also be used to initialize an isochronous
+> + * urb.
 
-Please don't do this.  If you instead on using an inline routine to 
-save on source code, create an explicit usb_fill_isoc_urb() function.
+No, no!  This function can _help_ initialize an isochronous URB, but
+that's all.  It would be better to create an explicit 
+usb_fill_isoc_urb() routine, and even that would have to be incomplete.
+
+There are two problems with using usb_fill_int_urb() to initialize an 
+isochronous URB:
+
+	The calculation of the interval value is wrong for full-speed
+	devices.
+
+	The routine does not set urb->number_of_packets or
+	urb->iso_frame_desc[].
 
 Alan Stern
 
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 14 ++++++--------
->  1 file changed, 6 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-> index a88b2e51a666..79e7a827ed44 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1619,21 +1619,19 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
->  			return -ENOMEM;
->  		}
->  
-> -		urb->dev = stream->dev->udev;
-> -		urb->context = stream;
-> -		urb->pipe = usb_rcvisocpipe(stream->dev->udev,
-> -				ep->desc.bEndpointAddress);
-> +		usb_fill_int_urb(urb, stream->dev->udev,
-> +				 usb_rcvisocpipe(stream->dev->udev,
-> +						 ep->desc.bEndpointAddress),
-> +				 stream->urb_buffer[i], size,
-> +				 uvc_video_complete, stream,
-> +				 ep->desc.bInterval);
->  #ifndef CONFIG_DMA_NONCOHERENT
->  		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
->  		urb->transfer_dma = stream->urb_dma[i];
->  #else
->  		urb->transfer_flags = URB_ISO_ASAP;
->  #endif
-> -		urb->interval = ep->desc.bInterval;
-> -		urb->transfer_buffer = stream->urb_buffer[i];
-> -		urb->complete = uvc_video_complete;
->  		urb->number_of_packets = npackets;
-> -		urb->transfer_buffer_length = size;
->  
->  		for (j = 0; j < npackets; ++j) {
->  			urb->iso_frame_desc[j].offset = j * psize;
+>   *
+>   * Note that High Speed and SuperSpeed(+) interrupt endpoints use a logarithmic
+>   * encoding of the endpoint interval, and express polling intervals in
 > 
