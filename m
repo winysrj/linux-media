@@ -1,18 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:59895 "EHLO
+Received: from Galois.linutronix.de ([146.0.238.70]:59896 "EHLO
         Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754071AbeFTLB3 (ORCPT
+        with ESMTP id S1754059AbeFTLBa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 07:01:29 -0400
+        Wed, 20 Jun 2018 07:01:30 -0400
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-usb@vger.kernel.org, tglx@linutronix.de,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/27] media: dvb_usb_v2: use usb_fill_int_urb()
-Date: Wed, 20 Jun 2018 13:00:44 +0200
-Message-Id: <20180620110105.19955-7-bigeasy@linutronix.de>
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 07/27] media: em28xx-audio: use GFP_KERNEL for memory allocation during init
+Date: Wed, 20 Jun 2018 13:00:45 +0200
+Message-Id: <20180620110105.19955-8-bigeasy@linutronix.de>
 In-Reply-To: <20180620110105.19955-1-bigeasy@linutronix.de>
 References: <20180620110105.19955-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
@@ -20,49 +19,53 @@ Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using usb_fill_int_urb() helps to find code which initializes an
-URB. A grep for members of the struct (like ->complete) reveal lots
-of other things, too.
+As far as I can tell em28xx_audio_urb_init() is called once during
+initialization from non atomic context. Memory allocation from
+non atomic context should use GFP_KERNEL to avoid using emergency pool
+for memory allocation.
+Use GFP_KERNEL for memory allocation.
 
-Cc: Antti Palosaari <crope@iki.fi>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/media/usb/dvb-usb-v2/usb_urb.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/media/usb/em28xx/em28xx-audio.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/usb_urb.c b/drivers/media/usb/dvb=
--usb-v2/usb_urb.c
-index b0499f95ec45..e5e0bf96bad2 100644
---- a/drivers/media/usb/dvb-usb-v2/usb_urb.c
-+++ b/drivers/media/usb/dvb-usb-v2/usb_urb.c
-@@ -180,18 +180,17 @@ static int usb_urb_alloc_isoc_urbs(struct usb_data_st=
-ream *stream)
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em=
+28xx/em28xx-audio.c
+index 8e799ae1df69..bb510cf8fbbb 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -842,11 +842,11 @@ static int em28xx_audio_urb_init(struct em28xx *dev)
+=20
+ 	dev->adev.transfer_buffer =3D kcalloc(num_urb,
+ 					    sizeof(*dev->adev.transfer_buffer),
+-					    GFP_ATOMIC);
++					    GFP_KERNEL);
+ 	if (!dev->adev.transfer_buffer)
+ 		return -ENOMEM;
+=20
+-	dev->adev.urb =3D kcalloc(num_urb, sizeof(*dev->adev.urb), GFP_ATOMIC);
++	dev->adev.urb =3D kcalloc(num_urb, sizeof(*dev->adev.urb), GFP_KERNEL);
+ 	if (!dev->adev.urb) {
+ 		kfree(dev->adev.transfer_buffer);
+ 		return -ENOMEM;
+@@ -859,14 +859,14 @@ static int em28xx_audio_urb_init(struct em28xx *dev)
+ 		int j, k;
+ 		void *buf;
+=20
+-		urb =3D usb_alloc_urb(npackets, GFP_ATOMIC);
++		urb =3D usb_alloc_urb(npackets, GFP_KERNEL);
+ 		if (!urb) {
+ 			em28xx_audio_free_urb(dev);
+ 			return -ENOMEM;
  		}
+ 		dev->adev.urb[i] =3D urb;
 =20
- 		urb =3D stream->urb_list[i];
-+		usb_fill_int_urb(urb, stream->udev,
-+				 usb_rcvisocpipe(stream->udev,
-+						 stream->props.endpoint),
-+				 stream->buf_list[i],
-+				 stream->props.u.isoc.framesize *
-+				 stream->props.u.isoc.framesperurb,
-+				 usb_urb_complete, stream,
-+				 stream->props.u.isoc.interval);
-=20
--		urb->dev =3D stream->udev;
--		urb->context =3D stream;
--		urb->complete =3D usb_urb_complete;
--		urb->pipe =3D usb_rcvisocpipe(stream->udev,
--				stream->props.endpoint);
- 		urb->transfer_flags =3D URB_ISO_ASAP | URB_FREE_BUFFER;
--		urb->interval =3D stream->props.u.isoc.interval;
- 		urb->number_of_packets =3D stream->props.u.isoc.framesperurb;
--		urb->transfer_buffer_length =3D stream->props.u.isoc.framesize *
--				stream->props.u.isoc.framesperurb;
--		urb->transfer_buffer =3D stream->buf_list[i];
-=20
- 		for (j =3D 0; j < stream->props.u.isoc.framesperurb; j++) {
- 			urb->iso_frame_desc[j].offset =3D frame_offset;
+-		buf =3D usb_alloc_coherent(udev, npackets * ep_size, GFP_ATOMIC,
++		buf =3D usb_alloc_coherent(udev, npackets * ep_size, GFP_KERNEL,
+ 					 &urb->transfer_dma);
+ 		if (!buf) {
+ 			dev_err(&dev->intf->dev,
 --=20
 2.17.1
