@@ -1,76 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:47756 "HELO
-        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1754419AbeFTPfH (ORCPT
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:33567 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751337AbeFTPkM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 11:35:07 -0400
-Date: Wed, 20 Jun 2018 11:35:05 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        <linux-media@vger.kernel.org>,
+        Wed, 20 Jun 2018 11:40:12 -0400
+Date: Wed, 20 Jun 2018 09:40:09 -0600
+From: Rob Herring <robh@kernel.org>
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-usb@vger.kernel.org>, <tglx@linutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] USB: note that usb_fill_int_urb() can be used used for
- ISOC urbs.
-In-Reply-To: <20180620152007.xapqkv4ww2hnmvkq@linutronix.de>
-Message-ID: <Pine.LNX.4.44L0.1806201127290.1758-100000@iolanthe.rowland.org>
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Marco Franchi <marco.franchi@nxp.com>,
+        Icenowy Zheng <icenowy@aosc.io>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Tom Saeger <tom.saeger@oracle.com>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Sami Tolvanen <samitolvanen@google.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-sunxi@googlegroups.com,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Randy Li <ayaka@soulik.info>
+Subject: Re: [PATCH v4 15/19] dt-bindings: media: Document bindings for the
+ Sunxi-Cedrus VPU driver
+Message-ID: <20180620154009.GA26099@rob-hp-laptop>
+References: <20180618145843.14631-1-paul.kocialkowski@bootlin.com>
+ <20180618145843.14631-16-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180618145843.14631-16-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 20 Jun 2018, Sebastian Andrzej Siewior wrote:
-
-> Laurent suggested that the kerneldoc documentation could state that
-> usb_fill_int_urb() can also be used for the initialisation of an
-> isochronous urb. The USB documentation in
-> Documentation/driver-api/usb/URB.rst already mentions this, some drivers
-> do so and there is no explicit usb_fill_iso_urb().
+On Mon, Jun 18, 2018 at 04:58:39PM +0200, Paul Kocialkowski wrote:
+> This adds a device-tree binding document that specifies the properties
+> used by the Sunxi-Cedurs VPU driver, as well as examples.
 > 
-> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
-> On 2018-06-20 17:14:53 [+0300], Laurent Pinchart wrote:
-> > > So you simply asking that the kerneldoc of usb_fill_int_urb() is
-> > > extended to mention isoc, too?
-> > 
-> > That would be nice I think.
+> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 > 
-> here it is.
-> 
->  include/linux/usb.h | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/linux/usb.h b/include/linux/usb.h
-> index 4cdd515a4385..c3a8bd586121 100644
-> --- a/include/linux/usb.h
-> +++ b/include/linux/usb.h
-> @@ -1657,7 +1657,8 @@ static inline void usb_fill_bulk_urb(struct urb *urb,
->   *	the endpoint descriptor's bInterval value.
->   *
->   * Initializes a interrupt urb with the proper information needed to submit
-> - * it to a device.
-> + * it to a device. This function can also be used to initialize an isochronous
-> + * urb.
+>  create mode 100644 Documentation/devicetree/bindings/media/sunxi-cedrus.txt
 
-No, no!  This function can _help_ initialize an isochronous URB, but
-that's all.  It would be better to create an explicit 
-usb_fill_isoc_urb() routine, and even that would have to be incomplete.
+You are missing a '---' line so this is going to end up in the commit 
+msg.
 
-There are two problems with using usb_fill_int_urb() to initialize an 
-isochronous URB:
+Please add acked/reviewed bys when posting new versions.
 
-	The calculation of the interval value is wrong for full-speed
-	devices.
-
-	The routine does not set urb->number_of_packets or
-	urb->iso_frame_desc[].
-
-Alan Stern
-
->   *
->   * Note that High Speed and SuperSpeed(+) interrupt endpoints use a logarithmic
->   * encoding of the endpoint interval, and express polling intervals in
-> 
+Rob
