@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:37391 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754061AbeFTP7f (ORCPT
+Received: from mail-yb0-f193.google.com ([209.85.213.193]:33992 "EHLO
+        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754303AbeFTQAn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Jun 2018 11:59:35 -0400
-Date: Wed, 20 Jun 2018 09:59:33 -0600
+        Wed, 20 Jun 2018 12:00:43 -0400
+Date: Wed, 20 Jun 2018 10:00:41 -0600
 From: Rob Herring <robh@kernel.org>
 To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
@@ -46,20 +46,20 @@ Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-sunxi@googlegroups.com,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: Re: [PATCH v4 02/19] dt-bindings: sram: sunxi: Add A10 binding for
+Subject: Re: [PATCH v4 05/19] dt-bindings: sram: sunxi: Add A33 binding for
  the C1 SRAM region
-Message-ID: <20180620155933.GA19227@rob-hp-laptop>
+Message-ID: <20180620160041.GA20371@rob-hp-laptop>
 References: <20180618145843.14631-1-paul.kocialkowski@bootlin.com>
- <20180618145843.14631-3-paul.kocialkowski@bootlin.com>
+ <20180618145843.14631-6-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180618145843.14631-3-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180618145843.14631-6-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 18, 2018 at 04:58:26PM +0200, Paul Kocialkowski wrote:
-> This introduces a dedicated binding for the C1 SRAM region for the A10
+On Mon, Jun 18, 2018 at 04:58:29PM +0200, Paul Kocialkowski wrote:
+> This introduces a dedicated binding for the C1 SRAM region for the A33
 > sunxi platform.
 > 
 > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
