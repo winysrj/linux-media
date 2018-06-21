@@ -1,210 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49868 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932899AbeFUUik (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:55832 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933364AbeFUVJM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Jun 2018 16:38:40 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        emil.velikov@collabora.com,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v2 0/2] Memory-to-memory media controller topology
-Date: Thu, 21 Jun 2018 17:38:26 -0300
-Message-Id: <20180621203828.18173-1-ezequiel@collabora.com>
+        Thu, 21 Jun 2018 17:09:12 -0400
+Date: Fri, 22 Jun 2018 06:08:50 +0900
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: <Mario.Limonciello@dell.com>
+Cc: <pavel@ucw.cz>, <nicolas@ndufresne.ca>,
+        <linux-media@vger.kernel.org>, <sakari.ailus@linux.intel.com>,
+        <niklas.soderlund@ragnatech.se>, <jerry.w.hu@intel.com>
+Subject: Re: Software-only image processing for Intel "complex" cameras
+Message-ID: <20180622060850.3941d9a7@vela.lan>
+In-Reply-To: <db8d91a47971417da424df7bf67a5cca@ausx13mpc120.AMER.DELL.COM>
+References: <20180620203838.GA13372@amd>
+        <b7707ec241d9d2d2966bdc32f7bb9bc55ac55c5d.camel@ndufresne.ca>
+        <20180620211144.GA16945@amd>
+        <da642773adac42a6966b9716f0d53444@ausx13mpc120.AMER.DELL.COM>
+        <20180622034946.2ae51f1e@vela.lan>
+        <db8d91a47971417da424df7bf67a5cca@ausx13mpc120.AMER.DELL.COM>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As discussed on IRC, memory-to-memory need to be modeled
-properly in order to be supported by the media controller
-framework, and thus to support the Request API.
+Em Thu, 21 Jun 2018 18:58:37 +0000
+<Mario.Limonciello@dell.com> escreveu:
 
-First commit introduces a register/unregister API,
-that creates/destroys all the entities and pads needed,
-and links them.
+> > -----Original Message-----
+> > From: Mauro Carvalho Chehab [mailto:mchehab+samsung@kernel.org]
+> > Sent: Thursday, June 21, 2018 1:50 PM
+> > To: Limonciello, Mario
+> > Cc: pavel@ucw.cz; nicolas@ndufresne.ca; linux-media@vger.kernel.org;
+> > sakari.ailus@linux.intel.com; niklas.soderlund@ragnatech.se;
+> > jerry.w.hu@intel.com
+> > Subject: Re: Software-only image processing for Intel "complex" cameras
+> > 
+> > Em Thu, 21 Jun 2018 13:41:37 +0000
+> > <Mario.Limonciello@dell.com> escreveu:
+> >   
+> > > > -----Original Message-----
+> > > > From: Pavel Machek [mailto:pavel@ucw.cz]
+> > > > Sent: Wednesday, June 20, 2018 4:12 PM
+> > > > To: Nicolas Dufresne
+> > > > Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com;
+> > > > niklas.soderlund@ragnatech.se; jerry.w.hu@intel.com; Limonciello, Mario
+> > > > Subject: Re: Software-only image processing for Intel "complex" cameras
+> > > >
+> > > > Hi!
+> > > >  
+> > > > > > On Nokia N900, I have similar problems as Intel IPU3 hardware.
+> > > > > >
+> > > > > > Meeting notes say that pure software implementation is not fast
+> > > > > > enough, but that it may be useful for debugging. It would be also
+> > > > > > useful for me on N900, and probably useful for processing "raw"
+> > > > > > images
+> > > > > > from digital cameras.
+> > > > > >
+> > > > > > There is sensor part, and memory-to-memory part, right? What is
+> > > > > > the format of data from the sensor part? What operations would be
+> > > > > > expensive on the CPU? If we did everthing on the CPU, what would be
+> > > > > > maximum resolution where we could still manage it in real time?  
+> > > > >
+> > > > > The IPU3 sensor produce a vendor specific form of bayer. If we manage
+> > > > > to implement support for this format, it would likely be done in
+> > > > > software. I don't think anyone can answer your other questions has no
+> > > > > one have ever implemented this, hence measure performance.  
+> > > >
+> > > > I believe Intel has some estimates.
+> > > >
+> > > > What is the maximum resolution of camera in the current Dell systems?
+> > > >  
+> > >
+> > > 5M camera sensor HW spec:
+> > > 2592x1944
+> > >
+> > > 8M camera sensor HW spec:
+> > > 3264x2448  
+> > 
+> > Looking at the ipu3 driver, I'm wandering how the library would identify
+> > the system components. The way VIDIOC_QUERYCAP is currently implemented
+> > doesn't help at all:
+> > 
+> > static int cio2_v4l2_querycap(struct file *file, void *fh,
+> > 			      struct v4l2_capability *cap)
+> > {
+> > 	struct cio2_device *cio2 = video_drvdata(file);
+> > 
+> > 	strlcpy(cap->driver, CIO2_NAME, sizeof(cap->driver));
+> > 	strlcpy(cap->card, CIO2_DEVICE_NAME, sizeof(cap->card));
+> > 	snprintf(cap->bus_info, sizeof(cap->bus_info),
+> > 		 "PCI:%s", pci_name(cio2->pci_dev));
+> > 
+> > 	return 0;
+> > }
+> > 
+> > In order to allow the library to know more about the hardware, it
+> > would likely need to expose some model number to userspace. Ok, userspace
+> > could always call dmidecode, but that requires root privileges. We
+> > really don't want media apps to require root.
+> > 
+> > So, perhaps caps->cap (or a MC caps equivalent call) should, instead be filled
+> > with values obtained from the BIOS DMI tables with some logic based on
+> > enum dmi_field:
+> > 
+> > enum dmi_field {
+> > 	DMI_NONE,
+> > 	DMI_BIOS_VENDOR,
+> > 	DMI_BIOS_VERSION,
+> > 	DMI_BIOS_DATE,
+> > 	DMI_SYS_VENDOR,
+> > 	DMI_PRODUCT_NAME,
+> > 	DMI_PRODUCT_VERSION,
+> > 	DMI_PRODUCT_SERIAL,
+> > 	DMI_PRODUCT_UUID,
+> > 	DMI_PRODUCT_FAMILY,
+> > 	DMI_BOARD_VENDOR,
+> > 	DMI_BOARD_NAME,
+> > 	DMI_BOARD_VERSION,
+> > 	DMI_BOARD_SERIAL,
+> > 	DMI_BOARD_ASSET_TAG,
+> > 	DMI_CHASSIS_VENDOR,
+> > 	DMI_CHASSIS_TYPE,
+> > 	DMI_CHASSIS_VERSION,
+> > 	DMI_CHASSIS_SERIAL,
+> > 	DMI_CHASSIS_ASSET_TAG,
+> > 	DMI_STRING_MAX,
+> > };
+> > 
+> > e. g. something like:
+> > 
+> > 	board_vendor = dmi_get_system_info(DMI_BOARD_VENDOR);
+> > 	board_name = dmi_get_system_info(DMI_BOARD_NAME);
+> > 	board_version = dmi_get_system_info(DMI_BOARD_NAME);
+> > 	product_name = dmi_get_system_info(DMI_PRODUCT_NAME);
+> > 	product_version = dmi_get_system_info(DMI_PRODUCT_VERSION);
+> > 
+> > 	sprintf(dev->cap, "%s:%s:%s:%s", board_vendor, board_name,
+> > board_version, product_name, product_version);
+> > 
+> > (the real code should check if the values are filled, as not all BIOS vendors use the
+> > same DMI fields)
+> > 
+> > With that, the library can auto-adjust without needing to run anything as
+> > root.
+> >   
+> Well actually most of those fields you're interested in are already exposed to userspace
+> through sysfs /sys/class/dmi/id/
+> 
+> Can't the library just pull them from there?
 
-The second commit uses this API to support the vim2m driver.
+Good point. Yeah, the library could use them.
 
-Topology (media-ctl -p output)
-==============================
+> The one field that isn't exposed is actually the one I think you should key off of though:
+> Product SKU number.  So I would propose as part of this change that should start to get
+> exposed to userspace too.
+> 
+> The reasoning is I'm a little concerned in taking an approach that goes off of marketing model number
+> specifically because it's creating an assumption that all systems with that model number
+> have the exact same components.
+> 
+> It's possible for two systems to have the same model number but to second source for
+> example.  This might not affect complex cameras, but I just want to make sure it's taken
+> into consideration.  At least going off of Product SKU will better narrow it down.
 
-Device topology
-- entity 1: source (1 pad, 1 link)
-            type Node subtype V4L flags 0
-	pad0: Source
-		-> "proc":1 [ENABLED,IMMUTABLE]
+Yeah, the library should be able to uniquely match whatever components are
+inside a system, and just the marketing model number might not be enough.
 
-- entity 3: proc (2 pads, 2 links)
-            type Node subtype Unknown flags 0
-	pad0: Source
-		-> "sink":0 [ENABLED,IMMUTABLE]
-	pad1: Sink
-		<- "source":0 [ENABLED,IMMUTABLE]
+Right now, only dmidecode seems to get SKU number.
 
-- entity 6: sink (1 pad, 1 link)
-            type Node subtype V4L flags 0
-	pad0: Sink
+On a quick look, it seems that a patch adding support for it was already
+proposed:
+	https://lkml.org/lkml/2018/4/24/1166
 
-Compliance output
-=================
+And got accepted:
+	https://lkml.org/lkml/2018/4/27/96 
 
-Compliance test for device /dev/media0:
+So, it seems we'll be covered for newer Kernel versions.
 
-Media Driver Info:
-	Driver name      : vim2m
-	Model            : vim2m
-	Serial           : 
-	Bus info         : 
-	Media version    : 4.17.0
-	Hardware revision: 0x00000000 (0)
-	Driver version   : 4.17.0
-
-Required ioctls:
-	test MEDIA_IOC_DEVICE_INFO: OK
-
-Allow for multiple opens:
-	test second /dev/media0 open: OK
-	test MEDIA_IOC_DEVICE_INFO: OK
-	test for unlimited opens: OK
-
-Media Controller ioctls:
-	test MEDIA_IOC_G_TOPOLOGY: OK
-	Entities: 3 Interfaces: 1 Pads: 4 Links: 4
-		fail: v4l2-test-media.cpp(333): found_source
-	test MEDIA_IOC_ENUM_ENTITIES/LINKS: FAIL
-	test MEDIA_IOC_SETUP_LINK: OK
-
---------------------------------------------------------------------------------
-Compliance test for device /dev/video2:
-
-Driver Info:
-	Driver name      : vim2m
-	Card type        : vim2m
-	Bus info         : platform:vim2m
-	Driver version   : 4.17.0
-	Capabilities     : 0x84208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps      : 0x04208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-Media Driver Info:
-	Driver name      : vim2m
-	Model            : vim2m
-	Serial           : 
-	Bus info         : 
-	Media version    : 4.17.0
-	Hardware revision: 0x00000000 (0)
-	Driver version   : 4.17.0
-Interface Info:
-	ID               : 0x0300000c
-	Type             : V4L Video
-	Major            : 81
-	Minor            : 7
-Entity Info:
-	ID               : 0x00000001 (1)
-	Name             : source
-	Function         : V4L2 I/O
-	Pad 0x01000002   : Source
-	  Link 0x0200000a: from remote pad 0x1000004 of entity 'proc': Data, Enabled, Immutable
-
-Required ioctls:
-	test MC information (see 'Media Driver Info' above): OK
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second /dev/video2 open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Control ioctls:
-	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-	test VIDIOC_QUERYCTRL: OK
-	test VIDIOC_G/S_CTRL: OK
-	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-	Standard Controls: 3 Private Controls: 2
-
-Format ioctls:
-	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-	test VIDIOC_G/S_PARM: OK (Not Supported)
-	test VIDIOC_G_FBUF: OK (Not Supported)
-	test VIDIOC_G_FMT: OK
-	test VIDIOC_TRY_FMT: OK
-	test VIDIOC_S_FMT: OK
-	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-	test Cropping: OK (Not Supported)
-	test Composing: OK (Not Supported)
-	test Scaling: OK
-
-Codec ioctls:
-	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-Buffer ioctls:
-	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-	test VIDIOC_EXPBUF: OK
-
-Total: 51, Succeeded: 50, Failed: 1, Warnings: 0
-
-I am not sure if the compliance failure makes sense,
-as a 'proc' entity connecting the two pads seems legal.
-Commenting the failing test in v4l2-test-media.cpp
-makes the tool pass with no errors.
-
-v2:
-  * Fix compile error when MEDIA_CONTROLLER was not enabled.
-  * Fix the 'proc' entity link, which was wrongly connecting
-    source to source and sink to sink :-P
-
-Ezequiel Garcia (1):
-  media: add helpers for memory-to-memory media controller
-
-Hans Verkuil (1):
-  vim2m: add media device
-
- drivers/media/platform/vim2m.c         |  41 +++++-
- drivers/media/v4l2-core/v4l2-dev.c     |  13 +-
- drivers/media/v4l2-core/v4l2-mem2mem.c | 174 +++++++++++++++++++++++++
- include/media/v4l2-mem2mem.h           |  19 +++
- include/uapi/linux/media.h             |   3 +
- 5 files changed, 241 insertions(+), 9 deletions(-)
-
--- 
-2.17.1
+Cheers,
+Mauro
