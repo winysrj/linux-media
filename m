@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49876 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:49868 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932721AbeFUUip (ORCPT
+        with ESMTP id S932899AbeFUUik (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Jun 2018 16:38:45 -0400
+        Thu, 21 Jun 2018 16:38:40 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>,
@@ -12,23 +12,24 @@ Cc: Hans Verkuil <hans.verkuil@cisco.com>,
         Nicolas Dufresne <nicolas.dufresne@collabora.com>,
         emil.velikov@collabora.com,
         Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v2 1/2] media: add helpers for memory-to-memory media controller
-Date: Thu, 21 Jun 2018 17:38:27 -0300
-Message-Id: <20180621203828.18173-2-ezequiel@collabora.com>
-In-Reply-To: <20180621203828.18173-1-ezequiel@collabora.com>
-References: <20180621203828.18173-1-ezequiel@collabora.com>
+Subject: [PATCH v2 0/2] Memory-to-memory media controller topology
+Date: Thu, 21 Jun 2018 17:38:26 -0300
+Message-Id: <20180621203828.18173-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A memory-to-memory pipeline device consists in three
-entities: two DMA engine and one video processing entities.
-The DMA engine entities are linked to a V4L interface.
+As discussed on IRC, memory-to-memory need to be modeled
+properly in order to be supported by the media controller
+framework, and thus to support the Request API.
 
-This commit add a new v4l2_m2m_{un}register_media_controller
-API to register this topology.
+First commit introduces a register/unregister API,
+that creates/destroys all the entities and pads needed,
+and links them.
 
-For instance, a typical mem2mem device topology would
-look like this:
+The second commit uses this API to support the vim2m driver.
+
+Topology (media-ctl -p output)
+==============================
 
 Device topology
 - entity 1: source (1 pad, 1 link)
@@ -46,325 +47,164 @@ Device topology
 - entity 6: sink (1 pad, 1 link)
             type Node subtype V4L flags 0
 	pad0: Sink
-		<- "proc":0 [ENABLED,IMMUTABLE]
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Suggested-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
+Compliance output
+=================
+
+Compliance test for device /dev/media0:
+
+Media Driver Info:
+	Driver name      : vim2m
+	Model            : vim2m
+	Serial           : 
+	Bus info         : 
+	Media version    : 4.17.0
+	Hardware revision: 0x00000000 (0)
+	Driver version   : 4.17.0
+
+Required ioctls:
+	test MEDIA_IOC_DEVICE_INFO: OK
+
+Allow for multiple opens:
+	test second /dev/media0 open: OK
+	test MEDIA_IOC_DEVICE_INFO: OK
+	test for unlimited opens: OK
+
+Media Controller ioctls:
+	test MEDIA_IOC_G_TOPOLOGY: OK
+	Entities: 3 Interfaces: 1 Pads: 4 Links: 4
+		fail: v4l2-test-media.cpp(333): found_source
+	test MEDIA_IOC_ENUM_ENTITIES/LINKS: FAIL
+	test MEDIA_IOC_SETUP_LINK: OK
+
+--------------------------------------------------------------------------------
+Compliance test for device /dev/video2:
+
+Driver Info:
+	Driver name      : vim2m
+	Card type        : vim2m
+	Bus info         : platform:vim2m
+	Driver version   : 4.17.0
+	Capabilities     : 0x84208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps      : 0x04208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+Media Driver Info:
+	Driver name      : vim2m
+	Model            : vim2m
+	Serial           : 
+	Bus info         : 
+	Media version    : 4.17.0
+	Hardware revision: 0x00000000 (0)
+	Driver version   : 4.17.0
+Interface Info:
+	ID               : 0x0300000c
+	Type             : V4L Video
+	Major            : 81
+	Minor            : 7
+Entity Info:
+	ID               : 0x00000001 (1)
+	Name             : source
+	Function         : V4L2 I/O
+	Pad 0x01000002   : Source
+	  Link 0x0200000a: from remote pad 0x1000004 of entity 'proc': Data, Enabled, Immutable
+
+Required ioctls:
+	test MC information (see 'Media Driver Info' above): OK
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second /dev/video2 open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls:
+	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+	test VIDIOC_QUERYCTRL: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 3 Private Controls: 2
+
+Format ioctls:
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK (Not Supported)
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+	test VIDIOC_TRY_FMT: OK
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+	test Cropping: OK (Not Supported)
+	test Composing: OK (Not Supported)
+	test Scaling: OK
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK
+
+Total: 51, Succeeded: 50, Failed: 1, Warnings: 0
+
+I am not sure if the compliance failure makes sense,
+as a 'proc' entity connecting the two pads seems legal.
+Commenting the failing test in v4l2-test-media.cpp
+makes the tool pass with no errors.
+
+v2:
+  * Fix compile error when MEDIA_CONTROLLER was not enabled.
+  * Fix the 'proc' entity link, which was wrongly connecting
+    source to source and sink to sink :-P
+
+Ezequiel Garcia (1):
+  media: add helpers for memory-to-memory media controller
+
+Hans Verkuil (1):
+  vim2m: add media device
+
+ drivers/media/platform/vim2m.c         |  41 +++++-
  drivers/media/v4l2-core/v4l2-dev.c     |  13 +-
  drivers/media/v4l2-core/v4l2-mem2mem.c | 174 +++++++++++++++++++++++++
  include/media/v4l2-mem2mem.h           |  19 +++
  include/uapi/linux/media.h             |   3 +
- 4 files changed, 204 insertions(+), 5 deletions(-)
+ 5 files changed, 241 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 4ffd7d60a901..c1996d73ca74 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -202,7 +202,7 @@ static void v4l2_device_release(struct device *cd)
- 	mutex_unlock(&videodev_lock);
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
--	if (v4l2_dev->mdev) {
-+	if (v4l2_dev->mdev && vdev->vfl_dir != VFL_DIR_M2M) {
- 		/* Remove interfaces and interface links */
- 		media_devnode_remove(vdev->intf_devnode);
- 		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
-@@ -733,19 +733,22 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			BASE_VIDIOC_PRIVATE);
- }
- 
--static int video_register_media_controller(struct video_device *vdev, int type)
-+static int video_register_media_controller(struct video_device *vdev)
- {
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	u32 intf_type;
- 	int ret;
- 
--	if (!vdev->v4l2_dev->mdev)
-+	/* Memory-to-memory devices are more complex and use
-+	 * their own function to register its mc entities.
-+	 */
-+	if (!vdev->v4l2_dev->mdev || vdev->vfl_dir == VFL_DIR_M2M)
- 		return 0;
- 
- 	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- 	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
- 
--	switch (type) {
-+	switch (vdev->vfl_type) {
- 	case VFL_TYPE_GRABBER:
- 		intf_type = MEDIA_INTF_T_V4L_VIDEO;
- 		vdev->entity.function = MEDIA_ENT_F_IO_V4L;
-@@ -993,7 +996,7 @@ int __video_register_device(struct video_device *vdev,
- 	v4l2_device_get(vdev->v4l2_dev);
- 
- 	/* Part 5: Register the entity. */
--	ret = video_register_media_controller(vdev, type);
-+	ret = video_register_media_controller(vdev);
- 
- 	/* Part 6: Activate this minor. The char device can now be used. */
- 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index c4f963d96a79..e0e7262b7e75 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -17,9 +17,11 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- 
-+#include <media/media-device.h>
- #include <media/videobuf2-v4l2.h>
- #include <media/v4l2-mem2mem.h>
- #include <media/v4l2-dev.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
- 
-@@ -50,6 +52,19 @@ module_param(debug, bool, 0644);
-  * offsets but for different queues */
- #define DST_QUEUE_OFF_BASE	(1 << 30)
- 
-+enum v4l2_m2m_entity_type {
-+	MEM2MEM_ENT_TYPE_SOURCE,
-+	MEM2MEM_ENT_TYPE_SINK,
-+	MEM2MEM_ENT_TYPE_PROC,
-+	MEM2MEM_ENT_TYPE_MAX
-+};
-+
-+static const char * const m2m_entity_name[] = {
-+	"source",
-+	"sink",
-+	"proc"
-+};
-+
- 
- /**
-  * struct v4l2_m2m_dev - per-device context
-@@ -60,6 +75,15 @@ module_param(debug, bool, 0644);
-  */
- struct v4l2_m2m_dev {
- 	struct v4l2_m2m_ctx	*curr_ctx;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_entity	*source;
-+	struct media_pad	source_pad;
-+	struct media_entity	sink;
-+	struct media_pad	sink_pad;
-+	struct media_entity	proc;
-+	struct media_pad	proc_pads[2];
-+	struct media_intf_devnode *intf_devnode;
-+#endif
- 
- 	struct list_head	job_queue;
- 	spinlock_t		job_spinlock;
-@@ -595,6 +619,156 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- }
- EXPORT_SYMBOL(v4l2_m2m_mmap);
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
-+{
-+	media_remove_intf_links(&m2m_dev->intf_devnode->intf);
-+	media_devnode_remove(m2m_dev->intf_devnode);
-+
-+	media_entity_remove_links(m2m_dev->source);
-+	media_entity_remove_links(&m2m_dev->sink);
-+	media_entity_remove_links(&m2m_dev->proc);
-+	media_device_unregister_entity(m2m_dev->source);
-+	media_device_unregister_entity(&m2m_dev->sink);
-+	media_device_unregister_entity(&m2m_dev->proc);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_unregister_media_controller);
-+
-+static int v4l2_m2m_register_entity(struct media_device *mdev,
-+	struct v4l2_m2m_dev *m2m_dev, enum v4l2_m2m_entity_type type,
-+	int function)
-+{
-+	struct media_entity *entity;
-+	struct media_pad *pads;
-+	int num_pads;
-+	int ret;
-+
-+	switch (type) {
-+	case MEM2MEM_ENT_TYPE_SOURCE:
-+		entity = m2m_dev->source;
-+		pads = &m2m_dev->source_pad;
-+		entity->name = m2m_entity_name[type];
-+		pads[0].flags = MEDIA_PAD_FL_SOURCE;
-+		num_pads = 1;
-+		break;
-+	case MEM2MEM_ENT_TYPE_SINK:
-+		entity = &m2m_dev->sink;
-+		pads = &m2m_dev->sink_pad;
-+		pads[0].flags = MEDIA_PAD_FL_SINK;
-+		num_pads = 1;
-+		break;
-+	case MEM2MEM_ENT_TYPE_PROC:
-+		entity = &m2m_dev->proc;
-+		pads = m2m_dev->proc_pads;
-+		pads[0].flags = MEDIA_PAD_FL_SOURCE;
-+		pads[1].flags = MEDIA_PAD_FL_SINK;
-+		num_pads = 2;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	entity->obj_type = MEDIA_ENTITY_TYPE_BASE;
-+	entity->name = m2m_entity_name[type];
-+	entity->function = function;
-+
-+	ret = media_entity_pads_init(entity, num_pads, pads);
-+	if (ret)
-+		return ret;
-+	ret = media_device_register_entity(mdev, entity);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
-+		struct video_device *vdev, int function)
-+{
-+	struct media_device *mdev = vdev->v4l2_dev->mdev;
-+	struct media_link *link;
-+	int ret;
-+
-+	if (!mdev)
-+		return 0;
-+
-+	/* A memory-to-memory device consists in two
-+	 * DMA engine and one video processing entities.
-+	 * The DMA engine entities are linked to a V4L interface
-+	 */
-+
-+	/* Create the three entities with their pads */
-+	m2m_dev->source = &vdev->entity;
-+	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
-+			MEM2MEM_ENT_TYPE_SOURCE, MEDIA_ENT_F_IO_V4L);
-+	if (ret)
-+		return ret;
-+	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
-+			MEM2MEM_ENT_TYPE_PROC, function);
-+	if (ret)
-+		goto err_rel_entity0;
-+	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
-+			MEM2MEM_ENT_TYPE_SINK, MEDIA_ENT_F_IO_V4L);
-+	if (ret)
-+		goto err_rel_entity1;
-+
-+	/* Connect the three entities */
-+	ret = media_create_pad_link(m2m_dev->source, 0, &m2m_dev->proc, 1,
-+			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-+	if (ret)
-+		goto err_rel_entity2;
-+
-+	ret = media_create_pad_link(&m2m_dev->proc, 0, &m2m_dev->sink, 0,
-+			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-+	if (ret)
-+		goto err_rm_links0;
-+
-+	/* Create video interface */
-+	m2m_dev->intf_devnode = media_devnode_create(mdev,
-+			MEDIA_INTF_T_V4L_VIDEO, 0,
-+			VIDEO_MAJOR, vdev->minor);
-+	if (!m2m_dev->intf_devnode) {
-+		ret = -ENOMEM;
-+		goto err_rm_links1;
-+	}
-+
-+	/* Connect the two DMA engines to the interface */
-+	link = media_create_intf_link(m2m_dev->source,
-+			&m2m_dev->intf_devnode->intf, MEDIA_LNK_FL_ENABLED);
-+	if (!link) {
-+		ret = -ENOMEM;
-+		goto err_rm_devnode;
-+	}
-+
-+	link = media_create_intf_link(&m2m_dev->sink,
-+			&m2m_dev->intf_devnode->intf, MEDIA_LNK_FL_ENABLED);
-+	if (!link) {
-+		ret = -ENOMEM;
-+		goto err_rm_intf_link;
-+	}
-+	return 0;
-+
-+err_rm_intf_link:
-+	media_remove_intf_links(&m2m_dev->intf_devnode->intf);
-+err_rm_devnode:
-+	media_devnode_remove(m2m_dev->intf_devnode);
-+err_rm_links1:
-+	media_entity_remove_links(&m2m_dev->sink);
-+err_rm_links0:
-+	media_entity_remove_links(&m2m_dev->proc);
-+	media_entity_remove_links(m2m_dev->source);
-+err_rel_entity2:
-+	media_device_unregister_entity(&m2m_dev->proc);
-+err_rel_entity1:
-+	media_device_unregister_entity(&m2m_dev->sink);
-+err_rel_entity0:
-+	media_device_unregister_entity(m2m_dev->source);
-+	return ret;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_register_media_controller);
-+#endif
-+
- struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops)
- {
- 	struct v4l2_m2m_dev *m2m_dev;
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index 3d07ba3a8262..24fcc99653de 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -53,6 +53,7 @@ struct v4l2_m2m_ops {
- 	void (*unlock)(void *priv);
- };
- 
-+struct video_device;
- struct v4l2_m2m_dev;
- 
- /**
-@@ -328,6 +329,24 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-  */
- struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops);
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev);
-+int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
-+			struct video_device *vdev, int function);
-+#else
-+static inline void
-+v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
-+{
-+}
-+
-+static inline int
-+v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
-+		struct video_device *vdev, int function)
-+{
-+	return 0;
-+}
-+#endif
-+
- /**
-  * v4l2_m2m_release() - cleans up and frees a m2m_dev structure
-  *
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index c7e9a5cba24e..5f58c7ac04c0 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -132,6 +132,9 @@ struct media_device_info {
- #define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
- #define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
- #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
-+#define MEDIA_ENT_F_PROC_VIDEO_DECODER		(MEDIA_ENT_F_BASE + 0x4007)
-+#define MEDIA_ENT_F_PROC_VIDEO_ENCODER		(MEDIA_ENT_F_BASE + 0x4008)
-+#define MEDIA_ENT_F_PROC_VIDEO_DEINTERLACER	(MEDIA_ENT_F_BASE + 0x4009)
- 
- /*
-  * Switch and bridge entity functions
 -- 
 2.17.1
