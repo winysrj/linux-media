@@ -1,57 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:36283 "EHLO
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:36980 "EHLO
         lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751218AbeFUHTT (ORCPT
+        by vger.kernel.org with ESMTP id S1751388AbeFUHTT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 21 Jun 2018 03:19:19 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 2/8] media-ioc-g-topology.rst: document new 'index' field
-Date: Thu, 21 Jun 2018 09:19:08 +0200
-Message-Id: <20180621071914.28729-3-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv3 1/8] media: add 'index' to struct media_v2_pad
+Date: Thu, 21 Jun 2018 09:19:07 +0200
+Message-Id: <20180621071914.28729-2-hverkuil@xs4all.nl>
 In-Reply-To: <20180621071914.28729-1-hverkuil@xs4all.nl>
 References: <20180621071914.28729-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-Document the new struct media_v2_pad 'index' field.
+The v2 pad structure never exposed the pad index, which made it impossible
+to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+It is really trivial to just expose this information, so implement this.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- .../media/uapi/mediactl/media-ioc-g-topology.rst      | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/media/media-device.c |  1 +
+ include/uapi/linux/media.h   | 12 +++++++++++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-index a3f259f83b25..24ab34b22df2 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-@@ -176,7 +176,7 @@ desired arrays with the media graph elements.
-     *  -  struct media_v2_intf_devnode
-        -  ``devnode``
-        -  Used only for device node interfaces. See
--	  :c:type:`media_v2_intf_devnode` for details..
-+	  :c:type:`media_v2_intf_devnode` for details.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 47bb2254fbfd..047d38372a27 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
+ 		kpad.id = pad->graph_obj.id;
+ 		kpad.entity_id = pad->entity->graph_obj.id;
+ 		kpad.flags = pad->flags;
++		kpad.index = pad->index;
  
+ 		if (copy_to_user(upad, &kpad, sizeof(kpad)))
+ 			ret = -EFAULT;
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 86c7dcc9cba3..f6338bd57929 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -305,11 +305,21 @@ struct media_v2_interface {
+ 	};
+ } __attribute__ ((packed));
  
- .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
-@@ -218,7 +218,14 @@ desired arrays with the media graph elements.
-        -  Pad flags, see :ref:`media-pad-flag` for more details.
- 
-     *  -  __u32
--       -  ``reserved``\ [5]
-+       -  ``index``
-+       -  0-based pad index. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
-+	  returns true. The ``media_version`` is defined in struct
-+	  :c:type:`media_device_info` and can be retrieved using
-+	  :ref:`MEDIA_IOC_DEVICE_INFO`.
++/*
++ * Appeared in 4.19.0.
++ *
++ * The media_version argument comes from the media_version field in
++ * struct media_device_info.
++ */
++#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
++	((media_version) >= ((4 << 16) | (19 << 8) | 0))
 +
-+    *  -  __u32
-+       -  ``reserved``\ [4]
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
+ struct media_v2_pad {
+ 	__u32 id;
+ 	__u32 entity_id;
+ 	__u32 flags;
+-	__u32 reserved[5];
++	__u32 index;
++	__u32 reserved[4];
+ } __attribute__ ((packed));
  
+ struct media_v2_link {
 -- 
 2.17.0
