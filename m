@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:52352 "EHLO
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:52168 "EHLO
         lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751147AbeFUHTU (ORCPT
+        by vger.kernel.org with ESMTP id S1753906AbeFUHTU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 21 Jun 2018 03:19:20 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 7/8] adv7180/tvp514x/tvp7002: fix entity function
-Date: Thu, 21 Jun 2018 09:19:13 +0200
-Message-Id: <20180621071914.28729-8-hverkuil@xs4all.nl>
+Subject: [PATCHv3 5/8] media.h: add MEDIA_ENT_F_DTV_ENCODER
+Date: Thu, 21 Jun 2018 09:19:11 +0200
+Message-Id: <20180621071914.28729-6-hverkuil@xs4all.nl>
 In-Reply-To: <20180621071914.28729-1-hverkuil@xs4all.nl>
 References: <20180621071914.28729-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,54 +17,48 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The entity function was ORed with the flags field instead of
-assigned to the function field. Correct this.
+Add a new function for digital video encoders such as HDMI transmitters.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7180.c | 2 +-
- drivers/media/i2c/tvp514x.c | 2 +-
- drivers/media/i2c/tvp7002.c | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ Documentation/media/uapi/mediactl/media-types.rst | 7 +++++++
+ include/uapi/linux/media.h                        | 3 ++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 25d24a3f10a7..a727d7f806a1 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -1335,7 +1335,7 @@ static int adv7180_probe(struct i2c_client *client,
- 		goto err_unregister_vpp_client;
+diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+index 96910cf2eaaa..1db40c1f45d2 100644
+--- a/Documentation/media/uapi/mediactl/media-types.rst
++++ b/Documentation/media/uapi/mediactl/media-types.rst
+@@ -206,6 +206,13 @@ Types and flags used to represent the media graph elements
+ 	  and output it in some digital video standard, with appropriate
+ 	  timing signals.
  
- 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.flags |= MEDIA_ENT_F_ATV_DECODER;
-+	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 	ret = media_entity_pads_init(&sd->entity, 1, &state->pad);
- 	if (ret)
- 		goto err_free_ctrl;
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index 6a9890531d01..675b9ae212ab 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -1084,7 +1084,7 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--	decoder->sd.entity.flags |= MEDIA_ENT_F_ATV_DECODER;
-+	decoder->sd.entity.function = MEDIA_ENT_F_ATV_DECODER;
++    *  -  ``MEDIA_ENT_F_DTV_ENCODER``
++       -  Digital video encoder. The basic function of the video encoder is
++	  to accept digital video from some digital video standard with
++	  appropriate timing signals (usually a parallel video bus with sync
++	  signals) and output this to a digital video output connector such
++	  as HDMI or DisplayPort.
++
+ ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
  
- 	ret = media_entity_pads_init(&decoder->sd.entity, 1, &decoder->pad);
- 	if (ret < 0) {
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 4599b7e28a8d..4f5c627579c7 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -1010,7 +1010,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	device->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--	device->sd.entity.flags |= MEDIA_ENT_F_ATV_DECODER;
-+	device->sd.entity.function = MEDIA_ENT_F_ATV_DECODER;
+ .. _media-entity-flag:
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index ebd2cda67833..58be49e1adca 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -90,10 +90,11 @@ struct media_device_info {
+ #define MEDIA_ENT_F_LENS			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
  
- 	error = media_entity_pads_init(&device->sd.entity, 1, &device->pad);
- 	if (error < 0)
+ /*
+- * Video decoder functions
++ * Video decoder/encoder functions
+  */
+ #define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
+ #define MEDIA_ENT_F_DTV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
++#define MEDIA_ENT_F_DTV_ENCODER			(MEDIA_ENT_F_BASE + 0x6002)
+ 
+ /*
+  * Digital TV, analog TV, radio and/or software defined radio tuner functions.
 -- 
 2.17.0
