@@ -1,151 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:39832 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750789AbeFUGaE (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:59488 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932481AbeFUGsT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Jun 2018 02:30:04 -0400
-Received: by mail-it0-f67.google.com with SMTP id p185-v6so3173368itp.4
-        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2018 23:30:04 -0700 (PDT)
+        Thu, 21 Jun 2018 02:48:19 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.19] Various doc and media.h improvements
+Message-ID: <04a1e73c-72bc-a515-352f-b9e532fd623c@xs4all.nl>
+Date: Thu, 21 Jun 2018 08:48:14 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAKMK7uFbvuikxSMgzquzXgcyVVonhWu3HNfrOR2s7RGB7k21ow@mail.gmail.com>
-References: <20180601120020.11520-1-christian.koenig@amd.com>
- <20180601120020.11520-2-christian.koenig@amd.com> <20180618081845.GV3438@phenom.ffwll.local>
- <2bcb34c3-b729-e3ea-fb8c-2471e4ed56d6@amd.com> <CAKMK7uEvhMF92ifA=7xQ=9GR3NofZNExCDTHZTtikmujJTZ89A@mail.gmail.com>
- <c0552d8a-1c64-c99b-6ef8-83e253c49d30@gmail.com> <CAKMK7uHHZn=H6px-yiXy7tVmmQy6GHrwGtG+B7or1ThsrriFDA@mail.gmail.com>
- <5d337ffc-6c4c-dafb-abb2-151d9d4aeaea@gmail.com> <3994b9d0-85fe-6495-5528-282f7b46a53f@amd.com>
- <CAKMK7uFbvuikxSMgzquzXgcyVVonhWu3HNfrOR2s7RGB7k21ow@mail.gmail.com>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Thu, 21 Jun 2018 08:30:03 +0200
-Message-ID: <CAKMK7uG7dtj136GAg6E9rVHm4dAg0a-A6EA=911fBi8YpVDbcA@mail.gmail.com>
-Subject: Re: [PATCH 2/5] dma-buf: remove kmap_atomic interface
-To: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
-Cc: "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 21, 2018 at 8:26 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Wed, Jun 20, 2018 at 4:21 PM, Christian K=C3=B6nig
-> <christian.koenig@amd.com> wrote:
->> Am 20.06.2018 um 16:04 schrieb Christian K=C3=B6nig:
->>>
->>> Am 20.06.2018 um 14:52 schrieb Daniel Vetter:
->>>>
->>>> On Wed, Jun 20, 2018 at 2:46 PM, Christian K=C3=B6nig
->>>> <ckoenig.leichtzumerken@gmail.com> wrote:
->>>>>
->>>>> [SNIP]
->>>>>>
->>>>>> Go ahead, that's the point of commit rights. dim might complain if y=
-ou
->>>>>> cherry picked them and didn't pick them up using dim apply though ..=
-.
->>>>>
->>>>>
->>>>> I've fixed up the Link tags, but when I try "dim push-branch
->>>>> drm-misc-next"
->>>>> I only get the error message "error: dst ref refs/heads/drm-misc-next
->>>>> receives from more than one src."
->>>>>
->>>>> Any idea what is going wrong here?
->>>>
->>>> Sounds like multiple upstreams for your local drm-misc-next branch,
->>>> and git then can't decide which one to pick. If you delete the branch
->>>> and create it using dim checkout drm-misc-next this shouldn't happen.
->>>> We're trying to fit into existing check-outs and branches, but if you
->>>> set things up slightly different than dim would have you're off script
->>>> and there's limited support for that.
->>>>
->>>> Alternative check out your .git/config and remove the other upstreams.
->>>> Or attach your git config if this isn't the issue (I'm just doing some
->>>> guessing here).
->>>
->>>
->>> I've tried to delete my drm-misc-next branch and recreate it, but that
->>> doesn't seem to help.
->>>
->>> Attached is my .git/config, but at least on first glance it looks ok as
->>> well.
->>>
->>> Any ideas?
->>
->>
->> Ok that seems to be a bug in dim.
->>
->> "bash -x dim push drm-misc-next" looks like it tries to push the branch
->> drm-misc-next twice to the drm-misc remote: git push drm-misc drm-misc-n=
-ext
->> drm-misc-next
->>
->> When I try that manually I get the same result, but "git push drm-misc
->> drm-misc-next" just seemed to work fine.
->>
->> Let's hope that I haven't messed things up totally on the server now.
->
-> Tree looks all intact, except for some build fail. For drm-misc please
-> use the 3 defconfings (for x86, arm and arm64) to check that not too
-> much broke, they should enable all the gfx relevant stuff. Not full
-> combinatorials, but at least the most obvious of things.
->
-> Wrt the issue, it's indeed a bug in dim. The shorthand for pushing the
-> current branch works:
->
-> $ dim push
->
-> But the explicit form somehow gained a bug.
->
-> $ dim push drm-misc-next
->
-> I'll look into why this is.
+Clean up rst tables, fix wrong types in the documentation and remove the
+ugly __NEED_MEDIA_LEGACY_API define.
 
-Should have waited for coffee to kick in. This is a feature :-)
+Getting these three in first will simplify the follow-on patches that make
+G_TOPOLOGY useful.
 
-$ dim push [git push arguments]
+Regards,
 
-is the short-hand. If you want to specify the branch explicitly, you need t=
-o use
+	Hans
 
-$ dim push-branch drm-misc-next [git push arguments]
+The following changes since commit f2809d20b9250c675fca8268a0f6274277cca7ff:
 
-Usually the only thing is adding an -f for a non-fast-forward push
-(when maintainers have rebased the -fixes tree, shouldn't be done
-anywhere else). Docs seem accurate, so not sure where you copypasted
-this from? And not sure we should catch this in the script, since it's
-kinda ambiguous.
--Daniel
+  media: omap2: fix compile-testing with FB_OMAP2=m (2018-06-05 09:56:56 -0400)
 
+are available in the Git repository at:
 
-> -Daniel
->
->>
->> Christian.
->>
->>>
->>> Thanks,
->>> Christian.
->>>
->>>> -Daniel
->>>>
->>>>
->>>
->>
->
->
->
-> --
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.19e
 
+for you to fetch changes up to 887caa58c226dc8d8c37d2d9981c9951ebf8e6bf:
 
+  media.h: remove __NEED_MEDIA_LEGACY_API (2018-06-21 08:45:04 +0200)
 
---=20
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+----------------------------------------------------------------
+Hans Verkuil (3):
+      Documentation/media/uapi/mediactl: redo tables
+      subdev-formats.rst: fix incorrect types
+      media.h: remove __NEED_MEDIA_LEGACY_API
+
+ Documentation/media/uapi/mediactl/media-ioc-device-info.rst   |  48 +---
+ Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst |  83 ++-----
+ Documentation/media/uapi/mediactl/media-ioc-enum-links.rst    |  70 +-----
+ Documentation/media/uapi/mediactl/media-ioc-g-topology.rst    | 204 +++-------------
+ Documentation/media/uapi/mediactl/media-types.rst             | 499 +++++++++-----------------------------
+ Documentation/media/uapi/v4l/subdev-formats.rst               |  15 +-
+ drivers/media/media-device.c                                  |  13 +-
+ include/uapi/linux/media.h                                    |   2 +-
+ 8 files changed, 205 insertions(+), 729 deletions(-)
