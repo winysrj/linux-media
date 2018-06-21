@@ -1,56 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:52352 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754178AbeFUK4O (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36624 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754308AbeFUKyn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Jun 2018 06:56:14 -0400
-Date: Thu, 21 Jun 2018 12:56:10 +0200
-From: Ingo Molnar <mingo@kernel.org>
-To: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-graphics-maintainer@vmware.com, pv-drivers@vmware.com,
-        Jonathan Corbet <corbet@lwn.net>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        David Airlie <airlied@linux.ie>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-doc@vger.kernel.org, linux-media@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org
-Subject: Re: [PATCH v4 0/4] locking,drm: Fix ww mutex naming / algorithm
- inconsistency
-Message-ID: <20180621105610.GA28688@gmail.com>
-References: <20180619082445.11062-1-thellstrom@vmware.com>
- <20180619094554.GM2458@hirez.programming.kicks-ass.net>
- <f07c53d9-a22e-41c9-59a4-71ef6f7d96bb@vmware.com>
+        Thu, 21 Jun 2018 06:54:43 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id C75D7634C7F
+        for <linux-media@vger.kernel.org>; Thu, 21 Jun 2018 13:54:41 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1fVxEf-0000KN-JR
+        for linux-media@vger.kernel.org; Thu, 21 Jun 2018 13:54:41 +0300
+Date: Thu, 21 Jun 2018 13:54:41 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT FIXES for 4.18] Cadence compile fixes, imx258 rotation property
+ check
+Message-ID: <20180621105441.ac5aufscombnzzk2@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <f07c53d9-a22e-41c9-59a4-71ef6f7d96bb@vmware.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
-* Thomas Hellstrom <thellstrom@vmware.com> wrote:
+Here are a few fixes for 4.18. Arnd's patches fix regular build errors and
+the imx258 patch is there to prevent writing firmware they'll only find was
+incomplete later on.
 
-> On 06/19/2018 11:45 AM, Peter Zijlstra wrote:
-> > I suspect you want this through the DRM tree? Ingo are you OK with that?
-> 
-> 
-> Yes, I can ask Dave to pull this. Ingo?
+Please pull.
 
-Sure, no problem if it's tested and all:
 
-  Acked-by: Ingo Molnar <mingo@kernel.org>
+The following changes since commit e88f5e9ebd54bdf75c9833e3d9add7c2c0d39b0b:
 
-Thanks,
+  media: uvcvideo: Prevent setting unavailable flags (2018-06-05 08:53:17 -0400)
 
-	Ingo
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git fixes-4.18-1
+
+for you to fetch changes up to 40cea33ed062c330a491c36bf172040c16f9088a:
+
+  media: v4l: cadence: add VIDEO_V4L2 dependency (2018-06-21 12:22:49 +0300)
+
+----------------------------------------------------------------
+Arnd Bergmann (2):
+      media: v4l: cadence: include linux/slab.h
+      media: v4l: cadence: add VIDEO_V4L2 dependency
+
+Sakari Ailus (1):
+      imx258: Check the rotation property has a value of 180
+
+ drivers/media/i2c/imx258.c                   | 8 ++++++++
+ drivers/media/platform/cadence/Kconfig       | 2 ++
+ drivers/media/platform/cadence/cdns-csi2rx.c | 1 +
+ drivers/media/platform/cadence/cdns-csi2tx.c | 1 +
+ 4 files changed, 12 insertions(+)
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
