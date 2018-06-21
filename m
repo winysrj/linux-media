@@ -1,113 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:54915 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:56982 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932628AbeFUOaP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Jun 2018 10:30:15 -0400
-Date: Thu, 21 Jun 2018 16:30:03 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
-        linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <m.chehab@samsung.com>,
-        linux-media@vger.kernel.org,
-        Niklas =?utf-8?Q?S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: drivers/media/platform/cadence/cdns-csi2tx.c:477:11: error:
- implicit declaration of function 'kzalloc'; did you mean 'vzalloc'?
-Message-ID: <20180621143003.2tr7lsexsj7mcbzm@flea>
-References: <201806180714.gwQUkLIy%fengguang.wu@intel.com>
- <0e6e7b2a-1624-4c15-85ff-3796e0104a3b@infradead.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="gzgeorpabunm4bd7"
-Content-Disposition: inline
-In-Reply-To: <0e6e7b2a-1624-4c15-85ff-3796e0104a3b@infradead.org>
+        id S933262AbeFUPfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Jun 2018 11:35:06 -0400
+Message-ID: <a2e1e0a85e0cd650d27eb02dc58d438d6a750929.camel@bootlin.com>
+Subject: Re: [PATCH 7/9] media: cedrus: Move IRQ maintainance to
+ cedrus_dec_ops
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>, hans.verkuil@cisco.com,
+        acourbot@chromium.org, sakari.ailus@linux.intel.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: tfiga@chromium.org, posciak@chromium.org,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
+        linux-sunxi@googlegroups.com,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Date: Thu, 21 Jun 2018 17:35:03 +0200
+In-Reply-To: <20180613140714.1686-8-maxime.ripard@bootlin.com>
+References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
+         <20180613140714.1686-8-maxime.ripard@bootlin.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-CZTYWBu0xl+VuYEU4hti"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---gzgeorpabunm4bd7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-CZTYWBu0xl+VuYEU4hti
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi randy,
+Hi,
 
-On Wed, Jun 20, 2018 at 04:02:00PM -0700, Randy Dunlap wrote:
-> On 06/17/2018 04:29 PM, kbuild test robot wrote:
-> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.=
-git master
-> > head:   ce397d215ccd07b8ae3f71db689aedb85d56ab40
-> > commit: 6f684d4fcce5eddd7e216a18975fb798d11a83dd media: v4l: cadence: A=
-dd Cadence MIPI-CSI2 TX driver
-> > date:   5 weeks ago
-> > config: x86_64-randconfig-s5-06180700 (attached as .config)
-> > compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
-> > reproduce:
-> >         git checkout 6f684d4fcce5eddd7e216a18975fb798d11a83dd
-> >         # save the attached .config to linux build tree
-> >         make ARCH=3Dx86_64=20
-> >=20
-> > All error/warnings (new ones prefixed by >>):
-> >=20
-> >    drivers/media/platform/cadence/cdns-csi2tx.c: In function 'csi2tx_pr=
-obe':
-> >>> drivers/media/platform/cadence/cdns-csi2tx.c:477:11: error: implicit =
-declaration of function 'kzalloc'; did you mean 'vzalloc'? [-Werror=3Dimpli=
-cit-function-declaration]
-> >      csi2tx =3D kzalloc(sizeof(*csi2tx), GFP_KERNEL);
-> >               ^~~~~~~
-> >               vzalloc
-> >>> drivers/media/platform/cadence/cdns-csi2tx.c:477:9: warning: assignme=
-nt makes pointer from integer without a cast [-Wint-conversion]
-> >      csi2tx =3D kzalloc(sizeof(*csi2tx), GFP_KERNEL);
-> >             ^
-> >>> drivers/media/platform/cadence/cdns-csi2tx.c:531:2: error: implicit d=
-eclaration of function 'kfree'; did you mean 'vfree'? [-Werror=3Dimplicit-f=
-unction-declaration]
-> >      kfree(csi2tx);
-> >      ^~~~~
-> >      vfree
-> >    cc1: some warnings being treated as errors
+On Wed, 2018-06-13 at 16:07 +0200, Maxime Ripard wrote:
+> The IRQ handler up until now was hardcoding the use of the MPEG engine to
+> read the interrupt status, clear it and disable the interrupts.
 >=20
-> From 2018-06-08:
+> Obviously, that won't work really well with the introduction of new codec=
+s
+> that use a separate engine with a separate register set.
 >=20
-> https://patchwork.kernel.org/patch/10455245/
-> or
-> https://marc.info/?l=3Dlinux-kernel&m=3D152849276709302&w=3D2
+> In order to make this more future proof, introduce new decodec operations
+> to deal with the interrupt management. The only one missing is the one to
+> enable the interrupts in the first place, but that's taken care of by the
+> trigger hook for now.
+
+Acked-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> ---
+>  .../sunxi/cedrus/sunxi_cedrus_common.h        |  9 +++++
+>  .../platform/sunxi/cedrus/sunxi_cedrus_hw.c   | 21 ++++++------
+>  .../sunxi/cedrus/sunxi_cedrus_mpeg2.c         | 33 +++++++++++++++++++
+>  3 files changed, 53 insertions(+), 10 deletions(-)
 >=20
-> I marked it as for linux-next, but it does need to be applied to mainline.
-
-This was fixed some time ago by Arnd, and the PR has been sent today,
-so it should reach Linus some time soon:
-https://patchwork.linuxtv.org/patch/50464/
-
-Maxime
-
+> diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h b/=
+drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
+> index c2e2c92d103b..a2a507eb9fc9 100644
+> --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
+> +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
+> @@ -108,7 +108,16 @@ struct sunxi_cedrus_buffer *vb2_to_cedrus_buffer(con=
+st struct vb2_buffer *p)
+>  	return vb2_v4l2_to_cedrus_buffer(to_vb2_v4l2_buffer(p));
+>  }
+> =20
+> +enum sunxi_cedrus_irq_status {
+> +	SUNXI_CEDRUS_IRQ_NONE,
+> +	SUNXI_CEDRUS_IRQ_ERROR,
+> +	SUNXI_CEDRUS_IRQ_OK,
+> +};
+> +
+>  struct sunxi_cedrus_dec_ops {
+> +	void (*irq_clear)(struct sunxi_cedrus_ctx *ctx);
+> +	void (*irq_disable)(struct sunxi_cedrus_ctx *ctx);
+> +	enum sunxi_cedrus_irq_status (*irq_status)(struct sunxi_cedrus_ctx *ctx=
+);
+>  	void (*setup)(struct sunxi_cedrus_ctx *ctx,
+>  		      struct sunxi_cedrus_run *run);
+>  	void (*trigger)(struct sunxi_cedrus_ctx *ctx);
+> diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c b/driv=
+ers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
+> index bb46a01214e0..6b97cbd2834e 100644
+> --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
+> +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
+> @@ -77,27 +77,28 @@ static irqreturn_t sunxi_cedrus_ve_irq(int irq, void =
+*dev_id)
+>  	struct sunxi_cedrus_ctx *ctx;
+>  	struct sunxi_cedrus_buffer *src_buffer, *dst_buffer;
+>  	struct vb2_v4l2_buffer *src_vb, *dst_vb;
+> +	enum sunxi_cedrus_irq_status status;
+>  	unsigned long flags;
+> -	unsigned int value, status;
+> =20
+>  	spin_lock_irqsave(&dev->irq_lock, flags);
+> =20
+> -	/* Disable MPEG interrupts and stop the MPEG engine */
+> -	value =3D sunxi_cedrus_read(dev, VE_MPEG_CTRL);
+> -	sunxi_cedrus_write(dev, value & (~0xf), VE_MPEG_CTRL);
+> -
+> -	status =3D sunxi_cedrus_read(dev, VE_MPEG_STATUS);
+> -	sunxi_cedrus_write(dev, 0x0000c00f, VE_MPEG_STATUS);
+> -	sunxi_cedrus_engine_disable(dev);
+> -
+>  	ctx =3D v4l2_m2m_get_curr_priv(dev->m2m_dev);
+>  	if (!ctx) {
+>  		pr_err("Instance released before the end of transaction\n");
+>  		spin_unlock_irqrestore(&dev->irq_lock, flags);
+> =20
+> -		return IRQ_HANDLED;
+> +		return IRQ_NONE;
+>  	}
+> =20
+> +	status =3D dev->dec_ops[ctx->current_codec]->irq_status(ctx);
+> +	if (status =3D=3D SUNXI_CEDRUS_IRQ_NONE) {
+> +		spin_unlock_irqrestore(&dev->irq_lock, flags);
+> +		return IRQ_NONE;
+> +	}
+> +
+> +	dev->dec_ops[ctx->current_codec]->irq_disable(ctx);
+> +	dev->dec_ops[ctx->current_codec]->irq_clear(ctx);
+> +
+>  	src_vb =3D v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+>  	dst_vb =3D v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+> =20
+> diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c b/d=
+rivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
+> index e25075bb5779..51fa0c0f9bf2 100644
+> --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
+> +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
+> @@ -52,6 +52,36 @@ static const u8 mpeg_default_non_intra_quant[64] =3D {
+> =20
+>  #define m_niq(i) ((i << 8) | mpeg_default_non_intra_quant[i])
+> =20
+> +static enum sunxi_cedrus_irq_status
+> +sunxi_cedrus_mpeg2_irq_status(struct sunxi_cedrus_ctx *ctx)
+> +{
+> +	struct sunxi_cedrus_dev *dev =3D ctx->dev;
+> +	u32 reg =3D sunxi_cedrus_read(dev, VE_MPEG_STATUS) & 0x7;
+> +
+> +	if (!reg)
+> +		return SUNXI_CEDRUS_IRQ_NONE;
+> +
+> +	if (reg & (BIT(1) | BIT(2)))
+> +		return SUNXI_CEDRUS_IRQ_ERROR;
+> +
+> +	return SUNXI_CEDRUS_IRQ_OK;
+> +}
+> +
+> +static void sunxi_cedrus_mpeg2_irq_clear(struct sunxi_cedrus_ctx *ctx)
+> +{
+> +	struct sunxi_cedrus_dev *dev =3D ctx->dev;
+> +
+> +	sunxi_cedrus_write(dev, GENMASK(2, 0), VE_MPEG_STATUS);
+> +}
+> +
+> +static void sunxi_cedrus_mpeg2_irq_disable(struct sunxi_cedrus_ctx *ctx)
+> +{
+> +	struct sunxi_cedrus_dev *dev =3D ctx->dev;
+> +	u32 reg =3D sunxi_cedrus_read(dev, VE_MPEG_CTRL) & ~BIT(3);
+> +
+> +	sunxi_cedrus_write(dev, reg, VE_MPEG_CTRL);
+> +}
+> +
+>  static void sunxi_cedrus_mpeg2_setup(struct sunxi_cedrus_ctx *ctx,
+>  				     struct sunxi_cedrus_run *run)
+>  {
+> @@ -156,6 +186,9 @@ static void sunxi_cedrus_mpeg2_trigger(struct sunxi_c=
+edrus_ctx *ctx)
+>  }
+> =20
+>  struct sunxi_cedrus_dec_ops sunxi_cedrus_dec_ops_mpeg2 =3D {
+> +	.irq_clear	=3D sunxi_cedrus_mpeg2_irq_clear,
+> +	.irq_disable	=3D sunxi_cedrus_mpeg2_irq_disable,
+> +	.irq_status	=3D sunxi_cedrus_mpeg2_irq_status,
+>  	.setup		=3D sunxi_cedrus_mpeg2_setup,
+>  	.trigger	=3D sunxi_cedrus_mpeg2_trigger,
+>  };
 --=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
 https://bootlin.com
-
---gzgeorpabunm4bd7
+--=-CZTYWBu0xl+VuYEU4hti
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlsrtmoACgkQ0rTAlCFN
-r3QU+g/+Lr+GCKbzeQsRfpxai7Te5Nt83qB5K7PLnes4ecOBzoQ+3Yolr3lWGz++
-7TmCXyMeal67qUaoIWiHVvy9u2q/Bm0cNjYM6quJwMem844SgilMOqV8PHZ5Hhfa
-gZORPgHrIDr1iQ9sULe+J2PV3lqCmXKK5g8fy+L9dJe2aYyYruyo9Aqe+cU7qiJx
-/3DAEw0pLkOTf1P4aWqsD38mLdgHDa4SXp5RBnp1d1EmX5oaBMY7CiD2nqzY2EwF
-lvBTAgwMXXUTUx7nXGHKuCG5MazjyIOtKcuNynfrnwHVnuqflNT4KOTBf174RFfY
-5vmy7Jq0LToO0gv8K4ZM6XhqUw81E0PCXDEzRk8YJFx0RU0xiBN0XjhSqc/RVRzc
-AsloFNmPXFTxCAErVf9v8LOzqSbEBZrUrEAGEq5oZNtmlzbiZ5BIS4oJCW3FKTcj
-3E9KHPauCQKIPh9Za0XekFGJnp8+4CiJFKdt2uU8z8fBBKpoGbSb7wfpPm1eEeGm
-iK01LauPSVh+C4IwkKhWGvDCcZ3ZZh2QybXGOcZXU+lhYLqikKhf5uhDQgjuM2zM
-OpBivOuBOCVHJmkRvyKyShhtbZfyxinqqhNczakSUVgJe2mn5WR8lhXa3t46tQ06
-EywTH1t4ttj220M5ByXsYu49CSWXOJkL2QVi+4AfASdVLG5oj5Q=
-=RLXn
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlsrxacACgkQ3cLmz3+f
+v9GSeQf/bWMUdojpRZ0kiiqT7ZwylIwLahgsrAq4r1GTrtcJlJPsE9Dk2BN4Zu2v
+slOk4HcQkq7mj8SVoZhV1OLWJt6ldCJRblCB4h29RWmZ51gIb574KL+3no1w/1ia
+n+b91Cvjy4JMLWv492TgKoMD4A7MxlqnROgpZibi6/ynqOU/epD4aapX5eC2R9jD
+XeC1rSfCTqOghFEXrqI7Db7/0mTKt2szwasVjwOMo8Ap7KoZa0FCoy/Y6d/DzJGd
+Y3PMX8yvPdeV5tzeZhfBYIdUKl+gtRyxTsbSlhyHeyX5dlz3NULXolnu/Szss2cO
+HqLZE2QvgYJQj9EluoRxJNkCEAWWKg==
+=lRqs
 -----END PGP SIGNATURE-----
 
---gzgeorpabunm4bd7--
+--=-CZTYWBu0xl+VuYEU4hti--
