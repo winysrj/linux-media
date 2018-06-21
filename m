@@ -1,163 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:48481 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932534AbeFUJd5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Jun 2018 05:33:57 -0400
-Message-ID: <4fcfed23bfae158699c23329f92d6f2e968dc062.camel@bootlin.com>
-Subject: Re: [PATCH 4/9] media: cedrus: make engine type more generic
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>, hans.verkuil@cisco.com,
-        acourbot@chromium.org, sakari.ailus@linux.intel.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: tfiga@chromium.org, posciak@chromium.org,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
-        linux-sunxi@googlegroups.com,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Date: Thu, 21 Jun 2018 11:33:44 +0200
-In-Reply-To: <20180613140714.1686-5-maxime.ripard@bootlin.com>
-References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
-         <20180613140714.1686-5-maxime.ripard@bootlin.com>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-7wU1Tez5FhraT+rPcUE/"
-Mime-Version: 1.0
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36276 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932879AbeFUJqb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Jun 2018 05:46:31 -0400
+Date: Thu, 21 Jun 2018 12:46:28 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: Re: [PATCH v4] media: ov5640: fix frame interval enumeration
+Message-ID: <20180621094628.23ot7red6ggcwtzm@valkosipuli.retiisi.org.uk>
+References: <1529571219-7599-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1529571219-7599-1-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hugues,
 
---=-7wU1Tez5FhraT+rPcUE/
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Wed, 2018-06-13 at 16:07 +0200, Maxime Ripard wrote:
-> The sunxi_cedrus_engine enum actually enumerates pretty much the codecs t=
-o
-> use (or we can easily infer the codec engine from the codec).
->=20
-> Since we will need the codec type as well in some later refactoring, make
-> that structure more useful by just enumerating the codec, and converting
-> the existing users.
-
-With the comment below taken in account, this is:
-
-Acked-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+On Thu, Jun 21, 2018 at 10:53:39AM +0200, Hugues Fruchet wrote:
+> Driver must reject frame interval enumeration of unsupported resolution.
+> This was detected by v4l2-compliance format ioctl test:
+> v4l2-compliance Format ioctls:
+>     info: found 2 frameintervals for pixel format 4745504a and size 176x144
+>   fail: v4l2-test-formats.cpp(123):
+>                            found frame intervals for invalid size 177x144
+>     test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
+> 
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 > ---
->  drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h | 6 ++++++
->  drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c     | 6 +++---
->  drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.h     | 6 +-----
->  drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c  | 2 +-
->  4 files changed, 11 insertions(+), 9 deletions(-)
->=20
-> diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h b/=
-drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-> index b1ed1c8cb130..a5f83c452006 100644
-> --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-> +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-> @@ -61,6 +61,12 @@ struct sunxi_cedrus_run {
->  	};
->  };
-> =20
-> +enum sunxi_cedrus_codec {
-
-Feel free to rename to cedrus_codec when rebasing on top of the latest
-patchset introducing the driver.
-
-Cheers,
-
-Paul
-
-> +	SUNXI_CEDRUS_CODEC_MPEG2,
-> +
-> +	SUNXI_CEDRUS_CODEC_LAST,
-> +};
-> +
->  struct sunxi_cedrus_ctx {
->  	struct v4l2_fh fh;
->  	struct sunxi_cedrus_dev	*dev;
-> diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c b/driv=
-ers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
-> index fc688a5c1ea3..bb46a01214e0 100644
-> --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
-> +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
-> @@ -41,7 +41,7 @@
->  #define SYSCON_SRAM_C1_MAP_VE	0x7fffffff
-> =20
->  int sunxi_cedrus_engine_enable(struct sunxi_cedrus_dev *dev,
-> -			       enum sunxi_cedrus_engine engine)
-> +			       enum sunxi_cedrus_codec codec)
+> version 2:
+>   - revisit patch according to Mauro comments:
+>     See https://www.mail-archive.com/linux-media@vger.kernel.org/msg127380.html
+> 
+> version 3:
+>   - revisit patch using v4l2_find_nearest_size() helper as per Sakari suggestion:
+>     See https://www.mail-archive.com/linux-media@vger.kernel.org/msg128186.html
+> 
+> version 4:
+>   - fix sparse warning:
+>     See https://www.mail-archive.com/linux-media@vger.kernel.org/msg132925.html
+> 
+>  drivers/media/i2c/ov5640.c | 34 ++++++++++++++++------------------
+>  1 file changed, 16 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index f6e40cc..4257ca6 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -1389,24 +1389,16 @@ static int ov5640_set_timings(struct ov5640_dev *sensor,
+>  ov5640_find_mode(struct ov5640_dev *sensor, enum ov5640_frame_rate fr,
+>  		 int width, int height, bool nearest)
 >  {
->  	u32 reg =3D 0;
-> =20
-> @@ -53,8 +53,8 @@ int sunxi_cedrus_engine_enable(struct sunxi_cedrus_dev =
-*dev,
-> =20
->  	reg |=3D VE_CTRL_CACHE_BUS_BW_128;
-> =20
-> -	switch (engine) {
-> -	case SUNXI_CEDRUS_ENGINE_MPEG:
-> +	switch (codec) {
-> +	case SUNXI_CEDRUS_CODEC_MPEG2:
->  		reg |=3D VE_CTRL_DEC_MODE_MPEG;
->  		break;
-> =20
-> diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.h b/driv=
-ers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.h
-> index 34f3fae462a8..3236c80bfcf4 100644
-> --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.h
-> +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.h
-> @@ -23,12 +23,8 @@
->  #ifndef _SUNXI_CEDRUS_HW_H_
->  #define _SUNXI_CEDRUS_HW_H_
-> =20
-> -enum sunxi_cedrus_engine {
-> -	SUNXI_CEDRUS_ENGINE_MPEG,
-> -};
+> -	const struct ov5640_mode_info *mode = NULL;
+> -	int i;
 > -
->  int sunxi_cedrus_engine_enable(struct sunxi_cedrus_dev *dev,
-> -			       enum sunxi_cedrus_engine engine);
-> +			       enum sunxi_cedrus_codec codec);
->  void sunxi_cedrus_engine_disable(struct sunxi_cedrus_dev *dev);
-> =20
->  int sunxi_cedrus_hw_probe(struct sunxi_cedrus_dev *dev);
-> diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c b/d=
-rivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
-> index 5be3e3b9ceef..85e6fc2fbdb2 100644
-> --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
-> +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
-> @@ -83,7 +83,7 @@ void sunxi_cedrus_mpeg2_setup(struct sunxi_cedrus_ctx *=
-ctx,
->  	}
-> =20
->  	/* Activate MPEG engine. */
-> -	sunxi_cedrus_engine_enable(dev, SUNXI_CEDRUS_ENGINE_MPEG);
-> +	sunxi_cedrus_engine_enable(dev, SUNXI_CEDRUS_CODEC_MPEG2);
-> =20
->  	/* Set quantization matrices. */
->  	for (i =3D 0; i < 64; i++) {
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
---=-7wU1Tez5FhraT+rPcUE/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+> -	for (i = OV5640_NUM_MODES - 1; i >= 0; i--) {
+> -		mode = &ov5640_mode_data[fr][i];
+> -
+> -		if (!mode->reg_data)
+> -			continue;
+> +	const struct ov5640_mode_info *mode;
+>  
+> -		if ((nearest && mode->hact <= width &&
+> -		     mode->vact <= height) ||
+> -		    (!nearest && mode->hact == width &&
+> -		     mode->vact == height))
+> -			break;
+> -	}
+> +	mode = v4l2_find_nearest_size(&ov5640_mode_data[fr][0],
+> +				      ARRAY_SIZE(ov5640_mode_data[fr]),
+> +				      hact, vact,
+> +				      width, height);
 
------BEGIN PGP SIGNATURE-----
+I noticed the warning, too, but I think the fix should be done into the
+macro, not to each driver individually. I'll see if that'd work out, and if
+so, I'll go with v3.
 
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlsrcPgACgkQ3cLmz3+f
-v9GxTwf/TJCCcwCC3Rv2+rY85tD/+4wVMDu1JncGIkjS04EpWaDeHeO3SBgPU7Dr
-9O8/rNPsujLDshuzU1dMFg0DATVfi/gC8TidPgKZRlzjzvKDijLKHpF6xbULHHQZ
-t+u47yVw6LJnsLNiMCoe4lV+cryd8VH1qWNkC+KxBXFO7pnHPwlNou0LFbQr02oI
-ZlKmqXCLOSqZxAigIfnTIWhrWdtv0Fq6d2YixXoFxlsB4idOyEtvCmT+TOXAwlTt
-oem23/JJfZ7RgbOc/DMFoOkITN8fEggA3VnVkURd/7Iv85pQ9y40qwWc1DUtaS5H
-9p0wDDf/RdeWFXvQUJP1q0eJVwrSPA==
-=5Sa5
------END PGP SIGNATURE-----
+>  
+> -	if (nearest && i < 0)
+> -		mode = &ov5640_mode_data[fr][0];
+> +	if (!mode ||
+> +	    (!nearest && (mode->hact != width || mode->vact != height)))
+> +		return NULL;
+>  
+>  	return mode;
+>  }
+> @@ -2435,8 +2427,14 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
+>  
+>  	sensor->current_fr = frame_rate;
+>  	sensor->frame_interval = fi->interval;
+> -	sensor->current_mode = ov5640_find_mode(sensor, frame_rate, mode->hact,
+> -						mode->vact, true);
+> +	mode = ov5640_find_mode(sensor, frame_rate, mode->hact,
+> +				mode->vact, true);
+> +	if (!mode) {
+> +		ret = -EINVAL;
+> +		goto out;
+> +	}
+> +
+> +	sensor->current_mode = mode;
+>  	sensor->pending_mode_change = true;
+>  out:
+>  	mutex_unlock(&sensor->lock);
+> -- 
+> 1.9.1
+> 
 
---=-7wU1Tez5FhraT+rPcUE/--
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
