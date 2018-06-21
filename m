@@ -1,104 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:51327 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754085AbeFUIy3 (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:57648 "EHLO
+        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932459AbeFUJJq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Jun 2018 04:54:29 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v4] media: ov5640: fix frame interval enumeration
-Date: Thu, 21 Jun 2018 10:53:39 +0200
-Message-ID: <1529571219-7599-1-git-send-email-hugues.fruchet@st.com>
+        Thu, 21 Jun 2018 05:09:46 -0400
+To: "xorg-announce@lists.x.org" <xorg-announce@lists.x.org>,
+        xorg@lists.x.org, xorg-devel@lists.x.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Adam Jackson <ajax@nwnk.net>
+From: Hans Verkuil <hansverk@cisco.com>
+Subject: [ANN] edid-decode maintenance info
+Message-ID: <4f89ae25-4ae6-3530-a8f9-171dd39dceb0@cisco.com>
+Date: Thu, 21 Jun 2018 10:59:57 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver must reject frame interval enumeration of unsupported resolution.
-This was detected by v4l2-compliance format ioctl test:
-v4l2-compliance Format ioctls:
-    info: found 2 frameintervals for pixel format 4745504a and size 176x144
-  fail: v4l2-test-formats.cpp(123):
-                           found frame intervals for invalid size 177x144
-    test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
+Hi all,
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
-version 2:
-  - revisit patch according to Mauro comments:
-    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg127380.html
+As Adam already announced earlier this week I'm taking over maintenance of
+the edid-decode utility.
 
-version 3:
-  - revisit patch using v4l2_find_nearest_size() helper as per Sakari suggestion:
-    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg128186.html
+Since I am already maintaining other utilities on git.linuxtv.org I decided
+to move the edid-decode git repo to linuxtv.org as well. It is now available
+here: https://git.linuxtv.org/edid-decode.git/
 
-version 4:
-  - fix sparse warning:
-    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg132925.html
+Patches, bug reports, etc. should be mailed to linux-media@vger.kernel.org
+(see https://linuxtv.org/lists.php). Please make sure the subject line
+contains 'edid-decode'.
 
- drivers/media/i2c/ov5640.c | 34 ++++++++++++++++------------------
- 1 file changed, 16 insertions(+), 18 deletions(-)
+One thing I would like to tackle in the very near future is to add support for
+the new HDMI 2.1b EDID additions.
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index f6e40cc..4257ca6 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1389,24 +1389,16 @@ static int ov5640_set_timings(struct ov5640_dev *sensor,
- ov5640_find_mode(struct ov5640_dev *sensor, enum ov5640_frame_rate fr,
- 		 int width, int height, bool nearest)
- {
--	const struct ov5640_mode_info *mode = NULL;
--	int i;
--
--	for (i = OV5640_NUM_MODES - 1; i >= 0; i--) {
--		mode = &ov5640_mode_data[fr][i];
--
--		if (!mode->reg_data)
--			continue;
-+	const struct ov5640_mode_info *mode;
- 
--		if ((nearest && mode->hact <= width &&
--		     mode->vact <= height) ||
--		    (!nearest && mode->hact == width &&
--		     mode->vact == height))
--			break;
--	}
-+	mode = v4l2_find_nearest_size(&ov5640_mode_data[fr][0],
-+				      ARRAY_SIZE(ov5640_mode_data[fr]),
-+				      hact, vact,
-+				      width, height);
- 
--	if (nearest && i < 0)
--		mode = &ov5640_mode_data[fr][0];
-+	if (!mode ||
-+	    (!nearest && (mode->hact != width || mode->vact != height)))
-+		return NULL;
- 
- 	return mode;
- }
-@@ -2435,8 +2427,14 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
- 
- 	sensor->current_fr = frame_rate;
- 	sensor->frame_interval = fi->interval;
--	sensor->current_mode = ov5640_find_mode(sensor, frame_rate, mode->hact,
--						mode->vact, true);
-+	mode = ov5640_find_mode(sensor, frame_rate, mode->hact,
-+				mode->vact, true);
-+	if (!mode) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	sensor->current_mode = mode;
- 	sensor->pending_mode_change = true;
- out:
- 	mutex_unlock(&sensor->lock);
--- 
-1.9.1
+I also know that some patches for edid-decode were posted to xorg-devel that
+were never applied. I will try to find them, but to be safe it is best to
+repost them to linux-media.
+
+Regards,
+
+	Hans Verkuil
