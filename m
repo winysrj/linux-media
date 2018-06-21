@@ -1,71 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:36980 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751388AbeFUHTT (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52277 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753725AbeFUHTU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Jun 2018 03:19:19 -0400
+        Thu, 21 Jun 2018 03:19:20 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCHv3 1/8] media: add 'index' to struct media_v2_pad
-Date: Thu, 21 Jun 2018 09:19:07 +0200
-Message-Id: <20180621071914.28729-2-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 4/8] media-ioc-g-topology.rst: document new 'flags' field
+Date: Thu, 21 Jun 2018 09:19:10 +0200
+Message-Id: <20180621071914.28729-5-hverkuil@xs4all.nl>
 In-Reply-To: <20180621071914.28729-1-hverkuil@xs4all.nl>
 References: <20180621071914.28729-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The v2 pad structure never exposed the pad index, which made it impossible
-to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
+Document the new struct media_v2_entity 'flags' field.
 
-It is really trivial to just expose this information, so implement this.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/media-device.c |  1 +
- include/uapi/linux/media.h   | 12 +++++++++++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ .../media/uapi/mediactl/media-ioc-g-topology.rst       | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 47bb2254fbfd..047d38372a27 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
- 		kpad.id = pad->graph_obj.id;
- 		kpad.entity_id = pad->entity->graph_obj.id;
- 		kpad.flags = pad->flags;
-+		kpad.index = pad->index;
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+index 24ab34b22df2..86d1f7d577c8 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+@@ -142,7 +142,15 @@ desired arrays with the media graph elements.
+        -  Entity main function, see :ref:`media-entity-functions` for details.
  
- 		if (copy_to_user(upad, &kpad, sizeof(kpad)))
- 			ret = -EFAULT;
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 86c7dcc9cba3..f6338bd57929 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -305,11 +305,21 @@ struct media_v2_interface {
- 	};
- } __attribute__ ((packed));
- 
-+/*
-+ * Appeared in 4.19.0.
-+ *
-+ * The media_version argument comes from the media_version field in
-+ * struct media_device_info.
-+ */
-+#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
-+	((media_version) >= ((4 << 16) | (19 << 8) | 0))
+     *  -  __u32
+-       -  ``reserved``\ [6]
++       -  ``flags``
++       -  Entity flags, see :ref:`media-entity-flag` for details.
++	  Only valid if ``MEDIA_V2_ENTITY_HAS_FLAGS(media_version)``
++	  returns true. The ``media_version`` is defined in struct
++	  :c:type:`media_device_info` and can be retrieved using
++	  :ref:`MEDIA_IOC_DEVICE_INFO`.
 +
- struct media_v2_pad {
- 	__u32 id;
- 	__u32 entity_id;
- 	__u32 flags;
--	__u32 reserved[5];
-+	__u32 index;
-+	__u32 reserved[4];
- } __attribute__ ((packed));
++    *  -  __u32
++       -  ``reserved``\ [5]
+        -  Reserved for future extensions. Drivers and applications must set
+ 	  this array to zero.
  
- struct media_v2_link {
 -- 
 2.17.0
