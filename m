@@ -1,53 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:54316 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753987AbeFUHTU (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60891 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752838AbeFUHTU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 21 Jun 2018 03:19:20 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 6/8] ad9389b/adv7511: set proper media entity function
-Date: Thu, 21 Jun 2018 09:19:12 +0200
-Message-Id: <20180621071914.28729-7-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv3 3/8] media: add flags field to struct media_v2_entity
+Date: Thu, 21 Jun 2018 09:19:09 +0200
+Message-Id: <20180621071914.28729-4-hverkuil@xs4all.nl>
 In-Reply-To: <20180621071914.28729-1-hverkuil@xs4all.nl>
 References: <20180621071914.28729-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-These two drivers both have function MEDIA_ENT_F_DTV_ENCODER.
+The v2 entity structure never exposed the entity flags, which made it
+impossible to detect connector or default entities.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+It is really trivial to just expose this information, so implement this.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- drivers/media/i2c/ad9389b.c | 1 +
- drivers/media/i2c/adv7511.c | 1 +
- 2 files changed, 2 insertions(+)
+ drivers/media/media-device.c |  1 +
+ include/uapi/linux/media.h   | 12 +++++++++++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 91ff06088572..0dfd94fcd18e 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -1134,6 +1134,7 @@ static int ad9389b_probe(struct i2c_client *client, const struct i2c_device_id *
- 		goto err_hdl;
- 	}
- 	state->pad.flags = MEDIA_PAD_FL_SINK;
-+	sd->entity.function = MEDIA_ENT_F_DTV_ENCODER;
- 	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
- 	if (err)
- 		goto err_hdl;
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index 5731751d3f2a..d837617930b9 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -1847,6 +1847,7 @@ static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *
- 		goto err_hdl;
- 	}
- 	state->pad.flags = MEDIA_PAD_FL_SINK;
-+	sd->entity.function = MEDIA_ENT_F_DTV_ENCODER;
- 	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
- 	if (err)
- 		goto err_hdl;
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 047d38372a27..14959b19a342 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -266,6 +266,7 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
+ 		memset(&kentity, 0, sizeof(kentity));
+ 		kentity.id = entity->graph_obj.id;
+ 		kentity.function = entity->function;
++		kentity.flags = entity->flags;
+ 		strlcpy(kentity.name, entity->name,
+ 			sizeof(kentity.name));
+ 
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index f6338bd57929..ebd2cda67833 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -280,11 +280,21 @@ struct media_links_enum {
+  * MC next gen API definitions
+  */
+ 
++/*
++ * Appeared in 4.19.0.
++ *
++ * The media_version argument comes from the media_version field in
++ * struct media_device_info.
++ */
++#define MEDIA_V2_ENTITY_HAS_FLAGS(media_version) \
++	((media_version) >= ((4 << 16) | (19 << 8) | 0))
++
+ struct media_v2_entity {
+ 	__u32 id;
+ 	char name[64];
+ 	__u32 function;		/* Main function of the entity */
+-	__u32 reserved[6];
++	__u32 flags;
++	__u32 reserved[5];
+ } __attribute__ ((packed));
+ 
+ /* Should match the specific fields at media_intf_devnode */
 -- 
 2.17.0
