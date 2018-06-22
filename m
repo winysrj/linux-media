@@ -1,142 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:46893 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750779AbeFVEQ5 (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:35047 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750985AbeFVG67 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Jun 2018 00:16:57 -0400
-Message-ID: <bd990047925b893ce608b931113974e4@smtp-cloud9.xs4all.net>
-Date: Fri, 22 Jun 2018 06:16:55 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 22 Jun 2018 02:58:59 -0400
+Subject: Re: [PATCH v2 1/2] media: add helpers for memory-to-memory media
+ controller
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        emil.velikov@collabora.com
+References: <20180621203828.18173-1-ezequiel@collabora.com>
+ <20180621203828.18173-2-ezequiel@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d6d9965a-1523-53f9-137b-d5e513fa92e0@xs4all.nl>
+Date: Fri, 22 Jun 2018 08:58:53 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180621203828.18173-2-ezequiel@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 06/21/2018 10:38 PM, Ezequiel Garcia wrote:
+> A memory-to-memory pipeline device consists in three
+> entities: two DMA engine and one video processing entities.
+> The DMA engine entities are linked to a V4L interface.
+> 
+> This commit add a new v4l2_m2m_{un}register_media_controller
+> API to register this topology.
+> 
+> For instance, a typical mem2mem device topology would
+> look like this:
+> 
+> Device topology
+> - entity 1: source (1 pad, 1 link)
+>             type Node subtype V4L flags 0
+> 	pad0: Source
+> 		-> "proc":1 [ENABLED,IMMUTABLE]
+> 
+> - entity 3: proc (2 pads, 2 links)
+>             type Node subtype Unknown flags 0
+> 	pad0: Source
+> 		-> "sink":0 [ENABLED,IMMUTABLE]
+> 	pad1: Sink
+> 		<- "source":0 [ENABLED,IMMUTABLE]
+> 
+> - entity 6: sink (1 pad, 1 link)
+>             type Node subtype V4L flags 0
+> 	pad0: Sink
+> 		<- "proc":0 [ENABLED,IMMUTABLE]
+> 
+> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Suggested-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-dev.c     |  13 +-
+>  drivers/media/v4l2-core/v4l2-mem2mem.c | 174 +++++++++++++++++++++++++
+>  include/media/v4l2-mem2mem.h           |  19 +++
+>  include/uapi/linux/media.h             |   3 +
+>  4 files changed, 204 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index 4ffd7d60a901..c1996d73ca74 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -202,7 +202,7 @@ static void v4l2_device_release(struct device *cd)
+>  	mutex_unlock(&videodev_lock);
+>  
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> -	if (v4l2_dev->mdev) {
+> +	if (v4l2_dev->mdev && vdev->vfl_dir != VFL_DIR_M2M) {
+>  		/* Remove interfaces and interface links */
+>  		media_devnode_remove(vdev->intf_devnode);
+>  		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+> @@ -733,19 +733,22 @@ static void determine_valid_ioctls(struct video_device *vdev)
+>  			BASE_VIDIOC_PRIVATE);
+>  }
+>  
+> -static int video_register_media_controller(struct video_device *vdev, int type)
+> +static int video_register_media_controller(struct video_device *vdev)
+>  {
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	u32 intf_type;
+>  	int ret;
+>  
+> -	if (!vdev->v4l2_dev->mdev)
+> +	/* Memory-to-memory devices are more complex and use
+> +	 * their own function to register its mc entities.
+> +	 */
+> +	if (!vdev->v4l2_dev->mdev || vdev->vfl_dir == VFL_DIR_M2M)
+>  		return 0;
+>  
+>  	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
+>  	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
+>  
+> -	switch (type) {
+> +	switch (vdev->vfl_type) {
+>  	case VFL_TYPE_GRABBER:
+>  		intf_type = MEDIA_INTF_T_V4L_VIDEO;
+>  		vdev->entity.function = MEDIA_ENT_F_IO_V4L;
+> @@ -993,7 +996,7 @@ int __video_register_device(struct video_device *vdev,
+>  	v4l2_device_get(vdev->v4l2_dev);
+>  
+>  	/* Part 5: Register the entity. */
+> -	ret = video_register_media_controller(vdev, type);
+> +	ret = video_register_media_controller(vdev);
+>  
+>  	/* Part 6: Activate this minor. The char device can now be used. */
+>  	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
+> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> index c4f963d96a79..e0e7262b7e75 100644
+> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> @@ -17,9 +17,11 @@
+>  #include <linux/sched.h>
+>  #include <linux/slab.h>
+>  
+> +#include <media/media-device.h>
+>  #include <media/videobuf2-v4l2.h>
+>  #include <media/v4l2-mem2mem.h>
+>  #include <media/v4l2-dev.h>
+> +#include <media/v4l2-device.h>
+>  #include <media/v4l2-fh.h>
+>  #include <media/v4l2-event.h>
+>  
+> @@ -50,6 +52,19 @@ module_param(debug, bool, 0644);
+>   * offsets but for different queues */
+>  #define DST_QUEUE_OFF_BASE	(1 << 30)
+>  
+> +enum v4l2_m2m_entity_type {
+> +	MEM2MEM_ENT_TYPE_SOURCE,
+> +	MEM2MEM_ENT_TYPE_SINK,
+> +	MEM2MEM_ENT_TYPE_PROC,
+> +	MEM2MEM_ENT_TYPE_MAX
+> +};
+> +
+> +static const char * const m2m_entity_name[] = {
+> +	"source",
+> +	"sink",
+> +	"proc"
+> +};
+> +
+>  
+>  /**
+>   * struct v4l2_m2m_dev - per-device context
+> @@ -60,6 +75,15 @@ module_param(debug, bool, 0644);
+>   */
+>  struct v4l2_m2m_dev {
+>  	struct v4l2_m2m_ctx	*curr_ctx;
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	struct media_entity	*source;
+> +	struct media_pad	source_pad;
+> +	struct media_entity	sink;
+> +	struct media_pad	sink_pad;
+> +	struct media_entity	proc;
+> +	struct media_pad	proc_pads[2];
+> +	struct media_intf_devnode *intf_devnode;
+> +#endif
+>  
+>  	struct list_head	job_queue;
+>  	spinlock_t		job_spinlock;
+> @@ -595,6 +619,156 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+>  }
+>  EXPORT_SYMBOL(v4l2_m2m_mmap);
+>  
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
+> +{
+> +	media_remove_intf_links(&m2m_dev->intf_devnode->intf);
+> +	media_devnode_remove(m2m_dev->intf_devnode);
+> +
+> +	media_entity_remove_links(m2m_dev->source);
+> +	media_entity_remove_links(&m2m_dev->sink);
+> +	media_entity_remove_links(&m2m_dev->proc);
+> +	media_device_unregister_entity(m2m_dev->source);
+> +	media_device_unregister_entity(&m2m_dev->sink);
+> +	media_device_unregister_entity(&m2m_dev->proc);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_m2m_unregister_media_controller);
+> +
+> +static int v4l2_m2m_register_entity(struct media_device *mdev,
+> +	struct v4l2_m2m_dev *m2m_dev, enum v4l2_m2m_entity_type type,
+> +	int function)
+> +{
+> +	struct media_entity *entity;
+> +	struct media_pad *pads;
+> +	int num_pads;
+> +	int ret;
+> +
+> +	switch (type) {
+> +	case MEM2MEM_ENT_TYPE_SOURCE:
+> +		entity = m2m_dev->source;
+> +		pads = &m2m_dev->source_pad;
+> +		entity->name = m2m_entity_name[type];
+> +		pads[0].flags = MEDIA_PAD_FL_SOURCE;
+> +		num_pads = 1;
+> +		break;
+> +	case MEM2MEM_ENT_TYPE_SINK:
+> +		entity = &m2m_dev->sink;
+> +		pads = &m2m_dev->sink_pad;
+> +		pads[0].flags = MEDIA_PAD_FL_SINK;
+> +		num_pads = 1;
+> +		break;
+> +	case MEM2MEM_ENT_TYPE_PROC:
+> +		entity = &m2m_dev->proc;
+> +		pads = m2m_dev->proc_pads;
+> +		pads[0].flags = MEDIA_PAD_FL_SOURCE;
+> +		pads[1].flags = MEDIA_PAD_FL_SINK;
 
-Results of the daily build of media_tree:
+Can you swap this? The v4l2-compliance test gave a "fail: v4l2-test-media.cpp(333): found_source"
+message which is because (I think) it expects sink pads before source pads.
 
-date:			Fri Jun 22 05:00:21 CEST 2018
-media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
-media_build git hash:	26d102795c91f8593a4f74f96b955f9a8b81dbc3
-v4l-utils git hash:	c3b46c2c53d7d815a53c902cfb2ddd96c3732c5b
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+I'm not actually sure that this is a requirement, at least I can't find this in the spec,
+but for some reason I have this memory that this actually is the right order. It might just
+be a custom rather than a requirement.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17.2-i686: OK
-linux-4.17.2-x86_64: OK
-linux-4.18-rc1-i686: ERRORS
-linux-4.18-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Anyway, it doesn't matter for this code, so it is easiest to swap it and run v4l2-compliance -m
+again.
 
-Detailed results are available here:
+I am interested in the v4l2-compliance output of the topology.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Regards,
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+	Hans
