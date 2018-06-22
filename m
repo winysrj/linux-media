@@ -1,63 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:53328 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751201AbeFVIMt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Jun 2018 04:12:49 -0400
-Subject: Re: [ANN] edid-decode maintenance info
-To: Alan Coopersmith <alan.coopersmith@oracle.com>,
-        Hans Verkuil <hansverk@cisco.com>, xorg-devel@lists.x.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4f89ae25-4ae6-3530-a8f9-171dd39dceb0@cisco.com>
- <85fdad02-5b68-1e62-cc59-d4dd6a33759b@oracle.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <af4b80cc-1966-b346-a9fd-66db45b0c102@xs4all.nl>
-Date: Fri, 22 Jun 2018 10:12:42 +0200
+Received: from mail.intenta.de ([178.249.25.132]:38257 "EHLO mail.intenta.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751402AbeFVH7C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Jun 2018 03:59:02 -0400
+Date: Fri, 22 Jun 2018 09:51:53 +0200
+From: Helmut Grohne <h.grohne@intenta.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: <linux-media@vger.kernel.org>
+Subject: V4L2_CID_USER_MAX217X_BASE == V4L2_CID_USER_IMX_BASE
+Message-ID: <20180622075151.g24iiqfcg5pwbr73@laureti-dev>
 MIME-Version: 1.0
-In-Reply-To: <85fdad02-5b68-1e62-cc59-d4dd6a33759b@oracle.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/22/2018 01:36 AM, Alan Coopersmith wrote:
-> On 06/21/18 01:59 AM, Hans Verkuil wrote:
->> Hi all,
->>
->> As Adam already announced earlier this week I'm taking over maintenance of
->> the edid-decode utility.
->>
->> Since I am already maintaining other utilities on git.linuxtv.org I decided
->> to move the edid-decode git repo to linuxtv.org as well. It is now available
->> here: https://git.linuxtv.org/edid-decode.git/
->>
->> Patches, bug reports, etc. should be mailed to linux-media@vger.kernel.org
->> (see https://linuxtv.org/lists.php). Please make sure the subject line
->> contains 'edid-decode'.
->>
->> One thing I would like to tackle in the very near future is to add support for
->> the new HDMI 2.1b EDID additions.
->>
->> I also know that some patches for edid-decode were posted to xorg-devel that
->> were never applied. I will try to find them, but to be safe it is best to
->> repost them to linux-media.
-> 
-> Thanks - there's also a handful of open bug reports against edid-decode in
-> our bugzilla as well, some of which have patches attached:
-> 
-> https://bugs.freedesktop.org/buglist.cgi?component=App%2Fedid-decode
-> 
+Hi,
 
-Thank you for this information. I looked through all the bug reports and
-100607, 100340 and 93366 were already fixed before I took over maintenance.
+I found it strange that the macros V4L2_CID_USER_MAX217X_BASE and
+V4L2_CID_USER_IMX_BASE have equal value even though each of them state
+that they reserved a range. Those reservations look conflicting to me.
 
-I just fixed 89348 and 93777 in my git repo, so those can be marked as
-resolved.
+The macro V4L2_CID_USER_MAX217X_BASE came first, and
+V4L2_CID_USER_IMX_BASE was introduced in e130291212df ("media: Add i.MX
+media core driver") with the conflicting assignment (not a merge error).
+The authors of that patch mostly make up the recipient list.
 
-The edid-decode component should probably be removed from the freedesktop
-bugzilla.
+Is such a conflict fixable at all given that it resides in a uapi
+header?
 
-Regards,
-
-	Hans
+Helmut
