@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:39596 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751005AbeFVMEh (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:43095 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751098AbeFVMEj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Jun 2018 08:04:37 -0400
+        Fri, 22 Jun 2018 08:04:39 -0400
 From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
 To: hverkuil@xs4all.nl, mchehab@kernel.org
 Cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>, rostedt@goodmis.org,
@@ -11,131 +11,84 @@ Cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>, rostedt@goodmis.org,
         colin.king@canonical.com, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org, ezequiel@collabora.com,
         laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 1/2] media: usb: pwc: Introduce TRACE_EVENTs for pwc_isoc_handler()
-Date: Fri, 22 Jun 2018 15:04:18 +0300
-Message-Id: <20180622120419.7675-2-matwey@sai.msu.ru>
+Subject: [PATCH v2 2/2] media: usb: pwc: Don't use coherent DMA buffers for ISO transfer
+Date: Fri, 22 Jun 2018 15:04:19 +0300
+Message-Id: <20180622120419.7675-3-matwey@sai.msu.ru>
 In-Reply-To: <20180622120419.7675-1-matwey@sai.msu.ru>
 References: <20180622120419.7675-1-matwey@sai.msu.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There were reports that PWC-based webcams don't work at some
-embedded ARM platforms. [1] Isochronous transfer handler seems to
-work too long leading to the issues in MUSB USB host subsystem.
-Also note, that urb->giveback() handlers are still called with
-disabled interrupts. In order to be able to measure performance of
-PWC driver, traces are introduced in URB handler section.
+DMA cocherency slows the transfer down on systems without hardware
+coherent DMA.
+
+Based on previous commit the following performance benchmarks have been
+carried out. Average memcpy() data transfer rate (rate) and handler
+completion time (time) have been measured when running video stream at
+640x480 resolution at 10fps.
+
+x86_64 based system (Intel Core i5-3470). This platform has hardware
+coherent DMA support and proposed change doesn't make big difference here.
+
+ * kmalloc:            rate = (4.4 +- 1.0) GBps
+                       time = (2.4 +- 1.2) usec
+ * usb_alloc_coherent: rate = (4.1 +- 0.9) GBps
+                       time = (2.5 +- 1.0) usec
+
+We see that the measurements agree well within error ranges in this case.
+So no performance downgrade is introduced.
+
+armv7l based system (TI AM335x BeagleBone Black). This platform has no
+hardware coherent DMA support. DMA coherence is implemented via disabled
+page caching that slows down memcpy() due to memory controller behaviour.
+
+ * kmalloc:            rate =  (190 +-  30) MBps
+                       time =   (50 +-  10) usec
+ * usb_alloc_coherent: rate =   (33 +-   4) MBps
+                       time = (3000 +- 400) usec
+
+Note, that quantative difference leads (this commit leads to 5 times
+acceleration) to qualitative behavior change in this case. As it was
+stated before, the video stream can not be successfully received at AM335x
+platforms with MUSB based USB host controller due to performance issues
+[1].
 
 [1] https://www.spinics.net/lists/linux-usb/msg165735.html
 
 Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
 ---
- drivers/media/usb/pwc/pwc-if.c |  7 +++++
- include/trace/events/pwc.h     | 64 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 71 insertions(+)
- create mode 100644 include/trace/events/pwc.h
+ drivers/media/usb/pwc/pwc-if.c | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-index 54b036d39c5b..72d2897a4b9f 100644
+index 72d2897a4b9f..339a285600d1 100644
 --- a/drivers/media/usb/pwc/pwc-if.c
 +++ b/drivers/media/usb/pwc/pwc-if.c
-@@ -76,6 +76,9 @@
- #include "pwc-dec23.h"
- #include "pwc-dec1.h"
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/pwc.h>
-+
- /* Function prototypes and driver templates */
- 
- /* hotplug device table support */
-@@ -260,6 +263,8 @@ static void pwc_isoc_handler(struct urb *urb)
- 	int i, fst, flen;
- 	unsigned char *iso_buf = NULL;
- 
-+	trace_pwc_handler_enter(urb, pdev);
-+
- 	if (urb->status == -ENOENT || urb->status == -ECONNRESET ||
- 	    urb->status == -ESHUTDOWN) {
- 		PWC_DEBUG_OPEN("URB (%p) unlinked %ssynchronously.\n",
-@@ -348,6 +353,8 @@ static void pwc_isoc_handler(struct urb *urb)
- 	}
- 
- handler_end:
-+	trace_pwc_handler_exit(urb, pdev);
-+
- 	i = usb_submit_urb(urb, GFP_ATOMIC);
- 	if (i != 0)
- 		PWC_ERROR("Error (%d) re-submitting urb in pwc_isoc_handler.\n", i);
-diff --git a/include/trace/events/pwc.h b/include/trace/events/pwc.h
-new file mode 100644
-index 000000000000..d5bcb1314d0e
---- /dev/null
-+++ b/include/trace/events/pwc.h
-@@ -0,0 +1,64 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#if !defined(_TRACE_PWC_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_PWC_H
-+
-+#include <linux/usb.h>
-+#include <linux/tracepoint.h>
-+
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM pwc
-+
-+TRACE_EVENT(pwc_handler_enter,
-+	TP_PROTO(struct urb *urb, struct pwc_device *pdev),
-+	TP_ARGS(urb, pdev),
-+	TP_STRUCT__entry(
-+		__field(struct urb*, urb)
-+		__field(int, urb__status)
-+		__field(u32, urb__actual_length)
-+		__field(char*, devpath)
-+		__field(struct pwc_frame_buf*, fbuf)
-+		__field(int, fbuf__filled)
-+	),
-+	TP_fast_assign(
-+		__entry->urb = urb;
-+		__entry->urb__status = urb->status;
-+		__entry->urb__actual_length = urb->actual_length;
-+		__entry->devpath = pdev->udev->devpath;
-+		__entry->fbuf = pdev->fill_buf;
-+		__entry->fbuf__filled = pdev->fill_buf->filled;
-+	),
-+	TP_printk("devpath=%s (fbuf=%p filled=%d) urb=%p (status=%d actual_length=%u)",
-+		__entry->devpath,
-+		__entry->fbuf,
-+		__entry->fbuf__filled,
-+		__entry->urb,
-+		__entry->urb__status,
-+		__entry->urb__actual_length)
-+);
-+
-+TRACE_EVENT(pwc_handler_exit,
-+	TP_PROTO(struct urb *urb, struct pwc_device* pdev),
-+	TP_ARGS(urb, pdev),
-+	TP_STRUCT__entry(
-+		__field(struct urb*, urb)
-+		__field(char*, devpath)
-+		__field(struct pwc_frame_buf*, fbuf)
-+		__field(int, fbuf__filled)
-+	),
-+	TP_fast_assign(
-+		__entry->urb = urb;
-+		__entry->devpath = pdev->udev->devpath;
-+		__entry->fbuf = pdev->fill_buf;
-+		__entry->fbuf__filled = pdev->fill_buf->filled;
-+	),
-+	TP_printk("devpath=%s (fbuf=%p filled=%d) urb=%p",
-+		__entry->devpath,
-+		__entry->fbuf,
-+		__entry->fbuf__filled,
-+		__entry->urb)
-+);
-+
-+#endif /* _TRACE_PWC_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
+@@ -427,11 +427,8 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+ 		urb->interval = 1; // devik
+ 		urb->dev = udev;
+ 		urb->pipe = usb_rcvisocpipe(udev, pdev->vendpoint);
+-		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-		urb->transfer_buffer = usb_alloc_coherent(udev,
+-							  ISO_BUFFER_SIZE,
+-							  GFP_KERNEL,
+-							  &urb->transfer_dma);
++		urb->transfer_flags = URB_ISO_ASAP;
++		urb->transfer_buffer = kmalloc(ISO_BUFFER_SIZE, GFP_KERNEL);
+ 		if (urb->transfer_buffer == NULL) {
+ 			PWC_ERROR("Failed to allocate urb buffer %d\n", i);
+ 			pwc_isoc_cleanup(pdev);
+@@ -491,10 +488,7 @@ static void pwc_iso_free(struct pwc_device *pdev)
+ 		if (pdev->urbs[i]) {
+ 			PWC_DEBUG_MEMORY("Freeing URB\n");
+ 			if (pdev->urbs[i]->transfer_buffer) {
+-				usb_free_coherent(pdev->udev,
+-					pdev->urbs[i]->transfer_buffer_length,
+-					pdev->urbs[i]->transfer_buffer,
+-					pdev->urbs[i]->transfer_dma);
++				kfree(pdev->urbs[i]->transfer_buffer);
+ 			}
+ 			usb_free_urb(pdev->urbs[i]);
+ 			pdev->urbs[i] = NULL;
 -- 
 2.16.4
