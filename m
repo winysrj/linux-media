@@ -1,86 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34066 "EHLO mga09.intel.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:46337 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754318AbeFVPEb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Jun 2018 11:04:31 -0400
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: "Chiang, AlanX" <alanx.chiang@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Shevchenko, Andriy" <andriy.shevchenko@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [v1, 2/2] dt-bindings: at24: Add address-width property
-Date: Fri, 22 Jun 2018 15:00:28 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D6D4E29@PGSMSX111.gar.corp.intel.com>
-References: <1529660799-19202-1-git-send-email-alanx.chiang@intel.com>
- <1529660799-19202-2-git-send-email-alanx.chiang@intel.com>
-In-Reply-To: <1529660799-19202-2-git-send-email-alanx.chiang@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        id S933923AbeFVPeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Jun 2018 11:34:00 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
+        linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH 01/32] doc-rst: Add packed Bayer raw14 pixel formats
+Date: Fri, 22 Jun 2018 18:33:10 +0300
+Message-Id: <1529681621-9682-2-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
+References: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alan,
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Thanks for the patch set.
-You should change the subject as below.
-[PATCH v1, 1/2]
-[PATCH v1, 2/2]
+These formats are compressed 14-bit raw bayer formats with four different
+pixel orders. They are similar to 10-bit variants. The formats added by
+this patch are
 
-And I think you may missed to create a cover page. Please follow my BKM. Thanks.
-git format-patch --cover --subject-prefix <version> -o <output folder> HEAD~n
+	V4L2_PIX_FMT_SBGGR14P
+	V4L2_PIX_FMT_SGBRG14P
+	V4L2_PIX_FMT_SGRBG14P
+	V4L2_PIX_FMT_SRGGB14P
 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst      |   1 +
+ Documentation/media/uapi/v4l/pixfmt-srggb14p.rst | 127 +++++++++++++++++++++++
+ include/uapi/linux/videodev2.h                   |   5 +
+ 3 files changed, 133 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
 
-Regards, Andy
-
-> -----Original Message-----
-> From: Chiang, AlanX
-> Sent: Friday, June 22, 2018 5:47 PM
-> To: linux-media@vger.kernel.org
-> Cc: Yeh, Andy <andy.yeh@intel.com>; sakari.ailus@linux.intel.com;
-> Shevchenko, Andriy <andriy.shevchenko@intel.com>; Mani, Rajmohan
-> <rajmohan.mani@intel.com>; Chiang, AlanX <alanx.chiang@intel.com>
-> Subject: [v1, 2/2] dt-bindings: at24: Add address-width property
-> 
-> From: "alanx.chiang" <alanx.chiang@intel.com>
-> 
-> The AT24 series chips use 8-bit address by default. If some chips would like to
-> support more than 8 bits, the at24 driver should be added the compatible
-> field for specfic chips.
-> 
-> Provide a flexible way to determine the addressing bits through address-width
-> in this patch.
-> 
-> Signed-off-by: Alan Chiang <alanx.chiang@intel.com>
-> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
-> Reviewed-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> ---
->  Documentation/devicetree/bindings/eeprom/at24.txt | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/eeprom/at24.txt
-> b/Documentation/devicetree/bindings/eeprom/at24.txt
-> index 61d833a..5879259 100644
-> --- a/Documentation/devicetree/bindings/eeprom/at24.txt
-> +++ b/Documentation/devicetree/bindings/eeprom/at24.txt
-> @@ -72,6 +72,8 @@ Optional properties:
-> 
->    - wp-gpios: GPIO to which the write-protect pin of the chip is connected.
-> 
-> +  - address-width : number of address bits (one of 8, 16).
-> +
->  Example:
-> 
->  eeprom@52 {
-> @@ -79,4 +81,5 @@ eeprom@52 {
->  	reg = <0x52>;
->  	pagesize = <32>;
->  	wp-gpios = <&gpio1 3 0>;
-> +	address-width = <16>;
->  };
-> --
-> 2.7.4
+diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+index cf2ef7d..1f9a7e3 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+@@ -19,4 +19,5 @@ RGB Formats
+     pixfmt-srggb10-ipu3
+     pixfmt-srggb12
+     pixfmt-srggb12p
++    pixfmt-srggb14p
+     pixfmt-srggb16
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb14p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
+new file mode 100644
+index 0000000..88d20c0
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
+@@ -0,0 +1,127 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-PIX-FMT-SRGGB14P:
++.. _v4l2-pix-fmt-sbggr14p:
++.. _v4l2-pix-fmt-sgbrg14p:
++.. _v4l2-pix-fmt-sgrbg14p:
++
++*******************************************************************************************************************************
++V4L2_PIX_FMT_SRGGB14P ('pRCC'), V4L2_PIX_FMT_SGRBG14P ('pgCC'), V4L2_PIX_FMT_SGBRG14P ('pGCC'), V4L2_PIX_FMT_SBGGR14P ('pBCC'),
++*******************************************************************************************************************************
++
++*man V4L2_PIX_FMT_SRGGB14P(2)*
++
++V4L2_PIX_FMT_SGRBG14P
++V4L2_PIX_FMT_SGBRG14P
++V4L2_PIX_FMT_SBGGR14P
++14-bit packed Bayer formats
++
++
++Description
++===========
++
++These four pixel formats are packed raw sRGB / Bayer formats with 14
++bits per colour. Every four consecutive samples are packed into seven
++bytes. Each of the first four bytes contain the eight high order bits
++of the pixels, and the three following bytes contains the six least
++significants bits of each pixel, in the same order.
++
++Each n-pixel row contains n/2 green samples and n/2 blue or red samples,
++with alternating green-red and green-blue rows. They are conventionally
++described as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example
++of one of these formats:
++
++**Byte Order.**
++Each cell is one byte.
++
++
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       2 1 1 1 1 1 1 1
++
++
++    -  .. row 1
++
++       -  start + 0:
++
++       -  B\ :sub:`00high`
++
++       -  G\ :sub:`01high`
++
++       -  B\ :sub:`02high`
++
++       -  G\ :sub:`03high`
++
++       -  G\ :sub:`01low bits 1--0`\ (bits 7--6)
++	  B\ :sub:`00low bits 5--0`\ (bits 5--0)
++
++       -  R\ :sub:`02low bits 3--0`\ (bits 7--4)
++	  G\ :sub:`01low bits 5--2`\ (bits 3--0)
++
++       -  G\ :sub:`03low bits 5--0`\ (bits 7--2)
++	  R\ :sub:`02low bits 5--4`\ (bits 1--0)
++
++    -  .. row 2
++
++       -  start + 7:
++
++       -  G\ :sub:`00high`
++
++       -  R\ :sub:`01high`
++
++       -  G\ :sub:`02high`
++
++       -  R\ :sub:`03high`
++
++       -  R\ :sub:`01low bits 1--0`\ (bits 7--6)
++	  G\ :sub:`00low bits 5--0`\ (bits 5--0)
++
++       -  G\ :sub:`02low bits 3--0`\ (bits 7--4)
++	  R\ :sub:`01low bits 5--2`\ (bits 3--0)
++
++       -  R\ :sub:`03low bits 5--0`\ (bits 7--2)
++	  G\ :sub:`02low bits 5--4`\ (bits 1--0)
++
++    -  .. row 3
++
++       -  start + 14
++
++       -  B\ :sub:`20high`
++
++       -  G\ :sub:`21high`
++
++       -  B\ :sub:`22high`
++
++       -  G\ :sub:`23high`
++
++       -  G\ :sub:`21low bits 1--0`\ (bits 7--6)
++	  B\ :sub:`20low bits 5--0`\ (bits 5--0)
++
++       -  R\ :sub:`22low bits 3--0`\ (bits 7--4)
++	  G\ :sub:`21low bits 5--2`\ (bits 3--0)
++
++       -  G\ :sub:`23low bits 5--0`\ (bits 7--2)
++	  R\ :sub:`22low bits 5--4`\ (bits 1--0)
++
++    -  .. row 4
++
++       -  start + 21
++
++       -  G\ :sub:`30high`
++
++       -  R\ :sub:`31high`
++
++       -  G\ :sub:`32high`
++
++       -  R\ :sub:`33high`
++
++       -  R\ :sub:`31low bits 1--0`\ (bits 7--6)
++	  G\ :sub:`30low bits 5--0`\ (bits 5--0)
++
++       -  G\ :sub:`32low bits 3--0`\ (bits 7--4)
++	  R\ :sub:`31low bits 5--2`\ (bits 3--0)
++
++       -  R\ :sub:`33low bits 5--0`\ (bits 7--2)
++	  G\ :sub:`32low bits 5--4`\ (bits 1--0)
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 600877b..a15e03b 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -609,6 +609,11 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
+ #define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
+ #define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
++	/* 14bit raw bayer packed, 7 bytes for every 4 pixels */
++#define V4L2_PIX_FMT_SBGGR14P v4l2_fourcc('p', 'B', 'E', 'E')
++#define V4L2_PIX_FMT_SGBRG14P v4l2_fourcc('p', 'G', 'E', 'E')
++#define V4L2_PIX_FMT_SGRBG14P v4l2_fourcc('p', 'g', 'E', 'E')
++#define V4L2_PIX_FMT_SRGGB14P v4l2_fourcc('p', 'R', 'E', 'E')
+ #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
+ #define V4L2_PIX_FMT_SGBRG16 v4l2_fourcc('G', 'B', '1', '6') /* 16  GBGB.. RGRG.. */
+ #define V4L2_PIX_FMT_SGRBG16 v4l2_fourcc('G', 'R', '1', '6') /* 16  GRGR.. BGBG.. */
+-- 
+2.7.4
