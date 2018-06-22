@@ -1,94 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:43095 "EHLO
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:43087 "EHLO
         mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751098AbeFVMEj (ORCPT
+        with ESMTP id S1751005AbeFVMEc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Jun 2018 08:04:39 -0400
+        Fri, 22 Jun 2018 08:04:32 -0400
 From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
 To: hverkuil@xs4all.nl, mchehab@kernel.org
-Cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>, rostedt@goodmis.org,
-        mingo@redhat.com, isely@pobox.com, bhumirks@gmail.com,
-        colin.king@canonical.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, ezequiel@collabora.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 2/2] media: usb: pwc: Don't use coherent DMA buffers for ISO transfer
-Date: Fri, 22 Jun 2018 15:04:19 +0300
-Message-Id: <20180622120419.7675-3-matwey@sai.msu.ru>
-In-Reply-To: <20180622120419.7675-1-matwey@sai.msu.ru>
-References: <20180622120419.7675-1-matwey@sai.msu.ru>
+Cc: "Matwey V. Kornilov" <matwey.kornilov@gmail.com>,
+        rostedt@goodmis.org, mingo@redhat.com, isely@pobox.com,
+        bhumirks@gmail.com, colin.king@canonical.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        ezequiel@collabora.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 0/2] Don't use coherent DMA buffers for ISO transfer
+Date: Fri, 22 Jun 2018 15:04:17 +0300
+Message-Id: <20180622120419.7675-1-matwey@sai.msu.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DMA cocherency slows the transfer down on systems without hardware
-coherent DMA.
+From: "Matwey V. Kornilov" <matwey.kornilov@gmail.com>
 
-Based on previous commit the following performance benchmarks have been
-carried out. Average memcpy() data transfer rate (rate) and handler
-completion time (time) have been measured when running video stream at
-640x480 resolution at 10fps.
+DMA cocherency slows the transfer down on systems without hardware coherent
+DMA. In order to demontrate this we introduce performance measurement
+facilities in patch 1 and fix the performance issue in patch 2 in order to
+obtain 5.5 times speedup.
 
-x86_64 based system (Intel Core i5-3470). This platform has hardware
-coherent DMA support and proposed change doesn't make big difference here.
+Changes since v1:
+ * trace_pwc_handler_exit() call moved to proper place
+ * detailed description added for commit 1
+ * additional output added to trace to track separate frames
 
- * kmalloc:            rate = (4.4 +- 1.0) GBps
-                       time = (2.4 +- 1.2) usec
- * usb_alloc_coherent: rate = (4.1 +- 0.9) GBps
-                       time = (2.5 +- 1.0) usec
+Matwey V. Kornilov (2):
+  media: usb: pwc: Introduce TRACE_EVENTs for pwc_isoc_handler()
+  media: usb: pwc: Don't use coherent DMA buffers for ISO transfer
 
-We see that the measurements agree well within error ranges in this case.
-So no performance downgrade is introduced.
+ drivers/media/usb/pwc/pwc-if.c | 19 +++++++------
+ include/trace/events/pwc.h     | 64 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 74 insertions(+), 9 deletions(-)
+ create mode 100644 include/trace/events/pwc.h
 
-armv7l based system (TI AM335x BeagleBone Black). This platform has no
-hardware coherent DMA support. DMA coherence is implemented via disabled
-page caching that slows down memcpy() due to memory controller behaviour.
-
- * kmalloc:            rate =  (190 +-  30) MBps
-                       time =   (50 +-  10) usec
- * usb_alloc_coherent: rate =   (33 +-   4) MBps
-                       time = (3000 +- 400) usec
-
-Note, that quantative difference leads (this commit leads to 5 times
-acceleration) to qualitative behavior change in this case. As it was
-stated before, the video stream can not be successfully received at AM335x
-platforms with MUSB based USB host controller due to performance issues
-[1].
-
-[1] https://www.spinics.net/lists/linux-usb/msg165735.html
-
-Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
----
- drivers/media/usb/pwc/pwc-if.c | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-index 72d2897a4b9f..339a285600d1 100644
---- a/drivers/media/usb/pwc/pwc-if.c
-+++ b/drivers/media/usb/pwc/pwc-if.c
-@@ -427,11 +427,8 @@ static int pwc_isoc_init(struct pwc_device *pdev)
- 		urb->interval = 1; // devik
- 		urb->dev = udev;
- 		urb->pipe = usb_rcvisocpipe(udev, pdev->vendpoint);
--		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
--		urb->transfer_buffer = usb_alloc_coherent(udev,
--							  ISO_BUFFER_SIZE,
--							  GFP_KERNEL,
--							  &urb->transfer_dma);
-+		urb->transfer_flags = URB_ISO_ASAP;
-+		urb->transfer_buffer = kmalloc(ISO_BUFFER_SIZE, GFP_KERNEL);
- 		if (urb->transfer_buffer == NULL) {
- 			PWC_ERROR("Failed to allocate urb buffer %d\n", i);
- 			pwc_isoc_cleanup(pdev);
-@@ -491,10 +488,7 @@ static void pwc_iso_free(struct pwc_device *pdev)
- 		if (pdev->urbs[i]) {
- 			PWC_DEBUG_MEMORY("Freeing URB\n");
- 			if (pdev->urbs[i]->transfer_buffer) {
--				usb_free_coherent(pdev->udev,
--					pdev->urbs[i]->transfer_buffer_length,
--					pdev->urbs[i]->transfer_buffer,
--					pdev->urbs[i]->transfer_dma);
-+				kfree(pdev->urbs[i]->transfer_buffer);
- 			}
- 			usb_free_urb(pdev->urbs[i]);
- 			pdev->urbs[i] = NULL;
 -- 
 2.16.4
