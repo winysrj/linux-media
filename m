@@ -1,146 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:46538 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:46424 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933979AbeFVPeI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Jun 2018 11:34:08 -0400
+        id S933991AbeFVPeJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Jun 2018 11:34:09 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
-Subject: [PATCH 15/32] media: dt-bindings: media: qcom,camss: Add 8996 bindings
-Date: Fri, 22 Jun 2018 18:33:24 +0300
-Message-Id: <1529681621-9682-16-git-send-email-todor.tomov@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH 26/32] media: camss: vfe: Different format support on source pad
+Date: Fri, 22 Jun 2018 18:33:35 +0300
+Message-Id: <1529681621-9682-27-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
 References: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update binding document for MSM8996.
+Rework the format selection on the source pad. Make the format
+on the source pad selectable amongst a list of formats. This
+list can be different for each sink pad format.
 
-CC: Rob Herring <robh+dt@kernel.org>
-CC: Mark Rutland <mark.rutland@arm.com>
-CC: devicetree@vger.kernel.org
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- .../devicetree/bindings/media/qcom,camss.txt       | 44 +++++++++++++++++++---
- 1 file changed, 38 insertions(+), 6 deletions(-)
+ drivers/media/platform/qcom/camss/camss-vfe.c | 170 ++++++++++++++++++++------
+ 1 file changed, 134 insertions(+), 36 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
-index e938eb0..09eb6ed 100644
---- a/Documentation/devicetree/bindings/media/qcom,camss.txt
-+++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
-@@ -5,8 +5,9 @@ Qualcomm Camera Subsystem
- - compatible:
- 	Usage: required
- 	Value type: <stringlist>
--	Definition: Should contain:
-+	Definition: Should contain one of:
- 		- "qcom,msm8916-camss"
-+		- "qcom,msm8996-camss"
- - reg:
- 	Usage: required
- 	Value type: <prop-encoded-array>
-@@ -19,11 +20,16 @@ Qualcomm Camera Subsystem
- 		- "csiphy0_clk_mux"
- 		- "csiphy1"
- 		- "csiphy1_clk_mux"
-+		- "csiphy2"		(8996 only)
-+		- "csiphy2_clk_mux"	(8996 only)
- 		- "csid0"
- 		- "csid1"
-+		- "csid2"		(8996 only)
-+		- "csid3"		(8996 only)
- 		- "ispif"
- 		- "csi_clk_mux"
- 		- "vfe0"
-+		- "vfe1"		(8996 only)
- - interrupts:
- 	Usage: required
- 	Value type: <prop-encoded-array>
-@@ -34,10 +40,14 @@ Qualcomm Camera Subsystem
- 	Definition: Should contain the following entries:
- 		- "csiphy0"
- 		- "csiphy1"
-+		- "csiphy2"		(8996 only)
- 		- "csid0"
- 		- "csid1"
-+		- "csid2"		(8996 only)
-+		- "csid3"		(8996 only)
- 		- "ispif"
- 		- "vfe0"
-+		- "vfe1"		(8996 only)
- - power-domains:
- 	Usage: required
- 	Value type: <prop-encoded-array>
-@@ -57,6 +67,7 @@ Qualcomm Camera Subsystem
- 		- "ispif_ahb"
- 		- "csiphy0_timer"
- 		- "csiphy1_timer"
-+		- "csiphy2_timer"	(8996 only)
- 		- "csi0_ahb"
- 		- "csi0"
- 		- "csi0_phy"
-@@ -67,9 +78,25 @@ Qualcomm Camera Subsystem
- 		- "csi1_phy"
- 		- "csi1_pix"
- 		- "csi1_rdi"
-+		- "csi2_ahb"		(8996 only)
-+		- "csi2"		(8996 only)
-+		- "csi2_phy"		(8996 only)
-+		- "csi2_pix"		(8996 only)
-+		- "csi2_rdi"		(8996 only)
-+		- "csi3_ahb"		(8996 only)
-+		- "csi3"		(8996 only)
-+		- "csi3_phy"		(8996 only)
-+		- "csi3_pix"		(8996 only)
-+		- "csi3_rdi"		(8996 only)
- 		- "ahb"
- 		- "vfe0"
- 		- "csi_vfe0"
-+		- "vfe0_ahb",		(8996 only)
-+		- "vfe0_stream",	(8996 only)
-+		- "vfe1",		(8996 only)
-+		- "csi_vfe1",		(8996 only)
-+		- "vfe1_ahb",		(8996 only)
-+		- "vfe1_stream",	(8996 only)
- 		- "vfe_ahb"
- 		- "vfe_axi"
- - vdda-supply:
-@@ -90,14 +117,18 @@ Qualcomm Camera Subsystem
- 		- reg:
- 			Usage: required
- 			Value type: <u32>
--			Definition: Selects CSI2 PHY interface - PHY0 or PHY1.
-+			Definition: Selects CSI2 PHY interface - PHY0, PHY1
-+				    or PHY2 (8996 only)
- 	Endpoint node properties:
- 		- clock-lanes:
- 			Usage: required
- 			Value type: <u32>
--			Definition: The physical clock lane index. The value
--				    must always be <1> as the physical clock
--				    lane is lane 1.
-+			Definition: The physical clock lane index. On 8916
-+				    the value must always be <1> as the physical
-+				    clock lane is lane 1. On 8996 the value must
-+				    always be <7> as the hardware supports D-PHY
-+				    and C-PHY, indexes are in a common set and
-+				    D-PHY physical clock lane is labeled as 7.
- 		- data-lanes:
- 			Usage: required
- 			Value type: <prop-encoded-array>
-@@ -105,7 +136,8 @@ Qualcomm Camera Subsystem
- 				    Position of an entry determines the logical
- 				    lane number, while the value of an entry
- 				    indicates physical lane index. Lane swapping
--				    is supported.
-+				    is supported. Physical lane indexes for
-+				    8916: 0, 2, 3, 4; for 8996: 0, 1, 2, 3.
+diff --git a/drivers/media/platform/qcom/camss/camss-vfe.c b/drivers/media/platform/qcom/camss/camss-vfe.c
+index 6fc2be5..21bcfb2 100644
+--- a/drivers/media/platform/qcom/camss/camss-vfe.c
++++ b/drivers/media/platform/qcom/camss/camss-vfe.c
+@@ -127,6 +127,131 @@ static u8 vfe_get_bpp(const struct vfe_format *formats,
+ 	return formats[0].bpp;
+ }
  
- * An Example
++static u32 vfe_find_code(u32 *code, unsigned int n_code,
++			 unsigned int index, u32 req_code)
++{
++	int i;
++
++	if (!req_code && (index >= n_code))
++		return 0;
++
++	for (i = 0; i < n_code; i++)
++		if (req_code) {
++			if (req_code == code[i])
++				return req_code;
++		} else {
++			if (i == index)
++				return code[i];
++		}
++
++	return code[0];
++}
++
++static u32 vfe_src_pad_code(struct vfe_line *line, u32 sink_code,
++			    unsigned int index, u32 src_req_code)
++{
++	struct vfe_device *vfe = to_vfe(line);
++
++	if (vfe->camss->version == CAMSS_8x16)
++		switch (sink_code) {
++		case MEDIA_BUS_FMT_YUYV8_2X8:
++		{
++			u32 src_code[] = {
++				MEDIA_BUS_FMT_YUYV8_2X8,
++				MEDIA_BUS_FMT_YUYV8_1_5X8,
++			};
++
++			return vfe_find_code(src_code, ARRAY_SIZE(src_code),
++					     index, src_req_code);
++		}
++		case MEDIA_BUS_FMT_YVYU8_2X8:
++		{
++			u32 src_code[] = {
++				MEDIA_BUS_FMT_YVYU8_2X8,
++				MEDIA_BUS_FMT_YVYU8_1_5X8,
++			};
++
++			return vfe_find_code(src_code, ARRAY_SIZE(src_code),
++					     index, src_req_code);
++		}
++		case MEDIA_BUS_FMT_UYVY8_2X8:
++		{
++			u32 src_code[] = {
++				MEDIA_BUS_FMT_UYVY8_2X8,
++				MEDIA_BUS_FMT_UYVY8_1_5X8,
++			};
++
++			return vfe_find_code(src_code, ARRAY_SIZE(src_code),
++					     index, src_req_code);
++		}
++		case MEDIA_BUS_FMT_VYUY8_2X8:
++		{
++			u32 src_code[] = {
++				MEDIA_BUS_FMT_VYUY8_2X8,
++				MEDIA_BUS_FMT_VYUY8_1_5X8,
++			};
++
++			return vfe_find_code(src_code, ARRAY_SIZE(src_code),
++					     index, src_req_code);
++		}
++		default:
++			if (index > 0)
++				return 0;
++
++			return sink_code;
++		}
++	else if (vfe->camss->version == CAMSS_8x96)
++		switch (sink_code) {
++		case MEDIA_BUS_FMT_YUYV8_2X8:
++		{
++			u32 src_code[] = {
++				MEDIA_BUS_FMT_YUYV8_2X8,
++				MEDIA_BUS_FMT_YUYV8_1_5X8,
++			};
++
++			return vfe_find_code(src_code, ARRAY_SIZE(src_code),
++					     index, src_req_code);
++		}
++		case MEDIA_BUS_FMT_YVYU8_2X8:
++		{
++			u32 src_code[] = {
++				MEDIA_BUS_FMT_YVYU8_2X8,
++				MEDIA_BUS_FMT_YVYU8_1_5X8,
++			};
++
++			return vfe_find_code(src_code, ARRAY_SIZE(src_code),
++					     index, src_req_code);
++		}
++		case MEDIA_BUS_FMT_UYVY8_2X8:
++		{
++			u32 src_code[] = {
++				MEDIA_BUS_FMT_UYVY8_2X8,
++				MEDIA_BUS_FMT_UYVY8_1_5X8,
++			};
++
++			return vfe_find_code(src_code, ARRAY_SIZE(src_code),
++					     index, src_req_code);
++		}
++		case MEDIA_BUS_FMT_VYUY8_2X8:
++		{
++			u32 src_code[] = {
++				MEDIA_BUS_FMT_VYUY8_2X8,
++				MEDIA_BUS_FMT_VYUY8_1_5X8,
++			};
++
++			return vfe_find_code(src_code, ARRAY_SIZE(src_code),
++					     index, src_req_code);
++		}
++		default:
++			if (index > 0)
++				return 0;
++
++			return sink_code;
++		}
++	else
++		return 0;
++}
++
+ /*
+  * vfe_reset - Trigger reset on VFE module and wait to complete
+  * @vfe: VFE device
+@@ -1387,11 +1512,9 @@ static void vfe_try_format(struct vfe_line *line,
  
+ 	case MSM_VFE_PAD_SRC:
+ 		/* Set and return a format same as sink pad */
+-
+ 		code = fmt->code;
+ 
+-		*fmt = *__vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
+-					 which);
++		*fmt = *__vfe_get_format(line, cfg, MSM_VFE_PAD_SINK, which);
+ 
+ 		if (line->id == VFE_LINE_PIX) {
+ 			struct v4l2_rect *rect;
+@@ -1401,33 +1524,7 @@ static void vfe_try_format(struct vfe_line *line,
+ 			fmt->width = rect->width;
+ 			fmt->height = rect->height;
+ 
+-			switch (fmt->code) {
+-			case MEDIA_BUS_FMT_YUYV8_2X8:
+-				if (code == MEDIA_BUS_FMT_YUYV8_1_5X8)
+-					fmt->code = MEDIA_BUS_FMT_YUYV8_1_5X8;
+-				else
+-					fmt->code = MEDIA_BUS_FMT_YUYV8_2X8;
+-				break;
+-			case MEDIA_BUS_FMT_YVYU8_2X8:
+-				if (code == MEDIA_BUS_FMT_YVYU8_1_5X8)
+-					fmt->code = MEDIA_BUS_FMT_YVYU8_1_5X8;
+-				else
+-					fmt->code = MEDIA_BUS_FMT_YVYU8_2X8;
+-				break;
+-			case MEDIA_BUS_FMT_UYVY8_2X8:
+-			default:
+-				if (code == MEDIA_BUS_FMT_UYVY8_1_5X8)
+-					fmt->code = MEDIA_BUS_FMT_UYVY8_1_5X8;
+-				else
+-					fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
+-				break;
+-			case MEDIA_BUS_FMT_VYUY8_2X8:
+-				if (code == MEDIA_BUS_FMT_VYUY8_1_5X8)
+-					fmt->code = MEDIA_BUS_FMT_VYUY8_1_5X8;
+-				else
+-					fmt->code = MEDIA_BUS_FMT_VYUY8_2X8;
+-				break;
+-			}
++			fmt->code = vfe_src_pad_code(line, fmt->code, 0, code);
+ 		}
+ 
+ 		break;
+@@ -1531,7 +1628,6 @@ static int vfe_enum_mbus_code(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_mbus_code_enum *code)
+ {
+ 	struct vfe_line *line = v4l2_get_subdevdata(sd);
+-	struct v4l2_mbus_framefmt *format;
+ 
+ 	if (code->pad == MSM_VFE_PAD_SINK) {
+ 		if (code->index >= line->nformats)
+@@ -1539,13 +1635,15 @@ static int vfe_enum_mbus_code(struct v4l2_subdev *sd,
+ 
+ 		code->code = line->formats[code->index].code;
+ 	} else {
+-		if (code->index > 0)
+-			return -EINVAL;
++		struct v4l2_mbus_framefmt *sink_fmt;
+ 
+-		format = __vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
+-					  code->which);
++		sink_fmt = __vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
++					    code->which);
+ 
+-		code->code = format->code;
++		code->code = vfe_src_pad_code(line, sink_fmt->code,
++					      code->index, 0);
++		if (!code->code)
++			return -EINVAL;
+ 	}
+ 
+ 	return 0;
 -- 
 2.7.4
