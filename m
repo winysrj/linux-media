@@ -1,169 +1,525 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:46550 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:46547 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933989AbeFVPeI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S933982AbeFVPeI (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Fri, 22 Jun 2018 11:34:08 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH 21/32] media: camss: csid: Add support for 8x96
-Date: Fri, 22 Jun 2018 18:33:30 +0300
-Message-Id: <1529681621-9682-22-git-send-email-todor.tomov@linaro.org>
+Subject: [PATCH 18/32] media: camss: csiphy: Split to hardware dependent and independent parts
+Date: Fri, 22 Jun 2018 18:33:27 +0300
+Message-Id: <1529681621-9682-19-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
 References: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CSID hardware modules on 8x16 and 8x96 are similar. There is no
-need to duplicate the code by adding separate versions. Just
-update the register macros to return the correct register
-addresses.
+This will allow to add support for different hardware.
 
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/platform/qcom/camss/camss-csid.c | 60 ++++++++++++++++----------
- 1 file changed, 37 insertions(+), 23 deletions(-)
+ drivers/media/platform/qcom/camss/Makefile         |   1 +
+ .../platform/qcom/camss/camss-csiphy-2ph-1-0.c     | 173 +++++++++++++++++++++
+ drivers/media/platform/qcom/camss/camss-csiphy.c   | 171 +++-----------------
+ drivers/media/platform/qcom/camss/camss-csiphy.h   |  15 ++
+ 4 files changed, 213 insertions(+), 147 deletions(-)
+ create mode 100644 drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
 
-diff --git a/drivers/media/platform/qcom/camss/camss-csid.c b/drivers/media/platform/qcom/camss/camss-csid.c
-index ea2b0ba..ff0e0d5 100644
---- a/drivers/media/platform/qcom/camss/camss-csid.c
-+++ b/drivers/media/platform/qcom/camss/camss-csid.c
-@@ -27,21 +27,26 @@
- #define CAMSS_CSID_HW_VERSION		0x0
- #define CAMSS_CSID_CORE_CTRL_0		0x004
- #define CAMSS_CSID_CORE_CTRL_1		0x008
--#define CAMSS_CSID_RST_CMD		0x00c
--#define CAMSS_CSID_CID_LUT_VC_n(n)	(0x010 + 0x4 * (n))
--#define CAMSS_CSID_CID_n_CFG(n)		(0x020 + 0x4 * (n))
--#define CAMSS_CSID_IRQ_CLEAR_CMD	0x060
--#define CAMSS_CSID_IRQ_MASK		0x064
--#define CAMSS_CSID_IRQ_STATUS		0x068
--#define CAMSS_CSID_TG_CTRL		0x0a0
-+#define CAMSS_CSID_RST_CMD(v)		((v) == CAMSS_8x16 ? 0x00c : 0x010)
-+#define CAMSS_CSID_CID_LUT_VC_n(v, n)	\
-+			(((v) == CAMSS_8x16 ? 0x010 : 0x014) + 0x4 * (n))
-+#define CAMSS_CSID_CID_n_CFG(v, n)	\
-+			(((v) == CAMSS_8x16 ? 0x020 : 0x024) + 0x4 * (n))
-+#define CAMSS_CSID_IRQ_CLEAR_CMD(v)	((v) == CAMSS_8x16 ? 0x060 : 0x064)
-+#define CAMSS_CSID_IRQ_MASK(v)		((v) == CAMSS_8x16 ? 0x064 : 0x068)
-+#define CAMSS_CSID_IRQ_STATUS(v)	((v) == CAMSS_8x16 ? 0x068 : 0x06c)
-+#define CAMSS_CSID_TG_CTRL(v)		((v) == CAMSS_8x16 ? 0x0a0 : 0x0a8)
- #define CAMSS_CSID_TG_CTRL_DISABLE	0xa06436
- #define CAMSS_CSID_TG_CTRL_ENABLE	0xa06437
--#define CAMSS_CSID_TG_VC_CFG		0x0a4
-+#define CAMSS_CSID_TG_VC_CFG(v)		((v) == CAMSS_8x16 ? 0x0a4 : 0x0ac)
- #define CAMSS_CSID_TG_VC_CFG_H_BLANKING		0x3ff
- #define CAMSS_CSID_TG_VC_CFG_V_BLANKING		0x7f
--#define CAMSS_CSID_TG_DT_n_CGG_0(n)	(0x0ac + 0xc * (n))
--#define CAMSS_CSID_TG_DT_n_CGG_1(n)	(0x0b0 + 0xc * (n))
--#define CAMSS_CSID_TG_DT_n_CGG_2(n)	(0x0b4 + 0xc * (n))
-+#define CAMSS_CSID_TG_DT_n_CGG_0(v, n)	\
-+			(((v) == CAMSS_8x16 ? 0x0ac : 0x0b4) + 0xc * (n))
-+#define CAMSS_CSID_TG_DT_n_CGG_1(v, n)	\
-+			(((v) == CAMSS_8x16 ? 0x0b0 : 0x0b8) + 0xc * (n))
-+#define CAMSS_CSID_TG_DT_n_CGG_2(v, n)	\
-+			(((v) == CAMSS_8x16 ? 0x0b4 : 0x0bc) + 0xc * (n))
+diff --git a/drivers/media/platform/qcom/camss/Makefile b/drivers/media/platform/qcom/camss/Makefile
+index 3c4024f..0446b24 100644
+--- a/drivers/media/platform/qcom/camss/Makefile
++++ b/drivers/media/platform/qcom/camss/Makefile
+@@ -3,6 +3,7 @@
+ qcom-camss-objs += \
+ 		camss.o \
+ 		camss-csid.o \
++		camss-csiphy-2ph-1-0.o \
+ 		camss-csiphy.o \
+ 		camss-ispif.o \
+ 		camss-vfe.o \
+diff --git a/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c b/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
+new file mode 100644
+index 0000000..7325906
+--- /dev/null
++++ b/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
+@@ -0,0 +1,173 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * camss-csiphy-2ph-1-0.c
++ *
++ * Qualcomm MSM Camera Subsystem - CSIPHY Module 2phase v1.0
++ *
++ * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
++ * Copyright (C) 2016-2018 Linaro Ltd.
++ */
++
++#include "camss-csiphy.h"
++
++#include <linux/delay.h>
++#include <linux/interrupt.h>
++
++#define CAMSS_CSI_PHY_LNn_CFG2(n)		(0x004 + 0x40 * (n))
++#define CAMSS_CSI_PHY_LNn_CFG3(n)		(0x008 + 0x40 * (n))
++#define CAMSS_CSI_PHY_GLBL_RESET		0x140
++#define CAMSS_CSI_PHY_GLBL_PWR_CFG		0x144
++#define CAMSS_CSI_PHY_GLBL_IRQ_CMD		0x164
++#define CAMSS_CSI_PHY_HW_VERSION		0x188
++#define CAMSS_CSI_PHY_INTERRUPT_STATUSn(n)	(0x18c + 0x4 * (n))
++#define CAMSS_CSI_PHY_INTERRUPT_MASKn(n)	(0x1ac + 0x4 * (n))
++#define CAMSS_CSI_PHY_INTERRUPT_CLEARn(n)	(0x1cc + 0x4 * (n))
++#define CAMSS_CSI_PHY_GLBL_T_INIT_CFG0		0x1ec
++#define CAMSS_CSI_PHY_T_WAKEUP_CFG0		0x1f4
++
++static void csiphy_hw_version_read(struct csiphy_device *csiphy,
++				   struct device *dev)
++{
++	u8 hw_version = readl_relaxed(csiphy->base +
++				      CAMSS_CSI_PHY_HW_VERSION);
++
++	dev_dbg(dev, "CSIPHY HW Version = 0x%02x\n", hw_version);
++}
++
++/*
++ * csiphy_reset - Perform software reset on CSIPHY module
++ * @csiphy: CSIPHY device
++ */
++static void csiphy_reset(struct csiphy_device *csiphy)
++{
++	writel_relaxed(0x1, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
++	usleep_range(5000, 8000);
++	writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
++}
++
++/*
++ * csiphy_settle_cnt_calc - Calculate settle count value
++ *
++ * Helper function to calculate settle count value. This is
++ * based on the CSI2 T_hs_settle parameter which in turn
++ * is calculated based on the CSI2 transmitter pixel clock
++ * frequency.
++ *
++ * Return settle count value or 0 if the CSI2 pixel clock
++ * frequency is not available
++ */
++static u8 csiphy_settle_cnt_calc(u32 pixel_clock, u8 bpp, u8 num_lanes,
++				 u32 timer_clk_rate)
++{
++	u32 mipi_clock; /* Hz */
++	u32 ui; /* ps */
++	u32 timer_period; /* ps */
++	u32 t_hs_prepare_max; /* ps */
++	u32 t_hs_prepare_zero_min; /* ps */
++	u32 t_hs_settle; /* ps */
++	u8 settle_cnt;
++
++	mipi_clock = pixel_clock * bpp / (2 * num_lanes);
++	ui = div_u64(1000000000000LL, mipi_clock);
++	ui /= 2;
++	t_hs_prepare_max = 85000 + 6 * ui;
++	t_hs_prepare_zero_min = 145000 + 10 * ui;
++	t_hs_settle = (t_hs_prepare_max + t_hs_prepare_zero_min) / 2;
++
++	timer_period = div_u64(1000000000000LL, timer_clk_rate);
++	settle_cnt = t_hs_settle / timer_period - 1;
++
++	return settle_cnt;
++}
++
++static void csiphy_lanes_enable(struct csiphy_device *csiphy,
++				struct csiphy_config *cfg,
++				u32 pixel_clock, u8 bpp, u8 lane_mask)
++{
++	struct csiphy_lanes_cfg *c = &cfg->csi2->lane_cfg;
++	u8 settle_cnt;
++	u8 val;
++	int i = 0;
++
++	settle_cnt = csiphy_settle_cnt_calc(pixel_clock, bpp, c->num_data,
++					    csiphy->timer_clk_rate);
++
++	writel_relaxed(0x1, csiphy->base +
++		       CAMSS_CSI_PHY_GLBL_T_INIT_CFG0);
++	writel_relaxed(0x1, csiphy->base +
++		       CAMSS_CSI_PHY_T_WAKEUP_CFG0);
++
++	val = 0x1;
++	val |= lane_mask << 1;
++	writel_relaxed(val, csiphy->base + CAMSS_CSI_PHY_GLBL_PWR_CFG);
++
++	val = cfg->combo_mode << 4;
++	writel_relaxed(val, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
++
++	while (lane_mask) {
++		if (lane_mask & 0x1) {
++			writel_relaxed(0x10, csiphy->base +
++				       CAMSS_CSI_PHY_LNn_CFG2(i));
++			writel_relaxed(settle_cnt, csiphy->base +
++				       CAMSS_CSI_PHY_LNn_CFG3(i));
++			writel_relaxed(0x3f, csiphy->base +
++				       CAMSS_CSI_PHY_INTERRUPT_MASKn(i));
++			writel_relaxed(0x3f, csiphy->base +
++				       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
++		}
++
++		lane_mask >>= 1;
++		i++;
++	}
++}
++
++static void csiphy_lanes_disable(struct csiphy_device *csiphy, u8 lane_mask)
++{
++	int i = 0;
++
++	while (lane_mask) {
++		if (lane_mask & 0x1)
++			writel_relaxed(0x0, csiphy->base +
++				       CAMSS_CSI_PHY_LNn_CFG2(i));
++
++		lane_mask >>= 1;
++		i++;
++	}
++
++	writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_PWR_CFG);
++}
++
++/*
++ * csiphy_isr - CSIPHY module interrupt handler
++ * @irq: Interrupt line
++ * @dev: CSIPHY device
++ *
++ * Return IRQ_HANDLED on success
++ */
++static irqreturn_t csiphy_isr(int irq, void *dev)
++{
++	struct csiphy_device *csiphy = dev;
++	u8 i;
++
++	for (i = 0; i < 8; i++) {
++		u8 val = readl_relaxed(csiphy->base +
++				       CAMSS_CSI_PHY_INTERRUPT_STATUSn(i));
++		writel_relaxed(val, csiphy->base +
++			       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
++		writel_relaxed(0x1, csiphy->base + CAMSS_CSI_PHY_GLBL_IRQ_CMD);
++		writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_IRQ_CMD);
++		writel_relaxed(0x0, csiphy->base +
++			       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
++	}
++
++	return IRQ_HANDLED;
++}
++
++const struct csiphy_hw_ops csiphy_ops_2ph_1_0 = {
++	.hw_version_read = csiphy_hw_version_read,
++	.reset = csiphy_reset,
++	.lanes_enable = csiphy_lanes_enable,
++	.lanes_disable = csiphy_lanes_disable,
++	.isr = csiphy_isr,
++};
++
+diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.c b/drivers/media/platform/qcom/camss/camss-csiphy.c
+index 2db78791..14a9a66 100644
+--- a/drivers/media/platform/qcom/camss/camss-csiphy.c
++++ b/drivers/media/platform/qcom/camss/camss-csiphy.c
+@@ -23,17 +23,7 @@
  
- #define DATA_TYPE_EMBEDDED_DATA_8BIT	0x12
- #define DATA_TYPE_YUV422_8BIT		0x1e
-@@ -203,10 +208,11 @@ static const struct csid_fmts *csid_get_fmt_entry(u32 code)
- static irqreturn_t csid_isr(int irq, void *dev)
- {
- 	struct csid_device *csid = dev;
-+	enum camss_version ver = csid->camss->version;
- 	u32 value;
+ #define MSM_CSIPHY_NAME "msm_csiphy"
  
--	value = readl_relaxed(csid->base + CAMSS_CSID_IRQ_STATUS);
--	writel_relaxed(value, csid->base + CAMSS_CSID_IRQ_CLEAR_CMD);
-+	value = readl_relaxed(csid->base + CAMSS_CSID_IRQ_STATUS(ver));
-+	writel_relaxed(value, csid->base + CAMSS_CSID_IRQ_CLEAR_CMD(ver));
+-#define CAMSS_CSI_PHY_LNn_CFG2(n)		(0x004 + 0x40 * (n))
+-#define CAMSS_CSI_PHY_LNn_CFG3(n)		(0x008 + 0x40 * (n))
+-#define CAMSS_CSI_PHY_GLBL_RESET		0x140
+-#define CAMSS_CSI_PHY_GLBL_PWR_CFG		0x144
+-#define CAMSS_CSI_PHY_GLBL_IRQ_CMD		0x164
+-#define CAMSS_CSI_PHY_HW_VERSION		0x188
+-#define CAMSS_CSI_PHY_INTERRUPT_STATUSn(n)	(0x18c + 0x4 * (n))
+-#define CAMSS_CSI_PHY_INTERRUPT_MASKn(n)	(0x1ac + 0x4 * (n))
+-#define CAMSS_CSI_PHY_INTERRUPT_CLEARn(n)	(0x1cc + 0x4 * (n))
+-#define CAMSS_CSI_PHY_GLBL_T_INIT_CFG0		0x1ec
+-#define CAMSS_CSI_PHY_T_WAKEUP_CFG0		0x1f4
++extern struct csiphy_hw_ops csiphy_ops_2ph_1_0;
  
- 	if ((value >> 11) & 0x1)
- 		complete(&csid->reset_complete);
-@@ -289,7 +295,8 @@ static int csid_reset(struct csid_device *csid)
+ static const struct {
+ 	u32 code;
+@@ -125,32 +115,6 @@ static u8 csiphy_get_bpp(u32 code)
+ }
  
- 	reinit_completion(&csid->reset_complete);
+ /*
+- * csiphy_isr - CSIPHY module interrupt handler
+- * @irq: Interrupt line
+- * @dev: CSIPHY device
+- *
+- * Return IRQ_HANDLED on success
+- */
+-static irqreturn_t csiphy_isr(int irq, void *dev)
+-{
+-	struct csiphy_device *csiphy = dev;
+-	u8 i;
+-
+-	for (i = 0; i < 8; i++) {
+-		u8 val = readl_relaxed(csiphy->base +
+-				       CAMSS_CSI_PHY_INTERRUPT_STATUSn(i));
+-		writel_relaxed(val, csiphy->base +
+-			       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
+-		writel_relaxed(0x1, csiphy->base + CAMSS_CSI_PHY_GLBL_IRQ_CMD);
+-		writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_IRQ_CMD);
+-		writel_relaxed(0x0, csiphy->base +
+-			       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
+-	}
+-
+-	return IRQ_HANDLED;
+-}
+-
+-/*
+  * csiphy_set_clock_rates - Calculate and set clock rates on CSIPHY module
+  * @csiphy: CSIPHY device
+  */
+@@ -215,17 +179,6 @@ static int csiphy_set_clock_rates(struct csiphy_device *csiphy)
+ }
  
--	writel_relaxed(0x7fff, csid->base + CAMSS_CSID_RST_CMD);
-+	writel_relaxed(0x7fff, csid->base +
-+		       CAMSS_CSID_RST_CMD(csid->camss->version));
+ /*
+- * csiphy_reset - Perform software reset on CSIPHY module
+- * @csiphy: CSIPHY device
+- */
+-static void csiphy_reset(struct csiphy_device *csiphy)
+-{
+-	writel_relaxed(0x1, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
+-	usleep_range(5000, 8000);
+-	writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
+-}
+-
+-/*
+  * csiphy_set_power - Power on/off CSIPHY module
+  * @sd: CSIPHY V4L2 subdevice
+  * @on: Requested power state
+@@ -238,7 +191,6 @@ static int csiphy_set_power(struct v4l2_subdev *sd, int on)
+ 	struct device *dev = csiphy->camss->dev;
  
- 	time = wait_for_completion_timeout(&csid->reset_complete,
- 		msecs_to_jiffies(CSID_RESET_TIMEOUT_MS));
-@@ -370,6 +377,7 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct csid_device *csid = v4l2_get_subdevdata(sd);
- 	struct csid_testgen_config *tg = &csid->testgen;
-+	enum camss_version ver = csid->camss->version;
- 	u32 val;
+ 	if (on) {
+-		u8 hw_version;
+ 		int ret;
  
- 	if (enable) {
-@@ -402,13 +410,14 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- 			/* 1:0 VC */
- 			val = ((CAMSS_CSID_TG_VC_CFG_V_BLANKING & 0xff) << 24) |
- 			      ((CAMSS_CSID_TG_VC_CFG_H_BLANKING & 0x7ff) << 13);
--			writel_relaxed(val, csid->base + CAMSS_CSID_TG_VC_CFG);
-+			writel_relaxed(val, csid->base +
-+				       CAMSS_CSID_TG_VC_CFG(ver));
+ 		pm_runtime_get_sync(dev);
+@@ -253,11 +205,9 @@ static int csiphy_set_power(struct v4l2_subdev *sd, int on)
  
- 			/* 28:16 bytes per lines, 12:0 num of lines */
- 			val = ((num_bytes_per_line & 0x1fff) << 16) |
- 			      (num_lines & 0x1fff);
- 			writel_relaxed(val, csid->base +
--				       CAMSS_CSID_TG_DT_n_CGG_0(0));
-+				       CAMSS_CSID_TG_DT_n_CGG_0(ver, 0));
+ 		enable_irq(csiphy->irq);
  
- 			dt = csid_get_fmt_entry(
- 				csid->fmt[MSM_CSID_PAD_SRC].code)->data_type;
-@@ -416,12 +425,12 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- 			/* 5:0 data type */
- 			val = dt;
- 			writel_relaxed(val, csid->base +
--				       CAMSS_CSID_TG_DT_n_CGG_1(0));
-+				       CAMSS_CSID_TG_DT_n_CGG_1(ver, 0));
+-		csiphy_reset(csiphy);
++		csiphy->ops->reset(csiphy);
  
- 			/* 2:0 output test pattern */
- 			val = tg->payload_mode;
- 			writel_relaxed(val, csid->base +
--				       CAMSS_CSID_TG_DT_n_CGG_2(0));
-+				       CAMSS_CSID_TG_DT_n_CGG_2(ver, 0));
- 
- 			df = csid_get_fmt_entry(
- 				csid->fmt[MSM_CSID_PAD_SRC].code)->decode_format;
-@@ -450,22 +459,27 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- 
- 		dt_shift = (cid % 4) * 8;
- 
--		val = readl_relaxed(csid->base + CAMSS_CSID_CID_LUT_VC_n(vc));
-+		val = readl_relaxed(csid->base +
-+				    CAMSS_CSID_CID_LUT_VC_n(ver, vc));
- 		val &= ~(0xff << dt_shift);
- 		val |= dt << dt_shift;
--		writel_relaxed(val, csid->base + CAMSS_CSID_CID_LUT_VC_n(vc));
-+		writel_relaxed(val, csid->base +
-+			       CAMSS_CSID_CID_LUT_VC_n(ver, vc));
- 
- 		val = (df << 4) | 0x3;
--		writel_relaxed(val, csid->base + CAMSS_CSID_CID_n_CFG(cid));
-+		writel_relaxed(val, csid->base +
-+			       CAMSS_CSID_CID_n_CFG(ver, cid));
- 
- 		if (tg->enabled) {
- 			val = CAMSS_CSID_TG_CTRL_ENABLE;
--			writel_relaxed(val, csid->base + CAMSS_CSID_TG_CTRL);
-+			writel_relaxed(val, csid->base +
-+				       CAMSS_CSID_TG_CTRL(ver));
- 		}
+-		hw_version = readl_relaxed(csiphy->base +
+-					   CAMSS_CSI_PHY_HW_VERSION);
+-		dev_dbg(dev, "CSIPHY HW Version = 0x%02x\n", hw_version);
++		csiphy->ops->hw_version_read(csiphy, dev);
  	} else {
- 		if (tg->enabled) {
- 			val = CAMSS_CSID_TG_CTRL_DISABLE;
--			writel_relaxed(val, csid->base + CAMSS_CSID_TG_CTRL);
-+			writel_relaxed(val, csid->base +
-+				       CAMSS_CSID_TG_CTRL(ver));
- 		}
- 	}
+ 		disable_irq(csiphy->irq);
  
+@@ -289,77 +239,34 @@ static u8 csiphy_get_lane_mask(struct csiphy_lanes_cfg *lane_cfg)
+ }
+ 
+ /*
+- * csiphy_settle_cnt_calc - Calculate settle count value
++ * csiphy_stream_on - Enable streaming on CSIPHY module
+  * @csiphy: CSIPHY device
+  *
+- * Helper function to calculate settle count value. This is
+- * based on the CSI2 T_hs_settle parameter which in turn
+- * is calculated based on the CSI2 transmitter pixel clock
+- * frequency.
++ * Helper function to enable streaming on CSIPHY module.
++ * Main configuration of CSIPHY module is also done here.
+  *
+- * Return settle count value or 0 if the CSI2 pixel clock
+- * frequency is not available
++ * Return 0 on success or a negative error code otherwise
+  */
+-static u8 csiphy_settle_cnt_calc(struct csiphy_device *csiphy)
++static int csiphy_stream_on(struct csiphy_device *csiphy)
+ {
+-	u8 bpp = csiphy_get_bpp(
+-			csiphy->fmt[MSM_CSIPHY_PAD_SINK].code);
+-	u8 num_lanes = csiphy->cfg.csi2->lane_cfg.num_data;
+-	u32 pixel_clock; /* Hz */
+-	u32 mipi_clock; /* Hz */
+-	u32 ui; /* ps */
+-	u32 timer_period; /* ps */
+-	u32 t_hs_prepare_max; /* ps */
+-	u32 t_hs_prepare_zero_min; /* ps */
+-	u32 t_hs_settle; /* ps */
+-	u8 settle_cnt;
++	struct csiphy_config *cfg = &csiphy->cfg;
++	u32 pixel_clock;
++	u8 lane_mask = csiphy_get_lane_mask(&cfg->csi2->lane_cfg);
++	u8 bpp = csiphy_get_bpp(csiphy->fmt[MSM_CSIPHY_PAD_SINK].code);
++	u8 val;
+ 	int ret;
+ 
+ 	ret = camss_get_pixel_clock(&csiphy->subdev.entity, &pixel_clock);
+ 	if (ret) {
+ 		dev_err(csiphy->camss->dev,
+ 			"Cannot get CSI2 transmitter's pixel clock\n");
+-		return 0;
++		return -EINVAL;
+ 	}
+ 	if (!pixel_clock) {
+ 		dev_err(csiphy->camss->dev,
+ 			"Got pixel clock == 0, cannot continue\n");
+-		return 0;
+-	}
+-
+-	mipi_clock = pixel_clock * bpp / (2 * num_lanes);
+-	ui = div_u64(1000000000000LL, mipi_clock);
+-	ui /= 2;
+-	t_hs_prepare_max = 85000 + 6 * ui;
+-	t_hs_prepare_zero_min = 145000 + 10 * ui;
+-	t_hs_settle = (t_hs_prepare_max + t_hs_prepare_zero_min) / 2;
+-
+-	timer_period = div_u64(1000000000000LL, csiphy->timer_clk_rate);
+-	settle_cnt = t_hs_settle / timer_period - 1;
+-
+-	return settle_cnt;
+-}
+-
+-/*
+- * csiphy_stream_on - Enable streaming on CSIPHY module
+- * @csiphy: CSIPHY device
+- *
+- * Helper function to enable streaming on CSIPHY module.
+- * Main configuration of CSIPHY module is also done here.
+- *
+- * Return 0 on success or a negative error code otherwise
+- */
+-static int csiphy_stream_on(struct csiphy_device *csiphy)
+-{
+-	struct csiphy_config *cfg = &csiphy->cfg;
+-	u8 lane_mask = csiphy_get_lane_mask(&cfg->csi2->lane_cfg);
+-	u8 settle_cnt;
+-	u8 val;
+-	int i = 0;
+-
+-	settle_cnt = csiphy_settle_cnt_calc(csiphy);
+-	if (!settle_cnt)
+ 		return -EINVAL;
++	}
+ 
+ 	val = readl_relaxed(csiphy->base_clk_mux);
+ 	if (cfg->combo_mode && (lane_mask & 0x18) == 0x18) {
+@@ -372,33 +279,7 @@ static int csiphy_stream_on(struct csiphy_device *csiphy)
+ 	writel_relaxed(val, csiphy->base_clk_mux);
+ 	wmb();
+ 
+-	writel_relaxed(0x1, csiphy->base +
+-		       CAMSS_CSI_PHY_GLBL_T_INIT_CFG0);
+-	writel_relaxed(0x1, csiphy->base +
+-		       CAMSS_CSI_PHY_T_WAKEUP_CFG0);
+-
+-	val = 0x1;
+-	val |= lane_mask << 1;
+-	writel_relaxed(val, csiphy->base + CAMSS_CSI_PHY_GLBL_PWR_CFG);
+-
+-	val = cfg->combo_mode << 4;
+-	writel_relaxed(val, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
+-
+-	while (lane_mask) {
+-		if (lane_mask & 0x1) {
+-			writel_relaxed(0x10, csiphy->base +
+-				       CAMSS_CSI_PHY_LNn_CFG2(i));
+-			writel_relaxed(settle_cnt, csiphy->base +
+-				       CAMSS_CSI_PHY_LNn_CFG3(i));
+-			writel_relaxed(0x3f, csiphy->base +
+-				       CAMSS_CSI_PHY_INTERRUPT_MASKn(i));
+-			writel_relaxed(0x3f, csiphy->base +
+-				       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
+-		}
+-
+-		lane_mask >>= 1;
+-		i++;
+-	}
++	csiphy->ops->lanes_enable(csiphy, cfg, pixel_clock, bpp, lane_mask);
+ 
+ 	return 0;
+ }
+@@ -412,18 +293,8 @@ static int csiphy_stream_on(struct csiphy_device *csiphy)
+ static void csiphy_stream_off(struct csiphy_device *csiphy)
+ {
+ 	u8 lane_mask = csiphy_get_lane_mask(&csiphy->cfg.csi2->lane_cfg);
+-	int i = 0;
+ 
+-	while (lane_mask) {
+-		if (lane_mask & 0x1)
+-			writel_relaxed(0x0, csiphy->base +
+-				       CAMSS_CSI_PHY_LNn_CFG2(i));
+-
+-		lane_mask >>= 1;
+-		i++;
+-	}
+-
+-	writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_PWR_CFG);
++	csiphy->ops->lanes_disable(csiphy, lane_mask);
+ }
+ 
+ 
+@@ -690,6 +561,11 @@ int msm_csiphy_subdev_init(struct camss *camss,
+ 	csiphy->id = id;
+ 	csiphy->cfg.combo_mode = 0;
+ 
++	if (camss->version == CAMSS_8x16)
++		csiphy->ops = &csiphy_ops_2ph_1_0;
++	else
++		return -EINVAL;
++
+ 	/* Memory */
+ 
+ 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, res->reg[0]);
+@@ -718,7 +594,8 @@ int msm_csiphy_subdev_init(struct camss *camss,
+ 	csiphy->irq = r->start;
+ 	snprintf(csiphy->irq_name, sizeof(csiphy->irq_name), "%s_%s%d",
+ 		 dev_name(dev), MSM_CSIPHY_NAME, csiphy->id);
+-	ret = devm_request_irq(dev, csiphy->irq, csiphy_isr,
++
++	ret = devm_request_irq(dev, csiphy->irq, csiphy->ops->isr,
+ 			       IRQF_TRIGGER_RISING, csiphy->irq_name, csiphy);
+ 	if (ret < 0) {
+ 		dev_err(dev, "request_irq failed: %d\n", ret);
+diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.h b/drivers/media/platform/qcom/camss/camss-csiphy.h
+index 728dfef..8f61b7d 100644
+--- a/drivers/media/platform/qcom/camss/camss-csiphy.h
++++ b/drivers/media/platform/qcom/camss/camss-csiphy.h
+@@ -11,6 +11,7 @@
+ #define QC_MSM_CAMSS_CSIPHY_H
+ 
+ #include <linux/clk.h>
++#include <linux/interrupt.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mediabus.h>
+@@ -41,6 +42,19 @@ struct csiphy_config {
+ 	struct csiphy_csi2_cfg *csi2;
+ };
+ 
++struct csiphy_device;
++
++struct csiphy_hw_ops {
++	void (*hw_version_read)(struct csiphy_device *csiphy,
++				struct device *dev);
++	void (*reset)(struct csiphy_device *csiphy);
++	void (*lanes_enable)(struct csiphy_device *csiphy,
++			     struct csiphy_config *cfg,
++			     u32 pixel_clock, u8 bpp, u8 lane_mask);
++	void (*lanes_disable)(struct csiphy_device *csiphy, u8 lane_mask);
++	irqreturn_t (*isr)(int irq, void *dev);
++};
++
+ struct csiphy_device {
+ 	struct camss *camss;
+ 	u8 id;
+@@ -55,6 +69,7 @@ struct csiphy_device {
+ 	u32 timer_clk_rate;
+ 	struct csiphy_config cfg;
+ 	struct v4l2_mbus_framefmt fmt[MSM_CSIPHY_PADS_NUM];
++	struct csiphy_hw_ops *ops;
+ };
+ 
+ struct resources;
 -- 
 2.7.4
