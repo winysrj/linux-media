@@ -1,19 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:45080 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751309AbeFVOLL (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36153 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751317AbeFVOLM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Jun 2018 10:11:11 -0400
-Received: by mail-wr0-f196.google.com with SMTP id o12-v6so6849588wrm.12
-        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2018 07:11:10 -0700 (PDT)
+        Fri, 22 Jun 2018 10:11:12 -0400
+Received: by mail-wm0-f67.google.com with SMTP id v131-v6so2795676wma.1
+        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2018 07:11:11 -0700 (PDT)
 From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
         <ckoenig.leichtzumerken@gmail.com>
 To: daniel@ffwll.ch, sumit.semwal@linaro.org,
         dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
         linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org
-Subject: [PATCH 3/4] drm/amdgpu: add independent DMA-buf export v3
-Date: Fri, 22 Jun 2018 16:11:02 +0200
-Message-Id: <20180622141103.1787-4-christian.koenig@amd.com>
+Subject: [PATCH 4/4] drm/amdgpu: add independent DMA-buf import v4
+Date: Fri, 22 Jun 2018 16:11:03 +0200
+Message-Id: <20180622141103.1787-5-christian.koenig@amd.com>
 In-Reply-To: <20180622141103.1787-1-christian.koenig@amd.com>
 References: <20180622141103.1787-1-christian.koenig@amd.com>
 MIME-Version: 1.0
@@ -22,213 +22,220 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The caching of SGT's done by the DRM code is actually quite harmful and
-should probably removed altogether in the long term.
+Instead of relying on the DRM functions just implement our own import
+functions. This prepares support for taking care of unpinned DMA-buf.
 
-Start by providing a separate DMA-buf export implementation in amdgpu. This is
-also a prerequisite of unpinned DMA-buf handling.
-
-v2: fix unintended recursion, remove debugging leftovers
-v3: split out from unpinned DMA-buf work
+v2: enable for all exporters, not just amdgpu, fix invalidation
+    handling, lock reservation object while setting callback
+v3: change to new dma_buf attach interface
+v4: split out from unpinned DMA-buf work
 
 Signed-off-by: Christian König <christian.koenig@amd.com>
 ---
- drivers/gpu/drm/amd/amdgpu/amdgpu.h       |  1 -
+ drivers/gpu/drm/amd/amdgpu/amdgpu.h       |  4 ----
  drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c   |  1 -
- drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c | 94 +++++++++++++------------------
- 3 files changed, 39 insertions(+), 57 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c | 38 +++++++++++++++++++------------
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c   | 34 +++++++++++++++++++++++----
+ 4 files changed, 52 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-index d8e0cc08f9db..5e71af8dd3a7 100644
+index 5e71af8dd3a7..391c171f814e 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-@@ -373,7 +373,6 @@ int amdgpu_gem_object_open(struct drm_gem_object *obj,
+@@ -373,10 +373,6 @@ int amdgpu_gem_object_open(struct drm_gem_object *obj,
  void amdgpu_gem_object_close(struct drm_gem_object *obj,
  				struct drm_file *file_priv);
  unsigned long amdgpu_gem_timeout(uint64_t timeout_ns);
--struct sg_table *amdgpu_gem_prime_get_sg_table(struct drm_gem_object *obj);
- struct drm_gem_object *
- amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
- 				 struct dma_buf_attachment *attach,
+-struct drm_gem_object *
+-amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
+-				 struct dma_buf_attachment *attach,
+-				 struct sg_table *sg);
+ struct dma_buf *amdgpu_gem_prime_export(struct drm_device *dev,
+ 					struct drm_gem_object *gobj,
+ 					int flags);
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index a549483032b0..cdf0be85d361 100644
+index cdf0be85d361..ad0a8b3f90b2 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 @@ -919,7 +919,6 @@ static struct drm_driver kms_driver = {
  	.gem_prime_export = amdgpu_gem_prime_export,
  	.gem_prime_import = amdgpu_gem_prime_import,
  	.gem_prime_res_obj = amdgpu_gem_prime_res_obj,
--	.gem_prime_get_sg_table = amdgpu_gem_prime_get_sg_table,
- 	.gem_prime_import_sg_table = amdgpu_gem_prime_import_sg_table,
+-	.gem_prime_import_sg_table = amdgpu_gem_prime_import_sg_table,
  	.gem_prime_vmap = amdgpu_gem_prime_vmap,
  	.gem_prime_vunmap = amdgpu_gem_prime_vunmap,
+ 	.gem_prime_mmap = amdgpu_gem_prime_mmap,
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-index b2286bc41aec..038a8c8488b7 100644
+index 038a8c8488b7..5cc4c09d720e 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-@@ -40,22 +40,6 @@
- 
- static const struct dma_buf_ops amdgpu_dmabuf_ops;
- 
--/**
-- * amdgpu_gem_prime_get_sg_table - &drm_driver.gem_prime_get_sg_table
-- * implementation
-- * @obj: GEM buffer object
-- *
-- * Returns:
-- * A scatter/gather table for the pinned pages of the buffer object's memory.
-- */
--struct sg_table *amdgpu_gem_prime_get_sg_table(struct drm_gem_object *obj)
--{
--	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
--	int npages = bo->tbo.num_pages;
--
--	return drm_prime_pages_to_sg(bo->tbo.ttm->pages, npages);
--}
--
- /**
-  * amdgpu_gem_prime_vmap - &dma_buf_ops.vmap implementation
-  * @obj: GEM buffer object
-@@ -189,35 +173,29 @@ amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
+@@ -122,31 +122,28 @@ int amdgpu_gem_prime_mmap(struct drm_gem_object *obj, struct vm_area_struct *vma
  }
  
  /**
-- * amdgpu_gem_map_attach - &dma_buf_ops.attach implementation
-- * @dma_buf: shared DMA buffer
-- * @target_dev: target device
-+ * amdgpu_gem_map_dma_buf - &dma_buf_ops.map_dma_buf implementation
-  * @attach: DMA-buf attachment
-+ * @dir: DMA direction
+- * amdgpu_gem_prime_import_sg_table - &drm_driver.gem_prime_import_sg_table
+- * implementation
++ * amdgpu_gem_prime_create_obj - create BO for DMA-buf import
++ *
+  * @dev: DRM device
+- * @attach: DMA-buf attachment
+- * @sg: Scatter/gather table
++ * @dma_buf: DMA-buf
   *
-  * Makes sure that the shared DMA buffer can be accessed by the target device.
-  * For now, simply pins it to the GTT domain, where it should be accessible by
-  * all DMA devices.
+- * Import shared DMA buffer memory exported by another device.
++ * Creates an empty SG BO for DMA-buf import.
   *
   * Returns:
-- * 0 on success or negative error code.
-+ * sg_table filled with the DMA addresses to use or ERR_PRT with negative error
-+ * code.
+  * A new GEM buffer object of the given DRM device, representing the memory
+  * described by the given DMA-buf attachment and scatter/gather table.
   */
--static int amdgpu_gem_map_attach(struct dma_buf *dma_buf,
--				 struct dma_buf_attachment *attach)
-+static struct sg_table *
-+amdgpu_gem_map_dma_buf(struct dma_buf_attachment *attach,
-+		       enum dma_data_direction dir)
+-struct drm_gem_object *
+-amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
+-				 struct dma_buf_attachment *attach,
+-				 struct sg_table *sg)
++static struct drm_gem_object *
++amdgpu_gem_prime_create_obj(struct drm_device *dev, struct dma_buf *dma_buf)
  {
-+	struct dma_buf *dma_buf = attach->dmabuf;
- 	struct drm_gem_object *obj = dma_buf->priv;
- 	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
- 	struct amdgpu_device *adev = amdgpu_ttm_adev(bo->tbo.bdev);
-+	struct sg_table *sgt;
- 	long r;
+-	struct reservation_object *resv = attach->dmabuf->resv;
++	struct reservation_object *resv = dma_buf->resv;
+ 	struct amdgpu_device *adev = dev->dev_private;
+ 	struct amdgpu_bo *bo;
+ 	struct amdgpu_bo_param bp;
+ 	int ret;
  
--	r = drm_gem_map_attach(dma_buf, attach);
--	if (r)
--		return r;
--
--	r = amdgpu_bo_reserve(bo, false);
--	if (unlikely(r != 0))
--		goto error_detach;
--
--
- 	if (attach->dev->driver != adev->dev->driver) {
- 		/*
- 		 * Wait for all shared fences to complete before we switch to future
-@@ -228,54 +206,62 @@ static int amdgpu_gem_map_attach(struct dma_buf *dma_buf,
- 							MAX_SCHEDULE_TIMEOUT);
- 		if (unlikely(r < 0)) {
- 			DRM_DEBUG_PRIME("Fence wait failed: %li\n", r);
--			goto error_unreserve;
-+			return ERR_PTR(r);
+ 	memset(&bp, 0, sizeof(bp));
+-	bp.size = attach->dmabuf->size;
++	bp.size = dma_buf->size;
+ 	bp.byte_align = PAGE_SIZE;
+ 	bp.domain = AMDGPU_GEM_DOMAIN_CPU;
+ 	bp.flags = 0;
+@@ -157,11 +154,9 @@ amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
+ 	if (ret)
+ 		goto error;
+ 
+-	bo->tbo.sg = sg;
+-	bo->tbo.ttm->sg = sg;
+ 	bo->allowed_domains = AMDGPU_GEM_DOMAIN_GTT;
+ 	bo->preferred_domains = AMDGPU_GEM_DOMAIN_GTT;
+-	if (attach->dmabuf->ops != &amdgpu_dmabuf_ops)
++	if (dma_buf->ops != &amdgpu_dmabuf_ops)
+ 		bo->prime_shared_count = 1;
+ 
+ 	ww_mutex_unlock(&resv->lock);
+@@ -376,6 +371,7 @@ struct dma_buf *amdgpu_gem_prime_export(struct drm_device *dev,
+ struct drm_gem_object *amdgpu_gem_prime_import(struct drm_device *dev,
+ 					    struct dma_buf *dma_buf)
+ {
++	struct dma_buf_attachment *attach;
+ 	struct drm_gem_object *obj;
+ 
+ 	if (dma_buf->ops == &amdgpu_dmabuf_ops) {
+@@ -390,5 +386,17 @@ struct drm_gem_object *amdgpu_gem_prime_import(struct drm_device *dev,
  		}
  	}
  
- 	/* pin buffer into GTT */
- 	r = amdgpu_bo_pin(bo, AMDGPU_GEM_DOMAIN_GTT, NULL);
- 	if (r)
--		goto error_unreserve;
-+		return ERR_PTR(r);
+-	return drm_gem_prime_import(dev, dma_buf);
++	obj = amdgpu_gem_prime_create_obj(dev, dma_buf);
++	if (IS_ERR(obj))
++		return obj;
 +
-+	sgt = drm_prime_pages_to_sg(bo->tbo.ttm->pages, bo->tbo.num_pages);
-+	if (IS_ERR(sgt))
-+		return sgt;
-+
-+	if (!dma_map_sg_attrs(attach->dev, sgt->sgl, sgt->nents, dir,
-+			      DMA_ATTR_SKIP_CPU_SYNC))
-+		goto error_free;
- 
- 	if (attach->dev->driver != adev->dev->driver)
- 		bo->prime_shared_count++;
- 
--error_unreserve:
--	amdgpu_bo_unreserve(bo);
-+	return sgt;
- 
--error_detach:
--	if (r)
--		drm_gem_map_detach(dma_buf, attach);
--	return r;
-+error_free:
-+	sg_free_table(sgt);
-+	kfree(sgt);
-+	return ERR_PTR(-ENOMEM);
- }
- 
- /**
-- * amdgpu_gem_map_detach - &dma_buf_ops.detach implementation
-- * @dma_buf: shared DMA buffer
-+ * amdgpu_gem_unmap_dma_buf - &dma_buf_ops.unmap_dma_buf implementation
-  * @attach: DMA-buf attachment
-+ * @sgt: sg_table to unmap
-+ * @dir: DMA direction
-  *
-  * This is called when a shared DMA buffer no longer needs to be accessible by
-  * the other device. For now, simply unpins the buffer from GTT.
-  */
--static void amdgpu_gem_map_detach(struct dma_buf *dma_buf,
--				  struct dma_buf_attachment *attach)
-+static void amdgpu_gem_unmap_dma_buf(struct dma_buf_attachment *attach,
-+				     struct sg_table *sgt,
-+				     enum dma_data_direction dir)
- {
-+	struct dma_buf *dma_buf = attach->dmabuf;
- 	struct drm_gem_object *obj = dma_buf->priv;
- 	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
- 	struct amdgpu_device *adev = amdgpu_ttm_adev(bo->tbo.bdev);
--	int ret = 0;
--
--	ret = amdgpu_bo_reserve(bo, true);
--	if (unlikely(ret != 0))
--		goto error;
- 
- 	amdgpu_bo_unpin(bo);
-+
- 	if (attach->dev->driver != adev->dev->driver && bo->prime_shared_count)
- 		bo->prime_shared_count--;
--	amdgpu_bo_unreserve(bo);
- 
--error:
--	drm_gem_map_detach(dma_buf, attach);
-+	if (sgt) {
-+		dma_unmap_sg(attach->dev, sgt->sgl, sgt->nents, dir);
-+		sg_free_table(sgt);
-+		kfree(sgt);
++	attach = dma_buf_attach(dma_buf, dev->dev);
++	if (IS_ERR(attach)) {
++		drm_gem_object_put(obj);
++		return ERR_CAST(attach);
 +	}
++
++	get_dma_buf(dma_buf);
++	obj->import_attach = attach;
++	return obj;
  }
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+index 0c084d3d0865..f2903054db9e 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+@@ -43,6 +43,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/debugfs.h>
+ #include <linux/iommu.h>
++#include <linux/dma-buf.h>
+ #include "amdgpu.h"
+ #include "amdgpu_object.h"
+ #include "amdgpu_trace.h"
+@@ -798,6 +799,7 @@ struct amdgpu_ttm_gup_task_list {
  
- /**
-@@ -333,10 +319,8 @@ static int amdgpu_gem_begin_cpu_access(struct dma_buf *dma_buf,
- }
+ struct amdgpu_ttm_tt {
+ 	struct ttm_dma_tt	ttm;
++	struct drm_gem_object	*gobj;
+ 	u64			offset;
+ 	uint64_t		userptr;
+ 	struct task_struct	*usertask;
+@@ -1222,6 +1224,7 @@ static struct ttm_tt *amdgpu_ttm_tt_create(struct ttm_buffer_object *bo,
+ 		return NULL;
+ 	}
+ 	gtt->ttm.ttm.func = &amdgpu_backend_func;
++	gtt->gobj = &ttm_to_amdgpu_bo(bo)->gem_base;
  
- static const struct dma_buf_ops amdgpu_dmabuf_ops = {
--	.attach = amdgpu_gem_map_attach,
--	.detach = amdgpu_gem_map_detach,
--	.map_dma_buf = drm_gem_map_dma_buf,
--	.unmap_dma_buf = drm_gem_unmap_dma_buf,
-+	.map_dma_buf = amdgpu_gem_map_dma_buf,
-+	.unmap_dma_buf = amdgpu_gem_unmap_dma_buf,
- 	.release = drm_gem_dmabuf_release,
- 	.begin_cpu_access = amdgpu_gem_begin_cpu_access,
- 	.map = drm_gem_dmabuf_kmap,
+ 	/* allocate space for the uninitialized page entries */
+ 	if (ttm_sg_tt_init(&gtt->ttm, bo, page_flags)) {
+@@ -1242,7 +1245,6 @@ static int amdgpu_ttm_tt_populate(struct ttm_tt *ttm,
+ {
+ 	struct amdgpu_device *adev = amdgpu_ttm_adev(ttm->bdev);
+ 	struct amdgpu_ttm_tt *gtt = (void *)ttm;
+-	bool slave = !!(ttm->page_flags & TTM_PAGE_FLAG_SG);
+ 
+ 	/* user pages are bound by amdgpu_ttm_tt_pin_userptr() */
+ 	if (gtt && gtt->userptr) {
+@@ -1255,7 +1257,20 @@ static int amdgpu_ttm_tt_populate(struct ttm_tt *ttm,
+ 		return 0;
+ 	}
+ 
+-	if (slave && ttm->sg) {
++	if (ttm->page_flags & TTM_PAGE_FLAG_SG) {
++		if (!ttm->sg) {
++			struct dma_buf_attachment *attach;
++			struct sg_table *sgt;
++
++			attach = gtt->gobj->import_attach;
++			sgt = dma_buf_map_attachment_locked(attach,
++							    DMA_BIDIRECTIONAL);
++			if (IS_ERR(sgt))
++				return PTR_ERR(sgt);
++
++			ttm->sg = sgt;
++		}
++
+ 		drm_prime_sg_to_page_addr_arrays(ttm->sg, ttm->pages,
+ 						 gtt->ttm.dma_address,
+ 						 ttm->num_pages);
+@@ -1282,9 +1297,8 @@ static int amdgpu_ttm_tt_populate(struct ttm_tt *ttm,
+  */
+ static void amdgpu_ttm_tt_unpopulate(struct ttm_tt *ttm)
+ {
+-	struct amdgpu_device *adev;
+ 	struct amdgpu_ttm_tt *gtt = (void *)ttm;
+-	bool slave = !!(ttm->page_flags & TTM_PAGE_FLAG_SG);
++	struct amdgpu_device *adev;
+ 
+ 	if (gtt && gtt->userptr) {
+ 		amdgpu_ttm_tt_set_user_pages(ttm, NULL);
+@@ -1293,7 +1307,17 @@ static void amdgpu_ttm_tt_unpopulate(struct ttm_tt *ttm)
+ 		return;
+ 	}
+ 
+-	if (slave)
++	if (ttm->sg && gtt->gobj->import_attach) {
++		struct dma_buf_attachment *attach;
++
++		attach = gtt->gobj->import_attach;
++		dma_buf_unmap_attachment_locked(attach, ttm->sg,
++						DMA_BIDIRECTIONAL);
++		ttm->sg = NULL;
++		return;
++	}
++
++	if (ttm->page_flags & TTM_PAGE_FLAG_SG)
+ 		return;
+ 
+ 	adev = amdgpu_ttm_adev(ttm->bdev);
 -- 
 2.14.1
