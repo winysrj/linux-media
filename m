@@ -1,106 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:40958 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751644AbeFWIRD (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:60626 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751411AbeFVLmN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Jun 2018 04:17:03 -0400
-Subject: Re: [PATCH v2 1/2] media: add helpers for memory-to-memory media
- controller
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        emil.velikov@collabora.com
-References: <20180621203828.18173-1-ezequiel@collabora.com>
- <20180621203828.18173-2-ezequiel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b098060d-b06f-78bc-4503-2571fddbd46c@xs4all.nl>
-Date: Sat, 23 Jun 2018 10:16:57 +0200
+        Fri, 22 Jun 2018 07:42:13 -0400
+Subject: Re: [PATCH v2] dma-buf/fence: Take refcount on the module that owns
+ the fence
+To: Chris Wilson <chris@chris-wilson.co.uk>,
+        Gustavo Padovan <gustavo@padovan.org>, sumit.semwal@linaro.org,
+        jcrouse@codeaurora.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+        linux-kernel@vger.kernel.org
+Cc: linux-arm-msm@vger.kernel.org, smasetty@codeaurora.org
+References: <1529660407-6266-1-git-send-email-akhilpo@codeaurora.org>
+ <1529661856.7034.404.camel@padovan.org>
+ <152966212844.11773.6596589902326100250@mail.alporthouse.com>
+From: Akhil P Oommen <akhilpo@codeaurora.org>
+Message-ID: <cb950fea-b0cc-bbe7-9e94-78c62849cb64@codeaurora.org>
+Date: Fri, 22 Jun 2018 17:12:05 +0530
 MIME-Version: 1.0
-In-Reply-To: <20180621203828.18173-2-ezequiel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <152966212844.11773.6596589902326100250@mail.alporthouse.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/21/2018 10:38 PM, Ezequiel Garcia wrote:
-> A memory-to-memory pipeline device consists in three
-> entities: two DMA engine and one video processing entities.
-> The DMA engine entities are linked to a V4L interface.
-> 
-> This commit add a new v4l2_m2m_{un}register_media_controller
-> API to register this topology.
-> 
-> For instance, a typical mem2mem device topology would
-> look like this:
-> 
-> Device topology
-> - entity 1: source (1 pad, 1 link)
->             type Node subtype V4L flags 0
-> 	pad0: Source
-> 		-> "proc":1 [ENABLED,IMMUTABLE]
-> 
-> - entity 3: proc (2 pads, 2 links)
->             type Node subtype Unknown flags 0
-> 	pad0: Source
-> 		-> "sink":0 [ENABLED,IMMUTABLE]
-> 	pad1: Sink
-> 		<- "source":0 [ENABLED,IMMUTABLE]
-> 
-> - entity 6: sink (1 pad, 1 link)
->             type Node subtype V4L flags 0
-> 	pad0: Sink
-> 		<- "proc":0 [ENABLED,IMMUTABLE]
-> 
-> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Suggested-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> ---
->  drivers/media/v4l2-core/v4l2-dev.c     |  13 +-
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 174 +++++++++++++++++++++++++
->  include/media/v4l2-mem2mem.h           |  19 +++
->  include/uapi/linux/media.h             |   3 +
->  4 files changed, 204 insertions(+), 5 deletions(-)
-> 
 
-<snip>
 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index c7e9a5cba24e..5f58c7ac04c0 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -132,6 +132,9 @@ struct media_device_info {
->  #define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
->  #define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
->  #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
-> +#define MEDIA_ENT_F_PROC_VIDEO_DECODER		(MEDIA_ENT_F_BASE + 0x4007)
-> +#define MEDIA_ENT_F_PROC_VIDEO_ENCODER		(MEDIA_ENT_F_BASE + 0x4008)
-> +#define MEDIA_ENT_F_PROC_VIDEO_DEINTERLACER	(MEDIA_ENT_F_BASE + 0x4009)
->  
->  /*
->   * Switch and bridge entity functions
-> 
+On 6/22/2018 3:38 PM, Chris Wilson wrote:
+> Quoting Gustavo Padovan (2018-06-22 11:04:16)
+>> Hi Akhil,
+>>
+>> On Fri, 2018-06-22 at 15:10 +0530, Akhil P Oommen wrote:
+>>> Each fence object holds function pointers of the module that
+>>> initialized
+>>> it. Allowing the module to unload before this fence's release is
+>>> catastrophic. So, keep a refcount on the module until the fence is
+>>> released.
+>>>
+>>> Signed-off-by: Akhil P Oommen <akhilpo@codeaurora.org>
+>>> ---
+>>> Changes in v2:
+>>> - added description for the new function parameter.
+>>>
+>>>   drivers/dma-buf/dma-fence.c | 16 +++++++++++++---
+>>>   include/linux/dma-fence.h   | 10 ++++++++--
+>>>   2 files changed, 21 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-
+>>> fence.c
+>>> index 4edb9fd..2aaa44e 100644
+>>> --- a/drivers/dma-buf/dma-fence.c
+>>> +++ b/drivers/dma-buf/dma-fence.c
+>>> @@ -18,6 +18,7 @@
+>>>    * more details.
+>>>    */
+>>>   
+>>> +#include <linux/module.h>
+>>>   #include <linux/slab.h>
+>>>   #include <linux/export.h>
+>>>   #include <linux/atomic.h>
+>>> @@ -168,6 +169,7 @@ void dma_fence_release(struct kref *kref)
+>>>   {
+>>>        struct dma_fence *fence =
+>>>                container_of(kref, struct dma_fence, refcount);
+>>> +     struct module *module = fence->owner;
+>>>   
+>>>        trace_dma_fence_destroy(fence);
+>>>   
+>>> @@ -178,6 +180,8 @@ void dma_fence_release(struct kref *kref)
+>>>                fence->ops->release(fence);
+>>>        else
+>>>                dma_fence_free(fence);
+>>> +
+>>> +     module_put(module);
+>>>   }
+>>>   EXPORT_SYMBOL(dma_fence_release);
+>>>   
+>>> @@ -541,6 +545,7 @@ struct default_wait_cb {
+>>>   
+>>>   /**
+>>>    * dma_fence_init - Initialize a custom fence.
+>>> + * @module:  [in]    the module that calls this API
+>>>    * @fence:   [in]    the fence to initialize
+>>>    * @ops:     [in]    the dma_fence_ops for operations on this
+>>> fence
+>>>    * @lock:    [in]    the irqsafe spinlock to use for locking
+>>> this fence
+>>> @@ -556,8 +561,9 @@ struct default_wait_cb {
+>>>    * to check which fence is later by simply using dma_fence_later.
+>>>    */
+>>>   void
+>>> -dma_fence_init(struct dma_fence *fence, const struct dma_fence_ops
+>>> *ops,
+>>> -            spinlock_t *lock, u64 context, unsigned seqno)
+>>> +_dma_fence_init(struct module *module, struct dma_fence *fence,
+>>> +             const struct dma_fence_ops *ops, spinlock_t *lock,
+>>> +             u64 context, unsigned seqno)
+>>>   {
+>>>        BUG_ON(!lock);
+>>>        BUG_ON(!ops || !ops->wait || !ops->enable_signaling ||
+>>> @@ -571,7 +577,11 @@ struct default_wait_cb {
+>>>        fence->seqno = seqno;
+>>>        fence->flags = 0UL;
+>>>        fence->error = 0;
+>>> +     fence->owner = module;
+>>> +
+>>> +     if (!try_module_get(module))
+>>> +             fence->owner = NULL;
+>>>   
+>>>        trace_dma_fence_init(fence);
+>>>   }
+>>> -EXPORT_SYMBOL(dma_fence_init);
+>>> +EXPORT_SYMBOL(_dma_fence_init);
+>> Do we still need to export the symbol, it won't be called from outside
+>> anymore? Other than that looks good to me:
+Yes. Because dma_fence_init() is now a macro that resolves to 
+_dma_fence_init().
+> There's a big drawback in that a module reference is often insufficient,
+> and that a reference on the driver (or whatever is required for the
+> lifetime of the fence) will already hold the module reference.
+I didn't quite understand what you meant here. Could you please elaborate?
+>
+> Considering that we want a few 100k fences in flight per second, is
+> there no other way to only export a fence with a module reference?
+> -Chris
 
-This last chunk is unrelated to this patch series.
-
-May I suggest that you post this as a separate patch, together with an update to
-the documentation (media-types.rst), that sits on top of:
-
-https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=media-missing2
-
-That branch reformats the tables in media-types.rst, making it easier to add new
-entries. In addition it already has one patch adding a new function ("media.h: add
-MEDIA_ENT_F_DTV_ENCODER"). I'm happy to add your patch to this series and to
-include it in the eventual pull request. The patches in this branch were also
-posted to the mailinglist:
-
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg132942.html
-
-Otherwise this patch looks great (after swapping the source/sink pad order).
-
-Regards,
-
-	Hans
+Thanks,
+Akhil.
