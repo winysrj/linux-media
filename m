@@ -1,136 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:46341 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:46400 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933908AbeFVPeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Jun 2018 11:34:00 -0400
+        id S933933AbeFVPeC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Jun 2018 11:34:02 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH 02/32] media: v4l: Add new 2X8 10-bit grayscale media bus code
-Date: Fri, 22 Jun 2018 18:33:11 +0300
-Message-Id: <1529681621-9682-3-git-send-email-todor.tomov@linaro.org>
+Subject: [PATCH 06/32] media: camss: Fix OF node usage
+Date: Fri, 22 Jun 2018 18:33:15 +0300
+Message-Id: <1529681621-9682-7-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
 References: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code will be called MEDIA_BUS_FMT_Y10_2X8_PADHI_LE.
-It is similar to MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE
-but MEDIA_BUS_FMT_Y10_2X8_PADHI_LE describes grayscale
-data.
+of_graph_get_next_endpoint increases the refcount of the returned
+node and decreases the refcount of the passed node. Take this into
+account and use of_node_put properly.
 
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/uapi/v4l/subdev-formats.rst | 72 +++++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h           |  3 +-
- 2 files changed, 74 insertions(+), 1 deletion(-)
+ drivers/media/platform/qcom/camss/camss.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-index 9fcabe7..c4fb0bf 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -4315,6 +4315,78 @@ the following codes.
-       - y\ :sub:`2`
-       - y\ :sub:`1`
-       - y\ :sub:`0`
-+    * .. _MEDIA-BUS-FMT-Y10-2X8-PADHI_LE:
-+
-+      - MEDIA_BUS_FMT_Y10_2X8_PADHI_LE
-+      - 0x202c
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+    * -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      - 0
-+      - 0
-+      - 0
-+      - 0
-+      - 0
-+      - 0
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-     * .. _MEDIA-BUS-FMT-UYVY10-2X10:
+diff --git a/drivers/media/platform/qcom/camss/camss.c b/drivers/media/platform/qcom/camss/camss.c
+index 45285eb..abf6184 100644
+--- a/drivers/media/platform/qcom/camss/camss.c
++++ b/drivers/media/platform/qcom/camss/camss.c
+@@ -296,6 +296,7 @@ static int camss_of_parse_ports(struct device *dev,
+ 		if (of_device_is_available(node))
+ 			notifier->num_subdevs++;
  
-       - MEDIA_BUS_FMT_UYVY10_2X10
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 9e35117..d6a5a3b 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -62,7 +62,7 @@
- #define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
- #define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
++	of_node_put(node);
+ 	size = sizeof(*notifier->subdevs) * notifier->num_subdevs;
+ 	notifier->subdevs = devm_kzalloc(dev, size, GFP_KERNEL);
+ 	if (!notifier->subdevs) {
+@@ -326,16 +327,16 @@ static int camss_of_parse_ports(struct device *dev,
+ 		}
  
--/* YUV (including grey) - next is	0x202c */
-+/* YUV (including grey) - next is	0x202d */
- #define MEDIA_BUS_FMT_Y8_1X8			0x2001
- #define MEDIA_BUS_FMT_UV8_1X8			0x2015
- #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-@@ -74,6 +74,7 @@
- #define MEDIA_BUS_FMT_YUYV8_2X8			0x2008
- #define MEDIA_BUS_FMT_YVYU8_2X8			0x2009
- #define MEDIA_BUS_FMT_Y10_1X10			0x200a
-+#define MEDIA_BUS_FMT_Y10_2X8_PADHI_LE		0x202c
- #define MEDIA_BUS_FMT_UYVY10_2X10		0x2018
- #define MEDIA_BUS_FMT_VYUY10_2X10		0x2019
- #define MEDIA_BUS_FMT_YUYV10_2X10		0x200b
+ 		remote = of_graph_get_remote_port_parent(node);
+-		of_node_put(node);
+-
+ 		if (!remote) {
+ 			dev_err(dev, "Cannot get remote parent\n");
++			of_node_put(node);
+ 			return -EINVAL;
+ 		}
+ 
+ 		csd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+ 		csd->asd.match.fwnode = of_fwnode_handle(remote);
+ 	}
++	of_node_put(node);
+ 
+ 	return notifier->num_subdevs;
+ }
 -- 
 2.7.4
