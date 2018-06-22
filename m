@@ -1,157 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:46336 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:46343 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933915AbeFVPeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S933917AbeFVPeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Fri, 22 Jun 2018 11:34:00 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH 00/32] Qualcomm Camera Subsystem driver - 8x96 support
-Date: Fri, 22 Jun 2018 18:33:09 +0300
-Message-Id: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
+Subject: [PATCH 03/32] media: v4l: Add new 10-bit packed grayscale format
+Date: Fri, 22 Jun 2018 18:33:12 +0300
+Message-Id: <1529681621-9682-4-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
+References: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset adds support for the Qualcomm Camera Subsystem found
-on Qualcomm MSM8996 and APQ8096 SoC to the existing driver which
-used to support MSM8916 and APQ8016.
+The new format will be called V4L2_PIX_FMT_Y10P.
+It is similar to the V4L2_PIX_FMT_SBGGR10P family formats
+but V4L2_PIX_FMT_Y10P is a grayscale format.
 
-The camera subsystem hardware on 8x96 is similar to 8x16 but
-supports more cameras and features. More details are added in the
-driver document by the last patch.
-
-The first 3 patches are dependencies which have already been on
-the mainling list but I'm adding them here for completeness.
-
-The following 11 patches add general updates and fixes to the driver.
-Then the rest add the support for the new hardware.
-
-The driver is tested on Dragonboard 410c (APQ8016) and Dragonboard 820c
-(APQ8096) with OV5645 camera sensors. media-ctl [1], yavta [2] and
-GStreamer were used for testing.
-
-[1] https://git.linuxtv.org//v4l-utils.git
-[2] http://git.ideasonboard.org/yavta.git
-
-
-Sakari Ailus (1):
-  doc-rst: Add packed Bayer raw14 pixel formats
-
-Todor Tomov (31):
-  media: v4l: Add new 2X8 10-bit grayscale media bus code
-  media: v4l: Add new 10-bit packed grayscale format
-  media: Rename CAMSS driver path
-  media: camss: Use SPDX license headers
-  media: camss: Fix OF node usage
-  media: camss: csiphy: Ensure clock mux config is done before the rest
-  media: camss: Unify the clock names
-  media: camss: csiphy: Update settle count calculation
-  media: camss: csid: Configure data type and decode format properly
-  media: camss: vfe: Fix to_vfe() macro member name
-  media: camss: vfe: Get line pointer as container of video_out
-  media: camss: vfe: Do not disable CAMIF when clearing its status
-  media: dt-bindings: media: qcom,camss: Fix whitespaces
-  media: dt-bindings: media: qcom,camss: Add 8996 bindings
-  media: camss: Add 8x96 resources
-  media: camss: Add basic runtime PM support
-  media: camss: csiphy: Split to hardware dependent and independent
-    parts
-  media: camss: csiphy: Unify lane handling
-  media: camss: csiphy: Add support for 8x96
-  media: camss: csid: Add support for 8x96
-  media: camss: ispif: Add support for 8x96
-  media: camss: vfe: Split to hardware dependent and independent parts
-  media: camss: vfe: Add support for 8x96
-  media: camss: Format configuration per hardware version
-  media: camss: vfe: Different format support on source pad
-  media: camss: vfe: Add support for UYVY output from VFE on 8x96
-  media: camss: csid: Different format support on source pad
-  media: camss: csid: MIPI10 to Plain16 format conversion
-  media: camss: Add support for RAW MIPI14 on 8x96
-  media: camss: Add support for 10-bit grayscale formats
-  media: doc: media/v4l-drivers: Update Qualcomm CAMSS driver document
-    for 8x96
-
- .../devicetree/bindings/media/qcom,camss.txt       |  128 +-
- Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    1 +
- Documentation/media/uapi/v4l/pixfmt-srggb14p.rst   |  127 +
- Documentation/media/uapi/v4l/pixfmt-y10p.rst       |   33 +
- Documentation/media/uapi/v4l/subdev-formats.rst    |   72 +
- Documentation/media/uapi/v4l/yuv-formats.rst       |    1 +
- Documentation/media/v4l-drivers/qcom_camss.rst     |   93 +-
- .../media/v4l-drivers/qcom_camss_8x96_graph.dot    |  104 +
- MAINTAINERS                                        |    2 +-
- drivers/media/platform/Kconfig                     |    2 +-
- drivers/media/platform/Makefile                    |    2 +-
- drivers/media/platform/qcom/camss-8x16/Makefile    |   11 -
- .../media/platform/qcom/camss-8x16/camss-csid.c    | 1094 -------
- .../media/platform/qcom/camss-8x16/camss-csid.h    |   82 -
- .../media/platform/qcom/camss-8x16/camss-csiphy.c  |  893 ------
- .../media/platform/qcom/camss-8x16/camss-csiphy.h  |   77 -
- .../media/platform/qcom/camss-8x16/camss-ispif.c   | 1178 --------
- .../media/platform/qcom/camss-8x16/camss-ispif.h   |   85 -
- drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 3093 --------------------
- drivers/media/platform/qcom/camss-8x16/camss-vfe.h |  123 -
- .../media/platform/qcom/camss-8x16/camss-video.c   |  859 ------
- .../media/platform/qcom/camss-8x16/camss-video.h   |   70 -
- drivers/media/platform/qcom/camss-8x16/camss.c     |  751 -----
- drivers/media/platform/qcom/camss-8x16/camss.h     |  106 -
- drivers/media/platform/qcom/camss/Makefile         |   15 +
- drivers/media/platform/qcom/camss/camss-csid.c     | 1376 +++++++++
- drivers/media/platform/qcom/camss/camss-csid.h     |   77 +
- .../platform/qcom/camss/camss-csiphy-2ph-1-0.c     |  177 ++
- .../platform/qcom/camss/camss-csiphy-3ph-1-0.c     |  256 ++
- drivers/media/platform/qcom/camss/camss-csiphy.c   |  761 +++++
- drivers/media/platform/qcom/camss/camss-csiphy.h   |   89 +
- drivers/media/platform/qcom/camss/camss-ispif.c    | 1367 +++++++++
- drivers/media/platform/qcom/camss/camss-ispif.h    |   78 +
- drivers/media/platform/qcom/camss/camss-vfe-4-1.c  | 1018 +++++++
- drivers/media/platform/qcom/camss/camss-vfe-4-7.c  | 1140 ++++++++
- drivers/media/platform/qcom/camss/camss-vfe.c      | 2341 +++++++++++++++
- drivers/media/platform/qcom/camss/camss-vfe.h      |  183 ++
- drivers/media/platform/qcom/camss/camss-video.c    |  958 ++++++
- drivers/media/platform/qcom/camss/camss-video.h    |   62 +
- drivers/media/platform/qcom/camss/camss.c          | 1027 +++++++
- drivers/media/platform/qcom/camss/camss.h          |  115 +
- drivers/media/v4l2-core/v4l2-ioctl.c               |    1 +
- include/uapi/linux/media-bus-format.h              |    3 +-
- include/uapi/linux/videodev2.h                     |    6 +
- 44 files changed, 11530 insertions(+), 8507 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-y10p.rst | 33 ++++++++++++++++++++++++++++
+ Documentation/media/uapi/v4l/yuv-formats.rst |  1 +
+ drivers/media/v4l2-core/v4l2-ioctl.c         |  1 +
+ include/uapi/linux/videodev2.h               |  1 +
+ 4 files changed, 36 insertions(+)
  create mode 100644 Documentation/media/uapi/v4l/pixfmt-y10p.rst
- create mode 100644 Documentation/media/v4l-drivers/qcom_camss_8x96_graph.dot
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/Makefile
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss-csid.c
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss-csid.h
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss-csiphy.c
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss-csiphy.h
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss-ispif.c
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss-ispif.h
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss-vfe.c
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss-vfe.h
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss-video.c
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss-video.h
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss.c
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss.h
- create mode 100644 drivers/media/platform/qcom/camss/Makefile
- create mode 100644 drivers/media/platform/qcom/camss/camss-csid.c
- create mode 100644 drivers/media/platform/qcom/camss/camss-csid.h
- create mode 100644 drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
- create mode 100644 drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c
- create mode 100644 drivers/media/platform/qcom/camss/camss-csiphy.c
- create mode 100644 drivers/media/platform/qcom/camss/camss-csiphy.h
- create mode 100644 drivers/media/platform/qcom/camss/camss-ispif.c
- create mode 100644 drivers/media/platform/qcom/camss/camss-ispif.h
- create mode 100644 drivers/media/platform/qcom/camss/camss-vfe-4-1.c
- create mode 100644 drivers/media/platform/qcom/camss/camss-vfe-4-7.c
- create mode 100644 drivers/media/platform/qcom/camss/camss-vfe.c
- create mode 100644 drivers/media/platform/qcom/camss/camss-vfe.h
- create mode 100644 drivers/media/platform/qcom/camss/camss-video.c
- create mode 100644 drivers/media/platform/qcom/camss/camss-video.h
- create mode 100644 drivers/media/platform/qcom/camss/camss.c
- create mode 100644 drivers/media/platform/qcom/camss/camss.h
 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-y10p.rst b/Documentation/media/uapi/v4l/pixfmt-y10p.rst
+new file mode 100644
+index 0000000..13b5713
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-y10p.rst
+@@ -0,0 +1,33 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-PIX-FMT-Y10P:
++
++******************************
++V4L2_PIX_FMT_Y10P ('Y10P')
++******************************
++
++Grey-scale image as a MIPI RAW10 packed array
++
++
++Description
++===========
++
++This is a packed grey-scale image format with a depth of 10 bits per
++pixel. Every four consecutive pixels are packed into 5 bytes. Each of
++the first 4 bytes contain the 8 high order bits of the pixels, and
++the 5th byte contains the 2 least significants bits of each pixel,
++in the same order.
++
++**Bit-packed representation.**
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths: 8 8 8 8 64
++
++    * - Y'\ :sub:`00[9:2]`
++      - Y'\ :sub:`01[9:2]`
++      - Y'\ :sub:`02[9:2]`
++      - Y'\ :sub:`03[9:2]`
++      - Y'\ :sub:`03[1:0]`\ (bits 7--6) Y'\ :sub:`02[1:0]`\ (bits 5--4)
++	Y'\ :sub:`01[1:0]`\ (bits 3--2) Y'\ :sub:`00[1:0]`\ (bits 1--0)
+diff --git a/Documentation/media/uapi/v4l/yuv-formats.rst b/Documentation/media/uapi/v4l/yuv-formats.rst
+index 3334ea4..9ab0592 100644
+--- a/Documentation/media/uapi/v4l/yuv-formats.rst
++++ b/Documentation/media/uapi/v4l/yuv-formats.rst
+@@ -29,6 +29,7 @@ to brightness information.
+     pixfmt-y10
+     pixfmt-y12
+     pixfmt-y10b
++    pixfmt-y10p
+     pixfmt-y16
+     pixfmt-y16-be
+     pixfmt-y8i
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index dd21006..95d7409 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1147,6 +1147,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_Y16:		descr = "16-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Y16_BE:	descr = "16-bit Greyscale BE"; break;
+ 	case V4L2_PIX_FMT_Y10BPACK:	descr = "10-bit Greyscale (Packed)"; break;
++	case V4L2_PIX_FMT_Y10P:		descr = "10-bit Greyscale (MIPI Packed)"; break;
+ 	case V4L2_PIX_FMT_Y8I:		descr = "Interleaved 8-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index a15e03b..fc177d8 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -522,6 +522,7 @@ struct v4l2_pix_format {
+ 
+ /* Grey bit-packed formats */
+ #define V4L2_PIX_FMT_Y10BPACK    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
++#define V4L2_PIX_FMT_Y10P    v4l2_fourcc('Y', '1', '0', 'P') /* 10  Greyscale, MIPI RAW10 packed */
+ 
+ /* Palette formats */
+ #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
 -- 
 2.7.4
