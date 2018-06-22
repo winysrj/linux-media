@@ -1,69 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:55393 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:33963 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933961AbeFVPwV (ORCPT
+        with ESMTP id S933962AbeFVPwV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 22 Jun 2018 11:52:21 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
 Cc: kernel@pengutronix.de, Steve Longerbeam <slongerbeam@gmail.com>
-Subject: [PATCH 06/16] gpu: ipu-v3: image-convert: calculate tile dimensions and offsets outside fill_image
-Date: Fri, 22 Jun 2018 17:52:07 +0200
-Message-Id: <20180622155217.29302-7-p.zabel@pengutronix.de>
+Subject: [PATCH 07/16] gpu: ipu-v3: image-convert: move tile alignment helpers
+Date: Fri, 22 Jun 2018 17:52:08 +0200
+Message-Id: <20180622155217.29302-8-p.zabel@pengutronix.de>
 In-Reply-To: <20180622155217.29302-1-p.zabel@pengutronix.de>
 References: <20180622155217.29302-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will allow to calculate seam positions after initializing the
-ipu_image base structure but before calculating tile dimensions.
+Move tile_width_align and tile_height_align up so they
+can be used by the tile edge position calculation code.
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/gpu/ipu-v3/ipu-image-convert.c | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ drivers/gpu/ipu-v3/ipu-image-convert.c | 54 +++++++++++++-------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
-index c3358e83bcc1..06d65c63262d 100644
+index 06d65c63262d..da6f18475b6b 100644
 --- a/drivers/gpu/ipu-v3/ipu-image-convert.c
 +++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
-@@ -1447,9 +1447,6 @@ static int fill_image(struct ipu_image_convert_ctx *ctx,
- 	else
- 		ic_image->stride  = ic_image->base.pix.bytesperline;
- 
--	calc_tile_dimensions(ctx, ic_image);
--	calc_tile_offsets(ctx, ic_image);
--
+@@ -426,6 +426,33 @@ static int calc_image_resize_coefficients(struct ipu_image_convert_ctx *ctx,
  	return 0;
  }
  
-@@ -1654,10 +1651,6 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
- 	ctx->num_tiles = d_image->num_cols * d_image->num_rows;
- 	ctx->rot_mode = rot_mode;
++/*
++ * We have to adjust the tile width such that the tile physaddrs and
++ * U and V plane offsets are multiples of 8 bytes as required by
++ * the IPU DMA Controller. For the planar formats, this corresponds
++ * to a pixel alignment of 16 (but use a more formal equation since
++ * the variables are available). For all the packed formats, 8 is
++ * good enough.
++ */
++static inline u32 tile_width_align(const struct ipu_image_pixfmt *fmt)
++{
++	return fmt->planar ? 8 * fmt->uv_width_dec : 8;
++}
++
++/*
++ * For tile height alignment, we have to ensure that the output tile
++ * heights are multiples of 8 lines if the IRT is required by the
++ * given rotation mode (the IRT performs rotations on 8x8 blocks
++ * at a time). If the IRT is not used, or for input image tiles,
++ * 2 lines are good enough.
++ */
++static inline u32 tile_height_align(enum ipu_image_convert_type type,
++				    enum ipu_rotate_mode rot_mode)
++{
++	return (type == IMAGE_CONVERT_OUT &&
++		ipu_rot_mode_is_irt(rot_mode)) ? 8 : 2;
++}
++
+ static void calc_tile_dimensions(struct ipu_image_convert_ctx *ctx,
+ 				 struct ipu_image_convert_image *image)
+ {
+@@ -1467,33 +1494,6 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
+ 	return x;
+ }
  
--	ret = calc_image_resize_coefficients(ctx, in, out);
--	if (ret)
--		goto out_free;
+-/*
+- * We have to adjust the tile width such that the tile physaddrs and
+- * U and V plane offsets are multiples of 8 bytes as required by
+- * the IPU DMA Controller. For the planar formats, this corresponds
+- * to a pixel alignment of 16 (but use a more formal equation since
+- * the variables are available). For all the packed formats, 8 is
+- * good enough.
+- */
+-static inline u32 tile_width_align(const struct ipu_image_pixfmt *fmt)
+-{
+-	return fmt->planar ? 8 * fmt->uv_width_dec : 8;
+-}
 -
- 	ret = fill_image(ctx, s_image, in, IMAGE_CONVERT_IN);
- 	if (ret)
- 		goto out_free;
-@@ -1665,6 +1658,16 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
- 	if (ret)
- 		goto out_free;
- 
-+	ret = calc_image_resize_coefficients(ctx, in, out);
-+	if (ret)
-+		goto out_free;
-+
-+	calc_tile_dimensions(ctx, s_image);
-+	calc_tile_offsets(ctx, s_image);
-+
-+	calc_tile_dimensions(ctx, d_image);
-+	calc_tile_offsets(ctx, d_image);
-+
- 	calc_out_tile_map(ctx);
- 	calc_tile_resize_coefficients(ctx);
- 
+-/*
+- * For tile height alignment, we have to ensure that the output tile
+- * heights are multiples of 8 lines if the IRT is required by the
+- * given rotation mode (the IRT performs rotations on 8x8 blocks
+- * at a time). If the IRT is not used, or for input image tiles,
+- * 2 lines are good enough.
+- */
+-static inline u32 tile_height_align(enum ipu_image_convert_type type,
+-				    enum ipu_rotate_mode rot_mode)
+-{
+-	return (type == IMAGE_CONVERT_OUT &&
+-		ipu_rot_mode_is_irt(rot_mode)) ? 8 : 2;
+-}
+-
+ /* Adjusts input/output images to IPU restrictions */
+ void ipu_image_convert_adjust(struct ipu_image *in, struct ipu_image *out,
+ 			      enum ipu_rotate_mode rot_mode)
 -- 
 2.17.1
