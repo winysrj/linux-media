@@ -1,133 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:46557 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:46447 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933995AbeFVPeJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S933916AbeFVPeJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Fri, 22 Jun 2018 11:34:09 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH 28/32] media: camss: csid: Different format support on source pad
-Date: Fri, 22 Jun 2018 18:33:37 +0300
-Message-Id: <1529681621-9682-29-git-send-email-todor.tomov@linaro.org>
+Subject: [PATCH 31/32] media: camss: Add support for 10-bit grayscale formats
+Date: Fri, 22 Jun 2018 18:33:40 +0300
+Message-Id: <1529681621-9682-32-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
 References: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Usually the format on the source pad is the same as on the sink pad.
-However the CSID is able to do some format conversions. To support
-this make the format on the source pad selectable amongst a list
-of formats. This list can be different for each sink pad format.
-This is still not used but will be when the format conversions
-are implemented.
+Add support for 10-bit packed V4L2_PIX_FMT_Y10P (on 8x16 and 8x96)
+and unpacked V4L2_PIX_FMT_Y10 (on 8x96 only) pixel formats.
 
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/platform/qcom/camss/camss-csid.c | 65 ++++++++++++++++++++------
- 1 file changed, 52 insertions(+), 13 deletions(-)
+ drivers/media/platform/qcom/camss/camss-csid.c   | 50 +++++++++++++++++++-----
+ drivers/media/platform/qcom/camss/camss-csiphy.c |  2 +
+ drivers/media/platform/qcom/camss/camss-ispif.c  |  6 ++-
+ drivers/media/platform/qcom/camss/camss-vfe.c    |  3 ++
+ drivers/media/platform/qcom/camss/camss-video.c  |  6 +++
+ 5 files changed, 56 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/media/platform/qcom/camss/camss-csid.c b/drivers/media/platform/qcom/camss/camss-csid.c
-index 18420e3..9cfef98 100644
+index 41d6fd2..f154eba 100644
 --- a/drivers/media/platform/qcom/camss/camss-csid.c
 +++ b/drivers/media/platform/qcom/camss/camss-csid.c
-@@ -300,6 +300,43 @@ static const struct csid_format csid_formats_8x96[] = {
- 	}
+@@ -193,7 +193,14 @@ static const struct csid_format csid_formats_8x16[] = {
+ 		DECODE_FORMAT_UNCOMPRESSED_12_BIT,
+ 		12,
+ 		1,
+-	}
++	},
++	{
++		MEDIA_BUS_FMT_Y10_1X10,
++		DATA_TYPE_RAW_10BIT,
++		DECODE_FORMAT_UNCOMPRESSED_10_BIT,
++		10,
++		1,
++	},
  };
  
-+static u32 csid_find_code(u32 *code, unsigned int n_code,
-+			  unsigned int index, u32 req_code)
-+{
-+	int i;
+ static const struct csid_format csid_formats_8x96[] = {
+@@ -336,7 +343,14 @@ static const struct csid_format csid_formats_8x96[] = {
+ 		DECODE_FORMAT_UNCOMPRESSED_14_BIT,
+ 		14,
+ 		1,
+-	}
++	},
++	{
++		MEDIA_BUS_FMT_Y10_1X10,
++		DATA_TYPE_RAW_10BIT,
++		DECODE_FORMAT_UNCOMPRESSED_10_BIT,
++		10,
++		1,
++	},
+ };
+ 
+ static u32 csid_find_code(u32 *code, unsigned int n_code,
+@@ -376,6 +390,16 @@ static u32 csid_src_pad_code(struct csid_device *csid, u32 sink_code,
+ 			return csid_find_code(src_code, ARRAY_SIZE(src_code),
+ 					      index, src_req_code);
+ 		}
++		case MEDIA_BUS_FMT_Y10_1X10:
++		{
++			u32 src_code[] = {
++				MEDIA_BUS_FMT_Y10_1X10,
++				MEDIA_BUS_FMT_Y10_2X8_PADHI_LE,
++			};
 +
-+	if (!req_code && (index >= n_code))
-+		return 0;
-+
-+	for (i = 0; i < n_code; i++)
-+		if (req_code) {
-+			if (req_code == code[i])
-+				return req_code;
-+		} else {
-+			if (i == index)
-+				return code[i];
++			return csid_find_code(src_code, ARRAY_SIZE(src_code),
++					      index, src_req_code);
 +		}
+ 		default:
+ 			if (index > 0)
+ 				return 0;
+@@ -678,15 +702,21 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
+ 		val |= CAMSS_CSID_CID_n_CFG_RDI_EN;
+ 		val |= df << CAMSS_CSID_CID_n_CFG_DECODE_FORMAT_SHIFT;
+ 		val |= CAMSS_CSID_CID_n_CFG_RDI_MODE_RAW_DUMP;
+-		if (csid->camss->version == CAMSS_8x96 &&
+-			csid->fmt[MSM_CSID_PAD_SINK].code ==
+-					MEDIA_BUS_FMT_SBGGR10_1X10 &&
+-			csid->fmt[MSM_CSID_PAD_SRC].code ==
+-					MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE) {
+-			val |= CAMSS_CSID_CID_n_CFG_RDI_MODE_PLAIN_PACKING;
+-			val |= CAMSS_CSID_CID_n_CFG_PLAIN_FORMAT_16;
+-			val |= CAMSS_CSID_CID_n_CFG_PLAIN_ALIGNMENT_LSB;
 +
-+	return code[0];
-+}
++		if (csid->camss->version == CAMSS_8x96) {
++			u32 sink_code = csid->fmt[MSM_CSID_PAD_SINK].code;
++			u32 src_code = csid->fmt[MSM_CSID_PAD_SRC].code;
 +
-+static u32 csid_src_pad_code(struct csid_device *csid, u32 sink_code,
-+			     unsigned int index, u32 src_req_code)
-+{
-+	if (csid->camss->version == CAMSS_8x16)
-+		return sink_code;
-+	else if (csid->camss->version == CAMSS_8x96)
-+		switch (sink_code) {
-+		default:
-+			if (index > 0)
-+				return 0;
++			if ((sink_code == MEDIA_BUS_FMT_SBGGR10_1X10 &&
++			     src_code == MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE) ||
++			    (sink_code == MEDIA_BUS_FMT_Y10_1X10 &&
++			     src_code == MEDIA_BUS_FMT_Y10_2X8_PADHI_LE)) {
++				val |= CAMSS_CSID_CID_n_CFG_RDI_MODE_PLAIN_PACKING;
++				val |= CAMSS_CSID_CID_n_CFG_PLAIN_FORMAT_16;
++				val |= CAMSS_CSID_CID_n_CFG_PLAIN_ALIGNMENT_LSB;
++			}
+ 		}
 +
-+			return sink_code;
-+		}
-+	else
-+		return 0;
-+}
-+
- static const struct csid_format *csid_get_fmt_entry(
- 					const struct csid_format *formats,
- 					unsigned int nformat,
-@@ -667,15 +704,15 @@ static void csid_try_format(struct csid_device *csid,
+ 		writel_relaxed(val, csid->base +
+ 			       CAMSS_CSID_CID_n_CFG(ver, cid));
  
- 	case MSM_CSID_PAD_SRC:
- 		if (csid->testgen_mode->cur.val == 0) {
--			/* Test generator is disabled, keep pad formats */
--			/* in sync - set and return a format same as sink pad */
--			struct v4l2_mbus_framefmt format;
-+			/* Test generator is disabled, */
-+			/* keep pad formats in sync */
-+			u32 code = fmt->code;
+diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.c b/drivers/media/platform/qcom/camss/camss-csiphy.c
+index 0b7bf1e..924f854 100644
+--- a/drivers/media/platform/qcom/camss/camss-csiphy.c
++++ b/drivers/media/platform/qcom/camss/camss-csiphy.c
+@@ -48,6 +48,7 @@ static const struct csiphy_format csiphy_formats_8x16[] = {
+ 	{ MEDIA_BUS_FMT_SGBRG12_1X12, 12 },
+ 	{ MEDIA_BUS_FMT_SGRBG12_1X12, 12 },
+ 	{ MEDIA_BUS_FMT_SRGGB12_1X12, 12 },
++	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
+ };
  
--			format = *__csid_get_format(csid, cfg,
--						    MSM_CSID_PAD_SINK, which);
--			*fmt = format;
-+			*fmt = *__csid_get_format(csid, cfg,
-+						      MSM_CSID_PAD_SINK, which);
-+			fmt->code = csid_src_pad_code(csid, fmt->code, 0, code);
- 		} else {
--			/* Test generator is enabled, set format on source*/
-+			/* Test generator is enabled, set format on source */
- 			/* pad to allow test generator usage */
+ static const struct csiphy_format csiphy_formats_8x96[] = {
+@@ -71,6 +72,7 @@ static const struct csiphy_format csiphy_formats_8x96[] = {
+ 	{ MEDIA_BUS_FMT_SGBRG14_1X14, 14 },
+ 	{ MEDIA_BUS_FMT_SGRBG14_1X14, 14 },
+ 	{ MEDIA_BUS_FMT_SRGGB14_1X14, 14 },
++	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
+ };
  
- 			for (i = 0; i < csid->nformats; i++)
-@@ -709,7 +746,6 @@ static int csid_enum_mbus_code(struct v4l2_subdev *sd,
- 			       struct v4l2_subdev_mbus_code_enum *code)
+ /*
+diff --git a/drivers/media/platform/qcom/camss/camss-ispif.c b/drivers/media/platform/qcom/camss/camss-ispif.c
+index 649596a..02f84bc 100644
+--- a/drivers/media/platform/qcom/camss/camss-ispif.c
++++ b/drivers/media/platform/qcom/camss/camss-ispif.c
+@@ -120,6 +120,7 @@ static const u32 ispif_formats_8x16[] = {
+ 	MEDIA_BUS_FMT_SGBRG12_1X12,
+ 	MEDIA_BUS_FMT_SGRBG12_1X12,
+ 	MEDIA_BUS_FMT_SRGGB12_1X12,
++	MEDIA_BUS_FMT_Y10_1X10,
+ };
+ 
+ static const u32 ispif_formats_8x96[] = {
+@@ -144,6 +145,8 @@ static const u32 ispif_formats_8x96[] = {
+ 	MEDIA_BUS_FMT_SGBRG14_1X14,
+ 	MEDIA_BUS_FMT_SGRBG14_1X14,
+ 	MEDIA_BUS_FMT_SRGGB14_1X14,
++	MEDIA_BUS_FMT_Y10_1X10,
++	MEDIA_BUS_FMT_Y10_2X8_PADHI_LE,
+ };
+ 
+ /*
+@@ -687,7 +690,8 @@ static void ispif_config_pack(struct ispif_device *ispif, u32 code,
  {
- 	struct csid_device *csid = v4l2_get_subdevdata(sd);
--	struct v4l2_mbus_framefmt *format;
+ 	u32 addr, val;
  
- 	if (code->pad == MSM_CSID_PAD_SINK) {
- 		if (code->index >= csid->nformats)
-@@ -718,13 +754,16 @@ static int csid_enum_mbus_code(struct v4l2_subdev *sd,
- 		code->code = csid->formats[code->index].code;
- 	} else {
- 		if (csid->testgen_mode->cur.val == 0) {
--			if (code->index > 0)
--				return -EINVAL;
-+			struct v4l2_mbus_framefmt *sink_fmt;
+-	if (code != MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE)
++	if (code != MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE &&
++	    code != MEDIA_BUS_FMT_Y10_2X8_PADHI_LE)
+ 		return;
  
--			format = __csid_get_format(csid, cfg, MSM_CSID_PAD_SINK,
--						   code->which);
-+			sink_fmt = __csid_get_format(csid, cfg,
-+						     MSM_CSID_PAD_SINK,
-+						     code->which);
+ 	switch (intf) {
+diff --git a/drivers/media/platform/qcom/camss/camss-vfe.c b/drivers/media/platform/qcom/camss/camss-vfe.c
+index d439aca..72a4c50 100644
+--- a/drivers/media/platform/qcom/camss/camss-vfe.c
++++ b/drivers/media/platform/qcom/camss/camss-vfe.c
+@@ -70,6 +70,7 @@ static const struct vfe_format formats_rdi_8x16[] = {
+ 	{ MEDIA_BUS_FMT_SGBRG12_1X12, 12 },
+ 	{ MEDIA_BUS_FMT_SGRBG12_1X12, 12 },
+ 	{ MEDIA_BUS_FMT_SRGGB12_1X12, 12 },
++	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
+ };
  
--			code->code = format->code;
-+			code->code = csid_src_pad_code(csid, sink_fmt->code,
-+						       code->index, 0);
-+			if (!code->code)
-+				return -EINVAL;
- 		} else {
- 			if (code->index >= csid->nformats)
- 				return -EINVAL;
+ static const struct vfe_format formats_pix_8x16[] = {
+@@ -101,6 +102,8 @@ static const struct vfe_format formats_rdi_8x96[] = {
+ 	{ MEDIA_BUS_FMT_SGBRG14_1X14, 14 },
+ 	{ MEDIA_BUS_FMT_SGRBG14_1X14, 14 },
+ 	{ MEDIA_BUS_FMT_SRGGB14_1X14, 14 },
++	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
++	{ MEDIA_BUS_FMT_Y10_2X8_PADHI_LE, 16 },
+ };
+ 
+ static const struct vfe_format formats_pix_8x96[] = {
+diff --git a/drivers/media/platform/qcom/camss/camss-video.c b/drivers/media/platform/qcom/camss/camss-video.c
+index 2e19bc8..c9bb0d0 100644
+--- a/drivers/media/platform/qcom/camss/camss-video.c
++++ b/drivers/media/platform/qcom/camss/camss-video.c
+@@ -74,6 +74,8 @@ static const struct camss_format_info formats_rdi_8x16[] = {
+ 	  { { 1, 1 } }, { { 1, 1 } }, { 12 } },
+ 	{ MEDIA_BUS_FMT_SRGGB12_1X12, V4L2_PIX_FMT_SRGGB12P, 1,
+ 	  { { 1, 1 } }, { { 1, 1 } }, { 12 } },
++	{ MEDIA_BUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10P, 1,
++	  { { 1, 1 } }, { { 1, 1 } }, { 10 } },
+ };
+ 
+ static const struct camss_format_info formats_rdi_8x96[] = {
+@@ -119,6 +121,10 @@ static const struct camss_format_info formats_rdi_8x96[] = {
+ 	  { { 1, 1 } }, { { 1, 1 } }, { 14 } },
+ 	{ MEDIA_BUS_FMT_SRGGB14_1X14, V4L2_PIX_FMT_SRGGB14P, 1,
+ 	  { { 1, 1 } }, { { 1, 1 } }, { 14 } },
++	{ MEDIA_BUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10P, 1,
++	  { { 1, 1 } }, { { 1, 1 } }, { 10 } },
++	{ MEDIA_BUS_FMT_Y10_2X8_PADHI_LE, V4L2_PIX_FMT_Y10, 1,
++	  { { 1, 1 } }, { { 1, 1 } }, { 16 } },
+ };
+ 
+ static const struct camss_format_info formats_pix_8x16[] = {
 -- 
 2.7.4
