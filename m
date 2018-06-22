@@ -1,131 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60626 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751411AbeFVLmN (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:39596 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751005AbeFVMEh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Jun 2018 07:42:13 -0400
-Subject: Re: [PATCH v2] dma-buf/fence: Take refcount on the module that owns
- the fence
-To: Chris Wilson <chris@chris-wilson.co.uk>,
-        Gustavo Padovan <gustavo@padovan.org>, sumit.semwal@linaro.org,
-        jcrouse@codeaurora.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-        linux-kernel@vger.kernel.org
-Cc: linux-arm-msm@vger.kernel.org, smasetty@codeaurora.org
-References: <1529660407-6266-1-git-send-email-akhilpo@codeaurora.org>
- <1529661856.7034.404.camel@padovan.org>
- <152966212844.11773.6596589902326100250@mail.alporthouse.com>
-From: Akhil P Oommen <akhilpo@codeaurora.org>
-Message-ID: <cb950fea-b0cc-bbe7-9e94-78c62849cb64@codeaurora.org>
-Date: Fri, 22 Jun 2018 17:12:05 +0530
-MIME-Version: 1.0
-In-Reply-To: <152966212844.11773.6596589902326100250@mail.alporthouse.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        Fri, 22 Jun 2018 08:04:37 -0400
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+To: hverkuil@xs4all.nl, mchehab@kernel.org
+Cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>, rostedt@goodmis.org,
+        mingo@redhat.com, isely@pobox.com, bhumirks@gmail.com,
+        colin.king@canonical.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, ezequiel@collabora.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 1/2] media: usb: pwc: Introduce TRACE_EVENTs for pwc_isoc_handler()
+Date: Fri, 22 Jun 2018 15:04:18 +0300
+Message-Id: <20180622120419.7675-2-matwey@sai.msu.ru>
+In-Reply-To: <20180622120419.7675-1-matwey@sai.msu.ru>
+References: <20180622120419.7675-1-matwey@sai.msu.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+There were reports that PWC-based webcams don't work at some
+embedded ARM platforms. [1] Isochronous transfer handler seems to
+work too long leading to the issues in MUSB USB host subsystem.
+Also note, that urb->giveback() handlers are still called with
+disabled interrupts. In order to be able to measure performance of
+PWC driver, traces are introduced in URB handler section.
 
+[1] https://www.spinics.net/lists/linux-usb/msg165735.html
 
-On 6/22/2018 3:38 PM, Chris Wilson wrote:
-> Quoting Gustavo Padovan (2018-06-22 11:04:16)
->> Hi Akhil,
->>
->> On Fri, 2018-06-22 at 15:10 +0530, Akhil P Oommen wrote:
->>> Each fence object holds function pointers of the module that
->>> initialized
->>> it. Allowing the module to unload before this fence's release is
->>> catastrophic. So, keep a refcount on the module until the fence is
->>> released.
->>>
->>> Signed-off-by: Akhil P Oommen <akhilpo@codeaurora.org>
->>> ---
->>> Changes in v2:
->>> - added description for the new function parameter.
->>>
->>>   drivers/dma-buf/dma-fence.c | 16 +++++++++++++---
->>>   include/linux/dma-fence.h   | 10 ++++++++--
->>>   2 files changed, 21 insertions(+), 5 deletions(-)
->>>
->>> diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-
->>> fence.c
->>> index 4edb9fd..2aaa44e 100644
->>> --- a/drivers/dma-buf/dma-fence.c
->>> +++ b/drivers/dma-buf/dma-fence.c
->>> @@ -18,6 +18,7 @@
->>>    * more details.
->>>    */
->>>   
->>> +#include <linux/module.h>
->>>   #include <linux/slab.h>
->>>   #include <linux/export.h>
->>>   #include <linux/atomic.h>
->>> @@ -168,6 +169,7 @@ void dma_fence_release(struct kref *kref)
->>>   {
->>>        struct dma_fence *fence =
->>>                container_of(kref, struct dma_fence, refcount);
->>> +     struct module *module = fence->owner;
->>>   
->>>        trace_dma_fence_destroy(fence);
->>>   
->>> @@ -178,6 +180,8 @@ void dma_fence_release(struct kref *kref)
->>>                fence->ops->release(fence);
->>>        else
->>>                dma_fence_free(fence);
->>> +
->>> +     module_put(module);
->>>   }
->>>   EXPORT_SYMBOL(dma_fence_release);
->>>   
->>> @@ -541,6 +545,7 @@ struct default_wait_cb {
->>>   
->>>   /**
->>>    * dma_fence_init - Initialize a custom fence.
->>> + * @module:  [in]    the module that calls this API
->>>    * @fence:   [in]    the fence to initialize
->>>    * @ops:     [in]    the dma_fence_ops for operations on this
->>> fence
->>>    * @lock:    [in]    the irqsafe spinlock to use for locking
->>> this fence
->>> @@ -556,8 +561,9 @@ struct default_wait_cb {
->>>    * to check which fence is later by simply using dma_fence_later.
->>>    */
->>>   void
->>> -dma_fence_init(struct dma_fence *fence, const struct dma_fence_ops
->>> *ops,
->>> -            spinlock_t *lock, u64 context, unsigned seqno)
->>> +_dma_fence_init(struct module *module, struct dma_fence *fence,
->>> +             const struct dma_fence_ops *ops, spinlock_t *lock,
->>> +             u64 context, unsigned seqno)
->>>   {
->>>        BUG_ON(!lock);
->>>        BUG_ON(!ops || !ops->wait || !ops->enable_signaling ||
->>> @@ -571,7 +577,11 @@ struct default_wait_cb {
->>>        fence->seqno = seqno;
->>>        fence->flags = 0UL;
->>>        fence->error = 0;
->>> +     fence->owner = module;
->>> +
->>> +     if (!try_module_get(module))
->>> +             fence->owner = NULL;
->>>   
->>>        trace_dma_fence_init(fence);
->>>   }
->>> -EXPORT_SYMBOL(dma_fence_init);
->>> +EXPORT_SYMBOL(_dma_fence_init);
->> Do we still need to export the symbol, it won't be called from outside
->> anymore? Other than that looks good to me:
-Yes. Because dma_fence_init() is now a macro that resolves to 
-_dma_fence_init().
-> There's a big drawback in that a module reference is often insufficient,
-> and that a reference on the driver (or whatever is required for the
-> lifetime of the fence) will already hold the module reference.
-I didn't quite understand what you meant here. Could you please elaborate?
->
-> Considering that we want a few 100k fences in flight per second, is
-> there no other way to only export a fence with a module reference?
-> -Chris
+Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
+---
+ drivers/media/usb/pwc/pwc-if.c |  7 +++++
+ include/trace/events/pwc.h     | 64 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 71 insertions(+)
+ create mode 100644 include/trace/events/pwc.h
 
-Thanks,
-Akhil.
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index 54b036d39c5b..72d2897a4b9f 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -76,6 +76,9 @@
+ #include "pwc-dec23.h"
+ #include "pwc-dec1.h"
+ 
++#define CREATE_TRACE_POINTS
++#include <trace/events/pwc.h>
++
+ /* Function prototypes and driver templates */
+ 
+ /* hotplug device table support */
+@@ -260,6 +263,8 @@ static void pwc_isoc_handler(struct urb *urb)
+ 	int i, fst, flen;
+ 	unsigned char *iso_buf = NULL;
+ 
++	trace_pwc_handler_enter(urb, pdev);
++
+ 	if (urb->status == -ENOENT || urb->status == -ECONNRESET ||
+ 	    urb->status == -ESHUTDOWN) {
+ 		PWC_DEBUG_OPEN("URB (%p) unlinked %ssynchronously.\n",
+@@ -348,6 +353,8 @@ static void pwc_isoc_handler(struct urb *urb)
+ 	}
+ 
+ handler_end:
++	trace_pwc_handler_exit(urb, pdev);
++
+ 	i = usb_submit_urb(urb, GFP_ATOMIC);
+ 	if (i != 0)
+ 		PWC_ERROR("Error (%d) re-submitting urb in pwc_isoc_handler.\n", i);
+diff --git a/include/trace/events/pwc.h b/include/trace/events/pwc.h
+new file mode 100644
+index 000000000000..d5bcb1314d0e
+--- /dev/null
++++ b/include/trace/events/pwc.h
+@@ -0,0 +1,64 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#if !defined(_TRACE_PWC_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_PWC_H
++
++#include <linux/usb.h>
++#include <linux/tracepoint.h>
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM pwc
++
++TRACE_EVENT(pwc_handler_enter,
++	TP_PROTO(struct urb *urb, struct pwc_device *pdev),
++	TP_ARGS(urb, pdev),
++	TP_STRUCT__entry(
++		__field(struct urb*, urb)
++		__field(int, urb__status)
++		__field(u32, urb__actual_length)
++		__field(char*, devpath)
++		__field(struct pwc_frame_buf*, fbuf)
++		__field(int, fbuf__filled)
++	),
++	TP_fast_assign(
++		__entry->urb = urb;
++		__entry->urb__status = urb->status;
++		__entry->urb__actual_length = urb->actual_length;
++		__entry->devpath = pdev->udev->devpath;
++		__entry->fbuf = pdev->fill_buf;
++		__entry->fbuf__filled = pdev->fill_buf->filled;
++	),
++	TP_printk("devpath=%s (fbuf=%p filled=%d) urb=%p (status=%d actual_length=%u)",
++		__entry->devpath,
++		__entry->fbuf,
++		__entry->fbuf__filled,
++		__entry->urb,
++		__entry->urb__status,
++		__entry->urb__actual_length)
++);
++
++TRACE_EVENT(pwc_handler_exit,
++	TP_PROTO(struct urb *urb, struct pwc_device* pdev),
++	TP_ARGS(urb, pdev),
++	TP_STRUCT__entry(
++		__field(struct urb*, urb)
++		__field(char*, devpath)
++		__field(struct pwc_frame_buf*, fbuf)
++		__field(int, fbuf__filled)
++	),
++	TP_fast_assign(
++		__entry->urb = urb;
++		__entry->devpath = pdev->udev->devpath;
++		__entry->fbuf = pdev->fill_buf;
++		__entry->fbuf__filled = pdev->fill_buf->filled;
++	),
++	TP_printk("devpath=%s (fbuf=%p filled=%d) urb=%p",
++		__entry->devpath,
++		__entry->fbuf,
++		__entry->fbuf__filled,
++		__entry->urb)
++);
++
++#endif /* _TRACE_PWC_H */
++
++/* This part must be outside protection */
++#include <trace/define_trace.h>
+-- 
+2.16.4
