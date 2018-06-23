@@ -1,80 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:46354 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751506AbeFWPgW (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54387 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751848AbeFWV3F (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Jun 2018 11:36:22 -0400
-Received: by mail-wr0-f194.google.com with SMTP id l14-v6so4347710wrq.13
-        for <linux-media@vger.kernel.org>; Sat, 23 Jun 2018 08:36:22 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: mchehab@kernel.org, mchehab@s-opensource.com
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 03/19] [media] ddbridge: probe for LNBH25 chips before attaching
-Date: Sat, 23 Jun 2018 17:35:59 +0200
-Message-Id: <20180623153615.27630-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20180623153615.27630-1-d.scheller.oss@gmail.com>
-References: <20180623153615.27630-1-d.scheller.oss@gmail.com>
+        Sat, 23 Jun 2018 17:29:05 -0400
+Date: Sat, 23 Jun 2018 23:29:02 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mario.Limonciello@dell.com, nicolas@ndufresne.ca,
+        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        niklas.soderlund@ragnatech.se, jerry.w.hu@intel.com
+Subject: Re: Software-only image processing for Intel "complex" cameras
+Message-ID: <20180623212902.GA18976@amd>
+References: <20180620203838.GA13372@amd>
+ <b7707ec241d9d2d2966bdc32f7bb9bc55ac55c5d.camel@ndufresne.ca>
+ <20180620211144.GA16945@amd>
+ <da642773adac42a6966b9716f0d53444@ausx13mpc120.AMER.DELL.COM>
+ <20180622034946.2ae51f1e@vela.lan>
+ <db8d91a47971417da424df7bf67a5cca@ausx13mpc120.AMER.DELL.COM>
+ <20180622060850.3941d9a7@vela.lan>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
+Content-Disposition: inline
+In-Reply-To: <20180622060850.3941d9a7@vela.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
 
-In demod_attach_stv0910(), the LNBH25 IC is being blindly attached and,
-if the result is bad, blindly attached on another possible I2C address.
-The LNBH25 uses it's set_voltage function to test for the IC and will
-print an error to the kernel log on failure. Prevent this by probing
-the possible I2C address and use this (and only this) to attach the
-LNBH25 I2C driver. This also allows the stv0910 attach function to be
-a bit cleaner.
+--xHFwDpU9dbj6ez1V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Picked up from the upstream dddvb GIT and adapted for the LNBH25 driver
-variant from the kernel tree.
+Hi!
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-core.c | 22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+> > > e. g. something like:
+> > >=20
+> > > 	board_vendor =3D dmi_get_system_info(DMI_BOARD_VENDOR);
+> > > 	board_name =3D dmi_get_system_info(DMI_BOARD_NAME);
+> > > 	board_version =3D dmi_get_system_info(DMI_BOARD_NAME);
+> > > 	product_name =3D dmi_get_system_info(DMI_PRODUCT_NAME);
+> > > 	product_version =3D dmi_get_system_info(DMI_PRODUCT_VERSION);
+> > >=20
+> > > 	sprintf(dev->cap, "%s:%s:%s:%s", board_vendor, board_name,
+> > > board_version, product_name, product_version);
+> > >=20
+> > > (the real code should check if the values are filled, as not all BIOS=
+ vendors use the
+> > > same DMI fields)
+> > >=20
+> > > With that, the library can auto-adjust without needing to run anythin=
+g as
+> > > root.
+> > >  =20
+> > Well actually most of those fields you're interested in are already exp=
+osed to userspace
+> > through sysfs /sys/class/dmi/id/
+> >=20
+> > Can't the library just pull them from there?
+>=20
+> Good point. Yeah, the library could use them.
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index d5b0d1eaf3ad..3f83415b06c7 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1191,6 +1191,13 @@ static const struct lnbh25_config lnbh25_cfg = {
- 	.data2_config = LNBH25_TEN
- };
- 
-+static int has_lnbh25(struct i2c_adapter *i2c, u8 adr)
-+{
-+	u8 val;
-+
-+	return i2c_read_reg(i2c, adr, 0, &val) ? 0 : 1;
-+}
-+
- static int demod_attach_stv0910(struct ddb_input *input, int type, int tsfast)
- {
- 	struct i2c_adapter *i2c = &input->port->i2c->adap;
-@@ -1224,14 +1231,15 @@ static int demod_attach_stv0910(struct ddb_input *input, int type, int tsfast)
- 	/* attach lnbh25 - leftshift by one as the lnbh25 driver expects 8bit
- 	 * i2c addresses
- 	 */
--	lnbcfg.i2c_address = (((input->nr & 1) ? 0x0d : 0x0c) << 1);
--	if (!dvb_attach(lnbh25_attach, dvb->fe, &lnbcfg, i2c)) {
-+	if (has_lnbh25(i2c, 0x0d))
-+		lnbcfg.i2c_address = (((input->nr & 1) ? 0x0d : 0x0c) << 1);
-+	else
- 		lnbcfg.i2c_address = (((input->nr & 1) ? 0x09 : 0x08) << 1);
--		if (!dvb_attach(lnbh25_attach, dvb->fe, &lnbcfg, i2c)) {
--			dev_err(dev, "No LNBH25 found!\n");
--			dvb_frontend_detach(dvb->fe);
--			return -ENODEV;
--		}
-+
-+	if (!dvb_attach(lnbh25_attach, dvb->fe, &lnbcfg, i2c)) {
-+		dev_err(dev, "No LNBH25 found!\n");
-+		dvb_frontend_detach(dvb->fe);
-+		return -ENODEV;
- 	}
- 
- 	return 0;
--- 
-2.16.4
+This could be done, but it would be better if libraries could query
+neccessary information from v4l2 drivers.
+
+If DMI was used, _library_ would need to know about new hardware,
+which is  not desirable.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--xHFwDpU9dbj6ez1V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlsuu54ACgkQMOfwapXb+vKSygCeOEObId7hQhN3xeDRNbrvc8Bu
+6w8AnifAANVLAQsxx+iCyv3MAxt5KJV1
+=wI9O
+-----END PGP SIGNATURE-----
+
+--xHFwDpU9dbj6ez1V--
