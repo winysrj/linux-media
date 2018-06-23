@@ -1,125 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:56067 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751665AbeFWIUo (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34537 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751458AbeFWPgT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Jun 2018 04:20:44 -0400
-Subject: Re: [PATCH v2 2/2] vim2m: add media device
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        emil.velikov@collabora.com
-References: <20180621203828.18173-1-ezequiel@collabora.com>
- <20180621203828.18173-3-ezequiel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6d15def3-2ed4-2a5e-2eab-d480b14510f4@xs4all.nl>
-Date: Sat, 23 Jun 2018 10:20:40 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180621203828.18173-3-ezequiel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Sat, 23 Jun 2018 11:36:19 -0400
+Received: by mail-wm0-f66.google.com with SMTP id l15-v6so8645509wmc.1
+        for <linux-media@vger.kernel.org>; Sat, 23 Jun 2018 08:36:19 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: mchehab@kernel.org, mchehab@s-opensource.com
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 00/19] dddvb/ddbridge updates as of 2018-06-23
+Date: Sat, 23 Jun 2018 17:35:56 +0200
+Message-Id: <20180623153615.27630-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/21/2018 10:38 PM, Ezequiel Garcia wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Request API requires a media node. Add one to the vim2m driver so we can
-> use requests with it.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> ---
->  drivers/media/platform/vim2m.c | 41 ++++++++++++++++++++++++++++++----
->  1 file changed, 37 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-> index 065483e62db4..da13a8927f3f 100644
-> --- a/drivers/media/platform/vim2m.c
-> +++ b/drivers/media/platform/vim2m.c
-> @@ -140,6 +140,9 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
->  struct vim2m_dev {
->  	struct v4l2_device	v4l2_dev;
->  	struct video_device	vfd;
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct media_device	mdev;
-> +#endif
->  
->  	atomic_t		num_inst;
->  	struct mutex		dev_mutex;
-> @@ -1016,7 +1019,7 @@ static int vim2m_probe(struct platform_device *pdev)
->  	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
->  	if (ret) {
->  		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
-> -		goto unreg_dev;
-> +		goto unreg_v4l2;
->  	}
->  
->  	video_set_drvdata(vfd, dev);
-> @@ -1031,15 +1034,39 @@ static int vim2m_probe(struct platform_device *pdev)
->  	if (IS_ERR(dev->m2m_dev)) {
->  		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
->  		ret = PTR_ERR(dev->m2m_dev);
-> -		goto err_m2m;
-> +		goto unreg_dev;
-> +	}
-> +
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	dev->mdev.dev = &pdev->dev;
-> +	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
-> +	media_device_init(&dev->mdev);
-> +	dev->v4l2_dev.mdev = &dev->mdev;
-> +
-> +	ret = v4l2_m2m_register_media_controller(dev->m2m_dev,
-> +			vfd, MEDIA_ENT_F_PROC_VIDEO_SCALER);
-> +	if (ret) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem media controller\n");
-> +		goto unreg_m2m;
->  	}
->  
-> +	ret = media_device_register(&dev->mdev);
-> +	if (ret) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to register mem2mem media device\n");
-> +		goto unreg_m2m_mc;
-> +	}
-> +#endif
->  	return 0;
->  
-> -err_m2m:
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +unreg_m2m_mc:
-> +	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
-> +unreg_m2m:
->  	v4l2_m2m_release(dev->m2m_dev);
-> -	video_unregister_device(&dev->vfd);
-> +#endif
->  unreg_dev:
-> +	video_unregister_device(&dev->vfd);
-> +unreg_v4l2:
->  	v4l2_device_unregister(&dev->v4l2_dev);
->  
->  	return ret;
-> @@ -1050,6 +1077,12 @@ static int vim2m_remove(struct platform_device *pdev)
->  	struct vim2m_dev *dev = platform_get_drvdata(pdev);
->  
->  	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
-> +
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	media_device_unregister(&dev->mdev);
-> +	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
-> +	media_device_cleanup(&dev->mdev);
-> +#endif
->  	v4l2_m2m_release(dev->m2m_dev);
->  	del_timer_sync(&dev->timer);
->  	video_unregister_device(&dev->vfd);
-> 
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Looks good!
+A bunch of commits as they appeared in the dddvb upstream GIT as of
+2018-06-23, mainly cleanups, cosmetics and code move in preparation for
+new MCI card types, plus improvements to the existing SX8 code, ie.
+DVBv5 signal statistics.
 
-Regards,
+Also fixes one sparse warning as being reported by Hans' daily media_tree
+build in the mxl5xx driver.
 
-	Hans
+Daniel Scheller (19):
+  [media] dvb-frontends/mxl5xx: add break to case DVBS2 in
+    get_frontend()
+  [media] dvb-frontends/stv0910: cast the BER denominator shift exp to
+    ULL
+  [media] ddbridge: probe for LNBH25 chips before attaching
+  [media] ddbridge: evaluate the actual link when setting up the dummy
+    tuner
+  [media] ddbridge: report I2C bus errors
+  [media] ddbridge: remove unused MDIO defines and hwinfo member
+  [media] ddbridge: link structure access cosmetics in ddb_port_probe()
+  [media] ddbridge: change MCI base ID and define a SX8 ID
+  [media] ddbridge/mci: update copyright year in headers
+  [media] ddbridge/mci: read and report signal strength and SNR
+  [media] ddbridge/mci: rename defines and fix i/q var types
+  [media] ddbridge/mci: extend mci_command and mci_result structs
+  [media] ddbridge/mci: store mci type and number of ports in the hwinfo
+  [media] ddbridge/mci: make ddb_mci_cmd() and ddb_mci_config() public
+  [media] ddbridge/mci: split MaxSX8 specific code off to ddbridge-sx8.c
+  [media] ddbridge/mci: add more MCI status codes, improve MCI_SUCCESS
+    macro
+  [media] ddbridge/sx8: disable automatic PLS code search
+  [media] ddbridge/sx8: enable modulation selection in set_parameters()
+  [media] ddbridge/mci: add SX8 I/Q mode remark and remove DIAG CMD
+    defines
+
+ drivers/media/dvb-frontends/mxl5xx.c       |   1 +
+ drivers/media/dvb-frontends/stv0910.c      |   4 +-
+ drivers/media/pci/ddbridge/Makefile        |   3 +-
+ drivers/media/pci/ddbridge/ddbridge-core.c |  45 +--
+ drivers/media/pci/ddbridge/ddbridge-hw.c   |   3 +-
+ drivers/media/pci/ddbridge/ddbridge-i2c.c  |   5 +-
+ drivers/media/pci/ddbridge/ddbridge-max.c  |  18 +-
+ drivers/media/pci/ddbridge/ddbridge-max.h  |   2 +-
+ drivers/media/pci/ddbridge/ddbridge-mci.c  | 409 ++----------------------
+ drivers/media/pci/ddbridge/ddbridge-mci.h  | 192 ++++++++---
+ drivers/media/pci/ddbridge/ddbridge-regs.h |   8 -
+ drivers/media/pci/ddbridge/ddbridge-sx8.c  | 490 +++++++++++++++++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge.h      |  14 +-
+ 13 files changed, 718 insertions(+), 476 deletions(-)
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-sx8.c
+
+-- 
+2.16.4
