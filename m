@@ -1,88 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54387 "EHLO
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54476 "EHLO
         atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751848AbeFWV3F (ORCPT
+        with ESMTP id S1751471AbeFWVda (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Jun 2018 17:29:05 -0400
-Date: Sat, 23 Jun 2018 23:29:02 +0200
+        Sat, 23 Jun 2018 17:33:30 -0400
+Date: Sat, 23 Jun 2018 23:33:28 +0200
 From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mario.Limonciello@dell.com, nicolas@ndufresne.ca,
-        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        niklas.soderlund@ragnatech.se, jerry.w.hu@intel.com
-Subject: Re: Software-only image processing for Intel "complex" cameras
-Message-ID: <20180623212902.GA18976@amd>
-References: <20180620203838.GA13372@amd>
- <b7707ec241d9d2d2966bdc32f7bb9bc55ac55c5d.camel@ndufresne.ca>
- <20180620211144.GA16945@amd>
- <da642773adac42a6966b9716f0d53444@ausx13mpc120.AMER.DELL.COM>
- <20180622034946.2ae51f1e@vela.lan>
- <db8d91a47971417da424df7bf67a5cca@ausx13mpc120.AMER.DELL.COM>
- <20180622060850.3941d9a7@vela.lan>
+To: kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+        nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org,
+        gshark.jeong@gmail.com, m.chehab@samsung.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: i2c: lm3560: add support for lm3559 chip
+Message-ID: <20180623213328.GA19154@amd>
+References: <20180506080607.GA24212@amd>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
+        protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
 Content-Disposition: inline
-In-Reply-To: <20180622060850.3941d9a7@vela.lan>
+In-Reply-To: <20180506080607.GA24212@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---xHFwDpU9dbj6ez1V
+--+QahgC5+KEYLbs62
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
-
-> > > e. g. something like:
-> > >=20
-> > > 	board_vendor =3D dmi_get_system_info(DMI_BOARD_VENDOR);
-> > > 	board_name =3D dmi_get_system_info(DMI_BOARD_NAME);
-> > > 	board_version =3D dmi_get_system_info(DMI_BOARD_NAME);
-> > > 	product_name =3D dmi_get_system_info(DMI_PRODUCT_NAME);
-> > > 	product_version =3D dmi_get_system_info(DMI_PRODUCT_VERSION);
-> > >=20
-> > > 	sprintf(dev->cap, "%s:%s:%s:%s", board_vendor, board_name,
-> > > board_version, product_name, product_version);
-> > >=20
-> > > (the real code should check if the values are filled, as not all BIOS=
- vendors use the
-> > > same DMI fields)
-> > >=20
-> > > With that, the library can auto-adjust without needing to run anythin=
-g as
-> > > root.
-> > >  =20
-> > Well actually most of those fields you're interested in are already exp=
-osed to userspace
-> > through sysfs /sys/class/dmi/id/
-> >=20
-> > Can't the library just pull them from there?
+On Sun 2018-05-06 10:06:07, Pavel Machek wrote:
 >=20
-> Good point. Yeah, the library could use them.
+> Add support for LM3559, as found in Motorola Droid 4 phone, for
+> example. SW interface seems to be identical.
+>=20
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-This could be done, but it would be better if libraries could query
-neccessary information from v4l2 drivers.
+Ping?
 
-If DMI was used, _library_ would need to know about new hardware,
-which is  not desirable.
-									Pavel
+Could this and media: i2c: lm3560: use conservative defaults be
+applied for v4.19? This is not too complex...
+
+								Pavel
+							=09
+>=20
+> diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+> index b600e03a..c4e5ed5 100644
+> --- a/drivers/media/i2c/lm3560.c
+> +++ b/drivers/media/i2c/lm3560.c
+> @@ -1,6 +1,6 @@
+>  /*
+>   * drivers/media/i2c/lm3560.c
+> - * General device driver for TI lm3560, FLASH LED Driver
+> + * General device driver for TI lm3559, lm3560, FLASH LED Driver
+>   *
+>   * Copyright (C) 2013 Texas Instruments
+>   *
+> @@ -465,6 +479,7 @@ static int lm3560_remove(struct i2c_client *client)
+>  }
+> =20
+>  static const struct i2c_device_id lm3560_id_table[] =3D {
+> +	{LM3559_NAME, 0},
+>  	{LM3560_NAME, 0},
+>  	{}
+>  };
+> diff --git a/include/media/i2c/lm3560.h b/include/media/i2c/lm3560.h
+> index a5bd310..0e2b1c7 100644
+> --- a/include/media/i2c/lm3560.h
+> +++ b/include/media/i2c/lm3560.h
+> @@ -22,6 +22,7 @@
+> =20
+>  #include <media/v4l2-subdev.h>
+> =20
+> +#define LM3559_NAME	"lm3559"
+>  #define LM3560_NAME	"lm3560"
+>  #define LM3560_I2C_ADDR	(0x53)
+> =20
+>=20
+
+
+
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---xHFwDpU9dbj6ez1V
+--+QahgC5+KEYLbs62
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlsuu54ACgkQMOfwapXb+vKSygCeOEObId7hQhN3xeDRNbrvc8Bu
-6w8AnifAANVLAQsxx+iCyv3MAxt5KJV1
-=wI9O
+iEYEARECAAYFAlsuvKcACgkQMOfwapXb+vL6sgCgsaef/H0uyRrovGthhyk14Lrg
+AXMAnRqxuh4vJmTwgGVxD/Sc8ozS74zk
+=ohf/
 -----END PGP SIGNATURE-----
 
---xHFwDpU9dbj6ez1V--
+--+QahgC5+KEYLbs62--
