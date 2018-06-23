@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:32859 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751589AbeFWPg0 (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:46354 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751506AbeFWPgW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Jun 2018 11:36:26 -0400
-Received: by mail-wr0-f195.google.com with SMTP id k16-v6so9439525wro.0
-        for <linux-media@vger.kernel.org>; Sat, 23 Jun 2018 08:36:25 -0700 (PDT)
+        Sat, 23 Jun 2018 11:36:22 -0400
+Received: by mail-wr0-f194.google.com with SMTP id l14-v6so4347710wrq.13
+        for <linux-media@vger.kernel.org>; Sat, 23 Jun 2018 08:36:22 -0700 (PDT)
 From: Daniel Scheller <d.scheller.oss@gmail.com>
 To: mchehab@kernel.org, mchehab@s-opensource.com
 Cc: linux-media@vger.kernel.org
-Subject: [PATCH 07/19] [media] ddbridge: link structure access cosmetics in ddb_port_probe()
-Date: Sat, 23 Jun 2018 17:36:03 +0200
-Message-Id: <20180623153615.27630-8-d.scheller.oss@gmail.com>
+Subject: [PATCH 03/19] [media] ddbridge: probe for LNBH25 chips before attaching
+Date: Sat, 23 Jun 2018 17:35:59 +0200
+Message-Id: <20180623153615.27630-4-d.scheller.oss@gmail.com>
 In-Reply-To: <20180623153615.27630-1-d.scheller.oss@gmail.com>
 References: <20180623153615.27630-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -19,85 +19,62 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Daniel Scheller <d.scheller@gmx.net>
 
-Throughout the function, dev->link[l] is used several times. Unclutter
-this a bit by declaring a ddb_link var at the top of the function, assign
-the address of dev->link[l] to it and use that var to access the link[]
-struct member.
+In demod_attach_stv0910(), the LNBH25 IC is being blindly attached and,
+if the result is bad, blindly attached on another possible I2C address.
+The LNBH25 uses it's set_voltage function to test for the IC and will
+print an error to the kernel log on failure. Prevent this by probing
+the possible I2C address and use this (and only this) to attach the
+LNBH25 I2C driver. This also allows the stv0910 attach function to be
+a bit cleaner.
 
-Picked up from the upstream dddvb GIT.
+Picked up from the upstream dddvb GIT and adapted for the LNBH25 driver
+variant from the kernel tree.
 
 Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/media/pci/ddbridge/ddbridge-core.c | 22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 55eb151f329e..408460be00b7 100644
+index d5b0d1eaf3ad..3f83415b06c7 100644
 --- a/drivers/media/pci/ddbridge/ddbridge-core.c
 +++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1850,6 +1850,7 @@ static void ddb_port_probe(struct ddb_port *port)
+@@ -1191,6 +1191,13 @@ static const struct lnbh25_config lnbh25_cfg = {
+ 	.data2_config = LNBH25_TEN
+ };
+ 
++static int has_lnbh25(struct i2c_adapter *i2c, u8 adr)
++{
++	u8 val;
++
++	return i2c_read_reg(i2c, adr, 0, &val) ? 0 : 1;
++}
++
+ static int demod_attach_stv0910(struct ddb_input *input, int type, int tsfast)
  {
- 	struct ddb *dev = port->dev;
- 	u32 l = port->lnr;
-+	struct ddb_link *link = &dev->link[l];
- 	u8 id, type;
- 
- 	port->name = "NO MODULE";
-@@ -1859,7 +1860,7 @@ static void ddb_port_probe(struct ddb_port *port)
- 	/* Handle missing ports and ports without I2C */
- 
- 	if (dummy_tuner && !port->nr &&
--	    dev->link[l].ids.device == 0x0005) {
-+	    link->ids.device == 0x0005) {
- 		port->name = "DUMMY";
- 		port->class = DDB_PORT_TUNER;
- 		port->type = DDB_TUNER_DUMMY;
-@@ -1873,14 +1874,14 @@ static void ddb_port_probe(struct ddb_port *port)
- 		return;
+ 	struct i2c_adapter *i2c = &input->port->i2c->adap;
+@@ -1224,14 +1231,15 @@ static int demod_attach_stv0910(struct ddb_input *input, int type, int tsfast)
+ 	/* attach lnbh25 - leftshift by one as the lnbh25 driver expects 8bit
+ 	 * i2c addresses
+ 	 */
+-	lnbcfg.i2c_address = (((input->nr & 1) ? 0x0d : 0x0c) << 1);
+-	if (!dvb_attach(lnbh25_attach, dvb->fe, &lnbcfg, i2c)) {
++	if (has_lnbh25(i2c, 0x0d))
++		lnbcfg.i2c_address = (((input->nr & 1) ? 0x0d : 0x0c) << 1);
++	else
+ 		lnbcfg.i2c_address = (((input->nr & 1) ? 0x09 : 0x08) << 1);
+-		if (!dvb_attach(lnbh25_attach, dvb->fe, &lnbcfg, i2c)) {
+-			dev_err(dev, "No LNBH25 found!\n");
+-			dvb_frontend_detach(dvb->fe);
+-			return -ENODEV;
+-		}
++
++	if (!dvb_attach(lnbh25_attach, dvb->fe, &lnbcfg, i2c)) {
++		dev_err(dev, "No LNBH25 found!\n");
++		dvb_frontend_detach(dvb->fe);
++		return -ENODEV;
  	}
  
--	if (port->nr == 1 && dev->link[l].info->type == DDB_OCTOPUS_CI &&
--	    dev->link[l].info->i2c_mask == 1) {
-+	if (port->nr == 1 && link->info->type == DDB_OCTOPUS_CI &&
-+	    link->info->i2c_mask == 1) {
- 		port->name = "NO TAB";
- 		port->class = DDB_PORT_NONE;
- 		return;
- 	}
- 
--	if (dev->link[l].info->type == DDB_OCTOPUS_MAX) {
-+	if (link->info->type == DDB_OCTOPUS_MAX) {
- 		port->name = "DUAL DVB-S2 MAX";
- 		port->type_name = "MXL5XX";
- 		port->class = DDB_PORT_TUNER;
-@@ -1891,8 +1892,8 @@ static void ddb_port_probe(struct ddb_port *port)
- 		return;
- 	}
- 
--	if (dev->link[l].info->type == DDB_OCTOPUS_MCI) {
--		if (port->nr >= dev->link[l].info->mci)
-+	if (link->info->type == DDB_OCTOPUS_MCI) {
-+		if (port->nr >= link->info->mci)
- 			return;
- 		port->name = "DUAL MCI";
- 		port->type_name = "MCI";
-@@ -1901,7 +1902,7 @@ static void ddb_port_probe(struct ddb_port *port)
- 		return;
- 	}
- 
--	if (port->nr > 1 && dev->link[l].info->type == DDB_OCTOPUS_CI) {
-+	if (port->nr > 1 && link->info->type == DDB_OCTOPUS_CI) {
- 		port->name = "CI internal";
- 		port->type_name = "INTERNAL";
- 		port->class = DDB_PORT_CI;
-@@ -1986,7 +1987,7 @@ static void ddb_port_probe(struct ddb_port *port)
- 		port->class = DDB_PORT_TUNER;
- 		if (id == 0x51) {
- 			if (port->nr == 0 &&
--			    dev->link[l].info->ts_quirks & TS_QUIRK_REVERSED)
-+			    link->info->ts_quirks & TS_QUIRK_REVERSED)
- 				port->type = DDB_TUNER_DVBS_STV0910_PR;
- 			else
- 				port->type = DDB_TUNER_DVBS_STV0910_P;
+ 	return 0;
 -- 
 2.16.4
