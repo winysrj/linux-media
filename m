@@ -1,62 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:35294 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752333AbeFAQJ6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 12:09:58 -0400
-From: Ivan Bornyakov <brnkv.i1@gmail.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Ivan Bornyakov <brnkv.i1@gmail.com>
-Subject: [PATCH] media: stv090x: fix if-else order
-Date: Fri,  1 Jun 2018 19:12:21 +0300
-Message-Id: <20180601161221.24807-1-brnkv.i1@gmail.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34537 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751471AbeFWPgU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 23 Jun 2018 11:36:20 -0400
+Received: by mail-wm0-f65.google.com with SMTP id l15-v6so8645518wmc.1
+        for <linux-media@vger.kernel.org>; Sat, 23 Jun 2018 08:36:20 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: mchehab@kernel.org, mchehab@s-opensource.com
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 01/19] [media] dvb-frontends/mxl5xx: add break to case DVBS2 in get_frontend()
+Date: Sat, 23 Jun 2018 17:35:57 +0200
+Message-Id: <20180623153615.27630-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20180623153615.27630-1-d.scheller.oss@gmail.com>
+References: <20180623153615.27630-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is this code:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-	if (v >= 0x20) {
-		...
-	} else if (v < 0x20) {
-		...
-	} else if (v > 0x30) {
-		/* this branch is impossible */
-	}
+Fix one sparse warning:
 
-It would be sensibly for last branch to be on the top.
+    drivers/media/dvb-frontends/mxl5xx.c:731:3: warning: this statement may fall through [-Wimplicit-fallthrough=]
 
-Signed-off-by: Ivan Bornyakov <brnkv.i1@gmail.com>
+as seen in Hans' daily media_tree builds.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/dvb-frontends/stv090x.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/media/dvb-frontends/mxl5xx.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
-index 9133f65d4623..d70eb311ebaf 100644
---- a/drivers/media/dvb-frontends/stv090x.c
-+++ b/drivers/media/dvb-frontends/stv090x.c
-@@ -4841,7 +4841,11 @@ static int stv090x_setup(struct dvb_frontend *fe)
- 	}
- 
- 	state->internal->dev_ver = stv090x_read_reg(state, STV090x_MID);
--	if (state->internal->dev_ver >= 0x20) {
-+	if (state->internal->dev_ver > 0x30) {
-+		/* we shouldn't bail out from here */
-+		dprintk(FE_ERROR, 1, "INFO: Cut: 0x%02x probably incomplete support!",
-+			state->internal->dev_ver);
-+	} else if (state->internal->dev_ver >= 0x20) {
- 		if (stv090x_write_reg(state, STV090x_TSGENERAL, 0x0c) < 0)
- 			goto err;
- 
-@@ -4857,10 +4861,6 @@ static int stv090x_setup(struct dvb_frontend *fe)
- 			state->internal->dev_ver);
- 
- 		goto err;
--	} else if (state->internal->dev_ver > 0x30) {
--		/* we shouldn't bail out from here */
--		dprintk(FE_ERROR, 1, "INFO: Cut: 0x%02x probably incomplete support!",
--			state->internal->dev_ver);
- 	}
- 
- 	/* ADC1 range */
+diff --git a/drivers/media/dvb-frontends/mxl5xx.c b/drivers/media/dvb-frontends/mxl5xx.c
+index 274d8fca0763..a7d08ace11ba 100644
+--- a/drivers/media/dvb-frontends/mxl5xx.c
++++ b/drivers/media/dvb-frontends/mxl5xx.c
+@@ -739,6 +739,7 @@ static int get_frontend(struct dvb_frontend *fe,
+ 		default:
+ 			break;
+ 		}
++		break;
+ 	case SYS_DVBS:
+ 		switch ((enum MXL_HYDRA_MODULATION_E)
+ 			reg_data[DMD_MODULATION_SCHEME_ADDR]) {
 -- 
 2.16.4
